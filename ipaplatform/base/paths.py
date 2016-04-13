@@ -140,7 +140,6 @@ class BasePathNamespace(object):
     CACERT_P12 = "/root/cacert.p12"
     ROOT_IPA_CSR = "/root/ipa.csr"
     NAMED_PID = "/run/named/named.pid"
-    IP = "/sbin/ip"
     NOLOGIN = "/sbin/nologin"
     SBIN_REBOOT = "/sbin/reboot"
     SBIN_RESTORECON = "/sbin/restorecon"

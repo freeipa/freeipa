@@ -32,6 +32,7 @@ import socket
 import re
 import datetime
 import netaddr
+import netifaces
 import time
 import gssapi
 import pwd
@@ -151,24 +152,24 @@ class CheckedIPAddress(netaddr.IPAddress):
 
         if match_local:
             if addr.version == 4:
-                family = 'inet'
+                family = netifaces.AF_INET
             elif addr.version == 6:
-                family = 'inet6'
+                family = netifaces.AF_INET6
+            else:
+                raise ValueError(
+                    "Unsupported address family ({})".format(addr.version)
+                )
 
-            result = run(
-                [paths.IP, '-family', family, '-oneline', 'address', 'show'],
-                capture_output=True)
-            lines = result.output.split('\n')
-            for line in lines:
-                fields = line.split()
-                if len(fields) < 4:
-                    continue
-
-                ifnet = netaddr.IPNetwork(fields[3])
-                if ifnet == net or (net is None and ifnet.ip == addr):
-                    net = ifnet
-                    iface = fields[1]
-                    break
+            for interface in netifaces.interfaces():
+                for ifdata in netifaces.ifaddresses(interface).get(family, []):
+                    ifnet = netaddr.IPNetwork('{addr}/{netmask}'.format(
+                        addr=ifdata['addr'],
+                        netmask=ifdata['netmask']
+                    ))
+                    if ifnet == net or (net is None and ifnet.ip == addr):
+                        net = ifnet
+                        iface = interface
+                        break
 
             if iface is None:
                 raise ValueError('No network interface matches the provided IP address and netmask')

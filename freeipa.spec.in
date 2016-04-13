@@ -103,6 +103,7 @@ BuildRequires:  python-jwcrypto
 BuildRequires:  custodia
 BuildRequires:  libini_config-devel >= 1.2.0
 BuildRequires:  dbus-python
+BuildRequires:  python-netifaces >= 0.10.4
 
 # Build dependencies for unit tests
 BuildRequires:  libcmocka-devel
@@ -478,7 +479,6 @@ Provides: python2-ipaplatform = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python-gssapi >= 1.1.2
 Requires: gnupg
-Requires: iproute
 Requires: keyutils
 Requires: pyOpenSSL
 Requires: python-nss >= 0.16
@@ -500,6 +500,7 @@ Requires: python-ldap >= 2.4.15
 Requires: python-requests
 Requires: python-custodia
 Requires: python-dns >= 1.11.1
+Requires: python-netifaces >= 0.10.4
 
 Conflicts: %{alt_name}-python < %{version}
 
@@ -526,7 +527,6 @@ Provides: python3-ipaplatform = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python3-gssapi >= 1.1.2
 Requires: gnupg
-Requires: iproute
 Requires: keyutils
 Requires: python3-pyOpenSSL
 Requires: python3-nss >= 0.16
@@ -548,6 +548,7 @@ Requires: python3-pyldap >= 2.4.15
 Requires: python3-custodia
 Requires: python3-requests
 Requires: python3-dns >= 1.11.1
+Requires: python3-netifaces >= 0.10.4
 
 %description -n python3-ipalib
 IPA is an integrated solution to provide centrally managed Identity (users,

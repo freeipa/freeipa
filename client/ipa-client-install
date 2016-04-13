@@ -33,6 +33,7 @@ try:
     from optparse import SUPPRESS_HELP, OptionGroup, OptionValueError
     import dns
     import gssapi
+    import netifaces
 
     import nss.nss as nss
     import SSSDConfig
@@ -1526,39 +1527,31 @@ def unconfigure_nisdomain():
 
 
 def get_iface_from_ip(ip_addr):
-    result = ipautil.run([paths.IP, '-oneline', 'address', 'show'],
-                         capture_output=True)
-    for line in result.output.split('\n'):
-        fields = line.split()
-        if len(fields) < 6:
-            continue
-        if fields[2] not in ['inet', 'inet6']:
-            continue
-        (ip, mask) = fields[3].rsplit('/', 1)
-        if ip == ip_addr:
-            return fields[1]
+    for interface in netifaces.interfaces():
+        if_addrs = netifaces.ifaddresses(interface)
+        for family in [netifaces.AF_INET, netifaces.AF_INET6]:
+            for ip in if_addrs.get(family, []):
+                if ip['addr'] == ip_addr:
+                    return interface
     else:
         raise RuntimeError("IP %s not assigned to any interface." % ip_addr)
 
 
 def get_local_ipaddresses(iface=None):
-    args = [paths.IP, '-oneline', 'address', 'show']
     if iface:
-        args += ['dev', iface]
-    result = ipautil.run(args, capture_output=True)
-    lines = result.output.split('\n')
+        interfaces = [iface]
+    else:
+        interfaces = netifaces.interfaces()
+
     ips = []
-    for line in lines:
-        fields = line.split()
-        if len(fields) < 6:
-            continue
-        if fields[2] not in ['inet', 'inet6']:
-            continue
-        (ip, mask) = fields[3].rsplit('/', 1)
-        try:
-            ips.append(ipautil.CheckedIPAddress(ip))
-        except ValueError:
-            continue
+    for interface in interfaces:
+        if_addrs = netifaces.ifaddresses(interface)
+        for family in [netifaces.AF_INET, netifaces.AF_INET6]:
+            for ip in if_addrs.get(family, []):
+                try:
+                    ips.append(ipautil.CheckedIPAddress(ip['addr']))
+                except ValueError:
+                    continue
     return ips
 
 
