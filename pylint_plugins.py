@@ -230,6 +230,7 @@ ipa_class_members = {
             {'transport': ['put_file']},
             'put_file_contents',
             'get_file_contents',
+            'ldap_connect',
         ]},
         'replicas',
         'clients',

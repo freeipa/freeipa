@@ -351,3 +351,29 @@ class TestProhibitReplicaUninstallation(IntegrationTest):
                in result.stdout_text), ("Expected error message was not found")
         self.replicas[0].run_command(['ipa-server-install', '--uninstall',
                                       '-U', '--ignore-topology-disconnect'])
+
+
+class TestOldReplicaWorksAfterDomainUpgrade(IntegrationTest):
+    topology = 'star'
+    num_replicas = 1
+    domain_level = DOMAIN_LEVEL_0
+    username = 'testuser'
+
+    def test_replica_after_domain_upgrade(self):
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        self.master.run_command(['ipa', 'user-add', self.username,
+                                 '--first', 'test',
+                                 '--last', 'user'])
+        tasks.wait_for_replication(self.replicas[0].ldap_connect())
+        self.master.run_command(['ipa', 'domainlevel-set',
+                                 str(DOMAIN_LEVEL_1)])
+        result = self.replicas[0].run_command(['ipa', 'user-show',
+                                               self.username])
+        assert("User login: %s" % self.username in result.stdout_text), (
+                "A testuser was not found on replica after domain upgrade")
+        self.replicas[0].run_command(['ipa', 'user-del', self.username])
+        tasks.wait_for_replication(self.master.ldap_connect())
+        result1 = self.master.run_command(['ipa', 'user-show', self.username],
+                                          raiseonerr=False)
+        assert_error(result1, "%s: user not found" % self.username, 2)
