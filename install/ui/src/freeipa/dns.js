@@ -298,6 +298,19 @@ return {
                         validators: ['network']
                     }
                 ]
+            },
+            {
+                name: 'options',
+                fields: [
+                    {
+                        $type: 'checkbox',
+                        name: 'skip_overlap_check',
+                        label: '@i18n:objects.dnszone.skip_overlap_check',
+                        tooltip: {
+                            title: '@mc-opt:dnszone_add:skip_overlap_check:doc'
+                        }
+                    }
+                ]
             }
         ],
         policies: [
