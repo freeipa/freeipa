@@ -128,6 +128,7 @@ class config(LDAPObject):
             cli_name='maxusername',
             label=_('Maximum username length'),
             minvalue=1,
+            maxvalue=255,
         ),
         IA5Str('ipahomesrootdir',
             cli_name='homedirectory',
