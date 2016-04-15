@@ -774,7 +774,7 @@ option: Str('ipagroupobjectclasses', attribute=True, autofill=False, cli_name='g
 option: IA5Str('ipagroupsearchfields', attribute=True, autofill=False, cli_name='groupsearch', multivalue=False, required=False)
 option: IA5Str('ipahomesrootdir', attribute=True, autofill=False, cli_name='homedirectory', multivalue=False, required=False)
 option: StrEnum('ipakrbauthzdata', attribute=True, autofill=False, cli_name='pac_type', csv=True, multivalue=True, required=False, values=(u'MS-PAC', u'PAD', u'nfs:NONE'))
-option: Int('ipamaxusernamelength', attribute=True, autofill=False, cli_name='maxusername', minvalue=1, multivalue=False, required=False)
+option: Int('ipamaxusernamelength', attribute=True, autofill=False, cli_name='maxusername', maxvalue=255, minvalue=1, multivalue=False, required=False)
 option: Bool('ipamigrationenabled', attribute=True, autofill=False, cli_name='enable_migration', multivalue=False, required=False)
 option: Int('ipapwdexpadvnotify', attribute=True, autofill=False, cli_name='pwdexpnotify', minvalue=0, multivalue=False, required=False)
 option: Int('ipasearchrecordslimit', attribute=True, autofill=False, cli_name='searchrecordslimit', minvalue=-1, multivalue=False, required=False)

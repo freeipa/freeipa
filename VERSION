@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=164
-# Last change: simo - add optional string to disable preauth for SPNs
+IPA_API_VERSION_MINOR=165
+# Last change: mbasti - limit ipamaxusernamelength value to 255
