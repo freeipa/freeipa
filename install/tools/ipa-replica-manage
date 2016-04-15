@@ -69,6 +69,9 @@ commands = {
     "dnanextrange-set":(2, 2, "<master fqdn> <range>", "must provide a master and ID range"),
 }
 
+# tuple of commands that need proper Directory Manager password
+dirman_passwd_req_commands = ("list-ruv", "clean-ruv", "abort-clean-ruv")
+
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
@@ -1569,7 +1572,8 @@ def main():
         if not test_connection(realm, host, options.nolookup):
             dirman_passwd = installutils.read_password("Directory Manager",
                 confirm=False, validate=False, retry=False)
-            if dirman_passwd is None:
+            if dirman_passwd is None or (
+               not dirman_passwd and args[0] in dirman_passwd_req_commands):
                 sys.exit("Directory Manager password required")
 
     options.dirman_passwd = dirman_passwd
