@@ -72,6 +72,10 @@ commands = {
 dirman_passwd_req_commands = ("list-ruv", "clean-ruv", "abort-clean-ruv")
 
 
+class NoRUVsFound(Exception):
+    pass
+
+
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
     parser.add_option("-H", "--host", dest="host", help="starting host")
@@ -364,8 +368,9 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False):
         else:
             thisrepl = replication.ReplicationManager(realm, host, dirman_passwd)
     except Exception as e:
-        print("Failed to connect to server %s: %s" % (host, e))
-        sys.exit(1)
+        root_logger.debug(traceback.format_exc())
+        raise RuntimeError("Failed to connect to server {host}: {err}"
+                           .format(host=host, err=e))
 
     search_filter = '(&(nsuniqueid=ffffffff-ffffffff-ffffffff-ffffffff)(objectclass=nstombstone))'
     try:
@@ -373,8 +378,8 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False):
             thisrepl.db_suffix, thisrepl.conn.SCOPE_SUBTREE, search_filter,
             ['nsds50ruv'])
     except errors.NotFound:
-        print("No RUV records found.")
-        sys.exit(0)
+        root_logger.debug(traceback.format_exc())
+        raise NoRUVsFound("No RUV records found.")
 
     servers = []
     for e in entries:
@@ -396,8 +401,11 @@ def list_ruv(realm, host, dirman_passwd, verbose, nolookup=False):
     List the Replica Update Vectors on this host to get the available
     replica IDs.
     """
-
-    servers = get_ruv(realm, host, dirman_passwd, nolookup)
+    try:
+        servers = get_ruv(realm, host, dirman_passwd, nolookup)
+    except (NoRUVsFound, RuntimeError) as e:
+        print(e)
+        sys.exit(0 if isinstance(e, NoRUVsFound) else 1)
     for (netloc, rid) in servers:
         print("%s: %s" % (netloc, rid))
 
@@ -405,7 +413,11 @@ def get_rid_by_host(realm, sourcehost, host, dirman_passwd, nolookup=False):
     """
     Try to determine the RID by host name.
     """
-    servers = get_ruv(realm, sourcehost, dirman_passwd, nolookup)
+    try:
+        servers = get_ruv(realm, sourcehost, dirman_passwd, nolookup)
+    except (NoRUVsFound, RuntimeError) as e:
+        print(e)
+        sys.exit(0 if isinstance(e, NoRUVsFound) else 1)
     for (netloc, rid) in servers:
         if '%s:389' % host == netloc:
             return int(rid)
@@ -419,14 +431,19 @@ def clean_ruv(realm, ruv, options, ca=False):
     except ValueError:
         sys.exit("Replica ID must be an integer: %s" % ruv)
 
-    servers = get_ruv(realm, options.host, options.dirman_passwd,
-                      options.nolookup, ca=ca)
+    try:
+        servers = get_ruv(realm, options.host, options.dirman_passwd,
+                          options.nolookup, ca=ca)
+    except (NoRUVsFound, RuntimeError) as e:
+        print(e)
+        sys.exit(0 if isinstance(e, NoRUVsFound) else 1)
+
     found = False
     for (netloc, rid) in servers:
         if ruv == int(rid):
-           found = True
-           hostname = netloc
-           break
+            found = True
+            hostname = netloc
+            break
 
     if not found:
         sys.exit("Replica ID %s not found" % ruv)
@@ -464,26 +481,19 @@ def abort_clean_ruv(realm, ruv, options):
     except ValueError:
         sys.exit("Replica ID must be an integer: %s" % ruv)
 
-    servers = get_ruv(realm, options.host, options.dirman_passwd,
-                      options.nolookup)
+    try:
+        servers = get_ruv(realm, options.host, options.dirman_passwd,
+                          options.nolookup)
+    except (NoRUVsFound, RuntimeError) as e:
+        print(e)
+        sys.exit(0 if isinstance(e, NoRUVsFound) else 1)
+
     found = False
     for (netloc, rid) in servers:
         if ruv == int(rid):
-           found = True
-           hostname = netloc
-           break
-
-    if not found:
-        sys.exit("Replica ID %s not found" % ruv)
-
-    servers = get_ruv(realm, options.host, options.dirman_passwd,
-                      options.nolookup)
-    found = False
-    for (netloc, rid) in servers:
-        if ruv == int(rid):
-           found = True
-           hostname = netloc
-           break
+            found = True
+            hostname = netloc
+            break
 
     if not found:
         sys.exit("Replica ID %s not found" % ruv)
