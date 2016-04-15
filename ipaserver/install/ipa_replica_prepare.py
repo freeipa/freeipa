@@ -520,6 +520,11 @@ class ReplicaPrepare(admintool.AdminTool):
 
             if not options.no_reverse:
                 reverse_zone = bindinstance.find_reverse_zone(ip)
+                if reverse_zone is None:
+                    self.log.warning(
+                        "Could not find any IPA managed reverse zone. "
+                        "Not creating PTR records")
+                    return
                 try:
                     add_ptr_rr(reverse_zone, ip_address, self.replica_fqdn)
                 except errors.PublicError as e:
