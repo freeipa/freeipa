@@ -332,8 +332,11 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         try:
             self.set_hostname(hostname)
         except ipautil.CalledProcessError as e:
-            print(("Failed to set this machine hostname to "
-                                 "%s (%s)." % (hostname, str(e))), file=sys.stderr)
+            root_logger.debug(traceback.format_exc())
+            root_logger.error(
+                "Failed to set this machine hostname to %s (%s).",
+                old_hostname, e
+            )
 
         filepath = paths.ETC_HOSTNAME
         if os.path.exists(filepath):
