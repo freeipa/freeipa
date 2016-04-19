@@ -43,7 +43,7 @@ class BaseTaskNamespace(object):
         No return value expected.
         """
 
-        return
+        raise NotImplementedError()
 
     def backup_and_replace_hostname(self, fstore, statestore, hostname):
         """
@@ -56,7 +56,7 @@ class BaseTaskNamespace(object):
         No return value expected.
         """
 
-        return
+        raise NotImplementedError()
 
     def reload_systemwide_ca_store(self):
         """
@@ -65,7 +65,7 @@ class BaseTaskNamespace(object):
         Returns True if the operation succeeded, False otherwise.
         """
 
-        return True
+        raise NotImplementedError()
 
     def insert_ca_certs_into_systemwide_ca_store(self, ca_certs):
         """
@@ -75,7 +75,7 @@ class BaseTaskNamespace(object):
         Returns True if the operation succeeded, False otherwise.
         """
 
-        return True
+        raise NotImplementedError()
 
     def remove_ca_certs_from_systemwide_ca_store(self):
         """
@@ -85,7 +85,7 @@ class BaseTaskNamespace(object):
         Returns True if the operation succeeded, False otherwise.
         """
 
-        return True
+        raise NotImplementedError()
 
     def get_svc_list_file(self):
         """
@@ -104,7 +104,7 @@ class BaseTaskNamespace(object):
         restorecon and rerunning the installation.
         """
 
-        return
+        raise NotImplementedError()
 
     def restore_hostname(self, fstore, statestore):
         """
@@ -112,7 +112,7 @@ class BaseTaskNamespace(object):
         backup_and_replace_hostname platform task.
         """
 
-        return
+        raise NotImplementedError()
 
     def restore_pre_ipa_client_configuration(self, fstore, statestore,
                                              was_sssd_installed,
@@ -124,14 +124,14 @@ class BaseTaskNamespace(object):
             modify_pam_to_use_krb5
         """
 
-        return
+        raise NotImplementedError()
 
     def set_nisdomain(self, nisdomain):
         """
         Sets the NIS domain name to 'nisdomain'.
         """
 
-        return
+        raise NotImplementedError()
 
     def modify_nsswitch_pam_stack(self, sssd, mkhomedir, statestore):
         """
@@ -141,14 +141,14 @@ class BaseTaskNamespace(object):
         Otherwise, configure pam and nsswitch to leverage pure LDAP.
         """
 
-        return
+        raise NotImplementedError()
 
     def modify_pam_to_use_krb5(self, statestore):
         """
         Configure pam stack to allow kerberos authentication.
         """
 
-        return
+        raise NotImplementedError()
 
     def backup_auth_configuration(self, path):
         """
@@ -156,14 +156,14 @@ class BaseTaskNamespace(object):
         :param path: store the backup here. This will be passed to
         restore_auth_configuration as well.
         """
-        return
+        raise NotImplementedError()
 
     def restore_auth_configuration(self, path):
         """
         Restore backup of access control configuration.
         :param path: restore the backup from here.
         """
-        return
+        raise NotImplementedError()
 
     def set_selinux_booleans(self, required_settings, backup_func=None):
         """Set the specified SELinux booleans
@@ -182,7 +182,7 @@ class BaseTaskNamespace(object):
         an ipapython.errors.SetseboolError is raised.
         """
 
-        return
+        raise NotImplementedError()
 
     def create_system_user(self, name, group, homedir, shell, uid=None, gid=None, comment=None, create_homedir=False):
         """Create a system user with a corresponding group"""
@@ -243,7 +243,7 @@ class BaseTaskNamespace(object):
 
         No return value expected, raise CalledProcessError when error occurred
         """
-        return
+        raise NotImplementedError()
 
     def configure_httpd_service_ipa_conf(self):
         """Configure httpd service to work with IPA"""
