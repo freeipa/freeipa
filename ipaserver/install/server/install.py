@@ -152,8 +152,6 @@ def write_cache(options):
 
 
 def read_host_name(host_default, no_host_dns=False):
-    host_name = ""
-
     print("Enter the fully qualified domain name of the computer")
     print("on which you're setting up server software. Using the form")
     print("<hostname>.<domainname>")
@@ -555,7 +553,6 @@ def install_check(installer):
     # utilities just use the hostname as returned by getaddrinfo to set
     # up some of the standard entries
 
-    host_default = ""
     if options.host_name:
         host_default = options.host_name
     else:
