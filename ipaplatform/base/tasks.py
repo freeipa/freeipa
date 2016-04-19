@@ -48,7 +48,7 @@ class BaseTaskNamespace(object):
     def backup_and_replace_hostname(self, fstore, statestore, hostname):
         """
         Backs up the current hostname in the statestore (so that it can be
-        restored by the restore_network_configuration platform task).
+        restored by the restore_hostname platform task).
 
         Makes sure that new hostname (passed via hostname argument) is set
         as a new pemanent hostname for this host.
@@ -106,7 +106,7 @@ class BaseTaskNamespace(object):
 
         return
 
-    def restore_network_configuration(self, fstore, statestore):
+    def restore_hostname(self, fstore, statestore):
         """
         Restores the original hostname as backed up in the
         backup_and_replace_hostname platform task.
@@ -236,6 +236,14 @@ class BaseTaskNamespace(object):
         :return: object implementing proper __cmp__ method for version compare
         """
         return parse_version(version)
+
+    def set_hostname(self, hostname):
+        """
+        Set hostname for the system
+
+        No return value expected, raise CalledProcessError when error occurred
+        """
+        return
 
     def configure_httpd_service_ipa_conf(self):
         """Configure httpd service to work with IPA"""

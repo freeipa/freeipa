@@ -25,7 +25,7 @@ This base platform module exports default filesystem paths.
 class BasePathNamespace(object):
     BASH = "/bin/bash"
     BIN_FALSE = "/bin/false"
-    BIN_HOSTNAME = "/bin/hostname"
+    BIN_HOSTNAMECTL = "/bin/hostnamectl"
     LS = "/bin/ls"
     SH = "/bin/sh"
     SYSTEMCTL = "/bin/systemctl"

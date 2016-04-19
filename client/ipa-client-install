@@ -713,12 +713,12 @@ def uninstall(options, env):
             root_logger.warning(
                 "Failed to disable automatic startup of the SSSD daemon: %s", e)
 
+    tasks.restore_hostname(fstore, statestore)
+
     if fstore.has_files():
         root_logger.info("Restoring client configuration files")
-        tasks.restore_network_configuration(fstore, statestore)
         fstore.restore_all_files()
 
-    ipautil.restore_hostname(statestore)
     unconfigure_nisdomain()
 
     nscd = services.knownservices.nscd

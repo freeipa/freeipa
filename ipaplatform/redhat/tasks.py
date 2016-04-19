@@ -26,10 +26,10 @@ system tasks.
 from __future__ import print_function
 
 import os
-import stat
 import socket
-import sys
 import base64
+import traceback
+
 from cffi import FFI
 from ctypes.util import find_library
 from functools import total_ordering
@@ -330,38 +330,31 @@ class RedHatTaskNamespace(BaseTaskNamespace):
     def backup_and_replace_hostname(self, fstore, statestore, hostname):
         old_hostname = socket.gethostname()
         try:
-            ipautil.run([paths.BIN_HOSTNAME, hostname])
+            self.set_hostname(hostname)
         except ipautil.CalledProcessError as e:
             print(("Failed to set this machine hostname to "
                                  "%s (%s)." % (hostname, str(e))), file=sys.stderr)
 
         filepath = paths.ETC_HOSTNAME
         if os.path.exists(filepath):
-            # read old hostname
-            with open(filepath, 'r') as f:
-                for line in f.readlines():
-                    line = line.strip()
-                    if not line or line.startswith('#'):
-                        # skip comment or empty line
-                        continue
-                    old_hostname = line
-                    break
             fstore.backup_file(filepath)
-
-        with open(filepath, 'w') as f:
-            f.write("%s\n" % hostname)
-        os.chmod(filepath,
-                 stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
-        os.chown(filepath, 0, 0)
-        self.restore_context(filepath)
 
         # store old hostname
         statestore.backup_state('network', 'hostname', old_hostname)
 
-    def restore_network_configuration(self, fstore, statestore):
+    def restore_hostname(self, fstore, statestore):
         old_filepath = paths.SYSCONFIG_NETWORK
         old_hostname = statestore.get_state('network', 'hostname')
-        hostname_was_configured = False
+
+        if old_hostname is not None:
+            try:
+                self.set_hostname(old_hostname)
+            except ipautil.CalledProcessError as e:
+                root_logger.debug(traceback.format_exc())
+                root_logger.error(
+                    "Failed to restore this machine hostname to %s (%s).",
+                    old_hostname, e
+                )
 
         if fstore.has_file(old_filepath):
             # This is Fedora >=18 instance that was upgraded from previous
@@ -371,20 +364,11 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             fstore.restore_file(old_filepath, old_filepath_restore)
             print("Deprecated configuration file '%s' was restored to '%s'" \
                     % (old_filepath, old_filepath_restore))
-            hostname_was_configured = True
 
         filepath = paths.ETC_HOSTNAME
         if fstore.has_file(filepath):
             fstore.restore_file(filepath)
-            hostname_was_configured = True
 
-        if not hostname_was_configured and old_hostname:
-            # hostname was not configured before but was set by IPA. Delete
-            # /etc/hostname to restore previous configuration
-            try:
-                os.remove(filepath)
-            except OSError:
-                pass
 
     def set_selinux_booleans(self, required_settings, backup_func=None):
         def get_setsebool_args(changes):
@@ -489,5 +473,8 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 'Error removing %s: %s',
                 paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF, e
             )
+
+    def set_hostname(self, hostname):
+        ipautil.run([paths.BIN_HOSTNAMECTL, 'set-hostname', hostname])
 
 tasks = RedHatTaskNamespace()

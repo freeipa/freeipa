@@ -573,16 +573,6 @@ def install_check(installer):
     host_name = host_name.lower()
     root_logger.debug("will use host_name: %s\n" % host_name)
 
-    system_hostname = get_fqdn()
-    if host_name != system_hostname:
-        print(file=sys.stderr)
-        print(("Warning: hostname %s does not match system "
-                             "hostname %s." % (host_name, system_hostname)), file=sys.stderr)
-        print(("System hostname will be updated during the "
-                             "installation process"), file=sys.stderr)
-        print("to prevent service failures.", file=sys.stderr)
-        print(file=sys.stderr)
-
     if not options.domain_name:
         domain_name = read_domain_name(host_name[host_name.find(".")+1:],
                                        not installer.interactive)
@@ -827,10 +817,11 @@ def install(installer):
         print("Please wait until the prompt is returned.")
         print("")
 
-    system_hostname = get_fqdn()
-    if host_name != system_hostname:
-        # configure /etc/sysconfig/network to contain the custom hostname
-        tasks.backup_and_replace_hostname(fstore, sstore, host_name)
+    # configure /etc/sysconfig/network to contain the custom hostname
+    tasks.backup_and_replace_hostname(fstore, sstore, host_name)
+
+    # set hostname (we need both transient and static)
+    tasks.set_hostname(host_name)
 
     if installer._update_hosts_file:
         update_hosts_file(ip_addresses, host_name, fstore)
@@ -1212,7 +1203,7 @@ def uninstall(installer):
     custodiainstance.CustodiaInstance().uninstall()
     memcacheinstance.MemcacheInstance().uninstall()
     otpdinstance.OtpdInstance().uninstall()
-    tasks.restore_network_configuration(fstore, sstore)
+    tasks.restore_hostname(fstore, sstore)
     fstore.restore_all_files()
     try:
         os.remove(paths.ROOT_IPA_CACHE)
@@ -1233,8 +1224,6 @@ def uninstall(installer):
     sstore.restore_state("install", "group_exists")
 
     services.knownservices.ipa.disable()
-
-    ipautil.restore_hostname(sstore)
 
     # remove upgrade state file
     sysupgrade.remove_upgrade_file()
