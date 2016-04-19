@@ -215,6 +215,7 @@ class BasePathNamespace(object):
     NTPD = "/usr/sbin/ntpd"
     PKIDESTROY = "/usr/sbin/pkidestroy"
     PKISPAWN = "/usr/sbin/pkispawn"
+    PKI = "/usr/bin/pki"
     REMOVE_DS_PL = "/usr/sbin/remove-ds.pl"
     RESTORECON = "/usr/sbin/restorecon"
     SELINUXENABLED = "/usr/sbin/selinuxenabled"

@@ -51,6 +51,56 @@ def HTTPD_password_callback():
     return password
 
 
+class NSSWrappedCertDB(DBMAPHandler):
+    '''
+    Store that extracts private keys from an NSSDB, wrapped with the
+    private key of the primary CA.
+    '''
+
+    def __init__(self, config, dbmap, nickname):
+        if 'path' not in dbmap:
+            raise ValueError(
+                'Configuration does not provide NSSDB path')
+        if 'pwcallback' not in dbmap:
+            raise ValueError(
+                'Configuration does not provide Password Calback')
+        if 'wrap_nick' not in dbmap:
+            raise ValueError(
+                'Configuration does not provide nickname of wrapping key')
+        self.nssdb_path = dbmap['path']
+        self.nssdb_password = dbmap['pwcallback']()
+        self.wrap_nick = dbmap['wrap_nick']
+        self.target_nick = nickname
+
+    def export_key(self):
+        tdir = tempfile.mkdtemp(dir=paths.TMP)
+        try:
+            nsspwfile = os.path.join(tdir, 'nsspwfile')
+            with open(nsspwfile, 'w+') as f:
+                f.write(self.nssdb_password)
+            wrapped_key_file = os.path.join(tdir, 'wrapped_key')
+            certificate_file = os.path.join(tdir, 'certificate')
+            ipautil.run([
+                paths.PKI, '-d', self.nssdb_path, '-C', nsspwfile,
+                'ca-authority-key-export',
+                '--wrap-nickname', self.wrap_nick,
+                '--target-nickname', self.target_nick,
+                '-o', wrapped_key_file])
+            ipautil.run([
+                paths.CERTUTIL, '-d', self.nssdb_path,
+                '-L', '-n', self.target_nick,
+                '-a', '-o', certificate_file])
+            with open(wrapped_key_file, 'r') as f:
+                wrapped_key = f.read()
+            with open(certificate_file, 'r') as f:
+                certificate = f.read()
+        finally:
+            shutil.rmtree(tdir)
+        return json_encode({
+            'wrapped_key': b64encode(wrapped_key),
+            'certificate': certificate})
+
+
 class NSSCertDB(DBMAPHandler):
 
     def __init__(self, config, dbmap, nickname):
@@ -147,6 +197,12 @@ NAME_DB_MAP = {
         'path': paths.PKI_TOMCAT_ALIAS_DIR,
         'handler': NSSCertDB,
         'pwcallback': PKI_TOMCAT_password_callback,
+    },
+    'ca_wrapped': {
+        'handler': NSSWrappedCertDB,
+        'path': paths.PKI_TOMCAT_ALIAS_DIR,
+        'pwcallback': PKI_TOMCAT_password_callback,
+        'wrap_nick': 'caSigningCert cert-pki-ca',
     },
     'ra': {
         'type': 'NSSDB',
