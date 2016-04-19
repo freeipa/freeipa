@@ -118,8 +118,6 @@ class BasePathNamespace(object):
     SYSCONFIG_HTTPD = "/etc/sysconfig/httpd"
     SYSCONFIG_KRB5KDC_DIR = "/etc/sysconfig/krb5kdc"
     SYSCONFIG_NAMED = "/etc/sysconfig/named"
-    SYSCONFIG_NETWORK = "/etc/sysconfig/network"
-    SYSCONFIG_NETWORK_IPABKP = "/etc/sysconfig/network.ipabkp"
     SYSCONFIG_NFS = "/etc/sysconfig/nfs"
     SYSCONFIG_NTPD = "/etc/sysconfig/ntpd"
     SYSCONFIG_ODS = "/etc/sysconfig/ods"

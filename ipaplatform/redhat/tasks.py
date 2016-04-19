@@ -343,7 +343,6 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         statestore.backup_state('network', 'hostname', old_hostname)
 
     def restore_hostname(self, fstore, statestore):
-        old_filepath = paths.SYSCONFIG_NETWORK
         old_hostname = statestore.get_state('network', 'hostname')
 
         if old_hostname is not None:
@@ -355,15 +354,6 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                     "Failed to restore this machine hostname to %s (%s).",
                     old_hostname, e
                 )
-
-        if fstore.has_file(old_filepath):
-            # This is Fedora >=18 instance that was upgraded from previous
-            # Fedora version which held network configuration
-            # in /etc/sysconfig/network
-            old_filepath_restore = paths.SYSCONFIG_NETWORK_IPABKP
-            fstore.restore_file(old_filepath, old_filepath_restore)
-            print("Deprecated configuration file '%s' was restored to '%s'" \
-                    % (old_filepath, old_filepath_restore))
 
         filepath = paths.ETC_HOSTNAME
         if fstore.has_file(filepath):

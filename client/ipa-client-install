@@ -2502,9 +2502,8 @@ def install(options, env, fstore, statestore):
                 cli_realm, paths.KRB5_KEYTAB))
 
     if options.hostname and not options.on_master:
-        # configure /etc/sysconfig/network to contain the hostname we set.
         # skip this step when run by ipa-server-install as it always configures
-        # hostname if different from system hostname
+        # hostname
         tasks.backup_and_replace_hostname(fstore, statestore, options.hostname)
 
     ntp_srv_servers = []
