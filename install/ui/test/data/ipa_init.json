@@ -89,6 +89,7 @@
                         "save": "Save",
                         "set": "Set",
                         "show": "Show",
+                        "stage": "Stage",
                         "unapply": "Un-apply",
                         "update": "Update",
                         "view": "View"
@@ -545,6 +546,8 @@
                             "activate_success": "${count} user(s) activated",
                             "label": "Stage users",
                             "preserved_label": "Preserved users",
+                            "stage_confirm": "Are you sure you want to stage selected users?",
+                            "stage_success": "${count} users(s) staged",
                             "undel_confirm": "Are you sure you want to restore selected users?",
                             "undel_success": "${count} user(s) restored",
                             "user_categories": "User categories",

@@ -298,6 +298,9 @@ stageuser.search_preserved_facet_spec = {
     actions: [
         {
             $type: 'batch_undel'
+        },
+        {
+            $type: 'batch_stage'
         }
     ],
     control_buttons: [
@@ -305,6 +308,11 @@ stageuser.search_preserved_facet_spec = {
             name: 'undel',
             label: '@i18n:buttons.restore',
             icon: 'fa-heart'
+        },
+        {
+            name: 'batch_stage',
+            label: '@i18n:buttons.stage',
+            icon: 'fa-user'
         }
     ],
     policies: [
@@ -317,6 +325,12 @@ mod_user.entity_spec.policies.push(
     {
         $factory: IPA.facet_update_policy,
         source_facet: 'search',
+        dest_entity: 'stageuser',
+        dest_facet: 'search'
+    },
+    {
+        $factory: IPA.facet_update_policy,
+        source_facet: 'search_preserved',
         dest_entity: 'stageuser',
         dest_facet: 'search'
     },
@@ -385,6 +399,20 @@ stageuser.activate_action = function(spec) {
     return that;
 };
 
+stageuser.batch_stage_action = function(spec) {
+
+    spec = spec || {};
+
+    spec.name = spec.name || 'batch_stage';
+    spec.method = spec.method || 'stage';
+    spec.needs_confirm = spec.needs_confirm === undefined ? true : spec.needs_confirm;
+    spec.enable_cond = spec.enable_cond || ['item-selected'];
+    spec.success_msg = spec.success_msg || '@i18n:objects.stageuser.stage_success';
+    spec.confirm_msg = spec.confirm_msg || '@i18n:objects.stageuser.stage_confirm';
+
+    return IPA.batch_items_action(spec);
+};
+
 /**
  * Stage user entity specification object
  * @member stageuser
@@ -402,6 +430,7 @@ stageuser.register = function() {
     a.register('batch_activate', stageuser.batch_activate_action);
     a.register('batch_undel', stageuser.batch_undel_action);
     a.register('activate', stageuser.activate_action);
+    a.register('batch_stage', stageuser.batch_stage_action);
     e.register({type: 'stageuser', spec: stageuser.stageuser_spec});
     f.register_from_spec('user_search_preserved', stageuser.search_preserved_facet_spec);
 };
