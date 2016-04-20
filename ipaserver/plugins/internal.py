@@ -687,6 +687,7 @@ class i18n_messages(Command):
                 "preserved_label": _("Preserved users"),
                 "stage_confirm": _("Are you sure you want to stage selected users?"),
                 "stage_success": _("${count} users(s) staged"),
+                "stage_one_confirm": _("Are you sure you want to stage ${object}?"),
                 "undel_confirm": _("Are you sure you want to restore selected users?"),
                 "undel_success": _("${count} user(s) restored"),
                 "user_categories": _("User categories"),

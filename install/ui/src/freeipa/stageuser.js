@@ -413,6 +413,29 @@ stageuser.batch_stage_action = function(spec) {
     return IPA.batch_items_action(spec);
 };
 
+stageuser.stage_action = function(spec) {
+
+    spec = spec || {};
+
+    spec.name = spec.name || 'stage';
+    spec.method = spec.method || 'stage';
+    spec.show_cond = spec.show_cond || ['preserved_user'];
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
+    spec.confirm_msg = spec.confirm_msg || '@i18n:objects.stageuser.stage_one_confirm';
+    spec.label = spec.label || '@i18n:buttons.stage';
+
+    var that = IPA.object_action(spec);
+
+    that.on_success = function(facet, data, text_status, xhr) {
+
+        IPA.notify_success(data.result.summary);
+        facet.on_update.notify();
+        facet.redirect();
+    };
+
+    return that;
+};
+
 /**
  * Stage user entity specification object
  * @member stageuser
@@ -431,6 +454,7 @@ stageuser.register = function() {
     a.register('batch_undel', stageuser.batch_undel_action);
     a.register('activate', stageuser.activate_action);
     a.register('batch_stage', stageuser.batch_stage_action);
+    a.register('stage', stageuser.stage_action);
     e.register({type: 'stageuser', spec: stageuser.stageuser_spec});
     f.register_from_spec('user_search_preserved', stageuser.search_preserved_facet_spec);
 };

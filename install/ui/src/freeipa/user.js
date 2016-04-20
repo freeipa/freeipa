@@ -67,6 +67,12 @@ return {
             source_facet: 'details',
             dest_entity: 'user',
             dest_facet: 'search_preserved'
+        },
+        {
+            $factory: IPA.facet_update_policy,
+            source_facet: 'details',
+            dest_entity: 'stageuser',
+            dest_facet: 'search'
         }
     ],
     facets: [
@@ -344,6 +350,10 @@ return {
                     show_cond: ['preserved-user']
                 },
                 {
+                    $type: 'stage',
+                    show_cond: ['preserved-user']
+                },
+                {
                     $type: 'reset_password',
                     hide_cond: ['preserved-user']
                 },
@@ -368,9 +378,9 @@ return {
                 }
             ],
             header_actions: [
-                'reset_password', 'enable', 'disable','delete_active_user',
-                'delete', 'unlock', 'add_otptoken', 'automember_rebuild',
-                'request_cert'
+                'reset_password', 'enable', 'disable', 'stage',
+                'delete_active_user', 'delete', 'unlock', 'add_otptoken',
+                'automember_rebuild', 'request_cert'
             ],
             state: {
                 evaluators: [
