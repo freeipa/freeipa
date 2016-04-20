@@ -607,6 +607,12 @@ class KrbPrincipalExpired(SessionError):
     """
     errno = 1203
 
+class UserLocked(SessionError):
+    """
+    **1204** Raised when a user account is locked.
+    """
+    errno = 1204
+
 ##############################################################################
 # 2000 - 2999: Authorization errors
 class AuthorizationError(PublicError):

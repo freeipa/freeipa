@@ -43,7 +43,7 @@ from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib.backend import Executioner
 from ipalib.errors import (PublicError, InternalError, CommandError, JSONError,
     CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError,
-    ExecutionError, PasswordExpired, KrbPrincipalExpired)
+    ExecutionError, PasswordExpired, KrbPrincipalExpired, UserLocked)
 from ipalib.request import context, destroy_context
 from ipalib.rpc import (xml_dumps, xml_loads,
     json_encode_binary, json_decode_binary)
@@ -954,6 +954,11 @@ class login_password(Backend, KerberosSession, HTTP_Status):
                                      start_response,
                                      str(e),
                                      'krbprincipal-expired')
+        except UserLocked as e:
+            return self.unauthorized(environ,
+                                     start_response,
+                                     str(e),
+                                     'user-locked')
 
         return self.finalize_kerberos_acquisition('login_password', ipa_ccache_name, environ, start_response)
 
@@ -993,8 +998,13 @@ class login_password(Backend, KerberosSession, HTTP_Status):
                   ' has expired while getting initial credentials') in str(e):
                 raise KrbPrincipalExpired(principal=principal,
                                           message=unicode(e))
+            elif ('kinit: Clients credentials have been revoked '
+                  'while getting initial credentials') in str(e):
+                raise UserLocked(principal=principal,
+                                 message=unicode(e))
             raise InvalidSessionPassword(principal=principal,
                                          message=unicode(e))
+
 
 class change_password(Backend, HTTP_Status):
 

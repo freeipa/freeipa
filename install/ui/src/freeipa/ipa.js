@@ -498,7 +498,8 @@ IPA.login_password = function(username, password) {
             if (reason === 'password-expired' ||
                 reason === 'denied' ||
                 reason === 'krbprincipal-expired' ||
-                reason === 'invalid-password') {
+                reason === 'invalid-password' ||
+                reason === 'user-locked') {
                 result = reason;
             }
         }

@@ -71,6 +71,8 @@ define(['dojo/_base/declare',
 
         invalid_password: "The password you entered is incorrect. ",
 
+        user_locked: "The user account you entered is locked. ",
+
         //nodes:
         login_btn_node: null,
         reset_btn_node: null,
@@ -240,6 +242,9 @@ define(['dojo/_base/declare',
                 } else if (result === 'invalid-password') {
                     password_f.set_value('');
                     val_summary.add_error('login', this.invalid_password);
+                } else if (result === 'user-locked') {
+                    password_f.set_value('');
+                    val_summary.add_error('login', this.user_locked);
                 } else {
                     password_f.set_value('');
                     val_summary.add_error('login', this.form_auth_failed);
