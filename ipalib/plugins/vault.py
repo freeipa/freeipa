@@ -42,12 +42,12 @@ from ipalib import Bytes, Flag, Str, StrEnum
 from ipalib import output
 from ipalib.crud import PKQuery, Retrieve
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import LDAPObject, LDAPCreate, LDAPDelete,\
+from .baseldap import LDAPObject, LDAPCreate, LDAPDelete,\
     LDAPSearch, LDAPUpdate, LDAPRetrieve, LDAPAddMember, LDAPRemoveMember,\
     LDAPModMember, pkey_to_value
 from ipalib.request import context
-from ipalib.plugins.baseuser import split_principal
-from ipalib.plugins.service import normalize_principal
+from .baseuser import split_principal
+from .service import normalize_principal
 from ipalib import _, ngettext
 from ipaplatform.paths import paths
 from ipapython.dn import DN

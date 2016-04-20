@@ -26,7 +26,7 @@ from ipalib import api, errors
 from ipalib import Flag, Str, IA5Str
 from ipalib.frontend import Command
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     pkey_to_value,
     LDAPObject,
     LDAPCreate,

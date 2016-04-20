@@ -23,7 +23,7 @@ import six
 from ipalib import api, errors
 from ipalib import Str, StrEnum, Flag
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     external_host_param,
     add_external_pre_callback,
     add_external_post_callback,
@@ -37,7 +37,7 @@ from ipalib.plugins.baseldap import (
     LDAPAddMember,
     LDAPRemoveMember)
 from ipalib import _, ngettext
-from ipalib.plugins.hbacrule import is_all
+from .hbacrule import is_all
 from ipapython.dn import DN
 
 if six.PY3:

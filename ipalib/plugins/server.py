@@ -8,7 +8,7 @@ import dbus.mainloop.glib
 from ipalib import api, crud, errors, messages
 from ipalib import Int, Str
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     LDAPSearch,
     LDAPRetrieve,
     LDAPDelete,

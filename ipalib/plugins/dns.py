@@ -42,7 +42,7 @@ from ipalib.capabilities import (
 from ipalib.parameters import (Flag, Bool, Int, Decimal, Str, StrEnum, Any,
                                DeprecatedParam, DNSNameParam)
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     pkey_to_value,
     LDAPObject,
     LDAPCreate,

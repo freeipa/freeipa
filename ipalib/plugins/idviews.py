@@ -21,12 +21,12 @@ import re
 
 import six
 
-from ipalib.plugins.baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
+from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
                                      LDAPAddAttribute, LDAPRemoveAttribute,
                                      LDAPRetrieve, global_output_params)
-from ipalib.plugins.hostgroup import get_complete_hostgroup_member_list
-from ipalib.plugins.service import validate_certificate
+from .hostgroup import get_complete_hostgroup_member_list
+from .service import validate_certificate
 from ipalib import api, Str, Int, Bytes, Flag, _, ngettext, errors, output
 from ipalib.constants import IPA_ANCHOR_PREFIX, SID_ANCHOR_PREFIX
 from ipalib.plugable import Registry

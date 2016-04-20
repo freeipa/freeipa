@@ -20,8 +20,8 @@
 from ipalib import api
 from ipalib import Str
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import LDAPObject, LDAPCreate, LDAPDelete
-from ipalib.plugins.baseldap import LDAPUpdate, LDAPSearch, LDAPRetrieve
+from .baseldap import LDAPObject, LDAPCreate, LDAPDelete
+from .baseldap import LDAPUpdate, LDAPSearch, LDAPRetrieve
 
 from ipalib import _, ngettext
 

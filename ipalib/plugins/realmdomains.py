@@ -23,7 +23,7 @@ from ipalib import api, errors, messages
 from ipalib import Str, Flag
 from ipalib import _
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import LDAPObject, LDAPUpdate, LDAPRetrieve
+from .baseldap import LDAPObject, LDAPUpdate, LDAPRetrieve
 from ipalib.util import has_soa_or_ns_record, validate_domain_name
 from ipalib.util import detect_dns_zone_realm_type
 from ipapython.dn import DN

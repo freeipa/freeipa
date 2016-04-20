@@ -24,10 +24,10 @@ import six
 from ipalib import api, errors
 from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime, Bytes
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     DN, LDAPObject, LDAPCreate, LDAPUpdate, LDAPSearch, LDAPDelete,
     LDAPRetrieve, LDAPAddMember, LDAPRemoveMember)
-from ipalib.plugins.service import validate_certificate
+from .service import validate_certificate
 from ipalib.request import context
 from ipalib import _
 from ipapython.ipautil import ipa_generate_password

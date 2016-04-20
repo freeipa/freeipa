@@ -22,8 +22,8 @@ import traceback
 
 import six
 
-from ipalib.plugins import baseldap
-from ipalib.plugins.privilege import validate_permission_to_privilege
+from . import baseldap
+from .privilege import validate_permission_to_privilege
 from ipalib import errors
 from ipalib.parameters import Str, StrEnum, DNParam, Flag
 from ipalib import api, _, ngettext

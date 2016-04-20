@@ -23,7 +23,7 @@ import six
 from ipalib import api, errors
 from ipalib import Str, StrEnum, Bool, Int
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
+from .baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
                                      LDAPUpdate, LDAPSearch, LDAPRetrieve,
                                      LDAPQuery, LDAPAddMember, LDAPRemoveMember,
                                      add_external_pre_callback,
@@ -31,7 +31,7 @@ from ipalib.plugins.baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
                                      remove_external_post_callback,
                                      output, entry_to_dict, pkey_to_value,
                                      external_host_param)
-from ipalib.plugins.hbacrule import is_all
+from .hbacrule import is_all
 from ipalib import _, ngettext
 from ipalib.util import validate_hostmask
 from ipapython.dn import DN

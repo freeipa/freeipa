@@ -24,7 +24,7 @@ from ipalib.messages import (
     add_message,
     BrokenTrust)
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     pkey_to_value,
     entry_to_dict,
     LDAPCreate,
@@ -34,7 +34,7 @@ from ipalib.plugins.baseldap import (
     LDAPRetrieve,
     LDAPObject,
     LDAPQuery)
-from ipalib.plugins.dns import dns_container_exists
+from .dns import dns_container_exists
 from ipapython.dn import DN
 from ipapython.ipautil import realm_to_suffix
 from ipapython.ipa_log_manager import root_logger

@@ -26,17 +26,17 @@ from ipalib import api, errors, util
 from ipalib import messages
 from ipalib import Str, Flag, Bytes
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
+from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
                                      LDAPRetrieve, LDAPAddMember,
                                      LDAPRemoveMember, host_is_master,
                                      pkey_to_value, add_missing_object_class,
                                      LDAPAddAttribute, LDAPRemoveAttribute)
-from ipalib.plugins.service import (split_principal, validate_certificate,
+from .service import (split_principal, validate_certificate,
     set_certificate_attrs, ticket_flags_params, update_krbticketflags,
     set_kerberos_attrs, rename_ipaallowedtoperform_from_ldap,
     rename_ipaallowedtoperform_to_ldap, revoke_certs)
-from ipalib.plugins.dns import (dns_container_exists,
+from .dns import (dns_container_exists,
         add_records_for_host_validation, add_records_for_host,
         get_reverse_zone)
 from ipalib import _, ngettext

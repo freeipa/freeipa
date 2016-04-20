@@ -19,7 +19,7 @@
 
 from ipalib import _, api, Int
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import DN, LDAPObject, LDAPUpdate, LDAPRetrieve
+from .baseldap import DN, LDAPObject, LDAPUpdate, LDAPRetrieve
 
 __doc__ = _("""
 OTP configuration

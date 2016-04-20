@@ -19,8 +19,8 @@
 
 from ipalib import api, errors, output, _
 from ipalib import Int, Str
-from ipalib.plugins import baseldap
-from ipalib.plugins.baseldap import entry_to_dict, pkey_to_value
+from . import baseldap
+from .baseldap import entry_to_dict, pkey_to_value
 from ipalib.plugable import Registry
 from ipapython.dn import DN
 

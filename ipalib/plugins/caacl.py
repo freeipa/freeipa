@@ -7,12 +7,12 @@ import pyhbac
 from ipalib import api, errors, output
 from ipalib import Bool, Str, StrEnum
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate, LDAPDelete, LDAPQuery,
     LDAPUpdate, LDAPRetrieve, LDAPAddMember, LDAPRemoveMember,
     global_output_params, pkey_to_value)
-from ipalib.plugins.hbacrule import is_all
-from ipalib.plugins.service import normalize_principal, split_any_principal
+from .hbacrule import is_all
+from .service import normalize_principal, split_any_principal
 from ipalib import _, ngettext
 from ipapython.dn import DN
 

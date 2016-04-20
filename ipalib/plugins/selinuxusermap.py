@@ -22,7 +22,7 @@ import re
 from ipalib import api, errors
 from ipalib import Str, StrEnum, Bool
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     pkey_to_value,
     LDAPObject,
     LDAPCreate,
@@ -35,7 +35,7 @@ from ipalib.plugins.baseldap import (
     LDAPRemoveMember)
 from ipalib import _, ngettext
 from ipalib import output
-from ipalib.plugins.hbacrule import is_all
+from .hbacrule import is_all
 from ipapython.dn import DN
 
 __doc__ = _("""

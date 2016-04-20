@@ -23,7 +23,7 @@ from ipalib import Str, Password
 from ipalib import _
 from ipalib import output
 from ipalib.plugable import Registry
-from ipalib.plugins.baseuser import validate_principal, normalize_principal
+from .baseuser import validate_principal, normalize_principal
 from ipalib.request import context
 from ipapython.dn import DN
 

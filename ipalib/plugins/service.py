@@ -24,7 +24,7 @@ import six
 from ipalib import api, errors
 from ipalib import Bytes, StrEnum, Bool, Str, Flag
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     host_is_master,
     add_missing_object_class,
     pkey_to_value,

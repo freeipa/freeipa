@@ -7,7 +7,7 @@ import six
 from ipalib import api, errors
 from ipalib import Int, Str, StrEnum, Flag, DNParam
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate, LDAPDelete, LDAPUpdate, LDAPQuery,
     LDAPRetrieve)
 from ipalib import _, ngettext

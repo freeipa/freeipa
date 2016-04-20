@@ -20,8 +20,8 @@
 from __future__ import print_function
 import sys
 
-from ipalib.plugins.baseldap import LDAPObject, LDAPAddMember, LDAPRemoveMember
-from ipalib.plugins.baseldap import LDAPCreate, LDAPDelete, LDAPUpdate, LDAPSearch, LDAPRetrieve
+from .baseldap import LDAPObject, LDAPAddMember, LDAPRemoveMember
+from .baseldap import LDAPCreate, LDAPDelete, LDAPUpdate, LDAPSearch, LDAPRetrieve
 from ipalib import api, Int, Str, Bool, DateTime, Flag, Bytes, IntEnum, StrEnum, Password, _, ngettext
 from ipalib.messages import add_message, ResultFormattingError
 from ipalib.plugable import Registry

@@ -7,7 +7,7 @@ import re
 from ipalib import api, Bool, File, Str
 from ipalib import util
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate,
     LDAPDelete, LDAPUpdate, LDAPRetrieve)
 from ipalib.request import context

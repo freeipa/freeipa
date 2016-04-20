@@ -20,7 +20,7 @@
 from ipalib import api, errors
 from ipalib import AccessTime, Str, StrEnum, Bool, DeprecatedParam
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     pkey_to_value,
     external_host_param,
     LDAPObject,

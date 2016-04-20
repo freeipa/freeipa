@@ -19,7 +19,7 @@
 
 from ipalib import api, Str
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     LDAPObject,
     LDAPCreate,
     LDAPUpdate,

@@ -27,7 +27,7 @@ from ipalib import api, errors, output
 from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, File, Bool
 from ipalib.cli import to_cli
 from ipalib.plugable import Registry
-from ipalib.plugins.user import NO_UPG_MAGIC
+from .user import NO_UPG_MAGIC
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         from ipaserver.plugins.ldap2 import ldap2

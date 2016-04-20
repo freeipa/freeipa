@@ -25,12 +25,12 @@ import six
 from ipalib import api, errors
 from ipalib import DeprecatedParam
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     LDAPCreate,
     LDAPQuery,
     DN)
-from ipalib.plugins import baseldap
-from ipalib.plugins.baseuser import (
+from . import baseldap
+from .baseuser import (
     baseuser,
     baseuser_add,
     baseuser_del,

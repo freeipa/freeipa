@@ -21,7 +21,7 @@
 from ipalib import api
 from ipalib import Int, Str, DNParam
 from ipalib import errors
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     LDAPObject,
     LDAPCreate,
     LDAPDelete,

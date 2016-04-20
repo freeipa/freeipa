@@ -22,11 +22,11 @@ from ipalib import api
 from ipalib import Bool, Int, Str, IA5Str, StrEnum, DNParam
 from ipalib import errors
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     LDAPObject,
     LDAPUpdate,
     LDAPRetrieve)
-from ipalib.plugins.selinuxusermap import validate_selinuxuser
+from .selinuxusermap import validate_selinuxuser
 from ipalib import _
 from ipapython.dn import DN
 

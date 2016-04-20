@@ -21,12 +21,12 @@
 import six
 
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (LDAPObject, LDAPCreate, LDAPRetrieve,
+from .baseldap import (LDAPObject, LDAPCreate, LDAPRetrieve,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
                                      LDAPAddMember, LDAPRemoveMember,
                                      entry_from_entry, wait_for_value)
 from ipalib import Str, api, _, ngettext, errors
-from ipalib.plugins.netgroup import NETGROUP_PATTERN, NETGROUP_PATTERN_ERRMSG
+from .netgroup import NETGROUP_PATTERN, NETGROUP_PATTERN_ERRMSG
 from ipapython.dn import DN
 
 if six.PY3:

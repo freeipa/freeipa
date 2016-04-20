@@ -7,7 +7,7 @@ import six
 from ipalib import api
 from ipalib import Str
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     LDAPObject,
     LDAPAddMember,
     LDAPRemoveMember,
@@ -15,7 +15,7 @@ from ipalib.plugins.baseldap import (
     LDAPDelete,
     LDAPSearch,
     LDAPRetrieve)
-from ipalib.plugins.service import normalize_principal
+from .service import normalize_principal
 from ipalib import _, ngettext
 from ipalib import errors
 from ipapython.dn import DN

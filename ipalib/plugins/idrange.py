@@ -20,7 +20,7 @@
 import six
 
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
+from .baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
                                      LDAPRetrieve, LDAPSearch, LDAPUpdate)
 from ipalib import api, Int, Str, DeprecatedParam, StrEnum, _, ngettext
 from ipalib import errors

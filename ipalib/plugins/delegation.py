@@ -24,7 +24,7 @@ from ipalib import api, crud
 from ipalib import output
 from ipalib import Object
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import gen_pkey_only_option, pkey_to_value
+from .baseldap import gen_pkey_only_option, pkey_to_value
 
 __doc__ = _("""
 Group to Group Delegation

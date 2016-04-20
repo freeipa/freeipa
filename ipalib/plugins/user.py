@@ -29,7 +29,7 @@ from ipalib import api
 from ipalib import errors
 from ipalib import util
 from ipalib import Bool, Flag, Str
-from ipalib.plugins.baseuser import (
+from .baseuser import (
     baseuser,
     baseuser_add,
     baseuser_del,
@@ -46,9 +46,9 @@ from ipalib.plugins.baseuser import (
     fix_addressbook_permission_bindrule,
     baseuser_add_manager,
     baseuser_remove_manager)
-from ipalib.plugins.idviews import remove_ipaobject_overrides
+from .idviews import remove_ipaobject_overrides
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import (
+from .baseldap import (
     pkey_to_value,
     LDAPCreate,
     LDAPSearch,
@@ -56,7 +56,7 @@ from ipalib.plugins.baseldap import (
     LDAPMultiQuery,
     LDAPAddAttribute,
     LDAPRemoveAttribute)
-from ipalib.plugins import baseldap
+from . import baseldap
 from ipalib.request import context
 from ipalib import _, ngettext
 from ipalib import output
