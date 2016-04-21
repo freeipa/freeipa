@@ -286,6 +286,16 @@ def ca_configure_profiles_acl(ca):
     return cainstance.configure_profiles_acl()
 
 
+def ca_configure_lightweight_ca_acls(ca):
+    root_logger.info('[Authorizing RA Agent to manage lightweight CAs]')
+
+    if not ca.is_configured():
+        root_logger.info('CA is not configured')
+        return False
+
+    return cainstance.configure_lightweight_ca_acls()
+
+
 def ca_enable_ldap_profile_subsystem(ca):
     root_logger.info('[Ensuring CA is using LDAPProfileSubsystem]')
     if not ca.is_configured():
@@ -1677,6 +1687,7 @@ def upgrade_configuration():
         certificate_renewal_update(ca, ds, http),
         ca_enable_pkix(ca),
         ca_configure_profiles_acl(ca),
+        ca_configure_lightweight_ca_acls(ca),
     ])
 
     if ca_restart:

@@ -418,6 +418,8 @@ class CAInstance(DogtagInstance):
                 self.step("importing RA certificate from PKCS #12 file",
                           lambda: self.import_ra_cert(ra_p12, configure_renewal=False))
             self.step("authorizing RA to modify profiles", configure_profiles_acl)
+            self.step("authorizing RA to manage lightweight CAs",
+                      configure_lightweight_ca_acls)
             self.step("configure certmonger for renewals", self.configure_certmonger_renewal)
             self.step("configure certificate renewals", self.configure_renewal)
             if not self.clone:
@@ -1648,11 +1650,6 @@ def ensure_entry(dn, **attrs):
 
 def configure_profiles_acl():
     """Allow the Certificate Manager Agents group to modify profiles."""
-    server_id = installutils.realm_to_serverid(api.env.realm)
-    dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
-    updated = False
-
-    dn = DN(('cn', 'aclResources'), ('o', 'ipaca'))
     new_rules = [
         'certServer.profile.configuration:read,modify:allow (read,modify) '
         'group="Certificate Manager Agents":'
@@ -1661,6 +1658,45 @@ def configure_profiles_acl():
         'certServer.ca.account:login,logout:allow (login,logout) '
         'user="anybody":Anybody can login and logout',
     ]
+    return __add_acls(new_rules)
+
+
+def configure_lightweight_ca_acls():
+    """Allow Certificate Manager Agents to manage lightweight CAs."""
+    new_rules = [
+        'certServer.ca.authorities:list,read'
+        ':allow (list,read) user="anybody"'
+        ':Anybody may list and read lightweight authorities',
+
+        'certServer.ca.authorities:create,modify'
+        ':allow (create,modify) group="Administrators"'
+        ':Administrators may create and modify lightweight authorities',
+
+        'certServer.ca.authorities:delete'
+        ':allow (delete) group="Administrators"'
+        ':Administrators may delete lightweight authorities',
+
+        'certServer.ca.authorities:create,modify,delete'
+        ':allow (create,modify,delete) group="Certificate Manager Agents"'
+        ':Certificate Manager Agents may manage lightweight authorities',
+    ]
+    return __add_acls(new_rules)
+
+
+def __add_acls(new_rules):
+    """Add the given Dogtag ACLs.
+
+    ``new_rules``
+        Iterable of ACL rule values to add
+
+    Return ``True`` if any ACLs were added otherwise ``False``.
+
+    """
+    server_id = installutils.realm_to_serverid(api.env.realm)
+    dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
+    updated = False
+
+    dn = DN(('cn', 'aclResources'), ('o', 'ipaca'))
 
     conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
     if not conn.isconnected():
