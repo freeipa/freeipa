@@ -757,6 +757,33 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: command_defaults
+args: 1,3,1
+arg: Str('name')
+option: Any('kw?')
+option: Str('params*')
+option: Str('version?')
+output: Output('result')
+command: command_find
+args: 1,4,4
+arg: Str('criteria?')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('pkey_only?', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Output('count', type=[<type 'int'>])
+output: ListOfEntries('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('truncated', type=[<type 'bool'>])
+command: command_show
+args: 1,3,3
+arg: Str('name')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: compat_is_enabled
 args: 0,1,1
 option: Str('version?')
@@ -3076,6 +3103,50 @@ option: Password('second_code', confirm=False)
 option: Str('user')
 option: Str('version?')
 output: Output('result')
+command: output_find
+args: 2,4,4
+arg: Str('commandname', cli_name='command')
+arg: Str('criteria?')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('pkey_only?', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Output('count', type=[<type 'int'>])
+output: ListOfEntries('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('truncated', type=[<type 'bool'>])
+command: output_show
+args: 2,3,3
+arg: Str('commandname', cli_name='command')
+arg: Str('name')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: param_find
+args: 2,4,4
+arg: Str('commandname', cli_name='command')
+arg: Str('criteria?')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('pkey_only?', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Output('count', type=[<type 'int'>])
+output: ListOfEntries('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('truncated', type=[<type 'bool'>])
+command: param_show
+args: 2,3,3
+arg: Str('commandname', cli_name='command')
+arg: Str('name')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: passwd
 args: 3,2,3
 arg: Str('principal', autofill=True, cli_name='user')
@@ -3656,6 +3727,10 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: schema
+args: 0,1,1
+option: Str('version?')
+output: Output('result')
 command: selfservice_add
 args: 1,5,3
 arg: Str('aciname', cli_name='name')
@@ -4866,6 +4941,26 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: topic_find
+args: 1,4,4
+arg: Str('criteria?')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('pkey_only?', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Output('count', type=[<type 'int'>])
+output: ListOfEntries('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('truncated', type=[<type 'bool'>])
+command: topic_show
+args: 1,3,3
+arg: Str('name')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
