@@ -2938,7 +2938,7 @@ def install(options, env, fstore, statestore):
                 nscd.service_name)
 
     nslcd = services.knownservices.nslcd
-    if nscd.is_installed():
+    if nslcd.is_installed():
         save_state(nslcd)
 
     retcode, conf, filename = (0, None, None)
