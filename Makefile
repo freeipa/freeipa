@@ -164,15 +164,15 @@ version-update: release-update
 		> ipaclient/setup.py
 	sed -e s/__NUM_VERSION__/$(IPA_NUM_VERSION)/ install/ui/src/libs/loader.js.in \
 		> install/ui/src/libs/loader.js
-	perl -pi -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" install/ui/src/libs/loader.js
-	perl -pi -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" ipapython/version.py
-	perl -pi -e "s:__VENDOR_VERSION__:$(IPA_VENDOR_VERSION):" ipapython/version.py
-	perl -pi -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" ipapython/version.py
+	sed -i -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" install/ui/src/libs/loader.js
+	sed -i -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" ipapython/version.py
+	sed -i -e "s:__VENDOR_VERSION__:$(IPA_VENDOR_VERSION):" ipapython/version.py
+	sed -i -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" ipapython/version.py
 	touch -r ipapython/version.py.in ipapython/version.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ daemons/ipa-version.h.in \
 		> daemons/ipa-version.h
-	perl -pi -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" daemons/ipa-version.h
-	perl -pi -e "s:__DATA_VERSION__:$(IPA_DATA_VERSION):" daemons/ipa-version.h
+	sed -i -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" daemons/ipa-version.h
+	sed -i -e "s:__DATA_VERSION__:$(IPA_DATA_VERSION):" daemons/ipa-version.h
 
 	sed -e s/__VERSION__/$(IPA_VERSION)/ client/version.m4.in \
 		> client/version.m4
