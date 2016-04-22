@@ -325,6 +325,69 @@ IPA.widget = function(spec) {
 };
 
 /**
+ * Working widget which contains spinner and can be used while some other
+ * widget is working.
+ *
+ * @class
+ * @param {Object} spec
+ */
+IPA.working_widget = function(spec) {
+
+    spec = spec || {};
+    spec.base_css_class = spec.base_css_class || 'working-widget';
+
+    var that = IPA.widget(spec);
+
+    /**
+     * Patternfly class name which defines size of spinner. Possible values:
+     * ''|'spinner-lg'|'spinner-sm'|'spinner-xs'
+     *
+     * @property {string} class_name
+     */
+    that.spinner_size_cls = spec.spinner_size_cls || 'spinner-sm';
+
+    /**
+     * The variable defines the background color of working widget.
+     *
+     * @property {string} color definition
+     */
+    that.bg_color = spec.bg_color || 'rgba(255,255,255,0.7)';
+
+    /**
+     * Z-index of this widget.
+     *
+     * @property {number}
+     */
+    that.z_index = spec.z_index || 99;
+
+    that.create = function(container) {
+
+        that.spin_div = $('<div />', {
+            'class': that.base_css_class,
+            style: 'background-color: ' + that.bg_color + ';'
+                    + 'z-index: ' + that.z_index + ';'
+        });
+        that.spinner = $('<div />', {
+            'class': 'spinner ' + that.spinner_size_cls
+        }).appendTo(that.spin_div);
+
+        that.spin_div.appendTo(container);
+
+        that.on('hide-spinner', function() {
+            that.spin_div.fadeOut();
+        });
+
+        that.on('display-spinner', function() {
+            that.spin_div.fadeIn();
+            that.spin_div.css('display', 'flex');
+            that.spin_div.css('display', '-webkit-flex');
+        });
+    };
+
+    return that;
+};
+
+/**
  * Base class for input gathering widgets.
  * @class
  * @extends IPA.widget
