@@ -73,6 +73,18 @@ return {
             source_facet: 'details',
             dest_entity: 'stageuser',
             dest_facet: 'search'
+        },
+        {
+            $factory: IPA.cert.cert_update_policy,
+            source_facet: 'details',
+            dest_entity: 'cert',
+            dest_facet: 'search'
+        },
+        {
+            $factory: IPA.cert.cert_update_policy,
+            source_facet: 'details',
+            dest_entity: 'cert',
+            dest_facet: 'details'
         }
     ],
     facets: [
@@ -188,8 +200,12 @@ return {
                             label: '@i18n:objects.sshkeystore.keys'
                         },
                         {
-                            $type: 'certificate',
-                            name: 'usercertificate'
+                            $type: 'certs',
+                            adapter: {
+                                $type: 'object_adapter',
+                                result_index: 3
+                            },
+                            label: '@i18n:objects.cert.certificates'
                         },
                         {
                             $type: 'checkboxes',
@@ -563,8 +579,21 @@ IPA.user.details_facet = function(spec, no_init) {
 
         batch.add_command(krbtpolicy_command);
 
+        var certificates = rpc.command({
+            entity: 'cert',
+            method: 'find',
+            retry: false,
+            options: {
+                user: [ pkey ],
+                all: true
+            }
+        });
+
+        batch.add_command(certificates);
+
         return batch;
     };
+
 
     if (!no_init) that.init_details_facet();
 
