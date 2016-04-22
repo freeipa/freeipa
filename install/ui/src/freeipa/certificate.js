@@ -588,72 +588,6 @@ IPA.cert.is_enabled = function() {
     return !!IPA.ca_enabled;
 };
 
-IPA.cert.view_action = function(spec) {
-
-    spec = spec || {};
-    spec.name = spec.name || 'view_cert';
-    spec.label = spec.label || '@i18n:objects.cert.view_certificate_btn';
-    spec.enable_cond = spec.enable_cond || ['has_certificate'];
-
-    var that = IPA.action(spec);
-    that.entity_label = spec.entity_label;
-
-    that.execute_action = function(facet) {
-
-        var certificate = facet.certificate;
-        if (!certificate) that.facet.refresh();
-
-        var entity_label = that.entity_label || facet.entity.metadata.label_singular;
-        var entity_name = certificate.entity_info.name;
-
-        var title = text.get('@i18n:objects.cert.view_certificate');
-        title = title.replace('${entity}', entity_label);
-        title = title.replace('${primary_key}', entity_name);
-
-        var dialog = IPA.cert.view_dialog({
-            title: title,
-            certificate: certificate
-        });
-
-        dialog.open();
-    };
-
-    return that;
-};
-
-IPA.cert.get_action = function(spec) {
-
-    spec = spec || {};
-    spec.name = spec.name || 'get_cert';
-    spec.label = spec.label || '@i18n:objects.cert.get_certificate';
-    spec.enable_cond = spec.enable_cond || ['has_certificate'];
-
-    var that = IPA.action(spec);
-    that.entity_label = spec.entity_label;
-
-    that.execute_action = function(facet) {
-
-        var certificate = facet.certificate;
-        if (!certificate) that.facet.refresh();
-
-        var entity_label = that.entity_label || facet.entity.metadata.label_singular;
-        var entity_name = certificate.entity_info.name;
-
-        var title = text.get('@i18n:objects.cert.view_certificate');
-        title = title.replace('${entity}', entity_label);
-        title = title.replace('${primary_key}', entity_name);
-
-        var dialog = IPA.cert.download_dialog({
-            title: title,
-            certificate: certificate.certificate
-        });
-
-        dialog.open();
-    };
-
-    return that;
-};
-
 IPA.cert.create_data_uri = function(certificate) {
     if (typeof certificate !== 'string') return '';
 
@@ -1587,8 +1521,6 @@ exp.register = function() {
     f.register('revocation_reason', IPA.revocation_reason_field);
     w.register('revocation_reason', IPA.text_widget);
 
-    a.register('cert_view', IPA.cert.view_action);
-    a.register('cert_get', IPA.cert.get_action);
     a.register('cert_request', IPA.cert.request_action);
     a.register('download_cert', IPA.cert.download_action);
     a.register('cert_revoke', IPA.cert.revoke_action);
