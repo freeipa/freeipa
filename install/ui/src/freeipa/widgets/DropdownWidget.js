@@ -142,6 +142,42 @@ define(['dojo/_base/declare',
             return this.dom_node;
         },
 
+        get_items: function() {
+            return this.items;
+        },
+
+        set_items: function(items) {
+            this.items = items;
+            if (this.ul_node) this.render();
+        },
+
+        disable_item: function(item_name) {
+            var item = this._find_item(item_name);
+            if (item && this.ul_node) {
+                item.disabled = true;
+                $("li[data-name=" + item.name +"]", this.ul_node ).replaceWith(
+                    this._render_item(item));
+            }
+        },
+
+        enable_item: function(item_name) {
+            var item = this._find_item(item_name);
+            if (item && this.ul_node) {
+                item.disabled = false;
+                $("li[data-name=" + item.name +"]", this.ul_node ).replaceWith(
+                    this._render_item(item));
+            }
+        },
+
+        _find_item: function(item_name) {
+            for (var i=0, l=this.items.length; i<l; i++) {
+                if (this.items[i].name && this.items[i].name == item_name) {
+                    return this.items[i];
+                }
+            }
+            return null;
+        },
+
         _render_toggle: function(container) {
 
             this.toggle_node = construct.create('a', {
