@@ -107,7 +107,10 @@ class batch(Command):
 
                 result = api.Command[name](*a, **newkw)
                 self.info(
-                    '%s: batch: %s(%s): SUCCESS', context.principal, name, ', '.join(api.Command[name]._repr_iter(**params))
+                    '%s: batch: %s(%s): SUCCESS',
+                    getattr(context, 'principal', 'UNKNOWN'),
+                    name,
+                    ', '.join(api.Command[name]._repr_iter(**params))
                 )
                 result['error']=None
             except Exception as e:
