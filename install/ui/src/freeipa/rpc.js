@@ -96,6 +96,29 @@ rpc.command = function(spec) {
      */
     that.retry = typeof spec.retry == 'undefined' ? true : spec.retry;
 
+    /**
+     * Allow turning off the activity icon.
+     *
+     * @property {Boolean} show=true
+     */
+    that.hide_activity_icon = spec.hide_activity_icon || false;
+
+    /**
+     * Allow set function which will be called when the activity of the command
+     * starts. Works only when 'activity_icon' property is set to false
+     *
+     * @property {Function}
+     */
+    that.notify_activity_start = spec.notify_activity_start || null;
+
+    /**
+     * Allow set function which will be called when the activity of the command
+     * ends. Works only when 'activity_icon' property is set to false
+     *
+     * @property {Function}
+     */
+    that.notify_activity_end = spec.notify_activity_end || null;
+
     /** @property {string} error_message Default error message */
     that.error_message = text.get(spec.error_message || '@i18n:dialogs.batch_error_message', 'Some operations failed.');
 
@@ -198,6 +221,15 @@ rpc.command = function(spec) {
         }
     };
 
+    that.handle_notify_execution_end = function() {
+        if (that.hide_activity_icon) {
+            if (that.notify_activity_end) that.notify_activity_end();
+        }
+        else {
+            IPA.hide_activity_icon();
+        }
+    };
+
     /**
      * Execute the command.
      *
@@ -280,7 +312,7 @@ rpc.command = function(spec) {
          */
         function error_handler(xhr, text_status, error_thrown) {
 
-            IPA.hide_activity_icon();
+            that.handle_notify_execution_end();
 
             if (xhr.status === 401) {
                 error_handler_auth(xhr, text_status, error_thrown);
@@ -360,7 +392,7 @@ rpc.command = function(spec) {
                 });
 
             } else {
-                IPA.hide_activity_icon();
+                that.handle_notify_execution_end();
 
                 var ajax = this;
                 var failed = that.get_failed(that, data.result, text_status, xhr);
@@ -413,7 +445,13 @@ rpc.command = function(spec) {
             error: error_handler_login
         };
 
-        IPA.display_activity_icon();
+        if (that.hide_activity_icon) {
+            if (that.notify_activity_start) that.notify_activity_start();
+        }
+        else {
+            IPA.display_activity_icon();
+        }
+
         $.ajax(that.request);
         return deferred.promise;
     };
