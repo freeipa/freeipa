@@ -1266,6 +1266,45 @@ field.SshKeysAdapter = declare([field.Adapter], {
     }
 });
 
+
+/**
+ * ObjectAdapter is basic adapter which converts object to more usable format.
+ * All properties which have only one value are tranformed this way:
+ *  property1: {"__base64__": "value1"} => property1: "value1",
+ *  property2: {"value2"} => property2: "value2",
+ * Works for __base64__ as well as for __datetime__ and __dns_name__
+ *
+ * In case that the property has more values, then they are returned as array.
+ *
+ * @class
+ * @extends field.Adapter
+ */
+field.ObjectAdapter = declare([field.Adapter], {
+
+    normalize_object: function(obj) {
+        for (var property in obj) {
+            if (obj.hasOwnProperty(property)) {
+                obj[property] = rpc.extract_objects([obj[property]]);
+                if (obj[property].length == 1) {
+                    obj[property] = obj[property][0];
+                }
+            }
+        }
+    },
+
+    load: function(data) {
+
+        var record = this.get_record(data);
+
+        for (var i=0; i<record.length; i++) {
+            this.normalize_object(record[i]);
+        }
+
+        return record;
+    }
+});
+
+
 /**
  * Field for enabling/disabling entity
  *
@@ -1536,6 +1575,7 @@ field.register = function() {
     v.register('same_password', field.same_password_validator);
 
     l.register('adapter', field.Adapter);
+    l.register('object_adapter', field.ObjectAdapter);
 };
 phases.on('registration', field.register);
 
