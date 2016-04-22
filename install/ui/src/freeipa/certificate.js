@@ -229,6 +229,7 @@ IPA.cert.revoke_dialog = function(spec) {
     spec.ok_label = spec.ok_label || '@i18n:buttons.revoke';
 
     var that = IPA.confirm_dialog(spec);
+    IPA.table_mixin().apply(that);
 
     that.get_reason = function() {
         return that.select.val();
@@ -236,22 +237,17 @@ IPA.cert.revoke_dialog = function(spec) {
 
     that.create_content = function() {
 
-        var table = $('<table/>').appendTo(that.container);
+        var table = that.create_layout().appendTo(that.container);
 
-        var tr = $('<tr/>').appendTo(table);
+        var tr = that.create_row().appendTo(table);
+        var td = that.create_cell('@i18n:objects.cert.note', ':').appendTo(tr);
+        td = that.create_cell('@i18n:objects.cert.revoke_confirmation')
+            .appendTo(tr);
 
-        var td = $('<td/>').appendTo(tr);
-        td.append(text.get('@i18n:objects.cert.note')+':');
-
-        td = $('<td/>').appendTo(tr);
-        td.append(text.get('@i18n:objects.cert.revoke_confirmation'));
-
-        tr = $('<tr/>').appendTo(table);
-
-        td = $('<td/>').appendTo(tr);
-        td.append(text.get('@i18n:objects.cert.reason')+':');
-
-        td = $('<td/>').appendTo(tr);
+        tr = that.create_row().appendTo(table);
+        td = that.create_header_cell('@i18n:objects.cert.reason', ':')
+            .appendTo(tr);
+        td = that.create_cell().appendTo(tr);
 
         that.select = $('<select/>').appendTo(td);
         for (var i=0; i<IPA.cert.CRL_REASON.length; i++) {
@@ -272,6 +268,7 @@ IPA.cert.view_dialog = function(spec) {
     spec = spec || {};
 
     var that = IPA.dialog(spec);
+    IPA.table_mixin().apply(that);
 
     that.width = spec.width || 600;
     that.height = spec.height || 500;
@@ -284,6 +281,7 @@ IPA.cert.view_dialog = function(spec) {
     that.expires_on = spec.certificate.valid_not_after || '';
     that.md5_fingerprint = spec.certificate.md5_fingerprint || '';
     that.sha1_fingerprint = spec.certificate.sha1_fingerprint || '';
+    that.sha256_fingerprint = spec.certificate.sha256_fingerprint || '';
 
     that.create_button({
         name: 'close',
@@ -295,103 +293,64 @@ IPA.cert.view_dialog = function(spec) {
 
     that.create_content = function() {
 
-        var table = $('<table/>').appendTo(that.container);
+        var new_row = function(title, value) {
+            var row = that.create_row();
+            row.append(that
+                .create_header_cell(title, ':'));
+            row.append(that.create_cell(value, '', 'break-words'));
 
-        var tr = $('<tr/>').appendTo(table);
-        $('<td/>', {
-            'colspan': 2,
-            'html': '<h3>'+text.get('@i18n:objects.cert.issued_to')+'</h3>'
-        }).appendTo(tr);
+            return row;
+        };
 
-        tr = $('<tr/>').appendTo(table);
-        $('<td>'+text.get('@i18n:objects.cert.common_name')+':</td>').appendTo(tr);
-        $('<td/>', {
-            text: that.subject.cn
-        }).appendTo(tr);
+        that.create_title('@i18n:objects.cert.issued_to')
+            .appendTo(that.container);
 
-        tr = $('<tr/>').appendTo(table);
-        $('<td>'+text.get('@i18n:objects.cert.organization')+':</td>').appendTo(tr);
-        $('<td/>', {
-            text: that.subject.o
-        }).appendTo(tr);
+        var table_layout = that.create_layout().appendTo(that.container);
 
-        tr = $('<tr/>').appendTo(table);
-        $('<td>'+text.get('@i18n:objects.cert.organizational_unit')+':</td>').appendTo(tr);
-        $('<td/>', {
-            text: that.subject.ou
-        }).appendTo(tr);
+        new_row('@i18n:objects.cert.common_name', that.subject.cn)
+            .appendTo(table_layout);
+        new_row('@i18n:objects.cert.organization', that.subject.o)
+            .appendTo(table_layout);
+        new_row('@i18n:objects.cert.organizational_unit', that.subject.ou)
+            .appendTo(table_layout);
+        new_row('@i18n:objects.cert.serial_number',
+            that.serial_number.toString()).appendTo(table_layout);
+        new_row('@i18n:objects.cert.serial_number_hex', that.serial_number_hex)
+            .appendTo(table_layout);
 
-        tr = $('<tr/>').appendTo(table);
-        $('<td>'+text.get('@i18n:objects.cert.serial_number')+':</td>').appendTo(tr);
-        $('<td/>', {
-            text: that.serial_number
-        }).appendTo(tr);
+        that.create_title('@i18n:objects.cert.issued_by')
+            .appendTo(that.container);
 
-        tr = $('<tr/>').appendTo(table);
-        $('<td>'+text.get('@i18n:objects.cert.serial_number_hex')+':</td>').appendTo(tr);
-        $('<td/>', {
-            text: that.serial_number_hex
-        }).appendTo(tr);
+        table_layout = that.create_layout().appendTo(that.container);
 
-        tr = $('<tr/>').appendTo(table);
-        $('<td/>', {
-            'colspan': 2,
-            'html': '<h3>'+text.get('@i18n:objects.cert.issued_by')+'</h3>'
-        }).appendTo(tr);
+        new_row('@i18n:objects.cert.common_name', that.issuer.cn)
+            .appendTo(table_layout);
+        new_row('@i18n:objects.cert.organization', that.issuer.o)
+            .appendTo(table_layout);
+        new_row('@i18n:objects.cert.organizational_unit', that.issuer.ou)
+            .appendTo(table_layout);
 
-        tr = $('<tr/>').appendTo(table);
-        $('<td>'+text.get('@i18n:objects.cert.common_name')+':</td>').appendTo(tr);
-        $('<td/>', {
-            text: that.issuer.cn
-        }).appendTo(tr);
+        that.create_title('@i18n:objects.cert.validity')
+            .appendTo(that.container);
 
-        tr = $('<tr/>').appendTo(table);
-        $('<td>'+text.get('@i18n:objects.cert.organization')+':</td>').appendTo(tr);
-        $('<td/>', {
-            text: that.issuer.o
-        }).appendTo(tr);
+        table_layout = that.create_layout().appendTo(that.container);
 
-        tr = $('<tr/>').appendTo(table);
-        $('<td>'+text.get('@i18n:objects.cert.organizational_unit')+':</td>').appendTo(tr);
-        $('<td/>', {
-            text: that.issuer.ou
-        }).appendTo(tr);
+        new_row('@i18n:objects.cert.issued_on', that.issued_on)
+            .appendTo(table_layout);
+        new_row('@i18n:objects.cert.expires_on', that.expires_on)
+            .appendTo(table_layout);
 
-        tr = $('<tr/>').appendTo(table);
-        $('<td/>', {
-            'colspan': 2,
-            'html': '<h3>'+text.get('@i18n:objects.cert.validity')+'</h3>'
-        }).appendTo(tr);
+        that.create_title('@i18n:objects.cert.fingerprints')
+            .appendTo(that.container);
 
-        tr = $('<tr/>').appendTo(table);
-        $('<td>'+text.get('@i18n:objects.cert.issued_on')+':</td>').appendTo(tr);
-        $('<td/>', {
-            text: that.issued_on
-        }).appendTo(tr);
+        table_layout = that.create_layout().appendTo(that.container);
 
-        tr = $('<tr/>').appendTo(table);
-        $('<td>'+text.get('@i18n:objects.cert.expires_on')+':</td>').appendTo(tr);
-        $('<td/>', {
-            text: that.expires_on
-        }).appendTo(tr);
-
-        tr = $('<tr/>').appendTo(table);
-        $('<td/>', {
-            'colspan': 2,
-            'html': '<h3>'+text.get('@i18n:objects.cert.fingerprints')+'</h3>'
-        }).appendTo(tr);
-
-        tr = $('<tr/>').appendTo(table);
-        $('<td>'+text.get('@i18n:objects.cert.sha1_fingerprint')+':</td>').appendTo(tr);
-        $('<td/>', {
-            text: that.sha1_fingerprint
-        }).appendTo(tr);
-
-        tr = $('<tr/>').appendTo(table);
-        $('<td>'+text.get('@i18n:objects.cert.md5_fingerprint')+':</td>').appendTo(tr);
-        $('<td/>', {
-            text: that.md5_fingerprint
-        }).appendTo(tr);
+        new_row('@i18n:objects.cert.md5_fingerprint', that.md5_fingerprint)
+            .appendTo(table_layout);
+        new_row('@i18n:objects.cert.sha1_fingerprint', that.sha1_fingerprint)
+            .appendTo(table_layout);
+        new_row('@i18n:objects.cert.sha256_fingerprint', that.sha256_fingerprint)
+            .appendTo(table_layout);
     };
 
     return that;

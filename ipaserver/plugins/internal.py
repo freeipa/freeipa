@@ -432,6 +432,7 @@ class i18n_messages(Command):
                 "serial_number": _("Serial Number"),
                 "serial_number_hex": _("Serial Number (hex)"),
                 "sha1_fingerprint": _("SHA1 Fingerprint"),
+                "sha256_fingerprint": _("SHA256 Fingerprint"),
                 "status": _("Status"),
                 "superseded": _("Superseded"),
                 "unspecified": _("Unspecified"),

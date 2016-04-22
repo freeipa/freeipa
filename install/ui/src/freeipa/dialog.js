@@ -1440,6 +1440,106 @@ IPA.confirm_dialog = function(spec) {
     return that;
 };
 
+
+/**
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+IPA.table_mixin = function() {
+
+    return {
+        mixin: {
+            /**
+             * Create title above a table.
+             *
+             * @param {string} cls css class which will be added to current title
+             */
+            create_title: function(str, cls) {
+                cls = cls || '';
+
+                return $('<h3 />', {
+                    'class': cls,
+                    text: text.get(str)
+                });
+            },
+
+            /**
+             * Create table layout..
+             *
+             * @param {string} cls css class which will be added to current table layout
+             */
+            create_layout: function(cls) {
+                cls = cls || '';
+
+                return $('<div />', {
+                    'class': 'table-layout ' + cls
+                });
+            },
+
+            /**
+             * Create one row to the table layout.
+             *
+             * @param {string} cls css class which will be added to current row
+             */
+            create_row: function(cls) {
+                cls = cls || '';
+
+                return $('<div />', {
+                    'class': 'table-row ' + cls
+                });
+            },
+
+            /**
+             * Create one cell to the table layout.
+             *
+             * @param {string} string, will be parsed using our provider
+             * @param {string} suffix, string which will be concatenated to the end of
+             *                  'str' string. Not parsed using text.get()
+             * @param {string} cls css class which will be added to current cell
+             */
+            create_cell: function(str, suffix, cls) {
+                str = str || '';
+                suffix = suffix || '';
+                cls = cls || '';
+
+                return $('<div />', {
+                    'class': 'table-cell ' + cls,
+                    text: text.get(str) + suffix
+                });
+            },
+
+            /**
+             * Create header cell to the table layout.
+             *
+             * @param {string} string, will be parsed using our provider
+             * @param {string} suffix, string which will be concatenated to the end of
+             *                  'str' string. Not parsed using text.get()
+             * @param {string} cls css class which will be added to current cell
+             */
+            create_header_cell: function(str, suffix, cls) {
+                str = str || '';
+                suffix = suffix || '';
+                cls = cls || '';
+
+                return $('<div />', {
+                    'class': 'table-cell table-head' + cls,
+                    text: text.get(str) + suffix
+                });
+            }
+        },
+
+        apply: function(obj) {
+            $.extend(obj, this.mixin);
+        }
+    };
+};
+
+
+
 /**
  * General form dialog with confirmation feature
  * @class  dialog.form_dialog
