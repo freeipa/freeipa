@@ -988,6 +988,27 @@ IPA.multivalued_widget = function(spec) {
     that.initialized = true;
     that.updating = false;
 
+    /**
+     *
+     * CUSTOM ACTION MENU HELP:
+     *
+     * Custom actions variable sets whether each row will use custom menu
+     * for showing remove button or not. Default is false - button will be
+     * displayed classicaly as any other button. True means custom menu is
+     * present..
+     *
+     * In case that the variable is set to true, the widget of each row
+     * has to offer following method:
+     *      action_object get_custom_actions();
+     *
+     * Then the action_object has to have following interface:
+     *      Array[item] get_items();
+     *      set_items(Array[item]);
+     *      enable_item(name);
+     *      disable_item(name);
+     */
+    that.custom_actions = !!spec.custom_actions;
+
     that.rows = [];
 
     that.base_css_class = that.base_css_class + ' multivalued-widget';
@@ -1165,23 +1186,41 @@ IPA.multivalued_widget = function(spec) {
             that.emit('error-show', { source: that });
         });
 
-        var remove_link_visible = !(row.is_new || !that.is_writable());
-        row.remove_link = $('<button/>', {
-            name: 'remove',
-            'class': 'btn btn-default',
-            title: text.get('@i18n:buttons.remove'),
-            html: text.get('@i18n:buttons.remove'),
-            click: function () {
-                that.remove_row(row);
-                return false;
-            }
-        });
+        var remove_row = function() {
+            that.remove_row(row);
+        };
 
-        if (row.widget.input_group_btn) {
-            // A little hack to make delete button part of row widget
-            row.remove_link.appendTo(row.widget.input_group_btn);
+        var remove_link_visible = !(row.is_new || !that.is_writable());
+
+        if (!that.custom_actions) {
+            row.remove_link = $('<button/>', {
+                name: 'remove',
+                'class': 'btn btn-default',
+                title: text.get('@i18n:buttons.remove'),
+                html: text.get('@i18n:buttons.remove'),
+                click: function () {
+                    remove_row();
+                    return false;
+                }
+            });
+
+            if (row.widget.input_group_btn) {
+                // A little hack to make delete button part of row widget
+                row.remove_link.appendTo(row.widget.input_group_btn);
+            } else {
+                row.remove_link.appendTo(row.container);
+            }
         } else {
-            row.remove_link.appendTo(row.container);
+            row.remove_link = {
+                name: 'remove',
+                label: text.get('@i18n:buttons.remove'),
+                handler: remove_row
+            };
+
+            var custom_actions = row.widget.get_custom_actions();
+            var items = custom_actions.get_items();
+            items.push(row.remove_link);
+            custom_actions.set_items(items);
         }
 
         if (row.is_new) {
@@ -1202,10 +1241,21 @@ IPA.multivalued_widget = function(spec) {
 
     that.toggle_remove_link = function(row, show) {
         if (show) {
-            row.remove_link.show();
+            if (that.custom_actions) {
+                row.widget.get_custom_actions().enable_item('remove');
+            }
+            else {
+                row.remove_link.show();
+            }
         } else {
-            row.remove_link.hide();
+            if (that.custom_actions) {
+                row.widget.get_custom_actions().disable_item('remove');
+            }
+            else {
+                row.remove_link.hide();
+            }
         }
+
         if (row.widget.update_input_group_state) {
             row.widget.update_input_group_state();
         }
