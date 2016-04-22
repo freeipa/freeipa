@@ -787,6 +787,25 @@ IPA.cert.request_action = function(spec) {
     return that;
 };
 
+IPA.cert.perform_revoke = function(spec, sn, revocation_reason) {
+
+    spec.hide_activity_icon = spec.hide_activity_icon || false;
+
+    rpc.command({
+        entity: 'cert',
+        method: 'revoke',
+        hide_activity_icon: spec.hide_activity_icon,
+        args: [ sn ],
+        options: {
+            'revocation_reason': revocation_reason
+        },
+        notify_activity_start: spec.notify_activity_start,
+        notify_activity_end: spec.notify_activity_end,
+        on_success: spec.on_success,
+        on_error: spec.on_error
+    }).execute();
+};
+
 IPA.cert.revoke_action = function(spec) {
 
     spec = spec || {};
@@ -822,21 +841,17 @@ IPA.cert.revoke_action = function(spec) {
 
     that.execute_action = function(facet) {
 
-        var certificate = facet.certificate;
-
-        rpc.command({
-            entity: 'cert',
-            method: 'revoke',
-            args: [certificate.serial_number],
-            options: {
-                'revocation_reason': that.dialog.get_reason()
-            },
+        var spec = {
             on_success: function(data, text_status, xhr) {
                 facet.refresh();
                 IPA.notify_success('@i18n:objects.cert.revoked');
                 facet.certificate_updated.notify([], that.facet);
             }
-        }).execute();
+        };
+
+        var sn = facet.certificate.serial_number;
+        var revocation_reason = that.dialog.get_reason();
+        IPA.cert.perform_revoke(spec, sn, revocation_reason);
     };
 
     return that;
@@ -881,21 +896,29 @@ IPA.cert.remove_hold_action = function(spec) {
 
     that.execute_action = function(facet) {
 
-        var certificate = facet.certificate;
-
-        rpc.command({
-            entity: 'cert',
-            method: 'remove_hold',
-            args: [certificate.serial_number],
+        var spec = {
             on_success: function(data, text_status, xhr) {
                 facet.refresh();
                 IPA.notify_success('@i18n:objects.cert.hold_removed');
                 facet.certificate_updated.notify([], that.facet);
             }
-        }).execute();
+        };
+
+        IPA.cert.perform_remove_hold(spec, facet.certificate.serial_number);
+
     };
 
     return that;
+};
+
+IPA.cert.perform_remove_hold = function(spec, sn) {
+
+    rpc.command({
+        entity: 'cert',
+        method: 'remove_hold',
+        args: [sn],
+        on_success: spec.on_success
+    }).execute();
 };
 
 IPA.cert.certificate_evaluator = function(spec) {
