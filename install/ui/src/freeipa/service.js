@@ -21,6 +21,7 @@
 define([
     'dojo/_base/declare',
     './field',
+    './builder',
     './ipa',
     './jquery',
     './phases',
@@ -31,7 +32,7 @@ define([
     './search',
     './association',
     './entity'],
-        function(declare, field_mod, IPA, $, phases, reg, rpc, text) {
+        function(declare, field_mod, builder, IPA, $, phases, reg, rpc, text) {
 
 var exp =IPA.service = {};
 
@@ -154,8 +155,12 @@ return {
                     name: 'certificate',
                     fields: [
                         {
-                            $type: 'certificate',
-                            name: 'usercertificate'
+                            $type: 'certs',
+                            adapter: {
+                                $type: 'object_adapter',
+                                result_index: 1
+                            },
+                            label: '@i18n:objects.cert.certificates'
                         }
                     ]
                 },
@@ -318,7 +323,11 @@ return {
             ],
             state: {
                 evaluators: [
-                    IPA.service.has_keytab_evaluator,
+                    {
+                        $factory: IPA.has_keytab_evaluator,
+                        param: 'has_keytab',
+                        adapter: { $type: 'batch', result_index: 0 }
+                    },
                     IPA.service.krbprincipalkey_acl_evaluator,
                     IPA.cert.certificate_evaluator
                 ]
@@ -387,6 +396,31 @@ IPA.service.details_facet = function(spec, no_init) {
     var that = IPA.details_facet(spec, true);
     that.certificate_loaded = IPA.observer();
     that.certificate_updated = IPA.observer();
+
+    that.create_refresh_command = function() {
+        var pkey = that.get_pkey();
+
+        var batch = rpc.batch_command({
+            name: 'services_details_refresh'
+        });
+
+        var service_command = that.details_facet_create_refresh_command();
+        batch.add_command(service_command);
+
+        var certificates = rpc.command({
+            entity: 'cert',
+            method: 'find',
+            retry: false,
+            options: {
+                service: [ pkey ],
+                all: true
+            }
+        });
+
+        batch.add_command(certificates);
+
+        return batch;
+    };
 
     if (!no_init) that.init_details_facet();
 
@@ -597,17 +631,6 @@ IPA.service.krbprincipalkey_acl_evaluator = function(spec) {
     spec.attribute = spec.attribute || 'krbprincipalkey';
 
     var that = IPA.acl_state_evaluator(spec);
-    return that;
-};
-
-IPA.service.has_keytab_evaluator = function(spec) {
-
-    spec.name = spec.name || 'has_keytab_evaluator';
-    spec.attribute = spec.attribute || 'has_keytab';
-    spec.value = spec.value || [true];
-    spec.representation = spec.representation || 'has_keytab';
-
-    var that = IPA.value_state_evaluator(spec);
     return that;
 };
 
