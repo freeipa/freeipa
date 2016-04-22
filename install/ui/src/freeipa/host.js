@@ -19,7 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['./ipa',
+define(['./builder',
+        './ipa',
         './jquery',
         './phases',
         './reg',
@@ -30,7 +31,7 @@ define(['./ipa',
         './association',
         './entity',
         './certificate'],
-    function(IPA, $, phases, reg, rpc, text) {
+    function(builder, IPA, $, phases, reg, rpc, text) {
 
 var exp = IPA.host = {};
 
@@ -140,8 +141,12 @@ return {
                     name: 'certificate',
                     fields: [
                         {
-                            $type: 'certificate',
-                            name: 'usercertificate'
+                            $type: 'certs',
+                            adapter: {
+                                $type: 'object_adapter',
+                                result_index: 1
+                            },
+                            label: '@i18n:objects.cert.certificates'
                         }
                     ]
                 },
@@ -334,8 +339,16 @@ return {
                 'request_cert'],
             state: {
                 evaluators: [
-                    IPA.host.has_password_evaluator,
-                    IPA.host.has_keytab_evaluator,
+                    {
+                        $factory: IPA.host.has_password_evaluator,
+                        param: 'has_password',
+                        adapter: { $type: 'batch', result_index: 0 }
+                    },
+                    {
+                        $factory: IPA.has_keytab_evaluator,
+                        param: 'has_keytab',
+                        adapter: { $type: 'batch', result_index: 0 }
+                    },
                     IPA.host.userpassword_acl_evaluator,
                     IPA.host.krbprincipalkey_acl_evaluator,
                     IPA.cert.certificate_evaluator
@@ -432,6 +445,32 @@ IPA.host.details_facet = function(spec, no_init) {
     var that = IPA.details_facet(spec, true);
     that.certificate_loaded = IPA.observer();
     that.certificate_updated = IPA.observer();
+
+    that.create_refresh_command = function() {
+        var pkey = that.get_pkey();
+
+        var batch = rpc.batch_command({
+            name: 'host_details_refresh'
+        });
+
+        var host_command = that.details_facet_create_refresh_command();
+        batch.add_command(host_command);
+
+        var certificates = rpc.command({
+            entity: 'cert',
+            method: 'find',
+            retry: false,
+            options: {
+                host: [ pkey ],
+                all: true
+            }
+        });
+
+        batch.add_command(certificates);
+
+        return batch;
+
+    };
 
     that.get_refresh_command_name = function() {
         return that.entity.name+'_show_'+that.get_pkey();
@@ -919,17 +958,6 @@ IPA.host.krbprincipalkey_acl_evaluator = function(spec) {
     return that;
 };
 
-IPA.host.has_keytab_evaluator = function(spec) {
-
-    spec.name = spec.name || 'has_keytab_evaluator';
-    spec.attribute = spec.attribute || 'has_keytab';
-    spec.value = spec.value || [true];
-    spec.representation = spec.representation || 'has_keytab';
-
-    var that = IPA.value_state_evaluator(spec);
-    return that;
-};
-
 IPA.host_password_widget = function(spec) {
 
     spec = spec || {};
@@ -1007,8 +1035,11 @@ IPA.host.has_password_evaluator = function(spec) {
     spec.attribute = spec.attribute || 'has_password';
     spec.value = spec.value || [true];
     spec.representation = spec.representation || 'has_password';
+    spec.param = spec.param || 'has_password';
+    spec.adapter = spec.adapter || { $type: 'adapter' };
 
     var that = IPA.value_state_evaluator(spec);
+
     return that;
 };
 

@@ -1671,22 +1671,25 @@ exp.value_state_evaluator = IPA.value_state_evaluator = function(spec) {
      */
     that.representation = spec.representation;
 
+    that.adapter = builder.build('adapter',
+                    spec.adapter, { context: that });
+
+    that.param = spec.param;
+
     /**
      * @inheritDoc
      */
     that.on_event = function(data) {
 
-        var old_state, record, state, value, loaded_value;
+        var old_state, value, loaded_value;
 
         old_state = that.state;
-        record = data.result.result;
         value = that.normalize_value(that.value);
-        loaded_value = record[that.attribute];
-        loaded_value = that.normalize_value(loaded_value);
-
         that.state = [];
 
-        if (!IPA.array_diff(value, loaded_value)) {
+        loaded_value = that.adapter.load(data, spec.attribute);
+
+        if(!IPA.array_diff(value, loaded_value)) {
             that.state.push(that.get_state_text());
         }
 
@@ -1735,6 +1738,28 @@ exp.value_state_evaluator = IPA.value_state_evaluator = function(spec) {
 
         return representation;
     };
+
+    return that;
+};
+
+
+/**
+ * has_keytab evaluator
+ *
+ * @class details.has_keytab_evaluator
+ * @alternateClassName IPA.has_keytab_evaluator
+ * @extends facet.value_state_evaluator
+ */
+exp.has_keytab_evaluator = IPA.has_keytab_evaluator = function(spec) {
+
+    spec.name = spec.name || 'has_keytab_evaluator';
+    spec.attribute = spec.attribute || 'has_keytab';
+    spec.value = spec.value || [true];
+    spec.representation = spec.representation || 'has_keytab';
+    spec.param = spec.param || 'has_keytab';
+    spec.adapter = spec.adapter || { $type: 'adapter' };
+
+    var that = IPA.value_state_evaluator(spec);
 
     return that;
 };
