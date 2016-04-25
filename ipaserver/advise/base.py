@@ -39,6 +39,9 @@ The class can run any arbitrary code or IPA command via api.Command['command']()
 calls. It needs to override get_info() method, which returns the formatted
 advice string.
 
+Important! Do not forget to register the class to the API.
+
+>>> @register()
 >>> class sample_advice(Advice):
 >>>     description = 'Instructions for machine with SSSD 1.0 setup.'
 
@@ -69,10 +72,6 @@ As a result, you can redirect the advice's output directly to a script file.
 
 # ipa-advise sample-advice > script.sh
 # ./script.sh
-
-Important! Do not forget to register the class to the API.
-
->>> api.register(sample_advice)
 """
 
 

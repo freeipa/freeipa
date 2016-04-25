@@ -384,7 +384,7 @@ class Command(HasParam):
     >>> class my_command(Command):
     ...     pass
     ...
-    >>> api.register(my_command)
+    >>> api.add_plugin(my_command)
     >>> api.finalize()
     >>> list(api.Command)
     ['my_command']
@@ -1336,8 +1336,8 @@ class Method(Attribute, Command):
     >>> class user(Object):
     ...     pass
     ...
-    >>> api.register(user_add)
-    >>> api.register(user)
+    >>> api.add_plugin(user_add)
+    >>> api.add_plugin(user)
     >>> api.finalize()
 
     First, the ``user_add`` plugin can be accessed through the ``api.Method``
@@ -1404,11 +1404,11 @@ class Updater(Plugin):
     >>> class my(Object):
     ...     pass
     ...
-    >>> api.register(my)
+    >>> api.add_plugin(my)
     >>> class my_update(Updater):
     ...     pass
     ...
-    >>> api.register(my_update)
+    >>> api.add_plugin(my_update)
     >>> api.finalize()
     >>> list(api.Updater)
     ['my_update']

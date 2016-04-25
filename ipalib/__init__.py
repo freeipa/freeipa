@@ -54,7 +54,7 @@ The tutorial examples all have this pattern:
         >>> class my_command(Command):
         ...     pass
         ...
-        >>> api.register(my_command)
+        >>> api.add_plugin(my_command)
         >>> api.finalize()
 
 In the tutorial we call `create_api()` to create an *example* instance
@@ -65,11 +65,13 @@ A real plugin will have this pattern:
 
     ::
 
-        from ipalib import Command, api
+        from ipalib import Command, Registry, api
 
+        register = Registry()
+
+        @register()
         class my_command(Command):
             pass
-        api.register(my_command)
 
 As seen above, also note that in a real plugin you will *not* call
 `plugable.API.finalize()`.  When in doubt, look at some of the built-in
@@ -104,7 +106,7 @@ thereof).  Here is our first example:
 >>> class my_command(Command): # Step 1, define class
 ...     """My example plugin."""
 ...
->>> api.register(my_command) # Step 2, register class
+>>> api.add_plugin(my_command) # Step 2, register class
 
 Notice that we are registering the ``my_command`` class itself, not an
 instance of ``my_command``.
@@ -138,7 +140,7 @@ implement a ``run()`` method, like this:
 ...         return dict(result='My run() method was called!')
 ...
 >>> api = create_api()
->>> api.register(my_command)
+>>> api.add_plugin(my_command)
 >>> api.finalize()
 >>> api.Command.my_command(version=u'2.47') # Call your command
 {'result': 'My run() method was called!'}
@@ -195,7 +197,7 @@ called:
 
 >>> api = create_api()
 >>> api.env.in_server = False # run() will dispatch to forward()
->>> api.register(my_command)
+>>> api.add_plugin(my_command)
 >>> api.finalize()
 >>> api.Command.my_command(version=u'2.47') # Call your command plugin
 {'result': 'forward(): in_server=False'}
@@ -205,7 +207,7 @@ On the other hand, if ``my_command`` is loaded in a *server* context,
 
 >>> api = create_api()
 >>> api.env.in_server = True # run() will dispatch to execute()
->>> api.register(my_command)
+>>> api.add_plugin(my_command)
 >>> api.finalize()
 >>> api.Command.my_command(version=u'2.47') # Call your command plugin
 {'result': 'execute(): in_server=True'}
@@ -261,7 +263,7 @@ Here is a simple example:
 ...         return 'Stuff got done.'
 ...
 >>> api = create_api()
->>> api.register(my_backend)
+>>> api.add_plugin(my_backend)
 >>> api.finalize()
 >>> api.Backend.my_backend.do_stuff()
 'Stuff got done.'
@@ -312,7 +314,7 @@ plugin:
 ...         """my_command.execute() calls this."""
 ...         return 'my_backend.do_stuff() indeed did do stuff!'
 ...
->>> api.register(my_backend)
+>>> api.add_plugin(my_backend)
 
 Second, we have our frontend plugin, the command:
 
@@ -323,7 +325,7 @@ Second, we have our frontend plugin, the command:
 ...         """Implemented against Backend.my_backend"""
 ...         return dict(result=self.Backend.my_backend.do_stuff())
 ...
->>> api.register(my_command)
+>>> api.add_plugin(my_command)
 
 Lastly, we call ``api.finalize()`` and see what happens when we call
 ``my_command()``:
@@ -349,7 +351,7 @@ example:
 ...     def forward(self, **options):
 ...         return dict(result='Just my_command.forward() getting called here.')
 ...
->>> api.register(my_command)
+>>> api.add_plugin(my_command)
 >>> api.finalize()
 
 Notice that the ``my_backend`` plugin has certainly not be registered:
@@ -391,9 +393,9 @@ several other commands in a single operation.  For example:
 ...     def execute(self, **options):
 ...         return dict(result='command_2.execute() called')
 ...
->>> api.register(meta_command)
->>> api.register(command_1)
->>> api.register(command_2)
+>>> api.add_plugin(meta_command)
+>>> api.add_plugin(command_1)
+>>> api.add_plugin(command_2)
 >>> api.finalize()
 >>> api.Command.meta_command(version=u'2.47')
 {'result': 'command_1.execute() called; command_2.execute() called.'}
@@ -428,7 +430,7 @@ For example:
 ...
 >>> api = create_api()
 >>> api.env.in_server = True
->>> api.register(nudge)
+>>> api.add_plugin(nudge)
 >>> api.finalize()
 >>> api.Command.nudge(u'Jason', version=u'2.47')
 {'result': u'Jason, go write more documentation!'}
@@ -616,7 +618,7 @@ For example, say we setup a command like this:
 ...
 >>> api = create_api()
 >>> api.bootstrap(in_server=True)  # We want to execute, not forward
->>> api.register(show_items)
+>>> api.add_plugin(show_items)
 >>> api.finalize()
 
 Normally when you invoke the ``ipa`` script, `cli.CLI.load_plugins()` will
@@ -758,7 +760,7 @@ For example:
 ...
 >>> api = create_api()
 >>> api.bootstrap(in_server=True, message='Hello, world!')
->>> api.register(motd)
+>>> api.add_plugin(motd)
 >>> api.finalize()
 >>> api.Command.motd(version=u'2.47')
 {'result': u'Hello, world!'}

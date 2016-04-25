@@ -56,9 +56,9 @@ Now we'll register the plugins and finalize the `plugable.API` instance:
 
 >>> from ipalib import create_api
 >>> api = create_api()
->>> api.register(user)
->>> api.register(user_add)
->>> api.register(user_show)
+>>> api.add_plugin(user)
+>>> api.add_plugin(user_add)
+>>> api.add_plugin(user_show)
 >>> api.finalize()
 
 First, notice that our ``user`` `Object` has the params we defined with the

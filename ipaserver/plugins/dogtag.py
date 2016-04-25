@@ -1965,11 +1965,10 @@ class RestClient(Backend):
     This class is a context manager.  Authenticated calls must be
     executed in a ``with`` suite::
 
+        @register()
         class ra_certprofile(RestClient):
             path = 'profile'
             ...
-
-        api.register(ra_certprofile)
 
         with api.Backend.ra_certprofile as profile_api:
             # REST client is now logged in
