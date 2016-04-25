@@ -716,9 +716,18 @@ IPA.cert.request_action = function(spec) {
         }
 
         var request_message = text.get('@i18n:objects.cert.request_message');
+        var ext;
+        if (facet.entity.name === 'service' || facet.entity.name === 'host') {
+            ext = text.get('@i18n:objects.cert.request_message_san');
+        }
+        else {
+            ext = '';
+        }
+        request_message = request_message.replace(/\$\{san\}/g, ext);
         request_message = request_message.replace(/\$\{cn_name\}/g, cn_name);
         request_message = request_message.replace(/\$\{cn\}/g, cn);
         request_message = request_message.replace(/\$\{realm\}/g, IPA.env.realm);
+
 
         var dialog = IPA.cert.request_dialog({
             title: title,
