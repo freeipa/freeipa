@@ -674,32 +674,44 @@ def clean_dangling_ruvs(realm, host, options):
                   .format(host=master_cn))
             offlines.add(master_cn)
             continue
-
         try:
-            entry = conn.get_entry(replica_dn)
-            ruv = (master_cn, entry.single_value.get('nsDS5ReplicaID'))
-            # the check whether ruv is already in ruvs is performed by set type
-            ruvs.add(ruv)
-
-            if(master_info['ca']):
-                entry = conn.get_entry(csreplica_dn)
-                csruv = (master_cn, entry.single_value.get('nsDS5ReplicaID'))
-                csruvs.add(csruv)
-
-            # get_ruv returns server names with :port which needs to be split off
-            ruv_list = get_ruv(realm, master_cn, options.dirman_passwd,
-                               options.nolookup)
-            master_info['ruvs'] = set([
-                (re.sub(':\d+', '', x), y)
-                for (x, y) in ruv_list
-                ])
+            try:
+                entry = conn.get_entry(replica_dn)
+                ruv = (master_cn, entry.single_value.get('nsDS5ReplicaID'))
+                # the check whether ruv is already in ruvs is performed
+                # by the set type
+                ruvs.add(ruv)
+            except errors.NotFound:
+                pass
 
             if master_info['ca']:
-                ruv_list = get_ruv(realm, master_cn, options.dirman_passwd,
-                                   options.nolookup, ca=True)
+                try:
+                    entry = conn.get_entry(csreplica_dn)
+                    csruv = (master_cn,
+                             entry.single_value.get('nsDS5ReplicaID'))
+                    csruvs.add(csruv)
+                except errors.NotFound:
+                    pass
+
+            try:
+                ruv_dict = get_ruv_both_suffixes(realm, master_cn,
+                                                 options.dirman_passwd,
+                                                 options.verbose,
+                                                 options.nolookup)
+            except (RuntimeError, NoRUVsFound):
+                continue
+
+            # get_ruv_both_suffixes returns server names with :port
+            # This needs needs to be split off
+            if ruv_dict.get('domain'):
+                master_info['ruvs'] = set([
+                    (re.sub(':\d+', '', x), y)
+                    for (x, y) in ruv_dict['domain']
+                    ])
+            if ruv_dict.get('ca'):
                 master_info['csruvs'] = set([
                     (re.sub(':\d+', '', x), y)
-                    for (x, y) in ruv_list
+                    for (x, y) in ruv_dict['ca']
                     ])
         except Exception as e:
             sys.exit("Failed to obtain information from '{host}': {error}"
