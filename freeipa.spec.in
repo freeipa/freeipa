@@ -351,6 +351,7 @@ Requires: python-coverage
 Requires: python-polib
 Requires: python-pytest-multihost >= 0.5
 Requires: python-pytest-sourceorder
+Requires: python-sssdconfig
 
 Conflicts: %{alt_name}-tests
 Obsoletes: %{alt_name}-tests < %{version}
