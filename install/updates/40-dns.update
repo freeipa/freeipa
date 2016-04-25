@@ -2,7 +2,6 @@
 # update DNS container
 dn: cn=dns, $SUFFIX
 addifexist: objectClass: idnsConfigObject
-addifexist: objectClass: ipaConfigObject
 addifexist: aci:(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Add DNS entries in a zone";allow (add) userattr = "parent[1].managedby#GROUPDN";)
 addifexist: aci:(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Remove DNS entries from a zone";allow (delete) userattr = "parent[1].managedby#GROUPDN";)
 addifexist: aci:(targetattr = "a6record || aaaarecord || afsdbrecord || aplrecord || arecord || certrecord || cn || cnamerecord || dhcidrecord || dlvrecord || dnamerecord || dnsclass || dnsttl || dsrecord || hinforecord || hiprecord || idnsallowdynupdate || idnsallowquery || idnsallowsyncptr || idnsallowtransfer || idnsforwarders || idnsforwardpolicy || idnsname || idnssecinlinesigning || idnssoaexpire || idnssoaminimum || idnssoamname || idnssoarefresh || idnssoaretry || idnssoarname || idnssoaserial || idnsupdatepolicy || idnszoneactive || ipseckeyrecord || keyrecord || kxrecord || locrecord || mdrecord || minforecord || mxrecord || naptrrecord || nsecrecord || nsec3paramrecord || nsrecord || nxtrecord || ptrrecord || rprecord || rrsigrecord || sigrecord || spfrecord || srvrecord || sshfprecord || tlsarecord || txtrecord || unknownrecord ")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Update DNS entries in a zone";allow (write) userattr = "parent[0,1].managedby#GROUPDN";)

@@ -3,6 +3,7 @@
 
 # middle
 plugin: update_ca_topology
+plugin: update_ipaconfigstring_dnsversion_to_ipadnsversion
 plugin: update_dnszones
 plugin: update_dns_limits
 plugin: update_sigden_extdom_broken_config
