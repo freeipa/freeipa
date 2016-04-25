@@ -20,13 +20,15 @@
 .SH "NAME"
 ipa\-nis\-manage \- Enables or disables the NIS listener plugin
 .SH "SYNOPSIS"
-ipa\-nis\-manage [options] <enable|disable>
+ipa\-nis\-manage [options] <enable|disable|status>
 .SH "DESCRIPTION"
 Run the command with the \fBenable\fR option to enable the NIS plugin.
 
 Run the command with the \fBdisable\fR option to disable the NIS plugin.
 
-In both cases the user will be prompted to provide the Directory Manager's password unless option \fB\-y\fR is used.
+Run the command with the \fBstatus\fR option to read status of the NIS plugin. Return code 0 indicates enabled plugin, return code 4 indicates disabled plugin.
+
+In all cases the user will be prompted to provide the Directory Manager's password unless option \fB\-y\fR is used.
 
 Directory Server will need to be restarted after the NIS listener plugin has been enabled.
 
@@ -45,3 +47,5 @@ File containing the Directory Manager password
 2 if the plugin is already in the required status (enabled or disabled)
 
 3 if RPC services cannot be enabled.
+
+4 if status command detected plugin in disabled state.

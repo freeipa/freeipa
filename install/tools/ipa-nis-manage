@@ -47,7 +47,7 @@ nis_config_dn = DN(('cn', 'NIS Server'), ('cn', 'plugins'), ('cn', 'config'))
 compat_dn = DN(('cn', 'Schema Compatibility'), ('cn', 'plugins'), ('cn', 'config'))
 
 def parse_options():
-    usage = "%prog [options] <enable|disable>\n"
+    usage = "%prog [options] <enable|disable|status>\n"
     usage += "%prog [options]\n"
     parser = OptionParser(usage=usage, formatter=config.IPAFormatter())
 
@@ -96,8 +96,8 @@ def main():
     options, args = parse_options()
 
     if len(args) != 1:
-        sys.exit("You must specify one action, either enable or disable")
-    elif args[0] != "enable" and args[0] != "disable":
+        sys.exit("You must specify one action: enable | disable | status")
+    elif args[0] not in {"enable", "disable", "status"}:
         sys.exit("Unrecognized action [" + args[0] + "]")
 
     standard_logging_setup(None, debug=options.debug)
@@ -186,11 +186,25 @@ def main():
                 print(lde)
                 retval = 1
 
+        elif args[0] == "status":
+            nis_entry = get_entry(nis_config_dn, conn)
+            enabled = (nis_entry and
+                       nis_entry.get(
+                           'nsslapd-pluginenabled', '')[0].lower() == "on")
+            if enabled:
+                print("Plugin is enabled")
+                retval = 0
+            else:
+                print("Plugin is not enabled")
+                retval = 4
+
         else:
             retval = 1
 
         if retval == 0:
-            print("This setting will not take effect until you restart Directory Server.")
+            if args[0] in {"enable", "disable"}:
+                print("This setting will not take effect until you restart "
+                      "Directory Server.")
 
             if args[0] == "enable":
                 print("The %s service may need to be started." % servicemsg)
