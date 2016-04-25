@@ -32,6 +32,61 @@ from ipapython.ipa_log_manager import root_logger
 register = Registry()
 
 
+class DNSUpdater(Updater):
+    def version_update_needed(self, target_version):
+        """Test if IPA DNS version is smaller than target version."""
+        assert isinstance(target_version, int)
+
+        try:
+            return int(self.api.Command['dnsconfig_show'](
+                all=True)['result']['ipadnsversion'][0]) < target_version
+        except errors.NotFound:
+            # IPA DNS is not configured
+            return False
+
+
+@register()
+class update_ipaconfigstring_dnsversion_to_ipadnsversion(Updater):
+    """
+    IPA <= 4.3.1 used ipaConfigString "DNSVersion 1" on DNS container.
+    This was hard to deal with in API so from IPA 4.3.2 we are using
+    new ipaDNSVersion attribute with integer syntax.
+    Old ipaConfigString is left there for now so if someone accidentally
+    executes upgrade on an old replica again it will not re-upgrade the data.
+    """
+    def execute(self, **options):
+        ldap = self.api.Backend.ldap2
+        dns_container_dn = DN(self.api.env.container_dns, self.api.env.basedn)
+        try:
+            container_entry = ldap.get_entry(dns_container_dn)
+        except errors.NotFound:
+            # DNS container not found, nothing to upgrade
+            return False, []
+
+        if 'ipadnscontainer' in [
+            o.lower() for o in container_entry['objectclass']
+        ]:
+            # version data are already migrated
+            return False, []
+
+        self.log.debug('Migrating DNS ipaConfigString to ipaDNSVersion')
+        container_entry['objectclass'].append('ipadnscontainer')
+        version = 0
+        for config_option in container_entry.get("ipaConfigString", []):
+            matched = re.match("^DNSVersion\s+(?P<version>\d+)$",
+                               config_option, flags=re.I)
+            if matched:
+                version = int(matched.group("version"))
+            else:
+                self.log.error(
+                    'Failed to parse DNS version from ipaConfigString, '
+                    'defaulting to version %s', version)
+        container_entry['ipadnsversion'] = version
+        ldap.update_entry(container_entry)
+        self.log.debug('ipaDNSVersion = %s', version)
+        return False, []
+
+
 @register()
 class update_dnszones(Updater):
     """
@@ -141,7 +196,7 @@ class update_dns_limits(Updater):
 
 
 @register()
-class update_master_to_dnsforwardzones(Updater):
+class update_master_to_dnsforwardzones(DNSUpdater):
     """
     Update all zones to meet requirements in the new FreeIPA versions
 
@@ -158,26 +213,14 @@ class update_master_to_dnsforwardzones(Updater):
     def execute(self, **options):
         ldap = self.api.Backend.ldap2
         # check LDAP if forwardzones already uses new semantics
-        dns_container_dn = DN(self.api.env.container_dns, self.api.env.basedn)
-        try:
-            container_entry = ldap.get_entry(dns_container_dn)
-        except errors.NotFound:
-            # DNS container not found, nothing to upgrade
+        if not self.version_update_needed(target_version=1):
+            # forwardzones already uses new semantics,
+            # no upgrade is required
             return False, []
-
-        for config_option in container_entry.get("ipaConfigString", []):
-            matched = re.match("^DNSVersion\s+(?P<version>\d+)$",
-                               config_option, flags=re.I)
-            if matched and int(matched.group("version")) >= 1:
-                # forwardzones already uses new semantics,
-                # no upgrade is required
-                return False, []
 
         self.log.debug('Updating forward zones')
         # update the DNSVersion, following upgrade can be executed only once
-        container_entry.setdefault(
-            'ipaConfigString', []).append(u"DNSVersion 1")
-        ldap.update_entry(container_entry)
+        self.api.Command['dnsconfig_mod'](ipadnsversion=1)
 
         # Updater in IPA version from 4.0 to 4.1.2 doesn't work well, this
         # should detect if update in past has been executed, and set proper
