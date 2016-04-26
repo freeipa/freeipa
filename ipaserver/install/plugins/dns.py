@@ -302,7 +302,9 @@ class update_master_to_dnsforwardzones(Updater):
                 try:
                     kw = {
                         'idnsforwarders': zone.get('idnsforwarders', []),
-                        'idnsforwardpolicy': zone.get('idnsforwardpolicy', [u'first'])[0]
+                        'idnsforwardpolicy': zone.get('idnsforwardpolicy',
+                                                      [u'first'])[0],
+                        'skip_overlap_check': True,
                     }
                     self.api.Command['dnsforwardzone_add'](zone['idnsname'][0], **kw)
                 except Exception as e:
