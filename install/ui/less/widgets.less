@@ -134,12 +134,30 @@
 // Certificate Widget
 
 .certificate-widget {
+    padding: 5px 5px 5px 5px;
+    border: 1px dashed #DDD;
     label {
         padding-right: 10px;
+    }
+    .cert-value {
+        padding-left: 5px;
     }
     .certificate {
         word-wrap: break-word;
         padding-bottom: 10px;
+    }
+    .dropdown {
+        float:right;
+    }
+    ul.dropdown-menu {
+        min-width: 100px;
+    }
+    .watermark {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        opacity:0.5;
+        font-size: 150%;
     }
 }
 

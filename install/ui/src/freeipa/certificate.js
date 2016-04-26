@@ -21,7 +21,9 @@
 
 define([
     'dojo/_base/lang',
+    'dojo/on',
     './builder',
+    './datetime',
     './metadata',
     './ipa',
     './jquery',
@@ -31,10 +33,11 @@ define([
     './rpc',
     './text',
     './widget',
+    './widgets/DropdownWidget',
     './dialog'],
     function(
-        lang, builder, metadata_provider, IPA, $, menu,
-        phases, reg, rpc, text, widget_mod) {
+        lang, on, builder, datetime, metadata_provider, IPA, $, menu,
+        phases, reg, rpc, text, widget_mod, DropdownWidget) {
 
 var exp = IPA.cert = {};
 
@@ -1107,40 +1110,294 @@ IPA.cert.certs_widget = function(spec) {
 
     return that;
 };
-        }
 
-        if (!l) {
-            that.content_el.append(that.create_status(
-                'missing',
-                text.get('@i18n:objects.cert.missing'),
-                'fa fa-warning'));
-        }
+/**
+ * certificate widget
+ *
+ * @class
+ * @extends IPA.input_widget
+ */
+IPA.cert.cert_widget = function(spec) {
 
-        if (l && !that.certs_visible) {
+    spec = spec || {};
 
-            var msg = text.get('@i18n:objects.cert.present');
-            msg = msg.replace('${count}', l);
-            that.content_el.append(
-                that.create_status('present', msg, 'fa fa-check'));
+    var that = IPA.input_widget(spec);
+    IPA.table_mixin().apply(that);
 
-            IPA.button({
-                name: 'show',
-                label: '@i18n:buttons.show',
-                click: function() {
-                    that.certs_visible = true;
-                    that.create_certs();
+    that.certificate = null;
+
+    that.create = function(container) {
+
+        that.widget_create(container);
+
+        that.container = container;
+        that.container.addClass('cert-container col-sm-12');
+
+        var spinner_spec = {
+            name: 'working-notification'
+        };
+
+        that.spinner = IPA.working_widget(spinner_spec);
+        that.spinner.create(that.container);
+
+        that.cert_subject = $('<div />', {
+            style: 'font-weight: bold;',
+            text: ''
+        }).appendTo(that.container);
+
+        that.table_layout = that.create_layout().appendTo(that.container);
+
+        var tr = that.create_row().appendTo(that.table_layout);
+        that.create_header_cell('@i18n:objects.cert.serial_number', ':')
+            .appendTo(tr);
+        that.cert_sn = that.create_cell('', '', 'cert-value').appendTo(tr);
+
+        tr = that.create_row().appendTo(that.table_layout);
+        that.create_header_cell('@i18n:objects.cert.issued_by', ':')
+            .appendTo(tr);
+        that.cert_issuer = that.create_cell('', '', 'cert-value').appendTo(tr);
+
+        tr = that.create_row().appendTo(that.table_layout);
+        that.create_header_cell('@i18n:objects.cert.valid_from', ':')
+            .appendTo(tr);
+        that.cert_valid_from = that.create_cell('', '', 'cert-value')
+            .appendTo(tr);
+
+        tr = that.create_row().appendTo(that.table_layout);
+        that.create_header_cell('@i18n:objects.cert.valid_to', ':')
+            .appendTo(tr);
+        that.cert_valid_to = that.create_cell('', '', 'cert-value')
+            .appendTo(tr);
+
+        that.dropdown = builder.build(null, {
+            $ctor: DropdownWidget,
+            toggle_text: text.get('@i18n:actions.title'),
+            toggle_class: 'btn btn-default dropdown-toggle',
+            toggle_icon: 'caret',
+            right_aligned: true,
+            name: 'cert-actions',
+            'class': 'dropdown cert-actions',
+            items: [
+                {
+                    name: 'view',
+                    label: text.get('@i18n:buttons.view'),
+                    handler: that.open_view_dialog
+                },
+                {
+                    name: 'get',
+                    label: text.get('@i18n:buttons.get'),
+                    handler: that.open_get_dialog
+                },
+                {
+                    name: 'download',
+                    label: text.get('@i18n:buttons.download'),
+                    handler: that.perform_download
+                },
+                {
+                    name: 'revoke',
+                    label: text.get('@i18n:buttons.revoke'),
+                    disabled: true,
+                    handler: that.open_revoke_dialog
+                },
+                {
+                    name: 'remove_hold',
+                    label: text.get('@i18n:buttons.remove_hold'),
+                    disabled: true,
+                    handler: that.perform_remove_hold
                 }
-            }).appendTo(that.content_el);
+            ]
+        });
+
+        on(that.dropdown, 'item-click', function(item) {
+            if (!item.disabled && item.handler) {
+                item.handler();
+            }
+        });
+
+        that.container.append(that.dropdown.render());
+        that.table_layout.appendTo(that.container);
+
+        that.create_error_link(that.container);
+    };
+
+    that.get_custom_actions = function() {
+        return that.dropdown;
+    };
+
+    that.update_displayed_data = function() {
+
+        that.revoke_note = $('<div />', {
+            text: text.get('@i18n:objects.cert.revoked_status'),
+            style: 'display: none',
+            'class': 'watermark'
+        }).appendTo(that.container);
+
+        var cert = that.certificate;
+
+        if (cert) {
+            that.cert_subject.text(IPA.cert.parse_dn(cert.subject).cn);
+            that.cert_sn.text(cert.serial_number);
+            that.cert_issuer.text(IPA.cert.parse_dn(cert.issuer).cn);
+            that.cert_valid_from.text(cert.valid_not_before);
+            that.cert_valid_to.text(cert.valid_not_after);
+        }
+
+        that.handle_revocation_reason(cert.revocation_reason);
+    };
+
+    that.toggle_revoked_note = function(show) {
+        if (show) {
+            that.revoke_note.css('display', 'block');
+        }
+        else {
+            that.revoke_note.css('display', 'none');
+        }
+    };
+
+    that.handle_revocation_reason = function(reason) {
+        // Skip certificates which are not issued by ipa's CA
+        if (that.certificate.revoked === undefined) return;
+
+        var dd_menu = that.get_custom_actions();
+
+        if (reason && reason === 6) {
+            dd_menu.enable_item('remove_hold');
+            dd_menu.disable_item('revoke');
+            that.toggle_revoked_note(true);
+        }
+        else if (reason === null || reason === undefined) {
+            dd_menu.enable_item('revoke');
+            dd_menu.disable_item('remove_hold');
+        }
+        else if (typeof reason === 'number' && reason >= 0 &&
+            reason < IPA.cert.CRL_REASON.length) {
+                dd_menu.disable_item('revoke');
+                that.toggle_revoked_note(true);
         }
     };
 
     that.update = function(values) {
-        that.certificates = values;
-        that.create_certs();
+
+        var certificate = values[0];
+
+        if (!certificate ) certificate = {};
+
+        that.certificate = certificate;
+
+        that.update_displayed_data();
     };
 
-    that.clear = function() {
-        that.content_el.empty();
+    that.save = function() {
+        return that.certificate.certificate;
+    };
+
+    that.compose_dialog_title = function() {
+        var cert = that.certificate;
+        var cn, o;
+
+        if (cert.subject) {
+            cn = IPA.cert.parse_dn(cert.subject).cn;
+            o = IPA.cert.parse_dn(cert.subject).o;
+        }
+        else {
+            cn = o = text.get('@i18n:objects.cert.unspecified');
+        }
+
+        var r = text.get('@i18n:objects.cert.view_certificate');
+        r = r.replace('${entity}', cn);
+        r = r.replace('${primary_key}', o);
+
+        return r;
+    };
+
+    that.open_view_dialog = function() {
+
+        var spec = {
+            title: that.compose_dialog_title(),
+            certificate: that.certificate
+        };
+
+        var dialog = IPA.cert.view_dialog(spec);
+        dialog.open();
+    };
+
+    that.open_get_dialog = function() {
+        var spec = {
+            title: that.compose_dialog_title(),
+            certificate: that.certificate.certificate
+        };
+
+        var dialog = IPA.cert.download_dialog(spec);
+        dialog.open();
+    };
+
+    that.perform_download = function() {
+        var data_uri = IPA.cert.create_data_uri(that.certificate.certificate);
+        IPA.cert.perform_download(data_uri);
+    };
+
+    that.open_revoke_dialog = function() {
+        var spec = {
+            title: that.compose_dialog_title(),
+            message: '@i18n:objects.cert.revoke_confirmation',
+            ok_label: '@i18n:buttons.revoke',
+            on_ok: function() {
+
+                var command_spec = {
+                    hide_activity_icon: true,
+                    notify_activity_end: function() {
+                        that.spinner.emit('hide-spinner');
+                    },
+                    notify_activity_start: function() {
+                        that.spinner.emit('display-spinner');
+                    },
+                    on_success: function() {
+                        var reason = parseInt(dialog.get_reason(), 10);
+                        that.handle_revocation_reason(reason);
+                        that.facet.certificate_updated.notify();
+                        IPA.notify_success('@i18n:objects.cert.revoked');
+                    }
+                };
+
+                var sn = that.certificate.serial_number;
+                var revocation_reason = dialog.get_reason();
+                IPA.cert.perform_revoke(command_spec, sn, revocation_reason);
+            }
+        };
+
+        var dialog = IPA.cert.revoke_dialog(spec);
+        dialog.open();
+    };
+
+    that.perform_remove_hold = function() {
+        var spec = {
+            title: that.compose_dialog_title(),
+            message: '@i18n:objects.cert.remove_certificate_hold_confirmation',
+            ok_label: '@i18n:buttons.remove_hold',
+            on_ok: function () {
+                var command_spec = {
+                    hide_activity_icon: true,
+                    notify_activity_end: function() {
+                        that.spinner.emit('hide-spinner');
+                    },
+                    notify_activity_start: function() {
+                        that.spinner.emit('display-spinner');
+                    },
+                    on_success: function() {
+                        that.toggle_revoked_note();
+                        that.handle_revocation_reason();
+                        that.facet.certificate_updated.notify();
+                        IPA.notify_success('@i18n:objects.cert.hold_removed');
+                    }
+                };
+
+                var sn =  that.certificate.serial_number;
+                IPA.cert.perform_remove_hold(command_spec, sn);
+            }
+        };
+
+        var dialog = IPA.confirm_dialog(spec);
+        dialog.open();
     };
 
     return that;
