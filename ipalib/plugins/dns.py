@@ -1755,9 +1755,11 @@ def _normalize_zone(zone):
     if isinstance(zone, unicode):
         # normalize only non-IDNA zones
         try:
-            return unicode(zone.encode('ascii')).lower()
+            zone.encode('ascii')
         except UnicodeError:
             pass
+        else:
+            return zone.lower()
     return zone
 
 
