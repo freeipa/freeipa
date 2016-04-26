@@ -347,7 +347,7 @@ class StateFile:
         """
         root_logger.debug("Saving StateFile to '%s'", self._path)
 
-        for module in self.modules.keys():
+        for module in list(self.modules.keys()):
             if len(self.modules[module]) == 0:
                 del self.modules[module]
 
