@@ -1553,6 +1553,7 @@ field.register = function() {
     var v = reg.validator;
     var l = reg.adapter;
 
+    f.register('certs', field.field);
     f.register('checkbox', field.checkbox_field);
     f.register('checkboxes', field.field);
     f.register('combobox', field.field);

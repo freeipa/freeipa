@@ -242,6 +242,7 @@
                             "cessation_of_operation": "Cessation of Operation",
                             "common_name": "Common Name",
                             "download": "Download",
+                            "delete_cert_end": "the certificate with serial number ",
                             "expires_on": "Expires On",
                             "fingerprints": "Fingerprints",
                             "find_issuedon_from": "Issued on from",

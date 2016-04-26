@@ -385,6 +385,7 @@ class i18n_messages(Command):
                 "cessation_of_operation": _("Cessation of Operation"),
                 "common_name": _("Common Name"),
                 "download": _("Download"),
+                "delete_cert_end": _("the certificate with serial number "),
                 "expires_on": _("Expires On"),
                 "find_issuedon_from": _("Issued on from"),
                 "find_issuedon_to": _("Issued on to"),

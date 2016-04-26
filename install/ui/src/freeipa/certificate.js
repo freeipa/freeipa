@@ -113,6 +113,25 @@ IPA.cert.parse_dn = function(dn) {
     return result;
 };
 
+IPA.cert.get_base64 = function(text) {
+    /*
+     * Input is assumed to be base64 or PEM formatted certificate.
+     * The function just cuts the '-----BEGIN CERTIFICATE----' and
+     * '-----END CERTIFICATE-----' strings if they are present.
+     * Returns only base64 blob.
+     */
+
+    var match = IPA.cert.PEM_CERT_REGEXP.exec(text);
+
+    if (match) {
+        match = match[2].replace(/\s*/g, '');
+        return $.trim(match);
+    }
+
+    text = text.replace(/\s*/g, '');
+    return $.trim(text);
+};
+
 IPA.cert.pem_format_base64 = function(text) {
     /*
      * Input is assumed to be base64 possibly with embedded whitespace.
@@ -547,31 +566,6 @@ IPA.cert.load_policy = function(spec) {
         //store cert directly to facet. FIXME: introduce concept of models
         that.container.certificate = certificate;
         that.notify_loaded();
-
-        // initialize another load of certificate because current entity
-        // show commands don't contain revocation_reason so previous data
-        // might be slightly incorrect
-        if (!that.has_reason && certificate && certificate.certificate &&
-                IPA.cert.is_enabled()) {
-            that.load_revocation_reason(certificate.serial_number);
-        }
-    };
-
-    that.load_revocation_reason = function(serial_number) {
-        if (serial_number === null || serial_number === undefined) return;
-
-        rpc.command({
-            entity: 'cert',
-            method: 'show',
-            args: [serial_number],
-            on_success: function(data, text_status, xhr) {
-                // copy it so consumers can notice the difference
-                that.container.certificate = lang.clone(that.container.certificate);
-                var cert = that.container.certificate;
-                cert.revocation_reason = data.result.result.revocation_reason;
-                that.notify_loaded();
-            }
-        }).execute();
     };
 
     that.notify_loaded = function() {
@@ -1011,57 +1005,108 @@ IPA.cert.status_field = function(spec) {
     return that;
 };
 
-IPA.cert.cert_widget = function(spec) {
+
+/**
+ * Certificates widget
+ *
+ * Multivalued widget with certificate widget instead of text widget.
+ *
+ * @class
+ * @extends IPA.multivalued_widget
+ */
+IPA.cert.certs_widget = function(spec) {
 
     spec = spec || {};
-    spec.css_class = spec.css_class || 'certificate-widget';
-
-    var that = IPA.input_widget(spec);
-    that.certs_visible = false;
-
-    that.create = function(container) {
-
-        that.widget_create(container);
-        that.content_el = $('<div>').appendTo(container);
+    spec.child_spec = spec.child_spec || {
+        $factory: IPA.cert.cert_widget,
+        css_class: 'certificate-widget',
+        facet: spec.facet
     };
 
-    that.create_status = function(name, text, icon) {
+    spec.item_name = 'cert';
 
-        var status = $('<label/>', {
-            'class': 'certificate-status'
-        });
+    spec.custom_actions = spec.custom_actions === undefined ? true :
+        spec.custom_actions;
 
-        $('<i/>', {
-            'class': icon
-        }).appendTo(status);
-
-        status.append(" " + text);
-
-        return status;
-    };
-
-    that.create_certs = function() {
-
-        that.content_el.empty();
-        var l = that.certificates.length;
-
-        if (l && that.certs_visible) {
-            for (var i=0; i<l; i++) {
-                $('<div/>', {
-                    'class': 'certificate',
-                    text: that.certificates[i]
-                }).appendTo(that.content_el);
-            }
-            $('<div/>').append(
-                IPA.button({
-                    name: 'hide',
-                    label: '@i18n:buttons.hide',
-                    click: function() {
-                        that.certs_visible = false;
-                        that.create_certs();
+    spec.adder_dialog_spec = {
+        name: 'cert-add-dialog',
+        title: '@i18n:objects.cert.new_certificate',
+        sections: [
+            {
+                show_header: false,
+                fields: [
+                    {
+                        $type: 'textarea',
+                        name: 'new_cert',
+                        label: '@i18n:objects.cert.new_cert_format',
+                        required: true,
+                        rows: 15
                     }
-                })).
-            appendTo(that.content_el);
+                ],
+                layout:
+                {
+                    $factory: widget_mod.fluid_layout,
+                    widget_cls: 'col-sm-12',
+                    label_cls: 'col-sm-6 control-label'
+                }
+            }
+        ]
+    };
+
+    var that = IPA.custom_command_multivalued_widget(spec);
+
+    that.create_remove_options = function(row) {
+        var blob = row.widget.save();
+        var options = {
+            usercertificate: blob
+        };
+
+        return options;
+    };
+
+    /**
+     * Called on success of remove command. Override point.
+     */
+    that.on_success_remove = function(data, text_status, xhr) {
+        that.facet.refresh();
+        that.facet.certificate_updated.notify();
+        IPA.notify_success(data.result.summary);
+    };
+
+    that.create_add_options = function() {
+        var blob = that.adder_dialog.get_field('new_cert').get_value()[0];
+        blob = IPA.cert.get_base64(blob);
+        var options = {
+            usercertificate: blob
+        };
+
+        return options;
+    };
+
+    that.on_success_add = function(data, text_status, xhr) {
+        that.facet.refresh();
+        that.facet.certificate_updated.notify();
+        IPA.notify_success(data.result.summary);
+        that.adder_dialog.close();
+    };
+
+    that.create_remove_dialog_title = function(row) {
+        var title = row.widget.compose_dialog_title();
+
+        return title;
+    };
+
+    that.create_remove_dialog_message = function(row) {
+        var sn = row.widget.certificate.serial_number;
+        var message = text.get('@i18n:actions.delete_confirm');
+        message = message.replace('${object}',
+            text.get('@i18n:objects.cert.delete_cert_end') + sn);
+
+        return message;
+    };
+
+    return that;
+};
         }
 
         if (!l) {
@@ -1514,10 +1559,9 @@ exp.register = function() {
     var f = reg.field;
     var a = reg.action;
 
-    w.register('certificate', IPA.cert.cert_widget);
+    w.register('certs', IPA.cert.certs_widget);
     w.register('certificate_status', IPA.cert.status_widget);
     f.register('certificate_status', IPA.cert.status_field);
-
     f.register('revocation_reason', IPA.revocation_reason_field);
     w.register('revocation_reason', IPA.text_widget);
 
