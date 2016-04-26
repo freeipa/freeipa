@@ -482,7 +482,6 @@ IPA.cert.request_dialog = function(spec) {
             if (that.request) {
                 that.request(values);
             }
-            that.close();
         }
     });
 
@@ -749,10 +748,14 @@ IPA.cert.request_action = function(spec) {
                     options: options,
                     on_success: function(data, text_status, xhr) {
                         facet.refresh();
+                        dialog.close();
                         IPA.notify_success('@i18n:objects.cert.requested');
                         if (facet.certificate_updated) {
                             facet.certificate_updated.notify([], that.facet);
                         }
+                    },
+                    on_error: function() {
+                        widget_mod.focus_invalid(dialog);
                     }
                 }).execute();
             }
