@@ -79,7 +79,8 @@ enum input_types {
     INP_SID = 1,
     INP_NAME,
     INP_POSIX_UID,
-    INP_POSIX_GID
+    INP_POSIX_GID,
+    INP_CERT
 };
 
 enum request_types {
@@ -114,6 +115,7 @@ struct extdom_req {
             char *domain_name;
             gid_t gid;
         } posix_gid;
+        char *cert;
     } data;
     char *err_msg;
 };

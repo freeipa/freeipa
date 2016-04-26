@@ -349,6 +349,9 @@ int parse_request_data(struct berval *req_val, struct extdom_req **_req)
                                             &id);
             req->data.posix_gid.gid = (gid_t) id;
             break;
+        case INP_CERT:
+            tag = ber_scanf(ber, "a}", &req->data.cert);
+            break;
         default:
             ber_free(ber, 1);
             set_err_msg(req, "Unknown input type");
@@ -382,6 +385,9 @@ void free_req_data(struct extdom_req *req)
         break;
     case INP_POSIX_GID:
         ber_memfree(req->data.posix_gid.domain_name);
+        break;
+    case INP_CERT:
+        ber_memfree(req->data.cert);
         break;
     }
 
@@ -861,10 +867,12 @@ done:
     return ret;
 }
 
-static int handle_sid_request(struct ipa_extdom_ctx *ctx,
-                              struct extdom_req *req,
-                              enum request_types request_type, const char *sid,
-                              struct berval **berval)
+static int handle_sid_or_cert_request(struct ipa_extdom_ctx *ctx,
+                                      struct extdom_req *req,
+                                      enum request_types request_type,
+                                      enum input_types input_type,
+                                      const char *input,
+                                      struct berval **berval)
 {
     int ret;
     struct passwd pwd;
@@ -878,7 +886,11 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
     enum sss_id_type id_type;
     struct sss_nss_kv *kv_list = NULL;
 
-    ret = sss_nss_getnamebysid(sid, &fq_name, &id_type);
+    if (input_type == INP_SID) {
+        ret = sss_nss_getnamebysid(input, &fq_name, &id_type);
+    } else {
+        ret = sss_nss_getnamebycert(input, &fq_name, &id_type);
+    }
     if (ret != 0) {
         if (ret == ENOENT) {
             ret = LDAP_NO_SUCH_OBJECT;
@@ -1130,8 +1142,13 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
 
         break;
     case INP_SID:
-        ret = handle_sid_request(ctx, req, req->request_type, req->data.sid,
-                                 berval);
+    case INP_CERT:
+        ret = handle_sid_or_cert_request(ctx, req, req->request_type,
+                                         req->input_type,
+                                         req->input_type == INP_SID ?
+                                                                 req->data.sid :
+                                                                 req->data.cert,
+                                         berval);
         break;
     case INP_NAME:
         ret = handle_name_request(ctx, req, req->request_type,
