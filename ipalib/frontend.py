@@ -425,7 +425,7 @@ class Command(HasParam):
     msg_summary = None
     msg_truncated = _('Results are truncated, try a more specific search')
 
-    callback_types = ()
+    callback_types = ('interactive_prompt',)
 
     def __call__(self, *args, **options):
         """
@@ -1139,6 +1139,14 @@ class Command(HasParam):
             callbacks.insert(0, callback)
         else:
             callbacks.append(callback)
+
+    @classmethod
+    def register_interactive_prompt_callback(cls, callback, first=False):
+        """Shortcut for register_callback('interactive_prompt', ...)"""
+        cls.register_callback('interactive_prompt', callback, first)
+
+    def interactive_prompt_callback(self, kw):
+        return
 
 
 class LocalOrRemote(Command):

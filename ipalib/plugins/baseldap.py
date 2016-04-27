@@ -890,8 +890,7 @@ last, after all sets and adds."""),
 
     callback_types = Method.callback_types + ('pre',
                                               'post',
-                                              'exc',
-                                              'interactive_prompt')
+                                              'exc')
 
     def get_summary_default(self, output):
         if 'value' in output:
@@ -1088,11 +1087,6 @@ last, after all sets and adds."""),
         """Shortcut for register_callback('exc', ...)"""
         cls.register_callback('exc', callback, first)
 
-    @classmethod
-    def register_interactive_prompt_callback(cls, callback, first=False):
-        """Shortcut for register_callback('interactive_prompt', ...)"""
-        cls.register_callback('interactive_prompt', callback, first)
-
     def _exc_wrapper(self, keys, options, call_func):
         """Function wrapper that automatically calls exception callbacks"""
         def wrapped(*call_args, **call_kwargs):
@@ -1256,9 +1250,6 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
-    def interactive_prompt_callback(self, kw):
-        return
-
 
 class LDAPQuery(BaseLDAPCommand, crud.PKQuery):
     """
@@ -1362,9 +1353,6 @@ class LDAPRetrieve(LDAPQuery):
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
-
-    def interactive_prompt_callback(self, kw):
-        return
 
 
 class LDAPUpdate(LDAPQuery, crud.Update):
@@ -1513,9 +1501,6 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
-    def interactive_prompt_callback(self, kw):
-        return
-
 
 class LDAPDelete(LDAPMultiQuery):
     """
@@ -1605,9 +1590,6 @@ class LDAPDelete(LDAPMultiQuery):
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
-
-    def interactive_prompt_callback(self, kw):
-        return
 
 
 class LDAPModMember(LDAPQuery):
@@ -1752,9 +1734,6 @@ class LDAPAddMember(LDAPModMember):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
-    def interactive_prompt_callback(self, kw):
-        return
-
 
 class LDAPRemoveMember(LDAPModMember):
     """
@@ -1855,9 +1834,6 @@ class LDAPRemoveMember(LDAPModMember):
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
-
-    def interactive_prompt_callback(self, kw):
-        return
 
 
 def gen_pkey_only_option(cli_name):
@@ -2084,9 +2060,6 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
     def exc_callback(self, args, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
-    def interactive_prompt_callback(self, kw):
-        return
-
 
 class LDAPModReverseMember(LDAPQuery):
     """
@@ -2208,8 +2181,6 @@ class LDAPAddReverseMember(LDAPModReverseMember):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
-    def interactive_prompt_callback(self, kw):
-        return
 
 class LDAPRemoveReverseMember(LDAPModReverseMember):
     """
@@ -2309,9 +2280,6 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         raise exc
 
-    def interactive_prompt_callback(self, kw):
-        return
-
 
 class LDAPModAttribute(LDAPQuery):
 
@@ -2390,9 +2358,6 @@ class LDAPModAttribute(LDAPQuery):
     def exc_callback(self, keys, options, exc, call_func, *call_args,
                      **call_kwargs):
         raise exc
-
-    def interactive_prompt_callback(self, kw):
-        return
 
 
 class LDAPAddAttribute(LDAPModAttribute):
