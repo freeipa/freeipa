@@ -895,24 +895,10 @@ def decrypt(data, symmetric_key=None, private_key=None):
 
 
 @register()
-class vault_add(PKQuery, Local):
+class vault_add(Local):
     __doc__ = _('Create a new vault.')
 
-    takes_options = LDAPCreate.takes_options + vault_options + (
-        Str(
-            'description?',
-            cli_name='desc',
-            doc=_('Vault description'),
-        ),
-        StrEnum(
-            'ipavaulttype?',
-            cli_name='type',
-            label=_('Type'),
-            doc=_('Vault type'),
-            values=(u'standard', u'symmetric', u'asymmetric', ),
-            default=u'symmetric',
-            autofill=True,
-        ),
+    takes_options = (
         Str(
             'password?',
             cli_name='password',
@@ -923,11 +909,6 @@ class vault_add(PKQuery, Local):
             cli_name='password_file',
             doc=_('File containing the vault password'),
         ),
-        Bytes(
-            'ipavaultpublickey?',
-            cli_name='public_key',
-            doc=_('Vault public key'),
-        ),
         Str(  # TODO: use File parameter
             'public_key_file?',
             cli_name='public_key_file',
@@ -935,7 +916,21 @@ class vault_add(PKQuery, Local):
         ),
     )
 
-    has_output = output.standard_entry
+    def get_args(self):
+        for arg in self.api.Command.vault_add_internal.args():
+            yield arg
+        for arg in super(vault_add, self).get_args():
+            yield arg
+
+    def get_options(self):
+        for option in self.api.Command.vault_add_internal.options():
+            if option.name not in ('ipavaultsalt', 'version'):
+                yield option
+        for option in super(vault_add, self).get_options():
+            yield option
+
+    def _iter_output(self):
+        return self.api.Command.vault_add_internal.output()
 
     def forward(self, *args, **options):
 
@@ -1062,7 +1057,7 @@ class vault_add_internal(LDAPCreate):
 
     NO_CLI = True
 
-    takes_options = vault_options
+    takes_options = LDAPCreate.takes_options + vault_options
 
     msg_summary = _('Added vault "%(value)s"')
 
@@ -1208,25 +1203,10 @@ class vault_find(LDAPSearch):
 
 
 @register()
-class vault_mod(PKQuery, Local):
+class vault_mod(Local):
     __doc__ = _('Modify a vault.')
 
-    takes_options = vault_options + (
-        Str(
-            'description?',
-            cli_name='desc',
-            doc=_('Vault description'),
-        ),
-        Str(
-            'ipavaulttype?',
-            cli_name='type',
-            doc=_('Vault type'),
-        ),
-        Bytes(
-            'ipavaultsalt?',
-            cli_name='salt',
-            doc=_('Vault salt'),
-        ),
+    takes_options = (
         Flag(
             'change_password?',
             doc=_('Change password'),
@@ -1261,11 +1241,6 @@ class vault_mod(PKQuery, Local):
             cli_name='private_key_file',
             doc=_('File containing the old vault private key'),
         ),
-        Bytes(
-            'ipavaultpublickey?',
-            cli_name='public_key',
-            doc=_('New vault public key'),
-        ),
         Str(  # TODO: use File parameter
             'public_key_file?',
             cli_name='public_key_file',
@@ -1273,7 +1248,21 @@ class vault_mod(PKQuery, Local):
         ),
     )
 
-    has_output = output.standard_entry
+    def get_args(self):
+        for arg in self.api.Command.vault_mod_internal.args():
+            yield arg
+        for arg in super(vault_mod, self).get_args():
+            yield arg
+
+    def get_options(self):
+        for option in self.api.Command.vault_mod_internal.options():
+            if option.name not in ('ipavaultsalt', 'version'):
+                yield option
+        for option in super(vault_mod, self).get_options():
+            yield option
+
+    def _iter_output(self):
+        return self.api.Command.vault_mod_internal.output()
 
     def forward(self, *args, **options):
 
@@ -1482,10 +1471,10 @@ class vaultconfig_show(Retrieve):
 
 
 @register()
-class vault_archive(PKQuery, Local):
+class vault_archive(Local):
     __doc__ = _('Archive data into a vault.')
 
-    takes_options = vault_options + (
+    takes_options = (
         Bytes(
             'data?',
             doc=_('Binary data to archive'),
@@ -1510,7 +1499,24 @@ class vault_archive(PKQuery, Local):
         ),
     )
 
-    has_output = output.standard_entry
+    def get_args(self):
+        for arg in self.api.Command.vault_archive_internal.args():
+            yield arg
+        for arg in super(vault_archive, self).get_args():
+            yield arg
+
+    def get_options(self):
+        for option in self.api.Command.vault_archive_internal.options():
+            if option.name not in ('nonce',
+                                   'session_key',
+                                   'vault_data',
+                                   'version'):
+                yield option
+        for option in super(vault_archive, self).get_options():
+            yield option
+
+    def _iter_output(self):
+        return self.api.Command.vault_archive_internal.output()
 
     def forward(self, *args, **options):
 
@@ -1771,10 +1777,10 @@ class vault_archive_internal(PKQuery):
 
 
 @register()
-class vault_retrieve(PKQuery, Local):
+class vault_retrieve(Local):
     __doc__ = _('Retrieve a data from a vault.')
 
-    takes_options = vault_options + (
+    takes_options = (
         Str(
             'out?',
             doc=_('File to store retrieved data'),
@@ -1801,13 +1807,28 @@ class vault_retrieve(PKQuery, Local):
         ),
     )
 
-    has_output = output.standard_entry
     has_output_params = (
         Bytes(
             'data',
             label=_('Data'),
         ),
     )
+
+    def get_args(self):
+        for arg in self.api.Command.vault_retrieve_internal.args():
+            yield arg
+        for arg in super(vault_retrieve, self).get_args():
+            yield arg
+
+    def get_options(self):
+        for option in self.api.Command.vault_retrieve_internal.options():
+            if option.name not in ('session_key', 'version'):
+                yield option
+        for option in super(vault_retrieve, self).get_options():
+            yield option
+
+    def _iter_output(self):
+        return self.api.Command.vault_retrieve_internal.output()
 
     def forward(self, *args, **options):
 
