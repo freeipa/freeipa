@@ -17,7 +17,10 @@ plugin: update_service_principalalias
 plugin: update_upload_cacrt
 
 # last
+# DNS version 1
 plugin: update_master_to_dnsforwardzones
+# DNS version 2
+plugin: update_dnsforward_emptyzones
 plugin: update_managed_post
 plugin: update_managed_permissions
 plugin: update_read_replication_agreements_permission
