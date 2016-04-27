@@ -28,7 +28,7 @@ import base64
 import six
 
 from ipalib import api, crud, errors
-from ipalib import Method, Object, Command
+from ipalib import Method, Object
 from ipalib import Flag, Int, Str
 from ipalib.cli import to_cli
 from ipalib import output
@@ -865,59 +865,7 @@ def _check_limit_object_class(attributes, attrs, allow_only):
                 attribute=limitattrs[0]))
 
 
-class CallbackInterface(Method):
-    """Callback registration interface
-
-    This class's subclasses allow different types of callbacks to be added and
-    removed to them.
-    Registering a callback is done either by ``register_callback``, or by
-    defining a ``<type>_callback`` method.
-
-    Subclasses should define the `_callback_registry` attribute as a dictionary
-    mapping allowed callback types to (initially) empty dictionaries.
-    """
-
-    _callback_registry = dict()
-
-    @classmethod
-    def get_callbacks(cls, callback_type):
-        """Yield callbacks of the given type"""
-        # Use one shared callback registry, keyed on class, to avoid problems
-        # with missing attributes being looked up in superclasses
-        callbacks = cls._callback_registry[callback_type].get(cls, [None])
-        for callback in callbacks:
-            if callback is None:
-                try:
-                    yield getattr(cls, '%s_callback' % callback_type)
-                except AttributeError:
-                    pass
-            else:
-                yield callback
-
-    @classmethod
-    def register_callback(cls, callback_type, callback, first=False):
-        """Register a callback
-
-        :param callback_type: The callback type (e.g. 'pre', 'post')
-        :param callback: The callable added
-        :param first: If true, the new callback will be added before all
-            existing callbacks; otherwise it's added after them
-
-        Note that callbacks registered this way will be attached to this class
-        only, not to its subclasses.
-        """
-        assert callable(callback)
-        try:
-            callbacks = cls._callback_registry[callback_type][cls]
-        except KeyError:
-            callbacks = cls._callback_registry[callback_type][cls] = [None]
-        if first:
-            callbacks.insert(0, callback)
-        else:
-            callbacks.append(callback)
-
-
-class BaseLDAPCommand(CallbackInterface, Command):
+class BaseLDAPCommand(Method):
     """
     Base class for Base LDAP Commands.
     """
@@ -940,7 +888,10 @@ last, after all sets and adds."""),
                          exclude='webui',
                         )
 
-    _callback_registry = dict(pre={}, post={}, exc={}, interactive_prompt={})
+    callback_types = Method.callback_types + ('pre',
+                                              'post',
+                                              'exc',
+                                              'interactive_prompt')
 
     def get_summary_default(self, output):
         if 'value' in output:

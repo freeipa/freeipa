@@ -369,6 +369,9 @@ class HasParam(Plugin):
         return context.current_frame
 
 
+_callback_registry = {}
+
+
 class Command(HasParam):
     """
     A public IPA atomic operation.
@@ -390,6 +393,14 @@ class Command(HasParam):
     ['my_command']
     >>> api.Command.my_command # doctest:+ELLIPSIS
     ipalib.frontend.my_command()
+
+    This class's subclasses allow different types of callbacks to be added and
+    removed to them.
+    Registering a callback is done either by ``register_callback``, or by
+    defining a ``<type>_callback`` method.
+
+    Subclasses should define the `callback_types` attribute as a tuple of
+    allowed callback types.
     """
 
     finalize_early = False
@@ -413,6 +424,8 @@ class Command(HasParam):
 
     msg_summary = None
     msg_truncated = _('Results are truncated, try a more specific search')
+
+    callback_types = ()
 
     def __call__(self, *args, **options):
         """
@@ -1087,6 +1100,46 @@ class Command(HasParam):
         json_dict['takes_options'] = list(self.get_options())
 
         return json_dict
+
+    @classmethod
+    def get_callbacks(cls, callback_type):
+        """Yield callbacks of the given type"""
+        # Use one shared callback registry, keyed on class, to avoid problems
+        # with missing attributes being looked up in superclasses
+        callbacks = _callback_registry.get(callback_type, {}).get(cls, [None])
+        for callback in callbacks:
+            if callback is None:
+                try:
+                    yield getattr(cls, '%s_callback' % callback_type)
+                except AttributeError:
+                    pass
+            else:
+                yield callback
+
+    @classmethod
+    def register_callback(cls, callback_type, callback, first=False):
+        """Register a callback
+
+        :param callback_type: The callback type (e.g. 'pre', 'post')
+        :param callback: The callable added
+        :param first: If true, the new callback will be added before all
+            existing callbacks; otherwise it's added after them
+
+        Note that callbacks registered this way will be attached to this class
+        only, not to its subclasses.
+        """
+        assert callback_type in cls.callback_types
+        assert callable(callback)
+        _callback_registry.setdefault(callback_type, {})
+        try:
+            callbacks = _callback_registry[callback_type][cls]
+        except KeyError:
+            callbacks = _callback_registry[callback_type][cls] = [None]
+        if first:
+            callbacks.insert(0, callback)
+        else:
+            callbacks.append(callback)
+
 
 class LocalOrRemote(Command):
     """

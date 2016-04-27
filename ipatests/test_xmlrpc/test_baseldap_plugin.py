@@ -26,6 +26,7 @@ import ldap
 from ipapython.dn import DN
 from ipapython import ipaldap
 from ipalib import errors
+from ipalib.frontend import Command
 from ipalib.plugins import baseldap
 from ipatests.util import assert_deepequal
 import pytest
@@ -33,7 +34,7 @@ import pytest
 
 @pytest.mark.tier0
 def test_exc_wrapper():
-    """Test the CallbackInterface._exc_wrapper helper method"""
+    """Test the BaseLDAPCommand._exc_wrapper helper method"""
     handled_exceptions = []
 
     class test_callback(baseldap.BaseLDAPCommand):
@@ -77,8 +78,8 @@ def test_exc_wrapper():
 
 @pytest.mark.tier0
 def test_callback_registration():
-    class callbacktest_base(baseldap.CallbackInterface):
-        _callback_registry = dict(test={})
+    class callbacktest_base(Command):
+        callback_types = Command.callback_types + ('test',)
 
         def test_callback(self, param):
             messages.append(('Base test_callback', param))
