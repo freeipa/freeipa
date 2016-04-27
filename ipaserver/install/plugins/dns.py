@@ -33,6 +33,18 @@ register = Registry()
 
 
 class DNSUpdater(Updater):
+    backup_dir = u'/var/lib/ipa/backup/'
+    # override backup_filename in subclass, it will be mangled by strftime
+    backup_filename = None
+
+    def __init__(self, api):
+        super(DNSUpdater, self).__init__(api)
+        backup_path = u'%s%s' % (self.backup_dir, self.backup_filename)
+        self.backup_path = time.strftime(backup_path)
+        self._ldif_writer = None
+        self._saved_privileges = set()  # store privileges only once
+        self.saved_zone_to_privilege = {}
+
     def version_update_needed(self, target_version):
         """Test if IPA DNS version is smaller than target version."""
         assert isinstance(target_version, int)
@@ -43,6 +55,56 @@ class DNSUpdater(Updater):
         except errors.NotFound:
             # IPA DNS is not configured
             return False
+
+    @property
+    def ldif_writer(self):
+        if not self._ldif_writer:
+            self.log.info('Original zones will be saved in LDIF format in '
+                          '%s file' % self.backup_path)
+            self._ldif_writer = LDIFWriter(open(self.backup_path, 'w'))
+        return self._ldif_writer
+
+    def backup_zone(self, zone):
+        """Backup zone object, its records, permissions, and privileges.
+
+        Mapping from zone to privilege (containing zone's permissions)
+        will be stored in saved_zone_to_privilege dict for further usage.
+        """
+        dn = str(zone['dn'])
+        del zone['dn']  # dn shouldn't be as attribute in ldif
+        self.ldif_writer.unparse(dn, zone)
+
+        ldap = self.api.Backend.ldap2
+        if 'managedBy' in zone:
+            permission = ldap.get_entry(DN(zone['managedBy'][0]))
+            self.ldif_writer.unparse(str(permission.dn), dict(permission.raw))
+            for privilege_dn in permission.get('member', []):
+                # privileges can be shared by multiples zones
+                if privilege_dn not in self._saved_privileges:
+                    self._saved_privileges.add(privilege_dn)
+                    privilege = ldap.get_entry(privilege_dn)
+                    self.ldif_writer.unparse(str(privilege.dn),
+                                             dict(privilege.raw))
+
+            # remember privileges referened by permission
+            if 'member' in permission:
+                self.saved_zone_to_privilege[
+                    zone['idnsname'][0]
+                ] = permission['member']
+
+        if 'idnszone' in zone['objectClass']:
+            # raw values are required to store into ldif
+            records = self.api.Command['dnsrecord_find'](zone['idnsname'][0],
+                                                         all=True,
+                                                         raw=True,
+                                                         sizelimit=0)['result']
+            for record in records:
+                if record['idnsname'][0] == u'@':
+                    # zone record was saved before
+                    continue
+                dn = str(record['dn'])
+                del record['dn']
+                self.ldif_writer.unparse(dn, record)
 
 
 @register()
@@ -206,9 +268,7 @@ class update_master_to_dnsforwardzones(DNSUpdater):
 
     This should be applied only once, and only if original version was lower than 4.0
     """
-    backup_dir = u'/var/lib/ipa/backup/'
-    backup_filename = u'dns-forward-zones-backup-%Y-%m-%d-%H-%M-%S.ldif'
-    backup_path = u'%s%s' % (backup_dir, backup_filename)
+    backup_filename = u'dns-master-to-forward-zones-%Y-%m-%d-%H-%M-%S.ldif'
 
     def execute(self, **options):
         ldap = self.api.Backend.ldap2
@@ -260,77 +320,18 @@ class update_master_to_dnsforwardzones(DNSUpdater):
             zones_to_transform.append(zone)
 
         if zones_to_transform:
-            # add time to filename
-            self.backup_path = time.strftime(self.backup_path)
-
-            # DNs of privileges which contain dns managed permissions
-            privileges_to_ldif = set()  # store priviledges only once
-            zone_to_privileges = {}  # zone: [privileges cn]
-
             self.log.info('Zones with specified forwarders with policy different'
                           ' than none will be transformed to forward zones.')
-            self.log.info('Original zones will be saved in LDIF format in '
-                          '%s file' % self.backup_path)
-            try:
-
-                with open(self.backup_path, 'w') as f:
-                    writer = LDIFWriter(f)
-                    for zone in zones_to_transform:
-                        # save backup to ldif
-                        try:
-
-                            dn = str(zone['dn'])
-                            del zone['dn']  # dn shouldn't be as attribute in ldif
-                            writer.unparse(dn, zone)
-
-                            if 'managedBy' in zone:
-                                entry = ldap.get_entry(DN(zone['managedBy'][0]))
-                                for privilege_member_dn in entry.get('member', []):
-                                    privileges_to_ldif.add(privilege_member_dn)
-                                writer.unparse(str(entry.dn), dict(entry.raw))
-
-                                # privileges where permission is used
-                                if entry.get('member'):
-                                    zone_to_privileges[zone['idnsname'][0]] = entry['member']
-
-                            # raw values are required to store into ldif
-                            records = self.api.Command['dnsrecord_find'](
-                                        zone['idnsname'][0],
-                                        all=True,
-                                        raw=True,
-                                        sizelimit=0)['result']
-                            for record in records:
-                                if record['idnsname'][0] == u'@':
-                                    # zone record was saved before
-                                    continue
-                                dn = str(record['dn'])
-                                del record['dn']
-                                writer.unparse(dn, record)
-
-                        except Exception as e:
-                            self.log.error('Unable to backup zone %s' %
-                                           zone['idnsname'][0])
-                            self.log.error(traceback.format_exc())
-                            return False, []
-
-                    for privilege_dn in privileges_to_ldif:
-                        try:
-                            entry = ldap.get_entry(privilege_dn)
-                            writer.unparse(str(entry.dn), dict(entry.raw))
-                        except Exception as e:
-                            self.log.error('Unable to backup privilege %s' %
-                                           privilege_dn)
-                            self.log.error(traceback.format_exc())
-                            return False, []
-
-                    f.close()
-            except Exception:
-                self.log.error('Unable to create backup file')
-                self.log.error(traceback.format_exc())
-                return False, []
-
             # update
             for zone in zones_to_transform:
+                try:
+                    self.backup_zone(zone)
+                except Exception:
+                    self.log.error('Unable to create backup for zone, '
+                                   'terminating zone upgrade')
+                    self.log.error(traceback.format_exc())
+                    return False, []
+
                 # delete master zone
                 try:
                     self.api.Command['dnszone_del'](zone['idnsname'])
@@ -374,9 +375,9 @@ class update_master_to_dnsforwardzones(DNSUpdater):
                         continue
 
                     else:
-                        if zone['idnsname'][0] in zone_to_privileges:
+                        if zone['idnsname'][0] in self.saved_zone_to_privilege:
                             privileges = [
-                                dn[0].value for dn in zone_to_privileges[zone['idnsname'][0]]
+                                dn[0].value for dn in self.saved_zone_to_privilege[zone['idnsname'][0]]
                             ]
                             try:
                                 self.api.Command['permission_add_member'](perm_name,
