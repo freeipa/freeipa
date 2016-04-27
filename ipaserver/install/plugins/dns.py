@@ -26,6 +26,7 @@ from ldif import LDIFWriter
 from ipalib import Registry, errors, util
 from ipalib import Updater
 from ipapython.dn import DN
+from ipapython import dnsutil
 from ipalib.plugins.dns import dns_container_exists
 from ipapython.ipa_log_manager import root_logger
 
@@ -395,4 +396,81 @@ class update_master_to_dnsforwardzones(DNSUpdater):
                 self.log.debug('Zone %s was sucessfully transformed to forward zone',
                               zone['idnsname'][0])
 
+        return False, []
+
+
+@register()
+class update_dnsforward_emptyzones(DNSUpdater):
+    """
+    Migrate forward policies which conflict with automatic empty zones
+    (RFC 6303) to use forward policy = only.
+
+    BIND ignores conflicting forwarding configuration
+    when forwarding policy != only.
+    bind-dyndb-ldap 9.0+ will do the same so we have to adjust FreeIPA zones
+    accordingly.
+    """
+    backup_filename = u'dns-forwarding-empty-zones-%Y-%m-%d-%H-%M-%S.ldif'
+
+    def update_zones(self):
+        try:
+            fwzones = self.api.Command.dnsforwardzone_find(all=True,
+                                                           raw=True)['result']
+        except errors.NotFound:
+            # No forwardzones found, we are done
+            return
+
+        logged_once = False
+        for zone in fwzones:
+            if not (
+                dnsutil.related_to_auto_empty_zone(
+                    dnsutil.DNSName(zone.get('idnsname')[0]))
+                and zone.get('idnsforwardpolicy', [u'first'])[0] != u'only'
+                and zone.get('idnsforwarders', []) != []
+            ):
+                # this zone does not conflict with automatic empty zone
+                continue
+
+            if not logged_once:
+                self.log.info('Forward policy for zones conflicting with '
+                              'automatic empty zones will be changed to '
+                              '"only"')
+                logged_once = True
+
+            # backup
+            try:
+                self.backup_zone(zone)
+            except Exception:
+                self.log.error('Unable to create backup for zone %s, '
+                               'terminating zone upgrade', zone['idnsname'][0])
+                self.log.error(traceback.format_exc())
+                continue
+
+            # change forward policy
+            try:
+                self.api.Command['dnsforwardzone_mod'](
+                    zone['idnsname'][0],
+                    idnsforwardpolicy=u'only'
+                )
+            except Exception as e:
+                self.log.error('Forward policy update for zone %s failed '
+                               '(%s)' % (zone['idnsname'][0], e))
+                self.log.error(traceback.format_exc())
+                continue
+
+            self.log.debug('Zone %s was sucessfully modified to use '
+                           'forward policy "only"', zone['idnsname'][0])
+
+    def execute(self, **options):
+        # check LDAP if DNS subtree already uses new semantics
+        if not self.version_update_needed(target_version=2):
+            # forwardzones already use new semantics, no upgrade is required
+            return False, []
+
+        self.log.debug('Updating forwarding policies to avoid conflicts '
+                       'with automatic empty zones')
+        # update the DNSVersion, following upgrade can be executed only once
+        self.api.Command['dnsconfig_mod'](ipadnsversion=2)
+
+        self.update_zones()
         return False, []
