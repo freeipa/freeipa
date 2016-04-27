@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=166
-# Last change: tbabej - idviews: Add user certificate attribute to user ID overrides
+IPA_API_VERSION_MINOR=167
+# Last change: dns: do not rely on server data structures in code called on client

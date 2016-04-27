@@ -1366,6 +1366,12 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: dnsrecord_split_parts
+args: 2,1,1
+arg: Str('name')
+arg: Str('value')
+option: Str('version?')
+output: Output('result')
 command: dnszone_add
 args: 1,28,3
 arg: DNSNameParam('idnsname', cli_name='name')

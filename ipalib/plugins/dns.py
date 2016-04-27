@@ -295,6 +295,9 @@ server:
 
 register = Registry()
 
+# dnsrecord param name formats
+record_name_format = '%srecord'
+
 # supported resource record types
 _record_types = (
     u'A', u'AAAA', u'A6', u'AFSDB', u'APL', u'CERT', u'CNAME', u'DHCID', u'DLV',
@@ -312,7 +315,8 @@ _rev_top_record_types = ('PTR', )
 _zone_top_record_types = ('NS', 'MX', 'LOC', )
 
 # attributes derived from record types
-_record_attributes = [str('%srecord' % t.lower()) for t in _record_types]
+_record_attributes = [str(record_name_format % t.lower())
+                      for t in _record_types]
 
 # Deprecated
 # supported DNS classes, IN = internet, rest is almost never used
@@ -329,6 +333,14 @@ _output_permissions = (
     output.Output('result', bool, _('True means the operation was successful')),
     output.Output('value', unicode, _('Permission value')),
 )
+
+
+def get_record_rrtype(name):
+    match = re.match('([^_]+)record$', name)
+    if match is None:
+        return None
+
+    return match.group(1).upper()
 
 
 def _rname_validator(ugettext, zonemgr):
@@ -665,9 +677,9 @@ def _check_DN_objectclass(ldap, dn, objectclasses):
         return _check_entry_objectclass(entry, objectclasses)
 
 
-def __get_part_param(param, cmd, part, output_kw, default=None):
-    name = param.part_name_format % (param.rrtype.lower(), part.name)
-    label = param.part_label_format % (param.rrtype, unicode(part.label))
+def __get_part_param(cmd, part, output_kw, default=None):
+    name = part.name
+    label = unicode(part.label)
     optional = not part.required
 
     output_kw[name] = cmd.prompt_param(part,
@@ -675,33 +687,37 @@ def __get_part_param(param, cmd, part, output_kw, default=None):
                                        label=label)
 
 
-def prompt_parts(param, cmd, mod_dnsvalue=None):
+def prompt_parts(rrtype, cmd, mod_dnsvalue=None):
     mod_parts = None
     if mod_dnsvalue is not None:
-        mod_parts = param._get_part_values(mod_dnsvalue)
+        name = record_name_format % rrtype.lower()
+        mod_parts = cmd.api.Command.dnsrecord_split_parts(
+            name, mod_dnsvalue)['result']
 
     user_options = {}
-    if param.parts is None:
+    parts = [p for p in cmd.params if 'dnsrecord_part' in p.flags]
+    if not parts:
         return user_options
 
-    for part_id, part in enumerate(param.parts):
+    for part_id, part in enumerate(parts):
         if mod_parts:
             default = mod_parts[part_id]
         else:
             default = None
 
-        __get_part_param(param, cmd, part, user_options, default)
+        __get_part_param(cmd, part, user_options, default)
 
     return user_options
 
 
-def prompt_missing_parts(param, cmd, kw, prompt_optional=False):
+def prompt_missing_parts(rrtype, cmd, kw, prompt_optional=False):
     user_options = {}
-    if param.parts is None:
+    parts = [p for p in cmd.params if 'dnsrecord_part' in p.flags]
+    if not parts:
         return user_options
 
-    for part in param.parts:
-        name = param.part_name_format % (param.rrtype.lower(), part.name)
+    for part in parts:
+        name = part.name
 
         if name in kw:
             continue
@@ -711,7 +727,7 @@ def prompt_missing_parts(param, cmd, kw, prompt_optional=False):
             continue
 
         default = part.get_default(**kw)
-        __get_part_param(param, cmd, part, user_options, default)
+        __get_part_param(cmd, part, user_options, default)
 
     return user_options
 
@@ -723,8 +739,10 @@ def has_cli_options(cmd, options, no_option_msg, allow_empty_attrs=False):
 
     has_options = False
     for attr in options.keys():
-        if (attr in cmd.obj.params and
-                not cmd.obj.params[attr].primary_key):
+        obj_params = [
+            p.name for p in cmd.params()
+            if get_record_rrtype(p.name) or 'dnsrecord_part' in p.flags]
+        if attr in obj_params:
             if options[attr] or allow_empty_attrs:
                 has_options = True
                 break
@@ -741,7 +759,7 @@ def get_rrparam_from_part(cmd, part_name):
     :param part_name Part parameter name
     """
     try:
-        param = cmd.obj.params[part_name]
+        param = cmd.params[part_name]
 
         if not any(flag in param.flags for flag in
                    ('dnsrecord_part', 'dnsrecord_extra')):
@@ -749,7 +767,7 @@ def get_rrparam_from_part(cmd, part_name):
 
         # All DNS record part or extra parameters contain a name of its
         # parent RR parameter in its hint attribute
-        rrparam = cmd.obj.params[param.hint]
+        rrparam = cmd.params[param.hint]
     except (KeyError, AttributeError):
         return None
 
@@ -772,7 +790,7 @@ def iterate_rrparams_by_parts(cmd, kw, skip_extra=False):
         if rrparam is None:
             continue
 
-        if skip_extra and 'dnsrecord_extra' in cmd.obj.params[opt].flags:
+        if skip_extra and 'dnsrecord_extra' in cmd.params[opt].flags:
             continue
 
         if rrparam.name not in processed:
@@ -812,7 +830,7 @@ class DNSRecord(Str):
             raise ValueError("Unknown RR type: %s. Must be one of %s" % \
                     (str(self.rrtype), ", ".join(_record_types)))
         if not name:
-            name = "%srecord*" % self.rrtype.lower()
+            name = "%s*" % (record_name_format % self.rrtype.lower())
         kw.setdefault('cli_name', '%s_rec' % self.rrtype.lower())
         kw.setdefault('label', self.label_format % self.rrtype)
         kw.setdefault('doc', self.doc_format % self.rrtype)
@@ -1625,8 +1643,7 @@ def __dns_record_options_iter():
             yield extra
 
 _dns_record_options = tuple(__dns_record_options_iter())
-_dns_supported_record_types = tuple(record.rrtype for record in _dns_records \
-                                    if record.supported)
+
 
 def check_ns_rec_resolvable(zone, name, log):
     assert isinstance(zone, DNSName)
@@ -1787,8 +1804,8 @@ def _create_idn_filter(cmd, ldap, term=None, **options):
     return filter
 
 
-map_names_to_records = {"%srecord" % record.rrtype.lower(): record for record
-                        in _dns_records if record.supported}
+map_names_to_records = {record_name_format % record.rrtype.lower(): record
+                        for record in _dns_records if record.supported}
 
 def _records_idn_postprocess(record, **options):
     for attr in record.keys():
@@ -3118,7 +3135,7 @@ class dnsrecord(LDAPObject):
         # dissallowed wildcard (RFC 4592 section 4)
         no_wildcard_rtypes = ['DNAME', 'DS', 'NS']
         if (keys[-1].is_wild() and
-            any(entry_attrs.get('%srecord' % r.lower())
+            any(entry_attrs.get(record_name_format % r.lower())
             for r in no_wildcard_rtypes)
         ):
             raise errors.ValidationError(
@@ -3228,9 +3245,8 @@ class dnsrecord(LDAPObject):
         return super(dnsrecord, self).get_dn(*keys, **options)
 
     def attr_to_cli(self, attr):
-        try:
-            cliname = attr[:-len('record')].upper()
-        except IndexError:
+        cliname = get_record_rrtype(attr)
+        if not cliname:
             cliname = attr
         return cliname
 
@@ -3348,7 +3364,7 @@ class dnsrecord(LDAPObject):
         if nsrecords and not self.is_pkey_zone_record(*keys):
             for r_type in _record_types:
                 if (r_type not in allowed_records
-                    and rrattrs.get('%srecord' % r_type.lower())
+                    and rrattrs.get(record_name_format % r_type.lower())
                 ):
                     raise errors.ValidationError(
                         name='nsrecord',
@@ -3379,7 +3395,6 @@ class dnsrecord(LDAPObject):
             {rdtype: None} if RRset of given type is empty
             {rdtype: RRset} if RRset of given type is non-empty
         '''
-        record_attr_suf = 'record'
         ldap_rrsets = {}
 
         if not entry_attrs:
@@ -3387,10 +3402,11 @@ class dnsrecord(LDAPObject):
             return None
 
         for attr, value in entry_attrs.items():
-            if not attr.endswith(record_attr_suf):
+            rrtype = get_record_rrtype(attr)
+            if not rrtype:
                 continue
 
-            rdtype = dns.rdatatype.from_text(attr[0:-len(record_attr_suf)])
+            rdtype = dns.rdatatype.from_text(rrtype)
             if not value:
                 ldap_rrsets[rdtype] = None  # RRset is empty
                 continue
@@ -3583,6 +3599,20 @@ class dnsrecord(LDAPObject):
 
 
 @register()
+class dnsrecord_split_parts(Command):
+    NO_CLI = True
+
+    takes_args = (
+        Str('name'),
+        Str('value'),
+    )
+
+    def execute(self, name, value, *args, **options):
+        result = self.api.Object.dnsrecord.params[name]._get_part_values(value)
+        return dict(result=result)
+
+
+@register()
 class dnsrecord_add(LDAPCreate):
     __doc__ = _('Add new DNS resource record.')
 
@@ -3614,7 +3644,8 @@ class dnsrecord_add(LDAPCreate):
             new_kw = {}
             for rrparam in iterate_rrparams_by_parts(self, kw,
                                                      skip_extra=True):
-                user_options = prompt_missing_parts(rrparam, self, kw,
+                rrtype = get_record_rrtype(rrparam.name)
+                user_options = prompt_missing_parts(rrtype, self, kw,
                                                     prompt_optional=False)
                 new_kw.update(user_options)
             kw.update(new_kw)
@@ -3652,21 +3683,21 @@ class dnsrecord_add(LDAPCreate):
                 return
 
             try:
-                name = '%srecord' % rrtype.lower()
+                name = record_name_format % rrtype.lower()
                 param = self.params[name]
 
-                if not isinstance(param, DNSRecord):
-                    raise ValueError()
-
-                if not param.supported:
+                if 'no_option' in param.flags:
                     raise ValueError()
             except (KeyError, ValueError):
-                all_types = u', '.join(_dns_supported_record_types)
+                all_types = u', '.join(get_record_rrtype(p.name)
+                                       for p in self.params()
+                                       if (get_record_rrtype(p.name) and
+                                           'no_option' not in p.flags))
                 self.Backend.textui.print_plain(_(u'Invalid or unsupported type. Allowed values are: %s') % all_types)
                 continue
             ok = True
 
-        user_options = prompt_parts(param, self)
+        user_options = prompt_parts(rrtype, self)
         kw.update(user_options)
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -3935,7 +3966,6 @@ class dnsrecord_mod(LDAPUpdate):
         # get DNS record first so that the NotFound exception is raised
         # before the helper would start
         dns_record = self.api.Command['dnsrecord_show'](kw['dnszoneidnsname'], kw['idnsname'])['result']
-        rec_types = [rec_type for rec_type in dns_record if rec_type in _record_attributes]
 
         self.Backend.textui.print_plain(_("No option to modify specific record provided."))
 
@@ -3948,23 +3978,24 @@ class dnsrecord_mod(LDAPUpdate):
                 param = self.params[attr]
             except KeyError:
                 continue
-            if not isinstance(param, DNSRecord):
+            rrtype = get_record_rrtype(param.name)
+            if not rrtype:
                 continue
 
-            record_params.append(param)
+            record_params.append((param, rrtype))
             rec_type_content = u', '.join(dns_record[param.name])
             self.Backend.textui.print_plain(u'%s: %s' % (param.label, rec_type_content))
         self.Backend.textui.print_plain(u'')
 
         # ask what records to remove
-        for param in record_params:
+        for param, rrtype in record_params:
             rec_values = list(dns_record[param.name])
             for rec_value in dns_record[param.name]:
                 rec_values.remove(rec_value)
                 mod_value = self.Backend.textui.prompt_yesno(
                         _("Modify %(name)s '%(value)s'?") % dict(name=param.label, value=rec_value), default=False)
                 if mod_value is True:
-                    user_options = prompt_parts(param, self,
+                    user_options = prompt_parts(rrtype, self,
                                                 mod_dnsvalue=rec_value)
                     kw[param.name] = [rec_value]
                     kw.update(user_options)
@@ -3973,7 +4004,7 @@ class dnsrecord_mod(LDAPUpdate):
                          self.Backend.textui.print_plain(ngettext(
                             u'%(count)d %(type)s record skipped. Only one value per DNS record type can be modified at one time.',
                             u'%(count)d %(type)s records skipped. Only one value per DNS record type can be modified at one time.',
-                            0) % dict(count=len(rec_values), type=param.rrtype))
+                            0) % dict(count=len(rec_values), type=rrtype))
                          break
 
 
@@ -4124,7 +4155,6 @@ class dnsrecord_del(LDAPUpdate):
         # get DNS record first so that the NotFound exception is raised
         # before the helper would start
         dns_record = self.api.Command['dnsrecord_show'](kw['dnszoneidnsname'], kw['idnsname'])['result']
-        rec_types = [rec_type for rec_type in dns_record if rec_type in _record_attributes]
 
         self.Backend.textui.print_plain(_("No option to delete specific record provided."))
         user_del_all = self.Backend.textui.prompt_yesno(_("Delete all?"), default=False)
@@ -4142,7 +4172,7 @@ class dnsrecord_del(LDAPUpdate):
                 param = self.params[attr]
             except KeyError:
                 continue
-            if not isinstance(param, DNSRecord):
+            if not get_record_rrtype(param.name):
                 continue
 
             present_params.append(param)
