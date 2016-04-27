@@ -463,6 +463,19 @@ class update_dnsforward_emptyzones(DNSUpdater):
             self.log.debug('Zone %s was sucessfully modified to use '
                            'forward policy "only"', zone['idnsname'][0])
 
+    def update_global_ldap_forwarder(self):
+        config = self.api.Command['dnsconfig_show'](all=True,
+                                                    raw=True)['result']
+        if (
+            config.get('idnsforwardpolicy', [u'first'])[0] == u'first'
+            and config.get('idnsforwarders', [])
+        ):
+            self.log.info('Global forward policy in LDAP for all servers will '
+                          'be changed to "only" to avoid conflicts with '
+                          'automatic empty zones')
+            self.backup_zone(config)
+            self.api.Command['dnsconfig_mod'](idnsforwardpolicy=u'only')
+
     def execute(self, **options):
         # check LDAP if DNS subtree already uses new semantics
         if not self.version_update_needed(target_version=2):
@@ -475,6 +488,9 @@ class update_dnsforward_emptyzones(DNSUpdater):
         self.api.Command['dnsconfig_mod'](ipadnsversion=2)
 
         self.update_zones()
+        if dnsutil.has_empty_zone_addresses(self.api.env.host):
+            self.update_global_ldap_forwarder()
+
         return False, []
 
 api.register(update_dnsforward_emptyzones)

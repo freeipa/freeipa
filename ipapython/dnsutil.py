@@ -264,6 +264,24 @@ def related_to_auto_empty_zone(name):
                for aez in EMPTY_ZONES)
 
 
+def has_empty_zone_addresses(hostname):
+    """Detect if given host is using IP address belonging to
+    an automatic empty zone.
+
+    Information from --ip-address option used in installed is lost by
+    the time when upgrade is run. Use IP addresses from DNS as best
+    approximation.
+
+    This is brain-dead and duplicates logic from DNS installer
+    but I did not find other way around.
+    """
+    ip_addresses = resolve_ip_addresses(hostname)
+    return any(
+        inside_auto_empty_zone(DNSName(ip.reverse_dns))
+        for ip in ip_addresses
+    )
+
+
 def resolve_rrsets(fqdn, rdtypes):
     """
     Get Resource Record sets for given FQDN.
