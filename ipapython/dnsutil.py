@@ -234,6 +234,36 @@ def inside_auto_empty_zone(name):
     return False
 
 
+def related_to_auto_empty_zone(name):
+    """True if specified absolute name is a sub/superdomain of an automatic
+    empty zone.
+
+    DNS domain is a subdomain of itself so this function
+    returns True for zone apexes, too.
+
+    >>> related_to_auto_empty_zone(DNSName('.'))
+    True
+    >>> related_to_auto_empty_zone(DNSName('in-addr.arpa.'))
+    True
+    >>> related_to_auto_empty_zone(DNSName('10.in-addr.arpa.'))
+    True
+    >>> related_to_auto_empty_zone(DNSName('1.10.in-addr.arpa.'))
+    True
+    >>> related_to_auto_empty_zone(DNSName('unrelated.example.'))
+    False
+    >>> related_to_auto_empty_zone(DNSName('1.10.in-addr.arpa'))
+    Traceback (most recent call last):
+      ...
+    AssertionError: ...
+    """
+    assert_absolute_dnsname(name)
+    relations = {dns.name.NAMERELN_SUBDOMAIN,
+                 dns.name.NAMERELN_EQUAL,
+                 dns.name.NAMERELN_SUPERDOMAIN}
+    return any(name.fullcompare(aez)[0] in relations
+               for aez in EMPTY_ZONES)
+
+
 def resolve_rrsets(fqdn, rdtypes):
     """
     Get Resource Record sets for given FQDN.
