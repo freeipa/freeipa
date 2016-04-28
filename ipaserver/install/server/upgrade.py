@@ -24,6 +24,7 @@ from ipapython import ipautil, sysrestore, version, certdb
 from ipapython import ipaldap
 from ipapython.ipa_log_manager import root_logger
 from ipapython import certmonger
+from ipapython import dnsutil
 from ipapython.dn import DN
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
@@ -773,6 +774,50 @@ def named_root_key_include():
 
 
     sysupgrade.set_upgrade_state('named.conf', 'root_key_updated', True)
+    return True
+
+
+def named_update_global_forwarder_policy():
+    bind = bindinstance.BindInstance()
+    if not bindinstance.named_conf_exists() or not bind.is_configured():
+        # DNS service may not be configured
+        root_logger.info('DNS is not configured')
+        return False
+
+    root_logger.info('[Checking global forwarding policy in named.conf '
+                     'to avoid conflicts with automatic empty zones]')
+    if sysupgrade.get_upgrade_state(
+        'named.conf', 'forward_policy_conflict_with_empty_zones_handled'
+    ):
+        # upgrade was done already
+        return False
+
+    sysupgrade.set_upgrade_state(
+        'named.conf',
+        'forward_policy_conflict_with_empty_zones_handled',
+        True
+    )
+    if not dnsutil.has_empty_zone_addresses(api.env.host):
+        # guess: local server does not have IP addresses from private ranges
+        # so hopefully automatic empty zones are not a problem
+        return False
+
+    if bindinstance.named_conf_get_directive(
+            'forward',
+            section=bindinstance.NAMED_SECTION_OPTIONS,
+            str_val=False
+    ) == 'only':
+        return False
+
+    root_logger.info('Global forward policy in named.conf will '
+                     'be changed to "only" to avoid conflicts with '
+                     'automatic empty zones')
+    bindinstance.named_conf_set_directive(
+        'forward',
+        'only',
+        section=bindinstance.NAMED_SECTION_OPTIONS,
+        str_val=False
+    )
     return True
 
 
@@ -1607,6 +1652,7 @@ def upgrade_configuration():
                           named_bindkey_file_option(),
                           named_managed_keys_dir_option(),
                           named_root_key_include(),
+                          named_update_global_forwarder_policy(),
                           mask_named_regular(),
                           fix_dyndb_ldap_workdir_permissions(),
                          )
