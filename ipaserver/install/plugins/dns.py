@@ -268,7 +268,8 @@ class update_master_to_dnsforwardzones(DNSUpdater):
     than none, will be tranformed to forward zones.
     Original masters zone will be backed up to ldif file.
 
-    This should be applied only once, and only if original version was lower than 4.0
+    This should be applied only once,
+    and only if original version was lower than 4.0
     """
     backup_filename = u'dns-master-to-forward-zones-%Y-%m-%d-%H-%M-%S.ldif'
 
@@ -482,8 +483,8 @@ class update_dnsforward_emptyzones(DNSUpdater):
             # forwardzones already use new semantics, no upgrade is required
             return False, []
 
-        self.log.debug('Updating forwarding policies to avoid conflicts '
-                       'with automatic empty zones')
+        self.log.debug('Updating forwarding policies in LDAP '
+                       'to avoid conflicts with automatic empty zones')
         # update the DNSVersion, following upgrade can be executed only once
         self.api.Command['dnsconfig_mod'](ipadnsversion=2)
 

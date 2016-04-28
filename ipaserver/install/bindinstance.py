@@ -32,6 +32,7 @@ import six
 
 from ipaserver.install import installutils
 from ipaserver.install import service
+from ipaserver.install import sysupgrade
 from ipaserver.install.cainstance import IPA_CA_RECORD
 from ipapython import sysrestore, ipautil, ipaldap
 from ipapython.ipa_log_manager import *
@@ -1038,6 +1039,12 @@ class BindInstance(service.Service):
             named_conf_set_directive("dnssec-validation", "no",
                                      section=NAMED_SECTION_OPTIONS,
                                      str_val=False)
+
+        # prevent repeated upgrade on new installs
+        sysupgrade.set_upgrade_state(
+            'named.conf',
+            'forward_policy_conflict_with_empty_zones_handled', True
+        )
 
     def __setup_resolv_conf(self):
         if not self.fstore.has_file(RESOLV_CONF):
