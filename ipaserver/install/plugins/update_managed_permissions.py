@@ -88,11 +88,11 @@ import six
 from ipalib import api, errors
 from ipapython.dn import DN
 from ipalib.plugable import Registry
-from ipalib.plugins import aci
-from ipalib.plugins.permission import permission, permission_del
 from ipalib.aci import ACI
 from ipalib import Updater
 from ipapython import ipautil
+from ipaserver.plugins import aci
+from ipaserver.plugins.permission import permission, permission_del
 
 if six.PY3:
     unicode = str

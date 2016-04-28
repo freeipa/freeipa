@@ -60,7 +60,7 @@ OPTIONS
     --config
                 files from html/
     --strings
-                ipalib/plugins/internal.py
+                ipaserver/plugins/internal.py
     -C
     --compiled
                 changes source dir of --freeipa and --dojo to /src/build/freeipa
@@ -340,8 +340,8 @@ pushd $DIR/../../ #freeipa/install
 popd
 
 if [[ $STRINGS ]] ; then
-    SOURCE=ipalib/plugins/internal.py
-    TARGET=/usr/lib/python2.7/site-packages/ipalib/plugins
+    SOURCE=ipaserver/plugins/internal.py
+    TARGET=/usr/lib/python2.7/site-packages/ipaserver/plugins
     RECURSIVE=0
     CLEAN=0 # don't clean entire folder
     pushd $DIR/../../../

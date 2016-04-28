@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Test the `ipalib/plugins/batch.py` module.
+Test the `ipaserver/plugins/batch.py` module.
 """
 
 from ipalib import api

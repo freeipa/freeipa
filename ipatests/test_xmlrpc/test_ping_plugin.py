@@ -19,7 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Test the `ipalib/plugins/ping.py` module, and XML-RPC in general.
+Test the `ipaserver/plugins/ping.py` module, and XML-RPC in general.
 """
 
 import pytest

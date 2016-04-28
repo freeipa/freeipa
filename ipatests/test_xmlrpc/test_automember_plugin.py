@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Test the `ipalib/plugins/automember.py` module.
+Test the `ipaserver/plugins/automember.py` module.
 """
 
 from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker

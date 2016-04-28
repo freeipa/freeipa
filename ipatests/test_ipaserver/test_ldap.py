@@ -35,8 +35,8 @@ import nss.nss as nss
 import six
 
 from ipaserver.plugins.ldap2 import ldap2
-from ipalib.plugins.service import service, service_show
-from ipalib.plugins.host import host
+from ipaserver.plugins.service import service, service_show
+from ipaserver.plugins.host import host
 from ipalib import api, x509, create_api, errors
 from ipapython import ipautil
 from ipaplatform.paths import paths

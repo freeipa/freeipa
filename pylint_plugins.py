@@ -168,10 +168,6 @@ ipa_class_members = {
     'ipalib.parameters.Str': ['noextrawhitespace'],
     'ipalib.parameters.Password': ['confirm'],
     'ipalib.parameters.File': ['stdin_if_missing'],
-    'ipalib.plugins.dns.DNSRecord': [
-        'validatedns',
-        'normalizedns',
-    ],
     'ipalib.parameters.Enum': ['values'],
     'ipalib.parameters.Number': [
         'minvalue',
@@ -202,6 +198,10 @@ ipa_class_members = {
         'msg',
     ],
     'ipaserver.install.ldapupdate.LDAPUpdate': LOGGING_ATTRS,
+    'ipaserver.plugins.dns.DNSRecord': [
+        'validatedns',
+        'normalizedns',
+    ],
     'ipaserver.rpcserver.KerberosSession': [
         fake_api,
     ] + LOGGING_ATTRS,

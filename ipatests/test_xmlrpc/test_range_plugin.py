@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Test the `ipalib/plugins/idrange.py` module, and XML-RPC in general.
+Test the `ipaserver/plugins/idrange.py` module, and XML-RPC in general.
 """
 
 import six

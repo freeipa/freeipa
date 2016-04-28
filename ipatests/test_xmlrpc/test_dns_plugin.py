@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test the `ipalib/plugins/dns.py` module.
+Test the `ipaserver/plugins/dns.py` module.
 """
 
 import nose

@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test the `ipalib/plugins/pwpolicy.py` module.
+Test the `ipaserver/plugins/pwpolicy.py` module.
 """
 
 from nose.tools import assert_raises  # pylint: disable=E0611

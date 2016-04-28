@@ -3,7 +3,7 @@
 #
 
 """
-Test the `ipalib/plugins/stageuser.py` module.
+Test the `ipaserver/plugins/stageuser.py` module.
 """
 
 import pytest

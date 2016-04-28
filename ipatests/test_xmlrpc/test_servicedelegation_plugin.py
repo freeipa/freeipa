@@ -2,7 +2,7 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 """
-Test the `ipalib/plugins/serviceconstraint.py` module.
+Test the `ipaserver/plugins/serviceconstraint.py` module.
 """
 
 from ipalib import api, errors

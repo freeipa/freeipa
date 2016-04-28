@@ -23,7 +23,7 @@ import six
 from six import StringIO
 
 from ipalib import api, errors
-from ipalib.plugins.user import user_add
+from ipaserver.plugins.user import user_add
 import pytest
 
 if six.PY3:

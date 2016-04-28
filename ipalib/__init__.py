@@ -908,10 +908,8 @@ class API(plugable.API):
     @property
     def packages(self):
         if self.env.in_server:
-            import ipalib.plugins
             import ipaserver.plugins
             result = (
-                ipalib.plugins,
                 ipaserver.plugins,
             )
         else:

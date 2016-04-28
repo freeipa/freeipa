@@ -27,8 +27,8 @@ from ipalib import Registry, errors, util
 from ipalib import Updater
 from ipapython.dn import DN
 from ipapython import dnsutil
-from ipalib.plugins.dns import dns_container_exists
 from ipapython.ipa_log_manager import root_logger
+from ipaserver.plugins.dns import dns_container_exists
 
 register = Registry()
 

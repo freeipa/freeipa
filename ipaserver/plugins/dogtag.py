@@ -244,18 +244,20 @@ import json
 from lxml import etree
 import time
 
-import pki
-from pki.client import PKIConnection
-import pki.crypto as cryptoutil
-from pki.kra import KRAClient
 import six
 from six.moves import urllib
 
-from ipalib import Backend
+from ipalib import Backend, api
 from ipapython.dn import DN
 import ipapython.cookie
 from ipapython import dogtag
 from ipapython import ipautil
+
+if api.env.in_server:
+    import pki
+    from pki.client import PKIConnection
+    import pki.crypto as cryptoutil
+    from pki.kra import KRAClient
 
 if six.PY3:
     unicode = str
@@ -1269,7 +1271,7 @@ def select_any_master(ldap2, service='CA'):
 
 #-------------------------------------------------------------------------------
 
-from ipalib import Registry, api, errors, SkipPluginModule
+from ipalib import Registry, errors, SkipPluginModule
 if api.env.ra_plugin != 'dogtag':
     # In this case, abort loading this plugin module...
     raise SkipPluginModule(reason='dogtag not selected as RA plugin')

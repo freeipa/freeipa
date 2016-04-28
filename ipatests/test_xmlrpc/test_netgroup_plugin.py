@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test the `ipalib/plugins/netgroup.py` module.
+Test the `ipaserver/plugins/netgroup.py` module.
 """
 
 from ipalib import api

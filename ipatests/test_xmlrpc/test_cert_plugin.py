@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Test the `ipalib/plugins/cert.py` module against a RA.
+Test the `ipaserver/plugins/cert.py` module against a RA.
 """
 
 import os

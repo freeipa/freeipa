@@ -19,7 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Test the `ipalib/plugins/permission.py` module.
+Test the `ipaserver/plugins/permission.py` module.
 """
 from __future__ import print_function
 

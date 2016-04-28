@@ -27,7 +27,7 @@ from ipapython.dn import DN
 from ipapython import ipaldap
 from ipalib import errors
 from ipalib.frontend import Command
-from ipalib.plugins import baseldap
+from ipaserver.plugins import baseldap
 from ipatests.util import assert_deepequal
 import pytest
 

@@ -81,7 +81,7 @@ api.finalize()
 
 # Only import trust plugin after api is initialized or internal imports
 # within the plugin will not work
-from ipalib.plugins import trust
+from ipaserver.plugins import trust
 
 # We have to dance with two different credentials caches:
 # ccache_name         --  for cifs/ipa.master@IPA.REALM to communicate with LDAP

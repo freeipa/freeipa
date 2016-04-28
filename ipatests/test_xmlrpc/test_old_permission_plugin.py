@@ -19,7 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Test the `ipalib/plugins/permission.py` module with old API.
+Test the `ipaserver/plugins/permission.py` module with old API.
 
 This ensures basic backwards compatibility for code before
 http://www.freeipa.org/page/V3/Permissions_V2

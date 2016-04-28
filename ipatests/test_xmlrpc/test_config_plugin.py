@@ -19,7 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Test the `ipalib/plugins/config.py` module.
+Test the `ipaserver/plugins/config.py` module.
 """
 
 from ipalib import errors

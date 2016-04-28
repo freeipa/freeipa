@@ -49,6 +49,8 @@ def validate_host(ugettext, cn):
 class join(Command):
     """Join an IPA domain"""
 
+    NO_CLI = True
+
     takes_args = (
         Str('cn',
             validate_host,

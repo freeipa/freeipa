@@ -59,9 +59,7 @@ def setup_package():
             classifiers=[line for line in CLASSIFIERS.split('\n') if line],
             platforms = ["Linux", "Solaris", "Unix"],
             package_dir = {'ipalib': ''},
-            packages = ["ipalib",
-                        "ipalib.plugins",
-                       ],
+            packages = ["ipalib"],
         )
     finally:
         del sys.path[0]
