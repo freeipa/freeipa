@@ -441,14 +441,6 @@ class hbacrule_add_accesstime(LDAPQuery):
 
         return dict(result=True)
 
-    def output_for_cli(self, textui, result, cn, **options):
-        textui.print_name(self.name)
-        textui.print_dashed(
-            'Added access time "%s" to HBAC rule "%s"' % (
-                options['accesstime'], cn
-            )
-        )
-
 
 # @register()
 class hbacrule_remove_accesstime(LDAPQuery):
@@ -479,14 +471,6 @@ class hbacrule_remove_accesstime(LDAPQuery):
             self.obj.handle_not_found(cn)
 
         return dict(result=True)
-
-    def output_for_cli(self, textui, result, cn, **options):
-        textui.print_name(self.name)
-        textui.print_dashed(
-            'Removed access time "%s" from HBAC rule "%s"' % (
-                options['accesstime'], cn
-            )
-        )
 
 
 @register()

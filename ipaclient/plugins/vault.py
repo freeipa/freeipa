@@ -36,6 +36,7 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key,\
 
 import nss.nss as nss
 
+from ipaclient.frontend import MethodOverride
 from ipalib.frontend import Local
 from ipalib import errors
 from ipalib import Bytes, Flag, Str
@@ -488,6 +489,25 @@ class vault_mod(Local):
             opts['override_password'] = True
 
             self.api.Command.vault_archive(*args, **opts)
+
+        return response
+
+
+@register(override=True)
+class vaultconfig_show(MethodOverride):
+    def forward(self, *args, **options):
+
+        file = options.get('transport_out')
+
+        # don't send these parameters to server
+        if 'transport_out' in options:
+            del options['transport_out']
+
+        response = super(vaultconfig_show, self).forward(*args, **options)
+
+        if file:
+            with open(file, 'w') as f:
+                f.write(response['result']['transport_cert'])
 
         return response
 

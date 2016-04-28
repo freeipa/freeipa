@@ -27,7 +27,6 @@ import six
 
 from ipalib import api
 from ipalib import errors
-from ipalib import util
 from ipalib import Bool, Flag, Str
 from .baseuser import (
     baseuser,
@@ -60,7 +59,6 @@ from . import baseldap
 from ipalib.request import context
 from ipalib import _, ngettext
 from ipalib import output
-from ipalib import x509
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipautil import ipa_generate_password
@@ -605,14 +603,6 @@ class user_del(baseuser_del):
         Bool('preserve?',
             exclude='cli',
         ),
-        Flag('preserve?',
-            include='cli',
-            doc=_('Delete a user, keeping the entry available for future use'),
-        ),
-        Flag('no_preserve?',
-            include='cli',
-            doc=_('Delete a user'),
-        ),
     )
 
     def _preserve_user(self, pkey, delete_container, **options):
@@ -672,20 +662,6 @@ class user_del(baseuser_del):
                 entry_attrs[attr.lower()] = original_entry_attrs[attr.lower()]
         if restoreAttr:
             self._exc_wrapper(pkey, options, ldap.update_entry)(entry_attrs)
-
-    def forward(self, *keys, **options):
-        if self.api.env.context == 'cli':
-            no_preserve = options.pop('no_preserve', False)
-            preserve = options.pop('preserve', False)
-            if no_preserve and preserve:
-                raise errors.MutuallyExclusiveError(
-                    reason=_("preserve and no-preserve cannot be both set"))
-            elif no_preserve:
-                options['preserve'] = False
-            elif preserve:
-                options['preserve'] = True
-
-        return super(user_del, self).forward(*keys, **options)
 
     def pre_callback(self, ldap, dn, *keys, **options):
         dn = self.obj.get_either_dn(*keys, **options)
@@ -846,24 +822,6 @@ class user_show(baseuser_show):
         self.obj.get_preserved_attribute(entry_attrs, options)
         return dn
 
-    def forward(self, *keys, **options):
-        if 'out' in options:
-            util.check_writable_file(options['out'])
-            result = super(user_show, self).forward(*keys, **options)
-            if 'usercertificate' in result['result']:
-                x509.write_certificate_list(
-                    result['result']['usercertificate'],
-                    options['out']
-                )
-                result['summary'] = (
-                    _('Certificate(s) stored in file \'%(file)s\'')
-                    % dict(file=options['out'])
-                )
-                return result
-            else:
-                raise errors.NoCertificateError(entry=keys[-1])
-        else:
-            return super(user_show, self).forward(*keys, **options)
 
 @register()
 class user_undel(LDAPQuery):

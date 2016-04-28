@@ -17,20 +17,102 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+import sys
+
+from ipaclient.frontend import MethodOverride
 from ipalib import api, Str, Password, _
+from ipalib.messages import add_message, ResultFormattingError
 from ipalib.plugable import Registry
 from ipalib.frontend import Local
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.nsslib import NSSConnection
+from ipapython.version import API_VERSION
+
+import locale
+import qrcode
 
 import six
+from six import StringIO
 from six.moves import urllib
 
 if six.PY3:
     unicode = str
 
 register = Registry()
+
+
+@register(override=True)
+class otptoken_add(MethodOverride):
+    def _get_qrcode(self, output, uri, version):
+        # Print QR code to terminal if specified
+        qr_output = StringIO()
+        qr = qrcode.QRCode()
+        qr.add_data(uri)
+        qr.make()
+        qr.print_ascii(out=qr_output, tty=False)
+
+        encoding = getattr(sys.stdout, 'encoding', None)
+        if encoding is None:
+            encoding = locale.getpreferredencoding(False)
+
+        try:
+            qr_code = qr_output.getvalue().decode(encoding)
+        except UnicodeError:
+            add_message(
+                version,
+                output,
+                message=ResultFormattingError(
+                    message=_("Unable to display QR code using the configured "
+                              "output encoding. Please use the token URI to "
+                              "configure you OTP device")
+                )
+            )
+            return None
+
+        if sys.stdout.isatty():
+            output_width = self.api.Backend.textui.get_tty_width()
+            qr_code_width = len(qr_code.splitlines()[0])
+            if qr_code_width > output_width:
+                add_message(
+                    version,
+                    output,
+                    message=ResultFormattingError(
+                        message=_(
+                            "QR code width is greater than that of the output "
+                            "tty. Please resize your terminal.")
+                    )
+                )
+
+        return qr
+
+    def output_for_cli(self, textui, output, *args, **options):
+        # copy-pasted from ipalib/Frontend.__do_call()
+        # because option handling is broken on client-side
+        if 'version' in options:
+            pass
+        elif self.api.env.skip_version_check:
+            options['version'] = u'2.0'
+        else:
+            options['version'] = API_VERSION
+
+        uri = output['result'].get('uri', None)
+
+        if uri is not None and not options.get('no_qrcode', False):
+            qr = self._get_qrcode(output, uri, options['version'])
+        else:
+            qr = None
+
+        rv = super(otptoken_add, self).output_for_cli(
+                textui, output, *args, **options)
+
+        if qr is not None:
+            print("\n")
+            qr.print_ascii(tty=sys.stdout.isatty())
+            print("\n")
+
+        return rv
 
 
 class HTTPSHandler(urllib.request.HTTPSHandler):

@@ -22,11 +22,13 @@ import os
 
 import six
 
+from ipaclient.frontend import MethodOverride
 from ipalib import api, errors
 from ipalib import Flag, Str
 from ipalib.frontend import Command
 from ipalib.plugable import Registry
 from ipalib import _
+from ipapython.dn import DN
 
 if six.PY3:
     unicode = str
@@ -35,6 +37,57 @@ register = Registry()
 
 DEFAULT_MAPS = (u'auto.direct', )
 DEFAULT_KEYS = (u'/-', )
+
+
+@register(override=True)
+class automountlocation_tofiles(MethodOverride):
+    def output_for_cli(self, textui, result, *keys, **options):
+        maps = result['result']['maps']
+        keys = result['result']['keys']
+        orphanmaps = result['result']['orphanmaps']
+        orphankeys = result['result']['orphankeys']
+
+        textui.print_plain('/etc/auto.master:')
+        for m in maps:
+            if m['automountinformation'][0].startswith('-'):
+                textui.print_plain(
+                    '%s\t%s' % (
+                        m['automountkey'][0], m['automountinformation'][0]
+                    )
+                )
+            else:
+                textui.print_plain(
+                    '%s\t/etc/%s' % (
+                        m['automountkey'][0], m['automountinformation'][0]
+                    )
+                )
+        for m in maps:
+            if m['automountinformation'][0].startswith('-'):
+                continue
+            info = m['automountinformation'][0]
+            textui.print_plain('---------------------------')
+            textui.print_plain('/etc/%s:' % info)
+            for k in keys[info]:
+                textui.print_plain(
+                    '%s\t%s' % (
+                        k['automountkey'][0], k['automountinformation'][0]
+                    )
+                )
+
+        textui.print_plain('')
+        textui.print_plain(_('maps not connected to /etc/auto.master:'))
+        for m in orphanmaps:
+            textui.print_plain('---------------------------')
+            textui.print_plain('/etc/%s:' % m['automountmapname'])
+            for k in orphankeys:
+                if len(k) == 0: continue
+                dn = DN(k[0]['dn'])
+                if dn['automountmapname'] == m['automountmapname'][0]:
+                    textui.print_plain(
+                        '%s\t%s' % (
+                            k[0]['automountkey'][0], k[0]['automountinformation'][0]
+                        )
+                    )
 
 
 @register()

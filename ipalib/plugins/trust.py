@@ -748,30 +748,6 @@ sides.
 
         return result
 
-    def interactive_prompt_callback(self, kw):
-        """
-        Also ensure that realm_admin is prompted for if --admin or
-        --trust-secret is not specified when 'ipa trust-add' is run on the
-        system.
-
-        Also ensure that realm_passwd is prompted for if --password or
-        --trust-secret is not specified when 'ipa trust-add' is run on the
-        system.
-        """
-
-        trust_secret = kw.get('trust_secret')
-        realm_admin = kw.get('realm_admin')
-        realm_passwd = kw.get('realm_passwd')
-
-        if trust_secret is None:
-            if realm_admin is None:
-                kw['realm_admin'] = self.prompt_param(
-                           self.params['realm_admin'])
-
-            if realm_passwd is None:
-                kw['realm_passwd'] = self.Backend.textui.prompt_password(
-                           self.params['realm_passwd'].label, confirm=False)
-
     def validate_options(self, *keys, **options):
         trusted_realm_domain = keys[-1]
 

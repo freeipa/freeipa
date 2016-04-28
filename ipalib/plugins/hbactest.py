@@ -492,28 +492,3 @@ class hbactest(Command):
 
         result['value'] = access_granted
         return result
-
-    def output_for_cli(self, textui, output, *args, **options):
-        """
-        Command.output_for_cli() uses --all option to decide whether to print detailed output.
-        We use --detail to allow that, thus we need to redefine output_for_cli().
-        """
-        # Note that we don't actually use --detail below to see if details need
-        # to be printed as our execute() method will return None for corresponding
-        # entries and None entries will be skipped.
-        for o in self.output:
-            outp = self.output[o]
-            if 'no_display' in outp.flags:
-                continue
-            result = output[o]
-            if isinstance(result, (list, tuple)):
-                textui.print_attribute(unicode(outp.doc), result, '%s: %s', 1, True)
-            elif isinstance(result, (unicode, bool)):
-                if o == 'summary':
-                    textui.print_summary(result)
-                else:
-                    textui.print_indented(result)
-
-        # Propagate integer value for result. It will give proper command line result for scripts
-        return int(not output['value'])
-

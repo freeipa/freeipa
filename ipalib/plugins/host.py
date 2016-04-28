@@ -1085,25 +1085,6 @@ class host_show(LDAPRetrieve):
 
         return dn
 
-    def forward(self, *keys, **options):
-        if 'out' in options:
-            util.check_writable_file(options['out'])
-            result = super(host_show, self).forward(*keys, **options)
-            if 'usercertificate' in result['result']:
-                x509.write_certificate_list(
-                    result['result']['usercertificate'],
-                    options['out']
-                )
-                result['summary'] = (
-                    _('Certificate(s) stored in file \'%(file)s\'')
-                    % dict(file=options['out'])
-                )
-                return result
-            else:
-                raise errors.NoCertificateError(entry=keys[-1])
-        else:
-            return super(host_show, self).forward(*keys, **options)
-
 
 @register()
 class host_disable(LDAPQuery):

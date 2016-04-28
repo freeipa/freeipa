@@ -28,7 +28,6 @@ from ipalib import api
 from ipalib import errors
 from ipalib import pkcs10
 from ipalib import x509
-from ipalib import util
 from ipalib import ngettext
 from ipalib.plugable import Registry
 from .virtual import VirtualCommand
@@ -632,18 +631,6 @@ class cert_show(VirtualCommand):
                 raise acierr
 
         return dict(result=result)
-
-    def forward(self, *keys, **options):
-        if 'out' in options:
-            util.check_writable_file(options['out'])
-            result = super(cert_show, self).forward(*keys, **options)
-            if 'certificate' in result['result']:
-                x509.write_certificate(result['result']['certificate'], options['out'])
-                return result
-            else:
-                raise errors.NoCertificateError(entry=keys[-1])
-        else:
-            return super(cert_show, self).forward(*keys, **options)
 
 
 

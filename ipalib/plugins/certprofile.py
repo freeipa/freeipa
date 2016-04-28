@@ -5,7 +5,6 @@
 import re
 
 from ipalib import api, Bool, File, Str
-from ipalib import util
 from ipalib.plugable import Registry
 from .baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate,
@@ -215,21 +214,6 @@ class certprofile_show(LDAPRetrieve):
         if 'out' in options:
             with self.api.Backend.ra_certprofile as profile_api:
                 result['result']['config'] = profile_api.read_profile(keys[0])
-
-        return result
-
-    def forward(self, *keys, **options):
-        if 'out' in options:
-            util.check_writable_file(options['out'])
-
-        result = super(certprofile_show, self).forward(*keys, **options)
-        if 'out' in options and 'config' in result['result']:
-            with open(options['out'], 'wb') as f:
-                f.write(result['result'].pop('config'))
-            result['summary'] = (
-                _("Profile configuration stored in file '%(file)s'")
-                % dict(file=options['out'])
-            )
 
         return result
 

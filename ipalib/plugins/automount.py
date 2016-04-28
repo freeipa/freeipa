@@ -338,54 +338,6 @@ class automountlocation_tofiles(LDAPQuery):
         return dict(result=dict(maps=maps, keys=keys,
                     orphanmaps=orphanmaps, orphankeys=orphankeys))
 
-    def output_for_cli(self, textui, result, *keys, **options):
-        maps = result['result']['maps']
-        keys = result['result']['keys']
-        orphanmaps = result['result']['orphanmaps']
-        orphankeys = result['result']['orphankeys']
-
-        textui.print_plain('/etc/auto.master:')
-        for m in maps:
-            if m['automountinformation'][0].startswith('-'):
-                textui.print_plain(
-                    '%s\t%s' % (
-                        m['automountkey'][0], m['automountinformation'][0]
-                    )
-                )
-            else:
-                textui.print_plain(
-                    '%s\t/etc/%s' % (
-                        m['automountkey'][0], m['automountinformation'][0]
-                    )
-                )
-        for m in maps:
-            if m['automountinformation'][0].startswith('-'):
-                continue
-            info = m['automountinformation'][0]
-            textui.print_plain('---------------------------')
-            textui.print_plain('/etc/%s:' % info)
-            for k in keys[info]:
-                textui.print_plain(
-                    '%s\t%s' % (
-                        k['automountkey'][0], k['automountinformation'][0]
-                    )
-                )
-
-        textui.print_plain('')
-        textui.print_plain(_('maps not connected to /etc/auto.master:'))
-        for m in orphanmaps:
-            textui.print_plain('---------------------------')
-            textui.print_plain('/etc/%s:' % m['automountmapname'])
-            for k in orphankeys:
-                if len(k) == 0: continue
-                dn = DN(k[0]['dn'])
-                if dn['automountmapname'] == m['automountmapname'][0]:
-                    textui.print_plain(
-                        '%s\t%s' % (
-                            k[0]['automountkey'][0], k[0]['automountinformation'][0]
-                        )
-                    )
-
 
 @register()
 class automountmap(LDAPObject):

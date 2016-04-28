@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
-
 from ipalib.frontend import Command, Object
 from ipalib import api, errors
 from ipalib import Bytes, Flag, Str, StrEnum
@@ -974,22 +972,6 @@ class vaultconfig_show(Retrieve):
             doc=_('Output file to store the transport certificate'),
         ),
     )
-
-    def forward(self, *args, **options):
-
-        file = options.get('transport_out')
-
-        # don't send these parameters to server
-        if 'transport_out' in options:
-            del options['transport_out']
-
-        response = super(vaultconfig_show, self).forward(*args, **options)
-
-        if file:
-            with open(file, 'w') as f:
-                f.write(response['result']['transport_cert'])
-
-        return response
 
     def execute(self, *args, **options):
 

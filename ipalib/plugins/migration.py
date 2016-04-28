@@ -652,16 +652,6 @@ search results for objects to be migrated
 have been truncated by the server;
 migration process might be incomplete\n''')
 
-    migration_disabled_msg = _('''\
-Migration mode is disabled. Use \'ipa config-mod\' to enable it.''')
-
-    pwd_migration_msg = _('''\
-Passwords have been migrated in pre-hashed format.
-IPA is unable to generate Kerberos keys unless provided
-with clear text passwords. All migrated users need to
-login at https://your.domain/ipa/migration/ before they
-can use their Kerberos accounts.''')
-
     def get_options(self):
         """
         Call get_options of the baseclass and add "exclude" options
@@ -927,31 +917,3 @@ can use their Kerberos accounts.''')
         )
 
         return dict(result=migrated, failed=failed, enabled=True, compat=True)
-
-    def output_for_cli(self, textui, result, ldapuri, bindpw, **options):
-        textui.print_name(self.name)
-        if not result['enabled']:
-            textui.print_plain(self.migration_disabled_msg)
-            return 1
-        if not result['compat']:
-            textui.print_plain("The compat plug-in is enabled. This can increase the memory requirements during migration. Disable the compat plug-in with \'ipa-compat-manage disable\' or re-run this script with \'--with-compat\' option.")
-            return 1
-        any_migrated = any(result['result'].values())
-        textui.print_plain('Migrated:')
-        textui.print_entry1(
-            result['result'], attr_order=self.migrate_order,
-            one_value_per_line=False
-        )
-        for ldap_obj_name in self.migrate_order:
-            textui.print_plain('Failed %s:' % ldap_obj_name)
-            textui.print_entry1(
-                result['failed'][ldap_obj_name], attr_order=self.migrate_order,
-                one_value_per_line=True,
-            )
-        textui.print_plain('-' * len(self.name))
-        if not any_migrated:
-            textui.print_plain('No users/groups were migrated from %s' %
-                               ldapuri)
-            return 1
-        textui.print_plain(unicode(self.pwd_migration_msg))
-
