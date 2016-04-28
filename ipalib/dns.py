@@ -26,10 +26,28 @@ from ipalib import errors
 
 # dnsrecord param name formats
 record_name_format = '%srecord'
+part_name_format = "%s_part_%s"
+extra_name_format = "%s_extra_%s"
 
 
 def get_record_rrtype(name):
     match = re.match('([^_]+)record$', name)
+    if match is None:
+        return None
+
+    return match.group(1).upper()
+
+
+def get_part_rrtype(name):
+    match = re.match('([^_]+)_part_.*$', name)
+    if match is None:
+        return None
+
+    return match.group(1).upper()
+
+
+def get_extra_rrtype(name):
+    match = re.match('([^_]+)_extra_.*$', name)
     if match is None:
         return None
 
@@ -43,9 +61,8 @@ def has_cli_options(cmd, options, no_option_msg, allow_empty_attrs=False):
 
     has_options = False
     for attr in options.keys():
-        obj_params = [
-            p.name for p in cmd.params()
-            if get_record_rrtype(p.name) or 'dnsrecord_part' in p.flags]
+        obj_params = [n for n in cmd.params
+                      if get_record_rrtype(n) or get_part_rrtype(n)]
         if attr in obj_params:
             if options[attr] or allow_empty_attrs:
                 has_options = True
@@ -65,13 +82,14 @@ def get_rrparam_from_part(cmd, part_name):
     try:
         param = cmd.params[part_name]
 
-        if not any(flag in param.flags for flag in
-                   ('dnsrecord_part', 'dnsrecord_extra')):
+        rrtype = (get_part_rrtype(param.name) or
+                  get_extra_rrtype(param.name))
+        if not rrtype:
             return None
 
         # All DNS record part or extra parameters contain a name of its
         # parent RR parameter in its hint attribute
-        rrparam = cmd.params[param.hint]
+        rrparam = cmd.params[record_name_format % rrtype.lower()]
     except (KeyError, AttributeError):
         return None
 
@@ -94,7 +112,7 @@ def iterate_rrparams_by_parts(cmd, kw, skip_extra=False):
         if rrparam is None:
             continue
 
-        if skip_extra and 'dnsrecord_extra' in cmd.params[opt].flags:
+        if skip_extra and get_extra_rrtype(opt):
             continue
 
         if rrparam.name not in processed:

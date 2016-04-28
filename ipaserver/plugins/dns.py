@@ -32,10 +32,14 @@ import dns.rdatatype
 import dns.resolver
 import six
 
-from ipalib.dns import (get_record_rrtype,
+from ipalib.dns import (extra_name_format,
+                        get_extra_rrtype,
+                        get_part_rrtype,
+                        get_record_rrtype,
                         get_rrparam_from_part,
                         has_cli_options,
                         iterate_rrparams_by_parts,
+                        part_name_format,
                         record_name_format)
 from ipalib.request import context
 from ipalib import api, errors, output
@@ -657,8 +661,6 @@ class DNSRecord(Str):
     doc_format = _('Raw %s records')
     option_group_format = _('%s Record')
     see_rfc_msg = _("(see RFC %s for details)")
-    part_name_format = "%s_part_%s"
-    extra_name_format = "%s_extra_%s"
     cli_name_format = "%s_%s"
     format_error_msg = None
 
@@ -708,8 +710,8 @@ class DNSRecord(Str):
         return u" ".join(parts)
 
     def get_parts_from_kw(self, kw, raise_on_none=True):
-        part_names = tuple(self.part_name_format % (self.rrtype.lower(), part.name) \
-                               for part in self.parts)
+        part_names = tuple(part_name_format % (self.rrtype.lower(), part.name)
+                           for part in self.parts)
         vals = tuple(kw.get(part_name) for part_name in part_names)
 
         if all(val is None for val in vals):
@@ -813,11 +815,11 @@ class DNSRecord(Str):
         can be added to global DNS API. For example a prefix need to be added
         before part name so that the name is unique in the global namespace.
         """
-        name = self.part_name_format % (self.rrtype.lower(), part.name)
+        name = part_name_format % (self.rrtype.lower(), part.name)
         cli_name = self.cli_name_format % (self.rrtype.lower(), part.name)
         label = self.part_label_format % (self.rrtype, unicode(part.label))
         option_group = self.option_group_format % self.rrtype
-        flags = list(part.flags) + ['dnsrecord_part', 'virtual_attribute',]
+        flags = list(part.flags) + ['virtual_attribute']
         if not part.required:
             flags.append('dnsrecord_optional')
         if not self.supported:
@@ -828,27 +830,25 @@ class DNSRecord(Str):
                      label=label,
                      required=False,
                      option_group=option_group,
-                     flags=flags,
-                     hint=self.name,)   # name of parent RR param
+                     flags=flags)
 
     def _convert_dnsrecord_extra(self, extra):
         """
         Parameters for special per-type behavior need to be processed in the
         same way as record parts in _convert_dnsrecord_part().
         """
-        name = self.extra_name_format % (self.rrtype.lower(), extra.name)
+        name = extra_name_format % (self.rrtype.lower(), extra.name)
         cli_name = self.cli_name_format % (self.rrtype.lower(), extra.name)
         label = self.part_label_format % (self.rrtype, unicode(extra.label))
         option_group = self.option_group_format % self.rrtype
-        flags = list(extra.flags) + ['dnsrecord_extra', 'virtual_attribute',]
+        flags = list(extra.flags) + ['virtual_attribute']
 
         return extra.clone_rename(name,
                      cli_name=cli_name,
                      label=label,
                      required=False,
                      option_group=option_group,
-                     flags=flags,
-                     hint=self.name,)   # name of parent RR param
+                     flags=flags)
 
     def get_parts(self):
         if self.parts is None:
@@ -3509,7 +3509,7 @@ class dnsrecord_add(LDAPCreate):
             if rrparam is None:
                 continue
 
-            if 'dnsrecord_part' in param.flags:
+            if get_part_rrtype(param.name):
                 if rrparam.name in processed_attrs:
                     # this record was already entered
                     continue
@@ -3525,7 +3525,7 @@ class dnsrecord_add(LDAPCreate):
                 processed_attrs.append(rrparam.name)
                 continue
 
-            if 'dnsrecord_extra' in param.flags:
+            if get_extra_rrtype(param.name):
                 # do not run precallback for unset flags
                 if isinstance(param, Flag) and not options[option]:
                     continue
@@ -3779,8 +3779,7 @@ class dnsrecord_del(LDAPUpdate):
 
     def get_options(self):
         for option in super(dnsrecord_del, self).get_options():
-            if any(flag in option.flags for flag in \
-                    ('dnsrecord_part', 'dnsrecord_extra',)):
+            if get_part_rrtype(option.name) or get_extra_rrtype(option.name):
                 continue
             elif option.name in ('rename', ):
                 # options only valid for dnsrecord-mod
@@ -3910,8 +3909,7 @@ class dnsrecord_find(LDAPSearch):
 
     def get_options(self):
         for option in super(dnsrecord_find, self).get_options():
-            if any(flag in option.flags for flag in \
-                    ('dnsrecord_part', 'dnsrecord_extra',)):
+            if get_part_rrtype(option.name) or get_extra_rrtype(option.name):
                 continue
             elif isinstance(option, DNSRecord):
                 yield option.clone(option_group=None)

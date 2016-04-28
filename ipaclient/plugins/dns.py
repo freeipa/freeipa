@@ -25,7 +25,8 @@ import copy
 
 from ipaclient.frontend import MethodOverride, CommandOverride
 from ipalib import errors
-from ipalib.dns import (get_record_rrtype,
+from ipalib.dns import (get_part_rrtype,
+                        get_record_rrtype,
                         has_cli_options,
                         iterate_rrparams_by_parts,
                         record_name_format)
@@ -63,7 +64,7 @@ def prompt_parts(rrtype, cmd, mod_dnsvalue=None):
             name, mod_dnsvalue)['result']
 
     user_options = {}
-    parts = [p for p in cmd.params() if 'dnsrecord_part' in p.flags]
+    parts = [p for p in cmd.params() if get_part_rrtype(p.name) == rrtype]
     if not parts:
         return user_options
 
@@ -80,7 +81,7 @@ def prompt_parts(rrtype, cmd, mod_dnsvalue=None):
 
 def prompt_missing_parts(rrtype, cmd, kw, prompt_optional=False):
     user_options = {}
-    parts = [p for p in cmd.params() if 'dnsrecord_part' in p.flags]
+    parts = [p for p in cmd.params() if get_part_rrtype(p.name) == rrtype]
     if not parts:
         return user_options
 
