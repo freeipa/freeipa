@@ -112,7 +112,7 @@ class CertManipCmdTestBase(XMLRPC_test):
         cls.invalid_b64 = [u'few4w24gvrae54y6463234f']
 
         # malformed certificate
-        cls.malformed_cert = [base64.b64encode('malformed cert')]
+        cls.malformed_cert = [base64.b64encode(b'malformed cert')]
 
         # store entity info for the final test
         cls.entity_attrs = api.Command['%s_show' % cls.entity_class](
