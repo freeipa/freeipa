@@ -4,13 +4,13 @@
 
 import base64
 
-from ipalib import api, errors
-
-from ipatests.util import assert_deepequal, raises
-from xmlrpc_test import XMLRPC_test
-from ipapython.dn import DN
-from testcert import get_testcert
 import pytest
+
+from ipalib import api, errors
+from ipapython.dn import DN
+from ipatests.util import assert_deepequal, raises
+from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
+from ipatests.test_xmlrpc.testcert import get_testcert
 
 
 @pytest.mark.tier1

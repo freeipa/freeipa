@@ -33,7 +33,7 @@ from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import (
     assert_deepequal, assert_equal, assert_not_equal, raises)
-from xmlrpc_test import (
+from ipatests.test_xmlrpc.xmlrpc_test import (
     XMLRPC_test, fuzzy_digits, fuzzy_uuid, fuzzy_password,
     fuzzy_string, fuzzy_dergeneralizedtime, add_sid, add_oc, raises_exact)
 from ipapython.dn import DN
