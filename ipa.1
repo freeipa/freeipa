@@ -1,5 +1,5 @@
 .\" A man page for ipa
-.\" Copyright (C) 2010 Red Hat, Inc.
+.\" Copyright (C) 2010-2016 Red Hat, Inc.
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 .\"
 .\" Author: Pavel Zuna <pzuna@redhat.com>
 .\"
-.TH "ipa" "1" "Jan 24 2012" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa" "1" "Apr 29 2016" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa \- IPA command\-line interface
 .SH "SYNOPSIS"
@@ -174,9 +174,6 @@ Same as the previous example, except this time the users first name has to be ex
 \fBipa user\-find foo \-\-first bar \-\-last foo\fR
 A user with uid "foobar", first name "bar" and last name "foo" would match the search criteria.
 .TP
-\fBipa user\-find \-\-uuid 936407bd\-da9b\-11de\-9abd\-54520012e7cd\fR
-Only the user with the specified IPA unique ID would match the search criteria.
-.TP
 \fBipa user\-find\fR
 All users would match the search criteria (as there are none).
 .SH "SERVERS"
@@ -203,6 +200,5 @@ IPA default configuration file.
 ipa\-client\-install(1), ipa\-compat\-manage(1), ipactl(1), ipa\-dns\-install(1),
 ipa\-getcert(1), ipa\-getkeytab(1), ipa\-join(1), ipa\-ldap\-updater(1),
 ipa\-nis\-manage(1), ipa\-replica\-install(1), ipa\-replica\-manage(1), ipa\-replica\-prepare(1),
-ipa\-rmkeytab(1), ipa\-server\-certinstall(2), ipa\-server\-install(1), ipa\-upgradeconfig(1),
-ipa\-host\-net\-manage(1)
+ipa\-rmkeytab(1), ipa\-server\-certinstall(2), ipa\-server\-install(1), ipa\-server\-upgrade(1)
 
