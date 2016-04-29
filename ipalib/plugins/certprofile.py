@@ -226,7 +226,7 @@ class certprofile_show(LDAPRetrieve):
 
         result = super(certprofile_show, self).forward(*keys, **options)
         if 'out' in options and 'config' in result['result']:
-            with open(options['out'], 'w') as f:
+            with open(options['out'], 'wb') as f:
                 f.write(result['result'].pop('config'))
             result['summary'] = (
                 _("Profile configuration stored in file '%(file)s'")
