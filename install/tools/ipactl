@@ -38,6 +38,13 @@ from ipapython.dn import DN
 from ipaplatform import services
 from ipaplatform.paths import paths
 
+
+MSG_HINT_IGNORE_SERVICE_FAILURE = (
+    "Hint: You can use --ignore-service-failure option for forced start in "
+    "case that a non-critical service failed"
+)
+
+
 class IpactlError(ScriptError):
     pass
 
@@ -314,6 +321,7 @@ def ipa_start(options):
             stop_services(svc_list)
             stop_dirsrv(dirsrv)
 
+            emit_err(MSG_HINT_IGNORE_SERVICE_FAILURE)
             raise IpactlError("Aborting ipactl")
 
 def ipa_stop(options):
@@ -456,6 +464,7 @@ def ipa_restart(options):
                 stop_services(svc_list)
                 stop_dirsrv(dirsrv)
 
+                emit_err(MSG_HINT_IGNORE_SERVICE_FAILURE)
                 raise IpactlError("Aborting ipactl")
 
     if len(new_svc_list) != 0:
@@ -478,6 +487,7 @@ def ipa_restart(options):
                 stop_services(svc_list)
                 stop_dirsrv(dirsrv)
 
+                emit_err(MSG_HINT_IGNORE_SERVICE_FAILURE)
                 raise IpactlError("Aborting ipactl")
 
 def ipa_status(options):
