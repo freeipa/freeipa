@@ -19,7 +19,6 @@
 */
 
 define(['dojo/_base/declare',
-        'dojo/_base/lang',
         'dojo/dom-construct',
         'dojo/dom-style',
         'dojo/query',
@@ -32,7 +31,7 @@ define(['dojo/_base/declare',
         '../util',
         './LoginScreenBase'
        ],
-       function(declare, lang,  construct, dom_style, query, on,
+       function(declare, construct, dom_style, query, on,
                 IPA, auth, reg, FieldBinder, text, util, LoginScreenBase) {
 
 
@@ -91,7 +90,7 @@ define(['dojo/_base/declare',
                 name: 'sync',
                 label: text.get('@i18n:login.sync_otp_token', "Sync OTP Token"),
                 button_class: 'btn btn-link',
-                click: lang.hitch(this, this.on_sync)
+                click: this.on_sync.bind(this)
             })[0];
             construct.place(this.sync_btn_node, container);
             construct.place(document.createTextNode(" "), container);
@@ -100,7 +99,7 @@ define(['dojo/_base/declare',
                 name: 'login',
                 label: text.get('@i18n:login.login', "Login"),
                 'class': 'btn-primary btn-lg',
-                click: lang.hitch(this, this.on_confirm)
+                click: this.on_confirm.bind(this)
             })[0];
             construct.place(this.login_btn_node, container);
             construct.place(document.createTextNode(" "), container);
@@ -109,7 +108,7 @@ define(['dojo/_base/declare',
                 name: 'cancel',
                 label: text.get('@i18n:buttons.cancel', "Cancel"),
                 'class': 'btn-default',
-                click: lang.hitch(this, this.on_cancel)
+                click: this.on_cancel.bind(this)
             })[0];
             construct.place(this.cancel_btn_node, container);
             construct.place(document.createTextNode(" "), container);
@@ -118,7 +117,7 @@ define(['dojo/_base/declare',
                 name: 'reset',
                 label: text.get('@i18n:buttons.reset_password', "Reset Password"),
                 'class': 'btn-primary btn-lg',
-                click: lang.hitch(this, this.on_confirm)
+                click: this.on_confirm.bind(this)
             })[0];
             construct.place(this.reset_btn_node, container);
             construct.place(document.createTextNode(" "), container);
@@ -127,7 +126,7 @@ define(['dojo/_base/declare',
                 name: 'reset_and_login',
                 label: text.get('@i18n:buttons.reset_password_and_login', "Reset Password and Login"),
                 'class': 'btn-primary btn-lg',
-                click: lang.hitch(this, this.on_confirm)
+                click: this.on_confirm.bind(this)
             })[0];
             construct.place(this.reset_and_login_btn_node, container);
         },
@@ -148,9 +147,9 @@ define(['dojo/_base/declare',
             var p_f = this.get_field('password');
             var otp_f = this.get_field('otp');
 
-            u_f.on('value-change', lang.hitch(this, this.on_form_change));
-            p_f.on('value-change', lang.hitch(this, this.on_form_change));
-            otp_f.on('value-change', lang.hitch(this, this.on_otp_change));
+            u_f.on('value-change', this.on_form_change.bind(this));
+            p_f.on('value-change', this.on_form_change.bind(this));
+            otp_f.on('value-change', this.on_otp_change.bind(this));
             this.on_form_change();
         },
 
@@ -208,14 +207,14 @@ define(['dojo/_base/declare',
 
         login_with_kerberos: function() {
 
-            IPA.get_credentials().then(lang.hitch(this, function(status) {
+            IPA.get_credentials().then(function(status) {
                 if (status === 200) {
                     this.emit('logged_in');
                 } else {
                     var val_summary = this.get_widget('validation');
                     val_summary.add_error('login', this.krb_auth_failed);
                 }
-            }));
+            }.bind(this));
         },
 
         login_with_password: function() {
@@ -228,7 +227,7 @@ define(['dojo/_base/declare',
             var password = password_f.get_value()[0];
 
             IPA.login_password(login, password).then(
-                lang.hitch(this, function(result) {
+                function(result) {
 
                 if (result === 'success') {
                     this.emit('logged_in');
@@ -249,7 +248,7 @@ define(['dojo/_base/declare',
                     password_f.set_value('');
                     val_summary.add_error('login', this.form_auth_failed);
                 }
-            }));
+            }.bind(this));
         },
 
         login_and_reset: function() {

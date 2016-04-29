@@ -19,7 +19,6 @@
 */
 
 define(['dojo/_base/declare',
-        'dojo/_base/lang',
         'dojo/Deferred',
         'dojo/dom-construct',
         'dojo/dom-style',
@@ -33,7 +32,7 @@ define(['dojo/_base/declare',
         '../util',
         './LoginScreenBase'
        ],
-       function(declare, lang, Deferred, construct, dom_style, query, on,
+       function(declare, Deferred, construct, dom_style, query, on,
                 IPA, auth, reg, FieldBinder, text, util, LoginScreenBase) {
 
 
@@ -63,7 +62,7 @@ define(['dojo/_base/declare',
                 name: 'cancel',
                 label: 'Cancel',
                 'class': 'btn-default btn-lg',
-                click: lang.hitch(this, this.on_cancel)
+                click: this.on_cancel.bind(this)
             })[0];
             if (this.allow_cancel) {
                 construct.place(this.cancel_btn_node, container);
@@ -71,7 +70,7 @@ define(['dojo/_base/declare',
             this.sync_btn_node = IPA.button({
                 label: text.get('@i18n:password.sync_otp_token', "Sync OTP Token"),
                 'class': 'btn-primary btn-lg',
-                click: lang.hitch(this, this.on_confirm)
+                click: this.on_confirm.bind(this)
             })[0];
             construct.place(this.sync_btn_node, container);
         },
@@ -118,7 +117,7 @@ define(['dojo/_base/declare',
             var token = this.get_field('token').get_value()[0];
 
             var p = this.sync_core(user, password, otp1, otp2, token);
-            p.then(lang.hitch(this, function(result) {
+            p.then( function(result) {
                 var msg = this.sync_fail;
                 var evt = 'sync-fail';
                 var type = 'error';
@@ -134,7 +133,7 @@ define(['dojo/_base/declare',
                     val_summary.add_error('sync', msg);
                 }
                 this.emit(evt, { source: this, message: msg, status: result });
-            }));
+            }.bind(this));
         },
 
         sync_core: function(user, password, otp1, otp2, token) {

@@ -19,7 +19,6 @@
 */
 
 define(['dojo/_base/declare',
-        'dojo/_base/lang',
         'dojo/dom-construct',
         'dojo/dom-style',
         'dojo/query',
@@ -35,7 +34,7 @@ define(['dojo/_base/declare',
         '../util',
         './ContainerMixin'
        ],
-       function(declare, lang,  construct, dom_style, query, on,
+       function(declare, construct, dom_style, query, on,
                 Evented, Stateful, IPA, auth, reg, FieldBinder, FormMixin, text,
                 util, ContainerMixin) {
 
@@ -239,8 +238,8 @@ define(['dojo/_base/declare',
             // input field, but we need to listen to keydown events which are
             // not exposed
             var nodes = query("input[type=text],input[type=password]", this.dom_node);
-            nodes.on('keypress', lang.hitch(this, this.check_caps_lock));
-            nodes.on('keydown', lang.hitch(this, this.check_caps_lock_press));
+            nodes.on('keypress', this.check_caps_lock.bind(this));
+            nodes.on('keydown', this.check_caps_lock_press.bind(this));
         },
 
         /**

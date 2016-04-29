@@ -18,10 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 define(['dojo/_base/declare',
-        'dojo/_base/lang',
         'dojo/on',
         '../jquery',
-        './DropdownWidget'], function(declare, lang, on, $,  DropdownWidget) {
+        './DropdownWidget'], function(declare, on, $,  DropdownWidget) {
 
     return declare([DropdownWidget], {
         /**
@@ -95,8 +94,8 @@ define(['dojo/_base/declare',
          */
         add_action: function(action, batch) {
             this.actions.put(action.name, action);
-            action.enabled_changed.attach(lang.hitch(this, this.action_enabled_changed));
-            action.visible_changed.attach(lang.hitch(this, this.action_visible_changed));
+            action.enabled_changed.attach(this.action_enabled_changed.bind(this));
+            action.visible_changed.attach(this.action_visible_changed.bind(this));
 
             if (!batch) {
                 this.recreate_options();
@@ -146,8 +145,8 @@ define(['dojo/_base/declare',
 
             if (action.enabled) {
                 action.execute(this.facet,
-                               lang.hitch(this, this.on_action_success),
-                               lang.hitch(this, this.on_action_error));
+                               this.on_action_success.bind(this),
+                               this.on_action_error.bind(this));
             }
         },
 

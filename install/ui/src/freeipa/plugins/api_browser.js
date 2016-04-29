@@ -3,7 +3,6 @@
 //
 
 define(['dojo/_base/declare',
-        'dojo/_base/lang',
         'dojo/on',
         '../facets/Facet',
         '../phases',
@@ -13,7 +12,7 @@ define(['dojo/_base/declare',
         '../builder'
        ],
 
-    function(declare, lang, on, Facet, phases, reg, widget,
+    function(declare, on, Facet, phases, reg, widget,
         APIBrowserWidget, builder) {
 
 
@@ -54,7 +53,7 @@ plugins.api_browser.APIBrowserFacet = declare([Facet], {
         this.inherited(arguments);
         var browser = this.get_widget('apibrowser');
 
-        on(this, 'show', lang.hitch(this, function(args) {
+        on(this, 'show', function(args) {
 
             var state = this.get_state();
             var t = state.type;
@@ -74,16 +73,16 @@ plugins.api_browser.APIBrowserFacet = declare([Facet], {
             }
             browser.show_default();
             return;
-        }));
+        }.bind(this));
 
         // Reflect item change in facet state and therefore URL hash
-        browser.watch('current', lang.hitch(this, function(name, old, value) {
+        browser.watch('current', function(name, old, value) {
             var state = {};
             if (value.type && value.name) {
                 state = { type: value.type, name: value.name };
             }
             this.set_state(state);
-        }));
+        }.bind(this));
     }
 });
 

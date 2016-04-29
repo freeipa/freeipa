@@ -155,13 +155,13 @@ IPA.opened_dialogs = {
         this.app = app;
 
         this.handlers.push(topic.subscribe('dialog.open',
-            lang.hitch(this, this.on_dialog_open)));
+            this.on_dialog_open.bind(this)));
 
         this.handlers.push(topic.subscribe('dialog.opened',
-            lang.hitch(this, this.on_dialog_opened)));
+            this.on_dialog_opened.bind(this)));
 
         this.handlers.push(topic.subscribe('dialog.closed',
-            lang.hitch(this, this.on_dialog_closed)));
+            this.on_dialog_closed.bind(this)));
     }
 };
 
@@ -573,11 +573,11 @@ IPA.dialog = function(spec) {
         this.emit('open', { source: that });
         topic.publish('dialog.open', { source: that });
 
-        this.show(lang.hitch(this, function() {
+        this.show(function() {
             that.focus_first_element();
             that.emit('opened', { source: that });
             topic.publish('dialog.opened', { source: that });
-        }));
+        }.bind(this));
     };
 
     /**
@@ -673,12 +673,12 @@ IPA.dialog = function(spec) {
         if (!that.dom_node) return;
 
         var dom_node = that.dom_node;
-        this.hide(lang.hitch(this, function() {
+        this.hide(function() {
             dom_node.remove();
             that.dom_node = null;
             that.emit('closed', { source: that });
             topic.publish('dialog.closed', { source: that });
-        }));
+        }.bind(this));
     };
 
     /**

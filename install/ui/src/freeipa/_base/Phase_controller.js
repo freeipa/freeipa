@@ -19,14 +19,13 @@
 */
 
 define([
-    'dojo/_base/lang',
     'dojo/_base/array',
     'dojo/_base/declare',
     'dojo/Deferred',
     'dojo/promise/all',
     'dojo/topic',
     '../ordered-map'
-], function(lang, array, declare, Deferred, all, topic, ordered_map) {
+], function(array, declare, Deferred, all, topic, ordered_map) {
 
 
     /**
@@ -138,13 +137,13 @@ define([
                 promises.push(promise);
             });
 
-            all(promises).then(lang.hitch(this, function(results) {
+            all(promises).then(function(results) {
                 topic.publish('phase-finished',
                               { phase: phase.name, results: results });
                 if (next_phase) {
                     this.next_phase(next_phase);
                 }
-            }), function(results) {
+            }.bind(this), function(results) {
                 topic.publish('phase-error',
                               { phase: phase.name, results: results });
                 // don't go for next phase on error, let app decide what to do
@@ -248,9 +247,9 @@ define([
             this.phases = ordered_map();
 
             var phases = spec.phases || [];
-            array.forEach(phases, lang.hitch(this, function(phase) {
+            array.forEach(phases, function(phase) {
                 this.add_phase(phase);
-            }));
+            }.bind(this));
         }
     });
 

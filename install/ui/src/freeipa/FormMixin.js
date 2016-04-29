@@ -19,13 +19,12 @@
 */
 
 define(['dojo/_base/declare',
-        'dojo/_base/lang',
         'dojo/on',
         './builder',
         './field',
         './ordered-map'
        ],
-       function(declare, lang, on, builder, field_mod, ordered_map) {
+       function(declare, on, builder, field_mod, ordered_map) {
 
     /**
      * Form mixin
@@ -120,7 +119,7 @@ define(['dojo/_base/declare',
          */
         register_field_listeners: function(field) {
 
-            on(field, 'dirty-change', lang.hitch(this, this.on_field_dirty_change));
+            on(field, 'dirty-change', this.on_field_dirty_change.bind(this));
         },
 
         /**

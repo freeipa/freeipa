@@ -149,7 +149,7 @@ topology_graph.TopoGraph = declare([Evented], {
         l.size([this.width, this.height]);
         l.linkDistance(150);
         l.charge(-1000);
-        l.on('tick', lang.hitch(this, this._tick));
+        l.on('tick', this._tick.bind(this));
 
         var that = this;
 

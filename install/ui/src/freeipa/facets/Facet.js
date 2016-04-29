@@ -349,7 +349,7 @@ define(['dojo/_base/declare',
                 this.requires_auth = spec.requires_auth;
             }
             this.state = new mod_facet.FacetState();
-            on(this.state, 'set', lang.hitch(this, this.on_state_set));
+            on(this.state, 'set', this.on_state_set.bind(this));
         }
     });
 

@@ -359,18 +359,18 @@ widgets.APIBrowserWidget = declare([Stateful, Evented], {
 
     _init_widgets: function() {
         this.filter_w = new browser_widgets.FilterWidget();
-        this.filter_w.watch('filter', lang.hitch(this, function(name, old, value) {
+        this.filter_w.watch('filter', function(name, old, value) {
             this._apply_filter(value);
-        }));
+        }.bind(this));
 
         this.list_w = new ListViewWidget();
         this.object_detail_w = new browser_widgets.ObjectDetailWidget();
         this.command_detail_w = new browser_widgets.CommandDetailWidget();
         this.param_detail_w = new browser_widgets.ParamDetailWidget();
 
-        on(this.list_w, 'item-click', lang.hitch(this, function(args) {
+        on(this.list_w, 'item-click', function(args) {
             this._item_selected(args.context);
-        }));
+        }.bind(this));
     },
 
     constructor: function(spec) {

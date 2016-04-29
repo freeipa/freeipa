@@ -19,11 +19,10 @@
 */
 
 define(['dojo/_base/declare',
-        'dojo/_base/lang',
         'dojo/Evented',
         'dojo/router'
        ],
-       function(declare, lang, Evented, router) {
+       function(declare, Evented, router) {
 
     /**
      * Router
@@ -81,7 +80,7 @@ define(['dojo/_base/declare',
                 }
             } else {
                 var r = this.route_prefix + route;
-                this.route_handlers.push(router.register(r, lang.hitch(this, handler)));
+                this.route_handlers.push(router.register(r, handler.bind(this)));
             }
         },
 

@@ -55,13 +55,13 @@ define([
          */
         register_phases: function() {
 
-            phases.on('init', lang.hitch(this, function() {
+            phases.on('init', function() {
                 var app = this.app = new this.App_class();
                 app.init();
                 return app;
-            }));
+            }.bind(this));
 
-            phases.on('init', lang.hitch(this, function() {
+            phases.on('init', function() {
                 var deferred = new Deferred();
 
                 function reject(item) {
@@ -96,9 +96,9 @@ define([
                     deferred.resolve();
                 }
                 return deferred.promise;
-            }));
+            }.bind(this));
 
-            phases.on('metadata', lang.hitch(this, function() {
+            phases.on('metadata', function() {
                 var deferred = new Deferred();
 
                 this.app.get_configuration(function(success) {
@@ -108,30 +108,30 @@ define([
                 });
 
                 return deferred.promise;
-            }));
+            }.bind(this));
 
-            phases.on('profile', lang.hitch(this, function() {
+            phases.on('profile', function() {
                 this.app.choose_profile();
-            }));
+            }.bind(this));
 
-            phases.on('runtime', lang.hitch(this, function() {
+            phases.on('runtime', function() {
                 return this.app.start_runtime();
-            }));
+            }.bind(this));
 
-            phases.on('shutdown', lang.hitch(this, function() {
+            phases.on('shutdown', function() {
                 return this.app.start_logout();
-            }));
+            }.bind(this));
         },
 
         simple_mode_phases: function() {
 
-            phases.on('init', lang.hitch(this, function() {
+            phases.on('init', function() {
                 var app = this.app = new this.App_class();
                 app.init();
                 return app;
-            }));
+            }.bind(this));
 
-            phases.on('runtime', lang.hitch(this, function() {
+            phases.on('runtime', function() {
                 var d = new Deferred();
                 var facet = reg.facet.get(this.target_facet);
                 if (!facet) {
@@ -140,22 +140,22 @@ define([
                     this.app.show_facet(facet);
                 }
                 return d.promise;
-            }));
+            }.bind(this));
         },
 
         run: function() {
-            when(plugin_loader.load_plugins(), lang.hitch(this, function() {
+            when(plugin_loader.load_plugins(), function() {
                 this.register_phases();
                 phases.controller.run();
-            }));
+            }.bind(this));
         },
 
         run_simple: function(facet) {
             this.target_facet = facet;
-            when(plugin_loader.load_plugins(), lang.hitch(this, function() {
+            when(plugin_loader.load_plugins(), function() {
                 this.simple_mode_phases();
                 phases.controller.run();
-            }));
+            }.bind(this));
         }
     });
 

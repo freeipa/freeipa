@@ -20,7 +20,6 @@
 
 define(['dojo/_base/declare',
         'dojo/_base/array',
-        'dojo/_base/lang',
         'dojo/dom',
         'dojo/dom-construct',
         'dojo/dom-prop',
@@ -31,7 +30,7 @@ define(['dojo/_base/declare',
         'dojo/Evented',
         'dojo/on',
         '../jquery',
-        '../ipa'], function(declare, array, lang, dom, construct, prop, dom_class,
+        '../ipa'], function(declare, array, dom, construct, prop, dom_class,
                             dom_style, attr, query, Evented, on, $, IPA) {
 
     return declare([Evented], {
@@ -176,9 +175,9 @@ define(['dojo/_base/declare',
             if (container) {
                 construct.place(item_container, container);
                 // use jQuery resize to make use of window.resize throttling
-                $(window).bind('resize', lang.hitch(this, function() {
+                $(window).bind('resize', function() {
                     this._adjust_size(container, item_container, level);
-                }));
+                }.bind(this));
             }
             return item_container;
         },
@@ -284,10 +283,10 @@ define(['dojo/_base/declare',
             this.menu = menu;
             //get all items
             var q = menu.items.query();
-            q.observe(lang.hitch(this, this._items_changed), true);
-            on(this.menu, 'selected', lang.hitch(this, function(event) {
+            q.observe(this._items_changed.bind(this), true);
+            on(this.menu, 'selected', function(event) {
                 this.select(event.new_selection);
-            }));
+            }.bind(this));
         },
 
         /**

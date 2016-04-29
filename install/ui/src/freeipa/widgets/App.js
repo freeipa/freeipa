@@ -19,7 +19,6 @@
 */
 
 define(['dojo/_base/declare',
-        'dojo/_base/lang',
         'dojo/_base/array',
         'dojo/dom',
         'dojo/dom-construct',
@@ -35,7 +34,7 @@ define(['dojo/_base/declare',
         '../widget',
         'dojo/NodeList-dom'
        ],
-       function(declare, lang, array, dom, construct, prop, dom_class,
+       function(declare, array, dom, construct, prop, dom_class,
                 dom_style, query, on, Menu, DropdownWidget,
                 FacetContainer, text, widgets) {
 
@@ -280,8 +279,8 @@ define(['dojo/_base/declare',
                     }
                 ]
             });
-            on(this.user_menu, 'item-click', lang.hitch(this, this.on_user_menu_click));
-            on(this.menu_widget, 'item-select', lang.hitch(this, this.on_menu_item_click));
+            on(this.user_menu, 'item-click', this.on_user_menu_click.bind(this));
+            on(this.menu_widget, 'item-select', this.on_menu_item_click.bind(this));
         }
 
     });

@@ -490,10 +490,10 @@ widgets.browser_widgets.FilterWidget = declare([widgets.browser_widgets.Base], {
             placeholder: 'type to filter...',
             title: 'accepts case insensitive regular expression'
         });
-        this._filter_el.bind('input', lang.hitch(this, function() {
+        this._filter_el.bind('input', function() {
             var filter = this._filter_el.val();
             this.set('filter', filter);
-        }));
+        }.bind(this));
         this._filter_el.appendTo(this.el);
     }
 });

@@ -433,16 +433,16 @@ topology.TopologyGraphFacet = declare([Facet, ActionMixin, HeaderMixin], {
         var graph = this.get_widget('topology-graph');
         var listener = this.resize_listener.bind(this, graph);
 
-        on(this, 'show', lang.hitch(this, function(args) {
+        on(this, 'show', function(args) {
             var size = this.calculate_canvas_size();
             graph.update(size);
 
             $(window).on('resize', null, listener);
-        }));
+        }.bind(this));
 
-        on(graph, 'link-selected', lang.hitch(this, function(data) {
+        on(graph, 'link-selected', function(data) {
             this.set_selected_link(data.link);
-        }));
+        }.bind(this));
 
         on(this, 'hide', function () {
             $(window).off('resize', null, listener);
@@ -662,11 +662,11 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
                 sizelimit: 0
             }
         }).execute();
-        when(s_promise, lang.hitch(this, function(results) {
+        when(s_promise, function(results) {
             // suffixes load success
             var servers = results.data.result.result;
             deferred.resolve(servers);
-        }), function(results) {
+        }.bind(this), function(results) {
             deferred.reject({
                 message: 'unable to load servers',
                 results: results
@@ -701,7 +701,7 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
 
         var suff_promise = get_suffixes();
 
-        when(suff_promise, lang.hitch(this, function(results) {
+        when(suff_promise, function(results) {
             // suffixes load success
             var suffixes = results.data.result.result;
             var segment_promises = [];
@@ -710,26 +710,26 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
                 var promise = get_segments(suffix['cn'][0]);
                 segment_promises.push(promise);
             }
-            all(segment_promises).then(lang.hitch(this, function(results) {
+            all(segment_promises).then(function(results) {
                 // segments load success
                 for (var j=0,l=results.length; j<l; j++) {
                     suffixes[j].segments = results[j].data.result.result;
                 }
                 deferred.resolve(suffixes);
-            }), lang.hitch(this, function(results) {
+            }.bind(this), function(results) {
                 // segments load failed
                 deferred.reject({
                     message: 'unable to load segments',
                     results: results
                 });
-            }));
-        }), lang.hitch(this, function(results) {
+            }.bind(this));
+        }.bind(this), function(results) {
             // suffix load failed
             deferred.reject({
                 message: 'unable to load suffixes',
                 results: results
             });
-        }));
+        }.bind(this));
 
         return deferred.promise;
     },
@@ -818,10 +818,10 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
         var segments = this._get_suffixes();
         var masters = this._get_servers();
 
-        all([masters, segments]).then(lang.hitch(this, function(raw) {
+        all([masters, segments]).then(function(raw) {
             var data = this._transform_data(raw[0], raw[1]);
             deferred.resolve(data);
-        }), function(error) {
+        }.bind(this), function(error) {
             deferred.reject(error);
         });
 
@@ -836,7 +836,7 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
 
         if (IPA.domain_level < topology.required_domain_level) return;
 
-        when(this._get_data()).then(lang.hitch(this, function(data) {
+        when(this._get_data()).then(function(data) {
             if (!this.graph) {
                 this.graph = new topology_graph.TopoGraph({
                     nodes: data.nodes,
@@ -854,7 +854,7 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
                 }
                 this.graph.update(data.nodes, data.links, data.suffixes);
             }
-        }), function(error) {
+        }.bind(this), function(error) {
             IPA.notify(error.message, 'error');
         });
     },

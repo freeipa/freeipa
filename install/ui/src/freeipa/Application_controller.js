@@ -20,7 +20,6 @@
 
 define([
         'dojo/_base/declare',
-        'dojo/_base/lang',
         'dojo/_base/array',
         'dojo/Deferred',
         'dojo/on',
@@ -39,7 +38,7 @@ define([
         './navigation/menu_spec',
         './plugins/load_page'
        ],
-       function(declare, lang, array, Deferred, on, topic, query, dom_class, auth,
+       function(declare, array, Deferred, on, topic, query, dom_class, auth,
             JSON, App_widget, FacetContainer, IPA, reg, Menu, Router, routing, menu_spec) {
 
     /**
@@ -107,18 +106,18 @@ define([
                 }
             };
 
-            on(this.app_widget.menu_widget, 'item-select', lang.hitch(this, this.on_menu_click));
-            on(this.app_widget, 'profile-click', lang.hitch(this, this.on_profile));
-            on(this.app_widget, 'logout-click', lang.hitch(this, this.on_logout));
-            on(this.app_widget, 'password-reset-click', lang.hitch(this, this.on_password_reset));
-            on(this.app_widget, 'about-click', lang.hitch(this, this.on_about));
+            on(this.app_widget.menu_widget, 'item-select', this.on_menu_click.bind(this));
+            on(this.app_widget, 'profile-click', this.on_profile.bind(this));
+            on(this.app_widget, 'logout-click', this.on_logout.bind(this));
+            on(this.app_widget, 'password-reset-click', this.on_password_reset.bind(this));
+            on(this.app_widget, 'about-click', this.on_about.bind(this));
 
-            on(this.router, 'facet-show', lang.hitch(this, this.on_facet_show));
-            on(this.router, 'facet-change', lang.hitch(this, this.on_facet_change));
-            on(this.router, 'facet-change-canceled', lang.hitch(this, this.on_facet_canceled));
-            on(this.router, 'error', lang.hitch(this, this.on_router_error));
-            topic.subscribe('phase-error', lang.hitch(this, this.on_phase_error));
-            topic.subscribe('authenticate', lang.hitch(this, this.on_authenticate));
+            on(this.router, 'facet-show', this.on_facet_show.bind(this));
+            on(this.router, 'facet-change', this.on_facet_change.bind(this));
+            on(this.router, 'facet-change-canceled', this.on_facet_canceled.bind(this));
+            on(this.router, 'error', this.on_router_error.bind(this));
+            topic.subscribe('phase-error', this.on_phase_error.bind(this));
+            topic.subscribe('authenticate', this.on_authenticate.bind(this));
 
             this.app_widget.render();
             this.app_widget.hide();
@@ -282,13 +281,13 @@ define([
             if (current_facet === new_facet) return;
 
             if (current_facet && !current_facet.can_leave()) {
-                var permit_clb = lang.hitch(this, function() {
+                var permit_clb = function() {
                     // Some facet's might not call reset before this call but after
                     // so they are still dirty. Calling reset prevent's opening of
                     // dirty dialog again.
                     if (current_facet.is_dirty()) current_facet.reset(); //TODO change
                     this.router.navigate_to_hash(event.hash, event.facet);
-                });
+                }.bind(this);
 
                 var dialog = current_facet.show_leave_dialog(permit_clb);
                 this.router.canceled = true;
@@ -338,7 +337,7 @@ define([
             // show facet
             if (!facet.container_node) {
                 facet.container_node = container.widget.content_node;
-                on(facet, 'facet-state-change', lang.hitch(this, this.on_facet_state_changed));
+                on(facet, 'facet-state-change', this.on_facet_state_changed.bind(this));
             }
 
             if (this.current_facet !== facet) {

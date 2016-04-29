@@ -261,10 +261,10 @@ define(['dojo/_base/declare',
                 var ul = this._render_list(li, true);
                 this._render_items(item.items, ul);
             } else {
-                on(a, 'click', lang.hitch(this, function(event) {
+                on(a, 'click', function(event) {
                     this.on_item_click(event, item);
                     event.preventDefault();
-                }));
+                }.bind(this));
             }
 
             if (container) {

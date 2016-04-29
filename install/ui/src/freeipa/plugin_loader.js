@@ -77,19 +77,19 @@ define([
 
             var plugins_loaded = new Deferred();
 
-            require(['freeipa/plugins'], lang.hitch(this, function(plugins) {
+            require(['freeipa/plugins'], function(plugins) {
                 var loading = [];
 
                 this.register_plugins(plugins);
 
-                array.forEach(plugins, lang.hitch(this, function(plugin) {
+                array.forEach(plugins, function(plugin) {
                     loading.push(this.load_plugin(plugin));
-                }));
+                }.bind(this));
 
                 all(loading).then(function(results) {
                     plugins_loaded.resolve(results);
                 });
-            }));
+            }.bind(this));
 
            return plugins_loaded.promise;
         }
