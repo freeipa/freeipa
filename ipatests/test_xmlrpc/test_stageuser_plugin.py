@@ -86,8 +86,8 @@ options_def = OrderedDict([
     ('random password', {u'random': True}),
     ])
 
-options_ok = options_def.values()
-options_ids = options_def.keys()
+options_ok = list(options_def.values())
+options_ids = list(options_def.keys())
 
 
 @pytest.fixture(scope='class')

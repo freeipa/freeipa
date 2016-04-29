@@ -9,7 +9,7 @@ from ipalib import api, errors
 from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
-    fuzzy_string, fuzzy_dergeneralizedtime, raises_exact)
+    Fuzzy, fuzzy_string, fuzzy_dergeneralizedtime, raises_exact)
 
 from ipatests.util import assert_deepequal, get_user_dn
 from ipapython.dn import DN
@@ -133,12 +133,12 @@ class StageUserTracker(Tracker):
                 self.attrs[u'sshpubkeyfp'] = [sshpubkeyfp]
                 self.attrs[key] = [self.kwargs[key]]
             elif key == u'random' or key == u'userpassword':
-                self.attrs[u'krbextradata'] = [fuzzy_string]
+                self.attrs[u'krbextradata'] = [Fuzzy(type=bytes)]
                 self.attrs[u'krbpasswordexpiration'] = [
                     fuzzy_dergeneralizedtime]
                 self.attrs[u'krblastpwdchange'] = [fuzzy_dergeneralizedtime]
-                self.attrs[u'krbprincipalkey'] = [fuzzy_string]
-                self.attrs[u'userpassword'] = [fuzzy_string]
+                self.attrs[u'krbprincipalkey'] = [Fuzzy(type=bytes)]
+                self.attrs[u'userpassword'] = [Fuzzy(type=bytes)]
                 self.attrs[u'has_keytab'] = True
                 self.attrs[u'has_password'] = True
                 if key == u'random':
