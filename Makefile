@@ -188,7 +188,7 @@ version-update: release-update
 	fi
 
 	if [ "$(SKIP_API_VERSION_CHECK)" != "yes" ]; then \
-		./makeapi --validate; \
+		./makeapi --validate && \
 		./makeaci --validate; \
 	fi
 
