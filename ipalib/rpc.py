@@ -297,7 +297,10 @@ def json_encode_binary(val, version):
         new_list = [json_encode_binary(v, version) for v in val]
         return new_list
     elif isinstance(val, bytes):
-        return {'__base64__': base64.b64encode(val)}
+        encoded = base64.b64encode(val)
+        if not six.PY2:
+            encoded = encoded.decode('ascii')
+        return {'__base64__': encoded}
     elif isinstance(val, Decimal):
         return {'__base64__': base64.b64encode(str(val))}
     elif isinstance(val, DN):
