@@ -330,14 +330,15 @@ class Declarative(XMLRPC_test):
         try:
             output = api.Command[cmd](*args, **options)
         except Exception as e:
-            pass
+            exception = e
         else:
             raise AssertionError(
                 EXPECTED % (cmd, name, args, options, output)
             )
-        if not isinstance(e, klass):
+        if not isinstance(exception, klass):
             raise AssertionError(
-                UNEXPECTED % (cmd, name, args, options, e.__class__.__name__, e)
+                UNEXPECTED % (cmd, name, args, options,
+                              exception.__class__.__name__, exception)
             )
         # FIXME: the XML-RPC transport doesn't allow us to return structured
         # information through the exception, so we can't test the kw on the
@@ -345,21 +346,21 @@ class Declarative(XMLRPC_test):
         # transport, the exception is a free-form data structure (dict).
         # For now just compare the strings
         # pylint: disable=no-member
-        assert_deepequal(expected.strerror, e.strerror)
+        assert_deepequal(expected.strerror, exception.strerror)
         # pylint: enable=no-member
 
     def check_callable(self, nice, cmd, args, options, expected):
         name = expected.__class__.__name__
         output = dict()
-        e = None
+        exception = None
         try:
             output = api.Command[cmd](*args, **options)
         except Exception as e:
-            pass
-        if not expected(e, output):
+            exception = e
+        if not expected(exception, output):
             raise AssertionError(
                 UNEXPECTED % (cmd, name, args, options,
-                              type(e).__name__, e)
+                              type(exception).__name__, exception)
             )
 
     def check_output(self, nice, cmd, args, options, expected, extra_check):
