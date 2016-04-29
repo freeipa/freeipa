@@ -816,7 +816,7 @@ class LDAPClient(object):
         If there is a problem loading the schema or the attribute is
         not in the schema return None
         """
-        if isinstance(name_or_oid, unicode):
+        if six.PY2 and isinstance(name_or_oid, unicode):
             name_or_oid = name_or_oid.encode('utf-8')
 
         if name_or_oid in self._SINGLE_VALUE_OVERRIDE:
@@ -1492,7 +1492,7 @@ class LDAPClient(object):
 
         # pass arguments to python-ldap
         with self.error_handler():
-            modlist = [(a, self.encode(b), self.encode(c))
+            modlist = [(a, str(b), self.encode(c))
                        for a, b, c in modlist]
             self.conn.modify_s(str(entry.dn), modlist)
 
