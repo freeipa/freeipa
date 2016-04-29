@@ -35,6 +35,7 @@ radius1_fqdn = u'testradius.test'
 radius1_dn = DN(('cn=testradius'), ('cn=radiusproxy'), api.env.basedn)
 user1 = u'tuser1'
 password1 = u'very*secure123'
+password1_bytes = password1.encode('ascii')
 
 
 @pytest.mark.tier1
@@ -85,7 +86,7 @@ class test_raduisproxy(Declarative):
                 result=dict(
                     cn=[radius1],
                     dn=radius1_dn,
-                    ipatokenradiussecret=[str(password1)],
+                    ipatokenradiussecret=[password1_bytes],
                     ipatokenradiusserver=[radius1_fqdn],
                     objectclass=objectclasses.radiusproxy,
 
@@ -131,7 +132,7 @@ class test_raduisproxy(Declarative):
                 result=dict(
                     cn=[radius1],
                     dn=radius1_dn,
-                    ipatokenradiussecret=[str(password1)],
+                    ipatokenradiussecret=[password1_bytes],
                     ipatokenradiusserver=[radius1_fqdn],
                     objectclass=objectclasses.radiusproxy,
                 ),
