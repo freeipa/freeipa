@@ -125,27 +125,35 @@ def get_trust_dn(name):
     return format_str.format(**data)
 
 
+def encode_mockldap_value(value):
+    value = str(value)
+    if six.PY3:
+        return value.encode('utf-8')
+    else:
+        return value
+
+
 def get_trusted_dom_range_dict(name, base_id, size, rangetype, base_rid, sid):
     return dict(
-        objectClass=["ipaIDrange", "ipatrustedaddomainrange"],
-        ipaBaseID=str("{base_id}".format(base_id=base_id)),
-        ipaBaseRID=str("{base_rid}".format(base_rid=base_rid)),
-        ipaIDRangeSize=str("{size}".format(size=size)),
-        ipaNTTrustedDomainSID=str("{sid}".format(sid=sid)),
-        ipaRangeType=str("{rangetype}".format(rangetype=rangetype)),
+        objectClass=[b"ipaIDrange", b"ipatrustedaddomainrange"],
+        ipaBaseID=encode_mockldap_value("{base_id}".format(base_id=base_id)),
+        ipaBaseRID=encode_mockldap_value("{base_rid}".format(base_rid=base_rid)),
+        ipaIDRangeSize=encode_mockldap_value("{size}".format(size=size)),
+        ipaNTTrustedDomainSID=encode_mockldap_value("{sid}".format(sid=sid)),
+        ipaRangeType=encode_mockldap_value("{rangetype}".format(rangetype=rangetype)),
         )
 
 
 def get_trusted_dom_dict(name, sid):
     return dict(
-        objectClass=["ipaNTTrustedDomain", "ipaIDobject", "top"],
-        ipaNTFlatName=str(name.upper()),
-        ipaNTTrustedDomainSID=str(sid),
-        ipaNTSIDBlacklistIncoming='S-1-0',
-        ipaNTTrustPartner=str('{name}.mock'.format(name=name)),
-        ipaNTTrustType='2',
-        ipaNTTrustDirection='3',
-        ipaNTTrustAttributes='8',
+        objectClass=[b"ipaNTTrustedDomain", b"ipaIDobject", b"top"],
+        ipaNTFlatName=encode_mockldap_value(name.upper()),
+        ipaNTTrustedDomainSID=encode_mockldap_value(sid),
+        ipaNTSIDBlacklistIncoming=b'S-1-0',
+        ipaNTTrustPartner=encode_mockldap_value('{name}.mock'.format(name=name)),
+        ipaNTTrustType=b'2',
+        ipaNTTrustDirection=b'3',
+        ipaNTTrustAttributes=b'8',
         )
 
 # Domain ranges definitions
@@ -359,7 +367,7 @@ domain7range1_dn = get_range_dn(name=domain7range1)
 
 trust_container_dn = "cn=ad,cn=trusts,{basedn}".format(basedn=api.env.basedn)
 trust_container_add = dict(
-    objectClass=["nsContainer", "top"]
+    objectClass=[b"nsContainer", b"top"]
     )
 
 # Convince Domain Validator that adtrust-install was run in order to test
@@ -369,7 +377,7 @@ smb_cont_dn = "{cifsdomains},{basedn}".format(
     cifsdomains=api.env.container_cifsdomains,
     basedn=api.env.basedn)
 smb_cont_add = dict(
-    objectClass=["nsContainer", "top"]
+    objectClass=[b"nsContainer", b"top"]
     )
 
 trust_local_dn = "cn={domain},{smbcont}".format(
@@ -377,10 +385,10 @@ trust_local_dn = "cn={domain},{smbcont}".format(
     smbcont=smb_cont_dn)
 
 trust_local_add = dict(
-    objectClass=["ipaNTDomainAttrs", "nsContainer", "top"],
-    ipaNTFlatName=["UNITTESTS"],
-    ipaNTDomainGUID=["4ed70def-bff4-464c-889f-6cd2cfa4dbb7"],
-    ipaNTSecurityIdentifier=["S-1-5-21-2568409255-1212639194-836868319"]
+    objectClass=[b"ipaNTDomainAttrs", b"nsContainer", b"top"],
+    ipaNTFlatName=[b"UNITTESTS"],
+    ipaNTDomainGUID=[b"4ed70def-bff4-464c-889f-6cd2cfa4dbb7"],
+    ipaNTSecurityIdentifier=[b"S-1-5-21-2568409255-1212639194-836868319"]
     )
 
 user1 = u'tuser1'
