@@ -10,6 +10,7 @@ from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_uuid
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_deepequal
+from ipalib import errors
 
 
 class HostTracker(Tracker):
@@ -152,3 +153,16 @@ class HostTracker(Tracker):
             summary=u'Modified host "%s"' % self.fqdn,
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)
+
+    def add_finalizer_certcleanup(self, request):
+        """ Fixture to cleanup certificate from local host """
+        cleanup_command = self.make_update_command(
+            updates={'usercertificate':''})
+
+        def cleanup():
+            try:
+                cleanup_command()
+            except errors.EmptyModlist:
+                pass
+
+        request.addfinalizer(cleanup)
