@@ -44,7 +44,6 @@ disable=
     redefined-builtin,
     redefined-outer-name,
     reimported,
-    relative-import,
     super-init-not-called,
     undefined-loop-variable,
     unnecessary-lambda,
