@@ -39,7 +39,6 @@ disable=
     redefine-in-handler,
     redefined-builtin,
     redefined-outer-name,
-    relative-import,
     super-init-not-called,
     undefined-loop-variable,
     unnecessary-lambda,

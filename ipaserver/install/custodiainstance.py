@@ -4,7 +4,7 @@ from ipapython.secrets.kem import IPAKEMKeys
 from ipapython.secrets.client import CustodiaClient
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants
-from service import SimpleServiceInstance
+from ipaserver.install.service import SimpleServiceInstance
 from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import installutils
