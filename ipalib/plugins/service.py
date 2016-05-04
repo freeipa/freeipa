@@ -411,7 +411,7 @@ class service(LDAPObject):
     permission_filter_objectclasses = ['ipaservice']
     search_attributes = ['krbprincipalname', 'managedby', 'ipakrbauthzdata']
     default_attributes = ['krbprincipalname', 'usercertificate', 'managedby',
-        'ipakrbauthzdata', 'memberof', 'ipaallowedtoperform']
+        'ipakrbauthzdata', 'memberof', 'ipaallowedtoperform', 'krbprincipalauthind']
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'managedby': ['host'],
@@ -504,6 +504,14 @@ class service(LDAPObject):
                   " Use 'NONE' to disable PAC support for this service,"
                   " e.g. this might be necessary for NFS services."),
             values=(u'MS-PAC', u'PAD', u'NONE'),
+        ),
+        Str('krbprincipalauthind*',
+            cli_name='auth_ind',
+            label=_('Authentication Indicators'),
+            doc=_("Defines a whitelist for Authentication Indicators."
+                  " Use 'otp' to allow OTP-based 2FA authentications."
+                  " Use 'radius' to allow RADIUS-based 2FA authentications."
+                  " Other values may be used for custom configurations."),
         ),
     ) + ticket_flags_params
 

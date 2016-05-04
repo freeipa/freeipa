@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=170
-# Last change: mbasti - *-find: do not search for members by default
+IPA_API_VERSION_MINOR=171
+# Last change: npmccallum - enable setting authinds on services
