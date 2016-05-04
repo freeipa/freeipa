@@ -57,6 +57,7 @@ from ipapython.dn import DN
 from ipapython.ipautil import CheckedIPAddress
 from ipapython.dnsutil import check_zone_overlap
 from ipapython.dnsutil import DNSName
+from ipapython.dnsutil import related_to_auto_empty_zone
 
 if six.PY3:
     unicode = str
@@ -1984,6 +1985,20 @@ def _add_warning_fw_zone_is_not_effective(api, result, fwzone, version):
                 fwzone=fwzone, authzone=authoritative_zone,
                 ns_rec=fwzone.relativize(authoritative_zone)
             )
+        )
+
+
+def _add_warning_fw_policy_conflict_aez(result, fwzone, **options):
+    """Warn if forwarding policy conflicts with an automatic empty zone."""
+    fwd_policy = result['result'].get(u'idnsforwardpolicy',
+                                      dnsforwardzone.default_forward_policy)
+    if (
+        fwd_policy != [u'only']
+        and related_to_auto_empty_zone(DNSName(fwzone))
+    ):
+        messages.add_message(
+            options['version'], result,
+            messages.DNSForwardPolicyConflictWithEmptyZone()
         )
 
 
@@ -4380,7 +4395,13 @@ class dnsconfig_mod(LDAPUpdate):
         result = super(dnsconfig_mod, self).execute(*keys, **options)
         self.obj.postprocess_result(result)
 
+        # this check makes sense only when resulting forwarders are non-empty
+        if result['result'].get('idnsforwarders'):
+            fwzone = DNSName('.')
+            _add_warning_fw_policy_conflict_aez(result, fwzone, **options)
+
         if forwarders:
+            # forwarders were changed
             for forwarder in forwarders:
                 try:
                     validate_dnssec_global_forwarder(forwarder, log=self.log)
@@ -4522,6 +4543,7 @@ class dnsforwardzone(DNSZoneBase):
                 )
             )
 
+
 @register()
 class dnsforwardzone_add(DNSZoneBase_add):
     __doc__ = _('Create new DNS forward zone.')
@@ -4552,8 +4574,10 @@ class dnsforwardzone_add(DNSZoneBase_add):
         return dn
 
     def execute(self, *keys, **options):
+        fwzone = keys[-1]
         result = super(dnsforwardzone_add, self).execute(*keys, **options)
         self.obj._warning_fw_zone_is_not_effective(result, *keys, **options)
+        _add_warning_fw_policy_conflict_aez(result, fwzone, **options)
         if options.get('idnsforwarders'):
             self.obj._warning_if_forwarders_do_not_work(
                 result, True, *keys, **options)
@@ -4609,7 +4633,9 @@ class dnsforwardzone_mod(DNSZoneBase_mod):
         return dn
 
     def execute(self, *keys, **options):
+        fwzone = keys[-1]
         result = super(dnsforwardzone_mod, self).execute(*keys, **options)
+        _add_warning_fw_policy_conflict_aez(result, fwzone, **options)
         if options.get('idnsforwarders'):
             self.obj._warning_if_forwarders_do_not_work(result, False, *keys,
                                                         **options)

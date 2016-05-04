@@ -350,6 +350,23 @@ class ResultFormattingError(PublicMessage):
     type = "warning"
 
 
+class DNSForwardPolicyConflictWithEmptyZone(PublicMessage):
+    """
+    **13021** Forward zone 1.10.in-addr.arpa with policy "first"
+    will not forward anything because BIND automatically prefers
+    empty zone "10.in-addr.arpa.".
+    """
+
+    errno = 13021
+    type = "warning"
+    format = _(
+        "Forwarding policy conflicts with some automatic empty zones. "
+        "Queries for zones specified by RFC 6303 will ignore "
+        "forwarding and recursion and always result in NXDOMAIN answers. "
+        "To override this behavior use forward policy 'only'."
+    )
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
