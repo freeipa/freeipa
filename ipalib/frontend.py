@@ -687,12 +687,12 @@ class Command(HasParam):
         params = [p.name for p in self.params() if p.name not in kw and (p.required or p.autofill)]
         return dict(self.__get_default_iter(params, kw))
 
-    def get_default_of(self, name, **kw):
+    def get_default_of(self, _name, **kw):
         """
-        Return default value for parameter `name`.
+        Return default value for parameter `_name`.
         """
-        default = dict(self.__get_default_iter([name], kw))
-        return default.get(name)
+        default = dict(self.__get_default_iter([_name], kw))
+        return default.get(_name)
 
     def __get_default_iter(self, params, kw):
         """
