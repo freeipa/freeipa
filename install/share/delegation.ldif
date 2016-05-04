@@ -80,6 +80,22 @@ objectClass: nestedgroup
 cn: Delegation Administrator
 description: Role administration
 
+dn: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: DNS Administrators
+description: DNS Administrators
+
+dn: cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: DNS Servers
+description: DNS Servers
+
 dn: cn=Service Administrators,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top

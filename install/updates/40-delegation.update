@@ -274,3 +274,19 @@ default:objectClass: groupofnames
 default:objectClass: top
 default:cn: Vault Administrators
 default:description: Vault Administrators
+
+
+# Locations - always create DNS related privileges
+dn: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:cn: DNS Administrators
+default:description: DNS Administrators
+
+dn: cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:cn: DNS Servers
+default:description: DNS Servers
