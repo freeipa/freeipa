@@ -665,7 +665,8 @@ class cert_revoke(VirtualCommand):
     takes_options = (
         Int('revocation_reason',
             label=_('Reason'),
-            doc=_('Reason for revoking the certificate (0-10)'),
+            doc=_('Reason for revoking the certificate (0-10). Type '
+                  '"ipa help cert" for revocation reason details. '),
             minvalue=0,
             maxvalue=10,
             default=0,
@@ -733,7 +734,8 @@ class cert_find(Command):
         ),
         Int('revocation_reason?',
             label=_('Reason'),
-            doc=_('Reason for revoking the certificate (0-10)'),
+            doc=_('Reason for revoking the certificate (0-10). Type '
+                  '"ipa help cert" for revocation reason details.'),
             minvalue=0,
             maxvalue=10,
             autofill=False,
