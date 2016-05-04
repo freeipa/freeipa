@@ -58,6 +58,9 @@ class StageUserTracker(Tracker):
     activate_keys = retrieve_keys | {
         u'has_keytab', u'has_password', u'nsaccountlock'}
 
+    find_keys = retrieve_keys - {u'has_keytab', u'has_password'}
+    find_all_keys = retrieve_all_keys - {u'has_keytab', u'has_password'}
+
     def __init__(self, name, givenname, sn, **kwargs):
         super(StageUserTracker, self).__init__(default_version=None)
         self.uid = name
@@ -188,9 +191,9 @@ class StageUserTracker(Tracker):
     def check_find(self, result, all=False, raw=False):
         """ Check 'stageuser-find' command result """
         if all:
-            expected = self.filter_attrs(self.retrieve_all_keys)
+            expected = self.filter_attrs(self.find_all_keys)
         else:
-            expected = self.filter_attrs(self.retrieve_keys)
+            expected = self.filter_attrs(self.find_keys)
 
         # small override because stageuser-find returns different
         # type of nsaccountlock value than DS, but overall the value
