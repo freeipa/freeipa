@@ -144,19 +144,18 @@ def main():
                 retval = 1
 
             # Enable either the portmap or rpcbind service
-            try:
-                portmap = services.knownservices.portmap
+            portmap = services.knownservices.portmap
+            rpcbind = services.knownservices.rpcbind
+
+            if portmap.is_installed():
                 portmap.enable()
                 servicemsg = portmap.service_name
-            except ipautil.CalledProcessError as cpe:
-                if cpe.returncode == 1:
-                    try:
-                        rpcbind = services.knownservices.rpcbind
-                        rpcbind.enable()
-                        servicemsg = rpcbind.service_name
-                    except ipautil.CalledProcessError as cpe:
-                        print("Unable to enable either %s or %s" % (portmap.service_name, rpcbind.service_name))
-                        retval = 3
+            elif rpcbind.is_installed():
+                rpcbind.enable()
+                servicemsg = rpcbind.service_name
+            else:
+                print("Unable to enable either %s or %s" % (portmap.service_name, rpcbind.service_name))
+                retval = 3
 
             # The cn=config entry for the plugin may already exist but it
             # could be turned off, handle both cases.
