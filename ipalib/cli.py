@@ -165,10 +165,11 @@ class textui(backend.Backend):
     def encode_binary(self, value):
         """
         Convert a binary value to base64. We know a value is binary
-        if it is a python str type, otherwise it is a plain string.
+        if it is a python bytes type, otherwise it is a plain string.
+        This function also converts datetime and DNSName values to string.
         """
         if type(value) is bytes:
-            return base64.b64encode(value)
+            return base64.b64encode(value).decode('ascii')
         elif type(value) is datetime.datetime:
             return value.strftime(LDAP_GENERALIZED_TIME_FORMAT)
         elif isinstance(value, DNSName):
