@@ -149,7 +149,7 @@ class test_cert(XMLRPC_test):
         res = api.Command['cert_request'](csr, principal=self.service_princ, add=True)['result']
         assert DN(res['subject']) == self.subject
         # save the cert for the service_show/find tests
-        cert = res['certificate']
+        cert = res['certificate'].encode('ascii')
 
     def test_0003_service_show(self):
         """
@@ -180,7 +180,7 @@ class test_cert(XMLRPC_test):
         res = api.Command['cert_request'](csr, principal=self.service_princ)['result']
         assert DN(res['subject']) == self.subject
         # save the cert for the service_show/find tests
-        newcert = res['certificate']
+        newcert = res['certificate'].encode('ascii')
 
     def test_0006_service_show(self):
         """
