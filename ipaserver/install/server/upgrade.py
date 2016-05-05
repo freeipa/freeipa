@@ -94,23 +94,6 @@ def update_conf(sub_dict, filename, template_filename):
     fd.write(template)
     fd.close()
 
-def find_hostname():
-    """Find the hostname currently configured in ipa-rewrite.conf"""
-    filename=paths.HTTPD_IPA_REWRITE_CONF
-
-    if not ipautil.file_exists(filename):
-        return None
-
-    pattern = "^[\s#]*.*https:\/\/([A-Za-z0-9\.\-]*)\/.*"
-    p = re.compile(pattern)
-    for line in fileinput.input(filename):
-        if p.search(line):
-            fileinput.close()
-            return p.search(line).group(1)
-    fileinput.close()
-
-    raise RuntimeError("Unable to determine the fully qualified hostname from %s" % filename)
-
 def find_autoredirect(fqdn):
     """
     When upgrading ipa-rewrite.conf we need to see if the automatic redirect
@@ -1437,10 +1420,7 @@ def upgrade_configuration():
 
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
-    fqdn = find_hostname()
-    if fqdn is None:
-        # ipa-rewrite.conf doesn't exist, nothing to do
-        raise RuntimeError("ipa-rewrite.conf doesn't exists (is this server?)")
+    fqdn = api.env.host
 
     # Ok, we are an IPA server, do the additional tests
     ds_serverid = installutils.realm_to_serverid(api.env.realm)
