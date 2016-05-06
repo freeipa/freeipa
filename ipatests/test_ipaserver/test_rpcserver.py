@@ -213,7 +213,10 @@ class test_jsonserver(PluginTester):
         # Test with invalid JSON-data:
         e = raises(errors.JSONError, o.unmarshal, 'this wont work')
         assert isinstance(e.error, ValueError)
-        assert unicode(e.error) == 'No JSON object could be decoded'
+        if six.PY2:
+            assert unicode(e.error) == 'No JSON object could be decoded'
+        else:
+            assert str(e.error).startswith('Expecting value: ')
 
         # Test with non-dict type:
         e = raises(errors.JSONError, o.unmarshal, json.dumps([1, 2, 3]))
