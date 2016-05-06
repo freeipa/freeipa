@@ -29,6 +29,7 @@ from ipalib import errors
 from ipalib import pkcs10
 from ipalib import x509
 from ipalib import ngettext
+from ipalib.constants import IPA_CA_CN
 from ipalib.plugable import Registry
 from .virtual import VirtualCommand
 from .baseldap import pkey_to_value
@@ -236,7 +237,7 @@ def caacl_check(principal_type, principal_string, ca, profile_id):
                 "with profile '%(profile_id)s' for certificate issuance."
             ) % dict(
                 principal=principal_string,
-                ca=ca or '.',
+                ca=ca,
                 profile_id=profile_id
             )
         )
@@ -320,7 +321,7 @@ class cert_request(VirtualCommand):
         add = kw.get('add')
         request_type = kw.get('request_type')
         profile_id = kw.get('profile_id', self.Backend.ra.DEFAULT_PROFILE)
-        ca = '.'  # top-level CA hardcoded until subca plugin implemented
+        ca = IPA_CA_CN  # hardcoded until --ca option implemented
 
         """
         Access control is partially handled by the ACI titled

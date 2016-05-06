@@ -6,6 +6,7 @@ import pyhbac
 
 from ipalib import api, errors, output
 from ipalib import Bool, Str, StrEnum
+from ipalib.constants import IPA_CA_CN
 from ipalib.plugable import Registry
 from .baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate, LDAPDelete, LDAPQuery,
@@ -32,14 +33,16 @@ and followed by a sequence of letters, digits or underscore ("_").
 EXAMPLES:
 
   Create a CA ACL "test" that grants all users access to the
-  "UserCert" profile:
-    ipa caacl-add test --usercat=all
+  "UserCert" profile on all CAs:
+    ipa caacl-add test --usercat=all --cacat=all
     ipa caacl-add-profile test --certprofiles UserCert
 
   Display the properties of a named CA ACL:
     ipa caacl-show test
 
-  Create a CA ACL to let user "alice" use the "DNP3" profile:
+  Create a CA ACL to let user "alice" use the "DNP3" profile on "DNP3-CA":
+    ipa caacl-add alice_dnp3
+    ipa caacl-add-ca alice_dnp3 --cas DNP3-CA
     ipa caacl-add-profile alice_dnp3 --certprofiles DNP3
     ipa caacl-add-user alice_dnp3 --user=alice
 
@@ -53,12 +56,12 @@ EXAMPLES:
 register = Registry()
 
 
-def _acl_make_request(principal_type, principal, ca_ref, profile_id):
+def _acl_make_request(principal_type, principal, ca_id, profile_id):
     """Construct HBAC request for the given principal, CA and profile"""
     service, name, realm = split_any_principal(principal)
 
     req = pyhbac.HbacRequest()
-    req.targethost.name = ca_ref
+    req.targethost.name = ca_id
     req.service.name = profile_id
     if principal_type == 'user':
         req.user.name = name
@@ -90,12 +93,12 @@ def _acl_make_rule(principal_type, obj):
     rule.srchosts.category = {pyhbac.HBAC_CATEGORY_ALL}
 
     # add CA(s)
-    # Hardcoded until caacl plugin arrives
-    rule.targethosts.category = {pyhbac.HBAC_CATEGORY_ALL}
-    #if 'ipacacategory' in obj and obj['ipacacategory'][0].lower() == 'all':
-    #    rule.targethosts.category = {pyhbac.HBAC_CATEGORY_ALL}
-    #else:
-    #    rule.targethosts.names = obj.get('ipacaaclcaref', [])
+    if 'ipacacategory' in obj and obj['ipacacategory'][0].lower() == 'all':
+        rule.targethosts.category = {pyhbac.HBAC_CATEGORY_ALL}
+    else:
+        # For compatibility with pre-lightweight-CAs CA ACLs,
+        # no CA members implies the host authority (only)
+        rule.targethosts.names = obj.get('ipamemberca_ca', [IPA_CA_CN])
 
     # add profiles
     if ('ipacertprofilecategory' in obj
@@ -120,8 +123,8 @@ def _acl_make_rule(principal_type, obj):
     return rule
 
 
-def acl_evaluate(principal_type, principal, ca_ref, profile_id):
-    req = _acl_make_request(principal_type, principal, ca_ref, profile_id)
+def acl_evaluate(principal_type, principal, ca_id, profile_id):
+    req = _acl_make_request(principal_type, principal, ca_id, profile_id)
     acls = api.Command.caacl_find(no_members=False)['result']
     rules = [_acl_make_rule(principal_type, obj) for obj in acls]
     return req.evaluate(rules) == pyhbac.HBAC_EVAL_ALLOW
@@ -151,6 +154,7 @@ class caacl(LDAPObject):
         'memberuser': ['user', 'group'],
         'memberhost': ['host', 'hostgroup'],
         'memberservice': ['service'],
+        'ipamemberca': ['ca'],
         'ipamembercertprofile': ['certprofile'],
     }
     managed_permissions = {
@@ -226,13 +230,12 @@ class caacl(LDAPObject):
              label=_('Enabled'),
              flags=['no_option'],
         ),
-        # Commented until subca plugin arrives
-        #StrEnum('ipacacategory?',
-        #    cli_name='cacat',
-        #    label=_('CA category'),
-        #    doc=_('CA category the ACL applies to'),
-        #    values=(u'all', ),
-        #),
+        StrEnum('ipacacategory?',
+            cli_name='cacat',
+            label=_('CA category'),
+            doc=_('CA category the ACL applies to'),
+            values=(u'all', ),
+        ),
         StrEnum('ipacertprofilecategory?',
             cli_name='profilecat',
             label=_('Profile category'),
@@ -257,11 +260,10 @@ class caacl(LDAPObject):
             doc=_('Service category the ACL applies to'),
             values=(u'all', ),
         ),
-        # Commented until subca plugin arrives
-        #Str('ipamemberca_subca?',
-        #    label=_('CAs'),
-        #    flags=['no_create', 'no_update', 'no_search'],
-        #),
+        Str('ipamemberca_ca?',
+            label=_('CAs'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
         Str('ipamembercertprofile_certprofile?',
             label=_('Profiles'),
             flags=['no_create', 'no_update', 'no_search'],
@@ -330,11 +332,10 @@ class caacl_mod(LDAPUpdate):
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
-        # Commented until subca plugin arrives
-        #if is_all(options, 'ipacacategory') and 'ipamemberca' in entry_attrs:
-        #    raise errors.MutuallyExclusiveError(reason=_(
-        #        "CA category cannot be set to 'all' "
-        #        "while there are allowed CAs"))
+        if is_all(options, 'ipacacategory') and 'ipamemberca' in entry_attrs:
+            raise errors.MutuallyExclusiveError(reason=_(
+                "CA category cannot be set to 'all' "
+                "while there are allowed CAs"))
         if (is_all(options, 'ipacertprofilecategory')
                 and 'ipamembercertprofile' in entry_attrs):
             raise errors.MutuallyExclusiveError(reason=_(
@@ -523,10 +524,9 @@ caacl_output_params = global_output_params + (
     Str('ipamembercertprofile',
         label=_('Failed profiles'),
     ),
-    # Commented until caacl plugin arrives
-    #Str('ipamemberca',
-    #    label=_('Failed CAs'),
-    #),
+    Str('ipamemberca',
+        label=_('Failed CAs'),
+    ),
 )
 
 
@@ -560,3 +560,35 @@ class caacl_remove_profile(LDAPRemoveMember):
 
     member_attributes = ['ipamembercertprofile']
     member_count_out = (_('%i profile removed.'), _('%i profiles removed.'))
+
+
+@register()
+class caacl_add_ca(LDAPAddMember):
+    __doc__ = _('Add CAs to a CA ACL.')
+
+    has_output_params = caacl_output_params
+
+    member_attributes = ['ipamemberca']
+    member_count_out = (_('%i CA added.'), _('%i CAs added.'))
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        assert isinstance(dn, DN)
+        try:
+            entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
+            dn = entry_attrs.dn
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+        if is_all(entry_attrs, 'ipacacategory'):
+            raise errors.MutuallyExclusiveError(reason=_(
+                "CAs cannot be added when CA category='all'"))
+        return dn
+
+
+@register()
+class caacl_remove_ca(LDAPRemoveMember):
+    __doc__ = _('Remove CAs from a CA ACL.')
+
+    has_output_params = caacl_output_params
+
+    member_attributes = ['ipamemberca']
+    member_count_out = (_('%i CA removed.'), _('%i CAs removed.'))
