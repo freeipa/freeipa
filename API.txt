@@ -758,9 +758,10 @@ arg: Str('serial_number')
 option: Str('version?')
 output: Output('result')
 command: cert_request
-args: 1,5,1
+args: 1,6,1
 arg: File('csr', cli_name='csr_file')
 option: Flag('add', autofill=True, default=False)
+option: Str('cacn?', cli_name='ca')
 option: Str('principal')
 option: Str('profile_id?')
 option: Str('request_type', autofill=True, default=u'pkcs10')

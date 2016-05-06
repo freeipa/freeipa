@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=182
-# Last change: ftweedal - update caacl plugin for lightweight CAs
+IPA_API_VERSION_MINOR=183
+# Last change: ftweedal - add --ca option to cert-request

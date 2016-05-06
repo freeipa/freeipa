@@ -274,7 +274,13 @@ class cert_request(VirtualCommand):
         Str('profile_id?', validate_profile_id,
             label=_("Profile ID"),
             doc=_("Certificate Profile to use"),
-        )
+        ),
+        Str('cacn?',
+            cli_name='ca',
+            query=True,
+            label=_("CA"),
+            doc=_("CA to use"),
+        ),
     )
 
     has_output_params = (
@@ -321,7 +327,13 @@ class cert_request(VirtualCommand):
         add = kw.get('add')
         request_type = kw.get('request_type')
         profile_id = kw.get('profile_id', self.Backend.ra.DEFAULT_PROFILE)
-        ca = IPA_CA_CN  # hardcoded until --ca option implemented
+
+        # Check that requested authority exists (done before CA ACL
+        # enforcement so that user gets better error message if
+        # referencing nonexistant CA) and look up authority ID.
+        #
+        ca = kw.get('cacn', IPA_CA_CN)
+        ca_id = api.Command.ca_show(ca)['result']['ipacaid'][0]
 
         """
         Access control is partially handled by the ACI titled
@@ -499,7 +511,7 @@ class cert_request(VirtualCommand):
 
         # Request the certificate
         result = self.Backend.ra.request_certificate(
-            csr, profile_id, None, request_type=request_type)
+            csr, profile_id, ca_id, request_type=request_type)
         cert = x509.load_certificate(result['certificate'])
         result['issuer'] = unicode(cert.issuer)
         result['valid_not_before'] = unicode(cert.valid_not_before_str)
