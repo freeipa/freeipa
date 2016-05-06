@@ -72,4 +72,4 @@ class TestTopologyPlugin(object):
         entry = self.conn.get_entry(topoplugindn)
         assert(set(entry.keys()) == set(pluginattrs.keys()))
         for i in checkvalues:
-            assert(pluginattrs[i] == entry[i])
+            assert(set(pluginattrs[i]) == set(entry[i]))
