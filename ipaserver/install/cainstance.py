@@ -433,6 +433,7 @@ class CAInstance(DogtagInstance):
             self.step("importing IPA certificate profiles",
                       import_included_profiles)
             self.step("adding default CA ACL", ensure_default_caacl)
+            self.step("adding 'ipa' CA entry", ensure_ipa_authority_entry)
             self.step("updating IPA configuration", update_ipa_conf)
 
         self.start_creation(runtime=210)
@@ -1898,6 +1899,42 @@ def _create_dogtag_profile(profile_id, profile_data, overwrite):
             root_logger.debug(
                 "Failed to enable profile '%s' "
                 "(it is probably already enabled)")
+
+
+def ensure_ipa_authority_entry():
+    """Add the IPA CA ipaCa object if missing."""
+
+    # find out authority id, issuer DN and subject DN of IPA CA
+    #
+    api.Backend.ra_lightweight_ca._read_password()
+    api.Backend.ra_lightweight_ca.override_port = 8443
+    with api.Backend.ra_lightweight_ca as lwca:
+        data = lwca.read_ca('host-authority')
+        attrs = dict(
+            ipacaid=data['id'],
+            ipacaissuerdn=data['issuerDN'],
+            ipacasubjectdn=data['dn'],
+        )
+    api.Backend.ra_lightweight_ca.override_port = None
+
+    is_already_connected = api.Backend.ldap2.isconnected()
+    if not is_already_connected:
+        try:
+            api.Backend.ldap2.connect(autobind=True)
+        except errors.PublicError as e:
+            root_logger.error("Cannot connect to LDAP to add CA: %s", e)
+            return
+
+    ensure_entry(
+        DN(('cn', ipalib.constants.IPA_CA_CN), api.env.container_ca, api.env.basedn),
+        objectclass=['top', 'ipaca'],
+        cn=[ipalib.constants.IPA_CA_CN],
+        description=['IPA CA'],
+        **attrs
+    )
+
+    if not is_already_connected:
+        api.Backend.ldap2.disconnect()
 
 
 def ensure_default_caacl():

@@ -1724,6 +1724,7 @@ def upgrade_configuration():
     if ca.is_configured():
         cainstance.repair_profile_caIPAserviceCert()
         ca.setup_lightweight_ca_key_retrieval()
+        cainstance.ensure_ipa_authority_entry()
 
     set_sssd_domain_option('ipa_server_mode', 'True')
 
