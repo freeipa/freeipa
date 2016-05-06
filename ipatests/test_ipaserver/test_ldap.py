@@ -281,33 +281,33 @@ class test_LDAPEntry(object):
         assert e['test'] is nice
 
         raw = e.raw['test']
-        assert raw == ['1', '2', '3']
+        assert raw == [b'1', b'2', b'3']
 
         nice.remove(1)
         assert e.raw['test'] is raw
-        assert raw == ['2', '3']
+        assert raw == [b'2', b'3']
 
-        raw.append('4')
+        raw.append(b'4')
         assert e['test'] is nice
         assert nice == [2, 3, u'4']
 
         nice.remove(2)
-        raw.append('5')
+        raw.append(b'5')
         assert nice == [3, u'4']
-        assert raw == ['2', '3', '4', '5']
+        assert raw == [b'2', b'3', b'4', b'5']
         assert e['test'] is nice
         assert e.raw['test'] is raw
         assert nice == [3, u'4', u'5']
-        assert raw == ['3', '4', '5']
+        assert raw == [b'3', b'4', b'5']
 
         nice.insert(0, 2)
-        raw.remove('4')
+        raw.remove(b'4')
         assert nice == [2, 3, u'4', u'5']
-        assert raw == ['3', '5']
+        assert raw == [b'3', b'5']
         assert e.raw['test'] is raw
         assert e['test'] is nice
         assert nice == [2, 3, u'5']
-        assert raw == ['3', '5', '2']
+        assert raw == [b'3', b'5', b'2']
 
         raw = [b'a', b'b']
         e.raw['test'] = raw
@@ -319,5 +319,5 @@ class test_LDAPEntry(object):
         assert e['test'] is nice
         assert e.raw['test'] == [b'not list']
 
-        e.raw['test'].append('second')
+        e.raw['test'].append(b'second')
         assert e['test'] == ['not list', u'second']
