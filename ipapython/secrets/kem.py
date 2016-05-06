@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 from ipaplatform.paths import paths
-import ConfigParser
+from six.moves.configparser import ConfigParser
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
@@ -154,7 +154,7 @@ class IPAKEMKeys(KEMKeysStore):
 
     def __init__(self, config=None, ipaconf=paths.IPA_DEFAULT_CONF):
         super(IPAKEMKeys, self).__init__(config)
-        conf = ConfigParser.ConfigParser()
+        conf = ConfigParser()
         conf.read(ipaconf)
         self.host = conf.get('global', 'host')
         self.realm = conf.get('global', 'realm')
