@@ -459,7 +459,7 @@ class LDAPEntry(collections.MutableMapping):
     def __delitem__(self, name):
         name = self._get_attr_name(name)
 
-        for (altname, keyname) in self._names.items():
+        for (altname, keyname) in list(self._names.items()):
             if keyname == name:
                 del self._names[altname]
 
