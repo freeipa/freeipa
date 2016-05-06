@@ -84,13 +84,17 @@ class IPAVersion(object):
     def __init__(self, version):
         self.version = version
 
+    @property
+    def _bytes(self):
+        return self.version.encode('utf-8')
+
     def __eq__(self, other):
         assert isinstance(other, IPAVersion)
-        return _librpm.rpmvercmp(self.version, other.version) == 0
+        return _librpm.rpmvercmp(self._bytes, other._bytes) == 0
 
     def __lt__(self, other):
         assert isinstance(other, IPAVersion)
-        return _librpm.rpmvercmp(self.version, other.version) < 0
+        return _librpm.rpmvercmp(self._bytes, other._bytes) < 0
 
 
 class RedHatTaskNamespace(BaseTaskNamespace):
