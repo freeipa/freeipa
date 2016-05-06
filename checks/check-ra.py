@@ -90,7 +90,7 @@ def assert_equal(trial, reference):
 
 
 api.log.info('******** Testing ra.request_certificate() ********')
-request_result = ra.request_certificate(csr, ra.DEFAULT_PROFILE)
+request_result = ra.request_certificate(csr, ra.DEFAULT_PROFILE, None)
 if verbose: print("request_result=\n%s" % request_result)
 assert_equal(request_result,
              {'subject' : subject,

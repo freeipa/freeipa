@@ -1554,10 +1554,12 @@ class ra(rabase.rabase):
         return cmd_result
 
 
-    def request_certificate(self, csr, profile_id, request_type='pkcs10'):
+    def request_certificate(
+            self, csr, profile_id, ca_id, request_type='pkcs10'):
         """
         :param csr: The certificate signing request.
         :param profile_id: The profile to use for the request.
+        :param ca_id: The Authority ID to send request to. ``None`` is allowed.
         :param request_type: The request type (defaults to ``'pkcs10'``).
 
         Submit certificate signing request.
@@ -1586,13 +1588,16 @@ class ra(rabase.rabase):
         self.debug('%s.request_certificate()', type(self).__name__)
 
         # Call CMS
-        http_status, http_headers, http_body = \
-            self._sslget('/ca/eeca/ca/profileSubmitSSLClient',
-                         self.env.ca_ee_port,
-                         profileId=profile_id,
-                         cert_request_type=request_type,
-                         cert_request=csr,
-                         xml='true')
+        kw = dict(
+            profileId=profile_id,
+            cert_request_type=request_type,
+            cert_request=csr,
+            xml='true')
+        if ca_id:
+            kw['authorityId'] = ca_id
+
+        http_status, http_headers, http_body = self._sslget(
+            '/ca/eeca/ca/profileSubmitSSLClient', self.env.ca_ee_port, **kw)
         # Parse and handle errors
         if http_status != 200:
             self.raise_certificate_operation_error('request_certificate',
