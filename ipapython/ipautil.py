@@ -1,6 +1,6 @@
 # Authors: Simo Sorce <ssorce@redhat.com>
 #
-# Copyright (C) 2007-2011  Red Hat
+# Copyright (C) 2007-2016  Red Hat, Inc.
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -40,6 +40,7 @@ import grp
 from contextlib import contextmanager
 import locale
 import collections
+from subprocess import CalledProcessError
 
 from dns import resolver, reversename
 from dns.exception import DNSException
@@ -64,20 +65,6 @@ KRB5_KDC_UNREACH = 2529639068 # Cannot contact any KDC for requested realm
 KRB5KDC_ERR_SVC_UNAVAILABLE = 2529638941 # A service is not available that is
                                          # required to process the request
 
-try:
-    from subprocess import CalledProcessError
-except ImportError:
-    # Python 2.4 doesn't implement CalledProcessError
-    class CalledProcessError(Exception):
-        """This exception is raised when a process run by check_call() returns
-        a non-zero exit status. The exit status will be stored in the
-        returncode attribute."""
-        def __init__(self, returncode, cmd, output=None):
-            self.returncode = returncode
-            self.cmd = cmd
-            self.output = output
-        def __str__(self):
-            return "Command '%s' returned non-zero exit status %d" % (self.cmd, self.returncode)
 
 def get_domain_name():
     try:
