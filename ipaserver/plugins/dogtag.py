@@ -5,8 +5,9 @@
 #   Rob Crittenden <rcritten@@redhat.com>
 #   John Dennis <jdennis@redhat.com>
 #   Fraser Tweedale <ftweedal@redhat.com>
+#   Abhijeet Kasurde <akasurde@redhat.com>
 #
-# Copyright (C) 2014, 2015  Red Hat
+# Copyright (C) 2014-2016  Red Hat, Inc.
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -1380,7 +1381,11 @@ class ra(rabase.rabase):
         to get the parsing result as a dict of key/value pairs.
         '''
         parser = etree.XMLParser()
-        doc = etree.fromstring(xml_text, parser)
+        try:
+            doc = etree.fromstring(xml_text, parser)
+        except etree.XMLSyntaxError as e:
+            self.raise_certificate_operation_error('get_parse_result_xml',
+                                                   detail=str(e))
         result = parse_func(doc)
         self.debug("%s() xml_text:\n%s\n"
                    "parse_result:\n%s" % (parse_func.__name__, xml_text, result))
