@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=183
-# Last change: ftweedal - add --ca option to cert-request
+IPA_API_VERSION_MINOR=184
+# Last change: ftweedal - add issuer options to cert-show and cert-find

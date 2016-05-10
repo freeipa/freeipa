@@ -610,6 +610,13 @@ class cert_show(VirtualCommand):
     )
 
     takes_options = (
+        Str('cacn?',
+            cli_name='ca',
+            query=True,
+            label=_('Issuing CA'),
+            doc=_('Name of issing CA'),
+            autofill=False,
+        ),
         Str('out?',
             label=_('Output filename'),
             doc=_('File to store the certificate in.'),
@@ -631,8 +638,24 @@ class cert_show(VirtualCommand):
                 raise acierr
             hostname = get_host_from_principal(bind_principal)
 
+        issuer_dn = None
+        if 'cacn' in options:
+            ca_obj = api.Command.ca_show(options['cacn'])['result']
+            issuer_dn = ca_obj['ipacasubjectdn'][0]
+
+        # Dogtag lightweight CAs have shared serial number domain, so
+        # we don't tell Dogtag the issuer (but we check the cert after).
+        #
         result=self.Backend.ra.get_certificate(serial_number)
         cert = x509.load_certificate(result['certificate'])
+
+        if issuer_dn is not None and DN(unicode(cert.issuer)) != DN(issuer_dn):
+            # DN of cert differs from what we requested
+            raise errors.NotFound(
+                reason=_("Certificate with serial number %(serial)s "
+                    "issued by CA '%(ca)s' not found")
+                    % dict(serial=serial_number, ca=options['cacn']))
+
         result['subject'] = unicode(cert.subject)
         result['issuer'] = unicode(cert.issuer)
         result['valid_not_before'] = unicode(cert.valid_not_before_str)
@@ -734,6 +757,18 @@ class cert_find(Command):
             doc=_('Subject'),
             autofill=False,
         ),
+        Str('cacn?',
+            cli_name='ca',
+            query=True,
+            label=_('Issuing CA'),
+            doc=_('Name of issing CA'),
+            autofill=False,
+        ),
+        Str('issuer?',
+            label=_('Issuer'),
+            doc=_('Issuer DN'),
+            autofill=False,
+        ),
         Int('revocation_reason?',
             label=_('Reason'),
             doc=_('Reason for revoking the certificate (0-10). Type '
@@ -818,6 +853,18 @@ class cert_find(Command):
 
     def execute(self, **options):
         ca_enabled_check()
+
+        if 'cacn' in options:
+            ca_obj = api.Command.ca_show(options['cacn'])['result']
+            ca_sdn = unicode(ca_obj['ipacasubjectdn'][0])
+            if 'issuer' in options:
+                if DN(ca_sdn) != DN(options['issuer']):
+                    # client has provided both 'ca' and 'issuer' but
+                    # issuer DNs don't match; result must be empty
+                    return dict(result=[], count=0, truncated=False)
+            else:
+                options['issuer'] = ca_sdn
+
         ret = dict(
             result=self.Backend.ra.find(options)
         )

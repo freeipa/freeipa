@@ -1809,6 +1809,10 @@ class ra(rabase.rabase):
             node.text = options['subject']
             booloptions['subjectInUse'] = True
 
+        if 'issuer' in options:
+            node = etree.SubElement(page, 'issuerDN')
+            node.text = options['issuer']
+
         if 'revocation_reason' in options:
             node = etree.SubElement(page, 'revocationReason')
             node.text = unicode(options['revocation_reason'])
@@ -1897,6 +1901,11 @@ class ra(rabase.rabase):
             dn = cert.xpath('SubjectDN')
             if len(dn) == 1:
                 response_request['subject'] = unicode(dn[0].text)
+
+            issuer_dn = cert.xpath('IssuerDN')
+            if len(dn) == 1:
+                response_request['issuer'] = unicode(issuer_dn[0].text)
+
             status = cert.xpath('Status')
             if len(status) == 1:
                 response_request['status'] = unicode(status[0].text)
