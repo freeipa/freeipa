@@ -40,6 +40,7 @@ from ipalib.parameters import Param
 from ipalib.output import Output
 from ipalib.text import Gettext, NGettext, ConcatenatedLazyText
 from ipalib.capabilities import capabilities
+from ipapython.dn import DN
 
 API_FILE='API.txt'
 
@@ -513,6 +514,11 @@ def main():
         enable_ra=True,
         mode='developer',
         plugins_on_demand=False,
+        basedn=DN(('dc', 'example'), ('dc', 'com')),
+        realm="EXAMPLE.COM",
+        domain="example.com",
+        xmlrpc_uri="http://localhost:8888/ipa/xml",
+        ldap_uri="ldap://localhost:389",
     )
 
     api.bootstrap(**cfg)
