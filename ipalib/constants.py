@@ -71,9 +71,12 @@ DEFAULT_CONFIG = (
     ('version', VERSION),
 
     # Domain, realm, basedn:
-    ('domain', 'example.com'),
-    ('realm', 'EXAMPLE.COM'),
-    ('basedn', DN(('dc', 'example'), ('dc', 'com'))),
+    # Following values do not have any reasonable default.
+    # Do not initialize them so the code which depends on them blows up early
+    # and does not do crazy stuff with default values instead of real ones.
+    # ('domain', 'example.com'),
+    # ('realm', 'EXAMPLE.COM'),
+    # ('basedn', DN(('dc', 'example'), ('dc', 'com'))),
 
     # LDAP containers:
     ('container_accounts', DN(('cn', 'accounts'))),
@@ -127,9 +130,12 @@ DEFAULT_CONFIG = (
     ('container_custodia', DN(('cn', 'custodia'), ('cn', 'ipa'), ('cn', 'etc'))),
 
     # Ports, hosts, and URIs:
-    ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),
+    # Following values do not have any reasonable default.
+    # Do not initialize them so the code which depends on them blows up early
+    # and does not do crazy stuff with default values instead of real ones.
+    # ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),
     # jsonrpc_uri is set in Env._finalize_core()
-    ('ldap_uri', 'ldap://localhost:389'),
+    # ('ldap_uri', 'ldap://localhost:389'),
 
     ('rpc_protocol', 'jsonrpc'),
 
