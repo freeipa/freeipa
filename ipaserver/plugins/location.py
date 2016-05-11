@@ -106,7 +106,7 @@ class location(LDAPObject):
     )
 
     def get_dn(self, *keys, **options):
-        loc = keys[-1]
+        loc = keys[0]
         assert isinstance(loc, DNSName)
         loc_a = loc.ToASCII()
 

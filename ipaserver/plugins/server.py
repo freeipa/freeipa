@@ -6,16 +6,21 @@ import dbus
 import dbus.mainloop.glib
 
 from ipalib import api, crud, errors, messages
-from ipalib import Int, Str
+from ipalib import Int, Str, DNSNameParam
 from ipalib.plugable import Registry
 from .baseldap import (
     LDAPSearch,
     LDAPRetrieve,
     LDAPDelete,
-    LDAPObject)
+    LDAPObject,
+    LDAPUpdate,
+)
 from ipalib.request import context
 from ipalib import _, ngettext
 from ipalib import output
+from ipapython.dn import DN
+from ipapython.dnsutil import DNSName
+
 
 __doc__ = _("""
 IPA servers
@@ -43,18 +48,21 @@ class server(LDAPObject):
     object_name = _('server')
     object_name_plural = _('servers')
     object_class = ['top']
+    possible_objectclasses = ['ipaLocationMember']
     search_attributes = ['cn']
     default_attributes = [
         'cn', 'iparepltopomanagedsuffix', 'ipamindomainlevel',
-        'ipamaxdomainlevel'
+        'ipamaxdomainlevel', 'ipalocation', 'ipalocationweight'
     ]
     label = _('IPA Servers')
     label_singular = _('IPA Server')
     attribute_members = {
         'iparepltopomanagedsuffix': ['topologysuffix'],
+        'ipalocation': ['location'],
     }
     relationships = {
         'iparepltopomanagedsuffix': ('Managed', '', 'no_'),
+        'ipalocation': ('IPA', 'in_', 'not_in_'),
     }
     takes_params = (
         Str(
@@ -87,6 +95,23 @@ class server(LDAPObject):
             doc=_('Maximum domain level'),
             flags={'no_create', 'no_update'},
         ),
+        DNSNameParam(
+            'ipalocation_location?',
+            cli_name='location',
+            label=_('Location'),
+            doc=_('Server location'),
+            only_relative=True,
+            flags={'no_search'},
+        ),
+        Int(
+            'ipalocationweight?',
+            cli_name='location_weight',
+            label=_('Location weight'),
+            doc=_('Location weight for server'),
+            minvalue=0,
+            maxvalue=65535,
+            flags={'no_search'},
+        )
     )
 
     def _get_suffixes(self):
@@ -105,6 +130,67 @@ class server(LDAPObject):
                 suffixes.get(m, m) for m in entry['iparepltopomanagedsuffix']
             ]
 
+    def normalize_location(self, kw, **options):
+        """
+        Return the DN of location
+        """
+        if 'ipalocation_location' in kw:
+            location = kw.pop('ipalocation_location')
+            kw['ipalocation'] = (
+                [self.api.Object.location.get_dn(location)]
+                if location is not None else location
+            )
+
+    def convert_location(self, entry_attrs, **options):
+        """
+        Return a location name from DN
+        """
+        if options.get('raw'):
+            return
+
+        converted_locations = [
+            DNSName(location_dn['idnsname']) for
+            location_dn in entry_attrs.pop('ipalocation', [])
+        ]
+
+        if converted_locations:
+            entry_attrs['ipalocation_location'] = converted_locations
+
+
+@register()
+class server_mod(LDAPUpdate):
+    __doc__ = _('Modify information about an IPA server.')
+
+    msg_summary = _('Modified IPA server "%(value)s"')
+
+    def args_options_2_entry(self, *args, **options):
+        kw = super(server_mod, self).args_options_2_entry(
+            *args, **options)
+        self.obj.normalize_location(kw, **options)
+        return kw
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
+
+        if entry_attrs.get('ipalocation'):
+            if not ldap.entry_exists(entry_attrs['ipalocation'][0]):
+                self.api.Object.location.handle_not_found(
+                    options['ipalocation_location'])
+
+        if 'ipalocation' or 'ipalocationweight' in entry_attrs:
+            server_entry = ldap.get_entry(dn, ['objectclass'])
+
+            # we need to extend object with ipaLocationMember objectclass
+            entry_attrs['objectclass'] = (
+                server_entry['objectclass'] + ['ipalocationmember']
+            )
+
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        self.obj.convert_location(entry_attrs, **options)
+        return dn
 
 @register()
 class server_find(LDAPSearch):
@@ -114,7 +200,13 @@ class server_find(LDAPSearch):
         '%(count)d IPA server matched',
         '%(count)d IPA servers matched', 0
     )
-    member_attributes = ['iparepltopomanagedsuffix']
+    member_attributes = ['iparepltopomanagedsuffix', 'ipalocation']
+
+    def args_options_2_entry(self, *args, **options):
+        kw = super(server_find, self).args_options_2_entry(
+            *args, **options)
+        self.obj.normalize_location(kw, **options)
+        return kw
 
     def get_options(self):
         for option in super(server_find, self).get_options():
@@ -173,6 +265,8 @@ class server_find(LDAPSearch):
             for entry in entries:
                 self.obj._apply_suffixes(entry, suffixes)
 
+        for entry in entries:
+            self.obj.convert_location(entry, **options)
         return truncated
 
 
@@ -184,7 +278,7 @@ class server_show(LDAPRetrieve):
         if not options.get('raw', False):
             suffixes = self.obj._get_suffixes()
             self.obj._apply_suffixes(entry, suffixes)
-
+        self.obj.convert_location(entry, **options)
         return dn
 
 
