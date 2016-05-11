@@ -363,6 +363,11 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "--a-rec=" + self.master.ip
         ]
         self.master.run_command(args)
+        args = [
+            "ipa", "dnsrecord-add", root_zone, self.replicas[0].hostname,
+            "--a-rec=" + self.replicas[0].ip
+        ]
+        self.master.run_command(args)
         time.sleep(10)  # sleep a bit until data are provided by bind-dyndb-ldap
 
         args = [
