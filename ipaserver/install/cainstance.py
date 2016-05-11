@@ -1664,7 +1664,9 @@ def import_included_profiles():
             conn.add_entry(entry)
             profile_data = ipautil.template_file(
                 '/usr/share/ipa/profiles/{}.cfg'.format(profile_id), sub_dict)
-            _create_dogtag_profile(profile_id, profile_data)
+
+            # Create the profile, replacing any existing profile of same name
+            _create_dogtag_profile(profile_id, profile_data, overwrite=True)
             root_logger.info("Imported profile '%s'", profile_id)
 
     api.Backend.ra_certprofile.override_port = None
@@ -1716,12 +1718,17 @@ def migrate_profiles_to_ldap():
                 profile_data += '\n'
             profile_data += 'profileId={}\n'.format(profile_id)
             profile_data += 'classId={}\n'.format(class_id)
-            _create_dogtag_profile(profile_id, profile_data)
+
+            # Import the profile, but do not replace it if it already exists.
+            # This prevents replicas from replacing IPA-managed profiles with
+            # Dogtag default profiles of same name.
+            #
+            _create_dogtag_profile(profile_id, profile_data, overwrite=False)
 
     api.Backend.ra_certprofile.override_port = None
 
 
-def _create_dogtag_profile(profile_id, profile_data):
+def _create_dogtag_profile(profile_id, profile_data, overwrite):
     with api.Backend.ra_certprofile as profile_api:
         # import the profile
         try:
@@ -1732,9 +1739,8 @@ def _create_dogtag_profile(profile_id, profile_data):
             root_logger.debug("Error migrating '{}': {}".format(
                 profile_id, e))
 
-            # conflicting profile; replace it if we are
-            # installing IPA, but keep it for upgrades
-            if api.env.context == 'installer':
+            # profile already exists
+            if overwrite:
                 try:
                     profile_api.disable_profile(profile_id)
                 except errors.RemoteRetrieveError:
