@@ -38,19 +38,19 @@
  * END COPYRIGHT BLOCK **/
 
 #include "../libotp/otp_token.h"
-#include "syncreq.h"
+#include "otpctrl.h"
 
-bool sync_request_present(Slapi_PBlock *pb)
+bool otpctrl_present(Slapi_PBlock *pb, const char *oid)
 {
     LDAPControl **controls = NULL;
 
     if (slapi_pblock_get(pb, SLAPI_REQCONTROLS, &controls) != 0)
         return false;
 
-    return ldap_control_find(OTP_SYNC_REQUEST_OID, controls, NULL) != NULL;
+    return ldap_control_find(oid, controls, NULL) != NULL;
 }
 
-bool sync_request_handle(const struct otp_config *cfg, Slapi_PBlock *pb,
+bool otpctrl_sync_handle(const struct otp_config *cfg, Slapi_PBlock *pb,
                          const char *user_dn)
 {
     struct otp_token **tokens = NULL;

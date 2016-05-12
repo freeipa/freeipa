@@ -38,8 +38,8 @@
  * END COPYRIGHT BLOCK **/
 
 
-#ifndef SYNCREQ_H_
-#define SYNCREQ_H_
+#ifndef OTPCTRL_H_
+#define OTPCTRL_H_
 
 #include "../libotp/otp_config.h"
 #include <stdbool.h>
@@ -55,9 +55,9 @@
  */
 #define OTP_SYNC_REQUEST_OID "2.16.840.1.113730.3.8.10.6"
 
-bool sync_request_present(Slapi_PBlock *pb);
+bool otpctrl_present(Slapi_PBlock *pb, const char *oid);
 
-bool sync_request_handle(const struct otp_config *cfg, Slapi_PBlock *pb,
+bool otpctrl_sync_handle(const struct otp_config *cfg, Slapi_PBlock *pb,
                          const char *user_dn);
 
-#endif /* SYNCREQ_H_ */
+#endif /* OTPCTRL_H_ */

@@ -62,7 +62,7 @@
 
 #include "ipapwd.h"
 #include "util.h"
-#include "syncreq.h"
+#include "otpctrl.h"
 
 #define IPAPWD_OP_NULL 0
 #define IPAPWD_OP_ADD 1
@@ -1450,7 +1450,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     }
 
     /* Try to do OTP first. */
-    syncreq = sync_request_present(pb);
+    syncreq = otpctrl_present(pb, OTP_SYNC_REQUEST_OID);
     if (!syncreq && !ipapwd_pre_bind_otp(dn, entry, credentials))
         goto invalid_creds;
 
@@ -1466,7 +1466,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     }
 
     /* Attempt to handle a token synchronization request. */
-    if (syncreq && !sync_request_handle(otp_config, pb, dn))
+    if (syncreq && !otpctrl_sync_handle(otp_config, pb, dn))
         goto invalid_creds;
 
     /* Attempt to write out kerberos keys for the user. */
