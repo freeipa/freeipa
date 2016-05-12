@@ -1172,7 +1172,7 @@ done:
  *       validation.
  */
 static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
-                                struct berval *creds)
+                                struct berval *creds, bool otpreq)
 {
     uint32_t auth_types;
 
@@ -1204,10 +1204,10 @@ static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
             return false;
         }
 
-        /* If the user has no active tokens, succeed. */
+        /* With no tokens, succeed if tokens aren't required. */
         if (tokens[0] == NULL) {
             otp_token_free_array(tokens);
-            return true;
+            return !otpreq;
         }
 
         if (otp_token_validate_berval(tokens, creds, NULL)) {
@@ -1218,7 +1218,7 @@ static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
         otp_token_free_array(tokens);
     }
 
-    return auth_types & OTP_CONFIG_AUTH_TYPE_PASSWORD;
+    return (auth_types & OTP_CONFIG_AUTH_TYPE_PASSWORD) && !otpreq;
 }
 
 static int ipapwd_authenticate(const char *dn, Slapi_Entry *entry,
@@ -1394,6 +1394,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     char *dn = NULL;
     int method = 0;
     bool syncreq;
+    bool otpreq;
     int ret = 0;
     time_t current_time;
     time_t expire_time;
@@ -1451,7 +1452,8 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
 
     /* Try to do OTP first. */
     syncreq = otpctrl_present(pb, OTP_SYNC_REQUEST_OID);
-    if (!syncreq && !ipapwd_pre_bind_otp(dn, entry, credentials))
+    otpreq = otpctrl_present(pb, OTP_REQUIRED_OID);
+    if (!syncreq && !ipapwd_pre_bind_otp(dn, entry, credentials, otpreq))
         goto invalid_creds;
 
     /* Ensure that there is a password. */
@@ -1488,6 +1490,7 @@ int ipapwd_pre_init(Slapi_PBlock *pb)
     int ret;
 
     slapi_register_supported_control(OTP_SYNC_REQUEST_OID, SLAPI_OPERATION_BIND);
+    slapi_register_supported_control(OTP_REQUIRED_OID, SLAPI_OPERATION_BIND);
 
     ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&ipapwd_plugin_desc);

@@ -26,9 +26,12 @@
  */
 
 #include "internal.h"
+#include "../ipa-slapi-plugins/ipa-pwd-extop/otpctrl.h"
 
 static void on_bind_writable(verto_ctx *vctx, verto_ev *ev)
 {
+    LDAPControl control = { OTP_REQUIRED_OID, {}, true };
+    LDAPControl *ctrls[] = { &control, NULL };
     struct otpd_queue *push = &ctx.stdio.responses;
     const krb5_data *data;
     struct berval cred;
@@ -55,7 +58,7 @@ static void on_bind_writable(verto_ctx *vctx, verto_ev *ev)
     cred.bv_val = data->data;
     cred.bv_len = data->length;
     i = ldap_sasl_bind(verto_get_private(ev), item->user.dn, LDAP_SASL_SIMPLE,
-                       &cred, NULL, NULL, &item->msgid);
+                       &cred, ctrls, NULL, &item->msgid);
     if (i != LDAP_SUCCESS) {
         otpd_log_err(errno, "Unable to initiate bind: %s", ldap_err2string(i));
         verto_break(ctx.vctx);

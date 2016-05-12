@@ -55,6 +55,9 @@
  */
 #define OTP_SYNC_REQUEST_OID "2.16.840.1.113730.3.8.10.6"
 
+/* This control has no data. */
+#define OTP_REQUIRED_OID "2.16.840.1.113730.3.8.10.7"
+
 bool otpctrl_present(Slapi_PBlock *pb, const char *oid);
 
 bool otpctrl_sync_handle(const struct otp_config *cfg, Slapi_PBlock *pb,
