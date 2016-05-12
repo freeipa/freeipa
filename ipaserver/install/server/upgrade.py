@@ -1464,6 +1464,7 @@ def upgrade_configuration():
         sub_dict['SUBJECT_BASE'] = subject_base
 
     ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+    ca_running = ca.is_running()
 
     with installutils.stopped_service('pki-tomcatd', 'pki-tomcat'):
         # Dogtag must be stopped to be able to backup CS.cfg config
@@ -1496,6 +1497,11 @@ def upgrade_configuration():
                 os.path.join(ipautil.SHARE_DIR, "certmap.conf.template")
             )
         upgrade_pki(ca, fstore)
+
+    # several upgrade steps require running CA
+    # always run ca.start() because we need to wait until CA is really ready
+    # by checking status using http
+    ca.start('pki-tomcat')
 
     certmonger_service = services.knownservices.certmonger
     if ca.is_configured() and not certmonger_service.is_running():
@@ -1667,6 +1673,11 @@ def upgrade_configuration():
         ds.start(ds_serverid)
     elif not ds_running and ds.is_running():
         ds.stop(ds_serverid)
+
+    if ca_running and not ca.is_running():
+        ca.start('pki-tomcat')
+    elif not ca_running and ca.is_running():
+        ca.stop('pki-tomcat')
 
 
 def upgrade_check(options):
