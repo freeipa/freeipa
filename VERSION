@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=173
-# Last change: ipalib: introduce API schema plugins
+IPA_API_VERSION_MINOR=174
+# Last change: mbasti - location-* commands

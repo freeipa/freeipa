@@ -28,6 +28,7 @@ app_DATA =				\
 	25-referint.update		\
 	30-provisioning.update		\
 	30-s4u2proxy.update		\
+	37-locations.update		\
 	40-delegation.update		\
 	40-realm_domains.update		\
 	40-replication.update		\

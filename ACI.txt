@@ -158,6 +158,14 @@ dn: cn=IPA.EXAMPLE,cn=kerberos,dc=ipa,dc=example
 aci: (targetattr = "createtimestamp || entryusn || krbdefaultencsalttypes || krbmaxrenewableage || krbmaxticketlife || krbsupportedencsalttypes || modifytimestamp || objectclass")(targetfilter = "(objectclass=krbticketpolicyaux)")(version 3.0;acl "permission:System: Read Default Kerberos Ticket Policy";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Default Kerberos Ticket Policy,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krbmaxrenewableage || krbmaxticketlife")(targetfilter = "(objectclass=krbticketpolicyaux)")(version 3.0;acl "permission:System: Read User Kerberos Ticket Policy";allow (compare,read,search) groupdn = "ldap:///cn=System: Read User Kerberos Ticket Policy,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=locations,cn=etc,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipaLocationObject)")(version 3.0;acl "permission:System: Add IPA Locations";allow (add) groupdn = "ldap:///cn=System: Add IPA Locations,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=locations,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "description")(targetfilter = "(objectclass=ipaLocationObject)")(version 3.0;acl "permission:System: Modify IPA Locations";allow (write) groupdn = "ldap:///cn=System: Modify IPA Locations,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=locations,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "createtimestamp || description || entryusn || idnsname || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaLocationObject)")(version 3.0;acl "permission:System: Read IPA Locations";allow (compare,read,search) groupdn = "ldap:///cn=System: Read IPA Locations,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=locations,cn=etc,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipaLocationObject)")(version 3.0;acl "permission:System: Remove IPA Locations";allow (delete) groupdn = "ldap:///cn=System: Remove IPA Locations,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=ng,cn=alt,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Add Netgroups";allow (add) groupdn = "ldap:///cn=System: Add Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=ng,cn=alt,dc=ipa,dc=example

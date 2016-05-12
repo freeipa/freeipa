@@ -119,6 +119,12 @@ objectClass: nsContainer
 objectClass: top
 cn: etc
 
+dn: cn=locations,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: locations
+
 dn: cn=sysaccounts,cn=etc,$SUFFIX
 changetype: add
 objectClass: nsContainer

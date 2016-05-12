@@ -121,6 +121,7 @@ DEFAULT_CONFIG = (
     ('container_certprofile', DN(('cn', 'certprofiles'), ('cn', 'ca'))),
     ('container_topology', DN(('cn', 'topology'), ('cn', 'ipa'), ('cn', 'etc'))),
     ('container_caacl', DN(('cn', 'caacls'), ('cn', 'ca'))),
+    ('container_locations', DN(('cn', 'locations'), ('cn', 'etc'))),
 
     # Ports, hosts, and URIs:
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),
