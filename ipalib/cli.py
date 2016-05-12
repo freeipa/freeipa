@@ -22,6 +22,7 @@ Functionality for Command Line Interface.
 """
 from __future__ import print_function
 
+import importlib
 import textwrap
 import sys
 import getpass
@@ -688,28 +689,21 @@ class help(frontend.Local):
 
     has_output = tuple()
 
+    topic = None
+
     _PLUGIN_BASE_MODULE = 'ipalib.plugins'
 
-    def _get_command_module(self, module):
-        """
-        Return last part of ``module`` name, or ``None`` if module is this file.
+    def _get_topic(self, topic):
+        module_name = '%s.%s' % (self._PLUGIN_BASE_MODULE, topic)
+        try:
+            module = sys.modules[module_name]
+        except KeyError:
+            module = importlib.import_module(module_name)
 
-        For example:
-        """
-        if module == __name__:
-            return
-        return module.split('.')[-1]
+        doc = unicode(module.__doc__ or '').strip()
+        parent_topic = getattr(module, 'topic', [None])[0]
 
-    def _get_module_topic(self, module_name):
-        if not sys.modules[module_name]:
-            __import__(module_name)
-        module = sys.modules[module_name]
-
-        topic = getattr(module, 'topic', None)
-        if topic is None:
-            topic = (self._get_command_module(module_name), None)
-
-        return topic
+        return doc, parent_topic
 
     def _count_topic_mcl(self, topic_name, mod_name):
         mcl = max((self._topics[topic_name][1], len(mod_name)))
@@ -727,31 +721,21 @@ class help(frontend.Local):
             if c.NO_CLI:
                 continue
 
-            topic = self._get_module_topic(c.module)
-            topic_name = topic[0]
-
-            if topic_name:
-                if topic[1] is None: # a module without grouping
+            if c.topic is not None:
+                doc, topic_name = self._get_topic(c.topic)
+                doc = doc.split('\n', 1)[0]
+                if topic_name is None:  # a module without grouping
+                    topic_name = c.topic
                     if topic_name in self._topics:
                         self._topics[topic_name][2].append(c)
                     else:
-                        m = '%s.%s' % (self._PLUGIN_BASE_MODULE, topic_name)
-                        try:
-                            module = sys.modules[m]
-                        except KeyError:
-                            doc = ''
-                        else:
-                            doc = (
-                                unicode(_(module.__doc__)) or ''
-                            ).strip().split('\n', 1)[0]
                         self._topics[topic_name] = [doc, 0, [c]]
                     mcl = max((self._topics[topic_name][1], len(c.name)))
                     self._topics[topic_name][1] = mcl
                 else: # a module grouped in a topic
-                    doc = (
-                        unicode(_(sys.modules[c.module].__doc__)) or ''
-                    ).strip().split('\n', 1)[0]
-                    mod_name = c.module.rsplit('.',1)[1]
+                    m = '%s.%s' % (self._PLUGIN_BASE_MODULE, c.topic)
+                    topic = sys.modules[m].topic
+                    mod_name = c.topic
                     if topic_name in self._topics:
                         if mod_name in self._topics[topic_name][2]:
                             self._topics[topic_name][2][mod_name][2].append(c)
@@ -871,6 +855,8 @@ class show_mappings(frontend.Command):
     )
     has_output = tuple()
 
+    topic = None
+
     def run(self, command_name, **options):
         command_name = from_cli(command_name)
         if command_name not in self.Command:
@@ -898,6 +884,8 @@ class console(frontend.Command):
     takes_args = ('filename?',)
     has_output = tuple()
 
+    topic = None
+
     def run(self, filename=None, **options):
         local = dict(api=self.api)
         if filename:
@@ -922,6 +910,8 @@ class show_api(frontend.Command):
     'Show attributes on dynamic API object'
 
     takes_args = ('namespaces*',)
+
+    topic = None
 
     def run(self, namespaces=None):
         if namespaces is None:

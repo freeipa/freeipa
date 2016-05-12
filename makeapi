@@ -25,6 +25,7 @@
 
 from __future__ import print_function
 
+import importlib
 import sys
 import os
 import re
@@ -149,7 +150,7 @@ def validate_doc():
     rval = 0
 
     # Used to track if we've processed a module already
-    modules = {}
+    topics = {}
 
     # Initialize error counters
     n_missing_cmd_doc = 0
@@ -165,35 +166,40 @@ def validate_doc():
         if getattr(cmd, 'NO_CLI', False):
             continue
 
-        # Have we processed this module yet?
-        if not modules.setdefault(cmd.module, 0):
-            # First time seeing this module, validate the module contents
-            mod = sys.modules[cmd.module]
+        if cmd.topic is not None:
+            # Have we processed this module yet?
+            if not topics.setdefault(cmd.topic, 0):
+                # First time seeing this module, validate the module contents
+                module = 'ipalib.plugins.%s' % cmd.topic
+                try:
+                    mod = sys.modules[module]
+                except KeyError:
+                    mod = importlib.import_module(module)
 
-            # See if there is a module topic, if so validate it
-            topic = getattr(mod, 'topic', None)
-            if topic is not None:
-                if not is_i18n(topic[1]):
+                # See if there is a module topic, if so validate it
+                topic = getattr(mod, 'topic', None)
+                if topic is not None:
+                    if not is_i18n(topic[1]):
+                        src_file = inspect.getsourcefile(cmd_class)
+                        n_missing_mod_i18n += 1
+                        print("%s: topic in module \"%s\" is not "
+                              "internationalized" % (src_file, module))
+
+                # Does the module have documentation?
+                if mod.__doc__ is None:
+                    src_file = inspect.getsourcefile(mod)
+                    n_missing_mod_doc += 1
+                    print("%s: module \"%s\" has no doc" %
+                          (src_file, module))
+                # Yes the module has doc, but is it internationalized?
+                elif not is_i18n(mod.__doc__):
                     src_file = inspect.getsourcefile(cmd_class)
                     n_missing_mod_i18n += 1
-                    print("%s: topic in module \"%s\" is not internationalized" % \
-                          (src_file, cmd.module))
+                    print("%s: module \"%s\" doc is not internationalized" %
+                          (src_file, module))
 
-            # Does the module have documentation?
-            if mod.__doc__ is None:
-                src_file = inspect.getsourcefile(mod)
-                n_missing_mod_doc += 1
-                print("%s: module \"%s\" has no doc" % \
-                      (src_file, cmd.module))
-            # Yes the module has doc, but is it internationalized?
-            elif not is_i18n(mod.__doc__):
-                src_file = inspect.getsourcefile(cmd_class)
-                n_missing_mod_i18n += 1
-                print("%s: module \"%s\" doc is not internationalized" % \
-                      (src_file, cmd.module))
-
-        # Increment the count of how many commands in this module
-        modules[cmd.module] = modules[cmd.module] + 1
+            # Increment the count of how many commands in this module
+            topics[cmd.topic] = topics[cmd.topic] + 1
 
         # Does the command have documentation?
         if cmd.__doc__ is None:

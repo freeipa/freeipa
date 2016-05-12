@@ -427,6 +427,10 @@ class Command(HasParam):
 
     callback_types = ('interactive_prompt',)
 
+    @property
+    def topic(self):
+        return type(self).__module__.rpartition('.')[2]
+
     def __call__(self, *args, **options):
         """
         Perform validation and then execute the command.
