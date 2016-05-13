@@ -4,7 +4,7 @@
 include VERSION
 
 SUBDIRS=asn1 daemons install ipapython ipalib
-CLIENTDIRS=ipapython client asn1
+CLIENTDIRS=ipapython ipalib client asn1
 CLIENTPYDIRS=ipaclient ipaplatform
 
 PRJ_PREFIX=freeipa
@@ -84,6 +84,11 @@ client: client-autogen
 
 check: bootstrap-autogen server tests
 	@for subdir in $(SUBDIRS); do \
+		(cd $$subdir && $(MAKE) check) || exit 1; \
+	done
+
+client-check: client-autogen
+	@for subdir in $(CLIENTDIRS); do \
 		(cd $$subdir && $(MAKE) check) || exit 1; \
 	done
 
