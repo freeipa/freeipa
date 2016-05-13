@@ -1,7 +1,8 @@
 # Authors:
 #   Petr Viktorin <pviktori@redhat.com>
+#   Peter Lacko   <placko@redhat.com>
 #
-# Copyright (C) 2012  Red Hat
+# Copyright (C) 2012, 2016  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -21,34 +22,32 @@
 Test the `ipalib/plugins/ping.py` module, and XML-RPC in general.
 """
 
-from ipalib import errors, _
-from ipatests.util import Fuzzy
-from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 import pytest
+
+from ipalib import errors, _
+from ipatests.test_xmlrpc.tracker.base import Tracker
+from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
+from ipatests.util import assert_equal, Fuzzy
 
 
 @pytest.mark.tier1
-class test_ping(Declarative):
+class TestPing(XMLRPC_test):
+    """Test functionality of the `ipalib/plugins/ping.py` module."""
+    tracker = Tracker()
 
-    tests = [
-        dict(
-            desc='Ping the server',
-            command=('ping', [], {}),
-            expected=dict(
-                summary=Fuzzy('IPA server version .*. API version .*')),
-        ),
+    def test_ping(self):
+        """Ping the server."""
+        result = self.tracker.run_command('ping')
+        exp = {'summary': Fuzzy('IPA server version .*. API version .*')}
+        assert_equal(result, exp)
 
-        dict(
-            desc='Try to ping with an argument',
-            command=('ping', ['bad_arg'], {}),
-            expected=errors.ZeroArgumentError(name='ping'),
-        ),
+    def test_ping_with_argument(self):
+        """Try to ping with an argument."""
+        with raises_exact(errors.ZeroArgumentError(name='ping')):
+            self.tracker.run_command('ping', ['argument'])
 
-        dict(
-            desc='Try to ping with an option',
-            command=('ping', [], dict(bad_arg=True)),
-            expected=errors.OptionError(_('Unknown option: %(option)s'),
-                option='bad_arg'),
-        ),
-
-    ]
+    def test_ping_with_option(self):
+        """Try to ping with an option."""
+        with raises_exact(errors.OptionError(
+                _('Unknown option: %(option)s'), option='bad_arg')):
+            self.tracker.run_command('ping', bad_arg=True)
