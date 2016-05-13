@@ -137,6 +137,14 @@ class location_del(LDAPDelete):
 
     msg_summary = _('Deleted IPA location "%(value)s"')
 
+    def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
+        servers = self.api.Command.server_find(
+            in_location=keys[-1])['result']
+        for server in servers:
+            self.api.Command.server_mod(server['cn'][0], location=None)
+        return dn
+
 
 @register()
 class location_mod(LDAPUpdate):
