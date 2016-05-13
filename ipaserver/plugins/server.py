@@ -64,6 +64,16 @@ class server(LDAPObject):
         'iparepltopomanagedsuffix': ('Managed', '', 'no_'),
         'ipalocation': ('IPA', 'in_', 'not_in_'),
     }
+    permission_filter_objectclasses = ['ipaLocationMember']
+    managed_permissions = {
+        'System: Read Locations of IPA Servers': {
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'ipalocation', 'ipalocationweight',
+            },
+            'default_privileges': {'DNS Administrators'},
+        },
+    }
     takes_params = (
         Str(
             'cn',
@@ -111,6 +121,12 @@ class server(LDAPObject):
             minvalue=0,
             maxvalue=65535,
             flags={'no_search'},
+        ),
+        Str(
+            'location_relative_weight',
+            label=_('Location relative weight'),
+            doc=_('Location relative weight for server (counts per location)'),
+            flags={'virtual_attribute','no_create', 'no_update', 'no_search'},
         )
     )
 

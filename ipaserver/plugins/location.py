@@ -2,14 +2,18 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import,
+    division,
+)
 
 from ipalib import (
     _,
     ngettext,
     api,
     Str,
-    DNSNameParam
+    DNSNameParam,
+    output,
 )
 from ipalib.plugable import Registry
 from ipaserver.plugins.baseldap import (
@@ -20,6 +24,7 @@ from ipaserver.plugins.baseldap import (
     LDAPObject,
     LDAPUpdate,
 )
+from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
 __doc__ = _("""
@@ -103,6 +108,12 @@ class location(LDAPObject):
             label=_('Description'),
             doc=_('IPA Location description'),
         ),
+        Str(
+            'servers_server*',
+            label=_('Servers'),
+            doc=_('Servers that belongs to the IPA location'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
     )
 
     def get_dn(self, *keys, **options):
@@ -147,3 +158,43 @@ class location_find(LDAPSearch):
 @register()
 class location_show(LDAPRetrieve):
     __doc__ = _('Display information about an IPA location.')
+
+    has_output = LDAPRetrieve.has_output + (
+        output.Output(
+            'servers',
+            type=dict,
+            doc=_('Servers in location'),
+            flags={'no_display'},  # we use customized print to CLI
+        ),
+    )
+
+    def execute(self, *keys, **options):
+        result = super(location_show, self).execute(*keys, **options)
+
+        servers_additional_info = {}
+        if not options.get('raw'):
+            servers_name = []
+            weight_sum = 0
+
+            servers = self.api.Command.server_find(
+                in_location=keys[0], no_members=False)['result']
+            for server in servers:
+                servers_name.append(server['cn'][0])
+                weight = int(server.get('ipalocationweight', [100])[0])
+                weight_sum += weight
+                servers_additional_info[server['cn'][0]] = {
+                    'cn': server['cn'],
+                    'ipalocationweight': server.get(
+                        'ipalocationweight', [u'100']),
+                }
+
+            for server in servers_additional_info.values():
+                server['location_relative_weight'] = [
+                    u'{:.1f}%'.format(
+                        int(server['ipalocationweight'][0])*100.0/weight_sum)
+                ]
+            if servers_name:
+                result['result']['servers_server'] = servers_name
+        result['servers'] = servers_additional_info
+
+        return result

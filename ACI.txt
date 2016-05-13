@@ -226,6 +226,8 @@ dn: cn=usermap,cn=selinux,dc=ipa,dc=example
 aci: (targetattr = "accesstime || cn || createtimestamp || description || entryusn || hostcategory || ipaenabledflag || ipaselinuxuser || ipauniqueid || member || memberhost || memberuser || modifytimestamp || objectclass || seealso || usercategory")(targetfilter = "(objectclass=ipaselinuxusermap)")(version 3.0;acl "permission:System: Read SELinux User Maps";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=usermap,cn=selinux,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipaselinuxusermap)")(version 3.0;acl "permission:System: Remove SELinux User Maps";allow (delete) groupdn = "ldap:///cn=System: Remove SELinux User Maps,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=masters,cn=ipa,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "cn || createtimestamp || entryusn || ipalocation || ipalocationweight || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaLocationMember)")(version 3.0;acl "permission:System: Read Locations of IPA Servers";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Locations of IPA Servers,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Add Services";allow (add) groupdn = "ldap:///cn=System: Add Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
