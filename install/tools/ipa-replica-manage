@@ -465,9 +465,12 @@ def get_rid_by_host(realm, sourcehost, host, dirman_passwd, nolookup=False):
     """
     try:
         servers = get_ruv(realm, sourcehost, dirman_passwd, nolookup)
-    except (NoRUVsFound, RuntimeError) as e:
+    except RuntimeError as e:
         print(e)
-        sys.exit(0 if isinstance(e, NoRUVsFound) else 1)
+        sys.exit(1)
+    except NoRUVsFound as e:
+        print(e)
+        servers = []
     for (netloc, rid) in servers:
         if '%s:389' % host == netloc:
             return int(rid)
@@ -961,10 +964,6 @@ def del_master_managed(realm, hostname, options):
     # 4. Check that we are not leaving the installation without CA and/or DNS
     #    And pick new CA master.
     ensure_last_services(api.Backend.ldap2, hostname, masters, options)
-
-    # Save the RID value before we start deleting
-    rid = get_rid_by_host(realm, options.host, hostname,
-                          options.dirman_passwd, options.nolookup)
 
     # 5. Remove master entry. Topology plugin will remove replication agreements.
     try:
