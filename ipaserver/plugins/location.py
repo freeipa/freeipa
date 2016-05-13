@@ -16,6 +16,7 @@ from ipalib import (
     output,
     messages
 )
+from ipalib.errors import DependentEntry
 from ipalib.plugable import Registry
 from ipaserver.plugins.baseldap import (
     LDAPCreate,
@@ -140,11 +141,16 @@ class location_del(LDAPDelete):
 
     def pre_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)
-        servers = self.api.Command.server_find(
-            in_location=keys[-1])['result']
-        for server in servers:
-            self.api.Command.server_mod(server['cn'][0],
-                                        ipalocation_location=None)
+        if not options.get('force'):
+            servers = self.api.Command.server_find(
+                in_location=keys[-1])['result']
+            location_member = servers[0]['cn'][0] if servers else None
+            if location_member:
+                raise DependentEntry(
+                    label=_('IPA Server'),
+                    key=keys[-1],
+                    dependent=location_member
+                )
         return dn
 
 
