@@ -1,7 +1,8 @@
 # Authors:
 #   Petr Viktorin <pviktori@redhat.com>
+#   Lenka Doudova <ldoudova@redhat.com>
 #
-# Copyright (C) 2010  Red Hat
+# Copyright (C) 2010, 2016  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -151,4 +152,32 @@ class test_config(Declarative):
                 ),
         ),
 
+        dict(
+            desc='Set maximum username length higher than limit of 255',
+            command=('config_mod', [], dict(ipamaxusernamelength=256)),
+            expected=errors.ValidationError(
+                name='maxusername',
+                error='can be at most 255'),
+        ),
+
+        dict(
+            desc='Set maximum username length equal to limit 255',
+            command=('config_mod', [], dict(ipamaxusernamelength=255)),
+            expected=dict(
+                result=lambda d: d['ipamaxusernamelength'] == (u'255',),
+                value=None,
+                summary=None,
+                ),
+        ),
+
+        # Cleanup after previous test - returns max username length to 32
+        dict(
+            desc='Return maximum username length to default value',
+            command=('config_mod', [], dict(ipamaxusernamelength=32)),
+            expected=dict(
+                result=lambda d: d['ipamaxusernamelength'] == (u'32',),
+                value=None,
+                summary=None,
+                ),
+        ),
     ]
