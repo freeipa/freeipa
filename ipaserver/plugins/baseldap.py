@@ -1890,9 +1890,10 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
                 ldap_object=ldap_obj.object_name_plural
             )
             name = '%s%s' % (relationship[1], to_cli(ldap_obj_name))
-            yield Str(
-                '%s*' % name, cli_name='%ss' % name, doc=doc,
-                label=ldap_obj.object_name
+            yield ldap_obj.primary_key.clone_rename(
+                '%s' % name, cli_name='%ss' % name, doc=doc,
+                label=ldap_obj.object_name, multivalue=True, query=True,
+                required=False, primary_key=False
             )
             doc = self.member_param_excl_doc % dict(
                 searched_object=self.obj.object_name_plural,
@@ -1900,9 +1901,10 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
                 ldap_object=ldap_obj.object_name_plural
             )
             name = '%s%s' % (relationship[2], to_cli(ldap_obj_name))
-            yield Str(
-                '%s*' % name, cli_name='%ss' % name, doc=doc,
-                label=ldap_obj.object_name
+            yield ldap_obj.primary_key.clone_rename(
+                '%s' % name, cli_name='%ss' % name, doc=doc,
+                label=ldap_obj.object_name, multivalue=True, query=True,
+                required=False, primary_key=False
             )
 
     def get_options(self):
