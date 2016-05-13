@@ -61,6 +61,8 @@ def setup_package():
             package_dir = {'ipaclient': ''},
             packages = ["ipaclient",
                        ],
+            scripts=['../ipa'],
+            data_files = [('share/man/man1', ["../ipa.1"])],
         )
     finally:
         del sys.path[0]

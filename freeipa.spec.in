@@ -688,7 +688,11 @@ make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} client
 
 
 %check
+%if ! %{ONLY_CLIENT}
 make %{?_smp_mflags} check VERBOSE=yes
+%else
+make %{?_smp_mflags} client-check VERBOSE=yes
+%endif # ONLY_CLIENT
 
 
 %install
@@ -1128,6 +1132,7 @@ fi
 %defattr(-,root,root,-)
 %doc README Contributors.txt
 %license COPYING
+%{python_sitelib}/freeipa-*.egg-info
 %dir %{python_sitelib}/ipaserver
 %dir %{python_sitelib}/ipaserver/install
 %dir %{python_sitelib}/ipaserver/install/plugins
@@ -1366,7 +1371,6 @@ fi
 %{python_sitelib}/ipaplatform/*
 %{python_sitelib}/ipapython-*.egg-info
 %{python_sitelib}/ipalib-*.egg-info
-%{python_sitelib}/freeipa-*.egg-info
 %{python_sitelib}/ipaplatform-*.egg-info
 
 
