@@ -691,17 +691,26 @@ class help(frontend.Local):
 
     topic = None
 
-    _PLUGIN_BASE_MODULE = 'ipalib.plugins'
-
     def _get_topic(self, topic):
-        module_name = '%s.%s' % (self._PLUGIN_BASE_MODULE, topic)
-        try:
-            module = sys.modules[module_name]
-        except KeyError:
-            module = importlib.import_module(module_name)
+        doc = u''
+        parent_topic = None
 
-        doc = unicode(module.__doc__ or '').strip()
-        parent_topic = getattr(module, 'topic', None)
+        for package in self.api.packages:
+            module_name = '%s.%s' % (package.__name__, topic)
+            try:
+                module = sys.modules[module_name]
+            except KeyError:
+                try:
+                    module = importlib.import_module(module_name)
+                except ImportError:
+                    continue
+
+            if module.__doc__ is not None:
+                doc = unicode(module.__doc__ or '').strip()
+            try:
+                parent_topic = module.topic
+            except AttributeError:
+                pass
 
         return doc, parent_topic
 
@@ -763,7 +772,6 @@ class help(frontend.Local):
             outfile = sys.stdout
         writer = self._writer(outfile)
         name = from_cli(key)
-        mod_name = '%s.%s' % (self._PLUGIN_BASE_MODULE, name)
         if key is None:
             self.api.parser.print_help(outfile)
             return
@@ -777,7 +785,8 @@ class help(frontend.Local):
             if cmd.NO_CLI:
                 raise HelpError(topic=name)
             self.Backend.cli.build_parser(cmd).print_help(outfile)
-        elif mod_name in sys.modules:
+        elif any(name in t[2] for t in self._topics.values()
+                 if type(t[2]) is dict):
             self.print_commands(name, outfile)
         elif name == "commands":
             mcl = max(len(s) for s in (self.Command))
@@ -827,8 +836,7 @@ class help(frontend.Local):
                     commands = self._topics[t][2][topic][2]
                     break
 
-            m = '%s.%s' % (self._PLUGIN_BASE_MODULE, topic)
-            doc = (unicode(_(sys.modules[m].__doc__)) or '').strip()
+            doc, _topic = self._get_topic(topic)
 
             if topic not in self.Command and len(commands) == 0:
                 raise HelpError(topic=topic)

@@ -171,23 +171,36 @@ def validate_doc():
         while topic is not None:
             if not topics.setdefault(topic, 0):
                 # First time seeing this module, validate the module contents
-                module = 'ipalib.plugins.%s' % topic
-                try:
-                    mod = sys.modules[module]
-                except KeyError:
-                    mod = importlib.import_module(module)
+                doc = None
+                next_topic = None
 
-                # See if there is a module topic, if so validate it
-                next_topic = getattr(mod, 'topic', None)
+                for package in api.packages:
+                    module = '%s.%s' % (package.__name__, topic)
+                    try:
+                        mod = sys.modules[module]
+                    except KeyError:
+                        try:
+                            mod = importlib.import_module(module)
+                        except ImportError:
+                            continue
+
+                    if mod.__doc__ is not None:
+                        doc = mod.__doc__
+
+                    # See if there is a module topic, if so validate it
+                    try:
+                        next_topic = mod.topic
+                    except AttributeError:
+                        pass
 
                 # Does the module have documentation?
-                if mod.__doc__ is None:
+                if doc is None:
                     src_file = inspect.getsourcefile(mod)
                     n_missing_mod_doc += 1
                     print("%s: module \"%s\" has no doc" %
                           (src_file, module))
                 # Yes the module has doc, but is it internationalized?
-                elif not is_i18n(mod.__doc__):
+                elif not is_i18n(doc):
                     src_file = inspect.getsourcefile(cmd_class)
                     n_missing_mod_i18n += 1
                     print("%s: module \"%s\" doc is not internationalized" %
