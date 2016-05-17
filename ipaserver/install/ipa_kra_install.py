@@ -158,6 +158,11 @@ class KRAInstaller(KRAInstall):
             raise RuntimeError("Dogtag CA is not installed. "
                                "Please install the CA first")
 
+        # check if KRA is not already installed
+        _kra = krainstance.KRAInstance(api)
+        if _kra.is_installed():
+            raise admintool.ScriptError("KRA already installed")
+
         # this check can be done only when CA is installed
         self.installing_replica = dogtaginstance.is_installing_replica("KRA")
         self.options.promote = False
