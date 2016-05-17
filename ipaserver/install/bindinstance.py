@@ -34,6 +34,7 @@ from ipaserver.install import installutils
 from ipaserver.install import service
 from ipaserver.install.cainstance import IPA_CA_RECORD
 from ipapython import sysrestore, ipautil, ipaldap
+from ipapython import dnsutil
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 import ipalib
@@ -293,7 +294,7 @@ def read_reverse_zone(default, ip_address, allow_zone_overlap=False):
             continue
         if not allow_zone_overlap:
             try:
-                ipautil.check_zone_overlap(zone, raise_on_error=False)
+                dnsutil.check_zone_overlap(zone, raise_on_error=False)
             except ValueError as e:
                 root_logger.error("Reverse zone %s will not be used: %s"
                                   % (zone, e))
@@ -313,7 +314,7 @@ def get_auto_reverse_zones(ip_addresses):
             continue
         default_reverse = get_reverse_zone_default(ip)
         try:
-            ipautil.check_zone_overlap(default_reverse)
+            dnsutil.check_zone_overlap(default_reverse)
         except ValueError:
             root_logger.info("Reverse zone %s for IP address %s already exists"
                              % (default_reverse, ip))
@@ -460,7 +461,7 @@ def check_reverse_zones(ip_addresses, reverse_zones, options, unattended,
         # isn't the zone managed by someone else
         if not options.allow_zone_overlap:
             try:
-                ipautil.check_zone_overlap(rz)
+                dnsutil.check_zone_overlap(rz)
             except ValueError as e:
                 msg = "Reverse zone %s will not be used: %s" % (rz, e)
                 if unattended:

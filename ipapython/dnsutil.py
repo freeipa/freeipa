@@ -19,6 +19,7 @@
 
 import dns.name
 import dns.exception
+import dns.resolver
 import copy
 
 import six
@@ -228,3 +229,37 @@ def inside_auto_empty_zone(name):
         if name.is_subdomain(aez):
             return True
     return False
+
+
+def check_zone_overlap(zone, raise_on_error=True):
+    root_logger.info("Checking DNS domain %s, please wait ..." % zone)
+    if not isinstance(zone, DNSName):
+        zone = DNSName(zone).make_absolute()
+
+    # automatic empty zones always exist so checking them is pointless,
+    # do not report them to avoid meaningless error messages
+    if is_auto_empty_zone(zone):
+        return
+
+    try:
+        containing_zone = dns.resolver.zone_for_name(zone)
+    except dns.exception.DNSException as e:
+        msg = ("DNS check for domain %s failed: %s." % (zone, e))
+        if raise_on_error:
+            raise ValueError(msg)
+        else:
+            root_logger.warning(msg)
+            return
+
+    if containing_zone == zone:
+        try:
+            ns = [ans.to_text() for ans in dns.resolver.query(zone, 'NS')]
+        except dns.exception.DNSException as e:
+            root_logger.debug("Failed to resolve nameserver(s) for domain"
+                              " {0}: {1}".format(zone, e))
+            ns = []
+
+        msg = u"DNS zone {0} already exists in DNS".format(zone)
+        if ns:
+            msg += u" and is handled by server(s): {0}".format(', '.join(ns))
+        raise ValueError(msg)

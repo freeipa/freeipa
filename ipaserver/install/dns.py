@@ -118,7 +118,7 @@ def install_check(standalone, api, replica, options, hostname):
         domain = dnsutil.DNSName(util.normalize_zone(api.env.domain))
         print("Checking DNS domain %s, please wait ..." % domain)
         try:
-            ipautil.check_zone_overlap(domain, raise_on_error=False)
+            dnsutil.check_zone_overlap(domain, raise_on_error=False)
         except ValueError as e:
             if options.force or options.allow_zone_overlap:
                 root_logger.warning("%s Please make sure that the domain is "
@@ -129,7 +129,7 @@ def install_check(standalone, api, replica, options, hostname):
 
     for reverse_zone in options.reverse_zones:
         try:
-            ipautil.check_zone_overlap(reverse_zone)
+            dnsutil.check_zone_overlap(reverse_zone)
         except ValueError as e:
             if options.force or options.allow_zone_overlap:
                 root_logger.warning(e.message)
