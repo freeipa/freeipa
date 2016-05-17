@@ -1064,7 +1064,7 @@ def add_a_records_for_hosts_in_master_domain(master):
         # We don't need to take care of the zone creation since it is master
         # domain
         try:
-            verify_host_resolvable(host.hostname, log)
+            verify_host_resolvable(host.hostname)
             log.debug("The host (%s) is resolvable." % host.domain.name)
         except errors.DNSNotARecordError:
             log.debug("Hostname (%s) does not have A/AAAA record. Adding new one.",

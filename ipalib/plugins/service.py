@@ -563,10 +563,10 @@ class service_add(LDAPCreate):
         entry_attrs['usercertificate'] = certs_der
 
         if not options.get('force', False):
-             # We know the host exists if we've gotten this far but we
-             # really want to discourage creating services for hosts that
-             # don't exist in DNS.
-             util.verify_host_resolvable(hostname, self.log)
+            # We know the host exists if we've gotten this far but we
+            # really want to discourage creating services for hosts that
+            # don't exist in DNS.
+            util.verify_host_resolvable(hostname)
         if not 'managedby' in entry_attrs:
             entry_attrs['managedby'] = hostresult['dn']
 

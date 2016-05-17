@@ -878,7 +878,7 @@ class BindInstance(service.Service):
         if not dns_zone_exists(zone, self.api):
             # check if master hostname is resolvable
             try:
-                verify_host_resolvable(fqdn, root_logger)
+                verify_host_resolvable(fqdn)
             except errors.DNSNotARecordError:
                 root_logger.warning("Master FQDN (%s) is not resolvable.",
                                     fqdn)

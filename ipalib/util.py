@@ -43,6 +43,7 @@ from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
 from ipapython.dnsutil import DNSName
 from ipapython.graph import Graph
+from ipapython.ipa_log_manager import root_logger
 
 if six.PY3:
     unicode = str
@@ -64,7 +65,8 @@ def json_serialize(obj):
         return ''
     return json_serialize(obj.__json__())
 
-def verify_host_resolvable(fqdn, log):
+
+def verify_host_resolvable(fqdn):
     """
     See if the hostname has a DNS A/AAAA record.
     """
@@ -75,12 +77,12 @@ def verify_host_resolvable(fqdn, log):
     for rdtype in ('A', 'AAAA'):
         try:
             answers = resolver.query(fqdn, rdtype)
-            log.debug(
+            root_logger.debug(
                 'IPA: found %d %s records for %s: %s' % (len(answers),
                 rdtype, fqdn, ' '.join(str(answer) for answer in answers))
             )
         except DNSException:
-            log.debug(
+            root_logger.debug(
                 'IPA: DNS %s record lookup failed for %s' %
                 (rdtype, fqdn)
             )
