@@ -93,7 +93,9 @@ current block assignments:
 
             - **4300 - 4399**  `CertificateError` and its subclasses
 
-            - **4400 - 4999**  *Reserved for future use*
+            - **4400 - 4499**  `DNSError` and (some of) its subclasses
+
+            - **4500 - 4999**  *Reserved for future use*
 
         - **5000 - 5999**  `GenericError` and its subclasses
 
@@ -1144,21 +1146,6 @@ class DefaultGroupError(ExecutionError):
     errno = 4018
     format = _('The default users group cannot be removed')
 
-class DNSNotARecordError(ExecutionError):
-    """
-    **4019** Raised when a hostname is not a DNS A/AAAA record
-
-    For example:
-
-    >>> raise DNSNotARecordError()
-    Traceback (most recent call last):
-      ...
-    DNSNotARecordError: Host does not have corresponding DNS A/AAAA record
-
-    """
-
-    errno = 4019
-    format = _('Host does not have corresponding DNS A/AAAA record')
 
 class ManagedGroupError(ExecutionError):
     """
@@ -1578,24 +1565,6 @@ class DatabaseTimeout(DatabaseError):
     format = _('LDAP timeout')
 
 
-class DNSDataMismatch(ExecutionError):
-    """
-    **4212** Raised when an DNS query didn't return expected answer
-    in a configured time limit.
-
-    For example:
-
-    >>> raise DNSDataMismatch(expected="zone3.test. 86400 IN A 192.0.2.1", \
-                              got="zone3.test. 86400 IN A 192.168.1.1")
-    Traceback (most recent call last):
-      ...
-    DNSDataMismatch: DNS check failed: Expected {zone3.test. 86400 IN A 192.0.2.1} got {zone3.test. 86400 IN A 192.168.1.1}
-    """
-
-    errno = 4212
-    format = _('DNS check failed: Expected {%(expected)s} got {%(got)s}')
-
-
 class TaskTimeout(DatabaseError):
     """
     **4213** Raised when an LDAP task times out
@@ -1783,6 +1752,67 @@ class CertificateInvalidError(CertificateError):
 
     errno = 4310
     format = _('%(name)s certificate is not valid')
+
+
+class DNSError(ExecutionError):
+    """
+    **4400** Base class for DNS execution errors (*4400 - 4499*).
+    These are typically wrapper exceptions around dns.exception.DNSException.
+    """
+
+    errno = 4400
+
+
+class DNSNotARecordError(DNSError):
+    """
+    **4019** Raised when a hostname is not a DNS A/AAAA record
+
+    For example:
+
+    >>> raise DNSNotARecordError(hostname='x')
+    Traceback (most recent call last):
+      ...
+    DNSNotARecordError: Host 'x' does not have corresponding DNS A/AAAA record
+
+    """
+
+    errno = 4019  # this exception was defined before DNSError
+    format = _(
+        'Host \'%(hostname)s\' does not have corresponding DNS A/AAAA record')
+
+
+class DNSDataMismatch(DNSError):
+    """
+    **4212** Raised when an DNS query didn't return expected answer
+    in a configured time limit.
+
+    For example:
+
+    >>> raise DNSDataMismatch(expected="zone3.test. 86400 IN A 192.0.2.1", \
+                              got="zone3.test. 86400 IN A 192.168.1.1")
+    Traceback (most recent call last):
+      ...
+    DNSDataMismatch: DNS check failed: Expected {zone3.test. 86400 IN A 192.0.2.1} got {zone3.test. 86400 IN A 192.168.1.1}
+    """
+
+    errno = 4212  # this exception was defined before DNSError
+    format = _('DNS check failed: Expected {%(expected)s} got {%(got)s}')
+
+
+class DNSResolverError(DNSError):
+    """
+    **4401** Wrapper around dns.exception.DNSException.
+    Raised when an error occured in dns.resolver.
+
+    For example:
+    >>> raise DNSResolverError(exception=ValueError("this is bad"))
+    Traceback (most recent call last):
+      ...
+    DNSResolverError: this is bad
+    """
+
+    errno = 4401
+    format = _('%(exception)s')
 
 
 ##############################################################################
