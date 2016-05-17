@@ -53,7 +53,9 @@ from ipalib.util import (normalize_zonemgr,
                          validate_dnssec_zone_forwarder_step1,
                          validate_dnssec_zone_forwarder_step2,
                          verify_host_resolvable)
-from ipapython.ipautil import CheckedIPAddress, check_zone_overlap
+from ipapython.dn import DN
+from ipapython.ipautil import CheckedIPAddress
+from ipapython.dnsutil import check_zone_overlap
 from ipapython.dnsutil import DNSName
 
 if six.PY3:

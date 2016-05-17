@@ -14,8 +14,7 @@ from ipapython.install import common, core
 from ipapython.install.core import Knob
 from ipalib.util import validate_domain_name
 from ipaserver.install import bindinstance
-from ipapython.ipautil import check_zone_overlap
-from ipapython.dnsutil import DNSName
+from ipapython.dnsutil import check_zone_overlap
 
 if six.PY3:
     unicode = str

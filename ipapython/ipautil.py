@@ -51,7 +51,6 @@ from ipapython import ipavalidate
 from ipapython import config
 from ipaplatform.paths import paths
 from ipapython.dn import DN
-from ipapython.dnsutil import DNSName, is_auto_empty_zone
 
 SHARE_DIR = paths.USR_SHARE_IPA_DIR
 PLUGINS_SHARE_DIR = paths.IPA_PLUGINS
@@ -1028,40 +1027,6 @@ def reverse_record_exists(ip_address):
         # really don't care what exception, PTR is simply unresolvable
         return False
     return True
-
-
-def check_zone_overlap(zone, raise_on_error=True):
-    root_logger.info("Checking DNS domain %s, please wait ..." % zone)
-    if not isinstance(zone, DNSName):
-        zone = DNSName(zone).make_absolute()
-
-    # automatic empty zones always exist so checking them is pointless,
-    # do not report them to avoid meaningless error messages
-    if is_auto_empty_zone(zone):
-        return
-
-    try:
-        containing_zone = resolver.zone_for_name(zone)
-    except DNSException as e:
-        msg = ("DNS check for domain %s failed: %s." % (zone, e))
-        if raise_on_error:
-            raise ValueError(msg)
-        else:
-            root_logger.warning(msg)
-            return
-
-    if containing_zone == zone:
-        try:
-            ns = [ans.to_text() for ans in resolver.query(zone, 'NS')]
-        except DNSException as e:
-            root_logger.debug("Failed to resolve nameserver(s) for domain"
-                              " {0}: {1}".format(zone, e))
-            ns = []
-
-        msg = u"DNS zone {0} already exists in DNS".format(zone)
-        if ns:
-            msg += u" and is handled by server(s): {0}".format(', '.join(ns))
-        raise ValueError(msg)
 
 
 def config_replace_variables(filepath, replacevars=dict(), appendvars=dict()):
