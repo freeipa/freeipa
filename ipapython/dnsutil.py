@@ -24,6 +24,9 @@ import copy
 
 import six
 
+from ipapython.ipautil import CheckedIPAddress
+from ipapython.ipa_log_manager import root_logger
+
 if six.PY3:
     unicode = str
 
@@ -229,6 +232,62 @@ def inside_auto_empty_zone(name):
         if name.is_subdomain(aez):
             return True
     return False
+
+
+def resolve_rrsets(fqdn, rdtypes):
+    """
+    Get Resource Record sets for given FQDN.
+    CNAME chain is followed during resolution
+    but CNAMEs are not returned in the resulting rrset.
+
+    :returns:
+        set of dns.rrset.RRset objects, can be empty
+        if the FQDN does not exist or if none of rrtypes exist
+    """
+    # empty set of rdtypes would always return empty set of rrsets
+    assert rdtypes, "rdtypes must not be empty"
+
+    if not isinstance(fqdn, DNSName):
+        fqdn = DNSName(fqdn)
+
+    fqdn = fqdn.make_absolute()
+    rrsets = set()
+    for rdtype in rdtypes:
+        try:
+            answer = dns.resolver.query(fqdn, rdtype)
+            root_logger.debug('found %d %s records for %s: %s',
+                              len(answer), rdtype, fqdn, ' '.join(
+                                  str(rr) for rr in answer))
+            rrsets.add(answer.rrset)
+        except dns.resolver.NXDOMAIN as ex:
+            root_logger.debug(ex)
+            break  # no such FQDN, do not iterate
+        except dns.resolver.NoAnswer as ex:
+            root_logger.debug(ex)  # record type does not exist for given FQDN
+        except dns.exception.DNSException as ex:
+            root_logger.error('DNS query for %s %s failed: %s',
+                              fqdn, rdtype, ex)
+            raise
+
+    return rrsets
+
+
+def resolve_ip_addresses(fqdn):
+    """Get IP addresses from DNS A/AAAA records for given host.
+    :returns:
+        list of IP addresses as CheckedIPAddress objects
+    """
+    rrsets = resolve_rrsets(fqdn, ['A', 'AAAA'])
+    ip_addresses = set()
+    for rrset in rrsets:
+        ip_addresses.update({CheckedIPAddress(ip,  # accept whatever is in DNS
+                                              parse_netmask=False,
+                                              allow_network=True,
+                                              allow_loopback=True,
+                                              allow_broadcast=True,
+                                              allow_multicast=True)
+                             for ip in rrset})
+    return ip_addresses
 
 
 def check_zone_overlap(zone, raise_on_error=True):

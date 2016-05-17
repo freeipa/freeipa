@@ -57,7 +57,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipapython import certmonger
-
+from ipapython import dnsutil
 
 if six.PY3:
     unicode = str
@@ -447,24 +447,6 @@ def create_keytab(path, principal):
 
     kadmin("ktadd -k " + path + " " + principal)
 
-def resolve_host(host_name):
-    try:
-        addrinfos = socket.getaddrinfo(host_name, None,
-                                       socket.AF_UNSPEC, socket.SOCK_STREAM)
-
-        ip_list = []
-
-        for ai in addrinfos:
-            ip = ai[4][0]
-            if ip == "127.0.0.1" or ip == "::1":
-                raise HostnameLocalhost("The hostname resolves to the localhost address")
-
-            ip_list.append(ip)
-
-        return ip_list
-    except socket.error:
-        return []
-
 def get_host_name(no_host_dns):
     """
     Get the current FQDN from the socket and verify that it is valid.
@@ -480,9 +462,10 @@ def get_host_name(no_host_dns):
 
 def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
     # Check we have a public IP that is associated with the hostname
-    try:
-        hostaddr = resolve_host(host_name)
-    except HostnameLocalhost:
+    hostaddr = dnsutil.resolve_ip_addresses(host_name)
+    if hostaddr.intersection(
+            {ipautil.CheckedIPAddress(ip, allow_loopback=True)
+             for ip in ['127.0.0.1', '::1']}):
         print("The hostname resolves to the localhost address (127.0.0.1/::1)", file=sys.stderr)
         print("Please change your /etc/hosts file so that the hostname", file=sys.stderr)
         print("resolves to the ip address of your network interface.", file=sys.stderr)

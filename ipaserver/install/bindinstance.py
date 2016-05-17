@@ -909,7 +909,9 @@ class BindInstance(service.Service):
             if fqdn == self.fqdn:
                 continue
 
-            addrs = installutils.resolve_host(fqdn)
+            addrs = dnsutil.resolve_ip_addresses(fqdn)
+            # hack, will go away with locations
+            addrs = [str(addr) for addr in addrs]
 
             root_logger.debug("Adding DNS records for master %s" % fqdn)
             self.__add_master_records(fqdn, addrs)
@@ -965,7 +967,9 @@ class BindInstance(service.Service):
                 if dns_zone_exists(zone, self.api):
                     addrs = get_fwd_rr(zone, host, api=self.api)
                 else:
-                    addrs = installutils.resolve_host(fqdn)
+                    addrs = dnsutil.resolve_ip_addresses(fqdn)
+                    # hack, will go away with locations
+                    addrs = [str(addr) for addr in addrs]
 
                 self.__add_ipa_ca_records(fqdn, addrs, True)
 
@@ -1085,7 +1089,9 @@ class BindInstance(service.Service):
         if dns_zone_exists(zone, self.api):
             addrs = get_fwd_rr(zone, host, api=self.api)
         else:
-            addrs = installutils.resolve_host(fqdn)
+            addrs = dnsutil.resolve_ip_addresses(fqdn)
+            # hack, will go away with locations
+            addrs = [str(addr) for addr in addrs]
 
         self.domain = domain_name
 
@@ -1173,7 +1179,9 @@ class BindInstance(service.Service):
         if dns_zone_exists(zone, self.api):
             addrs = get_fwd_rr(zone, host, api=self.api)
         else:
-            addrs = installutils.resolve_host(fqdn)
+            addrs = dnsutil.resolve_ip_addresses(fqdn)
+            # hack, will go away with locations
+            addrs = [str(addr) for addr in addrs]
 
         for addr in addrs:
             del_fwd_rr(domain_name, IPA_CA_RECORD, addr, api=self.api)
