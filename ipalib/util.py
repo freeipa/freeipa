@@ -42,8 +42,8 @@ from ipalib.text import _
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
 from ipapython.dnsutil import DNSName
+from ipapython.dnsutil import resolve_ip_addresses
 from ipapython.graph import Graph
-from ipapython.ipa_log_manager import root_logger
 
 if six.PY3:
     unicode = str
@@ -67,30 +67,12 @@ def json_serialize(obj):
 
 
 def verify_host_resolvable(fqdn):
-    """
-    See if the hostname has a DNS A/AAAA record.
-    """
-    if not isinstance(fqdn, DNSName):
-        fqdn = DNSName(fqdn)
-
-    fqdn = fqdn.make_absolute()
-    for rdtype in ('A', 'AAAA'):
-        try:
-            answers = resolver.query(fqdn, rdtype)
-            root_logger.debug(
-                'IPA: found %d %s records for %s: %s' % (len(answers),
-                rdtype, fqdn, ' '.join(str(answer) for answer in answers))
-            )
-        except DNSException:
-            root_logger.debug(
-                'IPA: DNS %s record lookup failed for %s' %
-                (rdtype, fqdn)
-            )
-            continue
-        else:
-            return
-    # dns lookup failed in both tries
-    raise errors.DNSNotARecordError()
+    try:
+        if not resolve_ip_addresses(fqdn):
+            raise errors.DNSNotARecordError(hostname=fqdn)
+    except dns.exception.DNSException as ex:
+        # wrap DNSException in a PublicError
+        raise errors.DNSResolverError(exception=ex)
 
 
 def has_soa_or_ns_record(domain):
