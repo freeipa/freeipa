@@ -3,19 +3,25 @@
 #
 from __future__ import absolute_import
 
+import six
+
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipatests.util import assert_deepequal
 from ipatests.test_xmlrpc.tracker.base import Tracker
 
 
+if six.PY3:
+    unicode = str
+
+
 class LocationTracker(Tracker):
     """Tracker for IPA Location tests"""
-    retrieve_keys = {'idnsname', 'description', 'dn'}
+    retrieve_keys = {'idnsname', 'description', 'dn', 'servers_server'}
     retrieve_all_keys = retrieve_keys | {'objectclass'}
-    create_keys = retrieve_keys | {'objectclass'}
-    find_keys = retrieve_keys
-    find_all_keys = retrieve_all_keys
+    create_keys = {'idnsname', 'description', 'dn', 'objectclass'}
+    find_keys = {'idnsname', 'description', 'dn',}
+    find_all_keys = find_keys | {'objectclass'}
     update_keys = {'idnsname', 'description'}
 
     def __init__(self, name, description=u"Location description"):
@@ -34,13 +40,15 @@ class LocationTracker(Tracker):
             'cn=etc', self.api.env.basedn
         )
 
+        self.servers = {}
+
     def make_create_command(self, force=None):
         """Make function that creates this location using location-add"""
         return self.make_command(
             'location_add', self.idnsname, description=self.description,
         )
 
-    def make_delete_command(self):
+    def make_delete_command(self, force=None):
         """Make function that removes this location using location-del"""
         return self.make_command('location_del', self.idnsname)
 
@@ -95,6 +103,7 @@ class LocationTracker(Tracker):
             value=self.idnsname_obj,
             summary=None,
             result=expected,
+            servers=self.servers,
         ), result)
 
     def check_find(self, result, all=False, raw=False):
@@ -117,3 +126,26 @@ class LocationTracker(Tracker):
             summary=u'Modified IPA location "{loc}"'.format(loc=self.idnsname),
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)
+
+    def add_server_to_location(
+            self, server_name, weight=100, relative_weight=u"100.0%"):
+        self.attrs.setdefault('servers_server', []).append(server_name)
+        self.servers[server_name] = {
+            'cn': [server_name],
+            'ipalocationweight': [unicode(weight)],
+            'location_relative_weight': [relative_weight]
+        }
+
+    def remove_server_from_location(self, server_name):
+        if 'servers_server' in self.attrs:
+            try:
+                self.attrs['servers_server'].remove(server_name)
+            except ValueError:
+                pass
+            else:
+                if not self.attrs['servers_server']:
+                    del self.attrs['servers_server']
+        try:
+            del self.servers[server_name]
+        except KeyError:
+            pass

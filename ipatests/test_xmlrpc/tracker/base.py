@@ -281,6 +281,10 @@ class Tracker(object):
         result = command()
         self.attrs.update(updates)
         self.attrs.update(expected_updates)
+        for key, value in self.attrs.items():
+            if value is None:
+                del self.attrs[key]
+
         self.check_update(result, extra_keys=set(updates.keys()) |
                                              set(expected_updates.keys()))
 
