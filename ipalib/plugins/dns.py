@@ -1563,7 +1563,7 @@ def check_ns_rec_resolvable(zone, name, log):
         # this is a DNS name relative to the zone
         name = name.derelativize(zone.make_absolute())
     try:
-        verify_host_resolvable(name, log)
+        verify_host_resolvable(name)
     except errors.DNSNotARecordError:
         raise errors.NotFound(
             reason=_('Nameserver \'%(host)s\' does not have a corresponding '
@@ -4222,7 +4222,7 @@ class dns_resolve(Command):
         query=args[0]
 
         try:
-            verify_host_resolvable(query, self.log)
+            verify_host_resolvable(query)
         except errors.DNSNotARecordError:
             raise errors.NotFound(
                 reason=_('Host \'%(host)s\' not found') % {'host': query}

@@ -830,7 +830,7 @@ def enforce_host_existence(host, message=None):
         return
 
     try:
-        verify_host_resolvable(host, root_logger)
+        verify_host_resolvable(host)
     except errors.DNSNotARecordError as ex:
         if message is None:
             message = "Unknown host %s: %s" % (host, ex)

@@ -1750,7 +1750,7 @@ def get_server_connection_interface(server):
 def client_dns(server, hostname, options):
 
     try:
-        verify_host_resolvable(hostname, root_logger)
+        verify_host_resolvable(hostname)
         dns_ok = True
     except errors.DNSNotARecordError:
         root_logger.warning("Hostname (%s) does not have A/AAAA record.",
