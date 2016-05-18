@@ -2215,7 +2215,7 @@ class LDAPAddReverseMember(LDAPModReverseMember):
                     failed['member'][self.reverse_attr].append((attr, unicode(msg.strip())))
 
             except errors.PublicError as e:
-                failed['member'][self.reverse_attr].append((attr, unicode(msg)))
+                failed['member'][self.reverse_attr].append((attr, unicode(e)))
 
         # Update the member data.
         entry_attrs = ldap.get_entry(dn, ['*'])
@@ -2316,7 +2316,7 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
                     failed['member'][self.reverse_attr].append((attr, unicode(msg.strip())))
 
             except errors.PublicError as e:
-                failed['member'][self.reverse_attr].append((attr, unicode(msg)))
+                failed['member'][self.reverse_attr].append((attr, unicode(e)))
 
         # Update the member data.
         entry_attrs = ldap.get_entry(dn, ['*'])
