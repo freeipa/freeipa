@@ -106,7 +106,13 @@ class test_realmdomains(Declarative):
                             "'%s'" % (new_domain_1, api.env.realm),
                             u'code': 13011,
                             u'type': u'warning',
-                            u'name': u'KerberosTXTRecordCreationFailure'},
+                            u'name': u'KerberosTXTRecordCreationFailure',
+                            u'data': {
+                                u'domain': new_domain_1,
+                                u'realm': api.env.realm,
+                                u'error': (u"%s.: DNS zone not found" %
+                                           new_domain_1),
+                            }},
                 ),
                 result=dict(
                     associateddomain=[our_domain, new_domain_1],
@@ -131,7 +137,13 @@ class test_realmdomains(Declarative):
                                                  realm=api.env.realm),
                             u'code': 13011,
                             u'type': u'warning',
-                            u'name': u'KerberosTXTRecordCreationFailure'},
+                            u'name': u'KerberosTXTRecordCreationFailure',
+                            u'data': {
+                                u'domain': new_domain_2,
+                                u'realm': api.env.realm,
+                                u'error': (u"%s.: DNS zone not found" %
+                                           new_domain_2),
+                            }},
                 ),
             ),
         ),
@@ -151,7 +163,12 @@ class test_realmdomains(Declarative):
                             "manually." % dict(domain=new_domain_2),
                             u'code': 13012,
                             u'type': u'warning',
-                            u'name': u'KerberosTXTRecordDeletionFailure'},
+                            u'name': u'KerberosTXTRecordDeletionFailure',
+                            u'data': {
+                                u'domain': new_domain_2,
+                                u'error': (u"%s.: DNS zone not found" %
+                                           new_domain_2),
+                            }},
                 ),
             ),
         ),
@@ -173,7 +190,13 @@ class test_realmdomains(Declarative):
                                                  realm=api.env.realm),
                             u'code': 13011,
                             u'type': u'warning',
-                            u'name': u'KerberosTXTRecordCreationFailure'},
+                            u'name': u'KerberosTXTRecordCreationFailure',
+                            u'data': {
+                                u'domain': new_domain_2,
+                                u'realm': api.env.realm,
+                                u'error': (u"%s.: DNS zone not found" %
+                                           new_domain_2),
+                            }},
                           {u'message': u"The _kerberos TXT record from domain "
                             "%(domain)s could not be removed (%(domain)s.: "
                             "DNS zone not found).\nThis can happen if the zone "
@@ -181,7 +204,12 @@ class test_realmdomains(Declarative):
                             "manually." % dict(domain=new_domain_1),
                             u'code': 13012,
                             u'type': u'warning',
-                            u'name': u'KerberosTXTRecordDeletionFailure'},
+                            u'name': u'KerberosTXTRecordDeletionFailure',
+                            u'data': {
+                                u'domain': new_domain_1,
+                                u'error': (u"%s.: DNS zone not found" %
+                                           new_domain_1),
+                            }},
                 ),
             ),
         ),
@@ -242,7 +270,13 @@ class test_realmdomains(Declarative):
                                                  realm=api.env.realm),
                             u'code': 13011,
                             u'type': u'warning',
-                            u'name': u'KerberosTXTRecordCreationFailure'},
+                            u'name': u'KerberosTXTRecordCreationFailure',
+                            u'data': {
+                                u'domain': bad_domain,
+                                u'realm': api.env.realm,
+                                u'error': (u"%s.: DNS zone not found" %
+                                           bad_domain),
+                            }},
                 ),
             ),
         ),

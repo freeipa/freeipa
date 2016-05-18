@@ -154,7 +154,8 @@ class test_dns_realmdomains_integration(Declarative):
                     u'the docs.',
                     u'code': 13002,
                     u'type': u'warning',
-                    u'name': u'ForwardersWarning'
+                    u'name': u'ForwardersWarning',
+                    u'data': {}
                 },),
                 'result': {
                     'dn': dnszone_2_dn,

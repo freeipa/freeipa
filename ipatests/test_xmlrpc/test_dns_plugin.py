@@ -592,7 +592,14 @@ class test_dns(Declarative):
                                 u"apex - '@'. ",
                      'code': 13005,
                      'type': u'warning',
-                     'name': u'OptionSemanticChangedWarning'},
+                     'name': u'OptionSemanticChangedWarning',
+                     'data': {
+                        'current_behavior': u"It is used only for setting the "
+                                            u"SOA MNAME attribute.",
+                        'hint': u"NS record(s) can be edited in zone apex - "
+                                u"'@'. ",
+                        'label': u"setting Authoritative nameserver"
+                     }},
                 )
             },
         ),
@@ -1759,7 +1766,11 @@ class test_dns(Declarative):
                         u"DNS server %s: query '. SOA':" % fwd_ip),
                      u'code': 13006,
                      u'type':u'warning',
-                     u'name': u'DNSServerValidationWarning'},
+                     u'name': u'DNSServerValidationWarning',
+                     u'data': {
+                        u'error': lambda x: x.startswith(u"query '. SOA':"),
+                        u'server': u"%s" % fwd_ip
+                     }},
                 ),
                 'result': {
                     'idnsforwarders': [fwd_ip],
@@ -2898,7 +2909,15 @@ class test_dns(Declarative):
                                    u"on a randomly chosen IPA server.",
                         'code': 13015,
                         'type': u'warning',
-                        'name': u'CommandDeprecatedWarning'
+                        'name': u'CommandDeprecatedWarning',
+                        'data': {
+                            'command': u"dns-resolve",
+                            'additional_info': u"The command may return an "
+                                               u"unexpected result, the "
+                                               u"resolution of the DNS domain "
+                                               u"is done on a randomly chosen "
+                                               u"IPA server."
+                        }
                     },)
             },
         ),
@@ -2918,7 +2937,15 @@ class test_dns(Declarative):
                                    u"on a randomly chosen IPA server.",
                         'code': 13015,
                         'type': u'warning',
-                        'name': u'CommandDeprecatedWarning'
+                        'name': u'CommandDeprecatedWarning',
+                        'data': {
+                            'command': u"dns-resolve",
+                            'additional_info': u"The command may return an "
+                                               u"unexpected result, the "
+                                               u"resolution of the DNS domain "
+                                               u"is done on a randomly chosen "
+                                               u"IPA server."
+                        }
                     },)
             },
         ),
@@ -3415,7 +3442,12 @@ class test_forward_zones(Declarative):
                         (forwarder1, fwzone2)),
                      u'code': 13006,
                      u'type':u'warning',
-                     u'name': u'DNSServerValidationWarning'},
+                     u'name': u'DNSServerValidationWarning',
+                     u'data': {
+                        u'error': lambda x: x.startswith(
+                            u"query '%s SOA':" % forwarder1),
+                        u'server': u"%s" % fwzone2
+                     }},
                 ),
                 'result': {
                     'dn': fwzone2_dn,
@@ -4871,7 +4903,12 @@ class test_forwardzone_delegation_warnings(Declarative):
                                  u'"fw.sub" to parent zone "dnszone.test.".',
                      'code': 13008,
                      'type': u'warning',
-                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                     'name': u'ForwardzoneIsNotEffectiveWarning',
+                     'data': {
+                        'authzone': zone1_absolute,
+                        'fwzone': zone1_sub_fw,
+                        'ns_rec': zone1_sub_fw[:-len(zone1_absolute) - 1]
+                     }},
                 ),
             },
         ),
@@ -4912,7 +4949,12 @@ class test_forwardzone_delegation_warnings(Declarative):
                                 u'"fw" to parent zone "sub.dnszone.test.".',
                      'code': 13008,
                      'type': u'warning',
-                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                     'name': u'ForwardzoneIsNotEffectiveWarning',
+                     'data': {
+                        'authzone': zone1_sub,
+                        'fwzone': zone1_sub_fw,
+                        'ns_rec': zone1_sub_fw[:-len(zone1_sub) - 1]
+                     }},
                 ),
             },
         ),
@@ -4936,7 +4978,12 @@ class test_forwardzone_delegation_warnings(Declarative):
                                 u'"fw.sub" to parent zone "dnszone.test.".',
                      'code': 13008,
                      'type': u'warning',
-                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                     'name': u'ForwardzoneIsNotEffectiveWarning',
+                     'data': {
+                        'authzone': zone1_absolute,
+                        'fwzone': zone1_sub_fw,
+                        'ns_rec': zone1_sub_fw[:-len(zone1_absolute) - 1]
+                     }},
                 ),
             },
         ),
@@ -4960,7 +5007,12 @@ class test_forwardzone_delegation_warnings(Declarative):
                                 u'"fw" to parent zone "sub.dnszone.test.".',
                      'code': 13008,
                      'type': u'warning',
-                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                     'name': u'ForwardzoneIsNotEffectiveWarning',
+                     'data': {
+                        'authzone': zone1_sub,
+                        'fwzone': zone1_sub_fw,
+                        'ns_rec': zone1_sub_fw[:-len(zone1_sub) - 1]
+                     }},
                 ),
             },
         ),
@@ -4997,7 +5049,12 @@ class test_forwardzone_delegation_warnings(Declarative):
                                 u'"fw" to parent zone "sub.dnszone.test.".',
                      'code': 13008,
                      'type': u'warning',
-                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                     'name': u'ForwardzoneIsNotEffectiveWarning',
+                     'data': {
+                        'authzone': zone1_sub,
+                        'fwzone': zone1_sub_fw,
+                        'ns_rec': zone1_sub_fw[:-len(zone1_sub) - 1]
+                     }},
                 ),
             },
         ),
@@ -5039,7 +5096,12 @@ class test_forwardzone_delegation_warnings(Declarative):
                                 u'"fw.sub" to parent zone "dnszone.test.".',
                      'code': 13008,
                      'type': u'warning',
-                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                     'name': u'ForwardzoneIsNotEffectiveWarning',
+                     'data': {
+                        'authzone': zone1_absolute,
+                        'fwzone': zone1_sub_fw,
+                        'ns_rec': zone1_sub_fw[:-len(zone1_absolute) - 1]
+                     }},
                 ),
             },
         ),
@@ -5078,7 +5140,12 @@ class test_forwardzone_delegation_warnings(Declarative):
                                 u'"fw" to parent zone "sub.dnszone.test.".',
                      'code': 13008,
                      'type': u'warning',
-                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                     'name': u'ForwardzoneIsNotEffectiveWarning',
+                     'data': {
+                        'authzone': zone1_sub,
+                        'fwzone': zone1_sub_fw,
+                        'ns_rec': zone1_sub_fw[:-len(zone1_sub) - 1]
+                     }},
                 ),
             },
         ),
@@ -5110,7 +5177,12 @@ class test_forwardzone_delegation_warnings(Declarative):
                                 u'"sub.dnszone.test.".',
                      'code': 13008,
                      'type': u'warning',
-                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                     'name': u'ForwardzoneIsNotEffectiveWarning',
+                     'data': {
+                        'authzone': zone1_sub,
+                        'fwzone': zone1_sub2_fw,
+                        'ns_rec': zone1_sub2_fw[:-len(zone1_sub) - 1]
+                     }},
                 ),
             },
         ),
@@ -5176,7 +5248,12 @@ class test_forwardzone_delegation_warnings(Declarative):
                                 u'"fw.sub" to parent zone "dnszone.test.".',
                      'code': 13008,
                      'type': u'warning',
-                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                     'name': u'ForwardzoneIsNotEffectiveWarning',
+                     'data': {
+                        'authzone': zone1_absolute,
+                        'fwzone': zone1_sub_fw,
+                        'ns_rec': zone1_sub_fw[:-len(zone1_absolute) - 1]
+                     }},
                     {'message': u'forward zone "fw.sub2.sub.dnszone.test." '
                                  u'is not effective because of missing proper '
                                  u'NS delegation in authoritative zone '
@@ -5185,7 +5262,12 @@ class test_forwardzone_delegation_warnings(Declarative):
                                  u'"dnszone.test.".',
                      'code': 13008,
                      'type': u'warning',
-                     'name': u'ForwardzoneIsNotEffectiveWarning'}
+                     'name': u'ForwardzoneIsNotEffectiveWarning',
+                     'data': {
+                        'authzone': zone1_absolute,
+                        'fwzone': zone1_sub2_fw,
+                        'ns_rec': zone1_sub2_fw[:-len(zone1_absolute) - 1]
+                     }}
                 ),
             },
         ),
@@ -5230,7 +5312,12 @@ class test_forwardzone_delegation_warnings(Declarative):
                                 u'"dnszone.test.".',
                      'code': 13008,
                      'type': u'warning',
-                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                     'name': u'ForwardzoneIsNotEffectiveWarning',
+                     'data': {
+                        'authzone': zone1_absolute,
+                        'fwzone': zone1_sub2_fw,
+                        'ns_rec': zone1_sub2_fw[:-len(zone1_absolute) - 1]
+                     }},
                 ),
             },
         ),
@@ -5478,6 +5565,13 @@ class test_dns_soa(Declarative):
                     'code': 13005,
                     'type': u'warning',
                     'name': u'OptionSemanticChangedWarning',
+                    'data': {
+                        'current_behavior': u"It is used only for setting the "
+                                            u"SOA MNAME attribute.",
+                        'hint': u"NS record(s) can be edited in zone apex - "
+                                u"'@'. ",
+                        'label': u"setting Authoritative nameserver",
+                    },
                 }],
             },
         ),
@@ -5533,6 +5627,13 @@ class test_dns_soa(Declarative):
                     'code': 13005,
                     'type': u'warning',
                     'name': u'OptionSemanticChangedWarning',
+                    'data': {
+                        'current_behavior': u"It is used only for setting the "
+                                            u"SOA MNAME attribute.",
+                        'hint': u"NS record(s) can be edited in zone apex - "
+                                u"'@'. ",
+                        'label': u"setting Authoritative nameserver",
+                    },
                 }],
             },
         ),
@@ -5574,6 +5675,13 @@ class test_dns_soa(Declarative):
                     'code': 13005,
                     'type': u'warning',
                     'name': u'OptionSemanticChangedWarning',
+                    'data': {
+                        'current_behavior': u"It is used only for setting the "
+                                            u"SOA MNAME attribute.",
+                        'hint': u"NS record(s) can be edited in zone apex - "
+                                u"'@'. ",
+                        'label': u"setting Authoritative nameserver",
+                    },
                 }],
             },
         ),
@@ -5615,6 +5723,13 @@ class test_dns_soa(Declarative):
                     'code': 13005,
                     'type': u'warning',
                     'name': u'OptionSemanticChangedWarning',
+                    'data': {
+                        'current_behavior': u"It is used only for setting the "
+                                            u"SOA MNAME attribute.",
+                        'hint': u"NS record(s) can be edited in zone apex - "
+                                u"'@'. ",
+                        'label': u"setting Authoritative nameserver",
+                    },
                 }],
             },
         ),
@@ -5818,6 +5933,13 @@ class test_dns_soa(Declarative):
                     'code': 13005,
                     'type': u'warning',
                     'name': u'OptionSemanticChangedWarning',
+                    'data': {
+                        'current_behavior': u"It is used only for setting the "
+                                            u"SOA MNAME attribute.",
+                        'hint': u"NS record(s) can be edited in zone apex - "
+                                u"'@'. ",
+                        'label': u"setting Authoritative nameserver",
+                    },
                 }], },
         ),
         dict(
@@ -5874,6 +5996,13 @@ class test_dns_soa(Declarative):
                     'code': 13005,
                     'type': u'warning',
                     'name': u'OptionSemanticChangedWarning',
+                    'data': {
+                        'current_behavior': u"It is used only for setting the "
+                                            u"SOA MNAME attribute.",
+                        'hint': u"NS record(s) can be edited in zone apex - "
+                                u"'@'. ",
+                        'label': u"setting Authoritative nameserver",
+                    },
                 }],
             },
         ),

@@ -1097,7 +1097,9 @@ class JSONServerProxy(object):
                     server=self.__host,
                 )
             else:
-                raise error_class(message=error['message'])
+                kw = error.get('data', {})
+                kw['message'] = error['message']
+                raise error_class(**kw)
 
         return response['result']
 

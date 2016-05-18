@@ -128,11 +128,17 @@ class test_batch(Declarative):
                         error=u'%s: group not found' % group1,
                         error_name=u'NotFound',
                         error_code=4001,
+                        error_kw=dict(
+                            reason=u'%s: group not found' % group1,
+                        ),
                     ),
                     dict(
                         error=u'%s: group not found' % group1,
                         error_name=u'NotFound',
                         error_code=4001,
+                        error_kw=dict(
+                            reason=u'%s: group not found' % group1,
+                        ),
                     ),
                 ],
             ),
@@ -152,6 +158,9 @@ class test_batch(Declarative):
                         error=u'%s: group not found' % group1,
                         error_name=u'NotFound',
                         error_code=4001,
+                        error_kw=dict(
+                            reason=u'%s: group not found' % group1,
+                        ),
                     ),
                     dict(
                         value=group1,
@@ -198,36 +207,58 @@ class test_batch(Declarative):
                         error=u"unknown command 'nonexistent_ipa_command'",
                         error_name=u'CommandError',
                         error_code=905,
+                        error_kw=dict(
+                            name=u'nonexistent_ipa_command',
+                        ),
                     ),
                     dict(
                         error=u"unknown command 'user-del'",
                         error_name=u'CommandError',
                         error_code=905,
+                        error_kw=dict(
+                            name=u'user-del',
+                        ),
                     ),
                     dict(
                         error=u"'method' is required",
                         error_name=u'RequirementError',
                         error_code=3007,
+                        error_kw=dict(
+                            name=u'method',
+                        ),
                     ),
                     dict(
                         error=u"'params' is required",
                         error_name=u'RequirementError',
                         error_code=3007,
+                        error_kw=dict(
+                            name=u'params',
+                        ),
                     ),
                     dict(
                         error=u"'givenname' is required",
                         error_name=u'RequirementError',
                         error_code=3007,
+                        error_kw=dict(
+                            name=u'givenname',
+                        ),
                     ),
                     dict(
                         error=u"'sn' is required",
                         error_name=u'RequirementError',
                         error_code=3007,
+                        error_kw=dict(
+                            name=u'sn',
+                        ),
                     ),
                     dict(
                         error=Fuzzy(u"invalid 'gid'.*"),
                         error_name=u'ConversionError',
                         error_code=3008,
+                        error_kw=dict(
+                            name=u'gid',
+                            error=Fuzzy(u'.*'),
+                        ),
                     ),
                 ),
             ),

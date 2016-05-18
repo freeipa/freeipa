@@ -822,7 +822,10 @@ class test_permission(Declarative):
                                     u'Configured size limit exceeded'),
                         'code': 13017,
                         'type': u'warning',
-                        'name': u'SearchResultTruncated'
+                        'name': u'SearchResultTruncated',
+                        'data': {
+                            'reason': u"Configured size limit exceeded"
+                        }
                     },
                 ),
             ),
@@ -886,7 +889,10 @@ class test_permission(Declarative):
                                     u'Configured size limit exceeded'),
                         'code': 13017,
                         'type': u'warning',
-                        'name': u'SearchResultTruncated'
+                        'name': u'SearchResultTruncated',
+                        'data': {
+                            'reason': u"Configured size limit exceeded"
+                        }
                     },
                 ),
             ),

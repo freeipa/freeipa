@@ -136,6 +136,7 @@ class batch(Command):
                     error=reported_error.strerror,
                     error_code=reported_error.errno,
                     error_name=unicode(type(reported_error).__name__),
+                    error_kw=reported_error.kw,
                 )
             results.append(result)
         return dict(count=len(results) , results=results)

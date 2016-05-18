@@ -49,6 +49,12 @@ def add_message(version, result, message):
 
 
 def process_message_arguments(obj, format=None, message=None, **kw):
+    for key, value in kw.items():
+        if not isinstance(value, six.integer_types):
+            try:
+                kw[key] = unicode(value)
+            except UnicodeError:
+                pass
     obj.kw = kw
     name = obj.__class__.__name__
     if obj.format is not None and format is not None:
@@ -120,6 +126,7 @@ class PublicMessage(UserWarning):
             name=unicode(type(self).__name__),
             message=self.strerror,
             code=self.errno,
+            data=self.kw,
         )
 
     if six.PY3:
