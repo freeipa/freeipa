@@ -756,10 +756,6 @@ def clean_dangling_ruvs(realm, host, options):
                 print('\t\tid: {id}, hostname: {host}'
                       .format(id=csruv[1], host=csruv[0]))
 
-    # TODO: this can be removed when #5396 is fixed
-    if offlines:
-        sys.exit("ERROR: All replicas need to be online to proceed.")
-
     if not options.force and not ipautil.user_input("Proceed with cleaning?", False):
         sys.exit("Aborted")
 

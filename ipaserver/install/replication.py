@@ -1354,6 +1354,7 @@ class ReplicationManager(object):
                 'cn': ['clean %d' % replicaId],
                 'replica-base-dn': [self.db_suffix],
                 'replica-id': [replicaId],
+                'replica-force-cleaning': ['yes'],
             }
         )
         try:
