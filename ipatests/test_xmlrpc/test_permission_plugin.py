@@ -195,7 +195,7 @@ class test_permission_negative(Declarative):
                     attrs=[u'sn'],
                 )
             ),
-            expected=errors.RequirementError(name='ipapermright'),
+            expected=errors.RequirementError(name='right'),
         ),
 
         dict(
@@ -310,7 +310,7 @@ class test_permission_negative(Declarative):
                     ipapermright=None,
                 )
             ),
-            expected=errors.RequirementError(name='ipapermright'),
+            expected=errors.RequirementError(name='right'),
         ),
 
         dict(

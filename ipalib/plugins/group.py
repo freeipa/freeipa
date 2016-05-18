@@ -413,7 +413,7 @@ class group_mod(LDAPUpdate):
 
         # Can't check for this in a validator because we lack context
         if 'gidnumber' in options and options['gidnumber'] is None:
-            raise errors.RequirementError(name='gid')
+            raise errors.RequirementError(name='gidnumber')
         return dn
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
@@ -422,7 +422,7 @@ class group_mod(LDAPUpdate):
         if call_func.__name__ == 'update_entry':
             if isinstance(exc, errors.ObjectclassViolation):
                 if 'gidNumber' in exc.message and 'posixGroup' in exc.message:
-                    raise errors.RequirementError(name='gid')
+                    raise errors.RequirementError(name='gidnumber')
         raise exc
 
 

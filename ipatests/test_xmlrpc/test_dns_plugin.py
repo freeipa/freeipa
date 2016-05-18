@@ -1179,7 +1179,7 @@ class test_dns(Declarative):
         dict(
             desc='Try to modify SRV record in zone %r without specifying modified value' % (zone1),
             command=('dnsrecord_mod', [zone1, u'_foo._tcp'], {'srv_part_priority': 1,}),
-            expected=errors.RequirementError(name='srvrecord'),
+            expected=errors.RequirementError(name='srv_rec'),
         ),
 
         dict(

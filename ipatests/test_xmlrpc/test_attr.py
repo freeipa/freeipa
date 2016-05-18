@@ -147,7 +147,7 @@ class TestAttrOnUser(XMLRPC_test):
         """ Try setting givenname to None with setattr in user """
         user.ensure_exists()
         command = user.make_update_command(dict(setattr=(u'givenname=')))
-        with raises_exact(errors.RequirementError(name='givenname')):
+        with raises_exact(errors.RequirementError(name='first')):
             command()
 
     def test_set_givenname_to_none_with_option(self, user):
@@ -219,7 +219,7 @@ class TestAttrOnConfigs(XMLRPC_test):
             **dict(delattr=u'ipasearchrecordslimit=100')
         )
         with raises_exact(errors.RequirementError(
-                name='ipasearchrecordslimit')):
+                name='searchrecordslimit')):
             command()
 
     def test_set_nonexistent_attribute(self, user):

@@ -787,7 +787,7 @@ sides.
             )
 
         if 'trust_type' not in options:
-            raise errors.RequirementError(name=_('trust type'))
+            raise errors.RequirementError(name='trust_type')
 
         if options['trust_type'] != u'ad':
             raise errors.ValidationError(

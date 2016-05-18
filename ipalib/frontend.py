@@ -37,7 +37,7 @@ from ipalib.text import _
 from ipalib.errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
     VersionError, OptionError, InvocationError,
     ValidationError, ConversionError)
-from ipalib import messages
+from ipalib import errors, messages
 from ipalib.request import context, context_frame
 from ipalib.util import json_serialize
 
@@ -351,13 +351,6 @@ class HasParam(Plugin):
         for spec in get():
             param = create_param(spec)
             if env is None or param.use_in_context(env):
-                if env is not None and not hasattr(param, 'env'):
-                    # Force specified environment. The way it is done is violation of ReadOnly promise.
-                    # Unfortunately, all alternatives are worse from both performance and code complexity
-                    # points of view. See following threads on freeipa-devel@ for references:
-                    # https://www.redhat.com/archives/freeipa-devel/2011-August/msg00000.html
-                    # https://www.redhat.com/archives/freeipa-devel/2011-August/msg00011.html
-                    object.__setattr__(param, 'env', env)
                 yield param
 
     def _create_param_namespace(self, name, env=None):
@@ -735,7 +728,7 @@ class Command(HasParam):
         """
         for param in self.params():
             value = kw.get(param.name, None)
-            param.validate(value, self.env.context, supplied=param.name in kw)
+            param.validate(value, supplied=param.name in kw)
 
     def verify_client_version(self, client_version):
         """
@@ -796,7 +789,15 @@ class Command(HasParam):
         """
         Forward call over RPC to this same command on server.
         """
-        return self.Backend.rpcclient.forward(self.name, *args, **kw)
+        try:
+            return self.Backend.rpcclient.forward(self.name, *args, **kw)
+        except errors.RequirementError as e:
+            if self.api.env.context != 'cli':
+                raise
+            name = getattr(e, 'name', None)
+            if name is None or name not in self.params:
+                raise
+            raise errors.RequirementError(name=self.params[name].cli_name)
 
     def _on_finalize(self):
         """

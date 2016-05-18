@@ -61,7 +61,7 @@ class test_config(Declarative):
             desc='Try to remove ipausersearchfields',
             command=('config_mod', [],
                 dict(delattr=u'ipausersearchfields=uid,givenname,sn,telephonenumber,ou,title')),
-            expected=errors.RequirementError(name='ipausersearchfields'),
+            expected=errors.RequirementError(name='usersearch'),
         ),
 
         dict(

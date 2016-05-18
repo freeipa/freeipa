@@ -572,10 +572,7 @@ class Param(ReadOnly):
             value = self.get_default(**kw)
         else:
             value = self.convert(self.normalize(value))
-        if hasattr(self, 'env'):
-            self.validate(value, self.env.context, supplied=self.name in kw)  #pylint: disable=E1101
-        else:
-            self.validate(value, supplied=self.name in kw)
+        self.validate(value, supplied=self.name in kw)
         return value
 
     def get_param_name(self):
@@ -811,20 +808,16 @@ class Param(ReadOnly):
             return value
         raise ConversionError(name=self.name, error=ugettext(self.type_error))
 
-    def validate(self, value, context=None, supplied=None):
+    def validate(self, value, supplied=None):
         """
         Check validity of ``value``.
 
         :param value: A proposed value for this parameter.
-        :param context: The context we are running in.
         :param supplied: True if this parameter was supplied explicitly.
         """
         if value is None:
             if self.required or (supplied and 'nonempty' in self.flags):
-                if context == 'cli':
-                    raise RequirementError(name=self.cli_name)
-                else:
-                    raise RequirementError(name=self.name)
+                raise RequirementError(name=self.name)
             return
         if self.multivalue:
             if type(value) is not tuple:
