@@ -1618,14 +1618,18 @@ def configure_profiles_acl():
     conn.disconnect()
     return updated
 
-def import_included_profiles():
+
+def __get_profile_config(profile_id):
     sub_dict = dict(
         DOMAIN=ipautil.format_netloc(api.env.domain),
         IPA_CA_RECORD=IPA_CA_RECORD,
         CRL_ISSUER='CN=Certificate Authority,o=ipaca',
         SUBJECT_DN_O=dsinstance.DsInstance().find_subject_base(),
     )
+    return ipautil.template_file(
+        '/usr/share/ipa/profiles/{}.cfg'.format(profile_id), sub_dict)
 
+def import_included_profiles():
     server_id = installutils.realm_to_serverid(api.env.realm)
     dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
     conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
@@ -1662,15 +1666,54 @@ def import_included_profiles():
                 ipacertprofilestoreissued=['TRUE' if store_issued else 'FALSE'],
             )
             conn.add_entry(entry)
-            profile_data = ipautil.template_file(
-                '/usr/share/ipa/profiles/{}.cfg'.format(profile_id), sub_dict)
 
             # Create the profile, replacing any existing profile of same name
+            profile_data = __get_profile_config(profile_id)
             _create_dogtag_profile(profile_id, profile_data, overwrite=True)
             root_logger.info("Imported profile '%s'", profile_id)
 
     api.Backend.ra_certprofile.override_port = None
     conn.disconnect()
+
+
+def repair_profile_caIPAserviceCert():
+    """
+    A regression caused replica installation to replace the FreeIPA
+    version of caIPAserviceCert with the version shipped by Dogtag.
+
+    This function detects and repairs occurrences of this problem.
+
+    """
+    api.Backend.ra_certprofile._read_password()
+    api.Backend.ra_certprofile.override_port = 8443
+
+    profile_id = 'caIPAserviceCert'
+
+    with api.Backend.ra_certprofile as profile_api:
+        try:
+            cur_config = profile_api.read_profile(profile_id).splitlines()
+        except errors.RemoteRetrieveError as e:
+            # no profile there to check/repair
+            api.Backend.ra_certprofile.override_port = None
+            return
+
+    indicators = [
+        "policyset.serverCertSet.1.default.params.name="
+            "CN=$request.req_subject_name.cn$, OU=pki-ipa, O=IPA ",
+        "policyset.serverCertSet.9.default.params.crlDistPointsPointName_0="
+            "https://ipa.example.com/ipa/crl/MasterCRL.bin",
+        ]
+    need_repair = all(l in cur_config for l in indicators)
+
+    if need_repair:
+        root_logger.debug(
+            "Detected that profile '{}' has been replaced with "
+            "incorrect version; begin repair.".format(profile_id))
+        _create_dogtag_profile(
+            profile_id, __get_profile_config(profile_id), overwrite=True)
+        root_logger.debug("Repair of profile '{}' complete.".format(profile_id))
+
+    api.Backend.ra_certprofile.override_port = None
 
 
 def migrate_profiles_to_ldap():

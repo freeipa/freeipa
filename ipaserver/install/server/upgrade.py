@@ -1643,6 +1643,9 @@ def upgrade_configuration():
     ca_import_included_profiles(ca)
     add_default_caacl(ca)
 
+    if ca.is_configured():
+        cainstance.repair_profile_caIPAserviceCert()
+
     set_sssd_domain_option('ipa_server_mode', 'True')
 
     if ds_running and not ds.is_running():
