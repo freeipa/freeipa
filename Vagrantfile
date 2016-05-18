@@ -34,7 +34,7 @@ Vagrant.configure(2) do |config|
     replica.vm.hostname = "replica.ipademo.local"
 
     replica.vm.provision "shell",
-      inline: 'echo "nameserver 192.168.33.10" > /etc/resolv.conf'
+      inline: 'sudo echo "nameserver 192.168.33.10" > /etc/resolv.conf'
   end
 
   config.vm.define "client" do |client|
