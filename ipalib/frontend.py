@@ -559,8 +559,21 @@ class Command(HasParam):
         """
         Split params into (args, options).
         """
-        args = tuple(params.get(name, None) for name in self.args)
+        args = tuple()
         options = dict(self.__params_2_options(params))
+
+        is_arg = True
+        for name in self.args:
+            try:
+                value = params[name]
+            except KeyError:
+                is_arg = False
+                continue
+            if is_arg:
+                args += (value,)
+            else:
+                options[name] = value
+
         return (args, options)
 
     def __params_2_options(self, params):
