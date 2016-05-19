@@ -210,7 +210,8 @@ class topologysegment(LDAPObject):
             return  # nothing to check
 
         # check if nodes are IPA servers
-        masters = self.api.Command.server_find('', sizelimit=0)['result']
+        masters = self.api.Command.server_find(
+            '', sizelimit=0, no_members=False)['result']
         m_hostnames = [master['cn'][0].lower() for master in masters]
 
         if leftnode and leftnode not in m_hostnames:
@@ -472,7 +473,8 @@ Checks done:
 
         validate_domain_level(self.api)
 
-        masters = self.api.Command.server_find('', sizelimit=0)['result']
+        masters = self.api.Command.server_find(
+            '', sizelimit=0, no_members=False)['result']
         segments = self.api.Command.topologysegment_find(
             keys[0], sizelimit=0)['result']
         graph = create_topology_graph(masters, segments)

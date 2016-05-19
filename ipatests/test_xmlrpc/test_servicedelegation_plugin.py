@@ -134,8 +134,8 @@ class test_servicedelegation(Declarative):
 
 
         dict(
-            desc='Search for all rules',
-            command=('servicedelegationrule_find', [], {}),
+            desc='Search for all rules with members',
+            command=('servicedelegationrule_find', [], {'no_members': False}),
             expected=dict(
                 summary=u'3 service delegation rules matched',
                 count=3,
@@ -148,6 +148,32 @@ class test_servicedelegation(Declarative):
                         'ipaallowedtarget_servicedelegationtarget':
                             [u'ipa-ldap-delegation-targets',
                              u'ipa-cifs-delegation-targets']
+                    },
+                    dict(
+                        dn=get_servicedelegation_dn(rule2),
+                        cn=[rule2],
+                    ),
+                    dict(
+                        dn=get_servicedelegation_dn(rule1),
+                        cn=[rule1],
+                    ),
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for all rules',
+            command=('servicedelegationrule_find', [], {}),
+            expected=dict(
+                summary=u'3 service delegation rules matched',
+                count=3,
+                truncated=False,
+                result=[
+                    {
+                        'dn': get_servicedelegation_dn(u'ipa-http-delegation'),
+                        'cn': [u'ipa-http-delegation'],
+                        'memberprincipal': [princ1],
                     },
                     dict(
                         dn=get_servicedelegation_dn(rule2),

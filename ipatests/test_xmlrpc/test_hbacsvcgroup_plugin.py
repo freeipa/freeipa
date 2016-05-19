@@ -162,6 +162,26 @@ class test_hbacsvcgroup(Declarative):
 
 
         dict(
+            desc='Search for %r with members' % hbacsvcgroup1,
+            command=('hbacsvcgroup_find', [], dict(
+                cn=hbacsvcgroup1, no_members=False)),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 HBAC service group matched',
+                result=[
+                    {
+                        'dn': dn1,
+                        'member_hbacsvc': [hbacsvc1],
+                        'cn': [hbacsvcgroup1],
+                        'description': [u'Test hbacsvcgroup 1'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_find', [], dict(cn=hbacsvcgroup1)),
             expected=dict(
@@ -171,7 +191,6 @@ class test_hbacsvcgroup(Declarative):
                 result=[
                     {
                         'dn': dn1,
-                        'member_hbacsvc': [hbacsvc1],
                         'cn': [hbacsvcgroup1],
                         'description': [u'Test hbacsvcgroup 1'],
                     },

@@ -406,8 +406,9 @@ class test_netgroup(Declarative):
 
 
         dict(
-            desc='Search for netgroups using no_user',
-            command=('netgroup_find', [], dict(no_user=user1)),
+            desc='Search for netgroups using no_user with members',
+            command=('netgroup_find', [], dict(
+                no_user=user1, no_members=False)),
             expected=dict(
                 count=2,
                 truncated=False,
@@ -430,6 +431,32 @@ class test_netgroup(Declarative):
                 ],
             ),
         ),
+
+
+        dict(
+            desc='Search for netgroups using no_user',
+            command=('netgroup_find', [], dict(no_user=user1)),
+            expected=dict(
+                count=2,
+                truncated=False,
+                summary=u'2 netgroups matched',
+                result=[
+                    {
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                    },
+                    {
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup2],
+                        'description': [u'Test netgroup 2'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                    },
+                ],
+            ),
+        ),
+
 
         dict(
             desc="Check %r doesn't match when searching for %s" % (netgroup1, user1),
@@ -852,8 +879,9 @@ class test_netgroup(Declarative):
         ),
 
         dict(
-            desc='Search for %r' % netgroup1,
-            command=('netgroup_find', [], dict(cn=netgroup1)),
+            desc='Search for %r with members' % netgroup1,
+            command=('netgroup_find', [], dict(
+                cn=netgroup1, no_members=False)),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -874,6 +902,53 @@ class test_netgroup(Declarative):
                 ],
             ),
         ),
+
+
+        dict(
+            desc='Search for %r' % netgroup1,
+            command=('netgroup_find', [], dict(cn=netgroup1)),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 netgroup matched',
+                result=[
+                    {
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [unknown_host],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r using user with members' % netgroup1,
+            command=('netgroup_find', [], dict(
+                user=user1, no_members=False)),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 netgroup matched',
+                result=[
+                    {
+                        'dn': fuzzy_netgroupdn,
+                        'memberhost_host': (host1,),
+                        'memberhost_hostgroup': (hostgroup1,),
+                        'memberuser_user': (user1,),
+                        'memberuser_group': (group1,),
+                        'member_netgroup': (netgroup2,),
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [unknown_host],
+                    },
+                ],
+            ),
+        ),
+
 
         dict(
             desc='Search for %r using user' % netgroup1,
@@ -885,11 +960,6 @@ class test_netgroup(Declarative):
                 result=[
                     {
                         'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
                         'description': [u'Test netgroup 1'],
                         'nisdomainname': [u'%s' % api.env.domain],
@@ -899,9 +969,11 @@ class test_netgroup(Declarative):
             ),
         ),
 
+
         dict(
-            desc='Search for all netgroups using empty member user',
-            command=('netgroup_find', [], dict(user=None)),
+            desc=('Search for all netgroups using empty member user with '
+                  'members'),
+            command=('netgroup_find', [], dict(user=None, no_members=False)),
             expected=dict(
                 count=2,
                 truncated=False,
@@ -929,6 +1001,33 @@ class test_netgroup(Declarative):
                 ],
             ),
         ),
+
+
+        dict(
+            desc='Search for all netgroups using empty member user',
+            command=('netgroup_find', [], dict(user=None)),
+            expected=dict(
+                count=2,
+                truncated=False,
+                summary=u'2 netgroups matched',
+                result=[
+                    {
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [unknown_host],
+                    },
+                    {
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup2],
+                        'description': [u'Test netgroup 2'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                    },
+                ],
+            ),
+        ),
+
 
         dict(
             desc='Update %r' % netgroup1,

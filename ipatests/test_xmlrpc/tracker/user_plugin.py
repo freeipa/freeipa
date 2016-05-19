@@ -52,7 +52,8 @@ class UserTracker(Tracker):
     activate_keys = retrieve_keys
 
     find_keys = retrieve_keys - {
-        u'mepmanagedentry', u'memberof_group', u'has_keytab', u'has_password'
+        u'mepmanagedentry', u'memberof_group', u'has_keytab', u'has_password',
+        u'manager',
     }
     find_all_keys = retrieve_all_keys - {
         u'has_keytab', u'has_password'

@@ -251,6 +251,25 @@ class test_service(Declarative):
 
 
         dict(
+            desc='Search for %r with members' % service1,
+            command=('service_find', [service1], {'no_members': False}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 service matched',
+                result=[
+                    dict(
+                        dn=service1dn,
+                        krbprincipalname=[service1],
+                        managedby_host=[fqdn1],
+                        has_keytab=False,
+                    ),
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r' % service1,
             command=('service_find', [service1], {}),
             expected=dict(
@@ -261,7 +280,6 @@ class test_service(Declarative):
                     dict(
                         dn=service1dn,
                         krbprincipalname=[service1],
-                        managedby_host=[fqdn1],
                         has_keytab=False,
                     ),
                 ],

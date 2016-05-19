@@ -177,11 +177,11 @@ class TestFindGroup(XMLRPC_test):
         group.ensure_exists()
         group.find()
 
-    def test_search_for_all_groups(self, group, group2):
+    def test_search_for_all_groups_with_members(self, group, group2):
         """ Search for all groups """
         group.ensure_exists()
         group2.create()
-        command = group.make_command('group_find')
+        command = group.make_command('group_find', no_members=False)
         result = command()
         assert_deepequal(dict(
             summary=u'6 groups matched',
@@ -226,6 +226,56 @@ class TestFindGroup(XMLRPC_test):
                     'description': [u'Trusts administrators group'],
                 },
             ]), result)
+
+
+    def test_search_for_all_groups(self, group, group2):
+        """ Search for all groups """
+        group.ensure_exists()
+        group2.create()
+        command = group.make_command('group_find')
+        result = command()
+        assert_deepequal(dict(
+            summary=u'6 groups matched',
+            count=6,
+            truncated=False,
+            result=[
+                {
+                    'dn': get_group_dn('admins'),
+                    'gidnumber': [fuzzy_digits],
+                    'cn': [u'admins'],
+                    'description': [u'Account administrators group'],
+                },
+                {
+                    'dn': get_group_dn('editors'),
+                    'gidnumber': [fuzzy_digits],
+                    'cn': [u'editors'],
+                    'description':
+                        [u'Limited admins who can edit other users'],
+                },
+                {
+                    'dn': get_group_dn('ipausers'),
+                    'cn': [u'ipausers'],
+                    'description': [u'Default group for all users'],
+                },
+                {
+                    'dn': get_group_dn(group.cn),
+                    'cn': [group.cn],
+                    'description': [u'Test desc1'],
+                    'gidnumber': [fuzzy_digits],
+                },
+                {
+                    'dn': get_group_dn(group2.cn),
+                    'cn': [group2.cn],
+                    'description': [u'Test desc2'],
+                    'gidnumber': [fuzzy_digits],
+                },
+                {
+                    'dn': get_group_dn('trust admins'),
+                    'cn': [u'trust admins'],
+                    'description': [u'Trusts administrators group'],
+                },
+            ]), result)
+
 
     def test_search_for_all_posix(self, group, group2):
         """ Search for all posix groups """

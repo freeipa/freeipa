@@ -1117,7 +1117,7 @@ last, after all sets and adds."""),
                     yield Flag('no_members',
                         doc=_('Suppress processing of membership attributes.'),
                         exclude='webui',
-                        flags=['no_output'],
+                        flags={'no_output'},
                     )
                     break
 
@@ -1907,6 +1907,11 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
 
     def get_options(self):
         for option in super(LDAPSearch, self).get_options():
+            if option.name == 'no_members':
+                # no_members are always true for find commands, do not
+                # show option in CLI but keep API compatibility
+                option = option.clone(
+                    default=True, flags=option.flags | {"no_cli"})
             yield option
         if self.obj.primary_key and \
                 'no_output' not in self.obj.primary_key.flags:

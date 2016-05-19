@@ -152,6 +152,11 @@ class TestSudoCmdGroupSCRUD(XMLRPC_test):
         sudocmdgroup1.ensure_exists()
         sudocmdgroup1.find()
 
+    def test_search_all(self, sudocmdgroup1):
+        """ Search for sudocmdgroup """
+        sudocmdgroup1.ensure_exists()
+        sudocmdgroup1.find(all=True)
+
     def test_create_another(self, sudocmdgroup2):
         """ Create a second sudocmdgroup """
         sudocmdgroup2.create()

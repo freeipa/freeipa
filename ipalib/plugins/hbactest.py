@@ -337,7 +337,8 @@ class hbactest(Command):
 
         hbacset = []
         if len(testrules) == 0:
-            hbacset = self.api.Command.hbacrule_find(sizelimit=sizelimit)['result']
+            hbacset = self.api.Command.hbacrule_find(
+                sizelimit=sizelimit, no_members=False)['result']
         else:
             for rule in testrules:
                 try:

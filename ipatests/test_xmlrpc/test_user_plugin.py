@@ -691,7 +691,7 @@ class TestManagers(XMLRPC_test):
         """ Find user by his manager's UID """
         command = user.make_find_command(manager=user2.uid)
         result = command()
-        user.check_find(result, expected_override=dict(manager=[user2.uid]))
+        user.check_find(result)
 
     def test_delete_both_user_and_manager(self, user, user2):
         """ Delete both user and its manager at once """

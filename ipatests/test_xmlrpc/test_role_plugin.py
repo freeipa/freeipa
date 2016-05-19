@@ -292,8 +292,46 @@ class test_role(Declarative):
 
 
         dict(
+            desc='Search for %r with members' % role1,
+            command=('role_find', [role1], {'no_members': False}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 role matched',
+                result=[
+                    {
+                        'dn': role1_dn,
+                        'cn': [role1],
+                        'description': [u'role desc 1'],
+                        'member_group': [group1],
+                        'memberof_privilege': [privilege1],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r' % role1,
             command=('role_find', [role1], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 role matched',
+                result=[
+                    {
+                        'dn': role1_dn,
+                        'cn': [role1],
+                        'description': [u'role desc 1'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r with members' % search,
+            command=('role_find', [search], {'no_members': False}),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -323,8 +361,6 @@ class test_role(Declarative):
                         'dn': role1_dn,
                         'cn': [role1],
                         'description': [u'role desc 1'],
-                        'member_group': [group1],
-                        'memberof_privilege': [privilege1],
                     },
                 ],
             ),
@@ -350,8 +386,8 @@ class test_role(Declarative):
 
 
         dict(
-            desc='Search for %r' % role1,
-            command=('role_find', [role1], {}),
+            desc='Search for %r with members' % role1,
+            command=('role_find', [role1], {'no_members': False}),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -370,8 +406,26 @@ class test_role(Declarative):
 
 
         dict(
-            desc='Search for %r' % search,
-            command=('role_find', [search], {}),
+            desc='Search for %r' % role1,
+            command=('role_find', [role1], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 role matched',
+                result=[
+                    {
+                        'dn': role1_dn,
+                        'cn': [role1],
+                        'description': [u'role desc 1'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r with members' % search,
+            command=('role_find', [search], {'no_members': False}),
             expected=dict(
                 count=2,
                 truncated=False,
@@ -383,6 +437,29 @@ class test_role(Declarative):
                         'description': [u'role desc 1'],
                         'member_group': [group1],
                         'memberof_privilege': [privilege1],
+                    },
+                    {
+                        'dn': role2_dn,
+                        'cn': [role2],
+                        'description': [u'role desc 2'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r' % search,
+            command=('role_find', [search], {}),
+            expected=dict(
+                count=2,
+                truncated=False,
+                summary=u'2 roles matched',
+                result=[
+                    {
+                        'dn': role1_dn,
+                        'cn': [role1],
+                        'description': [u'role desc 1'],
                     },
                     {
                         'dn': role2_dn,

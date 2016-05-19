@@ -172,8 +172,8 @@ class test_privilege(Declarative):
 
 
         dict(
-            desc='Search for %r' % privilege1,
-            command=('privilege_find', [privilege1], {}),
+            desc='Search for %r with members' % privilege1,
+            command=('privilege_find', [privilege1], {'no_members': False}),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -202,7 +202,43 @@ class test_privilege(Declarative):
                         'dn': privilege1_dn,
                         'cn': [privilege1],
                         'description': [u'privilege desc. 1'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r with members' % privilege1,
+            command=('privilege_find', [privilege1], {'no_members': False}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 privilege matched',
+                result=[
+                    {
+                        'dn': privilege1_dn,
+                        'cn': [privilege1],
+                        'description': [u'privilege desc. 1'],
                         'memberof_permission': [permission1],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r' % privilege1,
+            command=('privilege_find', [privilege1], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 privilege matched',
+                result=[
+                    {
+                        'dn': privilege1_dn,
+                        'cn': [privilege1],
+                        'description': [u'privilege desc. 1'],
                     },
                 ],
             ),
@@ -281,6 +317,25 @@ class test_privilege(Declarative):
 
 
         dict(
+            desc='Search for %r with memebers' % privilege1,
+            command=('privilege_find', [privilege1], {'no_members': False}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 privilege matched',
+                result=[
+                    {
+                        'dn': privilege1_dn,
+                        'cn': [privilege1],
+                        'description': [u'privilege desc. 1'],
+                        'memberof_permission': [permission1, permission2],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r' % privilege1,
             command=('privilege_find', [privilege1], {}),
             expected=dict(
@@ -292,7 +347,6 @@ class test_privilege(Declarative):
                         'dn': privilege1_dn,
                         'cn': [privilege1],
                         'description': [u'privilege desc. 1'],
-                        'memberof_permission': [permission1, permission2],
                     },
                 ],
             ),

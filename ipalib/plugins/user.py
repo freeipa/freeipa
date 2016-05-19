@@ -710,7 +710,8 @@ class user_del(baseuser_del):
         # Delete all tokens owned and managed by this user.
         # Orphan all tokens owned but not managed by this user.
         owner = self.api.Object.user.get_primary_key_from_dn(dn)
-        results = self.api.Command.otptoken_find(ipatokenowner=owner)['result']
+        results = self.api.Command.otptoken_find(
+            ipatokenowner=owner, no_members=False)['result']
         for token in results:
             orphan = not [x for x in token.get('managedby_user', []) if x == owner]
             token = self.api.Object.otptoken.get_primary_key_from_dn(token['dn'])

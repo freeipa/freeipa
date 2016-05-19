@@ -24,6 +24,11 @@ class SudoCmdGroupTracker(Tracker):
 
     add_member_keys = retrieve_keys | {u'member_sudocmd'}
 
+    find_keys = {
+        u'dn', u'cn', u'description', u'member_sudocmdgroup'}
+    find_all_keys = find_keys | {
+        u'ipauniqueid', u'objectclass', u'mepmanagedentry'}
+
     def __init__(self, name, description=u'SudoCmdGroup desc'):
         super(SudoCmdGroupTracker, self).__init__(default_version=None)
         self.cn = name
@@ -168,9 +173,9 @@ class SudoCmdGroupTracker(Tracker):
     def check_find(self, result, all=False, raw=False):
         """ Checks 'sudocmdgroup_find' command result """
         if all:
-            expected = self.filter_attrs(self.retrieve_all_keys)
+            expected = self.filter_attrs(self.find_all_keys)
         else:
-            expected = self.filter_attrs(self.retrieve_keys)
+            expected = self.filter_attrs(self.find_keys)
 
         assert_deepequal(dict(
             count=1,

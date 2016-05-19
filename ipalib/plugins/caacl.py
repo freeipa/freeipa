@@ -122,7 +122,7 @@ def _acl_make_rule(principal_type, obj):
 
 def acl_evaluate(principal_type, principal, ca_ref, profile_id):
     req = _acl_make_request(principal_type, principal, ca_ref, profile_id)
-    acls = api.Command.caacl_find()['result']
+    acls = api.Command.caacl_find(no_members=False)['result']
     rules = [_acl_make_rule(principal_type, obj) for obj in acls]
     return req.evaluate(rules) == pyhbac.HBAC_EVAL_ALLOW
 

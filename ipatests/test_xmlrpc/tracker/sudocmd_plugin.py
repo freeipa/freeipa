@@ -18,6 +18,9 @@ class SudoCmdTracker(Tracker):
     create_keys = retrieve_all_keys
     update_keys = retrieve_keys - {u'dn'}
 
+    find_keys = {u'dn', u'sudocmd', u'description'}
+    find_all_keys = retrieve_all_keys
+
     def __init__(self, command, description="Test sudo command"):
         super(SudoCmdTracker, self).__init__(default_version=None)
         self.cmd = command
@@ -93,9 +96,9 @@ class SudoCmdTracker(Tracker):
     def check_find(self, result, all=False, raw=False):
         """ Checks 'sudocmd_find' command result """
         if all:
-            expected = self.filter_attrs(self.retrieve_all_keys)
+            expected = self.filter_attrs(self.find_all_keys)
         else:
-            expected = self.filter_attrs(self.retrieve_keys)
+            expected = self.filter_attrs(self.find_keys)
 
         assert_deepequal(dict(
             count=1,

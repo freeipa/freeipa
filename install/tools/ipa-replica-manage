@@ -945,7 +945,8 @@ def del_master_managed(realm, hostname, options):
         sys.exit(1)
 
     # 2. Get all masters
-    masters = api.Command.server_find('', sizelimit=0)['result']
+    masters = api.Command.server_find(
+        '', sizelimit=0, no_members=False)['result']
 
     # 3. Check topology connectivity in all suffixes
     topo_errors = replication.check_last_link_managed(api, hostname, masters)
@@ -1149,7 +1150,8 @@ def del_master_direct(realm, hostname, options):
     # Check for orphans if the remote server is up.
     if delrepl and not winsync:
         try:
-            masters = api.Command.server_find('', sizelimit=0)['result']
+            masters = api.Command.server_find(
+                '', sizelimit=0, no_members=False)['result']
         except Exception as e:
             masters = []
             print("Failed to read masters data from '%s': %s" % (

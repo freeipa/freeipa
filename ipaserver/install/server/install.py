@@ -1148,7 +1148,8 @@ def uninstall_check(installer):
                     print("Aborting uninstall operation.")
                     sys.exit(1)
         else:
-            masters = api.Command.server_find(sizelimit=0)['result']
+            masters = api.Command.server_find(
+                sizelimit=0, no_members=False)['result']
 
             if not check_master_deleted(api, masters,
                                         not options.unattended):

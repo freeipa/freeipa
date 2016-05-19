@@ -269,8 +269,56 @@ class test_old_permission(Declarative):
 
 
         dict(
+            desc='Search for %r with members' % permission1,
+            command=('permission_find', [permission1], {'no_members': False}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn': permission1_dn,
+                        'cn': [permission1],
+                        'objectclass': objectclasses.permission,
+                        'member_privilege': [privilege1],
+                        'type': u'user',
+                        'permissions': [u'write'],
+                        'ipapermbindruletype': [u'permission'],
+                        'ipapermissiontype': [u'V2', u'SYSTEM'],
+                        'subtree': u'ldap:///%s' % users_dn,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r' % permission1,
             command=('permission_find', [permission1], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn': permission1_dn,
+                        'cn': [permission1],
+                        'objectclass': objectclasses.permission,
+                        'type': u'user',
+                        'permissions': [u'write'],
+                        'ipapermbindruletype': [u'permission'],
+                        'ipapermissiontype': [u'V2', u'SYSTEM'],
+                        'subtree': u'ldap:///%s' % users_dn,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r using --name with members' % permission1,
+            command=('permission_find', [], {
+                'cn': permission1, 'no_members': False}),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -304,7 +352,6 @@ class test_old_permission(Declarative):
                         'dn': permission1_dn,
                         'cn': [permission1],
                         'objectclass': objectclasses.permission,
-                        'member_privilege': [privilege1],
                         'type': u'user',
                         'permissions': [u'write'],
                         'ipapermbindruletype': [u'permission'],
@@ -329,8 +376,8 @@ class test_old_permission(Declarative):
 
 
         dict(
-            desc='Search for %r' % privilege1,
-            command=('permission_find', [privilege1], {}),
+            desc='Search for %r with members' % privilege1,
+            command=('permission_find', [privilege1], {'no_members': False}),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -353,8 +400,32 @@ class test_old_permission(Declarative):
 
 
         dict(
-            desc='Search for %r with --raw' % permission1,
-            command=('permission_find', [permission1], {'raw' : True}),
+            desc='Search for %r' % privilege1,
+            command=('permission_find', [privilege1], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn': permission1_dn,
+                        'cn': [permission1],
+                        'objectclass': objectclasses.permission,
+                        'type': u'user',
+                        'permissions': [u'write'],
+                        'ipapermbindruletype': [u'permission'],
+                        'ipapermissiontype': [u'V2', u'SYSTEM'],
+                        'subtree': u'ldap:///%s' % users_dn,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r with --raw with members' % permission1,
+            command=('permission_find', [permission1], {
+                'raw': True, 'no_members': False}),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -367,6 +438,38 @@ class test_old_permission(Declarative):
                         'member': [privilege1_dn],
                         'aci': [u'(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:testperm";allow (write) groupdn = "ldap:///%s";)' % \
                              DN(('cn', 'testperm'), ('cn', 'permissions'), ('cn', 'pbac'), api.env.basedn)],
+                        'ipapermright': [u'write'],
+                        'ipapermbindruletype': [u'permission'],
+                        'ipapermissiontype': [u'V2', u'SYSTEM'],
+                        'ipapermtargetfilter': [u'(objectclass=posixaccount)'],
+                        'ipapermlocation': [users_dn],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r with --raw' % permission1,
+            command=('permission_find', [permission1], {'raw': True}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn': permission1_dn,
+                        'cn': [permission1],
+                        'objectclass': objectclasses.permission,
+                        'aci': [
+                            u'(targetfilter = "(objectclass=posixaccount)")'
+                            u'(version 3.0;acl "permission:testperm";'
+                            u'allow (write) groupdn = "ldap:///%s";)' %
+                            DN(
+                                ('cn', 'testperm'), ('cn', 'permissions'),
+                                ('cn', 'pbac'), api.env.basedn
+                            )
+                        ],
                         'ipapermright': [u'write'],
                         'ipapermbindruletype': [u'permission'],
                         'ipapermissiontype': [u'V2', u'SYSTEM'],
@@ -407,6 +510,40 @@ class test_old_permission(Declarative):
 
 
         dict(
+            desc='Search for %r with members' % permission1,
+            command=('permission_find', [permission1], {'no_members': False}),
+            expected=dict(
+                count=2,
+                truncated=False,
+                summary=u'2 permissions matched',
+                result=[
+                    {
+                        'dn': permission1_dn,
+                        'cn': [permission1],
+                        'objectclass': objectclasses.permission,
+                        'member_privilege': [privilege1],
+                        'type': u'user',
+                        'permissions': [u'write'],
+                        'ipapermbindruletype': [u'permission'],
+                        'ipapermissiontype': [u'V2', u'SYSTEM'],
+                        'subtree': u'ldap:///%s' % users_dn,
+                    },
+                    {
+                        'dn': permission2_dn,
+                        'cn': [permission2],
+                        'objectclass': objectclasses.permission,
+                        'type': u'user',
+                        'permissions': [u'write'],
+                        'ipapermbindruletype': [u'permission'],
+                        'ipapermissiontype': [u'V2', u'SYSTEM'],
+                        'subtree': u'ldap:///%s' % users_dn,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r' % permission1,
             command=('permission_find', [permission1], {}),
             expected=dict(
@@ -418,7 +555,6 @@ class test_old_permission(Declarative):
                         'dn': permission1_dn,
                         'cn': [permission1],
                         'objectclass': objectclasses.permission,
-                        'member_privilege': [privilege1],
                         'type': u'user',
                         'permissions': [u'write'],
                         'ipapermbindruletype': [u'permission'],
@@ -486,8 +622,8 @@ class test_old_permission(Declarative):
 
 
         dict(
-            desc='Search for %r' % privilege1,
-            command=('privilege_find', [privilege1], {}),
+            desc='Search for %r with members' % privilege1,
+            command=('privilege_find', [privilege1], {'no_members': False}),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -505,6 +641,60 @@ class test_old_permission(Declarative):
 
 
         dict(
+            desc='Search for %r' % privilege1,
+            command=('privilege_find', [privilege1], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 privilege matched',
+                result=[
+                    {
+                        'dn': privilege1_dn,
+                        'cn': [privilege1],
+                        'description': [u'privilege desc. 1'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc=('Search for %r with a limit of 1 (truncated) with members' %
+                  permission1),
+            command=('permission_find', [permission1], dict(
+                sizelimit=1, no_members=False)),
+            expected=dict(
+                count=1,
+                truncated=True,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn': permission1_dn,
+                        'cn': [permission1],
+                        'objectclass': objectclasses.permission,
+                        'member_privilege': [privilege1],
+                        'type': u'user',
+                        'permissions': [u'write'],
+                        'ipapermbindruletype': [u'permission'],
+                        'ipapermissiontype': [u'V2', u'SYSTEM'],
+                        'subtree': u'ldap:///%s' % users_dn,
+                    },
+                ],
+                messages=({
+                    'message': (u'Search result has been truncated: '
+                                u'Configured size limit exceeded'),
+                    'code': 13017,
+                    'type': u'warning',
+                    'name': u'SearchResultTruncated',
+                    'data': {
+                        'reason': u"Configured size limit exceeded"
+                    }
+                },),
+            ),
+        ),
+
+
+        dict(
             desc='Search for %r with a limit of 1 (truncated)' % permission1,
             command=('permission_find', [permission1], dict(sizelimit=1)),
             expected=dict(
@@ -516,7 +706,6 @@ class test_old_permission(Declarative):
                         'dn': permission1_dn,
                         'cn': [permission1],
                         'objectclass': objectclasses.permission,
-                        'member_privilege': [privilege1],
                         'type': u'user',
                         'permissions': [u'write'],
                         'ipapermbindruletype': [u'permission'],
@@ -550,7 +739,6 @@ class test_old_permission(Declarative):
                         'dn': permission1_dn,
                         'cn': [permission1],
                         'objectclass': objectclasses.permission,
-                        'member_privilege': [privilege1],
                         'type': u'user',
                         'permissions': [u'write'],
                         'ipapermbindruletype': [u'permission'],
@@ -776,9 +964,11 @@ class test_old_permission(Declarative):
 
 
         dict(
-            desc='Search for %r using --subtree' % permission1,
-            command=('permission_find', [],
-                     {'subtree': u'ldap:///%s' % DN(('cn', 'accounts'), api.env.basedn)}),
+            desc='Search for %r using --subtree with members' % permission1,
+            command=('permission_find', [], {
+                'subtree': u'ldap:///%s' % DN(
+                    ('cn', 'accounts'), api.env.basedn),
+                'no_members': False}),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -790,6 +980,32 @@ class test_old_permission(Declarative):
                         'objectclass': objectclasses.permission,
                         'member_privilege':[privilege1],
                         'subtree':u'ldap:///%s' % DN(('cn', 'accounts'), api.env.basedn),
+                        'permissions':[u'write'],
+                        'memberof':u'ipausers',
+                        'ipapermbindruletype': [u'permission'],
+                        'ipapermissiontype': [u'V2', u'SYSTEM'],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for %r using --subtree' % permission1,
+            command=('permission_find', [], {
+                'subtree': u'ldap:///%s' % DN(
+                    ('cn', 'accounts'), api.env.basedn)}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn':permission1_renamed_ucase_dn,
+                        'cn':[permission1_renamed_ucase],
+                        'objectclass': objectclasses.permission,
+                        'subtree':u'ldap:///%s' % DN(
+                            ('cn', 'accounts'), api.env.basedn),
                         'permissions':[u'write'],
                         'memberof':u'ipausers',
                         'ipapermbindruletype': [u'permission'],
@@ -813,8 +1029,9 @@ class test_old_permission(Declarative):
 
 
         dict(
-            desc='Search using --targetgroup',
-            command=('permission_find', [], {'targetgroup': u'ipausers'}),
+            desc='Search using --targetgroup with members',
+            command=('permission_find', [], {
+                'targetgroup': u'ipausers', 'no_members': False}),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -829,6 +1046,33 @@ class test_old_permission(Declarative):
                         'attrs': [u'member'],
                         'targetgroup': u'ipausers',
                         'memberindirect_role': [u'User Administrator'],
+                        'permissions': [u'write'],
+                        'ipapermbindruletype': [u'permission'],
+                        'ipapermtarget': [DN('cn=ipausers', groups_dn)],
+                        'subtree': u'ldap:///%s' % groups_dn,
+                        'ipapermdefaultattr': [u'member'],
+                        'ipapermissiontype': [u'V2', u'MANAGED', u'SYSTEM'],
+                    }
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search using --targetgroup',
+            command=('permission_find', [], {'targetgroup': u'ipausers'}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 permission matched',
+                result=[
+                    {
+                        'dn': DN(('cn', 'System: Add User to default group'),
+                                 api.env.container_permission, api.env.basedn),
+                        'cn': [u'System: Add User to default group'],
+                        'objectclass': objectclasses.permission,
+                        'attrs': [u'member'],
+                        'targetgroup': u'ipausers',
                         'permissions': [u'write'],
                         'ipapermbindruletype': [u'permission'],
                         'ipapermtarget': [DN('cn=ipausers', groups_dn)],

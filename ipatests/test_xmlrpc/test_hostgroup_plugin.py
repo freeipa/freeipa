@@ -116,6 +116,11 @@ class TestHostGroup(XMLRPC_test):
         hostgroup.ensure_exists()
         hostgroup.find()
 
+    def test_search_for_hostgroup_with_all(self, hostgroup):
+        """ Search for hostgroup """
+        hostgroup.ensure_exists()
+        hostgroup.find(all=True)
+
     def test_update_hostgroup(self, hostgroup):
         """ Update description of hostgroup and verify """
         hostgroup.ensure_exists()

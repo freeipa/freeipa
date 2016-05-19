@@ -43,7 +43,10 @@ class HostTracker(Tracker):
     update_keys = retrieve_keys - {'dn'}
     managedby_keys = retrieve_keys - {'has_keytab', 'has_password'}
     allowedto_keys = retrieve_keys - {'has_keytab', 'has_password'}
-    find_keys = retrieve_keys - {'has_keytab', 'has_password'}
+    find_keys = retrieve_keys - {
+        'has_keytab', 'has_password', 'memberof_hostgroup',
+        'memberofindirect_hostgroup', 'managedby_host',
+    }
     find_all_keys = retrieve_all_keys - {'has_keytab', 'has_password'}
 
     def __init__(self, name, fqdn=None, default_version=None):
