@@ -140,8 +140,8 @@ Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base >= %{selinux_policy_version}
 Requires: slapi-nis >= 0.55-1
-Requires: pki-ca >= 10.2.6-13
-Requires: pki-kra >= 10.2.6-13
+Requires: pki-ca >= 10.2.6-19
+Requires: pki-kra >= 10.2.6-19
 Requires(preun): python systemd-units
 Requires(postun): python systemd-units
 Requires: python-dns >= 1.11.1
