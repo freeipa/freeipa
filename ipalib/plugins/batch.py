@@ -89,7 +89,7 @@ class batch(Command):
 
     def execute(self, *args, **options):
         results = []
-        for arg in args[0]:
+        for arg in (args[0] or []):
             params = dict()
             name = None
             try:
