@@ -488,6 +488,9 @@ class pwpolicy_del(LDAPDelete):
 class pwpolicy_mod(LDAPUpdate):
     __doc__ = _('Modify a group password policy.')
 
+    def execute(self, cn=None, **options):
+        return super(pwpolicy_mod, self).execute(cn, **options)
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         self.obj.convert_time_on_input(entry_attrs)
@@ -537,6 +540,9 @@ class pwpolicy_show(LDAPRetrieve):
             doc=_('Display effective policy for a specific user'),
         ),
     )
+
+    def execute(self, cn=None, **options):
+        return super(pwpolicy_show, self).execute(cn, **options)
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         assert isinstance(dn, DN)

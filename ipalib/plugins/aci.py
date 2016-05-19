@@ -700,7 +700,7 @@ class aci_find(crud.Search):
     takes_options = (_prefix_option.clone_rename("aciprefix?", required=False),
                      gen_pkey_only_option("name"),)
 
-    def execute(self, term, **kw):
+    def execute(self, term=None, **kw):
         ldap = self.api.Backend.ldap2
 
         entry = ldap.get_entry(self.api.env.basedn, ['aci'])

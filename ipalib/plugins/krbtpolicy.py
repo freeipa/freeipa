@@ -149,6 +149,9 @@ class krbtpolicy(baseldap.LDAPObject):
 class krbtpolicy_mod(baseldap.LDAPUpdate):
     __doc__ = _('Modify Kerberos ticket policy.')
 
+    def execute(self, uid=None, **options):
+        return super(krbtpolicy_mod, self).execute(uid, **options)
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         # disable all flag
@@ -161,6 +164,9 @@ class krbtpolicy_mod(baseldap.LDAPUpdate):
 @register()
 class krbtpolicy_show(baseldap.LDAPRetrieve):
     __doc__ = _('Display the current Kerberos ticket policy.')
+
+    def execute(self, uid=None, **options):
+        return super(krbtpolicy_show, self).execute(uid, **options)
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -206,14 +212,14 @@ class krbtpolicy_reset(baseldap.LDAPQuery):
 
     has_output = output.standard_entry
 
-    def execute(self, *keys, **options):
+    def execute(self, uid=None, **options):
         ldap = self.obj.backend
 
-        dn = self.obj.get_dn(*keys, **options)
+        dn = self.obj.get_dn(uid, **options)
 
         def_values = {}
         # if reseting policy for a user - just his values
-        if keys[-1] is not None:
+        if uid is not None:
             for a in self.obj.default_attributes:
                 def_values[a] = None
         # if reseting global policy - set values to default
@@ -227,11 +233,11 @@ class krbtpolicy_reset(baseldap.LDAPQuery):
         except errors.EmptyModlist:
             pass
 
-        if keys[-1] is not None:
+        if uid is not None:
             # policy for user was deleted, retrieve global policy
             dn = self.obj.get_dn(None)
         entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
 
         entry_attrs = entry_to_dict(entry_attrs, **options)
 
-        return dict(result=entry_attrs, value=pkey_to_value(keys[-1], options))
+        return dict(result=entry_attrs, value=pkey_to_value(uid, options))

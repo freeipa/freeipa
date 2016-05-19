@@ -194,7 +194,7 @@ class selfservice_find(crud.Search):
     takes_options = (gen_pkey_only_option("name"),)
     has_output_params = output_params
 
-    def execute(self, term, **kw):
+    def execute(self, term=None, **kw):
         kw['selfaci'] = True
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_find'](term, **kw)['result']

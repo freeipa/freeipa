@@ -70,7 +70,7 @@ class json_metadata(Command):
         Output('commands', dict, doc=_('Dict of JSON encoded IPA Commands')),
     )
 
-    def execute(self, objname, methodname, **options):
+    def execute(self, objname=None, methodname=None, **options):
         objects = dict()
         methods = dict()
         commands = dict()

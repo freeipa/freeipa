@@ -455,7 +455,8 @@ class group_find(LDAPSearch):
         ),
     )
 
-    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope,
+                     criteria=None, **options):
         assert isinstance(base_dn, DN)
 
         # filter groups by pseudo type
@@ -485,7 +486,7 @@ class group_find(LDAPSearch):
             if len(attrs) == 1 and isinstance(attrs[0], six.string_types):
                 search_attrs = attrs[0].split(',')
                 for a in search_attrs:
-                    search_kw[a] = args[-1]
+                    search_kw[a] = criteria
             cflt = ldap.make_filter(search_kw, exact=False)
 
             filter = ldap.combine_filters((oflt, cflt), rules=ldap.MATCH_ALL)

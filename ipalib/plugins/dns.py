@@ -1654,8 +1654,8 @@ def _convert_to_idna(value):
         pass
     return None
 
-def _create_idn_filter(cmd, ldap, *args, **options):
-    term = args[-1]
+
+def _create_idn_filter(cmd, ldap, term=None, **options):
     if term:
         #include idna values to search
         term_idna = _convert_to_idna(term)
@@ -4191,11 +4191,12 @@ class dnsrecord_find(LDAPSearch):
                 continue
             yield option
 
-    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope,
+                     dnszoneidnsname, *args, **options):
         assert isinstance(base_dn, DN)
 
         # validate if zone is master zone
-        self.obj.check_zone(args[-2], **options)
+        self.obj.check_zone(dnszoneidnsname, **options)
 
         filter = _create_idn_filter(self, ldap, *args, **options)
         return (filter, base_dn, ldap.SCOPE_SUBTREE)

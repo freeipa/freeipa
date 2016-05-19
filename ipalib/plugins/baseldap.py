@@ -2017,9 +2017,14 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
     def execute(self, *args, **options):
         ldap = self.obj.backend
 
-        term = args[-1]
+        index = tuple(self.args).index('criteria')
+        keys = args[:index]
+        try:
+            term = args[index]
+        except IndexError:
+            term = None
         if self.obj.parent_object:
-            base_dn = self.api.Object[self.obj.parent_object].get_dn(*args[:-1])
+            base_dn = self.api.Object[self.obj.parent_object].get_dn(*keys)
         else:
             base_dn = DN(self.obj.container_dn, api.env.basedn)
         assert isinstance(base_dn, DN)
@@ -2083,7 +2088,7 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         except errors.EmptyResult:
             (entries, truncated) = ([], False)
         except errors.NotFound:
-            self.api.Object[self.obj.parent_object].handle_not_found(*args[:-1])
+            self.api.Object[self.obj.parent_object].handle_not_found(*keys)
 
         for callback in self.get_callbacks('post'):
             truncated = callback(self, ldap, entries, truncated, *args, **options)

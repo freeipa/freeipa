@@ -291,6 +291,9 @@ class otptoken_add(LDAPCreate):
         Str('uri?', label=_('URI')),
     )
 
+    def execute(self, ipatokenuniqueid=None, **options):
+        return super(otptoken_add, self).execute(ipatokenuniqueid, **options)
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         # Fill in a default UUID when not specified.
         if entry_attrs.get('ipatokenuniqueid', None) is None:

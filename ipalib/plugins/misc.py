@@ -85,7 +85,7 @@ class env(LocalOrRemote):
                 keys.add(query)
         return keys
 
-    def execute(self, variables, **options):
+    def execute(self, variables=None, **options):
         if variables is None:
             keys = self.env
         else:

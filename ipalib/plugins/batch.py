@@ -87,9 +87,9 @@ class batch(Command):
         Output('results', (list, tuple), doc='')
     )
 
-    def execute(self, *args, **options):
+    def execute(self, methods=None, **options):
         results = []
-        for arg in (args[0] or []):
+        for arg in (methods or []):
             params = dict()
             name = None
             try:

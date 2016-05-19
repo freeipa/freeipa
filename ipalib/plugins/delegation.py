@@ -197,7 +197,7 @@ class delegation_find(crud.Search):
     takes_options = (gen_pkey_only_option("name"),)
     has_output_params = output_params
 
-    def execute(self, term, **kw):
+    def execute(self, term=None, **kw):
         kw['aciprefix'] = ACI_PREFIX
         results = api.Command['aci_find'](term, **kw)['result']
 

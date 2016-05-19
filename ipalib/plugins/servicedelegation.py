@@ -500,7 +500,7 @@ class servicedelegationtarget_find(LDAPSearch):
     )
 
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope,
-                     *args, **options):
+                     term=None, **options):
         """
         Exclude rules from the search output. A target contains a subset
         of a rule objectclass.
@@ -515,7 +515,6 @@ class servicedelegationtarget_find(LDAPSearch):
         )
 
         search_kw = {}
-        term = args[-1]
         for a in self.obj.default_attributes:
             search_kw[a] = term
 
