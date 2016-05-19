@@ -559,6 +559,8 @@ class Param(ReadOnly):
             value = self.__kw[key]
             if callable(value) and hasattr(value, '__name__'):
                 value = value.__name__
+            elif isinstance(value, six.integer_types):
+                value = str(value)
             else:
                 value = repr(value)
             yield '%s=%s' % (key, value)
