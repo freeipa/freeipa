@@ -674,14 +674,15 @@ class user_del(baseuser_del):
 
     def forward(self, *keys, **options):
         if self.api.env.context == 'cli':
-            if options['no_preserve'] and options['preserve']:
+            no_preserve = options.pop('no_preserve', False)
+            preserve = options.pop('preserve', False)
+            if no_preserve and preserve:
                 raise errors.MutuallyExclusiveError(
                     reason=_("preserve and no-preserve cannot be both set"))
-            elif options['no_preserve']:
+            elif no_preserve:
                 options['preserve'] = False
-            elif not options['preserve']:
-                del options['preserve']
-            del options['no_preserve']
+            elif preserve:
+                options['preserve'] = True
 
         return super(user_del, self).forward(*keys, **options)
 
