@@ -308,13 +308,9 @@ class automountlocation_tofiles(LDAPQuery):
     __doc__ = _('Generate automount files for a specific location.')
 
     def execute(self, *args, **options):
-        ldap = self.obj.backend
+        self.api.Command['automountlocation_show'](args[0])
 
-        location = self.api.Command['automountlocation_show'](args[0])
-
-        maps = []
         result = self.api.Command['automountkey_find'](args[0], u'auto.master')
-        truncated = result['truncated']
         maps = result['result']
 
         # maps, truncated
@@ -328,7 +324,6 @@ class automountlocation_tofiles(LDAPQuery):
             mapnames.append(info)
             key = info.split(None)
             result = self.api.Command['automountkey_find'](args[0], key[0])
-            truncated = result['truncated']
             keys[info] = result['result']
             # TODO: handle truncated results, same as above
 
@@ -343,7 +338,6 @@ class automountlocation_tofiles(LDAPQuery):
         for m in orphanmaps:
             key = m['automountmapname']
             result = self.api.Command['automountkey_find'](args[0], key[0])
-            truncated = result['truncated']
             orphankeys.append(result['result'])
 
         return dict(result=dict(maps=maps, keys=keys,
@@ -463,7 +457,6 @@ class automountlocation_import(Command):
                 mapfile = am[1].replace('"','')
                 am[1] = os.path.basename(am[1])
                 maps[am[1]] = mapfile
-            info = ' '.join(am[1:])
 
             # Add a new key to the auto.master map for the new map file
             try:
