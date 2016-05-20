@@ -810,17 +810,18 @@ IPA.cert.revoke_action = function(spec) {
     return that;
 };
 
-IPA.cert.restore_action = function(spec) {
+IPA.cert.remove_hold_action = function(spec) {
 
     spec = spec || {};
-    spec.name = spec.name || 'restore_cert';
-    spec.label = spec.label || '@i18n:objects.cert.restore_certificate_simple';
+    spec.name = spec.name || 'remove_hold_cert';
+    spec.label = spec.label || '@i18n:objects.cert.remove_hold';
     spec.enable_cond = spec.enable_cond || ['has_certificate', 'certificate_hold'];
     spec.hide_cond = spec.hide_cond || ['ra_disabled'];
-    spec.confirm_msg = spec.confirm_msg || '@i18n:objects.cert.restore_confirmation';
+    spec.confirm_msg = spec.confirm_msg ||
+        '@i18n:objects.cert.remove_certificate_hold_confirmation';
     spec.confirm_dialog = spec.confirm_dialog || {
         $factory: IPA.confirm_dialog,
-        ok_label: '@i18n:buttons.restore'
+        ok_label: '@i18n:buttons.remove_hold'
     };
     spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
 
@@ -834,9 +835,10 @@ IPA.cert.restore_action = function(spec) {
         var entity_label = that.entity_label || facet.entity.metadata.label_singular;
         var entity_name = certificate.entity_info.name;
 
-        var title = text.get('@i18n:objects.cert.restore_certificate_simple');
+        var title = text.get('@i18n:objects.cert.remove_certificate_hold_simple');
+
         if (entity_name && entity_label) {
-            title = text.get('@i18n:objects.cert.restore_certificate');
+            title = text.get('@i18n:objects.cert.remove_certificate_hold');
             title = title.replace('${entity}', entity_label);
             title = title.replace('${primary_key}', entity_name);
         }
@@ -855,7 +857,7 @@ IPA.cert.restore_action = function(spec) {
             args: [certificate.serial_number],
             on_success: function(data, text_status, xhr) {
                 facet.refresh();
-                IPA.notify_success('@i18n:objects.cert.restored');
+                IPA.notify_success('@i18n:objects.cert.hold_removed');
                 facet.certificate_updated.notify([], that.facet);
             }
         }).execute();
@@ -1334,14 +1336,14 @@ return {
             disable_facet_tabs: true,
             actions: [
                 'cert_revoke',
-                'cert_restore'
+                'cert_remove_hold'
             ],
             state: {
                 evaluators: [
                     IPA.cert.certificate_evaluator
                 ]
             },
-            header_actions: ['revoke_cert', 'restore_cert'],
+            header_actions: ['revoke_cert', 'remove_hold_cert'],
             sections: [
                 {
                     name: 'details',
@@ -1529,7 +1531,7 @@ exp.register = function() {
     a.register('cert_get', IPA.cert.get_action);
     a.register('cert_request', IPA.cert.request_action);
     a.register('cert_revoke', IPA.cert.revoke_action);
-    a.register('cert_restore', IPA.cert.restore_action);
+    a.register('cert_remove_hold', IPA.cert.remove_hold_action);
 
     e.register({type: 'cert', spec: exp.entity_spec});
 };
