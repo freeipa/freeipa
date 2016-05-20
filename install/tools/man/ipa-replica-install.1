@@ -69,7 +69,7 @@ The fully qualified domain name of the IPA server to enroll to.
 \fB\-n\fR, \fB\-\-domain\fR=\fIDOMAIN\fR
 Set the domain name to DOMAIN.
 .TP
-\fB\-d\fR, \fB\-\-realm\fR=\fIREALM_NAME\fR
+\fB\-r\fR, \fB\-\-realm\fR=\fIREALM_NAME\fR
 Set the IPA realm name to REALM_NAME.
 .TP
 \fB\-\-hostname\fR
@@ -128,6 +128,33 @@ certificate operations will be forwarded to a master with a CA installed.
 \fB\-\-no\-pkinit\fR
 Disables pkinit setup steps
 .TP
+\fB\-\-dirsrv\-cert\-file\fR=FILE
+File containing the Directory Server SSL certificate and private key
+.TP
+\fB\-\-http\-cert\-file\fR=FILE
+File containing the Apache Server SSL certificate and private key
+.TP
+\fB\-\-pkinit\-cert\-file\fR=FILE
+File containing the Kerberos KDC SSL certificate and private key
+.TP
+\fB\-\-dirsrv\-pin\fR=PIN
+The password to unlock the Directory Server private key
+.TP
+\fB\-\-http\-pin\fR=PIN
+The password to unlock the Apache Server private key
+.TP
+\fB\-\-pkinit\-pin\fR=PIN
+The password to unlock the Kerberos KDC private key
+.TP
+\fB\-\-dirsrv\-cert\-name\fR=NAME
+Name of the Directory Server SSL certificate to install
+.TP
+\fB\-\-http\-cert\-name\fR=NAME
+Name of the Apache Server SSL certificate to install
+.TP
+\fB\-\-pkinit\-cert\-name\fR=NAME
+Name of the Kerberos KDC SSL certificate to install
+.TP
 \fB\-\-skip\-schema\-check\fR
 Skip check for updated CA DS schema on the remote master
 
@@ -160,6 +187,12 @@ The reverse DNS zone to use. This option can be used multiple times to specify m
 .TP
 \fB\-\-no\-reverse\fR
 Do not create new reverse DNS zone. If a reverse DNS zone already exists for the subnet, it will be used.
+.TP
+\fB\-\-auto-reverse\fR
+Create necessary reverse zones
+.TP
+\fB\-\-allow-zone-overlap\fR
+Create DNS zone even if it already exists
 .TP
 \fB\-\-no\-host\-dns\fR
 Do not use DNS for hostname lookup during installation
