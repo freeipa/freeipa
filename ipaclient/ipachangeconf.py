@@ -460,7 +460,11 @@ class IPAChangeConf:
                 continue
 
             # Copy anything else as is.
-            curopts.append(self.parseLine(line))
+            try:
+                curopts.append(self.parseLine(line))
+            except SyntaxError as e:
+                raise SyntaxError('{error} in file {fname}: [{line}]'.format(
+                    error=e, fname=f.name, line=line.rstrip()))
 
         #Add last section if any
         if len(sectopts) is not 0:
