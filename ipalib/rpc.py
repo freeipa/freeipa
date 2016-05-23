@@ -1078,7 +1078,7 @@ class JSONServerProxy(object):
         try:
             response = json_decode_binary(json.loads(response.decode('ascii')))
         except ValueError as e:
-            raise JSONError(str(e))
+            raise JSONError(error=str(e))
 
         if self.__verbose >= 2:
             root_logger.info(
