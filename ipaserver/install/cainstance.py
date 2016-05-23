@@ -1288,7 +1288,7 @@ class CAInstance(DogtagInstance):
 
     def __enable_instance(self):
         basedn = ipautil.realm_to_suffix(self.realm)
-        self.ldap_enable('CA', self.fqdn, None, basedn, ['caRenewalMaster'])
+        self.ldap_enable('CA', self.fqdn, None, basedn)
 
     def configure_replica(self, master_host, subject_base=None,
                           ca_cert_bundle=None, ca_signing_algorithm=None,

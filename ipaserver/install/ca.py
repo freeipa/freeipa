@@ -188,7 +188,11 @@ def install_step_1(standalone, replica_config, options):
         ca.stop('pki-tomcat')
 
     # We need to ldap_enable the CA now that DS is up and running
-    ca.ldap_enable('CA', host_name, dm_password, basedn, ['caRenewalMaster'])
+    if replica_config is None:
+        config = ['caRenewalMaster']
+    else:
+        config = []
+    ca.ldap_enable('CA', host_name, dm_password, basedn, config)
 
     # This is done within stopped_service context, which restarts CA
     ca.enable_client_auth_to_db(paths.CA_CS_CFG_PATH)
