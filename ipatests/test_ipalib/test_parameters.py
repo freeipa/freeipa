@@ -450,7 +450,7 @@ class test_Param(ClassChecker):
         assert o._convert_scalar(None) is None
         assert dummy.called() is False
         # Test with incorrect type
-        e = raises(errors.ConversionError, o._convert_scalar, 'hello', index=17)
+        e = raises(errors.ConversionError, o._convert_scalar, 'hello')
 
     def test_validate(self):
         """
@@ -555,14 +555,10 @@ class test_Param(ClassChecker):
         # Test that TypeError is appropriately raised:
         e = raises(TypeError, o._validate_scalar, 0)
         assert str(e) == TYPE_ERROR % ('my_param', bool, 0, int)
-        e = raises(TypeError, o._validate_scalar, 'Hi', index=4)
-        assert str(e) == TYPE_ERROR % ('my_param', bool, 'Hi', str)
-        e = raises(TypeError, o._validate_scalar, True, index=3.0)
-        assert str(e) == TYPE_ERROR % ('index', int, 3.0, float)
 
         # Test with passing rule:
-        assert o._validate_scalar(True, index=None) is None
-        assert o._validate_scalar(False, index=None) is None
+        assert o._validate_scalar(True) is None
+        assert o._validate_scalar(False) is None
         assert okay.calls == [
             (text.ugettext, True),
             (text.ugettext, False),
@@ -575,11 +571,6 @@ class test_Param(ClassChecker):
         e = raises(errors.ValidationError, o._validate_scalar, True)
         assert e.name == 'my_param'
         assert e.error == u'this describes the error'
-        assert e.index is None
-        e = raises(errors.ValidationError, o._validate_scalar, False, index=2)
-        assert e.name == 'my_param'
-        assert e.error == u'this describes the error'
-        assert e.index == 2
         assert okay.calls == [
             (text.ugettext, True),
             (text.ugettext, False),
@@ -937,17 +928,11 @@ class test_Str(ClassChecker):
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
-            assert e.index is None
-            assert_equal(unicode(e.error), u'must be Unicode text')
-            e = raises(errors.ConversionError, mthd, value, index=18)
-            assert e.name == 'my_str'
-            assert e.index == 18
             assert_equal(unicode(e.error), u'must be Unicode text')
         bad = [(u'Hello',), [42.3]]
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
-            assert e.index is None
             assert_equal(unicode(e.error), u'Only one value is allowed')
         assert o.convert(None) is None
 
@@ -1091,7 +1076,6 @@ class test_Password(ClassChecker):
         o = self.cls('my_password')
         e = raises(errors.PasswordMismatch, o._convert_scalar, [u'one', u'two'])
         assert e.name == 'my_password'
-        assert e.index is None
         assert o._convert_scalar([u'one', u'one']) == u'one'
         assert o._convert_scalar(u'one') == u'one'
 
@@ -1194,7 +1178,6 @@ def check_int_scalar_conversions(o):
     for bad in ['hello', u'hello', True, None, u'', u'.', 8j, ()]:
         e = raises(errors.ConversionError, o._convert_scalar, bad)
         assert e.name == 'my_number'
-        assert e.index is None
     # Assure large magnitude values are handled correctly
     assert type(o._convert_scalar(sys.maxsize * 2)) == long
     assert o._convert_scalar(sys.maxsize * 2) == sys.maxsize * 2
@@ -1604,7 +1587,6 @@ class test_IA5Str(ClassChecker):
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
-            assert e.index is None
             if six.PY2:
                 assert_equal(e.error, "The character '\\xc3' is not allowed.")
             else:

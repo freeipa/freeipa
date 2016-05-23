@@ -796,8 +796,7 @@ class Param(ReadOnly):
             if type(value) not in (tuple, list):
                 value = (value,)
             values = tuple(
-                self._convert_scalar(v, i)
-                for (i, v) in enumerate(value) if not _is_null(v)
+                self._convert_scalar(v) for v in value if not _is_null(v)
             )
             if len(values) == 0:
                 return
@@ -810,9 +809,7 @@ class Param(ReadOnly):
         """
         if type(value) in self.allowed_types:
             return value
-        raise ConversionError(name=self.name, index=index,
-            error=ugettext(self.type_error),
-        )
+        raise ConversionError(name=self.name, error=ugettext(self.type_error))
 
     def validate(self, value, context=None, supplied=None):
         """
@@ -836,8 +833,8 @@ class Param(ReadOnly):
                 )
             if len(value) < 1:
                 raise ValueError('value: empty tuple must be converted to None')
-            for (i, v) in enumerate(value):
-                self._validate_scalar(v, i)
+            for v in value:
+                self._validate_scalar(v)
         else:
             self._validate_scalar(value)
 
@@ -846,20 +843,10 @@ class Param(ReadOnly):
             raise TypeError(
                 TYPE_ERROR % (self.name, self.type, value, type(value))
             )
-        if index is not None and type(index) is not int:
-            raise TypeError(
-                TYPE_ERROR % ('index', int, index, type(index))
-            )
         for rule in self.all_rules:
             error = rule(ugettext, value)
             if error is not None:
-                raise ValidationError(
-                    name=self.get_param_name(),
-                    value=value,
-                    index=index,
-                    error=error,
-                    rule=rule,
-                )
+                raise ValidationError(name=self.get_param_name(), error=error)
 
     def get_default(self, **kw):
         """
@@ -975,11 +962,9 @@ class Bool(Param):
         if value in self.falsehoods:
             return False
         if type(value) in (tuple, list):
-            raise ConversionError(name=self.name, index=index,
-            error=ugettext(self.scalar_error))
-        raise ConversionError(name=self.name, index=index,
-            error=ugettext(self.type_error),
-        )
+            raise ConversionError(name=self.name,
+                                  error=ugettext(self.scalar_error))
+        raise ConversionError(name=self.name, error=ugettext(self.type_error))
 
 
 class Flag(Bool):
@@ -1041,11 +1026,9 @@ class Number(Param):
             except ValueError:
                 pass
         if type(value) in (tuple, list):
-            raise ConversionError(name=self.name, index=index,
-            error=ugettext(self.scalar_error))
-        raise ConversionError(name=self.name, index=index,
-            error=ugettext(self.type_error),
-        )
+            raise ConversionError(name=self.name,
+                                  error=ugettext(self.scalar_error))
+        raise ConversionError(name=self.name, error=ugettext(self.type_error))
 
 
 class Int(Number):
@@ -1097,7 +1080,6 @@ class Int(Number):
             return Int.convert_int(value)
         except ValueError:
             raise ConversionError(name=self.get_param_name(),
-                                  index=index,
                                   error=ugettext(self.type_error))
 
     def _rule_minvalue(self, _, value):
@@ -1244,13 +1226,13 @@ class Decimal(Number):
             try:
                 value = decimal.Decimal(value)
             except decimal.DecimalException as e:
-                raise ConversionError(name=self.get_param_name(), index=index,
+                raise ConversionError(name=self.get_param_name(),
                                       error=unicode(e))
 
         if isinstance(value, decimal.Decimal):
             return self._test_and_normalize(value)
 
-        return super(Decimal, self)._convert_scalar(value, index)
+        return super(Decimal, self)._convert_scalar(value)
 
     def _normalize_scalar(self, value):
         if isinstance(value, decimal.Decimal):
@@ -1386,7 +1368,7 @@ class Bytes(Data):
                 value = base64.b64decode(value)
             except (TypeError, ValueError) as e:
                 raise Base64DecodeError(reason=str(e))
-        return super(Bytes, self)._convert_scalar(value, index)
+        return super(Bytes, self)._convert_scalar(value)
 
 
 class Str(Data):
@@ -1426,11 +1408,9 @@ class Str(Data):
         if type(value) in (float, decimal.Decimal) + six.integer_types:
             return self.type(value)
         if type(value) in (tuple, list):
-            raise ConversionError(name=self.name, index=index,
-            error=ugettext(self.scalar_error))
-        raise ConversionError(name=self.name, index=index,
-            error=ugettext(self.type_error),
-        )
+            raise ConversionError(name=self.name,
+                                  error=ugettext(self.scalar_error))
+        raise ConversionError(name=self.name, error=ugettext(self.type_error))
 
     def _rule_noextrawhitespace(self, _, value):
         """
@@ -1488,11 +1468,10 @@ class IA5Str(Str):
             for char in value:
                 if ord(char) > 127:
                     raise ConversionError(name=self.get_param_name(),
-                        index=index,
                         error=_('The character %(char)r is not allowed.') %
                             dict(char=char,)
                     )
-        return super(IA5Str, self)._convert_scalar(value, index)
+        return super(IA5Str, self)._convert_scalar(value)
 
 
 class Password(Str):
@@ -1510,9 +1489,9 @@ class Password(Str):
         if isinstance(value, (tuple, list)) and len(value) == 2:
             (p1, p2) = value
             if p1 != p2:
-                raise PasswordMismatch(name=self.name, index=index)
+                raise PasswordMismatch(name=self.name)
             value = p1
-        return super(Password, self)._convert_scalar(value, index)
+        return super(Password, self)._convert_scalar(value)
 
 
 class Enum(Param):
@@ -1588,7 +1567,6 @@ class IntEnum(Enum):
             return Int.convert_int(value)
         except ValueError:
             raise ConversionError(name=self.get_param_name(),
-                                  index=index,
                                   error=ugettext(self.type_error))
 
 
@@ -1606,13 +1584,7 @@ class Any(Param):
         for rule in self.all_rules:
             error = rule(ugettext, value)
             if error is not None:
-                raise ValidationError(
-                    name=self.name,
-                    value=value,
-                    index=index,
-                    error=error,
-                    rule=rule,
-                )
+                raise ValidationError(name=self.name, error=error)
 
 
 class File(Str):
@@ -1671,10 +1643,9 @@ class DateTime(Param):
                       (', '.join(self.accepted_formats)))
 
             raise ConversionError(name=self.get_param_name(),
-                                  index=index,
                                   error=error)
 
-        return super(DateTime, self)._convert_scalar(value, index)
+        return super(DateTime, self)._convert_scalar(value)
 
 
 class AccessTime(Str):
@@ -1870,7 +1841,7 @@ class DNParam(Param):
         try:
             dn = DN(value)
         except Exception as e:
-            raise ConversionError(name=self.get_param_name(), index=index,
+            raise ConversionError(name=self.get_param_name(),
                                   error=ugettext(e))
         return dn
 
@@ -1961,14 +1932,14 @@ class DNSNameParam(Param):
             try:
                 validate_idna_domain(value)
             except ValueError as e:
-                raise ConversionError(name=self.get_param_name(), index=index,
+                raise ConversionError(name=self.get_param_name(),
                                       error=unicode(e))
             value = DNSName(value)
 
             if self.only_absolute and not value.is_absolute():
                 value = value.make_absolute()
 
-        return super(DNSNameParam, self)._convert_scalar(value, index)
+        return super(DNSNameParam, self)._convert_scalar(value)
 
     def _rule_only_absolute(self, _, value):
         if self.only_absolute and not value.is_absolute():

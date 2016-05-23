@@ -715,7 +715,7 @@ class DNSRecord(Str):
             return None
         return tuple(values)
 
-    def _part_values_to_string(self, values, index, idna=True):
+    def _part_values_to_string(self, values, idna=True):
         self._validate_parts(values)
         parts = []
         for v in values:
@@ -753,8 +753,8 @@ class DNSRecord(Str):
 
     def _convert_scalar(self, value, index=None):
         if isinstance(value, (tuple, list)):
-            return self._part_values_to_string(value, index)
-        return super(DNSRecord, self)._convert_scalar(value, index)
+            return self._part_values_to_string(value)
+        return super(DNSRecord, self)._convert_scalar(value)
 
     def normalize(self, value):
         if self.normalizedns:
@@ -1678,7 +1678,7 @@ def _create_idn_filter(cmd, ldap, *args, **options):
                     value[i] = v
                     continue
                 try:
-                    value[i] = record._part_values_to_string(parts, None)
+                    value[i] = record._part_values_to_string(parts)
                 except errors.ValidationError:
                     value[i] = v
 
@@ -1745,7 +1745,7 @@ def _records_idn_postprocess(record, **options):
                 for (i, p) in enumerate(parts):
                     if isinstance(part_params[i], DNSNameParam):
                         parts[i] = DNSName(p)
-                rrs.append(param._part_values_to_string(parts, None,
+                rrs.append(param._part_values_to_string(parts,
                                             idna=options.get('raw', False)))
             except (errors.ValidationError, errors.ConversionError):
                 rrs.append(dnsvalue)

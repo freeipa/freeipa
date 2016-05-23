@@ -97,16 +97,16 @@ class OTPTokenKey(Bytes):
         if isinstance(value, (tuple, list)) and len(value) == 2:
             (p1, p2) = value
             if p1 != p2:
-                raise PasswordMismatch(name=self.name, index=index)
+                raise PasswordMismatch(name=self.name)
             value = p1
 
         if isinstance(value, unicode):
             try:
                 value = base64.b32decode(value, True)
             except TypeError as e:
-                raise ConversionError(name=self.name, index=index, error=str(e))
+                raise ConversionError(name=self.name, error=str(e))
 
-        return super(OTPTokenKey, self)._convert_scalar(value, index)
+        return super(OTPTokenKey, self)._convert_scalar(value)
 
 def _convert_owner(userobj, entry_attrs, options):
     if 'ipatokenowner' in entry_attrs and not options.get('raw', False):

@@ -141,7 +141,7 @@ class DNOrURL(DNParam):
     def _convert_scalar(self, value, index=None):
         if isinstance(value, six.string_types) and value.startswith('ldap:///'):
             value = strip_ldap_prefix(value)
-        return super(DNOrURL, self)._convert_scalar(value, index=index)
+        return super(DNOrURL, self)._convert_scalar(value)
 
 
 def validate_type(ugettext, typestr):
