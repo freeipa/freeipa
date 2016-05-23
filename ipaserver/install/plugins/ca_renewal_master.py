@@ -42,6 +42,7 @@ class update_ca_renewal_master(Updater):
         ldap = self.api.Backend.ldap2
         base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
                      self.api.env.basedn)
+        dn = DN(('cn', 'CA'), ('cn', self.api.env.host), base_dn)
         filter = '(&(cn=CA)(ipaConfigString=caRenewalMaster))'
         try:
             entries = ldap.get_entries(base_dn=base_dn, filter=filter,
@@ -50,7 +51,27 @@ class update_ca_renewal_master(Updater):
             pass
         else:
             self.debug("found CA renewal master %s", entries[0].dn[1].value)
-            return False, []
+
+            master = False
+            updates = []
+
+            for entry in entries:
+                if entry.dn == dn:
+                    master = True
+                    continue
+
+                updates.append({
+                    'dn': entry.dn,
+                    'updates': [
+                        dict(action='remove', attr='ipaConfigString',
+                             value='caRenewalMaster')
+                    ],
+                })
+
+            if master:
+                return False, updates
+            else:
+                return False, []
 
         criteria = {
             'cert-database': paths.HTTPD_ALIAS_DIR,
@@ -96,7 +117,6 @@ class update_ca_renewal_master(Updater):
                     "assuming local CA is renewal slave", config)
                 return (False, False, [])
 
-        dn = DN(('cn', 'CA'), ('cn', self.api.env.host), base_dn)
         update = {
                 'dn': dn,
                 'updates': [
