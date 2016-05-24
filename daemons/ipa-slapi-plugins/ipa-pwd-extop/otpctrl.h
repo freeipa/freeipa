@@ -37,9 +37,7 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-
-#ifndef OTPCTRL_H_
-#define OTPCTRL_H_
+#pragma once
 
 #include "../libotp/otp_config.h"
 #include <stdbool.h>
@@ -62,5 +60,3 @@ bool otpctrl_present(Slapi_PBlock *pb, const char *oid);
 
 bool otpctrl_sync_handle(const struct otp_config *cfg, Slapi_PBlock *pb,
                          const char *user_dn);
-
-#endif /* OTPCTRL_H_ */

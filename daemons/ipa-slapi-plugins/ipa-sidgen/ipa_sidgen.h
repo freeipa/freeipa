@@ -37,8 +37,7 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-#ifndef _IPA_SIDGEN_H_
-#define _IPA_SIDGEN_H_
+#pragma once
 
 #define OBJECTCLASS "objectclass"
 #define IPA_OBJECT "ipaobject"
@@ -105,4 +104,3 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
                             const char *base_dn,
                             const char *dom_sid,
                             struct range_info **ranges);
-#endif /* _IPA_SIDGEN_H_ */

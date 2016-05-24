@@ -1,5 +1,4 @@
-#ifndef __IPA_ASN1_H_
-#define __IPA_ASN1_H_
+#pragma once
 
 #include "ipa_krb5.h"
 
@@ -72,5 +71,3 @@ bool ipaasn1_dec_getkt(void *buf, size_t len, bool *newkt,
  */
 bool ipaasn1_dec_getktreply(void *buf, size_t len,
                             int *kvno, struct keys_container *keys);
-
-#endif /* __IPA_ASN1_H_ */

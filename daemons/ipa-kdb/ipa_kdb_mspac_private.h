@@ -21,9 +21,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef _IPA_KDB_MSPAC_PRIVATE_H_
-#define _IPA_KDB_MSPAC_PRIVATE_H_
+#pragma once
 
 struct ipadb_mspac {
     char *flat_domain_name;
@@ -53,5 +51,3 @@ struct ipadb_adtrusts {
 
 int string_to_sid(const char *str, struct dom_sid *sid);
 char *dom_sid_string(TALLOC_CTX *memctx, const struct dom_sid *dom_sid);
-
-#endif /* _IPA_KDB_MSPAC_PRIVATE_H_ */

@@ -37,8 +37,7 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-#ifndef IPA_WINSYNC_H
-#define IPA_WINSYNC_H
+#pragma once
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
@@ -172,5 +171,3 @@ enum {
 #define IPA_WINSYNC_UPG_DEF_DN "cn=UPG Definition,cn=Definitions,cn=Managed Entries,cn=etc,%s"
 #define IPA_WINSYNC_UPG_DEF_ATTR "originfilter"
 #define IPA_WINSYNC_UPG_DEF_DISABLED "(objectclass=disable)"
-
-#endif /* IPA_WINSYNC_H */

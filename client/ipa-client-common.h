@@ -17,8 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __IPA_CLIENT_COMMON_H
-#define __IPA_CLIENT_COMMON_H
+#pragma once
 
 #include <libintl.h>
 #define _(STRING) gettext(STRING)
@@ -29,5 +28,3 @@
 #endif
 
 int init_gettext(void);
-
-#endif /* __IPA_CLIENT_COMMON_H */

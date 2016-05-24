@@ -37,8 +37,7 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-#ifndef _IPA_CLDAP_H_
-#define _IPA_CLDAP_H_
+#pragma once
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
@@ -108,4 +107,3 @@ int ipa_cldap_netlogon(struct ipa_cldap_ctx *ctx,
                        struct berval *reply);
 
 char *make_netbios_name(TALLOC_CTX *mem_ctx, const char *s);
-#endif /* _IPA_CLDAP_H_ */

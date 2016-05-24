@@ -20,8 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _IPA_PWD_H_
-#define _IPA_PWD_H_
+#pragma once
 
 /* 90 days default pwd max lifetime */
 #define IPAPWD_DEFAULT_PWDLIFE (90 * 24 *3600)
@@ -75,5 +74,3 @@ int ipapwd_generate_new_history(char *password,
                                 int *new_pwd_hlen);
 
 int encode_nt_key(char *newPasswd, uint8_t *nt_key);
-
-#endif

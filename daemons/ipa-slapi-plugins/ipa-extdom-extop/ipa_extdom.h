@@ -37,8 +37,7 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-#ifndef _IPA_EXTDOM_H_
-#define _IPA_EXTDOM_H_
+#pragma once
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
@@ -202,4 +201,3 @@ int pack_ber_group(enum response_types response_type,
                    gid_t gid, char **members, struct sss_nss_kv *kv_list,
                    struct berval **berval);
 void set_err_msg(struct extdom_req *req, const char *format, ...);
-#endif /* _IPA_EXTDOM_H_ */

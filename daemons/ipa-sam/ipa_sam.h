@@ -18,11 +18,8 @@
 
 */
 
-#ifndef _PASSDB_PDB_IPA_H_
-#define _PASSDB_PDB_IPA_H_
+#pragma once
 
 /* The following definitions come from passdb/pdb_ipa.c  */
 
 NTSTATUS pdb_ipa_init(void);
-
-#endif /* _PASSDB_PDB_IPA_H_ */

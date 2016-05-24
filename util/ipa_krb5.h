@@ -1,5 +1,4 @@
-#ifndef __IPA_KRB5_H_
-#define __IPA_KRB5_H_
+#pragma once
 
 #include <lber.h>
 #include <krb5/krb5.h>
@@ -83,4 +82,3 @@ int create_keys(krb5_context krbctx,
                 char **err_msg);
 
 int ipa_kstuples_to_string(krb5_key_salt_tuple *kst, int n_kst, char **str);
-#endif /* __IPA_KRB5_H_ */

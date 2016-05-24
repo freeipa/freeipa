@@ -1,5 +1,4 @@
-#ifndef __IPA_MSPAC_H_
-#define __IPA_MSPAC_H_
+#pragma once
 
 char *ipa_mspac_well_known_sids[] = {
     "S-1-0",
@@ -28,5 +27,3 @@ char *ipa_mspac_well_known_sids[] = {
     "S-1-5-20",
     NULL
 };
-
-#endif /* __IPA_MSPAC_H_ */

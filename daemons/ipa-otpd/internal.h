@@ -20,8 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INTERNAL_H_
-#define INTERNAL_H_
+#pragma once
 
 #include "krad.h"
 
@@ -149,5 +148,3 @@ const char *otpd_parse_radius(LDAP *ldp, LDAPMessage *entry,
 
 const char *otpd_parse_radius_username(LDAP *ldp, LDAPMessage *entry,
                                        struct otpd_queue_item *item);
-
-#endif /* INTERNAL_H_ */

@@ -34,8 +34,7 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-#ifndef _SLAPI_PLUGINS_UTIL_H
-#define _SLAPI_PLUGINS_UTIL_H
+#pragma once
 
 #define EOK 0
 #define EFAIL -1
@@ -72,5 +71,3 @@
     slapi_log_error(SLAPI_LOG_TRACE, log_func, fmt, ##__VA_ARGS__)
 
 #define LOG_OOM() LOG_FATAL("Out of Memory!\n")
-
-#endif /* _SLAPI_PLUGINS_UTIL_H */
