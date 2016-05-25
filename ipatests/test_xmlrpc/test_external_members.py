@@ -49,7 +49,7 @@ class test_external_members(Declarative):
     def setup_class(cls):
         super(test_external_members, cls).setup_class()
         if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect(fallback=False)
+            api.Backend.rpcclient.connect()
 
         trusts = api.Command['trust_find']()
         if trusts['count'] == 0:

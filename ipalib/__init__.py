@@ -949,7 +949,7 @@ api = create_api(mode=None)
 
 if os.environ.get('IPA_UNIT_TEST_MODE', None) == 'cli_test':
     from ipalib.cli import cli_plugins
-    api.bootstrap(context='cli', in_server=False, in_tree=True)
+    api.bootstrap(context='cli', in_server=False, in_tree=True, fallback=False)
     for klass in cli_plugins:
         api.add_plugin(klass)
     api.finalize()

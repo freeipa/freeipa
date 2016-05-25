@@ -51,7 +51,7 @@ class test_trustconfig(Declarative):
     def setup_class(cls):
         super(test_trustconfig, cls).setup_class()
         if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect(fallback=False)
+            api.Backend.rpcclient.connect()
         try:
            api.Command['trustconfig_show'](trust_type=u'ad')
         except errors.NotFound:

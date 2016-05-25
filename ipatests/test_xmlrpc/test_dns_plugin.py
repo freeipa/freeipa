@@ -429,7 +429,7 @@ class test_dns(Declarative):
         super(test_dns, cls).setup_class()
 
         if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect(fallback=False)
+            api.Backend.rpcclient.connect()
 
         if not have_ldap2:
             raise nose.SkipTest('server plugin not available')
@@ -3163,7 +3163,7 @@ class test_root_zone(Declarative):
         super(test_root_zone, cls).setup_class()
 
         if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect(fallback=False)
+            api.Backend.rpcclient.connect()
 
         if not have_ldap2:
             raise nose.SkipTest('server plugin not available')
@@ -3246,7 +3246,7 @@ class test_forward_zones(Declarative):
         super(test_forward_zones, cls).setup_class()
 
         if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect(fallback=False)
+            api.Backend.rpcclient.connect()
 
         if not have_ldap2:
             raise nose.SkipTest('server plugin not available')
@@ -4463,7 +4463,7 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
         super(test_forward_master_zones_mutual_exlusion, cls).setup_class()
 
         if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect(fallback=False)
+            api.Backend.rpcclient.connect()
 
         if not have_ldap2:
             raise nose.SkipTest('server plugin not available')
@@ -4838,7 +4838,7 @@ class test_forwardzone_delegation_warnings(Declarative):
         super(test_forwardzone_delegation_warnings, cls).setup_class()
 
         if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect(fallback=False)
+            api.Backend.rpcclient.connect()
 
         if not have_ldap2:
             raise nose.SkipTest('server plugin not available')
@@ -5349,7 +5349,7 @@ class test_dns_soa(Declarative):
         super(test_dns_soa, cls).setup_class()
 
         if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect(fallback=False)
+            api.Backend.rpcclient.connect()
 
         if not have_ldap2:
             raise nose.SkipTest('server plugin not available')

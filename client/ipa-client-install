@@ -2725,62 +2725,66 @@ def install(options, env, fstore, statestore):
 
     # Configure ipa.conf
     if not options.on_master:
-        configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, hostname)
+        configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain,
+                           cli_server, hostname)
         root_logger.info("Created /etc/ipa/default.conf")
 
-    api.bootstrap(context='cli_installer', debug=options.debug)
-    api.finalize()
-    if 'config_loaded' not in api.env:
-        root_logger.error("Failed to initialize IPA API.")
-        return CLIENT_INSTALL_ERROR
-
-    # Always back up sssd.conf. It gets updated by authconfig --enablekrb5.
-    fstore.backup_file(paths.SSSD_CONF)
-    if options.sssd:
-        if configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, client_domain, hostname):
-            return CLIENT_INSTALL_ERROR
-        root_logger.info("Configured /etc/sssd/sssd.conf")
-
-    if options.on_master:
-        # If on master assume kerberos is already configured properly.
-        # Get the host TGT.
-        try:
-            ipautil.kinit_keytab(host_principal, paths.KRB5_KEYTAB,
-                                 CCACHE_FILE,
-                                 attempts=options.kinit_attempts)
-            os.environ['KRB5CCNAME'] = CCACHE_FILE
-        except gssapi.exceptions.GSSError as e:
-            root_logger.error("Failed to obtain host TGT: %s" % e)
-            return CLIENT_INSTALL_ERROR
-    else:
-        # Configure krb5.conf
-        fstore.backup_file(paths.KRB5_CONF)
-        if configure_krb5_conf(
-                cli_realm=cli_realm,
-                cli_domain=cli_domain,
-                cli_server=cli_server,
-                cli_kdc=cli_kdc,
-                dnsok=dnsok,
-                options=options,
-                filename=paths.KRB5_CONF,
-                client_domain=client_domain,
-                client_hostname=hostname):
-            return CLIENT_INSTALL_ERROR
-
-        root_logger.info(
-            "Configured /etc/krb5.conf for IPA realm %s", cli_realm)
-
-    # Clear out any current session keyring information
-    try:
-        delete_persistent_client_session_data(host_principal)
-    except ValueError:
-        pass
-
-    ca_certs = x509.load_certificate_list_from_file(CACERT)
-    ca_certs = [cert.der_data for cert in ca_certs]
-
     with certdb.NSSDatabase() as tmp_db:
+        api.bootstrap(context='cli_installer',
+                      debug=options.debug,
+                      delegate=False,
+                      nss_dir=tmp_db.secdir)
+        api.finalize()
+        if 'config_loaded' not in api.env:
+            root_logger.error("Failed to initialize IPA API.")
+            return CLIENT_INSTALL_ERROR
+
+        # Always back up sssd.conf. It gets updated by authconfig --enablekrb5.
+        fstore.backup_file(paths.SSSD_CONF)
+        if options.sssd:
+            if configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server,
+                                   options, client_domain, hostname):
+                return CLIENT_INSTALL_ERROR
+            root_logger.info("Configured /etc/sssd/sssd.conf")
+
+        if options.on_master:
+            # If on master assume kerberos is already configured properly.
+            # Get the host TGT.
+            try:
+                ipautil.kinit_keytab(host_principal, paths.KRB5_KEYTAB,
+                                     CCACHE_FILE,
+                                     attempts=options.kinit_attempts)
+                os.environ['KRB5CCNAME'] = CCACHE_FILE
+            except gssapi.exceptions.GSSError as e:
+                root_logger.error("Failed to obtain host TGT: %s" % e)
+                return CLIENT_INSTALL_ERROR
+        else:
+            # Configure krb5.conf
+            fstore.backup_file(paths.KRB5_CONF)
+            if configure_krb5_conf(
+                    cli_realm=cli_realm,
+                    cli_domain=cli_domain,
+                    cli_server=cli_server,
+                    cli_kdc=cli_kdc,
+                    dnsok=dnsok,
+                    options=options,
+                    filename=paths.KRB5_CONF,
+                    client_domain=client_domain,
+                    client_hostname=hostname):
+                return CLIENT_INSTALL_ERROR
+
+            root_logger.info(
+                "Configured /etc/krb5.conf for IPA realm %s", cli_realm)
+
+        # Clear out any current session keyring information
+        try:
+            delete_persistent_client_session_data(host_principal)
+        except ValueError:
+            pass
+
         # Add CA certs to a temporary NSS database
+        ca_certs = x509.load_certificate_list_from_file(CACERT)
+        ca_certs = [cert.der_data for cert in ca_certs]
         try:
             pwd_file = ipautil.write_tmp_file(ipautil.ipa_generate_password())
             tmp_db.create_db(pwd_file.name)
@@ -2794,8 +2798,7 @@ def install(options, env, fstore, statestore):
         # Now, let's try to connect to the server's RPC interface
         connected = False
         try:
-            api.Backend.rpcclient.connect(delegate=False,
-                                          nss_dir=tmp_db.secdir)
+            api.Backend.rpcclient.connect()
             connected = True
             root_logger.debug("Try RPC connection")
             api.Backend.rpcclient.forward('ping')
@@ -2806,8 +2809,7 @@ def install(options, env, fstore, statestore):
                 "Cannot connect to the server due to Kerberos error: %s. "
                 "Trying with delegate=True", e)
             try:
-                api.Backend.rpcclient.connect(delegate=True,
-                                              nss_dir=tmp_db.secdir)
+                api.Backend.rpcclient.connect(delegate=True)
                 root_logger.debug("Try RPC connection")
                 api.Backend.rpcclient.forward('ping')
 

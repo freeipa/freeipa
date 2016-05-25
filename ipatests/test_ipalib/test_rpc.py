@@ -267,7 +267,7 @@ class test_xml_introspection(object):
     @classmethod
     def setup_class(self):
         try:
-            api.Backend.xmlclient.connect(fallback=False)
+            api.Backend.xmlclient.connect()
         except (errors.NetworkError, IOError):
             raise nose.SkipTest('%r: Server not available: %r' %
                                 (__name__, api.env.xmlrpc_uri))

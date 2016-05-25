@@ -453,8 +453,6 @@ def main():
 
                 xmlrpc_uri = ('https://%s/ipa/xml' %
                               ipautil.format_netloc(options.master))
-                api.bootstrap(context='client', xmlrpc_uri=xmlrpc_uri)
-                api.finalize()
 
                 if options.ca_cert_file:
                     nss_dir = None
@@ -462,6 +460,10 @@ def main():
                     nss_dir = paths.IPA_NSSDB_DIR
 
                 with certdb.NSSDatabase(nss_dir) as nss_db:
+                    api.bootstrap(context='client', xmlrpc_uri=xmlrpc_uri,
+                                  nss_dir=nss_db.secdir)
+                    api.finalize()
+
                     if options.ca_cert_file:
                         nss_dir = nss_db.secdir
 
@@ -480,7 +482,7 @@ def main():
                         nss_dir = None
 
                     try:
-                        api.Backend.rpcclient.connect(nss_dir=nss_dir)
+                        api.Backend.rpcclient.connect()
                         api.Command.ping()
                     except Exception as e:
                         print_info(

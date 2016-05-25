@@ -111,7 +111,7 @@ def fuzzy_set_ci(s):
 
 try:
     if not api.Backend.rpcclient.isconnected():
-        api.Backend.rpcclient.connect(fallback=False)
+        api.Backend.rpcclient.connect()
     res = api.Command['user_show'](u'notfound')
 except errors.NetworkError:
     server_available = False
@@ -186,7 +186,7 @@ class XMLRPC_test(object):
             raise nose.SkipTest('%r: Server not available: %r' %
                                 (cls.__module__, api.env.xmlrpc_uri))
         if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect(fallback=False)
+            api.Backend.rpcclient.connect()
 
     @classmethod
     def teardown_class(cls):

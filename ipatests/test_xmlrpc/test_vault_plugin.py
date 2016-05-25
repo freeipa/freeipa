@@ -131,7 +131,7 @@ class test_vault_plugin(Declarative):
     @classmethod
     def setup_class(cls):
         if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect(fallback=False)
+            api.Backend.rpcclient.connect()
 
         if not api.Command.kra_is_enabled()['result']:
             raise nose.SkipTest('KRA service is not enabled')

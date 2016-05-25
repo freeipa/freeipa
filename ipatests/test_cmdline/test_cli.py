@@ -33,7 +33,7 @@ class TestCLIParsing(object):
     def run_command(self, command_name, **kw):
         """Run a command on the server"""
         if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect(fallback=False)
+            api.Backend.rpcclient.connect()
         try:
             api.Command[command_name](**kw)
         except errors.NetworkError:
