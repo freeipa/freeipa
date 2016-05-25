@@ -114,6 +114,7 @@ ipa_class_members = {
     'ipalib.errors.PublicError': [
         'msg',
         'strerror',
+        'kw',
     ],
     'ipalib.errors.SingleMatchExpected': [
         'found',
@@ -128,6 +129,7 @@ ipa_class_members = {
         'msg',
         'strerror',
         'type',
+        'kw',
     ],
     'ipalib.parameters.Param': [
         'cli_name',
