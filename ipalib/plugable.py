@@ -267,6 +267,7 @@ class API(ReadOnly):
     def __init__(self):
         super(API, self).__init__()
         self.__plugins = {}
+        self.__next = {}
         self.__done = set()
         self.env = Env()
 
@@ -593,6 +594,8 @@ class API(ReadOnly):
                     name=klass.__name__,
                     plugin=klass,
                 )
+
+            self.__next[klass] = prev
         else:
             if override:
                 # There was nothing already registered to override:
@@ -652,6 +655,12 @@ class API(ReadOnly):
 
         if not production_mode:
             lock(self)
+
+    def get_plugin_next(self, klass):
+        if not inspect.isclass(klass):
+            raise TypeError('plugin must be a class; got %r' % klass)
+
+        return self.__next[klass]
 
 
 class IPAHelpFormatter(optparse.IndentedHelpFormatter):
