@@ -129,6 +129,8 @@ DEFAULT_CONFIG = (
 
     ('rpc_protocol', 'jsonrpc'),
 
+    ('nss_dir', paths.IPA_NSSDB_DIR),
+
     # Define an inclusive range of SSL/TLS version support
     ('tls_version_min', 'tls1.0'),
     ('tls_version_max', 'tls1.2'),

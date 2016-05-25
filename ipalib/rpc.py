@@ -57,7 +57,6 @@ from ipalib.request import context, Connection
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
 from ipapython import kernel_keyring
-from ipaplatform.paths import paths
 from ipapython.cookie import Cookie
 from ipapython.dnsutil import DNSName
 from ipalib.text import _
@@ -489,7 +488,7 @@ class SSLTransport(LanguageAwareTransport):
         if self._connection and host == self._connection[0]:
             return self._connection[1]
 
-        dbdir = getattr(context, 'nss_dir', paths.IPA_NSSDB_DIR)
+        dbdir = context.nss_dir
         connection_dbdir = self.get_connection_dbdir()
 
         if connection_dbdir:
@@ -869,6 +868,8 @@ class RPCClient(Connectible):
             fallback = self.api.env.fallback
         if delegate is None:
             delegate = self.api.env.delegate
+        if nss_dir is None:
+            nss_dir = self.api.env.nss_dir
         try:
             rpc_uri = self.env[self.env_rpc_uri_key]
             principal = get_principal()
@@ -880,9 +881,7 @@ class RPCClient(Connectible):
         except (errors.CCacheError, ValueError):
             # No session key, do full Kerberos auth
             pass
-        # This might be dangerous. Use at your own risk!
-        if nss_dir:
-            context.nss_dir = nss_dir
+        context.nss_dir = nss_dir
         urls = self.get_url_list(rpc_uri)
         serverproxy = None
         for url in urls:
