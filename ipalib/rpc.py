@@ -404,13 +404,13 @@ def xml_loads(data, encoding='UTF-8'):
 
 class DummyParser(object):
     def __init__(self):
-        self.data = b''
+        self.data = []
 
     def feed(self, data):
-        self.data += data
+        self.data.append(data)
 
     def close(self):
-        return self.data
+        return b''.join(self.data)
 
 
 class MultiProtocolTransport(Transport):
