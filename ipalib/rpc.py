@@ -971,10 +971,6 @@ class RPCClient(Connectible):
         :param args: Positional arguments to pass to remote command.
         :param kw: Keyword arguments to pass to remote command.
         """
-        if name not in self.Command:
-            raise ValueError(
-                '%s.forward(): %r not in api.Command' % (self.name, name)
-            )
         server = getattr(context, 'request_url', None)
         self.log.info("Forwarding '%s' to %s server '%s'",
                       name, self.protocol, server)
