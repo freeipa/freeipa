@@ -574,40 +574,36 @@ class API(ReadOnly):
             raise TypeError('plugin must be a class; got %r' % klass)
 
         # Find the base class or raise SubclassError:
-        found = False
         for base in self.bases:
-            if not issubclass(klass, base):
-                continue
-
-            sub_d = self.__plugins.setdefault(base, {})
-            found = True
-
-            # Check override:
-            if klass.__name__ in sub_d:
-                if not override:
-                    # Must use override=True to override:
-                    raise errors.PluginOverrideError(
-                        base=base.__name__,
-                        name=klass.__name__,
-                        plugin=klass,
-                    )
-            else:
-                if override:
-                    # There was nothing already registered to override:
-                    raise errors.PluginMissingOverrideError(
-                        base=base.__name__,
-                        name=klass.__name__,
-                        plugin=klass,
-                    )
-
-            # The plugin is okay, add to sub_d:
-            sub_d[klass.__name__] = klass
-
-        if not found:
+            if issubclass(klass, self.bases):
+                break
+        else:
             raise errors.PluginSubclassError(
                 plugin=klass,
                 bases=self.bases,
             )
+
+        # Check override:
+        prev = self.__plugins.get(klass.__name__)
+        if prev:
+            if not override:
+                # Must use override=True to override:
+                raise errors.PluginOverrideError(
+                    base=base.__name__,
+                    name=klass.__name__,
+                    plugin=klass,
+                )
+        else:
+            if override:
+                # There was nothing already registered to override:
+                raise errors.PluginMissingOverrideError(
+                    base=base.__name__,
+                    name=klass.__name__,
+                    plugin=klass,
+                )
+
+        # The plugin is okay, add to sub_d:
+        self.__plugins[klass.__name__] = klass
 
     def finalize(self):
         """
@@ -625,10 +621,11 @@ class API(ReadOnly):
 
         for base in self.bases:
             name = base.__name__
-            sub_d = self.__plugins.get(base, {})
-
             members = []
-            for klass in sub_d.values():
+
+            for klass in self.__plugins.values():
+                if not issubclass(klass, base):
+                    continue
                 try:
                     instance = plugins[klass]
                 except KeyError:
