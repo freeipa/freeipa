@@ -861,8 +861,14 @@ class RPCClient(Connectible):
 
         return session_url
 
-    def create_connection(self, ccache=None, verbose=0, fallback=True,
-                          delegate=False, nss_dir=None):
+    def create_connection(self, ccache=None, verbose=None, fallback=None,
+                          delegate=None, nss_dir=None):
+        if verbose is None:
+            verbose = self.api.env.verbose
+        if fallback is None:
+            fallback = self.api.env.fallback
+        if delegate is None:
+            delegate = self.api.env.delegate
         try:
             rpc_uri = self.env[self.env_rpc_uri_key]
             principal = get_principal()

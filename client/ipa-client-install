@@ -2794,7 +2794,8 @@ def install(options, env, fstore, statestore):
         # Now, let's try to connect to the server's RPC interface
         connected = False
         try:
-            api.Backend.rpcclient.connect(nss_dir=tmp_db.secdir)
+            api.Backend.rpcclient.connect(delegate=False,
+                                          nss_dir=tmp_db.secdir)
             connected = True
             root_logger.debug("Try RPC connection")
             api.Backend.rpcclient.forward('ping')
