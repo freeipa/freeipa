@@ -222,6 +222,23 @@ class RedHatCAService(RedHatService):
         if wait:
             self.wait_until_running()
 
+    def is_running(self, instance_name="", wait=True):
+        if instance_name:
+            return super(RedHatCAService, self).is_running(instance_name)
+        try:
+            status = dogtag.ca_status()
+            if status == 'running':
+                return True
+            elif status == 'starting' and wait:
+                # Exception is raised if status is 'starting' even after wait
+                self.wait_until_running()
+                return True
+        except Exception as e:
+            root_logger.debug(
+                'Failed to check CA status: {err}'.format(err=e)
+            )
+        return False
+
 
 # Function that constructs proper Red Hat OS family-specific server classes for
 # services of specified name

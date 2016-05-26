@@ -148,7 +148,7 @@ class PlatformService(object):
     def restart(self, instance_name="", capture_output=True, wait=True):
         return
 
-    def is_running(self, instance_name=""):
+    def is_running(self, instance_name="", wait=True):
         return False
 
     def is_installed(self):
@@ -303,7 +303,7 @@ class SystemdService(PlatformService):
         if wait and self.is_running(instance_name):
             self.wait_for_open_ports(self.service_instance(instance_name))
 
-    def is_running(self, instance_name=""):
+    def is_running(self, instance_name="", wait=True):
         instance = self.service_instance(instance_name, 'is-active')
 
         while True:

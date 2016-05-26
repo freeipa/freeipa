@@ -347,8 +347,8 @@ class Service(object):
     def restart(self, instance_name="", capture_output=True, wait=True):
         self.service.restart(instance_name, capture_output=capture_output, wait=wait)
 
-    def is_running(self):
-        return self.service.is_running()
+    def is_running(self, instance_name="", wait=True):
+        return self.service.is_running(instance_name, wait)
 
     def install(self):
         self.service.install()
