@@ -90,6 +90,12 @@ class batch(Command):
     def execute(self, methods=None, **options):
         results = []
         for arg in (methods or []):
+            # As take_args = Any, no check is done before
+            # Need to make sure that methods contain dict objects
+            if not isinstance(arg, dict):
+                raise errors.ConversionError(
+                    name='methods',
+                    error=_(u'must contain dict objects'))
             params = dict()
             name = None
             try:
@@ -100,9 +106,21 @@ class batch(Command):
                 name = arg['method']
                 if name not in self.Command:
                     raise errors.CommandError(name=name)
-                a, kw = arg['params']
-                newkw = dict((str(k), v) for k, v in kw.items())
-                params = api.Command[name].args_options_2_params(*a, **newkw)
+
+                # If params are not formated as a tuple(list, dict)
+                # the following lines will raise an exception
+                # that triggers an internal server error
+                # Raise a ConversionError instead to report the issue
+                # to the client
+                try:
+                    a, kw = arg['params']
+                    newkw = dict((str(k), v) for k, v in kw.items())
+                    params = api.Command[name].args_options_2_params(
+                        *a, **newkw)
+                except (AttributeError, ValueError, TypeError):
+                    raise errors.ConversionError(
+                        name='params',
+                        error=_(u'must contain a tuple (list, dict)'))
                 newkw.setdefault('version', options['version'])
 
                 result = api.Command[name](*a, **newkw)
