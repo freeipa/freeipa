@@ -294,10 +294,11 @@ class user(baseuser):
         'System: Modify Users': {
             'ipapermright': {'write'},
             'ipapermdefaultattr': {
-                'businesscategory', 'carlicense', 'cn', 'description',
-                'displayname', 'employeetype', 'facsimiletelephonenumber',
+                'businesscategory', 'carlicense', 'cn', 'departmentnumber',
+                'description', 'displayname', 'employeetype',
+                'employeenumber', 'facsimiletelephonenumber',
                 'gecos', 'givenname', 'homephone', 'inetuserhttpurl',
-                'initials', 'l', 'labeleduri', 'loginshell', 'manager',
+                'initials', 'l', 'labeleduri', 'loginshell', 'manager', 'mail',
                 'mepmanagedentry', 'mobile', 'objectclass', 'ou', 'pager',
                 'postalcode', 'roomnumber', 'secretary', 'seealso', 'sn', 'st',
                 'street', 'telephonenumber', 'title', 'userclass',
