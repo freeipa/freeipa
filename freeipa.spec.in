@@ -505,6 +505,7 @@ Requires: python-ldap >= 2.4.15
 Requires: python-requests
 Requires: python-custodia
 Requires: python-dns >= 1.11.1
+Requires: pyusb
 
 Conflicts: %{alt_name}-python < %{version}
 
@@ -554,6 +555,7 @@ Requires: python3-pyldap >= 2.4.15
 Requires: python3-custodia
 Requires: python3-requests
 Requires: python3-dns >= 1.11.1
+Requires: python3-pyusb
 
 %description -n python3-ipalib
 IPA is an integrated solution to provide centrally managed Identity (users,
