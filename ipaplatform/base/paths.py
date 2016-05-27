@@ -68,6 +68,7 @@ class BasePathNamespace(object):
     DNSSEC_SOFTHSM_PIN_SO = "/etc/ipa/dnssec/softhsm_pin_so"
     IPA_NSSDB_DIR = "/etc/ipa/nssdb"
     IPA_NSSDB_PWDFILE_TXT = "/etc/ipa/nssdb/pwdfile.txt"
+    COMMON_KRB5_CONF_DIR = "/etc/krb5.conf.d/"
     KRB5_CONF = "/etc/krb5.conf"
     KRB5_KEYTAB = "/etc/krb5.keytab"
     LDAP_CONF = "/etc/ldap.conf"

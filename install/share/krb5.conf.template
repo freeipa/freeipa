@@ -1,3 +1,4 @@
+includedir /etc/krb5.conf.d/
 includedir /var/lib/sss/pubconf/krb5.include.d/
 
 [logging]

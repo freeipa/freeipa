@@ -1058,7 +1058,8 @@ def configure_krb5_conf(cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
     krbconf.setIndent(("","  ","    "))
 
     opts = [{'name':'comment', 'type':'comment', 'value':'File modified by ipa-client-install'},
-            {'name':'empty', 'type':'empty'}]
+            {'name':'empty', 'type':'empty'},
+            {'name':'includedir', 'type':'option', 'value':paths.COMMON_KRB5_CONF_DIR, 'delim':' '}]
 
     # SSSD include dir
     if options.sssd:
