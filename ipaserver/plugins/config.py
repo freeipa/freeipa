@@ -243,7 +243,7 @@ class config(LDAPObject):
             'ca_renewal_master_server?',
             label=_('IPA CA renewal master'),
             doc=_('Renewal master for IPA certificate authority'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
+            flags={'virtual_attribute', 'no_create'}
         )
     )
 
@@ -377,7 +377,28 @@ class config_mod(LDAPUpdate):
                 raise errors.ValidationError(name=failedattr,
                     error=_('SELinux user map default user not in order list'))
 
+        if 'ca_renewal_master_server' in options:
+            new_master = options['ca_renewal_master_server']
+
+            try:
+                self.api.Object.server.get_dn_if_exists(new_master)
+            except errors.NotFound:
+                self.api.Object.server.handle_not_found(new_master)
+
+            backend = self.api.Backend.serverroles
+            backend.config_update(ca_renewal_master_server=new_master)
+
         return dn
+
+    def exc_callback(self, keys, options, exc, call_func,
+                     *call_args, **call_kwargs):
+        if (isinstance(exc, errors.EmptyModlist) and
+                call_func.__name__ == 'update_entry' and
+                'ca_renewal_master_server' in options):
+            return
+
+        super(config_mod, self).exc_callback(
+            keys, options, exc, call_func, *call_args, **call_kwargs)
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.obj.show_servroles_attributes(entry_attrs, **options)

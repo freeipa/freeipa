@@ -789,9 +789,10 @@ args: 0,1,1
 option: Str('version?')
 output: Output('result')
 command: config_mod
-args: 0,25,3
+args: 0,26,3
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('ca_renewal_master_server?', autofill=False)
 option: Str('delattr*', cli_name='delattr')
 option: StrEnum('ipaconfigstring*', autofill=False, cli_name='ipaconfigstring', values=[u'AllowNThash', u'KDC:Disable Last Success', u'KDC:Disable Lockout', u'KDC:Disable Default Preauth for SPNs'])
 option: Str('ipadefaultemaildomain?', autofill=False, cli_name='emaildomain')
