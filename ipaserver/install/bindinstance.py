@@ -1230,8 +1230,12 @@ class BindInstance(service.Service):
         set and thus overrides his configured options in named.conf.
         """
         result = self.api.Command.dnsconfig_show()
-        global_conf_set = any(param in result['result'] for \
-                              param in self.api.Object['dnsconfig'].params)
+
+        global_conf_set = any(
+            param.name in result['result'] for param in
+            self.api.Object['dnsconfig'].params() if
+            u'virtual_attribute' not in param.flags
+        )
 
         if not global_conf_set:
             print("Global DNS configuration in LDAP server is empty")

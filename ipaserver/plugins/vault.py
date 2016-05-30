@@ -959,6 +959,12 @@ class vaultconfig(Object):
             'transport_cert',
             label=_('Transport Certificate'),
         ),
+        Str(
+            'kra_server_server*',
+            label=_('IPA KRA servers'),
+            doc=_('IPA servers configured as key recovery agents'),
+            flags={'virtual_attribute', 'no_create', 'no_update'}
+        )
     )
 
 
@@ -981,10 +987,13 @@ class vaultconfig_show(Retrieve):
 
         kra_client = self.api.Backend.kra.get_client()
         transport_cert = kra_client.system_certs.get_transport_cert()
+        config = {'transport_cert': transport_cert.binary}
+        config.update(
+            self.api.Backend.serverroles.config_retrieve("KRA server")
+        )
+
         return {
-            'result': {
-                'transport_cert': transport_cert.binary
-            },
+            'result': config,
             'value': None,
         }
 

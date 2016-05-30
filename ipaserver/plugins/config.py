@@ -227,11 +227,40 @@ class config(LDAPObject):
             doc=_('Default types of supported user authentication'),
             values=(u'password', u'radius', u'otp', u'disabled'),
         ),
+        Str(
+            'ipa_master_server*',
+            label=_('IPA masters'),
+            doc=_('List of all IPA masters'),
+            flags={'virtual_attribute', 'no_create', 'no_update'}
+        ),
+        Str(
+            'ca_server_server*',
+            label=_('IPA CA servers'),
+            doc=_('IPA servers configured as certificate authority'),
+            flags={'virtual_attribute', 'no_create', 'no_update'}
+        ),
+        Str(
+            'ca_renewal_master_server?',
+            label=_('IPA CA renewal master'),
+            doc=_('Renewal master for IPA certificate authority'),
+            flags={'virtual_attribute', 'no_create', 'no_update'}
+        )
     )
 
     def get_dn(self, *keys, **kwargs):
         return DN(('cn', 'ipaconfig'), ('cn', 'etc'), api.env.basedn)
 
+    def show_servroles_attributes(self, entry_attrs, **options):
+        if options.get('raw', False):
+            return
+
+        backend = self.api.Backend.serverroles
+
+        ca_config = backend.config_retrieve("CA server")
+        master_config = backend.config_retrieve("IPA master")
+
+        entry_attrs.update(ca_config)
+        entry_attrs.update(master_config)
 
 
 @register()
@@ -350,9 +379,15 @@ class config_mod(LDAPUpdate):
 
         return dn
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.show_servroles_attributes(entry_attrs, **options)
+        return dn
 
 
 @register()
 class config_show(LDAPRetrieve):
     __doc__ = _('Show the current configuration.')
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.show_servroles_attributes(entry_attrs, **options)
+        return dn

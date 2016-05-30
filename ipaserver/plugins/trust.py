@@ -1179,6 +1179,18 @@ class trustconfig(LDAPObject):
             cli_name='fallback_primary_group',
             label=_('Fallback primary group'),
         ),
+        Str(
+            'ad_trust_agent_server*',
+            label=_('IPA AD trust agents'),
+            doc=_('IPA servers configured as AD trust agents'),
+            flags={'virtual_attribute', 'no_create', 'no_update'}
+        ),
+        Str(
+            'ad_trust_controller_server*',
+            label=_('IPA AD trust controllers'),
+            doc=_('IPA servers configured as AD trust controllers'),
+            flags={'virtual_attribute', 'no_create', 'no_update'}
+        ),
     )
 
     def get_dn(self, *keys, **kwargs):
@@ -1249,6 +1261,22 @@ class trustconfig(LDAPObject):
 
         entry_attrs['ipantfallbackprimarygroup'] = [groupdn[0][0].value]
 
+    def show_servroles(self, entry_attrs, **options):
+        if options.get('raw', False):
+            return
+
+        backend = self.api.Backend.serverroles
+
+        adtrust_agents = backend.config_retrieve(
+            "AD trust agent"
+        )
+        adtrust_controllers = backend.config_retrieve(
+            "AD trust controller"
+        )
+
+        entry_attrs.update(adtrust_agents)
+        entry_attrs.update(adtrust_controllers)
+
 
 @register()
 class trustconfig_mod(LDAPUpdate):
@@ -1268,6 +1296,7 @@ class trustconfig_mod(LDAPUpdate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.obj._convert_groupdn(entry_attrs, options)
+        self.obj.show_servroles(entry_attrs, **options)
         return dn
 
 
@@ -1285,6 +1314,8 @@ class trustconfig_show(LDAPRetrieve):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.obj._convert_groupdn(entry_attrs, options)
+        self.obj.show_servroles(entry_attrs, **options)
+
         return dn
 
 

@@ -4064,6 +4064,18 @@ class dnsconfig(LDAPObject):
         Int('ipadnsversion?',  # available only in installer/upgrade
             label=_('IPA DNS version'),
         ),
+        Str(
+            'dns_server_server*',
+            label=_('IPA DNS servers'),
+            doc=_('List of IPA masters configured as DNS servers'),
+            flags={'virtual_attribute', 'no_create', 'no_update'}
+        ),
+        Str(
+            'dnssec_key_master_server?',
+            label=_('IPA DNSSec key master'),
+            doc=_('IPA server configured as DNSSec key master'),
+            flags={'virtual_attribute', 'no_create', 'no_update'}
+        )
     )
     managed_permissions = {
         'System: Write DNS Configuration': {
@@ -4107,8 +4119,21 @@ class dnsconfig(LDAPObject):
         return entry
 
     def postprocess_result(self, result):
-        if not any(param in result['result'] for param in self.params):
+        is_config_empty = not any(
+            param.name in result['result'] for param in self.params() if
+            u'virtual_attribute' not in param.flags
+        )
+        if is_config_empty:
             result['summary'] = unicode(_('Global DNS configuration is empty'))
+
+    def show_servroles_attributes(self, entry_attrs, **options):
+        if options.get('raw', False):
+            return
+
+        backend = self.api.Backend.serverroles
+        entry_attrs.update(
+            backend.config_retrieve("DNS server")
+        )
 
 
 @register()
@@ -4163,6 +4188,9 @@ class dnsconfig_mod(LDAPUpdate):
 
         return result
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.show_servroles_attributes(entry_attrs, **options)
+        return dn
 
 
 @register()
@@ -4173,6 +4201,10 @@ class dnsconfig_show(LDAPRetrieve):
         result = super(dnsconfig_show, self).execute(*keys, **options)
         self.obj.postprocess_result(result)
         return result
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.show_servroles_attributes(entry_attrs, **options)
+        return dn
 
 
 
