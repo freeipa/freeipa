@@ -20,7 +20,7 @@ from ipalib import _, ngettext
 from ipalib import output
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
-
+from ipaserver.servroles import ENABLED
 
 __doc__ = _("""
 IPA servers
@@ -59,10 +59,12 @@ class server(LDAPObject):
     attribute_members = {
         'iparepltopomanagedsuffix': ['topologysuffix'],
         'ipalocation': ['location'],
+        'role': ['servrole'],
     }
     relationships = {
         'iparepltopomanagedsuffix': ('Managed', '', 'no_'),
         'ipalocation': ('IPA', 'in_', 'not_in_'),
+        'role': ('Enabled', '', 'no_'),
     }
     permission_filter_objectclasses = ['ipaLocationMember']
     managed_permissions = {
@@ -74,6 +76,7 @@ class server(LDAPObject):
             'default_privileges': {'DNS Administrators'},
         },
     }
+
     takes_params = (
         Str(
             'cn',
@@ -127,7 +130,13 @@ class server(LDAPObject):
             label=_('Location relative weight'),
             doc=_('Location relative weight for server (counts per location)'),
             flags={'virtual_attribute','no_create', 'no_update', 'no_search'},
-        )
+        ),
+        Str(
+            'enabled_role_servrole*',
+            label=_('Enabled server roles'),
+            doc=_('List of enabled roles'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'}
+        ),
     )
 
     def _get_suffixes(self):
@@ -172,6 +181,17 @@ class server(LDAPObject):
         if converted_locations:
             entry_attrs['ipalocation_location'] = converted_locations
 
+    def get_enabled_roles(self, entry_attrs, **options):
+        if options.get('raw', False) or options.get('no_members', False):
+            return
+
+        enabled_roles = self.api.Command.server_role_find(
+            server_server=entry_attrs['cn'][0], status=ENABLED)['result']
+
+        enabled_role_names = [r[u'role_servrole'] for r in enabled_roles]
+
+        entry_attrs['enabled_role_servrole'] = enabled_role_names
+
 
 @register()
 class server_mod(LDAPUpdate):
@@ -206,7 +226,9 @@ class server_mod(LDAPUpdate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         self.obj.convert_location(entry_attrs, **options)
+        self.obj.get_enabled_roles(entry_attrs)
         return dn
+
 
 @register()
 class server_find(LDAPSearch):
@@ -216,7 +238,8 @@ class server_find(LDAPSearch):
         '%(count)d IPA server matched',
         '%(count)d IPA servers matched', 0
     )
-    member_attributes = ['iparepltopomanagedsuffix', 'ipalocation']
+
+    member_attributes = ['iparepltopomanagedsuffix', 'ipalocation', 'role']
 
     def args_options_2_entry(self, *args, **options):
         kw = super(server_find, self).args_options_2_entry(
@@ -230,13 +253,50 @@ class server_find(LDAPSearch):
                 option = option.clone(cli_name='topologysuffixes')
             elif option.name == 'no_topologysuffix':
                 option = option.clone(cli_name='no_topologysuffixes')
+            # we do not want to test negative membership for roles
+            elif option.name == 'no_servrole':
+                continue
             yield option
 
     def get_member_filter(self, ldap, **options):
         options.pop('topologysuffix', None)
         options.pop('no_topologysuffix', None)
 
-        return super(server_find, self).get_member_filter(ldap, **options)
+        options.pop('servrole', None)
+
+        return super(server_find, self).get_member_filter(
+            ldap, **options)
+
+    def _get_enabled_servrole_filter(self, ldap, servroles):
+        """
+        return a filter matching any master which has all the specified roles
+        enabled.
+        """
+        def _get_masters_with_enabled_servrole(role):
+            role_status = self.api.Command.server_role_find(
+                server_server=None,
+                role_servrole=role,
+                status=ENABLED)['result']
+
+            return set(
+                r[u'server_server'] for r in role_status)
+
+        enabled_masters = _get_masters_with_enabled_servrole(
+            servroles[0])
+
+        for role in servroles[1:]:
+            enabled_masters.intersection_update(
+                _get_masters_with_enabled_servrole(role)
+            )
+
+        if not enabled_masters:
+            return '(!(objectclass=*))'
+
+        return ldap.make_filter_from_attr(
+            'cn',
+            list(enabled_masters),
+            rules=ldap.MATCH_ANY
+        )
 
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope,
                      *args, **options):
@@ -273,6 +333,12 @@ class server_find(LDAPSearch):
                     (filters, filter), ldap.MATCH_ALL
                 )
 
+        if options.get('servrole', []):
+            servrole_filter = self._get_enabled_servrole_filter(
+                ldap, options['servrole'])
+            filters = ldap.combine_filters(
+                (filters, servrole_filter), ldap.MATCH_ALL)
+
         return (filters, base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
@@ -283,6 +349,7 @@ class server_find(LDAPSearch):
 
         for entry in entries:
             self.obj.convert_location(entry, **options)
+            self.obj.get_enabled_roles(entry, **options)
         return truncated
 
 
@@ -294,7 +361,10 @@ class server_show(LDAPRetrieve):
         if not options.get('raw', False):
             suffixes = self.obj._get_suffixes()
             self.obj._apply_suffixes(entry, suffixes)
+
         self.obj.convert_location(entry, **options)
+        self.obj.get_enabled_roles(entry, **options)
+
         return dn
 
 

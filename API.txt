@@ -4007,7 +4007,7 @@ output: Output('result', type=[<type 'dict'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: server_find
-args: 1,14,4
+args: 1,15,4
 arg: Str('criteria?')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('cn?', autofill=False, cli_name='name')
@@ -4019,6 +4019,7 @@ option: Str('no_topologysuffix*', cli_name='no_topologysuffixes')
 option: DNSNameParam('not_in_location*', cli_name='not_in_locations')
 option: Flag('pkey_only?', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('servrole*', cli_name='servroles')
 option: Int('sizelimit?', autofill=False)
 option: Int('timelimit?', autofill=False)
 option: Str('topologysuffix*', cli_name='topologysuffixes')

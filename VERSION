@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=178
-# Last change: mbabinsk - Server Roles: public API for server roles
+IPA_API_VERSION_MINOR=179
+# Last change: mbabinsk - Server Roles: make server-{show,find} utilize role information
