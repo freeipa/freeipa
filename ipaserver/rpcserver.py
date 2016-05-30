@@ -423,11 +423,11 @@ class WSGIExecutioner(Executioner):
         return [response]
 
     def unmarshal(self, data):
-        raise NotImplementedError('%s.unmarshal()' % self.fullname)
+        raise NotImplementedError('%s.unmarshal()' % type(self).__name__)
 
     def marshal(self, result, error, _id=None,
                 version=VERSION_WITHOUT_CAPABILITIES):
-        raise NotImplementedError('%s.marshal()' % self.fullname)
+        raise NotImplementedError('%s.marshal()' % type(self).__name__)
 
 
 class jsonserver(WSGIExecutioner, HTTP_Status):
@@ -705,7 +705,7 @@ class xmlserver(KerberosWSGIExecutioner):
         if method_name in self._system_commands:
             return u''
         elif method_name in self.Command:
-            return unicode(self.Command[method_name].__doc__ or '')
+            return unicode(self.Command[method_name].doc or '')
         else:
             raise errors.CommandError(name=method_name)
 

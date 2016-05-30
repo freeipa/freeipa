@@ -114,7 +114,7 @@ def test_command_help():
     assert h_ctx.stderr == ''
 
     assert h_ctx.stdout == help_ctx.stdout
-    assert unicode(user_add.__doc__) in help_ctx.stdout
+    assert unicode(user_add.doc) in help_ctx.stdout
 
 
 def test_ambiguous_command_or_topic():

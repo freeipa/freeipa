@@ -39,7 +39,6 @@ import six
 
 from ipalib import errors
 from ipalib.config import Env
-from ipalib import text
 from ipalib.text import _
 from ipalib.base import ReadOnly, NameSpace, lock, islocked
 from ipalib.constants import DEFAULT_CONFIG
@@ -127,38 +126,30 @@ class Plugin(ReadOnly):
 
     finalize_early = True
 
-    label = None
-
     def __init__(self, api):
         assert api is not None
         self.__api = api
         self.__finalize_called = False
         self.__finalized = False
         self.__finalize_lock = threading.RLock()
-        cls = self.__class__
-        self.name = cls.__name__
-        self.module = cls.__module__
-        self.fullname = '%s.%s' % (self.module, self.name)
-        self.bases = tuple(
-            '%s.%s' % (b.__module__, b.__name__) for b in cls.__bases__
-        )
-        self.doc = _(cls.__doc__)
-        if not self.doc.msg:
-            self.summary = '<%s>' % self.fullname
-        else:
-            self.summary = unicode(self.doc).split('\n\n', 1)[0].strip()
         log_mgr.get_logger(self, True)
-        if self.label is None:
-            self.label = text.FixMe(self.name + '.label')
-        if not isinstance(self.label, text.LazyText):
-            raise TypeError(
-                TYPE_ERROR % (
-                    self.fullname + '.label',
-                    text.LazyText,
-                    type(self.label),
-                    self.label
-                )
-            )
+
+    @property
+    def name(self):
+        return type(self).__name__
+
+    @property
+    def doc(self):
+        return type(self).__doc__
+
+    @property
+    def summary(self):
+        doc = self.doc
+        if not _(doc).msg:
+            cls = type(self)
+            return u'<%s.%s>' % (cls.__module__, cls.__name__)
+        else:
+            return unicode(doc).split('\n\n', 1)[0].strip()
 
     @property
     def api(self):

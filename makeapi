@@ -214,13 +214,13 @@ def validate_doc():
             topic = next_topic
 
         # Does the command have documentation?
-        if cmd.__doc__ is None:
+        if cmd.doc is None:
             src_file = inspect.getsourcefile(cmd_class)
             line_num = inspect.getsourcelines(cmd_class)[1]
             n_missing_cmd_doc += 1
             print("%s:%d command \"%s\" has no doc" % (src_file, line_num, cmd.name))
         # Yes the command has doc, but is it internationalized?
-        elif not is_i18n(cmd.__doc__):
+        elif not is_i18n(cmd.doc):
             src_file = inspect.getsourcefile(cmd_class)
             line_num = inspect.getsourcelines(cmd_class)[1]
             n_missing_cmd_i18n += 1

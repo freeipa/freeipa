@@ -1328,7 +1328,7 @@ class ra(rabase.rabase):
         if detail is not None:
             err_msg = u'%s (%s)' % (err_msg, detail)
 
-        self.error('%s.%s(): %s', self.fullname, func_name, err_msg)
+        self.error('%s.%s(): %s', type(self).__name__, func_name, err_msg)
         raise errors.CertificateOperationError(error=err_msg)
 
     @cachedproperty
@@ -1428,7 +1428,7 @@ class ra(rabase.rabase):
 
 
         """
-        self.debug('%s.check_request_status()', self.fullname)
+        self.debug('%s.check_request_status()', type(self).__name__)
 
         # Call CMS
         http_status, http_headers, http_body = \
@@ -1508,7 +1508,7 @@ class ra(rabase.rabase):
 
 
         """
-        self.debug('%s.get_certificate()', self.fullname)
+        self.debug('%s.get_certificate()', type(self).__name__)
 
         # Convert serial number to integral type from string to properly handle
         # radix issues. Note: the int object constructor will properly handle large
@@ -1581,7 +1581,7 @@ class ra(rabase.rabase):
         .. [2] Base64 encoded
 
         """
-        self.debug('%s.request_certificate()', self.fullname)
+        self.debug('%s.request_certificate()', type(self).__name__)
 
         # Call CMS
         http_status, http_headers, http_body = \
@@ -1653,7 +1653,7 @@ class ra(rabase.rabase):
         +---------------+---------------+---------------+
 
         """
-        self.debug('%s.revoke_certificate()', self.fullname)
+        self.debug('%s.revoke_certificate()', type(self).__name__)
         if type(revocation_reason) is not int:
             raise TypeError(TYPE_ERROR % ('revocation_reason', int, revocation_reason, type(revocation_reason)))
 
@@ -1718,7 +1718,7 @@ class ra(rabase.rabase):
         +---------------+---------------+---------------+
         """
 
-        self.debug('%s.take_certificate_off_hold()', self.fullname)
+        self.debug('%s.take_certificate_off_hold()', type(self).__name__)
 
         # Convert serial number to integral type from string to properly handle
         # radix issues. Note: the int object constructor will properly handle large
@@ -1772,7 +1772,7 @@ class ra(rabase.rabase):
             ts = time.strptime(value, '%Y-%m-%d')
             return int(time.mktime(ts) * 1000)
 
-        self.debug('%s.find()', self.fullname)
+        self.debug('%s.find()', type(self).__name__)
 
         # Create the root element
         page = etree.Element('CertSearchRequest')
@@ -1844,7 +1844,7 @@ class ra(rabase.rabase):
             e.text = str(booloptions[opt]).lower()
 
         payload = etree.tostring(doc, pretty_print=False, xml_declaration=True, encoding='UTF-8')
-        self.debug('%s.find(): request: %s', self.fullname, payload)
+        self.debug('%s.find(): request: %s', type(self).__name__, payload)
 
         url = 'http://%s/ca/rest/certs/search?size=%d' % (
             ipautil.format_netloc(self.ca_host, 8080),
@@ -1869,7 +1869,7 @@ class ra(rabase.rabase):
                                                    detail=e.reason)
 
         data = response.readlines()
-        self.debug('%s.find(): response: %s', self.fullname, data)
+        self.debug('%s.find(): response: %s', type(self).__name__, data)
         parser = etree.XMLParser()
         try:
             doc = etree.fromstring(data[0], parser)

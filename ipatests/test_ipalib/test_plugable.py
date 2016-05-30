@@ -52,8 +52,6 @@ class test_Plugin(ClassChecker):
         api = 'the api instance'
         o = self.cls(api)
         assert o.name == 'Plugin'
-        assert o.module == 'ipalib.plugable'
-        assert o.fullname == 'ipalib.plugable.Plugin'
         assert isinstance(o.doc, text.Gettext)
         class some_subclass(self.cls):
             """
@@ -67,8 +65,6 @@ class test_Plugin(ClassChecker):
             """
         o = some_subclass(api)
         assert o.name == 'some_subclass'
-        assert o.module == __name__
-        assert o.fullname == '%s.some_subclass' % __name__
         assert o.summary == 'Do sub-classy things.'
         assert isinstance(o.doc, text.Gettext)
         class another_subclass(self.cls):
