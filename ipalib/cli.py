@@ -773,7 +773,7 @@ class help(frontend.Local):
 
         super(help, self)._on_finalize()
 
-    def run(self, key, outfile=None, **options):
+    def run(self, key=None, outfile=None, **options):
         if outfile is None:
             outfile = sys.stdout
         writer = self._writer(outfile)
@@ -923,7 +923,7 @@ class show_api(frontend.Command):
 
     takes_args = ('namespaces*',)
 
-    def run(self, namespaces):
+    def run(self, namespaces=None):
         if namespaces is None:
             names = tuple(self.api)
         else:
