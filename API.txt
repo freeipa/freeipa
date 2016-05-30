@@ -4043,6 +4043,31 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: server_role_find
+args: 1,8,4
+arg: Str('criteria?')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('role_servrole?', autofill=False, cli_name='role')
+option: Str('server_server?', autofill=False, cli_name='server')
+option: Int('sizelimit?', autofill=False)
+option: StrEnum('status?', autofill=False, cli_name='status', default=u'enabled', values=[u'enabled', u'configured', u'absent'])
+option: Int('timelimit?', autofill=False)
+option: Str('version?')
+output: Output('count', type=[<type 'int'>])
+output: ListOfEntries('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('truncated', type=[<type 'bool'>])
+command: server_role_show
+args: 2,3,3
+arg: Str('server_server', cli_name='server')
+arg: Str('role_servrole', cli_name='role')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: server_show
 args: 1,5,3
 arg: Str('cn', cli_name='name')
