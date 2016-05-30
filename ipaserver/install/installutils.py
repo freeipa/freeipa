@@ -1015,8 +1015,9 @@ def load_external_cert(files, subject_base):
                 break
         else:
             raise ScriptError(
-                "CA certificate chain in %s is incomplete" %
-                (", ".join(files)))
+                "CA certificate chain in %s is incomplete: "
+                "missing certificate with subject '%s'" %
+                (", ".join(files), issuer))
 
         for nickname in trust_chain:
             try:
