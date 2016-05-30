@@ -2734,7 +2734,6 @@ def install(options, env, fstore, statestore):
                       debug=options.debug,
                       delegate=False,
                       nss_dir=tmp_db.secdir)
-        api.finalize()
         if 'config_loaded' not in api.env:
             root_logger.error("Failed to initialize IPA API.")
             return CLIENT_INSTALL_ERROR
@@ -2794,6 +2793,8 @@ def install(options, env, fstore, statestore):
         except CalledProcessError as e:
             root_logger.info("Failed to add CA to temporary NSS database.")
             return CLIENT_INSTALL_ERROR
+
+        api.finalize()
 
         # Now, let's try to connect to the server's RPC interface
         connected = False
