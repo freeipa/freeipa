@@ -1163,10 +1163,8 @@ class cli(backend.Executioner):
                     kw['action'] = 'store_false'
                 else:
                     kw['action'] = 'store_true'
-            elif isinstance(option, Enum):
-                kw['metavar'] = list(str(x) for x in option.values)
             else:
-                kw['metavar'] = option.__class__.__name__.upper()
+                kw['metavar'] = option.cli_metavar
 
             cli_name = to_cli(option.cli_name)
             option_names = ['--%s' % cli_name]

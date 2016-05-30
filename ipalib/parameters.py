@@ -413,6 +413,7 @@ class Param(ReadOnly):
         ('alwaysask', bool, False),
         ('sortorder', int, 2), # see finalize()
         ('option_group', unicode, None),
+        ('cli_metavar', str, None),
 
         # The 'default' kwarg gets appended in Param.__init__():
         # ('default', self.type, None),
@@ -502,6 +503,9 @@ class Param(ReadOnly):
         # Merge in default for 'cli_name', label, doc if not given:
         if kw.get('cli_name') is None:
             kw['cli_name'] = self.name
+
+        if kw.get('cli_metavar') is None:
+            kw['cli_metavar'] = self.__class__.__name__.upper()
 
         if kw.get('label') is None:
             kw['label'] = FixMe(self.name)
@@ -1514,6 +1518,7 @@ class Enum(Param):
     )
 
     def __init__(self, name, *rules, **kw):
+        kw['cli_metavar'] = str([str(v) for v in kw.get('values', tuple())])
         super(Enum, self).__init__(name, *rules, **kw)
         for (i, v) in enumerate(self.values):
             if type(v) not in self.allowed_types:
