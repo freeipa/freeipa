@@ -68,3 +68,7 @@ only:nsslapd-sasl-max-buffer-size:2097152
 # setting, password migration fails
 dn: cn=config
 only:nsslapd-allow-hashed-passwords:on
+
+# Decrease default value for IO blocking to prevent server unresponsiveness
+dn: cn=config
+only:nsslapd-ioblocktimeout:10000
