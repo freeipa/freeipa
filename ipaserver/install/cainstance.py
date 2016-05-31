@@ -45,6 +45,7 @@ from six.moves.configparser import ConfigParser, RawConfigParser
 from ipalib import api
 from ipalib import pkcs10, x509
 from ipalib import errors
+import ipalib.constants
 
 from ipaplatform import services
 from ipaplatform.constants import constants
@@ -59,6 +60,7 @@ from ipapython.certdb import get_ca_nickname
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr,\
     standard_logging_setup, root_logger
+from ipapython.secrets.kem import IPAKEMKeys
 
 from ipaserver.install import certs
 from ipaserver.install import dsinstance
@@ -66,6 +68,7 @@ from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import service
+from ipaserver.install import sysupgrade
 from ipaserver.install.dogtaginstance import (export_kra_agent_pem,
                                               DogtagInstance)
 from ipaserver.plugins import ldap2
@@ -1356,10 +1359,63 @@ class CAInstance(DogtagInstance):
         self.step("updating IPA configuration", update_ipa_conf)
         self.step("Restart HTTP server to pick up changes",
                   self.__restart_http_instance)
+        self.step("Configure lightweight CA key retrieval",
+                  self.setup_lightweight_ca_key_retrieval)
 
         self.step("enabling CA instance", self.__enable_instance)
 
         self.start_creation(runtime=210)
+
+    def setup_lightweight_ca_key_retrieval(self):
+        if sysupgrade.get_upgrade_state('dogtag', 'setup_lwca_key_retrieval'):
+            return
+
+        root_logger.info('[Set up lightweight CA key retrieval]')
+
+        self.__setup_lightweight_ca_key_retrieval_kerberos()
+        self.__setup_lightweight_ca_key_retrieval_custodia()
+
+        root_logger.info('Configuring key retriever')
+        directives = [
+            ('features.authority.keyRetrieverClass',
+                'com.netscape.ca.ExternalProcessKeyRetriever'),
+            ('features.authority.keyRetrieverConfig.executable',
+                '/usr/libexec/ipa/ipa-pki-retrieve-key'),
+        ]
+        for k, v in directives:
+            installutils.set_directive(
+                paths.CA_CS_CFG_PATH, k, v, quotes=False, separator='=')
+
+        sysupgrade.set_upgrade_state('dogtag', 'setup_lwca_key_retieval', True)
+
+    def __setup_lightweight_ca_key_retrieval_kerberos(self):
+        service = ipalib.constants.PKI_GSSAPI_SERVICE_NAME
+        principal = '{}/{}@{}'.format(service, api.env.host, self.realm)
+        pent = pwd.getpwnam(constants.PKI_USER)
+
+        root_logger.info('Creating principal')
+        installutils.kadmin_addprinc(principal)
+        self.suffix = ipautil.realm_to_suffix(self.realm)
+        if not self.admin_conn:
+            self.ldap_connect()
+        self.move_service(principal)
+
+        root_logger.info('Retrieving keytab')
+        keytab = os.path.join(paths.PKI_TOMCAT, service + '.keytab')
+        installutils.create_keytab(keytab, principal)
+        os.chmod(keytab, 0o600)
+        os.chown(keytab, pent.pw_uid, pent.pw_gid)
+
+    def __setup_lightweight_ca_key_retrieval_custodia(self):
+        service = ipalib.constants.PKI_GSSAPI_SERVICE_NAME
+        pent = pwd.getpwnam(constants.PKI_USER)
+
+        root_logger.info('Creating Custodia keys')
+        keyfile = os.path.join(paths.PKI_TOMCAT, service + '.keys')
+        keystore = IPAKEMKeys({'server_keys': keyfile})
+        keystore.generate_keys(service)
+        os.chmod(keyfile, 0o600)
+        os.chown(keyfile, pent.pw_uid, pent.pw_gid)
 
 
 def replica_ca_install_check(config):

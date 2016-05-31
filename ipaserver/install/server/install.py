@@ -891,9 +891,6 @@ def install(installer):
     # we now need to enable ssl on the ds
     ds.enable_ssl()
 
-    if setup_ca:
-        ca.install_step_1(False, None, options)
-
     krb = krbinstance.KrbInstance(fstore)
     if options.pkinit_cert_files:
         krb.create_instance(realm_name, host_name, domain_name,
@@ -906,6 +903,9 @@ def install(installer):
                             dm_password, master_password,
                             setup_pkinit=not options.no_pkinit,
                             subject_base=options.subject)
+
+    if setup_ca:
+        ca.install_step_1(False, None, options)
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated

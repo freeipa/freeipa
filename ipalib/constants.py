@@ -264,3 +264,4 @@ REPL_AGMT_STRIP_ATTRS = ('modifiersName',
 
 DOMAIN_SUFFIX_NAME = 'domain'
 CA_SUFFIX_NAME = 'ca'
+PKI_GSSAPI_SERVICE_NAME = 'dogtag'

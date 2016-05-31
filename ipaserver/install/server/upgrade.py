@@ -1492,7 +1492,8 @@ def upgrade_configuration():
     if subject_base:
         sub_dict['SUBJECT_BASE'] = subject_base
 
-    ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+    ca = cainstance.CAInstance(
+            api.env.realm, certs.NSS_DIR, host_name=api.env.host)
     ca_running = ca.is_running()
 
     with installutils.stopped_service('pki-tomcatd', 'pki-tomcat'):
@@ -1697,6 +1698,7 @@ def upgrade_configuration():
 
     if ca.is_configured():
         cainstance.repair_profile_caIPAserviceCert()
+        ca.setup_lightweight_ca_key_retrieval()
 
     set_sssd_domain_option('ipa_server_mode', 'True')
 

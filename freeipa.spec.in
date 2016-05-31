@@ -94,7 +94,7 @@ BuildRequires:  libunistring-devel
 BuildRequires:  python-lesscpy
 BuildRequires:  python-yubico >= 1.2.3
 BuildRequires:  openssl-devel
-BuildRequires:  pki-base >= 10.2.6
+BuildRequires:  pki-base >= 10.3.2
 BuildRequires:  python-pytest-multihost >= 0.5
 BuildRequires:  python-pytest-sourceorder
 BuildRequires:  python-kdcproxy >= 0.3
@@ -155,8 +155,8 @@ Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base >= %{selinux_policy_version}
 Requires: slapi-nis >= 0.55-1
-Requires: pki-ca >= 10.2.6-19
-Requires: pki-kra >= 10.2.6-19
+Requires: pki-ca >= 10.3.2
+Requires: pki-kra >= 10.3.2
 Requires(preun): python systemd-units
 Requires(postun): python systemd-units
 Requires: zip
@@ -1074,6 +1074,7 @@ fi
 %{_libexecdir}/ipa/ipa-dnskeysync-replica
 %{_libexecdir}/ipa/ipa-ods-exporter
 %{_libexecdir}/ipa/ipa-httpd-kdcproxy
+%{_libexecdir}/ipa/ipa-pki-retrieve-key
 %dir %{_libexecdir}/ipa/oddjob
 %attr(0755,root,root) %{_libexecdir}/ipa/oddjob/org.freeipa.server.conncheck
 %config(noreplace) %{_sysconfdir}/dbus-1/system.d/org.freeipa.server.conf

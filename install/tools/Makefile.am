@@ -39,6 +39,7 @@ EXTRA_DIST =			\
 appdir = $(libexecdir)/ipa/
 app_SCRIPTS =			\
 	ipa-httpd-kdcproxy	\
+	ipa-pki-retrieve-key	\
 	$(NULL)
 
 MAINTAINERCLEANFILES =		\

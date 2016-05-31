@@ -179,6 +179,12 @@ objectClass: nsContainer
 objectClass: top
 cn: custodia
 
+dn: cn=dogtag,cn=custodia,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: dogtag
+
 dn: cn=s4u2proxy,cn=etc,$SUFFIX
 changetype: add
 objectClass: nsContainer

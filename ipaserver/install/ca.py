@@ -182,7 +182,7 @@ def install_step_1(standalone, replica_config, options):
 
     basedn = ipautil.realm_to_suffix(realm_name)
 
-    ca = cainstance.CAInstance(realm_name, certs.NSS_DIR)
+    ca = cainstance.CAInstance(realm_name, certs.NSS_DIR, host_name=host_name)
 
     if standalone:
         ca.stop('pki-tomcat')
@@ -196,6 +196,13 @@ def install_step_1(standalone, replica_config, options):
 
     # This is done within stopped_service context, which restarts CA
     ca.enable_client_auth_to_db(paths.CA_CS_CFG_PATH)
+
+    # Lightweight CA key retrieval is configured in step 1 instead
+    # of CAInstance.configure_instance (which is invoked from step
+    # 0) because kadmin_addprinc fails until krb5.conf is installed
+    # by krb.create_instance.
+    #
+    ca.setup_lightweight_ca_key_retrieval()
 
     if standalone and replica_config is None:
         serverid = installutils.realm_to_serverid(realm_name)
