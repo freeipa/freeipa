@@ -15,19 +15,18 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2015-06-24 13:48+0200\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
+"POT-Creation-Date: 2016-05-31 15:43+0200\n"
 "PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/projects/p/freeipa/language/"
 "es/)\n"
 "Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Zanata 3.7.3\n"
+"X-Generator: Zanata 3.8.4\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -1174,14 +1173,8 @@ msgstr ""
 msgid "Time Limit"
 msgstr "Tiempo límite"
 
-msgid "Time limit of search in seconds"
-msgstr "Tiempo máximo de búsqueda en segundos"
-
 msgid "Size Limit"
 msgstr "Tamaño límite"
-
-msgid "Maximum number of entries returned"
-msgstr "Cantidad máxima de entradas obtenidas"
 
 msgid "Kerberos keys available"
 msgstr "Claves Kerberos disponibles"
@@ -1420,9 +1413,6 @@ msgstr "Error"
 msgid "Status"
 msgstr "Estatus"
 
-msgid "searchtimelimit must be -1 or > 1."
-msgstr "searchtimelimit debe ser -1 o&gt; 1."
-
 msgid "configuration options"
 msgstr "opciones de configuración"
 
@@ -1456,17 +1446,8 @@ msgstr "Dominio de correo electrónico por defecto"
 msgid "Search time limit"
 msgstr "Buscar límite de tiempo"
 
-msgid ""
-"Maximum amount of time (seconds) for a search (> 0, or -1 for unlimited)"
-msgstr ""
-"Máxima cantidad de tiempo (segundos) parab una búsqueda (> 0, o -1 para "
-"ilimitado)"
-
 msgid "Search size limit"
 msgstr "Límite del tamaño de la búsqueda"
-
-msgid "Maximum number of records to search (-1 is unlimited)"
-msgstr "Máximo número de registros a buscar (-1 es ilimitado)"
 
 msgid "User search fields"
 msgstr "Campos de búsqueda de usuario"
@@ -1596,10 +1577,6 @@ msgstr "formato de dirección no válido"
 #, python-format
 msgid "%(port)s is not a valid port"
 msgstr "%(port)s no es un puerto válido"
-
-#, python-format
-msgid "DNS reverse zone for IP address %(addr)s not found"
-msgstr "Zona invertida DNS para dirección IP %(addr)s no encontrada"
 
 #, python-format
 msgid "DNS zone %(zone)s not found"
@@ -1832,14 +1809,14 @@ msgstr "Permitir transferencia"
 msgid "Create new DNS zone (SOA record)."
 msgstr "Crear nueva zona DNS (registro SOA)."
 
-msgid "Force"
-msgstr "Forzar"
-
 msgid "Delete DNS zone (SOA record)."
 msgstr "Borrar zona DNS (registro SOA)."
 
 msgid "Modify DNS zone (SOA record)."
 msgstr "Modificar zona DNS (registro SOA)."
+
+msgid "Force"
+msgstr "Forzar"
 
 msgid "Forward zones only"
 msgstr "Zonas de reenvío sólo"
@@ -1936,9 +1913,6 @@ msgstr "Mostrar un recurso DNS."
 
 msgid "Search for DNS resources."
 msgstr "Buscar recursos DNS."
-
-msgid "Resolve a host name in DNS."
-msgstr "Resolver un nombre de host en DNS."
 
 #, python-format
 msgid "Found '%(value)s'"
@@ -2888,6 +2862,27 @@ msgstr "Directo"
 msgid "Indirect"
 msgstr "Indirecto"
 
+msgid "Any Host"
+msgstr "Cualquier host"
+
+msgid "Any Service"
+msgstr "Cualquier servicio"
+
+msgid "Anyone"
+msgstr "Cualquiera"
+
+msgid "Rule status"
+msgstr "Estatus de reglas"
+
+msgid "Specified Hosts and Groups"
+msgstr "Hosts y grupos especificados"
+
+msgid "Specified Services and Groups"
+msgstr "Servicios y grupos especificados"
+
+msgid "Specified Users and Groups"
+msgstr "Usuarios y grupos específicos"
+
 msgid "AA Compromise"
 msgstr "AA transacción"
 
@@ -3071,32 +3066,11 @@ msgstr "POSIX"
 msgid "Group Type"
 msgstr "Tipo de grupo"
 
-msgid "Any Host"
-msgstr "Cualquier host"
-
-msgid "Any Service"
-msgstr "Cualquier servicio"
-
-msgid "Anyone"
-msgstr "Cualquiera"
-
 msgid "Accessing"
 msgstr "Acceso"
 
-msgid "Rule status"
-msgstr "Estatus de reglas"
-
 msgid "Via Service"
 msgstr "Vía de servicio"
-
-msgid "Specified Hosts and Groups"
-msgstr "Hosts y grupos especificados"
-
-msgid "Specified Services and Groups"
-msgstr "Servicios y grupos especificados"
-
-msgid "Specified Users and Groups"
-msgstr "Usuarios y grupos específicos"
 
 msgid "Who"
 msgstr "¿Quién?"
@@ -4829,10 +4803,6 @@ msgstr "el dominio no está configurado"
 
 msgid "SID is not valid"
 msgstr "el SID no es válido"
-
-#, python-format
-msgid "Unable to communicate with CMS (%s)"
-msgstr "No es posible comunicarse con CMS (%s)"
 
 msgid "The hostname to register as"
 msgstr "El nombre del equipo a ser registrado como"

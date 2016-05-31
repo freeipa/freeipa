@@ -12,19 +12,18 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2015-06-24 13:48+0200\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2015-10-08 04:15-0400\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
+"POT-Creation-Date: 2016-05-31 15:43+0200\n"
+"PO-Revision-Date: 2015-12-08 07:21-0500\n"
 "Last-Translator: David Kreitschmann <david@kreitschmann.de>\n"
 "Language-Team: German (http://www.transifex.com/projects/p/freeipa/language/"
 "de/)\n"
 "Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Zanata 3.7.3\n"
+"X-Generator: Zanata 3.8.4\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -176,6 +175,10 @@ msgid "Could not get %(name)s interactively"
 msgstr "%(name)s konnte nicht interaktiv ermittelt werden"
 
 #, python-format
+msgid "Command '%(name)s' has been deprecated"
+msgstr "Befehl '%(name)s' ist veraltet"
+
+#, python-format
 msgid "%(reason)s"
 msgstr "%(reason)s"
 
@@ -231,9 +234,6 @@ msgstr "Eine Gruppe kann nicht als Mitglied von sich selbst hinzugefügt werden"
 
 msgid "The default users group cannot be removed"
 msgstr "Die vorgegebene Benutzergruppe kann nicht entfernt werden"
-
-msgid "Host does not have corresponding DNS A/AAAA record"
-msgstr "Host hat keinen korrespondierenden DNS A/AAAA-Eintrag"
 
 msgid "Deleting a managed group is not allowed. It must be detached first."
 msgstr ""
@@ -326,10 +326,6 @@ msgid "LDAP timeout"
 msgstr "LDAP Timeout"
 
 #, python-format
-msgid "DNS check failed: Expected {%(expected)s} got {%(got)s}"
-msgstr "DNS Check fehlerhaft: Erwartet {%(expected)s} bekommen {%(got)s}"
-
-#, python-format
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "Zertifikat-Operation kann nicht abgeschlossen werden: %(error)s"
 
@@ -364,6 +360,10 @@ msgstr "%(label)s %(key)s kann nicht gelöscht/bearbeitet werden: %(reason)s"
 #, python-format
 msgid "%(name)s certificate is not valid"
 msgstr "%(name)s Zertifikat ist ungültig"
+
+#, python-format
+msgid "DNS check failed: Expected {%(expected)s} got {%(got)s}"
+msgstr "DNS Check fehlerhaft: Erwartet {%(expected)s} bekommen {%(got)s}"
 
 msgid "Results are truncated, try a more specific search"
 msgstr ""
@@ -443,6 +443,10 @@ msgstr ""
 "DNSSEC Überprüfung fehlgeschlagen: %(error)s.\n"
 "Bitte überprüfen Sie die DNSSEC Konfigurationen oder deaktivieren die DNSSEC "
 "Überprüfung auf allen IPA Servern."
+
+#, python-format
+msgid "'%(command)s' is deprecated. %(additional_info)s"
+msgstr "'%(command)s' ist veraltet. %(additional_info)s"
 
 msgid "A list of LDAP entries"
 msgstr "Eine Liste von LDAP-Einträgen"
@@ -706,18 +710,90 @@ msgstr "Neuer ACI-Name"
 msgid "Renamed ACI to \"%(value)s\""
 msgstr "ACI umbenannt zu \"%(value)s\""
 
+msgid ""
+"\n"
+"Auto Membership Rule.\n"
+msgstr "Regel für Auto-Mitgliedschaft"
+
+msgid "Inclusive Regex"
+msgstr "Einschließende Regex"
+
+msgid "Exclusive Regex"
+msgstr "Ausschließende Regex"
+
+msgid "Attribute Key"
+msgstr "Attribut Schlüssel"
+
+msgid ""
+"Attribute to filter via regex. For example fqdn for a host, or manager for a "
+"user"
+msgstr ""
+"Dieses Attribut wird per Regex gefiltert. Zum Beispiel FQDN für einen Host, "
+"oder Manager für einen Benutzer"
+
+msgid "Grouping Type"
+msgstr "Gruppierungstyp"
+
+msgid "Grouping to which the rule applies"
+msgstr "Gruppierung, auf die die Regel angewendet wird"
+
+msgid "Automember Rule"
+msgstr "Auto-Mitgliedschaftsregel"
+
+msgid "Auto Membership Rule"
+msgstr "Regel für Auto-Mitgliedschaft"
+
 msgid "Description"
 msgstr "Beschreibung"
+
+msgid "A description of this auto member rule"
+msgstr "Beschreibung der Auto-Mitgliedschaftsregel"
+
+msgid "Default (fallback) Group"
+msgstr "Standard (Rückfall) Gruppe"
 
 msgid "Default group for entries to land"
 msgstr "Vorgegebene Gruppe für Einträge"
 
 #, python-format
+msgid "%(otype)s \"%(oname)s\" not found"
+msgstr "%(otype)s \"%(oname)s\" nicht gefunden"
+
+#, python-format
 msgid "%s is not a valid attribute."
 msgstr "%s ist kein gültiges Attribut"
 
+msgid ""
+"\n"
+"    Add an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Auto-Mitgliedschaftsregel hinzufügen.\n"
+"    "
+
+#, python-format
+msgid "Added automember rule \"%(value)s\""
+msgstr "Auto-Mitgliedschaftsregel \"%(value)s\" hinzugefügt"
+
+msgid "Auto Membership is not configured"
+msgstr "Auto-Mitgliedschaft ist nicht konfiguriert"
+
+msgid ""
+"\n"
+"    Add conditions to an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Bedigungen zu einer Auto-Mitgliedschaftsregel hinzufügen.\n"
+"    "
+
 msgid "Failed to add"
 msgstr "Hinzufügen fehlgeschlagen"
+
+#, python-format
+msgid "Added condition(s) to \"%(value)s\""
+msgstr "Bedingung(en) zu  \"%(value)s\" hinzugefügt"
 
 msgid "Conditions that could not be added"
 msgstr "Bedingungen, die nicht hinzugefügt werden konnten"
@@ -725,20 +801,123 @@ msgstr "Bedingungen, die nicht hinzugefügt werden konnten"
 msgid "Number of conditions added"
 msgstr "Anzahl der hinzugefügten Bedingungen"
 
+#, python-format
+msgid "Auto member rule: %s not found!"
+msgstr "Auto-Mitgliedschaftsregel: %s nicht gefunden!"
+
+msgid ""
+"\n"
+"    Remove conditions from an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Bedingungen von einer einer Auto-Mitglieschaftsregel entfernen.    "
+
+#, python-format
+msgid "Removed condition(s) from \"%(value)s\""
+msgstr "Bedingung(en) von \"%(value)s\" entfernt"
+
 msgid "Conditions that could not be removed"
 msgstr "Bedingungen, die nicht entfernt werden konnten"
 
 msgid "Number of conditions removed"
 msgstr "Anzahl der entfernten Bedingungen"
 
+msgid ""
+"\n"
+"    Modify an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Auto-Mitgliedschaftsregel bearbeiten.    "
+
+#, python-format
+msgid "Modified automember rule \"%(value)s\""
+msgstr "Auto-Mitgliedschaftsregel \"%(value)s\" bearbeitet"
+
+msgid ""
+"\n"
+"    Delete an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Auto-Mitgliedschaftsregel löschen.\n"
+"    "
+
+#, python-format
+msgid "Deleted automember rule \"%(value)s\""
+msgstr "Auto-Mitgliedschaftsregel \"%(value)s\" gelöscht"
+
+msgid ""
+"\n"
+"    Search for automember rules.\n"
+"    "
+msgstr ""
+"\n"
+"    Suche nach Auto-Mitgliedschaftsregeln.\n"
+"    "
+
+msgid ""
+"\n"
+"    Display information about an automember rule.\n"
+"    "
+msgstr ""
+"\n"
+"    Informationen über Auto-Mitgliedschaftsregel anzeigen.\n"
+"    "
+
+msgid "Rebuild auto membership."
+msgstr "Auto-Mitgliedschaft neu erstellen"
+
+msgid "Rebuild membership for all members of a grouping"
+msgstr ""
+"Auto-Mitgliedschaft für alle Mitglieder einer Gruppierung neu erstellen"
+
 msgid "Users"
 msgstr "Benutzer"
+
+msgid "Rebuild membership for specified users"
+msgstr "Auto-Mitgliedschaft für ausgewählte Benutzer neu erstellen"
 
 msgid "Hosts"
 msgstr "Hosts"
 
+msgid "Rebuild membership for specified hosts"
+msgstr "Auto-Mitgliedschaft für ausgewählte Hosts neu erstellen"
+
 msgid "No wait"
 msgstr "Keine Wartezeit"
+
+msgid "Task DN"
+msgstr "Aufgaben DN"
+
+msgid "DN of the started task"
+msgstr "DN der gestarteten Aufgabe"
+
+msgid "at least one of options: type, users, hosts must be specified"
+msgstr "Mindestens eine der Optionen: type, users, hosts muss gesetzt sein"
+
+msgid "users and hosts cannot both be set"
+msgstr "Benutzer und Host können nicht gleichzeitig gesetzt sein."
+
+msgid "hosts cannot be set when type is 'group'"
+msgstr "hosts kann nicht gesetzt sein wenn Typ 'group' ist"
+
+msgid "users cannot be set when type is 'hostgroup'"
+msgstr "users kann nicht gesetzt sein wenn Typ 'hostgroup' ist"
+
+msgid "Automember rebuild membership task started"
+msgstr "Aufgabe für die Neuerstellung der Auto-Mitgliedschaft gestartet"
+
+msgid "Automember rebuild membership task completed"
+msgstr "Aufgabe für die Neuerstellung der Auto-Mitgliedschaft abgeschlossen"
+
+#, python-format
+msgid "Task DN = '%s'"
+msgstr "Aufgaben DN = '%s'"
+
+msgid "Automember"
+msgstr "Auto-Mitgliedschaft"
 
 msgid "automount location"
 msgstr "Automount-Ort"
@@ -761,6 +940,29 @@ msgstr "Automount-Ort"
 msgid "Create a new automount location."
 msgstr "Neuen Automount-Ort erstellen."
 
+#, python-format
+msgid "Added automount location \"%(value)s\""
+msgstr "Automount Ort \"%(value)s\" hinzugefügt"
+
+msgid "Delete an automount location."
+msgstr "Automount-Ort löschen."
+
+#, python-format
+msgid "Deleted automount location \"%(value)s\""
+msgstr "Automount-Ort \"%(value)s\" gelöscht"
+
+msgid "Display an automount location."
+msgstr "Automount-Ort anzeigen."
+
+msgid "Search for an automount location."
+msgstr "Automount-Ort suchen."
+
+#, python-format
+msgid "%(count)d automount location matched"
+msgid_plural "%(count)d automount locations matched"
+msgstr[0] "%(count)d Automount-Ort gefunden"
+msgstr[1] "%(count)d Automount-Orte gefunden"
+
 msgid "Master file"
 msgstr "Masterdatei"
 
@@ -771,8 +973,23 @@ msgstr "Automount-Masterdatei"
 msgid "File %(file)s not found"
 msgstr "Datei %(file)s nicht gefunden"
 
+msgid "automount map"
+msgstr "Automount-Map"
+
+msgid "automount maps"
+msgstr "Automount-Maps"
+
 msgid "Map"
 msgstr "Karte"
+
+msgid "Automount map name."
+msgstr "Automount-Map Name."
+
+msgid "Automount Maps"
+msgstr "Automount-Maps"
+
+msgid "Automount Map"
+msgstr "Automount-Map"
 
 msgid "Key"
 msgstr "Schlüssel"
@@ -994,14 +1211,8 @@ msgstr "Nur primärer Schlüssel"
 msgid "Time Limit"
 msgstr "Zeitbegrenzung"
 
-msgid "Time limit of search in seconds"
-msgstr "Zeitbegrenzung für den Suchvorgang in Sekunden"
-
 msgid "Size Limit"
 msgstr "Größenbeschränkung"
-
-msgid "Maximum number of entries returned"
-msgstr "Maximale Anzahl der zurückgegebenen Einträge"
 
 msgid "Kerberos keys available"
 msgstr "Kerberos-Schlüssel verfügbar"
@@ -1358,9 +1569,6 @@ msgstr "Fehler"
 msgid "Status"
 msgstr "Status"
 
-msgid "Filename"
-msgstr "Dateiname"
-
 msgid "configuration options"
 msgstr "Konfigurationsoptionen"
 
@@ -1391,15 +1599,8 @@ msgstr "Vorgegebene Gruppe für neue Benutzer"
 msgid "Search time limit"
 msgstr "Zeitlimit für Suche"
 
-msgid ""
-"Maximum amount of time (seconds) for a search (> 0, or -1 for unlimited)"
-msgstr "Maximale Zeit in Sekunden für eine Suche (>0 oder -1 für unbegrenzt)"
-
 msgid "Search size limit"
 msgstr "Größenlimit für Suche"
-
-msgid "Maximum number of records to search (-1 is unlimited)"
-msgstr "Maximale Anzahl an Ergebnissen für Suche (-1 ist unbegrenzt)"
 
 msgid "User search fields"
 msgstr "Benutzer Suchfelder"
@@ -1895,7 +2096,7 @@ msgid "Enabled HBAC rule \"%(value)s\""
 msgstr "HBAC-Regel \"%(value)s\" aktiviert"
 
 msgid "Disable an HBAC rule."
-msgstr "HBAC-Regel deaktivieren."
+msgstr "HBAC-Regel \"%(value)s\" deaktivieren."
 
 #, python-format
 msgid "Disabled HBAC rule \"%(value)s\""
@@ -2352,10 +2553,6 @@ msgstr "${count} Einträge gelöscht"
 msgid "Show Results"
 msgstr "Ergebnisse anzeigen"
 
-msgid "Implicit method (password) will be used if no method is chosen."
-msgstr ""
-"Implizite Methode (Passwort) wird gewählt wenn keine Methode ausgewählt ist."
-
 msgid "Two factor authentication (password + OTP)"
 msgstr "Zwei-Faktor-Authentifizierung (Passwort + Einmalpasswort)"
 
@@ -2665,6 +2862,27 @@ msgstr "Direkt"
 msgid "Indirect"
 msgstr "Indirekt"
 
+msgid "Any Host"
+msgstr "Jeder Host"
+
+msgid "Any Service"
+msgstr "Jeder Dienst"
+
+msgid "Anyone"
+msgstr "Jeder"
+
+msgid "Rule status"
+msgstr "Regelstatus"
+
+msgid "Specified Hosts and Groups"
+msgstr "Spezifische Hosts und Gruppen"
+
+msgid "Specified Services and Groups"
+msgstr "Spezifische Dienste und Gruppen"
+
+msgid "Specified Users and Groups"
+msgstr "Spezifische Benutzer und Gruppen"
+
 msgid "Certificates"
 msgstr "Zertifikate"
 
@@ -2752,32 +2970,11 @@ msgstr "POSIX"
 msgid "Group Type"
 msgstr "Gruppentyp"
 
-msgid "Any Host"
-msgstr "Jeder Host"
-
-msgid "Any Service"
-msgstr "Jeder Dienst"
-
-msgid "Anyone"
-msgstr "Jeder"
-
 msgid "Accessing"
 msgstr "Greift zu"
 
-msgid "Rule status"
-msgstr "Regelstatus"
-
 msgid "Via Service"
 msgstr "Mit Dienst"
-
-msgid "Specified Hosts and Groups"
-msgstr "Spezifische Hosts und Gruppen"
-
-msgid "Specified Services and Groups"
-msgstr "Spezifische Dienste und Gruppen"
-
-msgid "Specified Users and Groups"
-msgstr "Spezifische Benutzer und Gruppen"
 
 msgid "Who"
 msgstr "Wer"
@@ -2877,11 +3074,49 @@ msgstr ""
 msgid "Configure your token"
 msgstr "Token konfigurieren"
 
+msgid ""
+"Configure your token by scanning the QR code below. Click on the QR code if "
+"you see this on the device you want to configure."
+msgstr ""
+"Konfigurieren Sie ihren Token indem sie den QR Code unten scannen. Klicken "
+"Sie auf den QR Code wenn Sie dies auf dem Gerät sehen welches Sie "
+"konfigurieren möchten."
+
+msgid "OTP Token Settings"
+msgstr "OTP Token Einstellungen"
+
+msgid "Disable token"
+msgstr "Token deaktivieren"
+
+msgid "Enable token"
+msgstr "Token aktivieren"
+
+msgid "Show QR code"
+msgstr "QR Code zeigen"
+
+msgid "Show configuration uri"
+msgstr "Konfigurations-URL zeigen"
+
+msgid "Counter-based (HOTP)"
+msgstr "Zählerbasiert (HOTP)"
+
+msgid "Time-based (TOTP)"
+msgstr "Zeitbasiert (TOTP)"
+
+msgid "Add custom attribute"
+msgstr "Benutzerdefiniertes Attribut hinzufügen"
+
 msgid "Password Policy"
 msgstr "Passwort-Regeln"
 
 msgid "Force Update"
 msgstr "Update erzwingen"
+
+msgid "Service Settings"
+msgstr "Diensteinstellungen"
+
+msgid "Provisioning"
+msgstr "Provisioning"
 
 msgid "SSH public keys"
 msgstr "Öffentlicher SSH Schlüssel"
@@ -2914,6 +3149,23 @@ msgstr "SInd Sie sicher, dass Sie die ausgewählten Benutzer aktivieren wollen?"
 msgid "${count} user(s) activated"
 msgstr "${count} Benutzer aktiviert"
 
+msgid "Stage users"
+msgstr "Vorbereitete Benutzer"
+
+msgid "Preserved users"
+msgstr "Aufbewahrte Benutzer"
+
+msgid "Are you sure you want to restore selected users?"
+msgstr ""
+"SInd Sie sicher, dass Sie die ausgewählten Benutzer wiederherstellen wollen?"
+
+#, python-brace-format
+msgid "${count} user(s) restored"
+msgstr "${count} user(s) wiederhergestellt"
+
+msgid "User categories"
+msgstr "Benutzerkategorien"
+
 msgid "Groups"
 msgstr "Gruppen"
 
@@ -2938,11 +3190,27 @@ msgstr "Verweigern"
 msgid "Access this host"
 msgstr "Zugriff auf diesen Host"
 
+msgid "Option added"
+msgstr "Optionen hinzugefügt"
+
+#, python-brace-format
+msgid "${count} option(s) removed"
+msgstr "${count} Option(en) entfernt"
+
+msgid "As Whom"
+msgstr "Als Wer"
+
 msgid "Specified Commands and Groups"
 msgstr "Spezifische Befehle und Gruppen"
 
 msgid "Specified Groups"
 msgstr "Spezifische Gruppe"
+
+msgid "Segment details"
+msgstr "Segment Details"
+
+msgid "Replication configuration"
+msgstr "Replikationseinstellungen"
 
 msgid "Account"
 msgstr "Konto"
@@ -2962,11 +3230,20 @@ msgstr "Kontoeinstellungen"
 msgid "Account Status"
 msgstr "Kontostatus"
 
+msgid "Active users"
+msgstr "Aktive Benutzer"
+
 msgid "Contact Settings"
 msgstr "Kontakteinstellungen"
 
+msgid "Delete mode"
+msgstr "Lösch-Modus"
+
 msgid "Employee Information"
 msgstr "Mitarbeiterinformationen"
+
+msgid "Error changing account status"
+msgstr "Fehler beim Ändern des Kontostatus"
 
 msgid "Password expiration"
 msgstr "Passwortablauf"
@@ -2976,6 +3253,15 @@ msgstr "Anschrift"
 
 msgid "Misc. Information"
 msgstr "Weitere Informationen"
+
+msgid "delete"
+msgstr "löschen"
+
+msgid "preserve"
+msgstr "aufbewahren"
+
+msgid "No private group"
+msgstr "Keine private Gruppe"
 
 #, python-brace-format
 msgid ""
@@ -2992,17 +3278,50 @@ msgstr "Klicken um zu ${action}"
 msgid "Unlock"
 msgstr "Entsperren"
 
+#, python-brace-format
+msgid "Are you sure you want to unlock user ${object}?"
+msgstr "SInd Sie sicher, dass Sie den Benutzer ${object} entsperren möchten?"
+
 msgid "Current Password"
 msgstr "Aktuelles Passwort"
 
 msgid "Current password is required"
 msgstr "Aktuelles Passwort ist erforderlich"
 
+#, python-brace-format
+msgid "Your password expires in ${days} days."
+msgstr "Ihr Passwort läuft in ${days} Tagen ab."
+
+msgid "First OTP"
+msgstr "Erstes OTP"
+
+msgid "The password or username you entered is incorrect."
+msgstr "Das Passwort oder der Benutzername waren falsch."
+
 msgid "New Password"
 msgstr "Neues Passwort"
 
 msgid "New password is required"
 msgstr "Neues Passwort wird benötigt"
+
+msgid "OTP"
+msgstr "OTP"
+
+msgid ""
+"<i class=\"fa fa-info-circle\"></i> <strong>One-Time-Password(OTP):</strong> "
+"Generate new OTP code for each OTP field."
+msgstr ""
+"<i class=\"fa fa-info-circle\"></i> <strong>Einmalpasswort(OTP):</strong> "
+"Generieren Sie einen OTP-Code für jedes OTP-Feld."
+
+msgid "Token synchronization failed"
+msgstr "Token-Synchronisierung fehlgeschlagen"
+
+msgid "The username, password or token codes are not correct"
+msgstr "Benutzername, Passwort oder Einmalpasswort waren falsch."
+
+msgid "Token was synchronized"
+msgstr "Token wurde synchronisiert"
 
 msgid "Password or Password+One-Time-Password"
 msgstr "Passwort oder Passwort+Einmalpasswort"
@@ -3034,6 +3353,25 @@ msgstr "Passwort verifizieren"
 msgid "Are you sure you want to delete selected entries?"
 msgstr "Sind Sie sicher, dass Sie die ausgewählten Einträge löschen wollen?"
 
+#, python-brace-format
+msgid "${count} item(s) deleted"
+msgstr "${count} Einträge gelöscht"
+
+msgid "Are you sure you want to disable selected entries?"
+msgstr ""
+"Sind Sie sicher, dass Sie die ausgewählten Einträge deaktivieren wollen?"
+
+#, python-brace-format
+msgid "${count} item(s) disabled"
+msgstr "${count} Einträge deaktiviert"
+
+msgid "Are you sure you want to enable selected entries?"
+msgstr "Sind Sie sicher, dass Sie die ausgewählten Einträge aktivieren wollen?"
+
+#, python-brace-format
+msgid "${count} item(s) enabled"
+msgstr "${count} Einträge aktiviert"
+
 msgid "Some entries were not deleted"
 msgstr "Einige Einträge wurden nicht gelöscht"
 
@@ -3042,6 +3380,14 @@ msgstr "Schnell Links"
 
 msgid "Select All"
 msgstr "Alle auswählen"
+
+#, python-brace-format
+msgid ""
+"Query returned more results than the configured size limit. Displaying the "
+"first ${counter} results."
+msgstr ""
+"Abfrage hat mehr Ergebnisse erzeugt als das konfigurierte Maximum. Zeige die "
+"ersten ${counter} Ergebnisse."
 
 msgid "Unselect All"
 msgstr "Alle abwählen"
@@ -3052,6 +3398,9 @@ msgstr "Deaktiviert"
 msgid "Working"
 msgstr "Arbeite"
 
+msgid "Audit"
+msgstr "Audit"
+
 msgid "Authentication"
 msgstr "Authentifizierung"
 
@@ -3060,6 +3409,9 @@ msgstr "Automount"
 
 msgid "DNS"
 msgstr "DNS"
+
+msgid "Host Based Access Control"
+msgstr "Hostbasierte Zugriffskontrolle (HBAC)"
 
 msgid "Identity"
 msgstr "Identität"
@@ -3073,8 +3425,17 @@ msgstr "Netzwerkdienste"
 msgid "Policy"
 msgstr "Regeln"
 
+msgid "Role Based Access Control"
+msgstr "Rollenbasierte Zugriffskontrolle (RBAC)"
+
 msgid "Sudo"
 msgstr "Sudo"
+
+msgid "Topology"
+msgstr "Topologie"
+
+msgid "True"
+msgstr "Wahr"
 
 msgid "First"
 msgstr "Erste"
@@ -3090,6 +3451,12 @@ msgstr "Seite"
 
 msgid "Prev"
 msgstr "Vorherige"
+
+msgid "Undo"
+msgstr "Rückgängig"
+
+msgid "Undo All"
+msgstr "Alle Rückgängig"
 
 msgid "Must be an integer"
 msgstr "Muss eine Ganzzahl sein"
@@ -3164,6 +3531,220 @@ msgstr "Anzahl der geladenen Plugins"
 msgid "Member Host"
 msgstr "Mitglieds-Host"
 
+msgid "One time password commands"
+msgstr "Einmalpasswort Befehle"
+
+msgid "OTP configuration options"
+msgstr "OTP-Konfigurationsoptionen"
+
+msgid "OTP Configuration"
+msgstr "OTP Konfiguration"
+
+msgid "TOTP authentication Window"
+msgstr "TOTP Authentifizierungsfenster"
+
+msgid "TOTP Synchronization Window"
+msgstr "TOTP Sychnronisierungsfenster"
+
+msgid "HOTP Authentication Window"
+msgstr "HOTP Authentifizierungsfenster"
+
+msgid "HOTP Synchronization Window"
+msgstr "HOTP Sychnronisierungsfenster"
+
+msgid "Modify OTP configuration options."
+msgstr "OTP Konfigurationsoptionen bearbeiten."
+
+msgid "Show the current OTP configuration."
+msgstr "Aktuelle OTP Konfiguration anzeigen"
+
+msgid ""
+"\n"
+"OTP Tokens\n"
+msgstr ""
+"\n"
+"OTP Tokens\n"
+
+msgid ""
+"\n"
+"Manage OTP tokens.\n"
+msgstr ""
+"\n"
+"OTP-Tokens bearbeiten.\n"
+
+msgid "OTP token"
+msgstr "OTP Token"
+
+msgid "OTP tokens"
+msgstr "OTP Tokens"
+
+msgid "OTP Tokens"
+msgstr "OTP Tokens"
+
+msgid "OTP Token"
+msgstr "OTP Token"
+
+msgid "Unique ID"
+msgstr "Eindeutige ID"
+
+msgid "Type of the token"
+msgstr "Token-Typ"
+
+msgid "Token description (informational only)"
+msgstr "Token Beschriebung (nur informativ)"
+
+msgid "Owner"
+msgstr "Eigentümer"
+
+msgid "Assigned user of the token (default: self)"
+msgstr "Zugewiesener Token-Benutzer (Standard: selbst)"
+
+msgid "Assigned manager of the token (default: self)"
+msgstr "Zugewiesener Token-Verwalter (Standard: selbst)"
+
+msgid "Mark the token as disabled (default: false)"
+msgstr "Token als deaktiviert markieren (Standard: false)"
+
+msgid "Validity start"
+msgstr "Gültig ab"
+
+msgid "First date/time the token can be used"
+msgstr "Ab diesem Datum kann der Token benutzt werden"
+
+msgid "Validity end"
+msgstr "Gültig bis"
+
+msgid "Last date/time the token can be used"
+msgstr "Bis zu diesem Datum kann der Token benutzt werden"
+
+msgid "Vendor"
+msgstr "Hersteller"
+
+msgid "Token vendor name (informational only)"
+msgstr "Token-Hersteller (nur informativ)"
+
+msgid "Model"
+msgstr "Modell"
+
+msgid "Token model (informational only)"
+msgstr "Token-Modell (nur informativ)"
+
+msgid "Serial"
+msgstr "Seriennummer"
+
+msgid "Token serial (informational only)"
+msgstr "Token-Seriennummer (nur informativ)"
+
+msgid "Token secret (Base32; default: random)"
+msgstr "Token-Geheimis (Base32; Standard: zufällig)"
+
+msgid "Token hash algorithm"
+msgstr "Token Hash-Algorithmus"
+
+msgid "Digits"
+msgstr "Zeichen"
+
+msgid "Number of digits each token code will have"
+msgstr "Zeichenanzahl die jeder Token-Code haben wird"
+
+msgid "Clock offset"
+msgstr "Zeit-Offset"
+
+msgid "TOTP token / FreeIPA server time difference"
+msgstr "Differenz zwischen Token und Serverzeit"
+
+msgid "Clock interval"
+msgstr "Zeitintervall"
+
+msgid "Length of TOTP token code validity"
+msgstr "Dauer die ein TOTP Code gültig ist "
+
+msgid "Counter"
+msgstr "Zähler"
+
+msgid "Initial counter for the HOTP token"
+msgstr "Startwert des HOTP-Zählers"
+
+msgid "Add a new OTP token."
+msgstr "Neuen OTP-Token hinzufügen"
+
+#, python-format
+msgid "Added OTP token \"%(value)s\""
+msgstr "OTP token \"%(value)s\" hinzugefügt"
+
+msgid "(deprecated)"
+msgstr "(veraltet)"
+
+msgid "Do not display QR code"
+msgstr "Keinen QR Code zeigen"
+
+msgid "URI"
+msgstr "URI"
+
+msgid "Delete an OTP token."
+msgstr "OTP Token löschen"
+
+#, python-format
+msgid "Deleted OTP token \"%(value)s\""
+msgstr "OTP token \"%(value)s\" gelöscht"
+
+msgid "Modify a OTP token."
+msgstr "OTP Token bearbeiten"
+
+#, python-format
+msgid "Modified OTP token \"%(value)s\""
+msgstr "OTP Token \"%(value)s\" geändert"
+
+msgid "Search for OTP token."
+msgstr "OTP Token suchen."
+
+#, python-format
+msgid "%(count)d OTP token matched"
+msgid_plural "%(count)d OTP tokens matched"
+msgstr[0] "%(count)d OTP Token gefunden"
+msgstr[1] "%(count)d OTP Tokens gefunden"
+
+msgid "Display information about an OTP token."
+msgstr "Informationen über OTP Token anzeigen."
+
+msgid "Add users that can manage this token."
+msgstr "Nutzer hinzufügen die diesen Token verwalten können"
+
+msgid "Remove users that can manage this token."
+msgstr "Nutzer entfernen die diesen Token verwalten können"
+
+msgid "Synchronize an OTP token."
+msgstr "OTP Token synchronisieren."
+
+msgid "User ID"
+msgstr "Benutzer-ID"
+
+msgid "First Code"
+msgstr "Erster Code"
+
+msgid "Second Code"
+msgstr "Zweiter Code"
+
+msgid ""
+"\n"
+"YubiKey Tokens\n"
+msgstr ""
+"\n"
+"YubiKey Tokens\n"
+
+msgid ""
+"\n"
+"Manage YubiKey tokens.\n"
+msgstr ""
+"\n"
+"YubiKey Tokens verwalten.\n"
+
+msgid "Set a user's password."
+msgstr "Passwort für einen Benutzer setzen."
+
+msgid "One Time Password"
+msgstr "Einmalpasswort"
+
 #, python-format
 msgid "Changed password for \"%(value)s\""
 msgstr "Passwort für \"%(value)s\" geändert"
@@ -3171,14 +3752,203 @@ msgstr "Passwort für \"%(value)s\" geändert"
 msgid "Invalid credentials"
 msgstr "Ungültige Zugangsdaten"
 
+msgid "permission"
+msgstr "Berechtigung"
+
+msgid "permissions"
+msgstr "Berechtigungen"
+
+msgid "Permission name"
+msgstr "Berechtigungsname"
+
 msgid "PKINIT"
 msgstr "PKINIT"
+
+msgid "password policy"
+msgstr "Passwortregel"
+
+msgid "password policies"
+msgstr "Passwortregeln"
+
+msgid "Max failures"
+msgstr "Maximale Fehler"
+
+msgid "Consecutive failures before lockout"
+msgstr "Aufeinanderfolgende Falscheingaben bevor gesperrt wird"
+
+msgid "Failure reset interval"
+msgstr "Fehler Resetintervall"
+
+msgid "Period after which failure count will be reset (seconds)"
+msgstr "Nach dieser Zeit wird der Fehlerzähler zurückgesetzt"
+
+msgid "Lockout duration"
+msgstr "Sperrdauer"
+
+msgid "Period for which lockout is enforced (seconds)"
+msgstr "Während dieser Zeit wird der Login gesperrt (Sekunden)"
+
+msgid "Password Policies"
+msgstr "Passwortregeln"
 
 msgid "Group"
 msgstr "Gruppe"
 
+msgid "Manage password policy for specific group"
+msgstr "Passwortregel für eine bestimmte Gruppe bearbeiten"
+
+msgid "Max lifetime (days)"
+msgstr "Max Dauer (Tage)"
+
+msgid "Maximum password lifetime (in days)"
+msgstr "Maximale Passwortlebensdauer (in Tagen)"
+
+msgid "Min lifetime (hours)"
+msgstr "Min Dauer (Stunden)"
+
+msgid "Minimum password lifetime (in hours)"
+msgstr "Minimale Passwortlebensdauer (in Stunden)"
+
+msgid "History size"
+msgstr "Historie"
+
+msgid "Password history size"
+msgstr "Größe der Passworthistorie"
+
 msgid "Character classes"
 msgstr "Zeichenklassen"
+
+msgid "Minimum number of character classes"
+msgstr "Minimale Anzahl an Zeichenklassen"
+
+msgid "Min length"
+msgstr "Min Länge"
+
+msgid "Minimum length of password"
+msgstr "Minimale Passwortlänge"
+
+msgid "Priority of the policy (higher number means lower priority"
+msgstr "Priorität der Regel (höhere Zahl meint niedrigere Priorität)"
+
+msgid "Maximum password life must be greater than minimum."
+msgstr "Maximale Lebensdauer muss größer als das Minimum sein."
+
+msgid "Add a new group password policy."
+msgstr "Neue Gruppen-Passwortregel hinzufügen."
+
+msgid "Delete a group password policy."
+msgstr "Gruppen-Passwortregel löschen."
+
+msgid "cannot delete global password policy"
+msgstr "Die Globale Passwortregel kann nicht gelöscht werden"
+
+msgid "Modify a group password policy."
+msgstr "Gruppen-Passwortregel bearbeiten."
+
+msgid "priority cannot be set on global policy"
+msgstr "Priorität der globalen Regel kann nicht gesetzt werden"
+
+msgid "Display information about password policy."
+msgstr "Informationen über Passwortregel anzeigen."
+
+msgid "Display effective policy for a specific user"
+msgstr "Aktive Passwortregel für einen bestimmten Benutzer anzeigen"
+
+msgid "Search for group password policies."
+msgstr "Suche nach Gruppen-Passwortregeln"
+
+msgid "role"
+msgstr "Rolle"
+
+msgid "roles"
+msgstr "Rollen"
+
+msgid "Role"
+msgstr "Rolle"
+
+msgid "Role name"
+msgstr "Rollenname"
+
+msgid "A description of this role-group"
+msgstr "Beschreibung der Rollengruppe"
+
+msgid "Add a new role."
+msgstr "Neue Rolle hinzufügen."
+
+#, python-format
+msgid "Added role \"%(value)s\""
+msgstr "Rolle \"%(value)s\" hinzugefügt"
+
+msgid "Delete a role."
+msgstr "Rolle löschen."
+
+#, python-format
+msgid "Deleted role \"%(value)s\""
+msgstr "Rolle \"%(value)s\" gelöscht"
+
+msgid "Modify a role."
+msgstr "Rolle ändern."
+
+#, python-format
+msgid "Modified role \"%(value)s\""
+msgstr "Rolle \"%(value)s\" geändert"
+
+msgid "Search for roles."
+msgstr "Nach Rollen suchen."
+
+#, python-format
+msgid "%(count)d role matched"
+msgid_plural "%(count)d roles matched"
+msgstr[0] "%(count)d Rolle gefunden"
+msgstr[1] "%(count)d Rollen gefunden"
+
+msgid "Display information about a role."
+msgstr "Informationen über eine Rolle anzeigen."
+
+msgid "Add members to a role."
+msgstr "Mitglieder zur Rolle hinzufügen."
+
+msgid "Remove members from a role."
+msgstr "Mitglieder von Rolle entfernen."
+
+msgid "Add privileges to a role."
+msgstr "Berechtigungen zur Rolle hinzufügen."
+
+msgid "Number of privileges added"
+msgstr "Anzahl der hinzugefügten Berechtigungen"
+
+msgid "Remove privileges from a role."
+msgstr "Berechtigungen von Rolle entfernen."
+
+msgid "Number of privileges removed"
+msgstr "Anzahl der entfernten Berechtigungen"
+
+msgid "HBAC Rule that defines the users, groups and hostgroups"
+msgstr "HBAC Regel die Benutzer, Gruppen und Hostgruppen definiert"
+
+#, python-format
+msgid "HBAC rule %(rule)s not found"
+msgstr "HBAC-Regel %(rule)s nicht gefunden"
+
+msgid ""
+"\n"
+"IPA servers\n"
+msgstr "IPA-Server"
+
+msgid "server"
+msgstr "Server"
+
+msgid "servers"
+msgstr "Server"
+
+msgid "IPA Servers"
+msgstr "IPA-Server"
+
+msgid "Server name"
+msgstr "Servername"
+
+msgid "IPA server hostname"
+msgstr "IPA-Server Hostname"
 
 msgid "service"
 msgstr "Dienst"
@@ -3236,11 +4006,77 @@ msgstr ""
 msgid "Disabled service \"%(value)s\""
 msgstr "Dienst »%(value)s« deaktiviert"
 
+msgid "Stage Users"
+msgstr "Vorbereitete Benutzer"
+
+msgid "Stage User"
+msgstr "Vorbereiteter Benutzer"
+
+msgid "stage user"
+msgstr "Vorbereiteter Benutzer"
+
+msgid "stage users"
+msgstr "Vorbereitete Benutzer"
+
+msgid "Add a new stage user."
+msgstr "Einen neuen vorbereiteten Benutzer hinzufügen."
+
+#, python-format
+msgid "Added stage user \"%(value)s\""
+msgstr "Vorbereiteten Benutzer »%(value)s« hinzugefügt"
+
+msgid "Create Stage user in from a delete user"
+msgstr "Erstelle vorbereiteten Benutzer aus einem gelöschten Benutzer"
+
+msgid "givenname is required"
+msgstr "givenname wird benötigt"
+
+msgid "sn is required"
+msgstr "sn wird benötigt"
+
+msgid "Delete a stage user."
+msgstr "Einen vorbereiteten Benutzer löschen."
+
+#, python-format
+msgid "Deleted stage user \"%(value)s\""
+msgstr "Vorbereiteten Benutzer \"%(value)s\" gelöscht"
+
+msgid "Modify a stage user."
+msgstr "Einen vorbereiteten Benutzer ändern."
+
+#, python-format
+msgid "Modified stage user \"%(value)s\""
+msgstr "Vorbereiteten Benutzer »%(value)s« geändert"
+
+msgid "Search for stage users."
+msgstr "Nach vorbereiteten Benutzern suchen."
+
 #, python-format
 msgid "%(count)d user matched"
 msgid_plural "%(count)d users matched"
 msgstr[0] "%(count)d passender Benutzer"
 msgstr[1] "%(count)d passende Benutzer"
+
+msgid "Display information about a stage user."
+msgstr "Informationen zu einem vorbereiteten Benutzer anzeigen."
+
+msgid "Activate a stage user."
+msgstr "Vorbereiteten Benutzer aktivieren."
+
+#, python-format
+msgid "Activate a stage user \"%(value)s\""
+msgstr "Vorbereiteten Benutzer \"%(value)s\" aktivieren."
+
+#, python-format
+msgid "active user with name \"%(user)s\" already exists"
+msgstr "Aktiver Benutzer mit Name \"%(user)s\" existiert bereits"
+
+#, python-format
+msgid "Stage user %s activated"
+msgstr "Vorbereiteten Benutzer %s aktiviert"
+
+msgid "Add a manager to the stage user entry"
+msgstr "Manager zum vorbereiteten Benutzer hinzufügen"
 
 msgid "commands for controlling sudo configuration"
 msgstr "Befehle zum Steuern der sudo-Konfiguration"
@@ -3346,6 +4182,9 @@ msgstr "Realm-Name"
 msgid "Account disabled"
 msgstr "Konto ist deaktiviert"
 
+msgid "Preserved user"
+msgstr "Aufbewahrter Benutzer"
+
 msgid "Add a new user."
 msgstr "Einen neuen Benutzer hinzufügen."
 
@@ -3359,6 +4198,19 @@ msgstr "Einen Benutzer löschen."
 #, python-format
 msgid "Deleted user \"%(value)s\""
 msgstr "Benutzer »%(value)s« gelöscht"
+
+msgid "Delete a user, keeping the entry available for future use"
+msgstr "Einen Benutzer löschen, Eintrag für zukünfigte Verwendung aufbewahren"
+
+msgid "Delete a user"
+msgstr "Einen Benutzer löschen"
+
+#, python-format
+msgid "%s: user is already preserved"
+msgstr "%s: Benutzer ist bereits aufbewahrt"
+
+msgid "preserve and no-preserve cannot be both set"
+msgstr "preserve und no-preserve kann nicht gleichzeitig gesetzt sein"
 
 msgid "Modify a user."
 msgstr "Einen Benutzer bearbeiten."
@@ -3379,6 +4231,24 @@ msgstr "Benutzer-Datensatz für den aktuellen Kerberos-Principal anzeigen"
 msgid "Display information about a user."
 msgstr "Informationen zu einem Benutzer anzeigen."
 
+msgid "Undelete a delete user account."
+msgstr "Gelöschten Benutzer wiederherstellen"
+
+#, python-format
+msgid "Undeleted user account \"%(value)s\""
+msgstr "Benutzerkonto \"%(value)s\" wiederhergestellt"
+
+#, python-format
+msgid "user \"%s\" is already active"
+msgstr "Benutzer \"%s\" ist bereits aktiv"
+
+msgid "Move deleted user into staged area"
+msgstr "Gelöschten Benutzer in vorbereitete Benutzer verschieben"
+
+#, python-format
+msgid "Staged user account \"%(value)s\""
+msgstr "Vorbereitetes Benutzerkonto \"%(value)s\""
+
 msgid "Disable a user account."
 msgstr "Ein Benutzerkonto deaktivieren."
 
@@ -3396,6 +4266,16 @@ msgstr "Benutzerkonto »%(value)s« wurde aktiviert"
 #, python-format
 msgid "Unlocked account \"%(value)s\""
 msgstr "Konto »%(value)s« wurde entsperrt"
+
+#, python-format
+msgid "Account disabled: %(disabled)s"
+msgstr "Konto deaktiviert: %(disabled)s"
+
+msgid "Add a manager to the user entry"
+msgstr "Manager zum Benutzer hinzufügen"
+
+msgid "Remove a manager to the user entry"
+msgstr "Manager vom Benutzer entfernen"
 
 #, python-format
 msgid "Permission denied: %(file)s"

@@ -6,23 +6,23 @@
 # jdennis <jdennis@redhat.com>, 2011
 # Mateusz Marzantowicz <mmarzantowicz@osdf.com.pl>, 2013
 # Piotr Drąg <piotrdrag@gmail.com>, 2010,2013
+# Piotr Drąg <pdrag@aviary.pl>, 2016. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2015-06-24 13:48+0200\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2014-09-23 08:41-0400\n"
-"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
+"POT-Creation-Date: 2016-05-31 15:43+0200\n"
+"PO-Revision-Date: 2016-05-14 05:41-0400\n"
+"Last-Translator: Piotr Drąg <pdrag@aviary.pl>\n"
 "Language-Team: Polish (http://www.transifex.com/projects/p/freeipa/language/"
 "pl/)\n"
 "Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
-"X-Generator: Zanata 3.7.3\n"
+"X-Generator: Zanata 3.8.4\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -436,14 +436,8 @@ msgstr "Liczba usuniętych elementów"
 msgid "Time Limit"
 msgstr "Ograniczenie czasu"
 
-msgid "Time limit of search in seconds"
-msgstr "Ograniczenie czasu wyszukiwania w sekundach"
-
 msgid "Size Limit"
 msgstr "Ograniczenie rozmiaru"
-
-msgid "Maximum number of entries returned"
-msgstr "Maksymalna liczba zwróconych wpisów"
 
 msgid "User"
 msgstr "Użytkownik"
@@ -1235,10 +1229,6 @@ msgstr "Wyłączono konto użytkownika \"%(value)s\""
 msgid "Enabled user account \"%(value)s\""
 msgstr "Włączono konto użytkownika \"%(value)s\""
 
-#, python-format
-msgid "Unable to communicate with CMS (%s)"
-msgstr "Nie można komunikować się z CMS (%s)"
-
 msgid "The hostname to register as"
 msgstr "Nazwa komputera, pod jaką zarejestrować"
 
@@ -1315,8 +1305,8 @@ msgstr "Nazwa serwera"
 
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr ""
-"Naczelnik, dla którego uzyskać tablicę kluczy (np.: ftp/ftp.przykład."
-"pl@PRZYKŁAD.PL)"
+"Naczelnik, dla którego uzyskać tablicę kluczy (np.: ftp/ftp.example."
+"com@EXAMPLE.COM)"
 
 msgid "Kerberos Service Principal Name"
 msgstr "Nazwa naczelnika usługi Kerberos"
