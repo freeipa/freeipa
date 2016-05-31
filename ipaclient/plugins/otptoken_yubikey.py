@@ -47,7 +47,7 @@ EXAMPLES:
 
 register = Registry()
 
-topic = ('otp', _('One time password commands'))
+topic = 'otp'
 
 
 @register()

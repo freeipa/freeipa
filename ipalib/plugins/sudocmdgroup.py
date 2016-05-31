@@ -56,7 +56,7 @@ EXAMPLES:
 
 register = Registry()
 
-topic = ('sudo', _('commands for controlling sudo configuration'))
+topic = 'sudo'
 
 @register()
 class sudocmdgroup(LDAPObject):

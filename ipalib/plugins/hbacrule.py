@@ -101,7 +101,7 @@ register = Registry()
 #   ipa hbacrule-add-accesstime --time='absolute 201012161032 ~ 201012161033' test1
 
 
-topic = ('hbac', _('Host-based access control commands'))
+topic = 'hbac'
 
 def validate_type(ugettext, type):
     if type.lower() == 'deny':

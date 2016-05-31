@@ -92,7 +92,7 @@ EXAMPLES:
 
 register = Registry()
 
-topic = ('sudo', _('Commands for controlling sudo configuration'))
+topic = 'sudo'
 
 
 def deprecated(attribute):

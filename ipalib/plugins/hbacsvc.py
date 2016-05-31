@@ -50,7 +50,7 @@ EXAMPLES:
 
 register = Registry()
 
-topic = ('hbac', _('Host based access control commands'))
+topic = 'hbac'
 
 @register()
 class hbacsvc(LDAPObject):

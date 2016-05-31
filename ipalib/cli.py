@@ -701,7 +701,7 @@ class help(frontend.Local):
             module = importlib.import_module(module_name)
 
         doc = unicode(module.__doc__ or '').strip()
-        parent_topic = getattr(module, 'topic', [None])[0]
+        parent_topic = getattr(module, 'topic', None)
 
         return doc, parent_topic
 
@@ -733,8 +733,7 @@ class help(frontend.Local):
                     mcl = max((self._topics[topic_name][1], len(c.name)))
                     self._topics[topic_name][1] = mcl
                 else: # a module grouped in a topic
-                    m = '%s.%s' % (self._PLUGIN_BASE_MODULE, c.topic)
-                    topic = sys.modules[m].topic
+                    topic = self._get_topic(topic_name)
                     mod_name = c.topic
                     if topic_name in self._topics:
                         if mod_name in self._topics[topic_name][2]:
@@ -746,7 +745,9 @@ class help(frontend.Local):
                         mcl = max((self._topics[topic_name][2][mod_name][1], len(c.name)))
                         self._topics[topic_name][2][mod_name][1] = mcl
                     else:
-                        self._topics[topic_name] = [unicode(_(topic[1])), 0, {mod_name: [doc, 0, [c]]}]
+                        self._topics[topic_name] = [topic[0].split('\n', 1)[0],
+                                                    0,
+                                                    {mod_name: [doc, 0, [c]]}]
                         self._count_topic_mcl(topic_name, mod_name)
             else:
                 self._builtins.append(c)
