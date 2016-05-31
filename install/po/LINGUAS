@@ -1,7 +1,7 @@
 bn_IN   # Bengali (India)
-de      # German
 ca      # Catalan
 cs      # Czech
+de      # German
 es      # Spanish
 eu      # Basque
 fr      # French
@@ -10,9 +10,12 @@ hu      # Hungarian
 id      # Indonesian
 ja      # Japanese
 kn      # Kannada
+mr      # Marathi
 nl      # Dutch
 pl      # Polish
+pt_BR   # Portuguese (Brazil)
 ru      # Russian
+sk      # Slovak
 tg      # Tajik
 uk      # Ukrainian
 zh_CN   # Chinese (China)

@@ -8,23 +8,68 @@
 # Azamat Hackimov <azamat.hackimov@gmail.com>, 2012
 # jdennis <jdennis@redhat.com>, 2011
 # Alex <alexgluck@bk.ru>, 2015. #zanata
+# Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2015-06-24 13:48+0200\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2015-08-19 10:07-0400\n"
-"Last-Translator: Alex <alexgluck@bk.ru>\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
+"POT-Creation-Date: 2016-06-21 10:11+0200\n"
+"PO-Revision-Date: 2016-06-17 07:52-0400\n"
+"Last-Translator: Martin Bašti <mbasti@redhat.com>\n"
 "Language-Team: Russian (http://www.transifex.com/projects/p/freeipa/language/"
 "ru/)\n"
 "Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Zanata 3.7.3\n"
+"X-Generator: Zanata 3.8.4\n"
+
+msgid "Failed to add"
+msgstr "Ошибка при добавлении"
+
+msgid "Master file"
+msgstr "Главный файл"
+
+msgid "Automount master file."
+msgstr "Главный файл автомонтирования."
+
+#, python-format
+msgid "File %(file)s not found"
+msgstr "Файл %(file)s не найден"
+
+#, python-format
+msgid "key %(key)s already exists"
+msgstr "ключ %(key)s уже существует"
+
+msgid "Delete all?"
+msgstr "Удалить все?"
+
+msgid "Password"
+msgstr "Пароль"
+
+msgid ""
+"\n"
+"EXAMPLES:\n"
+msgstr ""
+"\n"
+"ПРИМЕРЫ:\n"
+
+msgid "Data"
+msgstr "Данные"
+
+msgid "Failed to remove"
+msgstr "Ошибка при удалении"
+
+msgid "Failed RunAs"
+msgstr "Ошибка \"запустить как\""
+
+msgid "Failed RunAsGroup"
+msgstr "Ошибка \"запустить как группа\""
+
+msgid "Failed profiles"
+msgstr "Ошибка профилей"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -340,6 +385,9 @@ msgstr "неверный тип"
 msgid "Only one value is allowed"
 msgstr "Допускается только одно значение"
 
+msgid "this option is deprecated"
+msgstr "это опция устарела"
+
 msgid "must be True or False"
 msgstr "должно быть либо True, либо False"
 
@@ -414,14 +462,28 @@ msgstr "должен быть один из %(values)s"
 msgid "must be datetime value"
 msgstr "должна быть дата(datetime)"
 
-msgid "this option is deprecated"
-msgstr "это опция устарела"
-
 msgid "must be DNS name"
 msgstr "должно быть DNS имя"
 
 msgid "must be absolute"
 msgstr "должно быть единственным"
+
+msgid "too many '@' characters"
+msgstr "слишком много символов @"
+
+msgid "invalid SSH public key"
+msgstr "неверный открытый ключ SSH"
+
+#, python-format
+msgid "invalid domain-name: %s"
+msgstr "неправильное доменное имя: %s"
+
+msgid "invalid IP address format"
+msgstr "неправильный формат IP-адреса"
+
+#, python-format
+msgid "objectclass %s not found"
+msgstr "класс объектов %s не найден"
 
 msgid "A list of ACI values"
 msgstr "Список значений ACI"
@@ -554,13 +616,6 @@ msgstr "Переименовать ACL в \"%(value)s\""
 
 msgid ""
 "\n"
-"EXAMPLES:\n"
-msgstr ""
-"\n"
-"ПРИМЕРЫ:\n"
-
-msgid ""
-"\n"
 " Add a host:\n"
 "    ipa host-add web1.example.com\n"
 msgstr ""
@@ -607,9 +662,6 @@ msgstr "%(otype)s \"%(oname)s\" не найден(а)"
 msgid "%s is not a valid attribute."
 msgstr "%s неправильный атрибут"
 
-msgid "Failed to add"
-msgstr "Ошибка при добавлении"
-
 msgid ""
 "\n"
 "    Remove default (fallback) group for all unmatched entries.\n"
@@ -622,6 +674,12 @@ msgstr ""
 msgid "No default (fallback) group set"
 msgstr "Группа по умолчанию не установлена"
 
+msgid "Task DN"
+msgstr "Задача DN"
+
+msgid "DN of the started task"
+msgstr "DN для запущеной задачи"
+
 msgid "Users"
 msgstr "Пользователи"
 
@@ -630,12 +688,6 @@ msgstr "Узлы"
 
 msgid "No wait"
 msgstr "Не ждать"
-
-msgid "Task DN"
-msgstr "Задача DN"
-
-msgid "DN of the started task"
-msgstr "DN для запущеной задачи"
 
 msgid "at least one of options: type, users, hosts must be specified"
 msgstr "больше одной опции: тип, пользователи, хосты должны быть указаны "
@@ -691,29 +743,8 @@ msgstr "Отобразить расположения автомонтирова
 msgid "Search for an automount location."
 msgstr "Поиск для расположения автомонтирования."
 
-#, python-format
-msgid "%(count)d automount location matched"
-msgid_plural "%(count)d automount locations matched"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-
 msgid "Generate automount files for a specific location."
 msgstr "Сгенерировать  файлы автомонтирования для особого расположения."
-
-msgid "Master file"
-msgstr "Главный файл"
-
-msgid "Automount master file."
-msgstr "Главный файл автомонтирования."
-
-#, python-format
-msgid "File %(file)s not found"
-msgstr "Файл %(file)s не найден"
-
-#, python-format
-msgid "key %(key)s already exists"
-msgstr "ключ %(key)s уже существует"
 
 msgid "Map"
 msgstr "Карта"
@@ -734,23 +765,11 @@ msgstr "Создать новый ключ автомонтирования."
 msgid "Mount point"
 msgstr "Точка монтирования"
 
-msgid "Password"
-msgstr "Пароль"
-
 msgid "Roles"
 msgstr "Роли"
 
 msgid "Sudo Command Groups"
 msgstr "Группы команды SUDO"
-
-msgid "Failed to remove"
-msgstr "Ошибка при удалении"
-
-msgid "Failed RunAs"
-msgstr "Ошибка \"запустить как\""
-
-msgid "Failed RunAsGroup"
-msgstr "Ошибка \"запустить как группа\""
 
 msgid "Invalid format. Should be name=value"
 msgstr "Неправильный формат. Должно быть имя=значение"
@@ -843,14 +862,8 @@ msgstr ""
 msgid "Time Limit"
 msgstr "Ограничение по времени"
 
-msgid "Time limit of search in seconds"
-msgstr "Ограничение времени поиска в секундах"
-
 msgid "Size Limit"
 msgstr "Ограничение по размеру"
-
-msgid "Maximum number of entries returned"
-msgstr "Максимальное количество совпадений возвращено"
 
 msgid "Kerberos keys available"
 msgstr "Kerberos ключей доступно"
@@ -996,9 +1009,6 @@ msgstr "Предпочитаемый язык"
 msgid "Certificate"
 msgstr "Сертификат"
 
-msgid "Base-64 encoded server certificate"
-msgstr "Base-64 шифрованый сертификат сервера"
-
 #, python-format
 msgid "invalid e-mail format: %(email)s"
 msgstr "неправильный формат почты: %(email)s"
@@ -1066,13 +1076,6 @@ msgstr "Изменён CA ACL \"%(value)s\""
 
 msgid "Search for CA ACLs."
 msgstr "Поиск по CA ACLs."
-
-#, python-format
-msgid "%(count)d CA ACL matched"
-msgid_plural "%(count)d CA ACLs matched"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
 
 msgid "Display the properties of a CA ACL."
 msgstr "Показать свойства of a CA ACL."
@@ -1157,9 +1160,6 @@ msgstr "%i служба удалена."
 msgid "%i services removed."
 msgstr "%i службы удалены."
 
-msgid "Failed profiles"
-msgstr "Ошибка профилей"
-
 msgid "Add profiles to a CA ACL."
 msgstr "Добавить профили к CA ACL."
 
@@ -1189,21 +1189,6 @@ msgstr "Сбой при декодировании запроса на созд�
 msgid "CA is not configured"
 msgstr "CA не настроен"
 
-msgid "Submit a certificate signing request."
-msgstr "Отправить запрос подписи сертификата."
-
-msgid "CSR"
-msgstr "CSR"
-
-msgid "Principal"
-msgstr "Основной"
-
-msgid "Profile ID"
-msgstr "Идентификатор профиля"
-
-msgid "Certificate Profile to use"
-msgstr "Использовать сертификат профиля"
-
 msgid "Subject"
 msgstr "Объект"
 
@@ -1225,12 +1210,32 @@ msgstr "Отпечаток (SHA1)"
 msgid "Serial number"
 msgstr "Серийный номер"
 
+msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
+msgstr "Серийный номер в десятичной или если есть префикс 0x в HEX формате"
+
 msgid "Serial number (hex)"
 msgstr "Серийный номер (hex)"
 
-#, python-format
-msgid "extension %s is forbidden"
-msgstr "расширение %s запрещено"
+msgid "Profile ID"
+msgstr "Идентификатор профиля"
+
+msgid "Certificate Profile to use"
+msgstr "Использовать сертификат профиля"
+
+msgid "Request status"
+msgstr "Статус запроса"
+
+msgid "Request id"
+msgstr "ID запроса"
+
+msgid "Submit a certificate signing request."
+msgstr "Отправить запрос подписи сертификата."
+
+msgid "CSR"
+msgstr "CSR"
+
+msgid "Principal"
+msgstr "Основной"
 
 msgid "RFC822Name does not match any of user's email addresses"
 msgstr "RFC822 Имя не совпадает ни с одним пользователем электронной почты"
@@ -1238,20 +1243,14 @@ msgstr "RFC822 Имя не совпадает ни с одним пользов�
 msgid "Check the status of a certificate signing request."
 msgstr "Проверьте статус запроса подписи сертификата."
 
-msgid "Request id"
-msgstr "ID запроса"
-
-msgid "Request status"
-msgstr "Статус запроса"
-
-msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
-msgstr "Серийный номер в десятичной или если есть префикс 0x в HEX формате"
-
-msgid "Retrieve an existing certificate."
-msgstr "Получить существующий сертификат."
+msgid "Revoked"
+msgstr "Отозван"
 
 msgid "Revocation reason"
 msgstr "Причина отзыва"
+
+msgid "Retrieve an existing certificate."
+msgstr "Получить существующий сертификат."
 
 msgid "Output filename"
 msgstr "Исходящие имя файла"
@@ -1261,15 +1260,6 @@ msgstr "Файл для сохранения сертификата."
 
 msgid "Revoke a certificate."
 msgstr "Отозвать сертификат"
-
-msgid "Revoked"
-msgstr "Отозван"
-
-msgid "Reason"
-msgstr "Причина"
-
-msgid "Reason for revoking the certificate (0-10)"
-msgstr "Причина для отзыва сертификата (0-10)"
 
 msgid "7 is not a valid revocation reason"
 msgstr "7 неверная причина отзыва сертификата"
@@ -1342,9 +1332,6 @@ msgstr "Делегирования"
 
 msgid "Delegation"
 msgstr "Делегирование"
-
-msgid "invalid IP address format"
-msgstr "неправильный формат IP-адреса"
 
 msgid "invalid IP network format"
 msgstr "неправильный формат подсети"
@@ -1439,9 +1426,6 @@ msgstr "Создать новую зону DNS (SOA-запись)"
 msgid "Force"
 msgstr "Принудительно"
 
-msgid "Delete all?"
-msgstr "Удалить все?"
-
 #, python-format
 msgid "Host '%(host)s' not found"
 msgstr "Узел \"%(host)s\" не найден"
@@ -1522,10 +1506,6 @@ msgstr "Имя службы"
 msgid "Warning"
 msgstr "Предупреждение"
 
-#, python-format
-msgid "invalid domain-name: %s"
-msgstr "неправильное доменное имя: %s"
-
 msgid "host"
 msgstr "узел"
 
@@ -1569,9 +1549,6 @@ msgstr "Удалить узел."
 #, python-format
 msgid "Deleted host \"%(value)s\""
 msgstr "Удален узел «%(value)s»"
-
-msgid "Remove entries from DNS"
-msgstr "Удалить записи из DNS"
 
 msgid "Modify information about a host."
 msgstr "Изменить информацию об узле."
@@ -1690,9 +1667,6 @@ msgstr "Причина отзыва"
 msgid "User Options"
 msgstr "Параметры пользователя"
 
-msgid "Data"
-msgstr "Данные"
-
 msgid "DNS Zone Settings"
 msgstr "Настройки зоны DNS"
 
@@ -1743,6 +1717,12 @@ msgstr "Страница"
 
 msgid "Prev"
 msgstr "Назад"
+
+msgid "Hardware platform of the host (e.g. Lenovo T61)"
+msgstr "Аппаратная платформа узла (например, Lenovo T61)"
+
+msgid "Operating System and version of the host (e.g. Fedora 9)"
+msgstr "Операционная система и версия узла (например, Fedora 9)"
 
 msgid "Bind DN"
 msgstr "Bind DN"
@@ -1851,26 +1831,6 @@ msgstr "Учетная запись пользователя «%(value)s» вк�
 msgid "Unlocked account \"%(value)s\""
 msgstr "Учетная запись «%(value)s» разблокирована"
 
-msgid "too many '@' characters"
-msgstr "слишком много символов @"
-
-msgid "invalid SSH public key"
-msgstr "неверный открытый ключ SSH"
-
-#, python-format
-msgid "objectclass %s not found"
-msgstr "класс объектов %s не найден"
-
-#, python-format
-msgid "Unable to communicate with CMS (%s)"
-msgstr "Невозможно связаться с CMS (%s)"
-
-msgid "Hardware platform of the host (e.g. Lenovo T61)"
-msgstr "Аппаратная платформа узла (например, Lenovo T61)"
-
-msgid "Operating System and version of the host (e.g. Fedora 9)"
-msgstr "Операционная система и версия узла (например, Fedora 9)"
-
 #, c-format
 msgid "cannot open configuration file %s\n"
 msgstr "невозможно открыть конфигурационный файл %s\n"
@@ -1893,3 +1853,6 @@ msgstr "basedn"
 #, c-format
 msgid "kvno %d\n"
 msgstr "kvno %d\n"
+
+#~ msgid "Reason"
+#~ msgstr "Причина"

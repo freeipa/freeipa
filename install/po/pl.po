@@ -6,23 +6,58 @@
 # jdennis <jdennis@redhat.com>, 2011
 # Mateusz Marzantowicz <mmarzantowicz@osdf.com.pl>, 2013
 # Piotr Drąg <piotrdrag@gmail.com>, 2010,2013
+# Piotr Drąg <pdrag@aviary.pl>, 2016. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2015-06-24 13:48+0200\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2014-09-23 08:41-0400\n"
-"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
+"POT-Creation-Date: 2016-06-21 10:11+0200\n"
+"PO-Revision-Date: 2016-05-14 05:40-0400\n"
+"Last-Translator: Piotr Drąg <pdrag@aviary.pl>\n"
 "Language-Team: Polish (http://www.transifex.com/projects/p/freeipa/language/"
 "pl/)\n"
 "Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
-"X-Generator: Zanata 3.7.3\n"
+"X-Generator: Zanata 3.8.4\n"
+
+#, python-format
+msgid "File %(file)s not found"
+msgstr "Nie odnaleziono pliku %(file)s"
+
+msgid "Delete all?"
+msgstr "Usunąć wszystko?"
+
+msgid "Migration mode is disabled. Use 'ipa config-mod' to enable it."
+msgstr ""
+"Tryb migracji jest wyłączony. Należy użyć polecenia \"ipa config-mod\", aby "
+"go włączyć."
+
+msgid ""
+"Passwords have been migrated in pre-hashed format.\n"
+"IPA is unable to generate Kerberos keys unless provided\n"
+"with clear text passwords. All migrated users need to\n"
+"login at https://your.domain/ipa/migration/ before they\n"
+"can use their Kerberos accounts."
+msgstr ""
+"Hasła zostały migrowane w formacie sprzed mieszania.\n"
+"Program IPA nie może utworzyć kluczy Kerberosa, chyba\n"
+"że zostały podane z hasłami w zwykłym tekście. Wszyscy\n"
+"migrowani użytkownicy muszą zalogować się na stronie\n"
+"https://twoja.domena/ipa/migration/, zanim będą mogli\n"
+"używać swoich kont Kerberosa."
+
+msgid "Password"
+msgstr "Hasło"
+
+msgid "Data"
+msgstr "Dane"
+
+msgid "Failed members"
+msgstr "Elementy, które się nie powiodły"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -329,10 +364,6 @@ msgstr "Komputery"
 msgid "Location"
 msgstr "Położenie"
 
-#, python-format
-msgid "File %(file)s not found"
-msgstr "Nie odnaleziono pliku %(file)s"
-
 msgid "Map"
 msgstr "Mapa"
 
@@ -356,12 +387,6 @@ msgstr "Punkt montowania"
 
 msgid "Parent map"
 msgstr "Mapa nadrzędna"
-
-msgid "Password"
-msgstr "Hasło"
-
-msgid "Failed members"
-msgstr "Elementy, które się nie powiodły"
 
 msgid "Member users"
 msgstr "Elementy użytkowników"
@@ -436,14 +461,8 @@ msgstr "Liczba usuniętych elementów"
 msgid "Time Limit"
 msgstr "Ograniczenie czasu"
 
-msgid "Time limit of search in seconds"
-msgstr "Ograniczenie czasu wyszukiwania w sekundach"
-
 msgid "Size Limit"
 msgstr "Ograniczenie rozmiaru"
-
-msgid "Maximum number of entries returned"
-msgstr "Maksymalna liczba zwróconych wpisów"
 
 msgid "User"
 msgstr "Użytkownik"
@@ -507,9 +526,6 @@ msgstr "Klasa"
 msgid "Certificate"
 msgstr "Certyfikat"
 
-msgid "Base-64 encoded server certificate"
-msgstr "Certyfikat serwera zakodowany za pomocą Base-64"
-
 msgid "Enabled"
 msgstr "Włączone"
 
@@ -535,12 +551,6 @@ msgstr "Usługi"
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "Dekodowanie żądania podpisywania certyfikatu nie powiodło się: %s"
 
-msgid "Principal"
-msgstr "Naczelnik"
-
-msgid "automatically add the principal if it doesn't exist"
-msgstr "automatycznie dodaj naczelnika, jeśli nie istnieje"
-
 msgid "Subject"
 msgstr "Temat"
 
@@ -562,18 +572,27 @@ msgstr "Odcisk (SHA1)"
 msgid "Serial number"
 msgstr "Numer seryjny"
 
-msgid "Dictionary mapping variable name to value"
-msgstr "Nazwa zmiennej mapowania słownika do ustawienia jako wartość"
-
-msgid "Request id"
-msgstr "Identyfikator żądania"
+msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
+msgstr ""
+"Numer seryjny w formie dziesiętnej lub szesnastkowej, jeśli poprzedzone 0x"
 
 msgid "Request status"
 msgstr "Stan żądania"
 
-msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
-msgstr ""
-"Numer seryjny w formie dziesiętnej lub szesnastkowej, jeśli poprzedzone 0x"
+msgid "Request id"
+msgstr "Identyfikator żądania"
+
+msgid "Principal"
+msgstr "Naczelnik"
+
+msgid "automatically add the principal if it doesn't exist"
+msgstr "automatycznie dodaj naczelnika, jeśli nie istnieje"
+
+msgid "Status"
+msgstr "Stan"
+
+msgid "Revoked"
+msgstr "Unieważniono"
 
 msgid "Revocation reason"
 msgstr "Przyczyna unieważnienia"
@@ -581,23 +600,11 @@ msgstr "Przyczyna unieważnienia"
 msgid "Revoke a certificate."
 msgstr "Odrzuć certyfikat."
 
-msgid "Revoked"
-msgstr "Unieważniono"
-
-msgid "Reason"
-msgstr "Przyczyna"
-
-msgid "Reason for revoking the certificate (0-10)"
-msgstr "Przyczyna unieważnienia certyfikatu (0-10)"
-
 msgid "Unrevoked"
 msgstr "Cofnięto unieważnienie"
 
 msgid "Error"
 msgstr "Błąd"
-
-msgid "Status"
-msgstr "Stan"
 
 msgid "Configuration"
 msgstr "Konfiguracja"
@@ -676,9 +683,6 @@ msgstr "Polityka aktualizacji BIND"
 
 msgid "Delete all associated records"
 msgstr "Usuń wszystkie powiązane wpisy"
-
-msgid "Delete all?"
-msgstr "Usunąć wszystko?"
 
 #, python-format
 msgid "Found '%(value)s'"
@@ -917,9 +921,6 @@ msgstr "Nowy certyfikat"
 msgid "Certificate Revoked"
 msgstr "Odrzucono certyfikat"
 
-msgid "Data"
-msgstr "Dane"
-
 msgid "DNS Zone Settings"
 msgstr "Ustawienia strefy DNS"
 
@@ -979,6 +980,18 @@ msgstr "Kontrola dostępu oparta na rolach"
 
 msgid "Dict of I18N messages"
 msgstr "Słownik komunikatów umiędzynaradawiania"
+
+msgid "The hostname to register as"
+msgstr "Nazwa komputera, pod jaką zarejestrować"
+
+msgid "The IPA realm"
+msgstr "Obszar IPA"
+
+msgid "Hardware platform of the host (e.g. Lenovo T61)"
+msgstr "Platforma sprzętowa komputera (np. Lenovo T61)"
+
+msgid "Operating System and version of the host (e.g. Fedora 9)"
+msgstr "System operacyjny komputera i jego wersja (np. Fedora 9)"
 
 msgid "Manage ticket policy for specific user"
 msgstr "Zarządzanie polityką zgłoszeń dla podanego użytkownika"
@@ -1041,28 +1054,12 @@ msgstr ""
 msgid "False if migration mode was disabled."
 msgstr "Fałsz, jeśli wyłączono tryb migracji"
 
-msgid "Migration mode is disabled. Use 'ipa config-mod' to enable it."
-msgstr ""
-"Tryb migracji jest wyłączony. Należy użyć polecenia \"ipa config-mod\", aby "
-"go włączyć."
-
-msgid ""
-"Passwords have been migrated in pre-hashed format.\n"
-"IPA is unable to generate Kerberos keys unless provided\n"
-"with clear text passwords. All migrated users need to\n"
-"login at https://your.domain/ipa/migration/ before they\n"
-"can use their Kerberos accounts."
-msgstr ""
-"Hasła zostały migrowane w formacie sprzed mieszania.\n"
-"Program IPA nie może utworzyć kluczy Kerberosa, chyba\n"
-"że zostały podane z hasłami w zwykłym tekście. Wszyscy\n"
-"migrowani użytkownicy muszą zalogować się na stronie\n"
-"https://twoja.domena/ipa/migration/, zanim będą mogli\n"
-"używać swoich kont Kerberosa."
-
 #, python-format
 msgid "%(count)d variables"
 msgstr "%(count)d zmiennych"
+
+msgid "Dictionary mapping variable name to value"
+msgstr "Nazwa zmiennej mapowania słownika do ustawienia jako wartość"
 
 msgid "Total number of variables env (>= count)"
 msgstr "Całkowita liczba zmiennych środowiskowych (>= licznik)"
@@ -1235,22 +1232,6 @@ msgstr "Wyłączono konto użytkownika \"%(value)s\""
 msgid "Enabled user account \"%(value)s\""
 msgstr "Włączono konto użytkownika \"%(value)s\""
 
-#, python-format
-msgid "Unable to communicate with CMS (%s)"
-msgstr "Nie można komunikować się z CMS (%s)"
-
-msgid "The hostname to register as"
-msgstr "Nazwa komputera, pod jaką zarejestrować"
-
-msgid "The IPA realm"
-msgstr "Obszar IPA"
-
-msgid "Hardware platform of the host (e.g. Lenovo T61)"
-msgstr "Platforma sprzętowa komputera (np. Lenovo T61)"
-
-msgid "Operating System and version of the host (e.g. Fedora 9)"
-msgstr "System operacyjny komputera i jego wersja (np. Fedora 9)"
-
 #, c-format
 msgid "cannot open configuration file %s\n"
 msgstr "nie można otworzyć pliku konfiguracji %s\n"
@@ -1315,8 +1296,8 @@ msgstr "Nazwa serwera"
 
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr ""
-"Naczelnik, dla którego uzyskać tablicę kluczy (np.: ftp/ftp.przykład."
-"pl@PRZYKŁAD.PL)"
+"Naczelnik, dla którego uzyskać tablicę kluczy (np.: ftp/ftp.example."
+"com@EXAMPLE.COM)"
 
 msgid "Kerberos Service Principal Name"
 msgstr "Nazwa naczelnika usługi Kerberos"
@@ -1618,3 +1599,6 @@ msgstr "Utworzenie losowego klucza nie powiodło się.\n"
 
 msgid "Failed to create key!\n"
 msgstr "Utworzenie klucza nie powiodło się.\n"
+
+#~ msgid "Reason"
+#~ msgstr "Przyczyna"

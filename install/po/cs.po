@@ -4,23 +4,22 @@
 #
 # Translators:
 # Petr Viktorin <encukou@gmail.com>, 2013
-# Josef Hruška <josef.hruska@upcmail.cz>, 2015. #zanata
+# Josef Hruška <hrusjos@gmail.com>, 2015. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2015-06-24 13:48+0200\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
+"POT-Creation-Date: 2016-06-21 10:11+0200\n"
 "PO-Revision-Date: 2015-06-29 01:17-0400\n"
-"Last-Translator: Josef Hruška <josef.hruska@upcmail.cz>\n"
+"Last-Translator: Josef Hruška <hrusjos@gmail.com>\n"
 "Language-Team: Czech (http://www.transifex.com/projects/p/freeipa/language/"
 "cs/)\n"
 "Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Zanata 3.7.3\n"
+"X-Generator: Zanata 3.8.4\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "

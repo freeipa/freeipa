@@ -8,19 +8,27 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2015-06-24 13:48+0200\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
+"POT-Creation-Date: 2016-06-21 10:11+0200\n"
 "PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Kannada (http://www.transifex.com/projects/p/freeipa/language/"
 "kn/)\n"
 "Language: kn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Zanata 3.7.3\n"
+"X-Generator: Zanata 3.8.4\n"
+
+msgid "Password"
+msgstr "ಗುಪ್ತಪದ"
+
+msgid "Data"
+msgstr "ದತ್ತಾಂಶ"
+
+msgid "Failed members"
+msgstr "ವಿಫಲಗೊಂಡ ಸದಸ್ಯರು"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -302,12 +310,6 @@ msgstr "ಮೌಂಟ್ ಪಾಯಂಟ್"
 msgid "Parent map"
 msgstr "Parent map"
 
-msgid "Password"
-msgstr "ಗುಪ್ತಪದ"
-
-msgid "Failed members"
-msgstr "ವಿಫಲಗೊಂಡ ಸದಸ್ಯರು"
-
 msgid "Member users"
 msgstr "ಸದಸ್ಯ ಬಳಕೆದಾರರು"
 
@@ -362,9 +364,6 @@ msgstr "ವರ್ಗ"
 msgid "Certificate"
 msgstr "ಪ್ರಮಾಣಪತ್ರ"
 
-msgid "Base-64 encoded server certificate"
-msgstr "Base-64 ಎನ್‌ಕೋಡೆಡ್ ಸರ್ವರ್ ಪ್ರಮಾಣಪತ್ರ"
-
 msgid "User category"
 msgstr "ಬಳಕೆದಾರನ ವರ್ಗ"
 
@@ -384,38 +383,32 @@ msgstr "ಸೇವೆಗಳು(ಸರ್ವೀಸಸ್)"
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "ಪ್ರಮಾಣಪತ್ರದ ಸಹಿಯ ಕೋರಿಕೆಯ ಡಿಕೋಡಿಂಗ್‌ನ ವಿಫಲತೆ: %s"
 
-msgid "Principal"
-msgstr "Principal"
-
-msgid "automatically add the principal if it doesn't exist"
-msgstr "ಸ್ವಯಂಚಾಲಿತವಾಗಿ principal ಸೇರಿಸಿ ಅದು ಅಸ್ತಿತ್ವದಲ್ಲಿ ಇಲ್ಲದಿದ್ದಲ್ಲಿ"
-
 msgid "Subject"
 msgstr "ವಿಷಯ"
 
 msgid "Serial number"
 msgstr "ಅನುಕ್ರಮ ಸಂಖ್ಯೆ"
 
-msgid "Request id"
-msgstr "ಬೇಡಿಕೆ ID"
+msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
+msgstr "ಕ್ರಮ ಸಂಖ್ಯೆ ಡೆಸಿಮಲ್‌ನಲ್ಲಿ ಅಥವಾ 0x ಮೊದಲು ಸೇರಿಸಿದ್ದಲ್ಲಿ ಹೆಕ್ಸಾಡೆಸಿಮಲ್‌ನಲ್ಲಿ"
 
 msgid "Request status"
 msgstr "ಬೇಡಿಕೆ ಸ್ಥಿತಿ"
 
-msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
-msgstr "ಕ್ರಮ ಸಂಖ್ಯೆ ಡೆಸಿಮಲ್‌ನಲ್ಲಿ ಅಥವಾ 0x ಮೊದಲು ಸೇರಿಸಿದ್ದಲ್ಲಿ ಹೆಕ್ಸಾಡೆಸಿಮಲ್‌ನಲ್ಲಿ"
+msgid "Request id"
+msgstr "ಬೇಡಿಕೆ ID"
 
-msgid "Revocation reason"
-msgstr "ರದ್ದು ಮಾಡುವುದಕ್ಕೆ ಕಾರಣ"
+msgid "Principal"
+msgstr "Principal"
+
+msgid "automatically add the principal if it doesn't exist"
+msgstr "ಸ್ವಯಂಚಾಲಿತವಾಗಿ principal ಸೇರಿಸಿ ಅದು ಅಸ್ತಿತ್ವದಲ್ಲಿ ಇಲ್ಲದಿದ್ದಲ್ಲಿ"
 
 msgid "Revoked"
 msgstr "ರದ್ದು ಮಾಡಲಾಗಿದೆ"
 
-msgid "Reason"
-msgstr "ಕಾರಣ"
-
-msgid "Reason for revoking the certificate (0-10)"
-msgstr "ಪ್ರಮಾಣಪತ್ರವನ್ನು (0-10) ರದ್ದು ಮಾಡಲು ಕಾರಣ"
+msgid "Revocation reason"
+msgstr "ರದ್ದು ಮಾಡುವುದಕ್ಕೆ ಕಾರಣ"
 
 msgid "Unrevoked"
 msgstr "ರದ್ದು ಮಾಡಲಾಗಿಲ್ಲ"
@@ -585,9 +578,6 @@ msgstr "\"%(value)s\" ಹೋಸ್ಟ್‌ಗ್ರೂಪನ್ನು ಅಳಿ
 msgid "Modified hostgroup \"%(value)s\""
 msgstr "\"%(value)s\" ಹೋಸ್ಟ್‌ಗ್ರೂಪನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
-msgid "Data"
-msgstr "ದತ್ತಾಂಶ"
-
 msgid "Groups"
 msgstr "ಗುಂಪುಗಳು"
 
@@ -696,6 +686,5 @@ msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಅಳಿಸಲಾಗ
 msgid "Modified user \"%(value)s\""
 msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
-#, python-format
-msgid "Unable to communicate with CMS (%s)"
-msgstr "CMS (%s) ಜೊತೆ ಸಂಪರ್ಕಿಸಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ"
+#~ msgid "Reason"
+#~ msgstr "ಕಾರಣ"

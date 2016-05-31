@@ -9,19 +9,27 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2015-06-24 13:48+0200\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
+"POT-Creation-Date: 2016-06-21 10:11+0200\n"
 "PO-Revision-Date: 2015-03-12 12:06-0400\n"
 "Last-Translator: Martin Liu <martin@aws-faq.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/projects/p/freeipa/"
 "language/zh_CN/)\n"
 "Language: zh-CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Zanata 3.7.3\n"
+"X-Generator: Zanata 3.8.4\n"
+
+msgid "Password"
+msgstr "密码"
+
+msgid "Data"
+msgstr "数据"
+
+msgid "Failed members"
+msgstr "失败的成员"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -181,12 +189,6 @@ msgstr "描述"
 msgid "Mount point"
 msgstr "挂载点"
 
-msgid "Password"
-msgstr "密码"
-
-msgid "Failed members"
-msgstr "失败的成员"
-
 msgid "Member users"
 msgstr "成员用户"
 
@@ -235,9 +237,6 @@ msgstr "街道地址"
 msgid "Certificate"
 msgstr "证书"
 
-msgid "Base-64 encoded server certificate"
-msgstr "Base-64 编码格式的服务器证书"
-
 msgid "User category"
 msgstr "用户类别"
 
@@ -259,23 +258,17 @@ msgstr "主题"
 msgid "Serial number"
 msgstr "序列号"
 
-msgid "Request id"
-msgstr "请求号"
-
 msgid "Request status"
 msgstr "请求状态"
 
-msgid "Revocation reason"
-msgstr "撤消原因"
+msgid "Request id"
+msgstr "请求号"
 
 msgid "Revoked"
 msgstr "撤销"
 
-msgid "Reason"
-msgstr "原因"
-
-msgid "Reason for revoking the certificate (0-10)"
-msgstr "撤消证书的原因(0-10)"
+msgid "Revocation reason"
+msgstr "撤消原因"
 
 msgid "Error"
 msgstr "错误"
@@ -370,9 +363,6 @@ msgstr "主机组"
 msgid "Name of host-group"
 msgstr "主机组名称"
 
-msgid "Data"
-msgstr "数据"
-
 msgid "Groups"
 msgstr "用户组"
 
@@ -420,3 +410,6 @@ msgstr "已删除用户\"%(value)s\""
 #, python-format
 msgid "Modified user \"%(value)s\""
 msgstr "已修改用户\"%(value)s\""
+
+#~ msgid "Reason"
+#~ msgstr "原因"

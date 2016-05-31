@@ -7,19 +7,24 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2015-06-24 13:48+0200\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
+"POT-Creation-Date: 2016-06-21 10:11+0200\n"
 "PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Basque (http://www.transifex.com/projects/p/freeipa/language/"
 "eu/)\n"
 "Language: eu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Zanata 3.7.3\n"
+"X-Generator: Zanata 3.8.4\n"
+
+msgid "Password"
+msgstr "Pasahitza"
+
+msgid "Data"
+msgstr "Datuak"
 
 #, c-format
 msgid "Passwords do not match!"
@@ -56,6 +61,9 @@ msgstr "%(desc)s: %(info)s"
 #, python-format
 msgid "%(info)s"
 msgstr "%(info)s"
+
+msgid "invalid IP address format"
+msgstr "IP helbide formatu baliogabea"
 
 msgid "A list of ACI values"
 msgstr "ACI balioen zerrenda bat"
@@ -114,9 +122,6 @@ msgstr "Ostalariak"
 
 msgid "description"
 msgstr "deskribapena"
-
-msgid "Password"
-msgstr "Pasahitza"
 
 msgid "External host"
 msgstr "Kanpoko ostalaria"
@@ -206,17 +211,14 @@ msgstr "Hatz-marka (SHA1)"
 msgid "Serial number"
 msgstr "Serie-zenbakia"
 
+msgid "Status"
+msgstr "Egoera"
+
 msgid "Output filename"
 msgstr "Irteerako fitxategi-izena"
 
-msgid "Reason"
-msgstr "Arrazoia"
-
 msgid "Error"
 msgstr "Errorea"
-
-msgid "Status"
-msgstr "Egoera"
 
 msgid "Configuration"
 msgstr "Konfigurazioa"
@@ -247,9 +249,6 @@ msgstr "E-posta domeinu lehenetsia"
 
 msgid "The group doesn't exist"
 msgstr "Taldea ez da existitzen"
-
-msgid "invalid IP address format"
-msgstr "IP helbide formatu baliogabea"
 
 msgid "invalid IP network format"
 msgstr "IP sare formatu baliogabea"
@@ -417,9 +416,6 @@ msgstr "Erakundea"
 msgid "SHA1 Fingerprint"
 msgstr "SHA1 hatz-marka"
 
-msgid "Data"
-msgstr "Datuak"
-
 msgid "Group Settings"
 msgstr "Taldearen ezarpenak"
 
@@ -552,3 +548,6 @@ msgstr "fitxategi-izena"
 
 msgid "password"
 msgstr "pasahitza"
+
+#~ msgid "Reason"
+#~ msgstr "Arrazoia"

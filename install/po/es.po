@@ -12,22 +12,115 @@
 # Hugo Jiménez Hernández <hjimenezhdez@gmail.com>, 2011
 # jdennis <jdennis@redhat.com>, 2011
 # Petr Viktorin <encukou@gmail.com>, 2012
+# Brian Curtich <bcurtich@gmail.com>, 2016. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
-"Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
-"newticket\n"
-"POT-Creation-Date: 2015-06-24 13:48+0200\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2014-09-23 08:41-0400\n"
-"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
+"Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
+"POT-Creation-Date: 2016-06-21 10:11+0200\n"
+"PO-Revision-Date: 2016-05-20 05:18-0400\n"
+"Last-Translator: Brian Curtich <bcurtich@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/projects/p/freeipa/language/"
 "es/)\n"
 "Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Zanata 3.7.3\n"
+"X-Generator: Zanata 3.8.4\n"
+
+msgid "Failed to add"
+msgstr "Fallo al añadir"
+
+msgid "Import automount files for a specific location."
+msgstr "Importar ficheros de automontaje para una localización específica."
+
+msgid "Master file"
+msgstr "    Archivo maestro"
+
+msgid "Automount master file."
+msgstr "    Archivo maestro automount."
+
+msgid ""
+"Continuous operation mode. Errors are reported but the process continues."
+msgstr ""
+"    Modo de funcionamiento continuo. Reporta los errores, pero el proceso "
+"continúa."
+
+#, python-format
+msgid "File %(file)s not found"
+msgstr "No se encontró el archivo %(file)s "
+
+msgid "Current DNS record contents:\n"
+msgstr "Contenidos actuales del registro DNS:\n"
+
+msgid ""
+"Neither --del-all nor options to delete a specific record provided.\n"
+"Command help may be consulted for all supported record types."
+msgstr ""
+"Ni --del-all ni opciones para borrar un registro en concreto ha sido "
+"especificado.\n"
+"El comando de ayuda puede ser consultado para ver los tipos de registros "
+"soportados."
+
+msgid "No option to delete specific record provided."
+msgstr "Ninguna opción para  borrar un registro en concreto especificado."
+
+msgid "Delete all?"
+msgstr "¿Borrar todos?"
+
+msgid "Migration mode is disabled. Use 'ipa config-mod' to enable it."
+msgstr ""
+"El modo de migración se encuentra inhabilitado. Utilice 'ipa config-mod' "
+"para habilitarlo."
+
+msgid ""
+"Passwords have been migrated in pre-hashed format.\n"
+"IPA is unable to generate Kerberos keys unless provided\n"
+"with clear text passwords. All migrated users need to\n"
+"login at https://your.domain/ipa/migration/ before they\n"
+"can use their Kerberos accounts."
+msgstr ""
+"Las contraseñas han sido migradas en formato pre-hashed.\n"
+"IPA es incapaz de generar claves de Kerberos a menos que le sean\n"
+"provistas contraseñas de texto claras. Todos los usuarios migrados\n"
+"necesitan registrarse en https://your.domain/ipa/migration/ antes de\n"
+"poder utilizar sus respectivas cuentas Kerberos."
+
+msgid "Password"
+msgstr "Contraseña"
+
+#, python-format
+msgid "Enabled Sudo Rule \"%s\""
+msgstr "Regla Sudo Habilitada “%s”"
+
+#, python-format
+msgid "Disabled Sudo Rule \"%s\""
+msgstr "Regla Sudo Deshabilitada “%s”"
+
+msgid "Data"
+msgstr "Datos"
+
+msgid "Failed members"
+msgstr "Miembros fallidos"
+
+msgid "Failed source hosts/hostgroups"
+msgstr "Fallada fuente hosts/grupos de hosts"
+
+msgid "Failed hosts/hostgroups"
+msgstr "Falló host/hostgroups"
+
+msgid "Failed users/groups"
+msgstr "Falló usuarios/grupos"
+
+msgid "Failed service/service groups"
+msgstr "Fallado servicio/servicio grupos"
+
+msgid "Failed to remove"
+msgstr "No se ha podido quitar"
+
+msgid "Failed managedby"
+msgstr "Falló managedby"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -42,6 +135,9 @@ msgstr "No se encontraron entradas coincidentes"
 
 msgid "Topic commands:"
 msgstr "Tema comandos:"
+
+msgid "To get command help, use:"
+msgstr "Para obtener ayuda sobre el comando, utilice:"
 
 msgid "Command name"
 msgstr "Nombre del comando"
@@ -58,6 +154,14 @@ msgstr "error %(code)d desconocido de %(server)s: %(error)s"
 
 msgid "an internal error has occurred"
 msgstr "ha ocurrido un error interno"
+
+#, python-format
+msgid "unknown command '%(name)s'"
+msgstr "comando desconocido '%(name)s'"
+
+#, python-format
+msgid "cannot connect to '%(uri)s': %(error)s"
+msgstr "no se pudo conectar a '%(uri)s': %(error)s"
 
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
@@ -77,6 +181,11 @@ msgstr "Error de kerberos:  %(major)s/%(minor)s"
 
 msgid "did not receive Kerberos credentials"
 msgstr "no se ha recibido ninguna credencial de Kerberos"
+
+#, python-format
+msgid "Service '%(service)s' not found in Kerberos database"
+msgstr ""
+"El servicio '%(service)s' no se encontró en la base de datos de Kerberos"
 
 msgid "No credentials cache found"
 msgstr "No se han encontrado credenciales de cache"
@@ -99,6 +208,10 @@ msgstr "Error de sesión"
 #, python-format
 msgid "Insufficient access: %(info)s"
 msgstr "Acceso insuficiente: %(info)s"
+
+#, python-format
+msgid "invalid '%(name)s': %(error)s"
+msgstr "'%(name)s' inválido: %(error)s"
 
 msgid "Passwords do not match"
 msgstr "Las contraseñas no coinciden"
@@ -205,6 +318,9 @@ msgstr ""
 "El criterio de búsqueda no fue bastante específico. Se esperaba 1 y se "
 "encontró %(found)d."
 
+msgid "This group already allows external members"
+msgstr "Este grupo ya acepta miembros externos"
+
 msgid "change collided with another change"
 msgstr "la modificación choca con otra modificación diferente"
 
@@ -260,6 +376,10 @@ msgid "Results are truncated, try a more specific search"
 msgstr ""
 "Los resultados se encuentran truncados, intente realizar una búsqueda más "
 "específica"
+
+#, python-format
+msgid "Unknown option: %(option)s"
+msgstr "Opción desconocida: %(option)s"
 
 msgid ""
 "Retrieve and print all attributes from the server. Affects command output."
@@ -373,6 +493,44 @@ msgstr "debe tener exactamente %(length)d caracteres"
 #, python-format
 msgid "must be '%(value)s'"
 msgstr "debe ser «%(value)s»"
+
+#, python-format
+msgid "Permission denied: %(file)s"
+msgstr "Permiso denegado:%(file)s "
+
+msgid "too many '@' characters"
+msgstr "demasiados ‘@’ caracteres"
+
+msgid "cannot be longer that 255 characters"
+msgstr "no puede ser más larga de 255 caracteres"
+
+msgid "invalid SSH public key"
+msgstr "clave SSH pública no válida"
+
+#, python-format
+msgid "invalid domain-name: %s"
+msgstr "nombre de dominio no válido: %s"
+
+msgid "invalid IP address format"
+msgstr "formato no válido de dirección IP"
+
+#, python-format
+msgid "%(port)s is not a valid port"
+msgstr "%(port)s no es un puerto válido"
+
+#, python-format
+msgid "Retrieving CA status failed: %s"
+msgstr "Falló la obtención del estado de CA: %s"
+
+#, python-format
+msgid "objectclass %s not found"
+msgstr "clase objeto %s no encontrada"
+
+msgid "domain is not configured"
+msgstr "el dominio no está configurado"
+
+msgid "SID is not valid"
+msgstr "el SID no es válido"
 
 msgid "A list of ACI values"
 msgstr "Una lista de valores ACI"
@@ -579,9 +737,6 @@ msgstr ""
 "    Añadir condiciones a una regla automiembro.\n"
 "    "
 
-msgid "Failed to add"
-msgstr "Fallo al añadir"
-
 #, python-format
 msgid "Added condition(s) to \"%(value)s\""
 msgstr "Añadida condición(es) a \"%(value)s\""
@@ -738,25 +893,6 @@ msgstr[1] "%(count)d localizaciones de automontaje coincidentes"
 msgid "Generate automount files for a specific location."
 msgstr "Generar ficheros de automontaje para una localización específica."
 
-msgid "Import automount files for a specific location."
-msgstr "Importar ficheros de automontaje para una localización específica."
-
-msgid "Master file"
-msgstr "    Archivo maestro"
-
-msgid "Automount master file."
-msgstr "    Archivo maestro automount."
-
-msgid ""
-"Continuous operation mode. Errors are reported but the process continues."
-msgstr ""
-"    Modo de funcionamiento continuo. Reporta los errores, pero el proceso "
-"continúa."
-
-#, python-format
-msgid "File %(file)s not found"
-msgstr "No se encontró el archivo %(file)s "
-
 msgid "automount map"
 msgstr "mapa de automontaje"
 
@@ -912,12 +1048,6 @@ msgstr[1] "%(count)d claves de automontaje coincidentes"
 msgid "Display an automount key."
 msgstr "Mostrar una clave de automontaje."
 
-msgid "Password"
-msgstr "Contraseña"
-
-msgid "Failed members"
-msgstr "Miembros fallidos"
-
 msgid "Member users"
 msgstr "Usuarios miembros"
 
@@ -1047,21 +1177,6 @@ msgstr "Grupo de servicio HBAC de miembros indirectos "
 msgid "Indirect Member netgroups"
 msgstr "Miembros indirectos netgroups"
 
-msgid "Failed source hosts/hostgroups"
-msgstr "Fallada fuente hosts/grupos de hosts"
-
-msgid "Failed hosts/hostgroups"
-msgstr "Falló host/hostgroups"
-
-msgid "Failed users/groups"
-msgstr "Falló usuarios/grupos"
-
-msgid "Failed service/service groups"
-msgstr "Fallado servicio/servicio grupos"
-
-msgid "Failed to remove"
-msgstr "No se ha podido quitar"
-
 msgid "External host"
 msgstr "Equipo externo"
 
@@ -1174,14 +1289,8 @@ msgstr ""
 msgid "Time Limit"
 msgstr "Tiempo límite"
 
-msgid "Time limit of search in seconds"
-msgstr "Tiempo máximo de búsqueda en segundos"
-
 msgid "Size Limit"
 msgstr "Tamaño límite"
-
-msgid "Maximum number of entries returned"
-msgstr "Cantidad máxima de entradas obtenidas"
 
 msgid "Kerberos keys available"
 msgstr "Claves Kerberos disponibles"
@@ -1289,9 +1398,6 @@ msgstr "Clase"
 msgid "Certificate"
 msgstr "Certificado"
 
-msgid "Base-64 encoded server certificate"
-msgstr "Certificado del servidor codificado con base-64"
-
 #, python-format
 msgid "manager %(manager)s not found"
 msgstr "Administrador %(manager)s no encontrado"
@@ -1302,6 +1408,9 @@ msgstr "puede ser a lo sumo%(len)d caracteres"
 
 msgid "Nested Methods to execute"
 msgstr "Métodos anidados para ejecutar"
+
+msgid "Name"
+msgstr "Nombre"
 
 msgid "Enabled"
 msgstr "Habilitado"
@@ -1330,18 +1439,6 @@ msgstr ""
 "Falla al intentar decodificar la petición de identificación de certificado: "
 "%s"
 
-msgid "Submit a certificate signing request."
-msgstr "Enviar una petición de firma de certificado."
-
-msgid "CSR"
-msgstr "CSR"
-
-msgid "Principal"
-msgstr "Principal"
-
-msgid "automatically add the principal if it doesn't exist"
-msgstr "si no existe, agregar automáticamente el principal"
-
 msgid "Subject"
 msgstr "Asunto"
 
@@ -1363,29 +1460,44 @@ msgstr "Huella digital (SHA1)"
 msgid "Serial number"
 msgstr "Número de serie"
 
+msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
+msgstr "Número de serie en decimales, o hexadecimales, si tiene un prefijo 0x"
+
 msgid "Serial number (hex)"
 msgstr "N.º de serie (hex.)"
-
-msgid "Dictionary mapping variable name to value"
-msgstr "Nombre de la variable de mapeo de dicionario a valorizar "
-
-msgid "Check the status of a certificate signing request."
-msgstr "Verificar el estado de una solicitud de firma de certificado."
-
-msgid "Request id"
-msgstr "Id de la petición"
 
 msgid "Request status"
 msgstr "Estado de la petición"
 
-msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
-msgstr "Número de serie en decimales, o hexadecimales, si tiene un prefijo 0x"
+msgid "Request id"
+msgstr "Id de la petición"
 
-msgid "Retrieve an existing certificate."
-msgstr "Recuperar un certificado existente."
+msgid "Submit a certificate signing request."
+msgstr "Enviar una petición de firma de certificado."
+
+msgid "CSR"
+msgstr "CSR"
+
+msgid "Principal"
+msgstr "Principal"
+
+msgid "automatically add the principal if it doesn't exist"
+msgstr "si no existe, agregar automáticamente el principal"
+
+msgid "Check the status of a certificate signing request."
+msgstr "Verificar el estado de una solicitud de firma de certificado."
+
+msgid "Status"
+msgstr "Estatus"
+
+msgid "Revoked"
+msgstr "Revocado"
 
 msgid "Revocation reason"
 msgstr "Motivo de la revocación"
+
+msgid "Retrieve an existing certificate."
+msgstr "Recuperar un certificado existente."
 
 msgid "Output filename"
 msgstr "Nombre de archivo de salida"
@@ -1395,15 +1507,6 @@ msgstr "Archivo para almacenar el certificado"
 
 msgid "Revoke a certificate."
 msgstr "Revocar un certificado."
-
-msgid "Revoked"
-msgstr "Revocado"
-
-msgid "Reason"
-msgstr "Motivo"
-
-msgid "Reason for revoking the certificate (0-10)"
-msgstr "Motivo por el cual el certificado ha sido revocado (0-10)"
 
 msgid "7 is not a valid revocation reason"
 msgstr "7 no es una razón válida de revocación"
@@ -1416,12 +1519,6 @@ msgstr "No revocado"
 
 msgid "Error"
 msgstr "Error"
-
-msgid "Status"
-msgstr "Estatus"
-
-msgid "searchtimelimit must be -1 or > 1."
-msgstr "searchtimelimit debe ser -1 o&gt; 1."
 
 msgid "configuration options"
 msgstr "opciones de configuración"
@@ -1456,17 +1553,8 @@ msgstr "Dominio de correo electrónico por defecto"
 msgid "Search time limit"
 msgstr "Buscar límite de tiempo"
 
-msgid ""
-"Maximum amount of time (seconds) for a search (> 0, or -1 for unlimited)"
-msgstr ""
-"Máxima cantidad de tiempo (segundos) parab una búsqueda (> 0, o -1 para "
-"ilimitado)"
-
 msgid "Search size limit"
 msgstr "Límite del tamaño de la búsqueda"
-
-msgid "Maximum number of records to search (-1 is unlimited)"
-msgstr "Máximo número de registros a buscar (-1 es ilimitado)"
 
 msgid "User search fields"
 msgstr "Campos de búsqueda de usuario"
@@ -1584,22 +1672,11 @@ msgstr[1] "%(count)d delegaciones coincidentes"
 msgid "Display information about a delegation."
 msgstr "Mostrar información sobre una delegación."
 
-msgid "invalid IP address format"
-msgstr "formato no válido de dirección IP"
-
 msgid "invalid IP network format"
 msgstr "formato no válido de red IP"
 
 msgid "invalid address format"
 msgstr "formato de dirección no válido"
-
-#, python-format
-msgid "%(port)s is not a valid port"
-msgstr "%(port)s no es un puerto válido"
-
-#, python-format
-msgid "DNS reverse zone for IP address %(addr)s not found"
-msgstr "Zona invertida DNS para dirección IP %(addr)s no encontrada"
 
 #, python-format
 msgid "DNS zone %(zone)s not found"
@@ -1832,14 +1909,14 @@ msgstr "Permitir transferencia"
 msgid "Create new DNS zone (SOA record)."
 msgstr "Crear nueva zona DNS (registro SOA)."
 
-msgid "Force"
-msgstr "Forzar"
-
 msgid "Delete DNS zone (SOA record)."
 msgstr "Borrar zona DNS (registro SOA)."
 
 msgid "Modify DNS zone (SOA record)."
 msgstr "Modificar zona DNS (registro SOA)."
+
+msgid "Force"
+msgstr "Forzar"
 
 msgid "Forward zones only"
 msgstr "Zonas de reenvío sólo"
@@ -1899,24 +1976,12 @@ msgstr "Forzar la creación del registro DNS, aunque su nombre no sea absoluto"
 msgid "Modify a DNS resource record."
 msgstr "Modificar un registro de recurso DNS."
 
-msgid "Current DNS record contents:\n"
-msgstr "Contenidos actuales del registro DNS:\n"
-
 #, python-format
 msgid "Deleted record \"%(value)s\""
 msgstr "Registro eliminado \"%(value)s\""
 
 msgid "Delete DNS resource record."
 msgstr "Borrar un registro de recurso DNS."
-
-msgid ""
-"Neither --del-all nor options to delete a specific record provided.\n"
-"Command help may be consulted for all supported record types."
-msgstr ""
-"Ni --del-all ni opciones para borrar un registro en concreto ha sido "
-"especificado.\n"
-"El comando de ayuda puede ser consultado para ver los tipos de registros "
-"soportados."
 
 msgid "Delete all associated records"
 msgstr "Eliminar todos los registros asociados"
@@ -1925,20 +1990,11 @@ msgstr "Eliminar todos los registros asociados"
 msgid "Zone record '%s' cannot be deleted"
 msgstr "No se puede eliminar el registro de zona «%s»"
 
-msgid "No option to delete specific record provided."
-msgstr "Ninguna opción para  borrar un registro en concreto especificado."
-
-msgid "Delete all?"
-msgstr "¿Borrar todos?"
-
 msgid "Display DNS resource."
 msgstr "Mostrar un recurso DNS."
 
 msgid "Search for DNS resources."
 msgstr "Buscar recursos DNS."
-
-msgid "Resolve a host name in DNS."
-msgstr "Resolver un nombre de host en DNS."
 
 #, python-format
 msgid "Found '%(value)s'"
@@ -2190,9 +2246,6 @@ msgstr ""
 "   ipa hbacsvc-del tftp\n"
 "\n"
 
-msgid "Host based access control commands"
-msgstr "Comandos de control de acceso basado en host"
-
 msgid "HBAC service"
 msgstr "Servicio HBAC"
 
@@ -2356,13 +2409,6 @@ msgstr "Número de serie"
 msgid "Serial Number (hex)"
 msgstr "N.º de serie (hex.)"
 
-msgid "Failed managedby"
-msgstr "Falló managedby"
-
-#, python-format
-msgid "invalid domain-name: %s"
-msgstr "nombre de dominio no válido: %s"
-
 msgid "host"
 msgstr "host"
 
@@ -2442,9 +2488,6 @@ msgstr "Borrar un host."
 #, python-format
 msgid "Deleted host \"%(value)s\""
 msgstr "Ha sido eliminado el equipo \"%(value)s\""
-
-msgid "Remove entries from DNS"
-msgstr "Eliminar entradas de DNS"
 
 msgid "Modify information about a host."
 msgstr "Modificar información sobre un host."
@@ -2888,6 +2931,27 @@ msgstr "Directo"
 msgid "Indirect"
 msgstr "Indirecto"
 
+msgid "Any Host"
+msgstr "Cualquier host"
+
+msgid "Any Service"
+msgstr "Cualquier servicio"
+
+msgid "Anyone"
+msgstr "Cualquiera"
+
+msgid "Rule status"
+msgstr "Estatus de reglas"
+
+msgid "Specified Hosts and Groups"
+msgstr "Hosts y grupos especificados"
+
+msgid "Specified Services and Groups"
+msgstr "Servicios y grupos especificados"
+
+msgid "Specified Users and Groups"
+msgstr "Usuarios y grupos específicos"
+
 msgid "AA Compromise"
 msgstr "AA transacción"
 
@@ -2959,20 +3023,6 @@ msgid "Remove from CRL"
 msgstr "Borrar de CRL"
 
 #, python-brace-format
-msgid "Restore Certificate for ${entity} ${primary_key}"
-msgstr "Restablecer Certificado para ${entity} ${primary_key}"
-
-msgid "Restore Certificate"
-msgstr "Restaurar certificado"
-
-msgid ""
-"To confirm your intention to restore this certificate, click the \"Restore\" "
-"button."
-msgstr ""
-"Para confirmar su intención de restaurar este certificado, haga clic en el "
-"botón \"Restaurar\"."
-
-#, python-brace-format
 msgid "Revoke Certificate for ${entity} ${primary_key}"
 msgstr "Revocar certificado por ${entity} ${primary_key}"
 
@@ -3019,9 +3069,6 @@ msgstr "Opciones de Usuario"
 
 msgid "Options"
 msgstr "Opciones"
-
-msgid "Data"
-msgstr "Datos"
 
 msgid "DNS record was deleted because it contained no data."
 msgstr "Registro DNS fue borrado porque no contenía datos."
@@ -3071,32 +3118,11 @@ msgstr "POSIX"
 msgid "Group Type"
 msgstr "Tipo de grupo"
 
-msgid "Any Host"
-msgstr "Cualquier host"
-
-msgid "Any Service"
-msgstr "Cualquier servicio"
-
-msgid "Anyone"
-msgstr "Cualquiera"
-
 msgid "Accessing"
 msgstr "Acceso"
 
-msgid "Rule status"
-msgstr "Estatus de reglas"
-
 msgid "Via Service"
 msgstr "Vía de servicio"
-
-msgid "Specified Hosts and Groups"
-msgstr "Hosts y grupos especificados"
-
-msgid "Specified Services and Groups"
-msgstr "Servicios y grupos especificados"
-
-msgid "Specified Users and Groups"
-msgstr "Usuarios y grupos específicos"
 
 msgid "Who"
 msgstr "¿Quién?"
@@ -3429,6 +3455,18 @@ msgstr "Valor no admitido"
 msgid "Dict of I18N messages"
 msgstr "Dictado de los mensajes regionales"
 
+msgid "The hostname to register as"
+msgstr "El nombre del equipo a ser registrado como"
+
+msgid "The IPA realm"
+msgstr "El reinado IPA"
+
+msgid "Hardware platform of the host (e.g. Lenovo T61)"
+msgstr "Plataforma de hardware del equipo (p. ej. Lenovo T61)"
+
+msgid "Operating System and version of the host (e.g. Fedora 9)"
+msgstr "Sistema operativo que utiliza el equipo y versión (p.ej. Fedora 9)"
+
 msgid ""
 "\n"
 "Kerberos ticket policy\n"
@@ -3643,24 +3681,6 @@ msgstr ""
 "los resultados de la búsqueda de los objetos que se van a migrar se han "
 "truncado por el servidor; el proceso de migración puede estar incompleto\n"
 
-msgid "Migration mode is disabled. Use 'ipa config-mod' to enable it."
-msgstr ""
-"El modo de migración se encuentra inhabilitado. Utilice 'ipa config-mod' "
-"para habilitarlo."
-
-msgid ""
-"Passwords have been migrated in pre-hashed format.\n"
-"IPA is unable to generate Kerberos keys unless provided\n"
-"with clear text passwords. All migrated users need to\n"
-"login at https://your.domain/ipa/migration/ before they\n"
-"can use their Kerberos accounts."
-msgstr ""
-"Las contraseñas han sido migradas en formato pre-hashed.\n"
-"IPA es incapaz de generar claves de Kerberos a menos que le sean\n"
-"provistas contraseñas de texto claras. Todos los usuarios migrados\n"
-"necesitan registrarse en https://your.domain/ipa/migration/ antes de\n"
-"poder utilizar sus respectivas cuentas Kerberos."
-
 msgid ""
 "\n"
 "Misc plug-ins\n"
@@ -3682,6 +3702,9 @@ msgstr ""
 "si\n"
 "     no lo es.\n"
 "    Devolver el resultado si se trata de un autoservicio   de ACI."
+
+msgid "Dictionary mapping variable name to value"
+msgstr "Nombre de la variable de mapeo de dicionario a valorizar "
 
 msgid "Total number of variables env (>= count)"
 msgstr "Cantidad total de variables env (>= count)"
@@ -4341,9 +4364,6 @@ msgstr "    Búsqueda de servicios IPA"
 msgid "PAC type"
 msgstr "Tipo PAC"
 
-msgid "Add a new IPA new service."
-msgstr "Añadir un nuevo servicio nuevo IPA."
-
 #, python-format
 msgid "Added service \"%(value)s\""
 msgstr "Ha sido agregado el servicio \"%(value)s\""
@@ -4396,6 +4416,9 @@ msgid_plural "%(count)d users matched"
 msgstr[0] "%(count)d usuario coincidente"
 msgstr[1] "%(count)d usuarios coincidentes"
 
+msgid "commands for controlling sudo configuration"
+msgstr "comandos para controlar la configuración sudo"
+
 msgid ""
 "\n"
 "Sudo Commands\n"
@@ -4424,9 +4447,6 @@ msgstr ""
 " Eliminar un comando\n"
 "   ipa sudocmd-del /usr/bin/less\n"
 "\n"
-
-msgid "commands for controlling sudo configuration"
-msgstr "comandos para controlar la configuración sudo"
 
 msgid "sudo command"
 msgstr "comando sudo"
@@ -4523,9 +4543,6 @@ msgstr "Añadir miembros a Grupo de Comando Sudo."
 
 msgid "Remove members from Sudo Command Group."
 msgstr "Quitar miembros de un Grupo de Comando Sudo."
-
-msgid "Commands for controlling sudo configuration"
-msgstr "Comandos para controlar la configuración sudo"
 
 msgid "this option has been deprecated."
 msgstr "esta opción ha quedado obsoleta."
@@ -4653,16 +4670,8 @@ msgstr "Mostrar Regla Sudo."
 msgid "Enable a Sudo Rule."
 msgstr "Habilitar Regla Sudo."
 
-#, python-format
-msgid "Enabled Sudo Rule \"%s\""
-msgstr "Regla Sudo Habilitada “%s”"
-
 msgid "Disable a Sudo Rule."
 msgstr "Deshabilitar Regla Sudo."
-
-#, python-format
-msgid "Disabled Sudo Rule \"%s\""
-msgstr "Regla Sudo Deshabilitada “%s”"
 
 msgid "Add commands and sudo command groups affected by Sudo Rule."
 msgstr "Añadir comandos y grupos de comando sudo afectados por Regla Sudo."
@@ -4715,9 +4724,6 @@ msgstr "solo se admite «ad»"
 
 msgid "range exists"
 msgstr "el intervalo existe"
-
-msgid "Name"
-msgstr "Nombre"
 
 msgid "SID"
 msgstr "SID"
@@ -4798,53 +4804,6 @@ msgstr ""
 #, python-format
 msgid "Unlocked account \"%(value)s\""
 msgstr "Cuenta desbloqueada \" %(value)s \""
-
-#, python-format
-msgid "Permission denied: %(file)s"
-msgstr "Permiso denegado:%(file)s "
-
-msgid "too many '@' characters"
-msgstr "demasiados ‘@’ caracteres"
-
-msgid "cannot be longer that 255 characters"
-msgstr "no puede ser más larga de 255 caracteres"
-
-msgid "invalid SSH public key"
-msgstr "clave SSH pública no válida"
-
-#, python-format
-msgid "Issuer \"%(issuer)s\" does not match the expected issuer"
-msgstr "Emisor \"%(issuer)s\" no coincide con el emisor esperado "
-
-#, python-format
-msgid "Retrieving CA status failed: %s"
-msgstr "Falló la obtención del estado de CA: %s"
-
-#, python-format
-msgid "objectclass %s not found"
-msgstr "clase objeto %s no encontrada"
-
-msgid "domain is not configured"
-msgstr "el dominio no está configurado"
-
-msgid "SID is not valid"
-msgstr "el SID no es válido"
-
-#, python-format
-msgid "Unable to communicate with CMS (%s)"
-msgstr "No es posible comunicarse con CMS (%s)"
-
-msgid "The hostname to register as"
-msgstr "El nombre del equipo a ser registrado como"
-
-msgid "The IPA realm"
-msgstr "El reinado IPA"
-
-msgid "Hardware platform of the host (e.g. Lenovo T61)"
-msgstr "Plataforma de hardware del equipo (p. ej. Lenovo T61)"
-
-msgid "Operating System and version of the host (e.g. Fedora 9)"
-msgstr "Sistema operativo que utiliza el equipo y versión (p.ej. Fedora 9)"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -5275,3 +5234,6 @@ msgstr "Falló la creación de clave aleatoria\n"
 
 msgid "Failed to create key!\n"
 msgstr "¡Falló la creación de clave!\n"
+
+#~ msgid "Reason"
+#~ msgstr "Motivo"
