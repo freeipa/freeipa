@@ -24,7 +24,7 @@ from ldap import SCOPE_BASE, SCOPE_ONELEVEL, SCOPE_SUBTREE
 import six
 
 from ipalib import api, errors, output
-from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, File, Bool
+from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, Bool
 from ipalib.cli import to_cli
 from ipalib.plugable import Registry
 from .user import NO_UPG_MAGIC
@@ -601,11 +601,12 @@ class migrate_ds(Command):
             doc=_('Allows migration despite the usage of compat plugin'),
             default=False,
         ),
-        File('cacertfile?',
+        Str('cacertfile?',
             cli_name='ca_cert_file',
             label=_('CA certificate'),
             doc=_('Load CA certificate of LDAP server from FILE'),
-            default=None
+            default=None,
+            noextrawhitespace=False,
         ),
         Bool('use_def_group?',
             cli_name='use_default_group',

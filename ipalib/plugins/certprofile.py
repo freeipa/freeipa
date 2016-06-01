@@ -4,7 +4,7 @@
 
 import re
 
-from ipalib import api, Bool, File, Str
+from ipalib import api, Bool, Str
 from ipalib.plugable import Registry
 from .baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate,
@@ -223,10 +223,12 @@ class certprofile_import(LDAPCreate):
     __doc__ = _("Import a Certificate Profile.")
     msg_summary = _('Imported profile "%(value)s"')
     takes_options = (
-        File('file',
+        Str(
+            'file',
             label=_('Filename of a raw profile. The XML format is not supported.'),
             cli_name='file',
             flags=('virtual_attribute',),
+            noextrawhitespace=False,
         ),
     )
 
@@ -294,10 +296,12 @@ class certprofile_mod(LDAPUpdate):
     msg_summary = _('Modified Certificate Profile "%(value)s"')
 
     takes_options = LDAPUpdate.takes_options + (
-        File('file?',
+        Str(
+            'file?',
             label=_('File containing profile configuration'),
             cli_name='file',
             flags=('virtual_attribute',),
+            noextrawhitespace=False,
         ),
     )
 

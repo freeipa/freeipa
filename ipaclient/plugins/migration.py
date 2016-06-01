@@ -20,6 +20,7 @@
 import six
 
 from ipaclient.frontend import CommandOverride
+from ipalib.parameters import File
 from ipalib.plugable import Registry
 from ipalib import _
 
@@ -42,6 +43,12 @@ IPA is unable to generate Kerberos keys unless provided
 with clear text passwords. All migrated users need to
 login at https://your.domain/ipa/migration/ before they
 can use their Kerberos accounts.''')
+
+    def get_options(self):
+        for option in super(migrate_ds, self).get_options():
+            if option.name == 'cacertfile':
+                option = option.clone_retype(option.name, File)
+            yield option
 
     def output_for_cli(self, textui, result, ldapuri, bindpw, **options):
         textui.print_name(self.name)

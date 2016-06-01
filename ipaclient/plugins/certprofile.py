@@ -4,6 +4,7 @@
 
 from ipaclient.frontend import MethodOverride
 from ipalib import util
+from ipalib.parameters import File
 from ipalib.plugable import Registry
 from ipalib.text import _
 
@@ -26,3 +27,21 @@ class certprofile_show(MethodOverride):
             )
 
         return result
+
+
+@register(override=True)
+class certprofile_import(MethodOverride):
+    def get_options(self):
+        for option in super(certprofile_import, self).get_options():
+            if option.name == 'file':
+                option = option.clone_retype(option.name, File)
+            yield option
+
+
+@register(override=True)
+class certprofile_mod(MethodOverride):
+    def get_options(self):
+        for option in super(certprofile_mod, self).get_options():
+            if option.name == 'file':
+                option = option.clone_retype(option.name, File)
+            yield option

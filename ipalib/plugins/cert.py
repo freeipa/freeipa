@@ -23,7 +23,7 @@ import os
 import time
 import binascii
 
-from ipalib import Command, Str, Int, Flag, File
+from ipalib import Command, Str, Int, Flag
 from ipalib import api
 from ipalib import errors
 from ipalib import pkcs10
@@ -246,10 +246,12 @@ class cert_request(VirtualCommand):
     __doc__ = _('Submit a certificate signing request.')
 
     takes_args = (
-        File('csr', validate_csr,
+        Str(
+            'csr', validate_csr,
             label=_('CSR'),
             cli_name='csr_file',
             normalizer=normalize_csr,
+            noextrawhitespace=False,
         ),
     )
     operation="request certificate"

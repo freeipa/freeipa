@@ -23,9 +23,19 @@ from ipaclient.frontend import CommandOverride
 from ipalib import errors
 from ipalib import x509
 from ipalib import util
+from ipalib.parameters import File
 from ipalib.plugable import Registry
 
 register = Registry()
+
+
+@register(override=True)
+class cert_request(CommandOverride):
+    def get_args(self):
+        for arg in super(cert_request, self).get_args():
+            if arg.name == 'csr':
+                arg = arg.clone_retype(arg.name, File)
+            yield arg
 
 
 @register(override=True)
