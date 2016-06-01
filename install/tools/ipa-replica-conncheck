@@ -66,7 +66,9 @@ class SshExec(object):
             '-o StrictHostKeychecking=no',
             '-o UserKnownHostsFile=%s' % tmpf.name,
             '-o GSSAPIAuthentication=yes',
-            '%s@%s' % (self.user, self.addr), command
+            '-o User=%s' % self.user,
+            '%s' % self.addr,
+            command
         ]
         if verbose:
             cmd.insert(1, '-v')
@@ -517,7 +519,8 @@ def main():
             except Exception:
                 print_info("Retrying using SSH...")
 
-                user = principal.partition('@')[0]
+                # Ticket 5812 Always qualify requests for admin
+                user = principal
                 ssh = SshExec(user, options.master)
 
                 print_info("Check SSH connection to remote master")
