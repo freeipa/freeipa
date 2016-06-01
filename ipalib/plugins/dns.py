@@ -33,6 +33,11 @@ import dns.rdatatype
 import dns.resolver
 import six
 
+from ipalib.dns import (get_record_rrtype,
+                        get_rrparam_from_part,
+                        has_cli_options,
+                        iterate_rrparams_by_parts,
+                        record_name_format)
 from ipalib.request import context
 from ipalib import api, errors, output
 from ipalib import Command
@@ -297,9 +302,6 @@ server:
 
 register = Registry()
 
-# dnsrecord param name formats
-record_name_format = '%srecord'
-
 # supported resource record types
 _record_types = (
     u'A', u'AAAA', u'A6', u'AFSDB', u'APL', u'CERT', u'CNAME', u'DHCID', u'DLV',
@@ -335,14 +337,6 @@ _output_permissions = (
     output.Output('result', bool, _('True means the operation was successful')),
     output.Output('value', unicode, _('Permission value')),
 )
-
-
-def get_record_rrtype(name):
-    match = re.match('([^_]+)record$', name)
-    if match is None:
-        return None
-
-    return match.group(1).upper()
 
 
 def _rname_validator(ugettext, zonemgr):
@@ -732,72 +726,6 @@ def prompt_missing_parts(rrtype, cmd, kw, prompt_optional=False):
         __get_part_param(cmd, part, user_options, default)
 
     return user_options
-
-
-def has_cli_options(cmd, options, no_option_msg, allow_empty_attrs=False):
-    sufficient = ('setattr', 'addattr', 'delattr', 'rename')
-    if any(k in options for k in sufficient):
-        return
-
-    has_options = False
-    for attr in options.keys():
-        obj_params = [
-            p.name for p in cmd.params()
-            if get_record_rrtype(p.name) or 'dnsrecord_part' in p.flags]
-        if attr in obj_params:
-            if options[attr] or allow_empty_attrs:
-                has_options = True
-                break
-
-    if not has_options:
-        raise errors.OptionError(no_option_msg)
-
-
-def get_rrparam_from_part(cmd, part_name):
-    """
-    Get an instance of DNSRecord parameter that has part_name as its part.
-    If such parameter is not found, None is returned
-
-    :param part_name Part parameter name
-    """
-    try:
-        param = cmd.params[part_name]
-
-        if not any(flag in param.flags for flag in
-                   ('dnsrecord_part', 'dnsrecord_extra')):
-            return None
-
-        # All DNS record part or extra parameters contain a name of its
-        # parent RR parameter in its hint attribute
-        rrparam = cmd.params[param.hint]
-    except (KeyError, AttributeError):
-        return None
-
-    return rrparam
-
-
-def iterate_rrparams_by_parts(cmd, kw, skip_extra=False):
-    """
-    Iterates through all DNSRecord instances that has at least one of its
-    parts or extra options in given dictionary. It returns the DNSRecord
-    instance only for the first occurence of part/extra option.
-
-    :param kw Dictionary with DNS record parts or extra options
-    :param skip_extra Skip DNS record extra options, yield only DNS records
-                      with a real record part
-    """
-    processed = []
-    for opt in kw:
-        rrparam = get_rrparam_from_part(cmd, opt)
-        if rrparam is None:
-            continue
-
-        if skip_extra and 'dnsrecord_extra' in cmd.params[opt].flags:
-            continue
-
-        if rrparam.name not in processed:
-            processed.append(rrparam.name)
-            yield rrparam
 
 
 class DNSRecord(Str):

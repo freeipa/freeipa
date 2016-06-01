@@ -30,6 +30,8 @@ For documentation on the ``xmlrpclib`` module, see:
 Also see the `ipaserver.rpcserver` module.
 """
 
+from __future__ import absolute_import
+
 from decimal import Decimal
 import datetime
 import os
