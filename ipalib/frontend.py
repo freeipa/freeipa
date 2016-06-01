@@ -21,7 +21,6 @@
 Base classes for all front-end plugins.
 """
 
-import re
 from distutils import version
 
 import six
@@ -1336,39 +1335,19 @@ class Attribute(Plugin):
     """
     finalize_early = False
 
-    NAME_REGEX = re.compile(
-        '^(?P<obj>[a-z][a-z0-9]+)_(?P<attr>[a-z][a-z0-9]+(?:_[a-z][a-z0-9]+)*)$'
-    )
+    @property
+    def obj_name(self):
+        return self.name.partition('_')[0]
 
-    # Create stubs for attributes that are set in _on_finalize()
-    __obj = Plugin.finalize_attr('_Attribute__obj')
+    @property
+    def attr_name(self):
+        prefix = '{}_'.format(self.obj_name)
+        assert self.name.startswith(prefix)
+        return self.name[len(prefix):]
 
-    def __init__(self, api):
-        m = self.NAME_REGEX.match(type(self).__name__)
-        assert m
-        self.__obj_name = m.group('obj')
-        self.__attr_name = m.group('attr')
-        super(Attribute, self).__init__(api)
-
-    def __get_obj_name(self):
-        return self.__obj_name
-    obj_name = property(__get_obj_name)
-
-    def __get_attr_name(self):
-        return self.__attr_name
-    attr_name = property(__get_attr_name)
-
-    def __get_obj(self):
-        """
-        Returns the obj instance this attribute is associated with, or None
-        if no association has been set.
-        """
-        return self.__obj
-    obj = property(__get_obj)
-
-    def _on_finalize(self):
-        self.__obj = self.api.Object[self.obj_name]
-        super(Attribute, self)._on_finalize()
+    @property
+    def obj(self):
+        return self.api.Object[self.obj_name]
 
 
 class Method(Attribute, Command):
