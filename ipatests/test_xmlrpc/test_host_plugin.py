@@ -311,7 +311,7 @@ class TestCRUD(XMLRPC_test):
     def test_try_add_not_in_dns(self, host):
         host.ensure_missing()
         command = host.make_create_command(force=False)
-        with raises_exact(errors.DNSNotARecordError(hostname=host)):
+        with raises_exact(errors.DNSNotARecordError(hostname=host.fqdn)):
             command()
 
     def test_add_host_with_null_password(self, host):
