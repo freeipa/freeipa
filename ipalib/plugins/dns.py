@@ -697,7 +697,7 @@ def prompt_parts(rrtype, cmd, mod_dnsvalue=None):
             name, mod_dnsvalue)['result']
 
     user_options = {}
-    parts = [p for p in cmd.params if 'dnsrecord_part' in p.flags]
+    parts = [p for p in cmd.params() if 'dnsrecord_part' in p.flags]
     if not parts:
         return user_options
 
@@ -714,7 +714,7 @@ def prompt_parts(rrtype, cmd, mod_dnsvalue=None):
 
 def prompt_missing_parts(rrtype, cmd, kw, prompt_optional=False):
     user_options = {}
-    parts = [p for p in cmd.params if 'dnsrecord_part' in p.flags]
+    parts = [p for p in cmd.params() if 'dnsrecord_part' in p.flags]
     if not parts:
         return user_options
 
