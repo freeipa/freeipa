@@ -360,6 +360,13 @@ exp.facet = IPA.facet = function(spec, no_init) {
     that.state = new FacetState();
 
 
+    /**
+     * Sets the name of attribute which will be used as primary key in case
+     * that primary key is missing in metadata.
+     * @type {String}
+     */
+    that.primary_key_name = spec.primary_key_name;
+
     that.get_full_name = function() {
         if (that.entity) {
             return that.entity.create_facet_type(that.name);
@@ -2011,6 +2018,23 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
     };
 
     /**
+     * Method which is called before adding the record into array which will be
+     * displayed. This is place where filters can be implemented. If this
+     * method returns true then the record will be shown in table. if returns
+     * false then the record won't be shown.
+     *
+     * It is created to be overridden by child classes.
+     *
+     * @param records_map {Array} array of already added entries
+     * @param pkey {string} primary_key
+     * @param record {Object} result from API call response
+     * @return {boolean} true when the record should be shown, otherwise false
+     */
+    that.filter_records = function(records_map, pkey, record) {
+        return true;
+    };
+
+    /**
      * Create a map with records as values and pkeys as keys
      *
      * Extracts records from data, where data originates from RPC command.
@@ -2024,13 +2048,16 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         var records_map = $.ordered_map();
 
         var result = data.result.result;
-        var pkey_name = that.managed_entity.metadata.primary_key;
+        var pkey_name = that.managed_entity.metadata.primary_key ||
+                                                        that.primary_key_name;
         var adapter = builder.build('adapter', 'adapter', {context: that});
 
         for (var i=0; i<result.length; i++) {
             var record = result[i];
             var pkey = adapter.load(record, pkey_name)[0];
-            records_map.put(pkey, record);
+            if (that.filter_records(records_map, pkey, record)) {
+                records_map.put(pkey, record);
+            }
         }
 
         return records_map;
@@ -2239,6 +2266,31 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         return that.table.get_selected_values();
     };
 
+
+    /**
+     *
+     * Method which will be called after clicking on pkey in table.
+     *
+     * It can be overridden by child classes for changing afterclick behavior.
+     *
+     * @param {String} value automatically filed by clicking
+     * @param {entity.entity} table entity
+     * @return {boolean} false
+     */
+    that.on_column_link_click = function(value, entity) {
+        var pkeys = [value];
+
+        // for nested entities
+        var containing_entity = entity.get_containing_entity();
+        if (containing_entity && that.entity.name === containing_entity.name) {
+            pkeys = that.get_pkeys();
+            pkeys.push(value);
+        }
+
+        navigation.show_entity(entity.name, that.details_facet_name, pkeys);
+        return false;
+    };
+
     /**
      * Create table
      *
@@ -2265,24 +2317,15 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
             var column = columns[i];
 
             var metadata = IPA.get_entity_param(entity.name, column.name);
-            column.primary_key = metadata && metadata.primary_key;
+            column.primary_key = metadata && metadata.primary_key ||
+                        (that.primary_key_name === column.param);
             if (column.primary_key) {
                 column.link = column.link === undefined ? true : column.link;
             }
 
             if (column.link && column.primary_key) {
                 column.link_handler = function(value) {
-                    var pkeys = [value];
-
-                    // for nested entities
-                    var containing_entity = entity.get_containing_entity();
-                    if (containing_entity && that.entity.name === containing_entity.name) {
-                        pkeys = that.get_pkeys();
-                        pkeys.push(value);
-                    }
-
-                    navigation.show_entity(entity.name, that.details_facet_name, pkeys);
-                    return false;
+                    return that.on_column_link_click(value, entity);
                 };
             }
 
