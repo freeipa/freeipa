@@ -774,8 +774,6 @@ class Command(HasParam):
 
         if server_major != client_major:
             raise VersionError(cver=client_version, sver=API_VERSION, server=self.env.xmlrpc_uri)
-        if client_minor > server_minor:
-            raise VersionError(cver=client_version, sver=API_VERSION, server=self.env.xmlrpc_uri)
 
     def run(self, *args, **options):
         """
