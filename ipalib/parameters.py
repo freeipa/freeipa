@@ -414,6 +414,7 @@ class Param(ReadOnly):
         ('sortorder', int, 2), # see finalize()
         ('option_group', unicode, None),
         ('cli_metavar', str, None),
+        ('no_convert', bool, False),
 
         # The 'default' kwarg gets appended in Param.__init__():
         # ('default', self.type, None),
@@ -808,18 +809,26 @@ class Param(ReadOnly):
 
         :param value: A proposed value for this parameter.
         """
+        if not self.no_convert:
+            convert = self._convert_scalar
+        else:
+            def convert(value):
+                if isinstance(value, unicode):
+                    return value
+                return self._convert_scalar(value)
+
         if _is_null(value):
             return
         if self.multivalue:
             if type(value) not in (tuple, list):
                 value = (value,)
             values = tuple(
-                self._convert_scalar(v) for v in value if not _is_null(v)
+                convert(v) for v in value if not _is_null(v)
             )
             if len(values) == 0:
                 return
             return values
-        return self._convert_scalar(value)
+        return convert(value)
 
     def _convert_scalar(self, value, index=None):
         """

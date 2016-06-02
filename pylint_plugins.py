@@ -152,6 +152,7 @@ ipa_class_members = {
         'alwaysask',
         'sortorder',
         'option_group',
+        'no_convert',
      ],
     'ipalib.parameters.Bool': [
         'truths',
