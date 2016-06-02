@@ -88,6 +88,7 @@ def main(options):
     api.bootstrap(
         context='cli',
         in_server=False,
+        in_tree=True,
         debug=False,
         verbose=0,
         validate_api=True,
@@ -97,9 +98,6 @@ def main(options):
         basedn=DN('dc=ipa,dc=example'),
         realm='IPA.EXAMPLE',
     )
-
-    from ipaserver.plugins import ldap2
-    api.add_module(ldap2)
 
     from ipaserver.install.plugins import update_managed_permissions
     api.add_module(update_managed_permissions)

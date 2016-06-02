@@ -458,6 +458,7 @@ def main():
     cfg = dict(
         context='cli',
         in_server=False,
+        in_tree=True,
         debug=False,
         verbose=0,
         validate_api=True,

@@ -907,15 +907,20 @@ class API(plugable.API):
 
     @property
     def packages(self):
-        import ipalib.plugins
-        result = (ipalib.plugins,)
-
         if self.env.in_server:
+            import ipalib.plugins
             import ipaserver.plugins
-            result += (ipaserver.plugins,)
+            result = (
+                ipalib.plugins,
+                ipaserver.plugins,
+            )
         else:
+            import ipaclient.remote_plugins
             import ipaclient.plugins
-            result += (ipaclient.plugins,)
+            result = (
+                ipaclient.remote_plugins.get_package(self),
+                ipaclient.plugins,
+            )
 
         if self.env.context in ('installer', 'updates'):
             import ipaserver.install.plugins

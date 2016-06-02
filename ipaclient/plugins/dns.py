@@ -28,6 +28,7 @@ from ipalib.dns import (get_record_rrtype,
                         has_cli_options,
                         iterate_rrparams_by_parts,
                         record_name_format)
+from ipalib.parameters import Bool
 from ipalib.plugable import Registry
 from ipalib import _, ngettext
 from ipapython.dnsutil import DNSName
@@ -96,6 +97,24 @@ def prompt_missing_parts(rrtype, cmd, kw, prompt_optional=False):
         __get_part_param(cmd, part, user_options, default)
 
     return user_options
+
+
+class DNSZoneMethodOverride(MethodOverride):
+    def get_options(self):
+        for option in super(DNSZoneMethodOverride, self).get_options():
+            if option.name == 'idnsallowdynupdate':
+                option = option.clone_retype(option.name, Bool)
+            yield option
+
+
+@register(override=True)
+class dnszone_add(DNSZoneMethodOverride):
+    pass
+
+
+@register(override=True)
+class dnszone_mod(DNSZoneMethodOverride):
+    pass
 
 
 @register(override=True)
