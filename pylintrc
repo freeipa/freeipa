@@ -23,7 +23,6 @@ disable=
     interface-not-implemented,
     no-self-use,
     redefined-variable-type,
-    simplifiable-if-statement,
     too-few-public-methods,
     too-many-ancestors,
     too-many-arguments,

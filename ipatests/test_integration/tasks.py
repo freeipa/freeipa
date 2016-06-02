@@ -172,11 +172,7 @@ def host_service_active(host, service):
     res = host.run_command(['systemctl', 'is-active', '--quiet', service],
                            raiseonerr=False)
 
-    if res.returncode == 0:
-        return True
-    else:
-        return False
-
+    return res.returncode == 0
 
 def fix_apache_semaphores(master):
     systemd_available = master.transport.file_exists(paths.SYSTEMCTL)
@@ -325,11 +321,7 @@ def master_authoritative_for_client_domain(master, client):
     zone = ".".join(client.hostname.split('.')[1:])
     result = master.run_command(["ipa", "dnszone-show", zone],
                                 raiseonerr=False)
-    if result.returncode == 0:
-        return True
-    else:
-        return False
-
+    return result.returncode == 0
 
 def replica_prepare(master, replica, extra_args=(),
                     raiseonerr=True, stdin_text=None):

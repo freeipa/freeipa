@@ -1750,10 +1750,7 @@ class ra(rabase.rabase, RestClient):
         # Return command result
         cmd_result = {}
 
-        if parse_result.get('revoked') == 'yes':
-            cmd_result['revoked'] = True
-        else:
-            cmd_result['revoked'] = False
+        cmd_result['revoked'] = parse_result.get('revoked') == 'yes'
 
         return cmd_result
 
@@ -1814,10 +1811,7 @@ class ra(rabase.rabase, RestClient):
         if 'error_string' in parse_result:
             cmd_result['error_string'] = parse_result['error_string']
 
-        if parse_result.get('unrevoked') == 'yes':
-            cmd_result['unrevoked'] = True
-        else:
-            cmd_result['unrevoked'] = False
+        cmd_result['unrevoked'] = parse_result.get('unrevoked') == 'yes'
 
         return cmd_result
 

@@ -271,10 +271,8 @@ class SystemdService(PlatformService):
 
         ipautil.run(args, skip_output=not capture_output)
 
-        if getattr(self.api.env, 'context', None) in ['ipactl', 'installer']:
-            update_service_list = True
-        else:
-            update_service_list = False
+        update_service_list = getattr(self.api.env, 'context',
+                                      None) in ['ipactl', 'installer']
         super(SystemdService, self).stop(
             instance_name,
             update_service_list=update_service_list)
@@ -284,10 +282,8 @@ class SystemdService(PlatformService):
                      self.service_instance(instance_name)],
                     skip_output=not capture_output)
 
-        if getattr(self.api.env, 'context', None) in ['ipactl', 'installer']:
-            update_service_list = True
-        else:
-            update_service_list = False
+        update_service_list = getattr(self.api.env, 'context',
+                                      None) in ['ipactl', 'installer']
 
         if wait and self.is_running(instance_name):
             self.wait_for_open_ports(self.service_instance(instance_name))

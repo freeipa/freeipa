@@ -455,14 +455,10 @@ class Env(object):
 
         # Determine if running in source tree:
         if 'in_tree' not in self:
-            if (
+            self.in_tree = (
                 self.bin == self.site_packages
                 and path.isfile(path.join(self.bin, 'setup.py'))
-            ):
-                self.in_tree = True
-            else:
-                self.in_tree = False
-
+            )
         if self.in_tree and 'mode' not in self:
             self.mode = 'developer'
 

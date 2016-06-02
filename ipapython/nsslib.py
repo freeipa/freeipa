@@ -74,10 +74,7 @@ def auth_certificate_callback(sock, check_sig, is_server, certdb):
                               ', '.join(nss.cert_usage_flags(intended_usage)))
 
     # Is the intended usage a proper subset of the approved usage
-    if approved_usage & intended_usage:
-        cert_is_valid = True
-    else:
-        cert_is_valid = False
+    cert_is_valid = bool(approved_usage & intended_usage)
 
     # If this is a server, we're finished
     if is_server or not cert_is_valid:
