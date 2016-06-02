@@ -519,20 +519,14 @@ def nolog_replace(string, nolog):
 def file_exists(filename):
     try:
         mode = os.stat(filename)[stat.ST_MODE]
-        if stat.S_ISREG(mode):
-            return True
-        else:
-            return False
+        return bool(stat.S_ISREG(mode))
     except Exception:
         return False
 
 def dir_exists(filename):
     try:
         mode = os.stat(filename)[stat.ST_MODE]
-        if stat.S_ISDIR(mode):
-            return True
-        else:
-            return False
+        return bool(stat.S_ISDIR(mode))
     except Exception:
         return False
 

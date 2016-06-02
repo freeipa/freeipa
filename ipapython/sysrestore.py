@@ -437,7 +437,4 @@ class StateFile:
         Can be used to determine if a service is configured.
         """
 
-        if module in self.modules:
-            return True
-        else:
-            return False
+        return module in self.modules
