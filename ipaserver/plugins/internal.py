@@ -660,6 +660,10 @@ class i18n_messages(Command):
                 "specified_users": _("Specified Users and Groups"),
                 "user": _("User"),
             },
+            "server_role": {
+                "label": _("Server Roles"),
+                "label_singular": _("Server Role"),
+            },
             "service": {
                 "auth_indicators": _("Authentication indicators"),
                 "auth_indicator": _("Authentication indicator"),

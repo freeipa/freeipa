@@ -221,6 +221,11 @@ var nav = {};
                             hidden: true
                         },
                         {
+                            entity: 'server_role',
+                            facet: 'search',
+                            hidden: true
+                        },
+                        {
                             entity: 'domainlevel',
                             facet: 'details',
                             hidden: true

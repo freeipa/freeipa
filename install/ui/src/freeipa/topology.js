@@ -50,6 +50,7 @@ var topology = IPA.topology = {
         facets: {
             suffix_search: 'topologysuffix_search',
             server_search: 'server_search',
+            server_role_search: 'server_role_search',
             domainlevel: 'domainlevel_details',
             topologygraph: 'topology-graph',
             location_search: 'location_search'
@@ -240,9 +241,66 @@ return {
                         {
                             name: 'ipalocationweight',
                             placeholder: '100'
+                        },
+                        {
+                            $type: 'association_table',
+                            other_entity: 'server_role',
+                            name: 'enabled_role_servrole',
+                            footer: false,
+                            read_only: true,
+                            selectable: false
                         }
                     ]
                 }
+            ]
+        }
+    ]
+};};
+
+
+var make_serverroles_spec = function() {
+return {
+    name: 'server_role',
+    facet_groups: [ 'role_servers' ],
+    facets: [
+        {
+            $factory: topology.serverroles_search_facet,
+            $type: 'search',
+            primary_key_name: 'role_servrole',
+            search_all_entries: true,
+            disable_search_field: true,
+            no_update: true,
+            selectable: false,
+            disable_facet_tabs: false,
+            tabs_in_sidebar: true,
+            tab_label: '@i18n:objects.server_role.label',
+            label: '@i18n:objects.server_role.label',
+            facet_groups: [topology.search_facet_group],
+            facet_group: 'search',
+            columns: [
+                'role_servrole',
+                'status'
+            ]
+        },
+        {
+            $factory: topology.serverroles_nested_search_facet,
+            $type: 'nested_search',
+            primary_key_name: 'server_server',
+            search_all_entries: true,
+            disable_search_field: true,
+            no_update: true,
+            selectable: false,
+            nested_entity: 'server_role',
+            facet_group: 'role_servers',
+            label: '@i18n:objects.server_role.label_singular',
+            columns: [
+                {
+                    name: 'server_server',
+                    target_entity: 'server',
+                    target_facet: 'details',
+                    link: true
+                },
+                'status'
             ]
         }
     ]
@@ -398,6 +456,69 @@ topology.location_adapter = declare([mod_field.Adapter], {
         return output;
     }
 });
+
+topology.serverroles_search_facet = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.search_facet(spec);
+
+    that.filter_records = function(records_map, pkey, record) {
+
+        var stored_record = records_map.get(pkey);
+        if (!stored_record) return true;
+
+        // set priority to all possible values. Value with higher priority
+        // will overwrite a value with lower prio.
+        var priority_map = {
+            absent: 0,
+            configured: 1,
+            enabled: 2
+        };
+
+        var priority_old = priority_map[stored_record.status];
+        var priority_new = priority_map[record.status];
+        return priority_new >= priority_old;
+    };
+
+    that.get_refresh_command_args = function() {
+        // We need to call find command with no argument.
+        return;
+    };
+
+    return that;
+};
+
+topology.serverroles_nested_search_facet = function(spec) {
+
+    spec = spec || {};
+    spec.disable_facet_tabs = true;
+
+    var that = IPA.nested_search_facet(spec);
+
+    that.get_refresh_command_args = function() {
+        // We need to call find command with no argument.
+        return;
+    };
+
+    that.get_refresh_command_options = function() {
+        return { 'role_servrole': that.get_pkey() };
+    };
+
+    that.on_column_link_click = function(value, entity) {
+        var pkeys = [value];
+
+        navigation.show_entity('server', that.details_facet_name, pkeys);
+        return false;
+    };
+
+    that.filter_records = function(records_map, pkey, record) {
+        // Return false when the status is 'absent'
+        return record.status !== 'absent';
+    };
+
+    return that;
+};
 
 topology.location_server_adder_dialog = function(spec) {
     spec = spec || {};
@@ -1205,6 +1326,13 @@ topology.segment_spec = make_segment_spec();
 topology.server_spec = make_server_spec();
 
 /**
+ * IPA server roles entity specification object
+ * @member topology
+ */
+topology.serverroles_spec = make_serverroles_spec();
+
+
+/**
  * Domain Level entity specification object
  * @member topology
  */
@@ -1225,6 +1353,7 @@ topology.register = function() {
     e.register({type: 'topologysuffix', spec: topology.suffix_spec});
     e.register({type: 'topologysegment', spec: topology.segment_spec});
     e.register({type: 'server', spec: topology.server_spec});
+    e.register({type: 'server_role', spec: topology.serverroles_spec});
     e.register({type: 'domainlevel', spec: topology.domainlevel_spec});
     e.register({type: 'location', spec: topology.location_spec});
 

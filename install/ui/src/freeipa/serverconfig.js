@@ -95,6 +95,13 @@ return {
                         {
                             $type: 'multivalued',
                             name: 'ipauserobjectclasses'
+                        },
+                        {
+                            $type: 'entity_select',
+                            name: 'ca_renewal_master_server',
+                            other_entity: 'server',
+                            other_field: 'cn',
+                            flags: ['w_if_no_aci']
                         }
                     ]
                 },

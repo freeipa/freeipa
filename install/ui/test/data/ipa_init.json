@@ -521,6 +521,10 @@
                             "specified_users": "Specified Users and Groups",
                             "user": "User"
                         },
+                        "server_role": {
+                            "label": "Server Roles",
+                            "label_singular": "Server Role",
+                        },
                         "service": {
                             "auth_indicators": "Authentication indicators",
                             "auth_indicator": "Authentication indicator",
