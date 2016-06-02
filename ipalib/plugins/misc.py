@@ -50,7 +50,7 @@ class env(LocalOrRemote):
             cli_name='all',
             doc=_('retrieve and print all attributes from the server. Affects command output.'),
             exclude='webui',
-            flags=['no_output'],
+            flags=['no_option', 'no_output'],
             default=True,
         ),
     )
@@ -118,7 +118,7 @@ class plugins(LocalOrRemote):
             cli_name='all',
             doc=_('retrieve and print all attributes from the server. Affects command output.'),
             exclude='webui',
-            flags=['no_output'],
+            flags=['no_option', 'no_output'],
             default=True,
         ),
     )
