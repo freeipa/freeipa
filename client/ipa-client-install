@@ -1049,7 +1049,7 @@ def hardcode_ldap_server(cli_server):
     return
 
 def configure_krb5_conf(cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
-        options, filename, client_domain):
+        options, filename, client_domain, client_hostname):
 
     krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     krbconf.setOptionAssignment((" = ", " "))
@@ -1108,7 +1108,8 @@ def configure_krb5_conf(cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
 
     #[domain_realm]
     dropts = [{'name':'.'+cli_domain, 'type':'option', 'value':cli_realm},
-              {'name':cli_domain, 'type':'option', 'value':cli_realm}]
+              {'name':cli_domain, 'type':'option', 'value':cli_realm},
+              {'name':client_hostname, 'type':'option', 'value':cli_realm}]
 
     #add client domain mapping if different from server domain
     if cli_domain != client_domain:
@@ -2560,7 +2561,8 @@ def install(options, env, fstore, statestore):
                     dnsok=False,
                     options=options,
                     filename=krb_name,
-                    client_domain=client_domain):
+                    client_domain=client_domain,
+                    client_hostname=hostname):
                 root_logger.error("Test kerberos configuration failed")
                 return CLIENT_INSTALL_ERROR
             env['KRB5_CONFIG'] = krb_name
@@ -2761,7 +2763,8 @@ def install(options, env, fstore, statestore):
                 dnsok=dnsok,
                 options=options,
                 filename=paths.KRB5_CONF,
-                client_domain=client_domain):
+                client_domain=client_domain,
+                client_hostname=hostname):
             return CLIENT_INSTALL_ERROR
 
         root_logger.info(

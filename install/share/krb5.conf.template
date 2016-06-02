@@ -26,6 +26,7 @@ $OTHER_LIBDEFAULTS
 [domain_realm]
  .$DOMAIN = $REALM
  $DOMAIN = $REALM
+ $FQDN = $REALM
 $OTHER_DOMAIN_REALM_MAPS
 [dbmodules]
   $REALM = {
