@@ -1368,6 +1368,7 @@ class Server(BaseServer):
         int, constants.MAX_DOMAIN_LEVEL,
         description="IPA domain level",
         cli_name='domain-level',
+        deprecated=True,
     )
 
     @domainlevel.validator
