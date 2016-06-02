@@ -1782,7 +1782,7 @@ def get_orphaned_suffixes(masters):
     master
     """
     all_suffixes = api.Command.topologysuffix_find(
-        sizelimit=0, no_members=False)['result']
+        sizelimit=0)['result']
     all_suffix_names = set(s['cn'][0] for s in all_suffixes)
     managed_suffixes = set(map_masters_to_suffixes(masters))
 
