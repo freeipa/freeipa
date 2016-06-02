@@ -415,6 +415,7 @@ class Param(ReadOnly):
         ('option_group', unicode, None),
         ('cli_metavar', str, None),
         ('no_convert', bool, False),
+        ('deprecated', bool, False),
 
         # The 'default' kwarg gets appended in Param.__init__():
         # ('default', self.type, None),
@@ -870,6 +871,10 @@ class Param(ReadOnly):
             error = rule(ugettext, value)
             if error is not None:
                 raise ValidationError(name=self.get_param_name(), error=error)
+
+    def _rule_deprecated(self, _, value):
+        if self.deprecated:
+            return _('this option is deprecated')
 
     def get_default(self, **kw):
         """
@@ -1869,22 +1874,6 @@ class DNParam(Param):
                                   error=ugettext(e))
         return dn
 
-
-class DeprecatedParam(Any):
-    kwargs = Param.kwargs + (
-        ('deprecate', bool, True),
-    )
-
-    def __init__(self, name, *rules, **kw):
-        if 'flags' in kw:
-            kw['flags'] = list(kw['flags']) + ['no_option']
-        else:
-            kw['flags'] = ['no_option']
-
-        super(DeprecatedParam, self).__init__(name, *rules, **kw)
-
-    def _rule_deprecate(self, _, value):
-        return _('this option is deprecated')
 
 def create_param(spec):
     """

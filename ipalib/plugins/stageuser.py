@@ -23,7 +23,7 @@ from copy import deepcopy
 import six
 
 from ipalib import api, errors
-from ipalib import DeprecatedParam
+from ipalib import Bool
 from ipalib.plugable import Registry
 from .baseldap import (
     LDAPCreate,
@@ -270,10 +270,12 @@ class stageuser_add(baseuser_add):
     has_output_params = baseuser_add.has_output_params + stageuser_output_params
 
     takes_options = LDAPCreate.takes_options + (
-        DeprecatedParam('from_delete?',
+        Bool(
+            'from_delete?',
+            deprecated=True,
             doc=_('Create Stage user in from a delete user'),
             cli_name='from_delete',
-            default=False,
+            flags={'no_option'},
         ),
     )
 

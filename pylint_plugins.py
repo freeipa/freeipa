@@ -153,6 +153,7 @@ ipa_class_members = {
         'sortorder',
         'option_group',
         'no_convert',
+        'deprecated',
      ],
     'ipalib.parameters.Bool': [
         'truths',

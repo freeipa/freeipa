@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors
-from ipalib import AccessTime, Str, StrEnum, Bool, DeprecatedParam
+from ipalib import AccessTime, Str, StrEnum, Bool
 from ipalib.plugable import Registry
 from .baseldap import (
     pkey_to_value,
@@ -230,7 +230,14 @@ class hbacrule(LDAPObject):
             doc=_('Host category the rule applies to'),
             values=(u'all', ),
         ),
-        DeprecatedParam('sourcehostcategory?'),
+        StrEnum('sourcehostcategory?',
+            deprecated=True,
+            cli_name='srchostcat',
+            label=_('Source host category'),
+            doc=_('Source host category the rule applies to'),
+            values=(u'all', ),
+            flags={'no_option'},
+        ),
         StrEnum('servicecategory?',
             cli_name='servicecat',
             label=_('Service category'),
@@ -265,8 +272,16 @@ class hbacrule(LDAPObject):
             label=_('Host Groups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        DeprecatedParam('sourcehost_host?'),
-        DeprecatedParam('sourcehost_hostgroup?'),
+        Str('sourcehost_host?',
+            deprecated=True,
+            label=_('Source Hosts'),
+            flags=['no_create', 'no_update', 'no_search', 'no_option'],
+        ),
+        Str('sourcehost_hostgroup?',
+            deprecated=True,
+            label=_('Source Host Groups'),
+            flags=['no_create', 'no_update', 'no_search', 'no_option'],
+        ),
         Str('memberservice_hbacsvc?',
             label=_('Services'),
             flags=['no_create', 'no_update', 'no_search'],

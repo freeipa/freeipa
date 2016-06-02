@@ -22,7 +22,7 @@ import six
 from ipalib.plugable import Registry
 from .baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
                                      LDAPRetrieve, LDAPSearch, LDAPUpdate)
-from ipalib import api, Int, Str, DeprecatedParam, StrEnum, _, ngettext
+from ipalib import api, Int, Str, StrEnum, _, ngettext
 from ipalib import errors
 from ipapython.dn import DN
 
@@ -617,8 +617,22 @@ class idrange_mod(LDAPUpdate):
     msg_summary = _('Modified ID range "%(value)s"')
 
     takes_options = LDAPUpdate.takes_options + (
-        DeprecatedParam('ipanttrusteddomainsid?'),
-        DeprecatedParam('ipanttrusteddomainname?'),
+        Str(
+            'ipanttrusteddomainsid?',
+            deprecated=True,
+            cli_name='dom_sid',
+            flags=('no_update', 'no_option'),
+            label=_('Domain SID of the trusted domain'),
+            autofill=False,
+        ),
+        Str(
+            'ipanttrusteddomainname?',
+            deprecated=True,
+            cli_name='dom_name',
+            flags=('no_search', 'virtual_attribute', 'no_update', 'no_option'),
+            label=_('Name of the trusted domain'),
+            autofill=False,
+        ),
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):

@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors, output, util
-from ipalib import Command, Str, Flag, Int, DeprecatedParam
+from ipalib import Command, Str, Flag, Int
 from ipalib import _
 from ipapython.dn import DN
 from ipalib.plugable import Registry
@@ -261,7 +261,12 @@ class hbactest(Command):
             label=_('User name'),
             primary_key=True,
         ),
-        DeprecatedParam('sourcehost?'),
+        Str('sourcehost?',
+            deprecated=True,
+            cli_name='srchost',
+            label=_('Source host'),
+            flags={'no_option'},
+        ),
         Str('targethost',
             cli_name='host',
             label=_('Target host'),

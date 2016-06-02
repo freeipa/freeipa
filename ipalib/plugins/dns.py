@@ -44,7 +44,7 @@ from ipalib.capabilities import (
     VERSION_WITHOUT_CAPABILITIES,
     client_has_capability)
 from ipalib.parameters import (Flag, Bool, Int, Decimal, Str, StrEnum, Any,
-                               DeprecatedParam, DNSNameParam)
+                               DNSNameParam)
 from ipalib.plugable import Registry
 from .baseldap import (
     pkey_to_value,
@@ -4053,9 +4053,13 @@ class dnsconfig(LDAPObject):
             label=_('Allow PTR sync'),
             doc=_('Allow synchronization of forward (A, AAAA) and reverse (PTR) records'),
         ),
-        DeprecatedParam('idnszonerefresh?',
+        Int('idnszonerefresh?',
+            deprecated=True,
             cli_name='zone_refresh',
             label=_('Zone refresh interval'),
+            doc=_('An interval between regular polls of the name server for new DNS zones'),
+            minvalue=0,
+            flags={'no_option'},
         ),
         Int('ipadnsversion?',  # available only in installer/upgrade
             label=_('IPA DNS version'),
