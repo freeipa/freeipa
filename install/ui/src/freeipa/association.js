@@ -428,6 +428,7 @@ IPA.association_table_widget = function (spec) {
     that.add_method = spec.add_method || 'add_member';
     that.remove_method = spec.remove_method || 'remove_member';
 
+    that.read_only = spec.read_only === undefined ? false : spec.read_only;
     that.add_title = text.get(spec.add_title || '@i18n:association.add.member');
     that.remove_title = text.get(spec.remove_title || '@i18n:association.remove.member');
 
@@ -500,6 +501,8 @@ IPA.association_table_widget = function (spec) {
         that.init();
 
         that.table_create(container);
+
+        if (that.read_only) return;
 
         that.remove_button = IPA.button_widget({
             name: 'remove',
