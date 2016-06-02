@@ -1911,7 +1911,7 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
                 # no_members are always true for find commands, do not
                 # show option in CLI but keep API compatibility
                 option = option.clone(
-                    default=True, flags=option.flags | {"no_cli"})
+                    default=True, flags=option.flags | {"no_option"})
             yield option
         if self.obj.primary_key and \
                 'no_output' not in self.obj.primary_key.flags:
