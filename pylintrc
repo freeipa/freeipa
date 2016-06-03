@@ -69,7 +69,6 @@ disable=
     line-too-long,
     missing-docstring,
     multiple-statements,
-    old-style-class,
     superfluous-parens,
     too-many-lines,
     unidiomatic-typecheck,
