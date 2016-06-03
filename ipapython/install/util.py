@@ -88,16 +88,16 @@ class InnerClassMeta(type):
 
         return super(InnerClassMeta, mcs).__new__(mcs, name, bases, class_dict)
 
-    def __get__(self, obj, obj_type):
-        outer_class, outer_name = self.__bind(obj_type)
+    def __get__(cls, obj, obj_type):
+        outer_class, outer_name = cls.__bind(obj_type)
         if obj is None:
-            return self
+            return cls
         assert isinstance(obj, outer_class)
 
         try:
             return obj.__dict__[outer_name]
         except KeyError:
-            inner = self(obj)
+            inner = cls(obj)
             try:
                 getter = inner.__get__
             except AttributeError:
@@ -105,11 +105,11 @@ class InnerClassMeta(type):
             else:
                 return getter(obj, obj_type)
 
-    def __set__(self, obj, value):
-        outer_class, outer_name = self.__bind(obj.__class__)
+    def __set__(cls, obj, value):
+        outer_class, outer_name = cls.__bind(obj.__class__)
         assert isinstance(obj, outer_class)
 
-        inner = self(obj)
+        inner = cls(obj)
         try:
             setter = inner.__set__
         except AttributeError:
@@ -122,11 +122,11 @@ class InnerClassMeta(type):
         else:
             setter(obj, value)
 
-    def __delete__(self, obj):
-        outer_class, outer_name = self.__bind(obj.__class__)
+    def __delete__(cls, obj):
+        outer_class, outer_name = cls.__bind(obj.__class__)
         assert isinstance(obj, outer_class)
 
-        inner = self(obj)
+        inner = cls(obj)
         try:
             deleter = inner.__delete__
         except AttributeError:
@@ -142,23 +142,23 @@ class InnerClassMeta(type):
         else:
             deleter(obj)
 
-    def __bind(self, obj_type):
+    def __bind(cls, obj_type):
         try:
-            cls = self.__dict__['__outer_class__']
-            name = self.__dict__['__outer_name__']
+            outer_class = cls.__dict__['__outer_class__']
+            name = cls.__dict__['__outer_name__']
         except KeyError:
-            cls, name, value = None, None, None
-            for cls in obj_type.__mro__:
-                for name, value in six.iteritems(cls.__dict__):
-                    if value is self:
+            outer_class, name, value = None, None, None
+            for outer_class in obj_type.__mro__:
+                for name, value in six.iteritems(outer_class.__dict__):
+                    if value is cls:
                         break
-                if value is self:
+                if value is cls:
                     break
-            assert value is self
+            assert value is cls
 
-            self.__outer_class__ = cls
-            self.__outer_name__ = name
-            self.__name__ = '.'.join((cls.__name__, name))
-            self.__qualname__ = self.__name__
+            cls.__outer_class__ = outer_class
+            cls.__outer_name__ = name
+            cls.__name__ = '.'.join((outer_class.__name__, name))
+            cls.__qualname__ = cls.__name__
 
-        return cls, name
+        return outer_class, name
