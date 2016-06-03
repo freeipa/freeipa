@@ -250,8 +250,7 @@ class DsInstance(service.Service):
 
         self.step("creating directory server user", create_ds_user)
         self.step("creating directory server instance", self.__create_instance)
-        if self.config_ldif:
-            self.step("updating configuration in dse.ldif", self.__update_dse_ldif)
+        self.step("updating configuration in dse.ldif", self.__update_dse_ldif)
         self.step("restarting directory server", self.__restart_instance)
         self.step("adding default schema", self.__add_default_schemas)
         self.step("enabling memberof plugin", self.__add_memberof_module)
@@ -572,9 +571,15 @@ class DsInstance(service.Service):
             temp_filename = new_dse_ldif.name
             with open(dse_filename, "r") as input_file:
                 parser = installutils.ModifyLDIF(input_file, new_dse_ldif)
-                # parse modification from config ldif
-                with open(self.config_ldif, "r") as config_ldif:
-                    parser.modifications_from_ldif(config_ldif)
+                parser.replace_value(
+                        'cn=config,cn=ldbm database,cn=plugins,cn=config',
+                        'nsslapd-db-locks',
+                        ['50000']
+                        )
+                if self.config_ldif:
+                    # parse modifications from ldif file supplied by the admin
+                    with open(self.config_ldif, "r") as config_ldif:
+                        parser.modifications_from_ldif(config_ldif)
                 parser.parse()
             new_dse_ldif.flush()
         shutil.copy2(temp_filename, dse_filename)
