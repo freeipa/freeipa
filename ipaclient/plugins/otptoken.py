@@ -66,7 +66,7 @@ class otptoken_add(MethodOverride):
                 message=ResultFormattingError(
                     message=_("Unable to display QR code using the configured "
                               "output encoding. Please use the token URI to "
-                              "configure you OTP device")
+                              "configure your OTP device")
                 )
             )
             return None
