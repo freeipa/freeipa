@@ -30,7 +30,6 @@ import six
 
 from ipatests.util import assert_deepequal, Fuzzy
 from ipalib import api, request, errors
-from ipalib.x509 import valid_issuer
 from ipapython.version import API_VERSION
 
 
@@ -91,7 +90,7 @@ fuzzy_hash = Fuzzy('^([a-f0-9][a-f0-9]:)+[a-f0-9][a-f0-9]$', type=six.string_typ
 # Matches a date, like Tue Apr 26 17:45:35 2016 UTC
 fuzzy_date = Fuzzy('^[a-zA-Z]{3} [a-zA-Z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4} UTC$')
 
-fuzzy_issuer = Fuzzy(type=six.string_types, test=lambda issuer: valid_issuer(issuer))
+fuzzy_issuer = Fuzzy(type=six.string_types)
 
 fuzzy_hex = Fuzzy('^0x[0-9a-fA-F]+$', type=six.string_types)
 

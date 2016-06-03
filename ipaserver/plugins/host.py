@@ -657,8 +657,6 @@ class host_add(LDAPCreate):
             setattr(context, 'randompassword', entry_attrs['userpassword'])
         certs = options.get('usercertificate', [])
         certs_der = [x509.normalize_certificate(c) for c in certs]
-        for cert in certs_der:
-            x509.verify_cert_subject(ldap, keys[-1], cert)
         entry_attrs['usercertificate'] = certs_der
         entry_attrs['managedby'] = dn
         entry_attrs['objectclass'].append('ieee802device')
@@ -869,8 +867,6 @@ class host_mod(LDAPUpdate):
         # verify certificates
         certs = entry_attrs.get('usercertificate') or []
         certs_der = [x509.normalize_certificate(c) for c in certs]
-        for cert in certs_der:
-            x509.verify_cert_subject(ldap, keys[-1], cert)
 
         # revoke removed certificates
         if certs and self.api.Command.ca_is_enabled()['result']:

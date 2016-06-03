@@ -74,14 +74,6 @@ def subject_base():
 
     return _subject_base
 
-def valid_issuer(issuer):
-    if not api.Command.ca_is_enabled()['result']:
-        return True
-    # Handle all supported forms of issuer -- currently dogtag only.
-    if api.env.ra_plugin == 'dogtag':
-        return DN(issuer) == DN(('CN', 'Certificate Authority'), subject_base())
-    return True
-
 def strip_header(pem):
     """
     Remove the header and footer from a certificate.
@@ -356,24 +348,6 @@ def write_certificate_list(rawcerts, filename):
                 f.write(cert + '\n')
     except (IOError, OSError) as e:
         raise errors.FileError(reason=str(e))
-
-def verify_cert_subject(ldap, hostname, dercert):
-    """
-    Verify that the certificate issuer we're adding matches the issuer
-    base of our installation.
-
-    This assumes the certificate has already been normalized.
-
-    This raises an exception on errors and returns nothing otherwise.
-    """
-    nsscert = load_certificate(dercert, datatype=DER)
-    subject = str(nsscert.subject)
-    issuer = str(nsscert.issuer)
-    del(nsscert)
-
-    if (not valid_issuer(issuer)):
-        raise errors.CertificateOperationError(error=_('Issuer "%(issuer)s" does not match the expected issuer') % \
-        {'issuer' : issuer})
 
 class _Extension(univ.Sequence):
     componentType = namedtype.NamedTypes(

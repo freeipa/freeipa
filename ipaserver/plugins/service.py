@@ -566,8 +566,6 @@ class service_add(LDAPCreate):
 
         certs = options.get('usercertificate', [])
         certs_der = [x509.normalize_certificate(c) for c in certs]
-        for dercert in certs_der:
-            x509.verify_cert_subject(ldap, hostname, dercert)
         entry_attrs['usercertificate'] = certs_der
 
         if not options.get('force', False):
@@ -642,8 +640,6 @@ class service_mod(LDAPUpdate):
         # verify certificates
         certs = entry_attrs.get('usercertificate') or []
         certs_der = [x509.normalize_certificate(c) for c in certs]
-        for dercert in certs_der:
-            x509.verify_cert_subject(ldap, hostname, dercert)
         # revoke removed certificates
         if certs and self.api.Command.ca_is_enabled()['result']:
             try:
