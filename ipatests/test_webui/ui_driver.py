@@ -183,7 +183,7 @@ class UI_driver(object):
             options.binary_location = paths.CHROMIUM_BROWSER
 
         if driver_type == 'remote':
-            if not 'host' in self.config:
+            if 'host' not in self.config:
                 raise nose.SkipTest('Selenium server host not configured')
             host = self.config["host"]
 

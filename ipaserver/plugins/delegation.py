@@ -132,7 +132,7 @@ class delegation_add(crud.Create):
     msg_summary = _('Added delegation "%(value)s"')
 
     def execute(self, aciname, **kw):
-        if not 'permissions' in kw:
+        if 'permissions' not in kw:
             kw['permissions'] = (u'write',)
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_add'](aciname, **kw)['result']

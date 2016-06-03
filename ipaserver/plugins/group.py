@@ -314,7 +314,7 @@ class group_add(LDAPCreate):
                 raise errors.MutuallyExclusiveError(reason=_('gid cannot be set for external group'))
         elif not options['nonposix']:
             entry_attrs['objectclass'].append('posixgroup')
-            if not 'gidnumber' in options:
+            if 'gidnumber' not in options:
                 entry_attrs['gidnumber'] = baseldap.DNA_MAGIC
         return dn
 
@@ -395,7 +395,7 @@ class group_mod(LDAPUpdate):
             else:
                 old_entry_attrs['objectclass'].append('posixgroup')
                 entry_attrs['objectclass'] = old_entry_attrs['objectclass']
-                if not 'gidnumber' in options:
+                if 'gidnumber' not in options:
                     entry_attrs['gidnumber'] = baseldap.DNA_MAGIC
 
         if options['external']:

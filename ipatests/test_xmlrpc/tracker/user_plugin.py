@@ -172,7 +172,7 @@ class UserTracker(KerberosAliasMixin, Tracker):
                          self.api.env.realm)
                     )]
             else:
-                if not type(self.kwargs[key]) is list:
+                if type(self.kwargs[key]) is not list:
                     self.attrs[key] = [self.kwargs[key]]
                 else:
                     self.attrs[key] = self.kwargs[key]

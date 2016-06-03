@@ -156,10 +156,10 @@ class ACI:
 
            returns True if valid
         """
-        if not type(self.permissions) in (tuple, list):
+        if type(self.permissions) not in (tuple, list):
             raise SyntaxError("permissions must be a list")
         for p in self.permissions:
-            if not p.lower() in PERMISSIONS:
+            if p.lower() not in PERMISSIONS:
                 raise SyntaxError("invalid permission: '%s'" % p)
         if not self.name:
             raise SyntaxError("name must be set")
@@ -185,7 +185,7 @@ class ACI:
             if 'targetattr' in self.target:
                 del self.target['targetattr']
             return
-        if not type(attr) in (tuple, list):
+        if type(attr) not in (tuple, list):
             attr = [attr]
         self.target['targetattr'] = {}
         self.target['targetattr']['expression'] = attr
