@@ -49,7 +49,7 @@ import six
 
 from ipalib import api, errors
 from ipalib import Command
-from ipalib.parameters import Str, Any
+from ipalib.parameters import Str, Dict
 from ipalib.output import Output
 from ipalib.text import _
 from ipalib.request import context
@@ -66,7 +66,7 @@ class batch(Command):
     NO_CLI = True
 
     takes_args = (
-        Any('methods*',
+        Dict('methods*',
             doc=_('Nested Methods to execute'),
         ),
     )
@@ -90,12 +90,6 @@ class batch(Command):
     def execute(self, methods=None, **options):
         results = []
         for arg in (methods or []):
-            # As take_args = Any, no check is done before
-            # Need to make sure that methods contain dict objects
-            if not isinstance(arg, dict):
-                raise errors.ConversionError(
-                    name='methods',
-                    error=_(u'must contain dict objects'))
             params = dict()
             name = None
             try:

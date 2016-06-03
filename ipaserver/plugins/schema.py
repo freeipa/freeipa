@@ -12,7 +12,7 @@ from ipalib import errors
 from ipalib.crud import PKQuery, Retrieve, Search
 from ipalib.frontend import Command, Method, Object
 from ipalib.output import Entry, ListOfEntries, ListOfPrimaryKeys, PrimaryKey
-from ipalib.parameters import Any, Bool, Flag, Int, Str
+from ipalib.parameters import Bool, Dict, Flag, Int, Str
 from ipalib.plugable import Registry
 from ipalib.text import _
 from ipapython.version import API_VERSION
@@ -216,18 +216,14 @@ class command_defaults(PKQuery):
 
     takes_options = (
         Str('params*'),
-        Any('kw?'),
+        Dict('kw?'),
     )
 
     def execute(self, name, **options):
         command = self.api.Command[name]
 
         params = options.get('params', [])
-
         kw = options.get('kw', {})
-        if not isinstance(kw, dict):
-            raise errors.ConversionError(name=name,
-                                         error=_("must be a dictionary"))
 
         result = command.get_default(params, **kw)
 

@@ -41,8 +41,8 @@ _PARAMS = {
     'bool': parameters.Bool,
     'bytes': parameters.Bytes,
     'datetime': parameters.DateTime,
+    'dict': parameters.Dict,
     'int': parameters.Int,
-    'object': parameters.Any,
     'str': parameters.Str,
 }
 

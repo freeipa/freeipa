@@ -1961,3 +1961,12 @@ class DNSNameParam(Param):
     def _rule_only_relative(self, _, value):
         if self.only_relative and value.is_absolute():
             return _('must be relative')
+
+
+class Dict(Param):
+    """
+    A parameter for dictionary.
+    """
+
+    type = dict
+    type_error = _("must be dictionary")
