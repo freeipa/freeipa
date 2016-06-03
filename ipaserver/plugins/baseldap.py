@@ -2035,9 +2035,9 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
                 entries.sort(key=sort_key)
 
         if not options.get('raw', False):
-            for e in entries:
-                self.obj.get_indirect_members(e, attrs_list)
-                self.obj.convert_attribute_members(e, *args, **options)
+            for entry in entries:
+                self.obj.get_indirect_members(entry, attrs_list)
+                self.obj.convert_attribute_members(entry, *args, **options)
 
         for (i, e) in enumerate(entries):
             entries[i] = entry_to_dict(e, **options)
@@ -2051,9 +2051,9 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
 
         try:
             ldap.handle_truncated_result(truncated)
-        except errors.LimitsExceeded as e:
+        except errors.LimitsExceeded as exc:
             add_message(options['version'], result, SearchResultTruncated(
-                reason=e))
+                reason=exc))
 
         return result
 
