@@ -109,7 +109,7 @@ class TestCIDict(object):
         nose.tools.assert_equal("VAL3", self.cidict["key3"])
         nose.tools.assert_equal("VAL3", self.cidict["KEY3"])
         with nose.tools.assert_raises(KeyError):
-            self.cidict["key4"]
+            self.cidict["key4"]  # pylint: disable=pointless-statement
 
     def test_get(self):
         nose.tools.assert_equal("val1", self.cidict.get("Key1"))

@@ -138,10 +138,10 @@ class TestAVA(unittest.TestCase):
         self.assertEqual(ava1[1], self.value1)
 
         with self.assertRaises(KeyError):
-            ava1['foo']
+            ava1['foo']  # pylint: disable=pointless-statement
 
         with self.assertRaises(KeyError):
-            ava1[3]
+            ava1[3]  # pylint: disable=pointless-statement
 
     def test_properties(self):
         ava1 = AVA(self.ava1)
@@ -500,25 +500,25 @@ class TestRDN(unittest.TestCase):
         self.assertEqual(rdn1[0], self.ava1)
         self.assertEqual(rdn1[self.ava1.attr], self.ava1.value)
         with self.assertRaises(KeyError):
-            rdn1['foo']
+            rdn1['foo']  # pylint: disable=pointless-statement
 
         self.assertEqual(rdn2[0], self.ava2)
         self.assertEqual(rdn2[self.ava2.attr], self.ava2.value)
         with self.assertRaises(KeyError):
-            rdn2['foo']
+            rdn2['foo']  # pylint: disable=pointless-statement
 
         self.assertEqual(rdn3[0], self.ava1)
         self.assertEqual(rdn3[self.ava1.attr], self.ava1.value)
         self.assertEqual(rdn3[1], self.ava2)
         self.assertEqual(rdn3[self.ava2.attr], self.ava2.value)
         with self.assertRaises(KeyError):
-            rdn3['foo']
+            rdn3['foo']  # pylint: disable=pointless-statement
 
         self.assertEqual(rdn1.attr, self.attr1)
         self.assertEqual(rdn1.value, self.value1)
 
         with self.assertRaises(TypeError):
-            rdn3[1.0]
+            rdn3[1.0]  # pylint: disable=pointless-statement
 
         # Slices
         self.assertEqual(rdn3[0:1], [self.ava1])
@@ -915,22 +915,22 @@ class TestDN(unittest.TestCase):
         self.assertEqual(dn1[0], self.rdn1)
         self.assertEqual(dn1[self.rdn1.attr], self.rdn1.value)
         with self.assertRaises(KeyError):
-            dn1['foo']
+            dn1['foo']  # pylint: disable=pointless-statement
 
         self.assertEqual(dn2[0], self.rdn2)
         self.assertEqual(dn2[self.rdn2.attr], self.rdn2.value)
         with self.assertRaises(KeyError):
-            dn2['foo']
+            dn2['foo']  # pylint: disable=pointless-statement
 
         self.assertEqual(dn3[0], self.rdn1)
         self.assertEqual(dn3[self.rdn1.attr], self.rdn1.value)
         self.assertEqual(dn3[1], self.rdn2)
         self.assertEqual(dn3[self.rdn2.attr], self.rdn2.value)
         with self.assertRaises(KeyError):
-            dn3['foo']
+            dn3['foo']  # pylint: disable=pointless-statement
 
         with self.assertRaises(TypeError):
-            dn3[1.0]
+            dn3[1.0]  # pylint: disable=pointless-statement
 
     def test_assignments(self):
         dn = dn2 = DN('t=0,t=1,t=2,t=3,t=4,t=5,t=6,t=7,t=8,t=9')
@@ -1102,7 +1102,7 @@ class TestDN(unittest.TestCase):
         # pylint: disable=no-member
         dn = DN('t=0,t=1,t=2,t=3,t=4,t=5,t=6,t=7,t=8,t=9')
         with self.assertRaises(AttributeError):
-            dn.replace
+            dn.replace  # pylint: disable=pointless-statement
 
     def test_hashing(self):
         # create DN's that are equal but differ in case

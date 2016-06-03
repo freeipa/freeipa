@@ -49,7 +49,6 @@ disable=
     global-statement,
     global-variable-not-assigned,
     no-init,
-    pointless-statement,
     pointless-string-statement,
     protected-access,
     redefine-in-handler,
