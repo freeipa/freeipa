@@ -39,7 +39,8 @@ ACTIONS = ["allow", "deny"]
 PERMISSIONS = ["read", "write", "add", "delete", "search", "compare",
                "selfwrite", "proxy", "all"]
 
-class ACI:
+
+class ACI(object):
     """
     Holds the basic data for an ACI entry, as stored in the cn=accounts
     entry in LDAP.  Has methods to parse an ACI string and export to an

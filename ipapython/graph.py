@@ -3,7 +3,7 @@
 #
 
 
-class Graph():
+class Graph(object):
     """
     Simple oriented graph structure
 

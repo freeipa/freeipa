@@ -42,7 +42,8 @@ SYSRESTORE_PATH = paths.TMP
 SYSRESTORE_INDEXFILE = "sysrestore.index"
 SYSRESTORE_STATEFILE = "sysrestore.state"
 
-class FileStore:
+
+class FileStore(object):
     """Class for handling backup and restore of files"""
 
     def __init__(self, path = SYSRESTORE_PATH, index_file = SYSRESTORE_INDEXFILE):
@@ -290,7 +291,8 @@ class FileStore:
 
         return True
 
-class StateFile:
+
+class StateFile(object):
     """A metadata file for recording system state which can
     be backed up and later restored.
     StateFile gets reloaded every time to prevent loss of information
