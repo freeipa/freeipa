@@ -456,8 +456,8 @@ def main():
     options, args = parse_options()
 
     cfg = dict(
-        context='cli',
-        in_server=False,
+        context='server',
+        in_server=True,
         in_tree=True,
         debug=False,
         verbose=0,
