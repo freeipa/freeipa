@@ -52,31 +52,18 @@ class TestCLIParsing(object):
         self.check_command('ping', 'ping')
 
     def test_user_show(self):
-        self.check_command('user-show admin', 'user_show',
-            uid=u'admin',
-            rights=False,
-            no_members=False,
-            raw=False,
-            all=False)
+        self.check_command('user-show admin', 'user_show', uid=u'admin')
 
     def test_user_show_underscore(self):
-        self.check_command('user_show admin', 'user_show',
-            uid=u'admin',
-            rights=False,
-            no_members=False,
-            raw=False,
-            all=False)
+        self.check_command('user_show admin', 'user_show', uid=u'admin')
 
     def test_group_add(self):
-        self.check_command('group-add tgroup1 --desc="Test group"',
+        self.check_command(
+            'group-add tgroup1 --desc="Test group"',
             'group_add',
             cn=u'tgroup1',
             description=u'Test group',
-            nonposix=False,
-            external=False,
-            no_members=False,
-            raw=False,
-            all=False)
+        )
 
     def test_sudocmdgroup_add_member(self):
         # Test CSV splitting is not done
@@ -86,53 +73,41 @@ class TestCLIParsing(object):
             'sudocmdgroup_add_member',
             cn=u'tcmdgroup1',
             sudocmd=[u'ab,c', u'd'],
-            no_members=False,
-            raw=False,
-            all=False)
+        )
 
     def test_group_add_nonposix(self):
-        self.check_command('group-add tgroup1 --desc="Test group" --nonposix',
+        self.check_command(
+            'group-add tgroup1 --desc="Test group" --nonposix',
             'group_add',
             cn=u'tgroup1',
             description=u'Test group',
             nonposix=True,
-            external=False,
-            no_members=False,
-            raw=False,
-            all=False)
+        )
 
     def test_group_add_gid(self):
-        self.check_command('group-add tgroup1 --desc="Test group" --gid=1234',
+        self.check_command(
+            'group-add tgroup1 --desc="Test group" --gid=1234',
             'group_add',
             cn=u'tgroup1',
             description=u'Test group',
             gidnumber=u'1234',
-            nonposix=False,
-            external=False,
-            no_members=False,
-            raw=False,
-            all=False)
+        )
 
     def test_group_add_interactive(self):
         with self.fake_stdin('Test group\n'):
-            self.check_command('group-add tgroup1', 'group_add',
+            self.check_command(
+                'group-add tgroup1', 'group_add',
                 cn=u'tgroup1',
-                nonposix=False,
-                external=False,
-                no_members=False,
-                raw=False,
-                all=False)
+            )
 
     def test_dnsrecord_add(self):
-        self.check_command('dnsrecord-add %s ns --a-rec=1.2.3.4' % TEST_ZONE,
+        self.check_command(
+            'dnsrecord-add %s ns --a-rec=1.2.3.4' % TEST_ZONE,
             'dnsrecord_add',
             dnszoneidnsname=TEST_ZONE,
             idnsname=u'ns',
             arecord=u'1.2.3.4',
-            structured=False,
-            force=False,
-            raw=False,
-            all=False)
+        )
 
     def test_dnsrecord_del_all(self):
         try:
@@ -144,19 +119,21 @@ class TestCLIParsing(object):
                 dnszoneidnsname=TEST_ZONE,
                 idnsname=u'ns', arecord=u'1.2.3.4', force=True)
             with self.fake_stdin('yes\n'):
-                self.check_command('dnsrecord_del %s ns' % TEST_ZONE,
+                self.check_command(
+                    'dnsrecord_del %s ns' % TEST_ZONE,
                     'dnsrecord_del',
                     dnszoneidnsname=TEST_ZONE,
                     idnsname=u'ns',
                     del_all=True,
-                    structured=False)
+                )
             with self.fake_stdin('YeS\n'):
-                self.check_command('dnsrecord_del %s ns' % TEST_ZONE,
+                self.check_command(
+                    'dnsrecord_del %s ns' % TEST_ZONE,
                     'dnsrecord_del',
                     dnszoneidnsname=TEST_ZONE,
                     idnsname=u'ns',
                     del_all=True,
-                    structured=False)
+                )
         finally:
             self.run_command('dnszone_del', idnsname=TEST_ZONE)
 
@@ -173,13 +150,13 @@ class TestCLIParsing(object):
                     dnszoneidnsname=TEST_ZONE, idnsname=u'ns',
                     sshfprecord=record)
             with self.fake_stdin('no\nyes\nyes\n'):
-                self.check_command('dnsrecord_del %s ns' % TEST_ZONE,
+                self.check_command(
+                    'dnsrecord_del %s ns' % TEST_ZONE,
                     'dnsrecord_del',
                     dnszoneidnsname=TEST_ZONE,
                     idnsname=u'ns',
-                    del_all=False,
                     sshfprecord=records,
-                    structured=False)
+                )
         finally:
             self.run_command('dnszone_del', idnsname=TEST_ZONE)
 
@@ -187,48 +164,45 @@ class TestCLIParsing(object):
         sshfp_parts = (1, 1, u'E3B72BA346B90570EED94BE9334E34AA795CED23')
 
         with self.fake_stdin('SSHFP\n%d\n%d\n%s' % sshfp_parts):
-            self.check_command('dnsrecord-add %s sshfp' % TEST_ZONE,
+            self.check_command(
+                'dnsrecord-add %s sshfp' % TEST_ZONE,
                 'dnsrecord_add',
                 dnszoneidnsname=TEST_ZONE,
                 idnsname=u'sshfp',
                 sshfp_part_fp_type=sshfp_parts[0],
                 sshfp_part_algorithm=sshfp_parts[1],
                 sshfp_part_fingerprint=sshfp_parts[2],
-                structured=False,
-                raw=False,
-                all=False,
-                force=False)
+            )
 
         # NOTE: when a DNS record part is passed via command line, it is not
         # converted to its base type when transfered via wire
         with self.fake_stdin('%d\n%s' % (sshfp_parts[1], sshfp_parts[2])):
-            self.check_command('dnsrecord-add %s sshfp '
-                    '--sshfp-algorithm=%d' % (TEST_ZONE, sshfp_parts[0]),
+            self.check_command(
+                'dnsrecord-add %s sshfp --sshfp-algorithm=%d' % (
+                    TEST_ZONE, sshfp_parts[0]),
                 'dnsrecord_add',
                 dnszoneidnsname=TEST_ZONE,
                 idnsname=u'sshfp',
                 sshfp_part_fp_type=sshfp_parts[0],
-                sshfp_part_algorithm=unicode(sshfp_parts[1]),   # passed via cmdline
+                # passed via cmdline
+                sshfp_part_algorithm=unicode(sshfp_parts[1]),
                 sshfp_part_fingerprint=sshfp_parts[2],
-                structured=False,
-                raw=False,
-                all=False,
-                force=False)
+            )
 
         with self.fake_stdin(sshfp_parts[2]):
-            self.check_command('dnsrecord-add %s sshfp '
-                    '--sshfp-algorithm=%d --sshfp-fp-type=%d' % (
-                        TEST_ZONE, sshfp_parts[0], sshfp_parts[1]),
+            self.check_command(
+                'dnsrecord-add %s sshfp --sshfp-algorithm=%d '
+                '--sshfp-fp-type=%d' % (
+                    TEST_ZONE, sshfp_parts[0], sshfp_parts[1]),
                 'dnsrecord_add',
                 dnszoneidnsname=TEST_ZONE,
                 idnsname=u'sshfp',
-                sshfp_part_fp_type=unicode(sshfp_parts[0]),     # passed via cmdline
-                sshfp_part_algorithm=unicode(sshfp_parts[1]),   # passed via cmdline
+                # passed via cmdline
+                sshfp_part_fp_type=unicode(sshfp_parts[0]),
+                # passed via cmdline
+                sshfp_part_algorithm=unicode(sshfp_parts[1]),
                 sshfp_part_fingerprint=sshfp_parts[2],
-                structured=False,
-                raw=False,
-                all=False,
-                force=False)
+            )
 
     def test_dnsrecord_del_comma(self):
         try:
@@ -248,9 +222,7 @@ class TestCLIParsing(object):
                     'dnsrecord_del',
                     dnszoneidnsname=TEST_ZONE,
                     idnsname=u'test',
-                    del_all=False,
-                    txtrecord=[u'"A pretty little problem," said Holmes.'],
-                    structured=False)
+                    txtrecord=[u'"A pretty little problem," said Holmes.'])
         finally:
             self.run_command('dnszone_del', idnsname=TEST_ZONE)
 
@@ -268,8 +240,6 @@ class TestCLIParsing(object):
                     ipaidrangesize=u'1',
                     ipabaserid=5,
                     ipasecondarybaserid=500000,
-                    all=False,
-                    raw=False,
                 )
 
         def test_with_command_line_options():
@@ -282,8 +252,6 @@ class TestCLIParsing(object):
                 ipaidrangesize=u'1',
                 ipabaserid=u'5',
                 ipasecondarybaserid=u'500000',
-                all=False,
-                raw=False,
             )
 
         def test_without_options():
@@ -293,8 +261,6 @@ class TestCLIParsing(object):
                 cn=u'range1',
                 ipabaseid=u'1',
                 ipaidrangesize=u'1',
-                all=False,
-                raw=False,
             )
 
         adtrust_dn = 'cn=ADTRUST,cn=%s,cn=masters,cn=ipa,cn=etc,%s' % \
