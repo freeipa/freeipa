@@ -2131,14 +2131,6 @@ class LDAPAddReverseMember(LDAPModReverseMember):
             dn = callback(self, ldap, dn, *keys, **options)
             assert isinstance(dn, DN)
 
-        if options.get('all', False):
-            attrs_list = ['*'] + self.obj.default_attributes
-        else:
-            attrs_list = set(self.obj.default_attributes)
-            if options.get('no_members', False):
-                attrs_list.difference_update(self.obj.attribute_members)
-            attrs_list = list(attrs_list)
-
         completed = 0
         failed = {'member': {self.reverse_attr: []}}
         for attr in options.get(self.reverse_attr) or []:
@@ -2229,14 +2221,6 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
         for callback in self.get_callbacks('pre'):
             dn = callback(self, ldap, dn, *keys, **options)
             assert isinstance(dn, DN)
-
-        if options.get('all', False):
-            attrs_list = ['*'] + self.obj.default_attributes
-        else:
-            attrs_list = set(self.obj.default_attributes)
-            if options.get('no_members', False):
-                attrs_list.difference_update(self.obj.attribute_members)
-            attrs_list = list(attrs_list)
 
         completed = 0
         failed = {'member': {self.reverse_attr: []}}
