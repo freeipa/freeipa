@@ -60,7 +60,6 @@ disable=
     unused-variable,
     useless-else-on-loop,
     bad-continuation,
-    bad-mcs-classmethod-argument,
     bad-mcs-method-argument,
     bad-whitespace,
     blacklisted-name,
