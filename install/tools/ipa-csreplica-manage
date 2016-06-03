@@ -190,9 +190,9 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
         # Find the DN of the replication agreement to remove
         replica2_dn = None
-        for e in repl_list:
-            if e.single_value.get('nsDS5ReplicaHost') == replica1:
-                replica2_dn = e.dn
+        for entry in repl_list:
+            if entry.single_value.get('nsDS5ReplicaHost') == replica1:
+                replica2_dn = entry.dn
                 break
 
         # This should never happen
@@ -203,8 +203,8 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         print("'%s' has no replication agreement for '%s'" % (replica2, replica1))
         if not force:
             return
-    except Exception as e:
-        print("Failed to get data from '%s': %s" % (replica2, e))
+    except Exception as exc:
+        print("Failed to get data from '%s': %s" % (replica2, exc))
         if not force:
             sys.exit(1)
 
@@ -213,8 +213,8 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         try:
             repl2.delete_agreement(replica1, replica2_dn)
             repl2.delete_referral(replica1, repl1.port)
-        except Exception as e:
-            print("Unable to remove agreement on %s: %s" % (replica2, e))
+        except Exception as exc:
+            print("Unable to remove agreement on %s: %s" % (replica2, exc))
             failed = True
 
         if failed:

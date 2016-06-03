@@ -51,7 +51,6 @@ disable=
     no-init,
     pointless-string-statement,
     protected-access,
-    redefine-in-handler,
     redefined-builtin,
     redefined-outer-name,
     super-init-not-called,
