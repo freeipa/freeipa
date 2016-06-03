@@ -59,7 +59,6 @@ disable=
     unused-argument,
     unused-variable,
     useless-else-on-loop,
-    bad-classmethod-argument,
     bad-continuation,
     bad-mcs-classmethod-argument,
     bad-mcs-method-argument,
