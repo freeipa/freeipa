@@ -909,7 +909,7 @@ last, after all sets and adds."""),
         newdict = {}
         if attrs is None:
             attrs = []
-        elif not type(attrs) in (list, tuple):
+        elif type(attrs) not in (list, tuple):
             attrs = [attrs]
         for a in attrs:
             m = re.match("\s*(.*?)\s*=\s*(.*?)\s*$", a)

@@ -434,9 +434,9 @@ class Param(ReadOnly):
         # Merge in kw from parse_param_spec():
         (name, kw_from_spec) = parse_param_spec(name)
         check_name(name)
-        if not 'required' in kw:
+        if 'required' not in kw:
             kw['required'] = kw_from_spec['required']
-        if not 'multivalue' in kw:
+        if 'multivalue' not in kw:
             kw['multivalue'] = kw_from_spec['multivalue']
 
         # Add 'default' to self.kwargs

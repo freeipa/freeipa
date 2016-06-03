@@ -84,7 +84,6 @@ disable=
     not-an-iterable,
     singleton-comparison,
     misplaced-comparison-constant,
-    unneeded-not,
     not-a-mapping,
     singleton-comparison
 

@@ -94,7 +94,7 @@ def test_aci_equality():
 
     assert a.isequal(b)
     assert a == b
-    assert not a != b
+    assert not a != b  # pylint: disable=unneeded-not
 
 
 def check_aci_inequality(b):

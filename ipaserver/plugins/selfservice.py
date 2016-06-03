@@ -124,7 +124,7 @@ class selfservice_add(crud.Create):
     msg_summary = _('Added selfservice "%(value)s"')
 
     def execute(self, aciname, **kw):
-        if not 'permissions' in kw:
+        if 'permissions' not in kw:
             kw['permissions'] = (u'write',)
         kw['selfaci'] = True
         kw['aciprefix'] = ACI_PREFIX
