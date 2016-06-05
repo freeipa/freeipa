@@ -51,7 +51,8 @@ var topology = IPA.topology = {
             suffix_search: 'topologysuffix_search',
             server_search: 'server_search',
             domainlevel: 'domainlevel_details',
-            topologygraph: 'topology-graph'
+            topologygraph: 'topology-graph',
+            location_search: 'location_search'
         }
     }
 };
@@ -193,6 +194,14 @@ return {
 var make_server_spec = function() {
 return {
     name: 'server',
+    policies: [
+        {
+            $factory: IPA.facet_update_policy,
+            source_facet: 'details',
+            dest_entity: 'location',
+            dest_facet: 'details'
+        }
+    ],
     facets: [
            {
             $type: 'search',
@@ -212,7 +221,6 @@ return {
         },
         {
             $type: 'details',
-            no_update: true,
             disable_facet_tabs: true,
             sections: [
                 {
@@ -221,7 +229,18 @@ return {
                         { name: 'cn', read_only: true },
                         { name: 'ipamindomainlevel', read_only: true },
                         { name: 'ipamaxdomainlevel', read_only: true },
-                        { $type: 'multivalued', name: 'iparepltopomanagedsuffix_topologysuffix', read_only: true }
+                        { $type: 'multivalued', name: 'iparepltopomanagedsuffix_topologysuffix', read_only: true },
+                        {
+                            $type: 'entity_select',
+                            name: 'ipalocation_location',
+                            other_entity: 'location',
+                            other_field: 'idnsname',
+                            flags: ['w_if_no_aci']
+                        },
+                        {
+                            name: 'ipalocationweight',
+                            placeholder: '100'
+                        }
                     ]
                 }
             ]
@@ -271,6 +290,227 @@ topology.domainlevel_adapter = declare([mod_field.Adapter], {
     }
 });
 
+
+var make_location_spec = function() {
+return {
+    name: 'location',
+    policies: [
+        {
+            $factory: IPA.facet_update_policy,
+            source_facet: 'details',
+            dest_entity: 'server',
+            dest_facet: 'details'
+        },
+        {
+            $factory: IPA.facet_update_policy,
+            source_facet: 'details',
+            dest_entity: 'location',
+            dest_facet: 'search'
+        }
+    ],
+    facets: [
+        {
+            $type: 'search',
+            disable_facet_tabs: false,
+            tabs_in_sidebar: true,
+            tab_label: '@mo:location.label',
+            facet_groups: [topology.search_facet_group],
+            facet_group: 'search',
+            columns: [
+                'idnsname',
+                'description'
+            ]
+        },
+        {
+            $type: 'details',
+            disable_facet_tabs: true,
+            section_layout_class: 'col-sm-12',
+            sections: [
+                {
+                    name: 'general',
+                    label: '@i18n:details.general',
+                    fields: [
+                        'idnsname',
+                        {
+                            $type: 'textarea',
+                            name: 'description'
+                        }
+                    ]
+                },
+                {
+                    $factory: IPA.section,
+                    name: 'servers',
+                    label: '@mo:server.label',
+                    fields: [
+                        {
+                            $type: 'location_association_table',
+                            adapter: topology.location_adapter,
+                            other_entity: 'server',
+                            footer: false,
+                            name: 'cn',
+                            columns: [
+                                {
+                                    name: 'cn',
+                                    link: true
+                                },
+                                {
+                                    name: 'ipalocationweight'
+                                },
+                                {
+                                    name: 'location_relative_weight'
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    adder_dialog: {
+        fields: [
+            {
+                $type: 'text',
+                name: 'idnsname',
+                required: true
+            },
+            'description'
+        ]
+    }
+};};
+
+topology.location_adapter = declare([mod_field.Adapter], {
+    load: function(data) {
+        var result = this.get_record(data);
+        if (result.servers_server === undefined) return [];
+
+        result = result.servers_server;
+
+        this.result_name = 'servers';
+        var servers = this.get_record(data);
+        this.result_name = 'result';
+
+        var output = [];
+
+        for (var i=0, l=result.length; i<l; i++) {
+            output.push(servers[result[i]]);
+        }
+
+        return output;
+    }
+});
+
+topology.location_server_adder_dialog = function(spec) {
+    spec = spec || {};
+
+    var that = IPA.entity_adder_dialog(spec);
+
+    that.init = function() {
+        that.added.attach(function() {
+            that.facet.refresh();
+            that.facet.on_update.notify();
+        });
+    };
+
+    that.create_add_command = function(record) {
+        var pkey = that.facet.get_pkey();
+        var command = that.entity_adder_dialog_create_add_command(record);
+
+        command.set_option('ipalocation_location', pkey);
+
+        return command;
+    };
+
+    that.init();
+
+    return that;
+};
+
+topology.location_association_table_widget = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'servers';
+
+    var that = IPA.association_table_widget(spec);
+
+    that.create_add_dialog = function() {
+
+        var entity_label = that.entity.metadata.label_singular;
+        var pkey = that.facet.get_pkey();
+        var other_entity_label = that.other_entity.metadata.label_singular;
+
+        var title = that.add_title;
+        title = title.replace('${entity}', entity_label);
+        title = title.replace('${primary_key}', pkey);
+        title = title.replace('${other_entity}', other_entity_label);
+
+        return topology.location_server_adder_dialog({
+            title: title,
+            entity: that.other_entity.name,
+            method: 'mod',
+            options: {
+                'ipalocation_location': pkey
+            },
+            sections: [
+                {
+                    fields: [
+                        {
+                            $type: 'entity_select',
+                            name: 'cn',
+                            required: true,
+                            other_entity: that.other_entity.name,
+                            other_field: 'cn',
+                            filter_options: {
+                                'not_in_location': pkey
+                            }
+                        },
+                        {
+                            $type: 'text',
+                            name: 'ipalocationweight'
+                        }
+                    ]
+                }
+            ]
+        });
+    };
+
+
+    that.remove = function(values, on_success, on_error) {
+
+        var pkey = '';
+
+        var batch = rpc.batch_command({
+            on_success: function(data) {
+                that.remove_button.set_enabled(false);
+                that.facet.refresh();
+
+                var count = data.result.count;
+                var msg = text.get('@i18n:association.removed').replace('${count}', count);
+                IPA.notify_success(msg);
+            },
+            on_error: on_error
+        });
+
+        var command, value;
+        for(var i = 0, l=values.length; i<l; i++) {
+            value = values[i];
+
+            command = rpc.command({
+                entity: that.other_entity.name,
+                method: 'mod',
+                args: [value],
+                options: {
+                    'ipalocation_location': pkey
+                }
+            });
+
+            batch.add_command(command);
+        }
+
+        batch.execute();
+    };
+
+    return that;
+};
 
 topology.domainlevel_metadata = function(spec, context) {
     var metadata = metadata_provider.source;
@@ -970,6 +1210,7 @@ topology.server_spec = make_server_spec();
  */
 topology.domainlevel_spec = make_domainlevel_spec();
 
+topology.location_spec = make_location_spec();
 
 /**
  * Register entity
@@ -985,17 +1226,20 @@ topology.register = function() {
     e.register({type: 'topologysegment', spec: topology.segment_spec});
     e.register({type: 'server', spec: topology.server_spec});
     e.register({type: 'domainlevel', spec: topology.domainlevel_spec});
+    e.register({type: 'location', spec: topology.location_spec});
 
     a.register('domainlevel_set', topology.domainlevel_set_action);
     a.register('segment_add', topology.add_segment_action);
     a.register('segment_del', topology.del_segment_action);
 
     w.register('topology-graph', topology.TopologyGraphWidget);
+    w.register('location_association_table', topology.location_association_table_widget);
     fa.register({
         type: 'topology-graph',
         ctor: topology.TopologyGraphFacet,
         spec: topology.topology_graph_facet_spec
     });
+
 };
 
 phases.on('registration', topology.register);

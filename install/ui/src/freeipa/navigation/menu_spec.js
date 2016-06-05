@@ -226,6 +226,11 @@ var nav = {};
                             hidden: true
                         },
                         {
+                            entity: 'location',
+                            facet: 'search',
+                            hidden: true
+                        },
+                        {
                             facet: 'topology-graph',
                             hidden: true
                         }
