@@ -802,6 +802,13 @@ field.Adapter = declare(null, {
     result_index: 0,
 
     /**
+     * Name of the record which we want to extract from the result.
+     * Used in dnslocations.
+     * @type {String}
+     */
+    result_name: 'result',
+
+    /**
      * Extract record from RPC call response
      *
      * Tries to detect if supplied data is RPC call response if so, it
@@ -821,10 +828,10 @@ field.Adapter = declare(null, {
         var dr = data.result;
         var record = null;
         if (dr) {
-            if (IPA.defined(dr.result)) record = dr.result;
+            if (IPA.defined(dr[this.result_name])) record = dr[this.result_name];
             else if (dr.results) {
                 var result = dr.results[this.result_index];
-                if (result) record = result.result;
+                if (result) record = result[this.result_name];
             }
         }
         return record;
