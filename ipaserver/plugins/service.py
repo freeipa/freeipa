@@ -556,7 +556,7 @@ class service_add(LDAPCreate):
             raise errors.HostService()
 
         try:
-            hostresult = api.Command['host_show'](hostname)['result']
+            hostresult = self.api.Command['host_show'](hostname)['result']
         except errors.NotFound:
             raise errors.NotFound(
                 reason=_("The host '%s' does not exist to add a service to.") %

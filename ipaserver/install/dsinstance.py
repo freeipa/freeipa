@@ -351,7 +351,7 @@ class DsInstance(service.Service):
         self.start_creation(runtime=10)
 
     def create_replica(self, realm_name, master_fqdn, fqdn,
-                       domain_name, dm_password, subject_base,
+                       domain_name, dm_password, subject_base, api,
                        pkcs12_info=None, ca_file=None,
                        ca_is_configured=None, promote=False):
         # idstart and idmax are configured so that the range is seen as
@@ -376,6 +376,7 @@ class DsInstance(service.Service):
         if ca_is_configured is not None:
             self.ca_is_configured = ca_is_configured
         self.promote = promote
+        self.api = api
 
         self.__common_setup(enable_ssl=(not self.promote))
         self.step("restarting directory server", self.__restart_instance)
@@ -1215,7 +1216,8 @@ class DsInstance(service.Service):
         except OSError:
             pass
 
-        installutils.install_service_keytab(self.principal,
+        installutils.install_service_keytab(self.api,
+                                            self.principal,
                                             self.master_fqdn,
                                             paths.DS_KEYTAB,
                                             force_service_add=True)

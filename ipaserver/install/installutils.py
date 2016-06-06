@@ -49,7 +49,7 @@ from ipapython.admintool import ScriptError
 from ipapython.ipa_log_manager import root_logger
 from ipalib.util import validate_hostname
 from ipapython import config
-from ipalib import api, errors, x509
+from ipalib import errors, x509
 from ipapython.dn import DN
 from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services
@@ -1090,27 +1090,12 @@ def realm_to_ldapi_uri(realm_name):
     return 'ldapi://' + ldapurl.ldapUrlEscape(socketname)
 
 
-def install_service_keytab(principal, server, path, force_service_add=False):
-
+def install_service_keytab(api, principal, server, path,
+                           force_service_add=False):
     try:
-        api.Backend.rpcclient.connect()
-
-        # Create services if none exists (we use the .forward method
-        # here so that we can control the client version number and avoid
-        # errors. This is a workaround until the API becomes version
-        # independent: FIXME
-
-        api.Backend.rpcclient.forward(
-            'service_add',
-            krbprincipalname=principal,
-            force=force_service_add,
-            version=u'2.112'    # All the way back to 3.0 servers
-        )
+        api.Command.service_add(principal, force=force_service_add)
     except errors.DuplicateEntry:
         pass
-    finally:
-        if api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.disconnect()
 
     args = [paths.IPA_GETKEYTAB, '-k', path, '-p', principal, '-s', server]
     ipautil.run(args)

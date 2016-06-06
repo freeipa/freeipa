@@ -70,7 +70,7 @@ def make_pkcs12_info(directory, cert_name, password_name):
         return None
 
 
-def install_http_certs(config, fstore):
+def install_http_certs(config, fstore, remote_api):
 
     # Obtain keytab for the HTTP service
     fstore.backup_file(paths.IPA_KEYTAB)
@@ -80,7 +80,8 @@ def install_http_certs(config, fstore):
         pass
 
     principal = 'HTTP/%s@%s' % (config.host_name, config.realm_name)
-    installutils.install_service_keytab(principal,
+    installutils.install_service_keytab(remote_api,
+                                        principal,
                                         config.master_host_name,
                                         paths.IPA_KEYTAB,
                                         force_service_add=True)
@@ -93,8 +94,8 @@ def install_http_certs(config, fstore):
     # FIXME: need Signing-Cert too ?
 
 
-def install_replica_ds(config, options, ca_is_configured, promote=False,
-                       pkcs12_info=None):
+def install_replica_ds(config, options, ca_is_configured, remote_api,
+                       promote=False, pkcs12_info=None):
     dsinstance.check_ports()
 
     # if we have a pkcs12 file, create the cert db from
@@ -122,6 +123,7 @@ def install_replica_ds(config, options, ca_is_configured, promote=False,
         ca_is_configured=ca_is_configured,
         ca_file=ca_file,
         promote=promote,
+        api=remote_api,
     )
 
     return ds
@@ -321,19 +323,6 @@ def check_dns_resolution(host_name, dns_servers):
                 no_errors = False
 
     return no_errors
-
-
-def check_ca_enabled(api):
-    try:
-        api.Backend.rpcclient.connect()
-        result = api.Backend.rpcclient.forward(
-            'ca_is_enabled',
-            version=u'2.112'    # All the way back to 3.0 servers
-        )
-        return result['result']
-    finally:
-        if api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.disconnect()
 
 
 def configure_certmonger():
@@ -789,7 +778,7 @@ def install(installer):
             ntp.create_instance()
 
         # Configure dirsrv
-        ds = install_replica_ds(config, options, ca_enabled)
+        ds = install_replica_ds(config, options, ca_enabled, remote_api)
 
         # Always try to install DNS records
         install_dns_records(config, options, remote_api)
@@ -984,7 +973,7 @@ def promote_check(installer):
         except ipaclient.ntpconf.NTPConfigurationError:
             pass
 
-    api.bootstrap(context='installer')
+    api.bootstrap(in_server=True, context='installer')
     api.finalize()
 
     config = ReplicaConfig()
@@ -1314,58 +1303,58 @@ def promote(installer):
     pkinit_pkcs12_file = installer._pkinit_pkcs12_file
     pkinit_pkcs12_info = installer._pkinit_pkcs12_info
 
-    if installer._add_to_ipaservers:
-        ccache = os.environ['KRB5CCNAME']
-        remote_api = installer._remote_api
-        conn = remote_api.Backend.ldap2
-        try:
-            conn.connect(ccache=installer._ccache)
+    ccache = os.environ['KRB5CCNAME']
+    remote_api = installer._remote_api
+    conn = remote_api.Backend.ldap2
+    try:
+        conn.connect(ccache=installer._ccache)
 
+        if installer._add_to_ipaservers:
             remote_api.Command['hostgroup_add_member'](
                 u'ipaservers',
                 host=[unicode(api.env.host)],
             )
-        finally:
-            if conn.isconnected():
-                conn.disconnect()
-            os.environ['KRB5CCNAME'] = ccache
 
-    # Save client file and merge in server directives
-    target_fname = paths.IPA_DEFAULT_CONF
-    fstore.backup_file(target_fname)
-    ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Replica Promote")
-    ipaconf.setOptionAssignment(" = ")
-    ipaconf.setSectionNameDelimiters(("[", "]"))
+        # Save client file and merge in server directives
+        target_fname = paths.IPA_DEFAULT_CONF
+        fstore.backup_file(target_fname)
+        ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Replica Promote")
+        ipaconf.setOptionAssignment(" = ")
+        ipaconf.setSectionNameDelimiters(("[", "]"))
 
-    config.promote = installer.promote
-    config.dirman_password = hexlify(ipautil.ipa_generate_password())
+        config.promote = installer.promote
+        config.dirman_password = hexlify(ipautil.ipa_generate_password())
 
-    # FIXME: allow to use passed in certs instead
-    if installer._ca_enabled:
-        configure_certmonger()
+        # FIXME: allow to use passed in certs instead
+        if installer._ca_enabled:
+            configure_certmonger()
 
-    # Create DS user/group if it doesn't exist yet
-    dsinstance.create_ds_user()
+        # Create DS user/group if it doesn't exist yet
+        dsinstance.create_ds_user()
 
-    # Configure ntpd
-    if not options.no_ntp:
-        ipaclient.ntpconf.force_ntpd(sstore)
-        ntp = ntpinstance.NTPInstance()
-        ntp.create_instance()
+        # Configure ntpd
+        if not options.no_ntp:
+            ipaclient.ntpconf.force_ntpd(sstore)
+            ntp = ntpinstance.NTPInstance()
+            ntp.create_instance()
 
-    try:
         # Configure dirsrv
         ds = install_replica_ds(config, options, installer._ca_enabled,
+                                remote_api,
                                 promote=True, pkcs12_info=dirsrv_pkcs12_info)
 
         # Always try to install DNS records
-        install_dns_records(config, options, api)
+        install_dns_records(config, options, remote_api)
 
         # Must install http certs before changing ipa configuration file
         # or certmonger will fail to contact the peer master
-        install_http_certs(config, fstore)
+        install_http_certs(config, fstore, remote_api)
 
     finally:
+        if conn.isconnected():
+            conn.disconnect()
+        os.environ['KRB5CCNAME'] = ccache
+
         # Create the management framework config file
         # do this regardless of the state of DS installation. Even if it fails,
         # we need to have master-like configuration in order to perform a
@@ -1476,7 +1465,6 @@ def promote(installer):
     server_api.finalize()
 
     if options.setup_dns:
-        server_api.Backend.rpcclient.connect()
         server_api.Backend.ldap2.connect(autobind=True)
         dns.install(False, True, options, server_api)
 
