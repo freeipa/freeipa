@@ -1,0 +1,8 @@
+dn: cn=ID Overridden Principal,cn=mapping,cn=sasl,cn=config
+default:cn: ID Overridden Principal
+default:nsSaslMapBaseDNTemplate: cn=default trust view,cn=views,cn=accounts,$SUFFIX
+default:nsSaslMapFilterTemplate: (&(ipaoriginaluid=\1@\2)(objectclass=ipaUserOverride))
+default:nsSaslMapPriority: 20
+default:nsSaslMapRegexString: \(.*\)@\(.*\)
+default:objectClass: top
+default:objectClass: nsSaslMapping

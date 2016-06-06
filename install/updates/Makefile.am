@@ -21,6 +21,7 @@ app_DATA =				\
 	20-syncrepl.update		\
 	20-user_private_groups.update	\
 	20-winsync_index.update		\
+	20-idoverride_index.update	\
 	20-uuid.update  \
 	21-replicas_container.update	\
 	21-ca_renewal_container.update	\
@@ -53,6 +54,7 @@ app_DATA =				\
 	61-trusts-s4u2proxy.update	\
 	62-ranges.update		\
 	71-idviews.update		\
+	71-idviews-sasl-mapping.update  \
 	72-domainlevels.update		\
 	73-custodia.update		\
 	73-winsync.update		\
