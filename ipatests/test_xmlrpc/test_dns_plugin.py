@@ -1762,7 +1762,7 @@ class test_dns(Declarative):
                      u'code': 13021,
                      u'type': u'warning',
                      u'name': u'DNSForwardPolicyConflictWithEmptyZone',
-                     u'data': {}},
+                    },
                     {u'message': lambda x: x.startswith(
                         u"DNS server %s: query '. SOA':" % fwd_ip),
                      u'code': 13006,
@@ -3424,7 +3424,7 @@ class test_forward_zones(Declarative):
                      u'code': 13021,
                      u'type': u'warning',
                      u'name': u'DNSForwardPolicyConflictWithEmptyZone',
-                     u'data': {}},
+                    },
                     {u'message': lambda x: x.startswith(
                         u"DNS server %s: query '%s SOA':" %
                         (forwarder1, fwzone2)),
