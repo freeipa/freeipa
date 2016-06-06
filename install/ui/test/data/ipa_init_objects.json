@@ -8527,19 +8527,6 @@
                         "noextrawhitespace": true,
                         "type": "unicode"
                     },
-                    {
-                        "class": "Str",
-                        "deprecated_cli_aliases": [],
-                        "doc": "Trusted domain partner",
-                        "flags": [
-                            "no_display",
-                            "no_option"
-                        ],
-                        "label": "Trusted domain partner",
-                        "name": "ipanttrustpartner",
-                        "noextrawhitespace": true,
-                        "type": "unicode"
-                    }
                 ],
                 "uuid_attribute": ""
             },

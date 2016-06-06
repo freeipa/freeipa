@@ -1477,10 +1477,6 @@ class trustdomain(LDAPObject):
             cli_name='sid',
             label=_('Domain Security Identifier'),
         ),
-        Str('ipanttrustpartner?',
-            label=_('Trusted domain partner'),
-            flags=['no_display', 'no_option'],
-        ),
     )
 
     # LDAPObject.get_dn() only passes all but last element of keys and no kwargs
