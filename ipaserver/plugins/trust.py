@@ -487,11 +487,16 @@ class trust(LDAPObject):
     object_name_plural = _('trusts')
     object_class = ['ipaNTTrustedDomain']
     default_attributes = ['cn', 'ipantflatname', 'ipanttrusteddomainsid',
-        'ipanttrusttype', 'ipanttrustattributes', 'ipanttrustdirection',
-        'ipanttrustpartner', 'ipanttrustforesttrustinfo',
-        'ipanttrustposixoffset', 'ipantsupportedencryptiontypes' ]
+                          'ipanttrusttype', 'ipanttrustattributes',
+                          'ipanttrustdirection', 'ipanttrustpartner',
+                          'ipanttrustforesttrustinfo',
+                          'ipanttrustposixoffset',
+                          'ipantsupportedencryptiontypes',
+                          'ipantadditionalsuffixes']
     search_display_attributes = ['cn', 'ipantflatname',
-                                 'ipanttrusteddomainsid', 'ipanttrusttype']
+                                 'ipanttrusteddomainsid', 'ipanttrusttype',
+                                 'ipanttrustattributes',
+                                 'ipantadditionalsuffixes']
     managed_permissions = {
         'System: Read Trust Information': {
             # Allow reading of attributes needed for SSSD subdomains support
@@ -505,7 +510,7 @@ class trust(LDAPObject):
                 'ipantflatname', 'ipantsecurityidentifier',
                 'ipanttrusteddomainsid', 'ipanttrustpartner',
                 'ipantsidblacklistincoming', 'ipantsidblacklistoutgoing',
-                'ipanttrustdirection'
+                'ipanttrustdirection', 'ipantadditionalsuffixes',
             },
         },
 
@@ -1457,8 +1462,11 @@ class trustdomain(LDAPObject):
     object_name = _('trust domain')
     object_name_plural = _('trust domains')
     object_class = ['ipaNTTrustedDomain']
-    default_attributes = ['cn', 'ipantflatname', 'ipanttrusteddomainsid', 'ipanttrustpartner']
-    search_display_attributes = ['cn', 'ipantflatname', 'ipanttrusteddomainsid', ]
+    default_attributes = ['cn', 'ipantflatname', 'ipanttrusteddomainsid',
+                          'ipanttrustpartner', 'ipantadditionalsuffixes']
+    search_display_attributes = ['cn', 'ipantflatname',
+                                 'ipanttrusteddomainsid',
+                                 'ipantadditionalsuffixes']
 
     label = _('Trusted domains')
     label_singular = _('Trusted domain')
@@ -1496,9 +1504,10 @@ class trustdomain(LDAPObject):
 class trustdomain_find(LDAPSearch):
     __doc__ = _('Search domains of the trust')
 
-    has_output_params = LDAPSearch.has_output_params + (
+    has_output_params = LDAPSearch.has_output_params + trust_output_params + (
         Flag('domain_enabled', label= _('Domain enabled')),
     )
+
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
         return (filters, base_dn, ldap.SCOPE_SUBTREE)
 
@@ -1507,11 +1516,10 @@ class trustdomain_find(LDAPSearch):
             return truncated
         trust_dn = self.obj.get_dn(args[0], trust_type=u'ad')
         trust_entry = ldap.get_entry(trust_dn)
+        blacklist = trust_entry.get('ipantsidblacklistincoming')
         for entry in entries:
-            sid = entry['ipanttrusteddomainsid'][0]
-
-            blacklist = trust_entry.get('ipantsidblacklistincoming')
-            if blacklist is None:
+            sid = entry.get('ipanttrusteddomainsid', [None])[0]
+            if sid is None:
                 continue
 
             if sid in blacklist:
@@ -1536,9 +1544,11 @@ class trustdomain_add(LDAPCreate):
 
     takes_options = LDAPCreate.takes_options + (_trust_type_option,)
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        if 'ipanttrustpartner' in options:
-            entry_attrs['ipanttrustpartner'] = [options['ipanttrustpartner']]
+        # ipaNTTrustPartner must always be set to the name of the trusted domain
+        # See MS-ADTS 6.1.6.7.13
+        entry_attrs['ipanttrustpartner'] = [dn[0]['cn']]
         return dn
+
 
 @register()
 class trustdomain_del(LDAPDelete):
@@ -1582,8 +1592,10 @@ def fetch_domains_from_trust(myapi, trustinstance, trust_entry, **options):
     server = options.get('realm_server', None)
     domains = ipaserver.dcerpc.fetch_domains(myapi,
                                              trustinstance.local_flatname,
-                                             trust_name, creds=creds, server=server)
+                                             trust_name, creds=creds,
+                                             server=server)
     return domains
+
 
 def add_new_domains_from_trust(myapi, trustinstance, trust_entry, domains, **options):
     result = []
@@ -1596,7 +1608,12 @@ def add_new_domains_from_trust(myapi, trustinstance, trust_entry, domains, **opt
     old_range = myapi.Command.idrange_show(range_name, raw=True)['result']
     idrange_type = old_range['iparangetype'][0]
 
-    for dom in domains:
+    suffixes = list()
+    suffixes.extend(y['cn']
+                    for x, y in six.iteritems(domains['suffixes'])
+                    if x not in domains['domains'])
+
+    for dom in six.itervalues(domains['domains']):
         dom['trust_type'] = u'ad'
         try:
             name = dom['cn']
@@ -1612,12 +1629,26 @@ def add_new_domains_from_trust(myapi, trustinstance, trust_entry, domains, **opt
             if idrange_type != u'ipa-ad-trust-posix':
                 range_name = name.upper() + '_id_range'
                 dom['range_type'] = u'ipa-ad-trust'
-                add_range(myapi, trustinstance, range_name, dom['ipanttrusteddomainsid'],
+                add_range(myapi, trustinstance,
+                          range_name, dom['ipanttrusteddomainsid'],
                           trust_name, name, **dom)
         except errors.DuplicateEntry:
             # Ignore updating duplicate entries
             pass
+
+    try:
+        dn = myapi.Object.trust.get_dn(trust_name, trust_type=u'ad')
+        ldap = myapi.Backend.ldap2
+        entry = ldap.get_entry(dn)
+        tlns = entry.get('ipantadditionalsuffixes', [])
+        tlns.extend(x for x in suffixes if x not in tlns)
+        entry['ipantadditionalsuffixes'] = tlns
+        ldap.update_entry(entry)
+    except errors.EmptyModlist:
+        pass
+
     return result
+
 
 @register()
 class trust_fetch_domains(LDAPRetrieve):
@@ -1694,7 +1725,7 @@ class trustdomain_enable(LDAPQuery):
         dn = self.obj.get_dn(keys[0], keys[1], trust_type=u'ad')
         try:
             entry = ldap.get_entry(dn)
-            sid = entry['ipanttrusteddomainsid'][0]
+            sid = entry.single_value.get('ipanttrusteddomainsid', None)
             if sid in trust_entry['ipantsidblacklistincoming']:
                 trust_entry['ipantsidblacklistincoming'].remove(sid)
                 ldap.update_entry(trust_entry)
@@ -1735,7 +1766,7 @@ class trustdomain_disable(LDAPQuery):
         dn = self.obj.get_dn(keys[0], keys[1], trust_type=u'ad')
         try:
             entry = ldap.get_entry(dn)
-            sid = entry['ipanttrusteddomainsid'][0]
+            sid = entry.single_value.get('ipanttrusteddomainsid', None)
             if not (sid in trust_entry['ipantsidblacklistincoming']):
                 trust_entry['ipantsidblacklistincoming'].append(sid)
                 ldap.update_entry(trust_entry)

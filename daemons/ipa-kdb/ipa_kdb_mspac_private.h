@@ -47,6 +47,7 @@ struct ipadb_adtrusts {
     int len_sid_blacklist_outgoing;
     struct ipadb_adtrusts *parent;
     char *parent_name;
+    char **upn_suffixes;
 };
 
 int string_to_sid(const char *str, struct dom_sid *sid);

@@ -1023,8 +1023,13 @@ static int handle_name_request(struct ipa_extdom_ctx *ctx,
     char *buf = NULL;
     struct sss_nss_kv *kv_list = NULL;
 
-    ret = asprintf(&fq_name, "%s%c%s", name, SSSD_DOMAIN_SEPARATOR,
-                                       domain_name);
+    if (strchr(name, SSSD_DOMAIN_SEPARATOR) == NULL) {
+        ret = asprintf(&fq_name, "%s%c%s", name, SSSD_DOMAIN_SEPARATOR,
+                                           domain_name);
+    } else {
+        /* SSSD_DOMAIN_SEPARATOR already present, assume UPN */
+        ret = asprintf(&fq_name, "%s", name);
+    }
     if (ret == -1) {
         ret = LDAP_OPERATIONS_ERROR;
         set_err_msg(req, "Failed to create fully qualified name");

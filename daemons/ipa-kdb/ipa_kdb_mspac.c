@@ -2273,7 +2273,7 @@ static char *get_server_netbios_name(struct ipadb_context *ipactx)
 
 void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
 {
-    int i;
+    int i, j;
 
     if (!*mspac) return;
 
@@ -2290,6 +2290,12 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
             free((*mspac)->trusts[i].sid_blacklist_outgoing);
             free((*mspac)->trusts[i].parent_name);
             (*mspac)->trusts[i].parent = NULL;
+            if ((*mspac)->trusts[i].upn_suffixes) {
+                for (j = 0; (*mspac)->trusts[i].upn_suffixes[j]; j++) {
+                    free((*mspac)->trusts[i].upn_suffixes[j]);
+                }
+                free((*mspac)->trusts[i].upn_suffixes);
+            }
         }
         free((*mspac)->trusts);
     }
@@ -2405,7 +2411,7 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
     LDAP *lc = ipactx->lcontext;
     char *attrs[] = { "cn", "ipaNTTrustPartner", "ipaNTFlatName",
                       "ipaNTTrustedDomainSID", "ipaNTSIDBlacklistIncoming",
-                      "ipaNTSIDBlacklistOutgoing", NULL };
+                      "ipaNTSIDBlacklistOutgoing", "ipaNTAdditionalSuffixes", NULL };
     char *filter = "(objectclass=ipaNTTrustedDomain)";
     krb5_error_code kerr;
     LDAPMessage *res = NULL;
@@ -2462,24 +2468,40 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
             goto done;
         }
 
+        t[n].flat_name = NULL;
         ret = ipadb_ldap_attr_to_str(lc, le, "ipaNTFlatName",
                                      &t[n].flat_name);
-        if (ret) {
+        if (ret && ret != ENOENT) {
             ret = EINVAL;
             goto done;
         }
 
+        t[n].domain_sid = NULL;
         ret = ipadb_ldap_attr_to_str(lc, le, "ipaNTTrustedDomainSID",
                                      &t[n].domain_sid);
-        if (ret) {
+        if (ret && ret != ENOENT) {
             ret = EINVAL;
             goto done;
         }
 
         ret = string_to_sid(t[n].domain_sid, &t[n].domsid);
-        if (ret) {
+        if (ret && t[n].domain_sid != NULL) {
             ret = EINVAL;
             goto done;
+        }
+
+        ret = ipadb_ldap_attr_to_strlist(lc, le, "ipaNTAdditionalSuffixes",
+                                         &t[n].upn_suffixes);
+
+        if (ret) {
+            if (ret == ENOENT) {
+                /* This attribute is optional */
+                ret = 0;
+                t[n].upn_suffixes = NULL;
+            } else {
+                ret = EINVAL;
+                goto done;
+            }
         }
 
         ret = ipadb_ldap_attr_to_strlist(lc, le, "ipaNTSIDBlacklistIncoming",
@@ -2808,6 +2830,7 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 	struct ipadb_context *ipactx;
 	int i, j, length;
 	const char *name;
+	bool result = false;
 
 	if (test_realm == NULL || test_realm[0] == '\0') {
 		return KRB5_KDB_NOENTRY;
@@ -2829,12 +2852,27 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 
 	/* Iterate through list of trusts and check if input realm belongs to any of the trust */
 	for(i = 0 ; i < ipactx->mspac->num_trusts ; i++) {
-		if ((strncasecmp(test_realm,
-				 ipactx->mspac->trusts[i].domain_name,
-				 size) == 0) ||
-		    (strncasecmp(test_realm,
-				 ipactx->mspac->trusts[i].flat_name,
-				 size) == 0)) {
+		result = strncasecmp(test_realm,
+				     ipactx->mspac->trusts[i].domain_name,
+				     size) == 0;
+
+                if (!result && (ipactx->mspac->trusts[i].flat_name != NULL)) {
+			result = strncasecmp(test_realm,
+					     ipactx->mspac->trusts[i].flat_name,
+					     size) == 0;
+		}
+
+		if (!result && (ipactx->mspac->trusts[i].upn_suffixes != NULL)) {
+			for (j = 0; ipactx->mspac->trusts[i].upn_suffixes[j]; j++) {
+				result = strncasecmp(test_realm,
+						     ipactx->mspac->trusts[i].upn_suffixes[j],
+						     size) == 0;
+				if (result)
+					break;
+			}
+		}
+
+		if (result) {
 			/* return the realm if caller supplied a place for it */
 			if (trusted_realm != NULL) {
 				name = (ipactx->mspac->trusts[i].parent_name != NULL) ?

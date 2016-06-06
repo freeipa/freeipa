@@ -1197,7 +1197,10 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
     def communicate(td):
         td.init_lsa_pipe(td.info['dc'])
         netr_pipe = netlogon.netlogon(td.binding, td.parm, td.creds)
-        domains = netr_pipe.netr_DsrEnumerateDomainTrusts(td.binding, 1)
+        # Older FreeIPA versions used netr_DsrEnumerateDomainTrusts call
+        # but it doesn't provide information about non-domain UPNs associated
+        # with the forest, thus we have to use netr_DsRGetForestTrustInformation
+        domains = netr_pipe.netr_DsRGetForestTrustInformation(td.info['dc'], '', 0)
         return domains
 
     domains = None
@@ -1225,6 +1228,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
         raise assess_dcerpc_exception(message=str(e))
 
     td.info['dc'] = unicode(result.pdc_dns_name)
+    td.info['name'] = unicode(result.dns_domain)
     if type(creds) is bool:
         # Rely on existing Kerberos credentials in the environment
         td.creds = credentials.Credentials()
@@ -1254,16 +1258,30 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
     if domains is None:
         return None
 
-    result = []
-    for t in domains.array:
-        if (not (t.trust_flags & trust_flags['NETR_TRUST_FLAG_PRIMARY']) and
-            (t.trust_flags & trust_flags['NETR_TRUST_FLAG_IN_FOREST'])):
-            res = dict()
-            res['cn'] = unicode(t.dns_name)
-            res['ipantflatname'] = unicode(t.netbios_name)
-            res['ipanttrusteddomainsid'] = unicode(t.sid)
-            res['ipanttrustpartner'] = res['cn']
-            result.append(res)
+    result = {'domains': {}, 'suffixes': {}}
+    # netr_DsRGetForestTrustInformation returns two types of entries:
+    # domain information  -- name, NetBIOS name, SID of the domain
+    # top level name info -- a name suffix associated with the forest
+    # We should ignore forest root name/name suffix as it is already part
+    # of trust information for IPA purposes and only add what's inside the forest
+    for t in domains.entries:
+        if t.type == lsa.LSA_FOREST_TRUST_DOMAIN_INFO:
+            tname = unicode(t.forest_trust_data.dns_domain_name.string)
+            if tname == trustdomain:
+                continue
+            result['domains'][tname] = {
+                'cn': tname,
+                'ipantflatname': unicode(
+                    t.forest_trust_data.netbios_domain_name.string),
+                'ipanttrusteddomainsid': unicode(
+                    t.forest_trust_data.domain_sid)
+            }
+        elif t.type == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME:
+            tname = unicode(t.forest_trust_data.string)
+            if tname == trustdomain:
+                continue
+
+            result['suffixes'][tname] = {'cn': tname}
     return result
 
 

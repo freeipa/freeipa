@@ -3,7 +3,7 @@
 from ipaserver import dcerpc
 from ipaserver.install.installutils import is_ipa_configured, ScriptError
 from ipapython import config, ipautil
-from ipalib import api, errors
+from ipalib import api
 from ipapython.dn import DN
 from ipalib.config import Env
 from ipalib.constants import DEFAULT_CONFIG
@@ -170,33 +170,8 @@ except gssapi.exceptions.GSSError:
 ipa_domain = api.env.domain
 os.environ['KRB5CCNAME'] = oneway_ccache_name
 domains = dcerpc.fetch_domains(api, ipa_domain, trusted_domain, creds=True)
-
-if domains:
-    # trust range must exist by the time fetch_domains_from_trust is called
-    range_name = unicode(trusted_domain.upper() + '_id_range')
-    old_range = api.Command.idrange_show(range_name, raw=True)['result']
-    idrange_type = old_range['iparangetype'][0]
-
-    result = []
-    for dom in domains:
-        dom['trust_type'] = u'ad'
-        try:
-            name = dom['cn']
-            del dom['cn']
-
-            res = api.Command.trustdomain_add(trusted_domain, name, **dom)
-            result.append(res['result'])
-
-            if idrange_type != u'ipa-ad-trust-posix':
-                range_name = name.upper() + '_id_range'
-                dom['range_type'] = u'ipa-ad-trust'
-                # Do not pass ipaserver.dcerpc.TrustInstance to trust.add_range
-                # to force it using existing credentials cache
-                trust.add_range(api, None, range_name, dom['ipanttrusteddomainsid'],
-                                trusted_domain, name, **dom)
-        except errors.DuplicateEntry:
-            # Ignore updating duplicate entries
-            pass
+trust_domain_object = api.Command.trust_show(trusted_domain, raw=True)['result']
+trust.add_new_domains_from_trust(api, None, trust_domain_object, domains)
 
 if old_ccache:
    os.environ['KRB5CCNAME'] = old_ccache
