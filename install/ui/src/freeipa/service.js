@@ -201,6 +201,38 @@ return {
                                     link: true
                                 }
                             ]
+                        },
+                        {
+                            $type: 'association_table',
+                            id: 'service_ipaallowedtoperform_read_keys_host',
+                            name: 'ipaallowedtoperform_read_keys_host',
+                            add_method: 'allow_retrieve_keytab',
+                            remove_method: 'disallow_retrieve_keytab',
+                            add_title: '@i18n:keytab.add_retrive',
+                            remove_title: '@i18n:keytab.remove_retrieve',
+                            columns: [
+                                {
+                                    name: 'ipaallowedtoperform_read_keys_host',
+                                    label: '@mo:host.label_singular',
+                                    link: true
+                                }
+                            ]
+                        },
+                        {
+                            $type: 'association_table',
+                            id: 'service_ipaallowedtoperform_read_keys_hostgroup',
+                            name: 'ipaallowedtoperform_read_keys_hostgroup',
+                            add_method: 'allow_retrieve_keytab',
+                            remove_method: 'disallow_retrieve_keytab',
+                            add_title: '@i18n:keytab.add_retrive',
+                            remove_title: '@i18n:keytab.remove_retrieve',
+                            columns: [
+                                {
+                                    name: 'ipaallowedtoperform_read_keys_hostgroup',
+                                    label: '@mo:hostgroup.label_singular',
+                                    link: true
+                                }
+                            ]
                         }
                     ]
                 },
@@ -237,6 +269,38 @@ return {
                                 {
                                     name: 'ipaallowedtoperform_write_keys_group',
                                     label: '@mo:group.label_singular',
+                                    link: true
+                                }
+                            ]
+                        },
+                        {
+                            $type: 'association_table',
+                            id: 'service_ipaallowedtoperform_write_keys_host',
+                            name: 'ipaallowedtoperform_write_keys_host',
+                            add_method: 'allow_create_keytab',
+                            remove_method: 'disallow_create_keytab',
+                            add_title: '@i18n:keytab.add_create',
+                            remove_title: '@i18n:keytab.remove_create',
+                            columns: [
+                                {
+                                    name: 'ipaallowedtoperform_write_keys_host',
+                                    label: '@mo:host.label_singular',
+                                    link: true
+                                }
+                            ]
+                        },
+                        {
+                            $type: 'association_table',
+                            id: 'service_ipaallowedtoperform_write_keys_hostgroup',
+                            name: 'ipaallowedtoperform_write_keys_hostgroup',
+                            add_method: 'allow_create_keytab',
+                            remove_method: 'disallow_create_keytab',
+                            add_title: '@i18n:keytab.add_create',
+                            remove_title: '@i18n:keytab.remove_create',
+                            columns: [
+                                {
+                                    name: 'ipaallowedtoperform_write_keys_hostgroup',
+                                    label: '@mo:hostgroup.label_singular',
                                     link: true
                                 }
                             ]
