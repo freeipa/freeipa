@@ -229,8 +229,7 @@ class command_defaults(PKQuery):
             raise errors.ConversionError(name=name,
                                          error=_("must be a dictionary"))
 
-        result = command.get_default(**kw)
-        result = {n: v for n, v in result.items() if n in params}
+        result = command.get_default(params, **kw)
 
         return dict(result=result)
 

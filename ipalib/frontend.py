@@ -670,7 +670,7 @@ class Command(HasParam):
             if kw.get(param.name, None) is None:
                 continue
 
-    def get_default(self, **kw):
+    def get_default(self, _params=None, **kw):
         """
         Return a dictionary of defaults for all missing required values.
 
@@ -687,8 +687,10 @@ class Command(HasParam):
         >>> c.get_default(color=u'Yellow')
         {}
         """
-        params = [p.name for p in self.params() if p.name not in kw and (p.required or p.autofill)]
-        return dict(self.__get_default_iter(params, kw))
+        if _params is None:
+            _params = [p.name for p in self.params()
+                       if p.name not in kw and (p.required or p.autofill)]
+        return dict(self.__get_default_iter(_params, kw))
 
     def get_default_of(self, _name, **kw):
         """
