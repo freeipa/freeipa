@@ -5208,12 +5208,13 @@ arg: Str('cn', cli_name='name')
 option: Str('version?')
 output: Output('result')
 command: trust_add
-args: 1,14,3
+args: 1,15,3
 arg: Str('cn', cli_name='realm')
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Int('base_id?', cli_name='base_id')
 option: Bool('bidirectional?', cli_name='two_way', default=False)
+option: Bool('external?', cli_name='external', default=False)
 option: Int('range_size?', cli_name='range_size')
 option: StrEnum('range_type?', cli_name='range_type', values=[u'ipa-ad-trust-posix', u'ipa-ad-trust'])
 option: Flag('raw', autofill=True, cli_name='raw', default=False)

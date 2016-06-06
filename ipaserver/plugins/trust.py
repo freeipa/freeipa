@@ -62,8 +62,10 @@ except Exception as e:
 
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
-        import ipaserver.dcerpc #pylint: disable=F0401
-        from ipaserver.dcerpc import TRUST_ONEWAY, TRUST_BIDIRECTIONAL
+        import ipaserver.dcerpc  # pylint: disable=F0401
+        from ipaserver.dcerpc import (TRUST_ONEWAY,
+                                      TRUST_BIDIRECTIONAL,
+                                      TRUST_JOIN_EXTERNAL)
         import dbus
         import dbus.mainloop.glib
         _bindings_installed = True
@@ -162,11 +164,18 @@ trust_output_params = (
         label=_('Trust type')),
     Str('truststatus',
         label=_('Trust status')),
+    Str('ipantadditionalsuffixes*',
+        label=_('UPN suffixes')),
 )
 
+# Trust type is a combination of ipanttrusttype and ipanttrustattributes
+# We shift trust attributes by 3 bits to left so bit 0 becomes bit 3 and
+# 2+(1 << 3) becomes 10.
 _trust_type_dict = {1 : _('Non-Active Directory domain'),
                     2 : _('Active Directory domain'),
-                    3 : _('RFC4120-compliant Kerberos realm')}
+                    3 : _('RFC4120-compliant Kerberos realm'),
+                    10: _('Non-transitive external trust to a domain in another Active Directory forest')}
+
 _trust_direction_dict = {1 : _('Trusting forest'),
                          2 : _('Trusted forest'),
                          3 : _('Two-way trust')}
@@ -189,14 +198,17 @@ DBUS_IFACE_TRUST = 'com.redhat.idm.trust'
 CRED_STYLE_SAMBA = 1
 CRED_STYLE_KERBEROS = 2
 
-def trust_type_string(level):
+LSA_TRUST_ATTRIBUTE_NON_TRANSITIVE = 0x00000001
+
+def trust_type_string(level, attrs):
     """
     Returns a string representing a type of the trust. The original field is an enum:
       LSA_TRUST_TYPE_DOWNLEVEL  = 0x00000001,
       LSA_TRUST_TYPE_UPLEVEL    = 0x00000002,
       LSA_TRUST_TYPE_MIT        = 0x00000003
     """
-    string = _trust_type_dict.get(int(level), _trust_type_dict_unknown)
+    transitive = int(attrs) & LSA_TRUST_ATTRIBUTE_NON_TRANSITIVE
+    string = _trust_type_dict.get(int(level) | (transitive << 3), _trust_type_dict_unknown)
     return unicode(string)
 
 def trust_direction_string(level):
@@ -677,6 +689,12 @@ sides.
              doc=(_('Establish bi-directional trust. By default trust is inbound one-way only.')),
              default=False,
         ),
+        Bool('external?',
+             label=_('External trust'),
+             cli_name='external',
+             doc=(_('Establish external trust to a domain in another forest. The trust is not transitive beyond the domain.')),
+             default=False,
+        ),
     )
 
     msg_summary = _('Added Active Directory trust for realm "%(value)s"')
@@ -735,12 +753,15 @@ sides.
                 fetch_trusted_domains_over_dbus(self.api, self.log, result['value'])
 
         # Format the output into human-readable values
+        attributes = int(result['result'].get('ipanttrustattributes', [0])[0])
         result['result']['trusttype'] = [trust_type_string(
-            result['result']['ipanttrusttype'][0])]
+            result['result']['ipanttrusttype'][0], attributes)]
         result['result']['trustdirection'] = [trust_direction_string(
             result['result']['ipanttrustdirection'][0])]
         result['result']['truststatus'] = [trust_status_string(
             result['verified'])]
+        if attributes:
+            result['result'].pop('ipanttrustattributes', None)
 
         del result['verified']
         result['result'].pop('ipanttrustauthoutgoing', None)
@@ -929,6 +950,11 @@ sides.
         trust_type = TRUST_ONEWAY
         if options.get('bidirectional', False):
             trust_type = TRUST_BIDIRECTIONAL
+
+        # If we are forced to establish external trust, allow it
+        if options.get('external', False):
+            self.trustinstance.allow_behavior(TRUST_JOIN_EXTERNAL)
+
         # 1. Full access to the remote domain. Use admin credentials and
         # generate random trustdom password to do work on both sides
         if full_join:
@@ -1033,7 +1059,7 @@ class trust_mod(LDAPUpdate):
 class trust_find(LDAPSearch):
     __doc__ = _('Search for trusts.')
     has_output_params = LDAPSearch.has_output_params + trust_output_params +\
-                        (Str('ipanttrusttype'),)
+                        (Str('ipanttrusttype'), Str('ipanttrustattributes'))
 
     msg_summary = ngettext(
         '%(count)d trust matched', '%(count)d trusts matched', 0
@@ -1043,7 +1069,7 @@ class trust_find(LDAPSearch):
     # search needs to be done on a sub-tree scope
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
         # list only trust, not trust domains
-        trust_filter = '(ipaNTTrustPartner=*)'
+        trust_filter = '(&(ipaNTTrustPartner=*)(&(objectclass=ipaIDObject)(objectclass=ipaNTTrustedDomain)))'
         filter = ldap.combine_filters((filters, trust_filter), rules=ldap.MATCH_ALL)
         return (filter, base_dn, ldap.SCOPE_SUBTREE)
 
@@ -1060,10 +1086,13 @@ class trust_find(LDAPSearch):
 
         for attrs in entries:
             # Translate ipanttrusttype to trusttype if --raw not used
-            trust_type = attrs.get('ipanttrusttype', [None])[0]
+            trust_type = attrs.single_value.get('ipanttrusttype', None)
+            attributes = attrs.single_value.get('ipanttrustattributes', 0)
             if not options.get('raw', False) and trust_type is not None:
-                attrs['trusttype'] = trust_type_string(attrs['ipanttrusttype'][0])
+                attrs['trusttype'] = [trust_type_string(trust_type, attributes)]
                 del attrs['ipanttrusttype']
+                if attributes:
+                    del attrs['ipanttrustattributes']
 
         return truncated
 
@@ -1071,7 +1100,7 @@ class trust_find(LDAPSearch):
 class trust_show(LDAPRetrieve):
     __doc__ = _('Display information about a trust.')
     has_output_params = LDAPRetrieve.has_output_params + trust_output_params +\
-                        (Str('ipanttrusttype'), Str('ipanttrustdirection'))
+                        (Str('ipanttrusttype'), Str('ipanttrustdirection'), Str('ipanttrustattributes'))
 
     def execute(self, *keys, **options):
         result = super(trust_show, self).execute(*keys, **options)
@@ -1088,15 +1117,19 @@ class trust_show(LDAPRetrieve):
         # if --raw not used
 
         if not options.get('raw', False):
-            trust_type = entry_attrs.get('ipanttrusttype', [None])[0]
+            trust_type = entry_attrs.single_value.get('ipanttrusttype', None)
+            attributes = entry_attrs.single_value.get('ipanttrustattributes', 0)
             if trust_type is not None:
-                entry_attrs['trusttype'] = trust_type_string(trust_type)
+                entry_attrs['trusttype'] = [trust_type_string(trust_type, attributes)]
                 del entry_attrs['ipanttrusttype']
 
-            dir_str = entry_attrs.get('ipanttrustdirection', [None])[0]
+            dir_str = entry_attrs.single_value.get('ipanttrustdirection', None)
             if dir_str is not None:
                 entry_attrs['trustdirection'] = [trust_direction_string(dir_str)]
                 del entry_attrs['ipanttrustdirection']
+
+            if attributes:
+                del entry_attrs['ipanttrustattributes']
 
         return dn
 

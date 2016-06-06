@@ -77,6 +77,11 @@ and Samba4 python bindings.
 TRUST_ONEWAY        = 1
 TRUST_BIDIRECTIONAL = 3
 
+# Trust join behavior
+# External trust -- allow creating trust to a non-root domain in the forest
+TRUST_JOIN_EXTERNAL = 1
+
+
 def is_sid_valid(sid):
     try:
         security.dom_sid(sid)
@@ -1037,7 +1042,7 @@ class TrustDomainInstance(object):
             # We can ignore the error here -- setting up name suffix routes may fail
             pass
 
-    def establish_trust(self, another_domain, trustdom_secret, trust_type='bidirectional'):
+    def establish_trust(self, another_domain, trustdom_secret, trust_type='bidirectional', trust_external=False):
         """
         Establishes trust between our and another domain
         Input: another_domain -- instance of TrustDomainInstance, initialized with #retrieve call
@@ -1060,6 +1065,8 @@ class TrustDomainInstance(object):
             info.trust_direction |= lsa.LSA_TRUST_DIRECTION_OUTBOUND
         info.trust_type = lsa.LSA_TRUST_TYPE_UPLEVEL
         info.trust_attributes = 0
+        if trust_external:
+            info.trust_attributes |= lsa.LSA_TRUST_ATTRIBUTE_NON_TRANSITIVE
 
         try:
             dname = lsa.String()
@@ -1096,14 +1103,17 @@ class TrustDomainInstance(object):
             # server as that one doesn't support AES encryption types
             pass
 
-        try:
-            info = self._pipe.QueryTrustedDomainInfo(trustdom_handle, lsa.LSA_TRUSTED_DOMAIN_INFO_INFO_EX)
-            info.trust_attributes |= lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE
-            self._pipe.SetInformationTrustedDomain(trustdom_handle, lsa.LSA_TRUSTED_DOMAIN_INFO_INFO_EX, info)
-        except RuntimeError as e:
-            root_logger.error('unable to set trust to transitive: %s' % (str(e)))
+        if not trust_external:
+            try:
+                info = self._pipe.QueryTrustedDomainInfo(trustdom_handle,
+                                                         lsa.LSA_TRUSTED_DOMAIN_INFO_INFO_EX)
+                info.trust_attributes |= lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE
+                self._pipe.SetInformationTrustedDomain(trustdom_handle,
+                                                       lsa.LSA_TRUSTED_DOMAIN_INFO_INFO_EX, info)
+            except RuntimeError as e:
+                root_logger.error('unable to set trust transitivity status: %s' % (str(e)))
 
-        if self.info['is_pdc']:
+        if self.info['is_pdc'] or trust_external:
             self.update_ftinfo(another_domain)
 
     def verify_trust(self, another_domain):
@@ -1262,6 +1272,7 @@ class TrustDomainJoins(object):
         self.api = api
         self.local_domain = None
         self.remote_domain = None
+        self.__allow_behavior = 0
 
         domain_validator = DomainValidator(api)
         self.configured = domain_validator.is_configured()
@@ -1270,6 +1281,10 @@ class TrustDomainJoins(object):
             self.local_flatname = domain_validator.flatname
             self.local_dn = domain_validator.dn
             self.__populate_local_domain()
+
+    def allow_behavior(self, *flags):
+        for f in flags:
+            self.__allow_behavior |= int(f)
 
     def __populate_local_domain(self):
         # Initialize local domain info using kerberos only
@@ -1358,14 +1373,19 @@ class TrustDomainJoins(object):
                 realm_passwd
             )
 
+        trust_external = bool(self.__allow_behavior & TRUST_JOIN_EXTERNAL)
         if self.remote_domain.info['dns_domain'] != self.remote_domain.info['dns_forest']:
-            raise errors.NotAForestRootError(forest=self.remote_domain.info['dns_forest'], domain=self.remote_domain.info['dns_domain'])
+            if not trust_external:
+                raise errors.NotAForestRootError(forest=self.remote_domain.info['dns_forest'],
+                                                 domain=self.remote_domain.info['dns_domain'])
 
         if not self.remote_domain.read_only:
             trustdom_pass = samba.generate_random_password(128, 128)
             self.get_realmdomains()
-            self.remote_domain.establish_trust(self.local_domain, trustdom_pass, trust_type)
-            self.local_domain.establish_trust(self.remote_domain, trustdom_pass, trust_type)
+            self.remote_domain.establish_trust(self.local_domain,
+                                               trustdom_pass, trust_type, trust_external)
+            self.local_domain.establish_trust(self.remote_domain,
+                                              trustdom_pass, trust_type, trust_external)
             # if trust is inbound, we don't need to verify it because AD DC will respond
             # with WERR_NO_SUCH_DOMAIN -- in only does verification for outbound trusts.
             result = True
@@ -1381,8 +1401,12 @@ class TrustDomainJoins(object):
         if not(isinstance(self.remote_domain, TrustDomainInstance)):
             self.populate_remote_domain(realm, realm_server, realm_passwd=None)
 
+        trust_external = bool(self.__allow_behavior & TRUST_JOIN_EXTERNAL)
         if self.remote_domain.info['dns_domain'] != self.remote_domain.info['dns_forest']:
-            raise errors.NotAForestRootError(forest=self.remote_domain.info['dns_forest'], domain=self.remote_domain.info['dns_domain'])
+            if not trust_external:
+                raise errors.NotAForestRootError(forest=self.remote_domain.info['dns_forest'],
+                                                 domain=self.remote_domain.info['dns_domain'])
 
-        self.local_domain.establish_trust(self.remote_domain, trustdom_passwd, trust_type)
+        self.local_domain.establish_trust(self.remote_domain,
+                                          trustdom_passwd, trust_type, trust_external)
         return dict(local=self.local_domain, remote=self.remote_domain, verified=False)
