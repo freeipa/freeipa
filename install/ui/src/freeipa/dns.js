@@ -2263,28 +2263,28 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
     //2nd step: find target zone
     that.find_zone = function(data) {
         var zones = data.result.result;
-        var target_zone = null;
+        var target_zone = {
+            index: 100,
+            target_zone: ''
+        };
 
         for (var i=0; i<zones.length; i++) {
 
             var zone_name = rpc.extract_objects(zones[i].idnsname)[0];
-            if (that.reverse_address.indexOf(zone_name) > -1) {
-                var msg = text.get('@i18n:objects.dnsrecord.ptr_redir_zone');
-                msg = msg.replace('${zone}', zone_name);
-                that.append_status(msg);
+            var index = that.reverse_address.indexOf(zone_name);
 
-                if (!target_zone ||
-                    (target_zone && zone_name.length > target_zone.length)) {
-
-                    target_zone = zone_name;
-                }
-
-                break;
+            if (index > -1 && target_zone.index > index) {
+                target_zone.index = index;
+                target_zone.target_zone = zone_name;
             }
         }
 
-        if (target_zone) {
-            that.zone = target_zone;
+        if (target_zone.target_zone !== '') {
+
+            that.zone = target_zone.target_zone;
+            var msg = text.get('@i18n:objects.dnsrecord.ptr_redir_zone');
+            msg = msg.replace('${zone}', that.zone);
+            that.append_status(msg);
             that.check_record();
         } else {
             that.append_status(text.get('@i18n:objects.dnsrecord.ptr_redir_zone_err'));
