@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=176
-# Last change: mbasti - location-show: list servers in the location
+IPA_API_VERSION_MINOR=177
+# Last change: abbra - adtrust: remove nttrustpartner parameter
