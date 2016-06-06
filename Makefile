@@ -137,8 +137,13 @@ lint: bootstrap-autogen
 	# find all python modules and executable python files outside modules for pylint check
 	FILES=`find . \
 		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
+		-path '*/.*' -o \
+		-path './dist/*' -o \
+		-path './lextab.py' -o \
+		-path './yacctab.py' -o \
+		-name '*~' -o \
 		-name \*.py -print -o \
-		-type f \! -path '*/.*' \! -name '*~' -exec grep -qsm1 '^#!.*\bpython' '{}' \; -print`; \
+		-type f -exec grep -qsm1 '^#!.*\bpython' '{}' \; -print`; \
 	echo "Pylint is running, please wait ..."; \
 	PYTHONPATH=. pylint --rcfile=pylintrc $(PYLINTFLAGS) $$FILES || $(LINT_IGNORE_FAIL)
 	$(MAKE) -C install/po validate-src-strings || $(LINT_IGNORE_FAIL)
