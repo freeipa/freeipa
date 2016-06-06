@@ -50,9 +50,10 @@
                     },
                     "authtype": {
                         "config_tooltip": "<p>Implicit method (password) will be used if no method is chosen.</p><p><strong>Password + Two-factor:</strong> LDAP and Kerberos allow authentication with either one of the authentication types but Kerberos uses pre-authentication method which requires to use armor ccache.</p><p><strong>RADIUS with another type:</strong> Kerberos always use RADIUS, but LDAP never does. LDAP only recognize the password and two-factor authentication options.</p>",
+                        "otp": "OTP",
                         "type_otp": "Two factor authentication (password + OTP)",
                         "type_password": "Password",
-                        "type_radius": "Radius",
+                        "type_radius": "RADIUS",
                         "type_disabled": "Disable per-user override",
                         "user_tooltip": "<p>Per-user setting, overwrites the global setting if any option is checked.</p><p><strong>Password + Two-factor:</strong> LDAP and Kerberos allow authentication with either one of the authentication types but Kerberos uses pre-authentication method which requires to use armor ccache.</p><p><strong>RADIUS with another type:</strong> Kerberos always use RADIUS, but LDAP never does. LDAP only recognize the password and two-factor authentication options.</p>",
                     },
@@ -106,11 +107,13 @@
                     },
                     "dialogs": {
                         "add_confirmation": "${entity} successfully added",
+                        "add_custom_value": "Add custom value",
                         "add_title": "Add ${entity}",
                         "available": "Available",
                         "batch_error_message": "Some operations failed.",
                         "batch_error_title": "Operations Error",
                         "confirmation": "Confirmation",
+                        "custom_value": "Custom value",
                         "dirty_message": "This page has unsaved changes. Please save or revert.",
                         "dirty_title": "Unsaved Changes",
                         "edit_title": "Edit ${entity}",
@@ -469,7 +472,7 @@
                             "type_totp": "Time-based (TOTP)"
                         },
                         "permission": {
-                            "add_custom_attr": "Add custom attribute",
+                            "add_custom_attr": "Add Custom Attribute",
                             "attribute": "Attribute",
                             "filter": "Filter",
                             "identity": "Permission settings",
@@ -519,7 +522,10 @@
                             "user": "User"
                         },
                         "service": {
+                            "auth_indicators": "Authentication indicators",
+                            "auth_indicator": "Authentication indicator",
                             "certificate": "Service Certificate",
+                            "custom_auth_ind_title": "Add Custom Authentication Indicator",
                             "delete_key_unprovision": "Delete Key, Unprovision",
                             "details": "Service Settings",
                             "host": "Host Name",
@@ -660,6 +666,7 @@
                         "enabled": "${count} item(s) enabled",
                         "partial_delete": "Some entries were not deleted",
                         "placeholder": "Search",
+                        "placeholder_filter": "Filter",
                         "quick_links": "Quick Links",
                         "select_all": "Select All",
                         "truncated": "Query returned more results than the configured size limit. Displaying the first ${counter} results.",

@@ -537,186 +537,29 @@ return {
     }
 };};
 
-/**
- * @class aci.attributes_widget
- * @extends IPA.checkboxes_widget
- */
 aci.attributes_widget = function(spec) {
 
     spec = spec || {};
     spec.layout = spec.layout || 'columns attribute_widget';
-    spec.sort = spec.sort === undefined ? true : spec.sort;
+    spec.add_dialog_title = spec.add_dialog_title ||
+                            "@i18n:objects.permission.add_custom_attr";
+    spec.add_field_label = spec.add_field_label ||
+                            '@i18n:objects.permission.attribute';
 
-    var that = IPA.checkboxes_widget(spec);
-
-    /**
-     * Additional options which are not defined in metadata
-     * @property {string[]}
-     */
-    that.custom_options = spec.custom_options || [];
+    var that = IPA.custom_checkboxes_widget(spec);
 
     that.object_type = spec.object_type;
-    that.skip_unmatched = spec.skip_unmatched === undefined ? false : spec.skip_unmatched;
 
-    var id = spec.name;
+    that.populate = function() {
 
-    that.create = function(container) {
-        that.container = container;
-        that.widget_create(container);
+        if (!that.object_type || that.object_type === '') return;
 
-        that.controls = $('<div/>', {
-            'class': 'form-inline controls'
-        });
-        that.controls.appendTo(container);
-        that.create_search_filter(that.controls);
-        that.create_add_control(that.controls);
-        if (that.undo) {
-            that.create_undo(that.controls);
-        }
-
-        that.owb_create(container);
-
-        that.create_error_link(container);
-    };
-
-    that.create_search_filter = function(container) {
-        var filter_container = $('<div/>', {
-            'class': 'search-filter'
-        });
-
-        that.filter = $('<input/>', {
-            type: 'text',
-            name: 'filter',
-            'class': 'form-control',
-            placeholder: text.get('@i18n:objects.permission.filter')
-        }).appendTo(filter_container);
-
-        that.filter.keyup(function(e) {
-            that.filter_options();
-        });
-
-        var find_button = IPA.action_button({
-            name: 'find',
-            icon: 'fa-search',
-            click: function() {
-                that.filter_options();
-                return false;
-            }
-        }).appendTo(filter_container);
-
-        filter_container.appendTo(container);
-    };
-
-    that.create_add_control = function(container) {
-
-        that.add_button = IPA.button({
-            label: '@i18n:buttons.add',
-            click: that.show_add_dialog
-        });
-        container.append(' ');
-        that.add_button.appendTo(container);
-    };
-
-    that.show_add_dialog = function() {
-
-        var dialog = IPA.form_dialog({
-            name: "add_option",
-            title: "@i18n:objects.permission.add_custom_attr",
-            fields: [
-                {
-                    name: 'attr',
-                    label: '@i18n:objects.permission.attribute',
-                    required: true
-                }
-            ]
-        });
-        dialog.on_confirm = function() {
-            if (!dialog.validate()) return;
-            var attr = dialog.get_field('attr');
-            var value = attr.get_value()[0];
-            that.add_custom_option(value, false, true, true);
-            dialog.close();
-        };
-        dialog.open();
-    };
-
-    that.filter_options = function() {
-        $("li", that.$node).each(function() {
-            var item = $(this);
-            if(item.find('input').val().indexOf(that.filter.val()) === -1) {
-                item.css('display','none');
-            } else {
-                item.css('display','inline');
-            }
-        });
-    };
-
-    that.update = function(values) {
-
-        that.values = [];
-
-        values = values || [];
-        for (var i=0; i<values.length; i++) {
-
-            var value = values[i];
-
-            if (!value || value === '') continue;
-
-            value = value.toLowerCase();
-            that.values.push(value);
-        }
-
-        that.populate(that.object_type);
-        that.append();
-        that.owb_create(that.container);
-        that.owb_update(values);
-    };
-
-    that.populate = function(object_type) {
-
-        if (!object_type || object_type === '') return;
-
-        var metadata = metadata_provider.get('@mo:'+object_type);
+        var metadata = metadata_provider.get('@mo:'+that.object_type);
         if (!metadata) return;
 
         var aciattrs = metadata.aciattrs;
 
         that.options = that.prepare_options(aciattrs);
-    };
-
-    that.append = function() {
-
-        var unmatched = [];
-
-        function add_unmatched(source) {
-            for (var i=0, l=source.length; i<l; i++) {
-                if (!that.has_option(source[i])) {
-                    that.add_option(source[i], true /* suppress update */);
-                }
-            }
-        }
-
-        add_unmatched(that.custom_options);
-
-        if (that.values && !that.skip_unmatched) {
-            add_unmatched(that.values);
-        }
-    };
-
-    that.add_custom_option = function(name, to_custom, check, update) {
-
-        var value = (name || '').toLowerCase();
-        if (to_custom) that.custom_options.push(value);
-        if (check) that.values.push(value);
-        if (update) that.update(that.values);
-    };
-
-    that.has_option = function(value) {
-        var o = that.options;
-        for (var i=0, l=o.length; i<l; i++) {
-            if (o[i].value === value) return true;
-        }
-        return false;
     };
 
     return that;
