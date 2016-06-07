@@ -207,7 +207,7 @@ def _create_command(schema):
     command = {}
     command['name'] = name
     if 'doc' in schema:
-        command['doc'] = ConcatenatedLazyText(['doc'])
+        command['doc'] = ConcatenatedLazyText(schema['doc'])
     if 'topic_topic' in schema:
         command['topic'] = str(schema['topic_topic'])
     else:
