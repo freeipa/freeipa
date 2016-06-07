@@ -248,9 +248,12 @@ class topic_(MetaObject):
             object.__setattr__(self, '_topic___topics', topics)
 
             for command in self.api.Command():
-                topic_name = command.topic
+                topic_value = command.topic
+                if topic_value is None:
+                    continue
+                topic_name = unicode(topic_value)
 
-                while topic_name is not None and topic_name not in topics:
+                while topic_name not in topics:
                     topic = topics[topic_name] = {'name': topic_name}
 
                     for package in self.api.packages:
@@ -267,11 +270,14 @@ class topic_(MetaObject):
                             topic['doc'] = unicode(module.__doc__).strip()
 
                         try:
-                            topic_name = module.topic
+                            topic_value = module.topic
                         except AttributeError:
-                            topic_name = None
-                        else:
+                            continue
+                        if topic_value is not None:
+                            topic_name = unicode(topic_value)
                             topic['topic_topic'] = topic_name
+                        else:
+                            topic.pop('topic_topic', None)
 
         return self.__topics
 

@@ -237,6 +237,8 @@ def _create_topic(schema):
         topic['doc'] = ConcatenatedLazyText(schema['doc'])
     if 'topic_topic' in schema:
         topic['topic'] = str(schema['topic_topic'])
+    else:
+        topic['topic'] = None
 
     return topic
 
