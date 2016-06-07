@@ -485,7 +485,7 @@ class trust(LDAPObject):
     container_dn = api.env.container_trusts
     object_name = _('trust')
     object_name_plural = _('trusts')
-    object_class = ['ipaNTTrustedDomain']
+    object_class = ['ipaNTTrustedDomain', 'ipaIDObject']
     default_attributes = ['cn', 'ipantflatname', 'ipanttrusteddomainsid',
                           'ipanttrusttype', 'ipanttrustattributes',
                           'ipanttrustdirection', 'ipanttrustpartner',
@@ -577,7 +577,7 @@ class trust(LDAPObject):
         if trust_type is None:
             ldap = self.backend
             trustfilter = ldap.make_filter({
-                'objectclass': ['ipaNTTrustedDomain'],
+                'objectclass': ['ipaNTTrustedDomain', 'ipaIDObject'],
                 'cn': [keys[-1]]},
                 rules=ldap.MATCH_ALL
             )
@@ -1074,9 +1074,7 @@ class trust_find(LDAPSearch):
     # search needs to be done on a sub-tree scope
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
         # list only trust, not trust domains
-        trust_filter = '(&(ipaNTTrustPartner=*)(&(objectclass=ipaIDObject)(objectclass=ipaNTTrustedDomain)))'
-        filter = ldap.combine_filters((filters, trust_filter), rules=ldap.MATCH_ALL)
-        return (filter, base_dn, ldap.SCOPE_SUBTREE)
+        return (filters, base_dn, ldap.SCOPE_SUBTREE)
 
     def execute(self, *args, **options):
         result = super(trust_find, self).execute(*args, **options)
