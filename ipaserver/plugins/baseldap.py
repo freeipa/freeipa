@@ -2159,7 +2159,7 @@ class LDAPAddReverseMember(LDAPModReverseMember):
                 failed['member'][self.reverse_attr].append((attr, unicode(e)))
 
         # Update the member data.
-        entry_attrs = ldap.get_entry(dn, ['*'])
+        entry_attrs = ldap.get_entry(dn, attrs_list)
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
 
         for callback in self.get_callbacks('post'):
@@ -2258,7 +2258,7 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
                 failed['member'][self.reverse_attr].append((attr, unicode(e)))
 
         # Update the member data.
-        entry_attrs = ldap.get_entry(dn, ['*'])
+        entry_attrs = ldap.get_entry(dn, attrs_list)
         self.obj.convert_attribute_members(entry_attrs, *keys, **options)
 
         for callback in self.get_callbacks('post'):

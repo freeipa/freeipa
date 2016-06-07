@@ -484,7 +484,6 @@ class test_permission(Declarative):
                     'cn': [privilege1],
                     'description': [u'privilege desc. 1'],
                     'memberof_permission': [permission1],
-                    'objectclass': objectclasses.privilege,
                 }
             ),
         ),
@@ -3067,7 +3066,6 @@ def _make_permission_flag_tests(flags, expected_message):
                     'cn': [privilege1],
                     'description': [u'privilege desc. 1'],
                     'memberof_permission': [permission1],
-                    'objectclass': objectclasses.privilege,
                 }
             ),
         ),
@@ -3310,7 +3308,6 @@ class test_permission_bindtype(Declarative):
                     dn=privilege1_dn,
                     cn=[privilege1],
                     description=[u'privilege desc. 1'],
-                    objectclass=objectclasses.privilege,
                 ),
             ),
         ),
@@ -3419,7 +3416,6 @@ class test_permission_bindtype(Declarative):
                     cn=[privilege1],
                     description=[u'privilege desc. 1'],
                     memberof_permission=[permission1],
-                    objectclass=objectclasses.privilege,
                 )
             ),
         ),
