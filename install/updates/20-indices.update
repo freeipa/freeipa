@@ -231,3 +231,11 @@ default:ObjectClass: top
 default:ObjectClass: nsIndex
 only:nsIndexType: eq
 only:nsIndexType: pres
+
+dn: cn=ipalocation,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: ipalocation
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+only:nsIndexType: eq
+only:nsIndexType: pres

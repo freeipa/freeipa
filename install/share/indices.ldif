@@ -258,3 +258,12 @@ ObjectClass: nsIndex
 nsSystemIndex: false
 nsIndexType: eq
 nsIndexType: pres
+
+dn: cn=ipalocation,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: ipalocation
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres
