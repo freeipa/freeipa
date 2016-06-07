@@ -47,7 +47,7 @@ _PARAMS = {
 }
 
 
-class SchemaCommand(Command):
+class _SchemaCommand(Command):
     def __fix_default_from(self, param):
         api = self.api
         name = self.name
@@ -76,14 +76,14 @@ class SchemaCommand(Command):
         return param.clone(default_from=DefaultFrom(callback, *keys))
 
     def get_args(self):
-        for arg in super(SchemaCommand, self).get_args():
+        for arg in super(_SchemaCommand, self).get_args():
             if arg.default_from is not None:
                 arg = self.__fix_default_from(arg)
             yield arg
 
     def get_options(self):
         skip = set()
-        for option in super(SchemaCommand, self).get_options():
+        for option in super(_SchemaCommand, self).get_options():
             if option.name in skip:
                 continue
             if option.name in ('all', 'raw'):
@@ -226,8 +226,31 @@ def _create_command(schema):
     return command
 
 
+class _LazySchemaCommand(object):
+    def __init__(self, schema):
+        self.__schema = schema
+        self.__class = None
+        self.__module__ = None
+
+    @property
+    def name(self):
+        return str(self.__schema['name'])
+
+    bases = (_SchemaCommand,)
+
+    def __call__(self, api):
+        if self.__class is None:
+            command = _create_command(self.__schema)
+            name = command.pop('name')
+            command = type(name, (_SchemaCommand,), command)
+            command.__module__ = self.__module__
+            self.__class = command
+
+        return self.__class(api)
+
+
 def _create_commands(schema):
-    return [_create_command(s) for s in schema]
+    return [_LazySchemaCommand(s) for s in schema]
 
 
 def _create_topic(schema):
@@ -281,11 +304,9 @@ def get_package(api):
     sys.modules[module_name] = module
 
     for command in commands:
-        name = command.pop('name')
-        command = type(name, (SchemaCommand,), command)
         command.__module__ = module_name
         command = module.register()(command)
-        setattr(module, name, command)
+        setattr(module, command.name, command)
 
     for topic in topics:
         name = topic.pop('name')
