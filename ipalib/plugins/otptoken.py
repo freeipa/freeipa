@@ -368,7 +368,7 @@ class otptoken_add(LDAPCreate):
             encoding = locale.getpreferredencoding(False)
 
         try:
-            qr_code = qr_output.getvalue().decode(encoding)
+            qr_code = qr_output.getvalue().encode(encoding)
         except UnicodeError:
             add_message(
                 version,
