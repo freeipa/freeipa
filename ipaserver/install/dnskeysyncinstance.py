@@ -56,6 +56,12 @@ def dnssec_container_exists(fqdn, suffix, dm_password=None, ldapi=False,
 
     return ret
 
+
+def remove_replica_public_keys(hostname):
+    keysyncd = DNSKeySyncInstance()
+    keysyncd.remove_replica_public_keys(hostname)
+
+
 class DNSKeySyncInstance(service.Service):
     def __init__(self, fstore=None, dm_password=None, logger=root_logger,
                  ldapi=False, start_tls=False):

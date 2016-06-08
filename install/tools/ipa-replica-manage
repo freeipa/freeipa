@@ -896,12 +896,8 @@ def cleanup_server_dns_entries(realm, hostname, suffix, options):
     try:
         if bindinstance.dns_container_exists(options.host, suffix,
                                              dm_password=options.dirman_passwd):
-            bind = bindinstance.BindInstance()
-            bind.remove_master_dns_records(hostname, realm, realm.lower())
-            bind.remove_server_ns_records(hostname)
-
-            keysyncd = dnskeysyncinstance.DNSKeySyncInstance()
-            keysyncd.remove_replica_public_keys(hostname)
+            bindinstance.remove_master_dns_records(hostname, realm)
+            dnskeysyncinstance.remove_replica_public_keys(hostname)
     except Exception as e:
         print("Failed to cleanup %s DNS entries: %s" % (hostname, e))
         print("You may need to manually remove them from the tree")

@@ -538,6 +538,12 @@ def check_forwarders(dns_forwarders, logger):
     return forwarders_dnssec_valid
 
 
+def remove_master_dns_records(hostname, realm):
+    bind = BindInstance()
+    bind.remove_master_dns_records(hostname, realm, realm.lower())
+    bind.remove_server_ns_records(hostname)
+
+
 class DnsBackup(object):
     def __init__(self, service):
         self.service = service
