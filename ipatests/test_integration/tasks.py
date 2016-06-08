@@ -57,10 +57,10 @@ def check_arguments_are(slice, instanceof):
     and third arguments are integers
     """
     def wrapper(func):
-        def wrapped(*args):
+        def wrapped(*args, **kwargs):
             for i in args[slice[0]:slice[1]]:
                 assert isinstance(i, instanceof), "Wrong type: %s: %s" % (i, type(i))
-            return func(*args)
+            return func(*args, **kwargs)
         return wrapped
     return wrapper
 
@@ -678,7 +678,8 @@ def kinit_admin(host):
                      stdin_text=host.config.admin_password)
 
 
-def uninstall_master(host, ignore_topology_disconnect=True):
+def uninstall_master(host, ignore_topology_disconnect=True,
+                     ignore_last_of_role=True):
     host.collect_log(paths.IPASERVER_UNINSTALL_LOG)
     uninstall_cmd = ['ipa-server-install', '--uninstall', '-U']
 
@@ -686,6 +687,9 @@ def uninstall_master(host, ignore_topology_disconnect=True):
 
     if ignore_topology_disconnect and host_domain_level != DOMAIN_LEVEL_0:
         uninstall_cmd.append('--ignore-topology-disconnect')
+
+    if ignore_last_of_role and host_domain_level != DOMAIN_LEVEL_0:
+        uninstall_cmd.append('--ignore-last-of-role')
 
     host.run_command(uninstall_cmd, raiseonerr=False)
     host.run_command(['pkidestroy', '-s', 'CA', '-i', 'pki-tomcat'],
@@ -721,7 +725,7 @@ def clean_replication_agreement(master, replica):
 
 
 @check_arguments_are((0, 3), Host)
-def create_segment(master, leftnode, rightnode):
+def create_segment(master, leftnode, rightnode, suffix=DOMAIN_SUFFIX_NAME):
     """
     creates a topology segment. The first argument is a node to run the command
     :returns: a hash object containing segment's name, leftnode, rightnode
@@ -731,7 +735,7 @@ def create_segment(master, leftnode, rightnode):
     lefthost = leftnode.hostname
     righthost = rightnode.hostname
     segment_name = "%s-to-%s" % (lefthost, righthost)
-    result = master.run_command(["ipa", "topologysegment-add", DOMAIN_SUFFIX_NAME,
+    result = master.run_command(["ipa", "topologysegment-add", suffix,
                                  segment_name,
                                  "--leftnode=%s" % lefthost,
                                  "--rightnode=%s" % righthost], raiseonerr=False)
@@ -743,7 +747,7 @@ def create_segment(master, leftnode, rightnode):
         return {}, result.stderr_text
 
 
-def destroy_segment(master, segment_name):
+def destroy_segment(master, segment_name, suffix=DOMAIN_SUFFIX_NAME):
     """
     Destroys topology segment.
     :param master: reference to master object of class Host
@@ -753,7 +757,7 @@ def destroy_segment(master, segment_name):
     kinit_admin(master)
     command = ["ipa",
                "topologysegment-del",
-               DOMAIN_SUFFIX_NAME,
+               suffix,
                segment_name]
     result = master.run_command(command, raiseonerr=False)
     return result.returncode, result.stderr_text
@@ -1181,3 +1185,27 @@ def replicas_cleanup(func):
                                             "host-del",
                                             host.hostname], raiseonerr=False)
     return wrapped
+
+
+def run_server_del(host, server_to_delete, force=False,
+                   ignore_topology_disconnect=False,
+                   ignore_last_of_role=False):
+    kinit_admin(host)
+    args = ['ipa', 'server-del', server_to_delete]
+    if force:
+        args.append('--force')
+    if ignore_topology_disconnect:
+        args.append('--ignore-topology-disconnect')
+    if ignore_last_of_role:
+        args.append('--ignore-last-of-role')
+
+    return host.run_command(args, raiseonerr=False)
+
+
+def assert_error(result, stderr_text, returncode=None):
+    "Assert that `result` command failed and its stderr contains `stderr_text`"
+    assert stderr_text in result.stderr_text, result.stderr_text
+    if returncode:
+        assert result.returncode == returncode
+    else:
+        assert result.returncode > 0

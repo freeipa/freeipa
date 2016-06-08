@@ -35,6 +35,8 @@ from ipatests.test_integration import tasks
 
 _DEFAULT = object()
 
+assert_error = tasks.assert_error
+
 
 def get_install_stdin(cert_passwords=()):
     lines = [
@@ -54,15 +56,6 @@ def get_install_stdin(cert_passwords=()):
 def get_replica_prepare_stdin(cert_passwords=()):
     lines = list(cert_passwords)  # Enter foo.p12 unlock password
     return '\n'.join(lines + [''])
-
-
-def assert_error(result, stderr_text, returncode=None):
-    "Assert that `result` command failed and its stderr contains `stderr_text`"
-    assert stderr_text in result.stderr_text, result.stderr_text
-    if returncode:
-        assert result.returncode == returncode
-    else:
-        assert result.returncode > 0
 
 
 class CALessBase(IntegrationTest):
