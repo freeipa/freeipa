@@ -4,9 +4,11 @@
 
 import dbus
 import dbus.mainloop.glib
+import ldap
+import time
 
 from ipalib import api, crud, errors, messages
-from ipalib import Int, Str, DNSNameParam
+from ipalib import Int, Flag, Str, DNSNameParam
 from ipalib.plugable import Registry
 from .baseldap import (
     LDAPSearch,
@@ -21,7 +23,9 @@ from ipalib import output
 from ipaplatform import services
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
+from ipaserver import topology
 from ipaserver.servroles import ENABLED
+from ipaserver.install import bindinstance, dnskeysyncinstance
 
 __doc__ = _("""
 IPA servers
@@ -421,8 +425,379 @@ class server_show(LDAPRetrieve):
 @register()
 class server_del(LDAPDelete):
     __doc__ = _('Delete IPA server.')
-    NO_CLI = True
     msg_summary = _('Deleted IPA server "%(value)s"')
+
+    takes_options = LDAPDelete.takes_options + (
+        Flag(
+            'ignore_topology_disconnect?',
+            label=_('Ignore topology errors'),
+            doc=_('Ignore topology connectivity problems after removal'),
+            default=False,
+        ),
+        Flag(
+            'ignore_last_of_role?',
+            label=_('Ignore check for last remaining CA or DNS server'),
+            doc=_('Skip a check whether the last CA master or DNS server is '
+                  'removed'),
+            default=False,
+        ),
+        Flag(
+            'force?',
+            label=_('Force server removal'),
+            doc=_('Force server removal even if it does not exist'),
+            default=False,
+        ),
+    )
+
+    def _ensure_last_of_role(self, hostname, ignore_last_of_role=False):
+        """
+        1. When deleting server, check if there will be at least one remaining
+           DNS and CA server.
+        2. Pick CA renewal master
+        """
+        def handler(msg, ignore_last_of_role):
+            if ignore_last_of_role:
+                self.add_message(
+                    messages.ServerRemovalWarning(
+                        message=msg
+                    )
+                )
+            else:
+                raise errors.ServerRemovalError(reason=_(msg))
+
+        ipa_config = self.api.Command.config_show()['result']
+        dns_config = self.api.Command.dnsconfig_show()['result']
+
+        ipa_masters = ipa_config['ipa_master_server']
+
+        # skip these checks if the last master is being removed
+        if ipa_masters == [hostname]:
+            return
+
+        ca_servers = ipa_config['ca_server_server']
+        ca_renewal_master = ipa_config['ca_renewal_master_server']
+        dns_servers = dns_config['dns_server_server']
+        dnssec_keymaster = dns_config['dnssec_key_master_server']
+
+        if ca_servers == [hostname]:
+            raise errors.ServerRemovalError(
+                reason=_("Deleting this server is not allowed as it would "
+                         "leave your installation without a CA."))
+
+        if dnssec_keymaster == hostname:
+            handler(
+                _("Replica is active DNSSEC key master. Uninstall "
+                  "could break your DNS system. Please disable or "
+                  "replace DNSSEC key master first."), ignore_last_of_role)
+
+        if dns_servers == [hostname]:
+            handler(
+                _("Deleting this server will leave your installation "
+                  "without a DNS."), ignore_last_of_role)
+
+        if ignore_last_of_role:
+            self.add_message(
+                messages.ServerRemovalWarning(
+                    message=_("Ignoring these warnings and proceeding with "
+                              "removal")))
+
+        if ca_renewal_master == hostname:
+            other_cas = [ca for ca in ca_servers if ca != hostname]
+
+            # if this is the last CA there is no other server to become renewal
+            # master
+            if not other_cas:
+                return
+
+            self.api.Command.config_mod(ca_renewal_master_server=other_cas[0])
+
+    def _check_topology_connectivity(self, topology_connectivity, master_cn):
+        try:
+            topology_connectivity.check_current_state()
+        except ValueError as e:
+            raise errors.ServerRemovalError(reason=e)
+
+        try:
+            topology_connectivity.check_state_after_removal(master_cn)
+        except ValueError as e:
+            raise errors.ServerRemovalError(reason=e)
+
+    def _remove_server_principal_references(self, master):
+        """
+        This method removes information about the replica in parts
+        of the shared tree that expose it, so clients stop trying to
+        use this replica.
+        """
+        conn = self.Backend.ldap2
+        env = self.api.env
+
+        master_principal = "{}@{}".format(master, env)
+
+        # remove replica memberPrincipal from s4u2proxy configuration
+        s4u2proxy_subtree = DN(env.container_s4u2proxy,
+                               env.basedn)
+        dn1 = DN(('cn', 'ipa-http-delegation'), s4u2proxy_subtree)
+        member_principal1 = "HTTP/{}".format(master_principal)
+
+        dn2 = DN(('cn', 'ipa-ldap-delegation-targets'), s4u2proxy_subtree)
+        member_principal2 = "ldap/{}".format(master_principal)
+
+        dn3 = DN(('cn', 'ipa-cifs-delegation-targets'), s4u2proxy_subtree)
+        member_principal3 = "cifs/{}".format(master_principal)
+
+        for (dn, member_principal) in ((dn1, member_principal1),
+                                       (dn2, member_principal2),
+                                       (dn3, member_principal3)):
+            try:
+                mod = [(ldap.MOD_DELETE, 'memberPrincipal', member_principal)]
+                conn.conn.modify_s(str(dn), mod)
+            except (ldap.NO_SUCH_OBJECT, ldap.NO_SUCH_ATTRIBUTE):
+                self.log.debug(
+                    "Replica (%s) memberPrincipal (%s) not found in %s" %
+                    (master, member_principal, dn))
+            except Exception as e:
+                self.add_message(
+                    messages.ServerRemovalWarning(
+                        message=_("Failed to clean memberPrincipal "
+                                  "%(principal)s from s4u2proxy entry %(dn)s: "
+                                  "%(err)s") % dict(
+                                      principal=member_principal,
+                                      dn=dn, err=e)))
+
+        try:
+            etc_basedn = DN(('cn', 'etc'), env.basedn)
+            filter = '(dnaHostname=%s)' % master
+            entries = conn.get_entries(
+                etc_basedn, ldap.SCOPE_SUBTREE, filter=filter)
+            if len(entries) != 0:
+                for entry in entries:
+                    conn.delete_entry(entry)
+        except errors.NotFound:
+            pass
+        except Exception as e:
+            self.add_message(
+                messages.ServerRemovalWarning(
+                    message=_(
+                        "Failed to clean up DNA hostname entries for "
+                        "%(master)s: %(err)s") % dict(master=master, err=e)))
+
+        try:
+            dn = DN(('cn', 'default'), ('ou', 'profile'), env.basedn)
+            ret = conn.get_entry(dn)
+            srvlist = ret.single_value.get('defaultServerList', '')
+            srvlist = srvlist[0].split()
+            if master in srvlist:
+                srvlist.remove(master)
+                attr = ' '.join(srvlist)
+                mod = [(ldap.MOD_REPLACE, 'defaultServerList', attr)]
+                conn.conn.modify_s(str(dn), mod)
+        except (errors.NotFound, ldap.NO_SUCH_ATTRIBUTE,
+                ldap.TYPE_OR_VALUE_EXISTS):
+            pass
+        except Exception as e:
+            self.add_message(
+                messages.ServerRemovalWarning(
+                    message=_("Failed to remove server %(master)s from server "
+                              "list: %(err)s") % dict(master=master, err=e)))
+
+    def _remove_server_host_services(self, ldap, master):
+        """
+        delete server kerberos key and all its svc principals
+        """
+        try:
+            entries = ldap.get_entries(
+                self.api.env.basedn, ldap.SCOPE_SUBTREE,
+                filter='(krbprincipalname=*/{}@{})'.format(
+                    master, self.api.env.realm))
+
+            if entries:
+                entries.sort(key=lambda x: len(x.dn), reverse=True)
+                for entry in entries:
+                    ldap.delete_entry(entry)
+        except errors.NotFound:
+            pass
+        except Exception as e:
+            self.add_message(
+                messages.ServerRemovalWarning(
+                    message=_("Failed to cleanup server principals/keys: "
+                              "%(err)s") % dict(err=e)))
+
+    def _cleanup_server_dns_records(self, hostname, **options):
+        if not self.api.Command.dns_is_enabled(
+                **options):
+            return
+
+        try:
+            bindinstance.remove_master_dns_records(
+                hostname, self.api.env.realm)
+            dnskeysyncinstance.remove_replica_public_keys(hostname)
+        except Exception as e:
+            self.add_message(
+                messages.ServerRemovalWarning(
+                    message=_(
+                        "Failed to cleanup %(hostname)s DNS entries: "
+                        "%(err)s") % dict(hostname=hostname, err=e)))
+
+            self.add_message(
+                messages.ServerRemovalWarning(
+                    message=_("You may need to manually remove them from the "
+                              "tree")))
+
+    def pre_callback(self, ldap, dn, *keys, **options):
+        pkey = self.obj.get_primary_key_from_dn(dn)
+
+        if options.get('force', False):
+            self.add_message(
+                messages.ServerRemovalWarning(
+                    message=_("Forcing removal of %(hostname)s") % dict(
+                        hostname=pkey)))
+
+        # check the topology errors before and after removal
+        self.context.topology_connectivity = topology.TopologyConnectivity(
+            self.api)
+
+        if options.get('ignore_topology_disconnect', False):
+            self.add_message(
+                messages.ServerRemovalWarning(
+                    message=_("Ignoring topology connectivity errors.")))
+        else:
+            self._check_topology_connectivity(
+                self.context.topology_connectivity, pkey)
+
+        # ensure that we are not removing last CA/DNS server, DNSSec master and
+        # CA renewal master
+        self._ensure_last_of_role(
+            pkey, ignore_last_of_role=options.get('ignore_last_of_role', False)
+        )
+
+        # remove the references to master's ldap/http principals
+        self._remove_server_principal_references(pkey)
+
+        # try to clean up the leftover DNS entries
+        self._cleanup_server_dns_records(pkey)
+
+        # finally destroy all Kerberos principals
+        self._remove_server_host_services(ldap, pkey)
+
+        return dn
+
+    def exc_callback(self, keys, options, exc, call_func, *call_args,
+                     **call_kwargs):
+        if (options.get('force', False) and isinstance(exc, errors.NotFound)
+                and call_func.__name__ == 'delete_entry'):
+            self.add_message(
+                message=messages.ServerRemovalWarning(
+                    message=_("Server has already been deleted")))
+            return
+
+        raise exc
+
+    def _check_deleted_segments(self, hostname, topology_connectivity,
+                                starting_host):
+
+        def wait_for_segment_removal(hostname, master_cns, suffix_name,
+                                     orig_errors, new_errors):
+            i = 0
+            while True:
+                left = self.api.Command.topologysegment_find(
+                    suffix_name,
+                    iparepltoposegmentleftnode=hostname,
+                    sizelimit=0
+                )['result']
+                right = self.api.Command.topologysegment_find(
+                    suffix_name,
+                    iparepltoposegmentrightnode=hostname,
+                    sizelimit=0
+                )['result']
+
+                # Relax check if topology was or is disconnected. Disconnected
+                # topology can contain segments with already deleted servers
+                # Check only if segments of servers, which can contact this
+                # server, and the deleted server were removed.
+                # This code should handle a case where there was a topology
+                # with a central node(B):  A <-> B <-> C, where A is current
+                # server. After removal of B, topology will be disconnected and
+                # removal of segment B <-> C won't be replicated back to server
+                # A, therefore presence of the segment has to be ignored.
+                if orig_errors or new_errors:
+                    # use errors after deletion because we don't care if some
+                    # server can't contact the deleted one
+                    cant_contact_me = [e[0] for e in new_errors
+                                       if starting_host in e[2]]
+                    can_contact_me = set(master_cns) - set(cant_contact_me)
+                    left = [
+                        s for s in left if s['iparepltoposegmentrightnode'][0]
+                        in can_contact_me
+                    ]
+                    right = [
+                        s for s in right if s['iparepltoposegmentleftnode'][0]
+                        in can_contact_me
+                    ]
+
+                if not left and not right:
+                    self.add_message(
+                        messages.ServerRemovalInfo(
+                            message=_("Agreements deleted")
+                        ))
+                    return
+                time.sleep(2)
+                if i == 2:  # taking too long, something is wrong, report
+                    self.log.info(
+                        "Waiting for removal of replication agreements")
+                if i > 90:
+                    self.log.info("Taking too long, skipping")
+                    self.log.info("Following segments were not deleted:")
+                    self.add_message(messages.ServerRemovalWarning(
+                        message=_("Following segments were not deleted:")))
+                    for s in left:
+                        self.add_message(messages.ServerRemovalWarning(
+                            message=u"  %s" % s['cn'][0]))
+                    for s in right:
+                        self.add_message(messages.ServerRemovalWarning(
+                            message=u"  %s" % s['cn'][0]))
+                    return
+                i += 1
+
+        topology_graphs = topology_connectivity.graphs
+
+        orig_errors = topology_connectivity.errors
+        new_errors = topology_connectivity.errors_after_master_removal(
+            hostname
+        )
+
+        for suffix_name in topology_graphs:
+            suffix_members = topology_graphs[suffix_name].vertices
+
+            if hostname not in suffix_members:
+                # If the server was already deleted, we can expect that all
+                # removals had been done in previous run and dangling segments
+                # were not deleted.
+                self.log.info(
+                    "Skipping replication agreement deletion check for "
+                    "suffix '{0}'".format(suffix_name))
+                continue
+
+            self.log.info(
+                "Checking for deleted segments in suffix '{0}'".format(
+                    suffix_name))
+
+            wait_for_segment_removal(
+                hostname,
+                list(suffix_members),
+                suffix_name,
+                orig_errors[suffix_name],
+                new_errors[suffix_name])
+
+    def post_callback(self, ldap, dn, *keys, **options):
+        # there is no point in checking deleted segment on local host
+        # we should do this only when removing other masters
+        if self.api.env.host != keys[-1]:
+            self._check_deleted_segments(
+                keys[-1], self.context.topology_connectivity,
+                self.api.env.host)
+
+        return super(server_del, self).post_callback(
+            ldap, dn, *keys, **options)
 
 
 @register()

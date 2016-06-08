@@ -1379,6 +1379,24 @@ class InvalidDomainLevelError(ExecutionError):
     errno = 4032
     format = _('%(reason)s')
 
+
+class ServerRemovalError(ExecutionError):
+    """
+    **4033** Raised when a removal of IPA server from managed topology fails
+
+    For example:
+
+    >>> raise ServerRemovalError(reason='Removal disconnects topology')
+    Traceback (most recent call last):
+      ...
+    ServerRemovalError: Server removal aborted: Removal disconnects topology
+
+    """
+
+    errno = 4033
+    format = _('Server removal aborted: %(reason)s.')
+
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

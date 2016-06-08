@@ -364,7 +364,6 @@ class ResultFormattingError(PublicMessage):
     **13019** Unable to correctly format some part of the result
     """
     errno = 13019
-    type = "warning"
 
 
 class FailedToRemoveHostDNSRecords(PublicMessage):
@@ -444,6 +443,22 @@ class LocationWithoutDNSServer(PublicMessage):
         "No DNS servers in IPA location %(location)s. Without DNS servers "
         "location is not working as expected."
     )
+
+
+class ServerRemovalInfo(PublicMessage):
+    """
+    **13027** Informative message printed during removal of IPA server
+    """
+    errno = 13027
+    type = "info"
+
+
+class ServerRemovalWarning(PublicMessage):
+    """
+    **13028** Warning raised during removal of IPA server
+    """
+    errno = 13028
+    type = "warning"
 
 
 def iter_messages(variables, base):
