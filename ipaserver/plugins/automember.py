@@ -155,13 +155,18 @@ regex_attrs = (
         label=_('Inclusive Regex'),
         doc=_('Inclusive Regex'),
         alwaysask=True,
+        flags={'no_create', 'no_update', 'no_search'},
     ),
     Str('automemberexclusiveregex*',
         cli_name='exclusive_regex',
         label=_('Exclusive Regex'),
         doc=_('Exclusive Regex'),
         alwaysask=True,
+        flags={'no_create', 'no_update', 'no_search'},
     ),
+)
+
+regex_key = (
     Str('key',
         label=_('Attribute Key'),
         doc=_('Attribute to filter via regex. For example fqdn for a host, or manager for a user'),
@@ -183,6 +188,7 @@ automember_rule = (
         label=_('Automember Rule'),
         doc=_('Automember Rule'),
         normalizer=lambda value: value.lower(),
+        flags={'no_create', 'no_update', 'no_search'},
     ),
 )
 
@@ -254,7 +260,7 @@ class automember(LDAPObject):
             doc=_('Default group for entries to land'),
             flags=['no_create', 'no_update', 'no_search']
         ),
-    )
+    ) + automember_rule + regex_attrs
 
     def dn_exists(self, otype, oname):
         ldap = self.api.Backend.ldap2
@@ -336,7 +342,7 @@ class automember_add_condition(LDAPUpdate):
         ),
     )
 
-    takes_options = regex_attrs + group_type
+    takes_options = regex_attrs + regex_key + group_type
     takes_args = automember_rule
     msg_summary = _('Added condition(s) to "%(value)s"')
 
@@ -421,7 +427,7 @@ class automember_remove_condition(LDAPUpdate):
     __doc__ = _("""
     Remove conditions from an automember rule.
     """)
-    takes_options = regex_attrs + group_type
+    takes_options = regex_attrs + regex_key + group_type
     takes_args = automember_rule
     msg_summary = _('Removed condition(s) from "%(value)s"')
 
@@ -539,7 +545,6 @@ class automember_find(LDAPSearch):
     Search for automember rules.
     """)
     takes_options = group_type
-    has_output_params = LDAPSearch.has_output_params + automember_rule + regex_attrs
 
     msg_summary = ngettext(
         '%(count)d rules matched', '%(count)d rules matched', 0
@@ -559,7 +564,6 @@ class automember_show(LDAPRetrieve):
     """)
     takes_args = automember_rule
     takes_options = group_type
-    has_output_params = LDAPRetrieve.has_output_params + regex_attrs
 
     def execute(self, *keys, **options):
         result = super(automember_show, self).execute(*keys, **options)

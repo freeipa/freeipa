@@ -814,16 +814,16 @@ class test_Command(ClassChecker):
                 'foo',
             )
             takes_options = (
-                Str('bar', flags='no_output'),
+                Str('bar'),
                 'baz',
             )
 
         inst = example(api)
         inst.finalize()
         assert list(inst.get_output_params()) == [
-            'one', 'two', 'three', inst.params.foo, inst.params.baz
+            'one', 'two', 'three'
         ]
-        assert list(inst.output_params) == ['one', 'two', 'three', 'foo', 'baz']
+        assert list(inst.output_params) == ['one', 'two', 'three']
 
 
 class test_LocalOrRemote(ClassChecker):

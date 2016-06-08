@@ -165,6 +165,13 @@ def _disallow_colon(option):
     )
 
 
+_ipapermissiontype_param = Str(
+    'ipapermissiontype+',
+    label=_('Permission flags'),
+    flags={'no_create', 'no_update', 'no_search'},
+)
+
+
 @register()
 class permission(baseldap.LDAPObject):
     """
@@ -346,6 +353,8 @@ class permission(baseldap.LDAPObject):
             doc=_('Deprecated; use %s' % new_name),
             flags={'no_option', 'virtual_attribute'})
         for old_name, new_name in _DEPRECATED_OPTION_ALIASES.items()
+    ) + (
+        _ipapermissiontype_param,
     )
 
     def reject_system(self, entry):
@@ -945,9 +954,7 @@ class permission_add_noaci(baseldap.LDAPCreate):
     has_output_params = baseldap.LDAPCreate.has_output_params + output_params
 
     takes_options = (
-        Str('ipapermissiontype+',
-            label=_('Permission flags'),
-        ),
+        _ipapermissiontype_param,
     )
 
     def get_options(self):

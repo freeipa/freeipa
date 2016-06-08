@@ -553,6 +553,7 @@ class cert_status(VirtualCommand):
         Str('cert_request_status',
             label=_('Request status'),
         ),
+        takes_args[0],
     )
     operation = "certificate status"
 
@@ -607,6 +608,7 @@ class cert_show(VirtualCommand):
         Str('serial_number_hex',
             label=_('Serial number (hex)'),
         ),
+        _serial_number,
     )
 
     takes_options = (
@@ -844,6 +846,9 @@ class cert_find(Command):
         ),
         Str('status',
             label=_('Status'),
+        ),
+        Str('subject',
+            label=_('Subject'),
         ),
     )
 

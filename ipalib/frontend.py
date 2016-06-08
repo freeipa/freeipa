@@ -991,12 +991,6 @@ class Command(HasParam):
     def get_output_params(self):
         for param in self._get_param_iterable('output_params', verb='has'):
             yield param
-        if self.params is None:
-            return
-        for param in self.params():
-            if 'no_output' in param.flags:
-                continue
-            yield param
 
     def get_summary_default(self, output):
         if self.msg_summary:
@@ -1421,12 +1415,7 @@ class Method(Attribute, Command):
             if 'no_output' in param.flags:
                 continue
             yield param
-        for param in self.params():
-            if param.name not in list(self.obj.params):
-                if 'no_output' in param.flags:
-                    continue
-                yield param
-        for param in self._get_param_iterable('output_params', verb='has'):
+        for param in super(Method, self).get_output_params():
             yield param
 
 

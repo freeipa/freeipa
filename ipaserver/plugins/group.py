@@ -139,6 +139,14 @@ register = Registry()
 PROTECTED_GROUPS = (u'admins', u'trust admins', u'default smb group')
 
 
+ipaexternalmember_param = Str('ipaexternalmember*',
+            cli_name='external',
+            label=_('External member'),
+            doc=_('Members of a trusted domain in DOM\\name or name@domain form'),
+            flags=['no_create', 'no_update', 'no_search'],
+        )
+
+
 @register()
 class group(LDAPObject):
     """
@@ -271,15 +279,8 @@ class group(LDAPObject):
             doc=_('GID (use this option to set it manually)'),
             minvalue=1,
         ),
+        ipaexternalmember_param,
     )
-
-
-ipaexternalmember_param = Str('ipaexternalmember*',
-            cli_name='external',
-            label=_('External member'),
-            doc=_('Members of a trusted domain in DOM\\name or name@domain form'),
-            flags=['no_create', 'no_update', 'no_search'],
-        )
 
 
 @register()
@@ -498,7 +499,7 @@ class group_find(LDAPSearch):
 @register()
 class group_show(LDAPRetrieve):
     __doc__ = _('Display information about a named group.')
-    has_output_params = LDAPRetrieve.has_output_params + (ipaexternalmember_param,)
+
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         if ('ipaexternalmember' in entry_attrs and

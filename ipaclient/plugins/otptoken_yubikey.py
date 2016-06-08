@@ -61,6 +61,7 @@ class otptoken_add_yubikey(Command):
             values=(1, 2),
         ),
     )
+    has_output_params = takes_options
 
     def get_args(self):
         for arg in self.api.Command.otptoken_add.args():

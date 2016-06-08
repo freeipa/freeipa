@@ -423,6 +423,7 @@ _prefix_option = StrEnum('aciprefix',
                 doc=_('Prefix used to distinguish ACI types ' \
                     '(permission, delegation, selfservice, none)'),
                 values=_valid_prefix_values,
+                flags={'no_create', 'no_update', 'no_search'},
                 )
 
 
@@ -505,6 +506,7 @@ class aci(Object):
              doc=_('Apply ACI to your own entry (self)'),
              flags=('virtual_attribute',),
         ),
+        _prefix_option,
     )
 
 

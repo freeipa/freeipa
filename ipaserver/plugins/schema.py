@@ -181,8 +181,7 @@ class command(MetaObject):
 
         if len(command.output_params):
             obj['output_params_param'] = tuple(
-                unicode(n) for n in command.output_params
-                if n not in command.params)
+                unicode(n) for n in command.output_params)
 
         return obj
 
