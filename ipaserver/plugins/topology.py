@@ -13,7 +13,8 @@ from .baseldap import (
 from ipalib import _, ngettext
 from ipalib import output
 from ipalib.constants import DOMAIN_LEVEL_1
-from ipalib.util import create_topology_graph, get_topology_connection_errors
+from ipaserver.topology import (
+    create_topology_graph, get_topology_connection_errors)
 from ipapython.dn import DN
 
 if six.PY3:
