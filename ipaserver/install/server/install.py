@@ -4,7 +4,6 @@
 
 from __future__ import print_function
 
-import gssapi
 import os
 import pickle
 import pwd
@@ -27,15 +26,15 @@ from ipapython.ipautil import (
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipalib import api, create_api, constants, errors, x509
-from ipalib.krb_utils import KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN
+from ipalib import api, constants, errors, x509
 from ipalib.constants import CACERT
 from ipalib.util import validate_domain_name
 import ipaclient.ntpconf
 from ipaserver.install import (
-    bindinstance, ca, cainstance, certs, dns, dsinstance, httpinstance,
-    installutils, kra, krbinstance, memcacheinstance, ntpinstance,
-    otpdinstance, custodiainstance, replication, service, sysupgrade)
+    bindinstance, ca, cainstance, certs, dns, dsinstance,
+    httpinstance, installutils, kra, krbinstance, memcacheinstance,
+    ntpinstance, otpdinstance, custodiainstance, replication, service,
+    sysupgrade)
 from ipaserver.install.installutils import (
     IPA_MODULES, BadHostError, get_fqdn, get_server_ip_address,
     is_ipa_configured, load_pkcs12, read_password, verify_fqdn,
@@ -290,136 +289,21 @@ def common_cleanup(func):
     return decorated
 
 
-def check_master_deleted(api, masters, interactive):
-    """
-    Determine whether the IPA master was removed from the domain level 1
-    topology. The function first tries to locally lookup the master host entry
-    and fetches host prinicipal from DS. Then we attempt to acquire host TGT,
-    contact the other masters one at a time and query for the existence of the
-    host entry for our IPA master.
-
-    :param api: instance of API object
-    :param masters: list of masters to contact
-    :param interactive: whether run in interactive mode. The user will be
-        prompted for action if the removal status cannot be determined
-    :return: True if the master is not part of the topology anymore as
-        determined by the following conditions:
-            * the host entry does not exist in local DS
-            * request for host TGT fails due to missing/invalid/revoked creds
-            * GSSAPI connection to remote DS fails on invalid authentication
-            * if we are the only master
-        False otherwise
-    """
+def remove_master_from_managed_topology(api_instance, options):
     try:
-        host_princ = api.Command.host_show(
-            api.env.host)['result']['krbprincipalname'][0]
-    except errors.NotFound:
-        root_logger.debug(
-            "Host entry for {} already deleted".format(api.env.host)
+        # we may force the removal
+        # if the master was already deleted we will just get a warning
+        server_del_options = dict(
+            force=True,
+            ignore_topology_disconnect=options.ignore_topology_disconnect,
+            ignore_last_of_role=options.ignore_last_of_role
         )
-        return True
+
+        replication.run_server_del_as_cli(
+            api_instance, api_instance.env.host, **server_del_options)
+
     except Exception as e:
-        root_logger.warning("Failed to get host principal name: {0}".format(e))
-        return False
-
-    ccache_path = os.path.join('/', 'tmp', 'krb5cc_host')
-    with ipautil.private_ccache(ccache_path):
-        # attempt to get host TGT. This can fail if the master contacts remote
-        # KDCs on other masters that have already cleared our master's
-        # principal. In that case return True
-        try:
-            ipautil.kinit_keytab(host_princ, paths.KRB5_KEYTAB, ccache_path)
-        except gssapi.exceptions.GSSError as e:
-            min_code = e.min_code  # pylint: disable=no-member
-            if min_code == KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN:
-                root_logger.debug("Host principal not found, assuming that "
-                                  "master is removed from topology")
-                return True
-
-            root_logger.error(
-                "Kerberos authentication as '{0}' failed: {1}".format(
-                    host_princ, e
-                )
-            )
-            return False
-
-        last_server = True
-        for master in masters:
-            master_cn = master['cn'][0]
-            if api.env.host == master_cn:
-                continue
-
-            last_server = False
-            master_ldap_uri = u'ldap://{0}'.format(master_cn)
-
-            # initialize remote api
-            remote_api = create_api(mode=None)
-            remote_api.bootstrap(ldap_uri=master_ldap_uri, in_server=True)
-            remote_api.finalize()
-
-            root_logger.debug("Connecting to '{0}'...".format(master_ldap_uri))
-            try:
-                remote_api.Backend.ldap2.connect(ccache=ccache_path)
-                remote_api.Command.server_show(api.env.host)
-                root_logger.debug(
-                    "Server entry '{0}' present on '{1}'".format(
-                        api.env.host, master_cn
-                    )
-                )
-                return False
-            except (errors.NotFound, errors.ACIError):
-                # this may occur because the node was already deleted from the
-                # topology and the host principal doesn't exist
-                root_logger.debug(
-                    "'{0}' was removed from topology".format(
-                        api.env.host
-                    )
-                )
-                return True
-            except errors.NetworkError:
-                # try the next master
-                root_logger.debug(
-                    "Connection to remote master '{0}' failed".format(
-                        master_cn
-                    )
-                )
-            except Exception as e:
-                root_logger.debug(
-                    "Unexpected error when connecting to remote master '{0}': "
-                    "{1}".format(
-                        master_cn, e
-                    )
-                )
-            finally:
-                root_logger.debug("Disconnecting from {0}".format(master_cn))
-
-                if remote_api.Backend.ldap2.isconnected():
-                    remote_api.Backend.ldap2.disconnect()
-
-    # prompt the user if we are not able to determine whether the IPA master
-    # was removed from topology
-    if not last_server:
-        print("WARNING: Failed to determine whether the IPA master was "
-              "already removed from topology.")
-        if (interactive and not user_input("Proceed with uninstallation?", False)):
-            print("Aborted")
-            sys.exit(1)
-
-        return False
-
-    return True
-
-
-def check_topology_connectivity(api, masters):
-    topo_errors = replication.check_last_link_managed(
-                    api, api.env.host, masters)
-    errors_after_uninstall = [topo_errors[i][1] for i in topo_errors]
-
-    if any(errors_after_uninstall):
-        print("Uninstallation leads to disconnected topology")
-        print("Use '--ignore-topology-disconnect' to skip this check")
-        print("Aborting uninstallation")
-        sys.exit(1)
+        root_logger.warning("Failed to delete master: {}".format(e))
 
 
 @common_cleanup
@@ -1151,26 +1035,7 @@ def uninstall_check(installer):
                     print("Aborting uninstall operation.")
                     sys.exit(1)
         else:
-            masters = api.Command.server_find(
-                sizelimit=0, no_members=False)['result']
-
-            if not check_master_deleted(api, masters,
-                                        not options.unattended):
-                print("WARNING: This IPA master is still a part of the "
-                      "replication topology.")
-                print("To properly remove the master entry and clean "
-                      "up related segments, run:")
-                print("  $ ipa-replica-manage del {0}".format(api.env.host))
-                if (not options.unattended and not user_input(
-                        "Do you want to continue uninstallation?", False)):
-                    print("Aborted")
-                    sys.exit(1)
-
-                if not options.ignore_topology_disconnect:
-                    check_topology_connectivity(api, masters)
-                else:
-                    print("Ignoring topology errors and forcing uninstall")
-
+            remove_master_from_managed_topology(api, options)
 
     installer._fstore = fstore
     installer._sstore = sstore
@@ -1421,6 +1286,11 @@ class Server(BaseServer):
         description="do not check whether server uninstall disconnects the "
                     "topology (domain level 1+)",
     )
+    ignore_last_of_role = Knob(
+        bool, False,
+        description="do not check whether server uninstall removes last "
+                    "CA/DNS server or DNSSec master (domain level 1+)",
+    )
 
     # dns
     dnssec_master = None
@@ -1465,10 +1335,12 @@ class Server(BaseServer):
                         "You must specify at least one of --forwarder, "
                         "--auto-forwarders, or --no-forwarders options")
 
-        if self.ignore_topology_disconnect and not self.uninstalling:
+        any_ignore_option_true = any(
+            [self.ignore_topology_disconnect, self.ignore_last_of_role])
+        if any_ignore_option_true and not self.uninstalling:
             raise RuntimeError(
-                "'--ignore-topology-disconnect' can be used only during "
-                "uninstallation")
+                "'--ignore-topology-disconnect/--ignore-last-of-role' options "
+                "can be used only during uninstallation")
 
         if self.idmax < self.idstart:
             raise RuntimeError(
