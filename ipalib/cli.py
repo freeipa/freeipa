@@ -967,7 +967,7 @@ class show_api(frontend.Command):
                 continue
             for n in member:
                 attr = member[n]
-                if isinstance(attr, plugable.NameSpace) and len(attr) > 0:
+                if isinstance(attr, plugable.APINameSpace) and len(attr) > 0:
                     self.__traverse_namespace(n, attr, lines, tab + 2)
 
 

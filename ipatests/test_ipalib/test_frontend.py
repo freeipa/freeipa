@@ -283,11 +283,11 @@ class test_Command(ClassChecker):
                 return False
         o = self.cls(api)
         o.finalize()
-        assert type(o.args) is plugable.NameSpace
+        assert type(o.args) is NameSpace
         assert len(o.args) == 0
         args = ('destination', 'source?')
         ns = self.get_instance(args=args).args
-        assert type(ns) is plugable.NameSpace
+        assert type(ns) is NameSpace
         assert len(ns) == len(args)
         assert list(ns) == ['destination', 'source']
         assert type(ns.destination) is parameters.Str
@@ -340,11 +340,11 @@ class test_Command(ClassChecker):
                 return False
         o = self.cls(api)
         o.finalize()
-        assert type(o.options) is plugable.NameSpace
+        assert type(o.options) is NameSpace
         assert len(o.options) == 1
         options = ('target', 'files*')
         ns = self.get_instance(options=options).options
-        assert type(ns) is plugable.NameSpace
+        assert type(ns) is NameSpace
         assert len(ns) == len(options) + 1
         assert list(ns) == ['target', 'files', 'version']
         assert type(ns.target) is parameters.Str
@@ -364,7 +364,7 @@ class test_Command(ClassChecker):
                 return False
         inst = self.cls(api)
         inst.finalize()
-        assert type(inst.output) is plugable.NameSpace
+        assert type(inst.output) is NameSpace
         assert list(inst.output) == ['result']
         assert type(inst.output.result) is output.Output
 
@@ -945,7 +945,7 @@ class test_Object(ClassChecker):
         methods_format = 'method_%d'
 
         class FakeAPI(object):
-            Method = plugable.NameSpace(
+            Method = NameSpace(
                 get_attributes(cnt, methods_format)
             )
             def __contains__(self, key):
@@ -965,7 +965,7 @@ class test_Object(ClassChecker):
         assert read_only(o, 'api') is api
 
         namespace = o.methods
-        assert isinstance(namespace, plugable.NameSpace)
+        assert isinstance(namespace, NameSpace)
         assert len(namespace) == cnt
         f = methods_format
         for i in range(cnt):
@@ -980,13 +980,13 @@ class test_Object(ClassChecker):
         # Test params instance attribute
         o = self.cls(api)
         ns = o.params
-        assert type(ns) is plugable.NameSpace
+        assert type(ns) is NameSpace
         assert len(ns) == 0
         class example(self.cls):
             takes_params = ('banana', 'apple')
         o = example(api)
         ns = o.params
-        assert type(ns) is plugable.NameSpace
+        assert type(ns) is NameSpace
         assert len(ns) == 2, repr(ns)
         assert list(ns) == ['banana', 'apple']
         for p in ns():
@@ -1024,7 +1024,7 @@ class test_Object(ClassChecker):
         assert pk.name == 'three'
         assert pk.primary_key is True
         assert o.params[2] is o.primary_key
-        assert isinstance(o.params_minus_pk, plugable.NameSpace)
+        assert isinstance(o.params_minus_pk, NameSpace)
         assert list(o.params_minus_pk) == ['one', 'two', 'four']
 
         # Test with multiple primary_key:

@@ -28,7 +28,7 @@ import six
 from ipapython.version import API_VERSION
 from ipapython.ipa_log_manager import root_logger
 from ipalib.base import NameSpace
-from ipalib.plugable import Plugin
+from ipalib.plugable import Plugin, APINameSpace
 from ipalib.parameters import create_param, Param, Str, Flag
 from ipalib.parameters import Password  # pylint: disable=unused-import
 from ipalib.output import Output, Entry, ListOfEntries
@@ -401,8 +401,6 @@ class Command(HasParam):
     Subclasses should define the `callback_types` attribute as a tuple of
     allowed callback types.
     """
-
-    finalize_early = False
 
     takes_options = tuple()
     takes_args = tuple()
@@ -1199,8 +1197,6 @@ class Local(Command):
 
 
 class Object(HasParam):
-    finalize_early = False
-
     # Create stubs for attributes that are set in _on_finalize()
     backend = Plugin.finalize_attr('backend')
     methods = Plugin.finalize_attr('methods')
@@ -1261,7 +1257,7 @@ class Object(HasParam):
         if name not in self.api:
             return
         namespace = self.api[name]
-        assert type(namespace) is NameSpace
+        assert type(namespace) is APINameSpace
         for plugin in namespace(): # Equivalent to dict.itervalues()
             if plugin.obj_name == self.name:
                 yield plugin
@@ -1333,8 +1329,6 @@ class Attribute(Plugin):
     In practice the `Attribute` class is not used directly, but rather is
     only the base class for the `Method` class.  Also see the `Object` class.
     """
-    finalize_early = False
-
     @property
     def obj_name(self):
         return self.name.partition('_')[0]

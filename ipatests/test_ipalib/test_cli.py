@@ -87,7 +87,7 @@ class DummyCommand(object):
 
 class DummyAPI(object):
     def __init__(self, cnt):
-        self.__cmd = plugable.NameSpace(self.__cmd_iter(cnt))
+        self.__cmd = plugable.APINameSpace(self.__cmd_iter(cnt), DummyCommand)
 
     def __get_cmd(self):
         return self.__cmd

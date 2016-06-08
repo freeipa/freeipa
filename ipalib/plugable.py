@@ -40,7 +40,7 @@ from ipalib import errors
 from ipalib.config import Env
 from ipalib.text import _
 from ipalib.util import classproperty
-from ipalib.base import ReadOnly, NameSpace, lock, islocked
+from ipalib.base import ReadOnly, lock, islocked
 from ipalib.constants import DEFAULT_CONFIG
 from ipapython.ipa_log_manager import (
     log_mgr,
@@ -123,8 +123,6 @@ class Plugin(ReadOnly):
     """
     Base class for all plugins.
     """
-
-    finalize_early = True
 
     def __init__(self, api):
         assert api is not None
@@ -268,6 +266,50 @@ class Plugin(ReadOnly):
         )
 
 
+class APINameSpace(collections.Mapping):
+    def __init__(self, api, base):
+        self.__api = api
+        self.__base = base
+        self.__name_seq = None
+        self.__name_set = None
+
+    def __enumerate(self):
+        if self.__name_set is None:
+            self.__name_set = frozenset(
+                name for name, klass in six.iteritems(self.__api._API__plugins)
+                if any(issubclass(b, self.__base) for b in klass.bases))
+
+    def __len__(self):
+        self.__enumerate()
+        return len(self.__name_set)
+
+    def __contains__(self, name):
+        self.__enumerate()
+        return name in self.__name_set
+
+    def __iter__(self):
+        if self.__name_seq is None:
+            self.__enumerate()
+            self.__name_seq = tuple(sorted(self.__name_set))
+        return iter(self.__name_seq)
+
+    def __getitem__(self, name):
+        name = getattr(name, '__name__', name)
+        klass = self.__api._API__plugins[name]
+        if not any(issubclass(b, self.__base) for b in klass.bases):
+            raise KeyError(name)
+        return self.__api._get(name)
+
+    def __call__(self):
+        return six.itervalues(self)
+
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name)
+
+
 class API(ReadOnly):
     """
     Dynamic API object through which `Plugin` instances are accessed.
@@ -276,6 +318,7 @@ class API(ReadOnly):
     def __init__(self):
         super(API, self).__init__()
         self.__plugins = {}
+        self.__instances = {}
         self.__next = {}
         self.__done = set()
         self.env = Env()
@@ -628,33 +671,28 @@ class API(ReadOnly):
         self.__do_if_not_done('load_plugins')
 
         production_mode = self.is_production_mode()
-        plugins = {}
         plugin_info = {}
 
         for base in self.bases:
             name = base.__name__
-            members = []
 
-            for klass in self.__plugins.values():
+            for klass in six.itervalues(self.__plugins):
                 if not any(issubclass(b, base) for b in klass.bases):
                     continue
-                try:
-                    instance = plugins[klass]
-                except KeyError:
-                    instance = plugins[klass] = klass(self)
-                members.append(instance)
                 plugin_info.setdefault(
                     '%s.%s' % (klass.__module__, klass.name),
                     []).append(name)
+                if not self.env.plugins_on_demand:
+                    self._get(klass.name)
 
             if not production_mode:
                 assert not hasattr(self, name)
-            setattr(self, name, NameSpace(members))
+            setattr(self, name, APINameSpace(self, base))
 
-        for klass, instance in plugins.items():
+        for klass, instance in six.iteritems(self.__instances):
             if not production_mode:
                 assert instance.api is self
-            if klass.finalize_early or not self.env.plugins_on_demand:
+            if not self.env.plugins_on_demand:
                 instance.ensure_finalized()
                 if not production_mode:
                     assert islocked(instance)
@@ -664,6 +702,14 @@ class API(ReadOnly):
 
         if not production_mode:
             lock(self)
+
+    def _get(self, name):
+        klass = self.__plugins[name]
+        try:
+            instance = self.__instances[klass]
+        except KeyError:
+            instance = self.__instances[klass] = klass(self)
+        return instance
 
     def get_plugin_next(self, klass):
         if not callable(klass):
