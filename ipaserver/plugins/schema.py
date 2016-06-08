@@ -13,7 +13,7 @@ from ipalib import errors
 from ipalib.crud import PKQuery, Retrieve, Search
 from ipalib.frontend import Command, Local, Method, Object
 from ipalib.output import Entry, ListOfEntries, ListOfPrimaryKeys, PrimaryKey
-from ipalib.parameters import Bool, Dict, Flag, Int, Str
+from ipalib.parameters import Bool, Dict, Flag, Str
 from ipalib.plugable import Registry
 from ipalib.text import _
 from ipapython.version import API_VERSION
@@ -443,11 +443,6 @@ class param(BaseParam):
             label=_("Always ask"),
             flags={'no_search'},
         ),
-        Bool(
-            'autofill?',
-            label=_("Autofill"),
-            flags={'no_search'},
-        ),
         Str(
             'cli_metavar?',
             label=_("CLI metavar"),
@@ -474,18 +469,8 @@ class param(BaseParam):
             flags={'no_search'},
         ),
         Str(
-            'deprecated_cli_aliases*',
-            label=_("Deprecated CLI aliases"),
-            flags={'no_search'},
-        ),
-        Str(
             'exclude*',
             label=_("Exclude from"),
-            flags={'no_search'},
-        ),
-        Str(
-            'hint?',
-            label=_("Hint"),
             flags={'no_search'},
         ),
         Str(
@@ -506,36 +491,6 @@ class param(BaseParam):
         Str(
             'option_group?',
             label=_("Option group"),
-            flags={'no_search'},
-        ),
-        Int(
-            'sortorder?',
-            label=_("Sort order"),
-            flags={'no_search'},
-        ),
-        Bool(
-            'dnsrecord_extra?',
-            label=_("Extra field (DNS record)"),
-            flags={'no_search'},
-        ),
-        Bool(
-            'dnsrecord_part?',
-            label=_("Part (DNS record)"),
-            flags={'no_search'},
-        ),
-        Bool(
-            'no_option?',
-            label=_("No option"),
-            flags={'no_search'},
-        ),
-        Bool(
-            'no_output?',
-            label=_("No output"),
-            flags={'no_search'},
-        ),
-        Bool(
-            'suppress_empty?',
-            label=_("Suppress empty"),
             flags={'no_search'},
         ),
         Bool(
@@ -588,40 +543,35 @@ class param(BaseParam):
                 obj[key] = list(unicode(v) for v in value)
             if isinstance(metaobj, Command):
                 if key in ('alwaysask',
-                           'autofill',
-                           'confirm',
-                           'sortorder'):
+                           'confirm'):
                     obj[key] = value
                 elif key in ('cli_metavar',
                              'cli_name',
-                             'hint',
                              'option_group'):
                     obj[key] = unicode(value)
                 elif key == 'default':
-                    if param.multivalue:
-                        obj[key] = [unicode(v) for v in value]
-                    else:
-                        obj[key] = [unicode(value)]
+                    if param.autofill:
+                        if param.multivalue:
+                            obj[key] = [unicode(v) for v in value]
+                        else:
+                            obj[key] = [unicode(value)]
                 elif key == 'default_from':
-                    obj['default_from_param'] = list(unicode(k)
-                                                     for k in value.keys)
-                elif key == 'deprecated_cli_aliases':
-                    obj[key] = list(unicode(v) for v in value)
+                    if param.autofill:
+                        obj['default_from_param'] = list(unicode(k)
+                                                         for k in value.keys)
                 elif key in ('exponential',
                              'normalizer',
                              'only_absolute',
                              'precision'):
                     obj['no_convert'] = True
 
-        for flag in (param.flags or []):
-            if flag in ('no_output',
-                        'suppress_empty'):
-                obj[flag] = True
-            if isinstance(metaobj, Command):
-                if flag in ('dnsrecord_extra',
-                            'dnsrecord_part',
-                            'no_option'):
-                    obj[flag] = True
+        if ((isinstance(metaobj, Command) and 'no_option' in param.flags) or
+                (isinstance(metaobj, Object) and 'no_output' in param.flags)):
+            value = obj.setdefault('exclude', [])
+            if u'cli' not in value:
+                value.append(u'cli')
+            if u'webui' not in value:
+                value.append(u'webui')
 
         return obj
 
@@ -666,14 +616,6 @@ class param_find(BaseParamSearch):
 
 @register()
 class output(BaseParam):
-    takes_params = BaseParam.takes_params + (
-        Bool(
-            'no_display?',
-            label=_("Do not display"),
-            flags={'no_search'},
-        ),
-    )
-
     @property
     def parent(self):
         return self.api.Object.command
@@ -720,10 +662,6 @@ class output(BaseParam):
 
         if 'doc' in output.__dict__:
             obj['doc'] = unicode(output.doc)
-
-        if 'flags' in output.__dict__:
-            if 'no_display' in output.flags:
-                obj['no_display'] = True
 
         return obj
 

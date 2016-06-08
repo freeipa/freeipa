@@ -223,25 +223,20 @@ def _create_param(meta):
                    'sortorder'):
             kwargs[key] = value
         elif key in ('cli_metavar',
-                     'cli_name',
-                     'hint'):
+                     'cli_name'):
             kwargs[key] = str(value)
         elif key == 'confirm' and issubclass(cls, parameters.Password):
             kwargs[key] = value
         elif key == 'default':
             default = value
+            kwargs['autofill'] = True
         elif key == 'default_from_param':
             kwargs['default_from'] = DefaultFrom(_nope,
                                                  *(str(k) for k in value))
-        elif key in ('deprecated_cli_aliases',
-                     'exclude',
+            kwargs['autofill'] = True
+        elif key in ('exclude',
                      'include'):
             kwargs[key] = tuple(str(v) for v in value)
-        elif key in ('dnsrecord_extra',
-                     'dnsrecord_part',
-                     'no_option',
-                     'suppress_empty') and value:
-            kwargs.setdefault('flags', set()).add(key)
 
     if default is not None:
         tmp = cls(str(meta['name']), **dict(kwargs, no_convert=False))
