@@ -308,7 +308,11 @@ class LDAPEntry(collections.MutableMapping):
             raw.remove(value)
 
         for value in raw_dels:
-            value = self._conn.decode(value, name)
+            try:
+                value = self._conn.decode(value, name)
+            except ValueError as e:
+                raise ValueError("{error} in LDAP entry '{dn}'".format(
+                    error=e, dn=self._dn))
             if value in nice_adds:
                 continue
             nice.remove(value)
@@ -320,7 +324,11 @@ class LDAPEntry(collections.MutableMapping):
             raw.append(value)
 
         for value in raw_adds:
-            value = self._conn.decode(value, name)
+            try:
+                value = self._conn.decode(value, name)
+            except ValueError as e:
+                raise ValueError("{error} in LDAP entry '{dn}'".format(
+                    error=e, dn=self._dn))
             if value in nice_dels:
                 continue
             nice.append(value)
