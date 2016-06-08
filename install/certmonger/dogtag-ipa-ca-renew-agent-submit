@@ -445,7 +445,7 @@ def main():
         'ipaCACertRenewal':     renew_ca_cert,
     }
 
-    api.bootstrap(context='renew')
+    api.bootstrap(in_server=True, context='renew')
     api.finalize()
 
     operation = os.environ.get('CERTMONGER_OPERATION')
