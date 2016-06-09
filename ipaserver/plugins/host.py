@@ -1009,7 +1009,21 @@ class host_find(LDAPSearch):
         if options.get('pkey_only', False):
             return truncated
         for entry_attrs in entries:
-            set_certificate_attrs(entry_attrs)
+            hostname = entry_attrs['fqdn']
+            if isinstance(hostname, (tuple, list)):
+                hostname = hostname[0]
+            try:
+                set_certificate_attrs(entry_attrs)
+            except errors.CertificateFormatError as e:
+                self.add_message(
+                    messages.CertificateInvalid(
+                        subject=hostname,
+                        reason=e,
+                    )
+                )
+                self.log.error("Invalid certificate: {err}".format(err=e))
+                del(entry_attrs['usercertificate'])
+
             set_kerberos_attrs(entry_attrs, options)
             rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
             self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
@@ -1052,7 +1066,20 @@ class host_show(LDAPRetrieve):
             # fetched anywhere.
             entry_attrs['has_keytab'] = False
 
-        set_certificate_attrs(entry_attrs)
+        hostname = entry_attrs['fqdn']
+        if isinstance(hostname, (tuple, list)):
+            hostname = hostname[0]
+        try:
+            set_certificate_attrs(entry_attrs)
+        except errors.CertificateFormatError as e:
+            self.add_message(
+                messages.CertificateInvalid(
+                    subject=hostname,
+                    reason=e,
+                )
+            )
+            del(entry_attrs['usercertificate'])
+
         set_kerberos_attrs(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
 

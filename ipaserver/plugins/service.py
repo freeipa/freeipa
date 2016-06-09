@@ -21,7 +21,7 @@
 
 import six
 
-from ipalib import api, errors
+from ipalib import api, errors, messages
 from ipalib import Bytes, StrEnum, Bool, Str, Flag
 from ipalib.plugable import Registry
 from .baseldap import (
@@ -698,7 +698,21 @@ class service_find(LDAPSearch):
             return truncated
         for entry_attrs in entries:
             self.obj.get_password_attributes(ldap, entry_attrs.dn, entry_attrs)
-            set_certificate_attrs(entry_attrs)
+            principal = entry_attrs['krbprincipalname']
+            if isinstance(principal, (tuple, list)):
+                principal = principal[0]
+            try:
+                set_certificate_attrs(entry_attrs)
+            except errors.CertificateFormatError as e:
+                self.add_message(
+                    messages.CertificateInvalid(
+                        subject=principal,
+                        reason=e
+                    )
+                )
+                self.log.error("Invalid certificate: {err}".format(err=e))
+                del(entry_attrs['usercertificate'])
+
             set_kerberos_attrs(entry_attrs, options)
             rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
         return truncated
@@ -721,7 +735,21 @@ class service_show(LDAPRetrieve):
         assert isinstance(dn, DN)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
 
-        set_certificate_attrs(entry_attrs)
+        principal = entry_attrs['krbprincipalname']
+        if isinstance(principal, (tuple, list)):
+            principal = principal[0]
+        try:
+            set_certificate_attrs(entry_attrs)
+        except errors.CertificateFormatError as e:
+            self.add_message(
+                messages.CertificateInvalid(
+                    subject=principal,
+                    reason=e,
+                )
+            )
+            self.log.error("Invalid certificate: {err}".format(err=e))
+            del(entry_attrs['usercertificate'])
+
         set_kerberos_attrs(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
 

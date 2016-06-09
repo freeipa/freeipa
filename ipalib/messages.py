@@ -461,6 +461,16 @@ class ServerRemovalWarning(PublicMessage):
     type = "warning"
 
 
+class CertificateInvalid(PublicMessage):
+    """
+    ***13029 Failed to parse a certificate
+    """
+    errno = 13029
+    type = "error"
+    format = _("%(subject)s: Invalid certificate. "
+               "%(reason)s")
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
