@@ -142,7 +142,8 @@ class location_del(LDAPDelete):
         servers = self.api.Command.server_find(
             in_location=keys[-1])['result']
         for server in servers:
-            self.api.Command.server_mod(server['cn'][0], location=None)
+            self.api.Command.server_mod(server['cn'][0],
+                                        ipalocation_location=None)
         return dn
 
 
