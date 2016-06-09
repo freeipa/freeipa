@@ -189,6 +189,12 @@ return {
                 widget: 'realm.bidirectional'
             },
             {
+                $type: 'checkbox',
+                name: 'external',
+                metadata: '@mc-opt:trust_add:external',
+                widget: 'realm.external'
+            },
+            {
                 name: 'realm_admin',
                 label: '@i18n:objects.trust.account',
                 widget: 'method.realm_admin'
@@ -246,6 +252,11 @@ return {
                         $type: 'checkbox',
                         name: 'bidirectional',
                         tooltip: '@mc-opt:trust_add:bidirectional:doc'
+                    },
+                    {
+                        $type: 'checkbox',
+                        name: 'external',
+                        tooltip: '@mc-opt:trust_add:external:doc'
                     }
                 ]
             },
