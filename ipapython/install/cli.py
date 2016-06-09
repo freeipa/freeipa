@@ -299,9 +299,9 @@ class ConfigureTool(admintool.AdminTool):
             knob_cls = knob_classes[e.name]
             try:
                 if self.positional_arguments is None:
-                    raise IndexError
+                    raise ValueError
                 index = self.positional_arguments.index(e.name)
-            except IndexError:
+            except ValueError:
                 cli_name = knob_cls.cli_name or e.name.replace('_', '-')
                 desc = "option --{0}".format(cli_name)
             else:
