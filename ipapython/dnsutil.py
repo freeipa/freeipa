@@ -299,14 +299,14 @@ def resolve_rrsets(fqdn, rdtypes):
         fqdn = DNSName(fqdn)
 
     fqdn = fqdn.make_absolute()
-    rrsets = set()
+    rrsets = []
     for rdtype in rdtypes:
         try:
             answer = dns.resolver.query(fqdn, rdtype)
             root_logger.debug('found %d %s records for %s: %s',
                               len(answer), rdtype, fqdn, ' '.join(
                                   str(rr) for rr in answer))
-            rrsets.add(answer.rrset)
+            rrsets.append(answer.rrset)
         except dns.resolver.NXDOMAIN as ex:
             root_logger.debug(ex)
             break  # no such FQDN, do not iterate
