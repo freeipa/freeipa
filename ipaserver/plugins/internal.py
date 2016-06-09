@@ -747,6 +747,7 @@ class i18n_messages(Command):
                 "trustdirection": _("Trust direction"),
                 "truststatus": _("Trust status"),
                 "trusttype": _("Trust type"),
+                "ipantadditionalsuffixes": _("Alternative UPN suffixes"),
             },
             "trustconfig": {
                 "options": _("Options"),

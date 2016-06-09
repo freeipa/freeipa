@@ -142,6 +142,17 @@ return {
                     ]
                 },
                 {
+                    name: 'suffixes',
+                    label: '@i18n:objects.trust.ipantadditionalsuffixes',
+                    fields: [
+                        {
+                            $type: 'multivalued',
+                            name: 'ipantadditionalsuffixes',
+                            read_only: true
+                        },
+                    ]
+                },
+                {
                     name: 'blacklists',
                     label: '@i18n:objects.trust.blacklists',
                     fields: [
