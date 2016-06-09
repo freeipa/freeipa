@@ -114,10 +114,14 @@ IPA.search_facet = function(spec, no_init) {
 
     that.deleter_dialog = spec.deleter_dialog;
 
+    that.disable_search_field = !!spec.disable_search_field;
+
     that.create_header = function(container) {
 
         that.facet_create_header(container);
-        that.create_search_filter(that.controls_left);
+        if (!that.disable_search_field) {
+            that.create_search_filter(that.controls_left);
+        }
         that.create_control_buttons(that.controls_right);
         that.create_action_dropdown(that.controls_right);
     };
@@ -282,7 +286,10 @@ IPA.search_facet = function(spec, no_init) {
         var command = that.create_refresh_command();
 
         command.on_success = function(data, text_status, xhr) {
-            if (!IPA.opened_dialogs.dialogs.length) that.filter.focus();
+            if (!IPA.opened_dialogs.dialogs.length &&
+                                        !that.disable_search_field) {
+                that.filter.focus();
+            }
             that.load(data);
             that.show_content();
         };
