@@ -154,7 +154,7 @@ Requires(pre): systemd-units
 Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base >= %{selinux_policy_version}
-Requires: slapi-nis >= 0.55-1
+Requires: slapi-nis >= 0.56.0
 Requires: pki-ca >= 10.3.3
 Requires: pki-kra >= 10.3.3
 Requires(preun): python systemd-units

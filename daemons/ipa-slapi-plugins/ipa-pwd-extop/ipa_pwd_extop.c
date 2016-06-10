@@ -207,8 +207,10 @@ static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	char *attrlist[] = {"*", "passwordHistory", NULL };
 	struct ipapwd_data pwdata;
 	int is_krb, is_smb, is_ipant;
-    char *principal = NULL;
+	char *principal = NULL;
 	Slapi_PBlock *chpwop_pb = NULL;
+	Slapi_DN     *target_sdn = NULL;
+	char         *target_dn = NULL;
 
 	/* Get the ber value of the extended operation */
 	slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_VALUE, &extop_value);
@@ -327,14 +329,32 @@ parse_req_done:
 		}
 	}
 
-	 /* Determine the target DN for this operation */
-	 /* Did they give us a DN ? */
-	if (dn == NULL || *dn == '\0') {
-	 	/* Get the DN from the bind identity on this connection */
-		dn = slapi_ch_strdup(bindDN);
-		LOG_TRACE("Missing userIdentity in request, "
-                          "using the bind DN instead.\n");
+	/* Determine the target DN for this operation */
+	slapi_pblock_get(pb, SLAPI_TARGET_SDN, &target_sdn);
+	if (target_sdn != NULL) {
+		/* If there is a TARGET_DN we are consuming it */
+		slapi_pblock_set(pb, SLAPI_TARGET_SDN, NULL);
+		target_dn = slapi_sdn_get_ndn(target_sdn);
 	}
+	if (target_dn == NULL || *target_dn == '\0') {
+		/* Did they give us a DN ? */
+		if (dn == NULL || *dn == '\0') {
+			/* Get the DN from the bind identity on this connection */
+			dn = slapi_ch_strdup(bindDN);
+			LOG_TRACE("Missing userIdentity in request, "
+				"using the bind DN instead.\n");
+		}
+		LOG_TRACE("extop dn %s (from ber)\n", dn ? dn : "<empty>");
+	} else {
+		/* At this point if SLAPI_TARGET_SDN was set that means
+		 * that a SLAPI_PLUGIN_PRE_EXTOP_FN plugin sets it
+		 * So take this one rather that the raw one that is in the ber
+		 */
+		LOG_TRACE("extop dn %s was translated to %s\n", dn ? dn : "<empty>", target_dn);
+		slapi_ch_free_string(&dn);
+		dn = slapi_ch_strdup(target_dn);
+	}
+	slapi_sdn_free(&target_sdn);
 
 	 if (slapi_pblock_set( pb, SLAPI_ORIGINAL_TARGET, dn )) {
 		LOG_FATAL("slapi_pblock_set failed!\n");
