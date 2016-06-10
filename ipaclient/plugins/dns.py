@@ -21,8 +21,9 @@
 from __future__ import print_function
 
 import six
+import copy
 
-from ipaclient.frontend import MethodOverride
+from ipaclient.frontend import MethodOverride, CommandOverride
 from ipalib import errors
 from ipalib.dns import (get_record_rrtype,
                         has_cli_options,
@@ -342,3 +343,29 @@ class dnsforwardzone_mod(MethodOverride):
                 _("Server will check DNS forwarder(s)."))
             self.Backend.textui.print_plain(
                 _("This may take some time, please wait ..."))
+
+
+@register(override=True)
+class dns_update_system_records(CommandOverride):
+    def output_for_cli(self, textui, output, *args, **options):
+        output_super = copy.deepcopy(output)
+        super_res = output_super.get('result', {})
+        super_res.pop('ipa_records', None)
+        super_res.pop('location_records', None)
+
+        super(dns_update_system_records, self).output_for_cli(
+            textui, output_super, *args, **options)
+
+        labels = {
+            p.name: unicode(p.label) for p in self.output_params()
+        }
+
+        result = output.get('result', {})
+        for key in ('ipa_records', 'location_records'):
+            if result.get(key):
+                textui.print_indented(u'{}:'.format(labels[key]), indent=1)
+                for val in sorted(result[key]):
+                    textui.print_indented(val, indent=2)
+                textui.print_line(u'')
+
+        return int(not output['value'])

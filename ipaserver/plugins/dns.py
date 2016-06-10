@@ -72,6 +72,10 @@ from ipapython.ipautil import CheckedIPAddress
 from ipapython.dnsutil import check_zone_overlap
 from ipapython.dnsutil import DNSName
 from ipapython.dnsutil import related_to_auto_empty_zone
+from ipaserver.dns_data_management import (
+    IPASystemRecords,
+    IPADomainIsNotManagedByIPAError,
+)
 
 if six.PY3:
     unicode = str
@@ -4430,3 +4434,104 @@ class dnsforwardzone_add_permission(DNSZoneBase_add_permission):
 @register()
 class dnsforwardzone_remove_permission(DNSZoneBase_remove_permission):
     __doc__ = _('Remove a permission for per-forward zone access delegation.')
+
+
+@register()
+class dns_update_system_records(Command):
+    __doc__ = _('Update location and IPA server DNS records')
+
+
+    has_output_params = (
+        Str(
+            'ipa_records*',
+            label=_('IPA DNS records')
+        ),
+        Str(
+            'location_records*',
+            label=_('IPA location records')
+        )
+    )
+
+    has_output = (
+        output.Output(
+            'result',
+            type=dict,
+            doc=_('Dictionary mapping variable name to value'),
+        ),
+        output.Output(
+            'value', bool,
+            _('Result of the command'), ['no_display']
+        )
+    )
+
+    takes_options = (
+        Flag(
+            'dry_run',
+            label=_('Dry run'),
+            doc=_('Do not update recors only return expected records')
+        )
+    )
+
+    def execute(self, *args, **options):
+
+        def output_to_list(iterable):
+            rec_list = []
+            for name, node in iterable:
+                rec_list.extend(IPASystemRecords.records_list_from_node(
+                    name, node))
+            return rec_list
+
+        def output_to_list_with_failed(iterable):
+            err_rec_list = []
+            for name, node, error in iterable:
+                err_rec_list.extend([
+                        (v, unicode(error)) for v in
+                        IPASystemRecords.records_list_from_node(name, node)
+                    ])
+            return err_rec_list
+
+        result = {
+            'result': {},
+            'value': True,
+        }
+
+        system_records = IPASystemRecords(self.api)
+
+        if options.get('dry_run'):
+            result['result']['ipa_records'] = output_to_list(
+                system_records.get_base_records().items())
+            result['result']['location_records'] = output_to_list(
+                system_records.get_locations_records().items())
+        else:
+            try:
+                (
+                    (success_base, failed_base),
+                    (success_loc, failed_loc),
+                ) = system_records.update_dns_records()
+            except IPADomainIsNotManagedByIPAError:
+                result['value'] = False
+                self.add_message(
+                    messages.DNSUpdateNotIPAManagedZone(
+                        zone=self.api.env.domain)
+                )
+                result['result']['ipa_records'] = output_to_list(
+                    system_records.get_base_records().items())
+            else:
+                if success_base:
+                    result['result']['ipa_records'] = output_to_list(
+                        success_base)
+                if success_loc:
+                    result['result']['location_records'] = output_to_list(
+                        success_loc)
+                for failed in (failed_base, failed_loc):
+                    for record, error in output_to_list_with_failed(failed):
+                        self.add_message(
+                            messages.DNSUpdateOfSystemRecordFailed(
+                                record=record,
+                                error=error
+                            )
+                        )
+                if failed_base or failed_loc:
+                    result['value'] = False
+
+        return result

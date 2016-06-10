@@ -395,6 +395,29 @@ class DNSForwardPolicyConflictWithEmptyZone(PublicMessage):
     )
 
 
+class DNSUpdateOfSystemRecordFailed(PublicMessage):
+    """
+    ** 13022 ** Update of a DNS system record failed
+    """
+    errno = 13022
+    type = "warning"
+    format = _(
+        "Update of system record '%(record)s' failed with error: %(error)s"
+    )
+
+
+class DNSUpdateNotIPAManagedZone(PublicMessage):
+    """
+    ** 13023 ** Zone for system records is not managed by IPA
+    """
+    errno = 13023
+    type = "warning"
+    format = _(
+        "IPA does not manage the zone %(zone)s, please add records "
+        "to your DNS server manually"
+    )
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """

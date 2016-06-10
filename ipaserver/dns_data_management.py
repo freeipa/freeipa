@@ -4,6 +4,8 @@
 
 from __future__ import absolute_import
 
+import six
+
 from collections import defaultdict
 from dns import (
     rdataclass,
@@ -16,6 +18,10 @@ from dns.rdtypes.ANY.TXT import TXT
 from ipalib import errors
 from ipalib.dns import record_name_format
 from ipapython.dnsutil import DNSName, resolve_rrsets
+
+if six.PY3:
+    unicode=str
+
 
 IPA_DEFAULT_MASTER_SRV_REC = (
     # srv record name, port
@@ -214,7 +220,7 @@ class IPASystemRecords(object):
             for rdata in rdataset:
                 option_name = (record_name_format % rdatatype.to_text(
                     rdata.rdtype).lower())
-                update_dict[option_name].append(rdata.to_text())
+                update_dict[option_name].append(unicode(rdata.to_text()))
         return update_dict
 
     def __update_dns_records(
@@ -378,3 +384,19 @@ class IPASystemRecords(object):
             self.update_base_records(),
             self.update_locations_records()
         )
+
+    @classmethod
+    def records_list_from_node(cls, name, node):
+        records = []
+        for rdataset in node:
+            for rd in rdataset:
+                records.append(
+                    u'{name} {ttl} {rdclass} {rdtype} {rdata}'.format(
+                        name=name.ToASCII(),
+                        ttl=rdataset.ttl,
+                        rdclass=rdataclass.to_text(rd.rdclass),
+                        rdtype=rdatatype.to_text(rd.rdtype),
+                        rdata=rd.to_text()
+                    )
+                )
+        return records

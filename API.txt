@@ -1054,6 +1054,12 @@ option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('value', type=[<type 'unicode'>])
+command: dns_update_system_records
+args: 0,2,2
+option: Flag('dry_run', autofill=True, default=False)
+option: Str('version?')
+output: Output('result', type=[<type 'dict'>])
+output: Output('value', type=[<type 'bool'>])
 command: dnsconfig_mod
 args: 0,11,3
 option: Str('addattr*', cli_name='addattr')
