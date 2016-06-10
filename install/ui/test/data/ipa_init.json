@@ -214,12 +214,16 @@
                             "map_type": "Map Type"
                         },
                         "caacl": {
+                            "all": "All",
+                            "any_ca": "Any CA",
                             "any_host": "Any Host",
                             "any_service": "Any Service",
                             "any_profile": "Any Profile",
                             "anyone": "Anyone",
                             "ipaenabledflag": "Rule status",
+                            "no_ca_msg": "If no CAs are specified, requests to the default CA are allowed.",
                             "profile": "Profiles",
+                            "specified_cas": "Specified CAs",
                             "specified_hosts": "Specified Hosts and Groups",
                             "specified_profiles": "Specified Profiles",
                             "specified_services": "Specified Services and Groups",

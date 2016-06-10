@@ -24,11 +24,12 @@ define([
     './phases',
     './reg',
     './rpc',
+    './text',
     './details',
     './search',
     './association',
     './entity'],
-        function(IPA, $, phases, reg, rpc) {
+        function(IPA, $, phases, reg, rpc, text) {
 
 IPA.rule_details_widget = function(spec) {
 
@@ -40,6 +41,7 @@ IPA.rule_details_widget = function(spec) {
     that.options = spec.options || [];
     that.tables = spec.tables || [];
     that.columns = spec.columns;
+    that.note = spec.note;
 
     that.init = function() {
 
@@ -47,7 +49,8 @@ IPA.rule_details_widget = function(spec) {
             name: that.radio_name,
             options: that.options,
             entity: that.entity,
-            css_class: 'rule-enable-radio'
+            css_class: 'rule-enable-radio',
+            note: that.note
         });
 
         that.widgets.add_widget(that.enable_radio);
@@ -85,6 +88,11 @@ IPA.rule_radio_widget = function(spec) {
     spec = spec || {};
     var that = IPA.radio_widget(spec);
 
+    /**
+     * The text from note will be displayed after radio buttons.
+     */
+    that.note = spec.note || '';
+
     /** @inheritDoc */
     that.create = function(container) {
 
@@ -96,6 +104,13 @@ IPA.rule_radio_widget = function(spec) {
         that.owb_create(container);
         if (that.undo) {
             that.create_undo(container);
+        }
+
+        if (that.note) {
+            $('<div />', {
+                text: text.get(that.note),
+                'class': 'rule-radio-note'
+            }).appendTo(container);
         }
     };
 

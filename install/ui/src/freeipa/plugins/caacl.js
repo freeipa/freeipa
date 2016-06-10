@@ -87,6 +87,17 @@ var spec = {
         fields: [
             'cn',
             {
+                $type: 'checkboxes',
+                name: 'ipacacategory',
+                options: [
+                    {
+                        label: '@i18n:objects.caacl.all',
+                        value: 'all'
+                    }
+                ],
+                tooltip: '@i18n:objects.caacl.no_ca_msg'
+            },
+            {
                 $type: 'textarea',
                 name: 'description'
             }
@@ -245,6 +256,18 @@ var add_caacl_details_facet_widgets = function (spec) {
             name: 'memberservice_service',
             widget: 'who.service.memberservice_service',
             priority: IPA.caacl.remove_method_priority
+        },
+        // ca
+        {
+            $type: 'radio',
+            name: 'ipacacategory',
+            widget: 'who.ipaca.ipacacategory'
+        },
+        {
+            $type: 'rule_association_table',
+            name: 'ipamemberca_ca',
+            widget: 'who.ipaca.ipamemberca_ca',
+            priority: IPA.caacl.remove_method_priority
         }
     );
 
@@ -350,12 +373,35 @@ var add_caacl_details_facet_widgets = function (spec) {
                             remove_title: '@i18n:association.remove.member'
                         }
                     ]
+                },
+                {
+                    $factory: IPA.rule_details_widget,
+                    name: 'ipaca',
+                    radio_name: 'ipacacategory',
+                    note: '@i18n:objects.caacl.no_ca_msg',
+                    options: [
+                        { 'value': 'all', 'label': '@i18n:objects.caacl.any_ca' },
+                        { 'value': '', 'label': '@i18n:objects.caacl.specified_cas' }
+                    ],
+                    tables: [
+                        { 'name': 'ipamemberca_ca' }
+                    ],
+                    widgets: [
+                        {
+                            $type: 'rule_association_table',
+                            id: 'caacl-ipamemberca_ca',
+                            name: 'ipamemberca_ca',
+                            add_method: 'add_ca',
+                            remove_method: 'remove_ca',
+                            add_title: '@i18n:association.add.member',
+                            remove_title: '@i18n:association.remove.member'
+                        }
+                    ]
                 }
             ]
         }
     );
 };
-
 
 /**
  * CAACL entity specification object
