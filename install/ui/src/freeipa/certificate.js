@@ -38,6 +38,8 @@ define([
 
 var exp = IPA.cert = {};
 
+IPA.cert.TOPLEVEL_CA = 'ipa';
+
 IPA.cert.BEGIN_CERTIFICATE = '-----BEGIN CERTIFICATE-----';
 IPA.cert.END_CERTIFICATE   = '-----END CERTIFICATE-----';
 
@@ -446,6 +448,14 @@ IPA.cert.request_dialog = function(spec) {
     section0.fields.push(
         {
             $type: 'entity_select',
+            name: 'cacn',
+            label: '@i18n:objects.cert.ca',
+            other_entity: 'ca',
+            other_field: 'cn',
+            required: true
+        },
+        {
+            $type: 'entity_select',
             name: 'profile_id',
             other_entity: 'certprofile',
             other_field: 'cn',
@@ -492,6 +502,11 @@ IPA.cert.request_dialog = function(spec) {
             that.close();
         }
     });
+
+    that.open = function() {
+        that.dialog_open();
+        that.get_field('cacn').set_value([IPA.cert.TOPLEVEL_CA]);
+    };
 
     return that;
 };
@@ -680,6 +695,51 @@ IPA.cert.get_action = function(spec) {
     return that;
 };
 
+IPA.cert.create_data_uri = function(certificate) {
+    if (typeof certificate !== 'string') return '';
+
+    var format = 'data:,';
+    var uri_new_line = '%0A';
+
+    var data_uri = IPA.cert.pem_format_base64(certificate);
+    data_uri = IPA.cert.pem_cert_format(data_uri);
+    data_uri = format + data_uri.replace(/\n/g, uri_new_line);
+
+    return data_uri;
+};
+
+IPA.cert.perform_download = function(data_uri) {
+    var a = document.createElement("a");
+    // Adding own click function as workaround for Firefox
+    a.click = function() {
+        var evt = this.ownerDocument.createEvent('MouseEvents');
+        evt.initMouseEvent('click', true, true, this.ownerDocument.defaultView,
+            1, 0, 0, 0, 0, false, false, false, false, 0, null);
+        this.dispatchEvent(evt);
+    };
+    a.download = 'cert.pem';
+    a.href = data_uri;
+
+    a.click();
+};
+
+IPA.cert.download_action = function(spec) {
+    spec = spec || {};
+    spec.name = spec.name || 'download_cert';
+    spec.label = spec.label || '@i18n:objects.cert.download';
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+        if (!facet.certificate) return;
+
+        var data_uri = IPA.cert.create_data_uri(facet.certificate.certificate);
+        IPA.cert.perform_download(data_uri);
+    };
+
+    return that;
+};
+
 IPA.cert.request_action = function(spec) {
 
     spec = spec || {};
@@ -735,7 +795,8 @@ IPA.cert.request_action = function(spec) {
             request: function(values) {
 
                 var options = {
-                    'principal': entity_principal
+                    'principal': entity_principal,
+                    'cacn': values.cacn[0]
                 };
                 if (values.profile_id) options.profile_id = values.profile_id[0];
                 if (values.principal) options.principal = values.principal[0];
@@ -1215,7 +1276,8 @@ exp.facet_group = {
     facets: {
         certificates: 'cert_search',
         profiles: 'certprofile_search',
-        acls: 'caacl_search'
+        acls: 'caacl_search',
+        ca_search: 'ca_search'
     }
 };
 
@@ -1348,14 +1410,15 @@ return {
             disable_facet_tabs: true,
             actions: [
                 'cert_revoke',
-                'cert_remove_hold'
+                'cert_remove_hold',
+                'download_cert'
             ],
             state: {
                 evaluators: [
                     IPA.cert.certificate_evaluator
                 ]
             },
-            header_actions: ['revoke_cert', 'remove_hold_cert'],
+            header_actions: ['revoke_cert', 'remove_hold_cert', 'download_cert'],
             sections: [
                 {
                     name: 'details',
@@ -1364,7 +1427,10 @@ return {
                         'serial_number',
                         'serial_number_hex',
                         'subject',
-                        'issuer',
+                        {
+                            name: 'issuer',
+                            read_only: true
+                        },
                         'valid_not_before',
                         'valid_not_after',
                         'sha1_fingerprint',
@@ -1542,6 +1608,7 @@ exp.register = function() {
     a.register('cert_view', IPA.cert.view_action);
     a.register('cert_get', IPA.cert.get_action);
     a.register('cert_request', IPA.cert.request_action);
+    a.register('download_cert', IPA.cert.download_action);
     a.register('cert_revoke', IPA.cert.revoke_action);
     a.register('cert_remove_hold', IPA.cert.remove_hold_action);
 
