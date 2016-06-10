@@ -421,11 +421,7 @@ installed on every client machine.
 Summary: IPA administrative tools
 Group: System Environment/Base
 BuildArch: noarch
-%if 0%{?with_python3}
-Requires: python3-ipaclient = %{version}-%{release}
-%else
 Requires: python2-ipaclient = %{version}-%{release}
-%endif
 Requires: python-ldap
 
 Provides: %{alt_name}-admintools = %{version}
@@ -741,13 +737,6 @@ make client-install DESTDIR=%{buildroot}
 (cd ipapython && make PYTHON=%{__python3} IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} DESTDIR=%{buildroot} install)
 (cd ipaplatform && %{__python3} setup.py install --root %{buildroot})
 (cd ipaclient && %{__python3} setup.py install --root %{buildroot})
-
-# Switch shebang of /usr/bin/ipa
-# XXX: This script is installed with ipaserver. When all of ipaserver is
-# built with Python 3, this will no longer be necessary (as long as the py3
-# version is installed after the py2 version, so it overwrites /usr/bin/ipa)
-sed -i -e'1s/python\(2\|$\)/python3/' %{buildroot}%{_bindir}/ipa
-
 %endif # with_python3
 
 %find_lang %{gettext_domain}
