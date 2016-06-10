@@ -142,6 +142,11 @@ var nav = {};
                             entity: 'caacl',
                             facet: 'search',
                             hidden: true
+                        },
+                        {
+                            entity: 'ca',
+                            facet: 'search',
+                            hidden: true
                         }
                     ]
                 },
