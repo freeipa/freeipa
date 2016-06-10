@@ -5323,13 +5323,14 @@ output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: trustdomain_add
-args: 2,8,3
+args: 2,9,3
 arg: Str('trustcn', cli_name='trust')
 arg: Str('cn', cli_name='domain')
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('ipantflatname?', cli_name='flat_name')
 option: Str('ipanttrusteddomainsid?', cli_name='sid')
+option: Str('ipanttrustpartner?')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: StrEnum('trust_type', autofill=True, cli_name='type', default=u'ad', values=[u'ad'])
@@ -5363,13 +5364,14 @@ output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: trustdomain_find
-args: 2,9,4
+args: 2,10,4
 arg: Str('trustcn', cli_name='trust')
 arg: Str('criteria?')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('cn?', autofill=False, cli_name='domain')
 option: Str('ipantflatname?', autofill=False, cli_name='flat_name')
 option: Str('ipanttrusteddomainsid?', autofill=False, cli_name='sid')
+option: Str('ipanttrustpartner?', autofill=False)
 option: Flag('pkey_only?', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Int('sizelimit?', autofill=False)
@@ -5380,7 +5382,7 @@ output: ListOfEntries('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: trustdomain_mod
-args: 2,10,3
+args: 2,11,3
 arg: Str('trustcn', cli_name='trust')
 arg: Str('cn', cli_name='domain')
 option: Str('addattr*', cli_name='addattr')
@@ -5388,6 +5390,7 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('delattr*', cli_name='delattr')
 option: Str('ipantflatname?', autofill=False, cli_name='flat_name')
 option: Str('ipanttrusteddomainsid?', autofill=False, cli_name='sid')
+option: Str('ipanttrustpartner?', autofill=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')

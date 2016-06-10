@@ -22023,6 +22023,20 @@
                         "type": "unicode"
                     },
                     {
+                        "attribute": true,
+                        "class": "Str",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Trusted domain partner",
+                        "flags": [
+                            "no_display",
+                            "no_option"
+                        ],
+                        "label": "Trusted domain partner",
+                        "name": "ipanttrustpartner",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
                         "name": "setattr"
                     },
                     {
@@ -22128,6 +22142,21 @@
                         "type": "unicode"
                     },
                     {
+                        "attribute": true,
+                        "class": "Str",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Trusted domain partner",
+                        "flags": [
+                            "no_display",
+                            "no_option"
+                        ],
+                        "label": "Trusted domain partner",
+                        "name": "ipanttrustpartner",
+                        "noextrawhitespace": true,
+                        "query": true,
+                        "type": "unicode"
+                    },
+                    {
                         "class": "Int",
                         "deprecated_cli_aliases": [],
                         "doc": "Time limit of search in seconds",
@@ -22195,6 +22224,20 @@
                         "flags": [],
                         "label": "Domain Security Identifier",
                         "name": "ipanttrusteddomainsid",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Str",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Trusted domain partner",
+                        "flags": [
+                            "no_display",
+                            "no_option"
+                        ],
+                        "label": "Trusted domain partner",
+                        "name": "ipanttrustpartner",
                         "noextrawhitespace": true,
                         "type": "unicode"
                     },
