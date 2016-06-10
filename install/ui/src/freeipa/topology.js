@@ -240,7 +240,8 @@ return {
                         },
                         {
                             name: 'ipaserviceweight',
-                            placeholder: '100'
+                            placeholder: '100',
+                            flags: ['w_if_no_aci']
                         },
                         {
                             $type: 'association_table',
