@@ -66,7 +66,7 @@ class server(LDAPObject):
         'ipalocation': ('IPA', 'in_', 'not_in_'),
         'role': ('Enabled', '', 'no_'),
     }
-    permission_filter_objectclasses = ['ipaLocationMember']
+    permission_filter_objectclasses = ['ipaConfigObject']
     managed_permissions = {
         'System: Read Locations of IPA Servers': {
             'ipapermright': {'read', 'search', 'compare'},
@@ -75,6 +75,11 @@ class server(LDAPObject):
             },
             'default_privileges': {'DNS Administrators'},
         },
+        'System: Read Status of Services on IPA Servers': {
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {'objectclass', 'cn', 'ipaconfigstring'},
+            'default_privileges': {'DNS Administrators'},
+        }
     }
 
     takes_params = (
