@@ -2525,7 +2525,8 @@ class dnszone(DNSZoneBase):
                 'idnsforwarders', 'idnsforwardpolicy', 'idnsname',
                 'idnssecinlinesigning', 'idnssoaexpire', 'idnssoaminimum',
                 'idnssoamname', 'idnssoarefresh', 'idnssoaretry',
-                'idnssoarname', 'idnssoaserial', 'idnsupdatepolicy',
+                'idnssoarname', 'idnssoaserial', 'idnsTemplateAttribute',
+                'idnsupdatepolicy',
                 'idnszoneactive', 'ipseckeyrecord','keyrecord', 'kxrecord',
                 'locrecord', 'managedby', 'mdrecord', 'minforecord',
                 'mxrecord', 'naptrrecord', 'nsecrecord', 'nsec3paramrecord',
@@ -2552,6 +2553,7 @@ class dnszone(DNSZoneBase):
             'ipapermlocation': api.env.basedn,
             'ipapermtarget': DN('idnsname=*', 'cn=dns', api.env.basedn),
             'ipapermdefaultattr': {
+                'objectclass',  # needed for record templates
                 'a6record', 'aaaarecord', 'afsdbrecord', 'aplrecord', 'arecord',
                 'certrecord', 'cn', 'cnamerecord', 'dhcidrecord', 'dlvrecord',
                 'dnamerecord', 'dnsclass', 'dnsttl', 'dsrecord',
@@ -2560,7 +2562,8 @@ class dnszone(DNSZoneBase):
                 'idnsforwarders', 'idnsforwardpolicy', 'idnsname',
                 'idnssecinlinesigning', 'idnssoaexpire', 'idnssoaminimum',
                 'idnssoamname', 'idnssoarefresh', 'idnssoaretry',
-                'idnssoarname', 'idnssoaserial', 'idnsupdatepolicy',
+                'idnssoarname', 'idnssoaserial', 'idnsTemplateAttribute',
+                'idnsupdatepolicy',
                 'idnszoneactive', 'ipseckeyrecord','keyrecord', 'kxrecord',
                 'locrecord', 'managedby', 'mdrecord', 'minforecord',
                 'mxrecord', 'naptrrecord', 'nsecrecord', 'nsec3paramrecord',
