@@ -19,6 +19,7 @@
 #
 
 from ipaserver.install import service
+from ipaserver.install import sysupgrade
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipaplatform.constants import constants
@@ -28,9 +29,28 @@ from ipapython.ipa_log_manager import root_logger
 NTPD_OPTS_VAR = constants.NTPD_OPTS_VAR
 NTPD_OPTS_QUOTE = constants.NTPD_OPTS_QUOTE
 
+NTP_EXPOSED_IN_LDAP = 'exposed_in_ldap'
+
+
+def ntp_ldap_enable(fqdn, base_dn, realm):
+    ntp = NTPInstance(realm=realm)
+    is_exposed_in_ldap = sysupgrade.get_upgrade_state(
+        'ntp', NTP_EXPOSED_IN_LDAP)
+
+    was_running = ntp.is_running()
+
+    if ntp.is_configured() and not is_exposed_in_ldap:
+        ntp.ldap_enable('NTP', fqdn, None, base_dn)
+        sysupgrade.set_upgrade_state('ntp', NTP_EXPOSED_IN_LDAP, True)
+
+        if was_running:
+            ntp.start()
+
+
 class NTPInstance(service.Service):
-    def __init__(self, fstore=None):
+    def __init__(self, realm=None, fstore=None):
         service.Service.__init__(self, "ntpd", service_desc="NTP daemon")
+        self.realm = realm
 
         if fstore:
             self.fstore = fstore

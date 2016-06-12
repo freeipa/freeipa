@@ -32,6 +32,7 @@ from ipaserver.install import installutils
 from ipaserver.install import dsinstance
 from ipaserver.install import httpinstance
 from ipaserver.install import memcacheinstance
+from ipaserver.install import ntpinstance
 from ipaserver.install import bindinstance
 from ipaserver.install import service
 from ipaserver.install import cainstance
@@ -1583,6 +1584,8 @@ def upgrade_configuration():
     http.enable_and_start_oddjobd()
 
     ds.configure_dirsrv_ccache()
+
+    ntpinstance.ntp_ldap_enable(api.env.host, api.env.basedn, api.env.realm)
 
     # ldap2 connection is not valid after DS restart, close connection otherwise
     # it will cause network errors

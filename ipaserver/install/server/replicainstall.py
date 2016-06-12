@@ -780,6 +780,8 @@ def install(installer):
         # Configure dirsrv
         ds = install_replica_ds(config, options, ca_enabled, remote_api)
 
+        ntpinstance.ntp_ldap_enable(config.host_name, ds.suffix, api.env.realm)
+
         # Always try to install DNS records
         install_dns_records(config, options, remote_api)
     finally:
@@ -1349,6 +1351,9 @@ def promote(installer):
         # Must install http certs before changing ipa configuration file
         # or certmonger will fail to contact the peer master
         install_http_certs(config, fstore, remote_api)
+
+        ntpinstance.ntp_ldap_enable(config.host_name, ds.suffix,
+                                    remote_api.env.realm)
 
     finally:
         if conn.isconnected():

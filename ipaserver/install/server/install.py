@@ -856,6 +856,9 @@ def install(installer):
                                idstart=options.idstart, idmax=options.idmax,
                                subject_base=options.subject,
                                hbac_allow=not options.no_hbac_allow)
+
+        ntpinstance.ntp_ldap_enable(host_name, ds.suffix, realm_name)
+
     else:
         ds = dsinstance.DsInstance(fstore=fstore,
                                    domainlevel=options.domainlevel)
