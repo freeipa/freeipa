@@ -359,6 +359,9 @@ def install(standalone, replica, options, api=api):
     dnskeysyncd.start_dnskeysyncd()
     bind.start_named()
 
+    # this must be done when bind is started and operational
+    bind.update_system_records()
+
     if standalone:
         print("==============================================================================")
         print("Setup complete")

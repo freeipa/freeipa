@@ -840,9 +840,11 @@ def install(installer):
     if config.setup_ca:
         services.knownservices['pki_tomcatd'].restart('pki-tomcat')
 
+    api.Backend.ldap2.connect(autobind=True)
     if options.setup_dns:
-        api.Backend.ldap2.connect(autobind=True)
         dns.install(False, True, options)
+    else:
+        api.Command.dns_update_system_records()
 
     # Restart httpd to pick up the new IPA configuration
     service.print_msg("Restarting the web server")
@@ -1469,9 +1471,11 @@ def promote(installer):
     server_api.bootstrap(in_server=True, context='installer')
     server_api.finalize()
 
+    server_api.Backend.ldap2.connect(autobind=True)
     if options.setup_dns:
-        server_api.Backend.ldap2.connect(autobind=True)
         dns.install(False, True, options, server_api)
+    else:
+        server_api.Command.dns_update_system_records()
 
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()

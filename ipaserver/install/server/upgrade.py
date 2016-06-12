@@ -1105,12 +1105,9 @@ def add_ca_dns_records():
 
     bind = bindinstance.BindInstance()
 
-    bind.convert_ipa_ca_cnames(api.env.domain)
+    bind.remove_ipa_ca_cnames(api.env.domain)
 
-    # DNS is enabled, so let bindinstance find out if CA is enabled
-    # and let it add the record in that case
-    bind.add_ipa_ca_dns_records(api.env.host, api.env.domain,
-                                ca_configured=None)
+    bind.update_system_records()
 
     sysupgrade.set_upgrade_state('dns', 'ipa_ca_records', True)
 

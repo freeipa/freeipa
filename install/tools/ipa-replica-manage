@@ -898,7 +898,6 @@ def cleanup_server_dns_entries(realm, hostname, suffix, options):
                                              dm_password=options.dirman_passwd):
             bind = bindinstance.BindInstance()
             bind.remove_master_dns_records(hostname, realm, realm.lower())
-            bind.remove_ipa_ca_dns_records(hostname, realm.lower())
             bind.remove_server_ns_records(hostname)
 
             keysyncd = dnskeysyncinstance.DNSKeySyncInstance()

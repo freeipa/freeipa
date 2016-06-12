@@ -30,6 +30,10 @@ import time
 import ldap
 import six
 
+from ipaserver.dns_data_management import (
+    IPASystemRecords,
+    IPADomainIsNotManagedByIPAError,
+)
 from ipaserver.install import installutils
 from ipaserver.install import service
 from ipaserver.install import sysupgrade
@@ -692,7 +696,6 @@ class BindInstance(service.Service):
             self.step("setting up records for other masters", self.__add_others)
         # all zones must be created before this step
         self.step("adding NS record to the zones", self.__add_self_ns)
-        self.step("setting up CA record", self.__add_ipa_ca_record)
 
         self.step("setting up kerberos principal", self.__setup_principal)
         self.step("setting up named.conf", self.__setup_named_conf)
@@ -858,15 +861,7 @@ class BindInstance(service.Service):
         else:
             host_in_rr = normalize_zone(fqdn)
 
-        srv_records = (
-            ("_ldap._tcp", "0 100 389 %s" % host_in_rr),
-            ("_kerberos._tcp", "0 100 88 %s" % host_in_rr),
-            ("_kerberos._udp", "0 100 88 %s" % host_in_rr),
-            ("_kerberos-master._tcp", "0 100 88 %s" % host_in_rr),
-            ("_kerberos-master._udp", "0 100 88 %s" % host_in_rr),
-            ("_kpasswd._tcp", "0 100 464 %s" % host_in_rr),
-            ("_kpasswd._udp", "0 100 464 %s" % host_in_rr),
-        )
+        srv_records = ()
         if self.ntp:
             srv_records += (
                 ("_ntp._udp", "0 100 123 %s" % host_in_rr),
@@ -915,63 +910,6 @@ class BindInstance(service.Service):
 
             root_logger.debug("Adding DNS records for master %s" % fqdn)
             self.__add_master_records(fqdn, addrs)
-
-    def __add_ipa_ca_records(self, fqdn, addrs, ca_configured):
-        if ca_configured is False:
-            root_logger.debug("CA is not configured")
-            return
-        elif ca_configured is None:
-            # we do not know if CA is configured for this host and we can
-            # add the CA record. So we need to find out
-            root_logger.debug("Check if CA is enabled for this host")
-            base_dn = DN(('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'),
-                         ('cn', 'etc'), self.api.env.basedn)
-            ldap_filter = '(&(objectClass=ipaConfigObject)(cn=CA))'
-            try:
-                self.api.Backend.ldap2.find_entries(filter=ldap_filter, base_dn=base_dn)
-            except ipalib.errors.NotFound:
-                root_logger.debug("CA is not configured")
-                return
-            else:
-                root_logger.debug("CA is configured for this host")
-
-        try:
-            for addr in addrs:
-                add_fwd_rr(self.domain, IPA_CA_RECORD, addr, api=self.api)
-        except errors.ValidationError:
-            # there is a CNAME record in ipa-ca, we can't add A/AAAA records
-            pass
-
-    def __add_ipa_ca_record(self):
-        self.__add_ipa_ca_records(self.fqdn, self.ip_addresses,
-                                  self.ca_configured)
-
-        if self.first_instance:
-            ldap = self.api.Backend.ldap2
-            try:
-                entries = ldap.get_entries(
-                    DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
-                       self.api.env.basedn),
-                    ldap.SCOPE_SUBTREE, '(&(objectClass=ipaConfigObject)(cn=CA))',
-                    ['dn'])
-            except errors.NotFound:
-                root_logger.debug('No server with CA found')
-                entries = []
-
-            for entry in entries:
-                fqdn = entry.dn[1]['cn']
-                if fqdn == self.fqdn:
-                    continue
-
-                host, zone = fqdn.split('.', 1)
-                if dns_zone_exists(zone, self.api):
-                    addrs = get_fwd_rr(zone, host, api=self.api)
-                else:
-                    addrs = dnsutil.resolve_ip_addresses(fqdn)
-                    # hack, will go away with locations
-                    addrs = [str(addr) for addr in addrs]
-
-                self.__add_ipa_ca_records(fqdn, addrs, True)
 
     def __setup_principal(self):
         dns_principal = "DNS/" + self.fqdn + "@" + self.realm
@@ -1088,28 +1026,14 @@ class BindInstance(service.Service):
         self.zonemgr = 'hostmaster.%s' % self.domain
 
         self.__add_self()
-        self.__add_ipa_ca_record()
 
-    def add_ipa_ca_dns_records(self, fqdn, domain_name, ca_configured=True):
-        host, zone = fqdn.split(".", 1)
-        if dns_zone_exists(zone, self.api):
-            addrs = get_fwd_rr(zone, host, api=self.api)
-        else:
-            addrs = dnsutil.resolve_ip_addresses(fqdn)
-            # hack, will go away with locations
-            addrs = [str(addr) for addr in addrs]
-
-        self.domain = domain_name
-
-        self.__add_ipa_ca_records(fqdn, addrs, ca_configured)
-
-    def convert_ipa_ca_cnames(self, domain_name):
+    def remove_ipa_ca_cnames(self, domain_name):
         # get ipa-ca CNAMEs
         cnames = get_rr(domain_name, IPA_CA_RECORD, "CNAME", api=self.api)
         if not cnames:
             return
 
-        root_logger.info('Converting IPA CA CNAME records to A/AAAA records')
+        root_logger.info('Removing IPA CA CNAME records')
 
         # create CNAME to FQDN mapping
         cname_fqdn = {}
@@ -1136,34 +1060,21 @@ class BindInstance(service.Service):
             fqdn = cname_fqdn[cname]
             if fqdn not in masters:
                 root_logger.warning(
-                    "Cannot convert IPA CA CNAME records to A/AAAA records, "
-                    "please convert them manually if necessary")
+                    "Cannot remove IPA CA CNAME please remove them manually "
+                    "if necessary")
                 return
 
         # delete all CNAMEs
         for cname in cnames:
             del_rr(domain_name, IPA_CA_RECORD, "CNAME", cname, api=self.api)
 
-        # add A/AAAA records
-        for cname in cnames:
-            fqdn = cname_fqdn[cname]
-            self.add_ipa_ca_dns_records(fqdn, domain_name, None)
-
     def remove_master_dns_records(self, fqdn, realm_name, domain_name):
         host, zone = fqdn.split(".", 1)
         self.host = host
         self.fqdn = fqdn
         self.domain = domain_name
-        suffix = ipautil.realm_to_suffix(realm_name)
 
         resource_records = (
-            ("_ldap._tcp", "SRV", "0 100 389 %s" % self.host_in_rr),
-            ("_kerberos._tcp", "SRV", "0 100 88 %s" % self.host_in_rr),
-            ("_kerberos._udp", "SRV", "0 100 88 %s" % self.host_in_rr),
-            ("_kerberos-master._tcp", "SRV", "0 100 88 %s" % self.host_in_rr),
-            ("_kerberos-master._udp", "SRV", "0 100 88 %s" % self.host_in_rr),
-            ("_kpasswd._tcp", "SRV", "0 100 464 %s" % self.host_in_rr),
-            ("_kpasswd._udp", "SRV", "0 100 464 %s" % self.host_in_rr),
             ("_ntp._udp", "SRV", "0 100 123 %s" % self.host_in_rr),
         )
 
@@ -1179,18 +1090,7 @@ class BindInstance(service.Service):
                 record = get_reverse_record_name(rzone, rdata)
                 del_rr(rzone, record, "PTR", normalize_zone(fqdn),
                        api=self.api)
-
-    def remove_ipa_ca_dns_records(self, fqdn, domain_name):
-        host, zone = fqdn.split(".", 1)
-        if dns_zone_exists(zone, self.api):
-            addrs = get_fwd_rr(zone, host, api=self.api)
-        else:
-            addrs = dnsutil.resolve_ip_addresses(fqdn)
-            # hack, will go away with locations
-            addrs = [str(addr) for addr in addrs]
-
-        for addr in addrs:
-            del_fwd_rr(domain_name, IPA_CA_RECORD, addr, api=self.api)
+        self.update_system_records()
 
     def remove_server_ns_records(self, fqdn):
         """
@@ -1223,6 +1123,28 @@ class BindInstance(service.Service):
                 record = entry.single_value['idnsname']
                 root_logger.debug("record %s in zone %s", record, zone)
                 del_ns_rr(zone, record, ns_rdata, api=self.api)
+
+    def update_system_records(self):
+        self.print_msg("Updating DNS system records")
+        system_records = IPASystemRecords(self.api)
+        try:
+            (
+                (_ipa_rec, failed_ipa_rec),
+                (_loc_rec, failed_loc_rec)
+            ) = system_records.update_dns_records()
+        except IPADomainIsNotManagedByIPAError:
+            root_logger.error(
+                "IPA domain is not managed by IPA, please update records "
+                "manually")
+        else:
+            if failed_ipa_rec or failed_loc_rec:
+                root_logger.error("Update of following records failed:")
+                for attr in (failed_ipa_rec, failed_loc_rec):
+                    for rname, node, error in attr:
+                        for record, e in IPASystemRecords.records_list_from_node(
+                                rname, node
+                        ):
+                            root_logger.error("%s (%s)", record, e)
 
     def check_global_configuration(self):
         """

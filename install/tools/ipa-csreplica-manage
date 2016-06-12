@@ -286,7 +286,7 @@ def del_master(realm, hostname, options):
         if bindinstance.dns_container_exists(options.host, api.env.basedn,
                                              dm_password=options.dirman_passwd):
             bind = bindinstance.BindInstance()
-            bind.remove_ipa_ca_dns_records(hostname, realm.lower())
+            bind.update_system_records()
     except Exception as e:
         print("Failed to cleanup %s DNS entries: %s" % (hostname, e))
         print("You may need to manually remove them from the tree")

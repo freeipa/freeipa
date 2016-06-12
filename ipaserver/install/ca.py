@@ -253,7 +253,7 @@ def install_step_1(standalone, replica_config, options):
         # Install CA DNS records
         if bindinstance.dns_container_exists(host_name, basedn, dm_password):
             bind = bindinstance.BindInstance(dm_password=dm_password)
-            bind.add_ipa_ca_dns_records(host_name, domain_name)
+            bind.update_system_records()
 
 
 def uninstall():
