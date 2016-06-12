@@ -240,6 +240,12 @@ class config(LDAPObject):
             flags={'virtual_attribute', 'no_create', 'no_update'}
         ),
         Str(
+            'ntp_server_server*',
+            label=_('IPA NTP servers'),
+            doc=_('IPA servers with enabled NTP'),
+            flags={'virtual_attribute', 'no_create', 'no_update'}
+        ),
+        Str(
             'ca_renewal_master_server?',
             label=_('IPA CA renewal master'),
             doc=_('Renewal master for IPA certificate authority'),
@@ -256,11 +262,9 @@ class config(LDAPObject):
 
         backend = self.api.Backend.serverroles
 
-        ca_config = backend.config_retrieve("CA server")
-        master_config = backend.config_retrieve("IPA master")
-
-        entry_attrs.update(ca_config)
-        entry_attrs.update(master_config)
+        for role in ("CA server", "IPA master", "NTP server"):
+            config = backend.config_retrieve(role)
+            entry_attrs.update(config)
 
 
 @register()
