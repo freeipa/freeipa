@@ -805,6 +805,12 @@ topology.TopologyGraphFacet = declare([Facet, ActionMixin, HeaderMixin], {
             this.set_selected_link(data.link);
         }.bind(this));
 
+        on(graph, 'add-agreement', function(link) {
+            var dialog = topology.create_add_dialog();
+            dialog.open();
+            dialog.prefill_dialog(link);
+        });
+
         on(this, 'hide', function () {
             $(window).off('resize', null, listener);
         });
@@ -839,6 +845,106 @@ topology.TopologyGraphFacet = declare([Facet, ActionMixin, HeaderMixin], {
     }
 });
 
+
+/**
+ * Creates segment adder dialog according to spec.
+ *
+ * @param spec {Object}
+ */
+topology.create_add_dialog = function(spec) {
+
+    spec = spec || {};
+
+    spec.entity = spec.entity || 'topologysegment';
+
+    var entity = reg.entity.get('topologysegment');
+    var title = text.get('@i18n:dialogs.add_title');
+    var label = entity.metadata.label_singular;
+    spec.title = title.replace('${entity}', label);
+
+    spec.fields = spec.fields || [
+        {
+            name: 'cn',
+            required: false
+        },
+        {
+            $type: 'entity_select',
+            name: 'suffix',
+            label: '@mo:topologysuffix.label_singular',
+            other_entity: 'topologysuffix',
+            other_field: 'cn',
+            z_index: 3,
+            required: true
+        },
+        {
+            $type: 'entity_select',
+            name: 'iparepltoposegmentleftnode',
+            other_entity: 'server',
+            other_field: 'cn',
+            z_index: 2
+        },
+        {
+            $type: 'entity_select',
+            name: 'iparepltoposegmentrightnode',
+            other_entity: 'server',
+            other_field: 'cn',
+            z_index: 1
+        }
+    ];
+
+
+    var that = IPA.entity_adder_dialog(spec);
+
+    that.init = function() {
+        that.added.attach(that.on_success);
+    };
+
+    that.show_edit_page = function(entity, result) {
+        var suffix = this.fields.get_field('suffix').save()[0];
+        var cn = result.cn[0];
+        navigation.show_entity(entity.name, 'default', [suffix, cn]);
+    };
+
+    that.create_add_command = function(record) {
+
+        var args = [this.fields.get_field('suffix').save()[0]];
+        var cn = this.fields.get_field('cn').save()[0];
+        if (cn) args.push(cn);
+
+        var options = {
+            'iparepltoposegmentleftnode':
+                this.fields.get_field('iparepltoposegmentleftnode').save()[0],
+            'iparepltoposegmentrightnode':
+                this.fields.get_field('iparepltoposegmentrightnode').save()[0]
+        };
+
+        var command = rpc.command({
+            entity: this.entity.name,
+            method: this.method,
+            retry: this.retry,
+            args: args,
+            options: options
+        });
+
+        return command;
+    };
+
+
+    that.on_success = function(data) {
+        that.facet.refresh();
+    };
+
+    that.prefill_dialog = function(link) {
+        that.get_field('iparepltoposegmentleftnode').set_value([link.source.id]);
+        that.get_field('iparepltoposegmentrightnode').set_value([link.target.id]);
+        that.get_field('suffix').set_value([link.suffix]);
+    };
+
+    that.init();
+
+    return that;
+};
+
 /**
  * Shows topology segment adder dialog with suffix select
  *
@@ -856,84 +962,11 @@ topology.add_segment_action = function(spec) {
 
     that.execute_action = function(facet, on_success, on_error) {
 
-        that.facet = facet;
-
-        var entity = reg.entity.get('topologysegment');
-        var title = text.get('@i18n:dialogs.add_title');
-        var label = entity.metadata.label_singular;
-        title = title.replace('${entity}', label);
-
-        var dialog = IPA.entity_adder_dialog({
-            entity: 'topologysegment',
-            title: title,
-            fields: [
-                {
-                    name: 'cn',
-                    required: false
-                },
-                {
-                    $type: 'entity_select',
-                    name: 'suffix',
-                    label: '@mo:topologysuffix.label_singular',
-                    other_entity: 'topologysuffix',
-                    other_field: 'cn',
-                    z_index: 3,
-                    required: true
-                },
-                {
-                    $type: 'entity_select',
-                    name: 'iparepltoposegmentleftnode',
-                    other_entity: 'server',
-                    other_field: 'cn',
-                    z_index: 2
-                },
-                {
-                    $type: 'entity_select',
-                    name: 'iparepltoposegmentrightnode',
-                    other_entity: 'server',
-                    other_field: 'cn',
-                    z_index: 1
-                }
-            ]
-        });
-        dialog.added.attach(that.on_success);
-
-        dialog.show_edit_page = function(entity, result) {
-            var suffix = this.fields.get_field('suffix').save()[0];
-            var cn = result.cn[0];
-            navigation.show_entity(entity.name, 'default', [suffix, cn]);
-        };
-
-        dialog.create_add_command = function(record) {
-
-            var args = [this.fields.get_field('suffix').save()[0]];
-            var cn = this.fields.get_field('cn').save()[0];
-            if (cn) args.push(cn);
-
-            var options = {
-                'iparepltoposegmentleftnode':
-                    this.fields.get_field('iparepltoposegmentleftnode').save()[0],
-                'iparepltoposegmentrightnode':
-                    this.fields.get_field('iparepltoposegmentrightnode').save()[0]
-            };
-
-            var command = rpc.command({
-                entity: this.entity.name,
-                method: this.method,
-                retry: this.retry,
-                args: args,
-                options: options
-            });
-
-            return command;
-        };
+        var dialog = topology.create_add_dialog();
 
         dialog.open();
     };
 
-    that.on_success = function(data) {
-        that.facet.refresh();
-    };
 
     return that;
 };
@@ -1230,6 +1263,7 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
         }
 
         forward('link-selected');
+        forward('add-agreement');
     },
 
     _update_view: function() {
