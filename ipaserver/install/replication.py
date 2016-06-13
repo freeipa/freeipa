@@ -19,6 +19,7 @@
 
 from __future__ import print_function
 
+import six
 import time
 import datetime
 import sys
@@ -35,6 +36,9 @@ from ipapython import ipautil, ipaldap
 from ipapython.dn import DN
 from ipaplatform import services
 from ipaplatform.paths import paths
+
+if six.PY3:
+    unicode = str
 
 # the default container used by AD for user entries
 WIN_USER_CONTAINER = DN(('cn', 'Users'))
@@ -1285,6 +1289,17 @@ class ReplicationManager(object):
             if len(entries) != 0:
                 for entry in entries:
                     self.conn.delete_entry(entry)
+        except errors.NotFound:
+            pass
+        except Exception as e:
+            if not force:
+                raise e
+            elif not err:
+                err = e
+
+        # delete DNS server configuration, if any
+        try:
+            api.Command.dnsserver_del(unicode(replica))
         except errors.NotFound:
             pass
         except Exception as e:
