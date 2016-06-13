@@ -7,13 +7,15 @@
 # Petr Viktorin <encukou@gmail.com>, 2014
 # Yuri Chornoivan <yurchor@ukr.net>, 2011-2014
 # Yuri Chornoivan <yurchor@ukr.net>, 2015. #zanata
+# Martin Bašti <mbasti@redhat.com>, 2016. #zanata
+# Yuri Chornoivan <yurchor@ukr.net>, 2016. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
 "POT-Creation-Date: 2016-05-31 15:43+0200\n"
-"PO-Revision-Date: 2015-12-06 01:42-0500\n"
-"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"PO-Revision-Date: 2016-06-13 04:38-0400\n"
+"Last-Translator: Martin Bašti <mbasti@redhat.com>\n"
 "Language-Team: Ukrainian (http://www.transifex.com/projects/p/freeipa/"
 "language/uk/)\n"
 "Language: uk\n"
@@ -387,9 +389,17 @@ msgid "%(name)s certificate is not valid"
 msgstr "Сертифікат %(name)s не є чинним"
 
 #, python-format
+msgid "Host '%(hostname)s' does not have corresponding DNS A/AAAA record"
+msgstr "На вузлі «%(hostname)s» немає відповідного запису DNS A/AAAA"
+
+#, python-format
 msgid "DNS check failed: Expected {%(expected)s} got {%(got)s}"
 msgstr ""
 "Перевірка DNS зазнала невдачі: мало бути {%(expected)s}, отримано {%(got)s}"
+
+#, python-format
+msgid "%(exception)s"
+msgstr "%(exception)s"
 
 msgid "Results are truncated, try a more specific search"
 msgstr ""
@@ -484,7 +494,7 @@ msgid ""
 "DNS server %(server)s does not support EDNS0 (RFC 6891): %(error)s.\n"
 "If DNSSEC validation is enabled on IPA server(s), please disable it."
 msgstr ""
-"На сервері DNS (server)s не передбачено підтримки EDNS0 (RFC 6891): "
+"На сервері DNS %(server)s не передбачено підтримки EDNS0 (RFC 6891): "
 "%(error)s.\n"
 "Якщо на серверах IPA увімкнено перевірку DNSSEC, будь ласка, вимкніть її."
 
@@ -540,6 +550,29 @@ msgstr ""
 #, python-format
 msgid "'%(command)s' is deprecated. %(additional_info)s"
 msgstr "«%(command)s» вважається застарілою. %(additional_info)s"
+
+#, python-format
+msgid "%(line)s"
+msgstr "%(line)s"
+
+#, python-format
+msgid ""
+"Your trust to %(domain)s is broken. Please re-create it by running 'ipa "
+"trust-add' again."
+msgstr ""
+"Довіру до %(domain)s втрачено. Будь ласка, відновіть її за допомогою команди "
+"«ipa trust-add»."
+
+msgid ""
+"Forwarding policy conflicts with some automatic empty zones. Queries for "
+"zones specified by RFC 6303 will ignore forwarding and recursion and always "
+"result in NXDOMAIN answers. To override this behavior use forward policy "
+"'only'."
+msgstr ""
+"Правила переспрямовування конфліктують із деякими автоматично порожніми "
+"зонами. Запити для зон, вказаних на основі RFC 6303, ігноруватимуть "
+"переспрямовування і завжди призводитимуть до відповідей NXDOMAIN. Щоб "
+"перевизначити цю поведінку, скористайтеся правилами переспрямовування «only»."
 
 msgid "A dictionary representing an LDAP entry"
 msgstr "Словник, що відповідає запису LDAP"
@@ -3097,7 +3130,7 @@ msgstr ""
 "  Шукати профілі, у яких не зберігаються сертифікати:\n"
 "    ipa certprofile-find --store=false\n"
 "\n"
-"ФОРМАТ НАЛАШТУВАНЬ ПРОФІЛЮ\t:\n"
+"ФОРМАТ НАЛАШТУВАНЬ ПРОФІЛЮ:\n"
 "\n"
 "Налаштування профілю зберігаються у вигляді простого списку\n"
 "властивостей, що використовується системою сертифікації Dogtag.\n"
@@ -4579,6 +4612,10 @@ msgstr ""
 msgid "DNS is not configured"
 msgstr "DNS не налаштовано"
 
+msgid "Force DNS zone creation even if it will overlap with an existing zone."
+msgstr ""
+"Примусове створення зони DNS, навіть якщо вона перекриватиметься із наявною."
+
 msgid "Only one zone type is allowed per zone name"
 msgstr "Можна використовувати лише один тип зони на одну назву зони"
 
@@ -4718,6 +4755,12 @@ msgstr "Записи NS можна редагувати у апексі зони
 
 msgid "Create new DNS zone (SOA record)."
 msgstr "Створити зону DNS (запис SOA)."
+
+msgid ""
+"Force DNS zone creation even if nameserver is not resolvable. (Deprecated)"
+msgstr ""
+"Примусове створення зони DNS, навіть якщо адресу сервера назв не вдається "
+"визначити. (застаріле)"
 
 msgid "Force DNS zone creation even if nameserver is not resolvable."
 msgstr ""
@@ -5007,6 +5050,9 @@ msgstr "Дозволити синхронізацію прямих (A, AAAA) і 
 
 msgid "Zone refresh interval"
 msgstr "Інтервал між оновленнями даних зони"
+
+msgid "IPA DNS version"
+msgstr "Версія DNS IPA"
 
 msgid "Global DNS configuration is empty"
 msgstr "Загальні налаштування DNS є порожніми"
@@ -6756,6 +6802,12 @@ msgstr "Вилучити групу вузлів."
 msgid "Deleted hostgroup \"%(value)s\""
 msgstr "Вилучено групу вузлів «%(value)s»"
 
+msgid "hostgroup"
+msgstr "група вузлів"
+
+msgid "privileged hostgroup"
+msgstr "привілейована група вузлів"
+
 msgid "Modify a hostgroup."
 msgstr "Змінити групу вузлів."
 
@@ -7444,6 +7496,15 @@ msgstr ""
 
 msgid "Number of hosts that had a ID View was unset:"
 msgstr "Кількість вузлів, з яких знято перегляд ідентифікаторів:"
+
+msgid ""
+"You are trying to reference a magic private group which is not allowed to be "
+"overridden. Try overriding the GID attribute of the corresponding user "
+"instead."
+msgstr ""
+"Ви намагаєтеся послатися на магічну приватну групу, яку не можна "
+"перевизначати Спробуйте краще перевизначити атрибут GID запису відповідного "
+"користувача."
 
 msgid "IPA object"
 msgstr "Об’єкт IPA"
@@ -8468,6 +8529,9 @@ msgstr "Ви справді хочете вилучити права досту�
 msgid "Skip DNS check"
 msgstr "Пропустити перевірку DNS"
 
+msgid "Skip overlap check"
+msgstr "Пропустити перевірку перекриття"
+
 msgid "Do you want to check if new authoritative nameserver address is in DNS"
 msgstr "Хочете перевірити, чи є адреса нового основного сервера назв у DNS"
 
@@ -9244,6 +9308,11 @@ msgstr "Максимальним є значення ${value}"
 #, python-brace-format
 msgid "Minimum value is ${value}"
 msgstr "Мінімальним є значення ${value}"
+
+msgid "Not a valid network address (examples: 2001:db8::/64, 192.0.2.0/24)"
+msgstr ""
+"Некоректна адреса у мережі (приклади коректних адрес: 2001:db8::/64, "
+"192.0.2.0/24)"
 
 msgid "Parse error"
 msgstr "Помилка обробки"
@@ -10223,6 +10292,21 @@ msgstr "Не показувати код QR"
 
 msgid "URI"
 msgstr "URI"
+
+msgid ""
+"Unable to display QR code using the configured output encoding. Please use "
+"the token URI to configure you OTP device"
+msgstr ""
+"Неможливо показати код QR за допомогою налаштованого кодування виведення "
+"результатів. Будь ласка, скористайтеся адресою ключа для налаштовування "
+"вашого пристрою OTP"
+
+msgid ""
+"QR code width is greater than that of the output tty. Please resize your "
+"terminal."
+msgstr ""
+"QR code width is greater than that of the output tty. Please resize your "
+"terminal."
 
 msgid "Delete an OTP token."
 msgstr "Вилучити жетон OTP."
@@ -11430,6 +11514,16 @@ msgstr ""
 msgid "The following domains do not belong to this realm: %(domains)s"
 msgstr "Вказані нижче домени не належать до цієї області: %(domains)s"
 
+#, python-format
+msgid ""
+"The realm of the following domains could not be detected: %(domains)s. If "
+"these are domains that belong to the this realm, please create a _kerberos "
+"TXT record containing \"%(realm)s\" in each of them."
+msgstr ""
+"Не вдалося виявити область таких доменів: %(domains)s. Якщо ці домени "
+"належать до цієї області, будь ласка, створіть запис TXT _kerberos, що "
+"міститиме «%(realm)s», на кожному з них."
+
 msgid ""
 "The --domain option cannot be used together with --add-domain or --del-"
 "domain. Use --domain to specify the whole realm domain list explicitly, to "
@@ -12007,6 +12101,22 @@ msgstr "Вилучити сервер IPA."
 #, python-format
 msgid "Deleted IPA server \"%(value)s\""
 msgstr "Вилучено сервер IPA «%(value)s»"
+
+msgid "Check connection to remote IPA server."
+msgstr "Перевірити з’єднання із віддаленим сервером IPA."
+
+msgid "Remote server name"
+msgstr "Назва віддаленого сервера"
+
+msgid "Remote IPA server hostname"
+msgstr "Назва вузла віддаленого сервера IPA"
+
+#, python-format
+msgid "must be \"%s\""
+msgstr "має бути «%s»"
+
+msgid "not allowed to perform server connection check"
+msgstr "не дозволено виконувати перевірку з’єднання сервера"
 
 msgid ""
 "\n"
@@ -13292,6 +13402,172 @@ msgstr "Вилучити пункт з правила sudo."
 msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
 msgstr "З правила sudo «%(rule)s» вилучено параметр «%(option)s»"
 
+msgid ""
+"\n"
+"Topology\n"
+"\n"
+"Management of a replication topology at domain level 1.\n"
+msgstr ""
+"\n"
+"Топологія\n"
+"\n"
+"Керування топологією реплікації на домені рівня 1.\n"
+
+msgid ""
+"\n"
+"IPA server's data is stored in LDAP server in two suffixes:\n"
+"* domain suffix, e.g., 'dc=example,dc=com', contains all domain related "
+"data\n"
+"* ca suffix, 'o=ipaca', is present only on server with CA installed. It\n"
+"  contains data for Certificate Server component\n"
+msgstr ""
+"\n"
+"Дані сервера IPA зберігаються на сервері LDAP у двох суфіксах:\n"
+"* суфіксі домену, наприклад «dc=example,dc=com», тут містяться усі пов’язані "
+"із доменом дані\n"
+"* суфіксі ca, «o=ipaca», наявні лише на серверах із встановленим CA. Тут\n"
+"  містяться дані для компонента сервера сертифікатів.\n"
+
+msgid ""
+"\n"
+"Data stored on IPA servers is replicated to other IPA servers. The way it "
+"is\n"
+"replicated is defined by replication agreements. Replication agreements "
+"needs\n"
+"to be set for both suffixes separately. On domain level 0 they are managed\n"
+"using ipa-replica-manage and ipa-csreplica-manage tools. With domain level "
+"1\n"
+"they are managed centrally using `ipa topology*` commands.\n"
+msgstr ""
+"\n"
+"Дані, що зберігаються на серверах IPA, відтворюються на інших серверах IPA. "
+"Спосіб\n"
+"відтворення (реплікації) визначається угодами. Угоди реплікації потрібно\n"
+"встановлювати для обох суфіксів окремо. На рівні домену 0 угодами керують\n"
+"програми ipa-replica-manage та ipa-csreplica-manage. На рівні доменів 1\n"
+"керування виконується централізовано за допомогою команд «ipa topology*».\n"
+
+msgid ""
+"\n"
+"Agreements are represented by topology segments. By default topology "
+"segment\n"
+"represents 2 replication agreements - one for each direction, e.g., A to B "
+"and\n"
+"B to A. Creation of unidirectional segments is not allowed.\n"
+msgstr ""
+"\n"
+"Угоди представляються сегментами топології. Типово, сегмент топології\n"
+"представляється 2 угодами реплікації — по одній для кожного напрямку, "
+"наприклад\n"
+"від A до B і від B до A. Створення односпрямованих сегментів заборонене.\n"
+
+msgid ""
+"\n"
+"To verify that no server is disconnected in the topology of the given "
+"suffix,\n"
+"use:\n"
+"  ipa topologysuffix-verify $suffix\n"
+msgstr ""
+"\n"
+"Щоб перевірити, що жоден сервер не від’єднано у топології вказаного "
+"суфікса,\n"
+"скористайтеся такою командою:\n"
+"  ipa topologysuffix-verify $suffix\n"
+
+msgid ""
+"\n"
+"\n"
+"Examples:\n"
+"  Find all IPA servers:\n"
+"    ipa server-find\n"
+msgstr ""
+"\n"
+"\n"
+"Приклади:\n"
+"  Знайти усі сервери IPA:\n"
+"    ipa server-find\n"
+
+msgid ""
+"\n"
+"  Find all suffixes:\n"
+"    ipa topologysuffix-find\n"
+msgstr ""
+"\n"
+"  Знайти усі суфікси:\n"
+"    ipa topologysuffix-find\n"
+
+msgid ""
+"\n"
+"  Add topology segment to 'domain' suffix:\n"
+"    ipa topologysegment-add domain --left IPA_SERVER_A --right IPA_SERVER_B\n"
+msgstr ""
+"\n"
+"  Додати сегмент топології до суфікса «domain»:\n"
+"    ipa topologysegment-add domain --left IPA_SERVER_A --right IPA_SERVER_B\n"
+
+msgid ""
+"\n"
+"  Add topology segment to 'ca' suffix:\n"
+"    ipa topologysegment-add ca --left IPA_SERVER_A --right IPA_SERVER_B\n"
+msgstr ""
+"\n"
+"  Додати сегмент топології до суфікса «ca»:\n"
+"    ipa topologysegment-add ca --left IPA_SERVER_A --right IPA_SERVER_B\n"
+
+msgid ""
+"\n"
+"  List all topology segments in 'domain' suffix:\n"
+"    ipa topologysegment-find domain\n"
+msgstr ""
+"\n"
+"  Вивести список усіх сегментів топології у суфіксі «domain»:\n"
+"    ipa topologysegment-find domain\n"
+
+msgid ""
+"\n"
+"  List all topology segments in 'ca' suffix:\n"
+"    ipa topologysegment-find ca\n"
+msgstr ""
+"\n"
+"  Вивести список усіх сегментів топології у суфіксі «ca»:\n"
+"    ipa topologysegment-find ca\n"
+
+msgid ""
+"\n"
+"  Delete topology segment in 'domain' suffix:\n"
+"    ipa topologysegment-del domain segment_name\n"
+msgstr ""
+"\n"
+"  Вилучити сегмент топології у суфіксі «domain»:\n"
+"    ipa topologysegment-del domain segment_name\n"
+
+msgid ""
+"\n"
+"  Delete topology segment in 'ca' suffix:\n"
+"    ipa topologysegment-del ca segment_name\n"
+msgstr ""
+"\n"
+"  Вилучити сегмент топології у суфіксі «ca»:\n"
+"    ipa topologysegment-del ca segment_name\n"
+
+msgid ""
+"\n"
+"  Verify topology of 'domain' suffix:\n"
+"    ipa topologysuffix-verify domain\n"
+msgstr ""
+"\n"
+"  Перевірити топологію суфікса «domain»:\n"
+"    ipa topologysuffix-verify domain\n"
+
+msgid ""
+"\n"
+"  Verify topology of 'ca' suffix:\n"
+"    ipa topologysuffix-verify ca\n"
+msgstr ""
+"\n"
+"  Перевірити топологію суфікса «ca»:\n"
+"    ipa topologysuffix-verify ca\n"
+
 #, python-brace-format
 msgid "Topology management requires minimum domain level {0} "
 msgstr "Керування топологією потребує мінімального рівня домену {0} "
@@ -13474,6 +13750,9 @@ msgstr "Суфікс топології"
 
 msgid "Suffix name"
 msgstr "Назва суфікса"
+
+msgid "Managed LDAP suffix DN"
+msgstr "DN керованого суфікса LDAP"
 
 msgid "Search for topology suffixes."
 msgstr "Шукати суфікси топології."
@@ -15367,6 +15646,10 @@ msgstr ""
 "Спроба отримання даних щодо стану служби сертифікації зазнала невдачі: %s"
 
 #, python-format
+msgid "Retrieving CA status failed with status %d"
+msgstr "Спроба отримання стану CA зазнала невдачі, стан %d"
+
+#, python-format
 msgid "objectclass %s not found"
 msgstr "клас об’єктів %s не знайдено"
 
@@ -15513,6 +15796,10 @@ msgstr ""
 "перевірте, чи може DNS AD визначати за записами SRV %(records)s коректний "
 "сервер IPA."
 
+#, python-format
+msgid "Unable to communicate with CMS (status %d)"
+msgstr "Не вдалося обмінятися даними з CMS (стан %d)"
+
 msgid "Unable to communicate with CMS"
 msgstr "Не вдалося обмінятися даними з CMS"
 
@@ -15525,6 +15812,12 @@ msgstr ""
 
 msgid "REST API is not logged in."
 msgstr "Вхід до програмного інтерфейсу REST не виконано."
+
+#, python-format
+msgid "Non-2xx response from CA REST API: %(status)d. %(explanation)s"
+msgstr ""
+"Відповідь від програмного інтерфейсу REST CA, що не відповідає 2xx: "
+"%(status)d. %(explanation)s"
 
 msgid "The hostname to register as"
 msgstr "Назва вузла для реєстрації"

@@ -8,13 +8,14 @@
 # Azamat Hackimov <azamat.hackimov@gmail.com>, 2012
 # jdennis <jdennis@redhat.com>, 2011
 # Alex <alexgluck@bk.ru>, 2015. #zanata
+# Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
 "POT-Creation-Date: 2016-05-31 15:43+0200\n"
-"PO-Revision-Date: 2015-08-19 10:07-0400\n"
-"Last-Translator: Alex <alexgluck@bk.ru>\n"
+"PO-Revision-Date: 2016-06-13 04:55-0400\n"
+"Last-Translator: Martin Bašti <mbasti@redhat.com>\n"
 "Language-Team: Russian (http://www.transifex.com/projects/p/freeipa/language/"
 "ru/)\n"
 "Language: ru\n"
@@ -690,13 +691,6 @@ msgstr "Отобразить расположения автомонтирова
 msgid "Search for an automount location."
 msgstr "Поиск для расположения автомонтирования."
 
-#, python-format
-msgid "%(count)d automount location matched"
-msgid_plural "%(count)d automount locations matched"
-msgstr[0] "%(count)d расположений автомонтирований найдено"
-msgstr[1] "%(count)d расположений автомонтирований найдено"
-msgstr[2] ""
-
 msgid "Generate automount files for a specific location."
 msgstr "Сгенерировать  файлы автомонтирования для особого расположения."
 
@@ -1059,13 +1053,6 @@ msgstr "Изменён CA ACL \"%(value)s\""
 
 msgid "Search for CA ACLs."
 msgstr "Поиск по CA ACLs."
-
-#, python-format
-msgid "%(count)d CA ACL matched"
-msgid_plural "%(count)d CA ACLs matched"
-msgstr[0] "%(count)d CA ACL найдено"
-msgstr[1] "%(count)d CA ACLs совпадений"
-msgstr[2] ""
 
 msgid "Display the properties of a CA ACL."
 msgstr "Показать свойства of a CA ACL."

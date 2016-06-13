@@ -14,13 +14,14 @@
 # Jérôme Fenal <jfenal@gmail.com>, 2015. #zanata
 # dominique <chepioq@gmail.com>, 2015. #zanata
 # Jérôme Fenal <jfenal@gmail.com>, 2016. #zanata
+# Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
 "POT-Creation-Date: 2016-05-31 15:43+0200\n"
-"PO-Revision-Date: 2016-02-28 05:55-0500\n"
-"Last-Translator: Jérôme Fenal <jfenal@gmail.com>\n"
+"PO-Revision-Date: 2016-06-13 04:31-0400\n"
+"Last-Translator: Martin Bašti <mbasti@redhat.com>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/freeipa/language/"
 "fr/)\n"
 "Language: fr\n"
@@ -390,9 +391,19 @@ msgid "%(name)s certificate is not valid"
 msgstr "le certificat %(name)s est invalide"
 
 #, python-format
+msgid "Host '%(hostname)s' does not have corresponding DNS A/AAAA record"
+msgstr ""
+"L'hôte « %(hostname)s » n'a pas d'enregistrement DNS de type A/"
+"AAAA correspondant"
+
+#, python-format
 msgid "DNS check failed: Expected {%(expected)s} got {%(got)s}"
 msgstr ""
 "Échec de vérification du DNS : {%(expected)s} attendu, {%(got)s} obtenu"
+
+#, python-format
+msgid "%(exception)s"
+msgstr "%(exception)s"
 
 msgid "Results are truncated, try a more specific search"
 msgstr "Résultats tronqués, essayer un recherche plus précise"
@@ -550,6 +561,29 @@ msgstr ""
 #, python-format
 msgid "'%(command)s' is deprecated. %(additional_info)s"
 msgstr "La commande « %(command)s » est obsolète. %(additional_info)s"
+
+#, python-format
+msgid "%(line)s"
+msgstr "%(line)s"
+
+#, python-format
+msgid ""
+"Your trust to %(domain)s is broken. Please re-create it by running 'ipa "
+"trust-add' again."
+msgstr ""
+"Votre relation d'approbation avec %(domain)s est cassée. Merci de la recréer "
+"à l'aide de « ipa trust-add »."
+
+msgid ""
+"Forwarding policy conflicts with some automatic empty zones. Queries for "
+"zones specified by RFC 6303 will ignore forwarding and recursion and always "
+"result in NXDOMAIN answers. To override this behavior use forward policy "
+"'only'."
+msgstr ""
+"La politique de transfert entre en conflit avec certaines zones automatiques "
+"vides. Les requêtes pour les zones spécifiées dans la RFC 6303 ignoreront le "
+"transfert et la récursion et résulteront toujours en des réponses NXDOMAIN. "
+"Pour surcharger ce comportement, utiliser la politique de transfert « only »."
 
 msgid "A dictionary representing an LDAP entry"
 msgstr "Un annuaire représentant une entrée LDAP"
@@ -4072,7 +4106,7 @@ msgstr ""
 "    * Zone redirigée : les zones transférées ne contiennent aucune donnée \n"
 "    faisant autorité. BIND transmet les requêtes qui ne peuvent être \n"
 "    servies par son cache local aux serveurs de redirection configurés.\n"
-" "
+"\n"
 
 msgid ""
 "\n"
@@ -4276,14 +4310,6 @@ msgstr "nom de domaine invalide : doit être pleinement qualifié"
 
 msgid "should not be a wildcard domain name (RFC 4592 section 4)"
 msgstr "ne doit pas être un nom de domaine avec joker (RFC 4592 section 4)"
-
-#, python-format
-msgid ""
-"DNS reverse zone %(revzone)s for IP address %(addr)s is not managed by this "
-"server"
-msgstr ""
-"La zone DNS inverse pour l'adresse IP %(addr)s n'est pas gérée par ce "
-"serveur."
 
 #, python-format
 msgid "DNS zone %(zone)s not found"
@@ -4580,6 +4606,10 @@ msgstr ""
 msgid "DNS is not configured"
 msgstr "Le DNS n'est pas configuré"
 
+msgid "Force DNS zone creation even if it will overlap with an existing zone."
+msgstr ""
+"Forcer la création de la zone DNS même si elle recouvre une zone existante."
+
 msgid "Only one zone type is allowed per zone name"
 msgstr "Un seul type de zone autorisé par nom de zone"
 
@@ -4722,6 +4752,12 @@ msgstr ""
 
 msgid "Create new DNS zone (SOA record)."
 msgstr "Créer une nouvelle zone DNS (enregistrement SOA)."
+
+msgid ""
+"Force DNS zone creation even if nameserver is not resolvable. (Deprecated)"
+msgstr ""
+"Forcer la création de la zone DNS même si le serveur de nom n'est pas "
+"résoluble. (Obsolète)"
 
 msgid "Force DNS zone creation even if nameserver is not resolvable."
 msgstr ""
@@ -5020,6 +5056,9 @@ msgstr ""
 
 msgid "Zone refresh interval"
 msgstr "Intervalle de rafraîchissement de zone"
+
+msgid "IPA DNS version"
+msgstr "Version du DNS de IPA."
 
 msgid "Global DNS configuration is empty"
 msgstr "La configuration globale DNS est vide"
@@ -6769,6 +6808,12 @@ msgstr "Supprimer un groupe d'hôtes."
 msgid "Deleted hostgroup \"%(value)s\""
 msgstr "Groupe d'hôtes « %(value)s » supprimé"
 
+msgid "hostgroup"
+msgstr "groupe d'hôtes"
+
+msgid "privileged hostgroup"
+msgstr "groupe d'hôtes privilégiés"
+
 msgid "Modify a hostgroup."
 msgstr "Modifier un groupe d'hôtes."
 
@@ -7055,7 +7100,7 @@ msgstr ""
 "pour\n"
 "les utilisateurs et les groupes.\n"
 "\n"
-"{0}"
+"{0}\n"
 
 msgid "ID Ranges"
 msgstr "Plages d'ID"
@@ -7465,6 +7510,14 @@ msgstr ""
 msgid "Number of hosts that had a ID View was unset:"
 msgstr "Nombre d'hôtes dont une vue d'identifiants a été retirée :"
 
+msgid ""
+"You are trying to reference a magic private group which is not allowed to be "
+"overridden. Try overriding the GID attribute of the corresponding user "
+"instead."
+msgstr ""
+"Vous essayez de référencer un groupe privé magique qui ne peut être "
+"surchargé. Essayez plutôt de surcharger l'attribut GID de l'utilisateur."
+
 msgid "IPA object"
 msgstr "objet IPA"
 
@@ -7492,21 +7545,21 @@ msgstr "Ajouter une nouvelle surcharge d'identifiant."
 
 #, python-format
 msgid "Added ID override \"%(value)s\""
-msgstr "Surcharge d'identifiants « %(value) » ajoutée"
+msgstr "Surcharge d'identifiants « %(value)s » ajoutée"
 
 msgid "Delete an ID override."
 msgstr "Supprimer une surcharge d'identifiants."
 
 #, python-format
 msgid "Deleted ID override \"%(value)s\""
-msgstr "Surcharge d'identifiants « %(value) » supprimée"
+msgstr "Surcharge d'identifiants « %(value)s » supprimée"
 
 msgid "Modify an ID override."
 msgstr "Modifier une surcharge d'identifiants."
 
 #, python-format
 msgid "Modified an ID override \"%(value)s\""
-msgstr "Surcharge d'identifiants « %(value) » modifiée"
+msgstr "Surcharge d'identifiants « %(value)s » modifiée"
 
 msgid "ID override"
 msgstr "Surcharge d'identifiants"
@@ -8481,6 +8534,9 @@ msgstr ""
 msgid "Skip DNS check"
 msgstr "Passer la vérification DNS"
 
+msgid "Skip overlap check"
+msgstr "Passer la vérification de recouvrement"
+
 msgid "Do you want to check if new authoritative nameserver address is in DNS"
 msgstr ""
 "Voulez-vous vérifier si l'adresse du nouveau serveur faisant autorité est "
@@ -9255,6 +9311,9 @@ msgstr "La valeur maximale est ${value}"
 #, python-brace-format
 msgid "Minimum value is ${value}"
 msgstr "La valeur minimale est ${value}"
+
+msgid "Not a valid network address (examples: 2001:db8::/64, 192.0.2.0/24)"
+msgstr "Adresse réseau invalide (exemples : 2001:db8::/64, 192.0.2.0/24)"
 
 msgid "Parse error"
 msgstr "Erreur d'analyse"
@@ -10236,6 +10295,20 @@ msgstr "Ne pas afficher le code QR"
 
 msgid "URI"
 msgstr "URI"
+
+msgid ""
+"Unable to display QR code using the configured output encoding. Please use "
+"the token URI to configure you OTP device"
+msgstr ""
+"Impossible d'afficher le code QR avec l'encodage configuré sur la sortie. "
+"Merci d'utiliser l'URI du jeton pour configurer votre jeton OTP"
+
+msgid ""
+"QR code width is greater than that of the output tty. Please resize your "
+"terminal."
+msgstr ""
+"La largeur du code QR est supérieure à celle du terminal. Merci d'agrandir "
+"votre fenêtre de terminal."
 
 msgid "Delete an OTP token."
 msgstr "Supprimer un jeton OTP"
@@ -11442,6 +11515,17 @@ msgid "The following domains do not belong to this realm: %(domains)s"
 msgstr ""
 "Les domaines suivants n'appartiennent pas à ce domaine Kerberos : %(domains)s"
 
+#, python-format
+msgid ""
+"The realm of the following domains could not be detected: %(domains)s. If "
+"these are domains that belong to the this realm, please create a _kerberos "
+"TXT record containing \"%(realm)s\" in each of them."
+msgstr ""
+"Le domaine Kerberos des domaines suivants ne peuvent être détectés : "
+"%(domains)s. S'il existe des domaines appartenant à ce royaume, merci de "
+"créer un enregistrement TXT kerberos contenant « %(realm)s » dans chacun "
+"d'entre eux."
+
 msgid ""
 "The --domain option cannot be used together with --add-domain or --del-"
 "domain. Use --domain to specify the whole realm domain list explicitly, to "
@@ -12019,6 +12103,22 @@ msgstr "Supprimer un serveur IPA."
 #, python-format
 msgid "Deleted IPA server \"%(value)s\""
 msgstr "Serveur IPA « %(value)s » supprimé"
+
+msgid "Check connection to remote IPA server."
+msgstr "Vérifier la connexion au serveur IPA distant."
+
+msgid "Remote server name"
+msgstr "Nom du serveur distant"
+
+msgid "Remote IPA server hostname"
+msgstr "Nom d'hôte du serveur IPA distant"
+
+#, python-format
+msgid "must be \"%s\""
+msgstr "doit être « %s »"
+
+msgid "not allowed to perform server connection check"
+msgstr "impossible d'effectuer la vérification de la connexion au serveur"
 
 msgid ""
 "\n"
@@ -13305,6 +13405,182 @@ msgstr "Retirer une option d'une règle sudo."
 msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
 msgstr "Option « %(option)s » supprimée de la règle sudo « %(rule)s »"
 
+msgid ""
+"\n"
+"Topology\n"
+"\n"
+"Management of a replication topology at domain level 1.\n"
+msgstr ""
+"\n"
+"Topologie\n"
+"\n"
+"Gestion de la topologie de réplication.\n"
+
+msgid ""
+"\n"
+"IPA server's data is stored in LDAP server in two suffixes:\n"
+"* domain suffix, e.g., 'dc=example,dc=com', contains all domain related "
+"data\n"
+"* ca suffix, 'o=ipaca', is present only on server with CA installed. It\n"
+"  contains data for Certificate Server component\n"
+msgstr ""
+"\n"
+"Les données des serveurs IPA sont enregistrées dans le serveur LDAP\n"
+"sous deux suffixes :\n"
+"* le suffixe de domain, par exemple « dc=example,dc=com », qui contient "
+"toutes\n"
+"   les informations relatives au domaine ;\n"
+"* le suffixe ca, « o=ipaca », qui n'est présent que sur les serveurs où "
+"l'autorité de certification\n"
+"   est installée. Il contient les données nécessaire au composant "
+"Certificate Server\n"
+
+msgid ""
+"\n"
+"Data stored on IPA servers is replicated to other IPA servers. The way it "
+"is\n"
+"replicated is defined by replication agreements. Replication agreements "
+"needs\n"
+"to be set for both suffixes separately. On domain level 0 they are managed\n"
+"using ipa-replica-manage and ipa-csreplica-manage tools. With domain level "
+"1\n"
+"they are managed centrally using `ipa topology*` commands.\n"
+msgstr ""
+"\n"
+"Les données enregistrées dans les serveurs IPA sont répliquées vers les "
+"autres\n"
+"serveurs IPA. Les agréments de réplication définissent la manière dont la \n"
+"réplication s'opère. Les agréments de réplication doivent être définis "
+"pour \n"
+"les deux suffixes de manière séparée. Sur les domaines de niveau 0, ils "
+"sont\n"
+"gérés par les outils ipa-replica-manage et ipa-csreplica-manage tools. Sur \n"
+"les domaines de niveau 1, ils sont gérés de manière centralisée par les "
+"commandes\n"
+"« ipa topology* ».\n"
+
+msgid ""
+"\n"
+"Agreements are represented by topology segments. By default topology "
+"segment\n"
+"represents 2 replication agreements - one for each direction, e.g., A to B "
+"and\n"
+"B to A. Creation of unidirectional segments is not allowed.\n"
+msgstr ""
+"\n"
+"Les agréments sont représentés par des segments de topologie. Un segment de "
+"topologie\n"
+"représente par défaut deux agréments de réplication, un pour chaque "
+"direction, par exemple\n"
+"de A vers B et de B vers A. La création de segments unidirectionnels n'est "
+"pas permise.\n"
+
+msgid ""
+"\n"
+"To verify that no server is disconnected in the topology of the given "
+"suffix,\n"
+"use:\n"
+"  ipa topologysuffix-verify $suffix\n"
+msgstr ""
+"\n"
+"Afin de vérifier qu'aucun serveur n'est déconnecté dans la topologie d'un\n"
+"suffixe donné, utiliser :\n"
+"  ipa topologysuffix-verify $suffix\n"
+
+msgid ""
+"\n"
+"\n"
+"Examples:\n"
+"  Find all IPA servers:\n"
+"    ipa server-find\n"
+msgstr ""
+"\n"
+"\n"
+"Exemples :\n"
+"  Trouver tous les serveurs :\n"
+"    ipa server-find\n"
+
+msgid ""
+"\n"
+"  Find all suffixes:\n"
+"    ipa topologysuffix-find\n"
+msgstr ""
+"\n"
+"  Trouver tous les suffixes :\n"
+"    ipa topologysuffix-find\n"
+
+msgid ""
+"\n"
+"  Add topology segment to 'domain' suffix:\n"
+"    ipa topologysegment-add domain --left IPA_SERVER_A --right IPA_SERVER_B\n"
+msgstr ""
+"\n"
+"  Ajouter un segment de topologie au suffixe du domaine :\n"
+"    ipa topologysegment-add domain --left IPA_SERVER_A --right IPA_SERVER_B\n"
+
+msgid ""
+"\n"
+"  Add topology segment to 'ca' suffix:\n"
+"    ipa topologysegment-add ca --left IPA_SERVER_A --right IPA_SERVER_B\n"
+msgstr ""
+"\n"
+"  Ajouter un segment de topologie au suffixe « ca » :\n"
+"    ipa topologysegment-add ca --left IPA_SERVER_A --right IPA_SERVER_B\n"
+
+msgid ""
+"\n"
+"  List all topology segments in 'domain' suffix:\n"
+"    ipa topologysegment-find domain\n"
+msgstr ""
+"\n"
+"  Énumérer tous les segments de topologie dans le suffixe du domaine :\n"
+"    ipa topologysegment-find domain\n"
+
+msgid ""
+"\n"
+"  List all topology segments in 'ca' suffix:\n"
+"    ipa topologysegment-find ca\n"
+msgstr ""
+"\n"
+"  Énumérer tous les segments de topologie dans le suffixe « ca » :\n"
+"    ipa topologysegment-find ca\n"
+
+msgid ""
+"\n"
+"  Delete topology segment in 'domain' suffix:\n"
+"    ipa topologysegment-del domain segment_name\n"
+msgstr ""
+"\n"
+"  Supprimer un segment de topologie du suffixe du domaine :\n"
+"    ipa topologysegment-del domain segment_name\n"
+
+msgid ""
+"\n"
+"  Delete topology segment in 'ca' suffix:\n"
+"    ipa topologysegment-del ca segment_name\n"
+msgstr ""
+"\n"
+"  Supprimer un segment de topologie du suffixe « ca » :\n"
+"    ipa topologysegment-del ca segment_name\n"
+
+msgid ""
+"\n"
+"  Verify topology of 'domain' suffix:\n"
+"    ipa topologysuffix-verify domain\n"
+msgstr ""
+"\n"
+"  Vérification de la topologie du suffixe du domaine :\n"
+"    ipa topologysuffix-verify domain\n"
+
+msgid ""
+"\n"
+"  Verify topology of 'ca' suffix:\n"
+"    ipa topologysuffix-verify ca\n"
+msgstr ""
+"\n"
+"  Vérification de la topologie du suffixe « ca » :\n"
+"    ipa topologysuffix-verify ca\n"
+
 #, python-brace-format
 msgid "Topology management requires minimum domain level {0} "
 msgstr "La gestion de la topologie nécessite le niveau de domaine minimal {0}"
@@ -13490,6 +13766,9 @@ msgstr "Suffixe de topologie"
 
 msgid "Suffix name"
 msgstr "Nom du suffixe"
+
+msgid "Managed LDAP suffix DN"
+msgstr "DN du suffixe LDAP administré"
 
 msgid "Search for topology suffixes."
 msgstr "Rechercher des suffixes de topologie."
@@ -15392,6 +15671,10 @@ msgid "Retrieving CA status failed: %s"
 msgstr "Échec de la récupération de l'état de l'AC : %s"
 
 #, python-format
+msgid "Retrieving CA status failed with status %d"
+msgstr "Échec de la récupération de l'état de l'AC avec l'état %d"
+
+#, python-format
 msgid "objectclass %s not found"
 msgstr "classe d'objet %s introuvable"
 
@@ -15540,6 +15823,10 @@ msgstr ""
 "vérifiez que le DNS AD est capable de résoudre les enregistrements SRV "
 "%(records)s vers le serveur IPA adéquat."
 
+#, python-format
+msgid "Unable to communicate with CMS (status %d)"
+msgstr "Impossible de communiquer avec le CMS (état %d)"
+
 msgid "Unable to communicate with CMS"
 msgstr "Impossible de communiquer avec le CMS"
 
@@ -15553,6 +15840,11 @@ msgstr "Échec de l'authentification auprès de l'API REST de l'AC"
 
 msgid "REST API is not logged in."
 msgstr "L'API REST n'est pas connectée."
+
+#, python-format
+msgid "Non-2xx response from CA REST API: %(status)d. %(explanation)s"
+msgstr ""
+"Réponse non 2xx reçue de l'API REST de l'AC : %(status)d. %(explanation)s"
 
 msgid "The hostname to register as"
 msgstr "Le nom d'hôte sous lequel enregistrer"
