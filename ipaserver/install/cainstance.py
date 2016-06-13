@@ -1344,6 +1344,8 @@ class CAInstance(DogtagInstance):
                   self.enable_pkix)
         self.step("set up client auth to db", self.__client_auth_to_db)
         self.step("destroying installation admin user", self.teardown_admin)
+        self.step("Configure lightweight CA key retrieval",
+                  self.setup_lightweight_ca_key_retrieval)
         self.step("starting instance", self.start_instance)
 
         self.step("importing CA chain to RA certificate database",
@@ -1362,8 +1364,6 @@ class CAInstance(DogtagInstance):
         self.step("updating IPA configuration", update_ipa_conf)
         self.step("Restart HTTP server to pick up changes",
                   self.__restart_http_instance)
-        self.step("Configure lightweight CA key retrieval",
-                  self.setup_lightweight_ca_key_retrieval)
 
         self.step("enabling CA instance", self.__enable_instance)
 
