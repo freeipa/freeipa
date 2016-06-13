@@ -418,6 +418,16 @@ class DNSUpdateNotIPAManagedZone(PublicMessage):
     )
 
 
+class AutomaticDNSRecordsUpdateFailed(PublicMessage):
+    errno = 13024
+    type = "warning"
+    format = _(
+        "Automatic update of DNS system records failed. "
+        "Please re-run update of system records manually to get list of "
+        "missing records."
+    )
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """

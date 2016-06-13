@@ -230,8 +230,13 @@ class server_mod(LDAPUpdate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.obj.convert_location(entry_attrs, **options)
         self.obj.get_enabled_roles(entry_attrs)
+
+        if 'ipalocation' or 'ipalocationweight' in entry_attrs:
+            result = self.api.Command.dns_update_system_records()
+            if not result.get('value'):
+                self.add_message(messages.AutomaticDNSRecordsUpdateFailed())
+        self.obj.convert_location(entry_attrs, **options)
         return dn
 
 
