@@ -237,6 +237,7 @@ class server_mod(LDAPUpdate):
             if not result.get('value'):
                 self.add_message(messages.AutomaticDNSRecordsUpdateFailed())
         self.obj.convert_location(entry_attrs, **options)
+
         return dn
 
 

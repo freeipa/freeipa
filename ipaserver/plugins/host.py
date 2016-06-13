@@ -44,10 +44,13 @@ from ipalib import x509
 from ipalib import output
 from ipalib.request import context
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey_no_options,
-    convert_sshpubkey_post, validate_hostname,
+    convert_sshpubkey_post,
     add_sshpubkey_to_attrs_pre,
     remove_sshpubkey_from_output_post,
-    remove_sshpubkey_from_output_list_post)
+    remove_sshpubkey_from_output_list_post,
+    normalize_hostname,
+    hostname_validator,
+)
 from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
 from ipapython.dnsutil import DNSName
 from ipapython.ssh import SSHPublicKey
@@ -271,23 +274,6 @@ def validate_ipaddr(ugettext, ipaddr):
     return None
 
 
-def normalize_hostname(hostname):
-    """Use common fqdn form without the trailing dot"""
-    if hostname.endswith(u'.'):
-        hostname = hostname[:-1]
-    hostname = hostname.lower()
-    return hostname
-
-
-def _hostname_validator(ugettext, value):
-    try:
-        validate_hostname(value)
-    except ValueError as e:
-        return _('invalid domain-name: %s') % unicode(e)
-
-    return None
-
-
 @register()
 class host(LDAPObject):
     """
@@ -465,7 +451,7 @@ class host(LDAPObject):
     label_singular = _('Host')
 
     takes_params = (
-        Str('fqdn', _hostname_validator,
+        Str('fqdn', hostname_validator,
             cli_name='hostname',
             label=_('Host name'),
             primary_key=True,
@@ -734,7 +720,7 @@ class host_del(LDAPDelete):
     def pre_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)
         # If we aren't given a fqdn, find it
-        if _hostname_validator(None, keys[-1]) is not None:
+        if hostname_validator(None, keys[-1]) is not None:
             hostentry = api.Command['host_show'](keys[-1])['result']
             fqdn = hostentry['fqdn'][0]
         else:
@@ -1093,7 +1079,7 @@ class host_disable(LDAPQuery):
         ldap = self.obj.backend
 
         # If we aren't given a fqdn, find it
-        if _hostname_validator(None, keys[-1]) is not None:
+        if hostname_validator(None, keys[-1]) is not None:
             hostentry = api.Command['host_show'](keys[-1])['result']
             fqdn = hostentry['fqdn'][0]
         else:

@@ -123,6 +123,7 @@ DEFAULT_CONFIG = (
     ('container_caacl', DN(('cn', 'caacls'), ('cn', 'ca'))),
     ('container_locations', DN(('cn', 'locations'), ('cn', 'etc'))),
     ('container_ca', DN(('cn', 'cas'), ('cn', 'ca'))),
+    ('container_dnsservers', DN(('cn', 'servers'), ('cn', 'dns'))),
 
     # Ports, hosts, and URIs:
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),

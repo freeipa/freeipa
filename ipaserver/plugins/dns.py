@@ -66,7 +66,9 @@ from ipalib.util import (normalize_zonemgr,
                          EDNS0UnsupportedError, DNSSECValidationError,
                          validate_dnssec_zone_forwarder_step1,
                          validate_dnssec_zone_forwarder_step2,
-                         verify_host_resolvable)
+                         verify_host_resolvable,
+                         validate_bind_forwarder,
+                         ipaddr_validator)
 from ipapython.dn import DN
 from ipapython.ipautil import CheckedIPAddress
 from ipapython.dnsutil import check_zone_overlap
@@ -373,23 +375,12 @@ def _reverse_zone_name(netstr):
     else:
         return None
 
-def _validate_ipaddr(ugettext, ipaddr, ip_version=None):
-    try:
-        ip = netaddr.IPAddress(str(ipaddr), flags=netaddr.INET_PTON)
-
-        if ip_version is not None:
-            if ip.version != ip_version:
-                return _('invalid IP address version (is %(value)d, must be %(required_value)d)!') \
-                        % dict(value=ip.version, required_value=ip_version)
-    except (netaddr.AddrFormatError, ValueError):
-        return _('invalid IP address format')
-    return None
 
 def _validate_ip4addr(ugettext, ipaddr):
-    return _validate_ipaddr(ugettext, ipaddr, 4)
+    return ipaddr_validator(ugettext, ipaddr, 4)
 
 def _validate_ip6addr(ugettext, ipaddr):
-    return _validate_ipaddr(ugettext, ipaddr, 6)
+    return ipaddr_validator(ugettext, ipaddr, 6)
 
 def _validate_ipnet(ugettext, ipnet):
     try:
@@ -456,24 +447,6 @@ def _normalize_bind_aci(bind_acis):
     acis = u';'.join(normalized)
     acis += u';'
     return acis
-
-def _validate_bind_forwarder(ugettext, forwarder):
-    ip_address, sep, port = forwarder.partition(u' port ')
-
-    ip_address_validation = _validate_ipaddr(ugettext, ip_address)
-
-    if ip_address_validation is not None:
-        return ip_address_validation
-
-    if sep:
-        try:
-            port = int(port)
-            if port < 0 or port > 65535:
-                raise ValueError()
-        except ValueError:
-            return _('%(port)s is not a valid port' % dict(port=port))
-
-    return None
 
 def _validate_nsec3param_record(ugettext, value):
     _nsec3param_pattern = (r'^(?P<alg>\d+) (?P<flags>\d+) (?P<iter>\d+) '
@@ -2001,7 +1974,7 @@ class DNSZoneBase(LDAPObject):
             attribute=True,
         ),
         Str('idnsforwarders*',
-            _validate_bind_forwarder,
+            validate_bind_forwarder,
             cli_name='forwarder',
             label=_('Zone forwarders'),
             doc=_('Per-zone forwarders. A custom port can be specified '
@@ -4043,7 +4016,7 @@ class dnsconfig(LDAPObject):
 
     takes_params = (
         Str('idnsforwarders*',
-            _validate_bind_forwarder,
+            validate_bind_forwarder,
             cli_name='forwarder',
             label=_('Global forwarders'),
             doc=_('Global forwarders. A custom port can be specified for each '

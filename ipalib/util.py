@@ -898,3 +898,56 @@ class classproperty(object):
     def getter(self, fget):
         self.fget = fget
         return self
+
+
+def normalize_hostname(hostname):
+    """Use common fqdn form without the trailing dot"""
+    if hostname.endswith(u'.'):
+        hostname = hostname[:-1]
+    hostname = hostname.lower()
+    return hostname
+
+
+def hostname_validator(ugettext, value):
+    try:
+        validate_hostname(value)
+    except ValueError as e:
+        return _('invalid domain-name: %s') % unicode(e)
+
+    return None
+
+
+def ipaddr_validator(ugettext, ipaddr, ip_version=None):
+    try:
+        ip = netaddr.IPAddress(str(ipaddr), flags=netaddr.INET_PTON)
+
+        if ip_version is not None:
+            if ip.version != ip_version:
+                return _(
+                    'invalid IP address version (is %(value)d, must be '
+                    '%(required_value)d)!') % dict(
+                    value=ip.version,
+                    required_value=ip_version
+                )
+    except (netaddr.AddrFormatError, ValueError):
+        return _('invalid IP address format')
+    return None
+
+
+def validate_bind_forwarder(ugettext, forwarder):
+    ip_address, sep, port = forwarder.partition(u' port ')
+
+    ip_address_validation = ipaddr_validator(ugettext, ip_address)
+
+    if ip_address_validation is not None:
+        return ip_address_validation
+
+    if sep:
+        try:
+            port = int(port)
+            if port < 0 or port > 65535:
+                raise ValueError()
+        except ValueError:
+            return _('%(port)s is not a valid port' % dict(port=port))
+
+    return None
