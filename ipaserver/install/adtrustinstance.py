@@ -30,10 +30,10 @@ import re
 
 import six
 
+from ipaserver.dns_data_management import IPASystemRecords
 from ipaserver.install import service
 from ipaserver.install import installutils
-from ipaserver.install.bindinstance import get_rr, add_rr, del_rr, \
-                                           dns_zone_exists
+from ipaserver.install.bindinstance import dns_zone_exists
 from ipaserver.install.replication import wait_for_task
 from ipalib import errors, api
 from ipalib.util import normalize_zone
@@ -580,17 +580,6 @@ class ADTRUSTInstance(service.Service):
         """
 
         zone = api.env.domain
-        host_in_rr = normalize_zone(self.fqdn)
-
-        priority = 0
-
-        ipa_srv_rec = (
-            ("_ldap._tcp", [self.srv_rec(host_in_rr, 389, priority)], 389),
-            ("_kerberos._tcp", [self.srv_rec(host_in_rr, 88, priority)], 88),
-            ("_kerberos._udp", [self.srv_rec(host_in_rr, 88, priority)], 88),
-        )
-        win_srv_suffix = (".Default-First-Site-Name._sites.dc._msdcs",
-                          ".dc._msdcs")
 
         err_msg = None
 
@@ -610,27 +599,15 @@ class ADTRUSTInstance(service.Service):
             self.print_msg(err_msg)
             self.print_msg("Add the following service records to your DNS " \
                            "server for DNS zone %s: " % zone)
-            for suff in win_srv_suffix:
-                for srv in ipa_srv_rec:
-                    self.print_msg("%s%s IN SRV %s"  % (srv[0], suff, " ".join(srv[1])))
-            self.print_msg("")
-            return
-
-        for (srv, rdata, port) in ipa_srv_rec:
-            cifs_rdata = list()
-            for fqdn in self.cifs_hosts:
-                cifs_srv = self.srv_rec(fqdn, port, priority)
-                cifs_rdata.append(cifs_srv)
-            cifs_rdata.extend(rdata)
-
-            for suff in win_srv_suffix:
-                win_srv = srv+suff
-                win_rdata = get_rr(zone, win_srv, "SRV")
-                if win_rdata:
-                    for rec in win_rdata:
-                        del_rr(zone, win_srv, "SRV", rec)
-                for rec in cifs_rdata:
-                    add_rr(zone, win_srv, "SRV", rec)
+            system_records = IPASystemRecords(api)
+            adtrust_recors = system_records.get_base_records(
+                [self.fqdn], ["AD trust controller"],
+                include_master_role=False, include_kerberos_realm=False)
+            for r_name, node in adtrust_recors.items():
+                for rec in IPASystemRecords.records_list_from_node(r_name, node):
+                    self.print_msg(rec)
+        else:
+            api.Command.dns_update_system_records()
 
     def __configure_selinux_for_smbd(self):
         try:
