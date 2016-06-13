@@ -842,6 +842,28 @@ def named_update_global_forwarder_policy():
     return True
 
 
+def named_add_server_id():
+    """
+    DNS Locations feature requires to have configured server_id in IPA section
+    of named.conf
+    :return: if named.conf has been changed
+    """
+    bind = bindinstance.BindInstance()
+    if not bindinstance.named_conf_exists() or not bind.is_configured():
+        # DNS service may not be configured
+        root_logger.info('DNS is not configured')
+        return False
+
+    if sysupgrade.get_upgrade_state('named.conf', 'add_server_id'):
+        # upgrade was done already
+        return False
+
+    root_logger.info('[Adding server_id to named.conf]')
+    bindinstance.named_conf_set_directive('server_id', api.env.host)
+    sysupgrade.set_upgrade_state('named.conf', 'add_server_id', True)
+    return True
+
+
 def certificate_renewal_update(ca, ds, http):
     """
     Update certmonger certificate renewal configuration.
@@ -1680,6 +1702,7 @@ def upgrade_configuration():
                           named_update_global_forwarder_policy(),
                           mask_named_regular(),
                           fix_dyndb_ldap_workdir_permissions(),
+                          named_add_server_id(),
                          )
 
     if any(named_conf_changes):

@@ -26,3 +26,4 @@ plugin: update_managed_permissions
 plugin: update_read_replication_agreements_permission
 plugin: update_idrange_baserid
 plugin: update_passync_privilege_update
+plugin: update_dnsserver_configuration_into_ldap

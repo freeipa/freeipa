@@ -28,6 +28,7 @@ from ipalib import Updater
 from ipapython.dn import DN
 from ipapython import dnsutil
 from ipapython.ipa_log_manager import root_logger
+from ipaserver.install import sysupgrade
 from ipaserver.plugins.dns import dns_container_exists
 
 register = Registry()
@@ -490,4 +491,55 @@ class update_dnsforward_emptyzones(DNSUpdater):
         if dnsutil.has_empty_zone_addresses(self.api.env.host):
             self.update_global_ldap_forwarder()
 
+        return False, []
+
+
+@register()
+class update_dnsserver_configuration_into_ldap(DNSUpdater):
+    """
+    DNS Locations feature requires to have DNS configuration stored in LDAP DB.
+    Create DNS server configuration in LDAP for each old server
+    """
+    def execute(self, **options):
+        ldap = self.api.Backend.ldap2
+        if sysupgrade.get_upgrade_state('dns', 'server_config_to_ldap'):
+            self.log.debug('upgrade is not needed')
+            return False, []
+
+        dns_container_dn = DN(self.api.env.container_dns, self.api.env.basedn)
+        try:
+            ldap.get_entry(dns_container_dn)
+        except errors.NotFound:
+            self.log.debug('DNS container not found, nothing to upgrade')
+            sysupgrade.set_upgrade_state('dns', 'server_config_to_ldap', True)
+            return False, []
+
+        result = self.api.Command.server_show(self.api.env.host)['result']
+        if not 'DNS server' in result.get('enabled_role_servrole', []):
+            self.log.debug('This server is not DNS server, nothing to upgrade')
+            sysupgrade.set_upgrade_state('dns', 'server_config_to_ldap', True)
+            return False, []
+
+        # create container first, if doesn't exist
+        entry = ldap.make_entry(
+            DN(self.api.env.container_dnsservers, self.api.env.basedn),
+            {
+                u'objectclass': [u'top', u'nsContainer'],
+                u'cn': [u'servers']
+            }
+        )
+        try:
+            ldap.add_entry(entry)
+        except errors.DuplicateEntry:
+            self.log.debug('cn=dnsservers container already exists')
+
+        try:
+            self.api.Command.dnsserver_add(self.api.env.host)
+        except errors.DuplicateEntry:
+            self.log.debug("DNS server configuration already exists "
+                           "in LDAP database")
+        else:
+            self.log.debug("DNS server configuration has been sucessfully "
+                           "created in LDAP database")
+        sysupgrade.set_upgrade_state('dns', 'server_config_to_ldap', True)
         return False, []

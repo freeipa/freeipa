@@ -251,7 +251,7 @@ Summary: IPA integrated DNS server with support for automatic DNSSEC signing
 Group: System Environment/Base
 BuildArch: noarch
 Requires: %{name}-server = %{version}-%{release}
-Requires: bind-dyndb-ldap >= 6.0-4
+Requires: bind-dyndb-ldap >= 10.0
 %if 0%{?fedora} >= 21
 Requires: bind >= 9.9.6-3
 Requires: bind-utils >= 9.9.6-3

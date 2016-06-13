@@ -33,9 +33,3 @@ default: nsslapd-plugintype: preoperation
 default: nsslapd-pluginvendor: Red Hat, Inc.
 default: nsslapd-pluginversion: 1.0
 default: nsslapd-plugin-depends-on-type: database
-
-# add dns servers container
-dn: cn=servers,cn=dns,$SUFFIX
-default: objectClass: nsContainer
-default: objectClass: top
-default: cn: servers
