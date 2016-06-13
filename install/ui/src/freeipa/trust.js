@@ -149,7 +149,7 @@ return {
                             $type: 'multivalued',
                             name: 'ipantadditionalsuffixes',
                             read_only: true
-                        },
+                        }
                     ]
                 },
                 {
