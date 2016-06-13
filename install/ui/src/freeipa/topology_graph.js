@@ -29,13 +29,21 @@ var topology_graph = {
 topology_graph.TopoGraph = declare([Evented], {
     width: 960,
     height: 500,
+    _adder_anim_duration: 200,
+    _adder_inner_radius: 15,
+    _adder_outer_radius: 30,
     _colors: d3.scale.category10(),
     _svg : null,
     _path: null,
     _circle: null,
 
+    _create_agreement: null,
     _selected_link: null,
     _mousedown_link: null,
+    _source_node: null,
+    _source_node_html: null,
+    _target_node: null,
+    _drag_line: null,
 
     /**
      * Nodes - IPA servers
@@ -115,31 +123,89 @@ topology_graph.TopoGraph = declare([Evented], {
                 node.x = Number(this._get_local_storage_attr(node.id, 'x'));
                 node.y = Number(this._get_local_storage_attr(node.id, 'y'));
             }
+            node.ca_adder = d3.svg.arc()
+                .innerRadius(this._adder_inner_radius)
+                .outerRadius(this._adder_inner_radius)
+                .startAngle(2 * (Math.PI/180))
+                .endAngle(178 * (Math.PI/180));
+
+            node.domain_adder = d3.svg.arc()
+                .innerRadius(this._adder_inner_radius)
+                .outerRadius(this._adder_inner_radius)
+                .startAngle(182 * (Math.PI/180))
+                .endAngle(358 * (Math.PI/180));
+
+            node.drag_mode = false;
         }
 
         this._init_layout();
         this._define_shapes();
 
         // handles to link and node element groups
+        // the order of adding shapes is important because of order of showing
+        // them
         this._path = this._svg.append('svg:g')
                               .classed('shapes', true)
                               .selectAll('path');
+
+        this._drag_line = this._svg.append('svg:g')
+            .classed('shapes', true)
+            .append('path')
+            .style('marker-end', 'url(#end-arrow)')
+            .attr('class', 'link dragline hidden')
+            .attr('d', 'M0,0L0,0')
+            .on('click', function() {
+                d3.event.preventDefault();
+                d3.event.stopPropagation();
+
+                this._create_agreement = false;
+                this.reset_mouse_vars();
+
+                this._drag_line
+                    .classed('hidden', true)
+                    .style('marker-end', '');
+
+                this.restart();
+
+            }.bind(this));
 
         this._circle = this._svg.append('svg:g')
                            .classed('shapes', true)
                            .selectAll('g');
 
         this._selected_link = null;
-        this._mouseup_node = null;
         this._mousedown_link = null;
+        this._selected_node = null;
+        this._source_node = null;
+        this._target_node = null;
         this.restart();
     },
 
     _create_svg: function(container) {
+        var self = this;
+
         this._svg = d3.select(container[0]).
             append('svg').
             attr('width', this.width).
-            attr('height', this.height);
+            attr('height', this.height).
+            on('mousemove', mousemove);
+
+            function mousemove(d) {
+                if (!self._source_node && !self._create_agreement) return;
+
+                var translate = self._get_stored_transformation();
+                var x = self._source_node.x;
+                var y = self._source_node.y;
+
+                var mouse_x = x + d3.mouse(self._source_node_html)[0];
+                var mouse_y = y + d3.mouse(self._source_node_html)[1];
+
+                // update drag line
+                self._drag_line.attr('d', 'M' + x + ',' + y + 'L' + mouse_x + ',' + mouse_y);
+
+                self.restart();
+            }
+
     },
 
     _init_layout: function() {
@@ -342,9 +408,26 @@ topology_graph.TopoGraph = declare([Evented], {
             this._append_suffix_hint(suffix, x, y);
             y += 30;
         }
-
-        this._circle_color = this._colors(1);
     },
+
+    /**
+     * Returns lenght of string with set class in pixels
+     */
+     _count_string_size: function(str, cls) {
+         if (!str) return 0;
+
+         cls = cls || '';
+
+         var node = this._svg.append('text')
+            .classed(cls, true)
+            .text(str);
+
+         var length = node.node().getComputedTextLength();
+
+         node.remove();
+
+         return length;
+     },
 
     /**
      * Restart the simulation to reflect changes in data/state
@@ -422,6 +505,8 @@ topology_graph.TopoGraph = declare([Evented], {
             .on("dragend", dragended);
 
         function dragstarted(d) {
+            d.drag_mode = true;
+            hide_semicircles.bind(this, d)();
             d3.event.sourceEvent.stopPropagation();
             // Store the original value of fixed and set the node fixed.
             d.fixed = d.fixed << 1;
@@ -437,9 +522,211 @@ topology_graph.TopoGraph = declare([Evented], {
         }
 
         function dragended(d) {
+            d.drag_mode = false;
             // Restore old value of fixed.
             d.fixed = d.fixed >> 1;
             self._layout.resume();
+        }
+
+        function add_labels(type, color, adder_group) {
+            var label_radius = 3;
+
+            var plus = adder_group
+                .append('text')
+                .classed('plus', true)
+                .classed(type + '_plus', true)
+                .text('\uf067');
+
+            var label = adder_group.append('path')
+                    .attr('id', type + '_label');
+
+            if (type === 'ca') {
+                plus.attr('dx', '18')
+                    .attr('dy', '4');
+                var adder_label = adder_group.append('text')
+                    .append('textPath')
+                        .classed('adder_label', true)
+                        .style('fill', color)
+                        .attr('xlink:href', '#' + type + '_label')
+                        .text(type);
+
+                var str_size = self._count_string_size(type, 'adder_label');
+                var str_translate = str_size + self._adder_outer_radius + 3;
+                label.attr('d', 'M 33 3 L ' + str_translate + ' 3');
+
+                adder_group.insert('rect', 'text')
+                    .attr('x', '33')
+                    .attr('y', '-11')
+                    .attr('rx', label_radius)
+                    .attr('ry', label_radius)
+                    .attr('width', str_size)
+                    .attr('height', '18')
+                    .style("fill", "white");
+            }
+            else {
+                plus.attr('dx', '-26')
+                    .attr('dy', '4');
+                adder_label = adder_group.append('text')
+                    .append('textPath')
+                        .classed('adder_label', true)
+                        .style('fill', color)
+                        .attr('xlink:href', '#' + type + '_label')
+                        .text(type);
+
+                str_size = self._count_string_size(type, 'adder_label');
+                str_translate = str_size + self._adder_outer_radius + 3;
+                label.attr('d', 'M -' + str_translate + ' 3 L -33 3');
+
+                adder_group.insert('rect', 'text')
+                    .attr('x', '-'+str_translate)
+                    .attr('y', '-11')
+                    .attr('rx', label_radius)
+                    .attr('ry', label_radius)
+                    .attr('width', str_size)
+                    .attr('height', '18')
+                    .style('fill', 'white');
+            }
+        }
+
+        function create_semicircle(d, type) {
+            var color = d3.rgb(self._colors(type)).toString();
+            var adder_group = d3.select(this).select('g');
+            var scale = '1.05';
+
+            adder_group.append("path")
+                .classed(type+'_adder', true)
+                .classed('adder', true)
+                .attr("d", d[type + '_adder'])
+                .attr("fill", color)
+                .on('mouseover', function(d) {
+                    window.clearTimeout(d._timeout_hide);
+
+                    d3.select(this).attr('transform', 'scale('+scale+')');
+                    adder_group.select('text.' + type + '_plus')
+                        .attr('transform', 'scale('+scale+')');
+                })
+                .on('mouseout', function(d) {
+                    d3.select(this).attr('transform', '');
+                    adder_group.select('text.' + type + '_plus')
+                        .attr('transform', '');
+                })
+                .on('click', function(d) {
+                    d3.event.preventDefault();
+                    d3.event.stopPropagation();
+                    self.emit('link-selected', { link: null });
+
+                    hide_semicircles.bind(this, d)();
+
+                    // select node
+                    if (!self._source_node) {
+                        self._source_node = d;
+                        self._source_node_html = d3.select(this)
+                                                    .select('circle').node();
+                        self._create_agreement = true;
+                    }
+
+                    self._selected_link = null;
+
+                    var translate = self._get_stored_transformation();
+                    var x = self._source_node.x;
+                    var y = self._source_node.y;
+
+                    // add position of node + translation of whole graph + relative
+                    // position of the mouse
+                    var mouse_x = d.x + d3.mouse(this)[0];
+                    var mouse_y = d.y + d3.mouse(this)[1];
+
+                    // reposition drag line
+                    self._drag_line
+                        .style('marker-end', 'url(#' + type + '-end-arrow)')
+                        .style('stroke', color)
+                        .classed('hidden', false)
+                        .attr('suffix', type)
+                        .attr('d', 'M' + x + ',' + y +
+                                'L' + mouse_x + ',' + mouse_y);
+
+                    self.restart();
+                }.bind(this))
+                .on('mousedown.drag', function() {
+                    d3.event.preventDefault();
+                    d3.event.stopPropagation();
+                })
+                .transition()
+                    .duration(self._adder_anim_duration)
+                    .attr("d", d[type + '_adder']
+                        .outerRadius(self._adder_outer_radius))
+                    .each('end', function() {
+                        add_labels(type, color, adder_group);
+                    });
+        }
+
+        function show_semicircles(d) {
+
+            if(!d3.select(this).select('g path').empty()) return;
+
+            if (!d.drag_mode && !self._create_agreement) {
+
+                // append invisible circle which covers spaces between node
+                // and adders it prevents hiding adders when mouse is on the space
+                d3.select(this).append('g')
+                    .append('circle')
+                    .attr('r', self._adder_outer_radius)
+                    .style('opacity', 0);
+                create_semicircle.bind(this, d, 'ca')();
+
+                create_semicircle.bind(this, d, 'domain')();
+
+                //move the identification text
+                d3.select(this).select('text')
+                    .transition()
+                        .duration(self._adder_anim_duration)
+                        .attr('dy', '45');
+            }
+        }
+
+        function hide_semicircles(d) {
+            var curr_nod = d3.select(this);
+            curr_nod.selectAll('.plus,.adder_label,rect')
+                .transition()
+                    .ease('exp')
+                    .duration(100)
+                    .style('font-size', '0px')
+                    .remove();
+            curr_nod.select('path.domain_adder')
+                .transition()
+                    .attr("d", d.domain_adder
+                        .outerRadius(self._adder_inner_radius))
+                    .duration(self._adder_anim_duration);
+            curr_nod.select('path.ca_adder')
+                .transition()
+                    .attr("d", d.ca_adder
+                        .outerRadius(self._adder_inner_radius))
+                    .duration(self._adder_anim_duration);
+            curr_nod.select('g')
+                .transition()
+                    .duration(self._adder_anim_duration)
+                    .remove();
+            curr_nod.select('text')
+                .transition()
+                    .attr('dy', '30')
+                    .duration(self._adder_anim_duration);
+        }
+
+        function is_suffix_shown(suffix) {
+            var links = self._source_node.targets[self._target_node.id];
+
+            if (!links) return false;
+
+            for (var i=0, l=links.length; i<l; i++) {
+                var link = links[i];
+                if (link.suffix.cn[0] === suffix) {
+                    self._selected_link = link;
+                    self.emit('link-selected', { link: link });
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // add new nodes
@@ -452,6 +739,49 @@ topology_graph.TopoGraph = declare([Evented], {
                 //xor operation switch value of fixed from 1 to 0 and vice versa
                 d.fixed = d.fixed ^ 1;
                 self._layout.resume();
+            })
+            .on('mouseover', function(d) {
+                window.clearTimeout(d._timeout_hide);
+                show_semicircles.bind(this, d)();
+                d3.select('circle.cover').classed('cover', true);
+            })
+            .on('mouseout', function(d) {
+                d._timeout_hide = window.setTimeout(hide_semicircles
+                                                        .bind(this, d), 50);
+            })
+            .on('click', function(d) {
+                if (!self._create_agreement) return;
+
+                d3.event.preventDefault();
+                d3.event.stopPropagation();
+
+                if (self._source_node !== d) {
+                    self._target_node = d;
+                    var source = self._source_node;
+                    var target = self._target_node;
+                    var suffix = self._drag_line.attr('suffix');
+                    var direction = 'left';
+                    var link = {
+                        source: source,
+                        target: target,
+                        suffix: suffix,
+                        left: false,
+                        right: false
+                    };
+
+                    if (!is_suffix_shown(suffix)) {
+                        link[direction] = true;
+                        self.emit('add-agreement', link);
+                    }
+                }
+
+                self._drag_line
+                    .classed('hidden', true)
+                    .attr('suffix', '')
+                    .style('marker-end', '');
+
+                self.restart();
+                self.reset_mouse_vars();
             })
             .call(drag);
 
@@ -486,6 +816,15 @@ topology_graph.TopoGraph = declare([Evented], {
 
         this._svg.selectAll('g.shapes')
             .attr("transform", transform);
+    },
+
+    reset_mouse_vars: function() {
+        this._source_node = null;
+        this._source_node_html = null;
+        this._target_node = null;
+        this._mousedown_link = null;
+        this._create_agreement = null;
+
     },
 
     resize: function(height, width) {

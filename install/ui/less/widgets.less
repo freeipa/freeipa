@@ -150,42 +150,61 @@ tbody:empty { display: none; }
 
 .topology-view {
     svg {
-      background-color: #FFF;
-      cursor: default;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      -o-user-select: none;
-      user-select: none;
+        background-color: #FFF;
+        cursor: default;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -o-user-select: none;
+        user-select: none;
     }
 
+
     path.link {
-      fill: none;
-      stroke-width: 4px;
-      cursor: pointer;
+        fill: none;
+        stroke: #000;
+        stroke-width: 4px;
+        cursor: pointer;
+        .dragline {
+            pointer-events: none;
+        }
+    }
+
+    .plus {
+        font-size: .9em;
+        font-family: FontAwesome;
+        fill: #fff;
+    }
+
+    .adder_label {
+        font-weight: bold;
+    }
+
+    path.adder {
+        cursor: pointer;
+    }
+
+    .selected {
+        stroke-dasharray: 10,2;
     }
 
     .marker {
         stroke: rgba(0, 0, 0);
     }
 
-    path.link.selected {
-      stroke-dasharray: 10,2;
-    }
-
     circle.node {
-      stroke-width: 1.5px;
-      cursor: pointer;
+        stroke-width: 1.5px;
+        cursor: pointer;
     }
 
     text {
-      font: 16px sans-serif;
-      pointer-events: none;
+        font: 16px sans-serif;
+        pointer-events: none;
     }
 
     text.id {
-      text-anchor: middle;
-      font-weight: bold;
+        text-anchor: middle;
+        font-weight: bold;
     }
 }
 
