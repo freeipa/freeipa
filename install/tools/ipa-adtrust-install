@@ -387,7 +387,7 @@ def main():
     smb = adtrustinstance.ADTRUSTInstance(fstore)
     smb.realm = api.env.realm
     smb.autobind = ipaldap.AUTOBIND_ENABLED
-    smb.setup(api.env.host, api.env.realm, api.env.domain,
+    smb.setup(api.env.host, api.env.realm,
               netbios_name, reset_netbios_name,
               options.rid_base, options.secondary_rid_base,
               options.no_msdcs, options.add_sids,

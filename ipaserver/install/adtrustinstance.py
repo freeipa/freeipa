@@ -135,7 +135,6 @@ class ADTRUSTInstance(service.Service):
         self.fqdn = None
         self.host_netbios_name = None
         self.realm = None
-        self.domain_name = None
 
         service.Service.__init__(self, "smb", service_desc="CIFS",
                                  dm_password=None, ldapi=True)
@@ -162,7 +161,6 @@ class ADTRUSTInstance(service.Service):
         self.fqdn = self.fqdn or api.env.host
         self.host_netbios_name = make_netbios_name(self.fqdn)
         self.realm = self.realm or api.env.realm
-        self.domain_name = self.domain_name or api.env.domain
 
         self.cifs_principal = "cifs/" + self.fqdn + "@" + self.realm
         self.suffix = ipautil.realm_to_suffix(self.realm)
@@ -177,7 +175,7 @@ class ADTRUSTInstance(service.Service):
                          ('cn', 'etc'),
                          self.suffix)
 
-        self.smb_dom_dn = DN(('cn', self.domain_name),
+        self.smb_dom_dn = DN(('cn', api.env.domain),
                              api.env.container_cifsdomains,
                              self.suffix)
 
@@ -426,7 +424,7 @@ class ADTRUSTInstance(service.Service):
             self.smb_dom_dn,
             {
                 'objectclass': [self.OBJC_DOMAIN, "nsContainer"],
-                'cn': [self.domain_name],
+                'cn': [api.env.domain],
                 self.ATTR_FLAT_NAME: [self.netbios_name],
                 self.ATTR_SID: [self.__gen_sid_string()],
                 self.ATTR_GUID: [str(uuid.uuid4())],
@@ -581,7 +579,7 @@ class ADTRUSTInstance(service.Service):
         their values are used. Otherwise default values are used.
         """
 
-        zone = self.domain_name
+        zone = api.env.domain
         host_in_rr = normalize_zone(self.fqdn)
 
         priority = 0
@@ -787,12 +785,12 @@ class ADTRUSTInstance(service.Service):
                              LDAPI_SOCKET = self.ldapi_socket,
                              FQDN = self.fqdn)
 
-    def setup(self, fqdn, realm_name, domain_name, netbios_name,
+    def setup(self, fqdn, realm_name, netbios_name,
               reset_netbios_name, rid_base, secondary_rid_base,
-              no_msdcs=False, add_sids=False, smbd_user="samba", enable_compat=False):
+              no_msdcs=False, add_sids=False, smbd_user="samba",
+              enable_compat=False):
         self.fqdn = fqdn
         self.realm = realm_name
-        self.domain_name = domain_name
         self.netbios_name = netbios_name
         self.reset_netbios_name = reset_netbios_name
         self.rid_base = rid_base
