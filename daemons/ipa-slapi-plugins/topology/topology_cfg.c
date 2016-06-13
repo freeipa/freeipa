@@ -452,6 +452,15 @@ ipa_topo_cfg_host_find(TopoReplica *tconf, char *findhost, int lock)
 
     if (lock) slapi_lock_mutex(tconf->repl_lock);
     for (host=tconf->hosts;host;host=host->next) {
+        if (host->hostname == NULL) {
+            /* this check is done to avoid a crash,
+             * for which the root cause is not yet known.
+             * Avoid the crash and log an error
+             */
+            slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                            "ipa_topo_cfg_host_find: found a NULL hostname in host list\n");
+            continue;
+        }
         if (!strcasecmp(host->hostname,findhost)) {
            break;
         }
@@ -849,8 +858,8 @@ ipa_topo_cfg_replica_free(TopoReplica *tconf)
         while (host) {
             host_next = host->next;
             slapi_ch_free_string(&host->hostname);
-            host = host_next;
             slapi_ch_free((void **)&host);
+            host = host_next;
         }
         slapi_ch_free((void **)&tconf);
     }
