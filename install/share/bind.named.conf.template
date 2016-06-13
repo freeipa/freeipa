@@ -8,9 +8,6 @@ options {
 	statistics-file		"data/named_stats.txt";
 	memstatistics-file	"data/named_mem_stats.txt";
 
-	forward $FORWARD_POLICY;
-	forwarders {$FORWARDERS};
-
 	// Any host is permitted to issue recursive queries
 	allow-recursion { any; };
 
@@ -50,7 +47,6 @@ dynamic-db "ipa" {
 	library "ldap.so";
 	arg "uri ldapi://%2fvar%2frun%2fslapd-$SERVER_ID.socket";
 	arg "base cn=dns, $SUFFIX";
-	arg "fake_mname $FQDN.";
 	arg "server_id $FQDN";
 	arg "auth_method sasl";
 	arg "sasl_mech GSSAPI";

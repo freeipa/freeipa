@@ -40,6 +40,7 @@ from ipaserver.install import sysupgrade
 from ipaserver.install.cainstance import IPA_CA_RECORD
 from ipapython import sysrestore, ipautil, ipaldap
 from ipapython import dnsutil
+from ipapython.dnsutil import DNSName
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 import ipalib
@@ -699,6 +700,8 @@ class BindInstance(service.Service):
 
         self.step("setting up kerberos principal", self.__setup_principal)
         self.step("setting up named.conf", self.__setup_named_conf)
+        self.step("setting up server configuration",
+            self.__setup_server_configuration)
 
         # named has to be started after softhsm initialization
         # self.step("restarting named", self.__start)
@@ -982,6 +985,26 @@ class BindInstance(service.Service):
             'named.conf',
             'forward_policy_conflict_with_empty_zones_handled', True
         )
+
+    def __setup_server_configuration(self):
+        try:
+            self.api.Command.dnsserver_add(
+                self.fqdn, idnssoamname=DNSName(self.fqdn).make_absolute(),
+            )
+        except errors.DuplicateEntry:
+            # probably reinstallation of DNS
+            pass
+
+        try:
+            self.api.Command.dnsserver_mod(
+                self.fqdn,
+                idnsforwarders=[unicode(f) for f in self.forwarders],
+                idnsforwardpolicy=unicode(self.forward_policy)
+            )
+        except errors.EmptyModlist:
+            pass
+
+        sysupgrade.set_upgrade_state('dns', 'server_config_to_ldap', True)
 
     def __setup_resolv_conf(self):
         if not self.fstore.has_file(RESOLV_CONF):
