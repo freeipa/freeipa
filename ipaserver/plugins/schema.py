@@ -10,7 +10,7 @@ import six
 
 from ipalib import errors
 from ipalib.crud import PKQuery, Retrieve, Search
-from ipalib.frontend import Command, Method, Object
+from ipalib.frontend import Command, Local, Method, Object
 from ipalib.output import Entry, ListOfEntries, ListOfPrimaryKeys, PrimaryKey
 from ipalib.parameters import Bool, Dict, Flag, Int, Str
 from ipalib.plugable import Registry
@@ -188,16 +188,22 @@ class command(MetaObject):
 
     def _retrieve(self, name, **kwargs):
         try:
-            return self.api.Command[name]
+            command = self.api.Command[name]
+            if not isinstance(command, Local):
+                return command
         except KeyError:
-            raise errors.NotFound(
-                reason=_("%(pkey)s: %(oname)s not found") % {
-                    'pkey': name, 'oname': self.name,
-                }
-            )
+            pass
+
+        raise errors.NotFound(
+            reason=_("%(pkey)s: %(oname)s not found") % {
+                'pkey': name, 'oname': self.name,
+            }
+        )
 
     def _search(self, **kwargs):
-        return self.api.Command()
+        for command in self.api.Command():
+            if not isinstance(command, Local):
+                yield command
 
 
 @register()
