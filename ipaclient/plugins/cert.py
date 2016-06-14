@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipaclient.frontend import CommandOverride
+from ipaclient.frontend import MethodOverride
 from ipalib import errors
 from ipalib import x509
 from ipalib import util
@@ -30,7 +30,7 @@ register = Registry()
 
 
 @register(override=True)
-class cert_request(CommandOverride):
+class cert_request(MethodOverride):
     def get_args(self):
         for arg in super(cert_request, self).get_args():
             if arg.name == 'csr':
@@ -39,7 +39,7 @@ class cert_request(CommandOverride):
 
 
 @register(override=True)
-class cert_show(CommandOverride):
+class cert_show(MethodOverride):
     def forward(self, *keys, **options):
         if 'out' in options:
             util.check_writable_file(options['out'])
