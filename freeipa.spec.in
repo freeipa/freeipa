@@ -739,6 +739,11 @@ make client-install DESTDIR=%{buildroot}
 (cd ipaclient && %{__python3} setup.py install --root %{buildroot})
 %endif # with_python3
 
+# Switch shebang of /usr/bin/ipa
+# XXX: ipa cli is not stable enough for enabling py3 support, keep it in py2
+# in any case
+sed -i -e'1s/python\(3\|$\)/python2/' %{buildroot}%{_bindir}/ipa
+
 %find_lang %{gettext_domain}
 
 mkdir -p %{buildroot}%{_usr}/share/ipa
