@@ -26,7 +26,6 @@ http://docs.python.org/ref/sequence-types.html
 """
 
 import sys
-import inspect
 import threading
 import os
 from os import path
@@ -40,6 +39,7 @@ import six
 from ipalib import errors
 from ipalib.config import Env
 from ipalib.text import _
+from ipalib.util import classproperty
 from ipalib.base import ReadOnly, NameSpace, lock, islocked
 from ipalib.constants import DEFAULT_CONFIG
 from ipapython.ipa_log_manager import (
@@ -101,8 +101,8 @@ class Registry(object):
 
             :param klass: A subclass of `Plugin` to attempt to register.
             """
-            if not inspect.isclass(klass):
-                raise TypeError('plugin must be a class; got %r' % klass)
+            if not callable(klass):
+                raise TypeError('plugin must be callable; got %r' % klass)
 
             # Raise DuplicateError if this exact class was already registered:
             if klass in self.__registry:
@@ -134,9 +134,18 @@ class Plugin(ReadOnly):
         self.__finalize_lock = threading.RLock()
         log_mgr.get_logger(self, True)
 
-    @property
-    def name(self):
-        return type(self).__name__
+    @classmethod
+    def __name_getter(cls):
+        return cls.__name__
+
+    # you know nothing, pylint
+    name = classproperty(__name_getter)
+
+    @classmethod
+    def __bases_getter(cls):
+        return cls.__bases__
+
+    bases = classproperty(__bases_getter)
 
     @property
     def doc(self):
@@ -571,12 +580,12 @@ class API(ReadOnly):
         :param klass: A subclass of `Plugin` to attempt to add.
         :param override: If true, override an already added plugin.
         """
-        if not inspect.isclass(klass):
-            raise TypeError('plugin must be a class; got %r' % klass)
+        if not callable(klass):
+            raise TypeError('plugin must be callable; got %r' % klass)
 
         # Find the base class or raise SubclassError:
-        for base in self.bases:
-            if issubclass(klass, self.bases):
+        for base in klass.bases:
+            if issubclass(base, self.bases):
                 break
         else:
             raise errors.PluginSubclassError(
@@ -585,13 +594,13 @@ class API(ReadOnly):
             )
 
         # Check override:
-        prev = self.__plugins.get(klass.__name__)
+        prev = self.__plugins.get(klass.name)
         if prev:
             if not override:
                 # Must use override=True to override:
                 raise errors.PluginOverrideError(
                     base=base.__name__,
-                    name=klass.__name__,
+                    name=klass.name,
                     plugin=klass,
                 )
 
@@ -601,12 +610,12 @@ class API(ReadOnly):
                 # There was nothing already registered to override:
                 raise errors.PluginMissingOverrideError(
                     base=base.__name__,
-                    name=klass.__name__,
+                    name=klass.name,
                     plugin=klass,
                 )
 
         # The plugin is okay, add to sub_d:
-        self.__plugins[klass.__name__] = klass
+        self.__plugins[klass.name] = klass
 
     def finalize(self):
         """
@@ -627,7 +636,7 @@ class API(ReadOnly):
             members = []
 
             for klass in self.__plugins.values():
-                if not issubclass(klass, base):
+                if not any(issubclass(b, base) for b in klass.bases):
                     continue
                 try:
                     instance = plugins[klass]
@@ -635,7 +644,7 @@ class API(ReadOnly):
                     instance = plugins[klass] = klass(self)
                 members.append(instance)
                 plugin_info.setdefault(
-                    '%s.%s' % (klass.__module__, klass.__name__),
+                    '%s.%s' % (klass.__module__, klass.name),
                     []).append(name)
 
             if not production_mode:
@@ -657,8 +666,8 @@ class API(ReadOnly):
             lock(self)
 
     def get_plugin_next(self, klass):
-        if not inspect.isclass(klass):
-            raise TypeError('plugin must be a class; got %r' % klass)
+        if not callable(klass):
+            raise TypeError('plugin must be callable; got %r' % klass)
 
         return self.__next[klass]
 

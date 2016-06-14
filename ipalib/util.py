@@ -872,3 +872,29 @@ def detect_dns_zone_realm_type(api, domain):
 def has_managed_topology(api):
     domainlevel = api.Command['domainlevel_get']().get('result', DOMAIN_LEVEL_0)
     return domainlevel > DOMAIN_LEVEL_0
+
+
+class classproperty(object):
+    __slots__ = ('__doc__', 'fget')
+
+    def __init__(self, fget=None, doc=None):
+        if doc is None and fget is not None:
+            doc = fget.__doc__
+
+        self.fget = fget
+        self.__doc__ = doc
+
+    def __get__(self, obj, obj_type):
+        if self.fget is not None:
+            return self.fget.__get__(obj, obj_type)()
+        raise AttributeError("unreadable attribute")
+
+    def __set__(self, obj, value):
+        raise AttributeError("can't set attribute")
+
+    def __delete__(self, obj):
+        raise AttributeError("can't delete attribute")
+
+    def getter(self, fget):
+        self.fget = fget
+        return self
