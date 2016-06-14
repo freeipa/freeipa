@@ -114,6 +114,12 @@ EXAMPLES:
  Search for certificates owned by a specific user:
    ipa cert-find --user=user
 
+ Examine a certificate:
+   ipa cert-find --file=cert.pem --all
+
+ Verify that a certificate is owner by a specific user:
+   ipa cert-find --file=cert.pem --user=user
+
 IPA currently immediately issues (or declines) all certificate requests so
 the status of a request is not normally useful. This is for future use
 or the case where a CA does not immediately issue a certificate.
@@ -239,12 +245,17 @@ def caacl_check(principal_type, principal_string, ca, profile_id):
         )
 
 
+def validate_certificate(value):
+    return x509.validate_certificate(value, x509.DER)
+
+
 class BaseCertObject(Object):
     takes_params = (
         Bytes(
-            'certificate',
+            'certificate', validate_certificate,
             label=_("Certificate"),
             doc=_("Base-64 encoded certificate."),
+            normalizer=x509.normalize_certificate,
             flags={'no_create', 'no_update', 'no_search'},
         ),
         DNParam(
@@ -652,7 +663,7 @@ class cert(BaseCertObject):
         for param in super(cert, self).get_params():
             if param.name == 'serial_number':
                 param = param.clone(primary_key=True)
-            elif param.name == 'issuer':
+            elif param.name in ('certificate', 'issuer'):
                 param = param.clone(flags=param.flags - {'no_search'})
             yield param
 
@@ -978,6 +989,7 @@ class cert_find(Search, CertMethod):
             any(name in options for name in ca_options - {'exactly'}) or
             options['exactly'])
         has_ldap_options = any(name in options for name in ldap_options)
+        has_cert_option = 'certificate' in options
 
         try:
             ca_enabled_check()
@@ -1006,6 +1018,12 @@ class cert_find(Search, CertMethod):
         obj_dict = {}
         truncated = False
 
+        if has_cert_option:
+            cert = options['certificate']
+            obj = {'certificate': unicode(base64.b64encode(cert))}
+            obj_seq.append(obj)
+            obj_dict[cert] = obj
+
         if ca_enabled:
             ra_options = {}
             for name, value in options.items():
@@ -1025,23 +1043,37 @@ class cert_find(Search, CertMethod):
                 if ((not pkey_only and all) or
                         not no_members or
                         not has_ca_options or
-                        has_ldap_options):
+                        has_ldap_options or
+                        has_cert_option):
                     ra_obj.update(
                         self.Backend.ra.get_certificate(
                             str(ra_obj['serial_number'])))
                     cert = base64.b64decode(ra_obj['certificate'])
-                    obj_dict[cert] = obj
-                obj_seq.append(obj)
+                    try:
+                        obj = obj_dict[cert]
+                    except KeyError:
+                        if has_cert_option:
+                            continue
+                        obj = {}
+                        obj_seq.append(obj)
+                        obj_dict[cert] = obj
+                else:
+                    obj_seq.append(obj)
                 obj.update(ra_obj)
 
         if ((not pkey_only and all) or
                 not no_members or
                 not has_ca_options or
-                has_ldap_options):
+                has_ldap_options or
+                has_cert_option):
             ldap = self.api.Backend.ldap2
 
             filters = []
-            cert_filter = '(usercertificate=*)'
+            if 'certificate' in options:
+                cert_filter = ldap.make_filter_from_attr(
+                    'usercertificate', options['certificate'])
+            else:
+                cert_filter = '(usercertificate=*)'
             filters.append(cert_filter)
             for owner in self.obj._owners():
                 oc_filter = ldap.make_filter_from_attr(
@@ -1077,7 +1109,7 @@ class cert_find(Search, CertMethod):
                         try:
                             obj = obj_dict[cert]
                         except KeyError:
-                            if has_ca_options:
+                            if has_ca_options or has_cert_option:
                                 continue
                             obj = {
                                 'certificate': unicode(base64.b64encode(cert))}

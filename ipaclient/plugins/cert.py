@@ -25,6 +25,7 @@ from ipalib import x509
 from ipalib import util
 from ipalib.parameters import File
 from ipalib.plugable import Registry
+from ipalib.text import _
 
 register = Registry()
 
@@ -51,3 +52,25 @@ class cert_show(MethodOverride):
                 raise errors.NoCertificateError(entry=keys[-1])
         else:
             return super(cert_show, self).forward(*keys, **options)
+
+
+@register(override=True)
+class cert_find(MethodOverride):
+    takes_options = (
+        File(
+            'file?',
+            label=_("Input filename"),
+            doc=_('File to load the certificate from.'),
+            include='cli',
+        ),
+    )
+
+    def forward(self, *args, **options):
+        if self.api.env.context == 'cli':
+            if 'certificate' in options and 'file' in options:
+                raise errors.MutuallyExclusiveError(
+                    reason=_("cannot specify both raw certificate and file"))
+            if 'certificate' not in options and 'file' in options:
+                options['certificate'] = x509.strip_header(options.pop('file'))
+
+        return super(cert_find, self).forward(*args, **options)

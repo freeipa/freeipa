@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=195
-# Last change: cert: add owner information
+IPA_API_VERSION_MINOR=196
+# Last change: cert: allow search by certificate
