@@ -1540,6 +1540,7 @@ return {
             disable_facet_tabs: false,
             tabs_in_sidebar: true,
             tab_label: '@i18n:tabs.cert',
+            row_enabled_attribute: 'status',
             facet_groups: [exp.facet_group],
             facet_group: 'certificates',
             pagination: false,
@@ -1727,6 +1728,11 @@ IPA.cert.search_facet = function(spec) {
         }
 
         return command;
+    };
+
+    that.table.setup_column = function(column, div, record) {
+        var supress_link = record.status === undefined;
+        column.setup(div, record, supress_link);
     };
 
     // parent method only sets expired flag when filter change, it doesn't
