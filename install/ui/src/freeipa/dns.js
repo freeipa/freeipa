@@ -87,6 +87,15 @@ return {
                                     label: '@i18n:objects.dnsconfig.forward_none'
                                 }
                             ]
+                        },
+                        {
+                            name: 'dnssec_key_master_server',
+                            read_only: true
+                        },
+                        {
+                            $type: 'multivalued',
+                            name: 'dns_server_server',
+                            read_only: true
                         }
                     ]
                 }
