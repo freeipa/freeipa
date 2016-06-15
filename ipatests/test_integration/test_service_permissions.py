@@ -80,3 +80,59 @@ class TestServicePermissions(IntegrationTest):
 
         self.master.run_command(['ipa', 'service-del', service_name])
         self.master.run_command(['ipa', 'user-del', 'tuser'])
+
+
+class TestServiceAuthenticationIndicators(IntegrationTest):
+    topology = 'star'
+
+    def test_service_access(self):
+        """ Test that user is granted access when authenticated using
+        credentials that are sufficient for a service, and denied access
+        when using insufficient credentials"""
+
+        service_name = 'testservice/%s@%s' % (self.master.hostname,
+                                              self.master.domain.realm)
+
+        keytab_file = os.path.join(self.master.config.test_dir,
+                                   'testservice_keytab')
+
+        # Prepare a service without authentication indicator
+        self.master.run_command(['ipa', 'service-add', service_name])
+
+        self.master.run_command(['ipa-getkeytab',
+                                 '-p', service_name,
+                                 '-k', keytab_file])
+
+        # Set authentication-type for admin user
+        self.master.run_command(['ipa', 'user-mod', 'admin',
+                                 '--user-auth-type=password',
+                                 '--user-auth-type=otp'])
+
+        # Authenticate
+        self.master.run_command(['kinit', '-k', service_name,
+                                 '-t', keytab_file])
+
+        # Verify access to service is granted
+        result = self.master.run_command(['kvno', service_name],
+                                         raiseonerr=False)
+        assert result.returncode == 0
+
+        # Obtain admin ticket to be able to update service
+        tasks.kinit_admin(self.master)
+
+        # Modify service to have authentication indicator
+        self.master.run_command(['ipa', 'service-mod', service_name,
+                                 '--auth-ind=otp'])
+
+        self.master.run_command(['ipa-getkeytab',
+                                 '-p', service_name,
+                                 '-k', keytab_file])
+
+        # Authenticate
+        self.master.run_command(['kinit', '-k', service_name,
+                                 '-t', keytab_file])
+
+        # Verify access to service is rejected
+        result = self.master.run_command(['kvno', service_name],
+                                         raiseonerr=False)
+        assert result.returncode > 0
