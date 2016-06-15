@@ -18,6 +18,7 @@ from .baseldap import (
 from ipalib.request import context
 from ipalib import _, ngettext
 from ipalib import output
+from ipaplatform import services
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipaserver.servroles import ENABLED
@@ -252,7 +253,11 @@ class server_mod(LDAPUpdate):
                 # server is not DNS server
                 pass
 
-        if 'ipalocation' or 'ipalocationweight' in entry_attrs:
+        if 'ipalocation_location' or 'ipalocationweight' in options:
+            self.add_message(messages.ServiceRestartRequired(
+                service=services.service('named').systemd_name,
+                server=keys[0], ))
+
             result = self.api.Command.dns_update_system_records()
             if not result.get('value'):
                 self.add_message(messages.AutomaticDNSRecordsUpdateFailed())

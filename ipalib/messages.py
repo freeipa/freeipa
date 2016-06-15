@@ -428,6 +428,15 @@ class AutomaticDNSRecordsUpdateFailed(PublicMessage):
     )
 
 
+class ServiceRestartRequired(PublicMessage):
+    errno = 13025
+    type = "warning"
+    format = _(
+        "Service %(service)s requires restart on IPA server %(server)s to "
+        "apply configuration changes."
+    )
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
