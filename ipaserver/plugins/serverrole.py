@@ -13,7 +13,7 @@ from ipalib import _, ngettext
 __doc__ = _("""
 IPA server roles
 """) + _("""
-Get status of roles (DNS server, CA, etc. )provided by IPA masters.
+Get status of roles (DNS server, CA, etc.) provided by IPA masters.
 """) + _("""
 EXAMPLES:
 """) + _("""

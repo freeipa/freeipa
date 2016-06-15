@@ -872,7 +872,7 @@ class LogManager(object):
           List of (regexp, level) tuples. This is a an ordered list
           regular expressions used to match against a logger name to
           configure the logger's level. The first regexp in the
-          sequence which matches the logger name will use the the
+          sequence which matches the logger name will use the
           level bound to that regexp to set the logger's level. If
           no regexp matches the logger name then the logger will be
           assigned the default_level.

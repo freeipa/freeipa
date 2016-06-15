@@ -549,7 +549,7 @@ def create_po(pot_file, po_file, mo_file):
             break
 
 
-    # Iterate over all msgid's and form a the msgstr by prepending
+    # Iterate over all msgid's and form a msgstr by prepending
     # the prefix and appending the suffix
     for entry in po:
         if entry.msgid_plural:
