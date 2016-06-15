@@ -1195,6 +1195,9 @@ class Local(Command):
         """
         return self.forward(*args, **options)
 
+    def forward(self, *args, **options):
+        return self.execute(*args, **options)
+
 
 class Object(HasParam):
     # Create stubs for attributes that are set in _on_finalize()
