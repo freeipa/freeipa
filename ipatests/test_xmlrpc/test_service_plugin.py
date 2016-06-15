@@ -24,10 +24,14 @@ Test the `ipaserver/plugins/service.py` module.
 from ipalib import api, errors, x509
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_hash
 from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_digits, fuzzy_date, fuzzy_issuer
-from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_hex
+from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_hex, XMLRPC_test
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.testcert import get_testcert
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result, get_group_dn
+
+from ipatests.test_xmlrpc.tracker.service_plugin import ServiceTracker
+from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
+
 import base64
 from ipapython.dn import DN
 import pytest
@@ -1262,3 +1266,42 @@ class test_service_allowed_to(Declarative):
             ),
         ),
     ]
+
+
+@pytest.fixture(scope='function')
+def indicators_host(request):
+    tracker = HostTracker(name=u'testhost1', fqdn=fqdn1)
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='function')
+def indicators_service(request):
+    tracker = ServiceTracker(
+        name=u'SRV1', host_fqdn=fqdn1, options={
+            u'krbprincipalauthind': u'otp'})
+    return tracker.make_fixture(request)
+
+
+@pytest.mark.tier1
+class TestAuthenticationIndicators(XMLRPC_test):
+    def test_create_service_with_otp_indicator(
+            self, indicators_host, indicators_service):
+        """ Since range of authentication indicator values is not limited,
+        only 'otp' option is tested """
+        indicators_host.create()
+        indicators_service.create()
+
+    def test_adding_second_indicator(
+            self, indicators_host, indicators_service):
+        indicators_host.create()
+        indicators_service.create()
+        indicators_service.update(
+            updates={u'krbprincipalauthind': [u'otp', u'radius']})
+
+    def test_update_indicator(self, indicators_host, indicators_service):
+        indicators_host.create()
+        indicators_service.create()
+        indicators_service.update(
+            updates={u'krbprincipalauthind': u'radius'},
+            expected_updates={u'krbprincipalauthind': [u'radius']}
+        )
