@@ -97,7 +97,7 @@ class passwd(Command):
         ),
     )
 
-    has_output = output.standard_value
+    has_output = output.simple_value
     msg_summary = _('Changed password for "%(value)s"')
 
     def execute(self, principal, password, current_password, **options):

@@ -3965,7 +3965,7 @@ class dns_resolve(Command):
 
     NO_CLI = True
 
-    has_output = output.standard_value
+    has_output = output.simple_value
     msg_summary = _('Found \'%(value)s\'')
 
     takes_args = (

@@ -211,3 +211,9 @@ standard_boolean = (
 )
 
 standard_value = standard_boolean
+
+simple_value = (
+    summary,
+    Output('result', bool, _('True means the operation was successful')),
+    Output('value', unicode, flags=['no_display']),
+)

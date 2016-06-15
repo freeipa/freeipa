@@ -1053,7 +1053,7 @@ arg: Str('hostname')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: PrimaryKey('value')
+output: Output('value', type=[<type 'unicode'>])
 command: dnsconfig_mod
 args: 0,11,3
 option: Str('addattr*', cli_name='addattr')
@@ -3317,7 +3317,7 @@ option: Password('otp?', confirm=False)
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: PrimaryKey('value')
+output: Output('value', type=[<type 'unicode'>])
 command: permission_add
 args: 1,21,3
 arg: Str('cn', cli_name='name')
