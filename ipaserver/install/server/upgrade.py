@@ -1543,10 +1543,11 @@ def upgrade_configuration():
             )
         upgrade_pki(ca, fstore)
 
-    # several upgrade steps require running CA
+    # several upgrade steps require running CA.  If CA is configured,
     # always run ca.start() because we need to wait until CA is really ready
     # by checking status using http
-    ca.start('pki-tomcat')
+    if ca.is_configured():
+        ca.start('pki-tomcat')
 
     certmonger_service = services.knownservices.certmonger
     if ca.is_configured() and not certmonger_service.is_running():
@@ -1720,10 +1721,11 @@ def upgrade_configuration():
     elif not ds_running and ds.is_running():
         ds.stop(ds_serverid)
 
-    if ca_running and not ca.is_running():
-        ca.start('pki-tomcat')
-    elif not ca_running and ca.is_running():
-        ca.stop('pki-tomcat')
+    if ca.is_configured():
+        if ca_running and not ca.is_running():
+            ca.start('pki-tomcat')
+        elif not ca_running and ca.is_running():
+            ca.stop('pki-tomcat')
 
 
 def upgrade_check(options):
