@@ -437,6 +437,15 @@ class ServiceRestartRequired(PublicMessage):
     )
 
 
+class LocationWithoutDNSServer(PublicMessage):
+    errno = 13026
+    type = "warning"
+    format = _(
+        "No DNS servers in IPA location %(location)s. Without DNS servers "
+        "location is not working as expected."
+    )
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """

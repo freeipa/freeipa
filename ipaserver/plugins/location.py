@@ -14,6 +14,7 @@ from ipalib import (
     Str,
     DNSNameParam,
     output,
+    messages
 )
 from ipalib.plugable import Registry
 from ipaserver.plugins.baseldap import (
@@ -180,6 +181,7 @@ class location_show(LDAPRetrieve):
     def execute(self, *keys, **options):
         result = super(location_show, self).execute(*keys, **options)
 
+        dns_server_in_loc = False
         servers_additional_info = {}
         if not options.get('raw'):
             servers_name = []
@@ -197,6 +199,13 @@ class location_show(LDAPRetrieve):
                         'ipalocationweight', [u'100']),
                 }
 
+                if not dns_server_in_loc:
+                    show_result = self.api.Command.server_show(
+                        server['cn'][0])['result']
+                    if 'DNS server' in show_result.get(
+                            'enabled_role_servrole', ()):
+                        dns_server_in_loc = True
+
             for server in servers_additional_info.values():
                 server['location_relative_weight'] = [
                     u'{:.1f}%'.format(
@@ -205,5 +214,10 @@ class location_show(LDAPRetrieve):
             if servers_name:
                 result['result']['servers_server'] = servers_name
         result['servers'] = servers_additional_info
+
+        if not dns_server_in_loc and servers_additional_info:
+            self.add_message(messages.LocationWithoutDNSServer(
+                location=keys[0]
+            ))
 
         return result

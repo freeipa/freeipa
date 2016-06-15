@@ -263,6 +263,20 @@ class server_mod(LDAPUpdate):
                 self.add_message(messages.AutomaticDNSRecordsUpdateFailed())
         self.obj.convert_location(entry_attrs, **options)
 
+        ipalocation = entry_attrs.get('ipalocation_location', [None])[0]
+        if ipalocation:
+            servers_in_loc = self.api.Command.server_find(
+                in_location=ipalocation, no_members=False)['result']
+            dns_server_in_loc = False
+            for server in servers_in_loc:
+                if 'DNS server' in server.get('enabled_role_servrole', ()):
+                    dns_server_in_loc = True
+                    break
+            if not dns_server_in_loc:
+                self.add_message(messages.LocationWithoutDNSServer(
+                    location=ipalocation
+                ))
+
         return dn
 
 
