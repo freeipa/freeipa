@@ -50,8 +50,8 @@ _PARAMS = {
 class _SchemaCommand(Command):
     def __fix_default_from(self, param):
         api = self.api
-        name = self.name
-        param_name = param.name
+        name = unicode(self.name)
+        param_name = unicode(param.name)
         keys = param.default_from.keys
 
         if keys:
@@ -71,7 +71,7 @@ class _SchemaCommand(Command):
                 )['result']
                 return result.get(param_name)
 
-        callback.__name__ = '{0}_{1}_default'.format(name, param_name)
+        callback.__name__ = '{0}_{1}_default'.format(self.name, param.name)
 
         return param.clone(default_from=DefaultFrom(callback, *keys))
 
