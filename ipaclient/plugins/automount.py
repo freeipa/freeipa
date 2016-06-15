@@ -236,45 +236,45 @@ class automountlocation_import(Command):
         duplicatekeys = result['result']['duplicatekeys']
         skipped = result['result']['skipped']
 
-        textui.print_plain('Imported maps:')
+        textui.print_plain(_('Imported maps:'))
         for m in maps:
             textui.print_plain(
-                'Added %s' % m
+                _('Added %(map)s') % dict(map=m)
             )
         textui.print_plain('')
 
-        textui.print_plain('Imported keys:')
+        textui.print_plain(_('Imported keys:'))
         for k in keys:
             textui.print_plain(
-                'Added %s to %s' % (
-                    k[0], k[1]
+                _('Added %(src)s to %(dst)s') % dict(
+                    src=k[0], dst=k[1]
                 )
             )
         textui.print_plain('')
 
         if len(skipped) > 0:
-            textui.print_plain('Ignored keys:')
+            textui.print_plain(_('Ignored keys:'))
             for k in skipped:
                 textui.print_plain(
-                    'Ignored %s to %s' % (
-                        k[0], k[1]
+                    _('Ignored %(src)s to %(dst)s') % dict(
+                        src=k[0], dst=k[1]
                     )
                 )
 
 
         if options.get('continue', False) and len(duplicatemaps) > 0:
             textui.print_plain('')
-            textui.print_plain('Duplicate maps skipped:')
+            textui.print_plain(_('Duplicate maps skipped:'))
             for m in duplicatemaps:
                 textui.print_plain(
-                    'Skipped %s' % m
+                    _('Skipped %(map)s') % dict(map=m)
                 )
 
 
         if options.get('continue', False) and len(duplicatekeys) > 0:
             textui.print_plain('')
-            textui.print_plain('Duplicate keys skipped:')
+            textui.print_plain(_('Duplicate keys skipped:'))
             for k in duplicatekeys:
                 textui.print_plain(
-                    'Skipped %s' % k
+                    _('Skipped %(key)s') % dict(key=k)
                 )
