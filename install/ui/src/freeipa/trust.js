@@ -389,6 +389,16 @@ return {
                             filter_options: {
                                 posix: true
                             }
+                        },
+                        {
+                            $type: 'multivalued',
+                            name: 'ad_trust_agent_server',
+                            read_only: true
+                        },
+                        {
+                            $type: 'multivalued',
+                            name: 'ad_trust_controller_server',
+                            read_only: true
                         }
                     ]
                 }
