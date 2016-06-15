@@ -232,6 +232,26 @@ class server_mod(LDAPUpdate):
         assert isinstance(dn, DN)
         self.obj.get_enabled_roles(entry_attrs)
 
+        if 'ipalocation_location' in options:
+            ipalocation = entry_attrs.get('ipalocation')
+            if ipalocation:
+                ipalocation = ipalocation[0]['idnsname']
+            else:
+                ipalocation = u''
+            try:
+                self.api.Command.dnsserver_mod(
+                    keys[0],
+                    setattr=[
+                        u'idnsSubstitutionVariable;ipalocation={loc}'.format(
+                            loc=ipalocation)
+                    ]
+                )
+            except errors.EmptyModlist:
+                pass
+            except errors.NotFound:
+                # server is not DNS server
+                pass
+
         if 'ipalocation' or 'ipalocationweight' in entry_attrs:
             result = self.api.Command.dns_update_system_records()
             if not result.get('value'):
