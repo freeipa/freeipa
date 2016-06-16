@@ -16,7 +16,7 @@ default:nsslapd-pluginid: schema-compat-plugin
 # We need to run schema-compat pre-bind callback before
 # other IPA pre-bind callbacks to make sure bind DN is
 # rewritten to the original entry if needed
-default:nsslapd-pluginprecedence: 49
+default:nsslapd-pluginprecedence: 40
 default:nsslapd-pluginversion: 0.8
 default:nsslapd-pluginbetxn: on
 default:nsslapd-pluginvendor: redhat.com
