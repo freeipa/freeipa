@@ -23,7 +23,7 @@ import ldap as _ldap
 import six
 
 from ipalib import api, errors, Str, StrEnum, DNParam, Flag, _, ngettext
-from ipalib import output, Command
+from ipalib import output, Method, Object
 from ipalib.plugable import Registry
 from .baseldap import (
     pkey_to_value,
@@ -658,8 +658,23 @@ class automember_default_group_show(LDAPRetrieve):
 
 
 @register()
-class automember_rebuild(Command):
+class automember_task(Object):
+    takes_params = (
+        DNParam(
+            'dn',
+            label=_('Task DN'),
+            doc=_('DN of the started task'),
+        ),
+    )
+
+
+@register()
+class automember_rebuild(Method):
     __doc__ = _('Rebuild auto membership.')
+
+    obj_name = 'automember_task'
+    attr_name = 'rebuild'
+
     # TODO: Add a --dry-run option:
     # https://fedorahosted.org/freeipa/ticket/3936
     takes_options = (
@@ -685,13 +700,6 @@ class automember_rebuild(Command):
         ),
     )
     has_output = output.standard_entry
-    has_output_params = (
-        DNParam(
-            'dn',
-            label=_('Task DN'),
-            doc=_('DN of the started task'),
-        ),
-    )
 
     def validate(self, **kw):
         """
