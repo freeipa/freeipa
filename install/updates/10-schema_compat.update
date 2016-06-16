@@ -74,7 +74,7 @@ dn: cn=Schema Compatibility,cn=plugins,cn=config
 # We need to run schema-compat pre-bind callback before
 # other IPA pre-bind callbacks to make sure bind DN is
 # rewritten to the original entry if needed
-add:nsslapd-pluginprecedence: 49
+add:nsslapd-pluginprecedence: 40
 
 dn: cn=users,cn=Schema Compatibility,cn=plugins,cn=config
 add:schema-compat-entry-attribute: %ifeq("ipauniqueid","%{ipauniqueid}","objectclass=ipaOverrideTarget","")

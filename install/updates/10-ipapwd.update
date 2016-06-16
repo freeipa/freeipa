@@ -1,0 +1,9 @@
+dn: cn=ipa_pwd_extop,cn=plugins,cn=config
+# DS core server provides a default plugin (passwd_modify_extop) to handle
+# 1.3.6.1.4.1.4203.1.11.1 extended op (https://www.ietf.org/rfc/rfc3062.txt)
+# the pluginprecedence of the passwd_modify_extop is 50 (default value)
+#
+# IPA delivers ipa_pwd_extop plugin to handle that extended op
+# we need to make sure ipa_pwd_extop is called and so to set a lower
+# precedence value
+add:nsslapd-pluginprecedence: 49
