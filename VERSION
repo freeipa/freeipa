@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=186
-# Last change: mbasti - added dnsserver-* commands
+IPA_API_VERSION_MINOR=187
+# Last change: mbasti - rename ipalocationweight to ipaserviceweight

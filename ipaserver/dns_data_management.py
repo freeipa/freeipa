@@ -72,7 +72,7 @@ class IPASystemRecords(object):
 
     def __get_server_attrs(self, hostname):
         server_result = self.api_instance.Command.server_show(hostname)['result']
-        weight = int(server_result.get('ipalocationweight', [u'100'])[0])
+        weight = int(server_result.get('ipaserviceweight', [u'100'])[0])
         location = server_result.get('ipalocation_location', [None])[0]
         roles = set(server_result.get('enabled_role_servrole', ()))
 

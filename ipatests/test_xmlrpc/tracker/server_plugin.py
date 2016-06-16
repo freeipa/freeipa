@@ -13,18 +13,18 @@ class ServerTracker(Tracker):
     retrieve_keys = {
         'cn', 'dn', 'ipamaxdomainlevel', 'ipamindomainlevel',
         'iparepltopomanagedsuffix_topologysuffix', 'ipalocation_location',
-        'ipalocationweight',
+        'ipaserviceweight',
     }
     retrieve_all_keys = retrieve_keys | {'objectclass'}
     create_keys = retrieve_keys | {'objectclass'}
     find_keys = {
         'cn', 'dn', 'ipamaxdomainlevel', 'ipamindomainlevel',
-        'ipalocationweight',
+        'ipaserviceweight',
     }
     find_all_keys = retrieve_all_keys
     update_keys = {
         'cn', 'ipamaxdomainlevel', 'ipamindomainlevel',
-        'ipalocation_location', 'ipalocationweight',
+        'ipalocation_location', 'ipaserviceweight',
     }
 
     def __init__(self, name):

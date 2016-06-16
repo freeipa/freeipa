@@ -177,11 +177,11 @@ class TestLocationsServer(XMLRPC_test):
         server.update(
             dict(
                 ipalocation_location=location.idnsname_obj,
-                ipalocationweight=200,
+                ipaserviceweight=200,
             ),
             expected_updates=dict(
                 ipalocation_location=[location.idnsname_obj],
-                ipalocationweight=[u'200'],
+                ipaserviceweight=[u'200'],
             )
         )
         # remove invalid data from the previous test
@@ -195,6 +195,6 @@ class TestLocationsServer(XMLRPC_test):
         location.remove_server_from_location(server.server_name)
         location.retrieve()
 
-    def test_remove_location_weight_from_server(self, location, server):
-        server.update(dict(ipalocationweight=None))
+    def test_remove_service_weight_from_server(self, location, server):
+        server.update(dict(ipaserviceweight=None))
         location.retrieve()

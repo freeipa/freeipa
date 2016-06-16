@@ -202,12 +202,12 @@ class location_show(LDAPRetrieve):
                 in_location=keys[0], no_members=False)['result']
             for server in servers:
                 servers_name.append(server['cn'][0])
-                weight = int(server.get('ipalocationweight', [100])[0])
+                weight = int(server.get('ipaserviceweight', [100])[0])
                 weight_sum += weight
                 servers_additional_info[server['cn'][0]] = {
                     'cn': server['cn'],
-                    'ipalocationweight': server.get(
-                        'ipalocationweight', [u'100']),
+                    'ipaserviceweight': server.get(
+                        'ipaserviceweight', [u'100']),
                 }
 
                 if not dns_server_in_loc:
@@ -218,9 +218,9 @@ class location_show(LDAPRetrieve):
                         dns_server_in_loc = True
 
             for server in servers_additional_info.values():
-                server['location_relative_weight'] = [
+                server['service_relative_weight'] = [
                     u'{:.1f}%'.format(
-                        int(server['ipalocationweight'][0])*100.0/weight_sum)
+                        int(server['ipaserviceweight'][0])*100.0/weight_sum)
                 ]
             if servers_name:
                 result['result']['servers_server'] = servers_name

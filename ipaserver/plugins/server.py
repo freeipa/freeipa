@@ -53,7 +53,7 @@ class server(LDAPObject):
     search_attributes = ['cn']
     default_attributes = [
         'cn', 'iparepltopomanagedsuffix', 'ipamindomainlevel',
-        'ipamaxdomainlevel', 'ipalocation', 'ipalocationweight'
+        'ipamaxdomainlevel', 'ipalocation', 'ipaserviceweight'
     ]
     label = _('IPA Servers')
     label_singular = _('IPA Server')
@@ -72,7 +72,7 @@ class server(LDAPObject):
         'System: Read Locations of IPA Servers': {
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
-                'objectclass', 'cn', 'ipalocation', 'ipalocationweight',
+                'objectclass', 'cn', 'ipalocation', 'ipaserviceweight',
             },
             'default_privileges': {'DNS Administrators'},
         },
@@ -123,18 +123,18 @@ class server(LDAPObject):
             flags={'no_search'},
         ),
         Int(
-            'ipalocationweight?',
-            cli_name='location_weight',
-            label=_('Location weight'),
-            doc=_('Location weight for server'),
+            'ipaserviceweight?',
+            cli_name='service_weight',
+            label=_('Service weight'),
+            doc=_('Weight for server services'),
             minvalue=0,
             maxvalue=65535,
             flags={'no_search'},
         ),
         Str(
-            'location_relative_weight',
-            label=_('Location relative weight'),
-            doc=_('Location relative weight for server (counts per location)'),
+            'service_relative_weight',
+            label=_('Service relative weight'),
+            doc=_('Relative weight for server services (counts per location)'),
             flags={'virtual_attribute','no_create', 'no_update', 'no_search'},
         ),
         Str(
@@ -219,7 +219,7 @@ class server_mod(LDAPUpdate):
                 self.api.Object.location.handle_not_found(
                     options['ipalocation_location'])
 
-        if 'ipalocation' or 'ipalocationweight' in entry_attrs:
+        if 'ipalocation' or 'ipaserviceweight' in entry_attrs:
             server_entry = ldap.get_entry(dn, ['objectclass'])
 
             # we need to extend object with ipaLocationMember objectclass
@@ -253,7 +253,7 @@ class server_mod(LDAPUpdate):
                 # server is not DNS server
                 pass
 
-        if 'ipalocation_location' or 'ipalocationweight' in options:
+        if 'ipalocation_location' or 'ipaserviceweight' in options:
             self.add_message(messages.ServiceRestartRequired(
                 service=services.service('named').systemd_name,
                 server=keys[0], ))

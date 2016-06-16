@@ -239,7 +239,7 @@ return {
                             flags: ['w_if_no_aci']
                         },
                         {
-                            name: 'ipalocationweight',
+                            name: 'ipaserviceweight',
                             placeholder: '100'
                         },
                         {
@@ -412,10 +412,10 @@ return {
                                     link: true
                                 },
                                 {
-                                    name: 'ipalocationweight'
+                                    name: 'ipaserviceweight'
                                 },
                                 {
-                                    name: 'location_relative_weight'
+                                    name: 'service_relative_weight'
                                 }
                             ]
                         }
@@ -586,7 +586,7 @@ topology.location_association_table_widget = function(spec) {
                         },
                         {
                             $type: 'text',
-                            name: 'ipalocationweight'
+                            name: 'ipaserviceweight'
                         }
                     ]
                 }

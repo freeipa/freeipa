@@ -132,8 +132,8 @@ class LocationTracker(Tracker):
         self.attrs.setdefault('servers_server', []).append(server_name)
         self.servers[server_name] = {
             'cn': [server_name],
-            'ipalocationweight': [unicode(weight)],
-            'location_relative_weight': [relative_weight]
+            'ipaserviceweight': [unicode(weight)],
+            'service_relative_weight': [relative_weight]
         }
 
     def remove_server_from_location(self, server_name):
