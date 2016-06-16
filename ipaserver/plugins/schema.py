@@ -167,6 +167,16 @@ class metaobject_find(MetaSearch):
 class command(metaobject):
     takes_params = metaobject.takes_params + (
         Str(
+            'obj_class?',
+            label=_("Method of"),
+            flags={'no_search'},
+        ),
+        Str(
+            'attr_name?',
+            label=_("Method name"),
+            flags={'no_search'},
+        ),
+        Str(
             'args_param*',
             label=_("Arguments"),
             flags={'no_search'},
@@ -174,11 +184,6 @@ class command(metaobject):
         Str(
             'options_param*',
             label=_("Options"),
-            flags={'no_search'},
-        ),
-        Str(
-            'output_params_param*',
-            label=_("Output parameters"),
             flags={'no_search'},
         ),
         Bool(
@@ -210,6 +215,10 @@ class command(metaobject):
             else:
                 obj['topic_topic'] = topic['name']
 
+        if isinstance(cmd, Method):
+            obj['obj_class'] = unicode(cmd.obj_name)
+            obj['attr_name'] = unicode(cmd.attr_name)
+
         if cmd.NO_CLI:
             obj['no_cli'] = True
 
@@ -219,10 +228,6 @@ class command(metaobject):
         if len(cmd.options):
             obj['options_param'] = tuple(
                 unicode(n) for n in cmd.options if n != 'version')
-
-        if len(cmd.output_params):
-            obj['output_params_param'] = tuple(
-                unicode(n) for n in cmd.output_params)
 
         return obj
 

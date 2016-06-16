@@ -11,10 +11,10 @@ import six
 
 from ipaclient.plugins.rpcclient import rpcclient
 from ipalib import parameters, plugable
-from ipalib.frontend import Command, Object
+from ipalib.frontend import Command, Method, Object
 from ipalib.output import Output
 from ipalib.parameters import Bool, DefaultFrom, Flag, Password, Str
-from ipalib.text import ConcatenatedLazyText
+from ipalib.text import ConcatenatedLazyText, _
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
@@ -95,6 +95,91 @@ class _SchemaCommand(Command):
                     option.default is False):
                 option = option.clone_retype(option.name, Flag)
             yield option
+
+
+class _SchemaMethod(Method, _SchemaCommand):
+    _failed_member_output_params = (
+        # baseldap
+        Str(
+            'member',
+            label=_("Failed members"),
+        ),
+        Str(
+            'sourcehost',
+            label=_("Failed source hosts/hostgroups"),
+        ),
+        Str(
+            'memberhost',
+            label=_("Failed hosts/hostgroups"),
+        ),
+        Str(
+            'memberuser',
+            label=_("Failed users/groups"),
+        ),
+        Str(
+            'memberservice',
+            label=_("Failed service/service groups"),
+        ),
+        Str(
+            'failed',
+            label=_("Failed to remove"),
+            flags=['suppress_empty'],
+        ),
+        Str(
+            'ipasudorunas',
+            label=_("Failed RunAs"),
+        ),
+        Str(
+            'ipasudorunasgroup',
+            label=_("Failed RunAsGroup"),
+        ),
+        # caacl
+        Str(
+            'ipamembercertprofile',
+            label=_("Failed profiles"),
+        ),
+        Str(
+            'ipamemberca',
+            label=_("Failed CAs"),
+        ),
+        # host
+        Str(
+            'managedby',
+            label=_("Failed managedby"),
+        ),
+        # service
+        Str(
+            'ipaallowedtoperform_read_keys',
+            label=_("Failed allowed to retrieve keytab"),
+        ),
+        Str(
+            'ipaallowedtoperform_write_keys',
+            label=_("Failed allowed to create keytab"),
+        ),
+        # servicedelegation
+        Str(
+            'failed_memberprincipal',
+            label=_("Failed members"),
+        ),
+        Str(
+            'ipaallowedtarget',
+            label=_("Failed targets"),
+        ),
+        # vault
+        Str(
+            'owner?',
+            label=_("Failed owners"),
+        ),
+    )
+
+    def get_output_params(self):
+        seen = set()
+        for output_param in super(_SchemaMethod, self).get_output_params():
+            seen.add(output_param.name)
+            yield output_param
+        for output_param in self._failed_member_output_params:
+            if output_param.name not in seen:
+                yield output_param
 
 
 def _nope():
@@ -212,14 +297,16 @@ def _create_command(schema):
         command['topic'] = str(schema['topic_topic'])
     else:
         command['topic'] = None
+    if 'obj_class' in schema:
+        command['obj_name'] = str(schema['obj_class'])
+    if 'attr_name' in schema:
+        command['attr_name'] = str(schema['attr_name'])
     if 'no_cli' in schema:
         command['NO_CLI'] = schema['no_cli']
     command['takes_args'] = tuple(
         params[n] for n in schema.get('args_param', []))
     command['takes_options'] = tuple(
         params[n] for n in schema.get('options_param', []))
-    command['has_output_params'] = tuple(
-        params[n] for n in schema.get('output_params_param', []))
     command['has_output'] = tuple(
         _create_output(m) for m in schema['output'])
 
@@ -254,7 +341,10 @@ class _LazySchemaPlugin(object):
     @property
     def bases(self):
         if self.__base is Command:
-            return (_SchemaCommand,)
+            if 'obj_class' in self.__schema:
+                return (_SchemaMethod,)
+            else:
+                return (_SchemaCommand,)
         else:
             return (self.__base,)
 
