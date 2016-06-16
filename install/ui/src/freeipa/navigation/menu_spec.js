@@ -179,6 +179,7 @@ var nav = {};
                             ]
                         },
                         { entity: 'dnsforwardzone' },
+                        { entity: 'dnsserver' },
                         { entity: 'dnsconfig' }
                     ]
                 }

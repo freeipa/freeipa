@@ -502,6 +502,58 @@ return {
 };};
 
 
+var make_dnsserver_spec = function() {
+    var spec = {
+        name: 'dnsserver',
+        enable_test: function() {
+            return IPA.dns_enabled;
+        },
+        facets: [
+            {
+                $type: 'search',
+                no_update: true,
+                columns: [
+                    'idnsserverid'
+                ]
+            },
+            {
+                $type: 'details',
+                disable_facet_tabs: true,
+                fields: [
+                    'idnssoamname',
+                    'idnsserverid',
+                    {
+                        $type: 'multivalued',
+                        name: 'idnsforwarders',
+                        validators: ['dnsforwarder']
+                    },
+                    {
+                        $type: 'radio',
+                        name: 'idnsforwardpolicy',
+                        options: [
+                            {
+                                value: 'first',
+                                label: '@i18n:objects.dnsconfig.forward_first'
+                            },
+                            {
+                                value: 'only',
+                                label: '@i18n:objects.dnsconfig.forward_only'
+                            },
+                            {
+                                value: 'none',
+                                label: '@i18n:objects.dnsconfig.forward_none'
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    };
+
+    return spec;
+};
+
+
 IPA.dnszone_details_facet = function(spec, no_init) {
 
     spec = spec || {};
@@ -2531,6 +2583,7 @@ exp.config_spec = make_config_spec();
 exp.zone_spec = make_zone_spec();
 exp.record_spec = make_record_spec();
 exp.forwardzone_spec = make_forwardzone_spec();
+exp.dnsserver_spec = make_dnsserver_spec();
 exp.register = function() {
     var e = reg.entity;
     var w = reg.widget;
@@ -2542,6 +2595,7 @@ exp.register = function() {
     e.register({type: 'dnszone', spec: exp.zone_spec});
     e.register({type: 'dnsrecord', spec: exp.record_spec});
     e.register({type: 'dnsforwardzone', spec: exp.forwardzone_spec});
+    e.register({type: 'dnsserver', spec: exp.dnsserver_spec});
 
     w.register('dnszone_name', IPA.dnszone_name_widget);
     w.register('force_dnszone_add_checkbox', IPA.force_dnszone_add_checkbox_widget);
