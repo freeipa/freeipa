@@ -1037,7 +1037,11 @@ class BindInstance(service.Service):
 
     def remove_ipa_ca_cnames(self, domain_name):
         # get ipa-ca CNAMEs
-        cnames = get_rr(domain_name, IPA_CA_RECORD, "CNAME", api=self.api)
+        try:
+            cnames = get_rr(domain_name, IPA_CA_RECORD, "CNAME", api=self.api)
+        except errors.NotFound:
+            # zone does not exists
+            cnames = None
         if not cnames:
             return
 
