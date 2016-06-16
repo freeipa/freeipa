@@ -12,6 +12,7 @@ Developers:
 	Kyle Baker
 	Martin Bašti
 	Sylvain Baubeau
+	Florence Blanc-Renaud
 	Alexander Bokovoy
 	Thierry Bordaz
 	Sumit Bose
@@ -30,9 +31,12 @@ Developers:
 	Endi Sukma Dewata
 	Lenka Doudova
 	Benjamin Drung
+	Patrice Duc-Jacquet
 	Drew Erny
 	Oleg Fayans
+	Jérôme Fenal
 	Stephen Gallagher
+	James Groffen
 	Ondřej Hamada
 	Nick Hatch
 	Christian Heimes
@@ -48,6 +52,7 @@ Developers:
 	Ian Kumlien
 	David Kupka
 	Robert Kuska
+	Peter Lacko
 	Stanislav Laznicka
 	Ade Lee
 	Karl MacMillan
@@ -70,12 +75,14 @@ Developers:
 	W. Michael Petullo
 	Gowrishankar Rajaiyan
 	Lubomír Rintel
+	Matt Rogers
 	Lynn Root
 	Pete Rowley
 	Lenka Ryznarova
 	Thorsten Scherf
 	Michael Simacek
 	Lars Sjostrom
+	Filip Skola
 	Lukáš Slebodník
 	Simo Sorce
 	Petr Špaček
@@ -84,6 +91,7 @@ Developers:
 	Fraser Tweedale
 	Petr Viktorin
 	Petr Voborník
+	Pavel Vomacka
 	Andrew Wnuk
 	Jason Woods
 	Adam Young
