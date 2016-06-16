@@ -654,7 +654,7 @@ class CertDB(object):
                                         subject=host,
                                         passwd_fname=self.passwd_fname)
         # Now wait for the cert to appear. Check three times then abort
-        certmonger.wait_for_request(reqid, timeout=15)
+        certmonger.wait_for_request(reqid, timeout=60)
 
 
 class _CrossProcessLock(object):
