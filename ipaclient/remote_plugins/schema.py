@@ -10,8 +10,8 @@ import types
 import six
 
 from ipaclient.plugins.rpcclient import rpcclient
-from ipalib import Command
 from ipalib import parameters, plugable
+from ipalib.frontend import Command, Object
 from ipalib.output import Output
 from ipalib.parameters import Bool, DefaultFrom, Flag, Password, Str
 from ipalib.text import ConcatenatedLazyText
@@ -226,8 +226,23 @@ def _create_command(schema):
     return command
 
 
-class _LazySchemaCommand(object):
-    def __init__(self, schema):
+def _create_class(schema):
+    cls = {}
+    cls['name'] = str(schema['name'])
+    if 'doc' in schema:
+        cls['doc'] = ConcatenatedLazyText(schema['doc'])
+    if 'topic_topic' in schema:
+        cls['topic'] = str(schema['topic_topic'])
+    else:
+        cls['topic'] = None
+    cls['takes_params'] = tuple(_create_param(s) for s in schema['params'])
+
+    return cls
+
+
+class _LazySchemaPlugin(object):
+    def __init__(self, base, schema):
+        self.__base = base
         self.__schema = schema
         self.__class = None
         self.__module__ = None
@@ -236,21 +251,32 @@ class _LazySchemaCommand(object):
     def name(self):
         return str(self.__schema['name'])
 
-    bases = (_SchemaCommand,)
+    @property
+    def bases(self):
+        if self.__base is Command:
+            return (_SchemaCommand,)
+        else:
+            return (self.__base,)
 
     def __call__(self, api):
         if self.__class is None:
-            command = _create_command(self.__schema)
-            name = command.pop('name')
-            command = type(name, (_SchemaCommand,), command)
-            command.__module__ = self.__module__
-            self.__class = command
+            if self.__base is Command:
+                metaobject = _create_command(self.__schema)
+            else:
+                metaobject = _create_class(self.__schema)
+            metaobject = type(self.name, self.bases, metaobject)
+            metaobject.__module__ = self.__module__
+            self.__class = metaobject
 
         return self.__class(api)
 
 
 def _create_commands(schema):
-    return [_LazySchemaCommand(s) for s in schema]
+    return [_LazySchemaPlugin(Command, s) for s in schema]
+
+
+def _create_classes(schema):
+    return [_LazySchemaPlugin(Object, s) for s in schema]
 
 
 def _create_topic(schema):
@@ -289,6 +315,7 @@ def get_package(api):
         client.disconnect()
 
     commands = _create_commands(schema['commands'])
+    classes = _create_classes(schema['classes'])
     topics = _create_topics(schema['topics'])
 
     package = types.ModuleType(package_name)
@@ -307,6 +334,11 @@ def get_package(api):
         command.__module__ = module_name
         command = module.register()(command)
         setattr(module, command.name, command)
+
+    for cls in classes:
+        cls.__module__ = module_name
+        cls = module.register()(cls)
+        setattr(module, cls.name, command)
 
     for topic in topics:
         name = topic.pop('name')

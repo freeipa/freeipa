@@ -8,6 +8,7 @@ import sys
 
 import six
 
+from .baseldap import LDAPObject
 from ipalib import errors
 from ipalib.crud import PKQuery, Retrieve, Search
 from ipalib.frontend import Command, Local, Method, Object
@@ -130,8 +131,41 @@ class MetaSearch(BaseMetaSearch):
 
 
 @register()
-class command(MetaObject):
-    takes_params = BaseMetaObject.takes_params + (
+class metaobject(MetaObject):
+    takes_params = MetaObject.takes_params + (
+        Str(
+            'params_param*',
+            label=_("Parameters"),
+            flags={'no_search'},
+        ),
+    )
+
+    def _iter_params(self, metaobj):
+        raise NotImplementedError()
+
+    def _get_obj(self, metaobj, all=False, **kwargs):
+        obj = dict()
+        obj['name'] = unicode(metaobj.name)
+
+        if all:
+            params = [unicode(p.name) for p in self._iter_params(metaobj)]
+            if params:
+                obj['params_param'] = params
+
+        return obj
+
+
+class metaobject_show(MetaRetrieve):
+    pass
+
+
+class metaobject_find(MetaSearch):
+    pass
+
+
+@register()
+class command(metaobject):
+    takes_params = metaobject.takes_params + (
         Str(
             'args_param*',
             label=_("Arguments"),
@@ -154,42 +188,49 @@ class command(MetaObject):
         ),
     )
 
-    def _get_obj(self, command, **kwargs):
-        obj = dict()
-        obj['name'] = unicode(command.name)
+    def _iter_params(self, cmd):
+        for arg in cmd.args():
+            yield arg
+        for option in cmd.options():
+            if option.name == 'version':
+                continue
+            yield option
 
-        if command.doc:
-            obj['doc'] = unicode(command.doc)
+    def _get_obj(self, cmd, **kwargs):
+        obj = super(command, self)._get_obj(cmd, **kwargs)
 
-        if command.topic:
+        if cmd.doc:
+            obj['doc'] = unicode(cmd.doc)
+
+        if cmd.topic:
             try:
-                topic = self.api.Object.topic.retrieve(unicode(command.topic))
+                topic = self.api.Object.topic.retrieve(unicode(cmd.topic))
             except errors.NotFound:
                 pass
             else:
                 obj['topic_topic'] = topic['name']
 
-        if command.NO_CLI:
+        if cmd.NO_CLI:
             obj['no_cli'] = True
 
-        if len(command.args):
-            obj['args_param'] = tuple(unicode(n) for n in command.args)
+        if len(cmd.args):
+            obj['args_param'] = tuple(unicode(n) for n in cmd.args)
 
-        if len(command.options):
+        if len(cmd.options):
             obj['options_param'] = tuple(
-                unicode(n) for n in command.options if n != 'version')
+                unicode(n) for n in cmd.options if n != 'version')
 
-        if len(command.output_params):
+        if len(cmd.output_params):
             obj['output_params_param'] = tuple(
-                unicode(n) for n in command.output_params)
+                unicode(n) for n in cmd.output_params)
 
         return obj
 
     def _retrieve(self, name, **kwargs):
         try:
-            command = self.api.Command[name]
-            if not isinstance(command, Local):
-                return command
+            cmd = self.api.Command[name]
+            if not isinstance(cmd, Local):
+                return cmd
         except KeyError:
             pass
 
@@ -200,18 +241,18 @@ class command(MetaObject):
         )
 
     def _search(self, **kwargs):
-        for command in self.api.Command():
-            if not isinstance(command, Local):
-                yield command
+        for cmd in self.api.Command():
+            if not isinstance(cmd, Local):
+                yield cmd
 
 
 @register()
-class command_show(MetaRetrieve):
+class command_show(metaobject_show):
     __doc__ = _("Display information about a command.")
 
 
 @register()
-class command_find(MetaSearch):
+class command_find(metaobject_find):
     __doc__ = _("Search for commands.")
 
 
@@ -233,6 +274,52 @@ class command_defaults(PKQuery):
         result = command.get_default(params, **kw)
 
         return dict(result=result)
+
+
+@register()
+class class_(metaobject):
+    name = 'class'
+
+    def _iter_params(self, metaobj):
+        for param in metaobj.params():
+            yield param
+
+        if isinstance(metaobj, LDAPObject) and 'show' in metaobj.methods:
+            members = (
+                '{}_{}'.format(attr_name, obj_name)
+                for attr_name, obj_names in metaobj.attribute_members.items()
+                for obj_name in obj_names)
+            passwords = (name for _, name in metaobj.password_attributes)
+
+            names = set(itertools.chain(members, passwords))
+            for param in metaobj.methods.show.output_params():
+                if param.name in names and param.name not in metaobj.params:
+                    yield param
+
+    def _retrieve(self, name, **kwargs):
+        try:
+            return self.api.Object[name]
+        except KeyError:
+            pass
+
+        raise errors.NotFound(
+            reason=_("%(pkey)s: %(oname)s not found") % {
+                'pkey': name, 'oname': self.name,
+            }
+        )
+
+    def _search(self, **kwargs):
+        return self.api.Object()
+
+
+@register()
+class class_show(metaobject_show):
+    __doc__ = _("Display information about a class.")
+
+
+@register()
+class class_find(metaobject_find):
+    __doc__ = _("Search for classes.")
 
 
 @register()
@@ -328,13 +415,17 @@ class BaseParam(BaseMetaObject):
         ),
     )
 
-    def _split_search_args(self, commandname, criteria=None):
-        return [commandname], criteria
+    @property
+    def parent(self):
+        raise AttributeError('parent')
+
+    def _split_search_args(self, parent_name, criteria=None):
+        return [parent_name], criteria
 
 
 class BaseParamMethod(Method):
     def get_args(self):
-        parent = self.api.Object.command
+        parent = self.obj.parent
         parent_key = parent.primary_key
         yield parent_key.clone_rename(
             parent.name + parent_key.name,
@@ -450,6 +541,11 @@ class param(BaseParam):
             flags={'no_search'},
         ),
         Bool(
+            'no_output?',
+            label=_("No output"),
+            flags={'no_search'},
+        ),
+        Bool(
             'suppress_empty?',
             label=_("Suppress empty"),
             flags={'no_search'},
@@ -461,7 +557,13 @@ class param(BaseParam):
         ),
     )
 
-    def _get_obj(self, param, **kwargs):
+    @property
+    def parent(self):
+        return self.api.Object.metaobject
+
+    def _get_obj(self, metaobj_param, **kwargs):
+        metaobj, param = metaobj_param
+
         obj = dict()
         obj['name'] = unicode(param.name)
 
@@ -480,56 +582,62 @@ class param(BaseParam):
             obj['sensitive'] = True
 
         for key, value in param._Param__clonekw.items():
-            if key in ('alwaysask',
-                       'autofill',
-                       'confirm',
-                       'sortorder'):
-                obj[key] = value
-            elif key in ('cli_metavar',
-                         'cli_name',
-                         'doc',
-                         'hint',
-                         'label',
-                         'option_group'):
+            if key in ('doc',
+                       'label'):
                 obj[key] = unicode(value)
-            elif key == 'default':
-                if param.multivalue:
-                    obj[key] = [unicode(v) for v in value]
-                else:
-                    obj[key] = [unicode(value)]
-            elif key == 'default_from':
-                obj['default_from_param'] = list(unicode(k)
-                                                 for k in value.keys)
-            elif key in ('deprecated_cli_aliases',
-                         'exclude',
+            elif key in ('exclude',
                          'include'):
                 obj[key] = list(unicode(v) for v in value)
-            elif key in ('exponential',
-                         'normalizer',
-                         'only_absolute',
-                         'precision'):
-                obj['no_convert'] = True
+            if isinstance(metaobj, Command):
+                if key in ('alwaysask',
+                           'autofill',
+                           'confirm',
+                           'sortorder'):
+                    obj[key] = value
+                elif key in ('cli_metavar',
+                             'cli_name',
+                             'hint',
+                             'option_group'):
+                    obj[key] = unicode(value)
+                elif key == 'default':
+                    if param.multivalue:
+                        obj[key] = [unicode(v) for v in value]
+                    else:
+                        obj[key] = [unicode(value)]
+                elif key == 'default_from':
+                    obj['default_from_param'] = list(unicode(k)
+                                                     for k in value.keys)
+                elif key == 'deprecated_cli_aliases':
+                    obj[key] = list(unicode(v) for v in value)
+                elif key in ('exponential',
+                             'normalizer',
+                             'only_absolute',
+                             'precision'):
+                    obj['no_convert'] = True
 
         for flag in (param.flags or []):
-            if flag in ('dnsrecord_extra',
-                        'dnsrecord_part',
-                        'no_option',
+            if flag in ('no_output',
                         'suppress_empty'):
                 obj[flag] = True
+            if isinstance(metaobj, Command):
+                if flag in ('dnsrecord_extra',
+                            'dnsrecord_part',
+                            'no_option'):
+                    obj[flag] = True
 
         return obj
 
-    def _retrieve(self, commandname, name, **kwargs):
-        command = self.api.Command[commandname]
+    def _retrieve(self, metaobjectname, name, **kwargs):
+        try:
+            metaobj = self.api.Command[metaobjectname]
+            plugin = self.api.Object['command']
+        except KeyError:
+            metaobj = self.api.Object[metaobjectname]
+            plugin = self.api.Object['class']
 
-        if name != 'version':
-            try:
-                return command.params[name]
-            except KeyError:
-                try:
-                    return command.output_params[name]
-                except KeyError:
-                    pass
+        for param in plugin._iter_params(metaobj):
+            if param.name == name:
+                return metaobj, param
 
         raise errors.NotFound(
             reason=_("%(pkey)s: %(oname)s not found") % {
@@ -537,15 +645,15 @@ class param(BaseParam):
             }
         )
 
-    def _search(self, commandname, **kwargs):
-        command = self.api.Command[commandname]
+    def _search(self, metaobjectname, **kwargs):
+        try:
+            metaobj = self.api.Command[metaobjectname]
+            plugin = self.api.Object['command']
+        except KeyError:
+            metaobj = self.api.Object[metaobjectname]
+            plugin = self.api.Object['class']
 
-        result = itertools.chain(
-            (p for p in command.params() if p.name != 'version'),
-            (p for p in command.output_params()
-             if p.name not in command.params))
-
-        return result
+        return ((metaobj, param) for param in plugin._iter_params(metaobj))
 
 
 @register()
@@ -568,8 +676,12 @@ class output(BaseParam):
         ),
     )
 
-    def _get_obj(self, command_output, **kwargs):
-        command, output = command_output
+    @property
+    def parent(self):
+        return self.api.Object.command
+
+    def _get_obj(self, cmd_output, **kwargs):
+        cmd, output = cmd_output
         required = True
         multivalue = False
 
@@ -577,8 +689,8 @@ class output(BaseParam):
             type_type = dict
             multivalue = isinstance(output, ListOfEntries)
         elif isinstance(output, (PrimaryKey, ListOfPrimaryKeys)):
-            if getattr(command, 'obj', None) and command.obj.primary_key:
-                type_type = command.obj.primary_key.type
+            if getattr(cmd, 'obj', None) and cmd.obj.primary_key:
+                type_type = cmd.obj.primary_key.type
             else:
                 type_type = type(None)
             multivalue = isinstance(output, ListOfPrimaryKeys)
@@ -618,9 +730,9 @@ class output(BaseParam):
         return obj
 
     def _retrieve(self, commandname, name, **kwargs):
-        command = self.api.Command[commandname]
+        cmd = self.api.Command[commandname]
         try:
-            return (command, command.output[name])
+            return (cmd, cmd.output[name])
         except KeyError:
             raise errors.NotFound(
                 reason=_("%(pkey)s: %(oname)s not found") % {
@@ -629,8 +741,8 @@ class output(BaseParam):
             )
 
     def _search(self, commandname, **kwargs):
-        command = self.api.Command[commandname]
-        return ((command, output) for output in command.output())
+        cmd = self.api.Command[commandname]
+        return ((cmd, output) for output in cmd.output())
 
 
 @register()
@@ -656,11 +768,17 @@ class schema(Command):
             command['output'] = list(
                 self.api.Object.output.search(name, **kwargs))
 
+        classes = list(self.api.Object['class'].search(**kwargs))
+        for cls in classes:
+            cls['params'] = list(
+                self.api.Object.param.search(cls['name'], **kwargs))
+
         topics = list(self.api.Object.topic.search(**kwargs))
 
         schema = dict()
         schema['version'] = API_VERSION
         schema['commands'] = commands
+        schema['classes'] = classes
         schema['topics'] = topics
 
         return dict(result=schema)
