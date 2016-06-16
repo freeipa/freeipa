@@ -18,6 +18,7 @@ from ipalib import (
 )
 from ipalib.errors import DependentEntry
 from ipalib.plugable import Registry
+from ipaserver.dns_data_management import IPASystemRecords
 from ipaserver.plugins.baseldap import (
     LDAPCreate,
     LDAPSearch,
@@ -151,6 +152,10 @@ class location_del(LDAPDelete):
                     key=keys[-1],
                     dependent=location_member
                 )
+        system_records =IPASystemRecords(self.api)
+        _success, failed = system_records.remove_location_records(keys[-1])
+        if failed:
+            self.add_message(messages.AutomaticDNSRecordsUpdateFailed())
         return dn
 
 

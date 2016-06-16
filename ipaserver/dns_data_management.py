@@ -78,6 +78,9 @@ class IPASystemRecords(object):
 
         return weight, location, roles
 
+    def __get_location_suffix(self, location):
+        return location + DNSName('_locations') + self.domain_abs
+
     def __init_data(self):
         self.servers_data = {}
         self.used_locations = set()
@@ -104,9 +107,7 @@ class IPASystemRecords(object):
         assert isinstance(weight, int)
 
         if location:
-            suffix = (
-                location + DNSName('_locations') + self.domain_abs
-            )
+            suffix = self.__get_location_suffix(location)
         else:
             suffix = self.domain_abs
 
@@ -387,6 +388,40 @@ class IPASystemRecords(object):
             self.update_base_records(),
             self.update_locations_records()
         )
+
+    def remove_location_records(self, location):
+        """
+        Remove all location records
+        :param location: DNSName object
+        :return: list of successfuly removed record names, list of record
+        names that cannot be removed and returned exception in tuples
+        [rname1, ...], [(rname2, exc), ...]
+        """
+        success = []
+        failed = []
+
+        location = DNSName(location)
+        loc_records = []
+        for records in (
+                IPA_DEFAULT_MASTER_SRV_REC,
+                IPA_DEFAULT_ADTRUST_SRV_REC,
+        ):
+            for name, _port in records:
+                loc_records.append(
+                    name + self.__get_location_suffix(location))
+
+        for rname in loc_records:
+            try:
+                self.api_instance.Command.dnsrecord_del(
+                    self.domain_abs, rname, del_all=True)
+            except errors.NotFound:
+                pass
+            except errors.PublicError as e:
+                failed.append((rname, e))
+            else:
+                success.append(rname)
+        return success, failed
+
 
     @classmethod
     def records_list_from_node(cls, name, node):
