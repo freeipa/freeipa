@@ -286,11 +286,8 @@ def _create_output(schema):
 
 
 def _create_command(schema):
-    name = str(schema['name'])
-    params = {m['name']: _create_param(m) for m in schema['params']}
-
     command = {}
-    command['name'] = name
+    command['name'] = str(schema['name'])
     if 'doc' in schema:
         command['doc'] = ConcatenatedLazyText(schema['doc'])
     if 'topic_topic' in schema:
@@ -304,9 +301,11 @@ def _create_command(schema):
     if 'no_cli' in schema:
         command['NO_CLI'] = schema['no_cli']
     command['takes_args'] = tuple(
-        params[n] for n in schema.get('args_param', []))
+        _create_param(s) for s in schema['params']
+        if s.get('positional', s.get('required', True)))
     command['takes_options'] = tuple(
-        params[n] for n in schema.get('options_param', []))
+        _create_param(s) for s in schema['params']
+        if not s.get('positional', s.get('required', True)))
     command['has_output'] = tuple(
         _create_output(m) for m in schema['output'])
 

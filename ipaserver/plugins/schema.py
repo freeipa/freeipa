@@ -176,16 +176,6 @@ class command(metaobject):
             label=_("Method name"),
             flags={'no_search'},
         ),
-        Str(
-            'args_param*',
-            label=_("Arguments"),
-            flags={'no_search'},
-        ),
-        Str(
-            'options_param*',
-            label=_("Options"),
-            flags={'no_search'},
-        ),
         Bool(
             'no_cli?',
             label=_("Exclude from CLI"),
@@ -221,13 +211,6 @@ class command(metaobject):
 
         if cmd.NO_CLI:
             obj['no_cli'] = True
-
-        if len(cmd.args):
-            obj['args_param'] = tuple(unicode(n) for n in cmd.args)
-
-        if len(cmd.options):
-            obj['options_param'] = tuple(
-                unicode(n) for n in cmd.options if n != 'version')
 
         return obj
 
@@ -560,6 +543,11 @@ class param(BaseParam):
             label=_("Sensitive"),
             flags={'no_search'},
         ),
+        Bool(
+            'positional?',
+            label=_("Positional argument"),
+            flags={'no_search'},
+        ),
     )
 
     @property
@@ -585,6 +573,11 @@ class param(BaseParam):
             obj['multivalue'] = True
         if param.password:
             obj['sensitive'] = True
+        if isinstance(metaobj, Command):
+            if param.required and param.name not in metaobj.args:
+                obj['positional'] = False
+            elif not param.required and param.name in metaobj.args:
+                obj['positional'] = True
 
         for key, value in param._Param__clonekw.items():
             if key in ('doc',
