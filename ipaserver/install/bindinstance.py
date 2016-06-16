@@ -859,21 +859,6 @@ class BindInstance(service.Service):
     def __add_master_records(self, fqdn, addrs):
         host, zone = fqdn.split(".", 1)
 
-        if normalize_zone(zone) == normalize_zone(self.domain):
-            host_in_rr = host
-        else:
-            host_in_rr = normalize_zone(fqdn)
-
-        srv_records = ()
-        if self.ntp:
-            srv_records += (
-                ("_ntp._udp", "0 100 123 %s" % host_in_rr),
-            )
-
-        for (rname, rdata) in srv_records:
-            add_rr(self.domain, rname, "SRV", rdata, self.dns_backup,
-                   api=self.api)
-
         if not dns_zone_exists(zone, self.api):
             # check if master hostname is resolvable
             try:
@@ -1096,13 +1081,6 @@ class BindInstance(service.Service):
         self.host = host
         self.fqdn = fqdn
         self.domain = domain_name
-
-        resource_records = (
-            ("_ntp._udp", "SRV", "0 100 123 %s" % self.host_in_rr),
-        )
-
-        for (record, type, rdata) in resource_records:
-            del_rr(self.domain, record, type, rdata, api=self.api)
 
         areclist = get_fwd_rr(zone, host, api=self.api)
         for rdata in areclist:

@@ -44,6 +44,11 @@ IPA_DEFAULT_ADTRUST_SRV_REC = (
     (DNSName(u'_kerberos._udp.dc._msdcs'), 88),
 )
 
+IPA_DEFAULT_NTP_SRV_REC = (
+    # srv record name, port
+    (DNSName("_ntp._udp"), 123),
+)
+
 
 class IPADomainIsNotManagedByIPAError(Exception):
     pass
@@ -180,6 +185,14 @@ class IPASystemRecords(object):
                 weight=server['weight']
             )
 
+        if 'NTP server' in eff_roles:
+            self.__add_srv_records(
+                zone_obj,
+                hostname_abs,
+                IPA_DEFAULT_NTP_SRV_REC,
+                weight=server['weight']
+            )
+
     def _get_location_dns_records_for_server(
             self, zone_obj, hostname, locations,
             roles=None, include_master_role=True):
@@ -212,6 +225,16 @@ class IPASystemRecords(object):
                     zone_obj,
                     hostname_abs,
                     IPA_DEFAULT_ADTRUST_SRV_REC,
+                    weight=server['weight'],
+                    priority=priority,
+                    location=location
+                )
+
+            if 'NTP server' in eff_roles:
+                self.__add_srv_records(
+                    zone_obj,
+                    hostname_abs,
+                    IPA_DEFAULT_NTP_SRV_REC,
                     weight=server['weight'],
                     priority=priority,
                     location=location
@@ -332,7 +355,8 @@ class IPASystemRecords(object):
         names_requiring_cname_templates = set(
             rec[0].derelativize(self.domain_abs) for rec in (
                 IPA_DEFAULT_MASTER_SRV_REC +
-                IPA_DEFAULT_ADTRUST_SRV_REC
+                IPA_DEFAULT_ADTRUST_SRV_REC +
+                IPA_DEFAULT_NTP_SRV_REC
             )
         )
 
@@ -405,6 +429,7 @@ class IPASystemRecords(object):
         for records in (
                 IPA_DEFAULT_MASTER_SRV_REC,
                 IPA_DEFAULT_ADTRUST_SRV_REC,
+                IPA_DEFAULT_NTP_SRV_REC
         ):
             for name, _port in records:
                 loc_records.append(
