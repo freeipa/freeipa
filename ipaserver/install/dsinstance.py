@@ -22,7 +22,6 @@ from __future__ import print_function
 
 import shutil
 import pwd
-import sys
 import os
 import re
 import time
@@ -48,6 +47,7 @@ from ipaplatform.constants import constants as platformconstants
 from ipaplatform.tasks import tasks
 from ipalib.constants import CACERT
 from ipapython.dn import DN
+from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
 
@@ -620,7 +620,7 @@ class DsInstance(service.Service):
             super(DsInstance, self).restart(instance)
             if not is_ds_running(instance):
                 root_logger.critical("Failed to restart the directory server. See the installation log for details.")
-                sys.exit(1)
+                raise ScriptError()
         except SystemExit as e:
             raise e
         except Exception as e:

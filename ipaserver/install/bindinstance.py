@@ -44,6 +44,7 @@ from ipapython import dnsutil
 from ipapython.dnsutil import DNSName
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
+from ipapython.admintool import ScriptError
 import ipalib
 from ipalib import api, errors
 from ipalib.constants import IPA_CA_RECORD
@@ -473,7 +474,7 @@ def check_reverse_zones(ip_addresses, reverse_zones, options, unattended,
             except ValueError as e:
                 msg = "Reverse zone %s will not be used: %s" % (rz, e)
                 if unattended:
-                    sys.exit(msg)
+                    raise ScriptError(msg)
                 else:
                     root_logger.warning(msg)
                 continue

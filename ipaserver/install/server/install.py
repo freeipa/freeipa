@@ -25,6 +25,7 @@ from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import (
     decrypt_file, format_netloc, ipa_generate_password, run, user_input,
     is_fips_enabled)
+from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
@@ -192,9 +193,8 @@ def read_realm_name(domain_name, unattended):
         print("An upper-case realm name is required.")
         if not user_input("Do you want to use " + upper_dom +
                           " as realm name?", True):
-            print("")
-            print("An upper-case realm name is required. Unable to continue.")
-            sys.exit(1)
+            raise ScriptError(
+                "An upper-case realm name is required. Unable to continue.")
         else:
             realm_name = upper_dom
         print("")
@@ -230,13 +230,13 @@ def read_admin_password():
 def check_dirsrv(unattended):
     (ds_unsecure, ds_secure) = dsinstance.check_ports()
     if not ds_unsecure or not ds_secure:
-        print("IPA requires ports 389 and 636 for the Directory Server.")
-        print("These are currently in use:")
+        msg = ("IPA requires ports 389 and 636 for the Directory Server.\n"
+               "These are currently in use:\n")
         if not ds_unsecure:
-            print("\t389")
+            msg += "\t389\n"
         if not ds_secure:
-            print("\t636")
-        sys.exit(1)
+            msg += "\t636\n"
+        raise ScriptError(msg)
 
 
 def set_subject_in_config(realm_name, dm_password, suffix, subject_base):
@@ -278,7 +278,7 @@ def common_cleanup(func):
                         root_logger.error("Failed to remove DS instance. You "
                                           "may need to remove instance data "
                                           "manually")
-            sys.exit(1)
+            raise ScriptError()
         finally:
             if not success and installer._installation_cleanup:
                 # Do a cautious clean up as we don't know what failed and
@@ -341,16 +341,18 @@ def install_check(installer):
     if (not options.external_ca and not options.external_cert_files and
             is_ipa_configured()):
         installer._installation_cleanup = False
-        sys.exit("IPA server is already configured on this system.\n"
-                 "If you want to reinstall the IPA server, please uninstall "
-                 "it first using 'ipa-server-install --uninstall'.")
+        raise ScriptError(
+            "IPA server is already configured on this system.\n"
+            "If you want to reinstall the IPA server, please uninstall "
+            "it first using 'ipa-server-install --uninstall'.")
 
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     if client_fstore.has_files():
         installer._installation_cleanup = False
-        sys.exit("IPA client is already configured on this system.\n"
-                 "Please uninstall it before configuring the IPA server, "
-                 "using 'ipa-client-install --uninstall'")
+        raise ScriptError(
+            "IPA client is already configured on this system.\n"
+            "Please uninstall it before configuring the IPA server, "
+            "using 'ipa-client-install --uninstall'")
 
     fstore = sysrestore.FileStore(SYSRESTORE_DIR_PATH)
     sstore = sysrestore.StateFile(SYSRESTORE_DIR_PATH)
@@ -362,7 +364,7 @@ def install_check(installer):
         else:
             dm_password = read_password("Directory Manager", confirm=False)
         if dm_password is None:
-            sys.exit("Directory Manager password required")
+            raise ScriptError("Directory Manager password required")
         try:
             cache_vars = read_cache(dm_password)
             options.__dict__.update(cache_vars)
@@ -370,7 +372,7 @@ def install_check(installer):
                 options.external_ca = False
                 options.interactive = False
         except Exception as e:
-            sys.exit("Cannot process the cache file: %s" % str(e))
+            raise ScriptError("Cannot process the cache file: %s" % str(e))
 
     # We only set up the CA if the PKCS#12 options are not given.
     if options.dirsrv_cert_files:
@@ -425,7 +427,7 @@ def install_check(installer):
 
     # Check to see if httpd is already configured to listen on 443
     if httpinstance.httpd_443_configured():
-        sys.exit("Aborting installation")
+        raise ScriptError("Aborting installation")
 
     if not options.setup_dns and installer.interactive:
         if ipautil.user_input("Do you want to configure integrated DNS "
@@ -455,7 +457,7 @@ def install_check(installer):
         else:
             host_name = read_host_name(host_default, options.no_host_dns)
     except BadHostError as e:
-        sys.exit(str(e) + "\n")
+        raise ScriptError(e)
 
     host_name = host_name.lower()
     root_logger.debug("will use host_name: %s\n" % host_name)
@@ -467,7 +469,7 @@ def install_check(installer):
         try:
             validate_domain_name(domain_name)
         except ValueError as e:
-            sys.exit("Invalid domain name: %s" % unicode(e))
+            raise ScriptError("Invalid domain name: %s" % unicode(e))
     else:
         domain_name = options.domain_name
 
@@ -488,7 +490,7 @@ def install_check(installer):
                 "Enter Apache Server private key unlock",
                 confirm=False, validate=False)
             if options.http_pin is None:
-                sys.exit(
+                raise ScriptError(
                     "Apache Server private key unlock password required")
         http_pkcs12_file, http_pin, http_ca_cert = load_pkcs12(
             cert_files=options.http_cert_files,
@@ -504,7 +506,7 @@ def install_check(installer):
                 "Enter Directory Server private key unlock",
                 confirm=False, validate=False)
             if options.dirsrv_pin is None:
-                sys.exit(
+                raise ScriptError(
                     "Directory Server private key unlock password required")
         dirsrv_pkcs12_file, dirsrv_pin, dirsrv_ca_cert = load_pkcs12(
             cert_files=options.dirsrv_cert_files,
@@ -520,7 +522,7 @@ def install_check(installer):
                 "Enter Kerberos KDC private key unlock",
                 confirm=False, validate=False)
             if options.pkinit_pin is None:
-                sys.exit(
+                raise ScriptError(
                     "Kerberos KDC private key unlock password required")
         pkinit_pkcs12_file, pkinit_pin, pkinit_ca_cert = load_pkcs12(
             cert_files=options.pkinit_cert_files,
@@ -532,14 +534,15 @@ def install_check(installer):
 
     if (options.http_cert_files and options.dirsrv_cert_files and
             http_ca_cert != dirsrv_ca_cert):
-        sys.exit("Apache Server SSL certificate and Directory Server SSL "
-                 "certificate are not signed by the same CA certificate")
+        raise ScriptError(
+            "Apache Server SSL certificate and Directory Server SSL "
+            "certificate are not signed by the same CA certificate")
 
     if not options.dm_password:
         dm_password = read_dm_password()
 
         if dm_password is None:
-            sys.exit("Directory Manager password required")
+            raise ScriptError("Directory Manager password required")
     else:
         dm_password = options.dm_password
 
@@ -551,7 +554,7 @@ def install_check(installer):
     if not options.admin_password:
         admin_password = read_admin_password()
         if admin_password is None:
-            sys.exit("IPA admin password required")
+            raise ScriptError("IPA admin password required")
     else:
         admin_password = options.admin_password
 
@@ -644,7 +647,7 @@ def install_check(installer):
 
     if installer.interactive and not user_input(
             "Continue to configure the system with these values?", False):
-        sys.exit("Installation aborted")
+        raise ScriptError("Installation aborted")
 
     options.realm_name = realm_name
     options.domain_name = domain_name
@@ -892,8 +895,8 @@ def install(installer):
             args.append("--mkhomedir")
         run(args, redirect_output=True)
         print()
-    except Exception as e:
-        sys.exit("Configuration of client side components failed!")
+    except Exception:
+        raise ScriptError("Configuration of client side components failed!")
 
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()
@@ -977,9 +980,7 @@ def uninstall_check(installer):
               "and configuration!\n")
         if not user_input("Are you sure you want to continue with the "
                           "uninstall procedure?", False):
-            print("")
-            print("Aborting uninstall operation.")
-            sys.exit(1)
+            raise ScriptError("Aborting uninstall operation.")
 
     try:
         conn = ipaldap.IPAdmin(
@@ -1003,9 +1004,7 @@ def uninstall_check(installer):
         if (installer.interactive and not user_input(
                 "Are you sure you want to continue with the uninstall "
                 "procedure?", False)):
-            print("")
-            print("Aborting uninstall operation.")
-            sys.exit(1)
+            raise ScriptError("Aborting uninstall operation.")
     else:
         dns.uninstall_check(options)
 
@@ -1034,9 +1033,7 @@ def uninstall_check(installer):
                 if (installer.interactive and
                         not user_input("Are you sure you want to continue with"
                                        " the uninstall procedure?", False)):
-                    print("")
-                    print("Aborting uninstall operation.")
-                    sys.exit(1)
+                    raise ScriptError("Aborting uninstall operation.")
         else:
             remove_master_from_managed_topology(api, options)
 

@@ -502,7 +502,7 @@ def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
         print("The KDC service does not listen on localhost", file=sys.stderr)
         print("", file=sys.stderr)
         print("Please fix your /etc/hosts file and restart the setup program", file=sys.stderr)
-        sys.exit(1)
+        raise ScriptError()
 
     ips = []
     if len(hostaddr):
@@ -529,11 +529,11 @@ def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
                 print("or /etc/hosts file and restart the installation.", file=sys.stderr)
                 print("Provided but not resolved address(es): %s" % \
                                     ", ".join(str(ip) for ip in (set(ip_addresses) - set(ips))), file=sys.stderr)
-                sys.exit(1)
+                raise ScriptError()
 
     if not ips:
         print("No usable IP address provided nor resolved.", file=sys.stderr)
-        sys.exit(1)
+        raise ScriptError()
 
     for ip_address in ips:
         # check /etc/hosts sanity
@@ -548,7 +548,7 @@ def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
                 print("Chosen hostname %s does not match configured canonical hostname %s" \
                         % (host_name, primary_host), file=sys.stderr)
                 print("Please fix your /etc/hosts file and restart the installation.", file=sys.stderr)
-                sys.exit(1)
+                raise ScriptError()
 
     return ips
 
@@ -627,9 +627,9 @@ def create_replica_config(dirman_password, filename, options):
         top_dir, dir = expand_replica_info(filename, dirman_password)
     except Exception as e:
         root_logger.error("Failed to decrypt or open the replica file.")
-        print("ERROR: Failed to decrypt or open the replica file.")
-        print("Verify you entered the correct Directory Manager password.")
-        sys.exit(1)
+        raise ScriptError(
+            "ERROR: Failed to decrypt or open the replica file.\n"
+            "Verify you entered the correct Directory Manager password.")
     config = ReplicaConfig(top_dir)
     read_replica_info(dir, config)
     root_logger.debug(
@@ -639,13 +639,13 @@ def create_replica_config(dirman_password, filename, options):
         root_logger.error(
             'A replica file from a newer release (%d) cannot be installed on an older version (%d)',
             config.version, version.NUM_VERSION)
-        sys.exit(1)
+        raise ScriptError()
     config.dirman_password = dirman_password
     try:
         host = get_host_name(options.no_host_dns)
     except BadHostError as e:
         root_logger.error(str(e))
-        sys.exit(1)
+        raise ScriptError()
     if config.host_name != host:
         try:
             print("This replica was created for '%s' but this machine is named '%s'" % (config.host_name, host))
@@ -659,7 +659,7 @@ def create_replica_config(dirman_password, filename, options):
             print("")
         except KeyboardInterrupt:
             root_logger.debug("Keyboard Interrupt")
-            sys.exit(0)
+            raise ScriptError(rval=0)
     config.dir = dir
     config.ca_ds_port = read_replica_info_dogtag_port(config.dir)
     return config

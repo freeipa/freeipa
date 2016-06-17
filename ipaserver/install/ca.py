@@ -4,10 +4,9 @@
 
 from __future__ import print_function
 
-import sys
-
 from ipaserver.install import cainstance, dsinstance, bindinstance
 from ipapython import ipautil, certdb
+from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, certs
@@ -30,12 +29,11 @@ def install_check(standalone, replica_config, options):
 
     if replica_config is not None:
         if standalone and api.env.ra_plugin == 'selfsign':
-            sys.exit('A selfsign CA can not be added')
+            raise ScriptError('A selfsign CA can not be added')
 
         if ((not options.promote
              and not ipautil.file_exists(replica_config.dir + "/cacert.p12"))):
-            print('CA cannot be installed in CA-less setup.')
-            sys.exit(1)
+            raise ScriptError('CA cannot be installed in CA-less setup.')
 
         if standalone and not options.skip_conncheck:
             principal = options.principal
@@ -53,7 +51,7 @@ def install_check(standalone, replica_config, options):
 
     if standalone:
         if api.Command.ca_is_enabled()['result']:
-            sys.exit(
+            raise ScriptError(
                 "One or more CA masters are already present in IPA realm "
                 "'%s'.\nIf you wish to replicate CA to this host, please "
                 "re-run 'ipa-ca-install'\nwith a replica file generated on "
@@ -64,28 +62,28 @@ def install_check(standalone, replica_config, options):
         if not cainstance.is_step_one_done():
             # This can happen if someone passes external_ca_file without
             # already having done the first stage of the CA install.
-            print("CA is not installed yet. To install with an external CA "
+            raise ScriptError(
+                  "CA is not installed yet. To install with an external CA "
                   "is a two-stage process.\nFirst run the installer with "
                   "--external-ca.")
-            sys.exit(1)
 
         external_cert_file, external_ca_file = installutils.load_external_cert(
             options.external_cert_files, options.subject)
     elif options.external_ca:
         if cainstance.is_step_one_done():
-            print("CA is already installed.\nRun the installer with "
-                  "--external-cert-file.")
-            sys.exit(1)
+            raise ScriptError(
+                "CA is already installed.\nRun the installer with "
+                "--external-cert-file.")
         if ipautil.file_exists(paths.ROOT_IPA_CSR):
-            print(("CA CSR file %s already exists.\nIn order to continue "
-                  "remove the file and run the installer again." %
-                  paths.ROOT_IPA_CSR))
-            sys.exit(1)
+            raise ScriptError(
+                "CA CSR file %s already exists.\nIn order to continue "
+                "remove the file and run the installer again." %
+                paths.ROOT_IPA_CSR)
 
     if not options.external_cert_files:
         if not cainstance.check_port():
             print("IPA requires port 8443 for PKI but it is currently in use.")
-            sys.exit("Aborting installation")
+            raise ScriptError("Aborting installation")
 
     if standalone:
         dirname = dsinstance.config_dirname(
@@ -98,9 +96,9 @@ def install_check(standalone, replica_config, options):
                 if nickname in (certdb.get_ca_nickname(realm_name),
                                 'ipaCert',
                                 'Signing-Cert'):
-                    print(("Certificate with nickname %s is present in %s, "
-                           "cannot continue." % (nickname, db.secdir)))
-                    sys.exit(1)
+                    raise ScriptError(
+                        "Certificate with nickname %s is present in %s, "
+                        "cannot continue." % (nickname, db.secdir))
 
                 cert = db.get_cert_from_db(nickname)
                 if not cert:
@@ -109,9 +107,9 @@ def install_check(standalone, replica_config, options):
                 if subject in (DN('CN=Certificate Authority', subject_base),
                                DN('CN=IPA RA', subject_base),
                                DN('CN=Object Signing Cert', subject_base)):
-                    print(("Certificate with subject %s is present in %s, "
-                           "cannot continue." % (subject, db.secdir)))
-                    sys.exit(1)
+                    raise ScriptError(
+                        "Certificate with subject %s is present in %s, "
+                        "cannot continue." % (subject, db.secdir))
 
 
 def install(standalone, replica_config, options):

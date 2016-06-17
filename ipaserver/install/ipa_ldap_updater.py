@@ -26,7 +26,6 @@
 from __future__ import print_function
 
 import os
-import sys
 
 import six
 
@@ -82,8 +81,7 @@ class LDAPUpdater(admintool.AdminTool):
         try:
             installutils.check_server_configuration()
         except RuntimeError as e:
-            print(unicode(e))
-            sys.exit(1)
+            raise admintool.ScriptError(e)
 
     def setup_logging(self):
         super(LDAPUpdater, self).setup_logging(log_file_mode='a')

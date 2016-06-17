@@ -20,7 +20,6 @@
 import os
 import pwd
 import shutil
-import sys
 import tempfile
 
 from six.moves.configparser import ConfigParser
@@ -33,6 +32,7 @@ from ipaplatform.paths import paths
 from ipapython import certdb
 from ipapython import ipautil
 from ipapython.dn import DN
+from ipapython.admintool import ScriptError
 from ipaserver.install import certs
 from ipaserver.install import cainstance
 from ipaserver.install import installutils
@@ -425,7 +425,7 @@ def install_replica_kra(config, postinstall=False):
     _kra.dm_password = config.dirman_password
     _kra.subject_base = config.subject_base
     if _kra.is_installed():
-        sys.exit("A KRA is already configured on this system.")
+        raise ScriptError("A KRA is already configured on this system.")
 
     _kra.configure_instance(config.realm_name, config.host_name,
                             config.dirman_password, config.dirman_password,

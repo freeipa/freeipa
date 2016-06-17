@@ -33,6 +33,7 @@ from ipalib.cli import textui
 from ipalib.constants import CACERT
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil, ipaldap
+from ipapython.admintool import ScriptError
 from ipapython.dn import DN
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -76,7 +77,7 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
     Check the ports used by the replica both locally and remotely to be sure
     that replication will work.
 
-    Does not return a value, will sys.exit() on failure.
+    Does not return a value, will raise ScriptError on failure.
     """
     print("Run connection check to master")
     args = [paths.IPA_REPLICA_CONNCHECK, "--master", master_host,
@@ -101,9 +102,10 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
         args, raiseonerr=False, capture_output=False, nolog=nolog)
 
     if result.returncode != 0:
-        sys.exit("Connection check failed!" +
-                 "\nPlease fix your network settings according to error messages above." +
-                 "\nIf the check results are not valid it can be skipped with --skip-conncheck parameter.")
+        raise ScriptError(
+            "Connection check failed!"
+            "\nPlease fix your network settings according to error messages above."
+            "\nIf the check results are not valid it can be skipped with --skip-conncheck parameter.")
     else:
         print("Connection check OK")
 

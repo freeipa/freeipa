@@ -13,7 +13,6 @@ import dns.reversename as dnsreversename
 import os
 import shutil
 import socket
-import sys
 import tempfile
 
 import six
@@ -23,6 +22,7 @@ from ipapython.dn import DN
 from ipapython.install.common import step
 from ipapython.install.core import Knob
 from ipapython.ipa_log_manager import root_logger
+from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
@@ -157,8 +157,7 @@ def install_ca_cert(ldap, base_dn, realm, cafile):
 
         os.chmod(constants.CACERT, 0o444)
     except Exception as e:
-        print("error copying files: " + str(e))
-        sys.exit(1)
+        raise ScriptError("error copying files: " + str(e))
 
 
 def install_http(config, auto_redirect, ca_is_configured, promote=False,
@@ -225,13 +224,13 @@ def install_dns_records(config, options, remote_api):
 def check_dirsrv():
     (ds_unsecure, ds_secure) = dsinstance.check_ports()
     if not ds_unsecure or not ds_secure:
-        print("IPA requires ports 389 and 636 for the Directory Server.")
-        print("These are currently in use:")
+        msg = ("IPA requires ports 389 and 636 for the Directory Server.\n"
+               "These are currently in use:\n")
         if not ds_unsecure:
-            print("\t389")
+            msg += "\t389\n"
         if not ds_secure:
-            print("\t636")
-        sys.exit(1)
+            msg += "\t636\n"
+        raise ScriptError(msg)
 
 
 def check_dns_resolution(host_name, dns_servers):
@@ -329,8 +328,8 @@ def configure_certmonger():
     try:
         messagebus.start()
     except Exception as e:
-        print("Messagebus service unavailable: %s" % str(e))
-        sys.exit(3)
+        raise ScriptError("Messagebus service unavailable: %s" % str(e),
+                          rval=3)
 
     # Ensure that certmonger has been started at least once to generate the
     # cas files in /var/lib/certmonger/cas.
@@ -338,14 +337,14 @@ def configure_certmonger():
     try:
         cmonger.restart()
     except Exception as e:
-        print("Certmonger service unavailable: %s" % str(e))
-        sys.exit(3)
+        raise ScriptError("Certmonger service unavailable: %s" % str(e),
+                          rval=3)
 
     try:
         cmonger.enable()
     except Exception as e:
-        print("Failed to enable Certmonger: %s" % str(e))
-        sys.exit(3)
+        raise ScriptError("Failed to enable Certmonger: %s" % str(e),
+                          rval=3)
 
 
 def remove_replica_info_dir(installer):
@@ -366,7 +365,7 @@ def common_cleanup(func):
                 remove_replica_info_dir(installer)
                 raise
         except KeyboardInterrupt:
-            sys.exit(1)
+            raise ScriptError()
         except Exception:
             print(
                 "Your system may be partly configured.\n"
@@ -509,15 +508,17 @@ def install_check(installer):
     tasks.check_selinux_status()
 
     if is_ipa_configured():
-        sys.exit("IPA server is already configured on this system.\n"
-                 "If you want to reinstall the IPA server, please uninstall "
-                 "it first using 'ipa-server-install --uninstall'.")
+        raise ScriptError(
+            "IPA server is already configured on this system.\n"
+            "If you want to reinstall the IPA server, please uninstall "
+            "it first using 'ipa-server-install --uninstall'.")
 
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     if client_fstore.has_files():
-        sys.exit("IPA client is already configured on this system.\n"
-                 "Please uninstall it first before configuring the replica, "
-                 "using 'ipa-client-install --uninstall'.")
+        raise ScriptError(
+            "IPA client is already configured on this system.\n"
+            "Please uninstall it first before configuring the replica, "
+            "using 'ipa-client-install --uninstall'.")
 
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
@@ -525,7 +526,7 @@ def install_check(installer):
 
     # Check to see if httpd is already configured to listen on 443
     if httpinstance.httpd_443_configured():
-        sys.exit("Aborting installation")
+        raise ScriptError("Aborting installation")
 
     check_dirsrv()
 
@@ -546,9 +547,9 @@ def install_check(installer):
         try:
             dirman_password = get_dirman_password()
         except KeyboardInterrupt:
-            sys.exit(0)
+            raise ScriptError(rval=0)
         if dirman_password is None:
-            sys.exit("Directory Manager password required")
+            raise ScriptError("Directory Manager password required")
 
     config = create_replica_config(dirman_password, filename, options)
     installer._top_dir = config.top_dir
@@ -644,12 +645,12 @@ def install_check(installer):
         if replman.get_replication_agreement(config.host_name):
             root_logger.info('Error: A replication agreement for this '
                              'host already exists.')
-            print('A replication agreement for this host already exists. '
-                  'It needs to be removed.')
-            print("Run this on the master that generated the info file:")
-            print(("    %% ipa-replica-manage del %s --force" %
-                  config.host_name))
-            sys.exit(3)
+            msg = ("A replication agreement for this host already exists. "
+                   "It needs to be removed.\n"
+                   "Run this on the master that generated the info file:\n"
+                   "    %% ipa-replica-manage del %s --force" %
+                   config.host_name)
+            raise ScriptError(msg, rval=3)
 
         # Detect the current domain level
         try:
@@ -680,8 +681,7 @@ def install_check(installer):
                        "this version is allowed to be installed "
                        "within this domain.")
             root_logger.error(message)
-            print(message)
-            sys.exit(3)
+            raise ScriptError(message, rval=3)
 
         # Check pre-existing host entry
         try:
@@ -693,11 +693,11 @@ def install_check(installer):
         else:
             root_logger.info('Error: Host %s already exists on the master '
                              'server.' % config.host_name)
-            print(('The host %s already exists on the master server.' %
-                  config.host_name))
-            print("You should remove it before proceeding:")
-            print("    %% ipa host-del %s" % config.host_name)
-            sys.exit(3)
+            msg = ("The host %s already exists on the master server.\n"
+                   "You should remove it before proceeding:\n"
+                   "    %% ipa host-del %s" %
+                   (config.host_name, config.host_name))
+            raise ScriptError(msg, rval=3)
 
         dns_masters = remote_api.Object['dnsrecord'].get_dns_masters()
         if dns_masters:
@@ -709,7 +709,7 @@ def install_check(installer):
                     check_dns_resolution(config.host_name, dns_masters))
                 if not resolution_ok and installer.interactive:
                     if not ipautil.user_input("Continue?", False):
-                        sys.exit(0)
+                        raise ScriptError(rval=0)
         else:
             root_logger.debug('No IPA DNS servers, '
                               'skipping forward/reverse resolution check')
@@ -724,8 +724,7 @@ def install_check(installer):
             try:
                 kra.install_check(remote_api, config, options)
             except RuntimeError as e:
-                print(str(e))
-                sys.exit(1)
+                raise ScriptError(e)
 
         if options.setup_dns:
             dns.install_check(False, remote_api, True, options,
@@ -737,11 +736,11 @@ def install_check(installer):
                 options.ip_addresses)
 
     except errors.ACIError:
-        sys.exit("\nThe password provided is incorrect for LDAP server "
-                 "%s" % config.master_host_name)
+        raise ScriptError("\nThe password provided is incorrect for LDAP server "
+                          "%s" % config.master_host_name)
     except errors.LDAPError:
-        sys.exit("\nUnable to connect to LDAP server %s" %
-                 config.master_host_name)
+        raise ScriptError("\nUnable to connect to LDAP server %s" %
+                          config.master_host_name)
     finally:
         if replman and replman.conn:
             replman.conn.unbind()
@@ -955,7 +954,7 @@ def ensure_enrolled(installer):
         ipautil.run(args, stdin=stdin, redirect_output=True)
         print()
     except Exception:
-        sys.exit("Configuration of client side components failed!")
+        raise ScriptError("Configuration of client side components failed!")
 
 
 def promotion_check_ipa_domain(master_ldap_conn, basedn):
@@ -995,9 +994,10 @@ def promote_check(installer):
     tasks.check_selinux_status()
 
     if is_ipa_configured():
-        sys.exit("IPA server is already configured on this system.\n"
-                 "If you want to reinstall the IPA server, please uninstall "
-                 "it first using 'ipa-server-install --uninstall'.")
+        raise ScriptError(
+            "IPA server is already configured on this system.\n"
+            "If you want to reinstall the IPA server, please uninstall "
+            "it first using 'ipa-server-install --uninstall'.")
 
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     if not client_fstore.has_files():
@@ -1015,7 +1015,7 @@ def promote_check(installer):
 
     # Check to see if httpd is already configured to listen on 443
     if httpinstance.httpd_443_configured():
-        sys.exit("Aborting installation")
+        raise ScriptError("Aborting installation")
 
     check_dirsrv()
 
@@ -1056,7 +1056,7 @@ def promote_check(installer):
                 "Enter Apache Server private key unlock",
                 confirm=False, validate=False)
             if options.http_pin is None:
-                sys.exit(
+                raise ScriptError(
                     "Apache Server private key unlock password required")
         http_pkcs12_file, http_pin, http_ca_cert = load_pkcs12(
             cert_files=options.http_cert_files,
@@ -1072,7 +1072,7 @@ def promote_check(installer):
                 "Enter Directory Server private key unlock",
                 confirm=False, validate=False)
             if options.dirsrv_pin is None:
-                sys.exit(
+                raise ScriptError(
                     "Directory Server private key unlock password required")
         dirsrv_pkcs12_file, dirsrv_pin, dirsrv_ca_cert = load_pkcs12(
             cert_files=options.dirsrv_cert_files,
@@ -1088,7 +1088,7 @@ def promote_check(installer):
                 "Enter Kerberos KDC private key unlock",
                 confirm=False, validate=False)
             if options.pkinit_pin is None:
-                sys.exit(
+                raise ScriptError(
                     "Kerberos KDC private key unlock password required")
         pkinit_pkcs12_file, pkinit_pin, pkinit_ca_cert = load_pkcs12(
             cert_files=options.pkinit_cert_files,
@@ -1203,7 +1203,7 @@ def promote_check(installer):
             print("Run this command:")
             print("    %% ipa-replica-manage del %s --force" %
                   config.host_name)
-            sys.exit(3)
+            raise ScriptError(rval=3)
 
         # Detect if current level is out of supported range
         # for this IPA version
@@ -1218,7 +1218,7 @@ def promote_check(installer):
                        "this version is allowed to be installed "
                        "within this domain.")
             root_logger.error(message)
-            sys.exit(3)
+            raise ScriptError(rval=3)
 
         # Detect if the other master can handle replication managers
         # cn=replication managers,cn=sysaccounts,cn=etc,$SUFFIX
@@ -1234,7 +1234,7 @@ def promote_check(installer):
                    "command on the master and use a prep file to install "
                    "this replica.")
             root_logger.error(msg)
-            sys.exit(3)
+            raise ScriptError(rval=3)
 
         dns_masters = remote_api.Object['dnsrecord'].get_dns_masters()
         if dns_masters:
@@ -1246,7 +1246,7 @@ def promote_check(installer):
                     check_dns_resolution(config.host_name, dns_masters))
                 if not resolution_ok and installer.interactive:
                     if not ipautil.user_input("Continue?", False):
-                        sys.exit(0)
+                        raise ScriptError(rval=0)
         else:
             root_logger.debug('No IPA DNS servers, '
                               'skipping forward/reverse resolution check')
@@ -1264,7 +1264,7 @@ def promote_check(installer):
             if options.dirsrv_cert_files:
                 root_logger.error("Certificates could not be provided when "
                                   "CA is present on some master.")
-                sys.exit(3)
+                raise ScriptError(rval=3)
         else:
             ca_enabled = False
             if not options.dirsrv_cert_files:
@@ -1272,20 +1272,20 @@ def promote_check(installer):
                                   "installed. Use the --http-cert-file, "
                                   "--dirsrv-cert-file options to provide "
                                   "custom certificates.")
-                sys.exit(3)
+                raise ScriptError(rval=3)
 
         config.kra_host_name = service.find_providing_server('KRA', conn,
                                                              api.env.server)
         if options.setup_kra and config.kra_host_name is None:
             root_logger.error("There is no KRA server in the domain, can't "
                               "setup a KRA clone")
-            sys.exit(3)
+            raise ScriptError(rval=3)
 
         if options.setup_ca:
             if not ca_enabled:
                 root_logger.error("The remote master does not have a CA "
                                   "installed, can't set up CA")
-                sys.exit(3)
+                raise ScriptError(rval=3)
 
             options.realm_name = config.realm_name
             options.host_name = config.host_name
@@ -1296,8 +1296,7 @@ def promote_check(installer):
             try:
                 kra.install_check(remote_api, config, options)
             except RuntimeError as e:
-                print(str(e))
-                sys.exit(1)
+                raise ScriptError(e)
 
         if options.setup_dns:
             dns.install_check(False, remote_api, True, options,
@@ -1308,10 +1307,10 @@ def promote_check(installer):
                 False, options.ip_addresses)
 
     except errors.ACIError:
-        sys.exit("\nInsufficient privileges to promote the server.")
+        raise ScriptError("\nInsufficient privileges to promote the server.")
     except errors.LDAPError:
-        sys.exit("\nUnable to connect to LDAP server %s" %
-                 config.master_host_name)
+        raise ScriptError("\nUnable to connect to LDAP server %s" %
+                          config.master_host_name)
     finally:
         if replman and replman.conn:
             replman.conn.unbind()

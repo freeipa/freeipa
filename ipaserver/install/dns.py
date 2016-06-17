@@ -22,6 +22,7 @@ from ipapython import sysrestore
 from ipapython import dnsutil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
+from ipapython.admintool import ScriptError
 from ipapython.ipaldap import AUTOBIND_ENABLED
 from ipapython.ipautil import user_input
 from ipaserver.install.installutils import get_server_ip_address
@@ -207,8 +208,8 @@ def install_check(standalone, api, replica, options, hostname):
         # we can reinstall current server if it is dnssec master
         if dnssec_masters and api.env.host not in dnssec_masters:
             print("DNSSEC key master(s):", u','.join(dnssec_masters))
-            sys.exit("Only one DNSSEC key master is supported in current "
-                     "version.")
+            raise ScriptError(
+                "Only one DNSSEC key master is supported in current version.")
 
         if options.kasp_db_file:
             dnskeysyncd = services.service('ipa-dnskeysyncd')
