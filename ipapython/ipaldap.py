@@ -1153,7 +1153,8 @@ class LDAPClient(object):
     # entry_attrs = {u'firstName': u'Pavel', u'lastName': u'Zuna'}
     # f = ldap2.make_filter(entry_attrs, rules=ldap2.MATCH_ALL)
 
-    def combine_filters(self, filters, rules='|'):
+    @classmethod
+    def combine_filters(cls, filters, rules='|'):
         """
         Combine filters into one for ldap2.find_entries.
 
@@ -1164,9 +1165,9 @@ class LDAPClient(object):
         assert isinstance(filters, (list, tuple))
 
         filters = [f for f in filters if f]
-        if filters and rules == self.MATCH_NONE:  # unary operator
-            return '(%s%s)' % (self.MATCH_NONE,
-                               self.combine_filters(filters, self.MATCH_ANY))
+        if filters and rules == cls.MATCH_NONE:  # unary operator
+            return '(%s%s)' % (cls.MATCH_NONE,
+                               cls.combine_filters(filters, cls.MATCH_ANY))
 
         if len(filters) > 1:
             flt = '(%s' % rules
@@ -1180,8 +1181,9 @@ class LDAPClient(object):
             flt = '%s)' % flt
         return flt
 
+    @classmethod
     def make_filter_from_attr(
-            self, attr, value, rules='|', exact=True,
+            cls, attr, value, rules='|', exact=True,
             leading_wildcard=True, trailing_wildcard=True):
         """
         Make filter for ldap2.find_entries from attribute.
@@ -1198,18 +1200,18 @@ class LDAPClient(object):
             False - forbid trailing filter wildcard when exact=False
         """
         if isinstance(value, (list, tuple)):
-            if rules == self.MATCH_NONE:
-                make_filter_rules = self.MATCH_ANY
+            if rules == cls.MATCH_NONE:
+                make_filter_rules = cls.MATCH_ANY
             else:
                 make_filter_rules = rules
             flts = [
-                self.make_filter_from_attr(
+                cls.make_filter_from_attr(
                     attr, v, exact=exact,
                     leading_wildcard=leading_wildcard,
                     trailing_wildcard=trailing_wildcard)
                 for v in value
             ]
-            return self.combine_filters(flts, rules)
+            return cls.combine_filters(flts, rules)
         elif value is not None:
             if isinstance(value, bytes):
                 if six.PY3:
@@ -1224,13 +1226,14 @@ class LDAPClient(object):
                 if trailing_wildcard:
                     template = template + '*'
                 value = template % value
-            if rules == self.MATCH_NONE:
+            if rules == cls.MATCH_NONE:
                 return '(!(%s=%s))' % (attr, value)
             return '(%s=%s)' % (attr, value)
         return ''
 
+    @classmethod
     def make_filter(
-            self, entry_attrs, attrs_list=None, rules='|', exact=True,
+            cls, entry_attrs, attrs_list=None, rules='|', exact=True,
             leading_wildcard=True, trailing_wildcard=True):
         """
         Make filter for ldap2.find_entries from entry attributes.
@@ -1252,15 +1255,15 @@ class LDAPClient(object):
         ldap2.MATCH_ALL - match entries that match all attributes
         ldap2.MATCH_ANY - match entries that match any of attribute
         """
-        if rules == self.MATCH_NONE:
-            make_filter_rules = self.MATCH_ANY
+        if rules == cls.MATCH_NONE:
+            make_filter_rules = cls.MATCH_ANY
         else:
             make_filter_rules = rules
         flts = []
         if attrs_list is None:
             for (k, v) in entry_attrs.items():
                 flts.append(
-                    self.make_filter_from_attr(
+                    cls.make_filter_from_attr(
                         k, v, make_filter_rules, exact,
                         leading_wildcard, trailing_wildcard)
                 )
@@ -1269,11 +1272,11 @@ class LDAPClient(object):
                 value = entry_attrs.get(a, None)
                 if value is not None:
                     flts.append(
-                        self.make_filter_from_attr(
+                        cls.make_filter_from_attr(
                             a, value, make_filter_rules, exact,
                             leading_wildcard, trailing_wildcard)
                     )
-        return self.combine_filters(flts, rules)
+        return cls.combine_filters(flts, rules)
 
     def get_entries(self, base_dn, scope=ldap.SCOPE_SUBTREE, filter=None,
                     attrs_list=None, **kwargs):
