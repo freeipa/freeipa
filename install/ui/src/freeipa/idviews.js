@@ -22,6 +22,7 @@
 define([
         'dojo/on',
         './ipa',
+        './builder',
         './jquery',
         './menu',
         './phases',
@@ -32,7 +33,8 @@ define([
         './facet',
         './search',
         './entity'],
-            function(on, IPA, $, menu, phases, reg, rpc, text, mod_details, mod_facet) {
+            function(on, IPA, builder, $, menu, phases, reg, rpc, text,
+                                                    mod_details, mod_facet) {
 /**
  * ID Views module
  * @class
@@ -223,11 +225,18 @@ return {
             source_facet: 'details',
             dest_entity: 'idview',
             dest_facet: 'idoverrideuser'
+        },
+        {
+            $factory: IPA.cert.cert_update_policy,
+            source_facet: 'details',
+            dest_entity: 'cert',
+            dest_facet: 'search'
         }
     ],
     containing_entity: 'idview',
     facets: [
         {
+            $factory: idviews.id_override_user_details_facet,
             $type: 'details',
             disable_breadcrumb: false,
             containing_facet: 'idoverrideuser',
@@ -261,6 +270,11 @@ return {
                             $type: 'sshkeys',
                             name: 'ipasshpubkey',
                             label: '@i18n:objects.sshkeystore.keys'
+                        },
+                        {
+                            $type: 'idviews_certs',
+                            name: 'usercertificate',
+                            label: '@i18n:objects.cert.certificates'
                         }
                     ]
                 }
@@ -294,6 +308,10 @@ return {
             'gecos',
             'uidnumber',
             'gidnumber',
+            {
+                $type: 'cert_textarea',
+                name: 'usercertificate'
+            },
             'loginshell',
             'homedirectory',
             {
@@ -384,6 +402,149 @@ return {
     }
 };};
 
+
+/**
+ * Facet for User ID override, uses batch command to fetch certificates.
+ *
+ * @class
+ * @extends IPA.details_facet
+ */
+idviews.id_override_user_details_facet = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.details_facet(spec);
+
+    that.certificate_updated = IPA.observer();
+
+    that.create_refresh_command = function() {
+
+        var user_command = that.details_facet_create_refresh_command();
+
+        var batch = rpc.batch_command({
+            name: that.entity.name + "_details_refresh"
+        });
+
+        batch.add_command(user_command);
+
+        var pkey = that.get_pkey();
+
+        var certs = rpc.command({
+            entity: 'cert',
+            method: 'find',
+            retry: false,
+            options: {
+                idoverrideuser: [ pkey ],
+                all: true
+            }
+        });
+
+        batch.add_command(certs);
+
+        return batch;
+    };
+
+    return that;
+};
+
+/**
+ * @extends IPA.cert.certs_widget
+ */
+idviews.idviews_certs_widget = function(spec) {
+
+    spec = spec || {};
+    spec.child_spec = {
+        $factory: idviews.idviews_cert_widget,
+        css_class: 'certificate-widget',
+        facet: spec.facet
+    };
+
+    var that = IPA.cert.certs_widget(spec);
+
+    /* Adds two args to add command - special nested entities. */
+    that.create_add_args = function() {
+        return that.facet.get_pkeys();
+    };
+
+    /* Adds two args to remove command - special nested entities. */
+    that.create_remove_args = function() {
+        return that.facet.get_pkeys();
+    };
+
+    return that;
+};
+
+/**
+ * This widget uses cert_find instead of cert_show, because cert_show does not
+ * support nested entities.
+ *
+ * @extends IPA.cert.cert_widget
+ */
+idviews.idviews_cert_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.cert.cert_widget(spec);
+
+    that.adapter = builder.build('adapter', spec.adapter || 'object_adapter', {});
+
+    that.fetch_certificate_data = function(cert) {
+        var result = {};
+        var adapter = that.adapter;
+
+        if (!cert) return;
+
+        var command = rpc.command({
+            entity: 'cert',
+            method: 'find',
+            options: {
+                certificate: cert,
+                all: true
+            },
+            hide_activity_icon: true,
+            on_success: function(data) {
+                var normalized_data = adapter.load(data);
+                that.certificate = $.extend(normalized_data[0], {});
+                that.update_displayed_data();
+                that.spinner.emit('hide-spinner');
+            },
+            on_error: function() {
+                that.update_displayed_data();
+                that.spinner.emit('hide-spinner');
+            }
+        }).execute();
+    };
+
+    that.update = function(values) {
+        that.spinner.emit('display-spinner');
+
+        var certificate = values[0];
+
+        that.fetch_certificate_data(certificate);
+    };
+
+    that.save = function() {
+        if (!that.certificate) return '';
+        return that.certificate.certificate;
+    };
+
+    return that;
+};
+
+idviews.cert_textarea_widget = function(spec) {
+    spec = spec || {};
+
+    var that = IPA.textarea_widget(spec);
+
+    that.save = function() {
+        var value = that.input.val();
+        var blob = IPA.cert.get_base64(value);
+
+        return [blob];
+    };
+
+    return that;
+};
 
 /**
  * Facet for hosts which have current id view applied on
@@ -779,6 +940,8 @@ idviews.register = function() {
     var e = reg.entity;
     var f = reg.facet;
     var a = reg.action;
+    var w = reg.widget;
+
     e.register({type: 'idview', spec: idviews.spec});
     e.register({type: 'idoverrideuser', spec: idviews.idoverrideuser_spec});
     e.register({type: 'idoverridegroup', spec: idviews.idoverridegroup_spec});
@@ -790,6 +953,9 @@ idviews.register = function() {
     a.register('idview_unapply', idviews.unapply_action);
     a.register('idview_unapply_host', idviews.unapply_host_action);
     a.register('idview_unapply_hostgroups', idviews.unapply_hostgroups_action);
+
+    w.register('idviews_certs', idviews.idviews_certs_widget);
+    w.register('cert_textarea', idviews.cert_textarea_widget);
 };
 
 phases.on('registration', idviews.register);
