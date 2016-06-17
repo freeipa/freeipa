@@ -11,6 +11,7 @@ from ipalib import (
     DNSNameParam,
     Str,
     StrEnum,
+    errors,
 )
 from ipalib.frontend import Local
 from ipalib.plugable import Registry
@@ -27,6 +28,7 @@ from ipaserver.plugins.baseldap import (
     LDAPCreate,
     LDAPDelete,
 )
+from .dns import dns_container_exists
 
 
 __doc__ = _("""
@@ -137,6 +139,11 @@ class dnsserver(LDAPObject):
             values=(u'only', u'first', u'none'),
         ),
     )
+
+    def get_dn(self, *keys, **options):
+        if not dns_container_exists(self.api.Backend.ldap2):
+            raise errors.NotFound(reason=_('DNS is not configured'))
+        return super(dnsserver, self).get_dn(*keys, **options)
 
 
 @register()
