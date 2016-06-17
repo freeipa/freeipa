@@ -37,7 +37,7 @@ from ipaplatform.paths import paths
 def _main():
     nickname = 'ipaCert'
 
-    api.bootstrap(context='restart')
+    api.bootstrap(in_server=True, context='restart')
     api.finalize()
 
     tmpdir = tempfile.mkdtemp(prefix="tmp-")

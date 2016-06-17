@@ -27,7 +27,7 @@ from ipaserver.install import certs
 
 
 def main():
-    api.bootstrap(context='restart')
+    api.bootstrap(in_server=True, context='restart')
     api.finalize()
 
     dogtag_service = services.knownservices['pki_tomcatd']

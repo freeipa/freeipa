@@ -38,7 +38,7 @@ from ipaplatform.paths import paths
 def _main():
     nickname = sys.argv[1]
 
-    api.bootstrap(context='restart')
+    api.bootstrap(in_server=True, context='restart')
     api.finalize()
 
     dogtag_service = services.knownservices['pki_tomcatd']
