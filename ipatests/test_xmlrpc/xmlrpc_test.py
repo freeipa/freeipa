@@ -81,6 +81,9 @@ fuzzy_caacldn = Fuzzy(
     '(?i)ipauniqueid=%s,cn=caacls,cn=ca,%s' % (uuid_re, api.env.basedn)
 )
 
+# Matches internal CA ID
+fuzzy_caid = fuzzy_uuid
+
 # Matches fuzzy ipaUniqueID DN group (RDN)
 fuzzy_ipauniqueid = Fuzzy('(?i)ipauniqueid=%s' % uuid_re)
 
