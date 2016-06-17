@@ -819,11 +819,16 @@ def install(installer):
         if ca_enabled:
             options.ra_p12 = config.dir + "/ra.p12"
 
-        ca.install(False, config, options)
+        ca.install_step_0(False, config, options)
 
     krb = install_krb(config, setup_pkinit=not options.no_pkinit)
     http = install_http(config, auto_redirect=not options.no_ui_redirect,
                         ca_is_configured=ca_enabled)
+
+    if config.setup_ca:
+        # Done after install_krb() because lightweight CA key
+        # retrieval setup needs to create kerberos principal.
+        ca.install_step_1(False, config, options)
 
     otpd = otpdinstance.OtpdInstance()
     otpd.create_instance('OTPD', config.host_name, config.dirman_password,
