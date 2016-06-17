@@ -192,7 +192,10 @@ class server(LDAPObject):
             entry_attrs['ipalocation_location'] = converted_locations
 
     def get_enabled_roles(self, entry_attrs, **options):
-        if options.get('raw', False) or options.get('no_members', False):
+        if not options.get('all', False) and options.get('no_members', False):
+            return
+
+        if options.get('raw', False):
             return
 
         enabled_roles = self.api.Command.server_role_find(
