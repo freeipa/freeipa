@@ -416,6 +416,8 @@ class CAInstance(DogtagInstance):
             self.step("authorizing RA to modify profiles", configure_profiles_acl)
             self.step("authorizing RA to manage lightweight CAs",
                       configure_lightweight_ca_acls)
+            self.step("Ensure lightweight CAs container exists",
+                      ensure_lightweight_cas_container)
             self.step("configure certmonger for renewals", self.configure_certmonger_renewal)
             self.step("configure certificate renewals", self.configure_renewal)
             if not self.clone:
@@ -1345,6 +1347,8 @@ class CAInstance(DogtagInstance):
                   self.enable_pkix)
         self.step("set up client auth to db", self.__client_auth_to_db)
         self.step("destroying installation admin user", self.teardown_admin)
+        self.step("Ensure lightweight CAs container exists",
+                  ensure_lightweight_cas_container)
         self.step("Configure lightweight CA key retrieval",
                   self.setup_lightweight_ca_key_retrieval)
         self.step("starting instance", self.start_instance)
@@ -1415,6 +1419,18 @@ class CAInstance(DogtagInstance):
         pent = pwd.getpwnam(constants.PKI_USER)
 
         root_logger.info('Creating Custodia keys')
+        custodia_basedn = DN(
+            ('cn', 'custodia'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+        ensure_entry(
+            custodia_basedn,
+            objectclass=['top', 'nsContainer'],
+            cn=['custodia'],
+        )
+        ensure_entry(
+            DN(('cn', 'dogtag'), custodia_basedn),
+            objectclass=['top', 'nsContainer'],
+            cn=['dogtag'],
+        )
         keyfile = os.path.join(paths.PKI_TOMCAT, service + '.keys')
         keystore = IPAKEMKeys({'server_keys': keyfile})
         keystore.generate_keys(service)
@@ -1956,7 +1972,15 @@ def _create_dogtag_profile(profile_id, profile_data, overwrite):
 
 
 def ensure_ipa_authority_entry():
-    """Add the IPA CA ipaCa object if missing."""
+    """Add the IPA CA ipaCa object if missing.
+
+    This requires the "host authority" authority entry to have been
+    created, which Dogtag will do automatically upon startup, if the
+    ou=authorities,ou=ca,o=ipaca container exists.  Therefore, the
+    ``ensure_lightweight_cas_container`` function must be executed,
+    and Dogtag restarted, before executing this function.
+
+    """
 
     # find out authority id, issuer DN and subject DN of IPA CA
     #
@@ -1979,6 +2003,11 @@ def ensure_ipa_authority_entry():
             root_logger.error("Cannot connect to LDAP to add CA: %s", e)
             return
 
+    ensure_entry(
+        DN(api.env.container_ca, api.env.basedn),
+        objectclass=['top', 'nsContainer'],
+        cn=['cas'],
+    )
     ensure_entry(
         DN(('cn', ipalib.constants.IPA_CA_CN), api.env.container_ca, api.env.basedn),
         objectclass=['top', 'ipaca'],
