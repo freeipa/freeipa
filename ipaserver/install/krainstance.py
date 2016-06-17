@@ -348,8 +348,9 @@ class KRAInstance(DogtagInstance):
             'subsystemCert cert-pki-kra': 'kra.subsystem.cert',
             'Server-Cert cert-pki-ca': 'kra.sslserver.cert'}
 
-        DogtagInstance.update_cert_cs_cfg(
-            nickname, cert, directives, paths.KRA_CS_CFG_PATH)
+        if nickname in directives:
+            DogtagInstance.update_cert_cs_cfg(
+                directives[nickname], cert, paths.KRA_CS_CFG_PATH)
 
     def __enable_instance(self):
         self.ldap_enable('KRA', self.fqdn, None, self.suffix)

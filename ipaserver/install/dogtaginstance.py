@@ -370,21 +370,20 @@ class DogtagInstance(service.Service):
             cmonger.stop()
 
     @staticmethod
-    def update_cert_cs_cfg(nickname, cert, directives, cs_cfg):
+    def update_cert_cs_cfg(directive, cert, cs_cfg):
         """
         When renewing a Dogtag subsystem certificate the configuration file
         needs to get the new certificate as well.
 
-        nickname is one of the known nicknames.
+        ``directive`` is the directive to update in CS.cfg
         cert is a DER-encoded certificate.
-        directives is the list of directives to be updated for the subsystem
         cs_cfg is the path to the CS.cfg file
         """
 
         with stopped_service('pki-tomcatd', 'pki-tomcat'):
             installutils.set_directive(
                 cs_cfg,
-                directives[nickname],
+                directive,
                 base64.b64encode(cert),
                 quotes=False,
                 separator='=')

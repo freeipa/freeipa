@@ -1241,8 +1241,9 @@ class CAInstance(DogtagInstance):
         except Exception as e:
             syslog.syslog(syslog.LOG_ERR, "Failed to backup CS.cfg: %s" % e)
 
-        DogtagInstance.update_cert_cs_cfg(
-            nickname, cert, directives, paths.CA_CS_CFG_PATH)
+        if nickname in directives:
+            DogtagInstance.update_cert_cs_cfg(
+                directives[nickname], cert, paths.CA_CS_CFG_PATH)
 
     def __create_ds_db(self):
         '''
