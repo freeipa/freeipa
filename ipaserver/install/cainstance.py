@@ -1554,17 +1554,31 @@ def backup_config():
             "Dogtag must be stopped when creating backup of %s" % path)
     shutil.copy(path, path + '.ipabkp')
 
-def update_people_entry(dercert):
+def __update_entry_from_cert(make_filter, make_entry, dercert):
     """
-    Update the userCerticate for an entry in the dogtag ou=People. This
-    is needed when a certificate is renewed.
+    Given a certificate and functions to make a filter based on the
+    cert, and make a new entry based on the cert, update database
+    accordingly.
 
-    dercert: An X509.3 certificate in DER format
+    ``make_filter``
+        function that takes a certificate in DER format and
+        returns an LDAP search filter
 
-    Logging is done via syslog
+    ``make_entry``
+        function that takes a certificate in DER format and an
+        LDAP entry, and returns the new state of the LDAP entry.
+        Return the input unchanged to skip an entry.
 
-    Returns True or False
+    ``dercert``
+        An X509.3 certificate in DER format
+
+    Logging is done via syslog.
+
+    Return ``True`` if all updates were successful (zero updates is
+    vacuously successful) otherwise ``False``.
+
     """
+
     base_dn = DN(('o', 'ipaca'))
     serial_number = x509.get_serial_number(dercert, datatype=x509.DER)
     subject = x509.get_subject(dercert, datatype=x509.DER)
@@ -1581,14 +1595,7 @@ def update_people_entry(dercert):
             conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
             conn.connect(autobind=True)
 
-            db_filter = conn.combine_filters(
-                [
-                    conn.make_filter({'objectClass': 'inetOrgPerson'}),
-                    conn.make_filter(
-                        {'description': ';%s;%s' % (issuer, subject)},
-                        exact=False, trailing_wildcard=False),
-                ],
-                conn.MATCH_ALL)
+            db_filter = make_filter(dercert)
             try:
                 entries = conn.get_entries(base_dn, conn.SCOPE_SUBTREE, db_filter)
             except errors.NotFound:
@@ -1601,10 +1608,7 @@ def update_people_entry(dercert):
                     syslog.LOG_NOTICE, 'Updating entry %s' % str(entry.dn))
 
                 try:
-                    entry['usercertificate'].append(dercert)
-                    entry['description'] = '2;%d;%s;%s' % (
-                        serial_number, issuer, subject)
-
+                    entry = make_entry(dercert, entry)
                     conn.update_entry(entry)
                 except errors.EmptyModlist:
                     pass
@@ -1633,6 +1637,55 @@ def update_people_entry(dercert):
         return False
 
     return True
+
+
+def update_people_entry(dercert):
+    """
+    Update the userCerticate for an entry in the dogtag ou=People. This
+    is needed when a certificate is renewed.
+    """
+    def make_filter(dercert):
+        subject = x509.get_subject(dercert, datatype=x509.DER)
+        issuer = x509.get_issuer(dercert, datatype=x509.DER)
+        return ldap2.ldap2.combine_filters(
+            [
+                ldap2.ldap2.make_filter({'objectClass': 'inetOrgPerson'}),
+                ldap2.ldap2.make_filter(
+                    {'description': ';%s;%s' % (issuer, subject)},
+                    exact=False, trailing_wildcard=False),
+            ],
+            ldap2.ldap2.MATCH_ALL)
+
+    def make_entry(dercert, entry):
+        serial_number = x509.get_serial_number(dercert, datatype=x509.DER)
+        subject = x509.get_subject(dercert, datatype=x509.DER)
+        issuer = x509.get_issuer(dercert, datatype=x509.DER)
+        entry['usercertificate'].append(dercert)
+        entry['description'] = '2;%d;%s;%s' % (serial_number, issuer, subject)
+        return entry
+
+    return __update_entry_from_cert(make_filter, make_entry, dercert)
+
+
+def update_authority_entry(dercert):
+    """
+    Find the authority entry for the given cert, and update the
+    serial number to match the given cert.
+    """
+    def make_filter(dercert):
+        subject = x509.get_subject(dercert, datatype=x509.DER)
+        return ldap2.ldap2.make_filter(
+            dict(objectclass='authority', authoritydn=subject),
+            rules=ldap2.ldap2.MATCH_ALL,
+        )
+
+    def make_entry(dercert, entry):
+        serial_number = x509.get_serial_number(dercert, datatype=x509.DER)
+        entry['authoritySerial'] = serial_number
+        return entry
+
+    return __update_entry_from_cert(make_filter, make_entry, dercert)
+
 
 def ensure_ldap_profiles_container():
     ensure_entry(
