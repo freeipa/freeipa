@@ -117,6 +117,12 @@ class location(LDAPObject):
             doc=_('Servers that belongs to the IPA location'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
+        Str(
+            'dns_server*',
+            label=_('Advertised by servers'),
+            doc=_('List of servers which advertise the given location'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
     )
 
     def get_dn(self, *keys, **options):
@@ -192,30 +198,31 @@ class location_show(LDAPRetrieve):
     def execute(self, *keys, **options):
         result = super(location_show, self).execute(*keys, **options)
 
-        dns_server_in_loc = False
         servers_additional_info = {}
         if not options.get('raw'):
             servers_name = []
+            dns_servers = []
             weight_sum = 0
 
             servers = self.api.Command.server_find(
                 in_location=keys[0], no_members=False)['result']
             for server in servers:
-                servers_name.append(server['cn'][0])
+                s_name = server['cn'][0]
+                servers_name.append(s_name)
                 weight = int(server.get('ipaserviceweight', [100])[0])
                 weight_sum += weight
-                servers_additional_info[server['cn'][0]] = {
+                servers_additional_info[s_name] = {
                     'cn': server['cn'],
                     'ipaserviceweight': server.get(
                         'ipaserviceweight', [u'100']),
                 }
 
-                if not dns_server_in_loc:
-                    show_result = self.api.Command.server_show(
-                        server['cn'][0])['result']
-                    if 'DNS server' in show_result.get(
-                            'enabled_role_servrole', ()):
-                        dns_server_in_loc = True
+                s_roles = server.get('enabled_role_servrole', ())
+                if s_roles:
+                    servers_additional_info[s_name][
+                        'enabled_role_servrole'] = s_roles
+                if 'DNS server' in s_roles:
+                    dns_servers.append(s_name)
 
             for server in servers_additional_info.values():
                 server['service_relative_weight'] = [
@@ -224,11 +231,15 @@ class location_show(LDAPRetrieve):
                 ]
             if servers_name:
                 result['result']['servers_server'] = servers_name
-        result['servers'] = servers_additional_info
 
-        if not dns_server_in_loc and servers_additional_info:
-            self.add_message(messages.LocationWithoutDNSServer(
-                location=keys[0]
-            ))
+            if dns_servers:
+                result['result']['dns_server'] = dns_servers
+
+            if not dns_servers and servers_additional_info:
+                self.add_message(messages.LocationWithoutDNSServer(
+                    location=keys[0]
+                ))
+
+        result['servers'] = servers_additional_info
 
         return result
