@@ -82,7 +82,7 @@ class SyncReplConsumer(ReconnectLDAPObject, SyncreplConsumer):
 
     def syncrepl_present(self, uuids, refreshDeletes=False):
         # If we have not been given any UUID values,
-        # then we have recieved all the present controls...
+        # then we have received all the present controls...
         if uuids is None:
             # We only do things if refreshDeletes is false
             # as the syncrepl extension will call syncrepl_delete instead

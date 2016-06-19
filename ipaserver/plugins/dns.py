@@ -4441,7 +4441,7 @@ class dns_update_system_records(Command):
         Flag(
             'dry_run',
             label=_('Dry run'),
-            doc=_('Do not update recors only return expected records')
+            doc=_('Do not update records only return expected records')
         )
     )
 

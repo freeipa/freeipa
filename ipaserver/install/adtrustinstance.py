@@ -600,10 +600,10 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("Add the following service records to your DNS " \
                            "server for DNS zone %s: " % zone)
             system_records = IPASystemRecords(api)
-            adtrust_recors = system_records.get_base_records(
+            adtrust_records = system_records.get_base_records(
                 [self.fqdn], ["AD trust controller"],
                 include_master_role=False, include_kerberos_realm=False)
-            for r_name, node in adtrust_recors.items():
+            for r_name, node in adtrust_records.items():
                 for rec in IPASystemRecords.records_list_from_node(r_name, node):
                     self.print_msg(rec)
         else:

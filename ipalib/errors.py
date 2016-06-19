@@ -407,7 +407,7 @@ class ServerNetworkError(PublicError):
 
 class JSONError(PublicError):
     """
-    **909** Raised when server recieved a malformed JSON-RPC request.
+    **909** Raised when server received a malformed JSON-RPC request.
     """
 
     errno = 909
@@ -475,7 +475,7 @@ class KerberosError(AuthenticationError):
 
 class CCacheError(KerberosError):
     """
-    **1101** Raised when sever does not recieve Kerberose credentials.
+    **1101** Raised when sever does not receive Kerberose credentials.
 
     For example:
 
