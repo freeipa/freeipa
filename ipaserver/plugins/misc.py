@@ -133,6 +133,13 @@ class plugins(LocalOrRemote):
     )
 
     def execute(self, **options):
+        result = {}
+        for namespace in self.api:
+            for plugin in self.api[namespace]():
+                cls = type(plugin)
+                key = '{}.{}'.format(cls.__module__, cls.__name__)
+                result.setdefault(key, []).append(namespace)
+
         return dict(
-            result=dict(self.api.plugins),
+            result=result,
         )

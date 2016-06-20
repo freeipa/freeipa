@@ -671,7 +671,6 @@ class API(ReadOnly):
         self.__do_if_not_done('load_plugins')
 
         production_mode = self.is_production_mode()
-        plugin_info = {}
 
         for base in self.bases:
             name = base.__name__
@@ -679,9 +678,6 @@ class API(ReadOnly):
             for klass in six.itervalues(self.__plugins):
                 if not any(issubclass(b, base) for b in klass.bases):
                     continue
-                plugin_info.setdefault(
-                    '%s.%s' % (klass.__module__, klass.name),
-                    []).append(name)
                 if not self.env.plugins_on_demand:
                     self._get(klass.name)
 
@@ -698,7 +694,6 @@ class API(ReadOnly):
                     assert islocked(instance)
 
         self.__finalized = True
-        self.plugins = tuple((k, tuple(v)) for k, v in plugin_info.items())
 
         if not production_mode:
             lock(self)
