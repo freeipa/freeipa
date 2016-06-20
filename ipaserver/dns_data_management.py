@@ -12,12 +12,16 @@ from dns import (
     rdatatype,
     zone,
 )
+from dns.exception import DNSException
 from dns.rdtypes.IN.SRV import SRV
 from dns.rdtypes.ANY.TXT import TXT
+
+from time import sleep, time
 
 from ipalib import errors
 from ipalib.dns import record_name_format
 from ipapython.dnsutil import DNSName, resolve_rrsets
+from ipapython.ipa_log_manager import root_logger
 
 if six.PY3:
     unicode=str
@@ -134,7 +138,22 @@ class IPASystemRecords(object):
     def __add_ca_records_from_hostname(self, zone_obj, hostname):
         assert isinstance(hostname, DNSName) and hostname.is_absolute()
         r_name = DNSName('ipa-ca') + self.domain_abs
-        rrsets = resolve_rrsets(hostname, (rdatatype.A, rdatatype.AAAA))
+        rrsets = []
+        end_time = time() + 120  # timeout in seconds
+        while time() < end_time:
+            try:
+                rrsets = resolve_rrsets(hostname, (rdatatype.A, rdatatype.AAAA))
+            except DNSException:  # logging is done inside resolve_rrsets
+                pass
+            if rrsets:
+                break
+            sleep(5)
+
+        if not rrsets:
+            root_logger.error('unable to resolve host name %s to IP address, '
+                              'ipa-ca DNS record will be incomplete', hostname)
+            return
+
         for rrset in rrsets:
             for rd in rrset:
                 rdataset = zone_obj.get_rdataset(
