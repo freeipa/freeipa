@@ -2763,11 +2763,10 @@ class dnszone_add(DNSZoneBase_add):
         assert isinstance(dn, DN)
 
         # Add entry to realmdomains
-        # except for our own domain, forward zones, reverse zones and root zone
+        # except for our own domain, reverse zones and root zone
         zone = keys[0]
 
         if (zone != DNSName(api.env.domain).make_absolute() and
-                not options.get('idnsforwarders') and
                 not zone.is_reverse() and
                 zone != DNSName.root):
             try:
