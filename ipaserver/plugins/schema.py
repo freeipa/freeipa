@@ -52,6 +52,16 @@ class BaseMetaObject(Object):
             label=_("Documentation"),
             flags={'no_search'},
         ),
+        Str(
+            'exclude*',
+            label=_("Exclude from"),
+            flags={'no_search'},
+        ),
+        Str(
+            'include*',
+            label=_("Include in"),
+            flags={'no_search'},
+        ),
     )
 
     def _get_obj(self, obj, **kwargs):
@@ -176,11 +186,6 @@ class command(metaobject):
             label=_("Method name"),
             flags={'no_search'},
         ),
-        Bool(
-            'no_cli?',
-            label=_("Exclude from CLI"),
-            flags={'no_search'},
-        ),
     )
 
     def _iter_params(self, cmd):
@@ -210,7 +215,7 @@ class command(metaobject):
             obj['attr_name'] = unicode(cmd.attr_name)
 
         if cmd.NO_CLI:
-            obj['no_cli'] = True
+            obj['exclude'] = [u'cli']
 
         return obj
 
@@ -466,16 +471,6 @@ class param(BaseParam):
         Str(
             'default_from_param*',
             label=_("Default from"),
-            flags={'no_search'},
-        ),
-        Str(
-            'exclude*',
-            label=_("Exclude from"),
-            flags={'no_search'},
-        ),
-        Str(
-            'include*',
-            label=_("Include in"),
             flags={'no_search'},
         ),
         Str(

@@ -293,8 +293,8 @@ def _create_command(schema):
         command['obj_name'] = str(schema['obj_class'])
     if 'attr_name' in schema:
         command['attr_name'] = str(schema['attr_name'])
-    if 'no_cli' in schema:
-        command['NO_CLI'] = schema['no_cli']
+    if 'exclude' in schema and u'cli' in schema['exclude']:
+        command['NO_CLI'] = True
     command['takes_args'] = tuple(
         _create_param(s) for s in schema['params']
         if s.get('positional', s.get('required', True)))

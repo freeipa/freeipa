@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=192
-# Last change: schema: remove redundant information
+IPA_API_VERSION_MINOR=193
+# Last change: schema: remove `no_cli` from command schema
