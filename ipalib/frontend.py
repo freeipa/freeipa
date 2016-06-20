@@ -1050,7 +1050,9 @@ class Command(HasParam):
                 continue
             result = output[o]
 
-            if o.lower() == 'count' and result == 0:
+            if o == 'value':
+                continue
+            elif o.lower() == 'count' and result == 0:
                 rv = 1
             elif o.lower() == 'failed':
                 if entry_count(result) == 0:
