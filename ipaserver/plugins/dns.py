@@ -2414,6 +2414,13 @@ class dnszone(DNSZoneBase):
             minvalue=0,
             maxvalue=2147483647, # see RFC 2181
         ),
+        Int('dnsdefaultttl?',
+            cli_name='default_ttl',
+            label=_('Default time to live'),
+            doc=_('Time to live for records without explicit TTL definition'),
+            minvalue=0,
+            maxvalue=2147483647,  # see RFC 2181
+        ),
         StrEnum('dnsclass?',
             # Deprecated
             cli_name='class',
@@ -2496,8 +2503,8 @@ class dnszone(DNSZoneBase):
                 'objectclass',
                 'a6record', 'aaaarecord', 'afsdbrecord', 'aplrecord', 'arecord',
                 'certrecord', 'cn', 'cnamerecord', 'dhcidrecord', 'dlvrecord',
-                'dnamerecord', 'dnsclass', 'dnsttl', 'dsrecord',
-                'hinforecord', 'hiprecord', 'idnsallowdynupdate',
+                'dnamerecord', 'dnsclass', 'dnsdefaultttl', 'dnsttl',
+                'dsrecord', 'hinforecord', 'hiprecord', 'idnsallowdynupdate',
                 'idnsallowquery', 'idnsallowsyncptr', 'idnsallowtransfer',
                 'idnsforwarders', 'idnsforwardpolicy', 'idnsname',
                 'idnssecinlinesigning', 'idnssoaexpire', 'idnssoaminimum',
@@ -2533,8 +2540,8 @@ class dnszone(DNSZoneBase):
                 'objectclass',  # needed for record templates
                 'a6record', 'aaaarecord', 'afsdbrecord', 'aplrecord', 'arecord',
                 'certrecord', 'cn', 'cnamerecord', 'dhcidrecord', 'dlvrecord',
-                'dnamerecord', 'dnsclass', 'dnsttl', 'dsrecord',
-                'hinforecord', 'hiprecord', 'idnsallowdynupdate',
+                'dnamerecord', 'dnsclass', 'dnsdefaultttl', 'dnsttl',
+                'dsrecord', 'hinforecord', 'hiprecord', 'idnsallowdynupdate',
                 'idnsallowquery', 'idnsallowsyncptr', 'idnsallowtransfer',
                 'idnsforwarders', 'idnsforwardpolicy', 'idnsname',
                 'idnssecinlinesigning', 'idnssoaexpire', 'idnssoaminimum',
