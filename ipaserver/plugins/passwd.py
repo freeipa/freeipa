@@ -85,7 +85,6 @@ class passwd(Command):
                  confirm=False,
                  default_from=lambda principal: get_current_password(principal),
                  autofill=True,
-                 sortorder=-1,
         ),
     )
 
