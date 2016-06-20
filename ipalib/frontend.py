@@ -1048,7 +1048,7 @@ class Command(HasParam):
             outp = self.output[o]
             if 'no_display' in outp.flags:
                 continue
-            result = output[o]
+            result = output.get(o)
 
             if o == 'value':
                 continue
