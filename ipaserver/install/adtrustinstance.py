@@ -81,6 +81,8 @@ def ipa_smb_conf_exists():
     except IOError as err:
         if err.errno == errno.ENOENT:
             return False
+        else:
+            raise
 
     lines = conf_fd.readlines()
     conf_fd.close()
