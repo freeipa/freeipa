@@ -1500,6 +1500,296 @@ IPA.multivalued_widget = function(spec) {
     return that;
 };
 
+
+/**
+ * Multivalued widget which allows to perform add and remove using commands
+ * like 'entity_{add|remove}_item', i.e. 'user_add_cert', etc.
+ *
+ * @class
+ * @extends IPA.multivalued_widget
+ */
+IPA.custom_command_multivalued_widget = function(spec) {
+
+    spec = spec || {};
+
+    spec.spec_child = spec.spec_child || {};
+
+    var that = IPA.multivalued_widget(spec);
+
+    that.item_name = spec.item_name || '';
+
+    that.adder_dialog_spec = spec.adder_dialog_spec;
+    that.remove_dialog_spec = spec.remove_dialog_spec;
+
+    /**
+     * Called on success of add command. Override point.
+     */
+    that.on_success_add = function(data, text_status, xhr) {
+        that.facet.refresh();
+        IPA.notify_success(data.result.summary);
+        that.adder_dialog.close();
+    };
+
+    /**
+     * Called on error of add command. Override point.
+     */
+    that.on_error_add = function(data) {
+        that.adder_dialog.focus_first_element();
+    };
+
+    /**
+     * Called on success of remove command. Override point.
+     */
+    that.on_success_remove = function(data, text_status, xhr) {
+        that.facet.refresh();
+        IPA.notify_success(data.result.summary);
+    };
+
+    /**
+     * Called on error of remove command. Override point.
+     */
+    that.on_error_remove = function(data) {
+        IPA.notify(data.result.summary, 'error');
+    };
+
+    /**
+     * Checks whether the facet doesn't need 'Save' or 'Revert' before
+     * refreshing.
+     */
+    that.handle_dirty_facet_dialog = function(dialog) {
+        if (that.facet.is_dirty()) {
+            var dirty_dialog = IPA.dirty_dialog({
+                facet: that.facet
+            });
+
+            dirty_dialog.callback = function() {
+                dialog.open();
+            };
+            dirty_dialog.open();
+
+        } else {
+            dialog.open();
+        }
+    };
+
+    /* On widget's Add button click */
+    that.new_row = function() {
+        that.open_adder_dialog();
+    };
+
+    that.open_adder_dialog = function() {
+        that.create_adder_dialog();
+
+        that.handle_dirty_facet_dialog(that.adder_dialog);
+    };
+
+    /**
+     * New adder dialog is stored in that.adder_dialog.
+     */
+    that.create_adder_dialog = function() {
+        var spec = that.adder_dialog_spec || {
+            name: 'custom-add-dialog'
+        };
+
+        that.adder_dialog = IPA.dialog(spec);
+        that.adder_dialog.create_button({
+            name: 'add',
+            label: '@i18n:buttons.add',
+            click: function() {
+                if (!that.adder_dialog.validate()) {
+                    exp.focus_invalid(that.adder_dialog);
+                }
+                else {
+                    that.add(that.adder_dialog);
+                }
+            }
+        });
+
+        that.adder_dialog.create_button({
+            name: 'cancel',
+            label: '@i18n:buttons.cancel',
+            click: function() {
+                that.adder_dialog.close();
+            }
+        });
+    };
+
+    /* on button 'Add' on adder dialog click */
+    that.add = function() {
+        var command = that.create_add_command();
+        command.execute();
+    };
+
+    /* Function is called after clicking on widget's 'Delete' button */
+    that.remove_row = function(row) {
+        that.open_remove_dialog(row);
+    };
+
+    that.open_remove_dialog = function(row) {
+        that.create_remove_dialog(row);
+
+        that.handle_dirty_facet_dialog(that.remove_dialog);
+    };
+
+    /**
+     * Create remove dialog title. Override point.
+     *
+     * @param {Object} row
+     * @return {String} title
+     */
+    that.create_remove_dialog_title = function(row) {
+        var title = text.get('@i18n:dialogs.confirmation');
+
+        return title;
+    };
+
+    /**
+     * Create remove dialog message. Override point.
+     *
+     * @param {Object} row
+     * @return {String} title
+     */
+    that.create_remove_dialog_message = function(row) {
+        var message = text.get('@i18n:search.delete_confirm');
+
+        return message;
+    };
+
+    /**
+     * New remove dialog is stored in that.remove_dialog.
+     */
+    that.create_remove_dialog = function(row) {
+        var perform_remove = function() {
+            that.perform_remove(row);
+        };
+
+        var title = that.create_remove_dialog_title(row);
+        var message = that.create_remove_dialog_message(row);
+
+        var spec = that.remove_dialog_spec || {
+            title: title,
+            message: message,
+            on_ok: perform_remove
+        };
+
+        that.remove_dialog = IPA.confirm_dialog(spec);
+    };
+
+    that.perform_remove = function(row) {
+        var command = that.create_remove_command(row);
+        command.execute();
+    };
+
+    /**
+     * Compose remove command. Override point
+     *
+     * @param {Object} row
+     * @return {Object} command
+     */
+    that.create_remove_command = function(row) {
+        var method = that.create_remove_method(row);
+        var args = that.create_remove_args(row);
+        var options = that.create_remove_options(row);
+
+        var command = rpc.command({
+            entity: that.facet.entity.name,
+            method: method,
+            args: args,
+            options: options,
+            on_success: that.on_success_remove,
+            on_error: that.on_error_remove
+        });
+
+        return command;
+    };
+
+    /**
+     * Compose remove method. Override point
+     *
+     * @param {Object} row
+     * @return {String} method
+     */
+    that.create_remove_method = function(row) {
+        return 'remove_' + that.item_name;
+    };
+
+    /**
+     * Compose args for remove command. Override point
+     *
+     * @param {Object} row
+     * @return {Array} args
+     */
+    that.create_remove_args = function(row) {
+        var pkey = that.facet.get_pkey();
+        return [pkey];
+    };
+
+    /**
+     * Compose options for remove command. Override point
+     *
+     * @param {Object} row
+     * @return {Object} options
+     */
+    that.create_remove_options = function(row) {
+        var options = {};
+
+        return options;
+    };
+
+    /**
+     * Compose add command
+     *
+     * @return {Object} command
+     */
+    that.create_add_command = function() {
+        var method = that.create_add_method();
+        var args = that.create_add_args();
+        var options = that.create_add_options();
+
+        var command = rpc.command({
+            entity: that.facet.entity.name,
+            method: method,
+            args: args,
+            options: options,
+            on_success: that.on_success_add,
+            on_error: that.on_error_add
+        });
+
+        return command;
+    };
+
+    /**
+     * Compose method for add command. Override point.
+     * @return {String} method
+     */
+    that.create_add_method = function() {
+        return 'add_' + that.item_name;
+    };
+
+    /**
+     * Compose args for add command. Override point
+     * @return {Array} args
+     */
+    that.create_add_args = function() {
+        var pkey = that.facet.get_pkey();
+
+        return [pkey];
+    };
+
+    /**
+     * Compose options for add command. Override point
+     * @return {Object} options
+     */
+    that.create_add_options = function() {
+        var options = {};
+
+        return options;
+    };
+
+    return that;
+};
+
+
 /**
  * Option widget base
  *
@@ -6752,6 +7042,8 @@ exp.register = function() {
     w.register('html', IPA.html_widget);
     w.register('link', IPA.link_widget);
     w.register('multivalued', IPA.multivalued_widget);
+    w.register('custom_command_multivalued',
+        IPA.custom_command_multivalued_widget);
     w.register('password', IPA.password_widget);
     w.register('radio', IPA.radio_widget);
     w.register('select', IPA.select_widget);
