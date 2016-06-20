@@ -790,11 +790,11 @@ class help(frontend.Local):
                  if type(t[2]) is dict):
             self.print_commands(name, outfile)
         elif name == "commands":
-            mcl = max(len(s) for s in (self.Command))
-            for cname in self.Command:
-                cmd = self.Command[cname]
+            mcl = 0
+            for cmd in self.Command():
                 if cmd.NO_CLI:
                     continue
+                mcl = max(mcl, len(cmd.name))
                 writer('%s  %s' % (to_cli(cmd.name).ljust(mcl), cmd.summary))
         else:
             raise HelpError(topic=name)

@@ -673,7 +673,7 @@ class xmlserver(KerberosWSGIExecutioner):
         """list methods for XML-RPC introspection"""
         if params:
             raise errors.ZeroArgumentError(name='system.listMethods')
-        return (tuple(unicode(name) for name in self.Command) +
+        return (tuple(unicode(cmd.name) for cmd in self.Command()) +
                 tuple(unicode(name) for name in self._system_commands))
 
     def _get_method_name(self, name, *params):

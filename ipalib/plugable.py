@@ -25,6 +25,7 @@ you are unfamiliar with this Python feature, see
 http://docs.python.org/ref/sequence-types.html
 """
 
+import operator
 import sys
 import threading
 import os
@@ -95,23 +96,23 @@ class Registry(object):
         self.__registry = collections.OrderedDict()
 
     def __call__(self, **kwargs):
-        def register(klass):
+        def register(plugin):
             """
-            Register the plugin ``klass``.
+            Register the plugin ``plugin``.
 
-            :param klass: A subclass of `Plugin` to attempt to register.
+            :param plugin: A subclass of `Plugin` to attempt to register.
             """
-            if not callable(klass):
-                raise TypeError('plugin must be callable; got %r' % klass)
+            if not callable(plugin):
+                raise TypeError('plugin must be callable; got %r' % plugin)
 
             # Raise DuplicateError if this exact class was already registered:
-            if klass in self.__registry:
-                raise errors.PluginDuplicateError(plugin=klass)
+            if plugin in self.__registry:
+                raise errors.PluginDuplicateError(plugin=plugin)
 
             # The plugin is okay, add to __registry:
-            self.__registry[klass] = dict(kwargs, klass=klass)
+            self.__registry[plugin] = dict(kwargs, plugin=plugin)
 
-            return klass
+            return plugin
 
         return register
 
@@ -270,44 +271,50 @@ class APINameSpace(collections.Mapping):
     def __init__(self, api, base):
         self.__api = api
         self.__base = base
-        self.__name_seq = None
-        self.__name_set = None
+        self.__plugins = None
+        self.__plugins_by_key = None
 
     def __enumerate(self):
-        if self.__name_set is None:
-            self.__name_set = frozenset(
-                name for name, klass in six.iteritems(self.__api._API__plugins)
-                if any(issubclass(b, self.__base) for b in klass.bases))
+        if self.__plugins is not None and self.__plugins_by_key is not None:
+            return
+
+        plugins = set()
+        key_dict = self.__plugins_by_key = {}
+
+        for plugin in self.__api._API__plugins:
+            if not any(issubclass(b, self.__base) for b in plugin.bases):
+                continue
+            plugins.add(plugin)
+            key_dict[plugin] = plugin
+            key_dict[plugin.name] = plugin
+
+        self.__plugins = sorted(plugins, key=operator.attrgetter('name'))
 
     def __len__(self):
         self.__enumerate()
-        return len(self.__name_set)
+        return len(self.__plugins)
 
-    def __contains__(self, name):
+    def __contains__(self, key):
         self.__enumerate()
-        return name in self.__name_set
+        return key in self.__plugins_by_key
 
     def __iter__(self):
-        if self.__name_seq is None:
-            self.__enumerate()
-            self.__name_seq = tuple(sorted(self.__name_set))
-        return iter(self.__name_seq)
+        self.__enumerate()
+        return iter(self.__plugins)
 
-    def __getitem__(self, name):
-        name = getattr(name, '__name__', name)
-        klass = self.__api._API__plugins[name]
-        if not any(issubclass(b, self.__base) for b in klass.bases):
-            raise KeyError(name)
-        return self.__api._get(name)
+    def __getitem__(self, key):
+        self.__enumerate()
+        plugin = self.__plugins_by_key[key]
+        return self.__api._get(plugin)
 
     def __call__(self):
         return six.itervalues(self)
 
-    def __getattr__(self, name):
+    def __getattr__(self, key):
         try:
-            return self[name]
+            return self[key]
         except KeyError:
-            raise AttributeError(name)
+            raise AttributeError(key)
 
 
 class API(ReadOnly):
@@ -317,7 +324,8 @@ class API(ReadOnly):
 
     def __init__(self):
         super(API, self).__init__()
-        self.__plugins = {}
+        self.__plugins = set()
+        self.__plugins_by_key = {}
         self.__instances = {}
         self.__next = {}
         self.__done = set()
@@ -616,49 +624,51 @@ class API(ReadOnly):
 
         raise errors.PluginModuleError(name=module.__name__)
 
-    def add_plugin(self, klass, override=False):
+    def add_plugin(self, plugin, override=False):
         """
-        Add the plugin ``klass``.
+        Add the plugin ``plugin``.
 
-        :param klass: A subclass of `Plugin` to attempt to add.
+        :param plugin: A subclass of `Plugin` to attempt to add.
         :param override: If true, override an already added plugin.
         """
-        if not callable(klass):
-            raise TypeError('plugin must be callable; got %r' % klass)
+        if not callable(plugin):
+            raise TypeError('plugin must be callable; got %r' % plugin)
 
         # Find the base class or raise SubclassError:
-        for base in klass.bases:
+        for base in plugin.bases:
             if issubclass(base, self.bases):
                 break
         else:
             raise errors.PluginSubclassError(
-                plugin=klass,
+                plugin=plugin,
                 bases=self.bases,
             )
 
         # Check override:
-        prev = self.__plugins.get(klass.name)
+        prev = self.__plugins_by_key.get(plugin.name)
         if prev:
             if not override:
                 # Must use override=True to override:
                 raise errors.PluginOverrideError(
                     base=base.__name__,
-                    name=klass.name,
-                    plugin=klass,
+                    name=plugin.name,
+                    plugin=plugin,
                 )
 
-            self.__next[klass] = prev
+            self.__plugins.remove(prev)
+            self.__next[plugin] = prev
         else:
             if override:
                 # There was nothing already registered to override:
                 raise errors.PluginMissingOverrideError(
                     base=base.__name__,
-                    name=klass.name,
-                    plugin=klass,
+                    name=plugin.name,
+                    plugin=plugin,
                 )
 
         # The plugin is okay, add to sub_d:
-        self.__plugins[klass.name] = klass
+        self.__plugins.add(plugin)
+        self.__plugins_by_key[plugin.name] = plugin
 
     def finalize(self):
         """
@@ -673,19 +683,18 @@ class API(ReadOnly):
         production_mode = self.is_production_mode()
 
         for base in self.bases:
-            name = base.__name__
-
-            for klass in six.itervalues(self.__plugins):
-                if not any(issubclass(b, base) for b in klass.bases):
+            for plugin in self.__plugins:
+                if not any(issubclass(b, base) for b in plugin.bases):
                     continue
                 if not self.env.plugins_on_demand:
-                    self._get(klass.name)
+                    self._get(plugin)
 
+            name = base.__name__
             if not production_mode:
                 assert not hasattr(self, name)
             setattr(self, name, APINameSpace(self, base))
 
-        for klass, instance in six.iteritems(self.__instances):
+        for instance in six.itervalues(self.__instances):
             if not production_mode:
                 assert instance.api is self
             if not self.env.plugins_on_demand:
@@ -698,19 +707,24 @@ class API(ReadOnly):
         if not production_mode:
             lock(self)
 
-    def _get(self, name):
-        klass = self.__plugins[name]
+    def _get(self, plugin):
+        if not callable(plugin):
+            raise TypeError('plugin must be callable; got %r' % plugin)
+        if plugin not in self.__plugins:
+            raise KeyError(plugin)
+
         try:
-            instance = self.__instances[klass]
+            instance = self.__instances[plugin]
         except KeyError:
-            instance = self.__instances[klass] = klass(self)
+            instance = self.__instances[plugin] = plugin(self)
+
         return instance
 
-    def get_plugin_next(self, klass):
-        if not callable(klass):
-            raise TypeError('plugin must be callable; got %r' % klass)
+    def get_plugin_next(self, plugin):
+        if not callable(plugin):
+            raise TypeError('plugin must be callable; got %r' % plugin)
 
-        return self.__next[klass]
+        return self.__next[plugin]
 
 
 class IPAHelpFormatter(optparse.IndentedHelpFormatter):

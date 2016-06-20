@@ -389,7 +389,7 @@ class Command(HasParam):
     >>> api.add_plugin(my_command)
     >>> api.finalize()
     >>> list(api.Command)
-    ['my_command']
+    [<class '__main__.my_command'>]
     >>> api.Command.my_command # doctest:+ELLIPSIS
     ipalib.frontend.my_command()
 
@@ -1381,7 +1381,7 @@ class Method(Attribute, Command):
     namespace:
 
     >>> list(api.Method)
-    ['user_add']
+    [<class '__main__.user_add'>]
     >>> api.Method.user_add(version=u'2.88')  # Will call user_add.run()
     {'result': 'Added the user!'}
 
@@ -1392,7 +1392,7 @@ class Method(Attribute, Command):
     plugin can also be accessed through the ``api.Command`` namespace:
 
     >>> list(api.Command)
-    ['user_add']
+    [<class '__main__.user_add'>]
     >>> api.Command.user_add(version=u'2.88') # Will call user_add.run()
     {'result': 'Added the user!'}
 
@@ -1400,7 +1400,7 @@ class Method(Attribute, Command):
     `Object`:
 
     >>> list(api.Object)
-    ['user']
+    [<class '__main__.user'>]
     >>> list(api.Object.user.methods)
     ['add']
     >>> api.Object.user.methods.add(version=u'2.88') # Will call user_add.run()
@@ -1443,7 +1443,7 @@ class Updater(Plugin):
     >>> api.add_plugin(my_update)
     >>> api.finalize()
     >>> list(api.Updater)
-    ['my_update']
+    [<class '__main__.my_update'>]
     >>> api.Updater.my_update # doctest:+ELLIPSIS
     ipalib.frontend.my_update()
     """
