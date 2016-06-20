@@ -244,8 +244,8 @@ class test_PublicError(PublicExceptionTester):
         message = u'The translated, interpolated message'
         format = 'key=%(key1)r and key2=%(key2)r'
         uformat = u'Translated key=%(key1)r and key2=%(key2)r'
-        val1 = 'Value 1'
-        val2 = 'Value 2'
+        val1 = u'Value 1'
+        val2 = u'Value 2'
         kw = dict(key1=val1, key2=val2)
 
         # Test with format=str, message=None
@@ -304,7 +304,7 @@ class test_PublicError(PublicExceptionTester):
             format = '%(true)r %(text)r %(number)r'
 
         uformat = u'Translated %(true)r %(text)r %(number)r'
-        kw = dict(true=True, text='Hello!', number=18)
+        kw = dict(true=True, text=u'Hello!', number=18)
 
         # Test with format=str, message=None
         e = raises(ValueError, subclass, format, **kw)
@@ -342,7 +342,7 @@ class test_PublicError(PublicExceptionTester):
                             '$')
         inst = subclass(instructions=instructions, **kw)
         assert inst.format is subclass.format
-        assert_equal(inst.instructions, instructions)
+        assert_equal(inst.instructions, unicode(instructions))
         inst_match = regexp.match(inst.strerror).groups()
         assert_equal(list(inst_match),list(instructions))
 
