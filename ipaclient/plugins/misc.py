@@ -11,6 +11,9 @@ register = Registry()
 @register(override=True)
 class env(CommandOverride):
     def output_for_cli(self, textui, output, *args, **options):
+        output = dict(output)
+        output.pop('count', None)
+        output.pop('total', None)
         options['all'] = True
         return super(env, self).output_for_cli(textui, output,
                                                *args, **options)
