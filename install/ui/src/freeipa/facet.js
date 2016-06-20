@@ -1112,7 +1112,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
             name: 'facet_actions',
             'class': 'dropdown facet-actions',
             right_aligned: true,
-            toggle_text: 'Actions ',
+            toggle_text: text.get('@i18n:actions.title') + ' ',
             toggle_class: 'btn btn-default',
             toggle_icon: 'fa fa-angle-down'
         });

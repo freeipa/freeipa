@@ -9,10 +9,11 @@ define(['dojo/_base/declare',
         'dojo/dom-class',
         '../builder',
         '../facet',
+        '../text',
         '../widgets/ActionDropdownWidget'
        ],
        function(declare, lang, on, construct, dom_class,
-            builder, mod_facet, ActionDropdownWidget) {
+            builder, mod_facet, text, ActionDropdownWidget) {
 
 
 /**
@@ -247,7 +248,7 @@ var HeaderMixin = declare([], {
             name: 'facet_actions',
             'class': 'dropdown facet-actions',
             right_aligned: true,
-            toggle_text: 'Actions ',
+            toggle_text: text.get('@i18n:actions.title') + ' ',
             toggle_class: 'btn btn-default',
             toggle_icon: 'fa fa-angle-down'
         });
