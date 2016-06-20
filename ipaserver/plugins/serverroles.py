@@ -134,9 +134,11 @@ class serverroles(Backend):
         except NotImplementedError:
             return result
 
-        result.update(
-            {name: attr.get(self.api) for name, attr in
-             assoc_attributes.items()})
+        for name, attr in assoc_attributes.items():
+            attr_value = attr.get(self.api)
+
+            if attr_value is not None:
+                result.update({name: attr_value})
 
         return result
 
