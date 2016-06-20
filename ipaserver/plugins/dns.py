@@ -73,6 +73,7 @@ from ipalib.util import (normalize_zonemgr,
                          verify_host_resolvable,
                          validate_bind_forwarder,
                          ipaddr_validator)
+from ipaplatform import services
 from ipapython.dn import DN
 from ipapython.ipautil import CheckedIPAddress
 from ipapython.dnsutil import check_zone_overlap
@@ -2663,6 +2664,17 @@ class dnszone(DNSZoneBase):
                 messages.DNSSECMasterNotInstalled()
             )
 
+    def _warning_ttl_changed_reload_needed(self, result, **options):
+        if 'dnsdefaultttl' in options:
+            messages.add_message(
+                options['version'],
+                result,
+                messages.ServiceRestartRequired(
+                    service=services.service('named').systemd_name,
+                    server=_('<all IPA DNS servers>'), )
+                )
+
+
 
 @register()
 class dnszone_add(DNSZoneBase_add):
@@ -2834,6 +2846,7 @@ class dnszone_mod(DNSZoneBase_mod):
         self.obj._warning_forwarding(result, **options)
         self.obj._warning_name_server_option(result, context, **options)
         self.obj._warning_dnssec_master_is_not_installed(result, **options)
+        self.obj._warning_ttl_changed_reload_needed(result, **options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
