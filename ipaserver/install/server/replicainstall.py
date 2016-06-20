@@ -1310,37 +1310,44 @@ def promote(installer):
     ccache = os.environ['KRB5CCNAME']
     remote_api = installer._remote_api
     conn = remote_api.Backend.ldap2
-    try:
-        conn.connect(ccache=installer._ccache)
+    if installer._add_to_ipaservers:
+        try:
+            conn.connect(ccache=installer._ccache)
 
-        if installer._add_to_ipaservers:
             remote_api.Command['hostgroup_add_member'](
                 u'ipaservers',
                 host=[unicode(api.env.host)],
             )
+        finally:
+            if conn.isconnected():
+                conn.disconnect()
+            os.environ['KRB5CCNAME'] = ccache
 
-        # Save client file and merge in server directives
-        target_fname = paths.IPA_DEFAULT_CONF
-        fstore.backup_file(target_fname)
-        ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Replica Promote")
-        ipaconf.setOptionAssignment(" = ")
-        ipaconf.setSectionNameDelimiters(("[", "]"))
+    # Save client file and merge in server directives
+    target_fname = paths.IPA_DEFAULT_CONF
+    fstore.backup_file(target_fname)
+    ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Replica Promote")
+    ipaconf.setOptionAssignment(" = ")
+    ipaconf.setSectionNameDelimiters(("[", "]"))
 
-        config.promote = installer.promote
-        config.dirman_password = hexlify(ipautil.ipa_generate_password())
+    config.promote = installer.promote
+    config.dirman_password = hexlify(ipautil.ipa_generate_password())
 
-        # FIXME: allow to use passed in certs instead
-        if installer._ca_enabled:
-            configure_certmonger()
+    # FIXME: allow to use passed in certs instead
+    if installer._ca_enabled:
+        configure_certmonger()
 
-        # Create DS user/group if it doesn't exist yet
-        dsinstance.create_ds_user()
+    # Create DS user/group if it doesn't exist yet
+    dsinstance.create_ds_user()
 
-        # Configure ntpd
-        if not options.no_ntp:
-            ipaclient.ntpconf.force_ntpd(sstore)
-            ntp = ntpinstance.NTPInstance()
-            ntp.create_instance()
+    # Configure ntpd
+    if not options.no_ntp:
+        ipaclient.ntpconf.force_ntpd(sstore)
+        ntp = ntpinstance.NTPInstance()
+        ntp.create_instance()
+
+    try:
+        conn.connect(ccache=ccache)
 
         # Configure dirsrv
         ds = install_replica_ds(config, options, installer._ca_enabled,
@@ -1360,7 +1367,6 @@ def promote(installer):
     finally:
         if conn.isconnected():
             conn.disconnect()
-        os.environ['KRB5CCNAME'] = ccache
 
         # Create the management framework config file
         # do this regardless of the state of DS installation. Even if it fails,
