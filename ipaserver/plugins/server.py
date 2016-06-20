@@ -682,11 +682,11 @@ class server_del(LDAPDelete):
         # remove the references to master's ldap/http principals
         self._remove_server_principal_references(pkey)
 
-        # try to clean up the leftover DNS entries
-        self._cleanup_server_dns_records(pkey)
-
         # finally destroy all Kerberos principals
         self._remove_server_host_services(ldap, pkey)
+
+        # try to clean up the leftover DNS entries
+        self._cleanup_server_dns_records(pkey)
 
         return dn
 
