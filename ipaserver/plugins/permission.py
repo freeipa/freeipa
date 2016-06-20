@@ -243,7 +243,6 @@ class permission(baseldap.LDAPObject):
         StrEnum(
             'ipapermright*',
             cli_name='right',
-            deprecated_cli_aliases={'permissions'},
             label=_('Granted rights'),
             doc=_('Rights to grant '
                   '(read, search, compare, write, add, delete, all)'),
