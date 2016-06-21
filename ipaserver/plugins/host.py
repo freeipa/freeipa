@@ -295,7 +295,7 @@ class host(LDAPObject):
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
         'managedby', 'memberofindirect', 'macaddress',
-        'userclass', 'ipaallowedtoperform', 'ipaassignedidview',
+        'userclass', 'ipaallowedtoperform', 'ipaassignedidview', 'krbprincipalauthind'
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -529,6 +529,14 @@ class host(LDAPObject):
         Str('ipaassignedidview?',
             label=_('Assigned ID View'),
             flags=['no_option'],
+        ),
+        Str('krbprincipalauthind*',
+            cli_name='auth_ind',
+            label=_('Authentication Indicators'),
+            doc=_("Defines a whitelist for Authentication Indicators."
+                  " Use 'otp' to allow OTP-based 2FA authentications."
+                  " Use 'radius' to allow RADIUS-based 2FA authentications."
+                  " Other values may be used for custom configurations."),
         ),
     ) + ticket_flags_params
 
@@ -911,6 +919,13 @@ class host_mod(LDAPUpdate):
                 entry_attrs['objectclass'] = entry_attrs_old['objectclass']
             if 'krbticketpolicyaux' not in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].append('krbticketpolicyaux')
+
+        if 'krbprincipalauthind' in entry_attrs:
+            if 'objectclass' not in entry_attrs:
+                entry_attrs_old = ldap.get_entry(dn, ['objectclass'])
+                entry_attrs['objectclass'] = entry_attrs_old['objectclass']
+            if 'krbprincipalaux' not in entry_attrs['objectclass']:
+                entry_attrs['objectclass'].append('krbprincipalaux')
 
         add_sshpubkey_to_attrs_pre(self.context, attrs_list)
 
