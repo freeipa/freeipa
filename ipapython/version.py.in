@@ -46,3 +46,8 @@ NUM_VERSION=__NUM_VERSION__
 
 # The version of the API.
 API_VERSION=u'__API_VERSION__'
+
+
+DEFAULT_PLUGINS = frozenset(l.strip() for l in """
+__DEFAULT_PLUGINS__
+""".strip().splitlines())

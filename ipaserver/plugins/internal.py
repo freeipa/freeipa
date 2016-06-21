@@ -82,6 +82,7 @@ class json_metadata(Command):
             elif objname == "all":
                 objects = dict(
                     (o.name, json_serialize(o)) for o in self.api.Object()
+                    if o is self.api.Object[o.name]
                 )
             empty = False
         except KeyError:
@@ -96,6 +97,7 @@ class json_metadata(Command):
             elif methodname == "all":
                 methods = dict(
                     (m.name, json_serialize(m)) for m in self.api.Method()
+                    if m is self.api.Method[m.name]
                 )
             empty = False
         except KeyError:
@@ -109,6 +111,7 @@ class json_metadata(Command):
             elif cmdname == "all":
                 commands = dict(
                     (c.name, json_serialize(c)) for c in self.api.Command()
+                    if c is self.api.Command[c.name]
                 )
             empty = False
         except KeyError:
@@ -117,12 +120,15 @@ class json_metadata(Command):
         if empty:
             objects = dict(
                 (o.name, json_serialize(o)) for o in self.api.Object()
+                if o is self.api.Object[o.name]
             )
             methods = dict(
                 (m.name, json_serialize(m)) for m in self.api.Method()
+                if m is self.api.Method[m.name]
             )
             commands = dict(
                 (c.name, json_serialize(c)) for c in self.api.Command()
+                if c is self.api.Command[c.name]
             )
 
         retval = dict([

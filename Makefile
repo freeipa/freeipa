@@ -178,6 +178,7 @@ version-update: release-update
 	sed -i -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" ipapython/version.py
 	sed -i -e "s:__VENDOR_VERSION__:$(IPA_VENDOR_VERSION):" ipapython/version.py
 	sed -i -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" ipapython/version.py
+	grep -Po '(?<=default: ).*' API.txt | sed -n -i -e "/__DEFAULT_PLUGINS__/!{p;b};r /dev/stdin" ipapython/version.py
 	touch -r ipapython/version.py.in ipapython/version.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ daemons/ipa-version.h.in \
 		> daemons/ipa-version.h

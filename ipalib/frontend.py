@@ -1258,6 +1258,8 @@ class Object(HasParam):
         namespace = self.api[name]
         assert type(namespace) is APINameSpace
         for plugin in namespace(): # Equivalent to dict.itervalues()
+            if plugin is not namespace[plugin.name]:
+                continue
             if plugin.obj_name == self.name:
                 yield plugin
 
@@ -1328,9 +1330,15 @@ class Attribute(Plugin):
     In practice the `Attribute` class is not used directly, but rather is
     only the base class for the `Method` class.  Also see the `Object` class.
     """
+    obj_version = '1'
+
     @property
     def obj_name(self):
         return self.name.partition('_')[0]
+
+    @property
+    def obj_full_name(self):
+        return self.obj.full_name
 
     @property
     def attr_name(self):
@@ -1340,7 +1348,7 @@ class Attribute(Plugin):
 
     @property
     def obj(self):
-        return self.api.Object[self.obj_name]
+        return self.api.Object[self.obj_name, self.obj_version]
 
 
 class Method(Attribute, Command):

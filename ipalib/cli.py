@@ -728,6 +728,8 @@ class help(frontend.Local):
 
         # build help topics
         for c in self.api.Command():
+            if c is not self.api.Command[c.name]:
+                continue
             if c.NO_CLI:
                 continue
 
@@ -792,6 +794,8 @@ class help(frontend.Local):
         elif name == "commands":
             mcl = 0
             for cmd in self.Command():
+                if cmd is not self.Command[cmd.name]:
+                    continue
                 if cmd.NO_CLI:
                     continue
                 mcl = max(mcl, len(cmd.name))

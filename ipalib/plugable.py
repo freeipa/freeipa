@@ -25,6 +25,7 @@ you are unfamiliar with this Python feature, see
 http://docs.python.org/ref/sequence-types.html
 """
 
+from distutils.version import LooseVersion
 import operator
 import sys
 import threading
@@ -47,7 +48,7 @@ from ipapython.ipa_log_manager import (
     log_mgr,
     LOGGING_FORMAT_FILE,
     LOGGING_FORMAT_STDERR)
-from ipapython.version import VERSION, API_VERSION
+from ipapython.version import VERSION, API_VERSION, DEFAULT_PLUGINS
 
 if six.PY3:
     unicode = str
@@ -125,6 +126,8 @@ class Plugin(ReadOnly):
     Base class for all plugins.
     """
 
+    version = '1'
+
     def __init__(self, api):
         assert api is not None
         self.__api = api
@@ -139,6 +142,12 @@ class Plugin(ReadOnly):
 
     # you know nothing, pylint
     name = classproperty(__name_getter)
+
+    @classmethod
+    def __full_name_getter(cls):
+        return '{}/{}'.format(cls.name, cls.version)
+
+    full_name = classproperty(__full_name_getter)
 
     @classmethod
     def __bases_getter(cls):
@@ -278,6 +287,7 @@ class APINameSpace(collections.Mapping):
         if self.__plugins is not None and self.__plugins_by_key is not None:
             return
 
+        default_map = self.__api._API__default_map
         plugins = set()
         key_dict = self.__plugins_by_key = {}
 
@@ -286,9 +296,12 @@ class APINameSpace(collections.Mapping):
                 continue
             plugins.add(plugin)
             key_dict[plugin] = plugin
-            key_dict[plugin.name] = plugin
+            key_dict[plugin.name, plugin.version] = plugin
+            key_dict[plugin.full_name] = plugin
+            if plugin.version == default_map.get(plugin.name, '1'):
+                key_dict[plugin.name] = plugin
 
-        self.__plugins = sorted(plugins, key=operator.attrgetter('name'))
+        self.__plugins = sorted(plugins, key=operator.attrgetter('full_name'))
 
     def __len__(self):
         self.__enumerate()
@@ -326,6 +339,7 @@ class API(ReadOnly):
         super(API, self).__init__()
         self.__plugins = set()
         self.__plugins_by_key = {}
+        self.__default_map = {}
         self.__instances = {}
         self.__next = {}
         self.__done = set()
@@ -645,7 +659,7 @@ class API(ReadOnly):
             )
 
         # Check override:
-        prev = self.__plugins_by_key.get(plugin.name)
+        prev = self.__plugins_by_key.get(plugin.full_name)
         if prev:
             if not override:
                 # Must use override=True to override:
@@ -668,7 +682,7 @@ class API(ReadOnly):
 
         # The plugin is okay, add to sub_d:
         self.__plugins.add(plugin)
-        self.__plugins_by_key[plugin.name] = plugin
+        self.__plugins_by_key[plugin.full_name] = plugin
 
     def finalize(self):
         """
@@ -679,6 +693,22 @@ class API(ReadOnly):
         """
         self.__doing('finalize')
         self.__do_if_not_done('load_plugins')
+
+        for plugin in self.__plugins:
+            if not self.env.validate_api:
+                if plugin.full_name not in DEFAULT_PLUGINS:
+                    continue
+            else:
+                try:
+                    default_version = self.__default_map[plugin.name]
+                except KeyError:
+                    pass
+                else:
+                    version = LooseVersion(plugin.version)
+                    default_version = LooseVersion(default_version)
+                    if version < default_version:
+                        continue
+            self.__default_map[plugin.name] = plugin.version
 
         production_mode = self.is_production_mode()
 

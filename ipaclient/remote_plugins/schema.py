@@ -153,6 +153,8 @@ class _SchemaPlugin(object):
 
     def __init__(self, name):
         self.name = name
+        self.version = '1'
+        self.full_name = '{}/{}'.format(self.name, self.version)
         self.__class = None
 
     def _create_default_from(self, api, name, keys):
