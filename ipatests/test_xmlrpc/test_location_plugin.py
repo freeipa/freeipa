@@ -10,7 +10,7 @@ from ipatests.test_xmlrpc.tracker.location_plugin import LocationTracker
 from ipatests.test_xmlrpc.tracker.server_plugin import ServerTracker
 from ipatests.test_xmlrpc.xmlrpc_test import (
     XMLRPC_test,
-    raises_exact,
+    raises_exact
 )
 from ipapython.dnsutil import DNSName
 
@@ -30,13 +30,13 @@ def location_invalid(request):
 @pytest.fixture(scope='class')
 def location_absolute(request):
     tracker = LocationTracker(u'invalid.absolute.')
-    return tracker.make_fixture(request)
+    return tracker
 
 
 @pytest.fixture(scope='class')
 def server(request):
     tracker = ServerTracker(api.env.host)
-    return tracker
+    return tracker.make_fixture_clean_location(request)
 
 
 @pytest.mark.tier1
@@ -122,7 +122,18 @@ class TestCRUD(XMLRPC_test):
 
 
 @pytest.mark.tier1
+@pytest.mark.skipif(
+    not api.Command.dns_is_enabled()['result'], reason='DNS not configured')
 class TestLocationsServer(XMLRPC_test):
+    messages = [{
+        u'data': {u'service': u'named-pkcs11.service',
+                  u'server': u'%s' % api.env.host},
+        u'message': (u'Service named-pkcs11.service requires restart '
+                     u'on IPA server %s to apply configuration '
+                     u'changes.' % api.env.host),
+        u'code': 13025,
+        u'type': u'warning',
+        u'name': u'ServiceRestartRequired'}]
 
     def test_add_nonexistent_location_to_server(self, server):
         nonexistent_loc = DNSName(u'nonexistent-location')
@@ -140,13 +151,13 @@ class TestLocationsServer(XMLRPC_test):
     def test_add_location_to_server(self, location, server):
         location.ensure_exists()
         server.update(
-            dict(ipalocation_location=location.idnsname_obj),
-            expected_updates=dict(
-                ipalocation_location=[location.idnsname_obj],
-            )
-        )
+            updates={u'ipalocation_location': location.idnsname_obj},
+            expected_updates={u'ipalocation_location': [location.idnsname_obj],
+                              u'enabled_role_servrole': lambda other: True},
+            messages=self.messages)
         location.add_server_to_location(server.server_name)
         location.retrieve()
+        location.remove_server_from_location(server.server_name)
 
     def test_retrieve(self, server):
         server.retrieve()
@@ -174,16 +185,15 @@ class TestLocationsServer(XMLRPC_test):
 
     def test_add_location_to_server_custom_weight(self, location, server):
         location.ensure_exists()
+
         server.update(
-            dict(
-                ipalocation_location=location.idnsname_obj,
-                ipaserviceweight=200,
-            ),
-            expected_updates=dict(
-                ipalocation_location=[location.idnsname_obj],
-                ipaserviceweight=[u'200'],
-            )
-        )
+            updates={u'ipalocation_location': location.idnsname_obj,
+                     u'ipaserviceweight': 200},
+            expected_updates={u'ipalocation_location': [location.idnsname_obj],
+                              u'enabled_role_servrole': lambda other: True,
+                              u'ipaserviceweight': [u'200']},
+            messages=self.messages)
+
         # remove invalid data from the previous test
         location.remove_server_from_location(server.server_name)
 
@@ -191,10 +201,16 @@ class TestLocationsServer(XMLRPC_test):
         location.retrieve()
 
     def test_remove_location_from_server(self, location, server):
-        server.update(dict(ipalocation_location=None))
+        server.update(
+            updates={u'ipalocation_location': None},
+            expected_updates={u'enabled_role_servrole': lambda other: True},
+            messages=self.messages)
         location.remove_server_from_location(server.server_name)
         location.retrieve()
 
     def test_remove_service_weight_from_server(self, location, server):
-        server.update(dict(ipaserviceweight=None))
+        server.update(
+            updates={u'ipaserviceweight': None},
+            expected_updates={u'enabled_role_servrole': lambda other: True},
+            messages=self.messages)
         location.retrieve()

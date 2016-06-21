@@ -3,6 +3,7 @@
 #
 from __future__ import absolute_import
 
+from ipalib import errors
 from ipapython.dn import DN
 from ipatests.util import assert_deepequal
 from ipatests.test_xmlrpc.tracker.base import Tracker
@@ -13,7 +14,7 @@ class ServerTracker(Tracker):
     retrieve_keys = {
         'cn', 'dn', 'ipamaxdomainlevel', 'ipamindomainlevel',
         'iparepltopomanagedsuffix_topologysuffix', 'ipalocation_location',
-        'ipaserviceweight',
+        'ipaserviceweight', 'enabled_role_servrole'
     }
     retrieve_all_keys = retrieve_keys | {'objectclass'}
     create_keys = retrieve_keys | {'objectclass'}
@@ -101,10 +102,48 @@ class ServerTracker(Tracker):
             result=[],
         ), result)
 
-    def check_update(self, result, extra_keys=()):
+    def check_update(self, result, extra_keys=(), messages=None):
         """Check `server-update` command result"""
-        assert_deepequal(dict(
+        expected = dict(
             value=self.server_name,
-            summary=u'Modified IPA server "{server}"'.format(server=self.name),
+            summary=u'Modified IPA server "{server}"'.format(
+                server=self.name),
             result=self.filter_attrs(self.update_keys | set(extra_keys))
-        ), result)
+            )
+        if messages:
+            expected['messages'] = messages
+
+        assert_deepequal(expected, result)
+
+    def update(self, updates, expected_updates=None, messages=None):
+        if expected_updates is None:
+            expected_updates = {}
+
+        self.ensure_exists()
+        command = self.make_update_command(updates)
+        result = command()
+        self.attrs.update(updates)
+        self.attrs.update(expected_updates)
+        for key, value in self.attrs.items():
+            if value is None:
+                del self.attrs[key]
+
+        self.check_update(
+            result,
+            extra_keys=set(updates.keys()) | set(expected_updates.keys()),
+            messages=messages)
+
+    def make_fixture_clean_location(self, request):
+        command = self.make_update_command({u'ipalocation_location': None})
+        try:
+            command()
+        except errors.EmptyModlist:
+            pass
+
+        def cleanup():
+            try:
+                command()
+            except errors.EmptyModlist:
+                pass
+        request.addfinalizer(cleanup)
+        return self

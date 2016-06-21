@@ -17,7 +17,8 @@ if six.PY3:
 
 class LocationTracker(Tracker):
     """Tracker for IPA Location tests"""
-    retrieve_keys = {'idnsname', 'description', 'dn', 'servers_server'}
+    retrieve_keys = {
+        'idnsname', 'description', 'dn', 'servers_server', 'dns_server'}
     retrieve_all_keys = retrieve_keys | {'objectclass'}
     create_keys = {'idnsname', 'description', 'dn', 'objectclass'}
     find_keys = {'idnsname', 'description', 'dn',}
@@ -130,21 +131,26 @@ class LocationTracker(Tracker):
     def add_server_to_location(
             self, server_name, weight=100, relative_weight=u"100.0%"):
         self.attrs.setdefault('servers_server', []).append(server_name)
+        self.attrs.setdefault('dns_server', []).append(server_name)
         self.servers[server_name] = {
             'cn': [server_name],
             'ipaserviceweight': [unicode(weight)],
-            'service_relative_weight': [relative_weight]
+            'service_relative_weight': [relative_weight],
+            'enabled_role_servrole': lambda other: True
         }
 
     def remove_server_from_location(self, server_name):
         if 'servers_server' in self.attrs:
             try:
                 self.attrs['servers_server'].remove(server_name)
+                self.attrs['dns_server'].remove(server_name)
             except ValueError:
                 pass
             else:
                 if not self.attrs['servers_server']:
                     del self.attrs['servers_server']
+                if not self.attrs['dns_server']:
+                    del self.attrs['dns_server']
         try:
             del self.servers[server_name]
         except KeyError:
