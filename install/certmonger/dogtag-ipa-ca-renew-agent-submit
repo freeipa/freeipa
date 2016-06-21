@@ -62,6 +62,24 @@ if six.PY3:
     unicode = str
 
 
+IPA_CA_NICKNAME = 'caSigningCert cert-pki-ca'
+
+def get_nickname():
+    csr = os.environ.get('CERTMONGER_CSR')
+    return pkcs10.get_friendlyname(csr) if csr else None
+
+def is_lightweight_ca():
+    nickname = get_nickname() or ''
+    return nickname != IPA_CA_NICKNAME and nickname.startswith(IPA_CA_NICKNAME)
+
+def is_renewable():
+    cert = os.environ.get('CERTMONGER_CERTIFICATE')
+    if not cert:
+        return False
+    else:
+        return x509.is_self_signed(cert) or is_lightweight_ca()
+
+
 @contextlib.contextmanager
 def ldap_connect():
     conn = None
@@ -210,6 +228,11 @@ def store_cert():
     if not cert:
         return (REJECTED, "New certificate requests not supported")
 
+    if is_lightweight_ca():
+        # Lightweight CAs are updated in Dogtag's NSSDB
+        # by Dogtag itself, so do not store it
+        return (ISSUED, cert)
+
     dercert = x509.normalize_certificate(cert)
 
     dn = DN(('cn', nickname), ('cn', 'ca_renewal'),
@@ -338,6 +361,12 @@ def retrieve_cert_continuous():
     if old_cert:
         old_cert = x509.normalize_certificate(old_cert)
 
+    if is_lightweight_ca():
+        # Lightweight CAs are updated in Dogtag's NSSDB
+        # by Dogtag itself, so do not try to retrieve it.
+        # Everything is fine as is.
+        return (ISSUED, os.environ.get('CERTMONGER_CERTIFICATE'))
+
     result = call_handler(retrieve_or_reuse_cert)
     if result[0] != ISSUED:
         return result
@@ -393,13 +422,12 @@ def renew_ca_cert():
     cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if not cert:
         return (REJECTED, "New certificate requests not supported")
-    is_self_signed = x509.is_self_signed(cert)
 
     operation = os.environ.get('CERTMONGER_OPERATION')
     if operation == 'SUBMIT':
         state = 'retrieve'
 
-        if is_self_signed:
+        if is_renewable():
             ca = cainstance.CAInstance(host_name=api.env.host, ldapi=False)
             if ca.is_renewal_master():
                 state = 'request'
@@ -419,10 +447,11 @@ def renew_ca_cert():
 
     if state == 'retrieve':
         result = call_handler(retrieve_cert)
-        if result[0] == REJECTED and not is_self_signed:
+        if result[0] == REJECTED and not is_renewable():
             syslog.syslog(syslog.LOG_ALERT,
-                          "IPA CA certificate is about to expire, "
-                          "use ipa-cacert-manage to renew it")
+                          "Certificate with subject '%s' is about to expire, "
+                          "use ipa-cacert-manage to renew it"
+                          % (os.environ.get("CERTMONGER_REQ_SUBJECT"),))
     elif state == 'request':
         profile = os.environ['CERTMONGER_CA_PROFILE']
         os.environ['CERTMONGER_CA_PROFILE'] = 'caCACert'
