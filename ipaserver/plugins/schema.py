@@ -7,6 +7,7 @@ import itertools
 import sys
 
 import six
+import hashlib
 
 from .baseldap import LDAPObject
 from ipalib import errors
@@ -17,6 +18,10 @@ from ipalib.parameters import Bool, Dict, Flag, Str
 from ipalib.plugable import Registry
 from ipalib.text import _
 from ipapython.version import API_VERSION
+
+# Schema TTL sent to clients in response to schema call.
+# Number of seconds before client should check for schema update.
+SCHEMA_TTL = 7*24*3600  # default: 7 days
 
 __doc__ = _("""
 API Schema
@@ -690,6 +695,33 @@ class output_find(BaseParamSearch):
 class schema(Command):
     NO_CLI = True
 
+    @staticmethod
+    def _calculate_fingerprint(data):
+        """
+        Returns fingerprint for schema
+
+        Behavior of this function can be changed at any time
+        given that it always generates identical fingerprint for
+        identical data (change in order of items in dict is
+        irelevant) and the risk of generating identical fingerprint
+        for different inputs is low.
+        """
+        to_process = [data]
+        fingerprint = hashlib.sha1()
+
+        for entry in to_process:
+            if isinstance(entry, (list, tuple)):
+                for item in entry:
+                    to_process.append(item)
+            elif isinstance(entry, dict):
+                for key in sorted(entry.keys()):
+                    to_process.append(key)
+                    to_process.append(entry[key])
+            else:
+                fingerprint.update(unicode(entry).encode('utf-8'))
+
+        return fingerprint.hexdigest()[:8]
+
     def execute(self, *args, **kwargs):
         commands = list(self.api.Object.command.search(**kwargs))
         for command in commands:
@@ -711,5 +743,9 @@ class schema(Command):
         schema['commands'] = commands
         schema['classes'] = classes
         schema['topics'] = topics
+
+        schema_fp = self._calculate_fingerprint(schema)
+        schema['fingerprint'] = schema_fp
+        schema['ttl'] = SCHEMA_TTL
 
         return dict(result=schema)
