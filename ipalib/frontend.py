@@ -428,6 +428,10 @@ class Command(HasParam):
     def topic(self):
         return type(self).__module__.rpartition('.')[2]
 
+    @property
+    def forwarded_name(self):
+        return self.full_name
+
     def __call__(self, *args, **options):
         """
         Perform validation and then execute the command.
@@ -811,7 +815,8 @@ class Command(HasParam):
         Forward call over RPC to this same command on server.
         """
         try:
-            return self.Backend.rpcclient.forward(self.name, *args, **kw)
+            return self.Backend.rpcclient.forward(self.forwarded_name,
+                                                  *args, **kw)
         except errors.RequirementError as e:
             if self.api.env.context != 'cli':
                 raise
