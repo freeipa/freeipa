@@ -26,6 +26,7 @@ import optparse
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import admintool
+from ipapython.certdb import get_ca_nickname
 from ipapython.dn import DN
 from ipalib import api, errors
 from ipalib.constants import CACERT
@@ -163,6 +164,7 @@ class ServerCertInstall(admintool.AdminTool):
             ca_cert_files=[CACERT],
             host_name=api.env.host)
 
+        dirname = os.path.normpath(dirname)
         cdb = certs.CertDB(api.env.realm, nssdir=dirname)
         try:
             ca_enabled = api.Command.ca_is_enabled()['result']
@@ -170,12 +172,24 @@ class ServerCertInstall(admintool.AdminTool):
                 cdb.untrack_server_cert(old_cert)
 
             cdb.delete_cert(old_cert)
+            prevs = cdb.find_server_certs()
             cdb.import_pkcs12(pkcs12_file.name, pin)
-            server_cert = cdb.find_server_certs()[0][0]
+            news = cdb.find_server_certs()
+            server_certs = [item for item in news if item not in prevs]
+            server_cert = server_certs[0][0]
 
             if ca_enabled:
-                cdb.track_server_cert(server_cert, principal, cdb.passwd_fname,
-                                      command)
+                # Start tracking only if the cert was issued by IPA CA
+                # Retrieve IPA CA
+                ipa_ca_cert = cdb.get_cert_from_db(
+                    get_ca_nickname(api.env.realm),
+                    pem=False)
+                # And compare with the CA which signed this certificate
+                if ca_cert == ipa_ca_cert:
+                    cdb.track_server_cert(server_cert,
+                                          principal,
+                                          cdb.passwd_fname,
+                                          command)
         except RuntimeError as e:
             raise admintool.ScriptError(str(e))
 
