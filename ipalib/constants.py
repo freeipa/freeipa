@@ -194,6 +194,9 @@ DEFAULT_CONFIG = (
     # behavior when newer clients talk to older servers. Use with caution.
     ('skip_version_check', False),
 
+    # Ignore TTL. Perform schema call and download schema if not in cache.
+    ('force_schema_check', False),
+
     # ********************************************************
     #  The remaining keys are never set from the values here!
     # ********************************************************
