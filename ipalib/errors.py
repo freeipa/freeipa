@@ -1820,6 +1820,24 @@ class CertificateInvalidError(CertificateError):
     format = _('%(name)s certificate is not valid')
 
 
+class SchemaUpToDate(ExecutionError):
+    """
+    **4311** Raised by server when client asks for metadata but
+    already has current version. Exception's attribute 'fingerprint'
+    identitfies schema version to use. Attribute 'ttl' specifies how
+    long (in seconds) before client should check for schema update.
+
+    For example:
+    >>> raise SchemaUpToDate(fingerprint=u'deadbeef', ttl=3600)
+    Traceback (most recent call last):
+      ...
+    SchemaUpToDate: Schema is up to date (FP 'deadbeef', TTL 3600 s)
+    """
+
+    errno = 4311
+    format = _("Schema is up to date (FP '%(fingerprint)s', TTL %(ttl)s s)")
+
+
 class DNSError(ExecutionError):
     """
     **4400** Base class for DNS execution errors (*4400 - 4499*).

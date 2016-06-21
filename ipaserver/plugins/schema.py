@@ -695,6 +695,13 @@ class output_find(BaseParamSearch):
 class schema(Command):
     NO_CLI = True
 
+    takes_options = (
+        Str(
+            'known_fingerprints*',
+            label=_("Fingerprint of schema cached by client")
+        ),
+    )
+
     @staticmethod
     def _calculate_fingerprint(data):
         """
@@ -747,5 +754,11 @@ class schema(Command):
         schema_fp = self._calculate_fingerprint(schema)
         schema['fingerprint'] = schema_fp
         schema['ttl'] = SCHEMA_TTL
+
+        if schema['fingerprint'] in kwargs.get('known_fingerprints', []):
+            raise errors.SchemaUpToDate(
+                fingerprint=schema['fingerprint'],
+                ttl=schema['ttl'],
+            )
 
         return dict(result=schema)

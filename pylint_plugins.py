@@ -125,6 +125,10 @@ ipa_class_members = {
     'ipalib.errors.ValidationError': [
         'error',
     ],
+    'ipalib.errors.SchemaUpToDate': [
+        'fingerprint',
+        'ttl',
+    ],
     'ipalib.messages.PublicMessage': [
         'msg',
         'strerror',
