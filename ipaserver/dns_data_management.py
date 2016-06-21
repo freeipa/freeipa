@@ -68,7 +68,6 @@ class IPASystemRecords(object):
         self.api_instance = api_instance
         self.domain_abs = DNSName(self.api_instance.env.domain).make_absolute()
         self.servers_data = {}
-        self.used_locations = set()
         self.__init_data()
 
     def reload_data(self):
@@ -92,7 +91,6 @@ class IPASystemRecords(object):
 
     def __init_data(self):
         self.servers_data = {}
-        self.used_locations = set()
 
         servers_result = self.api_instance.Command.server_find(
             pkey_only=True)['result']
@@ -104,8 +102,6 @@ class IPASystemRecords(object):
                 'location': location,
                 'roles': roles,
             }
-            if location:
-                self.used_locations.add(location)
 
     def __add_srv_records(
         self, zone_obj, hostname, rname_port_map,
@@ -353,12 +349,13 @@ class IPASystemRecords(object):
                 pkey_only=True)['result']
             servers = [s['cn'][0] for s in servers_result]
 
-        # generate only records for used location, records for unassigned
-        # locations are useless
+        locations_result = self.api_instance.Command.location_find()['result']
+        locations = [l['idnsname'][0] for l in locations_result]
+
         for server in servers:
             self._get_location_dns_records_for_server(
                 zone_obj, server,
-                self.used_locations, roles=roles,
+                locations, roles=roles,
                 include_master_role=include_master_role)
         return zone_obj
 
