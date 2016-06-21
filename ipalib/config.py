@@ -563,6 +563,15 @@ class Env(object):
                 self.jsonrpc_uri = urlunparse((
                         scheme, netloc, uripath, params, query, fragment))
 
+        if 'server' not in self:
+            if 'jsonrpc_uri' in self:
+                jsonrpc_uri = self.jsonrpc_uri
+            else:
+                jsonrpc_uri = defaults.get('jsonrpc_uri')
+            if jsonrpc_uri:
+                parsed = urlparse(jsonrpc_uri)
+                self.server = parsed.netloc
+
         self._merge(**defaults)
 
     def _finalize(self, **lastchance):

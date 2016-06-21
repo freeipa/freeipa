@@ -231,6 +231,7 @@ DEFAULT_CONFIG = (
     ('logdir', object),  # Directory containing log files
     ('log', object),  # Path to context specific log file
     ('jsonrpc_uri', object),  # derived from xmlrpc_uri in Env._finalize_core()
+    ('server', object),  # derived from jsonrpc_uri in Env._finalize_core()
 
 )
 
