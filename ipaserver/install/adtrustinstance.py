@@ -124,7 +124,6 @@ class ADTRUSTInstance(service.Service):
     def __init__(self, fstore=None):
         self.netbios_name = None
         self.reset_netbios_name = None
-        self.no_msdcs = None
         self.add_sids = None
         self.smbd_user = None
         self.smb_dn_pwd = None
@@ -585,17 +584,14 @@ class ADTRUSTInstance(service.Service):
 
         err_msg = None
 
-        if self.no_msdcs:
-            err_msg = '--no-msdcs was given, special DNS service records ' \
-                      'are not added to local DNS server'
+        ret = api.Command['dns_is_enabled']()
+        if not ret['result']:
+            err_msg = "DNS management was not enabled at install time."
         else:
-            ret = api.Command['dns_is_enabled']()
-            if not ret['result']:
-                err_msg = "DNS management was not enabled at install time."
-            else:
-                if not dns_zone_exists(zone):
-                    err_msg = "DNS zone %s cannot be managed " \
-                              "as it is not defined in IPA" % zone
+            if not dns_zone_exists(zone):
+                err_msg = (
+                    "DNS zone %s cannot be managed as it is not defined in "
+                    "IPA" % zone)
 
         if err_msg:
             self.print_msg(err_msg)
@@ -766,7 +762,7 @@ class ADTRUSTInstance(service.Service):
 
     def setup(self, fqdn, realm_name, netbios_name,
               reset_netbios_name, rid_base, secondary_rid_base,
-              no_msdcs=False, add_sids=False, smbd_user="samba",
+              add_sids=False, smbd_user="samba",
               enable_compat=False):
         self.fqdn = fqdn
         self.realm = realm_name
@@ -774,7 +770,6 @@ class ADTRUSTInstance(service.Service):
         self.reset_netbios_name = reset_netbios_name
         self.rid_base = rid_base
         self.secondary_rid_base = secondary_rid_base
-        self.no_msdcs = no_msdcs
         self.add_sids = add_sids
         self.enable_compat = enable_compat
         self.smbd_user = smbd_user

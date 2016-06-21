@@ -29,6 +29,8 @@ import ldap
 
 import six
 
+from optparse import SUPPRESS_HELP
+
 from ipaserver.install import adtrustinstance
 from ipaserver.install.installutils import (
     read_password,
@@ -54,9 +56,11 @@ def parse_options():
                       default=False, help="print debugging information")
     parser.add_option("--netbios-name", dest="netbios_name",
                       help="NetBIOS name of the IPA domain")
+
+    # no-msdcs has not effect, option is here just for backward compatibility
     parser.add_option("--no-msdcs", dest="no_msdcs", action="store_true",
-                      default=False, help="Do not create DNS service records " \
-                                          "for Windows in managed DNS server")
+                      default=False, help=SUPPRESS_HELP)
+
     parser.add_option("--rid-base", dest="rid_base", type=int, default=1000,
                       help="Start value for mapping UIDs and GIDs to RIDs")
     parser.add_option("--secondary-rid-base", dest="secondary_rid_base",
@@ -390,7 +394,7 @@ def main():
     smb.setup(api.env.host, api.env.realm,
               netbios_name, reset_netbios_name,
               options.rid_base, options.secondary_rid_base,
-              options.no_msdcs, options.add_sids,
+              options.add_sids,
               enable_compat = options.enable_compat)
     smb.find_local_id_range()
     smb.create_instance()
