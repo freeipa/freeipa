@@ -48,7 +48,6 @@ class BaseMetaObject(Object):
         Str(
             'name',
             label=_("Name"),
-            primary_key=True,
             normalizer=lambda name: name.replace(u'-', u'_'),
             flags={'no_search'},
         ),
@@ -99,7 +98,8 @@ class BaseMetaObject(Object):
                           criteria in r.get('doc', u'').lower()))
 
         if not kwargs.get('all', False) and kwargs.get('pkey_only', False):
-            result = ({'name': r['name']} for r in result)
+            key = self.primary_key.name
+            result = ({key: r[key]} for r in result)
 
         return result
 
@@ -136,6 +136,24 @@ class MetaObject(BaseMetaObject):
         ),
     )
 
+    def get_params(self):
+        for param in super(MetaObject, self).get_params():
+            yield param
+
+            if param.name == 'name':
+                yield Str(
+                    'version',
+                    label=_("Version"),
+                    flags={'no_search'},
+                )
+                yield Str(
+                    'full_name',
+                    label=_("Full name"),
+                    primary_key=True,
+                    normalizer=lambda name: name.replace(u'-', u'_'),
+                    flags={'no_search'},
+                )
+
 
 class MetaRetrieve(BaseMetaRetrieve):
     pass
@@ -161,6 +179,8 @@ class metaobject(MetaObject):
     def _get_obj(self, metaobj, all=False, **kwargs):
         obj = dict()
         obj['name'] = unicode(metaobj.name)
+        obj['version'] = unicode(metaobj.version)
+        obj['full_name'] = unicode(metaobj.full_name)
 
         if all:
             params = [unicode(p.name) for p in self._iter_params(metaobj)]
@@ -213,10 +233,10 @@ class command(metaobject):
             except errors.NotFound:
                 pass
             else:
-                obj['topic_topic'] = topic['name']
+                obj['topic_topic'] = topic['full_name']
 
         if isinstance(cmd, Method):
-            obj['obj_class'] = unicode(cmd.obj_name)
+            obj['obj_class'] = unicode(cmd.obj_full_name)
             obj['attr_name'] = unicode(cmd.attr_name)
 
         if cmd.NO_CLI:
@@ -327,61 +347,76 @@ class topic_(MetaObject):
     def __init__(self, api):
         super(topic_, self).__init__(api)
         self.__topics = None
+        self.__topics_by_key = None
 
-    def __get_topics(self):
-        if self.__topics is None:
-            topics = {}
-            object.__setattr__(self, '_topic___topics', topics)
+    def __make_topics(self):
+        if self.__topics is not None and self.__topics_by_key is not None:
+            return
 
-            for command in self.api.Command():
-                topic_value = command.topic
-                if topic_value is None:
-                    continue
-                topic_name = unicode(topic_value)
+        object.__setattr__(self, '_topic___topics', [])
+        topics = self.__topics
+        object.__setattr__(self, '_topic___topics_by_key', {})
+        topics_by_key = self.__topics_by_key
 
-                while topic_name not in topics:
-                    topic = topics[topic_name] = {'name': topic_name}
+        for command in self.api.Command():
+            topic_value = command.topic
+            if topic_value is None:
+                continue
+            topic_name = unicode(topic_value)
 
-                    for package in self.api.packages:
-                        module_name = '.'.join((package.__name__, topic_name))
+            while topic_name not in topics_by_key:
+                topic_version = u'1'
+                topic_full_name = u'{}/{}'.format(topic_name,
+                                                  topic_version)
+                topic = {
+                    'name': topic_name,
+                    'version': topic_version,
+                    'full_name': topic_full_name,
+                }
+                topics.append(topic)
+                topics_by_key[topic_name] = topic
+                topics_by_key[topic_full_name] = topic
+
+                for package in self.api.packages:
+                    module_name = '.'.join((package.__name__, topic_name))
+                    try:
+                        module = sys.modules[module_name]
+                    except KeyError:
                         try:
-                            module = sys.modules[module_name]
-                        except KeyError:
-                            try:
-                                module = importlib.import_module(module_name)
-                            except ImportError:
-                                continue
-
-                        if module.__doc__ is not None:
-                            topic['doc'] = unicode(module.__doc__).strip()
-
-                        try:
-                            topic_value = module.topic
-                        except AttributeError:
+                            module = importlib.import_module(module_name)
+                        except ImportError:
                             continue
-                        if topic_value is not None:
-                            topic_name = unicode(topic_value)
-                            topic['topic_topic'] = topic_name
-                        else:
-                            topic.pop('topic_topic', None)
 
-        return self.__topics
+                    if module.__doc__ is not None:
+                        topic['doc'] = unicode(module.__doc__).strip()
+
+                    try:
+                        topic_value = module.topic
+                    except AttributeError:
+                        continue
+                    if topic_value is not None:
+                        topic_name = unicode(topic_value)
+                        topic['topic_topic'] = topic_full_name
+                    else:
+                        topic.pop('topic_topic', None)
 
     def _get_obj(self, topic, **kwargs):
         return topic
 
-    def _retrieve(self, name, **kwargs):
+    def _retrieve(self, full_name, **kwargs):
+        self.__make_topics()
         try:
-            return self.__get_topics()[name]
+            return self.__topics_by_key[full_name]
         except KeyError:
             raise errors.NotFound(
                 reason=_("%(pkey)s: %(oname)s not found") % {
-                    'pkey': name, 'oname': self.name,
+                    'pkey': full_name, 'oname': self.name,
                 }
             )
 
     def _search(self, **kwargs):
-        return self.__get_topics().values()
+        self.__make_topics()
+        return iter(self.__topics)
 
 
 @register()
@@ -412,6 +447,12 @@ class BaseParam(BaseMetaObject):
             flags={'no_search'},
         ),
     )
+
+    def get_params(self):
+        for param in super(BaseParam, self).get_params():
+            if param.name == 'name':
+                param = param.clone(primary_key=True)
+            yield param
 
     @property
     def parent(self):
@@ -578,12 +619,12 @@ class param(BaseParam):
 
         return obj
 
-    def _retrieve(self, metaobjectname, name, **kwargs):
+    def _retrieve(self, metaobjectfull_name, name, **kwargs):
         try:
-            metaobj = self.api.Command[metaobjectname]
+            metaobj = self.api.Command[metaobjectfull_name]
             plugin = self.api.Object['command']
         except KeyError:
-            metaobj = self.api.Object[metaobjectname]
+            metaobj = self.api.Object[metaobjectfull_name]
             plugin = self.api.Object['class']
 
         for param in plugin._iter_params(metaobj):
@@ -596,12 +637,12 @@ class param(BaseParam):
             }
         )
 
-    def _search(self, metaobjectname, **kwargs):
+    def _search(self, metaobjectfull_name, **kwargs):
         try:
-            metaobj = self.api.Command[metaobjectname]
+            metaobj = self.api.Command[metaobjectfull_name]
             plugin = self.api.Object['command']
         except KeyError:
-            metaobj = self.api.Object[metaobjectname]
+            metaobj = self.api.Object[metaobjectfull_name]
             plugin = self.api.Object['class']
 
         return ((metaobj, param) for param in plugin._iter_params(metaobj))
@@ -668,8 +709,8 @@ class output(BaseParam):
 
         return obj
 
-    def _retrieve(self, commandname, name, **kwargs):
-        cmd = self.api.Command[commandname]
+    def _retrieve(self, commandfull_name, name, **kwargs):
+        cmd = self.api.Command[commandfull_name]
         try:
             return (cmd, cmd.output[name])
         except KeyError:
@@ -679,8 +720,8 @@ class output(BaseParam):
                 }
             )
 
-    def _search(self, commandname, **kwargs):
-        cmd = self.api.Command[commandname]
+    def _search(self, commandfull_name, **kwargs):
+        cmd = self.api.Command[commandfull_name]
         return ((cmd, output) for output in cmd.output())
 
 

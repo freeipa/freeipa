@@ -133,6 +133,14 @@ class _SchemaMethod(Method, _SchemaCommand):
         ),
     )
 
+    @property
+    def obj_name(self):
+        return self.api.Object[self.obj_full_name].name
+
+    @property
+    def obj_version(self):
+        return self.api.Object[self.obj_full_name].version
+
     def get_output_params(self):
         seen = set()
         for output_param in super(_SchemaMethod, self).get_output_params():
@@ -151,14 +159,13 @@ class _SchemaPlugin(object):
     bases = None
     schema_key = None
 
-    def __init__(self, name):
-        self.name = name
-        self.version = '1'
-        self.full_name = '{}/{}'.format(self.name, self.version)
+    def __init__(self, full_name):
+        self.name, _slash, self.version = full_name.partition('/')
+        self.full_name = full_name
         self.__class = None
 
     def _create_default_from(self, api, name, keys):
-        cmd_name = self.name
+        cmd_name = self.full_name
 
         def get_default(*args):
             kw = dict(zip(keys, args))
@@ -176,7 +183,7 @@ class _SchemaPlugin(object):
             def callback():
                 return get_default()
 
-        callback.__name__ = '{0}_{1}_default'.format(cmd_name, name)
+        callback.__name__ = '{0}_{1}_default'.format(self.name, name)
 
         return DefaultFrom(callback, *keys)
 
@@ -247,11 +254,13 @@ class _SchemaPlugin(object):
     def _create_class(self, api, schema):
         class_dict = {}
 
-        class_dict['name'] = self.name
+        class_dict['name'] = str(schema['name'])
+        class_dict['version'] = str(schema['version'])
+        class_dict['full_name'] = str(schema['full_name'])
         if 'doc' in schema:
             class_dict['doc'] = schema['doc']
         if 'topic_topic' in schema:
-            class_dict['topic'] = str(schema['topic_topic'])
+            class_dict['topic'] = str(schema['topic_topic']).partition('/')[0]
         else:
             class_dict['topic'] = None
 
@@ -262,7 +271,7 @@ class _SchemaPlugin(object):
 
     def __call__(self, api):
         if self.__class is None:
-            schema = api._schema[self.schema_key][self.name]
+            schema = api._schema[self.schema_key][self.full_name]
             name, bases, class_dict = self._create_class(api, schema)
             self.__class = type(name, bases, class_dict)
 
@@ -306,7 +315,7 @@ class _SchemaCommandPlugin(_SchemaPlugin):
             bases = (_SchemaMethod,)
 
         if 'obj_class' in schema:
-            class_dict['obj_name'] = str(schema['obj_class'])
+            class_dict['obj_full_name'] = str(schema['obj_class'])
         if 'attr_name' in schema:
             class_dict['attr_name'] = str(schema['attr_name'])
         if 'exclude' in schema and u'cli' in schema['exclude']:
@@ -345,7 +354,7 @@ def get_package(api):
             client.disconnect()
 
         for key in ('commands', 'classes', 'topics'):
-            schema[key] = {str(s.pop('name')): s for s in schema[key]}
+            schema[key] = {str(s['full_name']): s for s in schema[key]}
 
         object.__setattr__(api, '_schema', schema)
 
@@ -369,13 +378,13 @@ def get_package(api):
     module.register = plugable.Registry()
     for key, plugin_cls in (('commands', _SchemaCommandPlugin),
                             ('classes', _SchemaObjectPlugin)):
-        for name in schema[key]:
-            plugin = plugin_cls(name)
+        for full_name in schema[key]:
+            plugin = plugin_cls(full_name)
             plugin = module.register()(plugin)
-            setattr(module, name, plugin)
     sys.modules[module_name] = module
 
-    for name, topic in six.iteritems(schema['topics']):
+    for full_name, topic in six.iteritems(schema['topics']):
+        name = str(topic['name'])
         module_name = '.'.join((package_name, name))
         try:
             module = sys.modules[module_name]
@@ -384,7 +393,7 @@ def get_package(api):
             module.__file__ = os.path.join(package_dir, '{}.py'.format(name))
         module.__doc__ = topic.get('doc')
         if 'topic_topic' in topic:
-            module.topic = str(topic['topic_topic'])
+            module.topic = str(topic['topic_topic']).partition('/')[0]
         else:
             module.topic = None
 

@@ -881,7 +881,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: class_show/1
 args: 1,3,3
-arg: Str('name')
+arg: Str('full_name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
@@ -890,7 +890,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: command_defaults/1
 args: 1,3,1
-arg: Str('name')
+arg: Str('full_name')
 option: Dict('kw?')
 option: Str('params*')
 option: Str('version?')
@@ -908,7 +908,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: command_show/1
 args: 1,3,3
-arg: Str('name')
+arg: Str('full_name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
@@ -3352,7 +3352,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: output_find/1
 args: 2,4,4
-arg: Str('commandname', cli_name='command')
+arg: Str('commandfull_name', cli_name='command')
 arg: Str('criteria?')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('pkey_only?', autofill=True, default=False)
@@ -3364,7 +3364,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: output_show/1
 args: 2,3,3
-arg: Str('commandname', cli_name='command')
+arg: Str('commandfull_name', cli_name='command')
 arg: Str('name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
@@ -3374,7 +3374,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: param_find/1
 args: 2,4,4
-arg: Str('metaobjectname', cli_name='metaobject')
+arg: Str('metaobjectfull_name', cli_name='metaobject')
 arg: Str('criteria?')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('pkey_only?', autofill=True, default=False)
@@ -3386,7 +3386,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: param_show/1
 args: 2,3,3
-arg: Str('metaobjectname', cli_name='metaobject')
+arg: Str('metaobjectfull_name', cli_name='metaobject')
 arg: Str('name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
@@ -5253,7 +5253,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: topic_show/1
 args: 1,3,3
-arg: Str('name')
+arg: Str('full_name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
