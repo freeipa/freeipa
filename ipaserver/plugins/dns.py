@@ -41,6 +41,7 @@ from ipalib.dns import (extra_name_format,
                         iterate_rrparams_by_parts,
                         part_name_format,
                         record_name_format)
+from ipalib.frontend import Method, Object
 from ipalib.request import context
 from ipalib import api, errors, output
 from ipalib import Command
@@ -4428,11 +4429,8 @@ class dnsforwardzone_remove_permission(DNSZoneBase_remove_permission):
 
 
 @register()
-class dns_update_system_records(Command):
-    __doc__ = _('Update location and IPA server DNS records')
-
-
-    has_output_params = (
+class dns_system_records(Object):
+    takes_params = (
         Str(
             'ipa_records*',
             label=_('IPA DNS records')
@@ -4443,11 +4441,17 @@ class dns_update_system_records(Command):
         )
     )
 
+
+@register()
+class dns_update_system_records(Method):
+    __doc__ = _('Update location and IPA server DNS records')
+
+    obj_name = 'dns_system_records'
+    attr_name = 'update'
+
     has_output = (
-        output.Output(
+        output.Entry(
             'result',
-            type=dict,
-            doc=_('Dictionary mapping variable name to value'),
         ),
         output.Output(
             'value', bool,

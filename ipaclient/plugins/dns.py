@@ -23,7 +23,7 @@ from __future__ import print_function
 import six
 import copy
 
-from ipaclient.frontend import MethodOverride, CommandOverride
+from ipaclient.frontend import MethodOverride
 from ipalib import errors
 from ipalib.dns import (get_part_rrtype,
                         get_record_rrtype,
@@ -347,7 +347,7 @@ class dnsforwardzone_mod(MethodOverride):
 
 
 @register(override=True)
-class dns_update_system_records(CommandOverride):
+class dns_update_system_records(MethodOverride):
     def output_for_cli(self, textui, output, *args, **options):
         output_super = copy.deepcopy(output)
         super_res = output_super.get('result', {})

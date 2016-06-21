@@ -1092,10 +1092,12 @@ output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('value', type=[<type 'unicode'>])
 command: dns_update_system_records
-args: 0,2,2
+args: 0,4,2
+option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('dry_run', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
-output: Output('result', type=[<type 'dict'>])
+output: Entry('result')
 output: Output('value', type=[<type 'bool'>])
 command: dnsconfig_mod
 args: 0,11,3
