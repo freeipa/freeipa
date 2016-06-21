@@ -939,6 +939,33 @@ def ensure_enrolled(installer):
     except Exception:
         sys.exit("Configuration of client side components failed!")
 
+
+def promotion_check_ipa_domain(master_ldap_conn, basedn):
+    entry = master_ldap_conn.get_entry(basedn, ['associatedDomain'])
+    if not 'associatedDomain' in entry:
+        raise RuntimeError('IPA domain not found in LDAP.')
+
+    if len(entry['associatedDomain']) > 1:
+        root_logger.critical(
+            "Multiple IPA domains found. We are so sorry :-(, you are "
+            "probably experiencing this bug "
+            "https://fedorahosted.org/freeipa/ticket/5976. Please contact us "
+            "for help.")
+        raise RuntimeError(
+            'Multiple IPA domains found in LDAP database ({domains}). '
+            'Only one domain is allowed.'.format(
+                domains=u', '.join(entry['associatedDomain'])
+            ))
+
+    if entry['associatedDomain'][0] != api.env.domain:
+        raise RuntimeError(
+            "Cannot promote this client to a replica. Local domain "
+            "'{local}' does not match IPA domain '{ipadomain}'. ".format(
+                local=api.env.domain,
+                ipadomain=entry['associatedDomain'][0]
+        ))
+
+
 @common_cleanup
 @preserve_enrollment_state
 def promote_check(installer):
@@ -1136,6 +1163,8 @@ def promote_check(installer):
             finally:
                 conn.disconnect()
                 conn.connect(ccache=ccache)
+
+        promotion_check_ipa_domain(conn, remote_api.env.basedn)
 
         # Check that we don't already have a replication agreement
         try:
