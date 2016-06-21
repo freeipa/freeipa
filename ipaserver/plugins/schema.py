@@ -727,7 +727,7 @@ class schema(Command):
             else:
                 fingerprint.update(unicode(entry).encode('utf-8'))
 
-        return fingerprint.hexdigest()[:8]
+        return unicode(fingerprint.hexdigest()[:8])
 
     def _generate_schema(self, **kwargs):
         commands = list(self.api.Object.command.search(**kwargs))
