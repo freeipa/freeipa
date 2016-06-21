@@ -161,6 +161,7 @@ return {
                     'idnssoaretry',
                     'idnssoaexpire',
                     'idnssoaminimum',
+                    'dnsdefaultttl',
                     'dnsttl',
                     {
                         $type: 'radio',
