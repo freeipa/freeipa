@@ -729,7 +729,7 @@ class schema(Command):
 
         return fingerprint.hexdigest()[:8]
 
-    def execute(self, *args, **kwargs):
+    def _generate_schema(self, **kwargs):
         commands = list(self.api.Object.command.search(**kwargs))
         for command in commands:
             name = command['name']
@@ -750,9 +750,17 @@ class schema(Command):
         schema['commands'] = commands
         schema['classes'] = classes
         schema['topics'] = topics
+        schema['fingerprint'] = self._calculate_fingerprint(schema)
 
-        schema_fp = self._calculate_fingerprint(schema)
-        schema['fingerprint'] = schema_fp
+        return schema
+
+    def execute(self, *args, **kwargs):
+        try:
+            schema = self.api._schema
+        except AttributeError:
+            schema = self._generate_schema(**kwargs)
+            setattr(self.api, '_schema', schema)
+
         schema['ttl'] = SCHEMA_TTL
 
         if schema['fingerprint'] in kwargs.get('known_fingerprints', []):
