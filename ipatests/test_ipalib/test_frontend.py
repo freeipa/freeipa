@@ -24,7 +24,6 @@ Test the `ipalib.frontend` module.
 # FIXME: Pylint errors
 # pylint: disable=no-member
 import pytest
-
 import six
 
 from ipatests.util import raises, read_only
@@ -462,11 +461,10 @@ class test_Command(ClassChecker):
         api.finalize()
         o = my_cmd(api)
         o.finalize()
-        e = o(**kw)  # pylint: disable=not-callable
+        e = o.get_default(**kw)  # pylint: disable=not-callable
         assert type(e) is dict
-        assert 'result' in e
-        assert 'option2' in e['result']
-        assert e['result']['option2'] == u'some value'
+        assert 'option2' in e
+        assert e['option2'] == u'some value'
 
     def test_validate(self):
         """
@@ -494,7 +492,7 @@ class test_Command(ClassChecker):
         fail = dict(okay)
         fail['option0'] = u'whatever'
         e = raises(errors.ValidationError, sub.validate, **fail)
-        assert_equal(e.name, 'option0')
+        assert_equal(e.name, u'option0')
         assert_equal(e.value, u'whatever')
         assert_equal(e.error, u"must equal 'option0'")
         assert e.rule.__class__.__name__ == 'Rule'
@@ -548,7 +546,7 @@ class test_Command(ClassChecker):
         o = self.get_instance(args=('one', 'two'), options=('three', 'four'))
         e = raises(errors.OverlapError, o.args_options_2_params,
             1, 2, three=3, two=2, four=4, one=1)
-        assert e.names == ['one', 'two']
+        assert e.names == "['one', 'two']"
 
         # Test the permutations:
         o = self.get_instance(args=('one', 'two*'), options=('three', 'four'))
@@ -605,9 +603,9 @@ class test_Command(ClassChecker):
         Test the `ipalib.frontend.Command.params_2_args_options` method.
         """
         o = self.get_instance(args='one', options='two')
-        assert o.params_2_args_options() == ((None,), {})
+        assert o.params_2_args_options() == ((), {})
         assert o.params_2_args_options(one=1) == ((1,), {})
-        assert o.params_2_args_options(two=2) == ((None,), dict(two=2))
+        assert o.params_2_args_options(two=2) == ((), dict(two=2))
         assert o.params_2_args_options(two=2, one=1) == ((1,), dict(two=2))
 
     def test_run(self):
@@ -751,13 +749,13 @@ class test_Command(ClassChecker):
 
         wrong = dict(foo=17.9, bar=[18])
         e = raises(TypeError, inst.validate_output, wrong)
-        assert str(e) == '%s:\n  output[%r]: need %r; got %r: %r' % (
+        assert str(e) == '%s:\n  output[%r]: need (%r,); got %r: %r' % (
             'Complex.validate_output()', 'foo', int, float, 17.9
         )
 
         wrong = dict(foo=18, bar=17)
         e = raises(TypeError, inst.validate_output, wrong)
-        assert str(e) == '%s:\n  output[%r]: need %r; got %r: %r' % (
+        assert str(e) == '%s:\n  output[%r]: need (%r,); got %r: %r' % (
             'Complex.validate_output()', 'bar', list, int, 17
         )
 
