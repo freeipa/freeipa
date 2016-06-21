@@ -35,10 +35,11 @@ class CAACLTracker(Tracker):
         u'memberuser_user', u'memberuser_group',
         u'memberhost_host', u'memberhost_hostgroup',
         u'memberservice_service',
-        u'ipamembercertprofile_certprofile'}
+        u'ipamembercertprofile_certprofile',
+        u'ipamemberca_ca'}
     category_keys = {
         u'ipacacategory', u'ipacertprofilecategory', u'usercategory',
-        u'hostcategory', u'servicecategory'}
+        u'hostcategory', u'servicecategory', u'ipacacategory'}
     retrieve_keys = {
         u'dn', u'cn', u'description', u'ipaenabledflag',
         u'ipamemberca', u'ipamembercertprofile', u'memberuser',
@@ -51,14 +52,15 @@ class CAACLTracker(Tracker):
     update_keys = create_keys - {u'dn'}
 
     def __init__(self, name, ipacertprofile_category=None, user_category=None,
-                 service_category=None, host_category=None, description=None,
-                 default_version=None):
+                 service_category=None, host_category=None,
+                 ipaca_category=None, description=None, default_version=None):
         super(CAACLTracker, self).__init__(default_version=default_version)
 
         self._name = name
         self.description = description
         self._categories = dict(
             ipacertprofilecategory=ipacertprofile_category,
+            ipacacategory=ipaca_category,
             usercategory=user_category,
             servicecategory=service_category,
             hostcategory=host_category)
@@ -200,7 +202,7 @@ class CAACLTracker(Tracker):
     # implemented in standalone test
     #
     # The methods implemented here will be:
-    # caacl_{add,remove}_{host, service, certprofile, user [, subca]}
+    # caacl_{add,remove}_{host, service, certprofile, user, ca}
 
     def _add_acl_component(self, command_name, keys, track):
         """ Add a resource into ACL rule and track it.
@@ -355,6 +357,20 @@ class CAACLTracker(Tracker):
                 {u'certprofile': certprofile}}
 
         return self._remove_acl_component(u'caacl_remove_profile', options, track)
+
+    def add_ca(self, ca=None, track=True):
+        options = {
+            u'ipamemberca_ca':
+                {u'ca': ca}}
+
+        return self._add_acl_component(u'caacl_add_ca', options, track)
+
+    def remove_ca(self, ca=None, track=True):
+        options = {
+            u'ipamemberca_ca':
+                {u'ca': ca}}
+
+        return self._remove_acl_component(u'caacl_remove_ca', options, track)
 
     def enable(self):
         command = self.make_command(u'caacl_enable', self.name)

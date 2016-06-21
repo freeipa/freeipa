@@ -14,6 +14,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipatests.test_xmlrpc.tracker.certprofile_plugin import CertprofileTracker
 from ipatests.test_xmlrpc.tracker.caacl_plugin import CAACLTracker
 from ipatests.test_xmlrpc.tracker.stageuser_plugin import StageUserTracker
+from ipatests.test_xmlrpc.tracker.ca_plugin import CATracker
 
 
 @pytest.fixture(scope='class')
@@ -48,9 +49,16 @@ def category_acl(request):
     name = u'category_acl'
     tracker = CAACLTracker(name, ipacertprofile_category=u'all',
                            user_category=u'all', service_category=u'all',
-                           host_category=u'all')
+                           host_category=u'all', ipaca_category=u'all')
 
     return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def caacl_test_ca(request):
+    name = u'caacl-test-ca'
+    subject = u'CN=caacl test subca,O=test industries inc.'
+    return CATracker(name, subject).make_fixture(request)
 
 
 @pytest.fixture(scope='class')
@@ -109,7 +117,8 @@ class TestCAACLMembers(XMLRPC_test):
             hostcategory=None,
             servicecategory=None,
             ipacertprofilecategory=None,
-            usercategory=None)
+            usercategory=None,
+            ipacacategory=None)
         category_acl.update(updates)
 
     def test_add_profile(self, category_acl, default_profile):
@@ -118,6 +127,15 @@ class TestCAACLMembers(XMLRPC_test):
 
     def test_remove_profile(self, category_acl, default_profile):
         category_acl.remove_profile(certprofile=default_profile.name)
+        category_acl.retrieve()
+
+    def test_add_ca(self, category_acl, caacl_test_ca):
+        caacl_test_ca.ensure_exists()
+        category_acl.add_ca(ca=caacl_test_ca.name)
+        category_acl.retrieve()
+
+    def test_remove_ca(self, category_acl, caacl_test_ca):
+        category_acl.remove_ca(ca=caacl_test_ca.name)
         category_acl.retrieve()
 
     def test_add_invalid_value_service(self, category_acl, default_profile):
@@ -142,6 +160,10 @@ class TestCAACLMembers(XMLRPC_test):
 
     def test_add_invalid_value_profile(self, category_acl):
         res = category_acl.add_profile(certprofile=category_acl.name, track=False)
+        assert len(res['failed']) == 1
+
+    def test_add_invalid_value_ca(self, category_acl):
+        res = category_acl.add_ca(ca=category_acl.name, track=False)
         assert len(res['failed']) == 1
 
     def test_add_staged_user_to_acl(self, category_acl, staged_user):
