@@ -33,13 +33,13 @@ import six
 from ipaserver.install import installutils
 from ipaserver.install import service
 from ipaserver.install import sysupgrade
-from ipaserver.install.cainstance import IPA_CA_RECORD
 from ipapython import sysrestore, ipautil, ipaldap
 from ipapython.ipa_log_manager import *
 from ipapython import dnsutil
 from ipapython.dn import DN
 import ipalib
 from ipalib import api, errors
+from ipalib.constants import IPA_CA_RECORD
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths

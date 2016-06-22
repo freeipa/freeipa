@@ -62,6 +62,7 @@ from ipapython.ipa_log_manager import log_mgr,\
     standard_logging_setup, root_logger
 
 from ipaserver.install import certs
+from ipaserver.install import bindinstance
 from ipaserver.install import dsinstance
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
@@ -78,10 +79,6 @@ try:
 except ImportError:
     import http.client as httplib
 
-
-# When IPA is installed with DNS support, this CNAME should hold all IPA
-# replicas with CA configured
-IPA_CA_RECORD = "ipa-ca"
 
 # We need to reset the template because the CA uses the regular boot
 # information
@@ -1291,6 +1288,14 @@ class CAInstance(DogtagInstance):
         basedn = ipautil.realm_to_suffix(self.realm)
         self.ldap_enable('CA', self.fqdn, None, basedn)
 
+    def __update_ca_records(self):
+        # Install CA DNS records
+        if bindinstance.dns_container_exists(
+            api.env.host, api.env.basedn, ldapi=True, realm=api.env.realm
+        ):
+            bind = bindinstance.BindInstance(ldapi=True)
+            bind.add_ipa_ca_dns_records(api.env.host, api.env.domain)
+
     def configure_replica(self, master_host, subject_base=None,
                           ca_cert_bundle=None, ca_signing_algorithm=None,
                           ca_type=None):
@@ -1359,6 +1364,7 @@ class CAInstance(DogtagInstance):
                   self.__restart_http_instance)
 
         self.step("enabling CA instance", self.__enable_instance)
+        self.step("Updating DNS CA records", self.__update_ca_records)
 
         self.start_creation(runtime=210)
 
@@ -1623,7 +1629,7 @@ def configure_profiles_acl():
 def __get_profile_config(profile_id):
     sub_dict = dict(
         DOMAIN=ipautil.format_netloc(api.env.domain),
-        IPA_CA_RECORD=IPA_CA_RECORD,
+        IPA_CA_RECORD=ipalib.constants.IPA_CA_RECORD,
         CRL_ISSUER='CN=Certificate Authority,o=ipaca',
         SUBJECT_DN_O=dsinstance.DsInstance().find_subject_base(),
     )

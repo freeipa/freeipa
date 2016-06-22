@@ -261,3 +261,4 @@ REPL_AGMT_STRIP_ATTRS = ('modifiersName',
 
 DOMAIN_SUFFIX_NAME = 'domain'
 CA_SUFFIX_NAME = 'ca'
+IPA_CA_RECORD = "ipa-ca"
