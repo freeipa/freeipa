@@ -100,7 +100,9 @@ return {
                     ]
                 }
             ],
-            needs_update: true
+            needs_update: true,
+            actions: [ 'update_dns_records' ],
+            header_actions: [ 'update_dns_records' ]
         }
     ]
 };};
@@ -553,6 +555,45 @@ var make_dnsserver_spec = function() {
     return spec;
 };
 
+
+IPA.dns.update_dns_records_action = function(spec) {
+
+    spec = spec || {};
+
+    spec.name = spec.name || 'update_dns_records';
+    spec.label = spec.label || '@i18n:objects.dnsconfig.update_dns';
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function() {
+        var spec = {
+            title: '@i18n:objects.dnsconfig.update_dns',
+            message: '@i18n:objects.dnsconfig.update_dns_dialog_msg',
+            ok_label: '@i18n:buttons.update'
+        };
+
+        that.dialog = IPA.confirm_dialog(spec);
+
+        that.dialog.on_ok = function() {
+
+            var command = rpc.command({
+                entity: 'dns',
+                method: 'update_system_records',
+                on_success: function(data) {
+                    var status = data.result.value;
+                    if (status) IPA.notify_success(
+                        '@i18n:objects.dnsconfig.updated_dns');
+                }
+            });
+
+            command.execute();
+        };
+
+        that.dialog.open();
+    };
+
+    return that;
+};
 
 IPA.dnszone_details_facet = function(spec, no_init) {
 
@@ -2617,6 +2658,7 @@ exp.register = function() {
 
     a.register('dns_add_permission', IPA.dns.add_permission_action);
     a.register('dns_remove_permission', IPA.dns.remove_permission_action);
+    a.register('update_dns_records', IPA.dns.update_dns_records_action);
 };
 
 phases.on('registration', exp.register);

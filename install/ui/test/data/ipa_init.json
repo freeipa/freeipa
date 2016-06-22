@@ -317,7 +317,10 @@
                             "forward_first": "Forward first",
                             "forward_none": "Forwarding disabled",
                             "forward_only": "Forward only",
-                            "options": "Options"
+                            "options": "Options",
+                            "update_dns": "Update System DNS Records",
+                            "update_dns_dialog_msg": "Do you want to update system DNS records?",
+                            "updated_dns": "System DNS records updated"
                         },
                         "dnsrecord": {
                             "data": "Data",

@@ -462,6 +462,9 @@ class i18n_messages(Command):
                 "forward_none": _("Forwarding disabled"),
                 "forward_only": _("Forward only"),
                 "options": _("Options"),
+                "update_dns": _("Update System DNS Records"),
+                "update_dns_dialog_msg": _("Do you want to update system DNS records?"),
+                "updated_dns": _("System DNS records updated"),
             },
             "dnsrecord": {
                 "data": _("Data"),
