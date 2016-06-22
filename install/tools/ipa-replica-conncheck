@@ -462,10 +462,6 @@ def main():
                     nss_dir = paths.IPA_NSSDB_DIR
 
                 with certdb.NSSDatabase(nss_dir) as nss_db:
-                    api.bootstrap(context='client', xmlrpc_uri=xmlrpc_uri,
-                                  nss_dir=nss_db.secdir)
-                    api.finalize()
-
                     if options.ca_cert_file:
                         nss_dir = nss_db.secdir
 
@@ -483,6 +479,9 @@ def main():
                     else:
                         nss_dir = None
 
+                    api.bootstrap(context='client', xmlrpc_uri=xmlrpc_uri,
+                                  nss_dir=nss_db.secdir)
+                    api.finalize()
                     try:
                         api.Backend.rpcclient.connect()
                         api.Command.ping()
