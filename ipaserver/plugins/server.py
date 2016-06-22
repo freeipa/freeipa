@@ -469,7 +469,6 @@ class server_del(LDAPDelete):
                 raise errors.ServerRemovalError(reason=_(msg))
 
         ipa_config = self.api.Command.config_show()['result']
-        dns_config = self.api.Command.dnsconfig_show()['result']
 
         ipa_masters = ipa_config['ipa_master_server']
 
@@ -477,42 +476,49 @@ class server_del(LDAPDelete):
         if ipa_masters == [hostname]:
             return
 
-        ca_servers = ipa_config['ca_server_server']
-        ca_renewal_master = ipa_config['ca_renewal_master_server']
-        dns_servers = dns_config['dns_server_server']
-        dnssec_keymaster = dns_config['dnssec_key_master_server']
+        if self.api.Command.dns_is_enabled()['result']:
+            dns_config = self.api.Command.dnsconfig_show()['result']
 
-        if ca_servers == [hostname]:
-            raise errors.ServerRemovalError(
-                reason=_("Deleting this server is not allowed as it would "
-                         "leave your installation without a CA."))
+            dns_servers = dns_config.get('dns_server_server', [])
+            dnssec_keymaster = dns_config.get('dnssec_key_master_server', [])
 
-        if dnssec_keymaster == hostname:
-            handler(
-                _("Replica is active DNSSEC key master. Uninstall "
-                  "could break your DNS system. Please disable or "
-                  "replace DNSSEC key master first."), ignore_last_of_role)
+            if dnssec_keymaster == hostname:
+                handler(
+                    _("Replica is active DNSSEC key master. Uninstall "
+                      "could break your DNS system. Please disable or "
+                      "replace DNSSEC key master first."), ignore_last_of_role)
 
-        if dns_servers == [hostname]:
-            handler(
-                _("Deleting this server will leave your installation "
-                  "without a DNS."), ignore_last_of_role)
+            if dns_servers == [hostname]:
+                handler(
+                    _("Deleting this server will leave your installation "
+                      "without a DNS."), ignore_last_of_role)
+
+        if self.api.Command.ca_is_enabled()['result']:
+            ca_servers = ipa_config.get('ca_server_server', [])
+            ca_renewal_master = ipa_config.get(
+                'ca_renewal_master_server', [])
+
+            if ca_servers == [hostname]:
+                raise errors.ServerRemovalError(
+                    reason=_("Deleting this server is not allowed as it would "
+                             "leave your installation without a CA."))
+
+            if ca_renewal_master == hostname:
+                other_cas = [ca for ca in ca_servers if ca != hostname]
+
+                # if this is the last CA there is no other server to become
+                # renewal master
+                if not other_cas:
+                    return
+
+                self.api.Command.config_mod(
+                    ca_renewal_master_server=other_cas[0])
 
         if ignore_last_of_role:
             self.add_message(
                 messages.ServerRemovalWarning(
                     message=_("Ignoring these warnings and proceeding with "
                               "removal")))
-
-        if ca_renewal_master == hostname:
-            other_cas = [ca for ca in ca_servers if ca != hostname]
-
-            # if this is the last CA there is no other server to become renewal
-            # master
-            if not other_cas:
-                return
-
-            self.api.Command.config_mod(ca_renewal_master_server=other_cas[0])
 
     def _check_topology_connectivity(self, topology_connectivity, master_cn):
         try:
