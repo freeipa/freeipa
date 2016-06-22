@@ -213,7 +213,6 @@ def _create_param(meta):
 
     for key, value in meta.items():
         if key in ('alwaysask',
-                   'autofill',
                    'doc',
                    'label',
                    'multivalue',
@@ -229,11 +228,9 @@ def _create_param(meta):
             kwargs[key] = value
         elif key == 'default':
             default = value
-            kwargs['autofill'] = True
         elif key == 'default_from_param':
             kwargs['default_from'] = DefaultFrom(_nope,
                                                  *(str(k) for k in value))
-            kwargs['autofill'] = True
         elif key in ('exclude',
                      'include'):
             kwargs[key] = tuple(str(v) for v in value)
@@ -245,6 +242,9 @@ def _create_param(meta):
         else:
             default = tmp._convert_scalar(default[0])
         kwargs['default'] = default
+
+    if 'default' in kwargs or 'default_from' in kwargs:
+        kwargs['autofill'] = not kwargs.pop('alwaysask', False)
 
     param = cls(str(meta['name']), **kwargs)
 

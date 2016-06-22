@@ -542,23 +542,26 @@ class param(BaseParam):
                          'include'):
                 obj[key] = list(unicode(v) for v in value)
             if isinstance(metaobj, Command):
-                if key in ('alwaysask',
-                           'confirm'):
+                if key == 'alwaysask':
+                    obj.setdefault(key, value)
+                elif key == 'confirm':
                     obj[key] = value
                 elif key in ('cli_metavar',
                              'cli_name',
                              'option_group'):
                     obj[key] = unicode(value)
                 elif key == 'default':
-                    if param.autofill:
-                        if param.multivalue:
-                            obj[key] = [unicode(v) for v in value]
-                        else:
-                            obj[key] = [unicode(value)]
+                    if param.multivalue:
+                        obj[key] = [unicode(v) for v in value]
+                    else:
+                        obj[key] = [unicode(value)]
+                    if not param.autofill:
+                        obj['alwaysask'] = True
                 elif key == 'default_from':
-                    if param.autofill:
-                        obj['default_from_param'] = list(unicode(k)
-                                                         for k in value.keys)
+                    obj['default_from_param'] = list(unicode(k)
+                                                     for k in value.keys)
+                    if not param.autofill:
+                        obj['alwaysask'] = True
                 elif key in ('exponential',
                              'normalizer',
                              'only_absolute',
