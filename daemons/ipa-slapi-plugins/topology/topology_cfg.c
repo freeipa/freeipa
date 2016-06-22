@@ -528,6 +528,7 @@ ipa_topo_cfg_host_del(Slapi_Entry *hostentry)
 
         slapi_lock_mutex(replica->repl_lock);
         hostnode = replica->hosts;
+        prevnode = NULL;
         while (hostnode) {
             if (!strcasecmp(hostnode->hostname,delhost)) {
                 /*remove from list and free*/
