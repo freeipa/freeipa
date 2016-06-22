@@ -182,16 +182,6 @@ group_type = (
     ),
 )
 
-automember_rule = (
-    Str('cn',
-        cli_name='automember_rule',
-        label=_('Automember Rule'),
-        doc=_('Automember Rule'),
-        normalizer=lambda value: value.lower(),
-        flags={'no_create', 'no_update', 'no_search'},
-    ),
-)
-
 
 @register()
 class automember(LDAPObject):
@@ -249,6 +239,14 @@ class automember(LDAPObject):
     label = _('Auto Membership Rule')
 
     takes_params = (
+        Str('cn',
+            cli_name='automember_rule',
+            label=_('Automember Rule'),
+            doc=_('Automember Rule'),
+            primary_key=True,
+            normalizer=lambda value: value.lower(),
+            flags={'no_search'},
+        ),
         Str('description?',
             cli_name='desc',
             label=_('Description'),
@@ -260,7 +258,7 @@ class automember(LDAPObject):
             doc=_('Default group for entries to land'),
             flags=['no_create', 'no_update', 'no_search']
         ),
-    ) + automember_rule + regex_attrs
+    ) + regex_attrs
 
     def dn_exists(self, otype, oname):
         ldap = self.api.Backend.ldap2
@@ -312,7 +310,6 @@ class automember_add(LDAPCreate):
     Add an automember rule.
     """)
     takes_options = LDAPCreate.takes_options + group_type
-    takes_args = automember_rule
     msg_summary = _('Added automember rule "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -343,7 +340,6 @@ class automember_add_condition(LDAPUpdate):
     )
 
     takes_options = regex_attrs + regex_key + group_type
-    takes_args = automember_rule
     msg_summary = _('Added condition(s) to "%(value)s"')
 
     # Prepare the output to expect failed results
@@ -428,7 +424,6 @@ class automember_remove_condition(LDAPUpdate):
     Remove conditions from an automember rule.
     """)
     takes_options = regex_attrs + regex_key + group_type
-    takes_args = automember_rule
     msg_summary = _('Removed condition(s) from "%(value)s"')
 
     # Prepare the output to expect failed results
@@ -514,7 +509,6 @@ class automember_mod(LDAPUpdate):
     __doc__ = _("""
     Modify an automember rule.
     """)
-    takes_args = automember_rule
     takes_options = LDAPUpdate.takes_options + group_type
     msg_summary = _('Modified automember rule "%(value)s"')
 
@@ -529,14 +523,8 @@ class automember_del(LDAPDelete):
     __doc__ = _("""
     Delete an automember rule.
     """)
-    takes_args = automember_rule
     takes_options = group_type
     msg_summary = _('Deleted automember rule "%(value)s"')
-
-    def execute(self, *keys, **options):
-        result = super(automember_del, self).execute(*keys, **options)
-        result['value'] = pkey_to_value([keys[-1]], options)
-        return result
 
 
 @register()
@@ -562,7 +550,6 @@ class automember_show(LDAPRetrieve):
     __doc__ = _("""
     Display information about an automember rule.
     """)
-    takes_args = automember_rule
     takes_options = group_type
 
     def execute(self, *keys, **options):
@@ -572,10 +559,23 @@ class automember_show(LDAPRetrieve):
 
 
 @register()
+class automember_default_group(automember):
+    managed_permissions = {}
+
+    def get_params(self):
+        for param in super(automember_default_group, self).get_params():
+            if param.name == 'cn':
+                continue
+            yield param
+
+
+@register()
 class automember_default_group_set(LDAPUpdate):
     __doc__ = _("""
     Set default (fallback) group for all unmatched entries.
     """)
+
+    obj_name = 'automember_default_group'
 
     takes_options = (
         Str('automemberdefaultgroup',
@@ -604,6 +604,8 @@ class automember_default_group_remove(LDAPUpdate):
     __doc__ = _("""
     Remove default (fallback) group for all unmatched entries.
     """)
+
+    obj_name = 'automember_default_group'
 
     takes_options = group_type
     msg_summary = _('Removed default (fallback) group for automember "%(value)s"')
@@ -638,6 +640,9 @@ class automember_default_group_show(LDAPRetrieve):
     __doc__ = _("""
     Display information about the default (fallback) automember groups.
     """)
+
+    obj_name = 'automember_default_group'
+
     takes_options = group_type
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
