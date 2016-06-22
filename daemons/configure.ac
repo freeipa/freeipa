@@ -253,7 +253,7 @@ dnl -- dirsrv is needed for the extdom unit tests --
 PKG_CHECK_MODULES([DIRSRV], [dirsrv  >= 1.3.0])
 dnl -- sss_idmap is needed by the extdom exop --
 PKG_CHECK_MODULES([SSSIDMAP], [sss_idmap])
-PKG_CHECK_MODULES([SSSNSSIDMAP], [sss_nss_idmap])
+PKG_CHECK_MODULES([SSSNSSIDMAP], [sss_nss_idmap >= 1.13.90])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for systemd unit directory
