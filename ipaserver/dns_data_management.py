@@ -78,8 +78,7 @@ class IPASystemRecords(object):
         """
         self.__init_data()
 
-    def __get_server_attrs(self, hostname):
-        server_result = self.api_instance.Command.server_show(hostname)['result']
+    def __get_server_attrs(self, server_result):
         weight = int(server_result.get('ipaserviceweight', [u'100'])[0])
         location = server_result.get('ipalocation_location', [None])[0]
         roles = set(server_result.get('enabled_role_servrole', ()))
@@ -93,11 +92,10 @@ class IPASystemRecords(object):
         self.servers_data = {}
 
         servers_result = self.api_instance.Command.server_find(
-            pkey_only=True)['result']
-        servers = [s['cn'][0] for s in servers_result]
-        for s in servers:
+            no_members=False)['result']
+        for s in servers_result:
             weight, location, roles = self.__get_server_attrs(s)
-            self.servers_data[s] = {
+            self.servers_data[s['cn'][0]] = {
                 'weight': weight,
                 'location': location,
                 'roles': roles,
