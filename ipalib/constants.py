@@ -272,3 +272,4 @@ DOMAIN_SUFFIX_NAME = 'domain'
 CA_SUFFIX_NAME = 'ca'
 PKI_GSSAPI_SERVICE_NAME = 'dogtag'
 IPA_CA_CN = u'ipa'
+IPA_CA_RECORD = "ipa-ca"
