@@ -95,9 +95,13 @@ aci: (targetattr = "a6record || aaaarecord || afsdbrecord || aplrecord || arecor
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Add Groups";allow (add) groupdn = "ldap:///cn=System: Add Groups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "ipaexternalmember")(targetfilter = "(objectclass=ipaexternalgroup)")(version 3.0;acl "permission:System: Modify External Group Membership";allow (write) groupdn = "ldap:///cn=System: Modify External Group Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "member")(targetfilter = "(&(!(cn=admins))(objectclass=ipausergroup))")(version 3.0;acl "permission:System: Modify Group Membership";allow (write) groupdn = "ldap:///cn=System: Modify Group Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "cn || description || gidnumber || ipauniqueid || mepmanagedby || objectclass")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Modify Groups";allow (write) groupdn = "ldap:///cn=System: Modify Groups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=groups,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "ipaexternalmember")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Read External Group Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || entryusn || gidnumber || memberuid || modifytimestamp || objectclass")(target = "ldap:///cn=groups,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Group Compat Tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
