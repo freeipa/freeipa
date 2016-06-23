@@ -4271,7 +4271,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_add/1
 args: 1,12,3
-arg: Principal('krbprincipalname', cli_name='principal')
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('force', autofill=True, default=False)
@@ -4289,7 +4289,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_add_cert/1
 args: 1,5,3
-arg: Principal('krbprincipalname', cli_name='principal')
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
@@ -4300,7 +4300,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_add_host/1
 args: 1,5,3
-arg: Principal('krbprincipalname', cli_name='principal')
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('host*', alwaysask=True, cli_name='hosts')
 option: Flag('no_members', autofill=True, default=False)
@@ -4311,7 +4311,7 @@ output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
 command: service_allow_create_keytab/1
 args: 1,8,3
-arg: Principal('krbprincipalname', cli_name='principal')
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('group*', alwaysask=True, cli_name='groups')
 option: Str('host*', alwaysask=True, cli_name='hosts')
@@ -4325,7 +4325,7 @@ output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
 command: service_allow_retrieve_keytab/1
 args: 1,8,3
-arg: Principal('krbprincipalname', cli_name='principal')
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('group*', alwaysask=True, cli_name='groups')
 option: Str('host*', alwaysask=True, cli_name='hosts')
@@ -4339,7 +4339,7 @@ output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
 command: service_del/1
 args: 1,2,3
-arg: Principal('krbprincipalname+', cli_name='principal')
+arg: Principal('krbcanonicalname+', cli_name='canonical_principal')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
@@ -4347,14 +4347,14 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: service_disable/1
 args: 1,1,3
-arg: Principal('krbprincipalname', cli_name='principal')
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_disallow_create_keytab/1
 args: 1,8,3
-arg: Principal('krbprincipalname', cli_name='principal')
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('group*', alwaysask=True, cli_name='groups')
 option: Str('host*', alwaysask=True, cli_name='hosts')
@@ -4368,7 +4368,7 @@ output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
 command: service_disallow_retrieve_keytab/1
 args: 1,8,3
-arg: Principal('krbprincipalname', cli_name='principal')
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('group*', alwaysask=True, cli_name='groups')
 option: Str('host*', alwaysask=True, cli_name='hosts')
@@ -4381,10 +4381,11 @@ output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
 command: service_find/1
-args: 1,12,4
+args: 1,13,4
 arg: Str('criteria?')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: StrEnum('ipakrbauthzdata*', autofill=False, cli_name='pac_type', values=[u'MS-PAC', u'PAD', u'NONE'])
+option: Principal('krbcanonicalname?', autofill=False, cli_name='canonical_principal')
 option: Str('krbprincipalauthind*', autofill=False, cli_name='auth_ind')
 option: Principal('krbprincipalname?', autofill=False, cli_name='principal')
 option: Str('man_by_host*', cli_name='man_by_hosts')
@@ -4401,7 +4402,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: service_mod/1
 args: 1,13,3
-arg: Principal('krbprincipalname', cli_name='principal')
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('delattr*', cli_name='delattr')
@@ -4420,7 +4421,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_remove_cert/1
 args: 1,5,3
-arg: Principal('krbprincipalname', cli_name='principal')
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
@@ -4431,7 +4432,7 @@ output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_remove_host/1
 args: 1,5,3
-arg: Principal('krbprincipalname', cli_name='principal')
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('host*', alwaysask=True, cli_name='hosts')
 option: Flag('no_members', autofill=True, default=False)
@@ -4442,7 +4443,7 @@ output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
 command: service_show/1
 args: 1,6,3
-arg: Principal('krbprincipalname', cli_name='principal')
+arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Str('out?')

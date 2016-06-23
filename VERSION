@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=206
-# Last change: mbabinsk: commands that use positional parameters to manage attributes
+IPA_API_VERSION_MINOR=207
+# Last change: mbabinsk: Make framework consider krbcanonicalname as service primary key

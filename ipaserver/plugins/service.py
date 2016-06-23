@@ -436,9 +436,9 @@ class service(LDAPObject):
 
     takes_params = (
         Principal(
-            'krbprincipalname',
+            'krbcanonicalname',
             validate_realm,
-            cli_name='principal',
+            cli_name='canonical_principal',
             label=_('Principal'),
             doc=_('Service principal'),
             primary_key=True,
@@ -503,6 +503,16 @@ class service(LDAPObject):
                   " Use 'radius' to allow RADIUS-based 2FA authentications."
                   " Other values may be used for custom configurations."),
         ),
+        Principal(
+            'krbprincipalname',
+            validate_realm,
+            cli_name='principal',
+            label=_('Principal Alias'),
+            doc=_('Service principal alias'),
+            normalizer=normalize_principal,
+            require_service=True,
+            flags={'no_create', 'no_update'}
+        ),
     ) + ticket_flags_params
 
     def validate_ipakrbauthzdata(self, entry):
@@ -521,8 +531,51 @@ class service(LDAPObject):
                 error=_('NONE value cannot be combined with other PAC types'))
 
     def get_dn(self, *keys, **kwargs):
-        keys = (normalize_principal(k) for k in keys)
-        return super(service, self).get_dn(*keys, **kwargs)
+        key = keys[0]
+        if isinstance(key, six.text_type):
+            key = kerberos.Principal(key)
+
+        key = unicode(normalize_principal(key))
+
+        parent_dn = DN(self.container_dn, self.api.env.basedn)
+        true_rdn = 'krbprincipalname'
+
+        return self.backend.make_dn_from_attr(
+            true_rdn, key, parent_dn
+        )
+
+    def get_primary_key_from_dn(self, dn):
+        """
+        If the entry has krbcanonicalname set return the value of the
+        attribute. If the attribute is not found, assume old-style entry which
+        should have only single value of krbprincipalname and return it.
+
+        Otherwise return input DN.
+        """
+        assert isinstance(dn, DN)
+
+        try:
+            entry_attrs = self.backend.get_entry(
+                dn, [self.primary_key.name]
+            )
+            try:
+                return entry_attrs[self.primary_key.name][0]
+            except (KeyError, IndexError):
+                return ''
+        except errors.NotFound:
+            pass
+
+        try:
+            return dn['krbprincipalname'][0]
+        except KeyError:
+            return unicode(dn)
+
+    def populate_krbcanonicalname(self, entry_attrs, options):
+        if options.get('raw', False):
+            return
+
+        entry_attrs.setdefault(
+            'krbcanonicalname', entry_attrs['krbprincipalname'])
 
 
 @register()
@@ -587,6 +640,7 @@ class service_add(LDAPCreate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         set_kerberos_attrs(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        self.obj.populate_krbcanonicalname(entry_attrs, options)
         return dn
 
 
@@ -655,6 +709,7 @@ class service_mod(LDAPUpdate):
         set_certificate_attrs(entry_attrs)
         set_kerberos_attrs(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        self.obj.populate_krbcanonicalname(entry_attrs, options)
         return dn
 
 
@@ -667,6 +722,8 @@ class service_find(LDAPSearch):
         '%(count)d service matched', '%(count)d services matched', 0
     )
     member_attributes = ['managedby']
+    sort_result_entries = False
+
     takes_options = LDAPSearch.takes_options
     has_output_params = LDAPSearch.has_output_params + output_params
 
@@ -680,12 +737,25 @@ class service_find(LDAPSearch):
                               '(krbprincipalname=krbtgt/*))' \
                           ')' \
                         ')'
+        if options.get('pkey_only', False):
+            attrs_list.append('krbprincipalname')
+
         return (
             ldap.combine_filters((custom_filter, filter), rules=ldap.MATCH_ALL),
             base_dn, scope
         )
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
+        # we have to sort entries manually instead of relying on inherited
+        # mechanisms
+        def sort_key(x):
+            if 'krbcanonicalname' in x:
+                return x['krbcanonicalname'][0]
+            else:
+                return x['krbprincipalname'][0]
+
+        entries.sort(key=sort_key)
+
         if options.get('pkey_only', False):
             return truncated
         for entry_attrs in entries:
@@ -707,6 +777,7 @@ class service_find(LDAPSearch):
 
             set_kerberos_attrs(entry_attrs, options)
             rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+            self.obj.populate_krbcanonicalname(entry_attrs, options)
         return truncated
 
 
@@ -744,6 +815,7 @@ class service_show(LDAPRetrieve):
 
         set_kerberos_attrs(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        self.obj.populate_krbcanonicalname(entry_attrs, options)
 
         return dn
 
@@ -781,6 +853,7 @@ class service_allow_retrieve_keytab(LDAPAddMember):
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(failed, options)
+        self.obj.populate_krbcanonicalname(entry_attrs, options)
         return (completed, dn)
 
 
@@ -799,6 +872,7 @@ class service_disallow_retrieve_keytab(LDAPRemoveMember):
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(failed, options)
+        self.obj.populate_krbcanonicalname(entry_attrs, options)
         return (completed, dn)
 
 
@@ -818,6 +892,7 @@ class service_allow_create_keytab(LDAPAddMember):
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(failed, options)
+        self.obj.populate_krbcanonicalname(entry_attrs, options)
         return (completed, dn)
 
 
@@ -836,6 +911,7 @@ class service_disallow_create_keytab(LDAPRemoveMember):
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(failed, options)
+        self.obj.populate_krbcanonicalname(entry_attrs, options)
         return (completed, dn)
 
 
