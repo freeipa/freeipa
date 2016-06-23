@@ -141,7 +141,7 @@ Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
 Requires: httpd >= 2.4.6-6
 Requires: mod_wsgi
-Requires: mod_auth_gssapi >= 1.3.0-2
+Requires: mod_auth_gssapi >= 1.4.0
 Requires: mod_nss >= 1.0.8-26
 Requires: python-ldap >= 2.4.15
 Requires: python-gssapi >= 1.1.2
