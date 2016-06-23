@@ -53,8 +53,8 @@ from .baseldap import (
     LDAPSearch,
     LDAPQuery,
     LDAPMultiQuery,
-    LDAPAddAttribute,
-    LDAPRemoveAttribute)
+    LDAPAddAttributeViaOption,
+    LDAPRemoveAttributeViaOption)
 from . import baseldap
 from ipalib.request import context
 from ipalib import _, ngettext
@@ -1136,7 +1136,7 @@ class user_status(LDAPQuery):
 
 
 @register()
-class user_add_cert(LDAPAddAttribute):
+class user_add_cert(LDAPAddAttributeViaOption):
     __doc__ = _('Add one or more certificates to the user entry')
     msg_summary = _('Added certificates to user "%(value)s"')
     attribute = 'usercertificate'
@@ -1158,7 +1158,7 @@ class user_add_cert(LDAPAddAttribute):
 
 
 @register()
-class user_remove_cert(LDAPRemoveAttribute):
+class user_remove_cert(LDAPRemoveAttributeViaOption):
     __doc__ = _('Remove one or more certificates to the user entry')
     msg_summary = _('Removed certificates from user "%(value)s"')
     attribute = 'usercertificate'

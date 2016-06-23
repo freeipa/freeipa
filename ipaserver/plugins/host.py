@@ -32,7 +32,9 @@ from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPRetrieve, LDAPAddMember,
                                      LDAPRemoveMember, host_is_master,
                                      pkey_to_value, add_missing_object_class,
-                                     LDAPAddAttribute, LDAPRemoveAttribute)
+                                     LDAPAddAttribute, LDAPRemoveAttribute,
+                                     LDAPAddAttributeViaOption,
+                                     LDAPRemoveAttributeViaOption)
 from ipaserver.plugins.service import (
     validate_realm, normalize_principal, validate_certificate,
     set_certificate_attrs, ticket_flags_params, update_krbticketflags,
@@ -1311,14 +1313,14 @@ class host_disallow_create_keytab(LDAPRemoveMember):
 
 
 @register()
-class host_add_cert(LDAPAddAttribute):
+class host_add_cert(LDAPAddAttributeViaOption):
     __doc__ = _('Add certificates to host entry')
     msg_summary = _('Added certificates to host "%(value)s"')
     attribute = 'usercertificate'
 
 
 @register()
-class host_remove_cert(LDAPRemoveAttribute):
+class host_remove_cert(LDAPRemoveAttributeViaOption):
     __doc__ = _('Remove certificates from host entry')
     msg_summary = _('Removed certificates from host "%(value)s"')
     attribute = 'usercertificate'

@@ -39,7 +39,9 @@ from .baseldap import (
     LDAPRemoveMember,
     LDAPQuery,
     LDAPAddAttribute,
-    LDAPRemoveAttribute)
+    LDAPRemoveAttribute,
+    LDAPAddAttributeViaOption,
+    LDAPRemoveAttributeViaOption)
 from ipalib import x509
 from ipalib import _, ngettext
 from ipalib import util
@@ -881,14 +883,14 @@ class service_disable(LDAPQuery):
 
 
 @register()
-class service_add_cert(LDAPAddAttribute):
+class service_add_cert(LDAPAddAttributeViaOption):
     __doc__ = _('Add new certificates to a service')
     msg_summary = _('Added certificates to service principal "%(value)s"')
     attribute = 'usercertificate'
 
 
 @register()
-class service_remove_cert(LDAPRemoveAttribute):
+class service_remove_cert(LDAPRemoveAttributeViaOption):
     __doc__ = _('Remove certificates from a service')
     msg_summary = _('Removed certificates from service principal "%(value)s"')
     attribute = 'usercertificate'

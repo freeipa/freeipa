@@ -23,7 +23,8 @@ import six
 
 from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
-                                     LDAPAddAttribute, LDAPRemoveAttribute,
+                                     LDAPAddAttributeViaOption,
+                                     LDAPRemoveAttributeViaOption,
                                      LDAPRetrieve, global_output_params)
 from .hostgroup import get_complete_hostgroup_member_list
 from .service import validate_certificate
@@ -961,12 +962,13 @@ class idoverridegroup(baseidoverride):
     override_object = 'group'
 
 @register()
-class idoverrideuser_add_cert(LDAPAddAttribute):
+class idoverrideuser_add_cert(LDAPAddAttributeViaOption):
     __doc__ = _('Add one or more certificates to the idoverrideuser entry')
     msg_summary = _('Added certificates to idoverrideuser "%(value)s"')
     attribute = 'usercertificate'
 
-    takes_options = LDAPAddAttribute.takes_options + (fallback_to_ldap_option,)
+    takes_options = LDAPAddAttributeViaOption.takes_options + (
+        fallback_to_ldap_option,)
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
                      **options):
@@ -983,12 +985,13 @@ class idoverrideuser_add_cert(LDAPAddAttribute):
 
 
 @register()
-class idoverrideuser_remove_cert(LDAPRemoveAttribute):
+class idoverrideuser_remove_cert(LDAPRemoveAttributeViaOption):
     __doc__ = _('Remove one or more certificates to the idoverrideuser entry')
     msg_summary = _('Removed certificates from idoverrideuser "%(value)s"')
     attribute = 'usercertificate'
 
-    takes_options = LDAPRemoveAttribute.takes_options + (fallback_to_ldap_option,)
+    takes_options = LDAPRemoveAttributeViaOption.takes_options + (
+        fallback_to_ldap_option,)
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
                      **options):

@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=205
-# Last change: Add --ca option to cert-revoke and cert-remove-hold
+IPA_API_VERSION_MINOR=206
+# Last change: mbabinsk: commands that use positional parameters to manage attributes

@@ -2288,28 +2288,34 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
         raise exc
 
 
-class LDAPModAttribute(LDAPQuery):
+class BaseLDAPModAttribute(LDAPQuery):
 
     attribute = None
 
     has_output = output.standard_entry
 
-    def get_options(self):
-        for option in super(LDAPModAttribute, self).get_options():
-            yield option
-
-        option = self.obj.params[self.attribute]
-        attribute = 'virtual_attribute' not in option.flags
-        yield option.clone(attribute=attribute, alwaysask=True)
+    def _get_attribute_param(self):
+        arg = self.obj.params[self.attribute]
+        attribute = 'virtual_attribute' not in arg.flags
+        return arg.clone(required=True, attribute=attribute, alwaysask=True)
 
     def _update_attrs(self, update, entry_attrs):
         raise NotImplementedError("%s.update_attrs()", self.__class__.__name__)
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
+        try:
+            index = tuple(self.args).index(self.attribute)
+        except ValueError:
+            obj_keys = keys
+        else:
+            obj_keys = keys[:index]
 
-        dn = self.obj.get_dn(*keys, **options)
-        entry_attrs = ldap.make_entry(dn, self.args_options_2_entry(**options))
+        dn = self.obj.get_dn(*obj_keys, **options)
+        entry_attrs = ldap.make_entry(dn, self.args_options_2_entry(
+            *keys, **options))
+
+        entry_attrs.pop(self.obj.primary_key.name, None)
 
         if options.get('all', False):
             attrs_list = ['*', self.obj.primary_key.name]
@@ -2326,6 +2332,7 @@ class LDAPModAttribute(LDAPQuery):
         try:
             update = self._exc_wrapper(keys, options, ldap.get_entry)(
                 entry_attrs.dn, list(entry_attrs))
+
             self._update_attrs(update, entry_attrs)
 
             self._exc_wrapper(keys, options, ldap.update_entry)(update)
@@ -2347,7 +2354,7 @@ class LDAPModAttribute(LDAPQuery):
         entry_attrs = entry_to_dict(entry_attrs, **options)
 
         if self.obj.primary_key:
-            pkey = keys[-1]
+            pkey = obj_keys[-1]
         else:
             pkey = None
 
@@ -2367,7 +2374,7 @@ class LDAPModAttribute(LDAPQuery):
         raise exc
 
 
-class LDAPAddAttribute(LDAPModAttribute):
+class BaseLDAPAddAttribute(BaseLDAPModAttribute):
     msg_summary = _('added attribute value to entry %(value)')
 
     def _update_attrs(self, update, entry_attrs):
@@ -2377,14 +2384,13 @@ class LDAPAddAttribute(LDAPModAttribute):
 
             if not old_value.isdisjoint(value_to_add):
                 raise errors.ExecutionError(
-                    message=_('\'%s\' already contains one or more values'
-                              % name)
-                )
+                    message=_('\'%(attr)s\' already contains one or more '
+                              'values') % dict(attr=name))
 
             update[name] = list(old_value | value_to_add)
 
 
-class LDAPRemoveAttribute(LDAPModAttribute):
+class BaseLDAPRemoveAttribute(BaseLDAPModAttribute):
     msg_summary = _('removed attribute values from entry %(value)')
 
     def _update_attrs(self, update, entry_attrs):
@@ -2397,3 +2403,39 @@ class LDAPRemoveAttribute(LDAPModAttribute):
                     attr=name, value=_("one or more values to remove"))
 
             update[name] = list(old_value - value_to_remove)
+
+
+class LDAPModAttribute(BaseLDAPModAttribute):
+
+    def get_args(self):
+        for arg in super(LDAPModAttribute, self).get_args():
+            yield arg
+
+        yield self._get_attribute_param()
+
+
+class LDAPAddAttribute(LDAPModAttribute, BaseLDAPAddAttribute):
+    pass
+
+
+class LDAPRemoveAttribute(LDAPModAttribute, BaseLDAPRemoveAttribute):
+    pass
+
+
+class LDAPModAttributeViaOption(BaseLDAPModAttribute):
+
+    def get_options(self):
+        for option in super(LDAPModAttributeViaOption, self).get_options():
+            yield option
+
+        yield self._get_attribute_param()
+
+
+class LDAPAddAttributeViaOption(LDAPModAttributeViaOption,
+                                BaseLDAPAddAttribute):
+    pass
+
+
+class LDAPRemoveAttributeViaOption(LDAPModAttributeViaOption,
+                                   BaseLDAPRemoveAttribute):
+    pass
