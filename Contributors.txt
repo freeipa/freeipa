@@ -10,6 +10,7 @@ Developers:
 	Tomáš Babej
 	Martin Babinsky
 	Kyle Baker
+	Jan Barta
 	Martin Bašti
 	Sylvain Baubeau
 	Florence Blanc-Renaud
