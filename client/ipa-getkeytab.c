@@ -267,8 +267,8 @@ static int ipa_ldap_extended_op(LDAP *ld, const char *reqoid,
         return ret;
     }
 
-    /* wait max 10 secs for the answer */
-    tv.tv_sec = 10;
+    /* wait max 100 secs for the answer */
+    tv.tv_sec = 100;
     tv.tv_usec = 0;
     ret = ldap_result(ld, msgid, 1, &tv, &res);
     if (ret == -1) {
