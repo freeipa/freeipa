@@ -59,6 +59,8 @@ add:aci:(targetfilter = "(objectClass=krbPwdPolicy)")(targetattr = "krbMaxPwdLif
 # Read-only
 add:aci:(targetattr="ipaUniqueId || memberOf || enrolledBy || krbExtraData || krbPrincipalName || krbCanonicalName || krbPasswordExpiration || krbLastPwdChange || krbLastSuccessfulAuth || krbLastFailedAuth")(version 3.0; acl "Admin read-only attributes"; allow (read, search, compare) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
+add:aci:(targetattr="krbPrincipalName || krbCanonicalName")(version 3.0; acl "Admin can write principal names"; allow (write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+
 dn: cn=tasks,cn=config
 add:aci:(targetattr="*")(version 3.0; acl "Admin can read all tasks"; allow (read, compare, search) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
