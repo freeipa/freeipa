@@ -43,7 +43,6 @@ app_DATA =				\
 	kerberos.ldif			\
 	indices.ldif			\
 	bind.named.conf.template	\
-	bind.zone.db.template		\
 	certmap.conf.template		\
 	kdc.conf.template		\
 	kdc_extensions.template		\

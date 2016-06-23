@@ -623,9 +623,9 @@ class BindInstance(service.Service):
     suffix = ipautil.dn_attribute_property('_suffix')
 
     def setup(self, fqdn, ip_addresses, realm_name, domain_name, forwarders,
-              forward_policy, ntp, reverse_zones,
+              forward_policy, reverse_zones,
               named_user=constants.NAMED_USER, zonemgr=None,
-              ca_configured=None, no_dnssec_validation=False):
+              no_dnssec_validation=False):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_addresses = ip_addresses
@@ -635,9 +635,7 @@ class BindInstance(service.Service):
         self.forward_policy = forward_policy
         self.host = fqdn.split(".")[0]
         self.suffix = ipautil.realm_to_suffix(self.realm)
-        self.ntp = ntp
         self.reverse_zones = reverse_zones
-        self.ca_configured = ca_configured
         self.no_dnssec_validation=no_dnssec_validation
 
         if not zonemgr:
@@ -666,12 +664,17 @@ class BindInstance(service.Service):
     def host_in_default_domain(self):
         return normalize_zone(self.host_domain) == normalize_zone(self.domain)
 
-    def create_sample_bind_zone(self):
-        bind_txt = ipautil.template_file(ipautil.SHARE_DIR + "bind.zone.db.template", self.sub_dict)
-        [bind_fd, bind_name] = tempfile.mkstemp(".db","sample.zone.")
-        os.write(bind_fd, bind_txt)
-        os.close(bind_fd)
-        print("Sample zone file for bind has been created in "+bind_name)
+    def create_file_with_system_records(self):
+        system_records = IPASystemRecords(self.api)
+        text = u'\n'.join(
+            IPASystemRecords.records_list_from_zone(
+                system_records.get_base_records()
+            )
+        )
+        [fd, name] = tempfile.mkstemp(".db","ipa.system.records.")
+        os.write(fd, text)
+        os.close(fd)
+        print("Please add records in this file to your DNS system:", name)
 
     def create_instance(self):
 
@@ -761,41 +764,10 @@ class BindInstance(service.Service):
             root_logger.debug("Unable to mask named (%s)", e)
 
     def __setup_sub_dict(self):
-        if self.forwarders:
-            fwds = "\n"
-            for forwarder in self.forwarders:
-                fwds += "\t\t%s;\n" % forwarder
-            fwds += "\t"
-        else:
-            fwds = " "
-
-        if self.ntp:
-            optional_ntp =  "\n;ntp server\n"
-            optional_ntp += "_ntp._udp\t\tIN SRV 0 100 123\t%s" % self.host_in_rr
-        else:
-            optional_ntp = ""
-
-        ipa_ca = ""
-        for addr in self.ip_addresses:
-            if addr.version in (4, 6):
-                ipa_ca += "%s\t\t\tIN %s\t\t\t%s\n" % (
-                    IPA_CA_RECORD,
-                    "A" if addr.version == 4 else "AAAA",
-                    str(addr))
-
         self.sub_dict = dict(
             FQDN=self.fqdn,
-            IP=[str(ip) for ip in self.ip_addresses],
-            DOMAIN=self.domain,
-            HOST=self.host,
-            REALM=self.realm,
             SERVER_ID=installutils.realm_to_serverid(self.realm),
-            FORWARDERS=fwds,
-            FORWARD_POLICY=self.forward_policy,
             SUFFIX=self.suffix,
-            OPTIONAL_NTP=optional_ntp,
-            ZONEMGR=self.zonemgr,
-            IPA_CA_RECORD=ipa_ca,
             BINDKEYS_FILE=paths.NAMED_BINDKEYS_FILE,
             MANAGED_KEYS_DIR=paths.NAMED_MANAGED_KEYS_DIR,
             ROOT_KEY=paths.NAMED_ROOT_KEY,
@@ -1026,16 +998,14 @@ class BindInstance(service.Service):
         ipautil.run([paths.GENERATE_RNDC_KEY])
 
     def add_master_dns_records(self, fqdn, ip_addresses, realm_name, domain_name,
-                               reverse_zones, ntp=False, ca_configured=None):
+                               reverse_zones):
         self.fqdn = fqdn
         self.ip_addresses = ip_addresses
         self.realm = realm_name
         self.domain = domain_name
         self.host = fqdn.split(".")[0]
         self.suffix = ipautil.realm_to_suffix(self.realm)
-        self.ntp = ntp
         self.reverse_zones = reverse_zones
-        self.ca_configured = ca_configured
         self.first_instance = False
         self.zonemgr = 'hostmaster.%s' % self.domain
 

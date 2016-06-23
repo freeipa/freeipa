@@ -477,3 +477,12 @@ class IPASystemRecords(object):
                     )
                 )
         return records
+
+    @classmethod
+    def records_list_from_zone(cls, zone_obj, sort=True):
+        records = []
+        for name, node in zone_obj.items():
+            records.extend(IPASystemRecords.records_list_from_node(name, node))
+        if sort:
+            records.sort()
+        return records

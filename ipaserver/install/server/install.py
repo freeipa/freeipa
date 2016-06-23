@@ -848,17 +848,17 @@ def install(installer):
     if setup_ca:
         services.knownservices['pki_tomcatd'].restart('pki-tomcat')
 
+    api.Backend.ldap2.connect(autobind=True)
     if options.setup_dns:
-        api.Backend.ldap2.connect(autobind=True)
         dns.install(False, False, options)
     else:
         # Create a BIND instance
         bind = bindinstance.BindInstance(fstore, dm_password)
         bind.setup(host_name, ip_addresses, realm_name,
-                   domain_name, (), 'first', not options.no_ntp, (),
-                   zonemgr=options.zonemgr, ca_configured=setup_ca,
+                   domain_name, (), 'first', (),
+                   zonemgr=options.zonemgr,
                    no_dnssec_validation=options.no_dnssec_validation)
-        bind.create_sample_bind_zone()
+        bind.create_file_with_system_records()
 
     # Restart httpd to pick up the new IPA configuration
     service.print_msg("Restarting the web server")

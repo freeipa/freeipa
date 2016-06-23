@@ -210,9 +210,7 @@ def install_dns_records(config, options, remote_api):
                                         str(ip),
                                         config.realm_name,
                                         config.domain_name,
-                                        reverse_zone,
-                                        not options.no_ntp,
-                                        options.setup_ca)
+                                        reverse_zone)
     except errors.NotFound as e:
         root_logger.debug('Replica DNS records could not be added '
                           'on master: %s', str(e))
