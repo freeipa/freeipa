@@ -35,7 +35,7 @@ from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPAddAttribute, LDAPRemoveAttribute,
                                      LDAPAddAttributeViaOption,
                                      LDAPRemoveAttributeViaOption)
-from ipaserver.plugins.service import (
+from .service import (
     validate_realm, normalize_principal, validate_certificate,
     set_certificate_attrs, ticket_flags_params, update_krbticketflags,
     set_kerberos_attrs, rename_ipaallowedtoperform_from_ldap,
@@ -406,6 +406,12 @@ class host(LDAPObject):
             'ipapermdefaultattr': {'usercertificate'},
             'default_privileges': {'Host Administrators', 'Host Enrollment'},
         },
+        'System: Manage Host Principals': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'krbprincipalname', 'krbcanonicalname'},
+            'default_privileges': {'Host Administrators', 'Host Enrollment'},
+        },
         'System: Manage Host Enrollment Password': {
             'ipapermbindruletype': 'permission',
             'ipapermright': {'write'},
@@ -515,11 +521,18 @@ class host(LDAPObject):
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
         Principal(
-            'krbprincipalname?',
+            'krbcanonicalname?',
             validate_realm,
             label=_('Principal name'),
             normalizer=normalize_principal,
-            flags=['no_create', 'no_update', 'no_search'],
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Principal(
+            'krbprincipalname*',
+            validate_realm,
+            label=_('Principal alias'),
+            normalizer=normalize_principal,
+            flags=['no_create', 'no_search'],
         ),
         Str('macaddress*',
             normalizer=lambda value: value.upper(),
@@ -839,15 +852,6 @@ class host_mod(LDAPUpdate):
     member_attributes = ['managedby']
 
     takes_options = LDAPUpdate.takes_options + (
-        Principal(
-            'krbprincipalname?',
-            validate_realm,
-            cli_name='principalname',
-            label=_('Principal name'),
-            doc=_('Kerberos principal name for this host'),
-            normalizer=normalize_principal,
-            attribute=True,
-        ),
         Flag('updatedns?',
             doc=_('Update DNS entries'),
             default=False,
@@ -1331,4 +1335,27 @@ class host_remove_cert(LDAPRemoveAttributeViaOption):
         if 'usercertificate' in options:
             revoke_certs(options['usercertificate'], self.log)
 
+        return dn
+
+
+@register()
+class host_add_principal(LDAPAddAttribute):
+    __doc__ = _('Add new principal alias to host entry')
+    msg_summary = _('Added new aliases to host "%(value)s"')
+    attribute = 'krbprincipalname'
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        util.check_principal_realm_in_trust_namespace(self.api, *keys)
+        util.ensure_krbcanonicalname_set(ldap, entry_attrs)
+        return dn
+
+
+@register()
+class host_remove_principal(LDAPRemoveAttribute):
+    __doc__ = _('Remove principal alias from a host entry')
+    msg_summary = _('Removed aliases from host "%(value)s"')
+    attribute = 'krbprincipalname'
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        util.ensure_last_krbprincipalname(ldap, entry_attrs, *keys)
         return dn

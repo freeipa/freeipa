@@ -912,3 +912,74 @@ def set_krbcanonicalname(entry_attrs):
     if ('krbprincipalname' in entry_attrs
             and 'krbcanonicalname' not in entry_attrs):
         entry_attrs['krbcanonicalname'] = entry_attrs['krbprincipalname']
+
+
+def ensure_last_krbprincipalname(ldap, entry_attrs, *keys):
+    """
+    ensure that the LDAP entry has at least one value of krbprincipalname
+    and that this value is equal to krbcanonicalname
+
+    :param ldap: LDAP connection object
+    :param entry_attrs: LDAP entry made prior to update
+    :param options: command options
+    """
+    entry = ldap.get_entry(
+        entry_attrs.dn, ['krbcanonicalname', 'krbprincipalname'])
+
+    krbcanonicalname = entry.single_value.get('krbcanonicalname', None)
+
+    if krbcanonicalname in keys[-1]:
+        raise errors.ValidationError(
+            name='krbprincipalname',
+            error=_('at least one value equal to the canonical '
+                    'principal name must be present')
+        )
+
+
+def ensure_krbcanonicalname_set(ldap, entry_attrs):
+    old_entry = ldap.get_entry(
+        entry_attrs.dn,
+        ['krbcanonicalname', 'krbprincipalname', 'objectclass'])
+
+    if old_entry.single_value.get('krbcanonicalname', None) is not None:
+        return
+
+    set_krbcanonicalname(old_entry)
+
+    old_entry.pop('krbprincipalname', None)
+    old_entry.pop('objectclass', None)
+
+    entry_attrs.update(old_entry)
+
+
+def check_principal_realm_in_trust_namespace(api_instance, *keys):
+    """
+    Check that principal name's suffix does not overlap with UPNs and realm
+    names of trusted forests.
+
+    :param api_instance: API instance
+    :param suffixes: principal suffixes
+
+    :raises: ValidationError if the suffix coincides with realm name, UPN
+    suffix or netbios name of trusted domains
+    """
+    trust_objects = api_instance.Command.trust_find(u'', sizelimit=0)['result']
+
+    trust_suffix_namespace = set()
+
+    for obj in trust_objects:
+        trust_suffix_namespace.update(
+            set(upn.lower() for upn in obj['ipantadditionalsuffixes']))
+
+        trust_suffix_namespace.update(
+            set((obj['cn'][0].lower(), obj['ipantflatname'][0].lower())))
+
+    for principal in keys[-1]:
+        realm = principal.realm
+        upn = principal.upn_suffix if principal.is_enterprise else None
+
+        if realm in trust_suffix_namespace or upn in trust_suffix_namespace:
+            raise errors.ValidationError(
+                name='krbprincipalname',
+                error=_('realm or UPN suffix overlaps with trusted domain '
+                        'namespace'))

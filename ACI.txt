@@ -135,6 +135,8 @@ aci: (targetattr = "krblastpwdchange || krbprincipalkey")(targetfilter = "(&(!(m
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "createtimestamp || entryusn || ipaallowedtoperform;read_keys || ipaallowedtoperform;write_keys || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host Keytab Permissions";allow (compare,read,search,write) groupdn = "ldap:///cn=System: Manage Host Keytab Permissions,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "krbcanonicalname || krbprincipalname")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host Principals";allow (write) groupdn = "ldap:///cn=System: Manage Host Principals,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "ipasshpubkey")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host SSH Public Keys";allow (write) groupdn = "ldap:///cn=System: Manage Host SSH Public Keys,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "description || ipaassignedidview || krbprincipalauthind || l || macaddress || nshardwareplatform || nshostlocation || nsosversion || userclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Modify Hosts";allow (write) groupdn = "ldap:///cn=System: Modify Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
@@ -249,6 +251,8 @@ aci: (targetattr = "krblastpwdchange || krbprincipalkey")(targetfilter = "(objec
 dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "createtimestamp || entryusn || ipaallowedtoperform;read_keys || ipaallowedtoperform;write_keys || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Manage Service Keytab Permissions";allow (compare,read,search,write) groupdn = "ldap:///cn=System: Manage Service Keytab Permissions,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "krbcanonicalname || krbprincipalname")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Manage Service Principals";allow (write) groupdn = "ldap:///cn=System: Manage Service Principals,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krbprincipalauthind || usercertificate")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Modify Services";allow (write) groupdn = "ldap:///cn=System: Modify Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "createtimestamp || entryusn || ipakrbauthzdata || ipakrbprincipalalias || ipauniqueid || krbcanonicalname || krblastpwdchange || krbobjectreferences || krbpasswordexpiration || krbprincipalaliases || krbprincipalauthind || krbprincipalexpiration || krbprincipalname || managedby || memberof || modifytimestamp || objectclass || usercertificate")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Read Services";allow (compare,read,search) userdn = "ldap:///all";)
@@ -334,6 +338,8 @@ dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krbprincipalkey || passwordhistory || sambalmpassword || sambantpassword || userpassword")(targetfilter = "(&(!(memberOf=cn=admins,cn=groups,cn=accounts,dc=ipa,dc=example))(objectclass=posixaccount))")(version 3.0;acl "permission:System: Change User password";allow (write) groupdn = "ldap:///cn=System: Change User password,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "usercertificate")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Manage User Certificates";allow (write) groupdn = "ldap:///cn=System: Manage User Certificates,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=users,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "krbcanonicalname || krbprincipalname")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Manage User Principals";allow (write) groupdn = "ldap:///cn=System: Manage User Principals,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "ipasshpubkey")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Manage User SSH Public Keys";allow (write) groupdn = "ldap:///cn=System: Manage User SSH Public Keys,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example

@@ -43,7 +43,9 @@ from .baseuser import (
     convert_nsaccountlock,
     fix_addressbook_permission_bindrule,
     baseuser_add_manager,
-    baseuser_remove_manager)
+    baseuser_remove_manager,
+    baseuser_add_principal,
+    baseuser_remove_principal)
 from .idviews import remove_ipaobject_overrides
 from ipalib.plugable import Registry
 from .baseldap import (
@@ -282,6 +284,14 @@ class user(baseuser):
         'System: Manage User Certificates': {
             'ipapermright': {'write'},
             'ipapermdefaultattr': {'usercertificate'},
+            'default_privileges': {
+                'User Administrators',
+                'Modify Users and Reset passwords',
+            },
+        },
+        'System: Manage User Principals': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'krbprincipalname', 'krbcanonicalname'},
             'default_privileges': {
                 'User Administrators',
                 'Modify Users and Reset passwords',
@@ -1187,3 +1197,15 @@ class user_add_manager(baseuser_add_manager):
 @register()
 class user_remove_manager(baseuser_remove_manager):
     __doc__ = _("Remove a manager to the user entry")
+
+
+@register()
+class user_add_principal(baseuser_add_principal):
+    __doc__ = _('Add new principal alias to the user entry')
+    msg_summary = _('Added new aliases to user "%(value)s"')
+
+
+@register()
+class user_remove_principal(baseuser_remove_principal):
+    __doc__ = _('Remove principal alias from the user entry')
+    msg_summary = _('Removed aliases from user "%(value)s"')

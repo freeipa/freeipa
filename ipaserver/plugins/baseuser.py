@@ -27,7 +27,8 @@ from ipalib.parameters import Principal
 from ipalib.plugable import Registry
 from .baseldap import (
     DN, LDAPObject, LDAPCreate, LDAPUpdate, LDAPSearch, LDAPDelete,
-    LDAPRetrieve, LDAPAddMember, LDAPRemoveMember)
+    LDAPRetrieve, LDAPAddAttribute, LDAPRemoveAttribute, LDAPAddMember,
+    LDAPRemoveMember)
 from ipaserver.plugins.service import (
    validate_certificate, validate_realm, normalize_principal)
 from ipalib.request import context
@@ -42,7 +43,10 @@ from ipalib.util import (
     remove_sshpubkey_from_output_post,
     remove_sshpubkey_from_output_list_post,
     add_sshpubkey_to_attrs_pre,
-    set_krbcanonicalname
+    set_krbcanonicalname,
+    check_principal_realm_in_trust_namespace,
+    ensure_last_krbprincipalname,
+    ensure_krbcanonicalname_set
 )
 
 if six.PY3:
@@ -212,14 +216,20 @@ class baseuser(LDAPObject):
             label=_('Login shell'),
         ),
         Principal(
-            'krbprincipalname?',
+            'krbcanonicalname?',
+            validate_realm,
+            label=_('Principal name'),
+            flags={'no_option', 'no_create', 'no_update', 'no_search'},
+            normalizer=normalize_user_principal
+        ),
+        Principal(
+            'krbprincipalname*',
             validate_realm,
             cli_name='principal',
-            label=_('Kerberos principal'),
-            default_from=lambda uid: kerberos.Principal.from_text(
+            label=_('Principal alias'),
+            default_from=lambda uid: kerberos.Principal(
                 uid.lower(), realm=api.env.realm),
             autofill=True,
-            flags=['no_update'],
             normalizer=normalize_user_principal,
         ),
         DateTime('krbprincipalexpiration?',
@@ -621,3 +631,20 @@ class baseuser_add_manager(LDAPAddMember):
 
 class baseuser_remove_manager(LDAPRemoveMember):
     member_attributes = ['manager']
+
+
+class baseuser_add_principal(LDAPAddAttribute):
+    attribute = 'krbprincipalname'
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        check_principal_realm_in_trust_namespace(self.api, *keys)
+        ensure_krbcanonicalname_set(ldap, entry_attrs)
+        return dn
+
+
+class baseuser_remove_principal(LDAPRemoveAttribute):
+    attribute = 'krbprincipalname'
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        ensure_last_krbprincipalname(ldap, entry_attrs, *keys)
+        return dn

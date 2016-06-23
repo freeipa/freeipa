@@ -422,6 +422,13 @@ class service(LDAPObject):
             ],
             'default_privileges': {'Service Administrators'},
         },
+        'System: Manage Service Principals': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'krbprincipalname', 'krbcanonicalname'},
+            'default_privileges': {
+                'Service Administrators',
+            },
+        },
         'System: Remove Services': {
             'ipapermright': {'delete'},
             'replaces': [
@@ -439,11 +446,21 @@ class service(LDAPObject):
             'krbcanonicalname',
             validate_realm,
             cli_name='canonical_principal',
-            label=_('Principal'),
+            label=_('Principal name'),
             doc=_('Service principal'),
             primary_key=True,
             normalizer=normalize_principal,
             require_service=True
+        ),
+        Principal(
+            'krbprincipalname*',
+            validate_realm,
+            cli_name='principal',
+            label=_('Principal alias'),
+            doc=_('Service principal alias'),
+            normalizer=normalize_principal,
+            require_service=True,
+            flags={'no_create'}
         ),
         Bytes('usercertificate*', validate_certificate,
             cli_name='certificate',
@@ -502,16 +519,6 @@ class service(LDAPObject):
                   " Use 'otp' to allow OTP-based 2FA authentications."
                   " Use 'radius' to allow RADIUS-based 2FA authentications."
                   " Other values may be used for custom configurations."),
-        ),
-        Principal(
-            'krbprincipalname',
-            validate_realm,
-            cli_name='principal',
-            label=_('Principal Alias'),
-            doc=_('Service principal alias'),
-            normalizer=normalize_principal,
-            require_service=True,
-            flags={'no_create', 'no_update'}
         ),
     ) + ticket_flags_params
 
@@ -819,7 +826,6 @@ class service_show(LDAPRetrieve):
 
         return dn
 
-
 @register()
 class service_add_host(LDAPAddMember):
     __doc__ = _('Add hosts that can manage this service.')
@@ -977,4 +983,27 @@ class service_remove_cert(LDAPRemoveAttributeViaOption):
         if 'usercertificate' in options:
             revoke_certs(options['usercertificate'], self.log)
 
+        return dn
+
+
+@register()
+class service_add_principal(LDAPAddAttribute):
+    __doc__ = _('Add new principal alias to a service')
+    msg_summary = _('Added new aliases to the service principal "%(value)s"')
+    attribute = 'krbprincipalname'
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        util.check_principal_realm_in_trust_namespace(self.api, *keys)
+        util.ensure_krbcanonicalname_set(ldap, entry_attrs)
+        return dn
+
+
+@register()
+class service_remove_principal(LDAPRemoveAttribute):
+    __doc__ = _('Remove principal alias from a service')
+    msg_summary = _('Removed aliases to the service principal "%(value)s"')
+    attribute = 'krbprincipalname'
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        util.ensure_last_krbprincipalname(ldap, entry_attrs, *keys)
         return dn
