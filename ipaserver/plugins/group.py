@@ -194,6 +194,13 @@ class group(LDAPObject):
                 'member', 'memberof', 'memberuid', 'memberuser', 'memberhost',
             },
         },
+        'System: Read External Group Membership': {
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'ipaexternalmember',
+            },
+        },
         'System: Add Groups': {
             'ipapermright': {'add'},
             'replaces': [
@@ -212,6 +219,16 @@ class group(LDAPObject):
                 '(targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Group membership";allow (write) groupdn = "ldap:///cn=Modify Group membership,cn=permissions,cn=pbac,$SUFFIX";)',
                 '(targetfilter = "(!(cn=admins))")(targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Group membership";allow (write) groupdn = "ldap:///cn=Modify Group membership,cn=permissions,cn=pbac,$SUFFIX";)',
             ],
+            'default_privileges': {
+                'Group Administrators', 'Modify Group membership'
+            },
+        },
+        'System: Modify External Group Membership': {
+            'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                '(objectclass=ipaexternalgroup)',
+            ],
+            'ipapermdefaultattr': {'ipaexternalmember'},
             'default_privileges': {
                 'Group Administrators', 'Modify Group membership'
             },
