@@ -266,8 +266,8 @@ class command_defaults(PKQuery):
     def execute(self, name, **options):
         command = self.api.Command[name]
 
-        params = options.get('params', [])
-        kw = options.get('kw', {})
+        params = options.get('params') or []
+        kw = options.get('kw') or {}
 
         result = command.get_default(params, **kw)
 
