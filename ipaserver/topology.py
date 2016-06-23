@@ -70,7 +70,7 @@ def get_topology_connection_errors(graph):
     return connect_errors
 
 
-def _map_masters_to_suffixes(masters):
+def map_masters_to_suffixes(masters):
     masters_to_suffix = {}
 
     for master in masters:
@@ -97,7 +97,7 @@ def _create_topology_graphs(api_instance):
     masters = api_instance.Command.server_find(
         u'', sizelimit=0, no_members=False)['result']
 
-    suffix_to_masters = _map_masters_to_suffixes(masters)
+    suffix_to_masters = map_masters_to_suffixes(masters)
 
     topology_graphs = {}
 

@@ -14,7 +14,8 @@ from ipalib import _, ngettext
 from ipalib import output
 from ipalib.constants import DOMAIN_LEVEL_1
 from ipaserver.topology import (
-    create_topology_graph, get_topology_connection_errors)
+    create_topology_graph, get_topology_connection_errors,
+    map_masters_to_suffixes)
 from ipapython.dn import DN
 
 if six.PY3:
@@ -476,6 +477,7 @@ Checks done:
 
         masters = self.api.Command.server_find(
             '', sizelimit=0, no_members=False)['result']
+        masters = map_masters_to_suffixes(masters).get(keys[0], [])
         segments = self.api.Command.topologysegment_find(
             keys[0], sizelimit=0)['result']
         graph = create_topology_graph(masters, segments)
