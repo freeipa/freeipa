@@ -186,6 +186,9 @@ ipa_class_members = {
         'only_absolute',
         'only_relative',
     ],
+    'ipalib.parameters.Principal': [
+        'require_service',
+    ],
     'ipalib.plugable.API': [
         fake_api_env,
     ] + NAMESPACE_ATTRS + LOGGING_ATTRS,

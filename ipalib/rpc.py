@@ -66,6 +66,7 @@ from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, \
                              KRB5_REALM_CANT_RESOLVE, KRB5_CC_NOTFOUND, get_principal
 from ipapython.dn import DN
+from ipapython.kerberos import Principal
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib import api
 
@@ -194,6 +195,9 @@ def xml_wrap(value, version):
         else:
             return unicode(value)
 
+    if isinstance(value, Principal):
+        return unicode(value)
+
     assert type(value) in (unicode, float, bool, type(None)) + six.integer_types
     return value
 
@@ -316,6 +320,8 @@ def json_encode_binary(val, version):
             return {'__dns_name__': unicode(val)}
         else:
             return unicode(val)
+    elif isinstance(val, Principal):
+        return unicode(val)
     else:
         return val
 

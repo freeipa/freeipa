@@ -71,6 +71,7 @@ PARAM_IGNORED_KW_ATTRIBUTES = (
     'pattern_errmsg',
     'precision',
     'primary_key',
+    'require_service',
     'query',
     'sortorder',
 )

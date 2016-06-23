@@ -42,6 +42,7 @@ from ipapython.ipautil import (
 from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
+from ipapython.kerberos import Principal
 
 if six.PY3:
     unicode = str
@@ -686,6 +687,8 @@ class LDAPClient(object):
         'idnssoamname':    DNSName,
         'idnssoarname':    DNSName,
         'dnszoneidnsname': DNSName,
+        'krbcanonicalname': Principal,
+        'krbprincipalname': Principal,
         'nsds5replicalastupdatestart': unicode,
         'nsds5replicalastupdateend': unicode,
         'nsds5replicalastinitstart': unicode,
@@ -847,7 +850,8 @@ class LDAPClient(object):
                 return 'TRUE'
             else:
                 return 'FALSE'
-        elif isinstance(val, (unicode, six.integer_types, Decimal, DN)):
+        elif isinstance(val, (unicode, six.integer_types, Decimal, DN,
+                              Principal)):
             return value_to_utf8(val)
         elif isinstance(val, DNSName):
             return val.to_text()

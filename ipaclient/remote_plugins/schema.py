@@ -31,6 +31,7 @@ if six.PY3:
 _TYPES = {
     'DN': DN,
     'DNSName': DNSName,
+    'Principal': unicode,
     'NoneType': type(None),
     'Sequence': collections.Sequence,
     'bool': bool,
@@ -45,6 +46,7 @@ _PARAMS = {
     'Decimal': parameters.Decimal,
     'DN': parameters.DNParam,
     'DNSName': parameters.DNSNameParam,
+    'Principal': parameters.Principal,
     'bool': parameters.Bool,
     'bytes': parameters.Bytes,
     'datetime': parameters.DateTime,

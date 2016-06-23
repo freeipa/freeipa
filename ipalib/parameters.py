@@ -115,8 +115,10 @@ from ipalib.errors import PasswordMismatch, Base64DecodeError
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.text import Gettext, FixMe
 from ipalib.util import json_serialize, validate_idna_domain
+from ipapython import kerberos
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
+
 
 def _is_null(value):
     return not value and value != 0 # NOTE: False == 0
@@ -1970,3 +1972,38 @@ class Dict(Param):
 
     type = dict
     type_error = _("must be dictionary")
+
+
+class Principal(Param):
+    """
+    Kerberos principal name
+    """
+
+    type = kerberos.Principal
+    type_error = _('must be Kerberos principal')
+    kwargs = Param.kwargs + (
+        ('require_service', bool, False),
+    )
+
+    @property
+    def allowed_types(self):
+        return (self.type, unicode)
+
+    def _convert_scalar(self, value, index=None):
+        if isinstance(value, unicode):
+            try:
+                value = kerberos.Principal(value)
+            except ValueError:
+                raise ConversionError(
+                    name=self.get_param_name(),
+                    error=_("Malformed principal: '%(value)s'") % dict(
+                        value=value))
+
+        return super(Principal, self)._convert_scalar(value)
+
+    def _rule_require_service(self, _, value):
+        if self.require_service and not value.is_service:
+            raise ValidationError(
+                name=self.get_param_name(),
+                error=_("Service principal is required")
+            )
