@@ -204,7 +204,7 @@ class topologysegment(LDAPObject):
         ),
     )
 
-    def validate_nodes(self, ldap, dn, entry_attrs):
+    def validate_nodes(self, ldap, dn, entry_attrs, suffix):
         leftnode = entry_attrs.get('iparepltoposegmentleftnode')
         rightnode = entry_attrs.get('iparepltoposegmentrightnode')
 
@@ -246,6 +246,27 @@ class topologysegment(LDAPObject):
                 error=_('left node and right node must not be the same')
             )
 
+        # don't allow segment between nodes where both don't have the suffix
+        masters_to_suffix = map_masters_to_suffixes(masters)
+        suffix_masters = masters_to_suffix.get(suffix, [])
+        suffix_m_hostnames = [m['cn'][0].lower() for m in suffix_masters]
+
+        if leftnode not in suffix_m_hostnames:
+            raise errors.ValidationError(
+                name='leftnode',
+                error=_("left node ({host}) does not support "
+                        "suffix '{suff}'"
+                        .format(host=leftnode, suff=suffix))
+            )
+
+        if rightnode not in suffix_m_hostnames:
+            raise errors.ValidationError(
+                name='rightnode',
+                error=_("right node ({host}) does not support "
+                        "suffix '{suff}'"
+                        .format(host=rightnode, suff=suffix))
+            )
+
 
 @register()
 class topologysegment_find(LDAPSearch):
@@ -266,7 +287,7 @@ class topologysegment_add(LDAPCreate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         validate_domain_level(self.api)
-        self.obj.validate_nodes(ldap, dn, entry_attrs)
+        self.obj.validate_nodes(ldap, dn, entry_attrs, keys[0])
         return dn
 
 
@@ -291,7 +312,7 @@ class topologysegment_mod(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         validate_domain_level(self.api)
-        self.obj.validate_nodes(ldap, dn, entry_attrs)
+        self.obj.validate_nodes(ldap, dn, entry_attrs, keys[0])
         return dn
 
 
