@@ -806,8 +806,9 @@ class TestPrincipals(XMLRPC_test):
         )
 
         command = testuser.make_create_command()
-        with raises_exact(errors.MalformedUserPrincipal(
-                principal=u'tuser1@BAD@NOTFOUND.ORG')):
+        with raises_exact(errors.ConversionError(
+                name='principal', error="Malformed principal: '{}'".format(
+                    testuser.kwargs['krbprincipalname']))):
             command()
 
     def test_set_principal_expiration(self, user):

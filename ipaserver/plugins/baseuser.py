@@ -23,13 +23,16 @@ import six
 
 from ipalib import api, errors
 from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime, Bytes
+from ipalib.parameters import Principal
 from ipalib.plugable import Registry
 from .baseldap import (
     DN, LDAPObject, LDAPCreate, LDAPUpdate, LDAPSearch, LDAPDelete,
     LDAPRetrieve, LDAPAddMember, LDAPRemoveMember)
-from .service import validate_certificate
+from ipaserver.plugins.service import (
+   validate_certificate, validate_realm, normalize_principal)
 from ipalib.request import context
 from ipalib import _
+from ipapython import kerberos
 from ipapython.ipautil import ipa_generate_password
 from ipapython.ipavalidate import Email
 from ipalib.util import (
@@ -93,45 +96,14 @@ def convert_nsaccountlock(entry_attrs):
         nsaccountlock = Bool('temp')
         entry_attrs['nsaccountlock'] = nsaccountlock.convert(entry_attrs['nsaccountlock'][0])
 
-def split_principal(principal):
-    """
-    Split the principal into its components and do some basic validation.
 
-    Automatically append our realm if it wasn't provided.
-    """
-    realm = None
-    parts = principal.split('@')
-    user = parts[0].lower()
-    if len(parts) > 2:
-        raise errors.MalformedUserPrincipal(principal=principal)
+def normalize_user_principal(value):
+    principal = kerberos.Principal(normalize_principal(value))
+    lowercase_components = ((principal.username.lower(),) +
+                            principal.components[1:])
 
-    if len(parts) == 2:
-        realm = parts[1].upper()
-        # At some point we'll support multiple realms
-        if realm != api.env.realm:
-            raise errors.RealmMismatch()
-    else:
-        realm = api.env.realm
-
-    return (user, realm)
-
-def validate_principal(ugettext, principal):
-    """
-    All the real work is done in split_principal.
-    """
-    (user, realm) = split_principal(principal)
-    return None
-
-def normalize_principal(principal):
-    """
-    Ensure that the name in the principal is lower-case. The realm is
-    upper-case by convention but it isn't required.
-
-    The principal is validated at this point.
-    """
-    (user, realm) = split_principal(principal)
-    return unicode('%s@%s' % (user, realm))
-
+    return unicode(
+        kerberos.Principal(lowercase_components, realm=principal.realm))
 
 
 def fix_addressbook_permission_bindrule(name, template, is_new,
@@ -239,13 +211,16 @@ class baseuser(LDAPObject):
             cli_name='shell',
             label=_('Login shell'),
         ),
-        Str('krbprincipalname?', validate_principal,
+        Principal(
+            'krbprincipalname?',
+            validate_realm,
             cli_name='principal',
             label=_('Kerberos principal'),
-            default_from=lambda uid: '%s@%s' % (uid.lower(), api.env.realm),
+            default_from=lambda uid: kerberos.Principal.from_text(
+                uid.lower(), realm=api.env.realm),
             autofill=True,
             flags=['no_update'],
-            normalizer=lambda value: normalize_principal(value),
+            normalizer=normalize_user_principal,
         ),
         DateTime('krbprincipalexpiration?',
             cli_name='principal_expiration',

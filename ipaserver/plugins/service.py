@@ -23,6 +23,7 @@ import six
 
 from ipalib import api, errors, messages
 from ipalib import Bytes, StrEnum, Bool, Str, Flag
+from ipalib.parameters import Principal
 from ipalib.plugable import Registry
 from .baseldap import (
     host_is_master,
@@ -43,6 +44,7 @@ from ipalib import x509
 from ipalib import _, ngettext
 from ipalib import util
 from ipalib import output
+from ipapython import kerberos
 from ipapython.dn import DN
 
 import nss.nss as nss
@@ -176,55 +178,29 @@ _ticket_flags_map = {
 
 _ticket_flags_default = _ticket_flags_map['ipakrbrequirespreauth']
 
-def split_any_principal(principal):
-    service = hostname = realm = None
 
-    # Break down the principal into its component parts, which may or
-    # may not include the realm.
-    sp = principal.split('/')
-    name_and_realm = None
-    if len(sp) > 2:
-        raise errors.MalformedServicePrincipal(reason=_('unable to determine service'))
-    elif len(sp) == 2:
-        service = sp[0]
-        if len(service) == 0:
-            raise errors.MalformedServicePrincipal(reason=_('blank service'))
-        name_and_realm = sp[1]
-    else:
-        name_and_realm = sp[0]
+def validate_realm(ugettext, principal):
+    """
+    Check that the principal's realm matches IPA realm if present
+    """
+    realm = principal.realm
+    if realm is not None and realm != api.env.realm:
+        raise errors.RealmMismatch()
 
-    sr = name_and_realm.split('@')
-    if len(sr) > 2:
-        raise errors.MalformedServicePrincipal(
-            reason=_('unable to determine realm'))
 
-    hostname = sr[0].lower()
-    if len(sr) == 2:
-        realm = sr[1].upper()
-        # At some point we'll support multiple realms
-        if realm != api.env.realm:
-            raise errors.RealmMismatch()
-    else:
-        realm = api.env.realm
+def normalize_principal(value):
+    """
+    Ensure that the name in the principal is lower-case. The realm is
+    upper-case by convention but it isn't required.
 
-    # Note that realm may be None.
-    return service, hostname, realm
+    The principal is validated at this point.
+    """
+    try:
+        principal = kerberos.Principal(value, realm=api.env.realm)
+    except ValueError:
+        raise errors.ValidationError(
+            name='principal', reason=_("Malformed principal"))
 
-def split_principal(principal):
-    service, name, realm = split_any_principal(principal)
-    if service is None:
-        raise errors.MalformedServicePrincipal(reason=_('missing service'))
-    return service, name, realm
-
-def validate_principal(ugettext, principal):
-    (service, hostname, principal) = split_principal(principal)
-    return None
-
-def normalize_principal(principal):
-    # The principal is already validated when it gets here
-    (service, hostname, realm) = split_principal(principal)
-    # Put the principal back together again
-    principal = '%s/%s@%s' % (service, hostname, realm)
     return unicode(principal)
 
 def validate_certificate(ugettext, cert):
@@ -291,16 +267,16 @@ def set_certificate_attrs(entry_attrs):
     entry_attrs['md5_fingerprint'] = unicode(nss.data_to_hex(nss.md5_digest(cert.der_data), 64)[0])
     entry_attrs['sha1_fingerprint'] = unicode(nss.data_to_hex(nss.sha1_digest(cert.der_data), 64)[0])
 
-def check_required_principal(ldap, hostname, service):
+def check_required_principal(ldap, principal):
     """
     Raise an error if the host of this prinicipal is an IPA master and one
     of the principals required for proper execution.
     """
     try:
-        host_is_master(ldap, hostname)
+        host_is_master(ldap, principal.hostname)
     except errors.ValidationError as e:
         service_types = ['HTTP', 'ldap', 'DNS', 'dogtagldap']
-        if service in service_types:
+        if principal.service_name in service_types:
             raise errors.ValidationError(name='principal', error=_('This principal is required by the IPA master'))
 
 def update_krbticketflags(ldap, entry_attrs, attrs_list, options, existing):
@@ -457,12 +433,15 @@ class service(LDAPObject):
     label_singular = _('Service')
 
     takes_params = (
-        Str('krbprincipalname', validate_principal,
+        Principal(
+            'krbprincipalname',
+            validate_realm,
             cli_name='principal',
             label=_('Principal'),
             doc=_('Service principal'),
             primary_key=True,
-            normalizer=lambda value: normalize_principal(value),
+            normalizer=normalize_principal,
+            require_service=True
         ),
         Bytes('usercertificate*', validate_certificate,
             cli_name='certificate',
@@ -560,8 +539,10 @@ class service_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
-        (service, hostname, realm) = split_principal(keys[-1])
-        if service.lower() == 'host' and not options['force']:
+        principal = keys[-1]
+        hostname = principal.hostname
+
+        if principal.is_host and not options['force']:
             raise errors.HostService()
 
         try:
@@ -619,8 +600,7 @@ class service_del(LDAPDelete):
         # In the case of services we don't want IPA master services to be
         # deleted. This is a limited few though. If the user has their own
         # custom services allow them to manage them.
-        (service, hostname, realm) = split_principal(keys[-1])
-        check_required_principal(ldap, hostname, service)
+        check_required_principal(ldap, keys[-1])
         if self.api.Command.ca_is_enabled()['result']:
             try:
                 entry_attrs = ldap.get_entry(dn, ['usercertificate'])
@@ -646,8 +626,6 @@ class service_mod(LDAPUpdate):
         assert isinstance(dn, DN)
 
         self.obj.validate_ipakrbauthzdata(entry_attrs)
-
-        (service, hostname, realm) = split_principal(keys[-1])
 
         # verify certificates
         certs = entry_attrs.get('usercertificate') or []
@@ -873,8 +851,7 @@ class service_disable(LDAPQuery):
         dn = self.obj.get_dn(*keys, **options)
         entry_attrs = ldap.get_entry(dn, ['usercertificate'])
 
-        (service, hostname, realm) = split_principal(keys[-1])
-        check_required_principal(ldap, hostname, service)
+        check_required_principal(ldap, keys[-1])
 
         # See if we do any work at all here and if not raise an exception
         done_work = False

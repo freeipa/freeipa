@@ -345,9 +345,9 @@ class TestCreateInvalidAttributes(XMLRPC_test):
         stageduser.ensure_missing()
         command = stageduser.make_create_command(
             options={u'krbprincipalname': invalidrealm2})
-        with raises_exact(errors.MalformedUserPrincipal(
-                message=u'Principal is not of the form user@REALM: \'%s\'' %
-                invalidrealm2)):
+        with raises_exact(errors.ConversionError(
+                name='principal', error="Malformed principal: '{}'".format(
+                    invalidrealm2))):
             command()
 
 

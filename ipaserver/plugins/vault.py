@@ -17,24 +17,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import six
+
 from ipalib.frontend import Command, Object
 from ipalib import api, errors
 from ipalib import Bytes, Flag, Str, StrEnum
 from ipalib import output
 from ipalib.crud import PKQuery, Retrieve
+from ipalib.parameters import Principal
 from ipalib.plugable import Registry
 from .baseldap import LDAPObject, LDAPCreate, LDAPDelete,\
     LDAPSearch, LDAPUpdate, LDAPRetrieve, LDAPAddMember, LDAPRemoveMember,\
     LDAPModMember, pkey_to_value
 from ipalib.request import context
-from .baseuser import split_principal
-from .service import normalize_principal
+from .service import normalize_principal, validate_realm
 from ipalib import _, ngettext
+from ipapython import kerberos
 from ipapython.dn import DN
 
 if api.env.in_server:
     import pki.account
     import pki.key
+
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 Vaults
@@ -191,8 +197,9 @@ EXAMPLES:
 register = Registry()
 
 vault_options = (
-    Str(
+    Principal(
         'service?',
+        validate_realm,
         doc=_('Service name of the service vault'),
         normalizer=normalize_principal,
     ),
@@ -342,17 +349,15 @@ class vaultcontainer(LDAPObject):
         parent_dn = super(vaultcontainer, self).get_dn(*keys, **options)
 
         if not count:
-            principal = getattr(context, 'principal')
+            principal = kerberos.Principal(getattr(context, 'principal'))
 
-            if principal.startswith('host/'):
+            if principal.is_host:
                 raise errors.NotImplementedError(
                     reason=_('Host is not supported'))
-
-            (name, realm) = split_principal(principal)
-            if '/' in name:
-                service = principal
+            elif principal.is_service:
+                service = unicode(principal)
             else:
-                user = name
+                user = principal.username
 
         if service:
             dn = DN(('cn', service), ('cn', 'services'), parent_dn)
@@ -660,17 +665,15 @@ class vault(LDAPObject):
         rdns = DN(*dn[:-len(container_dn)])
 
         if not count:
-            principal = getattr(context, 'principal')
+            principal = kerberos.Principal(getattr(context, 'principal'))
 
-            if principal.startswith('host/'):
+            if principal.is_host:
                 raise errors.NotImplementedError(
                     reason=_('Host is not supported'))
-
-            (name, realm) = split_principal(principal)
-            if '/' in name:
-                service = principal
+            elif principal.is_service:
+                service = unicode(principal)
             else:
-                user = name
+                user = principal.username
 
         if service:
             parent_dn = DN(('cn', service), ('cn', 'services'), container_dn)
@@ -770,12 +773,11 @@ class vault_add_internal(LDAPCreate):
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
-        principal = getattr(context, 'principal')
-        (name, realm) = split_principal(principal)
-        if '/' in name:
-            owner_dn = self.api.Object.service.get_dn(name)
+        principal = kerberos.Principal(getattr(context, 'principal'))
+        if principal.is_service:
+            owner_dn = self.api.Object.service.get_dn(unicode(principal))
         else:
-            owner_dn = self.api.Object.user.get_dn(name)
+            owner_dn = self.api.Object.user.get_dn(principal.username)
 
         parent_dn = DN(*dn[1:])
 

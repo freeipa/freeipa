@@ -3,6 +3,7 @@
 #
 
 import pyhbac
+import six
 
 from ipalib import api, errors, output
 from ipalib import Bool, Str, StrEnum
@@ -13,10 +14,11 @@ from .baseldap import (
     LDAPUpdate, LDAPRetrieve, LDAPAddMember, LDAPRemoveMember,
     global_output_params, pkey_to_value)
 from .hbacrule import is_all
-from .service import normalize_principal, split_any_principal
 from ipalib import _, ngettext
 from ipapython.dn import DN
 
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 Manage CA ACL rules.
@@ -58,24 +60,21 @@ register = Registry()
 
 def _acl_make_request(principal_type, principal, ca_id, profile_id):
     """Construct HBAC request for the given principal, CA and profile"""
-    service, name, realm = split_any_principal(principal)
 
     req = pyhbac.HbacRequest()
     req.targethost.name = ca_id
     req.service.name = profile_id
-    if principal_type == 'user':
-        req.user.name = name
-    elif principal_type == 'host':
-        req.user.name = name
+    if principal_type == 'user' or principal_type == 'host':
+        req.user.name = principal.username
     elif principal_type == 'service':
-        req.user.name = normalize_principal(principal)
+        req.user.name = unicode(principal)
     groups = []
     if principal_type == 'user':
-        user_obj = api.Command.user_show(name)['result']
+        user_obj = api.Command.user_show(principal.username)['result']
         groups = user_obj.get('memberof_group', [])
         groups += user_obj.get('memberofindirect_group', [])
     elif principal_type == 'host':
-        host_obj = api.Command.host_show(name)['result']
+        host_obj = api.Command.host_show(principal.hostname)['result']
         groups = host_obj.get('memberof_hostgroup', [])
         groups += host_obj.get('memberofindirect_hostgroup', [])
     req.user.groups = sorted(set(groups))

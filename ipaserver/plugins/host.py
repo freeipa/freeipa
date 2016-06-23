@@ -25,6 +25,7 @@ import six
 from ipalib import api, errors, util
 from ipalib import messages
 from ipalib import Str, Flag, Bytes
+from ipalib.parameters import Principal
 from ipalib.plugable import Registry
 from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
@@ -32,7 +33,8 @@ from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPRemoveMember, host_is_master,
                                      pkey_to_value, add_missing_object_class,
                                      LDAPAddAttribute, LDAPRemoveAttribute)
-from .service import (split_principal, validate_certificate,
+from ipaserver.plugins.service import (
+    validate_realm, normalize_principal, validate_certificate,
     set_certificate_attrs, ticket_flags_params, update_krbticketflags,
     set_kerberos_attrs, rename_ipaallowedtoperform_from_ldap,
     rename_ipaallowedtoperform_to_ldap, revoke_certs)
@@ -56,6 +58,7 @@ from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
 from ipapython.dnsutil import DNSName
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN
+from ipapython import kerberos
 from functools import reduce
 
 if six.PY3:
@@ -509,8 +512,11 @@ class host(LDAPObject):
             label=_('Revocation reason'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
-        Str('krbprincipalname?',
+        Principal(
+            'krbprincipalname?',
+            validate_realm,
             label=_('Principal name'),
+            normalizer=normalize_principal,
             flags=['no_create', 'no_update', 'no_search'],
         ),
         Str('macaddress*',
@@ -758,8 +764,9 @@ class host_del(LDAPDelete):
                 break
             else:
                 for entry_attrs in services:
-                    principal = entry_attrs['krbprincipalname'][0]
-                    (service, hostname, realm) = split_principal(principal)
+                    principal = kerberos.Principal(
+                        entry_attrs['krbprincipalname'][0])
+                    hostname = principal.hostname
                     if hostname.lower() == fqdn:
                         api.Command['service_del'](principal)
         updatedns = options.get('updatedns', False)
@@ -830,10 +837,13 @@ class host_mod(LDAPUpdate):
     member_attributes = ['managedby']
 
     takes_options = LDAPUpdate.takes_options + (
-        Str('krbprincipalname?',
+        Principal(
+            'krbprincipalname?',
+            validate_realm,
             cli_name='principalname',
             label=_('Principal name'),
             doc=_('Kerberos principal name for this host'),
+            normalizer=normalize_principal,
             attribute=True,
         ),
         Flag('updatedns?',
@@ -1155,8 +1165,9 @@ class host_disable(LDAPQuery):
                 break
             else:
                 for entry_attrs in services:
-                    principal = entry_attrs['krbprincipalname'][0]
-                    (service, hostname, realm) = split_principal(principal)
+                    principal = kerberos.Principal(
+                        entry_attrs['krbprincipalname'][0])
+                    hostname = principal.hostname
                     if hostname.lower() == fqdn:
                         try:
                             api.Command['service_disable'](principal)
