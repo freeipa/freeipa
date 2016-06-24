@@ -1130,7 +1130,7 @@ main(int argc, const char **argv) {
 
     ret = init_gettext();
     if (ret) {
-        exit(2);
+        fprintf(stderr, "Failed to load translations\n");
     }
 
     pc = poptGetContext("ipa-join", argc, (const char **)argv, options, 0);

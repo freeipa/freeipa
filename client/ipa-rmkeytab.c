@@ -180,7 +180,7 @@ main(int argc, const char **argv)
 
     ret = init_gettext();
     if (ret) {
-        exit(1);
+        fprintf(stderr, "Failed to load translations\n");
     }
 
     memset(&ktid, 0, sizeof(ktid));
