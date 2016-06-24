@@ -185,6 +185,8 @@ IPA.dialog_button = function(spec) {
     that.visible = spec.visible !== undefined ? spec.visible : true;
     /** @property {boolean} enabled=true Button is enabled */
     that.enabled = spec.enabled !== undefined ? spec.enabled : true;
+    /** @property {String} button's css classes */
+    that.button_class = spec.button_class || 'btn btn-default';
     /** @property {jQuery} element Button element */
     that.element = null;
 
@@ -495,6 +497,7 @@ IPA.dialog = function(spec) {
             var ui_button = IPA.button({
                 name: button.name,
                 label: button.label,
+                button_class: button.button_class,
                 disabled: !button.enabled,
                 click: button.click
             });
@@ -1360,6 +1363,12 @@ IPA.confirm_dialog = function(spec) {
     /** @property {Function} cancel_label Cancel button label */
     that.cancel_label = text.get(spec.cancel_label || '@i18n:buttons.cancel');
 
+    /** @property {String} on_ok css class */
+    that.ok_button_class = spec.ok_button_class || 'btn btn-default';
+
+    /** @property {String} on_cancel css class */
+    that.cancel_button_class = spec.cancel_button_class || 'btn btn-default';
+
     /**
      * Dialog is confirmed
      * @protected
@@ -1417,6 +1426,7 @@ IPA.confirm_dialog = function(spec) {
         that.create_button({
             name: 'ok',
             label: that.ok_label,
+            button_class: that.ok_button_class,
             click: function() {
                 that.on_confirm();
             }
@@ -1425,6 +1435,7 @@ IPA.confirm_dialog = function(spec) {
         that.create_button({
             name: 'cancel',
             label: that.cancel_label,
+            button_class: that.cancel_button_class,
             click: function() {
                 that.confirmed = false;
                 that.close();
