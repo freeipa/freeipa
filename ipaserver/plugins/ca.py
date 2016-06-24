@@ -163,6 +163,13 @@ class ca_add(LDAPCreate):
         except errors.NotFound:
             pass
 
+        # check for subject collision before creating CA in Dogtag
+        result = api.Command.ca_find(ipacasubjectdn=options['ipacasubjectdn'])
+        if result['count'] > 0:
+            raise errors.DuplicateEntry(message=_(
+                "Subject DN is already used by CA '%s'"
+                ) % result['result'][0]['cn'][0])
+
         # Create the CA in Dogtag.
         with self.api.Backend.ra_lightweight_ca as ca_api:
             resp = ca_api.create_ca(options['ipacasubjectdn'])
