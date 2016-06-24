@@ -212,7 +212,6 @@ class test_jsonserver(PluginTester):
 
         # Test with invalid JSON-data:
         e = raises(errors.JSONError, o.unmarshal, 'this wont work')
-        assert isinstance(e.error, ValueError)
         if six.PY2:
             assert unicode(e.error) == 'No JSON object could be decoded'
         else:
