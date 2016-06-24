@@ -540,7 +540,7 @@ class server_del(LDAPDelete):
         conn = self.Backend.ldap2
         env = self.api.env
 
-        master_principal = "{}@{}".format(master, env)
+        master_principal = "{}@{}".format(master, env.realm)
 
         # remove replica memberPrincipal from s4u2proxy configuration
         s4u2proxy_subtree = DN(env.container_s4u2proxy,
