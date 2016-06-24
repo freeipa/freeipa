@@ -545,6 +545,10 @@
                             "label": "Server Roles",
                             "label_singular": "Server Role",
                         },
+                        "servers": {
+                            "remove_server": "Delete Server",
+                            "remove_server_msg": "Deleting a server removes it permanently from the topology. Note that this is a non-reversible action."
+                        },
                         "service": {
                             "certificate": "Service Certificate",
                             "delete_key_unprovision": "Delete Key, Unprovision",

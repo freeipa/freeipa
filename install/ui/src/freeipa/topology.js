@@ -222,6 +222,7 @@ return {
         },
         {
             $type: 'details',
+            $factory: topology.servers_facet,
             disable_facet_tabs: true,
             sections: [
                 {
@@ -252,6 +253,30 @@ return {
                             selectable: false
                         }
                     ]
+                }
+            ],
+            actions: [
+                {
+                    $factory: IPA.delete_action,
+                    name: 'server_del',
+                    method: 'del',
+                    label: '@i18n:objects.servers.remove_server',
+                    needs_confirm: true,
+                    confirm_msg: '@i18n:objects.servers.remove_server_msg',
+                    confirm_dialog: {
+                        $factory: IPA.confirm_dialog,
+                        title: '@i18n:objects.servers.remove_server',
+                        ok_label: '@i18n:buttons.remove',
+                        ok_button_class: 'btn btn-danger'
+                    }
+                }
+            ],
+            control_buttons_right: [
+                {
+                    name: 'server_del',
+                    label: '@i18n:objects.servers.remove_server',
+                    icon: 'fa-exclamation-circle',
+                    button_class: 'btn btn-danger'
                 }
             ]
         }
@@ -457,6 +482,45 @@ topology.location_adapter = declare([mod_field.Adapter], {
         return output;
     }
 });
+
+topology.servers_facet = function(spec, no_init) {
+    spec = spec || {};
+
+    var that = IPA.details_facet(spec, no_init);
+
+    /**
+     * Creates buttons on the right side of facet.
+     */
+    that.create_controls = function() {
+
+        that.create_control_buttons(that.controls_left);
+        that.create_action_dropdown(that.controls_left);
+
+        that.control_buttons = that.control_buttons_right;
+        that.create_control_buttons(that.controls_right);
+    };
+
+    /**
+     * Inits right facet buttons.
+     */
+    that.init_servers_facet = function() {
+
+        that.init_details_facet();
+        var buttons_spec = {
+            $factory: IPA.control_buttons_widget,
+            name: 'control-buttons',
+            css_class: 'control-buttons',
+            buttons: spec.control_buttons_right
+        };
+
+        that.control_buttons_right = IPA.build(buttons_spec);
+        that.control_buttons_right.init(that);
+    };
+
+    if (!no_init) that.init_servers_facet();
+
+    return that;
+};
 
 topology.serverroles_search_facet = function(spec) {
 
@@ -1404,7 +1468,6 @@ topology.register = function() {
         ctor: topology.TopologyGraphFacet,
         spec: topology.topology_graph_facet_spec
     });
-
 };
 
 phases.on('registration', topology.register);

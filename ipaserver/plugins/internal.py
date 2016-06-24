@@ -690,6 +690,10 @@ class i18n_messages(Command):
                 "label": _("Server Roles"),
                 "label_singular": _("Server Role"),
             },
+            "servers": {
+                "remove_server": _("Delete Server"),
+                "remove_server_msg": _("Deleting a server removes it permanently from the topology. Note that this is a non-reversible action.")
+            },
             "service": {
                 "certificate": _("Service Certificate"),
                 "delete_key_unprovision": _("Delete Key, Unprovision"),
