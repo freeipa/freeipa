@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-06-21 10:11+0200\n"
+"POT-Creation-Date: 2016-07-01 09:08+0200\n"
 "PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Catalan (http://www.transifex.com/projects/p/freeipa/language/"
@@ -19,6 +19,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Zanata 3.8.4\n"
+
+msgid "Error"
+msgstr "Error"
 
 msgid "Password"
 msgstr "Contrasenya"
@@ -83,12 +86,6 @@ msgstr "Drets"
 msgid "Rename"
 msgstr "Canvia el nom"
 
-msgid "Server"
-msgstr "Servidor"
-
-msgid "Time now"
-msgstr "L'hora actual"
-
 msgid "User"
 msgstr "Usuari"
 
@@ -152,6 +149,9 @@ msgstr "S'ha habilitat"
 msgid "Services"
 msgstr "Serveis"
 
+msgid "user"
+msgstr "usuari"
+
 msgid "Subject"
 msgstr "Assumpte"
 
@@ -172,9 +172,6 @@ msgstr "Estat"
 
 msgid "Revoked"
 msgstr "Revocat"
-
-msgid "Error"
-msgstr "Error"
 
 msgid "Configuration"
 msgstr "Configuració"
@@ -233,9 +230,6 @@ msgstr "Avís"
 msgid "User name"
 msgstr "Nom d'usuari"
 
-msgid "Serial Number"
-msgstr "Número de sèrie"
-
 msgid "Host"
 msgstr "Ordinador central"
 
@@ -250,6 +244,9 @@ msgstr "Plataforma"
 
 msgid "Operating system"
 msgstr "Sistema operatiu"
+
+msgid "Serial Number"
+msgstr "Número de sèrie"
 
 msgid "Apply"
 msgstr "Aplica"
@@ -539,14 +536,14 @@ msgstr "permisos"
 msgid "Group"
 msgstr "Grup"
 
+msgid "Server"
+msgstr "Servidor"
+
 msgid "Role"
 msgstr "Rol"
 
 msgid "services"
 msgstr "serveis"
-
-msgid "user"
-msgstr "usuari"
 
 msgid "users"
 msgstr "usuaris"
@@ -559,6 +556,9 @@ msgstr "Confiança"
 
 msgid "Self"
 msgstr "Ell mateix"
+
+msgid "Time now"
+msgstr "L'hora actual"
 
 msgid "Server Name"
 msgstr "Nom del servidor"
@@ -574,6 +574,3 @@ msgstr "Sortida de depuració"
 
 msgid "Out of memory\n"
 msgstr "Sense memòria\n"
-
-#~ msgid "Reason"
-#~ msgstr "Raó"

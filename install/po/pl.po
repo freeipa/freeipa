@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-06-21 10:11+0200\n"
+"POT-Creation-Date: 2016-07-01 09:08+0200\n"
 "PO-Revision-Date: 2016-05-14 05:40-0400\n"
 "Last-Translator: Piotr Drąg <pdrag@aviary.pl>\n"
 "Language-Team: Polish (http://www.transifex.com/projects/p/freeipa/language/"
@@ -27,6 +27,12 @@ msgstr ""
 #, python-format
 msgid "File %(file)s not found"
 msgstr "Nie odnaleziono pliku %(file)s"
+
+msgid "Unrevoked"
+msgstr "Cofnięto unieważnienie"
+
+msgid "Error"
+msgstr "Błąd"
 
 msgid "Delete all?"
 msgstr "Usunąć wszystko?"
@@ -585,9 +591,6 @@ msgstr "Identyfikator żądania"
 msgid "Principal"
 msgstr "Naczelnik"
 
-msgid "automatically add the principal if it doesn't exist"
-msgstr "automatycznie dodaj naczelnika, jeśli nie istnieje"
-
 msgid "Status"
 msgstr "Stan"
 
@@ -597,14 +600,11 @@ msgstr "Unieważniono"
 msgid "Revocation reason"
 msgstr "Przyczyna unieważnienia"
 
+msgid "Reason for revoking the certificate (0-10)"
+msgstr "Przyczyna unieważnienia certyfikatu (0-10)"
+
 msgid "Revoke a certificate."
 msgstr "Odrzuć certyfikat."
-
-msgid "Unrevoked"
-msgstr "Cofnięto unieważnienie"
-
-msgid "Error"
-msgstr "Błąd"
 
 msgid "Configuration"
 msgstr "Konfiguracja"
@@ -1599,6 +1599,3 @@ msgstr "Utworzenie losowego klucza nie powiodło się.\n"
 
 msgid "Failed to create key!\n"
 msgstr "Utworzenie klucza nie powiodło się.\n"
-
-#~ msgid "Reason"
-#~ msgstr "Przyczyna"

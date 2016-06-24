@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-06-21 10:11+0200\n"
+"POT-Creation-Date: 2016-07-01 09:08+0200\n"
 "PO-Revision-Date: 2016-06-17 07:52-0400\n"
 "Last-Translator: Martin Bašti <mbasti@redhat.com>\n"
 "Language-Team: Russian (http://www.transifex.com/projects/p/freeipa/language/"
@@ -42,6 +42,12 @@ msgstr "Файл %(file)s не найден"
 #, python-format
 msgid "key %(key)s already exists"
 msgstr "ключ %(key)s уже существует"
+
+msgid "Unrevoked"
+msgstr "Неотозванный"
+
+msgid "Error"
+msgstr "Ошибка"
 
 msgid "Delete all?"
 msgstr "Удалить все?"
@@ -579,6 +585,9 @@ msgstr "Целевая группа"
 msgid "Group to apply ACI to"
 msgstr "Группа для добавления ACL на"
 
+msgid "ACI"
+msgstr "ACI"
+
 #, python-format
 msgid "Created ACI \"%(value)s\""
 msgstr "Создана ACI «%(value)s»"
@@ -589,9 +598,6 @@ msgstr "Проверить синтаксис ACL, но никуда не зап
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
 msgstr "Удалена ACI «%(value)s»"
-
-msgid "ACI"
-msgstr "ACI"
 
 #, python-format
 msgid "Modified ACI \"%(value)s\""
@@ -868,24 +874,6 @@ msgstr "Ограничение по размеру"
 msgid "Kerberos keys available"
 msgstr "Kerberos ключей доступно"
 
-msgid "SSH public key fingerprint"
-msgstr "SSH публичный отпечатков ключей"
-
-msgid "Server"
-msgstr "Сервер"
-
-msgid "Failed logins"
-msgstr "Ошибка входа"
-
-msgid "Last successful authentication"
-msgstr "Последний успешный вход"
-
-msgid "Last failed authentication"
-msgstr "Последняя ошибка входа"
-
-msgid "Time now"
-msgstr "Время сейчас"
-
 msgid "must be TRUE or FALSE"
 msgstr "должно быть TRUE или FALSE"
 
@@ -984,6 +972,9 @@ msgstr "Номер автомобиля"
 
 msgid "SSH public key"
 msgstr "SSH публичный ключ"
+
+msgid "SSH public key fingerprint"
+msgstr "SSH публичный отпечатков ключей"
 
 msgid "User authentication types"
 msgstr "Типы авторизации пользователей"
@@ -1182,6 +1173,12 @@ msgstr "%i профиль удалён."
 msgid "%i profiles removed."
 msgstr "%i профили удалены."
 
+msgid "user"
+msgstr "пользователь"
+
+msgid "host"
+msgstr "узел"
+
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "Сбой при декодировании запроса на создание сертификата: %s"
@@ -1249,6 +1246,9 @@ msgstr "Отозван"
 msgid "Revocation reason"
 msgstr "Причина отзыва"
 
+msgid "Reason for revoking the certificate (0-10)"
+msgstr "Причина для отзыва сертификата (0-10)"
+
 msgid "Retrieve an existing certificate."
 msgstr "Получить существующий сертификат."
 
@@ -1263,12 +1263,6 @@ msgstr "Отозвать сертификат"
 
 msgid "7 is not a valid revocation reason"
 msgstr "7 неверная причина отзыва сертификата"
-
-msgid "Unrevoked"
-msgstr "Неотозванный"
-
-msgid "Error"
-msgstr "Ошибка"
 
 msgid "Search for existing certificates."
 msgstr "Поиск по существующим сертификатам."
@@ -1505,9 +1499,6 @@ msgstr "Имя службы"
 
 msgid "Warning"
 msgstr "Предупреждение"
-
-msgid "host"
-msgstr "узел"
 
 msgid "hosts"
 msgstr "узлы"
@@ -1753,6 +1744,9 @@ msgstr "PKINIT"
 msgid "priority cannot be set on global policy"
 msgstr "приоритет не может быть задан для глобальной политики"
 
+msgid "Server"
+msgstr "Сервер"
+
 msgid "role"
 msgstr "роль"
 
@@ -1776,9 +1770,6 @@ msgid_plural "%(count)d users matched"
 msgstr[0] "Найден %(count)d пользователь"
 msgstr[1] "Найдено %(count)d пользователя"
 msgstr[2] "Найдено %(count)d пользователей"
-
-msgid "user"
-msgstr "пользователь"
 
 msgid "users"
 msgstr "пользователи"
@@ -1831,6 +1822,18 @@ msgstr "Учетная запись пользователя «%(value)s» вк�
 msgid "Unlocked account \"%(value)s\""
 msgstr "Учетная запись «%(value)s» разблокирована"
 
+msgid "Failed logins"
+msgstr "Ошибка входа"
+
+msgid "Last successful authentication"
+msgstr "Последний успешный вход"
+
+msgid "Last failed authentication"
+msgstr "Последняя ошибка входа"
+
+msgid "Time now"
+msgstr "Время сейчас"
+
 #, c-format
 msgid "cannot open configuration file %s\n"
 msgstr "невозможно открыть конфигурационный файл %s\n"
@@ -1853,6 +1856,3 @@ msgstr "basedn"
 #, c-format
 msgid "kvno %d\n"
 msgstr "kvno %d\n"
-
-#~ msgid "Reason"
-#~ msgstr "Причина"

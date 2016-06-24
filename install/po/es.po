@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-06-21 10:11+0200\n"
+"POT-Creation-Date: 2016-07-01 09:08+0200\n"
 "PO-Revision-Date: 2016-05-20 05:18-0400\n"
 "Last-Translator: Brian Curtich <bcurtich@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/projects/p/freeipa/language/"
@@ -50,6 +50,12 @@ msgstr ""
 #, python-format
 msgid "File %(file)s not found"
 msgstr "No se encontró el archivo %(file)s "
+
+msgid "Unrevoked"
+msgstr "No revocado"
+
+msgid "Error"
+msgstr "Error"
 
 msgid "Current DNS record contents:\n"
 msgstr "Contenidos actuales del registro DNS:\n"
@@ -643,6 +649,9 @@ msgstr "Dirija su propia entrada (usted)"
 msgid "Apply ACI to your own entry (self)"
 msgstr "Aplique ACI a su propia entrada (usted)"
 
+msgid "ACI"
+msgstr "ACI"
+
 #, python-format
 msgid "Created ACI \"%(value)s\""
 msgstr "Ha sido creado ACI \"%(value)s\""
@@ -653,9 +662,6 @@ msgstr "Probar la sintaxis pero no escribir nada"
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
 msgstr "Ha sido eliminado ACI \"%(value)s\""
-
-msgid "ACI"
-msgstr "ACI"
 
 #, python-format
 msgid "Modified ACI \"%(value)s\""
@@ -696,11 +702,11 @@ msgstr "Tipo de Agrupamiento"
 msgid "Grouping to which the rule applies"
 msgstr "Agrupamiento al cual se aplican las reglas"
 
-msgid "Automember Rule"
-msgstr "Regla Automiembro"
-
 msgid "Auto Membership Rule"
 msgstr "Regla Auto Afiliación"
+
+msgid "Automember Rule"
+msgstr "Regla Automiembro"
 
 msgid "Description"
 msgstr "Descripción"
@@ -1295,12 +1301,6 @@ msgstr "Tamaño límite"
 msgid "Kerberos keys available"
 msgstr "Claves Kerberos disponibles"
 
-msgid "Server"
-msgstr "Servidor"
-
-msgid "Failed logins"
-msgstr "Inicios de sesión fallidos"
-
 msgid "User"
 msgstr "Usuario"
 
@@ -1433,6 +1433,15 @@ msgstr "Grupos de equipo"
 msgid "Services"
 msgstr "Sevicios HBAC"
 
+msgid "user"
+msgstr "usuario"
+
+msgid "host"
+msgstr "host"
+
+msgid "service"
+msgstr "servicio"
+
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr ""
@@ -1481,9 +1490,6 @@ msgstr "CSR"
 msgid "Principal"
 msgstr "Principal"
 
-msgid "automatically add the principal if it doesn't exist"
-msgstr "si no existe, agregar automáticamente el principal"
-
 msgid "Check the status of a certificate signing request."
 msgstr "Verificar el estado de una solicitud de firma de certificado."
 
@@ -1495,6 +1501,9 @@ msgstr "Revocado"
 
 msgid "Revocation reason"
 msgstr "Motivo de la revocación"
+
+msgid "Reason for revoking the certificate (0-10)"
+msgstr "Motivo por el cual el certificado ha sido revocado (0-10)"
 
 msgid "Retrieve an existing certificate."
 msgstr "Recuperar un certificado existente."
@@ -1513,12 +1522,6 @@ msgstr "7 no es una razón válida de revocación"
 
 msgid "Take a revoked certificate off hold."
 msgstr "Tomar un certificado revocado de espera."
-
-msgid "Unrevoked"
-msgstr "No revocado"
-
-msgid "Error"
-msgstr "Error"
 
 msgid "configuration options"
 msgstr "opciones de configuración"
@@ -2403,15 +2406,6 @@ msgstr "Acceso obtenido: %s"
 msgid "Keytab"
 msgstr "Keytab"
 
-msgid "Serial Number"
-msgstr "Número de serie"
-
-msgid "Serial Number (hex)"
-msgstr "N.º de serie (hex.)"
-
-msgid "host"
-msgstr "host"
-
 msgid "hosts"
 msgstr "hosts"
 
@@ -2454,6 +2448,12 @@ msgstr "Contraseña utilizada en el registro bruto"
 
 msgid "Generate a random password to be used in bulk enrollment"
 msgstr "Generar una contraseña aleatoria que se utilizará en la inscripción "
+
+msgid "Serial Number"
+msgstr "Número de serie"
+
+msgid "Serial Number (hex)"
+msgstr "N.º de serie (hex.)"
 
 msgid "Principal name"
 msgstr "Nombre principal"
@@ -3028,13 +3028,6 @@ msgstr "Revocar certificado por ${entity} ${primary_key}"
 
 msgid "Revoke Certificate"
 msgstr "Revocar certificado"
-
-msgid ""
-"To confirm your intention to revoke this certificate, select a reason from "
-"the pull-down list, and click the \"Revoke\" button."
-msgstr ""
-"Para confirmar su intención de revocar el certificado, seleccione una razón "
-"de la lista desplegable y haga clic en el botón \"Revocar\"."
 
 msgid "Certificate Revoked"
 msgstr "Certificado revocado"
@@ -4238,6 +4231,9 @@ msgstr "Ofrece la política efectiva para un determinado usuario"
 msgid "Search for group password policies."
 msgstr "Buscar grupo de políticas de contraseña."
 
+msgid "Server"
+msgstr "Servidor"
+
 msgid "role"
 msgstr "rol"
 
@@ -4351,9 +4347,6 @@ msgstr[1] "%(count)d autoservicios coincidentes"
 
 msgid "Display information about a self-service permission."
 msgstr "Mostrar información sobre un auto servicio de permiso."
-
-msgid "service"
-msgstr "servicio"
 
 msgid "services"
 msgstr "servicios"
@@ -4649,9 +4642,6 @@ msgstr "Modificar Regla Sudo."
 msgid "Modified Sudo Rule \"%(value)s\""
 msgstr "Regla Sudo Modificada “%(value)s”"
 
-msgid "user"
-msgstr "usuario"
-
 msgid "users"
 msgstr "usuarios"
 
@@ -4804,6 +4794,9 @@ msgstr ""
 #, python-format
 msgid "Unlocked account \"%(value)s\""
 msgstr "Cuenta desbloqueada \" %(value)s \""
+
+msgid "Failed logins"
+msgstr "Inicios de sesión fallidos"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -5234,6 +5227,3 @@ msgstr "Falló la creación de clave aleatoria\n"
 
 msgid "Failed to create key!\n"
 msgstr "¡Falló la creación de clave!\n"
-
-#~ msgid "Reason"
-#~ msgstr "Motivo"

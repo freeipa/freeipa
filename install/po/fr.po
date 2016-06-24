@@ -19,7 +19,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-06-21 10:11+0200\n"
+"POT-Creation-Date: 2016-07-01 09:08+0200\n"
 "PO-Revision-Date: 2016-06-20 10:45-0400\n"
 "Last-Translator: Jérôme Fenal <jfenal@gmail.com>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/freeipa/language/"
@@ -97,6 +97,12 @@ msgstr "Clés dupliquées ignorées :"
 #, python-format
 msgid "Skipped %(key)s"
 msgstr "%(key)s ignoré"
+
+msgid "Unrevoked"
+msgstr "Réintégré"
+
+msgid "Error"
+msgstr "Erreur"
 
 #, python-format
 msgid "Profile configuration stored in file '%(file)s'"
@@ -1255,9 +1261,6 @@ msgstr "doit être un dictionnaire"
 msgid "any of the configured servers"
 msgstr "n'importe quel serveur configuré"
 
-msgid "could not allocate unique new session_id"
-msgstr "impossible d'allouer un seul « session_id »"
-
 msgid "Filename is empty"
 msgstr "Le nom de fichier est vide"
 
@@ -1651,6 +1654,9 @@ msgstr "Cibler votre propre entrée (« self »)"
 msgid "Apply ACI to your own entry (self)"
 msgstr "Appliquer l'ACI à votre propre entrée (« self »)"
 
+msgid "ACI"
+msgstr "ACI"
+
 #, python-format
 msgid "Created ACI \"%(value)s\""
 msgstr "ACI « %(value)s » créée"
@@ -1661,9 +1667,6 @@ msgstr "Tester la syntaxe de l'ACI, sans rien écrire"
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
 msgstr "ACI « %(value)s » supprimée"
-
-msgid "ACI"
-msgstr "ACI"
 
 #, python-format
 msgid "Modified ACI \"%(value)s\""
@@ -1987,11 +1990,11 @@ msgstr "Type de groupe"
 msgid "Grouping to which the rule applies"
 msgstr "Type de groupe auquel la règle s'applique"
 
-msgid "Automember Rule"
-msgstr "Règle d'auto-adhésion"
-
 msgid "Auto Membership Rule"
 msgstr "Règle d'appartenance automatique"
+
+msgid "Automember Rule"
+msgstr "Règle d'auto-adhésion"
 
 msgid "Description"
 msgstr "Description"
@@ -2917,24 +2920,6 @@ msgstr ""
 msgid "Kerberos keys available"
 msgstr "Clés Kerberos disponibles"
 
-msgid "SSH public key fingerprint"
-msgstr "Empreinte de clé publique SSH"
-
-msgid "Server"
-msgstr "Serveur"
-
-msgid "Failed logins"
-msgstr "Connexions ayant échoué"
-
-msgid "Last successful authentication"
-msgstr "Dernière authentification réussie"
-
-msgid "Last failed authentication"
-msgstr "Dernière authentification ayant échoué"
-
-msgid "Time now"
-msgstr "Heure actuelle"
-
 msgid "must be TRUE or FALSE"
 msgstr "doit être « TRUE » ou « FALSE »"
 
@@ -3037,6 +3022,9 @@ msgstr "Permis de conduire/carte d'identité"
 
 msgid "SSH public key"
 msgstr "Clé publique SSH"
+
+msgid "SSH public key fingerprint"
+msgstr "Empreinte de clé publique SSH"
 
 msgid "User authentication types"
 msgstr "Types d'authentification utilisateur"
@@ -3544,6 +3532,15 @@ msgstr "%i AC supprimée."
 msgid "%i CAs removed."
 msgstr "%i AC supprimées."
 
+msgid "user"
+msgstr "utilisateur"
+
+msgid "host"
+msgstr "hôte"
+
+msgid "service"
+msgstr "service"
+
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "Échec dans le décodage du « Certificate Signing Request » : %s"
@@ -3615,9 +3612,6 @@ msgstr "Principal"
 
 msgid "Principal for this certificate (e.g. HTTP/test.example.com)"
 msgstr "Principal de ce certificate (par exemple : HTTP/test.example.com)"
-
-msgid "automatically add the principal if it doesn't exist"
-msgstr "ajoute automatiquement le principal s'il n'existe pas"
 
 msgid "The principal for this request doesn't exist."
 msgstr "Le principal pour cette demande n'existe pas."
@@ -3704,6 +3698,9 @@ msgstr "Révoqué"
 msgid "Revocation reason"
 msgstr "Raison de la révocation"
 
+msgid "Reason for revoking the certificate (0-10)"
+msgstr "Raison de révocation du certificat (0-10)"
+
 msgid "Retrieve an existing certificate."
 msgstr "Récupérer un certificat existant."
 
@@ -3727,12 +3724,6 @@ msgstr "7 n'est pas une raison de révocation valide"
 
 msgid "Take a revoked certificate off hold."
 msgstr "Ôter un certificat révoqué en attente."
-
-msgid "Unrevoked"
-msgstr "Réintégré"
-
-msgid "Error"
-msgstr "Erreur"
 
 msgid "Search for existing certificates."
 msgstr "Recherche de certificats existants."
@@ -3908,6 +3899,9 @@ msgstr "Profils de certificats"
 msgid "Profile ID for referring to this profile"
 msgstr "Identifiant de profil"
 
+msgid "Profile configuration"
+msgstr "Configuration de profil"
+
 msgid "Profile description"
 msgstr "Description de profil"
 
@@ -3931,9 +3925,6 @@ msgstr[1] "%(count)d profils correspondants"
 
 msgid "Display the properties of a Certificate Profile."
 msgstr "Afficher les propriétés d'un profil de certificat."
-
-msgid "Profile configuration"
-msgstr "Configuration de profil"
 
 msgid "Write profile configuration to file"
 msgstr "Écrire le profil de configuration dans un fichier"
@@ -5303,9 +5294,6 @@ msgid "Nameserver '%(host)s' does not have a corresponding A/AAAA record"
 msgstr ""
 "Le serveur de noms '%(host)s' n'a pas d'enregistrement A/AAAA correspondant"
 
-msgid "Managedby permission"
-msgstr "Permission « managedby »"
-
 msgid "Zone name"
 msgstr "Nom de zone"
 
@@ -5345,6 +5333,9 @@ msgstr ""
 "Politique de redirection conditionnelle par zone. Mettre à « none » pour "
 "désactiver la redirection vers un redireteur global pour cette zone. Dans ce "
 "cas, les redirecteurs de zone conditionnels sont ignorés."
+
+msgid "Managedby permission"
+msgstr "Permission « managedby »"
 
 msgid "DNS is not configured"
 msgstr "Le DNS n'est pas configuré"
@@ -7329,12 +7320,6 @@ msgstr ""
 msgid "Keytab"
 msgstr "Tableau de clés"
 
-msgid "Serial Number"
-msgstr "Numéro de série"
-
-msgid "Serial Number (hex)"
-msgstr "Numéro de série (hex)"
-
 msgid "Users allowed to retrieve keytab"
 msgstr "Utilisateurs autorisés à récupérer un tableau de clés"
 
@@ -7358,9 +7343,6 @@ msgstr "Hôtes autorisés à créer un tableau de clés"
 
 msgid "Host Groups allowed to create keytab"
 msgstr "Groupes d'hôtes autorisés à créer un tableau de clés"
-
-msgid "host"
-msgstr "hôte"
 
 msgid "hosts"
 msgstr "hôtes"
@@ -7407,6 +7389,12 @@ msgstr "Créer un mot de passe aléatoire utilisé pour l'inscription en masse"
 msgid "Base-64 encoded host certificate"
 msgstr "Certificat de l'hôte encodé en Base-64"
 
+msgid "Serial Number"
+msgstr "Numéro de série"
+
+msgid "Serial Number (hex)"
+msgstr "Numéro de série (hex)"
+
 msgid "Principal name"
 msgstr "Nom principal"
 
@@ -7424,6 +7412,20 @@ msgstr ""
 
 msgid "Assigned ID View"
 msgstr "Vue d'identifiants attribuée"
+
+msgid "Authentication Indicators"
+msgstr "Indicateurs d'authentification"
+
+msgid ""
+"Defines a whitelist for Authentication Indicators. Use 'otp' to allow OTP-"
+"based 2FA authentications. Use 'radius' to allow RADIUS-based 2FA "
+"authentications. Other values may be used for custom configurations."
+msgstr ""
+"Définit une liste blanche d'indicateurs d'authentification. Utiliser « otp » "
+"pour autoriser les authentifications à double facteur basé sur les mots de "
+"passe à usage unique. Utiliser « radius » pour autoriser l'authentification "
+"à double facteur utilisant RADIUS. D'autres valeurs peuvent être utilisées "
+"pour des configurations personnalisées."
 
 msgid "Add a new host."
 msgstr "Ajouter un nouvel hôte."
@@ -8211,6 +8213,15 @@ msgstr "Vues d'identifiants"
 msgid "ID View Name"
 msgstr "Nom de la vue d'identifiants"
 
+msgid "User object overrides"
+msgstr "Surcharges des objets utilisateurs"
+
+msgid "Group object overrides"
+msgstr "Surcharges des objets groupes"
+
+msgid "Hosts the view applies to"
+msgstr "Hôtes auxquels la vue s'applique"
+
 msgid "Add a new ID View."
 msgstr "Ajouter une nouvelle vue d'identifiants"
 
@@ -8246,15 +8257,6 @@ msgstr "Afficher les informations d'une vue d'identifiants."
 
 msgid "Enumerate all the hosts the view applies to."
 msgstr "Énumérer tous les hôtes auxquels la vue s'applique."
-
-msgid "User object overrides"
-msgstr "Surcharges des objets utilisateurs"
-
-msgid "Group object overrides"
-msgstr "Surcharges des objets groupes"
-
-msgid "Hosts the view applies to"
-msgstr "Hôtes auxquels la vue s'applique"
 
 msgid "Default Trust View cannot be applied on hosts"
 msgstr ""
@@ -8647,6 +8649,12 @@ msgstr "${count} élément(s) supprimé(s)"
 msgid "Show Results"
 msgstr "Afficher les résultats"
 
+msgid "Authentication indicators"
+msgstr "Indicateurs d'authentification"
+
+msgid "Authentication indicator"
+msgstr "Indicateur d'authentification"
+
 msgid ""
 "<p>Implicit method (password) will be used if no method is chosen.</"
 "p><p><strong>Password + Two-factor:</strong> LDAP and Kerberos allow "
@@ -8664,6 +8672,9 @@ msgstr ""
 "p><p><strong>RADIUS avec un autre type :</strong> Kerberos utilise toujours "
 "RADIUS, mais pas LDAP. LDAP ne reconnait que le mot de passe et une des "
 "options d'authentification à double facteur.</p>"
+
+msgid "Add Custom Authentication Indicator"
+msgstr "Ajouter un indicateur d'authentification personnalisé"
 
 msgid "OTP"
 msgstr "OTP"
@@ -8727,6 +8738,9 @@ msgstr "Fermer"
 
 msgid "Disable"
 msgstr "Désactiver"
+
+msgid "Download"
+msgstr "Téléchargement"
 
 msgid "Edit"
 msgstr "Modifier"
@@ -9153,9 +9167,6 @@ msgstr "Cessation d'activité"
 msgid "Common Name"
 msgstr "Nom usuel"
 
-msgid "Download"
-msgstr "Téléchargement"
-
 msgid "Expires On"
 msgstr "Expire le"
 
@@ -9255,13 +9266,6 @@ msgstr "Supprimer le blocage de certificat pour ${entity} ${primary_key}"
 msgid "Remove Certificate Hold"
 msgstr "Supprimer le blocage du certificat"
 
-msgid ""
-"To confirm your intention to remove the certificate hold, click the \"Remove "
-"hold\" button."
-msgstr ""
-"Afin de confirmer votre intention de supprimer le blocage du certificat, "
-"cliquez sur le boutton « Supprimer le blocage »"
-
 msgid "Remove from CRL"
 msgstr "Retrait de la LRC"
 
@@ -9298,13 +9302,6 @@ msgstr "Révoquer un certificat pour ${primary_key} de ${entity}"
 
 msgid "Revoke Certificate"
 msgstr "Révoquer le certificat"
-
-msgid ""
-"To confirm your intention to revoke this certificate, select a reason from "
-"the pull-down list, and click the \"Revoke\" button."
-msgstr ""
-"Pour confirmer l'intention de révoquer ce certificat, sélectionner une "
-"raison dans la liste déroulante, puis cliquer sur le bouton « Révoquer »."
 
 msgid "Certificate Revoked"
 msgstr "Certificat révoqué"
@@ -9796,17 +9793,8 @@ msgstr "Rôles serveur"
 msgid "Server Role"
 msgstr "Rôle serveur"
 
-msgid "Authentication indicators"
-msgstr "Indicateurs d'authentification"
-
-msgid "Authentication indicator"
-msgstr "Indicateur d'authentification"
-
 msgid "Service Certificate"
 msgstr "Certificat de service"
-
-msgid "Add Custom Authentication Indicator"
-msgstr "Ajouter un indicateur d'authentification personnalisé"
 
 msgid "Service Settings"
 msgstr "Paramètres de service"
@@ -11347,6 +11335,9 @@ msgstr "Compteur"
 msgid "Initial counter for the HOTP token"
 msgstr " "
 
+msgid "URI"
+msgstr "URI"
+
 msgid "Add a new OTP token."
 msgstr "Ajouter un nouveau jeton OTP"
 
@@ -11359,9 +11350,6 @@ msgstr "(obsolète)"
 
 msgid "Do not display QR code"
 msgstr "Ne pas afficher le code QR"
-
-msgid "URI"
-msgstr "URI"
 
 msgid "Delete an OTP token."
 msgstr "Supprimer un jeton OTP"
@@ -12383,6 +12371,9 @@ msgstr "Nom du serveur mandataire RADIUS"
 msgid "A description of this RADIUS proxy server"
 msgstr "Description de ce serveur mandataire RADIUS"
 
+msgid "Server"
+msgstr "Serveur"
+
 msgid "The hostname or IP (with or without port)"
 msgstr "Nom d'hôte ou adresse IP (avec ou sans port)"
 
@@ -13252,13 +13243,6 @@ msgid "Force server removal even if it does not exist"
 msgstr "Forcer la suppression du serveur même s'il n'existe pas"
 
 msgid ""
-"Deleting this server is not allowed as it would leave your installation "
-"without a CA."
-msgstr ""
-"La suppression de ce serveur n'est pas autorisée, elle laisserait votre "
-"installation sans AC."
-
-msgid ""
 "Replica is active DNSSEC key master. Uninstall could break your DNS system. "
 "Please disable or replace DNSSEC key master first."
 msgstr ""
@@ -13268,6 +13252,13 @@ msgstr ""
 
 msgid "Deleting this server will leave your installation without a DNS."
 msgstr "La suppression de ce serveur laissera votre installation sans DNS."
+
+msgid ""
+"Deleting this server is not allowed as it would leave your installation "
+"without a CA."
+msgstr ""
+"La suppression de ce serveur n'est pas autorisée, elle laisserait votre "
+"installation sans AC."
 
 msgid "Ignoring these warnings and proceeding with removal"
 msgstr "On ignore ces avertissements et lancement de la suppression"
@@ -13586,9 +13577,6 @@ msgstr "service manquant"
 msgid "This principal is required by the IPA master"
 msgstr "Ce principal est nécessaire au serveur IPA"
 
-msgid "service"
-msgstr "service"
-
 msgid "services"
 msgstr "services"
 
@@ -13608,20 +13596,6 @@ msgstr ""
 "Surcharger la liste par défaut des types PAC pris en charge. Utiliser « NONE "
 "» pour désactiver la prise en charge PAC pour ce service, ce qui peut être "
 "nécessaire pour les services NFS par exemple."
-
-msgid "Authentication Indicators"
-msgstr "Indicateurs d'authentification"
-
-msgid ""
-"Defines a whitelist for Authentication Indicators. Use 'otp' to allow OTP-"
-"based 2FA authentications. Use 'radius' to allow RADIUS-based 2FA "
-"authentications. Other values may be used for custom configurations."
-msgstr ""
-"Définit une liste blanche d'indicateurs d'authentification. Utiliser « otp » "
-"pour autoriser les authentifications à double facteur basé sur les mots de "
-"passe à usage unique. Utiliser « radius » pour autoriser l'authentification "
-"à double facteur utilisant RADIUS. D'autres valeurs peuvent être utilisées "
-"pour des configurations personnalisées."
 
 msgid "NONE value cannot be combined with other PAC types"
 msgstr "La valeur NONE ne peut être combinée avec d'autres types de PAC"
@@ -14597,9 +14571,6 @@ msgstr ""
 "la catégorie %(type)s ne peut pas être définie à « all » tant que sont "
 "alloués %(objects)s"
 
-msgid "user"
-msgstr "utilisateur"
-
 msgid "users"
 msgstr "utilisateurs"
 
@@ -15319,9 +15290,6 @@ msgstr ""
 "   ipa trustconfig-mod --type ad --fallback-primary-group \"Default SMB Group"
 "\"\n"
 
-msgid "UPN suffixes"
-msgstr "Suffixes UPN"
-
 msgid "Non-Active Directory domain"
 msgstr "Domaine autre que Active Directory"
 
@@ -15405,6 +15373,9 @@ msgstr "Entrant dans liste noire de SID"
 
 msgid "SID blacklist outgoing"
 msgstr "Sortant de liste noire de SID"
+
+msgid "UPN suffixes"
+msgstr "Suffixes UPN"
 
 #, python-format
 msgid "invalid SID: %(value)s"
@@ -15759,11 +15730,11 @@ msgstr "domaine approuvé"
 msgid "Domain name"
 msgstr "Nom de domaine"
 
-msgid "Search domains of the trust"
-msgstr "Recherches dans les domaines approuvés"
-
 msgid "Domain enabled"
 msgstr "Domaine activé"
+
+msgid "Search domains of the trust"
+msgstr "Recherches dans les domaines approuvés"
 
 msgid "Modify trustdomain of the trust"
 msgstr "Modifier le domaine approuvé de la confiance"
@@ -16022,6 +15993,18 @@ msgstr ""
 #, python-format
 msgid "Unlocked account \"%(value)s\""
 msgstr "Compte utilisateur « %(value)s » déverrouillé"
+
+msgid "Failed logins"
+msgstr "Connexions ayant échoué"
+
+msgid "Last successful authentication"
+msgstr "Dernière authentification réussie"
+
+msgid "Last failed authentication"
+msgstr "Dernière authentification ayant échoué"
+
+msgid "Time now"
+msgstr "Heure actuelle"
 
 msgid ""
 "\n"
@@ -16761,6 +16744,9 @@ msgstr "tous les maîtres doivent avoir le rôle %(role)s activé"
 msgid "must have %(role)s role enabled"
 msgstr "doit avoir le rôle %(role)s activé"
 
+msgid "could not allocate unique new session_id"
+msgstr "impossible d'allouer un seul « session_id »"
+
 #, python-format
 msgid ""
 "\n"
@@ -17393,198 +17379,3 @@ msgstr "Échec de création de la clé !\n"
 
 msgid "Bad or unsupported salt type.\n"
 msgstr "Type « salt » non-conforme ou non pris en compte.\n"
-
-#~ msgid ""
-#~ "\n"
-#~ "IPA certificate operations\n"
-#~ "\n"
-#~ "Implements a set of commands for managing server SSL certificates.\n"
-#~ "\n"
-#~ "Certificate requests exist in the form of a Certificate Signing Request "
-#~ "(CSR)\n"
-#~ "in PEM format.\n"
-#~ "\n"
-#~ "The dogtag CA uses just the CN value of the CSR and forces the rest of "
-#~ "the\n"
-#~ "subject to values configured in the server.\n"
-#~ "\n"
-#~ "A certificate is stored with a service principal and a service principal\n"
-#~ "needs a host.\n"
-#~ "\n"
-#~ "In order to request a certificate:\n"
-#~ "\n"
-#~ "* The host must exist\n"
-#~ "* The service must exist (or you use the --add option to automatically "
-#~ "add it)\n"
-#~ "\n"
-#~ "SEARCHING:\n"
-#~ "\n"
-#~ "Certificates may be searched on by certificate subject, serial number,\n"
-#~ "revocation reason, validity dates and the issued date.\n"
-#~ "\n"
-#~ "When searching on dates the _from date does a >= search and the _to date\n"
-#~ "does a <= search. When combined these are done as an AND.\n"
-#~ "\n"
-#~ "Dates are treated as GMT to match the dates in the certificates.\n"
-#~ "\n"
-#~ "The date format is YYYY-mm-dd.\n"
-#~ "\n"
-#~ "EXAMPLES:\n"
-#~ "\n"
-#~ " Request a new certificate and add the principal:\n"
-#~ "   ipa cert-request --add --principal=HTTP/lion.example.com example.csr\n"
-#~ "\n"
-#~ " Retrieve an existing certificate:\n"
-#~ "   ipa cert-show 1032\n"
-#~ "\n"
-#~ " Revoke a certificate (see RFC 5280 for reason details):\n"
-#~ "   ipa cert-revoke --revocation-reason=6 1032\n"
-#~ "\n"
-#~ " Remove a certificate from revocation hold status:\n"
-#~ "   ipa cert-remove-hold 1032\n"
-#~ "\n"
-#~ " Check the status of a signing request:\n"
-#~ "   ipa cert-status 10\n"
-#~ "\n"
-#~ " Search for certificates by hostname:\n"
-#~ "   ipa cert-find --subject=ipaserver.example.com\n"
-#~ "\n"
-#~ " Search for revoked certificates by reason:\n"
-#~ "   ipa cert-find --revocation-reason=5\n"
-#~ "\n"
-#~ " Search for certificates based on issuance date\n"
-#~ "   ipa cert-find --issuedon-from=2013-02-01 --issuedon-to=2013-02-07\n"
-#~ "\n"
-#~ "IPA currently immediately issues (or declines) all certificate requests "
-#~ "so\n"
-#~ "the status of a request is not normally useful. This is for future use\n"
-#~ "or the case where a CA does not immediately issue a certificate.\n"
-#~ "\n"
-#~ "The following revocation reasons are supported:\n"
-#~ "\n"
-#~ "    * 0 - unspecified\n"
-#~ "    * 1 - keyCompromise\n"
-#~ "    * 2 - cACompromise\n"
-#~ "    * 3 - affiliationChanged\n"
-#~ "    * 4 - superseded\n"
-#~ "    * 5 - cessationOfOperation\n"
-#~ "    * 6 - certificateHold\n"
-#~ "    * 8 - removeFromCRL\n"
-#~ "    * 9 - privilegeWithdrawn\n"
-#~ "    * 10 - aACompromise\n"
-#~ "\n"
-#~ "Note that reason code 7 is not used.  See RFC 5280 for more details:\n"
-#~ "\n"
-#~ "http://www.ietf.org/rfc/rfc5280.txt\n"
-#~ "\n"
-#~ msgstr ""
-#~ "\n"
-#~ "Opérations de certification IPA\n"
-#~ "\n"
-#~ "Implémente un jeu de commandes pour gérer les certificats SSL du "
-#~ "serveur.\n"
-#~ "\n"
-#~ "Les demandes de certificats existent sous la forme de\n"
-#~ "« Certificate Signing Request (CSR) » au format PEM.\n"
-#~ "\n"
-#~ "La plaque d'identité CA n'utilise que la valeur CN du CSR et force le "
-#~ "reste\n"
-#~ "du sujet aux valeurs configurées dans le serveur.\n"
-#~ "\n"
-#~ "Un certificat est enregistré avec un principal de service et un "
-#~ "principal\n"
-#~ " de service a besoin d'un hôte.\n"
-#~ "\n"
-#~ "Donc, pour demander un certificat :\n"
-#~ "\n"
-#~ "* l'hôte doit exister\n"
-#~ "* le service doit exister (utiliser --add pour l'ajouter "
-#~ "automatiquement)\n"
-#~ "\n"
-#~ "RECHERCHE :\n"
-#~ "\n"
-#~ "Les certificats peuvent être recherchés par sujet, numéro de série,\n"
-#~ "motif de révocation, dates de validité et date d'émission.\n"
-#~ "\n"
-#~ "En recherchant par dates, _from effectue une recherche >= à la date et "
-#~ "_to\n"
-#~ "une recherche <= à la date. Combinées, elles sont équivalentes à un AND.\n"
-#~ "\n"
-#~ "La date est traitée comme GMT pour correspondre aux dates de "
-#~ "certificats.\n"
-#~ "\n"
-#~ "La date est au format YYYY-mm-dd.\n"
-#~ "\n"
-#~ "EXEMPLES :\n"
-#~ "\n"
-#~ " Demander un nouveau certificat et ajouter le principal :\n"
-#~ "   ipa cert-request --add --principal=HTTP/lion.example.com example.csr\n"
-#~ "\n"
-#~ " Retrouver un certificat existant :\n"
-#~ "   ipa cert-show 1032\n"
-#~ "\n"
-#~ " Révoquer un certificat (voir RFC 5280 pour le détail des raisons) :\n"
-#~ "   ipa cert-revoke --revocation-reason=6 1032\n"
-#~ "\n"
-#~ " Lever l'état de maintien de révocation d'un certificat :\n"
-#~ "   ipa cert-remove-hold 1032\n"
-#~ "\n"
-#~ " Vérifier l'état d'une demande de signature :\n"
-#~ "   ipa cert-status 10\n"
-#~ "\n"
-#~ " Rechercher des certificats par nom d'hôte :\n"
-#~ "   ipa cert-find --subject=ipaserver.example.com\n"
-#~ "\n"
-#~ " Rechercher les certificats révoqués par motif :\n"
-#~ "   ipa cert-find --revocation-reason=5\n"
-#~ "\n"
-#~ " Rechercher les certificats selon la date d'émission :\n"
-#~ "   ipa cert-find --issuedon-from=2013-02-01 --issuedon-to=2013-02-07\n"
-#~ "\n"
-#~ "Actuellement IPA émet (ou refuse) aussitôt toute demande de certificat, "
-#~ "donc\n"
-#~ "l'état d'une requête ne sert normalement pas. C'est en vue d'une "
-#~ "utilisation\n"
-#~ "future ou au cas où un CA n'émettrait pas immédiatement un certificat.\n"
-#~ "\n"
-#~ "Les motifs de révocation suivants sont pris en charge :\n"
-#~ "\n"
-#~ "    * 0 - « unspecified » (non précisé)\n"
-#~ "    * 1 - « keyCompromise » (clé compromise)\n"
-#~ "    * 2 - « cACompromise » (CA compromis)\n"
-#~ "    * 3 - « affiliationChanged » (affiliation modifiée)\n"
-#~ "    * 4 - « superseded » (remplacé)\n"
-#~ "    * 5 - « cessationOfOperation » (arrêt d'opération)\n"
-#~ "    * 6 - « certificateHold » (certificat retenu)\n"
-#~ "    * 8 - « removeFromCRL » (sorti du CRL)\n"
-#~ "    * 9 - « privilegeWithdrawn » (retrait de privilège)\n"
-#~ "    * 10 - « aACompromise » (compromission)\n"
-#~ "\n"
-#~ "Notez que le motif code 7 ne sert pas. Voir RFC 5280 pour plus de "
-#~ "détails :\n"
-#~ "\n"
-#~ "http://www.ietf.org/rfc/rfc5280.txt\n"
-#~ "\n"
-
-#~ msgid "CA to use"
-#~ msgstr "AC à utiliser"
-
-#~ msgid "Reason"
-#~ msgstr "Raison"
-
-#~ msgid ""
-#~ "Reason for revoking the certificate (0-10). Type \"ipa help cert\" for "
-#~ "revocation reason details. "
-#~ msgstr ""
-#~ "Raison de la révocation du certificat (1-10). Utilisez « ipa help cert » "
-#~ "pour plus d'informations sur les raisons de révocation."
-
-#~ msgid ""
-#~ "Reason for revoking the certificate (0-10). Type \"ipa help cert\" for "
-#~ "revocation reason details."
-#~ msgstr ""
-#~ "Raison de la révocation du certificat (1-10). Utilisez « ipa help cert » "
-#~ "pour plus d'informations sur les raisons de révocation."
-
-#~ msgid "Maximum number of certs returned"
-#~ msgstr "Nombre maximum de certificats renvoyés"

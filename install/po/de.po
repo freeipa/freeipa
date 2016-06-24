@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-06-21 10:11+0200\n"
+"POT-Creation-Date: 2016-07-01 09:08+0200\n"
 "PO-Revision-Date: 2016-06-17 07:17-0400\n"
 "Last-Translator: Martin Bašti <mbasti@redhat.com>\n"
 "Language-Team: German (http://www.transifex.com/projects/p/freeipa/language/"
@@ -38,6 +38,12 @@ msgstr "Automount-Masterdatei"
 #, python-format
 msgid "File %(file)s not found"
 msgstr "Datei %(file)s nicht gefunden"
+
+msgid "Unrevoked"
+msgstr "Nicht widerrufen"
+
+msgid "Error"
+msgstr "Fehler"
 
 msgid "No option to modify specific record provided."
 msgstr "Keine Option zum Ändern des spezifischen Datensatzes angegeben."
@@ -827,6 +833,9 @@ msgstr "Ziel-Gruppe"
 msgid "Target your own entry (self)"
 msgstr "Auf eigenen Eintrag anwenden (self)"
 
+msgid "ACI"
+msgstr "ACI"
+
 #, python-format
 msgid "Created ACI \"%(value)s\""
 msgstr "ACI erstellt \"%(value)s\""
@@ -837,9 +846,6 @@ msgstr "ACI-Syntax testen, aber nicht schreiben"
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
 msgstr "ACI gelöscht \"%(value)s\""
-
-msgid "ACI"
-msgstr "ACI"
 
 #, python-format
 msgid "Modified ACI \"%(value)s\""
@@ -890,11 +896,11 @@ msgstr "Gruppierungstyp"
 msgid "Grouping to which the rule applies"
 msgstr "Gruppierung, auf die die Regel angewendet wird"
 
-msgid "Automember Rule"
-msgstr "Auto-Mitgliedschaftsregel"
-
 msgid "Auto Membership Rule"
 msgstr "Regel für Auto-Mitgliedschaft"
+
+msgid "Automember Rule"
+msgstr "Auto-Mitgliedschaftsregel"
 
 msgid "Description"
 msgstr "Beschreibung"
@@ -1333,24 +1339,6 @@ msgstr "Größenbeschränkung"
 msgid "Kerberos keys available"
 msgstr "Kerberos-Schlüssel verfügbar"
 
-msgid "SSH public key fingerprint"
-msgstr "Fingerabdruck des öffentlichen SSH-Schlüssels"
-
-msgid "Server"
-msgstr "Server"
-
-msgid "Failed logins"
-msgstr "Fehlgeschlagene Logins"
-
-msgid "Last successful authentication"
-msgstr "Letzte erfolgreiche Authentifizierung"
-
-msgid "Last failed authentication"
-msgstr "Letzte fehlgeschlagene Authentifizierung"
-
-msgid "Time now"
-msgstr "Aktuelle Zeit"
-
 msgid "must be TRUE or FALSE"
 msgstr "muss TRUE oder FALSE sein"
 
@@ -1454,6 +1442,9 @@ msgstr "Führerschein"
 
 msgid "SSH public key"
 msgstr "Öffentlicher SSH Schlüssel"
+
+msgid "SSH public key fingerprint"
+msgstr "Fingerabdruck des öffentlichen SSH-Schlüssels"
 
 msgid "User authentication types"
 msgstr "Benutzerauthentifizierungstypen"
@@ -1577,6 +1568,15 @@ msgstr ""
 "Benutzerkategorie kann nicht auf 'Alle' gesetzt werden wenn es erlaubte "
 "Benutzer gibt"
 
+msgid "user"
+msgstr "Benutzer"
+
+msgid "host"
+msgstr "host"
+
+msgid "service"
+msgstr "Dienst"
+
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "Fehler beim Dekodieren der Signaturanfrage für das Zertifikat: %s"
@@ -1637,9 +1637,6 @@ msgstr "Principal"
 msgid "Principal for this certificate (e.g. HTTP/test.example.com)"
 msgstr "Principal für dieses Zertifikat (z.B. HTTP/test.example.com)"
 
-msgid "automatically add the principal if it doesn't exist"
-msgstr "Den Principal automatisch hinzufügen, falls dieser nicht existiert"
-
 msgid "The principal for this request doesn't exist."
 msgstr "Der Principal für diese Anfrage existiert nicht"
 
@@ -1655,6 +1652,9 @@ msgstr "Widerrufen"
 msgid "Revocation reason"
 msgstr "Grund des Widerrufs"
 
+msgid "Reason for revoking the certificate (0-10)"
+msgstr "Grund für den Widerruf des Zertifikats (0-10)"
+
 msgid "Retrieve an existing certificate."
 msgstr "Ein existierendes Zertifikat holen."
 
@@ -1669,12 +1669,6 @@ msgstr "Ein Zertifikat widerrufen."
 
 msgid "7 is not a valid revocation reason"
 msgstr "7 ist kein gültiger Grund für einen Widerruf."
-
-msgid "Unrevoked"
-msgstr "Nicht widerrufen"
-
-msgid "Error"
-msgstr "Fehler"
 
 msgid "configuration options"
 msgstr "Konfigurationsoptionen"
@@ -2337,12 +2331,6 @@ msgstr "Zugriff gewährt: %s"
 msgid "Keytab"
 msgstr "Schlüsseltabelle"
 
-msgid "Serial Number"
-msgstr "Seriennummer"
-
-msgid "Serial Number (hex)"
-msgstr "Seriennummer (hex)"
-
 msgid "Users allowed to retrieve keytab"
 msgstr "Benutzer die Schlüsseltabelle abrufen dürfen"
 
@@ -2366,9 +2354,6 @@ msgstr "Hosts die Schlüsseltabelle erstellen dürfen"
 
 msgid "Host Groups allowed to create keytab"
 msgstr "Hostgruppen die Schlüsseltabelle erstellen dürfen"
-
-msgid "host"
-msgstr "host"
 
 msgid "hosts"
 msgstr "hosts"
@@ -2402,6 +2387,12 @@ msgstr "Betriebssystem und Version (z.B. \"Fedora 9\")"
 
 msgid "User password"
 msgstr "Benutzerpasswort"
+
+msgid "Serial Number"
+msgstr "Seriennummer"
+
+msgid "Serial Number (hex)"
+msgstr "Seriennummer (hex)"
 
 msgid "Principal name"
 msgstr "Principal-Name"
@@ -3722,6 +3713,9 @@ msgstr "Zähler"
 msgid "Initial counter for the HOTP token"
 msgstr "Startwert des HOTP-Zählers"
 
+msgid "URI"
+msgstr "URI"
+
 msgid "Add a new OTP token."
 msgstr "Neuen OTP-Token hinzufügen"
 
@@ -3734,9 +3728,6 @@ msgstr "(veraltet)"
 
 msgid "Do not display QR code"
 msgstr "Keinen QR Code zeigen"
-
-msgid "URI"
-msgstr "URI"
 
 msgid "Delete an OTP token."
 msgstr "OTP Token löschen"
@@ -3885,6 +3876,9 @@ msgstr "Aktive Passwortregel für einen bestimmten Benutzer anzeigen"
 msgid "Search for group password policies."
 msgstr "Suche nach Gruppen-Passwortregeln"
 
+msgid "Server"
+msgstr "Server"
+
 msgid "role"
 msgstr "Rolle"
 
@@ -3976,9 +3970,6 @@ msgstr "IPA-Server"
 
 msgid "IPA server hostname"
 msgstr "IPA-Server Hostname"
-
-msgid "service"
-msgstr "Dienst"
 
 msgid "services"
 msgstr "Dienste"
@@ -4171,9 +4162,6 @@ msgstr "Externer Benutzer"
 msgid "Sudo Option"
 msgstr "Sudo-Option"
 
-msgid "user"
-msgstr "Benutzer"
-
 msgid "users"
 msgstr "Benutzer"
 
@@ -4270,6 +4258,18 @@ msgstr "Benutzerkonto »%(value)s« wurde aktiviert"
 #, python-format
 msgid "Unlocked account \"%(value)s\""
 msgstr "Konto »%(value)s« wurde entsperrt"
+
+msgid "Failed logins"
+msgstr "Fehlgeschlagene Logins"
+
+msgid "Last successful authentication"
+msgstr "Letzte erfolgreiche Authentifizierung"
+
+msgid "Last failed authentication"
+msgstr "Letzte fehlgeschlagene Authentifizierung"
+
+msgid "Time now"
+msgstr "Aktuelle Zeit"
 
 #, python-format
 msgid "Account disabled: %(disabled)s"
@@ -4451,6 +4451,3 @@ msgstr "Zufallsschlüssel konnte nicht erzeugt werden!\n"
 
 msgid "Failed to create key!\n"
 msgstr "Schlüssel konnte nicht erzeugt werden!\n"
-
-#~ msgid "Reason"
-#~ msgstr "Grund"

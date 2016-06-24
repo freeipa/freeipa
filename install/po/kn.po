@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-06-21 10:11+0200\n"
+"POT-Creation-Date: 2016-07-01 09:08+0200\n"
 "PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Kannada (http://www.transifex.com/projects/p/freeipa/language/"
@@ -20,6 +20,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Zanata 3.8.4\n"
+
+msgid "Unrevoked"
+msgstr "ರದ್ದು ಮಾಡಲಾಗಿಲ್ಲ"
+
+msgid "Error"
+msgstr "ದೋಷ"
 
 msgid "Password"
 msgstr "ಗುಪ್ತಪದ"
@@ -401,20 +407,14 @@ msgstr "ಬೇಡಿಕೆ ID"
 msgid "Principal"
 msgstr "Principal"
 
-msgid "automatically add the principal if it doesn't exist"
-msgstr "ಸ್ವಯಂಚಾಲಿತವಾಗಿ principal ಸೇರಿಸಿ ಅದು ಅಸ್ತಿತ್ವದಲ್ಲಿ ಇಲ್ಲದಿದ್ದಲ್ಲಿ"
-
 msgid "Revoked"
 msgstr "ರದ್ದು ಮಾಡಲಾಗಿದೆ"
 
 msgid "Revocation reason"
 msgstr "ರದ್ದು ಮಾಡುವುದಕ್ಕೆ ಕಾರಣ"
 
-msgid "Unrevoked"
-msgstr "ರದ್ದು ಮಾಡಲಾಗಿಲ್ಲ"
-
-msgid "Error"
-msgstr "ದೋಷ"
+msgid "Reason for revoking the certificate (0-10)"
+msgstr "ಪ್ರಮಾಣಪತ್ರವನ್ನು (0-10) ರದ್ದು ಮಾಡಲು ಕಾರಣ"
 
 msgid "Home directory base"
 msgstr "ಹೋಮ್ ಡೈರೆಕ್ಟರೀ ಮೂಲ"
@@ -685,6 +685,3 @@ msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಅಳಿಸಲಾಗ
 #, python-format
 msgid "Modified user \"%(value)s\""
 msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
-
-#~ msgid "Reason"
-#~ msgstr "ಕಾರಣ"
