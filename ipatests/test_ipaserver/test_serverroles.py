@@ -469,11 +469,16 @@ class MockMasterTopology(object):
 @pytest.fixture(scope='module')
 def mock_api(request):
     test_api = create_api(mode=None)
-    test_api.bootstrap(in_server=True, in_tree=True)
+    test_api.bootstrap(in_server=True, ldap_uri=api.env.ldap_uri)
     test_api.finalize()
 
     if not test_api.Backend.ldap2.isconnected():
         test_api.Backend.ldap2.connect()
+
+    def finalize():
+        test_api.Backend.ldap2.disconnect()
+
+    request.addfinalizer(finalize)
 
     return test_api
 
