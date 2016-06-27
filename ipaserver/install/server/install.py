@@ -22,7 +22,8 @@ from ipapython.install.common import step
 from ipapython.install.core import Knob
 from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import (
-    decrypt_file, format_netloc, ipa_generate_password, run, user_input)
+    decrypt_file, format_netloc, ipa_generate_password, run, user_input,
+    is_fips_enabled)
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
@@ -318,6 +319,10 @@ def install_check(installer):
     external_cert_file = installer._external_cert_file
     external_ca_file = installer._external_ca_file
     http_ca_cert = installer._ca_cert
+
+    if is_fips_enabled():
+        raise RuntimeError(
+            "Installing IPA server in FIPS mode is not supported")
 
     tasks.check_selinux_status()
 

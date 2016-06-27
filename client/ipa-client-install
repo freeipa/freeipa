@@ -45,7 +45,7 @@ try:
     import ipaclient.ntpconf
     from ipapython.ipautil import (
         run, user_input, CalledProcessError, file_exists, dir_exists,
-        realm_to_suffix)
+        realm_to_suffix, is_fips_enabled)
     from ipaplatform.tasks import tasks
     from ipaplatform import services
     from ipaplatform.paths import paths
@@ -3076,6 +3076,9 @@ def main():
 
     if not os.getegid() == 0:
         sys.exit("\nYou must be root to run ipa-client-install.\n")
+    if is_fips_enabled():
+        sys.exit("Installing IPA client in FIPS mode is not supported")
+
     tasks.check_selinux_status()
     logging_setup(options)
     root_logger.debug(

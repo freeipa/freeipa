@@ -31,7 +31,8 @@ from ipaserver.install.dsinstance import config_dirname
 from ipaserver.install.installutils import is_ipa_configured, ScriptError
 from ipalib import api, errors
 from ipapython.ipaldap import IPAdmin
-from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
+from ipapython.ipautil import (
+    wait_for_open_ports, wait_for_open_socket, is_fips_enabled)
 from ipapython import config
 from ipaplatform.tasks import tasks
 from ipapython.dn import DN
@@ -544,6 +545,9 @@ def main():
         raise IpactlError("You must specify one action", 2)
     elif args[0] != "start" and args[0] != "stop" and args[0] != "restart" and args[0] != "status":
         raise IpactlError("Unrecognized action [" + args[0] + "]", 2)
+
+    if is_fips_enabled():
+        raise IpactlError("Starting IPA server in FIPS mode is not supported")
 
     # check if IPA is configured at all
     try:
