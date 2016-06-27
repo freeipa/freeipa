@@ -193,7 +193,6 @@ class test_service(Declarative):
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
-                    krbcanonicalname=[service1],
                     objectclass=objectclasses.service,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[fqdn1],
@@ -263,7 +262,6 @@ class test_service(Declarative):
                     dict(
                         dn=service1dn,
                         krbprincipalname=[service1],
-                        krbcanonicalname=service1,
                         managedby_host=[fqdn1],
                         has_keytab=False,
                     ),
@@ -283,7 +281,6 @@ class test_service(Declarative):
                     dict(
                         dn=service1dn,
                         krbprincipalname=[service1],
-                        krbcanonicalname=service1,
                         has_keytab=False,
                     ),
                 ],
@@ -718,7 +715,6 @@ class test_service_in_role(Declarative):
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
-                    krbcanonicalname=[service1],
                     objectclass=objectclasses.service,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[fqdn1],
@@ -923,7 +919,6 @@ class test_service_allowed_to(Declarative):
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
-                    krbcanonicalname=[service1],
                     objectclass=objectclasses.service,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[fqdn1],
