@@ -133,6 +133,7 @@ class BasePathNamespace(object):
     SYSTEMD_PKI_TOMCAT_SERVICE = "/etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service"
     DNSSEC_TRUSTED_KEY = "/etc/trusted-key.key"
     HOME_DIR = "/home"
+    PROC_FIPS_ENABLED = "/proc/sys/crypto/fips_enabled"
     ROOT_IPA_CACHE = "/root/.ipa_cache"
     ROOT_PKI = "/root/.pki"
     DOGTAG_ADMIN_P12 = "/root/ca-agent.p12"

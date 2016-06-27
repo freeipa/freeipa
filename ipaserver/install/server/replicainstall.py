@@ -497,6 +497,10 @@ def install_check(installer):
     options = installer
     filename = installer.replica_file
 
+    if ipautil.is_fips_enabled():
+        raise RuntimeError(
+            "Installing IPA server in FIPS mode is not supported")
+
     tasks.check_selinux_status()
 
     if is_ipa_configured():
