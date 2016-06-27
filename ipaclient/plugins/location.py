@@ -10,7 +10,7 @@ from ipalib.plugable import Registry
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class location_show(MethodOverride):
     def output_for_cli(self, textui, output, *keys, **options):
         rv = super(location_show, self).output_for_cli(

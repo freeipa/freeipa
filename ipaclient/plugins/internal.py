@@ -30,13 +30,13 @@ from ipalib.plugable import Registry
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class json_metadata(CommandOverride):
     def output_for_cli(self, textui, result, *args, **options):
         print(json.dumps(result, default=json_serialize))
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class i18n_messages(CommandOverride):
     def output_for_cli(self, textui, result, *args, **options):
         print(json.dumps(result, default=json_serialize))

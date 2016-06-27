@@ -9,7 +9,7 @@ from ipalib.plugable import Registry
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class server_del(MethodOverride):
     def interactive_prompt_callback(self, kw):
         self.api.Backend.textui.print_plain(

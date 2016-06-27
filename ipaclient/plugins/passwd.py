@@ -8,7 +8,7 @@ from ipalib.plugable import Registry
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class passwd(CommandOverride):
     def get_args(self):
         for arg in super(passwd, self).get_args():

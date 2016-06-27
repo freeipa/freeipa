@@ -109,17 +109,17 @@ class DNSZoneMethodOverride(MethodOverride):
             yield option
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class dnszone_add(DNSZoneMethodOverride):
     pass
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class dnszone_mod(DNSZoneMethodOverride):
     pass
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class dnsrecord_add(MethodOverride):
     no_option_msg = 'No options to add a specific record provided.\n' \
             "Command help may be consulted for all supported record types."
@@ -194,7 +194,7 @@ class dnsrecord_add(MethodOverride):
         kw.update(user_options)
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class dnsrecord_mod(MethodOverride):
     no_option_msg = 'No options to modify a specific record provided.'
 
@@ -252,7 +252,7 @@ class dnsrecord_mod(MethodOverride):
                          break
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class dnsrecord_del(MethodOverride):
     no_option_msg = _('Neither --del-all nor options to delete a specific record provided.\n'\
             "Command help may be consulted for all supported record types.")
@@ -309,7 +309,7 @@ class dnsrecord_del(MethodOverride):
                 kw[param.name] = tuple(deleted_values)
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class dnsconfig_mod(MethodOverride):
     def interactive_prompt_callback(self, kw):
 
@@ -322,7 +322,7 @@ class dnsconfig_mod(MethodOverride):
                 _("This may take some time, please wait ..."))
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class dnsforwardzone_add(MethodOverride):
     def interactive_prompt_callback(self, kw):
         # show informative message on client side
@@ -334,7 +334,7 @@ class dnsforwardzone_add(MethodOverride):
                 _("This may take some time, please wait ..."))
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class dnsforwardzone_mod(MethodOverride):
     def interactive_prompt_callback(self, kw):
         # show informative message on client side
@@ -346,7 +346,7 @@ class dnsforwardzone_mod(MethodOverride):
                 _("This may take some time, please wait ..."))
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class dns_update_system_records(MethodOverride):
     def output_for_cli(self, textui, output, *args, **options):
         output_super = copy.deepcopy(output)

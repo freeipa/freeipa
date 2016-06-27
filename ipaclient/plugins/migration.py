@@ -30,7 +30,7 @@ if six.PY3:
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class migrate_ds(CommandOverride):
     migrate_order = ('user', 'group')
 

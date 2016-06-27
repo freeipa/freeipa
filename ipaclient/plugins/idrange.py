@@ -24,7 +24,7 @@ from ipalib import api
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class idrange_add(MethodOverride):
     def interactive_prompt_callback(self, kw):
         """

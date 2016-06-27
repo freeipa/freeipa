@@ -29,7 +29,7 @@ from ipalib import x509
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class user_del(MethodOverride):
     def get_options(self):
         for option in super(user_del, self).get_options():
@@ -60,7 +60,7 @@ class user_del(MethodOverride):
         return super(user_del, self).forward(*keys, **options)
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class user_show(MethodOverride):
     def forward(self, *keys, **options):
         if 'out' in options:

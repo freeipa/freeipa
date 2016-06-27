@@ -43,7 +43,7 @@ if six.PY3:
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class otptoken_add(MethodOverride):
     def _get_qrcode(self, output, uri, version):
         # Print QR code to terminal if specified

@@ -11,7 +11,7 @@ from ipalib.text import _
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class certprofile_show(MethodOverride):
     def forward(self, *keys, **options):
         if 'out' in options:
@@ -29,7 +29,7 @@ class certprofile_show(MethodOverride):
         return result
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class certprofile_import(MethodOverride):
     def get_options(self):
         for option in super(certprofile_import, self).get_options():
@@ -38,7 +38,7 @@ class certprofile_import(MethodOverride):
             yield option
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class certprofile_mod(MethodOverride):
     def get_options(self):
         for option in super(certprofile_mod, self).get_options():

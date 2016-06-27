@@ -30,7 +30,7 @@ from ipalib.text import _
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class cert_request(MethodOverride):
     def get_args(self):
         for arg in super(cert_request, self).get_args():
@@ -39,7 +39,7 @@ class cert_request(MethodOverride):
             yield arg
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class cert_show(MethodOverride):
     def forward(self, *keys, **options):
         if 'out' in options:
@@ -54,7 +54,7 @@ class cert_show(MethodOverride):
             return super(cert_show, self).forward(*keys, **options)
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class cert_remove_hold(MethodOverride):
     has_output_params = (
         Flag('unrevoked',
@@ -66,7 +66,7 @@ class cert_remove_hold(MethodOverride):
     )
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class cert_find(MethodOverride):
     takes_options = (
         File(

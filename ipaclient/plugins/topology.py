@@ -14,7 +14,7 @@ if six.PY3:
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class topologysuffix_verify(MethodOverride):
     def output_for_cli(self, textui, output, *args, **options):
 

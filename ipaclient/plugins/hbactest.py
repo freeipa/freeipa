@@ -28,7 +28,7 @@ if six.PY3:
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class hbactest(CommandOverride):
     def output_for_cli(self, textui, output, *args, **options):
         """

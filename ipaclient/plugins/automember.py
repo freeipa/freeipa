@@ -25,7 +25,7 @@ from ipalib.text import _
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class automember_add_condition(MethodOverride):
     has_output_params = (
         Str('failed',

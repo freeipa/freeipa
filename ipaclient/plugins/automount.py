@@ -39,7 +39,7 @@ DEFAULT_MAPS = (u'auto.direct', )
 DEFAULT_KEYS = (u'/-', )
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class automountlocation_tofiles(MethodOverride):
     def output_for_cli(self, textui, result, *keys, **options):
         maps = result['result']['maps']

@@ -24,19 +24,19 @@ from ipalib import _
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class sudorule_enable(MethodOverride):
     def output_for_cli(self, textui, result, cn, **options):
         textui.print_dashed(_('Enabled Sudo Rule "%s"') % cn)
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class sudorule_disable(MethodOverride):
     def output_for_cli(self, textui, result, cn, **options):
         textui.print_dashed(_('Disabled Sudo Rule "%s"') % cn)
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class sudorule_add_option(MethodOverride):
     def output_for_cli(self, textui, result, cn, **options):
         textui.print_dashed(
@@ -47,7 +47,7 @@ class sudorule_add_option(MethodOverride):
                                                         **options)
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class sudorule_remove_option(MethodOverride):
     def output_for_cli(self, textui, result, cn, **options):
         textui.print_dashed(

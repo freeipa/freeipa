@@ -27,7 +27,7 @@ from ipalib import x509
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class host_show(MethodOverride):
     def forward(self, *keys, **options):
         if 'out' in options:

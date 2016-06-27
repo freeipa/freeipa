@@ -16,16 +16,16 @@ class PermissionMethodOverride(MethodOverride):
             yield option
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class permission_add(PermissionMethodOverride):
     pass
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class permission_mod(PermissionMethodOverride):
     pass
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class permission_find(PermissionMethodOverride):
     pass

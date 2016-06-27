@@ -493,7 +493,7 @@ class vault_mod(Local):
         return response
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class vaultconfig_show(MethodOverride):
     def forward(self, *args, **options):
 

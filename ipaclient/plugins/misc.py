@@ -8,7 +8,7 @@ from ipalib.plugable import Registry
 register = Registry()
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class env(CommandOverride):
     def output_for_cli(self, textui, output, *args, **options):
         output = dict(output)
@@ -19,7 +19,7 @@ class env(CommandOverride):
                                                *args, **options)
 
 
-@register(override=True)
+@register(override=True, no_fail=True)
 class plugins(CommandOverride):
     def output_for_cli(self, textui, output, *args, **options):
         options['all'] = True
