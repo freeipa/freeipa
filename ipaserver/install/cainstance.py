@@ -460,6 +460,10 @@ class CAInstance(DogtagInstance):
         config.set("CA", "pki_backup_keys", "True")
         config.set("CA", "pki_backup_password", self.admin_password)
         config.set("CA", "pki_profiles_in_ldap", "True")
+        config.set("CA", "pki_default_ocsp_uri",
+            "http://{}.{}/ca/ocsp".format(
+                ipalib.constants.IPA_CA_RECORD,
+                ipautil.format_netloc(api.env.domain)))
 
         # Client security database
         config.set("CA", "pki_client_database_dir", self.agent_db)

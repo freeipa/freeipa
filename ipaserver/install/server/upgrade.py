@@ -356,6 +356,28 @@ def ca_ensure_lightweight_cas_container(ca):
     return cainstance.ensure_lightweight_cas_container()
 
 
+def ca_add_default_ocsp_uri(ca):
+    root_logger.info('[Adding default OCSP URI configuration]')
+    if not ca.is_configured():
+        root_logger.info('CA is not configured')
+        return False
+
+    value = installutils.get_directive(
+        paths.CA_CS_CFG_PATH,
+        'ca.defaultOcspUri',
+        separator='=')
+    if value:
+        return False  # already set; restart not needed
+
+    installutils.set_directive(
+        paths.CA_CS_CFG_PATH,
+        'ca.defaultOcspUri',
+        'http://ipa-ca.%s/ca/ocsp' % ipautil.format_netloc(api.env.domain),
+        quotes=False,
+        separator='=')
+    return True  # restart needed
+
+
 def upgrade_ca_audit_cert_validity(ca):
     """
     Update the Dogtag audit signing certificate.
@@ -1725,6 +1747,7 @@ def upgrade_configuration():
         ca_enable_pkix(ca),
         ca_configure_profiles_acl(ca),
         ca_configure_lightweight_ca_acls(ca),
+        ca_add_default_ocsp_uri(ca),
     ])
 
     if ca_restart:

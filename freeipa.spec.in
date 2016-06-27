@@ -94,7 +94,7 @@ BuildRequires:  libunistring-devel
 BuildRequires:  python-lesscpy
 BuildRequires:  python-yubico >= 1.2.3
 BuildRequires:  openssl-devel
-BuildRequires:  pki-base >= 10.3.3
+BuildRequires:  pki-base >= 10.3.4
 BuildRequires:  python-pytest-multihost >= 0.5
 BuildRequires:  python-pytest-sourceorder
 BuildRequires:  python-kdcproxy >= 0.3
@@ -155,8 +155,8 @@ Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base >= %{selinux_policy_version}
 Requires: slapi-nis >= 0.56.0
-Requires: pki-ca >= 10.3.3
-Requires: pki-kra >= 10.3.3
+Requires: pki-ca >= 10.3.4
+Requires: pki-kra >= 10.3.4
 Requires(preun): python systemd-units
 Requires(postun): python systemd-units
 Requires: zip
