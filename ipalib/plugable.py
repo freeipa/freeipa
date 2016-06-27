@@ -638,7 +638,7 @@ class API(ReadOnly):
 
         raise errors.PluginModuleError(name=module.__name__)
 
-    def add_plugin(self, plugin, override=False):
+    def add_plugin(self, plugin, override=False, no_fail=False):
         """
         Add the plugin ``plugin``.
 
@@ -662,23 +662,29 @@ class API(ReadOnly):
         prev = self.__plugins_by_key.get(plugin.full_name)
         if prev:
             if not override:
-                # Must use override=True to override:
-                raise errors.PluginOverrideError(
-                    base=base.__name__,
-                    name=plugin.name,
-                    plugin=plugin,
-                )
+                if no_fail:
+                    return
+                else:
+                    # Must use override=True to override:
+                    raise errors.PluginOverrideError(
+                        base=base.__name__,
+                        name=plugin.name,
+                        plugin=plugin,
+                    )
 
             self.__plugins.remove(prev)
             self.__next[plugin] = prev
         else:
             if override:
-                # There was nothing already registered to override:
-                raise errors.PluginMissingOverrideError(
-                    base=base.__name__,
-                    name=plugin.name,
-                    plugin=plugin,
-                )
+                if no_fail:
+                    return
+                else:
+                    # There was nothing already registered to override:
+                    raise errors.PluginMissingOverrideError(
+                        base=base.__name__,
+                        name=plugin.name,
+                        plugin=plugin,
+                    )
 
         # The plugin is okay, add to sub_d:
         self.__plugins.add(plugin)
