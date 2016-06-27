@@ -576,6 +576,15 @@ class service_add(LDAPCreate):
         if not 'managedby' in entry_attrs:
             entry_attrs['managedby'] = hostresult['dn']
 
+        # Enforce ipaKrbPrincipalAlias to aid case-insensitive searches
+        # as krbPrincipalName/krbCanonicalName are case-sensitive in Kerberos
+        # schema
+        entry_attrs['ipakrbprincipalalias'] = keys[-1]
+
+        # Objectclass ipakrbprincipal providing ipakrbprincipalalias is not in
+        # in a list of default objectclasses, add it manually
+        entry_attrs['objectclass'].append('ipakrbprincipal')
+
         # set krbcanonicalname attribute to enable principal canonicalization
         util.set_krbcanonicalname(entry_attrs)
 

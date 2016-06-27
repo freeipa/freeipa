@@ -239,6 +239,7 @@ class test_service(Declarative):
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
+                    ipakrbprincipalalias=[service1],
                     krbcanonicalname=[service1],
                     objectclass=objectclasses.service,
                     ipauniqueid=[fuzzy_uuid],
@@ -301,7 +302,8 @@ class test_service(Declarative):
                     dict(
                         dn=service1dn,
                         krbprincipalname=[service1],
-                        krbcanonicalname=service1,
+                        ipakrbprincipalalias=[service1],
+                        krbcanonicalname=[service1],
                         objectclass=objectclasses.service,
                         ipauniqueid=[fuzzy_uuid],
                         has_keytab=False,
