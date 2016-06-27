@@ -135,12 +135,12 @@ class test_dns_realmdomains_integration(Declarative):
         ),
 
         dict(
-            desc='Check realmdomain and TXT record do not get created '
-                 'during dnszone_add for forwarded zone',
+            desc='Check realmdomain and TXT record gets created '
+                 'during dnszone_add for master zone with a forwarder',
             command=(
                 'dnszone_add', [dnszone_2], {
                     'idnssoarname': idnssoarname,
-                    'idnsforwarders': u'1.2.3.4',
+                    'idnsforwarders': u'198.18.19.20',
                     'idnsforwardpolicy': u'only',
                 }
             ),
@@ -162,7 +162,7 @@ class test_dns_realmdomains_integration(Declarative):
                     'idnsname': [DNSName(dnszone_2_absolute)],
                     'idnszoneactive': [u'TRUE'],
                     'idnssoamname': [self_server_ns_dnsname],
-                    'idnsforwarders': [u'1.2.3.4'],
+                    'idnsforwarders': [u'198.18.19.20'],
                     'idnsforwardpolicy': [u'only'],
                     'nsrecord': lambda x: True,
                     'idnssoarname': [DNSName(idnssoarname)],
@@ -182,7 +182,7 @@ class test_dns_realmdomains_integration(Declarative):
 
                 },
             },
-            extra_check=assert_realmdomain_and_txt_record_not_present,
+            extra_check=assert_realmdomain_and_txt_record_present,
         ),
 
         dict(
