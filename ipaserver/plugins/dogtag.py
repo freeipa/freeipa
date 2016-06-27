@@ -1903,7 +1903,7 @@ class ra(rabase.rabase):
                 response_request['subject'] = unicode(dn[0].text)
 
             issuer_dn = cert.xpath('IssuerDN')
-            if len(dn) == 1:
+            if len(issuer_dn) == 1:
                 response_request['issuer'] = unicode(issuer_dn[0].text)
 
             status = cert.xpath('Status')
