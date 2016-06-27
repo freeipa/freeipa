@@ -196,7 +196,7 @@ class TestNonexistentAutomember(XMLRPC_test):
         group1.ensure_missing()
         command = automember_group.make_delete_command()
         with raises_exact(errors.NotFound(
-                reason=u': Automember rule not found')):
+                reason=u'%s: Automember rule not found' % group1.cn)):
             command()
 
     def test_create_with_nonexistent_hostgroup(self, automember_hostgroup,
@@ -214,7 +214,7 @@ class TestNonexistentAutomember(XMLRPC_test):
         hostgroup1.ensure_missing()
         command = automember_hostgroup.make_delete_command()
         with raises_exact(errors.NotFound(
-                reason=u': Automember rule not found')):
+                reason=u'%s: Automember rule not found' % hostgroup1.cn)):
             command()
 
 
