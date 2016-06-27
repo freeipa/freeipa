@@ -226,7 +226,7 @@ class server_mod(LDAPUpdate):
                 self.api.Object.location.handle_not_found(
                     options['ipalocation_location'])
 
-        if 'ipalocation' or 'ipaserviceweight' in entry_attrs:
+        if 'ipalocation' in entry_attrs or 'ipaserviceweight' in entry_attrs:
             server_entry = ldap.get_entry(dn, ['objectclass'])
 
             # we need to extend object with ipaLocationMember objectclass
