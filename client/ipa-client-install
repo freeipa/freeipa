@@ -54,7 +54,8 @@ try:
     from ipapython.config import IPAOptionParser
     from ipalib import api, errors
     from ipalib import x509, certstore
-    from ipalib.util import verify_host_resolvable
+    from ipalib.util import (
+        normalize_hostname, validate_domain_name, verify_host_resolvable)
     from ipalib.constants import CACERT
     from ipapython.dn import DN
     from ipapython.ssh import SSHPublicKey
@@ -223,6 +224,13 @@ def parse_options():
 
     if (options.server and not options.domain):
         parser.error("--server cannot be used without providing --domain")
+
+    if options.domain:
+        try:
+            validate_domain_name(options.domain)
+        except ValueError as ex:
+            parser.error("invalid domain name: %s" % ex)
+        options.domain = normalize_hostname(options.domain)
 
     if options.force_ntpd and not options.conf_ntp:
         parser.error("--force-ntpd cannot be used together with --no-ntp")
