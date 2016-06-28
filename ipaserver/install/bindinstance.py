@@ -54,7 +54,7 @@ from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
                          normalize_zone, get_reverse_zone_default,
                          zone_is_reverse, validate_dnssec_global_forwarder,
                          DNSSECSignatureMissingError, EDNS0UnsupportedError,
-                         UnresolvableRecordError, verify_host_resolvable)
+                         UnresolvableRecordError)
 from ipalib.constants import CACERT
 
 if six.PY3:
@@ -836,14 +836,6 @@ class BindInstance(service.Service):
 
     def __add_master_records(self, fqdn, addrs):
         host, zone = fqdn.split(".", 1)
-
-        if not dns_zone_exists(zone, self.api):
-            # check if master hostname is resolvable
-            try:
-                verify_host_resolvable(fqdn)
-            except errors.DNSNotARecordError:
-                root_logger.warning("Master FQDN (%s) is not resolvable.",
-                                    fqdn)
 
         # Add forward and reverse records to self
         for addr in addrs:
