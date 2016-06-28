@@ -321,7 +321,7 @@ def resolve_rrsets(fqdn, rdtypes):
 
 
 def resolve_ip_addresses(fqdn):
-    """Get IP addresses from DNS A/AAAA records for given host.
+    """Get IP addresses from DNS A/AAAA records for given host (using DNS).
     :returns:
         list of IP addresses as CheckedIPAddress objects
     """

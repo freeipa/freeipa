@@ -445,6 +445,46 @@ def create_keytab(path, principal):
 
     kadmin("ktadd -k " + path + " " + principal)
 
+def resolve_ip_addresses_nss(fqdn):
+    """Get list of IP addresses for given host (using NSS/getaddrinfo).
+    :returns:
+        list of IP addresses as CheckedIPAddress objects
+    """
+    # make sure the name is fully qualified
+    # so search path from resolv.conf does not apply
+    fqdn = str(dnsutil.DNSName(fqdn).make_absolute())
+    try:
+        addrinfos = socket.getaddrinfo(fqdn, None,
+                                       socket.AF_UNSPEC, socket.SOCK_STREAM)
+    except socket.error as ex:
+        if ex.errno == socket.EAI_NODATA or ex.errno == socket.EAI_NONAME:
+            root_logger.debug('Name %s does not have any address: %s',
+                              fqdn, ex)
+            return set()
+        else:
+            raise
+
+    # accept whatever we got from NSS
+    ip_addresses = set()
+    for ai in addrinfos:
+        try:
+            ip = ipautil.CheckedIPAddress(ai[4][0],
+                                          parse_netmask=False,
+                                          # these are unreliable, disable them
+                                          allow_network=True,
+                                          allow_loopback=True,
+                                          allow_broadcast=True,
+                                          allow_multicast=True)
+        except ValueError as ex:
+            # getaddinfo may return link-local address other similar oddities
+            # which are not accepted by CheckedIPAddress - skip these
+            root_logger.warning('Name %s resolved to an unacceptable IP '
+                                'address %s: %s', fqdn, ai[4][0], ex)
+        else:
+            ip_addresses.add(ip)
+    root_logger.debug('Name %s resolved to %s', fqdn, ip_addresses)
+    return ip_addresses
+
 def get_host_name(no_host_dns):
     """
     Get the current FQDN from the socket and verify that it is valid.
@@ -459,8 +499,7 @@ def get_host_name(no_host_dns):
     return hostname
 
 def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
-    # Check we have a public IP that is associated with the hostname
-    hostaddr = dnsutil.resolve_ip_addresses(host_name)
+    hostaddr = resolve_ip_addresses_nss(host_name)
     if hostaddr.intersection(
             {ipautil.CheckedIPAddress(ip, allow_loopback=True)
              for ip in ['127.0.0.1', '::1']}):

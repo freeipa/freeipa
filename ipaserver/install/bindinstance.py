@@ -870,9 +870,7 @@ class BindInstance(service.Service):
             if fqdn == self.fqdn:
                 continue
 
-            addrs = dnsutil.resolve_ip_addresses(fqdn)
-            # hack, will go away with locations
-            addrs = [str(addr) for addr in addrs]
+            addrs = installutils.resolve_ip_addresses_nss(fqdn)
 
             root_logger.debug("Adding DNS records for master %s" % fqdn)
             self.__add_master_records(fqdn, addrs)
