@@ -220,7 +220,7 @@ class _SchemaPlugin(object):
             sensitive = False
         elif (type_name == 'bool' and
                 'default' in schema and
-                schema['default'] == [u'False']):
+                schema['default'][0] == u'False'):
             cls = Flag
             del schema['default']
         else:
