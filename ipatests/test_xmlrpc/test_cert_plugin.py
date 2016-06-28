@@ -429,8 +429,9 @@ class test_cert_find(XMLRPC_test):
         """
         Search with a sizelimit of 0
         """
+        count_all = api.Command['cert_find']()['count']
         res = api.Command['cert_find'](sizelimit=0)
-        assert 'count' in res and res['count'] == 0
+        assert 'count' in res and res['count'] == count_all
 
     @raises(errors.ValidationError)
     def test_0028_find_negative_size(self):
@@ -453,7 +454,7 @@ class test_cert_find(XMLRPC_test):
         res = api.Command['cert_find'](subject=u'ipatestcert.%s' % api.env.domain)
         assert 'count' in res and res['count'] >= 1
 
-    @raises(errors.ValidationError)
+    @raises(errors.ConversionError)
     def test_0031_search_on_invalid_date(self):
         """
         Search using invalid date format
