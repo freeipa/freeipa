@@ -109,6 +109,26 @@ return {
                             flags: ['w_if_no_aci']
                         },
                         {
+                            $type: 'custom_checkboxes',
+                            label: '@i18n:authtype.auth_indicators',
+                            name: 'krbprincipalauthind',
+                            add_dialog_title: '@i18n:authtype.custom_auth_ind_title',
+                            add_field_label: '@i18n:authtype.auth_indicator',
+                            options: [
+                                {
+                                    label: '@i18n:authtype.otp',
+                                    value: 'otp'
+                                },
+                                {
+                                    label: '@i18n:authtype.type_radius',
+                                    value: 'radius'
+                                }
+                            ],
+                            tooltip: {
+                                title: '@mc-opt:host_add:krbprincipalauthind:doc'
+                            }
+                        },
+                        {
                             name: 'ipakrbokasdelegate',
                             $type: 'checkbox',
                             acl_param: 'krbticketflags',

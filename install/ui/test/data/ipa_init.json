@@ -49,6 +49,9 @@
                         "show_results": "Show Results"
                     },
                     "authtype": {
+                        "auth_indicators": "Authentication indicators",
+                        "auth_indicator": "Authentication indicator",
+                        "custom_auth_ind_title": "Add Custom Authentication Indicator",
                         "config_tooltip": "<p>Implicit method (password) will be used if no method is chosen.</p><p><strong>Password + Two-factor:</strong> LDAP and Kerberos allow authentication with either one of the authentication types but Kerberos uses pre-authentication method which requires to use armor ccache.</p><p><strong>RADIUS with another type:</strong> Kerberos always use RADIUS, but LDAP never does. LDAP only recognize the password and two-factor authentication options.</p>",
                         "otp": "OTP",
                         "type_otp": "Two factor authentication (password + OTP)",
@@ -543,10 +546,7 @@
                             "label_singular": "Server Role",
                         },
                         "service": {
-                            "auth_indicators": "Authentication indicators",
-                            "auth_indicator": "Authentication indicator",
                             "certificate": "Service Certificate",
-                            "custom_auth_ind_title": "Add Custom Authentication Indicator",
                             "delete_key_unprovision": "Delete Key, Unprovision",
                             "details": "Service Settings",
                             "host": "Host Name",

@@ -190,7 +190,10 @@ class i18n_messages(Command):
             "show_results": _("Show Results"),
         },
         "authtype": {
+            "auth_indicators": _("Authentication indicators"),
+            "auth_indicator": _("Authentication indicator"),
             "config_tooltip": _("<p>Implicit method (password) will be used if no method is chosen.</p><p><strong>Password + Two-factor:</strong> LDAP and Kerberos allow authentication with either one of the authentication types but Kerberos uses pre-authentication method which requires to use armor ccache.</p><p><strong>RADIUS with another type:</strong> Kerberos always use RADIUS, but LDAP never does. LDAP only recognize the password and two-factor authentication options.</p>"),
+            "custom_auth_ind_title": _("Add Custom Authentication Indicator"),
             "otp": _("OTP"),
             "type_otp": _("Two factor authentication (password + OTP)"),
             "type_password": _("Password"),
@@ -688,10 +691,7 @@ class i18n_messages(Command):
                 "label_singular": _("Server Role"),
             },
             "service": {
-                "auth_indicators": _("Authentication indicators"),
-                "auth_indicator": _("Authentication indicator"),
                 "certificate": _("Service Certificate"),
-                "custom_auth_ind_title": _("Add Custom Authentication Indicator"),
                 "delete_key_unprovision": _("Delete Key, Unprovision"),
                 "details": _("Service Settings"),
                 "host": _("Host Name"),
