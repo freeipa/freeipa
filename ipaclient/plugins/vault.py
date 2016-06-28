@@ -37,7 +37,7 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key,\
 import nss.nss as nss
 
 from ipaclient.frontend import MethodOverride
-from ipalib.frontend import Local
+from ipalib.frontend import Local, Method, Object
 from ipalib import errors
 from ipalib import Bytes, Flag, Str
 from ipalib.plugable import Registry
@@ -169,6 +169,17 @@ def decrypt(data, symmetric_key=None, private_key=None):
                 message=_('Invalid credentials'))
 
 
+@register(no_fail=True)
+class _fake_vault(Object):
+    name = 'vault'
+
+
+@register(no_fail=True)
+class _fake_vault_add_internal(Method):
+    name = 'vault_add_internal'
+    NO_CLI = True
+
+
 @register()
 class vault_add(Local):
     __doc__ = _('Create a new vault.')
@@ -190,6 +201,10 @@ class vault_add(Local):
             doc=_('File containing the vault public key'),
         ),
     )
+
+    @property
+    def NO_CLI(self):
+        return self.api.Command.vault_add_internal.NO_CLI
 
     def get_args(self):
         for arg in self.api.Command.vault_add_internal.args():
@@ -327,6 +342,12 @@ class vault_add(Local):
         return response
 
 
+@register(no_fail=True)
+class _fake_vault_mod_internal(Method):
+    name = 'vault_mod_internal'
+    NO_CLI = True
+
+
 @register()
 class vault_mod(Local):
     __doc__ = _('Modify a vault.')
@@ -372,6 +393,10 @@ class vault_mod(Local):
             doc=_('File containing the new vault public key'),
         ),
     )
+
+    @property
+    def NO_CLI(self):
+        return self.api.Command.vault_mod_internal.NO_CLI
 
     def get_args(self):
         for arg in self.api.Command.vault_mod_internal.args():
@@ -512,6 +537,12 @@ class vaultconfig_show(MethodOverride):
         return response
 
 
+@register(no_fail=True)
+class _fake_vault_archive_internal(Method):
+    name = 'vault_archive_internal'
+    NO_CLI = True
+
+
 @register()
 class vault_archive(Local):
     __doc__ = _('Archive data into a vault.')
@@ -540,6 +571,10 @@ class vault_archive(Local):
             doc=_('Override existing password'),
         ),
     )
+
+    @property
+    def NO_CLI(self):
+        return self.api.Command.vault_archive_internal.NO_CLI
 
     def get_args(self):
         for arg in self.api.Command.vault_archive_internal.args():
@@ -741,6 +776,12 @@ class vault_archive(Local):
         return self.api.Command.vault_archive_internal(*args, **options)
 
 
+@register(no_fail=True)
+class _fake_vault_retrieve_internal(Method):
+    name = 'vault_retrieve_internal'
+    NO_CLI = True
+
+
 @register()
 class vault_retrieve(Local):
     __doc__ = _('Retrieve a data from a vault.')
@@ -778,6 +819,10 @@ class vault_retrieve(Local):
             label=_('Data'),
         ),
     )
+
+    @property
+    def NO_CLI(self):
+        return self.api.Command.vault_retrieve_internal.NO_CLI
 
     def get_args(self):
         for arg in self.api.Command.vault_retrieve_internal.args():

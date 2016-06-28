@@ -25,7 +25,7 @@ import six
 from ipaclient.frontend import MethodOverride
 from ipalib import api, errors
 from ipalib import Flag, Str
-from ipalib.frontend import Command
+from ipalib.frontend import Command, Method, Object
 from ipalib.plugable import Registry
 from ipalib import _
 from ipapython.dn import DN
@@ -39,8 +39,23 @@ DEFAULT_MAPS = (u'auto.direct', )
 DEFAULT_KEYS = (u'/-', )
 
 
+@register(no_fail=True)
+class _fake_automountlocation(Object):
+    name = 'automountlocation'
+
+
+@register(no_fail=True)
+class _fake_automountlocation_show(Method):
+    name = 'automountlocation_show'
+    NO_CLI = True
+
+
 @register(override=True, no_fail=True)
 class automountlocation_tofiles(MethodOverride):
+    @property
+    def NO_CLI(self):
+        return self.api.Command.automountlocation_show.NO_CLI
+
     def output_for_cli(self, textui, result, *keys, **options):
         maps = result['result']['maps']
         keys = result['result']['keys']

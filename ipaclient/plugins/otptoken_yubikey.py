@@ -25,7 +25,7 @@ import yubico
 
 from ipalib import _, IntEnum
 from ipalib.errors import NotFound
-from ipalib.frontend import Command
+from ipalib.frontend import Command, Method, Object
 from ipalib.plugable import Registry
 
 if six.PY3:
@@ -50,6 +50,17 @@ register = Registry()
 topic = 'otp'
 
 
+@register(no_fail=True)
+class _fake_otptoken(Object):
+    name = 'otptoken'
+
+
+@register(no_fail=True)
+class _fake_otptoken_add(Method):
+    name = 'otptoken_add'
+    NO_CLI = True
+
+
 @register()
 class otptoken_add_yubikey(Command):
     __doc__ = _('Add a new YubiKey OTP token.')
@@ -62,6 +73,10 @@ class otptoken_add_yubikey(Command):
         ),
     )
     has_output_params = takes_options
+
+    @property
+    def NO_CLI(self):
+        return self.api.Command.otptoken_add.NO_CLI
 
     def get_args(self):
         for arg in self.api.Command.otptoken_add.args():
