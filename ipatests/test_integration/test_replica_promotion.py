@@ -4,7 +4,7 @@
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
-from ipatests.test_integration.test_caless import assert_error
+from ipatests.test_integration.tasks import assert_error
 from ipalib.constants import DOMAIN_LEVEL_0
 from ipalib.constants import DOMAIN_LEVEL_1
 from ipalib.constants import DOMAIN_SUFFIX_NAME
