@@ -1764,6 +1764,10 @@ def client_dns(server, hostname, options):
         root_logger.warning("Hostname (%s) does not have A/AAAA record.",
                             hostname)
         dns_ok = False
+    except errors.DNSResolverError as ex:
+        root_logger.warning("DNS resolution for hostname %s failed: %s",
+                            hostname, ex)
+        dns_ok = False
 
     if (options.dns_updates or options.all_ip_addresses or options.ip_addresses
             or not dns_ok):
