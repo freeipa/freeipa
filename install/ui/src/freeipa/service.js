@@ -111,10 +111,10 @@ return {
                         },
                         {
                             $type: 'custom_checkboxes',
-                            label: '@i18n:objects.service.auth_indicators',
+                            label: '@i18n:authtype.auth_indicators',
                             name: 'krbprincipalauthind',
-                            add_dialog_title: '@i18n:objects.service.custom_auth_ind_title',
-                            add_field_label: '@i18n:objects.service.auth_indicator',
+                            add_dialog_title: '@i18n:authtype.custom_auth_ind_title',
+                            add_field_label: '@i18n:authtype.auth_indicator',
                             options: [
                                 {
                                     label: '@i18n:authtype.otp',
