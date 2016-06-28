@@ -43,6 +43,7 @@ import pipes
 from six.moves import urllib
 from six.moves.configparser import ConfigParser, RawConfigParser
 
+import ipalib.constants
 from ipalib import api
 from ipalib import pkcs10, x509
 from ipalib import errors
