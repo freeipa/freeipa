@@ -493,10 +493,7 @@ class test_Command(ClassChecker):
         fail['option0'] = u'whatever'
         e = raises(errors.ValidationError, sub.validate, **fail)
         assert_equal(e.name, u'option0')
-        assert_equal(e.value, u'whatever')
         assert_equal(e.error, u"must equal 'option0'")
-        assert e.rule.__class__.__name__ == 'Rule'
-        assert e.index is None
 
         # Check with a missing required arg
         fail = dict(okay)
