@@ -303,7 +303,7 @@ class host(LDAPObject):
                 'enrolledby', 'managedby', 'ipaassignedidview',
                 'krbprincipalname', 'krbcanonicalname', 'krbprincipalaliases',
                 'krbprincipalexpiration', 'krbpasswordexpiration',
-                'krblastpwdchange',
+                'krblastpwdchange', 'krbprincipalauthind',
             },
         },
         'System: Read Host Membership': {
@@ -381,6 +381,7 @@ class host(LDAPObject):
             'ipapermdefaultattr': {
                 'description', 'l', 'nshardwareplatform', 'nshostlocation',
                 'nsosversion', 'macaddress', 'userclass', 'ipaassignedidview',
+                'krbprincipalauthind',
             },
             'replaces': [
                 '(targetattr = "description || l || nshostlocation || nshardwareplatform || nsosversion")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Hosts";allow (write) groupdn = "ldap:///cn=Modify Hosts,cn=permissions,cn=pbac,$SUFFIX";)',
