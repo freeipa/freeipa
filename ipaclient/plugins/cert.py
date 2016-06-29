@@ -23,7 +23,7 @@ from ipaclient.frontend import MethodOverride
 from ipalib import errors
 from ipalib import x509
 from ipalib import util
-from ipalib.parameters import File
+from ipalib.parameters import File, Flag, Str
 from ipalib.plugable import Registry
 from ipalib.text import _
 
@@ -52,6 +52,18 @@ class cert_show(MethodOverride):
                 raise errors.NoCertificateError(entry=keys[-1])
         else:
             return super(cert_show, self).forward(*keys, **options)
+
+
+@register(override=True)
+class cert_remove_hold(MethodOverride):
+    has_output_params = (
+        Flag('unrevoked',
+            label=_('Unrevoked'),
+        ),
+        Str('error_string',
+            label=_('Error'),
+        ),
+    )
 
 
 @register(override=True)

@@ -842,14 +842,6 @@ class cert_revoke(PKQuery, CertMethod, VirtualCommand):
 class cert_remove_hold(PKQuery, CertMethod, VirtualCommand):
     __doc__ = _('Take a revoked certificate off hold.')
 
-    has_output_params = (
-        Flag('unrevoked',
-            label=_('Unrevoked'),
-        ),
-        Str('error_string',
-            label=_('Error'),
-        ),
-    )
     operation = "certificate remove hold"
 
     def get_options(self):
