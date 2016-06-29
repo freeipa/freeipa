@@ -56,89 +56,89 @@ if six.PY3:
 
 __doc__ = _("""
 IPA certificate operations
-
+""") + _("""
 Implements a set of commands for managing server SSL certificates.
-
+""") + _("""
 Certificate requests exist in the form of a Certificate Signing Request (CSR)
 in PEM format.
-
+""") + _("""
 The dogtag CA uses just the CN value of the CSR and forces the rest of the
 subject to values configured in the server.
-
+""") + _("""
 A certificate is stored with a service principal and a service principal
 needs a host.
-
+""") + _("""
 In order to request a certificate:
-
+""") + _("""
 * The host must exist
 * The service must exist (or you use the --add option to automatically add it)
-
+""") + _("""
 SEARCHING:
-
+""") + _("""
 Certificates may be searched on by certificate subject, serial number,
 revocation reason, validity dates and the issued date.
-
+""") + _("""
 When searching on dates the _from date does a >= search and the _to date
 does a <= search. When combined these are done as an AND.
-
+""") + _("""
 Dates are treated as GMT to match the dates in the certificates.
-
+""") + _("""
 The date format is YYYY-mm-dd.
-
+""") + _("""
 EXAMPLES:
-
+""") + _("""
  Request a new certificate and add the principal:
    ipa cert-request --add --principal=HTTP/lion.example.com example.csr
-
+""") + _("""
  Retrieve an existing certificate:
    ipa cert-show 1032
-
+""") + _("""
  Revoke a certificate (see RFC 5280 for reason details):
    ipa cert-revoke --revocation-reason=6 1032
-
+""") + _("""
  Remove a certificate from revocation hold status:
    ipa cert-remove-hold 1032
-
+""") + _("""
  Check the status of a signing request:
    ipa cert-status 10
-
+""") + _("""
  Search for certificates by hostname:
    ipa cert-find --subject=ipaserver.example.com
-
+""") + _("""
  Search for revoked certificates by reason:
    ipa cert-find --revocation-reason=5
-
+""") + _("""
  Search for certificates based on issuance date
    ipa cert-find --issuedon-from=2013-02-01 --issuedon-to=2013-02-07
-
+""") + _("""
  Search for certificates owned by a specific user:
    ipa cert-find --user=user
-
+""") + _("""
  Examine a certificate:
    ipa cert-find --file=cert.pem --all
-
+""") + _("""
  Verify that a certificate is owner by a specific user:
    ipa cert-find --file=cert.pem --user=user
-
+""") + _("""
 IPA currently immediately issues (or declines) all certificate requests so
 the status of a request is not normally useful. This is for future use
 or the case where a CA does not immediately issue a certificate.
-
+""") + _("""
 The following revocation reasons are supported:
 
-    * 0 - unspecified
-    * 1 - keyCompromise
-    * 2 - cACompromise
-    * 3 - affiliationChanged
-    * 4 - superseded
-    * 5 - cessationOfOperation
-    * 6 - certificateHold
-    * 8 - removeFromCRL
-    * 9 - privilegeWithdrawn
-    * 10 - aACompromise
-
+""") + _("""    * 0 - unspecified
+""") + _("""    * 1 - keyCompromise
+""") + _("""    * 2 - cACompromise
+""") + _("""    * 3 - affiliationChanged
+""") + _("""    * 4 - superseded
+""") + _("""    * 5 - cessationOfOperation
+""") + _("""    * 6 - certificateHold
+""") + _("""    * 8 - removeFromCRL
+""") + _("""    * 9 - privilegeWithdrawn
+""") + _("""    * 10 - aACompromise
+""") + _("""
 Note that reason code 7 is not used.  See RFC 5280 for more details:
-
+""") + _("""
 http://www.ietf.org/rfc/rfc5280.txt
 
 """)
