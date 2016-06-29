@@ -145,6 +145,12 @@ http://www.ietf.org/rfc/rfc5280.txt
 
 USER, HOST, SERVICE = range(3)
 
+PRINCIPAL_TYPE_STRING_MAP = {
+    USER: _('user'),
+    HOST: _('host'),
+    SERVICE: _('service'),
+}
+
 register = Registry()
 
 PKIDATE_FORMAT = '%Y-%m-%d'
@@ -385,7 +391,9 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         ),
         Flag(
             'add',
-            doc=_("automatically add the principal if it doesn't exist"),
+            doc=_(
+                "automatically add the principal if it doesn't exist "
+                "(service principals only)"),
         ),
     )
 
@@ -480,8 +488,15 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             elif principal_type == USER:
                 principal_obj = api.Command['user_show'](principal_name, all=True)
         except errors.NotFound as e:
-            if principal_type == SERVICE and add:
-                principal_obj = api.Command['service_add'](principal_string, force=True)
+            if add:
+                if principal_type == SERVICE:
+                    principal_obj = api.Command['service_add'](
+                        principal_string, force=True)
+                else:
+                    princtype_str = PRINCIPAL_TYPE_STRING_MAP[principal_type]
+                    raise errors.OperationNotSupportedForPrincipalType(
+                        operation=_("'add' option"),
+                        principal_type=princtype_str)
             else:
                 raise errors.NotFound(
                     reason=_("The principal for this request doesn't exist."))

@@ -1397,6 +1397,16 @@ class ServerRemovalError(ExecutionError):
     format = _('Server removal aborted: %(reason)s.')
 
 
+class OperationNotSupportedForPrincipalType(ExecutionError):
+    """
+    **4034** Raised when an operation is not supported for a principal type
+    """
+
+    errno = 4034
+    format = _(
+        '%(operation)s is not supported for %(principal_type)s principals')
+
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).
