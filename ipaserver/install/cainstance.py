@@ -63,7 +63,6 @@ from ipapython.ipa_log_manager import log_mgr,\
 from ipapython.secrets.kem import IPAKEMKeys
 
 from ipaserver.install import certs
-from ipaserver.install import bindinstance
 from ipaserver.install import dsinstance
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
@@ -1298,14 +1297,6 @@ class CAInstance(DogtagInstance):
         basedn = ipautil.realm_to_suffix(self.realm)
         self.ldap_enable('CA', self.fqdn, None, basedn)
 
-    def __update_ca_records(self):
-        # Install CA DNS records
-        if bindinstance.dns_container_exists(
-            api.env.host, api.env.basedn, ldapi=True, realm=api.env.realm
-        ):
-            bind = bindinstance.BindInstance(ldapi=True)
-            bind.update_system_records()
-
     def configure_replica(self, master_host, subject_base=None,
                           ca_cert_bundle=None, ca_signing_algorithm=None,
                           ca_type=None):
@@ -1376,7 +1367,6 @@ class CAInstance(DogtagInstance):
                   self.__restart_http_instance)
 
         self.step("enabling CA instance", self.__enable_instance)
-        self.step("Updating DNS CA records", self.__update_ca_records)
 
         self.start_creation(runtime=210)
 

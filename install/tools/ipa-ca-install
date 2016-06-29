@@ -28,7 +28,7 @@ from ipaserver.install import installutils
 from ipaserver.install import certs
 from ipaserver.install.installutils import create_replica_config
 from ipaserver.install.installutils import check_creds, ReplicaConfig
-from ipaserver.install import dsinstance, ca
+from ipaserver.install import bindinstance, dsinstance, ca
 from ipaserver.install import cainstance, custodiainstance, service
 from ipapython import version
 from ipalib import api
@@ -195,6 +195,11 @@ def install_replica(safe_options, options, filename):
         CA.configure_replica(config.ca_host_name,
                              subject_base=config.subject_base,
                              ca_cert_bundle=ca_data)
+        # Install CA DNS records
+        if bindinstance.dns_container_exists(api.env.host, api.env.basedn,
+                                             ldapi=True, realm=api.env.realm):
+            bind = bindinstance.BindInstance(ldapi=True)
+            bind.update_system_records()
     else:
         ca.install(True, config, options)
 
