@@ -327,6 +327,8 @@ class BaseCertMethod(Method):
     def get_options(self):
         yield Str('cacn?',
             cli_name='ca',
+            default=IPA_CA_CN,
+            autofill=True,
             query=True,
             label=_('Issuing CA'),
             doc=_('Name of issuing CA'),
@@ -416,7 +418,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         # enforcement so that user gets better error message if
         # referencing nonexistant CA) and look up authority ID.
         #
-        ca = kw.get('cacn', IPA_CA_CN)
+        ca = kw['cacn']
         ca_id = api.Command.ca_show(ca)['result']['ipacaid'][0]
 
         """
@@ -639,6 +641,8 @@ class cert_status(Retrieve, BaseCertMethod, VirtualCommand):
     def get_options(self):
         for option in super(cert_status, self).get_options():
             if option.name == 'cacn':
+                # Dogtag requests are uniquely identified by their
+                # number; there is no need to distinguish by CA.
                 continue
             yield option
 
@@ -749,10 +753,8 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
                 raise acierr
             hostname = get_host_from_principal(bind_principal)
 
-        issuer_dn = None
-        if 'cacn' in options:
-            ca_obj = api.Command.ca_show(options['cacn'])['result']
-            issuer_dn = ca_obj['ipacasubjectdn'][0]
+        ca_obj = api.Command.ca_show(options['cacn'])['result']
+        issuer_dn = ca_obj['ipacasubjectdn'][0]
 
         # Dogtag lightweight CAs have shared serial number domain, so
         # we don't tell Dogtag the issuer (but we check the cert after).
@@ -760,7 +762,7 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
         result = self.Backend.ra.get_certificate(str(serial_number))
         cert = x509.load_certificate(result['certificate'])
 
-        if issuer_dn is not None and DN(unicode(cert.issuer)) != DN(issuer_dn):
+        if DN(unicode(cert.issuer)) != DN(issuer_dn):
             # DN of cert differs from what we requested
             raise errors.NotFound(
                 reason=_("Certificate with serial number %(serial)s "
@@ -811,12 +813,16 @@ class cert_revoke(PKQuery, CertMethod, VirtualCommand):
         )
 
         for option in super(cert_revoke, self).get_options():
-            if option.name == 'cacn':
-                continue
             yield option
 
     def execute(self, serial_number, **kw):
         ca_enabled_check()
+
+        # Make sure that the cert specified by issuer+serial exists.
+        # Will raise NotFound if it does not.
+        cert_show_options = dict(cacn=kw['cacn'])
+        api.Command.cert_show(unicode(serial_number), **cert_show_options)
+
         hostname = None
         try:
             self.check_access()
@@ -825,13 +831,18 @@ class cert_revoke(PKQuery, CertMethod, VirtualCommand):
             try:
                 # Let cert_show() handle verifying that the subject of the
                 # cert we're dealing with matches the hostname in the principal
-                result = api.Command['cert_show'](unicode(serial_number))['result']
+                result = api.Command['cert_show'](
+                    unicode(serial_number), **cert_show_options
+                )['result']
             except errors.NotImplementedError:
                 pass
         revocation_reason = kw['revocation_reason']
         if revocation_reason == 7:
             raise errors.CertificateOperationError(error=_('7 is not a valid revocation reason'))
         return dict(
+            # Dogtag lightweight CAs have shared serial number domain, so
+            # we don't tell Dogtag the issuer (but we already checked that
+            # the given serial was issued by the named ca).
             result=self.Backend.ra.revoke_certificate(
                 str(serial_number), revocation_reason=revocation_reason)
         )
@@ -844,16 +855,18 @@ class cert_remove_hold(PKQuery, CertMethod, VirtualCommand):
 
     operation = "certificate remove hold"
 
-    def get_options(self):
-        for option in super(cert_remove_hold, self).get_options():
-            if option.name == 'cacn':
-                continue
-            yield option
-
     def execute(self, serial_number, **kw):
         ca_enabled_check()
+
+        # Make sure that the cert specified by issuer+serial exists.
+        # Will raise NotFound if it does not.
+        api.Command.cert_show(serial_number, cacn=kw['cacn'])
+
         self.check_access()
         return dict(
+            # Dogtag lightweight CAs have shared serial number domain, so
+            # we don't tell Dogtag the issuer (but we already checked that
+            # the given serial was issued by the named ca).
             result=self.Backend.ra.take_certificate_off_hold(
                 str(serial_number))
         )
@@ -951,6 +964,10 @@ class cert_find(Search, CertMethod):
             if option.name == 'no_members':
                 option = option.clone(default=True,
                                       flags=set(option.flags) | {'no_option'})
+            elif option.name == 'cacn':
+                # make CA optional, so that user may directly
+                # specify Issuer DN instead
+                option = option.clone(default=None, autofill=None)
             yield option
 
         for owner in self.obj._owners():
