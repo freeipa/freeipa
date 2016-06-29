@@ -469,7 +469,7 @@ python2-ipalib and %{name}-common. Packages still depending on
 Summary: Python libraries used by IPA
 Group: System Environment/Libraries
 BuildArch: noarch
-Conflicts: %{name}-python < %{version}-%{release}
+Conflicts: %{name}-python < 4.2.91
 %{?python_provide:%python_provide python2-ipalib}
 Provides: python2-ipapython = %{version}-%{release}
 %{?python_provide:%python_provide python2-ipapython}
@@ -566,7 +566,7 @@ If you are using IPA with Python 3, you need to install this package.
 Summary: Common files used by IPA
 Group: System Environment/Libraries
 BuildArch: noarch
-Conflicts: %{name}-python < %{version}-%{release}
+Conflicts: %{name}-python < 4.2.91
 
 Provides: %{alt_name}-common = %{version}
 Conflicts: %{alt_name}-common
