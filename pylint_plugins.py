@@ -195,9 +195,6 @@ ipa_class_members = {
         'Updater',
         'Advice',
     ] + LOGGING_ATTRS,
-    'ipalib.session.AuthManager': LOGGING_ATTRS,
-    'ipalib.session.SessionAuthManager': LOGGING_ATTRS,
-    'ipalib.session.SessionManager': LOGGING_ATTRS,
     'ipalib.util.ForwarderValidationError': [
         'msg',
     ],
@@ -209,6 +206,9 @@ ipa_class_members = {
     'ipaserver.rpcserver.KerberosSession': [
         fake_api,
     ] + LOGGING_ATTRS,
+    'ipaserver.session.AuthManager': LOGGING_ATTRS,
+    'ipaserver.session.SessionAuthManager': LOGGING_ATTRS,
+    'ipaserver.session.SessionManager': LOGGING_ATTRS,
     'ipatests.test_integration.base.IntegrationTest': [
         'domain',
         {'master': [

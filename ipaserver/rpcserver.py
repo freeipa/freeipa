@@ -50,7 +50,7 @@ from ipalib.rpc import (xml_dumps, xml_loads,
 from ipalib.util import parse_time_duration, normalize_name
 from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
-from ipalib.session import (
+from ipaserver.session import (
     session_mgr, AuthManager, get_ipa_ccache_name,
     load_ccache_data, bind_ipa_ccache, release_ipa_ccache, fmt_time,
     default_max_session_duration, krbccache_dir, krbccache_prefix)

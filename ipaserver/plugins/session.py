@@ -7,7 +7,7 @@ from ipalib.request import context
 from ipalib.plugable import Registry
 
 if api.env.in_server:
-    from ipalib.session import session_mgr
+    from ipaserver.session import session_mgr
 
 register = Registry()
 
