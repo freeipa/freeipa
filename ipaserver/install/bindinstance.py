@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import absolute_import
 from __future__ import print_function
 
 import tempfile
@@ -27,6 +28,7 @@ import re
 import sys
 import time
 
+import dns.resolver
 import ldap
 import six
 
@@ -982,6 +984,10 @@ class BindInstance(service.Service):
             resolv_fd.close()
         except IOError as e:
             root_logger.error('Could not write to resolv.conf: %s', e)
+        else:
+            # python DNS might have global resolver cached in this variable
+            # we have to re-initialize it because resolv.conf has changed
+            dns.resolver.default_resolver = None
 
     def __generate_rndc_key(self):
         installutils.check_entropy()
