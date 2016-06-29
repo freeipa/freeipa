@@ -51,7 +51,7 @@ from ipalib.util import parse_time_duration, normalize_name
 from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.session import (
-    session_mgr, AuthManager, get_ipa_ccache_name,
+    get_session_mgr, AuthManager, get_ipa_ccache_name,
     load_ccache_data, bind_ipa_ccache, release_ipa_ccache, fmt_time,
     default_max_session_duration, krbccache_dir, krbccache_prefix)
 from ipalib.backend import Backend
@@ -415,6 +415,7 @@ class WSGIExecutioner(Executioner):
         if session_data is not None:
             # Send session cookie back and store session data
             # FIXME: the URL path should be retreived from somewhere (but where?), not hardcoded
+            session_mgr = get_session_mgr()
             session_cookie = session_mgr.generate_cookie('/ipa', session_data['session_id'],
                                                          session_data['session_expiration_timestamp'])
             headers.append(('Set-Cookie', session_cookie))
@@ -576,6 +577,7 @@ class KerberosSession(object):
         krb_expiration = krb_endtime - krb_ticket_expiration_threshold
 
         # Set the session expiration time
+        session_mgr = get_session_mgr()
         session_mgr.set_session_expiration_time(session_data,
                                                 duration=self.session_auth_duration,
                                                 max_age=krb_expiration,
@@ -587,6 +589,7 @@ class KerberosSession(object):
             headers = []
 
         # Retrieve the session data (or newly create)
+        session_mgr = get_session_mgr()
         session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
         session_id = session_data['session_id']
 
@@ -752,6 +755,7 @@ class jsonserver_session(jsonserver, KerberosSession):
         super(jsonserver_session, self).__init__(api)
         name = '{0}_{1}'.format(self.__class__.__name__, id(self))
         auth_mgr = AuthManagerKerb(name)
+        session_mgr = get_session_mgr()
         session_mgr.auth_mgr.register(auth_mgr.name, auth_mgr)
 
     def _on_finalize(self):
@@ -775,6 +779,7 @@ class jsonserver_session(jsonserver, KerberosSession):
         self.debug('WSGI jsonserver_session.__call__:')
 
         # Load the session data
+        session_mgr = get_session_mgr()
         session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
         session_id = session_data['session_id']
 
@@ -1211,6 +1216,7 @@ class xmlserver_session(xmlserver, KerberosSession):
         super(xmlserver_session, self).__init__(api)
         name = '{0}_{1}'.format(self.__class__.__name__, id(self))
         auth_mgr = AuthManagerKerb(name)
+        session_mgr = get_session_mgr()
         session_mgr.auth_mgr.register(auth_mgr.name, auth_mgr)
 
     def _on_finalize(self):
@@ -1234,6 +1240,7 @@ class xmlserver_session(xmlserver, KerberosSession):
         self.debug('WSGI xmlserver_session.__call__:')
 
         # Load the session data
+        session_mgr = get_session_mgr()
         session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
         session_id = session_data['session_id']
 

@@ -1275,4 +1275,11 @@ def release_ipa_ccache(ccache_name):
     else:
         raise ValueError('ccache scheme "%s" unsupported (%s)', scheme, ccache_name)
 
-session_mgr = MemcacheSessionManager()
+_session_mgr = None
+
+
+def get_session_mgr():
+    global _session_mgr
+    if _session_mgr is None:
+        _session_mgr = MemcacheSessionManager()
+    return _session_mgr

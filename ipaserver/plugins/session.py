@@ -2,12 +2,10 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-from ipalib import api, Command
+from ipalib import Command
 from ipalib.request import context
 from ipalib.plugable import Registry
-
-if api.env.in_server:
-    from ipaserver.session import session_mgr
+from ipaserver.session import get_session_mgr
 
 register = Registry()
 
@@ -28,6 +26,7 @@ class session_logout(Command):
             self.debug('session logout command: session_id=%s', session_id)
 
             # Notifiy registered listeners
+            session_mgr = get_session_mgr()
             session_mgr.auth_mgr.logout(session_data)
 
         return dict(result=None)
