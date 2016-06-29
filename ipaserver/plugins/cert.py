@@ -1031,6 +1031,8 @@ class cert_find(Search, CertMethod):
                     continue
                 if isinstance(value, datetime.datetime):
                     value = value.strftime(PKIDATE_FORMAT)
+                elif isinstance(value, DN):
+                    value = unicode(value)
                 ra_options[name] = value
             if sizelimit is not None:
                 if sizelimit != 0:
