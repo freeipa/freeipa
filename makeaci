@@ -86,7 +86,6 @@ def check_member_attrs(name, template):
 
 def main(options):
     api.bootstrap(
-        context='server',
         in_server=True,
         in_tree=True,
         debug=False,
