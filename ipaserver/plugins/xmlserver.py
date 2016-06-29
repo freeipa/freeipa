@@ -27,7 +27,7 @@ from ipalib import Registry, api
 register = Registry()
 
 
-if 'in_server' in api.env and api.env.in_server is True:
+if api.env.context in ('server', 'lite'):
     from ipaserver.rpcserver import wsgi_dispatch, xmlserver, jsonserver_kerb, jsonserver_session, login_kerberos, login_password, change_password, sync_token, xmlserver_session
     register()(wsgi_dispatch)
     register()(xmlserver)
