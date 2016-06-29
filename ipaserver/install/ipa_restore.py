@@ -844,7 +844,7 @@ class Restore(admintool.AdminTool):
         services.knownservices.certmonger.restart()
 
     def init_api(self, **overrides):
-        api.bootstrap(in_server=False, context='restore', **overrides)
+        api.bootstrap(in_server=True, context='restore', **overrides)
         api.finalize()
 
         self.instances = [installutils.realm_to_serverid(api.env.realm)]
