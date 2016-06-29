@@ -28,6 +28,7 @@ class UserTracker(Tracker):
         u'ipatokenradiusconfiglink', u'ipatokenradiususername',
         u'krbprincipalexpiration', u'usercertificate;binary',
         u'has_keytab', u'has_password', u'memberof_group', u'sshpubkeyfp',
+        u'krbcanonicalname', 'krbprincipalname'
     }
 
     retrieve_all_keys = retrieve_keys | {
@@ -36,8 +37,7 @@ class UserTracker(Tracker):
         u'l', u'mobile', u'krbextradata', u'krblastpwdchange',
         u'krbpasswordexpiration', u'pager', u'st', u'manager', u'cn',
         u'ipauniqueid', u'objectclass', u'mepmanagedentry',
-        u'displayname', u'gecos', u'initials', u'krbcanonicalname',
-        'krbprincipalname', u'preserved'}
+        u'displayname', u'gecos', u'initials', u'preserved'}
 
     retrieve_preserved_keys = (retrieve_keys - {u'memberof_group'}) | {
         u'preserved'}

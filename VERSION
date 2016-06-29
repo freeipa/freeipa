@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=208
-# Last change: mbabinsk: Provide API for management of host, service, and user principal aliases
+IPA_API_VERSION_MINOR=209
+# Last change: mbabinsk: Unify display of principal names/aliases across entities

@@ -149,9 +149,11 @@ class baseuser(LDAPObject):
         'memberofindirect', 'ipauserauthtype', 'userclass',
         'ipatokenradiusconfiglink', 'ipatokenradiususername',
         'krbprincipalexpiration', 'usercertificate;binary',
+        'krbprincipalname', 'krbcanonicalname'
     ]
     search_display_attributes = [
-        'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
+        'uid', 'givenname', 'sn', 'homedirectory', 'krbcanonicalname',
+        'krbprincipalname', 'loginshell',
         'mail', 'telephonenumber', 'title', 'nsaccountlock',
         'uidnumber', 'gidnumber', 'sshpubkeyfp',
     ]

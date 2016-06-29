@@ -44,11 +44,10 @@ class StageUserTracker(Tracker):
         u'usercertificate', u'dn', u'has_keytab', u'has_password',
         u'street', u'postalcode', u'facsimiletelephonenumber',
         u'carlicense', u'ipasshpubkey', u'sshpubkeyfp', u'l',
-        u'st', u'mobile', u'pager', }
+        u'st', u'mobile', u'pager', u'krbcanonicalname', u'krbprincipalname'}
     retrieve_all_keys = retrieve_keys | {
         u'cn', u'ipauniqueid', u'objectclass', u'description',
-        u'displayname', u'gecos', u'initials', u'krbcanonicalname',
-        u'krbprincipalname', u'manager'}
+        u'displayname', u'gecos', u'initials', u'manager'}
 
     create_keys = retrieve_all_keys | {
         u'objectclass', u'ipauniqueid', u'randompassword',

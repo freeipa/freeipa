@@ -263,11 +263,12 @@ class host(LDAPObject):
     permission_filter_objectclasses = ['ipahost']
     # object_class_config = 'ipahostobjectclasses'
     search_attributes = [
-        'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
-        'nshardwareplatform', 'nsosversion', 'managedby',
+        'fqdn', 'description', 'l', 'nshostlocation', 'krbcanonicalname',
+        'krbprincipalname', 'nshardwareplatform', 'nsosversion', 'managedby',
     ]
     default_attributes = [
-        'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
+        'fqdn', 'description', 'l', 'nshostlocation', 'krbcanonicalname',
+        'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
         'managedby', 'memberofindirect', 'macaddress',
         'userclass', 'ipaallowedtoperform', 'ipaassignedidview', 'krbprincipalauthind'

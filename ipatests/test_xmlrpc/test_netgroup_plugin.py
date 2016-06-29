@@ -231,6 +231,7 @@ class test_netgroup(Declarative):
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (host1, api.env.realm)],
+                    krbcanonicalname=[u'host/%s@%s' % (host1, api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[host1],
