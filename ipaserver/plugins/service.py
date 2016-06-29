@@ -410,7 +410,7 @@ class service(LDAPObject):
                 'krbprincipalname', 'krbcanonicalname', 'krbprincipalaliases',
                 'krbprincipalexpiration', 'krbpasswordexpiration',
                 'krblastpwdchange', 'ipakrbauthzdata', 'ipakrbprincipalalias',
-                'krbobjectreferences',
+                'krbobjectreferences', 'krbprincipalauthind',
             },
         },
         'System: Add Services': {
@@ -438,7 +438,7 @@ class service(LDAPObject):
         },
         'System: Modify Services': {
             'ipapermright': {'write'},
-            'ipapermdefaultattr': {'usercertificate'},
+            'ipapermdefaultattr': {'usercertificate', 'krbprincipalauthind'},
             'replaces': [
                 '(targetattr = "usercertificate")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Services";allow (write) groupdn = "ldap:///cn=Modify Services,cn=permissions,cn=pbac,$SUFFIX";)',
             ],
