@@ -5,6 +5,7 @@
 from __future__ import print_function
 
 import collections
+from distutils.version import LooseVersion
 import dns.exception as dnsexception
 import dns.name as dnsname
 import dns.resolver as dnsresolver
@@ -25,7 +26,7 @@ from ipapython.ipa_log_manager import root_logger
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
-from ipalib import api, certstore, constants, create_api, errors, x509
+from ipalib import api, certstore, constants, create_api, errors, rpc, x509
 import ipaclient.ipachangeconf
 import ipaclient.ntpconf
 from ipaserver.install import (
@@ -476,6 +477,24 @@ def promote_openldap_conf(hostname, master):
         ldap_change_conf.changeConf(ldap_conf, change_opts)
     except Exception as e:
         root_logger.info("Failed to update {}: {}".format(ldap_conf, e))
+
+
+def check_remote_version(api):
+    client = rpc.jsonclient(api)
+    client.finalize()
+
+    client.connect()
+    try:
+        env = client.forward(u'env', u'version')['result']
+    finally:
+        client.disconnect()
+
+    remote_version = env['version']
+    version = api.env.version
+    if LooseVersion(remote_version) > LooseVersion(version):
+        raise RuntimeError(
+            "Cannot install replica of a server of higher version ({}) than"
+            "the local version ({})".format(remote_version, version))
 
 
 @common_cleanup
@@ -1094,10 +1113,15 @@ def promote_check(installer):
                            "the client and try again.")
 
     ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
+    xmlrpc_uri = 'https://{}/ipa/xml'.format(
+        ipautil.format_netloc(config.master_host_name))
     remote_api = create_api(mode=None)
     remote_api.bootstrap(in_server=True, context='installer',
-                         ldap_uri=ldapuri)
+                         ldap_uri=ldapuri, xmlrpc_uri=xmlrpc_uri)
     remote_api.finalize()
+
+    check_remote_version(remote_api)
+
     conn = remote_api.Backend.ldap2
     replman = None
     try:
