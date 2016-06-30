@@ -88,7 +88,14 @@ return {
                             name: 'fqdn',
                             other_entity: 'dnsrecord'
                         },
-                        'krbprincipalname',
+                        {
+                            $type: 'krb_principal_multivalued',
+                            name: 'krbprincipalname',
+                            item_name: 'principal',
+                            child_spec: {
+                                $type: 'krb_principal'
+                            }
+                        },
                         {
                             $type: 'textarea',
                             name: 'description'
