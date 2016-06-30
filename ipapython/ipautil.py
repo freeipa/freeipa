@@ -87,13 +87,10 @@ class CheckedIPAddress(netaddr.IPAddress):
         if isinstance(addr, CheckedIPAddress):
             super(CheckedIPAddress, self).__init__(addr, flags=self.netaddr_ip_flags)
             self.prefixlen = addr.prefixlen
-            self.defaultnet = addr.defaultnet
-            self.interface = addr.interface
             return
 
         net = None
         iface = None
-        defnet = False
 
         if isinstance(addr, netaddr.IPNetwork):
             net = addr
@@ -161,7 +158,6 @@ class CheckedIPAddress(netaddr.IPAddress):
                 raise ValueError('No network interface matches the provided IP address and netmask')
 
         if net is None:
-            defnet = True
             if addr.version == 4:
                 net = netaddr.IPNetwork(netaddr.cidr_abbrev_to_verbose(str(addr)))
             elif addr.version == 6:
@@ -174,11 +170,6 @@ class CheckedIPAddress(netaddr.IPAddress):
 
         super(CheckedIPAddress, self).__init__(addr, flags=self.netaddr_ip_flags)
         self.prefixlen = net.prefixlen
-        self.defaultnet = defnet
-        self.interface = iface
-
-    def is_local(self):
-        return self.interface is not None
 
 def valid_ip(addr):
     return netaddr.valid_ipv4(addr) or netaddr.valid_ipv6(addr)
