@@ -181,6 +181,8 @@ def parse_options():
     parser.add_option("-q", "--quiet", dest="quiet",
                       action="store_true",
                       default=False, help="Output only errors")
+    parser.add_option("--no-log", dest="log_to_file", action="store_false",
+                      default=True, help="Do not log into file")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -212,7 +214,7 @@ def parse_options():
 def logging_setup(options):
     log_file = None
 
-    if os.getegid() == 0:
+    if os.getegid() == 0 and options.log_to_file:
         log_file = paths.IPAREPLICA_CONNCHECK_LOG
 
     standard_logging_setup(log_file, debug=options.debug)
