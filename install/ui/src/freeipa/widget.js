@@ -1677,7 +1677,8 @@ IPA.custom_command_multivalued_widget = function(spec) {
         var spec = that.remove_dialog_spec || {
             title: title,
             message: message,
-            on_ok: perform_remove
+            on_ok: perform_remove,
+            ok_label: '@i18n:buttons.remove'
         };
 
         that.remove_dialog = IPA.confirm_dialog(spec);
