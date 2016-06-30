@@ -43,7 +43,10 @@ class CommandOverride(Command):
                 yield option
 
     def get_output_params(self):
-        return self.next.output_params()
+        for output_param in self.next.output_params():
+            yield output_param
+        for output_param in super(CommandOverride, self).get_output_params():
+            yield output_param
 
     def _iter_output(self):
         return self.next.output()
@@ -61,3 +64,11 @@ class MethodOverride(CommandOverride, Method):
     @property
     def obj(self):
         return self.next.obj
+
+    def get_output_params(self):
+        seen = set()
+        for output_param in super(MethodOverride, self).get_output_params():
+            if output_param.name in seen:
+                continue
+            seen.add(output_param.name)
+            yield output_param
