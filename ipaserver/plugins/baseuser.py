@@ -59,9 +59,6 @@ baseuser_output_params = (
     Flag('has_keytab',
         label=_('Kerberos keys available'),
     ),
-    Str('sshpubkeyfp*',
-        label=_('SSH public key fingerprint'),
-    ),
    )
 
 status_baseuser_output_params = (
@@ -352,6 +349,10 @@ class baseuser(LDAPObject):
             label=_('SSH public key'),
             normalizer=normalize_sshpubkey,
             flags=['no_search'],
+        ),
+        Str('sshpubkeyfp*',
+            label=_('SSH public key fingerprint'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
         StrEnum('ipauserauthtype*',
             cli_name='user_auth_type',

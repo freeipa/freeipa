@@ -56,11 +56,6 @@ register = Registry()
 
 ACI_PREFIX=u"delegation"
 
-output_params = (
-    Str('aci',
-        label=_('ACI'),
-    ),
-)
 
 @register()
 class delegation(Object):
@@ -102,6 +97,10 @@ class delegation(Object):
             label=_('User group'),
             doc=_('User group ACI grants access to'),
         ),
+        Str('aci',
+            label=_('ACI'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
     )
 
     def __json__(self):
@@ -131,7 +130,6 @@ class delegation_add(crud.Create):
     __doc__ = _('Add a new delegation.')
 
     msg_summary = _('Added delegation "%(value)s"')
-    has_output_params = output_params
 
     def execute(self, aciname, **kw):
         if not 'permissions' in kw:
@@ -170,7 +168,6 @@ class delegation_mod(crud.Update):
     __doc__ = _('Modify a delegation.')
 
     msg_summary = _('Modified delegation "%(value)s"')
-    has_output_params = output_params
 
     def execute(self, aciname, **kw):
         kw['aciprefix'] = ACI_PREFIX
@@ -193,7 +190,6 @@ class delegation_find(crud.Search):
     )
 
     takes_options = (gen_pkey_only_option("name"),)
-    has_output_params = output_params
 
     def execute(self, term=None, **kw):
         kw['aciprefix'] = ACI_PREFIX
@@ -213,8 +209,6 @@ class delegation_find(crud.Search):
 @register()
 class delegation_show(crud.Retrieve):
     __doc__ = _('Display information about a delegation.')
-
-    has_output_params = output_params
 
     def execute(self, aciname, **kw):
         result = api.Command['aci_show'](aciname, aciprefix=ACI_PREFIX, **kw)['result']

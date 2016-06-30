@@ -1550,12 +1550,6 @@ def default_zone_update_policy(zone):
     else:
         return get_dns_forward_zone_update_policy(api.env.realm)
 
-dnszone_output_params = (
-    Str('managedby',
-        label=_('Managedby permission'),
-    ),
-)
-
 
 def _convert_to_idna(value):
     """
@@ -1990,7 +1984,10 @@ class DNSZoneBase(LDAPObject):
                   'that case, conditional zone forwarders are disregarded.'),
             values=(u'only', u'first', u'none'),
         ),
-
+        Str('managedby',
+            label=_('Managedby permission'),
+            flags={'virtual_attribute', 'no_create', 'no_search', 'no_update'},
+        ),
     )
 
     def get_dn(self, *keys, **options):
@@ -2081,8 +2078,6 @@ class DNSZoneBase_add(LDAPCreate):
         ),
     )
 
-    has_output_params = LDAPCreate.has_output_params + dnszone_output_params
-
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
@@ -2127,8 +2122,6 @@ class DNSZoneBase_del(LDAPDelete):
 
 
 class DNSZoneBase_mod(LDAPUpdate):
-    has_output_params = LDAPUpdate.has_output_params + dnszone_output_params
-
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         self.obj._make_zonename_absolute(entry_attrs, **options)
@@ -2137,8 +2130,6 @@ class DNSZoneBase_mod(LDAPUpdate):
 
 class DNSZoneBase_find(LDAPSearch):
     __doc__ = _('Search for DNS zones (SOA records).')
-
-    has_output_params = LDAPSearch.has_output_params + dnszone_output_params
 
     def args_options_2_params(self, *args, **options):
         # FIXME: Check that name_from_ip is valid. This is necessary because
@@ -2178,8 +2169,6 @@ class DNSZoneBase_find(LDAPSearch):
 
 
 class DNSZoneBase_show(LDAPRetrieve):
-    has_output_params = LDAPRetrieve.has_output_params + dnszone_output_params
-
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         if not _check_DN_objectclass(ldap, dn, self.obj.object_class):
@@ -4396,8 +4385,6 @@ class dnsforwardzone_find(DNSZoneBase_find):
 @register()
 class dnsforwardzone_show(DNSZoneBase_show):
     __doc__ = _('Display information about a DNS forward zone.')
-
-    has_output_params = LDAPRetrieve.has_output_params + dnszone_output_params
 
 
 @register()

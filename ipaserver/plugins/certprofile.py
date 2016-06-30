@@ -122,6 +122,10 @@ class certprofile(LDAPObject):
             label=_('Profile ID'),
             doc=_('Profile ID for referring to this profile'),
         ),
+        Str('config',
+            label=_('Profile configuration'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
         Str('description',
             required=True,
             cli_name='desc',
@@ -194,12 +198,6 @@ class certprofile_find(LDAPSearch):
 @register()
 class certprofile_show(LDAPRetrieve):
     __doc__ = _("Display the properties of a Certificate Profile.")
-
-    has_output_params = LDAPRetrieve.has_output_params + (
-        Str('config',
-            label=_('Profile configuration'),
-        ),
-    )
 
     takes_options = LDAPRetrieve.takes_options + (
         Str('out?',

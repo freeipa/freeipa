@@ -264,6 +264,10 @@ class otptoken(LDAPObject):
             minvalue=0,
             flags=('no_update'),
         ),
+        Str('uri?',
+            label=_('URI'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
     )
 
 
@@ -275,10 +279,6 @@ class otptoken_add(LDAPCreate):
     takes_options = LDAPCreate.takes_options + (
         Flag('qrcode?', label=_('(deprecated)'), flags=('no_option')),
         Flag('no_qrcode', label=_('Do not display QR code'), default=False),
-    )
-
-    has_output_params = LDAPCreate.has_output_params + (
-        Str('uri?', label=_('URI')),
     )
 
     def execute(self, ipatokenuniqueid=None, **options):

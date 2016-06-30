@@ -106,6 +106,18 @@ class idview(LDAPObject):
             cli_name='desc',
             label=_('Description'),
         ),
+        Str('useroverrides',
+            label=_('User object overrides'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
+        Str('groupoverrides',
+            label=_('Group object overrides'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
+        Str('appliedtohosts',
+            label=_('Hosts the view applies to'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
     )
 
     permission_filter_objectclasses = ['nsContainer']
@@ -170,17 +182,7 @@ class idview_show(LDAPRetrieve):
         ),
     )
 
-    has_output_params = global_output_params + (
-        Str('useroverrides',
-            label=_('User object overrides'),
-            ),
-        Str('groupoverrides',
-            label=_('Group object overrides'),
-            ),
-        Str('appliedtohosts',
-            label=_('Hosts the view applies to')
-        ),
-    )
+    has_output_params = global_output_params
 
     def show_id_overrides(self, dn, entry_attrs):
         ldap = self.obj.backend

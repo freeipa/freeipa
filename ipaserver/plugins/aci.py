@@ -507,6 +507,10 @@ class aci(Object):
              flags=('virtual_attribute',),
         ),
         _prefix_option,
+        Str('aci',
+            label=_('ACI'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
     )
 
 
@@ -611,11 +615,6 @@ class aci_mod(crud.Update):
     Modify ACI.
     """
     NO_CLI = True
-    has_output_params = (
-        Str('aci',
-            label=_('ACI'),
-        ),
-    )
 
     takes_options = (_prefix_option,)
 
@@ -886,12 +885,6 @@ class aci_show(crud.Retrieve):
     """
     NO_CLI = True
 
-    has_output_params = (
-        Str('aci',
-            label=_('ACI'),
-        ),
-    )
-
     takes_options = (
         _prefix_option,
         DNParam('location?',
@@ -932,11 +925,6 @@ class aci_rename(crud.Update):
     Rename an ACI.
     """
     NO_CLI = True
-    has_output_params = (
-        Str('aci',
-            label=_('ACI'),
-        ),
-    )
 
     takes_options = (
         _prefix_option,

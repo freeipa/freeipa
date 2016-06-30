@@ -113,12 +113,6 @@ _DEPRECATED_OPTION_ALIASES = {
 
 KNOWN_FLAGS = {'SYSTEM', 'V2', 'MANAGED'}
 
-output_params = (
-    Str('aci',
-        label=_('ACI'),
-    ),
-)
-
 
 def strip_ldap_prefix(uri):
     prefix = 'ldap:///'
@@ -354,6 +348,10 @@ class permission(baseldap.LDAPObject):
         for old_name, new_name in _DEPRECATED_OPTION_ALIASES.items()
     ) + (
         _ipapermissiontype_param,
+        Str('aci',
+            label=_('ACI'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
     )
 
     def reject_system(self, entry):
@@ -950,7 +948,6 @@ class permission_add_noaci(baseldap.LDAPCreate):
 
     msg_summary = _('Added permission "%(value)s"')
     NO_CLI = True
-    has_output_params = baseldap.LDAPCreate.has_output_params + output_params
 
     takes_options = (
         _ipapermissiontype_param,
@@ -978,7 +975,6 @@ class permission_add(baseldap.LDAPCreate):
     __doc__ = _('Add a new permission.')
 
     msg_summary = _('Added permission "%(value)s"')
-    has_output_params = baseldap.LDAPCreate.has_output_params + output_params
 
     # Need to override execute so that processed options apply to
     # the whole command, not just the callbacks
@@ -1082,7 +1078,6 @@ class permission_mod(baseldap.LDAPUpdate):
     __doc__ = _('Modify a permission.')
 
     msg_summary = _('Modified permission "%(value)s"')
-    has_output_params = baseldap.LDAPUpdate.has_output_params + output_params
 
     def execute(self, *keys, **options):
         context.filter_ops = self.obj.preprocess_options(
@@ -1249,7 +1244,6 @@ class permission_find(baseldap.LDAPSearch):
 
     msg_summary = ngettext(
         '%(count)d permission matched', '%(count)d permissions matched', 0)
-    has_output_params = baseldap.LDAPSearch.has_output_params + output_params
 
     def execute(self, *keys, **options):
         self.obj.preprocess_options(options, merge_targetfilter=True)
@@ -1375,7 +1369,6 @@ class permission_find(baseldap.LDAPSearch):
 @register()
 class permission_show(baseldap.LDAPRetrieve):
     __doc__ = _('Display information about a permission.')
-    has_output_params = baseldap.LDAPRetrieve.has_output_params + output_params
 
     def post_callback(self, ldap, dn, entry, *keys, **options):
         self.obj.upgrade_permission(entry, output_only=True)

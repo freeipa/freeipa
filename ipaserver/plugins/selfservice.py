@@ -57,12 +57,6 @@ register = Registry()
 
 ACI_PREFIX=u"selfservice"
 
-output_params = (
-    Str('aci',
-        label=_('ACI'),
-    ),
-)
-
 
 @register()
 class selfservice(Object):
@@ -96,6 +90,10 @@ class selfservice(Object):
             doc=_('Attributes to which the permission applies.'),
             normalizer=lambda value: value.lower(),
         ),
+        Str('aci',
+            label=_('ACI'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
     )
 
     def __json__(self):
@@ -124,7 +122,6 @@ class selfservice_add(crud.Create):
     __doc__ = _('Add a new self-service permission.')
 
     msg_summary = _('Added selfservice "%(value)s"')
-    has_output_params = output_params
 
     def execute(self, aciname, **kw):
         if not 'permissions' in kw:
@@ -164,7 +161,6 @@ class selfservice_mod(crud.Update):
     __doc__ = _('Modify a self-service permission.')
 
     msg_summary = _('Modified selfservice "%(value)s"')
-    has_output_params = output_params
 
     def execute(self, aciname, **kw):
         if 'attrs' in kw and kw['attrs'] is None:
@@ -190,7 +186,6 @@ class selfservice_find(crud.Search):
     )
 
     takes_options = (gen_pkey_only_option("name"),)
-    has_output_params = output_params
 
     def execute(self, term=None, **kw):
         kw['selfaci'] = True
@@ -211,8 +206,6 @@ class selfservice_find(crud.Search):
 @register()
 class selfservice_show(crud.Retrieve):
     __doc__ = _('Display information about a self-service permission.')
-
-    has_output_params = output_params
 
     def execute(self, aciname, **kw):
         result = api.Command['aci_show'](aciname, aciprefix=ACI_PREFIX, **kw)['result']

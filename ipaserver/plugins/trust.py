@@ -157,17 +157,6 @@ particular type.
 
 register = Registry()
 
-trust_output_params = (
-    Str('trustdirection',
-        label=_('Trust direction')),
-    Str('trusttype',
-        label=_('Trust type')),
-    Str('truststatus',
-        label=_('Trust status')),
-    Str('ipantadditionalsuffixes*',
-        label=_('UPN suffixes')),
-)
-
 # Trust type is a combination of ipanttrusttype and ipanttrustattributes
 # We shift trust attributes by 3 bits to left so bit 0 becomes bit 3 and
 # 2+(1 << 3) becomes 10.
@@ -551,6 +540,22 @@ class trust(LDAPObject):
             cli_name='sid_blacklist_outgoing',
             label=_('SID blacklist outgoing'),
             flags=['no_create']),
+        Str('trustdirection',
+            label=_('Trust direction'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
+        Str('trusttype',
+            label=_('Trust type'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
+        Str('truststatus',
+            label=_('Trust status'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
+        Str('ipantadditionalsuffixes*',
+            label=_('UPN suffixes'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
     )
 
     def validate_sid_blacklists(self, entry_attrs):
@@ -704,7 +709,6 @@ sides.
 
     msg_summary = _('Added Active Directory trust for realm "%(value)s"')
     msg_summary_existing = _('Re-established trust to domain "%(value)s"')
-    has_output_params = LDAPCreate.has_output_params + trust_output_params
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
@@ -1063,8 +1067,8 @@ class trust_mod(LDAPUpdate):
 @register()
 class trust_find(LDAPSearch):
     __doc__ = _('Search for trusts.')
-    has_output_params = LDAPSearch.has_output_params + trust_output_params +\
-                        (Str('ipanttrusttype'), Str('ipanttrustattributes'))
+    has_output_params = (LDAPSearch.has_output_params +
+                         (Str('ipanttrusttype'), Str('ipanttrustattributes')))
 
     msg_summary = ngettext(
         '%(count)d trust matched', '%(count)d trusts matched', 0
@@ -1102,8 +1106,10 @@ class trust_find(LDAPSearch):
 @register()
 class trust_show(LDAPRetrieve):
     __doc__ = _('Display information about a trust.')
-    has_output_params = LDAPRetrieve.has_output_params + trust_output_params +\
-                        (Str('ipanttrusttype'), Str('ipanttrustdirection'), Str('ipanttrustattributes'))
+    has_output_params = (LDAPRetrieve.has_output_params +
+                         (Str('ipanttrusttype'),
+                          Str('ipanttrustdirection'),
+                          Str('ipanttrustattributes')))
 
     def execute(self, *keys, **options):
         result = super(trust_show, self).execute(*keys, **options)
@@ -1514,6 +1520,10 @@ class trustdomain(LDAPObject):
             cli_name='sid',
             label=_('Domain Security Identifier'),
         ),
+        Flag('domain_enabled',
+            label=_('Domain enabled'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
     )
 
     # LDAPObject.get_dn() only passes all but last element of keys and no kwargs
@@ -1532,10 +1542,6 @@ class trustdomain(LDAPObject):
 @register()
 class trustdomain_find(LDAPSearch):
     __doc__ = _('Search domains of the trust')
-
-    has_output_params = LDAPSearch.has_output_params + trust_output_params + (
-        Flag('domain_enabled', label= _('Domain enabled')),
-    )
 
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
         return (filters, base_dn, ldap.SCOPE_SUBTREE)
