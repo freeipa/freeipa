@@ -117,7 +117,7 @@ EXAMPLES:
  Examine a certificate:
    ipa cert-find --file=cert.pem --all
 """) + _("""
- Verify that a certificate is owner by a specific user:
+ Verify that a certificate is owned by a specific user:
    ipa cert-find --file=cert.pem --user=user
 """) + _("""
 IPA currently immediately issues (or declines) all certificate requests so
