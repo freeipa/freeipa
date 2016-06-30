@@ -243,6 +243,25 @@ def caacl_check(principal_type, principal_string, ca, profile_id):
             )
         )
 
+
+def bind_principal_can_manage_cert(cert):
+    """Check that the bind principal can manage the given cert.
+
+    ``cert``
+        An NSS certificate object.
+
+    """
+    bind_principal = getattr(context, 'principal')
+    if not bind_principal.startswith('host/'):
+        return False
+
+    hostname = get_host_from_principal(bind_principal)
+
+    # If we have a hostname we want to verify that the subject
+    # of the certificate matches it.
+    return hostname == cert.subject.common_name  #pylint: disable=E1101
+
+
 @register()
 class cert_request(VirtualCommand):
     __doc__ = _('Submit a certificate signing request.')
@@ -608,29 +627,23 @@ class cert_show(VirtualCommand):
 
     def execute(self, serial_number, **options):
         ca_enabled_check()
-        hostname = None
+
+        result=self.Backend.ra.get_certificate(serial_number)
+        cert = x509.load_certificate(result['certificate'])
+
         try:
             self.check_access()
         except errors.ACIError as acierr:
             self.debug("Not granted by ACI to retrieve certificate, looking at principal")
-            bind_principal = getattr(context, 'principal')
-            if not bind_principal.startswith('host/'):
-                raise acierr
-            hostname = get_host_from_principal(bind_principal)
+            if not bind_principal_can_manage_cert(cert):
+                raise acierr  # pylint: disable=E0702
 
-        result=self.Backend.ra.get_certificate(serial_number)
-        cert = x509.load_certificate(result['certificate'])
         result['subject'] = unicode(cert.subject)
         result['issuer'] = unicode(cert.issuer)
         result['valid_not_before'] = unicode(cert.valid_not_before_str)
         result['valid_not_after'] = unicode(cert.valid_not_after_str)
         result['md5_fingerprint'] = unicode(nss.data_to_hex(nss.md5_digest(cert.der_data), 64)[0])
         result['sha1_fingerprint'] = unicode(nss.data_to_hex(nss.sha1_digest(cert.der_data), 64)[0])
-        if hostname:
-            # If we have a hostname we want to verify that the subject
-            # of the certificate matches it, otherwise raise an error
-            if hostname != cert.subject.common_name:    #pylint: disable=E1101
-                raise acierr
 
         return dict(result=result)
 
@@ -676,17 +689,17 @@ class cert_revoke(VirtualCommand):
 
     def execute(self, serial_number, **kw):
         ca_enabled_check()
-        hostname = None
         try:
             self.check_access()
         except errors.ACIError as acierr:
             self.debug("Not granted by ACI to revoke certificate, looking at principal")
             try:
-                # Let cert_show() handle verifying that the subject of the
-                # cert we're dealing with matches the hostname in the principal
                 result = api.Command['cert_show'](unicode(serial_number))['result']
+                cert = x509.load_certificate(result['certificate'])
+                if not bind_principal_can_manage_cert(cert):
+                    raise acierr
             except errors.NotImplementedError:
-                pass
+                raise acierr
         revocation_reason = kw['revocation_reason']
         if revocation_reason == 7:
             raise errors.CertificateOperationError(error=_('7 is not a valid revocation reason'))
