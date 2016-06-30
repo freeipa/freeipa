@@ -29,6 +29,7 @@ import os
 import socket
 import base64
 import traceback
+import errno
 
 from cffi import FFI
 from ctypes.util import find_library
@@ -466,10 +467,16 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         try:
             os.unlink(paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF)
         except OSError as e:
-            root_logger.error(
-                'Error removing %s: %s',
-                paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF, e
-            )
+            if e.errno == errno.ENOENT:
+                root_logger.debug(
+                    'Trying to remove %s but file does not exist',
+                    paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF
+                )
+            else:
+                root_logger.error(
+                    'Error removing %s: %s',
+                    paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF, e
+                )
 
     def set_hostname(self, hostname):
         ipautil.run([paths.BIN_HOSTNAMECTL, 'set-hostname', hostname])
