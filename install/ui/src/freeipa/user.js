@@ -187,7 +187,14 @@ return {
                         },
                         'uidnumber',
                         'gidnumber',
-                        'krbprincipalname',
+                        {
+                            $type: 'krb_principal_multivalued',
+                            name: 'krbprincipalname',
+                            item_name: 'principal',
+                            child_spec: {
+                                $type: 'krb_principal'
+                            }
+                        },
                         {
                             $type: 'datetime',
                             name: 'krbprincipalexpiration'
