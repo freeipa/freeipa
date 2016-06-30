@@ -1701,7 +1701,7 @@ def ensure_ldap_profiles_container():
     )
 
 def ensure_lightweight_cas_container():
-    ensure_entry(
+    return ensure_entry(
         DN(('ou', 'authorities'), ('ou', 'ca'), ('o', 'ipaca')),
         objectclass=['top', 'organizationalUnit'],
         ou=['authorities'],
@@ -1709,6 +1709,12 @@ def ensure_lightweight_cas_container():
 
 
 def ensure_entry(dn, **attrs):
+    """Ensure an entry exists.
+
+    If an entry with the given DN already exists, return ``False``,
+    otherwise add the entry and return ``True``.
+
+    """
     server_id = installutils.realm_to_serverid(api.env.realm)
     dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
 
@@ -1718,12 +1724,14 @@ def ensure_entry(dn, **attrs):
 
     try:
         conn.get_entry(dn)
+        return False
     except errors.NotFound:
         # entry doesn't exist; add it
         entry = conn.make_entry(dn, **attrs)
         conn.add_entry(entry)
-
-    conn.disconnect()
+        return True
+    finally:
+        conn.disconnect()
 
 
 def configure_profiles_acl():

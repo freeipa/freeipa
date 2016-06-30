@@ -1747,6 +1747,7 @@ def upgrade_configuration():
         ca_enable_pkix(ca),
         ca_configure_profiles_acl(ca),
         ca_configure_lightweight_ca_acls(ca),
+        ca_ensure_lightweight_cas_container(ca),
         ca_add_default_ocsp_uri(ca),
     ])
 
@@ -1758,7 +1759,6 @@ def upgrade_configuration():
         except ipautil.CalledProcessError as e:
             root_logger.error("Failed to restart %s: %s", ca.service_name, e)
 
-    ca_ensure_lightweight_cas_container(ca)
     ca_enable_ldap_profile_subsystem(ca)
 
     # This step MUST be done after ca_enable_ldap_profile_subsystem and
