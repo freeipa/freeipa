@@ -1300,6 +1300,7 @@ fi
 %{python_sitelib}/ipaclient/*.py*
 %{python_sitelib}/ipaclient/plugins/*.py*
 %{python_sitelib}/ipaclient/remote_plugins/*.py*
+%{python_sitelib}/ipaclient/remote_plugins/2_*/*.py*
 %{python_sitelib}/ipaclient-*.egg-info
 
 
@@ -1316,6 +1317,8 @@ fi
 %{python3_sitelib}/ipaclient/plugins/__pycache__/*.py*
 %{python3_sitelib}/ipaclient/remote_plugins/*.py
 %{python3_sitelib}/ipaclient/remote_plugins/__pycache__/*.py*
+%{python3_sitelib}/ipaclient/remote_plugins/2_*/*.py
+%{python3_sitelib}/ipaclient/remote_plugins/2_*/__pycache__/*.py*
 %{python3_sitelib}/ipaclient-*.egg-info
 
 %endif # with_python3

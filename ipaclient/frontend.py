@@ -3,6 +3,104 @@
 #
 
 from ipalib.frontend import Command, Method
+from ipalib.parameters import Str
+from ipalib.text import _
+
+
+class ClientCommand(Command):
+    def get_options(self):
+        skip = set()
+        for option in super(ClientCommand, self).get_options():
+            if option.name in skip:
+                continue
+            if option.name in ('all', 'raw'):
+                skip.add(option.name)
+            yield option
+
+
+class ClientMethod(ClientCommand, Method):
+    _failed_member_output_params = (
+        # baseldap
+        Str(
+            'member',
+            label=_("Failed members"),
+        ),
+        Str(
+            'sourcehost',
+            label=_("Failed source hosts/hostgroups"),
+        ),
+        Str(
+            'memberhost',
+            label=_("Failed hosts/hostgroups"),
+        ),
+        Str(
+            'memberuser',
+            label=_("Failed users/groups"),
+        ),
+        Str(
+            'memberservice',
+            label=_("Failed service/service groups"),
+        ),
+        Str(
+            'failed',
+            label=_("Failed to remove"),
+            flags=['suppress_empty'],
+        ),
+        Str(
+            'ipasudorunas',
+            label=_("Failed RunAs"),
+        ),
+        Str(
+            'ipasudorunasgroup',
+            label=_("Failed RunAsGroup"),
+        ),
+        # caacl
+        Str(
+            'ipamembercertprofile',
+            label=_("Failed profiles"),
+        ),
+        Str(
+            'ipamemberca',
+            label=_("Failed CAs"),
+        ),
+        # host
+        Str(
+            'managedby',
+            label=_("Failed managedby"),
+        ),
+        # service
+        Str(
+            'ipaallowedtoperform_read_keys',
+            label=_("Failed allowed to retrieve keytab"),
+        ),
+        Str(
+            'ipaallowedtoperform_write_keys',
+            label=_("Failed allowed to create keytab"),
+        ),
+        # servicedelegation
+        Str(
+            'failed_memberprincipal',
+            label=_("Failed members"),
+        ),
+        Str(
+            'ipaallowedtarget',
+            label=_("Failed targets"),
+        ),
+        # vault
+        Str(
+            'owner?',
+            label=_("Failed owners"),
+        ),
+    )
+
+    def get_output_params(self):
+        seen = set()
+        for output_param in super(ClientMethod, self).get_output_params():
+            seen.add(output_param.name)
+            yield output_param
+        for output_param in self._failed_member_output_params:
+            if output_param.name not in seen:
+                yield output_param
 
 
 class CommandOverride(Command):
@@ -23,6 +121,14 @@ class CommandOverride(Command):
     @property
     def topic(self):
         return self.next.topic
+
+    @property
+    def forwarded_name(self):
+        return self.next.forwarded_name
+
+    @property
+    def api_version(self):
+        return self.next.api_version
 
     def _on_finalize(self):
         self.next.finalize()

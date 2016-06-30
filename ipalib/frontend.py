@@ -424,6 +424,8 @@ class Command(HasParam):
 
     callback_types = ('interactive_prompt',)
 
+    api_version = API_VERSION
+
     @property
     def topic(self):
         return type(self).__module__.rpartition('.')[2]
@@ -451,11 +453,11 @@ class Command(HasParam):
         elif self.api.env.skip_version_check and not self.api.env.in_server:
             options['version'] = u'2.0'
         else:
-            options['version'] = API_VERSION
+            options['version'] = self.api_version
             if self.api.env.in_server:
                 # add message only on server side
                 self.add_message(
-                    messages.VersionMissing(server_version=API_VERSION))
+                    messages.VersionMissing(server_version=self.api_version))
         params = self.args_options_2_params(*args, **options)
         self.debug(
             'raw: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
