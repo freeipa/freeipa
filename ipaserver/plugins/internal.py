@@ -319,6 +319,12 @@ class i18n_messages(Command):
             "remove_create": _("Disallow ${other_entity} to create keytab of ${primary_key}"),
             "remove_retrieve": _("Disallow ${other_entity} to retrieve keytab of ${primary_key}"),
         },
+        "krbaliases": {
+            "adder_title": _("Add Kerberos Principal Alias"),
+            "add_krbal_label": _("New kerberos principal alias"),
+            "remove_title": _("Remove Kerberos Alias"),
+            "remove_message": _("Do you want to remove kerberos alias ${alias}?"),
+        },
         "krbauthzdata": {
             "inherited": _("Inherited from server configuration"),
             "mspac": _("MS-PAC"),

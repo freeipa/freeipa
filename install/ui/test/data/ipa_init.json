@@ -170,6 +170,12 @@
                         "remove_create": "Disallow ${other_entity} to create keytab of ${primary_key}",
                         "remove_retrieve": "Disallow ${other_entity} to retrieve keytab of ${primary_key}"
                     },
+                    "krbaliases": {
+                        "adder_title": "Add Kerberos Principal Alias",
+                        "add_krbal_label": "New kerberos principal alias",
+                        "remove_title": "Remove Kerberos Alias",
+                        "remove_message": "Do you want to remove kerberos alias ${alias}?"
+                    },
                     "krbauthzdata": {
                         "inherited": "Inherited from server configuration",
                         "mspac": "MS-PAC",

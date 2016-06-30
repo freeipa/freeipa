@@ -1798,6 +1798,110 @@ IPA.custom_command_multivalued_widget = function(spec) {
     return that;
 };
 
+/**
+ * Multivalued widget which is used for working with kerberos principal aliases.
+ *
+ * @class
+ * @extends IPA.custom_command_multivalued_widget
+ */
+IPA.krb_principal_multivalued_widget = function (spec) {
+
+    spec = spec || {};
+
+    spec.adder_dialog_spec = spec.adder_dialog_spec || {
+        title: '@i18n:krbaliases.adder_title',
+        fields: [
+            {
+                $type: 'text',
+                name: 'krbprincalname',
+                label: '@i18n:krbaliases.add_krbal_label'
+            }
+        ]
+    };
+
+    var that = IPA.custom_command_multivalued_widget(spec);
+
+    that.create_remove_dialog_title = function(row) {
+        return text.get('@i18n:krbaliases.remove_title');
+    };
+
+    that.create_remove_dialog_message = function(row) {
+        var message = text.get('@i18n:krbaliases.remove_message');
+        message = message.replace('${alias}', row.widget.principal_name);
+
+        return message;
+    };
+
+
+    that.create_remove_args = function(row) {
+        var pkey = that.facet.get_pkey();
+        var krbprincipalname = row.widget.principal_name;
+        krbprincipalname = [ krbprincipalname ];
+
+        var args = [
+            pkey,
+            krbprincipalname
+        ];
+
+        return args;
+    };
+
+    that.create_add_args = function(row) {
+        var pkey = that.facet.get_pkey();
+        var krbprincipalname = that.adder_dialog.get_field('krbprincalname').value;
+
+        var args = [
+            pkey,
+            krbprincipalname
+        ];
+
+        return args;
+    };
+
+    return that;
+};
+
+/**
+ * Widget which is used as row in kerberos aliases multivalued widget.
+ * It contains only string where is the principal alias name and delete button.
+ *
+ * @class
+ * @extends IPA.input_widget
+ */
+IPA.krb_principal_widget = function(spec) {
+    spec = spec || {};
+
+    var that = IPA.input_widget();
+
+    that.create = function(container) {
+        that.widget_create(container);
+
+        that.principal_text = $('<span />', {
+            'class': 'krb-principal-name',
+            text: ''
+        }).appendTo(container);
+
+        if (that.undo) {
+            that.create_undo(container);
+        }
+
+        that.create_error_link(container);
+    };
+
+    that.update = function(value) {
+
+        var principal_name = value[0] || '';
+
+        that.principal_name = principal_name;
+        that.update_text();
+    };
+
+    that.update_text = function() {
+        that.principal_text.text(that.principal_name);
+    };
+
+    return that;
+};
 
 /**
  * Option widget base
@@ -7053,6 +7157,10 @@ exp.register = function() {
     w.register('multivalued', IPA.multivalued_widget);
     w.register('custom_command_multivalued',
         IPA.custom_command_multivalued_widget);
+    w.register('krb_principal_multivalued',
+                            IPA.krb_principal_multivalued_widget);
+    w.register('krb_principal',
+                            IPA.krb_principal_widget);
     w.register('password', IPA.password_widget);
     w.register('radio', IPA.radio_widget);
     w.register('select', IPA.select_widget);
