@@ -5863,10 +5863,9 @@ output: Output('result', type=[<type 'dict'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: user_status/1
-args: 1,4,4
-arg: Str('uid', cli_name='login')
+args: 1,3,4
+arg: Str('useruid', cli_name='login')
 option: Flag('all', autofill=True, cli_name='all', default=False)
-option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
@@ -6615,6 +6614,7 @@ default: user_stage/1
 default: user_status/1
 default: user_undel/1
 default: user_unlock/1
+default: userstatus/1
 default: vault/1
 default: vault_add_internal/1
 default: vault_add_member/1

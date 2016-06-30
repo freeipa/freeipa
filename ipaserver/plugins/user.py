@@ -38,7 +38,6 @@ from .baseuser import (
     NO_UPG_MAGIC,
     UPG_DEFINITION_DN,
     baseuser_output_params,
-    status_baseuser_output_params,
     baseuser_pwdchars,
     validate_nsaccountlock,
     convert_nsaccountlock,
@@ -48,6 +47,7 @@ from .baseuser import (
 from .idviews import remove_ipaobject_overrides
 from ipalib.plugable import Registry
 from .baseldap import (
+    LDAPObject,
     pkey_to_value,
     LDAPCreate,
     LDAPSearch,
@@ -117,8 +117,6 @@ register = Registry()
 
 
 user_output_params = baseuser_output_params
-
-status_output_params = status_baseuser_output_params
 
 
 def check_protected_member(user, protected_group_name=u'admins'):
@@ -990,6 +988,38 @@ class user_unlock(LDAPQuery):
 
 
 @register()
+class userstatus(LDAPObject):
+    parent_object = 'user'
+
+    takes_params = (
+        Bool('preserved?',
+            label=_('Preserved user'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
+        Str('server',
+            label=_('Server'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
+        Str('krbloginfailedcount',
+            label=_('Failed logins'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Str('krblastsuccessfulauth',
+            label=_('Last successful authentication'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Str('krblastfailedauth',
+            label=_('Last failed authentication'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Str('now',
+            label=_('Time now'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
+    )
+
+
+@register()
 class user_status(LDAPQuery):
     __doc__ = _("""
     Lockout status of a user account
@@ -1013,12 +1043,20 @@ class user_status(LDAPQuery):
     login attempt is older than the lockouttime of the password policy. This
     means that the user may attempt a login again. """)
 
+    obj_name = 'userstatus'
+    attr_name = 'find'
+
     has_output = output.standard_list_of_entries
-    has_output_params = LDAPSearch.has_output_params + status_output_params
+
+    def get_args(self):
+        for arg in super(user_status, self).get_args():
+            if arg.name == 'useruid':
+                arg = arg.clone(cli_name='login')
+            yield arg
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
-        dn = self.obj.get_either_dn(*keys, **options)
+        dn = self.api.Object.user.get_either_dn(*keys, **options)
         attr_list = ['krbloginfailedcount', 'krblastsuccessfulauth', 'krblastfailedauth', 'nsaccountlock']
 
         disabled = False
@@ -1074,11 +1112,11 @@ class user_status(LDAPQuery):
                 convert_nsaccountlock(entry)
                 if 'nsaccountlock' in entry:
                     disabled = entry['nsaccountlock']
-                self.obj.get_preserved_attribute(entry, options)
+                self.api.Object.user.get_preserved_attribute(entry, options)
                 entries.append(newresult)
                 count += 1
             except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+                self.api.Object.user.handle_not_found(*keys)
             except Exception as e:
                 self.error("user_status: Retrieving status for %s failed with %s" % (dn, str(e)))
                 newresult = {'dn': dn}

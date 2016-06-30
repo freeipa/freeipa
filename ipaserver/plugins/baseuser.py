@@ -61,24 +61,6 @@ baseuser_output_params = (
     ),
    )
 
-status_baseuser_output_params = (
-    Str('server',
-        label=_('Server'),
-    ),
-    Str('krbloginfailedcount',
-        label=_('Failed logins'),
-    ),
-    Str('krblastsuccessfulauth',
-        label=_('Last successful authentication'),
-    ),
-    Str('krblastfailedauth',
-        label=_('Last failed authentication'),
-    ),
-    Str('now',
-        label=_('Time now'),
-    ),
-   )
-
 UPG_DEFINITION_DN = DN(('cn', 'UPG Definition'),
                        ('cn', 'Definitions'),
                        ('cn', 'Managed Entries'),

@@ -40,7 +40,6 @@ from .baseuser import (
     NO_UPG_MAGIC,
     baseuser_pwdchars,
     baseuser_output_params,
-    status_baseuser_output_params,
     baseuser_add_manager,
     baseuser_remove_manager)
 from ipalib.request import context
@@ -102,7 +101,6 @@ register = Registry()
 
 stageuser_output_params = baseuser_output_params
 
-status_output_params = status_baseuser_output_params
 
 @register()
 class stageuser(baseuser):
