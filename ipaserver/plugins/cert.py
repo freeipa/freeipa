@@ -242,6 +242,24 @@ def validate_certificate(value):
     return x509.validate_certificate(value, x509.DER)
 
 
+def bind_principal_can_manage_cert(cert):
+    """Check that the bind principal can manage the given cert.
+
+    ``cert``
+        An NSS certificate object.
+
+    """
+    bind_principal = kerberos.Principal(getattr(context, 'principal'))
+    if not bind_principal.is_host:
+        return False
+
+    hostname = bind_principal.hostname
+
+    # If we have a hostname we want to verify that the subject
+    # of the certificate matches it.
+    return hostname == cert.subject.common_name  #pylint: disable=E1101
+
+
 class BaseCertObject(Object):
     takes_params = (
         Bytes(
@@ -744,18 +762,6 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
     def execute(self, serial_number, all=False, raw=False, no_members=False,
                 **options):
         ca_enabled_check()
-        hostname = None
-        try:
-            self.check_access()
-        except errors.ACIError as acierr:
-            self.debug("Not granted by ACI to retrieve certificate, looking at principal")
-            bind_principal = kerberos.Principal(getattr(context, 'principal'))
-            if not bind_principal.is_host:
-                raise acierr
-            hostname = bind_principal.hostname
-
-        ca_obj = api.Command.ca_show(options['cacn'])['result']
-        issuer_dn = ca_obj['ipacasubjectdn'][0]
 
         # Dogtag lightweight CAs have shared serial number domain, so
         # we don't tell Dogtag the issuer (but we check the cert after).
@@ -763,7 +769,15 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
         result = self.Backend.ra.get_certificate(str(serial_number))
         cert = x509.load_certificate(result['certificate'])
 
-        if DN(unicode(cert.issuer)) != DN(issuer_dn):
+        try:
+            self.check_access()
+        except errors.ACIError as acierr:
+            self.debug("Not granted by ACI to retrieve certificate, looking at principal")
+            if not bind_principal_can_manage_cert(cert):
+                raise acierr  # pylint: disable=E0702
+
+        ca_obj = api.Command.ca_show(options['cacn'])['result']
+        if DN(unicode(cert.issuer)) != DN(ca_obj['ipacasubjectdn'][0]):
             # DN of cert differs from what we requested
             raise errors.NotFound(
                 reason=_("Certificate with serial number %(serial)s "
@@ -789,12 +803,6 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
             result['revoked'] = ('revocation_reason' in result)
             self.obj._fill_owners(result)
 
-        if hostname:
-            # If we have a hostname we want to verify that the subject
-            # of the certificate matches it, otherwise raise an error
-            if hostname != cert.subject.common_name:    #pylint: disable=E1101
-                raise acierr
-
         return dict(result=result, value=pkey_to_value(serial_number, options))
 
 
@@ -819,22 +827,18 @@ class cert_revoke(PKQuery, CertMethod, VirtualCommand):
 
         # Make sure that the cert specified by issuer+serial exists.
         # Will raise NotFound if it does not.
-        cert_show_options = dict(cacn=kw['cacn'])
-        api.Command.cert_show(unicode(serial_number), **cert_show_options)
+        resp = api.Command.cert_show(unicode(serial_number), cacn=kw['cacn'])
 
-        hostname = None
         try:
             self.check_access()
         except errors.ACIError as acierr:
             self.debug("Not granted by ACI to revoke certificate, looking at principal")
             try:
-                # Let cert_show() handle verifying that the subject of the
-                # cert we're dealing with matches the hostname in the principal
-                result = api.Command['cert_show'](
-                    unicode(serial_number), **cert_show_options
-                )['result']
+                cert = x509.load_certificate(resp['result']['certificate'])
+                if not bind_principal_can_manage_cert(cert):
+                    raise acierr
             except errors.NotImplementedError:
-                pass
+                raise acierr
         revocation_reason = kw['revocation_reason']
         if revocation_reason == 7:
             raise errors.CertificateOperationError(error=_('7 is not a valid revocation reason'))
