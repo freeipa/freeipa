@@ -86,102 +86,132 @@ def get_domain_name():
 
     return domain_name
 
-class CheckedIPAddress(netaddr.IPAddress):
+
+class UnsafeIPAddress(netaddr.IPAddress):
+    """Any valid IP address with or without netmask."""
 
     # Use inet_pton() rather than inet_aton() for IP address parsing. We
     # will use the same function in IPv4/IPv6 conversions + be stricter
     # and don't allow IP addresses such as '1.1.1' in the same time
     netaddr_ip_flags = netaddr.INET_PTON
 
+    def __init__(self, addr):
+        if isinstance(addr, UnsafeIPAddress):
+            self._net = addr._net
+            super(UnsafeIPAddress, self).__init__(addr,
+                                                  flags=self.netaddr_ip_flags)
+            return
+
+        elif isinstance(addr, netaddr.IPAddress):
+            self._net = None  # no information about netmask
+            super(UnsafeIPAddress, self).__init__(addr,
+                                                  flags=self.netaddr_ip_flags)
+            return
+
+        elif isinstance(addr, netaddr.IPNetwork):
+            self._net = addr
+            super(UnsafeIPAddress, self).__init__(self._net.ip,
+                                                  flags=self.netaddr_ip_flags)
+            return
+
+        # option of last resort: parse it as string
+        self._net = None
+        addr = str(addr)
+        try:
+            try:
+                addr = netaddr.IPAddress(addr, flags=self.netaddr_ip_flags)
+            except netaddr.AddrFormatError:
+                # netaddr.IPAddress doesn't handle zone indices in textual
+                # IPv6 addresses. Try removing zone index and parse the
+                # address again.
+                addr, sep, foo = addr.partition('%')
+                if sep != '%':
+                    raise
+                addr = netaddr.IPAddress(addr, flags=self.netaddr_ip_flags)
+                if addr.version != 6:
+                    raise
+        except ValueError:
+            self._net = netaddr.IPNetwork(addr, flags=self.netaddr_ip_flags)
+            addr = self._net.ip
+        super(UnsafeIPAddress, self).__init__(addr,
+                                              flags=self.netaddr_ip_flags)
+
+
+class CheckedIPAddress(UnsafeIPAddress):
+    """IPv4 or IPv6 address with additional constraints.
+
+    Reserved or link-local addresses are never accepted.
+    """
     def __init__(self, addr, match_local=False, parse_netmask=True,
                  allow_network=False, allow_loopback=False,
                  allow_broadcast=False, allow_multicast=False):
+
+        super(CheckedIPAddress, self).__init__(addr)
         if isinstance(addr, CheckedIPAddress):
-            super(CheckedIPAddress, self).__init__(addr, flags=self.netaddr_ip_flags)
             self.prefixlen = addr.prefixlen
             return
 
-        net = None
-        iface = None
+        if not parse_netmask and self._net:
+            raise ValueError(
+                "netmask and prefix length not allowed here: {}".format(addr))
 
-        if isinstance(addr, netaddr.IPNetwork):
-            net = addr
-            addr = net.ip
-        elif isinstance(addr, netaddr.IPAddress):
-            pass
-        else:
-            try:
-                try:
-                    addr = netaddr.IPAddress(str(addr), flags=self.netaddr_ip_flags)
-                except netaddr.AddrFormatError:
-                    # netaddr.IPAddress doesn't handle zone indices in textual
-                    # IPv6 addresses. Try removing zone index and parse the
-                    # address again.
-                    if not isinstance(addr, six.string_types):
-                        raise
-                    addr, sep, foo = addr.partition('%')
-                    if sep != '%':
-                        raise
-                    addr = netaddr.IPAddress(str(addr), flags=self.netaddr_ip_flags)
-                    if addr.version != 6:
-                        raise
-            except ValueError:
-                net = netaddr.IPNetwork(str(addr), flags=self.netaddr_ip_flags)
-                if not parse_netmask:
-                    raise ValueError("netmask and prefix length not allowed here")
-                addr = net.ip
+        if self.version not in (4, 6):
+            raise ValueError("unsupported IP version {}".format(self.version))
 
-        if addr.version not in (4, 6):
-            raise ValueError("unsupported IP version")
+        if not allow_loopback and self.is_loopback():
+            raise ValueError("cannot use loopback IP address {}".format(addr))
+        if (not self.is_loopback() and self.is_reserved()) \
+                or self in netaddr.ip.IPV4_6TO4:
+            raise ValueError(
+                "cannot use IANA reserved IP address {}".format(addr))
 
-        if not allow_loopback and addr.is_loopback():
-            raise ValueError("cannot use loopback IP address")
-        if (not addr.is_loopback() and addr.is_reserved()) \
-                or addr in netaddr.ip.IPV4_6TO4:
-            raise ValueError("cannot use IANA reserved IP address")
-
-        if addr.is_link_local():
-            raise ValueError("cannot use link-local IP address")
-        if not allow_multicast and addr.is_multicast():
-            raise ValueError("cannot use multicast IP address")
+        if self.is_link_local():
+            raise ValueError(
+                "cannot use link-local IP address {}".format(addr))
+        if not allow_multicast and self.is_multicast():
+            raise ValueError("cannot use multicast IP address {}".format(addr))
 
         if match_local:
-            if addr.version == 4:
+            if self.version == 4:
                 family = 'inet'
-            elif addr.version == 6:
+            elif self.version == 6:
                 family = 'inet6'
 
             result = run(
                 [paths.IP, '-family', family, '-oneline', 'address', 'show'],
                 capture_output=True)
             lines = result.output.split('\n')
+            iface = None
             for line in lines:
                 fields = line.split()
                 if len(fields) < 4:
                     continue
 
                 ifnet = netaddr.IPNetwork(fields[3])
-                if ifnet == net or (net is None and ifnet.ip == addr):
-                    net = ifnet
+                if ifnet == self._net or (self._net is None and ifnet.ip == self):
+                    self._net = ifnet
                     iface = fields[1]
                     break
 
             if iface is None:
-                raise ValueError('No network interface matches the provided IP address and netmask')
+                raise ValueError('no network interface matches the IP address '
+                                 'and netmask {}'.format(addr))
 
-        if net is None:
-            if addr.version == 4:
-                net = netaddr.IPNetwork(netaddr.cidr_abbrev_to_verbose(str(addr)))
-            elif addr.version == 6:
-                net = netaddr.IPNetwork(str(addr) + '/64')
+        if self._net is None:
+            if self.version == 4:
+                self._net = netaddr.IPNetwork(
+                    netaddr.cidr_abbrev_to_verbose(str(self)))
+            elif self.version == 6:
+                self._net = netaddr.IPNetwork(str(self) + '/64')
 
-        if not allow_network and  addr == net.network:
-            raise ValueError("cannot use IP network address")
-        if not allow_broadcast and addr.version == 4 and addr == net.broadcast:
-            raise ValueError("cannot use broadcast IP address")
+        if not allow_network and self == self._net.network:
+            raise ValueError("cannot use IP network address {}".format(addr))
+        if not allow_broadcast and (self.version == 4 and
+                                    self == self._net.broadcast):
+            raise ValueError("cannot use broadcast IP address {}".format(addr))
 
-        super(CheckedIPAddress, self).__init__(addr, flags=self.netaddr_ip_flags)
-        self.prefixlen = net.prefixlen
+        self.prefixlen = self._net.prefixlen
+
 
 def valid_ip(addr):
     return netaddr.valid_ipv4(addr) or netaddr.valid_ipv6(addr)

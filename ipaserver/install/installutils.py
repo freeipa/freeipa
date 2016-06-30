@@ -450,7 +450,7 @@ def create_keytab(path, principal):
 def resolve_ip_addresses_nss(fqdn):
     """Get list of IP addresses for given host (using NSS/getaddrinfo).
     :returns:
-        list of IP addresses as CheckedIPAddress objects
+        list of IP addresses as UnsafeIPAddress objects
     """
     # make sure the name is fully qualified
     # so search path from resolv.conf does not apply
@@ -470,13 +470,7 @@ def resolve_ip_addresses_nss(fqdn):
     ip_addresses = set()
     for ai in addrinfos:
         try:
-            ip = ipautil.CheckedIPAddress(ai[4][0],
-                                          parse_netmask=False,
-                                          # these are unreliable, disable them
-                                          allow_network=True,
-                                          allow_loopback=True,
-                                          allow_broadcast=True,
-                                          allow_multicast=True)
+            ip = ipautil.UnsafeIPAddress(ai[4][0])
         except ValueError as ex:
             # getaddinfo may return link-local address other similar oddities
             # which are not accepted by CheckedIPAddress - skip these
@@ -503,8 +497,7 @@ def get_host_name(no_host_dns):
 def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
     hostaddr = resolve_ip_addresses_nss(host_name)
     if hostaddr.intersection(
-            {ipautil.CheckedIPAddress(ip, allow_loopback=True)
-             for ip in ['127.0.0.1', '::1']}):
+            {ipautil.UnsafeIPAddress(ip) for ip in ['127.0.0.1', '::1']}):
         print("The hostname resolves to the localhost address (127.0.0.1/::1)", file=sys.stderr)
         print("Please change your /etc/hosts file so that the hostname", file=sys.stderr)
         print("resolves to the ip address of your network interface.", file=sys.stderr)
