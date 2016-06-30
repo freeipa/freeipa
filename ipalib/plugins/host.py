@@ -44,7 +44,7 @@ from ipalib import x509
 from ipalib import output
 from ipalib.request import context
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey_no_options,
-    convert_sshpubkey_post, validate_hostname)
+    convert_sshpubkey_post, validate_hostname, normalize_hostname)
 from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
 from ipapython.dnsutil import DNSName
 from ipapython.ssh import SSHPublicKey
@@ -265,14 +265,6 @@ def validate_ipaddr(ugettext, ipaddr):
     except Exception as e:
         return unicode(e)
     return None
-
-
-def normalize_hostname(hostname):
-    """Use common fqdn form without the trailing dot"""
-    if hostname.endswith(u'.'):
-        hostname = hostname[:-1]
-    hostname = hostname.lower()
-    return hostname
 
 
 def _hostname_validator(ugettext, value):

@@ -844,3 +844,11 @@ def detect_dns_zone_realm_type(api, domain):
 def has_managed_topology(api):
     domainlevel = api.Command['domainlevel_get']().get('result', DOMAIN_LEVEL_0)
     return domainlevel > DOMAIN_LEVEL_0
+
+
+def normalize_hostname(hostname):
+    """Use common fqdn form without the trailing dot"""
+    if hostname.endswith(u'.'):
+        hostname = hostname[:-1]
+    hostname = hostname.lower()
+    return hostname
