@@ -55,11 +55,17 @@ class CommandOverride(Command):
 class MethodOverride(CommandOverride, Method):
     @property
     def obj_name(self):
-        return self.next.obj_name
+        try:
+            return self.next.obj_name
+        except AttributeError:
+            return None
 
     @property
     def attr_name(self):
-        return self.next.attr_name
+        try:
+            return self.next.attr_name
+        except AttributeError:
+            return None
 
     @property
     def obj(self):

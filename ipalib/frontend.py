@@ -1343,7 +1343,10 @@ class Attribute(Plugin):
 
     @property
     def obj_full_name(self):
-        return self.obj.full_name
+        if self.obj is not None:
+            return self.obj.full_name
+        else:
+            return None
 
     @property
     def attr_name(self):
@@ -1353,7 +1356,10 @@ class Attribute(Plugin):
 
     @property
     def obj(self):
-        return self.api.Object[self.obj_name, self.obj_version]
+        if self.obj_name is not None and self.obj_version is not None:
+            return self.api.Object[self.obj_name, self.obj_version]
+        else:
+            return None
 
 
 class Method(Attribute, Command):
@@ -1426,10 +1432,11 @@ class Method(Attribute, Command):
     extra_args_first = False
 
     def get_output_params(self):
-        for param in self.obj.params():
-            if 'no_output' in param.flags:
-                continue
-            yield param
+        if self.obj is not None:
+            for param in self.obj.params():
+                if 'no_output' in param.flags:
+                    continue
+                yield param
         for param in super(Method, self).get_output_params():
             yield param
 
