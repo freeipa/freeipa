@@ -1533,8 +1533,13 @@ IPA.custom_command_multivalued_widget = function(spec) {
     /**
      * Called on error of add command. Override point.
      */
-    that.on_error_add = function(data) {
+    that.on_error_add = function(xhr, text_status, error_thrown) {
         that.adder_dialog.focus_first_element();
+
+        if (error_thrown.message) {
+            var msg = error_thrown.message;
+            IPA.notify(msg, 'error');
+        }
     };
 
     /**
@@ -1548,8 +1553,11 @@ IPA.custom_command_multivalued_widget = function(spec) {
     /**
      * Called on error of remove command. Override point.
      */
-    that.on_error_remove = function(data) {
-        IPA.notify(data.result.summary, 'error');
+    that.on_error_remove = function(xhr, text_status, error_thrown) {
+        if (error_thrown.message) {
+            var msg = error_thrown.message;
+            IPA.notify(msg, 'error');
+        }
     };
 
     /**
