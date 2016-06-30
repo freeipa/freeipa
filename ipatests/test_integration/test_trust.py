@@ -23,6 +23,7 @@ import re
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 from ipatests.test_integration import util
+from ipaplatform.paths import paths
 
 
 class ADTrustBase(IntegrationTest):
@@ -36,17 +37,19 @@ class ADTrustBase(IntegrationTest):
     def install(cls, mh):
         super(ADTrustBase, cls).install(mh)
         cls.ad = cls.ad_domains[0].ads[0]
+        cls.ad_domain = cls.ad.domain.name
         cls.install_adtrust()
         cls.check_sid_generation()
-        cls.configure_dns_and_time()
 
         # Determine whether the subdomain AD is available
         try:
-            child_ad = cls.host_by_role(cls.optional_extra_roles[0])
+            cls.child_ad = cls.host_by_role(cls.optional_extra_roles[0])
             cls.ad_subdomain = '.'.join(
-                                   child_ad.hostname.split('.')[1:])
+                                   cls.child_ad.hostname.split('.')[1:])
         except LookupError:
             cls.ad_subdomain = None
+
+        cls.configure_dns_and_time()
 
     @classmethod
     def install_adtrust(cls):
@@ -71,13 +74,13 @@ class ADTrustBase(IntegrationTest):
 
     @classmethod
     def configure_dns_and_time(cls):
-        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.configure_dns_for_trust(cls.master, cls.ad_domain)
         tasks.sync_time(cls.master, cls.ad)
 
     def test_establish_trust(self):
         """Tests establishing trust with Active Directory"""
 
-        tasks.establish_trust_with_ad(self.master, self.ad,
+        tasks.establish_trust_with_ad(self.master, self.ad_domain,
             extra_args=['--range-type', 'ipa-ad-trust'])
 
     def test_all_trustdomains_found(self):
@@ -90,12 +93,40 @@ class ADTrustBase(IntegrationTest):
 
         result = self.master.run_command(['ipa',
                                           'trustdomain-find',
-                                           self.ad.domain.name])
+                                          self.ad_domain])
 
         # Check that both trustdomains appear in the result
-        assert self.ad.domain.name in result.stdout_text
+        assert self.ad_domain in result.stdout_text
         assert self.ad_subdomain in result.stdout_text
 
+
+class ADTrustSubdomainBase(ADTrustBase):
+    """
+    Base class for tests involving subdomains of trusted forests
+    """
+
+    @classmethod
+    def configure_dns_and_time(cls):
+        tasks.configure_dns_for_trust(cls.master, cls.ad_subdomain)
+        tasks.sync_time(cls.master, cls.child_ad)
+
+    @classmethod
+    def install(cls, mh):
+        super(ADTrustSubdomainBase, cls).install(mh)
+        cls.ad = cls.ad_domains[0].ads[0]
+        cls.ad_domain = cls.ad.domain.name
+        cls.install_adtrust()
+        cls.check_sid_generation()
+
+        # Determine whether the subdomain AD is available
+        # if not, skip the whole suite
+        try:
+            cls.child_ad = cls.host_by_role(cls.optional_extra_roles[0])
+            cls.ad_subdomain = '.'.join(cls.child_ad.hostname.split('.')[1:])
+        except LookupError:
+            raise nose.SkipTest('AD subdomain is not available.')
+
+        cls.configure_dns_and_time()
 
 class TestBasicADTrust(ADTrustBase):
     """Basic Integration test for Active Directory"""
@@ -103,7 +134,7 @@ class TestBasicADTrust(ADTrustBase):
     def test_range_properties_in_nonposix_trust(self):
         """Check the properties of the created range"""
 
-        range_name = self.ad.domain.name.upper() + '_id_range'
+        range_name = self.ad_domain.upper() + '_id_range'
         result = self.master.run_command(['ipa', 'idrange-show', range_name,
                                           '--all', '--raw'])
 
@@ -117,20 +148,20 @@ class TestBasicADTrust(ADTrustBase):
         """Check that user has SID-generated UID"""
 
         # Using domain name since it is lowercased realm name for AD domains
-        testuser = 'testuser@%s' % self.ad.domain.name
+        testuser = 'testuser@%s' % self.ad_domain
         result = self.master.run_command(['getent', 'passwd', testuser])
 
         # This regex checks that Test User does not have UID 10042 nor belongs
         # to the group with GID 10047
         testuser_regex = "^testuser@%s:\*:(?!10042)(\d+):(?!10047)(\d+):"\
                          "Test User:/home/%s/testuser:/bin/sh$"\
-                         % (re.escape(self.ad.domain.name),
-                            re.escape(self.ad.domain.name))
+                         % (re.escape(self.ad_domain),
+                            re.escape(self.ad_domain))
 
         assert re.search(testuser_regex, result.stdout_text)
 
     def test_remove_nonposix_trust(self):
-        tasks.remove_trust_with_ad(self.master, self.ad)
+        tasks.remove_trust_with_ad(self.master, self.ad_domain)
         tasks.clear_sssd_cache(self.master)
 
 
@@ -139,12 +170,12 @@ class TestPosixADTrust(ADTrustBase):
 
     def test_establish_trust(self):
         # Not specifying the --range-type directly, it should be detected
-        tasks.establish_trust_with_ad(self.master, self.ad)
+        tasks.establish_trust_with_ad(self.master, self.ad_domain)
 
     def test_range_properties_in_posix_trust(self):
         # Check the properties of the created range
 
-        range_name = self.ad.domain.name.upper() + '_id_range'
+        range_name = self.ad_domain.upper() + '_id_range'
 
         result = self.master.run_command(['ipa', 'idrange-show', range_name,
                                           '--all', '--raw'])
@@ -160,13 +191,12 @@ class TestPosixADTrust(ADTrustBase):
         # Check that user has AD-defined UID
 
         # Using domain name since it is lowercased realm name for AD domains
-        testuser = 'testuser@%s' % self.ad.domain.name
+        testuser = 'testuser@%s' % self.ad_domain
         result = self.master.run_command(['getent', 'passwd', testuser])
 
         testuser_stdout = "testuser@%s:*:10042:10047:"\
                           "Test User:/home/%s/testuser:/bin/sh"\
-                          % (self.ad.domain.name,
-                             self.ad.domain.name)
+                          % (self.ad_domain, self.ad_domain)
 
         assert testuser_stdout in result.stdout_text
 
@@ -174,7 +204,7 @@ class TestPosixADTrust(ADTrustBase):
         # Check that user has AD-defined UID
 
         # Using domain name since it is lowercased realm name for AD domains
-        nonposixuser = 'nonposixuser@%s' % self.ad.domain.name
+        nonposixuser = 'nonposixuser@%s' % self.ad_domain
         result = self.master.run_command(['getent', 'passwd', nonposixuser],
                                          raiseonerr=False)
 
@@ -182,7 +212,7 @@ class TestPosixADTrust(ADTrustBase):
         assert result.returncode == 2
 
     def test_remove_trust_with_posix_attributes(self):
-        tasks.remove_trust_with_ad(self.master, self.ad)
+        tasks.remove_trust_with_ad(self.master, self.ad_domain)
         tasks.clear_sssd_cache(self.master)
 
 
@@ -193,7 +223,7 @@ class TestEnforcedPosixADTrust(TestPosixADTrust):
     """
 
     def test_establish_trust_with_posix_attributes(self):
-        tasks.establish_trust_with_ad(self.master, self.ad,
+        tasks.establish_trust_with_ad(self.master, self.ad_domain,
             extra_args=['--range-type', 'ipa-ad-trust-posix'])
 
 
@@ -214,13 +244,104 @@ class TestInvalidRangeTypes(ADTrustBase):
             tasks.kinit_admin(self.master)
 
             result = self.master.run_command(
-                               ['ipa', 'trust-add',
-                               '--type', 'ad', self.ad.domain.name,
-                               '--admin', 'Administrator',
-                               '--range-type', range_type,
-                               '--password'],
-                               raiseonerr=False,
-                               stdin_text=self.master.config.ad_admin_password)
+                ['ipa', 'trust-add', '--type', 'ad', self.ad_domain, '--admin',
+                 'Administrator', '--range-type', range_type, '--password'],
+                raiseonerr=False,
+                stdin_text=self.master.config.ad_admin_password)
 
             # The trust-add command is supposed to fail
             assert result.returncode == 1
+
+
+class TestExternalTrustWithSubdomain(ADTrustSubdomainBase):
+    """
+    Test establishing external trust with subdomain
+    """
+
+    def test_establish_trust(self):
+        """ Tests establishing external trust with Active Directory """
+        tasks.establish_trust_with_ad(
+            self.master, self.ad_subdomain,
+            extra_args=['--range-type', 'ipa-ad-trust', '--external=True'])
+
+    def test_all_trustdomains_found(self):
+        """ Test that only one trustdomain is found """
+        result = self.master.run_command(['ipa', 'trustdomain-find',
+                                          self.ad_subdomain])
+
+        assert self.ad_subdomain in result.stdout_text
+        assert "Number of entries returned 1" in result.stdout_text
+
+    def test_user_gid_uid_resolution_in_nonposix_trust(self):
+        """ Check that user has SID-generated UID """
+        testuser = 'subdomaintestuser@{0}'.format(self.ad_subdomain)
+        result = self.master.run_command(['getent', 'passwd', testuser])
+
+        testuser_regex = ("^subdomaintestuser@{0}:\*:(?!10042)(\d+):"
+                          "(?!)10047(\d+):Subdomain TestUser:"
+                          "/home/{1}/subdomaintestuser:/bin/sh$".format(
+                              re.escape(self.ad_subdomain),
+                              re.escape(self.ad_subdomain)))
+
+        assert re.search(testuser_regex, result.stdout_text)
+
+    def test_remove_nonposix_trust(self):
+        tasks.remove_trust_with_ad(self.master, self.ad_subdomain)
+        tasks.clear_sssd_cache(self.master)
+
+
+class TestNonexternalTrustWithSubdomain(ADTrustSubdomainBase):
+    """
+    Tests that a non-external trust to a subdomain cannot be established
+    """
+    def test_establish_trust(self):
+        """ Tests establishing non-external trust with Active Directory """
+        self.master.run_command(['kinit', '-kt', paths.IPA_KEYTAB,
+                                 'HTTP/%s' % self.master.hostname])
+        self.master.run_command(['systemctl', 'restart', 'krb5kdc.service'])
+        self.master.run_command(['kdestroy', '-A'])
+
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['klist'])
+        self.master.run_command(['smbcontrol', 'all', 'debug', '100'])
+
+        result = self.master.run_command([
+            'ipa', 'trust-add', '--type', 'ad', self.ad_subdomain, '--admin',
+            'Administrator', '--password', '--range-type', 'ipa-ad-trust'
+            ], stdin_text=self.master.config.ad_admin_password,
+            raiseonerr=False)
+
+        assert result != 0
+        assert ("Domain '{0}' is not a root domain".format(
+            self.ad_subdomain) in result.stderr_text)
+
+    def test_all_trustdomains_found(self):
+        raise nose.SkipTest(
+            'Test case unapplicable, present for inheritance reason only')
+
+
+class TestExternalTrustWithRootDomain(ADTrustSubdomainBase):
+    """
+    Test establishing external trust with root domain
+    Main purpose of this test is to verify that subdomains are not
+    associated with the external trust, hence all tests are skipped
+    if no subdomain is specified.
+    """
+
+    def test_establish_trust(self):
+        """ Tests establishing external trust with Active Directory """
+        tasks.establish_trust_with_ad(
+            self.master, self.ad_domain,
+            extra_args=['--range-type', 'ipa-ad-trust', '--external=True'])
+
+    def test_all_trustdomains_found(self):
+        """ Test that only one trustdomain is found """
+        result = self.master.run_command(['ipa', 'trustdomain-find',
+                                          self.ad_domain])
+
+        assert self.ad_domain in result.stdout_text
+        assert "Number of entries returned 1" in result.stdout_text
+
+    def test_remove_nonposix_trust(self):
+        tasks.remove_trust_with_ad(self.master, self.ad_domain)
+        tasks.clear_sssd_cache(self.master)

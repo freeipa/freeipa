@@ -443,7 +443,7 @@ def configure_dns_for_trust(master, ad):
     pass
 
 
-def establish_trust_with_ad(master, ad, extra_args=()):
+def establish_trust_with_ad(master, ad_domain, extra_args=()):
     """
     Establishes trust with Active Directory. Trust type is detected depending
     on the presence of SfU (Services for Unix) support on the AD.
@@ -461,9 +461,10 @@ def establish_trust_with_ad(master, ad, extra_args=()):
     kinit_admin(master)
     master.run_command(['klist'])
     master.run_command(['smbcontrol', 'all', 'debug', '100'])
+
     util.run_repeatedly(master,
                         ['ipa', 'trust-add',
-                         '--type', 'ad', ad.domain.name,
+                         '--type', 'ad', ad_domain,
                          '--admin', 'Administrator',
                          '--password'] + list(extra_args),
                         stdin_text=master.config.ad_admin_password)
@@ -471,7 +472,7 @@ def establish_trust_with_ad(master, ad, extra_args=()):
     clear_sssd_cache(master)
 
 
-def remove_trust_with_ad(master, ad):
+def remove_trust_with_ad(master, ad_domain):
     """
     Removes trust with Active Directory. Also removes the associated ID range.
     """
@@ -479,10 +480,10 @@ def remove_trust_with_ad(master, ad):
     kinit_admin(master)
 
     # Remove the trust
-    master.run_command(['ipa', 'trust-del', ad.domain.name])
+    master.run_command(['ipa', 'trust-del', ad_domain])
 
     # Remove the range
-    range_name = ad.domain.name.upper() + '_id_range'
+    range_name = ad_domain.upper() + '_id_range'
     master.run_command(['ipa', 'idrange-del', range_name])
 
 
