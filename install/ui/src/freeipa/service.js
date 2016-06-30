@@ -58,7 +58,7 @@ return {
     facets: [
         {
             $type: 'search',
-            columns: [ 'krbprincipalname' ]
+            columns: [ 'krbcanonicalname' ]
         },
         {
             $type: 'details',
@@ -67,7 +67,14 @@ return {
                 {
                     name: 'details',
                     fields: [
-                        'krbprincipalname',
+                        {
+                            $type: 'krb_principal_multivalued',
+                            name: 'krbprincipalname',
+                            item_name: 'principal',
+                            child_spec: {
+                                $type: 'krb_principal'
+                            }
+                        },
                         {
                             name: 'service',
                             label: '@i18n:objects.service.service',
@@ -435,14 +442,14 @@ IPA.service_adder_dialog = function(spec) {
 
     var init = function() {
 
-        //small hack - krbprincipalname should not be displayed. This way
+        //small hack - krbcanonicalname should not be displayed. This way
         //creation of associated widget is skipped.
         //In future it would be better split section definion into widget and
         //fields definition and create custom field with two associated
         //widgets - 'service' and 'host' with this dialog's save logic.
         that.builder.build_field({
             $type: 'field',
-            name: 'krbprincipalname',
+            name: 'krbcanonicalname',
             required: false
         });
     };
@@ -455,7 +462,7 @@ IPA.service_adder_dialog = function(spec) {
         field = that.fields.get_field('host');
         var host = field.save()[0];
 
-        record['krbprincipalname'] = [ service+'/'+host ];
+        record['krbcanonicalname'] = [ service+'/'+host ];
 
         field = that.fields.get_field('force');
         record['force'] = field.save();
