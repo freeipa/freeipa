@@ -259,7 +259,11 @@ var IPA = function () {
             },
             on_success: function(data, text_status, xhr) {
                 that.whoami = batch ? data.result[0] : data.result.result[0];
-                that.principal = that.whoami.krbprincipalname[0];
+                var cn = that.whoami.krbcanonicalname;
+                if (cn) that.principal = cn[0];
+                if (!that.principal) {
+                    that.principal = that.whoami.krbprincipalname[0];
+                }
             }
         });
     };
