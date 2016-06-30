@@ -309,7 +309,7 @@ class CAInstance(DogtagInstance):
     server_cert_name = 'Server-Cert cert-pki-ca'
 
     def __init__(self, realm=None, ra_db=None, host_name=None,
-                 dm_password=None, ldapi=True):
+                 dm_password=None, ldapi=True, api=api):
         super(CAInstance, self).__init__(
             realm=realm,
             subsystem="CA",
@@ -325,6 +325,7 @@ class CAInstance(DogtagInstance):
         self.cert_file = None
         self.cert_chain_file = None
         self.create_ra_agent_db = True
+        self.api = api
 
         if realm is not None:
             self.canickname = get_ca_nickname(realm)
@@ -1294,7 +1295,7 @@ class CAInstance(DogtagInstance):
         if bindinstance.dns_container_exists(
             api.env.host, api.env.basedn, ldapi=True, realm=api.env.realm
         ):
-            bind = bindinstance.BindInstance(ldapi=True)
+            bind = bindinstance.BindInstance(ldapi=True, api=self.api)
             bind.add_ipa_ca_dns_records(api.env.host, api.env.domain)
 
     def configure_replica(self, master_host, subject_base=None,

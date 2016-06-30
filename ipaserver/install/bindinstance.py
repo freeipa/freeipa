@@ -1082,6 +1082,9 @@ class BindInstance(service.Service):
         self.__add_ipa_ca_record()
 
     def add_ipa_ca_dns_records(self, fqdn, domain_name, ca_configured=True):
+        if not self.api.Backend.ldap2.isconnected():
+            self.api.Backend.ldap2.connect(autobind=True)
+
         host, zone = fqdn.split(".", 1)
         if dns_zone_exists(zone, self.api):
             addrs = get_fwd_rr(zone, host, api=self.api)
