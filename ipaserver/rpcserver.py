@@ -40,6 +40,7 @@ from six.moves.urllib.parse import parse_qs
 
 from ipalib import plugable, errors
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
+from ipalib.frontend import Local
 from ipalib.backend import Executioner
 from ipalib.errors import (PublicError, InternalError, CommandError, JSONError,
     CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError,
@@ -344,7 +345,8 @@ class WSGIExecutioner(Executioner):
                 (name, args, options, _id) = self.simple_unmarshal(environ)
             if name in self._system_commands:
                 result = self._system_commands[name](self, *args, **options)
-            elif name not in self.Command:
+            elif (name not in self.api.Command or
+                    isinstance(self.api.Command[name], Local)):
                 raise CommandError(name=name)
             else:
                 result = self.Command[name](*args, **options)
@@ -696,7 +698,8 @@ class xmlserver(KerberosWSGIExecutioner):
             # TODO
             # for now let's not go out of our way to document standard XML-RPC
             return u'undef'
-        elif method_name in self.Command:
+        elif (method_name in self.api.Command and
+                not isinstance(self.api.Command[method_name], Local)):
             # All IPA commands return a dict (struct),
             # and take a params, options - list and dict (array, struct)
             return [[u'struct', u'array', u'struct']]
@@ -708,7 +711,8 @@ class xmlserver(KerberosWSGIExecutioner):
         method_name = self._get_method_name('system.methodHelp', *params)
         if method_name in self._system_commands:
             return u''
-        elif method_name in self.Command:
+        elif (method_name in self.api.Command and
+                not isinstance(self.api.Command[method_name], Local)):
             return unicode(self.Command[method_name].doc or '')
         else:
             raise errors.CommandError(name=method_name)

@@ -24,6 +24,7 @@ Plugins not accessible directly through the CLI, commands used internally
 """
 from ipalib import Command
 from ipalib import Str
+from ipalib.frontend import Local
 from ipalib.output import Output
 from ipalib.text import _
 from ipalib.util import json_serialize
@@ -91,13 +92,15 @@ class json_metadata(Command):
         try:
             if not methodname:
                 methodname = options['method']
-            if methodname in self.api.Method:
+            if (methodname in self.api.Method and
+                    not isinstance(self.api.Method[methodname], Local)):
                 m = self.api.Method[methodname]
                 methods = dict([(m.name, json_serialize(m))])
             elif methodname == "all":
                 methods = dict(
                     (m.name, json_serialize(m)) for m in self.api.Method()
-                    if m is self.api.Method[m.name]
+                    if (m is self.api.Method[m.name] and
+                        not isinstance(m, Local))
                 )
             empty = False
         except KeyError:
@@ -105,13 +108,15 @@ class json_metadata(Command):
 
         try:
             cmdname = options['command']
-            if cmdname in self.api.Command:
+            if (cmdname in self.api.Command and
+                    not isinstance(self.api.Command[cmdname], Local)):
                 c = self.api.Command[cmdname]
                 commands = dict([(c.name, json_serialize(c))])
             elif cmdname == "all":
                 commands = dict(
                     (c.name, json_serialize(c)) for c in self.api.Command()
-                    if c is self.api.Command[c.name]
+                    if (c is self.api.Command[c.name] and
+                        not isinstance(c, Local))
                 )
             empty = False
         except KeyError:
@@ -124,11 +129,13 @@ class json_metadata(Command):
             )
             methods = dict(
                 (m.name, json_serialize(m)) for m in self.api.Method()
-                if m is self.api.Method[m.name]
+                if (m is self.api.Method[m.name] and
+                    not isinstance(m, Local))
             )
             commands = dict(
                 (c.name, json_serialize(c)) for c in self.api.Command()
-                if c is self.api.Command[c.name]
+                if (c is self.api.Command[c.name] and
+                    not isinstance(c, Local))
             )
 
         retval = dict([

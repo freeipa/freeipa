@@ -49,6 +49,7 @@ import six
 
 from ipalib import api, errors
 from ipalib import Command
+from ipalib.frontend import Local
 from ipalib.parameters import Str, Dict
 from ipalib.output import Output
 from ipalib.text import _
@@ -98,7 +99,8 @@ class batch(Command):
                 if 'params' not in arg:
                     raise errors.RequirementError(name='params')
                 name = arg['method']
-                if name not in self.Command:
+                if (name not in self.api.Command or
+                        isinstance(self.api.Command[name], Local)):
                     raise errors.CommandError(name=name)
 
                 # If params are not formated as a tuple(list, dict)
