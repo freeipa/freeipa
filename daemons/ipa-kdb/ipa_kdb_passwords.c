@@ -253,7 +253,11 @@ krb5_error_code ipadb_get_pwd_expiration(krb5_context context,
 
     if (truexp) {
         if (ied->pol) {
-            *expire_time = mod_time + ied->pol->max_pwd_life;
+            if (ied->pol->max_pwd_life) {
+                *expire_time = mod_time + ied->pol->max_pwd_life;
+            } else {
+                *expire_time = 0;
+            }
         } else {
             *expire_time = mod_time + IPAPWD_DEFAULT_PWDLIFE;
         }

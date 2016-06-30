@@ -317,7 +317,6 @@ int ipapwd_getPolicy(const char *dn,
     int buffer_flags=0;
     Slapi_ValueSet* results = NULL;
     char *actual_type_name = NULL;
-    int tmpint;
 
     LOG_TRACE("Searching policy for [%s]\n", dn);
 
@@ -382,15 +381,9 @@ int ipapwd_getPolicy(const char *dn,
     /* read data out of policy object */
     policy->min_pwd_life = slapi_entry_attr_get_int(pe, "krbMinPwdLife");
 
-    tmpint = slapi_entry_attr_get_int(pe, "krbMaxPwdLife");
-    if (tmpint != 0) {
-        policy->max_pwd_life = tmpint;
-    }
+    policy->max_pwd_life = slapi_entry_attr_get_int(pe, "krbMaxPwdLife");
 
-    tmpint = slapi_entry_attr_get_int(pe, "krbPwdMinLength");
-    if (tmpint != 0) {
-        policy->min_pwd_length = tmpint;
-    }
+    policy->min_pwd_length = slapi_entry_attr_get_int(pe, "krbPwdMinLength");
 
     policy->history_length = slapi_entry_attr_get_int(pe,
                                                       "krbPwdHistoryLength");
@@ -620,7 +613,11 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
     slapi_ch_array_free(pwd_history);
 
     if (data->expireTime == 0) {
-        data->expireTime = data->timeNow + pol.max_pwd_life;
+        if (pol.max_pwd_life > 0) {
+            /* max_pwd_life = 0 => never expire
+             * set expire time only when max_pwd_life > 0 */
+            data->expireTime = data->timeNow + pol.max_pwd_life;
+        }
     }
 
     data->policy = pol;
@@ -788,6 +785,11 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
                  "%Y%m%d%H%M%SZ", &utctime);
 			slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
                               "krbPasswordExpiration", timestr);
+			if (data->expireTime == 0) {
+			    slapi_mods_add_string(smods, LDAP_MOD_DELETE,
+			                          "krbPasswordExpiration", timestr);
+			}
+
 		}
 	}
 

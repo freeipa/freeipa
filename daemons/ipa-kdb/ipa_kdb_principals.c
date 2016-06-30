@@ -1850,6 +1850,11 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
                                        "krbPasswordExpiration",
                                        entry->pw_expiration,
                                        mod_op);
+        if (entry->pw_expiration == 0) {
+            kerr = ipadb_get_ldap_mod_time(imods,
+                                           "krbPasswordExpiration",
+                                           entry->pw_expiration, LDAP_MOD_DELETE);
+        }
         if (kerr) {
             goto done;
         }
@@ -2105,6 +2110,12 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
             kerr = ipadb_get_ldap_mod_time(imods,
                                            "krbPasswordExpiration",
                                            expire_time, mod_op);
+            if (expire_time == 0) {
+                kerr = ipadb_get_ldap_mod_time(imods,
+                                               "krbPasswordExpiration",
+                                               expire_time, LDAP_MOD_DELETE);
+            }
+
             if (kerr) {
                 goto done;
             }

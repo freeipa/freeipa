@@ -411,7 +411,7 @@ class pwpolicy(LDAPObject):
             if maxlife is None and 'krbmaxpwdlife' in existing_entry:
                 maxlife = int(existing_entry['krbmaxpwdlife'][0]) * 86400
 
-        if maxlife is not None and minlife is not None:
+        if maxlife not in (None, 0) and minlife is not None:
             if minlife > maxlife:
                 raise errors.ValidationError(
                     name='maxlife',

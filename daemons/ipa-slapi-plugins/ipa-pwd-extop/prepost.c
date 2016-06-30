@@ -1123,6 +1123,10 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
                      "%Y%m%d%H%M%SZ", &utctime);
             slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
                                   "krbPasswordExpiration", timestr);
+			if (pwdop->pwdata.expireTime == 0) {
+			    slapi_mods_add_string(smods, LDAP_MOD_DELETE,
+			                          "krbPasswordExpiration", timestr);
+			}
 
             /* change Last Password Change field with the current date */
             if (!gmtime_r(&(pwdop->pwdata.timeNow), &utctime)) {
