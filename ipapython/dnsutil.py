@@ -24,7 +24,7 @@ import copy
 
 import six
 
-from ipapython.ipautil import CheckedIPAddress
+from ipapython.ipautil import UnsafeIPAddress
 from ipapython.ipa_log_manager import root_logger
 
 if six.PY3:
@@ -323,18 +323,12 @@ def resolve_rrsets(fqdn, rdtypes):
 def resolve_ip_addresses(fqdn):
     """Get IP addresses from DNS A/AAAA records for given host (using DNS).
     :returns:
-        list of IP addresses as CheckedIPAddress objects
+        list of IP addresses as UnsafeIPAddress objects
     """
     rrsets = resolve_rrsets(fqdn, ['A', 'AAAA'])
     ip_addresses = set()
     for rrset in rrsets:
-        ip_addresses.update({CheckedIPAddress(ip,  # accept whatever is in DNS
-                                              parse_netmask=False,
-                                              allow_network=True,
-                                              allow_loopback=True,
-                                              allow_broadcast=True,
-                                              allow_multicast=True)
-                             for ip in rrset})
+        ip_addresses.update({UnsafeIPAddress(ip) for ip in rrset})
     return ip_addresses
 
 
