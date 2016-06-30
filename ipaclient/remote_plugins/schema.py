@@ -219,8 +219,8 @@ class _SchemaPlugin(object):
             cls = Password
             sensitive = False
         elif (type_name == 'bool' and
-                'default' in schema and
-                schema['default'][0] == u'False'):
+                'default' in schema and schema['default'][0] == u'False' and
+                not schema.get('alwaysask', False)):
             cls = Flag
             del schema['default']
         else:
