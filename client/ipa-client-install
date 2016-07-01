@@ -1173,9 +1173,9 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options,
                                 subject=subject,
                                 principal=principal,
                                 passwd_fname=passwd_fname)
-    except Exception:
-        root_logger.error("%s request for host certificate failed",
-                          cmonger.service_name)
+    except Exception as ex:
+        root_logger.error("%s request for host certificate failed: %s",
+                          cmonger.service_name, ex)
 
 def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, client_domain, client_hostname):
     try:
