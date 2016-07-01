@@ -414,8 +414,13 @@ class Schema(object):
                     logger.warning('Failed to load server properties: {}'
                                    ''.format(e))
 
-        if no_info or exp < time.time() or not Schema._in_cache(fp):
+        force_check = ((not getattr(self, '_schema_checked', False)) and
+                       self._api.env.force_schema_check)
+
+        if (force_check or
+                no_info or exp < time.time() or not Schema._in_cache(fp)):
             (fp, exp) = self._get_schema()
+            self._schema_checked = True
             _ensure_dir_created(SERVERS_DIR)
             try:
                 with self._open_server_info(self._api.env.server, 'w') as sc:
