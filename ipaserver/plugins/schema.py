@@ -21,7 +21,10 @@ from ipapython.version import API_VERSION
 
 # Schema TTL sent to clients in response to schema call.
 # Number of seconds before client should check for schema update.
-SCHEMA_TTL = 7*24*3600  # default: 7 days
+# This should be long enough to not slow down regular work or skripts
+# but also short enough to ensure schema will be retvieved soon after
+# it was updated
+SCHEMA_TTL = 3600  # default: 1 hour
 
 __doc__ = _("""
 API Schema
