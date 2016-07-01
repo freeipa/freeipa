@@ -199,7 +199,8 @@ class RedHatCAService(RedHatService):
         op_timeout = time.time() + timeout
         while time.time() < op_timeout:
             try:
-                status = dogtag.ca_status()
+                # check status of CA instance on this host, not remote ca_host
+                status = dogtag.ca_status(api.env.host)
             except Exception as e:
                 status = 'check interrupted due to error: %s' % e
             root_logger.debug('The CA status is: %s' % status)
