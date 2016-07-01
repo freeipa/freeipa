@@ -377,3 +377,55 @@ class TestOldReplicaWorksAfterDomainUpgrade(IntegrationTest):
         result1 = self.master.run_command(['ipa', 'user-show', self.username],
                                           raiseonerr=False)
         assert_error(result1, "%s: user not found" % self.username, 2)
+
+
+class TestWrongClientDomain(IntegrationTest):
+    topology = "star"
+    num_clients = 1
+    domain_name = 'exxample.test'
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, domain_level=cls.domain_level)
+
+    def teardown_method(self, method):
+        self.clients[0].run_command(['ipa-client-install',
+                                     '--uninstall', '-U'],
+                                    raiseonerr=False)
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'host-del',
+                                 self.clients[0].hostname],
+                                raiseonerr=False)
+
+    def test_wrong_client_domain(self):
+        client = self.clients[0]
+        client.run_command(['ipa-client-install', '-U',
+                            '--domain', self.domain_name,
+                            '--realm', self.master.domain.realm,
+                            '-p', 'admin',
+                            '-w', self.master.config.admin_password,
+                            '--server', self.master.hostname,
+                            '--force-join'])
+        result = client.run_command(['ipa-replica-install', '-U', '-w',
+                                     self.master.config.dirman_password],
+                                    raiseonerr=False)
+        assert_error(result,
+                     "Cannot promote this client to a replica. Local domain "
+                     "'%s' does not match IPA domain "
+                     "'%s'" % (self.domain_name, self.master.domain.name))
+
+    def test_upcase_client_domain(self):
+        client = self.clients[0]
+        result = client.run_command(['ipa-client-install', '-U', '--domain',
+                                     self.master.domain.name.upper(), '-w',
+                                     self.master.config.admin_password,
+                                     '-p', 'admin',
+                                     '--server', self.master.hostname,
+                                     '--force-join'], raiseonerr=False)
+        assert(result.returncode == 0), (
+            'Failed to setup client with the upcase domain name')
+        result1 = client.run_command(['ipa-replica-install', '-U', '-w',
+                                      self.master.config.dirman_password],
+                                     raiseonerr=False)
+        assert(result1.returncode == 0), (
+            'Failed to promote the client installed with the upcase domain name')
