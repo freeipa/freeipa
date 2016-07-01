@@ -205,10 +205,10 @@ class RedHatCAService(RedHatService):
                 #
                 # status = dogtag.ca_status(use_proxy=use_proxy)
                 #
+                # check status of CA instance on this host, not remote ca_host
                 port = 8443
-
                 url = "https://%(host_port)s%(path)s" % {
-                    "host_port": ipautil.format_netloc(api.env.ca_host, port),
+                    "host_port": ipautil.format_netloc(api.env.host, port),
                     "path": "/ca/admin/ca/getStatus"
                 }
 
