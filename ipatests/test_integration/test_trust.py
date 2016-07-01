@@ -24,6 +24,7 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 from ipatests.test_integration import util
 from ipaplatform.paths import paths
+import time
 
 
 class ADTrustBase(IntegrationTest):
@@ -341,6 +342,47 @@ class TestExternalTrustWithRootDomain(ADTrustSubdomainBase):
 
         assert self.ad_domain in result.stdout_text
         assert "Number of entries returned 1" in result.stdout_text
+
+    def test_remove_nonposix_trust(self):
+        tasks.remove_trust_with_ad(self.master, self.ad_domain)
+        tasks.clear_sssd_cache(self.master)
+
+
+class TestTrustWithUPN(ADTrustBase):
+    """
+    Test support of UPN for trusted domains
+    """
+
+    upn_suffix = 'UPNsuffix.com'
+    upn_username = 'upnuser'
+    upn_name = 'UPN User'
+    upn_principal = '{}@{}'.format(upn_username, upn_suffix)
+    upn_password = 'Secret123456'
+
+    def test_upn_in_nonposix_trust(self):
+        """ Check that UPN is listed as trust attribute """
+        result = self.master.run_command(['ipa', 'trust-show', self.ad_domain,
+                                          '--all', '--raw'])
+
+        assert ("ipantadditionalsuffixes: {}".format(self.upn_suffix) in
+                result.stdout_text)
+
+    def test_upn_user_resolution_in_nonposix_trust(self):
+        """ Check that user with UPN can be resolved """
+        result = self.master.run_command(['getent', 'passwd',
+                                          self.upn_principal])
+
+        # result will contain AD domain, not UPN
+        upnuser_regex = "^{}@{}:\*:(\d+):(\d+):{}:/:$".format(
+            self.upn_username, self.ad_domain, self.upn_name)
+        assert re.search(upnuser_regex, result.stdout_text)
+
+    def test_upn_user_authentication(self):
+        """ Check that AD user with UPN can authenticate in IPA """
+        self.master.run_command(['systemctl', 'restart', 'krb5kdc'])
+        time.sleep(60)
+        self.master.run_command(['kinit', '-C', '-E', self.upn_principal],
+                                stdin_text=self.upn_password)
 
     def test_remove_nonposix_trust(self):
         tasks.remove_trust_with_ad(self.master, self.ad_domain)
