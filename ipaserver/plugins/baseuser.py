@@ -498,6 +498,50 @@ class baseuser_mod(LDAPUpdate):
                             len = int(config.get('ipamaxusernamelength')[0])
                         )
                     )
+
+    def preserve_krbprincipalname_pre(self, ldap, entry_attrs, *keys, **options):
+        """
+        preserve user principal aliases during rename operation. This is the
+        pre-callback part of this. Another method called during post-callback
+        shall insert the principals back
+        """
+        if options.get('rename', None) is None:
+            return
+
+        try:
+            old_entry = ldap.get_entry(
+                entry_attrs.dn, attrs_list=(
+                    'krbprincipalname', 'krbcanonicalname'))
+
+            if 'krbcanonicalname' not in old_entry:
+                return
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        self.context.krbprincipalname = old_entry.get(
+            'krbprincipalname', [])
+
+    def preserve_krbprincipalname_post(self, ldap, entry_attrs, **options):
+        """
+        Insert the preserved aliases back to the user entry during rename
+        operation
+        """
+        if options.get('rename', None) is None or not hasattr(
+                self.context, 'krbprincipalname'):
+            return
+
+        obj_pkey = self.obj.get_primary_key_from_dn(entry_attrs.dn)
+        canonical_name = entry_attrs['krbcanonicalname'][0]
+
+        principals_to_add = tuple(p for p in self.context.krbprincipalname if
+                                  p != canonical_name)
+
+        if principals_to_add:
+            result = self.api.Command.user_add_principal(
+                obj_pkey, principals_to_add)['result']
+
+            entry_attrs['krbprincipalname'] = result.get('krbprincipalname', [])
+
     def check_mail(self, entry_attrs):
         if 'mail' in entry_attrs:
             entry_attrs['mail'] = self.obj.normalize_and_validate_email(entry_attrs['mail'])
@@ -557,9 +601,11 @@ class baseuser_mod(LDAPUpdate):
 
         self.check_objectclass(ldap, dn, entry_attrs)
         self.obj.convert_usercertificate_pre(entry_attrs)
+        self.preserve_krbprincipalname_pre(ldap, entry_attrs, *keys, **options)
 
     def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
+        self.preserve_krbprincipalname_post(ldap, entry_attrs, **options)
         if options.get('random', False):
             try:
                 entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
