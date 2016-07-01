@@ -628,17 +628,17 @@ class cert_status(Retrieve, BaseCertMethod, VirtualCommand):
 
     operation = "certificate status"
 
-    def get_options(self):
-        for option in super(cert_status, self).get_options():
-            if option.name == 'cacn':
-                # Dogtag requests are uniquely identified by their
-                # number; there is no need to distinguish by CA.
-                continue
-            yield option
-
     def execute(self, request_id, **kw):
         ca_enabled_check()
         self.check_access()
+
+        # Dogtag requests are uniquely identified by their number;
+        # furthermore, Dogtag (as at v10.3.4) does not report the
+        # target CA in request data, so we cannot check.  So for
+        # now, there is nothing we can do with the 'cacn' option
+        # but check if the specified CA exists.
+        self.api.Command.ca_show(kw['cacn'])
+
         return dict(
             result=self.Backend.ra.check_request_status(str(request_id)),
             value=pkey_to_value(request_id, kw),
