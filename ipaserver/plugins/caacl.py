@@ -64,8 +64,10 @@ def _acl_make_request(principal_type, principal, ca_id, profile_id):
     req = pyhbac.HbacRequest()
     req.targethost.name = ca_id
     req.service.name = profile_id
-    if principal_type == 'user' or principal_type == 'host':
+    if principal_type == 'user':
         req.user.name = principal.username
+    elif principal_type == 'host':
+        req.user.name = principal.hostname
     elif principal_type == 'service':
         req.user.name = unicode(principal)
     groups = []
