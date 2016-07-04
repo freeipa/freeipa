@@ -194,9 +194,16 @@ def validate_dns_label(dns_label, allow_underscore=False, allow_slash=False):
 
     middle_chars = middle_chars + '-' #has to be always the last in the regex [....-]
 
-    label_regex = r'^[%(base)s%(extra)s]([%(base)s%(extra)s%(middle)s]?[%(base)s%(extra)s])*$' \
-        % dict(base=base_chars, extra=extra_chars, middle=middle_chars)
-    regex = re.compile(label_regex, re.IGNORECASE)
+    label_regex = r'''^[%(base)s%(extra)s] # must begin with an alphanumeric
+                                           # character, or underscore if
+                                           # allow_underscore is True
+        ([%(base)s%(extra)s%(middle)s]*    # can contain all allowed character
+                                           # classes in the middle
+        [%(base)s%(extra)s])*$             # must end with alphanumeric
+                                           # character or underscore if
+                                           # allow_underscore is True
+        ''' % dict(base=base_chars, extra=extra_chars, middle=middle_chars)
+    regex = re.compile(label_regex, re.IGNORECASE | re.VERBOSE)
 
     if not dns_label:
         raise ValueError(_('empty DNS label'))
