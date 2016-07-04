@@ -1127,6 +1127,12 @@ class CAInstance(DogtagInstance):
         """
         super(CAInstance, self).stop_tracking_certificates(False)
 
+        # stop tracking lightweight CA signing certs
+        for request_id in certmonger.get_requests_for_dir(self.nss_db):
+            nickname = certmonger.get_request_value(request_id, 'key-nickname')
+            if nickname.startswith('caSigningCert cert-pki-ca '):
+                certmonger.stop_tracking(self.nss_db, nickname=nickname)
+
         try:
             certmonger.stop_tracking(paths.HTTPD_ALIAS_DIR, nickname='ipaCert')
         except RuntimeError as e:
