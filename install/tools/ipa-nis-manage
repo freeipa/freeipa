@@ -116,7 +116,7 @@ def main():
     if not dirman_password:
         sys.exit("No password supplied")
 
-    api.bootstrap(context='cli', debug=options.debug)
+    api.bootstrap(context='cli', debug=options.debug, in_server=True)
     api.finalize()
 
     conn = None
