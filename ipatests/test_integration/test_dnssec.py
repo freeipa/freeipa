@@ -72,14 +72,6 @@ def wait_until_record_is_signed(nameserver, record, log, rtype="SOA",
     return False
 
 
-def restart_named(*args):
-        # A workaround for ticket N 5348
-        time.sleep(20)  # wait till dnssec key is exported to named
-        for host in args:
-            host.run_command(["systemctl", "restart",
-                              "named-pkcs11.service"])
-
-
 class TestInstallDNSSECLast(IntegrationTest):
     """Simple DNSSEC test
 
@@ -114,7 +106,7 @@ class TestInstallDNSSECLast(IntegrationTest):
         ]
         self.master.run_command(args)
 
-        restart_named(self.master, self.replicas[0])
+        tasks.restart_named(self.master, self.replicas[0])
         # test master
         assert wait_until_record_is_signed(
             self.master.ip, test_zone, self.log, timeout=100
@@ -135,7 +127,7 @@ class TestInstallDNSSECLast(IntegrationTest):
         ]
         self.replicas[0].run_command(args)
 
-        restart_named(self.replicas[0])
+        tasks.restart_named(self.replicas[0])
         # test replica
         assert wait_until_record_is_signed(
             self.replicas[0].ip, test_zone_repl, self.log, timeout=300
@@ -181,7 +173,7 @@ class TestInstallDNSSECLast(IntegrationTest):
         ]
         self.master.run_command(args)
 
-        restart_named(self.master)
+        tasks.restart_named(self.master)
         # test master
         assert wait_until_record_is_signed(
             self.master.ip, test_zone, self.log, timeout=100
@@ -229,7 +221,7 @@ class TestInstallDNSSECLast(IntegrationTest):
         ]
         self.master.run_command(args)
 
-        restart_named(self.master, self.replicas[0])
+        tasks.restart_named(self.master, self.replicas[0])
 
         # test master
         assert wait_until_record_is_signed(
@@ -375,7 +367,7 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "--ns-rec=" + self.master.hostname
         ]
         self.master.run_command(args)
-        restart_named(self.master, self.replicas[0])
+        tasks.restart_named(self.master, self.replicas[0])
         # test master
         assert wait_until_record_is_signed(
             self.master.ip, root_zone, self.log, timeout=100
@@ -406,7 +398,7 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "--ns-rec=" + self.master.hostname
         ]
         self.master.run_command(args)
-        restart_named(self.master, self.replicas[0])
+        tasks.restart_named(self.master, self.replicas[0])
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.master.ip, example_test_zone, self.log, timeout=100
@@ -544,7 +536,7 @@ class TestMigrateDNSSECMaster(IntegrationTest):
 
         self.master.run_command(args)
 
-        restart_named(self.master, self.replicas[0])
+        tasks.restart_named(self.master, self.replicas[0])
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.master.ip, example_test_zone, self.log, timeout=100
@@ -601,7 +593,7 @@ class TestMigrateDNSSECMaster(IntegrationTest):
             "--skip-overlap-check",
         ]
         self.replicas[0].run_command(args)
-        restart_named(self.master, self.replicas[0])
+        tasks.restart_named(self.master, self.replicas[0])
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.replicas[0].ip, example2_test_zone, self.log, timeout=100
@@ -634,7 +626,7 @@ class TestMigrateDNSSECMaster(IntegrationTest):
             "--skip-overlap-check",
         ]
         self.replicas[1].run_command(args)
-        restart_named(self.replicas[0], self.replicas[1])
+        tasks.restart_named(self.replicas[0], self.replicas[1])
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.replicas[1].ip, example3_test_zone, self.log, timeout=200

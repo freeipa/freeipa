@@ -1173,3 +1173,10 @@ def assert_error(result, stderr_text, returncode=None):
         assert result.returncode == returncode
     else:
         assert result.returncode > 0
+
+
+def restart_named(*args):
+    time.sleep(20)  # give a time to DNSSEC daemons to provide keys for named
+    for host in args:
+        host.run_command(["systemctl", "restart", "named-pkcs11.service"])
+    time.sleep(20)  # give a time to named to be ready (zone loading)
