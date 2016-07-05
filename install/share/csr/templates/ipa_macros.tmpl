@@ -1,0 +1,42 @@
+{% set rendersyntax = {} %}
+
+{% set renderdata = {} %}
+
+{# Wrapper for syntax rules. We render the contents of the rule into a
+variable, so that if we find that none of the contained data rules rendered we
+can suppress the whole syntax rule. That is, a syntax rule is rendered either
+if no data rules are specified (unusual) or if at least one of the data rules
+rendered successfully. #}
+{% macro syntaxrule() -%}
+{% do rendersyntax.update(none=true, any=false) -%}
+{% set contents -%}
+{{ caller() -}}
+{% endset -%}
+{% if rendersyntax['none'] or rendersyntax['any'] -%}
+{{ contents -}}
+{% endif -%}
+{% endmacro %}
+
+{# Wrapper for data rules. A data rule is rendered only when all of the data
+fields it contains have data available. #}
+{% macro datarule() -%}
+{% do rendersyntax.update(none=false) -%}
+{% do renderdata.update(all=true) -%}
+{% set contents -%}
+{{ caller() -}}
+{% endset -%}
+{% if renderdata['all'] -%}
+{% do rendersyntax.update(any=true) -%}
+{{ contents -}}
+{% endif -%}
+{% endmacro %}
+
+{# Wrapper for fields in data rules. If any value wrapped by this macro
+produces an empty string, the entire data rule will be suppressed. #}
+{% macro datafield(value) -%}
+{% if value -%}
+{{ value -}}
+{% else -%}
+{% do renderdata.update(all=false) -%}
+{% endif -%}
+{% endmacro %}

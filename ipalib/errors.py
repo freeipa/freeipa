@@ -1713,6 +1713,15 @@ class CertificateFormatError(CertificateError):
     format = _('Certificate format error: %(error)s')
 
 
+class CertificateMappingError(CertificateError):
+    """
+    **4303** Raised when a valid cert request config can not be generated
+    """
+
+    errno = 4303
+    format = _('%(reason)s')
+
+
 class MutuallyExclusiveError(ExecutionError):
     """
     **4303** Raised when an operation would result in setting two attributes which are mutually exlusive.

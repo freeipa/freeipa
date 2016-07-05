@@ -2,6 +2,7 @@ NULL =
 
 SUBDIRS =  				\
 	advise				\
+	csr				\
 	profiles			\
 	schema.d			\
 	$(NULL)

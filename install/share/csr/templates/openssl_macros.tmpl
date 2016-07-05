@@ -1,0 +1,29 @@
+{# List containing rendered sections to be included at end #}
+{% set openssl_sections = [] %}
+
+{#
+List containing one entry for each section name allocated. Because of
+scoping rules, we need to use a list so that it can be a "per-render global"
+that gets updated in place. Real globals are shared by all templates with the
+same environment, and variables defined in the macro don't persist after the
+macro invocation ends.
+#}
+{% set openssl_section_num = [] %}
+
+{% macro section() -%}
+{% set name -%}
+sec{{ openssl_section_num|length -}}
+{% endset -%}
+{% do openssl_section_num.append('') -%}
+{% set contents %}{{ caller() }}{% endset -%}
+{% if contents -%}
+{% set sectiondata = formatsection(name, contents) -%}
+{% do openssl_sections.append(sectiondata) -%}
+{% endif -%}
+{{ name -}}
+{% endmacro %}
+
+{% macro formatsection(name, contents) -%}
+[ {{ name }} ]
+{{ contents -}}
+{% endmacro %}
