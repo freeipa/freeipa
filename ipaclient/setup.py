@@ -47,6 +47,7 @@ if __name__ == '__main__':
             "cryptography",
             "ipalib",
             "ipapython",
+            "jinja2",
             "python-nss",
             "python-yubico",
             "pyusb",

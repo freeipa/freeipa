@@ -1,0 +1,35 @@
+{% raw -%}
+{% import "openssl_macros.tmpl" as openssl -%}
+{% import "ipa_macros.tmpl" as ipa -%}
+{%- endraw %}
+#!/bin/bash -e
+
+if [[ $# -ne 2 ]]; then
+echo "Usage: $0 <outfile> <keyfile>"
+echo "Called as: $0 $@"
+exit 1
+fi
+
+CONFIG="$(mktemp)"
+CSR="$1"
+shift
+
+echo \
+{% raw %}{% filter quote %}{% endraw -%}
+[ req ]
+prompt = no
+encrypt_key = no
+
+{{ parameters|join('\n') }}
+{% raw %}{% set rendered_extensions -%}{% endraw %}
+{{ extensions|join('\n') }}
+{% raw -%}
+{%- endset -%}
+{% if rendered_extensions -%}
+req_extensions = {% call openssl.section() %}{{ rendered_extensions }}{% endcall %}
+{% endif %}
+{{ openssl.openssl_sections|join('\n\n') }}
+{% endfilter %}{%- endraw %} > "$CONFIG"
+
+openssl req -new -config "$CONFIG" -out "$CSR" -key $1
+rm "$CONFIG"
