@@ -153,6 +153,7 @@ BuildRequires:  python-sssdconfig
 BuildRequires:  python-nose
 BuildRequires:  python-paste
 BuildRequires:  systemd-python
+BuildRequires:  python2-jinja2
 
 %if 0%{?with_python3}
 # FIXME: this depedency is missing - server will not work
@@ -190,6 +191,7 @@ BuildRequires:  python3-libsss_nss_idmap
 BuildRequires:  python3-nose
 BuildRequires:  python3-paste
 BuildRequires:  python3-systemd
+BuildRequires:  python3-jinja2
 %endif # with_python3
 %endif # with_lint
 
@@ -489,6 +491,7 @@ Requires: %{name}-client-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipalib = %{version}-%{release}
 Requires: python-dns >= 1.15
+Requires: python2-jinja2
 
 %description -n python2-ipaclient
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -511,6 +514,7 @@ Requires: %{name}-client-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python3-ipalib = %{version}-%{release}
 Requires: python3-dns >= 1.15
+Requires: python3-jinja2
 
 %description -n python3-ipaclient
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -1217,6 +1221,13 @@ fi
 %{_usr}/share/ipa/advise/legacy/*.template
 %dir %{_usr}/share/ipa/profiles
 %{_usr}/share/ipa/profiles/*.cfg
+%dir %{_usr}/share/ipa/csrgen
+%dir %{_usr}/share/ipa/csrgen/templates
+%{_usr}/share/ipa/csrgen/templates/*.tmpl
+%dir %{_usr}/share/ipa/csrgen/profiles
+%{_usr}/share/ipa/csrgen/profiles/*.json
+%dir %{_usr}/share/ipa/csrgen/rules
+%{_usr}/share/ipa/csrgen/rules/*.json
 %dir %{_usr}/share/ipa/html
 %{_usr}/share/ipa/html/ffconfig.js
 %{_usr}/share/ipa/html/ffconfig_page.js

@@ -1422,6 +1422,34 @@ class HTTPRequestError(RemoteRetrieveError):
     format = _('Request failed with status %(status)s: %(reason)s')
 
 
+class RedundantMappingRule(SingleMatchExpected):
+    """
+    **4036** Raised when more than one rule in a CSR generation ruleset matches
+    a particular helper.
+
+    For example:
+
+    >>> raise RedundantMappingRule(ruleset='syntaxSubject', helper='certutil')
+    Traceback (most recent call last):
+      ...
+    RedundantMappingRule: Mapping ruleset "syntaxSubject" has more than one
+    rule for the certutil helper.
+    """
+
+    errno = 4036
+    format = _('Mapping ruleset "%(ruleset)s" has more than one rule for the'
+               ' %(helper)s helper')
+
+
+class CSRTemplateError(ExecutionError):
+    """
+    **4037** Raised when evaluation of a CSR generation template fails
+    """
+
+    errno = 4037
+    format = _('%(reason)s')
+
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).
