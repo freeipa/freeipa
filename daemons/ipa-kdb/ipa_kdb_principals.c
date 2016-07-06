@@ -1198,30 +1198,58 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
             /* skip '@' and use part after '@' as an enterprise realm for comparison */
             realm++;
 
-            kerr = ipadb_is_princ_from_trusted_realm(kcontext,
-                                                     realm,
-                                                     upn->length - (realm - upn->data),
-                                                     &trusted_realm);
-            if (kerr == 0) {
-                kentry = calloc(1, sizeof(krb5_db_entry));
-                if (!kentry) {
+            /* check for our realm */
+            if (strncasecmp(ipactx->realm, realm,
+                            upn->length - (realm - upn->data)) == 0) {
+                /* it looks like it is ok to use malloc'ed strings as principal */
+                krb5_free_unparsed_name(kcontext, principal);
+                principal = strndup((const char *) upn->data, upn->length);
+                if (principal == NULL) {
                     kerr = ENOMEM;
                     goto done;
                 }
-                kerr = krb5_parse_name(kcontext, principal,
-                                       &kentry->princ);
+
+                ldap_msgfree(res);
+                res = NULL;
+                kerr = ipadb_fetch_principals(ipactx, flags, principal, &res);
                 if (kerr != 0) {
                     goto done;
                 }
 
-                kerr = krb5_set_principal_realm(kcontext, kentry->princ, trusted_realm);
+                kerr = ipadb_find_principal(kcontext, flags, res, &principal,
+                                            &lentry);
                 if (kerr != 0) {
                     goto done;
                 }
-                *entry = kentry;
+            } else {
+
+                kerr = ipadb_is_princ_from_trusted_realm(kcontext,
+                                                         realm,
+                                                         upn->length - (realm - upn->data),
+                                                         &trusted_realm);
+                if (kerr == 0) {
+                    kentry = calloc(1, sizeof(krb5_db_entry));
+                    if (!kentry) {
+                        kerr = ENOMEM;
+                        goto done;
+                    }
+                    kerr = krb5_parse_name(kcontext, principal,
+                                           &kentry->princ);
+                    if (kerr != 0) {
+                        goto done;
+                    }
+
+                    kerr = krb5_set_principal_realm(kcontext, kentry->princ, trusted_realm);
+                    if (kerr != 0) {
+                        goto done;
+                    }
+                    *entry = kentry;
+                }
+                goto done;
             }
+        } else {
+            goto done;
         }
-        goto done;
     }
 
     kerr = ipadb_parse_ldap_entry(kcontext, principal, lentry, entry, &pol);
