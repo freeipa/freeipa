@@ -1007,17 +1007,21 @@ if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
             /^(AuthorizedKeysCommand(User|RunAs)|PubKeyAgentRunAs)[ \t]/ d
         ' /etc/ssh/sshd_config >/etc/ssh/sshd_config.ipanew
 
-        if /usr/sbin/sshd -t -f /dev/null -o 'AuthorizedKeysCommand=/usr/bin/sss_ssh_authorizedkeys' -o 'AuthorizedKeysCommandUser=nobody'; then
+        # Prevent complaints about missing host keys by using the configured ones
+        tmp_config=$(mktemp sshd_config.XXXXXX)
+        sed -n '/^HostKey[ \t]/ p' /etc/ssh/sshd_config > $tmp_config
+
+        if /usr/sbin/sshd -t -f $tmp_config -o 'AuthorizedKeysCommand=/usr/bin/sss_ssh_authorizedkeys' -o 'AuthorizedKeysCommandUser=nobody'; then
             sed -ri '
                 s/^PubKeyAgent (.+) %u$/AuthorizedKeysCommand \1/
                 s/^AuthorizedKeysCommand .*$/\0\nAuthorizedKeysCommandUser nobody/
             ' /etc/ssh/sshd_config.ipanew
-        elif /usr/sbin/sshd -t -f /dev/null -o 'AuthorizedKeysCommand=/usr/bin/sss_ssh_authorizedkeys' -o 'AuthorizedKeysCommandRunAs=nobody'; then
+        elif /usr/sbin/sshd -t -f $tmp_config -o 'AuthorizedKeysCommand=/usr/bin/sss_ssh_authorizedkeys' -o 'AuthorizedKeysCommandRunAs=nobody'; then
             sed -ri '
                 s/^PubKeyAgent (.+) %u$/AuthorizedKeysCommand \1/
                 s/^AuthorizedKeysCommand .*$/\0\nAuthorizedKeysCommandRunAs nobody/
             ' /etc/ssh/sshd_config.ipanew
-        elif /usr/sbin/sshd -t -f /dev/null -o 'PubKeyAgent=/usr/bin/sss_ssh_authorizedkeys %u' -o 'PubKeyAgentRunAs=nobody'; then
+        elif /usr/sbin/sshd -t -f $tmp_config -o 'PubKeyAgent=/usr/bin/sss_ssh_authorizedkeys %u' -o 'PubKeyAgentRunAs=nobody'; then
             sed -ri '
                 s/^AuthorizedKeysCommand (.+)$/PubKeyAgent \1 %u/
                 s/^PubKeyAgent .*$/\0\nPubKeyAgentRunAs nobody/
