@@ -30,18 +30,12 @@ CERT_OPENSSL_CONFIG_TEMPLATE = os.path.join(BASE_DIR, 'data/usercert.conf.tmpl')
 CERT_RSA_PRIVATE_KEY_PATH = os.path.join(BASE_DIR, 'data/usercert-priv-key.pem')
 
 
-CERT_SUBJECT_BASE = (
-    api.Command.config_show()
-    ['result']['ipacertificatesubjectbase'][0]
-)
-
 SMIME_USER_INIT_PW = u'Change123'
 SMIME_USER_PW = u'Secret123'
 
 
 def generate_user_csr(username, domain=None):
     csr_values = dict(
-        ipacertbase=CERT_SUBJECT_BASE,
         ipadomain=domain if domain else api.env.domain,
         username=username)
 
