@@ -1077,7 +1077,6 @@ class host_find(LDAPSearch):
                 entry_attrs['managing'] = self.obj.get_managed_hosts(entry_attrs.dn)
 
             convert_sshpubkey_post(entry_attrs)
-            remove_sshpubkey_from_output_post(self.context, entry_attrs)
             convert_ipaassignedidview_post(entry_attrs, options)
 
         remove_sshpubkey_from_output_list_post(self.context, entries)
