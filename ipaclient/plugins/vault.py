@@ -202,10 +202,6 @@ class vault_add(Local):
         ),
     )
 
-    @property
-    def NO_CLI(self):
-        return self.api.Command.vault_add_internal.NO_CLI
-
     def get_args(self):
         for arg in self.api.Command.vault_add_internal.args():
             yield arg
@@ -394,10 +390,6 @@ class vault_mod(Local):
         ),
     )
 
-    @property
-    def NO_CLI(self):
-        return self.api.Command.vault_mod_internal.NO_CLI
-
     def get_args(self):
         for arg in self.api.Command.vault_mod_internal.args():
             yield arg
@@ -571,10 +563,6 @@ class vault_archive(Local):
             doc=_('Override existing password'),
         ),
     )
-
-    @property
-    def NO_CLI(self):
-        return self.api.Command.vault_archive_internal.NO_CLI
 
     def get_args(self):
         for arg in self.api.Command.vault_archive_internal.args():
@@ -819,10 +807,6 @@ class vault_retrieve(Local):
             label=_('Data'),
         ),
     )
-
-    @property
-    def NO_CLI(self):
-        return self.api.Command.vault_retrieve_internal.NO_CLI
 
     def get_args(self):
         for arg in self.api.Command.vault_retrieve_internal.args():
