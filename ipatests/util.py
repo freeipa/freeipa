@@ -205,7 +205,7 @@ class Fuzzy(object):
     >>> fuzzy.test  # doctest:+ELLIPSIS
     <function <lambda> at 0x...>
 
-    To aid debugging, `Fuzzy.__repr__()` revealse these kwargs as well:
+    To aid debugging, `Fuzzy.__repr__()` reveals these kwargs as well:
 
     >>> fuzzy  # doctest:+ELLIPSIS
     Fuzzy('.+', <type 'str'>, <function <lambda> at 0x...>)

@@ -289,5 +289,5 @@ class Tracker(object):
                                              set(expected_updates.keys()))
 
     def check_update(self, result, extra_keys=()):
-        """Check the plugin's `find` command result"""
+        """Check the plugin's `mod` command result"""
         raise NotImplementedError(self._override_me_msg)

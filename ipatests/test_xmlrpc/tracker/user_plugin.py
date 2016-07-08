@@ -184,7 +184,7 @@ class UserTracker(Tracker):
         Overriding Tracker method for setting self.attrs correctly;
          * most attributes stores its value in list
          * the rest can be overridden by expected_updates
-         * allow deleting parametrs if update value is None
+         * allow deleting parameters if update value is None
         """
         if expected_updates is None:
             expected_updates = {}

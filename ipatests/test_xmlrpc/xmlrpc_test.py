@@ -97,8 +97,9 @@ fuzzy_issuer = Fuzzy(type=six.string_types)
 
 fuzzy_hex = Fuzzy('^0x[0-9a-fA-F]+$', type=six.string_types)
 
-# Matches password - password consists of all printable characters without whitespaces
-# The only exception is space, but space cannot be at the beggingin or end of the pwd
+# Matches password - password consists of all printable characters without
+# whitespaces. The only exception is space, but space cannot be at the
+# beginning or end of the pwd.
 fuzzy_password = Fuzzy('^\S([\S ]*\S)*$')
 
 # Matches generalized time value. Time format is: %Y%m%d%H%M%SZ
