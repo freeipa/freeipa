@@ -50,7 +50,7 @@ can use their Kerberos accounts.''')
                 option = option.clone_retype(option.name, File)
             yield option
 
-    def output_for_cli(self, textui, result, ldapuri, bindpw, **options):
+    def output_for_cli(self, textui, result, ldapuri, **options):
         textui.print_name(self.name)
         if not result['enabled']:
             textui.print_plain(self.migration_disabled_msg)
