@@ -614,6 +614,13 @@ def uninstall(options, env):
             fp.close()
             realm = parser.get('global', 'realm')
             run([paths.IPA_RMKEYTAB, "-k", paths.KRB5_KEYTAB, "-r", realm])
+        except CalledProcessError as err:
+            if err.returncode != 5:
+                # 5 means Principal name or realm not found in keytab
+                # and can be ignored
+                root_logger.error(
+                    "Failed to remove Kerberos service principals: %s",
+                    str(err))
         except Exception as e:
             root_logger.error(
                 "Failed to remove Kerberos service principals: %s", str(e))
