@@ -976,6 +976,7 @@ rpc.create_4304_error_handler = function(adder_dialog) {
         var dialog = null;
 
         if (data && data.error && data.error.code === 4304) {
+            adder_dialog.close();
             dialog = IPA.message_dialog({
                 name: 'error_4304_info',
                 message: data.error.message,
