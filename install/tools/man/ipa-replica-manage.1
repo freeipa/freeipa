@@ -16,7 +16,7 @@
 .\"
 .\" Author: Rob Crittenden <rcritten@redhat.com>
 .\"
-.TH "ipa-replica-manage" "1" "Mar 1 2013" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa-replica-manage" "1" "Jul 12 2016" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-replica\-manage \- Manage an IPA replica
 .SH "SYNOPSIS"
@@ -163,15 +163,15 @@ Performing range changes as a delegated administrator (e.g. not using the Direct
 .TP
 List all masters:
  # ipa\-replica\-manage list
- srv1.example.com
- srv2.example.com
- srv3.example.com
- srv4.example.com
+ srv1.example.com: master
+ srv2.example.com: master
+ srv3.example.com: master
+ srv4.example.com: master
 .TP
 List a server's replication agreements.
  # ipa\-replica\-manage list srv1.example.com
- srv2.example.com
- srv3.example.com
+ srv2.example.com: replica
+ srv3.example.com: replica
 .TP
 Re\-initialize a replica:
  # ipa\-replica\-manage re\-initialize \-\-from srv2.example.com
