@@ -23,14 +23,36 @@ if six.PY3:
 __doc__ = _("""
 Manage CA ACL rules.
 
-This plugin is used to define rules governing which principals are
-permitted to have certificates issued using a given certificate
-profile.
+This plugin is used to define rules governing which CAs and profiles
+may be used to issue certificates to particular principals or groups
+of principals.
 
-PROFILE ID SYNTAX:
+SUBJECT PRINCIPAL SCOPE:
 
-A Profile ID is a string without spaces or punctuation starting with a letter
-and followed by a sequence of letters, digits or underscore ("_").
+For a certificate request to be allowed, the principal(s) that are
+the subject of a certificate request (not necessarily the principal
+actually requesting the certificate) must be included in the scope
+of a CA ACL that also includes the target CA and profile.
+
+Users can be included by name, group or the "all users" category.
+Hosts can be included by name, hostgroup or the "all hosts"
+category.  Services can be included by service name or the "all
+services" category.  CA ACLs may be associated with a single type of
+principal, or multiple types.
+
+CERTIFICATE AUTHORITY SCOPE:
+
+A CA ACL can be associated with one or more CAs by name, or by the
+"all CAs" category.  For compatibility reasons, a CA ACL with no CA
+association implies an association with the 'ipa' CA (and only this
+CA).
+
+PROFILE SCOPE:
+
+A CA ACL can be associated with one or more profiles by Profile ID.
+The Profile ID is a string without spaces or punctuation starting
+with a letter and followed by a sequence of letters, digits or
+underscore ("_").
 
 EXAMPLES:
 
