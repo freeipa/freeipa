@@ -560,7 +560,12 @@ def install_check(installer):
     cfg = dict(
         context='installer',
         in_server=True,
+        # make sure host name specified by user is used instead of default
+        host=host_name,
     )
+    if setup_ca:
+        # we have an IPA-integrated CA
+        cfg['ca_host'] = host_name
 
     # Create the management framework config file and finalize api
     target_fname = paths.IPA_DEFAULT_CONF
@@ -585,14 +590,6 @@ def install_check(installer):
 
     # Must be readable for everyone
     os.chmod(target_fname, 0o644)
-
-    system_hostname = get_fqdn()
-    if host_name != system_hostname:
-        root_logger.debug("Chosen hostname (%s) differs from system hostname "
-                          "(%s) - change it" % (host_name, system_hostname))
-        # update `api.env.ca_host` to correct hostname
-        # https://fedorahosted.org/freeipa/ticket/4936
-        api.env.ca_host = host_name
 
     api.bootstrap(**cfg)
     api.finalize()
