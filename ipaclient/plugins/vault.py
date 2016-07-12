@@ -221,6 +221,11 @@ class vault_add(Local):
     def forward(self, *args, **options):
 
         vault_type = options.get('ipavaulttype')
+
+        if vault_type is None:
+            internal_cmd = self.api.Command.vault_add_internal
+            vault_type = internal_cmd.params.ipavaulttype.default
+
         password = options.get('password')
         password_file = options.get('password_file')
         public_key = options.get('ipavaultpublickey')
