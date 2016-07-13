@@ -363,6 +363,7 @@ class ResultFormattingError(PublicMessage):
     """
     **13019** Unable to correctly format some part of the result
     """
+    type = "warning"
     errno = 13019
 
 
