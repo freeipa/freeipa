@@ -472,8 +472,7 @@ class test_automember(Declarative):
                 summary=u'Added user "tuser1"',
                 result=get_user_result(
                     user1, u'Test', u'User1', 'add',
-                    manager=[DN(('uid', 'mscott'), ('cn', 'users'),
-                                ('cn', 'accounts'), api.env.basedn)]
+                    manager=[manager1]
                 )
             ),
         ),
@@ -1394,8 +1393,7 @@ class test_automember(Declarative):
                 result=get_user_result(
                     user1, u'Test', u'User1', 'add',
                     memberof_group=[group1, u'ipausers'],
-                    manager=[DN(('uid', 'mscott'), ('cn', 'users'),
-                                ('cn', 'accounts'), api.env.basedn)]
+                    manager=[manager1]
                 ),
             ),
         ),
