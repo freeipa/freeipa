@@ -399,7 +399,8 @@ class topic_(MetaObject):
                         continue
                     if topic_value is not None:
                         topic_name = unicode(topic_value)
-                        topic['topic_topic'] = topic_full_name
+                        topic['topic_topic'] = '{}/{}'.format(topic_name,
+                                                              topic_version)
                     else:
                         topic.pop('topic_topic', None)
 
