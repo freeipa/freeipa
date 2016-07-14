@@ -39,7 +39,7 @@ from ipalib import ngettext
 from ipalib.constants import IPA_CA_CN
 from ipalib.crud import Create, PKQuery, Retrieve, Search
 from ipalib.frontend import Method, Object
-from ipalib.parameters import Bytes, DateTime, DNParam, Principal
+from ipalib.parameters import Bytes, DateTime, DNParam, DNSNameParam, Principal
 from ipalib.plugable import Registry
 from .virtual import VirtualCommand
 from .baseldap import pkey_to_value
@@ -50,6 +50,7 @@ from ipalib.request import context
 from ipalib import output
 from ipapython import kerberos
 from ipapython.dn import DN
+from ipapython.ipa_log_manager import root_logger
 from ipaserver.plugins.service import normalize_principal, validate_realm
 
 if six.PY3:
@@ -274,6 +275,61 @@ class BaseCertObject(Object):
             label=_('Subject'),
             flags={'no_create', 'no_update', 'no_search'},
         ),
+        Str(
+            'san_rfc822name*',
+            label=_('Subject email address'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        DNSNameParam(
+            'san_dnsname*',
+            label=_('Subject DNS name'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Str(
+            'san_x400address*',
+            label=_('Subject X.400 address'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        DNParam(
+            'san_directoryname*',
+            label=_('Subject directory name'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Str(
+            'san_edipartyname*',
+            label=_('Subject EDI Party name'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Str(
+            'san_uri*',
+            label=_('Subject URI'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Str(
+            'san_ipaddress*',
+            label=_('Subject IP Address'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Str(
+            'san_oid*',
+            label=_('Subject OID'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Principal(
+            'san_other_upn*',
+            label=_('Subject UPN'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Principal(
+            'san_other_kpn*',
+            label=_('Subject Kerberos principal name'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Str(
+            'san_other*',
+            label=_('Subject Other Name'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
         DNParam(
             'issuer',
             label=_('Issuer'),
@@ -315,6 +371,19 @@ class BaseCertObject(Object):
     )
 
     def _parse(self, obj, full=True):
+        """Extract certificate-specific data into a result object.
+
+        ``obj``
+            Result object containing certificate, into which extracted
+            data will be inserted.
+        ``full``
+            Whether to include all fields, or only the ones we guess
+            people want to see most of the time.  Also add
+            recognised otherNames to the generic ``san_other``
+            attribute when ``True`` in addition to the specialised
+            attribute.
+
+        """
         cert = obj.get('certificate')
         if cert is not None:
             cert = x509.load_certificate(cert)
@@ -329,9 +398,63 @@ class BaseCertObject(Object):
                 obj['sha1_fingerprint'] = unicode(
                     nss.data_to_hex(nss.sha1_digest(cert.der_data), 64)[0])
 
+            try:
+                ext_san = cert.get_extension(nss.SEC_OID_X509_SUBJECT_ALT_NAME)
+                general_names = x509.decode_generalnames(ext_san.value)
+            except KeyError:
+                general_names = []
+
+            for name_type, desc, name, der_name in general_names:
+                try:
+                    self._add_san_attribute(
+                        obj, full, name_type, name, der_name)
+                except Exception as e:
+                    # Invalid GeneralName (i.e. not a valid X.509 cert);
+                    # don't fail but log something about it
+                    root_logger.warning(
+                        "Encountered bad GeneralName; skipping", exc_info=True)
+
         serial_number = obj.get('serial_number')
         if serial_number is not None:
             obj['serial_number_hex'] = u'0x%X' % serial_number
+
+
+    def _add_san_attribute(
+            self, obj, full, name_type, name, der_name):
+        name_type_map = {
+            nss.certRFC822Name: 'san_rfc822name',
+            nss.certDNSName: 'san_dnsname',
+            nss.certX400Address: 'san_x400address',
+            nss.certDirectoryName: 'san_directoryname',
+            nss.certEDIPartyName: 'san_edipartyname',
+            nss.certURI: 'san_uri',
+            nss.certIPAddress: 'san_ipaddress',
+            nss.certRegisterID: 'san_oid',
+            (nss.certOtherName, x509.SAN_UPN): 'san_other_upn',
+            (nss.certOtherName, x509.SAN_KRB5PRINCIPALNAME): 'san_other_kpn',
+        }
+        default_attrs = {
+            'san_rfc822name', 'san_dnsname', 'san_other_upn', 'san_other_kpn',
+        }
+
+        attr_name = name_type_map.get(name_type, 'san_other')
+
+        if full or attr_name in default_attrs:
+            if attr_name != 'san_other':
+                name_formatted = name
+            else:
+                # display as "OID : b64(DER)"
+                name_formatted = u'{}:{}'.format(
+                    name_type[1], base64.b64encode(der_name))
+            attr_value = self.params[attr_name].type(name_formatted)
+            obj.setdefault(attr_name, []).append(attr_value)
+
+        if full and attr_name.startswith('san_other_'):
+            # also include known otherName in generic otherName attribute
+            name_formatted = u'{}:{}'.format(
+                name_type[1], base64.b64encode(der_name))
+            attr_value = self.params['san_other'].type(name_formatted)
+            obj.setdefault('san_other', []).append(attr_value)
 
 
 class BaseCertMethod(Method):
@@ -622,7 +745,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         result = self.Backend.ra.request_certificate(
             csr, profile_id, ca_id, request_type=request_type)
         if not raw:
-            self.obj._parse(result)
+            self.obj._parse(result, all)
             result['request_id'] = int(result['request_id'])
 
         # Success? Then add it to the principal's entry
@@ -800,7 +923,7 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
 
         if not raw:
             result['certificate'] = result['certificate'].replace('\r\n', '')
-            self.obj._parse(result)
+            self.obj._parse(result, all)
             result['revoked'] = ('revocation_reason' in result)
             self.obj._fill_owners(result)
 
