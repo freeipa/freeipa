@@ -29,6 +29,7 @@ from ipapython.dn import DN
 from ipapython import dnsutil
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import sysupgrade
+from ipaserver.install.bindinstance import ensure_dnsserver_container_exists
 from ipaserver.plugins.dns import dns_container_exists
 
 register = Registry()
@@ -521,17 +522,7 @@ class update_dnsserver_configuration_into_ldap(DNSUpdater):
             return False, []
 
         # create container first, if doesn't exist
-        entry = ldap.make_entry(
-            DN(self.api.env.container_dnsservers, self.api.env.basedn),
-            {
-                u'objectclass': [u'top', u'nsContainer'],
-                u'cn': [u'servers']
-            }
-        )
-        try:
-            ldap.add_entry(entry)
-        except errors.DuplicateEntry:
-            self.log.debug('cn=dnsservers container already exists')
+        ensure_dnsserver_container_exists(ldap, self.api, logger=self.log)
 
         try:
             self.api.Command.dnsserver_add(self.api.env.host)

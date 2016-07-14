@@ -546,6 +546,26 @@ def remove_master_dns_records(hostname, realm):
     bind.remove_server_ns_records(hostname)
 
 
+def ensure_dnsserver_container_exists(ldap, api_instance, logger=None):
+    """
+    Create cn=servers,cn=dns,$SUFFIX container. If logger is not None, emit a
+    message that the container already exists when DuplicateEntry is raised
+    """
+
+    entry = ldap.make_entry(
+        DN(api_instance.env.container_dnsservers, api_instance.env.basedn),
+        {
+            u'objectclass': [u'top', u'nsContainer'],
+            u'cn': [u'servers']
+        }
+    )
+    try:
+        ldap.add_entry(entry)
+    except errors.DuplicateEntry:
+        if logger is not None:
+            logger.debug('cn=servers,cn=dns container already exists')
+
+
 class DnsBackup(object):
     def __init__(self, service):
         self.service = service
@@ -942,6 +962,7 @@ class BindInstance(service.Service):
         )
 
     def __setup_server_configuration(self):
+        ensure_dnsserver_container_exists(self.admin_conn, self.api)
         try:
             self.api.Command.dnsserver_add(
                 self.fqdn, idnssoamname=DNSName(self.fqdn).make_absolute(),
