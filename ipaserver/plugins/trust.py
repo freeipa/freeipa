@@ -710,6 +710,25 @@ sides.
     msg_summary = _('Added Active Directory trust for realm "%(value)s"')
     msg_summary_existing = _('Re-established trust to domain "%(value)s"')
 
+    def _format_trust_attrs(self, result, **options):
+
+        # Format the output into human-readable values
+        attributes = int(result['result'].get('ipanttrustattributes', [0])[0])
+
+        if not options.get('raw', False):
+            result['result']['trusttype'] = [trust_type_string(
+                result['result']['ipanttrusttype'][0], attributes)]
+            result['result']['trustdirection'] = [trust_direction_string(
+                result['result']['ipanttrustdirection'][0])]
+            result['result']['truststatus'] = [trust_status_string(
+                result['verified'])]
+
+        if attributes:
+            result['result'].pop('ipanttrustattributes', None)
+
+        result['result'].pop('ipanttrustauthoutgoing', None)
+        result['result'].pop('ipanttrustauthincoming', None)
+
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
@@ -729,10 +748,15 @@ sides.
         else:
             created_range_type = old_range['result']['iparangetype'][0]
 
+        attrs_list = self.obj.default_attributes
+        if options.get('all', False):
+            attrs_list.append('*')
+
         trust_filter = "cn=%s" % result['value']
         (trusts, truncated) = ldap.find_entries(
                          base_dn=DN(self.api.env.container_trusts, self.api.env.basedn),
-                         filter=trust_filter)
+                         filter=trust_filter,
+                         attrs_list=attrs_list)
 
         result['result'] = entry_to_dict(trusts[0], **options)
 
@@ -761,20 +785,9 @@ sides.
                 # add_new_domains_from_trust() on its own.
                 fetch_trusted_domains_over_dbus(self.api, self.log, result['value'])
 
-        # Format the output into human-readable values
-        attributes = int(result['result'].get('ipanttrustattributes', [0])[0])
-        result['result']['trusttype'] = [trust_type_string(
-            result['result']['ipanttrusttype'][0], attributes)]
-        result['result']['trustdirection'] = [trust_direction_string(
-            result['result']['ipanttrustdirection'][0])]
-        result['result']['truststatus'] = [trust_status_string(
-            result['verified'])]
-        if attributes:
-            result['result'].pop('ipanttrustattributes', None)
-
+        # Format the output into human-readable values unless `--raw` is given
+        self._format_trust_attrs(result, **options)
         del result['verified']
-        result['result'].pop('ipanttrustauthoutgoing', None)
-        result['result'].pop('ipanttrustauthincoming', None)
 
         return result
 
