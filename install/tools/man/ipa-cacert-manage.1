@@ -20,7 +20,9 @@
 .SH "NAME"
 ipa\-cacert\-manage \- Manage CA certificates in IPA
 .SH "SYNOPSIS"
-\fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] \fICOMMAND\fR
+\fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] renew
+.RE
+\fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] install \fICERTFILE\fR
 .SH "DESCRIPTION"
 \fBipa\-cacert\-manage\fR can be used to manage CA certificates in IPA.
 .SH "COMMANDS"
@@ -29,7 +31,7 @@ ipa\-cacert\-manage \- Manage CA certificates in IPA
 \- Renew the IPA CA certificate
 .sp
 .RS
-This command can be used to manually renew CA certificate of the IPA CA.
+This command can be used to manually renew the CA certificate of the IPA CA.
 .sp
 When the IPA CA is the root CA (the default), it is not usually necessary to manually renew the CA certificate, as it will be renewed automatically when it is about to expire, but you can do so if you wish.
 .sp
@@ -42,12 +44,29 @@ When the IPA CA is not configured, this command is not available.
 \- Install a CA certificate
 .sp
 .RS
-This command can be used to install new CA certificate to IPA.
+This command can be used to install the certificate contained in \fICERTFILE\fR as a new CA certificate to IPA.
 .RE
-.SH "OPTIONS"
+.SH "COMMON OPTIONS"
+.TP
+\fB\-\-version\fR
+Show the program's version and exit.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show the help for this program.
 .TP
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 The Directory Manager password to use for authentication.
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Print debugging information.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Output only errors.
+.TP
+\fB\-\-log\-file\fR=\fIFILE\fR
+Log to the given file.
+.RE
+.SH "RENEW OPTIONS"
 .TP
 \fB\-\-self\-signed\fR
 Sign the renewed certificate by itself.
@@ -57,6 +76,8 @@ Sign the renewed certificate by external CA.
 .TP
 \fB\-\-external\-cert\-file\fR=\fIFILE\fR
 File containing the IPA CA certificate and the external CA certificate chain. The file is accepted in PEM and DER certificate and PKCS#7 certificate chain formats. This option may be used multiple times.
+.RE
+.SH "INSTALL OPTIONS"
 .TP
 \fB\-n\fR \fINICKNAME\fR, \fB\-\-nickname\fR=\fINICKNAME\fR
 Nickname for the certificate.
@@ -73,15 +94,6 @@ T \- CA trusted to issue client certificates
 .IP
 p \- not trusted
 .RE
-.TP
-\fB\-v\fR, \fB\-\-verbose\fR
-Print debugging information.
-.TP
-\fB\-q\fR, \fB\-\-quiet\fR
-Output only errors.
-.TP
-\fB\-\-log\-file\fR=\fIFILE\fR
-Log to the given file.
 .SH "EXIT STATUS"
 0 if the command was successful
 

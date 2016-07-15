@@ -35,7 +35,7 @@ from ipaserver.install import certs, cainstance, installutils
 class CACertManage(admintool.AdminTool):
     command_name = 'ipa-cacert-manage'
 
-    usage = "%prog {renew|install} [options]"
+    usage = "%prog renew [options]\n%prog install [options] CERTFILE"
 
     description = "Manage CA certificates."
 
