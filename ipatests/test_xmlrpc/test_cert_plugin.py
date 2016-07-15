@@ -19,23 +19,24 @@
 """
 Test the `ipaserver/plugins/cert.py` module against a RA.
 """
+from __future__ import print_function
 
+import base64
+import nose
 import os
+import pytest
 import shutil
-from nose.tools import raises, assert_raises  # pylint: disable=E0611
-
-from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
+import six
+import tempfile
 from ipalib import api
 from ipalib import errors
 from ipalib import x509
-import tempfile
-from ipapython import ipautil
-import six
-import nose
-import base64
 from ipaplatform.paths import paths
+from ipapython import ipautil
 from ipapython.dn import DN
-import pytest
+from ipapython.ipautil import run
+from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
+from nose.tools import raises, assert_raises
 
 if six.PY3:
     unicode = str
@@ -43,6 +44,11 @@ if six.PY3:
 # So we can save the cert from issuance and compare it later
 cert = None
 newcert = None
+sn = None
+
+_DOMAIN = api.env.domain
+_EXP_CRL_URI = ''.join(['http://ipa-ca.', _DOMAIN, '/ipa/crl/MasterCRL.bin'])
+_EXP_OCSP_URI = ''.join(['http://ipa-ca.', _DOMAIN, '/ca/ocsp'])
 
 def is_db_configured():
     """
@@ -81,6 +87,8 @@ class test_cert(XMLRPC_test):
 
         if 'cert_request' not in api.Command:
             raise nose.SkipTest('cert_request not registered')
+        if 'cert_show' not in api.Command:
+            raise nose.SkipTest('cert_show not registered')
 
         is_db_configured()
 
@@ -93,6 +101,7 @@ class test_cert(XMLRPC_test):
         self.reqdir = tempfile.mkdtemp(prefix = "tmp-")
         self.reqfile = self.reqdir + "/test.csr"
         self.pwname = self.reqdir + "/pwd"
+        self.certfile = self.reqdir + "/cert.crt"
 
         # Create an empty password file
         fp = open(self.pwname, "w")
@@ -143,13 +152,15 @@ class test_cert(XMLRPC_test):
         Test the `xmlrpc.cert_request` method with --add.
         """
         # Our host should exist from previous test
-        global cert
+        global cert, sn
 
         csr = unicode(self.generateCSR(str(self.subject)))
         res = api.Command['cert_request'](csr, principal=self.service_princ, add=True)['result']
         assert DN(res['subject']) == self.subject
         # save the cert for the service_show/find tests
         cert = res['certificate'].encode('ascii')
+        # save cert's SN for URI test
+        sn = res['serial_number']
 
     def test_0003_service_show(self):
         """
@@ -170,7 +181,20 @@ class test_cert(XMLRPC_test):
         res = api.Command['service_find'](self.service_princ)['result']
         assert base64.b64encode(res[0]['usercertificate'][0]) == cert
 
-    def test_0005_cert_renew(self):
+    def test_0005_cert_uris(self):
+        """Test URI details and OCSP-URI in certificate.
+
+        See https://fedorahosted.org/freeipa/ticket/5881
+        """
+        result = api.Command.cert_show(sn, out=unicode(self.certfile))
+        with open(self.certfile, "r") as f:
+            pem_cert = unicode(f.read())
+        result = run(['openssl', 'x509', '-text'],
+                     stdin=pem_cert, capture_output=True)
+        assert _EXP_CRL_URI in result.output
+        assert _EXP_OCSP_URI in result.output
+
+    def test_0006_cert_renew(self):
         """
         Issue a new certificate for a service
         """
@@ -182,7 +206,7 @@ class test_cert(XMLRPC_test):
         # save the cert for the service_show/find tests
         newcert = res['certificate'].encode('ascii')
 
-    def test_0006_service_show(self):
+    def test_0007_service_show(self):
         """
         Verify the new certificate with service-show.
         """
@@ -194,7 +218,7 @@ class test_cert(XMLRPC_test):
         certs_encoded = (base64.b64encode(cert) for cert in res['usercertificate'])
         assert set(certs_encoded) == set([cert, newcert])
 
-    def test_0007_cleanup(self):
+    def test_0008_cleanup(self):
         """
         Clean up cert test data
         """
