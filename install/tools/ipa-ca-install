@@ -285,7 +285,7 @@ def main():
             cainstance.is_ca_installed_locally()):
         sys.exit("CA is already installed on this host.")
 
-    standard_logging_setup(paths.IPASERVER_CA_INSTALL_LOG, debug=options.debug)
+    standard_logging_setup(log_file_name, debug=options.debug)
     root_logger.debug("%s was invoked with options: %s,%s",
                       sys.argv[0], safe_options, filename)
     root_logger.debug("IPA version %s", version.VENDOR_VERSION)
