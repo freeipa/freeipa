@@ -48,6 +48,8 @@ EXAMPLES:
 
 register = Registry()
 
+topic = None
+
 dnsserver_object_class = ['top', 'idnsServerConfigObject']
 
 @register()
@@ -149,6 +151,7 @@ class dnsserver(LDAPObject):
 @register()
 class dnsserver_mod(LDAPUpdate):
     __doc__ = _('Modify DNS server configuration')
+    topic = 'dns'
 
     msg_summary = _('Modified DNS server "%(value)s"')
 
@@ -156,6 +159,7 @@ class dnsserver_mod(LDAPUpdate):
 @register()
 class dnsserver_find(LDAPSearch):
     __doc__ = _('Search for DNS servers.')
+    topic = 'dns'
 
     msg_summary = ngettext(
         '%(count)d DNS server matched',
@@ -166,6 +170,7 @@ class dnsserver_find(LDAPSearch):
 @register()
 class dnsserver_show(LDAPRetrieve):
     __doc__=_('Display configuration of a DNS server.')
+    topic = 'dns'
 
 
 @register()
@@ -175,6 +180,7 @@ class dnsserver_add(LDAPCreate, Local):
     Be careful in future this will be transformed to public API call
     """
     __doc__ = _('Add a new DNS server.')
+    topic = 'dns'
 
     msg_summary = _('Added new DNS server "%(value)s"')
 
@@ -186,5 +192,6 @@ class dnsserver_del(LDAPDelete, Local):
     Be careful in future this will be transformed to public API call
     """
     __doc__ = _('Delete a DNS server')
+    topic = 'dns'
 
     msg_summary = _('Deleted DNS server "%(value)s"')
