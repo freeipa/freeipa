@@ -316,24 +316,10 @@ class TestUpdate(XMLRPC_test):
         renameduser.ensure_missing()
         olduid = user.uid
 
-        # using user.update(dict(uid=value)) results in
-        # OverlapError: overlapping arguments and options: ['uid']
-        user.attrs.update(uid=[renameduser.uid])
-        command = user.make_update_command(
-            updates=dict(setattr=(u'uid=%s' % renameduser.uid))
-        )
-        result = command()
-        user.check_update(result)
-        user.uid = renameduser.uid
+        user.update(updates=dict(rename=renameduser.uid))
 
         # rename the test user back so it gets properly deleted
-        user.attrs.update(uid=[olduid])
-        command = user.make_update_command(
-            updates=dict(setattr=(u'uid=%s' % olduid))
-        )
-        result = command()
-        user.check_update(result)
-        user.uid = olduid
+        user.update(updates=dict(rename=olduid))
 
     def test_rename_to_the_same_value(self, user):
         """ Try to rename user to the same value """
@@ -640,18 +626,13 @@ class TestUserWithGroup(XMLRPC_test):
             if its manager is also renamed """
         renamed_name = u'renamed_npg2'
         old_name = user_npg2.uid
-        command = user_npg2.make_update_command(dict(rename=renamed_name))
-        result = command()
-        user_npg2.attrs.update(uid=[renamed_name])
-        user_npg2.check_update(result)
+
+        user_npg2.update(updates=dict(rename=renamed_name))
+
         user_npg.attrs.update(manager=[renamed_name])
         user_npg.retrieve(all=True)
 
-        command = user_npg2.make_command(
-            'user_mod', renamed_name, **dict(rename=old_name)
-        )
-        # we rename the user back otherwise the tracker is too confused
-        result = command()
+        user_npg2.update(updates=dict(rename=old_name))
 
     def test_check_if_manager_gets_removed(self, user_npg, user_npg2):
         """ Delete manager and check if it's gone from user's attributes """

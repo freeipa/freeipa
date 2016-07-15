@@ -196,6 +196,12 @@ class UserTracker(Tracker):
         for key, value in updates.items():
             if value is None or value is '' or value is u'':
                 del self.attrs[key]
+            elif key == 'rename':
+                new_principal = u'{0}@{1}'.format(value, self.api.env.realm)
+                self.attrs['uid'] = [value]
+                self.attrs['krbcanonicalname'] = [new_principal]
+                if new_principal not in self.attrs['krbprincipalname']:
+                    self.attrs['krbprincipalname'].append(new_principal)
             else:
                 if type(value) is list:
                     self.attrs[key] = value
@@ -211,6 +217,9 @@ class UserTracker(Tracker):
             result,
             extra_keys=set(updates.keys()) | set(expected_updates.keys())
         )
+
+        if 'rename' in updates:
+            self.uid = self.attrs['uid'][0]
 
     def check_create(self, result, extra_keys=()):
         """ Check 'user-add' command result """
