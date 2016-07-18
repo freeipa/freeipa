@@ -1780,6 +1780,7 @@ class test_dns(Declarative):
                      }},
                 ),
                 'result': {
+                    'dns_server_server': [api.env.host],
                     'idnsforwarders': [fwd_ip],
                 },
             },
@@ -1791,7 +1792,7 @@ class test_dns(Declarative):
             expected={
                 'value': None,
                 'summary': u'Global DNS configuration is empty',
-                'result': {},
+                'result': {'dns_server_server': [api.env.host]},
             },
         ),
 
