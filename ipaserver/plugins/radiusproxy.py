@@ -126,7 +126,6 @@ class radiusproxy(LDAPObject):
             label=_('Secret'),
             doc=_('The secret used to encrypt data'),
             confirm=True,
-            flags=['no_option'],
         ),
         Int('ipatokenradiustimeout?',
             cli_name='timeout',
