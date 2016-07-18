@@ -95,6 +95,10 @@ class ClientMethod(ClientCommand, Method):
 
     def get_output_params(self):
         seen = set()
+        for param in self.params():
+            if param.name not in self.obj.params:
+                seen.add(param.name)
+                yield param
         for output_param in super(ClientMethod, self).get_output_params():
             seen.add(output_param.name)
             yield output_param
