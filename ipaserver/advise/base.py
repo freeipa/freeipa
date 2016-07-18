@@ -168,11 +168,11 @@ class IpaAdvise(admintool.AdminTool):
         self.print_header('List of available advices')
 
         max_keyword_len = max(
-            (len(advice.__name__) for advice in advise_api.Advice))
+            (len(advice.name) for advice in advise_api.Advice))
 
         for advice in advise_api.Advice:
             description = getattr(advice, 'description', '')
-            keyword = advice.__name__.replace('_', '-')
+            keyword = advice.name.replace('_', '-')
 
             # Compute the number of spaces needed for the table to be aligned
             offset = max_keyword_len - len(keyword)
