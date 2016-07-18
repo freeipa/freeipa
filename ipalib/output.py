@@ -217,3 +217,13 @@ simple_value = (
     Output('result', bool, _('True means the operation was successful')),
     Output('value', unicode, flags=['no_display']),
 )
+
+# custom shim for commands like `trustconfig-show`,
+# `automember-default-group-*` which put stuff into output['value'] despite not
+# having primary key themselves. Designing commands like this is not a very
+# good practice, so please do not use this for new code.
+simple_entry = (
+    summary,
+    Entry('result'),
+    Output('value', unicode, flags=['no_display']),
+)

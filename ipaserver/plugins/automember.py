@@ -586,6 +586,7 @@ class automember_default_group_set(LDAPUpdate):
         ),
     ) + group_type
     msg_summary = _('Set default (fallback) group for automember "%(value)s"')
+    has_output = output.simple_entry
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         dn = DN(('cn', options['type']), api.env.container_automember,
@@ -609,6 +610,7 @@ class automember_default_group_remove(LDAPUpdate):
 
     takes_options = group_type
     msg_summary = _('Removed default (fallback) group for automember "%(value)s"')
+    has_output = output.simple_entry
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         dn = DN(('cn', options['type']), api.env.container_automember,
@@ -644,6 +646,7 @@ class automember_default_group_show(LDAPRetrieve):
     obj_name = 'automember_default_group'
 
     takes_options = group_type
+    has_output = output.simple_entry
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         dn = DN(('cn', options['type']), api.env.container_automember,

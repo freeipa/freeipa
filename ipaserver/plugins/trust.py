@@ -1288,6 +1288,7 @@ class trustconfig_mod(LDAPUpdate):
 
     takes_options = LDAPUpdate.takes_options + (_trust_type_option,)
     msg_summary = _('Modified "%(value)s" trust configuration')
+    has_output = output.simple_entry
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         self.obj._normalize_groupdn(entry_attrs)
@@ -1310,6 +1311,7 @@ class trustconfig_show(LDAPRetrieve):
     __doc__ = _('Show global trust configuration.')
 
     takes_options = LDAPRetrieve.takes_options + (_trust_type_option,)
+    has_output = output.simple_entry
 
     def execute(self, *keys, **options):
         result = super(trustconfig_show, self).execute(*keys, **options)

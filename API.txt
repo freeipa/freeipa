@@ -144,7 +144,7 @@ option: StrEnum('type', values=[u'group', u'hostgroup'])
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: PrimaryKey('value')
+output: Output('value', type=[<type 'unicode'>])
 command: automember_default_group_set/1
 args: 0,6,3
 option: Flag('all', autofill=True, cli_name='all', default=False)
@@ -155,7 +155,7 @@ option: StrEnum('type', values=[u'group', u'hostgroup'])
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: PrimaryKey('value')
+output: Output('value', type=[<type 'unicode'>])
 command: automember_default_group_show/1
 args: 0,4,3
 option: Flag('all', autofill=True, cli_name='all', default=False)
@@ -164,7 +164,7 @@ option: StrEnum('type', values=[u'group', u'hostgroup'])
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: PrimaryKey('value')
+output: Output('value', type=[<type 'unicode'>])
 command: automember_del/1
 args: 1,2,3
 arg: Str('cn+', cli_name='automember_rule')
@@ -5574,7 +5574,7 @@ option: StrEnum('trust_type', autofill=True, cli_name='type', default=u'ad', val
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: PrimaryKey('value')
+output: Output('value', type=[<type 'unicode'>])
 command: trustconfig_show/1
 args: 0,5,3
 option: Flag('all', autofill=True, cli_name='all', default=False)
@@ -5584,7 +5584,7 @@ option: StrEnum('trust_type', autofill=True, cli_name='type', default=u'ad', val
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: PrimaryKey('value')
+output: Output('value', type=[<type 'unicode'>])
 command: trustdomain_add/1
 args: 2,8,3
 arg: Str('trustcn', cli_name='trust')
