@@ -54,7 +54,8 @@ class _fake_automountlocation_show(Method):
 class automountlocation_tofiles(MethodOverride):
     @property
     def NO_CLI(self):
-        return self.api.Command.automountlocation_show.NO_CLI
+        return isinstance(self.api.Command.automountlocation_show,
+                          _fake_automountlocation_show)
 
     def output_for_cli(self, textui, result, *keys, **options):
         maps = result['result']['maps']

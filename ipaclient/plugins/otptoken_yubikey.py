@@ -76,7 +76,8 @@ class otptoken_add_yubikey(Command):
 
     @property
     def NO_CLI(self):
-        return self.api.Command.otptoken_add.NO_CLI
+        return isinstance(self.api.Command.otptoken_add,
+                          _fake_otptoken_add)
 
     def get_args(self):
         for arg in self.api.Command.otptoken_add.args():
