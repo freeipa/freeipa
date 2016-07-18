@@ -161,6 +161,26 @@ class TestBasicADTrust(ADTrustBase):
 
         assert re.search(testuser_regex, result.stdout_text)
 
+    def test_ipauser_authentication(self):
+        ipauser = u'tuser'
+        original_passwd = 'Secret123'
+        new_passwd = 'userPasswd123'
+
+        # create an ipauser for this test
+        self.master.run_command(['ipa', 'user-add', ipauser, '--first=Test',
+                                 '--last=User', '--password'],
+                                stdin_text=original_passwd)
+
+        # change password for the user to be able to kinit
+        util.ldappasswd_user_change(ipauser, original_passwd, new_passwd,
+                                    self.master)
+
+        # try to kinit as ipauser
+        self.master.run_command(
+            ['kinit', '-E', '{0}@{1}'.format(ipauser,
+                                             self.master.domain.name)],
+            stdin_text=new_passwd)
+
     def test_remove_nonposix_trust(self):
         tasks.remove_trust_with_ad(self.master, self.ad_domain)
         tasks.clear_sssd_cache(self.master)

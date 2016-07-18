@@ -20,6 +20,8 @@
 import time
 import re
 
+from ipaplatform.paths import paths
+from ipalib.constants import DEFAULT_CONFIG
 
 def run_repeatedly(host, command, assert_zero_rc=True, test=None,
                 timeout=30, **kwargs):
@@ -75,3 +77,14 @@ def get_host_ip_with_hostmask(host):
 
     if match:
         return match.group('full_ip')
+
+
+def ldappasswd_user_change(user, oldpw, newpw, master):
+    container_user = dict(DEFAULT_CONFIG)['container_user']
+    basedn = master.domain.basedn
+
+    userdn = "uid={},{},{}".format(user, container_user, basedn)
+
+    args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
+            '-s', newpw, '-x']
+    master.run_command(args)
