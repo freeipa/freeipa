@@ -157,7 +157,7 @@ Slapi_Value **ipapwd_encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
         pwd.length = strlen(data->password);
     }
 
-    kset = malloc(sizeof(struct ipapwd_keyset));
+    kset = (struct ipapwd_keyset *) calloc(1, sizeof(struct ipapwd_keyset));
     if (!kset) {
         LOG_OOM();
         goto enc_error;
