@@ -138,7 +138,6 @@ def allow_sync_ptr(host):
 
 
 def apply_common_fixes(host):
-    fix_etc_hosts(host)
     fix_hostname(host)
     prepare_host(host)
 
@@ -158,24 +157,6 @@ def backup_file(host, filename):
         contents = host.get_file_contents(rmname)
         host.transport.mkdir_recursive(os.path.dirname(rmname))
         return False
-
-
-def fix_etc_hosts(host):
-    backup_file(host, paths.HOSTS)
-    contents = host.get_file_contents(paths.HOSTS)
-    # Remove existing mentions of the host's FQDN, short name, and IP
-    # Removing of IP must be done as first, otherwise hosts file may be
-    # corrupted
-    contents = re.sub('^%s.*' % re.escape(host.ip), '', contents,
-                      flags=re.MULTILINE)
-    contents = re.sub('\s%s(\s|$)' % re.escape(host.hostname), ' ', contents,
-                      flags=re.MULTILINE)
-    contents = re.sub('\s%s(\s|$)' % re.escape(host.shortname), ' ', contents,
-                      flags=re.MULTILINE)
-    # Add the host's info again
-    contents += '\n%s %s %s\n' % (host.ip, host.hostname, host.shortname)
-    log.debug('Writing the following to /etc/hosts:\n%s', contents)
-    host.put_file_contents(paths.HOSTS, contents)
 
 
 def fix_hostname(host):
