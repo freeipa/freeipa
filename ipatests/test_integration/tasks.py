@@ -47,6 +47,48 @@ from ipalib.constants import DOMAIN_LEVEL_0
 log = log_mgr.get_logger(__name__)
 
 
+def setup_server_logs_collecting(host):
+    """
+    This function setup logs to be collected on host. We should collect all
+    possible logs that may be helpful to debug IPA server
+    """
+    # dirsrv logs
+    inst = host.domain.realm.replace('.', '-')
+    host.collect_log(paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
+    host.collect_log(paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
+
+    # IPA install logs
+    host.collect_log(paths.IPASERVER_INSTALL_LOG)
+    host.collect_log(paths.IPACLIENT_INSTALL_LOG)
+    host.collect_log(paths.IPAREPLICA_INSTALL_LOG)
+    host.collect_log(paths.IPAREPLICA_CONNCHECK_LOG)
+    host.collect_log(paths.IPAREPLICA_CA_INSTALL_LOG)
+    host.collect_log(paths.IPACLIENT_INSTALL_LOG)
+    host.collect_log(paths.IPASERVER_KRA_INSTALL_LOG)
+    host.collect_log(paths.IPA_CUSTODIA_AUDIT_LOG)
+
+    # IPA uninstall logs
+    host.collect_log(paths.IPASERVER_KRA_UNINSTALL_LOG)
+    host.collect_log(paths.IPACLIENT_UNINSTALL_LOG)
+    host.collect_log(paths.IPASERVER_KRA_UNINSTALL_LOG)
+
+    # IPA backup and restore logs
+    host.collect_log(paths.IPARESTORE_LOG)
+    host.collect_log(paths.IPABACKUP_LOG)
+
+    # kerberos related logs
+    host.collect_log(paths.KADMIND_LOG)
+
+    # httpd logs
+    host.collect_log(paths.VAR_LOG_HTTPD_ERROR)
+
+    # dogtag logs
+    host.collect_log(os.path.join(paths.VAR_LOG_PKI_DIR))
+
+    # SSSD debugging must be set after client is installed (function
+    # setup_sssd_debugging)
+
+
 def check_arguments_are(slice, instanceof):
     """
     :param: slice - tuple of integers denoting the beginning and the end
@@ -234,12 +276,7 @@ def install_master(host, setup_dns=True, setup_kra=False, extra_args=(),
                    domain_level=None):
     if domain_level is None:
         domain_level = host.config.domain_level
-    host.collect_log(paths.IPASERVER_INSTALL_LOG)
-    host.collect_log(paths.IPACLIENT_INSTALL_LOG)
-    inst = host.domain.realm.replace('.', '-')
-    host.collect_log(paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
-    host.collect_log(paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
-
+    setup_server_logs_collecting(host)
     apply_common_fixes(host)
     fix_apache_semaphores(host)
 
@@ -321,8 +358,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     if domain_level is None:
         domain_level = domainlevel(master)
     apply_common_fixes(replica)
-    replica.collect_log(paths.IPAREPLICA_INSTALL_LOG)
-    replica.collect_log(paths.IPAREPLICA_CONNCHECK_LOG)
+    setup_server_logs_collecting(replica)
     allow_sync_ptr(master)
     # Otherwise ipa-client-install would not create a PTR
     # and replica installation would fail
@@ -400,12 +436,7 @@ def install_adtrust(host):
     Configures the compat tree for the legacy clients.
     """
 
-    # ipa-adtrust-install appends to ipaserver-install.log
-    host.collect_log(paths.IPASERVER_INSTALL_LOG)
-
-    inst = host.domain.realm.replace('.', '-')
-    host.collect_log(paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
-    host.collect_log(paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
+    setup_server_logs_collecting(host)
 
     kinit_admin(host)
     host.run_command(['ipa-adtrust-install', '-U',

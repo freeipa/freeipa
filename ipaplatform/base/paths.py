@@ -300,6 +300,7 @@ class BasePathNamespace(object):
     SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE = "/var/log/dirsrv/slapd-%s/access"
     SLAPD_INSTANCE_ERROR_LOG_TEMPLATE = "/var/log/dirsrv/slapd-%s/errors"
     VAR_LOG_HTTPD_DIR = "/var/log/httpd"
+    VAR_LOG_HTTPD_ERROR = "/var/log/httpd/error_log"
     IPABACKUP_LOG = "/var/log/ipabackup.log"
     IPACLIENT_INSTALL_LOG = "/var/log/ipaclient-install.log"
     IPACLIENT_UNINSTALL_LOG = "/var/log/ipaclient-uninstall.log"
