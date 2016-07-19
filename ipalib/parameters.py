@@ -854,6 +854,9 @@ class Param(ReadOnly):
             if self.required or (supplied and 'nonempty' in self.flags):
                 raise RequirementError(name=self.name)
             return
+        if self.deprecated:
+            raise ValidationError(name=self.get_param_name(),
+                                  error=_('this option is deprecated'))
         if self.multivalue:
             if type(value) is not tuple:
                 raise TypeError(
@@ -875,10 +878,6 @@ class Param(ReadOnly):
             error = rule(ugettext, value)
             if error is not None:
                 raise ValidationError(name=self.get_param_name(), error=error)
-
-    def _rule_deprecated(self, _, value):
-        if self.deprecated:
-            return _('this option is deprecated')
 
     def get_default(self, **kw):
         """
