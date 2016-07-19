@@ -1028,8 +1028,6 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
     struct ipapwd_operation *pwdop = NULL;
     Slapi_Mods *smods;
     Slapi_Value **pwvals;
-    struct tm utctime;
-    char timestr[GENERALIZED_TIME_LENGTH+1];
     int ret;
     char *errMsg = "Internal operations error\n";
     struct ipapwd_krbcfg *krbcfg = NULL;
@@ -1115,29 +1113,19 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
             (slapi_entry_attr_has_syntax_value(pwdop->pwdata.target,
                                     SLAPI_ATTR_OBJECTCLASS, ipahost)) == 0) {
             /* set Password Expiration date */
-            if (!gmtime_r(&(pwdop->pwdata.expireTime), &utctime)) {
-                LOG_FATAL("failed to parse expiration date (buggy gmtime_r ?)\n");
+            ret = ipapwd_setdate(pwdop->pwdata.target, smods,
+                                 "krbPasswordExpiration",
+                                 pwdop->pwdata.expireTime,
+                                 (pwdop->pwdata.expireTime == 0));
+            if (ret != LDAP_SUCCESS)
                 goto done;
-            }
-            strftime(timestr, GENERALIZED_TIME_LENGTH+1,
-                     "%Y%m%d%H%M%SZ", &utctime);
-            slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
-                                  "krbPasswordExpiration", timestr);
-			if (pwdop->pwdata.expireTime == 0) {
-			    slapi_mods_add_string(smods, LDAP_MOD_DELETE,
-			                          "krbPasswordExpiration", timestr);
-			}
 
             /* change Last Password Change field with the current date */
-            if (!gmtime_r(&(pwdop->pwdata.timeNow), &utctime)) {
-                LOG_FATAL("failed to parse current date (buggy gmtime_r ?)\n");
-                slapi_value_free(&ipahost);
+            ret = ipapwd_setdate(pwdop->pwdata.target, smods,
+                                 "krbLastPwdChange",
+                                 pwdop->pwdata.timeNow, false);
+            if (ret != LDAP_SUCCESS)
                 goto done;
-            }
-            strftime(timestr, GENERALIZED_TIME_LENGTH+1,
-                     "%Y%m%d%H%M%SZ", &utctime);
-            slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
-                                  "krbLastPwdChange", timestr);
         }
         slapi_value_free(&ipahost);
     }
@@ -1391,6 +1379,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         SLAPI_USERPWD_ATTR, "ipaUserAuthType", "krbprincipalkey", "uid",
         "krbprincipalname", "objectclass", "passwordexpirationtime",
         "passwordhistory", "krbprincipalexpiration", "krbcanonicalname",
+        "krbPasswordExpiration", "krblastpwchange",
         NULL
     };
     struct berval *credentials = NULL;

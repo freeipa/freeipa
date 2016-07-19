@@ -119,6 +119,8 @@ int ipapwd_gen_checks(Slapi_PBlock *pb, char **errMesg,
 int ipapwd_CheckPolicy(struct ipapwd_data *data);
 int ipapwd_getEntry(const char *dn, Slapi_Entry **e2, char **attrlist);
 int ipapwd_get_cur_kvno(Slapi_Entry *target);
+int ipapwd_setdate(Slapi_Entry *source, Slapi_Mods *smods, const char *attr,
+                   time_t date, bool remove);
 int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
                        struct ipapwd_data *data, int is_krb);
 Slapi_Value **ipapwd_setPasswordHistory(Slapi_Mods *smods,

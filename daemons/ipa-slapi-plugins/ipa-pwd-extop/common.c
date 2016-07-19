@@ -702,6 +702,33 @@ next:
     return kvno;
 }
 
+int ipapwd_setdate(Slapi_Entry *source, Slapi_Mods *smods, const char *attr,
+                   time_t date, bool remove)
+{
+    char timestr[GENERALIZED_TIME_LENGTH+1];
+    struct tm utctime;
+    Slapi_Attr *t;
+    bool exists;
+
+    exists = (slapi_entry_attr_find(source, attr, &t) == 0);
+
+    if (remove) {
+        if (exists) {
+             slapi_mods_add_mod_values(smods, LDAP_MOD_DELETE, attr, NULL);
+        }
+        return LDAP_SUCCESS;
+    }
+
+    if (!gmtime_r(&date, &utctime)) {
+        LOG_FATAL("failed to convert %s date\n", attr);
+        return LDAP_OPERATIONS_ERROR;
+    }
+    strftime(timestr, GENERALIZED_TIME_LENGTH + 1, "%Y%m%d%H%M%SZ", &utctime);
+    slapi_mods_add_string(smods, exists ?  LDAP_MOD_REPLACE : LDAP_MOD_ADD,
+                          attr, timestr);
+    return LDAP_SUCCESS;
+}
+
 /* Modify the Password attributes of the entry */
 int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
                        struct ipapwd_data *data, int is_krb)
@@ -711,8 +738,6 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
     Slapi_Value **svals = NULL;
     Slapi_Value **ntvals = NULL;
     Slapi_Value **pwvals = NULL;
-    struct tm utctime;
-    char timestr[GENERALIZED_TIME_LENGTH+1];
     char *nt = NULL;
     int is_smb = 0;
     int is_ipant = 0;
@@ -764,34 +789,19 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
 		 * keytab so don't set it on hosts.
 		 */
         if (!is_host) {
-	        /* change Last Password Change field with the current date */
-			if (!gmtime_r(&(data->timeNow), &utctime)) {
-				LOG_FATAL("failed to retrieve current date (buggy gmtime_r ?)\n");
-				ret = LDAP_OPERATIONS_ERROR;
-				goto free_and_return;
-			}
-			strftime(timestr, GENERALIZED_TIME_LENGTH + 1,
-                 "%Y%m%d%H%M%SZ", &utctime);
-			slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
-                              "krbLastPwdChange", timestr);
+	    /* change Last Password Change field with the current date */
+            ret = ipapwd_setdate(data->target, smods, "krbLastPwdChange",
+                                 data->timeNow, false);
+            if (ret != LDAP_SUCCESS)
+                goto free_and_return;
 
-			/* set Password Expiration date */
-			if (!gmtime_r(&(data->expireTime), &utctime)) {
-				LOG_FATAL("failed to convert expiration date\n");
-				ret = LDAP_OPERATIONS_ERROR;
-				goto free_and_return;
-			}
-			strftime(timestr, GENERALIZED_TIME_LENGTH + 1,
-                 "%Y%m%d%H%M%SZ", &utctime);
-			slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
-                              "krbPasswordExpiration", timestr);
-			if (data->expireTime == 0) {
-			    slapi_mods_add_string(smods, LDAP_MOD_DELETE,
-			                          "krbPasswordExpiration", timestr);
-			}
-
-		}
+	    /* set Password Expiration date */
+            ret = ipapwd_setdate(data->target, smods, "krbPasswordExpiration",
+                                 data->expireTime, (data->expireTime == 0));
+            if (ret != LDAP_SUCCESS)
+                goto free_and_return;
 	}
+    }
 
     if (nt && is_smb) {
         slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
