@@ -48,11 +48,11 @@ class sevice_tasks(UI_driver):
             ],
         }
 
-    def load_csr(self, path):
+    def load_file(self, path):
         # ENHANCEMENT: generate csr dynamically
-        with open(path, 'r') as csr_file:
-            csr = csr_file.read()
-        return csr
+        with open(path, 'r') as file_d:
+            content = file_d.read()
+        return content
 
     def get_http_pkey(self):
         host = self.config.get('ipa_server')
@@ -92,49 +92,149 @@ class test_service(sevice_tasks):
         self.init_app()
         data = self.prep_data()
         pkey = data.get('pkey')
-        csr = self.load_csr(csr_path)
+        csr = self.load_file(csr_path)
         host = self.config.get('ipa_server')
         realm = self.config.get('ipa_realm')
+        cert_widget_sel = "div.certificate-widget"
 
         self.add_record(ENTITY, data)
         self.navigate_to_record(pkey)
 
-        self.assert_visible("div[name='certificate-missing']")
-
         # cert request
         self.action_list_action('request_cert', confirm=False)
-        self.fill_text('textarea.certificate', csr)
+        self.assert_dialog()
+        self.fill_text("textarea[name='csr'", csr)
         self.dialog_button_click('issue')
-        self.wait_for_request(n=2, d=0.5)
-        self.assert_visible("div[name='certificate-valid']")
+        self.wait_for_request(n=2, d=3)
+        self.assert_visible(cert_widget_sel)
 
         # cert view
-        self.action_list_action('view_cert', confirm=False)
-        self.wait()
-        self.assert_text("tbody tr:nth-child(2) td:nth-child(2)", host)
-        self.assert_text("tbody tr:nth-child(3) td:nth-child(2)", realm)
+        self.action_list_action('view', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        self.assert_dialog()
         self.dialog_button_click('close')
 
         # cert get
-        self.action_list_action('get_cert', confirm=False)
-        self.wait()
-        # We don't know the cert text, so at least open and close the dialog
+        self.action_list_action('get', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        self.assert_dialog()
+        # check that text area is not empty
+        self.assert_empty_value('textarea.certificate', negative=True)
         self.dialog_button_click('close')
 
+        # cert download - we can only try to click the download action
+        self.action_list_action('download', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        # check that revoke action is enabled
+        self.assert_action_list_action('revoke',
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # check that remove_hold action is not enabled
+        self.assert_action_list_action('remove_hold', enabled=False,
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
         # cert revoke
-        self.action_list_action('revoke_cert', confirm=False)
+        self.action_list_action('revoke', confirm=False,
+                                parents_css_sel=cert_widget_sel)
         self.wait()
         self.select('select', '6')
         self.dialog_button_click('ok')
-        self.wait_for_request(n=2)
-        self.assert_visible("div[name='certificate-revoked']")
+        self.wait_for_request(n=2, d=3)
+        self.assert_visible(cert_widget_sel + " div.watermark")
 
-        # cert restore
-        self.action_list_action('restore_cert', confirm=False)
+        # check that revoke action is not enabled
+        self.assert_action_list_action('revoke', enabled=False,
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # check that remove_hold action is enabled
+        self.assert_action_list_action('remove_hold',
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # cert remove hold
+        self.action_list_action('remove_hold', confirm=False,
+                                parents_css_sel=cert_widget_sel)
         self.wait()
         self.dialog_button_click('ok')
         self.wait_for_request(n=2)
-        self.assert_visible("div[name='certificate-valid']")
+
+        # check that revoke action is enabled
+        self.assert_action_list_action('revoke',
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # check that remove_hold action is not enabled
+        self.assert_action_list_action('remove_hold', enabled=False,
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # cleanup
+        self.navigate_to_entity(ENTITY, 'search')
+        self.delete_record(pkey, data.get('del'))
+
+    @screenshot
+    def test_arbitrary_certificates(self):
+        """
+        Test managing service arbitrary certificate.
+
+        Requires to have 'arbitrary_cert_path' configuration set.
+        """
+        cert_path = self.config.get('arbitrary_cert_path')
+        if not cert_path:
+            self.skip('Arbitrary certificate file is not configured')
+
+        self.init_app()
+        data = self.prep_data()
+        pkey = data.get('pkey')
+        cert = self.load_file(cert_path)
+        realm = self.config.get('ipa_realm')
+        cert_widget_sel = "div.certificate-widget"
+
+        self.add_record(ENTITY, data)
+        self.navigate_to_record(pkey)
+
+        # check whether certificate section is present
+        self.assert_visible("div[name='certificate']")
+
+        # add certificate
+        self.button_click('add', parents_css_sel="div[name='certificate']")
+        self.assert_dialog()
+        self.fill_textarea('new_cert', cert)
+        self.dialog_button_click('add')
+
+        self.assert_visible(cert_widget_sel)
+
+        # cert view
+        self.action_list_action('view', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        self.assert_dialog()
+        self.dialog_button_click('close')
+
+        # cert get
+        self.action_list_action('get', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        self.assert_dialog()
+
+        # check that the textarea is not empty
+        self.assert_empty_value('textarea.certificate', negative=True)
+        self.dialog_button_click('close')
+
+        # cert download - we can only try to click the download action
+        self.action_list_action('download', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+
+        # check that revoke action is not enabled
+        self.assert_action_list_action('revoke', enabled=False,
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # check that remove_hold action is not enabled
+        self.assert_action_list_action('remove_hold', enabled=False,
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
 
         # cleanup
         self.navigate_to_entity(ENTITY, 'search')
@@ -158,22 +258,9 @@ class test_service(sevice_tasks):
         self.navigate_to_record(pkey)
 
         self.assert_action_list_action('request_cert', visible=False)
-        self.assert_action_list_action('revoke_cert', visible=False)
-        self.assert_action_list_action('restore_cert', visible=False)
-
-        self.assert_action_list_action('view_cert', enabled=False)
-        self.assert_action_list_action('get_cert', enabled=False)
 
         self.navigate_by_breadcrumb('Services')
         self.delete_record(pkey, data.get('del'))
-
-        # test HTTP, which should have cert set by default and so 'view' and 'get'
-        # actions visible and enabled
-        pkey = self.get_http_pkey()
-
-        self.navigate_to_record(pkey)
-        self.assert_action_list_action('view_cert')
-        self.assert_action_list_action('get_cert')
 
     @screenshot
     def test_kerberos_flags(self):
