@@ -975,11 +975,15 @@ def check_principal_realm_in_trust_namespace(api_instance, *keys):
     trust_suffix_namespace = set()
 
     for obj in trust_objects:
-        trust_suffix_namespace.update(
-            set(upn.lower() for upn in obj['ipantadditionalsuffixes']))
+        nt_suffixes = obj.get('ipantadditionalsuffixes', [])
 
         trust_suffix_namespace.update(
-            set((obj['cn'][0].lower(), obj['ipantflatname'][0].lower())))
+            set(upn.lower() for upn in nt_suffixes))
+
+        if 'ipantflatname' in obj:
+            trust_suffix_namespace.add(obj['ipantflatname'][0].lower())
+
+        trust_suffix_namespace.add(obj['cn'][0].lower())
 
     for principal in keys[-1]:
         realm = principal.realm
