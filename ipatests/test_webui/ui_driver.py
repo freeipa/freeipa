@@ -1566,6 +1566,17 @@ class UI_driver(object):
         s = "div[name='%s'] %s[name='%s']" % (name, element, name)
         self.assert_text(s, value, parent)
 
+    def assert_empty_value(self, selector, parent=None, negative=False):
+        """
+        Assert empty value of some field in details page or in a form
+        """
+        value = self.get_value(selector, parent)
+
+        if negative:
+            assert not value == ''
+        else:
+            assert value == ''
+
     def assert_no_dialog(self):
         """
         Assert that no dialog is opened
