@@ -1289,7 +1289,6 @@ class UI_driver(object):
                         )
 
         # Find
-
         self.find_record(parent_entity, data, search_facet)
 
         # 3. Navigate to details facet
@@ -1458,11 +1457,11 @@ class UI_driver(object):
         self.assert_no_error_dialog()
         self.assert_class(title, 'disabled')
 
-    def delete_action(self, entity, pkey, facet='search'):
+    def delete_action(self, entity, pkey, action='delete', facet='search'):
         """
         Execute and test 'delete' action panel action.
         """
-        self.action_list_action('delete')
+        self.action_list_action(action)
         self.wait_for_request(n=4)
         self.assert_no_error_dialog()
         self.assert_facet(entity, facet)
