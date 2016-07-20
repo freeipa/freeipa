@@ -559,7 +559,7 @@ def setup_sssd_debugging(host):
                       paths.SSSD_CONF],
                      raiseonerr=False)
 
-    host.collect_log(os.path.join(paths.VAR_LOG_SSSD_DIR, '*'))
+    host.collect_log(os.path.join(paths.VAR_LOG_SSSD_DIR))
 
     # Clear the cache and restart SSSD
     clear_sssd_cache(host)
