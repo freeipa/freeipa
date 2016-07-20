@@ -318,9 +318,12 @@ class APINameSpace(collections.Mapping):
         self.__enumerate()
         return iter(self.__plugins)
 
-    def __getitem__(self, key):
+    def get_plugin(self, key):
         self.__enumerate()
-        plugin = self.__plugins_by_key[key]
+        return self.__plugins_by_key[key]
+
+    def __getitem__(self, key):
+        plugin = self.get_plugin(key)
         return self.__api._get(plugin)
 
     def __call__(self):

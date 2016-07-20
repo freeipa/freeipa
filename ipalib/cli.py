@@ -727,8 +727,8 @@ class help(frontend.Local):
         self._builtins = []
 
         # build help topics
-        for c in self.api.Command():
-            if c is not self.api.Command[c.name]:
+        for c in self.api.Command:
+            if c is not self.api.Command.get_plugin(c.name):
                 continue
             if c.NO_CLI:
                 continue
@@ -793,13 +793,14 @@ class help(frontend.Local):
             self.print_commands(name, outfile)
         elif name == "commands":
             mcl = 0
-            for cmd in self.Command():
-                if cmd is not self.Command[cmd.name]:
+            for cmd_plugin in self.Command:
+                if cmd_plugin is not self.Command.get_plugin(cmd_plugin.name):
                     continue
-                if cmd.NO_CLI:
+                if cmd_plugin.NO_CLI:
                     continue
-                mcl = max(mcl, len(cmd.name))
-                writer('%s  %s' % (to_cli(cmd.name).ljust(mcl), cmd.summary))
+                mcl = max(mcl, len(cmd_plugin.name))
+                writer('%s  %s' % (to_cli(cmd_plugin.name).ljust(mcl),
+                                   cmd_plugin.summary))
         else:
             raise HelpError(topic=name)
 
