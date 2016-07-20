@@ -615,12 +615,17 @@ class UI_driver(object):
         s = "a[name='%s'].action-button" % name
         self._button_click(s, parent, name)
 
-    def button_click(self, name, parent=None):
+    def button_click(self, name, parent=None,
+                     parents_css_sel=None):
         """
         Click on .ui-button
         """
         if not parent:
-            parent = self.get_form()
+            if parents_css_sel:
+                parent = self.find(parents_css_sel, By.CSS_SELECTOR,
+                                   strict=True)
+            else:
+                parent = self.get_form()
 
         s = "[name='%s'].btn" % name
         self._button_click(s, parent, name)
@@ -1413,14 +1418,25 @@ class UI_driver(object):
             for key in pkeys:
                 self.assert_record(key, parent, table_name, negative=True)
 
-    def action_list_action(self, name, confirm=True, confirm_btn="ok"):
+    def action_list_action(self, name, confirm=True, confirm_btn="ok",
+                           parents_css_sel=None):
         """
         Execute action list action
         """
-        cont = self.find(".active-facet .facet-actions", By.CSS_SELECTOR, strict=True)
-        expand = self.find(".dropdown-toggle", By.CSS_SELECTOR, cont, strict=True)
+        context = None
+
+        if not parents_css_sel:
+            context = self.find(".active-facet .facet-actions",
+                                By.CSS_SELECTOR, strict=True)
+        else:
+            context = self.find(parents_css_sel, By.CSS_SELECTOR,
+                                strict=True)
+
+        expand = self.find(".dropdown-toggle", By.CSS_SELECTOR, context,
+                           strict=True)
         expand.click()
-        action_link = self.find("li[data-name=%s] a" % name, By.CSS_SELECTOR, cont, strict=True)
+        action_link = self.find("li[data-name=%s] a" % name, By.CSS_SELECTOR,
+                                context, strict=True)
         action_link.click()
         if confirm:
             self.wait(0.5)  # wait for dialog
@@ -1739,17 +1755,26 @@ class UI_driver(object):
             assert is_enabled == enabled, ('Invalid enabled state of action button %s. '
                                            'Expected: %s') % (action, str(visible))
 
-    def assert_action_list_action(self, action, visible=True, enabled=True, parent=None):
+    def assert_action_list_action(self, action, visible=True, enabled=True,
+                                  parent=None, parents_css_sel=None,
+                                  facet_actions=True):
         """
         Assert that action dropdown action is visible/hidden, and enabled/disabled
 
         Enabled is checked only if action is visible.
         """
+
+        li_s = " li[data-name='%s']" % action
+
         if not parent:
             parent = self.get_form()
 
-        s = ".facet-actions li[data-name='%s']" % action
-        li = self.find(s, By.CSS_SELECTOR, parent)
+        if facet_actions:
+            li_s = ".facet-actions" + li_s
+        else:
+            li_s = parents_css_sel + li_s
+
+        li = self.find(li_s, By.CSS_SELECTOR, parent)
         link = self.find("a", By.CSS_SELECTOR, li)
 
         is_visible = li is not None and link is not None
