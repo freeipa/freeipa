@@ -96,30 +96,6 @@ PROTECTED_CONSTRAINT_TARGETS = (
 )
 
 
-output_params = (
-    Str(
-        'ipaallowedtarget_servicedelegationtarget',
-        label=_('Allowed Target'),
-    ),
-    Str(
-        'ipaallowedtoimpersonate',
-        label=_('Allowed to Impersonate'),
-    ),
-    Str(
-        'memberprincipal',
-        label=_('Member principals'),
-    ),
-    Str(
-        'failed_memberprincipal',
-        label=_('Failed members'),
-    ),
-    Str(
-        'ipaallowedtarget',
-        label=_('Failed targets'),
-    ),
-)
-
-
 class servicedelegation(LDAPObject):
     """
     Service Constrained Delegation base object.
@@ -175,6 +151,21 @@ class servicedelegation(LDAPObject):
             label=_('Delegation name'),
             primary_key=True,
         ),
+        Str(
+            'ipaallowedtarget_servicedelegationtarget',
+            label=_('Allowed Target'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
+        Str(
+            'ipaallowedtoimpersonate',
+            label=_('Allowed to Impersonate'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Str(
+            'memberprincipal',
+            label=_('Member principals'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
     )
 
 
@@ -185,8 +176,6 @@ class servicedelegation_add_member(LDAPAddMember):
     member_names = {}
     principal_attr = 'memberprincipal'
     principal_failedattr = 'failed_memberprincipal'
-
-    has_output_params = LDAPAddMember.has_output_params + output_params
 
     def get_options(self):
         for option in super(servicedelegation_add_member, self).get_options():
@@ -267,8 +256,6 @@ class servicedelegation_remove_member(LDAPRemoveMember):
     member_names = {}
     principal_attr = 'memberprincipal'
     principal_failedattr = 'failed_memberprincipal'
-
-    has_output_params = LDAPRemoveMember.has_output_params + output_params
 
     def get_options(self):
         for option in super(
@@ -397,8 +384,6 @@ class servicedelegationrule_del(LDAPDelete):
 class servicedelegationrule_find(LDAPSearch):
     __doc__ = _('Search for service delegations rule.')
 
-    has_output_params = LDAPSearch.has_output_params + output_params
-
     msg_summary = ngettext(
         '%(count)d service delegation rule matched',
         '%(count)d service delegation rules matched', 0
@@ -408,8 +393,6 @@ class servicedelegationrule_find(LDAPSearch):
 @register()
 class servicedelegationrule_show(LDAPRetrieve):
     __doc__ = _('Display information about a named service delegation rule.')
-
-    has_output_params = LDAPRetrieve.has_output_params + output_params
 
 
 @register()
@@ -437,7 +420,6 @@ class servicedelegationrule_add_target(LDAPAddMember):
     attribute_members = {
         'ipaallowedtarget': ['servicedelegationtarget'],
     }
-    has_output_params = LDAPAddMember.has_output_params + output_params
 
 
 @register()
@@ -447,7 +429,6 @@ class servicedelegationrule_remove_target(LDAPRemoveMember):
     attribute_members = {
         'ipaallowedtarget': ['servicedelegationtarget'],
     }
-    has_output_params = LDAPRemoveMember.has_output_params + output_params
 
 
 @register()
@@ -492,8 +473,6 @@ class servicedelegationtarget_del(LDAPDelete):
 class servicedelegationtarget_find(LDAPSearch):
     __doc__ = _('Search for service delegation target.')
 
-    has_output_params = LDAPSearch.has_output_params + output_params
-
     msg_summary = ngettext(
         '%(count)d service delegation target matched',
         '%(count)d service delegation targets matched', 0
@@ -529,8 +508,6 @@ class servicedelegationtarget_find(LDAPSearch):
 @register()
 class servicedelegationtarget_show(LDAPRetrieve):
     __doc__ = _('Display information about a named service delegation target.')
-
-    has_output_params = LDAPRetrieve.has_output_params + output_params
 
 
 @register()
