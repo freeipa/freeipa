@@ -159,7 +159,6 @@ class test_automember(UI_driver):
 
         # Rebuild membership for all hosts, using action on hosts search facet
         self.navigate_by_menu('identity/host')
-        self.navigate_by_breadcrumb('Hosts')
         self.action_list_action('automember_rebuild')
 
         # Assert that hosts are now members of hostgroup
@@ -256,8 +255,7 @@ class test_automember(UI_driver):
         self.assert_record('dev2', negative=True)
 
         # Rebuild membership for all users, using action on users search facet
-        self.navigate_by_menu('identity/user')
-        self.navigate_by_breadcrumb('Users')
+        self.navigate_by_menu('identity/user_search')
         self.action_list_action('automember_rebuild')
 
         # Assert that users are now members of group
