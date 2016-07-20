@@ -107,7 +107,7 @@ class test_navigation(UI_driver):
         # Identity
         # don't start by users (default)
         self.navigate_by_menu('identity/group', False)
-        self.navigate_by_menu('identity/user', False)
+        self.navigate_by_menu('identity/user_search', False)
         self.navigate_by_menu('identity/host', False)
         self.navigate_by_menu('identity/hostgroup', False)
         self.navigate_by_menu('identity/netgroup', False)
@@ -136,9 +136,9 @@ class test_navigation(UI_driver):
         self.navigate_by_menu('authentication/radiusproxy', False)
         self.navigate_by_menu('authentication/otptoken', False)
         if self.has_ca():
-            self.navigate_by_menu('authentication/cert', False)
+            self.navigate_by_menu('authentication/cert_search', False)
         else:
-            self.assert_menu_item('authentication/cert', False)
+            self.assert_menu_item('authentication/cert_search', False)
 
         # Network Services
         self.navigate_by_menu('network_services')
