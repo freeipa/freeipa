@@ -161,7 +161,7 @@ class test_user(UI_driver):
         self.action_list_action('unlock')
 
         # delete
-        self.delete_action(user.ENTITY, user.PKEY)
+        self.delete_action(user.ENTITY, user.PKEY, action='delete_active_user')
 
     @screenshot
     def test_password_expiration_notification(self):
