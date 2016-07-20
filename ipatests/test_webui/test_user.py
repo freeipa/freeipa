@@ -38,7 +38,15 @@ except ImportError:
 
 
 @pytest.mark.tier1
-class test_user(UI_driver):
+class user_tasks(UI_driver):
+    def load_file(self, path):
+        with open(path, 'r') as file_d:
+            content = file_d.read()
+        return content
+
+
+@pytest.mark.tier1
+class test_user(user_tasks):
 
     @screenshot
     def test_crud(self):
@@ -162,6 +170,107 @@ class test_user(UI_driver):
 
         # delete
         self.delete_action(user.ENTITY, user.PKEY, action='delete_active_user')
+
+    @screenshot
+    def test_certificates(self):
+        """
+        Test user certificate actions
+
+        Requires to have CA installed and 'user_csr_path' configuration option
+        set.
+        """
+
+        if not self.has_ca():
+            self.skip('CA is not configured')
+
+        csr_path = self.config.get('user_csr_path')
+        if not csr_path:
+            self.skip('CSR file is not configured')
+
+        self.init_app()
+        # ENHANCEMENT: generate csr dynamically
+        csr = self.load_file(csr_path)
+        realm = self.config.get('ipa_realm')
+        cert_widget_sel = "div.certificate-widget"
+
+        self.add_record(user.ENTITY, user.DATA)
+        self.navigate_to_record(user.PKEY)
+
+        # cert request
+        self.action_list_action('request_cert', confirm=False)
+        self.assert_dialog()
+        self.fill_text("textarea[name='csr']", csr)
+        self.dialog_button_click('issue')
+        self.wait_for_request(n=2, d=3)
+        self.assert_visible(cert_widget_sel)
+
+        # cert view
+        self.action_list_action('view', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        self.assert_dialog()
+        self.dialog_button_click('close')
+
+        # cert get
+        self.action_list_action('get', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        self.assert_dialog()
+        # check that the textarea is not empty
+        self.assert_empty_value('textarea.certificate', negative=True)
+        self.dialog_button_click('close')
+
+        # cert download - we can only try to click the download action
+        self.action_list_action('download', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+
+        # check that revoke action is enabled
+        self.assert_action_list_action('revoke',
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # check that remove_hold action is not enabled
+        self.assert_action_list_action('remove_hold', enabled=False,
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # cert revoke
+        self.action_list_action('revoke', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        self.wait()
+        self.select('select', '6')
+        self.dialog_button_click('ok')
+        self.wait_for_request(n=2, d=3)
+        self.assert_visible(cert_widget_sel + " div.watermark")
+
+        # check that revoke action is not enabled
+        self.assert_action_list_action('revoke', enabled=False,
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # check that remove_hold action is enabled
+        self.assert_action_list_action('remove_hold',
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # cert remove hold
+        self.action_list_action('remove_hold', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        self.wait()
+        self.dialog_button_click('ok')
+        self.wait_for_request(n=2)
+
+        # check that revoke action is enabled
+        self.assert_action_list_action('revoke',
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # check that remove_hold action is not enabled
+        self.assert_action_list_action('remove_hold', enabled=False,
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # cleanup
+        self.navigate_to_entity(user.ENTITY, 'search')
+        self.delete_record(user.PKEY, user.DATA.get('del'))
 
     @screenshot
     def test_password_expiration_notification(self):
