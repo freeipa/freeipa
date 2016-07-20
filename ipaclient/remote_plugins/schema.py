@@ -89,10 +89,32 @@ class _SchemaPlugin(object):
     bases = None
     schema_key = None
 
-    def __init__(self, full_name):
+    def __init__(self, schema, full_name):
         self.name, _slash, self.version = full_name.partition('/')
         self.full_name = full_name
-        self.__class = None
+        self._schema = schema
+        self._class = None
+
+    @property
+    def doc(self):
+        if self._class is not None:
+            return self._class.doc
+        else:
+            schema = self._schema[self.schema_key][self.full_name]
+            try:
+                return schema['doc']
+            except KeyError:
+                return None
+
+    @property
+    def summary(self):
+        if self._class is not None:
+            return self._class.summary
+        else:
+            if self.doc is not None:
+                return self.doc.split('\n\n', 1)[0].strip()
+            else:
+                return u'<%s>' % self.full_name
 
     def _create_default_from(self, api, name, keys):
         cmd_name = self.full_name
@@ -200,17 +222,36 @@ class _SchemaPlugin(object):
         return self.name, self.bases, class_dict
 
     def __call__(self, api):
-        if self.__class is None:
+        if self._class is None:
             schema = api._schema[self.schema_key][self.full_name]
             name, bases, class_dict = self._create_class(api, schema)
-            self.__class = type(name, bases, class_dict)
+            self._class = type(name, bases, class_dict)
 
-        return self.__class(api)
+        return self._class(api)
 
 
 class _SchemaCommandPlugin(_SchemaPlugin):
     bases = (_SchemaCommand,)
     schema_key = 'commands'
+
+    @property
+    def topic(self):
+        if self._class is not None:
+            return self._class.topic
+        else:
+            schema = self._schema[self.schema_key][self.full_name]
+            try:
+                return str(schema['topic_topic']).partition('/')[0]
+            except KeyError:
+                return None
+
+    @property
+    def NO_CLI(self):
+        if self._class is not None:
+            return self._class.NO_CLI
+        else:
+            schema = self._schema[self.schema_key][self.full_name]
+            return 'cli' in schema.get('exclude', [])
 
     def _create_output(self, api, schema):
         if schema.get('multivalue', False):
@@ -565,7 +606,7 @@ def get_package(api, client):
     module.register = plugable.Registry()
     for plugin_cls in (_SchemaCommandPlugin, _SchemaObjectPlugin):
         for full_name in schema[plugin_cls.schema_key]:
-            plugin = plugin_cls(str(full_name))
+            plugin = plugin_cls(schema, str(full_name))
             plugin = module.register()(plugin)
     sys.modules[module_name] = module
 

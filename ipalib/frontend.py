@@ -38,7 +38,7 @@ from ipalib.errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
     ValidationError, ConversionError)
 from ipalib import errors, messages
 from ipalib.request import context, context_frame
-from ipalib.util import json_serialize
+from ipalib.util import classproperty, json_serialize
 
 if six.PY3:
     unicode = str
@@ -426,9 +426,11 @@ class Command(HasParam):
 
     api_version = API_VERSION
 
-    @property
-    def topic(self):
-        return type(self).__module__.rpartition('.')[2]
+    @classmethod
+    def __topic_getter(cls):
+        return cls.__module__.rpartition('.')[2]
+
+    topic = classproperty(__topic_getter)
 
     @property
     def forwarded_name(self):

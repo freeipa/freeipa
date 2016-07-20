@@ -2,9 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+from ipalib import api
 from ipalib.frontend import Command, Method
 from ipalib.parameters import Str
 from ipalib.text import _
+from ipalib.util import classproperty
 
 
 class ClientCommand(Command):
@@ -111,20 +113,30 @@ class CommandOverride(Command):
     def __init__(self, api):
         super(CommandOverride, self).__init__(api)
 
-        next_class = api.get_plugin_next(type(self))
+        next_class = self.__get_next()
         self.next = next_class(api)
 
-    @property
-    def doc(self):
-        return self.next.doc
+    @classmethod
+    def __get_next(cls):
+        return api.get_plugin_next(cls)
 
-    @property
-    def NO_CLI(self):
-        return self.next.NO_CLI
+    @classmethod
+    def __doc_getter(cls):
+        return cls.__get_next().doc
 
-    @property
-    def topic(self):
-        return self.next.topic
+    doc = classproperty(__doc_getter)
+
+    @classmethod
+    def __NO_CLI_getter(cls):
+        return cls.__get_next().NO_CLI
+
+    NO_CLI = classproperty(__NO_CLI_getter)
+
+    @classmethod
+    def __topic_getter(cls):
+        return cls.__get_next().topic
+
+    topic = classproperty(__topic_getter)
 
     @property
     def forwarded_name(self):

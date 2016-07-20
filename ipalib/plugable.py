@@ -155,18 +155,21 @@ class Plugin(ReadOnly):
 
     bases = classproperty(__bases_getter)
 
-    @property
-    def doc(self):
-        return type(self).__doc__
+    @classmethod
+    def __doc_getter(cls):
+        return cls.__doc__
 
-    @property
-    def summary(self):
-        doc = self.doc
+    doc = classproperty(__doc_getter)
+
+    @classmethod
+    def __summary_getter(cls):
+        doc = cls.doc
         if not _(doc).msg:
-            cls = type(self)
             return u'<%s.%s>' % (cls.__module__, cls.__name__)
         else:
             return unicode(doc).split('\n\n', 1)[0].strip()
+
+    summary = classproperty(__summary_getter)
 
     @property
     def api(self):

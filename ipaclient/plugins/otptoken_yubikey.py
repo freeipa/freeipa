@@ -23,10 +23,11 @@ import six
 import usb.core
 import yubico
 
-from ipalib import _, IntEnum
+from ipalib import _, api, IntEnum
 from ipalib.errors import NotFound
 from ipalib.frontend import Command, Method, Object
 from ipalib.plugable import Registry
+from ipalib.util import classproperty
 
 if six.PY3:
     unicode = str
@@ -74,10 +75,12 @@ class otptoken_add_yubikey(Command):
     )
     has_output_params = takes_options
 
-    @property
-    def NO_CLI(self):
-        return isinstance(self.api.Command.otptoken_add,
+    @classmethod
+    def __NO_CLI_getter(cls):
+        return isinstance(api.Command.otptoken_add,
                           _fake_otptoken_add)
+
+    NO_CLI = classproperty(__NO_CLI_getter)
 
     def get_args(self):
         for arg in self.api.Command.otptoken_add.args():

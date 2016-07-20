@@ -38,7 +38,8 @@ import nss.nss as nss
 
 from ipaclient.frontend import MethodOverride
 from ipalib.frontend import Local, Method, Object
-from ipalib import errors
+from ipalib.util import classproperty
+from ipalib import api, errors
 from ipalib import Bytes, Flag, Str
 from ipalib.plugable import Registry
 from ipalib import _
@@ -202,10 +203,12 @@ class vault_add(Local):
         ),
     )
 
-    @property
-    def NO_CLI(self):
-        return isinstance(self.api.Command.vault_add_internal,
+    @classmethod
+    def __NO_CLI_getter(cls):
+        return isinstance(api.Command.vault_add_internal,
                           _fake_vault_add_internal)
+
+    NO_CLI = classproperty(__NO_CLI_getter)
 
     def get_args(self):
         for arg in self.api.Command.vault_add_internal.args():
@@ -400,10 +403,12 @@ class vault_mod(Local):
         ),
     )
 
-    @property
-    def NO_CLI(self):
-        return isinstance(self.api.Command.vault_mod_internal,
+    @classmethod
+    def __NO_CLI_getter(cls):
+        return isinstance(api.Command.vault_mod_internal,
                           _fake_vault_mod_internal)
+
+    NO_CLI = classproperty(__NO_CLI_getter)
 
     def get_args(self):
         for arg in self.api.Command.vault_mod_internal.args():
@@ -579,10 +584,12 @@ class vault_archive(Local):
         ),
     )
 
-    @property
-    def NO_CLI(self):
-        return isinstance(self.api.Command.vault_archive_internal,
+    @classmethod
+    def __NO_CLI_getter(cls):
+        return isinstance(api.Command.vault_archive_internal,
                           _fake_vault_archive_internal)
+
+    NO_CLI = classproperty(__NO_CLI_getter)
 
     def get_args(self):
         for arg in self.api.Command.vault_archive_internal.args():
@@ -828,10 +835,12 @@ class vault_retrieve(Local):
         ),
     )
 
-    @property
-    def NO_CLI(self):
-        return isinstance(self.api.Command.vault_retrieve_internal,
+    @classmethod
+    def __NO_CLI_getter(cls):
+        return isinstance(api.Command.vault_retrieve_internal,
                           _fake_vault_retrieve_internal)
+
+    NO_CLI = classproperty(__NO_CLI_getter)
 
     def get_args(self):
         for arg in self.api.Command.vault_retrieve_internal.args():
