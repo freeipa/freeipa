@@ -18,6 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+
+import dns.resolver
 import string
 
 import six
@@ -134,7 +137,7 @@ register = Registry()
 host_pwd_chars = string.digits + string.ascii_letters + '_,.@+-='
 
 
-def remove_ptr_rec(ipaddr, host, domain):
+def remove_ptr_rec(ipaddr, fqdn):
     """
     Remove PTR record of IP address (ipaddr)
     :return: True if PTR record was removed, False if record was not found
@@ -143,13 +146,12 @@ def remove_ptr_rec(ipaddr, host, domain):
     try:
         revzone, revname = get_reverse_zone(ipaddr)
 
-        # in case domain is in FQDN form with a trailing dot, we needn't add
-        # another one, in case it has no trailing dot, dnsrecord-del will
-        # normalize the entry
-        delkw = {'ptrrecord': "%s.%s" % (host, domain)}
+        # assume that target in PTR record is absolute name (otherwise it is
+        # non-standard configuration)
+        delkw = {'ptrrecord': u"%s" % fqdn.make_absolute()}
 
         api.Command['dnsrecord_del'](revzone, revname, **delkw)
-    except errors.NotFound:
+    except (errors.NotFound, errors.AttrValueNotFound):
         api.log.debug('PTR record of ipaddr %s not found', ipaddr)
         return False
 
@@ -794,13 +796,15 @@ class host_del(LDAPDelete):
 
         if updatedns:
             # Remove A, AAAA, SSHFP and PTR records of the host
-            parts = fqdn.split('.')
-            domain = unicode('.'.join(parts[1:]))
+            fqdn_dnsname = DNSName(fqdn).make_absolute()
+            zone = DNSName(dns.resolver.zone_for_name(fqdn_dnsname))
+            relative_hostname = fqdn_dnsname.relativize(zone)
+
             # Get all resources for this host
             rec_removed = False
             try:
                 record = api.Command['dnsrecord_show'](
-                    domain, parts[0])['result']
+                    zone, relative_hostname)['result']
             except errors.NotFound:
                 pass
             else:
@@ -808,13 +812,13 @@ class host_del(LDAPDelete):
                 for attr in ('arecord', 'aaaarecord'):
                     for val in record.get(attr, []):
                         rec_removed = (
-                            remove_ptr_rec(val, parts[0], domain) or
+                            remove_ptr_rec(val, fqdn_dnsname) or
                             rec_removed
                         )
                 try:
                     # remove all A, AAAA, SSHFP records of the host
                     api.Command['dnsrecord_mod'](
-                        domain,
+                        zone,
                         record['idnsname'][0],
                         arecord=[],
                         aaaarecord=[],
