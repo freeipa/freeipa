@@ -169,6 +169,14 @@ class radiusproxy_find(LDAPSearch):
         '%(count)d RADIUS proxy server matched', '%(count)d RADIUS proxy servers matched', 0
     )
 
+    def get_options(self):
+        for option in super(radiusproxy_find, self).get_options():
+            if option.name == 'ipatokenradiussecret':
+                option = option.clone(flags={'no_option'})
+
+            yield option
+
+
 @register()
 class radiusproxy_show(LDAPRetrieve):
     __doc__ = _('Display information about a RADIUS proxy server.')
