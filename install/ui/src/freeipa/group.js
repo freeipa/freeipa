@@ -105,13 +105,8 @@ return {
             ],
             adder_columns:[
                 {
-                    name: 'cn',
-                    width: '100px'
-                },
-                {
                     name: 'uid',
-                    primary_key: true,
-                    width: '100px'
+                    primary_key: true
                 }
             ]
         },
