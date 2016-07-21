@@ -18,6 +18,7 @@
 #
 
 import os
+import six
 
 from ipapython.ipautil import run
 
@@ -45,7 +46,7 @@ def get_real_key(key):
     One cannot request a key based on the description it was created with
     so find the one we're looking for.
     """
-    assert isinstance(key, str)
+    assert isinstance(key, six.string_types)
     result = run(['keyctl', 'search', KEYRING, KEYTYPE, key],
                  raiseonerr=False, capture_output=True)
     if result.returncode:
@@ -53,7 +54,7 @@ def get_real_key(key):
     return result.raw_output.rstrip()
 
 def get_persistent_key(key):
-    assert isinstance(key, str)
+    assert isinstance(key, six.string_types)
     result = run(['keyctl', 'get_persistent', KEYRING, key],
                  raiseonerr=False, capture_output=True)
     if result.returncode:
@@ -73,7 +74,7 @@ def has_key(key):
     """
     Returns True/False whether the key exists in the keyring.
     """
-    assert isinstance(key, str)
+    assert isinstance(key, six.string_types)
     try:
         get_real_key(key)
         return True
@@ -86,7 +87,7 @@ def read_key(key):
 
     Use pipe instead of print here to ensure we always get the raw data.
     """
-    assert isinstance(key, str)
+    assert isinstance(key, six.string_types)
     real_key = get_real_key(key)
     result = run(['keyctl', 'pipe', real_key], raiseonerr=False,
                  capture_output=True)
@@ -99,7 +100,7 @@ def update_key(key, value):
     """
     Update the keyring data. If they key doesn't exist it is created.
     """
-    assert isinstance(key, str)
+    assert isinstance(key, six.string_types)
     assert isinstance(value, bytes)
     if has_key(key):
         real_key = get_real_key(key)
@@ -114,7 +115,7 @@ def add_key(key, value):
     """
     Add a key to the kernel keyring.
     """
-    assert isinstance(key, str)
+    assert isinstance(key, six.string_types)
     assert isinstance(value, bytes)
     if has_key(key):
         raise ValueError('key %s already exists' % key)
@@ -127,7 +128,7 @@ def del_key(key):
     """
     Remove a key from the keyring
     """
-    assert isinstance(key, str)
+    assert isinstance(key, six.string_types)
     real_key = get_real_key(key)
     result = run(['keyctl', 'unlink', real_key, KEYRING],
                  raiseonerr=False)

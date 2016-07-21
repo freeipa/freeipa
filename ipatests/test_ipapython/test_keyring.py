@@ -28,6 +28,7 @@ import pytest
 pytestmark = pytest.mark.tier0
 
 TEST_KEY = 'ipa_test'
+TEST_UNICODEKEY = u'ipa_unicode'
 TEST_VALUE = b'abc123'
 UPDATE_VALUE = b'123abc'
 
@@ -47,6 +48,10 @@ class test_keyring(object):
             pass
         try:
             kernel_keyring.del_key(SIZE_256)
+        except ValueError:
+            pass
+        try:
+            kernel_keyring.del_key(TEST_UNICODEKEY)
         except ValueError:
             pass
 
@@ -150,3 +155,13 @@ class test_keyring(object):
         assert(result == SIZE_1024.encode('ascii'))
 
         kernel_keyring.del_key(TEST_KEY)
+
+    def test_10(self):
+        """
+        Test a unicode key
+        """
+        kernel_keyring.add_key(TEST_UNICODEKEY, TEST_VALUE)
+        result = kernel_keyring.read_key(TEST_UNICODEKEY)
+        assert(result == TEST_VALUE)
+
+        kernel_keyring.del_key(TEST_UNICODEKEY)
