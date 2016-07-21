@@ -528,10 +528,14 @@ def dir_exists(filename):
     except Exception:
         return False
 
+
 def install_file(fname, dest):
+    # SELinux: use copy to keep the right context
     if file_exists(dest):
         os.rename(dest, dest + ".orig")
-    shutil.move(fname, dest)
+    shutil.copy(fname, dest)
+    os.remove(fname)
+
 
 def backup_file(fname):
     if file_exists(fname):
