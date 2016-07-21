@@ -40,7 +40,7 @@ import re
 
 import nss.nss as nss
 from nss.error import NSPRError
-from pyasn1.type import univ, namedtype, tag
+from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import decoder, encoder
 import six
 
@@ -62,6 +62,11 @@ EKU_CODE_SIGNING = '1.3.6.1.5.5.7.3.3'
 EKU_EMAIL_PROTECTION = '1.3.6.1.5.5.7.3.4'
 EKU_ANY = '2.5.29.37.0'
 EKU_PLACEHOLDER = '1.3.6.1.4.1.3319.6.10.16'
+
+SAN_DNSNAME = 'DNS name'
+SAN_RFC822NAME = 'RFC822 Name'
+SAN_OTHERNAME_UPN = 'Other Name (OID.1.3.6.1.4.1.311.20.2.3)'
+SAN_OTHERNAME_KRB5PRINCIPALNAME = 'Other Name (OID.1.3.6.1.5.2.2)'
 
 _subject_base = None
 
@@ -373,6 +378,113 @@ def encode_ext_key_usage(ext_key_usage):
         eku[i] = univ.ObjectIdentifier(oid)
     eku = encoder.encode(eku)
     return _encode_extension('2.5.29.37', EKU_ANY not in ext_key_usage, eku)
+
+
+class _AnotherName(univ.Sequence):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('type-id', univ.ObjectIdentifier()),
+        namedtype.NamedType('value', univ.Any().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
+        ),
+    )
+
+
+class _GeneralName(univ.Choice):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('otherName', _AnotherName().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
+        ),
+        namedtype.NamedType('rfc822Name', char.IA5String().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 1))
+        ),
+        namedtype.NamedType('dNSName', char.IA5String().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 2))
+        ),
+        namedtype.NamedType('x400Address', univ.Sequence().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 3))
+        ),
+        namedtype.NamedType('directoryName', univ.Choice().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 4))
+        ),
+        namedtype.NamedType('ediPartyName', univ.Sequence().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 5))
+        ),
+        namedtype.NamedType('uniformResourceIdentifier', char.IA5String().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 6))
+        ),
+        namedtype.NamedType('iPAddress', univ.OctetString().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 7))
+        ),
+        namedtype.NamedType('registeredID', univ.ObjectIdentifier().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 8))
+        ),
+    )
+
+
+class _SubjectAltName(univ.SequenceOf):
+    componentType = _GeneralName()
+
+
+class _PrincipalName(univ.Sequence):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('name-type', univ.Integer().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
+        ),
+        namedtype.NamedType('name-string', univ.SequenceOf(char.GeneralString()).subtype(
+            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 1))
+        ),
+    )
+
+
+class _KRB5PrincipalName(univ.Sequence):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('realm', char.GeneralString().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
+        ),
+        namedtype.NamedType('principalName', _PrincipalName().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 1))
+        ),
+    )
+
+
+def _decode_krb5principalname(data):
+    principal = decoder.decode(data, asn1Spec=_KRB5PrincipalName())[0]
+    realm = (str(principal['realm']).replace('\\', '\\\\')
+                                    .replace('@', '\\@'))
+    name = principal['principalName']['name-string']
+    name = '/'.join(str(n).replace('\\', '\\\\')
+                          .replace('/', '\\/')
+                          .replace('@', '\\@') for n in name)
+    name = '%s@%s' % (name, realm)
+    return name
+
+
+def decode_generalnames(secitem):
+    """
+    Decode a GeneralNames object (this the data for the Subject
+    Alt Name and Issuer Alt Name extensions, among others).
+
+    ``secitem``
+      The input is the DER-encoded extension data, without the
+      OCTET STRING header, as an nss SecItem object.
+
+    Return a list of tuples of name types (as string, suitable for
+    presentation) and names (as string, suitable for presentation).
+
+    """
+    nss_names = nss.x509_alt_name(secitem, repr_kind=nss.AsObject)
+    asn1_names = decoder.decode(secitem.data, asn1Spec=_SubjectAltName())[0]
+    names = []
+    for nss_name, asn1_name in zip(nss_names, asn1_names):
+        name_type = nss_name.type_string
+        if name_type == SAN_OTHERNAME_KRB5PRINCIPALNAME:
+            name = _decode_krb5principalname(asn1_name['otherName']['value'])
+        else:
+            name = nss_name.name
+        names.append((name_type, name))
+
+    return names
+
 
 if __name__ == '__main__':
     # this can be run with:

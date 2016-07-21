@@ -560,7 +560,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
 
         # Validate the subject alt name, if any
         for name_type, name in subjectaltname:
-            if name_type == pkcs10.SAN_DNSNAME:
+            if name_type == x509.SAN_DNSNAME:
                 name = unicode(name)
                 alt_principal_obj = None
                 alt_principal_string = unicode(principal)
@@ -591,13 +591,13 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                             "with subject alt name '%s'.") % name)
                 if alt_principal_string is not None and not bypass_caacl:
                     caacl_check(principal_type, principal, ca, profile_id)
-            elif name_type in (pkcs10.SAN_OTHERNAME_KRB5PRINCIPALNAME,
-                               pkcs10.SAN_OTHERNAME_UPN):
+            elif name_type in (x509.SAN_OTHERNAME_KRB5PRINCIPALNAME,
+                               x509.SAN_OTHERNAME_UPN):
                 if name != principal_string:
                     raise errors.ACIError(
                         info=_("Principal '%s' in subject alt name does not "
                                "match requested principal") % name)
-            elif name_type == pkcs10.SAN_RFC822NAME:
+            elif name_type == x509.SAN_RFC822NAME:
                 if principal_type == USER:
                     if name not in principal_obj.get('mail', []):
                         raise errors.ValidationError(
