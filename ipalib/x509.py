@@ -196,6 +196,12 @@ def is_self_signed(certificate, datatype=PEM, dbdir=None):
     del nsscert
     return self_signed
 
+class _Name(univ.Choice):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('rdnSequence',
+            univ.SequenceOf()),
+    )
+
 class _TBSCertificate(univ.Sequence):
     componentType = namedtype.NamedTypes(
         namedtype.NamedType(
@@ -204,9 +210,9 @@ class _TBSCertificate(univ.Sequence):
                 tag.tagClassContext, tag.tagFormatSimple, 0))),
         namedtype.NamedType('serialNumber', univ.Integer()),
         namedtype.NamedType('signature', univ.Sequence()),
-        namedtype.NamedType('issuer', univ.Sequence()),
+        namedtype.NamedType('issuer', _Name()),
         namedtype.NamedType('validity', univ.Sequence()),
-        namedtype.NamedType('subject', univ.Sequence()),
+        namedtype.NamedType('subject', _Name()),
         namedtype.NamedType('subjectPublicKeyInfo', univ.Sequence()),
         namedtype.OptionalNamedType(
             'issuerUniquedID',
@@ -403,7 +409,7 @@ class _GeneralName(univ.Choice):
         namedtype.NamedType('x400Address', univ.Sequence().subtype(
             implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 3))
         ),
-        namedtype.NamedType('directoryName', univ.Choice().subtype(
+        namedtype.NamedType('directoryName', _Name().subtype(
             implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 4))
         ),
         namedtype.NamedType('ediPartyName', univ.Sequence().subtype(
