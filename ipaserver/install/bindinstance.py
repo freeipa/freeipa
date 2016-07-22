@@ -1139,10 +1139,10 @@ class BindInstance(service.Service):
                 root_logger.error("Update of following records failed:")
                 for attr in (failed_ipa_rec, failed_loc_rec):
                     for rname, node, error in attr:
-                        for record, e in IPASystemRecords.records_list_from_node(
+                        for record in IPASystemRecords.records_list_from_node(
                                 rname, node
                         ):
-                            root_logger.error("%s (%s)", record, e)
+                            root_logger.error("%s (%s)", record, error)
 
     def check_global_configuration(self):
         """
