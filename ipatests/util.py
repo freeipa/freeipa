@@ -652,6 +652,9 @@ class MockLDAP(object):
         except ldap.ALREADY_EXISTS:
             pass
 
+    def mod_entry(self, dn, mods):
+        self.connection.modify_s(dn, mods)
+
     def del_entry(self, dn):
         try:
             self.connection.delete_s(dn)
@@ -661,6 +664,13 @@ class MockLDAP(object):
     def unbind(self):
         if self.connection is not None:
             self.connection.unbind_s()
+
+    # contextmanager protocol
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.unbind()
 
 
 def prepare_config(template, values):
