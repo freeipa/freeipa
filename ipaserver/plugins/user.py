@@ -63,7 +63,7 @@ from ipalib import _, ngettext
 from ipalib import output
 from ipaplatform.paths import paths
 from ipapython.dn import DN
-from ipapython.ipautil import ipa_generate_password
+from ipapython.ipautil import ipa_generate_password, GEN_TMP_PWD_LEN
 from ipalib.capabilities import client_has_capability
 
 if api.env.in_server:
@@ -517,7 +517,8 @@ class user_add(baseuser_add):
                 entry_attrs['gidnumber'] = group_attrs['gidnumber']
 
         if 'userpassword' not in entry_attrs and options.get('random'):
-            entry_attrs['userpassword'] = ipa_generate_password(baseuser_pwdchars)
+            entry_attrs['userpassword'] = ipa_generate_password(
+                baseuser_pwdchars, pwd_len=GEN_TMP_PWD_LEN)
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
 

@@ -34,7 +34,7 @@ from ipaserver.plugins.service import (
 from ipalib.request import context
 from ipalib import _
 from ipapython import kerberos
-from ipapython.ipautil import ipa_generate_password
+from ipapython.ipautil import ipa_generate_password, GEN_TMP_PWD_LEN
 from ipapython.ipavalidate import Email
 from ipalib.util import (
     normalize_sshpubkey,
@@ -552,7 +552,8 @@ class baseuser_mod(LDAPUpdate):
 
     def check_userpassword(self, entry_attrs, **options):
         if 'userpassword' not in entry_attrs and options.get('random'):
-            entry_attrs['userpassword'] = ipa_generate_password(baseuser_pwdchars)
+            entry_attrs['userpassword'] = ipa_generate_password(
+                baseuser_pwdchars, pwd_len=GEN_TMP_PWD_LEN)
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
 

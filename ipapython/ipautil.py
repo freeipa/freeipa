@@ -57,7 +57,8 @@ from ipapython.dn import DN
 SHARE_DIR = paths.USR_SHARE_IPA_DIR
 PLUGINS_SHARE_DIR = paths.IPA_PLUGINS
 
-GEN_PWD_LEN = 12
+GEN_PWD_LEN = 22
+GEN_TMP_PWD_LEN = 12  # only for OTP password that is manually retyped by user
 
 # Having this in krb_utils would cause circular import
 KRB5_KDC_UNREACH = 2529639068 # Cannot contact any KDC for requested realm

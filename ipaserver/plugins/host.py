@@ -59,7 +59,11 @@ from ipalib.util import (normalize_sshpubkey, validate_sshpubkey_no_options,
     hostname_validator,
     set_krbcanonicalname
 )
-from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
+from ipapython.ipautil import (
+    ipa_generate_password,
+    CheckedIPAddress,
+    GEN_TMP_PWD_LEN
+)
 from ipapython.dnsutil import DNSName
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN
@@ -683,7 +687,8 @@ class host_add(LDAPCreate):
             if 'krbprincipal' in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].remove('krbprincipal')
         if options.get('random'):
-            entry_attrs['userpassword'] = ipa_generate_password(characters=host_pwd_chars)
+            entry_attrs['userpassword'] = ipa_generate_password(
+                characters=host_pwd_chars, pwd_len=GEN_TMP_PWD_LEN)
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
         certs = options.get('usercertificate', [])
