@@ -7,13 +7,14 @@ from __future__ import print_function
 
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.tracker.base import Tracker
+from ipatests.test_xmlrpc.tracker.kerberos_aliases import KerberosAliasMixin
 from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_uuid
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_deepequal
 from ipalib import errors
 
 
-class HostTracker(Tracker):
+class HostTracker(KerberosAliasMixin, Tracker):
     """Wraps and tracks modifications to a Host object
 
     Implements the helper functions for host plugin.
@@ -175,3 +176,10 @@ class HostTracker(Tracker):
                 pass
 
         request.addfinalizer(cleanup)
+
+    #  Kerberos aliases methods
+    def _make_add_alias_cmd(self):
+        return self.make_command('host_add_principal', self.name)
+
+    def _make_remove_alias_cmd(self):
+        return self.make_command('host_remove_principal', self.name)

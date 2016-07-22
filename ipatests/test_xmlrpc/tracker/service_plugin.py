@@ -7,6 +7,7 @@ import six
 
 from ipalib import api
 from ipatests.test_xmlrpc.tracker.base import Tracker
+from ipatests.test_xmlrpc.tracker.kerberos_aliases import KerberosAliasMixin
 from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_uuid
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_deepequal
@@ -16,7 +17,7 @@ if six.PY3:
     unicode = str
 
 
-class ServiceTracker(Tracker):
+class ServiceTracker(KerberosAliasMixin, Tracker):
     """
     Tracker class for service plugin
 
@@ -49,14 +50,14 @@ class ServiceTracker(Tracker):
         u'usercertificate', u'has_keytab'}
     update_keys = retrieve_keys - {u'dn'}
 
-    def __init__(self, name, host_fqdn, options):
+    def __init__(self, name, host_fqdn, options=None):
         super(ServiceTracker, self).__init__(default_version=None)
         self._name = "{0}/{1}@{2}".format(name, host_fqdn, api.env.realm)
         self.dn = DN(
             ('krbprincipalname', self.name), api.env.container_service,
             api.env.basedn)
         self.host_fqdn = host_fqdn
-        self.options = options
+        self.options = options or {}
 
     @property
     def name(self):
@@ -92,7 +93,8 @@ class ServiceTracker(Tracker):
             u'objectclass': objectclasses.service,
             u'ipauniqueid': [fuzzy_uuid],
             u'managedby_host': [self.host_fqdn],
-            u'krbcanonicalname': [u'{0}'.format(self.name)]
+            u'krbcanonicalname': [u'{0}'.format(self.name)],
+            u'has_keytab': False
         }
 
         for key in self.options:
@@ -150,3 +152,10 @@ class ServiceTracker(Tracker):
             u'summary': u'Modified service "{0}"'.format(self.name),
             u'result': self.filter_attrs(self.update_keys | set(extra_keys))
             }, result)
+
+    #  Kerberos aliases methods
+    def _make_add_alias_cmd(self):
+        return self.make_command('service_add_principal', self.name)
+
+    def _make_remove_alias_cmd(self):
+        return self.make_command('service_remove_principal', self.name)
