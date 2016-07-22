@@ -559,8 +559,8 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 "to the 'userCertificate' attribute of entry '%s'.") % dn)
 
         # Validate the subject alt name, if any
-        for name_type, name in subjectaltname:
-            if name_type == x509.SAN_DNSNAME:
+        for name_type, desc, name in subjectaltname:
+            if name_type == nss.certDNSName:
                 name = unicode(name)
                 alt_principal_obj = None
                 alt_principal_string = unicode(principal)
@@ -574,7 +574,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                         raise errors.ValidationError(
                             name='csr',
                             error=_("subject alt name type %s is forbidden "
-                                "for user principals") % name_type
+                                "for user principals") % desc
                         )
                 except errors.NotFound:
                     # We don't want to issue any certificates referencing
@@ -591,13 +591,15 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                             "with subject alt name '%s'.") % name)
                 if alt_principal_string is not None and not bypass_caacl:
                     caacl_check(principal_type, principal, ca, profile_id)
-            elif name_type in (x509.SAN_OTHERNAME_KRB5PRINCIPALNAME,
-                               x509.SAN_OTHERNAME_UPN):
+            elif name_type in [
+                (nss.certOtherName, x509.SAN_UPN),
+                (nss.certOtherName, x509.SAN_KRB5PRINCIPALNAME),
+            ]:
                 if name != principal_string:
                     raise errors.ACIError(
                         info=_("Principal '%s' in subject alt name does not "
                                "match requested principal") % name)
-            elif name_type == x509.SAN_RFC822NAME:
+            elif name_type == nss.certRFC822Name:
                 if principal_type == USER:
                     if name not in principal_obj.get('mail', []):
                         raise errors.ValidationError(
@@ -610,12 +612,11 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                     raise errors.ValidationError(
                         name='csr',
                         error=_("subject alt name type %s is forbidden "
-                            "for non-user principals") % name_type
+                            "for non-user principals") % desc
                     )
             else:
                 raise errors.ACIError(
-                    info=_("Subject alt name type %s is forbidden") %
-                         name_type)
+                    info=_("Subject alt name type %s is forbidden") % desc)
 
         # Request the certificate
         result = self.Backend.ra.request_certificate(

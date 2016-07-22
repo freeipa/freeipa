@@ -33,6 +33,7 @@
 
 from __future__ import print_function
 
+import collections
 import os
 import sys
 import base64
@@ -63,10 +64,8 @@ EKU_EMAIL_PROTECTION = '1.3.6.1.5.5.7.3.4'
 EKU_ANY = '2.5.29.37.0'
 EKU_PLACEHOLDER = '1.3.6.1.4.1.3319.6.10.16'
 
-SAN_DNSNAME = 'DNS name'
-SAN_RFC822NAME = 'RFC822 Name'
-SAN_OTHERNAME_UPN = 'Other Name (OID.1.3.6.1.4.1.311.20.2.3)'
-SAN_OTHERNAME_KRB5PRINCIPALNAME = 'Other Name (OID.1.3.6.1.5.2.2)'
+SAN_UPN = '1.3.6.1.4.1.311.20.2.3'
+SAN_KRB5PRINCIPALNAME = '1.3.6.1.5.2.2'
 
 _subject_base = None
 
@@ -465,6 +464,10 @@ def _decode_krb5principalname(data):
     return name
 
 
+GeneralNameInfo = collections.namedtuple(
+        'GeneralNameInfo', ('type', 'desc', 'value'))
+
+
 def decode_generalnames(secitem):
     """
     Decode a GeneralNames object (this the data for the Subject
@@ -482,12 +485,25 @@ def decode_generalnames(secitem):
     asn1_names = decoder.decode(secitem.data, asn1Spec=_SubjectAltName())[0]
     names = []
     for nss_name, asn1_name in zip(nss_names, asn1_names):
-        name_type = nss_name.type_string
-        if name_type == SAN_OTHERNAME_KRB5PRINCIPALNAME:
+        # NOTE: we use the NSS enum to identify the name type.
+        # (For otherName we also tuple it up with the type-id OID).
+        # The enum does not correspond exactly to the ASN.1 tags.
+        # If we ever want to switch to using the true tag numbers,
+        # the expression to get the tag is:
+        #
+        #   asn1_name.getComponent().getTagSet()[0].asTuple()[2]
+        #
+        if nss_name.type_enum == nss.certOtherName:
+            oid = str(asn1_name['otherName']['type-id'])
+            nametype = (nss_name.type_enum, oid)
+        else:
+            nametype = nss_name.type_enum
+
+        if nametype == (nss.certOtherName, SAN_KRB5PRINCIPALNAME):
             name = _decode_krb5principalname(asn1_name['otherName']['value'])
         else:
             name = nss_name.name
-        names.append((name_type, name))
+        names.append(GeneralNameInfo(nametype, nss_name.type_string, name))
 
     return names
 
