@@ -269,3 +269,12 @@ ObjectClass: nsIndex
 nsSystemIndex: false
 nsIndexType: eq
 nsIndexType: pres
+
+dn: cn=krbCanonicalName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: krbCanonicalName
+objectClass: top
+objectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: sub

@@ -251,3 +251,11 @@ only: nsMatchingRule: caseIgnoreIA5Match
 only: nsMatchingRule: caseExactIA5Match
 only:nsIndexType: eq
 only:nsIndexType: sub
+
+dn: cn=krbCanonicalName,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default: cn: krbCanonicalName
+default: objectClass: top
+default: objectClass: nsIndex
+only: nsSystemIndex: false
+only: nsIndexType: eq
+only: nsIndexType: sub
