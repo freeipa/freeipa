@@ -17,6 +17,7 @@ import six
 
 from ipapython import certmonger, ipaldap, ipautil, sysrestore
 from ipapython.dn import DN
+from ipapython.dnsutil import check_zone_overlap
 from ipapython.install import core
 from ipapython.install.common import step
 from ipapython.install.core import Knob
@@ -1199,12 +1200,19 @@ class ServerCA(BaseServerCA):
 
 
 class Server(BaseServer):
-    realm_name = Knob(BaseServer.realm_name)
-    domain_name = Knob(BaseServer.domain_name)
-
     setup_ca = None
     setup_kra = None
     setup_dns = Knob(BaseServer.setup_dns)
+
+    realm_name = Knob(BaseServer.realm_name)
+    domain_name = Knob(BaseServer.domain_name)
+
+    @domain_name.validator
+    def domain_name(self, value):
+        if (self.setup_dns and
+                not self.dns.allow_zone_overlap):  # pylint: disable=no-member
+            print("Checking DNS domain %s, please wait ..." % value)
+            check_zone_overlap(value, False)
 
     dm_password = Knob(
         BaseServer.dm_password,

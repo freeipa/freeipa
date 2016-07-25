@@ -284,11 +284,6 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
     @domain_name.validator
     def domain_name(self, value):
         validate_domain_name(value)
-        if (self.setup_dns and
-                not self.dns.allow_zone_overlap):  # pylint: disable=no-member
-            print("Checking DNS domain %s, please wait ..." % value)
-            check_zone_overlap(value, False)
-
 
     dm_password = Knob(
         str, None,
