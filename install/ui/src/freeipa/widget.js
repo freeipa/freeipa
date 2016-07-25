@@ -2249,7 +2249,7 @@ IPA.option_widget_base = function(spec, that) {
                 var child_values = [];
                 var option = that.get_option(value);
 
-                if (option.widget) {
+                if (option && option.widget) {
                     child_values = option.widget.save();
                     values.push.apply(values, child_values);
                 }
