@@ -70,7 +70,13 @@ typedef struct asn_OCTET_STRING_specifics_s {
 	int struct_size;	/* Size of the structure */
 	int ctx_offset;		/* Offset of the asn_struct_ctx_t member */
 
-	int subvariant;		/* {0,1,2} for O-S, BIT STRING or ANY */
+	enum asn_OS_Subvariant {
+		ASN_OSUBV_ANY,	/* The open type (ANY) */
+		ASN_OSUBV_BIT,	/* BIT STRING */
+		ASN_OSUBV_STR,	/* String types, not {BMP,Universal}String  */
+		ASN_OSUBV_U16,	/* 16-bit character (BMPString) */
+		ASN_OSUBV_U32	/* 32-bit character (UniversalString) */
+	} subvariant;
 } asn_OCTET_STRING_specifics_t;
 
 #ifdef __cplusplus

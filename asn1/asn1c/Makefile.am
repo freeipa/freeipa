@@ -25,6 +25,7 @@ ASN1C_SOURCES =			\
 	per_support.c		\
 	per_decoder.c		\
 	per_encoder.c		\
+	per_opentype.c		\
 	$(NULL)
 
 ASN1C_HEADERS =
@@ -56,6 +57,7 @@ ASN1C_HEADERS =
 	per_support.h		\
 	per_decoder.h		\
 	per_encoder.h		\
+	per_opentype.h		\
 	$(NULL)
 
 ASN1Cdir = .

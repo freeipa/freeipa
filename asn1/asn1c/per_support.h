@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2005, 2006 Lev Walkin <vlm@lionet.info>. All rights reserved.
+ * Copyright (c) 2005-2014 Lev Walkin <vlm@lionet.info>.
+ * All rights reserved.
  * Redistribution and modifications are permitted subject to BSD license.
  */
 #ifndef	_PER_SUPPORT_H_
@@ -29,15 +30,20 @@ typedef struct asn_per_constraint_s {
 typedef struct asn_per_constraints_s {
 	asn_per_constraint_t value;
 	asn_per_constraint_t size;
+	int (*value2code)(unsigned int value);
+	int (*code2value)(unsigned int code);
 } asn_per_constraints_t;
 
 /*
  * This structure describes a position inside an incoming PER bit stream.
  */
 typedef struct asn_per_data_s {
- const uint8_t *buffer;	/* Pointer to the octet stream */
-        size_t  nboff;	/* Bit offset to the meaningful bit */
-        size_t  nbits;	/* Number of bits in the stream */
+  const uint8_t *buffer;  /* Pointer to the octet stream */
+         size_t  nboff;   /* Bit offset to the meaningful bit */
+         size_t  nbits;   /* Number of bits in the stream */
+         size_t  moved;   /* Number of bits moved through this bit stream */
+  int (*refill)(struct asn_per_data_s *);
+  void *refill_key;
 } asn_per_data_t;
 
 /*
@@ -46,6 +52,9 @@ typedef struct asn_per_data_s {
  * extracted due to EOD or other conditions.
  */
 int32_t per_get_few_bits(asn_per_data_t *per_data, int get_nbits);
+
+/* Undo the immediately preceeding "get_few_bits" operation */
+void per_get_undo(asn_per_data_t *per_data, int get_nbits);
 
 /*
  * Extract a large number of bits from the specified PER data pointer.
@@ -63,9 +72,20 @@ ssize_t uper_get_length(asn_per_data_t *pd,
 			int *repeat);
 
 /*
+ * Get the normally small length "n".
+ */
+ssize_t uper_get_nslength(asn_per_data_t *pd);
+
+/*
  * Get the normally small non-negative whole number.
  */
 ssize_t uper_get_nsnnwn(asn_per_data_t *pd);
+
+/* X.691-2008/11, #11.5.6 */
+int uper_get_constrained_whole_number(asn_per_data_t *pd, unsigned long *v, int nbits);
+
+/* Non-thread-safe debugging function, don't use it */
+char *per_data_string(asn_per_data_t *pd);
 
 /*
  * This structure supports forming PER output.
@@ -86,12 +106,22 @@ int per_put_few_bits(asn_per_outp_t *per_data, uint32_t bits, int obits);
 /* Output a large number of bits */
 int per_put_many_bits(asn_per_outp_t *po, const uint8_t *src, int put_nbits);
 
+/* X.691-2008/11, #11.5 */
+int uper_put_constrained_whole_number_s(asn_per_outp_t *po, long v, int nbits);
+int uper_put_constrained_whole_number_u(asn_per_outp_t *po, unsigned long v, int nbits);
+
 /*
  * Put the length "n" to the Unaligned PER stream.
  * This function returns the number of units which may be flushed
  * in the next units saving iteration.
  */
 ssize_t uper_put_length(asn_per_outp_t *po, size_t whole_length);
+
+/*
+ * Put the normally small length "n" to the Unaligned PER stream.
+ * Returns 0 or -1.
+ */
+int uper_put_nslength(asn_per_outp_t *po, size_t length);
 
 /*
  * Put the normally small non-negative whole number.

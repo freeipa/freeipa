@@ -15,7 +15,7 @@ static ber_tlv_tag_t asn_DEF_BIT_STRING_tags[] = {
 static asn_OCTET_STRING_specifics_t asn_DEF_BIT_STRING_specs = {
 	sizeof(BIT_STRING_t),
 	offsetof(BIT_STRING_t, _asn_ctx),
-	1,	/* Special indicator that this is a BIT STRING type */
+	ASN_OSUBV_BIT
 };
 asn_TYPE_descriptor_t asn_DEF_BIT_STRING = {
 	"BIT STRING",
@@ -50,14 +50,15 @@ BIT_STRING_constraint(asn_TYPE_descriptor_t *td, const void *sptr,
 	const BIT_STRING_t *st = (const BIT_STRING_t *)sptr;
 
 	if(st && st->buf) {
-		if(st->size == 1 && st->bits_unused) {
-			_ASN_CTFAIL(app_key, td,
+		if((st->size == 0 && st->bits_unused)
+		|| st->bits_unused < 0 || st->bits_unused > 7) {
+			_ASN_CTFAIL(app_key, td, sptr,
 				"%s: invalid padding byte (%s:%d)",
 				td->name, __FILE__, __LINE__);
 			return -1;
 		}
 	} else {
-		_ASN_CTFAIL(app_key, td,
+		_ASN_CTFAIL(app_key, td, sptr,
 			"%s: value not given (%s:%d)",
 			td->name, __FILE__, __LINE__);
 		return -1;

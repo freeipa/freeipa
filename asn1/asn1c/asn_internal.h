@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2003, 2004, 2005 Lev Walkin <vlm@lionet.info>.
+ * Copyright (c) 2003, 2004, 2005, 2007 Lev Walkin <vlm@lionet.info>.
  * All rights reserved.
  * Redistribution and modifications are permitted subject to BSD license.
  */
@@ -20,13 +20,16 @@ extern "C" {
 #endif
 
 /* Environment version might be used to avoid running with the old library */
-#define	ASN1C_ENVIRONMENT_VERSION	920	/* Compile-time version */
+#define	ASN1C_ENVIRONMENT_VERSION	923	/* Compile-time version */
 int get_asn1c_environment_version(void);	/* Run-time version */
 
 #define	CALLOC(nmemb, size)	calloc(nmemb, size)
 #define	MALLOC(size)		malloc(size)
 #define	REALLOC(oldptr, size)	realloc(oldptr, size)
 #define	FREEMEM(ptr)		free(ptr)
+
+#define	asn_debug_indent	0
+#define ASN_DEBUG_INDENT_ADD(i) do{}while(0)
 
 /*
  * A macro for debugging the ASN.1 internals.
@@ -35,10 +38,21 @@ int get_asn1c_environment_version(void);	/* Run-time version */
 #ifndef	ASN_DEBUG	/* If debugging code is not defined elsewhere... */
 #if	EMIT_ASN_DEBUG == 1	/* And it was asked to emit this code... */
 #ifdef	__GNUC__
-#define	ASN_DEBUG(fmt, args...)	do {		\
-		fprintf(stderr, fmt, ##args);	\
-		fprintf(stderr, " (%s:%d)\n",	\
-			__FILE__, __LINE__);	\
+#ifdef	ASN_THREAD_SAFE
+/* Thread safety requires sacrifice in output indentation:
+ * Retain empty definition of ASN_DEBUG_INDENT_ADD. */
+#else	/* !ASN_THREAD_SAFE */
+#undef  ASN_DEBUG_INDENT_ADD
+#undef  asn_debug_indent
+int asn_debug_indent;
+#define ASN_DEBUG_INDENT_ADD(i) do { asn_debug_indent += i; } while(0)
+#endif	/* ASN_THREAD_SAFE */
+#define	ASN_DEBUG(fmt, args...)	do {			\
+		int adi = asn_debug_indent;		\
+		while(adi--) fprintf(stderr, " ");	\
+		fprintf(stderr, fmt, ##args);		\
+		fprintf(stderr, " (%s:%d)\n",		\
+			__FILE__, __LINE__);		\
 	} while(0)
 #else	/* !__GNUC__ */
 void ASN_DEBUG_f(const char *fmt, ...);
@@ -70,6 +84,7 @@ static inline void ASN_DEBUG(const char *fmt, ...) { (void)fmt; }
 	int __nl = ((nl) != 0);						\
 	int __i;							\
 	if(__nl) _ASN_CALLBACK("\n", 1);				\
+	if(__level < 0) __level = 0;					\
 	for(__i = 0; __i < __level; __i++)				\
 		_ASN_CALLBACK("    ", 4);				\
 	er.encoded += __nl + 4 * __level;				\

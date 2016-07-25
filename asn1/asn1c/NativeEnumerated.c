@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2004 Lev Walkin <vlm@lionet.info>. All rights reserved.
+ * Copyright (c) 2004, 2007 Lev Walkin <vlm@lionet.info>. All rights reserved.
  * Redistribution and modifications are permitted subject to BSD license.
  */
 /*
@@ -177,9 +177,9 @@ NativeEnumerated_encode_uper(asn_TYPE_descriptor_t *td,
 			inext = 1;
 	}
 	if(ct->flags & APC_EXTENSIBLE) {
-		if(per_put_few_bits(po, inext, 0))
+		if(per_put_few_bits(po, inext, 1))
 			_ASN_ENCODE_FAILED;
-		ct = 0;
+		if(inext) ct = 0;
 	} else if(inext) {
 		_ASN_ENCODE_FAILED;
 	}
@@ -196,7 +196,10 @@ NativeEnumerated_encode_uper(asn_TYPE_descriptor_t *td,
 	/*
 	 * X.691, #10.6: normally small non-negative whole number;
 	 */
-	if(uper_put_nsnnwn(po, value - (specs->extension - 1)))
+	ASN_DEBUG("value = %ld, ext = %d, inext = %d, res = %ld",
+		value, specs->extension, inext,
+		value - (inext ? (specs->extension - 1) : 0));
+	if(uper_put_nsnnwn(po, value - (inext ? (specs->extension - 1) : 0)))
 		_ASN_ENCODE_FAILED;
 
 	_ASN_ENCODED_OK(er);

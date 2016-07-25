@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2003, 2004, 2005, 2006 Lev Walkin <vlm@lionet.info>.
+ * Copyright (c) 2003, 2004, 2005, 2006, 2007 Lev Walkin <vlm@lionet.info>.
  * All rights reserved.
  * Redistribution and modifications are permitted subject to BSD license.
  */
 #include <asn_internal.h>
 #include <constr_CHOICE.h>
+#include <per_opentype.h>
 
 /*
  * Number of bytes left for this structure.
@@ -482,7 +483,7 @@ CHOICE_constraint(asn_TYPE_descriptor_t *td, const void *sptr,
 	int present;
 
 	if(!sptr) {
-		_ASN_CTFAIL(app_key, td,
+		_ASN_CTFAIL(app_key, td, sptr,
 			"%s: value not given (%s:%d)",
 			td->name, __FILE__, __LINE__);
 		return -1;
@@ -501,7 +502,7 @@ CHOICE_constraint(asn_TYPE_descriptor_t *td, const void *sptr,
 			if(!memb_ptr) {
 				if(elm->optional)
 					return 0;
-				_ASN_CTFAIL(app_key, td,
+				_ASN_CTFAIL(app_key, td, sptr,
 					"%s: mandatory CHOICE element %s absent (%s:%d)",
 					td->name, elm->name, __FILE__, __LINE__);
 				return -1;
@@ -524,7 +525,7 @@ CHOICE_constraint(asn_TYPE_descriptor_t *td, const void *sptr,
 			return ret;
 		}
 	} else {
-		_ASN_CTFAIL(app_key, td,
+		_ASN_CTFAIL(app_key, td, sptr,
 			"%s: no CHOICE element given (%s:%d)",
 			td->name, __FILE__, __LINE__);
 		return -1;
@@ -534,7 +535,7 @@ CHOICE_constraint(asn_TYPE_descriptor_t *td, const void *sptr,
 #undef	XER_ADVANCE
 #define	XER_ADVANCE(num_bytes)	do {			\
 		size_t num = num_bytes;			\
-		buf_ptr = ((const char *)buf_ptr) + num;\
+		buf_ptr = (const void *)(((const char *)buf_ptr) + num); \
 		size -= num;				\
 		consumed_myself += num;			\
 	} while(0)
@@ -871,8 +872,6 @@ CHOICE_decode_uper(asn_codec_ctx_t *opt_codec_ctx, asn_TYPE_descriptor_t *td,
 		value += specs->ext_start;
 		if(value >= td->elements_count)
 			_ASN_DECODE_FAILED;
-		ASN_DEBUG("NOT IMPLEMENTED YET");
-		_ASN_DECODE_FAILED;
 	}
 
 	/* Adjust if canonical order is different from natural order */
@@ -892,11 +891,17 @@ CHOICE_decode_uper(asn_codec_ctx_t *opt_codec_ctx, asn_TYPE_descriptor_t *td,
 	}
 	ASN_DEBUG("Discovered CHOICE %s encodes %s", td->name, elm->name);
 
-	rv = elm->type->uper_decoder(opt_codec_ctx, elm->type,
+	if(ct && ct->range_bits >= 0) {
+		rv = elm->type->uper_decoder(opt_codec_ctx, elm->type,
 			elm->per_constraints, memb_ptr2, pd);
+	} else {
+		rv = uper_open_type_get(opt_codec_ctx, elm->type,
+			elm->per_constraints, memb_ptr2, pd);
+	}
+
 	if(rv.code != RC_OK)
-		ASN_DEBUG("Failed to decode %s in %s (CHOICE)",
-			elm->name, td->name);
+		ASN_DEBUG("Failed to decode %s in %s (CHOICE) %d",
+			elm->name, td->name, rv.code);
 	return rv;
 }
    
@@ -908,6 +913,7 @@ CHOICE_encode_uper(asn_TYPE_descriptor_t *td,
 	asn_per_constraint_t *ct;
 	void *memb_ptr;
 	int present;
+	int present_enc;
 
 	if(!sptr) _ASN_ENCODE_FAILED;
 
@@ -929,15 +935,17 @@ CHOICE_encode_uper(asn_TYPE_descriptor_t *td,
 	else
 		present--;
 
-	/* Adjust if canonical order is different from natural order */
-	if(specs->canonical_order)
-		present = specs->canonical_order[present];
-
 	ASN_DEBUG("Encoding %s CHOICE element %d", td->name, present);
 
+	/* Adjust if canonical order is different from natural order */
+	if(specs->canonical_order)
+		present_enc = specs->canonical_order[present];
+	else
+		present_enc = present;
+
 	if(ct && ct->range_bits >= 0) {
-		if(present < ct->lower_bound
-		|| present > ct->upper_bound) {
+		if(present_enc < ct->lower_bound
+		|| present_enc > ct->upper_bound) {
 			if(ct->flags & APC_EXTENSIBLE) {
 				if(per_put_few_bits(po, 1, 1))
 					_ASN_ENCODE_FAILED;
@@ -951,18 +959,6 @@ CHOICE_encode_uper(asn_TYPE_descriptor_t *td,
 		if(per_put_few_bits(po, 0, 1))
 			_ASN_ENCODE_FAILED;
 
-	if(ct && ct->range_bits >= 0) {
-		if(per_put_few_bits(po, present, ct->range_bits))
-			_ASN_ENCODE_FAILED;
-	} else {
-		if(specs->ext_start == -1)
-			_ASN_ENCODE_FAILED;
-		if(uper_put_nsnnwn(po, present - specs->ext_start))
-			_ASN_ENCODE_FAILED;
-		ASN_DEBUG("NOT IMPLEMENTED YET");
-		_ASN_ENCODE_FAILED;
-	}
-
 	elm = &td->elements[present];
 	if(elm->flags & ATF_POINTER) {
 		/* Member is a pointer to another structure */
@@ -972,8 +968,24 @@ CHOICE_encode_uper(asn_TYPE_descriptor_t *td,
 		memb_ptr = (char *)sptr + elm->memb_offset;
 	}
 
-	return elm->type->uper_encoder(elm->type, elm->per_constraints,
+	if(ct && ct->range_bits >= 0) {
+		if(per_put_few_bits(po, present_enc, ct->range_bits))
+			_ASN_ENCODE_FAILED;
+
+		return elm->type->uper_encoder(elm->type, elm->per_constraints,
 			memb_ptr, po);
+	} else {
+		asn_enc_rval_t rval;
+		if(specs->ext_start == -1)
+			_ASN_ENCODE_FAILED;
+		if(uper_put_nsnnwn(po, present_enc - specs->ext_start))
+			_ASN_ENCODE_FAILED;
+		if(uper_open_type_put(elm->type, elm->per_constraints,
+			memb_ptr, po))
+			_ASN_ENCODE_FAILED;
+		rval.encoded = 0;
+		_ASN_ENCODED_OK(rval);
+	}
 }
    
 
