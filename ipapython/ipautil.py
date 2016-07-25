@@ -1328,7 +1328,8 @@ def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
 
 
 def kinit_password(principal, password, ccache_name, config=None,
-                   armor_ccache_name=None):
+                   armor_ccache_name=None, canonicalize=False,
+                   enterprise=False):
     """
     perform interactive kinit as principal using password. If using FAST for
     web-based authentication, use armor_ccache_path to specify http service
@@ -1340,6 +1341,14 @@ def kinit_password(principal, password, ccache_name, config=None,
         root_logger.debug("Using armor ccache %s for FAST webauth"
                           % armor_ccache_name)
         args.extend(['-T', armor_ccache_name])
+
+    if canonicalize:
+        root_logger.debug("Requesting principal canonicalization")
+        args.append('-C')
+
+    if enterprise:
+        root_logger.debug("Using enterprise principal")
+        args.append('-E')
 
     env = {'LC_ALL': 'C'}
     if config is not None:
