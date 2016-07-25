@@ -636,7 +636,8 @@ rpc.batch_command = function(spec) {
 
             if (!result) {
                 name = text.get('@i18n:errors.internal_error', 'Internal Error')+' '+xhr.status;
-                message = result ? xhr.statusText : text.get('@i18n:errors.internal_error', 'Internal Error');
+                message = xhr ? xhr.statusText :
+                    text.get('@i18n:errors.internal_error', 'Internal Error');
 
                 that.errors.add(command, name, message, text_status);
 
