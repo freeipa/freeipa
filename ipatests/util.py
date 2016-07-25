@@ -693,7 +693,8 @@ def unlock_principal_password(user, oldpw, newpw):
 
 
 @contextmanager
-def change_principal(user, password, client=None, path=None):
+def change_principal(user, password, client=None, path=None,
+                     canonicalize=False, enterprise=False):
 
     if path:
         ccache_name = path
@@ -708,7 +709,8 @@ def change_principal(user, password, client=None, path=None):
 
     try:
         with private_ccache(ccache_name):
-            kinit_password(user, password, ccache_name)
+            kinit_password(user, password, ccache_name,
+                           canonicalize=canonicalize, enterprise=enterprise)
             client.Backend.rpcclient.connect()
 
             try:
