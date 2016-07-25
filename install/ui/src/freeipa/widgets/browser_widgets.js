@@ -427,11 +427,11 @@ widgets.browser_widgets.CommandDetailWidget = declare([base], {
                 if (i>0) {
                     out_params_cnt.append(', ');
                 }
-                if (!param) {
-                    out_params_cnt.append(param_name);
-                } else {
+                if (param && obj) {
                     var link = this.render_param_link(obj.name, param_name);
                     out_params_cnt.append(link);
+                } else {
+                    out_params_cnt.append(param_name);
                 }
             }
             out_params_cnt.appendTo(this.el);
