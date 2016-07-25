@@ -670,7 +670,6 @@ CHOICE_decode_xer(asn_codec_ctx_t *opt_codec_ctx, asn_TYPE_descriptor_t *td,
 			case -1:
 				ctx->phase = 5;
 				RETURN(RC_FAIL);
-				continue;
 			case 1:
 				ctx->phase = 3;
 				/* Fall through */
