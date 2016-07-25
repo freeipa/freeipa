@@ -1047,7 +1047,7 @@ IPA.multivalued_widget = function(spec) {
 
     that.child_spec = spec.child_spec;
     that.size = spec.size || 30;
-    that.undo_control;
+    that.undo_control = null;
     that.initialized = true;
     that.updating = false;
 
