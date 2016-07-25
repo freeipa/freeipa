@@ -1466,7 +1466,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 entry_attrs.dn, attrs_list)
         except errors.NotFound:
             raise errors.MidairCollision(
-                format=_('the entry was deleted while being modified')
+                message=_('the entry was deleted while being modified')
             )
 
         self.obj.get_indirect_members(entry_attrs, attrs_list)
@@ -2344,7 +2344,7 @@ class BaseLDAPModAttribute(LDAPQuery):
                 entry_attrs.dn, attrs_list)
         except errors.NotFound:
             raise errors.MidairCollision(
-                format=_('the entry was deleted while being modified')
+                message=_('the entry was deleted while being modified')
             )
 
         for callback in self.get_callbacks('post'):
