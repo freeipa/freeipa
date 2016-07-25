@@ -1532,19 +1532,15 @@ IPA.dns.record_prepare_editor_for_type = function(type, fields, widgets, update)
 
         //create editor widget
         var widget = {};
-        if (typeof attribute === 'string') {
-            widget.name = attribute;
-        } else {
-            widget.name = attribute.name;
-            if (metadata) {
-                var doc = metadata.doc;
-                var label = metadata.label;
-                if (doc !== label) widget.tooltip = doc;
-            }
-            set_defined(attribute.$type, widget, '$type');
-            set_defined(attribute.options, widget, 'options');
-            copy_obj(widget, attribute.widget_opt);
+        widget.name = attribute.name;
+        if (metadata) {
+            var doc = metadata.doc;
+            var label = metadata.label;
+            if (doc !== label) widget.tooltip = doc;
         }
+        set_defined(attribute.$type, widget, '$type');
+        set_defined(attribute.options, widget, 'options');
+        copy_obj(widget, attribute.widget_opt);
         section.widgets.push(widget);
     }
 };
