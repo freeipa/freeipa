@@ -379,7 +379,8 @@ rpc.command = function(spec) {
                 error_handler.call(this, xhr, text_status, /* error_thrown */ {
                     name: text.get('@i18n:errors.http_error', 'HTTP Error')+' '+xhr.status,
                     url: this.url,
-                    message: data ? xhr.statusText : text.get('@i18n:errors.no_response', 'No response')
+                    message: xhr ? xhr.statusText :
+                            text.get('@i18n:errors.no_response', 'No response')
                 });
 
             } else if (IPA.version && data.version && IPA.version !== data.version) {
