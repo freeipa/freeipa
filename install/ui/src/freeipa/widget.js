@@ -5767,6 +5767,8 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
     that.on_visible_change = function(event) {
 
         var row = that._get_row(event);
+        if (!row) return;
+
         if (event.visible) {
             row.css('display', '');
         } else {
