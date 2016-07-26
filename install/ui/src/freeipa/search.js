@@ -221,7 +221,11 @@ IPA.search_facet = function(spec, no_init) {
     that.show_remove_dialog = function() {
 
         var dialog = that.create_remove_dialog();
-        dialog.open();
+        if (dialog) {
+            dialog.open();
+        } else {
+            window.console.log("Remove dialog was not created properly.");
+        }
     };
 
     that.find = function() {
