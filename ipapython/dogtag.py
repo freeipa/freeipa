@@ -48,9 +48,13 @@ Profile = collections.namedtuple('Profile', ['profile_id', 'description', 'store
 INCLUDED_PROFILES = {
     Profile(u'caIPAserviceCert', u'Standard profile for network services', True),
     Profile(u'IECUserRoles', u'User profile that includes IECUserRoles extension from request', True),
+    Profile(u'KDCs_PKINIT_Certs',
+            u'Profile for PKINIT support by KDCs',
+            False),
     }
 
 DEFAULT_PROFILE = u'caIPAserviceCert'
+KDC_PROFILE = u'KDCs_PKINIT_Certs'
 
 
 def error_from_xml(doc, message_template):

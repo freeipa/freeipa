@@ -779,7 +779,7 @@ def configure_certmonger(
     passwd_fname = os.path.join(paths.IPA_NSSDB_DIR, 'pwdfile.txt')
     try:
         certmonger.request_cert(
-            nssdb=paths.IPA_NSSDB_DIR,
+            certpath=paths.IPA_NSSDB_DIR,
             nickname='Local IPA host', subject=subject, dns=[hostname],
             principal=principal, passwd_fname=passwd_fname)
     except Exception as ex:

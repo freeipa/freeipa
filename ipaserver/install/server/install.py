@@ -521,6 +521,11 @@ def install_check(installer):
         dirsrv_pkcs12_info = (dirsrv_pkcs12_file.name, dirsrv_pin)
 
     if options.pkinit_cert_files:
+        if not options.no_pkinit:
+            raise ScriptError("Cannot create KDC PKINIT certificate and use "
+                              "provided external PKINIT certificate at the "
+                              "same time. Please choose one of them.")
+
         if options.pkinit_pin is None:
             options.pkinit_pin = read_password(
                 "Enter Kerberos KDC private key unlock",
@@ -792,17 +797,11 @@ def install(installer):
     ds.enable_ssl()
 
     krb = krbinstance.KrbInstance(fstore)
-    if options.pkinit_cert_files:
-        krb.create_instance(realm_name, host_name, domain_name,
-                            dm_password, master_password,
-                            setup_pkinit=not options.no_pkinit,
-                            pkcs12_info=pkinit_pkcs12_info,
-                            subject_base=options.subject)
-    else:
-        krb.create_instance(realm_name, host_name, domain_name,
-                            dm_password, master_password,
-                            setup_pkinit=not options.no_pkinit,
-                            subject_base=options.subject)
+    krb.create_instance(realm_name, host_name, domain_name,
+                        dm_password, master_password,
+                        setup_pkinit=not options.no_pkinit,
+                        pkcs12_info=pkinit_pkcs12_info,
+                        subject_base=options.subject)
 
     # restart DS to enable ipa-pwd-extop plugin
     print("Restarting directory server to enable password extension plugin")

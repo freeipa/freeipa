@@ -816,7 +816,7 @@ class DsInstance(service.Service):
             try:
                 cmd = 'restart_dirsrv %s' % self.serverid
                 certmonger.request_and_wait_for_cert(
-                    nssdb=dirname,
+                    certpath=dirname,
                     nickname=self.nickname,
                     principal=self.principal,
                     passwd_fname=dsdb.passwd_fname,

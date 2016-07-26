@@ -47,6 +47,7 @@ from ipaserver.install import sysupgrade
 from ipaserver.install import dnskeysyncinstance
 from ipaserver.install import krainstance
 from ipaserver.install import dogtaginstance
+from ipaserver.install import krbinstance
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
 
@@ -1492,6 +1493,20 @@ def add_default_caacl(ca):
     sysupgrade.set_upgrade_state('caacl', 'add_default_caacl', True)
 
 
+def enable_anonymous_principal(krb):
+    princ_realm = krb.get_anonymous_principal_name()
+    dn = DN(('krbprincipalname', princ_realm), krb.get_realm_suffix())
+    try:
+        _ = api.Backend.ldap2.get_entry(dn)  # pylint: disable=unused-variable
+    except ipalib.errors.NotFound:
+        krb.add_anonymous_principal()
+
+    try:
+        api.Backend.ldap2.set_entry_active(dn, True)
+    except ipalib.errors.AlreadyActive:
+        pass
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1734,6 +1749,26 @@ def upgrade_configuration():
         cainstance.ensure_ipa_authority_entry()
 
     set_sssd_domain_option('ipa_server_mode', 'True')
+
+    krb = krbinstance.KrbInstance(fstore)
+    krb.fqdn = fqdn
+    krb.realm = api.env.realm
+    krb.suffix = ipautil.realm_to_suffix(krb.realm)
+    krb.subject_base = subject_base
+    if not os.path.exists(paths.KDC_CERT):
+        krb.setup_pkinit()
+        replacevars = dict()
+        replacevars['pkinit_identity'] = 'FILE:{},{}'.format(
+            paths.KDC_CERT,paths.KDC_KEY)
+        appendvars = {}
+        ipautil.backup_config_and_replace_variables(
+            fstore, paths.KRB5KDC_KDC_CONF, replacevars=replacevars,
+            appendvars=appendvars)
+        tasks.restore_context(paths.KRB5KDC_KDC_CONF)
+        if krb.is_running():
+            krb.stop()
+        krb.start()
+    enable_anonymous_principal(krb)
 
     if not ds_running:
         ds.stop(ds_serverid)

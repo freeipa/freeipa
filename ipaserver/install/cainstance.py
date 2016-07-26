@@ -817,7 +817,7 @@ class CAInstance(DogtagInstance):
             # The certificate must be requested using caServerCert profile
             # because this profile does not require agent authentication
             reqId = certmonger.request_and_wait_for_cert(
-                nssdb=self.ra_agent_db,
+                certpath=self.ra_agent_db,
                 nickname='ipaCert',
                 principal='host/%s' % self.fqdn,
                 passwd_fname=self.ra_agent_pwd,
