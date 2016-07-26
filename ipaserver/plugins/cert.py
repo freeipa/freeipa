@@ -688,14 +688,18 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         for name_type, desc, name, der_name in subjectaltname:
             if name_type == nss.certDNSName:
                 name = unicode(name)
+                alt_principal = None
                 alt_principal_obj = None
-                alt_principal_string = unicode(principal)
                 try:
                     if principal_type == HOST:
+                        alt_principal = kerberos.Principal(
+                            (u'host', name), principal.realm)
                         alt_principal_obj = api.Command['host_show'](name, all=True)
                     elif principal_type == SERVICE:
+                        alt_principal = kerberos.Principal(
+                            (principal.service_name, name), principal.realm)
                         alt_principal_obj = api.Command['service_show'](
-                            alt_principal_string, all=True)
+                            alt_principal, all=True)
                     elif principal_type == USER:
                         raise errors.ValidationError(
                             name='csr',
@@ -715,8 +719,8 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                         raise errors.ACIError(info=_(
                             "Insufficient privilege to create a certificate "
                             "with subject alt name '%s'.") % name)
-                if alt_principal_string is not None and not bypass_caacl:
-                    caacl_check(principal_type, principal, ca, profile_id)
+                if alt_principal is not None and not bypass_caacl:
+                    caacl_check(principal_type, alt_principal, ca, profile_id)
             elif name_type in [
                 (nss.certOtherName, x509.SAN_UPN),
                 (nss.certOtherName, x509.SAN_KRB5PRINCIPALNAME),
