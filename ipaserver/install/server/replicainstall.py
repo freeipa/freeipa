@@ -124,7 +124,9 @@ def install_krb(config, setup_pkinit=False, promote=False):
     krb.create_replica(config.realm_name,
                        config.master_host_name, config.host_name,
                        config.domain_name, config.dirman_password,
-                       setup_pkinit, pkcs12_info, promote=promote)
+                       setup_pkinit, pkcs12_info,
+                       subject_base=config.subject_base,
+                       promote=promote)
 
     return krb
 

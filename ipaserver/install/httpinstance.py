@@ -376,7 +376,7 @@ class HTTPInstance(service.Service):
 
                 try:
                     certmonger.request_and_wait_for_cert(
-                        nssdb=db.secdir,
+                        certpath=db.secdir,
                         nickname=self.cert_nickname,
                         principal=self.principal,
                         passwd_fname=db.passwd_fname,

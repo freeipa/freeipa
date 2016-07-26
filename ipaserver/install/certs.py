@@ -633,7 +633,13 @@ class CertDB(object):
 
     def install_pem_from_p12(self, p12_fname, p12_passwd, pem_fname):
         pwd = ipautil.write_tmp_file(p12_passwd)
-        ipautil.run([paths.OPENSSL, "pkcs12", "-nodes",
+        ipautil.run([paths.OPENSSL, "pkcs12", "-nokeys",
+                     "-in", p12_fname, "-out", pem_fname,
+                     "-passin", "file:" + pwd.name])
+
+    def install_key_from_p12(self, p12_fname, p12_passwd, pem_fname):
+        pwd = ipautil.write_tmp_file(p12_passwd)
+        ipautil.run([paths.OPENSSL, "pkcs12", "-nodes", "-nocerts",
                      "-in", p12_fname, "-out", pem_fname,
                      "-passin", "file:" + pwd.name])
 
@@ -647,7 +653,7 @@ class CertDB(object):
     def request_service_cert(self, nickname, principal, host, pwdconf=False):
         if pwdconf:
             self.create_password_conf()
-        certmonger.request_and_wait_for_cert(nssdb=self.secdir,
+        certmonger.request_and_wait_for_cert(certpath=self.secdir,
                                              nickname=nickname,
                                              principal=principal,
                                              subject=host,

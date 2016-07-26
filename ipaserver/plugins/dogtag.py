@@ -1225,6 +1225,8 @@ class RestClient(Backend):
             profile_api.create_profile(...)
 
     """
+    DEFAULT_PROFILE = dogtag.DEFAULT_PROFILE
+    KDC_PROFILE = dogtag.KDC_PROFILE
     path = None
 
     @staticmethod

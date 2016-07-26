@@ -24,6 +24,7 @@ import shutil
 import os
 import pwd
 import socket
+import dbus
 
 import dns.name
 
@@ -32,6 +33,7 @@ from ipaserver.install import installutils
 from ipapython import ipautil
 from ipapython import kernel_keyring
 from ipalib import api
+from ipalib.install import certmonger
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 
@@ -153,11 +155,13 @@ class KrbInstance(service.Service):
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
         self.step("creating a keytab for the machine", self.__create_host_keytab)
         self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
-        if setup_pkinit:
-            self.step("creating X509 Certificate for PKINIT", self.__setup_pkinit)
-            self.step("creating principal for anonymous PKINIT", self.__add_anonymous_pkinit_principal)
+        self.step("creating anonymous principal", self.add_anonymous_principal)
 
         self.__common_post_setup()
+
+        if setup_pkinit:
+            self.step("installing X509 Certificate for PKINIT",
+                      self.setup_pkinit)
 
         self.start_creation(runtime=30)
 
@@ -179,7 +183,8 @@ class KrbInstance(service.Service):
         self.step("configuring KDC", self.__configure_instance)
         self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
         if setup_pkinit:
-            self.step("installing X509 Certificate for PKINIT", self.__setup_pkinit)
+            self.step("installing X509 Certificate for PKINIT",
+                      self.setup_pkinit)
 
         self.__common_post_setup()
 
@@ -214,7 +219,8 @@ class KrbInstance(service.Service):
                              KRB5KDC_KADM5_ACL=paths.KRB5KDC_KADM5_ACL,
                              DICT_WORDS=paths.DICT_WORDS,
                              KRB5KDC_KADM5_KEYTAB=paths.KRB5KDC_KADM5_KEYTAB,
-                             KDC_PEM=paths.KDC_PEM,
+                             KDC_CERT=paths.KDC_CERT,
+                             KDC_KEY=paths.KDC_KEY,
                              CACERT_PEM=paths.CACERT_PEM)
 
         # IPA server/KDC is not a subdomain of default domain
@@ -338,31 +344,50 @@ class KrbInstance(service.Service):
 
         self.move_service_to_host(host_principal)
 
-    def __setup_pkinit(self):
+    def setup_pkinit(self):
         ca_db = certs.CertDB(self.realm, host_name=self.fqdn,
                                 subject_base=self.subject_base)
 
         if self.pkcs12_info:
             ca_db.install_pem_from_p12(self.pkcs12_info[0],
                                        self.pkcs12_info[1],
-                                       paths.KDC_PEM)
+                                       paths.KDC_CERT)
+            ca_db.install_key_from_p12(self.pkcs12_info[0],
+                                       self.pkcs12_info[1],
+                                       paths.KDC_KEY)
         else:
-            raise RuntimeError("PKI not supported yet\n")
+            subject = str(DN(('cn', self.fqdn), self.subject_base))
+            krbtgt = "krbtgt/" + self.realm + "@" + self.realm
+            certpath = (paths.KDC_CERT, paths.KDC_KEY)
+            try:
+                reqid = certmonger.request_cert(certpath, u'KDC-Cert',
+                                                subject, krbtgt,
+                                                dns=self.fqdn, storage='FILE',
+                                                profile='KDCs_PKINIT_Certs')
+            except dbus.DBusException as e:
+                # if the certificate is already tracked, ignore the error
+                name = e.get_dbus_name()
+                if name != 'org.fedorahosted.certmonger.duplicate':
+                    root_logger.error("Failed to initiate the request: %s", e)
+                return
+
+            try:
+                certmonger.wait_for_request(reqid)
+            except RuntimeError as e:
+                root_logger.error("Failed to wait for request: %s", e)
 
         # Finally copy the cacert in the krb directory so we don't
         # have any selinux issues with the file context
         shutil.copyfile(paths.IPA_CA_CRT, paths.CACERT_PEM)
 
-    def __add_anonymous_pkinit_principal(self):
+    def get_anonymous_principal_name(self):
         princ = "WELLKNOWN/ANONYMOUS"
-        princ_realm = "%s@%s" % (princ, self.realm)
+        return "%s@%s" % (princ, self.realm)
 
+    def add_anonymous_principal(self):
         # Create the special anonymous principal
+        princ_realm = self.get_anonymous_principal_name()
         installutils.kadmin_addprinc(princ_realm)
-        dn = DN(('krbprincipalname', princ_realm), self.get_realm_suffix())
-        entry = api.Backend.ldap2.get_entry(dn)
-        entry['nsAccountlock'] = ['TRUE']
-        api.Backend.ldap2.update_entry(entry)
 
     def __convert_to_gssapi_replication(self):
         repl = replication.ReplicationManager(self.realm,
@@ -371,6 +396,9 @@ class KrbInstance(service.Service):
         repl.convert_to_gssapi_replication(self.master_fqdn,
                                            r_binddn=DN(('cn', 'Directory Manager')),
                                            r_bindpw=self.dm_password)
+
+    def stop_tracking_certs(self):
+        certmonger.stop_tracking(certfile=paths.KDC_CERT)
 
     def uninstall(self):
         if self.is_configured():
@@ -393,6 +421,12 @@ class KrbInstance(service.Service):
         # disabled by default, by ldap_enable()
         if enabled:
             self.enable()
+
+        # stop tracking and remove certificates
+        self.stop_tracking_certs()
+        installutils.remove_file(paths.CACERT_PEM)
+        installutils.remove_file(paths.KDC_CERT)
+        installutils.remove_file(paths.KDC_KEY)
 
         if running:
             self.restart()
