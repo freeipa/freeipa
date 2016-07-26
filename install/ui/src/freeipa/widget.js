@@ -4939,7 +4939,7 @@ IPA.combobox_widget = function(spec) {
         var value = that.list.val();
         var option = $('option[value="'+value+'"]', that.list);
         var next = option.next();
-        if (!next.length) return;
+        if (!next || !next.length) return;
         that.select(next.val());
     };
 
@@ -4947,7 +4947,7 @@ IPA.combobox_widget = function(spec) {
         var value = that.list.val();
         var option = $('option[value="'+value+'"]', that.list);
         var prev = option.prev();
-        if (!prev.length) return;
+        if (!prev || !prev.length) return;
         that.select(prev.val());
     };
 
