@@ -21,6 +21,8 @@
 This base platform module exports default filesystem paths.
 '''
 
+import os
+
 
 class BasePathNamespace(object):
     BASH = "/bin/bash"
@@ -352,5 +354,18 @@ class BasePathNamespace(object):
     IPA_CUSTODIA_SOCKET = '/run/httpd/ipa-custodia.sock'
     IPA_CUSTODIA_AUDIT_LOG = '/var/log/ipa-custodia.audit.log'
     IPA_GETKEYTAB = '/usr/sbin/ipa-getkeytab'
+
+    @property
+    def USER_CACHE_PATH(self):
+        return (
+            os.environ.get('XDG_CACHE_HOME') or
+            os.path.join(
+                os.environ.get(
+                    'HOME',
+                    os.path.expanduser('~')
+                ),
+                '.cache'
+            )
+        )
 
 path_namespace = BasePathNamespace

@@ -31,23 +31,26 @@ class CompatObject(Object):
     pass
 
 
-def get_package(api, client):
-    if not client.isconnected():
-        client.connect(verbose=False)
-
-    env = client.forward(u'env', u'api_version', version=u'2.0')
+def get_package(api, server_info, client):
     try:
-        server_version = env['result']['api_version']
+        server_version = server_info['version']
     except KeyError:
-        ping = client.forward(u'ping', version=u'2.0')
+        if not client.isconnected():
+            client.connect(verbose=False)
+        env = client.forward(u'env', u'api_version', version=u'2.0')
         try:
-            match = re.search(u'API version (2\.[0-9]+)', ping['summary'])
+            server_version = env['result']['api_version']
         except KeyError:
-            match = None
-        if match is not None:
-            server_version = match.group(1)
-        else:
-            server_version = u'2.0'
+            ping = client.forward(u'ping', u'api_version', version=u'2.0')
+            try:
+                match = re.search(u'API version (2\.[0-9]+)', ping['summary'])
+            except KeyError:
+                match = None
+            if match is not None:
+                server_version = match.group(1)
+            else:
+                server_version = u'2.0'
+        server_info['version'] = server_version
     server_version = LooseVersion(server_version)
 
     package_names = {}

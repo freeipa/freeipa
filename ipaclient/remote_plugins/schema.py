@@ -19,6 +19,7 @@ from ipalib import errors, parameters, plugable
 from ipalib.frontend import Object
 from ipalib.output import Output
 from ipalib.parameters import DefaultFrom, Flag, Password, Str
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipapython.ipa_log_manager import log_mgr
@@ -54,17 +55,6 @@ _PARAMS = {
     'int': parameters.Int,
     'str': parameters.Str,
 }
-
-USER_CACHE_PATH = (
-    os.environ.get('XDG_CACHE_HOME') or
-    os.path.join(
-        os.environ.get(
-            'HOME',
-            os.path.expanduser('~')
-        ),
-        '.cache'
-    )
-)
 
 logger = log_mgr.get_logger(__name__)
 
@@ -359,62 +349,6 @@ class NotAvailable(Exception):
     pass
 
 
-class ServerInfo(collections.MutableMapping):
-    _DIR = os.path.join(USER_CACHE_PATH, 'ipa', 'servers')
-
-    def __init__(self, api):
-        hostname = DNSName(api.env.server).ToASCII()
-        self._path = os.path.join(self._DIR, hostname)
-        self._dict = {}
-        self._dirty = False
-
-        self._read()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *_exc_info):
-        if self._dirty:
-            self._write()
-
-    def _read(self):
-        try:
-            with open(self._path, 'r') as sc:
-                self._dict = json.load(sc)
-        except EnvironmentError as e:
-            if e.errno != errno.ENOENT:
-                logger.warning('Failed to read server info: {}'.format(e))
-
-    def _write(self):
-        try:
-            try:
-                os.makedirs(self._DIR)
-            except EnvironmentError as e:
-                if e.errno != errno.EEXIST:
-                    raise
-            with open(self._path, 'w') as sc:
-                json.dump(self._dict, sc)
-        except EnvironmentError as e:
-            logger.warning('Failed to write server info: {}'.format(e))
-
-    def __getitem__(self, key):
-        return self._dict[key]
-
-    def __setitem__(self, key, value):
-        self._dirty = key not in self._dict or self._dict[key] != value
-        self._dict[key] = value
-
-    def __delitem__(self, key):
-        del self._dict[key]
-        self._dirty = True
-
-    def __iter__(self):
-        return iter(self._dict)
-
-    def __len__(self):
-        return len(self._dict)
-
-
 class Schema(object):
     """
     Store and provide schema for commands and topics
@@ -436,7 +370,7 @@ class Schema(object):
 
     """
     namespaces = {'classes', 'commands', 'topics'}
-    _DIR = os.path.join(USER_CACHE_PATH, 'ipa', 'schema')
+    _DIR = os.path.join(paths.USER_CACHE_PATH, 'ipa', 'schema')
 
     def __init__(self, api, server_info, client):
         self._dict = {}
@@ -618,13 +552,12 @@ class Schema(object):
                     self._dict[ns][member].update(self._help[ns][member])
 
 
-def get_package(api, client):
+def get_package(api, server_info, client):
     try:
         schema = api._schema
     except AttributeError:
-        with ServerInfo(api.env.hostname) as server_info:
-            schema = Schema(api, server_info, client)
-            object.__setattr__(api, '_schema', schema)
+        schema = Schema(api, server_info, client)
+        object.__setattr__(api, '_schema', schema)
 
     fingerprint = str(schema['fingerprint'])
     package_name = '{}${}'.format(__name__, fingerprint)
