@@ -135,7 +135,7 @@ widgets.APIBrowserWidget = declare([Stateful, Evented], {
             groups = this._get_params(parts[0]);
         }
 
-        if (filter) {
+        if (filter && groups) {
             filter = filter.toLowerCase();
             var new_groups = [];
             for (var i=0,l=groups.length; i<l; i++) {
@@ -153,10 +153,10 @@ widgets.APIBrowserWidget = declare([Stateful, Evented], {
                     new_groups.push(groups[i]);
                 }
             }
-            return new_groups;
-        } else {
-            return groups;
+            groups = new_groups;
         }
+
+        return groups;
     },
 
     /**
