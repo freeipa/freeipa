@@ -23,6 +23,8 @@ from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipapython.ipa_log_manager import log_mgr
 
+FORMAT = '0'
+
 if six.PY3:
     unicode = str
 
@@ -478,6 +480,14 @@ class Schema(object):
         return _LockedZipFile(path, mode)
 
     def _get_schema_fingerprint(self, schema):
+        try:
+            fmt = json.loads(schema.read('format'))
+        except KeyError:
+            fmt = '0'
+
+        if fmt != FORMAT:
+            raise RuntimeError('invalid format')
+
         schema_info = json.loads(schema.read(self.schema_info_path))
         return schema_info['fingerprint']
 
