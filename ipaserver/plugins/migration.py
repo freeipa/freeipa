@@ -36,6 +36,7 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
 from ipalib import _
 from ipapython.dn import DN
 from ipapython.ipautil import write_tmp_file
+from ipapython.kerberos import Principal
 import datetime
 from ipaplatform.paths import paths
 
@@ -152,6 +153,32 @@ _supported_scopes = {u'base': SCOPE_BASE, u'onelevel': SCOPE_ONELEVEL, u'subtree
 _default_scope = u'onelevel'
 
 
+def _create_kerberos_principals(ldap, pkey, entry_attrs, failed):
+    """
+    Create 'krbprincipalname' and 'krbcanonicalname' attributes for incoming
+    user entry or skip it if there already is a user with such principal name.
+    The code does not search for `krbcanonicalname` since we assume that the
+    canonical principal name is always contained among values of
+    `krbprincipalname` attribute.Both `krbprincipalname` and `krbcanonicalname`
+    are set to default value generated from uid and realm.
+
+    Note: the migration does not currently preserve principal aliases
+    """
+    principal = Principal((pkey,), realm=api.env.realm)
+    try:
+        ldap.find_entry_by_attr(
+            'krbprincipalname', principal, 'krbprincipalaux', [''],
+            DN(api.env.container_user, api.env.basedn)
+        )
+    except errors.NotFound:
+        entry_attrs['krbprincipalname'] = principal
+        entry_attrs['krbcanonicalname'] = principal
+    except errors.LimitsExceeded:
+        failed[pkey] = unicode(_krb_failed_msg % unicode(principal))
+    else:
+        failed[pkey] = unicode(_krb_err_msg % unicode(principal))
+
+
 def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs):
     assert isinstance(dn, DN)
     attr_blacklist = ['krbprincipalkey','memberofindirect','memberindirect']
@@ -217,19 +244,7 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
             except ValueError:  # object class not present
                 pass
 
-    # generate a principal name and check if it isn't already taken
-    principal = u'%s@%s' % (pkey, api.env.realm)
-    try:
-        ldap.find_entry_by_attr(
-            'krbprincipalname', principal, 'krbprincipalaux', [''],
-            DN(api.env.container_user, api.env.basedn)
-        )
-    except errors.NotFound:
-        entry_attrs['krbprincipalname'] = principal
-    except errors.LimitsExceeded:
-        failed[pkey] = unicode(_krb_failed_msg % principal)
-    else:
-        failed[pkey] = unicode(_krb_err_msg % principal)
+    _create_kerberos_principals(ldap, pkey, entry_attrs, failed)
 
     # Fix any attributes with DN syntax that point to entries in the old
     # tree
