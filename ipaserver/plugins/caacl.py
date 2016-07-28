@@ -132,16 +132,21 @@ def _acl_make_rule(principal_type, obj):
         rule.services.names = obj.get(attr, [])
 
     # add principals and principal's groups
-    m = {'user': 'group', 'host': 'hostgroup', 'service': None}
     category_attr = '{}category'.format(principal_type)
     if category_attr in obj and obj[category_attr][0].lower() == 'all':
         rule.users.category = {pyhbac.HBAC_CATEGORY_ALL}
     else:
-        principal_attr = 'member{}_{}'.format(principal_type, principal_type)
-        rule.users.names = obj.get(principal_attr, [])
-        if m[principal_type] is not None:
-            group_attr = 'member{}_{}'.format(principal_type, m[principal_type])
-            rule.users.groups = obj.get(group_attr, [])
+        if principal_type == 'user':
+            rule.users.names = obj.get('memberuser_user', [])
+            rule.users.groups = obj.get('memberuser_group', [])
+        elif principal_type == 'host':
+            rule.users.names = obj.get('memberhost_host', [])
+            rule.users.groups = obj.get('memberhost_hostgroup', [])
+        elif principal_type == 'service':
+            rule.users.names = [
+                unicode(principal)
+                for principal in obj.get('memberservice_service', [])
+            ]
 
     return rule
 
