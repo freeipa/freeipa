@@ -332,22 +332,13 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         return result
 
-    def backup_and_replace_hostname(self, fstore, statestore, hostname):
-        old_hostname = socket.gethostname()
-        try:
-            self.set_hostname(hostname)
-        except ipautil.CalledProcessError as e:
-            root_logger.debug(traceback.format_exc())
-            root_logger.error(
-                "Failed to set this machine hostname to %s (%s).",
-                old_hostname, e
-            )
-
+    def backup_hostname(self, fstore, statestore):
         filepath = paths.ETC_HOSTNAME
         if os.path.exists(filepath):
             fstore.backup_file(filepath)
 
         # store old hostname
+        old_hostname = socket.gethostname()
         statestore.backup_state('network', 'hostname', old_hostname)
 
     def restore_hostname(self, fstore, statestore):

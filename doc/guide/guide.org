@@ -1039,14 +1039,14 @@ def restore_context_default(filepath):
 # version in platform services
 restore_context = restore_context_default
 
-# Default implementation of backup and replace hostname that does nothing
-def backup_and_replace_hostname_default(fstore, statestore, hostname):
+# Default implementation of backup hostname that does nothing
+def backup_hostname_default(fstore, statestore):
     return
 
-# Backup and replace system's hostname
-# Since many platforms have their own way how to store system's hostname, this method must be
+# Backup system's hostname
+# Since many platforms have their own way of handling system's hostname, this method must be
 # implemented in platform services
-backup_and_replace_hostname = backup_and_replace_hostname_default
+backup_hostname = backup_hostname_default
 
 from ipapython.platform.SUPPORTED_PLATFORM import *
 #+END_SRC

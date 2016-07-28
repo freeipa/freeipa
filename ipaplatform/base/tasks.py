@@ -45,13 +45,10 @@ class BaseTaskNamespace(object):
 
         raise NotImplementedError()
 
-    def backup_and_replace_hostname(self, fstore, statestore, hostname):
+    def backup_hostname(self, fstore, statestore):
         """
         Backs up the current hostname in the statestore (so that it can be
         restored by the restore_hostname platform task).
-
-        Makes sure that new hostname (passed via hostname argument) is set
-        as a new pemanent hostname for this host.
 
         No return value expected.
         """
@@ -109,7 +106,7 @@ class BaseTaskNamespace(object):
     def restore_hostname(self, fstore, statestore):
         """
         Restores the original hostname as backed up in the
-        backup_and_replace_hostname platform task.
+        backup_hostname platform task.
         """
 
         raise NotImplementedError()

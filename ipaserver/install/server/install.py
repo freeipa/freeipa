@@ -651,6 +651,7 @@ def install_check(installer):
     options.dm_password = dm_password
     options.master_password = master_password
     options.admin_password = admin_password
+    options._host_name_overridden = bool(options.host_name)
     options.host_name = host_name
     options.ip_addresses = ip_addresses
 
@@ -702,11 +703,10 @@ def install(installer):
         print("Please wait until the prompt is returned.")
         print("")
 
-    # configure /etc/sysconfig/network to contain the custom hostname
-    tasks.backup_and_replace_hostname(fstore, sstore, host_name)
-
-    # set hostname (we need both transient and static)
-    tasks.set_hostname(host_name)
+    # set hostname (transient and static) if user instructed us to do so
+    if options._host_name_overridden:
+        tasks.backup_hostname(fstore, sstore)
+        tasks.set_hostname(host_name)
 
     if installer._update_hosts_file:
         update_hosts_file(ip_addresses, host_name, fstore)

@@ -2525,7 +2525,8 @@ def install(options, env, fstore, statestore):
     if options.hostname and not options.on_master:
         # skip this step when run by ipa-server-install as it always configures
         # hostname
-        tasks.backup_and_replace_hostname(fstore, statestore, options.hostname)
+        tasks.backup_hostname(fstore, statestore)
+        tasks.set_hostname(options.hostname)
 
     ntp_srv_servers = []
     if not options.on_master and options.conf_ntp:
