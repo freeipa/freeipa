@@ -23,6 +23,7 @@ define(['dojo/_base/declare',
         'dojo/dom-construct',
         'dojo/dom-style',
         'dojo/query',
+        'dojo/topic',
         'dojo/on',
         '../ipa',
         '../auth',
@@ -32,7 +33,7 @@ define(['dojo/_base/declare',
         '../util',
         './LoginScreenBase'
        ],
-       function(declare, Deferred, construct, dom_style, query, on,
+       function(declare, Deferred, construct, dom_style, query, topic, on,
                 IPA, auth, reg, FieldBinder, text, util, LoginScreenBase) {
 
 
@@ -150,7 +151,7 @@ define(['dojo/_base/declare',
             var handler = function(data, text_status, xhr) {
                 var result = xhr.getResponseHeader("X-IPA-TokenSync-Result");
                 result = result || 'error';
-                IPA.hide_activity_icon();
+                topic.publish('rpc-end');
                 d.resolve(result);
             };
 
@@ -165,7 +166,7 @@ define(['dojo/_base/declare',
                 error: handler
             };
 
-            IPA.display_activity_icon();
+            topic.publish('rpc-start');
             $.ajax(request);
             return d.promise;
         },
