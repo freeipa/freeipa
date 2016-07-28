@@ -340,29 +340,6 @@ var IPA = function () {
         return reg.entity.get(name);
     };
 
-    /**
-     * Display network activity indicator
-     */
-    that.display_activity_icon = function() {
-        that.network_call_count++;
-        if (that.network_call_count === 1) {
-            topic.publish('network-activity-start');
-        }
-    };
-
-    /**
-     * Hide network activity indicator
-     *
-     * - based on network_call_count
-     */
-    that.hide_activity_icon = function() {
-        that.network_call_count--;
-
-        if (0 === that.network_call_count) {
-            topic.publish('network-activity-end');
-        }
-    };
-
     that.obj_cls = declare([Evented]);
 
     return that;
@@ -391,13 +368,13 @@ IPA.get_credentials = function() {
 
     function error_handler(xhr, text_status, error_thrown) {
         d.resolve(xhr.status);
-        IPA.hide_activity_icon();
+        topic.publish('rpc-end');
     }
 
     function success_handler(data, text_status, xhr) {
         auth.current.set_authenticated(true, 'kerberos');
         d.resolve(xhr.status);
-        IPA.hide_activity_icon();
+        topic.publish('rpc-end');
     }
 
     var request = {
@@ -407,7 +384,9 @@ IPA.get_credentials = function() {
         success: success_handler,
         error: error_handler
     };
-    IPA.display_activity_icon();
+
+    topic.publish('rpc-start');
+
     $.ajax(request);
 
     return d.promise;
@@ -439,7 +418,8 @@ IPA.logout = function() {
     }
 
     function success_handler(data, text_status, xhr) {
-        IPA.hide_activity_icon();
+        topic.publish('rpc-end');
+
         if (data && data.error) {
             show_error(data.error.message);
         } else {
@@ -448,7 +428,8 @@ IPA.logout = function() {
     }
 
     function error_handler(xhr, text_status, error_thrown) {
-        IPA.hide_activity_icon();
+        topic.publish('rpc-end');
+
         if (xhr.status === 401) {
             reload();
         } else {
@@ -467,7 +448,8 @@ IPA.logout = function() {
         success: success_handler,
         error: error_handler
     };
-    IPA.display_activity_icon();
+    topic.publish('rpc-start');
+
     $.ajax(request);
 };
 
@@ -485,7 +467,8 @@ IPA.login_password = function(username, password) {
     var d = new Deferred();
 
     function success_handler(data, text_status, xhr) {
-        IPA.hide_activity_icon();
+        topic.publish('rpc-end');
+
         result = 'success';
         auth.current.set_authenticated(true, 'password');
         d.resolve(result);
@@ -493,7 +476,8 @@ IPA.login_password = function(username, password) {
 
     function error_handler(xhr, text_status, error_thrown) {
 
-        IPA.hide_activity_icon();
+        topic.publish('rpc-end');
+
         if (xhr.status === 401) {
             var reason = xhr.getResponseHeader("X-IPA-Rejection-Reason");
 
@@ -526,7 +510,8 @@ IPA.login_password = function(username, password) {
         error: error_handler
     };
 
-    IPA.display_activity_icon();
+    topic.publish('rpc-start');
+
     $.ajax(request);
 
     return d.promise;
@@ -558,6 +543,8 @@ IPA.reset_password = function(username, old_password, new_password, otp) {
 
     function success_handler(data, text_status, xhr) {
 
+        topic.publish('rpc-end');
+
         result.status = xhr.getResponseHeader("X-IPA-Pwchange-Result") || status;
 
         if (result.status === 'policy-error') {
@@ -571,6 +558,7 @@ IPA.reset_password = function(username, old_password, new_password, otp) {
     }
 
     function error_handler(xhr, text_status, error_thrown) {
+        topic.publish('rpc-end');
         return result;
     }
 
@@ -596,9 +584,8 @@ IPA.reset_password = function(username, old_password, new_password, otp) {
         error: error_handler
     };
 
-    IPA.display_activity_icon();
+    topic.publish('rpc-start');
     $.ajax(request);
-    IPA.hide_activity_icon();
 
     return result;
 };

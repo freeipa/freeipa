@@ -25,13 +25,15 @@
 define([
     'dojo/_base/lang',
     'dojo/Deferred',
+    'dojo/on',
+    'dojo/topic',
     './auth',
     './ipa',
     './text',
     './util',
     'exports'
    ],
-   function(lang, Deferred, auth, IPA, text, util, rpc /*exports*/) {
+   function(lang, Deferred, on, topic, auth, IPA, text, util, rpc /*exports*/) {
 
 /**
  * Call an IPA command over JSON-RPC.
@@ -99,9 +101,10 @@ rpc.command = function(spec) {
     /**
      * Allow turning off the activity icon.
      *
-     * @property {Boolean} show=true
+     * @property {Boolean} notify_globally=true
      */
-    that.hide_activity_icon = spec.hide_activity_icon || false;
+    that.notify_globally = spec.notify_globally === undefined ? true :
+        spec.notify_globally;
 
     /**
      * Allow set function which will be called when the activity of the command
@@ -109,7 +112,7 @@ rpc.command = function(spec) {
      *
      * @property {Function}
      */
-    that.notify_activity_start = spec.notify_activity_start || null;
+    that.start_handler = spec.start_handler || null;
 
     /**
      * Allow set function which will be called when the activity of the command
@@ -117,7 +120,7 @@ rpc.command = function(spec) {
      *
      * @property {Function}
      */
-    that.notify_activity_end = spec.notify_activity_end || null;
+    that.end_handler = spec.end_handler || null;
 
     /** @property {string} error_message Default error message */
     that.error_message = text.get(spec.error_message || '@i18n:dialogs.batch_error_message', 'Some operations failed.');
@@ -223,11 +226,11 @@ rpc.command = function(spec) {
     };
 
     that.handle_notify_execution_end = function() {
-        if (that.hide_activity_icon) {
-            if (that.notify_activity_end) that.notify_activity_end();
+        if (that.notify_globally) {
+            topic.publish('rpc-end');
         }
         else {
-            IPA.hide_activity_icon();
+            that.emit('end');
         }
     };
 
@@ -285,7 +288,7 @@ rpc.command = function(spec) {
 
             var self = this;
             function proceed() {
-                // error_handler() calls IPA.hide_activity_icon()
+                // error_handler() publishes 'rpc-end'
                 error_handler.call(self, xhr, text_status, error_thrown);
             }
 
@@ -375,7 +378,7 @@ rpc.command = function(spec) {
         function success_handler(data, text_status, xhr) {
 
             if (!data) {
-                // error_handler() calls IPA.hide_activity_icon()
+                // error_handler() publishes 'rpc-end'
                 error_handler.call(this, xhr, text_status, /* error_thrown */ {
                     name: text.get('@i18n:errors.http_error', 'HTTP Error')+' '+xhr.status,
                     url: this.url,
@@ -390,7 +393,7 @@ rpc.command = function(spec) {
                 window.location.reload();
 
             } else if (data.error) {
-                // error_handler() calls IPA.hide_activity_icon()
+                // error_handler() publishes 'rpc-end'
                 error_handler.call(this, xhr, text_status,  /* error_thrown */ {
                     name: text.get('@i18n:errors.ipa_error', 'IPA Error') + ' ' +
                           data.error.code + ': ' + data.error.name,
@@ -419,14 +422,24 @@ rpc.command = function(spec) {
 
                     dialog.on_ok = function() {
                         dialog.close();
-                        if (that.on_success) that.on_success.call(ajax, data, text_status, xhr);
+                        that.emit('success', {
+                            that: ajax,
+                            data: data,
+                            text_status: text_status,
+                            xhr: xhr
+                        });
                     };
 
                     dialog.open();
 
                 } else {
                     //custom success handling, maintaining AJAX call's context
-                    if (that.on_success) that.on_success.call(this, data, text_status, xhr);
+                    that.emit('success', {
+                        that: this,
+                        data: data,
+                        text_status: text_status,
+                        xhr: xhr
+                    });
                 }
                 that.process_warnings(data.result);
                 deferred.resolve({
@@ -453,11 +466,11 @@ rpc.command = function(spec) {
             error: error_handler_login
         };
 
-        if (that.hide_activity_icon) {
-            if (that.notify_activity_start) that.notify_activity_start();
+        if (that.notify_globally) {
+            topic.publish('rpc-start');
         }
         else {
-            IPA.display_activity_icon();
+            that.emit('start');
         }
 
         $.ajax(that.request);
@@ -538,6 +551,26 @@ rpc.command = function(spec) {
 
         return string;
     };
+
+    that.register_handlers = function() {
+        on(that, 'start', function() {
+            if (that.start_handler) that.start_handler();
+        });
+
+        on(that, 'end', function() {
+            if (that.end_handler) that.end_handler();
+        });
+
+        on(that, 'success', function(e) {
+            if (that.on_success) that.on_success(e.data, e.text_status, e.xhr);
+        });
+
+        on(that, 'error', function(xhr, text_status, error_thrown) {
+            if (that.on_error) that.on_error(xhr, text_status, error_thrown);
+        });
+    };
+
+    that.register_handlers();
 
     return that;
 };
@@ -674,11 +707,14 @@ rpc.batch_command = function(spec) {
                 var failed = that.get_failed(command, result, text_status, xhr);
                 that.errors.add_range(failed);
 
-                if (command.on_success) command.on_success.call(this, result, text_status, xhr);
+                command.emit('success', {
+                    data: result,
+                    text_status: text_status,
+                    xhr: xhr
+                });
             }
         }
 
-        //check for partial errors and show error dialog
         if (that.show_error && that.errors.errors.length > 0) {
             var ajax = this;
             var dialog = IPA.error_dialog({
@@ -695,13 +731,22 @@ rpc.batch_command = function(spec) {
 
             dialog.on_ok = function() {
                 dialog.close();
-                if (that.on_success) that.on_success.call(ajax, data, text_status, xhr);
+                that.emit('success', {
+                    that: ajax,
+                    data: data,
+                    text_status: text_status,
+                    xhr: xhr
+                });
             };
 
             dialog.open();
 
         } else {
-            if (that.on_success) that.on_success.call(this, data, text_status, xhr);
+            that.emit('success', {
+                data: data,
+                text_status: text_status,
+                xhr: xhr
+            });
         }
     };
 

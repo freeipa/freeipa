@@ -780,19 +780,35 @@ IPA.cert.request_action = function(spec) {
 
 IPA.cert.perform_revoke = function(spec, sn, revocation_reason, cacn) {
 
-    spec.hide_activity_icon = spec.hide_activity_icon || false;
+    /**
+     * Sets whether activity notification box will be shown
+     * during executing command or not.
+     */
+    spec.notify_globally = spec.notify_globally === undefined ? true :
+            spec.notify_globally;
+
+
+    /**
+     * Specifies function which will be called before command execution starts.
+     */
+    spec.start_handler = spec.start_handler || null;
+
+    /**
+     * Specifies function which will be called after command execution ends.
+     */
+    spec.end_handler = spec.end_handler || null;
 
     rpc.command({
         entity: 'cert',
         method: 'revoke',
-        hide_activity_icon: spec.hide_activity_icon,
         args: [ sn ],
         options: {
             revocation_reason: revocation_reason,
             cacn: cacn
         },
-        notify_activity_start: spec.notify_activity_start,
-        notify_activity_end: spec.notify_activity_end,
+        notify_globally: spec.notify_globally,
+        start_handler: spec.start_handler,
+        end_handler: spec.end_handler,
         on_success: spec.on_success,
         on_error: spec.on_error
     }).execute();
@@ -906,6 +922,25 @@ IPA.cert.remove_hold_action = function(spec) {
 
 IPA.cert.perform_remove_hold = function(spec, sn, cacn) {
 
+    /**
+     * Sets whether activity notification box will be shown
+     * during executing command or not.
+     */
+    spec.notify_globally = spec.notify_globally === undefined ? true :
+            spec.notify_globally;
+
+
+    /**
+     * Specifies function which will be called before command execution starts.
+     */
+    spec.start_handler = spec.start_handler || null;
+
+    /**
+     * Specifies function which will be called after command execution ends.
+     */
+    spec.end_handler = spec.end_handler || null;
+
+
     rpc.command({
         entity: 'cert',
         method: 'remove_hold',
@@ -913,7 +948,10 @@ IPA.cert.perform_remove_hold = function(spec, sn, cacn) {
         options: {
             cacn: cacn
         },
-        on_success: spec.on_success
+        on_success: spec.on_success,
+        notify_globally: spec.notify_globally,
+        start_handler: spec.start_handler,
+        end_handler: spec.end_handler
     }).execute();
 };
 
@@ -1409,11 +1447,11 @@ IPA.cert.cert_widget = function(spec) {
             on_ok: function() {
 
                 var command_spec = {
-                    hide_activity_icon: true,
-                    notify_activity_end: function() {
+                    notify_globally: false,
+                    end_handler: function() {
                         that.spinner.emit('hide-spinner');
                     },
-                    notify_activity_start: function() {
+                    start_handler: function() {
                         that.spinner.emit('display-spinner');
                     },
                     on_success: function() {
@@ -1443,11 +1481,11 @@ IPA.cert.cert_widget = function(spec) {
             ok_label: '@i18n:buttons.remove_hold',
             on_ok: function () {
                 var command_spec = {
-                    hide_activity_icon: true,
-                    notify_activity_end: function() {
+                    notify_globally: false,
+                    end_handler: function() {
                         that.spinner.emit('hide-spinner');
                     },
-                    notify_activity_start: function() {
+                    start_handler: function() {
                         that.spinner.emit('display-spinner');
                     },
                     on_success: function() {

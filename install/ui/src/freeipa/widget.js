@@ -6977,6 +6977,8 @@ exp.activity_widget = IPA.activity_widget = function(spec) {
 
     that.icon = spec.icon || 'fa fa-spinner fa-spin';
 
+    that.connection_counter = 0;
+
     /**
      * Operation mode
      *
@@ -6986,8 +6988,8 @@ exp.activity_widget = IPA.activity_widget = function(spec) {
      */
     that.mode = spec.mode || "dots";
 
-    that.activate_event = spec.activate_event || 'network-activity-start';
-    that.deactivate_event = spec.deactivate_event || 'network-activity-end';
+    that.activate_event = spec.activate_event || 'rpc-start';
+    that.deactivate_event = spec.deactivate_event || 'rpc-end';
 
     that.create = function(container) {
         that.widget_create(container);
@@ -7012,10 +7014,15 @@ exp.activity_widget = IPA.activity_widget = function(spec) {
         }
         that.set_visible(that.visible);
         topic.subscribe(that.activate_event, function() {
-            that.show();
+            ++that.connection_counter;
+
+            if (that.connection_counter === 1) that.show();
         });
         topic.subscribe(that.deactivate_event, function() {
-            that.hide();
+            --that.connection_counter;
+
+            if (that.connection_counter === 0) that.hide();
+            if (that.connection_counter < 0) that.connection_counter = 0;
         });
     };
 
@@ -7036,6 +7043,7 @@ exp.activity_widget = IPA.activity_widget = function(spec) {
         that.toggle_class('closed', true);
         that.row_node.detach(); // to save CPU time (spinner icon)
         that.toggle_timer(false);
+
     };
 
     that.show = function() {
