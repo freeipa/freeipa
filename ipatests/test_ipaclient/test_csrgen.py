@@ -176,7 +176,8 @@ class test_CSRGenerator(object):
             ],
         }
 
-        script = generator.csr_config(principal, config, 'userCert')
+        script = generator.csr_config(
+            principal, config, {}, 'userCert')
         with open(os.path.join(
                 CSR_DATA_DIR, 'configs', 'userCert.conf')) as f:
             expected_script = f.read()
@@ -195,7 +196,7 @@ class test_CSRGenerator(object):
         }
 
         script = generator.csr_config(
-            principal, config, 'caIPAserviceCert')
+            principal, config, {}, 'caIPAserviceCert')
         with open(os.path.join(
                 CSR_DATA_DIR, 'configs', 'caIPAserviceCert.conf')) as f:
             expected_script = f.read()
@@ -212,7 +213,7 @@ class test_rule_handling(object):
             rule_provider, formatter_class=IdentityFormatter)
 
         script = generator.csr_config(
-            principal, {}, 'example')
+            principal, {}, {}, 'example')
         assert script == '\n'
 
     def test_twoDataRulesOneMissing(self, generator):
@@ -225,7 +226,7 @@ class test_rule_handling(object):
         generator = csrgen.CSRGenerator(
             rule_provider, formatter_class=IdentityFormatter)
 
-        script = generator.csr_config(principal, {}, 'example')
+        script = generator.csr_config(principal, {}, {}, 'example')
         assert script == ',testuser\n'
 
     def test_requiredAttributeMissing(self):
@@ -239,4 +240,4 @@ class test_rule_handling(object):
 
         with pytest.raises(errors.CSRTemplateError):
             _script = generator.csr_config(
-                principal, {}, 'example')
+                principal, {}, {}, 'example')

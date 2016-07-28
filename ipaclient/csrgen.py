@@ -372,8 +372,9 @@ class CSRGenerator(object):
         self.rule_provider = rule_provider
         self.formatter = formatter_class()
 
-    def csr_config(self, principal, config, profile_id):
-        render_data = {'subject': principal, 'config': config}
+    def csr_config(self, principal, config, userdata, profile_id):
+        render_data = {
+            'subject': principal, 'config': config, 'userdata': userdata}
 
         rules = self.rule_provider.rules_for_profile(profile_id)
         template = self.formatter.build_template(rules)
@@ -386,6 +387,36 @@ class CSRGenerator(object):
                 'Template error when formatting certificate data'))
 
         return config
+
+    def get_user_prompts(self, profile_id):
+        prompts = {}
+        rules = self.rule_provider.rules_for_profile(profile_id)
+
+        for field_mapping in rules:
+            for rule in field_mapping.data_rules:
+                if 'prompt' in rule.options:
+                    try:
+                        var = rule.options['data_source']
+                    except KeyError:
+                        raise errors.CSRTemplateError(reason=_(
+                            'Certificate mapping rule %(rule)s has a prompt'
+                            ' but no data_source set') % {'rule': rule.name})
+                    if var in prompts:
+                        raise errors.CSRTemplateError(reason=_(
+                            'More than one data rule in this profile prompts'
+                            ' for the %(item)s data item') % {'item': var})
+                    var_parts = var.split('.')
+                    if len(var_parts) != 2 or var_parts[0] != 'userdata':
+                        raise errors.CSRTemplateError(
+                            reason=_(
+                                'Format of variable name in rule %(rule)s is'
+                                ' incorrect. Rules that prompt for data must'
+                                ' use a variable "userdata.<var_name>"') %
+                            {'rule': rule.name})
+
+                    prompts[var_parts[1]] = rule.options['prompt']
+
+        return prompts
 
 
 class CSRLibraryAdaptor(object):

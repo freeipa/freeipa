@@ -1,0 +1,16 @@
+{
+  "rules": [
+    {
+      "helper": "openssl",
+      "template": "email = {{userdata.email}}"
+    },
+    {
+      "helper": "certutil",
+      "template": "email:{{userdata.email|quote}}"
+    }
+  ],
+  "options": {
+    "data_source": "userdata.email",
+    "prompt": "Email address"
+  }
+}

@@ -90,6 +90,9 @@ class cert_get_requestdata(Local):
         if not backend.isconnected():
             backend.connect()
 
+        generator = csrgen.CSRGenerator(csrgen.FileRuleProvider())
+        prompts = generator.get_user_prompts(profile_id, helper)
+
         try:
             if principal.is_host:
                 principal_obj = api.Command.host_show(
@@ -106,9 +109,12 @@ class cert_get_requestdata(Local):
         principal_obj = principal_obj['result']
         config = api.Command.config_show()['result']
 
-        generator = csrgen.CSRGenerator(csrgen.FileRuleProvider())
+        userdata = {}
+        for name, prompt in prompts.items():
+            userdata[name] = self.Backend.textui.prompt(prompt)
 
-        csr_config = generator.csr_config(principal_obj, config, profile_id)
+        csr_config = generator.csr_config(
+            principal_obj, config, userdata, profile_id)
         request_info = base64.b64encode(csrgen_ffi.build_requestinfo(
             csr_config.encode('utf8'), public_key_info))
 
