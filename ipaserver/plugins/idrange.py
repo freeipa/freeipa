@@ -35,6 +35,9 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
         _dcerpc_bindings_installed = True
     except ImportError:
         _dcerpc_bindings_installed = False
+else:
+    _dcerpc_bindings_installed = False
+
 
 ID_RANGE_VS_DNA_WARNING = """=======
 WARNING:
