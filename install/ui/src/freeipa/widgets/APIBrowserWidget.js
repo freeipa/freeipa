@@ -264,7 +264,7 @@ widgets.APIBrowserWidget = declare([Stateful, Evented], {
         this.list_w.select(item);
 
         // set item
-        widget.set('item', item);
+        if (widget) widget.set('item', item);
         this.set('current', {
             item: item,
             type: type,
