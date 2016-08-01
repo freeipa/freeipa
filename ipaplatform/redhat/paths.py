@@ -32,6 +32,7 @@ class RedHatPathNamespace(BasePathNamespace):
     # https://docs.python.org/2/library/platform.html#cross-platform
     if sys.maxsize > 2**32:
         LIBSOFTHSM2_SO = BasePathNamespace.LIBSOFTHSM2_SO_64
+        PAM_KRB5_SO = BasePathNamespace.PAM_KRB5_SO_64
 
 
 paths = RedHatPathNamespace()
