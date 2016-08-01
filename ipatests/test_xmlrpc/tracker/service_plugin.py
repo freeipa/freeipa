@@ -48,7 +48,7 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
 
     create_keys = (retrieve_keys | {u'objectclass', u'ipauniqueid'}) - {
         u'usercertificate', u'has_keytab'}
-    update_keys = retrieve_keys - {u'dn'}
+    update_keys = retrieve_keys - {u'dn', u'has_keytab'}
 
     def __init__(self, name, host_fqdn, options=None):
         super(ServiceTracker, self).__init__(default_version=None)
