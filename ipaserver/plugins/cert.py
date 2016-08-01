@@ -32,7 +32,7 @@ import six
 
 from ipalib import Command, Str, Int, Flag
 from ipalib import api
-from ipalib import errors
+from ipalib import errors, messages
 from ipalib import pkcs10
 from ipalib import x509
 from ipalib import ngettext
@@ -994,7 +994,15 @@ class cert_find(Search, CertMethod):
             )
 
     def _get_cert_key(self, cert):
-        nss_cert = x509.load_certificate(cert, x509.DER)
+        try:
+            nss_cert = x509.load_certificate(cert, x509.DER)
+        except NSPRError as e:
+            message = messages.SearchResultTruncated(
+                reason=_("failed to load certificate: %s") % e,
+            )
+            self.add_message(message)
+
+            raise ValueError("failed to load certificate")
 
         return (DN(unicode(nss_cert.issuer)), nss_cert.serial_number)
 
@@ -1017,7 +1025,10 @@ class cert_find(Search, CertMethod):
         except KeyError:
             return result, False, False
 
-        key = self._get_cert_key(cert)
+        try:
+            key = self._get_cert_key(cert)
+        except ValueError:
+            return result, True, True
 
         result[key] = self._get_cert_obj(cert, all, raw, pkey_only)
 
@@ -1132,12 +1143,21 @@ class cert_find(Search, CertMethod):
             entries = []
             truncated = False
         else:
+            try:
+                ldap.handle_truncated_result(truncated)
+            except errors.LimitsExceeded as e:
+                self.add_message(messages.SearchResultTruncated(reason=e))
+
             truncated = bool(truncated)
 
         for entry in entries:
             for attr in ('usercertificate', 'usercertificate;binary'):
                 for cert in entry.get(attr, []):
-                    key = self._get_cert_key(cert)
+                    try:
+                        key = self._get_cert_key(cert)
+                    except ValueError:
+                        truncated = True
+                        continue
 
                     try:
                         obj = result[key]
