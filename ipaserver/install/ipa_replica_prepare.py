@@ -236,6 +236,10 @@ class ReplicaPrepare(admintool.AdminTool):
         except errors.DatabaseError as e:
             raise admintool.ScriptError(e.desc)
 
+        if ca_enabled and not ipautil.file_exists(paths.CA_CS_CFG_PATH):
+            raise admintool.ScriptError(
+                "CA is not installed on this server. "
+                "ipa-replica-prepare must be run on an IPA server with CA.")
         if not ca_enabled and not options.http_cert_files:
             raise admintool.ScriptError(
                 "Cannot issue certificates: a CA is not installed. Use the "
@@ -347,13 +351,6 @@ class ReplicaPrepare(admintool.AdminTool):
                 "Apache Server SSL certificate and Directory Server SSL "
                  "certificate are not signed by the same CA certificate")
 
-        if (not ipautil.file_exists(paths.CA_CS_CFG_PATH) and
-                options.dirsrv_pin is None):
-            self.log.info("If you installed IPA with your own certificates "
-                "using PKCS#12 files you must provide PKCS#12 files for any "
-                "replicas you create as well.")
-            raise admintool.ScriptError("The replica must be created on the "
-                "primary IPA server.")
 
     def run(self):
         options = self.options
