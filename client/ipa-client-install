@@ -2289,6 +2289,10 @@ def install(options, env, fstore, statestore):
 
     # when installing with '--no-sssd' option, check whether nss-ldap is installed
     if not options.sssd:
+        if not os.path.exists(paths.PAM_KRB5_SO):
+            root_logger.error("The pam_krb5 package must be installed")
+            return CLIENT_INSTALL_ERROR
+
         (nssldap_installed, nosssd_files) = nssldap_exists()
         if not nssldap_installed:
             root_logger.error("One of these packages must be installed: " +

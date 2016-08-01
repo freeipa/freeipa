@@ -326,7 +326,6 @@ Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
 Requires: krb5-workstation
 Requires: authconfig
-Requires: pam_krb5
 Requires: curl
 # NIS domain name config: /usr/lib/systemd/system/*-domainname.service
 Requires: initscripts
