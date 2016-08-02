@@ -133,7 +133,7 @@ client-dirs:
 		echo "Without those directories ipa-client-install will fail" ; \
 	fi
 
-lint: bootstrap-autogen
+pylint: bootstrap-autogen
 	# find all python modules and executable python files outside modules for pylint check
 	FILES=`find . \
 		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
@@ -146,8 +146,14 @@ lint: bootstrap-autogen
 		-type f -exec grep -qsm1 '^#!.*\bpython' '{}' \; -print`; \
 	echo "Pylint is running, please wait ..."; \
 	PYTHONPATH=. pylint --rcfile=pylintrc $(PYLINTFLAGS) $$FILES || $(LINT_IGNORE_FAIL)
+
+po-validate:
 	$(MAKE) -C install/po validate-src-strings || $(LINT_IGNORE_FAIL)
 
+jslint:
+	cd install/ui; jsl -nologo -nosummary -nofilelisting -conf jsl.conf || $(LINT_IGNORE_FAIL)
+
+lint: pylint po-validate jslint
 
 test:
 	./make-test
