@@ -23,7 +23,7 @@ from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipapython.ipa_log_manager import log_mgr
 
-FORMAT = '0'
+FORMAT = '1'
 
 if six.PY3:
     unicode = str
@@ -113,9 +113,11 @@ class _SchemaPlugin(object):
         if self._class is not None:
             return self._class.summary
         else:
-            if self.doc is not None:
-                return self.doc.split('\n\n', 1)[0].strip()
-            else:
+            self._schema.load_help()
+            schema = self._schema[self.schema_key][self.full_name]
+            try:
+                return schema['summary']
+            except KeyError:
                 return u'<%s>' % self.full_name
 
     def _create_default_from(self, api, name, keys):
@@ -241,6 +243,7 @@ class _SchemaCommandPlugin(_SchemaPlugin):
         if self._class is not None:
             return self._class.topic
         else:
+            self._schema.load_help()
             schema = self._schema[self.schema_key][self.full_name]
             try:
                 return str(schema['topic_topic']).partition('/')[0]
@@ -252,6 +255,7 @@ class _SchemaCommandPlugin(_SchemaPlugin):
         if self._class is not None:
             return self._class.NO_CLI
         else:
+            self._schema.load_help()
             schema = self._schema[self.schema_key][self.full_name]
             return 'cli' in schema.get('exclude', [])
 
@@ -432,7 +436,6 @@ class Schema(object):
 
     """
     namespaces = {'classes', 'commands', 'topics'}
-    schema_info_path = 'schema'
     _DIR = os.path.join(USER_CACHE_PATH, 'ipa', 'schema')
 
     def __init__(self, api, server_info, client):
@@ -488,8 +491,7 @@ class Schema(object):
         if fmt != FORMAT:
             raise RuntimeError('invalid format')
 
-        schema_info = json.loads(schema.read(self.schema_info_path))
-        return schema_info['fingerprint']
+        return json.loads(schema.read('fingerprint'))
 
     def _fetch(self, client):
         if not client.isconnected():
@@ -522,6 +524,7 @@ class Schema(object):
         else:
             fp = schema['fingerprint']
             ttl = schema.pop('ttl', 0)
+            schema.pop('version', None)
 
             for key, value in schema.items():
                 if key in self.namespaces:
@@ -534,8 +537,6 @@ class Schema(object):
     def _read_schema(self):
         with self._open_schema(self._fingerprint, 'r') as schema:
             self._dict['fingerprint'] = self._get_schema_fingerprint(schema)
-            schema_info = json.loads(schema.read(self.schema_info_path))
-            self._dict['version'] = schema_info['version']
 
             for name in schema.namelist():
                 ns, _slash, key = name.partition('/')
@@ -548,6 +549,27 @@ class Schema(object):
         except KeyError:
             return self._dict[key]
 
+    def _generate_help(self, schema):
+        halp = {}
+
+        for namespace in ('commands', 'topics'):
+            halp[namespace] = {}
+
+            for member_schema in schema[namespace].values():
+                member_full_name = member_schema['full_name']
+
+                topic = halp[namespace].setdefault(member_full_name, {})
+                topic['name'] = member_schema['name']
+                if 'doc' in member_schema:
+                    topic['summary'] = (
+                        member_schema['doc'].split('\n\n', 1)[0].strip())
+                if 'topic_topic' in member_schema:
+                    topic['topic_topic'] = member_schema['topic_topic']
+                if 'exclude' in member_schema:
+                    topic['exclude'] = member_schema['exclude']
+
+        return halp
+
     def _write_schema(self):
         try:
             os.makedirs(self._DIR)
@@ -557,7 +579,6 @@ class Schema(object):
                 return
 
         with self._open_schema(self._fingerprint, 'w') as schema:
-            schema_info = {}
             for key, value in self._dict.items():
                 if key in self.namespaces:
                     ns = value
@@ -565,9 +586,10 @@ class Schema(object):
                         path = '{}/{}'.format(key, member)
                         schema.writestr(path, json.dumps(ns[member]))
                 else:
-                    schema_info[key] = value
+                    schema.writestr(key, json.dumps(value))
 
-            schema.writestr(self.schema_info_path, json.dumps(schema_info))
+            schema.writestr('_help',
+                            json.dumps(self._generate_help(self._dict)))
 
     def _read(self, path):
         with self._open_schema(self._fingerprint, 'r') as zf:
@@ -586,6 +608,14 @@ class Schema(object):
 
     def iter_namespace(self, namespace):
         return iter(self._dict[namespace])
+
+    def load_help(self):
+        if not self._help:
+            self._help = self._read('_help')
+
+            for ns in self._help:
+                for member in self._help[ns]:
+                    self._dict[ns][member].update(self._help[ns][member])
 
 
 def get_package(api, client):
