@@ -164,7 +164,7 @@ def decrypt(data, symmetric_key=None, private_key=None):
                     label=None
                 )
             )
-        except AssertionError:
+        except ValueError:
             raise errors.AuthenticationError(
                 message=_('Invalid credentials'))
 
