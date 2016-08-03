@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-07-01 09:08+0200\n"
+"POT-Creation-Date: 2016-08-29 10:39+0200\n"
 "PO-Revision-Date: 2015-06-29 01:17-0400\n"
 "Last-Translator: Josef Hruška <hrusjos@gmail.com>\n"
 "Language-Team: Czech (http://www.transifex.com/projects/p/freeipa/language/"
@@ -19,7 +19,16 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Zanata 3.8.4\n"
+"X-Generator: Zanata 3.9.3\n"
+
+msgid "A string searched in all relevant object attributes"
+msgstr "Řetězec vyhledávaný ve všech odpovídajících atributech objektu"
+
+msgid "Operating system"
+msgstr "Operační systém"
+
+msgid "User password"
+msgstr "Uživatelské heslo"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -62,9 +71,6 @@ msgstr "Zastaralé volby"
 
 msgid "No file to read"
 msgstr "Žádný soubor k přečtení"
-
-msgid "A string searched in all relevant object attributes"
-msgstr "Řetězec vyhledávaný ve všech odpovídajících atributech objektu"
 
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
@@ -124,9 +130,3 @@ msgstr "Nenalezena mezipamět ověřovacích údajů"
 #, python-format
 msgid "%(reason)s"
 msgstr "%(reason)s"
-
-msgid "Operating system"
-msgstr "Operační systém"
-
-msgid "User password"
-msgstr "Uživatelské heslo"

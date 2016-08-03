@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-07-01 09:08+0200\n"
-"PO-Revision-Date: 2014-09-23 08:41-0400\n"
-"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
+"POT-Creation-Date: 2016-08-29 10:39+0200\n"
+"PO-Revision-Date: 2015-01-05 01:08-0500\n"
+"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Catalan (http://www.transifex.com/projects/p/freeipa/language/"
 "ca/)\n"
 "Language: ca\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Zanata 3.8.4\n"
+"X-Generator: Zanata 3.9.3\n"
 
 msgid "Error"
 msgstr "Error"
@@ -31,12 +31,6 @@ msgstr "Credencials no vàlides"
 
 msgid "Data"
 msgstr "Dades"
-
-msgid "Passwords do not match"
-msgstr "Les contrasenyes no coincideixen"
-
-msgid "Command not implemented"
-msgstr "No s'ha implementat l'ordre"
 
 msgid "Permission"
 msgstr "Permís"
@@ -59,14 +53,11 @@ msgstr "Subarbre"
 msgid "Description"
 msgstr "Descripció"
 
+msgid "Rights"
+msgstr "Drets"
+
 msgid "Users"
 msgstr "Usuaris"
-
-msgid "Location"
-msgstr "Ubicació"
-
-msgid "Map"
-msgstr "Mapa"
 
 msgid "Key"
 msgstr "Tecla"
@@ -74,107 +65,26 @@ msgstr "Tecla"
 msgid "description"
 msgstr "descripció"
 
-msgid "Mount point"
-msgstr "Punt de muntatge"
+msgid "Location"
+msgstr "Ubicació"
 
-msgid "entry"
-msgstr "entrada"
-
-msgid "Rights"
-msgstr "Drets"
+msgid "Map"
+msgstr "Mapa"
 
 msgid "Rename"
 msgstr "Canvia el nom"
 
-msgid "User"
-msgstr "Usuari"
-
-msgid "User login"
-msgstr "Entrada"
-
-msgid "First name"
-msgstr "Nom"
-
-msgid "Last name"
-msgstr "Cognom"
-
-msgid "Full name"
-msgstr "Nom complet"
-
-msgid "Initials"
-msgstr "Inicials"
-
-msgid "Home directory"
-msgstr "Directori de l'usuari"
-
-msgid "Login shell"
-msgstr "Intèrpret d'ordres de l'inici de sessió"
-
-msgid "Email address"
-msgstr "Adreça de correu electrònic"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "City"
-msgstr "Ciutat"
-
-msgid "State/Province"
-msgstr "Estat/província"
-
-msgid "Telephone Number"
-msgstr "Número de telèfon"
-
-msgid "Pager Number"
-msgstr "Número de buscapersones"
-
-msgid "Fax Number"
-msgstr "Número de fax"
-
-msgid "Job Title"
-msgstr "Càrrec"
-
-msgid "Manager"
-msgstr "Gestor"
-
-msgid "Class"
-msgstr "Classe"
-
-msgid "Certificate"
-msgstr "Certificat"
-
-msgid "Enabled"
-msgstr "S'ha habilitat"
-
-msgid "Services"
-msgstr "Serveis"
-
-msgid "user"
-msgstr "usuari"
+msgid "Mount point"
+msgstr "Punt de muntatge"
 
 msgid "Subject"
 msgstr "Assumpte"
 
-msgid "Issuer"
-msgstr "Emissor"
-
-msgid "Not Before"
-msgstr "No abans"
-
-msgid "Not After"
-msgstr "No després"
+msgid "Reason"
+msgstr "Raó"
 
 msgid "Serial number"
 msgstr "Número de sèrie"
-
-msgid "Status"
-msgstr "Estat"
-
-msgid "Revoked"
-msgstr "Revocat"
-
-msgid "Configuration"
-msgstr "Configuració"
 
 msgid "IP Address"
 msgstr "Adreça IP"
@@ -215,23 +125,26 @@ msgstr "Empremta"
 msgid "Force"
 msgstr "Força"
 
-msgid "group"
-msgstr "grup"
-
 msgid "Group name"
 msgstr "Nom del grup"
 
-msgid "Access time"
-msgstr "Temps d'accés"
+msgid "user"
+msgstr "usuari"
 
-msgid "Warning"
-msgstr "Avís"
+msgid "group"
+msgstr "grup"
+
+msgid "Enabled"
+msgstr "S'ha habilitat"
+
+msgid "Services"
+msgstr "Serveis"
 
 msgid "User name"
 msgstr "Nom d'usuari"
 
-msgid "Host"
-msgstr "Ordinador central"
+msgid "Warning"
+msgstr "Avís"
 
 msgid "Host name"
 msgstr "Nom de l'amfitrió"
@@ -244,6 +157,129 @@ msgstr "Plataforma"
 
 msgid "Operating system"
 msgstr "Sistema operatiu"
+
+msgid "Certificate"
+msgstr "Certificat"
+
+msgid "Class"
+msgstr "Classe"
+
+msgid "User login"
+msgstr "Entrada"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "Home directory"
+msgstr "Directori de l'usuari"
+
+msgid "Login shell"
+msgstr "Intèrpret d'ordres de l'inici de sessió"
+
+msgid "Continue"
+msgstr "Continua"
+
+msgid "Netgroup name"
+msgstr "Nom de grup de xarxa"
+
+msgid "Manager"
+msgstr "Gestor"
+
+msgid "Disabled"
+msgstr "Inhabilitat"
+
+msgid "New Password"
+msgstr "Contrasenya nova"
+
+msgid "permissions"
+msgstr "permisos"
+
+msgid "Group"
+msgstr "Grup"
+
+msgid "User"
+msgstr "Usuari"
+
+msgid "Server"
+msgstr "Servidor"
+
+msgid "Domain"
+msgstr "Domini"
+
+msgid "Commands"
+msgstr "Ordres"
+
+msgid "First name"
+msgstr "Nom"
+
+msgid "Last name"
+msgstr "Cognom"
+
+msgid "Full name"
+msgstr "Nom complet"
+
+msgid "Initials"
+msgstr "Inicials"
+
+msgid "Email address"
+msgstr "Adreça de correu electrònic"
+
+msgid "City"
+msgstr "Ciutat"
+
+msgid "State/Province"
+msgstr "Estat/província"
+
+msgid "Telephone Number"
+msgstr "Número de telèfon"
+
+msgid "Pager Number"
+msgstr "Número de buscapersones"
+
+msgid "Fax Number"
+msgstr "Número de fax"
+
+msgid "Job Title"
+msgstr "Càrrec"
+
+msgid "Self"
+msgstr "Ell mateix"
+
+msgid "Username"
+msgstr "Nom d'usuari"
+
+msgid "Passwords do not match"
+msgstr "Les contrasenyes no coincideixen"
+
+msgid "Command not implemented"
+msgstr "No s'ha implementat l'ordre"
+
+msgid "entry"
+msgstr "entrada"
+
+msgid "Issuer"
+msgstr "Emissor"
+
+msgid "Not Before"
+msgstr "No abans"
+
+msgid "Not After"
+msgstr "No després"
+
+msgid "Status"
+msgstr "Estat"
+
+msgid "Revoked"
+msgstr "Revocat"
+
+msgid "Configuration"
+msgstr "Configuració"
+
+msgid "Access time"
+msgstr "Temps d'accés"
+
+msgid "Host"
+msgstr "Ordinador central"
 
 msgid "Serial Number"
 msgstr "Número de sèrie"
@@ -346,9 +382,6 @@ msgstr "Entra"
 
 msgid "Logout"
 msgstr "Surt"
-
-msgid "Username"
-msgstr "Nom d'usuari"
 
 msgid "seconds"
 msgstr "segons"
@@ -470,26 +503,17 @@ msgstr "Modificat"
 msgid "Groups"
 msgstr "Grups"
 
-msgid "Commands"
-msgstr "Ordres"
-
 msgid "Allow"
 msgstr "Permet"
 
 msgid "Account"
 msgstr "Compte"
 
-msgid "Domain"
-msgstr "Domini"
-
 msgid "Account Settings"
 msgstr "Paràmetres dels comptes"
 
 msgid "Mailing Address"
 msgstr "Adreça postal"
-
-msgid "New Password"
-msgstr "Contrasenya nova"
 
 msgid "Reset Password"
 msgstr "Reinicia la contrasenya"
@@ -499,9 +523,6 @@ msgstr "Selecciona-ho tot"
 
 msgid "Unselect All"
 msgstr "No seleccionis res"
-
-msgid "Disabled"
-msgstr "Inhabilitat"
 
 msgid "DNS"
 msgstr "DNS"
@@ -524,21 +545,6 @@ msgstr "Pàgina"
 msgid "Prev"
 msgstr "Anterior"
 
-msgid "Continue"
-msgstr "Continua"
-
-msgid "Netgroup name"
-msgstr "Nom de grup de xarxa"
-
-msgid "permissions"
-msgstr "permisos"
-
-msgid "Group"
-msgstr "Grup"
-
-msgid "Server"
-msgstr "Servidor"
-
 msgid "Role"
 msgstr "Rol"
 
@@ -553,9 +559,6 @@ msgstr "Desconegut"
 
 msgid "Trust"
 msgstr "Confiança"
-
-msgid "Self"
-msgstr "Ell mateix"
 
 msgid "Time now"
 msgstr "L'hora actual"

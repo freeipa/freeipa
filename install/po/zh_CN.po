@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-07-01 09:08+0200\n"
+"POT-Creation-Date: 2016-08-29 10:39+0200\n"
 "PO-Revision-Date: 2015-03-12 12:06-0400\n"
 "Last-Translator: Martin Liu <martin@aws-faq.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/projects/p/freeipa/"
@@ -20,7 +20,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Zanata 3.8.4\n"
+"X-Generator: Zanata 3.9.3\n"
+
+msgid "Failed members"
+msgstr "失败的成员"
 
 msgid "Error"
 msgstr "错误"
@@ -31,8 +34,224 @@ msgstr "密码"
 msgid "Data"
 msgstr "数据"
 
-msgid "Failed members"
-msgstr "失败的成员"
+msgid "ACI name"
+msgstr "ACI名称"
+
+msgid "User group"
+msgstr "用户组"
+
+msgid "Permissions"
+msgstr "权限"
+
+msgid "Attributes"
+msgstr "属性"
+
+msgid "Type"
+msgstr "类型"
+
+msgid "Member of a group"
+msgstr "组成员"
+
+msgid "Filter"
+msgstr "过滤"
+
+msgid "Subtree"
+msgstr "子树"
+
+msgid "Target group"
+msgstr "目标组"
+
+msgid "A string searched in all relevant object attributes"
+msgstr "在所有相关对象中搜索字符串"
+
+msgid "Description"
+msgstr "描述"
+
+msgid "Users"
+msgstr "用户"
+
+msgid "Hosts"
+msgstr "主机"
+
+msgid "description"
+msgstr "描述"
+
+msgid "Location"
+msgstr "位置"
+
+msgid "Mount point"
+msgstr "挂载点"
+
+msgid "Subject"
+msgstr "主题"
+
+msgid "Reason"
+msgstr "原因"
+
+msgid "Reason for revoking the certificate (0-10)"
+msgstr "撤消证书的原因(0-10)"
+
+msgid "Serial number"
+msgstr "序列号"
+
+msgid "Request id"
+msgstr "请求号"
+
+msgid "Home directory base"
+msgstr "主目录"
+
+msgid "Default shell"
+msgstr "默认shell"
+
+msgid "Default users group"
+msgstr "默认用户组"
+
+msgid "Search time limit"
+msgstr "搜索时间限制"
+
+msgid "User search fields"
+msgstr "用户搜索字段"
+
+msgid "Priority"
+msgstr "优先级"
+
+msgid "Group name"
+msgstr "组名"
+
+msgid "Group description"
+msgstr "组描述"
+
+msgid "GID"
+msgstr "GID"
+
+msgid "Member users"
+msgstr "成员用户"
+
+msgid "Member groups"
+msgstr "成员组"
+
+msgid "Rule name"
+msgstr "规则名"
+
+msgid "User category"
+msgstr "用户类别"
+
+msgid "Host category"
+msgstr "主机类别"
+
+msgid "User Groups"
+msgstr "用户组"
+
+msgid "Host Groups"
+msgstr "主机组"
+
+msgid "Services"
+msgstr "服务"
+
+msgid "External host"
+msgstr "外部主机"
+
+msgid "Service name"
+msgstr "服务名"
+
+msgid "User name"
+msgstr "用户名"
+
+msgid "Host name"
+msgstr "主机名"
+
+msgid "Host locality (e.g. \"Baltimore, MD\")"
+msgstr "主机地点(如\"Baltimore, MD\")"
+
+msgid "Host location (e.g. \"Lab 2\")"
+msgstr "主机位置(如\"Lab 2\")"
+
+msgid "Platform"
+msgstr "平台"
+
+msgid "Host hardware platform (e.g. \"Lenovo T61\")"
+msgstr "主机硬件平台 (e.g. \"Lenovo T61\")"
+
+msgid "Operating system"
+msgstr "操作系统"
+
+msgid "Host operating system and version (e.g. \"Fedora 9\")"
+msgstr "主机操作系统及版本(e.g. \"Fedora 9\")"
+
+msgid "User password"
+msgstr "用户密码"
+
+msgid "Certificate"
+msgstr "证书"
+
+msgid "Base-64 encoded server certificate"
+msgstr "Base-64 编码格式的服务器证书"
+
+msgid "Member of host-groups"
+msgstr "主机组成员"
+
+msgid "Host-group"
+msgstr "主机组"
+
+msgid "Name of host-group"
+msgstr "主机组名称"
+
+msgid "Member hosts"
+msgstr "成员主机"
+
+msgid "Member host-groups"
+msgstr "主机组成员"
+
+msgid "User login"
+msgstr "用户登录名"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "Login shell"
+msgstr "登录shell"
+
+msgid "LDAP URI"
+msgstr "LDAP URI"
+
+msgid "User container"
+msgstr "用户容器"
+
+msgid "Group container"
+msgstr "组容器"
+
+msgid "Netgroup name"
+msgstr "网络组名称"
+
+msgid "Netgroup description"
+msgstr "网络组描述"
+
+msgid "NIS domain name"
+msgstr "NIS域名"
+
+msgid "Group"
+msgstr "组"
+
+msgid "Min length"
+msgstr "最小长度"
+
+msgid "User"
+msgstr "用户"
+
+msgid "A description of this role-group"
+msgstr "该角色组的描述"
+
+msgid "First name"
+msgstr "名"
+
+msgid "Last name"
+msgstr "姓"
+
+msgid "Email address"
+msgstr "邮件地址"
+
+msgid "Street address"
+msgstr "街道地址"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -54,9 +273,6 @@ msgstr "已弃用的选项"
 
 msgid "No file to read"
 msgstr "无文件可读"
-
-msgid "A string searched in all relevant object attributes"
-msgstr "在所有相关对象中搜索字符串"
 
 msgid "an internal error has occurred"
 msgstr "发生了内部错误"
@@ -147,158 +363,14 @@ msgstr "组 '%s' 不存在"
 msgid "ACIs"
 msgstr "ACIs"
 
-msgid "ACI name"
-msgstr "ACI名称"
-
-msgid "User group"
-msgstr "用户组"
-
-msgid "Permissions"
-msgstr "权限"
-
-msgid "Attributes"
-msgstr "属性"
-
-msgid "Type"
-msgstr "类型"
-
-msgid "Member of a group"
-msgstr "组成员"
-
-msgid "Filter"
-msgstr "过滤"
-
-msgid "Subtree"
-msgstr "子树"
-
-msgid "Target group"
-msgstr "目标组"
-
-msgid "Description"
-msgstr "描述"
-
-msgid "Users"
-msgstr "用户"
-
-msgid "Hosts"
-msgstr "主机"
-
-msgid "Location"
-msgstr "位置"
-
-msgid "description"
-msgstr "描述"
-
-msgid "Mount point"
-msgstr "挂载点"
-
-msgid "Member users"
-msgstr "成员用户"
-
-msgid "Member groups"
-msgstr "成员组"
-
-msgid "Member hosts"
-msgstr "成员主机"
-
-msgid "Member host-groups"
-msgstr "主机组成员"
-
-msgid "Member of host-groups"
-msgstr "主机组成员"
-
-msgid "External host"
-msgstr "外部主机"
-
-msgid "User"
-msgstr "用户"
-
-msgid "User login"
-msgstr "用户登录名"
-
-msgid "First name"
-msgstr "名"
-
-msgid "Last name"
-msgstr "姓"
-
-msgid "Login shell"
-msgstr "登录shell"
-
-msgid "Email address"
-msgstr "邮件地址"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "GID"
-msgstr "GID"
-
-msgid "Street address"
-msgstr "街道地址"
-
-msgid "Certificate"
-msgstr "证书"
-
-msgid "User category"
-msgstr "用户类别"
-
-msgid "Host category"
-msgstr "主机类别"
-
-msgid "User Groups"
-msgstr "用户组"
-
-msgid "Host Groups"
-msgstr "主机组"
-
-msgid "Services"
-msgstr "服务"
-
-msgid "Subject"
-msgstr "主题"
-
-msgid "Serial number"
-msgstr "序列号"
-
 msgid "Request status"
 msgstr "请求状态"
-
-msgid "Request id"
-msgstr "请求号"
 
 msgid "Revoked"
 msgstr "撤销"
 
 msgid "Revocation reason"
 msgstr "撤消原因"
-
-msgid "Reason for revoking the certificate (0-10)"
-msgstr "撤消证书的原因(0-10)"
-
-msgid "Home directory base"
-msgstr "主目录"
-
-msgid "Default shell"
-msgstr "默认shell"
-
-msgid "Default users group"
-msgstr "默认用户组"
-
-msgid "Search time limit"
-msgstr "搜索时间限制"
-
-msgid "User search fields"
-msgstr "用户搜索字段"
-
-msgid "Priority"
-msgstr "优先级"
-
-msgid "Group name"
-msgstr "组名"
-
-msgid "Group description"
-msgstr "组描述"
 
 #, python-format
 msgid "Added group \"%(value)s\""
@@ -312,41 +384,8 @@ msgstr "已删除组\"%(value)s\""
 msgid "Modified group \"%(value)s\""
 msgstr "已修改组\"%(value)s\""
 
-msgid "Rule name"
-msgstr "规则名"
-
 msgid "Access time"
 msgstr "访问时间"
-
-msgid "Service name"
-msgstr "服务名"
-
-msgid "User name"
-msgstr "用户名"
-
-msgid "Host name"
-msgstr "主机名"
-
-msgid "Host locality (e.g. \"Baltimore, MD\")"
-msgstr "主机地点(如\"Baltimore, MD\")"
-
-msgid "Host location (e.g. \"Lab 2\")"
-msgstr "主机位置(如\"Lab 2\")"
-
-msgid "Platform"
-msgstr "平台"
-
-msgid "Host hardware platform (e.g. \"Lenovo T61\")"
-msgstr "主机硬件平台 (e.g. \"Lenovo T61\")"
-
-msgid "Operating system"
-msgstr "操作系统"
-
-msgid "Host operating system and version (e.g. \"Fedora 9\")"
-msgstr "主机操作系统及版本(e.g. \"Fedora 9\")"
-
-msgid "User password"
-msgstr "用户密码"
 
 #, python-format
 msgid "Added host \"%(value)s\""
@@ -360,47 +399,14 @@ msgstr "已删除主机 \"%(value)s\""
 msgid "Modified host \"%(value)s\""
 msgstr "已修改主机 \"%(value)s\""
 
-msgid "Host-group"
-msgstr "主机组"
-
-msgid "Name of host-group"
-msgstr "主机组名称"
-
 msgid "Groups"
 msgstr "用户组"
 
 msgid "DNS"
 msgstr "DNS"
 
-msgid "LDAP URI"
-msgstr "LDAP URI"
-
-msgid "User container"
-msgstr "用户容器"
-
-msgid "Group container"
-msgstr "组容器"
-
 msgid "Netgroups"
 msgstr "网络组"
-
-msgid "Netgroup name"
-msgstr "网络组名称"
-
-msgid "Netgroup description"
-msgstr "网络组描述"
-
-msgid "NIS domain name"
-msgstr "NIS域名"
-
-msgid "Group"
-msgstr "组"
-
-msgid "Min length"
-msgstr "最小长度"
-
-msgid "A description of this role-group"
-msgstr "该角色组的描述"
 
 #, python-format
 msgid "Added user \"%(value)s\""
