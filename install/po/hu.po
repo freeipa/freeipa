@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-07-01 09:08+0200\n"
-"PO-Revision-Date: 2014-09-23 08:41-0400\n"
-"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
+"POT-Creation-Date: 2016-08-29 10:39+0200\n"
+"PO-Revision-Date: 2015-01-05 01:10-0500\n"
+"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Hungarian (http://www.transifex.com/projects/p/freeipa/"
 "language/hu/)\n"
 "Language: hu\n"
@@ -18,7 +18,91 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Zanata 3.8.4\n"
+"X-Generator: Zanata 3.9.3\n"
+
+msgid "User group"
+msgstr "Felhasználói csport"
+
+msgid "Permissions"
+msgstr "Jogosultságok"
+
+msgid "Description"
+msgstr "Leírás"
+
+msgid "Subject"
+msgstr "Tárgy"
+
+msgid "Reason"
+msgstr "Ok"
+
+msgid "Serial number"
+msgstr "Sorozatszám"
+
+msgid "Request id"
+msgstr "Igénylés azonosítója"
+
+msgid "Default shell"
+msgstr "Alapértelmezett shell"
+
+msgid "Default users group"
+msgstr "Alapértelmezett csoport"
+
+msgid "Zone name (FQDN)"
+msgstr "Zóna neve (FQDN)"
+
+msgid "SOA serial"
+msgstr "SOA sorozatszám"
+
+msgid "GID"
+msgstr "GID"
+
+msgid "GID (use this option to set it manually)"
+msgstr "GID (kézzel történő beállításhoz)"
+
+msgid "change to a POSIX group"
+msgstr "POSIX-csoportra módosít"
+
+msgid "Rule name"
+msgstr "Szabály neve"
+
+msgid "Services"
+msgstr "Szolgáltatások"
+
+msgid "Service Groups"
+msgstr "Szolgáltatás-csoportok"
+
+msgid "Service name"
+msgstr "Szolgáltatás neve"
+
+msgid "Service group name"
+msgstr "Szolgáltatás-csoport neve"
+
+msgid "HBAC service group description"
+msgstr "HBAC szolgáltatás-csoport leírása"
+
+msgid "Certificate"
+msgstr "Tanúsítvány"
+
+msgid "LDAP URI"
+msgstr "LDAP URI"
+
+msgid "Max lifetime (days)"
+msgstr "Élettartam legfeljebb (nap)"
+
+msgid "Maximum password lifetime (in days)"
+msgstr "Jelszó maximális élettartama (nap)"
+
+msgid "Min lifetime (hours)"
+msgstr "Minimális élettartam (óra)"
+
+msgid "Minimum password lifetime (in hours)"
+msgstr "Jelszó minimális élettartama (óra)"
+
+msgid "Password history size"
+msgstr "Megőrzött jelszavak (darab)"
+
+msgid "Character classes"
+msgstr "Karakterosztályok"
 
 msgid "Passwords do not match"
 msgstr "A jelszavak nem egyeznek meg"
@@ -50,27 +134,6 @@ msgstr "LDAP-bejegyzések listája"
 msgid "Group '%s' does not exist"
 msgstr "A '%s' csoport nem létezik"
 
-msgid "User group"
-msgstr "Felhasználói csport"
-
-msgid "Permissions"
-msgstr "Jogosultságok"
-
-msgid "Description"
-msgstr "Leírás"
-
-msgid "GID"
-msgstr "GID"
-
-msgid "Certificate"
-msgstr "Tanúsítvány"
-
-msgid "Services"
-msgstr "Szolgáltatások"
-
-msgid "Subject"
-msgstr "Tárgy"
-
 msgid "Issuer"
 msgstr "Kibocsátó"
 
@@ -86,74 +149,14 @@ msgstr "Ujjlenyomat (MD5)"
 msgid "Fingerprint (SHA1)"
 msgstr "Ujjlenyomat (SHA1)"
 
-msgid "Serial number"
-msgstr "Sorozatszám"
-
 msgid "Request status"
 msgstr "Igénylés állapota"
-
-msgid "Request id"
-msgstr "Igénylés azonosítója"
 
 msgid "Revoked"
 msgstr "Visszavont"
 
 msgid "Revocation reason"
 msgstr "Visszavonás oka"
-
-msgid "Default shell"
-msgstr "Alapértelmezett shell"
-
-msgid "Default users group"
-msgstr "Alapértelmezett csoport"
-
-msgid "Zone name (FQDN)"
-msgstr "Zóna neve (FQDN)"
-
-msgid "SOA serial"
-msgstr "SOA sorozatszám"
-
-msgid "GID (use this option to set it manually)"
-msgstr "GID (kézzel történő beállításhoz)"
-
-msgid "change to a POSIX group"
-msgstr "POSIX-csoportra módosít"
-
-msgid "Rule name"
-msgstr "Szabály neve"
-
-msgid "Service Groups"
-msgstr "Szolgáltatás-csoportok"
-
-msgid "Service name"
-msgstr "Szolgáltatás neve"
-
-msgid "Service group name"
-msgstr "Szolgáltatás-csoport neve"
-
-msgid "HBAC service group description"
-msgstr "HBAC szolgáltatás-csoport leírása"
-
-msgid "LDAP URI"
-msgstr "LDAP URI"
-
-msgid "Max lifetime (days)"
-msgstr "Élettartam legfeljebb (nap)"
-
-msgid "Maximum password lifetime (in days)"
-msgstr "Jelszó maximális élettartama (nap)"
-
-msgid "Min lifetime (hours)"
-msgstr "Minimális élettartam (óra)"
-
-msgid "Minimum password lifetime (in hours)"
-msgstr "Jelszó minimális élettartama (óra)"
-
-msgid "Password history size"
-msgstr "Megőrzött jelszavak (darab)"
-
-msgid "Character classes"
-msgstr "Karakterosztályok"
 
 #, python-format
 msgid "Added service \"%(value)s\""

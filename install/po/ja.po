@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-07-01 09:08+0200\n"
-"PO-Revision-Date: 2014-09-23 08:41-0400\n"
-"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
+"POT-Creation-Date: 2016-08-29 10:39+0200\n"
+"PO-Revision-Date: 2015-01-05 01:10-0500\n"
+"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Japanese (http://www.transifex.com/projects/p/freeipa/"
 "language/ja/)\n"
 "Language: ja\n"
@@ -19,7 +19,166 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Zanata 3.8.4\n"
+"X-Generator: Zanata 3.9.3\n"
+
+msgid "ACI name"
+msgstr "ACI 名"
+
+msgid "User group"
+msgstr "ユーザーグループ"
+
+msgid "Permissions"
+msgstr "権限"
+
+msgid "Member of a group"
+msgstr "グループのメンバー"
+
+msgid "Filter"
+msgstr "フィルター"
+
+msgid "IP Address"
+msgstr "IP アドレス"
+
+msgid "Port"
+msgstr "ポート"
+
+msgid "Fingerprint"
+msgstr "フィンガープリント"
+
+msgid "Text Data"
+msgstr "テキストデータ"
+
+msgid "Create a new group."
+msgstr "新しいグループを作成します。"
+
+msgid "Delete group."
+msgstr "グループを削除します。"
+
+msgid "Search for groups."
+msgstr "グループを検索します。"
+
+msgid "user"
+msgstr "ユーザー"
+
+msgid "group"
+msgstr "グループ"
+
+msgid "role"
+msgstr "役割"
+
+msgid "sudo rule"
+msgstr "sudo ルール"
+
+msgid "Modify a group."
+msgstr "グループを変更します。"
+
+msgid "Create a new HBAC rule."
+msgstr "新しい HBAC ルールを作成します。"
+
+msgid "Delete an HBAC rule."
+msgstr "HBAC ルールを削除します。"
+
+msgid "Disable an HBAC rule."
+msgstr "HBAC ルールを無効化します。"
+
+msgid "Enable an HBAC rule."
+msgstr "HBAC ルールを有効化します。"
+
+msgid "Search for HBAC rules."
+msgstr "HBAC ルールを検索します。"
+
+msgid "Modify an HBAC rule."
+msgstr "HBAC ルールを変更します。"
+
+msgid "Display the properties of an HBAC rule."
+msgstr "HBAC ルールのプロパティーを表示します。"
+
+msgid "Add a new HBAC service."
+msgstr "新しい HBAC サービスを追加します。"
+
+msgid "Delete an existing HBAC service."
+msgstr "既存の HBAC サービスを削除します。"
+
+msgid "Search for HBAC services."
+msgstr "HBAC サービスを検索します。"
+
+msgid "Modify an HBAC service."
+msgstr "HBAC サービスを変更します。"
+
+msgid "Display information about an HBAC service."
+msgstr "HBAC サービスに関する情報を表示します。"
+
+msgid "Add a new HBAC service group."
+msgstr "新しい HBAC サービスグループを追加します。"
+
+msgid "Add members to an HBAC service group."
+msgstr "HBAC サービスグループにメンバーを追加します。"
+
+msgid "Delete an HBAC service group."
+msgstr "HBAC サービスグループを削除します。"
+
+msgid "Search for an HBAC service group."
+msgstr "HBAC サービスグループを検索します。"
+
+msgid "Modify an HBAC service group."
+msgstr "HBAC サービスグループを変更します。"
+
+msgid "Remove members from an HBAC service group."
+msgstr "HBAC サービスグループからメンバーを削除します。"
+
+msgid "Display information about an HBAC service group."
+msgstr "HBAC サービスグループに関する情報を表示します。"
+
+msgid "Add a new host."
+msgstr "新しいホストを追加します。"
+
+msgid "Delete a host."
+msgstr "ホストを削除します。"
+
+msgid "Search for hosts."
+msgstr "ホストを検索します。"
+
+msgid "host group"
+msgstr "ホストグループ"
+
+msgid "host"
+msgstr "ホスト"
+
+msgid "hosts"
+msgstr "ホスト"
+
+msgid "Add a new role."
+msgstr "新しい役割を追加します。"
+
+msgid "Delete a role."
+msgstr "役割を削除します。"
+
+msgid "Search for roles."
+msgstr "役割を検索します。"
+
+msgid "Modify a role."
+msgstr "役割を変更します。"
+
+msgid "Display information about a role."
+msgstr "役割に関する情報を表示します。"
+
+msgid "Sudo Command"
+msgstr "sudo コマンド"
+
+msgid "Add a new user."
+msgstr "新しいユーザーを追加します。"
+
+msgid "Delete a user."
+msgstr "ユーザーを削除します。"
+
+msgid "Disable a user account."
+msgstr "ユーザーアカウントを無効化します。"
+
+msgid "Enable a user account."
+msgstr "ユーザーアカウントを有効化します。"
+
+msgid "Modify a user."
+msgstr "ユーザーを変更します。"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -134,27 +293,6 @@ msgstr "名前 \"%s\" の ACI が見つかりませんでした"
 msgid "ACIs"
 msgstr "ACI"
 
-msgid "ACI name"
-msgstr "ACI 名"
-
-msgid "User group"
-msgstr "ユーザーグループ"
-
-msgid "Permissions"
-msgstr "権限"
-
-msgid "Member of a group"
-msgstr "グループのメンバー"
-
-msgid "Filter"
-msgstr "フィルター"
-
-msgid "user"
-msgstr "ユーザー"
-
-msgid "host"
-msgstr "ホスト"
-
 msgid "Fingerprint (MD5)"
 msgstr "フィンガープリント (MD5)"
 
@@ -169,80 +307,17 @@ msgstr "%s レコード"
 msgid "%s Record"
 msgstr "%s レコード"
 
-msgid "IP Address"
-msgstr "IP アドレス"
-
-msgid "Port"
-msgstr "ポート"
-
-msgid "Fingerprint"
-msgstr "フィンガープリント"
-
-msgid "Text Data"
-msgstr "テキストデータ"
-
-msgid "group"
-msgstr "グループ"
-
 msgid "groups"
 msgstr "グループ"
 
 msgid "User Group"
 msgstr "ユーザーグループ"
 
-msgid "Create a new group."
-msgstr "新しいグループを作成します。"
-
-msgid "Delete group."
-msgstr "グループを削除します。"
-
-msgid "Modify a group."
-msgstr "グループを変更します。"
-
-msgid "Search for groups."
-msgstr "グループを検索します。"
-
-msgid "Create a new HBAC rule."
-msgstr "新しい HBAC ルールを作成します。"
-
-msgid "Delete an HBAC rule."
-msgstr "HBAC ルールを削除します。"
-
-msgid "Modify an HBAC rule."
-msgstr "HBAC ルールを変更します。"
-
-msgid "Search for HBAC rules."
-msgstr "HBAC ルールを検索します。"
-
-msgid "Display the properties of an HBAC rule."
-msgstr "HBAC ルールのプロパティーを表示します。"
-
-msgid "Enable an HBAC rule."
-msgstr "HBAC ルールを有効化します。"
-
-msgid "Disable an HBAC rule."
-msgstr "HBAC ルールを無効化します。"
-
 msgid "HBAC services"
 msgstr "HBAC サービス"
 
 msgid "HBAC Service"
 msgstr "HBAC サービス"
-
-msgid "Add a new HBAC service."
-msgstr "新しい HBAC サービスを追加します。"
-
-msgid "Delete an existing HBAC service."
-msgstr "既存の HBAC サービスを削除します。"
-
-msgid "Modify an HBAC service."
-msgstr "HBAC サービスを変更します。"
-
-msgid "Search for HBAC services."
-msgstr "HBAC サービスを検索します。"
-
-msgid "Display information about an HBAC service."
-msgstr "HBAC サービスに関する情報を表示します。"
 
 msgid "HBAC service group"
 msgstr "HBAC サービスグループ"
@@ -256,44 +331,8 @@ msgstr "HBAC サービスグループ"
 msgid "HBAC Service Group"
 msgstr "HBAC サービスグループ"
 
-msgid "Add a new HBAC service group."
-msgstr "新しい HBAC サービスグループを追加します。"
-
-msgid "Delete an HBAC service group."
-msgstr "HBAC サービスグループを削除します。"
-
-msgid "Modify an HBAC service group."
-msgstr "HBAC サービスグループを変更します。"
-
-msgid "Search for an HBAC service group."
-msgstr "HBAC サービスグループを検索します。"
-
-msgid "Display information about an HBAC service group."
-msgstr "HBAC サービスグループに関する情報を表示します。"
-
-msgid "Add members to an HBAC service group."
-msgstr "HBAC サービスグループにメンバーを追加します。"
-
-msgid "Remove members from an HBAC service group."
-msgstr "HBAC サービスグループからメンバーを削除します。"
-
-msgid "hosts"
-msgstr "ホスト"
-
 msgid "Host"
 msgstr "ホスト"
-
-msgid "Add a new host."
-msgstr "新しいホストを追加します。"
-
-msgid "Delete a host."
-msgstr "ホストを削除します。"
-
-msgid "Search for hosts."
-msgstr "ホストを検索します。"
-
-msgid "host group"
-msgstr "ホストグループ"
 
 msgid "host groups"
 msgstr "ホストグループ"
@@ -392,26 +431,8 @@ msgstr "パスワードポリシー"
 msgid "Password Policies"
 msgstr "パスワードポリシー"
 
-msgid "role"
-msgstr "役割"
-
 msgid "roles"
 msgstr "役割"
-
-msgid "Add a new role."
-msgstr "新しい役割を追加します。"
-
-msgid "Delete a role."
-msgstr "役割を削除します。"
-
-msgid "Modify a role."
-msgstr "役割を変更します。"
-
-msgid "Search for roles."
-msgstr "役割を検索します。"
-
-msgid "Display information about a role."
-msgstr "役割に関する情報を表示します。"
 
 msgid "sudo command"
 msgstr "sudo コマンド"
@@ -421,12 +442,6 @@ msgstr "sudo コマンド"
 
 msgid "Sudo Commands"
 msgstr "sudo コマンド"
-
-msgid "Sudo Command"
-msgstr "sudo コマンド"
-
-msgid "sudo rule"
-msgstr "sudo ルール"
 
 msgid "sudo rules"
 msgstr "sudo ルール"
@@ -439,21 +454,6 @@ msgstr "sudo ルール"
 
 msgid "users"
 msgstr "ユーザー"
-
-msgid "Add a new user."
-msgstr "新しいユーザーを追加します。"
-
-msgid "Delete a user."
-msgstr "ユーザーを削除します。"
-
-msgid "Modify a user."
-msgstr "ユーザーを変更します。"
-
-msgid "Disable a user account."
-msgstr "ユーザーアカウントを無効化します。"
-
-msgid "Enable a user account."
-msgstr "ユーザーアカウントを有効化します。"
 
 msgid "Out of memory\n"
 msgstr "メモリー不足\n"

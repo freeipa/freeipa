@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-07-01 09:08+0200\n"
-"PO-Revision-Date: 2014-09-23 08:41-0400\n"
-"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
+"POT-Creation-Date: 2016-08-29 10:39+0200\n"
+"PO-Revision-Date: 2015-01-05 01:12-0500\n"
+"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Tajik (http://www.transifex.com/projects/p/freeipa/language/"
 "tg/)\n"
 "Language: tg\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Zanata 3.8.4\n"
+"X-Generator: Zanata 3.9.3\n"
 
 #, python-format
 msgid "File %(file)s not found"
@@ -35,30 +35,6 @@ msgstr "Парол"
 
 msgid "Data"
 msgstr "Маълумот"
-
-#, c-format
-msgid "Passwords do not match!"
-msgstr "Паролҳо номувофиқанд!"
-
-msgid "Passwords do not match"
-msgstr "Паролҳо номувофиқанд"
-
-#, python-format
-msgid "%(info)s"
-msgstr "%(info)s"
-
-msgid "Already registered"
-msgstr "Ааллакай қайд карда шуд"
-
-#, python-format
-msgid "Syntax Error: %(error)s"
-msgstr "Хатогии синтаксисӣ: %(error)s"
-
-msgid "ACI prefix"
-msgstr "Префикси ACI"
-
-msgid "ACIs"
-msgstr "ACIs"
 
 msgid "ACI name"
 msgstr "Номи ACI"
@@ -81,11 +57,11 @@ msgstr "Намуд"
 msgid "Filter"
 msgstr "Полоишгар"
 
+msgid "ACI prefix"
+msgstr "Префикси ACI"
+
 msgid "Description"
 msgstr "Шарҳ"
-
-msgid "Location"
-msgstr "Макон"
 
 msgid "Key"
 msgstr "Тугма"
@@ -93,14 +69,59 @@ msgstr "Тугма"
 msgid "description"
 msgstr "шарҳ"
 
-msgid "Entry"
-msgstr "Вуруд"
+msgid "Location"
+msgstr "Макон"
 
 msgid "Rename"
 msgstr "Азнавномгузорӣ"
 
+msgid "Subject"
+msgstr "Мавзӯъ"
+
+msgid "Serial number"
+msgstr "Рақами силсилавӣ"
+
+msgid "Principal"
+msgstr "Асосӣ"
+
+msgid "Hostname"
+msgstr "Номи мизбон"
+
+msgid "Target"
+msgstr "Мақсад"
+
+msgid "Service"
+msgstr "Хидмат"
+
+msgid "Force"
+msgstr "Маҷбурӣ"
+
+msgid "Enabled"
+msgstr "Фаъолшуда"
+
+msgid "User name"
+msgstr "Номи корбар"
+
+msgid "Host name"
+msgstr "Номи мизбон"
+
+msgid "Class"
+msgstr "Синф"
+
+msgid "Manager"
+msgstr "Диспетчер"
+
+msgid "New Password"
+msgstr "Пароли нав"
+
+msgid "Group"
+msgstr "Гурӯҳ"
+
 msgid "User"
 msgstr "Корбар"
+
+msgid "Commands"
+msgstr "Фармонҳо"
 
 msgid "First name"
 msgstr "Ном"
@@ -126,50 +147,41 @@ msgstr "Рақами факс"
 msgid "Job Title"
 msgstr "Вазифа"
 
-msgid "Manager"
-msgstr "Диспетчер"
+msgid "Username"
+msgstr "Номи корбар"
 
-msgid "Class"
-msgstr "Синф"
+#, c-format
+msgid "Passwords do not match!"
+msgstr "Паролҳо номувофиқанд!"
 
-msgid "Enabled"
-msgstr "Фаъолшуда"
+msgid "Passwords do not match"
+msgstr "Паролҳо номувофиқанд"
 
-msgid "Subject"
-msgstr "Мавзӯъ"
+#, python-format
+msgid "%(info)s"
+msgstr "%(info)s"
+
+msgid "Already registered"
+msgstr "Ааллакай қайд карда шуд"
+
+#, python-format
+msgid "Syntax Error: %(error)s"
+msgstr "Хатогии синтаксисӣ: %(error)s"
+
+msgid "ACIs"
+msgstr "ACIs"
+
+msgid "Entry"
+msgstr "Вуруд"
 
 msgid "Issuer"
 msgstr "Диҳанда"
-
-msgid "Serial number"
-msgstr "Рақами силсилавӣ"
-
-msgid "Principal"
-msgstr "Асосӣ"
 
 msgid "Status"
 msgstr "Ҳолат"
 
 msgid "Configuration"
 msgstr "Ҷӯрсозӣ"
-
-msgid "Hostname"
-msgstr "Номи мизбон"
-
-msgid "Target"
-msgstr "Мақсад"
-
-msgid "Service"
-msgstr "Хидмат"
-
-msgid "Force"
-msgstr "Маҷбурӣ"
-
-msgid "User name"
-msgstr "Номи корбар"
-
-msgid "Host name"
-msgstr "Номи мизбон"
 
 msgid "Serial Number"
 msgstr "Рақами силсилавӣ"
@@ -225,9 +237,6 @@ msgstr "Танзимотҳо"
 msgid "Search"
 msgstr "Ҷустуҷӯ"
 
-msgid "Username"
-msgstr "Номи корбар"
-
 msgid "Attribute"
 msgstr "Аттрибут"
 
@@ -252,14 +261,8 @@ msgstr "Номи мизбон"
 msgid "Groups"
 msgstr "Гуруҳҳо"
 
-msgid "Commands"
-msgstr "Фармонҳо"
-
 msgid "Allow"
 msgstr "Иҷозат додан"
-
-msgid "New Password"
-msgstr "Пароли нав"
 
 msgid "Select All"
 msgstr "Интихоби ҳама"
@@ -275,9 +278,6 @@ msgstr "Сиёсат"
 
 msgid "Sudo"
 msgstr "Sudo"
-
-msgid "Group"
-msgstr "Гурӯҳ"
 
 #, c-format
 msgid "out of memory\n"
