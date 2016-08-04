@@ -418,7 +418,7 @@ class vault_mod(Local):
 
     def get_options(self):
         for option in self.api.Command.vault_mod_internal.options():
-            if option.name not in ('ipavaultsalt', 'version'):
+            if option.name != 'version':
                 yield option
         for option in super(vault_mod, self).get_options():
             yield option
