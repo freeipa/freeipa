@@ -59,7 +59,8 @@ class ServerInfo(collections.MutableMapping):
         return self._dict[key]
 
     def __setitem__(self, key, value):
-        self._dirty = key not in self._dict or self._dict[key] != value
+        if key not in self._dict or self._dict[key] != value:
+            self._dirty = True
         self._dict[key] = value
 
     def __delitem__(self, key):
