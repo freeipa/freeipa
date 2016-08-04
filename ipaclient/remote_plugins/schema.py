@@ -104,10 +104,9 @@ class _SchemaPlugin(object):
         if self._class is not None:
             return self._class.summary
         else:
-            self._schema.load_help()
-            schema = self._schema[self.schema_key][self.full_name]
+            halp = self._schema[self.schema_key].get_help(self.full_name)
             try:
-                return schema['summary']
+                return halp['summary']
             except KeyError:
                 return u'<%s>' % self.full_name
 
@@ -234,10 +233,9 @@ class _SchemaCommandPlugin(_SchemaPlugin):
         if self._class is not None:
             return self._class.topic
         else:
-            self._schema.load_help()
-            schema = self._schema[self.schema_key][self.full_name]
+            halp = self._schema[self.schema_key].get_help(self.full_name)
             try:
-                return str(schema['topic_topic']).partition('/')[0]
+                return str(halp['topic_topic']).partition('/')[0]
             except KeyError:
                 return None
 
@@ -246,9 +244,8 @@ class _SchemaCommandPlugin(_SchemaPlugin):
         if self._class is not None:
             return self._class.NO_CLI
         else:
-            self._schema.load_help()
-            schema = self._schema[self.schema_key][self.full_name]
-            return 'cli' in schema.get('exclude', [])
+            halp = self._schema[self.schema_key].get_help(self.full_name)
+            return 'cli' in halp.get('exclude', [])
 
     def _create_output(self, api, schema):
         if schema.get('multivalue', False):
@@ -344,6 +341,12 @@ class _SchemaNameSpace(collections.Mapping):
 
     def __len__(self):
         return len(list(self._schema.iter_namespace(self.name)))
+
+    def get_help(self, key):
+        try:
+            return self._schema.get_help(self.name, key)
+        except KeyError:
+            raise KeyError(key)
 
 
 class NotAvailable(Exception):
@@ -454,7 +457,7 @@ class Schema(object):
             for name in schema.namelist():
                 ns, _slash, key = name.partition('/')
                 if ns in self.namespaces:
-                    self._dict[ns][key] = {}
+                    self._dict[ns][key] = None
 
     def __getitem__(self, key):
         try:
@@ -488,7 +491,7 @@ class Schema(object):
             os.makedirs(self._DIR)
         except EnvironmentError as e:
             if e.errno != errno.EEXIST:
-                logger.warning("Failed ti write schema: {}".format(e))
+                logger.warning("Failed to write schema: {}".format(e))
                 return
 
         with self._open_schema(self._fingerprint, 'w') as schema:
@@ -511,24 +514,20 @@ class Schema(object):
     def read_namespace_member(self, namespace, member):
         value = self._dict[namespace][member]
 
-        if (not value) or ('full_name' not in value):
+        if value is None:
             path = '{}/{}'.format(namespace, member)
-            value = self._dict[namespace].setdefault(
-                member, {}
-            ).update(self._read(path))
+            value = self._dict[namespace][member] = self._read(path)
 
         return value
 
     def iter_namespace(self, namespace):
         return iter(self._dict[namespace])
 
-    def load_help(self):
+    def get_help(self, namespace, member):
         if not self._help:
             self._help = self._read('_help')
 
-            for ns in self._help:
-                for member in self._help[ns]:
-                    self._dict[ns][member].update(self._help[ns][member])
+        return self._help[namespace][member]
 
 
 def get_package(api, server_info, client):
