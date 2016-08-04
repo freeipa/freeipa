@@ -87,3 +87,7 @@ add:schema-compat-entry-attribute: %ifeq("ipauniqueid","%{ipauniqueid}","objectc
 add:schema-compat-entry-attribute: %ifeq("ipauniqueid","%{ipauniqueid}","ipaanchoruuid=:IPA:$DOMAIN:%{ipauniqueid}","")
 add:schema-compat-entry-attribute: ipaanchoruuid=%{ipaanchoruuid}
 add:schema-compat-entry-attribute: %ifeq("ipaanchoruuid","%{ipaanchoruuid}","objectclass=ipaOverrideTarget","")
+
+dn: cn=users,cn=Schema Compatibility,cn=plugins,cn=config
+add:schema-compat-entry-attribute: uid=%{uid}
+replace:schema-compat-entry-rdn: uid=%{uid}::uid=%first("%{uid}")

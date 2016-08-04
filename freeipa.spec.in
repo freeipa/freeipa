@@ -12,9 +12,11 @@
 %if 0%{?rhel}
 %global samba_version 4.0.5-1
 %global selinux_policy_version 3.12.1-153
+%global slapi_nis_version 0.56.0-4
 %else
 %global samba_version 2:4.0.5-1
 %global selinux_policy_version 3.13.1-158.4
+%global slapi_nis_version 0.56.1
 %endif
 
 %define krb5_base_version %(LC_ALL=C rpm -q --qf '%%{VERSION}' krb5-devel | grep -Eo '^[^.]+\.[^.]+')
@@ -159,7 +161,7 @@ Requires(pre): systemd-units
 Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base >= %{selinux_policy_version}
-Requires: slapi-nis >= 0.56.0
+Requires: slapi-nis >= %{slapi_nis_version}
 Requires: pki-ca >= 10.3.3-3
 Requires: pki-kra >= 10.3.3-3
 Requires(preun): python systemd-units
