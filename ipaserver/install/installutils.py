@@ -1038,7 +1038,7 @@ def load_external_cert(files, subject_base):
             raise ScriptError(
                 "IPA CA certificate not found in %s" % (", ".join(files)))
 
-        trust_chain = reversed(nssdb.get_trust_chain(ca_nickname))
+        trust_chain = list(reversed(nssdb.get_trust_chain(ca_nickname)))
         ca_cert_chain = []
         for nickname in trust_chain:
             cert, subject, issuer = cache[nickname]
