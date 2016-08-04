@@ -283,6 +283,7 @@ def get_replica_filename(replica):
 def domainlevel(host):
     # Dynamically determines the domainlevel on master. Needed for scenarios
     # when domainlevel is changed during the test execution.
+    kinit_admin(host)
     result = host.run_command(['ipa', 'domainlevel-get'], raiseonerr=False)
     level = 0
     domlevel_re = re.compile('.*(\d)')
