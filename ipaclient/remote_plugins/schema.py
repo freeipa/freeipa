@@ -20,6 +20,7 @@ from ipalib.frontend import Object
 from ipalib.output import Output
 from ipalib.parameters import DefaultFrom, Flag, Password, Str
 from ipaplatform.paths import paths
+from ipapython.ipautil import fsdecode
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipapython.ipa_log_manager import log_mgr
@@ -370,7 +371,7 @@ class Schema(object):
 
     """
     namespaces = {'classes', 'commands', 'topics'}
-    _DIR = os.path.join(paths.USER_CACHE_PATH, 'ipa', 'schema')
+    _DIR = os.path.join(paths.USER_CACHE_PATH, 'ipa', 'schema', FORMAT)
 
     def __init__(self, api, server_info, client):
         self._dict = {}
@@ -416,34 +417,14 @@ class Schema(object):
         path = os.path.join(self._DIR, filename)
         return _LockedZipFile(path, mode)
 
-    def _get_schema_fingerprint(self, schema):
-        try:
-            fmt = json.loads(schema.read('format'))
-        except KeyError:
-            fmt = '0'
-
-        if fmt != FORMAT:
-            raise RuntimeError('invalid format')
-
-        return json.loads(schema.read('fingerprint'))
-
     def _fetch(self, client):
         if not client.isconnected():
             client.connect(verbose=False)
 
-        fps = []
         try:
-            files = os.listdir(self._DIR)
+            fps = [fsdecode(f) for f in os.listdir(self._DIR)]
         except EnvironmentError:
-            pass
-        else:
-            for filename in files:
-                try:
-                    with self._open_schema(filename, 'r') as schema:
-                        fps.append(
-                            unicode(self._get_schema_fingerprint(schema)))
-                except Exception:
-                    continue
+            fps = []
 
         kwargs = {u'version': u'2.170'}
         if fps:
@@ -470,8 +451,6 @@ class Schema(object):
 
     def _read_schema(self):
         with self._open_schema(self._fingerprint, 'r') as schema:
-            self._dict['fingerprint'] = self._get_schema_fingerprint(schema)
-
             for name in schema.namelist():
                 ns, _slash, key = name.partition('/')
                 if ns in self.namespaces:
@@ -559,7 +538,7 @@ def get_package(api, server_info, client):
         schema = Schema(api, server_info, client)
         object.__setattr__(api, '_schema', schema)
 
-    fingerprint = str(schema['fingerprint'])
+    fingerprint = str(server_info['fingerprint'])
     package_name = '{}${}'.format(__name__, fingerprint)
     package_dir = '{}${}'.format(os.path.splitext(__file__)[0], fingerprint)
 
