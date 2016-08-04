@@ -345,7 +345,7 @@ class TestProhibitReplicaUninstallation(IntegrationTest):
         result = self.replicas[0].run_command(['ipa-server-install',
                                                '--uninstall', '-U'],
                                               raiseonerr=False)
-        assert(result.returncode == 0), ("The replica was removed without "
+        assert(result.returncode > 0), ("The replica was removed without "
                                          "'--ignore-topology-disconnect' option")
         assert("Uninstallation leads to disconnected topology"
                in result.stdout_text), ("Expected error message was not found")
