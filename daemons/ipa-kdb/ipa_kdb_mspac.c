@@ -20,6 +20,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "config.h"
+
 #include "ipa_kdb.h"
 #include "ipa_mspac.h"
 #include <talloc.h>
@@ -1533,10 +1535,17 @@ krb5_error_code filter_logon_info(krb5_context context,
 
     /* According to MS-KILE, ResourceGroups must be zero, so check
      * that it is the case here */
+#ifdef HAVE_STRUCT_PAC_DOMAIN_GROUP_MEMBERSHIP
+    if (info->info->resource_groups.domain_sid != NULL &&
+        info->info->resource_groups.groups.count != 0) {
+        return EINVAL;
+    }
+#else
     if (info->info->res_group_dom_sid != NULL &&
         info->info->res_groups.count != 0) {
         return EINVAL;
     }
+#endif
 
     return 0;
 }

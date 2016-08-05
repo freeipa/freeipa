@@ -170,6 +170,18 @@ PKG_CHECK_MODULES([SAMBAUTIL], [samba-util])
 SAMBA40EXTRA_LIBPATH="-L`$PKG_CONFIG --variable=libdir samba-util`/samba -Wl,-rpath=`$PKG_CONFIG --variable=libdir samba-util`/samba"
 AC_SUBST(SAMBA40EXTRA_LIBPATH)
 
+bck_cflags="$CFLAGS"
+CFLAGS="$NDRPAC_CFLAGS"
+AC_CHECK_MEMBER(
+    [struct PAC_DOMAIN_GROUP_MEMBERSHIP.domain_sid],
+    [AC_DEFINE([HAVE_STRUCT_PAC_DOMAIN_GROUP_MEMBERSHIP], [1],
+               [struct PAC_DOMAIN_GROUP_MEMBERSHIP is available.])],
+    [AC_MSG_NOTICE([struct PAC_DOMAIN_GROUP_MEMBERSHIP is not available])],
+                 [[#include <ndr.h>
+                   #include <gen_ndr/krb5pac.h>]])
+
+CFLAGS="$bck_cflags"
+
 LIBPDB_NAME=""
 AC_CHECK_LIB([samba-passdb],
              [make_pdb_method],
