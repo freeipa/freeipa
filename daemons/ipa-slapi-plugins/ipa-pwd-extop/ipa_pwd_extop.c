@@ -210,7 +210,7 @@ static int ipapwd_chpwop(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 	char *principal = NULL;
 	Slapi_PBlock *chpwop_pb = NULL;
 	Slapi_DN     *target_sdn = NULL;
-	char         *target_dn = NULL;
+	const char   *target_dn = NULL;
 
 	/* Get the ber value of the extended operation */
 	slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_VALUE, &extop_value);
