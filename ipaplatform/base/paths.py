@@ -134,6 +134,7 @@ class BasePathNamespace(object):
     SYSTEMD_IPA_SERVICE = "/etc/systemd/system/multi-user.target.wants/ipa.service"
     SYSTEMD_SSSD_SERVICE = "/etc/systemd/system/multi-user.target.wants/sssd.service"
     SYSTEMD_PKI_TOMCAT_SERVICE = "/etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service"
+    ETC_TMPFILESD_DIRSRV = "/etc/tmpfiles.d/dirsrv-%s.conf"
     DNSSEC_TRUSTED_KEY = "/etc/trusted-key.key"
     HOME_DIR = "/home"
     PROC_FIPS_ENABLED = "/proc/sys/crypto/fips_enabled"

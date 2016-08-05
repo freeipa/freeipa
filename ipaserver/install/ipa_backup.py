@@ -337,9 +337,12 @@ class Backup(admintool.AdminTool):
             if os.path.exists(dir):
                 self.dirs.append(dir)
 
-        file = paths.SYSCONFIG_DIRSRV_INSTANCE % serverid
-        if os.path.exists(file):
-            self.files.append(file)
+        for file in (
+            paths.SYSCONFIG_DIRSRV_INSTANCE % serverid,
+            paths.ETC_TMPFILESD_DIRSRV % serverid,
+        ):
+            if os.path.exists(file):
+                self.files.append(file)
 
         self.logs.append(paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % serverid)
 
