@@ -394,7 +394,6 @@ parse_req_done:
 
     if (dn) {
         Slapi_DN *bind_sdn;
-        Slapi_DN *target_sdn;
 
         /* if the user changing the password is self, we must request the
          * old password and verify it matches the current one before
