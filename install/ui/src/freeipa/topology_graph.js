@@ -530,12 +530,14 @@ topology_graph.TopoGraph = declare([Evented], {
 
         function add_labels(type, color, adder_group) {
             var label_radius = 3;
+            var decimal_plus = parseInt('f067', 16); // Converts hexadecimal
+            // code of plus icon to decimal.
 
             var plus = adder_group
                 .append('text')
                 .classed('plus', true)
                 .classed(type + '_plus', true)
-                .text('\uf067');
+                .text(String.fromCharCode(decimal_plus));
 
             var label = adder_group.append('path')
                     .attr('id', type + '_label');
