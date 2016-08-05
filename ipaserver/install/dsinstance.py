@@ -27,6 +27,7 @@ import re
 import time
 import tempfile
 import stat
+import fnmatch
 
 import ldap
 
@@ -178,6 +179,16 @@ def get_domain_level(api=api):
     except errors.NotFound:
         return constants.DOMAIN_LEVEL_0
     return int(entry.single_value['ipaDomainLevel'])
+
+
+def get_all_external_schema_files(root):
+    """Get all schema files"""
+    f = []
+    for path, subdirs, files in os.walk(root):
+        for name in files:
+            if fnmatch.fnmatch(name, "*.ldif"):
+                f.append(os.path.join(path, name))
+    return f
 
 
 INF_TEMPLATE = """
@@ -656,7 +667,9 @@ class DsInstance(service.Service):
         conn.unbind()
 
     def apply_updates(self):
-        data_upgrade = upgradeinstance.IPAUpgrade(self.realm)
+        schema_files = get_all_external_schema_files(paths.EXTERNAL_SCHEMA_DIR)
+        data_upgrade = upgradeinstance.IPAUpgrade(self.realm,
+                                                  schema_files=schema_files)
         try:
             data_upgrade.create_instance()
         except Exception as e:

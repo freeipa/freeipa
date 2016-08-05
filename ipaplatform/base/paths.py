@@ -355,6 +355,7 @@ class BasePathNamespace(object):
     IPA_CUSTODIA_SOCKET = '/run/httpd/ipa-custodia.sock'
     IPA_CUSTODIA_AUDIT_LOG = '/var/log/ipa-custodia.audit.log'
     IPA_GETKEYTAB = '/usr/sbin/ipa-getkeytab'
+    EXTERNAL_SCHEMA_DIR = '/usr/share/ipa/schema.d'
 
     @property
     def USER_CACHE_PATH(self):

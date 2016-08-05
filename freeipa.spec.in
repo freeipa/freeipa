@@ -873,6 +873,8 @@ mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/custodia
 
+mkdir -p %{buildroot}%{_usr}/share/ipa/schema.d
+
 %endif # ONLY_CLIENT
 
 
@@ -1250,7 +1252,8 @@ fi
 %ghost %{_localstatedir}/lib/ipa/pki-ca/publish
 %ghost %{_localstatedir}/named/dyndb-ldap/ipa
 %dir %attr(0700,root,root) %{_sysconfdir}/ipa/custodia
-
+%dir %{_usr}/share/ipa/schema.d
+%attr(0644,root,root) %{_usr}/share/ipa/schema.d/README
 
 %files server-dns
 %defattr(-,root,root,-)

@@ -1,0 +1,14 @@
+This directory is indended to store schema files for 3rd-party plugins.
+
+Each schema file should be named NN-description.ldif where NN is a number 00..90.
+
+The schema files from this directory are merged together with the core IPA
+schema files during the run of ipa-server-upgrade utility. Therefore, they are
+also installed when upgrade happens within the process of ipa-server-install.
+
+The directory is installed as /usr/share/ipa/schema.d and is owned by a
+freeipa-server-common package. Therefore, a 3rd-party plugin would need to
+depend on the freeipa-server-common package if it delivers the schema file(s).
+
+You may place your schema files in a subdirectory too, the code that loads
+schema files processes recursively all subdirectories of schema.d.

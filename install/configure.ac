@@ -88,6 +88,7 @@ AC_CONFIG_FILES([
     share/advise/Makefile
     share/advise/legacy/Makefile
     share/profiles/Makefile
+    share/schema.d/Makefile
     ui/Makefile
     ui/css/Makefile
     ui/src/Makefile

@@ -3,6 +3,7 @@ NULL =
 SUBDIRS =  				\
 	advise				\
 	profiles			\
+	schema.d			\
 	$(NULL)
 
 appdir = $(IPA_DATA_DIR)

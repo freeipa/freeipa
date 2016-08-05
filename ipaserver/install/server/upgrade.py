@@ -1818,6 +1818,9 @@ def upgrade():
     realm = api.env.realm
     schema_files = [os.path.join(ipautil.SHARE_DIR, f) for f
                     in dsinstance.ALL_SCHEMA_FILES]
+
+    schema_files.extend(dsinstance.get_all_external_schema_files(
+                        paths.EXTERNAL_SCHEMA_DIR))
     data_upgrade = IPAUpgrade(realm, schema_files=schema_files)
 
     try:
