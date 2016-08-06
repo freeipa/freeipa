@@ -75,7 +75,7 @@ env._bootstrap(context='server', debug=options.debug, log=None)
 env._finalize_core(**dict(DEFAULT_CONFIG))
 
 # Initialize the API with the proper debug level
-api.bootstrap(context='server', debug=env.debug, log=None)
+api.bootstrap(in_server=True, debug=env.debug, log=None, context='server')
 api.finalize()
 
 # Only import trust plugin after api is initialized or internal imports
