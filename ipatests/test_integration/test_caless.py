@@ -279,10 +279,10 @@ class CALessBase(IntegrationTest):
 
     @classmethod
     def get_pem(cls, nickname):
-        pem_cert, _stderr, _returncode = ipautil.run(
+        result = ipautil.run(
             ['certutil', '-L', '-d', 'nssdb', '-n', nickname, '-a'],
-            cwd=cls.cert_dir)
-        return pem_cert
+            cwd=cls.cert_dir, capture_output=True)
+        return result.output
 
     def verify_installation(self):
         """Verify CA cert PEM file and LDAP entry created by install
