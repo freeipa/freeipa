@@ -1690,15 +1690,19 @@ def add_new_domains_from_trust(myapi, trustinstance, trust_entry, domains, **opt
             if 'raw' in options:
                 dom['raw'] = options['raw']
 
-            res = myapi.Command.trustdomain_add(trust_name, name, **dom)
-            result.append(res['result'])
+            try:
+                res = myapi.Command.trustdomain_add(trust_name, name, **dom)
+                result.append(res['result'])
+            except errors.DuplicateEntry:
+                # Ignore updating duplicate entries
+                pass
 
             if idrange_type != u'ipa-ad-trust-posix':
                 range_name = name.upper() + '_id_range'
                 dom['range_type'] = u'ipa-ad-trust'
                 add_range(myapi, trustinstance,
                           range_name, dom['ipanttrusteddomainsid'],
-                          trust_name, name, **dom)
+                          name, **dom)
         except errors.DuplicateEntry:
             # Ignore updating duplicate entries
             pass
