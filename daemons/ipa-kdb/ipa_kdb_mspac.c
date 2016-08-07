@@ -2412,6 +2412,7 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
     char *base = NULL;
     char *dnstr = NULL;
     char *dnl = NULL;
+    LDAPDN dn = NULL;
     char **sid_blacklist_incoming = NULL;
     char **sid_blacklist_outgoing = NULL;
     int ret, n, i;
@@ -2523,25 +2524,25 @@ krb5_error_code ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
             goto done;
         }
 
-        /* Note that after ldap_str2rdn() call dnl will point to end of one RDN
-         * which would be '\0' for trust root domain and ',' for subdomain */
         dnl--; dnl[0] = '\0';
-        ret = ldap_str2rdn(dnstr, &rdn, &dnl, LDAP_DN_FORMAT_LDAPV3);
+        /* Create a DN, which is now everything before the base,
+         * to get list of rdn values -- the last one would be a root domain.
+         * Since with cross-forest trust we have to route everything via root
+         * domain, that is enough for us to assign parentship. */
+        ret = ldap_str2dn(dnstr, &dn, LDAP_DN_FORMAT_LDAPV3);
         if (ret) {
             goto done;
         }
 
-        ldap_rdnfree(rdn);
-
-        if (dnl[0] != '\0') {
-            dnl++;
-            ret = ldap_str2rdn(dnl, &rdn, &dnl, LDAP_DN_FORMAT_LDAPV3);
-            if (ret) {
-                goto done;
-            }
-            t[n].parent_name = strndup(rdn[0]->la_value.bv_val, rdn[0]->la_value.bv_len);
-            ldap_rdnfree(rdn);
+        rdn = NULL;
+        for (i = 0; dn[i] != NULL; i++) {
+            rdn = dn[i];
         }
+
+        /* We should have a single AVA in the domain RDN */
+        t[n].parent_name = strndup(rdn[0]->la_value.bv_val, rdn[0]->la_value.bv_len);
+
+        ldap_dnfree(dn);
 
         free(dnstr);
         dnstr = NULL;
