@@ -609,6 +609,32 @@ class server_del(LDAPDelete):
                     message=_("Failed to remove server %(master)s from server "
                               "list: %(err)s") % dict(master=master, err=e)))
 
+    def _remove_server_custodia_keys(self, ldap, master):
+        """
+        Delete all Custodia encryption and signing keys
+        """
+        conn = self.Backend.ldap2
+        env = self.api.env
+        # search for memberPrincipal=*/fqdn@realm
+        member_filter = ldap.make_filter_from_attr(
+            'memberPrincipal', "/{}@{}".format(master, env.realm),
+            exact=False, leading_wildcard=True, trailing_wildcard=False)
+        custodia_subtree = DN(env.container_custodia, env.basedn)
+        try:
+            entries = conn.get_entries(custodia_subtree,
+                                       ldap.SCOPE_SUBTREE,
+                                       filter=member_filter)
+            for entry in entries:
+                conn.delete_entry(entry)
+        except errors.NotFound:
+            pass
+        except Exception as e:
+            self.add_message(
+                messages.ServerRemovalWarning(
+                    message=_(
+                        "Failed to clean up Custodia keys for "
+                        "%(master)s: %(err)s") % dict(master=master, err=e)))
+
     def _remove_server_host_services(self, ldap, master):
         """
         delete server kerberos key and all its svc principals
@@ -681,6 +707,9 @@ class server_del(LDAPDelete):
 
         # remove the references to master's ldap/http principals
         self._remove_server_principal_references(pkey)
+
+        # remove Custodia encryption and signing keys
+        self._remove_server_custodia_keys(ldap, pkey)
 
         # finally destroy all Kerberos principals
         self._remove_server_host_services(ldap, pkey)
