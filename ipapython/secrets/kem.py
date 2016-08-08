@@ -1,6 +1,7 @@
 # Copyright (C) 2015  IPA Project Contributors, see COPYING for license
 
 from __future__ import print_function
+import os
 from ipaplatform.paths import paths
 from six.moves.configparser import ConfigParser
 from ipapython.dn import DN
@@ -143,7 +144,9 @@ class KEMLdap(iSecLdap):
 def newServerKeys(path, keyid):
     skey = JWK(generate='RSA', use='sig', kid=keyid)
     ekey = JWK(generate='RSA', use='enc', kid=keyid)
-    with open(path, 'w+') as f:
+    with open(path, 'w') as f:
+        os.fchmod(f.fileno(), 0o600)
+        os.fchown(f.fileno(), 0, 0)
         f.write('[%s,%s]' % (skey.export(), ekey.export()))
     return [skey.get_op_key('verify'), ekey.get_op_key('encrypt')]
 
