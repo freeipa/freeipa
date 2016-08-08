@@ -14,6 +14,7 @@ from base64 import b64encode, b64decode
 from jwcrypto.common import json_decode
 import shutil
 import os
+import stat
 import tempfile
 import pwd
 
@@ -65,6 +66,10 @@ class CustodiaInstance(SimpleServiceInstance):
         if not sysupgrade.get_upgrade_state("custodia", "installed"):
             root_logger.info("Custodia service is being configured")
             self.create_instance()
+        mode = os.stat(self.server_keys).st_mode
+        if stat.S_IMODE(mode) != 0o600:
+            root_logger.info("Secure server.keys mode")
+            os.chmod(self.server_keys, 0o600)
 
     def create_replica(self, master_host_name):
         suffix = ipautil.realm_to_suffix(self.realm)
