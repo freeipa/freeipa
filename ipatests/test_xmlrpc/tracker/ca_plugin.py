@@ -8,7 +8,13 @@ import six
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.util import assert_deepequal
-from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_issuer, fuzzy_caid
+from ipatests.test_xmlrpc.xmlrpc_test import (
+    fuzzy_issuer,
+    fuzzy_caid,
+    fuzzy_base64,
+    fuzzy_sequence_of,
+    fuzzy_bytes,
+)
 from ipatests.test_xmlrpc import objectclasses
 
 
@@ -19,12 +25,21 @@ if six.PY3:
 class CATracker(Tracker):
     """Implementation of a Tracker class for CA plugin."""
 
-    retrieve_keys = {
+    ldap_keys = {
         'dn', 'cn', 'ipacaid', 'ipacasubjectdn', 'ipacaissuerdn', 'description'
     }
-    retrieve_all_keys = {'objectclass'} | retrieve_keys
-    create_keys = retrieve_all_keys
-    update_keys = retrieve_keys - {'dn'}
+    cert_keys = {
+        'certificate',
+    }
+    cert_all_keys = {
+        'certificate_chain',
+    }
+    find_keys = ldap_keys
+    find_all_keys = {'objectclass'} | ldap_keys
+    retrieve_keys = ldap_keys | cert_keys
+    retrieve_all_keys = {'objectclass'} | retrieve_keys | cert_all_keys
+    create_keys = {'objectclass'} | retrieve_keys
+    update_keys = ldap_keys - {'dn'}
 
     def __init__(self, name, subject, desc=u"Test generated CA",
                  default_version=None):
@@ -59,6 +74,8 @@ class CATracker(Tracker):
             ipacasubjectdn=[self.ipasubjectdn],
             ipacaissuerdn=[fuzzy_issuer],
             ipacaid=[fuzzy_caid],
+            certificate=fuzzy_base64,
+            certificate_chain=fuzzy_sequence_of(fuzzy_bytes),
             objectclass=objectclasses.ca
         )
         self.exists = True
@@ -102,9 +119,9 @@ class CATracker(Tracker):
     def check_find(self, result, all=False, raw=False):
         """Check the plugin's `find` command result"""
         if all:
-            expected = self.filter_attrs(self.retrieve_all_keys)
+            expected = self.filter_attrs(self.find_all_keys)
         else:
-            expected = self.filter_attrs(self.retrieve_keys)
+            expected = self.filter_attrs(self.find_keys)
 
         assert_deepequal(dict(
             count=1,

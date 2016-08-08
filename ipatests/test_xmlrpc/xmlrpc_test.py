@@ -22,6 +22,7 @@ Base class for all XML-RPC tests
 """
 from __future__ import print_function
 
+import collections
 import datetime
 import inspect
 
@@ -48,6 +49,20 @@ fuzzy_uuid = Fuzzy('^%s$' % uuid_re)
 fuzzy_automember_dn = Fuzzy(
     '^cn=%s,cn=automember rebuild membership,cn=tasks,cn=config$' % uuid_re
 )
+
+# base64-encoded value
+fuzzy_base64 = Fuzzy('^[0-9A-Za-z/+]+={0,2}$')
+
+
+def fuzzy_sequence_of(fuzzy):
+    """Construct a Fuzzy for a Sequence of values matching the given Fuzzy."""
+    def test(xs):
+        if not isinstance(xs, collections.Sequence):
+            return False
+        else:
+            return all(fuzzy == x for x in xs)
+
+    return Fuzzy(test=test)
 
 # Matches an automember task finish message
 fuzzy_automember_message = Fuzzy(
@@ -108,6 +123,8 @@ fuzzy_dergeneralizedtime = Fuzzy(type=datetime.datetime)
 
 # match any string
 fuzzy_string = Fuzzy(type=six.string_types)
+
+fuzzy_bytes = Fuzzy(type=bytes)
 
 # case insensitive match of sets
 def fuzzy_set_ci(s):

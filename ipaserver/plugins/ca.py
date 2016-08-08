@@ -2,14 +2,18 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-from ipalib import api, errors, output, DNParam, Str
+import base64
+
+import six
+
+from ipalib import api, errors, output, Bytes, DNParam, Flag, Str
 from ipalib.constants import IPA_CA_CN
 from ipalib.plugable import Registry
 from ipaserver.plugins.baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate, LDAPDelete,
     LDAPUpdate, LDAPRetrieve, LDAPQuery, pkey_to_value)
 from ipaserver.plugins.cert import ca_enabled_check
-from ipalib import _, ngettext
+from ipalib import _, ngettext, x509
 
 
 __doc__ = _("""
@@ -100,6 +104,18 @@ class ca(LDAPObject):
             doc=_('Issuer Distinguished Name'),
             flags=['no_create', 'no_update'],
         ),
+        Bytes(
+            'certificate',
+            label=_("Certificate"),
+            doc=_("Base-64 encoded certificate."),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Bytes(
+            'certificate_chain*',
+            label=_("Certificate chain"),
+            doc=_("X.509 certificate chain"),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
     )
 
     permission_filter_objectclasses = ['ipaca']
@@ -145,6 +161,21 @@ class ca(LDAPObject):
     }
 
 
+def set_certificate_attrs(entry, options, always_include_cert=True):
+    ca_id = entry['ipacaid'][0]
+    full = options.get('all', False)
+    with api.Backend.ra_lightweight_ca as ca_api:
+        if always_include_cert or full:
+            der = ca_api.read_ca_cert(ca_id)
+            entry['certificate'] = six.text_type(base64.b64encode(der))
+
+        if options.get('chain', False) or full:
+            pkcs7_der = ca_api.read_ca_chain(ca_id)
+            pems = x509.pkcs7_to_pems(pkcs7_der, x509.DER)
+            ders = [x509.normalize_certificate(pem) for pem in pems]
+            entry['certificate_chain'] = ders
+
+
 @register()
 class ca_find(LDAPSearch):
     __doc__ = _("Search for CAs.")
@@ -154,22 +185,42 @@ class ca_find(LDAPSearch):
 
     def execute(self, *keys, **options):
         ca_enabled_check()
-        return super(ca_find, self).execute(*keys, **options)
+        result = super(ca_find, self).execute(*keys, **options)
+        for entry in result['result']:
+            set_certificate_attrs(entry, options, always_include_cert=False)
+        return result
+
+
+_chain_flag = Flag(
+    'chain',
+    default=False,
+    doc=_('Include certificate chain in output'),
+)
 
 
 @register()
 class ca_show(LDAPRetrieve):
     __doc__ = _("Display the properties of a CA.")
 
-    def execute(self, *args, **kwargs):
+    takes_options = LDAPRetrieve.takes_options + (
+        _chain_flag,
+    )
+
+    def execute(self, *keys, **options):
         ca_enabled_check()
-        return super(ca_show, self).execute(*args, **kwargs)
+        result = super(ca_show, self).execute(*keys, **options)
+        set_certificate_attrs(result['result'], options)
+        return result
 
 
 @register()
 class ca_add(LDAPCreate):
     __doc__ = _("Create a CA.")
     msg_summary = _('Created CA "%(value)s"')
+
+    takes_options = LDAPCreate.takes_options + (
+        _chain_flag,
+    )
 
     def pre_callback(self, ldap, dn, entry, entry_attrs, *keys, **options):
         ca_enabled_check()
@@ -201,6 +252,10 @@ class ca_add(LDAPCreate):
         # differs from what was requested, record the actual DN.
         #
         entry['ipacasubjectdn'] = [resp['dn']]
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        set_certificate_attrs(entry_attrs, options)
         return dn
 
 
