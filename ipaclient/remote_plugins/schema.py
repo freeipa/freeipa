@@ -167,7 +167,7 @@ class _SchemaPlugin(object):
             elif key in ('cli_metavar',
                          'cli_name'):
                 kwargs[key] = str(value)
-            elif key == 'confirm' and issubclass(cls, Password):
+            elif key == 'confirm':
                 kwargs[key] = value
             elif key == 'default':
                 default = value

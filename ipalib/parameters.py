@@ -377,6 +377,7 @@ class Param(ReadOnly):
         parameter is not `required`
       - sortorder: used to sort a list of parameters for Command. See
         `Command.finalize()` for further information
+      - confirm: if password, ask for confirmation
     """
 
     # This is a dummy type so that most of the functionality of Param can be
@@ -418,6 +419,7 @@ class Param(ReadOnly):
         ('cli_metavar', str, None),
         ('no_convert', bool, False),
         ('deprecated', bool, False),
+        ('confirm', bool, True),
 
         # The 'default' kwarg gets appended in Param.__init__():
         # ('default', self.type, None),
@@ -1510,10 +1512,6 @@ class Password(Str):
     """
 
     password = True
-
-    kwargs = Str.kwargs + (
-        ('confirm', bool, True),
-    )
 
     def _convert_scalar(self, value, index=None):
         if isinstance(value, (tuple, list)) and len(value) == 2:

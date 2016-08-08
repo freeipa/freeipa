@@ -79,10 +79,6 @@ class OTPTokenKey(Bytes):
 
     password = True
 
-    kwargs = Bytes.kwargs + (
-        ('confirm', bool, True),
-    )
-
     def _convert_scalar(self, value, index=None):
         if isinstance(value, (tuple, list)) and len(value) == 2:
             (p1, p2) = value
