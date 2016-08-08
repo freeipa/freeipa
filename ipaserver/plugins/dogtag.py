@@ -2125,6 +2125,18 @@ class ra_lightweight_ca(RestClient):
         except:
             raise errors.RemoteRetrieveError(reason=_("Response from CA was not valid JSON"))
 
+    def read_ca_cert(self, ca_id):
+        _status, _resp_headers, resp_body = self._ssldo(
+            'GET', '{}/cert'.format(ca_id),
+            headers={'Accept': 'application/pkix-cert'})
+        return resp_body
+
+    def read_ca_chain(self, ca_id):
+        _status, _resp_headers, resp_body = self._ssldo(
+            'GET', '{}/chain'.format(ca_id),
+            headers={'Accept': 'application/pkcs7-mime'})
+        return resp_body
+
     def disable_ca(self, ca_id):
         self._ssldo(
             'POST', ca_id + '/disable',

@@ -73,8 +73,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 216)
-# Last change: DNS: Support URI resource record type
+define(IPA_API_VERSION_MINOR, 217)
+# Last change: Add options to write lightweight CA cert or chain to file
 
 
 ########################################################
