@@ -881,7 +881,7 @@ def install(installer):
     try:
         args = [paths.IPA_CLIENT_INSTALL, "--on-master", "--unattended",
                 "--domain", config.domain_name, "--server", config.host_name,
-                "--realm", config.realm_name]
+                "--realm", config.realm_name, "--no-ntp"]
         if options.no_dns_sshfp:
             args.append("--no-dns-sshfp")
         if options.ssh_trust_dns:
@@ -918,7 +918,7 @@ def ensure_enrolled(installer):
     try:
         installer._enrollment_performed = True
 
-        args = [paths.IPA_CLIENT_INSTALL, "--unattended"]
+        args = [paths.IPA_CLIENT_INSTALL, "--unattended", "--no-ntp"]
         stdin = None
 
         if installer.domain_name:
