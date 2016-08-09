@@ -575,7 +575,7 @@ class service(LDAPObject):
             pass
 
         try:
-            return dn['krbprincipalname'][0]
+            return dn['krbprincipalname']
         except KeyError:
             return unicode(dn)
 
