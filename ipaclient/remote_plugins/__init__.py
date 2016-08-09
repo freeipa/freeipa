@@ -32,6 +32,9 @@ class ServerInfo(collections.MutableMapping):
         return self
 
     def __exit__(self, *_exc_info):
+        self.flush()
+
+    def flush(self):
         if self._dirty:
             self._write()
 
@@ -78,15 +81,21 @@ def get_package(api):
     if api.env.in_tree:
         from ipaserver import plugins
     else:
-        with ServerInfo(api) as server_info:
-            client = rpcclient(api)
-            client.finalize()
-            try:
-                plugins = schema.get_package(api, server_info, client)
-            except schema.NotAvailable:
-                plugins = compat.get_package(api, server_info, client)
-            finally:
-                if client.isconnected():
-                    client.disconnect()
+        client = rpcclient(api)
+        client.finalize()
+
+        try:
+            server_info = api._server_info
+        except AttributeError:
+            server_info = api._server_info = ServerInfo(api)
+
+        try:
+            plugins = schema.get_package(api, server_info, client)
+        except schema.NotAvailable:
+            plugins = compat.get_package(api, server_info, client)
+        finally:
+            server_info.flush()
+            if client.isconnected():
+                client.disconnect()
 
     return plugins
