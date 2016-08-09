@@ -335,6 +335,7 @@ class i18n_messages(Command):
             "form_auth": _("<i class=\"fa fa-info-circle\"></i> To login with <strong>username and password</strong>, enter them in the corresponding fields, then click Login."),
             "header": _("Logged In As"),
             "krb_auth_msg": _("<i class=\"fa fa-info-circle\"></i> To login with <strong>Kerberos</strong>, please make sure you have valid tickets (obtainable via kinit) and <a href='http://${host}/ipa/config/unauthorized.html'>configured</a> the browser correctly, then click Login."),
+            "loading_md": _("Loading data"),
             "login": _("Login"),
             "logout": _("Logout"),
             "logout_error": _("Logout error"),

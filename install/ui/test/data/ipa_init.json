@@ -186,6 +186,7 @@
                         "form_auth": "<i class=\"fa fa-info-circle\"></i> To login with <strong>username and password</strong>, enter them in the corresponding fields, then click Login.",
                         "header": "Logged In As",
                         "krb_auth_msg": "<i class=\"fa fa-info-circle\"></i> To login with <strong>Kerberos</strong>, please make sure you have valid tickets (obtainable via kinit) and <a href='http://${host}/ipa/config/unauthorized.html'>configured</a> the browser correctly, then click Login.",
+                        "loading_md": "Loading data",
                         "login": "Login",
                         "logout": "Logout",
                         "logout_error": "Logout error",
