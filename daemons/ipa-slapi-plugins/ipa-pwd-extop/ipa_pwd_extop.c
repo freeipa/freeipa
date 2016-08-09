@@ -398,16 +398,26 @@ parse_req_done:
         /* if the user changing the password is self, we must request the
          * old password and verify it matches the current one before
          * proceeding with the password change */
-        bind_sdn = slapi_sdn_new_dn_byref(bindDN);
-        target_sdn = slapi_sdn_new_dn_byref(dn);
-        if (!bind_sdn || !target_sdn) {
-            LOG_OOM();
-            rc = LDAP_OPERATIONS_ERROR;
-            goto free_and_return;
-        }
+        bind_sdn = slapi_sdn_new_dn_byval(bindDN);
+        target_sdn = slapi_sdn_new_dn_byval(dn);
+
+        rc = (!bind_sdn || !target_sdn) ? LDAP_OPERATIONS_ERROR : 0;
+
         /* this one will normalize and compare, so difference in case will be
          * correctly handled */
         ret = slapi_sdn_compare(bind_sdn, target_sdn);
+
+        slapi_sdn_free(&bind_sdn);
+        slapi_sdn_free(&target_sdn);
+
+        /* rc should always be 0 (else slapi_sdn_new_dn_byval should have sigsev)
+         * but if we end in rc==LDAP_OPERATIONS_ERROR be sure to stop here
+         * because ret is not significant */
+        if (rc != 0) {
+            LOG_OOM();
+            goto free_and_return;
+        }
+
         if (ret == 0) {
             Slapi_Value *cpw[2] = { NULL, NULL };
             Slapi_Value *pw;
