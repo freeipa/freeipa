@@ -6990,6 +6990,7 @@ exp.activity_widget = IPA.activity_widget = function(spec) {
 
     that.activate_event = spec.activate_event || 'rpc-start';
     that.deactivate_event = spec.deactivate_event || 'rpc-end';
+    that.set_activity_event = 'set-activity';
 
     that.create = function(container) {
         that.widget_create(container);
@@ -7023,6 +7024,10 @@ exp.activity_widget = IPA.activity_widget = function(spec) {
 
             if (that.connection_counter === 0) that.hide();
             if (that.connection_counter < 0) that.connection_counter = 0;
+        });
+
+        topic.subscribe(that.set_activity_event, function(new_text) {
+             that.text = new_text;
         });
     };
 

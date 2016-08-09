@@ -276,6 +276,9 @@ var IPA = function () {
      * @param {Function} params.on_error
      */
     that.init_metadata = function(params) {
+        var loading = text.get('@i18n:login.loading_md');
+
+        topic.publish('set-activity', loading);
 
         var objects = rpc.command({
             name: 'ipa_init_objects',
