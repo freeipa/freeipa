@@ -127,6 +127,12 @@ class CommandOverride(Command):
     doc = classproperty(__doc_getter)
 
     @classmethod
+    def __summary_getter(cls):
+        return cls.__get_next().summary
+
+    summary = classproperty(__summary_getter)
+
+    @classmethod
     def __NO_CLI_getter(cls):
         return cls.__get_next().NO_CLI
 
