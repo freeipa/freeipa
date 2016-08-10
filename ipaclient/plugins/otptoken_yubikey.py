@@ -106,6 +106,12 @@ class otptoken_add_yubikey(Command):
         for option in super(otptoken_add_yubikey, self).get_options():
             yield option
 
+    def get_output_params(self):
+        for param in self.api.Command.otptoken_add.output_params():
+            yield param
+        for param in super(otptoken_add_yubikey, self).get_output_params():
+            yield param
+
     def _iter_output(self):
         return self.api.Command.otptoken_add.output()
 

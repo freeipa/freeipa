@@ -223,6 +223,12 @@ class vault_add(Local):
         for option in super(vault_add, self).get_options():
             yield option
 
+    def get_output_params(self):
+        for param in self.api.Command.vault_add_internal.output_params():
+            yield param
+        for param in super(vault_add, self).get_output_params():
+            yield param
+
     def _iter_output(self):
         return self.api.Command.vault_add_internal.output()
 
@@ -423,6 +429,12 @@ class vault_mod(Local):
         for option in super(vault_mod, self).get_options():
             yield option
 
+    def get_output_params(self):
+        for param in self.api.Command.vault_mod_internal.output_params():
+            yield param
+        for param in super(vault_mod, self).get_output_params():
+            yield param
+
     def _iter_output(self):
         return self.api.Command.vault_mod_internal.output()
 
@@ -606,6 +618,12 @@ class vault_archive(Local):
                 yield option
         for option in super(vault_archive, self).get_options():
             yield option
+
+    def get_output_params(self):
+        for param in self.api.Command.vault_archive_internal.output_params():
+            yield param
+        for param in super(vault_archive, self).get_output_params():
+            yield param
 
     def _iter_output(self):
         return self.api.Command.vault_archive_internal.output()
@@ -854,6 +872,12 @@ class vault_retrieve(Local):
                 yield option
         for option in super(vault_retrieve, self).get_options():
             yield option
+
+    def get_output_params(self):
+        for param in self.api.Command.vault_retrieve_internal.output_params():
+            yield param
+        for param in super(vault_retrieve, self).get_output_params():
+            yield param
 
     def _iter_output(self):
         return self.api.Command.vault_retrieve_internal.output()
