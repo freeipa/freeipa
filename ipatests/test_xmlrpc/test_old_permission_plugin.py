@@ -214,7 +214,6 @@ class test_old_permission(Declarative):
                     'cn': [privilege1],
                     'description': [u'privilege desc. 1'],
                     'memberof_permission': [permission1],
-                    'objectclass': objectclasses.privilege,
                 }
             ),
         ),
