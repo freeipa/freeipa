@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=211
-# Last change: mbabinsk: allow 'value' output param in commands without primary key
+IPA_API_VERSION_MINOR=212
+# Last change: ab: service: add flag to allow S4U2Self

@@ -171,11 +171,18 @@ ticket_flags_params = (
         doc=_('Client credentials may be delegated to the service'),
         flags=['virtual_attribute', 'no_search'],
     ),
+    Bool('ipakrboktoauthasdelegate?',
+        cli_name='ok_to_auth_as_delegate',
+        label=_('Trusted to authenticate as user'),
+        doc=_('The service is allowed to authenticate on behalf of a client'),
+        flags=['virtual_attribute', 'no_search'],
+    ),
 )
 
 _ticket_flags_map = {
     'ipakrbrequirespreauth': 0x00000080,
     'ipakrbokasdelegate': 0x00100000,
+    'ipakrboktoauthasdelegate': 0x00200000,
 }
 
 _ticket_flags_default = _ticket_flags_map['ipakrbrequirespreauth']
