@@ -971,6 +971,39 @@ field.validator = IPA.validator = function(spec) {
 };
 
 /**
+ * Javascript integer validator
+ *
+ * It allows to insert only integer numbers which can be safely represented by
+ * Javascript.
+ *
+ * @class
+ * @alternateClassName IPA.integer_validator
+ * @extends IPA.validator
+ */
+ field.integer_validator = IPA.integer_validator = function(spec) {
+
+     var that = IPA.validator(spec);
+
+     /**
+      * @inheritDoc
+      */
+     that.validate = function(value) {
+
+         if (!value.match(/^-?\d+$/)) {
+             return that.false_result(text.get('@i18n:widget.validation.integer'));
+         }
+
+         if (!Number.isSafeInteger(parseInt(value, 10))) {
+             return that.false_result(text.get('@i18n:widget.validation.unsupported'));
+         }
+
+         return that.true_result();
+     };
+
+     return that;
+ };
+
+/**
  * Metadata validator
  *
  * Validates value according to supplied metadata
@@ -1710,6 +1743,7 @@ field.register = function() {
     v.register('metadata', field.metadata_validator);
     v.register('unsupported', field.unsupported_validator);
     v.register('same_password', field.same_password_validator);
+    v.register('integer', field.integer_validator);
 
     l.register('adapter', field.Adapter);
     l.register('object_adapter', field.ObjectAdapter);
