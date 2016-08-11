@@ -32,6 +32,8 @@ define([
         './widgets/FacetContainer',
         './ipa',
         './reg',
+        './config',
+        './widget',
         './navigation/Menu',
         './navigation/Router',
         './navigation/routing',
@@ -39,7 +41,8 @@ define([
         './plugins/load_page'
        ],
        function(declare, array, Deferred, on, topic, query, dom_class, auth,
-            JSON, App_widget, FacetContainer, IPA, reg, Menu, Router, routing, menu_spec) {
+            JSON, App_widget, FacetContainer, IPA, reg, config, widget_mod,
+            Menu, Router, routing, menu_spec) {
 
     /**
      * Application controller
@@ -110,6 +113,7 @@ define([
             on(this.app_widget, 'profile-click', this.on_profile.bind(this));
             on(this.app_widget, 'logout-click', this.on_logout.bind(this));
             on(this.app_widget, 'password-reset-click', this.on_password_reset.bind(this));
+            on(this.app_widget, 'configuration-click', this.on_configuration.bind(this));
             on(this.app_widget, 'about-click', this.on_about.bind(this));
 
             on(this.router, 'facet-show', this.on_facet_show.bind(this));
@@ -172,7 +176,6 @@ define([
             this.hide_facet();
 
             IPA.update_password_expiration();
-
 
             // now we are ready for displaying a facet,
             // it can match a facet if hash is set
@@ -237,6 +240,49 @@ define([
 
         on_password_reset: function() {
             IPA.password_selfservice();
+        },
+
+        on_configuration: function() {
+            var dialog = IPA.dialog({
+                title: '@i18n:customization.customization',
+                fields: [
+                    {
+                        $type: 'text',
+                        name: 'pagination_size',
+                        label: '@i18n:customization.table_pagination',
+                        validators: ['integer']
+                    }
+                ]
+            });
+
+            dialog.create_button({
+                name: 'save',
+                label: '@i18n:buttons.save',
+                click: function () {
+                    if (!dialog.validate()) {
+                        widget_mod.focus_invalid(dialog);
+                        return;
+                    }
+                    var widget = dialog.get_field('pagination_size').widget;
+                    var new_value = widget.get_value()[0];
+                    config.set('table_page_size', new_value, true);
+                    topic.publish('change-pagination');
+                    dialog.close();
+                }
+            });
+
+            dialog.create_button({
+                name: 'cancel',
+                label: '@i18n:buttons.cancel',
+                click: function () {
+                    dialog.close();
+                }
+            });
+
+            dialog.open();
+
+            var size = config.get('table_page_size').toString();
+            dialog.get_field('pagination_size').set_value([size]);
         },
 
         on_about: function() {

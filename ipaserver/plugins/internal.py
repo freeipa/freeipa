@@ -250,6 +250,10 @@ class i18n_messages(Command):
             "update": _("Update"),
             "view": _("View"),
         },
+        "customization": {
+            "customization": _("Customization"),
+            "table_pagination": _("Pagination Size"),
+        },
         "details": {
             "collapse_all": _("Collapse All"),
             "expand_all": _("Expand All"),

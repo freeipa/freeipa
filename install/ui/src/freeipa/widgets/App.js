@@ -234,6 +234,8 @@ define(['dojo/_base/declare',
                 this.emit('logout-click');
             } else if (item.name == 'password_reset') {
                 this.emit('password-reset-click');
+            } else if (item.name == 'configuration') {
+                this.emit('configuration-click');
             } else if (item.name == 'about') {
                 this.emit('about-click');
             }
@@ -263,6 +265,11 @@ define(['dojo/_base/declare',
                     },
                     {
                         'class': 'divider'
+                    },
+                    {
+                        name: 'configuration',
+                        label: 'Customization',
+                        icon: 'fa-gear'
                     },
                     {
                         name: 'about',
