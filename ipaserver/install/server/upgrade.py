@@ -1732,7 +1732,8 @@ def upgrade_configuration():
         root_logger.info('Changes to named.conf have been made, restart named')
         bind = bindinstance.BindInstance(fstore)
         try:
-            bind.restart()
+            if bind.is_running():
+                bind.restart()
         except ipautil.CalledProcessError as e:
             root_logger.error("Failed to restart %s: %s", bind.service_name, e)
 
