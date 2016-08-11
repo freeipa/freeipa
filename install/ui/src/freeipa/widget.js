@@ -3584,7 +3584,7 @@ IPA.column = function (spec) {
  * @param {boolean} [spec.save_values=true]
  * @param {string} [spec.class] css class
  * @param {boolean} [spec.pagination] render pagination
- * @param {number} [spec.page_length=20]
+ * @param {number} [spec.page_length=config.table_page_size]
  * @param {boolean} [spec.multivalued=true]
  * @param {Array} columns columns or columns specs
  * @param {string} [value_attr_name=name]
@@ -3609,7 +3609,7 @@ IPA.table_widget = function (spec) {
     that.pagination = spec.pagination;
     that.current_page = 1;
     that.total_pages = 1;
-    that.page_length = spec.page_length || 20;
+    that.page_length = spec.page_length || config.get('table_page_size');
 
     that.multivalued = spec.multivalued === undefined ? true : spec.multivalued;
 

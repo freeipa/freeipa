@@ -25,12 +25,14 @@ define([
         'dojo/_base/declare',
         'dojo/_base/lang',
         'dojo/dom-construct',
+        'dojo/topic',
         'dojo/on',
         'dojo/Stateful',
         'dojo/Evented',
         './_base/Singleton_registry',
         './_base/construct',
         './builder',
+        './config',
         './ipa',
         './jquery',
         './navigation',
@@ -43,8 +45,8 @@ define([
         './dialog',
         './field',
         './widget'
-       ], function(declare, lang, construct, on, Stateful, Evented,
-                   Singleton_registry, construct_utils, builder, IPA, $,
+    ], function(declare, lang, construct, topic, on, Stateful, Evented,
+                   Singleton_registry, construct_utils, builder, config, IPA, $,
                    navigation, phases, reg, rpc, su, text, ActionDropdownWidget) {
 
 /**
@@ -2357,6 +2359,14 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
             pagination: true,
             scrollable: false,
             selectable: that.selectable && !that.read_only
+        });
+
+        topic.subscribe("change-pagination", function() {
+            that.table.page_length = config.get('table_page_size');
+
+            that.set_expired_flag();
+
+            if (that.is_shown) that.refresh();
         });
 
         var columns = that.columns.values;

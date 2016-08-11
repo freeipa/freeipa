@@ -101,6 +101,10 @@
                         "update": "Update",
                         "view": "View"
                     },
+                    "customization": {
+                        "customization": "Customization",
+                        "table_pagination": "Table Pagination Size",
+                    },
                     "details": {
                         "collapse_all": "Collapse All",
                         "expand_all": "Expand All",
