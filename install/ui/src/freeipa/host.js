@@ -142,6 +142,11 @@ return {
                             flags: ['w_if_no_aci']
                         },
                         {
+                            name: 'ipakrboktoauthasdelegate',
+                            $type: 'checkbox',
+                            acl_param: 'krbticketflags'
+                        },
+                        {
                             name: 'ipaassignedidview',
                             $type: 'link',
                             label: '@i18n:objects.idview.ipaassignedidview',
