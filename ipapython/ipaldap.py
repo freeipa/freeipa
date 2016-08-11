@@ -1325,7 +1325,8 @@ class LDAPClient(object):
         for their description.
         """
         entries, truncated = self.find_entries(
-            base_dn=base_dn, scope=scope, filter=filter, attrs_list=attrs_list)
+            base_dn=base_dn, scope=scope, filter=filter, attrs_list=attrs_list,
+            **kwargs)
         try:
             self.handle_truncated_result(truncated)
         except errors.LimitsExceeded as e:
