@@ -1307,10 +1307,10 @@ class permission_find(baseldap.LDAPSearch):
             if options.get('all'):
                 attrs_list.append('*')
             try:
-                legacy_entries = ldap.get_entries(
+                legacy_entries, truncated = ldap.find_entries(
                     base_dn=DN(self.obj.container_dn, self.api.env.basedn),
                     filter=ldap.combine_filters(filters, rules=ldap.MATCH_ALL),
-                    attrs_list=attrs_list)
+                    attrs_list=attrs_list, size_limit=max_entries)
                 # Retrieve the root entry (with all legacy ACIs) at once
                 root_entry = ldap.get_entry(DN(api.env.basedn), ['aci'])
             except errors.NotFound:
