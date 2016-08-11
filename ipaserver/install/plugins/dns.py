@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+
+import dns.exception
 import re
 import traceback
 import time
@@ -489,8 +492,15 @@ class update_dnsforward_emptyzones(DNSUpdater):
         self.api.Command['dnsconfig_mod'](ipadnsversion=2)
 
         self.update_zones()
-        if dnsutil.has_empty_zone_addresses(self.api.env.host):
-            self.update_global_ldap_forwarder()
+        try:
+            if dnsutil.has_empty_zone_addresses(self.api.env.host):
+                self.update_global_ldap_forwarder()
+        except dns.exception.DNSException as ex:
+            self.log.error('Skipping update of global DNS forwarder in LDAP: '
+                           'Unable to determine if local server is using an '
+                           'IP address belonging to an automatic empty zone. '
+                           'Consider changing forwarding policy to "only". '
+                           'DNS exception: %s', ex)
 
         return False, []
 
