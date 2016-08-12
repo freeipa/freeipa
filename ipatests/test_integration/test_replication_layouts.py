@@ -3,10 +3,13 @@
 #
 
 import time
-
+import pytest
+from ipalib.constants import DOMAIN_LEVEL_0
+from ipatests.test_integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 
+config = get_global_config()
 
 class LayoutsBaseTest(IntegrationTest):
 
@@ -27,6 +30,8 @@ class LayoutsBaseTest(IntegrationTest):
             r.run_command(['ipa', 'user-show', test_user])
 
 
+@pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                    reason='does not work on DOMAIN_LEVEL_0 by design')
 class TestLineTopologyWithoutCA(LayoutsBaseTest):
 
     num_replicas = 3
@@ -87,6 +92,8 @@ class TestCompleteTopologyWithCA(LayoutsBaseTest):
         self.replication_is_working()
 
 
+@pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                    reason='does not work on DOMAIN_LEVEL_0 by design')
 class Test2ConnectedTopologyWithoutCA(LayoutsBaseTest):
     num_replicas = 33
 
@@ -105,6 +112,8 @@ class Test2ConnectedTopologyWithCA(LayoutsBaseTest):
         self.replication_is_working()
 
 
+@pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                    reason='does not work on DOMAIN_LEVEL_0 by design')
 class TestDoubleCircleTopologyWithoutCA(LayoutsBaseTest):
     num_replicas = 29
 
