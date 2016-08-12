@@ -294,7 +294,6 @@ def common_cleanup(func):
 def remove_master_from_managed_topology(api_instance, options):
     try:
         # we may force the removal
-        # if the master was already deleted we will just get a warning
         server_del_options = dict(
             force=True,
             ignore_topology_disconnect=options.ignore_topology_disconnect,
@@ -303,8 +302,10 @@ def remove_master_from_managed_topology(api_instance, options):
 
         replication.run_server_del_as_cli(
             api_instance, api_instance.env.host, **server_del_options)
-
+    except errors.ServerRemovalError as e:
+        raise ScriptError(str(e))
     except Exception as e:
+        # if the master was already deleted we will just get a warning
         root_logger.warning("Failed to delete master: {}".format(e))
 
 
