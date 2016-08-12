@@ -3444,15 +3444,7 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone2_dnsname,
                 'summary': None,
-                u'messages': (
-                    {u'message': lambda x: x.startswith(
-                        u"Forwarding policy conflicts with some "
-                        "automatic empty zones."),
-                     u'code': 13021,
-                     u'type': u'warning',
-                     u'name': u'DNSForwardPolicyConflictWithEmptyZone',
-                     u'data': {}},
-                    {u'message': lambda x: x.startswith(
+                u'messages': ({u'message': lambda x: x.startswith(
                         u"DNS server %s: query '%s SOA':" %
                         (forwarder1, fwzone2)),
                      u'code': 13006,
