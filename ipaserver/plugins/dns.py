@@ -2097,7 +2097,7 @@ class DNSZoneBase_add(LDAPCreate):
 
         if not options['skip_overlap_check']:
             try:
-                check_zone_overlap(keys[-1])
+                check_zone_overlap(keys[-1], raise_on_error=False)
             except ValueError as e:
                 raise errors.InvocationError(e.message)
 
