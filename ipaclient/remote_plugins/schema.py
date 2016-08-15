@@ -3,6 +3,7 @@
 #
 
 import collections
+import contextlib
 import errno
 import fcntl
 import json
@@ -305,24 +306,6 @@ class _SchemaObjectPlugin(_SchemaPlugin):
     schema_key = 'classes'
 
 
-class _LockedZipFile(zipfile.ZipFile):
-    """ Add locking to zipfile.ZipFile
-    Shared lock is used with read mode, exclusive with write mode.
-    """
-    def __enter__(self):
-        if 'r' in self.mode:
-            fcntl.flock(self.fp, fcntl.LOCK_SH)
-        elif 'w' in self.mode or 'a' in self.mode:
-            fcntl.flock(self.fp, fcntl.LOCK_EX)
-
-        return super(_LockedZipFile, self).__enter__()
-
-    def __exit__(self, type_, value, traceback):
-        fcntl.flock(self.fp, fcntl.LOCK_UN)
-
-        return super(_LockedZipFile, self).__exit__(type_, value, traceback)
-
-
 class _SchemaNameSpace(collections.Mapping):
 
     def __init__(self, schema, name):
@@ -380,6 +363,7 @@ class Schema(object):
         self._dict = {}
         self._namespaces = {}
         self._help = None
+        self._file = six.StringIO()
 
         for ns in self.namespaces:
             self._dict[ns] = {}
@@ -416,9 +400,20 @@ class Schema(object):
             except AttributeError:
                 pass
 
-    def _open_schema(self, filename, mode):
+    @contextlib.contextmanager
+    def _open(self, filename, mode):
         path = os.path.join(self._DIR, filename)
-        return _LockedZipFile(path, mode)
+
+        with open(path, mode) as f:
+            if mode.startswith('r'):
+                fcntl.flock(f, fcntl.LOCK_SH)
+            else:
+                fcntl.flock(f, fcntl.LOCK_EX)
+
+            try:
+                yield f
+            finally:
+                fcntl.flock(f, fcntl.LOCK_UN)
 
     def _fetch(self, client):
         if not client.isconnected():
@@ -453,7 +448,11 @@ class Schema(object):
         self._expiration = ttl + time.time()
 
     def _read_schema(self):
-        with self._open_schema(self._fingerprint, 'r') as schema:
+        self._file.truncate(0)
+        with self._open(self._fingerprint, 'r') as f:
+            self._file.write(f.read())
+
+        with zipfile.ZipFile(self._file, 'r') as schema:
             for name in schema.namelist():
                 ns, _slash, key = name.partition('/')
                 if ns in self.namespaces:
@@ -494,7 +493,8 @@ class Schema(object):
                 logger.warning("Failed to write schema: {}".format(e))
                 return
 
-        with self._open_schema(self._fingerprint, 'w') as schema:
+        self._file.truncate(0)
+        with zipfile.ZipFile(self._file, 'w', zipfile.ZIP_DEFLATED) as schema:
             for key, value in self._dict.items():
                 if key in self.namespaces:
                     ns = value
@@ -507,8 +507,13 @@ class Schema(object):
             schema.writestr('_help',
                             json.dumps(self._generate_help(self._dict)))
 
+        self._file.seek(0)
+        with self._open(self._fingerprint, 'w') as f:
+            f.truncate(0)
+            f.write(self._file.read())
+
     def _read(self, path):
-        with self._open_schema(self._fingerprint, 'r') as zf:
+        with zipfile.ZipFile(self._file, 'r') as zf:
             return json.loads(zf.read(path))
 
     def read_namespace_member(self, namespace, member):
