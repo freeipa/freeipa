@@ -55,10 +55,11 @@ class test_PublicMessages(test_errors.BaseMessagesTest):
 
 def test_to_dict():
     expected = dict(
-        name='HelloMessage',
-        type='info',
-        message='Hello, world!',
+        name=u'HelloMessage',
+        type=u'info',
+        message=u'Hello, world!',
         code=1234,
+        data={'greeting': 'Hello', 'object': 'world'},
     )
 
     assert HelloMessage(greeting='Hello', object='world').to_dict() == expected
@@ -78,15 +79,17 @@ def test_add_message():
 
     assert result == {'messages': [
         dict(
-            name='HelloMessage',
-            type='info',
-            message='Hello, world!',
+            name=u'HelloMessage',
+            type=u'info',
+            message=u'Hello, world!',
             code=1234,
+            data={'greeting': 'Hello', 'object': 'world'},
         ),
         dict(
-            name='HelloMessage',
-            type='info',
-            message='Hi, version!',
+            name=u'HelloMessage',
+            type=u'info',
+            message=u'Hi, version!',
             code=1234,
+            data={'greeting': 'Hi', 'object': 'version'},
         )
     ]}
