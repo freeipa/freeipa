@@ -51,16 +51,16 @@ class test_Output(ClassChecker):
         Test the `ipalib.output.Output.__repr__` method.
         """
         o = self.cls('aye')
-        assert repr(o) == "Output('aye', None, None)"
+        assert repr(o) == "Output('aye')"
         o = self.cls('aye', type=int, doc='An A, aye?')
-        assert repr(o) == "Output('aye', %r, 'An A, aye?')" % int
+        assert repr(o) == "Output('aye', type=[%r], doc='An A, aye?')" % int
 
         class Entry(self.cls):
             pass
         o = Entry('aye')
-        assert repr(o) == "Entry('aye', None, None)"
+        assert repr(o) == "Entry('aye')"
         o = Entry('aye', type=int, doc='An A, aye?')
-        assert repr(o) == "Entry('aye', %r, 'An A, aye?')" % int
+        assert repr(o) == "Entry('aye', type=[%r], doc='An A, aye?')" % int
 
 
 class test_ListOfEntries(ClassChecker):
