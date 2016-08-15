@@ -1,7 +1,7 @@
 # Authors:
 #     Alexander Bokovoy <abokovoy@redhat.com>
 #
-# Copyright (C) 2011  Red Hat
+# Copyright (C) 2011-2016  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # Portions (C) Andrew Tridgell, Andrew Bartlett
@@ -135,6 +135,15 @@ pysss_type_key_translation_dict = {
     pysss_nss_idmap.ID_BOTH: 'both',
 }
 
+class TrustTopologyConflictSolved(Exception):
+    """
+    Internal trust error: raised when previously detected
+    trust topology conflict is automatically solved.
+
+    No separate errno is assigned as this error should
+    not be visible outside the dcerpc.py code.
+    """
+    pass
 
 def assess_dcerpc_exception(num=None, message=None):
     """
@@ -1085,34 +1094,165 @@ class TrustDomainInstance(object):
         info.entries = ftinfo_records
         return info
 
+    def clear_ftinfo_conflict(self, another_domain, cinfo):
+        """
+        Attempt to clean up the forest trust collisions
+
+        :param self: the forest we establish trust to
+        :param another_domain: a forest that establishes trust to 'self'
+        :param cinfo: lsa_ForestTrustCollisionInfo structure that contain
+                      set of of lsa_ForestTrustCollisionRecord structures
+        :raises: TrustTopologyConflictSolved, TrustTopologyConflictError
+
+        This code tries to perform intelligent job of going
+        over individual collisions and making exclusion entries
+        for affected IPA namespaces.
+
+        There are three possible conflict configurations:
+          - conflict of DNS namespace (TLN conflict, LSA_TLN_DISABLED_CONFLICT)
+          - conflict of SID namespace (LSA_SID_DISABLED_CONFLICT)
+          - conflict of NetBIOS namespace (LSA_NB_DISABLED_CONFLICT)
+
+        we only can handle TLN conflicts because (a) excluding SID namespace
+        is not possible and (b) excluding NetBIOS namespace not possible.
+        These two types of conflicts should result in trust-add CLI error
+
+        These conflicts can come from external source (another forest) or
+        from internal source (another domain in the same forest). We only
+        can fix the problems with another forest.
+
+        To resolve TLN conflict we need to do following:
+          1. Retrieve forest trust information for the forest we conflict on
+          2. Add an exclusion entry for IPA DNS namespace to it
+          3. Set forest trust information for the forest we conflict on
+          4. Re-try establishing trust to the original forest
+
+        This all can only be done under privileges of Active Directory admin
+        that can change forest trusts. If we cannot have those privileges,
+        the work has to be done manually in the Windows UI for
+        'Active Directory Domains and Trusts' by the administrator of the
+        original forest.
+        """
+
+        # List of entries for unsolved conflicts
+        result = []
+
+        trust_timestamp = long(time.time()*1e7+116444736000000000)
+
+        # Collision information contains entries for specific trusted domains
+        # we collide with. Look into TLN collisions and add a TLN exclusion
+        # entry to the specific domain trust.
+        root_logger.error("Attempt to solve forest trust topology conflicts")
+        for rec in cinfo.entries:
+            if rec.type == lsa.LSA_FOREST_TRUST_COLLISION_TDO:
+                dominfo = self._pipe.lsaRQueryForestTrustInformation(
+                                 self._policy_handle,
+                                 rec.name,
+                                 lsa.LSA_FOREST_TRUST_DOMAIN_INFO)
+
+                # Oops, we were unable to retrieve trust topology for this
+                # trusted domain (forest).
+                if not dominfo:
+                    result.append(rec)
+                    root_logger.error("Unable to resolve conflict for "
+                                      "DNS domain %s in the forest %s "
+                                      "for domain trust %s. Trust cannot "
+                                      "be established unless this conflict "
+                                      "is fixed manually."
+                                      % (another_domain.info['dns_domain'],
+                                         self.info['dns_domain'],
+                                         rec.name.string))
+                    continue
+
+                # Copy over the entries, extend with TLN exclusion
+                entries = []
+                for e in dominfo.entries:
+                    e1 = lsa.ForestTrustRecord()
+                    e1.type = e.type
+                    e1.flags = e.flags
+                    e1.time = e.time
+                    e1.forest_trust_data = e.forest_trust_data
+                    entries.append(e1)
+
+                # Create TLN exclusion record
+                record = lsa.ForestTrustRecord()
+                record.type = lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX
+                record.flags = 0
+                record.time = trust_timestamp
+                record.forest_trust_data.string = \
+                    another_domain.info['dns_domain']
+                entries.append(record)
+
+                fti = lsa.ForestTrustInformation()
+                fti.count = len(entries)
+                fti.entries = entries
+
+                # Update the forest trust information now
+                ldname = lsa.StringLarge()
+                ldname.string = rec.name.string
+                cninfo = self._pipe.lsaRSetForestTrustInformation(
+                             self._policy_handle,
+                             ldname,
+                             lsa.LSA_FOREST_TRUST_DOMAIN_INFO,
+                             fti, 0)
+                if cninfo:
+                    result.append(rec)
+                    root_logger.error("When defining exception for DNS "
+                                      "domain %s in forest %s for "
+                                      "trusted forest %s, "
+                                      "got collision info back:\n%s"
+                                      % (another_domain.info['dns_domain'],
+                                         self.info['dns_domain'],
+                                         rec.name.string,
+                                         ndr_print(cninfo)))
+            else:
+                result.append(rec)
+                root_logger.error("Unable to resolve conflict for "
+                                  "DNS domain %s in the forest %s "
+                                  "for in-forest domain %s. Trust cannot "
+                                  "be established unless this conflict "
+                                  "is fixed manually."
+                                  % (another_domain.info['dns_domain'],
+                                     self.info['dns_domain'],
+                                     rec.name.string))
+
+        if len(result) == 0:
+            root_logger.error("Successfully solved all conflicts")
+            raise TrustTopologyConflictSolved()
+
+        # Otherwise, raise TrustTopologyConflictError() exception
+        domains = [x.name.string for x in result]
+        raise errors.TrustTopologyConflictError(
+                              target=self.info['dns_domain'],
+                              conflict=another_domain.info['dns_domain'],
+                              domains=domains)
+
+
+
     def update_ftinfo(self, another_domain):
         """
         Updates forest trust information in this forest corresponding
         to the another domain's information.
         """
-        try:
-            if another_domain.ftinfo_records:
-                ftinfo = self.generate_ftinfo(another_domain)
-                # Set forest trust information -- we do it only against AD DC as
-                # smbd already has the information about itself
-                ldname = lsa.StringLarge()
-                ldname.string = another_domain.info['dns_domain']
-                ftlevel = lsa.LSA_FOREST_TRUST_DOMAIN_INFO
-                # RSetForestTrustInformation returns collision information
-                # for trust topology
-                cinfo = self._pipe.lsaRSetForestTrustInformation(
-                            self._policy_handle,
-                            ldname,
-                            ftlevel,
-                            ftinfo, 0)
-                if cinfo:
-                    root_logger.error("When setting forest trust information, "
-                                      "got collision info back:\n%s"
-                                      % (ndr_print(cinfo)))
-        except RuntimeError as e:
-            # We can ignore the error here --
-            # setting up name suffix routes may fail
-            pass
+        if another_domain.ftinfo_records:
+            ftinfo = self.generate_ftinfo(another_domain)
+            # Set forest trust information -- we do it only against AD DC as
+            # smbd already has the information about itself
+            ldname = lsa.StringLarge()
+            ldname.string = another_domain.info['dns_domain']
+            ftlevel = lsa.LSA_FOREST_TRUST_DOMAIN_INFO
+            # RSetForestTrustInformation returns collision information
+            # for trust topology
+            cinfo = self._pipe.lsaRSetForestTrustInformation(
+                        self._policy_handle,
+                        ldname,
+                        ftlevel,
+                        ftinfo, 0)
+            if cinfo:
+                root_logger.error("When setting forest trust information, "
+                                  "got collision info back:\n%s"
+                                  % (ndr_print(cinfo)))
+                self.clear_ftinfo_conflict(another_domain, cinfo)
 
     def establish_trust(self, another_domain, trustdom_secret, trust_type='bidirectional'):
         """
@@ -1201,6 +1341,18 @@ class TrustDomainInstance(object):
             root_logger.error(
                 'unable to set trust to transitive: %s' % (str(e)))
             pass
+        # Updating forest trust info may fail
+        # If it failed due to topology conflict, it may be fixed automatically
+        # update_ftinfo() will through exceptions in that case
+        # Note that MS-LSAD 3.1.4.7.16 says:
+        # -------------------------
+        # The server MUST also make sure that the trust attributes associated
+        # with the trusted domain object referenced by the TrustedDomainName
+        # parameter has the TRUST_ATTRIBUTE_FOREST_TRANSITIVE set.
+        # If the attribute is not present, the server MUST return
+        # STATUS_INVALID_PARAMETER.
+        # -------------------------
+        # Thus, we must not update forest trust info for the external trust
         if self.info['is_pdc']:
             self.update_ftinfo(another_domain)
 
@@ -1478,9 +1630,21 @@ class TrustDomainJoins(object):
         if not self.remote_domain.read_only:
             trustdom_pass = samba.generate_random_password(128, 128)
             self.get_realmdomains()
-            self.remote_domain.establish_trust(self.local_domain,
-                                               trustdom_pass,
-                                               trust_type)
+
+            # Establishing trust may throw an exception for topology
+            # conflict. If it was solved, re-establish the trust again
+            # Otherwise let the CLI to display a message about the conflict
+            try:
+                self.remote_domain.establish_trust(self.local_domain,
+                                                   trustdom_pass,
+                                                   trust_type)
+            except TrustTopologyConflictSolved as e:
+                # we solved topology conflict, retry again
+                self.remote_domain.establish_trust(self.local_domain,
+                                                   trustdom_pass,
+                                                   trust_type)
+
+            # For local domain we don't set topology information
             self.local_domain.establish_trust(self.remote_domain,
                                               trustdom_pass,
                                               trust_type)

@@ -846,7 +846,6 @@ class NotAForestRootError(InvocationError):
     errno = 3016
     format = _("Domain '%(domain)s' is not a root domain for forest '%(forest)s'")
 
-
 ##############################################################################
 # 4000 - 4999: Execution errors
 
@@ -1813,6 +1812,34 @@ class DNSResolverError(DNSError):
 
     errno = 4401
     format = _('%(exception)s')
+
+class TrustError(ExecutionError):
+    """
+    **4500** Base class for trust execution errors (*4500 - 4599*).
+    These are typically instantiated when there is an error in establishing or
+    modifying a trust to another forest.
+    """
+
+    errno = 4500
+
+class TrustTopologyConflictError(TrustError):
+    """
+    **4501** Raised when an attempt to establish trust fails with a topology
+             conflict against another forest the target forest trusts
+
+    For example:
+
+    >>> raise TrustTopologyConflictError(forest='example.test',
+                                         conflict='my.ad.test',
+                                         domains=['ad.test'])
+    Traceback (most recent call last):
+      ...
+    TrustTopologyConflictError: Forest 'example.test' has existing trust to forest(s) ['ad.test'] which prevents a trust to 'my.ad.test'
+    """
+
+    errno = 4501
+    format = _("Forest '%(forest)s' has existing trust to forest(s) "
+               "%(domains)s which prevents a trust to '%(conflict)s'")
 
 
 ##############################################################################
