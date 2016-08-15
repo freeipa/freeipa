@@ -1449,7 +1449,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
         # Older FreeIPA versions used netr_DsrEnumerateDomainTrusts call
         # but it doesn't provide information about non-domain UPNs associated
         # with the forest, thus we have to use netr_DsRGetForestTrustInformation
-        domains = netr_pipe.netr_DsRGetForestTrustInformation(td.info['dc'], '', 0)
+        domains = netr_pipe.netr_DsRGetForestTrustInformation(td.info['dc'], None, 0)
         return domains
 
     domains = None

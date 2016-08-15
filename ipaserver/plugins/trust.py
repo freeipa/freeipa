@@ -1663,6 +1663,23 @@ def add_new_domains_from_trust(myapi, trustinstance, trust_entry, domains, **opt
                     for x, y in six.iteritems(domains['suffixes'])
                     if x not in domains['domains'])
 
+    try:
+        dn = myapi.Object.trust.get_dn(trust_name, trust_type=u'ad')
+        ldap = myapi.Backend.ldap2
+        entry = ldap.get_entry(dn)
+        tlns = entry.get('ipantadditionalsuffixes', [])
+        tlns.extend(x for x in suffixes if x not in tlns)
+        entry['ipantadditionalsuffixes'] = tlns
+        ldap.update_entry(entry)
+    except errors.EmptyModlist:
+        pass
+
+    is_nontransitive = int(trust_entry.get('ipanttrustattributes',
+                           [0])[0]) & LSA_TRUST_ATTRIBUTE_NON_TRANSITIVE
+
+    if is_nontransitive:
+        return result
+
     for dom in six.itervalues(domains['domains']):
         dom['trust_type'] = u'ad'
         try:
@@ -1685,17 +1702,6 @@ def add_new_domains_from_trust(myapi, trustinstance, trust_entry, domains, **opt
         except errors.DuplicateEntry:
             # Ignore updating duplicate entries
             pass
-
-    try:
-        dn = myapi.Object.trust.get_dn(trust_name, trust_type=u'ad')
-        ldap = myapi.Backend.ldap2
-        entry = ldap.get_entry(dn)
-        tlns = entry.get('ipantadditionalsuffixes', [])
-        tlns.extend(x for x in suffixes if x not in tlns)
-        entry['ipantadditionalsuffixes'] = tlns
-        ldap.update_entry(entry)
-    except errors.EmptyModlist:
-        pass
 
     return result
 
