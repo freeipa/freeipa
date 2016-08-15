@@ -465,7 +465,7 @@ def _decode_krb5principalname(data):
 
 
 GeneralNameInfo = collections.namedtuple(
-        'GeneralNameInfo', ('type', 'desc', 'value'))
+        'GeneralNameInfo', ('type', 'desc', 'value', 'der_value'))
 
 
 def decode_generalnames(secitem):
@@ -477,8 +477,9 @@ def decode_generalnames(secitem):
       The input is the DER-encoded extension data, without the
       OCTET STRING header, as an nss SecItem object.
 
-    Return a list of tuples of name types (as string, suitable for
-    presentation) and names (as string, suitable for presentation).
+    Return a list of ``GeneralNameInfo`` namedtuples.  The
+    ``der_value`` field is set for otherNames, otherwise it is
+    ``None``.
 
     """
     nss_names = nss.x509_alt_name(secitem, repr_kind=nss.AsObject)
@@ -496,14 +497,18 @@ def decode_generalnames(secitem):
         if nss_name.type_enum == nss.certOtherName:
             oid = str(asn1_name['otherName']['type-id'])
             nametype = (nss_name.type_enum, oid)
+            der_value = asn1_name['otherName']['value'].asOctets()
         else:
             nametype = nss_name.type_enum
+            der_value = None
 
         if nametype == (nss.certOtherName, SAN_KRB5PRINCIPALNAME):
             name = _decode_krb5principalname(asn1_name['otherName']['value'])
         else:
             name = nss_name.name
-        names.append(GeneralNameInfo(nametype, nss_name.type_string, name))
+
+        gni = GeneralNameInfo(nametype, nss_name.type_string, name, der_value)
+        names.append(gni)
 
     return names
 

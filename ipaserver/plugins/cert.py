@@ -559,7 +559,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 "to the 'userCertificate' attribute of entry '%s'.") % dn)
 
         # Validate the subject alt name, if any
-        for name_type, desc, name in subjectaltname:
+        for name_type, desc, name, der_name in subjectaltname:
             if name_type == nss.certDNSName:
                 name = unicode(name)
                 alt_principal_obj = None
