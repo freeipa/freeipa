@@ -41,7 +41,7 @@ def trusted_domain():
     are deleted from the directory.
     """
 
-    trusted_dom = TRUSTED_DOMAIN_MOCK['ldif']
+    trusted_dom = TRUSTED_DOMAIN_MOCK
 
     # Write the changes
     with mocked_trust_containers(), MockLDAP() as ldap:
