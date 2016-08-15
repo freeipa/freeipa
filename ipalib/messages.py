@@ -397,7 +397,7 @@ class DNSForwardPolicyConflictWithEmptyZone(PublicMessage):
 
 class DNSUpdateOfSystemRecordFailed(PublicMessage):
     """
-    ** 13022 ** Update of a DNS system record failed
+    **13022** Update of a DNS system record failed
     """
     errno = 13022
     type = "warning"
@@ -408,7 +408,7 @@ class DNSUpdateOfSystemRecordFailed(PublicMessage):
 
 class DNSUpdateNotIPAManagedZone(PublicMessage):
     """
-    ** 13023 ** Zone for system records is not managed by IPA
+    **13023** Zone for system records is not managed by IPA
     """
     errno = 13023
     type = "warning"
@@ -419,6 +419,9 @@ class DNSUpdateNotIPAManagedZone(PublicMessage):
 
 
 class AutomaticDNSRecordsUpdateFailed(PublicMessage):
+    """
+    **13024** Automatic update of DNS records failed
+    """
     errno = 13024
     type = "warning"
     format = _(
@@ -429,6 +432,9 @@ class AutomaticDNSRecordsUpdateFailed(PublicMessage):
 
 
 class ServiceRestartRequired(PublicMessage):
+    """
+    **13025** Service restart is required
+    """
     errno = 13025
     type = "warning"
     format = _(
@@ -438,6 +444,9 @@ class ServiceRestartRequired(PublicMessage):
 
 
 class LocationWithoutDNSServer(PublicMessage):
+    """
+    **13026** Location without DNS server
+    """
     errno = 13026
     type = "warning"
     format = _(
@@ -464,7 +473,7 @@ class ServerRemovalWarning(PublicMessage):
 
 class CertificateInvalid(PublicMessage):
     """
-    ***13029 Failed to parse a certificate
+    **13029** Failed to parse a certificate
     """
     errno = 13029
     type = "error"
