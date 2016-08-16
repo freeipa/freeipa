@@ -704,6 +704,8 @@ class i18n_messages(Command):
                 "label_singular": _("Server Role"),
             },
             "servers": {
+                "ca_warning_message": _("It is strongly recommended to keep the CA services installed on more than one server."),
+                "ca_warning_title": _("Warning: Only One CA Server Detected"),
                 "remove_server": _("Delete Server"),
                 "remove_server_msg": _("Deleting a server removes it permanently from the topology. Note that this is a non-reversible action.")
             },

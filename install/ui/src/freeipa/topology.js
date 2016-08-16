@@ -28,13 +28,14 @@ define([
         './facets/Facet',
         './topology_graph',
         './navigation',
+        './widget',
         // plain imports
         './search',
         './entity'],
             function(lang, declare, Evented, Stateful, Deferred, on, all, when,
                 builder, IPA, $, menu, metadata_provider, phases, reg, rpc,
                 text, mod_details, mod_facet, mod_field, ActionMixin,
-                HeaderMixin, Facet, topology_graph, navigation) {
+                HeaderMixin, Facet, topology_graph, navigation, widget_mod) {
 /**
  * Topology module
  * @class
@@ -206,6 +207,7 @@ return {
     facets: [
            {
             $type: 'search',
+            $factory: topology.servers_search_facet,
             no_update: true,
             disable_facet_tabs: false,
             tabs_in_sidebar: true,
@@ -482,6 +484,75 @@ topology.location_adapter = declare([mod_field.Adapter], {
         return output;
     }
 });
+
+topology.servers_search_facet = function(spec, no_init) {
+    spec = spec || {};
+
+    var that = IPA.search_facet(spec);
+
+    that.create_get_records_command = function(pkeys, on_success, on_error) {
+
+        var on_success_extended = function(data, text_status, xhr) {
+            // Call original on_success handler
+            on_success(data, text_status, xhr);
+
+            var result = data.result.results;
+            var counter = 0;
+
+            for (var i=0, l=result.length; i<l; i++) {
+                var current = result[i];
+                var roles = current.result.enabled_role_servrole;
+                for (var k=0, m=roles.length; k<m; k++) {
+                    if (roles[k] === 'CA server') counter++;
+                }
+            }
+
+            // Create dialog and show it only when there is only one CA server
+            if (counter != 1) return;
+
+            var message = text.get('@i18n:objects.servers.ca_warning_message');
+            var dialog = IPA.dialog({
+                name: 'ca_warning',
+                title: '@i18n:objects.servers.ca_warning_title',
+                sections: [
+                    {
+                        show_header: false,
+                        layout:
+                        {
+                            $factory: widget_mod.fluid_layout,
+                            widget_cls: "col-sm-12 controls",
+                            label_cls: "hide"
+                        },
+                        fields: [
+                            {
+                                field: false,
+                                $type: 'html',
+                                html: message
+                            }
+                        ]
+                    }
+                ]
+            });
+
+            dialog.create_button({
+                name: 'ok',
+                label: '@i18n:buttons.ok',
+                click: function() {
+                    dialog.close();
+                }
+            });
+
+            dialog.open();
+        };
+
+        var batch = that.table_facet_create_get_records_command(pkeys,
+                                                on_success_extended, on_error);
+
+        return batch;
+    };
+
+    return that;
+};
 
 topology.servers_facet = function(spec, no_init) {
     spec = spec || {};
