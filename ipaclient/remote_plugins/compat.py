@@ -41,7 +41,7 @@ def get_package(api, server_info, client):
         try:
             server_version = env['result']['api_version']
         except KeyError:
-            ping = client.forward(u'ping', u'api_version', version=u'2.0')
+            ping = client.forward(u'ping', version=u'2.0')
             try:
                 match = re.search(u'API version (2\.[0-9]+)', ping['summary'])
             except KeyError:
