@@ -239,13 +239,8 @@ class NSSDatabase(object):
                             continue
 
                     if label in ('PKCS7', 'PKCS #7 SIGNED DATA', 'CERTIFICATE'):
-                        args = [
-                            OPENSSL, 'pkcs7',
-                            '-print_certs',
-                        ]
                         try:
-                            result = ipautil.run(
-                                args, stdin=body, capture_output=True)
+                            certs = x509.pkcs7_to_pems(body)
                         except ipautil.CalledProcessError as e:
                             if label == 'CERTIFICATE':
                                 root_logger.warning(
@@ -257,7 +252,7 @@ class NSSDatabase(object):
                                     filename, line, e)
                             continue
                         else:
-                            extracted_certs += result.output + '\n'
+                            extracted_certs += '\n'.join(certs) + '\n'
                             loaded = True
                             continue
 

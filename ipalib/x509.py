@@ -49,6 +49,14 @@ from ipalib import api
 from ipalib import util
 from ipalib import errors
 from ipapython.dn import DN
+from ipapython import ipautil
+
+try:
+    from ipaplatform.paths import paths
+except ImportError:
+    OPENSSL = '/usr/bin/openssl'
+else:
+    OPENSSL = paths.OPENSSL
 
 if six.PY3:
     unicode = str
@@ -56,7 +64,9 @@ if six.PY3:
 PEM = 0
 DER = 1
 
-PEM_REGEX = re.compile(r'(?<=-----BEGIN CERTIFICATE-----).*?(?=-----END CERTIFICATE-----)', re.DOTALL)
+PEM_REGEX = re.compile(
+    r'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----',
+    re.DOTALL)
 
 EKU_SERVER_AUTH = '1.3.6.1.5.5.7.3.1'
 EKU_CLIENT_AUTH = '1.3.6.1.5.5.7.3.2'
@@ -143,6 +153,23 @@ def load_certificate_list_from_file(filename):
     """
     with open(filename) as f:
         return load_certificate_list(f.read())
+
+
+def pkcs7_to_pems(data, datatype=PEM):
+    """
+    Extract certificates from a PKCS #7 object.
+
+    Return a ``list`` of X.509 PEM strings.
+
+    May throw ``ipautil.CalledProcessError`` on invalid data.
+
+    """
+    cmd = [
+        OPENSSL, "pkcs7", "-print_certs",
+        "-inform", "PEM" if datatype == PEM else "DER",
+    ]
+    result = ipautil.run(cmd, stdin=data, capture_output=True)
+    return PEM_REGEX.findall(result.output)
 
 
 def is_self_signed(certificate, datatype=PEM):
