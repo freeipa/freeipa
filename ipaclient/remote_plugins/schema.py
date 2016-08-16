@@ -7,6 +7,7 @@ import contextlib
 import errno
 import fcntl
 import json
+import locale
 import os
 import sys
 import time
@@ -370,14 +371,19 @@ class Schema(object):
             self._dict[ns] = {}
             self._namespaces[ns] = _SchemaNameSpace(self, ns)
 
+        self._language = (
+            locale.setlocale(locale.LC_ALL, '').split('.')[0].lower()
+        )
         try:
             self._fingerprint = server_info['fingerprint']
             self._expiration = server_info['expiration']
+            language = server_info['language']
         except KeyError:
             is_known = False
         else:
             is_known = (not api.env.force_schema_check and
-                        self._expiration > time.time())
+                        self._expiration > time.time() and
+                        self._language == language)
 
         if is_known:
             try:
@@ -400,6 +406,7 @@ class Schema(object):
 
         server_info['fingerprint'] = self._fingerprint
         server_info['expiration'] = self._expiration
+        server_info['language'] = self._language
 
     @contextlib.contextmanager
     def _open(self, filename, mode):
