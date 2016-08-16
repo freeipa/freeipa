@@ -92,7 +92,8 @@ class ServerCertInstall(admintool.AdminTool):
 
         if self.options.pin is None:
             self.options.pin = installutils.read_password(
-                "Enter private key unlock", confirm=False, validate=False)
+                "Enter private key unlock",
+                confirm=False, validate=False, retry=False)
             if self.options.pin is None:
                 raise admintool.ScriptError(
                     "Private key unlock password required")

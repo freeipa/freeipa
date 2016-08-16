@@ -307,7 +307,7 @@ class ReplicaPrepare(admintool.AdminTool):
             if options.http_pin is None:
                 options.http_pin = installutils.read_password(
                     "Enter Apache Server private key unlock",
-                    confirm=False, validate=False)
+                    confirm=False, validate=False, retry=False)
                 if options.http_pin is None:
                     raise admintool.ScriptError(
                         "Apache Server private key unlock password required")
@@ -321,7 +321,7 @@ class ReplicaPrepare(admintool.AdminTool):
             if options.dirsrv_pin is None:
                 options.dirsrv_pin = installutils.read_password(
                     "Enter Directory Server private key unlock",
-                    confirm=False, validate=False)
+                    confirm=False, validate=False, retry=False)
                 if options.dirsrv_pin is None:
                     raise admintool.ScriptError(
                         "Directory Server private key unlock password required")
@@ -335,7 +335,7 @@ class ReplicaPrepare(admintool.AdminTool):
             if options.pkinit_pin is None:
                 options.pkinit_pin = installutils.read_password(
                     "Enter Kerberos KDC private key unlock",
-                    confirm=False, validate=False)
+                    confirm=False, validate=False, retry=False)
                 if options.pkinit_pin is None:
                     raise admintool.ScriptError(
                         "Kerberos KDC private key unlock password required")

@@ -489,7 +489,7 @@ def install_check(installer):
         if options.http_pin is None:
             options.http_pin = installutils.read_password(
                 "Enter Apache Server private key unlock",
-                confirm=False, validate=False)
+                confirm=False, validate=False, retry=False)
             if options.http_pin is None:
                 raise ScriptError(
                     "Apache Server private key unlock password required")
@@ -505,7 +505,7 @@ def install_check(installer):
         if options.dirsrv_pin is None:
             options.dirsrv_pin = read_password(
                 "Enter Directory Server private key unlock",
-                confirm=False, validate=False)
+                confirm=False, validate=False, retry=False)
             if options.dirsrv_pin is None:
                 raise ScriptError(
                     "Directory Server private key unlock password required")
@@ -521,7 +521,7 @@ def install_check(installer):
         if options.pkinit_pin is None:
             options.pkinit_pin = read_password(
                 "Enter Kerberos KDC private key unlock",
-                confirm=False, validate=False)
+                confirm=False, validate=False, retry=False)
             if options.pkinit_pin is None:
                 raise ScriptError(
                     "Kerberos KDC private key unlock password required")
