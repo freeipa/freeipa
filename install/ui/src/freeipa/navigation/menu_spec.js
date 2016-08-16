@@ -212,7 +212,7 @@ var nav = {};
                     ]
                 },
                 {
-                    entity: 'topologysuffix',
+                    entity: 'server',
                     label: '@i18n:tabs.topology',
                     facet: 'search',
                     children: [
