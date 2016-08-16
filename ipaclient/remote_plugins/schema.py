@@ -17,6 +17,7 @@ import six
 
 from ipaclient.frontend import ClientCommand, ClientMethod
 from ipalib import errors, parameters, plugable
+from ipalib.errors import SchemaUpToDate
 from ipalib.frontend import Object
 from ipalib.output import Output
 from ipalib.parameters import DefaultFrom, Flag, Password, Str
@@ -369,15 +370,14 @@ class Schema(object):
             self._dict[ns] = {}
             self._namespaces[ns] = _SchemaNameSpace(self, ns)
 
-        is_known = False
-        if not api.env.force_schema_check:
-            try:
-                self._fingerprint = server_info['fingerprint']
-                self._expiration = server_info['expiration']
-            except KeyError:
-                pass
-            else:
-                is_known = True
+        try:
+            self._fingerprint = server_info['fingerprint']
+            self._expiration = server_info['expiration']
+        except KeyError:
+            is_known = False
+        else:
+            is_known = (not api.env.force_schema_check and
+                        self._expiration > time.time())
 
         if is_known:
             try:
@@ -391,14 +391,15 @@ class Schema(object):
             self._fetch(client)
         except NotAvailable:
             raise
+        except SchemaUpToDate as e:
+            self._fingerprint = e.fingerprint
+            self._expiration = time.time() + e.ttl
+            self._read_schema()
         else:
             self._write_schema()
-        finally:
-            try:
-                server_info['fingerprint'] = self._fingerprint
-                server_info['expiration'] = self._expiration
-            except AttributeError:
-                pass
+
+        server_info['fingerprint'] = self._fingerprint
+        server_info['expiration'] = self._expiration
 
     @contextlib.contextmanager
     def _open(self, filename, mode):
@@ -431,21 +432,22 @@ class Schema(object):
             schema = client.forward(u'schema', **kwargs)['result']
         except errors.CommandError:
             raise NotAvailable()
-        except errors.SchemaUpToDate as e:
-            fp = e.fingerprint
-            ttl = e.ttl
-        else:
+
+        try:
             fp = schema['fingerprint']
-            ttl = schema.pop('ttl', 0)
-            schema.pop('version', None)
+            ttl = schema.pop('ttl')
+            schema.pop('version')
 
             for key, value in schema.items():
                 if key in self.namespaces:
                     value = {m['full_name']: m for m in value}
                 self._dict[key] = value
+        except KeyError as e:
+            logger.warning("Failed to fetch schema: %s", e)
+            raise NotAvailable()
 
         self._fingerprint = fp
-        self._expiration = ttl + time.time()
+        self._expiration = time.time() + ttl
 
     def _read_schema(self):
         self._file.truncate(0)
