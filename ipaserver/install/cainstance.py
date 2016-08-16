@@ -749,44 +749,30 @@ class CAInstance(DogtagInstance):
         # makes openssl throw up.
         data = base64.b64decode(chain)
 
-        result = ipautil.run(
-            [paths.OPENSSL,
-             "pkcs7",
-             "-inform",
-             "DER",
-             "-print_certs",
-             ], stdin=data, capture_output=True)
-        certlist = result.output
+        certlist = x509.pkcs7_to_pems(data, x509.DER)
 
         # Ok, now we have all the certificates in certs, walk through it
         # and pull out each certificate and add it to our database
 
-        st = 1
-        en = 0
-        subid = 0
         ca_dn = DN(('CN','Certificate Authority'), self.subject_base)
-        while st > 0:
-            st = certlist.find('-----BEGIN', en)
-            en = certlist.find('-----END', en+1)
-            if st > 0:
-                try:
-                    (chain_fd, chain_name) = tempfile.mkstemp()
-                    os.write(chain_fd, certlist[st:en+25])
-                    os.close(chain_fd)
-                    (_rdn, subject_dn) = certs.get_cert_nickname(certlist[st:en+25])
-                    if subject_dn == ca_dn:
-                        nick = get_ca_nickname(self.realm)
-                        trust_flags = 'CT,C,C'
-                    else:
-                        nick = str(subject_dn)
-                        trust_flags = ',,'
-                    self.__run_certutil(
-                        ['-A', '-t', trust_flags, '-n', nick, '-a',
-                         '-i', chain_name]
-                    )
-                finally:
-                    os.remove(chain_name)
-                    subid += 1
+        for cert in certlist:
+            try:
+                chain_fd, chain_name = tempfile.mkstemp()
+                os.write(chain_fd, cert)
+                os.close(chain_fd)
+                (_rdn, subject_dn) = certs.get_cert_nickname(cert)
+                if subject_dn == ca_dn:
+                    nick = get_ca_nickname(self.realm)
+                    trust_flags = 'CT,C,C'
+                else:
+                    nick = str(subject_dn)
+                    trust_flags = ',,'
+                self.__run_certutil(
+                    ['-A', '-t', trust_flags, '-n', nick, '-a',
+                     '-i', chain_name]
+                )
+            finally:
+                os.remove(chain_name)
 
         # Restore NSS trust flags of all previously existing certificates
         for nick, trust_flags in cert_backup_list:
