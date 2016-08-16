@@ -279,3 +279,7 @@ PATTERN_GROUPUSER_NAME = '^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*[a-zA-Z0-9_.$-]?$'
 
 # Kerberos Anonymous principal name
 ANON_USER = 'WELLKNOWN/ANONYMOUS'
+
+# IPA API Framework user
+IPAAPI_USER = 'ipaapi'
+IPAAPI_GROUP = 'ipaapi'

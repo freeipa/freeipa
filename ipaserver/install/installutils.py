@@ -44,6 +44,7 @@ import six
 from six.moves.configparser import SafeConfigParser, NoOptionError
 # pylint: enable=import-error
 
+from ipalib.constants import IPAAPI_USER, IPAAPI_GROUP
 from ipalib.install import sysrestore
 from ipalib.install.kinit import kinit_password
 import ipaplatform
@@ -55,6 +56,7 @@ from ipalib import api, errors, x509
 from ipapython.dn import DN
 from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
@@ -1513,3 +1515,14 @@ def default_subject_base(realm_name):
 
 def default_ca_subject_dn(subject_base):
     return DN(('CN', 'Certificate Authority'), subject_base)
+
+
+def create_ipaapi_user():
+    """Create IPA API user/group if it doesn't exist yet."""
+    tasks.create_system_user(
+        name=IPAAPI_USER,
+        group=IPAAPI_GROUP,
+        homedir=paths.VAR_LIB,
+        shell=paths.NOLOGIN
+    )
+    tasks.add_user_to_group(constants.HTTPD_USER, IPAAPI_GROUP)

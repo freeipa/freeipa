@@ -38,7 +38,7 @@ from ipaserver.install import (
 from ipaserver.install.installutils import (
     IPA_MODULES, BadHostError, get_fqdn, get_server_ip_address,
     is_ipa_configured, load_pkcs12, read_password, verify_fqdn,
-    update_hosts_file)
+    update_hosts_file, create_ipaapi_user)
 
 if six.PY3:
     unicode = str
@@ -710,6 +710,7 @@ def install(installer):
         update_hosts_file(ip_addresses, host_name, fstore)
 
     # Make sure tmpfiles dir exist before installing components
+    create_ipaapi_user()
     tasks.create_tmpfiles_dirs()
 
     # create NSS Databases

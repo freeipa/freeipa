@@ -181,7 +181,9 @@ class BaseTaskNamespace(object):
 
         raise NotImplementedError()
 
-    def create_system_user(self, name, group, homedir, shell, uid=None, gid=None, comment=None, create_homedir=False):
+    def create_system_user(self, name, group, homedir, shell,
+                           uid=None, gid=None, comment=None,
+                           create_homedir=False, groups=None):
         """Create a system user with a corresponding group"""
         try:
             grp.getgrnam(group)
@@ -218,6 +220,8 @@ class BaseTaskNamespace(object):
                 args += ['-m']
             else:
                 args += ['-M']
+            if groups is not None:
+                args += ['-G', groups.join(',')]
             try:
                 ipautil.run(args)
                 log.debug('Done adding user')
@@ -261,3 +265,12 @@ class BaseTaskNamespace(object):
 
     def is_fips_enabled(self):
         return False
+
+    def add_user_to_group(self, user, group):
+        log.debug('Adding user %s to group %s', user, group)
+        args = [paths.USERMOD, '-a', '-G', group, user]
+        try:
+            ipautil.run(args)
+            log.debug('Done adding user to group')
+        except ipautil.CalledProcessError as e:
+            log.debug('Failed to add user to group: %s', e)

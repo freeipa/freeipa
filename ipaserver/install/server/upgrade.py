@@ -1807,6 +1807,7 @@ def upgrade_check(options):
 
 def upgrade():
     # Do this early so that any code depending on these dirs will not fail
+    installutils.create_ipaapi_user()
     tasks.create_tmpfiles_dirs()
     tasks.configure_tmpfiles()
 

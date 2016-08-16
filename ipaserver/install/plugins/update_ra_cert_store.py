@@ -7,8 +7,8 @@ import os
 
 from ipalib import Registry
 from ipalib import Updater
+from ipalib.constants import IPAAPI_USER, IPAAPI_GROUP
 from ipalib.install import certmonger
-from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import certdb
 
@@ -37,9 +37,7 @@ class update_ra_cert_store(Updater):
                 return False, []
         else:
             # Create the DB
-            newdb.create_db(user=constants.HTTPD_USER,
-                            group=constants.HTTPD_GROUP,
-                            mode=0o751, backup=True)
+            newdb.create_db(user=IPAAPI_USER, group=IPAAPI_GROUP, backup=True)
 
         # Import cert chain (ignore errors, as certs may already be imported)
         certlist = olddb.list_certs()

@@ -6,3 +6,11 @@
   allow_protocol_transition = true
   cred_usage = both
   euid = $HTTPD_USER
+
+[service/ipa-api]
+  mechs = krb5
+  cred_store = keytab:$HTTP_KEYTAB
+  cred_store = client_keytab:$HTTP_KEYTAB
+  allow_constrained_delegation = true
+  cred_usage = initiate
+  euid = $IPAAPI_USER

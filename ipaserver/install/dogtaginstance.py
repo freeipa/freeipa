@@ -31,6 +31,7 @@ import pki.system
 
 from ipalib import api, errors
 
+from ipalib.constants import IPAAPI_USER
 from ipalib.install import certmonger
 from ipaplatform import services
 from ipaplatform.constants import constants
@@ -43,8 +44,6 @@ from ipaserver.install import installutils
 from ipaserver.install import replication
 from ipaserver.install.installutils import stopped_service
 from ipapython.ipa_log_manager import log_mgr
-
-HTTPD_USER = constants.HTTPD_USER
 
 
 def get_security_domain():
@@ -87,7 +86,7 @@ def export_kra_agent_pem():
             "--client-cert", filename]
     ipautil.run(args)
 
-    pent = pwd.getpwnam(HTTPD_USER)
+    pent = pwd.getpwnam(IPAAPI_USER)
     os.chown(filename, 0, pent.pw_gid)
     os.chmod(filename, 0o440)
 
