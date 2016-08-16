@@ -857,16 +857,16 @@ class jsonserver_kerb(jsonserver, KerberosWSGIExecutioner):
     key = '/json'
 
 
-class login_kerberos(Backend, KerberosSession, HTTP_Status):
-    key = '/session/login_kerberos'
+class KerberosLogin(Backend, KerberosSession, HTTP_Status):
+    key = None
 
     def _on_finalize(self):
-        super(login_kerberos, self)._on_finalize()
+        super(KerberosLogin, self)._on_finalize()
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
         self.kerb_session_on_finalize()
 
     def __call__(self, environ, start_response):
-        self.debug('WSGI login_kerberos.__call__:')
+        self.debug('WSGI KerberosLogin.__call__:')
 
         # Get the ccache created by mod_auth_gssapi
         user_ccache_name=environ.get('KRB5CCNAME')
@@ -875,6 +875,15 @@ class login_kerberos(Backend, KerberosSession, HTTP_Status):
                                        'login_kerberos: KRB5CCNAME not defined in HTTP request environment')
 
         return self.finalize_kerberos_acquisition('login_kerberos', user_ccache_name, environ, start_response)
+
+
+class login_kerberos(KerberosLogin):
+    key = '/session/login_kerberos'
+
+
+class login_x509(KerberosLogin):
+    key = '/session/login_x509'
+
 
 class login_password(Backend, KerberosSession, HTTP_Status):
 
