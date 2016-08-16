@@ -30,6 +30,7 @@ import locale
 
 import six
 
+from ipalib.constants import IPAAPI_USER, IPAAPI_GROUP
 from ipalib.install import certmonger
 from ipaserver.install import service
 from ipaserver.install import certs
@@ -317,8 +318,7 @@ class HTTPInstance(service.Service):
         nssdb = certdb.NSSDatabase(nssdir=paths.HTTPD_ALIAS_DIR)
         nssdb.create_db(user="root", group=constants.HTTPD_GROUP, backup=True)
         nssdb = certdb.NSSDatabase(nssdir=paths.IPA_RADB_DIR)
-        nssdb.create_db(user=constants.HTTPD_USER, group=constants.HTTPD_GROUP,
-                        mode=0o751, backup=True)
+        nssdb.create_db(user=IPAAPI_USER, group=IPAAPI_GROUP, backup=True)
 
     def request_anon_keytab(self):
         parent = os.path.dirname(paths.ANON_KEYTAB)
@@ -326,7 +326,7 @@ class HTTPInstance(service.Service):
             os.makedirs(parent, 0o755)
         self.run_getkeytab(self.api.env.ldap_uri, paths.ANON_KEYTAB, ANON_USER)
 
-        pent = pwd.getpwnam(self.service_user)
+        pent = pwd.getpwnam(IPAAPI_USER)
         os.chmod(parent, 0o700)
         os.chown(parent, pent.pw_uid, pent.pw_gid)
         os.chown(paths.ANON_KEYTAB, pent.pw_uid, pent.pw_gid)

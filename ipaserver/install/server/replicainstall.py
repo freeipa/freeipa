@@ -40,7 +40,8 @@ from ipaserver.install import (
     installutils, kra, krbinstance,
     ntpinstance, otpdinstance, custodiainstance, service)
 from ipaserver.install.installutils import (
-    create_replica_config, ReplicaConfig, load_pkcs12, is_ipa_configured)
+    create_replica_config, ReplicaConfig, load_pkcs12, is_ipa_configured,
+    create_ipaapi_user)
 from ipaserver.install.replication import (
     ReplicationManager, replica_conn_check)
 import SSSDConfig
@@ -1304,6 +1305,7 @@ def install(installer):
     ccache = os.environ['KRB5CCNAME']
 
     # Make sure tmpfiles dir exist before installing components
+    create_ipaapi_user()
     tasks.create_tmpfiles_dirs()
 
     if promote:

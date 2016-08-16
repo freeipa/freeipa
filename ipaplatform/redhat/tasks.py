@@ -51,6 +51,8 @@ from ipaplatform.paths import paths
 from ipaplatform.redhat.authconfig import RedHatAuthConfig
 from ipaplatform.base.tasks import BaseTaskNamespace
 
+from ipalib.constants import IPAAPI_USER
+
 _ffi = FFI()
 _ffi.cdef("""
 int rpmvercmp (const char *a, const char *b);
@@ -411,7 +413,9 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         return True
 
-    def create_system_user(self, name, group, homedir, shell, uid=None, gid=None, comment=None, create_homedir=False):
+    def create_system_user(self, name, group, homedir, shell,
+                           uid=None, gid=None, comment=None,
+                           create_homedir=False, groups=None):
         """
         Create a system user with a corresponding group
 
@@ -431,8 +435,9 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             if comment is None:
                 comment = 'DS System User'
 
-        super(RedHatTaskNamespace, self).create_system_user(name, group,
-            homedir, shell, uid, gid, comment, create_homedir)
+        super(RedHatTaskNamespace, self).create_system_user(
+            name, group, homedir, shell, uid, gid, comment, create_homedir,
+            groups)
 
     def parse_ipa_version(self, version):
         """
@@ -467,7 +472,8 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             dict(
                 HTTP_KEYTAB=paths.HTTP_KEYTAB,
                 HTTP_CCACHE=paths.HTTP_CCACHE,
-                HTTPD_USER=constants.HTTPD_USER
+                HTTPD_USER=constants.HTTPD_USER,
+                IPAAPI_USER=IPAAPI_USER,
             )
         )
 
@@ -520,7 +526,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
     def create_tmpfiles_dirs(self):
         parent = os.path.dirname(paths.IPA_CCACHES)
-        pent = pwd.getpwnam(constants.HTTPD_USER)
+        pent = pwd.getpwnam(IPAAPI_USER)
         self._create_tmpfiles_dir(parent, 0o711, 0, 0)
         self._create_tmpfiles_dir(paths.IPA_CCACHES, 0o770,
                                   pent.pw_uid, pent.pw_gid)

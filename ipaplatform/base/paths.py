@@ -203,6 +203,7 @@ class BasePathNamespace(object):
     DNSSEC_KEYFROMLABEL = "/usr/sbin/dnssec-keyfromlabel-pkcs11"
     GETSEBOOL = "/usr/sbin/getsebool"
     GROUPADD = "/usr/sbin/groupadd"
+    USERMOD = "/usr/sbin/usermod"
     HTTPD = "/usr/sbin/httpd"
     IPA_CLIENT_INSTALL = "/usr/sbin/ipa-client-install"
     IPA_DNS_INSTALL = "/usr/sbin/ipa-dns-install"
