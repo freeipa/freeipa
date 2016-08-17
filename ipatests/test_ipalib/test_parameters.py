@@ -98,18 +98,18 @@ class test_DefaultFrom(ClassChecker):
             pass
 
         o = self.cls(stuff)
-        assert repr(o) == "DefaultFrom(stuff, 'one', 'two')"
+        assert repr(o) == "DefaultFrom('one', 'two')"
 
         o = self.cls(stuff, 'aye', 'bee', 'see')
-        assert repr(o) == "DefaultFrom(stuff, 'aye', 'bee', 'see')"
+        assert repr(o) == "DefaultFrom('aye', 'bee', 'see')"
 
         cb = lambda first, last: first[0] + last
 
         o = self.cls(cb)
-        assert repr(o) == "DefaultFrom(<lambda>, 'first', 'last')"
+        assert repr(o) == "DefaultFrom('first', 'last')"
 
         o = self.cls(cb, 'aye', 'bee', 'see')
-        assert repr(o) == "DefaultFrom(<lambda>, 'aye', 'bee', 'see')"
+        assert repr(o) == "DefaultFrom('aye', 'bee', 'see')"
 
     def test_call(self):
         """
@@ -301,9 +301,9 @@ class test_Param(ClassChecker):
             o = self.cls(name)
             assert repr(o) == 'Param(%r)' % name
         o = self.cls('name', required=False)
-        assert repr(o) == "Param('name', required=False)"
+        assert repr(o) == "Param('name?')"
         o = self.cls('name', multivalue=True)
-        assert repr(o) == "Param('name', multivalue=True)"
+        assert repr(o) == "Param('name+')"
 
     def test_use_in_context(self):
         """
@@ -352,17 +352,17 @@ class test_Param(ClassChecker):
         assert type(clone) is self.cls
         assert clone.name is orig.name
         for (key, kind, default) in self.cls.kwargs:
-            assert getattr(clone, key) is getattr(orig, key)
+            assert getattr(clone, key) == getattr(orig, key)
 
         # Test with a param spec:
         orig = self.cls('my_param*')
         assert orig.param_spec == 'my_param*'
         clone = orig.clone()
-        assert clone.param_spec == 'my_param'
+        assert clone.param_spec == 'my_param*'
         assert clone is not orig
         assert type(clone) is self.cls
         for (key, kind, default) in self.cls.kwargs:
-            assert getattr(clone, key) is getattr(orig, key)
+            assert getattr(clone, key) == getattr(orig, key)
 
         # Test with overrides:
         orig = self.cls('my_param*')
@@ -373,7 +373,7 @@ class test_Param(ClassChecker):
         assert type(clone) is self.cls
         assert clone.required is True
         assert clone.multivalue is True
-        assert clone.param_spec == 'my_param'
+        assert clone.param_spec == 'my_param+'
         assert clone.name == 'my_param'
 
     def test_clone_rename(self):
@@ -389,6 +389,8 @@ class test_Param(ClassChecker):
         assert type(clone) is self.cls
         assert clone.name == new_name
         for (key, kind, default) in self.cls.kwargs:
+            if key in ('cli_name', 'label', 'doc', 'cli_metavar'):
+                continue
             assert getattr(clone, key) is getattr(orig, key)
 
         # Test with overrides:
@@ -400,7 +402,7 @@ class test_Param(ClassChecker):
         assert type(clone) is self.cls
         assert clone.required is True
         assert clone.multivalue is True
-        assert clone.param_spec == new_name
+        assert clone.param_spec == "{0}+".format(new_name)
         assert clone.name == new_name
 
 
@@ -466,7 +468,7 @@ class test_Param(ClassChecker):
         o = self.cls('my_param', query=True)
         assert o.query is True
         e = raises(errors.RequirementError, o.validate, None)
-        assert_equal(e.name, 'my_param')
+        assert_equal(e.name, u'my_param')
 
         # Test with multivalue=True:
         o = self.cls('my_param', multivalue=True)
@@ -500,7 +502,6 @@ class test_Param(ClassChecker):
         e = raises(errors.ValidationError, o.validate, 42)
         assert e.name == 'example'
         assert e.error == u'no good'
-        assert e.index is None
         assert pass1.calls == [(text.ugettext, 42)]
         assert pass2.calls == [(text.ugettext, 42)]
         assert fail.calls == [(text.ugettext, 42)]
@@ -527,7 +528,6 @@ class test_Param(ClassChecker):
         e = raises(errors.ValidationError, o.validate, (3, 9))
         assert e.name == 'multi_example'
         assert e.error == u'this one is not good'
-        assert e.index == 0
         assert pass1.calls == [(text.ugettext, 3)]
         assert pass2.calls == [(text.ugettext, 3)]
         assert fail.calls == [(text.ugettext, 3)]
@@ -558,6 +558,9 @@ class test_Param(ClassChecker):
         fail = DummyRule(u'this describes the error')
         o = MyParam('my_param', okay, fail)
         e = raises(errors.ValidationError, o._validate_scalar, True)
+        assert e.name == 'my_param'
+        assert e.error == u'this describes the error'
+        e = raises(errors.ValidationError, o._validate_scalar, False)
         assert e.name == 'my_param'
         assert e.error == u'this describes the error'
         assert okay.calls == [
@@ -1528,7 +1531,7 @@ def test_create_param():
     for spec in ('one?', 'two+', 'three*', 'four'):
         (name, kw) = parameters.parse_param_spec(spec)
         p = f(spec)
-        assert p.param_spec is spec
+        assert p.param_spec == spec
         assert p.name == name
         assert p.required is kw['required']
         assert p.multivalue is kw['multivalue']
@@ -1577,9 +1580,9 @@ class test_IA5Str(ClassChecker):
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
             if six.PY2:
-                assert_equal(e.error, "The character '\\xc3' is not allowed.")
+                assert_equal(e.error, u"The character '\\xc3' is not allowed.")
             else:
-                assert_equal(e.error, "The character 'á' is not allowed.")
+                assert_equal(e.error, u"The character 'á' is not allowed.")
 
 
 class test_DateTime(ClassChecker):
