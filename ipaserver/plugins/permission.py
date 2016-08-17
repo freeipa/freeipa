@@ -1296,6 +1296,10 @@ class permission_find(baseldap.LDAPSearch):
             else:
                 max_entries = self.api.Backend.ldap2.size_limit
 
+            if max_entries > 0:
+                # should we get more entries than current sizelimit, fail
+                assert len(entries) <= max_entries
+
             filters = ['(objectclass=ipaPermission)',
                        '(!(ipaPermissionType=V2))']
             if 'name' in options:
@@ -1320,15 +1324,6 @@ class permission_find(baseldap.LDAPSearch):
             for entry in legacy_entries:
                 if entry.single_value['cn'] in nonlegacy_names:
                     continue
-                if max_entries > 0 and len(entries) > max_entries:
-                    # We've over the limit, pop the last entry and set
-                    # truncated flag
-                    # (this is easier to do than checking before adding
-                    # the entry to results)
-                    # (max_entries <= 0 means unlimited)
-                    entries.pop()
-                    truncated = True
-                    break
                 self.obj.upgrade_permission(entry, output_only=True,
                                             cached_acientry=root_entry)
                 # If all given options match, include the entry
@@ -1354,6 +1349,11 @@ class permission_find(baseldap.LDAPSearch):
                                        for value in values):
                                 break
                     else:
+                        if max_entries > 0 and len(entries) == max_entries:
+                            # We've reached the limit, set truncated flag
+                            # (max_entries <= 0 means unlimited)
+                            truncated = True
+                            break
                         entries.append(entry)
 
         for entry in entries:
