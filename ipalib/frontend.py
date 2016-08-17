@@ -1181,7 +1181,7 @@ class LocalOrRemote(Command):
         When running in a server context, this command is always executed
         locally and the value of ``options['server']`` is ignored.
         """
-        if options['server'] and not self.env.in_server:
+        if options.get('server', False) and not self.env.in_server:
             return self.forward(*args, **options)
         return self.execute(*args, **options)
 

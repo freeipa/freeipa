@@ -862,13 +862,13 @@ class test_LocalOrRemote(ClassChecker):
         api.finalize()
         cmd = api.Command.example
         assert cmd(version=u'2.47') == dict(
-            result=('execute', (None,), dict(version=u'2.47', server=False))
+            result=('execute', (), dict(version=u'2.47'))
         )
         assert cmd(u'var', version=u'2.47') == dict(
-            result=('execute', (u'var',), dict(version=u'2.47', server=False))
+            result=('execute', (u'var',), dict(version=u'2.47'))
         )
         assert cmd(server=True, version=u'2.47') == dict(
-            result=('forward', (None,), dict(version=u'2.47', server=True))
+            result=('forward', (), dict(version=u'2.47', server=True))
         )
         assert cmd(u'var', server=True, version=u'2.47') == dict(
             result=('forward', (u'var',), dict(version=u'2.47', server=True))
@@ -880,13 +880,13 @@ class test_LocalOrRemote(ClassChecker):
         api.finalize()
         cmd = api.Command.example
         assert cmd(version=u'2.47') == dict(
-            result=('execute', (None,), dict(version=u'2.47', server=False))
+            result=('execute', (), dict(version=u'2.47', server=False))
         )
         assert cmd(u'var', version=u'2.47') == dict(
             result=('execute', (u'var',), dict(version=u'2.47', server=False))
         )
         assert cmd(server=True, version=u'2.47') == dict(
-            result=('execute', (None,), dict(version=u'2.47', server=True))
+            result=('execute', (), dict(version=u'2.47', server=True))
         )
         assert cmd(u'var', server=True, version=u'2.47') == dict(
             result=('execute', (u'var',), dict(version=u'2.47', server=True))
@@ -1106,7 +1106,7 @@ class test_Attribute(ClassChecker):
         """
         user_obj = 'The user frontend.Object instance'
         class api(object):
-            Object = dict(user=user_obj)
+            Object = {("user", "1"): user_obj}
             @staticmethod
             def is_production_mode():
                 return False
