@@ -371,9 +371,15 @@ class Schema(object):
             self._dict[ns] = {}
             self._namespaces[ns] = _SchemaNameSpace(self, ns)
 
-        self._language = (
-            locale.setlocale(locale.LC_ALL, '').split('.')[0].lower()
-        )
+        # copy-paste from ipalib/rpc.py
+        try:
+            self._language = (
+                locale.setlocale(locale.LC_ALL, '').split('.')[0].lower()
+            )
+        except locale.Error:
+            # fallback to default locale
+            self._language = 'en_us'
+
         try:
             self._fingerprint = server_info['fingerprint']
             self._expiration = server_info['expiration']
