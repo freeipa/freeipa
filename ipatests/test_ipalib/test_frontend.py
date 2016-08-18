@@ -922,6 +922,9 @@ class test_Object(ClassChecker):
                     self.name = '%s_%s' % (obj_name, attr_name)
                 else:
                     self.name = name
+                self.bases = (DummyAttribute,)
+                self.version = '1'
+                self.full_name = '{}/{}'.format(self.name, self.version)
                 self.param = frontend.create_param(attr_name)
 
             def __clone__(self, attr_name):
@@ -940,15 +943,18 @@ class test_Object(ClassChecker):
         methods_format = 'method_%d'
 
         class FakeAPI(object):
-            Method = NameSpace(
-                get_attributes(cnt, methods_format)
-            )
+            def __init__(self):
+                self._API__plugins = get_attributes(cnt, methods_format)
+                self._API__default_map = {}
+                self.Method = plugable.APINameSpace(self, DummyAttribute)
             def __contains__(self, key):
                 return hasattr(self, key)
             def __getitem__(self, key):
                 return getattr(self, key)
             def is_production_mode(self):
                 return False
+            def _get(self, plugin):
+                return plugin
         api = FakeAPI()
         assert len(api.Method) == cnt * 3
 
