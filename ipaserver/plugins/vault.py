@@ -783,7 +783,7 @@ class vault_add_internal(LDAPCreate):
 
         try:
             self.obj.create_container(parent_dn, owner_dn)
-        except errors.DuplicateEntry as e:
+        except (errors.DuplicateEntry, errors.ACIError):
             pass
 
         # vault should be owned by the creator
