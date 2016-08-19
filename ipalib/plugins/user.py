@@ -356,6 +356,10 @@ class user(baseuser):
         ),
     )
 
+    def get_delete_dn(self, *keys, **options):
+        active_dn = self.get_dn(*keys, **options)
+        return DN(active_dn[0], self.delete_container_dn, api.env.basedn)
+
     def get_either_dn(self, *keys, **options):
         '''
         Returns the DN of a user
@@ -372,7 +376,7 @@ class user(baseuser):
             dn = active_dn
         except errors.NotFound:
             # Check that this value is a Delete user
-            delete_dn = DN(active_dn[0], self.delete_container_dn, api.env.basedn)
+            delete_dn = self.get_delete_dn(*keys, **options)
             try:
                 ldap.get_entry(delete_dn, ['dn'])
 
@@ -416,7 +420,14 @@ class user_add(baseuser_add):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        dn = self.obj.get_either_dn(*keys, **options)
+        delete_dn = self.obj.get_delete_dn(*keys, **options)
+        try:
+            ldap.get_entry(delete_dn, [''])
+        except errors.NotFound:
+            pass
+        else:
+            raise self.obj.handle_duplicate_entry(*keys)
+
         if not options.get('noprivate', False):
             try:
                 # The Managed Entries plugin will allow a user to be created
