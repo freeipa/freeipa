@@ -112,7 +112,7 @@ class Cookie(object):
 
     cookie = Cookie('session', session_id,
                     domain=my_domain, path=mypath,
-                    httpOnly=True, secure=True, expires=expiration)
+                    httponly=True, secure=True, expires=expiration)
     headers.append(('Set-Cookie', str(cookie)))
 
 

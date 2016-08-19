@@ -34,7 +34,6 @@ from ipaplatform.paths import paths
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
 from ipaserver.install import httpinstance
-from ipaserver.install import memcacheinstance
 from ipaserver.install import ntpinstance
 from ipaserver.install import bindinstance
 from ipaserver.install import service
@@ -73,6 +72,21 @@ def uninstall_ipa_kpasswd():
 
     if enabled is not None and not enabled:
         ipa_kpasswd.remove()
+
+
+def uninstall_ipa_memcached():
+    """
+    We can't use the full service uninstaller because that will attempt
+    to stop and disable the service which by now doesn't exist. We just
+    want to clean up sysrestore.state to remove all references to
+    ipa_kpasswd.
+    """
+    ipa_memcached = service.SimpleServiceInstance('ipa_memcached')
+
+    enabled = not ipa_memcached.restore_state("enabled")
+
+    if enabled is not None and not enabled:
+        ipa_memcached.remove()
 
 def backup_file(filename, ext):
     """Make a backup of filename using ext as the extension. Do not overwrite
@@ -1570,6 +1584,7 @@ def upgrade_configuration():
 
     update_dbmodules(api.env.realm)
     uninstall_ipa_kpasswd()
+    uninstall_ipa_memcached()
 
     removed_sysconfig_file = paths.SYSCONFIG_HTTPD
     if fstore.has_file(removed_sysconfig_file):
@@ -1620,7 +1635,6 @@ def upgrade_configuration():
     uninstall_dogtag_9(ds, http)
 
     simple_service_list = (
-        (memcacheinstance.MemcacheInstance(), 'MEMCACHE'),
         (otpdinstance.OtpdInstance(), 'OTPD'),
     )
 

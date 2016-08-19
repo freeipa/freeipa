@@ -8,13 +8,7 @@ dist_sysconfenv_DATA = 		\
 	ipa-dnskeysyncd		\
 	ipa-ods-exporter
 
-nodist_sysconfenv_DATA =	\
-	ipa_memcached
-
 CLEANFILES = $(nodist_sysconfenv_DATA)
-
-dist_noinst_DATA = 		\
-	ipa_memcached.in
 
 %: %.in Makefile
 	sed -e 's|@localstatedir[@]|$(localstatedir)|g' '$(srcdir)/$@.in' >$@

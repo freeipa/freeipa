@@ -58,7 +58,6 @@ if __name__ == '__main__':
             "netaddr",
             "pyasn1",
             "pyldap",
-            "python-memcached",
             "python-nss",
             "six",
             # not available on PyPI

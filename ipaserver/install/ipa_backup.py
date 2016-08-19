@@ -36,10 +36,12 @@ from ipapython import admintool
 from ipapython.dn import DN
 from ipaserver.install.replication import wait_for_task
 from ipaserver.install import installutils
-from ipaserver.session import ISO8601_DATETIME_FMT
 from ipapython import ipaldap
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
+
+
+ISO8601_DATETIME_FMT = '%Y-%m-%dT%H:%M:%S'
 
 """
 A test gpg can be generated like this:

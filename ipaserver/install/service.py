@@ -46,7 +46,6 @@ SERVICE_LIST = {
     'KDC': ('krb5kdc', 10),
     'KPASSWD': ('kadmin', 20),
     'DNS': ('named', 30),
-    'MEMCACHE': ('ipa_memcached', 39),
     'HTTP': ('httpd', 40),
     'KEYS': ('ipa-custodia', 41),
     'NTP': ('ntpd', 45),

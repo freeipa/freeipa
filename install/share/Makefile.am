@@ -86,7 +86,9 @@ dist_app_DATA =				\
 	vault.ldif			\
 	kdcproxy-enable.uldif		\
 	kdcproxy-disable.uldif		\
-	ipa-httpd.conf.template
+	ipa-httpd.conf.template		\
+	gssapi.login			\
+	$(NULL)
 
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy
 dist_kdcproxyconf_DATA =			\
