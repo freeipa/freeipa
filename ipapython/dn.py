@@ -1145,12 +1145,7 @@ class DN(object):
         return self.RDN_type(*rdn, **{'raw': True})
 
     def __str__(self):
-        try:
-            return dn2str(self.rdns)
-        except Exception as e:
-            print(len(self.rdns))
-            print(self.rdns)
-            raise
+        return dn2str(self.rdns)
 
     def __repr__(self):
         return "%s.%s('%s')" % (self.__module__, self.__class__.__name__, self.__str__())
