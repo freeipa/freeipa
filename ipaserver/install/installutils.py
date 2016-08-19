@@ -64,7 +64,7 @@ if six.PY3:
 # Used to determine install status
 IPA_MODULES = [
     'httpd', 'kadmin', 'dirsrv', 'pki-tomcatd', 'install', 'krb5kdc', 'ntpd',
-    'named', 'ipa_memcached']
+    'named']
 
 
 class BadHostError(Exception):

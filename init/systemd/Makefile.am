@@ -4,12 +4,10 @@ AUTOMAKE_OPTIONS = 1.7
 
 dist_noinst_DATA = 			\
 	ipa-custodia.service.in		\
-	ipa_memcached.service.in	\
 	ipa.service.in
 
 systemdsystemunit_DATA = 	\
 	ipa-custodia.service	\
-	ipa_memcached.service	\
 	ipa.service
 
 CLEANFILES = $(systemdsystemunit_DATA)

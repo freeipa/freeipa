@@ -209,9 +209,6 @@ ipa_class_members = {
     'ipaserver.rpcserver.KerberosSession': [
         fake_api,
     ] + LOGGING_ATTRS,
-    'ipaserver.session.AuthManager': LOGGING_ATTRS,
-    'ipaserver.session.SessionAuthManager': LOGGING_ATTRS,
-    'ipaserver.session.SessionManager': LOGGING_ATTRS,
     'ipatests.test_integration.base.IntegrationTest': [
         'domain',
         {'master': [

@@ -208,3 +208,5 @@ def get_credentials_if_valid(name=None, ccache_name=None):
         return None
     except gssapi.exceptions.ExpiredCredentialsError:
         return None
+    except gssapi.exceptions.GSSError:
+        return None

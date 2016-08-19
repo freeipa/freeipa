@@ -25,11 +25,10 @@ Also see the `ipalib.rpc` module.
 
 from xml.sax.saxutils import escape
 import os
-import datetime
 import json
 import traceback
 import gssapi
-import time
+import requests
 
 import ldap.controls
 from pyasn1.type import univ, namedtype
@@ -51,21 +50,23 @@ from ipalib.errors import (PublicError, InternalError, JSONError,
 from ipalib.request import context, destroy_context
 from ipalib.rpc import (xml_dumps, xml_loads,
     json_encode_binary, json_decode_binary)
-from ipalib.util import parse_time_duration, normalize_name
+from ipalib.util import normalize_name
 from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.session import (
-    get_session_mgr, AuthManager, get_ipa_ccache_name,
-    load_ccache_data, bind_ipa_ccache, release_ipa_ccache, fmt_time,
-    default_max_session_duration, krbccache_dir, krbccache_prefix)
+    get_ipa_ccache_name,
+    krbccache_dir, krbccache_prefix)
 from ipalib.backend import Backend
 from ipalib.krb_utils import (
-    krb_ticket_expiration_threshold, krb5_format_principal_name,
-    krb5_format_service_principal_name, get_credentials, get_credentials_if_valid)
+    krb5_format_principal_name,
+    krb5_format_service_principal_name, get_credentials_if_valid)
 from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.version import VERSION
 from ipalib.text import _
+
+from base64 import b64decode, b64encode
+from requests.auth import AuthBase
 
 if six.PY3:
     unicode = str
@@ -303,6 +304,7 @@ class WSGIExecutioner(Executioner):
     Base class for execution backends with a WSGI application interface.
     """
 
+    headers = None
     content_type = None
     key = ''
 
@@ -424,21 +426,16 @@ class WSGIExecutioner(Executioner):
         try:
             status = HTTP_STATUS_SUCCESS
             response = self.wsgi_execute(environ)
-            headers = [('Content-Type', self.content_type + '; charset=utf-8')]
+            if self.headers:
+                headers = self.headers
+            else:
+                headers = [('Content-Type',
+                            self.content_type + '; charset=utf-8')]
         except Exception:
             self.exception('WSGI %s.__call__():', self.name)
             status = HTTP_STATUS_SERVER_ERROR
             response = status.encode('utf-8')
             headers = [('Content-Type', 'text/plain; charset=utf-8')]
-
-        session_data = getattr(context, 'session_data', None)
-        if session_data is not None:
-            # Send session cookie back and store session data
-            # FIXME: the URL path should be retreived from somewhere (but where?), not hardcoded
-            session_mgr = get_session_mgr()
-            session_cookie = session_mgr.generate_cookie('/ipa', session_data['session_id'],
-                                                         session_data['session_expiration_timestamp'])
-            headers.append(('Set-Cookie', session_cookie))
 
         start_response(status, headers)
         return [response]
@@ -521,36 +518,73 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
         options = dict((str(k), v) for (k, v) in options.items())
         return (method, args, options, _id)
 
-class AuthManagerKerb(AuthManager):
-    '''
-    Instances of the AuthManger class are used to handle
-    authentication events delivered by the SessionManager. This class
-    specifcally handles the management of Kerbeos credentials which
-    may be stored in the session.
-    '''
 
-    def __init__(self, name):
-        super(AuthManagerKerb, self).__init__(name)
+class NegotiateAuth(AuthBase):
+    """Negotiate Augh using python GSSAPI"""
+    def __init__(self, target_host, ccache_name=None):
+        self.context = None
+        self.target_host = target_host
+        self.ccache_name = ccache_name
 
-    def logout(self, session_data):
-        '''
-        The current user has requested to be logged out. To accomplish
-        this we remove the user's kerberos credentials from their
-        session. This does not destroy the session, it just prevents
-        it from being used for fast authentication. Because the
-        credentials are no longer in the session cache any future
-        attempt will require the acquisition of credentials using one
-        of the login mechanisms.
-        '''
+    def __call__(self, request):
+        self.initial_step(request)
+        request.register_hook('response', self.handle_response)
+        return request
 
-        if 'ccache_data' in session_data:
-            self.debug('AuthManager.logout.%s: deleting ccache_data', self.name)
-            del session_data['ccache_data']
-        else:
-            self.error('AuthManager.logout.%s: session_data does not contain ccache_data', self.name)
+    def deregister(self, response):
+        response.request.deregister_hook('response', self.handle_response)
+
+    def _get_negotiate_token(self, response):
+        token = None
+        if response is not None:
+            h = response.headers.get('www-authenticate', '')
+            if h.startswith('Negotiate'):
+                val = h[h.find('Negotiate') + len('Negotiate'):].strip()
+                if len(val) > 0:
+                    token = b64decode(val)
+        return token
+
+    def _set_authz_header(self, request, token):
+        request.headers['Authorization'] = 'Negotiate ' + b64encode(token)
+
+    def initial_step(self, request, response=None):
+        if self.context is None:
+            store = {'ccache': self.ccache_name}
+            creds = gssapi.Credentials(usage='initiate', store=store)
+            name = gssapi.Name('HTTP@{0}'.format(self.target_host),
+                               name_type=gssapi.NameType.hostbased_service)
+            self.context = gssapi.SecurityContext(creds=creds, name=name,
+                                                  usage='initiate')
+
+        in_token = self._get_negotiate_token(response)
+        out_token = self.context.step(in_token)
+        self._set_authz_header(request, out_token)
+
+    def handle_response(self, response, **kwargs):
+        status = response.status_code
+        if status >= 400 and status != 401:
+            return response
+
+        in_token = self._get_negotiate_token(response)
+        if in_token is not None:
+            out_token = self.context.step(in_token)
+            if self.context.complete:
+                return response
+            elif not out_token:
+                return response
+
+            self._set_authz_header(response.request, out_token)
+            # use response so we can make another request
+            _ = response.content  # pylint: disable=unused-variable
+            response.raw.release_conn()
+            newresp = response.connection.send(response.request, **kwargs)
+            newresp.history.append(response)
+            return self.handle_response(newresp, **kwargs)
+
+        return response
 
 
-class KerberosSession(object):
+class KerberosSession(HTTP_Status):
     '''
     Functionally shared by all RPC handlers using both sessions and
     Kerberos.  This class must be implemented as a mixin class rather
@@ -558,101 +592,44 @@ class KerberosSession(object):
     needing this do not share a common base class.
     '''
 
-    def kerb_session_on_finalize(self):
-        '''
-        Initialize values from the Env configuration.
-
-        Why do it this way and not simply reference
-        api.env.session_auth_duration? Because that config item cannot
-        be used directly, it must be parsed and converted to an
-        integer. It would be inefficient to reparse it on every
-        request. So we parse it once and store the result in the class
-        instance.
-        '''
-        # Set the session expiration time
-        try:
-            seconds = parse_time_duration(self.api.env.session_auth_duration)
-            self.session_auth_duration = int(seconds)
-            self.debug("session_auth_duration: %s", datetime.timedelta(seconds=self.session_auth_duration))
-        except Exception as e:
-            self.session_auth_duration = default_max_session_duration
-            self.error('unable to parse session_auth_duration, defaulting to %d: %s',
-                       self.session_auth_duration, e)
-
-    def update_session_expiration(self, session_data, krb_endtime):
-        '''
-        Each time a session is created or accessed we need to update
-        it's expiration time. The expiration time is set inside the
-        session_data.
-
-        :parameters:
-          session_data
-            The session data whose expiration is being updatded.
-          krb_endtime
-            The UNIX timestamp for when the Kerberos credentials expire.
-        :returns:
-          None
-        '''
-
-        # Account for clock skew and/or give us some time leeway
-        krb_expiration = krb_endtime - krb_ticket_expiration_threshold
-
-        # Set the session expiration time
-        session_mgr = get_session_mgr()
-        session_mgr.set_session_expiration_time(session_data,
-                                                duration=self.session_auth_duration,
-                                                max_age=krb_expiration,
-                                                duration_type=self.api.env.session_duration_type)
-
 
     def finalize_kerberos_acquisition(self, who, ccache_name, environ, start_response, headers=None):
         if headers is None:
             headers = []
 
-        # Retrieve the session data (or newly create)
-        session_mgr = get_session_mgr()
-        session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
-        session_id = session_data['session_id']
+        # Connect back to ourselves to get mod_auth_gssapi to
+        # generate a cookie for us.
+        try:
+            target = self.api.env.host
+            r = requests.get('http://{0}/ipa/session/cookie'.format(target),
+                             auth=NegotiateAuth(target, ccache_name))
+            session_cookie = r.cookies.get("ipa_session")
+            if not session_cookie:
+                raise ValueError('No session cookie found')
+        except Exception as e:
+            return self.unauthorized(environ, start_response,
+                                     str(e),
+                                     'Authentication failed')
 
-        self.debug('finalize_kerberos_acquisition: %s ccache_name="%s" session_id="%s"',
-                   who, ccache_name, session_id)
-
-        # Copy the ccache file contents into the session data
-        session_data['ccache_data'] = load_ccache_data(ccache_name)
-
-        # Set when the session will expire
-        creds = get_credentials(ccache_name=ccache_name)
-        endtime = creds.lifetime + time.time()
-        self.update_session_expiration(session_data, endtime)
-
-        # Store the session data now that it's been updated with the ccache
-        session_mgr.store_session_data(session_data)
-
-        # The request is finished with the ccache, destroy it.
-        release_ipa_ccache(ccache_name)
-
-        # Return success and set session cookie
-        session_cookie = session_mgr.generate_cookie('/ipa', session_id,
-                                                     session_data['session_expiration_timestamp'])
-        headers.append(('Set-Cookie', session_cookie))
+        headers.append(('IPASESSION', session_cookie))
 
         start_response(HTTP_STATUS_SUCCESS, headers)
         return ['']
 
 
-class KerberosWSGIExecutioner(WSGIExecutioner, HTTP_Status, KerberosSession):
+class KerberosWSGIExecutioner(WSGIExecutioner, KerberosSession):
     """Base class for xmlserver and jsonserver_kerb
     """
 
     def _on_finalize(self):
         super(KerberosWSGIExecutioner, self)._on_finalize()
-        self.kerb_session_on_finalize()
 
     def __call__(self, environ, start_response):
         self.debug('KerberosWSGIExecutioner.__call__:')
         user_ccache=environ.get('KRB5CCNAME')
 
-        headers = [('Content-Type', '%s; charset=utf-8' % self.content_type)]
+        self.headers = [('Content-Type',
+                         '%s; charset=utf-8' % self.content_type)]
 
         if user_ccache is None:
 
@@ -664,18 +641,19 @@ class KerberosWSGIExecutioner(WSGIExecutioner, HTTP_Status, KerberosSession):
                 'KRB5CCNAME not defined in HTTP request environment')
 
             return self.marshal(None, CCacheError())
+
+        logout_cookie = getattr(context, 'logout_cookie', None)
+        if logout_cookie:
+            self.headers.append(('IPASESSION', logout_cookie))
+
         try:
             self.create_context(ccache=user_ccache)
             response = super(KerberosWSGIExecutioner, self).__call__(
                 environ, start_response)
-            session_data = getattr(context, 'session_data', None)
-            if (session_data is None and self.env.context != 'lite'):
-                self.finalize_kerberos_acquisition(
-                    'xmlserver', user_ccache, environ, start_response, headers)
         except PublicError as e:
             status = HTTP_STATUS_SUCCESS
             response = status.encode('utf-8')
-            start_response(status, headers)
+            start_response(status, self.headers)
             return self.marshal(None, e)
         finally:
             destroy_context()
@@ -773,14 +751,9 @@ class jsonserver_session(jsonserver, KerberosSession):
 
     def __init__(self, api):
         super(jsonserver_session, self).__init__(api)
-        name = '{0}_{1}'.format(self.__class__.__name__, id(self))
-        auth_mgr = AuthManagerKerb(name)
-        session_mgr = get_session_mgr()
-        session_mgr.auth_mgr.register(auth_mgr.name, auth_mgr)
 
     def _on_finalize(self):
         super(jsonserver_session, self)._on_finalize()
-        self.kerb_session_on_finalize()
 
     def need_login(self, start_response):
         status = '401 Unauthorized'
@@ -798,68 +771,32 @@ class jsonserver_session(jsonserver, KerberosSession):
 
         self.debug('WSGI jsonserver_session.__call__:')
 
-        # Load the session data
-        session_mgr = get_session_mgr()
-        session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
-        session_id = session_data['session_id']
-
-        self.debug('jsonserver_session.__call__: session_id=%s start_timestamp=%s access_timestamp=%s expiration_timestamp=%s',
-                   session_id,
-                   fmt_time(session_data['session_start_timestamp']),
-                   fmt_time(session_data['session_access_timestamp']),
-                   fmt_time(session_data['session_expiration_timestamp']))
-
-        ccache_data = session_data.get('ccache_data')
+        ccache_name = environ.get('KRB5CCNAME')
 
         # Redirect to login if no Kerberos credentials
-        if ccache_data is None:
+        if ccache_name is None:
             self.debug('no ccache, need login')
             return self.need_login(start_response)
 
-        ipa_ccache_name = bind_ipa_ccache(ccache_data)
-
         # Redirect to login if Kerberos credentials are expired
-        creds = get_credentials_if_valid(ccache_name=ipa_ccache_name)
+        creds = get_credentials_if_valid(ccache_name=ccache_name)
         if not creds:
             self.debug('ccache expired, deleting session, need login')
             # The request is finished with the ccache, destroy it.
-            release_ipa_ccache(ipa_ccache_name)
             return self.need_login(start_response)
 
-        # Update the session expiration based on the Kerberos expiration
-        endtime = creds.lifetime + time.time()
-        self.update_session_expiration(session_data, endtime)
-
-        # Store the session data in the per-thread context
-        setattr(context, 'session_data', session_data)
+        # Store the ccache name in the per-thread context
+        setattr(context, 'ccache_name', ccache_name)
 
         # This may fail if a ticket from wrong realm was handled via browser
         try:
-            self.create_context(ccache=ipa_ccache_name)
+            self.create_context(ccache=ccache_name)
         except ACIError as e:
             return self.unauthorized(environ, start_response, str(e), 'denied')
 
         try:
             response = super(jsonserver_session, self).__call__(environ, start_response)
         finally:
-            # Kerberos may have updated the ccache data during the
-            # execution of the command therefore we need refresh our
-            # copy of it in the session data so the next command sees
-            # the same state of the ccache.
-            #
-            # However we must be careful not to restore the ccache
-            # data in the session data if it was explicitly deleted
-            # during the execution of the command. For example the
-            # logout command removes the ccache data from the session
-            # data to invalidate the session credentials.
-
-            if 'ccache_data' in session_data:
-                session_data['ccache_data'] = load_ccache_data(ipa_ccache_name)
-
-            # The request is finished with the ccache, destroy it.
-            release_ipa_ccache(ipa_ccache_name)
-            # Store the session data.
-            session_mgr.store_session_data(session_data)
             destroy_context()
 
         return response
@@ -873,13 +810,12 @@ class jsonserver_kerb(jsonserver, KerberosWSGIExecutioner):
     key = '/json'
 
 
-class KerberosLogin(Backend, KerberosSession, HTTP_Status):
+class KerberosLogin(Backend, KerberosSession):
     key = None
 
     def _on_finalize(self):
         super(KerberosLogin, self)._on_finalize()
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
-        self.kerb_session_on_finalize()
 
     def __call__(self, environ, start_response):
         self.debug('WSGI KerberosLogin.__call__:')
@@ -901,7 +837,7 @@ class login_x509(KerberosLogin):
     key = '/session/login_x509'
 
 
-class login_password(Backend, KerberosSession, HTTP_Status):
+class login_password(Backend, KerberosSession):
 
     content_type = 'text/plain'
     key = '/session/login_password'
@@ -909,7 +845,6 @@ class login_password(Backend, KerberosSession, HTTP_Status):
     def _on_finalize(self):
         super(login_password, self)._on_finalize()
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
-        self.kerb_session_on_finalize()
 
     def __call__(self, environ, start_response):
         self.debug('WSGI login_password.__call__:')
@@ -1243,14 +1178,9 @@ class xmlserver_session(xmlserver, KerberosSession):
 
     def __init__(self, api):
         super(xmlserver_session, self).__init__(api)
-        name = '{0}_{1}'.format(self.__class__.__name__, id(self))
-        auth_mgr = AuthManagerKerb(name)
-        session_mgr = get_session_mgr()
-        session_mgr.auth_mgr.register(auth_mgr.name, auth_mgr)
 
     def _on_finalize(self):
         super(xmlserver_session, self)._on_finalize()
-        self.kerb_session_on_finalize()
 
     def need_login(self, start_response):
         status = '401 Unauthorized'
@@ -1268,64 +1198,26 @@ class xmlserver_session(xmlserver, KerberosSession):
 
         self.debug('WSGI xmlserver_session.__call__:')
 
-        # Load the session data
-        session_mgr = get_session_mgr()
-        session_data = session_mgr.load_session_data(environ.get('HTTP_COOKIE'))
-        session_id = session_data['session_id']
-
-        self.debug('xmlserver_session.__call__: session_id=%s start_timestamp=%s access_timestamp=%s expiration_timestamp=%s',
-                   session_id,
-                   fmt_time(session_data['session_start_timestamp']),
-                   fmt_time(session_data['session_access_timestamp']),
-                   fmt_time(session_data['session_expiration_timestamp']))
-
-        ccache_data = session_data.get('ccache_data')
+        ccache_name = environ.get('KRB5CCNAME')
 
         # Redirect to /ipa/xml if no Kerberos credentials
-        if ccache_data is None:
+        if ccache_name is None:
             self.debug('xmlserver_session.__call_: no ccache, need TGT')
             return self.need_login(start_response)
 
-        ipa_ccache_name = bind_ipa_ccache(ccache_data)
-
         # Redirect to /ipa/xml if Kerberos credentials are expired
-        creds = get_credentials_if_valid(ccache_name=ipa_ccache_name)
+        creds = get_credentials_if_valid(ccache_name=ccache_name)
         if not creds:
             self.debug('xmlserver_session.__call_: ccache expired, deleting session, need login')
             # The request is finished with the ccache, destroy it.
-            release_ipa_ccache(ipa_ccache_name)
             return self.need_login(start_response)
 
-        # Update the session expiration based on the Kerberos expiration
-        endtime = creds.lifetime + time.time()
-        self.update_session_expiration(session_data, endtime)
-
         # Store the session data in the per-thread context
-        setattr(context, 'session_data', session_data)
-
-        environ['KRB5CCNAME'] = ipa_ccache_name
+        setattr(context, 'ccache_name', ccache_name)
 
         try:
             response = super(xmlserver_session, self).__call__(environ, start_response)
         finally:
-            # Kerberos may have updated the ccache data during the
-            # execution of the command therefore we need refresh our
-            # copy of it in the session data so the next command sees
-            # the same state of the ccache.
-            #
-            # However we must be careful not to restore the ccache
-            # data in the session data if it was explicitly deleted
-            # during the execution of the command. For example the
-            # logout command removes the ccache data from the session
-            # data to invalidate the session credentials.
-
-            if 'ccache_data' in session_data:
-                session_data['ccache_data'] = load_ccache_data(ipa_ccache_name)
-
-            # The request is finished with the ccache, destroy it.
-            release_ipa_ccache(ipa_ccache_name)
-            # Store the session data.
-            session_mgr.store_session_data(session_data)
             destroy_context()
 
         return response

@@ -128,7 +128,6 @@ BuildRequires:  pylint >= 1.0
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 BuildRequires:  python2-polib
 BuildRequires:  python-libipa_hbac
-BuildRequires:  python-memcached
 BuildRequires:  python-lxml
 # 5.0.0: QRCode.print_ascii
 BuildRequires:  python-qrcode-core >= 5.0.0
@@ -230,13 +229,12 @@ Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
 Requires: httpd >= 2.4.6-31
 Requires: mod_wsgi
-Requires: mod_auth_gssapi >= 1.4.0
+Requires: mod_auth_gssapi >= 1.5.0
 Requires: mod_nss >= 1.0.8-26
+Requires: mod_session
 Requires: python-ldap >= 2.4.15
 Requires: python-gssapi >= 1.2.0
 Requires: acl
-Requires: memcached
-Requires: python-memcached
 Requires: systemd-units >= 38
 Requires(pre): shadow-utils
 Requires(pre): systemd-units
@@ -1188,18 +1186,15 @@ fi
 %license COPYING
 %ghost %verify(not owner group) %dir %{_sharedstatedir}/kdcproxy
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/kdcproxy
-%config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-dnskeysyncd
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-ods-exporter
 %config(noreplace) %{_sysconfdir}/ipa/kdcproxy/kdcproxy.conf
-%dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
 %dir %attr(0700,root,root) %{_localstatedir}/run/ipa/
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/httpd/ipa/
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/httpd/ipa/clientcaches/
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/httpd/ipa/krbcache/
 # NOTE: systemd specific section
 %{_tmpfilesdir}/ipa.conf
-%attr(644,root,root) %{_unitdir}/ipa_memcached.service
 %attr(644,root,root) %{_unitdir}/ipa-custodia.service
 %ghost %attr(644,root,root) %{etc_systemd_dir}/httpd.d/ipa.conf
 # END
@@ -1289,6 +1284,7 @@ fi
 %dir %attr(0700,root,root) %{_sysconfdir}/ipa/custodia
 %dir %{_usr}/share/ipa/schema.d
 %attr(0644,root,root) %{_usr}/share/ipa/schema.d/README
+%attr(0644,root,root) %{_usr}/share/ipa/gssapi.login
 
 %files server-dns
 %defattr(-,root,root,-)

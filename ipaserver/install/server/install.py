@@ -32,7 +32,7 @@ from ipalib.util import (
 import ipaclient.install.ntpconf
 from ipaserver.install import (
     bindinstance, ca, cainstance, certs, dns, dsinstance,
-    httpinstance, installutils, kra, krbinstance, memcacheinstance,
+    httpinstance, installutils, kra, krbinstance,
     ntpinstance, otpdinstance, custodiainstance, replication, service,
     sysupgrade)
 from ipaserver.install.installutils import (
@@ -804,10 +804,6 @@ def install(installer):
     # generated
     ds.add_cert_to_service()
 
-    memcache = memcacheinstance.MemcacheInstance()
-    memcache.create_instance('MEMCACHE', host_name,
-                             ipautil.realm_to_suffix(realm_name))
-
     otpd = otpdinstance.OtpdInstance()
     otpd.create_instance('OTPD', host_name,
                          ipautil.realm_to_suffix(realm_name))
@@ -1052,7 +1048,6 @@ def uninstall(installer):
     if _server_trust_ad_installed:
         adtrustinstance.ADTRUSTInstance(fstore).uninstall()
     custodiainstance.CustodiaInstance().uninstall()
-    memcacheinstance.MemcacheInstance().uninstall()
     otpdinstance.OtpdInstance().uninstall()
     tasks.restore_hostname(fstore, sstore)
     fstore.restore_all_files()

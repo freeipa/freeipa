@@ -37,7 +37,7 @@ from ipalib.util import (
 from ipaclient.install.client import configure_krb5_conf, purge_host_keytab
 from ipaserver.install import (
     bindinstance, ca, certs, dns, dsinstance, httpinstance,
-    installutils, kra, krbinstance, memcacheinstance,
+    installutils, kra, krbinstance,
     ntpinstance, otpdinstance, custodiainstance, service)
 from ipaserver.install.installutils import (
     create_replica_config, ReplicaConfig, load_pkcs12, is_ipa_configured)
@@ -163,9 +163,6 @@ def install_http(config, auto_redirect, ca_is_configured, ca_file,
         pkcs12_info = make_pkcs12_info(config.dir, "httpcert.p12",
                                        "http_pin.txt")
 
-    memcache = memcacheinstance.MemcacheInstance()
-    memcache.create_instance('MEMCACHE', config.host_name,
-                             ipautil.realm_to_suffix(config.realm_name))
 
     http = httpinstance.HTTPInstance()
     http.create_instance(
