@@ -592,6 +592,7 @@
                             "stage_success": "${count} users(s) staged",
                             "stage_one_confirm": "Are you sure you want to stage ${object}?",
                             "undel_confirm": "Are you sure you want to restore selected users?",
+                            "undel_one_confirm": "Are you sure you want to restore ${object}?",
                             "undel_success": "${count} user(s) restored",
                             "user_categories": "User categories",
                         },

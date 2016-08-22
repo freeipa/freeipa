@@ -373,6 +373,10 @@ return {
                     show_cond: ['preserved-user']
                 },
                 {
+                    $type: 'undel',
+                    show_cond: ['preserved-user']
+                },
+                {
                     $type: 'stage',
                     show_cond: ['preserved-user']
                 },
@@ -401,7 +405,7 @@ return {
                 }
             ],
             header_actions: [
-                'reset_password', 'enable', 'disable', 'stage',
+                'reset_password', 'enable', 'disable', 'stage', 'undel',
                 'delete_active_user', 'delete', 'unlock', 'add_otptoken',
                 'automember_rebuild', 'request_cert'
             ],
