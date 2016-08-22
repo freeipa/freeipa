@@ -31,10 +31,15 @@ class CompatObject(Object):
     pass
 
 
-def get_package(api, server_info, client):
+def get_package(server_info, client):
     try:
         server_version = server_info['version']
     except KeyError:
+        is_valid = False
+    else:
+        is_valid = server_info.is_valid()
+
+    if not is_valid:
         if not client.isconnected():
             client.connect(verbose=False)
         env = client.forward(u'env', u'api_version', version=u'2.0')
@@ -51,6 +56,8 @@ def get_package(api, server_info, client):
             else:
                 server_version = u'2.0'
         server_info['version'] = server_version
+        server_info.update_validity()
+
     server_version = LooseVersion(server_version)
 
     package_names = {}

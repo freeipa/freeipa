@@ -7,10 +7,8 @@ import contextlib
 import errno
 import fcntl
 import json
-import locale
 import os
 import sys
-import time
 import types
 import zipfile
 
@@ -220,7 +218,7 @@ class _SchemaPlugin(object):
 
     def __call__(self, api):
         if self._class is None:
-            schema = api._schema[self.schema_key][self.full_name]
+            schema = self._schema[self.schema_key][self.full_name]
             name, bases, class_dict = self._create_class(api, schema)
             self._class = type(name, bases, class_dict)
 
@@ -361,7 +359,7 @@ class Schema(object):
     namespaces = {'classes', 'commands', 'topics'}
     _DIR = os.path.join(paths.USER_CACHE_PATH, 'ipa', 'schema', FORMAT)
 
-    def __init__(self, api, server_info, client):
+    def __init__(self, client, fingerprint=None):
         self._dict = {}
         self._namespaces = {}
         self._help = None
@@ -371,48 +369,29 @@ class Schema(object):
             self._dict[ns] = {}
             self._namespaces[ns] = _SchemaNameSpace(self, ns)
 
-        # copy-paste from ipalib/rpc.py
-        try:
-            self._language = (
-                locale.setlocale(locale.LC_ALL, '').split('.')[0].lower()
-            )
-        except locale.Error:
-            # fallback to default locale
-            self._language = 'en_us'
+        ttl = None
+        read_failed = False
 
-        try:
-            self._fingerprint = server_info['fingerprint']
-            self._expiration = server_info['expiration']
-            language = server_info['language']
-        except KeyError:
-            is_known = False
-        else:
-            is_known = (not api.env.force_schema_check and
-                        self._expiration > time.time() and
-                        self._language == language)
-
-        if is_known:
+        if fingerprint is not None:
             try:
-                self._read_schema()
-            except Exception:
-                pass
-            else:
-                return
+                self._read_schema(fingerprint)
+            except Exception as e:
+                # Failed to read the schema from cache. There may be a lot of
+                # causes and not much we can do about it. Just ensure we will
+                # ignore the cache and fetch the schema from server.
+                logger.warning("Failed to read schema: {}".format(e))
+                fingerprint = None
+                read_failed = True
 
-        try:
-            self._fetch(client)
-        except NotAvailable:
-            raise
-        except SchemaUpToDate as e:
-            self._fingerprint = e.fingerprint
-            self._expiration = time.time() + e.ttl
-            self._read_schema()
-        else:
-            self._write_schema()
+        if fingerprint is None:
+            fingerprint, ttl = self._fetch(client, ignore_cache=read_failed)
+            try:
+                self._write_schema(fingerprint)
+            except Exception as e:
+                logger.warning("Failed to write schema: {}".format(e))
 
-        server_info['fingerprint'] = self._fingerprint
-        server_info['expiration'] = self._expiration
-        server_info['language'] = self._language
+        self.fingerprint = fingerprint
+        self.ttl = ttl
 
     @contextlib.contextmanager
     def _open(self, filename, mode):
@@ -429,14 +408,16 @@ class Schema(object):
             finally:
                 fcntl.flock(f, fcntl.LOCK_UN)
 
-    def _fetch(self, client):
+    def _fetch(self, client, ignore_cache=False):
         if not client.isconnected():
             client.connect(verbose=False)
 
-        try:
-            fps = [fsdecode(f) for f in os.listdir(self._DIR)]
-        except EnvironmentError:
-            fps = []
+        fps = []
+        if not ignore_cache:
+            try:
+                fps = [fsdecode(f) for f in os.listdir(self._DIR)]
+            except EnvironmentError:
+                pass
 
         kwargs = {u'version': u'2.170'}
         if fps:
@@ -459,12 +440,11 @@ class Schema(object):
             logger.warning("Failed to fetch schema: %s", e)
             raise NotAvailable()
 
-        self._fingerprint = fp
-        self._expiration = time.time() + ttl
+        return (fp, ttl,)
 
-    def _read_schema(self):
+    def _read_schema(self, fingerprint):
         self._file.truncate(0)
-        with self._open(self._fingerprint, 'r') as f:
+        with self._open(fingerprint, 'r') as f:
             self._file.write(f.read())
 
         with zipfile.ZipFile(self._file, 'r') as schema:
@@ -500,13 +480,12 @@ class Schema(object):
 
         return halp
 
-    def _write_schema(self):
+    def _write_schema(self, fingerprint):
         try:
             os.makedirs(self._DIR)
         except EnvironmentError as e:
             if e.errno != errno.EEXIST:
-                logger.warning("Failed to write schema: {}".format(e))
-                return
+                raise
 
         self._file.truncate(0)
         with zipfile.ZipFile(self._file, 'w', zipfile.ZIP_DEFLATED) as schema:
@@ -523,7 +502,7 @@ class Schema(object):
                             json.dumps(self._generate_help(self._dict)))
 
         self._file.seek(0)
-        with self._open(self._fingerprint, 'w') as f:
+        with self._open(fingerprint, 'w') as f:
             f.truncate(0)
             f.write(self._file.read())
 
@@ -550,14 +529,39 @@ class Schema(object):
         return self._help[namespace][member]
 
 
-def get_package(api, server_info, client):
-    try:
-        schema = api._schema
-    except AttributeError:
-        schema = Schema(api, server_info, client)
-        object.__setattr__(api, '_schema', schema)
+def get_package(server_info, client):
+    NO_FINGERPRINT = object()
 
-    fingerprint = str(server_info['fingerprint'])
+    fingerprint = NO_FINGERPRINT
+    if server_info.is_valid():
+        fingerprint = server_info.get('fingerprint', fingerprint)
+
+    if fingerprint is not None:
+        try:
+            try:
+                if fingerprint is NO_FINGERPRINT:
+                    schema = Schema(client)
+                else:
+                    schema = Schema(client, fingerprint)
+            except SchemaUpToDate as e:
+                schema = Schema(client, e.fingerprint)
+        except NotAvailable:
+            fingerprint = None
+            ttl = None
+        except SchemaUpToDate as e:
+            fingerprint = e.fingerprint
+            ttl = e.ttl
+        else:
+            fingerprint = schema.fingerprint
+            ttl = schema.ttl
+
+        server_info['fingerprint'] = fingerprint
+        server_info.update_validity(ttl)
+
+    if fingerprint is None:
+        raise NotAvailable()
+
+    fingerprint = str(fingerprint)
     package_name = '{}${}'.format(__name__, fingerprint)
     package_dir = '{}${}'.format(os.path.splitext(__file__)[0], fingerprint)
 

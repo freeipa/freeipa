@@ -5,7 +5,9 @@
 import collections
 import errno
 import json
+import locale
 import os
+import time
 
 from . import compat
 from . import schema
@@ -23,20 +25,18 @@ class ServerInfo(collections.MutableMapping):
     def __init__(self, api):
         hostname = DNSName(api.env.server).ToASCII()
         self._path = os.path.join(self._DIR, hostname)
+        self._force_check = api.env.force_schema_check
         self._dict = {}
-        self._dirty = False
+
+        # copy-paste from ipalib/rpc.py
+        try:
+            self._language = (
+                 locale.setlocale(locale.LC_ALL, '').split('.')[0].lower()
+            )
+        except locale.Error:
+            self._language = 'en_us'
 
         self._read()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *_exc_info):
-        self.flush()
-
-    def flush(self):
-        if self._dirty:
-            self._write()
 
     def _read(self):
         try:
@@ -62,13 +62,10 @@ class ServerInfo(collections.MutableMapping):
         return self._dict[key]
 
     def __setitem__(self, key, value):
-        if key not in self._dict or self._dict[key] != value:
-            self._dirty = True
         self._dict[key] = value
 
     def __delitem__(self, key):
         del self._dict[key]
-        self._dirty = True
 
     def __iter__(self):
         return iter(self._dict)
@@ -76,26 +73,55 @@ class ServerInfo(collections.MutableMapping):
     def __len__(self):
         return len(self._dict)
 
+    def update_validity(self, ttl=None):
+        if ttl is None:
+            ttl = 3600
+        self['expiration'] = time.time() + ttl
+        self['language'] = self._language
+        self._write()
+
+    def is_valid(self):
+        if self._force_check:
+            return False
+
+        try:
+            expiration = self._dict['expiration']
+            language = self._dict['language']
+        except KeyError:
+            # if any of these is missing consider the entry expired
+            return False
+
+        if expiration < time.time():
+            # validity passed
+            return False
+
+        if language != self._language:
+            # language changed since last check
+            return False
+
+        return True
+
 
 def get_package(api):
     if api.env.in_tree:
         from ipaserver import plugins
     else:
-        client = rpcclient(api)
-        client.finalize()
-
         try:
-            server_info = api._server_info
+            plugins = api._remote_plugins
         except AttributeError:
-            server_info = api._server_info = ServerInfo(api)
+            server_info = ServerInfo(api)
 
-        try:
-            plugins = schema.get_package(api, server_info, client)
-        except schema.NotAvailable:
-            plugins = compat.get_package(api, server_info, client)
-        finally:
-            server_info.flush()
-            if client.isconnected():
-                client.disconnect()
+            client = rpcclient(api)
+            client.finalize()
+
+            try:
+                plugins = schema.get_package(server_info, client)
+            except schema.NotAvailable:
+                plugins = compat.get_package(server_info, client)
+            finally:
+                if client.isconnected():
+                    client.disconnect()
+
+            object.__setattr__(api, '_remote_plugins', plugins)
 
     return plugins
