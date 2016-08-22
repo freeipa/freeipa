@@ -13,6 +13,7 @@ from ipalib.frontend import Local, Str
 from ipalib.parameters import Principal
 from ipalib.plugable import Registry
 from ipalib.text import _
+from ipapython import dogtag
 
 if six.PY3:
     unicode = str
@@ -36,7 +37,7 @@ class cert_get_requestdata(Local):
                   ' HTTP/test.example.com)'),
         ),
         Str(
-            'profile_id',
+            'profile_id?',
             label=_('Profile ID'),
             doc=_('CSR Generation Profile to use'),
         ),
@@ -73,6 +74,8 @@ class cert_get_requestdata(Local):
 
         principal = options.get('principal')
         profile_id = options.get('profile_id')
+        if profile_id is None:
+            profile_id = dogtag.DEFAULT_PROFILE
         helper = options.get('helper')
 
         if self.api.env.in_server:

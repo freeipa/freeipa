@@ -19,6 +19,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import subprocess
+from tempfile import NamedTemporaryFile as NTF
+
+import six
+
 from ipaclient.frontend import MethodOverride
 from ipalib import errors
 from ipalib import x509
@@ -27,16 +32,85 @@ from ipalib.parameters import File, Flag, Str
 from ipalib.plugable import Registry
 from ipalib.text import _
 
+if six.PY3:
+    unicode = str
+
 register = Registry()
 
 
 @register(override=True, no_fail=True)
 class cert_request(MethodOverride):
+    takes_options = (
+        Str(
+            'database?',
+            label=_('Path to NSS database'),
+            doc=_('Path to NSS database to use for private key'),
+        ),
+        Str(
+            'private_key?',
+            label=_('Path to private key file'),
+            doc=_('Path to PEM file containing a private key'),
+        ),
+    )
+
     def get_args(self):
         for arg in super(cert_request, self).get_args():
             if arg.name == 'csr':
-                arg = arg.clone_retype(arg.name, File)
+                arg = arg.clone_retype(arg.name, File, required=False)
             yield arg
+
+    def forward(self, csr=None, **options):
+        database = options.pop('database', None)
+        private_key = options.pop('private_key', None)
+
+        if csr is None:
+            if database:
+                helper = u'certutil'
+                helper_args = ['-d', database]
+            elif private_key:
+                helper = u'openssl'
+                helper_args = [private_key]
+            else:
+                raise errors.InvocationError(
+                    message=u"One of 'database' or 'private_key' is required")
+
+            with NTF() as scriptfile, NTF() as csrfile:
+                profile_id = options.get('profile_id')
+
+                self.api.Command.cert_get_requestdata(
+                    profile_id=profile_id,
+                    principal=options.get('principal'),
+                    out=unicode(scriptfile.name),
+                    helper=helper)
+
+                helper_cmd = [
+                    'bash', '-e', scriptfile.name, csrfile.name] + helper_args
+
+                try:
+                    subprocess.check_output(helper_cmd)
+                except subprocess.CalledProcessError as e:
+                    raise errors.CertificateOperationError(
+                        error=(
+                            _('Error running "%(cmd)s" to generate CSR:'
+                              ' %(err)s') %
+                            {'cmd': ' '.join(helper_cmd), 'err': e.output}))
+
+                try:
+                    csr = unicode(csrfile.read())
+                except IOError as e:
+                    raise errors.CertificateOperationError(
+                        error=(_('Unable to read generated CSR file: %(err)s')
+                               % {'err': e}))
+                if not csr:
+                    raise errors.CertificateOperationError(
+                        error=(_('Generated CSR was empty')))
+        else:
+            if database is not None or private_key is not None:
+                raise errors.MutuallyExclusiveError(reason=_(
+                    "Options 'database' and 'private_key' are not compatible"
+                    " with 'csr'"))
+
+        return super(cert_request, self).forward(csr, **options)
 
 
 @register(override=True, no_fail=True)
