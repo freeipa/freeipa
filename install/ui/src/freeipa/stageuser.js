@@ -364,6 +364,26 @@ stageuser.batch_activate_action = function(spec) {
     return IPA.batch_items_action(spec);
 };
 
+stageuser.activate_action = function(spec) {
+    spec = spec || {};
+    spec.name = spec.name || 'activate';
+    spec.method = spec.method || 'activate';
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
+    spec.confirm_msg = spec.confirm_msg || '@i18n:objects.stageuser.activate_one_confirm';
+    spec.label = spec.label || '@i18n:buttons.activate';
+
+    var that = IPA.object_action(spec);
+
+    that.on_success = function(facet, data, text_status, xhr) {
+
+        IPA.notify_success(data.result.summary);
+        facet.on_update.notify();
+        facet.redirect();
+    };
+
+    return that;
+};
+
 stageuser.batch_undel_action = function(spec) {
 
     spec = spec || {};
@@ -379,18 +399,18 @@ stageuser.batch_undel_action = function(spec) {
     return IPA.batch_items_action(spec);
 };
 
-stageuser.activate_action = function(spec) {
+stageuser.undel_action = function(spec) {
     spec = spec || {};
-    spec.name = spec.name || 'activate';
-    spec.method = spec.method || 'activate';
-    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
-    spec.confirm_msg = spec.confirm_msg || '@i18n:objects.stageuser.activate_one_confirm';
-    spec.label = spec.label || '@i18n:buttons.activate';
+
+    spec.name = spec.name || 'undel';
+    spec.method = spec.method || 'undel';
+    spec.needs_confirm = spec.needs_confirm === undefined ? true : spec.needs_confirm;
+    spec.confirm_msg = spec.confirm_msg || '@i18n:objects.stageuser.undel_one_confirm';
+    spec.label = spec.label || '@i18n:buttons.restore';
 
     var that = IPA.object_action(spec);
 
     that.on_success = function(facet, data, text_status, xhr) {
-
         IPA.notify_success(data.result.summary);
         facet.on_update.notify();
         facet.redirect();
@@ -451,8 +471,9 @@ stageuser.register = function() {
     var e = reg.entity;
     var f = reg.facet;
     a.register('batch_activate', stageuser.batch_activate_action);
-    a.register('batch_undel', stageuser.batch_undel_action);
     a.register('activate', stageuser.activate_action);
+    a.register('batch_undel', stageuser.batch_undel_action);
+    a.register('undel', stageuser.undel_action);
     a.register('batch_stage', stageuser.batch_stage_action);
     a.register('stage', stageuser.stage_action);
     e.register({type: 'stageuser', spec: stageuser.stageuser_spec});
