@@ -1,0 +1,14 @@
+[
+    {
+        "syntax": "syntaxSubject",
+        "data": [
+            "dataHostCN"
+        ]
+    },
+    {
+        "syntax": "syntaxSAN",
+        "data": [
+            "dataDNS"
+        ]
+    }
+]
