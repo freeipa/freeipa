@@ -105,6 +105,8 @@ BuildRequires:  custodia
 BuildRequires:  libini_config-devel >= 1.2.0
 BuildRequires:  dbus-python
 BuildRequires:  python-netifaces >= 0.10.4
+BuildRequires:  python-libsss_nss_idmap
+BuildRequires:  python-sss
 
 # Build dependencies for unit tests
 BuildRequires:  libcmocka-devel
