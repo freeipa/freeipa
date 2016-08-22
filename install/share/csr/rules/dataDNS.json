@@ -1,0 +1,12 @@
+{
+  "rules": [
+    {
+      "helper": "openssl",
+      "template": "DNS = {{ipa.datafield(subject.krbprincipalname.0.partition('/')[2].partition('@')[0])}}"
+    },
+    {
+      "helper": "certutil",
+      "template": "dns:{{ipa.datafield(subject.krbprincipalname.0.partition('/')[2].partition('@')[0])|quote}}"
+    }
+  ]
+}
