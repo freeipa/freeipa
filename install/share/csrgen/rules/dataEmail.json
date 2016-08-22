@@ -1,0 +1,12 @@
+{
+  "rules": [
+    {
+      "helper": "openssl",
+      "template": "email = {{ipa.datafield(subject.mail.0)}}"
+    },
+    {
+      "helper": "certutil",
+      "template": "email:{{ipa.datafield(subject.mail.0)|quote}}"
+    }
+  ]
+}

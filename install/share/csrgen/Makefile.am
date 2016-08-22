@@ -3,12 +3,15 @@ NULL =
 profiledir = $(IPA_DATA_DIR)/csrgen/profiles
 profile_DATA =				\
 	profiles/caIPAserviceCert.json	\
+	profiles/userCert.json		\
 	$(NULL)
 
 ruledir = $(IPA_DATA_DIR)/csrgen/rules
 rule_DATA =				\
 	rules/dataDNS.json		\
+	rules/dataEmail.json		\
 	rules/dataHostCN.json		\
+	rules/dataUsernameCN.json	\
 	rules/syntaxSAN.json		\
 	rules/syntaxSubject.json	\
 	$(NULL)
