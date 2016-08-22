@@ -65,6 +65,37 @@ class test_config(Declarative):
         ),
 
         dict(
+            desc='Add uppercased attribute to ipausersearchfields',
+            command=('config_mod', [], dict(
+                ipausersearchfields=
+                u'uid,givenname,sn,telephonenumber,ou,title,Description')
+            ),
+            expected=dict(
+                result=lambda d: (
+                    d['ipausersearchfields'] ==
+                    (u'uid,givenname,sn,telephonenumber,ou,title,description',)
+                ),
+                value=None,
+                summary=None,
+                ),
+        ),
+
+        dict(
+            desc='Remove uppercased attribute from ipausersearchfields',
+            command=('config_mod', [], dict(
+                     ipausersearchfields=
+                     u'uid,givenname,sn,telephonenumber,ou,title',)),
+            expected=dict(
+                result=lambda d: (
+                    d['ipausersearchfields'] ==
+                    (u'uid,givenname,sn,telephonenumber,ou,title',)
+                ),
+                value=None,
+                summary=None,
+                ),
+        ),
+
+        dict(
             desc='Try to set ipaselinuxusermapdefault not in selinux order list',
             command=('config_mod', [],
                 dict(ipaselinuxusermapdefault=u'unknown_u:s0')),
