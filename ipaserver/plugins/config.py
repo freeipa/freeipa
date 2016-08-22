@@ -288,14 +288,18 @@ class config_mod(LDAPUpdate):
             config = ldap.get_ipa_config(list(kw.values()))
             for (k, v) in kw.items():
                 allowed_attrs = ldap.get_allowed_attributes(config[v])
-                fields = entry_attrs[k].split(',')
-                for a in fields:
-                    a = a.strip()
+                # normalize attribute names
+                attributes = [field.strip().lower()
+                              for field in entry_attrs[k].split(',')]
+                # test if all base types (without sub-types) are allowed
+                for a in attributes:
                     a, tomato, olive = a.partition(';')
                     if a not in allowed_attrs:
                         raise errors.ValidationError(
                             name=k, error=_('attribute "%s" not allowed') % a
                         )
+            # write normalized form to LDAP
+            entry_attrs[k] = ','.join(attributes)
 
         # Set ipasearchrecordslimit to -1 if 0 is used
         if 'ipasearchrecordslimit' in entry_attrs:
