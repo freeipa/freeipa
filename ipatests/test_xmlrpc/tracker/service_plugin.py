@@ -44,7 +44,7 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
         u'ipaKrbPrincipalAlias', u'ipaUniqueID', u'krbExtraData',
         u'krbLastPwdChange', u'krbLoginFailedCount', u'memberof',
         u'objectClass', u'ipakrbrequirespreauth',
-        u'ipakrbokasdelegate'}
+        u'ipakrbokasdelegate', u'ipakrboktoauthasdelegate'}
 
     create_keys = (retrieve_keys | {u'objectclass', u'ipauniqueid'}) - {
         u'usercertificate', u'has_keytab'}
@@ -94,7 +94,8 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
             u'ipauniqueid': [fuzzy_uuid],
             u'managedby_host': [self.host_fqdn],
             u'krbcanonicalname': [u'{0}'.format(self.name)],
-            u'has_keytab': False
+            u'has_keytab': False,
+            u'ipakrboktoauthasdelegate': False,
         }
 
         for key in self.options:
