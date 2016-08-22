@@ -799,6 +799,8 @@ class test_idviews(Declarative):
                     l=[u'Undisclosed location 1'],
                     krbprincipalname=[
                         u'host/%s@%s' % (get_fqdn(host1), api.env.realm)],
+                    krbcanonicalname=[
+                        u'host/%s@%s' % (get_fqdn(host1), api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[get_fqdn(host1)],
@@ -827,6 +829,8 @@ class test_idviews(Declarative):
                     l=[u'Undisclosed location 2'],
                     krbprincipalname=[
                         u'host/%s@%s' % (get_fqdn(host2), api.env.realm)],
+                    krbcanonicalname=[
+                        u'host/%s@%s' % (get_fqdn(host2), api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[get_fqdn(host2)],
@@ -854,6 +858,8 @@ class test_idviews(Declarative):
                     description=[u'Test host 3'],
                     l=[u'Undisclosed location 3'],
                     krbprincipalname=[
+                        u'host/%s@%s' % (get_fqdn(host3), api.env.realm)],
+                    krbcanonicalname=[
                         u'host/%s@%s' % (get_fqdn(host3), api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
@@ -1447,6 +1453,8 @@ class test_idviews(Declarative):
                     description=[u'Test host 4'],
                     l=[u'Undisclosed location 4'],
                     krbprincipalname=[
+                        u'host/%s@%s' % (get_fqdn(host4), api.env.realm)],
+                    krbcanonicalname=[
                         u'host/%s@%s' % (get_fqdn(host4), api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
