@@ -35,7 +35,8 @@ class migrate_ds(CommandOverride):
     migrate_order = ('user', 'group')
 
     migration_disabled_msg = _('''\
-Migration mode is disabled. Use \'ipa config-mod\' to enable it.''')
+Migration mode is disabled.
+Use \'ipa config-mod --enable-migration=TRUE\' to enable it.''')
 
     pwd_migration_msg = _('''\
 Passwords have been migrated in pre-hashed format.
