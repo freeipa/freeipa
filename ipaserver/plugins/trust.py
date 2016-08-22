@@ -1602,7 +1602,7 @@ class trustdomain_add(LDAPCreate):
 
 @register()
 class trustdomain_del(LDAPDelete):
-    __doc__ = _('Remove infromation about the domain associated with the trust.')
+    __doc__ = _('Remove information about the domain associated with the trust.')
 
     msg_summary = _('Removed information about the trusted domain "%(value)s"')
 

@@ -448,7 +448,7 @@ def main():
                 print("")
                 print("WARNING: %d IPA masters are not yet able to serve information about users from trusted forests." \
                       % (object_count))
-                print("Installer can add them to the list of IPA masters allowed to access infromation about trusts.")
+                print("Installer can add them to the list of IPA masters allowed to access information about trusts.")
                 print("If you choose to do so, you also need to restart LDAP service on those masters.")
                 print("Refer to ipa-adtrust-install(1) man page for details.")
                 print("")

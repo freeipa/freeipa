@@ -936,7 +936,7 @@ class trustdomain_add(Method):
 
 @register()
 class trustdomain_del(Method):
-    __doc__ = _("Remove infromation about the domain associated with the trust.")
+    __doc__ = _("Remove information about the domain associated with the trust.")
 
     takes_args = (
         parameters.Str(
