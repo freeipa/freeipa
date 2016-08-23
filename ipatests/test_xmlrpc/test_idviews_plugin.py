@@ -42,11 +42,6 @@ if six.PY3:
 idview1 = u'idview1'
 idview2 = u'idview2'
 
-host1 = u'host1.test'
-host2 = u'host2.test'
-host3 = u'host3.test'
-host4 = u'host4.test'
-
 hostgroup1 = u'hostgroup1'
 hostgroup2 = u'hostgroup2'
 
