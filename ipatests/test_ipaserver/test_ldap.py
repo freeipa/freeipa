@@ -35,8 +35,6 @@ import nss.nss as nss
 import six
 
 from ipaserver.plugins.ldap2 import ldap2
-from ipaserver.plugins.service import service, service_show
-from ipaserver.plugins.host import host
 from ipalib import api, x509, create_api, errors
 from ipapython import ipautil
 from ipaplatform.paths import paths
@@ -118,10 +116,6 @@ class test_ldap(object):
         # we need for the test.
         myapi = create_api(mode=None)
         myapi.bootstrap(context='cli', in_server=True, in_tree=True)
-        myapi.add_plugin(ldap2)
-        myapi.add_plugin(host)
-        myapi.add_plugin(service)
-        myapi.add_plugin(service_show)
         myapi.finalize()
 
         pwfile = api.env.dot_ipa + os.sep + ".dmpw"
