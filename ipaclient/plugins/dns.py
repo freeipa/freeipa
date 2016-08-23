@@ -22,6 +22,7 @@ from __future__ import print_function
 
 import six
 import copy
+import re
 
 from ipaclient.frontend import MethodOverride
 from ipalib import errors
@@ -30,7 +31,8 @@ from ipalib.dns import (get_record_rrtype,
                         iterate_rrparams_by_parts,
                         part_name_format,
                         record_name_format)
-from ipalib.parameters import Bool
+from ipalib.frontend import Command
+from ipalib.parameters import Bool, Str
 from ipalib.plugable import Registry
 from ipalib import _, ngettext
 from ipapython.dnsutil import DNSName
@@ -119,6 +121,64 @@ class dnszone_add(DNSZoneMethodOverride):
 @register(override=True, no_fail=True)
 class dnszone_mod(DNSZoneMethodOverride):
     pass
+
+
+# Support old servers without dnsrecord_split_parts
+# Do not add anything new here!
+@register(no_fail=True)
+class dnsrecord_split_parts(Command):
+    NO_CLI = True
+
+    takes_args = (
+        Str('name'),
+        Str('value'),
+    )
+
+    def execute(self, name, value, *args, **options):
+        def split_exactly(count):
+            values = value.split()
+            if len(values) != count:
+                return None
+            return tuple(values)
+
+        result = ()
+
+        rrtype = get_record_rrtype(name)
+        if rrtype in ('A', 'AAAA', 'CNAME', 'DNAME', 'NS', 'PTR'):
+            result = split_exactly(1)
+        elif rrtype in ('AFSDB', 'KX', 'MX'):
+            result = split_exactly(2)
+        elif rrtype in ('CERT', 'DLV', 'DS', 'SRV', 'TLSA'):
+            result = split_exactly(4)
+        elif rrtype in ('NAPTR'):
+            result = split_exactly(6)
+        elif rrtype in ('A6', 'TXT'):
+            result = (value,)
+        elif rrtype == 'LOC':
+            regex = re.compile(
+                r'(?P<d1>\d{1,2}\s+)'
+                r'(?:(?P<m1>\d{1,2}\s+)'
+                r'(?P<s1>\d{1,2}(?:\.\d{1,3})?\s+)?)?'
+                r'(?P<dir1>[NS])\s+'
+                r'(?P<d2>\d{1,3}\s+)'
+                r'(?:(?P<m2>\d{1,2}\s+)'
+                r'(?P<s2>\d{1,2}(?:\.\d{1,3})?\s+)?)?'
+                r'(?P<dir2>[WE])\s+'
+                r'(?P<alt>-?\d{1,8}(?:\.\d{1,2})?)m?'
+                r'(?:\s+(?P<siz>\d{1,8}(?:\.\d{1,2})?)m?'
+                r'(?:\s+(?P<hp>\d{1,8}(?:\.\d{1,2})?)m?'
+                r'(?:\s+(?P<vp>\d{1,8}(?:\.\d{1,2})?)m?\s*)?)?)?$')
+
+            m = regex.match(value)
+            if m is not None:
+                result = tuple(
+                    x.strip() if x is not None else x for x in m.groups())
+        elif rrtype == 'SSHFP':
+            values = value.split(None, 2)
+            if len(values) == 3:
+                result = tuple(values)
+
+        return dict(result=result)
 
 
 @register(override=True, no_fail=True)
