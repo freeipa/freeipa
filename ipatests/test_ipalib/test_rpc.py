@@ -209,14 +209,6 @@ class test_xmlclient(PluginTester):
         class user_add(Command):
             pass
 
-        # Test that ValueError is raised when forwarding a command that is not
-        # in api.Command:
-        (o, api, home) = self.instance('Backend', in_server=False)
-        e = raises(ValueError, o.forward, 'user_add')
-        assert str(e) == '%s.forward(): %r not in api.Command' % (
-            'xmlclient', 'user_add'
-        )
-
         (o, api, home) = self.instance('Backend', user_add, in_server=False)
         args = (binary_bytes, utf8_bytes, unicode_str)
         kw = dict(one=binary_bytes, two=utf8_bytes, three=unicode_str)
