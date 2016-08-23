@@ -1383,6 +1383,9 @@ class CAInstance(DogtagInstance):
 
         self.step("enabling CA instance", self.__enable_instance)
 
+        self.step("configuring certmonger renewal for lightweight CAs",
+                  self.__add_lightweight_ca_tracking_requests)
+
         self.start_creation(runtime=210)
 
     def setup_lightweight_ca_key_retrieval(self):
@@ -1447,6 +1450,22 @@ class CAInstance(DogtagInstance):
         keystore.generate_keys(service)
         os.chmod(keyfile, 0o600)
         os.chown(keyfile, pent.pw_uid, pent.pw_gid)
+
+    def __add_lightweight_ca_tracking_requests(self):
+        if not self.admin_conn:
+            self.ldap_connect()
+
+        try:
+            lwcas = self.admin_conn.get_entries(
+                base_dn=api.env.basedn,
+                filter='(objectclass=ipaca)',
+                attrs_list=['cn', 'ipacaid'],
+            )
+            add_lightweight_ca_tracking_requests(self.log, lwcas)
+        except errors.NotFound:
+            # shouldn't happen, but don't fail if it does
+            root_logger.warning(
+                "Did not find any lightweight CAs; nothing to track")
 
 
 def replica_ca_install_check(config):
@@ -2068,6 +2087,53 @@ def ensure_default_caacl():
 
     if not is_already_connected:
         api.Backend.ldap2.disconnect()
+
+
+def add_lightweight_ca_tracking_requests(logger, lwcas):
+    """Add tracking requests for the given lightweight CAs.
+
+    The entries must have the 'cn' and 'ipacaid' attributes.
+
+    The IPA CA, if present, is skipped.
+
+    """
+    for entry in lwcas:
+        if ipalib.constants.IPA_CA_CN in entry['cn']:
+            continue
+
+        nickname = "{} {}".format(
+                ipalib.constants.IPA_CA_NICKNAME,
+                entry['ipacaid'][0])
+        criteria = {
+            'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
+            'cert-nickname': nickname,
+            'ca-name': ipalib.constants.RENEWAL_CA_NAME,
+        }
+        request_id = certmonger.get_request_id(criteria)
+        if request_id is None:
+            try:
+                certmonger.dogtag_start_tracking(
+                    secdir=paths.PKI_TOMCAT_ALIAS_DIR,
+                    pin=certmonger.get_pin('internal'),
+                    pinfile=None,
+                    nickname=nickname,
+                    ca=ipalib.constants.RENEWAL_CA_NAME,
+                    pre_command='stop_pkicad',
+                    post_command='renew_ca_cert "%s"' % nickname,
+                )
+                request_id = certmonger.get_request_id(criteria)
+                certmonger.modify(request_id, profile='ipaCACertRenewal')
+                logger.debug(
+                    'Lightweight CA renewal: '
+                    'added tracking request for "%s"', nickname)
+            except RuntimeError as e:
+                logger.error(
+                    'Lightweight CA renewal: Certmonger failed to '
+                    'start tracking certificate: %s', e)
+        else:
+            logger.debug(
+                'Lightweight CA renewal: '
+                'already tracking certificate "%s"', nickname)
 
 
 def update_ipa_conf():

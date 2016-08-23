@@ -29,10 +29,8 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipalib import api, errors, x509, certstore
-from ipalib.constants import IPA_CA_CN
+from ipalib.constants import IPA_CA_NICKNAME, RENEWAL_CA_NAME
 
-IPA_CA_NICKNAME = 'caSigningCert cert-pki-ca'
-RENEWAL_CA_NAME = 'dogtag-ipa-ca-renew-agent'
 
 class CertUpdate(admintool.AdminTool):
     command_name = 'ipa-certupdate'
@@ -85,12 +83,7 @@ class CertUpdate(admintool.AdminTool):
             certs = certstore.get_ca_certs(ldap, api.env.basedn,
                                            api.env.realm, ca_enabled)
 
-            # find lightweight CAs (on renewal master only)
-            lwcas = []
-            if ca_enabled:
-                for ca_obj in api.Command.ca_find()['result']:
-                    if IPA_CA_CN not in ca_obj['cn']:
-                        lwcas.append(ca_obj)
+            lwcas = api.Command.ca_find()['result']
 
             api.Backend.rpcclient.disconnect()
         finally:
@@ -99,8 +92,13 @@ class CertUpdate(admintool.AdminTool):
         server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
         if server_fstore.has_files():
             self.update_server(certs)
-            for entry in lwcas:
-                self.server_track_lightweight_ca(entry)
+            try:
+                from ipaserver.install import cainstance
+                cainstance.add_lightweight_ca_tracking_requests(
+                    self.log, lwcas)
+            except Exception as e:
+                self.log.exception(
+                    "Failed to add lightweight CA tracking requests")
 
         self.update_client(certs)
 
@@ -163,39 +161,6 @@ class CertUpdate(admintool.AdminTool):
             certmonger.modify(request_id, profile='ipaCACertRenewal')
 
         self.update_file(paths.CA_CRT, certs)
-
-    def server_track_lightweight_ca(self, entry):
-        nickname = "{} {}".format(IPA_CA_NICKNAME, entry['ipacaid'][0])
-        criteria = {
-            'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
-            'cert-nickname': nickname,
-            'ca-name': RENEWAL_CA_NAME,
-        }
-        request_id = certmonger.get_request_id(criteria)
-        if request_id is None:
-            try:
-                certmonger.dogtag_start_tracking(
-                    secdir=paths.PKI_TOMCAT_ALIAS_DIR,
-                    pin=certmonger.get_pin('internal'),
-                    pinfile=None,
-                    nickname=nickname,
-                    ca=RENEWAL_CA_NAME,
-                    pre_command='stop_pkicad',
-                    post_command='renew_ca_cert "%s"' % nickname,
-                )
-                request_id = certmonger.get_request_id(criteria)
-                certmonger.modify(request_id, profile='ipaCACertRenewal')
-                self.log.debug(
-                    'Lightweight CA renewal: '
-                    'added tracking request for "%s"', nickname)
-            except RuntimeError as e:
-                self.log.error(
-                    'Lightweight CA renewal: Certmonger failed to '
-                    'start tracking certificate: %s', e)
-        else:
-            self.log.debug(
-                'Lightweight CA renewal: '
-                'already tracking certificate "%s"', nickname)
 
     def update_file(self, filename, certs, mode=0o444):
         certs = (c[0] for c in certs if c[2] is not False)
