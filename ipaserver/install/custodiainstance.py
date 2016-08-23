@@ -2,6 +2,7 @@
 
 from ipapython.secrets.kem import IPAKEMKeys
 from ipapython.secrets.client import CustodiaClient
+from ipaserver.install.certs import CertDB
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants
 from ipaserver.install.service import SimpleServiceInstance
@@ -153,6 +154,11 @@ class CustodiaInstance(SimpleServiceInstance):
                              '-n', nickname,
                              '-i', pk12file,
                              '-w', pk12pwfile])
+
+            # Add CA certificates
+            tmpdb = CertDB(self.realm, nssdir=tmpnssdir)
+            self.suffix = ipautil.realm_to_suffix(self.realm)
+            self.import_ca_certs(tmpdb, True)
 
             # Now that we gathered all certs, re-export
             ipautil.run([paths.PKCS12EXPORT,
