@@ -124,7 +124,7 @@ rpc.command = function(spec) {
 
     /** @property {ordered_map.<number,string>} error_messages Error messages map */
     that.error_messages = $.ordered_map({
-        911: 'Missing HTTP referer. <br/> You have to configure your browser to send HTTP referer header.'
+        911: 'Missing HTTP referer. You have to configure your browser to send HTTP referer header.'
     });
 
     /**
