@@ -118,7 +118,7 @@ def test_Registry():
     # a class:
     p = plugin1()
     e = raises(TypeError, r(), p)
-    assert str(e) == 'plugin must be a class; got %r' % p
+    assert str(e) == 'plugin must be callable; got %r' % p
 
     # Check that registration works
     r()(plugin1)
@@ -229,7 +229,7 @@ class test_API(ClassChecker):
             base_name = get_base_name(b)
             base = locals()[base_name]
             ns = getattr(api, base_name)
-            assert isinstance(ns, plugable.NameSpace)
+            assert isinstance(ns, plugable.APINameSpace)
             assert read_only(api, base_name) is ns
             assert len(ns) == 3
             for p in range(3):
@@ -239,7 +239,6 @@ class test_API(ClassChecker):
                 assert isinstance(inst, base)
                 assert isinstance(inst, plugin)
                 assert inst.name == plugin_name
-                assert read_only(ns, plugin_name) is inst
                 assert inst.method(7) == 7 + b
 
         # Test that calling finilize again raises AssertionError:
