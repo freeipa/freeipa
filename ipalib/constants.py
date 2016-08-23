@@ -274,3 +274,5 @@ CA_SUFFIX_NAME = 'ca'
 PKI_GSSAPI_SERVICE_NAME = 'dogtag'
 IPA_CA_CN = u'ipa'
 IPA_CA_RECORD = "ipa-ca"
+IPA_CA_NICKNAME = 'caSigningCert cert-pki-ca'
+RENEWAL_CA_NAME = 'dogtag-ipa-ca-renew-agent'
