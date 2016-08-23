@@ -263,6 +263,15 @@ def bind_principal_can_manage_cert(cert):
 
 class BaseCertObject(Object):
     takes_params = (
+        Str(
+            'cacn?',
+            cli_name='ca',
+            default=IPA_CA_CN,
+            autofill=True,
+            label=_('Issuing CA'),
+            doc=_('Name of issuing CA'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
         Bytes(
             'certificate', validate_certificate,
             label=_("Certificate"),
@@ -459,14 +468,7 @@ class BaseCertObject(Object):
 
 class BaseCertMethod(Method):
     def get_options(self):
-        yield Str('cacn?',
-            cli_name='ca',
-            default=IPA_CA_CN,
-            autofill=True,
-            query=True,
-            label=_('Issuing CA'),
-            doc=_('Name of issuing CA'),
-        )
+        yield self.obj.params['cacn'].clone(query=True)
 
         for option in super(BaseCertMethod, self).get_options():
             yield option
@@ -555,7 +557,8 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         # referencing nonexistant CA) and look up authority ID.
         #
         ca = kw['cacn']
-        ca_id = api.Command.ca_show(ca)['result']['ipacaid'][0]
+        ca_obj = api.Command.ca_show(ca)['result']
+        ca_id = ca_obj['ipacaid'][0]
 
         """
         Access control is partially handled by the ACI titled
@@ -747,6 +750,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         if not raw:
             self.obj._parse(result, all)
             result['request_id'] = int(result['request_id'])
+            result['cacn'] = ca_obj['cn'][0]
 
         # Success? Then add it to the principal's entry
         # (unless the profile tells us not to)
@@ -926,6 +930,7 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
             self.obj._parse(result, all)
             result['revoked'] = ('revocation_reason' in result)
             self.obj._fill_owners(result)
+            result['cacn'] = ca_obj['cn'][0]
 
         return dict(result=result, value=pkey_to_value(serial_number, options))
 
@@ -1196,10 +1201,18 @@ class cert_find(Search, CertMethod):
                 raise
             return result, False, complete
 
+        ca_objs = self.api.Command.ca_find()['result']
+        ca_objs = {DN(ca['ipacasubjectdn'][0]): ca for ca in ca_objs}
+
         ra = self.api.Backend.ra
         for ra_obj in ra.find(ra_options):
             issuer = DN(ra_obj['issuer'])
             serial_number = ra_obj['serial_number']
+
+            try:
+                ca_obj = ca_objs[issuer]
+            except KeyError:
+                continue
 
             if pkey_only:
                 obj = {'serial_number': serial_number}
@@ -1216,6 +1229,8 @@ class cert_find(Search, CertMethod):
                         obj['certificate'] = (
                             ra_obj['certificate'].replace('\r\n', ''))
                         self.obj._parse(obj)
+
+            obj['cacn'] = ca_obj['cn'][0]
 
             result[issuer, serial_number] = obj
 
