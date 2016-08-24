@@ -75,10 +75,6 @@ BuildRequires:  nspr-devel
 BuildRequires:  nss-devel
 BuildRequires:  openssl-devel
 BuildRequires:  libuuid-devel
-BuildRequires:  python-ldap
-BuildRequires:  python-netaddr
-BuildRequires:  python-gssapi
-BuildRequires:  python-dns
 BuildRequires:  libsss_idmap-devel
 # 1.14.0: sss_nss_getnamebycert (https://fedorahosted.org/sssd/ticket/2897)
 BuildRequires:  libsss_nss_idmap-devel >= 1.14.0
@@ -86,25 +82,29 @@ BuildRequires:  rhino
 BuildRequires:  libverto-devel
 BuildRequires:  libunistring-devel
 BuildRequires:  python-lesscpy
-BuildRequires:  python-six
-BuildRequires:  python-netifaces
 %endif # ONLY_CLIENT
 
 #
 # Build dependencies for makeapi/makeaci
 #
 BuildRequires:  krb5-workstation
+BuildRequires:  python-ldap
 BuildRequires:  python-setuptools
 BuildRequires:  python-nss
 # 0.6: serialization.load_pem_private_key, load_pem_public_key
 BuildRequires:  python-cryptography >= 0.6
+BuildRequires:  python-netaddr
+BuildRequires:  python-gssapi
 BuildRequires:  python-libipa_hbac
 BuildRequires:  python-memcached
 BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1
+BuildRequires:  python-dns
 # pki Python package
 BuildRequires:  pki-base
+BuildRequires:  python-six
 BuildRequires:  dbus-python
+BuildRequires:  python-netifaces
 BuildRequires:  python-libsss_nss_idmap
 BuildRequires:  python-cffi
 
