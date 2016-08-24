@@ -139,7 +139,7 @@ Requires(post): krb5-server >= %{krb5_base_version}, krb5-server < %{krb5_base_v
 Requires: krb5-pkinit-openssl
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
-Requires: httpd >= 2.4.6-6
+Requires: httpd >= 2.4.6-31
 Requires: mod_wsgi
 Requires: mod_auth_gssapi >= 1.4.0
 Requires: mod_nss >= 1.0.8-26
@@ -229,7 +229,7 @@ Summary: Common files used by IPA server
 Group: System Environment/Base
 BuildArch: noarch
 Requires: %{name}-client-common = %{version}-%{release}
-Requires: httpd >= 2.4.6-6
+Requires: httpd >= 2.4.6-31
 Requires: systemd-units >= 38
 Requires: custodia
 
