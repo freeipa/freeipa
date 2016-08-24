@@ -86,7 +86,6 @@ BuildRequires:  python-lesscpy
 #
 # Build dependencies for makeapi/makeaci
 #
-BuildRequires:  krb5-workstation
 BuildRequires:  python-ldap
 BuildRequires:  python-nss
 BuildRequires:  python-netaddr
