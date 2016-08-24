@@ -76,6 +76,7 @@ try:
     from xmlrpclib import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
             Transport, ProtocolError, MININT, MAXINT)
 except ImportError:
+    # pylint: disable=import-error
     from xmlrpc.client import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
             Transport, ProtocolError, MININT, MAXINT)
 

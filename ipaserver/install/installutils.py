@@ -40,7 +40,9 @@ from dns.exception import DNSException
 import ldap
 import ldapurl
 import six
+# pylint: disable=import-error
 from six.moves.configparser import SafeConfigParser, NoOptionError
+# pylint: enable=import-error
 
 import ipaplatform
 

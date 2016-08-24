@@ -25,7 +25,9 @@ import pwd
 import ldif
 import itertools
 
+# pylint: disable=import-error
 from six.moves.configparser import SafeConfigParser
+# pylint: enable=import-error
 
 from ipalib import api, errors
 from ipalib.constants import FQDN

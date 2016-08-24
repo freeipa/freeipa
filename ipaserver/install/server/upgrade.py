@@ -14,7 +14,9 @@ import sys
 import dns.exception
 
 import six
+# pylint: disable=import-error
 from six.moves.configparser import SafeConfigParser
+# pylint: enable=import-error
 
 from ipalib import api
 import SSSDConfig

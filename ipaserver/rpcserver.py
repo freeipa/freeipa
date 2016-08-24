@@ -24,7 +24,6 @@ Also see the `ipalib.rpc` module.
 """
 
 from xml.sax.saxutils import escape
-from six.moves.xmlrpc_client import Fault
 import os
 import datetime
 import json
@@ -36,7 +35,10 @@ import ldap.controls
 from pyasn1.type import univ, namedtype
 from pyasn1.codec.ber import encoder
 import six
+# pylint: disable=import-error
 from six.moves.urllib.parse import parse_qs
+from six.moves.xmlrpc_client import Fault
+# pylint: enable=import-error
 
 from ipalib import plugable, errors
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES

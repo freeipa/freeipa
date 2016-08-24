@@ -35,6 +35,7 @@ import nss.error as error
 try:
     import httplib
 except ImportError:
+    # pylint: disable=import-error
     import http.client as httplib
 
 # NSS database currently open

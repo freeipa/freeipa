@@ -22,12 +22,14 @@ from copy import copy
 
 from dns import resolver, rdatatype
 from dns.exception import DNSException
+# pylint: disable=import-error
 from six.moves.configparser import SafeConfigParser
+from six.moves.urllib.parse import urlsplit
+# pylint: enable=import-error
 
 from ipapython.dn import DN
 from ipaplatform.paths import paths
 import dns.name
-from six.moves.urllib.parse import urlsplit
 
 import socket
 

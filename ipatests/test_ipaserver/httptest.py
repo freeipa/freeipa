@@ -29,6 +29,7 @@ from ipalib import api
 try:
     import httplib
 except ImportError:
+    # pylint: disable=import-error
     import http.client as httplib
 
 class Unauthorized_HTTP_test(object):

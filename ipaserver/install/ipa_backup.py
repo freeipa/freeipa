@@ -22,11 +22,13 @@ import shutil
 import tempfile
 import time
 import pwd
+
+# pylint: disable=import-error
+from six.moves.configparser import SafeConfigParser
+# pylint: enable=import-error
+
 from ipaplatform.paths import paths
 from ipaplatform import services
-
-from six.moves.configparser import SafeConfigParser
-
 from ipalib import api, errors
 from ipapython import version
 from ipapython.ipautil import run, write_tmp_file

@@ -34,8 +34,10 @@ from os import path
 import sys
 
 import six
+# pylint: disable=import-error
 from six.moves.urllib.parse import urlparse, urlunparse
 from six.moves.configparser import RawConfigParser, ParsingError
+# pylint: enable=import-error
 
 from ipapython.dn import DN
 from ipalib.base import check_name

@@ -39,7 +39,7 @@ from ipapython.ipaldap import (LDAPClient, AUTOBIND_AUTO, AUTOBIND_ENABLED,
 
 
 try:
-    from ldap.controls.simple import GetEffectiveRightsControl #pylint: disable=F0401,E0611
+    from ldap.controls.simple import GetEffectiveRightsControl
 except ImportError:
     """
     python-ldap 2.4.x introduced a new API for effective rights control, which

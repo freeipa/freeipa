@@ -28,7 +28,10 @@ import ldap
 import socket
 import traceback
 
+# pylint: disable=import-error
 from six.moves.urllib.parse import urlparse
+from six.moves.xmlrpc_client import MAXINT
+# pylint: enable=import-error
 
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
@@ -42,7 +45,6 @@ from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
 from ipaclient import ipadiscovery
-from six.moves.xmlrpc_client import MAXINT
 from ipaplatform.paths import paths
 
 # dict of command name and tuples of min/max num of args needed

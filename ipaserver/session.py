@@ -22,7 +22,9 @@ import os
 import re
 import time
 
+# pylint: disable=import-error
 from six.moves.urllib.parse import urlparse
+# pylint: enable=import-error
 
 from ipalib import errors
 from ipalib.text import _

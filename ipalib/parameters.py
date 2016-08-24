@@ -103,9 +103,11 @@ import re
 import decimal
 import base64
 import datetime
-from six.moves.xmlrpc_client import MAXINT, MININT
 
 import six
+# pylint: disable=import-error
+from six.moves.xmlrpc_client import MAXINT, MININT
+# pylint: enable=import-error
 
 from ipalib.text import _ as ugettext
 from ipalib.base import check_name

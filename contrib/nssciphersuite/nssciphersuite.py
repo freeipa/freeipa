@@ -25,7 +25,10 @@ from __future__ import print_function
 
 import operator
 import re
-from urllib.request import urlopen  # pylint: disable=no-name-in-module
+
+# pylint: disable=import-error,no-name-in-module
+from urllib.request import urlopen
+# pylint: enable=import-error,no-name-in-module
 
 SOURCE = "https://git.fedorahosted.org/cgit/mod_nss.git/plain/nss_engine_cipher.c"
 

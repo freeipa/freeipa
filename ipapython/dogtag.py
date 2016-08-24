@@ -22,7 +22,9 @@ import xml.dom.minidom
 
 import nss.nss as nss
 import six
+# pylint: disable=import-error
 from six.moves.urllib.parse import urlencode
+# pylint: enable=import-error
 
 from ipalib import api, errors
 from ipalib.errors import NetworkError
@@ -35,6 +37,7 @@ from ipapython.ipa_log_manager import root_logger
 try:
     import httplib
 except ImportError:
+    # pylint: disable=import-error
     import http.client as httplib
 
 if six.PY3:

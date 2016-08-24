@@ -22,10 +22,11 @@ Test the `ipalib.rpc` module.
 """
 from __future__ import print_function
 
-from six.moves.xmlrpc_client import Binary, Fault, dumps, loads
-
 import nose
 import six
+# pylint: disable=import-error
+from six.moves.xmlrpc_client import Binary, Fault, dumps, loads
+# pylint: enable=import-error
 
 from ipatests.util import raises, assert_equal, PluginTester, DummyClass
 from ipatests.data import binary_bytes, utf8_bytes, unicode_str

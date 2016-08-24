@@ -49,20 +49,20 @@ if six.PY3:
     unicode = str
 
 try:
-    import pysss_murmur #pylint: disable=F0401
+    import pysss_murmur
     _murmur_installed = True
 except Exception as e:
     _murmur_installed = False
 
 try:
-    import pysss_nss_idmap #pylint: disable=F0401
+    import pysss_nss_idmap
     _nss_idmap_installed = True
 except Exception as e:
     _nss_idmap_installed = False
 
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
-        import ipaserver.dcerpc  # pylint: disable=F0401
+        import ipaserver.dcerpc
         from ipaserver.dcerpc import (TRUST_ONEWAY,
                                       TRUST_BIDIRECTIONAL,
                                       TRUST_JOIN_EXTERNAL)

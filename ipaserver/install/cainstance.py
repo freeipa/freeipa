@@ -39,8 +39,10 @@ import xml.dom.minidom
 import shlex
 import pipes
 
+# pylint: disable=import-error
 from six.moves import urllib
 from six.moves.configparser import ConfigParser, RawConfigParser
+# pylint: enable=import-error
 
 from ipalib import api
 from ipalib import pkcs10, x509
@@ -79,6 +81,7 @@ from ipaserver.plugins import ldap2
 try:
     import httplib
 except ImportError:
+    # pylint: disable=import-error
     import http.client as httplib
 
 # We need to reset the template because the CA uses the regular boot

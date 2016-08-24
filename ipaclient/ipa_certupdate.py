@@ -21,7 +21,9 @@ import os
 import tempfile
 import shutil
 
+# pylint: disable=import-error
 from six.moves.urllib.parse import urlsplit
+# pylint: enable=import-error
 
 from ipapython import (admintool, ipautil, ipaldap, sysrestore, certmonger,
                        certdb)
