@@ -15,6 +15,18 @@ from ipatests.util import assert_deepequal
 config = get_global_config()
 reasoning = "Topology plugin disabled due to domain level 0"
 
+
+def find_segment(master, replica):
+    result = master.run_command(['ipa', 'topologysegment-find',
+                                 DOMAIN_SUFFIX_NAME]).stdout_text
+    segment_re = re.compile('Left node: (?P<left>\S+)\n.*Right node: '
+                            '(?P<right>\S+)\n')
+    allsegments = segment_re.findall(result)
+    for segment in allsegments:
+        if master.hostname in segment and replica.hostname in segment:
+            return '-to-'.join(segment)
+
+
 @pytest.mark.skipif(config.domain_level == 0, reason=reasoning)
 class TestTopologyOptions(IntegrationTest):
     num_replicas = 2
@@ -25,6 +37,7 @@ class TestTopologyOptions(IntegrationTest):
                      '\s+Connectivity: (?P<connectivity>\S+)')
     segment_re = re.compile("\n".join(rawsegment_re))
     noentries_re = re.compile("Number of entries returned (\d+)")
+    segmentnames_re = re.compile('.*Segment name: (\S+?)\n.*')
 
     @classmethod
     def install(cls, mh):
@@ -62,15 +75,11 @@ class TestTopologyOptions(IntegrationTest):
         tasks.kinit_admin(self.master)
         result1 = self.master.run_command(['ipa', 'topologysegment-find',
                                            DOMAIN_SUFFIX_NAME]).stdout_text
-        first_segment_name = "%s-to-%s" % (self.master.hostname,
-                                           self.replicas[0].hostname)
-        expected_segment = {
-            'connectivity': 'both',
-            'leftnode': self.master.hostname,
-            'name': first_segment_name,
-            'rightnode': self.replicas[0].hostname}
-        firstsegment = self.tokenize_topologies(result1)[0]
-        assert_deepequal(expected_segment, firstsegment)
+        segment_name = self.segmentnames_re.findall(result1)[0]
+        assert(self.master.hostname in segment_name), (
+            "Segment %s does not contain master hostname" % segment_name)
+        assert(self.replicas[0].hostname in segment_name), (
+            "Segment %s does not contain replica hostname" % segment_name)
         tasks.install_replica(self.master, self.replicas[1], setup_ca=False,
                               setup_dns=False)
         # We need to make sure topology information is consistent across all
@@ -117,8 +126,10 @@ class TestTopologyOptions(IntegrationTest):
             "%s: segment not found" % segment['name'])
         # Remove master <-> replica2 segment and make sure that the changes get
         # there through replica1
-        deleteme = "%s-to-%s" % (self.master.hostname,
-                                 self.replicas[1].hostname)
+        # Since segment name can be one of master-to-replica2 or
+        # replica2-to-master, we need to determine the segment name dynamically
+
+        deleteme = find_segment(self.master, self.replicas[1])
         returncode, error = tasks.destroy_segment(self.master, deleteme)
         assert returncode == 0, error
         # Wait till replication ends and make sure replica1 does not have
