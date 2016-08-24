@@ -28,14 +28,12 @@ import sys
 # include ../ for ipasetup.py and ipalib
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import ipalib  # noqa: E402
 from ipasetup import ipasetup  # noqa: E402
 
 
 ipasetup(
     name='freeipa',
     doc=__doc__,
-    version=ipalib.__version__,
     package_dir={'ipaserver': ''},
     packages=[
         'ipaserver',
