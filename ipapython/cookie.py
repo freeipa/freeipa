@@ -23,7 +23,9 @@ import email.utils
 from calendar import timegm
 
 import six
+# pylint: disable=import-error
 from six.moves.urllib.parse import urlparse
+# pylint: enable=import-error
 
 from ipapython.ipa_log_manager import log_mgr
 

@@ -2,8 +2,12 @@
 
 from __future__ import print_function
 import os
-from ipaplatform.paths import paths
+
+# pylint: disable=import-error
 from six.moves.configparser import ConfigParser
+# pylint: enable=import-error
+
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization

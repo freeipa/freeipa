@@ -18,7 +18,6 @@ enable=
 disable=
     I,
     duplicate-code,
-    import-error,
     interface-not-implemented,
     no-self-use,
     redefined-variable-type,
@@ -33,7 +32,6 @@ disable=
     too-many-public-methods,
     too-many-return-statements,
     too-many-statements,
-    import-error,
     abstract-method,
     anomalous-backslash-in-string,
     arguments-differ,

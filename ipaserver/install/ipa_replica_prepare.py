@@ -28,7 +28,9 @@ import time
 from optparse import OptionGroup, SUPPRESS_HELP
 
 import dns.resolver
+# pylint: disable=import-error
 from six.moves.configparser import SafeConfigParser
+# pylint: enable=import-error
 
 from ipaserver.install import certs, installutils, bindinstance, dsinstance
 from ipaserver.install.replication import enable_replication_version_checking

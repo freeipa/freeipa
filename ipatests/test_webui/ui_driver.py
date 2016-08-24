@@ -32,6 +32,10 @@ import os
 from functools import wraps
 from nose.plugins.skip import SkipTest
 
+# pylint: disable=import-error
+from six.moves.urllib.error import URLError
+# pylint: enable=import-error
+
 try:
     from selenium import webdriver
     from selenium.common.exceptions import NoSuchElementException
@@ -53,7 +57,6 @@ try:
     NO_YAML = False
 except ImportError:
     NO_YAML = True
-from six.moves.urllib.error import URLError
 from ipaplatform.paths import paths
 
 ENV_MAP = {

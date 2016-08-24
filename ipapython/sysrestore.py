@@ -30,7 +30,9 @@ from ipapython.ipa_log_manager import root_logger
 import random
 
 import six
+# pylint: disable=import-error
 from six.moves.configparser import SafeConfigParser
+# pylint: enable=import-error
 
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths

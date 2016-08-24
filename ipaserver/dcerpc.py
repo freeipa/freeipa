@@ -44,12 +44,6 @@ import samba
 import random
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
 from cryptography.hazmat.backends import default_backend
-# pylint: disable=F0401
-try:
-    from ldap.controls import RequestControl as LDAPControl
-except ImportError:
-    from ldap.controls import LDAPControl as LDAPControl
-# pylint: enable=F0401
 import ldap as _ldap
 from ipapython.ipaldap import IPAdmin
 from ipaserver.session import krbccache_dir, krbccache_prefix
@@ -62,6 +56,11 @@ from ipaplatform.paths import paths
 
 from ldap.filter import escape_filter_chars
 from time import sleep
+
+try:
+    from ldap.controls import RequestControl as LDAPControl
+except ImportError:
+    from ldap.controls import LDAPControl as LDAPControl
 
 if six.PY3:
     unicode = str

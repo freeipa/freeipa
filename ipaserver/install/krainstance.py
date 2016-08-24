@@ -22,7 +22,9 @@ import pwd
 import shutil
 import tempfile
 
+# pylint: disable=import-error
 from six.moves.configparser import ConfigParser
+# pylint: enable=import-error
 
 from ipalib import api
 from ipalib import x509

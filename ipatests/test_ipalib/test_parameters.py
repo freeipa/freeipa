@@ -30,10 +30,12 @@ import re
 import sys
 from decimal import Decimal
 from inspect import isclass
-from six.moves.xmlrpc_client import MAXINT, MININT
 import pytest
 
 import six
+# pylint: disable=import-error
+from six.moves.xmlrpc_client import MAXINT, MININT
+# pylint: enable=import-error
 
 from ipatests.util import raises, ClassChecker, read_only
 from ipatests.util import dummy_ugettext, assert_equal
