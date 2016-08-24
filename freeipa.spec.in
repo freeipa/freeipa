@@ -89,22 +89,11 @@ BuildRequires:  python-lesscpy
 #
 BuildRequires:  krb5-workstation
 BuildRequires:  python-ldap
-BuildRequires:  python-setuptools
 BuildRequires:  python-nss
-# 0.6: serialization.load_pem_private_key, load_pem_public_key
-BuildRequires:  python-cryptography >= 0.6
 BuildRequires:  python-netaddr
-BuildRequires:  python-gssapi
-BuildRequires:  python-libipa_hbac
-BuildRequires:  python-memcached
-BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1
 BuildRequires:  python-dns
-# pki Python package
-BuildRequires:  pki-base
 BuildRequires:  python-six
-BuildRequires:  dbus-python
-BuildRequires:  python-netifaces
 BuildRequires:  python-libsss_nss_idmap
 BuildRequires:  python-cffi
 
@@ -113,22 +102,32 @@ BuildRequires:  python-cffi
 #
 %if 0%{?with_lint}
 BuildRequires:  samba-python
+BuildRequires:  python-setuptools
+# 0.6: serialization.load_pem_private_key, load_pem_public_key
+BuildRequires:  python-cryptography >= 0.6
+BuildRequires:  python-gssapi
 BuildRequires:  pylint >= 1.0
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 BuildRequires:  python2-polib
+BuildRequires:  python-libipa_hbac
+BuildRequires:  python-memcached
+BuildRequires:  python-lxml
 # 5.0.0: QRCode.print_ascii
 BuildRequires:  python-qrcode-core >= 5.0.0
 # 1.11.0: resolver.YXDOMAIN, Resolver.set_flags
 BuildRequires:  python-dns >= 1.11.0
 BuildRequires:  jsl
 BuildRequires:  python-yubico
+# pki Python package
 # 10.2.1: crypto.NSSCryptoProvider(password_file)
 BuildRequires:  pki-base >= 10.2.1
 BuildRequires:  python-pytest-multihost
 BuildRequires:  python-pytest-sourceorder
 BuildRequires:  python-jwcrypto
 BuildRequires:  python-custodia
+BuildRequires:  dbus-python
 BuildRequires:  python-dateutil
+BuildRequires:  python-netifaces
 BuildRequires:  python-sss
 BuildRequires:  python-sss-murmur
 BuildRequires:  python-sssdconfig

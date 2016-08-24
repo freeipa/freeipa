@@ -32,6 +32,9 @@ import os
 import re
 import inspect
 import operator
+
+import ignore_import_errors     # pylint: disable=unused-import
+
 from ipalib import api
 from ipalib.parameters import Param
 from ipalib.output import Output
