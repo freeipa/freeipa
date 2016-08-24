@@ -299,9 +299,16 @@ def get_replica_filename(replica):
 
 
 def domainlevel(host):
-    # Dynamically determines the domainlevel on master. Needed for scenarios
-    # when domainlevel is changed during the test execution.
-    kinit_admin(host)
+    """
+    Dynamically determines the domainlevel on master. Needed for scenarios
+    when domainlevel is changed during the test execution.
+
+    Sometimes the master is even not installed. Please refer to ca-less
+    tests, where we call tasks.uninstall_master after every test while a lot
+    of them make sure that the server installation fails. Therefore we need
+    to not raise on failures here.
+    """
+    kinit_admin(host, raiseonerr=False)
     result = host.run_command(['ipa', 'domainlevel-get'], raiseonerr=False)
     level = 0
     domlevel_re = re.compile('.*(\d)')
@@ -651,8 +658,8 @@ def disconnect_replica(master, replica, domain_level=None):
                             ])
 
 
-def kinit_admin(host):
-    host.run_command(['kinit', 'admin'],
+def kinit_admin(host, raiseonerr=True):
+    host.run_command(['kinit', 'admin'], raiseonerr=raiseonerr,
                      stdin_text=host.config.admin_password)
 
 
