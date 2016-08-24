@@ -31,6 +31,7 @@ from ipalib.constants import CACERT
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython.dn import DN
 
+
 def parse_options():
     usage = "%prog [options] <status|enable|disable>\n"
     usage += "%prog [options]\n"
@@ -74,6 +75,7 @@ def main():
     standard_logging_setup(None, debug=options.debug)
 
     host = installutils.get_fqdn()
+    installutils.check_server_configuration()
     api.bootstrap(context='cli', debug=options.debug)
     api.finalize()
 

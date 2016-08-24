@@ -27,6 +27,7 @@ from ipalib.plugable import Plugin, API
 from ipalib.errors import ValidationError
 from ipapython import admintool
 from ipapython.ipa_log_manager import log_mgr
+from ipaserver.install import installutils
 
 
 """
@@ -235,6 +236,7 @@ class IpaAdvise(admintool.AdminTool):
     def run(self):
         super(IpaAdvise, self).run()
 
+        installutils.check_server_configuration()
         api.bootstrap(in_server=False, context='cli')
         api.finalize()
         advise_api.bootstrap(in_server=False, context='cli')
