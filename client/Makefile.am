@@ -86,7 +86,6 @@ ipa_join_LDADD = 		\
 	$(KRB5_LIBS)		\
 	$(LDAP_LIBS)		\
 	$(SASL_LIBS)		\
-	$(CURL_LIBS)		\
 	$(XMLRPC_LIBS)		\
 	$(POPT_LIBS)		\
 	$(LIBINTL_LIBS)         \
