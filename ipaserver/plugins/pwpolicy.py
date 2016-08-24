@@ -31,9 +31,7 @@ from .baseldap import (
 from ipalib import _
 from ipalib.plugable import Registry
 from ipalib.request import context
-from ipapython.ipautil import run
 from ipapython.dn import DN
-from distutils import version
 
 import six
 
@@ -282,40 +280,6 @@ class pwpolicy(LDAPObject):
         },
     }
 
-    MIN_KRB5KDC_WITH_LOCKOUT = "1.8"
-    has_lockout = False
-    lockout_params = ()
-
-    result = run(['klist', '-V'], raiseonerr=False, capture_output=True)
-    if result.returncode == 0:
-        verstr = result.output.split()[-1]
-        ver = version.LooseVersion(verstr)
-        min = version.LooseVersion(MIN_KRB5KDC_WITH_LOCKOUT)
-        if ver >= min:
-                has_lockout = True
-
-    if has_lockout:
-        lockout_params = (
-            Int('krbpwdmaxfailure?',
-                cli_name='maxfail',
-                label=_('Max failures'),
-                doc=_('Consecutive failures before lockout'),
-                minvalue=0,
-            ),
-            Int('krbpwdfailurecountinterval?',
-                cli_name='failinterval',
-                label=_('Failure reset interval'),
-                doc=_('Period after which failure count will be reset (seconds)'),
-                minvalue=0,
-            ),
-            Int('krbpwdlockoutduration?',
-                cli_name='lockouttime',
-                label=_('Lockout duration'),
-                doc=_('Period for which lockout is enforced (seconds)'),
-                minvalue=0,
-            ),
-        )
-
     label = _('Password Policies')
     label_singular = _('Password Policy')
 
@@ -365,7 +329,28 @@ class pwpolicy(LDAPObject):
             minvalue=0,
             flags=('virtual_attribute',),
         ),
-    ) + lockout_params
+        Int(
+            'krbpwdmaxfailure?',
+            cli_name='maxfail',
+            label=_('Max failures'),
+            doc=_('Consecutive failures before lockout'),
+            minvalue=0,
+        ),
+        Int(
+            'krbpwdfailurecountinterval?',
+            cli_name='failinterval',
+            label=_('Failure reset interval'),
+            doc=_('Period after which failure count will be reset (seconds)'),
+            minvalue=0,
+        ),
+        Int(
+            'krbpwdlockoutduration?',
+            cli_name='lockouttime',
+            label=_('Lockout duration'),
+            doc=_('Period for which lockout is enforced (seconds)'),
+            minvalue=0,
+        ),
+    )
 
     def get_dn(self, *keys, **options):
         if keys[-1] is not None:
