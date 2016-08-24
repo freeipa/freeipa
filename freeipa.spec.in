@@ -44,7 +44,6 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:  openldap-devel
 # 1.12: libkrad (http://krbdev.mit.edu/rt/Ticket/Display.html?id=7678)
 BuildRequires:  krb5-devel >= 1.12
-BuildRequires:  libcurl-devel
 # 1.27.4: xmlrpc_curl_xportparms.gssapi_delegation
 BuildRequires:  xmlrpc-c-devel >= 1.27.4
 BuildRequires:  popt-devel
