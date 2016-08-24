@@ -323,6 +323,10 @@ class otptoken_add(LDAPCreate):
             except (NotFound, IndexError):
                 pass
 
+        # Check if key is not empty
+        if entry_attrs['ipatokenotpkey'] is None:
+            raise ValidationError(name='key', error=_(u'cannot be empty'))
+
         # Build the URI parameters
         args = {}
         args['issuer'] = issuer
