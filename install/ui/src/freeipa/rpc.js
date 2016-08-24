@@ -124,7 +124,8 @@ rpc.command = function(spec) {
 
     /** @property {ordered_map.<number,string>} error_messages Error messages map */
     that.error_messages = $.ordered_map({
-        911: 'Missing HTTP referer. You have to configure your browser to send HTTP referer header.'
+        911: 'Missing HTTP referer. You have to configure your browser to send HTTP referer header.',
+        404: 'Cannot connect to the server, please check API accesibility (certificate, API, proxy, etc.)'
     });
 
     /**
@@ -317,6 +318,12 @@ rpc.command = function(spec) {
             if (xhr.status === 401) {
                 error_handler_auth(xhr, text_status, error_thrown);
                 return;
+            } else if (xhr.status === 404) {
+                error_thrown = {
+                    code: xhr.status,
+                    name: xhr.responseText || text.get('@i18n:errors.http_error',
+                                                    'HTTP Error')+' '+xhr.status
+                };
             } else if (!error_thrown) {
                 error_thrown = {
                     name: xhr.responseText || text.get('@i18n:errors.unknown_error', 'Unknown Error'),
