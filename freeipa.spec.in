@@ -1,4 +1,4 @@
-# Define ONLY_CLIENT to only make the ipa-admintools, ipa-client and ipa-python
+# Define ONLY_CLIENT to only make the ipa-client and ipa-python
 # subpackages
 %{!?ONLY_CLIENT:%global ONLY_CLIENT 0}
 
@@ -135,7 +135,6 @@ Summary: The IPA authentication server
 Group: System Environment/Base
 Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
-Requires: %{name}-admintools = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipaserver = %{version}-%{release}
 Requires: 389-ds-base >= 1.3.5.6
@@ -350,6 +349,13 @@ Provides: %{alt_name}-client = %{version}
 Conflicts: %{alt_name}-client
 Obsoletes: %{alt_name}-client < %{version}
 
+Provides: %{alt_name}-admintools = %{version}
+Conflicts: %{alt_name}-admintools
+Obsoletes: %{alt_name}-admintools < 4.4.1
+
+Obsoletes: %{name}-admintools < 4.4.1
+Provides: %{name}-admintools = %{version}-%{release}
+
 %description client
 IPA is an integrated solution to provide centrally managed Identity (users,
 hosts, services), Authentication (SSO, 2FA), and Authorization
@@ -358,6 +364,7 @@ features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 If your network uses IPA for authentication, this package should be
 installed on every client machine.
+This package provides command-line tools for IPA administrators.
 
 
 %package -n python2-ipaclient
@@ -421,26 +428,6 @@ features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 If your network uses IPA for authentication, this package should be
 installed on every client machine.
-
-
-%package admintools
-Summary: IPA administrative tools
-Group: System Environment/Base
-BuildArch: noarch
-Requires: python2-ipaclient = %{version}-%{release}
-Requires: python-ldap
-
-Provides: %{alt_name}-admintools = %{version}
-Conflicts: %{alt_name}-admintools
-Obsoletes: %{alt_name}-admintools < %{version}
-
-%description admintools
-IPA is an integrated solution to provide centrally managed Identity (users,
-hosts, services), Authentication (SSO, 2FA), and Authorization
-(host access control, SELinux user roles, services). The solution provides
-features for further integration with Linux based clients (SUDO, automount)
-and integration with Active Directory based infrastructures (Trusts).
-This package provides command-line tools for IPA administrators.
 
 
 %package python-compat
@@ -1293,6 +1280,9 @@ fi
 %{_sbindir}/ipa-getkeytab
 %{_sbindir}/ipa-rmkeytab
 %{_sbindir}/ipa-join
+%{_bindir}/ipa
+%config %{_sysconfdir}/bash_completion.d
+%{_mandir}/man1/ipa.1.gz
 %{_mandir}/man1/ipa-getkeytab.1.gz
 %{_mandir}/man1/ipa-rmkeytab.1.gz
 %{_mandir}/man1/ipa-client-install.1.gz
@@ -1350,15 +1340,6 @@ fi
 %dir %{_localstatedir}/lib/ipa-client
 %dir %{_localstatedir}/lib/ipa-client/sysrestore
 %{_mandir}/man5/default.conf.5.gz
-
-
-%files admintools
-%defattr(-,root,root,-)
-%doc README Contributors.txt
-%license COPYING
-%{_bindir}/ipa
-%config %{_sysconfdir}/bash_completion.d
-%{_mandir}/man1/ipa.1.gz
 
 
 %files python-compat
