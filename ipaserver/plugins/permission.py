@@ -283,6 +283,8 @@ class permission(baseldap.LDAPObject):
             cli_name='subtree',
             label=_('Subtree'),
             doc=_('Subtree to apply permissions to'),
+            # force server-side conversion
+            normalizer=lambda x: x,
             flags={'ask_create'},
         ),
         Str(
