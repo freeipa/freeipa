@@ -1406,6 +1406,16 @@ class OperationNotSupportedForPrincipalType(ExecutionError):
         '%(operation)s is not supported for %(principal_type)s principals')
 
 
+class HTTPRequestError(RemoteRetrieveError):
+    """
+    **4035** Raised when an HTTP request fails.  Includes the response
+    status in the ``status`` attribute.
+    """
+
+    errno = 4035
+    format = _('Request failed with status %(status)s: %(reason)s')
+
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

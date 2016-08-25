@@ -2113,7 +2113,8 @@ class RestClient(Backend):
         )
         if status < 200 or status >= 300:
             explanation = self._parse_dogtag_error(resp_body) or ''
-            raise errors.RemoteRetrieveError(
+            raise errors.HTTPRequestError(
+                status=status,
                 reason=_('Non-2xx response from CA REST API: %(status)d. %(explanation)s')
                 % {'status': status, 'explanation': explanation}
             )
