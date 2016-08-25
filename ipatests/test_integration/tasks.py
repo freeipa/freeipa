@@ -138,8 +138,8 @@ def allow_sync_ptr(host):
 
 
 def apply_common_fixes(host):
-    fix_hostname(host)
     prepare_host(host)
+    fix_hostname(host)
 
 
 def backup_file(host, filename):
