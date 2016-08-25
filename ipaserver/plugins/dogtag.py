@@ -2211,5 +2211,11 @@ class ra_lightweight_ca(RestClient):
             headers={'Accept': 'application/json'},
         )
 
+    def enable_ca(self, ca_id):
+        self._ssldo(
+            'POST', ca_id + '/enable',
+            headers={'Accept': 'application/json'},
+        )
+
     def delete_ca(self, ca_id):
         self._ssldo('DELETE', ca_id)
