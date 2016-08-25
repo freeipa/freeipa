@@ -214,6 +214,8 @@ class otptoken(LDAPObject):
             doc=_('Token secret (Base32; default: random)'),
             default_from=lambda: os.urandom(KEY_LENGTH),
             autofill=True,
+            # force server-side conversion
+            normalizer=lambda x: x,
             flags=('no_display', 'no_update', 'no_search'),
         ),
         StrEnum('ipatokenotpalgorithm?',
