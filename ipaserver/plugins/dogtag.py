@@ -2071,26 +2071,38 @@ class RestClient(Backend):
         )
         self.cookie = None
 
-    def _ssldo(self, method, path, headers=None, body=None):
+    def _ssldo(self, method, path, headers=None, body=None, use_session=True):
         """
-        :param url: The URL to post to.
-        :param kw:  Keyword arguments to encode into POST body.
+        Perform an HTTPS request.
+
+        :param method: HTTP method to use
+        :param path: Path component. This will *extend* the path defined for
+            the class (if any).
+        :param headers: Additional headers to include in the request.
+        :param body: Request body.
+        :param use_session: If ``True``, session cookie is added to request
+            (client must be logged in).
+
         :return:   (http_status, http_headers, http_body)
                    as (integer, dict, str)
 
-        Perform an HTTPS request
+        :raises: ``RemoteRetrieveError`` if ``use_session`` is not ``False``
+            and client is not logged in.
+
         """
-        if self.cookie is None:
-            raise errors.RemoteRetrieveError(
-                reason=_("REST API is not logged in."))
-
         headers = headers or {}
-        headers['Cookie'] = self.cookie
 
+        if use_session:
+            if self.cookie is None:
+                raise errors.RemoteRetrieveError(
+                    reason=_("REST API is not logged in."))
+            headers['Cookie'] = self.cookie
+
+        resource = '/ca/rest'
+        if self.path is not None:
+            resource = os.path.join(resource, self.path)
         if path is not None:
-            resource = os.path.join('/ca/rest', self.path, path)
-        else:
-            resource = os.path.join('/ca/rest', self.path)
+            resource = os.path.join(resource, path)
 
         # perform main request
         status, resp_headers, resp_body = dogtag.https_request(
