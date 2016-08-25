@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=213
-# Last change: dns: prompt for missing record parts in CLI
+IPA_API_VERSION_MINOR=214
+# Last change: ftweedal: add ca-disable and ca-enable commands

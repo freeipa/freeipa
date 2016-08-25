@@ -2,12 +2,12 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-from ipalib import api, errors, DNParam, Str
+from ipalib import api, errors, output, DNParam, Str
 from ipalib.constants import IPA_CA_CN
 from ipalib.plugable import Registry
 from ipaserver.plugins.baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate, LDAPDelete,
-    LDAPUpdate, LDAPRetrieve)
+    LDAPUpdate, LDAPRetrieve, LDAPQuery, pkey_to_value)
 from ipaserver.plugins.cert import ca_enabled_check
 from ipalib import _, ngettext
 
@@ -18,12 +18,28 @@ Manage Certificate Authorities
 Subordinate Certificate Authorities (Sub-CAs) can be added for scoped issuance
 of X.509 certificates.
 
+CAs are enabled on creation, but their use is subject to CA ACLs unless the
+operator has permission to bypass CA ACLs.
+
+All CAs except the 'IPA' CA can be disabled or re-enabled.  Disabling a CA
+prevents it from issuing certificates but does not affect the validity of its
+certificate.
+
+
 EXAMPLES:
 
   Create new CA, subordinate to the IPA CA.
 
     ipa ca-add puppet --desc "Puppet" \\
         --subject "CN=Puppet CA,O=EXAMPLE.COM"
+
+  Disable a CA.
+
+    ipa ca-disable puppet
+
+  Re-enable a CA.
+
+    ipa ca-enable puppet
 
 """)
 
@@ -222,3 +238,49 @@ class ca_mod(LDAPUpdate):
                     reason=u'IPA CA cannot be renamed')
 
         return dn
+
+
+class CAQuery(LDAPQuery):
+    has_output = output.standard_value
+
+    def execute(self, cn, **options):
+        ca_enabled_check()
+
+        ca_id = self.api.Command.ca_show(cn)['result']['ipacaid'][0]
+        with self.api.Backend.ra_lightweight_ca as ca_api:
+            self.perform_action(ca_api, ca_id)
+
+        return dict(
+            result=True,
+            value=pkey_to_value(cn, options),
+        )
+
+    def perform_action(self, ca_api, ca_id):
+        raise NotImplementedError
+
+
+@register()
+class ca_disable(CAQuery):
+    __doc__ = _('Disable a CA.')
+    msg_summary = _('Disabled CA "%(value)s"')
+
+    def execute(self, cn, **options):
+        if cn == IPA_CA_CN:
+            raise errors.ProtectedEntryError(
+                label=_("CA"),
+                key=cn,
+                reason=_("IPA CA cannot be disabled"))
+
+        return super(ca_disable, self).execute(cn, **options)
+
+    def perform_action(self, ca_api, ca_id):
+        ca_api.disable_ca(ca_id)
+
+
+@register()
+class ca_enable(CAQuery):
+    __doc__ = _('Enable a CA.')
+    msg_summary = _('Enabled CA "%(value)s"')
+
+    def perform_action(self, ca_api, ca_id):
+        ca_api.enable_ca(ca_id)
