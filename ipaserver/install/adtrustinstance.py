@@ -92,7 +92,7 @@ def ipa_smb_conf_exists():
 
 def check_netbios_name(name):
     # Empty NetBIOS name is not allowed
-    if name is None:
+    if not name:
         return False
 
     # NetBIOS names may not be longer than 15 allowed characters

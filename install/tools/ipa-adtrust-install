@@ -83,7 +83,7 @@ def parse_options():
 def netbios_name_error(name):
     print("\nIllegal NetBIOS name [%s].\n" % name)
     print("Up to 15 characters and only uppercase ASCII letters, digits "
-          "and dashes are allowed.")
+          "and dashes are allowed. Empty string is not allowed.")
 
 def read_netbios_name(netbios_default):
     netbios_name = ""
@@ -183,8 +183,11 @@ def set_and_check_netbios_name(netbios_name, unattended):
         # all possible cases should be covered above
         raise Exception('Unexpected state while checking NetBIOS domain name')
 
+    if unattended and netbios_name is None and gen_netbios_name:
+        netbios_name = gen_netbios_name
+
     if not adtrustinstance.check_netbios_name(netbios_name):
-        if unattended and not gen_netbios_name:
+        if unattended:
             netbios_name_error(netbios_name)
             sys.exit("Aborting installation.")
         else:
@@ -194,9 +197,6 @@ def set_and_check_netbios_name(netbios_name, unattended):
 
     if not unattended and not netbios_name:
         netbios_name = read_netbios_name(gen_netbios_name)
-
-    if unattended and not netbios_name and gen_netbios_name:
-        netbios_name = gen_netbios_name
 
     return (netbios_name, reset_netbios_name)
 
