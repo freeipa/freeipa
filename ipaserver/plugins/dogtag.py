@@ -566,83 +566,6 @@ def parse_error_response_xml(doc):
 
     return response
 
-def parse_profile_submit_result_xml(doc):
-    '''
-    :param doc: The root node of the xml document to parse
-    :returns:   result dict
-    :except ValueError:
-
-    CMS returns an error code and an array of request records.
-
-    This function returns a response dict with the following format:
-    {'error_code' : int, 'requests' : [{}]}
-
-    The mapping of fields and data types is illustrated in the following table.
-
-    If the error_code is not SUCCESS then the response dict will have the
-    contents described in `parse_error_response_xml`.
-
-    +--------------------+----------------+------------------------+---------------+
-    |cms name            |cms type        |result name             |result type    |
-    +====================+================+========================+===============+
-    |Status              |int             |error_code              |int            |
-    +--------------------+----------------+------------------------+---------------+
-    |Requests[].Id       |string          |requests[].request_id   |unicode        |
-    +--------------------+----------------+------------------------+---------------+
-    |Requests[].SubjectDN|string          |requests[].subject      |unicode        |
-    +--------------------+----------------+------------------------+---------------+
-    |Requests[].serialno |BigInteger      |requests[].serial_number|int|long       |
-    +--------------------+----------------+------------------------+---------------+
-    |Requests[].b64      |string          |requests[].certificate  |unicode [1]_   |
-    +--------------------+----------------+------------------------+---------------+
-    |Requests[].pkcs7    |string          |                        |               |
-    +--------------------+----------------+------------------------+---------------+
-
-    .. [1] Base64 encoded
-
-    '''
-
-    error_code = get_error_code_xml(doc)
-    if error_code != CMS_SUCCESS:
-        response = parse_error_response_xml(doc)
-        return response
-
-    response = {}
-    response['error_code'] = error_code
-
-    requests = []
-    response['requests'] = requests
-
-    for request in doc.xpath('//XMLResponse/Requests[*]/Request'):
-        response_request = {}
-        requests.append(response_request)
-
-        request_id = request.xpath('Id[1]')
-        if len(request_id) == 1:
-            request_id = etree.tostring(request_id[0], method='text',
-                                        encoding=unicode).strip()
-            response_request['request_id'] = request_id
-
-        subject_dn = request.xpath('SubjectDN[1]')
-        if len(subject_dn) == 1:
-            subject_dn = etree.tostring(subject_dn[0], method='text',
-                                        encoding=unicode).strip()
-            response_request['subject'] = subject_dn
-
-        serial_number = request.xpath('serialno[1]')
-        if len(serial_number) == 1:
-            serial_number = int(serial_number[0].text, 16) # parse as hex
-            response_request['serial_number'] = serial_number
-            response['serial_number_hex'] = u'0x%X' % serial_number
-
-        certificate = request.xpath('b64[1]')
-        if len(certificate) == 1:
-            certificate = etree.tostring(certificate[0], method='text',
-                                         encoding=unicode).strip()
-            response_request['certificate'] = certificate
-
-    return response
-
 
 def parse_check_request_result_xml(doc):
     '''
@@ -1286,12 +1209,30 @@ from ipaplatform.paths import paths
 register = Registry()
 
 
-@register()
-class ra(rabase.rabase):
+class RestClient(Backend):
+    """Simple Dogtag REST client to be subclassed by other backends.
+
+    This class is a context manager.  Authenticated calls must be
+    executed in a ``with`` suite::
+
+        @register()
+        class ra_certprofile(RestClient):
+            path = 'profile'
+            ...
+
+        with api.Backend.ra_certprofile as profile_api:
+            # REST client is now logged in
+            profile_api.create_profile(...)
+
     """
-    Request Authority backend plugin.
-    """
-    DEFAULT_PROFILE = dogtag.DEFAULT_PROFILE
+    path = None
+
+    @staticmethod
+    def _parse_dogtag_error(body):
+        try:
+            return pki.PKIException.from_json(json.loads(body))
+        except Exception:
+            return None
 
     def __init__(self, api):
         if api.env.in_tree:
@@ -1304,13 +1245,122 @@ class ra(rabase.rabase):
         self.ipa_key_size = "2048"
         self.ipa_certificate_nickname = "ipaCert"
         self.ca_certificate_nickname = "caCert"
+        self._read_password()
+        super(RestClient, self).__init__(api)
+
+        # session cookie
+        self.override_port = None
+        self.cookie = None
+
+    def _read_password(self):
         try:
-            f = open(self.pwd_file, "r")
-            self.password = f.readline().strip()
-            f.close()
+            with open(self.pwd_file) as f:
+                self.password = f.readline().strip()
         except IOError:
             self.password = ''
-        super(ra, self).__init__(api)
+
+    @cachedproperty
+    def ca_host(self):
+        """
+        :return:   host
+                   as str
+
+        Select our CA host.
+        """
+        ldap2 = self.api.Backend.ldap2
+        if host_has_service(api.env.ca_host, ldap2, "CA"):
+            return api.env.ca_host
+        if api.env.host != api.env.ca_host:
+            if host_has_service(api.env.host, ldap2, "CA"):
+                return api.env.host
+        host = select_any_master(ldap2)
+        if host:
+            return host
+        else:
+            return api.env.ca_host
+
+    def __enter__(self):
+        """Log into the REST API"""
+        if self.cookie is not None:
+            return
+        status, resp_headers, resp_body = dogtag.https_request(
+            self.ca_host, self.override_port or self.env.ca_agent_port,
+            '/ca/rest/account/login',
+            self.sec_dir, self.password, self.ipa_certificate_nickname,
+            method='GET'
+        )
+        cookies = ipapython.cookie.Cookie.parse(resp_headers.get('set-cookie', ''))
+        if status != 200 or len(cookies) == 0:
+            raise errors.RemoteRetrieveError(reason=_('Failed to authenticate to CA REST API'))
+        self.cookie = str(cookies[0])
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Log out of the REST API"""
+        dogtag.https_request(
+            self.ca_host, self.override_port or self.env.ca_agent_port,
+            '/ca/rest/account/logout',
+            self.sec_dir, self.password, self.ipa_certificate_nickname,
+            method='GET'
+        )
+        self.cookie = None
+
+    def _ssldo(self, method, path, headers=None, body=None, use_session=True):
+        """
+        Perform an HTTPS request.
+
+        :param method: HTTP method to use
+        :param path: Path component. This will *extend* the path defined for
+            the class (if any).
+        :param headers: Additional headers to include in the request.
+        :param body: Request body.
+        :param use_session: If ``True``, session cookie is added to request
+            (client must be logged in).
+
+        :return:   (http_status, http_headers, http_body)
+                   as (integer, dict, str)
+
+        :raises: ``RemoteRetrieveError`` if ``use_session`` is not ``False``
+            and client is not logged in.
+
+        """
+        headers = headers or {}
+
+        if use_session:
+            if self.cookie is None:
+                raise errors.RemoteRetrieveError(
+                    reason=_("REST API is not logged in."))
+            headers['Cookie'] = self.cookie
+
+        resource = '/ca/rest'
+        if self.path is not None:
+            resource = os.path.join(resource, self.path)
+        if path is not None:
+            resource = os.path.join(resource, path)
+
+        # perform main request
+        status, resp_headers, resp_body = dogtag.https_request(
+            self.ca_host, self.override_port or self.env.ca_agent_port,
+            resource,
+            self.sec_dir, self.password, self.ipa_certificate_nickname,
+            method=method, headers=headers, body=body
+        )
+        if status < 200 or status >= 300:
+            explanation = self._parse_dogtag_error(resp_body) or ''
+            raise errors.HTTPRequestError(
+                status=status,
+                reason=_('Non-2xx response from CA REST API: %(status)d. %(explanation)s')
+                % {'status': status, 'explanation': explanation}
+            )
+        return (status, resp_headers, resp_body)
+
+
+@register()
+class ra(rabase.rabase, RestClient):
+    """
+    Request Authority backend plugin.
+    """
+    DEFAULT_PROFILE = dogtag.DEFAULT_PROFILE
 
     def raise_certificate_operation_error(self, func_name, err_msg=None, detail=None):
         """
@@ -1564,75 +1614,77 @@ class ra(rabase.rabase):
 
         Submit certificate signing request.
 
-        The command returns a dict with these possible key/value pairs.
-        Some key/value pairs may be absent.
+        The command returns a dict with these key/value pairs:
 
-        +---------------+---------------+---------------+
-        |result name    |result type    |comments       |
-        +===============+===============+===============+
-        |serial_number  |unicode [1]_   |               |
-        +---------------+---------------+---------------+
-        |certificate    |unicode [2]_   |               |
-        +---------------+---------------+---------------+
-        |request_id     |unicode        |               |
-        +---------------+---------------+---------------+
-        |subject        |unicode        |               |
-        +---------------+---------------+---------------+
-
-        .. [1] Passed through XMLRPC as decimal string. Can convert to
-               optimal integer type (int or long) via int(serial_number)
-
-        .. [2] Base64 encoded
+        ``serial_number``
+            ``unicode``, decimal representation
+        ``serial_number_hex``
+            ``unicode``, hex representation with ``'0x'`` leader
+        ``certificate``
+            ``unicode``, base64-encoded DER
+        ``request_id``
+            ``unicode``, decimal representation
 
         """
         self.debug('%s.request_certificate()', type(self).__name__)
 
         # Call CMS
-        kw = dict(
-            profileId=profile_id,
-            cert_request_type=request_type,
-            cert_request=csr,
-            xml='true')
+        template = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            <CertEnrollmentRequest>
+                <ProfileID>{profile}</ProfileID>
+                <Input id="i1">
+                    <ClassID>certReqInputImpl</ClassID>
+                    <Attribute name="cert_request_type">
+                        <Value>{req_type}</Value>
+                    </Attribute>
+                    <Attribute name="cert_request">
+                        <Value>{req}</Value>
+                    </Attribute>
+                </Input>
+            </CertEnrollmentRequest>'''
+        data = template.format(
+            profile=profile_id,
+            req_type=request_type,
+            req=csr,
+        )
+
+        path = 'certrequests'
         if ca_id:
-            kw['authorityId'] = ca_id
+            path += '?issuer-id={}'.format(ca_id)
 
-        http_status, http_headers, http_body = self._sslget(
-            '/ca/eeca/ca/profileSubmitSSLClient', self.env.ca_ee_port, **kw)
-        # Parse and handle errors
-        if http_status != 200:
-            self.raise_certificate_operation_error('request_certificate',
-                                                   detail=http_status)
+        http_status, http_headers, http_body = self._ssldo(
+            'POST', path,
+            headers={
+                'Content-Type': 'application/xml',
+                'Accept': 'application/json',
+            },
+            body=data,
+            use_session=False,
+        )
 
-        parse_result = self.get_parse_result_xml(http_body, parse_profile_submit_result_xml)
-        # Note different status return, it's not request_status, it's error_code
-        error_code = parse_result['error_code']
-        if error_code != CMS_SUCCESS:
-            self.raise_certificate_operation_error('request_certificate',
-                                                   cms_error_code_to_string(error_code),
-                                                   parse_result.get('error_string'))
-
+        try:
+            resp_obj = json.loads(http_body)
+        except ValueError:
+            raise errors.RemoteRetrieveError(reason=_("Response from CA was not valid JSON"))
 
         # Return command result
         cmd_result = {}
 
-        # FIXME: should we return all the requests instead of just the first one?
-        if len(parse_result['requests']) < 1:
+        entries = resp_obj.get('entries', [])
+
+        # ipa cert-request only handles a single PKCS #10 request so
+        # there's only one certinfo in the result.
+        if len(entries) < 1:
             return cmd_result
-        request = parse_result['requests'][0]
+        certinfo = entries[0]
 
-        if 'serial_number' in request:
-            # see module documentation concerning serial numbers and XMLRPC
-            cmd_result['serial_number'] = unicode(request['serial_number'])
-            cmd_result['serial_number_hex'] = u'0x%X' % request['serial_number']
+        if 'certId' in certinfo:
+            cmd_result = self.get_certificate(certinfo['certId'])
+            cert = ''.join(cmd_result['certificate'].splitlines())
+            cmd_result['certificate'] = cert
 
-        if 'certificate' in request:
-            cmd_result['certificate'] = request['certificate']
-
-        if 'request_id' in request:
-            cmd_result['request_id'] = request['request_id']
-
-        if 'subject' in request:
-            cmd_result['subject'] = request['subject']
+        if 'requestURL' in certinfo:
+            cmd_result['request_id'] = certinfo['requestURL'].split('/')[-1]
 
         return cmd_result
 
@@ -1973,152 +2025,6 @@ class kra(Backend):
         connection.set_authentication_cert(paths.KRA_AGENT_PEM)
 
         return KRAClient(connection, crypto)
-
-
-class RestClient(Backend):
-    """Simple Dogtag REST client to be subclassed by other backends.
-
-    This class is a context manager.  Authenticated calls must be
-    executed in a ``with`` suite::
-
-        @register()
-        class ra_certprofile(RestClient):
-            path = 'profile'
-            ...
-
-        with api.Backend.ra_certprofile as profile_api:
-            # REST client is now logged in
-            profile_api.create_profile(...)
-
-    """
-    path = None
-
-    @staticmethod
-    def _parse_dogtag_error(body):
-        try:
-            return pki.PKIException.from_json(json.loads(body))
-        except Exception:
-            return None
-
-    def __init__(self, api):
-        if api.env.in_tree:
-            self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
-            self.pwd_file = self.sec_dir + os.sep + '.pwd'
-        else:
-            self.sec_dir = paths.HTTPD_ALIAS_DIR
-            self.pwd_file = paths.ALIAS_PWDFILE_TXT
-        self.noise_file = self.sec_dir + os.sep + '.noise'
-        self.ipa_key_size = "2048"
-        self.ipa_certificate_nickname = "ipaCert"
-        self.ca_certificate_nickname = "caCert"
-        self._read_password()
-        super(RestClient, self).__init__(api)
-
-        # session cookie
-        self.override_port = None
-        self.cookie = None
-
-    def _read_password(self):
-        try:
-            with open(self.pwd_file) as f:
-                self.password = f.readline().strip()
-        except IOError:
-            self.password = ''
-
-    @cachedproperty
-    def ca_host(self):
-        """
-        :return:   host
-                   as str
-
-        Select our CA host.
-        """
-        ldap2 = self.api.Backend.ldap2
-        if host_has_service(api.env.ca_host, ldap2, "CA"):
-            return api.env.ca_host
-        if api.env.host != api.env.ca_host:
-            if host_has_service(api.env.host, ldap2, "CA"):
-                return api.env.host
-        host = select_any_master(ldap2)
-        if host:
-            return host
-        else:
-            return api.env.ca_host
-
-    def __enter__(self):
-        """Log into the REST API"""
-        if self.cookie is not None:
-            return
-        status, resp_headers, resp_body = dogtag.https_request(
-            self.ca_host, self.override_port or self.env.ca_agent_port,
-            '/ca/rest/account/login',
-            self.sec_dir, self.password, self.ipa_certificate_nickname,
-            method='GET'
-        )
-        cookies = ipapython.cookie.Cookie.parse(resp_headers.get('set-cookie', ''))
-        if status != 200 or len(cookies) == 0:
-            raise errors.RemoteRetrieveError(reason=_('Failed to authenticate to CA REST API'))
-        self.cookie = str(cookies[0])
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Log out of the REST API"""
-        dogtag.https_request(
-            self.ca_host, self.override_port or self.env.ca_agent_port,
-            '/ca/rest/account/logout',
-            self.sec_dir, self.password, self.ipa_certificate_nickname,
-            method='GET'
-        )
-        self.cookie = None
-
-    def _ssldo(self, method, path, headers=None, body=None, use_session=True):
-        """
-        Perform an HTTPS request.
-
-        :param method: HTTP method to use
-        :param path: Path component. This will *extend* the path defined for
-            the class (if any).
-        :param headers: Additional headers to include in the request.
-        :param body: Request body.
-        :param use_session: If ``True``, session cookie is added to request
-            (client must be logged in).
-
-        :return:   (http_status, http_headers, http_body)
-                   as (integer, dict, str)
-
-        :raises: ``RemoteRetrieveError`` if ``use_session`` is not ``False``
-            and client is not logged in.
-
-        """
-        headers = headers or {}
-
-        if use_session:
-            if self.cookie is None:
-                raise errors.RemoteRetrieveError(
-                    reason=_("REST API is not logged in."))
-            headers['Cookie'] = self.cookie
-
-        resource = '/ca/rest'
-        if self.path is not None:
-            resource = os.path.join(resource, self.path)
-        if path is not None:
-            resource = os.path.join(resource, path)
-
-        # perform main request
-        status, resp_headers, resp_body = dogtag.https_request(
-            self.ca_host, self.override_port or self.env.ca_agent_port,
-            resource,
-            self.sec_dir, self.password, self.ipa_certificate_nickname,
-            method=method, headers=headers, body=body
-        )
-        if status < 200 or status >= 300:
-            explanation = self._parse_dogtag_error(resp_body) or ''
-            raise errors.HTTPRequestError(
-                status=status,
-                reason=_('Non-2xx response from CA REST API: %(status)d. %(explanation)s')
-                % {'status': status, 'explanation': explanation}
-            )
-        return (status, resp_headers, resp_body)
 
 
 @register()
