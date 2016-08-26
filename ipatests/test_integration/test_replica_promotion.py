@@ -2,6 +2,7 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+import time
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 from ipatests.test_integration.tasks import assert_error
@@ -63,7 +64,9 @@ class TestReplicaPromotionLevel0(ReplicaPromotionBase):
         command = ["ipa", "topologysegment-find", DOMAIN_SUFFIX_NAME]
         tasks.install_replica(self.master, self.replicas[0])
         backup_file = tasks.ipa_backup(self.master)
-        self.master.run_command(["ipa", "domainlevel-set", "1"])
+        self.master.run_command(["ipa", "domainlevel-set", str(DOMAIN_LEVEL_1)])
+        # We need to give the server time to merge 2 one-way segments into one
+        time.sleep(10)
         result = self.master.run_command(command)
         found1 = result.stdout_text.rfind("1 segment matched")
         assert(found1 > 0), result.stdout_text
