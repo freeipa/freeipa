@@ -499,9 +499,10 @@ class server_del(LDAPDelete):
                 'ca_renewal_master_server', [])
 
             if ca_servers == [hostname]:
-                raise errors.ServerRemovalError(
-                    reason=_("Deleting this server is not allowed as it would "
-                             "leave your installation without a CA."))
+                handler(
+                    _("Deleting this server is not allowed as it would "
+                      "leave your installation without a CA."),
+                    ignore_last_of_role)
 
             if ca_renewal_master == hostname:
                 other_cas = [ca for ca in ca_servers if ca != hostname]
