@@ -1543,6 +1543,7 @@ return {
             row_enabled_attribute: 'status',
             facet_groups: [exp.facet_group],
             facet_group: 'certificates',
+            additional_navigation_arguments: [ 'cacn' ],
             pagination: false,
             no_update: true,
             columns: [
@@ -1552,6 +1553,7 @@ return {
                     width: '90px'
                 },
                 'subject',
+                'cacn',
                 {
                     name: 'status',
                     width: '120px'
@@ -1645,6 +1647,7 @@ return {
                     fields: [
                         'serial_number',
                         'serial_number_hex',
+                        'cacn',
                         'subject',
                         {
                             name: 'issuer',
@@ -1772,6 +1775,10 @@ IPA.cert.details_facet = function(spec, no_init) {
         var command = that.details_facet_create_refresh_command();
         delete command.options.all;
         delete command.options.rights;
+
+        command.options = command.options || {};
+        $.extend(command.options, { cacn: that.state.cacn });
+
         return command;
     };
 
