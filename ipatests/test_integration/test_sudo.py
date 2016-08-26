@@ -37,6 +37,8 @@ class TestSudo(IntegrationTest):
         super(TestSudo, cls).install(mh)
 
         cls.client = cls.clients[0]
+        cls.clientname = cls.client.run_command(
+            ['hostname', '-s']).stdout_text.strip()
 
         for i in range(1, 3):
             # Add 1. and 2. testing user
@@ -72,6 +74,13 @@ class TestSudo(IntegrationTest):
                                 '-G', 'localgroup',
                                 'localuser'])
 
+        # Create sudorule 'defaults' for not requiring authentication
+        cls.master.run_command(['ipa', 'sudorule-add', 'defaults'])
+        cls.master.run_command(['ipa', 'sudorule-add-option',
+                                'defaults',
+                                '--sudooption', "!authenticate"])
+
+
     @classmethod
     def uninstall(cls, mh):
         cls.client.run_command(['groupdel', 'localgroup'], raiseonerr=False)
@@ -81,8 +90,9 @@ class TestSudo(IntegrationTest):
     def list_sudo_commands(self, user, raiseonerr=False, verbose=False):
         clear_sssd_cache(self.client)
         list_flag = '-ll' if verbose else '-l'
-        return self.client.run_command('su -c "sudo %s" %s' % (list_flag, user),
-                                       raiseonerr=raiseonerr)
+        return self.client.run_command(
+            'su -c "sudo %s -n" %s' % (list_flag, user),
+            raiseonerr=raiseonerr)
 
     def reset_rule_categories(self, safe_delete=True):
         if safe_delete:
@@ -168,6 +178,16 @@ class TestSudo(IntegrationTest):
 
         result2 = self.list_sudo_commands("testuser2", raiseonerr=False)
         assert result2.returncode != 0
+        assert "Sorry, user testuser2 may not run sudo on {}.".format(
+            self.clientname) in result2.stderr_text
+
+    def test_sudo_rule_restricted_to_one_user_without_defaults_rule(self):
+        # Verify password is requested with the 'defaults' sudorule disabled
+        self.master.run_command(['ipa', 'sudorule-disable', 'defaults'])
+
+        result3 = self.list_sudo_commands("testuser2", raiseonerr=False)
+        assert result3.returncode != 0
+        assert "sudo: a password is required" in result3.stderr_text
 
     def test_setting_category_to_all_with_valid_entries_user(self):
         result = self.reset_rule_categories(safe_delete=False)
@@ -178,6 +198,7 @@ class TestSudo(IntegrationTest):
         self.master.run_command(['ipa', 'sudorule-remove-user',
                                  'testrule',
                                  '--users', 'testuser1'])
+        self.master.run_command(['ipa', 'sudorule-enable', 'defaults'])
 
     def test_sudo_rule_restricted_to_one_group_setup(self):
         # Add the testgroup2 to the rule
@@ -188,6 +209,8 @@ class TestSudo(IntegrationTest):
     def test_sudo_rule_restricted_to_one_group(self):
         result1 = self.list_sudo_commands("testuser1", raiseonerr=False)
         assert result1.returncode != 0
+        assert "Sorry, user testuser1 may not run sudo on {}.".format(
+            self.clientname) in result1.stderr_text
 
         result2 = self.list_sudo_commands("testuser2")
         assert "(ALL : ALL) NOPASSWD: ALL" in result2.stdout_text
@@ -219,6 +242,8 @@ class TestSudo(IntegrationTest):
     def test_sudo_rule_restricted_to_one_host_negative(self):
         result1 = self.list_sudo_commands("testuser1", raiseonerr=False)
         assert result1.returncode != 0
+        assert "Sorry, user testuser1 may not run sudo on {}.".format(
+            self.clientname) in result1.stderr_text
 
     def test_sudo_rule_restricted_to_one_host_negative_teardown(self):
         # Remove the master from the rule
@@ -333,6 +358,8 @@ class TestSudo(IntegrationTest):
     def test_sudo_rule_restricted_to_one_hostmask_negative(self):
         result1 = self.list_sudo_commands("testuser1")
         assert result1.returncode != 0
+        assert "Sorry, user testuser1 may not run sudo on {}.".format(
+            self.clientname) in result1.stderr_text
 
     def test_sudo_rule_restricted_to_one_hostmask_negative_teardown(self):
         # Remove the master's hostmask from the rule
