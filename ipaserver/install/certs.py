@@ -404,6 +404,7 @@ class CertDB(object):
             self.host_name, 8443, "/ca/ee/ca/profileSubmitSSLClient",
             self.secdir, password, "ipaCert", **params)
         http_status, http_headers, http_body = result
+        root_logger.debug("CA answer: %s", http_body)
 
         if http_status != 200:
             raise CertificateOperationError(
