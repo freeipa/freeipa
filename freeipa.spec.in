@@ -147,6 +147,7 @@ BuildRequires:  python-sssdconfig
 BuildRequires:  python-nose
 BuildRequires:  python-paste
 BuildRequires:  systemd-python
+BuildRequires:  python-jinja2
 
 %if 0%{?with_python3}
 # FIXME: this depedency is missing - server will not work
