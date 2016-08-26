@@ -1819,6 +1819,15 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
     var that = IPA.facet(spec, no_init);
 
     /**
+     * Names of additional row attributes which will be send to another facet
+     * during navigation as URL parameters.
+     *
+     * @property {Array<string>}
+     */
+    that.additional_navigation_arguments = spec.additional_navigation_arguments;
+
+
+    /**
      * Entity of data displayed in the table
      * @property {entity.entity}
      */
@@ -2268,6 +2277,38 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
 
 
     /**
+     * Extract data from command response and return them.
+     *
+     * @param pkey {string} primary key of row which is chosen
+     * @param attrs {Array} names of attributes which will be extracted
+     */
+    that.get_row_attribute_values = function(key, attrs) {
+        var result = that.data.result.result;
+        var options = {};
+        var row;
+
+        if (result) {
+            for (var i=0, l=result.length; i<l; i++) {
+                row = result[i];
+
+                var pkey = row[that.table.name];
+                if (pkey == key) break;
+            }
+
+            if (row) {
+                for (var j=0, le=attrs.length; j<le; j++) {
+                    var attr = attrs[j];
+                    var new_attr = {};
+                    new_attr[attr] = row[attr];
+                    $.extend(options, new_attr);
+                }
+            }
+        }
+
+        return options;
+    };
+
+    /**
      *
      * Method which will be called after clicking on pkey in table.
      *
@@ -2279,6 +2320,12 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
      */
     that.on_column_link_click = function(value, entity) {
         var pkeys = [value];
+        var args;
+
+        var attributes = that.additional_navigation_arguments;
+        if (lang.isArray(attributes)) {
+            args = that.get_row_attribute_values(value, attributes);
+        }
 
         // for nested entities
         var containing_entity = entity.get_containing_entity();
@@ -2287,7 +2334,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
             pkeys.push(value);
         }
 
-        navigation.show_entity(entity.name, that.details_facet_name, pkeys);
+        navigation.show_entity(entity.name, that.details_facet_name, pkeys, args);
         return false;
     };
 
