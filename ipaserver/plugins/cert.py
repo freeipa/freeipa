@@ -749,8 +749,16 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                     info=_("Subject alt name type %s is forbidden") % desc)
 
         # Request the certificate
-        result = self.Backend.ra.request_certificate(
-            csr, profile_id, ca_id, request_type=request_type)
+        try:
+            result = self.Backend.ra.request_certificate(
+                csr, profile_id, ca_id, request_type=request_type)
+        except errors.HTTPRequestError as e:
+            if e.status == 409:  # pylint: disable=no-member
+                raise errors.CertificateOperationError(
+                    error=_("CA '%s' is disabled") % ca)
+            else:
+                raise e
+
         if not raw:
             self.obj._parse(result, all)
             result['request_id'] = int(result['request_id'])
