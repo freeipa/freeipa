@@ -2878,6 +2878,7 @@ IPA.select_widget = function(spec) {
     // methods that should be invoked by subclasses
     that.select_save = that.save;
     that.select_update = that.update;
+    that.select_create_options = that.create_options;
 
     return that;
 };
