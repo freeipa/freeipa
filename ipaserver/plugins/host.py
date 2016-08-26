@@ -843,12 +843,8 @@ class host_del(LDAPDelete):
                 )
 
         if self.api.Command.ca_is_enabled()['result']:
-            try:
-                entry_attrs = ldap.get_entry(dn, ['usercertificate'])
-            except errors.NotFound:
-                self.obj.handle_not_found(*keys)
-
-            revoke_certs(entry_attrs.get('usercertificate', []), self.log)
+            certs = self.api.Command.cert_find(host=keys)['result']
+            revoke_certs(certs)
 
         return dn
 
@@ -910,7 +906,9 @@ class host_mod(LDAPUpdate):
             old_certs = entry_attrs_old.get('usercertificate', [])
             old_certs_der = [x509.normalize_certificate(c) for c in old_certs]
             removed_certs_der = set(old_certs_der) - set(certs_der)
-            revoke_certs(removed_certs_der, self.log)
+            for der in removed_certs_der:
+                rm_certs = api.Command.cert_find(certificate=der)['result']
+                revoke_certs(rm_certs)
 
         if certs:
             entry_attrs['usercertificate'] = certs_der
@@ -1196,10 +1194,10 @@ class host_disable(LDAPQuery):
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if self.api.Command.ca_is_enabled()['result']:
-            certs = entry_attrs.get('usercertificate', [])
+            certs = self.api.Command.cert_find(host=keys)['result']
 
             if certs:
-                revoke_certs(certs, self.log)
+                revoke_certs(certs)
                 # Remove the usercertificate altogether
                 entry_attrs['usercertificate'] = None
                 ldap.update_entry(entry_attrs)
@@ -1341,8 +1339,8 @@ class host_remove_cert(LDAPRemoveAttributeViaOption):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
 
-        if 'usercertificate' in options:
-            revoke_certs(options['usercertificate'], self.log)
+        for cert in options.get('usercertificate', []):
+            revoke_certs(api.Command.cert_find(certificate=cert)['result'])
 
         return dn
 
