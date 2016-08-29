@@ -42,7 +42,7 @@ from ipalib import plugable, errors
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib.frontend import Local
 from ipalib.backend import Executioner
-from ipalib.errors import (PublicError, InternalError, CommandError, JSONError,
+from ipalib.errors import (PublicError, InternalError, JSONError,
     CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError,
     ExecutionError, PasswordExpired, KrbPrincipalExpired, UserLocked)
 from ipalib.request import context, destroy_context
@@ -311,6 +311,21 @@ class WSGIExecutioner(Executioner):
         if 'wsgi_dispatch' in self.api.Backend:
             self.api.Backend.wsgi_dispatch.mount(self, self.key)
 
+    def __get_command(self, name):
+        try:
+            # assume version 1 for unversioned command calls
+            command = self.api.Command[name, '1']
+        except KeyError:
+            try:
+                command = self.api.Command[name]
+            except KeyError:
+                command = None
+
+        if command is None or isinstance(command, Local):
+            raise errors.CommandError(name=name)
+
+        return command
+
     def wsgi_execute(self, environ):
         result = None
         error = None
@@ -319,6 +334,7 @@ class WSGIExecutioner(Executioner):
         name = None
         args = ()
         options = {}
+        command = None
 
         e = None
         if not 'HTTP_REFERER' in environ:
@@ -345,11 +361,9 @@ class WSGIExecutioner(Executioner):
                 (name, args, options, _id) = self.simple_unmarshal(environ)
             if name in self._system_commands:
                 result = self._system_commands[name](self, *args, **options)
-            elif (name not in self.api.Command or
-                    isinstance(self.api.Command[name], Local)):
-                raise CommandError(name=name)
             else:
-                result = self.Command[name](*args, **options)
+                command = self.__get_command(name)
+                result = command(*args, **options)
         except PublicError as e:
             if self.api.env.debug:
                 self.debug('WSGI wsgi_execute PublicError: %s', traceback.format_exc())
@@ -363,9 +377,9 @@ class WSGIExecutioner(Executioner):
             os.environ['LANG'] = lang
 
         principal = getattr(context, 'principal', 'UNKNOWN')
-        if name and name in self.Command:
+        if command is not None:
             try:
-                params = self.Command[name].args_options_2_params(*args, **options)
+                params = command.args_options_2_params(*args, **options)
             except Exception as e:
                 self.info(
                    'exception %s caught when converting options: %s', e.__class__.__name__, str(e)
@@ -380,7 +394,7 @@ class WSGIExecutioner(Executioner):
                       type(self).__name__,
                       principal,
                       name,
-                      ', '.join(self.Command[name]._repr_iter(**params)),
+                      ', '.join(command._repr_iter(**params)),
                       result_string)
         else:
             self.info('[%s] %s: %s: %s',
@@ -698,24 +712,21 @@ class xmlserver(KerberosWSGIExecutioner):
             # TODO
             # for now let's not go out of our way to document standard XML-RPC
             return u'undef'
-        elif (method_name in self.api.Command and
-                not isinstance(self.api.Command[method_name], Local)):
+        else:
+            self.__get_command(method_name)
+
             # All IPA commands return a dict (struct),
             # and take a params, options - list and dict (array, struct)
             return [[u'struct', u'array', u'struct']]
-        else:
-            raise errors.CommandError(name=method_name)
 
     def methodHelp(self, *params):
         """get method docstring for XML-RPC introspection"""
         method_name = self._get_method_name('system.methodHelp', *params)
         if method_name in self._system_commands:
             return u''
-        elif (method_name in self.api.Command and
-                not isinstance(self.api.Command[method_name], Local)):
-            return unicode(self.Command[method_name].doc or '')
         else:
-            raise errors.CommandError(name=method_name)
+            command = self.__get_command(method_name)
+            return unicode(command.doc or '')
 
     _system_commands = {
         'system.listMethods': listMethods,
