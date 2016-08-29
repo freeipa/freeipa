@@ -3460,8 +3460,8 @@ class test_forward_zones(Declarative):
                      u'name': u'DNSServerValidationWarning',
                      u'data': {
                         u'error': lambda x: x.startswith(
-                            u"query '%s SOA':" % forwarder1),
-                        u'server': u"%s" % fwzone2
+                            u"query '%s SOA':" % fwzone2),
+                        u'server': u"%s" % forwarder1
                      }},
                 ),
                 'result': {
