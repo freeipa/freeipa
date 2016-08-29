@@ -1207,7 +1207,8 @@ class cert_find(Search, CertMethod):
                 obj = ra_obj
                 obj['issuer'] = issuer
                 obj['subject'] = DN(ra_obj['subject'])
-                del obj['serial_number_hex']
+                obj['revoked'] = (
+                    ra_obj['status'] in (u'REVOKED', u'REVOKED_EXPIRED'))
 
                 if all:
                     ra_obj = ra.get_certificate(str(serial_number))
