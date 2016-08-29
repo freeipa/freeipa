@@ -141,6 +141,7 @@ class TestCAACLMembers(XMLRPC_test):
     def test_add_invalid_value_service(self, category_acl, default_profile):
         res = category_acl.add_service(service=default_profile.name, track=False)
         assert len(res['failed']) == 1
+        assert(res['failed']['memberservice']['service'][0][0].startswith(default_profile.name))
 
     # the same for other types
 
