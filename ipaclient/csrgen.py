@@ -414,7 +414,7 @@ class CSRGenerator(object):
                                 ' use a variable "userdata.<var_name>"') %
                             {'rule': rule.name})
 
-                    prompts[var_parts[1]] = rule.options['prompt']
+                    prompts[var_parts[1]] = _(rule.options['prompt'])
 
         return prompts
 
