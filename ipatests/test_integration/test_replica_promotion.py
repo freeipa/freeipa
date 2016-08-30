@@ -114,6 +114,7 @@ class TestKRAInstall(IntegrationTest):
         tasks.install_kra(replica2)
 
 
+@pytest.mark.xfail(reason="Ticket N 6274", strict=True)
 class TestCAInstall(IntegrationTest):
     topology = 'star'
     domain_level = DOMAIN_LEVEL_0
@@ -192,6 +193,7 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
                                      '-U'])
 
 
+@pytest.mark.xfail(reason="Ticket N 6274", strict=True)
 class TestReplicaManageCommands(IntegrationTest):
     topology = "star"
     num_replicas = 2
@@ -357,6 +359,7 @@ class TestProhibitReplicaUninstallation(IntegrationTest):
                                       '-U', '--ignore-topology-disconnect'])
 
 
+@pytest.mark.xfail(reason="Ticket N 6274", strict=True)
 class TestOldReplicaWorksAfterDomainUpgrade(IntegrationTest):
     topology = 'star'
     num_replicas = 1
