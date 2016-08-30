@@ -114,6 +114,7 @@ class TestKRAInstall(IntegrationTest):
         tasks.install_kra(replica2)
 
 
+@pytest.mark.xfail(reason="Ticket N 6274", strict=True)
 class TestCAInstall(IntegrationTest):
     topology = 'star'
     domain_level = DOMAIN_LEVEL_0
@@ -187,9 +188,12 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
         self.replicas[0].run_command(['ipa-replica-install', '-w',
                                      self.master.config.admin_password,
                                      '-n', self.master.domain.name,
-                                     '-r', self.master.domain.realm])
+                                     '-r', self.master.domain.realm,
+                                     '--server', self.master.hostname,
+                                     '-U'])
 
 
+@pytest.mark.xfail(reason="Ticket N 6274", strict=True)
 class TestReplicaManageCommands(IntegrationTest):
     topology = "star"
     num_replicas = 2
@@ -308,6 +312,7 @@ class TestUnprivilegedUserPermissions(IntegrationTest):
                                        '-w', self.new_password,
                                        '--domain', replica.domain.name,
                                        '--realm', replica.domain.realm, '-U'],
+                                       '--server', self.master.hostname],
                                       raiseonerr=False)
         assert_error(result1, "No permission to join this host", 1)
 
@@ -332,6 +337,7 @@ class TestUnprivilegedUserPermissions(IntegrationTest):
                                       '-p', self.new_password,
                                       '-n', self.master.domain.name,
                                       '-r', self.master.domain.realm])
+                                      '-U'])
 
 
 class TestProhibitReplicaUninstallation(IntegrationTest):
@@ -348,14 +354,12 @@ class TestProhibitReplicaUninstallation(IntegrationTest):
         result = self.replicas[0].run_command(['ipa-server-install',
                                                '--uninstall', '-U'],
                                               raiseonerr=False)
-        assert(result.returncode > 0), ("The replica was removed without "
-                                         "'--ignore-topology-disconnect' option")
-        assert("Uninstallation leads to disconnected topology"
-               in result.stdout_text), ("Expected error message was not found")
+        assert_error(result, "Uninstallation leads to disconnected topology", 0)
         self.replicas[0].run_command(['ipa-server-install', '--uninstall',
                                       '-U', '--ignore-topology-disconnect'])
 
 
+@pytest.mark.xfail(reason="Ticket N 6274", strict=True)
 class TestOldReplicaWorksAfterDomainUpgrade(IntegrationTest):
     topology = 'star'
     num_replicas = 1
