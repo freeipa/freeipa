@@ -187,7 +187,9 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
         self.replicas[0].run_command(['ipa-replica-install', '-w',
                                      self.master.config.admin_password,
                                      '-n', self.master.domain.name,
-                                     '-r', self.master.domain.realm])
+                                     '-r', self.master.domain.realm,
+                                     '--server', self.master.hostname,
+                                     '-U'])
 
 
 class TestReplicaManageCommands(IntegrationTest):
@@ -308,6 +310,7 @@ class TestUnprivilegedUserPermissions(IntegrationTest):
                                        '-w', self.new_password,
                                        '--domain', replica.domain.name,
                                        '--realm', replica.domain.realm, '-U'],
+                                       '--server', self.master.hostname],
                                       raiseonerr=False)
         assert_error(result1, "No permission to join this host", 1)
 
@@ -332,6 +335,7 @@ class TestUnprivilegedUserPermissions(IntegrationTest):
                                       '-p', self.new_password,
                                       '-n', self.master.domain.name,
                                       '-r', self.master.domain.realm])
+                                      '-U'])
 
 
 class TestProhibitReplicaUninstallation(IntegrationTest):
