@@ -77,7 +77,9 @@ class test_trustconfig(Declarative):
                     'ipantdomainguid': [fuzzy_guid],
                     'ipantfallbackprimarygroup': [default_group],
                     'ipantflatname': [fuzzy_string],
-                    'ipantsecurityidentifier': [fuzzy_domain_sid]
+                    'ipantsecurityidentifier': [fuzzy_domain_sid],
+                    'ad_trust_agent_server': [api.env.host],
+                    'ad_trust_controller_server': [api.env.host]
                 },
             },
         ),
@@ -144,7 +146,9 @@ class test_trustconfig(Declarative):
                     'ipantdomainguid': [fuzzy_guid],
                     'ipantfallbackprimarygroup': [testgroup],
                     'ipantflatname': [fuzzy_string],
-                    'ipantsecurityidentifier': [fuzzy_domain_sid]
+                    'ipantsecurityidentifier': [fuzzy_domain_sid],
+                    'ad_trust_agent_server': [api.env.host],
+                    'ad_trust_controller_server': [api.env.host]
                 },
             },
         ),
@@ -161,7 +165,9 @@ class test_trustconfig(Declarative):
                     'ipantdomainguid': [fuzzy_guid],
                     'ipantfallbackprimarygroup': [default_group],
                     'ipantflatname': [fuzzy_string],
-                    'ipantsecurityidentifier': [fuzzy_domain_sid]
+                    'ipantsecurityidentifier': [fuzzy_domain_sid],
+                    'ad_trust_agent_server': [api.env.host],
+                    'ad_trust_controller_server': [api.env.host]
                 },
             },
         ),
