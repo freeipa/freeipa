@@ -298,8 +298,8 @@ class TestExternalTrustWithSubdomain(ADTrustSubdomainBase):
         testuser = 'subdomaintestuser@{0}'.format(self.ad_subdomain)
         result = self.master.run_command(['getent', 'passwd', testuser])
 
-        testuser_regex = ("^subdomaintestuser@{0}:\*:(?!10042)(\d+):"
-                          "(?!)10047(\d+):Subdomain TestUser:"
+        testuser_regex = ("^subdomaintestuser@{0}:\*:(?!10142)(\d+):"
+                          "(?!10147)(\d+):Subdomaintest User:"
                           "/home/{1}/subdomaintestuser:/bin/sh$".format(
                               re.escape(self.ad_subdomain),
                               re.escape(self.ad_subdomain)))
@@ -393,8 +393,9 @@ class TestTrustWithUPN(ADTrustBase):
                                           self.upn_principal])
 
         # result will contain AD domain, not UPN
-        upnuser_regex = "^{}@{}:\*:(\d+):(\d+):{}:/:$".format(
-            self.upn_username, self.ad_domain, self.upn_name)
+        upnuser_regex = "^{}@{}:\*:(\d+):(\d+):{}:/home/{}/{}:/bin/sh$".format(
+            self.upn_username, self.ad_domain, self.upn_name,
+            self.ad_domain, self.upn_username)
         assert re.search(upnuser_regex, result.stdout_text)
 
     def test_upn_user_authentication(self):
