@@ -1476,6 +1476,9 @@ def promote(installer):
         cainstance.export_kra_agent_pem()
         CA.fix_ra_perms()
 
+    # we now need to enable ssl on the ds
+    ds.enable_ssl()
+
     krb = install_krb(config,
                       setup_pkinit=not options.no_pkinit,
                       promote=True)
