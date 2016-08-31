@@ -319,7 +319,7 @@ def generate_creds(trustinstance, style, **options):
             else:
                sp = admin_name.split(sep)
             if len(sp) == 1:
-                sp.append(trustinstance.remote_domain.info['dns_forest'].upper())
+                sp.append(trustinstance.remote_domain.info['dns_domain'].upper())
         creds = u"{name}%{password}".format(name=sep.join(sp),
                                             password=password)
     return creds
