@@ -87,9 +87,10 @@ class CertUpdate(admintool.AdminTool):
 
             # find lightweight CAs (on renewal master only)
             lwcas = []
-            for ca_obj in api.Command.ca_find()['result']:
-                if IPA_CA_CN not in ca_obj['cn']:
-                    lwcas.append(ca_obj)
+            if ca_enabled:
+                for ca_obj in api.Command.ca_find()['result']:
+                    if IPA_CA_CN not in ca_obj['cn']:
+                        lwcas.append(ca_obj)
 
             api.Backend.rpcclient.disconnect()
         finally:
