@@ -65,11 +65,9 @@ class test_update(unittest.TestCase):
         self.updater = LDAPUpdate(dm_password=self.dm_password, sub_dict={})
         self.ld = ipaldap.IPAdmin(fqdn)
         self.ld.do_simple_bind(bindpw=self.dm_password)
-        if ipautil.file_exists("0_reset.update"):
-            self.testdir="./"
-        elif ipautil.file_exists("ipatests/test_install/0_reset.update"):
-            self.testdir= "./ipatests/test_install/"
-        else:
+        self.testdir = os.path.abspath(os.path.dirname(__file__))
+        if not ipautil.file_exists(os.path.join(self.testdir,
+                                                "0_reset.update")):
             raise nose.SkipTest("Unable to find test update files")
 
         self.container_dn = DN(self.updater._template_str('cn=test, cn=accounts, $SUFFIX'))
@@ -84,7 +82,8 @@ class test_update(unittest.TestCase):
         Reset the updater test data to a known initial state (test_0_reset)
         """
         try:
-            modified = self.updater.update([self.testdir + "0_reset.update"])
+            modified = self.updater.update([os.path.join(self.testdir,
+                                                         "0_reset.update")])
         except errors.NotFound:
             # Just means the entry doesn't exist yet
             modified = True
@@ -103,7 +102,8 @@ class test_update(unittest.TestCase):
         """
         Test the updater with an add directive (test_1_add)
         """
-        modified = self.updater.update([self.testdir + "1_add.update"])
+        modified = self.updater.update([os.path.join(self.testdir,
+                                                     "1_add.update")])
 
         self.assertTrue(modified)
 
@@ -137,7 +137,8 @@ class test_update(unittest.TestCase):
         """
         Test the updater when adding an attribute to an existing entry (test_2_update)
         """
-        modified = self.updater.update([self.testdir + "2_update.update"])
+        modified = self.updater.update([os.path.join(self.testdir,
+                                                     "2_update.update")])
         self.assertTrue(modified)
 
         entries = self.ld.get_entries(
@@ -150,7 +151,8 @@ class test_update(unittest.TestCase):
         """
         Test the updater forcing an attribute to a given value (test_3_update)
         """
-        modified = self.updater.update([self.testdir + "3_update.update"])
+        modified = self.updater.update([os.path.join(self.testdir,
+                                                     "3_update.update")])
         self.assertTrue(modified)
 
         entries = self.ld.get_entries(
@@ -163,7 +165,8 @@ class test_update(unittest.TestCase):
         """
         Test the updater adding a new value to a single-valued attribute (test_4_update)
         """
-        modified = self.updater.update([self.testdir + "4_update.update"])
+        modified = self.updater.update([os.path.join(self.testdir,
+                                                     "4_update.update")])
         self.assertTrue(modified)
 
         entries = self.ld.get_entries(
@@ -176,7 +179,8 @@ class test_update(unittest.TestCase):
         """
         Test the updater adding a new value to a multi-valued attribute (test_5_update)
         """
-        modified = self.updater.update([self.testdir + "5_update.update"])
+        modified = self.updater.update([os.path.join(self.testdir,
+                                                     "5_update.update")])
         self.assertTrue(modified)
 
         entries = self.ld.get_entries(
@@ -189,7 +193,8 @@ class test_update(unittest.TestCase):
         """
         Test the updater removing a value from a multi-valued attribute (test_6_update)
         """
-        modified = self.updater.update([self.testdir + "6_update.update"])
+        modified = self.updater.update([os.path.join(self.testdir,
+                                                     "6_update.update")])
         self.assertTrue(modified)
 
         entries = self.ld.get_entries(
@@ -202,7 +207,8 @@ class test_update(unittest.TestCase):
         """
         Test the updater removing a non-existent value from a multi-valued attribute (test_6_update_1)
         """
-        modified = self.updater.update([self.testdir + "6_update.update"])
+        modified = self.updater.update([os.path.join(self.testdir,
+                                                     "6_update.update")])
         self.assertFalse(modified)
 
         entries = self.ld.get_entries(
@@ -216,7 +222,8 @@ class test_update(unittest.TestCase):
         Reset the test data to a known initial state (test_7_cleanup)
         """
         try:
-            modified = self.updater.update([self.testdir + "0_reset.update"])
+            modified = self.updater.update([os.path.join(self.testdir,
+                                                         "0_reset.update")])
         except errors.NotFound:
             # Just means the entry doesn't exist yet
             modified = True
@@ -236,14 +243,16 @@ class test_update(unittest.TestCase):
         Test the updater with an unknown keyword (test_8_badsyntax)
         """
         with self.assertRaises(BadSyntax):
-            modified = self.updater.update([self.testdir + "8_badsyntax.update"])
+            modified = self.updater.update(
+                [os.path.join(self.testdir, "8_badsyntax.update")])
 
     def test_9_badsyntax(self):
         """
         Test the updater with an incomplete line (test_9_badsyntax)
         """
         with self.assertRaises(BadSyntax):
-            modified = self.updater.update([self.testdir + "9_badsyntax.update"])
+            modified = self.updater.update(
+                [os.path.join(self.testdir, "9_badsyntax.update")])
 
     def test_from_dict(self):
         """

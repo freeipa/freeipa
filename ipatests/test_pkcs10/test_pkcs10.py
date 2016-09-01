@@ -31,6 +31,7 @@ from ipapython import ipautil
 import nss.nss as nss
 from nss.error import NSPRError
 import pytest
+import os
 
 
 @pytest.mark.tier0
@@ -41,15 +42,13 @@ class test_update(object):
 
     def setup(self):
         nss.nss_init_nodb()
-        if ipautil.file_exists("test0.csr"):
-            self.testdir="./"
-        elif ipautil.file_exists("ipatests/test_pkcs10/test0.csr"):
-            self.testdir= "./ipatests/test_pkcs10/"
-        else:
+        self.testdir = os.path.abspath(os.path.dirname(__file__))
+        if not ipautil.file_exists(os.path.join(self.testdir,
+                                                "test0.csr")):
             raise nose.SkipTest("Unable to find test update files")
 
     def read_file(self, filename):
-        fp = open(self.testdir + filename, "r")
+        fp = open(os.path.join(self.testdir, filename), "r")
         data = fp.read()
         fp.close()
         return data
