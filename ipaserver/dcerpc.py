@@ -1534,6 +1534,52 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
     return result
 
 
+def retrieve_remote_domain(hostname, local_flatname,
+                           realm, realm_server=None,
+                           realm_admin=None, realm_passwd=None):
+    def get_instance(local_flatname):
+        # Fetch data from foreign domain using password only
+        rd = TrustDomainInstance('')
+        rd.parm.set('workgroup', local_flatname)
+        rd.creds = credentials.Credentials()
+        rd.creds.set_kerberos_state(credentials.DONT_USE_KERBEROS)
+        rd.creds.guess(rd.parm)
+        return rd
+
+    rd = get_instance(local_flatname)
+    rd.creds.set_anonymous()
+    rd.creds.set_workstation(hostname)
+    if realm_server is None:
+        rd.retrieve_anonymously(realm, discover_srv=True, search_pdc=True)
+    else:
+        rd.retrieve_anonymously(realm_server,
+                                discover_srv=False, search_pdc=True)
+    rd.read_only = True
+    if realm_admin and realm_passwd:
+        if 'name' in rd.info:
+            names = realm_admin.split('\\')
+            if len(names) > 1:
+                # realm admin is in DOMAIN\user format
+                # strip DOMAIN part as we'll enforce the one discovered
+                realm_admin = names[-1]
+            auth_string = u"%s\%s%%%s" \
+                          % (rd.info['name'], realm_admin, realm_passwd)
+            td = get_instance(local_flatname)
+            td.creds.parse_string(auth_string)
+            td.creds.set_workstation(hostname)
+            if realm_server is None:
+                # we must have rd.info['dns_hostname'] then
+                # as it is part of the anonymous discovery
+                td.retrieve(rd.info['dns_hostname'])
+            else:
+                td.retrieve(realm_server)
+            td.read_only = False
+            return td
+
+    # Otherwise, use anonymously obtained data
+    return rd
+
+
 class TrustDomainJoins(object):
     def __init__(self, api):
         self.api = api
@@ -1565,47 +1611,13 @@ class TrustDomainJoins(object):
 
     def populate_remote_domain(self, realm, realm_server=None,
                                realm_admin=None, realm_passwd=None):
-        def get_instance(self):
-            # Fetch data from foreign domain using password only
-            rd = TrustDomainInstance('')
-            rd.parm.set('workgroup', self.local_domain.info['name'])
-            rd.creds = credentials.Credentials()
-            rd.creds.set_kerberos_state(credentials.DONT_USE_KERBEROS)
-            rd.creds.guess(rd.parm)
-            return rd
-
-        rd = get_instance(self)
-        rd.creds.set_anonymous()
-        rd.creds.set_workstation(self.local_domain.hostname)
-        if realm_server is None:
-            rd.retrieve_anonymously(realm, discover_srv=True, search_pdc=True)
-        else:
-            rd.retrieve_anonymously(realm_server,
-                                    discover_srv=False, search_pdc=True)
-        rd.read_only = True
-        if realm_admin and realm_passwd:
-            if 'name' in rd.info:
-                names = realm_admin.split('\\')
-                if len(names) > 1:
-                    # realm admin is in DOMAIN\user format
-                    # strip DOMAIN part as we'll enforce the one discovered
-                    realm_admin = names[-1]
-                auth_string = u"%s\%s%%%s" \
-                              % (rd.info['name'], realm_admin, realm_passwd)
-                td = get_instance(self)
-                td.creds.parse_string(auth_string)
-                td.creds.set_workstation(self.local_domain.hostname)
-                if realm_server is None:
-                    # we must have rd.info['dns_hostname'] then
-                    # as it is part of the anonymous discovery
-                    td.retrieve(rd.info['dns_hostname'])
-                else:
-                    td.retrieve(realm_server)
-                td.read_only = False
-                self.remote_domain = td
-                return
-        # Otherwise, use anonymously obtained data
-        self.remote_domain = rd
+        self.remote_domain = retrieve_remote_domain(
+            self.local_domain.hostname,
+            self.local_domain.info['name'],
+            realm,
+            realm_server=realm_server,
+            realm_admin=realm_admin,
+            realm_passwd=realm_passwd)
 
     def get_realmdomains(self):
         """
