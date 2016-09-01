@@ -311,7 +311,7 @@ class WSGIExecutioner(Executioner):
         if 'wsgi_dispatch' in self.api.Backend:
             self.api.Backend.wsgi_dispatch.mount(self, self.key)
 
-    def __get_command(self, name):
+    def _get_command(self, name):
         try:
             # assume version 1 for unversioned command calls
             command = self.api.Command[name, '1']
@@ -362,7 +362,7 @@ class WSGIExecutioner(Executioner):
             if name in self._system_commands:
                 result = self._system_commands[name](self, *args, **options)
             else:
-                command = self.__get_command(name)
+                command = self._get_command(name)
                 result = command(*args, **options)
         except PublicError as e:
             if self.api.env.debug:
@@ -713,7 +713,7 @@ class xmlserver(KerberosWSGIExecutioner):
             # for now let's not go out of our way to document standard XML-RPC
             return u'undef'
         else:
-            self.__get_command(method_name)
+            self._get_command(method_name)
 
             # All IPA commands return a dict (struct),
             # and take a params, options - list and dict (array, struct)
@@ -725,7 +725,7 @@ class xmlserver(KerberosWSGIExecutioner):
         if method_name in self._system_commands:
             return u''
         else:
-            command = self.__get_command(method_name)
+            command = self._get_command(method_name)
             return unicode(command.doc or '')
 
     _system_commands = {
