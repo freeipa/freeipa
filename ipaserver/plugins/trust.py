@@ -770,7 +770,7 @@ sides.
                 # Bidirectional trust allows us to use cross-realm TGT, so we can
                 # run the call under original user's credentials
                 res = fetch_domains_from_trust(self.api, self.trustinstance,
-                                               result['result'], **options)
+                                               **options)
                 domains = add_new_domains_from_trust(self.api, self.trustinstance,
                                                      result['result'], res, **options)
             else:
@@ -1631,8 +1631,21 @@ class trustdomain_del(LDAPDelete):
         return result
 
 
-def fetch_domains_from_trust(myapi, trustinstance, trust_entry, **options):
-    trust_name = trust_entry['cn'][0]
+def fetch_domains_from_trust(myapi, trustinstance, **options):
+    """
+    Contact trust forest root DC and fetch trusted forest topology information.
+
+    :param myapi: API instance
+    :param trustinstance: Initialized instance of `dcerpc.TrustDomainJoins`
+        class
+    :param options: options passed from API command's `execute()` method
+
+    :returns: dict containing forest domain information and forest-wide UPN
+        suffixes (if any)
+    """
+
+    forest_root_name = trustinstance.remote_domain.info['dns_forest']
+
     # We want to use Kerberos if we have admin credentials even with SMB calls
     # as eventually use of NTLMSSP will be deprecated for trusted domain operations
     # If admin credentials are missing, 'creds' will be None and fetch_domains
@@ -1640,10 +1653,10 @@ def fetch_domains_from_trust(myapi, trustinstance, trust_entry, **options):
     # as well.
     creds = generate_creds(trustinstance, style=CRED_STYLE_KERBEROS, **options)
     server = options.get('realm_server', None)
-    domains = ipaserver.dcerpc.fetch_domains(myapi,
-                                             trustinstance.local_flatname,
-                                             trust_name, creds=creds,
-                                             server=server)
+    domains = ipaserver.dcerpc.fetch_domains(
+        myapi, trustinstance.local_flatname, forest_root_name, creds=creds,
+        server=server)
+
     return domains
 
 
@@ -1749,7 +1762,7 @@ class trust_fetch_domains(LDAPRetrieve):
                     'on the IPA server first'
                 )
             )
-        res = fetch_domains_from_trust(self.api, trustinstance, trust, **options)
+        res = fetch_domains_from_trust(self.api, trustinstance, **options)
         domains = add_new_domains_from_trust(self.api, trustinstance, trust, res, **options)
 
         if len(domains) > 0:
