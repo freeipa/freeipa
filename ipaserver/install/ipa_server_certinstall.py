@@ -25,8 +25,8 @@ import optparse
 
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
-from ipapython import admintool
-from ipapython.certdb import get_ca_nickname
+from ipapython import admintool, ipautil
+from ipapython.certdb import get_ca_nickname, NSSDatabase
 from ipapython.dn import DN
 from ipalib import api, errors
 from ipalib.constants import CACERT
@@ -157,6 +157,38 @@ class ServerCertInstall(admintool.AdminTool):
         os.chown(os.path.join(dirname, 'key3.db'), 0, pent.pw_gid)
         os.chown(os.path.join(dirname, 'secmod.db'), 0, pent.pw_gid)
 
+    def check_chain(self, pkcs12_filename, pkcs12_pin, nssdb):
+        # create a temp nssdb
+        with NSSDatabase() as tempnssdb:
+            db_password = ipautil.ipa_generate_password()
+            db_pwdfile = ipautil.write_tmp_file(db_password)
+            tempnssdb.create_db(db_pwdfile.name)
+
+            # import the PKCS12 file, then delete all CA certificates
+            # this leaves only the server certs in the temp db
+            tempnssdb.import_pkcs12(
+                pkcs12_filename, db_pwdfile.name, pkcs12_pin)
+            for nickname, flags in tempnssdb.list_certs():
+                if 'u' not in flags:
+                    while tempnssdb.has_nickname(nickname):
+                        tempnssdb.delete_cert(nickname)
+
+            # import all the CA certs from nssdb into the temp db
+            for nickname, flags in nssdb.list_certs():
+                if 'u' not in flags:
+                    cert = nssdb.get_cert_from_db(nickname)
+                    tempnssdb.add_cert(cert, nickname, flags)
+
+            # now get the server certs from tempnssdb and check their validity
+            try:
+                for nick, flags in tempnssdb.find_server_certs():
+                    tempnssdb.verify_server_cert_validity(nick, api.env.host)
+            except ValueError as e:
+                raise admintool.ScriptError(
+                    "Peer's certificate issuer is not trusted (%s). "
+                    "Please run ipa-cacert-manage install and ipa-certupdate "
+                    "to install the CA certificate." % str(e))
+
     def import_cert(self, dirname, pkcs12_passwd, old_cert, principal, command):
         pkcs12_file, pin, ca_cert = installutils.load_pkcs12(
             cert_files=self.args,
@@ -167,6 +199,10 @@ class ServerCertInstall(admintool.AdminTool):
 
         dirname = os.path.normpath(dirname)
         cdb = certs.CertDB(api.env.realm, nssdir=dirname)
+
+        # Check that the ca_cert is known and trusted
+        self.check_chain(pkcs12_file.name, pin, cdb)
+
         try:
             ca_enabled = api.Command.ca_is_enabled()['result']
             if ca_enabled:
