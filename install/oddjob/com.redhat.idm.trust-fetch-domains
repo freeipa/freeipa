@@ -40,6 +40,24 @@ def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
         pass
 
 
+def get_forest_root_domain(api_instance, trusted_domain):
+    """
+    retrieve trusted forest root domain for given domain name
+
+    :param api_instance: IPA API instance
+    :param trusted_domain: trusted domain name
+
+    :returns: forest root domain DNS name
+    """
+    trustconfig_show = api_instance.Command.trustconfig_show
+    flatname = trustconfig_show()['result']['ipantflatname'][0]
+
+    remote_domain = dcerpc.retrieve_remote_domain(
+        api_instance.env.host, flatname, trusted_domain)
+
+    return remote_domain.info['dns_forest']
+
+
 def parse_options():
     usage = "%prog <trusted domain name>\n"
     parser = config.IPAOptionParser(usage=usage,
@@ -169,7 +187,12 @@ except gssapi.exceptions.GSSError:
 # We are done: we have ccache with TDO credentials and can fetch domains
 ipa_domain = api.env.domain
 os.environ['KRB5CCNAME'] = oneway_ccache_name
-domains = dcerpc.fetch_domains(api, ipa_domain, trusted_domain, creds=True)
+
+# retrieve the forest root domain name and contact it to retrieve trust
+# topology info
+forest_root = get_forest_root_domain(api, trusted_domain)
+
+domains = dcerpc.fetch_domains(api, ipa_domain, forest_root, creds=True)
 trust_domain_object = api.Command.trust_show(trusted_domain, raw=True)['result']
 trust.add_new_domains_from_trust(api, None, trust_domain_object, domains)
 
