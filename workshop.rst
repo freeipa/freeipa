@@ -336,14 +336,14 @@ forget during the workshop!
   Password (confirm): 
 
 
-Do not configure a DNS forwarder (it is likely that you will want to configure
-a DNS forwarder for a real-world deployment but it is not needed today) and
-accept the defaults for configuring the reverse zone::
+Do not configure a DNS forwarder (you will want to configure a DNS
+forwarder for a real-world deployment but it is not needed for this
+workshop) and accept the defaults for configuring the reverse zone::
 
+  Checking DNS domain ipademo.local., please wait ...
   Do you want to configure DNS forwarders? [yes]: no
-  Do you want to configure the reverse zone? [yes]: 
-  Please specify the reverse zone name [33.168.192.in-addr.arpa.]: 
-  Using reverse zone(s) 33.168.192.in-addr.arpa.
+  No DNS forwarders configured
+  Do you want to search for missing reverse zones? [yes]: 
 
 
 Next, you will be presented with a summary of the server
@@ -357,8 +357,9 @@ server installation::
   Realm name:     IPADEMO.LOCAL
 
   BIND DNS server will be configured to serve IPA domain with:
-  Forwarders:    No forwarders
-  Reverse zone(s):  33.168.192.in-addr.arpa.
+  Forwarders:       No forwarders
+  Forward policy:   only
+  Reverse zone(s):  No reverse zone
 
   Continue to configure the system with these values? [no]: yes
 
@@ -416,7 +417,7 @@ proceed::
 
   [client]$ sudo ipa-client-install
   Discovery was successful!
-  Hostname: client.ipademo.local
+  Client hostname: client.ipademo.local
   Realm: IPADEMO.LOCAL
   DNS Domain: ipademo.local
   IPA Server: server.ipademo.local
@@ -424,13 +425,10 @@ proceed::
 
   Continue to configure the system with these values? [no]: yes
 
+You might see a warning about time synchronisation, which for this
+workshop can be ignored.  Next you will be be prompted to enter
+credentials of a user authorised to enrol hosts (``admin``)::
 
-The client machine's clock will be synchronised to the server's (the
-Kerberos protocol requires this).  You will then be prompted to
-enter credentials of a user authorised to enrol hosts (``admin``)::
-
-  Synchronizing time with KDC...
-  Attempting to sync time using ntpd.  Will timeout after 15 seconds
   User authorized to enroll computers: admin
   Password for admin@IPADEMO.LOCAL: 
 
@@ -482,17 +480,25 @@ Most FreeIPA adminstrative actions can be carried out using the
   automember-default-group-show     Display information about the default (fallback) automember groups.
   ...
 
-Whoa!  There's almost 300 of them!  We'll be using only a handful of
-these today.
+Whoa!  There are nearly 400 commands!  We'll be using only a handful
+of these today.  Note that command completion is enabled in the
+shell, so you can type a partial command and press ``<TAB>`` a
+couple of times to see what commands are available, e.g. all the
+commands starting with ``cert-``::
 
-You'll notice that commands are grouped by *plugin*.  You can get a
+  [client]$ ipa cert-
+  cert-find         cert-request      cert-show
+  cert-remove-hold  cert-revoke       cert-status
+
+
+You'll notice that commands are grouped by *plugin*.  You can read a
 general overview of a plugin by running ``ipa help <plugin>``, and
 specific information on a particular command by running ``ipa help
 <command>``.
 
 Let's add the user *bob* from the CLI.  See if you can work out how
-to do this using the CLI help commands.  (**hint**: the plugin name
-is ``user``).
+to do this using the CLI help commands.  (**hint**: the ``user``
+plugin provides the command).
 
 
 User authentication
@@ -521,8 +527,9 @@ Use the ``ipa passwd`` command to (re)set a user's password::
   Changed password for "bob@IPADEMO.LOCAL"
   ----------------------------------------
 
-Whenever a user has their password reset (including the first time),
-the next ``kinit`` will prompt them to enter a new password::
+Whenever a user has their password reset (including the first time
+it is set), the next ``kinit`` will prompt them to enter a new
+password::
 
   [server]$ kinit bob
   Password for bob@IPADEMO.LOCAL: 
@@ -531,11 +538,12 @@ the next ``kinit`` will prompt them to enter a new password::
   Enter it again: 
 
 
-Now ``bob`` has a TGT (run ``klist`` to confirm) which can use to
+Now ``bob`` has a TGT (run ``klist`` to confirm) which hi can use to
 log in to other hosts and services.  Try logging into
 ``client.ipademo.local``::
 
   [server]$ ssh bob@client.ipademo.local
+  Creating home directory for bob.
   [bob@client]$ 
 
 You are now logged into the client as ``bob``.  Type ``^D`` or
@@ -604,8 +612,7 @@ List the existing HBAC rules::
     User category: all
     Host category: all
     Service category: all
-    Description: Allow all users to access any host from any
-    host
+    Description: Allow all users to access any host from any host
     Enabled: TRUE
   ----------------------------
   Number of entries returned 1
@@ -682,15 +689,15 @@ the ``sysadmin`` group.  What about ``alice``?
   [server]$ kinit bob
   Password for bob@IPADEMO.LOCAL: 
   [server]$ ssh bob@client.ipademo.local
-  Connection closed by UNKNOWN
+  packet_write_wait: Connection to UNKNOWN port 0: Broken pipe
 
 Then try ``alice``::
 
   [server]$ kinit alice
   Password for alice@IPADEMO.LOCAL: 
   [server]$ ssh alice@client.ipademo.local
-  Last login: Fri Oct 16 01:09:10 2015 from 192.168.33.10
-  -sh-4.3$ 
+  Creating home directory for alice.
+  [alice@client]$ 
 
 
 Module 5: Web application authentication and authorisation
@@ -1138,87 +1145,31 @@ Module 7: Replica installation
 
 FreeIPA is designed to be run in a replicated multi-master
 environment.  In this module, we will deploy a single FreeIPA
-replica.  For production deployments, see
+replica.  For recommended production topologies, see
 http://www.freeipa.org/page/Deployment_Recommendations#Replicas.
 
 If you have disabled the ``allow_all`` HBAC rule, add a new rule
 that will **allow ``admin`` to access the ``sshd`` service on any
 host**.
 
-To prepare to add a replica, execute the ``ipa-replica-prepare(1)``
-command.  Because FreeIPA manages DNS for our domain, we need to use
-the ``--ip-address`` option.
+As of FreeIPA 4.3, replica installation is accomplished by
+*promoting* an enrolled client machine to a server.
+
+SSH to the ``replica`` VM and enrol it per `Module 2: Enrolling
+client machines`_.
+
+Now promote the client to server.  We will set up the replica
+*without* CA or DNS, but in a production deployment there should be
+at least one instance of these services in each datacentre.  These
+components can be added later via ``ipa-ca-install(1)`` and
+``ipa-dns-install(1)``.
 
 ::
 
-  [server]$ sudo ipa-replica-prepare \
-            --ip-address 192.168.33.11 replica.ipademo.local
-  Directory Manager (existing master) password: 
-
-  Preparing replica for replica.ipademo.local from server.ipademo.local
-  Creating SSL certificate for the Directory Server
-  Creating SSL certificate for the dogtag Directory Server
-  Saving dogtag Directory Server port
-  Creating SSL certificate for the Web Server
-  Exporting RA certificate
-  Copying additional files
-  Finalizing configuration
-  Packaging replica information into /var/lib/ipa/replica-info-replica.ipademo.local.gpg
-  Adding DNS records for replica.ipademo.local
-  The ipa-replica-prepare command was successful
-
-The *replica file* is now available at
-``/var/lib/ipa/replica-info-replica.ipademo.local.gpg`` and must be
-copied to the ``replica`` VM::
-
-  % vagrant ssh server -- \
-    "sudo cat /var/lib/ipa/replica-info-replica.ipademo.local.gpg" \
-    | vagrant ssh replica -- "cat > replica.gpg"
-
-We will set up a replica *without* CA or DNS, but in a production
-deployment there should be at least one instance of these services
-in each datacentre.  See the ``ipa-replica-install(1)`` man page for
-details.
-
-SSH to the ``replica`` VM and install the replica::
-
-  % vagrant ssh replica
-  [replica]$ sudo ipa-replica-install --mkhomedir replica.gpg 
-  Directory Manager (existing master) password: 
+  [replica]$ sudo ipa-replica-install
+  Password for admin@IPADEMO.LOCAL: 
 
   Run connection check to master
-  Check connection from replica to remote master 'server.ipademo.local':
-     Directory Service: Unsecure port (389): OK
-     Directory Service: Secure port (636): OK
-     Kerberos KDC: TCP (88): OK
-     Kerberos Kpasswd: TCP (464): OK
-     HTTP Server: Unsecure port (80): OK
-     HTTP Server: Secure port (443): OK
-
-  The following list of ports use UDP protocol and would need to be
-  checked manually:
-     Kerberos KDC: UDP (88): SKIPPED
-     Kerberos Kpasswd: UDP (464): SKIPPED
-
-  Connection from replica to master is OK.
-  Start listening on required ports for remote master check
-  Get credentials to log in to remote master
-  admin@IPADEMO.LOCAL password: 
-
-  Check SSH connection to remote master
-  Execute check on remote master
-  Check connection from master to remote replica 'replica.ipademo.local':
-     Directory Service: Unsecure port (389): OK
-     Directory Service: Secure port (636): OK
-     Kerberos KDC: TCP (88): OK
-     Kerberos KDC: UDP (88): OK
-     Kerberos Kpasswd: TCP (464): OK
-     Kerberos Kpasswd: UDP (464): OK
-     HTTP Server: Unsecure port (80): OK
-     HTTP Server: Secure port (443): OK
-
-  Connection from master to replica is OK.
-
   Connection check OK
   Configuring NTP daemon (ntpd)
     [1/4]: stopping ntpd
@@ -1229,9 +1180,9 @@ The rest of the replica installation process is almost identical to
 server installation.  One important difference is the initial
 replication of data to the new Directory Server instance::
 
-  [24/38]: setting up initial replication
+  [28/43]: setting up initial replication
   Starting replication, please wait until this has completed.
-  Update in progress, 6 seconds elapsed
+  Update in progress, 7 seconds elapsed
   Update succeeded
 
 After ``ipa-replica-install`` finishes, the replica is operational.
