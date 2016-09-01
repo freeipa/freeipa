@@ -4,6 +4,7 @@ sudo systemctl enable haveged
 sudo sh -c "echo 'PS1=\"[\u@\h]\\\\$ \"' >> /etc/profile"
 sudo sh -c "echo 'PS1=\"[\h]\\\\$ \"' >> /etc/bashrc"
 sudo sh -c "echo '192.168.33.10 server.ipademo.local' >> /etc/hosts"
+sudo sh -c "echo '192.168.33.11 replica.ipademo.local' >> /etc/hosts"
 sudo sh -c "echo '192.168.33.20 client.ipademo.local' >> /etc/hosts"
 sudo rm -f /etc/httpd/conf.d/welcome.conf
 
