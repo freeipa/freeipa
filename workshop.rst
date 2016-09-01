@@ -1034,13 +1034,12 @@ Enable and start certmonger::
   Created symlink from /etc/systemd/system/multi-user.target.wants/certmonger.service to /usr/lib/systemd/system/certmonger.service.
   [client]$ sudo systemctl start certmonger
 
-Now let's request a certificate.  ``mod_nss`` is already configured
-to use the certificate database at ``/etc/httpd/alias``, so we tell
-certmonger to generate the key and add the certificate in that
-database::
+Now let's request a certificate.  We will generate keys and store
+certificates in the NSS database at ``/etc/httpd/alias``::
 
-  [client]$ sudo ipa-getcert request -d /etc/httpd/alias \
-            -n app -K HTTP/client.ipademo.local
+  [client]$ sudo ipa-getcert request -d /etc/httpd/alias -n app \
+            -K HTTP/client.ipademo.local \
+            -D client.ipademo.local
   New signing request "20151026222558" added.
 
 Let's break down some of those command arguments.
@@ -1053,6 +1052,11 @@ Let's break down some of those command arguments.
   Kerberos service principal; because different kinds of services may
   be accessed at one hostname, this argument is needed to tell
   certmonger which service principal is the subject
+``-D <dnsname>``
+  Requests the given domain name to appear in the *Subject
+  Alternative Name (SAN)* extension.  The hostname will appear in
+  the *Common Name (CN)* field but this practice is deprecated, so
+  it is important to also include it in the SAN extension.
 
 Another important argument is ``-N <subject-name>`` but this
 defaults to the system hostname, which in our case
@@ -1072,6 +1076,7 @@ identifier given in the ``ipa-getcert request`` output::
           issuer: CN=Certificate Authority,O=IPADEMO.LOCAL
           subject: CN=client.ipademo.local,O=IPADEMO.LOCAL
           expires: 2017-10-26 22:26:00 UTC
+          dns: client.ipademo.local
           principal name: HTTP/client.ipademo.local@IPADEMO.LOCAL
           key usage: digitalSignature,nonRepudiation,keyEncipherment,dataEncipherment
           eku: id-kp-serverAuth,id-kp-clientAuth
@@ -1101,6 +1106,11 @@ database, identified by the specified nickname::
               Not Before: Mon Oct 26 22:26:00 2015
               Not After : Thu Oct 26 22:26:00 2017
           Subject: "CN=client.ipademo.local,O=IPADEMO.LOCAL"
+          ...
+          Signed Extensions:
+              ...
+              Name: Certificate Subject Alt Name
+              DNS name: "client.ipademo.local"
     ...
 
 
