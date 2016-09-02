@@ -100,8 +100,11 @@ If you intend to use the ``libvirt`` provider (recommended), install
 
   $ sudo dnf install -y vagrant-libvirt vagrant-libvirt-doc
 
+Also ensure you have the latest versions of ``selinux-policy`` and
+``selinux-policy-targeted``.
+
 Allow your regular user ID to start and stop Vagrant boxes. A PolicyKit rule
-will be added that allows users in the vagrant group to control VMs through
+will be added that allows users in the ``vagrant`` group to control VMs through
 libvirt. The necessary rule is included in the ``vagrant-libvirt-doc`` 
 package. Run the following commands to add your local user to the vagrant 
 group and to copy the necessary rule to the right place::
@@ -109,6 +112,11 @@ group and to copy the necessary rule to the right place::
   $ usermod -a -G vagrant $USER
   $ cp /usr/share/vagrant/gems/doc/vagrant-libvirt-*/polkit/10-vagrant-libvirt.rules \
     /etc/polkit-1/rules.d
+
+On **Fedoda 24** you need to enable ``virtlogd``::
+
+  $ systemctl enable virtlogd.socket
+  $ systemctl start virtlogd.socket
 
 Finally restart the services::
 
@@ -222,7 +230,7 @@ about the *Atlas* service where the box is hosted, you can add it
 by URL instead::
 
   $ vagrant box add ftweedal/freeipa-workshop \
-      https://atlas.hashicorp.com/ftweedal/boxes/freeipa-workshop/versions/0.0.6/providers/virtualbox.box
+      https://atlas.hashicorp.com/ftweedal/boxes/freeipa-workshop/versions/0.0.7/providers/virtualbox.box
 
 
 Add hosts file entries
