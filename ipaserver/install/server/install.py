@@ -609,6 +609,20 @@ def install_check(installer):
                                              not installer.interactive, False,
                                              options.ip_addresses)
 
+    for ip in ip_addresses:
+        if ip.is_network_addr():
+            root_logger.warning("IP address %s might be network address", ip)
+            # fixme: once when loggers will be fixed, we can remove this print
+            print(
+                "WARNING: IP address {} might be network address".format(ip),
+                file=sys.stderr)
+        if ip.is_broadcast_addr():
+            root_logger.warning("IP address %s might be broadcast address", ip)
+            # fixme: once when loggers will be fixed, we can remove this print
+            print(
+                "WARNING: IP address {} might be broadcast address".format(ip),
+                file=sys.stderr)
+
     # installer needs to update hosts file when DNS subsystem will be
     # installed or custom addresses are used
     if options.ip_addresses or options.setup_dns:

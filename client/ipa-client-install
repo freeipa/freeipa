@@ -1651,6 +1651,20 @@ def update_dns(server, hostname, options):
         root_logger.info("Failed to determine this machine's ip address(es).")
         return
 
+    for ip in update_ips:
+        if ip.is_network_addr():
+            root_logger.warning("IP address %s might be network address", ip)
+            # fixme: once when loggers will be fixed, we can remove this print
+            print(
+                "WARNING: IP address {} might be network address".format(ip),
+                file=sys.stderr)
+        if ip.is_broadcast_addr():
+            root_logger.warning("IP address %s might be broadcast address", ip)
+            # fixme: once when loggers will be fixed, we can remove this print
+            print(
+                "WARNING: IP address {} might be broadcast address".format(ip),
+                file=sys.stderr)
+
     update_txt = "debug\n"
     update_txt += ipautil.template_str(DELETE_TEMPLATE_A,
                                        dict(HOSTNAME=hostname))
