@@ -566,7 +566,8 @@ def add_records_for_host_validation(option_name, host, domain, ip_addresses, che
 
     for ip_address in ip_addresses:
         try:
-            ip = CheckedIPAddress(ip_address, match_local=False)
+            ip = CheckedIPAddress(
+                ip_address, match_local=False, allow_multicast=True)
         except Exception as e:
             raise errors.ValidationError(name=option_name, error=unicode(e))
 
@@ -597,7 +598,8 @@ def add_records_for_host(host, domain, ip_addresses, add_forward=True, add_rever
         ip_addresses = [ip_addresses]
 
     for ip_address in ip_addresses:
-        ip = CheckedIPAddress(ip_address, match_local=False)
+        ip = CheckedIPAddress(
+            ip_address, match_local=False, allow_multicast=True)
 
         if add_forward:
             add_forward_record(domain, host, unicode(ip))
