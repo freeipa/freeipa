@@ -413,8 +413,7 @@ def _validate_bind_aci(ugettext, bind_acis):
             bind_aci = bind_aci[1:]
 
         try:
-            ip = CheckedIPAddress(bind_aci, parse_netmask=True,
-                                  allow_network=True, allow_loopback=True)
+            CheckedIPAddress(bind_aci, parse_netmask=True, allow_loopback=True)
         except (netaddr.AddrFormatError, ValueError) as e:
             return unicode(e)
         except UnboundLocalError:
@@ -439,7 +438,7 @@ def _normalize_bind_aci(bind_acis):
 
         try:
             ip = CheckedIPAddress(bind_aci, parse_netmask=True,
-                                  allow_network=True, allow_loopback=True)
+                                  allow_loopback=True)
             if '/' in bind_aci:    # addr with netmask
                 netmask = "/%s" % ip.prefixlen
             else:
