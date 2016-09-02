@@ -132,8 +132,7 @@ class CheckedIPAddress(UnsafeIPAddress):
     Reserved or link-local addresses are never accepted.
     """
     def __init__(self, addr, match_local=False, parse_netmask=True,
-                 allow_loopback=False, allow_broadcast=False,
-                 allow_multicast=False):
+                 allow_loopback=False, allow_multicast=False):
 
         super(CheckedIPAddress, self).__init__(addr)
         if isinstance(addr, CheckedIPAddress):
@@ -199,14 +198,13 @@ class CheckedIPAddress(UnsafeIPAddress):
             elif self.version == 6:
                 self._net = netaddr.IPNetwork(str(self) + '/64')
 
-        if not allow_broadcast and (self.version == 4 and
-                                    self == self._net.broadcast):
-            raise ValueError("cannot use broadcast IP address {}".format(addr))
-
         self.prefixlen = self._net.prefixlen
 
     def is_network_addr(self):
         return self == self._net.network
+
+    def is_broadcast_addr(self):
+        return self.version == 4 and self == self._net.broadcast
 
 
 def valid_ip(addr):
