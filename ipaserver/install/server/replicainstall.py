@@ -13,6 +13,7 @@ import dns.reversename as dnsreversename
 import os
 import shutil
 import socket
+import sys
 import tempfile
 
 import six
@@ -735,6 +736,28 @@ def install_check(installer):
                 config.host_name, not installer.interactive, False,
                 options.ip_addresses)
 
+        for ip in config.ips:
+            if ip.is_network_addr():
+                root_logger.warning(
+                    "IP address %s might be network address", ip)
+                # fixme: once when loggers will be fixed, we can remove this
+                # print
+                print(
+                    "WARNING: IP address {} might be network address".format(
+                        ip),
+                    file=sys.stderr
+                )
+            if ip.is_broadcast_addr():
+                root_logger.warning(
+                    "IP address %s might be broadcast address", ip)
+                # fixme: once when loggers will be fixed, we can remove this
+                # print
+                print(
+                    "WARNING: IP address {} might be broadcast address".format(
+                        ip),
+                    file=sys.stderr
+                )
+
     except errors.ACIError:
         raise ScriptError("\nThe password provided is incorrect for LDAP server "
                           "%s" % config.master_host_name)
@@ -1305,6 +1328,26 @@ def promote_check(installer):
             config.ips = installutils.get_server_ip_address(
                 config.host_name, not installer.interactive,
                 False, options.ip_addresses)
+
+        for ip in config.ips:
+            if ip.is_network_addr():
+                root_logger.warning(
+                    "IP address %s might be network address", ip)
+                # fixme: once when loggers will be fixed, we can remove this
+                # print
+                print(
+                    "WARNING: IP address {} might be network address".format(
+                        ip), file=sys.stderr
+                )
+            if ip.is_broadcast_addr():
+                root_logger.warning(
+                    "IP address %s might be broadcast address", ip)
+                # fixme: once when loggers will be fixed, we can remove this
+                # print
+                print(
+                    "WARNING: IP address {} might be broadcast address".format(
+                        ip), file=sys.stderr
+                )
 
     except errors.ACIError:
         raise ScriptError("\nInsufficient privileges to promote the server.")
