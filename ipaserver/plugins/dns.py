@@ -3471,6 +3471,21 @@ class dnsrecord(LDAPObject):
             )
 
 
+# Make DNS record types available as objects in the API.
+# This is used by the CLI to get otherwise unavailable attributes of record
+# parts.
+for param in _dns_records:
+    register()(
+        type(
+            'dns{}record'.format(param.rrtype.lower()),
+            (Object,),
+            dict(
+                takes_params=(param.parts or ()) + (param.extra or ()),
+            )
+        )
+    )
+
+
 @register()
 class dnsrecord_split_parts(Command):
     NO_CLI = True

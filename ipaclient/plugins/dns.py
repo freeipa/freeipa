@@ -25,10 +25,10 @@ import copy
 
 from ipaclient.frontend import MethodOverride
 from ipalib import errors
-from ipalib.dns import (get_part_rrtype,
-                        get_record_rrtype,
+from ipalib.dns import (get_record_rrtype,
                         has_cli_options,
                         iterate_rrparams_by_parts,
+                        part_name_format,
                         record_name_format)
 from ipalib.parameters import Bool
 from ipalib.plugable import Registry
@@ -46,9 +46,9 @@ _rev_top_record_types = ('PTR', )
 _zone_top_record_types = ('NS', 'MX', 'LOC', )
 
 
-def __get_part_param(cmd, part, output_kw, default=None):
-    name = part.name
-    label = unicode(part.label)
+def __get_part_param(rrtype, cmd, part, output_kw, default=None):
+    name = part_name_format % (rrtype.lower(), part.name)
+    label = unicode(cmd.params[name].label)
     optional = not part.required
 
     output_kw[name] = cmd.prompt_param(part,
@@ -64,29 +64,31 @@ def prompt_parts(rrtype, cmd, mod_dnsvalue=None):
             name, mod_dnsvalue)['result']
 
     user_options = {}
-    parts = [p for p in cmd.params() if get_part_rrtype(p.name) == rrtype]
-    if not parts:
+    try:
+        rrobj = cmd.api.Object['dns{}record'.format(rrtype.lower())]
+    except KeyError:
         return user_options
 
-    for part_id, part in enumerate(parts):
+    for part_id, part in enumerate(rrobj.params()):
         if mod_parts:
             default = mod_parts[part_id]
         else:
             default = None
 
-        __get_part_param(cmd, part, user_options, default)
+        __get_part_param(rrtype, cmd, part, user_options, default)
 
     return user_options
 
 
 def prompt_missing_parts(rrtype, cmd, kw, prompt_optional=False):
     user_options = {}
-    parts = [p for p in cmd.params() if get_part_rrtype(p.name) == rrtype]
-    if not parts:
+    try:
+        rrobj = cmd.api.Object['dns{}record'.format(rrtype.lower())]
+    except KeyError:
         return user_options
 
-    for part in parts:
-        name = part.name
+    for part in rrobj.params():
+        name = part_name_format % (rrtype.lower(), part.name)
 
         if name in kw:
             continue
@@ -96,7 +98,7 @@ def prompt_missing_parts(rrtype, cmd, kw, prompt_optional=False):
             continue
 
         default = part.get_default(**kw)
-        __get_part_param(cmd, part, user_options, default)
+        __get_part_param(rrtype, cmd, part, user_options, default)
 
     return user_options
 
