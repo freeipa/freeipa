@@ -348,10 +348,12 @@ class TestProhibitReplicaUninstallation(IntegrationTest):
         result = self.replicas[0].run_command(['ipa-server-install',
                                                '--uninstall', '-U'],
                                               raiseonerr=False)
-        assert(result.returncode > 0), ("The replica was removed without "
-                                         "'--ignore-topology-disconnect' option")
-        assert("Uninstallation leads to disconnected topology"
-               in result.stdout_text), ("Expected error message was not found")
+        # Due to ticket 3230 server installation/uninstallation always returns
+        # 0 unless an uncaught exception occurs. Once this issue is properly
+        # addressed, please care to change expected return code in the
+        # following assert from 0 to something else.
+        assert_error(result, "Removal of '%s' leads to disconnected"
+                             " topology" % self.replicas[0].hostname, 0)
         self.replicas[0].run_command(['ipa-server-install', '--uninstall',
                                       '-U', '--ignore-topology-disconnect'])
 

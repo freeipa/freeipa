@@ -1190,7 +1190,7 @@ def run_server_del(host, server_to_delete, force=False,
 def assert_error(result, stderr_text, returncode=None):
     "Assert that `result` command failed and its stderr contains `stderr_text`"
     assert stderr_text in result.stderr_text, result.stderr_text
-    if returncode:
+    if returncode is not None:
         assert result.returncode == returncode
     else:
         assert result.returncode > 0
