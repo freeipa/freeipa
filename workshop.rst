@@ -61,7 +61,10 @@ Preparation
 ===========
 
 Some preparation is needed prior to the workshop.  The workshop is
-designed to be carried out in a Vagrant_ environment that consists of
+designed to be carried out in a Vagrant_ environment that configures
+three virtual machines with all software network configuration ready
+for the workshop.
+
 several VMs.  **The goal of the preparation** is to be able to
 successfully ``vagrant up`` the VMs as the first step of the
 workshop.
@@ -286,8 +289,8 @@ On ``server``, start the FreeIPA server installation program::
 
   [server]$ sudo ipa-server-install --no-host-dns --mkhomedir
 
-The ``--no-host-dns`` argument is needed because there is no DNS PTR
-resolution for the Vagrant environment.  For production deployment,
+The ``--no-host-dns`` argument is needed because there are no reverse
+DNS records for the Vagrant environment.  For production deployment,
 this important sanity check should not be skipped. The ``--mkhomedir`` 
 flag configure PAM to create missing home directories when users log 
 into the host for the first time. FreeIPA supports automount so 
@@ -395,6 +398,8 @@ The FreeIPA server is now set up and you are ready to begin
 enrolling client machines, creating users, managing services, and
 more!
 
+To prepare for the next unit, exit the ``server`` SSH session (but
+do not shut the VM down).
 
 
 Unit 2: Enrolling client machines
@@ -466,18 +471,20 @@ Visit ``https://server.ipademo.local/``.  You'll get a TLS
 *untrusted issuer* warning which you can dismiss (by adding a temporary
 exception).  Log in as ``admin``.
 
-Welcome to the FreeIPA web UI.  Most management activities can be
-performed here, or via the ``ipa`` CLI program.  See if you can work
-out how to add a *User Group* (let's call it ``sysadmin``) and a
-*User* (give her the username ``alice``).  Make ``alice`` a member
-of the ``sysadmin`` group.
+Welcome to the FreeIPA Web UI.  Most management activities can be
+performed here, or via the ``ipa`` CLI program.  Use the Web UI to
+perform the following actions:
+
+1. Add a *User* with the username ``alice``.
+2. Add a *User Group* for system administrators named ``sysadmin``.
+3. Add ``alice`` to the ``sysadmin`` group.
 
 
 CLI
 ---
 
-On ``server``, make sure you have a Kerberos ticket for ``admin``
-(reminder: ``kinit admin``).
+Make sure you have a Kerberos ticket for ``admin`` (reminder:
+``kinit admin``).
 
 Most FreeIPA adminstrative actions can be carried out using the
 ``ipa`` CLI program.  Let's see what commands are available::
@@ -496,7 +503,7 @@ shell, so you can type a partial command and press ``<TAB>`` a
 couple of times to see what commands are available, e.g. all the
 commands starting with ``cert-``::
 
-  [client]$ ipa cert-
+  [server]$ ipa cert-<TAB>
   cert-find         cert-request      cert-show
   cert-remove-hold  cert-revoke       cert-status
 
@@ -506,7 +513,7 @@ general overview of a plugin by running ``ipa help <plugin>``, and
 specific information on a particular command by running ``ipa help
 <command>``.
 
-Let's add the user *bob* from the CLI.  See if you can work out how
+Add a user named ``bob`` from the CLI.  See if you can work out how
 to do this using the CLI help commands.  (**hint**: the ``user``
 plugin provides the command).
 
@@ -548,8 +555,8 @@ password::
   Enter it again: 
 
 
-Now ``bob`` has a TGT (run ``klist`` to confirm) which hi can use to
-log in to other hosts and services.  Try logging into
+Now ``bob`` has a TGT (run ``klist`` to confirm) which he can use to
+authenticate himself to other hosts and services.  Try logging into
 ``client.ipademo.local``::
 
   [server]$ ssh bob@client.ipademo.local
@@ -581,7 +588,7 @@ Unit 4: Host-based access control (HBAC)
 FreeIPA's *host-based access control* (HBAC) feature allows you to
 define policies that restrict access to hosts or services based on
 the user attempting to log in and that user's groups, the host that
-they are trying to access (or its *host groups*), and (optionally)
+they are trying to access (or its *Host Groups*), and (optionally)
 the service being accessed.
 
 In this unit, we will define an HBAC policy that restricts
@@ -593,12 +600,11 @@ Adding a host group
 -------------------
 
 Instead of defining the HBAC rule to directly talk about
-``client.ipademo.local``, create a *host group* called
-``webservers`` and make ``client.ipademo.local`` a member.
-
-Explore the Web UI to work out how to do this, or use the CLI (you
-will need to ``kinit admin``; see if you can work out what plugin
-provides the host group functionality).
+``client.ipademo.local``, create a *Host Group* named ``webservers``
+and add ``client.ipademo.local`` to it.  You can do this via the Web
+UI or the ``ipa`` CLI program (don't forget to ``kinit admin``; see
+if you can work out what plugin provides the host group
+functionality).
 
 **Hint:** if you use the CLI will need to run two commands - one to
 create the host group, and one to add ``client.ipademo.local`` as a
