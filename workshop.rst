@@ -22,13 +22,13 @@ X.509 certificates for services.
 Curriculum overview
 -------------------
 
-- `Module 1: Installing the FreeIPA server`_
-- `Module 2: Enrolling client machines`_
-- `Module 3: User management and Kerberos authentication`_
-- `Module 4: Host-based access control (HBAC)`_
-- `Module 5: Web application authentication and authorisation`_
-- `Module 6: Certificate management`_
-- `Module 7: Replica installation`_
+- `Unit 1: Installing the FreeIPA server`_
+- `Unit 2: Enrolling client machines`_
+- `Unit 3: User management and Kerberos authentication`_
+- `Unit 4: Host-based access control (HBAC)`_
+- `Unit 5: Web application authentication and authorisation`_
+- `Unit 6: Certificate management`_
+- `Unit 7: Replica installation`_
 
 
 Editing files on VMs
@@ -238,7 +238,7 @@ Add hosts file entries
 
 *This step is necessary if you want to access the FreeIPA Web UI in
 the VM from a browser on your host, but otherwise this step is optional. All
-workshop modules can be completed using the CLI.*
+workshop units can be completed using the CLI.*
 
 Add the following entries to your hosts file::
 
@@ -253,11 +253,12 @@ On Windows, edit ``C:\Windows\System32\system\drivers\etc\hosts`` as
 *Administrator*.
 
 
-Module 1: Installing the FreeIPA server
+Unit 1: Installing the FreeIPA server
 =======================================
 
-In this module you will install the FreeIPA server, which you will
-use for the rest of the workshop.
+In this unit you will install a FreeIPA server.  All tasks in
+subsequent units require the services and data provided by the
+server.
 
 First, in the directory containing the ``Vagrantfile`` (the clone of
 this repository), execute ``vagrant up`` to bring up the Vagrant
@@ -395,10 +396,11 @@ enrolling client machines, creating users, managing services, and
 more!
 
 
-Module 2: Enrolling client machines
+
+Unit 2: Enrolling client machines
 ===================================
 
-In this module, you will enrol a *host* as a client of your FreeIPA
+In this unit, you will enrol a *host* as a client of your FreeIPA
 domain.  This means that *users* in your FreeIPA realm (or Active
 Directory realms for which there is a trust with FreeIPA) can log
 into the client machine (subject to access policies) and that *services*
@@ -450,10 +452,10 @@ logged onto the host can also acquire Kerberos tickets for accessing
 *services* in your domain.
 
 
-Module 3: User management and Kerberos authentication
+Unit 3: User management and Kerberos authentication
 =====================================================
 
-This module introduces the ``ipa`` CLI program and the web
+This unit introduces the ``ipa`` CLI program and the web
 interface.  We will perform some simple administrative tasks: adding
 groups and users and managing group membership.
 
@@ -573,7 +575,7 @@ is a true *single sign-on* protocol!
 
 
 
-Module 4: Host-based access control (HBAC)
+Unit 4: Host-based access control (HBAC)
 ==========================================
 
 FreeIPA's *host-based access control* (HBAC) feature allows you to
@@ -582,7 +584,7 @@ the user attempting to log in and that user's groups, the host that
 they are trying to access (or its *host groups*), and (optionally)
 the service being accessed.
 
-In this module, we will define an HBAC policy that restricts
+In this unit, we will define an HBAC policy that restricts
 access to ``client.ipademo.local`` to members of the
 ``sysadmin`` user group.
 
@@ -708,17 +710,17 @@ Then try ``alice``::
   [alice@client]$ 
 
 
-Module 5: Web application authentication and authorisation
+Unit 5: Web application authentication and authorisation
 ==========================================================
 
 You can configure many kinds of applications to rely on FreeIPA's
 centralised authentication, including web applications.  In this
-module you will configure the Apache web server to use Kerberos
+unit you will configure the Apache web server to use Kerberos
 authentication to authenticate users, PAM to enforce HBAC rules, and
 ``mod_lookup_identity`` to populate the request environment with
 user attributes.
 
-All activities in this module take place on ``client`` unless
+All activities in this unit take place on ``client`` unless
 otherwise specified.
 
 The demo web application is trivial.  It just reads its request
@@ -944,7 +946,7 @@ information that was injected into the request environment by
 HBAC for web services
 ---------------------
 
-The final task for this module is to configure Apache to use FreeIPA's HBAC
+The final task for this unit is to configure Apache to use FreeIPA's HBAC
 rules for access control.  We will use mod_authnz_pam_ in
 conjunction with SSSD's PAM responder to achieve this.
 
@@ -1014,12 +1016,12 @@ a member of the ``sysadmin`` group.  What happens when you are
 authenticated as ``bob`` instead?
 
 
-Module 6: Certificate management
+Unit 6: Certificate management
 ================================
 
 You probably noticed that the web service was not hosted over HTTPS,
 so there is no TLS-based authentication or confidentiality.  In this
-module, we will issue an X.509 certificate for the web service via
+unit, we will issue an X.509 certificate for the web service via
 the *certmonger* program.
 
 Certmonger supports multiple CAs including FreeIPA's CA, and can
@@ -1158,11 +1160,11 @@ Restart Apache and make a request to the app over HTTPS::
     REMOTE_PORT: 47894
 
 
-Module 7: Replica installation
+Unit 7: Replica installation
 ==============================
 
 FreeIPA is designed to be run in a replicated multi-master
-environment.  In this module, we will deploy a single FreeIPA
+environment.  In this unit, we will deploy a single FreeIPA
 replica.  For recommended production topologies, see
 http://www.freeipa.org/page/Deployment_Recommendations#Replicas.
 
@@ -1173,7 +1175,7 @@ host**.
 As of FreeIPA 4.3, replica installation is accomplished by
 *promoting* an enrolled client machine to a server.
 
-SSH to the ``replica`` VM and enrol it per `Module 2: Enrolling
+SSH to the ``replica`` VM and enrol it per `Unit 2: Enrolling
 client machines`_.
 
 Now promote the client to server.  We will set up the replica
