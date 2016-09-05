@@ -175,6 +175,8 @@ class dnsrecord_add(MethodOverride):
             if rrtype is None:
                 return
 
+            rrtype = rrtype.upper()
+
             try:
                 name = record_name_format % rrtype.lower()
                 param = self.params[name]
