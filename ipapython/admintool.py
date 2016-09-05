@@ -38,11 +38,12 @@ class ScriptError(Exception):
     def __init__(self, msg='', rval=1):
         if msg is None:
             msg = ''
-        self.msg = msg
+        super(ScriptError, self).__init__(msg)
         self.rval = rval
 
-    def __str__(self):
-        return self.msg
+    @property
+    def msg(self):
+        return str(self)
 
 
 class AdminTool(object):
