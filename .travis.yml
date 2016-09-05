@@ -1,0 +1,16 @@
+services:
+    - docker
+
+before_install:
+    - pip install pep8
+
+script:
+    - >
+        if [[ "$TRAVIS_EVENT_TYPE" == "pull_request" ]];
+        then
+            git diff origin/${TRAVIS_BRANCH} -U0 | pep8 --diff;
+        fi
+    - >
+        docker run -v $PWD:/freeipa -w /freeipa
+        martbab/freeipa-fedora-builder:${TRAVIS_BRANCH}-latest
+        /bin/bash -c 'dnf builddep -y --spec freeipa.spec.in && make rpms'
