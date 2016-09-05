@@ -80,7 +80,7 @@ class CustodiaClient(object):
         url = 'https://%s/ipa/keys/%s' % (self.server, keyname)
 
         # Prepare signed/encrypted request
-        encalg = ('RSA1_5', 'A256CBC-HS512')
+        encalg = ('RSA-OAEP', 'A256CBC-HS512')
         request = self.kemcli.make_request(keyname, encalg=encalg)
 
         # Prepare Authentication header
