@@ -173,8 +173,13 @@ class CheckedIPAddress(UnsafeIPAddress):
             iface = None
             for interface in netifaces.interfaces():
                 for ifdata in netifaces.ifaddresses(interface).get(family, []):
+
+                    # link-local addresses contain '%suffix' that causes parse
+                    # errors in IPNetwork
+                    ifaddr = ifdata['addr'].split(u'%', 1)[0]
+
                     ifnet = netaddr.IPNetwork('{addr}/{netmask}'.format(
-                        addr=ifdata['addr'],
+                        addr=ifaddr,
                         netmask=ifdata['netmask']
                     ))
                     if ifnet == self._net or (
