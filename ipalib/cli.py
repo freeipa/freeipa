@@ -1101,7 +1101,7 @@ class cli(backend.Executioner):
         cmd = self.get_command(argv)
         if cmd is None:
             return
-        name = cmd.name
+        name = cmd.full_name
         kw = self.parse(cmd, argv[1:])
         if not isinstance(cmd, frontend.Local):
             self.create_context()
