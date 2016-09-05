@@ -174,6 +174,18 @@ class TestCLIParsing(object):
                 sshfp_part_fingerprint=sshfp_parts[2],
             )
 
+        # test with lowercase record type
+        with self.fake_stdin('sshfp\n%d\n%d\n%s' % sshfp_parts):
+            self.check_command(
+                'dnsrecord-add %s sshfp' % TEST_ZONE,
+                'dnsrecord_add',
+                dnszoneidnsname=TEST_ZONE,
+                idnsname=u'sshfp',
+                sshfp_part_fp_type=sshfp_parts[0],
+                sshfp_part_algorithm=sshfp_parts[1],
+                sshfp_part_fingerprint=sshfp_parts[2],
+            )
+
         # NOTE: when a DNS record part is passed via command line, it is not
         # converted to its base type when transfered via wire
         with self.fake_stdin('%d\n%s' % (sshfp_parts[1], sshfp_parts[2])):
