@@ -381,7 +381,7 @@ class TestOldReplicaWorksAfterDomainUpgrade(IntegrationTest):
 
 class TestWrongClientDomain(IntegrationTest):
     topology = "star"
-    num_clients = 1
+    num_replicas = 1
     domain_name = 'exxample.test'
 
     @classmethod
@@ -389,16 +389,16 @@ class TestWrongClientDomain(IntegrationTest):
         tasks.install_master(cls.master, domain_level=cls.domain_level)
 
     def teardown_method(self, method):
-        self.clients[0].run_command(['ipa-client-install',
+        self.replicas[0].run_command(['ipa-client-install',
                                      '--uninstall', '-U'],
                                     raiseonerr=False)
         tasks.kinit_admin(self.master)
         self.master.run_command(['ipa', 'host-del',
-                                 self.clients[0].hostname],
+                                 self.replicas[0].hostname],
                                 raiseonerr=False)
 
     def test_wrong_client_domain(self):
-        client = self.clients[0]
+        client = self.replicas[0]
         client.run_command(['ipa-client-install', '-U',
                             '--domain', self.domain_name,
                             '--realm', self.master.domain.realm,
@@ -415,7 +415,7 @@ class TestWrongClientDomain(IntegrationTest):
                      "'%s'" % (self.domain_name, self.master.domain.name))
 
     def test_upcase_client_domain(self):
-        client = self.clients[0]
+        client = self.replicas[0]
         result = client.run_command(['ipa-client-install', '-U', '--domain',
                                      self.master.domain.name.upper(), '-w',
                                      self.master.config.admin_password,
