@@ -29,6 +29,8 @@ Curriculum overview
 - `Unit 5: Web application authentication and authorisation`_
 - `Unit 6: Certificate management`_
 - `Unit 7: Replica installation`_
+- `Unit 8: Sudo rule management`_
+- `Unit 9: SELinux User Maps`_
 
 
 Editing files on VMs
