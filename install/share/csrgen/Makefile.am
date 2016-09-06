@@ -12,6 +12,7 @@ rule_DATA =				\
 	rules/dataEmail.json		\
 	rules/dataHostCN.json		\
 	rules/dataUsernameCN.json	\
+	rules/dataSubjectBase.json	\
 	rules/syntaxSAN.json		\
 	rules/syntaxSubject.json	\
 	$(NULL)
@@ -21,7 +22,6 @@ template_DATA =			\
 	templates/certutil_base.tmpl	\
 	templates/openssl_base.tmpl	\
 	templates/openssl_macros.tmpl	\
-	templates/ipa_macros.tmpl	\
 	$(NULL)
 
 EXTRA_DIST =				\

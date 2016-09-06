@@ -2,7 +2,8 @@
     {
         "syntax": "syntaxSubject",
         "data": [
-            "dataHostCN"
+            "dataHostCN",
+            "dataSubjectBase"
         ]
     },
     {
