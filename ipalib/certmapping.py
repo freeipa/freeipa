@@ -112,16 +112,16 @@ class Formatter(object):
 
         return template
 
-    def _wrap_required(self, rule, name):
+    def _wrap_required(self, rule, description):
         template = '{%% filter required("%s") %%}%s{%% endfilter %%}' % (
-            name, rule)
+            description, rule)
 
         return template
 
     def _prepare_data_rule(self, data_rule):
         return self._wrap_rule(data_rule.template, 'data')
 
-    def _prepare_syntax_rule(self, syntax_rule, data_rules, name):
+    def _prepare_syntax_rule(self, syntax_rule, data_rules, description):
         root_logger.debug('Syntax rule template: %s' % syntax_rule.template)
         template = self.jinja2.from_string(
             syntax_rule.template, globals=self.passthrough_globals)
@@ -135,7 +135,7 @@ class Formatter(object):
 
         prepared_template = self._wrap_rule(rendered, 'syntax')
         if is_required:
-            prepared_template = self._wrap_required(prepared_template, name)
+            prepared_template = self._wrap_required(prepared_template, description)
 
         return prepared_template
 
@@ -173,10 +173,10 @@ class OpenSSLFormatter(Formatter):
 
         return {'parameters': parameters, 'extensions': extensions}
 
-    def _prepare_syntax_rule(self, syntax_rule, data_rules, name):
+    def _prepare_syntax_rule(self, syntax_rule, data_rules, description):
         """Overrides method to pull out whether rule is an extension or not."""
         prepared_template = super(OpenSSLFormatter, self)._prepare_syntax_rule(
-            syntax_rule, data_rules, name)
+            syntax_rule, data_rules, description)
         is_extension = syntax_rule.options.get('extension', False)
         return self.SyntaxRule(prepared_template, is_extension)
 
