@@ -1,0 +1,15 @@
+{
+  "rules": [
+    {
+      "helper": "openssl",
+      "template": "{{config.ipacertificatesubjectbase.0}}"
+    },
+    {
+      "helper": "certutil",
+      "template": "{{config.ipacertificatesubjectbase.0|quote}}"
+    }
+  ],
+  "options": {
+    "data_source": "config.ipacertificatesubjectbase.0"
+  }
+}

@@ -2,11 +2,14 @@
   "rules": [
     {
       "helper": "openssl",
-      "template": "{{ipa.datafield(config.ipacertificatesubjectbase.0)}}\nCN={{ipa.datafield(subject.uid.0)}}"
+      "template": "CN={{subject.uid.0}}"
     },
     {
       "helper": "certutil",
-      "template": "CN={{ipa.datafield(subject.uid.0)|quote}},{{ipa.datafield(config.ipacertificatesubjectbase.0)|quote}}"
+      "template": "CN={{subject.uid.0|quote}}"
     }
-  ]
+  ],
+  "options": {
+    "data_source": "subject.uid.0"
+  }
 }

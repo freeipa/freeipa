@@ -58,8 +58,6 @@ class Formatter(object):
             keep_trailing_newline=True, undefined=IndexableUndefined)
 
         self.passthrough_globals = {}
-        self._define_passthrough('ipa.syntaxrule')
-        self._define_passthrough('ipa.datarule')
 
     def _define_passthrough(self, call):
 
@@ -86,8 +84,15 @@ class Formatter(object):
         for description, syntax_rule, data_rules in rules:
             data_rules_prepared = [
                 self._prepare_data_rule(rule) for rule in data_rules]
+
+            data_sources = []
+            for rule in data_rules:
+                data_source = rule.options.get('data_source')
+                if data_source:
+                    data_sources.append(data_source)
+
             syntax_rules.append(self._prepare_syntax_rule(
-                syntax_rule, data_rules_prepared, description))
+                syntax_rule, data_rules_prepared, description, data_sources))
 
         template_params = self._get_template_params(syntax_rules)
         base_template = self.jinja2.get_template(
@@ -106,11 +111,9 @@ class Formatter(object):
 
         return combined_template
 
-    def _wrap_rule(self, rule, rule_type):
-        template = '{%% call ipa.%srule() %%}%s{%% endcall %%}' % (
-            rule_type, rule)
-
-        return template
+    def _wrap_conditional(self, rule, condition):
+        rule = '{%% if %s %%}%s{%% endif %%}' % (condition, rule)
+        return rule
 
     def _wrap_required(self, rule, description):
         template = '{%% filter required("%s") %%}%s{%% endfilter %%}' % (
@@ -119,9 +122,15 @@ class Formatter(object):
         return template
 
     def _prepare_data_rule(self, data_rule):
-        return self._wrap_rule(data_rule.template, 'data')
+        template = data_rule.template
 
-    def _prepare_syntax_rule(self, syntax_rule, data_rules, description):
+        data_source = data_rule.options.get('data_source')
+        if data_source:
+            template = self._wrap_conditional(template, data_source)
+
+        return template
+
+    def _prepare_syntax_rule(self, syntax_rule, data_rules, description, data_sources):
         root_logger.debug('Syntax rule template: %s' % syntax_rule.template)
         template = self.jinja2.from_string(
             syntax_rule.template, globals=self.passthrough_globals)
@@ -133,7 +142,10 @@ class Formatter(object):
             raise errors.CertificateMappingError(reason=_(
                 'Template error when formatting certificate data'))
 
-        prepared_template = self._wrap_rule(rendered, 'syntax')
+        combinator = ' %s ' % syntax_rule.options.get(
+            'data_source_combinator', 'or')
+        condition = combinator.join(data_sources)
+        prepared_template = self._wrap_conditional(rendered, condition)
         if is_required:
             prepared_template = self._wrap_required(prepared_template, description)
 
@@ -173,10 +185,10 @@ class OpenSSLFormatter(Formatter):
 
         return {'parameters': parameters, 'extensions': extensions}
 
-    def _prepare_syntax_rule(self, syntax_rule, data_rules, description):
+    def _prepare_syntax_rule(self, syntax_rule, data_rules, description, data_sources):
         """Overrides method to pull out whether rule is an extension or not."""
         prepared_template = super(OpenSSLFormatter, self)._prepare_syntax_rule(
-            syntax_rule, data_rules, description)
+            syntax_rule, data_rules, description, data_sources)
         is_extension = syntax_rule.options.get('extension', False)
         return self.SyntaxRule(prepared_template, is_extension)
 
