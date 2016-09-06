@@ -83,8 +83,8 @@ def connect(ldapi=False, realm=None, fqdn=None, dm_password=None, pw_name=None):
 class BadSyntax(installutils.ScriptError):
     def __init__(self, value):
         self.value = value
-        self.msg = "LDAPUpdate: syntax error: \n  %s" % value
-        self.rval = 1
+        super(BadSyntax, self).__init__(
+            msg="LDAPUpdate: syntax error: \n  %s" % value, rval=1)
 
     def __str__(self):
         return repr(self.value)
