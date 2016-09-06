@@ -1219,6 +1219,13 @@ def run_server_del(host, server_to_delete, force=False,
     return host.run_command(args, raiseonerr=False)
 
 
+def run_certutil(host, args, reqdir, stdin=None, raiseonerr=True):
+    new_args = [paths.CERTUTIL, "-d", reqdir]
+    new_args = " ".join(new_args + args)
+    return host.run_command(new_args, raiseonerr=raiseonerr,
+                            stdin_text=stdin)
+
+
 def assert_error(result, stderr_text, returncode=None):
     "Assert that `result` command failed and its stderr contains `stderr_text`"
     assert stderr_text in result.stderr_text, result.stderr_text
