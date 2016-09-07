@@ -898,7 +898,8 @@ class host_mod(LDAPUpdate):
         certs_der = [x509.normalize_certificate(c) for c in certs]
 
         # revoke removed certificates
-        if certs and self.api.Command.ca_is_enabled()['result']:
+        ca_is_enabled = self.api.Command.ca_is_enabled()['result']
+        if 'usercertificate' in options and ca_is_enabled:
             try:
                 entry_attrs_old = ldap.get_entry(dn, ['usercertificate'])
             except errors.NotFound:
