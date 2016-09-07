@@ -117,6 +117,9 @@ gen_subtree() {
 
 gen_cert server server-selfsign "CN=$server1,O=Self-signed"
 gen_cert server replica-selfsign "CN=$server2,O=Self-signed"
+gen_cert server noca "CN=$server1,O=No-CA"
 gen_subtree ca1 'Example Organization'
 gen_subtree ca1/subca 'Subsidiary Example Organization'
 gen_subtree ca2 'Other Example Organization'
+gen_subtree ca3 'Unknown Organization'
+certutil -D -d "$dbdir" -n ca3
