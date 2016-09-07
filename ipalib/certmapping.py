@@ -130,7 +130,8 @@ class Formatter(object):
 
         return template
 
-    def _prepare_syntax_rule(self, syntax_rule, data_rules, description, data_sources):
+    def _prepare_syntax_rule(
+            self, syntax_rule, data_rules, description, data_sources):
         root_logger.debug('Syntax rule template: %s' % syntax_rule.template)
         template = self.jinja2.from_string(
             syntax_rule.template, globals=self.passthrough_globals)
@@ -186,7 +187,8 @@ class OpenSSLFormatter(Formatter):
 
         return {'parameters': parameters, 'extensions': extensions}
 
-    def _prepare_syntax_rule(self, syntax_rule, data_rules, description, data_sources):
+    def _prepare_syntax_rule(
+            self, syntax_rule, data_rules, description, data_sources):
         """Overrides method to pull out whether rule is an extension or not."""
         prepared_template = super(OpenSSLFormatter, self)._prepare_syntax_rule(
             syntax_rule, data_rules, description, data_sources)
