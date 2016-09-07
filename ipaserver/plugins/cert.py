@@ -1266,17 +1266,15 @@ class cert_find(Search, CertMethod):
                     rule)
                 filters.append(filter)
 
-        cert = options.get('certificate')
-        if cert is not None:
-            filter = ldap.make_filter_from_attr('usercertificate', cert)
-            filters.append(filter)
-
         result = collections.OrderedDict()
         complete = bool(filters)
 
-        if cert is None:
+        cert = options.get('certificate')
+        if cert is not None:
+            filter = ldap.make_filter_from_attr('usercertificate', cert)
+        else:
             filter = '(usercertificate=*)'
-            filters.append(filter)
+        filters.append(filter)
 
         filter = ldap.combine_filters(filters, ldap.MATCH_ALL)
         try:
