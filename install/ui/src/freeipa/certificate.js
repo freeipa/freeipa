@@ -244,43 +244,118 @@ IPA.cert.download_dialog = function(spec) {
     return that;
 };
 
-IPA.cert.revoke_dialog = function(spec) {
-
+IPA.cert.revocation_reason_select_widget = function(spec) {
     spec = spec || {};
-    spec.width = spec.width || 500;
-    spec.ok_label = spec.ok_label || '@i18n:buttons.revoke';
 
-    var that = IPA.confirm_dialog(spec);
-    IPA.table_mixin().apply(that);
+    var that = IPA.select_widget(spec);
 
-    that.get_reason = function() {
-        return that.select.val();
-    };
-
-    that.create_content = function() {
-
-        var table = that.create_layout().appendTo(that.container);
-
-        var tr = that.create_row().appendTo(table);
-        var td = that.create_cell('@i18n:objects.cert.note', ':').appendTo(tr);
-        td = that.create_cell('@i18n:objects.cert.revoke_confirmation')
-            .appendTo(tr);
-
-        tr = that.create_row().appendTo(table);
-        td = that.create_header_cell('@i18n:objects.cert.reason', ':')
-            .appendTo(tr);
-        td = that.create_cell().appendTo(tr);
-
-        that.select = $('<select/>').appendTo(td);
+    that.create_options = function() {
         for (var i=0; i<IPA.cert.CRL_REASON.length; i++) {
             var reason = IPA.cert.CRL_REASON[i];
             if (!reason) continue;
-            $('<option/>', {
-                'value': i,
-                'html': text.get('@i18n:objects.cert.'+reason)
-            }).appendTo(that.select);
+            var label = text.get('@i18n:objects.cert.'+reason);
+            that.options.push({ label: label, value: i});
         }
+
+        that.select_create_options();
     };
+
+    return that;
+};
+
+IPA.cert.revoke_dialog = function(spec, no_init) {
+
+    spec = spec || {};
+
+    spec.width = spec.width || 500;
+    spec.sections = [
+        {
+            name: 'note',
+            show_header: false,
+            fields: [
+                {
+                    field: false,
+                    $type: 'html',
+                    name: 'note',
+                    html: ''
+                }
+            ],
+            layout:
+            {
+                $factory: widget_mod.fluid_layout,
+                widget_cls: "col-sm-12 controls",
+                label_cls: "hide"
+            }
+        },
+        {
+            name: 'revocation',
+            show_header: false,
+            fields: [
+                {
+                    $type: 'revocation_reason_select',
+                    name: 'revocation_reason',
+                    label: '@i18n:objects.cert.find_revocation_reason'
+                },
+                {
+                    $type: 'entity_select',
+                    label: '@i18n:objects.cert.ca',
+                    name: 'cacn',
+                    empty_option: false,
+                    other_entity: 'ca',
+                    other_field: 'cn'
+                }
+            ]
+        }
+    ];
+
+    var that = IPA.dialog(spec);
+
+    that.open = function() {
+        that.dialog_open();
+        that.set_cacn(that.facet.state.cacn);
+
+    };
+
+    that.get_reason = function() {
+        return that.get_field('revocation_reason').value[0];
+    };
+
+    that.set_cacn = function(cacn) {
+        that.get_field('cacn').set_value([cacn]);
+    };
+
+    that.get_cacn = function() {
+        return that.get_field('cacn').value[0];
+    };
+
+    that.create_content = function() {
+        that.dialog_create_content();
+
+    };
+
+    that.init = function() {
+        var note = text.get('@i18n:objects.cert.revoke_confirmation');
+        that.widgets.get_widget('note.note').html = note;
+
+        that.create_button({
+            name: 'revoke',
+            label: '@i18n:buttons.revoke',
+            click: function() {
+                that.on_ok();
+                that.close();
+            }
+        });
+
+        that.create_button({
+            name: 'cancel',
+            label: '@i18n:buttons.cancel',
+            click: function() {
+                that.close();
+            }
+        });
+    };
+
+    if (!no_init) that.init();
 
     return that;
 };
@@ -718,7 +793,7 @@ IPA.cert.request_action = function(spec) {
     return that;
 };
 
-IPA.cert.perform_revoke = function(spec, sn, revocation_reason) {
+IPA.cert.perform_revoke = function(spec, sn, revocation_reason, cacn) {
 
     spec.hide_activity_icon = spec.hide_activity_icon || false;
 
@@ -728,7 +803,8 @@ IPA.cert.perform_revoke = function(spec, sn, revocation_reason) {
         hide_activity_icon: spec.hide_activity_icon,
         args: [ sn ],
         options: {
-            'revocation_reason': revocation_reason
+            revocation_reason: revocation_reason,
+            cacn: cacn
         },
         notify_activity_start: spec.notify_activity_start,
         notify_activity_end: spec.notify_activity_end,
@@ -782,7 +858,8 @@ IPA.cert.revoke_action = function(spec) {
 
         var sn = facet.certificate.serial_number;
         var revocation_reason = that.dialog.get_reason();
-        IPA.cert.perform_revoke(spec, sn, revocation_reason);
+        var cacn = that.dialog.get_cacn();
+        IPA.cert.perform_revoke(spec, sn, revocation_reason, cacn);
     };
 
     return that;
@@ -835,19 +912,22 @@ IPA.cert.remove_hold_action = function(spec) {
             }
         };
 
-        IPA.cert.perform_remove_hold(spec, facet.certificate.serial_number);
-
+        IPA.cert.perform_remove_hold(spec, facet.certificate.serial_number,
+                            facet.state.cacn);
     };
 
     return that;
 };
 
-IPA.cert.perform_remove_hold = function(spec, sn) {
+IPA.cert.perform_remove_hold = function(spec, sn, cacn) {
 
     rpc.command({
         entity: 'cert',
         method: 'remove_hold',
         args: [sn],
+        options: {
+            cacn: cacn
+        },
         on_success: spec.on_success
     }).execute();
 };
@@ -1360,13 +1440,15 @@ IPA.cert.cert_widget = function(spec) {
                 };
 
                 var sn = that.certificate.serial_number;
+                var cacn = dialog.get_cacn();
                 var revocation_reason = dialog.get_reason();
-                IPA.cert.perform_revoke(command_spec, sn, revocation_reason);
+                IPA.cert.perform_revoke(command_spec, sn, revocation_reason, cacn);
             }
         };
 
         var dialog = IPA.cert.revoke_dialog(spec);
         dialog.open();
+        dialog.set_cacn(that.certificate.cacn);
     };
 
     that.perform_remove_hold = function() {
@@ -1392,7 +1474,8 @@ IPA.cert.cert_widget = function(spec) {
                 };
 
                 var sn =  that.certificate.serial_number;
-                IPA.cert.perform_remove_hold(command_spec, sn);
+                var cacn = that.certificate.cacn;
+                IPA.cert.perform_remove_hold(command_spec, sn, cacn);
             }
         };
 
@@ -1834,6 +1917,7 @@ exp.register = function() {
     f.register('certificate_status', IPA.cert.status_field);
     f.register('revocation_reason', IPA.revocation_reason_field);
     w.register('revocation_reason', IPA.text_widget);
+    w.register('revocation_reason_select', IPA.cert.revocation_reason_select_widget);
 
     a.register('cert_request', IPA.cert.request_action);
     a.register('download_cert', IPA.cert.download_action);
