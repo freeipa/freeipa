@@ -13,38 +13,43 @@ from ipalib.plugable import Registry
 from ipalib.text import _
 from ipaserver.plugins.certprofile import validate_profile_id
 
-register = Registry()
-
 import six
 
 if six.PY3:
     unicode = str
 
+register = Registry()
+
 __doc__ = _("""
 Commands to build certificate requests automatically
 """)
+
 
 @register()
 class cert_get_requestdata(Command):
     __doc__ = _('Gather data for a certificate signing request.')
 
     takes_options = (
-        Principal('principal',
+        Principal(
+            'principal',
             label=_('Principal'),
             doc=_('Principal for this certificate (e.g.'
                   ' HTTP/test.example.com)'),
         ),
-        Str('profile_id',
+        Str(
+            'profile_id',
             validate_profile_id,
             label=_('Profile ID'),
             doc=_('Certificate Profile to use'),
         ),
-        Str('helper',
+        Str(
+            'helper',
             label=_('Name of CSR generation tool'),
             doc=_('Name of tool (e.g. openssl, certutil) that will be used to'
                   ' create CSR'),
         ),
-        Str('out?',
+        Str(
+            'out?',
             doc=_('Write CSR generation script to file'),
         ),
     )
@@ -63,7 +68,6 @@ class cert_get_requestdata(Command):
             label=_('Generation script'),
         )
     )
-
 
     def forward(self, *args, **options):
         if 'out' in options:

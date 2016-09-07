@@ -9,6 +9,7 @@ from jinja2.ext import Extension
 from ipalib import errors
 from ipalib.text import _
 
+
 class IPAExtension(Extension):
     """Jinja2 extension providing useful features for cert mapping rules."""
 

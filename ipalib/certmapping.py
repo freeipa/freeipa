@@ -147,7 +147,8 @@ class Formatter(object):
         condition = combinator.join(data_sources)
         prepared_template = self._wrap_conditional(rendered, condition)
         if is_required:
-            prepared_template = self._wrap_required(prepared_template, description)
+            prepared_template = self._wrap_required(
+                prepared_template, description)
 
         return prepared_template
 
@@ -244,7 +245,7 @@ class FileRuleProvider(RuleProvider):
             except IndexError:
                 raise errors.NotFound(
                     reason=_('No transformation in "%(ruleset)s" rule supports'
-                            ' helper "%(helper)s"') %
+                             ' helper "%(helper)s"') %
                     {'ruleset': rule_name, 'helper': helper})
 
             options = {}
@@ -252,7 +253,8 @@ class FileRuleProvider(RuleProvider):
                 options.update(ruleset['options'])
             if 'options' in rule:
                 options.update(rule['options'])
-            self.rules[(rule_name, helper)] = Rule(rule_name, rule['template'], options)
+            self.rules[(rule_name, helper)] = Rule(
+                rule_name, rule['template'], options)
         return self.rules[(rule_name, helper)]
 
     def rules_for_profile(self, profile_id, helper):
