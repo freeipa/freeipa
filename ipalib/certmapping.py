@@ -10,7 +10,6 @@ import json
 import os.path
 import traceback
 
-from ipalib import api
 from ipalib import errors
 from ipalib.text import _
 from ipapython.ipa_log_manager import root_logger
@@ -50,10 +49,10 @@ class Formatter(object):
     """
     base_template_name = None
 
-    def __init__(self):
+    def __init__(self, csr_data_dir=CSR_DATA_DIR):
         self.jinja2 = jinja2.sandbox.SandboxedEnvironment(
             loader=jinja2.FileSystemLoader(
-                os.path.join(CSR_DATA_DIR, 'templates')),
+                os.path.join(csr_data_dir, 'templates')),
             extensions=[jinja2.ext.ExprStmtExtension, IPAExtension],
             keep_trailing_newline=True, undefined=IndexableUndefined)
 
@@ -81,18 +80,20 @@ class Formatter(object):
         :returns: jinja2.Template that can be rendered to produce the CSR data.
         """
         syntax_rules = []
-        for description, syntax_rule, data_rules in rules:
+        for field_mapping in rules:
             data_rules_prepared = [
-                self._prepare_data_rule(rule) for rule in data_rules]
+                self._prepare_data_rule(rule)
+                for rule in field_mapping.data_rules]
 
             data_sources = []
-            for rule in data_rules:
+            for rule in field_mapping.data_rules:
                 data_source = rule.options.get('data_source')
                 if data_source:
                     data_sources.append(data_source)
 
             syntax_rules.append(self._prepare_syntax_rule(
-                syntax_rule, data_rules_prepared, description, data_sources))
+                field_mapping.syntax_rule, data_rules_prepared,
+                field_mapping.description, data_sources))
 
         template_params = self._get_template_params(syntax_rules)
         base_template = self.jinja2.get_template(
@@ -175,8 +176,8 @@ class OpenSSLFormatter(Formatter):
     SyntaxRule = collections.namedtuple(
         'SyntaxRule', ['template', 'is_extension'])
 
-    def __init__(self):
-        super(OpenSSLFormatter, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(OpenSSLFormatter, self).__init__(*args, **kwargs)
         self._define_passthrough('openssl.section')
 
     def _get_template_params(self, syntax_rules):
@@ -203,17 +204,31 @@ class CertutilFormatter(Formatter):
         return {'options': syntax_rules}
 
 
-# FieldMapping - representation of the rules needed to construct a complete
-# certificate field.
-# - description: str, a name or description of this field, to be used in
-#   messages
-# - syntax_rule: Rule, the rule defining the syntax of this field
-# - data_rules: list of Rule, the rules that produce data to be stored in this
-#   field
-FieldMapping = collections.namedtuple(
-    'FieldMapping', ['description', 'syntax_rule', 'data_rules'])
-Rule = collections.namedtuple(
-    'Rule', ['name', 'template', 'options'])
+class FieldMapping(object):
+    """Representation of the rules needed to construct a complete cert field.
+
+    Attributes:
+        description: str, a name or description of this field, to be used in
+            messages
+        syntax_rule: Rule, the rule defining the syntax of this field
+        data_rules: list of Rule, the rules that produce data to be stored in
+            this field
+    """
+    __slots__ = ['description', 'syntax_rule', 'data_rules']
+
+    def __init__(self, description, syntax_rule, data_rules):
+        self.description = description
+        self.syntax_rule = syntax_rule
+        self.data_rules = data_rules
+
+
+class Rule(object):
+    __slots__ = ['name', 'template', 'options']
+
+    def __init__(self, name, template, options):
+        self.name = name
+        self.template = template
+        self.options = options
 
 
 class RuleProvider(object):
@@ -232,12 +247,13 @@ class RuleProvider(object):
 
 
 class FileRuleProvider(RuleProvider):
-    def __init__(self):
+    def __init__(self, csr_data_dir=CSR_DATA_DIR):
         self.rules = {}
+        self.csr_data_dir = csr_data_dir
 
     def _rule(self, rule_name, helper):
         if (rule_name, helper) not in self.rules:
-            rule_path = os.path.join(CSR_DATA_DIR, 'rules',
+            rule_path = os.path.join(self.csr_data_dir, 'rules',
                                      '%s.json' % rule_name)
             with open(rule_path) as rule_file:
                 ruleset = json.load(rule_file)
@@ -255,12 +271,14 @@ class FileRuleProvider(RuleProvider):
                 options.update(ruleset['options'])
             if 'options' in rule:
                 options.update(rule['options'])
+
             self.rules[(rule_name, helper)] = Rule(
                 rule_name, rule['template'], options)
+
         return self.rules[(rule_name, helper)]
 
     def rules_for_profile(self, profile_id, helper):
-        profile_path = os.path.join(CSR_DATA_DIR, 'profiles',
+        profile_path = os.path.join(self.csr_data_dir, 'profiles',
                                     '%s.json' % profile_id)
         with open(profile_path) as profile_file:
             profile = json.load(profile_file)
@@ -283,8 +301,7 @@ class CSRGenerator(object):
     def __init__(self, rule_provider):
         self.rule_provider = rule_provider
 
-    def csr_script(self, principal, profile_id, helper):
-        config = api.Command.config_show()['result']
+    def csr_script(self, principal, config, profile_id, helper):
         render_data = {'subject': principal, 'config': config}
 
         formatter = self.FORMATTERS[helper]()

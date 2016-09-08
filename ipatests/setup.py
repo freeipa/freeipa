@@ -52,7 +52,7 @@ if __name__ == '__main__':
             'ipatests': ['pytest.ini'],
             'ipatests.test_install': ['*.update'],
             'ipatests.test_integration': ['scripts/*'],
-            'ipatests.test_ipalib': ['data/*'],
+            'ipatests.test_ipalib': ['data/*', 'data/*/*'],
             'ipatests.test_pkcs10': ['*.csr'],
             "ipatests.test_ipaserver": ['data/*'],
             'ipatests.test_xmlrpc': ['data/*'],
