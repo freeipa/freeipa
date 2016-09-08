@@ -1678,6 +1678,10 @@ class ra(rabase.rabase, RestClient):
             return cmd_result
         certinfo = entries[0]
 
+        if certinfo['requestStatus'] != 'complete':
+            raise errors.CertificateOperationError(
+                    error=certinfo.get('errorMessage'))
+
         if 'certId' in certinfo:
             cmd_result = self.get_certificate(certinfo['certId'])
             cert = ''.join(cmd_result['certificate'].splitlines())
