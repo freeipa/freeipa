@@ -96,11 +96,12 @@ class cert_get_requestdata(Local):
             raise errors.NotFound(
                 reason=_("The principal for this request doesn't exist."))
         principal_obj = principal_obj['result']
+        config = api.Command.config_show()['result']
 
         generator = CSRGenerator(FileRuleProvider())
 
         script = generator.csr_script(
-            principal_obj, profile_id, helper)
+            principal_obj, config, profile_id, helper)
 
         result = {}
         if 'out' in options:

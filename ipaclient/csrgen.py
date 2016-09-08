@@ -13,7 +13,6 @@ import jinja2.ext
 import jinja2.sandbox
 import six
 
-from ipalib import api
 from ipalib import errors
 from ipalib.text import _
 from ipaplatform.paths import paths
@@ -83,6 +82,11 @@ class Formatter(object):
         self.passthrough_globals = {}
 
     def _define_passthrough(self, call):
+        """Some macros are meant to be interpreted during the final render, not
+        when data rules are interpolated into syntax rules. This method allows
+        those macros to be registered so that calls to them are passed through
+        to the prepared rule rather than interpreted.
+        """
 
         def passthrough(caller):
             return u'{%% call %s() %%}%s{%% endcall %%}' % (call, caller())
@@ -104,18 +108,20 @@ class Formatter(object):
         :returns: jinja2.Template that can be rendered to produce the CSR data.
         """
         syntax_rules = []
-        for description, syntax_rule, data_rules in rules:
+        for field_mapping in rules:
             data_rules_prepared = [
-                self._prepare_data_rule(rule) for rule in data_rules]
+                self._prepare_data_rule(rule)
+                for rule in field_mapping.data_rules]
 
             data_sources = []
-            for rule in data_rules:
+            for rule in field_mapping.data_rules:
                 data_source = rule.options.get('data_source')
                 if data_source:
                     data_sources.append(data_source)
 
             syntax_rules.append(self._prepare_syntax_rule(
-                syntax_rule, data_rules_prepared, description, data_sources))
+                field_mapping.syntax_rule, data_rules_prepared,
+                field_mapping.description, data_sources))
 
         template_params = self._get_template_params(syntax_rules)
         base_template = self.jinja2.get_template(
@@ -160,16 +166,19 @@ class Formatter(object):
             syntax_rule.template, globals=self.passthrough_globals)
         is_required = syntax_rule.options.get('required', False)
         try:
-            rendered = template.render(datarules=data_rules)
+            prepared_template = template.render(datarules=data_rules)
         except jinja2.UndefinedError:
             logger.debug(traceback.format_exc())
             raise errors.CSRTemplateError(reason=_(
                 'Template error when formatting certificate data'))
 
-        combinator = ' %s ' % syntax_rule.options.get(
-            'data_source_combinator', 'or')
-        condition = combinator.join(data_sources)
-        prepared_template = self._wrap_conditional(rendered, condition)
+        if data_sources:
+            combinator = ' %s ' % syntax_rule.options.get(
+                'data_source_combinator', 'or')
+            condition = combinator.join(data_sources)
+            prepared_template = self._wrap_conditional(
+                prepared_template, condition)
+
         if is_required:
             prepared_template = self._wrap_required(
                 prepared_template, description)
@@ -198,8 +207,8 @@ class OpenSSLFormatter(Formatter):
     SyntaxRule = collections.namedtuple(
         'SyntaxRule', ['template', 'is_extension'])
 
-    def __init__(self):
-        super(OpenSSLFormatter, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(OpenSSLFormatter, self).__init__(*args, **kwargs)
         self._define_passthrough('openssl.section')
 
     def _get_template_params(self, syntax_rules):
@@ -226,17 +235,31 @@ class CertutilFormatter(Formatter):
         return {'options': syntax_rules}
 
 
-# FieldMapping - representation of the rules needed to construct a complete
-# certificate field.
-# - description: str, a name or description of this field, to be used in
-#   messages
-# - syntax_rule: Rule, the rule defining the syntax of this field
-# - data_rules: list of Rule, the rules that produce data to be stored in this
-#   field
-FieldMapping = collections.namedtuple(
-    'FieldMapping', ['description', 'syntax_rule', 'data_rules'])
-Rule = collections.namedtuple(
-    'Rule', ['name', 'template', 'options'])
+class FieldMapping(object):
+    """Representation of the rules needed to construct a complete cert field.
+
+    Attributes:
+        description: str, a name or description of this field, to be used in
+            messages
+        syntax_rule: Rule, the rule defining the syntax of this field
+        data_rules: list of Rule, the rules that produce data to be stored in
+            this field
+    """
+    __slots__ = ['description', 'syntax_rule', 'data_rules']
+
+    def __init__(self, description, syntax_rule, data_rules):
+        self.description = description
+        self.syntax_rule = syntax_rule
+        self.data_rules = data_rules
+
+
+class Rule(object):
+    __slots__ = ['name', 'template', 'options']
+
+    def __init__(self, name, template, options):
+        self.name = name
+        self.template = template
+        self.options = options
 
 
 class RuleProvider(object):
@@ -287,15 +310,22 @@ class FileRuleProvider(RuleProvider):
                 options.update(ruleset['options'])
             if 'options' in rule:
                 options.update(rule['options'])
+
             self.rules[(rule_name, helper)] = Rule(
                 rule_name, rule['template'], options)
+
         return self.rules[(rule_name, helper)]
 
     def rules_for_profile(self, profile_id, helper):
         profile_path = os.path.join(self.csr_data_dir, 'profiles',
                                     '%s.json' % profile_id)
-        with open(profile_path) as profile_file:
-            profile = json.load(profile_file)
+        try:
+            with open(profile_path) as profile_file:
+                profile = json.load(profile_file)
+        except IOError:
+            raise errors.NotFound(
+                reason=_('No CSR generation rules are defined for profile'
+                         ' %(profile_id)s') % {'profile_id': profile_id})
 
         field_mappings = []
         for field in profile:
@@ -315,8 +345,7 @@ class CSRGenerator(object):
     def __init__(self, rule_provider):
         self.rule_provider = rule_provider
 
-    def csr_script(self, principal, profile_id, helper):
-        config = api.Command.config_show()['result']
+    def csr_script(self, principal, config, profile_id, helper):
         render_data = {'subject': principal, 'config': config}
 
         formatter = self.FORMATTERS[helper]()

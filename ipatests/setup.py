@@ -38,6 +38,7 @@ if __name__ == '__main__':
             "ipatests.test_cmdline",
             "ipatests.test_install",
             "ipatests.test_integration",
+            "ipatests.test_ipaclient",
             "ipatests.test_ipalib",
             "ipatests.test_ipapython",
             "ipatests.test_ipaserver",
@@ -51,6 +52,7 @@ if __name__ == '__main__':
         package_data={
             'ipatests.test_install': ['*.update'],
             'ipatests.test_integration': ['scripts/*'],
+            'ipatests.test_ipaclient': ['data/*/*/*'],
             'ipatests.test_ipalib': ['data/*'],
             'ipatests.test_pkcs10': ['*.csr'],
             "ipatests.test_ipaserver": ['data/*'],
