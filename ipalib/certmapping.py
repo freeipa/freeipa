@@ -59,6 +59,11 @@ class Formatter(object):
         self.passthrough_globals = {}
 
     def _define_passthrough(self, call):
+        """Some macros are meant to be interpreted during the final render, not
+        when data rules are interpolated into syntax rules. This method allows
+        those macros to be registered so that calls to them are passed through
+        to the prepared rule rather than interpreted.
+        """
 
         def passthrough(caller):
             return u'{%% call %s() %%}%s{%% endcall %%}' % (call, caller())
@@ -138,16 +143,19 @@ class Formatter(object):
             syntax_rule.template, globals=self.passthrough_globals)
         is_required = syntax_rule.options.get('required', False)
         try:
-            rendered = template.render(datarules=data_rules)
+            prepared_template = template.render(datarules=data_rules)
         except jinja2.UndefinedError:
             root_logger.debug(traceback.format_exc())
             raise errors.CertificateMappingError(reason=_(
                 'Template error when formatting certificate data'))
 
-        combinator = ' %s ' % syntax_rule.options.get(
-            'data_source_combinator', 'or')
-        condition = combinator.join(data_sources)
-        prepared_template = self._wrap_conditional(rendered, condition)
+        if data_sources:
+            combinator = ' %s ' % syntax_rule.options.get(
+                'data_source_combinator', 'or')
+            condition = combinator.join(data_sources)
+            prepared_template = self._wrap_conditional(
+                prepared_template, condition)
+
         if is_required:
             prepared_template = self._wrap_required(
                 prepared_template, description)
@@ -255,13 +263,19 @@ class FileRuleProvider(RuleProvider):
         if (rule_name, helper) not in self.rules:
             rule_path = os.path.join(self.csr_data_dir, 'rules',
                                      '%s.json' % rule_name)
-            with open(rule_path) as rule_file:
-                ruleset = json.load(rule_file)
+            try:
+                with open(rule_path) as rule_file:
+                    ruleset = json.load(rule_file)
+            except IOError:
+                raise errors.CertificateMappingError(
+                    reason=_('Ruleset %(ruleset)s is configured in profile but'
+                             ' does not exist.') % {'ruleset': rule_name})
+
             try:
                 rule = [r for r in ruleset['rules']
                         if r['helper'] == helper][0]
             except IndexError:
-                raise errors.NotFound(
+                raise errors.CertificateMappingError(
                     reason=_('No transformation in "%(ruleset)s" rule supports'
                              ' helper "%(helper)s"') %
                     {'ruleset': rule_name, 'helper': helper})
@@ -280,8 +294,13 @@ class FileRuleProvider(RuleProvider):
     def rules_for_profile(self, profile_id, helper):
         profile_path = os.path.join(self.csr_data_dir, 'profiles',
                                     '%s.json' % profile_id)
-        with open(profile_path) as profile_file:
-            profile = json.load(profile_file)
+        try:
+            with open(profile_path) as profile_file:
+                profile = json.load(profile_file)
+        except IOError:
+            raise errors.CertificateMappingError(
+                reason=_('No certificate mappings are defined for profile'
+                         ' %(profile_id)s') % {'profile_id': profile_id})
 
         field_mappings = []
         for field in profile:
