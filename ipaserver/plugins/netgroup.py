@@ -237,6 +237,26 @@ class netgroup(LDAPObject):
         external_host_param,
     )
 
+    def get_primary_key_from_dn(self, dn):
+        assert isinstance(dn, DN)
+        if not dn.rdns:
+            return u''
+
+        first_ava = dn.rdns[0][0]
+        if first_ava[0] == self.primary_key.name:
+            return unicode(first_ava[1])
+
+        try:
+            entry_attrs = self.backend.get_entry(
+                dn, [self.primary_key.name]
+            )
+            try:
+                return entry_attrs[self.primary_key.name][0]
+            except (KeyError, IndexError):
+                return u''
+        except errors.NotFound:
+            return unicode(dn)
+
 
 @register()
 class netgroup_add(LDAPCreate):
