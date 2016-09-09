@@ -65,6 +65,41 @@ def ipa_certs_cleanup(host):
         cert = rawcert.split('    ')[0]
         host.run_command(['certutil', '-D', '-d', paths.HTTPD_ALIAS_DIR,
                           '-n', cert])
+
+
+def server_install_teardown(func):
+    def wrapped(*args):
+        master = args[0].master
+        try:
+            func(*args)
+        finally:
+            tasks.uninstall_master(master, clean=False)
+            ipa_certs_cleanup(master)
+    return wrapped
+
+
+def replica_install_teardown(func):
+    def wrapped(*args):
+        try:
+            func(*args)
+        finally:
+            # Uninstall replica
+            replica = args[0].replicas[0]
+            master = args[0].master
+            tasks.kinit_admin(master)
+            tasks.uninstall_master(replica, clean=False)
+            # Now let's uninstall client for the cases when client promotion
+            # was not successful
+            tasks.uninstall_client(replica)
+            tasks.clean_replication_agreement(master, replica, cleanup=True,
+                                              raiseonerr=False)
+            master.run_command(['ipa', 'host-del',
+                                replica.hostname],
+                               raiseonerr=False)
+            ipa_certs_cleanup(replica)
+    return wrapped
+
+
 class CALessBase(IntegrationTest):
     @classmethod
     def install(cls, mh):
