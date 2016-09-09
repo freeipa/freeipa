@@ -54,6 +54,17 @@ def get_replica_prepare_stdin(cert_passwords=()):
     return '\n'.join(lines + [''])
 
 
+def ipa_certs_cleanup(host):
+    host.run_command(['certutil', '-d', paths.NSS_DB_DIR, '-D',
+                      '-n', 'External CA cert'],
+                     raiseonerr=False)
+    # A workaround for https://fedorahosted.org/freeipa/ticket/4639
+    result = host.run_command(['certutil', '-L', '-d',
+                               paths.HTTPD_ALIAS_DIR])
+    for rawcert in result.stdout_text.split('\n')[4: -1]:
+        cert = rawcert.split('    ')[0]
+        host.run_command(['certutil', '-D', '-d', paths.HTTPD_ALIAS_DIR,
+                          '-n', cert])
 class CALessBase(IntegrationTest):
     @classmethod
     def install(cls, mh):
