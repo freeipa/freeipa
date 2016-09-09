@@ -721,14 +721,15 @@ def uninstall_client(host):
 
 
 @check_arguments_are((0, 2), Host)
-def clean_replication_agreement(master, replica):
+def clean_replication_agreement(master, replica, cleanup=False,
+                                raiseonerr=True):
     """
     Performs `ipa-replica-manage del replica_hostname --force`.
     """
-    master.run_command(['ipa-replica-manage',
-                        'del',
-                        replica.hostname,
-                        '--force'])
+    args = ['ipa-replica-manage', 'del', replica.hostname, '--force']
+    if cleanup:
+        args.append('--cleanup')
+    master.run_command(args, raiseonerr=raiseonerr)
 
 
 @check_arguments_are((0, 3), Host)
