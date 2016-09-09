@@ -255,7 +255,8 @@ def enable_replication_debugging(host):
 
 
 def install_master(host, setup_dns=True, setup_kra=False, extra_args=(),
-                   domain_level=None):
+                   domain_level=None, unattended=True, stdin_text=None,
+                   raiseonerr=True):
     if domain_level is None:
         domain_level = host.config.domain_level
     setup_server_logs_collecting(host)
@@ -263,13 +264,15 @@ def install_master(host, setup_dns=True, setup_kra=False, extra_args=(),
     fix_apache_semaphores(host)
 
     args = [
-        'ipa-server-install', '-U',
+        'ipa-server-install',
         '-n', host.domain.name,
         '-r', host.domain.realm,
         '-p', host.config.dirman_password,
         '-a', host.config.admin_password,
         "--domain-level=%i" % domain_level,
     ]
+    if unattended:
+        args.append('-U')
 
     if setup_dns:
         args.extend([
@@ -279,20 +282,20 @@ def install_master(host, setup_dns=True, setup_kra=False, extra_args=(),
         ])
 
     args.extend(extra_args)
-
-    host.run_command(args)
-    enable_replication_debugging(host)
-    setup_sssd_debugging(host)
-
-    if setup_kra:
-        args = [
-            "ipa-kra-install",
-            "-p", host.config.dirman_password,
-            "-U",
-        ]
-        host.run_command(args)
-
-    kinit_admin(host)
+    result = host.run_command(args, raiseonerr=raiseonerr,
+                              stdin_text=stdin_text)
+    if result.returncode == 0:
+        enable_replication_debugging(host)
+        setup_sssd_debugging(host)
+        if setup_kra:
+            args = [
+                "ipa-kra-install",
+                "-p", host.config.dirman_password,
+                "-U",
+            ]
+            host.run_command(args)
+        kinit_admin(host)
+    return result
 
 
 def get_replica_filename(replica):
@@ -328,7 +331,8 @@ def master_authoritative_for_client_domain(master, client):
         return False
 
 
-def replica_prepare(master, replica):
+def replica_prepare(master, replica, extra_args=(),
+                    raiseonerr=True, stdin_text=None):
     fix_apache_semaphores(replica)
     prepare_reverse_zone(master, replica.ip)
     args = ['ipa-replica-prepare',
@@ -336,15 +340,20 @@ def replica_prepare(master, replica):
             replica.hostname]
     if master_authoritative_for_client_domain(master, replica):
         args.extend(['--ip-address', replica.ip])
-    master.run_command(args)
-    replica_bundle = master.get_file_contents(
-        paths.REPLICA_INFO_GPG_TEMPLATE % replica.hostname)
-    replica_filename = get_replica_filename(replica)
-    replica.put_file_contents(replica_filename, replica_bundle)
+    args.extend(extra_args)
+    result = master.run_command(args, raiseonerr=raiseonerr,
+                                stdin_text=stdin_text)
+    if result.returncode == 0:
+        replica_bundle = master.get_file_contents(
+            paths.REPLICA_INFO_GPG_TEMPLATE % replica.hostname)
+        replica_filename = get_replica_filename(replica)
+        replica.put_file_contents(replica_filename, replica_bundle)
+    return result
 
 
 def install_replica(master, replica, setup_ca=True, setup_dns=False,
-                    setup_kra=False, extra_args=(), domain_level=None):
+                    setup_kra=False, extra_args=(), domain_level=None,
+                    unattended=True, stdin_text=None, raiseonerr=True):
     if domain_level is None:
         domain_level = domainlevel(master)
     apply_common_fixes(replica)
@@ -352,9 +361,11 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     allow_sync_ptr(master)
     # Otherwise ipa-client-install would not create a PTR
     # and replica installation would fail
-    args = ['ipa-replica-install', '-U',
+    args = ['ipa-replica-install',
             '-p', replica.config.dirman_password,
             '-w', replica.config.admin_password]
+    if unattended:
+        args.append('-U')
     if setup_ca:
         args.append('--setup-ca')
     if setup_dns:
@@ -377,22 +388,25 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         install_client(master, replica)
         fix_apache_semaphores(replica)
         args.extend(['-r', replica.domain.realm])
-    replica.run_command(args)
-    enable_replication_debugging(replica)
-    setup_sssd_debugging(replica)
 
-    if setup_kra:
-        assert setup_ca, "CA must be installed on replica with KRA"
-        args = [
-            "ipa-kra-install",
-            "-p", replica.config.dirman_password,
-            "-U",
-        ]
-        if domainlevel(master) == DOMAIN_LEVEL_0:
-            args.append(replica_filename)
-        replica.run_command(args)
+    result = replica.run_command(args, raiseonerr=raiseonerr,
+                                 stdin_text=stdin_text)
+    if result.returncode == 0:
+        enable_replication_debugging(replica)
+        setup_sssd_debugging(replica)
+        if setup_kra:
+            assert setup_ca, "CA must be installed on replica with KRA"
+            args = [
+                "ipa-kra-install",
+                "-p", replica.config.dirman_password,
+                "-U",
+            ]
+            if domainlevel(master) == DOMAIN_LEVEL_0:
+                args.append(replica_filename)
+            replica.run_command(args)
 
-    kinit_admin(replica)
+        kinit_admin(replica)
+    return result
 
 
 def install_client(master, client, extra_args=()):
