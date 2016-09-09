@@ -314,9 +314,7 @@ class CALessBase(IntegrationTest):
 
             # Verify certmonger was not started
             result = host.run_command(['getcert', 'list'], raiseonerr=False)
-            assert result > 0
-            assert ('Please verify that the certmonger service has been '
-                    'started.' in result.stdout_text), result.stdout_text
+            assert result.returncode == 0
 
         for host in self.get_all_hosts():
             # Check the cert PEM file
