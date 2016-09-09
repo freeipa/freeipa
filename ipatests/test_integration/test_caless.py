@@ -103,7 +103,6 @@ def replica_install_teardown(func):
 class CALessBase(IntegrationTest):
     @classmethod
     def install(cls, mh):
-        super(CALessBase, cls).install(mh)
         cls.cert_dir = tempfile.mkdtemp(prefix="ipatest-")
         cls.pem_filename = os.path.join(cls.cert_dir, 'root.pem')
         scriptfile = os.path.join(os.path.dirname(__file__),
