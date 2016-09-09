@@ -40,14 +40,10 @@ assert_error = tasks.assert_error
 
 def get_install_stdin(cert_passwords=()):
     lines = [
-        'yes',  # Existing BIND configuration detected, overwrite? [no]
         '',  # Server host name (has default)
-        '',  # Confirm domain name (has default)
     ]
     lines.extend(cert_passwords)  # Enter foo.p12 unlock password
     lines += [
-        '',  # Do you want to configure the reverse zone? [yes]
-        '',  # Please specify the reverse zone name [47.34.10.in-addr.arpa.]
         'yes',  # Continue with these values?
     ]
     return '\n'.join(lines + [''])
