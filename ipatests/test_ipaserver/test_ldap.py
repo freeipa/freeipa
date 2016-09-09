@@ -115,7 +115,7 @@ class test_ldap(object):
         # a client-only api. Then we register in the commands and objects
         # we need for the test.
         myapi = create_api(mode=None)
-        myapi.bootstrap(context='cli', in_server=True, in_tree=True)
+        myapi.bootstrap(context='cli', in_server=True)
         myapi.finalize()
 
         pwfile = api.env.dot_ipa + os.sep + ".dmpw"
