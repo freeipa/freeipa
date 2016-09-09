@@ -1194,6 +1194,9 @@ class TestIPACommands(CALessBase):
         self.master.run_command(['ipa', 'host-add', self.test_hostname,
                                  '--force',
                                  '--certificate', self.client_pem])
+        self.master.run_command(['ipa-getkeytab', '-s', self.master.hostname,
+                                 '-p' "host/%s" % self.test_hostname,
+                                 '-k', paths.IPA_KEYTAB])
         try:
             yield
         finally:
@@ -1207,6 +1210,10 @@ class TestIPACommands(CALessBase):
             self.master.run_command(['ipa', 'service-add', self.test_service,
                                      '--force',
                                      '--certificate', self.client_pem])
+            self.master.run_command(['ipa-getkeytab', '-s',
+                                     self.master.hostname,
+                                     '-p', self.test_service,
+                                     '-k', paths.IPA_KEYTAB])
             yield
 
     def test_service_mod_doesnt_revoke(self):
