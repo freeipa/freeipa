@@ -1188,25 +1188,6 @@ class TestIPACommands(CALessBase):
         result = self.master.run_command(['ipa', command], raiseonerr=False)
         assert_error(result, "ipa: ERROR: unknown command '%s'" % command)
 
-    @pytest.mark.parametrize('command', (
-        'cert-status',
-        'cert-show',
-        'cert-find',
-        'cert-revoke',
-        'cert-remove-hold',
-        'cert-status'))
-    def test_cert_commands_unavailable(self, command):
-        result = self.master.run_command(['ipa', command], raiseonerr=False)
-        assert_error(result, "ipa: ERROR: unknown command '%s'" % command)
-
-    def test_cert_help_unavailable(self):
-        "Verify that cert plugin help is not available"
-        result = self.master.run_command(['ipa', 'help', 'cert'],
-                                         raiseonerr=False)
-        assert_error(result,
-                     "ipa: ERROR: no command nor help topic 'cert'",
-                     returncode=1)
-
     @contextlib.contextmanager
     def host(self):
         "Context manager that adds and removes a host entry with a certificate"
