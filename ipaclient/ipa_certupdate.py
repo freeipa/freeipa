@@ -83,7 +83,10 @@ class CertUpdate(admintool.AdminTool):
             certs = certstore.get_ca_certs(ldap, api.env.basedn,
                                            api.env.realm, ca_enabled)
 
-            lwcas = api.Command.ca_find()['result']
+            if ca_enabled:
+                lwcas = api.Command.ca_find()['result']
+            else:
+                lwcas = []
 
             api.Backend.rpcclient.disconnect()
         finally:
