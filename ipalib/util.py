@@ -21,7 +21,10 @@
 Various utility functions.
 """
 
-from __future__ import absolute_import
+from __future__ import (
+    absolute_import,
+    print_function,
+)
 
 import os
 import socket
@@ -29,6 +32,7 @@ import re
 import decimal
 import dns
 import encodings
+import sys
 from weakref import WeakKeyDictionary
 
 import netaddr
@@ -45,6 +49,7 @@ from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
 from ipapython.dnsutil import DNSName
 from ipapython.dnsutil import resolve_ip_addresses
+from ipapython.ipa_log_manager import root_logger
 
 if six.PY3:
     unicode = str
@@ -994,3 +999,23 @@ def check_principal_realm_in_trust_namespace(api_instance, *keys):
                 name='krbprincipalname',
                 error=_('realm or UPN suffix overlaps with trusted domain '
                         'namespace'))
+
+
+def network_ip_address_warning(addr_list):
+    for ip in addr_list:
+        if ip.is_network_addr():
+            root_logger.warning("IP address %s might be network address", ip)
+            # fixme: once when loggers will be fixed, we can remove this
+            # print
+            print("WARNING: IP address {} might be network address".format(ip),
+                  file=sys.stderr)
+
+
+def broadcast_ip_address_warning(addr_list):
+    for ip in addr_list:
+        if ip.is_broadcast_addr():
+            root_logger.warning("IP address %s might be broadcast address", ip)
+            # fixme: once when loggers will be fixed, we can remove this
+            # print
+            print("WARNING: IP address {} might be broadcast address".format(
+                ip), file=sys.stderr)
