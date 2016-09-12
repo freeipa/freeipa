@@ -40,7 +40,9 @@ from ipalib import api
 from ipalib.plugable import Plugin
 from ipalib.request import context
 from ipapython.dn import DN
-from ipapython.ipautil import private_ccache, kinit_password, run
+from ipapython.ipautil import (
+    private_ccache, kinit_password, kinit_keytab, run
+)
 from ipaplatform.paths import paths
 
 if six.PY3:
@@ -693,8 +695,28 @@ def unlock_principal_password(user, oldpw, newpw):
 
 
 @contextmanager
-def change_principal(user, password, client=None, path=None,
-                     canonicalize=False, enterprise=False):
+def change_principal(principal, password=None, client=None, path=None,
+                     canonicalize=False, enterprise=False, keytab=None):
+    """Temporarily change the kerberos principal
+
+    Most of the test cases run with the admin ipa user which is granted
+    all access and exceptions from rules on some occasions.
+
+    When the test needs to test for an application of some kind
+    of a restriction it needs to authenticate as a different principal
+    with required set of rights to the operation.
+
+    The context manager changes the principal identity in two ways:
+
+    * using password
+    * using keytab
+
+    If the context manager is to be used with a keytab, the keytab
+    option must be its absolute path.
+
+    The context manager can be used to authenticate with enterprise
+    principals and aliases when given respective options.
+    """
 
     if path:
         ccache_name = path
@@ -709,8 +731,12 @@ def change_principal(user, password, client=None, path=None,
 
     try:
         with private_ccache(ccache_name):
-            kinit_password(user, password, ccache_name,
-                           canonicalize=canonicalize, enterprise=enterprise)
+            if keytab:
+                kinit_keytab(principal, keytab, ccache_name)
+            else:
+                kinit_password(principal, password, ccache_name,
+                               canonicalize=canonicalize,
+                               enterprise=enterprise)
             client.Backend.rpcclient.connect()
 
             try:
@@ -719,6 +745,42 @@ def change_principal(user, password, client=None, path=None,
                 client.Backend.rpcclient.disconnect()
     finally:
         client.Backend.rpcclient.connect()
+
+
+@contextmanager
+def get_entity_keytab(principal, options=None):
+    """Requests a keytab for an entity
+
+    The keytab will generate new keys if not specified
+    otherwise in the options.
+    To retrieve existing keytab, use the -r option
+    """
+    keytab_filename = os.path.join('/tmp', str(uuid.uuid4()))
+
+    try:
+        cmd = [paths.IPA_GETKEYTAB, '-p', principal, '-k', keytab_filename]
+
+        if options:
+            cmd.extend(options)
+        run(cmd)
+
+        yield keytab_filename
+    finally:
+        os.remove(keytab_filename)
+
+
+@contextmanager
+def host_keytab(hostname, options=None):
+    """Retrieves keytab for a particular host
+
+    After leaving the context manager, the keytab file is
+    deleted.
+    """
+    principal = u'host/{}'.format(hostname)
+
+    with get_entity_keytab(principal, options) as keytab:
+        yield keytab
+
 
 def get_group_dn(cn):
     return DN(('cn', cn), api.env.container_group, api.env.basedn)
