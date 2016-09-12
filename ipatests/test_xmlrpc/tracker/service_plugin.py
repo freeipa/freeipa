@@ -52,7 +52,7 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
 
     def __init__(self, name, host_fqdn, options=None):
         super(ServiceTracker, self).__init__(default_version=None)
-        self._name = "{0}/{1}@{2}".format(name, host_fqdn, api.env.realm)
+        self._name = u"{0}/{1}@{2}".format(name, host_fqdn, api.env.realm)
         self.dn = DN(
             ('krbprincipalname', self.name), api.env.container_service,
             api.env.basedn)
