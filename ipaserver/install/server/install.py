@@ -613,8 +613,9 @@ def install_check(installer):
                                              not installer.interactive, False,
                                              options.ip_addresses)
 
-    network_ip_address_warning(ip_addresses)
-    broadcast_ip_address_warning(ip_addresses)
+        # check addresses here, dns module is doing own check
+        network_ip_address_warning(ip_addresses)
+        broadcast_ip_address_warning(ip_addresses)
 
     # installer needs to update hosts file when DNS subsystem will be
     # installed or custom addresses are used
