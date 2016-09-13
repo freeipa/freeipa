@@ -1653,6 +1653,15 @@ def upgrade_configuration():
     cleanup_kdc(fstore)
     cleanup_adtrust(fstore)
     setup_firefox_extension(fstore)
+
+    bind = bindinstance.BindInstance(fstore)
+    if bind.is_configured() and not bind.is_running():
+        # some upgrade steps may require bind running
+        bind_started = True
+        bind.start()
+    else:
+        bind_started = False
+
     add_ca_dns_records()
 
     # Any of the following functions returns True iff the named.conf file
@@ -1681,6 +1690,9 @@ def upgrade_configuration():
             bind.restart()
         except ipautil.CalledProcessError as e:
             root_logger.error("Failed to restart %s: %s", bind.service_name, e)
+
+    if bind_started:
+        bind.stop()
 
     custodia = custodiainstance.CustodiaInstance(api.env.host, api.env.realm)
     custodia.upgrade_instance()
