@@ -739,8 +739,9 @@ def install_check(installer):
                 config.host_name, not installer.interactive, False,
                 options.ip_addresses)
 
-        network_ip_address_warning(config.ips)
-        broadcast_ip_address_warning(config.ips)
+            # check addresses here, dns module is doing own check
+            network_ip_address_warning(config.ips)
+            broadcast_ip_address_warning(config.ips)
 
     except errors.ACIError:
         raise ScriptError("\nThe password provided is incorrect for LDAP server "
@@ -1314,8 +1315,9 @@ def promote_check(installer):
                 config.host_name, not installer.interactive,
                 False, options.ip_addresses)
 
-        network_ip_address_warning(config.ips)
-        broadcast_ip_address_warning(config.ips)
+            # check addresses here, dns module is doing own check
+            network_ip_address_warning(config.ips)
+            broadcast_ip_address_warning(config.ips)
 
     except errors.ACIError:
         raise ScriptError("\nInsufficient privileges to promote the server.")
