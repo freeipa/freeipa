@@ -37,7 +37,6 @@ import six
 from ipaserver.plugins.ldap2 import ldap2
 from ipalib import api, x509, create_api, errors
 from ipapython import ipautil
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 
 if six.PY3:
@@ -53,7 +52,6 @@ class test_ldap(object):
     def setup(self):
         self.conn = None
         self.ldapuri = 'ldap://%s' % ipautil.format_netloc(api.env.host)
-        self.ccache = paths.TMP_KRB5CC % os.getuid()
         nss.nss_init_nodb()
         self.dn = DN(('krbprincipalname','ldap/%s@%s' % (api.env.host, api.env.realm)),
                      ('cn','services'),('cn','accounts'),api.env.basedn)
@@ -77,10 +75,8 @@ class test_ldap(object):
         """
         Test a GSSAPI LDAP bind using ldap2
         """
-        if not ipautil.file_exists(self.ccache):
-            raise nose.SkipTest('Missing ccache %s' % self.ccache)
         self.conn = ldap2(api, ldap_uri=self.ldapuri)
-        self.conn.connect(ccache='FILE:%s' % self.ccache)
+        self.conn.connect()
         entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
         cert = cert[0]
