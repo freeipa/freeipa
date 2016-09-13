@@ -1739,15 +1739,20 @@ class trust_fetch_domains(LDAPRetrieve):
         ldap = self.api.Backend.ldap2
         verify_samba_component_presence(ldap, self.api)
 
-        trust = self.api.Command.trust_show(keys[0], raw=True)['result']
+        trust = self.api.Command.trust_show(
+            keys[0], all=True, raw=True)['result']
 
         result = dict()
         result['result'] = []
         result['count'] = 0
         result['truncated'] = False
 
-        # For one-way trust fetch over DBus. we don't get the list in this case.
-        if int(trust['ipanttrustdirection'][0]) != TRUST_BIDIRECTIONAL:
+        trust_direction = int(trust['ipanttrustdirection'][0])
+        is_nontransitive = int(trust.get('ipanttrustattributes',
+                               [0])[0]) & LSA_TRUST_ATTRIBUTE_NON_TRANSITIVE
+        # For one-way trust and external trust fetch over DBus.
+        # We don't get the list in this case.
+        if trust_direction != TRUST_BIDIRECTIONAL or is_nontransitive:
             fetch_trusted_domains_over_dbus(self.api, self.log, keys[0])
             result['summary'] = unicode(_('List of trust domains successfully refreshed. Use trustdomain-find command to list them.'))
             return result
@@ -1762,6 +1767,9 @@ class trust_fetch_domains(LDAPRetrieve):
                     'on the IPA server first'
                 )
             )
+
+        trustinstance.populate_remote_domain(keys[0])
+
         res = fetch_domains_from_trust(self.api, trustinstance, **options)
         domains = add_new_domains_from_trust(self.api, trustinstance, trust, res, **options)
 
