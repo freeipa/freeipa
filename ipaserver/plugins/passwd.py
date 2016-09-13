@@ -29,7 +29,8 @@ from ipalib.plugable import Registry
 from ipalib.request import context
 from ipapython import kerberos
 from ipapython.dn import DN
-from ipaserver.plugins.service import validate_realm, normalize_principal
+from ipaserver.plugins.baseuser import normalize_user_principal
+from ipaserver.plugins.service import validate_realm
 
 if six.PY3:
     unicode = str
@@ -66,7 +67,7 @@ def get_current_password(principal):
     be ignored later.
     """
     current_principal = krb_utils.get_principal()
-    if current_principal == unicode(normalize_principal(principal)):
+    if current_principal == unicode(normalize_user_principal(principal)):
         return None
     else:
         return MAGIC_VALUE
@@ -84,7 +85,7 @@ class passwd(Command):
             primary_key=True,
             autofill=True,
             default_from=lambda: kerberos.Principal(krb_utils.get_principal()),
-            normalizer=lambda value: normalize_principal(value),
+            normalizer=lambda value: normalize_user_principal(value),
         ),
         Password('password',
                  label=_('New Password'),
