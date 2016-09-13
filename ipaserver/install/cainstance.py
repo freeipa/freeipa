@@ -833,6 +833,10 @@ class CAInstance(DogtagInstance):
             raise RuntimeError("Unable to retrieve CA chain: %s" % str(e))
 
     def __import_ca_chain(self):
+        # Backup NSS trust flags of all already existing certificates
+        certdb = certs.CertDB(self.realm)
+        cert_backup_list = certdb.list_certs()
+
         chain = self.__get_ca_chain()
 
         # If this chain contains multiple certs then certutil will only import
@@ -882,6 +886,10 @@ class CAInstance(DogtagInstance):
                 finally:
                     os.remove(chain_name)
                     subid += 1
+
+        # Restore NSS trust flags of all previously existing certificates
+        for nick, trust_flags in cert_backup_list:
+            certdb.trust_root_cert(nick, trust_flags)
 
     def __request_ra_certificate(self):
         # Create a noise file for generating our private key
