@@ -11,6 +11,8 @@ import pwd
 import fileinput
 import sys
 
+import dns.exception
+
 import six
 from six.moves.configparser import SafeConfigParser
 
@@ -814,9 +816,18 @@ def named_update_global_forwarder_policy():
         'forward_policy_conflict_with_empty_zones_handled',
         True
     )
-    if not dnsutil.has_empty_zone_addresses(api.env.host):
-        # guess: local server does not have IP addresses from private ranges
-        # so hopefully automatic empty zones are not a problem
+    try:
+        if not dnsutil.has_empty_zone_addresses(api.env.host):
+            # guess: local server does not have IP addresses from private
+            # ranges so hopefully automatic empty zones are not a problem
+            return False
+    except dns.exception.DNSException as ex:
+        root_logger.error(
+            'Skipping update of global DNS forwarder in named.conf: '
+            'Unable to determine if local server is using an '
+            'IP address belonging to an automatic empty zone. '
+            'Consider changing forwarding policy to "only". '
+            'DNS exception: %s', ex)
         return False
 
     if bindinstance.named_conf_get_directive(
