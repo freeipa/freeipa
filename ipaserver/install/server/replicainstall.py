@@ -1308,6 +1308,7 @@ def promote_check(installer):
         if options.setup_dns:
             dns.install_check(False, remote_api, True, options,
                               config.host_name)
+            config.ips = dns.ip_addresses
         else:
             config.ips = installutils.get_server_ip_address(
                 config.host_name, not installer.interactive,
