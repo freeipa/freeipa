@@ -24,7 +24,6 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 from ipatests.test_integration import util
 from ipaplatform.paths import paths
-import time
 
 
 class ADTrustBase(IntegrationTest):
@@ -400,8 +399,6 @@ class TestTrustWithUPN(ADTrustBase):
 
     def test_upn_user_authentication(self):
         """ Check that AD user with UPN can authenticate in IPA """
-        self.master.run_command(['systemctl', 'restart', 'krb5kdc'])
-        time.sleep(60)
         self.master.run_command(['kinit', '-C', '-E', self.upn_principal],
                                 stdin_text=self.upn_password)
 

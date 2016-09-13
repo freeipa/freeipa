@@ -490,6 +490,8 @@ def establish_trust_with_ad(master, ad_domain, extra_args=()):
                         stdin_text=master.config.ad_admin_password)
     master.run_command(['smbcontrol', 'all', 'debug', '1'])
     clear_sssd_cache(master)
+    master.run_command(['systemctl', 'restart', 'krb5kdc.service'])
+    time.sleep(60)
 
 
 def remove_trust_with_ad(master, ad_domain):
