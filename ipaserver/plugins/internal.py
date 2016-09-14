@@ -524,7 +524,7 @@ class i18n_messages(Command):
                 "external": _("External"),
                 "make_external": _("Change to external group"),
                 "make_posix": _("Change to POSIX group"),
-                "normal": _("Normal"),
+                "nonposix": _("Non-POSIX"),
                 "posix": _("POSIX"),
                 "type": _("Group Type"),
             },
