@@ -13,6 +13,8 @@ from __future__ import (
     absolute_import,
 )
 
+import logging
+
 import dns
 import getpass
 import gssapi
@@ -51,7 +53,7 @@ from ipapython.dn import DN
 from ipapython.install import typing
 from ipapython.install.core import group, knob, extend_knob
 from ipapython.install.common import step
-from ipapython.ipa_log_manager import log_mgr, root_logger
+from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import (
     CalledProcessError,
     dir_exists,
@@ -3366,9 +3368,12 @@ def uninstall(options):
 
 
 def init(installer):
-    try:
-        installer.debug = log_mgr.get_handler('console').level == 'debug'
-    except KeyError:
+    for handler in root_logger.handlers:
+        if (isinstance(handler, logging.StreamHandler) and
+                handler.stream is sys.stderr):  # pylint: disable=no-member
+            installer.debug = handler.level == logging.DEBUG
+            break
+    else:
         installer.debug = True
     installer.unattended = not installer.interactive
 

@@ -24,7 +24,9 @@ The classes in this module make heavy use of Python container emulation. If
 you are unfamiliar with this Python feature, see
 http://docs.python.org/ref/sequence-types.html
 """
+import logging
 import operator
+import re
 import sys
 import threading
 import os
@@ -42,7 +44,7 @@ from ipalib.text import _
 from ipalib.util import classproperty
 from ipalib.base import ReadOnly, lock, islocked
 from ipalib.constants import DEFAULT_CONFIG
-from ipapython import ipautil
+from ipapython import ipa_log_manager, ipautil
 from ipapython.ipa_log_manager import (
     log_mgr,
     LOGGING_FORMAT_FILE,
@@ -439,28 +441,63 @@ class API(ReadOnly):
             parser = self.build_global_parser()
         self.parser = parser
 
+        root_logger = ipa_log_manager.root_logger
+
         # If logging has already been configured somewhere else (like in the
         # installer), don't add handlers or change levels:
-        if log_mgr.configure_state != 'default' or self.env.validate_api:
+        if root_logger.handlers or self.env.validate_api:
             return
 
-        log_mgr.default_level = 'info'
-        log_mgr.configure_from_env(self.env, configure_state='api')
-        # Add stderr handler:
-        level = 'info'
         if self.env.debug:
-            level = 'debug'
+            level = logging.DEBUG
+        else:
+            level = logging.INFO
+        root_logger.setLevel(level)
+
+        for attr in self.env:
+            match = re.match(r'^log_logger_level_'
+                             r'(debug|info|warn|warning|error|critical|\d+)$',
+                             attr)
+            if not match:
+                continue
+
+            value = match.group(1)
+            try:
+                level = int(value)
+            except ValueError:
+                try:
+                    level = {
+                        'debug': logging.DEBUG,
+                        'info': logging.INFO,
+                        'warn': logging.WARNING,
+                        'warning': logging.WARNING,
+                        'error': logging.ERROR,
+                        'critical': logging.CRITICAL
+                    }[value]
+                except KeyError:
+                    raise ValueError('unknown log level (%s)' % value)
+
+            value = getattr(self.env, attr)
+            regexps = re.split('\s*,\s*', value)
+
+            # Add the regexp, it maps to the configured level
+            for regexp in regexps:
+                root_logger.addFilter(ipa_log_manager.Filter(regexp, level))
+
+        # Add stderr handler:
+        level = logging.INFO
+        if self.env.debug:
+            level = logging.DEBUG
         else:
             if self.env.context == 'cli':
                 if self.env.verbose > 0:
-                    level = 'info'
+                    level = logging.INFO
                 else:
-                    level = 'warning'
-
-        log_mgr.create_log_handlers([dict(name='console',
-                                          stream=sys.stderr,
-                                          level=level,
-                                          format=LOGGING_FORMAT_STDERR)])
+                    level = logging.WARNING
+        handler = logging.StreamHandler()
+        handler.setLevel(level)
+        handler.setFormatter(ipa_log_manager.Formatter(LOGGING_FORMAT_STDERR))
+        root_logger.addHandler(handler)
 
         # Add file handler:
         if self.env.mode in ('dummy', 'unit_test'):
@@ -475,17 +512,17 @@ class API(ReadOnly):
                 log.error('Could not create log_dir %r', log_dir)
                 return
 
-        level = 'info'
+        level = logging.INFO
         if self.env.debug:
-            level = 'debug'
+            level = logging.DEBUG
         try:
-            log_mgr.create_log_handlers([dict(name='file',
-                                              filename=self.env.log,
-                                              level=level,
-                                              format=LOGGING_FORMAT_FILE)])
+            handler = logging.FileHandler(self.env.log)
         except IOError as e:
             log.error('Cannot open log file %r: %s', self.env.log, e)
             return
+        handler.setLevel(level)
+        handler.setFormatter(ipa_log_manager.Formatter(LOGGING_FORMAT_FILE))
+        root_logger.addHandler(handler)
 
     def build_global_parser(self, parser=None, context=None):
         """

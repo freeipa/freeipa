@@ -22,6 +22,7 @@
 Handles common operations like option parsing and logging
 """
 
+import logging
 import sys
 import os
 import traceback
@@ -230,8 +231,12 @@ class AdminTool(object):
         Logging to file is only set up after option validation and prompting;
         before that, all output will go to the console only.
         """
-        if 'console' in ipa_log_manager.log_mgr.handlers:
-            ipa_log_manager.log_mgr.remove_handler('console')
+        root_logger = ipa_log_manager.root_logger
+        for handler in root_logger.handlers:
+            if (isinstance(handler, logging.StreamHandler) and
+                    handler.stream is sys.stderr):  # pylint: disable=no-member
+                root_logger.removeHandler(handler)
+                break
 
         self._setup_logging(log_file_mode=log_file_mode)
 

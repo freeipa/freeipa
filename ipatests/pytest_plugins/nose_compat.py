@@ -23,7 +23,7 @@ import os
 import sys
 import logging
 
-from ipapython.ipa_log_manager import log_mgr
+from ipapython.ipa_log_manager import Formatter, root_logger
 
 
 def pytest_addoption(parser):
@@ -61,13 +61,7 @@ def pytest_configure(config):
                     capture._capturing.resume_capturing()
                 sys.stdout, sys.stderr = orig_stdout, orig_stderr
 
-        log_mgr.configure(
-            {
-                'default_level': config.getoption('logging_level'),
-                'handlers': [{'log_handler': LogHandler(),
-                            'format': '[%(name)s] %(message)s',
-                            'level': 'debug'},
-                            {'level': 'debug',
-                            'name': 'real_stderr',
-                            'stream': sys.stderr}]},
-            configure_state='tests')
+        handler = LogHandler()
+        handler.setFormatter(Formatter('[%(name)s] %(message)s'))
+        handler.setLevel(config.getoption('logging_level'))
+        root_logger.addHandler(handler)
