@@ -143,7 +143,7 @@ class servicedelegation(LDAPObject):
     takes_params = (
         Str(
             'cn',
-            pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_ .-]{0,253}[a-zA-Z0-9_.-]?$',
+            pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_ .-]*[a-zA-Z0-9_.-]?$',
             pattern_errmsg='may only include letters, numbers, _, -, ., '
                            'and a space inside',
             maxlength=255,

@@ -129,7 +129,7 @@ class topologysegment(LDAPObject):
         ),
         Str(
             'iparepltoposegmentleftnode',
-            pattern='^[a-zA-Z0-9.][a-zA-Z0-9.-]{0,252}[a-zA-Z0-9.$-]?$',
+            pattern='^[a-zA-Z0-9.][a-zA-Z0-9.-]*[a-zA-Z0-9.$-]?$',
             pattern_errmsg='may only include letters, numbers, -, . and $',
             maxlength=255,
             cli_name='leftnode',
@@ -140,7 +140,7 @@ class topologysegment(LDAPObject):
         ),
         Str(
             'iparepltoposegmentrightnode',
-            pattern='^[a-zA-Z0-9.][a-zA-Z0-9.-]{0,252}[a-zA-Z0-9.$-]?$',
+            pattern='^[a-zA-Z0-9.][a-zA-Z0-9.-]*[a-zA-Z0-9.$-]?$',
             pattern_errmsg='may only include letters, numbers, -, . and $',
             maxlength=255,
             cli_name='rightnode',
