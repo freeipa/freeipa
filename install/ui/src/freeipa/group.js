@@ -62,7 +62,7 @@ return {
                             name: 'external',
                             param: 'objectclass',
                             label: '@i18n:objects.group.type',
-                            default_label: '@i18n:objects.group.normal',
+                            default_label: '@i18n:objects.group.nonposix',
                             value_map: {
                                 ipaexternalgroup: '@i18n:objects.group.external',
                                 posixgroup: '@i18n:objects.group.posix'
@@ -174,8 +174,8 @@ return {
                 default_value: 'posix',
                 options: [
                     {
-                        value: 'normal',
-                        label: '@i18n:objects.group.normal'
+                        value: 'nonposix',
+                        label: '@i18n:objects.group.nonposix'
                     },
                     {
                         value: 'external',
@@ -224,10 +224,8 @@ IPA.group_adder_dialog = function(spec) {
         var type_field = that.fields.get_field('type');
         var type = type_field.save()[0];
 
-        if (type === 'normal') {
-            command.set_option('nonposix', true);
-        } else if (type === 'external') {
-            command.set_option('external', true);
+        if (type === 'nonposix' || type === 'external') {
+            command.set_option(type, true);
         }
 
         return command;

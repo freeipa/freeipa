@@ -373,7 +373,7 @@
                             "external": "External",
                             "make_external": "Change to external group",
                             "make_posix": "Change to POSIX group",
-                            "normal": "Normal",
+                            "nonposix": "Non-POSIX",
                             "posix": "POSIX",
                             "type": "Group Type"
                         },
