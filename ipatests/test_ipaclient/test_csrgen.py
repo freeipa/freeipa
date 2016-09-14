@@ -7,6 +7,7 @@ import pytest
 
 from ipaclient import csrgen
 from ipalib import errors
+from ipalib.text import _
 
 BASE_DIR = os.path.dirname(__file__)
 CSR_DATA_DIR = os.path.join(BASE_DIR, 'data', 'test_csrgen')
@@ -241,3 +242,30 @@ class test_rule_handling(object):
         with pytest.raises(errors.CSRTemplateError):
             _script = generator.csr_config(
                 principal, {}, {}, 'example')
+
+    def test_get_user_prompts(self):
+        rule_provider = StubRuleProvider()
+        rule_provider.data_rule.options = {
+            'data_source': 'userdata.nickname', 'prompt': "Nickname"}
+        generator = csrgen.CSRGenerator(
+            rule_provider, formatter_class=IdentityFormatter)
+
+        prompts = generator.get_user_prompts('example')
+
+        expected_prompts = {'nickname': _('Nickname')}
+        assert prompts == expected_prompts
+
+    def test_userdata_included(self):
+        principal = {'uid': 'testuser'}
+        userdata = {'nickname': 'mynick'}
+        rule_provider = StubRuleProvider()
+        rule_provider.data_rule.template = 'nickname:{{userdata.nickname}}'
+        rule_provider.data_rule.options = {
+            'data_source': 'userdata.nickname', 'prompt': "Nickname"}
+        generator = csrgen.CSRGenerator(
+            rule_provider, formatter_class=IdentityFormatter)
+
+        script = generator.csr_config(
+            principal, {}, userdata, 'example')
+        expected_script = 'nickname:mynick\n'
+        assert script == expected_script
