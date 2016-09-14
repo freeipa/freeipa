@@ -35,6 +35,7 @@ import ipalib
 from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipalib.install.kinit import kinit_keytab
 from ipapython.dn import DN
+from ipapython.ipa_log_manager import root_logger
 from ipapython import ipaldap
 from ipaplatform.paths import paths
 from ipaserver.dnssec.abshsm import sync_pkcs11_metadata, wrappingmech_name2id
@@ -601,10 +602,10 @@ def cleanup_ldap_zone(log, ldap, dns_dn, zone_name):
         log.debug('deleting key metadata "%s"', ldap_key.dn)
         ldap.delete_entry(ldap_key)
 
-log = logging.getLogger('root')
+log = root_logger
 # this service is usually socket-activated
-log.addHandler(systemd.journal.JournalHandler())
-log.setLevel(level=logging.DEBUG)
+root_logger.addHandler(systemd.journal.JournalHandler())
+root_logger.setLevel(level=logging.DEBUG)
 
 if len(sys.argv) > 2:
     print(__doc__)
@@ -612,13 +613,10 @@ if len(sys.argv) > 2:
 # program was likely invoked from console, log to it
 elif len(sys.argv) == 2:
     console = logging.StreamHandler()
-    log.addHandler(console)
+    root_logger.addHandler(console)
 
 # IPA framework initialization
-ipalib.api.bootstrap(
-    context='dns', confdir=paths.ETC_IPA,
-    in_server=True, log=None,  # no logging to file
-)
+ipalib.api.bootstrap(context='dns', confdir=paths.ETC_IPA, in_server=True)
 ipalib.api.finalize()
 
 # Kerberos initialization

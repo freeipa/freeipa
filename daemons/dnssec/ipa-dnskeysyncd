@@ -25,8 +25,7 @@ api.bootstrap(context='dns', confdir=paths.ETC_IPA, in_server=True)
 api.finalize()
 log = root_logger
 if api.env.debug:
-    log.setLevel(logging.DEBUG)
-#log.addHandler(systemd.journal.JournalHandler())
+    root_logger.setLevel(logging.DEBUG)
 
 # Global state
 watcher_running = True

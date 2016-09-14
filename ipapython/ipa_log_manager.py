@@ -26,11 +26,8 @@ import six
 
 # Module exports
 __all__ = ['log_mgr', 'root_logger', 'standard_logging_setup',
-           'IPA_ROOT_LOGGER_NAME', 'ISO8601_UTC_DATETIME_FMT',
+           'ISO8601_UTC_DATETIME_FMT',
            'LOGGING_FORMAT_STDERR', 'LOGGING_FORMAT_STDOUT', 'LOGGING_FORMAT_FILE']
-
-# Our root logger, all loggers will be descendents of this.
-IPA_ROOT_LOGGER_NAME = 'ipa'
 
 # Format string for time.strftime() to produce a ISO 8601 date time
 # formatted string in the UTC time zone.
@@ -61,14 +58,9 @@ LOGGING_FORMAT_STANDARD_FILE = '%(asctime)s %(levelname)s %(message)s'
 
 def get_logger(who, bind_logger_names=False):
     if isinstance(who, six.string_types):
-        obj_name = who
+        logger_name = who
     else:
-        obj_name = '%s.%s' % (who.__module__, who.__class__.__name__)
-
-    if obj_name == IPA_ROOT_LOGGER_NAME:
-        logger_name = obj_name
-    else:
-        logger_name = IPA_ROOT_LOGGER_NAME + '.' + obj_name
+        logger_name = '%s.%s' % (who.__module__, who.__class__.__name__)
 
     logger = logging.getLogger(logger_name)
 
@@ -142,4 +134,4 @@ def standard_logging_setup(filename=None, verbose=False, debug=False,
 # Single shared instance of log manager
 log_mgr = sys.modules[__name__]
 
-root_logger = logging.getLogger(IPA_ROOT_LOGGER_NAME)
+root_logger = logging.getLogger()
