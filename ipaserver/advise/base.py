@@ -20,6 +20,7 @@
 from __future__ import print_function
 
 from contextlib import contextmanager
+import logging
 import os
 from textwrap import wrap
 
@@ -28,7 +29,7 @@ from ipalib.plugable import Plugin, API
 from ipalib.errors import ValidationError
 from ipaplatform.paths import paths
 from ipapython import admintool
-from ipapython.ipa_log_manager import log_mgr
+from ipapython.ipa_log_manager import Filter, root_logger
 
 
 """
@@ -507,7 +508,7 @@ class IpaAdvise(admintool.AdminTool):
         if not self.options.verbose:
             # Do not print connection information by default
             logger_name = r'ipa\.ipalib\.plugins\.rpcclient'
-            log_mgr.configure(dict(logger_regexps=[(logger_name, 'warning')]))
+            root_logger.addFilter(Filter(logger_name, logging.WARNING))
 
         # With no argument, print the list out and exit
         if not self.args:
