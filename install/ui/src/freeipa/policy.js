@@ -69,7 +69,10 @@ return {
                             name: 'krbpwdlockoutduration',
                             measurement_unit: 'seconds'
                         },
-                        'cospriority'
+                        {
+                            name: 'cospriority',
+                            required: true
+                        }
                     ]
                 }]
         }
