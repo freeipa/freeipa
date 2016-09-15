@@ -921,20 +921,6 @@ class LDAPUpdate:
 
         return self.modified
 
-    def update_from_dict(self, updates):
-        """
-        Apply updates internally as opposed to from a file.
-        updates is a dictionary containing the updates
-        """
-        self.modified = False
-        try:
-            self.create_connection()
-            self._run_updates(updates)
-        finally:
-            self.close_connection()
-
-        return self.modified
-
     def close_connection(self):
         """Close ldap connection"""
         if self.conn:
