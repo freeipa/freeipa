@@ -53,6 +53,7 @@ from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
 from ipapython import dogtag
+from ipapython import certdb
 from ipapython import certmonger
 from ipapython import ipautil
 from ipapython import ipaldap
@@ -522,7 +523,21 @@ class CAInstance(DogtagInstance):
                 config.set("CA", "pki_clone_reindex_data", "True")
 
             cafile = self.pkcs12_info[0]
-            shutil.copy(cafile, paths.TMP_CA_P12)
+            # When the cafile was generated on older releases,
+            # it may contain a duplicate cert which causes issues
+            # with pkispawn
+            # import into nssdb and export fixes the issue
+            with certdb.NSSDatabase() as nssdb:
+                db_password = ipautil.ipa_generate_password()
+                db_pwdfile = ipautil.write_tmp_file(db_password)
+                nssdb.create_db(db_pwdfile.name)
+                nssdb.import_pkcs12(cafile, db_pwdfile.name, self.dm_password)
+                pwfile = ipautil.write_tmp_file(self.dm_password)
+                ipautil.run([paths.PKCS12EXPORT,
+                             '-d', nssdb.secdir,
+                             '-p', db_pwdfile.name,
+                             '-w', pwfile.name,
+                             '-o', paths.TMP_CA_P12])
             pent = pwd.getpwnam(constants.PKI_USER)
             os.chown(paths.TMP_CA_P12, pent.pw_uid, pent.pw_gid)
 
