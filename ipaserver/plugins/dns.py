@@ -3800,6 +3800,10 @@ class dnsrecord_del(LDAPUpdate):
                 label=_('Delete all associated records'),
             ),
             dnsrecord.structured_flag,
+            Flag(
+                'raw',
+                exclude=('cli', 'webui'),
+            ),
     )
 
     def get_options(self):
