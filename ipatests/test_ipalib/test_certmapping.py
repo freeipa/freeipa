@@ -164,11 +164,11 @@ class test_FileRuleProvider(object):
         assert 'helper_option' not in rule2.options
 
     def test_rule_nosuchrule(self, rule_provider):
-        with pytest.raises(errors.CertificateMappingError):
+        with pytest.raises(errors.NotFound):
             rule_provider._rule('nosuchrule', 'openssl')
 
     def test_rule_nosuchhelper(self, rule_provider):
-        with pytest.raises(errors.CertificateMappingError):
+        with pytest.raises(errors.EmptyResult):
             rule_provider._rule('basic', 'nosuchhelper')
 
     def test_rules_for_profile_success(self, rule_provider):
@@ -181,7 +181,7 @@ class test_FileRuleProvider(object):
         assert field_mapping.data_rules[0].name == 'options'
 
     def test_rules_for_profile_nosuchprofile(self, rule_provider):
-        with pytest.raises(errors.CertificateMappingError):
+        with pytest.raises(errors.NotFound):
             rule_provider.rules_for_profile('nosuchprofile', 'certutil')
 
 

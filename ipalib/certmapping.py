@@ -3,17 +3,19 @@
 #
 
 import collections
+import json
+import os.path
+import pipes
+import traceback
+
 import jinja2
 import jinja2.ext
 import jinja2.sandbox
-import json
-import os.path
-import traceback
 
 from ipalib import errors
 from ipalib.text import _
-from ipapython.ipa_log_manager import root_logger
-from ipapython.templating import IPAExtension
+from ipaplatform.paths import paths
+from ipapython.ipa_log_manager import log_mgr
 
 import six
 
@@ -25,7 +27,7 @@ Routines for constructing certificate signing requests using IPA data and
 stored mapping rules.
 """)
 
-CSR_DATA_DIR = '/usr/share/ipa/csr'
+logger = log_mgr.get_logger(__name__)
 
 
 class IndexableUndefined(jinja2.Undefined):
@@ -33,6 +35,28 @@ class IndexableUndefined(jinja2.Undefined):
         return jinja2.Undefined(
             hint=self._undefined_hint, obj=self._undefined_obj,
             name=self._undefined_name, exc=self._undefined_exception)
+
+
+class IPAExtension(jinja2.ext.Extension):
+    """Jinja2 extension providing useful features for cert mapping rules."""
+
+    def __init__(self, environment):
+        super(IPAExtension, self).__init__(environment)
+
+        environment.filters.update(
+            quote=self.quote,
+            required=self.required,
+        )
+
+    def quote(self, data):
+        return pipes.quote(data)
+
+    def required(self, data, name):
+        if not data:
+            raise errors.CertificateMappingError(
+                reason=_('Required mapping rule %(name)s is missing data') %
+                {'name': name})
+        return data
 
 
 class Formatter(object):
@@ -49,7 +73,7 @@ class Formatter(object):
     """
     base_template_name = None
 
-    def __init__(self, csr_data_dir=CSR_DATA_DIR):
+    def __init__(self, csr_data_dir=paths.CSR_DATA_DIR):
         self.jinja2 = jinja2.sandbox.SandboxedEnvironment(
             loader=jinja2.FileSystemLoader(
                 os.path.join(csr_data_dir, 'templates')),
@@ -107,11 +131,11 @@ class Formatter(object):
         try:
             combined_template_source = base_template.render(**template_params)
         except jinja2.UndefinedError:
-            root_logger.debug(traceback.format_exc())
+            logger.debug(traceback.format_exc())
             raise errors.CertificateMappingError(reason=_(
                 'Template error when formatting certificate data'))
 
-        root_logger.debug(
+        logger.debug(
             'Formatting with template: %s' % combined_template_source)
         combined_template = self.jinja2.from_string(combined_template_source)
 
@@ -138,14 +162,14 @@ class Formatter(object):
 
     def _prepare_syntax_rule(
             self, syntax_rule, data_rules, description, data_sources):
-        root_logger.debug('Syntax rule template: %s' % syntax_rule.template)
+        logger.debug('Syntax rule template: %s' % syntax_rule.template)
         template = self.jinja2.from_string(
             syntax_rule.template, globals=self.passthrough_globals)
         is_required = syntax_rule.options.get('required', False)
         try:
             prepared_template = template.render(datarules=data_rules)
         except jinja2.UndefinedError:
-            root_logger.debug(traceback.format_exc())
+            logger.debug(traceback.format_exc())
             raise errors.CertificateMappingError(reason=_(
                 'Template error when formatting certificate data'))
 
@@ -255,7 +279,7 @@ class RuleProvider(object):
 
 
 class FileRuleProvider(RuleProvider):
-    def __init__(self, csr_data_dir=CSR_DATA_DIR):
+    def __init__(self, csr_data_dir=paths.CSR_DATA_DIR):
         self.rules = {}
         self.csr_data_dir = csr_data_dir
 
@@ -267,18 +291,23 @@ class FileRuleProvider(RuleProvider):
                 with open(rule_path) as rule_file:
                     ruleset = json.load(rule_file)
             except IOError:
-                raise errors.CertificateMappingError(
-                    reason=_('Ruleset %(ruleset)s is configured in profile but'
-                             ' does not exist.') % {'ruleset': rule_name})
+                raise errors.NotFound(
+                    reason=_('Ruleset %(ruleset)s does not exist.') %
+                    {'ruleset': rule_name})
 
-            try:
-                rule = [r for r in ruleset['rules']
-                        if r['helper'] == helper][0]
-            except IndexError:
-                raise errors.CertificateMappingError(
+            matching_rules = [r for r in ruleset['rules']
+                              if r['helper'] == helper]
+            if len(matching_rules) == 0:
+                raise errors.EmptyResult(
                     reason=_('No transformation in "%(ruleset)s" rule supports'
                              ' helper "%(helper)s"') %
                     {'ruleset': rule_name, 'helper': helper})
+            elif len(matching_rules) > 1:
+                raise errors.CertificateMappingError(
+                    reason=_('More than one transformation in "%(ruleset)s"'
+                             ' matches helper "%(helper)s"') %
+                    {'ruleset': rule_name, 'helper': helper})
+            rule = matching_rules[0]
 
             options = {}
             if 'options' in ruleset:
@@ -298,7 +327,7 @@ class FileRuleProvider(RuleProvider):
             with open(profile_path) as profile_file:
                 profile = json.load(profile_file)
         except IOError:
-            raise errors.CertificateMappingError(
+            raise errors.NotFound(
                 reason=_('No certificate mappings are defined for profile'
                          ' %(profile_id)s') % {'profile_id': profile_id})
 
@@ -330,7 +359,7 @@ class CSRGenerator(object):
         try:
             script = template.render(render_data)
         except jinja2.UndefinedError:
-            root_logger.debug(traceback.format_exc())
+            logger.debug(traceback.format_exc())
             raise errors.CertificateMappingError(reason=_(
                 'Template error when formatting certificate data'))
 
