@@ -26,7 +26,7 @@ Test the `ipalib.plugable` module.
 
 from ipatests.util import raises, read_only
 from ipatests.util import ClassChecker, create_test_api
-from ipalib import plugable, errors, text
+from ipalib import plugable, errors
 
 import pytest
 
@@ -52,7 +52,7 @@ class test_Plugin(ClassChecker):
         api = 'the api instance'
         o = self.cls(api)
         assert o.name == 'Plugin'
-        assert isinstance(o.doc, text.Gettext)
+        assert isinstance(o.doc, str)
         class some_subclass(self.cls):
             """
             Do sub-classy things.
@@ -66,11 +66,12 @@ class test_Plugin(ClassChecker):
         o = some_subclass(api)
         assert o.name == 'some_subclass'
         assert o.summary == 'Do sub-classy things.'
-        assert isinstance(o.doc, text.Gettext)
+        assert isinstance(o.doc, str)
         class another_subclass(self.cls):
             pass
         o = another_subclass(api)
-        assert o.summary == '<%s>' % o.fullname
+        assert o.summary == u'<%s.%s>' % (another_subclass.__module__,
+                                          another_subclass.__name__)
 
         # Test that Plugin makes sure the subclass hasn't defined attributes
         # whose names conflict with the logger methods set in Plugin.__init__():
