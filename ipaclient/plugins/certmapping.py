@@ -2,18 +2,18 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+import six
+
 from ipalib import api
 from ipalib import errors
 from ipalib import output
 from ipalib import util
 from ipalib.certmapping import CSRGenerator, FileRuleProvider
-from ipalib.frontend import Command, Str
+from ipalib.frontend import Local, Str
 from ipalib.parameters import Principal
 from ipalib.plugable import Registry
 from ipalib.text import _
 from ipaserver.plugins.certprofile import validate_profile_id
-
-import six
 
 if six.PY3:
     unicode = str
@@ -26,7 +26,7 @@ Commands to build certificate requests automatically
 
 
 @register()
-class cert_get_requestdata(Command):
+class cert_get_requestdata(Local):
     __doc__ = _('Gather data for a certificate signing request.')
 
     takes_options = (
@@ -69,13 +69,20 @@ class cert_get_requestdata(Command):
         )
     )
 
-    def forward(self, *args, **options):
+    def execute(self, *args, **options):
         if 'out' in options:
             util.check_writable_file(options['out'])
 
         principal = options.get('principal')
         profile_id = options.get('profile_id')
         helper = options.get('helper')
+
+        if self.api.env.in_server:
+            backend = self.api.Backend.ldap2
+        else:
+            backend = self.api.Backend.rpcclient
+        if not backend.isconnected():
+            backend.connect()
 
         try:
             if principal.is_host:

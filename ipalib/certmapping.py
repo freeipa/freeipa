@@ -11,13 +11,12 @@ import traceback
 import jinja2
 import jinja2.ext
 import jinja2.sandbox
+import six
 
 from ipalib import errors
 from ipalib.text import _
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import log_mgr
-
-import six
 
 if six.PY3:
     unicode = str
