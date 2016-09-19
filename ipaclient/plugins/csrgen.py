@@ -4,11 +4,11 @@
 
 import six
 
+from ipaclient.csrgen import CSRGenerator, FileRuleProvider
 from ipalib import api
 from ipalib import errors
 from ipalib import output
 from ipalib import util
-from ipalib.certmapping import CSRGenerator, FileRuleProvider
 from ipalib.frontend import Local, Str
 from ipalib.parameters import Principal
 from ipalib.plugable import Registry
