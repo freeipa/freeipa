@@ -826,7 +826,8 @@ class cert(BaseCertObject):
         Int(
             'revocation_reason',
             label=_('Revocation reason'),
-            doc=_('Reason for revoking the certificate (0-10)'),
+            doc=_('Reason for revoking the certificate (0-10). Type '
+                  '"ipa help cert" for revocation reason details. '),
             minvalue=0,
             maxvalue=10,
             flags={'no_create', 'no_update'},
