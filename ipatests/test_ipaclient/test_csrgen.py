@@ -5,34 +5,34 @@
 import os
 import pytest
 
-from ipalib import certmapping
+from ipaclient import csrgen
 from ipalib import errors
 
 BASE_DIR = os.path.dirname(__file__)
-CSR_DATA_DIR = os.path.join(BASE_DIR, 'data', 'test_certmapping')
+CSR_DATA_DIR = os.path.join(BASE_DIR, 'data', 'test_csrgen')
 
 
 @pytest.fixture
 def formatter():
-    return certmapping.Formatter(csr_data_dir=CSR_DATA_DIR)
+    return csrgen.Formatter(csr_data_dir=CSR_DATA_DIR)
 
 
 @pytest.fixture
 def rule_provider():
-    return certmapping.FileRuleProvider(csr_data_dir=CSR_DATA_DIR)
+    return csrgen.FileRuleProvider(csr_data_dir=CSR_DATA_DIR)
 
 
 @pytest.fixture
 def generator():
-    return certmapping.CSRGenerator(certmapping.FileRuleProvider())
+    return csrgen.CSRGenerator(csrgen.FileRuleProvider())
 
 
-class StubRuleProvider(certmapping.RuleProvider):
+class StubRuleProvider(csrgen.RuleProvider):
     def __init__(self):
-        self.syntax_rule = certmapping.Rule(
+        self.syntax_rule = csrgen.Rule(
             'syntax', '{{datarules|join(",")}}', {})
-        self.data_rule = certmapping.Rule('data', 'data_template', {})
-        self.field_mapping = certmapping.FieldMapping(
+        self.data_rule = csrgen.Rule('data', 'data_template', {})
+        self.field_mapping = csrgen.FieldMapping(
             'example', self.syntax_rule, [self.data_rule])
         self.rules = [self.field_mapping]
 
@@ -40,7 +40,7 @@ class StubRuleProvider(certmapping.RuleProvider):
         return self.rules
 
 
-class IdentityFormatter(certmapping.Formatter):
+class IdentityFormatter(csrgen.Formatter):
     base_template_name = 'identity_base.tmpl'
 
     def __init__(self):
@@ -50,25 +50,25 @@ class IdentityFormatter(certmapping.Formatter):
         return {'options': syntax_rules}
 
 
-class IdentityCSRGenerator(certmapping.CSRGenerator):
+class IdentityCSRGenerator(csrgen.CSRGenerator):
     FORMATTERS = {'identity': IdentityFormatter}
 
 
 class test_Formatter(object):
     def test_prepare_data_rule_with_data_source(self, formatter):
-        data_rule = certmapping.Rule('uid', '{{subject.uid.0}}',
-                                     {'data_source': 'subject.uid.0'})
+        data_rule = csrgen.Rule('uid', '{{subject.uid.0}}',
+                                {'data_source': 'subject.uid.0'})
         prepared = formatter._prepare_data_rule(data_rule)
         assert prepared == '{% if subject.uid.0 %}{{subject.uid.0}}{% endif %}'
 
     def test_prepare_data_rule_no_data_source(self, formatter):
         """Not a normal case, but we should handle it anyway"""
-        data_rule = certmapping.Rule('uid', 'static_text', {})
+        data_rule = csrgen.Rule('uid', 'static_text', {})
         prepared = formatter._prepare_data_rule(data_rule)
         assert prepared == 'static_text'
 
     def test_prepare_syntax_rule_with_data_sources(self, formatter):
-        syntax_rule = certmapping.Rule(
+        syntax_rule = csrgen.Rule(
             'example', '{{datarules|join(",")}}', {})
         data_rules = ['{{subject.field1}}', '{{subject.field2}}']
         data_sources = ['subject.field1', 'subject.field2']
@@ -80,8 +80,8 @@ class test_Formatter(object):
             '{{subject.field2}}{% endif %}')
 
     def test_prepare_syntax_rule_with_combinator(self, formatter):
-        syntax_rule = certmapping.Rule('example', '{{datarules|join(",")}}',
-                                       {'data_source_combinator': 'and'})
+        syntax_rule = csrgen.Rule('example', '{{datarules|join(",")}}',
+                                  {'data_source_combinator': 'and'})
         data_rules = ['{{subject.field1}}', '{{subject.field2}}']
         data_sources = ['subject.field1', 'subject.field2']
         prepared = formatter._prepare_syntax_rule(
@@ -92,8 +92,8 @@ class test_Formatter(object):
             '{{subject.field2}}{% endif %}')
 
     def test_prepare_syntax_rule_required(self, formatter):
-        syntax_rule = certmapping.Rule('example', '{{datarules|join(",")}}',
-                                       {'required': True})
+        syntax_rule = csrgen.Rule('example', '{{datarules|join(",")}}',
+                                  {'required': True})
         data_rules = ['{{subject.field1}}']
         data_sources = ['subject.field1']
         prepared = formatter._prepare_syntax_rule(
@@ -110,7 +110,7 @@ class test_Formatter(object):
         """
         formatter._define_passthrough('example.macro')
 
-        syntax_rule = certmapping.Rule(
+        syntax_rule = csrgen.Rule(
             'example',
             '{% call example.macro() %}{{datarules|join(",")}}{% endcall %}',
             {})
@@ -125,7 +125,7 @@ class test_Formatter(object):
 
     def test_prepare_syntax_rule_no_data_sources(self, formatter):
         """Not a normal case, but we should handle it anyway"""
-        syntax_rule = certmapping.Rule(
+        syntax_rule = csrgen.Rule(
             'example', '{{datarules|join(",")}}', {})
         data_rules = ['rule1', 'rule2']
         data_sources = []
@@ -278,7 +278,7 @@ class test_rule_handling(object):
         rule_provider = StubRuleProvider()
         rule_provider.data_rule.template = '{{subject.mail}}'
         rule_provider.data_rule.options = {'data_source': 'subject.mail'}
-        rule_provider.field_mapping.data_rules.append(certmapping.Rule(
+        rule_provider.field_mapping.data_rules.append(csrgen.Rule(
             'data2', '{{subject.uid}}', {'data_source': 'subject.uid'}))
         generator = IdentityCSRGenerator(rule_provider)
 
