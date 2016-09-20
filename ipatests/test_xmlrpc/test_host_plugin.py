@@ -42,6 +42,7 @@ from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
 from ipatests.test_xmlrpc.testcert import get_testcert
 from ipatests.util import assert_deepequal
+from ipaplatform.paths import paths
 
 # Constants DNS integration tests
 # TODO: Use tracker fixtures for zones/records/users/groups
@@ -520,14 +521,18 @@ class TestHostFalsePwdChange(XMLRPC_test):
     def test_join_host(self, host, keytabname):
         """
         Create a test host and join it into IPA.
+
+        This test must not run remotely.
         """
 
-        join_command = 'ipa-client/ipa-join'
-        if not os.path.isfile(join_command):
-            pytest.skip("Command '%s' not found" % join_command)
+        if not os.path.isfile(paths.SBIN_IPA_JOIN):
+            pytest.skip("Command '%s' not found. "
+                        "The test must not run remotely."
+                        % paths.SBIN_IPA_JOIN)
 
         # create a test host with bulk enrollment password
         host.track_create()
+
         del host.attrs['krbprincipalname']
         host.attrs['has_password'] = True
         objclass = list(set(
@@ -545,7 +550,7 @@ class TestHostFalsePwdChange(XMLRPC_test):
 
         # joint the host with the bulk password
         new_args = [
-            join_command,
+            paths.SBIN_IPA_JOIN,
             "-s", host.api.env.host,
             "-h", host.fqdn,
             "-k", keytabname,
