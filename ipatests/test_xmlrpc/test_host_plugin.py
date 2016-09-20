@@ -533,7 +533,10 @@ class TestHostFalsePwdChange(XMLRPC_test):
         # create a test host with bulk enrollment password
         host.track_create()
 
+        # manipulate host.attrs to correspond with real attributes of host
+        # after creating it with random password
         del host.attrs['krbprincipalname']
+        del host.attrs['krbcanonicalname']
         host.attrs['has_password'] = True
         objclass = list(set(
             host.attrs['objectclass']) - {u'krbprincipal', u'krbprincipalaux'})
@@ -565,9 +568,12 @@ class TestHostFalsePwdChange(XMLRPC_test):
             # the keytab is not necessary for further tests
             print(e)
 
+        # fix host.attrs again to correspond with current state
         host.attrs['has_keytab'] = True
         host.attrs['has_password'] = False
         host.attrs['krbprincipalname'] = [u'host/%s@%s' % (host.fqdn,
+                                                           host.api.env.realm)]
+        host.attrs['krbcanonicalname'] = [u'host/%s@%s' % (host.fqdn,
                                                            host.api.env.realm)]
         host.retrieve()
 
