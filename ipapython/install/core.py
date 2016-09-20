@@ -322,7 +322,9 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
         Coroutine which runs the validation part of the configurable.
         """
 
-        return self.__runner(_VALIDATE_PENDING, _VALIDATE_RUNNING)
+        return self.__runner(_VALIDATE_PENDING,
+                             _VALIDATE_RUNNING,
+                             self._handle_validate_exception)
 
     def execute(self):
         """
@@ -337,7 +339,9 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
         Coroutine which runs the execution part of the configurable.
         """
 
-        return self.__runner(_EXECUTE_PENDING, _EXECUTE_RUNNING)
+        return self.__runner(_EXECUTE_PENDING,
+                             _EXECUTE_RUNNING,
+                             self._handle_execute_exception)
 
     def done(self):
         """
@@ -353,7 +357,7 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
             except StopIteration:
                 break
 
-    def __runner(self, pending_state, running_state):
+    def __runner(self, pending_state, running_state, exc_handler):
         self.__transition(pending_state, running_state)
 
         step = lambda: next(self.__gen)
@@ -369,7 +373,7 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
             except BaseException:
                 exc_info = sys.exc_info()
                 try:
-                    self._handle_exception(exc_info)
+                    exc_handler(exc_info)
                 except BaseException:
                     raise
                 else:
@@ -392,6 +396,16 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
         assert not hasattr(super(Configurable, self), '_handle_exception')
 
         six.reraise(*exc_info)
+
+    def _handle_validate_exception(self, exc_info):
+        assert not hasattr(super(Configurable, self),
+                           '_handle_validate_exception')
+        self._handle_exception(exc_info)
+
+    def _handle_execute_exception(self, exc_info):
+        assert not hasattr(super(Configurable, self),
+                           '_handle_execute_exception')
+        self._handle_exception(exc_info)
 
     def __transition(self, from_state, to_state):
         if self.__state != from_state:
