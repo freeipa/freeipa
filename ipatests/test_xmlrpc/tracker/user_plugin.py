@@ -71,7 +71,7 @@ class UserTracker(KerberosAliasMixin, Tracker):
 
         self.kwargs = kwargs
 
-    def make_create_command(self, force=None):
+    def make_create_command(self):
         """ Make function that crates a user using user-add """
         return self.make_command(
             'user_add', self.uid,

@@ -30,7 +30,7 @@ class GroupTracker(Tracker):
         self.dn = get_group_dn(self.cn)
 
     def make_create_command(self, nonposix=False, external=False,
-                            force=True, *args, **kwargs):
+                            *args, **kwargs):
         """ Make function that creates a group using 'group-add' """
         return self.make_command('group_add', self.cn,
                                  description=self.description,

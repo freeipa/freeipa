@@ -37,7 +37,7 @@ class CATracker(Tracker):
                      self.api.env.container_ca,
                      self.api.env.basedn)
 
-    def make_create_command(self, force=True):
+    def make_create_command(self):
         """Make function that creates the plugin entry object."""
         return self.make_command(
             'ca_add', self.name, ipacasubjectdn=self.ipasubjectdn,

@@ -32,7 +32,7 @@ class SudoCmdTracker(Tracker):
         """ Property holding the name of the entry in LDAP """
         return self.cmd
 
-    def make_create_command(self, force=True):
+    def make_create_command(self):
         """ Make function that creates a sudocmd using 'sudocmd-add' """
         return self.make_command('sudocmd_add', self.cmd,
                                  description=self.description)

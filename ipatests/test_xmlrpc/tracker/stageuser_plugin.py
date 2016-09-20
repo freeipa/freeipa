@@ -71,7 +71,7 @@ class StageUserTracker(Tracker):
 
         self.kwargs = kwargs
 
-    def make_create_command(self, options=None, force=None):
+    def make_create_command(self, options=None):
         """ Make function that creates a staged user using stageuser-add """
         if options is not None:
             self.kwargs = options

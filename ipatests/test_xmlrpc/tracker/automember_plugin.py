@@ -38,8 +38,7 @@ class AutomemberTracker(Tracker):
         self.dn = DN(('cn', self.cn), ('cn', self.membertype.title()),
                      ('cn', 'automember'), ('cn', 'etc'), api.env.basedn)
 
-    def make_create_command(self,
-                            force=True, *args, **kwargs):
+    def make_create_command(self, *args, **kwargs):
         """ Make function that creates an automember using 'automember-add' """
         return self.make_command('automember_add', self.cn,
                                  description=self.description,

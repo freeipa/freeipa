@@ -167,7 +167,7 @@ class Tracker(object):
         """If the entry does not exist (according to tracker state), create it
         """
         if not self.exists:
-            self.create(force=True)
+            self.create()
 
     def ensure_missing(self):
         """If the entry exists (according to tracker state), delete it
@@ -175,7 +175,7 @@ class Tracker(object):
         if self.exists:
             self.delete()
 
-    def make_create_command(self, force=True):
+    def make_create_command(self):
         """Make function that creates the plugin entry object."""
         raise NotImplementedError(self._override_me_msg)
 
@@ -199,11 +199,11 @@ class Tracker(object):
         """Make function that modifies the entry using ${CMD}_mod"""
         raise NotImplementedError(self._override_me_msg)
 
-    def create(self, force=True):
+    def create(self):
         """Helper function to create an entry and check the result"""
         self.ensure_missing()
         self.track_create()
-        command = self.make_create_command(force=force)
+        command = self.make_create_command()
         result = command()
         self.check_create(result)
 

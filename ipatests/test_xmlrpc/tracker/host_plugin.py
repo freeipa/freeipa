@@ -93,6 +93,14 @@ class HostTracker(KerberosAliasMixin, Tracker):
         """Make function that modifies the host using host_mod"""
         return self.make_command('host_mod', self.fqdn, **updates)
 
+    def create(self, force=True):
+        """Helper function to create an entry and check the result"""
+        self.ensure_missing()
+        self.track_create()
+        command = self.make_create_command(force=force)
+        result = command()
+        self.check_create(result)
+
     def track_create(self):
         """Update expected state for host creation"""
         self.attrs = dict(

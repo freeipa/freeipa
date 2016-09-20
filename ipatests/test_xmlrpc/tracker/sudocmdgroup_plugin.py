@@ -36,8 +36,7 @@ class SudoCmdGroupTracker(Tracker):
         self.dn = DN(('cn', self.cn), ('cn', 'sudocmdgroups'),
                      ('cn', 'sudo'), api.env.basedn)
 
-    def make_create_command(self,
-                            force=True, *args, **kwargs):
+    def make_create_command(self, *args, **kwargs):
         """ Make function that creates a sudocmdgroup
             using 'sudocmdgroup-add' """
         return self.make_command('sudocmdgroup_add', self.cn,
