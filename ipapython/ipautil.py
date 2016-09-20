@@ -133,8 +133,11 @@ class CheckedIPAddress(UnsafeIPAddress):
     """
     def __init__(self, addr, match_local=False, parse_netmask=True,
                  allow_loopback=False, allow_multicast=False):
+        try:
+            super(CheckedIPAddress, self).__init__(addr)
+        except netaddr.core.AddrFormatError as e:
+            raise ValueError(e)
 
-        super(CheckedIPAddress, self).__init__(addr)
         if isinstance(addr, CheckedIPAddress):
             self.prefixlen = addr.prefixlen
             return
