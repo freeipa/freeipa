@@ -69,8 +69,6 @@ class Tracker(object):
     retrieve_all_keys = None
     create_keys = None
     update_keys = None
-    managedby_keys = None
-    allowedto_keys = None
 
     _override_me_msg = "This method needs to be overridden in a subclass"
 
