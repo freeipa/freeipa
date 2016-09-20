@@ -85,6 +85,14 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
 
         return self.make_command('service_mod', self.name, **updates)
 
+    def create(self, force=True):
+        """Helper function to create an entry and check the result"""
+        self.ensure_missing()
+        self.track_create()
+        command = self.make_create_command(force=force)
+        result = command()
+        self.check_create(result)
+
     def track_create(self, **options):
         """ Update expected state for service creation """
         self.attrs = {

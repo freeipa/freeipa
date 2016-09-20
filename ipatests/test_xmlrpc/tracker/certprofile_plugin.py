@@ -57,7 +57,7 @@ class CertprofileTracker(Tracker):
             content = f.read()
         return unicode(content)
 
-    def make_create_command(self, force=True):
+    def make_create_command(self):
         if not self.profile:
             raise RuntimeError('Tracker object without path to profile '
                                'cannot be used to create profile entry.')

@@ -43,13 +43,13 @@ class LocationTracker(Tracker):
 
         self.servers = {}
 
-    def make_create_command(self, force=None):
+    def make_create_command(self):
         """Make function that creates this location using location-add"""
         return self.make_command(
             'location_add', self.idnsname, description=self.description,
         )
 
-    def make_delete_command(self, force=None):
+    def make_delete_command(self):
         """Make function that removes this location using location-del"""
         return self.make_command('location_del', self.idnsname)
 

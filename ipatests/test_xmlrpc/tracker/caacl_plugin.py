@@ -87,7 +87,7 @@ class CAACLTracker(Tracker):
         """
         return {cat: [v] for cat, v in self.categories.items() if v}
 
-    def make_create_command(self, force=True):
+    def make_create_command(self):
         return self.make_command(u'caacl_add', self.name,
                                  description=self.description,
                                  **self.categories)

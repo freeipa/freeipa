@@ -128,7 +128,7 @@ class TestProfileCRUD(XMLRPC_test):
     def test_create_duplicate(self, user_profile):
         msg = u'Certificate Profile with name "{}" already exists'
         user_profile.ensure_exists()
-        command = user_profile.make_create_command(force=True)
+        command = user_profile.make_create_command()
         with raises_exact(errors.DuplicateEntry(
                 message=msg.format(user_profile.name))):
             command()
