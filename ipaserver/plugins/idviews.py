@@ -29,7 +29,11 @@ from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
 from .hostgroup import get_complete_hostgroup_member_list
 from .service import validate_certificate
 from ipalib import api, Str, Int, Bytes, Flag, _, ngettext, errors, output
-from ipalib.constants import IPA_ANCHOR_PREFIX, SID_ANCHOR_PREFIX
+from ipalib.constants import (
+    IPA_ANCHOR_PREFIX,
+    SID_ANCHOR_PREFIX,
+    PATTERN_GROUPUSER_NAME,
+)
 from ipalib.plugable import Registry
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
     convert_sshpubkey_post)
@@ -841,7 +845,7 @@ class idoverrideuser(baseidoverride):
 
     takes_params = baseidoverride.takes_params + (
         Str('uid?',
-            pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*[a-zA-Z0-9_.$-]?$',
+            pattern=PATTERN_GROUPUSER_NAME,
             pattern_errmsg='may only include letters, numbers, _, -, . and $',
             maxlength=255,
             cli_name='login',
@@ -944,7 +948,7 @@ class idoverridegroup(baseidoverride):
 
     takes_params = baseidoverride.takes_params + (
         Str('cn?',
-            pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*[a-zA-Z0-9_.$-]?$',
+            pattern=PATTERN_GROUPUSER_NAME,
             pattern_errmsg='may only include letters, numbers, _, -, . and $',
             maxlength=255,
             cli_name='group_name',
