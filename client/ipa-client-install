@@ -1569,8 +1569,9 @@ def get_local_ipaddresses(iface=None):
             for ip in if_addrs.get(family, []):
                 try:
                     ips.append(ipautil.CheckedIPAddress(ip['addr']))
-                except ValueError:
-                    continue
+                    root_logger.debug('IP check successful: %s' % ip['addr'])
+                except ValueError as e:
+                    root_logger.debug('IP check failed: %s' % e)
     return ips
 
 
