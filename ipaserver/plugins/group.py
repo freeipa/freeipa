@@ -22,6 +22,7 @@ import six
 
 from ipalib import api
 from ipalib import Int, Str, Flag
+from ipalib.constants import PATTERN_GROUPUSER_NAME
 from ipalib.plugable import Registry
 from .baseldap import (
     add_external_post_callback,
@@ -260,7 +261,7 @@ class group(LDAPObject):
 
     takes_params = (
         Str('cn',
-            pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*[a-zA-Z0-9_.$-]?$',
+            pattern=PATTERN_GROUPUSER_NAME,
             pattern_errmsg='may only include letters, numbers, _, -, . and $',
             maxlength=255,
             cli_name='group_name',
