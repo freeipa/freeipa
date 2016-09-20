@@ -33,6 +33,7 @@ from ipaserver.plugins.service import (
    validate_certificate, validate_realm, normalize_principal)
 from ipalib.request import context
 from ipalib import _
+from ipalib.constants import PATTERN_GROUPUSER_NAME
 from ipapython import kerberos
 from ipapython.ipautil import ipa_generate_password, GEN_TMP_PWD_LEN
 from ipapython.ipavalidate import Email
@@ -172,7 +173,7 @@ class baseuser(LDAPObject):
 
     takes_params = (
         Str('uid',
-            pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*[a-zA-Z0-9_.$-]?$',
+            pattern=PATTERN_GROUPUSER_NAME,
             pattern_errmsg='may only include letters, numbers, _, -, . and $',
             maxlength=255,
             cli_name='login',
