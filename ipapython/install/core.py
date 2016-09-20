@@ -375,11 +375,8 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
                 try:
                     exc_handler(exc_info)
                 except BaseException:
-                    raise
-                else:
-                    break
-                finally:
                     self.__transition(running_state, _FAILED)
+                    raise
 
             if self.__state != running_state:
                 break
