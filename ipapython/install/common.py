@@ -86,9 +86,9 @@ class Interactive(core.Configurable):
 
 
 class Continuous(core.Configurable):
-    def _handle_exception(self, exc_info):
+    def _handle_execute_exception(self, exc_info):
         try:
-            super(Continuous, self)._handle_exception(exc_info)
+            super(Continuous, self)._handle_execute_exception(exc_info)
         except BaseException as e:
             self.log.debug(traceback.format_exc())
             if isinstance(e, Exception):
