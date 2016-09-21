@@ -560,7 +560,7 @@ class TestServerInstall(CALessBase):
         if result.returncode == 0:
             raise nose.SkipTest(
                 "Known CA-less installation defect, see "
-                + "https://fedorahosted.org/freeipa/ticket/4270")
+                "https://fedorahosted.org/freeipa/ticket/4270")
 
         assert result.returncode > 0
 
@@ -579,7 +579,7 @@ class TestServerInstall(CALessBase):
         if result.returncode == 0:
             raise nose.SkipTest(
                 "Known CA-less installation defect, see "
-                + "https://fedorahosted.org/freeipa/ticket/4270")
+                "https://fedorahosted.org/freeipa/ticket/4270")
 
         assert result.returncode > 0
 
@@ -941,7 +941,7 @@ class TestReplicaInstall(CALessBase):
         if result.returncode == 0:
             raise nose.SkipTest(
                 "Known CA-less installation defect, see "
-                + "https://fedorahosted.org/freeipa/ticket/4270")
+                "https://fedorahosted.org/freeipa/ticket/4270")
 
         assert result.returncode > 0
 
@@ -958,7 +958,7 @@ class TestReplicaInstall(CALessBase):
         if result.returncode == 0:
             raise nose.SkipTest(
                 "Known CA-less installation defect, see "
-                + "https://fedorahosted.org/freeipa/ticket/4270")
+                "https://fedorahosted.org/freeipa/ticket/4270")
 
         assert result.returncode > 0
 
@@ -1041,7 +1041,6 @@ class TestReplicaInstall(CALessBase):
         if self.domain_level > DOMAIN_LEVEL_0:
             self.verify_installation()
 
-
     @replica_install_teardown
     def test_ds_san(self):
         "IPA replica install with DS certificate with SAN"
@@ -1112,6 +1111,7 @@ class TestReplicaInstall(CALessBase):
         assert result.returncode == 0
         if self.domain_level > DOMAIN_LEVEL_0:
             self.verify_installation()
+
 
 class TestClientInstall(CALessBase):
     num_clients = 1
@@ -1348,7 +1348,7 @@ class TestCertinstall(CALessBase):
         if result.returncode == 0:
             raise nose.SkipTest(
                 "Known CA-less installation defect, see "
-                + "https://fedorahosted.org/freeipa/ticket/4270")
+                "https://fedorahosted.org/freeipa/ticket/4270")
 
         assert result.returncode > 0
 
@@ -1360,7 +1360,7 @@ class TestCertinstall(CALessBase):
         if result.returncode == 0:
             raise nose.SkipTest(
                 "Known CA-less installation defect, see "
-                + "https://fedorahosted.org/freeipa/ticket/4270")
+                "https://fedorahosted.org/freeipa/ticket/4270")
 
         assert result.returncode > 0
 
