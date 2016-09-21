@@ -766,13 +766,13 @@ class TestServerInstall(CALessBase):
 class TestReplicaInstall(CALessBase):
     num_replicas = 1
 
-    def setUp(self):
-        # Install the master for every test
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
-
-        result = self.install_server()
+    @classmethod
+    def install(cls, mh):
+        super(TestReplicaInstall, cls).install(mh)
+        cls.export_pkcs12('ca1/server')
+        with open(cls.pem_filename, 'w') as f:
+            f.write(cls.get_pem('ca1'))
+        result = cls.install_server()
         assert result.returncode == 0
 
     @replica_install_teardown
