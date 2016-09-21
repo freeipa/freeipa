@@ -1252,12 +1252,10 @@ class TestCertinstall(CALessBase):
             self.copy_cert(self.master, filename)
         if not args:
             args = ['ipa-server-certinstall',
+                    '-p', self.master.config.dirman_password,
                     '-%s' % mode, filename]
             if pin is not None:
                 args += ['--pin', pin]
-            if mode == 'd':
-                args += ['--dirman-password',
-                         self.master.config.dirman_password]
         return self.master.run_command(args,
                                        raiseonerr=False,
                                        stdin_text=stdin_text)
