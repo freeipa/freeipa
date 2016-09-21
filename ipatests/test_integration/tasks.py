@@ -691,7 +691,7 @@ def uninstall_master(host, ignore_topology_disconnect=True,
                      "xargs rm -fv", raiseonerr=False)
     host.run_command("find /run/ipa -name 'krb5*' | xargs rm -fv",
                      raiseonerr=False)
-    host.run_command(['systemctl', 'restart', 'sssd'])
+    host.run_command(['systemctl', 'restart', 'sssd'], raiseonerr=False)
     unapply_fixes(host)
 
 
