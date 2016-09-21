@@ -1230,7 +1230,7 @@ class TestIPACommands(CALessBase):
 class TestCertinstall(CALessBase):
     @classmethod
     def install(cls, mh):
-        super(TestCertinstall, cls).install()
+        super(TestCertinstall, cls).install(mh)
 
         cls.export_pkcs12('ca1/server')
         with open(cls.pem_filename, 'w') as f:
