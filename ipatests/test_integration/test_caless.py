@@ -347,7 +347,7 @@ class TestServerInstall(CALessBase):
     def test_unknown_ca(self):
         "IPA server install with CA PEM file with unknown CA certificate"
 
-        self.export_pkcs12('ca1/server')
+        self.export_pkcs12('ca3/server')
         with open(self.pem_filename, 'w') as f:
             f.write(self.get_pem('ca2'))
 
@@ -359,9 +359,9 @@ class TestServerInstall(CALessBase):
     def test_ca_server_cert(self):
         "IPA server install with CA PEM file with server certificate"
 
-        self.export_pkcs12('ca1/server')
+        self.export_pkcs12('noca')
         with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1/server'))
+            f.write(self.get_pem('noca'))
 
         result = self.install_server()
         assert_error(result,
@@ -473,8 +473,7 @@ class TestServerInstall(CALessBase):
     def test_invalid_ds_cn(self):
         "IPA server install with DS certificate with invalid CN"
 
-        self.export_pkcs12('ca1/server', filename='http.p12')
-        self.export_pkcs12('ca1/server-badname', filename='dirsrv.p12')
+        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
         with open(self.pem_filename, 'w') as f:
             f.write(self.get_pem('ca1'))
 
@@ -786,24 +785,22 @@ class TestReplicaInstall(CALessBase):
 
     @replica_install_teardown
     def test_nonexistent_http_pkcs12_file(self):
-        "IPA replica install with non-existent HTTP PKCS#12 file"
-
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
-
-        result = self.prepare_replica(http_pkcs12='does_not_exist',
-                                      dirsrv_pkcs12='dirsrv.p12',
-                                      http_pkcs12_exists=False)
-        assert_error(result, 'Failed to open does_not_exist')
-
-    @replica_install_teardown
-    def test_nonexistent_ds_pkcs12_file(self):
         "IPA replica install with non-existent DS PKCS#12 file"
 
         self.export_pkcs12('ca1/replica', filename='http.p12')
 
         result = self.prepare_replica(dirsrv_pkcs12='does_not_exist',
-                                      http_pkcs12='http.p12',
-                                      dirsrv_pkcs12_exists=False)
+                                      http_pkcs12='http.p12')
+        assert_error(result, 'Failed to open does_not_exist')
+
+    @replica_install_teardown
+    def test_nonexistent_ds_pkcs12_file(self):
+        "IPA replica install with non-existent HTTP PKCS#12 file"
+
+        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+
+        result = self.prepare_replica(http_pkcs12='does_not_exist',
+                                      dirsrv_pkcs12='dirsrv.p12')
         assert_error(result, 'Failed to open does_not_exist')
 
     @pytest.mark.xfail(reason='freeipa ticket 5378')
