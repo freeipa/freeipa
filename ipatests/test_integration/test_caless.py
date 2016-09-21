@@ -1198,8 +1198,11 @@ class TestIPACommands(CALessBase):
     def test_service_disable_doesnt_revoke(self):
         "Verify that service-disable does not attempt to revoke certificate"
         with self.service():
-            self.master.run_command(['ipa', 'service-disable',
-                                     self.test_service])
+            result = self.master.run_command(['ipa', 'service-disable',
+                                              self.test_service],
+                                             raiseonerr=False)
+            assert(result.returncode == 0), (
+                "Failed to disable ipa-service: %s" % result.stderr_text)
 
     def test_service_del_doesnt_revoke(self):
         "Verify that service-del does not attempt to revoke certificate"
