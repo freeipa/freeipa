@@ -774,10 +774,8 @@ class TestReplicaInstall(CALessBase):
     @replica_install_teardown
     def test_no_certs(self):
         "IPA replica install without certificates"
-
-        result = self.master.run_command(['ipa-replica-prepare',
-                                          self.replicas[0].hostname],
-                                         raiseonerr=False)
+        result = self.prepare_replica(http_pkcs12_exists=False,
+                                      dirsrv_pkcs12_exists=False)
         assert_error(result, "Cannot issue certificates: a CA is not "
                              "installed. Use the --http-cert-file, "
                              "--dirsrv-cert-file options to provide "
