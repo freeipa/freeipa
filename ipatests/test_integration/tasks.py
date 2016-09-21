@@ -249,7 +249,8 @@ def enable_replication_debugging(host):
         """)
     host.run_command(['ldapmodify', '-x',
                       '-D', str(host.config.dirman_dn),
-                      '-w', host.config.dirman_password],
+                      '-w', host.config.dirman_password,
+                      '-h', host.hostname],
                      stdin_text=logging_ldif)
 
 
