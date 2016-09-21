@@ -136,7 +136,8 @@ def parse_options():
     basic_group.add_option("", "--hostname", dest="hostname",
                       help="The hostname of this machine (FQDN). If specified, the hostname will be set and "
                            "the system configuration will be updated to persist over reboot. "
-                           "By default a nodename result from uname(2) is used.")
+                           "By default the result of getfqdn() call from "
+                           "Python's socket module is used.")
     basic_group.add_option("", "--force-join", dest="force_join",
                       action="store_true", default=False,
                       help="Force client enrollment even if already enrolled")
