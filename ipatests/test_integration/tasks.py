@@ -681,7 +681,7 @@ def kinit_admin(host, raiseonerr=True):
 
 
 def uninstall_master(host, ignore_topology_disconnect=True,
-                     ignore_last_of_role=True):
+                     ignore_last_of_role=True, clean=True):
     host.collect_log(paths.IPASERVER_UNINSTALL_LOG)
     uninstall_cmd = ['ipa-server-install', '--uninstall', '-U']
 
@@ -708,7 +708,8 @@ def uninstall_master(host, ignore_topology_disconnect=True,
                      "xargs rm -fv", raiseonerr=False)
     host.run_command("find /run/ipa -name 'krb5*' | xargs rm -fv",
                      raiseonerr=False)
-    unapply_fixes(host)
+    if clean:
+        unapply_fixes(host)
 
 
 def uninstall_client(host):
