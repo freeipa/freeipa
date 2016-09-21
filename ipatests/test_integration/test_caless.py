@@ -353,9 +353,7 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server()
         assert_error(result,
-                     'server.p12 is not signed by root.pem, or the full '
-                     'certificate chain is not present in the PKCS#12 '
-                     'file')
+                     'The full certificate chain is not present in server.p12')
 
     @server_install_teardown
     def test_ca_server_cert(self):
@@ -367,8 +365,7 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server()
         assert_error(result,
-                     'trust chain of the server certificate in server.p12 '
-                     'contains 1 certificates, expected 2')
+                     'The full certificate chain is not present in server.p12')
 
     @pytest.mark.xfail(reason='Ticket N 6289')
     @server_install_teardown
@@ -598,9 +595,9 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
-        assert_error(result,
-                     'http.p12 is not signed by root.pem, or the full '
-                     'certificate chain is not present in the PKCS#12 file')
+        assert_error(result, 'Apache Server SSL certificate and'
+                             ' Directory Server SSL certificate are not'
+                             ' signed by the same CA certificate')
 
     @server_install_teardown
     def test_ds_intermediate_ca(self):
@@ -614,8 +611,8 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'dirsrv.p12 is not signed by root.pem, or the full '
-                     'certificate chain is not present in the PKCS#12 file')
+                     'Apache Server SSL certificate and Directory Server SSL'
+                     ' certificate are not signed by the same CA certificate')
 
     @server_install_teardown
     def test_ca_self_signed(self):
@@ -712,7 +709,7 @@ class TestServerInstall(CALessBase):
                                      stdin_text=stdin_text)
         assert result.returncode == 0
         self.verify_installation()
-        assert ('Enter server.p12 unlock password:'
+        assert ('Enter Apache Server private key unlock password'
                 in result.stdout_text), result.stdout_text
 
     @server_install_teardown
@@ -729,7 +726,7 @@ class TestServerInstall(CALessBase):
                                      stdin_text=stdin_text)
         assert result.returncode == 0
         self.verify_installation()
-        assert ('Enter server.p12 unlock password:'
+        assert ('Enter Directory Server private key unlock password'
                 in result.stdout_text), result.stdout_text
 
     @server_install_teardown
@@ -782,11 +779,10 @@ class TestReplicaInstall(CALessBase):
         result = self.master.run_command(['ipa-replica-prepare',
                                           self.replicas[0].hostname],
                                          raiseonerr=False)
-        assert result.returncode > 0
-        assert ('Cannot issue certificates: a CA is not installed. Use the '
-                '--http-cert-file, --dirsrv-cert-file options to provide '
-                'custom certificates.' in result.stderr_text), \
-               result.stderr_text
+        assert_error(result, "Cannot issue certificates: a CA is not "
+                             "installed. Use the --http-cert-file, "
+                             "--dirsrv-cert-file options to provide "
+                             "custom certificates.")
 
     @replica_install_teardown
     def test_nonexistent_http_pkcs12_file(self):
@@ -840,9 +836,9 @@ class TestReplicaInstall(CALessBase):
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
-        assert_error(result,
-                     'http.p12 is not signed by /etc/ipa/ca.crt, or the full '
-                     'certificate chain is not present in the PKCS#12 file')
+        assert_error(result, 'Apache Server SSL certificate and'
+                             ' Directory Server SSL certificate are not'
+                             ' signed by the same CA certificate')
 
     @replica_install_teardown
     def test_ds_unknown_ca(self):
@@ -854,9 +850,8 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'dirsrv.p12 is not signed by /etc/ipa/ca.crt, or the '
-                     'full certificate chain is not present in the PKCS#12 '
-                     'file')
+                     'Apache Server SSL certificate and Directory Server SSL'
+                     ' certificate are not signed by the same CA certificate')
 
     @replica_install_teardown
     def test_invalid_http_cn(self):
@@ -982,8 +977,8 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'http.p12 is not signed by /etc/ipa/ca.crt, or the full '
-                     'certificate chain is not present in the PKCS#12 file')
+                     'Apache Server SSL certificate and Directory Server SSL'
+                     ' certificate are not signed by the same CA certificate')
 
     @replica_install_teardown
     def test_ds_intermediate_ca(self):
@@ -994,10 +989,9 @@ class TestReplicaInstall(CALessBase):
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
-        assert_error(result,
-                     'dirsrv.p12 is not signed by /etc/ipa/ca.crt, or the '
-                     'full certificate chain is not present in the PKCS#12 '
-                     'file')
+        assert_error(result, 'Apache Server SSL certificate and'
+                             ' Directory Server SSL certificate are not'
+                             ' signed by the same CA certificate')
 
     @replica_install_teardown
     def test_valid_certs(self):
@@ -1422,9 +1416,7 @@ class TestCertinstall(CALessBase):
 
         result = self.certinstall('w', 'server-selfsign')
         assert_error(result,
-                     'server.p12 is not signed by /etc/ipa/ca.crt, or the '
-                     'full certificate chain is not present in the PKCS#12 '
-                     'file')
+                     'The full certificate chain is not present in server.p12')
 
     def test_valid_http(self):
         "Install new valid HTTP certificate"
