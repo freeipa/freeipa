@@ -285,7 +285,7 @@ class CALessBase(IntegrationTest):
     @classmethod
     def get_pem(cls, nickname):
         result = ipautil.run(
-            ['certutil', '-L', '-d', 'nssdb', '-n', nickname, '-a'],
+            [paths.CERTUTIL, '-L', '-d', 'nssdb', '-n', nickname, '-a'],
             cwd=cls.cert_dir, capture_output=True)
         return result.output
 
