@@ -1368,19 +1368,13 @@ class TestCertinstall(CALessBase):
         "Install new HTTP certificate issued by intermediate CA"
 
         result = self.certinstall('w', 'ca1/subca/server')
-        assert_error(result,
-                     'server.p12 is not signed by /etc/ipa/ca.crt, or the '
-                     'full certificate chain is not present in the PKCS#12 '
-                     'file')
+        assert result.returncode == 0, result.stderr_text
 
     def test_ds_intermediate_ca(self):
         "Install new DS certificate issued by intermediate CA"
 
         result = self.certinstall('d', 'ca1/subca/server')
-        assert_error(result,
-                     'server.p12 is not signed by /etc/ipa/ca.crt, or the '
-                     'full certificate chain is not present in the PKCS#12 '
-                     'file')
+        assert result.returncode == 0, result.stderr_text
 
     def test_self_signed(self):
         "Install new self-signed certificate"
@@ -1464,7 +1458,7 @@ class TestCertinstall(CALessBase):
                 '--http-pin', self.cert_password]
 
         result = self.certinstall('w', 'ca1/server', args=args)
-        assert result.returncode == 0
+        assert_error(result, "no such option: --http-pin")
 
     def test_ds_old_options(self):
         "Install new valid DS certificate using pre-v3.3 CLI options"
@@ -1477,4 +1471,4 @@ class TestCertinstall(CALessBase):
 
         result = self.certinstall('d', 'ca1/server',
                                   args=args, stdin_text=stdin_text)
-        assert result.returncode == 0
+        assert_error(result, "no such option: --dirsrv-pin")
