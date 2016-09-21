@@ -370,6 +370,7 @@ class TestServerInstall(CALessBase):
                      'trust chain of the server certificate in server.p12 '
                      'contains 1 certificates, expected 2')
 
+    @pytest.mark.xfail(reason='Ticket N 6289')
     @server_install_teardown
     def test_ca_2_certs(self):
         "IPA server install with CA PEM file with 2 certificates"
@@ -432,6 +433,7 @@ class TestServerInstall(CALessBase):
                      'ipa-server-install: error: You must specify '
                      '--dirsrv-pin with --dirsrv-cert-file')
 
+    @pytest.mark.xfail(reason='freeipa ticket 5378')
     @server_install_teardown
     def test_incorect_http_pin(self):
         "IPA server install with incorrect HTTP PKCS#12 password"
@@ -443,6 +445,7 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pin='bad<pin>')
         assert_error(result, 'incorrect password for pkcs#12 file server.p12')
 
+    @pytest.mark.xfail(reason='freeipa ticket 5378')
     @server_install_teardown
     def test_incorect_ds_pin(self):
         "IPA server install with incorrect DS PKCS#12 password"
@@ -637,6 +640,7 @@ class TestServerInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
+    @pytest.mark.xfail(reason='freeipa ticket 5603')
     @server_install_teardown
     def test_wildcard_http(self):
         "IPA server install with wildcard HTTP certificate"
@@ -651,6 +655,7 @@ class TestServerInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
+    @pytest.mark.xfail(reason='freeipa ticket 5603')
     @server_install_teardown
     def test_wildcard_ds(self):
         "IPA server install with wildcard DS certificate"
@@ -805,6 +810,7 @@ class TestReplicaInstall(CALessBase):
                                       dirsrv_pkcs12_exists=False)
         assert_error(result, 'Failed to open does_not_exist')
 
+    @pytest.mark.xfail(reason='freeipa ticket 5378')
     @replica_install_teardown
     def test_incorect_http_pin(self):
         "IPA replica install with incorrect HTTP PKCS#12 password"
@@ -815,6 +821,7 @@ class TestReplicaInstall(CALessBase):
         assert result.returncode > 0
         assert_error(result, 'incorrect password for pkcs#12 file replica.p12')
 
+    @pytest.mark.xfail(reason='freeipa ticket 5378')
     @replica_install_teardown
     def test_incorect_ds_pin(self):
         "IPA replica install with incorrect DS PKCS#12 password"
@@ -1007,6 +1014,7 @@ class TestReplicaInstall(CALessBase):
 
         self.verify_installation()
 
+    @pytest.mark.xfail(reason='freeipa ticket 5603')
     @replica_install_teardown
     def test_wildcard_http(self):
         "IPA replica install with wildcard HTTP certificate"
@@ -1023,6 +1031,7 @@ class TestReplicaInstall(CALessBase):
 
         self.verify_installation()
 
+    @pytest.mark.xfail(reason='freeipa ticket 5603')
     @replica_install_teardown
     def test_wildcard_ds(self):
         "IPA replica install with wildcard DS certificate"
@@ -1300,6 +1309,7 @@ class TestCertinstall(CALessBase):
                                   cert_exists=False)
         assert_error(result, 'Failed to open does_not_exist')
 
+    @pytest.mark.xfail(reason='freeipa ticket 5378')
     def test_incorect_http_pin(self):
         "Install new HTTP certificate with incorrect PKCS#12 password"
 
@@ -1307,6 +1317,7 @@ class TestCertinstall(CALessBase):
         assert_error(result,
                      'incorrect password for pkcs#12 file server.p12')
 
+    @pytest.mark.xfail(reason='freeipa ticket 5378')
     def test_incorect_dirsrv_pin(self):
         "Install new DS certificate with incorrect PKCS#12 password"
 
@@ -1427,12 +1438,14 @@ class TestCertinstall(CALessBase):
         result = self.certinstall('d', 'ca1/server')
         assert result.returncode == 0
 
+    @pytest.mark.xfail(reason='freeipa ticket 5603')
     def test_wildcard_http(self):
         "Install new wildcard HTTP certificate"
 
         result = self.certinstall('w', 'ca1/wildcard')
         assert result.returncode == 0
 
+    @pytest.mark.xfail(reason='freeipa ticket 5603')
     def test_wildcard_ds(self):
         "Install new wildcard DS certificate"
 
