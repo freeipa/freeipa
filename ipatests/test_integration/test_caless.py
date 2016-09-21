@@ -330,9 +330,7 @@ class CALessBase(IntegrationTest):
 class TestServerInstall(CALessBase):
     num_replicas = 0
 
-    def tearDown(self):
-        self.uninstall_server()
-
+    @server_install_teardown
     def test_nonexistent_ca_pem_file(self):
         "IPA server install with non-existent CA PEM file "
 
@@ -345,6 +343,7 @@ class TestServerInstall(CALessBase):
                      'Failed to open does_not_exist: No such file '
                      'or directory')
 
+    @server_install_teardown
     def test_unknown_ca(self):
         "IPA server install with CA PEM file with unknown CA certificate"
 
@@ -358,6 +357,7 @@ class TestServerInstall(CALessBase):
                      'certificate chain is not present in the PKCS#12 '
                      'file')
 
+    @server_install_teardown
     def test_ca_server_cert(self):
         "IPA server install with CA PEM file with server certificate"
 
@@ -370,6 +370,7 @@ class TestServerInstall(CALessBase):
                      'trust chain of the server certificate in server.p12 '
                      'contains 1 certificates, expected 2')
 
+    @server_install_teardown
     def test_ca_2_certs(self):
         "IPA server install with CA PEM file with 2 certificates"
 
@@ -381,6 +382,7 @@ class TestServerInstall(CALessBase):
         result = self.install_server()
         assert_error(result, 'root.pem contains more than one certificate')
 
+    @server_install_teardown
     def test_nonexistent_http_pkcs12_file(self):
         "IPA server install with non-existent HTTP PKCS#12 file"
 
@@ -392,6 +394,7 @@ class TestServerInstall(CALessBase):
                                      http_pkcs12_exists=False)
         assert_error(result, 'Failed to open does_not_exist')
 
+    @server_install_teardown
     def test_nonexistent_ds_pkcs12_file(self):
         "IPA server install with non-existent DS PKCS#12 file"
 
@@ -403,6 +406,7 @@ class TestServerInstall(CALessBase):
                                      dirsrv_pkcs12_exists=False)
         assert_error(result, 'Failed to open does_not_exist')
 
+    @server_install_teardown
     def test_missing_http_password(self):
         "IPA server install with missing HTTP PKCS#12 password (unattended)"
 
@@ -415,6 +419,7 @@ class TestServerInstall(CALessBase):
                      'ipa-server-install: error: You must specify --http-pin '
                      'with --http-cert-file')
 
+    @server_install_teardown
     def test_missing_ds_password(self):
         "IPA server install with missing DS PKCS#12 password (unattended)"
 
@@ -427,6 +432,7 @@ class TestServerInstall(CALessBase):
                      'ipa-server-install: error: You must specify '
                      '--dirsrv-pin with --dirsrv-cert-file')
 
+    @server_install_teardown
     def test_incorect_http_pin(self):
         "IPA server install with incorrect HTTP PKCS#12 password"
 
@@ -437,6 +443,7 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pin='bad<pin>')
         assert_error(result, 'incorrect password for pkcs#12 file server.p12')
 
+    @server_install_teardown
     def test_incorect_ds_pin(self):
         "IPA server install with incorrect DS PKCS#12 password"
 
@@ -447,6 +454,7 @@ class TestServerInstall(CALessBase):
         result = self.install_server(dirsrv_pin='bad<pin>')
         assert_error(result, 'incorrect password for pkcs#12 file server.p12')
 
+    @server_install_teardown
     def test_invalid_http_cn(self):
         "IPA server install with HTTP certificate with invalid CN"
 
@@ -461,6 +469,7 @@ class TestServerInstall(CALessBase):
                      'The server certificate in http.p12 is not valid: '
                      'invalid for server %s' % self.master.hostname)
 
+    @server_install_teardown
     def test_invalid_ds_cn(self):
         "IPA server install with DS certificate with invalid CN"
 
@@ -475,6 +484,7 @@ class TestServerInstall(CALessBase):
                      'The server certificate in dirsrv.p12 is not valid: '
                      'invalid for server %s' % self.master.hostname)
 
+    @server_install_teardown
     def test_expired_http(self):
         "IPA server install with expired HTTP certificate"
 
@@ -490,6 +500,7 @@ class TestServerInstall(CALessBase):
                      "(SEC_ERROR_EXPIRED_CERTIFICATE) Peer's Certificate has "
                      'expired.')
 
+    @server_install_teardown
     def test_expired_ds(self):
         "IPA server install with expired DS certificate"
 
@@ -505,6 +516,7 @@ class TestServerInstall(CALessBase):
                      "(SEC_ERROR_EXPIRED_CERTIFICATE) Peer's Certificate has "
                      'expired.')
 
+    @server_install_teardown
     def test_http_bad_usage(self):
         "IPA server install with HTTP certificate with invalid key usage"
 
@@ -519,6 +531,7 @@ class TestServerInstall(CALessBase):
                      'The server certificate in http.p12 is not valid: '
                      'invalid for a SSL server')
 
+    @server_install_teardown
     def test_ds_bad_usage(self):
         "IPA server install with DS certificate with invalid key usage"
 
@@ -533,6 +546,7 @@ class TestServerInstall(CALessBase):
                      'The server certificate in dirsrv.p12 is not valid: '
                      'invalid for a SSL server')
 
+    @server_install_teardown
     def test_revoked_http(self):
         "IPA server install with revoked HTTP certificate"
 
@@ -551,6 +565,7 @@ class TestServerInstall(CALessBase):
 
         assert result.returncode > 0
 
+    @server_install_teardown
     def test_revoked_ds(self):
         "IPA server install with revoked DS certificate"
 
@@ -569,6 +584,7 @@ class TestServerInstall(CALessBase):
 
         assert result.returncode > 0
 
+    @server_install_teardown
     def test_http_intermediate_ca(self):
         "IPA server install with HTTP certificate issued by intermediate CA"
 
@@ -583,6 +599,7 @@ class TestServerInstall(CALessBase):
                      'http.p12 is not signed by root.pem, or the full '
                      'certificate chain is not present in the PKCS#12 file')
 
+    @server_install_teardown
     def test_ds_intermediate_ca(self):
         "IPA server install with DS certificate issued by intermediate CA"
 
@@ -597,6 +614,7 @@ class TestServerInstall(CALessBase):
                      'dirsrv.p12 is not signed by root.pem, or the full '
                      'certificate chain is not present in the PKCS#12 file')
 
+    @server_install_teardown
     def test_ca_self_signed(self):
         "IPA server install with self-signed certificate"
 
@@ -607,6 +625,7 @@ class TestServerInstall(CALessBase):
         result = self.install_server()
         assert result.returncode > 0
 
+    @server_install_teardown
     def test_valid_certs(self):
         "IPA server install with valid certificates"
 
@@ -618,6 +637,7 @@ class TestServerInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
+    @server_install_teardown
     def test_wildcard_http(self):
         "IPA server install with wildcard HTTP certificate"
 
@@ -631,6 +651,7 @@ class TestServerInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
+    @server_install_teardown
     def test_wildcard_ds(self):
         "IPA server install with wildcard DS certificate"
 
@@ -644,6 +665,7 @@ class TestServerInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
+    @server_install_teardown
     def test_http_san(self):
         "IPA server install with HTTP certificate with SAN"
 
@@ -657,6 +679,7 @@ class TestServerInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
+    @server_install_teardown
     def test_ds_san(self):
         "IPA server install with DS certificate with SAN"
 
@@ -670,6 +693,7 @@ class TestServerInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
+    @server_install_teardown
     def test_interactive_missing_http_pkcs_password(self):
         "IPA server install with prompt for HTTP PKCS#12 password"
 
@@ -686,6 +710,7 @@ class TestServerInstall(CALessBase):
         assert ('Enter server.p12 unlock password:'
                 in result.stdout_text), result.stdout_text
 
+    @server_install_teardown
     def test_interactive_missing_ds_pkcs_password(self):
         "IPA server install with prompt for DS PKCS#12 password"
 
@@ -702,6 +727,7 @@ class TestServerInstall(CALessBase):
         assert ('Enter server.p12 unlock password:'
                 in result.stdout_text), result.stdout_text
 
+    @server_install_teardown
     def test_no_http_password(self):
         "IPA server install with empty HTTP password"
 
@@ -716,6 +742,7 @@ class TestServerInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
+    @server_install_teardown
     def test_no_ds_password(self):
         "IPA server install with empty DS password"
 
@@ -743,18 +770,7 @@ class TestReplicaInstall(CALessBase):
         result = self.install_server()
         assert result.returncode == 0
 
-    def tearDown(self):
-        # Uninstall both master and replica
-        replica = self.replicas[0]
-        tasks.kinit_admin(self.master)
-        self.uninstall_server(replica)
-        self.master.run_command(['ipa-replica-manage', 'del', replica.hostname,
-                                 '--force'], raiseonerr=False)
-        self.master.run_command(['ipa', 'host-del', replica.hostname],
-                                raiseonerr=False)
-
-        self.uninstall_server()
-
+    @replica_install_teardown
     def test_no_certs(self):
         "IPA replica install without certificates"
 
@@ -767,6 +783,7 @@ class TestReplicaInstall(CALessBase):
                 'custom certificates.' in result.stderr_text), \
                result.stderr_text
 
+    @replica_install_teardown
     def test_nonexistent_http_pkcs12_file(self):
         "IPA replica install with non-existent HTTP PKCS#12 file"
 
@@ -777,6 +794,7 @@ class TestReplicaInstall(CALessBase):
                                       http_pkcs12_exists=False)
         assert_error(result, 'Failed to open does_not_exist')
 
+    @replica_install_teardown
     def test_nonexistent_ds_pkcs12_file(self):
         "IPA replica install with non-existent DS PKCS#12 file"
 
@@ -787,6 +805,7 @@ class TestReplicaInstall(CALessBase):
                                       dirsrv_pkcs12_exists=False)
         assert_error(result, 'Failed to open does_not_exist')
 
+    @replica_install_teardown
     def test_incorect_http_pin(self):
         "IPA replica install with incorrect HTTP PKCS#12 password"
 
@@ -796,6 +815,7 @@ class TestReplicaInstall(CALessBase):
         assert result.returncode > 0
         assert_error(result, 'incorrect password for pkcs#12 file replica.p12')
 
+    @replica_install_teardown
     def test_incorect_ds_pin(self):
         "IPA replica install with incorrect DS PKCS#12 password"
 
@@ -804,6 +824,7 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(dirsrv_pin='bad<pin>')
         assert_error(result, 'incorrect password for pkcs#12 file replica.p12')
 
+    @replica_install_teardown
     def test_http_unknown_ca(self):
         "IPA replica install with HTTP certificate issued by unknown CA"
 
@@ -816,6 +837,7 @@ class TestReplicaInstall(CALessBase):
                      'http.p12 is not signed by /etc/ipa/ca.crt, or the full '
                      'certificate chain is not present in the PKCS#12 file')
 
+    @replica_install_teardown
     def test_ds_unknown_ca(self):
         "IPA replica install with DS certificate issued by unknown CA"
 
@@ -829,6 +851,7 @@ class TestReplicaInstall(CALessBase):
                      'full certificate chain is not present in the PKCS#12 '
                      'file')
 
+    @replica_install_teardown
     def test_invalid_http_cn(self):
         "IPA replica install with HTTP certificate with invalid CN"
 
@@ -841,6 +864,7 @@ class TestReplicaInstall(CALessBase):
                      'The server certificate in http.p12 is not valid: '
                      'invalid for server %s' % self.replicas[0].hostname)
 
+    @replica_install_teardown
     def test_invalid_ds_cn(self):
         "IPA replica install with DS certificate with invalid CN"
 
@@ -853,6 +877,7 @@ class TestReplicaInstall(CALessBase):
                      'The server certificate in dirsrv.p12 is not valid: '
                      'invalid for server %s' % self.replicas[0].hostname)
 
+    @replica_install_teardown
     def test_expired_http(self):
         "IPA replica install with expired HTTP certificate"
 
@@ -866,6 +891,7 @@ class TestReplicaInstall(CALessBase):
                      "(SEC_ERROR_EXPIRED_CERTIFICATE) Peer's Certificate has "
                      'expired.')
 
+    @replica_install_teardown
     def test_expired_ds(self):
         "IPA replica install with expired DS certificate"
 
@@ -879,6 +905,7 @@ class TestReplicaInstall(CALessBase):
                      "(SEC_ERROR_EXPIRED_CERTIFICATE) Peer's Certificate has "
                      'expired.')
 
+    @replica_install_teardown
     def test_http_bad_usage(self):
         "IPA replica install with HTTP certificate with invalid key usage"
 
@@ -891,6 +918,7 @@ class TestReplicaInstall(CALessBase):
                      'The server certificate in http.p12 is not valid: '
                      'invalid for a SSL server')
 
+    @replica_install_teardown
     def test_ds_bad_usage(self):
         "IPA replica install with DS certificate with invalid key usage"
 
@@ -903,6 +931,7 @@ class TestReplicaInstall(CALessBase):
                      'The server certificate in dirsrv.p12 is not valid: '
                      'invalid for a SSL server')
 
+    @replica_install_teardown
     def test_revoked_http(self):
         "IPA replica install with revoked HTTP certificate"
 
@@ -919,6 +948,7 @@ class TestReplicaInstall(CALessBase):
 
         assert result.returncode > 0
 
+    @replica_install_teardown
     def test_revoked_ds(self):
         "IPA replica install with revoked DS certificate"
 
@@ -935,6 +965,7 @@ class TestReplicaInstall(CALessBase):
 
         assert result.returncode > 0
 
+    @replica_install_teardown
     def test_http_intermediate_ca(self):
         "IPA replica install with HTTP certificate issued by intermediate CA"
 
@@ -947,6 +978,7 @@ class TestReplicaInstall(CALessBase):
                      'http.p12 is not signed by /etc/ipa/ca.crt, or the full '
                      'certificate chain is not present in the PKCS#12 file')
 
+    @replica_install_teardown
     def test_ds_intermediate_ca(self):
         "IPA replica install with DS certificate issued by intermediate CA"
 
@@ -960,6 +992,7 @@ class TestReplicaInstall(CALessBase):
                      'full certificate chain is not present in the PKCS#12 '
                      'file')
 
+    @replica_install_teardown
     def test_valid_certs(self):
         "IPA replica install with valid certificates"
 
@@ -974,6 +1007,7 @@ class TestReplicaInstall(CALessBase):
 
         self.verify_installation()
 
+    @replica_install_teardown
     def test_wildcard_http(self):
         "IPA replica install with wildcard HTTP certificate"
 
@@ -989,6 +1023,7 @@ class TestReplicaInstall(CALessBase):
 
         self.verify_installation()
 
+    @replica_install_teardown
     def test_wildcard_ds(self):
         "IPA replica install with wildcard DS certificate"
 
@@ -1004,6 +1039,7 @@ class TestReplicaInstall(CALessBase):
 
         self.verify_installation()
 
+    @replica_install_teardown
     def test_http_san(self):
         "IPA replica install with HTTP certificate with SAN"
 
@@ -1019,6 +1055,7 @@ class TestReplicaInstall(CALessBase):
 
         self.verify_installation()
 
+    @replica_install_teardown
     def test_ds_san(self):
         "IPA replica install with DS certificate with SAN"
 
@@ -1034,6 +1071,7 @@ class TestReplicaInstall(CALessBase):
 
         self.verify_installation()
 
+    @replica_install_teardown
     def test_interactive_missing_http_pkcs_password(self):
         "IPA replica install with missing HTTP PKCS#12 password"
 
@@ -1051,6 +1089,7 @@ class TestReplicaInstall(CALessBase):
 
         self.verify_installation()
 
+    @replica_install_teardown
     def test_interactive_missing_ds_pkcs_password(self):
         "IPA replica install with missing DS PKCS#12 password"
 
@@ -1068,6 +1107,7 @@ class TestReplicaInstall(CALessBase):
 
         self.verify_installation()
 
+    @replica_install_teardown
     def test_no_http_password(self):
         "IPA replica install with empty HTTP password"
 
@@ -1084,6 +1124,7 @@ class TestReplicaInstall(CALessBase):
 
         self.verify_installation()
 
+    @replica_install_teardown
     def test_no_ds_password(self):
         "IPA replica install with empty DS password"
 
