@@ -111,7 +111,7 @@ Path to backed up host keytab from previous enrollment. Joins the host even if i
 Configure PAM to create a users home directory if it does not exist.
 .TP
 \fB\-\-hostname\fR
-The hostname of this machine (FQDN). If specified, the hostname will be set and the system configuration will be updated to persist over reboot. By default a nodename result from uname(2) is used.
+The hostname of this machine (FQDN). If specified, the hostname will be set and the system configuration will be updated to persist over reboot. By default the result of getfqdn() call from Python's socket module is used.
 .TP
 \fB\-\-force\-join\fR
 Join the host even if it is already enrolled.

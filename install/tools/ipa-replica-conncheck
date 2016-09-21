@@ -172,7 +172,8 @@ def parse_options():
 
     common_group.add_option("", "--hostname", dest="hostname",
                       help="The hostname of this server (FQDN). "
-                           "By default a nodename from uname(2) is used.")
+                           "By default the result of getfqdn() call from "
+                           "Python's socket module is used.")
     parser.add_option_group(common_group)
 
     parser.add_option("-d", "--debug", dest="debug",

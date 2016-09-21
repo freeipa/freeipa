@@ -60,7 +60,7 @@ Remote replica machine address
 Include in a check also a set of dogtag connection requirements. Only needed when the master was installed with Dogtag 9 or lower.
 .TP
 \fB\-h\fR \fIHOSTNAME\fR, \fB\-\-hostname\fR=\fIHOSTNAME\fR
-The hostname of this server (FQDN). By default a nodename from uname(2) is used
+The hostname of this server (FQDN). By default the result of getfqdn() call from Python's socket module is used.
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
 Print debugging information
