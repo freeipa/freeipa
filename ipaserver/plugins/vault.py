@@ -755,6 +755,28 @@ class vault(LDAPObject):
         elif entry.dn.endswith(DN(('cn', 'users'), container_dn)):
             entry['username'] = entry.dn[1]['cn']
 
+    def handle_not_found(self, *keys, **options):
+        container_dn = self.get_dn(*keys, **options)
+        parent_container = container_dn[1]['cn']
+        if parent_container != 'shared':
+            # get the container type and strip the ending 's'
+            container_type = container_dn[2]['cn'][:-1]
+        else:
+            container_type = 'shared'
+
+        self.object_not_found_msg = _('%(pkey)s: %(oname)s not found')
+        if container_type in ('service, user'):
+            self.object_not_found_msg = (
+                self.object_not_found_msg +
+                (" in %(cn)s %(cont_type)s vault container")
+                % {'cn': parent_container, 'cont_type': container_type}
+            )
+        else:
+            self.object_not_found_msg = (
+                self.object_not_found_msg + (" in shared vault container.")
+            )
+        super(vault, self).handle_not_found(*keys, **options)
+
 
 @register()
 class vault_add_internal(LDAPCreate):
