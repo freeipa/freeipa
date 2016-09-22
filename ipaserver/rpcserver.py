@@ -50,13 +50,12 @@ from ipalib.errors import (PublicError, InternalError, JSONError,
 from ipalib.request import context, destroy_context
 from ipalib.rpc import (xml_dumps, xml_loads,
     json_encode_binary, json_decode_binary)
-from ipalib.util import normalize_name
 from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
 from ipalib.backend import Backend
 from ipalib.krb_utils import (
-    krb5_format_principal_name,
     get_credentials_if_valid)
+from ipapython import kerberos
 from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.version import VERSION
@@ -872,33 +871,14 @@ class login_password(Backend, KerberosSession):
             return self.bad_request(environ, start_response, "no user specified")
 
         # allows login in the form user@SERVER_REALM or user@server_realm
-        # FIXME: uppercasing may be removed when better handling of UPN
-        #        is introduced
-
-        parts = normalize_name(user)
-
-        if "domain" in parts:
-            # username is of the form user@SERVER_REALM or user@server_realm
-
-            # check whether the realm is server's realm
-            # Users from other realms are not supported
-            # (they do not have necessary LDAP entry, LDAP connect will fail)
-
-            if parts["domain"].upper()==self.api.env.realm:
-                user=parts["name"]
-            else:
-                return self.unauthorized(environ, start_response, '', 'denied')
-
-        elif "flatname" in parts:
-            # username is of the form NetBIOS\user
+        # we kinit as enterprise principal so we can assume that unknown realms
+        # are UPN
+        try:
+            user_principal = kerberos.Principal(user)
+        except Exception:
+            # the principal is malformed in some way (e.g. user@REALM1@REALM2)
+            # netbios names (NetBIOS1\user) are also not accepted (yet)
             return self.unauthorized(environ, start_response, '', 'denied')
-
-        else:
-            # username is of the form user or of some wild form, e.g.
-            # user@REALM1@REALM2 or NetBIOS1\NetBIOS2\user (see normalize_name)
-
-            # wild form username will fail at kinit, so nothing needs to be done
-            pass
 
         password = query_dict.get('password', None)
         if password is not None:
@@ -918,7 +898,7 @@ class login_password(Backend, KerberosSession):
         except OSError:
             pass
         try:
-            self.kinit(user, self.api.env.realm, password, ipa_ccache_name)
+            self.kinit(user_principal, password, ipa_ccache_name)
         except PasswordExpired as e:
             return self.unauthorized(environ, start_response, str(e), 'password-expired')
         except InvalidSessionPassword as e:
@@ -944,7 +924,7 @@ class login_password(Backend, KerberosSession):
             pass
         return result
 
-    def kinit(self, user, realm, password, ccache_name):
+    def kinit(self, principal, password, ccache_name):
         # get anonymous ccache as an armor for FAST to enable OTP auth
         armor_path = os.path.join(paths.IPA_CCACHES,
                                   "armor_{}".format(os.getpid()))
@@ -958,12 +938,13 @@ class login_password(Backend, KerberosSession):
             # We try to continue w/o armor, 2FA will be impacted
             armor_path = None
 
-        # Format the user as a kerberos principal
-        principal = krb5_format_principal_name(user, realm)
-
         try:
-            kinit_password(principal, password, ccache_name,
-                           armor_ccache_name=armor_path)
+            kinit_password(
+                unicode(principal),
+                password,
+                ccache_name,
+                armor_ccache_name=armor_path,
+                enterprise=True)
 
             if armor_path:
                 self.debug('Cleanup the armor ccache')
