@@ -87,7 +87,7 @@ Consequences of the re\-enrollment on the host entry:
 Set the domain name to DOMAIN. When no \-\-server option is specified, the installer will try to discover all available servers via DNS SRV record autodiscovery (see DNS Autodiscovery section for details).
 .TP
 \fB\-\-server\fR=\fISERVER\fR
-Set the IPA server to connect to. May be specified multiple times to add multiple servers to ipa_server value in sssd.conf or krb5.conf. Only the first value is considered when used with \-\-no\-sssd. When this option is used, DNS autodiscovery for Kerberos is disabled and a fixed list of KDC and Admin servers is configured.
+Set the FQDN of the IPA server to connect to. May be specified multiple times to add multiple servers to ipa_server value in sssd.conf or krb5.conf. Only the first value is considered when used with \-\-no\-sssd. When this option is used, DNS autodiscovery for Kerberos is disabled and a fixed list of KDC and Admin servers is configured.
 .TP
 \fB\-\-realm\fR=\fIREALM_NAME\fR
 Set the IPA realm name to REALM_NAME. Under normal circumstances, this option is not needed as the realm name is retrieved from the IPA server.
