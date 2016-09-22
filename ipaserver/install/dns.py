@@ -314,9 +314,6 @@ def install_check(standalone, api, replica, options, hostname):
 
 
 def install(standalone, replica, options, api=api):
-    global ip_addresses
-    global reverse_zones
-
     local_dnskeysyncd_dn = DN(('cn', 'DNSKeySync'), ('cn', api.env.host),
                               ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
                               api.env.basedn)
