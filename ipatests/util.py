@@ -28,7 +28,9 @@ import tempfile
 import shutil
 import re
 import uuid
+import pytest
 from contextlib import contextmanager
+from pprint import pformat
 
 import six
 import ldap
@@ -273,17 +275,28 @@ LEN = """assert_deepequal: list length mismatch.
   %s
   len(expected) = %r
   len(got) = %r
-  expected = %r
-  got = %r
+  expected = %s
+  got = %s
   path = %r"""
 
 KEYS = """assert_deepequal: dict keys mismatch.
   %s
   missing keys = %r
   extra keys = %r
-  expected = %r
-  got = %r
+  expected = %s
+  got = %s
   path = %r"""
+
+EXPECTED_LEN = len('  expected = ')
+GOT_LEN = len('  got = ')
+
+
+def struct_to_string(struct, indent=1):
+    """
+    Function to pretty-format a structure and optionally indent its lines
+    so they match the visual indention of the first line
+    """
+    return pformat(struct).replace('\n', '\n' + ' ' * indent)
 
 
 def assert_deepequal(expected, got, doc='', stack=tuple()):
@@ -315,6 +328,13 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
     Note that lists and tuples are considered equivalent, and the order of
     their elements does not matter.
     """
+    if pytest.config.getoption("pretty_print"):  # pylint: disable=no-member
+        expected_str = struct_to_string(expected, EXPECTED_LEN)
+        got_str = struct_to_string(got, GOT_LEN)
+    else:
+        expected_str = repr(expected)
+        got_str = repr(got)
+
     if isinstance(expected, tuple):
         expected = list(expected)
     if isinstance(got, tuple):
@@ -329,7 +349,8 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
     if isinstance(expected, (list, tuple)):
         if len(expected) != len(got):
             raise AssertionError(
-                LEN % (doc, len(expected), len(got), expected, got, stack)
+                LEN % (doc, len(expected), len(got), expected_str, got_str,
+                       stack)
             )
         # Sort list elements, unless they are dictionaries
         if expected and isinstance(expected[0], dict):
@@ -352,8 +373,8 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
         extra = set(got).difference(expected)
         if missing or extra:
             raise AssertionError(KEYS % (
-                    doc, sorted(missing), sorted(extra), expected, got, stack
-                )
+                    doc, sorted(missing), sorted(extra), expected_str, got_str,
+                    stack)
             )
         for key in sorted(expected):
             e_sub = expected[key]
