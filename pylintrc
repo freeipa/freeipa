@@ -17,7 +17,6 @@ enable=
 
 disable=
     I,
-    cyclic-import,
     duplicate-code,
     import-error,
     interface-not-implemented,
