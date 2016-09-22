@@ -38,7 +38,9 @@ KEYTAB_FB = paths.IPA_DNSKEYSYNCD_KEYTAB
 # Shutdown handler
 def commenceShutdown(signum, stack):
     # Declare the needed global variables
-    global watcher_running, ldap_connection, log
+    global watcher_running
+    global ldap_connection  # pylint: disable=global-variable-not-assigned
+
     log.info('Signal %s received: Shutting down!', signum)
 
     # We are no longer running

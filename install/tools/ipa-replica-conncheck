@@ -385,7 +385,6 @@ def main():
         print_info("\nConnection from replica to master is OK.")
 
         # create listeners
-        global RESPONDERS
         print_info("Start listening on required ports for remote master check")
 
         for port in required_ports:

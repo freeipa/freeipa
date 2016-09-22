@@ -166,8 +166,6 @@ class test_cert(XMLRPC_test):
         """
         Verify that service-show has the right certificate using service-show.
         """
-        global cert
-
         res = api.Command['service_show'](self.service_princ)['result']
         assert base64.b64encode(res['usercertificate'][0]) == cert
 
@@ -175,8 +173,6 @@ class test_cert(XMLRPC_test):
         """
         Verify that service-find has the right certificate using service-find.
         """
-        global cert
-
         # Assume there is only one service
         res = api.Command['service_find'](self.service_princ)['result']
         assert base64.b64encode(res[0]['usercertificate'][0]) == cert
@@ -210,8 +206,6 @@ class test_cert(XMLRPC_test):
         """
         Verify the new certificate with service-show.
         """
-        global cert, newcert
-
         res = api.Command['service_show'](self.service_princ)['result']
 
         # Both the old and the new certs should be listed as certificates now

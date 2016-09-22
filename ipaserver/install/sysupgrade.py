@@ -35,17 +35,14 @@ def _load_sstore():
 
 def get_upgrade_state(module, state):
     _load_sstore()
-    global _sstore
     return _sstore.get_state(module, state)
 
 def set_upgrade_state(module, state, value):
     _load_sstore()
-    global _sstore
     _sstore.backup_state(module, state, value)
 
 def remove_upgrade_state(module, state):
     _load_sstore()
-    global _sstore
     _sstore.delete_state(module, state)
 
 def remove_upgrade_file():

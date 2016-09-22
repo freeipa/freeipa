@@ -46,7 +46,6 @@ disable=
     exec-used,
     fixme,
     global-statement,
-    global-variable-not-assigned,
     no-init,
     pointless-string-statement,
     protected-access,
