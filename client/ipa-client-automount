@@ -49,7 +49,7 @@ from ipaplatform.paths import paths
 def parse_options():
     usage = "%prog [options]\n"
     parser = OptionParser(usage=usage)
-    parser.add_option("--server", dest="server", help="IPA server")
+    parser.add_option("--server", dest="server", help="FQDN of IPA server")
     parser.add_option("--location", dest="location", help="Automount location",
         default="default")
     parser.add_option("-S", "--no-sssd", dest="sssd",

@@ -223,7 +223,8 @@ def __discover_config(discover_server = True):
 
 def add_standard_options(parser):
     parser.add_option("--realm", dest="realm", help="Override default IPA realm")
-    parser.add_option("--server", dest="server", help="Override default IPA server")
+    parser.add_option("--server", dest="server",
+                      help="Override default FQDN of IPA server")
     parser.add_option("--domain", dest="domain", help="Override default IPA DNS domain")
 
 def init_config(options=None):

@@ -116,7 +116,7 @@ def parse_options():
 
     basic_group = OptionGroup(parser, "basic options")
     basic_group.add_option("--domain", dest="domain", help="domain name")
-    basic_group.add_option("--server", dest="server", help="IPA server", action="append")
+    basic_group.add_option("--server", dest="server", help="FQDN of IPA server", action="append")
     basic_group.add_option("--realm", dest="realm_name", help="realm name")
     basic_group.add_option("--fixed-primary", dest="primary", action="store_true",
                       default=False, help="Configure sssd to use fixed server as primary IPA server")
