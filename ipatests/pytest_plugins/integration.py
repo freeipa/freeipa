@@ -173,7 +173,7 @@ def mh(request, class_integration_logs):
     for i in range(cls.num_ad_domains):
         domain_descriptions.append({
             'type': 'AD',
-            'hosts': {'ad': 1, 'ad_subdomain': 1},
+            'hosts': {'ad': 1, 'ad_subdomain': 1, 'ad_treedomain': 1},
         })
 
     mh = make_multihost_fixture(
