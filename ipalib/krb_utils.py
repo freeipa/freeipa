@@ -79,20 +79,6 @@ def krb5_parse_ccache(ccache_name):
 def krb5_unparse_ccache(scheme, name):
     return '%s:%s' % (scheme.upper(), name)
 
-def krb5_format_principal_name(user, realm):
-    '''
-    Given a Kerberos user principal name and a Kerberos realm
-    return the Kerberos V5 user principal name.
-
-    :parameters:
-      user
-        User principal name.
-      realm
-        The Kerberos realm the user exists in.
-    :returns:
-      Kerberos V5 user principal name.
-    '''
-    return '%s@%s' % (user, realm)
 
 def krb5_format_service_principal_name(service, host, realm):
     '''
