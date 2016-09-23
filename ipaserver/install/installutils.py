@@ -376,13 +376,35 @@ def update_file(filename, orig, subst):
         print("File %s doesn't exist." % filename)
         return 1
 
-def set_directive(filename, directive, value, quotes=True, separator=' '):
+
+def set_directive(filename, directive, value, quotes=True, separator=' ',
+                  quote_char='\"'):
     """Set a name/value pair directive in a configuration file.
 
-       A value of None means to drop the directive.
+    A value of None means to drop the directive.
 
-       This has only been tested with nss.conf
+    This has only been tested with nss.conf
+
+   :param directive: directive name
+   :param value: value of the directive
+   :param quotes: whether to quote `value` in `quote_char`. If true, then
+        the `quote_char` are first escaped to avoid unparseable directives
+   :param quote_char: the character used for quoting `value`
     """
+
+    def format_directive(directive, value, separator, quotes, quote_char):
+        directive_sep = "{directive}{separator}".format(directive=directive,
+                                                        separator=separator)
+        transformed_value = value
+        if quotes:
+            transformed_value = "{quote}{value}{quote}".format(
+                quote=quote_char,
+                value="".join(ipautil.escape_seq(quote_char, value))
+            )
+
+        return "{directive_sep}{value}\n".format(
+            directive_sep=directive_sep, value=transformed_value)
+
     valueset = False
     st = os.stat(filename)
     fd = open(filename)
@@ -391,19 +413,17 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
         if line.lstrip().startswith(directive):
             valueset = True
             if value is not None:
-                if quotes:
-                    newfile.append('%s%s"%s"\n' % (directive, separator, value))
-                else:
-                    newfile.append('%s%s%s\n' % (directive, separator, value))
+                newfile.append(
+                    format_directive(
+                        directive, value, separator, quotes, quote_char))
         else:
             newfile.append(line)
     fd.close()
     if not valueset:
         if value is not None:
-            if quotes:
-                newfile.append('%s%s"%s"\n' % (directive, separator, value))
-            else:
-                newfile.append('%s%s%s\n' % (directive, separator, value))
+            newfile.append(
+                format_directive(
+                    directive, value, separator, quotes, quote_char))
 
     fd = open(filename, "w")
     fd.write("".join(newfile))
