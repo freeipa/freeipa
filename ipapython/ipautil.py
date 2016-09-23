@@ -1484,3 +1484,30 @@ def is_fips_enabled():
         # Consider that the host is not fips-enabled if the file does not exist
         pass
     return False
+
+
+def unescape_seq(seq, *args):
+    """
+    unescape (remove '\\') all occurences of sequence in input strings.
+
+    :param seq: sequence to unescape
+    :param args: input string to process
+
+    :returns: tuple of strings with unescaped sequences
+    """
+    unescape_re = re.compile(r'\\{}'.format(seq))
+
+    return tuple(re.sub(unescape_re, seq, a) for a in args)
+
+
+def escape_seq(seq, *args):
+    """
+    escape (prepend '\\') all occurences of sequence in input strings
+
+    :param seq: sequence to escape
+    :param args: input string to process
+
+    :returns: tuple of strings with escaped sequences
+    """
+
+    return tuple(a.replace(seq, u'\\{}'.format(seq)) for a in args)
