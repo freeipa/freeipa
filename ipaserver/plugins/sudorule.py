@@ -88,6 +88,10 @@ EXAMPLES:
 """) + _("""
  Set a default Sudo option:
    ipa sudorule-add-option defaults --sudooption '!authenticate'
+""") + _("""
+ Set SELinux type and role transitions on a rule:
+   ipa sudorule-add-option sysadmin_sudo --sudooption type=unconfined_t
+   ipa sudorule-add-option sysadmin_sudo --sudooption role=unconfined_r
 """)
 
 register = Registry()
