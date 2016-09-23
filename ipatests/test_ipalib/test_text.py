@@ -59,8 +59,6 @@ class test_TestLang(object):
         self.lang = 'xh_ZA'
         self.domain = 'ipa'
 
-        self.ipa_i18n_dir = os.path.join(os.path.dirname(__file__), '../../install/po')
-
         self.pot_basename = '%s.pot' % self.domain
         self.po_basename = '%s.po' % self.lang
         self.mo_basename = '%s.mo' % self.domain
@@ -74,7 +72,8 @@ class test_TestLang(object):
         if not os.path.exists(self.msg_dir):
             os.makedirs(self.msg_dir)
 
-        self.pot_file = os.path.join(self.ipa_i18n_dir, self.pot_basename)
+        self.pot_file = os.path.join(
+            os.path.dirname(__file__), 'data', self.pot_basename)
         self.mo_file = os.path.join(self.msg_dir, self.mo_basename)
         self.po_file = os.path.join(self.tmp_dir, self.po_basename)
 
@@ -84,10 +83,12 @@ class test_TestLang(object):
                                 (self.po_file, self.mo_file, self.pot_file))
 
         if not file_exists(self.po_file):
-            raise nose.SkipTest('Test po file unavailable, run "make test" in install/po')
+            raise nose.SkipTest(
+                'Test po file unavailable: {}'.format(self.po_file))
 
         if not file_exists(self.mo_file):
-            raise nose.SkipTest('Test mo file unavailable, run "make test" in install/po')
+            raise nose.SkipTest(
+                'Test mo file unavailable: {}'.format(self.mo_file))
 
         self.po_file_iterate = po_file_iterate
 
