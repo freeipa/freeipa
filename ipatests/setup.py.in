@@ -82,6 +82,7 @@ def setup_package():
                 'ipatests': ['pytest.ini'],
                 'ipatests.test_install': ['*.update'],
                 'ipatests.test_integration': ['scripts/*'],
+                'ipatests.test_ipalib': ['data/*'],
                 'ipatests.test_pkcs10': ['*.csr'],
                 "ipatests.test_ipaserver": ['data/*'],
                 'ipatests.test_xmlrpc': ['data/*'],
