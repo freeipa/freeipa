@@ -8,6 +8,8 @@ classes/utils for Kerberos principal name validation/manipulation
 import re
 import six
 
+from ipapython.ipautil import escape_seq, unescape_seq
+
 if six.PY3:
     unicode = str
 
@@ -56,33 +58,6 @@ def split_principal_name(principal_name):
     NT-PRINCIPAL and NT-ENTERPRISE, primary name and instance for others)
     """
     return tuple(COMPONENT_SPLIT_RE.split(principal_name))
-
-
-def unescape_seq(seq, *args):
-    """
-    unescape (remove '\\') all occurences of sequence in input strings.
-
-    :param seq: sequence to unescape
-    :param args: input string to process
-
-    :returns: tuple of strings with unescaped sequences
-    """
-    unescape_re = re.compile(r'\\{}'.format(seq))
-
-    return tuple(re.sub(unescape_re, seq, a) for a in args)
-
-
-def escape_seq(seq, *args):
-    """
-    escape (prepend '\\') all occurences of sequence in input strings
-
-    :param seq: sequence to escape
-    :param args: input string to process
-
-    :returns: tuple of strings with escaped sequences
-    """
-
-    return tuple(a.replace(seq, u'\\{}'.format(seq)) for a in args)
 
 
 @six.python_2_unicode_compatible
