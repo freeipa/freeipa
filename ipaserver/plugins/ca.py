@@ -14,33 +14,38 @@ from ipalib import _, ngettext
 
 __doc__ = _("""
 Manage Certificate Authorities
-
+""") + _("""
 Subordinate Certificate Authorities (Sub-CAs) can be added for scoped issuance
 of X.509 certificates.
-
+""") + _("""
 CAs are enabled on creation, but their use is subject to CA ACLs unless the
 operator has permission to bypass CA ACLs.
-
+""") + _("""
 All CAs except the 'IPA' CA can be disabled or re-enabled.  Disabling a CA
 prevents it from issuing certificates but does not affect the validity of its
 certificate.
-
-
+""") + _("""
+CAs (all except the 'IPA' CA) can be deleted.  Deleting a CA causes its signing
+certificate to be revoked and its private key deleted.
+""") + _("""
 EXAMPLES:
-
+""") + _("""
   Create new CA, subordinate to the IPA CA.
 
     ipa ca-add puppet --desc "Puppet" \\
         --subject "CN=Puppet CA,O=EXAMPLE.COM"
-
+""") + _("""
   Disable a CA.
 
     ipa ca-disable puppet
-
+""") + _("""
   Re-enable a CA.
 
     ipa ca-enable puppet
+""") + _("""
+  Delete a CA.
 
+    ipa ca-del puppet
 """)
 
 
