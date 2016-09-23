@@ -389,6 +389,11 @@ class dnsconfig_mod(MethodOverride):
 @register(override=True, no_fail=True)
 class dnsforwardzone_add(MethodOverride):
     def interactive_prompt_callback(self, kw):
+        if ('idnsforwarders' not in kw and
+                kw.get('idnsforwardpolicy') != u'none'):
+            kw['idnsforwarders'] = self.Backend.textui.prompt(
+                _(u'DNS forwarder'))
+
         # show informative message on client side
         # server cannot send messages asynchronous
         if kw.get('idnsforwarders', False):
