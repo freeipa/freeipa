@@ -1204,6 +1204,61 @@ field.sshkeys_field = IPA.sshkeys_field = function(spec) {
     return that;
 };
 
+
+/**
+ * Field for certificates widget.
+ * - has the ObjectAdapter as default
+ * - by default has  `w_if_no_aci` to workaround missing object class
+ *
+ * @class
+ * @alternateClassName IPA.certs_field
+ * @extends IPA.field
+ */
+field.certs_field = IPA.certs_field = function(spec) {
+    spec = spec || {};
+    spec.adapter = spec.adapter || field.ObjectAdapter;
+    spec.flags = spec.flags || ['w_if_no_aci'];
+
+    var that = IPA.field(spec);
+
+    /**
+     * The index of record from batch command where ACLs are returned.
+     * Necessary for correct display 'add' and 'delete' buttons in certificate
+     * widget.
+     *
+     * @param {Number} acl_result_index
+     */
+    that.acl_result_index = spec.acl_result_index;
+
+    that.load = function(data) {
+        var value = that.adapter.load(data);
+        var parsed = util.parse(that.data_parser, value, "Parse error:"+that.name);
+        value = parsed.value;
+        if (!parsed.ok) {
+            window.console.warn(parsed.message);
+        }
+
+        // specific part for certificates - it is necessary to read rights from
+        // result of user-show command not from cert-find result.
+        // Therefore we need to get record with different index. The correct
+        // index is set in acl_result_index variable, old index is stored
+        // and then put back.
+        var old_index = that.adapter.result_index;
+        if (that.acl_result_index !== undefined) {
+            that.adapter.result_index = that.acl_result_index;
+        }
+
+        var record = that.adapter.get_record(data);
+        that.adapter.result_index = old_index;
+
+        that.load_writable(record);
+
+        that.set_value(value, true);
+    };
+
+    return that;
+};
+
 /**
  * SSH Keys Adapter
  * @class
@@ -1553,7 +1608,7 @@ field.register = function() {
     var v = reg.validator;
     var l = reg.adapter;
 
-    f.register('certs', field.field);
+    f.register('certs', field.certs_field);
     f.register('checkbox', field.checkbox_field);
     f.register('checkboxes', field.field);
     f.register('combobox', field.field);

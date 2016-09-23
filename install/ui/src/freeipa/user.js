@@ -208,6 +208,8 @@ return {
                         },
                         {
                             $type: 'certs',
+                            acl_param: 'usercertificate',
+                            acl_result_index: 0,
                             adapter: {
                                 $type: 'object_adapter',
                                 result_index: 3
