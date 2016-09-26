@@ -1288,7 +1288,8 @@ class Server(BaseServer):
     no_hbac_allow = Knob(
         bool, False,
         description="Don't install allow_all HBAC rule",
-        cli_name='no_hbac_allow',
+        cli_name='no-hbac-allow',
+        cli_aliases=['no_hbac_allow'],
     )
 
     ignore_topology_disconnect = Knob(
