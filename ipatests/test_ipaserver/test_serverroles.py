@@ -15,6 +15,7 @@ from ipalib import api, create_api, errors
 from ipapython.dn import DN
 from ipatests.util import MockLDAP
 
+# pylint: disable=unused-variable
 
 def _make_service_entry_mods(enabled=True, other_config=None):
     mods = {

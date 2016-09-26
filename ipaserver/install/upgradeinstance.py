@@ -30,6 +30,8 @@ from ipaserver.install import schemaupdate
 from ipaserver.install import ldapupdate
 from ipaserver.install import service
 
+# pylint: disable=unused-variable
+
 DSE = 'dse.ldif'
 
 

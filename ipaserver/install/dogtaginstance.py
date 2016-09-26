@@ -45,6 +45,8 @@ from ipaserver.install import replication
 from ipaserver.install.installutils import stopped_service
 from ipapython.ipa_log_manager import log_mgr
 
+# pylint: disable=unused-variable
+
 HTTPD_USER = constants.HTTPD_USER
 
 

@@ -119,6 +119,7 @@ from ipapython import kerberos
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
+# pylint: disable=unused-variable
 
 def _is_null(value):
     return not value and value != 0 # NOTE: False == 0

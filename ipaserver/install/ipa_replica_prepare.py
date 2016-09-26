@@ -43,6 +43,7 @@ from ipalib import errors
 from ipaplatform.paths import paths
 from ipalib.constants import CACERT, DOMAIN_LEVEL_0
 
+# pylint: disable=unused-variable
 
 UNSUPPORTED_DOMAIN_LEVEL_TEMPLATE = """
 Replica creation using '{command_name}' to generate replica file

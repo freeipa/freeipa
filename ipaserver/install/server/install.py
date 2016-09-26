@@ -59,6 +59,8 @@ except ImportError:
 
 from .common import BaseServer, BaseServerCA
 
+# pylint: disable=unused-variable
+
 SYSRESTORE_DIR_PATH = paths.SYSRESTORE
 
 

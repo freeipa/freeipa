@@ -53,6 +53,8 @@ from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.plugins.service import normalize_principal, validate_realm
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

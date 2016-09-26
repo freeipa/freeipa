@@ -50,6 +50,8 @@ from ipaplatform.paths import paths
 from ipapython.ipautil import ipa_generate_password, GEN_TMP_PWD_LEN
 from ipalib.capabilities import client_has_capability
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

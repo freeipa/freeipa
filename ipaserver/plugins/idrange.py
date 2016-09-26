@@ -26,6 +26,8 @@ from ipalib import api, Int, Str, StrEnum, _, ngettext
 from ipalib import errors
 from ipapython.dn import DN
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

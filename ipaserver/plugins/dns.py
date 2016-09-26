@@ -85,6 +85,8 @@ from ipaserver.dns_data_management import (
     IPADomainIsNotManagedByIPAError,
 )
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

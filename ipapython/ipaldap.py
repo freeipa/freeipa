@@ -44,6 +44,8 @@ from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipapython.kerberos import Principal
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

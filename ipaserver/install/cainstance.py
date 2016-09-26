@@ -81,6 +81,7 @@ try:
 except ImportError:
     import http.client as httplib
 
+# pylint: disable=unused-variable
 
 # We need to reset the template because the CA uses the regular boot
 # information

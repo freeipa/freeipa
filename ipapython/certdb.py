@@ -30,6 +30,8 @@ from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
 from ipalib import x509
 
+# pylint: disable=unused-variable
+
 CA_NICKNAME_FMT = "%s IPA CA"
 
 

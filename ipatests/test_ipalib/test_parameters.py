@@ -43,6 +43,8 @@ from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR
 from ipalib.errors import ValidationError, ConversionError
 from ipalib import _
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
     long = int

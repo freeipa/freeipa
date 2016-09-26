@@ -47,6 +47,8 @@ from binascii import hexlify
 
 from .common import BaseServer
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

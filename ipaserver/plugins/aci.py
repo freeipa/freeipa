@@ -132,6 +132,8 @@ from .baseldap import gen_pkey_only_option, pkey_to_value
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

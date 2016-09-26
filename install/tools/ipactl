@@ -39,6 +39,8 @@ from ipapython.dn import DN
 from ipaplatform import services
 from ipaplatform.paths import paths
 
+# pylint: disable=unused-variable
+
 
 MSG_HINT_IGNORE_SERVICE_FAILURE = (
     "Hint: You can use --ignore-service-failure option for forced start in "

@@ -30,6 +30,8 @@ from ipatests.util import assert_equal, raises, PluginTester
 from ipalib import errors
 from ipaserver import rpcserver
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

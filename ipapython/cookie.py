@@ -27,6 +27,8 @@ from six.moves.urllib.parse import urlparse
 
 from ipapython.ipa_log_manager import log_mgr
 
+# pylint: disable=unused-variable
+
 '''
 Core Python has two cookie libraries, Cookie.py targeted to server
 side and cookielib.py targeted to client side. So why this module and

@@ -259,6 +259,8 @@ if api.env.in_server:
     import pki.crypto as cryptoutil
     from pki.kra import KRAClient
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

@@ -72,6 +72,8 @@ error was:
 """ % e, file=sys.stderr)
     sys.exit(1)
 
+# pylint: disable=unused-variable
+
 SUCCESS = 0
 CLIENT_INSTALL_ERROR = 1
 CLIENT_NOT_CONFIGURED = 2

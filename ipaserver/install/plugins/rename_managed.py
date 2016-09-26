@@ -24,6 +24,8 @@ from ipalib import Updater
 from ipapython import ipautil
 from ipapython.dn import DN
 
+# pylint: disable=unused-variable
+
 register = Registry()
 
 if six.PY3:

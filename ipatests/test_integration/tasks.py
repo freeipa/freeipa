@@ -44,6 +44,8 @@ from ipalib.util import get_reverse_zone_default, verify_host_resolvable
 from ipalib.constants import DOMAIN_SUFFIX_NAME
 from ipalib.constants import DOMAIN_LEVEL_0
 
+# pylint: disable=unused-variable
+
 log = log_mgr.get_logger(__name__)
 
 

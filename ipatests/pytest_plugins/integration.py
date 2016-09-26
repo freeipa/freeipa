@@ -34,6 +34,7 @@ from ipatests.test_integration import tasks
 from ipatests.test_integration.config import Config
 from ipatests.test_integration.env_config import get_global_config
 
+# pylint: disable=unused-variable
 
 log = log_mgr.get_logger(__name__)
 

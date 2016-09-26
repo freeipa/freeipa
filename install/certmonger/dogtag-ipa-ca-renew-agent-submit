@@ -44,6 +44,8 @@ from ipaplatform.paths import paths
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance, certs
 
+# pylint: disable=unused-variable
+
 # This is a certmonger CA helper script for IPA CA subsystem cert renewal. See
 # https://git.fedorahosted.org/cgit/certmonger.git/tree/doc/submit.txt for more
 # info on certmonger CA helper scripts.

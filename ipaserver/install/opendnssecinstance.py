@@ -20,6 +20,8 @@ from ipaplatform.paths import paths
 from ipalib import errors, api
 from ipaserver.install import dnskeysyncinstance
 
+# pylint: disable=unused-variable
+
 KEYMASTER = u'dnssecKeyMaster'
 softhsm_slot = 0
 

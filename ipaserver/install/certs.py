@@ -45,6 +45,8 @@ from ipalib.text import _
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 
+# pylint: disable=unused-variable
+
 # Apache needs access to this database so we need to create it
 # where apache can reach
 NSS_DIR = paths.HTTPD_ALIAS_DIR

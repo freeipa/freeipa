@@ -27,6 +27,8 @@ from ipalib.parameters import File, Flag, Str
 from ipalib.plugable import Registry
 from ipalib.text import _
 
+# pylint: disable=unused-variable
+
 register = Registry()
 
 

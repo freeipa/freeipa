@@ -63,6 +63,8 @@ from ipaplatform.paths import paths
 from ldap.filter import escape_filter_chars
 from time import sleep
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
     long = int

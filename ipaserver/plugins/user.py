@@ -69,6 +69,8 @@ from ipalib.capabilities import client_has_capability
 if api.env.in_server:
     from ipaserver.plugins.ldap2 import ldap2
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

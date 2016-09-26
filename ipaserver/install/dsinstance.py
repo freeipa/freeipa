@@ -52,6 +52,8 @@ from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
 
+# pylint: disable=unused-variable
+
 DS_USER = platformconstants.DS_USER
 DS_GROUP = platformconstants.DS_GROUP
 

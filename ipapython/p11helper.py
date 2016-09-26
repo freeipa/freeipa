@@ -12,6 +12,8 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
 from cffi import FFI
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

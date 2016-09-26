@@ -35,6 +35,8 @@ from six.moves.configparser import SafeConfigParser
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

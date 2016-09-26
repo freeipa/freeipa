@@ -34,6 +34,8 @@ from ipapython.ipa_log_manager import root_logger
 from ipaplatform.paths import paths
 from ipaplatform import services
 
+# pylint: disable=unused-variable
+
 DBUS_CM_PATH = '/org/fedorahosted/certmonger'
 DBUS_CM_IF = 'org.fedorahosted.certmonger'
 DBUS_CM_NAME = 'org.fedorahosted.certmonger'
