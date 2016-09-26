@@ -164,7 +164,7 @@ class sudocmd_del(LDAPDelete):
             ldap.MATCH_ALL)
         dependent_sudorules = []
         try:
-            entries, truncated = ldap.find_entries(
+            entries, _truncated = ldap.find_entries(
                 filter, ['cn'],
                 base_dn=DN(api.env.container_sudorule, api.env.basedn))
         except errors.NotFound:

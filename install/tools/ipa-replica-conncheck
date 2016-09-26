@@ -185,7 +185,7 @@ def parse_options():
     parser.add_option("--no-log", dest="log_to_file", action="store_false",
                       default=True, help="Do not log into file")
 
-    options, args = parser.parse_args()
+    options, _args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
 
     if options.master and options.replica:

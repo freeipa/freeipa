@@ -1186,9 +1186,10 @@ class DN(object):
         # differ in case must yield the same hash value.
 
         str_dn = ';,'.join([
-            '++'.join(
-                ['=='.join((atype, avalue or '')) for atype,avalue,dummy in rdn]
-            ) for rdn in self.rdns
+            '++'.join([
+                '=='.join((atype, avalue or ''))
+                for atype, avalue, _dummy in rdn
+            ]) for rdn in self.rdns
         ])
         return hash(str_dn.lower())
 
@@ -1225,9 +1226,7 @@ class DN(object):
 
     def _cmp_sequence(self, pattern, self_start, pat_len):
         self_idx = self_start
-        self_len = len(self)
         pat_idx = 0
-        #  and self_idx < self_len
         while pat_idx < pat_len:
             r = cmp_rdns(self.rdns[self_idx], pattern.rdns[pat_idx])
             if r != 0:

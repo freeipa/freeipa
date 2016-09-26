@@ -629,9 +629,6 @@ class vault_archive(Local):
         return self.api.Command.vault_archive_internal.output()
 
     def forward(self, *args, **options):
-
-        name = args[-1]
-
         data = options.get('data')
         input_file = options.get('in')
 
@@ -883,9 +880,6 @@ class vault_retrieve(Local):
         return self.api.Command.vault_retrieve_internal.output()
 
     def forward(self, *args, **options):
-
-        name = args[-1]
-
         output_file = options.get('out')
 
         password = options.get('password')

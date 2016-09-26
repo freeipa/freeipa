@@ -18,7 +18,7 @@ class location_show(MethodOverride):
 
         servers = output.get('servers', {})
         first = True
-        for hostname, details in servers.items():
+        for details in servers.values():
             if first:
                 textui.print_indented(_("Servers details:"), indent=1)
                 first = False

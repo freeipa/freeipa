@@ -99,7 +99,7 @@ class CertUpdate(admintool.AdminTool):
                 from ipaserver.install import cainstance
                 cainstance.add_lightweight_ca_tracking_requests(
                     self.log, lwcas)
-            except Exception as e:
+            except Exception:
                 self.log.exception(
                     "Failed to add lightweight CA tracking requests")
 

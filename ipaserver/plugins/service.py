@@ -284,7 +284,7 @@ def check_required_principal(ldap, principal):
     """
     try:
         host_is_master(ldap, principal.hostname)
-    except errors.ValidationError as e:
+    except errors.ValidationError:
         service_types = ['HTTP', 'ldap', 'DNS', 'dogtagldap']
         if principal.service_name in service_types:
             raise errors.ValidationError(name='principal', error=_('This principal is required by the IPA master'))

@@ -49,7 +49,7 @@ def update_metadata_set(log, source_set, target_set):
 def find_unwrapping_key(log, localhsm, wrapping_key_uri):
     wrap_keys = localhsm.find_keys(uri=wrapping_key_uri)
     # find usable unwrapping key with matching ID
-    for key_id, key in wrap_keys.items():
+    for key_id in wrap_keys.keys():
         unwrap_keys = localhsm.find_keys(id=key_id, cka_unwrap=True)
         if len(unwrap_keys) > 0:
             return unwrap_keys.popitem()[1]

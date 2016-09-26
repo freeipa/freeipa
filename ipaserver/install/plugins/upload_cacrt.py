@@ -55,7 +55,7 @@ class update_upload_cacrt(Updater):
             if nickname == ca_nickname and ca_enabled:
                 trust_flags = 'CT,C,C'
             cert = db.get_cert_from_db(nickname, pem=False)
-            trust, ca, eku = certstore.trust_flags_to_key_policy(trust_flags)
+            trust, _ca, eku = certstore.trust_flags_to_key_policy(trust_flags)
 
             dn = DN(('cn', nickname), ('cn', 'certificates'), ('cn', 'ipa'),
                     ('cn','etc'), self.api.env.basedn)

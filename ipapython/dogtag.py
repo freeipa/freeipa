@@ -113,7 +113,7 @@ def ca_status(ca_host=None):
     """
     if ca_host is None:
         ca_host = api.env.ca_host
-    status, headers, body = http_request(
+    status, _headers, body = http_request(
         ca_host, 8080, '/ca/admin/ca/getStatus')
     if status == 503:
         # Service temporarily unavailable

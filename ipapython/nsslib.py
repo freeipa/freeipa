@@ -234,7 +234,7 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         self.sock.set_ssl_option(ssl.SSL_HANDSHAKE_AS_CLIENT, True)
         try:
             self.sock.set_ssl_version_range(self.tls_version_min, self.tls_version_max)
-        except NSPRError as e:
+        except NSPRError:
             root_logger.error('Failed to set TLS range to %s, %s' % (self.tls_version_min, self.tls_version_max))
             raise
         self.sock.set_ssl_option(ssl_require_safe_negotiation, False)

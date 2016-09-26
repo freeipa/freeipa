@@ -125,7 +125,7 @@ def update_schema(schema_files, ldapi=False, dm_password=None,):
 
     for filename in schema_files:
         log.debug('Processing schema LDIF file %s', filename)
-        dn, new_schema = ldap.schema.subentry.urlfetch(filename)
+        _dn, new_schema = ldap.schema.subentry.urlfetch(filename)
 
         for attrname, cls in SCHEMA_ELEMENT_CLASSES:
             for oids_set in _get_oid_dependency_order(new_schema, cls):

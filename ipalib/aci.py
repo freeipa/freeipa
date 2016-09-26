@@ -103,8 +103,6 @@ class ACI(object):
         lexer = shlex.shlex(aci)
         lexer.wordchars = lexer.wordchars + "."
 
-        l = []
-
         var = False
         op = "="
         for token in lexer:

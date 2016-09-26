@@ -848,7 +848,7 @@ class LDAPUpdate(object):
     def get_all_files(self, root, recursive=False):
         """Get all update files"""
         f = []
-        for path, subdirs, files in os.walk(root):
+        for path, _subdirs, files in os.walk(root):
             for name in files:
                 if fnmatch.fnmatch(name, "*.update"):
                     f.append(os.path.join(path, name))

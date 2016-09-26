@@ -60,7 +60,7 @@ class update_passync_privilege_update(Updater):
                 self.api.env.basedn)
 
         try:
-            entry = ldap.get_entry(passsync_dn, [''])
+            ldap.get_entry(passsync_dn, [''])
         except errors.NotFound:
             root_logger.debug("PassSync user not found, no update needed")
             sysupgrade.set_upgrade_state('winsync', 'passsync_privilege_updated', True)

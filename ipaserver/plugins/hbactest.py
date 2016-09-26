@@ -411,7 +411,8 @@ class hbactest(Command):
                 ldap = self.api.Backend.ldap2
                 group_container = DN(api.env.container_group, api.env.basedn)
                 try:
-                    entries, truncated = ldap.find_entries(filter_sids, ['memberof'], group_container)
+                    entries, _truncated = ldap.find_entries(
+                        filter_sids, ['memberof'], group_container)
                 except errors.NotFound:
                     request.user.groups = []
                 else:

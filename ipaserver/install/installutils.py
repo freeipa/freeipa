@@ -1021,7 +1021,7 @@ def load_external_cert(files, subject_base):
         ca_subject = DN(('CN', 'Certificate Authority'), subject_base)
         ca_nickname = None
         cache = {}
-        for nickname, trust_flags in nssdb.list_certs():
+        for nickname, _trust_flags in nssdb.list_certs():
             cert = nssdb.get_cert(nickname, pem=True)
 
             nss_cert = x509.load_certificate(cert)

@@ -152,7 +152,7 @@ class NTPInstance(service.Service):
                         fd.write(line)
                         continue
                     sline = sline.replace(NTPD_OPTS_QUOTE, '')
-                    (variable, opts) = sline.split('=', 1)
+                    (_variable, opts) = sline.split('=', 1)
                     fd.write(NTPD_OPTS_VAR + '="%s %s"\n' % (opts, ' '.join(newopts)))
                     done = True
                 else:

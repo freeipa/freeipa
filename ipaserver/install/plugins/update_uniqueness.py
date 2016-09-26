@@ -177,7 +177,7 @@ class update_uniqueness_plugins_to_new_syntax(Updater):
         )
 
         try:
-            entries, truncated = ldap.find_entries(
+            entries, _truncated = ldap.find_entries(
                 filter=old_style_plugin_search_filter,
                 base_dn=self.plugins_dn,
             )

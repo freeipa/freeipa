@@ -329,7 +329,7 @@ class group_del(LDAPDelete):
         assert isinstance(dn, DN)
         config = ldap.get_ipa_config()
         def_primary_group = config.get('ipadefaultprimarygroup', '')
-        def_primary_group_dn = group_dn = self.obj.get_dn(def_primary_group)
+        def_primary_group_dn = self.obj.get_dn(def_primary_group)
         if dn == def_primary_group_dn:
             raise errors.DefaultGroupError()
         group_attrs = self.obj.methods.show(
