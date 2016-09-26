@@ -60,6 +60,8 @@ from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
                          UnresolvableRecordError)
 from ipalib.constants import CACERT
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

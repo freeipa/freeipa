@@ -45,6 +45,8 @@ from ipaclient import ipadiscovery
 from six.moves.xmlrpc_client import MAXINT
 from ipaplatform.paths import paths
 
+# pylint: disable=unused-variable
+
 # dict of command name and tuples of min/max num of args needed
 commands = {
     "list":(0, 1, "[master fqdn]", ""),

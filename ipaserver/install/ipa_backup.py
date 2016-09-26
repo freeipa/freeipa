@@ -40,6 +40,8 @@ from ipalib.constants import CACERT
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 
+# pylint: disable=unused-variable
+
 """
 A test gpg can be generated like this:
 

@@ -30,6 +30,8 @@ from ipaplatform.paths import paths
 from ipapython.ipautil import valid_ip, realm_to_suffix
 from ipapython.dn import DN
 
+# pylint: disable=unused-variable
+
 NOT_FQDN = -1
 NO_LDAP_SERVER = -2
 REALM_NOT_FOUND = -3

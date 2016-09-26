@@ -40,6 +40,8 @@ from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
 
 from ipapython.dn import DN
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

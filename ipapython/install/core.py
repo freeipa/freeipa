@@ -19,6 +19,8 @@ from ipapython.ipa_log_manager import root_logger
 from . import util
 from .util import from_
 
+# pylint: disable=unused-variable
+
 __all__ = ['InvalidStateError', 'KnobValueError', 'Property', 'Knob',
            'Configurable', 'Group', 'Component', 'Composite']
 

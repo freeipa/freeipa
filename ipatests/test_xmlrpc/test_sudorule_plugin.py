@@ -29,6 +29,8 @@ from ipalib import api
 from ipalib import errors
 import pytest
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

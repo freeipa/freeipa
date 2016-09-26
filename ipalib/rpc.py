@@ -70,6 +70,8 @@ from ipapython.kerberos import Principal
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib import api
 
+# pylint: disable=unused-variable
+
 # The XMLRPC client is in  "six.moves.xmlrpc_client", but pylint
 # cannot handle that
 try:

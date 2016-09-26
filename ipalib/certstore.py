@@ -29,6 +29,7 @@ from ipapython.dn import DN
 from ipapython.certdb import get_ca_nickname
 from ipalib import errors, x509
 
+# pylint: disable=unused-variable
 
 def _parse_cert(dercert):
     try:

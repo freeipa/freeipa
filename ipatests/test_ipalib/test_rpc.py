@@ -34,6 +34,8 @@ from ipalib.request import context, Connection
 from ipalib import rpc, errors, api, request
 from ipapython.version import API_VERSION
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

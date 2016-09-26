@@ -34,6 +34,8 @@ from ipaserver.install import ntpinstance
 from ipaserver.install import odsexporterinstance
 from ipaserver.install import opendnssecinstance
 
+# pylint: disable=unused-variable
+
 ip_addresses = []
 reverse_zones = []
 

@@ -64,6 +64,8 @@ from ipaplatform.paths import paths
 from ipapython.version import VERSION
 from ipalib.text import _
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

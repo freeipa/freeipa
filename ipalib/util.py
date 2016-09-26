@@ -51,6 +51,8 @@ from ipapython.dnsutil import DNSName
 from ipapython.dnsutil import resolve_ip_addresses
 from ipapython.ipa_log_manager import root_logger
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

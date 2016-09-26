@@ -51,6 +51,7 @@ try:
 except ImportError:
     adtrustinstance = None
 
+# pylint: disable=unused-variable
 
 def recursive_chown(path, uid, gid):
     '''

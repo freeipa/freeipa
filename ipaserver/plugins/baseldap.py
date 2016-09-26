@@ -39,6 +39,8 @@ from ipalib.messages import add_message, SearchResultTruncated
 from ipapython.dn import DN
 from ipapython.version import API_VERSION
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

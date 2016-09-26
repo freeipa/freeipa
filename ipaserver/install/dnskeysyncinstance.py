@@ -28,6 +28,8 @@ from ipalib import errors, api
 from ipalib.constants import CACERT
 from ipaserver.install.bindinstance import dns_container_exists
 
+# pylint: disable=unused-variable
+
 softhsm_token_label = u'ipaDNSSEC'
 softhsm_slot = 0
 replica_keylabel_template = u"dnssec-replica:%s"

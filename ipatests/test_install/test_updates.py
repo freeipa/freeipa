@@ -34,6 +34,8 @@ from ipapython import ipautil, ipaldap
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 
+# pylint: disable=unused-variable
+
 """
 The updater works through files only so this is just a thin-wrapper controlling
 which file we test at any given point.

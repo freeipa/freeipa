@@ -29,6 +29,8 @@ from ipapython.dn import DN
 from ipapython.ipautil import realm_to_suffix, posixify
 from ipaserver.install import replication, installutils
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

@@ -33,6 +33,8 @@ from ipalib.aci import ACI
 from ipapython.dn import DN
 from ipalib.request import context
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

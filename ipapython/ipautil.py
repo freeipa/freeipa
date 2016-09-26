@@ -54,6 +54,8 @@ from ipapython import config
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 
+# pylint: disable=unused-variable
+
 SHARE_DIR = paths.USR_SHARE_IPA_DIR
 PLUGINS_SHARE_DIR = paths.IPA_PLUGINS
 

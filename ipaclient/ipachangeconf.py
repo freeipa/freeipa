@@ -24,6 +24,8 @@ import shutil
 
 import six
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

@@ -18,6 +18,8 @@ from ipapython.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
                                      keytype_id2name, keytype_name2id,
                                      ldap2p11helper_api_params)
 
+# pylint: disable=unused-variable
+
 private_key_api_params = set(["label", "id", "data", "unwrapping_key",
     "wrapping_mech", "key_type", "cka_always_authenticate", "cka_copyable",
     "cka_decrypt", "cka_derive", "cka_extractable", "cka_modifiable",

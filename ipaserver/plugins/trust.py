@@ -45,6 +45,8 @@ from ipalib import output
 from ldap import SCOPE_SUBTREE
 from time import sleep
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

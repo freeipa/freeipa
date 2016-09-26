@@ -49,6 +49,8 @@ from ipaserver.install import dogtaginstance
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

@@ -45,6 +45,7 @@ from ipaplatform.tasks import tasks
 from ipaplatform import services
 from ipaplatform.paths import paths
 
+# pylint: disable=unused-variable
 
 def parse_options():
     usage = "%prog [options]\n"

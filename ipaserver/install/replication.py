@@ -38,6 +38,8 @@ from ipapython.dn import DN
 from ipaplatform import services
 from ipaplatform.paths import paths
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

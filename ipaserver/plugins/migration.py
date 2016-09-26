@@ -40,6 +40,8 @@ from ipapython.kerberos import Principal
 import datetime
 from ipaplatform.paths import paths
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 

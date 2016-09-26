@@ -40,6 +40,8 @@ from ipalib import errors, messages
 from ipalib.request import context, context_frame
 from ipalib.util import classproperty, json_serialize
 
+# pylint: disable=unused-variable
+
 if six.PY3:
     unicode = str
 
