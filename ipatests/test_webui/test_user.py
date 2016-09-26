@@ -190,7 +190,6 @@ class test_user(user_tasks):
         self.init_app()
         # ENHANCEMENT: generate csr dynamically
         csr = self.load_file(csr_path)
-        realm = self.config.get('ipa_realm')
         cert_widget_sel = "div.certificate-widget"
 
         self.add_record(user.ENTITY, user.DATA)

@@ -38,7 +38,7 @@ class CrudChecker(ClassChecker):
         """
         Return a finalized `ipalib.plugable.API` instance.
         """
-        (api, home) = get_api()
+        api, _home = get_api()
         class user(frontend.Object):
             takes_params = (
                 'givenname',

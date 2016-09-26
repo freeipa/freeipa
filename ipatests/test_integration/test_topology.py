@@ -188,9 +188,8 @@ class TestTopologyOptions(IntegrationTest):
         returncode, error = tasks.destroy_segment(self.master, "%s-to-%s" % replicas)
         assert returncode != 0, error1
         assert error.count(text) == 1, error2 % error
-        newseg, err = tasks.create_segment(self.master,
-                                           self.master,
-                                           self.replicas[1])
+        _newseg, err = tasks.create_segment(
+            self.master, self.master, self.replicas[1])
         assert err == "", err
         returncode, error = tasks.destroy_segment(self.master, "%s-to-%s" % replicas)
         assert returncode == 0, error

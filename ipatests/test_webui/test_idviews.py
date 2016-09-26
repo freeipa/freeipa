@@ -106,7 +106,6 @@ class test_idviews(UI_driver):
 
         self.navigate_to_record(idview.PKEY)
         self.switch_to_facet(idview.HOST_FACET)
-        parent_entity = 'idview'
 
         # apply to host
         self.add_associations(

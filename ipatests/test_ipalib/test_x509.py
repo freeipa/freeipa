@@ -55,20 +55,20 @@ class test_x509(object):
         """
 
         # Load a good cert
-        cert = x509.load_certificate(goodcert)
+        x509.load_certificate(goodcert)
 
         # Load a good cert with headers
         newcert = '-----BEGIN CERTIFICATE-----' + goodcert + '-----END CERTIFICATE-----'
-        cert = x509.load_certificate(newcert)
+        x509.load_certificate(newcert)
 
         # Load a good cert with bad headers
         newcert = '-----BEGIN CERTIFICATE-----' + goodcert
         with pytest.raises((TypeError, ValueError)):
-            cert = x509.load_certificate(newcert)
+            x509.load_certificate(newcert)
 
         # Load a bad cert
         with pytest.raises(NSPRError):
-            cert = x509.load_certificate(badcert)
+            x509.load_certificate(badcert)
 
     def test_1_load_der_cert(self):
         """
@@ -78,7 +78,7 @@ class test_x509(object):
         der = base64.b64decode(goodcert)
 
         # Load a good cert
-        cert = x509.load_certificate(der, x509.DER)
+        x509.load_certificate(der, x509.DER)
 
     def test_2_get_subject(self):
         """

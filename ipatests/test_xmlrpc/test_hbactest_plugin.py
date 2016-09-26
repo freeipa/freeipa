@@ -91,20 +91,20 @@ class test_hbactest(XMLRPC_test):
                 self.rule_names[i], accessruletype=self.rule_type, description=self.rule_descs[i],
             )
 
-            ret = api.Command['hbacrule_add_user'](
+            api.Command['hbacrule_add_user'](
                 self.rule_names[i], user=self.test_user, group=self.test_group
             )
 
-            ret = api.Command['hbacrule_add_host'](
+            api.Command['hbacrule_add_host'](
                 self.rule_names[i], host=self.test_host, hostgroup=self.test_hostgroup
             )
 
-            ret = api.Command['hbacrule_add_service'](
+            api.Command['hbacrule_add_service'](
                 self.rule_names[i], hbacsvc=self.test_service
             )
 
             if i & 1:
-                ret = api.Command['hbacrule_disable'](self.rule_names[i])
+                api.Command['hbacrule_disable'](self.rule_names[i])
 
     def test_a_hbactest_check_rules_detail(self):
         """

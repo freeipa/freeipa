@@ -53,7 +53,8 @@ def test_exc_wrapper():
     # Test with one callback first
 
     @test_callback.register_exc_callback
-    def handle_exception(self, keys, options, e, call_func, *args, **kwargs):
+    def handle_exception(  # pylint: disable=unused-variable
+            self, keys, options, e, call_func, *args, **kwargs):
         assert args == (1, 2)
         assert kwargs == dict(a=1, b=2)
         handled_exceptions.append(type(e))
@@ -150,7 +151,8 @@ def test_exc_callback_registration():
         pass
 
     @callbacktest_subclass.register_exc_callback
-    def exc_callback(self, keys, options, exc, call_func, *args, **kwargs):
+    def exc_callback(  # pylint: disable=unused-variable
+            self, keys, options, exc, call_func, *args, **kwargs):
         """Subclass's private exception callback"""
         messages.append('Subclass registered callback')
         raise exc
@@ -163,7 +165,8 @@ def test_exc_callback_registration():
 
 
     @callbacktest_base.register_exc_callback
-    def exc_callback_2(self, keys, options, exc, call_func, *args, **kwargs):
+    def exc_callback_2(  # pylint: disable=unused-variable
+            self, keys, options, exc, call_func, *args, **kwargs):
         """Callback on super class; doesn't affect the subclass"""
         messages.append('Superclass registered callback')
         raise exc

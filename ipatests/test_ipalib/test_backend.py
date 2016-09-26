@@ -189,7 +189,7 @@ class test_Executioner(ClassChecker):
         """
         Test the `ipalib.backend.Executioner.execute` method.
         """
-        (api, home) = create_test_api(in_server=True)
+        api, _home = create_test_api(in_server=True)
 
         class echo(Command):
             takes_args = ('arg1', 'arg2+')

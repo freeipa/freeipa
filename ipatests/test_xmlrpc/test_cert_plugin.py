@@ -141,11 +141,11 @@ class test_cert(XMLRPC_test):
         This should fail because the service principal doesn't exist
         """
         # First create the host that will use this policy
-        res = api.Command['host_add'](self.host_fqdn, force= True)['result']
+        assert 'result' in api.Command['host_add'](self.host_fqdn, force=True)
 
         csr = unicode(self.generateCSR(str(self.subject)))
         with assert_raises(errors.NotFound):
-            res = api.Command['cert_request'](csr, principal=self.service_princ)
+            api.Command['cert_request'](csr, principal=self.service_princ)
 
     def test_0002_cert_add(self):
         """
@@ -267,7 +267,7 @@ class test_cert_find(XMLRPC_test):
         """
         Search for the OCSP certificate.
         """
-        res = api.Command['cert_find'](subject=u'OCSP Subsystem')
+        api.Command['cert_find'](subject=u'OCSP Subsystem')
 
     def test_0004_find_this_host(self):
         """
@@ -458,7 +458,7 @@ class test_cert_find(XMLRPC_test):
         """
         Search with a negative sizelimit
         """
-        res = api.Command['cert_find'](sizelimit=-100)
+        api.Command['cert_find'](sizelimit=-100)
 
     def test_0029_search_for_notfound(self):
         """
@@ -479,4 +479,4 @@ class test_cert_find(XMLRPC_test):
         """
         Search using invalid date format
         """
-        res = api.Command['cert_find'](issuedon_from=u'xyz')
+        api.Command['cert_find'](issuedon_from=u'xyz')

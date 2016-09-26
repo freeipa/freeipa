@@ -114,7 +114,7 @@ class test_ipagetkeytab(cmdline_test):
                 self.keytabname)
             assert expected in result.error_output, (
                 'Success message not in output:\n%s' % result.error_output)
-        except ipautil.CalledProcessError as e:
+        except ipautil.CalledProcessError:
             assert (False)
 
     def test_3_use(self):

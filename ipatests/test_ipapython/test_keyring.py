@@ -111,7 +111,7 @@ class test_keyring(object):
         """
         Read a non-existent key
         """
-        result = kernel_keyring.read_key(TEST_KEY)
+        kernel_keyring.read_key(TEST_KEY)
 
     def test_06(self):
         """

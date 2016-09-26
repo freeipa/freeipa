@@ -117,13 +117,13 @@ class GroupTracker(Tracker):
             try:
                 self.attrs[u'member_user'] =\
                     self.attrs[u'member_user'] + [options[u'user']]
-            except KeyError as ex:
+            except KeyError:
                 self.attrs[u'member_user'] = [options[u'user']]
         elif u'group' in options:
             try:
                 self.attrs[u'member_group'] =\
                     self.attrs[u'member_group'] + [options[u'group']]
-            except KeyError as ex:
+            except KeyError:
                 self.attrs[u'member_group'] = [options[u'group']]
 
         command = self.make_add_member_command(options)
@@ -140,12 +140,12 @@ class GroupTracker(Tracker):
         try:
             if not self.attrs[u'member_user']:
                 del self.attrs[u'member_user']
-        except KeyError as ex:
+        except KeyError:
             pass
         try:
             if not self.attrs[u'member_group']:
                 del self.attrs[u'member_group']
-        except KeyError as ex:
+        except KeyError:
             pass
 
         command = self.make_remove_member_command(options)

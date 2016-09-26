@@ -163,7 +163,8 @@ class test_pwpolicy(XMLRPC_test):
         Test adding password policy to a managed group.
         """
         try:
-            entry = api.Command['pwpolicy_add'](self.user, krbminpwdlife=50, cospriority=2)['result']
+            api.Command['pwpolicy_add'](
+                self.user, krbminpwdlife=50, cospriority=2)
         except errors.ManagedPolicyError:
             pass
         else:

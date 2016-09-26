@@ -345,7 +345,7 @@ def validate_positional_substitutions(s, prog_langs, s_name='string'):
 
     errors = []
     if n_fmts > 1:
-        for i, fmt_parts in enumerate(fmts):
+        for fmt_parts in fmts:
             fmt        = fmt_parts['fmt']
             fmt_arg    = fmt_parts['fmt_arg']
             width      = fmt_parts['width']
@@ -543,7 +543,7 @@ def create_po(pot_file, po_file, mo_file):
     #
     # It is demanding the rhs of plural= only contains the identifer 'n'
 
-    for k,v in po.metadata.items():
+    for k in po.metadata:
         if k.lower() == 'plural-forms':
             po.metadata[k] = 'nplurals=2; plural=(n != 1)'
             break

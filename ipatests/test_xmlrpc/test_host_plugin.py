@@ -619,9 +619,9 @@ class TestHostDNS(XMLRPC_test):
         try:
             ipv6only_host.create(force=False)
         finally:
-            command = ipv6only_host.run_command('dnsrecord_del', dnszone,
-                                                ipv6only_host.shortname,
-                                                aaaarecord=aaaarec)
+            ipv6only_host.run_command(
+                'dnsrecord_del', dnszone, ipv6only_host.shortname,
+                aaaarecord=aaaarec)
 
     def test_add_ipv4only_host(self, dns_setup, ipv4only_host):
         ipv4only_host.run_command('dnsrecord_add', dnszone,
@@ -629,9 +629,9 @@ class TestHostDNS(XMLRPC_test):
         try:
             ipv4only_host.create(force=False)
         finally:
-            command = ipv4only_host.run_command('dnsrecord_del', dnszone,
-                                                ipv4only_host.shortname,
-                                                arecord=arec)
+            ipv4only_host.run_command(
+                'dnsrecord_del', dnszone, ipv4only_host.shortname,
+                arecord=arec)
 
     def test_add_ipv46both_host(self, dns_setup, ipv46both_host):
         ipv46both_host.run_command('dnsrecord_add', dnszone,
@@ -640,10 +640,9 @@ class TestHostDNS(XMLRPC_test):
         try:
             ipv46both_host.create(force=False)
         finally:
-            command = ipv46both_host.run_command('dnsrecord_del', dnszone,
-                                                 ipv46both_host.shortname,
-                                                 arecord=arec2,
-                                                 aaaarecord=aaaarec2)
+            ipv46both_host.run_command(
+                'dnsrecord_del', dnszone, ipv46both_host.shortname,
+                arecord=arec2, aaaarecord=aaaarec2)
 
     def test_add_ipv4_host_from_ip(self, dns_setup, ipv4_fromip_host):
         ipv4_fromip_host.ensure_missing()

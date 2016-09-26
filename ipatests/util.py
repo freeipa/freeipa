@@ -604,7 +604,7 @@ class DummyClass(object):
     def __init__(self, *calls):
         self.__calls = calls
         self.__i = 0
-        for (name, args, kw, result) in calls:
+        for (name, _args, _kw, _result) in calls:
             method = DummyMethod(self.__process, name)
             setattr(self, name, method)
 

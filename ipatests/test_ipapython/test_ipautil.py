@@ -183,7 +183,6 @@ class TestCIDict(object):
             self.cidict.keys(), self.cidict.values()))
 
     def test_iter(self):
-        items = []
         assert list(self.cidict) == list(self.cidict.keys())
         assert sorted(self.cidict) == sorted(['Key1', 'key2', 'KEY3'])
 
