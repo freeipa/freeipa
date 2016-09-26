@@ -49,7 +49,7 @@ A replica should only be installed on the same or higher version of IPA on the r
 The user principal which will be used to promote the client to the replica and enroll the client itself, if necessary.
 .TP
 \fB\-w\fR, \fB\-\-admin\-password\fR
-The Kerberos password for the given principal.
+The Kerberos password for the given principal. If no principal is supplied with \-\-principal, "admin" is assumed.
 
 .SS "DOMAIN LEVEL 1 CLIENT ENROLLMENT OPTIONS"
 To install client and promote it to replica using a host keytab or One Time Password, the host needs to be a member of ipaservers group. This requires to create a host entry and add it to the host group prior replica installation.
@@ -58,7 +58,7 @@ To install client and promote it to replica using a host keytab or One Time Pass
 
 .TP
 \fB\-p\fR \fIPASSWORD\fR, \fB\-\-password\fR=\fIPASSWORD\fR
-One Time Password for joining a machine to the IPA realm.
+One Time Password for joining a machine to the IPA realm. If the \-\-principal option is used, this is assumed a password for that principal.
 .TP
 \fB\-k\fR, \fB\-\-keytab\fR
 Path to host keytab.

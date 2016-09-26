@@ -13,6 +13,7 @@ import shutil
 import socket
 import tempfile
 import traceback
+import getpass
 
 from pkg_resources import parse_version
 import six
@@ -862,46 +863,50 @@ def install_check(installer):
 
 
 def ensure_enrolled(installer):
-    # Call client install script
-    service.print_msg("Configuring client side components")
+    # Prepare options for the installer script
+    args = [paths.IPA_CLIENT_INSTALL, "--no-ntp"]
+    nolog = ()
+
+    if installer.unattended:
+        args.append("--unattended")
+    if installer.domain_name:
+        args.extend(["--domain", installer.domain_name])
+    if installer.server:
+        args.extend(["--server", installer.server])
+    if installer.realm_name:
+        args.extend(["--realm", installer.realm_name])
+    if installer.host_name:
+        args.extend(["--hostname", installer.host_name])
+    if installer.password:
+        args.extend(["--password", installer.password])
+    else:
+        if installer.admin_password:
+            # Always set principal if password was set explicitly.
+            # This is the behaviour from domain level 0 so we're keeping it
+            args.extend(["--principal", installer.principal or "admin"])
+            nolog = (installer.admin_password, )
+            args.extend(["--password", installer.admin_password])
+        if installer.keytab:
+            args.extend(["--keytab", installer.keytab])
+
+    if installer.no_dns_sshfp:
+        args.append("--no-dns-sshfp")
+    if installer.ssh_trust_dns:
+        args.append("--ssh-trust-dns")
+    if installer.no_ssh:
+        args.append("--no-ssh")
+    if installer.no_sshd:
+        args.append("--no-sshd")
+    if installer.mkhomedir:
+        args.append("--mkhomedir")
+
     try:
+        service.print_msg("Configuring client side components")
+        # Set _enrollment_performed to True so that any mess left behind in
+        # case of an enrollment failure gets cleaned
         installer._enrollment_performed = True
-
-        args = [paths.IPA_CLIENT_INSTALL, "--unattended", "--no-ntp"]
-        stdin = None
-
-        if installer.domain_name:
-            args.extend(["--domain", installer.domain_name])
-        if installer.server:
-            args.extend(["--server", installer.server])
-        if installer.realm_name:
-            args.extend(["--realm", installer.realm_name])
-        if installer.host_name:
-            args.extend(["--hostname", installer.host_name])
-
-        if installer.password:
-            args.extend(["--password", installer.password])
-        else:
-            if installer.admin_password:
-                # Always set principal if password was set explicitly,
-                # the password itself gets passed directly via stdin
-                args.extend(["--principal", installer.principal or "admin"])
-                stdin = installer.admin_password
-            if installer.keytab:
-                args.extend(["--keytab", installer.keytab])
-
-        if installer.no_dns_sshfp:
-            args.append("--no-dns-sshfp")
-        if installer.ssh_trust_dns:
-            args.append("--ssh-trust-dns")
-        if installer.no_ssh:
-            args.append("--no-ssh")
-        if installer.no_sshd:
-            args.append("--no-sshd")
-        if installer.mkhomedir:
-            args.append("--mkhomedir")
-
-        ipautil.run(args, stdin=stdin, redirect_output=True)
+        # Call client install script
+        ipautil.run(args, nolog=nolog, redirect_output=True)
         print()
     except Exception:
         raise ScriptError("Configuration of client side components failed!")
@@ -1447,6 +1452,7 @@ def install(installer):
 
 
 def init(installer):
+    installer._ccache = os.environ.get('KRB5CCNAME')
     installer.unattended = not installer.interactive
     installer.promote = installer.replica_file is None
 
@@ -1456,10 +1462,40 @@ def init(installer):
         installer.server = None
     if installer.replica_file is None:
         installer.password = installer.host_password
+        # unless some credentials are given, we need to have at least
+        # an admin principal and its password so these are not asked for
+        # twice (first in client-install, then in conncheck)
+        # TODO: remove when client-install is performed as a function call
+        if (not installer.unattended and installer.password is None and
+                installer.keytab is None and
+                installer.admin_password is None and
+                installer._ccache is None):
+            if not installer.principal:
+                try:
+                    # get the principal interactively, can't be empty
+                    installer.principal = ipautil.user_input(
+                            "User authorized to enroll computers",
+                            allow_empty=False)
+                    root_logger.debug(
+                            "will use principal provided as option: %s",
+                            installer.principal)
+                except Exception as e:
+                    print()
+                    # higher-level error so script usage is not printed
+                    raise ScriptError(str(e))
+            # the principal is set now, we need its password
+            try:
+                installer.admin_password = getpass.getpass(
+                    "Password for {}: ".format(installer.principal))
+            except EOFError:
+                print()
+                installer.admin_password = None
+            if not installer.admin_password:
+                # higher-level error so script usage is not printed
+                raise ScriptError("Password must be provided for %s." %
+                                  installer.principal)
     else:
         installer.password = installer.dm_password
-
-    installer._ccache = os.environ.get('KRB5CCNAME')
 
     installer._top_dir = None
     installer._config = None
