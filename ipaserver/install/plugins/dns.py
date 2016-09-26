@@ -278,7 +278,6 @@ class update_master_to_dnsforwardzones(DNSUpdater):
     backup_filename = u'dns-master-to-forward-zones-%Y-%m-%d-%H-%M-%S.ldif'
 
     def execute(self, **options):
-        ldap = self.api.Backend.ldap2
         # check LDAP if forwardzones already uses new semantics
         if not self.version_update_needed(target_version=1):
             # forwardzones already uses new semantics,

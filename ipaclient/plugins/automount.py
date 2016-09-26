@@ -152,7 +152,7 @@ class automountlocation_import(Command):
         The basic idea is to read the master file and create all the maps
         we need, then read each map file and add all the keys for the map.
         """
-        location = self.api.Command['automountlocation_show'](args[0])
+        self.api.Command['automountlocation_show'](args[0])
 
         result = {'maps':[], 'keys':[], 'skipped':[], 'duplicatekeys':[], 'duplicatemaps':[]}
         maps = {}
@@ -183,7 +183,7 @@ class automountlocation_import(Command):
                             automountkey=unicode(am[0]),
                             automountinformation=unicode(' '.join(am[1:])))
                 result['keys'].append([am[0], u'auto.master'])
-            except errors.DuplicateEntry as e:
+            except errors.DuplicateEntry:
                 if unicode(am[0]) in DEFAULT_KEYS:
                     # ignore conflict when the key was pre-created by the framework
                     pass
@@ -198,7 +198,7 @@ class automountlocation_import(Command):
                 try:
                     api.Command['automountmap_add'](args[0], unicode(am[1]))
                     result['maps'].append(am[1])
-                except errors.DuplicateEntry as e:
+                except errors.DuplicateEntry:
                     if unicode(am[1]) in DEFAULT_MAPS:
                         # ignore conflict when the map was pre-created by the framework
                         pass

@@ -601,7 +601,7 @@ class host(LDAPObject):
         managed_hosts = []
 
         try:
-            (hosts, truncated) = ldap.find_entries(
+            (hosts, _truncated) = ldap.find_entries(
                 base_dn=DN(self.container_dn, api.env.basedn),
                 filter=host_filter, attrs_list=host_attrs)
 

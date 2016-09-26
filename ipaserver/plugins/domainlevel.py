@@ -60,7 +60,7 @@ def get_master_entries(ldap, api):
         api.env.basedn
     )
 
-    masters, _ = ldap.find_entries(
+    masters, _dummy = ldap.find_entries(
         filter="(cn=*)",
         base_dn=container_masters,
         scope=ldap.SCOPE_ONELEVEL,

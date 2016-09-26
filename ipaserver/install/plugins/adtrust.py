@@ -40,7 +40,7 @@ class update_default_range(Updater):
         dn = DN(self.api.env.container_ranges, self.api.env.basedn)
         search_filter = "objectclass=ipaDomainIDRange"
         try:
-            (entries, truncated) = ldap.find_entries(search_filter, [], dn)
+            ldap.find_entries(search_filter, [], dn)
         except errors.NotFound:
             pass
         else:
@@ -85,7 +85,7 @@ class update_default_range(Updater):
         search_filter = "objectclass=dnaSharedConfig"
         attrs = ['dnaHostname', 'dnaRemainingValues']
         try:
-            (entries, truncated) = ldap.find_entries(search_filter, attrs, dn)
+            (entries, _truncated) = ldap.find_entries(search_filter, attrs, dn)
         except errors.NotFound:
             root_logger.warning("default_range: no dnaSharedConfig object found. "
                                 "Cannot check default range size.")

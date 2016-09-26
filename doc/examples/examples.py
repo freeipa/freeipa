@@ -415,7 +415,7 @@ class exuser_find(Method):
         # patter expects them in one dict. We need to arrange that.
         for e in entries:
             e[1]['dn'] = e[0]
-        entries = [e for (dn, e) in entries]
+        entries = [e for (_dn, e) in entries]
 
         return dict(result=entries, count=len(entries), truncated=truncated)
 

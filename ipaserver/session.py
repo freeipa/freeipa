@@ -961,7 +961,7 @@ class MemcacheSessionManager(SessionManager):
 
         try:
             session_cookie = Cookie.get_named_cookie_from_string(cookie_header, self.session_cookie_name)
-        except Exception as e:
+        except Exception:
             session_cookie = None
         if session_cookie:
             session_id = session_cookie.value

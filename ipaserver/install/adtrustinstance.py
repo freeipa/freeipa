@@ -742,13 +742,13 @@ class ADTRUSTInstance(service.Service):
         try:
             self.ldap_enable('ADTRUST', self.fqdn, self.dm_password, \
                              self.suffix)
-        except (ldap.ALREADY_EXISTS, errors.DuplicateEntry) as e:
+        except (ldap.ALREADY_EXISTS, errors.DuplicateEntry):
             root_logger.info("ADTRUST Service startup entry already exists.")
 
         try:
             self.ldap_enable('EXTID', self.fqdn, self.dm_password, \
                              self.suffix)
-        except (ldap.ALREADY_EXISTS, errors.DuplicateEntry) as e:
+        except (ldap.ALREADY_EXISTS, errors.DuplicateEntry):
             root_logger.info("EXTID Service startup entry already exists.")
 
     def __setup_sub_dict(self):

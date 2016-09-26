@@ -66,8 +66,6 @@ class ODSExporterInstance(service.Service):
         self.start_creation()
 
     def __check_dnssec_status(self):
-        ods_enforcerd = services.knownservices.ods_enforcerd
-
         try:
             self.ods_uid = pwd.getpwnam(constants.ODS_USER).pw_uid
         except KeyError:

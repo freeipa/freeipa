@@ -89,7 +89,7 @@ def parse_options():
     parser.add_option("--force", dest="force", action="store_true",
                       help="Force install")
 
-    options, args = parser.parse_args()
+    options, _args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
 
     if options.dnssec_master and options.disable_dnssec_master:

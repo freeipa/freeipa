@@ -1342,7 +1342,7 @@ cli_plugins = (
 def run(api):
     error = None
     try:
-        (options, argv) = api.bootstrap_with_global_options(context='cli')
+        (_options, argv) = api.bootstrap_with_global_options(context='cli')
         for klass in cli_plugins:
             api.add_plugin(klass)
         api.finalize()

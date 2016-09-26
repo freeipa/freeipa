@@ -44,8 +44,8 @@ class Graph(object):
 
         # delete _adjacencies
         del self._adj[vertex]
-        for key, _adj in self._adj.items():
-            _adj[:] = [v for v in _adj if v != vertex]
+        for adj in self._adj.values():
+            adj[:] = [v for v in adj if v != vertex]
 
         # delete edges
         edges = [e for e in self.edges if e[0] != vertex and e[1] != vertex]

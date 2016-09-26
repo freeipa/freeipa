@@ -152,7 +152,7 @@ class ConfigureTool(admintool.AdminTool):
                     **kwargs
                 )
 
-        for group, opt_group in groups.items():
+        for opt_group in groups.values():
             parser.add_option_group(opt_group)
 
         super(ConfigureTool, cls).add_options(parser,

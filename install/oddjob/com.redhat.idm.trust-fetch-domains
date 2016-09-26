@@ -34,7 +34,7 @@ def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
     try:
         sssd = pwd.getpwnam(constants.SSSD_USER)
         os.chown(oneway_keytab_name, sssd[2], sssd[3])
-    except KeyError as e:
+    except KeyError:
         # If user 'sssd' does not exist, we don't need to chown from root to sssd
         # because it means SSSD does not run as sssd user
         pass

@@ -109,7 +109,7 @@ def validate_selinuxuser(ugettext, user):
 
     # If we add in ::: we don't have to check to see if some values are
     # empty
-    (name, mls, mcs, ignore) = (user + ':::').split(':', 3)
+    (name, mls, mcs, _ignore) = (user + ':::').split(':', 3)
 
     if not regex_name.match(name):
         return _('Invalid SELinux user name, only a-Z and _ are allowed')

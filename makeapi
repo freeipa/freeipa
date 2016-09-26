@@ -499,7 +499,7 @@ def validate_api():
 
 def main():
     rval = 0
-    options, args = parse_options()
+    options, _args = parse_options()
 
     cfg = dict(
         in_server=True,

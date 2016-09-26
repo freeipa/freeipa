@@ -132,7 +132,7 @@ class update_idrange_baserid(Updater):
         )
 
         try:
-            (entries, truncated) = ldap.find_entries(
+            (entries, _truncated) = ldap.find_entries(
                 search_filter, ['ipabaserid'], base_dn,
                 paged_search=True, time_limit=0, size_limit=0)
 

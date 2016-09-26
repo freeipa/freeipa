@@ -200,7 +200,7 @@ class PBKDF2KeyDerivation(XMLKeyDerivation):
             hash = [0] * mac.digest_size
 
             # Perform n iterations.
-            for j in xrange(self.iter):
+            for _j in xrange(self.iter):
                 tmp = mac.copy()
                 tmp.update(last)
                 last = tmp.digest()

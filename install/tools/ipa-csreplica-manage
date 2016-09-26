@@ -232,9 +232,6 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
     print("Deleted replication agreement from '%s' to '%s'" % (replica1, replica2))
 
 def del_master(realm, hostname, options):
-
-    force_del = False
-
     delrepl = None
 
     # 1. Connect to the local dogtag DS server
@@ -258,7 +255,6 @@ def del_master(realm, hostname, options):
             sys.exit(1)
         else:
             print("Unable to connect to replica %s, forcing removal" % hostname)
-            force_del = True
 
     # 4. Get list of agreements.
     if delrepl is None:

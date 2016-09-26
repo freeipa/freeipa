@@ -433,7 +433,7 @@ class update_managed_permissions(Updater):
             else:
                 if 'ipapermissiontype' not in legacy_entry:
                     if is_new:
-                        acientry, acistr = (
+                        _acientry, acistr = (
                             permission_plugin._get_aci_entry_and_string(
                                 legacy_entry, notfound_ok=True))
                         try:

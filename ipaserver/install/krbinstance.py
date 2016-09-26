@@ -286,7 +286,7 @@ class KrbInstance(service.Service):
         )
         try:
             ipautil.run(args, nolog=(self.master_password,), stdin=''.join(dialogue))
-        except ipautil.CalledProcessError as e:
+        except ipautil.CalledProcessError:
             print("Failed to initialize the realm container")
 
     def __configure_instance(self):

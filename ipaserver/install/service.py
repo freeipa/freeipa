@@ -116,7 +116,7 @@ def find_providing_server(svcname, conn, host_name=None, api=api):
                                      'ipaConfigString': 'enabledService',
                                      'cn': svcname}, rules='&')
     try:
-        entries, trunc = conn.find_entries(filter=query_filter, base_dn=dn)
+        entries, _trunc = conn.find_entries(filter=query_filter, base_dn=dn)
     except errors.NotFound:
         return None
     if len(entries):
@@ -523,7 +523,7 @@ class Service(object):
         search_kw = {'ipaConfigString': u'enabledService'}
         filter = self.admin_conn.make_filter(search_kw)
         try:
-            entries, truncated = self.admin_conn.find_entries(
+            entries, _truncated = self.admin_conn.find_entries(
                 filter=filter,
                 attrs_list=['ipaConfigString'],
                 base_dn=entry_dn,

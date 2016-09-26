@@ -64,7 +64,7 @@ def validate_permission_to_privilege(api, permission):
         '(objectClass=ipaPermissionV2)', '(!(ipaPermBindRuleType=permission))',
         ldap.make_filter_from_attr('cn', permission, rules='|')])
     try:
-        entries, truncated = ldap.find_entries(
+        entries, _truncated = ldap.find_entries(
             filter=ldapfilter,
             attrs_list=['cn', 'ipapermbindruletype'],
             base_dn=DN(api.env.container_permission, api.env.basedn),

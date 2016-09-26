@@ -889,7 +889,7 @@ class server_conncheck(crud.PKQuery):
                              follow_name_owner_changes=True)
         server = dbus.Interface(obj, 'org.freeipa.server')
 
-        ret, stdout, stderr = server.conncheck(keys[-1])
+        ret, stdout, _stderr = server.conncheck(keys[-1])
 
         result = dict(
             result=(ret == 0),
