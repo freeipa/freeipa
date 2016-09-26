@@ -134,7 +134,6 @@ class test_host(host_tasks):
         self.init_app()
         # ENHANCEMENT: generate csr dynamically
         csr = self.load_file(csr_path)
-        realm = self.config.get('ipa_realm')
         cert_widget_sel = "div.certificate-widget"
 
         self.add_record(ENTITY, self.data)
@@ -229,7 +228,6 @@ class test_host(host_tasks):
 
         self.init_app()
         cert = self.load_file(cert_path)
-        realm = self.config.get('ipa_realm')
         self.add_record(ENTITY, self.data)
 
         self.navigate_to_record(self.pkey)

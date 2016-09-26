@@ -165,7 +165,7 @@ class UserTracker(KerberosAliasMixin, Tracker):
                         (self.kwargs[key].split('@'))[0].lower(),
                         (self.kwargs[key].split('@'))[1]
                     )]
-                except IndexError as ex:
+                except IndexError:
                     # we can provide just principal part
                     self.attrs[key] = [u'%s@%s' % (
                         (self.kwargs[key].lower(),

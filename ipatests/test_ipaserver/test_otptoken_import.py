@@ -102,7 +102,7 @@ class test_otptoken_import(object):
     def test_figure8(self):
         nss.nss_init_nodb()
         try:
-            doc = PSKCDocument(os.path.join(basename, "pskc-figure8.xml"))
+            PSKCDocument(os.path.join(basename, "pskc-figure8.xml"))
         except NotImplementedError: # X.509 is not supported.
             pass
         else:
@@ -113,7 +113,7 @@ class test_otptoken_import(object):
     def test_invalid(self):
         nss.nss_init_nodb()
         try:
-            doc = PSKCDocument(os.path.join(basename, "pskc-invalid.xml"))
+            PSKCDocument(os.path.join(basename, "pskc-invalid.xml"))
         except ValueError: # File is invalid.
             pass
         else:

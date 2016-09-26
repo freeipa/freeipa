@@ -138,7 +138,7 @@ def lineinfo(level):
     # Including this info in the test name makes it possible
     # to locate failing tests.
     frame = inspect.currentframe()
-    for i in range(level):
+    for _i in range(level):
         frame = frame.f_back
     lineno = frame.f_lineno
     filename = os.path.basename(frame.f_code.co_filename)
@@ -3455,9 +3455,8 @@ class test_managed_permissions(Declarative):
         ldap = ldap2(api)
         ldap.connect()
 
-        result = api.Command.permission_add(permission1, type=u'user',
-                                            ipapermright=u'write',
-                                            attrs=[u'cn'])
+        api.Command.permission_add(
+            permission1, type=u'user', ipapermright=u'write', attrs=[u'cn'])
 
         # TODO: This hack relies on the permission internals.
         # Change as necessary.
@@ -3468,8 +3467,7 @@ class test_managed_permissions(Declarative):
         ldap.update_entry(entry)
 
         # Update the ACI via the API
-        result = api.Command.permission_mod(permission1,
-                                            attrs=[u'l', u'o', u'cn'])
+        api.Command.permission_mod(permission1, attrs=[u'l', u'o', u'cn'])
 
         # Set the permission type to MANAGED
         entry = ldap.get_entry(permission1_dn)

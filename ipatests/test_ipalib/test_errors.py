@@ -243,7 +243,6 @@ class test_PublicError(PublicExceptionTester):
     def test_init(self):
         message = u'The translated, interpolated message'
         format = 'key=%(key1)r and key2=%(key2)r'
-        uformat = u'Translated key=%(key1)r and key2=%(key2)r'
         val1 = u'Value 1'
         val2 = u'Value 2'
         kw = dict(key1=val1, key2=val2)
@@ -303,7 +302,6 @@ class test_PublicError(PublicExceptionTester):
         class subclass(self.klass):
             format = '%(true)r %(text)r %(number)r'
 
-        uformat = u'Translated %(true)r %(text)r %(number)r'
         kw = dict(true=True, text=u'Hello!', number=18)
 
         # Test with format=str, message=None

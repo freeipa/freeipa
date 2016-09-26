@@ -111,7 +111,7 @@ class test_update(object):
         csr = self.read_file("test3.csr")
 
         try:
-            request = pkcs10.load_certificate_request(csr)
+            pkcs10.load_certificate_request(csr)
         except NSPRError as nsprerr:
             # (SEC_ERROR_BAD_DER) security library: improperly formatted DER-encoded message.
             assert(nsprerr. errno== -8183)
@@ -122,6 +122,6 @@ class test_update(object):
         """
         csr = self.read_file("test4.csr")
         try:
-            request = pkcs10.load_certificate_request(csr)
+            pkcs10.load_certificate_request(csr)
         except (TypeError, binascii.Error) as typeerr:
             assert(str(typeerr) == 'Incorrect padding')

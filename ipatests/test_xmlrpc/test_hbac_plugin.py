@@ -268,7 +268,7 @@ class test_hbac(XMLRPC_test):
         """
         Test deprecated command hbacrule_add_sourcehost.
         """
-        ret = api.Command['hbacrule_add_sourcehost'](
+        api.Command['hbacrule_add_sourcehost'](
             self.rule_name, host=self.test_host, hostgroup=self.test_hostgroup
         )
 
@@ -307,7 +307,7 @@ class test_hbac(XMLRPC_test):
         """
         Test deprecated command hbacrule_remove_sourcehost.
         """
-        ret = api.Command['hbacrule_remove_sourcehost'](
+        api.Command['hbacrule_remove_sourcehost'](
             self.rule_name, host=self.test_host, hostgroup=self.test_hostgroup
         )
 
@@ -316,7 +316,7 @@ class test_hbac(XMLRPC_test):
         """
         Test adding the same external host using `xmlrpc.hbacrule_add_host`.
         """
-        ret = api.Command['hbacrule_mod'](
+        api.Command['hbacrule_mod'](
             self.rule_name, setattr=self.test_invalid_sourcehost
         )
 

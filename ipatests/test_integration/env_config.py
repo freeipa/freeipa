@@ -279,7 +279,7 @@ def domain_from_env(env, config, index, domain_type):
     env_suffix = '_env%s' % index
 
     master_env = '%s%s' % (master_role, env_suffix)
-    hostname, dot, domain_name = env[master_env].partition('.')
+    hostname, _dot, domain_name = env[master_env].partition('.')
     domain = Domain(config, domain_name, domain_type)
 
     for role in _roles_from_env(domain, env, env_suffix):

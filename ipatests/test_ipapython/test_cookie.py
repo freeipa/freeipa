@@ -279,7 +279,7 @@ class TestInvalidAttributes(unittest.TestCase):
         # Invalid Max-Age
         s = 'color=blue; Max-Age=over-the-hill'
         with self.assertRaises(ValueError):
-            cookies = Cookie.parse(s)
+            Cookie.parse(s)
 
         cookie = Cookie('color', 'blue')
         with self.assertRaises(ValueError):
@@ -288,7 +288,7 @@ class TestInvalidAttributes(unittest.TestCase):
         # Invalid Expires
         s = 'color=blue; Expires=Sun, 06 Xxx 1994 08:49:37 GMT'
         with self.assertRaises(ValueError):
-            cookies = Cookie.parse(s)
+            Cookie.parse(s)
 
         cookie = Cookie('color', 'blue')
         with self.assertRaises(ValueError):

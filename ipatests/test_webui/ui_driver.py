@@ -306,7 +306,7 @@ class UI_driver(object):
         """
         runner = self
 
-        for i in range(n):
+        for _i in range(n):
             self.wait(implicit)
             WebDriverWait(self.driver, self.request_timeout).until_not(lambda d: runner.has_active_request())
             self.wait()
@@ -1499,7 +1499,7 @@ class UI_driver(object):
 
         # add values
         for t in tables:
-            table, keys, exts = get_t_vals(t)
+            table, keys, _exts = get_t_vals(t)
             # add one by one to test for #3711
             for key in keys:
                 self.add_table_associations(table, [key])
@@ -1517,7 +1517,7 @@ class UI_driver(object):
         p = self.get_form()
         # now tables in categories should be empty, check it
         for t in tables:
-            table, keys, exts = get_t_vals(t)
+            table, keys, _exts = get_t_vals(t)
             if table in no_categories:
                 # clear the rest
                 self.delete_record(keys, None, p, table)
@@ -1534,7 +1534,7 @@ class UI_driver(object):
         self.assert_rule_tables_enabled(t_list, True)
 
         for t in tables:
-            table, keys, exts = get_t_vals(t)
+            table, keys, _exts = get_t_vals(t)
             # add multiple at once and test table delete button
             self.add_table_associations(table, keys, delete=True)
 
@@ -1678,7 +1678,7 @@ class UI_driver(object):
         """
         if not parent:
             parent = self.get_form()
-        el = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
+        self.find(selector, By.CSS_SELECTOR, parent, strict=True)
         dis = self.find(selector+"[disabled]", By.CSS_SELECTOR, parent)
         if negative:
             assert dis is None, "Element is disabled: %s" % selector

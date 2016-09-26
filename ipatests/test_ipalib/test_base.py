@@ -263,9 +263,9 @@ class test_NameSpace(ClassChecker):
         Test the `ipalib.base.NameSpace.__len__` method.
         """
         for count in (5, 18, 127):
-            (o, members) = self.new(count)
+            o, _members = self.new(count)
             assert len(o) == count
-            (o, members) = self.new(count, sort=False)
+            o, _members = self.new(count, sort=False)
             assert len(o) == count
 
     def test_iter(self):
@@ -353,7 +353,7 @@ class test_NameSpace(ClassChecker):
         """
         for cnt in (0, 1, 2):
             for sort in (True, False):
-                (o, members) = self.new(cnt, sort=sort)
+                o, _members = self.new(cnt, sort=sort)
                 if cnt == 1:
                     assert repr(o) == \
                         'NameSpace(<%d member>, sort=%r)' % (cnt, sort)

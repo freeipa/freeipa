@@ -184,7 +184,8 @@ class test_automount(AutomountTest):
         """
         Test adding a duplicate key using `xmlrpc.automountkey_add` method.
         """
-        res = api.Command['automountkey_add'](self.locname, self.mapname, **self.key_kw)
+        api.Command['automountkey_add'](
+            self.locname, self.mapname, **self.key_kw)
 
     def test_5_automountmap_show(self):
         """
@@ -368,7 +369,8 @@ class test_automount_direct(AutomountTest):
         """
         Test adding a duplicate direct map.
         """
-        res = api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.direct_kw)['result']
+        api.Command['automountmap_add_indirect'](
+            self.locname, self.mapname, **self.direct_kw)
 
     def test_2a_automountmap_tofiles(self):
         """Test the `automountmap_tofiles` command"""

@@ -103,13 +103,11 @@ def test_Registry():
         pass
     class Base2(object):
         pass
-    class Base3(object):
-        pass
+
+
     class plugin1(Base1):
         pass
     class plugin2(Base2):
-        pass
-    class plugin3(Base3):
         pass
 
     # Test creation of Registry:
@@ -250,7 +248,7 @@ class test_API(ClassChecker):
         """
         Test the `ipalib.plugable.API.bootstrap` method.
         """
-        (o, home) = create_test_api()
+        o, _home = create_test_api()
         assert o.env._isdone('_bootstrap') is False
         assert o.env._isdone('_finalize_core') is False
         assert o.isdone('bootstrap') is False
@@ -266,7 +264,7 @@ class test_API(ClassChecker):
         """
         Test the `ipalib.plugable.API.load_plugins` method.
         """
-        (o, home) = create_test_api()
+        o, _home = create_test_api()
         assert o.isdone('bootstrap') is False
         assert o.isdone('load_plugins') is False
         o.load_plugins()

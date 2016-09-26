@@ -23,7 +23,6 @@
 def pytest_generate_tests(metafunc):
     """Generates Declarative tests"""
     if 'declarative_test_definition' in metafunc.fixturenames:
-        name = metafunc.cls.__name__
         tests = []
         descriptions = []
         for i, test in enumerate(metafunc.cls.tests):

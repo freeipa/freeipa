@@ -577,7 +577,7 @@ class test_Env(ClassChecker):
         Test the `ipalib.config.Env._finalize` method.
         """
         # Check that calls cascade up the chain:
-        (o, home) = self.new(in_tree=True)
+        o, _home = self.new(in_tree=True)
         assert o._isdone('_bootstrap') is False
         assert o._isdone('_finalize_core') is False
         assert o._isdone('_finalize') is False
@@ -591,7 +591,7 @@ class test_Env(ClassChecker):
         assert str(e) == 'Env._finalize() already called'
 
         # Check that _finalize() calls __lock__()
-        (o, home) = self.new(in_tree=True)
+        o, _home = self.new(in_tree=True)
         assert o.__islocked__() is False
         o._finalize()
         assert o.__islocked__() is True
@@ -599,7 +599,7 @@ class test_Env(ClassChecker):
         assert str(e) == 'Env.__lock__() already called'
 
         # Check that **lastchance works
-        (o, home) = self.finalize_core(None)
+        o, _home = self.finalize_core(None)
         key = 'just_one_more_key'
         value = u'with one more value'
         lastchance = {key: value}

@@ -420,7 +420,7 @@ class TestComplexConfig(CheckConfig):
     def check_config(self, conf):
         assert len(conf.domains) == 3
         main_dom = conf.domains[0]
-        (client1, client2, extra, extram1, extram2, master,
+        (client1, client2, extra, extram1, extram2, _master,
          replica1, replica2) = sorted(main_dom.hosts, key=lambda h: h.role)
         assert main_dom.name == 'ipadomain.test'
         assert main_dom.type == 'IPA'

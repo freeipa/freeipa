@@ -110,7 +110,7 @@ class AutomemberTracker(Tracker):
             try:
                 self.attrs[u'group'] =\
                     self.attrs[u'group'] + [options[u'group']]
-            except KeyError as ex:
+            except KeyError:
                 self.attrs[u'group'] = [options[u'group']]
             # search for hosts in the target automember and
             # add them as memberindirect hosts
@@ -118,7 +118,7 @@ class AutomemberTracker(Tracker):
             try:
                 self.attrs[u'hostgroup'] =\
                     self.attrs[u'hostgroup'] + [options[u'hostgroup']]
-            except KeyError as ex:
+            except KeyError:
                 self.attrs[u'hostgroup'] = [options[u'hostgroup']]
 
         command = self.make_add_member_command(options)
@@ -135,12 +135,12 @@ class AutomemberTracker(Tracker):
         try:
             if not self.attrs[u'member_host']:
                 del self.attrs[u'member_host']
-        except KeyError as ex:
+        except KeyError:
             pass
         try:
             if not self.attrs[u'member_automember']:
                 del self.attrs[u'member_automember']
-        except KeyError as ex:
+        except KeyError:
             pass
 
         command = self.make_remove_member_command(options)

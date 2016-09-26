@@ -141,6 +141,6 @@ def test_multiline_description():
     assert '\n\n' in unicode(api.Command.trust_add.doc).strip()
 
     with CLITestContext(exception=SystemExit) as help_ctx:
-        return_value = api.Backend.cli.run(['trust-add', '-h'])
+        api.Backend.cli.run(['trust-add', '-h'])
 
     assert unicode(api.Command.trust_add.doc).strip() in help_ctx.stdout

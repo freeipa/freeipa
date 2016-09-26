@@ -59,9 +59,6 @@ class test_range(range_tasks):
 
         pkey_local = 'itest-local'
         pkey_ad = 'itest-ad'
-        pkey_posix = 'itest-ad-posix'
-        pkey_winsync = 'itest-ad-winsync'
-        pkey_trust = 'itest-ipa-trust'
         column = 'iparangetype'
 
         add = self.get_add_data(pkey_local)

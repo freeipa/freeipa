@@ -88,7 +88,7 @@ class SudoCmdGroupTracker(Tracker):
         try:
             self.attrs[u'member_sudocmd'] =\
                 self.attrs[u'member_sudocmd'] + [options[u'sudocmd']]
-        except KeyError as ex:
+        except KeyError:
             self.attrs[u'member_sudocmd'] = [options[u'sudocmd']]
 
         command = self.make_add_member_command(options)
@@ -102,7 +102,7 @@ class SudoCmdGroupTracker(Tracker):
         try:
             if not self.attrs[u'member_sudocmd']:
                 del self.attrs[u'member_sudocmd']
-        except KeyError as ex:
+        except KeyError:
             pass
 
         command = self.make_remove_member_command(options)

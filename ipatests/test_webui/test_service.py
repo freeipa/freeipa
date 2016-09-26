@@ -93,8 +93,6 @@ class test_service(sevice_tasks):
         data = self.prep_data()
         pkey = data.get('pkey')
         csr = self.load_file(csr_path)
-        host = self.config.get('ipa_server')
-        realm = self.config.get('ipa_realm')
         cert_widget_sel = "div.certificate-widget"
 
         self.add_record(ENTITY, data)
@@ -190,7 +188,6 @@ class test_service(sevice_tasks):
         data = self.prep_data()
         pkey = data.get('pkey')
         cert = self.load_file(cert_path)
-        realm = self.config.get('ipa_realm')
         cert_widget_sel = "div.certificate-widget"
 
         self.add_record(ENTITY, data)

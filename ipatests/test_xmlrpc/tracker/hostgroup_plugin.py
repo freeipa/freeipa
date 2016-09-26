@@ -91,7 +91,7 @@ class HostGroupTracker(Tracker):
             try:
                 self.attrs[u'member_host'] =\
                     self.attrs[u'member_host'] + [options[u'host']]
-            except KeyError as ex:
+            except KeyError:
                 self.attrs[u'member_host'] = [options[u'host']]
             # search for hosts in the target hostgroup and
             # add them as memberindirect hosts
@@ -99,7 +99,7 @@ class HostGroupTracker(Tracker):
             try:
                 self.attrs[u'member_hostgroup'] =\
                     self.attrs[u'member_hostgroup'] + [options[u'hostgroup']]
-            except KeyError as ex:
+            except KeyError:
                 self.attrs[u'member_hostgroup'] = [options[u'hostgroup']]
 
         command = self.make_add_member_command(options)
@@ -116,12 +116,12 @@ class HostGroupTracker(Tracker):
         try:
             if not self.attrs[u'member_host']:
                 del self.attrs[u'member_host']
-        except KeyError as ex:
+        except KeyError:
             pass
         try:
             if not self.attrs[u'member_hostgroup']:
                 del self.attrs[u'member_hostgroup']
-        except KeyError as ex:
+        except KeyError:
             pass
 
         command = self.make_remove_member_command(options)
