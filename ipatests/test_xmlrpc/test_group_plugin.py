@@ -231,7 +231,7 @@ class TestFindGroup(XMLRPC_test):
     def test_search_for_all_groups(self, group, group2):
         """ Search for all groups """
         group.ensure_exists()
-        group2.create()
+        group2.ensure_exists()
         command = group.make_command('group_find')
         result = command()
         assert_deepequal(dict(
@@ -631,7 +631,7 @@ class TestManagedGroupObjectclasses(XMLRPC_test):
     def test_check_objectclasses_after_detach(self, user, managed_group):
         """ Check objectclasses after user was detached from managed group """
         # https://fedorahosted.org/freeipa/ticket/4909#comment:1
-        user.create()
+        user.ensure_exists()
         user.run_command('group_detach', *[user.uid])
         managed_group.retrieve(all=True)
         managed_group.add_member(dict(user=user.uid))

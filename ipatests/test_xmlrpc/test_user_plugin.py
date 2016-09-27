@@ -177,6 +177,7 @@ class TestNonexistentUser(XMLRPC_test):
 class TestUser(XMLRPC_test):
     def test_retrieve(self, user):
         """ Create user and try to retrieve it """
+        user.ensure_exists()
         user.retrieve()
 
     def test_delete(self, user):
@@ -216,6 +217,7 @@ class TestUser(XMLRPC_test):
 class TestFind(XMLRPC_test):
     def test_find(self, user):
         """ Basic check of user-find """
+        user.ensure_exists()
         user.find()
 
     def test_find_with_all(self, user):

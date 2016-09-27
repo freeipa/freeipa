@@ -199,7 +199,6 @@ class Tracker(object):
 
     def create(self):
         """Helper function to create an entry and check the result"""
-        self.ensure_missing()
         self.track_create()
         command = self.make_create_command()
         result = command()
@@ -227,7 +226,6 @@ class Tracker(object):
 
     def delete(self):
         """Helper function to delete a host and check the result"""
-        self.ensure_exists()
         self.track_delete()
         command = self.make_delete_command()
         result = command()
@@ -244,7 +242,6 @@ class Tracker(object):
 
     def retrieve(self, all=False, raw=False):
         """Helper function to retrieve an entry and check the result"""
-        self.ensure_exists()
         command = self.make_retrieve_command(all=all, raw=raw)
         result = command()
         self.check_retrieve(result, all=all, raw=raw)
@@ -255,7 +252,6 @@ class Tracker(object):
 
     def find(self, all=False, raw=False):
         """Helper function to search for this hosts and check the result"""
-        self.ensure_exists()
         command = self.make_find_command(self.name, all=all, raw=raw)
         result = command()
         self.check_find(result, all=all, raw=raw)
@@ -274,7 +270,6 @@ class Tracker(object):
         if expected_updates is None:
             expected_updates = {}
 
-        self.ensure_exists()
         command = self.make_update_command(updates)
         result = command()
         self.attrs.update(updates)

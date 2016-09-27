@@ -255,6 +255,7 @@ class TestStagedUser(XMLRPC_test):
         stageduser.delete()
 
     def test_find_stageduser(self, stageduser):
+        stageduser.ensure_exists()
         stageduser.find()
 
     def test_findall_stageduser(self, stageduser):
