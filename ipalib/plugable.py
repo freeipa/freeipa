@@ -44,6 +44,7 @@ from ipalib.text import _
 from ipalib.util import classproperty
 from ipalib.base import ReadOnly, lock, islocked
 from ipalib.constants import DEFAULT_CONFIG
+from ipapython import ipautil
 from ipapython.ipa_log_manager import (
     log_mgr,
     LOGGING_FORMAT_FILE,
@@ -494,6 +495,13 @@ class API(ReadOnly):
         """
         Add global options to an optparse.OptionParser instance.
         """
+        def config_file_callback(option, opt, value, parser):
+            if not ipautil.file_exists(value):
+                parser.error(
+                    _("%(filename)s: file not found") % dict(filename=value))
+
+            parser.values.conf = value
+
         if parser is None:
             parser = optparse.OptionParser(
                 add_help_option=False,
@@ -517,8 +525,9 @@ class API(ReadOnly):
         parser.add_option('-e', dest='env', metavar='KEY=VAL', action='append',
             help='Set environment variable KEY to VAL',
         )
-        parser.add_option('-c', dest='conf', metavar='FILE',
-            help='Load configuration from FILE',
+        parser.add_option('-c', dest='conf', metavar='FILE', action='callback',
+            callback=config_file_callback, type='string',
+            help='Load configuration from FILE.',
         )
         parser.add_option('-d', '--debug', action='store_true',
             help='Produce full debuging output',
