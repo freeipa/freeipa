@@ -352,23 +352,10 @@ class Env(object):
         containing first the number of variables that were actually set, and
         second the total number of variables found in ``config_file``.
 
-        This method will raise a ``ValueError`` if ``config_file`` is not an
-        absolute path.  For example:
-
-        >>> env = Env()
-        >>> env._merge_from_file('my/config.conf')
-        Traceback (most recent call last):
-          ...
-        ValueError: config_file must be an absolute path; got 'my/config.conf'
-
         Also see `Env._merge()`.
 
-        :param config_file: Absolute path of the configuration file to load.
+        :param config_file: Path of the configuration file to load.
         """
-        if path.abspath(config_file) != config_file:
-            raise ValueError(
-                'config_file must be an absolute path; got %r' % config_file
-            )
         if not path.isfile(config_file):
             return
         parser = RawConfigParser()
