@@ -133,7 +133,11 @@ static void on_query_readable(verto_ctx *vctx, verto_ev *ev)
     if (i != LDAP_RES_SEARCH_ENTRY && i != LDAP_RES_SEARCH_RESULT) {
         if (i <= 0)
             results = NULL;
-        goto egress;
+        ldap_msgfree(results);
+        otpd_log_err(EIO, "IO error received on query socket");
+        verto_break(ctx.vctx);
+        ctx.exitstatus = 1;
+        return;
     }
 
     item = otpd_queue_pop_msgid(&ctx.query.responses, ldap_msgid(results));
@@ -243,11 +247,6 @@ void otpd_on_query_io(verto_ctx *vctx, verto_ev *ev)
     flags = verto_get_fd_state(ev);
     if (flags & VERTO_EV_FLAG_IO_WRITE)
         on_query_writable(vctx, ev);
-    if (flags & VERTO_EV_FLAG_IO_READ)
+    if (flags & (VERTO_EV_FLAG_IO_READ | VERTO_EV_FLAG_IO_ERROR))
         on_query_readable(vctx, ev);
-    if (flags & VERTO_EV_FLAG_IO_ERROR) {
-        otpd_log_err(EIO, "IO error received on query socket");
-        verto_break(ctx.vctx);
-        ctx.exitstatus = 1;
-    }
 }
