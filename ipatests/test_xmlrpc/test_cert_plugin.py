@@ -267,7 +267,9 @@ class test_cert_find(XMLRPC_test):
         """
         Search for the OCSP certificate.
         """
-        api.Command['cert_find'](subject=u'OCSP Subsystem')
+        res = api.Command['cert_find'](subject=u'OCSP Subsystem')
+        assert 'count' in res
+        assert res['count'], "No OSCP certificate found"
 
     def test_0004_find_this_host(self):
         """
