@@ -85,6 +85,9 @@ static void on_bind_readable(verto_ctx *vctx, verto_ev *ev)
         if (rslt <= 0)
             results = NULL;
         ldap_msgfree(results);
+        otpd_log_err(EIO, "IO error received on bind socket");
+        verto_break(ctx.vctx);
+        ctx.exitstatus = 1;
         return;
     }
 
@@ -137,11 +140,6 @@ void otpd_on_bind_io(verto_ctx *vctx, verto_ev *ev)
     flags = verto_get_fd_state(ev);
     if (flags & VERTO_EV_FLAG_IO_WRITE)
         on_bind_writable(vctx, ev);
-    if (flags & VERTO_EV_FLAG_IO_READ)
+    if (flags & (VERTO_EV_FLAG_IO_READ | VERTO_EV_FLAG_IO_ERROR))
         on_bind_readable(vctx, ev);
-    if (flags & VERTO_EV_FLAG_IO_ERROR) {
-        otpd_log_err(EIO, "IO error received on bind socket");
-        verto_break(ctx.vctx);
-        ctx.exitstatus = 1;
-    }
 }
