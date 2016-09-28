@@ -252,3 +252,6 @@ class iSecStore(CSStore):
 
     def cut(self, key):
         raise NotImplementedError
+
+    def span(self, key):
+        raise NotImplementedError
