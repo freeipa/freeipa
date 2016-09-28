@@ -1238,7 +1238,7 @@ output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsrecord_add/1
-args: 2,95,3
+args: 2,99,3
 arg: DNSNameParam('dnszoneidnsname', cli_name='dnszone')
 arg: DNSNameParam('idnsname', cli_name='name')
 option: Str('a6_part_data?', cli_name='a6_data', option_group=u'A6 Record')
@@ -1335,12 +1335,16 @@ option: Int('tlsa_part_selector?', cli_name='tlsa_selector', option_group=u'TLSA
 option: TLSARecord('tlsarecord*', cli_name='tlsa_rec', option_group=u'TLSA Record')
 option: Str('txt_part_data?', cli_name='txt_data', option_group=u'TXT Record')
 option: TXTRecord('txtrecord*', cli_name='txt_rec', option_group=u'TXT Record')
+option: Int('uri_part_priority?', cli_name='uri_priority', option_group=u'URI Record')
+option: Str('uri_part_target?', cli_name='uri_target', option_group=u'URI Record')
+option: Int('uri_part_weight?', cli_name='uri_weight', option_group=u'URI Record')
+option: URIRecord('urirecord*', cli_name='uri_rec', option_group=u'URI Record')
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsrecord_del/1
-args: 2,35,3
+args: 2,36,3
 arg: DNSNameParam('dnszoneidnsname', cli_name='dnszone')
 arg: DNSNameParam('idnsname', cli_name='name')
 option: A6Record('a6record*', autofill=False, cli_name='a6_rec')
@@ -1377,6 +1381,7 @@ option: SSHFPRecord('sshfprecord*', autofill=False, cli_name='sshfp_rec')
 option: Flag('structured', autofill=True, default=False)
 option: TLSARecord('tlsarecord*', autofill=False, cli_name='tlsa_rec')
 option: TXTRecord('txtrecord*', autofill=False, cli_name='txt_rec')
+option: URIRecord('urirecord*', autofill=False, cli_name='uri_rec')
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
@@ -1391,7 +1396,7 @@ output: Output('result', type=[<type 'dict'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: dnsrecord_find/1
-args: 2,39,4
+args: 2,40,4
 arg: DNSNameParam('dnszoneidnsname', cli_name='dnszone')
 arg: Str('criteria?')
 option: A6Record('a6record*', autofill=False, cli_name='a6_rec')
@@ -1432,13 +1437,14 @@ option: Flag('structured', autofill=True, default=False)
 option: Int('timelimit?', autofill=False)
 option: TLSARecord('tlsarecord*', autofill=False, cli_name='tlsa_rec')
 option: TXTRecord('txtrecord*', autofill=False, cli_name='txt_rec')
+option: URIRecord('urirecord*', autofill=False, cli_name='uri_rec')
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: dnsrecord_mod/1
-args: 2,95,3
+args: 2,99,3
 arg: DNSNameParam('dnszoneidnsname', cli_name='dnszone')
 arg: DNSNameParam('idnsname', cli_name='name')
 option: Str('a6_part_data?', autofill=False, cli_name='a6_data', option_group=u'A6 Record')
@@ -1535,6 +1541,10 @@ option: Int('tlsa_part_selector?', autofill=False, cli_name='tlsa_selector', opt
 option: TLSARecord('tlsarecord*', autofill=False, cli_name='tlsa_rec', option_group=u'TLSA Record')
 option: Str('txt_part_data?', autofill=False, cli_name='txt_data', option_group=u'TXT Record')
 option: TXTRecord('txtrecord*', autofill=False, cli_name='txt_rec', option_group=u'TXT Record')
+option: Int('uri_part_priority?', autofill=False, cli_name='uri_priority', option_group=u'URI Record')
+option: Str('uri_part_target?', autofill=False, cli_name='uri_target', option_group=u'URI Record')
+option: Int('uri_part_weight?', autofill=False, cli_name='uri_weight', option_group=u'URI Record')
+option: URIRecord('urirecord*', autofill=False, cli_name='uri_rec', option_group=u'URI Record')
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
@@ -6385,6 +6395,7 @@ default: dnssrvrecord/1
 default: dnssshfprecord/1
 default: dnstlsarecord/1
 default: dnstxtrecord/1
+default: dnsurirecord/1
 default: dnszone/1
 default: dnszone_add/1
 default: dnszone_add_permission/1

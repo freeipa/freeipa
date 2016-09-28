@@ -6085,3 +6085,92 @@ class test_dns_soa(Declarative):
                        zone6_unresolvable_ns_dnsname,),
         ),
     ]
+
+
+@pytest.mark.tier1
+class test_dns_type_uri(test_dns):
+    """Test behavior specific for URI RR type."""
+
+    @classmethod
+    def setup_class(cls):
+        super(test_dns_type_uri, cls).setup_class()
+        try:
+            api.Command['dnszone_add'](zone1, idnssoarname=zone1_rname)
+        except errors.DuplicateEntry:
+            pass
+
+    cleanup_commands = [
+        ('dnszone_del', [zone1], {'continue': True}),
+    ]
+
+    uri_priority = 1
+    uri_weight = 2
+    uri_target = 'http://example.com/'
+    uri_raw_value = u'{0} {1} "{2}"'.format(
+        uri_priority, uri_weight, uri_target)
+    tests = [
+        dict(
+            desc='Create URI record under %s zone %r' % (name1_dnsname, zone1),
+            command=('dnsrecord_add', [zone1, name1_dnsname],
+                     {'urirecord': uri_raw_value}),
+            expected={
+                'value': name1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': name1_dn,
+                    'idnsname': [name1_dnsname],
+                    'objectclass': objectclasses.dnsrecord,
+                    'urirecord': [uri_raw_value],
+                },
+            },
+        ),
+        dict(
+            desc='URI record is case sensitive on delete (one record)',
+            command=('dnsrecord_del', [zone1, name1_dnsname],
+                     {'urirecord': uri_raw_value.upper()}),
+            expected=errors.AttrValueNotFound(attr='URI record',
+                                              value=uri_raw_value.upper()),
+        ),
+        dict(
+            desc='URI record is case sensitive on add',
+            command=('dnsrecord_add', [zone1, name1_dnsname],
+                     {'urirecord': uri_raw_value.upper()}),
+            expected={
+                'value': name1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': name1_dn,
+                    'idnsname': [name1_dnsname],
+                    'objectclass': objectclasses.dnsrecord,
+                    'urirecord': [uri_raw_value, uri_raw_value.upper()],
+                },
+            },
+        ),
+        dict(
+            desc='URI record is case sensitive on delete (two records)',
+            command=('dnsrecord_del', [zone1, name1_dnsname],
+                     {'urirecord': [uri_raw_value, uri_raw_value.upper()]}),
+            expected={
+                'value': [name1_dnsname],
+                'summary': u'Deleted record "%s"' % name1_dnsname,
+                'result': {'failed': []},
+            },
+        ),
+        dict(
+            desc='URI record normalization does not double "" around target',
+            command=('dnsrecord_add', [zone1, name1_dnsname],
+                     {'uri_part_target': u'"{0}"'.format(uri_target),
+                      'uri_part_priority': uri_priority,
+                      'uri_part_weight': uri_weight}),
+            expected={
+                'value': name1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': name1_dn,
+                    'idnsname': [name1_dnsname],
+                    'objectclass': objectclasses.dnsrecord,
+                    'urirecord': [uri_raw_value],
+                },
+            },
+        ),
+    ]

@@ -1226,6 +1226,19 @@ IPA.dns.get_record_metadata = function() {
             ],
             adder_attributes: [],
             columns: ['txt_part_data']
+        },
+        {
+            name: 'urirecord',
+            attributes: [
+                'uri_part_priority',
+                'uri_part_weight',
+                'uri_part_target'
+            ],
+            adder_attributes: [],
+            columns: [
+                    'uri_part_priority', 'uri_part_weight',
+                    'uri_part_target'
+            ]
         }
     ];
 
@@ -1608,7 +1621,7 @@ IPA.dns_record_types = function() {
     //only supported
     var attrs = ['A', 'AAAA', 'A6', 'AFSDB', 'CERT', 'CNAME', 'DNAME',
                    'DS', 'DLV', 'KX', 'LOC', 'MX', 'NAPTR', 'NS',
-                   'PTR', 'SRV', 'SSHFP', 'TLSA', 'TXT'];
+                   'PTR', 'SRV', 'SSHFP', 'TLSA', 'TXT', 'URI'];
     var record_types = [];
     for (var i=0; i<attrs.length; i++) {
         var attr = attrs[i];
