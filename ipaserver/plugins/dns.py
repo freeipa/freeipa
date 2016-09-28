@@ -318,7 +318,7 @@ _record_types = (
     u'A', u'AAAA', u'A6', u'AFSDB', u'APL', u'CERT', u'CNAME', u'DHCID', u'DLV',
     u'DNAME', u'DS', u'HIP', u'HINFO', u'IPSECKEY', u'KEY', u'KX', u'LOC',
     u'MD', u'MINFO', u'MX', u'NAPTR', u'NS', u'NSEC', u'NXT', u'PTR', u'RRSIG',
-    u'RP', u'SIG', u'SPF', u'SRV', u'SSHFP', u'TLSA', u'TXT',
+    u'RP', u'SIG', u'SPF', u'SRV', u'SSHFP', u'TLSA', u'TXT', u"URI"
 )
 
 # DNS zone record identificator
@@ -1436,6 +1436,48 @@ class TXTRecord(DNSRecord):
         # ignore any space in TXT record
         return (value,)
 
+
+def _normalize_uri_target(uri_target):
+    """DNS-escape "\ characters and double-quote target."""
+    # is user-provided string is already quoted?
+    if uri_target[0:1] == uri_target[-1:] == '"':
+        uri_target = uri_target[1:-1]
+    # RFC 7553 section 4.4: The Target MUST NOT be an empty URI ("").
+    # minlength in param will detect this
+    if not uri_target:
+        return
+    return u'"{0}"'.format(uri_target)
+
+
+class URIRecord(DNSRecord):
+    rrtype = 'URI'
+    rfc = 7553
+    parts = (
+        Int('priority',
+            label=_('Priority (order)'),
+            doc=_('Lower number means higher priority. Clients will attempt '
+                  'to contact the URI with the lowest-numbered priority '
+                  'they can reach.'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Int('weight',
+            label=_('Weight'),
+            doc=_('Relative weight for entries with the same priority.'),
+            minvalue=0,
+            maxvalue=65535,
+        ),
+        Str('target',
+            label=_('Target Uniform Resource Identifier'),
+            doc=_('Target Uniform Resource Identifier according to RFC 3986'),
+            minlength=1,
+            # This field holds the URI of the target, enclosed in double-quote
+            # characters (e.g. "uri:").
+            normalizer=_normalize_uri_target,
+        ),
+    )
+
+
 _dns_records = (
     ARecord(),
     AAAARecord(),
@@ -1466,7 +1508,9 @@ _dns_records = (
     SSHFPRecord(),
     TLSARecord(),
     TXTRecord(),
+    URIRecord(),
 )
+
 
 def __dns_record_options_iter():
     for opt in (Any('dnsrecords?',
@@ -2509,7 +2553,7 @@ class dnszone(DNSZoneBase):
                 'mxrecord', 'naptrrecord', 'nsecrecord', 'nsec3paramrecord',
                 'nsrecord', 'nxtrecord', 'ptrrecord', 'rprecord', 'rrsigrecord',
                 'sigrecord', 'spfrecord', 'srvrecord', 'sshfprecord',
-                'tlsarecord', 'txtrecord', 'unknownrecord',
+                'tlsarecord', 'txtrecord', 'urirecord', 'unknownrecord',
             },
             'replaces_system': ['Read DNS Entries'],
             'default_privileges': {'DNS Administrators', 'DNS Servers'},
@@ -2546,7 +2590,7 @@ class dnszone(DNSZoneBase):
                 'mxrecord', 'naptrrecord', 'nsecrecord', 'nsec3paramrecord',
                 'nsrecord', 'nxtrecord', 'ptrrecord', 'rprecord', 'rrsigrecord',
                 'sigrecord', 'spfrecord', 'srvrecord', 'sshfprecord',
-                'tlsarecord', 'txtrecord', 'unknownrecord',
+                'tlsarecord', 'txtrecord', 'urirecord', 'unknownrecord',
             },
             'replaces': [
                 '(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:update dns entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)',
