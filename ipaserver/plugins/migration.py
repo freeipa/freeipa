@@ -746,8 +746,7 @@ migration process might be incomplete\n''')
                 entries, truncated = ds_ldap.find_entries(
                     search_filter, ['*'], search_bases[ldap_obj_name],
                     scope,
-                    time_limit=0, size_limit=-1,
-                    search_refs=True    # migrated DS may contain search references
+                    time_limit=0, size_limit=-1
                 )
             except errors.NotFound:
                 if not options.get('continue',False):
