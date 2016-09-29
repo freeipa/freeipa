@@ -2,7 +2,8 @@ AM_CFLAGS := @LDAP_CFLAGS@ @LIBVERTO_CFLAGS@
 AM_LDFLAGS := @LDAP_LIBS@ @LIBVERTO_LIBS@ @KRAD_LIBS@
 
 noinst_HEADERS = internal.h
-libexec_PROGRAMS = ipa-otpd
+appdir = $(libexecdir)/ipa/
+app_PROGRAMS = ipa-otpd
 dist_noinst_DATA = ipa-otpd.socket.in ipa-otpd@.service.in test.py
 systemdsystemunit_DATA = ipa-otpd.socket ipa-otpd@.service
 
