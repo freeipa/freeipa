@@ -1309,7 +1309,7 @@ class LDAPClient(object):
 
     def find_entries(self, filter=None, attrs_list=None, base_dn=None,
                      scope=ldap.SCOPE_SUBTREE, time_limit=None,
-                     size_limit=None, search_refs=False, paged_search=False):
+                     size_limit=None, paged_search=False):
         """
         Return a list of entries and indication of whether the results were
         truncated ([(dn, entry_attrs)], truncated) matching specified search
@@ -1323,8 +1323,6 @@ class LDAPClient(object):
         time_limit -- time limit in seconds (default unlimited)
         size_limit -- size (number of entries returned) limit
             (default unlimited)
-        search_refs -- allow search references to be returned
-            (default skips these entries)
         paged_search -- search using paged results control
 
         :raises: errors.NotFound if result set is empty
@@ -1379,12 +1377,10 @@ class LDAPClient(object):
                     while True:
                         result = self.conn.result3(id, 0)
                         objtype, res_list, _res_id, res_ctrls = result
-                        res_list = self._convert_result(res_list)
-                        if not res_list:
+                        if objtype == ldap.RES_SEARCH_RESULT:
                             break
-                        if (objtype == ldap.RES_SEARCH_ENTRY or
-                                (search_refs and
-                                    objtype == ldap.RES_SEARCH_REFERENCE)):
+                        res_list = self._convert_result(res_list)
+                        if res_list:
                             res.append(res_list[0])
 
                     if paged_search:
