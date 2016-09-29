@@ -23,6 +23,7 @@ app_DATA =				\
 	20-winsync_index.update		\
 	20-idoverride_index.update	\
 	20-uuid.update  \
+	20-default_password_policy.update \
 	21-replicas_container.update	\
 	21-ca_renewal_container.update	\
 	21-certstore_container.update	\
