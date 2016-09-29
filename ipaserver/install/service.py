@@ -245,6 +245,7 @@ class Service(object):
             # There is no service in the wrong location, nothing to do.
             # This can happen when installing a replica
             return None
+        entry.pop('krbpwdpolicyreference', None)  # don't copy virtual attr
         newdn = DN(('krbprincipalname', principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
         hostdn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
         api.Backend.ldap2.delete_entry(entry)
