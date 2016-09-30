@@ -699,12 +699,20 @@ class KerbTransport(SSLTransport):
 
         principal = getattr(context, 'principal', None)
         request_url = getattr(context, 'request_url', None)
-        root_logger.debug("received Set-Cookie '%s'", cookie_header)
+        root_logger.debug("received Set-Cookie (%s)'%s'", type(cookie_header),
+                          cookie_header)
+
+        if not isinstance(cookie_header, list):
+            cookie_header = [cookie_header]
 
         # Search for the session cookie
         try:
-            session_cookie = Cookie.get_named_cookie_from_string(cookie_header,
-                                                                 COOKIE_NAME, request_url)
+            for cookie in cookie_header:
+                session_cookie = \
+                    Cookie.get_named_cookie_from_string(cookie, COOKIE_NAME,
+                                                        request_url)
+                if session_cookie is not None:
+                    break
         except Exception as e:
             root_logger.error("unable to parse cookie header '%s': %s", cookie_header, e)
             return
