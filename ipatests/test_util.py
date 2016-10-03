@@ -140,6 +140,17 @@ class test_Fuzzy(object):
 
 def test_assert_deepequal():
     f = util.assert_deepequal
+    # pylint: disable=no-member
+    pretty = pytest.config.getoption("pretty_print")
+
+    # LEN and KEYS formats use special function to pretty print structures
+    # depending on a pytest environment settings
+    def got_str(s):
+        return util.struct_to_string(s, util.GOT_LEN) if pretty else str(s)
+
+    def exp_str(s):
+        ret = util.struct_to_string(s, util.EXPECTED_LEN) if pretty else str(s)
+        return ret
 
     # Test with good scalar values:
     f(u'hello', u'hello')
@@ -221,7 +232,7 @@ def test_assert_deepequal():
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == LEN % (
-        'foo', 3, 4, a, b, tuple()
+        'foo', 3, 4, exp_str(a), got_str(b), tuple()
     )
 
     b = [
@@ -230,7 +241,7 @@ def test_assert_deepequal():
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == LEN % (
-        'foo', 3, 2, a, b, tuple()
+        'foo', 3, 2, exp_str(a), got_str(b), tuple()
     )
 
     # Dict keys mismatch:
@@ -244,7 +255,7 @@ def test_assert_deepequal():
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == KEYS % ('foo',
         ['naughty'], [],
-        dict(naughty=u'nurse'), dict(),
+        exp_str(dict(naughty=u'nurse')), got_str(dict()),
         (1,)
     )
 
@@ -257,7 +268,8 @@ def test_assert_deepequal():
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == KEYS % ('foo',
         [], ['barely'],
-        dict(naughty=u'nurse'), dict(naughty=u'nurse', barely=u'legal'),
+        exp_str(dict(naughty=u'nurse')),
+        got_str(dict(naughty=u'nurse', barely=u'legal')),
         (1,)
     )
 
@@ -270,7 +282,7 @@ def test_assert_deepequal():
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == KEYS % ('foo',
         ['naughty'], ['barely'],
-        dict(naughty=u'nurse'), dict(barely=u'legal'),
+        exp_str(dict(naughty=u'nurse')), got_str(dict(barely=u'legal')),
         (1,)
     )
 
