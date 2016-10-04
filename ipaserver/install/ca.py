@@ -15,8 +15,6 @@ from ipalib import api, certstore, x509
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 
-# pylint: disable=unused-variable
-
 external_cert_file = None
 external_ca_file = None
 
@@ -94,7 +92,7 @@ def install_check(standalone, replica_config, options):
         dsdb = certs.CertDB(realm_name, nssdir=dirname, subject_base=subject_base)
 
         for db in (cadb, dsdb):
-            for nickname, trust_flags in db.list_certs():
+            for nickname, _trust_flags in db.list_certs():
                 if nickname in (certdb.get_ca_nickname(realm_name),
                                 'ipaCert',
                                 'Signing-Cert'):
@@ -121,7 +119,6 @@ def install(standalone, replica_config, options):
 
 def install_step_0(standalone, replica_config, options):
     realm_name = options.realm_name
-    domain_name = options.domain_name
     dm_password = options.dm_password
     host_name = options.host_name
     subject_base = options.subject
@@ -170,7 +167,6 @@ def install_step_0(standalone, replica_config, options):
 
 def install_step_1(standalone, replica_config, options):
     realm_name = options.realm_name
-    domain_name = options.domain_name
     dm_password = options.dm_password
     host_name = options.host_name
     subject_base = options.subject

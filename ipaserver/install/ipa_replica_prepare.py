@@ -43,8 +43,6 @@ from ipalib import errors
 from ipaplatform.paths import paths
 from ipalib.constants import CACERT, DOMAIN_LEVEL_0
 
-# pylint: disable=unused-variable
-
 UNSUPPORTED_DOMAIN_LEVEL_TEMPLATE = """
 Replica creation using '{command_name}' to generate replica file
 is supported only in {domain_level}-level IPA domain.
@@ -215,7 +213,6 @@ class ReplicaPrepare(admintool.AdminTool):
                     "Directory Manager password required")
 
         # Try out the password & get the subject base
-        suffix = ipautil.realm_to_suffix(api.env.realm)
         try:
             conn = api.Backend.ldap2
             conn.connect(bind_dn=DN(('cn', 'directory manager')),
@@ -254,7 +251,6 @@ class ReplicaPrepare(admintool.AdminTool):
         try:
             installutils.verify_fqdn(self.replica_fqdn, local_hostname=False)
         except installutils.BadHostError as e:
-            msg = str(e)
             if isinstance(e, installutils.HostLookupError):
                 if not options.ip_addresses:
                     if dns_container_exists(
@@ -292,7 +288,7 @@ class ReplicaPrepare(admintool.AdminTool):
                 options.ip_addresses, options.reverse_zones, options, False,
                 True)
 
-            host, zone = self.replica_fqdn.split('.', 1)
+            _host, zone = self.replica_fqdn.split('.', 1)
             if not bindinstance.dns_zone_exists(zone, api=api):
                 self.log.error("DNS zone %s does not exist in IPA managed DNS "
                                "server. Either create DNS zone or omit "
@@ -340,7 +336,7 @@ class ReplicaPrepare(admintool.AdminTool):
                 if options.pkinit_pin is None:
                     raise admintool.ScriptError(
                         "Kerberos KDC private key unlock password required")
-            pkinit_pkcs12_file, pkinit_pin, pkinit_ca_cert = self.load_pkcs12(
+            pkinit_pkcs12_file, pkinit_pin, _pkinit_ca_cert = self.load_pkcs12(
                 options.pkinit_cert_files, options.pkinit_pin,
                 options.pkinit_cert_name)
             self.pkinit_pkcs12_file = pkinit_pkcs12_file
@@ -537,10 +533,10 @@ class ReplicaPrepare(admintool.AdminTool):
                       dns.resolver.Timeout, dns.resolver.NoNameservers)
 
         try:
-            dns_answer = resolver.query(replica_fqdn, 'A', 'IN')
+            resolver.query(replica_fqdn, 'A', 'IN')
         except exceptions:
             try:
-                dns_answer = resolver.query(replica_fqdn, 'AAAA', 'IN')
+                resolver.query(replica_fqdn, 'AAAA', 'IN')
             except exceptions:
                 return False
         except Exception as e:
@@ -550,8 +546,6 @@ class ReplicaPrepare(admintool.AdminTool):
         return True
 
     def wait_for_dns(self):
-        options = self.options
-
         # Make sure replica_fqdn has a trailing dot, so the
         # 'search' directive in /etc/resolv.conf doesn't apply
         replica_fqdn = self.replica_fqdn
@@ -601,7 +595,6 @@ class ReplicaPrepare(admintool.AdminTool):
         :param passwd_fname: File that holds the cert DB password
         :param is_kdc: True if we're exporting KDC certs
         """
-        options = self.options
         hostname = self.replica_fqdn
         subject_base = self.subject_base
 

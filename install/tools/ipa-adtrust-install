@@ -45,8 +45,6 @@ from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython.dn import DN
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -87,7 +85,7 @@ def parse_options():
                       dest="enable_compat", default=False, action="store_true",
                       help="Enable support for trusted domains for old clients")
 
-    options, args = parser.parse_args()
+    options, _args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
 
     return safe_options, options
@@ -215,7 +213,7 @@ def set_and_check_netbios_name(netbios_name, unattended):
 def ensure_admin_kinit(admin_name, admin_password):
     try:
         ipautil.run(['kinit', admin_name], stdin=admin_password+'\n')
-    except ipautil.CalledProcessError as e:
+    except ipautil.CalledProcessError:
         print("There was error to automatically re-kinit your admin user ticket.")
         return False
     return True
@@ -357,8 +355,8 @@ def main():
         try:
             root_logger.debug("Searching for objects with missing SID with "
                 "filter=%s, base_dn=%s", filter, base_dn)
-            (entries, truncated) = api.Backend.ldap2.find_entries(filter=filter,
-                base_dn=base_dn, attrs_list=[''])
+            entries, _truncated = api.Backend.ldap2.find_entries(
+                filter=filter, base_dn=base_dn, attrs_list=[''])
         except errors.NotFound:
             # All objects have SIDs assigned
             pass
@@ -413,7 +411,7 @@ def main():
         try:
             # Search only masters which have support for domain levels
             # because only these masters will have SSSD recent enough to support AD trust agents
-            (entries_m, truncated) = smb.admin_conn.find_entries(
+            entries_m, _truncated = smb.admin_conn.find_entries(
                 filter="(&(objectclass=ipaSupportedDomainLevelConfig)(ipaMaxDomainLevel=*)(ipaMinDomainLevel=*))",
                 base_dn=masters_dn, attrs_list=['cn'], scope=ldap.SCOPE_ONELEVEL)
         except errors.NotFound:
@@ -423,8 +421,9 @@ def main():
            print(unicode(e))
 
         try:
-           (entries_a, truncated) = smb.admin_conn.find_entries(filter="",
-               base_dn=agents_dn, attrs_list=['member'], scope=ldap.SCOPE_BASE)
+           entries_a, _truncated = smb.admin_conn.find_entries(
+               filter="", base_dn=agents_dn, attrs_list=['member'],
+               scope=ldap.SCOPE_BASE)
         except errors.NotFound:
             pass
         except (errors.DatabaseError, errors.NetworkError) as e:

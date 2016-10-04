@@ -30,8 +30,6 @@ from ipaserver.install import schemaupdate
 from ipaserver.install import ldapupdate
 from ipaserver.install import service
 
-# pylint: disable=unused-variable
-
 DSE = 'dse.ldif'
 
 
@@ -79,7 +77,7 @@ class IPAUpgrade(service.Service):
 
         ext = ''
         rand = random.Random()
-        for i in range(8):
+        for _i in range(8):
             h = "%02x" % rand.randint(0,255)
             ext += h
         service.Service.__init__(self, "dirsrv")

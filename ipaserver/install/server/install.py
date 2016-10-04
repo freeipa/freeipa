@@ -59,8 +59,6 @@ except ImportError:
 
 from .common import BaseServer, BaseServerCA
 
-# pylint: disable=unused-variable
-
 SYSRESTORE_DIR_PATH = paths.SYSRESTORE
 
 
@@ -531,7 +529,7 @@ def install_check(installer):
             if options.pkinit_pin is None:
                 raise ScriptError(
                     "Kerberos KDC private key unlock password required")
-        pkinit_pkcs12_file, pkinit_pin, pkinit_ca_cert = load_pkcs12(
+        pkinit_pkcs12_file, pkinit_pin, _pkinit_ca_cert = load_pkcs12(
             cert_files=options.pkinit_cert_files,
             key_password=options.pkinit_pin,
             key_nickname=options.pkinit_cert_name,
@@ -687,14 +685,9 @@ def install(installer):
     options = installer
     fstore = installer._fstore
     sstore = installer._sstore
-    dirsrv_pkcs12_file = installer._dirsrv_pkcs12_file
-    http_pkcs12_file = installer._http_pkcs12_file
-    pkinit_pkcs12_file = installer._pkinit_pkcs12_file
     dirsrv_pkcs12_info = installer._dirsrv_pkcs12_info
     http_pkcs12_info = installer._http_pkcs12_info
     pkinit_pkcs12_info = installer._pkinit_pkcs12_info
-    external_cert_file = installer._external_cert_file
-    external_ca_file = installer._external_ca_file
     http_ca_cert = installer._ca_cert
 
     realm_name = options.realm_name
@@ -705,7 +698,6 @@ def install(installer):
     host_name = options.host_name
     ip_addresses = options.ip_addresses
     setup_ca = options.setup_ca
-    setup_kra = options.setup_kra
 
     # Installation has started. No IPA sysrestore items are restored in case of
     # failure to enable root cause investigation
@@ -1062,7 +1054,7 @@ def uninstall(installer):
     print("Shutting down all IPA services")
     try:
         run([paths.IPACTL, "stop"], raiseonerr=False)
-    except Exception as e:
+    except Exception:
         pass
 
     ntpinstance.NTPInstance(fstore).uninstall()

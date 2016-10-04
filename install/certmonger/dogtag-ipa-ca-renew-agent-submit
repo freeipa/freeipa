@@ -44,8 +44,6 @@ from ipaplatform.paths import paths
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance, certs
 
-# pylint: disable=unused-variable
-
 # This is a certmonger CA helper script for IPA CA subsystem cert renewal. See
 # https://git.fedorahosted.org/cgit/certmonger.git/tree/doc/submit.txt for more
 # info on certmonger CA helper scripts.
@@ -194,7 +192,7 @@ def request_cert():
 
     rc = result.returncode
     if rc == WAIT_WITH_DELAY:
-        delay, sep, cookie = stdout.partition('\n')
+        delay, _sep, cookie = stdout.partition('\n')
         return (rc, delay, cookie)
     else:
         return (rc, stdout)
@@ -282,7 +280,7 @@ def request_and_store_cert():
         if not cookie:
             return (UNCONFIGURED, "Cookie not provided")
 
-        state, sep, cookie = cookie.partition(':')
+        state, _sep, cookie = cookie.partition(':')
         if state not in ('request', 'store'):
             return (UNCONFIGURED,
                     "Invalid cookie: %r" % os.environ['CERTMONGER_CA_COOKIE'])
@@ -306,7 +304,7 @@ def request_and_store_cert():
             cert = result[1]
             cookie = None
     else:
-        cert, sep, cookie = cookie.partition(':')
+        cert, _sep, cookie = cookie.partition(':')
 
     if cookie is None:
         os.environ['CERTMONGER_OPERATION'] = 'SUBMIT'
@@ -438,7 +436,7 @@ def renew_ca_cert():
         if not cookie:
             return (UNCONFIGURED, "Cookie not provided")
 
-        state, sep, cookie = cookie.partition(':')
+        state, _sep, cookie = cookie.partition(':')
         if state not in ('retrieve', 'request'):
             return (UNCONFIGURED,
                     "Invalid cookie: %r" % os.environ['CERTMONGER_CA_COOKIE'])

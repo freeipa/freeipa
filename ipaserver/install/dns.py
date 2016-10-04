@@ -30,11 +30,8 @@ from ipaserver.install.installutils import read_dns_forwarders
 from ipaserver.install.installutils import update_hosts_file
 from ipaserver.install import bindinstance
 from ipaserver.install import dnskeysyncinstance
-from ipaserver.install import ntpinstance
 from ipaserver.install import odsexporterinstance
 from ipaserver.install import opendnssecinstance
-
-# pylint: disable=unused-variable
 
 ip_addresses = []
 reverse_zones = []
@@ -45,7 +42,7 @@ def _find_dnssec_enabled_zones(conn):
     dnssec_enabled_filter = conn.make_filter(search_kw)
     dn = DN('cn=dns', api.env.basedn)
     try:
-        entries, truncated = conn.find_entries(
+        entries, _truncated = conn.find_entries(
             base_dn=dn, filter=dnssec_enabled_filter, attrs_list=['idnsname'])
     except errors.NotFound:
         return []
@@ -222,8 +219,6 @@ def install_check(standalone, api, replica, options, hostname):
                                    "database (kasp.db file)")
 
             # check if replica can be the DNSSEC master
-            named = services.knownservices.named
-            ods_enforcerd = services.knownservices.ods_enforcerd
             cmd = [paths.IPA_DNSKEYSYNCD_REPLICA]
             environment = {
                 "SOFTHSM2_CONF": paths.DNSSEC_SOFTHSM2_CONF,
@@ -316,14 +311,7 @@ def install_check(standalone, api, replica, options, hostname):
 
 
 def install(standalone, replica, options, api=api):
-    local_dnskeysyncd_dn = DN(('cn', 'DNSKeySync'), ('cn', api.env.host),
-                              ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
-                              api.env.basedn)
-    conn = api.Backend.ldap2
-
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
-
-    conf_ntp = ntpinstance.NTPInstance(fstore).is_enabled()
 
     if standalone:
         # otherwise this is done by server/replica installer

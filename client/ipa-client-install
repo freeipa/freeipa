@@ -72,8 +72,6 @@ error was:
 """ % e, file=sys.stderr)
     sys.exit(1)
 
-# pylint: disable=unused-variable
-
 SUCCESS = 0
 CLIENT_INSTALL_ERROR = 1
 CLIENT_NOT_CONFIGURED = 2
@@ -97,7 +95,7 @@ def parse_options():
         initialized = nss.nss_is_initialized()
         try:
             cert = x509.load_certificate_from_file(value)
-        except Exception as e:
+        except Exception:
             raise OptionValueError("%s option '%s' is not a valid certificate file" % (opt, value))
         else:
             del(cert)
@@ -230,7 +228,7 @@ def parse_options():
                                           "be run with --unattended option")
     parser.add_option_group(uninstall_group)
 
-    options, args = parser.parse_args()
+    options, _args = parser.parse_args()
     safe_opts = parser.get_safe_opts(options)
 
     if (options.server and not options.domain):
@@ -383,7 +381,6 @@ def nssldap_exists():
 # helper function for uninstall
 # deletes IPA domain from sssd.conf
 def delete_ipa_domain():
-    sssd = services.service('sssd')
     try:
         sssdconfig = SSSDConfig.SSSDConfig()
         sssdconfig.import_config()
@@ -1509,7 +1506,7 @@ def configure_nisdomain(options, domain):
         try:
             result = ipautil.run([paths.BIN_NISDOMAINNAME],
                                  capture_output=True)
-        except CalledProcessError as e:
+        except CalledProcessError:
             pass
         else:
             nis_domain_name = result.output
@@ -1748,7 +1745,7 @@ def verify_dns_update(fqdn, ips):
 def get_server_connection_interface(server):
     # connect to IPA server, get all ip addresses of inteface used to connect
     for res in socket.getaddrinfo(server, 389, socket.AF_UNSPEC, socket.SOCK_STREAM):
-        (af, socktype, proto, canonname, sa) = res
+        af, socktype, proto, _canonname, sa = res
         try:
             s = socket.socket(af, socktype, proto)
         except socket.error as e:
@@ -1923,7 +1920,7 @@ def get_ca_certs_from_file(url):
     root_logger.debug("trying to retrieve CA cert from file %s", filename)
     try:
         certs = x509.load_certificate_list_from_file(filename)
-    except Exception as e:
+    except Exception:
         raise errors.NoCertificateError(entry=filename)
 
     return certs
@@ -1944,7 +1941,7 @@ def get_ca_certs_from_http(url, warn=True):
     try:
 
         result = run([paths.BIN_CURL, "-o", "-", url], capture_output=True)
-    except CalledProcessError as e:
+    except CalledProcessError:
         raise errors.NoCertificateError(entry=url)
     stdout = result.output
 
@@ -2981,7 +2978,7 @@ def install(options, env, fstore, statestore):
     if nslcd.is_installed():
         save_state(nslcd)
 
-    retcode, conf, filename = (0, None, None)
+    retcode, conf = (0, None)
 
     if not options.no_ac:
         # Modify nsswitch/pam stack

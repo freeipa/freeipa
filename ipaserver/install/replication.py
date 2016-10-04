@@ -38,8 +38,6 @@ from ipapython.dn import DN
 from ipaplatform import services
 from ipaplatform.paths import paths
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -708,7 +706,7 @@ class ReplicationManager(object):
             mod = [(ldap.MOD_ADD, 'nsDS5ReplicatedAttributeListTotal',
                    '(objectclass=*) $ EXCLUDE %s' % " ".join(TOTAL_EXCLUDES))]
             a_conn.modify_s(dn, mod)
-        except ldap.LDAPError as e:
+        except ldap.LDAPError:
             # Apparently there are problems set the total list
             # Probably the master is an old 389-ds server, tell the caller
             # that we will have to set the memberof fixup task
@@ -763,15 +761,15 @@ class ReplicationManager(object):
                 root_logger.debug('Unable to find entry for %s on %s'
                     % (filter_a, str(b)))
                 self.force_sync(a, b.host)
-                cn, dn = self.agreement_dn(b.host)
-                haserror, error_message = self.wait_for_repl_update(a, dn, 60)
+                _cn, dn = self.agreement_dn(b.host)
+                _haserror, error_message = self.wait_for_repl_update(a, dn, 60)
 
             if not b_entry:
                 root_logger.debug('Unable to find entry for %s on %s'
                     % (filter_b, str(a)))
                 self.force_sync(b, a.host)
-                cn, dn = self.agreement_dn(a.host)
-                haserror, error_message = self.wait_for_repl_update(b, dn, 60)
+                _cn, dn = self.agreement_dn(a.host)
+                _haserror, error_message = self.wait_for_repl_update(b, dn, 60)
 
             retries -= 1
 
@@ -834,10 +832,10 @@ class ReplicationManager(object):
                (ldap.MOD_DELETE, "nsds5replicabinddn", None),
                (ldap.MOD_DELETE, "nsds5replicacredentials", None)]
 
-        cn, a_ag_dn = self.agreement_dn(b.host)
+        _cn, a_ag_dn = self.agreement_dn(b.host)
         a.modify_s(a_ag_dn, mod)
 
-        cn, b_ag_dn = self.agreement_dn(a.host)
+        _cn, b_ag_dn = self.agreement_dn(a.host)
         b.modify_s(b_ag_dn, mod)
 
         # Finally remove the temporary replication manager user
@@ -863,7 +861,7 @@ class ReplicationManager(object):
         better to pass the DN in directly.
         """
         if dn is None:
-            cn, dn = self.agreement_dn(hostname)
+            _cn, dn = self.agreement_dn(hostname)
         return self.conn.delete_entry(dn)
 
     def delete_referral(self, hostname):
@@ -984,7 +982,7 @@ class ReplicationManager(object):
         print("Starting replication, please wait until this has completed.")
         if hostname == None:
             hostname = self.conn.host
-        cn, dn = self.agreement_dn(hostname, master)
+        _cn, dn = self.agreement_dn(hostname, master)
 
         mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]
         conn.modify_s(dn, mod)
@@ -1091,7 +1089,7 @@ class ReplicationManager(object):
                              repl_man_dn=ad_binddn, repl_man_passwd=ad_pwd,
                              iswinsync=True, win_subtree=ad_subtree)
         root_logger.info("Added new sync agreement, waiting for it to become ready . . .")
-        cn, dn = self.agreement_dn(ad_dc_name)
+        _cn, dn = self.agreement_dn(ad_dc_name)
         self.wait_for_repl_update(self.conn, dn, 300)
         root_logger.info("Agreement is ready, starting replication . . .")
 
@@ -1125,12 +1123,12 @@ class ReplicationManager(object):
         # have all principals and their passwords and can release
         # the right tickets. We do this by force pushing all our changes
         self.force_sync(self.conn, r_hostname)
-        cn, dn = self.agreement_dn(r_hostname)
+        _cn, dn = self.agreement_dn(r_hostname)
         self.wait_for_repl_update(self.conn, dn, 300)
 
         # now in the opposite direction
         self.force_sync(r_conn, self.hostname)
-        cn, dn = self.agreement_dn(self.hostname)
+        _cn, dn = self.agreement_dn(self.hostname)
         self.wait_for_repl_update(r_conn, dn, 300)
 
         # now that directories are in sync,
@@ -1698,7 +1696,7 @@ class CSReplicationManager(ReplicationManager):
 
     def has_ipaca(self):
         try:
-            entry = self.conn.get_entry(self.db_suffix)
+            self.conn.get_entry(self.db_suffix)
         except errors.NotFound:
             return False
         else:

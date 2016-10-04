@@ -41,8 +41,6 @@ from ipapython.dnssec.abshsm import sync_pkcs11_metadata, wrappingmech_name2id
 from ipapython.dnssec.ldapkeydb import LdapKeyDB
 from ipapython.dnssec.localhsm import LocalHSM
 
-# pylint: disable=unused-variable
-
 DAEMONNAME = 'ipa-ods-exporter'
 PRINCIPAL = None  # not initialized yet
 WORKDIR = os.path.join(paths.VAR_OPENDNSSEC_DIR ,'tmp')
@@ -446,13 +444,13 @@ def receive_systemd_command(log):
         raise KeyError('Exactly one socket is expected.')
 
     sck = socket.fromfd(fds[0], socket.AF_UNIX, socket.SOCK_STREAM)
-    rlist, wlist, xlist = select.select([sck], [], [], 0)
+    rlist, _wlist, _xlist = select.select([sck], [], [], 0)
     if not rlist:
         log.critical('socket activation did not return socket with a command')
         sys.exit(0)
 
     log.debug('accepting new connection')
-    conn, addr = sck.accept()
+    conn, _addr = sck.accept()
     log.debug('accepted new connection %s', repr(conn))
 
     # this implements cmdhandler_handle_cmd() logic

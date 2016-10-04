@@ -45,8 +45,6 @@ from ipaclient import ipadiscovery
 from six.moves.xmlrpc_client import MAXINT
 from ipaplatform.paths import paths
 
-# pylint: disable=unused-variable
-
 # dict of command name and tuples of min/max num of args needed
 commands = {
     "list":(0, 1, "[master fqdn]", ""),
@@ -142,7 +140,7 @@ def test_connection(realm, host, nolookup=False):
         if not nolookup:
             enforce_host_existence(host)
         replman = replication.ReplicationManager(realm, host, None)
-        ents = replman.find_replication_agreements()
+        replman.find_replication_agreements()
         del replman
         return True
     except errors.ACIError:
@@ -216,7 +214,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
         if winsync_peer:
             repl = replication.ReplicationManager(realm, winsync_peer,
                                                   dirman_passwd)
-            cn, dn = repl.agreement_dn(replica)
+            _cn, dn = repl.agreement_dn(replica)
             entries = repl.conn.get_entries(
                 dn, conn.SCOPE_BASE,
                 "(objectclass=nsDSWindowsReplicationAgreement)")
@@ -308,7 +306,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         try:
             repl2.set_readonly(readonly=True)
             repl2.force_sync(repl2.conn, replica1)
-            cn, dn = repl2.agreement_dn(repl1.conn.host)
+            _cn, dn = repl2.agreement_dn(repl1.conn.host)
             repl2.wait_for_repl_update(repl2.conn, dn, 30)
             (range_start, range_max) = repl2.get_DNA_range(repl2.conn.host)
             (next_start, next_max) = repl2.get_DNA_next_range(repl2.conn.host)
@@ -391,7 +389,9 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False):
             data = re.match('\{replica (\d+) (ldap://.*:\d+)\}(\s+\w+\s+\w*){0,1}', ruv)
             if data:
                 rid = data.group(1)
-                (scheme, netloc, path, params, query, fragment) = urlparse(data.group(2))
+                (
+                    _scheme, netloc, _path, _params, _query, _fragment
+                ) = urlparse(data.group(2))
                 servers.append((netloc, rid))
             else:
                 print("unable to decode: %s" % ruv)
@@ -1323,7 +1323,7 @@ def store_DNA_range(repl, range_start, range_max, deleted_master, realm,
         except Exception as e:
             print("Connection failed: %s" % e)
             continue
-        (next_start, next_max) = repl2.get_DNA_next_range(candidate)
+        next_start, _next_max = repl2.get_DNA_next_range(candidate)
         if next_start is None:
             try:
                 return repl2.save_DNA_next_range(range_start, range_max)
@@ -1359,7 +1359,7 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
         """
         try:
             (dna_next, dna_max) = range.split('-', 1)
-        except ValueError as e:
+        except ValueError:
             return "Invalid range, must be the form x-y"
 
         try:

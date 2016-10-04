@@ -40,8 +40,6 @@ from ipalib.constants import CACERT
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 
-# pylint: disable=unused-variable
-
 """
 A test gpg can be generated like this:
 
@@ -382,7 +380,6 @@ class Backup(admintool.AdminTool):
         '''
         self.log.info('Backing up %s in %s to LDIF' % (backend, instance))
 
-        now = time.localtime()
         cn = time.strftime('export_%Y_%m_%d_%H_%M_%S')
         dn = DN(('cn', cn), ('cn', 'export'), ('cn', 'tasks'), ('cn', 'config'))
 
@@ -434,7 +431,6 @@ class Backup(admintool.AdminTool):
         If executed online create a task and wait for it to complete.
         '''
         self.log.info('Backing up %s' % instance)
-        now = time.localtime()
         cn = time.strftime('backup_%Y_%m_%d_%H_%M_%S')
         dn = DN(('cn', cn), ('cn', 'backup'), ('cn', 'tasks'), ('cn', 'config'))
 
@@ -591,7 +587,6 @@ class Backup(admintool.AdminTool):
         os.mkdir(backup_dir)
         os.chmod(backup_dir, 0o700)
 
-        cwd = os.getcwd()
         os.chdir(self.dir)
         args = ['tar',
                 '--xattrs',

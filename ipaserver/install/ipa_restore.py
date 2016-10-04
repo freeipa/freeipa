@@ -51,8 +51,6 @@ try:
 except ImportError:
     adtrustinstance = None
 
-# pylint: disable=unused-variable
-
 def recursive_chown(path, uid, gid):
     '''
     Change ownership of all files and directories in a path.
@@ -523,7 +521,6 @@ class Restore(admintool.AdminTool):
         '''
         self.log.info('Restoring from %s in %s' % (backend, instance))
 
-        now = time.localtime()
         cn = time.strftime('import_%Y_%m_%d_%H_%M_%S')
         dn = DN(('cn', cn), ('cn', 'import'), ('cn', 'tasks'), ('cn', 'config'))
 
@@ -746,7 +743,6 @@ class Restore(admintool.AdminTool):
             self.log.info('Decrypting %s' % filename)
             filename = decrypt_file(self.dir, filename, keyring)
 
-        cwd = os.getcwd()
         os.chdir(self.dir)
 
         args = ['tar',
