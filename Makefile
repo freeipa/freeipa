@@ -6,6 +6,7 @@ include VERSION
 SUBDIRS=asn1 daemons install ipapython ipalib
 CLIENTDIRS=ipapython ipalib client asn1
 CLIENTPYDIRS=ipaclient ipaplatform
+PYPKGDIRS=$(CLIENTPYDIRS) ipalib ipapython ipaserver ipatests
 
 PRJ_PREFIX=freeipa
 
@@ -73,6 +74,10 @@ all: bootstrap-autogen server tests
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
+
+# empty target to force executation
+.PHONY=FORCE
+FORCE:
 
 client: client-autogen
 	@for subdir in $(CLIENTDIRS); do \
@@ -161,31 +166,40 @@ test:
 release-update:
 	if [ ! -e RELEASE ]; then echo 0 > RELEASE; fi
 
-version-update: release-update
+ipapython/version.py: ipapython/version.py.in FORCE
+	sed -e s/__VERSION__/$(IPA_VERSION)/ $< > $@
+	sed -i -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" $@
+	sed -i -e "s:__VENDOR_VERSION__:$(IPA_VENDOR_VERSION):" $@
+	sed -i -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" $@
+	grep -Po '(?<=default: ).*' API.txt | sed -n -i -e "/__DEFAULT_PLUGINS__/!{p;b};r /dev/stdin" $@
+	touch -r $< $@
+
+ipasetup.py: ipasetup.py.in FORCE
+	sed -e s/__VERSION__/$(IPA_VERSION)/ $< > $@
+
+ipaplatform/__init__.py: ipaplatform/__init__.py.in FORCE
+	if [ "$(SUPPORTED_PLATFORM)" != "" ]; then \
+	    sed -e s/__PLATFORM__/$(SUPPORTED_PLATFORM)/ \
+	        $< > $@; \
+	    rm -f ipaplatform/constants.py ipaplatform/paths.py ipaplatform/services.py ipaplatform/tasks.py ; \
+	fi
+
+.PHONY: egg_info
+egg_info: ipapython/version.py ipaplatform/__init__.py ipasetup.py
+	for directory in $(PYPKGDIRS); do \
+	    pushd $${directory} ; \
+	    $(PYTHON) setup.py egg_info $(EXTRA_SETUP); \
+	    popd ; \
+	done
+
+version-update: release-update ipapython/version.py ipaplatform/__init__.py ipasetup.py egg_info
 	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
 		freeipa.spec.in > freeipa.spec
 	sed -e s/__VERSION__/$(IPA_VERSION)/ version.m4.in \
 		> version.m4
-	sed -e s/__VERSION__/$(IPA_VERSION)/ ipapython/setup.py.in \
-		> ipapython/setup.py
-	sed -e s/__VERSION__/$(IPA_VERSION)/ ipaplatform/setup.py.in \
-		> ipaplatform/setup.py
-	sed -e s/__VERSION__/$(IPA_VERSION)/ ipalib/setup.py.in \
-		> ipalib/setup.py
-	sed -e s/__VERSION__/$(IPA_VERSION)/ ipapython/version.py.in \
-		> ipapython/version.py
-	sed -e s/__VERSION__/$(IPA_VERSION)/ ipatests/setup.py.in \
-		> ipatests/setup.py
-	sed -e s/__VERSION__/$(IPA_VERSION)/ ipaclient/setup.py.in \
-		> ipaclient/setup.py
 	sed -e s/__NUM_VERSION__/$(IPA_NUM_VERSION)/ install/ui/src/libs/loader.js.in \
 		> install/ui/src/libs/loader.js
 	sed -i -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" install/ui/src/libs/loader.js
-	sed -i -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" ipapython/version.py
-	sed -i -e "s:__VENDOR_VERSION__:$(IPA_VENDOR_VERSION):" ipapython/version.py
-	sed -i -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" ipapython/version.py
-	grep -Po '(?<=default: ).*' API.txt | sed -n -i -e "/__DEFAULT_PLUGINS__/!{p;b};r /dev/stdin" ipapython/version.py
-	touch -r ipapython/version.py.in ipapython/version.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ daemons/ipa-version.h.in \
 		> daemons/ipa-version.h
 	sed -i -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" daemons/ipa-version.h
@@ -194,27 +208,22 @@ version-update: release-update
 	sed -e s/__VERSION__/$(IPA_VERSION)/ client/version.m4.in \
 		> client/version.m4
 
-	if [ "$(SUPPORTED_PLATFORM)" != "" ]; then \
-		sed -e s/__PLATFORM__/$(SUPPORTED_PLATFORM)/ \
-			ipaplatform/__init__.py.in > ipaplatform/__init__.py; \
-	fi
-
 	if [ "$(SKIP_API_VERSION_CHECK)" != "yes" ]; then \
 		./makeapi --validate && \
 		./makeaci --validate; \
 	fi
 
 server: version-update
-	$(PYTHON) setup.py build
+	cd ipaserver && $(PYTHON) setup.py build
 	cd ipaplatform && $(PYTHON) setup.py build
 
 server-install: server
 	if [ "$(DESTDIR)" = "" ]; then \
-		$(PYTHON) setup.py install; \
-		(cd ipaplatform && $(PYTHON) setup.py install); \
+		(cd ipaserver && $(PYTHON) setup.py install) || exit 1; \
+		(cd ipaplatform && $(PYTHON) setup.py install) || exit 1; \
 	else \
-		$(PYTHON) setup.py install --root $(DESTDIR); \
-		(cd ipaplatform && $(PYTHON) setup.py install --root $(DESTDIR)); \
+		(cd ipaserver && $(PYTHON) setup.py install --root $(DESTDIR)) || exit 1; \
+		(cd ipaplatform && $(PYTHON) setup.py install --root $(DESTDIR)) || exit 1; \
 	fi
 
 tests: version-update tests-man-autogen
@@ -296,6 +305,7 @@ clean: version-update
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
+	rm -rf ipasetup.py ipasetup.py?
 	rm -f *~
 
 distclean: version-update
