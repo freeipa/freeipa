@@ -1329,12 +1329,16 @@ class SRVRecord(DNSRecord):
     rfc = 2782
     parts = (
         Int('priority',
-            label=_('Priority'),
+            label=_('Priority (order)'),
+            doc=_('Lower number means higher priority. Clients will attempt '
+                  'to contact the server with the lowest-numbered priority '
+                  'they can reach.'),
             minvalue=0,
             maxvalue=65535,
         ),
         Int('weight',
             label=_('Weight'),
+            doc=_('Relative weight for entries with the same priority.'),
             minvalue=0,
             maxvalue=65535,
         ),

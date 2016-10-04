@@ -1180,10 +1180,10 @@ IPA.dns.get_record_metadata = function() {
         {
             name: 'srvrecord',
             attributes: [
-                'srv_part_priority',
-                'srv_part_weight',
-                'srv_part_port',
-                'srv_part_target'
+               'srv_part_priority',
+               'srv_part_weight',
+               'srv_part_port',
+               'srv_part_target'
             ],
             adder_attributes: [],
             columns: ['srv_part_priority', 'srv_part_weight', 'srv_part_port',
