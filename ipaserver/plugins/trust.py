@@ -45,8 +45,6 @@ from ipalib import output
 from ldap import SCOPE_SUBTREE
 from time import sleep
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -228,7 +226,7 @@ def find_adtrust_masters(ldap, api):
     """
 
     try:
-        entries, truncated = ldap.find_entries(
+        entries, _truncated = ldap.find_entries(
                 "cn=ADTRUST",
                 base_dn=api.env.container_masters + api.env.basedn
         )
@@ -374,7 +372,7 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
                 domain_validator._admin_creds = creds
         # KDC might not get refreshed data at the first time,
         # retry several times
-        for retry in range(10):
+        for _retry in range(10):
             info_list = domain_validator.search_in_dc(domain,
                                                       info_filter,
                                                       None,
@@ -619,7 +617,7 @@ class trust(LDAPObject):
         ldap = self.api.Backend.ldap2
 
         try:
-            entries, truncated = ldap.find_entries(
+            entries, _truncated = ldap.find_entries(
                 base_dn=DN(self.api.env.container_adtrusts,
                            self.api.env.basedn),
                 scope=ldap.SCOPE_ONELEVEL,
@@ -744,18 +742,17 @@ sides.
             # Store the created range type, since for POSIX trusts no
             # ranges for the subdomains should be added, POSIX attributes
             # provide a global mapping across all subdomains
-            (created_range_type, _, _) = add_range(self.api, self.trustinstance,
-                                                   range_name, dom_sid,
-                                                   *keys, **options)
-        else:
-            created_range_type = old_range['result']['iparangetype'][0]
+            add_range(
+                self.api, self.trustinstance, range_name, dom_sid,
+                *keys, **options
+            )
 
         attrs_list = self.obj.default_attributes
         if options.get('all', False):
             attrs_list.append('*')
 
         trust_filter = "cn=%s" % result['value']
-        (trusts, truncated) = ldap.find_entries(
+        trusts, _truncated = ldap.find_entries(
                          base_dn=DN(self.api.env.container_trusts, self.api.env.basedn),
                          filter=trust_filter,
                          attrs_list=attrs_list)
@@ -773,8 +770,9 @@ sides.
                 # run the call under original user's credentials
                 res = fetch_domains_from_trust(self.api, self.trustinstance,
                                                **options)
-                domains = add_new_domains_from_trust(self.api, self.trustinstance,
-                                                     result['result'], res, **options)
+                add_new_domains_from_trust(
+                    self.api, self.trustinstance, result['result'], res,
+                    **options)
             else:
                 # One-way trust is more complex. We don't have cross-realm TGT
                 # and cannot use IPA principals to authenticate against AD.
@@ -999,7 +997,7 @@ sides.
                         if ('idnsforwardpolicy' in dns_zone) and dns_zone['idnsforwardpolicy'][0] == u'only':
                             instructions.append(_("Forward policy is defined for it in IPA DNS, "
                                                    "perhaps forwarder points to incorrect host?"))
-                    except (errors.NotFound, KeyError) as e:
+                    except (errors.NotFound, KeyError):
                         instructions.append(_("IPA manages DNS, please verify "
                                               "your DNS configuration and "
                                               "make sure that service records "
@@ -1383,7 +1381,7 @@ class trust_resolve(Command):
                 entry['name'] = [unicode(xlate[sid][pysss_nss_idmap.NAME_KEY])]
                 entry['type'] = [idmap_type_string(xlate[sid][pysss_nss_idmap.TYPE_KEY])]
                 result.append(entry)
-        except ValueError as e:
+        except ValueError:
             pass
 
         return dict(result=result)
@@ -1624,7 +1622,7 @@ class trustdomain_del(LDAPDelete):
                     error=_("cannot delete root domain of the trust, "
                             "use trust-del to delete the trust itself"))
             try:
-                res = self.api.Command.trustdomain_enable(keys[0], domain)
+                self.api.Command.trustdomain_enable(keys[0], domain)
             except errors.AlreadyActive:
                 pass
 
@@ -1814,7 +1812,7 @@ class trustdomain_enable(LDAPQuery):
                 ldap.update_entry(trust_entry)
                 # Force MS-PAC cache re-initialization on KDC side
                 domval = ipaserver.dcerpc.DomainValidator(self.api)
-                (ccache_name, principal) = domval.kinit_as_http(keys[0])
+                domval.kinit_as_http(keys[0])
             else:
                 raise errors.AlreadyActive()
         except errors.NotFound:
@@ -1855,7 +1853,7 @@ class trustdomain_disable(LDAPQuery):
                 ldap.update_entry(trust_entry)
                 # Force MS-PAC cache re-initialization on KDC side
                 domval = ipaserver.dcerpc.DomainValidator(self.api)
-                (ccache_name, principal) = domval.kinit_as_http(keys[0])
+                domval.kinit_as_http(keys[0])
             else:
                 raise errors.AlreadyInactive()
         except errors.NotFound:

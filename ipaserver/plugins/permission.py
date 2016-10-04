@@ -33,8 +33,6 @@ from ipalib.aci import ACI
 from ipapython.dn import DN
 from ipalib.request import context
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -490,7 +488,7 @@ class permission(baseldap.LDAPObject):
         if options.get('raw'):
             # Retreive the ACI from LDAP to ensure we get the real thing
             try:
-                acientry, acistring = self._get_aci_entry_and_string(entry)
+                _acientry, acistring = self._get_aci_entry_and_string(entry)
             except errors.NotFound:
                 if list(entry.get('ipapermissiontype')) == ['SYSTEM']:
                     # SYSTEM permissions don't have normal ACIs
@@ -1317,7 +1315,6 @@ class permission_find(baseldap.LDAPSearch):
                 root_entry = ldap.get_entry(DN(api.env.basedn), ['aci'])
             except errors.NotFound:
                 legacy_entries = ()
-                cached_root_entry = None
             self.log.debug('potential legacy entries: %s', len(legacy_entries))
             nonlegacy_names = {e.single_value['cn'] for e in entries}
             for entry in legacy_entries:

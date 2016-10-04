@@ -53,8 +53,6 @@ from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.plugins.service import normalize_principal, validate_realm
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -175,7 +173,7 @@ def validate_csr(ugettext, csr):
         if csr and os.path.exists(csr):
             return
     try:
-        request = pkcs10.load_certificate_request(csr)
+        pkcs10.load_certificate_request(csr)
     except (TypeError, binascii.Error) as e:
         raise errors.Base64DecodeError(reason=str(e))
     except Exception as e:
@@ -415,11 +413,11 @@ class BaseCertObject(Object):
             except KeyError:
                 general_names = []
 
-            for name_type, desc, name, der_name in general_names:
+            for name_type, _desc, name, der_name in general_names:
                 try:
                     self._add_san_attribute(
                         obj, full, name_type, name, der_name)
-                except Exception as e:
+                except Exception:
                     # Invalid GeneralName (i.e. not a valid X.509 cert);
                     # don't fail but log something about it
                     root_logger.warning(
@@ -687,7 +685,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 "to the 'userCertificate' attribute of entry '%s'.") % dn)
 
         # Validate the subject alt name, if any
-        for name_type, desc, name, der_name in subjectaltname:
+        for name_type, desc, name, _der_name in subjectaltname:
             if name_type == nss.certDNSName:
                 name = unicode(name)
                 alt_principal = None

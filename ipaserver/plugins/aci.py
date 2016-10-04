@@ -132,8 +132,6 @@ from .baseldap import gen_pkey_only_option, pkey_to_value
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -293,7 +291,7 @@ def _make_aci(ldap, current, aciname, kw):
             if kw['filter'] in ('', None, u''):
                 raise errors.BadSearchFilter(info=_('empty filter'))
             try:
-                entries = ldap.find_entries(filter=kw['filter'])
+                ldap.find_entries(filter=kw['filter'])
             except errors.NotFound:
                 pass
             a.set_target_filter(kw['filter'])
@@ -334,7 +332,7 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
     if 'targetfilter' in a.target:
         target = a.target['targetfilter']['expression']
         if target.startswith('(memberOf=') or target.startswith('memberOf='):
-            (junk, memberof) = target.split('memberOf=', 1)
+            _junk, memberof = target.split('memberOf=', 1)
             memberof = DN(memberof)
             kw['memberof'] = memberof['cn']
         else:
@@ -394,7 +392,7 @@ def _convert_strings_to_acis(acistrs):
     for a in acistrs:
         try:
             acis.append(ACI(a))
-        except SyntaxError as e:
+        except SyntaxError:
             root_logger.warning("Failed to parse: %s" % a)
     return acis
 
@@ -946,7 +944,7 @@ class aci_rename(crud.Update):
         aci = _find_aci_by_name(acis, kw['aciprefix'], aciname)
 
         for a in acis:
-            prefix, name = _parse_aci_name(a.name)
+            prefix, _name = _parse_aci_name(a.name)
             if _make_aci_name(prefix, kw['newname']) == a.name:
                 raise errors.DuplicateEntry()
 

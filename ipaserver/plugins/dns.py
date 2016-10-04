@@ -85,8 +85,6 @@ from ipaserver.dns_data_management import (
     IPADomainIsNotManagedByIPAError,
 )
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -392,7 +390,7 @@ def _validate_ip6addr(ugettext, ipaddr):
 
 def _validate_ipnet(ugettext, ipnet):
     try:
-        net = netaddr.IPNetwork(ipnet)
+        netaddr.IPNetwork(ipnet)
     except (netaddr.AddrFormatError, ValueError, UnboundLocalError):
         return _('invalid IP network format')
     return None
@@ -1911,8 +1909,9 @@ def _add_warning_fw_zone_is_not_effective(api, result, fwzone, version):
     """
     Adds warning message to result, if required
     """
-    authoritative_zone, truncated = \
-        _get_zone_which_makes_fw_zone_ineffective(api, fwzone)
+    (
+        authoritative_zone, _truncated
+    ) = _get_zone_which_makes_fw_zone_ineffective(api, fwzone)
     if authoritative_zone:
         # forward zone is not effective and forwarding will not work
         messages.add_message(
@@ -2639,7 +2638,7 @@ class dnszone(DNSZoneBase):
         not effective
         """
         zone = keys[-1]
-        affected_fw_zones, truncated = _find_subtree_forward_zones_ldap(
+        affected_fw_zones, _truncated = _find_subtree_forward_zones_ldap(
             self.api, zone, child_zones_only=True)
         if not affected_fw_zones:
             return
@@ -2863,8 +2862,8 @@ class dnszone_find(DNSZoneBase_find):
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
         assert isinstance(base_dn, DN)
 
-        filter, base, dn = super(dnszone_find, self).pre_callback(ldap, filter,
-            attrs_list, base_dn, scope, *args, **options)
+        filter, _base, _scope = super(dnszone_find, self).pre_callback(
+            ldap, filter, attrs_list, base_dn, scope, *args, **options)
 
         if options.get('forward_only', False):
             search_kw = {}
@@ -3446,7 +3445,7 @@ class dnsrecord(LDAPObject):
         if not record_name_absolute.is_absolute():
             record_name_absolute = record_name_absolute.derelativize(zone)
 
-        affected_fw_zones, truncated = _find_subtree_forward_zones_ldap(
+        affected_fw_zones, _truncated = _find_subtree_forward_zones_ldap(
             self.api, record_name_absolute)
         if not affected_fw_zones:
             return

@@ -50,8 +50,6 @@ from ipaplatform.paths import paths
 from ipapython.ipautil import ipa_generate_password, GEN_TMP_PWD_LEN
 from ipalib.capabilities import client_has_capability
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -385,7 +383,6 @@ class stageuser_add(baseuser_add):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        config = ldap.get_ipa_config()
 
         # Fetch the entry again to update memberof, mep data, etc updated
         # at the end of the transaction.
@@ -639,7 +636,9 @@ class stageuser_activate(LDAPQuery):
 
                 # Check that this value is a Active user
                 try:
-                    entry_attrs = self._exc_wrapper(args, options, ldap.get_entry)(value, ['dn'])
+                    self._exc_wrapper(args, options, ldap.get_entry)(
+                        value, ['dn']
+                    )
                     return value
                 except errors.NotFound:
                     return u''
@@ -667,10 +666,9 @@ class stageuser_activate(LDAPQuery):
         # Check it does not exist an active entry with the same RDN
         active_dn = DN(staging_dn[0], api.env.container_user, api.env.basedn)
         try:
-            test_entry_attrs = self._exc_wrapper(args, options, ldap.get_entry)(
+            self._exc_wrapper(args, options, ldap.get_entry)(
                 active_dn, ['dn']
             )
-            assert isinstance(staging_dn, DN)
             raise errors.DuplicateEntry(
                 message=_('active user with name "%(user)s" already exists') %
                 dict(user=args[-1]))

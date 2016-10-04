@@ -63,8 +63,6 @@ from ipaplatform.paths import paths
 from ldap.filter import escape_filter_chars
 from time import sleep
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
     long = int
@@ -220,7 +218,7 @@ class DomainValidator(object):
             self.sid = entry_attrs[self.ATTR_SID][0]
             self.dn = entry_attrs.dn
             self.domain = self.api.env.domain
-        except errors.NotFound as e:
+        except errors.NotFound:
             return False
         return True
 
@@ -236,7 +234,7 @@ class DomainValidator(object):
             search_kw = {'objectClass': 'ipaNTTrustedDomain'}
             filter = self.ldap.make_filter(search_kw,
                                            rules=self.ldap.MATCH_ALL)
-            (entries, truncated) = self.ldap.find_entries(
+            entries, _truncated = self.ldap.find_entries(
                 filter=filter,
                 base_dn=cn_trust,
                 attrs_list=[self.ATTR_TRUSTED_SID,
@@ -438,7 +436,7 @@ class DomainValidator(object):
         try:
             test_sid = security.dom_sid(sid)
             return unicode(test_sid)
-        except TypeError as e:
+        except TypeError:
             raise errors.ValidationError(name=_('trusted domain object'),
                                          error=_('Trusted domain did not '
                                                  'return a valid SID for '
@@ -756,7 +754,7 @@ class DomainValidator(object):
 
         if self._admin_creds:
             (ccache_name,
-             principal) = self.kinit_as_administrator(info['dns_domain'])
+             _principal) = self.kinit_as_administrator(info['dns_domain'])
 
         if ccache_name:
             with ipautil.private_ccache(path=ccache_name):
@@ -909,9 +907,9 @@ class TrustDomainInstance(object):
                 self._pipe = self.__gen_lsa_connection(binding)
                 if self._pipe and self._pipe.session_key:
                     break
-            except errors.ACIError as e:
+            except errors.ACIError:
                 attempts = attempts + 1
-            except RuntimeError as e:
+            except RuntimeError:
                 # When session key is not available, we just skip this binding
                 session_attempts = session_attempts + 1
 
@@ -976,7 +974,7 @@ class TrustDomainInstance(object):
         conn.set_option(_ldap.OPT_SERVER_CONTROLS, [ExtendedDNControl()])
         search_result = None
         try:
-            (objtype, res) = conn.search_s('', _ldap.SCOPE_BASE)[0]
+            _objtype, res = conn.search_s('', _ldap.SCOPE_BASE)[0]
             search_result = res['defaultNamingContext'][0]
             self.info['dns_hostname'] = res['dnsHostName'][0]
         except _ldap.LDAPError as e:
@@ -1426,25 +1424,6 @@ class TrustDomainInstance(object):
 
 
 def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
-    trust_flags = dict(
-                NETR_TRUST_FLAG_IN_FOREST=0x00000001,
-                NETR_TRUST_FLAG_OUTBOUND=0x00000002,
-                NETR_TRUST_FLAG_TREEROOT=0x00000004,
-                NETR_TRUST_FLAG_PRIMARY=0x00000008,
-                NETR_TRUST_FLAG_NATIVE=0x00000010,
-                NETR_TRUST_FLAG_INBOUND=0x00000020,
-                NETR_TRUST_FLAG_MIT_KRB5=0x00000080,
-                NETR_TRUST_FLAG_AES=0x00000100)
-
-    trust_attributes = dict(
-                NETR_TRUST_ATTRIBUTE_NON_TRANSITIVE=0x00000001,
-                NETR_TRUST_ATTRIBUTE_UPLEVEL_ONLY=0x00000002,
-                NETR_TRUST_ATTRIBUTE_QUARANTINED_DOMAIN=0x00000004,
-                NETR_TRUST_ATTRIBUTE_FOREST_TRANSITIVE=0x00000008,
-                NETR_TRUST_ATTRIBUTE_CROSS_ORGANIZATION=0x00000010,
-                NETR_TRUST_ATTRIBUTE_WITHIN_FOREST=0x00000020,
-                NETR_TRUST_ATTRIBUTE_TREAT_AS_EXTERNAL=0x00000040)
-
     def communicate(td):
         td.init_lsa_pipe(td.info['dc'])
         netr_pipe = netlogon.netlogon(td.binding, td.parm, td.creds)
@@ -1492,12 +1471,12 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
         # or as passed-in user in case of a one-way trust
         domval = DomainValidator(api)
         ccache_name = None
-        principal = None
         if creds:
             domval._admin_creds = creds
-            (ccache_name, principal) = domval.kinit_as_administrator(trustdomain)
+            ccache_name, _principal = domval.kinit_as_administrator(
+                trustdomain)
         else:
-            (ccache_name, principal) = domval.kinit_as_http(trustdomain)
+            ccache_name, _principal = domval.kinit_as_http(trustdomain)
         td.creds = credentials.Credentials()
         td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
         if ccache_name:
@@ -1683,7 +1662,7 @@ class TrustDomainJoins(object):
                 self.remote_domain.establish_trust(self.local_domain,
                                                    trustdom_pass,
                                                    trust_type, trust_external)
-            except TrustTopologyConflictSolved as e:
+            except TrustTopologyConflictSolved:
                 # we solved topology conflict, retry again
                 self.remote_domain.establish_trust(self.local_domain,
                                                    trustdom_pass,

@@ -40,8 +40,6 @@ from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
 
 from ipapython.dn import DN
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -201,7 +199,7 @@ class idview_show(LDAPRetrieve):
             attr_name = obj_type + 'overrides'
 
             try:
-                (overrides, truncated) = ldap.find_entries(
+                overrides, _truncated = ldap.find_entries(
                     filter="objectclass=%s" % objectclass,
                     attrs_list=['ipaanchoruuid'],
                     base_dn=dn,
@@ -236,7 +234,7 @@ class idview_show(LDAPRetrieve):
         }
 
         try:
-            (hosts, truncated) = ldap.find_entries(
+            hosts, _truncated = ldap.find_entries(
                 filter=ldap.make_filter(filter_params, rules=ldap.MATCH_ALL),
                 attrs_list=['cn'],
                 base_dn=api.env.container_host + api.env.basedn,
@@ -626,7 +624,7 @@ def remove_ipaobject_overrides(ldap, api, dn):
     override_filter = '(ipaanchoruuid=:IPA:{0}:{1})'.format(api.env.domain,
                                                             object_uuid)
     try:
-        entries, truncated = ldap.find_entries(
+        entries, _truncated = ldap.find_entries(
             override_filter,
             base_dn=DN(api.env.container_views, api.env.basedn),
             paged_search=True
