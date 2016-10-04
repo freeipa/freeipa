@@ -52,6 +52,16 @@ class TestLineTopologyWithCA(LayoutsBaseTest):
         self.replication_is_working()
 
 
+class TestLineTopologyWithCAKRA(LayoutsBaseTest):
+
+    num_replicas = 3
+
+    def test_line_topology_with_ca_kra(self):
+        tasks.install_topo('line', self.master, self.replicas, [],
+                           setup_replica_cas=True, setup_replica_kras=True)
+        self.replication_is_working()
+
+
 class TestStarTopologyWithoutCA(LayoutsBaseTest):
 
     num_replicas = 3
@@ -69,6 +79,16 @@ class TestStarTopologyWithCA(LayoutsBaseTest):
     def test_star_topology_with_ca(self):
         tasks.install_topo('star', self.master, self.replicas, [],
                            setup_replica_cas=True)
+        self.replication_is_working()
+
+
+class TestStarTopologyWithCAKRA(LayoutsBaseTest):
+
+    num_replicas = 3
+
+    def test_star_topology_with_ca_kra(self):
+        tasks.install_topo('star', self.master, self.replicas, [],
+                           setup_replica_cas=True, setup_replica_kras=True)
         self.replication_is_working()
 
 
@@ -92,6 +112,16 @@ class TestCompleteTopologyWithCA(LayoutsBaseTest):
         self.replication_is_working()
 
 
+class TestCompleteTopologyWithCAKRA(LayoutsBaseTest):
+
+    num_replicas = 3
+
+    def test_complete_topology_with_ca_kra(self):
+        tasks.install_topo('complete', self.master, self.replicas, [],
+                           setup_replica_cas=True, setup_replica_kras=True)
+        self.replication_is_working()
+
+
 @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                     reason='does not work on DOMAIN_LEVEL_0 by design')
 class Test2ConnectedTopologyWithoutCA(LayoutsBaseTest):
@@ -112,6 +142,15 @@ class Test2ConnectedTopologyWithCA(LayoutsBaseTest):
         self.replication_is_working()
 
 
+class Test2ConnectedTopologyWithCAKRA(LayoutsBaseTest):
+    num_replicas = 33
+
+    def test_2_connected_topology_with_ca_kra(self):
+        tasks.install_topo('2-connected', self.master, self.replicas, [],
+                           setup_replica_cas=True, setup_replica_kras=True)
+        self.replication_is_working()
+
+
 @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                     reason='does not work on DOMAIN_LEVEL_0 by design')
 class TestDoubleCircleTopologyWithoutCA(LayoutsBaseTest):
@@ -129,4 +168,13 @@ class TestDoubleCircleTopologyWithCA(LayoutsBaseTest):
     def test_2_connected_topology_with_ca(self):
         tasks.install_topo('double-circle', self.master, self.replicas, [],
                            setup_replica_cas=True)
+        self.replication_is_working()
+
+
+class TestDoubleCircleTopologyWithCAKRA(LayoutsBaseTest):
+    num_replicas = 29
+
+    def test_2_connected_topology_with_ca_kra(self):
+        tasks.install_topo('double-circle', self.master, self.replicas, [],
+                           setup_replica_cas=True, setup_replica_kras=True)
         self.replication_is_working()
