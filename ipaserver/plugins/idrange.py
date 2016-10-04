@@ -26,8 +26,6 @@ from ipalib import api, Int, Str, StrEnum, _, ngettext
 from ipalib import errors
 from ipapython.dn import DN
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -312,7 +310,7 @@ class idrange(LDAPObject):
                         "&")
 
         try:
-            (objects, truncated) = ldap.find_entries(filter=id_filter,
+            ldap.find_entries(filter=id_filter,
                     attrs_list=['uid', 'cn'],
                     base_dn=DN(api.env.container_accounts, api.env.basedn))
         except errors.NotFound:
@@ -555,7 +553,7 @@ class idrange_del(LDAPDelete):
                            '(ipanttrusteddomainsid=%s))' % range_sid)
 
             try:
-                (trust_domains, truncated) = ldap.find_entries(
+                trust_domains, _truncated = ldap.find_entries(
                     base_dn=DN(api.env.container_trusts, api.env.basedn),
                     filter=domain_filter)
             except errors.NotFound:

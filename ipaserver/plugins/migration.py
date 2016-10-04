@@ -40,8 +40,6 @@ from ipapython.kerberos import Principal
 import datetime
 from ipaplatform.paths import paths
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -186,7 +184,6 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
     attr_blacklist = ['krbprincipalkey','memberofindirect','memberindirect']
     attr_blacklist.extend(kwargs.get('attr_blacklist', []))
     ds_ldap = ctx['ds_ldap']
-    has_upg = ctx['has_upg']
     search_bases = kwargs.get('search_bases', None)
     valid_gids = kwargs['valid_gids']
     invalid_gids = kwargs['invalid_gids']
@@ -318,8 +315,8 @@ def _update_default_group(ldap, ctx, force):
         s = datetime.datetime.now()
         searchfilter = "(&(objectclass=posixAccount)(!(memberof=%s)))" % group_dn
         try:
-            (result, truncated) = ldap.find_entries(searchfilter,
-                [''], DN(api.env.container_user, api.env.basedn),
+            result, _truncated = ldap.find_entries(
+                searchfilter, [''], DN(api.env.container_user, api.env.basedn),
                 scope=ldap.SCOPE_SUBTREE, time_limit=-1, size_limit=-1)
         except errors.NotFound:
             api.log.debug('All users have default group set')
@@ -915,7 +912,7 @@ migration process might be incomplete\n''')
 
         if not ds_base_dn:
             # retrieve base DN from remote LDAP server
-            entries, truncated = ds_ldap.find_entries(
+            entries, _truncated = ds_ldap.find_entries(
                 '', ['namingcontexts', 'defaultnamingcontext'], DN(''),
                 ds_ldap.SCOPE_BASE, size_limit=-1, time_limit=0,
             )

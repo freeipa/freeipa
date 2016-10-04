@@ -69,8 +69,6 @@ from ipalib.capabilities import client_has_capability
 if api.env.in_server:
     from ipaserver.plugins.ldap2 import ldap2
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -858,7 +856,7 @@ class user_undel(LDAPQuery):
         # First check that the user exists and is a delete one
         delete_dn = self.obj.get_either_dn(*keys, **options)
         try:
-            entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(delete_dn)
+            self._exc_wrapper(keys, options, ldap.get_entry)(delete_dn)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
         if delete_dn.endswith(DN(self.obj.active_container_dn,
@@ -1087,7 +1085,7 @@ class user_status(LDAPQuery):
         masters = []
         # Get list of masters
         try:
-            (masters, truncated) = ldap.find_entries(
+            masters, _truncated = ldap.find_entries(
                 None, ['*'], DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn),
                 ldap.SCOPE_ONELEVEL
             )

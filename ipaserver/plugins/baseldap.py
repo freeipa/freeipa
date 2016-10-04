@@ -39,8 +39,6 @@ from ipalib.messages import add_message, SearchResultTruncated
 from ipapython.dn import DN
 from ipapython.version import API_VERSION
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -745,7 +743,7 @@ class LDAPObject(Object):
         for (pwattr, attr) in self.password_attributes:
             search_filter = '(%s=*)' % pwattr
             try:
-                (entries, truncated) = ldap.find_entries(
+                ldap.find_entries(
                     search_filter, [pwattr], dn, ldap.SCOPE_BASE
                 )
                 entry_attrs[attr] = True
@@ -800,10 +798,10 @@ class LDAPObject(Object):
         attrs = self.api.Backend.ldap2.schema.attribute_types(objectclasses)
         attrlist = []
         # Go through the MUST first
-        for (oid, attr) in attrs[0].items():
+        for attr in attrs[0].values():
             attrlist.append(attr.names[0].lower())
         # And now the MAY
-        for (oid, attr) in attrs[1].items():
+        for attr in attrs[1].values():
             attrlist.append(attr.names[0].lower())
         json_dict['aciattrs'] = attrlist
         attrlist.sort()
@@ -846,7 +844,7 @@ def _check_limit_object_class(attributes, attrs, allow_only):
         return
     limitattrs = deepcopy(attrs)
     # Go through the MUST first
-    for (oid, attr) in attributes[0].items():
+    for attr in attributes[0].values():
         if attr.names[0].lower() in limitattrs:
             if not allow_only:
                 raise errors.ObjectclassViolation(
@@ -854,7 +852,7 @@ def _check_limit_object_class(attributes, attrs, allow_only):
                         attribute=attr.names[0].lower()))
             limitattrs.remove(attr.names[0].lower())
     # And now the MAY
-    for (oid, attr) in attributes[1].items():
+    for attr in attributes[1].values():
         if attr.names[0].lower() in limitattrs:
             if not allow_only:
                 raise errors.ObjectclassViolation(

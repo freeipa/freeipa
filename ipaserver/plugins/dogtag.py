@@ -259,8 +259,6 @@ if api.env.in_server:
     import pki.crypto as cryptoutil
     from pki.kra import KRAClient
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -1162,7 +1160,7 @@ def host_has_service(host, ldap2, service='CA'):
         }
     query_filter = ldap2.make_filter(filter_attrs, rules='&')
     try:
-        ent, trunc = ldap2.find_entries(filter=query_filter, base_dn=base_dn)
+        ent, _trunc = ldap2.find_entries(filter=query_filter, base_dn=base_dn)
         if len(ent):
             return True
     except Exception:
@@ -1186,7 +1184,7 @@ def select_any_master(ldap2, service='CA'):
          'ipaConfigString': 'enabledService',}
     query_filter = ldap2.make_filter(filter_attrs, rules='&')
     try:
-        ent, trunc = ldap2.find_entries(filter=query_filter, base_dn=base_dn)
+        ent, _trunc = ldap2.find_entries(filter=query_filter, base_dn=base_dn)
         if len(ent):
             entry = random.choice(ent)
             return entry.dn[1].value
@@ -1285,7 +1283,7 @@ class RestClient(Backend):
         """Log into the REST API"""
         if self.cookie is not None:
             return
-        status, resp_headers, resp_body = dogtag.https_request(
+        status, resp_headers, _resp_body = dogtag.https_request(
             self.ca_host, self.override_port or self.env.ca_agent_port,
             '/ca/rest/account/login',
             self.sec_dir, self.password, self.ipa_certificate_nickname,
@@ -1485,11 +1483,12 @@ class ra(rabase.rabase, RestClient):
         self.debug('%s.check_request_status()', type(self).__name__)
 
         # Call CMS
-        http_status, http_headers, http_body = \
+        http_status, _http_headers, http_body = (
             self._request('/ca/ee/ca/checkRequest',
                           self.env.ca_port,
                           requestId=request_id,
                           xml='true')
+        )
 
         # Parse and handle errors
         if http_status != 200:
@@ -1570,11 +1569,12 @@ class ra(rabase.rabase, RestClient):
         serial_number = int(serial_number, 0)
 
         # Call CMS
-        http_status, http_headers, http_body = \
+        http_status, _http_headers, http_body = (
             self._sslget('/ca/agent/ca/displayBySerial',
                          self.env.ca_agent_port,
                          serialNumber=str(serial_number),
                          xml='true')
+        )
 
 
         # Parse and handle errors
@@ -1654,7 +1654,7 @@ class ra(rabase.rabase, RestClient):
         if ca_id:
             path += '?issuer-id={}'.format(ca_id)
 
-        http_status, http_headers, http_body = self._ssldo(
+        _http_status, _http_headers, http_body = self._ssldo(
             'POST', path,
             headers={
                 'Content-Type': 'application/xml',
@@ -1728,7 +1728,7 @@ class ra(rabase.rabase, RestClient):
         serial_number = int(serial_number, 0)
 
         # Call CMS
-        http_status, http_headers, http_body = \
+        http_status, _http_headers, http_body = \
             self._sslget('/ca/agent/ca/doRevoke',
                          self.env.ca_agent_port,
                          op='revoke',
@@ -1788,11 +1788,12 @@ class ra(rabase.rabase, RestClient):
         serial_number = int(serial_number, 0)
 
         # Call CMS
-        http_status, http_headers, http_body = \
+        http_status, _http_headers, http_body = (
             self._sslget('/ca/agent/ca/doUnrevoke',
                          self.env.ca_agent_port,
                          serialNumber=str(serial_number),
                          xml='true')
+        )
 
         # Parse and handle errors
         if http_status != 200:
@@ -2050,7 +2051,7 @@ class ra_certprofile(RestClient):
         """
         Read the profile configuration from Dogtag
         """
-        status, resp_headers, resp_body = self._ssldo(
+        _status, _resp_headers, resp_body = self._ssldo(
             'GET', profile_id + '/raw')
         return resp_body
 
@@ -2103,7 +2104,7 @@ class ra_lightweight_ca(RestClient):
         """
 
         assert isinstance(dn, DN)
-        status, resp_headers, resp_body = self._ssldo(
+        _status, _resp_headers, resp_body = self._ssldo(
             'POST', None,
             headers={
                 'Content-type': 'application/json',
@@ -2117,7 +2118,7 @@ class ra_lightweight_ca(RestClient):
             raise errors.RemoteRetrieveError(reason=_("Response from CA was not valid JSON"))
 
     def read_ca(self, ca_id):
-        status, resp_headers, resp_body = self._ssldo(
+        _status, _resp_headers, resp_body = self._ssldo(
             'GET', ca_id, headers={'Accept': 'application/json'})
         try:
             return json.loads(resp_body)

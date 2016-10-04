@@ -64,8 +64,6 @@ from ipaplatform.paths import paths
 from ipapython.version import VERSION
 from ipalib.text import _
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -423,7 +421,7 @@ class WSGIExecutioner(Executioner):
             status = HTTP_STATUS_SUCCESS
             response = self.wsgi_execute(environ)
             headers = [('Content-Type', self.content_type + '; charset=utf-8')]
-        except Exception as e:
+        except Exception:
             self.exception('WSGI %s.__call__():', self.name)
             status = HTTP_STATUS_SERVER_ERROR
             response = status
@@ -654,7 +652,6 @@ class KerberosWSGIExecutioner(WSGIExecutioner, HTTP_Status, KerberosSession):
         if user_ccache is None:
 
             status = HTTP_STATUS_SERVER_ERROR
-            response_headers = [('Content-Type', 'text/html; charset=utf-8')]
 
             self.log.error(
                 '%s: %s', status,
