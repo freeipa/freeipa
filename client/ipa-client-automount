@@ -45,8 +45,6 @@ from ipaplatform.tasks import tasks
 from ipaplatform import services
 from ipaplatform.paths import paths
 
-# pylint: disable=unused-variable
-
 def parse_options():
     usage = "%prog [options]\n"
     parser = OptionParser(usage=usage)
@@ -81,7 +79,7 @@ def wait_for_sssd():
         try:
             ipautil.run(["getent", "passwd", "admin@%s" % api.env.realm])
             found = True
-        except Exception as e:
+        except Exception:
             time.sleep(1)
             n = n + 1
 
@@ -180,7 +178,7 @@ def configure_autofs_sssd(fstore, statestore, autodiscover, options):
         if provider == "ipa":
             domain.add_provider('ipa', 'autofs')
             try:
-                location = domain.get_option('ipa_automount_location')
+                domain.get_option('ipa_automount_location')
                 sys.exit('An automount location is already configured')
             except SSSDConfig.NoOptionError:
                 domain.set_option('ipa_automount_location', options.location)
@@ -373,7 +371,7 @@ def main():
     if not fstore.has_files() and not os.path.exists(paths.IPA_DEFAULT_CONF):
         sys.exit('IPA client is not configured on this system.\n')
 
-    options, args = parse_options()
+    options, _args = parse_options()
 
     standard_logging_setup(
         paths.IPACLIENT_INSTALL_LOG, verbose=False, debug=options.debug,
@@ -400,7 +398,6 @@ def main():
         sys.exit('automount is already configured on this system.\n')
 
     autodiscover = False
-    servers = []
     ds = ipadiscovery.IPADiscovery()
     if not options.server:
         print("Searching for IPA server...")
@@ -437,7 +434,6 @@ def main():
         print("IPA server: DNS discovery")
         root_logger.debug('Configuring to use DNS discovery')
 
-    search_base = str(DN(('cn', options.location), api.env.container_automount, api.env.basedn))
     print("Location: %s" % options.location)
     root_logger.debug('Using automount location %s' % options.location)
 
@@ -457,7 +453,7 @@ def main():
             sys.exit('Cannot connect to the server due to ' + str(e))
         try:
             # Use the RPC directly so older servers are supported
-            result = api.Backend.rpcclient.forward(
+            api.Backend.rpcclient.forward(
                 'automountlocation_show',
                 ipautil.fsdecode(options.location),
                 version=u'2.0',

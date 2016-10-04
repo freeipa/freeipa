@@ -45,8 +45,6 @@ from ipaserver.install import replication
 from ipaserver.install.installutils import stopped_service
 from ipapython.ipa_log_manager import log_mgr
 
-# pylint: disable=unused-variable
-
 HTTPD_USER = constants.HTTPD_USER
 
 
@@ -356,7 +354,7 @@ class DogtagInstance(service.Service):
         services.knownservices.messagebus.start()
         cmonger.start()
 
-        nicknames = [nickname for nickname, profile in self.tracking_reqs]
+        nicknames = [nickname for nickname, _profile in self.tracking_reqs]
         if self.server_cert_name is not None:
             nicknames.append(self.server_cert_name)
 
@@ -477,7 +475,6 @@ class DogtagInstance(service.Service):
 
     def __remove_admin_from_group(self, group):
         dn = DN(('cn', group), ('ou', 'groups'), ('o', 'ipaca'))
-        entry = self.admin_conn.get_entry(dn)
         mod = [(ldap.MOD_DELETE, 'uniqueMember', self.admin_dn)]
         try:
             self.admin_conn.modify_s(dn, mod)

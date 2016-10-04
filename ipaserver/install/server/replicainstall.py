@@ -47,8 +47,6 @@ from binascii import hexlify
 
 from .common import BaseServer
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -691,9 +689,9 @@ def install_check(installer):
 
         # Check pre-existing host entry
         try:
-            entry = conn.find_entries(u'fqdn=%s' % config.host_name,
-                                      ['fqdn'], DN(api.env.container_host,
-                                                   api.env.basedn))
+            conn.find_entries(
+                u'fqdn=%s' % config.host_name, ['fqdn'],
+                DN(api.env.container_host, api.env.basedn))
         except errors.NotFound:
             pass
         else:
@@ -920,8 +918,6 @@ def install(installer):
 
 
 def ensure_enrolled(installer):
-    config = installer._config
-
     # Call client install script
     service.print_msg("Configuring client side components")
     try:
@@ -1100,7 +1096,7 @@ def promote_check(installer):
             if options.pkinit_pin is None:
                 raise ScriptError(
                     "Kerberos KDC private key unlock password required")
-        pkinit_pkcs12_file, pkinit_pin, pkinit_ca_cert = load_pkcs12(
+        pkinit_pkcs12_file, pkinit_pin, _pkinit_ca_cert = load_pkcs12(
             cert_files=options.pkinit_cert_files,
             key_password=options.pkinit_pin,
             key_nickname=options.pkinit_cert_name,
@@ -1201,8 +1197,8 @@ def promote_check(installer):
 
         # Check that we don't already have a replication agreement
         try:
-            (acn, adn) = replman.agreement_dn(config.host_name)
-            entry = conn.get_entry(adn, ['*'])
+            _acn, adn = replman.agreement_dn(config.host_name)
+            conn.get_entry(adn, ['*'])
         except errors.NotFound:
             pass
         else:
@@ -1235,7 +1231,7 @@ def promote_check(installer):
         dn = DN(('cn', 'replication managers'), ('cn', 'sysaccounts'),
                 ('cn', 'etc'), ipautil.realm_to_suffix(config.realm_name))
         try:
-            entry = conn.get_entry(dn)
+            conn.get_entry(dn)
         except errors.NotFound:
             msg = ("The Replication Managers group is not available in "
                    "the domain. Replica promotion requires the use of "
@@ -1374,12 +1370,8 @@ def promote(installer):
     fstore = installer._fstore
     sstore = installer._sstore
     config = installer._config
-    dirsrv_pkcs12_file = installer._dirsrv_pkcs12_file
     dirsrv_pkcs12_info = installer._dirsrv_pkcs12_info
-    http_pkcs12_file = installer._http_pkcs12_file
     http_pkcs12_info = installer._http_pkcs12_info
-    pkinit_pkcs12_file = installer._pkinit_pkcs12_file
-    pkinit_pkcs12_info = installer._pkinit_pkcs12_info
 
     ccache = os.environ['KRB5CCNAME']
     remote_api = installer._remote_api
@@ -1491,14 +1483,16 @@ def promote(installer):
         cainstance.export_kra_agent_pem()
         CA.fix_ra_perms()
 
-    krb = install_krb(config,
-                      setup_pkinit=not options.no_pkinit,
-                      promote=True)
+    install_krb(
+        config,
+        setup_pkinit=not options.no_pkinit,
+        promote=True)
 
-    http = install_http(config,
-                        auto_redirect=not options.no_ui_redirect,
-                        promote=True, pkcs12_info=http_pkcs12_info,
-                        ca_is_configured=installer._ca_enabled)
+    install_http(
+        config,
+        auto_redirect=not options.no_ui_redirect,
+        promote=True, pkcs12_info=http_pkcs12_info,
+        ca_is_configured=installer._ca_enabled)
 
     # Apply any LDAP updates. Needs to be done after the replica is synced-up
     service.print_msg("Applying LDAP updates")

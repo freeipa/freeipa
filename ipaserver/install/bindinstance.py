@@ -60,8 +60,6 @@ from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
                          UnresolvableRecordError)
 from ipalib.constants import CACERT
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -289,7 +287,7 @@ def find_reverse_zone(ip_address, api=api):
     while len(zone) > 0:
         if dns_zone_exists(zone, api):
             return zone
-        foo, bar, zone = zone.partition('.')
+        zone = zone.partition('.')[2]
 
     return None
 
@@ -866,7 +864,7 @@ class BindInstance(service.Service):
         for addr in addrs:
             try:
                 add_fwd_rr(zone, host, addr, self.api)
-            except errors.NotFound as e:
+            except errors.NotFound:
                 pass
 
             reverse_zone = find_reverse_zone(addr, self.api)
@@ -1107,7 +1105,8 @@ class BindInstance(service.Service):
         attributes = ['idnsname', 'objectclass']
         dn = DN(self.api.env.container_dns, self.api.env.basedn)
 
-        entries, truncated = ldap.find_entries(attr_filter, attributes, base_dn=dn)
+        entries, _truncated = ldap.find_entries(
+            attr_filter, attributes, base_dn=dn)
 
         # remove records
         if entries:

@@ -29,8 +29,6 @@ from ipapython.dn import DN
 from ipapython.ipautil import realm_to_suffix, posixify
 from ipaserver.install import replication, installutils
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -175,7 +173,7 @@ class WinsyncMigrate(admintool.AdminTool):
         }
 
         try:
-            result = api.Command['idoverrideuser_add'](
+            api.Command['idoverrideuser_add'](
                 DEFAULT_TRUST_VIEW_NAME,
                 user_identifier,
                 **kwargs
@@ -193,7 +191,7 @@ class WinsyncMigrate(admintool.AdminTool):
 
         user_filter = "(&(objectclass=ntuser)(ntUserDomainId=*))"
         user_base = DN(api.env.container_user, api.env.basedn)
-        entries, _ = self.ldap.find_entries(
+        entries, _truncated = self.ldap.find_entries(
             filter=user_filter,
             base_dn=user_base,
             paged_search=True)
@@ -262,8 +260,9 @@ class WinsyncMigrate(admintool.AdminTool):
                                                         user_entry.dn)
 
         try:
-            objects, _ = self.ldap.find_entries(member_filter,
-                                                base_dn=object_container_dn)
+            objects, _truncated = self.ldap.find_entries(
+                member_filter,
+                base_dn=object_container_dn)
         except errors.EmptyResult:
             # If there's nothing to migrate, then let's get out of here
             return

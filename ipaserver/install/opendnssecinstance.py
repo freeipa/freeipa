@@ -20,8 +20,6 @@ from ipaplatform.paths import paths
 from ipalib import errors, api
 from ipaserver.install import dnskeysyncinstance
 
-# pylint: disable=unused-variable
-
 KEYMASTER = u'dnssecKeyMaster'
 softhsm_slot = 0
 
@@ -126,9 +124,6 @@ class OpenDNSSECInstance(service.Service):
         self.start_creation()
 
     def __check_dnssec_status(self):
-        named = services.knownservices.named
-        ods_enforcerd = services.knownservices.ods_enforcerd
-
         try:
             self.named_uid = pwd.getpwnam(constants.NAMED_USER).pw_uid
         except KeyError:
@@ -289,7 +284,6 @@ class OpenDNSSECInstance(service.Service):
             os.chmod(paths.OPENDNSSEC_KASP_DB, 0o660)
 
             # regenerate zonelist.xml
-            ods_enforcerd = services.knownservices.ods_enforcerd
             cmd = [paths.ODS_KSMUTIL, 'zonelist', 'export']
             result = ipautil.run(cmd,
                                  runas=constants.ODS_USER,
@@ -307,7 +301,6 @@ class OpenDNSSECInstance(service.Service):
                 'setup'
             ]
 
-            ods_enforcerd = services.knownservices.ods_enforcerd
             ipautil.run(command, stdin="y", runas=constants.ODS_USER)
 
     def __setup_dnskeysyncd(self):
@@ -353,7 +346,6 @@ class OpenDNSSECInstance(service.Service):
         if ipautil.file_exists(paths.OPENDNSSEC_KASP_DB):
 
             # force to export data
-            ods_enforcerd = services.knownservices.ods_enforcerd
             cmd = [paths.IPA_ODS_EXPORTER, 'ipa-full-update']
             try:
                 self.print_msg("Exporting DNSSEC data before uninstallation")

@@ -81,8 +81,6 @@ try:
 except ImportError:
     import http.client as httplib
 
-# pylint: disable=unused-variable
-
 # We need to reset the template because the CA uses the regular boot
 # information
 INF_TEMPLATE = """
@@ -1625,9 +1623,6 @@ def __update_entry_from_cert(make_filter, make_entry, dercert):
     """
 
     base_dn = DN(('o', 'ipaca'))
-    serial_number = x509.get_serial_number(dercert, datatype=x509.DER)
-    subject = x509.get_subject(dercert, datatype=x509.DER)
-    issuer = x509.get_issuer(dercert, datatype=x509.DER)
 
     attempts = 0
     server_id = installutils.realm_to_serverid(api.env.realm)
@@ -1909,7 +1904,7 @@ def repair_profile_caIPAserviceCert():
     with api.Backend.ra_certprofile as profile_api:
         try:
             cur_config = profile_api.read_profile(profile_id).splitlines()
-        except errors.RemoteRetrieveError as e:
+        except errors.RemoteRetrieveError:
             # no profile there to check/repair
             api.Backend.ra_certprofile.override_port = None
             return

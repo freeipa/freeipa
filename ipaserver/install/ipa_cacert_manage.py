@@ -31,8 +31,6 @@ from ipaplatform.paths import paths
 from ipalib import api, errors, x509, certstore
 from ipaserver.install import certs, cainstance, installutils
 
-# pylint: disable=unused-variable
-
 
 class CACertManage(admintool.AdminTool):
     command_name = 'ipa-cacert-manage'
@@ -87,7 +85,6 @@ class CACertManage(admintool.AdminTool):
             parser.error("command not provided")
 
         command = self.command = self.args[0]
-        options = self.options
 
         if command == 'renew':
             pass

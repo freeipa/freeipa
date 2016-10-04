@@ -45,8 +45,6 @@ from ipalib.text import _
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 
-# pylint: disable=unused-variable
-
 # Apache needs access to this database so we need to create it
 # where apache can reach
 NSS_DIR = paths.HTTPD_ALIAS_DIR
@@ -260,7 +258,7 @@ class CertDB(object):
         while True:
             try:
                 (cert, st) = find_cert_from_txt(certs, st)
-                (rdn, subject_dn) = get_cert_nickname(cert)
+                _rdn, subject_dn = get_cert_nickname(cert)
                 if subject_dn == ca_dn:
                     nick = get_ca_nickname(self.realm)
                 else:
@@ -283,7 +281,7 @@ class CertDB(object):
             if pem:
                 return cert
             else:
-                (cert, start) = find_cert_from_txt(cert, start=0)
+                cert, _start = find_cert_from_txt(cert, start=0)
                 cert = x509.strip_header(cert)
                 dercert = base64.b64decode(cert)
                 return dercert
@@ -405,7 +403,7 @@ class CertDB(object):
         result = dogtag.https_request(
             self.host_name, 8443, "/ca/ee/ca/profileSubmitSSLClient",
             self.secdir, password, "ipaCert", **params)
-        http_status, http_headers, http_body = result
+        http_status, _http_headers, http_body = result
         root_logger.debug("CA answer: %s", http_body)
 
         if http_status != 200:
@@ -459,7 +457,7 @@ class CertDB(object):
         result = dogtag.https_request(
             self.host_name, 8443, "/ca/ee/ca/profileSubmitSSLClient",
             self.secdir, password, "ipaCert", **params)
-        http_status, http_headers, http_body = result
+        http_status, _http_headers, http_body = result
         if http_status != 200:
             raise RuntimeError("Unable to submit cert request")
 
@@ -571,11 +569,11 @@ class CertDB(object):
             newca = f.readlines()
             f.close()
             newca = "".join(newca)
-            (newca, st) = find_cert_from_txt(newca)
+            newca, _st = find_cert_from_txt(newca)
 
             cacert = self.get_cert_from_db(self.cacert_name)
             if cacert != '':
-                (cacert, st) = find_cert_from_txt(cacert)
+                cacert, _st = find_cert_from_txt(cacert)
 
             if newca == cacert:
                 return

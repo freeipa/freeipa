@@ -21,14 +21,11 @@ from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipapython import ipaldap
 from ipapython import sysrestore, ipautil
-from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipalib import errors, api
 from ipalib.constants import CACERT
 from ipaserver.install.bindinstance import dns_container_exists
-
-# pylint: disable=unused-variable
 
 softhsm_token_label = u'ipaDNSSEC'
 softhsm_slot = 0
@@ -117,7 +114,7 @@ class DNSKeySyncInstance(service.Service):
             'ipk11Wrap': True,
         }
         filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
-        entries, truncated = ldap.find_entries(filter=filter, base_dn=dn_base)
+        entries, _truncated = ldap.find_entries(filter=filter, base_dn=dn_base)
         for entry in entries:
             ldap.delete_entry(entry)
 
@@ -149,22 +146,18 @@ class DNSKeySyncInstance(service.Service):
         self.start_creation()
 
     def __get_named_uid(self):
-        named = services.knownservices.named
         try:
             return pwd.getpwnam(constants.NAMED_USER).pw_uid
         except KeyError:
             raise RuntimeError("Named UID not found")
 
     def __get_named_gid(self):
-        named = services.knownservices.named
         try:
             return grp.getgrnam(constants.NAMED_GROUP).gr_gid
         except KeyError:
             raise RuntimeError("Named GID not found")
 
     def __check_dnssec_status(self):
-        ods_enforcerd = services.knownservices.ods_enforcerd
-
         self.named_uid = self.__get_named_uid()
         self.named_gid = self.__get_named_gid()
 
@@ -338,7 +331,7 @@ class DNSKeySyncInstance(service.Service):
                 if not priv_keys:
                     break  # we found unique id
 
-            public_key_handle, private_key_handle = p11.generate_replica_key_pair(
+            public_key_handle, _privkey_handle = p11.generate_replica_key_pair(
                     keylabel, key_id,
                     pub_cka_verify=False,
                     pub_cka_verify_recover=False,
@@ -394,7 +387,7 @@ class DNSKeySyncInstance(service.Service):
                 'ipk11Wrap': True,
             }
             filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
-            entries, truncated = ldap.find_entries(filter=filter,
+            entries, _truncated = ldap.find_entries(filter=filter,
                                                    base_dn=dn_base)
             for entry in entries:
                 # don't disable wrapping for new key

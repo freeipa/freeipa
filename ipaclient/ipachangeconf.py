@@ -24,8 +24,6 @@ import shutil
 
 import six
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -303,7 +301,7 @@ class IPAChangeConf(object):
 
         for o in oldopts:
             if o['type'] == "section" or o['type'] == "subsection":
-                (num, no) = self.findOpts(newopts, o['type'], o['name'])
+                _num, no = self.findOpts(newopts, o['type'], o['name'])
                 if not no:
                     opts.append(o)
                     continue
@@ -327,7 +325,7 @@ class IPAChangeConf(object):
                 continue
 
             if o['type'] == "option":
-                (num, no) = self.findOpts(newopts, 'option', o['name'], True)
+                _num, no = self.findOpts(newopts, 'option', o['name'], True)
                 if not no:
                     opts.append(o)
                     continue
@@ -482,9 +480,6 @@ class IPAChangeConf(object):
     #     [{'name': 'foo', 'value': 'bar', 'action': 'set/comment'}]
     # section is a section name like 'global'
     def changeConf(self, file, newopts):
-        autosection = False
-        savedsection = None
-        done = False
         output = ""
         f = None
         try:
@@ -517,9 +512,6 @@ class IPAChangeConf(object):
     # options is a set of dictionaries in the form:
     #     [{'name': 'foo', 'value': 'bar', 'action': 'set/comment'}]
     def newConf(self, file, options):
-        autosection = False
-        savedsection = None
-        done = False
         output = ""
         f = None
         try:

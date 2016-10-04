@@ -24,8 +24,6 @@ from ipalib import Updater
 from ipapython import ipautil
 from ipapython.dn import DN
 
-# pylint: disable=unused-variable
-
 register = Registry()
 
 if six.PY3:
@@ -80,16 +78,15 @@ class GenerateUpdateMixin(object):
         old_definition_container = DN(('cn', 'managed entries'), ('cn', 'plugins'), ('cn', 'config'), suffix)
         new_definition_container = DN(('cn', 'Definitions'), ('cn', 'Managed Entries'), ('cn', 'etc'), suffix)
 
-        definitions_dn = DN(('cn', 'Definitions'))
         update_list = []
         restart = False
 
         # If the old entries don't exist the server has already been updated.
         try:
-            definitions_managed_entries, truncated = ldap.find_entries(
+            definitions_managed_entries, _truncated = ldap.find_entries(
                 searchfilter, ['*'], old_definition_container,
                 ldap.SCOPE_ONELEVEL)
-        except errors.NotFound as e:
+        except errors.NotFound:
             return (False, update_list)
 
         for entry in definitions_managed_entries:
@@ -99,7 +96,7 @@ class GenerateUpdateMixin(object):
                 assert isinstance(old_dn, DN)
                 try:
                     entry = ldap.get_entry(old_dn, ['*'])
-                except errors.NotFound as e:
+                except errors.NotFound:
                     pass
                 else:
                     # Compute the new dn by replacing the old container with the new container
@@ -164,7 +161,7 @@ class update_managed_post_first(Updater, GenerateUpdateMixin):
 
     def execute(self, **options):
         # Never need to restart with the pre-update changes
-        (ignore, update_list) = self.generate_update(False)
+        _ignore, update_list = self.generate_update(False)
 
         return False, update_list
 

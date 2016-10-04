@@ -52,8 +52,6 @@ from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
 
-# pylint: disable=unused-variable
-
 DS_USER = platformconstants.DS_USER
 DS_GROUP = platformconstants.DS_GROUP
 
@@ -186,7 +184,7 @@ def get_domain_level(api=api):
 def get_all_external_schema_files(root):
     """Get all schema files"""
     f = []
-    for path, subdirs, files in os.walk(root):
+    for path, _subdirs, files in os.walk(root):
         for name in files:
             if fnmatch.fnmatch(name, "*.ldif"):
                 f.append(os.path.join(path, name))
@@ -741,7 +739,7 @@ class DsInstance(service.Service):
             os.chown(filepath, 0, 0)
 
         replacevars = {'KRB5CCNAME': ccache}
-        old_values = ipautil.backup_config_and_replace_variables(
+        ipautil.backup_config_and_replace_variables(
             self.fstore, filepath, replacevars=replacevars)
         tasks.restore_context(filepath)
 
@@ -898,7 +896,6 @@ class DsInstance(service.Service):
 
     def change_admin_password(self, password):
         root_logger.debug("Changing admin password")
-        dirname = config_dirname(self.serverid)
         dmpwdfile = ""
         admpwdfile = ""
 
@@ -937,7 +934,7 @@ class DsInstance(service.Service):
         enabled = self.restore_state("enabled")
 
         # Just eat this state if it exists
-        running = self.restore_state("running")
+        self.restore_state("running")
 
         try:
             self.fstore.restore_file(paths.LIMITS_CONF)
@@ -961,10 +958,8 @@ class DsInstance(service.Service):
                 root_logger.error("Failed to remove DS instance. You may "
                                   "need to remove instance data manually")
 
-        # At one time we removed this user on uninstall. That can potentially
-        # orphan files, or worse, if another useradd runs in the intermim,
-        # cause files to have a new owner.
-        user_exists = self.restore_state("user_exists")
+        # Just eat this state
+        self.restore_state("user_exists")
 
         # Make sure some upgrade-related state is removed. This could cause
         # re-installation problems.
@@ -1341,7 +1336,7 @@ class DsInstance(service.Service):
         # the failure to update the shared config entry and return
         #
         max_wait = 30
-        for i in range(0, max_wait + 1):
+        for _i in range(0, max_wait + 1):
             try:
                 entries = conn.get_entries(
                     sharedcfgdn, scope=ldap.SCOPE_ONELEVEL,

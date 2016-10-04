@@ -49,8 +49,6 @@ from ipaserver.install import dogtaginstance
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -68,7 +66,6 @@ def uninstall_ipa_kpasswd():
     """
     ipa_kpasswd = KpasswdInstance()
 
-    running = ipa_kpasswd.restore_state("running")
     enabled = not ipa_kpasswd.restore_state("enabled")
 
     if enabled is not None and not enabled:
@@ -81,7 +78,6 @@ def backup_file(filename, ext):
         raise ValueError("Absolute path required")
 
     backupfile = filename + ".bak"
-    (reldir, file) = os.path.split(filename)
 
     while os.path.exists(backupfile):
         backupfile = backupfile + "." + str(ext)
@@ -209,7 +205,6 @@ def update_dbmodules(realm, filename=paths.KRB5_CONF):
     prefix = ''
 
     root_logger.info('[Verifying that KDC configuration is using ipa-kdb backend]')
-    st = os.stat(filename)
     fd = open(filename)
 
     lines = fd.readlines()

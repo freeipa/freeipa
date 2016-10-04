@@ -19,8 +19,6 @@ from ipapython.ipa_log_manager import root_logger
 from . import util
 from .util import from_
 
-# pylint: disable=unused-variable
-
 __all__ = ['InvalidStateError', 'KnobValueError', 'Property', 'Knob',
            'Configurable', 'Group', 'Component', 'Composite']
 
@@ -207,7 +205,7 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
 
             result = sorted(result, key=lambda r: r[0])
 
-            for order, owner_cls, name in result:
+            for _order, owner_cls, name in result:
                 yield owner_cls, name
 
     @classmethod
@@ -316,7 +314,7 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
         Run the validation part of the configurable.
         """
 
-        for nothing in self._validator():
+        for _nothing in self._validator():
             pass
 
     def _validator(self):
@@ -333,7 +331,7 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
         Run the execution part of the configurable.
         """
 
-        for nothing in self._executor():
+        for _nothing in self._executor():
             pass
 
     def _executor(self):
@@ -541,7 +539,7 @@ class Composite(Configurable):
 
             result = sorted(result, key=lambda r: r[0])
 
-            for order, owner_cls, name in result:
+            for _order, owner_cls, name in result:
                 yield owner_cls, name
 
     def __getattr__(self, name):
@@ -565,7 +563,7 @@ class Composite(Configurable):
         super(Composite, self)._reset()
 
     def _get_components(self):
-        for owner_cls, name in self.components():
+        for _owner_cls, name in self.components():
             yield getattr(self, name)
 
     def _configure(self):
