@@ -16,10 +16,9 @@ install:
 	fi
 
 clean:
-	rm -f *~ *.pyc __pycache__/
+	rm -rf *~ *.pyc __pycache__/
 
 distclean: clean
-	rm -f setup.py
 
 maintainer-clean: distclean
 	rm -rf build

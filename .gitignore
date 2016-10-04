@@ -39,8 +39,12 @@ freeipa2-dev-doc
 /freeipa.spec
 !/Makefile
 /dist/
+/*/dist/
 /RELEASE
 /rpmbuild/
+# Build
+/ipasetup.py
+*.egg-info
 
 # Subdirectories
 /daemons/ipa-otpd/ipa-otpd
@@ -64,16 +68,9 @@ freeipa2-dev-doc
 /client/ipa-join
 /client/ipa-rmkeytab
 
-/ipatests/setup.py
-
-/ipaclient/setup.py
-
-/ipalib/setup.py
 !/ipalib/Makefile
 
-/ipapython/setup.py
 /ipapython/version.py
 !/ipapython/Makefile
 
 /ipaplatform/__init__.py
-/ipaplatform/setup.py

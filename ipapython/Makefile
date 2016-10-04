@@ -20,13 +20,13 @@ install:
 	done
 
 clean:
-	rm -f *~ *.pyc __pycache__/
+	rm -rf *~ *.pyc __pycache__/
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
 distclean: clean
-	rm -f setup.py ipa-python.spec version.py
+	rm -f ipa-python.spec version.py
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done

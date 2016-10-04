@@ -20,18 +20,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Python-level packaging using distutils.
+Python-level packaging using setuptools
 """
+import os
+import sys
 
-from distutils.core import setup
-import ipalib
+# include ../ for ipasetup.py and ipalib
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import ipalib  # noqa: E402
+from ipasetup import ipasetup  # noqa: E402
 
 
-setup(
+ipasetup(
     name='freeipa',
+    doc=__doc__,
     version=ipalib.__version__,
-    license='GPLv3+',
-    url='http://freeipa.org/',
+    package_dir={'ipaserver': ''},
     packages=[
         'ipaserver',
         'ipaserver.advise',

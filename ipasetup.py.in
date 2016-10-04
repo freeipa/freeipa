@@ -1,0 +1,71 @@
+#!/usr/bin/python2
+# Copyright (C) 2014  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+import os
+import sys
+
+common_args = dict(
+    version="__VERSION__",
+    license="GPL",
+    author="FreeIPA Developers",
+    author_email="freeipa-devel@redhat.com",
+    maintainer="FreeIPA Developers",
+    maintainer_email="freeipa-devel@redhat.com",
+    url="http://www.freeipa.org/",
+    download_url="http://www.freeipa.org/page/Downloads",
+    platforms=["Linux", "Solaris", "Unix"],
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        ("Topic :: System :: Systems Administration :: "
+         "Authentication/Directory :: LDAP"),
+        "Topic :: Internet :: Name Service (DNS)",
+        "Intended Audience :: System Environment/Base",
+        "License :: GPL",
+        "Programming Language :: Python",
+        "Operating System :: POSIX",
+        "Operating System :: Unix",
+    ],
+)
+
+local_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+old_path = os.path.abspath(os.getcwd())
+
+
+def ipasetup(name, doc, **kwargs):
+    doclines = doc.split("\n")
+
+    setup_kwargs = common_args.copy()
+    setup_kwargs.update(
+        name=name,
+        description=doclines[0],
+        long_description="\n".join(doclines[:2]),
+        **kwargs
+    )
+    # exclude setup helpers from getting installed
+    epd = setup_kwargs.setdefault('exclude_package_data', {})
+    epd.setdefault('', []).extend(['*/setup.py', '*/ipasetup.py'])
+
+    os.chdir(local_path)
+    try:
+        # BEFORE importing distutils, remove MANIFEST. distutils doesn't
+        # properly update it when the contents of directories change.
+        if os.path.isfile('MANIFEST'):
+            os.unlink('MANIFEST')
+        from setuptools import setup
+        return setup(**setup_kwargs)
+    finally:
+        os.chdir(old_path)
