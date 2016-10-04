@@ -5,8 +5,6 @@ from ipaserver.install.installutils import is_ipa_configured, ScriptError
 from ipapython import config, ipautil
 from ipalib import api
 from ipapython.dn import DN
-from ipalib.config import Env
-from ipalib.constants import DEFAULT_CONFIG
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 import sys
@@ -91,12 +89,7 @@ if len(args) != 1:
 
 trusted_domain = ipautil.fsdecode(args[0]).lower()
 
-env = Env()
-env._bootstrap(debug=options.debug, log=None)
-env._finalize_core(**dict(DEFAULT_CONFIG))
-
-# Initialize the API with the proper debug level
-api.bootstrap(in_server=True, debug=env.debug, log=None,
+api.bootstrap(in_server=True, log=None,
               context='server', confdir=paths.ETC_IPA)
 api.finalize()
 
