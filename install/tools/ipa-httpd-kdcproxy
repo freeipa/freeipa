@@ -81,7 +81,7 @@ class KDCProxyConfig(object):
             self.con = IPAdmin(ldap_uri=self.ldap_uri)
             # EXTERNAL bind as root user
             self.con.ldapi = True
-            self.con.do_bind(timeout=self.time_limit)
+            self.con.do_bind()
         except (errors.NetworkError, socket.timeout) as e:
             msg = 'Unable to connect to dirsrv: %s' % e
             raise CheckError(msg)
