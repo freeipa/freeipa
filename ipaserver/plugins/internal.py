@@ -692,6 +692,15 @@ class i18n_messages(Command):
             "privilege": {
                 "identity": _("Privilege Settings"),
             },
+            "publickey": {
+                "set_dialog_help": _("Public key:"),
+                "set_dialog_title": _("Set public key"),
+                "show_set_key": _("Show/Set key"),
+                "status_mod_ns": _("Modified: key not set"),
+                "status_mod_s": _("Modified"),
+                "status_new_ns": _("New: key not set"),
+                "status_new_s": _("New: key set"),
+            },
             "pwpolicy": {
                 "identity": _("Password Policy"),
             },
@@ -851,6 +860,35 @@ class i18n_messages(Command):
                 "status_link": _("Click to ${action}"),
                 "unlock": _("Unlock"),
                 "unlock_confirm": _("Are you sure you want to unlock user ${object}?"),
+            },
+            "vault": {
+                "add_warn_arch_ret": _(
+                    "Secrets can be added/retrieved to vault only by using "
+                    "vault-archive and vault-retrieve from CLI."
+                    ),
+                "add_warn_standard": _(
+                    "Content of 'standard' vaults can be seen by users with "
+                    "higher privileges (admins)."
+                    ),
+                "asymmetric_type": _("Asymmetric"),
+                "config_title": _("Vaults Config"),
+                "group": _("Group"),
+                "members": _("Members"),
+                "my_vaults_title": _("My User Vaults"),
+                "owners": _("Owners"),
+                "service": _("Service"),
+                "service_vaults_title": _("Service Vaults"),
+                "shared": _("Shared"),
+                "shared_vaults_title": _("Shared Vaults"),
+                "standard_type": _("Standard"),
+                "symmetric_type": _("Symmetric"),
+                "type": _("Vault Type"),
+                "type_tooltip": _(
+                    "Only standard vaults can be created in WebUI, use CLI "
+                    "for other types of vaults."
+                    ),
+                "user": _("User"),
+                "user_vaults_title": _("User Vaults"),
             },
         },
         "password": {

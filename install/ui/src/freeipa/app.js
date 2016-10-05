@@ -51,11 +51,12 @@ define([
     './selinux',
     './serverconfig',
     './service',
+    './stageuser',
     './sudo',
     './trust',
     './topology',
     './user',
-    './stageuser',
+    './vault',
     'dojo/domReady!'
 ],function(app_container) {
     return app_container;

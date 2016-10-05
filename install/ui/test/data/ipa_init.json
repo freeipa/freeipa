@@ -669,6 +669,31 @@
                             "status_link": "Click to ${action}",
                             "unlock": "Unlock",
                             "unlock_confirm": "Are you sure you want to unlock user ${object}?"
+                        },
+                        "vault": {
+                            "add_warn_arch_ret": "Secrets can be added/retrieved
+                                to vault only by using vault-archive and
+                                vault-retrieve from CLI.",
+                            "add_warn_standard": "Content of 'standard' vaults
+                                can be seen by users with higher privileges
+                                (admins).",
+                            "asymmetric_type": "Asymmetric",
+                            "config_title": "Vaults Config",
+                            "group": "Group",
+                            "members": "Members",
+                            "my_vaults_title": "My User Vaults",
+                            "owners": "Owners",
+                            "service": "Service",
+                            "service_vaults_title": "Service Vaults",
+                            "shared": "Shared",
+                            "shared_vaults_title": "Shared Vaults",
+                            "standard_type": "Standard",
+                            "symmetric_type": "Symmetric",
+                            "type": "Vault Type",
+                            "type_tooltip": "Only standard vaults can be created
+                                in WebUI, use CLI for other types of vaults.",
+                            "user": "User",
+                            "user_vaults_title": "User Vaults"
                         }
                     },
                     "password": {

@@ -240,6 +240,18 @@ var IPA = function () {
             }
         }));
 
+        batch.add_command(rpc.command({
+            entity: 'vaultconfig',
+            method: 'show',
+            retry: false,
+            on_success: function(data, text_status, xhr) {
+                that.vault_enabled = true;
+            },
+            on_error: function(xhr, text_status, error_thrown) {
+                that.vault_enabled = false;
+            }
+        }));
+
         batch.execute();
     };
 
