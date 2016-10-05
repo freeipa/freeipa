@@ -44,7 +44,9 @@ When the IPA CA is not configured, this command is not available.
 \- Install a CA certificate
 .sp
 .RS
-This command can be used to install the certificate contained in \fICERTFILE\fR as a new CA certificate to IPA.
+This command can be used to install the certificate contained in \fICERTFILE\fR as an additional CA certificate to IPA.
+.sp
+Please do not forget to run ipa-certupdate on the master, all the replicas and all the clients after this command in order to update IPA certificates databases.
 .RE
 .SH "COMMON OPTIONS"
 .TP
