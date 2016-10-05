@@ -554,6 +554,13 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     that.update_command_name = spec.update_command_name || 'mod';
 
     /**
+     * Name of url argument which will be added to update RPC command as option.
+     *
+     * @property {string}
+     */
+    that.update_attribute = spec.update_attribute || null;
+
+    /**
      * Command mode
      * Command mode determines how update information on update is collected.
      * There are two modes:
@@ -928,6 +935,10 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
             args: args,
             options: options
         });
+
+        if (that.update_attribute) {
+            that.add_url_arg_to_command(command, that.update_attribute);
+        }
 
         //set command options
         that.add_fields_to_command(update_info, command);
