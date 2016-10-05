@@ -1847,6 +1847,14 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
     that.search_all_entries = spec.search_all_entries;
 
     /**
+     * Attribute from *_find command which will be used in batch *_show command
+     * which is called for each row.
+     *
+     * @property {String}
+     */
+    that.show_command_additional_attr = spec.show_command_additional_attr || null;
+
+    /**
      * Member resolution(no_member: true ) in rpc request is skipped by default
      * to improve performance of getting data.
      *
@@ -2144,7 +2152,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
 
         // get the complete records
         that.get_records(
-            records_map.keys,
+            records_map,
             function(data, text_status, xhr) {
                 var results = data.result.results;
                 for (var i=0; i<records_map.length; i++) {
@@ -2227,7 +2235,9 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
      * @param {Function} on_success command success handler
      * @param {Function} on_failure command error handler
      */
-    that.create_get_records_command = function(pkeys, on_success, on_error) {
+    that.create_get_records_command = function(records, on_success, on_error) {
+
+        var pkeys = records.keys;
 
         var batch = rpc.batch_command({
             name: that.get_records_command_name(),
@@ -2244,6 +2254,10 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
                 args: [pkey]
             });
 
+            if (that.show_command_additional_attr) {
+                that.extend_get_records_command(command, records, pkey);
+            }
+
             if (!that.always_request_members && that.table.entity.has_members()) {
                 command.set_options({no_members: true});
             }
@@ -2253,6 +2267,24 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
 
         return batch;
     };
+
+
+    /**
+     * This allows to use pagination in situations when for loading whole search
+     * page you need *_show command with
+     *
+     */
+    that.extend_get_records_command = function(command, records, pkey) {
+        var record = records.get(pkey);
+        var item = record[that.show_command_additional_attr];
+        if (item) {
+            var temp_option = {};
+            temp_option[that.show_command_additional_attr] = item;
+            command.set_options(temp_option);
+        }
+    };
+
+
 
     /**
      * Execute command for obtaining complete records
@@ -2429,6 +2461,12 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         for (var i=0; i<columns.length; i++) {
             that.create_column(columns[i]);
         }
+    };
+
+    that.fetch_records = function() {
+        if (!that.table) return null;
+
+        return that.table.records;
     };
 
     if (!no_init) that.init_table_columns();
