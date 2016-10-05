@@ -838,6 +838,15 @@ IPA.association_table_field = function (spec) {
 
     var that = IPA.field(spec);
 
+    /**
+     * In case that facet has a state attribute set this is the way how to user
+     * that attribute in refresh command as option in format:
+     * {attributename: attributevalue}.
+     *
+     * @property {String}
+     */
+    that.refresh_attribute = spec.refresh_attribute || '';
+
     that.load = function(data) {
         that.values = that.adapter.load(data);
         that.widget.update(that.values);
@@ -865,14 +874,19 @@ IPA.association_table_field = function (spec) {
         }
 
         var pkey = that.facet.get_pkey();
-        rpc.command({
+        var command = rpc.command({
             entity: that.entity.name,
             method: 'show',
             args: [pkey],
             options: { all: true, rights: true },
             on_success: on_success,
             on_error: on_error
-        }).execute();
+        });
+
+        var additional_option = that.facet.state[that.refresh_attribute];
+        if (additional_option) command.set_option(that.refresh_attribute, additional_option);
+
+        command.execute();
     };
 
     that.widgets_created = function() {
