@@ -398,6 +398,7 @@ class TestWrongClientDomain(IntegrationTest):
     topology = "star"
     num_replicas = 1
     domain_name = 'exxample.test'
+    domain_level = DOMAIN_LEVEL_1
 
     @classmethod
     def install(cls, mh):
