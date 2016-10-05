@@ -32,13 +32,11 @@ import ldap
 import ldap.sasl
 import ldap.filter
 from ldap.controls import SimplePagedResultsControl
-import ldapurl
 import six
 
 from ipalib import errors, _
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
-from ipapython.ipautil import (
-    format_netloc, wait_for_open_socket, wait_for_open_ports, CIDict)
+from ipapython.ipautil import format_netloc, CIDict
 from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
@@ -50,7 +48,6 @@ if six.PY3:
 # Global variable to define SASL auth
 SASL_GSSAPI = ldap.sasl.sasl({}, 'GSSAPI')
 
-DEFAULT_TIMEOUT = 10
 _debug_log_ldap = False
 
 _missing = object()
@@ -1633,48 +1630,25 @@ class IPAdmin(LDAPClient):
     def __str__(self):
         return self.host + ":" + str(self.port)
 
-    def __wait_for_connection(self, timeout):
-        lurl = ldapurl.LDAPUrl(self.ldap_uri)
-        if lurl.urlscheme == 'ldapi':
-            wait_for_open_socket(lurl.hostport, timeout)
-        else:
-            (host,port) = lurl.hostport.split(':')
-            wait_for_open_ports(host, int(port), timeout)
+    def do_simple_bind(self, binddn=DN(('cn', 'directory manager')),
+                       bindpw=""):
+        self.simple_bind(binddn, bindpw)
 
-    def __bind_with_wait(self, bind_func, timeout, *args, **kwargs):
-        try:
-            bind_func(*args, **kwargs)
-        except errors.NetworkError as e:
-            if not timeout and 'TLS' in e.error:
-                # No connection to continue on if we have a TLS failure
-                # https://bugzilla.redhat.com/show_bug.cgi?id=784989
-                raise
-        except errors.DatabaseError:
-            pass
-        else:
-            return
-        self.__wait_for_connection(timeout)
-        bind_func(*args, **kwargs)
+    def do_sasl_gssapi_bind(self):
+        self.gssapi_bind()
 
-    def do_simple_bind(self, binddn=DN(('cn', 'directory manager')), bindpw="",
-                       timeout=DEFAULT_TIMEOUT):
-        self.__bind_with_wait(self.simple_bind, timeout, binddn, bindpw)
+    def do_external_bind(self, user_name=None):
+        self.external_bind(user_name)
 
-    def do_sasl_gssapi_bind(self, timeout=DEFAULT_TIMEOUT):
-        self.__bind_with_wait(self.gssapi_bind, timeout)
-
-    def do_external_bind(self, user_name=None, timeout=DEFAULT_TIMEOUT):
-        self.__bind_with_wait(self.external_bind, timeout, user_name)
-
-    def do_bind(self, dm_password="", autobind=AUTOBIND_AUTO, timeout=DEFAULT_TIMEOUT):
+    def do_bind(self, dm_password="", autobind=AUTOBIND_AUTO):
         if dm_password:
-            self.do_simple_bind(bindpw=dm_password, timeout=timeout)
+            self.do_simple_bind(bindpw=dm_password)
             return
         if autobind != AUTOBIND_DISABLED and os.getegid() == 0 and self.ldapi:
             try:
                 # autobind
                 pw_name = pwd.getpwuid(os.geteuid()).pw_name
-                self.do_external_bind(pw_name, timeout=timeout)
+                self.do_external_bind(pw_name)
                 return
             except errors.NotFound:
                 if autobind == AUTOBIND_ENABLED:
@@ -1683,7 +1657,7 @@ class IPAdmin(LDAPClient):
                     raise
 
         #fall back
-        self.do_sasl_gssapi_bind(timeout=timeout)
+        self.do_sasl_gssapi_bind()
 
     def modify_s(self, dn, modlist):
         # FIXME: for backwards compatibility only
