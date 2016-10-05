@@ -530,7 +530,7 @@ class TestSudo(IntegrationTest):
 
     def test_sudo_rule_restricted_to_running_as_single_group(self):
         result1 = self.list_sudo_commands("testuser1", verbose=True)
-        assert "RunAsUsers: root" in result1.stdout_text
+        assert "RunAsUsers: testuser1" in result1.stdout_text
         assert "RunAsGroups: testgroup2" in result1.stdout_text
 
     def test_setting_category_to_all_with_valid_entries_runasgroup(self):
@@ -551,7 +551,7 @@ class TestSudo(IntegrationTest):
 
     def test_sudo_rule_restricted_to_running_as_single_local_group(self):
         result1 = self.list_sudo_commands("testuser1", verbose=True)
-        assert "RunAsUsers: root" in result1.stdout_text
+        assert "RunAsUsers: testuser1" in result1.stdout_text
         assert "RunAsGroups: localgroup" in result1.stdout_text
 
     def test_setting_category_to_all_with_valid_entries_runasgroup_local(self):
