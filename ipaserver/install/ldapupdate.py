@@ -59,8 +59,8 @@ def connect(ldapi=False, realm=None, fqdn=None, dm_password=None, pw_name=None):
         conn = ipaldap.IPAdmin(fqdn, ldapi=False, realm=realm, decode_attrs=False)
     try:
         if dm_password:
-            conn.do_simple_bind(binddn=DN(('cn', 'directory manager')),
-                                bindpw=dm_password)
+            conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                             bind_password=dm_password)
         elif os.getegid() == 0:
             try:
                 # autobind

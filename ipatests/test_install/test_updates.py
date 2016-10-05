@@ -64,7 +64,8 @@ class test_update(unittest.TestCase):
             raise nose.SkipTest("No directory manager password")
         self.updater = LDAPUpdate(dm_password=self.dm_password, sub_dict={})
         self.ld = ipaldap.IPAdmin(fqdn)
-        self.ld.do_simple_bind(bindpw=self.dm_password)
+        self.ld.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                            bind_password=self.dm_password)
         self.testdir = os.path.abspath(os.path.dirname(__file__))
         if not ipautil.file_exists(os.path.join(self.testdir,
                                                 "0_reset.update")):

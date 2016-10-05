@@ -49,7 +49,7 @@ def bind(ldap_uri, base_dn, username, password):
     bind_dn = DN(('uid', username), ('cn', 'users'), ('cn', 'accounts'), base_dn)
     try:
         conn = IPAdmin(ldap_uri=ldap_uri)
-        conn.do_simple_bind(bind_dn, password)
+        conn.simple_bind(bind_dn, password)
     except (errors.ACIError, errors.DatabaseError, errors.NotFound) as e:
         root_logger.error(
             'migration invalid credentials for %s: %s' % (bind_dn, e))

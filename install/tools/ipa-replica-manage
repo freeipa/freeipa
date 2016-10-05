@@ -169,7 +169,8 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
     try:
         conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
         if dirman_passwd:
-            conn.do_simple_bind(bindpw=dirman_passwd)
+            conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                             bind_password=dirman_passwd)
         else:
             conn.do_sasl_gssapi_bind()
     except Exception as e:
@@ -628,7 +629,8 @@ def clean_dangling_ruvs(realm, host, options):
     """
     conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
     try:
-        conn.do_simple_bind(bindpw=options.dirman_passwd)
+        conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                         bind_password=options.dirman_passwd)
 
         # get all masters
         masters_dn = DN(api.env.container_masters, api.env.basedn)
@@ -673,7 +675,8 @@ def clean_dangling_ruvs(realm, host, options):
     for master_cn, master_info in info.items():
         try:
             conn = ipaldap.IPAdmin(master_cn, 636, cacert=CACERT)
-            conn.do_simple_bind(bindpw=options.dirman_passwd)
+            conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                             bind_password=options.dirman_passwd)
             master_info['online'] = True
         except Exception:
             print("The server '{host}' appears to be offline."

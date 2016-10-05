@@ -659,8 +659,8 @@ class DsInstance(service.Service):
         root_logger.debug("Waiting for memberof task to complete.")
         conn = ipaldap.IPAdmin(self.fqdn)
         if self.dm_password:
-            conn.do_simple_bind(
-                DN(('cn', 'directory manager')), self.dm_password)
+            conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                             bind_password=self.dm_password)
         else:
             conn.do_sasl_gssapi_bind()
         replication.wait_for_task(conn, dn)
@@ -794,7 +794,8 @@ class DsInstance(service.Service):
                 'restart_dirsrv %s' % self.serverid)
 
         conn = ipaldap.IPAdmin(self.fqdn)
-        conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
+        conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                         bind_password=self.dm_password)
 
         mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
                (ldap.MOD_REPLACE, "nsSSL3Ciphers", "default"),
@@ -830,7 +831,8 @@ class DsInstance(service.Service):
         trust_flags = dict(reversed(dsdb.list_certs()))
 
         conn = ipaldap.IPAdmin(self.fqdn)
-        conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
+        conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                         bind_password=self.dm_password)
 
         nicknames = dsdb.find_root_cert(self.cacert_name)[:-1]
         for nickname in nicknames:
@@ -853,7 +855,8 @@ class DsInstance(service.Service):
                             subject_base=self.subject_base)
 
         conn = ipaldap.IPAdmin(self.fqdn)
-        conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
+        conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                         bind_password=self.dm_password)
 
         self.import_ca_certs(dsdb, self.ca_is_configured, conn)
 

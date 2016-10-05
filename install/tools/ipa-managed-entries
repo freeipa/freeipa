@@ -91,7 +91,8 @@ def main():
 
         if options.dirman_password:
             try:
-                conn.do_simple_bind(bindpw=options.dirman_password)
+                conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                                 bind_password=options.dirman_password)
             except errors.ACIError:
                 sys.exit("Invalid credentials")
         else:
@@ -101,7 +102,8 @@ def main():
         if dirman_password is None:
             sys.exit("Directory Manager password required")
         try:
-            conn.do_simple_bind(bindpw=dirman_password)
+            conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                             bind_password=dirman_password)
         except errors.ACIError:
             sys.exit("Invalid credentials")
     except errors.ExecutionError as lde:
