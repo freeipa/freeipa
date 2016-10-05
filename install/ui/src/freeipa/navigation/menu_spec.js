@@ -215,6 +215,32 @@ var nav = {};
                         { entity: 'dnsserver' },
                         { entity: 'dnsconfig' }
                     ]
+                },
+                {
+                    name: 'vault',
+                    entity: 'vault',
+                    facet: 'search',
+                    children: [
+                        {
+                            entity: 'vault',
+                            facet: 'user_search',
+                            hidden: true
+                        },
+                        {
+                            entity: 'vault',
+                            facet: 'service_search',
+                            hidden: true
+                        },
+                        {
+                            entity: 'vault',
+                            facet: 'shared_search',
+                            hidden: true
+                        },
+                        {
+                            entity: 'vaultconfig',
+                            hidden: true
+                        }
+                    ]
                 }
             ]
         },
@@ -298,7 +324,32 @@ nav.self_service = {
     name: 'self-service',
     items: [
         { entity: 'user' },
-        { entity: 'otptoken' }
+        { entity: 'otptoken' },
+        {
+            entity: 'vault',
+            facet: 'search',
+            children: [
+                {
+                    entity: 'vault',
+                    facet: 'user_search',
+                    hidden: true
+                },
+                {
+                    entity: 'vault',
+                    facet: 'service_search',
+                    hidden: true
+                },
+                {
+                    entity: 'vault',
+                    facet: 'shared_search',
+                    hidden: true
+                },
+                {
+                    entity: 'vaultconfig',
+                    hidden: true
+                }
+            ]
+        }
     ]
 };
 
