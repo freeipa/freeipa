@@ -51,8 +51,6 @@ from .common import BaseServer
 if six.PY3:
     unicode = str
 
-DIRMAN_DN = DN(('cn', 'directory manager'))
-
 
 def get_dirman_password():
     return installutils.read_password("Directory Manager (existing master)",
@@ -637,7 +635,7 @@ def install_check(installer):
     replman = None
     try:
         # Try out the password
-        conn.connect(bind_dn=DIRMAN_DN, bind_pw=config.dirman_password,
+        conn.connect(bind_dn=ipaldap.DIRMAN_DN, bind_pw=config.dirman_password,
                      tls_cacertfile=cafile)
         replman = ReplicationManager(config.realm_name,
                                      config.master_host_name,
@@ -791,7 +789,7 @@ def install(installer):
     remote_api = installer._remote_api
     conn = remote_api.Backend.ldap2
     try:
-        conn.connect(bind_dn=DIRMAN_DN, bind_pw=config.dirman_password,
+        conn.connect(bind_dn=ipaldap.DIRMAN_DN, bind_pw=config.dirman_password,
                      tls_cacertfile=cafile)
 
         # Install CA cert so that we can do SSL connections with ldap

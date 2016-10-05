@@ -117,7 +117,8 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
     """
     conn = ipaldap.IPAdmin(hostname, realm=realm, ldapi=True)
     if dirman_passwd:
-        conn.do_simple_bind(bindpw=dirman_passwd)
+        conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                         bind_password=dirman_passwd)
     else:
         conn.do_sasl_gssapi_bind()
     entry = conn.get_entry(DN(('cn', 'IPA Version Replication'),
@@ -217,7 +218,8 @@ class ReplicationManager(object):
             else:
                 self.conn = ipaldap.IPAdmin(hostname, port=port, cacert=CACERT)
             if dirman_passwd:
-                self.conn.do_simple_bind(bindpw=dirman_passwd)
+                self.conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                                      bind_password=dirman_passwd)
             else:
                 self.conn.do_sasl_gssapi_bind()
         else:
@@ -1009,7 +1011,7 @@ class ReplicationManager(object):
             start_tls=True)
 
         if r_bindpw:
-            r_conn.do_simple_bind(binddn=r_binddn, bindpw=r_bindpw)
+            r_conn.simple_bind(r_binddn, r_bindpw)
         else:
             r_conn.do_sasl_gssapi_bind()
 
@@ -1115,7 +1117,7 @@ class ReplicationManager(object):
     def convert_to_gssapi_replication(self, r_hostname, r_binddn, r_bindpw):
         r_conn = ipaldap.IPAdmin(r_hostname, port=PORT, cacert=CACERT)
         if r_bindpw:
-            r_conn.do_simple_bind(binddn=r_binddn, bindpw=r_bindpw)
+            r_conn.simple_bind(r_binddn, r_bindpw)
         else:
             r_conn.do_sasl_gssapi_bind()
 
@@ -1145,7 +1147,7 @@ class ReplicationManager(object):
         # allow connections using two different CA certs
         r_conn = ipaldap.IPAdmin(r_hostname, port=PORT, cacert=CACERT)
         if r_bindpw:
-            r_conn.do_simple_bind(binddn=r_binddn, bindpw=r_bindpw)
+            r_conn.simple_bind(r_binddn, r_bindpw)
         else:
             r_conn.do_sasl_gssapi_bind()
 

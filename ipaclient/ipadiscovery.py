@@ -386,7 +386,7 @@ class IPADiscovery(object):
                 lh = ipaldap.IPAdmin(thost, protocol='ldap',
                                      no_schema=True, decode_attrs=False)
             try:
-                lh.do_simple_bind(DN(), '')
+                lh.simple_bind(DN(), '')
 
                 # get IPA base DN
                 root_logger.debug("Search LDAP server for IPA base DN")

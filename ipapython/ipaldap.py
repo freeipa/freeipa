@@ -61,6 +61,8 @@ TRUNCATED_SIZE_LIMIT = object()
 TRUNCATED_TIME_LIMIT = object()
 TRUNCATED_ADMIN_LIMIT = object()
 
+DIRMAN_DN = DN(('cn', 'directory manager'))
+
 
 def unicode_from_utf8(val):
     '''
@@ -1050,6 +1052,7 @@ class LDAPClient(object):
     def __enter__(self):
         return self
 
+
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
@@ -1075,8 +1078,6 @@ class LDAPClient(object):
         """
         with self.error_handler():
             self._flush_schema()
-            if bind_dn is None:
-                bind_dn = DN()
             assert isinstance(bind_dn, DN)
             bind_dn = str(bind_dn)
             bind_password = self.encode(bind_password)
@@ -1630,10 +1631,6 @@ class IPAdmin(LDAPClient):
     def __str__(self):
         return self.host + ":" + str(self.port)
 
-    def do_simple_bind(self, binddn=DN(('cn', 'directory manager')),
-                       bindpw=""):
-        self.simple_bind(binddn, bindpw)
-
     def do_sasl_gssapi_bind(self):
         self.gssapi_bind()
 
@@ -1642,7 +1639,7 @@ class IPAdmin(LDAPClient):
 
     def do_bind(self, dm_password="", autobind=AUTOBIND_AUTO):
         if dm_password:
-            self.do_simple_bind(bindpw=dm_password)
+            self.simple_bind(bind_dn=DIRMAN_DN, bind_password=dm_password)
             return
         if autobind != AUTOBIND_DISABLED and os.getegid() == 0 and self.ldapi:
             try:

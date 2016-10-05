@@ -94,7 +94,8 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
     try:
         # connect to main IPA LDAP server
         conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
-        conn.do_simple_bind(bindpw=dirman_passwd)
+        conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                         bind_password=dirman_passwd)
 
         dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
         entries = conn.get_entries(dn, conn.SCOPE_ONELEVEL)
@@ -295,7 +296,8 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         sys.exit(str(e))
     try:
         conn = ipaldap.IPAdmin(replica2, 636, cacert=CACERT)
-        conn.do_simple_bind(bindpw=dirman_passwd)
+        conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                         bind_password=dirman_passwd)
 
         dn = DN(('cn', 'CA'), ('cn', replica2), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
                 ipautil.realm_to_suffix(realm))

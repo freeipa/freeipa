@@ -1500,8 +1500,8 @@ def replica_ca_install_check(config):
         with ipaldap.LDAPClient(ca_ldap_url,
                                 start_tls=True,
                                 force_schema_updates=False) as connection:
-            connection.simple_bind(DN(('cn', 'Directory Manager')),
-                                   config.dirman_password)
+            connection.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
+                                   bind_password=config.dirman_password)
             rschema = connection.schema
             result = rschema.get_obj(ldap.schema.models.ObjectClass,
                                      objectclass)

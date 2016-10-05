@@ -47,7 +47,7 @@ class Host(pytest_multihost.host.Host):
         ldap = IPAdmin(self.external_hostname)
         binddn = self.config.dirman_dn
         self.log.info('LDAP bind as %s' % binddn)
-        ldap.do_simple_bind(binddn, self.config.dirman_password)
+        ldap.simple_bind(binddn, self.config.dirman_password)
         return ldap
 
     @classmethod
