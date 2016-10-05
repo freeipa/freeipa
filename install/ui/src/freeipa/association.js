@@ -429,6 +429,22 @@ IPA.association_table_widget = function (spec) {
      */
     that.additional_add_del_field = spec.additional_add_del_field;
 
+    /**
+     * Can be used in situations when the *_add_member command needs entity
+     * as a parameter, but parameter has different name than entity.
+     * i.e. vault_add_member --services=[values] ... this needs values from service
+     * entity, but option is called services, that we can set by setting
+     * this option in spec to other_option_name: 'services'
+     *
+     * @property {String} other_option_name
+     */
+    that.other_option_name = spec.other_option_name;
+
+    /**
+     * Entity which is added into member table.
+     *
+     * @property {String} other_entity
+     */
     that.other_entity = IPA.get_entity(spec.other_entity);
     that.attribute_member = spec.attribute_member;
 
@@ -683,9 +699,9 @@ IPA.association_table_widget = function (spec) {
             on_success: on_success,
             on_error: on_error
         });
-        command.set_option(that.other_entity.name, values);
 
         that.join_additional_option(command);
+        that.handle_entity_option(command, values);
 
         command.execute();
     };
@@ -699,6 +715,14 @@ IPA.association_table_widget = function (spec) {
 
             command.set_option(add_opt, value);
         }
+    };
+
+    that.handle_entity_option = function(command, values) {
+        var option_name = that.other_option_name;
+        if (!option_name) {
+            option_name = that.other_entity.name;
+        }
+        command.set_option(option_name, values);
     };
 
     that.show_remove_dialog = function() {
@@ -745,7 +769,6 @@ IPA.association_table_widget = function (spec) {
             );
         };
 
-
         dialog.open();
     };
 
@@ -761,8 +784,8 @@ IPA.association_table_widget = function (spec) {
             on_error: on_error
         });
 
-        command.set_option(that.other_entity.name, values);
         that.join_additional_option(command);
+        that.handle_entity_option(command, values);
 
         command.execute();
     };
