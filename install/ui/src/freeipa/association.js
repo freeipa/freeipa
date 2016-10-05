@@ -827,12 +827,31 @@ IPA.association_table_field = function (spec) {
 
     spec = spec || {};
 
+    /**
+     * Turn off decision whether the field is writable according to metadata.
+     * The source of rights will be only ACLs.
+     *
+     * @property {Boolean}
+     */
+    spec.check_writable_from_metadata = spec.check_writable_from_metadata === undefined ?
+                        false : spec.check_writable_from_metadata;
+
     var that = IPA.field(spec);
 
     that.load = function(data) {
         that.values = that.adapter.load(data);
         that.widget.update(that.values);
         that.widget.unselect_all();
+
+        if (!!that.acl_param) {
+            var record = that.adapter.get_record(data);
+            that.load_writable(record);
+            that.handle_acl();
+        }
+    };
+
+    that.handle_acl = function() {
+        if (!that.writable) that.widget.set_enabled(false);
     };
 
     that.refresh = function() {
