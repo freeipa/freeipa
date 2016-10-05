@@ -96,6 +96,16 @@ field.field = IPA.field = function(spec) {
     that.param = spec.param || spec.name;
 
     /**
+     * Some fields needs to skip checking whether they are writable or not
+     * in metadata. It is possible by setting this option to true.
+     * Field example: association_table_field
+     *
+     * @property {string}
+     */
+    that.check_writable_from_metadata = spec.check_writable_from_metadata !== undefined ?
+                spec.check_writable_from_metadata : true;
+
+    /**
      * Entity param which provides access control rights
      *
      * - defaults to `param`
@@ -459,10 +469,43 @@ field.field = IPA.field = function(spec) {
     };
 
     /**
+    * Evaluate if field is writable according to ACL in record and field
+    * configuration. Updates `writable` property.
+    *
+    * Not writable:
+    *
+    * - primary keys
+    * - with 'no_update' metadata flag
+    */
+    that.load_writable_from_metadata = function(writable) {
+        if (that.metadata) {
+            if (that.metadata.primary_key) {
+                writable = false;
+            }
+
+            // In case that field has set always_writable attribute, then
+            // 'no_update' flag is ignored in WebUI. It is done because of
+            // commands like user-{add,remove}-certmap. They operate with user's
+            // attribute, which cannot be changed using user-mod, but only
+            // using command user-{add,remove}-certmap. Therefore it has set
+            // 'no_update' flag, but we need to show 'Add', 'Remove' buttons in
+            // WebUI.
+            if (that.metadata.flags &&
+                array.indexOf(that.metadata.flags, 'no_update') > -1 &&
+                !that.always_writable) {
+                writable = false;
+            }
+        }
+
+        return writable;
+    };
+
+
+    /**
      * Evaluate if field is writable according to ACL in record and field
      * configuration. Updates `writable` property.
      *
-     * Not writable:
+     * Not writable (checked in method that.load_writable_from_metadata()):
      *
      * - primary keys
      * - with 'no_update' metadata flag
@@ -487,23 +530,8 @@ field.field = IPA.field = function(spec) {
             return has;
         }
 
-        if (that.metadata) {
-            if (that.metadata.primary_key) {
-                writable = false;
-            }
-
-            // In case that field has set always_writable attribute, then
-            // 'no_update' flag is ignored in WebUI. It is done because of
-            // commands like user-{add,remove}-certmap. They operate with user's
-            // attribute, which cannot be changed using user-mod, but only
-            // using command user-{add,remove}-certmap. Therefore it has set
-            // 'no_update' flag, but we need to show 'Add', 'Remove' buttons in
-            // WebUI.
-            if (that.metadata.flags &&
-                array.indexOf(that.metadata.flags, 'no_update') > -1 &&
-                !that.always_writable) {
-                writable = false;
-            }
+        if (that.check_writable_from_metadata) {
+            writable = that.load_writable_from_metadata(writable);
         }
 
         if (record && record.attributelevelrights) {
