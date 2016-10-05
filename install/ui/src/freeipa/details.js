@@ -539,6 +539,13 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     that.refresh_command_name = spec.refresh_command_name || 'show';
 
     /**
+     * Name of url argument which will be added to refresh RPC command as option.
+     *
+     * @property {string}
+     */
+    that.refresh_attribute = spec.refresh_attribute || null;
+
+    /**
      * Name of update command
      *
      * - defaults to 'mod'
@@ -885,6 +892,23 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     };
 
     /**
+     * Takes url argument which is named arg_name and its value. Creates object
+     * from this infromation {arg_name: arg_name_value} and attach it as option
+     * to command.
+     *
+     * @protected
+     * @param {rpc.command} command
+     * @param {string} argumnent name
+     */
+    that.add_url_arg_to_command = function(command, arg_name) {
+        var additional_opt = {};
+        command.options = command.options || {};
+
+        additional_opt[arg_name] = that.state[arg_name];
+        $.extend(command.options, additional_opt);
+    };
+
+    /**
      * Create update command based on field part of update info
      * @protected
      * @param {details.update_info} update_info
@@ -1032,6 +1056,10 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
 
         if (that.get_pkey()) {
             command.args = that.get_pkeys();
+        }
+
+        if (that.refresh_attribute) {
+            that.add_url_arg_to_command(command, that.refresh_attribute);
         }
 
         return command;
