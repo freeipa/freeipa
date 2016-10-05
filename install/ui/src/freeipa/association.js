@@ -421,6 +421,14 @@ IPA.association_table_widget = function (spec) {
 
     var that = IPA.table_widget(spec);
 
+    /**
+     * The value should be name of the field, which will be added to *_add_*,
+     * *_del_* commands as option: {fieldname: fieldvalue}.
+     *
+     * @property {String} fieldname
+     */
+    that.additional_add_del_field = spec.additional_add_del_field;
+
     that.other_entity = IPA.get_entity(spec.other_entity);
     that.attribute_member = spec.attribute_member;
 
@@ -677,7 +685,20 @@ IPA.association_table_widget = function (spec) {
         });
         command.set_option(that.other_entity.name, values);
 
+        that.join_additional_option(command);
+
         command.execute();
+    };
+
+    that.join_additional_option = function(command) {
+        var add_opt = that.additional_add_del_field;
+        if (add_opt && typeof add_opt === 'string') {
+            var opt_field = that.entity.facet.get_field(add_opt);
+            var value;
+            if (opt_field) value = opt_field.get_value()[0];
+
+            command.set_option(add_opt, value);
+        }
     };
 
     that.show_remove_dialog = function() {
@@ -741,6 +762,7 @@ IPA.association_table_widget = function (spec) {
         });
 
         command.set_option(that.other_entity.name, values);
+        that.join_additional_option(command);
 
         command.execute();
     };
