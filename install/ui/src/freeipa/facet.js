@@ -1644,6 +1644,20 @@ exp.FacetGroupsWidget = declare([], {
         return el;
     },
 
+    hide_tab: function(tab_name) {
+        var tab = this.get_tab_el(tab_name);
+        if (tab) tab.css('display', 'none');
+    },
+
+    show_tab: function(tab_name) {
+        var tab = this.get_tab_el(tab_name);
+        if (tab) tab.css('display', '');
+    },
+
+    get_tab_el: function(tab_name) {
+        return this.tab_els[tab_name];
+    },
+
     on_click: function(facet) {
         if (this.facet.get_pkeys) {
             var pkeys = this.facet.get_pkeys();
