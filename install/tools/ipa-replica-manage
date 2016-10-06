@@ -1123,8 +1123,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
 
     if options.cacert:
         # have to install the given CA cert before doing anything else
-        ds = dsinstance.DsInstance(realm_name = realm,
-                                   dm_password = dirman_passwd)
+        ds = dsinstance.DsInstance(realm_name=realm)
         if not ds.add_ca_cert(options.cacert):
             print("Could not load the required CA certificate file [%s]" % options.cacert)
             return
@@ -1214,7 +1213,7 @@ def re_initialize(realm, thishost, fromhost, dirman_passwd, nolookup=False):
         # If the agreement doesn't have nsDS5ReplicatedAttributeListTotal it means
         # we did not replicate memberOf, do so now.
         if not agreement.single_value.get('nsDS5ReplicatedAttributeListTotal'):
-            ds = dsinstance.DsInstance(realm_name = realm, dm_password = dirman_passwd)
+            ds = dsinstance.DsInstance(realm_name=realm)
             ds.ldapi = os.getegid() == 0
             ds.init_memberof()
 

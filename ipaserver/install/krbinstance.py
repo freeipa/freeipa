@@ -167,7 +167,8 @@ class KrbInstance(service.Service):
         self.start_creation(runtime=30)
 
         self.kpasswd = KpasswdInstance()
-        self.kpasswd.create_instance('KPASSWD', self.fqdn, self.admin_password, self.suffix, realm=self.realm)
+        self.kpasswd.create_instance('KPASSWD', self.fqdn, self.suffix,
+                                     realm=self.realm)
 
     def create_replica(self, realm_name,
                        master_fqdn, host_name,
@@ -198,7 +199,7 @@ class KrbInstance(service.Service):
         self.start_creation(runtime=30)
 
         self.kpasswd = KpasswdInstance()
-        self.kpasswd.create_instance('KPASSWD', self.fqdn, self.admin_password, self.suffix)
+        self.kpasswd.create_instance('KPASSWD', self.fqdn, self.suffix)
 
 
     def __enable(self):
@@ -206,7 +207,7 @@ class KrbInstance(service.Service):
         # We do not let the system start IPA components on its own,
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
-        self.ldap_enable('KDC', self.fqdn, self.admin_password, self.suffix)
+        self.ldap_enable('KDC', self.fqdn, None, self.suffix)
 
     def __start_instance(self):
         try:

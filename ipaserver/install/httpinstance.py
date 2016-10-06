@@ -127,14 +127,12 @@ class HTTPInstance(service.Service):
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
-    def create_instance(self, realm, fqdn, domain_name, dm_password=None,
-                        pkcs12_info=None,
+    def create_instance(self, realm, fqdn, domain_name, pkcs12_info=None,
                         subject_base=None, auto_redirect=True, ca_file=None,
                         ca_is_configured=None, promote=False):
         self.fqdn = fqdn
         self.realm = realm
         self.domain = domain_name
-        self.dm_password = dm_password
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.pkcs12_info = pkcs12_info
         self.principal = "HTTP/%s@%s" % (self.fqdn, self.realm)
@@ -193,7 +191,7 @@ class HTTPInstance(service.Service):
         # We do not let the system start IPA components on its own,
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
-        self.ldap_enable('HTTP', self.fqdn, self.dm_password, self.suffix)
+        self.ldap_enable('HTTP', self.fqdn, None, self.suffix)
 
     def configure_selinux_for_httpd(self):
         try:

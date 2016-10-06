@@ -33,7 +33,7 @@ replica_keylabel_template = u"dnssec-replica:%s"
 
 
 def dnssec_container_exists(fqdn, suffix, dm_password=None, ldapi=False,
-                            realm=None, autobind=ipaldap.AUTOBIND_DISABLED):
+                            realm=None):
     """
     Test whether the dns container exists.
     """
@@ -45,7 +45,7 @@ def dnssec_container_exists(fqdn, suffix, dm_password=None, ldapi=False,
                                         cacert=CACERT)
         conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
 
-        conn.do_bind(dm_password, autobind=autobind)
+        conn.do_bind(dm_password)
     except ldap.SERVER_DOWN:
         raise RuntimeError('LDAP server on %s is not responding. Is IPA installed?' % fqdn)
 
@@ -61,16 +61,11 @@ def remove_replica_public_keys(hostname):
 
 
 class DNSKeySyncInstance(service.Service):
-    def __init__(self, fstore=None, dm_password=None, logger=root_logger,
-                 ldapi=False, start_tls=False):
+    def __init__(self, fstore=None, logger=root_logger):
         service.Service.__init__(
             self, "ipa-dnskeysyncd",
             service_desc="DNS key synchronization service",
-            dm_password=dm_password,
-            ldapi=ldapi,
-            start_tls=start_tls
         )
-        self.dm_password = dm_password
         self.logger = logger
         self.extra_config = [u'dnssecVersion 1', ]  # DNSSEC enabled
         self.named_uid = None
@@ -171,8 +166,7 @@ class DNSKeySyncInstance(service.Service):
             raise RuntimeError("OpenDNSSEC GID not found")
 
         if not dns_container_exists(
-            self.fqdn, self.suffix, realm=self.realm, ldapi=True,
-            dm_password=self.dm_password, autobind=ipaldap.AUTOBIND_AUTO
+            self.fqdn, self.suffix, realm=self.realm, ldapi=True
         ):
             raise RuntimeError("DNS container does not exist")
 
@@ -184,9 +178,7 @@ class DNSKeySyncInstance(service.Service):
         Setup LDAP containers for DNSSEC
         """
         if dnssec_container_exists(self.fqdn, self.suffix, ldapi=True,
-                                   dm_password=self.dm_password,
-                                   realm=self.realm,
-                                   autobind=ipaldap.AUTOBIND_AUTO):
+                                   realm=self.realm):
 
             self.logger.info("DNSSEC container exists (step skipped)")
             return
@@ -413,7 +405,7 @@ class DNSKeySyncInstance(service.Service):
 
     def __enable(self):
         try:
-            self.ldap_enable('DNSKeySync', self.fqdn, self.dm_password,
+            self.ldap_enable('DNSKeySync', self.fqdn, None,
                              self.suffix, self.extra_config)
         except errors.DuplicateEntry:
             self.logger.error("DNSKeySync service already exists")

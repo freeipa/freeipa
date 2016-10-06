@@ -74,7 +74,7 @@ def _main():
         ipautil.kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_filename)
         os.environ['KRB5CCNAME'] = ccache_filename
 
-        ca = cainstance.CAInstance(host_name=api.env.host, ldapi=False)
+        ca = cainstance.CAInstance(host_name=api.env.host)
         ca.update_cert_config(nickname, cert)
         if ca.is_renewal_master():
             cainstance.update_people_entry(cert)

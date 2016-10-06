@@ -12,7 +12,7 @@ from ipaserver.install import service
 from ipaserver.install import installutils
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
-from ipapython import sysrestore, ipautil, ipaldap
+from ipapython import sysrestore, ipautil
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform import services
@@ -20,17 +20,11 @@ from ipalib import errors, api
 
 
 class ODSExporterInstance(service.Service):
-    def __init__(self, fstore=None, dm_password=None, ldapi=False,
-                 start_tls=False, autobind=ipaldap.AUTOBIND_ENABLED):
+    def __init__(self, fstore=None):
         service.Service.__init__(
             self, "ipa-ods-exporter",
-            service_desc="IPA OpenDNSSEC exporter daemon",
-            dm_password=dm_password,
-            ldapi=ldapi,
-            autobind=autobind,
-            start_tls=start_tls
+            service_desc="IPA OpenDNSSEC exporter daemon"
         )
-        self.dm_password = dm_password
         self.ods_uid = None
         self.ods_gid = None
         self.enable_if_exists = False
@@ -79,7 +73,7 @@ class ODSExporterInstance(service.Service):
     def __enable(self):
 
         try:
-            self.ldap_enable('DNSKeyExporter', self.fqdn, self.dm_password,
+            self.ldap_enable('DNSKeyExporter', self.fqdn, None,
                              self.suffix)
         except errors.DuplicateEntry:
             root_logger.error("DNSKeyExporter service already exists")

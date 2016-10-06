@@ -190,15 +190,14 @@ def install_replica(safe_options, options, filename):
         custodia.get_ca_keys(config.ca_host_name, ca_data[0], ca_data[1])
 
         CA = cainstance.CAInstance(config.realm_name, certs.NSS_DIR,
-                                   host_name=config.host_name,
-                                   dm_password=config.dirman_password)
+                                   host_name=config.host_name)
         CA.configure_replica(config.ca_host_name,
                              subject_base=config.subject_base,
                              ca_cert_bundle=ca_data)
         # Install CA DNS records
         if bindinstance.dns_container_exists(api.env.host, api.env.basedn,
                                              ldapi=True, realm=api.env.realm):
-            bind = bindinstance.BindInstance(ldapi=True)
+            bind = bindinstance.BindInstance()
             bind.update_system_records()
     else:
         ca.install(True, config, options)

@@ -137,8 +137,7 @@ class ADTRUSTInstance(service.Service):
         self.host_netbios_name = None
         self.realm = None
 
-        service.Service.__init__(self, "smb", service_desc="CIFS",
-                                 dm_password=None, ldapi=True)
+        service.Service.__init__(self, "smb", service_desc="CIFS")
 
         if fstore:
             self.fstore = fstore
@@ -740,14 +739,12 @@ class ADTRUSTInstance(service.Service):
         # Note that self.dm_password is None for ADTrustInstance because
         # we ensure to be called as root and using ldapi to use autobind
         try:
-            self.ldap_enable('ADTRUST', self.fqdn, self.dm_password, \
-                             self.suffix)
+            self.ldap_enable('ADTRUST', self.fqdn, None, self.suffix)
         except (ldap.ALREADY_EXISTS, errors.DuplicateEntry):
             root_logger.info("ADTRUST Service startup entry already exists.")
 
         try:
-            self.ldap_enable('EXTID', self.fqdn, self.dm_password, \
-                             self.suffix)
+            self.ldap_enable('EXTID', self.fqdn, None, self.suffix)
         except (ldap.ALREADY_EXISTS, errors.DuplicateEntry):
             root_logger.info("EXTID Service startup entry already exists.")
 

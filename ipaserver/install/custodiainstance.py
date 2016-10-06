@@ -54,14 +54,13 @@ class CustodiaInstance(SimpleServiceInstance):
         fd.flush()
         fd.close()
 
-    def create_instance(self, dm_password=None):
+    def create_instance(self):
         suffix = ipautil.realm_to_suffix(self.realm)
         self.step("Generating ipa-custodia config file", self.__config_file)
         self.step("Making sure custodia container exists", self.__create_container)
         self.step("Generating ipa-custodia keys", self.__gen_keys)
         super(CustodiaInstance, self).create_instance(gensvc_name='KEYS',
                                                       fqdn=self.fqdn,
-                                                      dm_password=dm_password,
                                                       ldap_suffix=suffix,
                                                       realm=self.realm)
         sysupgrade.set_upgrade_state('custodia', 'installed', True)
@@ -103,8 +102,7 @@ class CustodiaInstance(SimpleServiceInstance):
             'SUFFIX': self.suffix,
         }
 
-        updater = ldapupdate.LDAPUpdate(dm_password=self.dm_password,
-                                        sub_dict=sub_dict)
+        updater = ldapupdate.LDAPUpdate(sub_dict=sub_dict)
         updater.update([os.path.join(paths.UPDATES_DIR, '73-custodia.update')])
 
     def __import_ra_key(self):

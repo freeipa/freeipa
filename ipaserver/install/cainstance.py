@@ -311,15 +311,12 @@ class CAInstance(DogtagInstance):
                      ('caSigningCert cert-pki-ca', 'ipaCACertRenewal'))
     server_cert_name = 'Server-Cert cert-pki-ca'
 
-    def __init__(self, realm=None, ra_db=None, host_name=None,
-                 dm_password=None, ldapi=True):
+    def __init__(self, realm=None, ra_db=None, host_name=None):
         super(CAInstance, self).__init__(
             realm=realm,
             subsystem="CA",
             service_desc="certificate server",
             host_name=host_name,
-            dm_password=dm_password,
-            ldapi=ldapi
         )
 
         # for external CAs
