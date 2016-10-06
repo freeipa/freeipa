@@ -25,7 +25,6 @@ from ipalib import api, Str, Password, _
 from ipalib.messages import add_message, ResultFormattingError
 from ipalib.plugable import Registry
 from ipalib.frontend import Local
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.nsslib import NSSConnection
 from ipapython.version import API_VERSION
@@ -174,7 +173,7 @@ class otptoken_sync(Local):
 
         # Sync the token.
         # pylint: disable=E1101
-        handler = HTTPSHandler(dbdir=paths.IPA_NSSDB_DIR,
+        handler = HTTPSHandler(dbdir=api.env.nss_dir,
                                tls_version_min=api.env.tls_version_min,
                                tls_version_max=api.env.tls_version_max)
         rsp = urllib.request.build_opener(handler).open(sync_uri, query)
