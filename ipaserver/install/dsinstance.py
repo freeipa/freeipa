@@ -662,7 +662,7 @@ class DsInstance(service.Service):
             conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                              bind_password=self.dm_password)
         else:
-            conn.do_sasl_gssapi_bind()
+            conn.gssapi_bind()
         replication.wait_for_task(conn, dn)
         conn.unbind()
 

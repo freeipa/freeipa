@@ -768,7 +768,7 @@ class DomainValidator(object):
                     # sasl_nocanon used to avoid hard requirement for PTR
                     # records pointing back to the same host name
 
-                    conn.do_sasl_gssapi_bind()
+                    conn.gssapi_bind()
 
                     if basedn is None:
                         # Use domain root base DN

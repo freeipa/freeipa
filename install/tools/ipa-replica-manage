@@ -172,7 +172,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
             conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                              bind_password=dirman_passwd)
         else:
-            conn.do_sasl_gssapi_bind()
+            conn.gssapi_bind()
     except Exception as e:
         print("Failed to connect to host '%s': %s" % (host, str(e)))
         return

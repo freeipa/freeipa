@@ -96,7 +96,7 @@ def main():
             except errors.ACIError:
                 sys.exit("Invalid credentials")
         else:
-            conn.do_sasl_gssapi_bind()
+            conn.gssapi_bind()
     except errors.ACIError:
         dirman_password = get_dirman_password()
         if dirman_password is None:

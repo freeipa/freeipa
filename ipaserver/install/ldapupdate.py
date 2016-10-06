@@ -67,9 +67,9 @@ def connect(ldapi=False, realm=None, fqdn=None, dm_password=None):
                 conn.external_bind()
             except errors.NotFound:
                 # Fall back
-                conn.do_sasl_gssapi_bind()
+                conn.gssapi_bind()
         else:
-            conn.do_sasl_gssapi_bind()
+            conn.gssapi_bind()
     except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN):
         raise RuntimeError("Unable to connect to LDAP server %s" % fqdn)
     except ldap.INVALID_CREDENTIALS:
