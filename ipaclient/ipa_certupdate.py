@@ -111,7 +111,7 @@ class CertUpdate(admintool.AdminTool):
     def update_client(self, certs):
         self.update_file(paths.IPA_CA_CRT, certs)
 
-        ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
+        ipa_db = certdb.NSSDatabase(api.env.nss_dir)
 
         # Remove old IPA certs from /etc/ipa/nssdb
         for nickname in ('IPA CA', 'External CA cert'):

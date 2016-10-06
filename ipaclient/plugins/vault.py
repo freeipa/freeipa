@@ -43,7 +43,6 @@ from ipalib import api, errors
 from ipalib import Bytes, Flag, Str
 from ipalib.plugable import Registry
 from ipalib import _
-from ipaplatform.paths import paths
 
 
 def validated_read(argname, filename, mode='r', encoding=None):
@@ -752,8 +751,7 @@ class vault_archive(Local):
                 error=_('Invalid vault type'))
 
         # initialize NSS database
-        current_dbdir = paths.IPA_NSSDB_DIR
-        nss.nss_init(current_dbdir)
+        nss.nss_init(api.env.nss_dir)
 
         # retrieve transport certificate
         config = self.api.Command.vaultconfig_show()['result']
@@ -912,8 +910,7 @@ class vault_retrieve(Local):
         vault_type = vault['ipavaulttype'][0]
 
         # initialize NSS database
-        current_dbdir = paths.IPA_NSSDB_DIR
-        nss.nss_init(current_dbdir)
+        nss.nss_init(api.env.nss_dir)
 
         # retrieve transport certificate
         config = self.api.Command.vaultconfig_show()['result']
