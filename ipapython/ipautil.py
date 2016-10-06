@@ -125,6 +125,17 @@ class UnsafeIPAddress(netaddr.IPAddress):
         super(UnsafeIPAddress, self).__init__(addr,
                                               flags=self.netaddr_ip_flags)
 
+    def __getstate__(self):
+        state = {
+            '_net': self._net,
+            'super_state': super(UnsafeIPAddress, self).__getstate__(),
+        }
+        return state
+
+    def __setstate__(self, state):
+        super(UnsafeIPAddress, self).__setstate__(state['super_state'])
+        self._net = state['_net']
+
 
 class CheckedIPAddress(UnsafeIPAddress):
     """IPv4 or IPv6 address with additional constraints.
@@ -202,6 +213,17 @@ class CheckedIPAddress(UnsafeIPAddress):
                 self._net = netaddr.IPNetwork(str(self) + '/64')
 
         self.prefixlen = self._net.prefixlen
+
+    def __getstate__(self):
+        state = {
+            'prefixlen': self.prefixlen,
+            'super_state': super(CheckedIPAddress, self).__getstate__(),
+        }
+        return state
+
+    def __setstate__(self, state):
+        super(CheckedIPAddress, self).__setstate__(state['super_state'])
+        self.prefixlen = state['prefixlen']
 
     def is_network_addr(self):
         return self == self._net.network
