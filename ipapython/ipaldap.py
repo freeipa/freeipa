@@ -1631,9 +1631,6 @@ class IPAdmin(LDAPClient):
     def __str__(self):
         return self.host + ":" + str(self.port)
 
-    def do_sasl_gssapi_bind(self):
-        self.gssapi_bind()
-
     def do_bind(self, dm_password="", autobind=AUTOBIND_AUTO):
         if dm_password:
             self.simple_bind(bind_dn=DIRMAN_DN, bind_password=dm_password)
@@ -1650,7 +1647,7 @@ class IPAdmin(LDAPClient):
                     raise
 
         #fall back
-        self.do_sasl_gssapi_bind()
+        self.gssapi_bind()
 
     def modify_s(self, dn, modlist):
         # FIXME: for backwards compatibility only

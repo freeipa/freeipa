@@ -120,7 +120,7 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=dirman_passwd)
     else:
-        conn.do_sasl_gssapi_bind()
+        conn.gssapi_bind()
     entry = conn.get_entry(DN(('cn', 'IPA Version Replication'),
                               ('cn', 'plugins'),
                               ('cn', 'config')))
@@ -221,7 +221,7 @@ class ReplicationManager(object):
                 self.conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                                       bind_password=dirman_passwd)
             else:
-                self.conn.do_sasl_gssapi_bind()
+                self.conn.gssapi_bind()
         else:
             self.conn = conn
 
@@ -1013,7 +1013,7 @@ class ReplicationManager(object):
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
-            r_conn.do_sasl_gssapi_bind()
+            r_conn.gssapi_bind()
 
         #Setup the first half
         l_id = self._get_replica_id(self.conn, r_conn)
@@ -1119,7 +1119,7 @@ class ReplicationManager(object):
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
-            r_conn.do_sasl_gssapi_bind()
+            r_conn.gssapi_bind()
 
         # First off make sure servers are in sync so that both KDCs
         # have all principals and their passwords and can release
@@ -1149,7 +1149,7 @@ class ReplicationManager(object):
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
-            r_conn.do_sasl_gssapi_bind()
+            r_conn.gssapi_bind()
 
         # Allow krb principals to act as replicas
         self.setup_krb_princs_as_replica_binddns(self.conn, r_conn)
@@ -1604,7 +1604,7 @@ class ReplicationManager(object):
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
         r_conn = ipaldap.IPAdmin(r_hostname, port=389, protocol='ldap')
-        r_conn.do_sasl_gssapi_bind()
+        r_conn.gssapi_bind()
 
         # Setup the first half
         l_id = self._get_replica_id(self.conn, r_conn)
@@ -1752,7 +1752,7 @@ class CAReplicationManager(ReplicationManager):
         and unified DS instance.
         """
         r_conn = ipaldap.IPAdmin(r_hostname, port=389, protocol='ldap')
-        r_conn.do_sasl_gssapi_bind()
+        r_conn.gssapi_bind()
 
         # Setup the first half
         l_id = self._get_replica_id(self.conn, r_conn)

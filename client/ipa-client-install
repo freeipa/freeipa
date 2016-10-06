@@ -1879,7 +1879,7 @@ def print_port_conf_info():
 def get_certs_from_ldap(server, base_dn, realm, ca_enabled):
     conn = ipaldap.IPAdmin(server, sasl_nocanon=True)
     try:
-        conn.do_sasl_gssapi_bind()
+        conn.gssapi_bind()
         certs = certstore.get_ca_certs(conn, base_dn, realm, ca_enabled)
     except errors.NotFound:
         raise errors.NoCertificateError(entry=server)

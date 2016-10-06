@@ -469,7 +469,7 @@ class DogtagInstance(service.Service):
         master_conn = ipaldap.IPAdmin(self.master_host,
                                       port=389,
                                       protocol='ldap')
-        master_conn.do_sasl_gssapi_bind()
+        master_conn.gssapi_bind()
         replication.wait_for_entry(master_conn, entry)
         del master_conn
 

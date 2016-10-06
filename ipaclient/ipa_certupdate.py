@@ -80,7 +80,7 @@ class CertUpdate(admintool.AdminTool):
                 )
                 ca_enabled = result['result']['enable_ra']
 
-            ldap.do_sasl_gssapi_bind()
+            ldap.gssapi_bind()
 
             certs = certstore.get_ca_certs(ldap, api.env.basedn,
                                            api.env.realm, ca_enabled)
