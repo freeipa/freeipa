@@ -34,8 +34,6 @@ from ipatests.test_integration import tasks
 from ipatests.test_integration.config import Config
 from ipatests.test_integration.env_config import get_global_config
 
-# pylint: disable=unused-variable
-
 log = log_mgr.get_logger(__name__)
 
 
@@ -117,7 +115,7 @@ def collect_logs(name, logs_dict, logfile_dir=None, beakerlib_plugin=None):
             # $HOSTNAME-$FILENAME (with '/' replaced by '-')
             beakerlib_plugin.run_beakerlib_command(['pushd', topdirname])
             try:
-                for dirpath, dirnames, filenames in os.walk(topdirname):
+                for dirpath, _dirnames, filenames in os.walk(topdirname):
                     for filename in filenames:
                         fullname = os.path.relpath(
                             os.path.join(dirpath, filename), topdirname)
@@ -171,7 +169,7 @@ def mh(request, class_integration_logs):
         {role: 1 for role in cls.required_extra_roles})
 
     domain_descriptions = [domain_description]
-    for i in range(cls.num_ad_domains):
+    for _i in range(cls.num_ad_domains):
         domain_descriptions.append({
             'type': 'AD',
             'hosts': {'ad': 1, 'ad_subdomain': 1},

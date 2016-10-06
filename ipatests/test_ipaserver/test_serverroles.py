@@ -15,7 +15,6 @@ from ipalib import api, create_api, errors
 from ipapython.dn import DN
 from ipatests.util import MockLDAP
 
-# pylint: disable=unused-variable
 
 def _make_service_entry_mods(enabled=True, other_config=None):
     mods = {
@@ -308,7 +307,7 @@ class MockMasterTopology(object):
 
         if entries:
             entries.sort(key=lambda x: len(x[0]), reverse=True)
-            for entry_dn, attrs in entries:
+            for entry_dn, _attrs in entries:
                 self.ldap.del_entry(str(entry_dn))
 
     def _add_ipamaster_services(self, master_dn):
@@ -320,7 +319,7 @@ class MockMasterTopology(object):
             self.ldap.add_entry(str(svc_dn), _make_service_entry_mods())
 
     def _add_members(self, dn, fqdn, member_attrs):
-        entry, attrs = self.ldap.connection.search_s(
+        _entry, attrs = self.ldap.connection.search_s(
             str(dn), ldap.SCOPE_SUBTREE)[0]
         mods = []
         value = attrs.get('member', [])
@@ -344,7 +343,7 @@ class MockMasterTopology(object):
         self.ldap.connection.modify_s(str(dn), mods)
 
     def _remove_members(self, dn, fqdn, member_attrs):
-        entry, attrs = self.ldap.connection.search_s(
+        _entry, attrs = self.ldap.connection.search_s(
             str(dn), ldap.SCOPE_SUBTREE)[0]
         mods = []
         for a in member_attrs:
@@ -574,7 +573,7 @@ def configured_role(request):
 
 @pytest.fixture(params=list(role_provider_iter(master_data)),
                 ids=['{} providers'.format(role_name)
-                     for role_name, m in
+                     for role_name, _m in
                      role_provider_iter(master_data)])
 def role_providers(request):
     return request.param

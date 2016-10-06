@@ -36,8 +36,6 @@ from ipalib import output, messages
 from ipalib.parameters import Str
 from ipapython.version import API_VERSION
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -459,7 +457,7 @@ class test_Command(ClassChecker):
 
         kw = dict(option0=u'some value')
 
-        (api, home) = create_test_api()
+        api, _home = create_test_api()
         api.finalize()
         o = my_cmd(api)
         o.finalize()
@@ -583,7 +581,7 @@ class test_Command(ClassChecker):
         args = ('one', 'two')
         kw = dict(three=('three1', 'three2'), four='four')
 
-        (api, home) = create_test_api()
+        api, _home = create_test_api()
         api.finalize()
         o = my_cmd(api)
         o.finalize()
@@ -622,7 +620,7 @@ class test_Command(ClassChecker):
         kw = dict(how_are='you', on_this='fine day?', version=API_VERSION)
 
         # Test in server context:
-        (api, home) = create_test_api(in_server=True)
+        api, _home = create_test_api(in_server=True)
         api.finalize()
         o = my_cmd(api)
         if six.PY2:
@@ -633,7 +631,7 @@ class test_Command(ClassChecker):
         assert ('execute', args, kw) == out
 
         # Test in non-server context
-        (api, home) = create_test_api(in_server=False)
+        api, _home = create_test_api(in_server=False)
         api.finalize()
         o = my_cmd(api)
         if six.PY2:
@@ -668,7 +666,7 @@ class test_Command(ClassChecker):
         expected = [TestMessage().to_dict()]
 
         # Test in server context:
-        (api, home) = create_test_api(in_server=True)
+        api, _home = create_test_api(in_server=True)
         api.finalize()
         o = my_cmd(api)
         if six.PY2:
@@ -678,7 +676,7 @@ class test_Command(ClassChecker):
         assert {'name': 'execute', 'messages': expected} == o.run(*args, **kw)
 
         # Test in non-server context
-        (api, home) = create_test_api(in_server=False)
+        api, _home = create_test_api(in_server=False)
         api.finalize()
         o = my_cmd(api)
         if six.PY2:
@@ -859,7 +857,7 @@ class test_LocalOrRemote(ClassChecker):
                 return dict(result=('execute', args, options))
 
         # Test when in_server=False:
-        (api, home) = create_test_api(in_server=False)
+        api, _home = create_test_api(in_server=False)
         api.add_plugin(example)
         api.finalize()
         cmd = api.Command.example
@@ -877,7 +875,7 @@ class test_LocalOrRemote(ClassChecker):
         )
 
         # Test when in_server=True (should always call execute):
-        (api, home) = create_test_api(in_server=True)
+        api, _home = create_test_api(in_server=True)
         api.add_plugin(example)
         api.finalize()
         cmd = api.Command.example
@@ -1001,7 +999,7 @@ class test_Object(ClassChecker):
         """
         Test the `ipalib.frontend.Object.primary_key` attribute.
         """
-        (api, home) = create_test_api()
+        api, _home = create_test_api()
         api.finalize()
 
         # Test with no primary keys:
@@ -1047,7 +1045,7 @@ class test_Object(ClassChecker):
         """
         Test the `ipalib.frontend.Object.backend` attribute.
         """
-        (api, home) = create_test_api()
+        api, _home = create_test_api()
         class ldap(backend.Backend):
             whatever = 'It worked!'
         api.add_plugin(ldap)
@@ -1079,7 +1077,7 @@ class test_Object(ClassChecker):
         """
         class example(self.cls):
             takes_params = ('one', 'two', 'three', 'four')
-        (api, home) = create_test_api()
+        api, _home = create_test_api()
         api.finalize()
         o = example(api)
         p = o.params
@@ -1137,7 +1135,7 @@ class test_Method(ClassChecker):
         """
         Return a finalized `ipalib.plugable.API` instance.
         """
-        (api, home) = create_test_api()
+        api, _home = create_test_api()
         class user(frontend.Object):
             takes_params = (
                 'givenname',

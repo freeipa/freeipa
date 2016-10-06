@@ -34,8 +34,6 @@ from ipapython import ipautil, ipaldap
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 
-# pylint: disable=unused-variable
-
 """
 The updater works through files only so this is just a thin-wrapper controlling
 which file we test at any given point.
@@ -93,11 +91,11 @@ class test_update(unittest.TestCase):
         self.assertTrue(modified)
 
         with self.assertRaises(errors.NotFound):
-            entries = self.ld.get_entries(
+            self.ld.get_entries(
                 self.container_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
 
         with self.assertRaises(errors.NotFound):
-            entries = self.ld.get_entries(
+            self.ld.get_entries(
                 self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
 
     def test_1_add(self):
@@ -233,11 +231,11 @@ class test_update(unittest.TestCase):
         self.assertTrue(modified)
 
         with self.assertRaises(errors.NotFound):
-            entries = self.ld.get_entries(
+            self.ld.get_entries(
                 self.container_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
 
         with self.assertRaises(errors.NotFound):
-            entries = self.ld.get_entries(
+            self.ld.get_entries(
                 self.user_dn, self.ld.SCOPE_BASE, 'objectclass=*', ['*'])
 
     def test_8_badsyntax(self):
@@ -245,7 +243,7 @@ class test_update(unittest.TestCase):
         Test the updater with an unknown keyword (test_8_badsyntax)
         """
         with self.assertRaises(BadSyntax):
-            modified = self.updater.update(
+            self.updater.update(
                 [os.path.join(self.testdir, "8_badsyntax.update")])
 
     def test_9_badsyntax(self):
@@ -253,5 +251,5 @@ class test_update(unittest.TestCase):
         Test the updater with an incomplete line (test_9_badsyntax)
         """
         with self.assertRaises(BadSyntax):
-            modified = self.updater.update(
+            self.updater.update(
                 [os.path.join(self.testdir, "9_badsyntax.update")])

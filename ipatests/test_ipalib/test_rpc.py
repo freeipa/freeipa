@@ -34,8 +34,6 @@ from ipalib.request import context, Connection
 from ipalib import rpc, errors, api, request
 from ipapython.version import API_VERSION
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -44,7 +42,7 @@ std_compound = (binary_bytes, utf8_bytes, unicode_str)
 
 
 def dump_n_load(value):
-    (param, method) = loads(
+    param, _method = loads(
         dumps((value,), allow_none=True)
     )
     return param[0]
@@ -115,7 +113,7 @@ def test_xml_wrap():
     u = f(u'hello', API_VERSION)
     assert type(u) is unicode
     assert u == u'hello'
-    value = f([dict(one=False, two=u'hello'), None, b'hello'], API_VERSION)
+    f([dict(one=False, two=u'hello'), None, b'hello'], API_VERSION)
 
 
 def test_xml_unwrap():
@@ -211,7 +209,7 @@ class test_xmlclient(PluginTester):
         class user_add(Command):
             pass
 
-        (o, api, home) = self.instance('Backend', user_add, in_server=False)
+        o, _api, _home = self.instance('Backend', user_add, in_server=False)
         args = (binary_bytes, utf8_bytes, unicode_str)
         kw = dict(one=binary_bytes, two=utf8_bytes, three=unicode_str)
         params = [args, kw]
@@ -281,7 +279,7 @@ class test_xml_introspection(object):
 
     def test_list_methods_many_params(self):
         try:
-            result = api.Backend.xmlclient.conn.system.listMethods('foo')
+            api.Backend.xmlclient.conn.system.listMethods('foo')
         except Fault as f:
             print(f)
             assert f.faultCode == 3003
@@ -301,7 +299,7 @@ class test_xml_introspection(object):
 
     def test_signature_no_params(self):
         try:
-            result = api.Backend.xmlclient.conn.system.methodSignature()
+            api.Backend.xmlclient.conn.system.methodSignature()
         except Fault as f:
             print(f)
             assert f.faultCode == 3007
@@ -311,7 +309,7 @@ class test_xml_introspection(object):
 
     def test_signature_many_params(self):
         try:
-            result = api.Backend.xmlclient.conn.system.methodSignature('a', 'b')
+            api.Backend.xmlclient.conn.system.methodSignature('a', 'b')
         except Fault as f:
             print(f)
             assert f.faultCode == 3004
@@ -322,7 +320,7 @@ class test_xml_introspection(object):
 
     def test_help_no_params(self):
         try:
-            result = api.Backend.xmlclient.conn.system.methodHelp()
+            api.Backend.xmlclient.conn.system.methodHelp()
         except Fault as f:
             print(f)
             assert f.faultCode == 3007
@@ -332,7 +330,7 @@ class test_xml_introspection(object):
 
     def test_help_many_params(self):
         try:
-            result = api.Backend.xmlclient.conn.system.methodHelp('a', 'b')
+            api.Backend.xmlclient.conn.system.methodHelp('a', 'b')
         except Fault as f:
             print(f)
             assert f.faultCode == 3004

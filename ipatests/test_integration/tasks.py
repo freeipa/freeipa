@@ -44,8 +44,6 @@ from ipalib.util import get_reverse_zone_default, verify_host_resolvable
 from ipalib.constants import DOMAIN_SUFFIX_NAME
 from ipalib.constants import DOMAIN_LEVEL_0
 
-# pylint: disable=unused-variable
-
 log = log_mgr.get_logger(__name__)
 
 
@@ -156,7 +154,6 @@ def backup_file(host, filename):
         host.run_command('echo %s >> %s' % (
             ipautil.shell_quote(filename),
             ipautil.shell_quote(rmname)))
-        contents = host.get_file_contents(rmname)
         host.transport.mkdir_recursive(os.path.dirname(rmname))
         return False
 
@@ -980,7 +977,7 @@ def double_circle_topo(master, replicas, site_size=6):
         yield a, b
 
         # create agreement to one server in two next sites
-        for (c, d, _ignore) in [sites[(i+n) % num_sites] for n in [1, 2]]:
+        for c, _d, _ignore in [sites[(i+n) % num_sites] for n in [1, 2]]:
             yield b, c
 
     if site_size > 2:
@@ -1023,7 +1020,6 @@ def install_clients(servers, clients):
 
 def _entries_to_ldif(entries):
     """Format LDAP entries as LDIF"""
-    lines = []
     io = StringIO()
     writer = LDIFWriter(io)
     for entry in entries:
