@@ -30,8 +30,6 @@ from ipatests.util import assert_equal, raises, PluginTester
 from ipalib import errors
 from ipaserver import rpcserver
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -196,7 +194,7 @@ class test_xmlserver(PluginTester):
     _plugin = rpcserver.xmlserver
 
     def test_marshaled_dispatch(self): # FIXME
-        (o, api, home) = self.instance('Backend', in_server=True)
+        self.instance('Backend', in_server=True)
 
 
 class test_jsonserver(PluginTester):
@@ -210,7 +208,7 @@ class test_jsonserver(PluginTester):
         """
         Test the `ipaserver.rpcserver.jsonserver.unmarshal` method.
         """
-        (o, api, home) = self.instance('Backend', in_server=True)
+        o, _api, _home = self.instance('Backend', in_server=True)
 
         # Test with invalid JSON-data:
         e = raises(errors.JSONError, o.unmarshal, 'this wont work')

@@ -43,8 +43,6 @@ from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR
 from ipalib.errors import ValidationError, ConversionError
 from ipalib import _
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
     long = int
@@ -253,7 +251,7 @@ class test_Param(ClassChecker):
                 ('extra4', callable, lambda whatever: whatever + 7),
             )
         o = Subclass('my_param')  # Test with no **kw:
-        for (key, kind, default) in o.kwargs:
+        for key, kind, _default in o.kwargs:
             # Test with a type invalid for all:
             value = object()
             kw = {key: value}
@@ -353,7 +351,7 @@ class test_Param(ClassChecker):
         assert clone is not orig
         assert type(clone) is self.cls
         assert clone.name is orig.name
-        for (key, kind, default) in self.cls.kwargs:
+        for key, _kind, _default in self.cls.kwargs:
             assert getattr(clone, key) == getattr(orig, key)
 
         # Test with a param spec:
@@ -363,7 +361,7 @@ class test_Param(ClassChecker):
         assert clone.param_spec == 'my_param*'
         assert clone is not orig
         assert type(clone) is self.cls
-        for (key, kind, default) in self.cls.kwargs:
+        for key, _kind, _default in self.cls.kwargs:
             assert getattr(clone, key) == getattr(orig, key)
 
         # Test with overrides:
@@ -390,7 +388,7 @@ class test_Param(ClassChecker):
         assert clone is not orig
         assert type(clone) is self.cls
         assert clone.name == new_name
-        for (key, kind, default) in self.cls.kwargs:
+        for key, _kind, _default in self.cls.kwargs:
             if key in ('cli_name', 'label', 'doc', 'cli_metavar'):
                 continue
             assert getattr(clone, key) is getattr(orig, key)
@@ -449,7 +447,7 @@ class test_Param(ClassChecker):
         assert o._convert_scalar(None) is None
         assert dummy.called() is False
         # Test with incorrect type
-        e = raises(errors.ConversionError, o._convert_scalar, 'hello')
+        raises(errors.ConversionError, o._convert_scalar, 'hello')
 
     def test_validate(self):
         """
@@ -1511,7 +1509,7 @@ class test_AccessTime(ClassChecker):
                       u'periodical yearly month 4 day 1-31 0800-1400',
                       u'periodic weekly day 8 0800-1400',
             ):
-            e = raises(ValidationError, o._rule_required, None, value)
+            raises(ValidationError, o._rule_required, None, value)
 
 def test_create_param():
     """
