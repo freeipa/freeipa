@@ -1740,7 +1740,7 @@ class CAReplicationManager(ReplicationManager):
     def __init__(self, realm, hostname):
         # Always connect to self over ldapi
         conn = ipaldap.IPAdmin(hostname, ldapi=True, realm=realm)
-        conn.do_external_bind('root')
+        conn.external_bind()
         super(CAReplicationManager, self).__init__(
             realm, hostname, None, port=DEFAULT_PORT, conn=conn)
         self.db_suffix = DN(('o', 'ipaca'))

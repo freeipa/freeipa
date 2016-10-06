@@ -398,7 +398,7 @@ class DogtagInstance(service.Service):
 
         try:
             conn = ipaldap.IPAdmin(self.fqdn, ldapi=True, realm=self.realm)
-            conn.do_external_bind('root')
+            conn.external_bind()
 
             entry_attrs = conn.get_entry(self.admin_dn, ['usercertificate'])
             admin_cert = entry_attrs.get('usercertificate')[0]

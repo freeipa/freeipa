@@ -6,7 +6,6 @@ from __future__ import print_function
 
 import os
 import pickle
-import pwd
 import random
 import shutil
 import sys
@@ -991,7 +990,7 @@ def uninstall_check(installer):
             ldapi=True,
             realm=api.env.realm
         )
-        conn.do_external_bind(pwd.getpwuid(os.geteuid()).pw_name)
+        conn.external_bind()
         api.Backend.ldap2.connect(autobind=True)
         domain_level = dsinstance.get_domain_level(api)
     except Exception:

@@ -166,7 +166,7 @@ def get_config(dirsrv):
             (host, port) = lurl.hostport.split(':')
             wait_for_open_ports(host, [int(port)], timeout=api.env.startup_timeout)
         con = IPAdmin(ldap_uri=api.env.ldap_uri)
-        con.do_external_bind()
+        con.external_bind()
         res = con.get_entries(
             base,
             filter=srcfilter,

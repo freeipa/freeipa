@@ -362,8 +362,7 @@ class Backup(admintool.AdminTool):
                                     realm=api.env.realm)
 
         try:
-            pw_name = pwd.getpwuid(os.geteuid()).pw_name
-            self._conn.do_external_bind(pw_name)
+            self._conn.external_bind()
         except Exception as e:
             self.log.error("Unable to bind to LDAP server %s: %s" %
                 (self._conn.host, e))
