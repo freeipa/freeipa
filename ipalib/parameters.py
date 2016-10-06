@@ -473,7 +473,7 @@ class Param(ReadOnly):
                         CALLABLE_ERROR % (key, value, type(value))
                     )
                 kw[key] = value
-            else:
+            elif key not in ('required', 'multivalue'):
                 kw.pop(key, None)
 
         # We keep these values to use in __repr__():
