@@ -975,6 +975,16 @@ IPA.dns.record_search_deleter_dialog = function(spec) {
     return that;
 };
 
+/**
+ * This definition of records attributes is used for generating adder dialog.
+ *
+ * HOW TO EDIT ADDER DIALOG:
+ * In case you want to edit fields or widgets in adder dialog, you have to
+ * create object from attribute, then the attribute will be the name property
+ * of object. Then most of the widget or fields attributes have to be added in
+ * widget_opt (field_opt). Check the IPA.dns.record_prepare_editor_for_type
+ * method.
+ */
 IPA.dns.record_metadata = null;
 IPA.dns.get_record_metadata = function() {
 
@@ -1526,6 +1536,11 @@ IPA.dns.record_prepare_editor_for_type = function(type, fields, widgets, update)
             widget.name = attribute;
         } else {
             widget.name = attribute.name;
+            if (metadata) {
+                var doc = metadata.doc;
+                var label = metadata.label;
+                if (doc !== label) widget.tooltip = doc;
+            }
             set_defined(attribute.$type, widget, '$type');
             set_defined(attribute.options, widget, 'options');
             copy_obj(widget, attribute.widget_opt);
