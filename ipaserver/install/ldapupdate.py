@@ -51,7 +51,7 @@ UPDATES_DIR=paths.UPDATES_DIR
 UPDATE_SEARCH_TIME_LIMIT = 30  # seconds
 
 
-def connect(ldapi=False, realm=None, fqdn=None, dm_password=None, pw_name=None):
+def connect(ldapi=False, realm=None, fqdn=None, dm_password=None):
     """Create a connection for updates"""
     if ldapi:
         conn = ipaldap.IPAdmin(ldapi=True, realm=realm, decode_attrs=False)
@@ -64,7 +64,7 @@ def connect(ldapi=False, realm=None, fqdn=None, dm_password=None, pw_name=None):
         elif os.getegid() == 0:
             try:
                 # autobind
-                conn.do_external_bind(pw_name)
+                conn.external_bind()
             except errors.NotFound:
                 # Fall back
                 conn.do_sasl_gssapi_bind()

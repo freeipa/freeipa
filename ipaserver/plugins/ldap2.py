@@ -28,7 +28,6 @@ Backend plugin for LDAP.
 # everything except the CrudBackend methods, where dn is part of the entry dict.
 
 import os
-import pwd
 
 import ldap as _ldap
 
@@ -181,9 +180,7 @@ class ldap2(CrudBackend, LDAPClient):
                                client_controls=clientctrls)
         elif autobind != AUTOBIND_DISABLED and os.getegid() == 0 and ldapi:
             try:
-                pw_name = pwd.getpwuid(os.geteuid()).pw_name
-                client.external_bind(pw_name,
-                                     server_controls=serverctrls,
+                client.external_bind(server_controls=serverctrls,
                                      client_controls=clientctrls)
             except errors.NotFound:
                 if autobind == AUTOBIND_ENABLED:

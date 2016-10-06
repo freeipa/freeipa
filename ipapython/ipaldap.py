@@ -1084,11 +1084,11 @@ class LDAPClient(object):
             self.conn.simple_bind_s(
                 bind_dn, bind_password, server_controls, client_controls)
 
-    def external_bind(self, user_name, server_controls=None,
-                      client_controls=None):
+    def external_bind(self, server_controls=None, client_controls=None):
         """
         Perform SASL bind operation using the SASL EXTERNAL mechanism.
         """
+        user_name = pwd.getpwuid(os.geteuid()).pw_name
         with self.error_handler():
             auth_tokens = ldap.sasl.external(user_name)
             self._flush_schema()
@@ -1634,9 +1634,6 @@ class IPAdmin(LDAPClient):
     def do_sasl_gssapi_bind(self):
         self.gssapi_bind()
 
-    def do_external_bind(self, user_name=None):
-        self.external_bind(user_name)
-
     def do_bind(self, dm_password="", autobind=AUTOBIND_AUTO):
         if dm_password:
             self.simple_bind(bind_dn=DIRMAN_DN, bind_password=dm_password)
@@ -1644,8 +1641,7 @@ class IPAdmin(LDAPClient):
         if autobind != AUTOBIND_DISABLED and os.getegid() == 0 and self.ldapi:
             try:
                 # autobind
-                pw_name = pwd.getpwuid(os.geteuid()).pw_name
-                self.do_external_bind(pw_name)
+                self.external_bind()
                 return
             except errors.NotFound:
                 if autobind == AUTOBIND_ENABLED:

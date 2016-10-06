@@ -169,7 +169,7 @@ def create_ds_user():
 
 def get_domain_level(api=api):
     conn = ipaldap.IPAdmin(ldapi=True, realm=api.env.realm)
-    conn.do_external_bind('root')
+    conn.external_bind()
 
     dn = DN(('cn', 'Domain Level'),
             ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
@@ -417,7 +417,7 @@ class DsInstance(service.Service):
 
         # Always connect to self over ldapi
         conn = ipaldap.IPAdmin(self.fqdn, ldapi=True, realm=self.realm)
-        conn.do_external_bind('root')
+        conn.external_bind()
         repl = replication.ReplicationManager(self.realm,
                                               self.fqdn,
                                               self.dm_password, conn=conn)
@@ -1258,7 +1258,7 @@ class DsInstance(service.Service):
 
         # Connect to self over ldapi as Directory Manager and configure SSL
         conn = ipaldap.IPAdmin(self.fqdn, ldapi=True, realm=self.realm)
-        conn.do_external_bind('root')
+        conn.external_bind()
 
         mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
                (ldap.MOD_REPLACE, "nsSSL3Ciphers", "default"),
