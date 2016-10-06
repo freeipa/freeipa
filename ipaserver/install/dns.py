@@ -23,7 +23,6 @@ from ipapython import dnsutil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython.admintool import ScriptError
-from ipapython.ipaldap import AUTOBIND_ENABLED
 from ipapython.ipautil import user_input
 from ipaserver.install.installutils import get_server_ip_address
 from ipaserver.install.installutils import read_dns_forwarders
@@ -61,11 +60,10 @@ def _is_master():
 def _disable_dnssec():
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
-    ods = opendnssecinstance.OpenDNSSECInstance(
-            fstore, ldapi=True, autobind=AUTOBIND_ENABLED)
+    ods = opendnssecinstance.OpenDNSSECInstance(fstore)
     ods.realm = api.env.realm
 
-    ods_exporter = odsexporterinstance.ODSExporterInstance(fstore, ldapi=True)
+    ods_exporter = odsexporterinstance.ODSExporterInstance(fstore)
     ods_exporter.realm = api.env.realm
 
     # unconfigure services first
@@ -200,8 +198,7 @@ def install_check(standalone, api, replica, options, hostname):
                 ", ".join([str(zone) for zone in dnssec_zones]))
 
     elif options.dnssec_master:
-        ods = opendnssecinstance.OpenDNSSECInstance(
-            fstore, ldapi=True)
+        ods = opendnssecinstance.OpenDNSSECInstance(fstore)
         ods.realm = api.env.realm
         dnssec_masters = ods.get_masters()
         # we can reinstall current server if it is dnssec master
@@ -317,8 +314,7 @@ def install(standalone, replica, options, api=api):
         # otherwise this is done by server/replica installer
         update_hosts_file(ip_addresses, api.env.host, fstore)
 
-    bind = bindinstance.BindInstance(fstore, ldapi=True, api=api,
-                                     autobind=AUTOBIND_ENABLED)
+    bind = bindinstance.BindInstance(fstore, api=api)
     bind.setup(api.env.host, ip_addresses, api.env.realm, api.env.domain,
                options.forwarders, options.forward_policy,
                reverse_zones, zonemgr=options.zonemgr,
@@ -333,12 +329,11 @@ def install(standalone, replica, options, api=api):
     bind.create_instance()
 
     # on dnssec master this must be installed last
-    dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore, ldapi=True)
+    dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore)
     dnskeysyncd.create_instance(api.env.host, api.env.realm)
     if options.dnssec_master:
-        ods = opendnssecinstance.OpenDNSSECInstance(fstore, ldapi=True)
-        ods_exporter = odsexporterinstance.ODSExporterInstance(
-            fstore, ldapi=True)
+        ods = opendnssecinstance.OpenDNSSECInstance(fstore)
+        ods_exporter = odsexporterinstance.ODSExporterInstance(fstore)
 
         ods_exporter.create_instance(api.env.host, api.env.realm)
         ods.create_instance(api.env.host, api.env.realm,

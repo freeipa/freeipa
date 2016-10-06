@@ -217,17 +217,13 @@ dc: $BASEDC
 info: IPA V2.0
 """
 
+
 class DsInstance(service.Service):
-    def __init__(self, realm_name=None, domain_name=None, dm_password=None,
-                 fstore=None, domainlevel=None, config_ldif=None):
+    def __init__(self, realm_name=None, domain_name=None, fstore=None,
+                 domainlevel=None, config_ldif=None):
         service.Service.__init__(self, "dirsrv",
-            service_desc="directory server",
-            dm_password=dm_password,
-            ldapi=False,
-            autobind=ipaldap.AUTOBIND_DISABLED
-            )
+                                 service_desc="directory server")
         self.nickname = 'Server-Cert'
-        self.dm_password = dm_password
         self.realm = realm_name
         self.sub_dict = None
         self.domain = domain_name
@@ -435,7 +431,6 @@ class DsInstance(service.Service):
         # the local server (as repica pomotion does not have the DM password.
         if self.admin_conn:
             self.ldap_disconnect()
-        self.ldapi = True
 
     def __configure_sasl_mappings(self):
         # we need to remove any existing SASL mappings in the directory as otherwise they

@@ -1688,7 +1688,7 @@ def upgrade_configuration():
                 # 389-ds needs to be running to create the instances
                 # because we record the new service in cn=masters.
                 ds.start()
-                service.create_instance(ldap_name, fqdn, None,
+                service.create_instance(ldap_name, fqdn,
                                         ipautil.realm_to_suffix(api.env.realm),
                                         realm=api.env.realm)
         except ipalib.errors.DuplicateEntry:
@@ -1696,8 +1696,7 @@ def upgrade_configuration():
 
     # install DNSKeySync service only if DNS is configured on server
     if bindinstance.named_conf_exists():
-            dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore,
-                                                                ldapi=True)
+            dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore)
             if not dnskeysyncd.is_configured():
                 ds.start()
                 dnskeysyncd.create_instance(fqdn, api.env.realm)

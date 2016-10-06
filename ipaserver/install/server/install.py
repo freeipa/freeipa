@@ -807,27 +807,27 @@ def install(installer):
     ds.add_cert_to_service()
 
     memcache = memcacheinstance.MemcacheInstance()
-    memcache.create_instance('MEMCACHE', host_name, dm_password,
+    memcache.create_instance('MEMCACHE', host_name,
                              ipautil.realm_to_suffix(realm_name))
 
     otpd = otpdinstance.OtpdInstance()
-    otpd.create_instance('OTPD', host_name, dm_password,
+    otpd.create_instance('OTPD', host_name,
                          ipautil.realm_to_suffix(realm_name))
 
     custodia = custodiainstance.CustodiaInstance(host_name, realm_name)
-    custodia.create_instance(dm_password)
+    custodia.create_instance()
 
     # Create a HTTP instance
     http = httpinstance.HTTPInstance(fstore)
     if options.http_cert_files:
         http.create_instance(
-            realm_name, host_name, domain_name, dm_password,
+            realm_name, host_name, domain_name,
             pkcs12_info=http_pkcs12_info, subject_base=options.subject,
             auto_redirect=not options.no_ui_redirect,
             ca_is_configured=setup_ca)
     else:
         http.create_instance(
-            realm_name, host_name, domain_name, dm_password,
+            realm_name, host_name, domain_name,
             subject_base=options.subject,
             auto_redirect=not options.no_ui_redirect,
             ca_is_configured=setup_ca)
@@ -861,7 +861,7 @@ def install(installer):
         dns.install(False, False, options)
     else:
         # Create a BIND instance
-        bind = bindinstance.BindInstance(fstore, dm_password)
+        bind = bindinstance.BindInstance(fstore)
         bind.setup(host_name, ip_addresses, realm_name,
                    domain_name, (), 'first', (),
                    zonemgr=options.zonemgr,

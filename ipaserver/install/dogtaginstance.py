@@ -108,15 +108,12 @@ class DogtagInstance(service.Service):
     server_cert_name = None
 
     def __init__(self, realm, subsystem, service_desc, host_name=None,
-                 dm_password=None, ldapi=True,
                  nss_db=paths.PKI_TOMCAT_ALIAS_DIR):
         """Initializer"""
 
         super(DogtagInstance, self).__init__(
             'pki-tomcatd',
-            service_desc=service_desc,
-            dm_password=dm_password,
-            ldapi=ldapi
+            service_desc=service_desc
         )
 
         self.realm = realm
@@ -164,7 +161,7 @@ class DogtagInstance(service.Service):
         # Define the things we don't want logged
         if nolog_list is None:
             nolog_list = []
-        nolog = tuple(nolog_list) + (self.admin_password, self.dm_password)
+        nolog = tuple(nolog_list) + (self.admin_password,)
 
         args = [paths.PKISPAWN,
                 "-s", subsystem,

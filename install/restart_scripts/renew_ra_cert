@@ -48,7 +48,7 @@ def _main():
                              ccache_filename)
         os.environ['KRB5CCNAME'] = ccache_filename
 
-        ca = cainstance.CAInstance(host_name=api.env.host, ldapi=False)
+        ca = cainstance.CAInstance(host_name=api.env.host)
         if ca.is_renewal_master():
             # Fetch the new certificate
             db = certs.CertDB(api.env.realm)

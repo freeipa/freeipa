@@ -178,14 +178,12 @@ def install_http(config, auto_redirect, ca_is_configured, promote=False,
 
     memcache = memcacheinstance.MemcacheInstance()
     memcache.create_instance('MEMCACHE', config.host_name,
-                             config.dirman_password,
                              ipautil.realm_to_suffix(config.realm_name))
 
     http = httpinstance.HTTPInstance()
     http.create_instance(
         config.realm_name, config.host_name, config.domain_name,
-        config.dirman_password, pkcs12_info,
-        auto_redirect=auto_redirect, ca_file=ca_file,
+        pkcs12_info, auto_redirect=auto_redirect, ca_file=ca_file,
         ca_is_configured=ca_is_configured, promote=promote)
 
     return http
@@ -196,13 +194,11 @@ def install_dns_records(config, options, remote_api):
     if not bindinstance.dns_container_exists(
             config.host_name,
             ipautil.realm_to_suffix(config.realm_name),
-            realm=config.realm_name, ldapi=True,
-            autobind=ipaldap.AUTOBIND_ENABLED):
+            realm=config.realm_name, ldapi=True):
         return
 
     try:
-        bind = bindinstance.BindInstance(dm_password=config.dirman_password,
-                                         api=remote_api)
+        bind = bindinstance.BindInstance(api=remote_api)
         for ip in config.ips:
             reverse_zone = bindinstance.find_reverse_zone(ip, remote_api)
 
@@ -834,7 +830,7 @@ def install(installer):
         ca.install_step_1(False, config, options)
 
     otpd = otpdinstance.OtpdInstance()
-    otpd.create_instance('OTPD', config.host_name, config.dirman_password,
+    otpd.create_instance('OTPD', config.host_name,
                          ipautil.realm_to_suffix(config.realm_name))
 
     if ca_enabled:
@@ -847,7 +843,7 @@ def install(installer):
 
     custodia = custodiainstance.CustodiaInstance(config.host_name,
                                                  config.realm_name)
-    custodia.create_instance(config.dirman_password)
+    custodia.create_instance()
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
@@ -1497,7 +1493,7 @@ def promote(installer):
     ds.apply_updates()
 
     otpd = otpdinstance.OtpdInstance()
-    otpd.create_instance('OTPD', config.host_name, config.dirman_password,
+    otpd.create_instance('OTPD', config.host_name,
                          ipautil.realm_to_suffix(config.realm_name))
 
     if config.setup_ca:
@@ -1510,8 +1506,7 @@ def promote(installer):
         custodia.get_ca_keys(config.ca_host_name, ca_data[0], ca_data[1])
 
         ca = cainstance.CAInstance(config.realm_name, certs.NSS_DIR,
-                                   host_name=config.host_name,
-                                   dm_password=config.dirman_password)
+                                   host_name=config.host_name)
         ca.configure_replica(config.ca_host_name,
                              subject_base=config.subject_base,
                              ca_cert_bundle=ca_data)

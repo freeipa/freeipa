@@ -20,11 +20,10 @@
 import sys
 import os
 import socket
-import tempfile
 import datetime
 import traceback
 
-from ipapython import sysrestore, ipautil, ipaldap
+from ipapython import ipautil, sysrestore
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipalib import api, errors, certstore
@@ -131,18 +130,12 @@ def find_providing_server(svcname, conn, host_name=None, api=api):
 
 
 class Service(object):
-    def __init__(self, service_name, service_desc=None, sstore=None,
-                 dm_password=None, ldapi=True, autobind=ipaldap.AUTOBIND_AUTO,
-                 start_tls=False):
+    def __init__(self, service_name, service_desc=None, sstore=None):
         self.service_name = service_name
         self.service_desc = service_desc
         self.service = services.service(service_name)
         self.steps = []
         self.output_fd = sys.stdout
-        self.dm_password = dm_password
-        self.ldapi = ldapi
-        self.autobind = autobind
-        self.start_tls = start_tls
 
         self.fqdn = socket.gethostname()
 
@@ -202,14 +195,8 @@ class Service(object):
             self.ldap_connect()
         args += ["-H", self.admin_conn.ldap_uri]
 
-        # If DM password is available, use it
-        if self.dm_password:
-            [pw_fd, pw_name] = tempfile.mkstemp()
-            os.write(pw_fd, self.dm_password)
-            os.close(pw_fd)
-            auth_parms = ["-x", "-D", "cn=Directory Manager", "-y", pw_name]
         # Use GSSAPI auth when not using DM password or not being root
-        elif os.getegid() != 0:
+        if os.getegid() != 0:
             auth_parms = ["-Y", "GSSAPI"]
         # Default to EXTERNAL auth mechanism
         else:
@@ -457,7 +444,8 @@ class Service(object):
 
         self.steps = []
 
-    def ldap_enable(self, name, fqdn, dm_password, ldap_suffix, config=[]):
+    def ldap_enable(self, name, fqdn, dm_password=None, ldap_suffix='',
+                    config=[]):
         assert isinstance(ldap_suffix, DN)
         self.disable()
         if not self.admin_conn:
@@ -558,14 +546,12 @@ class Service(object):
 
 
 class SimpleServiceInstance(Service):
-    def create_instance(self, gensvc_name=None, fqdn=None, dm_password=None, ldap_suffix=None, realm=None):
+    def create_instance(self, gensvc_name=None, fqdn=None, ldap_suffix=None,
+                        realm=None):
         self.gensvc_name = gensvc_name
         self.fqdn = fqdn
-        self.dm_password = dm_password
         self.suffix = ldap_suffix
         self.realm = realm
-        if not realm:
-            self.ldapi = False
 
         self.step("starting %s " % self.service_name, self.__start)
         self.step("configuring %s to start on boot" % self.service_name, self.__enable)
@@ -582,8 +568,7 @@ class SimpleServiceInstance(Service):
         if self.gensvc_name == None:
             self.enable()
         else:
-            self.ldap_enable(self.gensvc_name, self.fqdn,
-                             self.dm_password, self.suffix)
+            self.ldap_enable(self.gensvc_name, self.fqdn, None, self.suffix)
 
     def uninstall(self):
         if self.is_configured():

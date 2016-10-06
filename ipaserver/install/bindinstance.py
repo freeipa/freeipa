@@ -228,8 +228,9 @@ def named_conf_add_include(path):
     with open(NAMED_CONF, 'a') as f:
         f.write(named_conf_include_template % {'path': path})
 
-def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None,
-                         autobind=ipaldap.AUTOBIND_DISABLED):
+
+def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False,
+                         realm=None):
     """
     Test whether the dns container exists.
     """
@@ -240,7 +241,7 @@ def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None
         ldap_uri = ipaldap.get_ldap_uri(fqdn, 636, ldapi=ldapi, realm=realm,
                                         cacert=CACERT)
         conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
-        conn.do_bind(dm_password, autobind=autobind)
+        conn.do_bind(dm_password)
     except ldap.SERVER_DOWN:
         raise RuntimeError('LDAP server on %s is not responding. Is IPA installed?' % fqdn)
 
@@ -613,15 +614,10 @@ class DnsBackup(object):
 
 
 class BindInstance(service.Service):
-    def __init__(self, fstore=None, dm_password=None, api=api, ldapi=False,
-                 start_tls=False, autobind=ipaldap.AUTOBIND_DISABLED):
+    def __init__(self, fstore=None, api=api):
         service.Service.__init__(
             self, "named",
-            service_desc="DNS",
-            dm_password=dm_password,
-            ldapi=ldapi,
-            autobind=autobind,
-            start_tls=start_tls
+            service_desc="DNS"
         )
         self.dns_backup = DnsBackup(self)
         self.named_user = None
@@ -632,7 +628,6 @@ class BindInstance(service.Service):
         self.forwarders = None
         self.sub_dict = None
         self.reverse_zones = []
-        self.dm_password = dm_password
         self.api = api
         self.named_regular = services.service('named-regular')
 
@@ -665,8 +660,7 @@ class BindInstance(service.Service):
             self.zonemgr = normalize_zonemgr(zonemgr)
 
         self.first_instance = not dns_container_exists(
-            self.fqdn, self.suffix, realm=self.realm, ldapi=True,
-            dm_password=self.dm_password, autobind=self.autobind)
+            self.fqdn, self.suffix, realm=self.realm, ldapi=True)
 
         self.__setup_sub_dict()
 
@@ -763,7 +757,7 @@ class BindInstance(service.Service):
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
         try:
-            self.ldap_enable('DNS', self.fqdn, self.dm_password, self.suffix)
+            self.ldap_enable('DNS', self.fqdn, None, self.suffix)
         except errors.DuplicateEntry:
             # service already exists (forced DNS reinstall)
             # don't crash, just report error
