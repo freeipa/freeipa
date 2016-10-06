@@ -35,6 +35,9 @@ class ADTrustBase(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        if not cls.master.transport.file_exists('/usr/bin/rpcclient'):
+            raise nose.SkipTest("Package samba-client not available "
+                                "on {}".format(cls.master.hostname))
         super(ADTrustBase, cls).install(mh)
         cls.ad = cls.ad_domains[0].ads[0]
         cls.ad_domain = cls.ad.domain.name
