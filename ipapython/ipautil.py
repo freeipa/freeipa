@@ -54,8 +54,6 @@ from ipapython import config
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 
-# pylint: disable=unused-variable
-
 SHARE_DIR = paths.USR_SHARE_IPA_DIR
 PLUGINS_SHARE_DIR = paths.IPA_PLUGINS
 
@@ -115,7 +113,7 @@ class UnsafeIPAddress(netaddr.IPAddress):
                 # netaddr.IPAddress doesn't handle zone indices in textual
                 # IPv6 addresses. Try removing zone index and parse the
                 # address again.
-                addr, sep, foo = addr.partition('%')
+                addr, sep, _foo = addr.partition('%')
                 if sep != '%':
                     raise
                 addr = netaddr.IPAddress(addr, flags=self.netaddr_ip_flags)
@@ -933,7 +931,7 @@ def user_input(prompt, default = None, allow_empty = True):
 
 def host_port_open(host, port, socket_type=socket.SOCK_STREAM, socket_timeout=None):
     for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket_type):
-        af, socktype, proto, canonname, sa = res
+        af, socktype, proto, _canonname, sa = res
         try:
             try:
                 s = socket.socket(af, socktype, proto)
@@ -951,7 +949,7 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM, socket_timeout=No
                 s.recv(512)
 
             return True
-        except socket.error as e:
+        except socket.error:
             pass
         finally:
             if s:
@@ -976,7 +974,7 @@ def bind_port_responder(port, socket_type=socket.SOCK_STREAM, socket_timeout=Non
             last_socket_error = e
             continue
         for res in addr_infos:
-            af, socktype, proto, canonname, sa = res
+            af, socktype, proto, _canonname, sa = res
             try:
                 s = socket.socket(af, socktype, proto)
             except socket.error as e:
@@ -1003,14 +1001,14 @@ def bind_port_responder(port, socket_type=socket.SOCK_STREAM, socket_timeout=Non
                 while True:
                     if socket_type == socket.SOCK_STREAM:
                         s.listen(1)
-                        connection, client_address = s.accept()
+                        connection, _client_address = s.accept()
                         try:
                             if responder_data:
                                 connection.sendall(responder_data)
                         finally:
                             connection.close()
                     elif socket_type == socket.SOCK_DGRAM:
-                        data, addr = s.recvfrom(1)
+                        _data, addr = s.recvfrom(1)
 
                         if responder_data:
                             s.sendto(responder_data, addr)

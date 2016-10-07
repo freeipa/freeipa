@@ -12,8 +12,6 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
 from cffi import FFI
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -931,7 +929,7 @@ class P11_Helper(object):
             raise DuplicationError("Master key with same ID already exists")
 
         # Process keyword boolean arguments
-        (cka_copyable_ptr, cka_decrypt_ptr, cka_derive_ptr, cka_encrypt_ptr,
+        (_cka_copyable_ptr, cka_decrypt_ptr, cka_derive_ptr, cka_encrypt_ptr,
          cka_extractable_ptr, cka_modifiable_ptr, cka_private_ptr,
          cka_sensitive_ptr, cka_sign_ptr, cka_unwrap_ptr, cka_verify_ptr,
          cka_wrap_ptr, cka_wrap_with_trusted_ptr,) = convert_py2bool(attrs)
@@ -1041,14 +1039,14 @@ class P11_Helper(object):
         modulus_bits_ptr = new_ptr(CK_ULONG, modulus_bits)
 
         # Process keyword boolean arguments
-        (pub_cka_copyable_ptr, pub_cka_derive_ptr, pub_cka_encrypt_ptr,
+        (_pub_cka_copyable_ptr, pub_cka_derive_ptr, pub_cka_encrypt_ptr,
          pub_cka_modifiable_ptr, pub_cka_private_ptr, pub_cka_trusted_ptr,
          pub_cka_verify_ptr, pub_cka_verify_recover_ptr, pub_cka_wrap_ptr,
          ) = convert_py2bool(attrs_pub)
-        (priv_cka_always_authenticate_ptr, priv_cka_copyable_ptr,
+        (priv_cka_always_authenticate_ptr, _priv_cka_copyable_ptr,
          priv_cka_decrypt_ptr, priv_cka_derive_ptr, priv_cka_extractable_ptr,
          priv_cka_modifiable_ptr, priv_cka_private_ptr, priv_cka_sensitive_ptr,
-         priv_cka_sign_ptr, priv_cka_sign_recover_ptr, priv_cka_unwrap_ptr,
+         priv_cka_sign_ptr, _priv_cka_sign_recover_ptr, priv_cka_unwrap_ptr,
          priv_cka_wrap_with_trusted_ptr,) = convert_py2bool(attrs_priv)
 
         # 65537 (RFC 6376 section 3.3.1)
@@ -1486,7 +1484,7 @@ class P11_Helper(object):
             raise DuplicationError("Secret key with same ID already exists")
 
         # Process keyword boolean arguments
-        (cka_copyable_ptr, cka_decrypt_ptr, cka_derive_ptr, cka_encrypt_ptr,
+        (_cka_copyable_ptr, cka_decrypt_ptr, cka_derive_ptr, cka_encrypt_ptr,
          cka_extractable_ptr, cka_modifiable_ptr, cka_private_ptr,
          cka_sensitive_ptr, cka_sign_ptr, cka_unwrap_ptr, cka_verify_ptr,
          cka_wrap_ptr, cka_wrap_with_trusted_ptr,) = convert_py2bool(attrs)
@@ -1572,10 +1570,10 @@ class P11_Helper(object):
             raise DuplicationError("Secret key with same ID already exists")
 
         # Process keyword boolean arguments
-        (cka_always_authenticate_ptr, cka_copyable_ptr, cka_decrypt_ptr,
+        (cka_always_authenticate_ptr, _cka_copyable_ptr, cka_decrypt_ptr,
          cka_derive_ptr, cka_extractable_ptr, cka_modifiable_ptr,
          cka_private_ptr, cka_sensitive_ptr, cka_sign_ptr,
-         cka_sign_recover_ptr, cka_unwrap_ptr, cka_wrap_with_trusted_ptr,
+         _cka_sign_recover_ptr, cka_unwrap_ptr, cka_wrap_with_trusted_ptr,
          ) = convert_py2bool(attrs_priv)
 
         template = new_array(CK_ATTRIBUTE, (

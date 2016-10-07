@@ -35,8 +35,6 @@ from six.moves.configparser import SafeConfigParser
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -118,10 +116,10 @@ class FileStore(object):
             root_logger.debug("  -> Not backing up - '%s' doesn't exist", path)
             return
 
-        (reldir, backupfile) = os.path.split(path)
+        _reldir, backupfile = os.path.split(path)
 
         filename = ""
-        for i in range(8):
+        for _i in range(8):
             h = "%02x" % self.random.randint(0,255)
             filename += h
         filename += "-"+backupfile
@@ -145,8 +143,8 @@ class FileStore(object):
         Returns #True if the file exists in the file store, #False otherwise
         """
         result = False
-        for (key, value) in self.files.items():
-            (mode,uid,gid,filepath) = value.split(',', 3)
+        for _key, value in self.files.items():
+            _mode, _uid, _gid, filepath = value.split(',', 3)
             if (filepath == path):
                 result = True
                 break
@@ -264,13 +262,10 @@ class FileStore(object):
         if not os.path.isabs(path):
             raise ValueError("Absolute path required")
 
-        mode = None
-        uid = None
-        gid = None
         filename = None
 
         for (key, value) in self.files.items():
-            (mode,uid,gid,filepath) = value.split(',', 3)
+            _mode, _uid, _gid, filepath = value.split(',', 3)
             if (filepath == path):
                 filename = key
                 break

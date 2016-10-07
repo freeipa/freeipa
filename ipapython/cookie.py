@@ -27,8 +27,6 @@ from six.moves.urllib.parse import urlparse
 
 from ipapython.ipa_log_manager import log_mgr
 
-# pylint: disable=unused-variable
-
 '''
 Core Python has two cookie libraries, Cookie.py targeted to server
 side and cookielib.py targeted to client side. So why this module and
@@ -542,7 +540,7 @@ class Cookie(object):
         received from.
         '''
 
-        scheme, domain, path, params, query, fragment = urlparse(url)
+        _scheme, domain, path, _params, _query, _fragment = urlparse(url)
 
         if self.domain is None:
             self.domain = domain.lower()
@@ -599,7 +597,7 @@ class Cookie(object):
             from ipalib.util import validate_domain_name
             try:
                 validate_domain_name(url_domain)
-            except Exception as e:
+            except Exception:
                 return False
 
             if cookie_domain is None:
@@ -644,7 +642,10 @@ class Cookie(object):
 
         cookie_name = self.key
 
-        url_scheme, url_domain, url_path, url_params, url_query, url_fragment = urlparse(url)
+        (
+            url_scheme, url_domain, url_path,
+            _url_params, _url_query, _url_fragment
+        ) = urlparse(url)
 
         cookie_expiration = self.get_expiration()
         if cookie_expiration is not None:
