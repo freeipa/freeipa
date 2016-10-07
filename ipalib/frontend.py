@@ -40,8 +40,6 @@ from ipalib import errors, messages
 from ipalib.request import context, context_frame
 from ipalib.util import classproperty, json_serialize
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -777,10 +775,8 @@ class Command(HasParam):
         if len(ver.version) < 2:
             raise VersionError(cver=ver.version, sver=server_ver.version, server= self.env.xmlrpc_uri)
         client_major = ver.version[0]
-        client_minor = ver.version[1]
 
         server_major = server_ver.version[0]
-        server_minor = server_ver.version[1]
 
         if server_major != client_major:
             raise VersionError(cver=client_version, sver=API_VERSION, server=self.env.xmlrpc_uri)
@@ -1279,18 +1275,8 @@ class Object(HasParam):
         This method gets called by `HasParam._create_param_namespace()`.
         """
         for spec in self._get_param_iterable('params'):
-            if type(spec) is str:
-                key = spec.rstrip('?*+')
-            else:
-                assert isinstance(spec, Param)
-                key = spec.name
+            assert isinstance(spec, (str, Param))
             yield create_param(spec)
-        def get_key(p):
-            if p.param.required:
-                if p.param.default_from is None:
-                    return 0
-                return 1
-            return 2
 
     json_friendly_attributes = (
         'name', 'takes_params',

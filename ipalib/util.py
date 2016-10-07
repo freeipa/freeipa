@@ -51,8 +51,6 @@ from ipapython.dnsutil import DNSName
 from ipapython.dnsutil import resolve_ip_addresses
 from ipapython.ipa_log_manager import root_logger
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -176,7 +174,7 @@ def normalize_zonemgr(zonemgr):
         return zonemgr
     if '@' in zonemgr:
         # local-part needs to be normalized
-        name, at, domain = zonemgr.partition('@')
+        name, _at, domain = zonemgr.partition('@')
         name = name.replace('.', '\\.')
         zonemgr = u''.join((name, u'.', domain))
 
@@ -542,7 +540,7 @@ def get_reverse_zone_default(ip_address):
 
 def validate_rdn_param(ugettext, value):
     try:
-        rdn = RDN(value)
+        RDN(value)
     except Exception as e:
         return str(e)
     return None
@@ -794,8 +792,6 @@ def detect_dns_zone_realm_type(api, domain):
     domain_suffix = DNSName(domain)
     kerberos_record_name = kerberos_prefix + domain_suffix
 
-    response = None
-
     try:
         result = resolver.query(kerberos_record_name, rdatatype.TXT)
         answer = result.response.answer
@@ -813,7 +809,7 @@ def detect_dns_zone_realm_type(api, domain):
             else:
                 return 'foreign'
 
-    except DNSException as e:
+    except DNSException:
         pass
 
     # Try to detect AD specific record in the zone.
@@ -827,7 +823,7 @@ def detect_dns_zone_realm_type(api, domain):
         result = resolver.query(ad_specific_record_name, rdatatype.SRV)
         return 'foreign'
 
-    except DNSException as e:
+    except DNSException:
         pass
 
     # If we could not detect type with certainity, return unknown

@@ -30,8 +30,6 @@ from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
 from ipalib import x509
 
-# pylint: disable=unused-variable
-
 CA_NICKNAME_FMT = "%s IPA CA"
 
 
@@ -359,7 +357,7 @@ class NSSDatabase(object):
 
                     server_certs = self.find_server_certs()
                     if key_nickname:
-                        for nickname, trust_flags in server_certs:
+                        for nickname, _trust_flags in server_certs:
                             if nickname == key_nickname:
                                 break
                         else:
@@ -422,7 +420,7 @@ class NSSDatabase(object):
             try:
                 self.run_certutil(["-M", "-n", root_nickname,
                                    "-t", trust_flags])
-            except ipautil.CalledProcessError as e:
+            except ipautil.CalledProcessError:
                 raise RuntimeError(
                     "Setting trust on %s failed" % root_nickname)
 
@@ -434,7 +432,7 @@ class NSSDatabase(object):
             raise RuntimeError("Failed to get %s" % nickname)
         cert = result.output
         if not pem:
-            (cert, start) = find_cert_from_txt(cert, start=0)
+            cert, _start = find_cert_from_txt(cert, start=0)
             cert = x509.strip_header(cert)
             cert = base64.b64decode(cert)
         return cert

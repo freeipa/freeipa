@@ -119,7 +119,6 @@ from ipapython import kerberos
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
-# pylint: disable=unused-variable
 
 def _is_null(value):
     return not value and value != 0 # NOTE: False == 0
@@ -946,7 +945,7 @@ class Param(ReadOnly):
 
     def __json__(self):
         json_dict = {}
-        for (a, k, d) in self.kwargs:
+        for a, k, _d in self.kwargs:
             if k in (callable, DefaultFrom):
                 continue
             elif isinstance(getattr(self, a), frozenset):
@@ -1786,7 +1785,6 @@ class AccessTime(Str):
         if ts[index] == 'month':
             index += 1
             self._check_interval(ts[index], self._check_month_num)
-            month_num = int(ts[index])
             index = self._check_M_spec(ts, index + 1)
         elif ts[index] == 'week':
             self._check_interval(ts[index + 1], self._check_woty)
@@ -1940,8 +1938,6 @@ class DNSNameParam(Param):
 
     def _convert_scalar(self, value, index=None):
         if isinstance(value, unicode):
-            error = None
-
             try:
                 validate_idna_domain(value)
             except ValueError as e:

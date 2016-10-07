@@ -70,8 +70,6 @@ from ipapython.kerberos import Principal
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib import api
 
-# pylint: disable=unused-variable
-
 # The XMLRPC client is in  "six.moves.xmlrpc_client", but pylint
 # cannot handle that
 try:
@@ -491,7 +489,7 @@ class SSLTransport(LanguageAwareTransport):
         return None
 
     def make_connection(self, host):
-        host, self._extra_headers, x509 = self.get_host_info(host)
+        host, self._extra_headers, _x509 = self.get_host_info(host)
 
         if self._connection and host == self._connection[0]:
             return self._connection[1]
@@ -595,7 +593,7 @@ class KerbTransport(SSLTransport):
             header = response.getheader('www-authenticate', '')
             token = None
             for field in header.split(','):
-                k, _, v = field.strip().partition(' ')
+                k, _dummy, v = field.strip().partition(' ')
                 if k.lower() == 'negotiate':
                     try:
                         token = base64.b64decode(v.encode('ascii'))
@@ -751,14 +749,14 @@ class RPCClient(Connectible):
         Create a list of urls consisting of the available IPA servers.
         """
         # the configured URL defines what we use for the discovered servers
-        (scheme, netloc, path, params, query, fragment
+        (_scheme, _netloc, path, _params, _query, _fragment
             ) = urllib.parse.urlparse(rpc_uri)
         servers = []
         name = '_ldap._tcp.%s.' % self.env.domain
 
         try:
             answers = resolver.query(name, rdatatype.SRV)
-        except DNSException as e:
+        except DNSException:
             answers = []
 
         for answer in answers:
@@ -791,13 +789,13 @@ class RPCClient(Connectible):
         # (possibly with more than one cookie).
         try:
             cookie_string = read_persistent_client_session_data(principal)
-        except Exception as e:
+        except Exception:
             return None
 
         # Search for the session cookie within the cookie string
         try:
             session_cookie = Cookie.get_named_cookie_from_string(cookie_string, COOKIE_NAME)
-        except Exception as e:
+        except Exception:
             return None
 
         return session_cookie
@@ -914,7 +912,7 @@ class RPCClient(Connectible):
             try:
                 command = getattr(serverproxy, 'ping')
                 try:
-                    response = command([], {})
+                    command([], {})
                 except Fault as e:
                     e = decode_fault(e)
                     if e.faultCode in errors_by_code:

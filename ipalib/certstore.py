@@ -29,8 +29,6 @@ from ipapython.dn import DN
 from ipapython.certdb import get_ca_nickname
 from ipalib import errors, x509
 
-# pylint: disable=unused-variable
-
 def _parse_cert(dercert):
     try:
         subject = x509.get_subject(dercert, x509.DER)
@@ -108,7 +106,7 @@ def clean_old_config(ldap, base_dn, dn, config_ipa, config_compat):
         return
 
     try:
-        result, truncated = ldap.find_entries(
+        result, _truncated = ldap.find_entries(
             base_dn=DN(('cn', 'certificates'), ('cn', 'ipa'), ('cn', 'etc'),
                        base_dn),
             filter='(|(ipaConfigString=ipaCA)(ipaConfigString=compatCA))',
@@ -162,7 +160,7 @@ def update_ca_cert(ldap, base_dn, dercert, trusted=None, ext_key_usage=None,
     subject, issuer_serial, public_key = _parse_cert(dercert)
 
     filter = ldap.make_filter({'ipaCertSubject': subject})
-    result, truncated = ldap.find_entries(
+    result, _truncated = ldap.find_entries(
         base_dn=DN(('cn', 'certificates'), ('cn', 'ipa'), ('cn', 'etc'),
                    base_dn),
         filter=filter,
@@ -247,7 +245,7 @@ def make_compat_ca_certs(certs, realm, ipa_ca_subject):
     result = []
 
     for cert in certs:
-        subject, issuer_serial, public_key_info = _parse_cert(cert)
+        subject, _issuer_serial, _public_key_info = _parse_cert(cert)
         subject = DN(subject)
 
         if ipa_ca_subject is not None and subject == DN(ipa_ca_subject):
@@ -285,7 +283,7 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
         if filter_subject:
             filter = ldap.make_filter({'ipaCertSubject': filter_subject})
             filters.append(filter)
-        result, truncated = ldap.find_entries(
+        result, _truncated = ldap.find_entries(
             base_dn=container_dn,
             filter=ldap.combine_filters(filters, ldap.MATCH_ALL),
             attrs_list=['cn', 'ipaCertSubject', 'ipaCertIssuerSerial',
@@ -323,7 +321,7 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
 
             cert = entry.single_value['cACertificate;binary']
             try:
-                subject, issuer_serial, public_key_info = _parse_cert(cert)
+                subject, _issuer_serial, _public_key_info = _parse_cert(cert)
             except ValueError:
                 pass
             else:

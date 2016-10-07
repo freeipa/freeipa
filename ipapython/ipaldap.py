@@ -44,8 +44,6 @@ from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipapython.kerberos import Principal
 
-# pylint: disable=unused-variable
-
 if six.PY3:
     unicode = str
 
@@ -890,7 +888,7 @@ class LDAPClient(object):
                     return DNSName.from_text(val)
                 else:
                     return target_type(val)
-            except Exception as e:
+            except Exception:
                 msg = 'unable to convert the attribute %r value %r to type %s' % (attr, val, target_type)
                 self.log.error(msg)
                 raise ValueError(msg)
@@ -1206,10 +1204,6 @@ class LDAPClient(object):
             False - forbid trailing filter wildcard when exact=False
         """
         if isinstance(value, (list, tuple)):
-            if rules == cls.MATCH_NONE:
-                make_filter_rules = cls.MATCH_ANY
-            else:
-                make_filter_rules = rules
             flts = [
                 cls.make_filter_from_attr(
                     attr, v, exact=exact,
@@ -1384,7 +1378,7 @@ class LDAPClient(object):
                     )
                     while True:
                         result = self.conn.result3(id, 0)
-                        objtype, res_list, res_id, res_ctrls = result
+                        objtype, res_list, _res_id, res_ctrls = result
                         res_list = self._convert_result(res_list)
                         if not res_list:
                             break
@@ -1682,7 +1676,7 @@ class IPAdmin(LDAPClient):
                 pw_name = pwd.getpwuid(os.geteuid()).pw_name
                 self.do_external_bind(pw_name, timeout=timeout)
                 return
-            except errors.NotFound as e:
+            except errors.NotFound:
                 if autobind == AUTOBIND_ENABLED:
                     # autobind was required and failed, raise
                     # exception that it failed

@@ -34,8 +34,6 @@ from ipapython.ipa_log_manager import root_logger
 from ipaplatform.paths import paths
 from ipaplatform import services
 
-# pylint: disable=unused-variable
-
 DBUS_CM_PATH = '/org/fedorahosted/certmonger'
 DBUS_CM_IF = 'org.fedorahosted.certmonger'
 DBUS_CM_NAME = 'org.fedorahosted.certmonger'
@@ -88,7 +86,7 @@ class _certmonger(_cm_dbus_object):
         sock_filename = os.path.join(tempfile.mkdtemp(), 'certmonger')
         self._proc = subprocess.Popen([paths.CERTMONGER, '-n', '-L', '-P',
                                        sock_filename])
-        for t in range(0, self.timeout, 5):
+        for _t in range(0, self.timeout, 5):
             if os.path.exists(sock_filename):
                 return "unix:path=%s" % sock_filename
             time.sleep(5)
@@ -101,7 +99,7 @@ class _certmonger(_cm_dbus_object):
             if retcode is not None:
                 return
             self._proc.terminate()
-            for t in range(0, self.timeout, 5):
+            for _t in range(0, self.timeout, 5):
                 retcode = self._proc.poll()
                 if retcode is not None:
                     return
@@ -140,7 +138,7 @@ class _certmonger(_cm_dbus_object):
                     root_logger.error("Failed to start certmonger: %s" % e)
                     raise
 
-                for t in range(0, self.timeout, 5):
+                for _t in range(0, self.timeout, 5):
                     try:
                         self._bus.get_name_owner(DBUS_CM_NAME)
                         break
@@ -535,7 +533,7 @@ def check_state(dirs):
 
 
 def wait_for_request(request_id, timeout=120):
-    for i in range(0, timeout, 5):
+    for _i in range(0, timeout, 5):
         state = get_request_value(request_id, 'status')
         root_logger.debug("certmonger request is in state %r", state)
         if state in ('CA_REJECTED', 'CA_UNREACHABLE', 'CA_UNCONFIGURED',
