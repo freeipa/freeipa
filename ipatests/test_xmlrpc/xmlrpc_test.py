@@ -23,6 +23,7 @@ Base class for all XML-RPC tests
 from __future__ import print_function
 
 import datetime
+import inspect
 
 import nose
 import contextlib
@@ -237,7 +238,8 @@ EXPECTED = """Expected %r to raise %s.
 UNEXPECTED = """Expected %r to raise %s, but caught different.
   args = %r
   options = %r
-  %s: %s"""
+  expected = %s: %s
+  got = %s: %s"""
 
 
 KWARGS = """Command %r raised %s with wrong kwargs.
@@ -329,19 +331,20 @@ class Declarative(XMLRPC_test):
 
     def check_exception(self, nice, cmd, args, options, expected):
         klass = expected.__class__
-        name = klass.__name__
+        expected_name = klass.__name__
         try:
             output = api.Command[cmd](*args, **options)
         except Exception as e:
-            exception = e
+            got = e
         else:
             raise AssertionError(
-                EXPECTED % (cmd, name, args, options, output)
+                EXPECTED % (cmd, expected_name, args, options, output)
             )
-        if not isinstance(exception, klass):
+        if not isinstance(got, klass):
             raise AssertionError(
-                UNEXPECTED % (cmd, name, args, options,
-                              exception.__class__.__name__, exception)
+                UNEXPECTED % (cmd, expected_name, args, options,
+                              expected_name, expected,
+                              got.__class__.__name__, got)
             )
         # FIXME: the XML-RPC transport doesn't allow us to return structured
         # information through the exception, so we can't test the kw on the
@@ -349,21 +352,26 @@ class Declarative(XMLRPC_test):
         # transport, the exception is a free-form data structure (dict).
         # For now just compare the strings
         # pylint: disable=no-member
-        assert_deepequal(expected.strerror, exception.strerror)
+        assert_deepequal(expected.strerror, got.strerror)
         # pylint: enable=no-member
 
     def check_callable(self, nice, cmd, args, options, expected):
-        name = expected.__class__.__name__
+        expected_name = expected.__class__.__name__
+        try:
+            expected_text = inspect.getsource(expected).strip()
+        except TypeError:
+            expected_text = str(expected)
         output = dict()
-        exception = None
+        got = None
         try:
             output = api.Command[cmd](*args, **options)
         except Exception as e:
-            exception = e
-        if not expected(exception, output):
+            got = e
+        if not expected(got, output):
             raise AssertionError(
-                UNEXPECTED % (cmd, name, args, options,
-                              type(exception).__name__, exception)
+                UNEXPECTED % (cmd, expected_name, args, options,
+                              expected_name, expected_text,
+                              got.__class__.__name__, got)
             )
 
     def check_output(self, nice, cmd, args, options, expected, extra_check):
