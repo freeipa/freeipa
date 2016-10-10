@@ -20,14 +20,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
-import binascii
 import collections
 import datetime
 import os
 
+import cryptography.x509
 from nss import nss
 from nss.error import NSPRError
-from pyasn1.error import PyAsn1Error
 import six
 
 from ipalib import Command, Str, Int, Flag
@@ -174,9 +173,7 @@ def validate_csr(ugettext, csr):
             return
     try:
         pkcs10.load_certificate_request(csr)
-    except (TypeError, binascii.Error) as e:
-        raise errors.Base64DecodeError(reason=str(e))
-    except Exception as e:
+    except ValueError as e:
         raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request: %s') % e)
 
 def normalize_csr(csr):
@@ -607,17 +604,21 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             caacl_check(principal_type, principal, ca, profile_id)
 
         try:
-            subject = pkcs10.get_subject(csr)
-            extensions = pkcs10.get_extensions(csr)
-            subjectaltname = pkcs10.get_subjectaltname(csr) or ()
-        except (NSPRError, PyAsn1Error, ValueError) as e:
+            csr_obj = pkcs10.load_certificate_request(csr)
+        except ValueError as e:
             raise errors.CertificateOperationError(
                 error=_("Failure decoding Certificate Signing Request: %s") % e)
+
+        try:
+            ext_san = csr_obj.extensions.get_extension_for_oid(
+                cryptography.x509.oid.ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+        except cryptography.x509.extensions.ExtensionNotFound:
+            ext_san = None
 
         # self-service and host principals may bypass SAN permission check
         if (bind_principal_string != principal_string
                 and bind_principal_type != HOST):
-            if '2.5.29.17' in extensions:
+            if ext_san is not None:
                 self.check_access('request certificate with subjectaltname')
 
         dn = None
@@ -650,10 +651,14 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         dn = principal_obj['dn']
 
         # Ensure that the DN in the CSR matches the principal
-        cn = subject.common_name  #pylint: disable=E1101
-        if not cn:
+        #
+        # We only look at the "most specific" CN value
+        cns = csr_obj.subject.get_attributes_for_oid(
+                cryptography.x509.oid.NameOID.COMMON_NAME)
+        if len(cns) == 0:
             raise errors.ValidationError(name='csr',
                 error=_("No Common Name was found in subject of request."))
+        cn = cns[-1].value  # "most specific" is end of list
 
         if principal_type in (SERVICE, HOST):
             if cn.lower() != principal.hostname.lower():
@@ -670,8 +675,11 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 )
 
             # check email address
-            mail = subject.email_address  #pylint: disable=E1101
-            if mail is not None and mail not in principal_obj.get('mail', []):
+            #
+            # fail if any email addr from DN does not appear in ldap entry
+            email_addrs = csr_obj.subject.get_attributes_for_oid(
+                    cryptography.x509.oid.NameOID.EMAIL_ADDRESS)
+            if len(set(email_addrs) - set(principal_obj.get('mail', []))) > 0:
                 raise errors.ValidationError(
                     name='csr',
                     error=_(
@@ -685,9 +693,12 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 "to the 'userCertificate' attribute of entry '%s'.") % dn)
 
         # Validate the subject alt name, if any
-        for name_type, desc, name, _der_name in subjectaltname:
-            if name_type == nss.certDNSName:
-                name = unicode(name)
+        generalnames = []
+        if ext_san is not None:
+            generalnames = x509.process_othernames(ext_san.value)
+        for gn in generalnames:
+            if isinstance(gn, cryptography.x509.general_name.DNSName):
+                name = gn.value
                 alt_principal = None
                 alt_principal_obj = None
                 try:
@@ -703,8 +714,9 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                     elif principal_type == USER:
                         raise errors.ValidationError(
                             name='csr',
-                            error=_("subject alt name type %s is forbidden "
-                                "for user principals") % desc
+                            error=_(
+                                "subject alt name type %s is forbidden "
+                                "for user principals") % "DNSName"
                         )
                 except errors.NotFound:
                     # We don't want to issue any certificates referencing
@@ -721,17 +733,15 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                             "with subject alt name '%s'.") % name)
                 if alt_principal is not None and not bypass_caacl:
                     caacl_check(principal_type, alt_principal, ca, profile_id)
-            elif name_type in [
-                (nss.certOtherName, x509.SAN_UPN),
-                (nss.certOtherName, x509.SAN_KRB5PRINCIPALNAME),
-            ]:
-                if name != principal_string:
+            elif isinstance(gn, (x509.KRB5PrincipalName, x509.UPN)):
+                if gn.name != principal_string:
                     raise errors.ACIError(
-                        info=_("Principal '%s' in subject alt name does not "
-                               "match requested principal") % name)
-            elif name_type == nss.certRFC822Name:
+                        info=_(
+                            "Principal '%s' in subject alt name does not "
+                            "match requested principal") % gn.name)
+            elif isinstance(gn, cryptography.x509.general_name.RFC822Name):
                 if principal_type == USER:
-                    if name not in principal_obj.get('mail', []):
+                    if gn.value not in principal_obj.get('mail', []):
                         raise errors.ValidationError(
                             name='csr',
                             error=_(
@@ -741,12 +751,14 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 else:
                     raise errors.ValidationError(
                         name='csr',
-                        error=_("subject alt name type %s is forbidden "
-                            "for non-user principals") % desc
+                        error=_(
+                            "subject alt name type %s is forbidden "
+                            "for non-user principals") % "RFC822Name"
                     )
             else:
                 raise errors.ACIError(
-                    info=_("Subject alt name type %s is forbidden") % desc)
+                    info=_("Subject alt name type %s is forbidden")
+                    % type(gn).__name__)
 
         # Request the certificate
         try:

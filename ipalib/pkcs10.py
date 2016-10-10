@@ -21,69 +21,17 @@ from __future__ import print_function
 
 import sys
 import base64
-import nss.nss as nss
+from cryptography.hazmat.backends import default_backend
+import cryptography.x509
 from pyasn1.type import univ, namedtype, tag
 from pyasn1.codec.der import decoder
 import six
-from ipalib import x509
 
 if six.PY3:
     unicode = str
 
 PEM = 0
 DER = 1
-
-def get_subject(csr, datatype=PEM):
-    """
-    Given a CSR return the subject value.
-
-    This returns an nss.DN object.
-    """
-    request = load_certificate_request(csr, datatype)
-    try:
-        return request.subject
-    finally:
-        del request
-
-def get_extensions(csr, datatype=PEM):
-    """
-    Given a CSR return OIDs of certificate extensions.
-
-    The return value is a tuple of strings
-    """
-    request = load_certificate_request(csr, datatype)
-
-    # Work around a bug in python-nss where nss.oid_dotted_decimal
-    # errors on unrecognised OIDs
-    #
-    # https://bugzilla.redhat.com/show_bug.cgi?id=1246729
-    #
-    def get_prefixed_oid_str(ext):
-        """Returns a string like 'OID.1.2...'."""
-        if ext.oid_tag == 0:
-            return repr(ext)
-        else:
-            return nss.oid_dotted_decimal(ext.oid)
-
-    return tuple(get_prefixed_oid_str(ext)[4:]
-                 for ext in request.extensions)
-
-
-def get_subjectaltname(csr, datatype=PEM):
-    """
-    Given a CSR return the subjectaltname value, if any.
-
-    The return value is a tuple of strings or None
-    """
-    request = load_certificate_request(csr, datatype)
-    for extension in request.extensions:
-        if extension.oid_tag == nss.SEC_OID_X509_SUBJECT_ALT_NAME:
-            break
-    else:
-        return None
-    del request
-
-    return x509.decode_generalnames(extension.value)
 
 
 # Unfortunately, NSS can only parse the extension request attribute, so
@@ -148,31 +96,29 @@ def strip_header(csr):
 
     return csr
 
-def load_certificate_request(csr, datatype=PEM):
-    """
-    Given a base64-encoded certificate request, with or without the
-    header/footer, return a request object.
-    """
-    if datatype == PEM:
-        csr = strip_header(csr)
-        csr = base64.b64decode(csr)
 
-    # A fail-safe so we can always read a CSR. python-nss/NSS will segfault
-    # otherwise
-    if not nss.nss_is_initialized():
-        nss.nss_init_nodb()
+def load_certificate_request(data, datatype=PEM):
+    """
+    Load a PKCS #10 certificate request.
 
-    return nss.CertificateRequest(csr)
+    :param datatype: PEM for base64-encoded data (with or without header),
+                     or DER
+    :return: a python-cryptography ``Certificate`` object.
+    :raises: ``ValueError`` if unable to load the request
+
+    """
+    if (datatype == PEM):
+        data = strip_header(data)
+        data = base64.b64decode(data)
+
+    return cryptography.x509.load_der_x509_csr(data, default_backend())
+
 
 if __name__ == '__main__':
-    nss.nss_init_nodb()
-
     # Read PEM request from stdin and print out its components
 
     csrlines = sys.stdin.readlines()
     csr = ''.join(csrlines)
 
     print(load_certificate_request(csr))
-    print(get_subject(csr))
-    print(get_subjectaltname(csr))
     print(get_friendlyname(csr))
