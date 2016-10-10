@@ -232,7 +232,7 @@ class BasePathNamespace(object):
     SCHEMA_COMPAT_ULDIF = "/usr/share/ipa/schema_compat.uldif"
     IPA_JS_PLUGINS_DIR = "/usr/share/ipa/ui/js/plugins"
     UPDATES_DIR = "/usr/share/ipa/updates/"
-    CSR_DATA_DIR = "/usr/share/ipa/csr"
+    CSR_DATA_DIR = "/usr/share/ipa/csrgen"
     DICT_WORDS = "/usr/share/dict/words"
     CACHE_IPA_SESSIONS = "/var/cache/ipa/sessions"
     VAR_KERBEROS_KRB5KDC_DIR = "/var/kerberos/krb5kdc/"

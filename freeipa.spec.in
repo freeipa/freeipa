@@ -1210,13 +1210,13 @@ fi
 %{_usr}/share/ipa/advise/legacy/*.template
 %dir %{_usr}/share/ipa/profiles
 %{_usr}/share/ipa/profiles/*.cfg
-%dir %{_usr}/share/ipa/csr
-%dir %{_usr}/share/ipa/csr/templates
-%{_usr}/share/ipa/csr/templates/*.tmpl
-%dir %{_usr}/share/ipa/csr/profiles
-%{_usr}/share/ipa/csr/profiles/*.json
-%dir %{_usr}/share/ipa/csr/rules
-%{_usr}/share/ipa/csr/rules/*.json
+%dir %{_usr}/share/ipa/csrgen
+%dir %{_usr}/share/ipa/csrgen/templates
+%{_usr}/share/ipa/csrgen/templates/*.tmpl
+%dir %{_usr}/share/ipa/csrgen/profiles
+%{_usr}/share/ipa/csrgen/profiles/*.json
+%dir %{_usr}/share/ipa/csrgen/rules
+%{_usr}/share/ipa/csrgen/rules/*.json
 %dir %{_usr}/share/ipa/html
 %{_usr}/share/ipa/html/ffconfig.js
 %{_usr}/share/ipa/html/ffconfig_page.js
