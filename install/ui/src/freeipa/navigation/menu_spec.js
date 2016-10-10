@@ -249,7 +249,7 @@ var nav = {};
                 },
                 {
                     name: 'apibrowser',
-                    label: 'API browser',
+                    label: '@i18n:widget.api_browser',
                     facet: 'apibrowser',
                     args: { 'type': 'command' }
                 },

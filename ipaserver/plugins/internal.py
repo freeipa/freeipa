@@ -887,6 +887,7 @@ class i18n_messages(Command):
         },
         "true": _("True"),
         "widget": {
+            "api_browser": _("API Browser"),
             "first": _("First"),
             "last": _("Last"),
             "next": _("Next"),
