@@ -293,6 +293,6 @@ class test_rule_handling(object):
         rule_provider.syntax_rule.options = {'required': True}
         generator = IdentityCSRGenerator(rule_provider)
 
-        with pytest.raises(errors.CertificateMappingError):
+        with pytest.raises(errors.CSRTemplateError):
             script = generator.csr_script(
                 principal, {}, 'example', 'identity')

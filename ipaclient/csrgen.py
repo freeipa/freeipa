@@ -52,7 +52,7 @@ class IPAExtension(jinja2.ext.Extension):
 
     def required(self, data, name):
         if not data:
-            raise errors.CertificateMappingError(
+            raise errors.CSRTemplateError(
                 reason=_('Required mapping rule %(name)s is missing data') %
                 {'name': name})
         return data
@@ -131,7 +131,7 @@ class Formatter(object):
             combined_template_source = base_template.render(**template_params)
         except jinja2.UndefinedError:
             logger.debug(traceback.format_exc())
-            raise errors.CertificateMappingError(reason=_(
+            raise errors.CSRTemplateError(reason=_(
                 'Template error when formatting certificate data'))
 
         logger.debug(
@@ -169,7 +169,7 @@ class Formatter(object):
             prepared_template = template.render(datarules=data_rules)
         except jinja2.UndefinedError:
             logger.debug(traceback.format_exc())
-            raise errors.CertificateMappingError(reason=_(
+            raise errors.CSRTemplateError(reason=_(
                 'Template error when formatting certificate data'))
 
         if data_sources:
@@ -302,10 +302,8 @@ class FileRuleProvider(RuleProvider):
                              ' helper "%(helper)s"') %
                     {'ruleset': rule_name, 'helper': helper})
             elif len(matching_rules) > 1:
-                raise errors.CertificateMappingError(
-                    reason=_('More than one transformation in "%(ruleset)s"'
-                             ' matches helper "%(helper)s"') %
-                    {'ruleset': rule_name, 'helper': helper})
+                raise errors.RedundantMappingRule(
+                    ruleset=rule_name, helper=helper)
             rule = matching_rules[0]
 
             options = {}
@@ -359,7 +357,7 @@ class CSRGenerator(object):
             script = template.render(render_data)
         except jinja2.UndefinedError:
             logger.debug(traceback.format_exc())
-            raise errors.CertificateMappingError(reason=_(
+            raise errors.CSRTemplateError(reason=_(
                 'Template error when formatting certificate data'))
 
         return script
