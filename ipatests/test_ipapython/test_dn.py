@@ -2,6 +2,7 @@ import contextlib
 import unittest
 import pytest
 
+from cryptography import x509
 import six
 
 from ipapython.dn import DN, RDN, AVA
@@ -621,7 +622,7 @@ class TestDN(unittest.TestCase):
     def setUp(self):
         # ava1 must sort before ava2
         self.attr1    = 'cn'
-        self.value1   = 'Bob'
+        self.value1   = u'Bob'
         self.str_ava1 = '%s=%s' % (self.attr1, self.value1)
         self.ava1     = AVA(self.attr1, self.value1)
 
@@ -629,7 +630,7 @@ class TestDN(unittest.TestCase):
         self.rdn1     = RDN((self.attr1, self.value1))
 
         self.attr2    = 'ou'
-        self.value2   = 'people'
+        self.value2   = u'people'
         self.str_ava2 = '%s=%s' % (self.attr2, self.value2)
         self.ava2     = AVA(self.attr2, self.value2)
 
@@ -656,6 +657,11 @@ class TestDN(unittest.TestCase):
         self.base_container_dn = DN((self.attr1, self.value1),
                                     self.container_dn, self.base_dn)
 
+        self.x500name = x509.Name([
+            x509.NameAttribute(
+                x509.NameOID.ORGANIZATIONAL_UNIT_NAME, self.value2),
+            x509.NameAttribute(x509.NameOID.COMMON_NAME, self.value1),
+        ])
 
     def assertExpectedClass(self, klass, obj, component):
         self.assertIs(obj.__class__, expected_class(klass, component))
@@ -783,6 +789,19 @@ class TestDN(unittest.TestCase):
 
         # Create with single string with 2 RDN's
         dn1 = DN(self.str_dn3)
+        self.assertEqual(len(dn1), 2)
+        self.assertExpectedClass(DN, dn1, 'self')
+        for i in range(0, len(dn1)):
+            self.assertExpectedClass(DN, dn1[i], 'RDN')
+            for j in range(0, len(dn1[i])):
+                self.assertExpectedClass(DN, dn1[i][j], 'AVA')
+            self.assertIsInstance(dn1[i].attr, unicode)
+            self.assertIsInstance(dn1[i].value, unicode)
+        self.assertEqual(dn1[0], self.rdn1)
+        self.assertEqual(dn1[1], self.rdn2)
+
+        # Create with a python-cryptography 'Name'
+        dn1 = DN(self.x500name)
         self.assertEqual(len(dn1), 2)
         self.assertExpectedClass(DN, dn1, 'self')
         for i in range(0, len(dn1)):
