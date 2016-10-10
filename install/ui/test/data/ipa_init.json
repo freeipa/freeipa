@@ -734,6 +734,7 @@
                     },
                     "true": "True",
                     "widget": {
+                        "api_browser": "API Browser",
                         "first": "First",
                         "last": "Last",
                         "next": "Next",
