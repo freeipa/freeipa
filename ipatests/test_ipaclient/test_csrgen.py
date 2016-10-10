@@ -294,5 +294,5 @@ class test_rule_handling(object):
         generator = IdentityCSRGenerator(rule_provider)
 
         with pytest.raises(errors.CSRTemplateError):
-            script = generator.csr_script(
+            _script = generator.csr_script(
                 principal, {}, 'example', 'identity')
