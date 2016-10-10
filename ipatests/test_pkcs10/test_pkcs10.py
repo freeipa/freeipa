@@ -20,18 +20,12 @@
 Test the `pkcs10.py` module.
 """
 
-# FIXME: Pylint errors
-# pylint: disable=no-member
-
-import binascii
-
 import nose
 from ipalib import pkcs10
 from ipapython import ipautil
-import nss.nss as nss
-from nss.error import NSPRError
 import pytest
 import os
+import cryptography.x509
 
 
 @pytest.mark.tier0
@@ -41,7 +35,6 @@ class test_update(object):
     """
 
     def setup(self):
-        nss.nss_init_nodb()
         self.testdir = os.path.abspath(os.path.dirname(__file__))
         if not ipautil.file_exists(os.path.join(self.testdir,
                                                 "test0.csr")):
@@ -57,13 +50,19 @@ class test_update(object):
         """
         Test simple CSR with no attributes
         """
-        csr = self.read_file("test0.csr")
+        csr = pkcs10.load_certificate_request(self.read_file("test0.csr"))
 
-        subject = pkcs10.get_subject(csr)
+        subject = csr.subject
 
-        assert(subject.common_name == 'test.example.com')
-        assert(subject.state_name == 'California')
-        assert(subject.country_name == 'US')
+        cn = subject.get_attributes_for_oid(
+                cryptography.x509.NameOID.COMMON_NAME)[-1].value
+        assert(cn == 'test.example.com')
+        st = subject.get_attributes_for_oid(
+                cryptography.x509.NameOID.STATE_OR_PROVINCE_NAME)[-1].value
+        assert(st == 'California')
+        c = subject.get_attributes_for_oid(
+                cryptography.x509.NameOID.COUNTRY_NAME)[-1].value
+        assert(c == 'US')
 
     def test_1(self):
         """
@@ -74,13 +73,20 @@ class test_update(object):
 
         subject = request.subject
 
-        assert(subject.common_name == 'test.example.com')
-        assert(subject.state_name == 'California')
-        assert(subject.country_name == 'US')
+        cn = subject.get_attributes_for_oid(
+                cryptography.x509.NameOID.COMMON_NAME)[-1].value
+        assert(cn == 'test.example.com')
+        st = subject.get_attributes_for_oid(
+                cryptography.x509.NameOID.STATE_OR_PROVINCE_NAME)[-1].value
+        assert(st == 'California')
+        c = subject.get_attributes_for_oid(
+                cryptography.x509.NameOID.COUNTRY_NAME)[-1].value
+        assert(c == 'US')
 
-        for extension in request.extensions:
-            if extension.oid_tag == nss.SEC_OID_X509_SUBJECT_ALT_NAME:
-                assert nss.x509_alt_name(extension.value)[0] == 'testlow.example.com'
+        san = request.extensions.get_extension_for_oid(
+                cryptography.x509.ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value
+        dns = san.get_values_for_type(cryptography.x509.DNSName)
+        assert dns[0] == 'testlow.example.com'
 
     def test_2(self):
         """
@@ -91,18 +97,32 @@ class test_update(object):
 
         subject = request.subject
 
-        assert(subject.common_name == 'test.example.com')
-        assert(subject.state_name == 'California')
-        assert(subject.country_name == 'US')
+        cn = subject.get_attributes_for_oid(
+                cryptography.x509.NameOID.COMMON_NAME)[-1].value
+        assert(cn == 'test.example.com')
+        st = subject.get_attributes_for_oid(
+                cryptography.x509.NameOID.STATE_OR_PROVINCE_NAME)[-1].value
+        assert(st == 'California')
+        c = subject.get_attributes_for_oid(
+                cryptography.x509.NameOID.COUNTRY_NAME)[-1].value
+        assert(c == 'US')
 
-        for extension in request.extensions:
-            if extension.oid_tag == nss.SEC_OID_X509_SUBJECT_ALT_NAME:
-                assert nss.x509_alt_name(extension.value)[0] == 'testlow.example.com'
-            if extension.oid_tag == nss.SEC_OID_X509_CRL_DIST_POINTS:
-                pts = nss.CRLDistributionPts(extension.value)
-                urls = pts[0].get_general_names()
-                assert('http://ca.example.com/my.crl' in urls)
-                assert('http://other.example.com/my.crl' in urls)
+        san = request.extensions.get_extension_for_oid(
+                cryptography.x509.ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value
+        dns = san.get_values_for_type(cryptography.x509.DNSName)
+        assert dns[0] == 'testlow.example.com'
+
+        crldps = request.extensions.get_extension_for_oid(
+                cryptography.x509.ExtensionOID.CRL_DISTRIBUTION_POINTS).value
+        gns = []
+        for crldp in crldps:
+            gns.extend(crldp.full_name)
+        uris = [
+            u'http://ca.example.com/my.crl',
+            u'http://other.example.com/my.crl',
+        ]
+        for uri in uris:
+            assert cryptography.x509.UniformResourceIdentifier(uri) in gns
 
     def test_3(self):
         """
@@ -110,18 +130,13 @@ class test_update(object):
         """
         csr = self.read_file("test3.csr")
 
-        try:
+        with pytest.raises(ValueError):
             pkcs10.load_certificate_request(csr)
-        except NSPRError as nsprerr:
-            # (SEC_ERROR_BAD_DER) security library: improperly formatted DER-encoded message.
-            assert(nsprerr. errno== -8183)
 
     def test_4(self):
         """
         Test CSR with badly formatted base64-encoded data
         """
         csr = self.read_file("test4.csr")
-        try:
+        with pytest.raises(ValueError):
             pkcs10.load_certificate_request(csr)
-        except (TypeError, binascii.Error) as typeerr:
-            assert(str(typeerr) == 'Incorrect padding')

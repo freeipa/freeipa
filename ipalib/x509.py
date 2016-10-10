@@ -39,6 +39,7 @@ import sys
 import base64
 import re
 
+import cryptography.x509
 import nss.nss as nss
 from nss.error import NSPRError
 from pyasn1.type import univ, char, namedtype, tag
@@ -51,6 +52,9 @@ from ipalib import util
 from ipalib import errors
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+
+if six.PY3:
+    unicode = str
 
 PEM = 0
 DER = 1
@@ -511,6 +515,41 @@ def decode_generalnames(secitem):
         names.append(gni)
 
     return names
+
+
+class KRB5PrincipalName(cryptography.x509.general_name.OtherName):
+    def __init__(self, type_id, value):
+        super(KRB5PrincipalName, self).__init__(type_id, value)
+        self.name = _decode_krb5principalname(value)
+
+
+class UPN(cryptography.x509.general_name.OtherName):
+    def __init__(self, type_id, value):
+        super(UPN, self).__init__(type_id, value)
+        self.name = unicode(
+            decoder.decode(value, asn1Spec=char.UTF8String())[0])
+
+
+OTHERNAME_CLASS_MAP = {
+    SAN_KRB5PRINCIPALNAME: KRB5PrincipalName,
+    SAN_UPN: UPN,
+}
+
+
+def process_othernames(gns):
+    """
+    Process python-cryptography GeneralName values, yielding
+    OtherName values of more specific type if type is known.
+
+    """
+    for gn in gns:
+        if isinstance(gn, cryptography.x509.general_name.OtherName):
+            cls = OTHERNAME_CLASS_MAP.get(
+                gn.type_id.dotted_string,
+                cryptography.x509.general_name.OtherName)
+            yield cls(gn.type_id, gn.value)
+        else:
+            yield gn
 
 
 if __name__ == '__main__':
