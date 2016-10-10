@@ -76,6 +76,7 @@ class Tracker(object):
         self.api = api
         self.default_version = default_version or API_VERSION
         self._dn = None
+        self.attrs = {}
 
         self.exists = False
 
