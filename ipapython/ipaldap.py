@@ -369,7 +369,7 @@ class LDAPEntry(collections.MutableMapping):
 
         self._names[name] = name
 
-        for oldname in self._orig.keys():
+        for oldname in list(self._orig):
             if self._names.get(oldname) == name:
                 self._orig[name] = self._orig.pop(oldname)
                 break

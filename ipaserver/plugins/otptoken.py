@@ -114,7 +114,7 @@ def _check_interval(not_before, not_after):
 
 def _set_token_type(entry_attrs, **options):
     klasses = [x.lower() for x in entry_attrs.get('objectclass', [])]
-    for ttype in TOKEN_TYPES.keys():
+    for ttype in TOKEN_TYPES:
         cls = 'ipatoken' + ttype
         if cls.lower() in klasses:
             entry_attrs['type'] = ttype.upper()
