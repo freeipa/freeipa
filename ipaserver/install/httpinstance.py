@@ -171,8 +171,7 @@ class HTTPInstance(service.Service):
         self.step("setting up httpd keytab", self.__create_http_keytab)
         self.step("setting up ssl", self.__setup_ssl)
         self.step("importing CA certificates from LDAP", self.__import_ca_certs)
-        if not self.promote:
-            self.step("publish CA cert", self.__publish_ca_cert)
+        self.step("publish CA cert", self.__publish_ca_cert)
         self.step("clean up any existing httpd ccache", self.remove_httpd_ccache)
         self.step("configuring SELinux for httpd", self.configure_selinux_for_httpd)
         if not self.is_kdcproxy_configured():
