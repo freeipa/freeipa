@@ -1863,4 +1863,3 @@ class trustdomain_disable(LDAPQuery):
             result=True,
             value=pkey_to_value(keys[1], options),
         )
-

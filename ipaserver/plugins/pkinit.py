@@ -102,4 +102,3 @@ class pkinit_anonymous(Command):
             ldap.update_entry(entry_attrs)
 
         return dict(result=True)
-

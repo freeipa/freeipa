@@ -147,4 +147,3 @@ class passwd(Command):
             result=True,
             value=principal,
         )
-

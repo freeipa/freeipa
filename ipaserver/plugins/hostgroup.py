@@ -313,4 +313,3 @@ class hostgroup_remove_member(LDAPRemoveMember):
         assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return (completed, dn)
-

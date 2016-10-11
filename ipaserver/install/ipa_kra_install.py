@@ -226,4 +226,3 @@ class KRAInstaller(KRAInstall):
         except:
             self.log.error(dedent(self.FAIL_MESSAGE))
             raise
-

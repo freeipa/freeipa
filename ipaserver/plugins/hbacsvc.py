@@ -149,4 +149,3 @@ class hbacsvc_find(LDAPSearch):
 @register()
 class hbacsvc_show(LDAPRetrieve):
     __doc__ = _('Display information about an HBAC service.')
-

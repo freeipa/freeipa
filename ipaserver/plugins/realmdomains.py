@@ -337,4 +337,3 @@ class realmdomains_mod(LDAPUpdate):
 @register()
 class realmdomains_show(LDAPRetrieve):
     __doc__ = _('Display the list of realm domains.')
-

@@ -21,4 +21,3 @@
 from ipaserver.install.ipa_otptoken_import import OTPTokenImport
 
 OTPTokenImport.run_cli()
-

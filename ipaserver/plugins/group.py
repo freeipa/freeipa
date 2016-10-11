@@ -689,4 +689,3 @@ class group_detach(LDAPQuery):
             result=True,
             value=pkey_to_value(keys[0], options),
         )
-

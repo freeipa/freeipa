@@ -438,5 +438,3 @@ class exuser_find(Method):
 # authors from doing all the dirty work. Let's take a look at them.
 
 # COMING SOON: baseldap.py classes, extending existing plugins, etc.
-
-

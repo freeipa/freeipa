@@ -249,4 +249,3 @@ class role_remove_privilege(LDAPRemoveReverseMember):
             doc=_('Number of privileges removed'),
         ),
     )
-

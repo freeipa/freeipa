@@ -768,5 +768,3 @@ class idrange_mod(LDAPUpdate):
         self.obj.handle_ipabaserid(entry_attrs, options)
         self.obj.handle_iparangetype(entry_attrs, options)
         return dn
-
-
