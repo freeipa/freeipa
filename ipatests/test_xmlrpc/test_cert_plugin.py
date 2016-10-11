@@ -78,12 +78,11 @@ def is_db_configured():
 # running as the lite-server.
 
 
-@pytest.mark.tier1
-class test_cert(XMLRPC_test):
+class BaseCert(XMLRPC_test):
 
     @classmethod
     def setup_class(cls):
-        super(test_cert, cls).setup_class()
+        super(BaseCert, cls).setup_class()
 
         if 'cert_request' not in api.Command:
             raise nose.SkipTest('cert_request not registered')
@@ -128,11 +127,20 @@ class test_cert(XMLRPC_test):
         fp.close()
         return data
 
+    host_fqdn = u'ipatestcert.%s' % api.env.domain
+    service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
+
+
+@pytest.mark.tier1
+class test_cert(BaseCert):
+
+    @classmethod
+    def setup_class(cls):
+        super(test_cert, cls).setup_class()
+
     """
     Test the `cert` plugin.
     """
-    host_fqdn = u'ipatestcert.%s' % api.env.domain
-    service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
 
     def test_0001_cert_add(self):
         """
@@ -409,3 +417,65 @@ class test_cert_find(XMLRPC_test):
         Search using invalid date format
         """
         api.Command['cert_find'](issuedon_from=u'xyz')
+
+
+@pytest.mark.tier1
+class test_cert_revocation(BaseCert):
+
+    @classmethod
+    def setup_class(cls):
+        super(test_cert_revocation, cls).setup_class()
+
+    # create CSR, request cert, revoke cert, check cert attributes
+    def revoke_cert(self, reason):
+        # add host
+        assert 'result' in api.Command['host_add'](self.host_fqdn, force=True)
+
+        # generate CSR, request certificate, obtain serial number
+        self.csr = unicode(self.generateCSR(str(self.subject)))
+        res = api.Command['cert_request'](self.csr,
+                                          principal=self.service_princ,
+                                          add=True, all=True)['result']
+        serial_number = res['serial_number']
+
+        # revoke created certificate
+        assert 'result' in api.Command['cert_revoke'](
+            serial_number, revocation_reason=reason)
+
+        # verify that certificate is revoked with correct reason
+        res2 = api.Command['cert_show'](serial_number, all=True)['result']
+        assert res2['revoked']
+        assert res2['revocation_reason'] == reason
+
+        # remove host
+        assert 'result' in api.Command['host_del'](self.host_fqdn)
+
+    def test_revoke_with_reason_0(self):
+        self.revoke_cert(0)
+
+    def test_revoke_with_reason_1(self):
+        self.revoke_cert(1)
+
+    def test_revoke_with_reason_2(self):
+        self.revoke_cert(2)
+
+    def test_revoke_with_reason_3(self):
+        self.revoke_cert(3)
+
+    def test_revoke_with_reason_4(self):
+        self.revoke_cert(4)
+
+    def test_revoke_with_reason_5(self):
+        self.revoke_cert(5)
+
+    def test_revoke_with_reason_6(self):
+        self.revoke_cert(6)
+
+    def test_revoke_with_reason_8(self):
+        self.revoke_cert(8)
+
+    def test_revoke_with_reason_9(self):
+        self.revoke_cert(9)
+
+    def test_revoke_with_reason_10(self):
+        self.revoke_cert(10)
