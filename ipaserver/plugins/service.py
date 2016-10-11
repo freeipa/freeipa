@@ -274,8 +274,10 @@ def set_certificate_attrs(entry_attrs):
     entry_attrs['issuer'] = unicode(cert.issuer)
     entry_attrs['valid_not_before'] = unicode(cert.valid_not_before_str)
     entry_attrs['valid_not_after'] = unicode(cert.valid_not_after_str)
-    entry_attrs['md5_fingerprint'] = unicode(nss.data_to_hex(nss.md5_digest(cert.der_data), 64)[0])
-    entry_attrs['sha1_fingerprint'] = unicode(nss.data_to_hex(nss.sha1_digest(cert.der_data), 64)[0])
+    entry_attrs['md5_fingerprint'] = x509.to_hex_with_colons(
+        nss.md5_digest(cert.der_data))
+    entry_attrs['sha1_fingerprint'] = x509.to_hex_with_colons(
+        nss.sha1_digest(cert.der_data))
 
 def check_required_principal(ldap, principal):
     """

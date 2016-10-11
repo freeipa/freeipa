@@ -33,6 +33,7 @@
 
 from __future__ import print_function
 
+import binascii
 import collections
 import os
 import sys
@@ -550,6 +551,28 @@ def process_othernames(gns):
             yield cls(gn.type_id, gn.value)
         else:
             yield gn
+
+
+def chunk(size, s):
+    """Yield chunks of the specified size from the given string.
+
+    The input must be a multiple of the chunk size (otherwise
+    trailing characters are dropped).
+
+    Works on character strings only.
+
+    """
+    return (u''.join(span) for span in six.moves.zip(*[iter(s)] * size))
+
+
+def add_colons(s):
+    """Add colons between each nibble pair in a hex string."""
+    return u':'.join(chunk(2, s))
+
+
+def to_hex_with_colons(bs):
+    """Convert bytes to a hex string with colons."""
+    return add_colons(binascii.hexlify(bs).decode('utf-8'))
 
 
 if __name__ == '__main__':
