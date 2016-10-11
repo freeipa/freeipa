@@ -7,7 +7,6 @@ SAMBA40EXTRA_LIBS = $(SAMBA40EXTRA_LIBPATH)	\
 			$(NULL)
 
 KRB5_UTIL_DIR=../../util
-KRB5_UTIL_SRCS=$(KRB5_UTIL_DIR)/ipa_krb5.c $(KRB5_UTIL_DIR)/ipa_pwd_ntlm.c
 ASN1_UTIL_DIR=../../asn1
 
 AM_CPPFLAGS =						\
@@ -22,7 +21,7 @@ AM_CPPFLAGS =						\
 	-DDATADIR=\""$(datadir)"\"			\
 	-DLDAPIDIR=\""$(localstatedir)/run"\"		\
 	-DHAVE_LDAP					\
-	-I $(KRB5_UTIL_DIR)				\
+	-I$(KRB5_UTIL_DIR)				\
 	$(CRYPTO_CFLAGS)				\
 	$(LDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)					\
@@ -58,6 +57,7 @@ ipasam_la_LIBADD = 		\
 	$(SAMBA40EXTRA_LIBS)	\
 	$(SSSIDMAP_LIBS)	\
 	$(ASN1_UTIL_DIR)/libipaasn1.la  \
+	$(KRB5_UTIL_DIR)/libutil.la	\
 	$(NULL)
 
 EXTRA_DIST =			\

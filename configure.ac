@@ -304,6 +304,7 @@ AC_CONFIG_FILES([
     daemons/ipa-slapi-plugins/ipa-sidgen/Makefile
     daemons/ipa-slapi-plugins/ipa-range-check/Makefile
     daemons/ipa-slapi-plugins/topology/Makefile
+    util/Makefile
 ])
 
 AC_OUTPUT

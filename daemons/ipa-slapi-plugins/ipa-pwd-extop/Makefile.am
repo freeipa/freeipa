@@ -3,9 +3,6 @@ NULL =
 MAINTAINERCLEANFILES = *~ Makefile.in
 PLUGIN_COMMON_DIR = ../common
 KRB5_UTIL_DIR = ../../../util
-KRB5_UTIL_SRCS = $(KRB5_UTIL_DIR)/ipa_krb5.c \
-		 $(KRB5_UTIL_DIR)/ipa_pwd.c \
-		 $(KRB5_UTIL_DIR)/ipa_pwd_ntlm.c
 ASN1_UTIL_DIR=../../../asn1
 
 AM_CPPFLAGS =							\
@@ -41,6 +38,7 @@ plugin_LTLIBRARIES = libipa_pwd_extop.la
 libipa_pwd_extop_la_LIBADD  = \
 	$(builddir)/../libotp/libotp.la \
 	$(ASN1_UTIL_DIR)/libipaasn1.la  \
+	$(KRB5_UTIL_DIR)/libutil.la	\
 	$(NULL)
 libipa_pwd_extop_la_SOURCES = 		\
 	common.c			\

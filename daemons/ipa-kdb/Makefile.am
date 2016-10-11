@@ -1,9 +1,9 @@
+AUTOMAKE_OPTIONS = 1.7 subdir-objects
+
 NULL =
 
 KRB5_UTIL_DIR = ../../util
 IPA_UTIL_DIR = ../../../util
-KRB5_UTIL_SRCS = $(KRB5_UTIL_DIR)/ipa_krb5.c \
-		 $(KRB5_UTIL_DIR)/ipa_pwd.c
 
 AM_CPPFLAGS =						\
 	-I.						\
@@ -39,7 +39,6 @@ ipadb_la_SOURCES = 		\
 	ipa_kdb_mspac.c		\
 	ipa_kdb_delegation.c	\
 	ipa_kdb_audit_as.c	\
-	$(KRB5_UTIL_SRCS)	\
 	$(NULL)
 
 ipadb_la_LDFLAGS = 		\
@@ -53,6 +52,7 @@ ipadb_la_LIBADD = 		\
 	$(NDRPAC_LIBS)		\
 	$(UNISTRING_LIBS)	\
 	$(NSS_LIBS)             \
+	$(KRB5_UTIL_DIR)/libutil.la	\
 	$(NULL)
 
 if HAVE_CMOCKA
@@ -71,7 +71,6 @@ ipa_kdb_tests_SOURCES =        \
        ipa_kdb_mspac.c         \
        ipa_kdb_delegation.c    \
        ipa_kdb_audit_as.c      \
-       $(KRB5_UTIL_SRCS)       \
        $(NULL)
 ipa_kdb_tests_CFLAGS = $(CMOCKA_CFLAGS)
 ipa_kdb_tests_LDADD =          \
@@ -81,6 +80,7 @@ ipa_kdb_tests_LDADD =          \
        $(NDRPAC_LIBS)          \
        $(UNISTRING_LIBS)       \
        $(NSS_LIBS)             \
+       $(KRB5_UTIL_DIR)/libutil.la	\
        -lkdb5                  \
        -lsss_idmap             \
        $(NULL)

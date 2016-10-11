@@ -3,8 +3,8 @@
 
 include VERSION
 
-SUBDIRS=asn1 daemons install ipapython ipalib
-CLIENTDIRS=ipapython ipalib client asn1
+SUBDIRS=util asn1 daemons install ipapython ipalib
+CLIENTDIRS=ipapython ipalib client util asn1
 CLIENTPYDIRS=ipaclient ipaplatform
 PYPKGDIRS=$(CLIENTPYDIRS) ipalib ipapython ipaserver ipatests
 
