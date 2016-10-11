@@ -359,6 +359,9 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         args.append('-U')
     if setup_ca:
         args.append('--setup-ca')
+    if setup_kra:
+        assert setup_ca, "CA must be installed on replica with KRA"
+        args.append('--setup-kra')
     if setup_dns:
         args.extend([
             '--setup-dns',
@@ -388,17 +391,6 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     if result.returncode == 0:
         enable_replication_debugging(replica)
         setup_sssd_debugging(replica)
-        if setup_kra:
-            assert setup_ca, "CA must be installed on replica with KRA"
-            args = [
-                "ipa-kra-install",
-                "-p", replica.config.dirman_password,
-                "-U",
-            ]
-            if domainlevel(master) == DOMAIN_LEVEL_0:
-                args.append(replica_filename)
-            replica.run_command(args)
-
         kinit_admin(replica)
     return result
 
