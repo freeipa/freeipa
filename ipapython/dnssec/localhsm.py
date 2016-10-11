@@ -166,7 +166,7 @@ class LocalHSM(AbstractHSM):
     def import_public_key(self, source, data):
         params = ldap2p11helper_api_params(source)
         # filter out params inappropriate for public keys
-        for par in set(params.keys()).difference(public_key_api_params):
+        for par in set(params).difference(public_key_api_params):
             del params[par]
         params['data'] = data
 
@@ -176,7 +176,7 @@ class LocalHSM(AbstractHSM):
     def import_private_key(self, source, data, unwrapping_key):
         params = ldap2p11helper_api_params(source)
         # filter out params inappropriate for private keys
-        for par in set(params.keys()).difference(private_key_api_params):
+        for par in set(params).difference(private_key_api_params):
             del params[par]
         params['data'] = data
         params['unwrapping_key'] = unwrapping_key.handle

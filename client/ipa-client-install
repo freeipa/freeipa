@@ -802,7 +802,7 @@ def uninstall(options, env):
         root_logger.error('Some files have not been restored, see %s' %
                           paths.SYSRESTORE_INDEX)
     has_state = False
-    for module in statestore.modules.keys():
+    for module in statestore.modules:
             root_logger.error('Some installation state for %s has not been '
                 'restored, see /var/lib/ipa/sysrestore/sysrestore.state',
                 module)

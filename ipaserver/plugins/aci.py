@@ -340,8 +340,8 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
     if 'target' in a.target:
         target = a.target['target']['expression']
         found = False
-        for k in _type_map.keys():
-            if _type_map[k] == target:
+        for k, value in _type_map.items():
+            if value == target:
                 kw['type'] = unicode(k)
                 found = True
                 break
@@ -788,8 +788,8 @@ class aci_find(crud.Search):
                     results.remove(a)
                     continue
                 found = False
-                for k in _type_map.keys():
-                    if _type_map[k] == target and kw['type'] == k:
+                for k, value in _type_map.items():
+                    if value == target and kw['type'] == k:
                         found = True
                         break
                 if not found:

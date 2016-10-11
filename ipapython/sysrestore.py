@@ -346,7 +346,7 @@ class StateFile(object):
         """
         root_logger.debug("Saving StateFile to '%s'", self._path)
 
-        for module in list(self.modules.keys()):
+        for module in list(self.modules):
             if len(self.modules[module]) == 0:
                 del self.modules[module]
 
@@ -359,7 +359,7 @@ class StateFile(object):
         p = SafeConfigParser()
         p.optionxform = str
 
-        for module in self.modules.keys():
+        for module in self.modules:
             p.add_section(module)
             for (key, value) in self.modules[module].items():
                 p.set(module, key, str(value))
