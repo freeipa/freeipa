@@ -154,4 +154,3 @@ class batch(Command):
                 )
             results.append(result)
         return dict(count=len(results) , results=results)
-

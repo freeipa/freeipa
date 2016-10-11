@@ -173,4 +173,3 @@ class hbacsvcgroup_add_member(LDAPAddMember):
 @register()
 class hbacsvcgroup_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from an HBAC service group.')
-

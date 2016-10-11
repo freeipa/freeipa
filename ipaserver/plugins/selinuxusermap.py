@@ -566,4 +566,3 @@ class selinuxusermap_remove_host(LDAPRemoveMember):
 
     member_attributes = ['memberhost']
     member_count_out = ('%i object removed.', '%i objects removed.')
-

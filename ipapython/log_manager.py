@@ -1556,5 +1556,3 @@ class LogManager(object):
                 setattr(who, method, getattr(logger, method))
 
         return logger
-
-

@@ -192,4 +192,3 @@ class sudocmdgroup_add_member(LDAPAddMember):
 @register()
 class sudocmdgroup_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from Sudo Command Group.')
-

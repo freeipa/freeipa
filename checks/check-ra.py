@@ -128,4 +128,3 @@ if verbose: print("unrevoke_result=\n%s" % unrevoke_result)
 assert_equal(unrevoke_result,
              {'unrevoked' : True
               })
-

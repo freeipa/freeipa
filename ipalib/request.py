@@ -77,4 +77,3 @@ def destroy_context():
         if isinstance(value, Connection):
             value.disconnect()
     context.__dict__.clear()
-

@@ -602,4 +602,3 @@ class hbacrule_remove_service(LDAPRemoveMember):
 
     member_attributes = ['memberservice']
     member_count_out = ('%i object removed.', '%i objects removed.')
-

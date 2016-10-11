@@ -217,4 +217,3 @@ class test_hbactest(XMLRPC_test):
         api.Command['host_del'](self.test_sourcehost)
         api.Command['hostgroup_del'](self.test_sourcehostgroup)
         api.Command['hbacsvc_del'](self.test_service)
-

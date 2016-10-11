@@ -200,4 +200,3 @@ class sudocmd_find(LDAPSearch):
 @register()
 class sudocmd_show(LDAPRetrieve):
     __doc__ = _('Display Sudo Command.')
-
