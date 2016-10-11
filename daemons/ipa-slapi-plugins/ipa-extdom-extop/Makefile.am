@@ -6,7 +6,6 @@ AM_CPPFLAGS =							\
 	-I.							\
 	-I$(srcdir)						\
 	-I$(PLUGIN_COMMON_DIR)					\
-	-I$(KRB5_UTIL_DIR)					\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
 	-DLIBDIR=\""$(libdir)"\" 				\
@@ -31,7 +30,7 @@ libipa_extdom_extop_la_LDFLAGS = -avoid-version
 
 libipa_extdom_extop_la_LIBADD = 	\
 	$(LDAP_LIBS)			\
-	$(SSSNSSIDMAP_LIBS)	\
+	$(SSSNSSIDMAP_LIBS)		\
 	$(NULL)
 
 TESTS =
