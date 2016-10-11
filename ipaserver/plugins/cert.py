@@ -399,10 +399,10 @@ class BaseCertObject(Object):
             if full:
                 obj['valid_not_before'] = unicode(cert.valid_not_before_str)
                 obj['valid_not_after'] = unicode(cert.valid_not_after_str)
-                obj['md5_fingerprint'] = unicode(
-                    nss.data_to_hex(nss.md5_digest(cert.der_data), 64)[0])
-                obj['sha1_fingerprint'] = unicode(
-                    nss.data_to_hex(nss.sha1_digest(cert.der_data), 64)[0])
+                obj['md5_fingerprint'] = x509.to_hex_with_colons(
+                    nss.md5_digest(cert.der_data))
+                obj['sha1_fingerprint'] = x509.to_hex_with_colons(
+                    nss.sha1_digest(cert.der_data))
 
             try:
                 ext_san = cert.get_extension(nss.SEC_OID_X509_SUBJECT_ALT_NAME)
