@@ -45,6 +45,7 @@ import nss.nss as nss
 from nss.error import NSPRError
 from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import decoder, encoder
+from pyasn1_modules import rfc2459
 import six
 
 from ipalib import api
@@ -200,49 +201,11 @@ def is_self_signed(certificate, datatype=PEM, dbdir=None):
     del nsscert
     return self_signed
 
-class _Name(univ.Choice):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('rdnSequence',
-            univ.SequenceOf()),
-    )
-
-class _TBSCertificate(univ.Sequence):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType(
-            'version',
-            univ.Integer().subtype(explicitTag=tag.Tag(
-                tag.tagClassContext, tag.tagFormatSimple, 0))),
-        namedtype.NamedType('serialNumber', univ.Integer()),
-        namedtype.NamedType('signature', univ.Sequence()),
-        namedtype.NamedType('issuer', _Name()),
-        namedtype.NamedType('validity', univ.Sequence()),
-        namedtype.NamedType('subject', _Name()),
-        namedtype.NamedType('subjectPublicKeyInfo', univ.Sequence()),
-        namedtype.OptionalNamedType(
-            'issuerUniquedID',
-            univ.BitString().subtype(implicitTag=tag.Tag(
-                tag.tagClassContext, tag.tagFormatSimple, 1))),
-        namedtype.OptionalNamedType(
-            'subjectUniquedID',
-            univ.BitString().subtype(implicitTag=tag.Tag(
-                tag.tagClassContext, tag.tagFormatSimple, 2))),
-        namedtype.OptionalNamedType(
-            'extensions',
-            univ.Sequence().subtype(explicitTag=tag.Tag(
-                tag.tagClassContext, tag.tagFormatSimple, 3))),
-        )
-
-class _Certificate(univ.Sequence):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('tbsCertificate', _TBSCertificate()),
-        namedtype.NamedType('signatureAlgorithm', univ.Sequence()),
-        namedtype.NamedType('signature', univ.BitString()),
-        )
 
 def _get_der_field(cert, datatype, dbdir, field):
     cert = load_certificate(cert, datatype, dbdir)
     cert = cert.der_data
-    cert = decoder.decode(cert, _Certificate())[0]
+    cert = decoder.decode(cert, rfc2459.Certificate())[0]
     field = cert['tbsCertificate'][field]
     field = encoder.encode(field)
     return field
@@ -364,75 +327,22 @@ def write_certificate_list(rawcerts, filename):
     except (IOError, OSError) as e:
         raise errors.FileError(reason=str(e))
 
-class _Extension(univ.Sequence):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('extnID', univ.ObjectIdentifier()),
-        namedtype.NamedType('critical', univ.Boolean()),
-        namedtype.NamedType('extnValue', univ.OctetString()),
-    )
 
 def _encode_extension(oid, critical, value):
-    ext = _Extension()
+    ext = rfc2459.Extension()
     ext['extnID'] = univ.ObjectIdentifier(oid)
     ext['critical'] = univ.Boolean(critical)
-    ext['extnValue'] = univ.OctetString(value)
+    ext['extnValue'] = univ.Any(encoder.encode(univ.OctetString(value)))
     ext = encoder.encode(ext)
     return ext
 
-class _ExtKeyUsageSyntax(univ.SequenceOf):
-    componentType = univ.ObjectIdentifier()
 
 def encode_ext_key_usage(ext_key_usage):
-    eku = _ExtKeyUsageSyntax()
+    eku = rfc2459.ExtKeyUsageSyntax()
     for i, oid in enumerate(ext_key_usage):
         eku[i] = univ.ObjectIdentifier(oid)
     eku = encoder.encode(eku)
     return _encode_extension('2.5.29.37', EKU_ANY not in ext_key_usage, eku)
-
-
-class _AnotherName(univ.Sequence):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('type-id', univ.ObjectIdentifier()),
-        namedtype.NamedType('value', univ.Any().subtype(
-            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
-        ),
-    )
-
-
-class _GeneralName(univ.Choice):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('otherName', _AnotherName().subtype(
-            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
-        ),
-        namedtype.NamedType('rfc822Name', char.IA5String().subtype(
-            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 1))
-        ),
-        namedtype.NamedType('dNSName', char.IA5String().subtype(
-            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 2))
-        ),
-        namedtype.NamedType('x400Address', univ.Sequence().subtype(
-            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 3))
-        ),
-        namedtype.NamedType('directoryName', _Name().subtype(
-            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 4))
-        ),
-        namedtype.NamedType('ediPartyName', univ.Sequence().subtype(
-            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 5))
-        ),
-        namedtype.NamedType('uniformResourceIdentifier', char.IA5String().subtype(
-            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 6))
-        ),
-        namedtype.NamedType('iPAddress', univ.OctetString().subtype(
-            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 7))
-        ),
-        namedtype.NamedType('registeredID', univ.ObjectIdentifier().subtype(
-            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 8))
-        ),
-    )
-
-
-class _SubjectAltName(univ.SequenceOf):
-    componentType = _GeneralName()
 
 
 class _PrincipalName(univ.Sequence):
@@ -488,7 +398,8 @@ def decode_generalnames(secitem):
 
     """
     nss_names = nss.x509_alt_name(secitem, repr_kind=nss.AsObject)
-    asn1_names = decoder.decode(secitem.data, asn1Spec=_SubjectAltName())[0]
+    asn1_names = decoder.decode(
+            secitem.data, asn1Spec=rfc2459.SubjectAltName())[0]
     names = []
     for nss_name, asn1_name in zip(nss_names, asn1_names):
         # NOTE: we use the NSS enum to identify the name type.
