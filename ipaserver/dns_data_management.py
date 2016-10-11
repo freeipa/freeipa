@@ -8,13 +8,12 @@ import six
 
 from collections import defaultdict
 from dns import (
+    rdata,
     rdataclass,
     rdatatype,
     zone,
 )
 from dns.exception import DNSException
-from dns.rdtypes.IN.SRV import SRV
-from dns.rdtypes.ANY.TXT import TXT
 
 from time import sleep, time
 
@@ -115,12 +114,11 @@ class IPASystemRecords(object):
             suffix = self.domain_abs
 
         for name, port in rname_port_map:
-            rd = SRV(
+            rd = rdata.from_text(
                 rdataclass.IN, rdatatype.SRV,
-                priority,
-                weight,
-                port,
-                hostname.make_absolute()
+                '{0} {1} {2} {3}'.format(
+                    priority, weight, port, hostname.make_absolute()
+                )
             )
 
             r_name = name.derelativize(suffix)
@@ -158,7 +156,8 @@ class IPASystemRecords(object):
         # FIXME: with external DNS, this should generate records for all
         # realmdomains
         r_name = DNSName('_kerberos') + self.domain_abs
-        rd = TXT(rdataclass.IN, rdatatype.TXT, [self.api_instance.env.realm])
+        rd = rdata.from_text(rdataclass.IN, rdatatype.TXT,
+                             self.api_instance.env.realm)
         rdataset = zone_obj.get_rdataset(
             r_name, rdatatype.TXT, create=True
         )
