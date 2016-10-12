@@ -54,15 +54,11 @@ dnl ---------------------------------------------------------------------------
 dnl - Check for KRB5
 dnl ---------------------------------------------------------------------------
 
-AC_CHECK_HEADER(krb5.h, [], [AC_MSG_ERROR([krb5.h not found])])
+PKG_CHECK_MODULES([KRB5], [krb5], [], [AC_MSG_ERROR([libkrb5 not found])])
 AC_CHECK_HEADER(krad.h, [], [AC_MSG_ERROR([krad.h not found])])
-AC_CHECK_LIB(krb5, main, [], [AC_MSG_ERROR([libkrb5 not found])])
-AC_CHECK_LIB(k5crypto, main, [krb5crypto=k5crypto], [krb5crypto=crypto])
 AC_CHECK_LIB(krad, main, [], [AC_MSG_ERROR([libkrad not found])])
-KRB5_LIBS="-lkrb5 -l$krb5crypto -lcom_err"
 KRAD_LIBS="-lkrad"
 krb5rundir="${localstatedir}/run/krb5kdc"
-AC_SUBST(KRB5_LIBS)
 AC_SUBST(KRAD_LIBS)
 AC_SUBST(krb5rundir)
 
