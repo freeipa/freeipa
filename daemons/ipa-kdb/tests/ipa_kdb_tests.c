@@ -33,8 +33,8 @@
 #include "gen_ndr/ndr_krb5pac.h"
 #include "gen_ndr/netlogon.h"
 
-#include "ipa-kdb/ipa_kdb.h"
-#include "ipa-kdb/ipa_kdb_mspac_private.h"
+#include "ipa_kdb.h"
+#include "ipa_kdb_mspac_private.h"
 
 #define NFS_PRINC_STRING "nfs/fully.qualified.host.name@REALM.NAME"
 #define NON_NFS_PRINC_STRING "abcdef/fully.qualified.host.name@REALM.NAME"
