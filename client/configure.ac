@@ -6,7 +6,6 @@ AC_INIT([ipa-client],
 LT_INIT
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_SUBDIRS([../asn1])
 
 AM_INIT_AUTOMAKE([foreign])
 
@@ -220,7 +219,6 @@ dnl ---------------------------------------------------------------------------
 
 AC_CONFIG_FILES([
     Makefile
-    ../asn1/Makefile
     man/Makefile
 ])
 

@@ -5,7 +5,6 @@ AC_INIT([ipa-server],
         [https://hosted.fedoraproject.org/projects/freeipa/newticket])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_SUBDIRS([asn1])
 
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
@@ -283,6 +282,7 @@ AC_SUBST(LDFLAGS)
 
 AC_CONFIG_FILES([
     asn1/Makefile
+    asn1/asn1c/Makefile
     daemons/Makefile
     daemons/ipa-kdb/Makefile
     daemons/ipa-sam/Makefile
