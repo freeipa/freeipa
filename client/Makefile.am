@@ -93,7 +93,6 @@ ipa_join_LDADD = 		\
 	$(NULL)
 
 SUBDIRS =			\
-	../asn1			\
 	man			\
 	$(NULL)
 
