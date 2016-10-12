@@ -664,7 +664,7 @@ rm -f ipaplatform/services.py
 rm -f ipaplatform/tasks.py
 rm -f ipaplatform/paths.py
 rm -f ipaplatform/constants.py
-make version-update
+make LIBDIR=%{_libdir} version-update
 cd client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 %if ! %{ONLY_CLIENT}
 cd daemons; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir} --with-openldap; cd ..
@@ -672,17 +672,17 @@ cd install; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localst
 %endif # ONLY_CLIENT
 
 %if ! %{ONLY_CLIENT}
-make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} all
+make IPA_VERSION_IS_GIT_SNAPSHOT=no LIBDIR=%{_libdir} %{?_smp_mflags} all
 %else
-make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} client
+make IPA_VERSION_IS_GIT_SNAPSHOT=no LIBDIR=%{_libdir} %{?_smp_mflags} client
 %endif # ONLY_CLIENT
 
 
 %check
 %if ! %{ONLY_CLIENT}
-make %{?_smp_mflags} check VERBOSE=yes
+make %{?_smp_mflags} check VERBOSE=yes LIBDIR=%{_libdir}
 %else
-make %{?_smp_mflags} client-check VERBOSE=yes
+make %{?_smp_mflags} client-check VERBOSE=yes LIBDIR=%{_libdir}
 %endif # ONLY_CLIENT
 
 
@@ -696,9 +696,9 @@ rm -f ipaplatform/services.py
 rm -f ipaplatform/tasks.py
 rm -f ipaplatform/paths.py
 rm -f ipaplatform/constants.py
-make version-update
+make version-update LIBDIR=%{_libdir}
 %if ! %{ONLY_CLIENT}
-make install DESTDIR=%{buildroot}
+make install DESTDIR=%{buildroot} LIBDIR=%{_libdir}
 
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python2_version}
@@ -722,12 +722,12 @@ ln -s %{_bindir}/ipa-test-config-%{python2_version} %{buildroot}%{_bindir}/ipa-t
 ln -s %{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-test-task
 
 %else
-make client-install DESTDIR=%{buildroot}
+make client-install DESTDIR=%{buildroot} LIBDIR=%{_libdir}
 %endif # ONLY_CLIENT
 
 %if 0%{?with_python3}
-(cd ipalib && make PYTHON=%{__python3} IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} DESTDIR=%{buildroot} install)
-(cd ipapython && make PYTHON=%{__python3} IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} DESTDIR=%{buildroot} install)
+(cd ipalib && make PYTHON=%{__python3} IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} DESTDIR=%{buildroot} LIBDIR=%{_libdir} install)
+(cd ipapython && make PYTHON=%{__python3} IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} DESTDIR=%{buildroot} LIBDIR=%{_libdir} install)
 (cd ipaplatform && %{__python3} setup.py install --root %{buildroot})
 (cd ipaclient && %{__python3} setup.py install --root %{buildroot})
 %endif # with_python3
