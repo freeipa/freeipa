@@ -135,10 +135,7 @@ AC_SUBST(SSL_LIBS)
 dnl ---------------------------------------------------------------------------
 dnl - Check for UUID library
 dnl ---------------------------------------------------------------------------
-AC_CHECK_HEADERS(uuid/uuid.h,,[AC_MSG_ERROR([uuid/uuid.h not found])])
-
-AC_CHECK_LIB(uuid, uuid_generate_time, [UUID_LIBS="-luuid"])
-AC_SUBST(UUID_LIBS)
+PKG_CHECK_MODULES([UUID], [uuid], [], [AC_MSG_ERROR([libuuid not found])])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for Python
