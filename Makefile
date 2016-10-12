@@ -99,8 +99,8 @@ client-check: client-autogen
 
 bootstrap-autogen: version-update client-autogen
 	@echo "Building IPA $(IPA_VERSION)"
+	./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
 	cd asn1; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
-	cd daemons; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR) --with-openldap; fi
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 client-autogen: version-update
@@ -252,8 +252,10 @@ archive-cleanup:
 tarballs: local-archive
 	-mkdir -p dist/sources
 	# tar up clean sources
+	cd dist/$(TARBALL_PREFIX); ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
+	cd dist/$(TARBALL_PREFIX)/asn1; make distclean
+	cd dist/$(TARBALL_PREFIX)/daemons; make distclean
 	cd dist/$(TARBALL_PREFIX)/client; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
-	cd dist/$(TARBALL_PREFIX)/daemons; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist/$(TARBALL_PREFIX)/install; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist; tar cfz sources/$(TARBALL) $(TARBALL_PREFIX)
 	rm -rf dist/$(TARBALL_PREFIX)
@@ -309,13 +311,13 @@ clean: version-update
 	rm -f *~
 
 distclean: version-update
-	touch daemons/NEWS daemons/README daemons/AUTHORS daemons/ChangeLog
+	touch NEWS AUTHORS ChangeLog
 	touch install/NEWS install/README install/AUTHORS install/ChangeLog
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 	rm -fr $(RPMBUILD) dist build
-	rm -f daemons/NEWS daemons/README daemons/AUTHORS daemons/ChangeLog
+	rm -f NEWS AUTHORS ChangeLog
 	rm -f install/NEWS install/README install/AUTHORS install/ChangeLog
 
 maintainer-clean: clean
