@@ -63,64 +63,17 @@ AC_SUBST(KRAD_LIBS)
 AC_SUBST(krb5rundir)
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for Mozilla LDAP and OpenLDAP SDK
+dnl - Check for OpenLDAP SDK
 dnl ---------------------------------------------------------------------------
 
 SAVE_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$NSPR_CFLAGS $NSS_CFLAGS"
-AC_CHECK_HEADER(svrcore.h)
-AC_CHECK_HEADER(svrcore/svrcore.h)
-if test "x$ac_cv_header_svrcore_h" = "xno" && test "x$ac_cv_header_svrcore_svrcore_h" = "xno" ; then
-	AC_MSG_ERROR([Required svrcore header not available (svrcore-devel)])
-fi
-if test "x$ac_cv_header_svrcore_svrcore_h" = "yes" ; then
-	CPPFLAGS="$CPPFLAGS -I/usr/include/svrcore"
-fi
-
-AC_CHECK_LIB(ldap, ldap_search, with_ldap=yes)
-dnl Check for other libraries we need to link with to get the main routines.
-test "$with_ldap" != "yes" && { AC_CHECK_LIB(ldap, ldap_open, [with_ldap=yes with_ldap_lber=yes], , -llber) }
-test "$with_ldap" != "yes" && { AC_CHECK_LIB(ldap, ldap_open, [with_ldap=yes with_ldap_lber=yes with_ldap_krb=yes], , -llber -lkrb) }
-test "$with_ldap" != "yes" && { AC_CHECK_LIB(ldap, ldap_open, [with_ldap=yes with_ldap_lber=yes with_ldap_krb=yes with_ldap_des=yes], , -llber -lkrb -ldes) }
-dnl Recently, we need -lber even though the main routines are elsewhere,
-dnl because otherwise be get link errors w.r.t. ber_pvt_opt_on.  So just
-dnl check for that (it's a variable not a fun but that doesn't seem to
-dnl matter in these checks)  and stick in -lber if so.  Can't hurt (even to
-dnl stick it in always shouldn't hurt, I don't think) ... #### Someone who
-dnl #### understands LDAP needs to fix this properly.
-test "$with_ldap_lber" != "yes" && { AC_CHECK_LIB(lber, ber_pvt_opt_on, with_ldap_lber=yes) }
-
-if test "$with_ldap" = "yes"; then
-  if test "$with_ldap_des" = "yes" ; then
-    OPENLDAP_LIBS="${OPENLDAP_LIBS} -ldes"
-  fi
-  if test "$with_ldap_krb" = "yes" ; then
-    OPENLDAP_LIBS="${OPENLDAP_LIBS} -lkrb"
-  fi
-  if test "$with_ldap_lber" = "yes" ; then
-    OPENLDAP_LIBS="${OPENLDAP_LIBS} -llber"
-  fi
-  OPENLDAP_LIBS="${OPENLDAP_LIBS} -lldap_r"
-else
-  AC_MSG_ERROR([OpenLDAP not found])
-fi
-
-AC_SUBST(OPENLDAP_LIBS)
-
-OPENLDAP_CFLAGS="${OPENLDAP_CFLAGS} -DWITH_OPENLDAP"
-AC_SUBST(OPENLDAP_CFLAGS)
-
-AC_ARG_WITH([openldap],
-            [AS_HELP_STRING([--with-openldap],
-                            [compile plugins with openldap instead of mozldap])],
-            [], [])
-
-LDAP_CFLAGS="${OPENLDAP_CFLAGS} $NSPR_CFLAGS $NSS_CFLAGS -DUSE_OPENLDAP"
-LDAP_LIBS="${OPENLDAP_LIBS}"
-AC_DEFINE_UNQUOTED(WITH_OPENLDAP, 1, [Use OpenLDAP libraries])
-
-AC_SUBST(LDAP_CFLAGS)
+AC_CHECK_LIB([ldap_r], [ldap_search], [], AC_MSG_ERROR([libldap_r not found]))
+AC_CHECK_LIB([lber], [ber_peek_tag], [], AC_MSG_ERROR([liblber not found]))
+LDAP_LIBS="-lldap_r -llber"
+LDAP_CFLAGS=""
 AC_SUBST(LDAP_LIBS)
+AC_SUBST(LDAP_CFLAGS)
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for OpenSSL Crypto library
