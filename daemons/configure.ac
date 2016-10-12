@@ -91,7 +91,7 @@ dnl ---------------------------------------------------------------------------
 
 AC_MSG_NOTICE([Checking for Python])
 have_python=no
-AM_PATH_PYTHON(2.3)
+AM_PATH_PYTHON(2.7)
 
 if test "x$PYTHON" = "x" ; then
   AC_MSG_ERROR([Python not found])
