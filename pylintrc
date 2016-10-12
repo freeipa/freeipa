@@ -87,7 +87,9 @@ disable=
     misplaced-comparison-constant,
     unneeded-not,
     not-a-mapping,
-    singleton-comparison
+    singleton-comparison,
+    trailing-newlines,
+    consider-iterating-dictionary
 
 
 [REPORTS]
