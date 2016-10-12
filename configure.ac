@@ -1,11 +1,11 @@
 AC_PREREQ(2.59)
-m4_include(../version.m4)
+m4_include(version.m4)
 AC_INIT([ipa-server],
         IPA_VERSION,
         [https://hosted.fedoraproject.org/projects/freeipa/newticket])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_SUBDIRS([../asn1])
+AC_CONFIG_SUBDIRS([asn1])
 
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
@@ -282,28 +282,28 @@ AC_SUBST(LDFLAGS)
 # Files
 
 AC_CONFIG_FILES([
-    Makefile
-    ../asn1/Makefile
-    ipa-kdb/Makefile
-    ipa-sam/Makefile
-    ipa-otpd/Makefile
-    ipa-slapi-plugins/Makefile
-    ipa-slapi-plugins/libotp/Makefile
-    ipa-slapi-plugins/ipa-cldap/Makefile
-    ipa-slapi-plugins/ipa-dns/Makefile
-    ipa-slapi-plugins/ipa-enrollment/Makefile
-    ipa-slapi-plugins/ipa-lockout/Makefile
-    ipa-slapi-plugins/ipa-otp-counter/Makefile
-    ipa-slapi-plugins/ipa-otp-lasttoken/Makefile
-    ipa-slapi-plugins/ipa-pwd-extop/Makefile
-    ipa-slapi-plugins/ipa-extdom-extop/Makefile
-    ipa-slapi-plugins/ipa-winsync/Makefile
-    ipa-slapi-plugins/ipa-version/Makefile
-    ipa-slapi-plugins/ipa-uuid/Makefile
-    ipa-slapi-plugins/ipa-modrdn/Makefile
-    ipa-slapi-plugins/ipa-sidgen/Makefile
-    ipa-slapi-plugins/ipa-range-check/Makefile
-    ipa-slapi-plugins/topology/Makefile
+    asn1/Makefile
+    daemons/Makefile
+    daemons/ipa-kdb/Makefile
+    daemons/ipa-sam/Makefile
+    daemons/ipa-otpd/Makefile
+    daemons/ipa-slapi-plugins/Makefile
+    daemons/ipa-slapi-plugins/libotp/Makefile
+    daemons/ipa-slapi-plugins/ipa-cldap/Makefile
+    daemons/ipa-slapi-plugins/ipa-dns/Makefile
+    daemons/ipa-slapi-plugins/ipa-enrollment/Makefile
+    daemons/ipa-slapi-plugins/ipa-lockout/Makefile
+    daemons/ipa-slapi-plugins/ipa-otp-counter/Makefile
+    daemons/ipa-slapi-plugins/ipa-otp-lasttoken/Makefile
+    daemons/ipa-slapi-plugins/ipa-pwd-extop/Makefile
+    daemons/ipa-slapi-plugins/ipa-extdom-extop/Makefile
+    daemons/ipa-slapi-plugins/ipa-winsync/Makefile
+    daemons/ipa-slapi-plugins/ipa-version/Makefile
+    daemons/ipa-slapi-plugins/ipa-uuid/Makefile
+    daemons/ipa-slapi-plugins/ipa-modrdn/Makefile
+    daemons/ipa-slapi-plugins/ipa-sidgen/Makefile
+    daemons/ipa-slapi-plugins/ipa-range-check/Makefile
+    daemons/ipa-slapi-plugins/topology/Makefile
 ])
 
 AC_OUTPUT
