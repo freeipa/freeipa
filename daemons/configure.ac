@@ -125,12 +125,7 @@ AC_SUBST(LDAP_LIBS)
 dnl ---------------------------------------------------------------------------
 dnl - Check for OpenSSL Crypto library
 dnl ---------------------------------------------------------------------------
-dnl This is a very simple check, we should probably check also for MD4_Init and
-dnl probably also the version we are using is recent enough
-SSL_LIBS=
-AC_CHECK_HEADER(openssl/md4.h, [], [AC_MSG_ERROR([openssl/md4.h not found])])
-AC_CHECK_LIB(crypto, MD4_Init, [SSL_LIBS="-lcrypto"])
-AC_SUBST(SSL_LIBS)
+PKG_CHECK_MODULES([CRYPTO], [libcrypto], [], [AC_MSG_ERROR([libcrypto not found])])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for UUID library
@@ -381,6 +376,6 @@ echo "
         LDAP libs:                ${LDAP_LIBS}
         KRB5 libs:                ${KRB5_LIBS}
         KRAD libs:                ${KRAD_LIBS}
-        OpenSSL libs:             ${SSL_LIBS}
+        OpenSSL crypto libs:      ${CRYPTO_LIBS}
         Maintainer mode:          ${USE_MAINTAINER_MODE}
 "

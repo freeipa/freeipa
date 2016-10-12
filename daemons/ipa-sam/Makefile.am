@@ -23,6 +23,7 @@ AM_CPPFLAGS =						\
 	-DLDAPIDIR=\""$(localstatedir)/run"\"		\
 	-DHAVE_LDAP					\
 	-I $(KRB5_UTIL_DIR)				\
+	$(CRYPTO_CFLAGS)				\
 	$(LDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)					\
 	$(WARN_CFLAGS)					\
@@ -48,10 +49,10 @@ ipasam_la_LDFLAGS = 		\
 	$(NULL)
 
 ipasam_la_LIBADD = 		\
+	$(CRYPTO_LIBS)		\
 	$(LDAP_LIBS)		\
 	$(KRB5_LIBS)		\
 	$(TALLOC_LIBS)		\
-	$(SSL_LIBS)		\
 	$(SAMBAUTIL_LIBS)	\
 	$(NDR_LIBS)		\
 	$(SAMBA40EXTRA_LIBS)	\
