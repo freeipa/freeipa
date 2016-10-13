@@ -113,7 +113,7 @@ client-install: client client-dirs
 	@for subdir in $(CLIENTDIRS); do \
 		(cd $$subdir && $(MAKE) install) || exit 1; \
 	done
-	cd install/po && $(MAKE) install || exit 1;
+	cd po && $(MAKE) install || exit 1;
 	@for subdir in $(CLIENTPYDIRS); do \
 		if [ "$(DESTDIR)" = "" ]; then \
 			(cd $$subdir && $(PYTHON) setup.py install); \
@@ -146,7 +146,7 @@ pylint: bootstrap-autogen
 	PYTHONPATH=. pylint --rcfile=pylintrc $(PYLINTFLAGS) $$FILES || $(LINT_IGNORE_FAIL)
 
 po-validate:
-	$(MAKE) -C install/po validate-src-strings || $(LINT_IGNORE_FAIL)
+	$(MAKE) -C po validate-src-strings || $(LINT_IGNORE_FAIL)
 
 jslint:
 	cd install/ui; jsl -nologo -nosummary -nofilelisting -conf jsl.conf || $(LINT_IGNORE_FAIL)

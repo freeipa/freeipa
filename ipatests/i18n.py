@@ -22,7 +22,7 @@
 from __future__ import print_function
 
 # WARNING: Do not import ipa modules, this is also used as a
-# stand-alone script (invoked from install/po Makefile).
+# stand-alone script (invoked from po Makefile).
 import optparse
 import sys
 import gettext

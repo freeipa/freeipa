@@ -16,7 +16,7 @@ MSGMERGE = @MSGMERGE@
 MSGCMP = @MSGCMP@
 MSGATTRIB = @MSGATTRIB@
 TX = @TX@
-IPA_TEST_I18N = ../../ipatests/i18n.py
+IPA_TEST_I18N = ../ipatests/i18n.py
 
 DOMAIN = @GETTEXT_DOMAIN@
 MSGMERGE_UPDATE = $(MSGMERGE) --update
@@ -36,9 +36,9 @@ po_files = $(patsubst %, %.po, $(languages))
 mo_files = $(patsubst %.po, %.mo, $(po_files))
 po_count=$(words $(po_files))
 
-PY_FILES = $(shell cd ../..; git ls-files | grep -v -e "^ipatests/" -e "^doc/" -e "^install/po/" -e "^ipapython/test/" -e "setup.py" | grep "\.py$$" | tr '\n' ' '; cd install/po)
-C_FILES = $(shell cd ../..; git ls-files | grep "\.c$$" | tr '\n' ' '; cd install/po)
-H_FILES = $(shell cd ../..; git ls-files | grep "\.h$$" | tr '\n' ' '; cd install/po)
+PY_FILES = $(shell cd ..; git ls-files | grep -v -e "^ipatests/" -e "^doc/" -e "^po/" -e "^ipapython/test/" -e "setup.py" | grep "\.py$$" | tr '\n' ' '; cd po)
+C_FILES = $(shell cd ..; git ls-files | grep "\.c$$" | tr '\n' ' '; cd po)
+H_FILES = $(shell cd ..; git ls-files | grep "\.h$$" | tr '\n' ' '; cd po)
 
 # Please keep this list sorted!
 PY_EXPLICIT_FILES = \
@@ -122,7 +122,7 @@ create-po: $(DOMAIN).pot
 
 
 pull-po:
-	cd ../..; $(TX) pull -f
+	cd ..; $(TX) pull -f
 	$(MAKE) strip-po
 
 merge-po: update-pot
@@ -133,14 +133,14 @@ update-po: merge-po
 
 update-pot:
 	@rm -f $(DOMAIN).pot.update
-	@pushd ../.. ; \
+	@pushd .. ; \
 	$(XGETTEXT) $(XGETTEXT_OPTIONS) \
-	--output install/po/$(DOMAIN).pot.update \
+	--output po/$(DOMAIN).pot.update \
 	--language="python" \
 	$(PYTHON_POTFILES) \
 	&& \
 	$(XGETTEXT) $(XGETTEXT_OPTIONS) \
-	--output install/po/$(DOMAIN).pot.update \
+	--output po/$(DOMAIN).pot.update \
 	--join-existing \
 	--language="c" \
 	--from-code="UTF-8" \

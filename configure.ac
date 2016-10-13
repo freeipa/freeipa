@@ -368,11 +368,11 @@ AC_CONFIG_FILES([
     install/tools/Makefile
     install/tools/man/Makefile
     install/updates/Makefile
-    install/po/Makefile
     install/restart_scripts/Makefile
     install/wsgi/Makefile
     install/oddjob/Makefile
     ipatests/man/Makefile
+    po/Makefile
     util/Makefile
 ])
 
