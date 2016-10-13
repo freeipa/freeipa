@@ -100,11 +100,9 @@ client-check: client-autogen
 bootstrap-autogen: version-update client-autogen
 	@echo "Building IPA $(IPA_VERSION)"
 	./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
-	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 client-autogen: version-update
 	cd client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
-	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 install: all server-install tests-install client-install
 	@for subdir in $(SUBDIRS); do \
@@ -251,7 +249,7 @@ tarballs: local-archive
 	cd dist/$(TARBALL_PREFIX)/asn1; make distclean
 	cd dist/$(TARBALL_PREFIX)/daemons; make distclean
 	cd dist/$(TARBALL_PREFIX)/client; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
-	cd dist/$(TARBALL_PREFIX)/install; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
+	cd dist/$(TARBALL_PREFIX)/install; make distclean
 	cd dist; tar cfz sources/$(TARBALL) $(TARBALL_PREFIX)
 	rm -rf dist/$(TARBALL_PREFIX)
 
