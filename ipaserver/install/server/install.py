@@ -843,14 +843,11 @@ def install(installer):
                           ipautil.realm_to_suffix(realm_name), options.subject)
 
     # Apply any LDAP updates. Needs to be done after the configuration file
-    # is created
+    # is created. DS is restarted in the process.
     service.print_msg("Applying LDAP updates")
     ds.apply_updates()
 
-    # Restart ds and krb after configurations have been changed
-    service.print_msg("Restarting the directory server")
-    ds.restart()
-
+    # Restart krb after configurations have been changed
     service.print_msg("Restarting the KDC")
     krb.restart()
 
