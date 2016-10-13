@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from cryptography.hazmat.primitives import hashes
 import six
 
 from ipalib import api, errors, messages
@@ -48,8 +49,6 @@ from ipalib import util
 from ipalib import output
 from ipapython import kerberos
 from ipapython.dn import DN
-
-import nss.nss as nss
 
 
 if six.PY3:
@@ -268,16 +267,17 @@ def set_certificate_attrs(entry_attrs):
         cert = entry_attrs['usercertificate']
     cert = x509.normalize_certificate(cert)
     cert = x509.load_certificate(cert, datatype=x509.DER)
-    entry_attrs['subject'] = unicode(cert.subject)
-    entry_attrs['serial_number'] = unicode(cert.serial_number)
-    entry_attrs['serial_number_hex'] = u'0x%X' % cert.serial_number
-    entry_attrs['issuer'] = unicode(cert.issuer)
-    entry_attrs['valid_not_before'] = unicode(cert.valid_not_before_str)
-    entry_attrs['valid_not_after'] = unicode(cert.valid_not_after_str)
+    entry_attrs['subject'] = unicode(DN(cert.subject))
+    entry_attrs['serial_number'] = unicode(cert.serial)
+    entry_attrs['serial_number_hex'] = u'0x%X' % cert.serial
+    entry_attrs['issuer'] = unicode(DN(cert.issuer))
+    entry_attrs['valid_not_before'] = x509.format_datetime(
+            cert.not_valid_before)
+    entry_attrs['valid_not_after'] = x509.format_datetime(cert.not_valid_after)
     entry_attrs['md5_fingerprint'] = x509.to_hex_with_colons(
-        nss.md5_digest(cert.der_data))
+        cert.fingerprint(hashes.MD5()))
     entry_attrs['sha1_fingerprint'] = x509.to_hex_with_colons(
-        nss.sha1_digest(cert.der_data))
+        cert.fingerprint(hashes.SHA1()))
 
 def check_required_principal(ldap, principal):
     """

@@ -297,7 +297,7 @@ class KRAInstance(DogtagInstance):
             usertype=["undefined"],
             userCertificate=[cert_data],
             description=['2;%s;%s;%s' % (
-                cert.serial_number,
+                cert.serial,
                 DN(('CN', 'Certificate Authority'), self.subject_base),
                 DN(('CN', 'IPA RA'), self.subject_base))])
         conn.add_entry(entry)

@@ -22,10 +22,12 @@ import re
 import tempfile
 import shutil
 import base64
+from cryptography.hazmat.primitives import serialization
 from nss import nss
 from nss.error import NSPRError
 
 from ipaplatform.paths import paths
+from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
 from ipalib import x509
@@ -258,7 +260,7 @@ class NSSDatabase(object):
                                  'X.509 CERTIFICATE'):
                         try:
                             x509.load_certificate(match.group(2))
-                        except NSPRError as e:
+                        except ValueError as e:
                             if label != 'CERTIFICATE':
                                 root_logger.warning(
                                     "Skipping certificate in %s at line %s: %s",
@@ -334,7 +336,7 @@ class NSSDatabase(object):
             # Try to load the file as DER certificate
             try:
                 x509.load_certificate(data, x509.DER)
-            except NSPRError:
+            except ValueError:
                 pass
             else:
                 data = x509.make_pem(base64.b64encode(data))
@@ -379,12 +381,11 @@ class NSSDatabase(object):
             raise RuntimeError(
                 "No server certificates found in %s" % (', '.join(files)))
 
-        nss_certs = x509.load_certificate_list(extracted_certs)
-        nss_cert = None
-        for nss_cert in nss_certs:
-            nickname = str(nss_cert.subject)
-            self.add_cert(nss_cert.der_data, nickname, ',,')
-        del nss_certs, nss_cert
+        certs = x509.load_certificate_list(extracted_certs)
+        for cert in certs:
+            nickname = str(DN(cert.subject))
+            data = cert.public_bytes(serialization.Encoding.DER)
+            self.add_cert(data, nickname, ',,')
 
         if extracted_key:
             in_file = ipautil.write_tmp_file(extracted_certs + extracted_key)

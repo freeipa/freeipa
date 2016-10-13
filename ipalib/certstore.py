@@ -22,7 +22,6 @@
 LDAP shared certificate store.
 """
 
-from nss.error import NSPRError
 from pyasn1.error import PyAsn1Error
 
 from ipapython.dn import DN
@@ -31,11 +30,12 @@ from ipalib import errors, x509
 
 def _parse_cert(dercert):
     try:
-        subject = x509.get_subject(dercert, x509.DER)
-        issuer = x509.get_issuer(dercert, x509.DER)
-        serial_number = x509.get_serial_number(dercert, x509.DER)
+        cert = x509.load_certificate(dercert, x509.DER)
+        subject = DN(cert.subject)
+        issuer = DN(cert.issuer)
+        serial_number = cert.serial
         public_key_info = x509.get_der_public_key_info(dercert, x509.DER)
-    except (NSPRError, PyAsn1Error) as e:
+    except (ValueError, PyAsn1Error) as e:
         raise ValueError("failed to decode certificate: %s" % e)
 
     subject = str(subject).replace('\\;', '\\3b')
@@ -54,7 +54,7 @@ def init_ca_entry(entry, dercert, nickname, trusted, ext_key_usage):
     if ext_key_usage is not None:
         try:
             cert_eku = x509.get_ext_key_usage(dercert, x509.DER)
-        except NSPRError as e:
+        except ValueError as e:
             raise ValueError("failed to decode certificate: %s" % e)
         if cert_eku is not None:
             cert_eku -= {x509.EKU_SERVER_AUTH, x509.EKU_CLIENT_AUTH,

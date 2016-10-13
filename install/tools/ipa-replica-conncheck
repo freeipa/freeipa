@@ -21,6 +21,7 @@
 from __future__ import print_function
 
 from ipapython.config import IPAOptionParser
+from ipapython.dn import DN
 from ipapython import version
 from ipapython import ipautil, certdb
 from ipalib import api, errors, x509
@@ -40,7 +41,7 @@ from socket import SOCK_STREAM, SOCK_DGRAM
 import distutils.spawn
 from ipaplatform.paths import paths
 import gssapi
-from nss import nss
+from cryptography.hazmat.primitives import serialization
 
 CONNECT_TIMEOUT = 5
 RESPONDERS = [ ]
@@ -121,16 +122,12 @@ def parse_options():
             raise OptionValueError(
                 "%s option '%s' is not an absolute file path" % (opt, value))
 
-        initialized = nss.nss_is_initialized()
         try:
             x509.load_certificate_list_from_file(value)
         except Exception:
             raise OptionValueError(
                 "%s option '%s' is not a valid certificate file" %
                 (opt, value))
-        finally:
-            if not initialized:
-                nss.nss_shutdown()
 
         parser.values.ca_cert_file = value
 
@@ -472,12 +469,12 @@ def main():
                         nss_db.create_db(password_file.name)
 
                         ca_certs = x509.load_certificate_list_from_file(
-                            options.ca_cert_file, dbdir=nss_db.secdir)
+                            options.ca_cert_file)
                         for ca_cert in ca_certs:
+                            data = ca_cert.public_bytes(
+                                serialization.Encoding.DER)
                             nss_db.add_cert(
-                                ca_cert.der_data, str(ca_cert.subject), 'C,,')
-                            del ca_cert
-                        del ca_certs
+                                data, str(DN(ca_cert.subject)), 'C,,')
                     else:
                         nss_dir = None
 

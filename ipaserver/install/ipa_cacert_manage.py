@@ -21,8 +21,7 @@ from __future__ import print_function
 
 import os
 from optparse import OptionGroup
-from nss import nss
-from nss.error import NSPRError
+from cryptography.hazmat.primitives import serialization
 import gssapi
 
 from ipapython import admintool, certmonger, ipautil
@@ -187,7 +186,7 @@ class CACertManage(admintool.AdminTool):
               "--external-cert-file=/path/to/signed_certificate "
               "--external-cert-file=/path/to/external_ca_certificate")
 
-    def renew_external_step_2(self, ca, old_cert):
+    def renew_external_step_2(self, ca, old_cert_der):
         print("Importing the renewed CA certificate, please wait")
 
         options = self.options
@@ -195,55 +194,54 @@ class CACertManage(admintool.AdminTool):
         cert_file, ca_file = installutils.load_external_cert(
             options.external_cert_files, x509.subject_base())
 
-        nss_cert = None
-        nss.nss_init(paths.PKI_TOMCAT_ALIAS_DIR)
-        try:
-            nss_cert = x509.load_certificate(old_cert, x509.DER)
-            subject = nss_cert.subject
-            der_subject = x509.get_der_subject(old_cert, x509.DER)
-            #pylint: disable=E1101
-            pkinfo = nss_cert.subject_public_key_info.format()
-            #pylint: enable=E1101
+        old_cert_obj = x509.load_certificate(old_cert_der, x509.DER)
+        old_der_subject = x509.get_der_subject(old_cert_der, x509.DER)
+        old_spki = old_cert_obj.public_key().public_bytes(
+            serialization.Encoding.DER,
+            serialization.PublicFormat.SubjectPublicKeyInfo
+        )
 
-            nss_cert = x509.load_certificate_from_file(cert_file.name)
-            cert = nss_cert.der_data
-            if nss_cert.subject != subject:
-                raise admintool.ScriptError(
-                    "Subject name mismatch (visit "
-                    "http://www.freeipa.org/page/Troubleshooting for "
-                    "troubleshooting guide)")
-            if x509.get_der_subject(cert, x509.DER) != der_subject:
-                raise admintool.ScriptError(
-                    "Subject name encoding mismatch (visit "
-                    "http://www.freeipa.org/page/Troubleshooting for "
-                    "troubleshooting guide)")
-            #pylint: disable=E1101
-            if nss_cert.subject_public_key_info.format() != pkinfo:
-                raise admintool.ScriptError(
-                    "Subject public key info mismatch (visit "
-                    "http://www.freeipa.org/page/Troubleshooting for "
-                    "troubleshooting guide)")
-            #pylint: enable=E1101
-        finally:
-            del nss_cert
-            nss.nss_shutdown()
+        with open(cert_file.name) as f:
+            new_cert_data = f.read()
+        new_cert_der = x509.normalize_certificate(new_cert_data)
+        new_cert_obj = x509.load_certificate(new_cert_der, x509.DER)
+        new_der_subject = x509.get_der_subject(new_cert_der, x509.DER)
+        new_spki = new_cert_obj.public_key().public_bytes(
+            serialization.Encoding.DER,
+            serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+        if new_cert_obj.subject != old_cert_obj.subject:
+            raise admintool.ScriptError(
+                "Subject name mismatch (visit "
+                "http://www.freeipa.org/page/Troubleshooting for "
+                "troubleshooting guide)")
+        if new_der_subject != old_der_subject:
+            raise admintool.ScriptError(
+                "Subject name encoding mismatch (visit "
+                "http://www.freeipa.org/page/Troubleshooting for "
+                "troubleshooting guide)")
+        if new_spki != old_spki:
+            raise admintool.ScriptError(
+                "Subject public key info mismatch (visit "
+                "http://www.freeipa.org/page/Troubleshooting for "
+                "troubleshooting guide)")
 
         with certs.NSSDatabase() as tmpdb:
             pw = ipautil.write_tmp_file(ipautil.ipa_generate_password())
             tmpdb.create_db(pw.name)
-            tmpdb.add_cert(old_cert, 'IPA CA', 'C,,')
+            tmpdb.add_cert(old_cert_der, 'IPA CA', 'C,,')
 
             try:
-                tmpdb.add_cert(cert, 'IPA CA', 'C,,')
+                tmpdb.add_cert(new_cert_der, 'IPA CA', 'C,,')
             except ipautil.CalledProcessError as e:
                 raise admintool.ScriptError(
                     "Not compatible with the current CA certificate: %s" % e)
 
             ca_certs = x509.load_certificate_list_from_file(ca_file.name)
             for ca_cert in ca_certs:
-                tmpdb.add_cert(ca_cert.der_data, str(ca_cert.subject), 'C,,')
-            del ca_certs
-            del ca_cert
+                data = ca_cert.public_bytes(serialization.Encoding.DER)
+                tmpdb.add_cert(data, str(DN(ca_cert.subject)), 'C,,')
 
             try:
                 tmpdb.verify_ca_cert_validity('IPA CA')
@@ -266,14 +264,14 @@ class CACertManage(admintool.AdminTool):
                 ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
         try:
             entry = conn.get_entry(dn, ['usercertificate'])
-            entry['usercertificate'] = [cert]
+            entry['usercertificate'] = [new_cert_der]
             conn.update_entry(entry)
         except errors.NotFound:
             entry = conn.make_entry(
                 dn,
                 objectclass=['top', 'pkiuser', 'nscontainer'],
                 cn=[self.cert_nickname],
-                usercertificate=[cert])
+                usercertificate=[new_cert_der])
             conn.add_entry(entry)
         except errors.EmptyModlist:
             pass
@@ -313,21 +311,16 @@ class CACertManage(admintool.AdminTool):
         options = self.options
         cert_filename = self.args[1]
 
-        nss_cert = None
         try:
-            try:
-                nss_cert = x509.load_certificate_from_file(cert_filename)
-            except IOError as e:
-                raise admintool.ScriptError(
-                    "Can't open \"%s\": %s" % (cert_filename, e))
-            except (TypeError, NSPRError, ValueError) as e:
-                raise admintool.ScriptError("Not a valid certificate: %s" % e)
-            subject = nss_cert.subject
-            cert = nss_cert.der_data
-        finally:
-            del nss_cert
+            cert_obj = x509.load_certificate_from_file(cert_filename)
+        except IOError as e:
+            raise admintool.ScriptError(
+                "Can't open \"%s\": %s" % (cert_filename, e))
+        except (TypeError, ValueError) as e:
+            raise admintool.ScriptError("Not a valid certificate: %s" % e)
+        cert = cert_obj.public_bytes(serialization.Encoding.DER)
 
-        nickname = options.nickname or str(subject)
+        nickname = options.nickname or str(DN(cert_obj.subject))
 
         ca_certs = certstore.get_ca_certs_nss(api.Backend.ldap2,
                                               api.env.basedn,

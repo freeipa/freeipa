@@ -22,11 +22,11 @@
 import base64
 import collections
 import datetime
+from operator import attrgetter
 import os
 
 import cryptography.x509
-from nss import nss
-from nss.error import NSPRError
+from cryptography.hazmat.primitives import hashes
 import six
 
 from ipalib import Command, Str, Int, Flag
@@ -224,7 +224,7 @@ def bind_principal_can_manage_cert(cert):
     """Check that the bind principal can manage the given cert.
 
     ``cert``
-        An NSS certificate object.
+        A python-cryptography ``Certificate`` object.
 
     """
     bind_principal = kerberos.Principal(getattr(context, 'principal'))
@@ -233,9 +233,14 @@ def bind_principal_can_manage_cert(cert):
 
     hostname = bind_principal.hostname
 
-    # If we have a hostname we want to verify that the subject
-    # of the certificate matches it.
-    return hostname == cert.subject.common_name  #pylint: disable=E1101
+    # Verify that hostname matches subject of cert.
+    # We check the "most-specific" CN value.
+    cns = cert.subject.get_attributes_for_oid(
+            cryptography.x509.oid.NameOID.COMMON_NAME)
+    if len(cns) == 0:
+        return False  # no CN in subject
+    else:
+        return hostname == cns[-1].value
 
 
 class BaseCertObject(Object):
@@ -370,30 +375,27 @@ class BaseCertObject(Object):
             attribute.
 
         """
-        cert = obj.get('certificate')
-        if cert is not None:
-            cert = x509.load_certificate(cert)
-            obj['subject'] = DN(unicode(cert.subject))
-            obj['issuer'] = DN(unicode(cert.issuer))
-            obj['serial_number'] = cert.serial_number
-            obj['valid_not_before'] = unicode(cert.valid_not_before_str)
-            obj['valid_not_after'] = unicode(cert.valid_not_after_str)
+        if 'certificate' in obj:
+            cert = x509.load_certificate(obj['certificate'])
+            obj['subject'] = DN(cert.subject)
+            obj['issuer'] = DN(cert.issuer)
+            obj['serial_number'] = cert.serial
+            obj['valid_not_before'] = x509.format_datetime(
+                    cert.not_valid_before)
+            obj['valid_not_after'] = x509.format_datetime(
+                    cert.not_valid_after)
             if full:
                 obj['md5_fingerprint'] = x509.to_hex_with_colons(
-                    nss.md5_digest(cert.der_data))
+                    cert.fingerprint(hashes.MD5()))
                 obj['sha1_fingerprint'] = x509.to_hex_with_colons(
-                    nss.sha1_digest(cert.der_data))
+                    cert.fingerprint(hashes.SHA1()))
 
-            try:
-                ext_san = cert.get_extension(nss.SEC_OID_X509_SUBJECT_ALT_NAME)
-                general_names = x509.decode_generalnames(ext_san.value)
-            except KeyError:
-                general_names = []
+            general_names = x509.process_othernames(
+                    x509.get_san_general_names(cert))
 
-            for name_type, _desc, name, der_name in general_names:
+            for gn in general_names:
                 try:
-                    self._add_san_attribute(
-                        obj, full, name_type, name, der_name)
+                    self._add_san_attribute(obj, full, gn)
                 except Exception:
                     # Invalid GeneralName (i.e. not a valid X.509 cert);
                     # don't fail but log something about it
@@ -404,43 +406,50 @@ class BaseCertObject(Object):
         if serial_number is not None:
             obj['serial_number_hex'] = u'0x%X' % serial_number
 
-
-    def _add_san_attribute(
-            self, obj, full, name_type, name, der_name):
+    def _add_san_attribute(self, obj, full, gn):
         name_type_map = {
-            nss.certRFC822Name: 'san_rfc822name',
-            nss.certDNSName: 'san_dnsname',
-            nss.certX400Address: 'san_x400address',
-            nss.certDirectoryName: 'san_directoryname',
-            nss.certEDIPartyName: 'san_edipartyname',
-            nss.certURI: 'san_uri',
-            nss.certIPAddress: 'san_ipaddress',
-            nss.certRegisterID: 'san_oid',
-            (nss.certOtherName, x509.SAN_UPN): 'san_other_upn',
-            (nss.certOtherName, x509.SAN_KRB5PRINCIPALNAME): 'san_other_kpn',
+            cryptography.x509.RFC822Name:
+                ('san_rfc822name', attrgetter('value')),
+            cryptography.x509.DNSName: ('san_dnsname', attrgetter('value')),
+            # cryptography.x509.???: 'san_x400address',
+            cryptography.x509.DirectoryName:
+                ('san_directoryname', lambda x: DN(x.value)),
+            # cryptography.x509.???: 'san_edipartyname',
+            cryptography.x509.UniformResourceIdentifier:
+                ('san_uri', attrgetter('value')),
+            cryptography.x509.IPAddress:
+                ('san_ipaddress', attrgetter('value')),
+            cryptography.x509.RegisteredID:
+                ('san_oid', attrgetter('value.dotted_string')),
+            cryptography.x509.OtherName: ('san_other', _format_othername),
+            x509.UPN: ('san_other_upn', attrgetter('name')),
+            x509.KRB5PrincipalName: ('san_other_kpn', attrgetter('name')),
         }
         default_attrs = {
             'san_rfc822name', 'san_dnsname', 'san_other_upn', 'san_other_kpn',
         }
 
-        attr_name = name_type_map.get(name_type, 'san_other')
+        if type(gn) not in name_type_map:
+            return
+
+        attr_name, format_name = name_type_map[type(gn)]
 
         if full or attr_name in default_attrs:
-            if attr_name != 'san_other':
-                name_formatted = name
-            else:
-                # display as "OID : b64(DER)"
-                name_formatted = u'{}:{}'.format(
-                    name_type[1], base64.b64encode(der_name))
-            attr_value = self.params[attr_name].type(name_formatted)
+            attr_value = self.params[attr_name].type(format_name(gn))
             obj.setdefault(attr_name, []).append(attr_value)
 
         if full and attr_name.startswith('san_other_'):
             # also include known otherName in generic otherName attribute
-            name_formatted = u'{}:{}'.format(
-                name_type[1], base64.b64encode(der_name))
-            attr_value = self.params['san_other'].type(name_formatted)
+            attr_value = self.params['san_other'].type(_format_othername(gn))
             obj.setdefault('san_other', []).append(attr_value)
+
+
+def _format_othername(on):
+    """Format a python-cryptography OtherName for display."""
+    return u'{}:{}'.format(
+        on.type_id.dotted_string,
+        base64.b64encode(on.value)
+    )
 
 
 class BaseCertMethod(Method):
@@ -909,7 +918,7 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
                 raise acierr  # pylint: disable=E0702
 
         ca_obj = api.Command.ca_show(options['cacn'])['result']
-        if DN(unicode(cert.issuer)) != DN(ca_obj['ipacasubjectdn'][0]):
+        if DN(cert.issuer) != DN(ca_obj['ipacasubjectdn'][0]):
             # DN of cert differs from what we requested
             raise errors.NotFound(
                 reason=_("Certificate with serial number %(serial)s "
@@ -1132,16 +1141,16 @@ class cert_find(Search, CertMethod):
 
     def _get_cert_key(self, cert):
         try:
-            nss_cert = x509.load_certificate(cert, x509.DER)
-        except NSPRError as e:
+            cert_obj = x509.load_certificate(cert, x509.DER)
+        except ValueError as e:
             message = messages.SearchResultTruncated(
                 reason=_("failed to load certificate: %s") % e,
             )
             self.add_message(message)
 
-            raise ValueError("failed to load certificate")
+            raise
 
-        return (DN(unicode(nss_cert.issuer)), nss_cert.serial_number)
+        return (DN(cert_obj.issuer), cert_obj.serial)
 
     def _get_cert_obj(self, cert, all, raw, pkey_only):
         obj = {'certificate': unicode(base64.b64encode(cert))}
