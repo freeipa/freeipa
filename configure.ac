@@ -225,7 +225,50 @@ dnl - Set the data install directory since we don't use pkgdatadir
 dnl ---------------------------------------------------------------------------
 
 IPA_DATA_DIR="$datadir/ipa"
+IPA_SYSCONF_DIR="$sysconfdir/ipa"
 AC_SUBST(IPA_DATA_DIR)
+AC_SUBST(IPA_SYSCONF_DIR)
+
+dnl ---------------------------------------------------------------------------
+dnl Translations
+dnl ---------------------------------------------------------------------------
+AC_SUBST(GETTEXT_DOMAIN, [ipa])
+
+AC_PROG_MKDIR_P
+AC_PROG_AWK
+AC_PROG_SED
+
+AC_PATH_PROG(XGETTEXT, xgettext, [no])
+if test "x$XGETTEXT" = "xno"; then
+    AC_MSG_ERROR([xgettext not found, install gettext])
+fi
+
+AC_PATH_PROG(MSGFMT, msgfmt, [no])
+if test "x$MSGFMT" = "xno"; then
+    AC_MSG_ERROR([msgfmt not found, install gettext])
+fi
+
+AC_PATH_PROG(MSGINIT, msginit, [no])
+if test "x$MSGINIT" = "xno"; then
+    AC_MSG_ERROR([msginit not found, install gettext])
+fi
+
+AC_PATH_PROG(MSGMERGE, msgmerge, [no])
+if test "x$MSGMERGE" = "xno"; then
+    AC_MSG_ERROR([msgmerge not found, install gettext])
+fi
+
+AC_PATH_PROG(MSGCMP, msgcmp, [no])
+if test "x$MSGCMP" = "xno"; then
+    AC_MSG_ERROR([msgcmp not found, install gettext])
+fi
+
+AC_PATH_PROG(MSGATTRIB, msgattrib, [no])
+if test "x$MSGATTRIB" = "xno"; then
+    AC_MSG_ERROR([msgattrib not found, install gettext])
+fi
+
+AC_PATH_PROG(TX, tx, [/usr/bin/tx])
 
 dnl ---------------------------------------------------------------------------
 dnl Finish
@@ -304,6 +347,31 @@ AC_CONFIG_FILES([
     daemons/ipa-slapi-plugins/ipa-sidgen/Makefile
     daemons/ipa-slapi-plugins/ipa-range-check/Makefile
     daemons/ipa-slapi-plugins/topology/Makefile
+    install/Makefile
+    install/certmonger/Makefile
+    install/conf/Makefile
+    install/html/Makefile
+    install/migration/Makefile
+    install/share/Makefile
+    install/share/advise/Makefile
+    install/share/advise/legacy/Makefile
+    install/share/profiles/Makefile
+    install/share/schema.d/Makefile
+    install/ui/Makefile
+    install/ui/css/Makefile
+    install/ui/src/Makefile
+    install/ui/src/libs/Makefile
+    install/ui/images/Makefile
+    install/ui/build/Makefile
+    install/ui/build/dojo/Makefile
+    install/ui/build/freeipa/Makefile
+    install/tools/Makefile
+    install/tools/man/Makefile
+    install/updates/Makefile
+    install/po/Makefile
+    install/restart_scripts/Makefile
+    install/wsgi/Makefile
+    install/oddjob/Makefile
     ipatests/man/Makefile
     util/Makefile
 ])
