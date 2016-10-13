@@ -370,6 +370,9 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     args.extend(extra_args)
 
     if domain_level == DOMAIN_LEVEL_0:
+        # workaround #6274 - remove when fixed
+        time.sleep(30)  # wait until dogtag wakes up
+
         # prepare the replica file on master and put it to replica, AKA "old way"
         replica_prepare(master, replica)
         replica_filename = get_replica_filename(replica)
