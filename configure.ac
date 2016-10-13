@@ -268,8 +268,6 @@ if test "x$MSGATTRIB" = "xno"; then
     AC_MSG_ERROR([msgattrib not found, install gettext])
 fi
 
-AC_PATH_PROG(TX, tx, [/usr/bin/tx])
-
 dnl ---------------------------------------------------------------------------
 dnl Finish
 dnl ---------------------------------------------------------------------------

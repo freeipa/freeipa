@@ -15,7 +15,6 @@ MSGINIT = @MSGINIT@
 MSGMERGE = @MSGMERGE@
 MSGCMP = @MSGCMP@
 MSGATTRIB = @MSGATTRIB@
-TX = @TX@
 IPA_TEST_I18N = ../ipatests/i18n.py
 
 DOMAIN = @GETTEXT_DOMAIN@
@@ -120,10 +119,6 @@ create-po: $(DOMAIN).pot
 	    fi; \
 	done
 
-
-pull-po:
-	cd ..; $(TX) pull -f
-	$(MAKE) strip-po
 
 merge-po: update-pot
 	$(MAKE) $(po_files)
