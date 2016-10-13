@@ -35,9 +35,9 @@ try:
     import gssapi
     import netifaces
 
-    import nss.nss as nss
     import SSSDConfig
     from six.moves.urllib.parse import urlparse, urlunparse
+    from cryptography.hazmat.primitives import serialization
 
     from ipapython.ipa_log_manager import standard_logging_setup, root_logger
     from ipaclient import ipadiscovery
@@ -92,15 +92,10 @@ def parse_options():
         if not os.path.isabs(value):
             raise OptionValueError("%s option '%s' is not an absolute file path" % (opt, value))
 
-        initialized = nss.nss_is_initialized()
         try:
-            cert = x509.load_certificate_from_file(value)
+            x509.load_certificate_from_file(value)
         except Exception:
             raise OptionValueError("%s option '%s' is not a valid certificate file" % (opt, value))
-        else:
-            del(cert)
-            if not initialized:
-                nss.nss_shutdown()
 
         parser.values.ca_cert_file = value
 
@@ -300,10 +295,10 @@ def cert_summary(msg, certs, indent='    '):
     else:
         s = ''
     for cert in certs:
-        s += '%sSubject:     %s\n' % (indent, cert.subject)
-        s += '%sIssuer:      %s\n' % (indent, cert.issuer)
-        s += '%sValid From:  %s\n' % (indent, cert.valid_not_before_str)
-        s += '%sValid Until: %s\n' % (indent, cert.valid_not_after_str)
+        s += '%sSubject:     %s\n' % (indent, DN(cert.subject))
+        s += '%sIssuer:      %s\n' % (indent, DN(cert.issuer))
+        s += '%sValid From:  %s\n' % (indent, cert.not_valid_before)
+        s += '%sValid Until: %s\n' % (indent, cert.not_valid_after)
         s += '\n'
     s = s[:-1]
 
@@ -2148,7 +2143,10 @@ def get_ca_certs(fstore, options, server, basedn, realm):
 
     if ca_certs is not None:
         try:
-            ca_certs = [cert.der_data for cert in ca_certs]
+            ca_certs = [
+                cert.public_bytes(serialization.Encoding.DER)
+                for cert in ca_certs
+            ]
             x509.write_certificate_list(ca_certs, ca_file)
         except Exception as e:
             if os.path.exists(ca_file):
@@ -2815,7 +2813,10 @@ def install(options, env, fstore, statestore):
 
         # Add CA certs to a temporary NSS database
         ca_certs = x509.load_certificate_list_from_file(CACERT)
-        ca_certs = [cert.der_data for cert in ca_certs]
+        ca_certs = [
+            cert.public_bytes(serialization.Encoding.DER)
+            for cert in ca_certs
+        ]
         try:
             pwd_file = ipautil.write_tmp_file(ipautil.ipa_generate_password())
             tmp_db.create_db(pwd_file.name)

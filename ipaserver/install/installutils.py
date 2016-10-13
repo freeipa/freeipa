@@ -921,10 +921,9 @@ def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
             if ca_cert is None:
                 ca_cert = cert
 
-            nss_cert = x509.load_certificate(cert, x509.DER)
-            subject = DN(str(nss_cert.subject))
-            issuer = DN(str(nss_cert.issuer))
-            del nss_cert
+            cert_obj = x509.load_certificate(cert, x509.DER)
+            subject = DN(cert_obj.subject)
+            issuer = DN(cert_obj.issuer)
 
             if subject == issuer:
                 break
@@ -1046,10 +1045,9 @@ def load_external_cert(files, subject_base):
         for nickname, _trust_flags in nssdb.list_certs():
             cert = nssdb.get_cert(nickname, pem=True)
 
-            nss_cert = x509.load_certificate(cert)
-            subject = DN(str(nss_cert.subject))
-            issuer = DN(str(nss_cert.issuer))
-            del nss_cert
+            cert_obj = x509.load_certificate(cert)
+            subject = DN(cert_obj.subject)
+            issuer = DN(cert_obj.issuer)
 
             cache[nickname] = (cert, subject, issuer)
             if subject == ca_subject:

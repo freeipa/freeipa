@@ -102,7 +102,7 @@ def install_check(standalone, replica_config, options):
                 cert = db.get_cert_from_db(nickname)
                 if not cert:
                     continue
-                subject = DN(str(x509.get_subject(cert)))
+                subject = DN(x509.load_certificate(cert).subject)
                 if subject in (DN('CN=Certificate Authority', subject_base),
                                DN('CN=IPA RA', subject_base)):
                     raise ScriptError(

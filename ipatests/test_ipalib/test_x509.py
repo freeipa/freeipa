@@ -22,9 +22,9 @@ Test the `ipalib.x509` module.
 """
 
 import base64
+import datetime
 
 import pytest
-from nss.error import NSPRError
 
 from ipalib import x509
 from ipapython.dn import DN
@@ -57,9 +57,17 @@ class test_x509(object):
         # Load a good cert
         x509.load_certificate(goodcert)
 
+        # Should handle list/tuple
+        x509.load_certificate((goodcert,))
+        x509.load_certificate([goodcert])
+
         # Load a good cert with headers
         newcert = '-----BEGIN CERTIFICATE-----' + goodcert + '-----END CERTIFICATE-----'
         x509.load_certificate(newcert)
+
+        # Should handle list/tuple
+        x509.load_certificate((newcert,))
+        x509.load_certificate([newcert])
 
         # Load a good cert with bad headers
         newcert = '-----BEGIN CERTIFICATE-----' + goodcert
@@ -67,7 +75,7 @@ class test_x509(object):
             x509.load_certificate(newcert)
 
         # Load a bad cert
-        with pytest.raises(NSPRError):
+        with pytest.raises(ValueError):
             x509.load_certificate(badcert)
 
     def test_1_load_der_cert(self):
@@ -80,53 +88,23 @@ class test_x509(object):
         # Load a good cert
         x509.load_certificate(der, x509.DER)
 
-    def test_2_get_subject(self):
-        """
-        Test retrieving the subject
-        """
-        subject = x509.get_subject(goodcert)
-        assert DN(str(subject)) == DN(('CN','ipa.example.com'),('O','IPA'))
-
-        der = base64.b64decode(goodcert)
-        subject = x509.get_subject(der, x509.DER)
-        assert DN(str(subject)) == DN(('CN','ipa.example.com'),('O','IPA'))
-
-        # We should be able to pass in a tuple/list of certs too
-        subject = x509.get_subject((goodcert))
-        assert DN(str(subject)) == DN(('CN','ipa.example.com'),('O','IPA'))
-
-        subject = x509.get_subject([goodcert])
-        assert DN(str(subject)) == DN(('CN','ipa.example.com'),('O','IPA'))
-
-    def test_2_get_serial_number(self):
-        """
-        Test retrieving the serial number
-        """
-        serial = x509.get_serial_number(goodcert)
-        assert serial == 1093
-
-        der = base64.b64decode(goodcert)
-        serial = x509.get_serial_number(der, x509.DER)
-        assert serial == 1093
-
-        # We should be able to pass in a tuple/list of certs too
-        serial = x509.get_serial_number((goodcert))
-        assert serial == 1093
-
-        serial = x509.get_serial_number([goodcert])
-        assert serial == 1093
+        # Should handle list/tuple
+        x509.load_certificate((der,), x509.DER)
+        x509.load_certificate([der], x509.DER)
 
     def test_3_cert_contents(self):
         """
         Test the contents of a certificate
         """
-        # Verify certificate contents. This exercises python-nss more than
-        # anything but confirms our usage of it.
+        # Verify certificate contents. This exercises python-cryptography
+        # more than anything but confirms our usage of it.
 
+        not_before = datetime.datetime(2010, 6, 25, 13, 0, 42)
+        not_after = datetime.datetime(2015, 6, 25, 13, 0, 42)
         cert = x509.load_certificate(goodcert)
 
-        assert DN(str(cert.subject)) == DN(('CN','ipa.example.com'),('O','IPA'))
-        assert DN(str(cert.issuer)) == DN(('CN','IPA Test Certificate Authority'))
-        assert cert.serial_number == 1093
-        assert cert.valid_not_before_str == 'Fri Jun 25 13:00:42 2010 UTC'
-        assert cert.valid_not_after_str == 'Thu Jun 25 13:00:42 2015 UTC'
+        assert DN(cert.subject) == DN(('CN', 'ipa.example.com'), ('O', 'IPA'))
+        assert DN(cert.issuer) == DN(('CN', 'IPA Test Certificate Authority'))
+        assert cert.serial == 1093
+        assert cert.not_valid_before == not_before
+        assert cert.not_valid_after == not_after

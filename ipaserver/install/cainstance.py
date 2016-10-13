@@ -554,9 +554,9 @@ class CAInstance(DogtagInstance):
                 config.set("CA", "pki_req_ext_data", "1E0A00530075006200430041")
 
         elif self.external == 2:
-            cert = x509.load_certificate_from_file(self.cert_file)
             cert_file = tempfile.NamedTemporaryFile()
-            x509.write_certificate(cert.der_data, cert_file.name)
+            with open(self.cert_file) as f:
+                x509.write_certificate(f.read(), cert_file.name)
             cert_file.flush()
 
             result = ipautil.run(
@@ -778,7 +778,7 @@ class CAInstance(DogtagInstance):
             userstate=["1"],
             userCertificate=[cert_data],
             description=['2;%s;%s;%s' % (
-                cert.serial_number,
+                cert.serial,
                 DN(('CN', 'Certificate Authority'), self.subject_base),
                 DN(('CN', 'IPA RA'), self.subject_base))])
         conn.add_entry(entry)
@@ -1674,8 +1674,9 @@ def update_people_entry(dercert):
     is needed when a certificate is renewed.
     """
     def make_filter(dercert):
-        subject = x509.get_subject(dercert, datatype=x509.DER)
-        issuer = x509.get_issuer(dercert, datatype=x509.DER)
+        cert = x509.load_certificate(dercert, datatype=x509.DER)
+        subject = DN(cert.subject)
+        issuer = DN(cert.issuer)
         return ldap2.ldap2.combine_filters(
             [
                 ldap2.ldap2.make_filter({'objectClass': 'inetOrgPerson'}),
@@ -1686,9 +1687,10 @@ def update_people_entry(dercert):
             ldap2.ldap2.MATCH_ALL)
 
     def make_entry(dercert, entry):
-        serial_number = x509.get_serial_number(dercert, datatype=x509.DER)
-        subject = x509.get_subject(dercert, datatype=x509.DER)
-        issuer = x509.get_issuer(dercert, datatype=x509.DER)
+        cert = x509.load_certificate(dercert, datatype=x509.DER)
+        serial_number = cert.serial
+        subject = DN(cert.subject)
+        issuer = DN(cert.issuer)
         entry['usercertificate'].append(dercert)
         entry['description'] = '2;%d;%s;%s' % (serial_number, issuer, subject)
         return entry
@@ -1702,15 +1704,16 @@ def update_authority_entry(dercert):
     serial number to match the given cert.
     """
     def make_filter(dercert):
-        subject = x509.get_subject(dercert, datatype=x509.DER)
+        cert = x509.load_certificate(dercert, datatype=x509.DER)
+        subject = str(DN(cert.subject))
         return ldap2.ldap2.make_filter(
             dict(objectclass='authority', authoritydn=subject),
             rules=ldap2.ldap2.MATCH_ALL,
         )
 
     def make_entry(dercert, entry):
-        serial_number = x509.get_serial_number(dercert, datatype=x509.DER)
-        entry['authoritySerial'] = serial_number
+        cert = x509.load_certificate(dercert, datatype=x509.DER)
+        entry['authoritySerial'] = cert.serial
         return entry
 
     return __update_entry_from_cert(make_filter, make_entry, dercert)
