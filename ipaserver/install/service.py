@@ -22,6 +22,7 @@ import os
 import socket
 import datetime
 import traceback
+import tempfile
 
 from ipapython import ipautil, sysrestore
 from ipapython.dn import DN
@@ -170,7 +171,8 @@ class Service(object):
         """close the api.Backend.ldap2 connection"""
         api.Backend.ldap2.disconnect()
 
-    def _ldap_mod(self, ldif, sub_dict=None, raise_on_err=True):
+    def _ldap_mod(self, ldif, sub_dict=None, raise_on_err=True,
+                  ldap_uri=None, dm_password=None):
         pw_name = None
         fd = None
         path = ipautil.SHARE_DIR + ldif
@@ -191,12 +193,20 @@ class Service(object):
 
         # As we always connect to the local host,
         # use URI of admin connection
-        if not self.admin_conn:
-            self.ldap_connect()
-        args += ["-H", self.admin_conn.ldap_uri]
+        if not ldap_uri:
+            if not self.admin_conn:
+                self.ldap_connect()
+            ldap_uri = self.admin_conn.ldap_uri
 
+        args += ["-H", ldap_uri]
+
+        if dm_password:
+            [pw_fd, pw_name] = tempfile.mkstemp()
+            os.write(pw_fd, dm_password)
+            os.close(pw_fd)
+            auth_parms = ["-x", "-D", "cn=Directory Manager", "-y", pw_name]
         # Use GSSAPI auth when not using DM password or not being root
-        if os.getegid() != 0:
+        elif os.getegid() != 0:
             auth_parms = ["-Y", "GSSAPI"]
         # Default to EXTERNAL auth mechanism
         else:
@@ -214,9 +224,6 @@ class Service(object):
         finally:
             if pw_name:
                 os.remove(pw_name)
-
-        if fd is not None:
-            fd.close()
 
     def move_service(self, principal):
         """
