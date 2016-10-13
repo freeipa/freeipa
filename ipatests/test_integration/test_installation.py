@@ -7,9 +7,13 @@ Module provides tests which testing ability of various subsystems to be
 installed.
 """
 
+import pytest
+from ipalib.constants import DOMAIN_LEVEL_0
+from ipatests.test_integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 
+config = get_global_config()
 
 class InstallTestBase1(IntegrationTest):
 
@@ -90,12 +94,42 @@ class TestInstallWithCA1(InstallTestBase1):
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=False)
 
+    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                        reason='does not work on DOMAIN_LEVEL_0 by design')
+    def test_replica1_ipa_kra_install(self):
+        super(TestInstallWithCA1, self).test_replica1_ipa_kra_install()
+
+    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                        reason='does not work on DOMAIN_LEVEL_0 by design')
+    def test_replica2_with_ca_kra_install(self):
+        super(TestInstallWithCA1, self).test_replica2_with_ca_kra_install()
+
+    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                        reason='does not work on DOMAIN_LEVEL_0 by design')
+    def test_replica2_ipa_dns_install(self):
+        super(TestInstallWithCA1, self).test_replica2_ipa_dns_install()
+
 
 class TestInstallWithCA2(InstallTestBase2):
 
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=False)
+
+    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                        reason='does not work on DOMAIN_LEVEL_0 by design')
+    def test_replica0_with_ca_kra_dns_install(self):
+        super(TestInstallWithCA2, self).test_replica0_with_ca_kra_dns_install()
+
+    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                        reason='does not work on DOMAIN_LEVEL_0 by design')
+    def test_replica1_ipa_kra_install(self):
+        super(TestInstallWithCA2, self).test_replica1_ipa_kra_install()
+
+    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                        reason='does not work on DOMAIN_LEVEL_0 by design')
+    def test_replica2_ipa_kra_install(self):
+        super(TestInstallWithCA2, self).test_replica2_ipa_kra_install()
 
 
 class TestInstallWithCA_KRA1(InstallTestBase1):
@@ -121,12 +155,44 @@ class TestInstallWithCA_DNS1(InstallTestBase1):
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True)
 
+    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                        reason='does not work on DOMAIN_LEVEL_0 by design')
+    def test_replica1_ipa_kra_install(self):
+        super(TestInstallWithCA_DNS1, self).test_replica1_ipa_kra_install()
+
+    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                        reason='does not work on DOMAIN_LEVEL_0 by design')
+    def test_replica2_with_ca_kra_install(self):
+        super(TestInstallWithCA_DNS1, self).test_replica2_with_ca_kra_install()
+
+    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                        reason='does not work on DOMAIN_LEVEL_0 by design')
+    def test_replica2_ipa_dns_install(self):
+        super(TestInstallWithCA_DNS1, self).test_replica2_ipa_dns_install()
+
 
 class TestInstallWithCA_DNS2(InstallTestBase2):
 
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True)
+
+    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                        reason='does not work on DOMAIN_LEVEL_0 by design')
+    def test_replica0_with_ca_kra_dns_install(self):
+        super(
+            TestInstallWithCA_DNS2, self
+        ).test_replica0_with_ca_kra_dns_install()
+
+    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                        reason='does not work on DOMAIN_LEVEL_0 by design')
+    def test_replica1_ipa_kra_install(self):
+        super(TestInstallWithCA_DNS2, self).test_replica1_ipa_kra_install()
+
+    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
+                        reason='does not work on DOMAIN_LEVEL_0 by design')
+    def test_replica2_ipa_kra_install(self):
+        super(TestInstallWithCA_DNS2, self).test_replica2_ipa_kra_install()
 
 
 class TestInstallWithCA_KRA_DNS1(InstallTestBase1):
