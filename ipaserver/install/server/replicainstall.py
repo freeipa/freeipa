@@ -897,8 +897,6 @@ def install(installer):
         print("Configuration of client side components failed!")
         raise RuntimeError("Failed to configure the client")
 
-    ds.replica_populate()
-
     # update DNA shared config entry is done as far as possible
     # from restart to avoid waiting for its creation
     ds.update_dna_shared_config()
@@ -1528,9 +1526,6 @@ def promote(installer):
         kra.configure_replica(config.host_name, config.kra_host_name,
                               config.dirman_password,
                               kra_cert_bundle=ca_data)
-
-
-    ds.replica_populate()
 
     # update DNA shared config entry is done as far as possible
     # from restart to avoid waiting for its creation

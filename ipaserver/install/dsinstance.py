@@ -1144,22 +1144,6 @@ class DsInstance(service.Service):
         else:
             root_logger.debug("extdom plugin is already configured")
 
-    def replica_populate(self):
-        dn = DN(('cn', 'default'), ('ou', 'profile'), self.suffix)
-        try:
-            entry = self.admin_conn.get_entry(dn)
-            srvlist = entry.single_value.get('defaultServerList', '')
-            srvlist = srvlist.split()
-            if not self.fqdn in srvlist:
-                srvlist.append(self.fqdn)
-                attr = ' '.join(srvlist)
-                mod = [(ldap.MOD_REPLACE, 'defaultServerList', attr)]
-                self.admin_conn.modify_s(dn, mod)
-        except errors.NotFound:
-            pass
-        except ldap.TYPE_OR_VALUE_EXISTS:
-            pass
-
     def find_subject_base(self):
         """
         Try to find the current value of certificate subject base.
