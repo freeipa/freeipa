@@ -13,7 +13,6 @@ SUBDIRS =			\
         ui			\
         tools			\
         updates			\
-        po			\
         restart_scripts		\
         wsgi			\
         oddjob			\
