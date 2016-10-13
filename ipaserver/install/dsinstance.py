@@ -258,6 +258,8 @@ class DsInstance(service.Service):
 
         self.step("creating directory server user", create_ds_user)
         self.step("creating directory server instance", self.__create_instance)
+        self.step("enabling ldapi", self.__enable_ldapi)
+        self.step("configure autobind for root", self.__root_autobind)
         self.step("updating configuration in dse.ldif", self.__update_dse_ldif)
         self.step("restarting directory server", self.__restart_instance)
         self.step("adding default schema", self.__add_default_schemas)
@@ -265,7 +267,6 @@ class DsInstance(service.Service):
         self.step("enabling winsync plugin", self.__add_winsync_module)
         self.step("configuring replication version plugin", self.__config_version_module)
         self.step("enabling IPA enrollment plugin", self.__add_enrollment_module)
-        self.step("enabling ldapi", self.__enable_ldapi)
         self.step("configuring uniqueness plugin", self.__set_unique_attrs)
         self.step("configuring uuid plugin", self.__config_uuid_module)
         self.step("configuring modrdn plugin", self.__config_modrdn_module)
@@ -278,7 +279,6 @@ class DsInstance(service.Service):
         if enable_ssl:
             self.step("configuring ssl for ds instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
-        self.step("configure autobind for root", self.__root_autobind)
         self.step("configure new location for managed entries", self.__repoint_managed_entries)
         self.step("configure dirsrv ccache", self.configure_dirsrv_ccache)
         self.step("enabling SASL mapping fallback",
@@ -890,7 +890,9 @@ class DsInstance(service.Service):
         )
 
     def __enable_ldapi(self):
-        self._ldap_mod("ldapi.ldif", self.sub_dict)
+        self._ldap_mod("ldapi.ldif", self.sub_dict,
+                       ldap_uri="ldap://localhost",
+                       dm_password=self.dm_password)
 
     def __enable_sasl_mapping_fallback(self):
         self._ldap_mod("sasl-mapping-fallback.ldif", self.sub_dict)
@@ -1064,7 +1066,9 @@ class DsInstance(service.Service):
         self.tune_nofile(8192)
 
     def __root_autobind(self):
-        self._ldap_mod("root-autobind.ldif")
+        self._ldap_mod("root-autobind.ldif",
+                       ldap_uri="ldap://localhost",
+                       dm_password=self.dm_password)
 
     def __add_sudo_binduser(self):
         self._ldap_mod("sudobind.ldif", self.sub_dict)
