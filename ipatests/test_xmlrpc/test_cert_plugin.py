@@ -165,6 +165,7 @@ class test_cert(BaseCert):
         csr = unicode(self.generateCSR(str(self.subject)))
         res = api.Command['cert_request'](csr, principal=self.service_princ, add=True)['result']
         assert DN(res['subject']) == self.subject
+        assert 'cacn' in res
         # save the cert for the service_show/find tests
         cert = res['certificate'].encode('ascii')
         # save cert's SN for URI test
@@ -222,7 +223,22 @@ class test_cert(BaseCert):
         )
         assert set(certs_encoded) == set([cert, newcert])
 
-    def test_0008_cleanup(self):
+    def test_0008_cert_show(self):
+        """
+        Verify that cert-show shows CA of the certificate without --all
+        """
+        res = api.Command['cert_show'](sn)['result']
+        assert 'cacn' in res
+
+    def test_0009_cert_find(self):
+        """
+        Verify that cert-find shows CA of the certificate without --all
+        """
+        res = api.Command['cert_find'](min_serial_number=sn,
+                                       max_serial_number=sn)['result'][0]
+        assert 'cacn' in res
+
+    def test_00010_cleanup(self):
         """
         Clean up cert test data
         """
