@@ -219,14 +219,7 @@ PKG_CHECK_MODULES([SASL], [libsasl2])
 dnl ---------------------------------------------------------------------------
 dnl - Check for CURL
 dnl ---------------------------------------------------------------------------
-
-CURL_LIBS=
-AC_CHECK_HEADER(curl/curl.h, [], [AC_MSG_ERROR([curl/curl.h not found])])
-AC_CHECK_LIB(curl, curl_easy_init, [CURL_LIBS="-lcurl"])
-if test "x$CURL_LIBS" = "x" ; then
-  AC_MSG_ERROR([curl not found])
-fi
-AC_SUBST(CURL_LIBS)
+PKG_CHECK_MODULES([CURL], [libcurl])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for XMLRPC-C
