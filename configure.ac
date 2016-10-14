@@ -214,11 +214,7 @@ PKG_CHECK_MODULES([POPT], [popt])
 dnl ---------------------------------------------------------------------------
 dnl - Check for SASL
 dnl ---------------------------------------------------------------------------
-
-SASL_LIBS=
-AC_CHECK_HEADER(sasl/sasl.h, [], [AC_MSG_ERROR([sasl/sasl.h not found])])
-AC_CHECK_LIB(sasl2, sasl_client_init, [SASL_LIBS="-lsasl2"])
-AC_SUBST(SASL_LIBS)
+PKG_CHECK_MODULES([SASL], [libsasl2])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for CURL
