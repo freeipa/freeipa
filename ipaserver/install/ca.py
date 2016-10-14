@@ -94,8 +94,7 @@ def install_check(standalone, replica_config, options):
         for db in (cadb, dsdb):
             for nickname, _trust_flags in db.list_certs():
                 if nickname in (certdb.get_ca_nickname(realm_name),
-                                'ipaCert',
-                                'Signing-Cert'):
+                                'ipaCert'):
                     raise ScriptError(
                         "Certificate with nickname %s is present in %s, "
                         "cannot continue." % (nickname, db.secdir))
@@ -105,8 +104,7 @@ def install_check(standalone, replica_config, options):
                     continue
                 subject = DN(str(x509.get_subject(cert)))
                 if subject in (DN('CN=Certificate Authority', subject_base),
-                               DN('CN=IPA RA', subject_base),
-                               DN('CN=Object Signing Cert', subject_base)):
+                               DN('CN=IPA RA', subject_base)):
                     raise ScriptError(
                         "Certificate with subject %s is present in %s, "
                         "cannot continue." % (subject, db.secdir))
