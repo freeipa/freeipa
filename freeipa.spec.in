@@ -666,7 +666,6 @@ rm -f ipaplatform/paths.py
 rm -f ipaplatform/constants.py
 make LIBDIR=%{_libdir} version-update
 ./autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}
-cd client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 %if ! %{ONLY_CLIENT}
 %endif # ONLY_CLIENT
 

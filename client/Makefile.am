@@ -30,7 +30,7 @@ AM_CPPFLAGS =							\
 	-DLOCALEDIR=\""$(localedir)"\"				\
 	-DIPACONFFILE=\""$(IPA_CONF_FILE)"\"			\
 	$(KRB5_CFLAGS)						\
-	$(OPENLDAP_CFLAGS)					\
+	$(LDAP_CFLAGS)						\
 	$(SASL_CFLAGS)						\
 	$(POPT_CFLAGS)						\
 	$(WARN_CFLAGS)						\
@@ -58,7 +58,7 @@ ipa_getkeytab_SOURCES =		\
 ipa_getkeytab_LDADD = 		\
 	../asn1/libipaasn1.la	\
 	$(KRB5_LIBS)		\
-	$(OPENLDAP_LIBS)	\
+	$(LDAP_LIBS)		\
 	$(SASL_LIBS)		\
 	$(POPT_LIBS)		\
 	$(LIBINTL_LIBS)         \
@@ -84,7 +84,7 @@ ipa_join_SOURCES =		\
 
 ipa_join_LDADD = 		\
 	$(KRB5_LIBS)		\
-	$(OPENLDAP_LIBS)	\
+	$(LDAP_LIBS)		\
 	$(SASL_LIBS)		\
 	$(CURL_LIBS)		\
 	$(XMLRPC_LIBS)		\

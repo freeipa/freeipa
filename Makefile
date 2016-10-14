@@ -79,7 +79,7 @@ all: bootstrap-autogen server tests
 .PHONY=FORCE
 FORCE:
 
-client: client-autogen
+client: bootstrap-autogen
 	@for subdir in $(CLIENTDIRS); do \
 		(cd $$subdir && $(MAKE) all) || exit 1; \
 	done
@@ -92,17 +92,14 @@ check: bootstrap-autogen server tests
 		(cd $$subdir && $(MAKE) check) || exit 1; \
 	done
 
-client-check: client-autogen
+client-check: bootstrap-autogen
 	@for subdir in $(CLIENTDIRS); do \
 		(cd $$subdir && $(MAKE) check) || exit 1; \
 	done
 
-bootstrap-autogen: version-update client-autogen
+bootstrap-autogen: version-update
 	@echo "Building IPA $(IPA_VERSION)"
 	./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
-
-client-autogen: version-update
-	cd client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 install: all server-install tests-install client-install
 	@for subdir in $(SUBDIRS); do \
@@ -248,7 +245,7 @@ tarballs: local-archive
 	cd dist/$(TARBALL_PREFIX); ./autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR)
 	cd dist/$(TARBALL_PREFIX)/asn1; make distclean
 	cd dist/$(TARBALL_PREFIX)/daemons; make distclean
-	cd dist/$(TARBALL_PREFIX)/client; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
+	cd dist/$(TARBALL_PREFIX)/client; make distclean
 	cd dist/$(TARBALL_PREFIX)/install; make distclean
 	cd dist; tar cfz sources/$(TARBALL) $(TARBALL_PREFIX)
 	rm -rf dist/$(TARBALL_PREFIX)

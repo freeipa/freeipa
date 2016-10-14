@@ -207,6 +207,90 @@ PKG_CHECK_MODULES([SSSIDMAP], [sss_idmap])
 PKG_CHECK_MODULES([SSSNSSIDMAP], [sss_nss_idmap >= 1.13.90])
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for POPT
+dnl ---------------------------------------------------------------------------
+
+POPT_LIBS=
+AC_CHECK_HEADER(popt.h, [], [AC_MSG_ERROR([popt.h not found])])
+AC_CHECK_LIB(popt, poptGetContext, [POPT_LIBS="-lpopt"])
+AC_SUBST(POPT_LIBS)
+
+dnl ---------------------------------------------------------------------------
+dnl - Check for SASL
+dnl ---------------------------------------------------------------------------
+
+SASL_LIBS=
+AC_CHECK_HEADER(sasl/sasl.h, [], [AC_MSG_ERROR([sasl/sasl.h not found])])
+AC_CHECK_LIB(sasl2, sasl_client_init, [SASL_LIBS="-lsasl2"])
+AC_SUBST(SASL_LIBS)
+
+dnl ---------------------------------------------------------------------------
+dnl - Check for CURL
+dnl ---------------------------------------------------------------------------
+
+CURL_LIBS=
+AC_CHECK_HEADER(curl/curl.h, [], [AC_MSG_ERROR([curl/curl.h not found])])
+AC_CHECK_LIB(curl, curl_easy_init, [CURL_LIBS="-lcurl"])
+if test "x$CURL_LIBS" = "x" ; then
+  AC_MSG_ERROR([curl not found])
+fi
+AC_SUBST(CURL_LIBS)
+
+dnl ---------------------------------------------------------------------------
+dnl - Check for XMLRPC-C
+dnl ---------------------------------------------------------------------------
+
+XMLRPC_LIBS=
+AC_CHECK_HEADER(xmlrpc-c/base.h, [], [AC_MSG_ERROR([xmlrpc-c/base.h not found])])
+AC_CHECK_LIB(xmlrpc_client, xmlrpc_client_init2, [XMLRPC_LIBS="-lxmlrpc -lxmlrpc_client -lxmlrpc_util"])
+if test "x$XMLRPC_LIBS" = "x" ; then
+  AC_MSG_ERROR([xmlrpc-c not found])
+fi
+AC_SUBST(XMLRPC_LIBS)
+
+dnl ---------------------------------------------------------------------------
+dnl - Check for libintl
+dnl ---------------------------------------------------------------------------
+SAVE_LIBS="$LIBS"
+LIBINTL_LIBS=
+AC_CHECK_HEADER(libintl.h, [], [AC_MSG_ERROR([libintl.h not found, please install xgettext])])
+AC_SEARCH_LIBS([bindtextdomain], [libintl],[], [])
+if test "x$ac_cv_search_bindtextdomain" = "xno" ; then
+  AC_MSG_ERROR([libintl is not found and your libc does not support gettext, please install xgettext])
+elif test "x$ac_cv_search_bindtextdomain" != "xnone required" ; then
+  LIBINTL_LIBS="$ac_cv_search_bindtextdomain"
+fi
+LIBS="$SAVELIBS"
+AC_SUBST(LIBINTL_LIBS)
+
+dnl ---------------------------------------------------------------------------
+dnl - Check for libini_config
+dnl ---------------------------------------------------------------------------
+PKG_CHECK_MODULES([LIBINI_CONFIG], [ini_config >= 1.2.0], [have_libini_config=1], [have_libini_config=])
+if test x$have_libini_config = x; then
+    AC_MSG_WARN([Could not find LIBINI_CONFIG headers])
+else
+    INI_CONFIG_CFLAGS="`$PKG_CONFIG --cflags ini_config`"
+    INI_CONFIG_LIBS="`$PKG_CONFIG --libs ini_config`"
+    AC_CHECK_LIB(ini_config, ini_config_file_open, [],
+                 [AC_MSG_WARN([ini_config library must support ini_config_file_open])],
+                 [$INI_CONFIG_LIBS])
+    AC_CHECK_LIB(ini_config, ini_config_augment, [],
+                 [AC_MSG_WARN([ini_config library must support ini_config_augment])],
+                 [$INI_CONFIG_LIBS])
+fi
+
+if test x$have_libini_config = x1; then
+    INI_CFLAGS="$INI_CONFIG_CFLAGS"
+    INI_LIBS="$INI_CONFIG_LIBS"
+else
+    AC_MSG_ERROR([ini_config development packages not available])
+fi
+
+AC_SUBST(INI_LIBS)
+AC_SUBST(INI_CFLAGS)
+
+dnl ---------------------------------------------------------------------------
 dnl - Check for systemd unit directory
 dnl ---------------------------------------------------------------------------
 PKG_CHECK_EXISTS([systemd], [], [AC_MSG_ERROR([systemd not found])])
@@ -324,6 +408,8 @@ AC_SUBST(LDFLAGS)
 AC_CONFIG_FILES([
     asn1/Makefile
     asn1/asn1c/Makefile
+    client/Makefile
+    client/man/Makefile
     daemons/Makefile
     daemons/ipa-kdb/Makefile
     daemons/ipa-sam/Makefile
