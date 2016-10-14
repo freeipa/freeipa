@@ -244,29 +244,7 @@ AC_SUBST(LIBINTL_LIBS)
 dnl ---------------------------------------------------------------------------
 dnl - Check for libini_config
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([LIBINI_CONFIG], [ini_config >= 1.2.0], [have_libini_config=1], [have_libini_config=])
-if test x$have_libini_config = x; then
-    AC_MSG_WARN([Could not find LIBINI_CONFIG headers])
-else
-    INI_CONFIG_CFLAGS="`$PKG_CONFIG --cflags ini_config`"
-    INI_CONFIG_LIBS="`$PKG_CONFIG --libs ini_config`"
-    AC_CHECK_LIB(ini_config, ini_config_file_open, [],
-                 [AC_MSG_WARN([ini_config library must support ini_config_file_open])],
-                 [$INI_CONFIG_LIBS])
-    AC_CHECK_LIB(ini_config, ini_config_augment, [],
-                 [AC_MSG_WARN([ini_config library must support ini_config_augment])],
-                 [$INI_CONFIG_LIBS])
-fi
-
-if test x$have_libini_config = x1; then
-    INI_CFLAGS="$INI_CONFIG_CFLAGS"
-    INI_LIBS="$INI_CONFIG_LIBS"
-else
-    AC_MSG_ERROR([ini_config development packages not available])
-fi
-
-AC_SUBST(INI_LIBS)
-AC_SUBST(INI_CFLAGS)
+PKG_CHECK_MODULES([INI], [ini_config >= 1.2.0], [], [AC_MSG_ERROR([ini_config >= 1.2.0 not found])])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for systemd unit directory
