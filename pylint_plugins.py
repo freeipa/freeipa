@@ -237,7 +237,7 @@ ipa_class_members = {
                 'stderr_text',
                 'returncode',
             ]},
-            {'transport': ['put_file']},
+            {'transport': ['put_file', 'file_exists']},
             'put_file_contents',
             'get_file_contents',
             'ldap_connect',
