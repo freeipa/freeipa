@@ -224,14 +224,7 @@ PKG_CHECK_MODULES([CURL], [libcurl])
 dnl ---------------------------------------------------------------------------
 dnl - Check for XMLRPC-C
 dnl ---------------------------------------------------------------------------
-
-XMLRPC_LIBS=
-AC_CHECK_HEADER(xmlrpc-c/base.h, [], [AC_MSG_ERROR([xmlrpc-c/base.h not found])])
-AC_CHECK_LIB(xmlrpc_client, xmlrpc_client_init2, [XMLRPC_LIBS="-lxmlrpc -lxmlrpc_client -lxmlrpc_util"])
-if test "x$XMLRPC_LIBS" = "x" ; then
-  AC_MSG_ERROR([xmlrpc-c not found])
-fi
-AC_SUBST(XMLRPC_LIBS)
+PKG_CHECK_MODULES([XMLRPC], [xmlrpc_client])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for libintl
