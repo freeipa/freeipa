@@ -96,7 +96,6 @@ def install_http_certs(config, fstore, remote_api):
     subject = DN(('O', config.realm_name))
     db = certs.CertDB(config.realm_name, nssdir=nssdir, subject_base=subject)
     db.request_service_cert('Server-Cert', principal, config.host_name, True)
-    # FIXME: need Signing-Cert too ?
 
 
 def install_replica_ds(config, options, ca_is_configured, remote_api,

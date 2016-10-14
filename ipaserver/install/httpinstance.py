@@ -347,7 +347,6 @@ class HTTPInstance(service.Service):
                                                  ca_db)
             db.track_server_cert(self.cert_nickname, self.principal,
                                  db.passwd_fname, 'restart_httpd')
-            db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
             self.add_cert_to_service()
 
         # Fix the database permissions

@@ -57,12 +57,6 @@
                 "serial_number_hex": "0x9",
                 "status": "VALID",
                 "subject": "CN=dev.example.com,O=EXAMPLE.COM"
-            },
-            {
-                "serial_number": 10,
-                "serial_number_hex": "0xA",
-                "status": "VALID",
-                "subject": "CN=Object Signing Cert,O=EXAMPLE.COM"
             }
         ],
         "summary": "10 certificates matched",
