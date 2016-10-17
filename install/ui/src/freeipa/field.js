@@ -1361,6 +1361,46 @@ field.ObjectAdapter = declare([field.Adapter], {
 
 
 /**
+ * Custom adapter for fields which handles situations when there is no value
+ * for attribute (name) of the field and we want to use alternative attribute
+ * from response. We can set the alternative attribute name to the 'alt_attr'
+ * attribute of the adapter.
+ * This adapter is used i.e. in table in search facet for services. Handles
+ * situations where older services don't have canonical name.
+ *
+ * @class
+ * @extends field.Adapter
+ */
+field.AlternateAttrFieldAdapter = declare([field.Adapter], {
+    /**
+     * In case that the value is not get using field name then use alternative
+     * name.
+     * @param {Object} data Object which contains the record or the record
+     * @param {string} [attribute] attribute name - overrides `context.param`
+     * @param {Mixed} [def_val] default value - overrides `context.default_value`
+     * @returns {Array} attribute value
+     */
+    load: function(data, attribute, def_val) {
+        var record = this.get_record(data);
+        var value = null;
+        var attr = attribute || this.context.param;
+        var def = def_val || this.context.default_value;
+        if (record) {
+            value = this.get_value(record, attr);
+            if (util.is_empty(value) && this.context.adapter.alt_attr) {
+                value = this.get_value(record, this.context.adapter.alt_attr);
+            }
+        }
+        if (util.is_empty(value) && !util.is_empty(def)) {
+            value = util.normalize_value(def);
+        }
+        value = rpc.extract_objects(value);
+        return value;
+    }
+});
+
+
+/**
  * Field for enabling/disabling entity
  *
  * - expects radio widget
@@ -1632,6 +1672,7 @@ field.register = function() {
 
     l.register('adapter', field.Adapter);
     l.register('object_adapter', field.ObjectAdapter);
+    l.register('alternate_attr_field_adapter', field.AlternateAttrFieldAdapter);
 };
 phases.on('registration', field.register);
 

@@ -58,7 +58,16 @@ return {
     facets: [
         {
             $type: 'search',
-            columns: [ 'krbcanonicalname' ]
+            $factory: IPA.service.search_facet,
+            columns: [
+                {
+                    name: 'krbcanonicalname',
+                    adapter: {
+                        $type: 'alternate_attr_field_adapter',
+                        alt_attr: 'krbprincipalname'
+                    }
+                }
+            ]
         },
         {
             $type: 'details',
@@ -402,6 +411,47 @@ return {
         ]
     }
 };};
+
+
+/**
+ * Custom search facet for services. It has alternative primary key, in case
+ * that the service doesn't have canonical name.
+ */
+IPA.service.search_facet = function(spec) {
+    spec = spec || {};
+
+    spec.alternative_pkey = spec.alternative_pkey || 'krbprincipalname';
+
+    var that = IPA.search_facet(spec);
+
+    that.alternative_pkey = spec.alternative_pkey;
+
+    that.get_records_map = function(data) {
+
+        var records_map = $.ordered_map();
+
+        var result = data.result.result;
+        var pkey_name = that.managed_entity.metadata.primary_key ||
+                                                        that.primary_key_name;
+        var adapter = builder.build('adapter', 'adapter', {context: that});
+
+        for (var i=0; i<result.length; i++) {
+            var record = result[i];
+            var pkey = adapter.load(record, pkey_name)[0];
+            if (pkey === undefined && that.alternative_pkey) {
+                pkey = adapter.load(record, that.alternative_pkey)[0];
+            }
+            if (that.filter_records(records_map, pkey, record)) {
+                records_map.put(pkey, record);
+            }
+        }
+
+        return records_map;
+    };
+
+    return that;
+};
+
 
 IPA.service.details_facet = function(spec, no_init) {
 
