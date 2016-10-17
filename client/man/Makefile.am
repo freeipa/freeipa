@@ -10,7 +10,8 @@ man1_MANS = 				\
 		ipa-client-install.1	\
 		ipa-client-automount.1	\
 		ipa-certupdate.1	\
-		ipa-join.1
+		ipa-join.1		\
+		ipa.1
 
 man5_MANS =				\
 		default.conf.5
