@@ -182,8 +182,6 @@ class KrbInstance(service.Service):
         if not promote:
             self.step("creating a keytab for the directory",
                       self.__create_ds_keytab)
-            self.step("creating a keytab for the machine",
-                      self.__create_host_keytab)
         self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
         if setup_pkinit:
             self.step("installing X509 Certificate for PKINIT", self.__setup_pkinit)

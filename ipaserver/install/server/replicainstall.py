@@ -33,6 +33,7 @@ from ipalib.util import (
     network_ip_address_warning,
     broadcast_ip_address_warning,
 )
+from ipaclient.install.client import configure_krb5_conf, purge_host_keytab
 import ipaclient.ipachangeconf
 import ipaclient.ntpconf
 from ipaserver.install import (
@@ -493,10 +494,62 @@ def check_remote_version(api):
             "the local version ({})".format(remote_version, version))
 
 
+def enroll_dl0_replica(installer, fstore, remote_api, debug=False):
+    """
+    Do partial host enrollment in DL0:
+        * add host entry to remote master
+        * request host keytab from remote master
+        * configure client-like /etc/krb5.conf to enable GSSAPI auth further
+          down the replica installation
+    """
+    root_logger.info("Enrolling host to IPA domain")
+    config = installer._config
+    hostname = config.host_name
+
+    try:
+        installer._enrollment_performed = True
+        host_result = remote_api.Command.host_add(
+            unicode(config.host_name))['result']
+
+        host_princ = unicode(host_result['krbcanonicalname'][0])
+        purge_host_keytab(config.realm_name)
+
+        getkeytab_args = [
+            paths.IPA_GETKEYTAB,
+            '-s', config.master_host_name,
+            '-p', host_princ,
+            '-D', unicode(ipaldap.DIRMAN_DN),
+            '-w', config.dirman_password,
+            '-k', paths.KRB5_KEYTAB,
+            '-c', os.path.join(config.dir, 'ca.crt')
+        ]
+        ipautil.run(getkeytab_args, nolog=(config.dirman_password,))
+
+        _hostname, _sep, host_domain = hostname.partition('.')
+
+        fstore.backup_file(paths.KRB5_CONF)
+        configure_krb5_conf(
+            config.realm_name,
+            config.domain_name,
+            [config.master_host_name],
+            [config.master_host_name],
+            False,
+            paths.KRB5_CONF,
+            host_domain,
+            hostname,
+            configure_sssd=False
+        )
+
+    except CalledProcessError as e:
+        raise RuntimeError("Failed to fetch host keytab: {}".format(e))
+
+
 @common_cleanup
+@preserve_enrollment_state
 def install_check(installer):
     options = installer
     filename = installer.replica_file
+    installer._enrollment_performed = False
 
     if ipautil.is_fips_enabled():
         raise RuntimeError(
@@ -551,9 +604,11 @@ def install_check(installer):
     config = create_replica_config(dirman_password, filename, options)
     config.ca_host_name = config.master_host_name
     config.kra_host_name = config.ca_host_name
+
     config.setup_ca = options.setup_ca
     config.setup_kra = options.setup_kra
     installer._top_dir = config.top_dir
+    installer._config = config
 
     ca_enabled = ipautil.file_exists(config.dir + "/cacert.p12")
 
@@ -740,6 +795,8 @@ def install_check(installer):
             network_ip_address_warning(config.ips)
             broadcast_ip_address_warning(config.ips)
 
+        enroll_dl0_replica(installer, fstore, remote_api)
+
     except errors.ACIError:
         raise ScriptError("\nThe password provided is incorrect for LDAP server "
                           "%s" % config.master_host_name)
@@ -769,7 +826,6 @@ def install_check(installer):
     installer._remote_api = remote_api
     installer._fstore = fstore
     installer._sstore = sstore
-    installer._config = config
 
 
 @common_cleanup
