@@ -28,6 +28,7 @@ from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 from ipalib import api, certstore, constants, create_api, errors, rpc, x509
+from ipalib.config import Env
 from ipalib.util import (
     network_ip_address_warning,
     broadcast_ip_address_warning,
@@ -1028,7 +1029,14 @@ def promote_check(installer):
         except ipaclient.ntpconf.NTPConfigurationError:
             pass
 
-    api.bootstrap(in_server=True, context='installer')
+    env = Env()
+    env._bootstrap(context='installer', log=None)
+    env._finalize_core(**dict(constants.DEFAULT_CONFIG))
+
+    # pylint: disable=no-member
+    api.bootstrap(in_server=True, context='installer',
+                  ldap_uri=installutils.realm_to_ldapi_uri(env.realm))
+    # pylint: enable=no-member
     api.finalize()
 
     config = ReplicaConfig()
