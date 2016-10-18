@@ -1615,7 +1615,6 @@ def upgrade_configuration():
     ds.principal = "ldap/%s@%s" % (ds.fqdn, ds.realm)
 
     ds_enable_sidgen_extdom_plugins(ds)
-    ds.update_dna_shared_config()
 
     # Now 389-ds is available, run the remaining http tasks
     if not http.is_kdcproxy_configured():

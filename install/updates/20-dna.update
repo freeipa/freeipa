@@ -1,12 +1,4 @@
-# Enable the DNA plugin
-dn: cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
-only:nsslapd-pluginEnabled: on
-
-# Change the magic value to -1
-dn: cn=Posix IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
-only:dnaMagicRegen: -1
-add: dnaExcludeScope: cn=provisioning,$SUFFIX
-
+# Config winsync plugin according to DNA
 dn: cn=ipa-winsync,cn=plugins,cn=config
 remove:ipaWinSyncUserAttr: uidNumber 999
 remove:ipaWinSyncUserAttr: gidNumber 999

@@ -14,4 +14,11 @@ dnaFilter: (|(objectClass=posixAccount)(objectClass=posixGroup)(objectClass=ipaI
 dnaScope: $SUFFIX
 dnaThreshold: 500
 dnaSharedCfgDN: cn=posix-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
+dnaExcludeScope: cn=provisioning,$SUFFIX
+
+# Enable the DNA plugin
+dn: cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+changetype: modify
+replace: nsslapd-pluginEnabled
+nsslapd-pluginEnabled: on
 
