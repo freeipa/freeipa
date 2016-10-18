@@ -1,6 +1,6 @@
 # This file will be processed with automake-1.7 to create Makefile.in
 
-AUTOMAKE_OPTIONS = 1.7
+AUTOMAKE_OPTIONS = 1.7 subdir-objects
 
 NULL =
 
@@ -13,7 +13,6 @@ endif
 export AM_CFLAGS
 
 KRB5_UTIL_DIR=../util
-KRB5_UTIL_SRCS=$(KRB5_UTIL_DIR)/ipa_krb5.c
 ASN1_UTIL_DIR=../asn1
 IPA_CONF_FILE=$(sysconfdir)/ipa/default.conf
 
@@ -57,6 +56,7 @@ ipa_getkeytab_SOURCES =		\
 
 ipa_getkeytab_LDADD = 		\
 	../asn1/libipaasn1.la	\
+	$(KRB5_UTIL_DIR)/libutil.la	\
 	$(KRB5_LIBS)		\
 	$(LDAP_LIBS)		\
 	$(SASL_LIBS)		\
