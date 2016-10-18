@@ -69,11 +69,13 @@ export CFLAGS
 #JAVA_STACK_SIZE ?= 8m
 #export JAVA_STACK_SIZE
 
+.PHONY=all
 all: bootstrap-autogen server tests
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
+.PHONY=client
 client: client-autogen
 	@for subdir in $(CLIENTDIRS); do \
 		(cd $$subdir && $(MAKE) all) || exit 1; \
@@ -82,35 +84,42 @@ client: client-autogen
 		(cd $$subdir && $(PYTHON) setup.py build); \
 	done
 
+.PHONY=check
 check: bootstrap-autogen server tests
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) check) || exit 1; \
 	done
 
+.PHONY=client-check
 client-check: client-autogen
 	@for subdir in $(CLIENTDIRS); do \
 		(cd $$subdir && $(MAKE) check) || exit 1; \
 	done
 
+.PHONY=bootstrap-autogen
 bootstrap-autogen: version-update client-autogen
 	@echo "Building IPA $(IPA_VERSION)"
 	cd asn1; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd daemons; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR) --with-openldap; fi
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
+.PHONY=client-autogen
 client-autogen: version-update
 	cd asn1; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
+.PHONY=tests-man-autogen
 tests-man-autogen: version-update
 	cd ipatests/man; if [ ! -e Makefile ]; then ../../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
+.PHONY=install
 install: all server-install tests-install client-install
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
+.PHONY=client-install
 client-install: client client-dirs
 	@for subdir in $(CLIENTDIRS); do \
 		(cd $$subdir && $(MAKE) install) || exit 1; \
@@ -124,6 +133,7 @@ client-install: client client-dirs
 		fi \
 	done
 
+.PHONY=client-dirs
 client-dirs:
 	@if [ "$(DESTDIR)" != "" ] ; then \
 		mkdir -p $(DESTDIR)/etc/ipa ; \
@@ -133,6 +143,7 @@ client-dirs:
 		echo "Without those directories ipa-client-install will fail" ; \
 	fi
 
+.PHONY=pylint
 pylint: bootstrap-autogen
 	# find all python modules and executable python files outside modules for pylint check
 	FILES=`find . \
@@ -147,20 +158,26 @@ pylint: bootstrap-autogen
 	echo "Pylint is running, please wait ..."; \
 	PYTHONPATH=. pylint --rcfile=pylintrc $(PYLINTFLAGS) $$FILES || $(LINT_IGNORE_FAIL)
 
+.PHONY=po-validate
 po-validate:
 	$(MAKE) -C install/po validate-src-strings || $(LINT_IGNORE_FAIL)
 
+.PHONY=jslint
 jslint:
 	cd install/ui; jsl -nologo -nosummary -nofilelisting -conf jsl.conf || $(LINT_IGNORE_FAIL)
 
+.PHONY=lint
 lint: pylint po-validate jslint
 
+.PHONY=test
 test:
 	./make-test
 
+.PHONY=release-update
 release-update:
 	if [ ! -e RELEASE ]; then echo 0 > RELEASE; fi
 
+.PHONY=version-update
 version-update: release-update
 	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
 		freeipa.spec.in > freeipa.spec
@@ -209,10 +226,12 @@ version-update: release-update
 		./makeaci --validate; \
 	fi
 
+.PHONY=server
 server: version-update
 	$(PYTHON) setup.py build
 	cd ipaplatform && $(PYTHON) setup.py build
 
+.PHONY=server-install
 server-install: server
 	if [ "$(DESTDIR)" = "" ]; then \
 		$(PYTHON) setup.py install; \
@@ -222,10 +241,12 @@ server-install: server
 		(cd ipaplatform && $(PYTHON) setup.py install --root $(DESTDIR)); \
 	fi
 
+.PHONY=tests
 tests: version-update tests-man-autogen
 	cd ipatests; $(PYTHON) setup.py build
 	cd ipatests/man && $(MAKE) all
 
+.PHONY=tests-install
 tests-install: tests
 	if [ "$(DESTDIR)" = "" ]; then \
 		cd ipatests; $(PYTHON) setup.py install; \
@@ -234,17 +255,21 @@ tests-install: tests
 	fi
 	cd ipatests/man && $(MAKE) install
 
+.PHONY=archive
 archive:
 	-mkdir -p dist
 	git archive --format=tar --prefix=ipa/ $(TARGET) | (cd dist && tar xf -)
 
+.PHONY=local-archive
 local-archive:
 	-mkdir -p dist/$(TARBALL_PREFIX)
 	rsync -a --exclude=dist --exclude=.git --exclude=/build --exclude=rpmbuild . dist/$(TARBALL_PREFIX)
 
+.PHONY=archive-cleanup
 archive-cleanup:
 	rm -fr dist/freeipa
 
+.PHONY=tarballs
 tarballs: local-archive
 	-mkdir -p dist/sources
 	# tar up clean sources
@@ -254,6 +279,7 @@ tarballs: local-archive
 	cd dist; tar cfz sources/$(TARBALL) $(TARBALL_PREFIX)
 	rm -rf dist/$(TARBALL_PREFIX)
 
+.PHONY=rpmroot
 rpmroot:
 	rm -rf $(RPMBUILD)
 	mkdir -p $(RPMBUILD)/BUILD
@@ -262,10 +288,12 @@ rpmroot:
 	mkdir -p $(RPMBUILD)/SPECS
 	mkdir -p $(RPMBUILD)/SRPMS
 
+.PHONY=rpmdistdir
 rpmdistdir:
 	mkdir -p dist/rpms
 	mkdir -p dist/srpms
 
+.PHONY=rpms
 rpms: rpmroot rpmdistdir version-update lint tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba freeipa.spec
@@ -274,6 +302,7 @@ rpms: rpmroot rpmdistdir version-update lint tarballs
 	cp $(RPMBUILD)/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 	rm -rf $(RPMBUILD)
 
+.PHONY=client-rpms
 client-rpms: rpmroot rpmdistdir version-update lint tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" --define "ONLY_CLIENT 1" -ba freeipa.spec
@@ -282,6 +311,7 @@ client-rpms: rpmroot rpmdistdir version-update lint tarballs
 	cp $(RPMBUILD)/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 	rm -rf $(RPMBUILD)
 
+.PHONY=srpms
 srpms: rpmroot rpmdistdir version-update lint tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" -bs freeipa.spec
@@ -289,20 +319,25 @@ srpms: rpmroot rpmdistdir version-update lint tarballs
 	rm -rf $(RPMBUILD)
 
 
+.PHONY=repodata
 repodata:
 	-createrepo -p dist
 
+.PHONY=dist
 dist: version-update archive tarballs archive-cleanup rpms repodata
 
+.PHONY=local-dist
 local-dist: bootstrap-autogen clean local-archive tarballs archive-cleanup rpms
 
 
+.PHONY=clean
 clean: version-update
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 	rm -f *~
 
+.PHONY=distclean
 distclean: version-update
 	touch daemons/NEWS daemons/README daemons/AUTHORS daemons/ChangeLog
 	touch install/NEWS install/README install/AUTHORS install/ChangeLog
@@ -313,6 +348,7 @@ distclean: version-update
 	rm -f daemons/NEWS daemons/README daemons/AUTHORS daemons/ChangeLog
 	rm -f install/NEWS install/README install/AUTHORS install/ChangeLog
 
+.PHONY=maintainer-clean
 maintainer-clean: clean
 	rm -fr $(RPMBUILD) dist build
 	cd daemons && $(MAKE) maintainer-clean
