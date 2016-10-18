@@ -77,7 +77,3 @@ freeipa2-dev-doc
 
 /ipaplatform/__init__.py
 /ipaplatform/setup.py
-/ipaplatform/tasks.py
-/ipaplatform/services.py
-/ipaplatform/paths.py
-/ipaplatform/constants.py

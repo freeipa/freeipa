@@ -483,7 +483,10 @@ class SystemdService(PlatformService):
 
 # Objects below are expected to be exported by platform module
 
-service = None
+def base_service_class_factory(name):
+    raise NotImplementedError
+
+service = base_service_class_factory
 knownservices = None
 
 # System may support more time&date services. FreeIPA supports ntpd only, other
