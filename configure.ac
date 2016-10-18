@@ -24,8 +24,8 @@ AC_SUBST([INSTALL_DATA], ['$(INSTALL) -m 644 -p'])
 dnl ---------------------------------------------------------------------------
 dnl - Check for NSPR/NSS
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([NSPR], [nspr], [], [AC_MSG_ERROR([libnspr not found])])
-PKG_CHECK_MODULES([NSS], [nss], [], [AC_MSG_ERROR([libnss not found])])
+PKG_CHECK_MODULES([NSPR], [nspr])
+PKG_CHECK_MODULES([NSS], [nss])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for DS slapi plugin
@@ -52,7 +52,7 @@ dnl ---------------------------------------------------------------------------
 dnl - Check for KRB5
 dnl ---------------------------------------------------------------------------
 
-PKG_CHECK_MODULES([KRB5], [krb5], [], [AC_MSG_ERROR([libkrb5 not found])])
+PKG_CHECK_MODULES([KRB5], [krb5])
 AC_CHECK_HEADER(krad.h, [], [AC_MSG_ERROR([krad.h not found])])
 AC_CHECK_LIB(krad, main, [], [AC_MSG_ERROR([libkrad not found])])
 KRAD_LIBS="-lkrad"
@@ -76,12 +76,12 @@ AC_SUBST(LDAP_CFLAGS)
 dnl ---------------------------------------------------------------------------
 dnl - Check for OpenSSL Crypto library
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([CRYPTO], [libcrypto], [], [AC_MSG_ERROR([libcrypto not found])])
+PKG_CHECK_MODULES([CRYPTO], [libcrypto])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for UUID library
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([UUID], [uuid], [], [AC_MSG_ERROR([libuuid not found])])
+PKG_CHECK_MODULES([UUID], [uuid])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for Python
@@ -244,7 +244,7 @@ AC_SUBST(LIBINTL_LIBS)
 dnl ---------------------------------------------------------------------------
 dnl - Check for libini_config
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([INI], [ini_config >= 1.2.0], [], [AC_MSG_ERROR([ini_config >= 1.2.0 not found])])
+PKG_CHECK_MODULES([INI], [ini_config >= 1.2.0])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for systemd unit directory
