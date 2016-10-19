@@ -50,6 +50,11 @@ def openLocked(filename, perms):
     #TODO: add a comment all but provided options as a section option
 class IPAChangeConf(object):
 
+    EMPTY_LINE = {
+        'name': 'empty',
+        'type': 'empty'
+    }
+
     def __init__(self, name):
         self.progname = name
         self.indent = ("", "", "")
