@@ -1317,7 +1317,7 @@ class CAInstance(DogtagInstance):
         basedn = ipautil.realm_to_suffix(self.realm)
         self.ldap_enable('CA', self.fqdn, None, basedn)
 
-    def configure_replica(self, master_host, subject_base=None,
+    def configure_replica(self, master_host, dm_password, subject_base=None,
                           ca_cert_bundle=None, ca_signing_algorithm=None,
                           ca_type=None):
         """Creates a replica CA, creating a local DS backend and using
@@ -1325,6 +1325,7 @@ class CAInstance(DogtagInstance):
         Requires domain_level >= DOMAIN_LEVEL_1 and custodia on the master.
         """
         self.master_host = master_host
+        self.dm_password = dm_password
         self.master_replication_port = 389
         if subject_base is None:
             self.subject_base = DN(('O', self.realm))
