@@ -548,15 +548,6 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
     pol.min_pwd_length = IPAPWD_DEFAULT_MINLEN;
 
     switch(data->changetype) {
-        case IPA_CHANGETYPE_ADMIN:
-            /* The expiration date needs to be older than the current time
-             * otherwise the KDC may not immediately register the password
-             * as expired. The last password change needs to match the
-             * password expiration otherwise minlife issues will arise.
-             */
-            data->timeNow -= 1;
-            data->expireTime = data->timeNow;
-            break;
         case IPA_CHANGETYPE_NORMAL:
             /* Find the entry with the password policy */
             ret = ipapwd_getPolicy(data->dn, data->target, &pol);
@@ -564,6 +555,19 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
                 LOG_TRACE("No password policy, use defaults");
             }
             break;
+	case IPA_CHANGETYPE_ADMIN:
+            /* The expiration date needs to be older than the current time
+             * otherwise the KDC may not immediately register the password
+             * as expired. The last password change needs to match the
+             * password expiration otherwise minlife issues will arise.
+             */
+            data->timeNow -= 1;
+            data->expireTime = data->timeNow;
+
+            /* let set the entry password property according to its
+             * entry password policy (done with ipapwd_getPolicy)
+             * For this intentional fallthrough here
+             */
         case IPA_CHANGETYPE_DSMGR:
             /* PassSync agents and Directory Manager can administratively
              * change the password without expiring it.
@@ -577,6 +581,7 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
                 LOG_TRACE("No password policy, use defaults");
             } else {
                 pol.max_pwd_life = tmppol.max_pwd_life;
+                pol.history_length = tmppol.history_length;
             }
             break;
         default:
