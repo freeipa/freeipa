@@ -390,8 +390,6 @@ def configure_ipa_conf(
     ipaconf.newConf(target_fname, opts)
     os.chmod(target_fname, 0o644)
 
-    return 0
-
 
 def disable_ra():
     """Set the enable_ra option in /etc/ipa/default.conf to False
