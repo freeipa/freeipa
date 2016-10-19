@@ -159,3 +159,74 @@ class TestTopologyOptions(IntegrationTest):
         assert err == "", err
         returncode, error = tasks.destroy_segment(self.master, "%s-to-%s" % replicas)
         assert returncode == 0, error
+
+
+@pytest.mark.skipif(config.domain_level == 0, reason=reasoning)
+class TestCASpecificRUVs(IntegrationTest):
+    num_replicas = 2
+    topology = 'star'
+    username = 'testuser'
+    user_firstname = 'test'
+    user_lastname = 'user'
+
+    def test_delete_ruvs(self):
+        """
+        http://www.freeipa.org/page/V4/Manage_replication_topology_4_4/
+        Test_Plan#Test_case:_clean-ruv_subcommand
+        """
+        replica = self.replicas[0]
+        master = self.master
+        res1 = master.run_command(['ipa-replica-manage', 'list-ruv', '-p',
+                                  master.config.dirman_password])
+        assert(res1.stdout_text.count(replica.hostname) == 2 and
+               "Certificate Server Replica"
+               " Update Vectors" in res1.stdout_text), (
+               "CA-specific RUVs are not displayed")
+        ruvid_re = re.compile(".*%s:389: (\d+).*" % replica.hostname)
+        replica_ruvs = ruvid_re.findall(res1.stdout_text)
+        # Find out the number of RUVids
+        assert(len(replica_ruvs) == 2), (
+            "The output should display 2 RUV ids of the selected replica")
+
+        # Block replication to preserve replica-specific RUVs
+        dashed_domain = master.domain.realm.replace(".", '-')
+        dirsrv_service = "dirsrv@%s.service" % dashed_domain
+        replica.run_command(['systemctl', 'stop', dirsrv_service])
+        try:
+            master.run_command(['ipa-replica-manage', 'clean-ruv',
+                                replica_ruvs[1], '-p',
+                                master.config.dirman_password, '-f'])
+            res2 = master.run_command(['ipa-replica-manage',
+                                       'list-ruv', '-p',
+                                       master.config.dirman_password])
+
+            assert(res2.stdout_text.count(replica.hostname) == 1), (
+                "CA RUV of the replica is still displayed")
+            master.run_command(['ipa-replica-manage', 'clean-ruv',
+                                replica_ruvs[0], '-p',
+                                master.config.dirman_password, '-f'])
+            res3 = master.run_command(['ipa-replica-manage', 'list-ruv', '-p',
+                                       master.config.dirman_password])
+            assert(replica.hostname not in res3.stdout_text), (
+                "replica's RUV is still displayed")
+        finally:
+            replica.run_command(['systemctl', 'start', dirsrv_service])
+
+    def test_replica_uninstall_deletes_ruvs(self):
+        """
+        http://www.freeipa.org/page/V4/Manage_replication_topology_4_4/Test_Plan
+        #Test_case:_.2A-ruv_subcommands_of_ipa-replica-manage_are_extended
+        _to_handle_CA-specific_RUVs
+        """
+        master = self.master
+        replica = self.replicas[1]
+        res1 = master.run_command(['ipa-replica-manage', 'list-ruv', '-p',
+                                  master.config.dirman_password]).stdout_text
+        assert(res1.count(replica.hostname) == 2), (
+            "Did not find proper number of replica hostname (%s) occurrencies"
+            " in the command output: %s" % (replica.hostname, res1))
+        tasks.uninstall_master(replica)
+        res2 = master.run_command(['ipa-replica-manage', 'list-ruv', '-p',
+                                  master.config.dirman_password]).stdout_text
+        assert(replica.hostname not in res2), (
+            "Replica RUVs were not clean during replica uninstallation")
