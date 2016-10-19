@@ -3094,7 +3094,7 @@ def install(options, env, fstore, statestore):
 
     root_logger.info('Client configuration complete.')
 
-    return 0
+    return SUCCESS
 
 
 def uninstall(options, env):
