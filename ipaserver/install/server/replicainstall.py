@@ -1516,6 +1516,7 @@ def promote(installer):
         ca = cainstance.CAInstance(config.realm_name, certs.NSS_DIR,
                                    host_name=config.host_name)
         ca.configure_replica(config.ca_host_name,
+                             config.dirman_password,
                              subject_base=config.subject_base,
                              ca_cert_bundle=ca_data)
 
