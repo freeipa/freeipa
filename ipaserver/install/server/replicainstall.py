@@ -219,6 +219,54 @@ def install_dns_records(config, options, remote_api):
                          'on master: %s', str(e))
 
 
+def create_ipa_conf(fstore, config, ca_enabled):
+    # Save client file on Domain Level 1
+    target_fname = paths.IPA_DEFAULT_CONF
+    fstore.backup_file(target_fname)
+
+    ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Replica Install")
+    ipaconf.setOptionAssignment(" = ")
+    ipaconf.setSectionNameDelimiters(("[", "]"))
+
+    xmlrpc_uri = 'https://{0}/ipa/xml'.format(
+                    ipautil.format_netloc(config.host_name))
+    ldapi_uri = 'ldapi://%2fvar%2frun%2fslapd-{0}.socket\n'.format(
+                    installutils.realm_to_serverid(config.realm_name))
+
+    # [global] section
+    gopts = [
+        ipaconf.setOption('basedn', str(config.basedn)),
+        ipaconf.setOption('host', config.host_name),
+        ipaconf.setOption('realm', config.realm_name),
+        ipaconf.setOption('domain', config.domain_name),
+        ipaconf.setOption('xmlrpc_uri', xmlrpc_uri),
+        ipaconf.setOption('ldap_uri', ldapi_uri),
+        ipaconf.setOption('mode', 'production')
+    ]
+
+    if ca_enabled:
+        gopts.extend([
+            ipaconf.setOption('enable_ra', 'True'),
+            ipaconf.setOption('ra_plugin', 'dogtag'),
+            ipaconf.setOption('dogtag_version', '10')
+        ])
+
+        if not config.setup_ca:
+            gopts.append(ipaconf.setOption('ca_host', config.ca_host_name))
+    else:
+        gopts.extend([
+            ipaconf.setOption('enable_ra', 'False'),
+            ipaconf.setOption('ra_plugin', 'None')
+        ])
+
+    opts = [
+        ipaconf.setSection('global', gopts),
+        {'name': 'empty', 'type': 'empty'}
+    ]
+    ipaconf.newConf(target_fname, opts)
+    os.chmod(target_fname, 0o644)   # must be readable for httpd
+
+
 def check_dirsrv():
     (ds_unsecure, ds_secure) = dsinstance.check_ports()
     if not ds_unsecure or not ds_secure:
@@ -607,41 +655,14 @@ def install_check(installer):
 
     config.setup_ca = options.setup_ca
     config.setup_kra = options.setup_kra
+    config.basedn = ipautil.realm_to_suffix(config.realm_name)
     installer._top_dir = config.top_dir
     installer._config = config
 
     ca_enabled = ipautil.file_exists(config.dir + "/cacert.p12")
-
     # Create the management framework config file
     # Note: We must do this before bootstraping and finalizing ipalib.api
-    old_umask = os.umask(0o22)   # must be readable for httpd
-    try:
-        fd = open(paths.IPA_DEFAULT_CONF, "w")
-        fd.write("[global]\n")
-        fd.write("host=%s\n" % config.host_name)
-        fd.write("basedn=%s\n" %
-                 str(ipautil.realm_to_suffix(config.realm_name)))
-        fd.write("realm=%s\n" % config.realm_name)
-        fd.write("domain=%s\n" % config.domain_name)
-        fd.write("xmlrpc_uri=https://%s/ipa/xml\n" %
-                 ipautil.format_netloc(config.host_name))
-        fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" %
-                 installutils.realm_to_serverid(config.realm_name))
-        if ca_enabled:
-            fd.write("enable_ra=True\n")
-            fd.write("ra_plugin=dogtag\n")
-            fd.write("dogtag_version=10\n")
-
-            if not config.setup_ca:
-                fd.write("ca_host={0}\n".format(config.ca_host_name))
-        else:
-            fd.write("enable_ra=False\n")
-            fd.write("ra_plugin=none\n")
-
-        fd.write("mode=production\n")
-        fd.close()
-    finally:
-        os.umask(old_umask)
+    create_ipa_conf(fstore, config, ca_enabled)
 
     api.bootstrap(in_server=True, context='installer')
     api.finalize()
@@ -1093,6 +1114,7 @@ def promote_check(installer):
     config.setup_ca = options.setup_ca
     config.setup_kra = options.setup_kra
     config.dir = installer._top_dir
+    config.basedn = api.env.basedn
 
     http_pkcs12_file = None
     http_pkcs12_info = None
@@ -1329,6 +1351,8 @@ def promote_check(installer):
                                   "--dirsrv-cert-file options to provide "
                                   "custom certificates.")
                 raise ScriptError(rval=3)
+        # we now have all the information to properly setup server config
+        create_ipa_conf(fstore, config, ca_enabled)
 
         kra_host = service.find_providing_server(
                 'KRA', conn, config.kra_host_name)
@@ -1444,13 +1468,6 @@ def promote(installer):
                 conn.disconnect()
             os.environ['KRB5CCNAME'] = ccache
 
-    # Save client file and merge in server directives
-    target_fname = paths.IPA_DEFAULT_CONF
-    fstore.backup_file(target_fname)
-    ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Replica Promote")
-    ipaconf.setOptionAssignment(" = ")
-    ipaconf.setSectionNameDelimiters(("[", "]"))
-
     config.promote = installer.promote
     config.dirman_password = hexlify(ipautil.ipa_generate_password())
 
@@ -1491,42 +1508,6 @@ def promote(installer):
     finally:
         if conn.isconnected():
             conn.disconnect()
-
-        # Create the management framework config file
-        # do this regardless of the state of DS installation. Even if it fails,
-        # we need to have master-like configuration in order to perform a
-        # successful uninstallation
-        ldapi_uri = installutils.realm_to_ldapi_uri(config.realm_name)
-
-        gopts = [
-            ipaconf.setOption('host', config.host_name),
-            ipaconf.rmOption('server'),
-            ipaconf.setOption('xmlrpc_uri',
-                              'https://%s/ipa/xml' %
-                              ipautil.format_netloc(config.host_name)),
-            ipaconf.setOption('ldap_uri', ldapi_uri),
-            ipaconf.setOption('mode', 'production')
-        ]
-
-        if ca_enabled:
-            gopts.extend([
-                ipaconf.setOption('enable_ra', 'True'),
-                ipaconf.setOption('ra_plugin', 'dogtag'),
-                ipaconf.setOption('dogtag_version', '10')
-            ])
-
-            if not options.setup_ca:
-                gopts.append(ipaconf.setOption('ca_host', config.ca_host_name))
-        else:
-            gopts.extend([
-                ipaconf.setOption('enable_ra', 'False'),
-                ipaconf.setOption('ra_plugin', 'None')
-            ])
-
-        opts = [ipaconf.setSection('global', gopts)]
-
-        ipaconf.changeConf(target_fname, opts)
-        os.chmod(target_fname, 0o644)   # must be readable for httpd
 
     custodia = custodiainstance.CustodiaInstance(config.host_name,
                                                  config.realm_name)
