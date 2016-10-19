@@ -779,8 +779,6 @@ def hardcode_ldap_server(cli_server):
         "Changed configuration of /etc/ldap.conf to use "
         "hardcoded server name: %s", cli_server[0])
 
-    return
-
 
 def configure_krb5_conf(
         cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
