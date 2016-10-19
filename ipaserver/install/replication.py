@@ -983,8 +983,8 @@ class ReplicationManager(object):
 
     def start_replication(self, conn, hostname=None, master=None):
         print("Starting replication, please wait until this has completed.")
-        if hostname == None:
-            hostname = self.conn.host
+        if hostname is None:
+            hostname = self.hostname
         _cn, dn = self.agreement_dn(hostname, master)
 
         mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start')]
@@ -1027,7 +1027,7 @@ class ReplicationManager(object):
                                      self.repl_man_dn, self.repl_man_passwd)
 
         if is_cs_replica:
-            self.setup_agreement(r_conn, self.conn.host, port=local_port,
+            self.setup_agreement(r_conn, self.hostname, port=local_port,
                                  repl_man_dn=self.repl_man_dn,
                                  repl_man_passwd=self.repl_man_passwd,
                                  master=False)
@@ -1036,7 +1036,7 @@ class ReplicationManager(object):
                                  repl_man_passwd=self.repl_man_passwd,
                                  master=True)
         else:
-            self.setup_agreement(r_conn, self.conn.host, port=local_port,
+            self.setup_agreement(r_conn, self.hostname, port=local_port,
                                  repl_man_dn=self.repl_man_dn,
                                  repl_man_passwd=self.repl_man_passwd)
             self.setup_agreement(self.conn, r_hostname, port=r_port,
@@ -1159,7 +1159,7 @@ class ReplicationManager(object):
 
         # Create mutual replication agreementsausiung SASL/GSSAPI
         self.setup_agreement(self.conn, r_hostname, isgssapi=True)
-        self.setup_agreement(r_conn, self.conn.host, isgssapi=True)
+        self.setup_agreement(r_conn, self.hostname, isgssapi=True)
 
     def initialize_replication(self, dn, conn):
         mod = [(ldap.MOD_ADD, 'nsds5BeginReplicaRefresh', 'start'),
@@ -1620,7 +1620,7 @@ class ReplicationManager(object):
         self.basic_replication_setup(r_conn, r_id, self.repl_man_dn, None)
         self.join_replication_managers(r_conn)
 
-        self.setup_agreement(r_conn, self.conn.host, isgssapi=True)
+        self.setup_agreement(r_conn, self.hostname, isgssapi=True)
         self.setup_agreement(self.conn, r_hostname, isgssapi=True)
 
         # Finally start replication
@@ -1768,7 +1768,7 @@ class CAReplicationManager(ReplicationManager):
         r_id = self._get_replica_id(r_conn, r_conn)
         self.basic_replication_setup(r_conn, r_id, self.repl_man_dn, None)
 
-        self.setup_agreement(r_conn, self.conn.host, isgssapi=True)
+        self.setup_agreement(r_conn, self.hostname, isgssapi=True)
         self.setup_agreement(self.conn, r_hostname, isgssapi=True)
 
         # Finally start replication
