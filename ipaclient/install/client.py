@@ -1015,8 +1015,6 @@ def configure_krb5_conf(
     krbconf.newConf(filename, opts)
     os.chmod(filename, 0o644)
 
-    return 0
-
 
 def configure_certmonger(
         fstore, subject_base, cli_realm, hostname, options, ca_enabled):
@@ -2580,18 +2578,16 @@ def install(options, env, fstore, statestore):
         try:
             (krb_fd, krb_name) = tempfile.mkstemp()
             os.close(krb_fd)
-            if configure_krb5_conf(
-                    cli_realm=cli_realm,
-                    cli_domain=cli_domain,
-                    cli_server=cli_server,
-                    cli_kdc=cli_kdc,
-                    dnsok=False,
-                    options=options,
-                    filename=krb_name,
-                    client_domain=client_domain,
-                    client_hostname=hostname):
-                root_logger.error("Test kerberos configuration failed")
-                return CLIENT_INSTALL_ERROR
+            configure_krb5_conf(
+                cli_realm=cli_realm,
+                cli_domain=cli_domain,
+                cli_server=cli_server,
+                cli_kdc=cli_kdc,
+                dnsok=False,
+                options=options,
+                filename=krb_name,
+                client_domain=client_domain,
+                client_hostname=hostname)
             env['KRB5_CONFIG'] = krb_name
             ccache_dir = tempfile.mkdtemp(prefix='krbcc')
             ccache_name = os.path.join(ccache_dir, 'ccache')
@@ -2791,17 +2787,16 @@ def install(options, env, fstore, statestore):
         else:
             # Configure krb5.conf
             fstore.backup_file(paths.KRB5_CONF)
-            if configure_krb5_conf(
-                    cli_realm=cli_realm,
-                    cli_domain=cli_domain,
-                    cli_server=cli_server,
-                    cli_kdc=cli_kdc,
-                    dnsok=dnsok,
-                    options=options,
-                    filename=paths.KRB5_CONF,
-                    client_domain=client_domain,
-                    client_hostname=hostname):
-                return CLIENT_INSTALL_ERROR
+            configure_krb5_conf(
+                cli_realm=cli_realm,
+                cli_domain=cli_domain,
+                cli_server=cli_server,
+                cli_kdc=cli_kdc,
+                dnsok=dnsok,
+                options=options,
+                filename=paths.KRB5_CONF,
+                client_domain=client_domain,
+                client_hostname=hostname)
 
             root_logger.info(
                 "Configured /etc/krb5.conf for IPA realm %s", cli_realm)
