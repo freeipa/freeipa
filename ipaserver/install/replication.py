@@ -507,7 +507,7 @@ class ReplicationManager(object):
     def setup_chaining_backend(self, conn):
         chaindn = DN(('cn', 'chaining database'), ('cn', 'plugins'), ('cn', 'config'))
         benamebase = "chaindb"
-        urls = [self.to_ldap_url(conn)]
+        urls = [conn.ldap_uri]
         cn = ""
         benum = 1
         done = False
@@ -537,16 +537,13 @@ class ReplicationManager(object):
 
         return cn
 
-    def to_ldap_url(self, conn):
-        return "ldap://%s/" % ipautil.format_netloc(conn.host, conn.port)
-
     def setup_chaining_farm(self, conn):
         try:
             conn.modify_s(self.db_suffix, [(ldap.MOD_ADD, 'aci',
                                     [ "(targetattr = \"*\")(version 3.0; acl \"Proxied authorization for database links\"; allow (proxy) userdn = \"ldap:///%s\";)" % self.repl_man_dn ])])
         except ldap.TYPE_OR_VALUE_EXISTS:
             root_logger.debug("proxy aci already exists in suffix %s on %s"
-                              % (self.db_suffix, conn.host))
+                              % (self.db_suffix, conn.ldap_uri))
 
     def get_mapping_tree_entry(self):
         try:
@@ -900,7 +897,8 @@ class ReplicationManager(object):
                 if not status:
                     print("No status yet")
                 elif status.find("replica busy") > -1:
-                    print("[%s] reports: Replica Busy! Status: [%s]" % (conn.host, status))
+                    print("[%s] reports: Replica Busy! Status: [%s]"
+                          % (conn.ldap_uri, status))
                     done = True
                     hasError = 2
                 elif status.find("Total update succeeded") > -1:
@@ -909,7 +907,8 @@ class ReplicationManager(object):
                 elif inprogress.lower() == 'true':
                     print("\nUpdate in progress yet not in progress")
                 else:
-                    print("\n[%s] reports: Update failed! Status: [%s]" % (conn.host, status))
+                    print("\n[%s] reports: Update failed! Status: [%s]"
+                          % (conn.ldap_uri, status))
                     hasError = 1
                     done = True
             else:
