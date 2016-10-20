@@ -148,7 +148,7 @@ po-validate:
 jslint:
 	cd install/ui; jsl -nologo -nosummary -nofilelisting -conf jsl.conf || $(LINT_IGNORE_FAIL)
 
-lint: pylint po-validate jslint
+lint: apilint acilint pylint po-validate jslint
 
 test:
 	./make-test
@@ -198,10 +198,11 @@ version-update: release-update ipapython/version.py ipaplatform/__init__.py ipas
 	sed -e s/__VERSION__/$(IPA_VERSION)/ client/version.m4.in \
 		> client/version.m4
 
-	if [ "$(SKIP_API_VERSION_CHECK)" != "yes" ]; then \
-		./makeapi --validate && \
-		./makeaci --validate; \
-	fi
+apilint: bootstrap-autogen
+	./makeapi --validate
+
+acilint: bootstrap-autogen
+	./makeaci --validate
 
 server: version-update
 	cd ipaserver && $(PYTHON) setup.py build
