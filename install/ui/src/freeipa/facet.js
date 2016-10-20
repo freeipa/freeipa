@@ -1105,7 +1105,8 @@ exp.facet = IPA.facet = function(spec, no_init) {
             name: 'facet_actions',
             'class': 'dropdown facet-actions',
             right_aligned: true,
-            toggle_text: 'Actions ',
+            //toggle_text: 'Actions ',
+			toggle_text: text.get('@i18n:actions.title'),
             toggle_class: 'btn btn-default',
             toggle_icon: 'fa fa-angle-down'
         });
@@ -2086,7 +2087,11 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
 
         // sort map based on primary keys
         if (that.sort_enabled) {
-            records_map = records_map.sort();
+			//records_map = records_map.sort();
+            if (that.managed_entity.metadata.name == 'log')
+                ;
+            else
+                records_map = records_map.sort();
         }
 
         // trim map leaving the entries visible in the current page only

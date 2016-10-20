@@ -31,6 +31,7 @@ import json
 import traceback
 import gssapi
 import time
+import logging
 
 import ldap.controls
 from pyasn1.type import univ, namedtype
@@ -304,6 +305,10 @@ class WSGIExecutioner(Executioner):
 
     _system_commands = {}
 
+    # add kydc log
+    LOGGING_FORMAT='\t'.join(['%(asctime)s', '%(levelname)s', '%(message)s',])
+    logging.basicConfig(filename='/var/log/ipa/ipa.log', level=logging.INFO, format=LOGGING_FORMAT, datefmt='%Y-%m-%d %H:%M:%S')
+
     def _on_finalize(self):
         self.url = self.env.mount_ipa + self.key
         super(WSGIExecutioner, self)._on_finalize()
@@ -374,6 +379,43 @@ class WSGIExecutioner(Executioner):
                 result_string = type(e).__name__
             else:
                 result_string = 'SUCCESS'
+            # handle batch
+            if name == 'batch':
+                for param in args:
+                    result_param = dict()
+                    method = None
+                    if 'method' not in param:
+                        raise errors.RequirementError(method='method')
+                    if 'params' not in param:
+                        raise errors.RequirementError(method='params')
+                    method = param['method']
+                    if method not in self.Command:
+                        raise errors.CommandError(method=method)
+                    if method == 'log_show' or method == 'log_find':
+                        continue
+                    a, kw = param['params']
+                    newkw = dict((str(k), v) for k, v in kw.iteritems())
+                    result_param = self.Command[method].args_options_2_params(*a, **newkw)
+                    newkw.setdefault('version', options['version'])
+
+                    logging.info('%s\t%s\t%s\t%s(%s)',
+                              principal.split('@')[0],
+                              environ.get('REMOTE_ADDR'),
+                              result_string,
+                              method,
+                              #', '.join(result_param))
+                              ', '.join(self.Command[method]._repr_iter(**result_param)))
+            else:
+                if name == 'log_show' or name == 'log_find':
+                    pass
+                else:
+                    logging.info('%s\t%s\t%s\t%s(%s)',
+                          principal.split('@')[0],
+                          environ.get('REMOTE_ADDR'),
+                          result_string,
+                          name,
+                          ', '.join(self.Command[name]._repr_iter(**params)))
+
             self.info('[%s] %s: %s(%s): %s',
                       type(self).__name__,
                       principal,
@@ -946,9 +988,15 @@ class login_password(Backend, KerberosSession, HTTP_Status):
         try:
             self.kinit(user, self.api.env.realm, password, ipa_ccache_name)
         except PasswordExpired as e:
+            # add log information
+            logging.info("%s\t%s\t%s\t%s", user, environ.get("REMOTE_ADDR"), 'FAILURE', 'password-expired')
             return self.unauthorized(environ, start_response, str(e), 'password-expired')
         except InvalidSessionPassword as e:
+            logging.info("%s\t%s\t%s\t%s", user, environ.get("REMOTE_ADDR"), 'FAILURE', 'invalid-password')
             return self.unauthorized(environ, start_response, str(e), 'invalid-password')
+        else:
+            self.info("%s logined from %s\n", user, environ.get("REMOTE_ADDR"))
+            logging.info("%s\t%s\t%s\t%s", user, environ.get("REMOTE_ADDR"), 'SUCCESS', 'session_login()')
 
         return self.finalize_kerberos_acquisition('login_password', ipa_ccache_name, environ, start_response)
 
