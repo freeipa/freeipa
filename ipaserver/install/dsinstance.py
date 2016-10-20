@@ -1265,7 +1265,7 @@ class DsInstance(service.Service):
         os.chown(paths.DS_KEYTAB, pent.pw_uid, pent.pw_gid)
 
     def __get_ds_cert(self):
-        subject = DN(('O', self.realm))
+        subject = self.subject_base or DN(('O', self.realm))
         nssdb_dir = config_dirname(self.serverid)
         db = certs.CertDB(self.realm, nssdir=nssdb_dir, subject_base=subject)
         db.request_service_cert(self.nickname, self.principal, self.fqdn)
