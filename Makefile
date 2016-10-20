@@ -13,8 +13,6 @@ PRJ_PREFIX=freeipa
 RPMBUILD ?= $(PWD)/rpmbuild
 TARGET ?= master
 
-SUPPORTED_PLATFORM ?= fedora
-
 IPA_NUM_VERSION ?= $(shell printf %d%02d%02d $(IPA_VERSION_MAJOR) $(IPA_VERSION_MINOR) $(IPA_VERSION_RELEASE))
 
 # After updating the version in VERSION you should run the version-update
@@ -166,13 +164,6 @@ ipapython/version.py: ipapython/version.py.in FORCE
 
 ipasetup.py: ipasetup.py.in FORCE
 	sed -e s/__VERSION__/$(IPA_VERSION)/ $< > $@
-
-ipaplatform/__init__.py: ipaplatform/__init__.py.in FORCE
-	if [ "$(SUPPORTED_PLATFORM)" != "" ]; then \
-	    sed -e s/__PLATFORM__/$(SUPPORTED_PLATFORM)/ \
-	        $< > $@; \
-	    rm -f ipaplatform/constants.py ipaplatform/paths.py ipaplatform/services.py ipaplatform/tasks.py ; \
-	fi
 
 .PHONY: egg_info
 egg_info: ipapython/version.py ipaplatform/__init__.py ipasetup.py

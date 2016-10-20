@@ -20,3 +20,4 @@
 '''
 This module contains Fedora specific platform files.
 '''
+NAME = 'fedora'

@@ -58,7 +58,7 @@ from dns.exception import DNSException
 import pysss_nss_idmap
 import pysss
 import six
-from ipaplatform.paths import paths  # pylint: disable=import-error
+from ipaplatform.paths import paths
 
 from ldap.filter import escape_filter_chars
 from time import sleep

@@ -6,11 +6,9 @@ from __future__ import print_function
 
 import copy
 import sys
-import textwrap
 
-from astroid import MANAGER, register_module_extender
+from astroid import MANAGER
 from astroid import scoped_nodes
-from astroid.builder import AstroidBuilder
 
 
 def register(linter):
@@ -257,19 +255,3 @@ def fix_ipa_classes(cls):
         fake_class(cls, ipa_class_members[class_name_with_module])
 
 MANAGER.register_transform(scoped_nodes.Class, fix_ipa_classes)
-
-
-def ipaplatform_transform():
-    """Module aliases for IpaPlatformImporter
-    """
-    return AstroidBuilder(MANAGER).string_build(textwrap.dedent(
-        """
-        from ipaplatform.base import constants
-        from ipaplatform.base import paths
-        from ipaplatform.base import services
-        from ipaplatform.base import tasks
-        """
-    ))
-
-
-register_module_extender(MANAGER, 'ipaplatform', ipaplatform_transform)
