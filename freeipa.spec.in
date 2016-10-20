@@ -24,11 +24,6 @@
 %global plugin_dir %{_libdir}/dirsrv/plugins
 %global etc_systemd_dir %{_sysconfdir}/systemd/system
 %global gettext_domain ipa
-%if 0%{?rhel}
-%global platform_module rhel
-%else
-%global platform_module fedora
-%endif
 
 %define _hardened_build 1
 
@@ -655,19 +650,8 @@ export JAVA_STACK_SIZE="8m"
 
 export CFLAGS="%{optflags} $CFLAGS"
 export LDFLAGS="%{__global_ldflags} $LDFLAGS"
-export SUPPORTED_PLATFORM=%{platform_module}
 
-# Force re-generate of platform support
 export IPA_VENDOR_VERSION_SUFFIX=-%{release}
-rm -f ipapython/version.py
-rm -f ipaplatform/services.py
-rm -f ipaplatform/tasks.py
-rm -f ipaplatform/paths.py
-rm -f ipaplatform/constants.py
-make LIBDIR=%{_libdir} version-update
-./autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}
-%if ! %{ONLY_CLIENT}
-%endif # ONLY_CLIENT
 
 %if ! %{ONLY_CLIENT}
 make IPA_VERSION_IS_GIT_SNAPSHOT=no LIBDIR=%{_libdir} %{?_smp_mflags} all
@@ -686,14 +670,7 @@ make %{?_smp_mflags} client-check VERBOSE=yes LIBDIR=%{_libdir}
 
 %install
 rm -rf %{buildroot}
-export SUPPORTED_PLATFORM=%{platform_module}
-# Force re-generate of platform support
 export IPA_VENDOR_VERSION_SUFFIX=-%{release}
-rm -f ipapython/version.py
-rm -f ipaplatform/services.py
-rm -f ipaplatform/tasks.py
-rm -f ipaplatform/paths.py
-rm -f ipaplatform/constants.py
 make version-update LIBDIR=%{_libdir}
 %if ! %{ONLY_CLIENT}
 make install DESTDIR=%{buildroot} LIBDIR=%{_libdir}

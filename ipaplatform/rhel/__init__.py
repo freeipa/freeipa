@@ -20,3 +20,4 @@
 '''
 This module contains RHEL-specific platform files.
 '''
+NAME = 'rhel'

@@ -309,6 +309,35 @@ if test "x$MSGATTRIB" = "xno"; then
 fi
 
 dnl ---------------------------------------------------------------------------
+dnl IPA platform
+dnl ---------------------------------------------------------------------------
+AC_ARG_WITH([ipaplatform],
+	    [AC_HELP_STRING([--with-ipaplatform],
+			    [IPA platform module to use])],
+	    [IPAPLATFORM=${withval}],
+	    [IPAPLATFORM=""])
+AC_MSG_CHECKING([supported IPA platform])
+
+if test "x${IPAPLATFORM}" == "x"; then
+	if test -r "/etc/os-release"; then
+		IPAPLATFORM=$(. /etc/os-release; echo "$ID")
+	else
+		AC_MSG_ERROR([unable to read /etc/os-release])
+	fi
+	if test "x${IPAPLATFORM}" == "x"; then
+		AC_MSG_ERROR([unable to find ID variable in /etc/os-release])
+	fi
+fi
+
+if test ! -d "ipaplatform/${IPAPLATFORM}"; then
+	AC_MSG_ERROR([IPA platform ${IPAPLATFORM} is not supported])
+fi
+
+AC_SUBST([IPAPLATFORM])
+AC_MSG_RESULT([${IPAPLATFORM}])
+
+
+dnl ---------------------------------------------------------------------------
 dnl Finish
 dnl ---------------------------------------------------------------------------
 
@@ -360,6 +389,12 @@ AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
 
 # Files
+AC_CONFIG_LINKS([ipaplatform/__init__.py:ipaplatform/$IPAPLATFORM/__init__.py
+                 ipaplatform/constants.py:ipaplatform/$IPAPLATFORM/constants.py
+                 ipaplatform/paths.py:ipaplatform/$IPAPLATFORM/paths.py
+                 ipaplatform/services.py:ipaplatform/$IPAPLATFORM/services.py
+                 ipaplatform/tasks.py:ipaplatform/$IPAPLATFORM/tasks.py
+		])
 
 AC_CONFIG_FILES([
     asn1/Makefile
