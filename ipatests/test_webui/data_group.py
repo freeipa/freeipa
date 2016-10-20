@@ -26,7 +26,7 @@ DATA = {
     'add': [
         ('textbox', 'cn', PKEY),
         ('textarea', 'description', 'test-group desc'),
-        ('radio', 'type', 'normal'),
+        ('radio', 'type', 'nonposix'),
     ],
     'mod': [
         ('textarea', 'description', 'test-group desc modified'),
