@@ -913,51 +913,39 @@ services, authentication setup, and means to manage security context and host na
 going to be extended in future to cover other areas as well, both client- and server-side.
 
 The code that implements platform-specific adaptation is placed under
-~ipapython/platform~. As of FreeIPA 2.1.3, there are two major "platforms" supported:
-- /redhat/ :: Red Hat-based distributions utilizing SystemV init scripts such as Fedora
-              15 and RHEL6
-- /fedora16/ :: as name suggests, Fedora 16 and above, are supported by this platform
+~ipaplatform~. As of FreeIPA 4.4.2, there are two major "platforms" supported:
+- /rhel/ :: Red Hat Enterprise Linux 7-based distributions utilizing Systemd
+            such as CentOS 7 and Scientific Linux 7.
+- /fedora/ :: Fedora distribution version 23 above are supported by this platform
                 module. It is based on ~systemd~ system management tool and utilizes
-                common code in ~ipapython/platform/systemd.py~. ~fedora16.py~ contains
-                only differentiation required to cover Fedora 16-specific implementation
+                common code in ~ipaplatform/base/services.py~. ~fedora~ contains
+                only differentiation required to cover Fedora 23-specific implementation
                 of systemd use, depending on changes to Dogtag, Tomcat6, and 389-ds
                 packages.
 
 Each platform-specific adaptation should provide few basic building blocks:
 
-*** AuthConfig class
+*** AuthConfig class and tasks module
 
-=AuthConfig= class implements system-independent interface to configure system
-authentication resources. In Red Hat systems this is done with authconfig(8) utility.
+=ipaplatform.tasks= module implements system-independent interface to configure system
+resources. In Red Hat systems some of these tasks are done with authconfig(8) utility.
 
 =AuthConfig= class is nothing more than a tool to gather configuration options and execute
 their processing. These options then converted by an actual implementation to series of a
 system calls to appropriate utilities performing real configuration.
 
-FreeIPA *expects* names of =AuthConfig='s options to follow authconfig(8) naming
-scheme. From FreeIPA code perspective, the authentication configuration should be done with
-use of ~ipapython.services.authconfig~: 
+From FreeIPA code perspective, the system configuration should be done with
+use of ~ipaplatform.tasks.tasks~:
 
 #+BEGIN_SRC python -n
-from ipapython import services as ipaservices
+from ipaplatform.tasks import tasks
 
-auth_config = ipaservices.authconfig()
-auth_config.disable("ldap").\
-            disable("krb5").\
-            disable("sssd").\
-            disable("sssdauth").\
-            disable("mkhomedir").\
-            add_option("update").\
-            enable("nis").\
-            add_parameter("nisdomain","foobar")
-auth_config.execute()
+tasks.set_nisdomain('nisdomain.example')
 #+END_SRC
 
 The actual implementation can differ. ~redhat~ platform module builds up arguments to
 authconfig(8) tool and on =execute()= method runs it with those arguments. Other systems
-will need to have processing of the arguments done as defined by authconfig(8) manual
-page. This is, perhaps, biggest obstacle on porting FreeIPA client side to the new
-platform.
+will need to have processing based on their respective tools.
 
 *** PlatformService class
 =PlatformService= class abstracts out an external process running on the system which is
@@ -966,37 +954,37 @@ etc.
 
 Services are used thoroughly through FreeIPA server and client install tools. There are
 several services that are used especially often and they are selected to be accessible via
-Python properties of =ipapython.services.knownservices= instance.
+Python properties of =ipaplatform.services.knownservices= instance.
 
-To facilitate more expressive way of working with often used services, ipapython.services
+To facilitate more expressive way of working with often used services, ipaplatform.services
 module provides a shortcut to access them by name via
-ipapython.services.knownservices.<service>. A typical code change looks like this:
+ipaplatform.services.knownservices.<service>. A typical code change looks like this:
 #+BEGIN_EXAMPLE
-from ipapython import services as ipaservices
+import ipaplatform.services.knownservices
 ....
 -    service.restart("dirsrv")
 -    service.restart("krb5kdc")
 -    service.restart("httpd")
-+    ipaservices.knownservices.dirsrv.restart()
-+    ipaservices.knownservices.krb5kdc.restart()
-+    ipaservices.knownservices.httpd.restart()
++    ipaplatform.services.knownservices.dirsrv.restart()
++    ipaplatform.services.knownservices.krb5kdc.restart()
++    ipaplatform.services.knownservices.httpd.restart()
 #+END_EXAMPLE
 
 Besides expression change this also makes more explicit to platform providers access to
 what services they have to implement. Service names are defined in
-ipapython.platform.base.wellknownservices and represent definitive names to access these
+ipaplatform.platform.base.wellknownservices and represent definitive names to access these
 services from FreeIPA code. Of course, platform provider should remap those names to
-platform-specific ones -- for ipapython.platform.redhat provider mapping is identity.
+platform-specific ones -- for ipaplatform.redhat provider mapping is identity.
 
 Porting to a new platform may be hard as can be witnessed by this example:
 https://www.redhat.com/archives/freeipa-devel/2011-September/msg00408.html
 
-If there is doubt, always consult existing providers. ~redhat.py~ is canonical -- it
+If there is doubt, always consult existing providers. ~redhat/services.py~ is canonical -- it
 represents the code which was used throughout FreeIPA v2 development.
 
 *** Enabling new platform provider
 When support for new platform is implemented and appropriate provider is placed to
-~ipapython/platform/~, it is time to enable its use by the FreeIPA. Since FreeIPA is
+~ipaplatform/platform/~, it is time to enable its use by the FreeIPA. Since FreeIPA is
 supposed to be rolled out uniformly on multiple clients and servers, best approach is to
 build and distribute software packages using platform-provided package management tools.
 
@@ -1007,50 +995,3 @@ production time. In order to select proper platform provider, one needs to pass
 #+BEGIN_EXAMPLE
 ./configure --with-ipaplatform=fedora
 #+END_EXAMPLE
-
-~version-update~ target in FreeIPA top-level Makefile will re-create ipapython/services.py
-file based on the value of ~SUPPORTED_PLATFORM~ variable. By default this variable is set
-to ~redhat~.
-
-~ipapython/services.py~ is generated using ~ipapython/service.py.in~. In fact, there is
-only single line gets replaced in the latter file at the last line:
-#+BEGIN_SRC python
-# authconfig is an entry point to platform-provided AuthConfig implementation
-# (instance of ipapython.platform.base.AuthConfig)
-authconfig = None
-
-# knownservices is an entry point to known platform services
-# (instance of ipapython.platform.base.KnownServices)
-knownservices = None
-
-# service is a class to instantiate ipapython.platform.base.PlatformService
-service = None
-
-# restore context default implementation  that does nothing
-def restore_context_default(filepath):
-    return
-
-# Restore security context for a path
-# If the platform has security features where context is important, implement your own
-# version in platform services
-restore_context = restore_context_default
-
-# Default implementation of backup hostname that does nothing
-def backup_hostname_default(fstore, statestore):
-    return
-
-# Backup system's hostname
-# Since many platforms have their own way of handling system's hostname, this method must be
-# implemented in platform services
-backup_hostname = backup_hostname_default
-
-from ipapython.platform.SUPPORTED_PLATFORM import *
-#+END_SRC
-
-As last statement imports everything from the supported platform provider, all exposed
-methods and variables above will be re-defined to platform-specific implementations. This
-allows to have FreeIPA framework use of these services separated from the implementation
-of the platform.
-
-The code in ipapython/services.py is going to grow over time when more parts of FreeIPA
-framework become platform-independent.
