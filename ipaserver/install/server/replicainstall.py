@@ -93,7 +93,7 @@ def install_http_certs(config, fstore, remote_api):
 
     # Obtain certificate for the HTTP service
     nssdir = certs.NSS_DIR
-    subject = DN(('O', config.realm_name))
+    subject = config.subject_base or DN(('O', config.realm_name))
     db = certs.CertDB(config.realm_name, nssdir=nssdir, subject_base=subject)
     db.request_service_cert('Server-Cert', principal, config.host_name, True)
 
