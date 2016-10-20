@@ -79,7 +79,7 @@ all: bootstrap-autogen server tests
 .PHONY=FORCE
 FORCE:
 
-client: bootstrap-autogen
+client: bootstrap-autogen egg_info
 	@for subdir in $(CLIENTDIRS); do \
 		(cd $$subdir && $(MAKE) all) || exit 1; \
 	done
@@ -182,7 +182,7 @@ egg_info: ipapython/version.py ipaplatform/__init__.py ipasetup.py
 	    popd ; \
 	done
 
-version-update: release-update ipapython/version.py ipaplatform/__init__.py ipasetup.py egg_info
+version-update: release-update ipapython/version.py ipasetup.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
 		freeipa.spec.in > freeipa.spec
 	sed -e s/__VERSION__/$(IPA_VERSION)/ version.m4.in \
@@ -204,7 +204,7 @@ apilint: bootstrap-autogen
 acilint: bootstrap-autogen
 	./makeaci --validate
 
-server: version-update
+server: version-update bootstrap-autogen egg_info
 	cd ipaserver && $(PYTHON) setup.py build
 	cd ipaplatform && $(PYTHON) setup.py build
 
@@ -217,7 +217,7 @@ server-install: server
 		(cd ipaplatform && $(PYTHON) setup.py install --root $(DESTDIR)) || exit 1; \
 	fi
 
-tests: version-update
+tests: version-update bootstrap-autogen egg_info
 	cd ipatests; $(PYTHON) setup.py build
 	cd ipatests/man && $(MAKE) all
 
