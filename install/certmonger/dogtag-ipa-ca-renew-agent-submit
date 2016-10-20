@@ -37,9 +37,9 @@ import json
 
 import six
 
-from ipapython import ipautil
+from ipapython import certmonger, ipautil
 from ipapython.dn import DN
-from ipalib import api, errors, pkcs10, x509
+from ipalib import api, errors, x509
 from ipaplatform.paths import paths
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance, certs
@@ -65,8 +65,14 @@ if six.PY3:
 IPA_CA_NICKNAME = 'caSigningCert cert-pki-ca'
 
 def get_nickname():
-    csr = os.environ.get('CERTMONGER_CSR')
-    return pkcs10.get_friendlyname(csr) if csr else None
+    subject = os.environ.get('CERTMONGER_REQ_SUBJECT')
+    if not subject:
+        return None
+    request_id = certmonger.get_request_id({'template-subject': subject})
+    if not request_id:
+        return None
+    return certmonger.get_request_value(request_id, 'cert-nickname')
+
 
 def is_lightweight_ca():
     nickname = get_nickname() or ''
@@ -216,13 +222,9 @@ def store_cert():
     else:
         return (OPERATION_NOT_SUPPORTED_BY_HELPER,)
 
-    csr = os.environ.get('CERTMONGER_CSR')
-    if not csr:
-        return (UNCONFIGURED, "Certificate request not provided")
-
-    nickname = pkcs10.get_friendlyname(csr)
+    nickname = get_nickname()
     if not nickname:
-        return (REJECTED, "No friendly name in the certificate request")
+        return (REJECTED, "Nickname could not be determined")
 
     cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if not cert:
@@ -325,13 +327,9 @@ def retrieve_or_reuse_cert():
     Retrieve certificate from LDAP. If the certificate is not available, reuse
     the old certificate.
     """
-    csr = os.environ.get('CERTMONGER_CSR')
-    if not csr:
-        return (UNCONFIGURED, "Certificate request not provided")
-
-    nickname = pkcs10.get_friendlyname(csr)
+    nickname = get_nickname()
     if not nickname:
-        return (REJECTED, "No friendly name in the certificate request")
+        return (REJECTED, "Nickname could not be determined")
 
     cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if not cert:
