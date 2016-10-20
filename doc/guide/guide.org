@@ -1002,14 +1002,10 @@ build and distribute software packages using platform-provided package managemen
 
 With this in mind, platform code selection in FreeIPA is static and run at package
 production time. In order to select proper platform provider, one needs to pass
-~SUPPORTED_PLATFORM~ argument to FreeIPA's make process:
+~--with-ipaplatform~ argument to FreeIPA's configure process:
 
 #+BEGIN_EXAMPLE
-export SUPPORTED_PLATFORM=fedora16
-# Force re-generate of platform support
-rm -f ipapython/services.py
-make version-update
-make IPA_VERSION_IS_GIT_SNAPSHOT=no all
+./configure --with-ipaplatform=fedora
 #+END_EXAMPLE
 
 ~version-update~ target in FreeIPA top-level Makefile will re-create ipapython/services.py
