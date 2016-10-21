@@ -11,6 +11,30 @@ from ipapython.dn import DN
 from ipatests.util import assert_deepequal, raises
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipatests.test_xmlrpc.testcert import get_testcert
+from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
+from ipatests.test_xmlrpc.tracker.idview_plugin import IdviewTracker
+
+
+@pytest.fixture(scope='class')
+def idview(request):
+    tracker = IdviewTracker(cn=u'MyView')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def testuser(request):
+    tracker = UserTracker(name=u'testuser', givenname=u'John', sn=u'Donne')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def cert1(request):
+    return get_testcert(DN(('CN', u'testuser')), u'testuser')
+
+
+@pytest.fixture(scope='class')
+def cert2(request):
+    return get_testcert(DN(('CN', u'testuser')), u'testuser')
 
 
 @pytest.mark.tier1
@@ -352,3 +376,61 @@ class TestCertManipCmdService(CertManipCmdTestBase):
             api.Command.host_del(TestCertManipCmdHost.entity_pkey)
         except errors.NotFound:
             pass
+
+
+@pytest.mark.tier1
+class TestCertManipIdOverride(XMLRPC_test):
+    entity_subject = u'testuser'
+    entity_principal = u'testuser'
+
+    def test_00_add_idoverrideuser(self, testuser, idview):
+        testuser.create()
+        idview.create()
+        idview.idoverrideuser_add(testuser)
+
+    def test_01_add_cert_to_idoverride(self, testuser, idview, cert1):
+        assert_deepequal(
+            dict(usercertificate=(base64.b64decode(cert1),),
+                 summary=u'Added certificates to'
+                         ' idoverrideuser \"%s\"' % testuser.name,
+                 value=testuser.name,
+                 ),
+            idview.add_cert_to_idoverrideuser(testuser.name, cert1)
+        )
+
+    def test_02_add_second_cert_to_idoverride(self, testuser,
+                                              idview, cert1, cert2):
+        assert_deepequal(
+            dict(
+                usercertificate=(base64.b64decode(cert1),
+                                 base64.b64decode(cert2)),
+                summary=u'Added certificates to'
+                        ' idoverrideuser \"%s\"' % testuser.name,
+                value=testuser.name,
+            ),
+            idview.add_cert_to_idoverrideuser(testuser.name, cert2)
+        )
+
+    def test_03_add_the_same_cert_to_idoverride(self, testuser,
+                                                idview, cert1, cert2):
+        pytest.raises(errors.ExecutionError,
+                      idview.add_cert_to_idoverrideuser,
+                      testuser.name, cert1)
+
+    def test_04_user_show_displays_cert(self, testuser, idview, cert1, cert2):
+        result = api.Command.idoverrideuser_show(idview.cn, testuser.name)
+        assert_deepequal((base64.b64decode(cert1),
+                          base64.b64decode(cert2)),
+                         result['result']['usercertificate']
+                         )
+
+    def test_05_remove_cert(self, testuser, idview, cert1, cert2):
+        assert_deepequal(
+            dict(
+                usercertificate=(base64.b64decode(cert2),),
+                value=testuser.name,
+                summary=u'Removed certificates from'
+                        ' idoverrideuser "%s"' % testuser.name
+            ),
+            idview.del_cert_from_idoverrideuser(testuser.name, cert1)
+        )
