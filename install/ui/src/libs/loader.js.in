@@ -20,8 +20,8 @@
 (function() {
 
     var loader = window.ipa_loader = {
-        num_version: '__NUM_VERSION__',
-        api_version: '__API_VERSION__'
+        num_version: '@NUM_VERSION@',
+        api_version: '@API_VERSION@'
     };
 
     var head = document.getElementsByTagName('head')[0];

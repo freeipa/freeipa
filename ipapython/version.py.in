@@ -18,10 +18,10 @@
 #
 
 # The full version including strings
-VERSION="__VERSION__"
+VERSION="@VERSION@"
 
 # A fuller version including the vendor tag (e.g. 3.3.3-34.fc20)
-VENDOR_VERSION="__VENDOR_VERSION__"
+VENDOR_VERSION="@VERSION@@VENDOR_SUFFIX@"
 
 
 # Just the numeric portion of the version so one can do direct numeric
@@ -41,11 +41,11 @@ VENDOR_VERSION="__VENDOR_VERSION__"
 #   IPA 3.2.1:  NUM_VERSION=30201
 #   IPA 3.2.99: NUM_VERSION=30299 (development version)
 #   IPA 3.3.0:  NUM_VERSION=30300
-NUM_VERSION=__NUM_VERSION__
+NUM_VERSION=@NUM_VERSION@
 
 
 # The version of the API.
-API_VERSION=u'__API_VERSION__'
+API_VERSION=u'@API_VERSION@'
 
 
 DEFAULT_PLUGINS = frozenset(l.strip() for l in """

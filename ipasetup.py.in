@@ -19,7 +19,7 @@ import os
 import sys
 
 common_args = dict(
-    version="__VERSION__",
+    version="@VERSION@",
     license="GPL",
     author="FreeIPA Developers",
     author_email="freeipa-devel@redhat.com",

@@ -35,14 +35,14 @@
  * END COPYRIGHT BLOCK **/
 
 /* The full version including strings */
-#define VERSION "__VERSION__"
+#define VERSION "@VERSION@"
 
 /* Just the numeric portion of the version so one can do direct numeric
    comparisons to see if the API is compatible.
  */
-#define NUM_VERSION __NUM_VERSION__
+#define NUM_VERSION @NUM_VERSION@
 
 /* The data version. This is distinguished from the server version based
    on the compatibility of the data/plugins/etc from one version to another.
 */
-#define DATA_VERSION __DATA_VERSION__
+#define DATA_VERSION @DATA_VERSION@

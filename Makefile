@@ -1,8 +1,6 @@
 # IPA build system cannot cope with parallel build; disable parallel build
 .NOTPARALLEL:
 
-include VERSION
-
 SUBDIRS=util asn1 daemons install ipapython ipalib
 CLIENTDIRS=ipapython ipalib client util asn1
 CLIENTPYDIRS=ipaclient ipaplatform
@@ -13,41 +11,10 @@ PRJ_PREFIX=freeipa
 RPMBUILD ?= $(PWD)/rpmbuild
 TARGET ?= master
 
-IPA_NUM_VERSION ?= $(shell printf %d%02d%02d $(IPA_VERSION_MAJOR) $(IPA_VERSION_MINOR) $(IPA_VERSION_RELEASE))
-
-# After updating the version in VERSION you should run the version-update
-# target.
-
-ifeq ($(IPA_VERSION_IS_GIT_SNAPSHOT),"yes")
-DATESTR:=$(shell date -u +'%Y%m%d%H%M')
-GIT_VERSION:=$(shell git show --pretty=format:"%h" --stat HEAD 2>/dev/null|head -1)
-ifneq ($(GIT_VERSION),)
-IPA_VERSION=$(IPA_VERSION_MAJOR).$(IPA_VERSION_MINOR).$(IPA_VERSION_RELEASE).$(DATESTR)GIT$(GIT_VERSION)
-endif # in a git tree and git returned a version
-endif # git
-
-ifndef IPA_VERSION
-ifdef IPA_VERSION_ALPHA_RELEASE
-IPA_VERSION=$(IPA_VERSION_MAJOR).$(IPA_VERSION_MINOR).$(IPA_VERSION_RELEASE).alpha$(IPA_VERSION_ALPHA_RELEASE)
-else
-ifdef IPA_VERSION_BETA_RELEASE
-IPA_VERSION=$(IPA_VERSION_MAJOR).$(IPA_VERSION_MINOR).$(IPA_VERSION_RELEASE).beta$(IPA_VERSION_BETA_RELEASE)
-else
-ifdef IPA_VERSION_RC_RELEASE
-IPA_VERSION=$(IPA_VERSION_MAJOR).$(IPA_VERSION_MINOR).$(IPA_VERSION_RELEASE).rc$(IPA_VERSION_RC_RELEASE)
-else
-IPA_VERSION=$(IPA_VERSION_MAJOR).$(IPA_VERSION_MINOR).$(IPA_VERSION_RELEASE)
-endif # rc
-endif # beta
-endif # alpha
-endif # ipa_version
-
-IPA_VENDOR_VERSION=$(IPA_VERSION)$(IPA_VENDOR_VERSION_SUFFIX)
-
+# temporary hack until we replace hand-made Makefile with the generated one
+IPA_VERSION=4.4.90
 TARBALL_PREFIX=freeipa-$(IPA_VERSION)
 TARBALL=$(TARBALL_PREFIX).tar.gz
-
-IPA_RPM_RELEASE=$(shell cat RELEASE)
 
 LIBDIR ?= /usr/lib
 
@@ -151,43 +118,19 @@ lint: apilint acilint pylint po-validate jslint
 test:
 	./make-test
 
-release-update:
-	if [ ! -e RELEASE ]; then echo 0 > RELEASE; fi
-
-ipapython/version.py: ipapython/version.py.in FORCE
-	sed -e s/__VERSION__/$(IPA_VERSION)/ $< > $@
-	sed -i -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" $@
-	sed -i -e "s:__VENDOR_VERSION__:$(IPA_VENDOR_VERSION):" $@
-	sed -i -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" $@
+ipapython/version.py: API.txt bootstrap-autogen
 	grep -Po '(?<=default: ).*' API.txt | sed -n -i -e "/__DEFAULT_PLUGINS__/!{p;b};r /dev/stdin" $@
 	touch -r $< $@
 
-ipasetup.py: ipasetup.py.in FORCE
-	sed -e s/__VERSION__/$(IPA_VERSION)/ $< > $@
-
 .PHONY: egg_info
-egg_info: ipapython/version.py ipaplatform/__init__.py ipasetup.py
+egg_info: ipapython/version.py ipaplatform/__init__.py
 	for directory in $(PYPKGDIRS); do \
 	    pushd $${directory} ; \
 	    $(PYTHON) setup.py egg_info $(EXTRA_SETUP); \
 	    popd ; \
 	done
 
-version-update: release-update ipapython/version.py ipasetup.py
-	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
-		freeipa.spec.in > freeipa.spec
-	sed -e s/__VERSION__/$(IPA_VERSION)/ version.m4.in \
-		> version.m4
-	sed -e s/__NUM_VERSION__/$(IPA_NUM_VERSION)/ install/ui/src/libs/loader.js.in \
-		> install/ui/src/libs/loader.js
-	sed -i -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" install/ui/src/libs/loader.js
-	sed -e s/__VERSION__/$(IPA_VERSION)/ daemons/ipa-version.h.in \
-		> daemons/ipa-version.h
-	sed -i -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" daemons/ipa-version.h
-	sed -i -e "s:__DATA_VERSION__:$(IPA_DATA_VERSION):" daemons/ipa-version.h
-
-	sed -e s/__VERSION__/$(IPA_VERSION)/ client/version.m4.in \
-		> client/version.m4
+version-update: ipapython/version.py
 
 apilint: bootstrap-autogen
 	./makeapi --validate
