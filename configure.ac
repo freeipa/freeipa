@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-m4_include(version.m4)
+m4_include(VERSION.m4)
 AC_INIT([ipa-server],
         IPA_VERSION,
         [https://hosted.fedoraproject.org/projects/freeipa/newticket])
@@ -9,7 +9,6 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
 
-AM_MAINTAINER_MODE
 AC_PROG_CC_C99
 AC_DISABLE_STATIC
 LT_INIT
@@ -333,6 +332,22 @@ AC_MSG_RESULT([${IPAPLATFORM}])
 
 
 dnl ---------------------------------------------------------------------------
+dnl Version information from VERSION.m4 and command line
+dnl ---------------------------------------------------------------------------
+AC_ARG_WITH([vendor-suffix],
+            AS_HELP_STRING([--with-vendor-suffix=STRING],
+			   [Vendor string used by package system, e.g. "-1.fc24"]),
+            [VENDOR_SUFFIX=${withval}],
+	    [VENDOR_SUFFIX=""])
+
+dnl TODO: IPA_VENDOR_RELEASE
+AC_SUBST([API_VERSION], [IPA_API_VERSION])
+AC_SUBST([DATA_VERSION], [IPA_DATA_VERSION])
+AC_SUBST([NUM_VERSION], [IPA_NUM_VERSION])
+AC_SUBST(VENDOR_SUFFIX)
+AC_SUBST([VERSION], [IPA_VERSION])
+
+dnl ---------------------------------------------------------------------------
 dnl Finish
 dnl ---------------------------------------------------------------------------
 
@@ -383,6 +398,7 @@ AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LDFLAGS)
 
+
 # Files
 AC_CONFIG_LINKS([ipaplatform/__init__.py:ipaplatform/$IPAPLATFORM/__init__.py
                  ipaplatform/constants.py:ipaplatform/$IPAPLATFORM/constants.py
@@ -417,6 +433,8 @@ AC_CONFIG_FILES([
     daemons/ipa-slapi-plugins/ipa-sidgen/Makefile
     daemons/ipa-slapi-plugins/ipa-range-check/Makefile
     daemons/ipa-slapi-plugins/topology/Makefile
+    daemons/ipa-version.h
+    freeipa.spec
     install/Makefile
     install/certmonger/Makefile
     install/conf/Makefile
@@ -431,6 +449,7 @@ AC_CONFIG_FILES([
     install/ui/css/Makefile
     install/ui/src/Makefile
     install/ui/src/libs/Makefile
+    install/ui/src/libs/loader.js
     install/ui/images/Makefile
     install/ui/build/Makefile
     install/ui/build/dojo/Makefile
@@ -441,6 +460,8 @@ AC_CONFIG_FILES([
     install/restart_scripts/Makefile
     install/wsgi/Makefile
     install/oddjob/Makefile
+    ipapython/version.py
+    ipasetup.py
     ipatests/man/Makefile
     po/Makefile
     util/Makefile
@@ -455,6 +476,7 @@ echo "
                     IPA Server $VERSION
                     ========================
 
+	vendor version:           ${VERSION}${VENDOR_SUFFIX}
         prefix:                   ${prefix}
         exec_prefix:              ${exec_prefix}
         libdir:                   ${libdir}
@@ -472,5 +494,4 @@ echo "
         KRB5 libs:                ${KRB5_LIBS}
         KRAD libs:                ${KRAD_LIBS}
         OpenSSL crypto libs:      ${CRYPTO_LIBS}
-        Maintainer mode:          ${USE_MAINTAINER_MODE}
 "

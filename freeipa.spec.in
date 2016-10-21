@@ -30,9 +30,18 @@
 
 %define _hardened_build 1
 
+# Work-around fact that RPM SPEC parser does not accept
+# "Version: @VERSION@" in freeipa.spec.in used for Autoconf string replacement
+%define IPA_VERSION @VERSION@
+%define AT_SIGN @
+# redefine IPA_VERSION only if its value matches the Autoconf placeholder
+%if "%{IPA_VERSION}" == "%{AT_SIGN}VERSION%{AT_SIGN}"
+	%define IPA_VERSION nonsense.to.please.RPM.SPEC.parser
+%endif
+
 Name:           freeipa
-Version:        __VERSION__
-Release:        __RELEASE__%{?dist}
+Version:        %{IPA_VERSION}
+Release:        upstream
 Summary:        The Identity, Policy and Audit system
 
 Group:          System Environment/Base
@@ -680,8 +689,6 @@ export JAVA_STACK_SIZE="8m"
 export CFLAGS="%{optflags} $CFLAGS"
 export LDFLAGS="%{__global_ldflags} $LDFLAGS"
 
-export IPA_VENDOR_VERSION_SUFFIX=-%{release}
-
 %if ! %{ONLY_CLIENT}
 make IPA_VERSION_IS_GIT_SNAPSHOT=no LIBDIR=%{_libdir} %{?_smp_mflags} all
 %else
@@ -699,7 +706,6 @@ make %{?_smp_mflags} client-check VERBOSE=yes LIBDIR=%{_libdir}
 
 %install
 rm -rf %{buildroot}
-export IPA_VENDOR_VERSION_SUFFIX=-%{release}
 make version-update LIBDIR=%{_libdir}
 %if ! %{ONLY_CLIENT}
 make install DESTDIR=%{buildroot} LIBDIR=%{_libdir}
@@ -1438,6 +1444,6 @@ fi
 
 
 %changelog
-* Tue Nov 26 2013 Petr Viktorin<pviktori@redhat.com> - __VERSION__-__RELEASE__
+* Tue Nov 26 2013 Petr Viktorin <pviktori@redhat.com> - @VERSION@-@VENDOR_SUFFIX@
 - Remove changelog. The history is kept in Git, downstreams have own logs.
 # note, this entry is here to placate tools that expect a non-empty changelog
