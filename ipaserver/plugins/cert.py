@@ -399,9 +399,9 @@ class BaseCertObject(Object):
             obj['subject'] = DN(unicode(cert.subject))
             obj['issuer'] = DN(unicode(cert.issuer))
             obj['serial_number'] = cert.serial_number
+            obj['valid_not_before'] = unicode(cert.valid_not_before_str)
+            obj['valid_not_after'] = unicode(cert.valid_not_after_str)
             if full:
-                obj['valid_not_before'] = unicode(cert.valid_not_before_str)
-                obj['valid_not_after'] = unicode(cert.valid_not_after_str)
                 obj['md5_fingerprint'] = unicode(
                     nss.data_to_hex(nss.md5_digest(cert.der_data), 64)[0])
                 obj['sha1_fingerprint'] = unicode(
