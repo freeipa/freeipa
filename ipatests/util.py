@@ -330,7 +330,12 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
     Note that lists and tuples are considered equivalent, and the order of
     their elements does not matter.
     """
-    if pytest.config.getoption("pretty_print"):  # pylint: disable=no-member
+    try:
+        pretty_print = pytest.config.getoption("pretty_print")  # pylint: disable=no-member
+    except AttributeError:
+        pretty_print = False
+
+    if pretty_print:
         expected_str = struct_to_string(expected, EXPECTED_LEN)
         got_str = struct_to_string(got, GOT_LEN)
     else:
