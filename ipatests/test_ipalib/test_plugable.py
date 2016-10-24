@@ -24,9 +24,13 @@ Test the `ipalib.plugable` module.
 # FIXME: Pylint errors
 # pylint: disable=no-member
 
+import os
+import textwrap
+
+from ipalib import plugable, errors, create_api
+from ipapython.admintool import ScriptError
 from ipatests.util import raises, read_only
-from ipatests.util import ClassChecker, create_test_api
-from ipalib import plugable, errors
+from ipatests.util import ClassChecker, create_test_api, TempHome
 
 import pytest
 
@@ -272,3 +276,35 @@ class test_API(ClassChecker):
         assert o.isdone('load_plugins') is True
         e = raises(Exception, o.load_plugins)
         assert str(e) == 'API.load_plugins() already called'
+
+    def test_ipaconf_env(self):
+        ipa_confdir = os.environ.get('IPA_CONFDIR', None)
+        try:
+            with TempHome() as home:
+                defaultconf = home.join('default.conf')
+                with open(defaultconf, 'w') as f:
+                    f.write(textwrap.dedent("""
+                        [global]
+                        basedn = dc=ipa,dc=test
+                        realm = IPA.TEST
+                        domain = ipa.test
+                        """)
+                    )
+                os.environ['IPA_CONFDIR'] = home.path
+                api = create_api(mode='unit_test')
+                api.bootstrap()
+                api.finalize()
+                assert api.env.confdir == home.path
+                assert api.env.conf_default == defaultconf
+                assert api.env.realm == 'IPA.TEST'
+                assert api.env.domain == 'ipa.test'
+
+                os.environ['IPA_CONFDIR'] = home.join('invalid')
+                api = create_api(mode='unit_test')
+                with pytest.raises(ScriptError):
+                    api.bootstrap()
+        finally:
+            if ipa_confdir:
+                os.environ['IPA_CONFDIR'] = ipa_confdir
+            else:
+                os.environ.pop('IPA_CONFDIR')
