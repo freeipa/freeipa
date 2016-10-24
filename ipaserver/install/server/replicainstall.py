@@ -820,10 +820,6 @@ def install(installer):
         options.realm_name = config.realm_name
         options.domain_name = config.domain_name
         options.host_name = config.host_name
-
-        if ca_enabled:
-            options.ra_p12 = config.dir + "/ra.p12"
-
         ca.install_step_0(False, config, options)
 
     krb = install_krb(config, setup_pkinit=not options.no_pkinit)
@@ -1043,6 +1039,7 @@ def promote_check(installer):
     config.master_host_name = api.env.server
     config.ca_host_name = api.env.ca_host
     config.kra_host_name = config.ca_host_name
+    config.ca_ds_port = 389
     config.setup_ca = options.setup_ca
     config.setup_kra = options.setup_kra
     config.dir = installer._top_dir
@@ -1295,7 +1292,7 @@ def promote_check(installer):
             options.realm_name = config.realm_name
             options.host_name = config.host_name
             options.subject = config.subject_base
-            ca.install_check(False, None, options)
+            ca.install_check(False, config, options)
 
         if config.setup_kra:
             try:
@@ -1510,16 +1507,7 @@ def promote(installer):
         options.domain_name = config.domain_name
         options.host_name = config.host_name
         options.dm_password = config.dirman_password
-        ca_data = (os.path.join(config.dir, 'cacert.p12'),
-                   config.dirman_password)
-        custodia.get_ca_keys(config.ca_host_name, ca_data[0], ca_data[1])
-
-        ca = cainstance.CAInstance(config.realm_name, certs.NSS_DIR,
-                                   host_name=config.host_name)
-        ca.configure_replica(config.ca_host_name,
-                             config.dirman_password,
-                             subject_base=config.subject_base,
-                             ca_cert_bundle=ca_data)
+        ca.install(False, config, options)
 
     if options.setup_kra:
         ca_data = (os.path.join(config.dir, 'kracert.p12'),

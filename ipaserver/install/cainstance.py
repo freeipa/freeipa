@@ -57,7 +57,6 @@ from ipapython.certdb import get_ca_nickname
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr,\
     standard_logging_setup, root_logger
-from ipapython.admintool import ScriptError
 from ipapython.secrets.kem import IPAKEMKeys
 
 from ipaserver.install import certs
@@ -65,7 +64,6 @@ from ipaserver.install import dsinstance
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
-from ipaserver.install import service
 from ipaserver.install import sysupgrade
 from ipaserver.install.dogtaginstance import (export_kra_agent_pem,
                                               DogtagInstance)
@@ -332,7 +330,7 @@ class CAInstance(DogtagInstance):
                            cert_file=None, cert_chain_file=None,
                            master_replication_port=None,
                            subject_base=None, ca_signing_algorithm=None,
-                           ca_type=None, ra_p12=None):
+                           ca_type=None, ra_p12=None, promote=False):
         """Create a CA instance.
 
            To create a clone, pass in pkcs12_info.
@@ -345,6 +343,7 @@ class CAInstance(DogtagInstance):
         self.fqdn = host_name
         self.dm_password = dm_password
         self.admin_user = "admin"
+        self.admin_groups = ADMIN_GROUPS
         self.admin_password = admin_password
         self.pkcs12_info = pkcs12_info
         if self.pkcs12_info is not None:
@@ -363,6 +362,7 @@ class CAInstance(DogtagInstance):
             self.ca_type = ca_type
         else:
             self.ca_type = 'generic'
+        self.no_db_setup = promote
 
         # Determine if we are installing as an externally-signed CA and
         # what stage we're in.
@@ -375,6 +375,11 @@ class CAInstance(DogtagInstance):
             self.external = 2
 
         self.step("creating certificate server user", create_ca_user)
+        if promote:
+            # Setup Database
+            self.step("creating certificate server db", self.__create_ds_db)
+            self.step("setting up initial replication", self.__setup_replication)
+            self.step("creating installation admin user", self.setup_admin)
         self.step("configuring certificate server instance",
                   self.__spawn_instance)
         self.step("stopping certificate server instance to update CS.cfg", self.stop_instance)
@@ -382,6 +387,8 @@ class CAInstance(DogtagInstance):
         self.step("disabling nonces", self.__disable_nonce)
         self.step("set up CRL publishing", self.__enable_crl_publish)
         self.step("enable PKIX certificate path discovery and validation", self.enable_pkix)
+        if promote:
+            self.step("destroying installation admin user", self.teardown_admin)
         self.step("starting certificate server instance", self.start_instance)
         # Step 1 of external is getting a CSR so we don't need to do these
         # steps until we get a cert back from the external CA.
@@ -397,7 +404,7 @@ class CAInstance(DogtagInstance):
                 self.step("exporting RA agent certificate",
                           lambda: export_kra_agent_pem())
                 self.step("adding RA agent as a trusted user", self.__create_ca_agent)
-            elif ra_p12 is not None:
+            elif not promote and ra_p12 is not None:
                 self.step("importing RA certificate from PKCS #12 file",
                           lambda: self.import_ra_cert(ra_p12, configure_renewal=False))
             self.step("authorizing RA to modify profiles", configure_profiles_acl)
@@ -410,13 +417,19 @@ class CAInstance(DogtagInstance):
             self.step("Configure HTTP to proxy connections",
                       self.http_proxy)
             self.step("restarting certificate server", self.restart_instance)
-            self.step("migrating certificate profiles to LDAP",
-                      migrate_profiles_to_ldap)
-            self.step("importing IPA certificate profiles",
-                      import_included_profiles)
-            self.step("adding default CA ACL", ensure_default_caacl)
-            self.step("adding 'ipa' CA entry", ensure_ipa_authority_entry)
+            if not promote:
+                self.step("migrating certificate profiles to LDAP",
+                          migrate_profiles_to_ldap)
+                self.step("importing IPA certificate profiles",
+                          import_included_profiles)
+                self.step("adding default CA ACL", ensure_default_caacl)
+                self.step("adding 'ipa' CA entry", ensure_ipa_authority_entry)
             self.step("updating IPA configuration", update_ipa_conf)
+
+            self.step("enabling CA instance", self.__enable_instance)
+
+            self.step("configuring certmonger renewal for lightweight CAs",
+                      self.__add_lightweight_ca_tracking_requests)
 
         self.start_creation(runtime=210)
 
@@ -1170,94 +1183,13 @@ class CAInstance(DogtagInstance):
         # Activate Topology for o=ipaca segments
         self.__update_topology()
 
-    def __client_auth_to_db(self):
-        self.enable_client_auth_to_db(paths.CA_CS_CFG_PATH)
-
-    def __restart_http_instance(self):
-        # We need to restart apache as we drop a new config file in there
-        services.knownservices.httpd.restart(capture_output=True)
-
     def __enable_instance(self):
         basedn = ipautil.realm_to_suffix(self.realm)
-        self.ldap_enable('CA', self.fqdn, None, basedn)
-
-    def configure_replica(self, master_host, dm_password, subject_base=None,
-                          ca_cert_bundle=None, ca_signing_algorithm=None,
-                          ca_type=None):
-        """Creates a replica CA, creating a local DS backend and using
-        the topology plugin to manage replication.
-        Requires domain_level >= DOMAIN_LEVEL_1 and custodia on the master.
-        """
-        self.master_host = master_host
-        self.dm_password = dm_password
-        self.master_replication_port = 389
-        if subject_base is None:
-            self.subject_base = DN(('O', self.realm))
+        if not self.clone:
+            config = ['caRenewalMaster']
         else:
-            self.subject_base = subject_base
-        if ca_signing_algorithm is None:
-            self.ca_signing_algorithm = 'SHA256withRSA'
-        else:
-            self.ca_signing_algorithm = ca_signing_algorithm
-        if ca_type is not None:
-            self.ca_type = ca_type
-        else:
-            self.ca_type = 'generic'
-
-        self.admin_groups = ADMIN_GROUPS
-        self.pkcs12_info = ca_cert_bundle
-        self.no_db_setup = True
-        self.clone = True
-
-        # TODO: deal with "Externally signed CA setups"
-
-        # Set up steps
-        self.step("creating certificate server user", create_ca_user)
-
-        # Setup Database
-        self.step("creating certificate server db", self.__create_ds_db)
-        self.step("setting up initial replication", self.__setup_replication)
-
-        self.step("creating installation admin user", self.setup_admin)
-
-        # Setup instance
-        self.step("setting up certificate server", self.__spawn_instance)
-        self.step("stopping instance to update CS.cfg", self.stop_instance)
-        self.step("backing up CS.cfg", self.backup_config)
-        self.step("disabling nonces", self.__disable_nonce)
-        self.step("set up CRL publishing", self.__enable_crl_publish)
-        self.step("enable PKIX certificate path discovery and validation",
-                  self.enable_pkix)
-        self.step("set up client auth to db", self.__client_auth_to_db)
-        self.step("destroying installation admin user", self.teardown_admin)
-        self.step("Ensure lightweight CAs container exists",
-                  ensure_lightweight_cas_container)
-        self.step("Configure lightweight CA key retrieval",
-                  self.setup_lightweight_ca_key_retrieval)
-        self.step("starting instance", self.start_instance)
-
-        self.step("importing CA chain to RA certificate database",
-                  self.__import_ca_chain)
-        self.step("setting up signing cert profile", self.__setup_sign_profile)
-        self.step("setting audit signing renewal to 2 years",
-                  self.set_audit_renewal)
-
-        self.step("configure certificate renewals",
-                  self.configure_renewal)
-        self.step("configure Server-Cert certificate renewal",
-                  self.track_servercert)
-        self.step("Configure HTTP to proxy connections",
-                  self.http_proxy)
-        self.step("updating IPA configuration", update_ipa_conf)
-        self.step("Restart HTTP server to pick up changes",
-                  self.__restart_http_instance)
-
-        self.step("enabling CA instance", self.__enable_instance)
-
-        self.step("configuring certmonger renewal for lightweight CAs",
-                  self.__add_lightweight_ca_tracking_requests)
-
-        self.start_creation(runtime=210)
+            config = []
+        self.ldap_enable('CA', self.fqdn, None, basedn, config)
 
     def setup_lightweight_ca_key_retrieval(self):
         if sysupgrade.get_upgrade_state('dogtag', 'setup_lwca_key_retrieval'):
@@ -1334,18 +1266,8 @@ class CAInstance(DogtagInstance):
                 "Did not find any lightweight CAs; nothing to track")
 
 
-def replica_ca_install_check(config):
-    if not config.setup_ca:
-        return
-
-    cafile = config.dir + "/cacert.p12"
-    if not ipautil.file_exists(cafile):
-        # Replica of old "self-signed" master - CA won't be installed
-        return
-
-    if config.ca_ds_port != 7389:
-        root_logger.debug(
-            'Installing CA Replica from master with a merged database')
+def replica_ca_install_check(config, promote):
+    if promote:
         return
 
     # Check if the master has the necessary schema in its CA instance
@@ -1379,73 +1301,6 @@ def replica_ca_install_check(config):
             '--skip-schema-check.',
                 os.path.join(ipautil.SHARE_DIR, 'copy-schema-to-ca.py'))
         exit('IPA schema missing on master CA directory server')
-
-
-def install_replica_ca(config, postinstall=False, ra_p12=None):
-    """
-    Install a CA on a replica.
-
-    There are two modes of doing this controlled:
-      - While the replica is being installed
-      - Post-replica installation
-
-    config is a ReplicaConfig object
-
-    Returns a tuple of the CA and CADS instances
-    """
-    cafile = config.dir + "/cacert.p12"
-
-    if not ipautil.file_exists(cafile):
-        # Replica of old "self-signed" master - skip installing CA
-        return None
-
-    ca = CAInstance(config.realm_name, certs.NSS_DIR)
-    ca.dm_password = config.dirman_password
-    ca.subject_base = config.subject_base
-
-    if not config.setup_ca:
-        # We aren't configuring the CA in this step but we still need
-        # a minimum amount of information on the CA for this IPA install.
-        return ca
-
-    if ca.is_installed():
-        raise ScriptError("A CA is already configured on this system.")
-
-    if postinstall:
-        # If installing this afterward the Apache NSS database already
-        # exists, don't remove it.
-        ca.create_ra_agent_db = False
-    ca.configure_instance(config.host_name,
-                          config.dirman_password, config.dirman_password,
-                          pkcs12_info=(cafile,), ra_p12=ra_p12,
-                          master_host=config.ca_host_name,
-                          master_replication_port=config.ca_ds_port,
-                          subject_base=config.subject_base)
-
-    # Restart httpd since we changed it's config and added ipa-pki-proxy.conf
-    # Without the restart, CA service status check would fail due to missing
-    # proxy
-    if postinstall:
-        services.knownservices.httpd.restart()
-
-
-    # The dogtag DS instance needs to be restarted after installation.
-    # The procedure for this is: stop dogtag, stop DS, start DS, start
-    # dogtag
-    #
-    #
-    # The service_name trickery is due to the service naming we do
-    # internally. In the case of the dogtag DS the name doesn't match the
-    # unix service.
-
-    service.print_msg("Restarting the directory and certificate servers")
-    ca.stop('pki-tomcat')
-
-    installutils.restart_dirsrv()
-
-    ca.start('pki-tomcat')
-
-    return ca
 
 
 def backup_config():

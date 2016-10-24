@@ -4,7 +4,9 @@
 
 from __future__ import print_function
 
-from ipaserver.install import cainstance, dsinstance, bindinstance
+import os.path
+
+from ipaserver.install import cainstance, custodiainstance, dsinstance, bindinstance
 from ipapython import ipautil, certdb
 from ipapython.admintool import ScriptError
 from ipaplatform import services
@@ -31,8 +33,8 @@ def install_check(standalone, replica_config, options):
         if standalone and api.env.ra_plugin == 'selfsign':
             raise ScriptError('A selfsign CA can not be added')
 
-        if ((not options.promote
-             and not ipautil.file_exists(replica_config.dir + "/cacert.p12"))):
+        cafile = os.path.join(replica_config.dir, 'cacert.p12')
+        if not options.promote and not ipautil.file_exists(cafile):
             raise ScriptError('CA cannot be installed in CA-less setup.')
 
         if standalone and not options.skip_conncheck:
@@ -42,10 +44,10 @@ def install_check(standalone, replica_config, options):
                 replica_config.ca_ds_port, options.admin_password,
                 principal=principal, ca_cert_file=options.ca_cert_file)
 
-        if options.skip_schema_check or options.promote:
+        if options.skip_schema_check:
             root_logger.info("Skipping CA DS schema check")
         else:
-            cainstance.replica_ca_install_check(replica_config)
+            cainstance.replica_ca_install_check(replica_config, options.promote)
 
         return
 
@@ -119,40 +121,70 @@ def install_step_0(standalone, replica_config, options):
     realm_name = options.realm_name
     dm_password = options.dm_password
     host_name = options.host_name
-    subject_base = options.subject
 
-    if replica_config is not None:
-        # Configure the CA if necessary
-        cainstance.install_replica_ca(replica_config, standalone,
-                                      ra_p12=getattr(options, 'ra_p12', None))
-        return
+    if replica_config is None:
+        subject_base = options.subject
 
-    if options.external_cert_files:
-        external = 2
-    elif options.external_ca:
-        external = 1
+        ca_signing_algorithm = options.ca_signing_algorithm
+        if options.external_ca:
+            ca_type = options.external_ca_type
+            csr_file = paths.ROOT_IPA_CSR
+        else:
+            ca_type = None
+            csr_file = None
+        if options.external_cert_files:
+            cert_file = external_cert_file.name
+            cert_chain_file = external_ca_file.name
+        else:
+            cert_file = None
+            cert_chain_file = None
+
+        pkcs12_info = None
+        master_host = None
+        master_replication_port = None
+        ra_p12 = None
+        promote = False
     else:
-        external = 0
+        cafile = os.path.join(replica_config.dir, 'cacert.p12')
+        if options.promote:
+            custodia = custodiainstance.CustodiaInstance(
+                replica_config.host_name,
+                replica_config.realm_name)
+            custodia.get_ca_keys(
+                replica_config.ca_host_name,
+                cafile,
+                replica_config.dirman_password)
 
-    ca = cainstance.CAInstance(realm_name, certs.NSS_DIR)
-    if standalone:
+        subject_base = replica_config.subject_base
+
+        ca_signing_algorithm = None
+        ca_type = None
+        csr_file = None
+        cert_file = None
+        cert_chain_file = None
+
+        pkcs12_info = (cafile,)
+        master_host = replica_config.ca_host_name
+        master_replication_port = replica_config.ca_ds_port
+        ra_p12 = os.path.join(replica_config.dir, 'ra.p12')
+        promote = options.promote
+
+    ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
+                               host_name=host_name)
+    if standalone or replica_config is not None:
         ca.create_ra_agent_db = False
-    if external == 0:
-        ca.configure_instance(host_name, dm_password,
-                              dm_password, subject_base=subject_base,
-                              ca_signing_algorithm=options.ca_signing_algorithm)
-    elif external == 1:
-        ca.configure_instance(host_name, dm_password,
-                              dm_password, csr_file=paths.ROOT_IPA_CSR,
-                              subject_base=subject_base,
-                              ca_signing_algorithm=options.ca_signing_algorithm,
-                              ca_type=options.external_ca_type)
-    else:
-        ca.configure_instance(host_name, dm_password, dm_password,
-                              cert_file=external_cert_file.name,
-                              cert_chain_file=external_ca_file.name,
-                              subject_base=subject_base,
-                              ca_signing_algorithm=options.ca_signing_algorithm)
+    ca.configure_instance(host_name, dm_password, dm_password,
+                          subject_base=subject_base,
+                          ca_signing_algorithm=ca_signing_algorithm,
+                          ca_type=ca_type,
+                          csr_file=csr_file,
+                          cert_file=cert_file,
+                          cert_chain_file=cert_chain_file,
+                          pkcs12_info=pkcs12_info,
+                          master_host=master_host,
+                          master_replication_port=master_replication_port,
+                          ra_p12=ra_p12,
+                          promote=promote)
 
 
 def install_step_1(standalone, replica_config, options):
@@ -165,15 +197,7 @@ def install_step_1(standalone, replica_config, options):
 
     ca = cainstance.CAInstance(realm_name, certs.NSS_DIR, host_name=host_name)
 
-    if standalone:
-        ca.stop('pki-tomcat')
-
-    # We need to ldap_enable the CA now that DS is up and running
-    if replica_config is None:
-        config = ['caRenewalMaster']
-    else:
-        config = []
-    ca.ldap_enable('CA', host_name, dm_password, basedn, config)
+    ca.stop('pki-tomcat')
 
     # This is done within stopped_service context, which restarts CA
     ca.enable_client_auth_to_db(paths.CA_CS_CFG_PATH)
@@ -185,8 +209,9 @@ def install_step_1(standalone, replica_config, options):
     #
     ca.setup_lightweight_ca_key_retrieval()
 
+    serverid = installutils.realm_to_serverid(realm_name)
+
     if standalone and replica_config is None:
-        serverid = installutils.realm_to_serverid(realm_name)
         dirname = dsinstance.config_dirname(serverid)
 
         # Store the new IPA CA cert chain in DS NSS database and LDAP
@@ -207,8 +232,6 @@ def install_step_1(standalone, replica_config, options):
                                   cert, nickname, trust_flags[nickname],
                                   config_ipa=True, config_compat=True)
 
-        installutils.restart_dirsrv()
-
         # Store DS CA cert in Dogtag NSS database
         dogtagdb = certs.CertDB(realm_name, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
         trust_flags = dict(reversed(dsdb.list_certs()))
@@ -218,12 +241,14 @@ def install_step_1(standalone, replica_config, options):
         cert = dsdb.get_cert_from_db(nickname)
         dogtagdb.add_cert(cert, nickname, trust_flags[nickname])
 
+    installutils.restart_dirsrv()
+
+    ca.start('pki-tomcat')
+
+    # We need to restart apache as we drop a new config file in there
+    services.knownservices.httpd.restart(capture_output=True)
+
     if standalone:
-        ca.start('pki-tomcat')
-
-        # We need to restart apache as we drop a new config file in there
-        services.knownservices.httpd.restart(capture_output=True)
-
         # Install CA DNS records
         if bindinstance.dns_container_exists(host_name, basedn, dm_password):
             bind = bindinstance.BindInstance()
