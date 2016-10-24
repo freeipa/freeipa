@@ -550,6 +550,7 @@ def install_check(installer):
 
     config = create_replica_config(dirman_password, filename, options)
     config.ca_host_name = config.master_host_name
+    config.kra_host_name = config.ca_host_name
     config.setup_ca = options.setup_ca
     config.setup_kra = options.setup_kra
     installer._top_dir = config.top_dir
@@ -1041,6 +1042,7 @@ def promote_check(installer):
     config.domain_name = api.env.domain
     config.master_host_name = api.env.server
     config.ca_host_name = api.env.ca_host
+    config.kra_host_name = config.ca_host_name
     config.setup_ca = options.setup_ca
     config.setup_kra = options.setup_kra
     config.dir = installer._top_dir
@@ -1277,8 +1279,8 @@ def promote_check(installer):
                                   "custom certificates.")
                 raise ScriptError(rval=3)
 
-        config.kra_host_name = service.find_providing_server('KRA', conn,
-                                                             api.env.server)
+        config.kra_host_name = service.find_providing_server(
+                'KRA', conn, config.kra_host_name)
         if options.setup_kra and config.kra_host_name is None:
             root_logger.error("There is no KRA server in the domain, can't "
                               "setup a KRA clone")

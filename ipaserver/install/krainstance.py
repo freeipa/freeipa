@@ -428,7 +428,7 @@ def install_replica_kra(config, postinstall=False):
     _kra.configure_instance(config.realm_name, config.host_name,
                             config.dirman_password, config.dirman_password,
                             pkcs12_info=(krafile,),
-                            master_host=config.master_host_name,
+                            master_host=config.kra_host_name,
                             subject_base=config.subject_base)
 
     # Restart httpd since we changed it's config and added ipa-pki-proxy.conf
