@@ -20,26 +20,26 @@
 
 FreeIPA is a server for identity, policy, and audit.
 """
-import os
+from os.path import abspath, dirname
 import sys
 
-# include ../ for ipasetup.py
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if __name__ == '__main__':
+    # include ../ for ipasetup.py
+    sys.path.append(dirname(dirname(abspath(__file__))))
+    from ipasetup import ipasetup  # noqa: E402
 
-from ipasetup import ipasetup  # noqa: E402
-
-ipasetup(
-    name="ipaclient",
-    doc=__doc__,
-    scripts=['../ipa'],
-    package_dir={'ipaclient': ''},
-    packages=[
-        "ipaclient",
-        "ipaclient.plugins",
-        "ipaclient.remote_plugins",
-        "ipaclient.remote_plugins.2_49",
-        "ipaclient.remote_plugins.2_114",
-        "ipaclient.remote_plugins.2_156",
-        "ipaclient.remote_plugins.2_164",
-    ],
-)
+    ipasetup(
+        name="ipaclient",
+        doc=__doc__,
+        scripts=['../ipa'],
+        package_dir={'ipaclient': ''},
+        packages=[
+            "ipaclient",
+            "ipaclient.plugins",
+            "ipaclient.remote_plugins",
+            "ipaclient.remote_plugins.2_49",
+            "ipaclient.remote_plugins.2_114",
+            "ipaclient.remote_plugins.2_156",
+            "ipaclient.remote_plugins.2_164",
+        ],
+    )

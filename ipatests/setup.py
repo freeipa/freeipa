@@ -20,41 +20,41 @@
 
 FreeIPA is a server for identity, policy, and audit.
 """
-import os
+from os.path import abspath, dirname
 import sys
 
-# include ../ for ipasetup.py
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if __name__ == '__main__':
+    # include ../ for ipasetup.py
+    sys.path.append(dirname(dirname(abspath(__file__))))
+    from ipasetup import ipasetup  # noqa: E402
 
-from ipasetup import ipasetup  # noqa: E402
-
-ipasetup(
-    name="ipatests",
-    doc=__doc__,
-    package_dir={'ipatests': ''},
-    packages=[
-        "ipatests",
-        "ipatests.pytest_plugins",
-        "ipatests.test_cmdline",
-        "ipatests.test_install",
-        "ipatests.test_integration",
-        "ipatests.test_ipalib",
-        "ipatests.test_ipapython",
-        "ipatests.test_ipaserver",
-        "ipatests.test_ipaserver.test_install",
-        "ipatests.test_pkcs10",
-        "ipatests.test_webui",
-        "ipatests.test_xmlrpc",
-        "ipatests.test_xmlrpc.tracker"
-    ],
-    scripts=['ipa-run-tests', 'ipa-test-config', 'ipa-test-task'],
-    package_data={
-        'ipatests': ['pytest.ini'],
-        'ipatests.test_install': ['*.update'],
-        'ipatests.test_integration': ['scripts/*'],
-        'ipatests.test_ipalib': ['data/*'],
-        'ipatests.test_pkcs10': ['*.csr'],
-        "ipatests.test_ipaserver": ['data/*'],
-        'ipatests.test_xmlrpc': ['data/*'],
-    }
-)
+    ipasetup(
+        name="ipatests",
+        doc=__doc__,
+        package_dir={'ipatests': ''},
+        packages=[
+            "ipatests",
+            "ipatests.pytest_plugins",
+            "ipatests.test_cmdline",
+            "ipatests.test_install",
+            "ipatests.test_integration",
+            "ipatests.test_ipalib",
+            "ipatests.test_ipapython",
+            "ipatests.test_ipaserver",
+            "ipatests.test_ipaserver.test_install",
+            "ipatests.test_pkcs10",
+            "ipatests.test_webui",
+            "ipatests.test_xmlrpc",
+            "ipatests.test_xmlrpc.tracker"
+        ],
+        scripts=['ipa-run-tests', 'ipa-test-config', 'ipa-test-task'],
+        package_data={
+            'ipatests': ['pytest.ini'],
+            'ipatests.test_install': ['*.update'],
+            'ipatests.test_integration': ['scripts/*'],
+            'ipatests.test_ipalib': ['data/*'],
+            'ipatests.test_pkcs10': ['*.csr'],
+            "ipatests.test_ipaserver": ['data/*'],
+            'ipatests.test_xmlrpc': ['data/*'],
+        }
+    )
