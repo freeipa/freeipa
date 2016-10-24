@@ -474,6 +474,9 @@ class Env(object):
         if 'conf_default' not in self:
             self.conf_default = self._join('confdir', 'default.conf')
 
+        if 'nss_dir' not in self:
+            self.nss_dir = self._join('confdir', 'nssdb')
+
         # Set plugins_on_demand:
         if 'plugins_on_demand' not in self:
             self.plugins_on_demand = (self.context == 'cli')
