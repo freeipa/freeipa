@@ -133,8 +133,6 @@ DEFAULT_CONFIG = (
 
     ('rpc_protocol', 'jsonrpc'),
 
-    ('nss_dir', paths.IPA_NSSDB_DIR),
-
     # Define an inclusive range of SSL/TLS version support
     ('tls_version_min', 'tls1.0'),
     ('tls_version_max', 'tls1.2'),
@@ -229,6 +227,7 @@ DEFAULT_CONFIG = (
     ('conf', object),  # File containing context specific config
     ('conf_default', object),  # File containing context independent config
     ('plugins_on_demand', object),  # Whether to finalize plugins on-demand (bool)
+    ('nss_dir', object),  # Path to nssdb, default {confdir}/nssdb
 
     # Set in Env._finalize_core():
     ('in_server', object),  # Whether or not running in-server (bool)
