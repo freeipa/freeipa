@@ -20,23 +20,23 @@
 
 FreeIPA is a server for identity, policy, and audit.
 """
-import os
+from os.path import abspath, dirname
 import sys
 
-# include ../ for ipasetup.py
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if __name__ == '__main__':
+    # include ../ for ipasetup.py
+    sys.path.append(dirname(dirname(abspath(__file__))))
+    from ipasetup import ipasetup  # noqa: E402
 
-from ipasetup import ipasetup  # noqa: E402
-
-ipasetup(
-    name="ipaplatform",
-    doc=__doc__,
-    package_dir={'ipaplatform': ''},
-    packages=[
-        "ipaplatform",
-        "ipaplatform.base",
-        "ipaplatform.fedora",
-        "ipaplatform.redhat",
-        "ipaplatform.rhel"
-    ],
-)
+    ipasetup(
+        name="ipaplatform",
+        doc=__doc__,
+        package_dir={'ipaplatform': ''},
+        packages=[
+            "ipaplatform",
+            "ipaplatform.base",
+            "ipaplatform.fedora",
+            "ipaplatform.redhat",
+            "ipaplatform.rhel"
+        ],
+    )

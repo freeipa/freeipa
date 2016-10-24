@@ -22,26 +22,25 @@
 """
 Python-level packaging using setuptools
 """
-import os
+from os.path import abspath, dirname
 import sys
 
-# include ../ for ipasetup.py and ipalib
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if __name__ == '__main__':
+    # include ../ for ipasetup.py
+    sys.path.append(dirname(dirname(abspath(__file__))))
+    from ipasetup import ipasetup  # noqa: E402
 
-from ipasetup import ipasetup  # noqa: E402
-
-
-ipasetup(
-    name='freeipa',
-    doc=__doc__,
-    package_dir={'ipaserver': ''},
-    packages=[
-        'ipaserver',
-        'ipaserver.advise',
-        'ipaserver.advise.plugins',
-        'ipaserver.plugins',
-        'ipaserver.install',
-        'ipaserver.install.plugins',
-        'ipaserver.install.server',
-    ],
-)
+    ipasetup(
+        name='freeipa',
+        doc=__doc__,
+        package_dir={'ipaserver': ''},
+        packages=[
+            'ipaserver',
+            'ipaserver.advise',
+            'ipaserver.advise.plugins',
+            'ipaserver.plugins',
+            'ipaserver.install',
+            'ipaserver.install.plugins',
+            'ipaserver.install.server',
+        ],
+    )
