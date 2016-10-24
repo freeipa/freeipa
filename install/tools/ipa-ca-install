@@ -25,11 +25,10 @@ import tempfile
 from ipapython import ipautil
 
 from ipaserver.install import installutils
-from ipaserver.install import certs
 from ipaserver.install.installutils import create_replica_config
 from ipaserver.install.installutils import check_creds, ReplicaConfig
-from ipaserver.install import bindinstance, dsinstance, ca
-from ipaserver.install import cainstance, custodiainstance, service
+from ipaserver.install import dsinstance, ca
+from ipaserver.install import cainstance, service
 from ipapython import version
 from ipalib import api
 from ipalib.constants import DOMAIN_LEVEL_0
@@ -175,26 +174,7 @@ def install_replica(safe_options, options, filename):
         options.ca_cert_file = None
 
     ca.install_check(True, config, options)
-    if options.promote:
-        ca_data = (os.path.join(config.dir, 'cacert.p12'),
-                   config.dirman_password)
-        custodia = custodiainstance.CustodiaInstance(config.host_name,
-                                                     config.realm_name)
-        custodia.get_ca_keys(config.ca_host_name, ca_data[0], ca_data[1])
-
-        CA = cainstance.CAInstance(config.realm_name, certs.NSS_DIR,
-                                   host_name=config.host_name)
-        CA.configure_replica(config.ca_host_name,
-                             config.dirman_password,
-                             subject_base=config.subject_base,
-                             ca_cert_bundle=ca_data)
-        # Install CA DNS records
-        if bindinstance.dns_container_exists(api.env.host, api.env.basedn,
-                                             ldapi=True, realm=api.env.realm):
-            bind = bindinstance.BindInstance()
-            bind.update_system_records()
-    else:
-        ca.install(True, config, options)
+    ca.install(True, config, options)
 
 
 def install_master(safe_options, options):
