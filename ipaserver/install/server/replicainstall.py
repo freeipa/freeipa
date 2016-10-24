@@ -549,9 +549,10 @@ def install_check(installer):
             raise ScriptError("Directory Manager password required")
 
     config = create_replica_config(dirman_password, filename, options)
-    installer._top_dir = config.top_dir
+    config.ca_host_name = config.master_host_name
     config.setup_ca = options.setup_ca
     config.setup_kra = options.setup_kra
+    installer._top_dir = config.top_dir
 
     ca_enabled = ipautil.file_exists(config.dir + "/cacert.p12")
 
@@ -576,7 +577,7 @@ def install_check(installer):
             fd.write("dogtag_version=10\n")
 
             if not config.setup_ca:
-                fd.write("ca_host={0}\n".format(config.master_host_name))
+                fd.write("ca_host={0}\n".format(config.ca_host_name))
         else:
             fd.write("enable_ra=False\n")
             fd.write("ra_plugin=none\n")
@@ -1258,7 +1259,8 @@ def promote_check(installer):
             config.subject_base = DN(subject_base)
 
         # Find if any server has a CA
-        ca_host = service.find_providing_server('CA', conn, api.env.server)
+        ca_host = service.find_providing_server(
+                'CA', conn, config.ca_host_name)
         if ca_host is not None:
             config.ca_host_name = ca_host
             ca_enabled = True

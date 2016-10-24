@@ -138,7 +138,7 @@ def install_replica(safe_options, options, filename):
 
     if options.promote:
         config = ReplicaConfig()
-        config.master_host_name = None
+        config.ca_host_name = None
         config.realm_name = api.env.realm
         config.host_name = api.env.host
         config.domain_name = api.env.domain
@@ -149,6 +149,7 @@ def install_replica(safe_options, options, filename):
         cafile = paths.IPA_CA_CRT
     else:
         config = create_replica_config(dirman_password, filename, options)
+        config.ca_host_name = config.master_host_name
         cafile = config.dir + '/ca.crt'
 
     global REPLICA_INFO_TOP_DIR
@@ -159,12 +160,9 @@ def install_replica(safe_options, options, filename):
         attrs = api.Backend.ldap2.get_ipa_config()
         config.subject_base = attrs.get('ipacertificatesubjectbase')[0]
 
-    if config.master_host_name is None:
+    if config.ca_host_name is None:
         config.ca_host_name = \
             service.find_providing_server('CA', api.Backend.ldap2, api.env.ca_host)
-        config.master_host_name = config.ca_host_name
-    else:
-        config.ca_host_name = config.master_host_name
 
     options.realm_name = config.realm_name
     options.domain_name = config.domain_name

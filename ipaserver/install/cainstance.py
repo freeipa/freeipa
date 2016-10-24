@@ -1349,7 +1349,7 @@ def replica_ca_install_check(config):
         return
 
     # Check if the master has the necessary schema in its CA instance
-    ca_ldap_url = 'ldap://%s:%s' % (config.master_host_name, config.ca_ds_port)
+    ca_ldap_url = 'ldap://%s:%s' % (config.ca_host_name, config.ca_ds_port)
     objectclass = 'ipaObject'
     root_logger.debug('Checking if IPA schema is present in %s', ca_ldap_url)
     try:
@@ -1418,7 +1418,7 @@ def install_replica_ca(config, postinstall=False, ra_p12=None):
     ca.configure_instance(config.host_name,
                           config.dirman_password, config.dirman_password,
                           pkcs12_info=(cafile,), ra_p12=ra_p12,
-                          master_host=config.master_host_name,
+                          master_host=config.ca_host_name,
                           master_replication_port=config.ca_ds_port,
                           subject_base=config.subject_base)
 
