@@ -18,10 +18,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from ipaplatform.paths import paths
 from ipapython import ipautil
+from ipapython.admintool import ScriptError
 import os
 
 FILES_TO_NOT_BACKUP = ['passwd', 'group', 'shadow', 'gshadow']
+
 
 class RedHatAuthConfig(object):
     """
@@ -85,10 +88,16 @@ class RedHatAuthConfig(object):
             self.add_option("update")
 
         args = self.build_args()
-        ipautil.run(["/usr/sbin/authconfig"] + args)
+        try:
+            ipautil.run([paths.AUTHCONFIG] + args)
+        except ipautil.CalledProcessError:
+            raise ScriptError("Failed to execute authconfig command")
 
     def backup(self, path):
-        ipautil.run(["/usr/sbin/authconfig", "--savebackup", path])
+        try:
+            ipautil.run([paths.AUTHCONFIG, "--savebackup", path])
+        except ipautil.CalledProcessError:
+            raise ScriptError("Failed to execute authconfig command")
 
         # do not backup these files since we don't want to mess with
         # users/groups during restore. Authconfig doesn't seem to mind about
@@ -101,4 +110,7 @@ class RedHatAuthConfig(object):
                 pass
 
     def restore(self, path):
-        ipautil.run(["/usr/sbin/authconfig", "--restorebackup", path])
+        try:
+            ipautil.run([paths.AUTHCONFIG, "--restorebackup", path])
+        except ipautil.CalledProcessError:
+            raise ScriptError("Failed to execute authconfig command")
