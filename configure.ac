@@ -461,8 +461,14 @@ AC_CONFIG_FILES([
     install/restart_scripts/Makefile
     install/wsgi/Makefile
     install/oddjob/Makefile
+    ipaclient/Makefile
+    ipalib/Makefile
+    ipaplatform/Makefile
+    ipapython/Makefile
     ipapython/version.py
+    ipaserver/Makefile
     ipasetup.py
+    ipatests/Makefile
     ipatests/man/Makefile
     po/Makefile
     util/Makefile
