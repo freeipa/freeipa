@@ -344,18 +344,6 @@ class CertDB(object):
 
         return dercert
 
-    def create_signing_cert(self, nickname, hostname, other_certdb=None, subject=None):
-        cdb = other_certdb
-        if not cdb:
-            cdb = self
-        if subject is None:
-            subject=DN(('CN', hostname), self.subject_base)
-        self.request_cert(subject)
-        cdb.issue_signing_cert(self.certreq_fname, self.certder_fname)
-        self.import_cert(self.certder_fname, nickname)
-        os.unlink(self.certreq_fname)
-        os.unlink(self.certder_fname)
-
     def request_cert(
             self, subject, certtype="rsa", keysize="2048",
             san_dnsnames=None):

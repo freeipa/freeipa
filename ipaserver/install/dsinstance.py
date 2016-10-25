@@ -33,6 +33,7 @@ import ldap
 
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil, sysrestore, ipaldap
+from ipapython import dogtag
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install import certs
@@ -47,6 +48,7 @@ from ipalib import constants
 from ipaplatform.constants import constants as platformconstants
 from ipaplatform.tasks import tasks
 from ipalib.constants import CACERT
+from ipapython import certmonger
 from ipapython.dn import DN
 from ipapython.admintool import ScriptError
 from ipaplatform import services
@@ -776,22 +778,44 @@ class DsInstance(service.Service):
             # We only handle one server cert
             self.nickname = server_certs[0][0]
             self.dercert = dsdb.get_cert_from_db(self.nickname, pem=False)
+
+            if self.ca_is_configured:
+                dsdb.track_server_cert(
+                    self.nickname, self.principal, dsdb.passwd_fname,
+                    'restart_dirsrv %s' % self.serverid)
         else:
             cadb = certs.CertDB(self.realm, host_name=self.fqdn, subject_base=self.subject_base)
 
             # FIXME, need to set this nickname in the RA plugin
             cadb.export_ca_cert('ipaCert', False)
             dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
-            self.dercert = dsdb.create_server_cert(
-                self.nickname, self.fqdn, cadb)
+            ca_args = ['/usr/libexec/certmonger/dogtag-submit',
+                       '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
+                       '--dbdir', paths.HTTPD_ALIAS_DIR,
+                       '--nickname', 'ipaCert',
+                       '--sslpinfile', paths.ALIAS_PWDFILE_TXT,
+                       '--agent-submit']
+            helper = " ".join(ca_args)
+            prev_helper = certmonger.modify_ca_helper('IPA', helper)
+            try:
+                cmd = 'restart_dirsrv %s' % self.serverid
+                certmonger.request_and_wait_for_cert(
+                    nssdb=dirname,
+                    nickname=self.nickname,
+                    principal=self.principal,
+                    passwd_fname=dsdb.passwd_fname,
+                    subject=str(DN(('CN', self.fqdn), self.subject_base)),
+                    ca='IPA',
+                    profile=dogtag.DEFAULT_PROFILE,
+                    dns=[self.fqdn],
+                    post_command=cmd)
+            finally:
+                certmonger.modify_ca_helper('IPA', prev_helper)
+
+            self.dercert = dsdb.get_cert_from_db(self.nickname, pem=False)
             dsdb.create_pin_file()
 
         self.cacert_name = dsdb.cacert_name
-
-        if self.ca_is_configured:
-            dsdb.track_server_cert(
-                self.nickname, self.principal, dsdb.passwd_fname,
-                'restart_dirsrv %s' % self.serverid)
 
         ldap_uri = ipaldap.get_ldap_uri(self.fqdn)
         conn = ipaldap.LDAPClient(ldap_uri)
