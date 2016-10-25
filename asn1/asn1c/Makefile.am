@@ -1,6 +1,4 @@
-NULL =
-
-ASN1C_SOURCES =			\
+libasn1c_la_SOURCES =		\
 	INTEGER.c		\
 	NativeEnumerated.c	\
 	NativeInteger.c		\
@@ -26,69 +24,18 @@ ASN1C_SOURCES =			\
 	per_decoder.c		\
 	per_encoder.c		\
 	per_opentype.c		\
-	$(NULL)
-
-ASN1C_HEADERS =
-	INTEGER.h		\
-	NativeEnumerated.h	\
-	NativeInteger.h		\
-	asn_SEQUENCE_OF.h	\
-	asn_SET_OF.h		\
-	constr_CHOICE.h		\
-	constr_SEQUENCE.h	\
-	constr_SEQUENCE_OF.h	\
-	constr_SET_OF.h		\
-	asn_application.h	\
-	asn_system.h		\
-	asn_codecs.h		\
-	asn_internal.h		\
-	OCTET_STRING.h		\
-	BIT_STRING.h		\
-	asn_codecs_prim.h	\
-	ber_tlv_length.h	\
-	ber_tlv_tag.h		\
-	ber_decoder.h		\
-	der_encoder.h		\
-	constr_TYPE.h		\
-	constraints.h		\
-	xer_support.h		\
-	xer_decoder.h		\
-	xer_encoder.h		\
-	per_support.h		\
-	per_decoder.h		\
-	per_encoder.h		\
-	per_opentype.h		\
-	$(NULL)
-
-ASN1Cdir = .
-
-IPAASN1_SOURCES=		\
 	Int32.c			\
 	GetKeytabControl.c	\
 	GKNewKeys.c		\
 	GKCurrentKeys.c		\
 	GKReply.c		\
 	KrbKey.c		\
-	TypeValuePair.c		\
-	$(NULL)
+	TypeValuePair.c
 
-IPAASN1_HEADERS=		\
-	Int32.h			\
-	GetKeytabControl.h	\
-	GKNewKeys.h		\
-	GKCurrentKeys.h		\
-	GKReply.h		\
-	KrbKey.h		\
-	TypeValuePair.h		\
-	$(NULL)
-
-IPAASN1dir = .
 
 AM_CPPFLAGS = -I../../util
 
 noinst_LTLIBRARIES=libasn1c.la
-noinst_HEADERS=$(ASN1C_HEADERS) $(IPAASN1_HEADERS)
-libasn1c_la_SOURCES=$(ASN1C_SOURCES) $(IPAASN1_SOURCES)
 
 regenerate:
 	asn1c -fskeletons-copy -fnative-types ipa.asn1
