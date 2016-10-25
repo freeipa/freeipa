@@ -297,9 +297,27 @@ def add_subject(request_id, subject):
     add_request_value(request_id, 'template-subject', subject)
 
 
+def request_and_wait_for_cert(
+        nssdb, nickname, subject, principal, passwd_fname=None,
+        dns=None, ca='IPA', profile=None,
+        pre_command=None, post_command=None):
+    """
+    Execute certmonger to request a server certificate.
+
+    The method also waits for the certificate to be available.
+    """
+    reqId = request_cert(nssdb, nickname, subject, principal,
+                         passwd_fname, dns, ca, profile,
+                         pre_command, post_command)
+    state = wait_for_request(reqId, timeout=60)
+    ca_error = get_request_value(reqId, 'ca-error')
+    if state != 'MONITORING' or ca_error:
+        raise RuntimeError("Certificate issuance failed")
+    return reqId
+
 def request_cert(
         nssdb, nickname, subject, principal, passwd_fname=None,
-        dns=None):
+        dns=None, ca='IPA', profile=None, pre_command=None, post_command=None):
     """
     Execute certmonger to request a server certificate.
 
@@ -307,18 +325,33 @@ def request_cert(
         A sequence of DNS names to appear in SAN request extension.
     """
     cm = _certmonger()
-    ca_path = cm.obj_if.find_ca_by_nickname('IPA')
+    ca_path = cm.obj_if.find_ca_by_nickname(ca)
     if not ca_path:
-        raise RuntimeError('IPA CA not found')
+        raise RuntimeError('{} CA not found'.format(ca))
     request_parameters = dict(KEY_STORAGE='NSSDB', CERT_STORAGE='NSSDB',
                               CERT_LOCATION=nssdb, CERT_NICKNAME=nickname,
                               KEY_LOCATION=nssdb, KEY_NICKNAME=nickname,
-                              SUBJECT=subject, PRINCIPAL=[principal],
+                              SUBJECT=subject,
                               CA=ca_path)
+    if principal:
+        request_parameters['PRINCIPAL'] = [principal]
     if dns is not None and len(dns) > 0:
         request_parameters['DNS'] = dns
     if passwd_fname:
         request_parameters['KEY_PIN_FILE'] = passwd_fname
+    if profile:
+        request_parameters['ca-profile'] = profile
+
+    certmonger_cmd_template = paths.CERTMONGER_COMMAND_TEMPLATE
+    if pre_command:
+        if not os.path.isabs(pre_command):
+            pre_command = certmonger_cmd_template % (pre_command)
+        request_parameters['cert-presave-command'] = pre_command
+    if post_command:
+        if not os.path.isabs(post_command):
+            post_command = certmonger_cmd_template % (post_command)
+        request_parameters['cert-postsave-command'] = post_command
+
     result = cm.obj_if.add_request(request_parameters)
     try:
         if result[0]:
@@ -452,6 +485,30 @@ def remove_principal_from_cas():
         if ext_helper and '-k' in shlex.split(ext_helper):
             ext_helper = shlex.split(ext_helper)[0]
             ca.prop_if.Set(DBUS_CM_CA_IF, 'external-helper', ext_helper)
+
+
+def modify_ca_helper(ca_name, helper):
+    """
+    Modify certmonger CA helper.
+
+    Applies the new helper and return the previous configuration.
+    """
+    bus = dbus.SystemBus()
+    obj = bus.get_object('org.fedorahosted.certmonger',
+                         '/org/fedorahosted/certmonger')
+    iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
+    path = iface.find_ca_by_nickname(ca_name)
+    if not path:
+        raise RuntimeError("{} is not configured".format(ca_name))
+    else:
+        ca_obj = bus.get_object('org.fedorahosted.certmonger', path)
+        ca_iface = dbus.Interface(ca_obj,
+                                  'org.freedesktop.DBus.Properties')
+        old_helper = ca_iface.Get('org.fedorahosted.certmonger.ca',
+                                  'external-helper')
+        ca_iface.Set('org.fedorahosted.certmonger.ca',
+                     'external-helper', helper)
+        return old_helper
 
 
 def get_pin(token):

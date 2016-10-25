@@ -688,6 +688,7 @@ def uninstall_master(host, ignore_topology_disconnect=True,
                       paths.SYSCONFIG_PKI_TOMCAT_PKI_TOMCAT_DIR,
                       paths.VAR_LIB_PKI_TOMCAT_DIR,
                       paths.PKI_TOMCAT,
+                      paths.IPA_RENEWAL_LOCK,
                       paths.REPLICA_INFO_GPG_TEMPLATE % host.hostname],
                      raiseonerr=False)
     host.run_command("find /var/lib/sss/keytabs -name '*.keytab' | "

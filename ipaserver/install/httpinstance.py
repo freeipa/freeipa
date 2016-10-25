@@ -34,6 +34,8 @@ from ipaserver.install import service
 from ipaserver.install import certs
 from ipaserver.install import installutils
 from ipapython import sysrestore
+from ipapython import certmonger
+from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
@@ -305,10 +307,6 @@ class HTTPInstance(service.Service):
                 certmonger.stop()
 
     def __setup_ssl(self):
-        fqdn = self.fqdn
-
-        ca_db = certs.CertDB(self.realm, host_name=fqdn, subject_base=self.subject_base)
-
         db = certs.CertDB(self.realm, subject_base=self.subject_base)
         if self.pkcs12_info:
             if self.ca_is_configured:
@@ -337,10 +335,33 @@ class HTTPInstance(service.Service):
         else:
             if not self.promote:
                 db.create_password_conf()
-                self.dercert = db.create_server_cert(self.cert_nickname, self.fqdn,
-                                                     ca_db)
-                db.track_server_cert(self.cert_nickname, self.principal,
-                                     db.passwd_fname, 'restart_httpd')
+                ca_args = [
+                    '/usr/libexec/certmonger/dogtag-submit',
+                    '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
+                    '--dbdir', paths.HTTPD_ALIAS_DIR,
+                    '--nickname', 'ipaCert',
+                    '--sslpinfile', paths.ALIAS_PWDFILE_TXT,
+                    '--agent-submit'
+                    ]
+                helper = " ".join(ca_args)
+                prev_helper = certmonger.modify_ca_helper('IPA', helper)
+
+                try:
+                    certmonger.request_and_wait_for_cert(
+                        nssdb=db.secdir,
+                        nickname=self.cert_nickname,
+                        principal=self.principal,
+                        passwd_fname=db.passwd_fname,
+                        subject=str(DN(('CN', self.fqdn), self.subject_base)),
+                        ca='IPA',
+                        profile=dogtag.DEFAULT_PROFILE,
+                        dns=[self.fqdn],
+                        post_command='restart_httpd')
+                    self.dercert = db.get_cert_from_db(
+                        self.cert_nickname, pem=False)
+                finally:
+                    certmonger.modify_ca_helper('IPA', prev_helper)
+
                 self.add_cert_to_service()
 
             server_certs = db.find_server_certs()

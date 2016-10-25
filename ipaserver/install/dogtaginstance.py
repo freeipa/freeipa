@@ -127,7 +127,7 @@ class DogtagInstance(service.Service):
         self.admin_dn = DN(('uid', self.admin_user),
                            ('ou', 'people'), ('o', 'ipaca'))
         self.admin_groups = None
-        self.agent_db = tempfile.mkdtemp(prefix="tmp-")
+        self.agent_db = tempfile.mkdtemp(prefix="tmp-", dir=paths.VAR_LIB_IPA)
         self.subsystem = subsystem
         self.security_domain_name = "IPA"
         # replication parameters

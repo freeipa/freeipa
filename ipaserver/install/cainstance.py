@@ -21,7 +21,6 @@
 
 from __future__ import print_function
 
-import array
 import base64
 import binascii
 import dbus
@@ -35,17 +34,15 @@ import sys
 import syslog
 import time
 import tempfile
-import xml.dom.minidom
 import shlex
 import pipes
 
 # pylint: disable=import-error
-from six.moves import urllib
 from six.moves.configparser import ConfigParser, RawConfigParser
 # pylint: enable=import-error
 
 from ipalib import api
-from ipalib import pkcs10, x509
+from ipalib import x509
 from ipalib import errors
 import ipalib.constants
 
@@ -75,14 +72,6 @@ from ipaserver.install import sysupgrade
 from ipaserver.install.dogtaginstance import (export_kra_agent_pem,
                                               DogtagInstance)
 from ipaserver.plugins import ldap2
-
-# Python 3 rename. The package is available in "six.moves.http_client", but
-# pylint cannot handle classes from that alias
-try:
-    import httplib
-except ImportError:
-    # pylint: disable=import-error
-    import http.client as httplib
 
 # We need to reset the template because the CA uses the regular boot
 # information
@@ -405,10 +394,13 @@ class CAInstance(DogtagInstance):
             self.step("fixing RA database permissions", self.fix_ra_perms)
             self.step("setting up signing cert profile", self.__setup_sign_profile)
             self.step("setting audit signing renewal to 2 years", self.set_audit_renewal)
+            self.step("configure certmonger for renewals",
+                      self.configure_certmonger_renewal)
             if not self.clone:
                 self.step("restarting certificate server", self.restart_instance)
                 self.step("requesting RA certificate from CA", self.__request_ra_certificate)
-                self.step("issuing RA agent certificate", self.__issue_ra_cert)
+                self.step("exporting RA agent certificate",
+                          lambda: export_kra_agent_pem())
                 self.step("adding RA agent as a trusted user", self.__create_ca_agent)
             elif ra_p12 is not None:
                 self.step("importing RA certificate from PKCS #12 file",
@@ -418,10 +410,7 @@ class CAInstance(DogtagInstance):
                       configure_lightweight_ca_acls)
             self.step("Ensure lightweight CAs container exists",
                       ensure_lightweight_cas_container)
-            self.step("configure certmonger for renewals", self.configure_certmonger_renewal)
             self.step("configure certificate renewals", self.configure_renewal)
-            if not self.clone:
-                self.step("configure RA certificate renewal", self.configure_agent_renewal)
             self.step("configure Server-Cert certificate renewal", self.track_servercert)
             self.step("Configure HTTP to proxy connections",
                       self.http_proxy)
@@ -629,105 +618,6 @@ class CAInstance(DogtagInstance):
                                    'NSS_ENABLE_PKIX_VERIFY', '1',
                                    quotes=False, separator='=')
 
-    def __issue_ra_cert(self):
-        # The CA certificate is in the agent DB but isn't trusted
-        (admin_fd, admin_name) = tempfile.mkstemp()
-        os.write(admin_fd, self.admin_password)
-        os.close(admin_fd)
-
-        # Look through the cert chain to get all the certs we need to add
-        # trust for
-        args = [paths.CERTUTIL,
-                "-d", self.agent_db,
-                "-O",
-                "-n", "ipa-ca-agent"]
-        result = ipautil.run(args, capture_output=True)
-        chain = result.output.split("\n")
-
-        root_nickname=[]
-        for part in chain:
-            m = re.match('\ *"(.*)" \[.*', part)
-            if m:
-                nick = m.groups(0)[0]
-                if nick != "ipa-ca-agent" and nick[:7] != "Builtin":
-                    root_nickname.append(m.groups()[0])
-
-        try:
-            for nick in root_nickname:
-                self.__run_certutil(
-                    ['-M', '-t', 'CT,C,C', '-n',
-                     nick],
-                     database=self.agent_db, pwd_file=self.admin_password)
-        finally:
-            os.remove(admin_name)
-
-        # Retrieve the certificate request so we can get the values needed
-        # to issue a certificate. Use sslget here because this is a
-        # temporary database and nsslib doesn't currently support gracefully
-        # opening and closing an NSS database. This would leave the installer
-        # process stuck using this database during the entire cycle. We need
-        # to use the final RA agent database when issuing certs for DS and
-        # mod_nss.
-        args = [
-            paths.SSLGET,
-            '-v',
-            '-n', 'ipa-ca-agent',
-            '-p', self.admin_password,
-            '-d', self.agent_db,
-            '-r', '/ca/agent/ca/profileReview?requestId=%s' % self.requestId,
-            '%s' % ipautil.format_netloc(self.fqdn, 8443),
-        ]
-        result = ipautil.run(
-            args, nolog=(self.admin_password,),
-            capture_output=True)
-
-        data = result.output.split('\n')
-        params = get_defList(data)
-        params['requestId'] = find_substring(data, "requestId")
-        params['op'] = 'approve'
-        params['submit'] = 'submit'
-        params['requestNotes'] = ''
-        params = urllib.parse.urlencode(params)
-
-        # Now issue the RA certificate.
-        args = [
-            paths.SSLGET,
-            '-v',
-            '-n', 'ipa-ca-agent',
-            '-p', self.admin_password,
-            '-d', self.agent_db,
-            '-e', params,
-            '-r', '/ca/agent/ca/profileProcess',
-            '%s' % ipautil.format_netloc(self.fqdn, 8443),
-        ]
-        result = ipautil.run(
-            args, nolog=(self.admin_password,),
-            capture_output=True)
-
-        data = result.output.split('\n')
-        outputList = get_outputList(data)
-
-        self.ra_cert = outputList['b64_cert']
-
-        # Strip certificate headers and convert it to proper line ending
-        self.ra_cert = x509.strip_header(self.ra_cert)
-        self.ra_cert = "\n".join(line.strip() for line
-                                 in self.ra_cert.splitlines() if line.strip())
-
-        # Add the new RA cert to the database in /etc/httpd/alias
-        (agent_fd, agent_name) = tempfile.mkstemp()
-        os.write(agent_fd, self.ra_cert)
-        os.close(agent_fd)
-        try:
-            self.__run_certutil(
-                ['-A', '-t', 'u,u,u', '-n', 'ipaCert', '-a',
-                 '-i', agent_name]
-            )
-        finally:
-            os.remove(agent_name)
-
-        export_kra_agent_pem()
-
     def import_ra_cert(self, rafile, configure_renewal=True):
         """
         Cloned RAs will use the same RA agent cert as the master so we
@@ -891,49 +781,68 @@ class CAInstance(DogtagInstance):
             certdb.trust_root_cert(nick, trust_flags)
 
     def __request_ra_certificate(self):
-        # Create a noise file for generating our private key
-        noise = array.array('B', os.urandom(128))
-        (noise_fd, noise_name) = tempfile.mkstemp()
-        os.write(noise_fd, noise)
-        os.close(noise_fd)
+        # create a temp file storing the pwd
+        (agent_fd, agent_pwdfile) = tempfile.mkstemp(dir=paths.VAR_LIB_IPA)
+        os.write(agent_fd, self.admin_password)
+        os.close(agent_fd)
 
-        # Generate our CSR. The result gets put into stdout
+        # create a temp pem file storing the CA chain
+        (chain_fd, chain_file) = tempfile.mkstemp(dir=paths.VAR_LIB_IPA)
+        os.close(chain_fd)
+
+        chain = self.__get_ca_chain()
+        data = base64.b64decode(chain)
+        result = ipautil.run(
+            [paths.OPENSSL,
+             "pkcs7",
+             "-inform",
+             "DER",
+             "-print_certs",
+             "-out", chain_file,
+             ], stdin=data, capture_output=False)
+
+        agent_args = [paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT,
+                      "--dbdir", self.agent_db,
+                      "--nickname", "ipa-ca-agent",
+                      "--cafile", chain_file,
+                      "--ee-url", 'http://%s:8080/ca/ee/ca/' % self.fqdn,
+                      "--agent-url",
+                      'https://%s:8443/ca/agent/ca/' % self.fqdn,
+                      "--sslpinfile", agent_pwdfile]
+        helper = " ".join(agent_args)
+
+        # configure certmonger renew agent to use temporary agent cert
+        old_helper = certmonger.modify_ca_helper(
+            ipalib.constants.RENEWAL_CA_NAME, helper)
+
         try:
+            # The certificate must be requested using caServerCert profile
+            # because this profile does not require agent authentication
+            reqId = certmonger.request_and_wait_for_cert(
+                nssdb=self.ra_agent_db,
+                nickname='ipaCert',
+                principal='host/%s' % self.fqdn,
+                passwd_fname=self.ra_agent_pwd,
+                subject=str(DN(('CN', 'IPA RA'), self.subject_base)),
+                ca=ipalib.constants.RENEWAL_CA_NAME,
+                profile='caServerCert',
+                pre_command='renew_ra_cert_pre',
+                post_command='renew_ra_cert')
+
+            self.requestId = str(reqId)
             result = self.__run_certutil(
-                ["-R", "-k", "rsa", "-g", "2048", "-s",
-                 str(DN(('CN', 'IPA RA'), self.subject_base)),
-                 "-z", noise_name, "-a"],
-                capture_output=True)
+                ['-L', '-n', 'ipaCert', '-a'], capture_output=True)
+            self.ra_cert = x509.strip_header(result.output)
+            self.ra_cert = "\n".join(
+                line.strip() for line
+                in self.ra_cert.splitlines() if line.strip())
         finally:
-            os.remove(noise_name)
-
-        csr = pkcs10.strip_header(result.output)
-
-        # Send the request to the CA
-        conn = httplib.HTTPConnection(self.fqdn, 8080)
-        params = urllib.parse.urlencode({'profileId': 'caServerCert',
-                'cert_request_type': 'pkcs10',
-                'requestor_name': 'IPA Installer',
-                'cert_request': csr,
-                'xmlOutput': 'true'})
-        headers = {"Content-type": "application/x-www-form-urlencoded",
-                   "Accept": "text/plain"}
-
-        conn.request("POST", "/ca/ee/ca/profileSubmit", params, headers)
-        res = conn.getresponse()
-        if res.status == 200:
-            data = res.read()
-            conn.close()
-            doc = xml.dom.minidom.parseString(data)
-            item_node = doc.getElementsByTagName("RequestId")
-            self.requestId = item_node[0].childNodes[0].data
-            doc.unlink()
-            self.requestId = self.requestId.strip()
-            if self.requestId is None:
-                raise RuntimeError("Unable to determine RA certificate requestId")
-        else:
-            conn.close()
-            raise RuntimeError("Unable to submit RA cert request")
+            # we can restore the helper parameters
+            certmonger.modify_ca_helper(
+                ipalib.constants.RENEWAL_CA_NAME, old_helper)
+            # remove the pwdfile
+            os.remove(agent_pwdfile)
+            os.remove(chain_file)
 
     def fix_ra_perms(self):
         os.chmod(self.ra_agent_db + "/cert8.db", 0o640)
