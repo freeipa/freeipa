@@ -5,7 +5,7 @@
 %if 0%{?rhel}
 %global with_python3 0
 %else
-%global with_python3 1
+%global with_python3 0
 %endif
 
 # lint is not executed during rpmbuild
@@ -699,6 +699,8 @@ make %{?_smp_mflags} client-check VERBOSE=yes LIBDIR=%{_libdir}
 
 %install
 %make_install
+# remove files which are useful only for make uninstall
+find %{buildroot} -wholename '*/site-packages/*/install_files.txt' -exec rm {} \;
 
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python2_version}

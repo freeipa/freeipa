@@ -68,10 +68,7 @@ freeipa2-dev-doc
 /client/ipa-join
 /client/ipa-rmkeytab
 
-!/ipalib/Makefile
-
 /ipapython/version.py
-!/ipapython/Makefile
 
 /ipaplatform/__init__.py
 /ipaplatform/constants.py
