@@ -437,7 +437,7 @@ def santest_csr(request, santest_host_1, santest_host_2):
     return unicode(csr)
 
 
-class CAACLEnforcementOnCertBase(XMLRPC_test):
+class SubjectAltNameOneServiceBase(XMLRPC_test):
     """Base setup class for tests with SAN in CSR
 
     The class prepares an environment for test cases based
@@ -445,12 +445,10 @@ class CAACLEnforcementOnCertBase(XMLRPC_test):
 
     The class creates following entries:
 
-        * two host entries
+        * host entry
             * santest-host-1
-            * santest-host-2
-        * two service entries
+        * service entry
             * srv/santest-host-1
-            * srv/santest-host-2
         * Sub CA
             * default-profile-subca
 
@@ -467,12 +465,9 @@ class CAACLEnforcementOnCertBase(XMLRPC_test):
             * default-profile-subca -- CA
             * caIPAServiceCert      -- profile
     """
-
-    def test_prepare_caacl_hosts(self, santest_subca_acl,
-                                 santest_host_1, santest_host_2):
+    def test_prepare_caacl_hosts(self, santest_subca_acl, santest_host_1):
         santest_subca_acl.ensure_exists()
         santest_host_1.ensure_exists()
-        santest_host_2.ensure_exists()
         santest_subca_acl.add_host(santest_host_1.name)
 
     def test_prepare_caacl_CA(self, santest_subca_acl, santest_subca):
@@ -483,12 +478,78 @@ class CAACLEnforcementOnCertBase(XMLRPC_test):
         santest_subca_acl.add_profile(u'caIPAserviceCert')
 
     def test_prepare_caacl_services(self, santest_subca_acl,
-                                    santest_service_host_1,
-                                    santest_service_host_2):
+                                    santest_service_host_1):
         santest_service_host_1.ensure_exists()
+        santest_subca_acl.add_service(santest_service_host_1.name)
+
+
+class CAACLEnforcementOnCertBase(SubjectAltNameOneServiceBase):
+    """
+    Base setup class for tests with SAN in CSR, where
+    multiple hosts and services are in play.
+
+    In addition to the host and service created in the base class,
+    this class adds the following entries to the environment:
+
+        * host entry
+            * santest-host-2
+        * service entry
+            * srv/santest-host-2
+
+    """
+    def test_prepare_add_host_2(self, santest_host_2, santest_service_host_2):
+        santest_host_2.ensure_exists()
         santest_service_host_2.ensure_exists()
 
-        santest_subca_acl.add_service(santest_service_host_1.name)
+
+@pytest.mark.tier1
+class TestNoMatchForSubjectAltNameDnsName(SubjectAltNameOneServiceBase):
+    """Sign certificate request with an invalid SAN dnsName.
+
+    The CSR includes a DNS name that does not correspond to a
+    principal alias or alternative principal.
+
+    """
+    def test_request_cert_with_not_allowed_SAN(
+            self, santest_subca, santest_host_1,
+            santest_service_host_1, santest_csr):
+
+        with host_keytab(santest_host_1.name) as keytab_filename:
+            with change_principal(santest_host_1.attrs['krbcanonicalname'][0],
+                                  keytab=keytab_filename):
+                with pytest.raises(errors.NotFound):
+                    api.Command.cert_request(
+                        santest_csr,
+                        principal=santest_service_host_1.name,
+                        cacn=santest_subca.name
+                    )
+
+
+@pytest.mark.tier1
+class TestPrincipalAliasForSubjectAltNameDnsName(SubjectAltNameOneServiceBase):
+    """Test cert-request with SAN dnsName corresponding to a princpial alias.
+
+    Request should succeed.
+
+    """
+    def test_add_principal_alias(
+            self, santest_service_host_1, santest_service_host_2):
+        api.Command.service_add_principal(
+            santest_service_host_1.name,
+            santest_service_host_2.name)
+
+    def test_request_cert_with_SAN_matching_principal_alias(
+            self, santest_subca, santest_host_1,
+            santest_service_host_1, santest_csr):
+        with host_keytab(santest_host_1.name) as keytab_filename:
+            with change_principal(
+                    santest_host_1.attrs['krbcanonicalname'][0],
+                    keytab=keytab_filename):
+                api.Command.cert_request(
+                    santest_csr,
+                    principal=santest_service_host_1.name,
+                    cacn=santest_subca.name
+                )
 
 
 @pytest.mark.tier1
