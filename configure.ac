@@ -408,6 +408,7 @@ AC_CONFIG_LINKS([ipaplatform/__init__.py:ipaplatform/$IPAPLATFORM/__init__.py
 		])
 
 AC_CONFIG_FILES([
+    Makefile
     asn1/Makefile
     asn1/asn1c/Makefile
     client/Makefile
