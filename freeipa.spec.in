@@ -685,15 +685,8 @@ This package contains tests that verify IPA functionality under Python 3.
 %build
 # UI compilation segfaulted on some arches when the stack was lower (#1040576)
 export JAVA_STACK_SIZE="8m"
-
-export CFLAGS="%{optflags} $CFLAGS"
-export LDFLAGS="%{__global_ldflags} $LDFLAGS"
-
-%if ! %{ONLY_CLIENT}
-make IPA_VERSION_IS_GIT_SNAPSHOT=no LIBDIR=%{_libdir} %{?_smp_mflags} all
-%else
-make IPA_VERSION_IS_GIT_SNAPSHOT=no LIBDIR=%{_libdir} %{?_smp_mflags} client
-%endif # ONLY_CLIENT
+%configure
+%make_build
 
 
 %check
@@ -705,10 +698,7 @@ make %{?_smp_mflags} client-check VERBOSE=yes LIBDIR=%{_libdir}
 
 
 %install
-rm -rf %{buildroot}
-make version-update LIBDIR=%{_libdir}
-%if ! %{ONLY_CLIENT}
-make install DESTDIR=%{buildroot} LIBDIR=%{_libdir}
+%make_install
 
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python2_version}
@@ -730,10 +720,6 @@ ln -s %{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-tes
 ln -s %{_bindir}/ipa-run-tests-%{python2_version} %{buildroot}%{_bindir}/ipa-run-tests
 ln -s %{_bindir}/ipa-test-config-%{python2_version} %{buildroot}%{_bindir}/ipa-test-config
 ln -s %{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-test-task
-
-%else
-make client-install DESTDIR=%{buildroot} LIBDIR=%{_libdir}
-%endif # ONLY_CLIENT
 
 %if 0%{?with_python3}
 (cd ipalib && make PYTHON=%{__python3} IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} DESTDIR=%{buildroot} LIBDIR=%{_libdir} install)

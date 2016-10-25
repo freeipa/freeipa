@@ -26,6 +26,7 @@ stamp-h1
 libtool
 build/
 compile
+test-driver
 
 # Python compilation
 *.pyc
@@ -37,7 +38,6 @@ freeipa2-dev-doc
 
 # Root directory
 /freeipa.spec
-!/Makefile
 /dist/
 /*/dist/
 /RELEASE
