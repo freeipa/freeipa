@@ -588,6 +588,14 @@ class CertDB(object):
         self.create_noise_file()
         self.create_passwd_file(passwd)
         self.create_certdbs()
+        self.init_from_pkcs12(
+            pkcs12_fname,
+            pkcs12_passwd,
+            ca_file=ca_file,
+            trust_flags=trust_flags)
+
+    def init_from_pkcs12(self, pkcs12_fname, pkcs12_passwd,
+                         ca_file=None, trust_flags=None):
         self.import_pkcs12(pkcs12_fname, pkcs12_passwd)
         server_certs = self.find_server_certs()
         if len(server_certs) == 0:
