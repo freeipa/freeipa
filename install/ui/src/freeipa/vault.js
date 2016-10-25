@@ -614,12 +614,34 @@ vault.custom_adder_dialog = function(spec) {
 
         var facet_name = that.entity.facet.name;
         facet_name = facet_name.substr(0, facet_name.indexOf('_'));
+        if (facet_name === "") facet_name = 'user';
 
         var type_f = that.fields.get_field('type');
         type_f.set_pristine_value([facet_name]);
 
         if (IPA.is_selfservice) type_f.set_writable(false);
     };
+
+    that.on_success = function(data) {
+        var result = data.result.result;
+        var my_vaults = that.entity.get_facet('search');
+
+        function update_facet(name) {
+            var fa = that.entity.get_facet(name);
+            fa.set_expired_flag();
+        }
+
+        if (result.service) {
+            update_facet('service_search');
+        } else if (result.shared) {
+            update_facet('shared_search');
+        } else {
+            update_facet('user_search');
+            my_vaults.set_expired_flag();
+        }
+    };
+
+    that.added.attach(that.on_success);
 
     return that;
 };
@@ -746,7 +768,10 @@ var make_vaultconfig_spec = function() {
                 check_rights: false,
                 no_update: true,
                 fields: [
-                    'kra_server_server',
+                    {
+                        $type: "multivalued",
+                        name: 'kra_server_server'
+                    },
                     {
                         $type: 'textarea',
                         name: 'transport_cert',
