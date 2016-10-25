@@ -451,8 +451,18 @@ class UI_driver(object):
         Click on tab with given name
         """
         facet = self.get_facet()
-        s = "div.facet-tabs li[name='%s'] a" % name
-        link = self.find(s, By.CSS_SELECTOR, facet, strict=True)
+        tabs = "div.facet-tabs"
+        sidebar = "div.sidebar-pf"
+
+        facets_container = self.find(tabs, By.CSS_SELECTOR, facet)
+
+        # handle sidebar instead of facet-tabs
+        # the webui facet can have only the facet-tabs OR sidebar, not both
+        if not facets_container:
+            facets_container = self.find(sidebar, By.CSS_SELECTOR, facet)
+
+        s = "li[name='%s'] a" % name
+        link = self.find(s, By.CSS_SELECTOR, facets_container, strict=True)
         link.click()
         # double wait because of facet's paging
         self.wait_for_request(0.5)
