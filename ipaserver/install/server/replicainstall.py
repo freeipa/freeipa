@@ -850,124 +850,6 @@ def install_check(installer):
     installer._sstore = sstore
 
 
-@common_cleanup
-def install(installer):
-    options = installer
-    ca_enabled = installer._ca_enabled
-    kra_enabled = installer._kra_enabled
-    fstore = installer._fstore
-    sstore = installer._sstore
-    config = installer._config
-
-    if installer._update_hosts_file:
-        installutils.update_hosts_file(config.ips, config.host_name, fstore)
-
-    http_instance = httpinstance.HTTPInstance()
-    http_instance.create_cert_db()
-
-    # Create DS user/group if it doesn't exist yet
-    dsinstance.create_ds_user()
-
-    cafile = config.dir + "/ca.crt"
-
-    remote_api = installer._remote_api
-    conn = remote_api.Backend.ldap2
-    try:
-        conn.connect(bind_dn=ipaldap.DIRMAN_DN, bind_pw=config.dirman_password,
-                     cacert=cafile)
-
-        # Install CA cert so that we can do SSL connections with ldap
-        install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
-
-        # Configure ntpd
-        if not options.no_ntp:
-            ipaclient.ntpconf.force_ntpd(sstore)
-            ntp = ntpinstance.NTPInstance()
-            ntp.create_instance()
-
-        # Configure dirsrv
-        ds = install_replica_ds(config, options, ca_enabled, remote_api)
-
-        ntpinstance.ntp_ldap_enable(config.host_name, ds.suffix, api.env.realm)
-
-        # Always try to install DNS records
-        install_dns_records(config, options, remote_api)
-    finally:
-        if conn.isconnected():
-            conn.disconnect()
-
-    options.dm_password = config.dirman_password
-
-    if ca_enabled:
-        options.realm_name = config.realm_name
-        options.domain_name = config.domain_name
-        options.host_name = config.host_name
-        ca.install_step_0(False, config, options)
-
-    krb = install_krb(config, setup_pkinit=not options.no_pkinit)
-    http = install_http(config, auto_redirect=not options.no_ui_redirect,
-                        ca_is_configured=ca_enabled)
-
-    if ca_enabled:
-        # Done after install_krb() because lightweight CA key
-        # retrieval setup needs to create kerberos principal.
-        ca.install_step_1(False, config, options)
-
-    otpd = otpdinstance.OtpdInstance()
-    otpd.create_instance('OTPD', config.host_name,
-                         ipautil.realm_to_suffix(config.realm_name))
-
-    custodia = custodiainstance.CustodiaInstance(config.host_name,
-                                                 config.realm_name)
-    custodia.create_instance()
-
-    # The DS instance is created before the keytab, add the SSL cert we
-    # generated
-    ds.add_cert_to_service()
-
-    # Apply any LDAP updates. Needs to be done after the replica is synced-up
-    service.print_msg("Applying LDAP updates")
-    ds.apply_updates()
-
-    if kra_enabled:
-        kra.install(api, config, options)
-
-    service.print_msg("Restarting the KDC")
-    krb.restart()
-
-    if options.setup_dns:
-        dns.install(False, True, options)
-    else:
-        api.Command.dns_update_system_records()
-
-    # Call client install script
-    service.print_msg("Configuring client side components")
-    try:
-        args = [paths.IPA_CLIENT_INSTALL, "--on-master", "--unattended",
-                "--domain", config.domain_name, "--server", config.host_name,
-                "--realm", config.realm_name, "--no-ntp"]
-        if options.no_dns_sshfp:
-            args.append("--no-dns-sshfp")
-        if options.ssh_trust_dns:
-            args.append("--ssh-trust-dns")
-        if options.no_ssh:
-            args.append("--no-ssh")
-        if options.no_sshd:
-            args.append("--no-sshd")
-        if options.mkhomedir:
-            args.append("--mkhomedir")
-        ipautil.run(args, redirect_output=True)
-        print()
-    except Exception:
-        print("Configuration of client side components failed!")
-        raise RuntimeError("Failed to configure the client")
-
-    # Everything installed properly, activate ipa service.
-    services.knownservices.ipa.enable()
-
-    remove_replica_info_dir(installer)
-
-
 def ensure_enrolled(installer):
     # Call client install script
     service.print_msg("Configuring client side components")
@@ -1436,44 +1318,43 @@ def promote_check(installer):
 
 
 @common_cleanup
-def promote(installer):
+def install(installer):
     options = installer
     ca_enabled = installer._ca_enabled
     kra_enabled = installer._kra_enabled
     fstore = installer._fstore
     sstore = installer._sstore
     config = installer._config
+    promote = installer.promote
     dirsrv_pkcs12_info = installer._dirsrv_pkcs12_info
     http_pkcs12_info = installer._http_pkcs12_info
 
-    ccache = os.environ['KRB5CCNAME']
+    if not promote:
+        cafile = os.path.join(config.dir, "ca.crt")
+
     remote_api = installer._remote_api
     conn = remote_api.Backend.ldap2
-    if installer._add_to_ipaservers:
-        try:
-            conn.connect(ccache=installer._ccache)
 
-            remote_api.Command['hostgroup_add_member'](
-                u'ipaservers',
-                host=[unicode(api.env.host)],
-            )
-        finally:
-            if conn.isconnected():
-                conn.disconnect()
-            os.environ['KRB5CCNAME'] = ccache
+    if promote:
+        ccache = os.environ['KRB5CCNAME']
+        if installer._add_to_ipaservers:
+            try:
+                conn.connect(ccache=installer._ccache)
+                remote_api.Command['hostgroup_add_member'](
+                    u'ipaservers',
+                    host=[unicode(api.env.host)],
+                )
+            finally:
+                if conn.isconnected():
+                    conn.disconnect()
+                os.environ['KRB5CCNAME'] = ccache
+        config.dirman_password = hexlify(ipautil.ipa_generate_password())
 
-    config.promote = installer.promote
-    config.dirman_password = hexlify(ipautil.ipa_generate_password())
-
-    http_instance = httpinstance.HTTPInstance()
-    http_instance.create_cert_db()
-
-    # FIXME: allow to use passed in certs instead
-    if ca_enabled:
-        configure_certmonger()
-
-    # Create DS user/group if it doesn't exist yet
-    dsinstance.create_ds_user()
+        # FIXME: allow to use passed in certs instead
+        if ca_enabled:
+            configure_certmonger()
+    elif installer._update_hosts_file:
+        installutils.update_hosts_file(config.ips, config.host_name, fstore)
 
     # Configure ntpd
     if not options.no_ntp:
@@ -1481,77 +1362,141 @@ def promote(installer):
         ntp = ntpinstance.NTPInstance()
         ntp.create_instance()
 
+    dsinstance.create_ds_user()
+
+    # create /etc/httpd/alias NSS Database
+    http_instance = httpinstance.HTTPInstance()
+    http_instance.create_cert_db()
+
     try:
-        conn.connect(ccache=ccache)
+        if promote:
+            conn.connect(ccache=ccache)
+        else:
+            conn.connect(bind_dn=ipaldap.DIRMAN_DN,
+                         bind_pw=config.dirman_password,
+                         tls_cacertfile=cafile)
+            # Install CA cert so that we can do SSL connections with ldap
+            install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
 
         # Configure dirsrv
         ds = install_replica_ds(config, options, ca_enabled,
                                 remote_api,
-                                promote=True, pkcs12_info=dirsrv_pkcs12_info)
+                                promote=promote,
+                                pkcs12_info=dirsrv_pkcs12_info)
 
         # Always try to install DNS records
         install_dns_records(config, options, remote_api)
 
-        # Must install http certs before changing ipa configuration file
-        # or certmonger will fail to contact the peer master
-        install_http_certs(config, fstore, remote_api)
+        if promote:
+            install_http_certs(config, fstore, remote_api)
 
         ntpinstance.ntp_ldap_enable(config.host_name, ds.suffix,
                                     remote_api.env.realm)
-
     finally:
         if conn.isconnected():
             conn.disconnect()
 
-        # Create the management framework config file
-        # do this regardless of the state of DS installation. Even if it fails,
-        # we need to have master-like configuration in order to perform a
-        # successful uninstallation
-        create_ipa_conf(fstore, config, ca_enabled)
+        if promote:
+            # Create the management framework config file. Do this irregardless
+            # of the state of DS installation. Even if it fails,
+            # we need to have master-like configuration in order to perform a
+            # successful uninstallation
+            # The configuration creation has to be here otherwise previous call
+            # To config certmonger would try to connect to local server
+            create_ipa_conf(fstore, config, ca_enabled)
 
-    custodia = custodiainstance.CustodiaInstance(config.host_name,
-                                                 config.realm_name)
-    custodia.create_replica(config.master_host_name)
+    if promote:
+        custodia = custodiainstance.CustodiaInstance(config.host_name,
+                                                     config.realm_name)
+        custodia.create_replica(config.master_host_name)
+    else:
+        options.dm_password = config.dirman_password
+        if ca_enabled:
+            options.realm_name = config.realm_name
+            options.domain_name = config.domain_name
+            options.host_name = config.host_name
+            ca.install_step_0(False, config, options)
 
-    install_krb(
+    krb = install_krb(
         config,
         setup_pkinit=not options.no_pkinit,
-        promote=True)
+        promote=promote)
 
     install_http(
         config,
         auto_redirect=not options.no_ui_redirect,
-        promote=True, pkcs12_info=http_pkcs12_info,
+        promote=promote, pkcs12_info=http_pkcs12_info,
         ca_is_configured=ca_enabled)
-
-    # Apply any LDAP updates. Needs to be done after the replica is synced-up
-    service.print_msg("Applying LDAP updates")
-    ds.apply_updates()
 
     otpd = otpdinstance.OtpdInstance()
     otpd.create_instance('OTPD', config.host_name,
                          ipautil.realm_to_suffix(config.realm_name))
 
-    if ca_enabled:
-        options.realm_name = config.realm_name
-        options.domain_name = config.domain_name
-        options.host_name = config.host_name
-        options.dm_password = config.dirman_password
-        ca.install(False, config, options)
+    if promote:
+        if ca_enabled:
+            options.realm_name = config.realm_name
+            options.domain_name = config.domain_name
+            options.host_name = config.host_name
+            options.dm_password = config.dirman_password
+            ca.install(False, config, options)
+    else:
+        if ca_enabled:
+            # Done after install_krb() because lightweight CA key
+            # retrieval setup needs to create kerberos principal.
+            ca.install_step_1(False, config, options)
+
+        custodia = custodiainstance.CustodiaInstance(config.host_name,
+                                                     config.realm_name)
+        custodia.create_instance()
+
+    # Apply any LDAP updates. Needs to be done after the replica is synced-up
+    service.print_msg("Applying LDAP updates")
+    ds.apply_updates()
 
     if kra_enabled:
         kra.install(api, config, options)
 
-    custodia.import_dm_password(config.master_host_name)
+    service.print_msg("Restarting the KDC")
+    krb.restart()
 
-    promote_sssd(config.host_name)
-    promote_openldap_conf(config.host_name, config.master_host_name)
+    if promote:
+        custodia.import_dm_password(config.master_host_name)
+
+        promote_sssd(config.host_name)
+        promote_openldap_conf(config.host_name, config.master_host_name)
 
     if options.setup_dns:
         dns.install(False, True, options, api)
     else:
         api.Command.dns_update_system_records()
     api.Backend.ldap2.disconnect()
+
+    if not promote:
+        # Call client install script
+        service.print_msg("Configuring client side components")
+        try:
+            args = [paths.IPA_CLIENT_INSTALL, "--on-master", "--unattended",
+                    "--domain", config.domain_name,
+                    "--server", config.host_name,
+                    "--realm", config.realm_name, "--no-ntp"]
+            if options.no_dns_sshfp:
+                args.append("--no-dns-sshfp")
+            if options.ssh_trust_dns:
+                args.append("--ssh-trust-dns")
+            if options.no_ssh:
+                args.append("--no-ssh")
+            if options.no_sshd:
+                args.append("--no-sshd")
+            if options.mkhomedir:
+                args.append("--mkhomedir")
+            ipautil.run(args, redirect_output=True)
+            print()
+        except Exception:
+            print("Configuration of client side components failed!")
+            raise RuntimeError("Failed to configure the client")
+
+        # remove the extracted replica file
+        remove_replica_info_dir(installer)
 
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()
@@ -1721,9 +1666,7 @@ class Replica(BaseServer):
     def main(self):
         if self.promote:
             promote_check(self)
-            yield
-            promote(self)
         else:
             install_check(self)
-            yield
-            install(self)
+        yield
+        install(self)
