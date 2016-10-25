@@ -649,11 +649,13 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         cn = cns[-1].value  # "most specific" is end of list
 
         if principal_type in (SERVICE, HOST):
-            if cn.lower() != principal.hostname.lower():
-                raise errors.ACIError(
-                    info=_("hostname in subject of request '%(cn)s' "
-                        "does not match principal hostname '%(hostname)s'")
-                        % dict(cn=cn, hostname=principal.hostname))
+            if not _dns_name_matches_principal(cn, principal, principal_obj):
+                raise errors.ValidationError(
+                    name='csr',
+                    error=_(
+                        "hostname in subject of request '%(cn)s' does not "
+                        "match name or aliases of principal '%(principal)s'"
+                        ) % dict(cn=cn, principal=principal))
         elif principal_type == USER:
             # check user name
             if cn != principal.username:
@@ -686,26 +688,32 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             generalnames = x509.process_othernames(ext_san.value)
         for gn in generalnames:
             if isinstance(gn, cryptography.x509.general_name.DNSName):
+                if principal.is_user:
+                    raise errors.ValidationError(
+                        name='csr',
+                        error=_(
+                            "subject alt name type %s is forbidden "
+                            "for user principals") % "DNSName"
+                    )
+
                 name = gn.value
-                alt_principal = None
+
+                if _dns_name_matches_principal(name, principal, principal_obj):
+                    continue  # nothing more to check for this alt name
+
+                # no match yet; check for an alternative principal with
+                # same realm and service type as subject principal.
+                components = list(principal.components)
+                components[-1] = name
+                alt_principal = kerberos.Principal(components, principal.realm)
                 alt_principal_obj = None
                 try:
                     if principal_type == HOST:
-                        alt_principal = kerberos.Principal(
-                            (u'host', name), principal.realm)
-                        alt_principal_obj = api.Command['host_show'](name, all=True)
+                        alt_principal_obj = api.Command['host_show'](
+                            name, all=True)
                     elif principal_type == SERVICE:
-                        alt_principal = kerberos.Principal(
-                            (principal.service_name, name), principal.realm)
                         alt_principal_obj = api.Command['service_show'](
                             alt_principal, all=True)
-                    elif principal_type == USER:
-                        raise errors.ValidationError(
-                            name='csr',
-                            error=_(
-                                "subject alt name type %s is forbidden "
-                                "for user principals") % "DNSName"
-                        )
                 except errors.NotFound:
                     # We don't want to issue any certificates referencing
                     # machines we don't know about. Nothing is stored in this
@@ -713,18 +721,23 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                     raise errors.NotFound(reason=_('The service principal for '
                         'subject alt name %s in certificate request does not '
                         'exist') % name)
-                if alt_principal_obj is not None:
-                    altdn = alt_principal_obj['result']['dn']
-                    if not ldap.can_write(altdn, "usercertificate"):
-                        raise errors.ACIError(info=_(
-                            "Insufficient privilege to create a certificate "
-                            "with subject alt name '%s'.") % name)
-                if alt_principal is not None and not bypass_caacl:
+
+                # we found an alternative principal;
+                # now check write access and caacl
+                altdn = alt_principal_obj['result']['dn']
+                if not ldap.can_write(altdn, "usercertificate"):
+                    raise errors.ACIError(info=_(
+                        "Insufficient privilege to create a certificate "
+                        "with subject alt name '%s'.") % name)
+                if not bypass_caacl:
                     caacl_check(principal_type, alt_principal, ca, profile_id)
+
             elif isinstance(gn, (x509.KRB5PrincipalName, x509.UPN)):
-                if gn.name != principal_string:
-                    raise errors.ACIError(
-                        info=_(
+                if not _principal_name_matches_principal(
+                        gn.name, principal_obj):
+                    raise errors.ValidationError(
+                        name='csr',
+                        error=_(
                             "Principal '%s' in subject alt name does not "
                             "match requested principal") % gn.name)
             elif isinstance(gn, cryptography.x509.general_name.RFC822Name):
@@ -785,6 +798,50 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             result=result,
             value=pkey_to_value(int(result['request_id']), kw),
         )
+
+
+def _dns_name_matches_principal(name, principal, principal_obj):
+    """
+    Ensure that a DNS name matches the given principal.
+
+    :param name: The DNS name to match
+    :param principal: The subject ``Principal``
+    :param principal_obj: The subject principal's LDAP object
+    :return: True if name matches, otherwise False
+
+    """
+    for alias in principal_obj.get('krbprincipalname', []):
+        # we can only compare them if both subject principal and
+        # the alias are service or host principals
+        if not (alias.is_service and principal.is_service):
+            continue
+
+        # ignore aliases with different realm or service name from
+        # subject principal
+        if alias.realm != principal.realm:
+            continue
+        if alias.service_name != principal.service_name:
+            continue
+
+        # now compare DNS name to alias hostname
+        if name.lower() == alias.hostname.lower():
+            return True  # we have a match
+
+    return False
+
+
+def _principal_name_matches_principal(name, principal_obj):
+    """
+    Ensure that a stringy principal name (e.g. from UPN
+    or KRB5PrincipalName OtherName) matches the given principal.
+
+    """
+    try:
+        principal = kerberos.Principal(name)
+    except ValueError:
+        return False
+
+    return principal in principal_obj.get('krbprincipalname', [])
 
 
 @register()
