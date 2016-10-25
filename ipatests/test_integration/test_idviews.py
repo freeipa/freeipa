@@ -154,3 +154,85 @@ class TestCertsInIDOverrides(IntegrationTest):
             " string:\"org.freedesktop.sssd.infopipe.Users.User\"" % userpath
             )
         assert('dict entry' in result2.stdout_text)
+
+
+class TestRulesWithServicePrincipals(IntegrationTest):
+    """
+    https://fedorahosted.org/freeipa/ticket/6146
+    """
+
+    topology = 'star'
+    num_replicas = 0
+    service_certprofile = 'caIPAserviceCert'
+    caacl = 'test_caacl'
+    keytab = "replica.keytab"
+    csr = "my.csr"
+    csr_conf = "replica.cnf"
+
+    @classmethod
+    def prepare_config(cls):
+        template = """
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+
+[req_distinguished_name]
+commonName = %s
+
+[ v3_req ]
+
+# Extensions to add to a certificate request
+
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = %s
+DNS.2 = %s
+EOF
+        """
+
+        contents = template % (cls.replica, cls.replica, cls.master.hostname)
+        cls.master.run_command("cat <<EOF > %s\n%s" % (cls.csr_conf, contents))
+
+    @classmethod
+    def install(cls, mh):
+        super(TestRulesWithServicePrincipals, cls).install(mh)
+        master = cls.master
+        tasks.kinit_admin(master)
+        cls.replica = "replica.%s" % master.domain.name
+        master.run_command(['ipa', 'host-add', cls.replica, '--force'])
+        cls.service_name = "svc/%s" % master.hostname
+        cls.replica_service_name = "svc/%s" % cls.replica
+        master.run_command("ipa service-add %s" % cls.service_name)
+        master.run_command("ipa service-add %s --force" %
+                           cls.replica_service_name)
+        master.run_command("ipa service-add-host %s --hosts %s" % (
+            cls.service_name, cls.replica))
+        master.run_command("ipa caacl-add %s --desc \"test\"" % cls.caacl)
+        master.run_command("ipa caacl-add-host %s --hosts %s" % (cls.caacl,
+                                                                 cls.replica))
+        master.run_command("ipa caacl-add-service %s --services"
+                           " svc/`hostname`" % cls.caacl)
+        master.run_command("ipa-getkeytab -p host/%s@%s -k %s" % (
+            cls.replica, master.domain.realm, cls.keytab))
+        master.run_command("kinit -kt %s host/%s" % (cls.keytab, cls.replica))
+
+        # Prepare a CSR
+
+        cls.prepare_config()
+        stdin_text = "qwerty\nqwerty\n%s\n" % cls.replica
+
+        master.run_command(['openssl', 'req', '-config', cls.csr_conf, '-new',
+                            '-out', cls.csr], stdin_text=stdin_text)
+
+    def test_rules_with_service_principals(self):
+        result = self.master.run_command(['ipa', 'cert-request', self.csr,
+                                          '--principal', "svc/%s@%s" % (
+                                              self.replica,
+                                              self.master.domain.realm),
+                                          '--profile-id',
+                                          self.service_certprofile],
+                                         raiseonerr=False)
+        assert(result.returncode == 0), (
+            'Failed to add a cert to custom certprofile')
