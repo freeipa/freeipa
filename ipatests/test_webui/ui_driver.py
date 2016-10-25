@@ -69,6 +69,7 @@ ENV_MAP = {
     'IPA_NO_CA': 'no_ca',
     'IPA_NO_DNS': 'no_dns',
     'IPA_HAS_TRUSTS': 'has_trusts',
+    'IPA_HAS_KRA': 'has_kra',
     'IPA_HOST_CSR_PATH': 'host_csr_path',
     'IPA_SERVICE_CSR_PATH': 'service_csr_path',
     'AD_DOMAIN': 'ad_domain',
@@ -282,6 +283,12 @@ class UI_driver(object):
         FreeIPA server was installed with Trusts.
         """
         return self.config.get('has_trusts')
+
+    def has_kra(self):
+        """
+        FreeIPA server was installed with Kra.
+        """
+        return self.config.get('has_kra')
 
     def has_active_request(self):
         """
