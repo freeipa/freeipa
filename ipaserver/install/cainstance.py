@@ -22,14 +22,12 @@
 from __future__ import print_function
 
 import base64
-import binascii
 import dbus
 import ldap
 import os
 import pwd
 import re
 import shutil
-import stat
 import sys
 import syslog
 import time
@@ -388,10 +386,7 @@ class CAInstance(DogtagInstance):
         # Step 1 of external is getting a CSR so we don't need to do these
         # steps until we get a cert back from the external CA.
         if self.external != 1:
-            if self.create_ra_agent_db:
-                self.step("creating RA agent certificate database", self.__create_ra_agent_db)
             self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
-            self.step("fixing RA database permissions", self.fix_ra_perms)
             self.step("setting up signing cert profile", self.__setup_sign_profile)
             self.step("setting audit signing renewal to 2 years", self.set_audit_renewal)
             self.step("configure certmonger for renewals",
@@ -695,26 +690,6 @@ class CAInstance(DogtagInstance):
         new_args = new_args + args
         return ipautil.run(new_args, stdin, nolog=(pwd_file,), **kwargs)
 
-    def __create_ra_agent_db(self):
-        if ipautil.file_exists(self.ra_agent_db + "/cert8.db"):
-            ipautil.backup_file(self.ra_agent_db + "/cert8.db")
-            ipautil.backup_file(self.ra_agent_db + "/key3.db")
-            ipautil.backup_file(self.ra_agent_db + "/secmod.db")
-            ipautil.backup_file(self.ra_agent_db + "/pwdfile.txt")
-
-        if not ipautil.dir_exists(self.ra_agent_db):
-            os.mkdir(self.ra_agent_db)
-            os.chmod(self.ra_agent_db, 0o755)
-
-        # Create the password file for this db
-        hex_str = binascii.hexlify(os.urandom(10))
-        f = os.open(self.ra_agent_pwd, os.O_CREAT | os.O_RDWR)
-        os.write(f, hex_str)
-        os.close(f)
-        os.chmod(self.ra_agent_pwd, stat.S_IRUSR)
-
-        self.__run_certutil(["-N"])
-
     def __get_ca_chain(self):
         try:
             return dogtag.get_ca_certchain(ca_host=self.fqdn)
@@ -843,17 +818,6 @@ class CAInstance(DogtagInstance):
             # remove the pwdfile
             os.remove(agent_pwdfile)
             os.remove(chain_file)
-
-    def fix_ra_perms(self):
-        os.chmod(self.ra_agent_db + "/cert8.db", 0o640)
-        os.chmod(self.ra_agent_db + "/key3.db", 0o640)
-        os.chmod(self.ra_agent_db + "/secmod.db", 0o640)
-
-        pent = pwd.getpwnam(constants.HTTPD_USER)
-        os.chown(self.ra_agent_db + "/cert8.db", 0, pent.pw_gid )
-        os.chown(self.ra_agent_db + "/key3.db", 0, pent.pw_gid )
-        os.chown(self.ra_agent_db + "/secmod.db", 0, pent.pw_gid )
-        os.chown(self.ra_agent_pwd, pent.pw_uid, pent.pw_gid)
 
     def __setup_sign_profile(self):
         # Tell the profile to automatically issue certs for RAs
@@ -1274,7 +1238,6 @@ class CAInstance(DogtagInstance):
 
         self.step("importing CA chain to RA certificate database",
                   self.__import_ca_chain)
-        self.step("fixing RA database permissions", self.fix_ra_perms)
         self.step("setting up signing cert profile", self.__setup_sign_profile)
         self.step("setting audit signing renewal to 2 years",
                   self.set_audit_renewal)

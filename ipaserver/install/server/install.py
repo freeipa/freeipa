@@ -716,6 +716,9 @@ def install(installer):
     if installer._update_hosts_file:
         update_hosts_file(ip_addresses, host_name, fstore)
 
+    http_instance = httpinstance.HTTPInstance()
+    http_instance.create_cert_db()
+
     # Create DS user/group if it doesn't exist yet
     dsinstance.create_ds_user()
 

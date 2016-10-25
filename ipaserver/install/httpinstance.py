@@ -19,6 +19,7 @@
 
 from __future__ import print_function
 
+import binascii
 import os
 import os.path
 import pwd
@@ -68,6 +69,8 @@ NSS_CIPHER_SUITE = [
     '+rsa_aes_256_gcm_sha_384', '+rsa_aes_256_sha'
 ]
 NSS_CIPHER_REVISION = '20160129'
+
+NSS_FILES = ("cert8.db", "key3.db", "secmod.db", "pwdfile.txt")
 
 
 def httpd_443_configured():
@@ -306,6 +309,33 @@ class HTTPInstance(service.Service):
             if certmonger_stopped:
                 certmonger.stop()
 
+    def create_cert_db(self):
+        database = certs.NSS_DIR
+        pwd_file = os.path.join(database, 'pwdfile.txt')
+
+        for p in NSS_FILES:
+            nss_path = os.path.join(database, p)
+            ipautil.backup_file(nss_path)
+
+        # Create the password file for this db
+        hex_str = binascii.hexlify(os.urandom(10))
+        f = os.open(pwd_file, os.O_CREAT | os.O_RDWR)
+        os.write(f, hex_str)
+        os.close(f)
+
+        ipautil.run([paths.CERTUTIL, "-d", database, "-f", pwd_file, "-N"])
+
+        self.fix_cert_db_perms()
+
+    def fix_cert_db_perms(self):
+        pent = pwd.getpwnam(constants.HTTPD_USER)
+
+        for filename in NSS_FILES:
+            nss_path = os.path.join(certs.NSS_DIR, filename)
+            os.chmod(nss_path, 0o640)
+            os.chown(nss_path, 0, pent.pw_gid)
+            tasks.restore_context(nss_path)
+
     def __setup_ssl(self):
         db = certs.CertDB(self.realm, subject_base=self.subject_base)
         if self.pkcs12_info:
@@ -313,9 +343,9 @@ class HTTPInstance(service.Service):
                 trust_flags = 'CT,C,C'
             else:
                 trust_flags = None
-            db.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
-                                  passwd=None, ca_file=self.ca_file,
-                                  trust_flags=trust_flags)
+            db.init_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
+                                ca_file=self.ca_file,
+                                trust_flags=trust_flags)
             server_certs = db.find_server_certs()
             if len(server_certs) == 0:
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])
@@ -371,22 +401,6 @@ class HTTPInstance(service.Service):
             # We only handle one server cert
             nickname = server_certs[0][0]
             db.export_ca_cert(nickname)
-
-        # Fix the database permissions
-        os.chmod(certs.NSS_DIR + "/cert8.db", 0o660)
-        os.chmod(certs.NSS_DIR + "/key3.db", 0o660)
-        os.chmod(certs.NSS_DIR + "/secmod.db", 0o660)
-        os.chmod(certs.NSS_DIR + "/pwdfile.txt", 0o660)
-
-        pent = pwd.getpwnam(HTTPD_USER)
-        os.chown(certs.NSS_DIR + "/cert8.db", 0, pent.pw_gid )
-        os.chown(certs.NSS_DIR + "/key3.db", 0, pent.pw_gid )
-        os.chown(certs.NSS_DIR + "/secmod.db", 0, pent.pw_gid )
-        os.chown(certs.NSS_DIR + "/pwdfile.txt", 0, pent.pw_gid )
-
-        # Fix SELinux permissions on the database
-        tasks.restore_context(certs.NSS_DIR + "/cert8.db")
-        tasks.restore_context(certs.NSS_DIR + "/key3.db")
 
     def __import_ca_certs(self):
         db = certs.CertDB(self.realm, subject_base=self.subject_base)

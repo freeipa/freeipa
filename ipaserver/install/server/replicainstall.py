@@ -776,6 +776,9 @@ def install(installer):
     if installer._update_hosts_file:
         installutils.update_hosts_file(config.ips, config.host_name, fstore)
 
+    http_instance = httpinstance.HTTPInstance()
+    http_instance.create_cert_db()
+
     ca_enabled = ipautil.file_exists(config.dir + "/cacert.p12")
 
     # Create DS user/group if it doesn't exist yet
@@ -840,7 +843,6 @@ def install(installer):
 
         CA.configure_certmonger_renewal()
         CA.import_ra_cert(config.dir + "/ra.p12")
-        CA.fix_ra_perms()
 
     custodia = custodiainstance.CustodiaInstance(config.host_name,
                                                  config.realm_name)
@@ -1394,6 +1396,9 @@ def promote(installer):
     config.promote = installer.promote
     config.dirman_password = hexlify(ipautil.ipa_generate_password())
 
+    http_instance = httpinstance.HTTPInstance()
+    http_instance.create_cert_db()
+
     # FIXME: allow to use passed in certs instead
     if installer._ca_enabled:
         configure_certmonger()
@@ -1476,7 +1481,6 @@ def promote(installer):
         CA.configure_certmonger_renewal()
         CA.configure_agent_renewal()
         cainstance.export_kra_agent_pem()
-        CA.fix_ra_perms()
 
     install_krb(
         config,
