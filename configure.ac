@@ -323,7 +323,7 @@ if test "x${IPAPLATFORM}" == "x"; then
 	fi
 fi
 
-if test ! -d "ipaplatform/${IPAPLATFORM}"; then
+if test ! -d "${srcdir}/ipaplatform/${IPAPLATFORM}"; then
 	AC_MSG_ERROR([IPA platform ${IPAPLATFORM} is not supported])
 fi
 
