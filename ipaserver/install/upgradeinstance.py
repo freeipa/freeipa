@@ -21,6 +21,7 @@ import ldif
 import shutil
 import random
 import traceback
+from ipalib import api
 from ipaplatform.paths import paths
 from ipaplatform import services
 from ipapython.ipa_log_manager import root_logger
@@ -92,10 +93,12 @@ class IPAUpgrade(service.Service):
 
     def __start(self):
         services.service(self.service_name).start(self.serverid, ldapi=True)
+        api.Backend.ldap2.connect()
 
     def __stop_instance(self):
         """Stop only the main DS instance"""
         super(IPAUpgrade, self).stop(self.serverid)
+        api.Backend.ldap2.disconnect()
 
     def create_instance(self):
         ds_running = super(IPAUpgrade, self).is_running()
@@ -114,7 +117,7 @@ class IPAUpgrade(service.Service):
         self.step("restoring configuration", self.__restore_config,
                   run_after_failure=True)
         if ds_running:
-            self.step("starting directory server", self.start)
+            self.step("starting directory server", self.__start)
         self.start_creation(start_message="Upgrading IPA:",
                             show_service_name=False)
 
