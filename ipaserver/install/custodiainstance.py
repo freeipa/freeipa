@@ -22,7 +22,7 @@ import pwd
 
 
 class CustodiaInstance(SimpleServiceInstance):
-    def __init__(self, host_name=None, realm=None, ca_is_configured=True):
+    def __init__(self, host_name=None, realm=None):
         super(CustodiaInstance, self).__init__("ipa-custodia")
         self.config_file = paths.IPA_CUSTODIA_CONF
         self.server_keys = os.path.join(paths.IPA_CUSTODIA_CONF_DIR,
@@ -30,7 +30,6 @@ class CustodiaInstance(SimpleServiceInstance):
         self.ldap_uri = None
         self.fqdn = host_name
         self.realm = realm
-        self.ca_is_configured = ca_is_configured
         self.__CustodiaClient = functools.partial(
             CustodiaClient,
             client_service='host@%s' % self.fqdn,
@@ -86,8 +85,6 @@ class CustodiaInstance(SimpleServiceInstance):
 
         self.step("Generating ipa-custodia config file", self.__config_file)
         self.step("Generating ipa-custodia keys", self.__gen_keys)
-        if self.ca_is_configured:
-            self.step("Importing RA Key", self.__import_ra_key)
         super(CustodiaInstance, self).create_instance(gensvc_name='KEYS',
                                                       fqdn=self.fqdn,
                                                       ldap_suffix=suffix,
@@ -105,8 +102,8 @@ class CustodiaInstance(SimpleServiceInstance):
         updater = ldapupdate.LDAPUpdate(sub_dict=sub_dict)
         updater.update([os.path.join(paths.UPDATES_DIR, '73-custodia.update')])
 
-    def __import_ra_key(self):
-        cli = self.__CustodiaClient(server=self.master_host_name)
+    def import_ra_key(self, master_host_name):
+        cli = self.__CustodiaClient(server=master_host_name)
         cli.fetch_key('ra/ipaCert')
 
     def import_dm_password(self, master_host_name):
