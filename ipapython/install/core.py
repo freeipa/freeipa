@@ -141,7 +141,7 @@ class KnobBase(PropertyBase):
         return cls
 
 
-def Knob(type_or_base, default=_missing, sensitive=_missing,
+def knob(type_or_base, default=_missing, sensitive=_missing,
          deprecated=_missing, description=_missing, cli_positional=_missing,
          cli_name=_missing, cli_short_name=_missing, cli_aliases=_missing,
          cli_metavar=_missing):
@@ -173,6 +173,22 @@ def Knob(type_or_base, default=_missing, sensitive=_missing,
         class_dict['cli_metavar'] = cli_metavar
 
     return util.InnerClassMeta('Knob', (type_or_base,), class_dict)
+
+
+def Knob(type_or_base, default=_missing, sensitive=_missing,
+         deprecated=_missing, description=_missing, cli_positional=_missing,
+         cli_name=_missing, cli_short_name=_missing, cli_aliases=_missing,
+         cli_metavar=_missing):
+    return knob(type_or_base,
+                default=default,
+                sensitive=sensitive,
+                deprecated=deprecated,
+                description=description,
+                cli_positional=cli_positional,
+                cli_name=cli_name,
+                cli_short_name=cli_short_name,
+                cli_aliases=cli_aliases,
+                cli_metavar=cli_metavar)
 
 
 class Configurable(six.with_metaclass(abc.ABCMeta, object)):
