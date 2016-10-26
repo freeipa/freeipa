@@ -866,7 +866,6 @@ def install(installer):
     if config.setup_ca:
         services.knownservices['pki_tomcatd'].restart('pki-tomcat')
 
-    api.Backend.ldap2.connect(autobind=True)
     if options.setup_dns:
         dns.install(False, True, options)
     else:

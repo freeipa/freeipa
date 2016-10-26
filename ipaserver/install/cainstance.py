@@ -2040,14 +2040,6 @@ def ensure_ipa_authority_entry():
         )
     api.Backend.ra_lightweight_ca.override_port = None
 
-    is_already_connected = api.Backend.ldap2.isconnected()
-    if not is_already_connected:
-        try:
-            api.Backend.ldap2.connect(autobind=True)
-        except errors.PublicError as e:
-            root_logger.error("Cannot connect to LDAP to add CA: %s", e)
-            return
-
     ensure_entry(
         DN(api.env.container_ca, api.env.basedn),
         objectclass=['top', 'nsContainer'],
@@ -2061,20 +2053,9 @@ def ensure_ipa_authority_entry():
         **attrs
     )
 
-    if not is_already_connected:
-        api.Backend.ldap2.disconnect()
-
 
 def ensure_default_caacl():
     """Add the default CA ACL if missing."""
-    is_already_connected = api.Backend.ldap2.isconnected()
-    if not is_already_connected:
-        try:
-            api.Backend.ldap2.connect(autobind=True)
-        except errors.PublicError as e:
-            root_logger.error("Cannot connect to LDAP to add CA ACLs: %s", e)
-            return
-
     ensure_entry(
         DN(('cn', 'ca'), api.env.basedn),
         objectclass=['top', 'nsContainer'],
@@ -2091,9 +2072,6 @@ def ensure_default_caacl():
             hostcategory=u'all', servicecategory=u'all')
         api.Command.caacl_add_profile(u'hosts_services_caIPAserviceCert',
             certprofile=(u'caIPAserviceCert',))
-
-    if not is_already_connected:
-        api.Backend.ldap2.disconnect()
 
 
 def add_lightweight_ca_tracking_requests(logger, lwcas):

@@ -1133,14 +1133,6 @@ def add_ca_dns_records():
         root_logger.info('IPA CA DNS records already processed')
         return
 
-    if not api.Backend.ldap2.isconnected():
-        try:
-            api.Backend.ldap2.connect(autobind=True)
-        except ipalib.errors.PublicError as e:
-            root_logger.error(
-                "Cannot connect to LDAP to add DNS records: %s", e)
-            return
-
     ret = api.Command['dns_is_enabled']()
     if not ret['result']:
         root_logger.info('DNS is not configured')
@@ -1204,12 +1196,6 @@ def uninstall_dogtag_9(ds, http):
     if api.env.dogtag_version >= 10:
         root_logger.debug('Dogtag is version 10 or above')
         return
-
-    if not api.Backend.ldap2.isconnected():
-        try:
-            api.Backend.ldap2.connect(autobind=True)
-        except ipalib.errors.PublicError as e:
-            root_logger.error("Cannot connect to LDAP: %s", e)
 
     dn = DN(('cn', 'CA'), ('cn', api.env.host), ('cn', 'masters'),
             ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
@@ -1396,13 +1382,6 @@ def fix_trust_flags():
         root_logger.info("Trust flags already processed")
         return
 
-    if not api.Backend.ldap2.isconnected():
-        try:
-            api.Backend.ldap2.connect(autobind=True)
-        except ipalib.errors.PublicError as e:
-            root_logger.error("Cannot connect to LDAP: %s", e)
-            return
-
     if not api.Command.ca_is_enabled()['result']:
         root_logger.info("CA is not enabled")
         return
@@ -1422,13 +1401,6 @@ def export_kra_agent_pem():
     if sysupgrade.get_upgrade_state('http', 'export_kra_agent_pem'):
         root_logger.info("KRA agent PEM file already exported")
         return
-
-    if not api.Backend.ldap2.isconnected():
-        try:
-            api.Backend.ldap2.connect(autobind=True)
-        except ipalib.errors.PublicError as e:
-            root_logger.error("Cannot connect to LDAP: %s", e)
-            return
 
     if not api.Command.kra_is_enabled()['result']:
         root_logger.info("KRA is not enabled")
@@ -1628,11 +1600,6 @@ def upgrade_configuration():
     ds.configure_dirsrv_ccache()
 
     ntpinstance.ntp_ldap_enable(api.env.host, api.env.basedn, api.env.realm)
-
-    # ldap2 connection is not valid after DS restart, close connection otherwise
-    # it will cause network errors
-    if api.Backend.ldap2.isconnected():
-        api.Backend.ldap2.disconnect()
 
     ds.stop(ds_serverid)
     fix_schema_file_syntax()
