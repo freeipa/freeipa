@@ -1614,10 +1614,8 @@ def upgrade_configuration():
     ds.suffix = ipautil.realm_to_suffix(api.env.realm)
     ds.principal = "ldap/%s@%s" % (ds.fqdn, ds.realm)
 
-    ds.ldap_connect()
     ds_enable_sidgen_extdom_plugins(ds)
     ds.update_dna_shared_config()
-    ds.ldap_disconnect()
 
     # Now 389-ds is available, run the remaining http tasks
     if not http.is_kdcproxy_configured():
@@ -1627,7 +1625,6 @@ def upgrade_configuration():
             ds.start()
             http.ldapi = True
             http.suffix = ipautil.realm_to_suffix(api.env.realm)
-            http.ldap_connect()
         httpinstance.create_kdcproxy_user()
         http.create_kdcproxy_conf()
         http.enable_kdcproxy()

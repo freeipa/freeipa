@@ -30,7 +30,6 @@ from ipapython.ipa_log_manager import root_logger
 from ipalib import api, errors, certstore
 from ipaplatform import services
 from ipaplatform.paths import paths
-from ipapython.ipaldap import LDAPClient
 
 
 # The service name as stored in cn=masters,cn=ipa,cn=etc. In the tuple
@@ -154,22 +153,8 @@ class Service(object):
     def admin_conn(self):
         """
         alias for api.Backend.ldap2
-        :returns: None when ldap2 is not connected, ldap2 connection otherwise
         """
-        conn = api.Backend.ldap2
-        if conn.isconnected():
-            return conn
-        return None
-
-    def ldap_connect(self):
-        """connect to ldap with installer's limits"""
-        if not self.admin_conn:
-            api.Backend.ldap2.connect(size_limit=LDAPClient.size_limit,
-                                      time_limit=LDAPClient.time_limit)
-
-    def ldap_disconnect(self):
-        """close the api.Backend.ldap2 connection"""
-        api.Backend.ldap2.disconnect()
+        return api.Backend.ldap2
 
     def _ldap_mod(self, ldif, sub_dict=None, raise_on_err=True,
                   ldap_uri=None, dm_password=None):
@@ -194,8 +179,6 @@ class Service(object):
         # As we always connect to the local host,
         # use URI of admin connection
         if not ldap_uri:
-            if not self.admin_conn:
-                self.ldap_connect()
             ldap_uri = self.admin_conn.ldap_uri
 
         args += ["-H", ldap_uri]
@@ -256,9 +239,6 @@ class Service(object):
 
         The principal needs to be fully-formed: service/host@REALM
         """
-        if not self.admin_conn:
-            self.ldap_connect()
-
         dn = DN(('krbprincipalname', principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
         hostdn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
         entry = self.admin_conn.make_entry(
@@ -279,21 +259,6 @@ class Service(object):
 
         This server cert should be in DER format.
         """
-
-        # add_cert_to_service() is relatively rare operation
-        # we actually call it twice during ipa-server-install, for different
-        # instances: ds and cs. Unfortunately, it may happen that admin
-        # connection was created well before add_cert_to_service() is called
-        # If there are other operations in between, it will become stale and
-        # since we are using SimpleLDAPObject, not ReconnectLDAPObject, the
-        # action will fail. Thus, explicitly disconnect and connect again.
-        # Using ReconnectLDAPObject instead of SimpleLDAPObject was considered
-        # but consequences for other parts of the framework are largely
-        # unknown.
-        if self.admin_conn:
-            self.ldap_disconnect()
-        self.ldap_connect()
-
         dn = DN(('krbprincipalname', self.principal), ('cn', 'services'),
                 ('cn', 'accounts'), self.suffix)
         entry = self.admin_conn.get_entry(dn)
@@ -305,8 +270,6 @@ class Service(object):
 
     def import_ca_certs(self, db, ca_is_configured, conn=None):
         if conn is None:
-            if not self.admin_conn:
-                self.ldap_connect()
             conn = self.admin_conn
 
         try:
@@ -455,8 +418,6 @@ class Service(object):
                     config=[]):
         assert isinstance(ldap_suffix, DN)
         self.disable()
-        if not self.admin_conn:
-            self.ldap_connect()
 
         entry_name = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
 
@@ -502,8 +463,6 @@ class Service(object):
 
     def ldap_disable(self, name, fqdn, ldap_suffix):
         assert isinstance(ldap_suffix, DN)
-        if not self.admin_conn:
-            self.ldap_connect()
 
         entry_dn = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'),
                         ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
@@ -539,9 +498,6 @@ class Service(object):
         root_logger.debug("service %s startup entry disabled", name)
 
     def ldap_remove_service_container(self, name, fqdn, ldap_suffix):
-        if not self.admin_conn:
-            self.ldap_connect()
-
         entry_dn = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'),
                         ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
         try:

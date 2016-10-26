@@ -150,10 +150,6 @@ class HTTPInstance(service.Service):
             self.ca_is_configured = ca_is_configured
         self.promote = promote
 
-        # get a connection to the DS
-        self.ldap_connect()
-
-
         self.step("setting mod_nss port to 443", self.__set_mod_nss_port)
         self.step("setting mod_nss cipher suite",
                   self.set_mod_nss_cipher_suite)

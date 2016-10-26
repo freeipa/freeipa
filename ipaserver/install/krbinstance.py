@@ -130,9 +130,6 @@ class KrbInstance(service.Service):
 
         self.__setup_sub_dict()
 
-        # get a connection to the DS
-        self.ldap_connect()
-
         self.backup_state("running", self.is_running())
         try:
             self.stop()

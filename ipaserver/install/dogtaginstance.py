@@ -432,10 +432,6 @@ class DogtagInstance(service.Service):
     def setup_admin(self):
         self.admin_user = "admin-%s" % self.fqdn
         self.admin_password = binascii.hexlify(os.urandom(16))
-
-        if not self.admin_conn:
-            self.ldap_connect()
-
         self.admin_dn = DN(('uid', self.admin_user),
                            ('ou', 'people'), ('o', 'ipaca'))
 
@@ -480,10 +476,6 @@ class DogtagInstance(service.Service):
             pass
 
     def teardown_admin(self):
-
-        if not self.admin_conn:
-            self.ldap_connect()
-
         for group in self.admin_groups:
             self.__remove_admin_from_group(group)
         self.admin_conn.delete_entry(self.admin_dn)
