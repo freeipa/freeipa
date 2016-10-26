@@ -1193,7 +1193,6 @@ class DsInstance(service.Service):
 
         if ds_is_running:
             try:
-                api.Backend.ldap2.connect(autobind=True)
                 ret = api.Command['config_show']()
                 subject_base = str(
                     ret['result']['ipacertificatesubjectbase'][0])
@@ -1202,11 +1201,6 @@ class DsInstance(service.Service):
             except errors.PublicError as e:
                 root_logger.error('Cannot connect to DS to find certificate '
                                   'subject base: %s', e)
-            finally:
-                try:
-                    api.Backend.ldap2.disconnect()
-                except Exception:
-                    pass
 
         if not subject_base:
             root_logger.debug('Unable to find certificate subject base in DS')

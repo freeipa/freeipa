@@ -123,16 +123,8 @@ def install_step_0(standalone, replica_config, options):
 
     if replica_config is not None:
         # Configure the CA if necessary
-        if standalone:
-            api.Backend.ldap2.disconnect()
-
         cainstance.install_replica_ca(replica_config, standalone,
-                ra_p12=getattr(options, 'ra_p12', None))
-
-        if standalone and not api.Backend.ldap2.isconnected():
-            api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
-                                      bind_pw=dm_password)
-
+                                      ra_p12=getattr(options, 'ra_p12', None))
         return
 
     if options.external_cert_files:
