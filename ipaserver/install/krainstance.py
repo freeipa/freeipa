@@ -28,18 +28,15 @@ from six.moves.configparser import ConfigParser
 
 from ipalib import api
 from ipalib import x509
-from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import certdb
 from ipapython import ipautil
 from ipapython.dn import DN
-from ipapython.admintool import ScriptError
 from ipaserver.install import certs
 from ipaserver.install import cainstance
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
-from ipaserver.install import service
 from ipaserver.install.dogtaginstance import (export_kra_agent_pem,
                                               DogtagInstance)
 from ipaserver.plugins import ldap2
@@ -82,16 +79,17 @@ class KRAInstance(DogtagInstance):
 
     def configure_instance(self, realm_name, host_name, dm_password,
                            admin_password, pkcs12_info=None, master_host=None,
-                           subject_base=None):
+                           subject_base=None, promote=False):
         """Create a KRA instance.
 
            To create a clone, pass in pkcs12_info.
         """
         self.fqdn = host_name
         self.dm_password = dm_password
+        self.admin_groups = ADMIN_GROUPS
         self.admin_password = admin_password
         self.pkcs12_info = pkcs12_info
-        if self.pkcs12_info is not None:
+        if self.pkcs12_info is not None or promote:
             self.clone = True
         self.master_host = master_host
         if subject_base is None:
@@ -106,16 +104,20 @@ class KRAInstance(DogtagInstance):
             raise RuntimeError(
                 "KRA already installed.")
         # Confirm that a Dogtag 10 CA instance already exists
-        ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+        ca = cainstance.CAInstance(self.realm, certs.NSS_DIR)
         if not ca.is_installed():
             raise RuntimeError(
                 "KRA configuration failed.  "
                 "A Dogtag CA must be installed first")
 
+        if promote:
+            self.step("creating installation admin user", self.setup_admin)
         self.step("configuring KRA instance", self.__spawn_instance)
         if not self.clone:
             self.step("create KRA agent",
                       self.__create_kra_agent)
+        if promote:
+            self.step("destroying installation admin user", self.teardown_admin)
         self.step("restarting KRA", self.restart_instance)
         self.step("configure certmonger for renewals",
                   self.configure_certmonger_renewal)
@@ -124,6 +126,8 @@ class KRAInstance(DogtagInstance):
                   self.http_proxy)
         self.step("add vault container", self.__add_vault_container)
         self.step("apply LDAP updates", self.__apply_updates)
+
+        self.step("enabling KRA instance", self.__enable_instance)
 
         self.start_creation(runtime=126)
 
@@ -352,96 +356,3 @@ class KRAInstance(DogtagInstance):
 
     def __enable_instance(self):
         self.ldap_enable('KRA', self.fqdn, None, self.suffix)
-
-    def configure_replica(self, host_name, master_host, dm_password,
-                          kra_cert_bundle=None, subject_base=None):
-        """Create a KRA instance.
-
-           To create a clone, pass in pkcs12_info.
-        """
-        self.fqdn = host_name
-        self.dm_password = dm_password
-        self.master_host = master_host
-        if subject_base is None:
-            self.subject_base = DN(('O', self.realm))
-        else:
-            self.subject_base = subject_base
-        self.suffix = ipautil.realm_to_suffix(self.realm)
-
-        self.pkcs12_info = kra_cert_bundle
-        self.clone = True
-        self.admin_groups = ADMIN_GROUPS
-
-        # Confirm that a KRA does not already exist
-        if self.is_installed():
-            raise RuntimeError(
-                "KRA already installed.")
-        # Confirm that a Dogtag 10 CA instance already exists
-        ca = cainstance.CAInstance(self.realm, certs.NSS_DIR)
-        if not ca.is_installed():
-            raise RuntimeError(
-                "KRA configuration failed.  "
-                "A Dogtag CA must be installed first")
-
-        self.step("creating installation admin user", self.setup_admin)
-        self.step("configuring KRA instance", self.__spawn_instance)
-        self.step("destroying installation admin user", self.teardown_admin)
-        self.step("restarting KRA", self.restart_instance)
-        self.step("configure certmonger for renewals",
-                  self.configure_certmonger_renewal)
-        self.step("configure certificate renewals", self.configure_renewal)
-        self.step("add vault container", self.__add_vault_container)
-
-        self.step("enabling KRA instance", self.__enable_instance)
-
-        self.start_creation(runtime=126)
-
-
-def install_replica_kra(config, postinstall=False):
-    """
-    Install a KRA on a replica.
-
-    There are two modes of doing this controlled:
-      - While the replica is being installed
-      - Post-replica installation
-
-    config is a ReplicaConfig object
-
-    Returns a KRA instance
-    """
-    # note that the cacert.p12 file is regenerated during the
-    # ipa-replica-prepare process and should include all the certs
-    # for the CA and KRA
-    krafile = config.dir + "/cacert.p12"
-
-    if not ipautil.file_exists(krafile):
-        raise RuntimeError(
-            "Unable to clone KRA."
-            "  cacert.p12 file not found in replica file")
-
-    _kra = KRAInstance(config.realm_name)
-    _kra.dm_password = config.dirman_password
-    _kra.subject_base = config.subject_base
-    if _kra.is_installed():
-        raise ScriptError("A KRA is already configured on this system.")
-
-    _kra.configure_instance(config.realm_name, config.host_name,
-                            config.dirman_password, config.dirman_password,
-                            pkcs12_info=(krafile,),
-                            master_host=config.kra_host_name,
-                            subject_base=config.subject_base)
-
-    # Restart httpd since we changed it's config and added ipa-pki-proxy.conf
-    if postinstall:
-        services.knownservices.httpd.restart()
-
-    # The dogtag DS instance needs to be restarted after installation.
-    # The procedure for this is: stop dogtag, stop DS, start DS, start
-    # dogtag
-
-    service.print_msg("Restarting the directory and KRA servers")
-    _kra.stop('pki-tomcat')
-    installutils.restart_dirsrv()
-    _kra.start('pki-tomcat')
-
-    return _kra
