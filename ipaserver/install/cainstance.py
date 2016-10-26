@@ -1583,7 +1583,7 @@ def install_replica_ca(config, postinstall=False, ra_p12=None):
     service.print_msg("Restarting the directory and certificate servers")
     ca.stop('pki-tomcat')
 
-    services.knownservices.dirsrv.restart()
+    installutils.restart_dirsrv()
 
     ca.start('pki-tomcat')
 
