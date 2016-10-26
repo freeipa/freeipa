@@ -299,12 +299,7 @@ def configure_nsswitch_database(fstore, database, services, preserve=True,
 
     # Set new services as sources for database
     opts = [
-        {
-            'name': database,
-            'type': 'option',
-            'action': 'set',
-            'value': new_value
-        },
+        conf.setOption(database, new_value),
         IPAChangeConf.EMPTY_LINE,
     ]
 
@@ -329,50 +324,19 @@ def configure_ipa_conf(
 
     # [global]
     defopts = [
-        {
-            'name': 'basedn',
-            'type': 'option',
-            'value': cli_basedn
-        },
-        {
-            'name': 'realm',
-            'type': 'option',
-            'value': cli_realm
-        },
-        {
-            'name': 'domain',
-            'type': 'option',
-            'value': cli_domain
-        },
-        {
-            'name': 'server',
-            'type': 'option',
-            'value': cli_server[0]
-        },
-        {
-            'name': 'host',
-            'type': 'option',
-            'value': hostname
-        },
-        {
-            'name': 'xmlrpc_uri',
-            'type': 'option',
-            'value': 'https://%s/ipa/xml' % ipautil.format_netloc(
-                cli_server[0])
-        },
-        {
-            'name': 'enable_ra',
-            'type': 'option',
-            'value': 'True'
-        }
+        ipaconf.setOption('basedn', cli_basedn),
+        ipaconf.setOption('realm', cli_realm),
+        ipaconf.setOption('domain', cli_domain),
+        ipaconf.setOption('server', cli_server[0]),
+        ipaconf.setOption('host', hostname),
+        ipaconf.setOption('xmlrpc_uri',
+                          'https://{}/ipa/xml'.format(
+                                ipautil.format_netloc(cli_server[0]))),
+        ipaconf.setOption('enable_ra', 'True')
     ]
 
     opts.extend([
-        {
-            'name': 'global',
-            'type': 'section',
-            'value': defopts
-        },
+        ipaconf.setSection('global', defopts),
         IPAChangeConf.EMPTY_LINE,
     ])
 
@@ -408,89 +372,38 @@ def configure_ldap_conf(
             'value': 'File modified by ipa-client-install'
         },
         IPAChangeConf.EMPTY_LINE,
-        {
-            'name': 'ldap_version',
-            'type': 'option',
-            'value': '3'
-        },
-        {
-            'name': 'base',
-            'type': 'option',
-            'value': cli_basedn
-        },
+
+        ldapconf.setOption('ldap_version', '3'),
+        ldapconf.setOption('base', cli_basedn),
         IPAChangeConf.EMPTY_LINE,
-        {
-            'name': 'nss_base_passwd',
-            'type': 'option',
-            'value': str(
-                DN(('cn', 'users'), ('cn', 'accounts'), cli_basedn)
-            ) + '?sub'
-        },
-        {
-            'name': 'nss_base_group',
-            'type': 'option',
-            'value': str(
-                DN(('cn', 'groups'), ('cn', 'accounts'), cli_basedn)
-            ) + '?sub'
-        },
-        {
-            'name': 'nss_schema',
-            'type': 'option',
-            'value': 'rfc2307bis'
-        },
-        {
-            'name': 'nss_map_attribute',
-            'type': 'option',
-            'value': 'uniqueMember member'
-        },
-        {
-            'name': 'nss_initgroups_ignoreusers',
-            'type': 'option',
-            'value': 'root,dirsrv'
-        },
+
+        ldapconf.setOption(
+            'nss_base_passwd', '{dn}{suffix}'
+            .format(dn=DN(('cn', 'users'), ('cn', 'accounts'), cli_basedn),
+                    suffix='?sub')),
+        ldapconf.setOption(
+            'nss_base_group', '{dn}{suffix}'
+            .format(dn=DN(('cn', 'groups'), ('cn', 'accounts'), cli_basedn),
+                    suffix='?sub')),
+        ldapconf.setOption('nss_schema', 'rfc2307bis'),
+        ldapconf.setOption('nss_map_attribute', 'uniqueMember member'),
+        ldapconf.setOption('nss_initgroups_ignoreusers', 'root,dirsrv'),
         IPAChangeConf.EMPTY_LINE,
-        {
-            'name': 'nss_reconnect_maxsleeptime',
-            'type': 'option',
-            'value': '8'
-        },
-        {
-            'name': 'nss_reconnect_sleeptime',
-            'type': 'option',
-            'value': '1'
-        },
-        {
-            'name': 'bind_timelimit',
-            'type': 'option',
-            'value': '5'
-        },
-        {
-            'name': 'timelimit',
-            'type': 'option',
-            'value': '15'
-        },
+
+        ldapconf.setOption('nss_reconnect_maxsleeptime', '8'),
+        ldapconf.setOption('nss_reconnect_sleeptime', '1'),
+        ldapconf.setOption('bind_timelimit', '5'),
+        ldapconf.setOption('timelimit', '15'),
         IPAChangeConf.EMPTY_LINE,
     ]
     if not dnsok or options.force or options.on_master:
         if options.on_master:
-            opts.append({
-                'name': 'uri',
-                'type': 'option',
-                'value': 'ldap://localhost'
-            })
+            opts.append(ldapconf.setOption('uri', 'ldap://localhost'))
         else:
-            opts.append({
-                'name': 'uri',
-                'type': 'option',
-                'value': 'ldap://{}'.format(
-                    ipautil.format_netloc(cli_server[0]))
-            })
+            opts.append(ldapconf.setOption('uri', 'ldap://{}'.format(
+                            ipautil.format_netloc(cli_server[0]))))
     else:
-        opts.append({
-            'name': 'nss_srv_domain',
-            'type': 'option',
-            'value': cli_domain
-        })
+        opts.append(ldapconf.setOption('nss_srv_domain', cli_domain))
 
     opts.append(IPAChangeConf.EMPTY_LINE)
 
@@ -523,57 +436,27 @@ def configure_nslcd_conf(
             'value': 'File modified by ipa-client-install'
         },
         IPAChangeConf.EMPTY_LINE,
-        {
-            'name': 'ldap_version',
-            'type': 'option',
-            'value': '3'
-        },
-        {
-            'name': 'base',
-            'type': 'option',
-            'value': cli_basedn
-        },
+
+        nslcdconf.setOption('ldap_version', '3'),
+        nslcdconf.setOption('base', cli_basedn),
         IPAChangeConf.EMPTY_LINE,
-        {
-            'name': 'base passwd',
-            'type': 'option',
-            'value': str(
-                DN(('cn', 'users'), ('cn', 'accounts'), cli_basedn))
-        },
-        {
-            'name': 'base group',
-            'type': 'option',
-            'value': str(
-                DN(('cn', 'groups'), ('cn', 'accounts'), cli_basedn))
-        },
-        {
-            'name': 'timelimit',
-            'type': 'option',
-            'value': '15'
-        },
+
+        nslcdconf.setOption('base passwd', str(
+                DN(('cn', 'users'), ('cn', 'accounts'), cli_basedn))),
+        nslcdconf.setOption('base group', str(
+                DN(('cn', 'groups'), ('cn', 'accounts'), cli_basedn))),
+        nslcdconf.setOption('timelimit', '15'),
         IPAChangeConf.EMPTY_LINE,
     ]
 
     if not dnsok or options.force or options.on_master:
         if options.on_master:
-            opts.append({
-                'name': 'uri',
-                'type': 'option',
-                'value': 'ldap://localhost'
-            })
+            opts.append(nslcdconf.setOption('uri', 'ldap://localhost'))
         else:
-            opts.append({
-                'name': 'uri',
-                'type': 'option',
-                'value': 'ldap://{}'.format(
-                    ipautil.format_netloc(cli_server[0]))
-            })
+            opts.append(nslcdconf.setOption('uri', 'ldap://{}'.format(
+                    ipautil.format_netloc(cli_server[0]))))
     else:
-        opts.append({
-            'name': 'uri',
-            'type': 'option',
-            'value': 'DNS'
-        })
+        opts.append(nslcdconf.setOption('uri', 'DNS'))
 
     opts.append(IPAChangeConf.EMPTY_LINE)
 
@@ -716,12 +599,8 @@ def hardcode_ldap_server(cli_server):
     ldapconf.setOptionAssignment(" ")
 
     opts = [
-        {
-            'name': 'uri',
-            'type': 'option',
-            'action': 'set',
-            'value': 'ldap://{}'.format(ipautil.format_netloc(cli_server[0]))
-        },
+        ldapconf.setOption('uri', 'ldap://{}'.format(
+            ipautil.format_netloc(cli_server[0]))),
         IPAChangeConf.EMPTY_LINE,
     ]
 
@@ -766,82 +645,39 @@ def configure_krb5_conf(
                 'value': paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR,
                 'delim': ' '
             },
-            IPAChangeConf.EMPTY_LINE,
+            IPAChangeConf.EMPTY_LINE
         ])
 
     # [libdefaults]
-    libopts = [{
-            'name': 'default_realm',
-            'type': 'option',
-            'value': cli_realm
-        }]
-
+    libopts = [
+        krbconf.setOption('default_realm', cli_realm)
+    ]
     if not dnsok or not cli_kdc or options.force:
         libopts.extend([
-            {
-                'name': 'dns_lookup_realm',
-                'type': 'option',
-                'value': 'false'
-            },
-            {
-                'name': 'dns_lookup_kdc',
-                'type': 'option',
-                'value': 'false'
-            }
+            krbconf.setOption('dns_lookup_realm', 'false'),
+            krbconf.setOption('dns_lookup_kdc', 'false')
         ])
     else:
         libopts.extend([
-            {
-                'name': 'dns_lookup_realm',
-                'type': 'option',
-                'value': 'true'
-            },
-            {
-                'name': 'dns_lookup_kdc',
-                'type': 'option',
-                'value': 'true'
-            }
+            krbconf.setOption('dns_lookup_realm', 'true'),
+            krbconf.setOption('dns_lookup_kdc', 'true')
         ])
-
     libopts.extend([
-        {
-            'name': 'rdns',
-            'type': 'option',
-            'value': 'false'
-        },
-        {
-            'name': 'ticket_lifetime',
-            'type': 'option',
-            'value': '24h'
-        },
-        {
-            'name': 'forwardable',
-            'type': 'option',
-            'value': 'true'
-        },
-        {
-            'name': 'udp_preference_limit',
-            'type': 'option',
-            'value': '0'
-        }
+        krbconf.setOption('rdns', 'false'),
+        krbconf.setOption('ticket_lifetime', '24h'),
+        krbconf.setOption('forwardable', 'true'),
+        krbconf.setOption('udp_preference_limit', '0')
     ])
 
     # Configure KEYRING CCACHE if supported
     if kernel_keyring.is_persistent_keyring_supported():
         root_logger.debug("Enabling persistent keyring CCACHE")
-        libopts.append({
-            'name': 'default_ccache_name',
-            'type': 'option',
-            'value': 'KEYRING:persistent:%{uid}'
-        })
+        libopts.append(krbconf.setOption('default_ccache_name',
+                                         'KEYRING:persistent:%{uid}'))
 
     opts.extend([
-        {
-            'name': 'libdefaults',
-            'type': 'section',
-            'value': libopts
-        },
-        IPAChangeConf.EMPTY_LINE,
+        krbconf.setSection('libdefaults', libopts),
+        IPAChangeConf.EMPTY_LINE
     ])
 
     # the following are necessary only if DNS discovery does not work
@@ -850,96 +686,43 @@ def configure_krb5_conf(
         # [realms]
         for server in cli_server:
             kropts.extend([
-                {
-                    'name': 'kdc',
-                    'type': 'option',
-                    'value': ipautil.format_netloc(server, 88)
-                },
-                {
-                    'name': 'master_kdc',
-                    'type': 'option',
-                    'value': ipautil.format_netloc(server, 88)
-                },
-                {
-                    'name': 'admin_server',
-                    'type': 'option',
-                    'value': ipautil.format_netloc(server, 749)
-                },
-                {
-                    'name': 'kpasswd_server',
-                    'type': 'option',
-                    'value': ipautil.format_netloc(server, 464)
-                }
+                krbconf.setOption('kdc', ipautil.format_netloc(server, 88)),
+                krbconf.setOption('master_kdc',
+                                  ipautil.format_netloc(server, 88)),
+                krbconf.setOption('admin_server',
+                                  ipautil.format_netloc(server, 749)),
+                krbconf.setOption('kpasswd_server',
+                                  ipautil.format_netloc(server, 464))
             ])
+        kropts.append(krbconf.setOption('default_domain', cli_domain))
 
-        kropts.append({
-            'name': 'default_domain',
-            'type': 'option',
-            'value': cli_domain
-        })
-
-    kropts.append({
-        'name': 'pkinit_anchors',
-        'type': 'option',
-        'value': 'FILE:{}'.format(CACERT)
-    })
-
+    kropts.append(krbconf.setOption('pkinit_anchors', 'FILE: %s' % CACERT))
     ropts = [{
         'name': cli_realm,
         'type': 'subsection',
         'value': kropts
     }]
 
-    opts.extend([
-        {
-            'name': 'realms',
-            'type': 'section',
-            'value': ropts
-        },
-        IPAChangeConf.EMPTY_LINE,
-    ])
+    opts.append(krbconf.setSection('realms', ropts))
+    opts.append(IPAChangeConf.EMPTY_LINE)
 
     # [domain_realm]
     dropts = [
-        {
-            'name': '.{}'.format(cli_domain),
-            'type': 'option',
-            'value': cli_realm
-        },
-        {
-            'name': cli_domain,
-            'type': 'option',
-            'value': cli_realm
-        },
-        {
-            'name': client_hostname,
-            'type': 'option',
-            'value': cli_realm
-        }
+        krbconf.setOption('.{}'.format(cli_domain), cli_realm),
+        krbconf.setOption(cli_domain, cli_realm),
+        krbconf.setOption(client_hostname, cli_realm)
     ]
 
     # add client domain mapping if different from server domain
     if cli_domain != client_domain:
         dropts.extend([
-            {
-                'name': '.{}'.format(client_domain),
-                'type': 'option',
-                'value': cli_realm
-            },
-            {
-                'name': client_domain,
-                'type': 'option',
-                'value': cli_realm
-            }
+            krbconf.setOption('.{}'.format(client_domain), cli_realm),
+            krbconf.setOption(client_domain, cli_realm)
         ])
 
     opts.extend([
-        {
-            'name': 'domain_realm',
-            'type': 'section',
-            'value': dropts
-        },
-        IPAChangeConf.EMPTY_LINE,
+        krbconf.setSection('domain_realm', dropts),
+        IPAChangeConf.EMPTY_LINE
     ])
 
     root_logger.debug("Writing Kerberos configuration to %s:", filename)
