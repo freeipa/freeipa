@@ -6,6 +6,6 @@
   <project-type>gettext</project-type>
   <src-dir>.</src-dir>
   <trans-dir>.</trans-dir>
-
+  <excludes>ipatests/test_ipalib/data/ipa.pot</excludes>
   <rules/>
 </config>
