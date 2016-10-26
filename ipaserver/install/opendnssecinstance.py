@@ -82,8 +82,6 @@ class OpenDNSSECInstance(service.Service):
     suffix = ipautil.dn_attribute_property('_suffix')
 
     def get_masters(self):
-        if not self.admin_conn:
-            self.ldap_connect()
         return get_dnssec_key_masters(self.admin_conn)
 
     def create_instance(self, fqdn, realm_name, generate_master_key=True,
@@ -102,9 +100,6 @@ class OpenDNSSECInstance(service.Service):
         except Exception:
             pass
 
-        # get a connection to the DS
-        if not self.admin_conn:
-            self.ldap_connect()
         # checking status must be first
         self.step("checking status", self.__check_dnssec_status)
         self.step("setting up configuration files", self.__setup_conf_files)

@@ -698,9 +698,6 @@ class BindInstance(service.Service):
         except Exception:
             pass
 
-        # get a connection to the DS
-        self.ldap_connect()
-
         for ip_address in self.ip_addresses:
             if installutils.record_in_hosts(str(ip_address), self.fqdn) is None:
                 installutils.add_record_to_hosts(str(ip_address), self.fqdn)

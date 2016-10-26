@@ -101,7 +101,6 @@ def uninstall(standalone):
     kra = krainstance.KRAInstance(api.env.realm)
 
     if standalone:
-        kra.ldap_connect()
         try:
             kra.admin_conn.delete_entry(DN(('cn', 'KRA'), ('cn', api.env.host),
                                            ('cn', 'masters'), ('cn', 'ipa'),

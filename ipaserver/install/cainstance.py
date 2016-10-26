@@ -1192,9 +1192,6 @@ class CAInstance(DogtagInstance):
         if fqdn is None:
             fqdn = api.env.host
 
-        if not self.admin_conn:
-            self.ldap_connect()
-
         dn = DN(('cn', 'CA'), ('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'),
                 ('cn', 'etc'), api.env.basedn)
         renewal_filter = '(ipaConfigString=caRenewalMaster)'
@@ -1209,9 +1206,6 @@ class CAInstance(DogtagInstance):
     def set_renewal_master(self, fqdn=None):
         if fqdn is None:
             fqdn = api.env.host
-
-        if not self.admin_conn:
-            self.ldap_connect()
 
         base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
                      api.env.basedn)
@@ -1269,9 +1263,6 @@ class CAInstance(DogtagInstance):
         Create PKI database. Is needed when pkispawn option
         pki_ds_create_new_db is set to False
         '''
-
-        if not self.admin_conn:
-            self.ldap_connect()
 
         backend = 'ipaca'
         suffix = DN(('o', 'ipaca'))
@@ -1426,8 +1417,6 @@ class CAInstance(DogtagInstance):
         root_logger.info('Creating principal')
         installutils.kadmin_addprinc(principal)
         self.suffix = ipautil.realm_to_suffix(self.realm)
-        if not self.admin_conn:
-            self.ldap_connect()
         self.move_service(principal)
 
         root_logger.info('Retrieving keytab')
@@ -1460,9 +1449,6 @@ class CAInstance(DogtagInstance):
         os.chown(keyfile, pent.pw_uid, pent.pw_gid)
 
     def __add_lightweight_ca_tracking_requests(self):
-        if not self.admin_conn:
-            self.ldap_connect()
-
         try:
             lwcas = self.admin_conn.get_entries(
                 base_dn=api.env.basedn,

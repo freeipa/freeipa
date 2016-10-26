@@ -282,9 +282,6 @@ class ADTRUSTInstance(service.Service):
         to enable the sidgen plugin we have to reconnect to the directory
         server.
         """
-
-        self.ldap_connect()
-
         try:
             dom_entry = self.admin_conn.get_entry(self.smb_dom_dn)
         except errors.NotFound:
@@ -777,8 +774,6 @@ class ADTRUSTInstance(service.Service):
         self.__setup_sub_dict()
 
     def find_local_id_range(self):
-        self.ldap_connect()
-
         if self.admin_conn.get_entries(
                 DN(api.env.container_ranges, self.suffix),
                 ldap.SCOPE_ONELEVEL,
@@ -821,9 +816,6 @@ class ADTRUSTInstance(service.Service):
         self.admin_conn.add_entry(entry)
 
     def create_instance(self):
-
-        self.ldap_connect()
-
         self.step("stopping smbd", self.__stop)
         self.step("creating samba domain object", \
                   self.__create_samba_domain_object)

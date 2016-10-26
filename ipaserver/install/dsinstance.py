@@ -428,17 +428,9 @@ class DsInstance(service.Service):
                                    r_bindpw=self.dm_password)
         self.run_init_memberof = repl.needs_memberof_fixup()
 
-        # Now that the server is up make sure all changes happen against
-        # the local server (as repica pomotion does not have the DM password.
-        if self.admin_conn:
-            self.ldap_disconnect()
-
     def __configure_sasl_mappings(self):
         # we need to remove any existing SASL mappings in the directory as otherwise they
         # they may conflict.
-
-        if not self.admin_conn:
-            self.ldap_connect()
 
         try:
             res = self.admin_conn.get_entries(
@@ -1102,9 +1094,6 @@ class DsInstance(service.Service):
         """
         Add sidgen plugin configuration only if it does not already exist.
         """
-        if not self.admin_conn:
-            self.ldap_connect()
-
         dn = DN('cn=IPA SIDGEN,cn=plugins,cn=config')
         try:
             self.admin_conn.get_entry(dn)
@@ -1123,9 +1112,6 @@ class DsInstance(service.Service):
         """
         Add extdom configuration if it does not already exist.
         """
-        if not self.admin_conn:
-            self.ldap_connect()
-
         dn = DN('cn=ipa_extdom_extop,cn=plugins,cn=config')
         try:
             self.admin_conn.get_entry(dn)
@@ -1135,8 +1121,6 @@ class DsInstance(service.Service):
             root_logger.debug("extdom plugin is already configured")
 
     def replica_populate(self):
-        self.ldap_connect()
-
         dn = DN(('cn', 'default'), ('ou', 'profile'), self.suffix)
         try:
             entry = self.admin_conn.get_entry(dn)
@@ -1151,8 +1135,6 @@ class DsInstance(service.Service):
             pass
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
-
-        self.ldap_disconnect()
 
     def find_subject_base(self):
         """
@@ -1302,8 +1284,6 @@ class DsInstance(service.Service):
                         ('cn', 'config'))
         dna_config_base = DN(('cn', 'posix IDs'), dna_plugin)
 
-        if not self.admin_conn:
-            self.ldap_connect()
         conn = self.admin_conn
 
         # Check the plugin is enabled else it is useless to update

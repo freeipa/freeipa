@@ -318,10 +318,6 @@ class KRAInstance(DogtagInstance):
                 self.log.debug("Vault container already exists")
             else:
                 self.log.error("Failed to add vault container: {0}".format(e))
-        finally:
-            # we need to disconnect from LDAP, because _ldap_mod() makes the
-            # connection without actually using it
-            self.ldap_disconnect()
 
     def __apply_updates(self):
         sub_dict = {

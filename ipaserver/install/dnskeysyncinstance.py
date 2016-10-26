@@ -125,8 +125,6 @@ class DNSKeySyncInstance(service.Service):
         except Exception:
             pass
 
-        # get a connection to the DS
-        self.ldap_connect()
         # checking status step must be first
         self.step("checking status", self.__check_dnssec_status)
         self.step("setting up bind-dyndb-ldap working directory",
