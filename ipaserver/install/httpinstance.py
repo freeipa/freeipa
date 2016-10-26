@@ -354,6 +354,8 @@ class HTTPInstance(service.Service):
 
             # We only handle one server cert
             nickname = server_certs[0][0]
+            if nickname == 'ipaCert':
+                nickname = server_certs[1][0]
             self.dercert = db.get_cert_from_db(nickname, pem=False)
 
             if self.ca_is_configured:

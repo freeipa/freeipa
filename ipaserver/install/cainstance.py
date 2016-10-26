@@ -60,13 +60,16 @@ from ipapython.ipa_log_manager import log_mgr,\
 from ipapython.secrets.kem import IPAKEMKeys
 
 from ipaserver.install import certs
+from ipaserver.install import custodiainstance
 from ipaserver.install import dsinstance
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
+# pylint: disable=unused-import
 from ipaserver.install.dogtaginstance import (export_kra_agent_pem,
                                               DogtagInstance)
+# pylint: enable=unused-import
 from ipaserver.plugins import ldap2
 
 # We need to reset the template because the CA uses the regular boot
@@ -309,7 +312,6 @@ class CAInstance(DogtagInstance):
         self.csr_file = None
         self.cert_file = None
         self.cert_chain_file = None
-        self.create_ra_agent_db = True
 
         if realm is not None:
             self.canickname = get_ca_nickname(realm)
@@ -330,7 +332,8 @@ class CAInstance(DogtagInstance):
                            cert_file=None, cert_chain_file=None,
                            master_replication_port=None,
                            subject_base=None, ca_signing_algorithm=None,
-                           ca_type=None, ra_p12=None, promote=False):
+                           ca_type=None, ra_p12=None, ra_only=False,
+                           promote=False):
         """Create a CA instance.
 
            To create a clone, pass in pkcs12_info.
@@ -374,62 +377,72 @@ class CAInstance(DogtagInstance):
             self.cert_chain_file = cert_chain_file
             self.external = 2
 
-        self.step("creating certificate server user", create_ca_user)
-        if promote:
-            # Setup Database
-            self.step("creating certificate server db", self.__create_ds_db)
-            self.step("setting up initial replication", self.__setup_replication)
-            self.step("creating installation admin user", self.setup_admin)
-        self.step("configuring certificate server instance",
-                  self.__spawn_instance)
-        self.step("stopping certificate server instance to update CS.cfg", self.stop_instance)
-        self.step("backing up CS.cfg", self.backup_config)
-        self.step("disabling nonces", self.__disable_nonce)
-        self.step("set up CRL publishing", self.__enable_crl_publish)
-        self.step("enable PKIX certificate path discovery and validation", self.enable_pkix)
-        if promote:
-            self.step("destroying installation admin user", self.teardown_admin)
-        self.step("starting certificate server instance", self.start_instance)
+        if self.clone:
+            cert_db = certs.CertDB(self.realm)
+            has_ra_cert = (cert_db.get_cert_from_db('ipaCert') != '')
+        else:
+            has_ra_cert = False
+
+        if not ra_only:
+            self.step("creating certificate server user", create_ca_user)
+            if promote:
+                # Setup Database
+                self.step("creating certificate server db", self.__create_ds_db)
+                self.step("setting up initial replication", self.__setup_replication)
+                self.step("creating installation admin user", self.setup_admin)
+            self.step("configuring certificate server instance",
+                      self.__spawn_instance)
+            self.step("stopping certificate server instance to update CS.cfg", self.stop_instance)
+            self.step("backing up CS.cfg", self.backup_config)
+            self.step("disabling nonces", self.__disable_nonce)
+            self.step("set up CRL publishing", self.__enable_crl_publish)
+            self.step("enable PKIX certificate path discovery and validation", self.enable_pkix)
+            if promote:
+                self.step("destroying installation admin user", self.teardown_admin)
+            self.step("starting certificate server instance", self.start_instance)
         # Step 1 of external is getting a CSR so we don't need to do these
         # steps until we get a cert back from the external CA.
         if self.external != 1:
-            self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
-            self.step("setting up signing cert profile", self.__setup_sign_profile)
-            self.step("setting audit signing renewal to 2 years", self.set_audit_renewal)
-            self.step("configure certmonger for renewals",
-                      self.configure_certmonger_renewal)
-            if not self.clone:
+            if not has_ra_cert:
+                self.step("configure certmonger for renewals",
+                          self.configure_certmonger_renewal)
+                if not self.clone:
+                    self.step("requesting RA certificate from CA", self.__request_ra_certificate)
+                elif promote:
+                    self.step("Importing RA key", self.__import_ra_key)
+                else:
+                    self.step("importing RA certificate from PKCS #12 file",
+                              lambda: self.import_ra_cert(ra_p12))
+            if not ra_only:
+                self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
+                self.step("setting up signing cert profile", self.__setup_sign_profile)
+                self.step("setting audit signing renewal to 2 years", self.set_audit_renewal)
                 self.step("restarting certificate server", self.restart_instance)
-                self.step("requesting RA certificate from CA", self.__request_ra_certificate)
-                self.step("exporting RA agent certificate",
-                          lambda: export_kra_agent_pem())
-                self.step("adding RA agent as a trusted user", self.__create_ca_agent)
-            elif not promote and ra_p12 is not None:
-                self.step("importing RA certificate from PKCS #12 file",
-                          lambda: self.import_ra_cert(ra_p12, configure_renewal=False))
-            self.step("authorizing RA to modify profiles", configure_profiles_acl)
-            self.step("authorizing RA to manage lightweight CAs",
-                      configure_lightweight_ca_acls)
-            self.step("Ensure lightweight CAs container exists",
-                      ensure_lightweight_cas_container)
-            self.step("configure certificate renewals", self.configure_renewal)
-            self.step("configure Server-Cert certificate renewal", self.track_servercert)
-            self.step("Configure HTTP to proxy connections",
-                      self.http_proxy)
-            self.step("restarting certificate server", self.restart_instance)
-            if not promote:
-                self.step("migrating certificate profiles to LDAP",
-                          migrate_profiles_to_ldap)
-                self.step("importing IPA certificate profiles",
-                          import_included_profiles)
-                self.step("adding default CA ACL", ensure_default_caacl)
-                self.step("adding 'ipa' CA entry", ensure_ipa_authority_entry)
-            self.step("updating IPA configuration", update_ipa_conf)
+                if not self.clone:
+                    self.step("adding RA agent as a trusted user", self.__create_ca_agent)
+                self.step("authorizing RA to modify profiles", configure_profiles_acl)
+                self.step("authorizing RA to manage lightweight CAs",
+                          configure_lightweight_ca_acls)
+                self.step("Ensure lightweight CAs container exists",
+                          ensure_lightweight_cas_container)
+                self.step("configure certificate renewals", self.configure_renewal)
+                self.step("configure Server-Cert certificate renewal", self.track_servercert)
+                self.step("Configure HTTP to proxy connections",
+                          self.http_proxy)
+                self.step("restarting certificate server", self.restart_instance)
+                if not promote:
+                    self.step("migrating certificate profiles to LDAP",
+                              migrate_profiles_to_ldap)
+                    self.step("importing IPA certificate profiles",
+                              import_included_profiles)
+                    self.step("adding default CA ACL", ensure_default_caacl)
+                    self.step("adding 'ipa' CA entry", ensure_ipa_authority_entry)
+                self.step("updating IPA configuration", update_ipa_conf)
 
-            self.step("enabling CA instance", self.__enable_instance)
+                self.step("enabling CA instance", self.__enable_instance)
 
-            self.step("configuring certmonger renewal for lightweight CAs",
-                      self.__add_lightweight_ca_tracking_requests)
+                self.step("configuring certmonger renewal for lightweight CAs",
+                          self.__add_lightweight_ca_tracking_requests)
 
         self.start_creation(runtime=210)
 
@@ -484,9 +497,6 @@ class CAInstance(DogtagInstance):
         config.set("CA", "pki_ds_password", self.dm_password)
         config.set("CA", "pki_ds_base_dn", self.basedn)
         config.set("CA", "pki_ds_database", "ipaca")
-
-        if not self.create_ra_agent_db and not self.clone:
-            self._use_ldaps_during_spawn(config)
 
         # Certificate subject DN's
         config.set("CA", "pki_subsystem_subject_dn",
@@ -642,10 +652,10 @@ class CAInstance(DogtagInstance):
         finally:
             os.remove(agent_name)
 
-        if configure_renewal:
-            self.configure_agent_renewal()
-
-        export_kra_agent_pem()
+    def __import_ra_key(self):
+        custodia = custodiainstance.CustodiaInstance(host_name=self.fqdn,
+                                                     realm=self.realm)
+        custodia.import_ra_key(self.master_host)
 
     def __create_ca_agent(self):
         """

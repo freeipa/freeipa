@@ -25,6 +25,9 @@ def install_check(standalone, replica_config, options):
     global external_cert_file
     global external_ca_file
 
+    if replica_config is not None and not replica_config.setup_ca:
+        return
+
     realm_name = options.realm_name
     host_name = options.host_name
     subject_base = options.subject
@@ -143,6 +146,7 @@ def install_step_0(standalone, replica_config, options):
         master_host = None
         master_replication_port = None
         ra_p12 = None
+        ra_only = False
         promote = False
     else:
         cafile = os.path.join(replica_config.dir, 'cacert.p12')
@@ -167,12 +171,11 @@ def install_step_0(standalone, replica_config, options):
         master_host = replica_config.ca_host_name
         master_replication_port = replica_config.ca_ds_port
         ra_p12 = os.path.join(replica_config.dir, 'ra.p12')
+        ra_only = not replica_config.setup_ca
         promote = options.promote
 
     ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
                                host_name=host_name)
-    if standalone or replica_config is not None:
-        ca.create_ra_agent_db = False
     ca.configure_instance(host_name, dm_password, dm_password,
                           subject_base=subject_base,
                           ca_signing_algorithm=ca_signing_algorithm,
@@ -184,10 +187,14 @@ def install_step_0(standalone, replica_config, options):
                           master_host=master_host,
                           master_replication_port=master_replication_port,
                           ra_p12=ra_p12,
+                          ra_only=ra_only,
                           promote=promote)
 
 
 def install_step_1(standalone, replica_config, options):
+    if replica_config is not None and not replica_config.setup_ca:
+        return
+
     realm_name = options.realm_name
     dm_password = options.dm_password
     host_name = options.host_name
