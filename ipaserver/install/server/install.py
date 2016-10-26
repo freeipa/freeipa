@@ -14,7 +14,7 @@ import textwrap
 
 import six
 
-from ipapython import certmonger, ipaldap, ipautil, sysrestore
+from ipapython import certmonger, ipautil, sysrestore
 from ipapython.dn import DN
 from ipapython.dnsutil import check_zone_overlap
 from ipapython.install import core
@@ -752,6 +752,7 @@ def install(installer):
         ntpinstance.ntp_ldap_enable(host_name, ds.suffix, realm_name)
 
     else:
+        api.Backend.ldap2.connect()
         ds = dsinstance.DsInstance(fstore=fstore,
                                    domainlevel=options.domainlevel)
         installer._ds = ds
@@ -984,10 +985,8 @@ def uninstall_check(installer):
             raise ScriptError("Aborting uninstall operation.")
 
     try:
-        ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=api.env.realm)
-        conn = ipaldap.LDAPClient(ldap_uri)
-        conn.external_bind()
         api.Backend.ldap2.connect(autobind=True)
+
         domain_level = dsinstance.get_domain_level(api)
     except Exception:
         msg = ("\nWARNING: Failed to connect to Directory Server to find "
@@ -1011,7 +1010,7 @@ def uninstall_check(installer):
                 realm=api.env.realm,
                 hostname=api.env.host,
                 dirman_passwd=None,
-                conn=conn
+                conn=api.Backend.ldap2
             )
             agreements = rm.find_ipa_replication_agreements()
 
@@ -1034,6 +1033,8 @@ def uninstall_check(installer):
                     raise ScriptError("Aborting uninstall operation.")
         else:
             remove_master_from_managed_topology(api, options)
+
+        api.Backend.ldap2.disconnect()
 
     installer._fstore = fstore
     installer._sstore = sstore
