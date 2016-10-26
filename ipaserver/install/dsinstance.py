@@ -260,8 +260,9 @@ class DsInstance(service.Service):
         self.step("creating directory server instance", self.__create_instance)
         self.step("enabling ldapi", self.__enable_ldapi)
         self.step("configure autobind for root", self.__root_autobind)
+        self.step("stopping directory server", self.__stop_instance)
         self.step("updating configuration in dse.ldif", self.__update_dse_ldif)
-        self.step("restarting directory server", self.__restart_instance)
+        self.step("starting directory server", self.__start_instance)
         self.step("adding default schema", self.__add_default_schemas)
         self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling winsync plugin", self.__add_winsync_module)
@@ -568,8 +569,6 @@ class DsInstance(service.Service):
         replication on replicas)
         DS must be turned off.
         """
-        self.stop()
-
         dse_filename = os.path.join(
             paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % self.serverid,
             'dse.ldif'
@@ -616,14 +615,18 @@ class DsInstance(service.Service):
             # Does not apply with newer DS releases
             pass
 
+    def start(self, *args, **kwargs):
+        super(DsInstance, self).start(*args, **kwargs)
+        api.Backend.ldap2.connect()
+
     def stop(self, *args, **kwargs):
-        if self.admin_conn:
-            self.ldap_disconnect()
+        if api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.disconnect()
+
         super(DsInstance, self).stop(*args, **kwargs)
 
     def restart(self, instance=''):
-        if self.admin_conn:
-            self.ldap_disconnect()
+        api.Backend.ldap2.disconnect()
         try:
             super(DsInstance, self).restart(instance)
             if not is_ds_running(instance):
@@ -634,6 +637,13 @@ class DsInstance(service.Service):
         except Exception as e:
             # TODO: roll back here?
             root_logger.critical("Failed to restart the directory server (%s). See the installation log for details." % e)
+        api.Backend.ldap2.connect()
+
+    def __start_instance(self):
+        self.start(self.serverid)
+
+    def __stop_instance(self):
+        self.stop(self.serverid)
 
     def __restart_instance(self):
         self.restart(self.serverid)
