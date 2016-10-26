@@ -37,10 +37,6 @@ from ipalib import x509
 from ipalib.util import normalize_hostname, validate_domain_name
 
 
-fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
-
-
 def parse_options():
     def validate_ca_cert_file_option(option, opt, value, parser):
         if not os.path.exists(value):
@@ -227,6 +223,7 @@ def logging_setup(options):
 
 
 def main():
+    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     safe_options, options = parse_options()
 
     if not os.getegid() == 0:
@@ -246,14 +243,14 @@ def main():
     if options.uninstall:
         return client.uninstall(options, env)
 
-    if client.is_ipa_client_installed(on_master=options.on_master):
+    if client.is_ipa_client_installed(fstore, on_master=options.on_master):
         root_logger.error("IPA client is already configured on this system.")
         root_logger.info(
             "If you want to reinstall the IPA client, uninstall it first " +
             "using 'ipa-client-install --uninstall'.")
         return client.CLIENT_ALREADY_CONFIGURED
 
-    rval = client.install(options, env, fstore, statestore)
+    rval = client.install(options, env)
     if rval == client.CLIENT_INSTALL_ERROR:
         if options.force:
             root_logger.warning(

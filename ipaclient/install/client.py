@@ -78,9 +78,6 @@ CLIENT_NOT_CONFIGURED = 2
 CLIENT_ALREADY_CONFIGURED = 3
 CLIENT_UNINSTALL_ERROR = 4  # error after restoring files/state
 
-fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
-
 
 def remove_file(filename):
     """
@@ -122,7 +119,7 @@ def get_cert_path(cert_path):
     return None
 
 
-def save_state(service):
+def save_state(service, statestore):
     enabled = service.is_enabled()
     running = service.is_running()
 
@@ -131,7 +128,7 @@ def save_state(service):
         statestore.backup_state(service.service_name, 'running', running)
 
 
-def restore_state(service):
+def restore_state(service, statestore):
     enabled = statestore.restore_state(service.service_name, 'enabled')
     running = statestore.restore_state(service.service_name, 'running')
 
@@ -224,7 +221,7 @@ def delete_ipa_domain():
             "No access to the /etc/sssd/sssd.conf file.")
 
 
-def is_ipa_client_installed(on_master=False):
+def is_ipa_client_installed(fstore, on_master=False):
     """
     Consider IPA client not installed if nothing is backed up
     and default.conf file does not exist. If on_master is set to True,
@@ -1102,7 +1099,7 @@ def configure_automount(options):
         root_logger.info(result.output_log)
 
 
-def configure_nisdomain(options, domain):
+def configure_nisdomain(options, domain, statestore):
     domain = options.nisdomain or domain
     root_logger.info('Configuring %s as NIS domain.' % domain)
 
@@ -1136,7 +1133,7 @@ def configure_nisdomain(options, domain):
     services.knownservices.domainname.restart()
 
 
-def unconfigure_nisdomain():
+def unconfigure_nisdomain(statestore):
     # Set the nisdomain permanent and current nisdomain configuration as it was
     if statestore.has_state('network'):
         old_nisdomain = statestore.restore_state('network', 'nisdomain') or ''
@@ -1921,7 +1918,10 @@ def purge_host_keytab(realm):
             realm, paths.KRB5_KEYTAB)
 
 
-def install(options, env, fstore, statestore):
+def install(options, env):
+    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
+
     dnsok = False
 
     cli_domain = None
@@ -2656,7 +2656,7 @@ def install(options, env, fstore, statestore):
     # (if installed)
     nscd = services.knownservices.nscd
     if nscd.is_installed():
-        save_state(nscd)
+        save_state(nscd, statestore)
 
         try:
             if options.sssd:
@@ -2700,7 +2700,7 @@ def install(options, env, fstore, statestore):
 
     nslcd = services.knownservices.nslcd
     if nslcd.is_installed():
-        save_state(nslcd)
+        save_state(nslcd, statestore)
 
     retcode, conf = (0, None)
 
@@ -2814,7 +2814,8 @@ def install(options, env, fstore, statestore):
         configure_firefox(options, statestore, cli_domain)
 
     if not options.no_nisdomain:
-        configure_nisdomain(options=options, domain=cli_domain)
+        configure_nisdomain(
+            options=options, domain=cli_domain, statestore=statestore)
 
     root_logger.info('Client configuration complete.')
 
@@ -2822,8 +2823,10 @@ def install(options, env, fstore, statestore):
 
 
 def uninstall(options, env):
+    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
 
-    if not is_ipa_client_installed():
+    if not is_ipa_client_installed(fstore):
         root_logger.error("IPA client is not configured on this system.")
         return CLIENT_NOT_CONFIGURED
 
@@ -3074,14 +3077,14 @@ def uninstall(options, env):
         root_logger.info("Restoring client configuration files")
         fstore.restore_all_files()
 
-    unconfigure_nisdomain()
+    unconfigure_nisdomain(statestore)
 
     nscd = services.knownservices.nscd
     nslcd = services.knownservices.nslcd
 
     for service in (nscd, nslcd):
         if service.is_installed():
-            restore_state(service)
+            restore_state(service, statestore)
         else:
             # this is an optional service, just log
             root_logger.info(
