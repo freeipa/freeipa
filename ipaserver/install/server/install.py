@@ -896,8 +896,6 @@ def install(installer):
             args.append("--no-sshd")
         if options.mkhomedir:
             args.append("--mkhomedir")
-        if options.debug:
-            args.append("--debug")
         run(args, redirect_output=True)
         print()
     except Exception:
