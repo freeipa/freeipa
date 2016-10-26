@@ -473,7 +473,7 @@ class server_del(LDAPDelete):
         ipa_masters = ipa_config['ipa_master_server']
 
         # skip these checks if the last master is being removed
-        if ipa_masters == [hostname]:
+        if len(ipa_masters) <= 1:
             return
 
         if self.api.Command.dns_is_enabled()['result']:
