@@ -203,6 +203,8 @@ class KRAInstaller(KRAInstall):
                     self.options)
                 config.kra_host_name = config.master_host_name
 
+            config.setup_kra = True
+
             if config.subject_base is None:
                 attrs = api.Backend.ldap2.get_ipa_config()
                 config.subject_base = attrs.get('ipacertificatesubjectbase')[0]
