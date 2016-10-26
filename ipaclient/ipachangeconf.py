@@ -49,12 +49,6 @@ def openLocked(filename, perms):
     #      so that we can process multiple sections in one go
     #TODO: add a comment all but provided options as a section option
 class IPAChangeConf(object):
-
-    EMPTY_LINE = {
-        'name': 'empty',
-        'type': 'empty'
-    }
-
     def __init__(self, name):
         self.progname = name
         self.indent = ("", "", "")
@@ -564,3 +558,8 @@ class IPAChangeConf(object):
                 'type': 'section',
                 'action': 'set',
                 'value': options}
+
+    @staticmethod
+    def emptyLine():
+        return {'name': 'empty',
+                'type': 'empty'}
