@@ -263,9 +263,6 @@ class LDAPUpdate(object):
             paths.SLAPD_INSTANCE_SOCKET_TEMPLATE %
             api.env.realm.replace('.', '-')
         )
-        self.ldapuri = 'ldapi://%s' % ipautil.format_netloc(
-            self.socket_name
-        )
         suffix = None
 
         if sub_dict.get("REALM"):
@@ -274,6 +271,7 @@ class LDAPUpdate(object):
             self.realm = api.env.realm
             suffix = ipautil.realm_to_suffix(self.realm) if self.realm else None
 
+        self.ldapuri = installutils.realm_to_ldapi_uri(self.realm)
         if suffix is not None:
             assert isinstance(suffix, DN)
         domain = ipautil.get_domain_name()
@@ -313,7 +311,8 @@ class LDAPUpdate(object):
             self.sub_dict["TOTAL_EXCLUDES"] = "(objectclass=*) $ EXCLUDE " + \
                 " ".join(constants.REPL_AGMT_TOTAL_EXCLUDES)
         self.api = create_api(mode=None)
-        self.api.bootstrap(in_server=True, context='updates')
+        self.api.bootstrap(in_server=True, context='updates',
+                           ldap_uri=self.ldapuri)
         self.api.finalize()
         if online:
             # Try out the connection/password
@@ -869,9 +868,6 @@ class LDAPUpdate(object):
     def create_connection(self):
         if self.online:
             self.api.Backend.ldap2.connect(
-                bind_dn=DN(('cn', 'Directory Manager')),
-                bind_pw=self.dm_password,
-                autobind=self.ldapi,
                 time_limit=UPDATE_SEARCH_TIME_LIMIT,
                 size_limit=0)
             self.conn = self.api.Backend.ldap2
