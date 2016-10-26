@@ -51,7 +51,7 @@ from ipapython.admintool import ScriptError
 from ipapython.ipa_log_manager import root_logger
 from ipalib.util import validate_hostname
 from ipapython import config
-from ipalib import errors, x509
+from ipalib import api, errors, x509
 from ipapython.dn import DN
 from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services
@@ -1399,3 +1399,14 @@ def remove_ccache(ccache_path=None, run_as=None):
     except ipautil.CalledProcessError as e:
         root_logger.warning(
             "Failed to clear Kerberos credentials cache: {}".format(e))
+
+
+def restart_dirsrv(instance_name="", capture_output=True):
+    """
+    Restart Directory server and perform ldap reconnect.
+    """
+    api.Backend.ldap2.disconnect()
+    services.knownservices.dirsrv.restart(instance_name=instance_name,
+                                          capture_output=capture_output,
+                                          wait=True, ldapi=True)
+    api.Backend.ldap2.connect()

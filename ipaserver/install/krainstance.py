@@ -445,7 +445,7 @@ def install_replica_kra(config, postinstall=False):
 
     service.print_msg("Restarting the directory and KRA servers")
     _kra.stop('pki-tomcat')
-    services.knownservices.dirsrv.restart()
+    installutils.restart_dirsrv()
     _kra.start('pki-tomcat')
 
     return _kra

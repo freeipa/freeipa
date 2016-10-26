@@ -215,14 +215,7 @@ def install_step_1(standalone, replica_config, options):
                                   cert, nickname, trust_flags[nickname],
                                   config_ipa=True, config_compat=True)
 
-
-        api.Backend.ldap2.disconnect()
-
-        # Restart DS
-        services.knownservices.dirsrv.restart(serverid)
-
-        api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
-                                  bind_pw=dm_password)
+        installutils.restart_dirsrv()
 
         # Store DS CA cert in Dogtag NSS database
         dogtagdb = certs.CertDB(realm_name, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)

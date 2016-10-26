@@ -35,8 +35,8 @@ from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil, ipaldap
 from ipapython.admintool import ScriptError
 from ipapython.dn import DN
-from ipaplatform import services
 from ipaplatform.paths import paths
+from ipaserver.install import installutils
 
 if six.PY3:
     unicode = str
@@ -130,7 +130,7 @@ def enable_replication_version_checking(realm, dirman_passwd):
         conn.modify_s(entry.dn, [(ldap.MOD_REPLACE, 'nsslapd-pluginenabled', 'on')])
         conn.unbind()
         serverid = "-".join(realm.split("."))
-        services.knownservices.dirsrv.restart(instance_name=serverid)
+        installutils.restart_dirsrv(serverid)
     else:
         conn.unbind()
 

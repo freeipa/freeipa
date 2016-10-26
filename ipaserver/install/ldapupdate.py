@@ -40,7 +40,6 @@ from ipalib import errors
 from ipalib import api, create_api
 from ipalib import constants
 from ipaplatform.paths import paths
-from ipaplatform import services
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
 
@@ -926,6 +925,5 @@ class LDAPUpdate(object):
             self.conn = None
 
     def restart_ds(self):
-        dirsrv = services.knownservices.dirsrv
         self.log.debug('Restarting directory server to apply updates')
-        dirsrv.restart(ldapi=self.ldapi)
+        installutils.restart_dirsrv()

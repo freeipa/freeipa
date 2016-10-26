@@ -721,7 +721,7 @@ class ADTRUSTInstance(service.Service):
 
     def __restart_dirsrv(self):
         try:
-            services.knownservices.dirsrv.restart()
+            installutils.restart_dirsrv()
         except Exception:
             pass
 
