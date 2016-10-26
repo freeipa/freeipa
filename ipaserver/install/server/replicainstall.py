@@ -36,7 +36,7 @@ from ipalib.util import (
 import ipaclient.ipachangeconf
 import ipaclient.ntpconf
 from ipaserver.install import (
-    bindinstance, ca, cainstance, certs, dns, dsinstance, httpinstance,
+    bindinstance, ca, certs, dns, dsinstance, httpinstance,
     installutils, kra, krbinstance, memcacheinstance,
     ntpinstance, otpdinstance, custodiainstance, service)
 from ipaserver.install.installutils import (
@@ -713,13 +713,15 @@ def install_check(installer):
             root_logger.debug('No IPA DNS servers, '
                               'skipping forward/reverse resolution check')
 
+        kra_enabled = remote_api.Command.kra_is_enabled()['result']
+
         if ca_enabled:
             options.realm_name = config.realm_name
             options.host_name = config.host_name
             options.subject = config.subject_base
             ca.install_check(False, config, options)
 
-        if config.setup_kra:
+        if kra_enabled:
             try:
                 kra.install_check(remote_api, config, options)
             except RuntimeError as e:
@@ -763,6 +765,7 @@ def install_check(installer):
             ca_cert_file=cafile)
 
     installer._ca_enabled = ca_enabled
+    installer._kra_enabled = kra_enabled
     installer._remote_api = remote_api
     installer._fstore = fstore
     installer._sstore = sstore
@@ -773,6 +776,7 @@ def install_check(installer):
 def install(installer):
     options = installer
     ca_enabled = installer._ca_enabled
+    kra_enabled = installer._kra_enabled
     fstore = installer._fstore
     sstore = installer._sstore
     config = installer._config
@@ -835,9 +839,6 @@ def install(installer):
     otpd.create_instance('OTPD', config.host_name,
                          ipautil.realm_to_suffix(config.realm_name))
 
-    if ca_enabled:
-        cainstance.export_kra_agent_pem()
-
     custodia = custodiainstance.CustodiaInstance(config.host_name,
                                                  config.realm_name)
     custodia.create_instance()
@@ -850,11 +851,8 @@ def install(installer):
     service.print_msg("Applying LDAP updates")
     ds.apply_updates()
 
-    if options.setup_kra:
+    if kra_enabled:
         kra.install(api, config, options)
-    else:
-        service.print_msg("Restarting the directory server")
-        ds.restart()
 
     service.print_msg("Restarting the KDC")
     krb.restart()
@@ -1276,12 +1274,17 @@ def promote_check(installer):
                                   "custom certificates.")
                 raise ScriptError(rval=3)
 
-        config.kra_host_name = service.find_providing_server(
+        kra_host = service.find_providing_server(
                 'KRA', conn, config.kra_host_name)
-        if options.setup_kra and config.kra_host_name is None:
-            root_logger.error("There is no KRA server in the domain, can't "
-                              "setup a KRA clone")
-            raise ScriptError(rval=3)
+        if kra_host is not None:
+            config.kra_host_name = kra_host
+            kra_enabled = True
+        else:
+            if options.setup_kra:
+                root_logger.error("There is no KRA server in the domain, "
+                                  "can't setup a KRA clone")
+                raise ScriptError(rval=3)
+            kra_enabled = False
 
         if ca_enabled:
             options.realm_name = config.realm_name
@@ -1289,7 +1292,7 @@ def promote_check(installer):
             options.subject = config.subject_base
             ca.install_check(False, config, options)
 
-        if config.setup_kra:
+        if kra_enabled:
             try:
                 kra.install_check(remote_api, config, options)
             except RuntimeError as e:
@@ -1344,6 +1347,7 @@ def promote_check(installer):
         raise RuntimeError("CA cert file is not available.")
 
     installer._ca_enabled = ca_enabled
+    installer._kra_enabled = kra_enabled
     installer._fstore = fstore
     installer._sstore = sstore
     installer._config = config
@@ -1361,6 +1365,7 @@ def promote_check(installer):
 def promote(installer):
     options = installer
     ca_enabled = installer._ca_enabled
+    kra_enabled = installer._kra_enabled
     fstore = installer._fstore
     sstore = installer._sstore
     config = installer._config
@@ -1471,9 +1476,6 @@ def promote(installer):
                                                  config.realm_name)
     custodia.create_replica(config.master_host_name)
 
-    if installer._ca_enabled:
-        cainstance.export_kra_agent_pem()
-
     install_krb(
         config,
         setup_pkinit=not options.no_pkinit,
@@ -1500,7 +1502,7 @@ def promote(installer):
         options.dm_password = config.dirman_password
         ca.install(False, config, options)
 
-    if options.setup_kra:
+    if kra_enabled:
         kra.install(api, config, options)
 
     custodia.import_dm_password(config.master_host_name)
