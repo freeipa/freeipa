@@ -7,13 +7,14 @@ Command line support.
 """
 
 import collections
+import functools
 import optparse
 import signal
 
 import six
 
 from ipapython import admintool, ipa_log_manager
-from ipapython.ipautil import CheckedIPAddress, private_ccache
+from ipapython.ipautil import private_ccache
 
 from . import core, common
 
@@ -91,6 +92,17 @@ def uninstall_tool(configurable_class, command_name, log_file_name,
     )
 
 
+def _option_callback(action, option, opt_str, value, parser, opt_type):
+    try:
+        value = opt_type(value)
+    except ValueError as e:
+        raise optparse.OptionValueError(
+            "option {0}: {1}".format(opt_str, e))
+
+    option.take_action(
+        action, option.dest, opt_str, value, parser.values, parser)
+
+
 class ConfigureTool(admintool.AdminTool):
     configurable_class = None
     debug_option = False
@@ -101,7 +113,7 @@ class ConfigureTool(admintool.AdminTool):
         raise NotImplementedError
 
     @classmethod
-    def add_options(cls, parser):
+    def add_options(cls, parser, positional=False):
         transformed_cls = cls._transform(cls.configurable_class)
 
         if issubclass(transformed_cls, common.Interactive):
@@ -120,7 +132,7 @@ class ConfigureTool(admintool.AdminTool):
 
         for owner_cls, name in transformed_cls.knobs():
             knob_cls = getattr(owner_cls, name)
-            if knob_cls.cli_positional:
+            if knob_cls.cli_positional is not positional:
                 continue
 
             group_cls = owner_cls.group()
@@ -130,15 +142,50 @@ class ConfigureTool(admintool.AdminTool):
                 opt_group = groups[group_cls] = optparse.OptionGroup(
                     parser, "{0} options".format(group_cls.description))
 
-            kwargs = dict()
-            if knob_cls.type is bool:
-                kwargs['type'] = None
+            knob_type = knob_cls.type
+            if isinstance(knob_type, tuple):
+                knob_scalar_type = knob_type[1]
             else:
+                knob_scalar_type = knob_type
+
+            kwargs = dict()
+            if knob_scalar_type is bool:
+                kwargs['type'] = None
+                kwargs['const'] = True
+                kwargs['default'] = False
+            elif knob_scalar_type is str:
                 kwargs['type'] = 'string'
+            elif knob_scalar_type is int:
+                kwargs['type'] = 'int'
+            elif knob_scalar_type is long:
+                kwargs['type'] = 'long'
+            elif knob_scalar_type in ('ip', 'ip-local'):
+                kwargs['type'] = knob_scalar_type
+            elif isinstance(knob_scalar_type, set):
+                kwargs['type'] = 'choice'
+                kwargs['choices'] = list(knob_scalar_type)
+            else:
+                kwargs['nargs'] = 1
+                kwargs['callback_args'] = (knob_scalar_type,)
             kwargs['dest'] = name
-            kwargs['action'] = 'callback'
-            kwargs['callback'] = cls._option_callback
-            kwargs['callback_args'] = (knob_cls,)
+            if isinstance(knob_type, tuple):
+                if 'type' not in kwargs:
+                    kwargs['action'] = 'callback'
+                    kwargs['callback'] = (
+                        functools.partial(_option_callback, 'append'))
+                elif kwargs['type'] is None:
+                    kwargs['action'] = 'append_const'
+                else:
+                    kwargs['action'] = 'append'
+            else:
+                if 'type' not in kwargs:
+                    kwargs['action'] = 'callback'
+                    kwargs['callback'] = (
+                        functools.partial(_option_callback, 'store'))
+                elif kwargs['type'] is None:
+                    kwargs['action'] = 'store_const'
+                else:
+                    kwargs['action'] = 'store'
             if knob_cls.sensitive:
                 kwargs['sensitive'] = True
             if knob_cls.cli_metavar:
@@ -174,109 +221,35 @@ class ConfigureTool(admintool.AdminTool):
         super(ConfigureTool, cls).add_options(parser,
                                               debug_option=cls.debug_option)
 
-    @classmethod
-    def _option_callback(cls, option, opt_str, value, parser, knob_cls):
-        old_value = getattr(parser.values, option.dest, None)
-        try:
-            value = cls._parse_knob(knob_cls, old_value, value)
-        except ValueError as e:
-            raise optparse.OptionValueError(
-                "option {0}: {1}".format(opt_str, e))
-
-        setattr(parser.values, option.dest, value)
-
-    @classmethod
-    def _parse_knob(cls, knob_cls, old_value, value):
-        if knob_cls.type is bool:
-            parse = bool
-            is_list = False
-            value = True
-        else:
-            if isinstance(knob_cls.type, tuple):
-                assert knob_cls.type[0] is list
-                value_type = knob_cls.type[1]
-                is_list = True
-            else:
-                value_type = knob_cls.type
-                is_list = False
-
-            if value_type is int:
-                def parse(value):
-                    try:
-                        return int(value, 0)
-                    except ValueError:
-                        raise ValueError(
-                            "invalid integer value: {0}".format(repr(value)))
-            elif value_type is long:
-                def parse(value):
-                    try:
-                        return long(value, 0)
-                    except ValueError:
-                        raise ValueError(
-                            "invalid long integer value: {0}".format(
-                                repr(value)))
-            elif value_type == 'ip':
-                def parse(value):
-                    try:
-                        return CheckedIPAddress(value)
-                    except Exception as e:
-                        raise ValueError("invalid IP address {0}: {1}".format(
-                            value, e))
-            elif value_type == 'ip-local':
-                def parse(value):
-                    try:
-                        return CheckedIPAddress(value, match_local=True)
-                    except Exception as e:
-                        raise ValueError("invalid IP address {0}: {1}".format(
-                            value, e))
-            elif isinstance(value_type, set):
-                def parse(value):
-                    if value not in value_type:
-                        raise ValueError(
-                            "invalid choice {0} (choose from {1})".format(
-                                repr(value), ', '.join(
-                                    sorted(repr(v) for v in value_type))))
-                    return value
-            else:
-                parse = value_type
-
-        value = parse(value)
-
-        if is_list:
-            old_value = old_value or []
-            old_value.append(value)
-            value = old_value
-
-        return value
-
     def __init__(self, options, args):
         super(ConfigureTool, self).__init__(options, args)
 
         self.transformed_cls = self._transform(self.configurable_class)
         self.positional_arguments = []
-        knob_clss = {}
 
         for owner_cls, name in self.transformed_cls.knobs():
             knob_cls = getattr(owner_cls, name)
             if knob_cls.cli_positional:
                 self.positional_arguments.append(name)
-                knob_clss[name] = knob_cls
+
+        parser = optparse.OptionParser()
+        self.add_options(parser, True)
+
+        option_map = {option.dest: option
+                      for group in parser.option_groups
+                      for option in group.option_list}
 
         for index, name in enumerate(self.positional_arguments):
-            knob_cls = knob_clss[name]
             try:
                 value = self.args.pop(0)
             except IndexError:
                 break
 
-            old_value = getattr(self.options, name, None)
-            try:
-                value = self._parse_knob(knob_cls, old_value, value)
-            except ValueError as e:
-                self.option_parser.error(
-                    "argument {0}: {1}".format(index + 1, e))
-
-            setattr(self.options, name, value)
+            option = option_map[name]
+            option.process('argument {}'.format(index + 1),
+                           value,
+                           self.options,
+                           self.option_parser)
 
     def validate_options(self, needs_root=True):
         super(ConfigureTool, self).validate_options(needs_root=needs_root)
@@ -349,8 +322,8 @@ class InstallTool(ConfigureTool):
     _transform = staticmethod(common.installer)
 
     @classmethod
-    def add_options(cls, parser):
-        super(InstallTool, cls).add_options(parser)
+    def add_options(cls, parser, positional=False):
+        super(InstallTool, cls).add_options(parser, positional)
 
         if cls.uninstall_kwargs is not None:
             uninstall_group = optparse.OptionGroup(parser, "uninstall options")
