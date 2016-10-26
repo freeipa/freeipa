@@ -1551,6 +1551,7 @@ def promote(installer):
         dns.install(False, True, options, server_api)
     else:
         server_api.Command.dns_update_system_records()
+    server_api.Backend.ldap2.disconnect()
 
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()
