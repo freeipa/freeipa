@@ -37,7 +37,7 @@ import ipaclient.ipachangeconf
 import ipaclient.ntpconf
 from ipaserver.install import (
     bindinstance, ca, cainstance, certs, dns, dsinstance, httpinstance,
-    installutils, kra, krainstance, krbinstance, memcacheinstance,
+    installutils, kra, krbinstance, memcacheinstance,
     ntpinstance, otpdinstance, custodiainstance, service)
 from ipaserver.install.installutils import (
     create_replica_config, ReplicaConfig, load_pkcs12, is_ipa_configured)
@@ -1510,14 +1510,7 @@ def promote(installer):
         ca.install(False, config, options)
 
     if options.setup_kra:
-        ca_data = (os.path.join(config.dir, 'kracert.p12'),
-                   config.dirman_password)
-        custodia.get_kra_keys(config.kra_host_name, ca_data[0], ca_data[1])
-
-        kra = krainstance.KRAInstance(config.realm_name)
-        kra.configure_replica(config.host_name, config.kra_host_name,
-                              config.dirman_password,
-                              kra_cert_bundle=ca_data)
+        kra.install(api, config, options)
 
     custodia.import_dm_password(config.master_host_name)
 

@@ -3,6 +3,7 @@
 #
 
 import os
+import shutil
 
 from ipalib import api, errors
 from ipaplatform import services
@@ -59,37 +60,52 @@ def install_check(api, replica_config, options):
 
 
 def install(api, replica_config, options):
-    subject = dsinstance.DsInstance().find_subject_base()
     if replica_config is None:
-        kra = krainstance.KRAInstance(api.env.realm)
-        kra.configure_instance(
-            api.env.realm, api.env.host, options.dm_password,
-            options.dm_password, subject_base=subject)
+        realm_name = api.env.realm
+        dm_password = options.dm_password
+        host_name = api.env.host
+        subject_base = dsinstance.DsInstance().find_subject_base()
+
+        pkcs12_info = None
+        master_host = None
+        promote = False
     else:
+        krafile = os.path.join(replica_config.dir, 'kracert.p12')
         if options.promote:
-            ca_data = (os.path.join(replica_config.dir, 'kracert.p12'),
-                       replica_config.dirman_password)
-
             custodia = custodiainstance.CustodiaInstance(
-                replica_config.host_name, replica_config.realm_name)
-            custodia.get_kra_keys(replica_config.kra_host_name,
-                                  ca_data[0], ca_data[1])
-
-            kra = krainstance.KRAInstance(replica_config.realm_name)
-            kra.configure_replica(replica_config.host_name,
-                                  replica_config.kra_host_name,
-                                  replica_config.dirman_password,
-                                  kra_cert_bundle=ca_data)
-            return
-
+                replica_config.host_name,
+                replica_config.realm_name)
+            custodia.get_kra_keys(
+                replica_config.kra_host_name,
+                krafile,
+                replica_config.dirman_password)
         else:
-            kra = krainstance.install_replica_kra(replica_config)
+            cafile = os.path.join(replica_config.dir, 'cacert.p12')
+            if not ipautil.file_exists(cafile):
+                raise RuntimeError(
+                    "Unable to clone KRA."
+                    "  cacert.p12 file not found in replica file")
+            shutil.copy(cafile, krafile)
+
+        realm_name = replica_config.realm_name
+        dm_password = replica_config.dirman_password
+        host_name = replica_config.host_name
+        subject_base = replica_config.subject_base
+
+        pkcs12_info = (krafile,)
+        master_host = replica_config.kra_host_name
+        promote = options.promote
+
+    kra = krainstance.KRAInstance(realm_name)
+    kra.configure_instance(realm_name, host_name, dm_password, dm_password,
+                           subject_base=subject_base,
+                           pkcs12_info=pkcs12_info,
+                           master_host=master_host,
+                           promote=promote)
 
     service.print_msg("Restarting the directory server")
     ds = dsinstance.DsInstance()
     ds.restart()
-
-    kra.ldap_enable('KRA', api.env.host, options.dm_password, api.env.basedn)
 
     kra.enable_client_auth_to_db(paths.KRA_CS_CFG_PATH)
 
