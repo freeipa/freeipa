@@ -31,7 +31,7 @@ if __name__ == '__main__':
     ipasetup(
         name="ipapython",
         doc=__doc__,
-        package_dir={'ipapython': ''},
+        setupfile=__file__,
         packages=[
             "ipapython",
             "ipapython.dnssec",

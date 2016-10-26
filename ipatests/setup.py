@@ -31,7 +31,7 @@ if __name__ == '__main__':
     ipasetup(
         name="ipatests",
         doc=__doc__,
-        package_dir={'ipatests': ''},
+        setupfile=__file__,
         packages=[
             "ipatests",
             "ipatests.pytest_plugins",

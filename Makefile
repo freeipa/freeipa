@@ -131,6 +131,7 @@ pylint: bootstrap-autogen
 	FILES=`find . \
 		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
 		-path '*/.*' -o \
+		-path '*/build/*' -o \
 		-path './dist/*' -o \
 		-path './lextab.py' -o \
 		-path './yacctab.py' -o \
@@ -166,7 +167,7 @@ ipasetup.py: ipasetup.py.in FORCE
 	sed -e s/__VERSION__/$(IPA_VERSION)/ $< > $@
 
 .PHONY: egg_info
-egg_info: ipapython/version.py ipaplatform/__init__.py ipasetup.py
+egg_info: ipapython/version.py ipasetup.py
 	for directory in $(PYPKGDIRS); do \
 	    pushd $${directory} ; \
 	    $(PYTHON) setup.py egg_info $(EXTRA_SETUP); \
