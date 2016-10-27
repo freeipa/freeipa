@@ -245,9 +245,11 @@ dnl - Check for systemd unit directory
 dnl ---------------------------------------------------------------------------
 PKG_CHECK_EXISTS([systemd], [], [AC_MSG_ERROR([systemd not found])])
 AC_ARG_WITH([systemdsystemunitdir],
-            AS_HELP_STRING([--with-systemdsystemunitdir=DIR], [Directory for systemd service files]),
-            [], [with_systemdsystemunitdir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)])
-AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])
+            AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
+			   [Directory for systemd service files]),
+            [systemdsystemunitdir=$with_systemdsystemunitdir],
+	    [systemdsystemunitdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=systemdsystemunitdir systemd)])
+AC_SUBST([systemdsystemunitdir])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for program paths
