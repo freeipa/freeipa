@@ -613,7 +613,8 @@ def hardcode_ldap_server(cli_server):
 
 def configure_krb5_conf(
         cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
-        options, filename, client_domain, client_hostname):
+        filename, client_domain, client_hostname, force=False,
+        configure_sssd=True):
 
     krbconf = IPAChangeConf("IPA Installer")
     krbconf.setOptionAssignment((" = ", " "))
@@ -637,7 +638,7 @@ def configure_krb5_conf(
     ]
 
     # SSSD include dir
-    if options.sssd:
+    if configure_sssd:
         opts.extend([
             {
                 'name': 'includedir',
@@ -651,7 +652,7 @@ def configure_krb5_conf(
     libopts = [
         krbconf.setOption('default_realm', cli_realm)
     ]
-    if not dnsok or not cli_kdc or options.force:
+    if not dnsok or not cli_kdc or force:
         libopts.extend([
             krbconf.setOption('dns_lookup_realm', 'false'),
             krbconf.setOption('dns_lookup_kdc', 'false')
@@ -681,7 +682,7 @@ def configure_krb5_conf(
 
     # the following are necessary only if DNS discovery does not work
     kropts = []
-    if not dnsok or not cli_kdc or options.force:
+    if not dnsok or not cli_kdc or force:
         # [realms]
         for server in cli_server:
             kropts.extend([
@@ -1901,6 +1902,25 @@ def configure_firefox(options, statestore, domain):
         root_logger.error("Firefox configuration failed.")
 
 
+def purge_host_keytab(realm):
+    try:
+        ipautil.run([
+            paths.IPA_RMKEYTAB,
+            '-k', paths.KRB5_KEYTAB, '-r', realm
+        ])
+    except CalledProcessError as e:
+        if e.returncode not in (3, 5):
+            # 3 - Unable to open keytab
+            # 5 - Principal name or realm not found in keytab
+            root_logger.error(
+                "Error trying to clean keytab: "
+                "/usr/sbin/ipa-rmkeytab returned %s", e.returncode)
+    else:
+        root_logger.info(
+            "Removed old keys for realm %s from %s",
+            realm, paths.KRB5_KEYTAB)
+
+
 def install(options, env, fstore, statestore):
     dnsok = False
 
@@ -2222,22 +2242,7 @@ def install(options, env, fstore, statestore):
 
     if not options.on_master:
         # Try removing old principals from the keytab
-        try:
-            ipautil.run([
-                paths.IPA_RMKEYTAB,
-                '-k', paths.KRB5_KEYTAB, '-r', cli_realm
-            ])
-        except CalledProcessError as e:
-            if e.returncode not in (3, 5):
-                # 3 - Unable to open keytab
-                # 5 - Principal name or realm not found in keytab
-                root_logger.error(
-                    "Error trying to clean keytab: "
-                    "/usr/sbin/ipa-rmkeytab returned %s", e.returncode)
-        else:
-            root_logger.info(
-                "Removed old keys for realm %s from %s",
-                cli_realm, paths.KRB5_KEYTAB)
+        purge_host_keytab(cli_realm)
 
     if options.hostname and not options.on_master:
         # skip this step when run by ipa-server-install as it always configures
@@ -2299,10 +2304,11 @@ def install(options, env, fstore, statestore):
                 cli_server=cli_server,
                 cli_kdc=cli_kdc,
                 dnsok=False,
-                options=options,
                 filename=krb_name,
                 client_domain=client_domain,
-                client_hostname=hostname)
+                client_hostname=hostname,
+                configure_sssd=options.sssd,
+                force=options.force)
             env['KRB5_CONFIG'] = krb_name
             ccache_dir = tempfile.mkdtemp(prefix='krbcc')
             ccache_name = os.path.join(ccache_dir, 'ccache')
@@ -2508,10 +2514,11 @@ def install(options, env, fstore, statestore):
                 cli_server=cli_server,
                 cli_kdc=cli_kdc,
                 dnsok=dnsok,
-                options=options,
                 filename=paths.KRB5_CONF,
                 client_domain=client_domain,
-                client_hostname=hostname)
+                client_hostname=hostname,
+                configure_sssd=options.sssd,
+                force=options.force)
 
             root_logger.info(
                 "Configured /etc/krb5.conf for IPA realm %s", cli_realm)
