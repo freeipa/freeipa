@@ -153,7 +153,7 @@ class ldap2(CrudBackend, LDAPClient):
         Extends backend.Connectible.create_connection.
         """
         if bind_dn is None:
-            bind_dn = DN()
+            bind_dn = DN(('cn', 'directory manager'))
         assert isinstance(bind_dn, DN)
         if tls_cacertfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
