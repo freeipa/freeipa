@@ -29,7 +29,6 @@ try:
     from ipapython import ipautil, config
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate
-    from ipaserver.plugins.ldap2 import ldap2
     from ipalib import api, errors
     from ipapython.ipa_log_manager import standard_logging_setup
     from ipapython.dn import DN
@@ -71,14 +70,14 @@ def get_dirman_password():
 
     return password
 
-def get_entry(dn, conn):
+def get_entry(dn):
     """
     Return the entry for the given DN. If the entry is not found return
     None.
     """
     entry = None
     try:
-        entry = conn.get_entry(dn)
+        entry = api.Backend.ldap2.get_entry(dn)
     except errors.NotFound:
         pass
     return entry
@@ -118,100 +117,87 @@ def main():
 
     api.bootstrap(context='cli', debug=options.debug, in_server=True)
     api.finalize()
+    api.Backend.ldap2.connect(bind_pw=dirman_password)
 
-    conn = None
-    try:
+    if args[0] == "enable":
+        compat = get_entry(compat_dn)
+        if compat is None or compat.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
+            sys.exit("The compat plugin needs to be enabled: ipa-compat-manage enable")
+        entry = None
         try:
-            conn = ldap2(api)
-            conn.connect(
-                bind_dn=DN(('cn', 'directory manager')), bind_pw=dirman_password
-            )
+            entry = get_entry(nis_config_dn)
         except errors.ExecutionError as lde:
-            sys.exit("An error occurred while connecting to the server: %s" % str(lde))
-        except errors.AuthorizationError:
-            sys.exit("Incorrect password")
-
-        if args[0] == "enable":
-            compat = get_entry(compat_dn, conn)
-            if compat is None or compat.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
-                sys.exit("The compat plugin needs to be enabled: ipa-compat-manage enable")
-            entry = None
-            try:
-                entry = get_entry(nis_config_dn, conn)
-            except errors.ExecutionError as lde:
-                print("An error occurred while talking to the server.")
-                print(lde)
-                retval = 1
-
-            # Enable either the portmap or rpcbind service
-            portmap = services.knownservices.portmap
-            rpcbind = services.knownservices.rpcbind
-
-            if portmap.is_installed():
-                portmap.enable()
-                servicemsg = portmap.service_name
-            elif rpcbind.is_installed():
-                rpcbind.enable()
-                servicemsg = rpcbind.service_name
-            else:
-                print("Unable to enable either %s or %s" % (portmap.service_name, rpcbind.service_name))
-                retval = 3
-
-            # The cn=config entry for the plugin may already exist but it
-            # could be turned off, handle both cases.
-            if entry is None:
-                print("Enabling plugin")
-                ld = LDAPUpdate(dm_password=dirman_password, sub_dict={}, ldapi=True)
-                if ld.update(files) != True:
-                    retval = 1
-            elif entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
-                print("Enabling plugin")
-                # Already configured, just enable the plugin
-                entry['nsslapd-pluginenabled'] = ['on']
-                conn.update_entry(entry)
-            else:
-                print("Plugin already Enabled")
-                retval = 2
-
-        elif args[0] == "disable":
-            try:
-                entry = conn.get_entry(nis_config_dn, ['nsslapd-pluginenabled'])
-                entry['nsslapd-pluginenabled'] = ['off']
-                conn.update_entry(entry)
-            except (errors.NotFound, errors.EmptyModlist):
-                print("Plugin is already disabled")
-                retval = 2
-            except errors.LDAPError as lde:
-                print("An error occurred while talking to the server.")
-                print(lde)
-                retval = 1
-
-        elif args[0] == "status":
-            nis_entry = get_entry(nis_config_dn, conn)
-            enabled = (nis_entry and
-                       nis_entry.get(
-                           'nsslapd-pluginenabled', '')[0].lower() == "on")
-            if enabled:
-                print("Plugin is enabled")
-                retval = 0
-            else:
-                print("Plugin is not enabled")
-                retval = 4
-
-        else:
+            print("An error occurred while talking to the server.")
+            print(lde)
             retval = 1
 
-        if retval == 0:
-            if args[0] in {"enable", "disable"}:
-                print("This setting will not take effect until you restart "
-                      "Directory Server.")
+        # Enable either the portmap or rpcbind service
+        portmap = services.knownservices.portmap
+        rpcbind = services.knownservices.rpcbind
 
-            if args[0] == "enable":
-                print("The %s service may need to be started." % servicemsg)
+        if portmap.is_installed():
+            portmap.enable()
+            servicemsg = portmap.service_name
+        elif rpcbind.is_installed():
+            rpcbind.enable()
+            servicemsg = rpcbind.service_name
+        else:
+            print("Unable to enable either %s or %s" % (portmap.service_name, rpcbind.service_name))
+            retval = 3
 
-    finally:
-        if conn and conn.isconnected():
-            conn.disconnect()
+        # The cn=config entry for the plugin may already exist but it
+        # could be turned off, handle both cases.
+        if entry is None:
+            print("Enabling plugin")
+            ld = LDAPUpdate(dm_password=dirman_password, sub_dict={}, ldapi=True)
+            if ld.update(files) != True:
+                retval = 1
+        elif entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
+            print("Enabling plugin")
+            # Already configured, just enable the plugin
+            entry['nsslapd-pluginenabled'] = ['on']
+            api.Backend.ldap2.update_entry(entry)
+        else:
+            print("Plugin already Enabled")
+            retval = 2
+
+    elif args[0] == "disable":
+        try:
+            entry = api.Backend.ldap2.get_entry(nis_config_dn, ['nsslapd-pluginenabled'])
+            entry['nsslapd-pluginenabled'] = ['off']
+            api.Backend.ldap2.update_entry(entry)
+        except (errors.NotFound, errors.EmptyModlist):
+            print("Plugin is already disabled")
+            retval = 2
+        except errors.LDAPError as lde:
+            print("An error occurred while talking to the server.")
+            print(lde)
+            retval = 1
+
+    elif args[0] == "status":
+        nis_entry = get_entry(nis_config_dn)
+        enabled = (nis_entry and
+                   nis_entry.get(
+                       'nsslapd-pluginenabled', '')[0].lower() == "on")
+        if enabled:
+            print("Plugin is enabled")
+            retval = 0
+        else:
+            print("Plugin is not enabled")
+            retval = 4
+
+    else:
+        retval = 1
+
+    if retval == 0:
+        if args[0] in {"enable", "disable"}:
+            print("This setting will not take effect until you restart "
+                  "Directory Server.")
+
+        if args[0] == "enable":
+            print("The %s service may need to be started." % servicemsg)
+
+    api.Backend.ldap2.disconnect()
 
     return retval
 

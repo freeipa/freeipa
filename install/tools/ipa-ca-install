@@ -33,7 +33,6 @@ from ipaserver.install import cainstance, custodiainstance, service
 from ipapython import version
 from ipalib import api
 from ipalib.constants import DOMAIN_LEVEL_0
-from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipaplatform.paths import paths
@@ -156,17 +155,13 @@ def install_replica(safe_options, options, filename):
     REPLICA_INFO_TOP_DIR = config.top_dir
     config.setup_ca = True
 
-    conn = api.Backend.ldap2
-    conn.connect(bind_dn=DN(('cn', 'Directory Manager')),
-                            bind_pw=dirman_password)
-
     if config.subject_base is None:
-        attrs = conn.get_ipa_config()
+        attrs = api.Backend.ldap2.get_ipa_config()
         config.subject_base = attrs.get('ipacertificatesubjectbase')[0]
 
     if config.master_host_name is None:
         config.ca_host_name = \
-            service.find_providing_server('CA', conn, api.env.ca_host)
+            service.find_providing_server('CA', api.Backend.ldap2, api.env.ca_host)
         config.master_host_name = config.ca_host_name
     else:
         config.ca_host_name = config.master_host_name
@@ -216,9 +211,6 @@ def install_master(safe_options, options):
         if dm_password is None:
             sys.exit("Directory Manager password required")
 
-    api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
-                              bind_pw=dm_password)
-
     config = api.Command['config_show']()['result']
     subject_base = config['ipacertificatesubjectbase'][0]
 
@@ -262,10 +254,7 @@ def promote(safe_options, options, filename):
             paths.KRB5_KEYTAB,
             ccache)
 
-        conn = api.Backend.ldap2
-        conn.connect(ccache=ccache)
-        ca_host = service.find_providing_server('CA', conn)
-        conn.disconnect()
+        ca_host = service.find_providing_server('CA', api.Backend.ldap2)
         if ca_host is None:
             install_master(safe_options, options)
         else:
@@ -294,6 +283,7 @@ def main():
     # functional dogtag backend plugins during CA install
     api.bootstrap(in_server=True, ra_plugin='dogtag')
     api.finalize()
+    api.Backend.ldap2.connect()
 
     domain_level = dsinstance.get_domain_level(api)
     if domain_level > DOMAIN_LEVEL_0:
@@ -304,6 +294,8 @@ def main():
     # execute ipactl to refresh services status
     ipautil.run(['ipactl', 'start', '--ignore-service-failures'],
                 raiseonerr=False)
+
+    api.Backend.ldap2.disconnect()
 
 fail_message = '''
 Your system may be partly configured.

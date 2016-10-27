@@ -101,6 +101,7 @@ class LDAPUpdater_Upgrade(LDAPUpdater):
 
     def run(self):
         super(LDAPUpdater_Upgrade, self).run()
+        api.Backend.ldap2.connect()
         options = self.options
 
         realm = api.env.realm
@@ -120,12 +121,15 @@ class LDAPUpdater_Upgrade(LDAPUpdater):
             else:
                 self.log.info('Update complete, no data were modified')
 
+        api.Backend.ldap2.disconnect()
+
 
 class LDAPUpdater_NonUpgrade(LDAPUpdater):
     log_file_name = paths.IPAUPGRADE_LOG
 
     def run(self):
         super(LDAPUpdater_NonUpgrade, self).run()
+        api.Backend.ldap2.connect()
         options = self.options
 
         modified = False
@@ -148,3 +152,5 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
             self.log.info('Update complete')
         else:
             self.log.info('Update complete, no data were modified')
+
+        api.Backend.ldap2.disconnect()
