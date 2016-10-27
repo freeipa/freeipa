@@ -245,8 +245,9 @@ def install_step_1(standalone, replica_config, options):
 
     ca.start('pki-tomcat')
 
-    # We need to restart apache as we drop a new config file in there
-    services.knownservices.httpd.restart(capture_output=True)
+    if standalone or replica_config is not None:
+        # We need to restart apache as we drop a new config file in there
+        services.knownservices.httpd.restart(capture_output=True)
 
     if standalone:
         # Install CA DNS records
