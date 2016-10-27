@@ -43,4 +43,18 @@ if __name__ == '__main__':
             "ipaclient.remote_plugins.2_156",
             "ipaclient.remote_plugins.2_164",
         ],
+        install_requires=[
+            "cryptography",
+            "ipalib",
+            "ipapython",
+            "python-nss",
+            "qrcode",
+            "six",
+        ],
+        setup_requires=[
+            "wheel",
+        ],
+        extra_requires={
+            "otptoken_yubikey": ["yubico", "usb"]
+        }
     )
