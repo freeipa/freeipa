@@ -115,10 +115,8 @@ class KnobBase(PropertyBase):
     sensitive = False
     deprecated = False
     description = None
-    cli_positional = False
-    cli_name = None
-    cli_short_name = None
-    cli_aliases = None
+    cli_names = (None,)
+    cli_deprecated_names = ()
     cli_metavar = None
 
     def __init__(self, outer):
@@ -126,6 +124,11 @@ class KnobBase(PropertyBase):
 
     def validate(self, value):
         pass
+
+    @classmethod
+    def is_cli_positional(cls):
+        return all(n is not None and not n.startswith('-')
+                   for n in cls.cli_names)
 
     @classmethod
     def default_getter(cls, func):
@@ -147,11 +150,20 @@ class KnobBase(PropertyBase):
 
 
 def knob(type_or_base, default=_missing, sensitive=_missing,
-         deprecated=_missing, description=_missing, cli_positional=_missing,
-         cli_name=_missing, cli_short_name=_missing, cli_aliases=_missing,
-         cli_metavar=_missing):
+         deprecated=_missing, description=_missing, cli_names=_missing,
+         cli_deprecated_names=_missing, cli_metavar=_missing):
     if type_or_base is None:
         type_or_base = NoneType
+
+    if cli_names is None or isinstance(cli_names, str):
+        cli_names = (cli_names,)
+    elif cli_names is not _missing:
+        cli_names = tuple(cli_names)
+
+    if isinstance(cli_deprecated_names, str):
+        cli_deprecated_names = (cli_deprecated_names,)
+    elif cli_deprecated_names is not _missing:
+        cli_deprecated_names = tuple(cli_deprecated_names)
 
     assert isinstance(type_or_base, type)
 
@@ -170,14 +182,10 @@ def knob(type_or_base, default=_missing, sensitive=_missing,
         class_dict['deprecated'] = deprecated
     if description is not _missing:
         class_dict['description'] = description
-    if cli_positional is not _missing:
-        class_dict['cli_positional'] = cli_positional
-    if cli_name is not _missing:
-        class_dict['cli_name'] = cli_name
-    if cli_short_name is not _missing:
-        class_dict['cli_short_name'] = cli_short_name
-    if cli_aliases is not _missing:
-        class_dict['cli_aliases'] = cli_aliases
+    if cli_names is not _missing:
+        class_dict['cli_names'] = cli_names
+    if cli_deprecated_names is not _missing:
+        class_dict['cli_deprecated_names'] = cli_deprecated_names
     if cli_metavar is not _missing:
         class_dict['cli_metavar'] = cli_metavar
 
@@ -185,7 +193,7 @@ def knob(type_or_base, default=_missing, sensitive=_missing,
 
 
 def Knob(type_or_base, default=_missing, sensitive=_missing,
-         deprecated=_missing, description=_missing, cli_positional=_missing,
+         deprecated=_missing, description=_missing, cli_positional=False,
          cli_name=_missing, cli_short_name=_missing, cli_aliases=_missing,
          cli_metavar=_missing):
     if isinstance(type_or_base, tuple):
@@ -209,15 +217,56 @@ def Knob(type_or_base, default=_missing, sensitive=_missing,
     else:
         type_or_base = scalar_type
 
+    if cli_name is not _missing or cli_short_name is not _missing:
+        if cli_positional and cli_name is not _missing:
+            cli_positional_name = [cli_name]
+        elif issubclass(type_or_base, KnobBase):
+            cli_positional_name = [
+                n for n in type_or_base.cli_names   # pylint: disable=no-member
+                if n is not None and n[:1] != '-'
+            ]
+        else:
+            cli_positional_name = []
+
+        if cli_short_name is not _missing:
+            cli_short_name = ['-{}'.format(cli_short_name)]
+        elif issubclass(type_or_base, KnobBase):
+            cli_short_name = [
+                n for n in type_or_base.cli_names   # pylint: disable=no-member
+                if n is not None and n[:1] == '-' and n[:2] != '--'
+            ]
+        else:
+            cli_short_name = []
+
+        if not cli_positional:
+            if cli_name is not _missing:
+                cli_long_name = ['--{}'.format(cli_name)]
+            else:
+                cli_long_name = [None]
+        elif issubclass(type_or_base, KnobBase):
+            cli_long_name = [
+                n for n in type_or_base.cli_names   # pylint: disable=no-member
+                if n is None or n[:2] == '--'
+            ]
+        else:
+            cli_long_name = []
+
+        cli_names = cli_positional_name + cli_short_name + cli_long_name
+    else:
+        cli_names = _missing
+
+    if cli_aliases is not _missing:
+        cli_deprecated_names = ['--{}'.format(n) for n in cli_aliases]
+    else:
+        cli_deprecated_names = _missing
+
     return knob(type_or_base,
                 default=default,
                 sensitive=sensitive,
                 deprecated=deprecated,
                 description=description,
-                cli_positional=cli_positional,
-                cli_name=cli_name,
-                cli_short_name=cli_short_name,
-                cli_aliases=cli_aliases,
+                cli_names=cli_names,
+                cli_deprecated_names=cli_deprecated_names,
                 cli_metavar=cli_metavar)
 
 

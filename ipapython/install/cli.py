@@ -32,11 +32,11 @@ def _get_usage(configurable_class):
 
     for owner_cls, name in configurable_class.knobs():
         knob_cls = getattr(owner_cls, name)
-        if knob_cls.cli_positional:
+        if knob_cls.is_cli_positional():
             if knob_cls.cli_metavar is not None:
                 metavar = knob_cls.cli_metavar
-            elif knob_cls.cli_name is not None:
-                metavar = knob_cls.cli_name.upper()
+            elif knob_cls.cli_names:
+                metavar = knob_cls.cli_names[0].upper()
             else:
                 metavar = name.replace('_', '-').upper()
 
@@ -135,7 +135,7 @@ class ConfigureTool(admintool.AdminTool):
 
         for owner_cls, name in transformed_cls.knobs():
             knob_cls = getattr(owner_cls, name)
-            if knob_cls.cli_positional is not positional:
+            if knob_cls.is_cli_positional() is not positional:
                 continue
 
             group_cls = owner_cls.group()
@@ -198,27 +198,32 @@ class ConfigureTool(admintool.AdminTool):
             if knob_cls.cli_metavar:
                 kwargs['metavar'] = knob_cls.cli_metavar
 
-            if knob_cls.cli_short_name:
-                short_opt_str = '-{0}'.format(knob_cls.cli_short_name)
+            if not positional:
+                cli_info = (
+                    (knob_cls.deprecated, knob_cls.cli_names),
+                    (True, knob_cls.cli_deprecated_names),
+                )
             else:
-                short_opt_str = ''
-            cli_name = knob_cls.cli_name or name.replace('_', '-')
-            opt_str = '--{0}'.format(cli_name)
-            if not knob_cls.deprecated:
-                help = knob_cls.description
-            else:
-                help = optparse.SUPPRESS_HELP
-            opt_group.add_option(
-                short_opt_str, opt_str,
-                help=help,
-                **kwargs
-            )
+                cli_info = (
+                    (knob_cls.deprecated, (None,)),
+                )
+            for hidden, cli_names in cli_info:
+                opt_strs = []
+                for cli_name in cli_names:
+                    if cli_name is None:
+                        cli_name = '--{}'.format(name.replace('_', '-'))
+                    opt_strs.append(cli_name)
+                if not opt_strs:
+                    continue
 
-            if knob_cls.cli_aliases:
-                opt_strs = ['--{0}'.format(a) for a in knob_cls.cli_aliases]
+                if not hidden:
+                    help = knob_cls.description
+                else:
+                    help = optparse.SUPPRESS_HELP
+
                 opt_group.add_option(
                     *opt_strs,
-                    help=optparse.SUPPRESS_HELP,
+                    help=help,
                     **kwargs
                 )
 
@@ -236,15 +241,17 @@ class ConfigureTool(admintool.AdminTool):
 
         for owner_cls, name in self.transformed_cls.knobs():
             knob_cls = getattr(owner_cls, name)
-            if knob_cls.cli_positional:
+            if knob_cls.is_cli_positional():
                 self.positional_arguments.append(name)
 
-        parser = optparse.OptionParser()
-        self.add_options(parser, True)
+        # fake option parser to parse positional arguments
+        # (because optparse does not support positional argument parsing)
+        fake_option_parser = optparse.OptionParser()
+        self.add_options(fake_option_parser, True)
 
-        option_map = {option.dest: option
-                      for group in parser.option_groups
-                      for option in group.option_list}
+        fake_option_map = {option.dest: option
+                           for group in fake_option_parser.option_groups
+                           for option in group.option_list}
 
         for index, name in enumerate(self.positional_arguments):
             try:
@@ -252,11 +259,11 @@ class ConfigureTool(admintool.AdminTool):
             except IndexError:
                 break
 
-            option = option_map[name]
-            option.process('argument {}'.format(index + 1),
-                           value,
-                           self.options,
-                           self.option_parser)
+            fake_option = fake_option_map[name]
+            fake_option.process('argument {}'.format(index + 1),
+                                value,
+                                self.options,
+                                self.option_parser)
 
     def validate_options(self, needs_root=True):
         super(ConfigureTool, self).validate_options(needs_root=needs_root)
@@ -300,7 +307,7 @@ class ConfigureTool(admintool.AdminTool):
             try:
                 index = self.positional_arguments.index(e.name)
             except ValueError:
-                cli_name = knob_cls.cli_name or e.name.replace('_', '-')
+                cli_name = knob_cls.cli_names[0] or e.name.replace('_', '-')
                 desc = "option --{0}".format(cli_name)
             else:
                 desc = "argument {0}".format(index + 1)
