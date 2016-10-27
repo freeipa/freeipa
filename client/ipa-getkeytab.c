@@ -46,6 +46,30 @@
 
 #define DEFAULT_CA_CERT_FILE "/etc/ipa/ca.crt"
 
+#define LDAP_SASL_EXTERNAL "EXTERNAL"
+#define LDAP_SASL_GSSAPI "GSSAPI"
+
+#define SCHEMA_LDAP "ldap://"
+#define SCHEMA_LDAPS "ldaps://"
+
+static int check_sasl_mech(const char *mech)
+{
+    int i;
+    int ret = 1;
+    const char *supported_sasl_mechs[] = {
+        LDAP_SASL_EXTERNAL,
+        LDAP_SASL_GSSAPI,
+        NULL
+    };
+
+    for (i=0; NULL != supported_sasl_mechs[i]; i++) {
+        if (strcmp(mech, supported_sasl_mechs[i]) == 0) {
+            return 0;
+        }
+    }
+    return ret;
+}
+
 static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *sit)
 {
 	sasl_interact_t *in = NULL;
@@ -137,60 +161,81 @@ int filter_keys(krb5_context krbctx, struct keys_container *keys,
     return n;
 }
 
-static int ipa_ldap_init(LDAP ** ld, const char * scheme, const char * servername, const int  port)
+static int ipa_server_to_uri(const char *servername, const char *mech,
+                             char **ldap_uri)
 {
-	char* url = NULL;
-	int  url_len = snprintf(url,0,"%s://%s:%d",scheme,servername,port) +1;
+    char *url = NULL;
+    int url_len = 0;
+    int port = 389;
 
-	url = (char *)malloc (url_len);
-	if (!url){
-		fprintf(stderr, _("Out of memory \n"));
-		return LDAP_NO_MEMORY;
-	}
-	sprintf(url,"%s://%s:%d",scheme,servername,port);
-	int rc = ldap_initialize(ld, url);
+    url_len = asprintf(&url, "%s%s:%d", SCHEMA_LDAP, servername, port);
 
-	free(url);
-	return rc;
+    if (url_len == -1) {
+        fprintf(stderr, _("Out of memory \n"));
+        return LDAP_NO_MEMORY;
+    }
+    *ldap_uri = url;
+    return 0;
 }
 
-static int ipa_ldap_bind(const char *server_name, krb5_principal bind_princ,
+static int ipa_ldap_init(LDAP **ld, const char *ldap_uri)
+{
+    int rc = 0;
+    rc = ldap_initialize(ld, ldap_uri);
+
+    return rc;
+}
+
+static int ipa_tls_ssl_init(LDAP *ld, const char *ldap_uri)
+{
+    int ret = LDAP_SUCCESS;
+    int tls_hard = LDAP_OPT_X_TLS_HARD;
+    int tls_demand = LDAP_OPT_X_TLS_DEMAND;
+
+    if (strncmp(ldap_uri, SCHEMA_LDAP, sizeof(SCHEMA_LDAP) - 1) == 0) {
+        ret = ldap_set_option(ld, LDAP_OPT_X_TLS_REQUIRE_CERT, &tls_demand);
+        if (ret != LDAP_OPT_SUCCESS) {
+            fprintf(stderr, _("Unable to set LDAP_OPT_X_TLS_REQUIRE_CERT\n"));
+            return ret;
+        }
+        ret = ldap_start_tls_s(ld, NULL, NULL);
+        if (ret != LDAP_SUCCESS) {
+            fprintf(stderr, _("Unable to initialize STARTTLS session\n"));
+            return ret;
+        }
+    } else if (strncmp(ldap_uri, SCHEMA_LDAPS, sizeof(SCHEMA_LDAPS) - 1) == 0) {
+        ret = ldap_set_option(ld, LDAP_OPT_X_TLS, &tls_hard);
+        if (ret != LDAP_OPT_SUCCESS) {
+            fprintf(stderr, _("Unable to set LDAP_OPT_X_TLS\n"));
+            return ret;
+        }
+    }
+    return ret;
+
+}
+
+static int ipa_ldap_bind(const char *ldap_uri, krb5_principal bind_princ,
                          const char *bind_dn, const char *bind_pw,
-                         const char *ca_cert_file, LDAP **_ld)
+                         const char *mech, const char *ca_cert_file,
+                         LDAP **_ld)
 {
     char *msg = NULL;
     struct berval bv;
     int version;
     LDAP *ld;
-    int ssl;
     int ret;
 
     /* TODO: support referrals ? */
-    if (bind_dn) {
-        ret = ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE, ca_cert_file);
-        if (ret != LDAP_OPT_SUCCESS) {
-            fprintf(stderr, _("Unable to set LDAP_OPT_X_TLS_CERTIFICATE\n"));
-            return ret;
-        }
+    ret = ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE, ca_cert_file);
+    if (ret != LDAP_OPT_SUCCESS) {
+        fprintf(stderr, _("Unable to set LDAP_OPT_X_TLS_CERTIFICATE\n"));
+        return ret;
+    }
 
-        ret = ipa_ldap_init(&ld, "ldaps", server_name, 636);
-        if (ret != LDAP_SUCCESS) {
-            fprintf(stderr, _("Unable to init for ldaps(636) connection\n"));
-            return ret;
-        }
-
-        ssl = LDAP_OPT_X_TLS_HARD;;
-        ret = ldap_set_option(ld, LDAP_OPT_X_TLS, &ssl);
-        if (ret != LDAP_OPT_SUCCESS) {
-            fprintf(stderr, _("Unable to set LDAP_OPT_X_TLS\n"));
-            goto done;
-        }
-    } else {
-        ret = ipa_ldap_init(&ld, "ldap", server_name, 389);
-        if (ret != LDAP_SUCCESS) {
-            fprintf(stderr, _("Unable to init for ldap(389) connection\n"));
-            return ret;
-        }
+    ret = ipa_ldap_init(&ld, ldap_uri);
+    if (ret != LDAP_SUCCESS) {
+        fprintf(stderr, _("Unable to init connection to %s\n"), ldap_uri);
+        return ret;
     }
 
     if (ld == NULL) {
@@ -214,6 +259,11 @@ static int ipa_ldap_bind(const char *server_name, krb5_principal bind_princ,
 	goto done;
     }
 
+    ret = ipa_tls_ssl_init(ld, ldap_uri);
+    if (ret != LDAP_OPT_SUCCESS) {
+        goto done;
+    }
+
     if (bind_dn) {
         bv.bv_val = discard_const(bind_pw);
         bv.bv_len = strlen(bind_pw);
@@ -225,9 +275,15 @@ static int ipa_ldap_bind(const char *server_name, krb5_principal bind_princ,
             goto done;
         }
     } else {
-        ret = ldap_sasl_interactive_bind_s(ld, NULL, "GSSAPI",
-                                           NULL, NULL, LDAP_SASL_QUIET,
-                                           ldap_sasl_interact, bind_princ);
+        if (strcmp(mech, LDAP_SASL_EXTERNAL) == 0) {
+            ret = ldap_sasl_bind_s(ld, NULL, LDAP_SASL_EXTERNAL,
+                                   NULL, NULL, NULL, NULL);
+        } else {
+            ret = ldap_sasl_interactive_bind_s(ld, NULL, LDAP_SASL_GSSAPI,
+                                               NULL, NULL, LDAP_SASL_QUIET,
+                                               ldap_sasl_interact, bind_princ);
+        }
+
         if (ret != LDAP_SUCCESS) {
 #ifdef LDAP_OPT_DIAGNOSTIC_MESSAGE
             ldap_get_option(ld, LDAP_OPT_DIAGNOSTIC_MESSAGE, (void*)&msg);
@@ -339,11 +395,12 @@ static BerElement *get_control_data(LDAPControl **list, const char *repoid)
 }
 
 static int ldap_set_keytab(krb5_context krbctx,
-			   const char *servername,
+			   const char *ldap_uri,
 			   const char *principal_name,
 			   krb5_principal princ,
 			   const char *binddn,
 			   const char *bindpw,
+			   const char *mech,
 			   const char *ca_cert_file,
 			   struct keys_container *keys)
 {
@@ -371,7 +428,7 @@ static int ldap_set_keytab(krb5_context krbctx,
 		goto error_out;
 	}
 
-    ret = ipa_ldap_bind(servername, princ, binddn, bindpw, ca_cert_file, &ld);
+    ret = ipa_ldap_bind(ldap_uri, princ, binddn, bindpw, mech, ca_cert_file, &ld);
     if (ret != LDAP_SUCCESS) {
         fprintf(stderr, _("Failed to bind to server!\n"));
         goto error_out;
@@ -499,9 +556,10 @@ done:
 #define GKREP_SALT_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
 
 static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
-                           const char *enctypes, const char *bind_server,
+                           const char *enctypes, const char *ldap_uri,
                            const char *svc_princ, krb5_principal bind_princ,
                            const char *bind_dn, const char *bind_pw,
+                           const char *mech,
                            const char *ca_cert_file,
                            struct keys_container *keys, int *kvno,
                            char **err_msg)
@@ -532,7 +590,7 @@ static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
         goto done;
     }
 
-    ret = ipa_ldap_bind(bind_server, bind_princ, bind_dn, bind_pw,
+    ret = ipa_ldap_bind(ldap_uri, bind_princ, bind_dn, bind_pw, mech,
                         ca_cert_file, &ld);
     if (ret != LDAP_SUCCESS) {
         *err_msg = _("Failed to bind to server!\n");
@@ -688,6 +746,8 @@ int main(int argc, const char *argv[])
 	static const char *enctypes_string = NULL;
 	static const char *binddn = NULL;
 	static const char *bindpw = NULL;
+	char *ldap_uri = NULL;
+	static const char *sasl_mech = NULL;
 	static const char *ca_cert_file = NULL;
 	int quiet = 0;
 	int askpass = 0;
@@ -719,6 +779,12 @@ int main(int argc, const char *argv[])
               _("LDAP password"), _("password to use if not using kerberos") },
 	    { "cacert", 0, POPT_ARG_STRING, &ca_cert_file, 0,
               _("Path to the IPA CA certificate"), _("IPA CA certificate")},
+	    { "ldapuri", 'H', POPT_ARG_STRING, &ldap_uri, 0,
+              _("LDAP uri to connect to. Mutually exclusive with --server"),
+              _("url")},
+	    { "mech", 'Y', POPT_ARG_STRING, &sasl_mech, 0,
+              _("LDAP SASL bind mechanism if no bindd/bindpw"),
+              _("GSSAPI|EXTERNAL") },
 	    { "retrieve", 'r', POPT_ARG_NONE, &retrieve, 0,
               _("Retrieve current keys without changing them"), NULL },
             POPT_AUTOHELP
@@ -790,7 +856,34 @@ int main(int argc, const char *argv[])
 		exit(10);
 	}
 
-    if (!server) {
+    if (NULL != binddn && NULL != sasl_mech) {
+        fprintf(stderr, _("Cannot specify both SASL mechanism "
+                          "and bind DN simultaneously.\n"));
+        if (!quiet)
+            poptPrintUsage(pc, stderr, 0);
+        exit(2);
+    }
+
+    if (sasl_mech && check_sasl_mech(sasl_mech)) {
+        fprintf(stderr, _("Invalid SASL bind mechanism\n"));
+        if (!quiet)
+            poptPrintUsage(pc, stderr, 0);
+        exit(2);
+    }
+
+    if (!binddn && !sasl_mech) {
+        sasl_mech = LDAP_SASL_GSSAPI;
+    }
+
+    if (server && ldap_uri) {
+        fprintf(stderr, _("Cannot specify server and LDAP uri "
+                          "simultaneously.\n"));
+        if (!quiet)
+            poptPrintUsage(pc, stderr, 0);
+        exit(2);
+    }
+
+    if (!server && !ldap_uri) {
         struct ipa_config *ipacfg = NULL;
 
         ret = read_ipa_config(&ipacfg);
@@ -802,6 +895,12 @@ int main(int argc, const char *argv[])
         if (!server) {
             fprintf(stderr, _("Server name not provided and unavailable\n"));
             exit(2);
+        }
+    }
+    if (server) {
+        ret = ipa_server_to_uri(server, sasl_mech, &ldap_uri);
+        if (ret) {
+            exit(ret);
         }
     }
 
@@ -837,7 +936,7 @@ int main(int argc, const char *argv[])
 		exit(4);
 	}
 
-	if (NULL == bindpw) {
+	if (NULL == bindpw && strcmp(sasl_mech, LDAP_SASL_GSSAPI) == 0) {
 		krberr = krb5_cc_default(krbctx, &ccache);
 		if (krberr) {
 			fprintf(stderr,
@@ -863,8 +962,8 @@ int main(int argc, const char *argv[])
 
     kvno = -1;
     ret = ldap_get_keytab(krbctx, (retrieve == 0), password, enctypes_string,
-                          server, principal, uprinc, binddn, bindpw,
-                          ca_cert_file,
+                          ldap_uri, principal, uprinc, binddn, bindpw,
+                          sasl_mech, ca_cert_file,
                           &keys, &kvno, &err_msg);
     if (ret) {
         if (!quiet && err_msg != NULL) {
@@ -889,8 +988,8 @@ int main(int argc, const char *argv[])
             exit(8);
         }
 
-        kvno = ldap_set_keytab(krbctx, server, principal, uprinc, binddn,
-                               bindpw, ca_cert_file, &keys);
+        kvno = ldap_set_keytab(krbctx, ldap_uri, principal, uprinc, binddn,
+                               bindpw, sasl_mech, ca_cert_file, &keys);
     }
 
     if (kvno == -1) {
