@@ -23,20 +23,39 @@ if six.PY3:
     long = int
 
 
+def _get_usage(configurable_class):
+    usage = '%prog [options]'
+
+    for owner_cls, name in configurable_class.knobs():
+        knob_cls = getattr(owner_cls, name)
+        if knob_cls.cli_positional:
+            if knob_cls.cli_metavar is not None:
+                metavar = knob_cls.cli_metavar
+            elif knob_cls.cli_name is not None:
+                metavar = knob_cls.cli_name.upper()
+            else:
+                metavar = name.replace('_', '-').upper()
+
+            try:
+                knob_cls.default
+            except AttributeError:
+                fmt = ' {}'
+            else:
+                fmt = ' [{}]'
+
+            usage += fmt.format(metavar)
+
+    return usage
+
+
 def install_tool(configurable_class, command_name, log_file_name,
-                 positional_arguments=None, usage=None, debug_option=False,
-                 use_private_ccache=True,
-                 uninstall_log_file_name=None,
-                 uninstall_positional_arguments=None, uninstall_usage=None):
-    if (uninstall_log_file_name is not None or
-            uninstall_positional_arguments is not None or
-            uninstall_usage is not None):
+                 debug_option=False, use_private_ccache=True,
+                 uninstall_log_file_name=None):
+    if uninstall_log_file_name is not None:
         uninstall_kwargs = dict(
             configurable_class=configurable_class,
             command_name=command_name,
             log_file_name=uninstall_log_file_name,
-            positional_arguments=uninstall_positional_arguments,
-            usage=uninstall_usage,
             debug_option=debug_option,
         )
     else:
@@ -49,8 +68,7 @@ def install_tool(configurable_class, command_name, log_file_name,
             configurable_class=configurable_class,
             command_name=command_name,
             log_file_name=log_file_name,
-            positional_arguments=positional_arguments,
-            usage=usage,
+            usage=_get_usage(configurable_class),
             debug_option=debug_option,
             uninstall_kwargs=uninstall_kwargs,
             use_private_ccache=use_private_ccache,
@@ -59,7 +77,7 @@ def install_tool(configurable_class, command_name, log_file_name,
 
 
 def uninstall_tool(configurable_class, command_name, log_file_name,
-                   positional_arguments=None, usage=None, debug_option=False):
+                   debug_option=False):
     return type(
         'uninstall_tool({0})'.format(configurable_class.__name__),
         (UninstallTool,),
@@ -67,8 +85,7 @@ def uninstall_tool(configurable_class, command_name, log_file_name,
             configurable_class=configurable_class,
             command_name=command_name,
             log_file_name=log_file_name,
-            positional_arguments=positional_arguments,
-            usage=usage,
+            usage=_get_usage(configurable_class),
             debug_option=debug_option,
         )
     )
@@ -77,7 +94,6 @@ def uninstall_tool(configurable_class, command_name, log_file_name,
 class ConfigureTool(admintool.AdminTool):
     configurable_class = None
     debug_option = False
-    positional_arguments = None
     use_private_ccache = True
 
     @staticmethod
@@ -104,7 +120,7 @@ class ConfigureTool(admintool.AdminTool):
 
         for owner_cls, name in transformed_cls.knobs():
             knob_cls = getattr(owner_cls, name)
-            if cls.positional_arguments and name in cls.positional_arguments:
+            if knob_cls.cli_positional:
                 continue
 
             group_cls = owner_cls.group()
@@ -233,36 +249,40 @@ class ConfigureTool(admintool.AdminTool):
 
         return value
 
+    def __init__(self, options, args):
+        super(ConfigureTool, self).__init__(options, args)
+
+        self.transformed_cls = self._transform(self.configurable_class)
+        self.positional_arguments = []
+        knob_clss = {}
+
+        for owner_cls, name in self.transformed_cls.knobs():
+            knob_cls = getattr(owner_cls, name)
+            if knob_cls.cli_positional:
+                self.positional_arguments.append(name)
+                knob_clss[name] = knob_cls
+
+        for index, name in enumerate(self.positional_arguments):
+            knob_cls = knob_clss[name]
+            try:
+                value = self.args.pop(0)
+            except IndexError:
+                break
+
+            old_value = getattr(self.options, name, None)
+            try:
+                value = self._parse_knob(knob_cls, old_value, value)
+            except ValueError as e:
+                self.option_parser.error(
+                    "argument {0}: {1}".format(index + 1, e))
+
+            setattr(self.options, name, value)
+
     def validate_options(self, needs_root=True):
         super(ConfigureTool, self).validate_options(needs_root=needs_root)
 
-        if self.positional_arguments:
-            if len(self.args) > len(self.positional_arguments):
-                self.option_parser.error("Too many arguments provided")
-
-            index = 0
-
-            transformed_cls = self._transform(self.configurable_class)
-            for owner_cls, name in transformed_cls.knobs():
-                knob_cls = getattr(owner_cls, name)
-                if name not in self.positional_arguments:
-                    continue
-
-                try:
-                    value = self.args[index]
-                except IndexError:
-                    break
-
-                old_value = getattr(self.options, name, None)
-                try:
-                    value = self._parse_knob(knob_cls, old_value, value)
-                except ValueError as e:
-                    self.option_parser.error(
-                        "argument {0}: {1}".format(index + 1, e))
-
-                setattr(self.options, name, value)
-
-                index += 1
+        if self.args:
+            self.option_parser.error("Too many arguments provided")
 
     def _setup_logging(self, log_file_mode='w', no_file=False):
         if no_file:
@@ -298,8 +318,6 @@ class ConfigureTool(admintool.AdminTool):
         except core.KnobValueError as e:
             knob_cls = knob_classes[e.name]
             try:
-                if self.positional_arguments is None:
-                    raise ValueError
                 index = self.positional_arguments.index(e.name)
             except ValueError:
                 cli_name = knob_cls.cli_name or e.name.replace('_', '-')
