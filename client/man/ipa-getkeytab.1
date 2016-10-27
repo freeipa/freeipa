@@ -21,7 +21,7 @@
 .SH "NAME"
 ipa\-getkeytab \- Get a keytab for a Kerberos principal
 .SH "SYNOPSIS"
-ipa\-getkeytab \fB\-p\fR \fIprincipal\-name\fR \fB\-k\fR \fIkeytab\-file\fR [ \fB\-e\fR \fIencryption\-types\fR ] [ \fB\-s\fR \fIipaserver\fR ] [ \fB\-q\fR ] [ \fB\-D\fR|\fB\-\-binddn\fR \fIBINDDN\fR ] [ \fB\-w|\-\-bindpw\fR ] [ \fB\-P\fR|\fB\-\-password\fR \fIPASSWORD\fR ] [ \fB\-\-cacert \fICACERT\fR ] [ \fB\-r\fR ]
+ipa\-getkeytab \fB\-p\fR \fIprincipal\-name\fR \fB\-k\fR \fIkeytab\-file\fR [ \fB\-e\fR \fIencryption\-types\fR ] [ \fB\-s\fR \fIipaserver\fR ] [ \fB\-q\fR ] [ \fB\-D\fR|\fB\-\-binddn\fR \fIBINDDN\fR ] [ \fB\-w|\-\-bindpw\fR ] [ \fB\-P\fR|\fB\-\-password\fR \fIPASSWORD\fR ] [ \fB\-\-cacert \fICACERT\fR ] [ \fB\-H|\-\-ldapuri \fIURI\fR ] [ \fB\-Y|\-\-mech \fIGSSAPI|EXTERNAL\fR ] [ \fB\-r\fR ]
 
 .SH "DESCRIPTION"
 Retrieves a Kerberos \fIkeytab\fR.
@@ -73,7 +73,7 @@ des\-cbc\-crc
 \fB\-s ipaserver\fR
 The IPA server to retrieve the keytab from (FQDN). If this option is not
 provided the server name is read from the IPA configuration file
-(/etc/ipa/default.conf)
+(/etc/ipa/default.conf). Cannot be used together with \fB\-H\fR.
 .TP
 \fB\-q\fR
 Quiet mode. Only errors are displayed.
@@ -96,11 +96,18 @@ Use this password for the key instead of one randomly generated.
 The LDAP DN to bind as when retrieving a keytab without Kerberos credentials. Generally used with the \fB\-w\fR option.
 .TP
 \fB\-w, \-\-bindpw\fR
-The LDAP password to use when not binding with Kerberos.
+The LDAP password to use when not binding with Kerberos. \fB\-D\fR and \fB\-w\fR can not be used together with \fB\-Y\fR.
 .TP
 \fB\-\-cacert\fR
-The path to the IPA CA certificate used to validate LDAPS connections. Defaults to
-/etc/ipa/ca.crt
+The path to the IPA CA certificate used to validate LDAPS/STARTTLS connections.
+Defaults to /etc/ipa/ca.crt
+.TP
+\fB\-H, \-\-ldapuri\fR
+LDAP URI. If ldap:// is specified, STARTTLS is initiated by default. Can not be used with \fB\-s\fR.
+.TP
+\fB\-Y, \-\-mech\fR
+SASL mechanism to use if \fB\-D\fR and \fB\-w\fR are not specified. Use either
+GSSAPI or EXTERNAL.
 .TP
 \fB\-r\fR
 Retrieve mode. Retrieve an existing key from the server instead of generating a
