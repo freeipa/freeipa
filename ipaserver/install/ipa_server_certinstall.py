@@ -101,10 +101,7 @@ class ServerCertInstall(admintool.AdminTool):
     def run(self):
         api.bootstrap(in_server=True)
         api.finalize()
-
-        conn = api.Backend.ldap2
-        conn.connect(bind_dn=DN(('cn', 'directory manager')),
-                     bind_pw=self.options.dirman_password)
+        api.Backend.ldap2.connect(bind_pw=self.options.dirman_password)
 
         if self.options.dirsrv:
             self.install_dirsrv_cert()
@@ -112,7 +109,7 @@ class ServerCertInstall(admintool.AdminTool):
         if self.options.http:
             self.install_http_cert()
 
-        conn.disconnect()
+        api.Backend.ldap2.disconnect()
 
     def install_dirsrv_cert(self):
         serverid = installutils.realm_to_serverid(api.env.realm)

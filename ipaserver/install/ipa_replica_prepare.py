@@ -34,7 +34,6 @@ from six.moves.configparser import SafeConfigParser
 
 from ipaserver.install import certs, installutils, bindinstance, dsinstance
 from ipaserver.install.replication import enable_replication_version_checking
-from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install.bindinstance import (
     add_zone, add_fwd_rr, add_ptr_rr, dns_container_exists)
 from ipapython import ipautil, admintool
@@ -180,6 +179,8 @@ class ReplicaPrepare(admintool.AdminTool):
 
         api.bootstrap(in_server=True)
         api.finalize()
+        # Connect to LDAP, connection is closed at the end of run()
+        api.Backend.ldap2.connect()
 
         self.check_for_supported_domain_level()
 
@@ -215,21 +216,18 @@ class ReplicaPrepare(admintool.AdminTool):
                     "Directory Manager password required")
 
         # Try out the password & get the subject base
+        api.Backend.ldap2.disconnect()
         try:
-            conn = api.Backend.ldap2
-            conn.connect(bind_dn=DN(('cn', 'directory manager')),
-                         bind_pw=self.dirman_password)
+            api.Backend.ldap2.connect(bind_pw=self.dirman_password)
 
-            entry_attrs = conn.get_ipa_config()
+            entry_attrs = api.Backend.ldap2.get_ipa_config()
             self.subject_base = entry_attrs.get(
                 'ipacertificatesubjectbase', [None])[0]
 
             ca_enabled = api.Command.ca_is_enabled()['result']
-
-            conn.disconnect()
         except errors.ACIError:
             raise admintool.ScriptError("The password provided is incorrect "
-                "for LDAP server %s" % api.env.host)
+                                        "for LDAP server %s" % api.env.host)
         except errors.LDAPError:
             raise admintool.ScriptError(
                 "Unable to connect to LDAP server %s" % api.env.host)
@@ -279,13 +277,6 @@ class ReplicaPrepare(admintool.AdminTool):
                     "record manually and then omit --ip-address option.")
                 raise admintool.ScriptError("Cannot add DNS record")
 
-            disconnect = False
-            if not api.Backend.ldap2.isconnected():
-                api.Backend.ldap2.connect(
-                    bind_dn=DN(('cn', 'Directory Manager')),
-                    bind_pw=self.dirman_password)
-                disconnect = True
-
             options.reverse_zones = bindinstance.check_reverse_zones(
                 options.ip_addresses, options.reverse_zones, options, False,
                 True)
@@ -296,9 +287,6 @@ class ReplicaPrepare(admintool.AdminTool):
                                "server. Either create DNS zone or omit "
                                "--ip-address option." % zone)
                 raise admintool.ScriptError("Cannot add DNS record")
-
-            if disconnect:
-                api.Backend.ldap2.disconnect()
 
         self.http_pin = self.dirsrv_pin = self.pkinit_pin = None
 
@@ -386,6 +374,9 @@ class ReplicaPrepare(admintool.AdminTool):
 
         if options.wait_for_dns:
             self.wait_for_dns()
+
+        # Close LDAP connection that was opened in validate_options()
+        api.Backend.ldap2.disconnect()
 
     def copy_ds_certificate(self):
         options = self.options
@@ -497,11 +488,6 @@ class ReplicaPrepare(admintool.AdminTool):
 
         self.log.info("Adding DNS records for %s", self.replica_fqdn)
         name, domain = self.replica_fqdn.split(".", 1)
-
-        if not api.Backend.ldap2.isconnected():
-            api.Backend.ldap2.connect(
-                bind_dn=DN(('cn', 'Directory Manager')),
-                bind_pw=self.dirman_password)
 
         for reverse_zone in options.reverse_zones:
             self.log.info("Adding reverse zone %s", reverse_zone)
@@ -658,14 +644,8 @@ class ReplicaPrepare(admintool.AdminTool):
             os.remove(agent_name)
 
     def update_pki_admin_password(self):
-        ldap = ldap2(api)
-        ldap.connect(
-            bind_dn=DN(('cn', 'directory manager')),
-            bind_pw=self.dirman_password
-        )
         dn = DN('uid=admin', 'ou=people', 'o=ipaca')
-        ldap.modify_password(dn, self.dirman_password)
-        ldap.disconnect()
+        api.Backend.ldap2.modify_password(dn, self.dirman_password)
 
     def regenerate_ca_file(self, ca_file):
         dm_pwd_fd = ipautil.write_tmp_file(self.dirman_password)

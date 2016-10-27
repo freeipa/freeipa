@@ -439,8 +439,7 @@ def main():
 
     options.dirman_passwd = dirman_passwd
 
-    api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
-                              bind_pw=options.dirman_passwd)
+    api.Backend.ldap2.connect(bind_pw=options.dirman_passwd)
 
     if args[0] == "list":
         replica = None
@@ -484,6 +483,8 @@ def main():
         if len(args) > 1:
             replica = args[1]
         set_renewal_master(realm, replica)
+
+    api.Backend.ldap2.disconnect()
 
 try:
     main()

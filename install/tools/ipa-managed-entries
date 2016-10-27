@@ -24,10 +24,9 @@ import re
 import sys
 from optparse import OptionParser
 
-from ipapython import config, ipaldap
+from ipapython import config
 from ipaserver.install import installutils
 from ipalib import api, errors
-from ipalib.constants import CACERT
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython.dn import DN
 
@@ -73,9 +72,9 @@ def main():
         sys.exit("Unrecognized action [" + args[0] + "]")
     standard_logging_setup(None, debug=options.debug)
 
-    host = installutils.get_fqdn()
     api.bootstrap(context='cli', debug=options.debug)
     api.finalize()
+    api.Backend.ldap2.connect(bind_pw=options.dirman_password)
 
     managed_entry_definitions_dn = DN(
         ('cn', 'Definitions'),
@@ -84,39 +83,14 @@ def main():
         api.env.basedn
     )
 
-    conn = None
-    try:
-        filter = '(objectClass=extensibleObject)'
-        ldap_uri = ipaldap.get_ldap_uri(host, 636, cacert=CACERT)
-        conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
-
-        if options.dirman_password:
-            try:
-                conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
-                                 bind_password=options.dirman_password)
-            except errors.ACIError:
-                sys.exit("Invalid credentials")
-        else:
-            conn.gssapi_bind()
-    except errors.ACIError:
-        dirman_password = get_dirman_password()
-        if dirman_password is None:
-            sys.exit("Directory Manager password required")
-        try:
-            conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
-                             bind_password=dirman_password)
-        except errors.ACIError:
-            sys.exit("Invalid credentials")
-    except errors.ExecutionError as lde:
-        sys.exit("An error occurred while connecting to the server.\n%s\n" %
-            str(lde))
+    filter = '(objectClass=extensibleObject)'
 
     if options.list_managed_entries:
         # List available Managed Entry Plugins
         managed_entries = None
         try:
-            entries = conn.get_entries(
-                managed_entry_definitions_dn, conn.SCOPE_SUBTREE, filter)
+            entries = api.Backend.ldap2.get_entries(
+                managed_entry_definitions_dn, api.Backend.ldap2.SCOPE_SUBTREE, filter)
         except Exception as e:
             root_logger.debug("Search for managed entries failed: %s" % str(e))
             sys.exit("Unable to find managed entries at %s" % managed_entry_definitions_dn)
@@ -135,7 +109,7 @@ def main():
 
         disabled = True
         try:
-            entry = conn.get_entry(def_dn)
+            entry = api.Backend.ldap2.get_entry(def_dn)
             disable_attr = '(objectclass=disable)'
             try:
                 org_filter = entry.single_value.get('originfilter')
@@ -165,7 +139,7 @@ def main():
                     enable_attr = org_filter.replace(disable_attr, '')
                     #enable_attr = {'originfilter': enable_attr}
                     entry['originfilter'] = [enable_attr]
-                    conn.update_entry(entry)
+                    api.Backend.ldap2.update_entry(entry)
                     print("Enabling Plugin")
                     retval = 0
             except errors.NotFound:
@@ -189,7 +163,7 @@ def main():
                     else:
                         disable_attr = '(&%s(%s))' % (disable_attr, org_filter)
                     entry['originfilter'] = [disable_attr]
-                    conn.update_entry(entry)
+                    api.Backend.ldap2.update_entry(entry)
                     print("Disabling Plugin")
             except errors.NotFound:
                 print("Plugin is already disabled")
@@ -205,6 +179,8 @@ def main():
 
         else:
             retval = 1
+
+    api.Backend.ldap2.disconnect()
 
     return retval
 

@@ -28,7 +28,6 @@ try:
     from ipapython import ipautil, config
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate
-    from ipaserver.plugins.ldap2 import ldap2
     from ipalib import api, errors
     from ipapython.ipa_log_manager import standard_logging_setup
     from ipapython.dn import DN
@@ -69,14 +68,14 @@ def get_dirman_password():
 
     return password
 
-def get_entry(dn, conn):
+def get_entry(dn):
     """
     Return the entry for the given DN. If the entry is not found return
     None.
     """
     entry = None
     try:
-        entry = conn.get_entry(dn)
+        entry = api.Backend.ldap2.get_entry(dn)
     except errors.NotFound:
         pass
     return entry
@@ -105,98 +104,85 @@ def main():
 
     api.bootstrap(context='cli', in_server=True, debug=options.debug)
     api.finalize()
+    api.Backend.ldap2.connect()
 
-    conn = None
-    try:
+    if args[0] == "status":
+        entry = None
         try:
-            conn = ldap2(api)
-            conn.connect(
-                bind_dn=DN(('cn', 'directory manager')), bind_pw=dirman_password
-            )
+            entry = get_entry(compat_dn)
+            if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
+                print("Plugin Enabled")
+            else:
+                print("Plugin Disabled")
+        except errors.LDAPError as lde:
+            print("An error occurred while talking to the server.")
+            print(lde)
+
+    if args[0] == "enable":
+        entry = None
+        try:
+            entry = get_entry(compat_dn)
+            if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
+                print("Plugin already Enabled")
+                retval = 2
+            else:
+                print("Enabling plugin")
+
+                if entry is None:
+                    ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
+                    if not ld.update(files):
+                        print("Updating Directory Server failed.")
+                        retval = 1
+                else:
+                    entry['nsslapd-pluginenabled'] = ['on']
+                    api.Backend.ldap2.update_entry(entry)
         except errors.ExecutionError as lde:
-            sys.exit("An error occurred while connecting to the server.\n%s\n" % str(lde))
-        except errors.ACIError as e:
-            sys.exit("Authentication failed: %s" % e.info)
+            print("An error occurred while talking to the server.")
+            print(lde)
+            retval = 1
 
-        if args[0] == "status":
-            entry = None
-            try:
-                entry = get_entry(compat_dn, conn)
-                if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
-                    print("Plugin Enabled")
-                else:
-                    print("Plugin Disabled")
-            except errors.LDAPError as lde:
-                print("An error occurred while talking to the server.")
-                print(lde)
-
-        if args[0] == "enable":
-            entry = None
-            try:
-                entry = get_entry(compat_dn, conn)
-                if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
-                    print("Plugin already Enabled")
-                    retval = 2
-                else:
-                    print("Enabling plugin")
-
-                    if entry is None:
-                        ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
-                        if not ld.update(files):
-                            print("Updating Directory Server failed.")
-                            retval = 1
-                    else:
-                        entry['nsslapd-pluginenabled'] = ['on']
-                        conn.update_entry(entry)
-            except errors.ExecutionError as lde:
-                print("An error occurred while talking to the server.")
-                print(lde)
-                retval = 1
-
-        elif args[0] == "disable":
-            entry = None
-            try:
-                entry = get_entry(nis_config_dn, conn)
-                # We can't disable schema compat if the NIS plugin is enabled
-                if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
-                    print("The NIS plugin is configured, cannot disable compatibility.", file=sys.stderr)
-                    print("Run 'ipa-nis-manage disable' first.", file=sys.stderr)
-                    retval = 2
-            except errors.ExecutionError as lde:
-                print("An error occurred while talking to the server.")
-                print(lde)
-                retval = 1
-
-            if retval == 0:
-                entry = None
-                try:
-                    entry = get_entry(compat_dn, conn)
-                    if entry is None or entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
-                        print("Plugin is already disabled")
-                        retval = 2
-                    else:
-                        print("Disabling plugin")
-
-                        entry['nsslapd-pluginenabled'] = ['off']
-                        conn.update_entry(entry)
-                except errors.DatabaseError as dbe:
-                    print("An error occurred while talking to the server.")
-                    print(dbe)
-                    retval = 1
-                except errors.ExecutionError as lde:
-                    print("An error occurred while talking to the server.")
-                    print(lde)
-                    retval = 1
-
-        else:
+    elif args[0] == "disable":
+        entry = None
+        try:
+            entry = get_entry(nis_config_dn)
+            # We can't disable schema compat if the NIS plugin is enabled
+            if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
+                print("The NIS plugin is configured, cannot disable compatibility.", file=sys.stderr)
+                print("Run 'ipa-nis-manage disable' first.", file=sys.stderr)
+                retval = 2
+        except errors.ExecutionError as lde:
+            print("An error occurred while talking to the server.")
+            print(lde)
             retval = 1
 
         if retval == 0:
-            print("This setting will not take effect until you restart Directory Server.")
+            entry = None
+            try:
+                entry = get_entry(compat_dn)
+                if entry is None or entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
+                    print("Plugin is already disabled")
+                    retval = 2
+                else:
+                    print("Disabling plugin")
 
-    finally:
-        if conn and conn.isconnected():
-            conn.disconnect()
+                    entry['nsslapd-pluginenabled'] = ['off']
+                    api.Backend.ldap2.update_entry(entry)
+            except errors.DatabaseError as dbe:
+                print("An error occurred while talking to the server.")
+                print(dbe)
+                retval = 1
+            except errors.ExecutionError as lde:
+                print("An error occurred while talking to the server.")
+                print(lde)
+                retval = 1
+
+    else:
+        retval = 1
+
+    if retval == 0:
+        print("This setting will not take effect until you restart Directory Server.")
+
+    api.Backend.ldap2.disconnect()
 
     return retval
 

@@ -96,14 +96,11 @@ class CACertManage(admintool.AdminTool):
 
     def run(self):
         command = self.command
-        options = self.options
 
         api.bootstrap(in_server=True)
         api.finalize()
 
-        if ((command == 'renew' and options.external_cert_files) or
-            command == 'install'):
-            self.ldap_connect()
+        self.ldap_connect()
 
         try:
             if command == 'renew':
@@ -111,8 +108,7 @@ class CACertManage(admintool.AdminTool):
             elif command == 'install':
                 rc = self.install()
         finally:
-            if api.Backend.ldap2.isconnected():
-                api.Backend.ldap2.disconnect()
+            api.Backend.ldap2.disconnect()
 
         return rc
 
@@ -132,8 +128,7 @@ class CACertManage(admintool.AdminTool):
                 raise admintool.ScriptError(
                     "Directory Manager password required")
 
-        api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=password)
-
+        api.Backend.ldap2.connect(bind_pw=password)
 
     def renew(self):
         ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)

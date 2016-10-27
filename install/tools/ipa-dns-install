@@ -140,8 +140,7 @@ def main():
     )
     api.bootstrap(**cfg)
     api.finalize()
-
-    api.Backend.ldap2.connect(autobind=True)
+    api.Backend.ldap2.connect()
 
     options.setup_ca = None  # must be None to enable autodetection
 
@@ -158,6 +157,8 @@ def main():
     # execute ipactl to refresh services status
     ipautil.run(['ipactl', 'start', '--ignore-service-failures'],
                 raiseonerr=False)
+
+    api.Backend.ldap2.disconnect()
 
     return 0
 

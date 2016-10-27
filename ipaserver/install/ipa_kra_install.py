@@ -28,7 +28,6 @@ from ipalib.constants import DOMAIN_LEVEL_0
 from ipaplatform.paths import paths
 from ipapython import admintool
 from ipapython import ipautil
-from ipapython.dn import DN
 from ipaserver.install import service
 from ipaserver.install import cainstance
 from ipaserver.install import krainstance
@@ -106,7 +105,9 @@ class KRAUninstaller(KRAInstall):
 
     def run(self):
         super(KRAUninstaller, self).run()
+        api.Backend.ldap2.connect()
         kra.uninstall(True)
+        api.Backend.ldap2.disconnect()
 
 
 class KRAInstaller(KRAInstall):
@@ -181,9 +182,7 @@ class KRAInstaller(KRAInstall):
         self.options.dm_password = self.options.password
         self.options.setup_ca = False
 
-        conn = api.Backend.ldap2
-        conn.connect(bind_dn=DN(('cn', 'Directory Manager')),
-                     bind_pw=self.options.password)
+        api.Backend.ldap2.connect()
 
         config = None
         if self.installing_replica:
@@ -204,12 +203,12 @@ class KRAInstaller(KRAInstall):
                     self.options)
 
             if config.subject_base is None:
-                attrs = conn.get_ipa_config()
+                attrs = api.Backend.ldap2.get_ipa_config()
                 config.subject_base = attrs.get('ipacertificatesubjectbase')[0]
 
             if config.master_host_name is None:
-                config.kra_host_name = \
-                    service.find_providing_server('KRA', conn, api.env.ca_host)
+                config.kra_host_name = service.find_providing_server(
+                    'KRA', api.Backend.ldap2, api.env.ca_host)
                 config.master_host_name = config.kra_host_name
             else:
                 config.kra_host_name = config.master_host_name
@@ -226,3 +225,5 @@ class KRAInstaller(KRAInstall):
         except:
             self.log.error(dedent(self.FAIL_MESSAGE))
             raise
+
+        api.Backend.ldap2.disconnect()

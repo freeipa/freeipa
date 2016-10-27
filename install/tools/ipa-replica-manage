@@ -1537,11 +1537,7 @@ def main(options, args):
     options.dirman_passwd = dirman_passwd
 
     # Initialize the LDAP connection
-    if options.dirman_passwd:
-        api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
-                                  bind_pw=options.dirman_passwd)
-    else:
-        api.Backend.ldap2.connect()
+    api.Backend.ldap2.connect(bind_pw=options.dirman_passwd)
 
     if args[0] == "list":
         replica = None
@@ -1610,6 +1606,8 @@ def main(options, args):
     elif args[0] == "dnanextrange-set":
         set_DNA_range(args[1], args[2], realm, dirman_passwd, next_range=True,
                       nolookup=options.nolookup)
+
+    api.Backend.ldap2.disconnect()
 
 try:
     options, args = parse_options()
