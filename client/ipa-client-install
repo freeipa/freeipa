@@ -28,10 +28,8 @@ from optparse import SUPPRESS_HELP, OptionGroup, OptionValueError
 
 from ipaclient.install import client
 from ipapython.ipa_log_manager import standard_logging_setup, root_logger
-from ipapython.ipautil import is_fips_enabled
-from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
-from ipapython import version, sysrestore
+from ipapython import version
 from ipapython.config import IPAOptionParser
 from ipalib import x509
 from ipalib.util import normalize_hostname, validate_domain_name
@@ -223,15 +221,8 @@ def logging_setup(options):
 
 
 def main():
-    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     safe_options, options = parse_options()
 
-    if not os.getegid() == 0:
-        sys.exit("\nYou must be root to run ipa-client-install.\n")
-    if is_fips_enabled():
-        sys.exit("Installing IPA client in FIPS mode is not supported")
-
-    tasks.check_selinux_status()
     logging_setup(options)
     root_logger.debug(
         '%s was invoked with options: %s', sys.argv[0], safe_options)
@@ -243,12 +234,9 @@ def main():
     if options.uninstall:
         return client.uninstall(options, env)
 
-    if client.is_ipa_client_installed(fstore, on_master=options.on_master):
-        root_logger.error("IPA client is already configured on this system.")
-        root_logger.info(
-            "If you want to reinstall the IPA client, uninstall it first " +
-            "using 'ipa-client-install --uninstall'.")
-        return client.CLIENT_ALREADY_CONFIGURED
+    rval_check = client.install_check(options)
+    if rval_check != client.SUCCESS:
+        return rval_check
 
     rval = client.install(options, env)
     if rval == client.CLIENT_INSTALL_ERROR:
