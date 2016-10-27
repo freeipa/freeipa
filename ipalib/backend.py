@@ -120,7 +120,9 @@ class Executioner(Backend):
             os.environ["KRB5CCNAME"] = ccache
 
         if self.env.in_server:
-            self.Backend.ldap2.connect(ccache=ccache)
+            self.Backend.ldap2.connect(ccache=ccache,
+                                       size_limit=None,
+                                       time_limit=None)
         else:
             self.Backend.rpcclient.connect()
         if client_ip is not None:
