@@ -78,6 +78,20 @@ CLIENT_NOT_CONFIGURED = 2
 CLIENT_ALREADY_CONFIGURED = 3
 CLIENT_UNINSTALL_ERROR = 4  # error after restoring files/state
 
+# global variables
+hostname = None
+hostname_source = None
+nosssd_files = None
+dnsok = False
+cli_domain = None
+cli_server = None
+subject_base = None
+cli_realm = None
+cli_kdc = None
+client_domain = None
+cli_basedn = None
+# end of global variables
+
 
 def remove_file(filename):
     """
@@ -1919,7 +1933,23 @@ def purge_host_keytab(realm):
 
 
 def install_check(options):
+    global hostname
+    global hostname_source
+    global nosssd_files
+    global dnsok
+    global cli_domain
+    global cli_server
+    global subject_base
+    global cli_realm
+    global cli_kdc
+    global client_domain
+    global cli_basedn
+
+    cli_domain_source = 'Unknown source'
+    cli_server_source = 'Unknown source'
+
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+
     if not os.getegid() == 0:
         sys.exit("\nYou must be root to run ipa-client-install.\n")
 
@@ -1934,21 +1964,6 @@ def install_check(options):
             "If you want to reinstall the IPA client, uninstall it first " +
             "using 'ipa-client-install --uninstall'.")
         return CLIENT_ALREADY_CONFIGURED
-    return SUCCESS
-
-
-def install(options, env):
-    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
-
-    dnsok = False
-
-    cli_domain = None
-    cli_server = None
-    subject_base = None
-
-    cli_domain_source = 'Unknown source'
-    cli_server_source = 'Unknown source'
 
     if options.conf_ntp and not options.on_master and not options.force_ntpd:
         try:
@@ -1967,11 +1982,13 @@ def install(options, env):
         except ntpconf.NTPConfigurationError:
             pass
 
-    if options.unattended and (options.password is None and
-                               options.principal is None and
-                               options.keytab is None and
-                               options.prompt_password is False and
-                               not options.on_master):
+    if options.unattended and (
+        options.password is None and
+        options.principal is None and
+        options.keytab is None and
+        options.prompt_password is False and
+        not options.on_master
+    ):
         root_logger.error("One of password / principal / keytab is required.")
         return CLIENT_INSTALL_ERROR
 
@@ -1985,6 +2002,7 @@ def install(options, env):
         root_logger.error(
             "Invalid hostname '%s', must be lower-case.", hostname)
         return CLIENT_INSTALL_ERROR
+
     if (hostname == 'localhost') or (hostname == 'localhost.localdomain'):
         root_logger.error("Invalid hostname, '%s' must not be used.", hostname)
         return CLIENT_INSTALL_ERROR
@@ -2259,6 +2277,13 @@ def install(options, env):
             "Continue to configure the system with these values?", False):
         return CLIENT_INSTALL_ERROR
 
+    return SUCCESS
+
+
+def install(options, env):
+    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
+
     if not options.on_master:
         # Try removing old principals from the keytab
         purge_host_keytab(cli_realm)
@@ -2278,6 +2303,7 @@ def install(options, env):
         # If that fails, we try to sync directly with IPA server,
         # assuming it runs NTP
         root_logger.info('Synchronizing time with KDC...')
+        ds = ipadiscovery.IPADiscovery()
         ntp_srv_servers = ds.ipadns_search_srv(cli_domain, '_ntp._udp',
                                                None, break_on_first=False)
         synced_ntp = False
