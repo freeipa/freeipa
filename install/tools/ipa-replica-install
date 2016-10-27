@@ -26,8 +26,6 @@ from ipaserver.install.server import Replica
 ReplicaInstall = cli.install_tool(
     Replica,
     command_name='ipa-replica-install',
-    positional_arguments=['replica_file'],
-    usage='%prog [options] [REPLICA_FILE]',
     log_file_name=paths.IPAREPLICA_INSTALL_LOG,
     debug_option=True,
 )

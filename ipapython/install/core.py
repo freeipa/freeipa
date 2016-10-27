@@ -110,6 +110,7 @@ class KnobBase(PropertyBase):
     sensitive = False
     deprecated = False
     description = None
+    cli_positional = False
     cli_name = None
     cli_short_name = None
     cli_aliases = None
@@ -141,8 +142,9 @@ class KnobBase(PropertyBase):
 
 
 def Knob(type_or_base, default=_missing, sensitive=_missing,
-         deprecated=_missing, description=_missing, cli_name=_missing,
-         cli_short_name=_missing, cli_aliases=_missing, cli_metavar=_missing):
+         deprecated=_missing, description=_missing, cli_positional=_missing,
+         cli_name=_missing, cli_short_name=_missing, cli_aliases=_missing,
+         cli_metavar=_missing):
     class_dict = {}
     class_dict['_order'] = next(_counter)
 
@@ -159,6 +161,8 @@ def Knob(type_or_base, default=_missing, sensitive=_missing,
         class_dict['deprecated'] = deprecated
     if description is not _missing:
         class_dict['description'] = description
+    if cli_positional is not _missing:
+        class_dict['cli_positional'] = cli_positional
     if cli_name is not _missing:
         class_dict['cli_name'] = cli_name
     if cli_short_name is not _missing:
