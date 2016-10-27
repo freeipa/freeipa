@@ -65,12 +65,12 @@ from ipapython.ipautil import (
     CalledProcessError,
     dir_exists,
     file_exists,
+    is_fips_enabled,
     realm_to_suffix,
     run,
     user_input,
 )
 from ipapython.ssh import SSHPublicKey
-
 
 SUCCESS = 0
 CLIENT_INSTALL_ERROR = 1
@@ -1916,6 +1916,25 @@ def purge_host_keytab(realm):
         root_logger.info(
             "Removed old keys for realm %s from %s",
             realm, paths.KRB5_KEYTAB)
+
+
+def install_check(options):
+    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+    if not os.getegid() == 0:
+        sys.exit("\nYou must be root to run ipa-client-install.\n")
+
+    if is_fips_enabled():
+        sys.exit("Installing IPA client in FIPS mode is not supported")
+
+    tasks.check_selinux_status()
+
+    if is_ipa_client_installed(fstore, on_master=options.on_master):
+        root_logger.error("IPA client is already configured on this system.")
+        root_logger.info(
+            "If you want to reinstall the IPA client, uninstall it first " +
+            "using 'ipa-client-install --uninstall'.")
+        return CLIENT_ALREADY_CONFIGURED
+    return SUCCESS
 
 
 def install(options, env):
