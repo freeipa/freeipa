@@ -57,6 +57,8 @@ from ipalib.request import context
 
 register = Registry()
 
+_missing = object()
+
 
 @register()
 class ldap2(CrudBackend, LDAPClient):
@@ -74,8 +76,8 @@ class ldap2(CrudBackend, LDAPClient):
         LDAPClient.__init__(self, ldap_uri,
                             force_schema_updates=force_schema_updates)
 
-        self.__time_limit = None
-        self.__size_limit = None
+        self.__time_limit = float(LDAPClient.time_limit)
+        self.__size_limit = int(LDAPClient.size_limit)
 
     @property
     def time_limit(self):
@@ -86,11 +88,13 @@ class ldap2(CrudBackend, LDAPClient):
 
     @time_limit.setter
     def time_limit(self, val):
-        self.__time_limit = float(val)
+        if val is not None:
+            val = float(val)
+        self.__time_limit = val
 
     @time_limit.deleter
     def time_limit(self):
-        self.__time_limit = None
+        self.__time_limit = int(LDAPClient.size_limit)
 
     @property
     def size_limit(self):
@@ -101,11 +105,13 @@ class ldap2(CrudBackend, LDAPClient):
 
     @size_limit.setter
     def size_limit(self, val):
-        self.__size_limit = int(val)
+        if val is not None:
+            val = int(val)
+        self.__size_limit = val
 
     @size_limit.deleter
     def size_limit(self):
-        self.__size_limit = None
+        self.__size_limit = float(LDAPClient.time_limit)
 
     def _connect(self):
         # Connectible.conn is a proxy to thread-local storage;
@@ -119,10 +125,11 @@ class ldap2(CrudBackend, LDAPClient):
     def __str__(self):
         return self.ldap_uri
 
-    def create_connection(self, ccache=None, bind_dn=None, bind_pw='',
-            tls_cacertfile=None, tls_certfile=None, tls_keyfile=None,
-            debug_level=0, autobind=AUTOBIND_AUTO, serverctrls=None,
-            clientctrls=None, time_limit=None, size_limit=None):
+    def create_connection(
+            self, ccache=None, bind_dn=None, bind_pw='', tls_cacertfile=None,
+            tls_certfile=None, tls_keyfile=None, debug_level=0,
+            autobind=AUTOBIND_AUTO, serverctrls=None, clientctrls=None,
+            time_limit=_missing, size_limit=_missing):
         """
         Connect to LDAP server.
 
@@ -136,6 +143,12 @@ class ldap2(CrudBackend, LDAPClient):
         tls_certfile -- TLS certificate filename
         tls_keyfile - TLS bind key filename
         autobind - autobind as the current user
+        time_limit, size_limit -- maximum time and size limit for LDAP
+            possible options:
+                - value - sets the given value
+                - None - reads value from ipaconfig
+                - _missing - keeps previously configured settings
+                             (unlimited set by default in constructor)
 
         Extends backend.Connectible.create_connection.
         """
@@ -149,9 +162,9 @@ class ldap2(CrudBackend, LDAPClient):
         if tls_keyfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
 
-        if time_limit is not None:
+        if time_limit is not _missing:
             self.time_limit = time_limit
-        if size_limit is not None:
+        if size_limit is not _missing:
             self.size_limit = size_limit
 
         if debug_level:
