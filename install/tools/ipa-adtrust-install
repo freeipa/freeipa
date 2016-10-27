@@ -509,6 +509,8 @@ WARNING: you MUST re-kinit admin user before using 'ipa trust-*' commands
 family in order to re-generate Kerberos tickets to include AD-specific
 information""")
 
+    api.Backend.ldap2.disconnect()
+
     return 0
 
 if __name__ == '__main__':
