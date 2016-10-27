@@ -235,6 +235,8 @@ class test_cert(BaseCert):
         """
         res = api.Command['cert_show'](sn)['result']
         assert 'cacn' in res
+        assert 'valid_not_before' in res
+        assert 'valid_not_after' in res
 
     def test_0009_cert_find(self):
         """
@@ -243,6 +245,8 @@ class test_cert(BaseCert):
         res = api.Command['cert_find'](min_serial_number=sn,
                                        max_serial_number=sn)['result'][0]
         assert 'cacn' in res
+        assert 'valid_not_before' in res
+        assert 'valid_not_after' in res
 
     def test_00010_cleanup(self):
         """
