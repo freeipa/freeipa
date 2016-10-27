@@ -1,4 +1,5 @@
-SUBDIRS = asn1 util client contrib daemons init install ipaclient ipalib ipaplatform ipapython ipaserver ipatests po
+IPACLIENT_SUBDIRS = ipaclient ipalib ipaplatform ipapython
+SUBDIRS = asn1 util client contrib daemons init install $(IPACLIENT_SUBDIRS) ipaserver ipatests po
 
 MOSTLYCLEANFILES = ipasetup.pyc ipasetup.pyo \
 		   ignore_import_errors.pyc ignore_import_errors.pyo \
@@ -162,3 +163,21 @@ jslint-ui-test:
 jslint-html:
 	cd $(top_srcdir)/install/html; 				\
 	jsl -nologo -nosummary -nofilelisting -conf jsl.conf
+
+.PHONY: bdist_wheel wheel_bundle
+WHEELDISTDIR = $(top_builddir)/dist/wheels
+WHEELBUNDLEDIR = $(top_builddir)/dist/bundle
+
+$(WHEELDISTDIR):
+	mkdir -p $(WHEELDISTDIR)
+
+$(WHEELBUNDLEDIR):
+	mkdir -p $(WHEELBUNDLEDIR)
+
+bdist_wheel: $(WHEELDISTDIR)
+	for dir in $(IPACLIENT_SUBDIRS); do \
+	    $(MAKE) $(AM_MAKEFLAGS) -C $${dir} $@ || exit 1; \
+	done
+
+wheel_bundle: $(WHEELBUNDLEDIR) bdist_wheel
+	$(PYTHON) -m pip wheel --wheel-dir $(WHEELBUNDLEDIR) $(WHEELDISTDIR)/*.whl

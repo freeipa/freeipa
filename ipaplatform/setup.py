@@ -39,4 +39,14 @@ if __name__ == '__main__':
             "ipaplatform.redhat",
             "ipaplatform.rhel"
         ],
+        install_requires=[
+            "cffi",
+            # "ipalib",  # circular dependency
+            "pyasn1",
+            "python-nss",
+            "six",
+        ],
+        setup_requires=[
+            "wheel",
+        ],
     )

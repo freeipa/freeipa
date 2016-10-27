@@ -18,6 +18,24 @@ import os
 import sys
 
 
+PACKAGE_VERSION = {
+    'cryptography': 'cryptography >= 0.9',
+    'dnspython': 'dnspython >= 1.11.1',
+    'gssapi': 'gssapi > 1.1.2',
+    'ipaclient': 'ipaclient == @VERSION@',
+    'ipalib': 'ipalib == @VERSION@',
+    'ipaplatform': 'ipaplatform == @VERSION@',
+    'ipapython': 'ipapython == @VERSION@',
+    'ipaserver': 'ipaserver == @VERSION@',
+    'kdcproxy': 'kdcproxy >= 0.3',
+    'netifaces': 'netifaces >= 0.10.4',
+    'python-nss': 'python-nss >= 0.16',
+    'pyldap': 'pyldap >= 2.4.15',
+    'qrcode': 'qrcode >= 5.0',
+    # 'yubico': 'yubico >= 1.2.3',
+}
+
+
 common_args = dict(
     version="@VERSION@",
     license="GPLv3",
@@ -56,11 +74,16 @@ old_path = os.path.abspath(os.getcwd())
 def ipasetup(name, doc, **kwargs):
     doclines = doc.split("\n")
 
+    install_requires = list(kwargs.pop('install_requires', []))
+    for i, entry in enumerate(install_requires):
+        install_requires[i] = PACKAGE_VERSION.get(entry, entry)
+
     setup_kwargs = common_args.copy()
     setup_kwargs.update(
         name=name,
         description=doclines[0],
         long_description="\n".join(doclines[:2]),
+        install_requires=install_requires,
         **kwargs
     )
     # exclude setup helpers from getting installed

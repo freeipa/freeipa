@@ -44,3 +44,9 @@ dist-hook:
 		if test -x "$(srcdir)/$${FILEN}"; then MODE=755; else MODE=644; fi;	\
 		$(INSTALL) -D -m $${MODE} "$(srcdir)/$${FILEN}" "$(distdir)/$${FILEN}" || exit $$?;	\
 	done
+
+WHEELDISTDIR = $(top_builddir)/dist/wheels
+.PHONY: bdist_wheel
+bdist_wheel:
+	rm -rf $(WHEELDISTDIR)/$(pkgname)*.whl
+	$(PYTHON) "$(srcdir)/setup.py" bdist_wheel --dist-dir=$(WHEELDISTDIR)

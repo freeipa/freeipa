@@ -36,4 +36,15 @@ if __name__ == '__main__':
             "ipalib",
             "ipalib.install",
         ],
+        install_requires=[
+            "ipaplatform",
+            "ipapython",
+            "netaddr",
+            "pyasn1",
+            "python-nss",
+            "six",
+        ],
+        setup_requires=[
+            "wheel",
+        ],
     )

@@ -38,4 +38,27 @@ if __name__ == '__main__':
             "ipapython.secrets",
             "ipapython.install"
         ],
+        install_requires=[
+            "cffi",
+            "custodia",
+            "cryptography",
+            "dnspython",
+            "gssapi",
+            "jwcrypto",
+            "ipaplatform",
+            # "ipalib",  # circular dependency
+            "pyldap",
+            "lxml",
+            "netaddr",
+            "netifaces",
+            "python-nss",
+            "requests",
+            "six",
+        ],
+        setup_requires=[
+            "wheel",
+        ],
+        extras_require={
+            ":python_version<'3'": ["enum34"],
+        },
     )
