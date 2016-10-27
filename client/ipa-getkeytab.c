@@ -44,6 +44,8 @@
 #include "ipa_asn1.h"
 #include "ipa-client-common.h"
 
+#define DEFAULT_CA_CERT_FILE "/etc/ipa/ca.crt"
+
 static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *sit)
 {
 	sasl_interact_t *in = NULL;
@@ -152,10 +154,9 @@ static int ipa_ldap_init(LDAP ** ld, const char * scheme, const char * servernam
 	return rc;
 }
 
-const char *ca_cert_file = "/etc/ipa/ca.crt";
-
 static int ipa_ldap_bind(const char *server_name, krb5_principal bind_princ,
-			 const char *bind_dn, const char *bind_pw, LDAP **_ld)
+                         const char *bind_dn, const char *bind_pw,
+                         const char *ca_cert_file, LDAP **_ld)
 {
     char *msg = NULL;
     struct berval bv;
@@ -343,6 +344,7 @@ static int ldap_set_keytab(krb5_context krbctx,
 			   krb5_principal princ,
 			   const char *binddn,
 			   const char *bindpw,
+			   const char *ca_cert_file,
 			   struct keys_container *keys)
 {
 	LDAP *ld = NULL;
@@ -369,7 +371,7 @@ static int ldap_set_keytab(krb5_context krbctx,
 		goto error_out;
 	}
 
-    ret = ipa_ldap_bind(servername, princ, binddn, bindpw, &ld);
+    ret = ipa_ldap_bind(servername, princ, binddn, bindpw, ca_cert_file, &ld);
     if (ret != LDAP_SUCCESS) {
         fprintf(stderr, _("Failed to bind to server!\n"));
         goto error_out;
@@ -500,6 +502,7 @@ static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
                            const char *enctypes, const char *bind_server,
                            const char *svc_princ, krb5_principal bind_princ,
                            const char *bind_dn, const char *bind_pw,
+                           const char *ca_cert_file,
                            struct keys_container *keys, int *kvno,
                            char **err_msg)
 {
@@ -529,7 +532,8 @@ static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
         goto done;
     }
 
-    ret = ipa_ldap_bind(bind_server, bind_princ, bind_dn, bind_pw, &ld);
+    ret = ipa_ldap_bind(bind_server, bind_princ, bind_dn, bind_pw,
+                        ca_cert_file, &ld);
     if (ret != LDAP_SUCCESS) {
         *err_msg = _("Failed to bind to server!\n");
         goto done;
@@ -684,6 +688,7 @@ int main(int argc, const char *argv[])
 	static const char *enctypes_string = NULL;
 	static const char *binddn = NULL;
 	static const char *bindpw = NULL;
+	static const char *ca_cert_file = NULL;
 	int quiet = 0;
 	int askpass = 0;
 	int permitted_enctypes = 0;
@@ -712,6 +717,8 @@ int main(int argc, const char *argv[])
               _("LDAP DN"), _("DN to bind as if not using kerberos") },
 	    { "bindpw", 'w', POPT_ARG_STRING, &bindpw, 0,
               _("LDAP password"), _("password to use if not using kerberos") },
+	    { "cacert", 0, POPT_ARG_STRING, &ca_cert_file, 0,
+              _("Path to the IPA CA certificate"), _("IPA CA certificate")},
 	    { "retrieve", 'r', POPT_ARG_NONE, &retrieve, 0,
               _("Retrieve current keys without changing them"), NULL },
             POPT_AUTOHELP
@@ -798,6 +805,10 @@ int main(int argc, const char *argv[])
         }
     }
 
+    if (!ca_cert_file) {
+        ca_cert_file = DEFAULT_CA_CERT_FILE;
+    }
+
     if (askpass && retrieve) {
         fprintf(stderr, _("Incompatible options provided (-r and -P)\n"));
         exit(2);
@@ -853,6 +864,7 @@ int main(int argc, const char *argv[])
     kvno = -1;
     ret = ldap_get_keytab(krbctx, (retrieve == 0), password, enctypes_string,
                           server, principal, uprinc, binddn, bindpw,
+                          ca_cert_file,
                           &keys, &kvno, &err_msg);
     if (ret) {
         if (!quiet && err_msg != NULL) {
@@ -877,7 +889,8 @@ int main(int argc, const char *argv[])
             exit(8);
         }
 
-        kvno = ldap_set_keytab(krbctx, server, principal, uprinc, binddn, bindpw, &keys);
+        kvno = ldap_set_keytab(krbctx, server, principal, uprinc, binddn,
+                               bindpw, ca_cert_file, &keys);
     }
 
     if (kvno == -1) {

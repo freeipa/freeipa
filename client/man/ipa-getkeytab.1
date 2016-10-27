@@ -21,7 +21,7 @@
 .SH "NAME"
 ipa\-getkeytab \- Get a keytab for a Kerberos principal
 .SH "SYNOPSIS"
-ipa\-getkeytab \fB\-p\fR \fIprincipal\-name\fR \fB\-k\fR \fIkeytab\-file\fR [ \fB\-e\fR \fIencryption\-types\fR ] [ \fB\-s\fR \fIipaserver\fR ] [ \fB\-q\fR ] [ \fB\-D\fR|\fB\-\-binddn\fR \fIBINDDN\fR ] [ \fB\-w|\-\-bindpw\fR ] [ \fB\-P\fR|\fB\-\-password\fR \fIPASSWORD\fR ] [ \fB\-r\fR ]
+ipa\-getkeytab \fB\-p\fR \fIprincipal\-name\fR \fB\-k\fR \fIkeytab\-file\fR [ \fB\-e\fR \fIencryption\-types\fR ] [ \fB\-s\fR \fIipaserver\fR ] [ \fB\-q\fR ] [ \fB\-D\fR|\fB\-\-binddn\fR \fIBINDDN\fR ] [ \fB\-w|\-\-bindpw\fR ] [ \fB\-P\fR|\fB\-\-password\fR \fIPASSWORD\fR ] [ \fB\-\-cacert \fICACERT\fR ] [ \fB\-r\fR ]
 
 .SH "DESCRIPTION"
 Retrieves a Kerberos \fIkeytab\fR.
@@ -97,6 +97,10 @@ The LDAP DN to bind as when retrieving a keytab without Kerberos credentials. Ge
 .TP
 \fB\-w, \-\-bindpw\fR
 The LDAP password to use when not binding with Kerberos.
+.TP
+\fB\-\-cacert\fR
+The path to the IPA CA certificate used to validate LDAPS connections. Defaults to
+/etc/ipa/ca.crt
 .TP
 \fB\-r\fR
 Retrieve mode. Retrieve an existing key from the server instead of generating a
