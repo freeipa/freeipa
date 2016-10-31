@@ -32,7 +32,6 @@ sbin_SCRIPTS =			\
 	$(NULL)
 
 EXTRA_DIST =			\
-	README			\
 	$(sbin_SCRIPTS)		\
 	$(NULL)
 
