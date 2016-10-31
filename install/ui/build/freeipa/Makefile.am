@@ -20,6 +20,6 @@ widgets := $(wildcard ../../src/freeipa/widgets/*.js)
 nav := $(wildcard ../../src/freeipa/navigation/*.js)
 
 app.js: $(core) $(base) $(widgets) $(nav)
-	../../util/make-ui.sh
+	$(srcdir)/../../util/make-ui.sh
 
 core.js: app.js

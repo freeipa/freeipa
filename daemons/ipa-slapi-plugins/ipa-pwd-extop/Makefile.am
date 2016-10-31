@@ -1,16 +1,13 @@
 NULL =
 
 MAINTAINERCLEANFILES = *~ Makefile.in
-PLUGIN_COMMON_DIR = ../common
-KRB5_UTIL_DIR = ../../../util
-ASN1_UTIL_DIR=../../../asn1
+PLUGIN_COMMON_DIR = $(srcdir)/../common
 
 AM_CPPFLAGS =							\
-	-I.							\
 	-I$(srcdir)						\
 	-I$(PLUGIN_COMMON_DIR)					\
-	-I$(KRB5_UTIL_DIR)					\
-	-I$(ASN1_UTIL_DIR)					\
+	-I$(top_srcdir)/util					\
+	-I$(top_srcdir)/asn1					\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
 	-DLIBDIR=\""$(libdir)"\" 				\
@@ -37,8 +34,8 @@ plugindir = $(libdir)/dirsrv/plugins
 plugin_LTLIBRARIES = libipa_pwd_extop.la
 libipa_pwd_extop_la_LIBADD  = \
 	$(builddir)/../libotp/libotp.la \
-	$(ASN1_UTIL_DIR)/libipaasn1.la  \
-	$(KRB5_UTIL_DIR)/libutil.la	\
+	$(top_builddir)/asn1/libipaasn1.la	\
+	$(top_builddir)/util/libutil.la		\
 	$(NULL)
 libipa_pwd_extop_la_SOURCES = 		\
 	common.c			\

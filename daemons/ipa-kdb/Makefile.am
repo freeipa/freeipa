@@ -2,14 +2,10 @@ AUTOMAKE_OPTIONS = 1.7 subdir-objects
 
 NULL =
 
-KRB5_UTIL_DIR = ../../util
-IPA_UTIL_DIR = ../../../util
 
 AM_CPPFLAGS =						\
-	-I.						\
 	-I$(srcdir)					\
-	-I$(KRB5_UTIL_DIR)				\
-	-I$(IPA_UTIL_DIR)				\
+	-I$(top_srcdir)/util				\
 	-DPREFIX=\""$(prefix)"\" 			\
 	-DBINDIR=\""$(bindir)"\"			\
 	-DLIBDIR=\""$(libdir)"\" 			\
@@ -52,7 +48,7 @@ ipadb_la_LIBADD = 		\
 	$(NDRPAC_LIBS)		\
 	$(UNISTRING_LIBS)	\
 	$(NSS_LIBS)             \
-	$(KRB5_UTIL_DIR)/libutil.la	\
+	$(top_builddir)/util/libutil.la	\
 	$(NULL)
 
 if HAVE_CMOCKA
@@ -80,7 +76,7 @@ ipa_kdb_tests_LDADD =          \
        $(NDRPAC_LIBS)          \
        $(UNISTRING_LIBS)       \
        $(NSS_LIBS)             \
-       $(KRB5_UTIL_DIR)/libutil.la	\
+       $(top_builddir)/util/libutil.la	\
        -lkdb5                  \
        -lsss_idmap             \
        $(NULL)

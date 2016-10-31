@@ -1,6 +1,6 @@
 SUBDIRS = asn1c
 
-AM_CPPFLAGS = -I../util -Iasn1c
+AM_CPPFLAGS = -I$(top_srcdir)/util -I$(srcdir)/asn1c
 
 noinst_LTLIBRARIES=libipaasn1.la
 noinst_HEADERS=ipa_asn1.h
