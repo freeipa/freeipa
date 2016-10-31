@@ -149,11 +149,16 @@ class KnobBase(PropertyBase):
         return cls
 
 
-def knob(type_or_base, default=_missing, sensitive=_missing,
+def knob(type_=_missing, default=_missing, bases=_missing, sensitive=_missing,
          deprecated=_missing, description=_missing, cli_names=_missing,
          cli_deprecated_names=_missing, cli_metavar=_missing):
-    if type_or_base is None:
-        type_or_base = NoneType
+    if type_ is None:
+        type_ = NoneType
+
+    if bases is _missing:
+        bases = (KnobBase,)
+    elif isinstance(bases, type):
+        bases = (bases,)
 
     if cli_names is None or isinstance(cli_names, str):
         cli_names = (cli_names,)
@@ -165,15 +170,10 @@ def knob(type_or_base, default=_missing, sensitive=_missing,
     elif cli_deprecated_names is not _missing:
         cli_deprecated_names = tuple(cli_deprecated_names)
 
-    assert isinstance(type_or_base, type)
-
     class_dict = {}
     class_dict['_order'] = next(_counter)
-
-    if not issubclass(type_or_base, KnobBase):
-        class_dict['type'] = type_or_base
-        type_or_base = KnobBase
-
+    if type_ is not _missing:
+        class_dict['type'] = type_
     if default is not _missing:
         class_dict['default'] = default
     if sensitive is not _missing:
@@ -189,40 +189,45 @@ def knob(type_or_base, default=_missing, sensitive=_missing,
     if cli_metavar is not _missing:
         class_dict['cli_metavar'] = cli_metavar
 
-    return util.InnerClassMeta('Knob', (type_or_base,), class_dict)
+    return util.InnerClassMeta('Knob', bases, class_dict)
 
 
 def Knob(type_or_base, default=_missing, sensitive=_missing,
          deprecated=_missing, description=_missing, cli_positional=False,
          cli_name=_missing, cli_short_name=_missing, cli_aliases=_missing,
          cli_metavar=_missing):
-    if isinstance(type_or_base, tuple):
-        assert type_or_base[0] is list
-        scalar_type = type_or_base[1]
+    if isinstance(type_or_base, type) and issubclass(type_or_base, KnobBase):
+        type_ = _missing
+        bases = (type_or_base,)
     else:
-        scalar_type = type_or_base
+        if isinstance(type_or_base, tuple):
+            assert type_or_base[0] is list
+            scalar_type = type_or_base[1]
+        else:
+            scalar_type = type_or_base
 
-    if scalar_type is bool:
-        scalar_type = NoneType
-    elif scalar_type == 'ip':
-        scalar_type = CheckedIPAddress
-    elif isinstance(scalar_type, set):
-        scalar_type = type(
-            'Enum',
-            (enum.Enum,),
-            {re.sub(r'[^0-9A-Za-z_]', '', n): n for n in scalar_type})
+        if scalar_type is bool:
+            scalar_type = NoneType
+        elif scalar_type == 'ip':
+            scalar_type = CheckedIPAddress
+        elif isinstance(scalar_type, set):
+            scalar_type = type(
+                'Enum',
+                (enum.Enum,),
+                {re.sub(r'[^0-9A-Za-z_]', '', n): n for n in scalar_type})
 
-    if isinstance(type_or_base, tuple):
-        type_or_base = typing.List[scalar_type]
-    else:
-        type_or_base = scalar_type
+        if isinstance(type_or_base, tuple):
+            type_ = typing.List[scalar_type]
+        else:
+            type_ = scalar_type
+        bases = _missing
 
     if cli_name is not _missing or cli_short_name is not _missing:
         if cli_positional and cli_name is not _missing:
             cli_positional_name = [cli_name]
-        elif issubclass(type_or_base, KnobBase):
+        elif bases is not _missing:
             cli_positional_name = [
-                n for n in type_or_base.cli_names   # pylint: disable=no-member
+                n for n in bases[0].cli_names   # pylint: disable=no-member
                 if n is not None and n[:1] != '-'
             ]
         else:
@@ -230,9 +235,9 @@ def Knob(type_or_base, default=_missing, sensitive=_missing,
 
         if cli_short_name is not _missing:
             cli_short_name = ['-{}'.format(cli_short_name)]
-        elif issubclass(type_or_base, KnobBase):
+        elif bases is not _missing:
             cli_short_name = [
-                n for n in type_or_base.cli_names   # pylint: disable=no-member
+                n for n in bases[0].cli_names   # pylint: disable=no-member
                 if n is not None and n[:1] == '-' and n[:2] != '--'
             ]
         else:
@@ -243,9 +248,9 @@ def Knob(type_or_base, default=_missing, sensitive=_missing,
                 cli_long_name = ['--{}'.format(cli_name)]
             else:
                 cli_long_name = [None]
-        elif issubclass(type_or_base, KnobBase):
+        elif bases is not _missing:
             cli_long_name = [
-                n for n in type_or_base.cli_names   # pylint: disable=no-member
+                n for n in bases[0].cli_names   # pylint: disable=no-member
                 if n is None or n[:2] == '--'
             ]
         else:
@@ -260,8 +265,9 @@ def Knob(type_or_base, default=_missing, sensitive=_missing,
     else:
         cli_deprecated_names = _missing
 
-    return knob(type_or_base,
+    return knob(type_,
                 default=default,
+                bases=bases,
                 sensitive=sensitive,
                 deprecated=deprecated,
                 description=description,
