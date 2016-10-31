@@ -265,8 +265,3 @@ if __name__ == "__main__":
         sys.exit(1)
     except RuntimeError as e:
         sys.exit(e)
-    finally:
-        try:
-            os.remove(client.CCACHE_FILE)
-        except Exception:
-            pass
