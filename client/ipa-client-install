@@ -235,12 +235,12 @@ def main():
             return rval_check
 
         return client.uninstall(options)
+    else:
+        rval_check = client.install_check(options)
+        if rval_check != client.SUCCESS:
+            return rval_check
 
-    rval_check = client.install_check(options)
-    if rval_check != client.SUCCESS:
-        return rval_check
-
-    return client.install(options)
+        return client.install(options)
 
 if __name__ == "__main__":
     try:
