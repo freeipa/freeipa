@@ -1614,13 +1614,16 @@ class trustdomain_del(LDAPDelete):
         # to always receive empty keys. We need to catch the case when root domain is being deleted
 
         for domain in keys[1]:
-            # Fetch the trust to verify that the entered domain is trusted
-            self.api.Command.trust_show(domain)
+            try:
+                self.obj.get_dn_if_exists(keys[0], domain, trust_type=u'ad')
+            except errors.NotFound:
+                if keys[0].lower() == domain:
+                    raise errors.ValidationError(
+                        name='domain',
+                        error=_("cannot delete root domain of the trust, "
+                                "use trust-del to delete the trust itself"))
+                self.obj.handle_not_found(keys[0], domain)
 
-            if keys[0].lower() == domain:
-                raise errors.ValidationError(name='domain',
-                    error=_("cannot delete root domain of the trust, "
-                            "use trust-del to delete the trust itself"))
             try:
                 res = self.api.Command.trustdomain_enable(keys[0], domain)
             except errors.AlreadyActive:
