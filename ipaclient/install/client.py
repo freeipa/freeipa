@@ -2285,6 +2285,16 @@ def install_check(options):
 
 
 def install(options):
+    try:
+        return _install(options)
+    finally:
+        try:
+            os.remove(CCACHE_FILE)
+        except Exception:
+            pass
+
+
+def _install(options):
     env = {'PATH': SECURE_PATH}
 
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
