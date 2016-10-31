@@ -85,6 +85,10 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
 
         return self.make_command('service_mod', self.name, **updates)
 
+    def make_disable_command(self):
+        """ make command  that disables the service principal """
+        return self.make_command('service_disable', self.name)
+
     def create(self, force=True):
         """Helper function to create an entry and check the result"""
         self.ensure_missing()
