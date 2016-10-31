@@ -260,8 +260,6 @@ def main():
 try:
     if __name__ == "__main__":
         sys.exit(main())
-except SystemExit as e:
-    sys.exit(e)
 except KeyboardInterrupt:
     sys.exit(1)
 except RuntimeError as e:
