@@ -229,20 +229,18 @@ def main():
     root_logger.debug("missing options might be asked for interactively later")
     root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
 
-    env={"PATH":"/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
-
     if options.uninstall:
         rval_check = client.uninstall_check(options)
         if rval_check != client.SUCCESS:
             return rval_check
 
-        return client.uninstall(options, env)
+        return client.uninstall(options)
 
     rval_check = client.install_check(options)
     if rval_check != client.SUCCESS:
         return rval_check
 
-    rval = client.install(options, env)
+    rval = client.install(options)
     if rval == client.CLIENT_INSTALL_ERROR:
         if options.force:
             root_logger.warning(
@@ -255,7 +253,7 @@ def main():
         else:
             root_logger.error("Installation failed. Rolling back changes.")
             options.unattended = True
-            client.uninstall(options, env)
+            client.uninstall(options)
 
     return rval
 

@@ -78,6 +78,10 @@ CLIENT_NOT_CONFIGURED = 2
 CLIENT_ALREADY_CONFIGURED = 3
 CLIENT_UNINSTALL_ERROR = 4  # error after restoring files/state
 
+SECURE_PATH = (
+    "/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"
+)
+
 # global variables
 hostname = None
 hostname_source = None
@@ -2280,7 +2284,9 @@ def install_check(options):
     return SUCCESS
 
 
-def install(options, env):
+def install(options):
+    env = {'PATH': SECURE_PATH}
+
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
 
@@ -2884,7 +2890,9 @@ def uninstall_check(options):
     return SUCCESS
 
 
-def uninstall(options, env):
+def uninstall(options):
+    env = {'PATH': SECURE_PATH}
+
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
 
