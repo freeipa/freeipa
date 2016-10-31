@@ -2867,9 +2867,8 @@ def install(options, env):
     return SUCCESS
 
 
-def uninstall(options, env):
+def uninstall_check(options):
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
 
     if not is_ipa_client_installed(fstore):
         root_logger.error("IPA client is not configured on this system.")
@@ -2881,6 +2880,13 @@ def uninstall(options, env):
             "IPA client is configured as a part of IPA server on this system.")
         root_logger.info("Refer to ipa-server-install for uninstallation.")
         return CLIENT_NOT_CONFIGURED
+
+    return SUCCESS
+
+
+def uninstall(options, env):
+    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
 
     try:
         run(["ipa-client-automount", "--uninstall", "--debug"])

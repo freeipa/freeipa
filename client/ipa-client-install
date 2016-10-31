@@ -232,6 +232,10 @@ def main():
     env={"PATH":"/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
 
     if options.uninstall:
+        rval_check = client.uninstall_check(options)
+        if rval_check != client.SUCCESS:
+            return rval_check
+
         return client.uninstall(options, env)
 
     rval_check = client.install_check(options)
