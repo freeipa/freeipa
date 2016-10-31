@@ -240,23 +240,7 @@ def main():
     if rval_check != client.SUCCESS:
         return rval_check
 
-    rval = client.install(options)
-    if rval == client.CLIENT_INSTALL_ERROR:
-        if options.force:
-            root_logger.warning(
-                "Installation failed. Force set so not rolling back changes.")
-        elif options.on_master:
-            root_logger.warning(
-                "Installation failed. As this is IPA server, changes will not "
-                "be rolled back."
-            )
-        else:
-            root_logger.error("Installation failed. Rolling back changes.")
-            options.unattended = True
-            client.uninstall(options)
-
-    return rval
-
+    return client.install(options)
 
 if __name__ == "__main__":
     try:

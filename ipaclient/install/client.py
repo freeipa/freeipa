@@ -2286,7 +2286,21 @@ def install_check(options):
 
 def install(options):
     try:
-        return _install(options)
+        rval = _install(options)
+        if rval == CLIENT_INSTALL_ERROR:
+            if options.force:
+                root_logger.warning(
+                    "Installation failed. Force set so not rolling back "
+                    "changes.")
+            elif options.on_master:
+                root_logger.warning(
+                    "Installation failed. As this is IPA server, changes will "
+                    "not be rolled back.")
+            else:
+                root_logger.error("Installation failed. Rolling back changes.")
+                options.unattended = True
+                uninstall(options)
+        return rval
     finally:
         try:
             os.remove(CCACHE_FILE)
