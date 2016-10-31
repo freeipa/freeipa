@@ -41,7 +41,6 @@ app_DATA =			\
 	$(NULL)
 
 EXTRA_DIST =			\
-	README			\
 	$(app_DATA)		\
 	$(NULL)
 
