@@ -1,9 +1,8 @@
 NULL =
 
-PLUGIN_COMMON_DIR=../common
+PLUGIN_COMMON_DIR = $(srcdir)/../common
 
 AM_CPPFLAGS =							\
-	-I.							\
 	-I$(srcdir)						\
 	-I$(PLUGIN_COMMON_DIR)					\
 	-DPREFIX=\""$(prefix)"\" 				\

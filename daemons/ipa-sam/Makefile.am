@@ -6,13 +6,9 @@ SAMBA40EXTRA_LIBS = $(SAMBA40EXTRA_LIBPATH)	\
 			-lsmbconf		\
 			$(NULL)
 
-KRB5_UTIL_DIR=../../util
-ASN1_UTIL_DIR=../../asn1
-
 AM_CPPFLAGS =						\
-	-I.						\
 	-I$(srcdir)					\
-	-I$(ASN1_UTIL_DIR)				\
+	-I$(top_srcdir)/asn1				\
 	-I/usr/include/samba-4.0			\
 	-DPREFIX=\""$(prefix)"\" 			\
 	-DBINDIR=\""$(bindir)"\"			\
@@ -21,7 +17,7 @@ AM_CPPFLAGS =						\
 	-DDATADIR=\""$(datadir)"\"			\
 	-DLDAPIDIR=\""$(localstatedir)/run"\"		\
 	-DHAVE_LDAP					\
-	-I$(KRB5_UTIL_DIR)				\
+	-I$(top_srcdir)/util				\
 	$(CRYPTO_CFLAGS)				\
 	$(LDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)					\
@@ -56,8 +52,8 @@ ipasam_la_LIBADD = 		\
 	$(NDR_LIBS)		\
 	$(SAMBA40EXTRA_LIBS)	\
 	$(SSSIDMAP_LIBS)	\
-	$(ASN1_UTIL_DIR)/libipaasn1.la  \
-	$(KRB5_UTIL_DIR)/libutil.la	\
+	$(top_builddir)/asn1/libipaasn1.la  \
+	$(top_builddir)/util/libutil.la	\
 	$(NULL)
 
 EXTRA_DIST =			\

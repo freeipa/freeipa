@@ -1,11 +1,10 @@
 NULL =
 
-PLUGIN_COMMON_DIR=../common
+PLUGIN_COMMON_DIR = $(srcdir)/../common
 
 AM_CPPFLAGS =							\
-	-I.							\
-	-I../../						\
 	-I$(srcdir)						\
+	-I$(top_builddir)/daemons/				\
 	-I$(PLUGIN_COMMON_DIR)					\
 	-I/usr/include/dirsrv					\
 	-DPREFIX=\""$(prefix)"\" 				\

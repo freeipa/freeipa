@@ -18,4 +18,4 @@ MAINTAINERCLEANFILES =                  \
 ipa := $(wildcard ../less/*.less)
 
 ipa.css: $(ipa)
-	../util/make-css.sh
+	$(srcdir)/../util/make-css.sh

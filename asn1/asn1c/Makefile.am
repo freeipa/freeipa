@@ -33,7 +33,7 @@ libasn1c_la_SOURCES =		\
 	TypeValuePair.c
 
 
-AM_CPPFLAGS = -I../../util
+AM_CPPFLAGS = -I$(top_srcdir)/util
 
 noinst_LTLIBRARIES=libasn1c.la
 
