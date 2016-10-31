@@ -344,14 +344,23 @@ class HTTPInstance(service.Service):
             self.__set_mod_nss_nickname(nickname)
             self.add_cert_to_service()
 
-        elif not self.promote:
-            db.create_password_conf()
-            self.dercert = db.create_server_cert(self.cert_nickname, self.fqdn,
-                                                 ca_db)
-            db.track_server_cert(self.cert_nickname, self.principal,
-                                 db.passwd_fname, 'restart_httpd')
-            db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
-            self.add_cert_to_service()
+        else:
+            if not self.promote:
+                db.create_password_conf()
+                self.dercert = db.create_server_cert(self.cert_nickname, self.fqdn,
+                                                     ca_db)
+                db.track_server_cert(self.cert_nickname, self.principal,
+                                     db.passwd_fname, 'restart_httpd')
+                db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
+                self.add_cert_to_service()
+
+            server_certs = db.find_server_certs()
+            if not server_certs:
+                raise RuntimeError("Could not find a suitable server cert.")
+
+            # We only handle one server cert
+            nickname = server_certs[0][0]
+            db.export_ca_cert(nickname)
 
         # Fix the database permissions
         os.chmod(certs.NSS_DIR + "/cert8.db", 0o660)
