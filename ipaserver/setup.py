@@ -31,7 +31,7 @@ if __name__ == '__main__':
     from ipasetup import ipasetup  # noqa: E402
 
     ipasetup(
-        name='freeipa',
+        name='ipaserver',
         doc=__doc__,
         package_dir={'ipaserver': ''},
         packages=[
