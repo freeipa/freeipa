@@ -721,7 +721,7 @@ class KerbTransport(SSLTransport):
             pass
 
     def parse_response(self, response):
-        self.store_session_cookie(response.getheader('Set-Cookie'))
+        self.store_session_cookie(response.msg.getheaders('Set-Cookie'))
         return SSLTransport.parse_response(self, response)
 
 
