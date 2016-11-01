@@ -87,7 +87,8 @@ def main():
     conn = None
     try:
         filter = '(objectClass=extensibleObject)'
-        conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
+        ldap_uri = ipaldap.get_ldap_uri(host, 636, cacert=CACERT)
+        conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
 
         if options.dirman_password:
             try:

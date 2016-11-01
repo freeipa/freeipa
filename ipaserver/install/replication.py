@@ -109,13 +109,15 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
     else:
         print("Connection check OK")
 
-def enable_replication_version_checking(hostname, realm, dirman_passwd):
+
+def enable_replication_version_checking(realm, dirman_passwd):
     """
     Check the replication version checking plugin. If it is not
     enabled then enable it and restart 389-ds. If it is enabled
     the do nothing.
     """
-    conn = ipaldap.IPAdmin(hostname, realm=realm, ldapi=True)
+    ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=realm)
+    conn = ipaldap.LDAPClient(ldap_uri)
     if dirman_passwd:
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=dirman_passwd)
@@ -206,17 +208,16 @@ class ReplicationManager(object):
         self.db_suffix = self.suffix
         self.agreement_name_format = "meTo%s"
 
-        # The caller is allowed to pass in an existing IPAdmin connection.
+        # The caller is allowed to pass in an existing LDAPClient connection.
         # Open a new one if not provided
         if conn is None:
             # If we are passed a password we'll use it as the DM password
             # otherwise we'll do a GSSAPI bind.
-            if starttls:
-                self.conn = ipaldap.IPAdmin(
-                    hostname, port=port, cacert=CACERT, protocol='ldap',
-                    start_tls=True)
-            else:
-                self.conn = ipaldap.IPAdmin(hostname, port=port, cacert=CACERT)
+            protocol = 'ldap' if starttls else None
+            ldap_uri = ipaldap.get_ldap_uri(
+                hostname, port, protocol=protocol, cacert=CACERT)
+            self.conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT,
+                                           start_tls=starttls)
             if dirman_passwd:
                 self.conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                                       bind_password=dirman_passwd)
@@ -1006,9 +1007,9 @@ class ReplicationManager(object):
             local_port = r_port
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
-        r_conn = ipaldap.IPAdmin(
-            r_hostname, port=r_port, cacert=CACERT, protocol='ldap',
-            start_tls=True)
+        ldap_uri = ipaldap.get_ldap_uri(r_hostname, r_port, cacert=CACERT,
+                                        protocol='ldap')
+        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT, start_tls=True)
 
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
@@ -1115,7 +1116,8 @@ class ReplicationManager(object):
             raise RuntimeError("Failed to start replication")
 
     def convert_to_gssapi_replication(self, r_hostname, r_binddn, r_bindpw):
-        r_conn = ipaldap.IPAdmin(r_hostname, port=PORT, cacert=CACERT)
+        ldap_uri = ipaldap.get_ldap_uri(r_hostname, PORT, cacert=CACERT)
+        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
@@ -1145,7 +1147,8 @@ class ReplicationManager(object):
         """
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
-        r_conn = ipaldap.IPAdmin(r_hostname, port=PORT, cacert=CACERT)
+        ldap_uri = ipaldap.get_ldap_uri(r_hostname, PORT, cacert=CACERT)
+        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
@@ -1603,7 +1606,8 @@ class ReplicationManager(object):
     def setup_promote_replication(self, r_hostname):
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
-        r_conn = ipaldap.IPAdmin(r_hostname, port=389, protocol='ldap')
+        ldap_uri = ipaldap.get_ldap_uri(r_hostname)
+        r_conn = ipaldap.LDAPClient(ldap_uri)
         r_conn.gssapi_bind()
 
         # Setup the first half
@@ -1739,7 +1743,8 @@ class CAReplicationManager(ReplicationManager):
 
     def __init__(self, realm, hostname):
         # Always connect to self over ldapi
-        conn = ipaldap.IPAdmin(hostname, ldapi=True, realm=realm)
+        ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=realm)
+        conn = ipaldap.LDAPClient(ldap_uri)
         conn.external_bind()
         super(CAReplicationManager, self).__init__(
             realm, hostname, None, port=DEFAULT_PORT, conn=conn)
@@ -1751,7 +1756,8 @@ class CAReplicationManager(ReplicationManager):
         Assumes a promote replica with working GSSAPI for replication
         and unified DS instance.
         """
-        r_conn = ipaldap.IPAdmin(r_hostname, port=389, protocol='ldap')
+        ldap_uri = ipaldap.get_ldap_uri(r_hostname)
+        r_conn = ipaldap.LDAPClient(ldap_uri)
         r_conn.gssapi_bind()
 
         # Setup the first half

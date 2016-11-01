@@ -27,6 +27,7 @@ import contextlib
 import collections
 import os
 import pwd
+from urlparse import urlparse
 
 import ldap
 import ldap.sasl
@@ -705,7 +706,8 @@ class LDAPClient(object):
     size_limit = 0      # unlimited
 
     def __init__(self, ldap_uri, start_tls=False, force_schema_updates=False,
-                 no_schema=False, decode_attrs=True):
+                 no_schema=False, decode_attrs=True, cacert=None,
+                 sasl_nocanon=False):
         """Create LDAPClient object.
 
         :param ldap_uri: The LDAP URI to connect to
@@ -727,12 +729,52 @@ class LDAPClient(object):
         self._force_schema_updates = force_schema_updates
         self._no_schema = no_schema
         self._decode_attrs = decode_attrs
+        self._cacert = cacert
+        self._sasl_nocanon = sasl_nocanon
+
+        self.host = 'localhost'
+        self.port = None
+        url_data = urlparse(ldap_uri)
+        self._protocol = url_data.scheme
+        if self._protocol in ('ldap', 'ldaps'):
+            self.host = url_data.hostname
+            self.port = url_data.port
 
         self.log = log_mgr.get_logger(self)
         self._has_schema = False
         self._schema = None
 
         self._conn = self._connect()
+
+    def __str__(self):
+        return self.ldap_uri
+
+    def do_bind(self, dm_password="", autobind=AUTOBIND_AUTO):
+        if dm_password:
+            self.simple_bind(bind_dn=DIRMAN_DN,
+                             bind_password=dm_password)
+            return
+        if (autobind != AUTOBIND_DISABLED and os.getegid() == 0 and
+                self._protocol == 'ldapi'):
+            try:
+                # autobind
+                self.external_bind()
+                return
+            except errors.NotFound:
+                if autobind == AUTOBIND_ENABLED:
+                    # autobind was required and failed, raise
+                    # exception that it failed
+                    raise
+
+        # fall back
+        self.gssapi_bind()
+
+    def modify_s(self, dn, modlist):
+        # FIXME: for backwards compatibility only
+        assert isinstance(dn, DN)
+        dn = str(dn)
+        modlist = [(a, self.encode(b), self.encode(c)) for a, b, c in modlist]
+        return self.conn.modify_s(dn, modlist)
 
     @property
     def conn(self):
@@ -1065,6 +1107,14 @@ class LDAPClient(object):
     def _connect(self):
         with self.error_handler():
             conn = ldap.initialize(self.ldap_uri)
+
+            if self._start_tls or self._protocol == 'ldaps':
+                ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, self._cacert)
+                ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, True)
+                conn.set_option(ldap.OPT_X_TLS_DEMAND, True)
+
+            if self._sasl_nocanon:
+                conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_ON)
 
             if self._start_tls:
                 conn.start_tls_s()
@@ -1559,99 +1609,22 @@ class LDAPClient(object):
             return True
 
 
-class IPAdmin(LDAPClient):
+def get_ldap_uri(host='', port=389, cacert=None, ldapi=False, realm=None,
+                 protocol=None):
+        if protocol is None:
+            if ldapi:
+                protocol = 'ldapi'
+            elif cacert is not None:
+                protocol = 'ldaps'
+            else:
+                protocol = 'ldap'
 
-    def __get_ldap_uri(self, protocol):
         if protocol == 'ldaps':
-            return 'ldaps://%s' % format_netloc(self.host, self.port)
+            return 'ldaps://%s' % format_netloc(host, port)
         elif protocol == 'ldapi':
             return 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % (
-                "-".join(self.realm.split(".")))
+                "-".join(realm.split(".")))
         elif protocol == 'ldap':
-            return 'ldap://%s' % format_netloc(self.host, self.port)
+            return 'ldap://%s' % format_netloc(host, port)
         else:
             raise ValueError('Protocol %r not supported' % protocol)
-
-
-    def __guess_protocol(self):
-        """Return the protocol to use based on flags passed to the constructor
-
-        Only used when "protocol" is not specified explicitly.
-
-        If a CA certificate is provided then it is assumed that we are
-        doing SSL client authentication with proxy auth.
-
-        If a CA certificate is not present then it is assumed that we are
-        using a forwarded kerberos ticket for SASL auth. SASL provides
-        its own encryption.
-        """
-        if self.cacert is not None:
-            return 'ldaps'
-        elif self.ldapi:
-            return 'ldapi'
-        else:
-            return 'ldap'
-
-    def __init__(self, host='', port=389, cacert=None, debug=None, ldapi=False,
-                 realm=None, protocol=None, force_schema_updates=True,
-                 start_tls=False, ldap_uri=None, no_schema=False,
-                 decode_attrs=True, sasl_nocanon=False, demand_cert=False):
-        self._conn = None
-        log_mgr.get_logger(self, True)
-        if debug and debug.lower() == "on":
-            ldap.set_option(ldap.OPT_DEBUG_LEVEL,255)
-        if cacert is not None:
-            ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, cacert)
-
-        self.port = port
-        self.host = host
-        self.cacert = cacert
-        self.ldapi = ldapi
-        self.realm = realm
-        self.suffixes = {}
-
-        if not ldap_uri:
-            ldap_uri = self.__get_ldap_uri(protocol or self.__guess_protocol())
-
-        super(IPAdmin, self).__init__(
-            ldap_uri, force_schema_updates=force_schema_updates,
-            no_schema=no_schema, decode_attrs=decode_attrs)
-
-        with self.error_handler():
-            if demand_cert:
-                ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, True)
-                self.conn.set_option(ldap.OPT_X_TLS_DEMAND, True)
-
-            if sasl_nocanon:
-                self.conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_ON)
-
-            if start_tls:
-                self.conn.start_tls_s()
-
-    def __str__(self):
-        return self.host + ":" + str(self.port)
-
-    def do_bind(self, dm_password="", autobind=AUTOBIND_AUTO):
-        if dm_password:
-            self.simple_bind(bind_dn=DIRMAN_DN, bind_password=dm_password)
-            return
-        if autobind != AUTOBIND_DISABLED and os.getegid() == 0 and self.ldapi:
-            try:
-                # autobind
-                self.external_bind()
-                return
-            except errors.NotFound:
-                if autobind == AUTOBIND_ENABLED:
-                    # autobind was required and failed, raise
-                    # exception that it failed
-                    raise
-
-        #fall back
-        self.gssapi_bind()
-
-    def modify_s(self, dn, modlist):
-        # FIXME: for backwards compatibility only
-        assert isinstance(dn, DN)
-        dn = str(dn)
-        modlist = [(a, self.encode(b), self.encode(c)) for a, b, c in modlist]
-        return self.conn.modify_s(dn, modlist)

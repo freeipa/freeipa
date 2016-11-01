@@ -35,7 +35,7 @@ class update_replica_attribute_lists(Updater):
     """
 
     def execute(self, **options):
-        # We need an IPAdmin connection to the backend
+        # We need an LDAPClient connection to the backend
         self.log.debug("Start replication agreement exclude list update task")
         conn = self.api.Backend.ldap2
 

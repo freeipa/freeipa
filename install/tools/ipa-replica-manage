@@ -167,7 +167,8 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
     peers = {}
 
     try:
-        conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
+        ldap_uri = ipaldap.get_ldap_uri(host, 636, cacert=CACERT)
+        conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
         if dirman_passwd:
             conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                              bind_password=dirman_passwd)
@@ -627,7 +628,8 @@ def clean_dangling_ruvs(realm, host, options):
     Cleans all RUVs and CS-RUVs that are left in the system from
     uninstalled replicas
     """
-    conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
+    ldap_uri = ipaldap.get_ldap_uri(host, 636, cacert=CACERT)
+    conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
     try:
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=options.dirman_passwd)
@@ -674,7 +676,8 @@ def clean_dangling_ruvs(realm, host, options):
     offlines = set()
     for master_cn, master_info in info.items():
         try:
-            conn = ipaldap.IPAdmin(master_cn, 636, cacert=CACERT)
+            ldap_uri = ipaldap.get_ldap_uri(master_cn, 636, cacert=CACERT)
+            conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
             conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                              bind_password=options.dirman_passwd)
             master_info['online'] = True

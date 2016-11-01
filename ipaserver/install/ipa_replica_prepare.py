@@ -357,7 +357,8 @@ class ReplicaPrepare(admintool.AdminTool):
 
         self.log.info("Preparing replica for %s from %s",
             self.replica_fqdn, api.env.host)
-        enable_replication_version_checking(api.env.host, api.env.realm,
+        enable_replication_version_checking(
+            api.env.realm,
             self.dirman_password)
 
         self.top_dir = tempfile.mkdtemp("ipa")

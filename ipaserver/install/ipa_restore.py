@@ -435,10 +435,8 @@ class Restore(admintool.AdminTool):
         if self._conn is not None:
             return self._conn
 
-        self._conn = ipaldap.IPAdmin(host=api.env.host,
-                                   ldapi=True,
-                                   protocol='ldapi',
-                                   realm=api.env.realm)
+        ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=api.env.realm)
+        self._conn = ipaldap.LDAPClient(ldap_uri)
 
         try:
             self._conn.external_bind()

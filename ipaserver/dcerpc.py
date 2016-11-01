@@ -45,7 +45,7 @@ import random
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
 from cryptography.hazmat.backends import default_backend
 import ldap as _ldap
-from ipapython.ipaldap import IPAdmin
+from ipapython import ipaldap
 from ipaserver.session import krbccache_dir, krbccache_prefix
 from dns import resolver, rdatatype
 from dns.exception import DNSException
@@ -760,11 +760,12 @@ class DomainValidator(object):
                 entries = None
 
                 try:
-                    conn = IPAdmin(host=host,
-                                   port=389,  # query the AD DC
-                                   no_schema=True,
-                                   decode_attrs=False,
-                                   sasl_nocanon=True)
+                    ldap_uri = ipaldap.get_ldap_uri(host)
+                    conn = ipaldap.LDAPClient(
+                        ldap_uri,
+                        no_schema=True,
+                        decode_attrs=False,
+                        sasl_nocanon=True)
                     # sasl_nocanon used to avoid hard requirement for PTR
                     # records pointing back to the same host name
 

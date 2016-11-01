@@ -29,7 +29,7 @@ import sys
 
 from ipalib import api, errors
 from ipapython.ipa_log_manager import standard_logging_setup
-from ipapython.ipaldap import IPAdmin
+from ipapython.ipaldap import LDAPClient
 from ipapython.dn import DN
 from ipaplatform.paths import paths
 
@@ -78,9 +78,7 @@ class KDCProxyConfig(object):
         """Establish LDAP connection"""
         self.log.debug('ldap_uri: %s', self.ldap_uri)
         try:
-            self.con = IPAdmin(ldap_uri=self.ldap_uri)
-            # EXTERNAL bind as root user
-            self.con.ldapi = True
+            self.con = LDAPClient(self.ldap_uri)
             self.con.do_bind()
         except (errors.NetworkError, socket.timeout) as e:
             msg = 'Unable to connect to dirsrv: %s' % e
@@ -94,7 +92,7 @@ class KDCProxyConfig(object):
             self.log.exception(msg)
             raise FatalError(msg)
 
-    def _find_entry(self, dn, attrs, filter, scope=IPAdmin.SCOPE_BASE):
+    def _find_entry(self, dn, attrs, filter, scope=LDAPClient.SCOPE_BASE):
         """Find an LDAP entry, handles NotFound and Limit"""
         try:
             entries = self.con.get_entries(

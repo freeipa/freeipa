@@ -26,7 +26,7 @@ from wsgiref.util import request_uri
 
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
-from ipapython.ipaldap import IPAdmin
+from ipapython import ipaldap
 from ipalib import errors, create_api
 
 
@@ -48,7 +48,7 @@ def bind(ldap_uri, base_dn, username, password):
         raise IOError(errno.EIO, 'Cannot get Base DN')
     bind_dn = DN(('uid', username), ('cn', 'users'), ('cn', 'accounts'), base_dn)
     try:
-        conn = IPAdmin(ldap_uri=ldap_uri)
+        conn = ipaldap.LDAPClient(ldap_uri)
         conn.simple_bind(bind_dn, password)
     except (errors.ACIError, errors.DatabaseError, errors.NotFound) as e:
         root_logger.error(

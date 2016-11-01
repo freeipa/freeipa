@@ -397,7 +397,8 @@ class DogtagInstance(service.Service):
         conn = None
 
         try:
-            conn = ipaldap.IPAdmin(self.fqdn, ldapi=True, realm=self.realm)
+            ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=self.realm)
+            conn = ipaldap.LDAPClient(ldap_uri)
             conn.external_bind()
 
             entry_attrs = conn.get_entry(self.admin_dn, ['usercertificate'])
@@ -466,9 +467,8 @@ class DogtagInstance(service.Service):
             self.__add_admin_to_group(group)
 
         # Now wait until the other server gets replicated this data
-        master_conn = ipaldap.IPAdmin(self.master_host,
-                                      port=389,
-                                      protocol='ldap')
+        ldap_uri = ipaldap.get_ldap_uri(self.master_host)
+        master_conn = ipaldap.LDAPClient(ldap_uri)
         master_conn.gssapi_bind()
         replication.wait_for_entry(master_conn, entry)
         del master_conn
