@@ -23,6 +23,7 @@ import socket
 import sys
 import tempfile
 import time
+import traceback
 
 from cryptography.hazmat.primitives import serialization
 # pylint: disable=import-error
@@ -59,6 +60,7 @@ from ipapython import (
     ipautil,
     sysrestore,
 )
+from ipapython.admintool import ScriptError
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import (
@@ -1955,10 +1957,14 @@ def install_check(options):
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
 
     if not os.getegid() == 0:
-        sys.exit("\nYou must be root to run ipa-client-install.\n")
+        raise ScriptError(
+            "You must be root to run ipa-client-install.",
+            rval=CLIENT_INSTALL_ERROR)
 
     if is_fips_enabled():
-        sys.exit("Installing IPA client in FIPS mode is not supported")
+        raise ScriptError(
+            "Installing IPA client in FIPS mode is not supported",
+            rval=CLIENT_INSTALL_ERROR)
 
     tasks.check_selinux_status()
 
@@ -1967,7 +1973,7 @@ def install_check(options):
         root_logger.info(
             "If you want to reinstall the IPA client, uninstall it first " +
             "using 'ipa-client-install --uninstall'.")
-        return CLIENT_ALREADY_CONFIGURED
+        raise ScriptError(rval=CLIENT_ALREADY_CONFIGURED)
 
     if options.conf_ntp and not options.on_master and not options.force_ntpd:
         try:
@@ -1993,8 +1999,9 @@ def install_check(options):
         options.prompt_password is False and
         not options.on_master
     ):
-        root_logger.error("One of password / principal / keytab is required.")
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(
+            "One of password / principal / keytab is required.",
+            rval=CLIENT_INSTALL_ERROR)
 
     if options.hostname:
         hostname = options.hostname
@@ -2003,32 +2010,35 @@ def install_check(options):
         hostname = socket.getfqdn()
         hostname_source = "Machine's FQDN"
     if hostname != hostname.lower():
-        root_logger.error(
-            "Invalid hostname '%s', must be lower-case.", hostname)
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(
+            "Invalid hostname '{}', must be lower-case.".format(hostname),
+            rval=CLIENT_INSTALL_ERROR
+        )
 
     if (hostname == 'localhost') or (hostname == 'localhost.localdomain'):
-        root_logger.error("Invalid hostname, '%s' must not be used.", hostname)
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(
+            "Invalid hostname, '{}' must not be used.".format(hostname),
+            rval=CLIENT_INSTALL_ERROR)
 
     # when installing with '--no-sssd' option, check whether nss-ldap is
     # installed
     if not options.sssd:
         if not os.path.exists(paths.PAM_KRB5_SO):
-            root_logger.error("The pam_krb5 package must be installed")
-            return CLIENT_INSTALL_ERROR
+            raise ScriptError(
+                "The pam_krb5 package must be installed",
+                rval=CLIENT_INSTALL_ERROR)
 
         (nssldap_installed, nosssd_files) = nssldap_exists()
         if not nssldap_installed:
-            root_logger.error(
+            raise ScriptError(
                 "One of these packages must be installed: nss_ldap or "
-                "nss-pam-ldapd")
-            return CLIENT_INSTALL_ERROR
+                "nss-pam-ldapd",
+                rval=CLIENT_INSTALL_ERROR)
 
     if options.keytab and options.principal:
-        root_logger.error(
-            "Options 'principal' and 'keytab' cannot be used together.")
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(
+            "Options 'principal' and 'keytab' cannot be used together.",
+            rval=CLIENT_INSTALL_ERROR)
 
     if options.keytab and options.force_join:
         root_logger.warning("Option 'force-join' has no additional effect "
@@ -2042,7 +2052,7 @@ def install_check(options):
         root_logger.warning("Using existing certificate '%s'.", CACERT)
 
     if not check_ip_addresses(options):
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
     # Create the discovery instance
     ds = ipadiscovery.IPADiscovery()
@@ -2066,15 +2076,16 @@ def install_check(options):
             "This may mean that the remote server is not up "
             "or is not reachable due to network or firewall settings.")
         print_port_conf_info()
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
     if ret == ipadiscovery.BAD_HOST_CONFIG:
         root_logger.error("Can't get the fully qualified name of this host")
         root_logger.info("Check that the client is properly configured")
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(rval=CLIENT_INSTALL_ERROR)
     if ret == ipadiscovery.NOT_FQDN:
-        root_logger.error("%s is not a fully-qualified hostname", hostname)
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(
+            "{} is not a fully-qualified hostname".format(hostname),
+            rval=CLIENT_INSTALL_ERROR)
     if ret in (ipadiscovery.NO_LDAP_SERVER, ipadiscovery.NOT_IPA_SERVER) \
             or not ds.domain:
         if ret == ipadiscovery.NO_LDAP_SERVER:
@@ -2093,9 +2104,9 @@ def install_check(options):
             cli_domain = options.domain
             cli_domain_source = 'Provided as option'
         elif options.unattended:
-            root_logger.error(
-                "Unable to discover domain, not provided on command line")
-            return CLIENT_INSTALL_ERROR
+            raise ScriptError(
+                "Unable to discover domain, not provided on command line",
+                rval=CLIENT_INSTALL_ERROR)
         else:
             root_logger.info(
                 "DNS discovery failed to determine your DNS domain")
@@ -2126,8 +2137,9 @@ def install_check(options):
             cli_server = options.server
             cli_server_source = 'Provided as option'
         elif options.unattended:
-            root_logger.error("Unable to find IPA Server to join")
-            return CLIENT_INSTALL_ERROR
+            raise ScriptError(
+                "Unable to find IPA Server to join",
+                rval=CLIENT_INSTALL_ERROR)
         else:
             root_logger.debug("DNS discovery failed to find the IPA Server")
             cli_server = [
@@ -2174,7 +2186,7 @@ def install_check(options):
         root_logger.error("%s is not an IPA v2 Server.", cli_server[0])
         print_port_conf_info()
         root_logger.debug("(%s: %s)", cli_server[0], cli_server_source)
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
     if ret == ipadiscovery.NO_ACCESS_TO_LDAP:
         root_logger.warning("Anonymous access to the LDAP server is disabled.")
@@ -2199,7 +2211,7 @@ def install_check(options):
             "or is not reachable due to network or firewall settings.")
         print_port_conf_info()
         root_logger.debug("(%s: %s)", cli_server[0], cli_server_source)
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
     cli_kdc = ds.kdc
     if dnsok and not cli_kdc:
@@ -2227,7 +2239,7 @@ def install_check(options):
             "of failure.")
         if not user_input(
                 "Proceed with fixed values and no DNS discovery?", False):
-            return CLIENT_INSTALL_ERROR
+            raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
     cli_realm = ds.realm
     cli_realm_source = ds.realm_source
@@ -2238,7 +2250,7 @@ def install_check(options):
             "The provided realm name [%s] does not match discovered one [%s]",
             options.realm_name, cli_realm)
         root_logger.debug("(%s: %s)", cli_realm, cli_realm_source)
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
     cli_basedn = ds.basedn
     cli_basedn_source = ds.basedn_source
@@ -2279,15 +2291,14 @@ def install_check(options):
     print()
     if not options.unattended and not user_input(
             "Continue to configure the system with these values?", False):
-        return CLIENT_INSTALL_ERROR
-
-    return SUCCESS
+        raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
 
 def install(options):
     try:
-        rval = _install(options)
-        if rval == CLIENT_INSTALL_ERROR:
+        _install(options)
+    except ScriptError as e:
+        if e.rval == CLIENT_INSTALL_ERROR:
             if options.force:
                 root_logger.warning(
                     "Installation failed. Force set so not rolling back "
@@ -2299,8 +2310,12 @@ def install(options):
             else:
                 root_logger.error("Installation failed. Rolling back changes.")
                 options.unattended = True
-                uninstall(options)
-        return rval
+                try:
+                    uninstall(options)
+                except Exception as ex:
+                    root_logger.debug(traceback.format_exc())
+                    root_logger.error(ex)
+        raise
     finally:
         try:
             os.remove(CCACHE_FILE)
@@ -2411,9 +2426,10 @@ def _install(options):
                         except EOFError:
                             stdin = None
                         if not stdin:
-                            root_logger.error(
-                                "Password must be provided for %s.", principal)
-                            return CLIENT_INSTALL_ERROR
+                            raise ScriptError(
+                                "Password must be provided for {}.".format(
+                                    principal),
+                                rval=CLIENT_INSTALL_ERROR)
                     else:
                         if sys.stdin.isatty():
                             root_logger.error(
@@ -2423,7 +2439,7 @@ def _install(options):
                                 "This can be done via "
                                 "echo password | ipa-client-install ... "
                                 "or with the -w option.")
-                            return CLIENT_INSTALL_ERROR
+                            raise ScriptError(rval=CLIENT_INSTALL_ERROR)
                         else:
                             stdin = sys.stdin.readline()
 
@@ -2432,8 +2448,9 @@ def _install(options):
                                            config=krb_name)
                 except RuntimeError as e:
                     print_port_conf_info()
-                    root_logger.error("Kerberos authentication failed: %s", e)
-                    return CLIENT_INSTALL_ERROR
+                    raise ScriptError(
+                        "Kerberos authentication failed: {}".format(e),
+                        rval=CLIENT_INSTALL_ERROR)
             elif options.keytab:
                 join_args.append("-f")
                 if os.path.exists(options.keytab):
@@ -2444,29 +2461,31 @@ def _install(options):
                                              attempts=options.kinit_attempts)
                     except gssapi.exceptions.GSSError as e:
                         print_port_conf_info()
-                        root_logger.error("Kerberos authentication failed: %s"
-                                          % e)
-                        return CLIENT_INSTALL_ERROR
+                        raise ScriptError(
+                            "Kerberos authentication failed: {}".format(e),
+                            rval=CLIENT_INSTALL_ERROR)
                 else:
-                    root_logger.error("Keytab file could not be found: %s"
-                                      % options.keytab)
-                    return CLIENT_INSTALL_ERROR
+                    raise ScriptError(
+                        "Keytab file could not be found: {}".format(
+                            options.keytab),
+                        rval=CLIENT_INSTALL_ERROR)
             elif options.password:
                 nolog = (options.password,)
                 join_args.append("-w")
                 join_args.append(options.password)
             elif options.prompt_password:
                 if options.unattended:
-                    root_logger.error(
-                        "Password must be provided in non-interactive mode")
-                    return CLIENT_INSTALL_ERROR
+                    raise ScriptError(
+                        "Password must be provided in non-interactive mode",
+                        rval=CLIENT_INSTALL_ERROR)
                 try:
                     password = getpass.getpass("Password: ")
                 except EOFError:
                     password = None
                 if not password:
-                    root_logger.error("Password must be provided.")
-                    return CLIENT_INSTALL_ERROR
+                    raise ScriptError(
+                        "Password must be provided.",
+                        rval=CLIENT_INSTALL_ERROR)
                 join_args.append("-w")
                 join_args.append(password)
                 nolog = (password,)
@@ -2480,10 +2499,10 @@ def _install(options):
                 del os.environ['KRB5_CONFIG']
             except errors.FileError as e:
                 root_logger.error(e)
-                return CLIENT_INSTALL_ERROR
+                raise ScriptError(rval=CLIENT_INSTALL_ERROR)
             except Exception as e:
                 root_logger.error("Cannot obtain CA certificate\n%s", e)
-                return CLIENT_INSTALL_ERROR
+                raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
             # Now join the domain
             result = run(
@@ -2498,7 +2517,7 @@ def _install(options):
                         root_logger.info(
                             "Use --force-join option to override the host "
                             "entry on the server and force client enrollment.")
-                    return CLIENT_INSTALL_ERROR
+                    raise ScriptError(rval=CLIENT_INSTALL_ERROR)
                 root_logger.info(
                     "Use ipa-getkeytab to obtain a host "
                     "principal for this server.")
@@ -2530,7 +2549,7 @@ def _install(options):
                 root_logger.error("Failed to obtain host TGT: %s" % e)
                 # failure to get ticket makes it impossible to login and bind
                 # from sssd to LDAP, abort installation and rollback changes
-                return CLIENT_INSTALL_ERROR
+                raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
         finally:
             try:
@@ -2558,15 +2577,16 @@ def _install(options):
                       delegate=False,
                       nss_dir=tmp_db.secdir)
         if 'config_loaded' not in api.env:
-            root_logger.error("Failed to initialize IPA API.")
-            return CLIENT_INSTALL_ERROR
+            raise ScriptError(
+                "Failed to initialize IPA API.",
+                rval=CLIENT_INSTALL_ERROR)
 
         # Always back up sssd.conf. It gets updated by authconfig --enablekrb5.
         fstore.backup_file(paths.SSSD_CONF)
         if options.sssd:
             if configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server,
                                    options, client_domain, hostname):
-                return CLIENT_INSTALL_ERROR
+                raise ScriptError(rval=CLIENT_INSTALL_ERROR)
             root_logger.info("Configured /etc/sssd/sssd.conf")
 
         if options.on_master:
@@ -2579,7 +2599,7 @@ def _install(options):
                 os.environ['KRB5CCNAME'] = CCACHE_FILE
             except gssapi.exceptions.GSSError as e:
                 root_logger.error("Failed to obtain host TGT: %s" % e)
-                return CLIENT_INSTALL_ERROR
+                raise ScriptError(rval=CLIENT_INSTALL_ERROR)
         else:
             # Configure krb5.conf
             fstore.backup_file(paths.KRB5_CONF)
@@ -2616,9 +2636,10 @@ def _install(options):
 
             for i, cert in enumerate(ca_certs):
                 tmp_db.add_cert(cert, 'CA certificate %d' % (i + 1), 'C,,')
-        except CalledProcessError as e:
-            root_logger.info("Failed to add CA to temporary NSS database.")
-            return CLIENT_INSTALL_ERROR
+        except CalledProcessError:
+            raise ScriptError(
+                "Failed to add CA to temporary NSS database.",
+                rval=CLIENT_INSTALL_ERROR)
 
         api.finalize()
 
@@ -2894,24 +2915,21 @@ def _install(options):
 
     root_logger.info('Client configuration complete.')
 
-    return SUCCESS
-
 
 def uninstall_check(options):
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
 
     if not is_ipa_client_installed(fstore):
-        root_logger.error("IPA client is not configured on this system.")
-        return CLIENT_NOT_CONFIGURED
+        raise ScriptError(
+            "IPA client is not configured on this system.",
+            rval=CLIENT_NOT_CONFIGURED)
 
     server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
     if server_fstore.has_files() and not options.on_master:
         root_logger.error(
             "IPA client is configured as a part of IPA server on this system.")
         root_logger.info("Refer to ipa-server-install for uninstallation.")
-        return CLIENT_NOT_CONFIGURED
-
-    return SUCCESS
+        raise ScriptError(rval=CLIENT_NOT_CONFIGURED)
 
 
 def uninstall(options):
@@ -3060,9 +3078,9 @@ def uninstall(options):
                                                    was_sssd_installed,
                                                    was_sssd_configured)
     except Exception as e:
-        root_logger.error(
-            "Failed to remove krb5/LDAP configuration: %s", str(e))
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(
+            "Failed to remove krb5/LDAP configuration: {}".format(e),
+            rval=CLIENT_INSTALL_ERROR)
 
     # Clean up the SSSD cache before SSSD service is stopped or restarted
     remove_file(paths.SSSD_MC_GROUP)
@@ -3270,10 +3288,11 @@ def uninstall(options):
                 try:
                     run([paths.SBIN_REBOOT])
                 except Exception as e:
-                    root_logger.error(
-                        "Reboot command failed to exceute: %s", str(e))
-                    return CLIENT_UNINSTALL_ERROR
+                    raise ScriptError(
+                        "Reboot command failed to execute: {}".format(e),
+                         rval=CLIENT_UNINSTALL_ERROR)
 
     # IMPORTANT: Do not put any client uninstall logic after the block above
 
-    return rv
+    if rv:
+        raise ScriptError(rval=rv)
