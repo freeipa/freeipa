@@ -4,7 +4,7 @@ AUTOMAKE_OPTIONS = 1.7
 
 NULL=
 
-man1_MANS =             \
+dist_man1_MANS =            \
 	ipa-run-tests.1     \
 	ipa-test-config.1   \
 	ipa-test-task.1     \
