@@ -76,7 +76,7 @@ C_POTFILES = $(C_FILES) $(H_FILES)
 
 .SUFFIXES:
 .SUFFIXES: .po .mo
-.PHONY: all create-po update-po update-pot install mostlyclean clean distclean test mo-files debug strip-po merge-po $(po_files)
+.PHONY: all create-po update-po update-pot install mostlyclean clean distclean distdir test mo-files debug strip-po merge-po $(po_files)
 
 all:
 
@@ -191,6 +191,11 @@ clean: mostlyclean
 
 distclean: clean
 	rm -f Makefile
+
+distdir:
+	cp $(po_files) $(distdir)
+	cp $(DOMAIN).pot $(distdir)
+	cp LINGUAS Makefile.in README contributing_translators.txt $(distdir)
 
 maintainer-clean: distclean
 
