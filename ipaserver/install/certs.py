@@ -645,7 +645,6 @@ class CertDB(object):
         return self.nssdb.export_pem_cert(nickname, location)
 
     def request_service_cert(self, nickname, principal, host, pwdconf=False):
-        self.create_from_cacert(paths.IPA_CA_CRT)
         if pwdconf:
             self.create_password_conf()
         reqid = certmonger.request_cert(nssdb=self.secdir,
