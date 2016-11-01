@@ -21,6 +21,12 @@ app_DATA =				\
 	$(NULL)
 
 EXTRA_DIST =                            \
+        doc                             \
+        jsl.conf                        \
+        less                            \
+        README-LICENSE.txt              \
+        test                            \
+        util                            \
         $(app_DATA)                     \
         $(NULL)
 

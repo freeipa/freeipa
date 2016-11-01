@@ -9,10 +9,12 @@ app_DATA =				\
 	jquery.js 			\
 	jquery.ordered-map.js 		\
 	json2.js 			\
-	loader.js 			\
 	patternfly.js		\
 	qrcode.js 			\
 	$(NULL)
+
+nodist_app_DATA =			\
+	loader.js
 
 EXTRA_DIST =                            \
         $(app_DATA)                     \

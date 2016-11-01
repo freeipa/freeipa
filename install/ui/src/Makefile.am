@@ -7,7 +7,10 @@ SUBDIRS =  				\
 	$(NULL)
 
 EXTRA_DIST =                            \
-        $(NULL)
+	build.profile.js		\
+	dojo.profile.js			\
+	freeipa				\
+	webui.profile.js
 
 MAINTAINERCLEANFILES =                  \
         *~                              \
