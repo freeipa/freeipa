@@ -30,6 +30,7 @@ from ipaclient.install import client
 from ipapython.ipa_log_manager import standard_logging_setup, root_logger
 from ipaplatform.paths import paths
 from ipapython import version
+from ipapython.admintool import ScriptError
 from ipapython.config import IPAOptionParser
 from ipalib import x509
 from ipalib.util import normalize_hostname, validate_domain_name
@@ -230,21 +231,19 @@ def main():
     root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
 
     if options.uninstall:
-        rval_check = client.uninstall_check(options)
-        if rval_check != client.SUCCESS:
-            return rval_check
-
-        return client.uninstall(options)
+        client.uninstall_check(options)
+        client.uninstall(options)
     else:
-        rval_check = client.install_check(options)
-        if rval_check != client.SUCCESS:
-            return rval_check
-
-        return client.install(options)
+        client.install_check(options)
+        client.install(options)
 
 if __name__ == "__main__":
     try:
         sys.exit(main())
+    except ScriptError as e:
+        if e.rval != client.SUCCESS and e.msg:
+            root_logger.error(e.msg)
+        sys.exit(e.rval)
     except KeyboardInterrupt:
         sys.exit(1)
     except RuntimeError as e:
