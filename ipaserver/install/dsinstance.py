@@ -168,7 +168,8 @@ def create_ds_user():
 
 
 def get_domain_level(api=api):
-    conn = ipaldap.IPAdmin(ldapi=True, realm=api.env.realm)
+    ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=api.env.realm)
+    conn = ipaldap.LDAPClient(ldap_uri)
     conn.external_bind()
 
     dn = DN(('cn', 'Domain Level'),
@@ -411,12 +412,13 @@ class DsInstance(service.Service):
 
 
     def __setup_replica(self):
-        replication.enable_replication_version_checking(self.fqdn,
+        replication.enable_replication_version_checking(
             self.realm,
             self.dm_password)
 
         # Always connect to self over ldapi
-        conn = ipaldap.IPAdmin(self.fqdn, ldapi=True, realm=self.realm)
+        ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=self.realm)
+        conn = ipaldap.LDAPClient(ldap_uri)
         conn.external_bind()
         repl = replication.ReplicationManager(self.realm,
                                               self.fqdn,
@@ -657,7 +659,8 @@ class DsInstance(service.Service):
         dn = DN(('cn', 'IPA install %s' % self.sub_dict["TIME"]), ('cn', 'memberof task'),
                 ('cn', 'tasks'), ('cn', 'config'))
         root_logger.debug("Waiting for memberof task to complete.")
-        conn = ipaldap.IPAdmin(self.fqdn)
+        ldap_uri = ipaldap.get_ldap_uri(self.fqdn)
+        conn = ipaldap.LDAPClient(ldap_uri)
         if self.dm_password:
             conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                              bind_password=self.dm_password)
@@ -793,7 +796,8 @@ class DsInstance(service.Service):
                 self.nickname, self.principal, dsdb.passwd_fname,
                 'restart_dirsrv %s' % self.serverid)
 
-        conn = ipaldap.IPAdmin(self.fqdn)
+        ldap_uri = ipaldap.get_ldap_uri(self.fqdn)
+        conn = ipaldap.LDAPClient(ldap_uri)
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=self.dm_password)
 
@@ -830,7 +834,8 @@ class DsInstance(service.Service):
                             subject_base=self.subject_base)
         trust_flags = dict(reversed(dsdb.list_certs()))
 
-        conn = ipaldap.IPAdmin(self.fqdn)
+        ldap_uri = ipaldap.get_ldap_uri(self.fqdn)
+        conn = ipaldap.LDAPClient(ldap_uri)
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=self.dm_password)
 
@@ -854,7 +859,8 @@ class DsInstance(service.Service):
         dsdb = certs.CertDB(self.realm, nssdir=dirname,
                             subject_base=self.subject_base)
 
-        conn = ipaldap.IPAdmin(self.fqdn)
+        ldap_uri = ipaldap.get_ldap_uri(self.fqdn)
+        conn = ipaldap.LDAPClient(ldap_uri)
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=self.dm_password)
 
@@ -1257,7 +1263,8 @@ class DsInstance(service.Service):
         db.create_pin_file()
 
         # Connect to self over ldapi as Directory Manager and configure SSL
-        conn = ipaldap.IPAdmin(self.fqdn, ldapi=True, realm=self.realm)
+        ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=self.realm)
+        conn = ipaldap.LDAPClient(ldap_uri)
         conn.external_bind()
 
         mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),

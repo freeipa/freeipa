@@ -985,11 +985,8 @@ def uninstall_check(installer):
             raise ScriptError("Aborting uninstall operation.")
 
     try:
-        conn = ipaldap.IPAdmin(
-            api.env.host,
-            ldapi=True,
-            realm=api.env.realm
-        )
+        ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=api.env.realm)
+        conn = ipaldap.LDAPClient(ldap_uri)
         conn.external_bind()
         api.Backend.ldap2.connect(autobind=True)
         domain_level = dsinstance.get_domain_level(api)

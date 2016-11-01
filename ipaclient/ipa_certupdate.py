@@ -56,7 +56,8 @@ class CertUpdate(admintool.AdminTool):
         api.finalize()
 
         server = urlsplit(api.env.jsonrpc_uri).hostname
-        ldap = ipaldap.IPAdmin(server)
+        ldap_uri = ipaldap.get_ldap_uri(server)
+        ldap = ipaldap.LDAPClient(ldap_uri)
 
         tmpdir = tempfile.mkdtemp(prefix="tmp-")
         ccache_name = os.path.join(tmpdir, 'ccache')

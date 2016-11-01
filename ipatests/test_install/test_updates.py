@@ -63,7 +63,8 @@ class test_update(unittest.TestCase):
         else:
             raise nose.SkipTest("No directory manager password")
         self.updater = LDAPUpdate(dm_password=self.dm_password, sub_dict={})
-        self.ld = ipaldap.IPAdmin(fqdn)
+        ldap_uri = ipaldap.get_ldap_uri(fqdn)
+        self.ld = ipaldap.LDAPClient(ldap_uri)
         self.ld.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                             bind_password=self.dm_password)
         self.testdir = os.path.abspath(os.path.dirname(__file__))

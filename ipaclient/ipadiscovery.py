@@ -376,15 +376,14 @@ class IPADiscovery(object):
 
         #now verify the server is really an IPA server
         try:
-            root_logger.debug("Init LDAP connection to: %s", thost)
+            ldap_uri = ipaldap.get_ldap_uri(thost)
+            start_tls = False
             if ca_cert_path:
-                lh = ipaldap.IPAdmin(thost, protocol='ldap',
-                                     cacert=ca_cert_path, start_tls=True,
-                                     no_schema=True, decode_attrs=False,
-                                     demand_cert=True)
-            else:
-                lh = ipaldap.IPAdmin(thost, protocol='ldap',
-                                     no_schema=True, decode_attrs=False)
+                start_tls = True
+            root_logger.debug("Init LDAP connection to: %s", ldap_uri)
+            lh = ipaldap.LDAPClient(
+                ldap_uri, cacert=ca_cert_path, start_tls=start_tls,
+                no_schema=True, decode_attrs=False)
             try:
                 lh.simple_bind(DN(), '')
 

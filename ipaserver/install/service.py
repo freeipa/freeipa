@@ -30,6 +30,7 @@ from ipapython.ipa_log_manager import root_logger
 from ipalib import api, errors, certstore
 from ipaplatform import services
 from ipaplatform.paths import paths
+from ipapython.ipaldap import LDAPClient
 
 
 # The service name as stored in cn=masters,cn=ipa,cn=etc. In the tuple
@@ -144,7 +145,6 @@ class Service(object):
         self.start_tls = start_tls
 
         self.fqdn = socket.gethostname()
-        self.admin_conn = None
 
         if sstore:
             self.sstore = sstore
@@ -156,34 +156,26 @@ class Service(object):
         self.principal = None
         self.dercert = None
 
+    @property
+    def admin_conn(self):
+        """
+        alias for api.Backend.ldap2
+        :returns: None when ldap2 is not connected, ldap2 connection otherwise
+        """
+        conn = api.Backend.ldap2
+        if conn.isconnected():
+            return conn
+        return None
+
     def ldap_connect(self):
-        # If DM password is provided, we use it
-        # If autobind was requested, attempt autobind when root and ldapi
-        # If autobind was disabled or not succeeded, go with GSSAPI
-        # LDAPI can be used with either autobind or GSSAPI
-        # LDAPI requires realm to be set
-        try:
-            if self.ldapi:
-                if not self.realm:
-                    raise errors.NotFound(reason="realm is missing for %s" % (self))
-                conn = ipaldap.IPAdmin(ldapi=self.ldapi, realm=self.realm)
-            elif self.start_tls:
-                conn = ipaldap.IPAdmin(self.fqdn, port=389, protocol='ldap',
-                                       cacert=paths.IPA_CA_CRT,
-                                       start_tls=self.start_tls)
-            else:
-                conn = ipaldap.IPAdmin(self.fqdn, port=389)
-
-            conn.do_bind(self.dm_password, autobind=self.autobind)
-        except Exception as e:
-            root_logger.debug("Could not connect to the Directory Server on %s: %s" % (self.fqdn, str(e)))
-            raise
-
-        self.admin_conn = conn
+        """connect to ldap with installer's limits"""
+        if not self.admin_conn:
+            api.Backend.ldap2.connect(size_limit=LDAPClient.size_limit,
+                                      time_limit=LDAPClient.time_limit)
 
     def ldap_disconnect(self):
-        self.admin_conn.unbind()
-        self.admin_conn = None
+        """close the api.Backend.ldap2 connection"""
+        api.Backend.ldap2.disconnect()
 
     def _ldap_mod(self, ldif, sub_dict=None, raise_on_err=True):
         pw_name = None

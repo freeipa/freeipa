@@ -93,7 +93,8 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
 
     try:
         # connect to main IPA LDAP server
-        conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
+        ldap_uri = ipaldap.get_ldap_uri(host, 636, cacert=CACERT)
+        conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=dirman_passwd)
 
@@ -295,7 +296,8 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     except Exception as e:
         sys.exit(str(e))
     try:
-        conn = ipaldap.IPAdmin(replica2, 636, cacert=CACERT)
+        ldap_uri = ipaldap.get_ldap_uri(replica2, 636, cacert=CACERT)
+        conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=dirman_passwd)
 

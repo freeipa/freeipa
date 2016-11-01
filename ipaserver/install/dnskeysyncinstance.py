@@ -41,10 +41,9 @@ def dnssec_container_exists(fqdn, suffix, dm_password=None, ldapi=False,
     try:
         # At install time we may need to use LDAPI to avoid chicken/egg
         # issues with SSL certs and truting CAs
-        if ldapi:
-            conn = ipaldap.IPAdmin(host=fqdn, ldapi=True, realm=realm)
-        else:
-            conn = ipaldap.IPAdmin(host=fqdn, port=636, cacert=CACERT)
+        ldap_uri = ipaldap.get_ldap_uri(fqdn, 636, ldapi=ldapi, realm=realm,
+                                        cacert=CACERT)
+        conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
 
         conn.do_bind(dm_password, autobind=autobind)
     except ldap.SERVER_DOWN:

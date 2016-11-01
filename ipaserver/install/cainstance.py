@@ -1497,9 +1497,11 @@ def replica_ca_install_check(config):
     objectclass = 'ipaObject'
     root_logger.debug('Checking if IPA schema is present in %s', ca_ldap_url)
     try:
-        with ipaldap.LDAPClient(ca_ldap_url,
-                                start_tls=True,
-                                force_schema_updates=False) as connection:
+        with ipaldap.LDAPClient(
+                ca_ldap_url,
+                start_tls=True,
+                cacert=config.dir + "/ca.cer",
+                force_schema_updates=False) as connection:
             connection.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                                    bind_password=config.dirman_password)
             rschema = connection.schema

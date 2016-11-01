@@ -1877,7 +1877,8 @@ def print_port_conf_info():
         "     UDP: 464, 123 (if NTP enabled)")
 
 def get_certs_from_ldap(server, base_dn, realm, ca_enabled):
-    conn = ipaldap.IPAdmin(server, sasl_nocanon=True)
+    ldap_uri = ipaldap.get_ldap_uri(server)
+    conn = ipaldap.LDAPClient(ldap_uri, sasl_nocanon=True)
     try:
         conn.gssapi_bind()
         certs = certstore.get_ca_certs(conn, base_dn, realm, ca_enabled)
