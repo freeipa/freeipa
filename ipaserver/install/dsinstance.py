@@ -1252,6 +1252,7 @@ class DsInstance(service.Service):
         subject = self.subject_base or DN(('O', self.realm))
         nssdb_dir = config_dirname(self.serverid)
         db = certs.CertDB(self.realm, nssdir=nssdb_dir, subject_base=subject)
+        db.create_from_cacert(paths.IPA_CA_CRT)
         db.request_service_cert(self.nickname, self.principal, self.fqdn)
         db.create_pin_file()
 
