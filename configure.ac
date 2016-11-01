@@ -1,6 +1,6 @@
 AC_PREREQ(2.59)
 m4_include(VERSION.m4)
-AC_INIT([ipa-server],
+AC_INIT([freeipa],
         IPA_VERSION,
         [https://hosted.fedoraproject.org/projects/freeipa/newticket])
 
