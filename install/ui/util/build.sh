@@ -20,6 +20,7 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Build script for FreeIPA Web UI
+set -o errexit
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
