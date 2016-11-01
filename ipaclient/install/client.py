@@ -3242,7 +3242,7 @@ def uninstall(options):
                     root_logger.warning(
                         "Please remove file '%s' manually.", preferences_fname)
 
-    rv = 0
+    rv = SUCCESS
 
     if fstore.has_files():
         root_logger.error('Some files have not been restored, see %s' %
@@ -3254,7 +3254,7 @@ def uninstall(options):
                 'restored, see /var/lib/ipa/sysrestore/sysrestore.state',
                 module)
             has_state = True
-            rv = 1
+            rv = CLIENT_UNINSTALL_ERROR
 
     if has_state:
         root_logger.warning(
