@@ -4,8 +4,10 @@ appdir = $(IPA_DATA_DIR)/ui/css
 app_DATA =				\
 	bootstrap-datepicker3.min.css	\
 	patternfly.css 			\
-	ipa.css 			\
 	$(NULL)
+
+nodist_app_DATA =			\
+	ipa.css
 
 EXTRA_DIST =                            \
         $(app_DATA)                     \

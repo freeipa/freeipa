@@ -1,7 +1,7 @@
 NULL =
 
 appdir = $(IPA_DATA_DIR)/ui/js/freeipa
-app_DATA =				\
+nodist_app_DATA =			\
 	app.js 				\
 	core.js 			\
 	$(NULL)
