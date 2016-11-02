@@ -42,7 +42,9 @@ libipa_pwd_extop_la_SOURCES = 		\
 	encoding.c			\
 	prepost.c			\
 	ipa_pwd_extop.c			\
+	ipapwd.h			\
 	otpctrl.c			\
+	otpctrl.h			\
 	$(KRB5_UTIL_SRCS)		\
 	$(NULL)
 
