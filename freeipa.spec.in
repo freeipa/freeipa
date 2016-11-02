@@ -792,25 +792,12 @@ mkdir -p %{buildroot}%{_usr}/share/ipa/html/
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb5.ini
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krbrealm.con
 mkdir -p %{buildroot}%{_initrddir}
-mkdir %{buildroot}%{_sysconfdir}/sysconfig/
 install -m 644 init/ipa_memcached.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa_memcached
 install -m 644 init/ipa-dnskeysyncd.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa-dnskeysyncd
 install -m 644 init/ipa-ods-exporter.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa-ods-exporter
-install -m 644 daemons/dnssec/ipa-ods-exporter.socket %{buildroot}%{_unitdir}/ipa-ods-exporter.socket
-install -m 644 daemons/dnssec/ipa-ods-exporter.service %{buildroot}%{_unitdir}/ipa-ods-exporter.service
-install -m 644 daemons/dnssec/ipa-dnskeysyncd.service %{buildroot}%{_unitdir}/ipa-dnskeysyncd.service
-
-# dnssec daemons
-mkdir -p %{buildroot}%{_libexecdir}/ipa/
-install daemons/dnssec/ipa-dnskeysyncd %{buildroot}%{_libexecdir}/ipa/ipa-dnskeysyncd
-install daemons/dnssec/ipa-dnskeysync-replica %{buildroot}%{_libexecdir}/ipa/ipa-dnskeysync-replica
-install daemons/dnssec/ipa-ods-exporter %{buildroot}%{_libexecdir}/ipa/ipa-ods-exporter
 
 # Web UI plugin dir
 mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
-
-# DNSSEC config
-mkdir -p %{buildroot}%{_sysconfdir}/ipa/dnssec
 
 # KDC proxy config (Apache config sets KDCPROXY_CONFIG to load this file)
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/kdcproxy/

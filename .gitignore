@@ -47,6 +47,9 @@ freeipa2-dev-doc
 *.egg-info
 
 # Subdirectories
+/daemons/dnssec/ipa-dnskeysyncd.service
+/daemons/dnssec/ipa-ods-exporter.service
+/daemons/dnssec/ipa-ods-exporter.socket
 /daemons/ipa-otpd/ipa-otpd
 /daemons/ipa-otpd/ipa-otpd.socket
 /daemons/ipa-otpd/ipa-otpd@.service

@@ -13,6 +13,7 @@ endif
 export AM_CFLAGS
 
 SUBDIRS =			\
+	dnssec			\
 	ipa-kdb			\
 	ipa-slapi-plugins	\
 	ipa-sam			\

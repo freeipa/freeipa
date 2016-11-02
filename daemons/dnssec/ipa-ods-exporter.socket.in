@@ -1,0 +1,5 @@
+[Socket]
+ListenStream=@localstatedir@/opendnssec/engine.sock
+
+[Install]
+WantedBy=sockets.target
