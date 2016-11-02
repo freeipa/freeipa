@@ -92,6 +92,9 @@ SUBDIRS =			\
 	man			\
 	$(NULL)
 
+noinst_HEADERS =		\
+	ipa-client-common.h
+
 EXTRA_DIST =			\
 	$(sbin_SCRIPTS)		\
 	$(NULL)
