@@ -27,12 +27,14 @@ plugin_LTLIBRARIES = 		\
 
 ipadb_la_SOURCES = 		\
 	ipa_kdb.c		\
+	ipa_kdb.h		\
 	ipa_kdb_common.c	\
 	ipa_kdb_mkey.c		\
 	ipa_kdb_passwords.c	\
 	ipa_kdb_principals.c	\
 	ipa_kdb_pwdpolicy.c	\
 	ipa_kdb_mspac.c		\
+	ipa_kdb_mspac_private.h	\
 	ipa_kdb_delegation.c	\
 	ipa_kdb_audit_as.c	\
 	$(NULL)
@@ -85,6 +87,7 @@ dist_noinst_DATA = ipa_kdb.exports
 
 EXTRA_DIST =			\
 	README			\
+	README.s4u2proxy.txt	\
 	$(NULL)
 
 MAINTAINERCLEANFILES =		\
