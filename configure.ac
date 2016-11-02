@@ -252,6 +252,16 @@ AC_ARG_WITH([systemdsystemunitdir],
 AC_SUBST([systemdsystemunitdir])
 
 dnl ---------------------------------------------------------------------------
+dnl - Get /etc/sysconfig directory path
+dnl ---------------------------------------------------------------------------
+AC_ARG_WITH([sysconfenvdir],
+            AS_HELP_STRING([--with-sysconfenvdir=DIR],
+			   [Directory for daemon environment files]),
+            [sysconfenvdir=$with_sysconfenvdir],
+            [sysconfenvdir="${sysconfdir}/sysconfig"])
+AC_SUBST([sysconfenvdir])
+
+dnl ---------------------------------------------------------------------------
 dnl - Check for program paths
 dnl ---------------------------------------------------------------------------
 AC_PATH_PROG(UNLINK, unlink, [AC_MSG_ERROR([unlink not found])])
@@ -415,6 +425,9 @@ AC_CONFIG_FILES([
     asn1/asn1c/Makefile
     client/Makefile
     client/man/Makefile
+    contrib/completion/Makefile
+    contrib/Makefile
+    daemons/dnssec/Makefile
     daemons/Makefile
     daemons/ipa-kdb/Makefile
     daemons/ipa-sam/Makefile
@@ -492,6 +505,7 @@ echo "
         bindir:                   ${bindir}
         sbindir:                  ${sbindir}
         sysconfdir:               ${sysconfdir}
+        sysconfenvdir:            ${sysconfenvdir}
         localstatedir:            ${localstatedir}
         datadir:                  ${datadir}
         krb5rundir:               ${krb5rundir}
