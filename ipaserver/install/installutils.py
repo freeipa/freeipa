@@ -267,9 +267,11 @@ def add_record_to_hosts(ip, host_name, conf_file=paths.HOSTS):
 
 def read_ip_addresses():
     ips = []
-    print("Enter the IP address to use, or press Enter to finish.")
+    msg_first = "Please provide the IP address to be used for this host name"
+    msg_other = "Enter an additional IP address, or press Enter to skip"
     while True:
-        ip = ipautil.user_input("Please provide the IP address to be used for this host name", allow_empty = True)
+        msg = msg_other if ips else msg_first
+        ip = ipautil.user_input(msg, allow_empty=True)
         if not ip:
             break
         try:
