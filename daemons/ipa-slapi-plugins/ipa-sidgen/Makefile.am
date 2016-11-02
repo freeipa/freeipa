@@ -43,6 +43,9 @@ libipa_sidgen_task_la_LIBADD = 	\
 	$(LDAP_LIBS)		\
 	$(NULL)
 
+noinst_HEADERS =	\
+	ipa_sidgen.h
+
 appdir = $(IPA_DATA_DIR)
 app_DATA =				\
 	ipa-sidgen-conf.ldif		\
