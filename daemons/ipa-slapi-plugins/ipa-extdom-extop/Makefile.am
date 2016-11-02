@@ -21,6 +21,7 @@ plugin_LTLIBRARIES = 			\
 	$(NULL)
 
 libipa_extdom_extop_la_SOURCES = 	\
+	ipa_extdom.h			\
 	ipa_extdom_extop.c		\
 	ipa_extdom_common.c		\
 	$(NULL)
@@ -66,6 +67,7 @@ app_DATA =				\
 
 EXTRA_DIST =			\
 	README			\
+	test_data		\
 	$(app_DATA)		\
 	$(NULL)
 
