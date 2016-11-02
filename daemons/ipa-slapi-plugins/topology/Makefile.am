@@ -21,6 +21,7 @@ plugin_LTLIBRARIES = 			\
 	$(NULL)
 
 libtopology_la_SOURCES = 		\
+	topology.h	\
 	topology_agmt.c	\
 	topology_init.c	\
 	topology_cfg.c	\
