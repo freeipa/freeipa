@@ -890,19 +890,19 @@ migration process might be incomplete\n''')
 
         cacert = None
         if options.get('cacertfile') is not None:
-            #store CA cert into file
+            # store CA cert into file
             tmp_ca_cert_f = write_tmp_file(options['cacertfile'])
             cacert = tmp_ca_cert_f.name
 
-            #start TLS connection
+            # start TLS connection
             ds_ldap.connect(bind_dn=options['binddn'], bind_pw=bindpw,
-                tls_cacertfile=cacert)
+                            cacert=cacert)
 
             tmp_ca_cert_f.close()
         else:
             ds_ldap.connect(bind_dn=options['binddn'], bind_pw=bindpw)
 
-        #check whether the compat plugin is enabled
+        # check whether the compat plugin is enabled
         if not options.get('compat'):
             try:
                 ldap.get_entry(DN(('cn', 'compat'), (api.env.basedn)))
