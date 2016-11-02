@@ -7,7 +7,7 @@ SUBDIRS =  				\
 	$(NULL)
 
 appdir = $(IPA_DATA_DIR)
-app_DATA =				\
+dist_app_DATA =				\
 	05rfc2247.ldif			\
 	15rfc2307bis.ldif		\
 	15rfc4876.ldif			\
@@ -86,12 +86,7 @@ app_DATA =				\
 	kdcproxy.conf			\
 	kdcproxy-enable.uldif		\
 	kdcproxy-disable.uldif		\
-	ipa-httpd.conf.template		\
-	$(NULL)
-
-EXTRA_DIST =				\
-	$(app_DATA)			\
-	$(NULL)
+	ipa-httpd.conf.template
 
 MAINTAINERCLEANFILES =			\
 	*~				\
