@@ -26,7 +26,6 @@ app_DATA =				\
 	70topology.ldif			\
 	71idviews.ldif			\
 	72domainlevels.ldif			\
-	anonymous-vlv.ldif		\
 	bootstrap-template.ldif		\
 	ca-topology.uldif		\
 	caJarSigningCert.cfg.template	\
