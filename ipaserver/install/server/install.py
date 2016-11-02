@@ -1138,10 +1138,6 @@ def uninstall(installer):
 
 
 class ServerCA(BaseServerCA):
-
-    # FIXME: Following Knobs are inherited because framework is not able to
-    # help groups correctly.
-
     external_ca = Knob(BaseServerCA.external_ca)
     external_ca_type = Knob(BaseServerCA.external_ca_type)
     external_cert_files = Knob(BaseServerCA.external_cert_files)
@@ -1176,12 +1172,6 @@ class ServerCA(BaseServerCA):
         cli_aliases=['pkinit_pin'],
     )
 
-    dirsrv_cert_name = Knob(BaseServerCA.dirsrv_cert_name)
-    http_cert_name = Knob(BaseServerCA.http_cert_name)
-    pkinit_cert_name = Knob(BaseServerCA.pkinit_cert_name)
-    ca_cert_files = Knob(BaseServerCA.ca_cert_files)
-    subject = Knob(BaseServerCA.subject)
-    ca_signing_algorithm = Knob(BaseServerCA.ca_signing_algorithm)
     skip_schema_check = None
 
 

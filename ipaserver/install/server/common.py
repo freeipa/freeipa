@@ -12,7 +12,7 @@ import six
 from ipapython.dn import DN
 from ipapython.ipautil import CheckedIPAddress
 from ipapython.install import common, core
-from ipapython.install.core import Knob
+from ipapython.install.core import Knob, group
 from ipalib.util import validate_domain_name
 from ipaserver.install import bindinstance
 from ipapython.dnsutil import check_zone_overlap
@@ -29,7 +29,8 @@ VALID_SUBJECT_ATTRS = ['st', 'o', 'ou', 'dnqualifier', 'c',
                        'incorporationcountry', 'businesscategory']
 
 
-class BaseServerCA(common.Installable, core.Group, core.Composite):
+@group
+class BaseServerCA(common.Installable, core.Composite):
     description = "certificate system"
 
     external_ca = Knob(
@@ -160,7 +161,8 @@ class BaseServerCA(common.Installable, core.Group, core.Composite):
     )
 
 
-class BaseServerDNS(common.Installable, core.Group, core.Composite):
+@group
+class BaseServerDNS(common.Installable, core.Composite):
     description = "DNS"
 
     forwarders = Knob(

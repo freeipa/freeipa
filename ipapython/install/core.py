@@ -23,7 +23,7 @@ from . import util, typing
 from .util import from_
 
 __all__ = ['InvalidStateError', 'KnobValueError', 'Property', 'Knob',
-           'Configurable', 'Group', 'Component', 'Composite']
+           'Configurable', 'group', 'Component', 'Composite']
 
 NoneType = type(None)
 
@@ -516,10 +516,13 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
         self.__state = to_state
 
 
-class Group(Configurable):
-    @classmethod
-    def group(cls):
+def group(cls):
+    def group():
         return cls
+
+    cls.group = staticmethod(group)
+
+    return cls
 
 
 class ComponentMeta(util.InnerClassMeta, abc.ABCMeta):
