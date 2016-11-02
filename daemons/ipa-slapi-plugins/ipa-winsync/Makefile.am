@@ -21,6 +21,7 @@ plugin_LTLIBRARIES = 			\
 
 libipa_winsync_la_SOURCES = 		\
 	ipa-winsync.c			\
+	ipa-winsync.h			\
 	ipa-winsync-config.c			\
 	$(NULL)
 
