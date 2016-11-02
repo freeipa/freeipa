@@ -19,6 +19,9 @@ SUBDIRS =			\
 	topology		\
 	$(NULL)
 
+noinst_HEADERS =		\
+	common/util.h
+
 EXTRA_DIST =			\
 	README			\
 	$(NULL)
