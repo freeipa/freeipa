@@ -24,6 +24,7 @@ libipa_cldap_la_SOURCES = 		\
 	ipa_cldap_netlogon.c		\
 	ipa_cldap_worker.c		\
 	ipa_cldap.c			\
+	ipa_cldap.h			\
 	$(NULL)
 
 libipa_cldap_la_LDFLAGS = -avoid-version
