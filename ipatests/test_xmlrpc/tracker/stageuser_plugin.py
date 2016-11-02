@@ -61,23 +61,45 @@ class StageUserTracker(Tracker):
     find_keys = retrieve_keys - {u'has_keytab', u'has_password'}
     find_all_keys = retrieve_all_keys - {u'has_keytab', u'has_password'}
 
-    def __init__(self, name, givenname, sn, **kwargs):
+    def __init__(self, name=None, givenname=None, sn=None, **kwargs):
+        """ Check for non-empty unicode string for the required attributes
+        in the init method """
+
+        if not (isinstance(givenname, six.string_types) and givenname):
+            raise ValueError(
+                "Invalid first name provided: {!r}".format(givenname)
+                )
+        if not (isinstance(sn, six.string_types) and sn):
+            raise ValueError("Invalid second name provided: {!r}".format(sn))
+
         super(StageUserTracker, self).__init__(default_version=None)
-        self.uid = name
-        self.givenname = givenname
-        self.sn = sn
+        self.uid = unicode(name)
+        self.givenname = unicode(givenname)
+        self.sn = unicode(sn)
         self.dn = DN(
             ('uid', self.uid), api.env.container_stageuser, api.env.basedn)
 
         self.kwargs = kwargs
 
     def make_create_command(self, options=None):
-        """ Make function that creates a staged user using stageuser-add """
+        """ Make function that creates a staged user using stageuser-add
+            with all set of attributes and with minimal values,
+            where uid is not specified  """
+
         if options is not None:
             self.kwargs = options
-        return self.make_command('stageuser_add', self.uid,
-                                 givenname=self.givenname,
-                                 sn=self.sn, **self.kwargs)
+        if self.uid is not None:
+            return self.make_command(
+                'stageuser_add', self.uid,
+                givenname=self.givenname,
+                sn=self.sn, **self.kwargs
+                )
+        else:
+            return self.make_command(
+                'stageuser_add',
+                givenname=self.givenname,
+                sn=self.sn, **self.kwargs
+                )
 
     def make_delete_command(self):
         """ Make function that deletes a staged user using stageuser-del """
