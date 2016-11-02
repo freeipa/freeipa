@@ -4,7 +4,7 @@ SUBDIRS = 			\
         man			\
         $(NULL)
 
-sbin_SCRIPTS =			\
+dist_sbin_SCRIPTS =		\
 	ipa-ca-install		\
 	ipa-dns-install		\
 	ipa-kra-install		\
@@ -31,12 +31,8 @@ sbin_SCRIPTS =			\
 	ipa-winsync-migrate	\
 	$(NULL)
 
-EXTRA_DIST =			\
-	$(sbin_SCRIPTS)		\
-	$(NULL)
-
 appdir = $(libexecdir)/ipa/
-app_SCRIPTS =			\
+dist_app_SCRIPTS =		\
 	ipa-httpd-kdcproxy	\
 	ipa-pki-retrieve-key	\
 	$(NULL)
