@@ -31,7 +31,7 @@ import os
 
 import ldap as _ldap
 
-from ipalib import krb_utils
+from ipalib import krb_utils, constants
 from ipapython.dn import DN
 from ipapython.ipaldap import (LDAPClient, AUTOBIND_AUTO, AUTOBIND_ENABLED,
                                AUTOBIND_DISABLED)
@@ -126,8 +126,7 @@ class ldap2(CrudBackend, LDAPClient):
         return self.ldap_uri
 
     def create_connection(
-            self, ccache=None, bind_dn=None, bind_pw='', tls_cacertfile=None,
-            tls_certfile=None, tls_keyfile=None, debug_level=0,
+            self, ccache=None, bind_dn=None, bind_pw='', cacert=None,
             autobind=AUTOBIND_AUTO, serverctrls=None, clientctrls=None,
             time_limit=_missing, size_limit=_missing):
         """
@@ -139,9 +138,7 @@ class ldap2(CrudBackend, LDAPClient):
         bind_dn -- dn used to bind to the server
         bind_pw -- password used to bind to the server
         debug_level -- LDAP debug level option
-        tls_cacertfile -- TLS CA certificate filename
-        tls_certfile -- TLS certificate filename
-        tls_keyfile - TLS bind key filename
+        cacert -- TLS CA certificate filename
         autobind - autobind as the current user
         time_limit, size_limit -- maximum time and size limit for LDAP
             possible options:
@@ -155,23 +152,18 @@ class ldap2(CrudBackend, LDAPClient):
         if bind_dn is None:
             bind_dn = DN(('cn', 'directory manager'))
         assert isinstance(bind_dn, DN)
-        if tls_cacertfile is not None:
-            _ldap.set_option(_ldap.OPT_X_TLS_CACERTFILE, tls_cacertfile)
-        if tls_certfile is not None:
-            _ldap.set_option(_ldap.OPT_X_TLS_CERTFILE, tls_certfile)
-        if tls_keyfile is not None:
-            _ldap.set_option(_ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
+
+        if cacert is None:
+            cacert = constants.CACERT
 
         if time_limit is not _missing:
             self.time_limit = time_limit
         if size_limit is not _missing:
             self.size_limit = size_limit
 
-        if debug_level:
-            _ldap.set_option(_ldap.OPT_DEBUG_LEVEL, debug_level)
-
         client = LDAPClient(self.ldap_uri,
-                            force_schema_updates=self._force_schema_updates)
+                            force_schema_updates=self._force_schema_updates,
+                            cacert=cacert)
         conn = client._conn
 
         with client.error_handler():

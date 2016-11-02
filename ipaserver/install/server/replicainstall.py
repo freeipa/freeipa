@@ -633,7 +633,7 @@ def install_check(installer):
     try:
         # Try out the password
         conn.connect(bind_dn=ipaldap.DIRMAN_DN, bind_pw=config.dirman_password,
-                     tls_cacertfile=cafile)
+                     cacert=cafile)
         replman = ReplicationManager(config.realm_name,
                                      config.master_host_name,
                                      config.dirman_password)
@@ -787,7 +787,7 @@ def install(installer):
     conn = remote_api.Backend.ldap2
     try:
         conn.connect(bind_dn=ipaldap.DIRMAN_DN, bind_pw=config.dirman_password,
-                     tls_cacertfile=cafile)
+                     cacert=cafile)
 
         # Install CA cert so that we can do SSL connections with ldap
         install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
