@@ -61,15 +61,18 @@ def parse_options():
                       default=False, help="unattended installation never prompts the user")
     parser.add_option("--external-ca", dest="external_ca", action="store_true",
                       default=False, help="Generate a CSR to be signed by an external CA")
+    ext_cas = ("generic", "ms-cs")
     parser.add_option("--external-ca-type", dest="external_ca_type",
-                      type="choice", choices=("generic", "ms-cs"),
+                      type="choice", choices=ext_cas,
+                      metavar="{{{0}}}".format(",".join(ext_cas)),
                       help="Type of the external CA")
     parser.add_option("--external-cert-file", dest="external_cert_files",
                       action="append", metavar="FILE",
                       help="File containing the IPA CA certificate and the external CA certificate chain")
+    ca_algos = ('SHA1withRSA', 'SHA256withRSA', 'SHA512withRSA')
     parser.add_option("--ca-signing-algorithm", dest="ca_signing_algorithm",
-                      type="choice",
-                      choices=('SHA1withRSA', 'SHA256withRSA', 'SHA512withRSA'),
+                      type="choice", choices=ca_algos,
+                      metavar="{{{0}}}".format(",".join(ca_algos)),
                       help="Signing algorithm of the IPA CA certificate")
     parser.add_option("-P", "--principal", dest="principal", sensitive=True,
                       default=None, help="User allowed to manage replicas")

@@ -179,6 +179,8 @@ class ConfigureTool(admintool.AdminTool):
             elif issubclass(knob_scalar_type, enum.Enum):
                 kwargs['type'] = 'choice'
                 kwargs['choices'] = [i.value for i in knob_scalar_type]
+                kwargs['metavar'] = "{{{0}}}".format(
+                                                ",".join(kwargs['choices']))
             else:
                 kwargs['nargs'] = 1
                 kwargs['callback_args'] = (knob_scalar_type,)
