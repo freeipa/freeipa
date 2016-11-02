@@ -31,6 +31,8 @@ uninstall-local:
 	-rmdir $(DESTDIR)$(localstatedir)/lib/ipa/sysupgrade
 	-rmdir $(DESTDIR)$(localstatedir)/lib/ipa
 
+EXTRA_DIST = README.schema
+
 DISTCLEANFILES =		\
 	$(NULL)
 
