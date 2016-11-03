@@ -521,7 +521,7 @@ def enroll_dl0_replica(installer, fstore, remote_api, debug=False):
             '-D', unicode(ipaldap.DIRMAN_DN),
             '-w', config.dirman_password,
             '-k', paths.KRB5_KEYTAB,
-            '-c', os.path.join(config.dir, 'ca.crt')
+            '--cacert', os.path.join(config.dir, 'ca.crt')
         ]
         ipautil.run(getkeytab_args, nolog=(config.dirman_password,))
 
