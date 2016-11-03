@@ -619,10 +619,10 @@ class BindInstance(service.Service):
             "named",
             service_desc="DNS",
             fstore=fstore,
-            api=api
+            api=api,
+            service_user=constants.NAMED_USER
         )
         self.dns_backup = DnsBackup(self)
-        self.named_user = None
         self.domain = None
         self.host = None
         self.ip_addresses = []
@@ -637,7 +637,7 @@ class BindInstance(service.Service):
               forward_policy, reverse_zones,
               named_user=constants.NAMED_USER, zonemgr=None,
               no_dnssec_validation=False):
-        self.named_user = named_user
+        self.service_user = named_user
         self.fqdn = fqdn
         self.ip_addresses = ip_addresses
         self.realm = realm_name
@@ -890,7 +890,7 @@ class BindInstance(service.Service):
             dns_principal = p
 
         # Make sure access is strictly reserved to the named user
-        pent = pwd.getpwnam(self.named_user)
+        pent = pwd.getpwnam(self.service_user)
         os.chown(paths.NAMED_KEYTAB, pent.pw_uid, pent.pw_gid)
         os.chmod(paths.NAMED_KEYTAB, 0o400)
 
@@ -1189,4 +1189,4 @@ class BindInstance(service.Service):
             self.named_regular.start()
 
         installutils.remove_keytab(paths.NAMED_KEYTAB)
-        installutils.remove_ccache(run_as=constants.NAMED_USER)
+        installutils.remove_ccache(run_as=self.service_user)

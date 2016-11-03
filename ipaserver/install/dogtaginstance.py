@@ -114,7 +114,8 @@ class DogtagInstance(service.Service):
         super(DogtagInstance, self).__init__(
             'pki-tomcatd',
             service_desc=service_desc,
-            realm_name=realm
+            realm_name=realm,
+            service_user=constants.PKI_USER
         )
 
         self.admin_password = None
