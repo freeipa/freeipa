@@ -1,5 +1,0 @@
-d /var/run/ipa_memcached 0700 apache apache
-d /var/run/ipa 0700 root root
-d /var/run/httpd/ipa 0700 apache apache
-d /var/run/httpd/ipa/clientcaches 0700 apache apache
-d /var/run/httpd/ipa/krbcache 0700 apache apache
