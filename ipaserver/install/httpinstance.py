@@ -123,7 +123,8 @@ class HTTPInstance(service.Service):
         super(HTTPInstance, self).__init__(
             "httpd",
             service_desc="the web interface",
-            fstore=fstore)
+            fstore=fstore,
+            service_user=HTTPD_USER)
 
         self.cert_nickname = cert_nickname
         self.ca_is_configured = True
@@ -206,7 +207,7 @@ class HTTPInstance(service.Service):
             installutils.create_keytab(paths.IPA_KEYTAB, self.principal)
             self.move_service(self.principal)
 
-        pent = pwd.getpwnam(HTTPD_USER)
+        pent = pwd.getpwnam(self.service_user)
         os.chown(paths.IPA_KEYTAB, pent.pw_uid, pent.pw_gid)
 
     def remove_httpd_ccache(self):
@@ -214,7 +215,8 @@ class HTTPInstance(service.Service):
         # Make sure that empty env is passed to avoid passing KRB5CCNAME from
         # current env
         ipautil.run(
-            [paths.KDESTROY, '-A'], runas=HTTPD_USER, raiseonerr=False, env={})
+            [paths.KDESTROY, '-A'], runas=self.service_user, raiseonerr=False,
+            env={})
 
     def __configure_http(self):
         self.update_httpd_service_ipa_conf()
@@ -326,7 +328,7 @@ class HTTPInstance(service.Service):
         self.fix_cert_db_perms()
 
     def fix_cert_db_perms(self):
-        pent = pwd.getpwnam(constants.HTTPD_USER)
+        pent = pwd.getpwnam(self.service_user)
 
         for filename in NSS_FILES:
             nss_path = os.path.join(certs.NSS_DIR, filename)
@@ -527,7 +529,7 @@ class HTTPInstance(service.Service):
 
         installutils.remove_keytab(paths.IPA_KEYTAB)
         installutils.remove_ccache(ccache_path=paths.KRB5CC_HTTPD,
-                                   run_as=HTTPD_USER)
+                                   run_as=self.service_user)
 
         # Remove the configuration files we create
         installutils.remove_file(paths.HTTPD_IPA_REWRITE_CONF)

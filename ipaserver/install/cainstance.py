@@ -458,7 +458,7 @@ class CAInstance(DogtagInstance):
         # Create an empty and secured file
         (cfg_fd, cfg_file) = tempfile.mkstemp()
         os.close(cfg_fd)
-        pent = pwd.getpwnam(constants.PKI_USER)
+        pent = pwd.getpwnam(self.service_user)
         os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
 
         # Create CA configuration
@@ -534,7 +534,7 @@ class CAInstance(DogtagInstance):
 
             cafile = self.pkcs12_info[0]
             shutil.copy(cafile, paths.TMP_CA_P12)
-            pent = pwd.getpwnam(constants.PKI_USER)
+            pent = pwd.getpwnam(self.service_user)
             os.chown(paths.TMP_CA_P12, pent.pw_uid, pent.pw_gid)
 
             # Security domain registration
@@ -633,7 +633,7 @@ class CAInstance(DogtagInstance):
             'ca.enableNonces=false')
         if update_result != 0:
             raise RuntimeError("Disabling nonces failed")
-        pent = pwd.getpwnam(constants.PKI_USER)
+        pent = pwd.getpwnam(self.service_user)
         os.chown(paths.CA_CS_CFG_PATH, pent.pw_uid, pent.pw_gid)
 
     def enable_pkix(self):
@@ -865,7 +865,7 @@ class CAInstance(DogtagInstance):
             os.mkdir(publishdir)
 
         os.chmod(publishdir, 0o775)
-        pent = pwd.getpwnam(constants.PKI_USER)
+        pent = pwd.getpwnam(self.service_user)
         os.chown(publishdir, 0, pent.pw_gid)
 
         tasks.restore_context(publishdir)
@@ -1231,7 +1231,7 @@ class CAInstance(DogtagInstance):
     def __setup_lightweight_ca_key_retrieval_kerberos(self):
         service = ipalib.constants.PKI_GSSAPI_SERVICE_NAME
         principal = '{}/{}@{}'.format(service, api.env.host, self.realm)
-        pent = pwd.getpwnam(constants.PKI_USER)
+        pent = pwd.getpwnam(self.service_user)
 
         root_logger.info('Creating principal')
         installutils.kadmin_addprinc(principal)
@@ -1246,7 +1246,7 @@ class CAInstance(DogtagInstance):
 
     def __setup_lightweight_ca_key_retrieval_custodia(self):
         service = ipalib.constants.PKI_GSSAPI_SERVICE_NAME
-        pent = pwd.getpwnam(constants.PKI_USER)
+        pent = pwd.getpwnam(self.service_user)
 
         root_logger.info('Creating Custodia keys')
         custodia_basedn = DN(

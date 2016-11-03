@@ -227,6 +227,7 @@ class DsInstance(service.Service):
             "dirsrv",
             service_desc="directory server",
             fstore=fstore,
+            service_user=DS_USER,
             realm_name=realm_name
         )
         self.nickname = 'Server-Cert'
@@ -1242,7 +1243,7 @@ class DsInstance(service.Service):
                                          replacevars=vardict)
 
         # Keytab must be owned by DS itself
-        pent = pwd.getpwnam(DS_USER)
+        pent = pwd.getpwnam(self.service_user)
         os.chown(paths.DS_KEYTAB, pent.pw_uid, pent.pw_gid)
 
     def __get_ds_cert(self):
