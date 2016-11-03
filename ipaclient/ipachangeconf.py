@@ -395,15 +395,15 @@ class IPAChangeConf(object):
             raise SyntaxError('Unknown type: [%s]' % no['type'])
 
     def merge(self, oldopts, newopts):
-
-        #Use a two pass strategy
-        #First we create a new opts tree from oldopts removing/commenting
-        #  the options as indicated by the contents of newopts
-        #Second we fill in the new opts tree with options as indicated
-        #  in the newopts tree (this is becaus eentire (sub)sections may
-        #  in the newopts tree (this is becaus entire (sub)sections may
-        #  exist in the newopts that do not exist in oldopts)
-
+        """
+        Uses a two pass strategy:
+        First we create a new opts tree from oldopts removing/commenting
+          the options as indicated by the contents of newopts
+        Second we fill in the new opts tree with options as indicated
+          in the newopts tree (this is becaus eentire (sub)sections may
+          in the newopts tree (this is becaus entire (sub)sections may
+          exist in the newopts that do not exist in oldopts)
+        """
         opts = self.mergeOld(oldopts, newopts)
         self.mergeNew(opts, newopts)
         return opts
@@ -473,12 +473,14 @@ class IPAChangeConf(object):
 
         return opts
 
-    # Write settings to configuration file
-    # file is a path
-    # options is a set of dictionaries in the form:
-    #     [{'name': 'foo', 'value': 'bar', 'action': 'set/comment'}]
-    # section is a section name like 'global'
     def changeConf(self, file, newopts):
+        """
+        Write settings to configuration file
+        :param file: path to the file
+        :param options: set of dictionaries in the form:
+             {'name': 'foo', 'value': 'bar', 'action': 'set/comment'}
+        :param section: section name like 'global'
+        """
         output = ""
         f = None
         try:
@@ -506,11 +508,13 @@ class IPAChangeConf(object):
                 pass
         return True
 
-    # Write settings to new file, backup old
-    # file is a path
-    # options is a set of dictionaries in the form:
-    #     [{'name': 'foo', 'value': 'bar', 'action': 'set/comment'}]
     def newConf(self, file, options):
+        """"
+        Write settings to a new file, backup the old
+        :param file: path to the file
+        :param options: a set of dictionaries in the form:
+             {'name': 'foo', 'value': 'bar', 'action': 'set/comment'}
+        """
         output = ""
         f = None
         try:
