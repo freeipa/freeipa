@@ -302,6 +302,7 @@ class CAInstance(DogtagInstance):
             subsystem="CA",
             service_desc="certificate server",
             host_name=host_name,
+            service_prefix=ipalib.constants.PKI_GSSAPI_SERVICE_NAME,
         )
 
         # for external CAs
@@ -323,6 +324,8 @@ class CAInstance(DogtagInstance):
         self.requestId = None
         self.log = log_mgr.get_logger(self)
         self.no_db_setup = False
+        self.keytab = os.path.join(
+            paths.PKI_TOMCAT, self.service_prefix + '.keytab')
 
     def configure_instance(self, host_name, dm_password, admin_password,
                            pkcs12_info=None, master_host=None, csr_file=None,
@@ -1229,23 +1232,19 @@ class CAInstance(DogtagInstance):
         sysupgrade.set_upgrade_state('dogtag', 'setup_lwca_key_retieval', True)
 
     def __setup_lightweight_ca_key_retrieval_kerberos(self):
-        service = ipalib.constants.PKI_GSSAPI_SERVICE_NAME
-        principal = '{}/{}@{}'.format(service, api.env.host, self.realm)
         pent = pwd.getpwnam(self.service_user)
 
         root_logger.info('Creating principal')
-        installutils.kadmin_addprinc(principal)
+        installutils.kadmin_addprinc(self.principal)
         self.suffix = ipautil.realm_to_suffix(self.realm)
-        self.move_service(principal)
+        self.move_service(self.principal)
 
         root_logger.info('Retrieving keytab')
-        keytab = os.path.join(paths.PKI_TOMCAT, service + '.keytab')
-        installutils.create_keytab(keytab, principal)
-        os.chmod(keytab, 0o600)
-        os.chown(keytab, pent.pw_uid, pent.pw_gid)
+        installutils.create_keytab(self.keytab, self.principal)
+        os.chmod(self.keytab, 0o600)
+        os.chown(self.keytab, pent.pw_uid, pent.pw_gid)
 
     def __setup_lightweight_ca_key_retrieval_custodia(self):
-        service = ipalib.constants.PKI_GSSAPI_SERVICE_NAME
         pent = pwd.getpwnam(self.service_user)
 
         root_logger.info('Creating Custodia keys')
@@ -1261,9 +1260,9 @@ class CAInstance(DogtagInstance):
             objectclass=['top', 'nsContainer'],
             cn=['dogtag'],
         )
-        keyfile = os.path.join(paths.PKI_TOMCAT, service + '.keys')
+        keyfile = os.path.join(paths.PKI_TOMCAT, self.service_prefix + '.keys')
         keystore = IPAKEMKeys({'server_keys': keyfile})
-        keystore.generate_keys(service)
+        keystore.generate_keys(self.service_prefix)
         os.chmod(keyfile, 0o600)
         os.chown(keyfile, pent.pw_uid, pent.pw_gid)
 

@@ -124,7 +124,9 @@ class HTTPInstance(service.Service):
             "httpd",
             service_desc="the web interface",
             fstore=fstore,
-            service_user=HTTPD_USER)
+            service_prefix=u'HTTP',
+            service_user=HTTPD_USER,
+            keytab=paths.IPA_KEYTAB)
 
         self.cert_nickname = cert_nickname
         self.ca_is_configured = True
@@ -139,7 +141,6 @@ class HTTPInstance(service.Service):
         self.domain = domain_name
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.pkcs12_info = pkcs12_info
-        self.principal = "HTTP/%s@%s" % (self.fqdn, self.realm)
         self.dercert = None
         self.subject_base = subject_base
         self.sub_dict = dict(
@@ -202,9 +203,9 @@ class HTTPInstance(service.Service):
 
     def __create_http_keytab(self):
         if not self.promote:
-            installutils.remove_keytab(paths.IPA_KEYTAB)
+            installutils.remove_keytab(self.keytab)
             installutils.kadmin_addprinc(self.principal)
-            installutils.create_keytab(paths.IPA_KEYTAB, self.principal)
+            installutils.create_keytab(self.keytab, self.principal)
             self.move_service(self.principal)
 
         pent = pwd.getpwnam(self.service_user)
@@ -527,7 +528,7 @@ class HTTPInstance(service.Service):
             except ValueError as error:
                 root_logger.debug(error)
 
-        installutils.remove_keytab(paths.IPA_KEYTAB)
+        installutils.remove_keytab(self.keytab)
         installutils.remove_ccache(ccache_path=paths.KRB5CC_HTTPD,
                                    run_as=self.service_user)
 
