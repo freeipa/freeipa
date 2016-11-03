@@ -20,7 +20,6 @@
 
 from ipaserver.install import service
 from ipaserver.install import sysupgrade
-from ipapython import sysrestore
 from ipapython import ipautil
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
@@ -49,13 +48,12 @@ def ntp_ldap_enable(fqdn, base_dn, realm):
 
 class NTPInstance(service.Service):
     def __init__(self, realm=None, fstore=None):
-        service.Service.__init__(self, "ntpd", service_desc="NTP daemon")
-        self.realm = realm
-
-        if fstore:
-            self.fstore = fstore
-        else:
-            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
+        super(NTPInstance, self).__init__(
+            "ntpd",
+            service_desc="NTP daemon",
+            realm_name=realm,
+            fstore=fstore
+        )
 
     def __write_config(self):
 

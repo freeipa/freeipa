@@ -130,7 +130,8 @@ def find_providing_server(svcname, conn, host_name=None, api=api):
 
 
 class Service(object):
-    def __init__(self, service_name, service_desc=None, sstore=None):
+    def __init__(self, service_name, service_desc=None, sstore=None,
+                 fstore=None, api=api, realm_name=None):
         self.service_name = service_name
         self.service_desc = service_desc
         self.service = services.service(service_name)
@@ -144,10 +145,16 @@ class Service(object):
         else:
             self.sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
-        self.realm = None
+        if fstore:
+            self.fstore = fstore
+        else:
+            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
+
+        self.realm = realm_name
         self.suffix = DN()
         self.principal = None
         self.dercert = None
+        self.api = api
 
     @property
     def admin_conn(self):

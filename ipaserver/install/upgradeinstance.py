@@ -81,7 +81,7 @@ class IPAUpgrade(service.Service):
         for _i in range(8):
             h = "%02x" % rand.randint(0,255)
             ext += h
-        service.Service.__init__(self, "dirsrv")
+        super(IPAUpgrade, self).__init__("dirsrv", realm_name=realm_name)
         serverid = installutils.realm_to_serverid(realm_name)
         self.filename = '%s/%s' % (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid, DSE)
         self.savefilename = '%s/%s.ipa.%s' % (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid, DSE, ext)
@@ -89,7 +89,6 @@ class IPAUpgrade(service.Service):
         self.modified = False
         self.serverid = serverid
         self.schema_files = schema_files
-        self.realm = realm_name
 
     def __start(self):
         services.service(self.service_name).start(self.serverid, ldapi=True)

@@ -28,7 +28,6 @@ import dns.name
 
 from ipaserver.install import service
 from ipaserver.install import installutils
-from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import kernel_keyring
 from ipalib.constants import CACERT
@@ -50,7 +49,11 @@ class KpasswdInstance(service.SimpleServiceInstance):
 
 class KrbInstance(service.Service):
     def __init__(self, fstore=None):
-        service.Service.__init__(self, "krb5kdc", service_desc="Kerberos KDC")
+        super(KrbInstance, self).__init__(
+            "krb5kdc",
+            service_desc="Kerberos KDC",
+            fstore=fstore
+        )
         self.fqdn = None
         self.realm = None
         self.domain = None
@@ -62,11 +65,6 @@ class KrbInstance(service.Service):
         self.kdc_password = None
         self.sub_dict = None
         self.pkcs12_info = None
-
-        if fstore:
-            self.fstore = fstore
-        else:
-            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     suffix = ipautil.dn_attribute_property('_suffix')
     subject_base = ipautil.dn_attribute_property('_subject_base')

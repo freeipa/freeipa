@@ -34,7 +34,6 @@ import six
 from ipaserver.install import service
 from ipaserver.install import certs
 from ipaserver.install import installutils
-from ipapython import sysrestore
 from ipapython import certmonger
 from ipapython import dogtag
 from ipapython import ipautil
@@ -121,11 +120,10 @@ class WebGuiInstance(service.SimpleServiceInstance):
 
 class HTTPInstance(service.Service):
     def __init__(self, fstore=None, cert_nickname='Server-Cert'):
-        service.Service.__init__(self, "httpd", service_desc="the web interface")
-        if fstore:
-            self.fstore = fstore
-        else:
-            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
+        super(HTTPInstance, self).__init__(
+            "httpd",
+            service_desc="the web interface",
+            fstore=fstore)
 
         self.cert_nickname = cert_nickname
         self.ca_is_configured = True

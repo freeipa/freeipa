@@ -113,10 +113,10 @@ class DogtagInstance(service.Service):
 
         super(DogtagInstance, self).__init__(
             'pki-tomcatd',
-            service_desc=service_desc
+            service_desc=service_desc,
+            realm_name=realm
         )
 
-        self.realm = realm
         self.admin_password = None
         self.fqdn = host_name
         self.pkcs12_info = None

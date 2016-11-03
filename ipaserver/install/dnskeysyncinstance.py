@@ -20,7 +20,7 @@ from ipaserver.install import installutils
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipapython import ipaldap
-from ipapython import sysrestore, ipautil
+from ipapython import ipautil
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipalib import errors, api
@@ -61,9 +61,10 @@ def remove_replica_public_keys(hostname):
 
 class DNSKeySyncInstance(service.Service):
     def __init__(self, fstore=None, logger=root_logger):
-        service.Service.__init__(
-            self, "ipa-dnskeysyncd",
+        super(DNSKeySyncInstance, self).__init__(
+            "ipa-dnskeysyncd",
             service_desc="DNS key synchronization service",
+            fstore=fstore
         )
         self.logger = logger
         self.extra_config = [u'dnssecVersion 1', ]  # DNSSEC enabled
@@ -71,10 +72,6 @@ class DNSKeySyncInstance(service.Service):
         self.named_gid = None
         self.ods_uid = None
         self.ods_gid = None
-        if fstore:
-            self.fstore = fstore
-        else:
-            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     suffix = ipautil.dn_attribute_property('_suffix')
 
