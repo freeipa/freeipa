@@ -264,7 +264,9 @@ def create_ipa_conf(fstore, config, ca_enabled):
         {'name': 'empty', 'type': 'empty'}
     ]
     ipaconf.newConf(target_fname, opts)
-    os.chmod(target_fname, 0o644)   # must be readable for httpd
+    # the new file must be readable for httpd
+    # Also, umask applies when creating a new file but we want 0o644 here
+    os.chmod(target_fname, 0o644)
 
 
 def check_dirsrv():
