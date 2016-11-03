@@ -34,8 +34,8 @@ from ipalib.util import (
     broadcast_ip_address_warning,
 )
 from ipaclient.install.client import configure_krb5_conf, purge_host_keytab
-import ipaclient.ipachangeconf
 import ipaclient.ntpconf
+from ipaclient.ipachangeconf import IPAChangeConf
 from ipaserver.install import (
     bindinstance, ca, certs, dns, dsinstance, httpinstance,
     installutils, kra, krbinstance, memcacheinstance,
@@ -224,7 +224,7 @@ def create_ipa_conf(fstore, config, ca_enabled):
     target_fname = paths.IPA_DEFAULT_CONF
     fstore.backup_file(target_fname)
 
-    ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Replica Install")
+    ipaconf = IPAChangeConf("IPA Replica Install")
     ipaconf.setOptionAssignment(" = ")
     ipaconf.setSectionNameDelimiters(("[", "]"))
 
@@ -495,8 +495,7 @@ def promote_openldap_conf(hostname, master):
 
     ldap_conf = paths.OPENLDAP_LDAP_CONF
 
-    ldap_change_conf = ipaclient.ipachangeconf.IPAChangeConf(
-        "IPA replica installer")
+    ldap_change_conf = IPAChangeConf("IPA replica installer")
     ldap_change_conf.setOptionAssignment((" ", "\t"))
 
     new_opts = []
