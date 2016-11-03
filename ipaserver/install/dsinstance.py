@@ -390,8 +390,8 @@ class DsInstance(service.Service):
         self.__common_setup(enable_ssl=(not self.promote))
         self.step("restarting directory server", self.__restart_instance)
 
+        self.step("creating DS keytab", self._request_service_keytab)
         if self.promote:
-            self.step("creating DS keytab", self.__get_ds_keytab)
             if self.ca_is_configured:
                 self.step("retrieving DS Certificate", self.__get_ds_cert)
             self.step("restarting directory server", self.__restart_instance)
@@ -1224,28 +1224,13 @@ class DsInstance(service.Service):
         if self.domainlevel is not None:
             self._ldap_mod("domainlevel.ldif", self.sub_dict)
 
-    def __get_ds_keytab(self):
-
-        self.fstore.backup_file(self.keytab)
-        try:
-            os.unlink(self.keytab)
-        except OSError:
-            pass
-
-        installutils.install_service_keytab(self.api,
-                                            self.principal,
-                                            self.master_fqdn,
-                                            self.keytab,
-                                            force_service_add=True)
+    def _request_service_keytab(self):
+        super(DsInstance, self)._request_service_keytab()
 
         # Configure DS to use the keytab
         vardict = {"KRB5_KTNAME": self.keytab}
         ipautil.config_replace_variables(paths.SYSCONFIG_DIRSRV,
                                          replacevars=vardict)
-
-        # Keytab must be owned by DS itself
-        pent = pwd.getpwnam(self.service_user)
-        os.chown(self.keytab, pent.pw_uid, pent.pw_gid)
 
     def __get_ds_cert(self):
         subject = self.subject_base or DN(('O', self.realm))
