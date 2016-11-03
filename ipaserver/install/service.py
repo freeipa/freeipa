@@ -19,6 +19,7 @@
 
 import sys
 import os
+import pwd
 import socket
 import datetime
 import traceback
@@ -165,6 +166,7 @@ class Service(object):
         self.dercert = None
         self.api = api
         self.service_user = service_user
+        self.dm_password = None  # silence pylint
 
     @property
     def admin_conn(self):
@@ -533,6 +535,58 @@ class Service(object):
             root_logger.debug("service %s container already removed", name)
         else:
             root_logger.debug("service %s container sucessfully removed", name)
+
+    def _add_service_principal(self):
+        try:
+            self.api.Command.service_add(self.principal, force=True)
+        except errors.DuplicateEntry:
+            pass
+
+    def _run_getkeytab(self):
+        """
+        backup and remove old service keytab (if present) and fetch a new one
+        using ipa-getkeytab. This assumes that the service principal is already
+        created in LDAP. By default GSSAPI authentication is used unless:
+            * LDAPI socket is used and effective process UID is 0, then
+              autobind is used by EXTERNAL SASL mech
+            * self.dm_password is not none, then DM credentials are used to
+              fetch keytab
+        """
+        self.fstore.backup_file(self.keytab)
+        try:
+            os.unlink(self.keytab)
+        except OSError:
+            pass
+
+        ldap_uri = self.api.env.ldap_uri
+        args = [paths.IPA_GETKEYTAB,
+                '-k', self.keytab,
+                '-p', self.principal,
+                '-H', ldap_uri]
+        nolog = tuple()
+
+        if ldap_uri.startswith("ldapi://") and os.geteuid() == 0:
+            args.extend(["-Y", "EXTERNAL"])
+        elif self.dm_password is not None:
+            args.extend(
+                ['-D', 'cn=Directory Manager',
+                 '-w', self.dm_password])
+            nolog += (self.dm_password,)
+
+        ipautil.run(args, nolog=nolog)
+
+    def _request_service_keytab(self):
+        if any(attr is None for attr in (self.principal, self.keytab,
+                                         self.service_user)):
+            raise NotImplementedError(
+                "service must have defined principal "
+                "name, keytab, and username")
+
+        self._add_service_principal()
+        self._run_getkeytab()
+
+        pent = pwd.getpwnam(self.service_user)
+        os.chown(self.keytab, pent.pw_uid, pent.pw_gid)
 
 
 class SimpleServiceInstance(Service):
