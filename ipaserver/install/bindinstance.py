@@ -620,7 +620,9 @@ class BindInstance(service.Service):
             service_desc="DNS",
             fstore=fstore,
             api=api,
-            service_user=constants.NAMED_USER
+            service_user=constants.NAMED_USER,
+            service_prefix=u'DNS',
+            keytab=paths.NAMED_KEYTAB
         )
         self.dns_backup = DnsBackup(self)
         self.domain = None
@@ -778,7 +780,7 @@ class BindInstance(service.Service):
             BINDKEYS_FILE=paths.NAMED_BINDKEYS_FILE,
             MANAGED_KEYS_DIR=paths.NAMED_MANAGED_KEYS_DIR,
             ROOT_KEY=paths.NAMED_ROOT_KEY,
-            NAMED_KEYTAB=paths.NAMED_KEYTAB,
+            NAMED_KEYTAB=self.keytab,
             RFC1912_ZONES=paths.NAMED_RFC1912_ZONES,
             NAMED_PID=paths.NAMED_PID,
             NAMED_VAR_DIR=paths.NAMED_VAR_DIR,
@@ -875,24 +877,23 @@ class BindInstance(service.Service):
             self.__add_master_records(fqdn, addrs)
 
     def __setup_principal(self):
-        dns_principal = "DNS/" + self.fqdn + "@" + self.realm
-        installutils.kadmin_addprinc(dns_principal)
+        installutils.kadmin_addprinc(self.principal)
 
         # Store the keytab on disk
-        self.fstore.backup_file(paths.NAMED_KEYTAB)
-        installutils.create_keytab(paths.NAMED_KEYTAB, dns_principal)
-        p = self.move_service(dns_principal)
+        self.fstore.backup_file(self.keytab)
+        installutils.create_keytab(self.keytab, self.principal)
+        p = self.move_service(self.principal)
         if p is None:
             # the service has already been moved, perhaps we're doing a DNS reinstall
-            dns_principal = DN(('krbprincipalname', dns_principal),
+            dns_principal = DN(('krbprincipalname', self.principal),
                                ('cn', 'services'), ('cn', 'accounts'), self.suffix)
         else:
             dns_principal = p
 
         # Make sure access is strictly reserved to the named user
         pent = pwd.getpwnam(self.service_user)
-        os.chown(paths.NAMED_KEYTAB, pent.pw_uid, pent.pw_gid)
-        os.chmod(paths.NAMED_KEYTAB, 0o400)
+        os.chown(self.keytab, pent.pw_uid, pent.pw_gid)
+        os.chmod(self.keytab, 0o400)
 
         # modify the principal so that it is marked as an ipa service so that
         # it can host the memberof attribute, then also add it to the
@@ -1188,5 +1189,5 @@ class BindInstance(service.Service):
         if named_regular_running:
             self.named_regular.start()
 
-        installutils.remove_keytab(paths.NAMED_KEYTAB)
+        installutils.remove_keytab(self.keytab)
         installutils.remove_ccache(run_as=self.service_user)

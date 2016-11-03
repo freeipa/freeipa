@@ -24,13 +24,19 @@ import datetime
 import traceback
 import tempfile
 
+import six
+
 from ipapython import ipautil, sysrestore
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
+from ipapython import kerberos
 from ipalib import api, errors, certstore
 from ipaplatform import services
 from ipaplatform.paths import paths
 
+
+if six.PY3:
+    unicode = str
 
 # The service name as stored in cn=masters,cn=ipa,cn=etc. In the tuple
 # the first value is the *nix service name, the second the start order.
@@ -132,7 +138,8 @@ def find_providing_server(svcname, conn, host_name=None, api=api):
 class Service(object):
     def __init__(self, service_name, service_desc=None, sstore=None,
                  fstore=None, api=api, realm_name=None,
-                 service_user=None):
+                 service_user=None, service_prefix=None,
+                 keytab=None):
         self.service_name = service_name
         self.service_desc = service_desc
         self.service = services.service(service_name)
@@ -153,7 +160,8 @@ class Service(object):
 
         self.realm = realm_name
         self.suffix = DN()
-        self.principal = None
+        self.service_prefix = service_prefix
+        self.keytab = keytab
         self.dercert = None
         self.api = api
         self.service_user = service_user
@@ -164,6 +172,16 @@ class Service(object):
         alias for api.Backend.ldap2
         """
         return api.Backend.ldap2
+
+    @property
+    def principal(self):
+        if any(attr is None for attr in (self.realm, self.fqdn,
+                                         self.service_prefix)):
+            return
+
+        return unicode(
+            kerberos.Principal(
+                (self.service_prefix, self.fqdn), realm=self.realm))
 
     def _ldap_mod(self, ldif, sub_dict=None, raise_on_err=True,
                   ldap_uri=None, dm_password=None):

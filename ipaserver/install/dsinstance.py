@@ -227,6 +227,8 @@ class DsInstance(service.Service):
             "dirsrv",
             service_desc="directory server",
             fstore=fstore,
+            service_prefix=u'ldap',
+            keytab=paths.DS_KEYTAB,
             service_user=DS_USER,
             realm_name=realm_name
         )
@@ -308,7 +310,6 @@ class DsInstance(service.Service):
         self.fqdn = fqdn
         self.dm_password = dm_password
         self.domain = domain_name
-        self.principal = "ldap/%s@%s" % (self.fqdn, self.realm)
         self.subject_base = subject_base
         self.idstart = idstart
         self.idmax = idmax
@@ -1225,26 +1226,26 @@ class DsInstance(service.Service):
 
     def __get_ds_keytab(self):
 
-        self.fstore.backup_file(paths.DS_KEYTAB)
+        self.fstore.backup_file(self.keytab)
         try:
-            os.unlink(paths.DS_KEYTAB)
+            os.unlink(self.keytab)
         except OSError:
             pass
 
         installutils.install_service_keytab(self.api,
                                             self.principal,
                                             self.master_fqdn,
-                                            paths.DS_KEYTAB,
+                                            self.keytab,
                                             force_service_add=True)
 
         # Configure DS to use the keytab
-        vardict = {"KRB5_KTNAME": paths.DS_KEYTAB}
+        vardict = {"KRB5_KTNAME": self.keytab}
         ipautil.config_replace_variables(paths.SYSCONFIG_DIRSRV,
                                          replacevars=vardict)
 
         # Keytab must be owned by DS itself
         pent = pwd.getpwnam(self.service_user)
-        os.chown(paths.DS_KEYTAB, pent.pw_uid, pent.pw_gid)
+        os.chown(self.keytab, pent.pw_uid, pent.pw_gid)
 
     def __get_ds_cert(self):
         subject = self.subject_base or DN(('O', self.realm))

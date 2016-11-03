@@ -24,7 +24,9 @@ class ODSExporterInstance(service.Service):
         super(ODSExporterInstance, self).__init__(
             "ipa-ods-exporter",
             service_desc="IPA OpenDNSSEC exporter daemon",
-            fstore=fstore
+            fstore=fstore,
+            keytab=paths.IPA_ODS_EXPORTER_KEYTAB,
+            service_prefix=u'ipa-ods-exporter'
         )
         self.ods_uid = None
         self.ods_gid = None
@@ -81,29 +83,29 @@ class ODSExporterInstance(service.Service):
     def __setup_principal(self):
         assert self.ods_uid is not None
 
-        for f in [paths.IPA_ODS_EXPORTER_CCACHE, paths.IPA_ODS_EXPORTER_KEYTAB]:
+        for f in [paths.IPA_ODS_EXPORTER_CCACHE, self.keytab]:
             try:
                 os.remove(f)
             except OSError:
                 pass
 
-        dns_exporter_principal = "ipa-ods-exporter/" + self.fqdn + "@" + self.realm
-        installutils.kadmin_addprinc(dns_exporter_principal)
+        installutils.kadmin_addprinc(self.principal)
 
         # Store the keytab on disk
-        installutils.create_keytab(paths.IPA_ODS_EXPORTER_KEYTAB, dns_exporter_principal)
-        p = self.move_service(dns_exporter_principal)
+        installutils.create_keytab(paths.IPA_ODS_EXPORTER_KEYTAB,
+                                   self.principal)
+        p = self.move_service(self.principal)
         if p is None:
             # the service has already been moved, perhaps we're doing a DNS reinstall
             dns_exporter_principal_dn = DN(
-                ('krbprincipalname', dns_exporter_principal),
+                ('krbprincipalname', self.principal),
                 ('cn', 'services'), ('cn', 'accounts'), self.suffix)
         else:
             dns_exporter_principal_dn = p
 
         # Make sure access is strictly reserved to the ods user
-        os.chmod(paths.IPA_ODS_EXPORTER_KEYTAB, 0o440)
-        os.chown(paths.IPA_ODS_EXPORTER_KEYTAB, 0, self.ods_gid)
+        os.chmod(self.keytab, 0o440)
+        os.chown(self.keytab, 0, self.ods_gid)
 
         dns_group = DN(('cn', 'DNS Servers'), ('cn', 'privileges'),
                        ('cn', 'pbac'), self.suffix)
@@ -146,10 +148,8 @@ class ODSExporterInstance(service.Service):
         self.start()
 
     def remove_service(self):
-        dns_exporter_principal = ("ipa-ods-exporter/%s@%s" % (self.fqdn,
-                                                              self.realm))
         try:
-            api.Command.service_del(dns_exporter_principal)
+            api.Command.service_del(self.principal)
         except errors.NotFound:
             pass
 
@@ -181,5 +181,5 @@ class ODSExporterInstance(service.Service):
         if signerd_running:
             signerd_service.start()
 
-        installutils.remove_keytab(paths.IPA_ODS_EXPORTER_KEYTAB)
+        installutils.remove_keytab(self.keytab)
         installutils.remove_ccache(ccache_path=paths.IPA_ODS_EXPORTER_CCACHE)

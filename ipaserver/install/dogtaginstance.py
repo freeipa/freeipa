@@ -108,14 +108,15 @@ class DogtagInstance(service.Service):
     server_cert_name = None
 
     def __init__(self, realm, subsystem, service_desc, host_name=None,
-                 nss_db=paths.PKI_TOMCAT_ALIAS_DIR):
+                 nss_db=paths.PKI_TOMCAT_ALIAS_DIR, service_prefix=None):
         """Initializer"""
 
         super(DogtagInstance, self).__init__(
             'pki-tomcatd',
             service_desc=service_desc,
             realm_name=realm,
-            service_user=constants.PKI_USER
+            service_user=constants.PKI_USER,
+            service_prefix=service_prefix
         )
 
         self.admin_password = None

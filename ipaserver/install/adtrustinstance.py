@@ -136,7 +136,8 @@ class ADTRUSTInstance(service.Service):
         self.host_netbios_name = None
 
         super(ADTRUSTInstance, self).__init__(
-            "smb", service_desc="CIFS", fstore=fstore)
+            "smb", service_desc="CIFS", fstore=fstore, service_prefix=u'cifs',
+            keytab=paths.SAMBA_KEYTAB)
 
         self.__setup_default_attributes()
 
@@ -148,7 +149,6 @@ class ADTRUSTInstance(service.Service):
 
         # Constants
         self.smb_conf = paths.SMB_CONF
-        self.samba_keytab = paths.SAMBA_KEYTAB
         self.cifs_hosts = []
 
         # Values obtained from API.env
@@ -156,7 +156,6 @@ class ADTRUSTInstance(service.Service):
         self.host_netbios_name = make_netbios_name(self.fqdn)
         self.realm = self.realm or api.env.realm
 
-        self.cifs_principal = "cifs/" + self.fqdn + "@" + self.realm
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ldapi_socket = "%%2fvar%%2frun%%2fslapd-%s.socket" % \
                             installutils.realm_to_serverid(self.realm)
@@ -173,7 +172,7 @@ class ADTRUSTInstance(service.Service):
                              api.env.container_cifsdomains,
                              self.suffix)
 
-        self.cifs_agent = DN(('krbprincipalname', self.cifs_principal.lower()),
+        self.cifs_agent = DN(('krbprincipalname', self.principal.lower()),
                              api.env.container_service,
                              self.suffix)
         self.host_princ = DN(('fqdn', self.fqdn),
@@ -494,8 +493,8 @@ class ADTRUSTInstance(service.Service):
         try:
             current = self.admin_conn.get_entry(targets_dn)
             members = current.get('memberPrincipal', [])
-            if not(self.cifs_principal in members):
-                current["memberPrincipal"] = members + [self.cifs_principal]
+            if not(self.principal in members):
+                current["memberPrincipal"] = members + [self.principal]
                 self.admin_conn.update_entry(current)
             else:
                 self.print_msg('cifs principal already targeted, nothing to do.')
@@ -530,7 +529,7 @@ class ADTRUSTInstance(service.Service):
 
     def __setup_principal(self):
         try:
-            api.Command.service_add(unicode(self.cifs_principal))
+            api.Command.service_add(unicode(self.principal))
         except errors.DuplicateEntry:
             # CIFS principal already exists, it is not the first time
             # adtrustinstance is managed
@@ -544,21 +543,21 @@ class ADTRUSTInstance(service.Service):
 
         try:
             ipautil.run(["ipa-getkeytab", "--server", self.fqdn,
-                                          "--principal", self.cifs_principal,
-                                          "-k", self.samba_keytab])
+                                          "--principal", self.principal,
+                                          "-k", self.keytab])
         except ipautil.CalledProcessError:
             root_logger.critical("Failed to add key for %s"
-                                 % self.cifs_principal)
+                                 % self.principal)
 
     def clean_samba_keytab(self):
-        if os.path.exists(self.samba_keytab):
+        if os.path.exists(self.keytab):
             try:
-                ipautil.run(["ipa-rmkeytab", "--principal", self.cifs_principal,
-                                         "-k", self.samba_keytab])
+                ipautil.run(["ipa-rmkeytab", "--principal", self.principal,
+                             "-k", self.keytab])
             except ipautil.CalledProcessError as e:
                 if e.returncode != 5:
                     root_logger.critical("Failed to remove old key for %s"
-                                         % self.cifs_principal)
+                                         % self.principal)
 
     def srv_rec(self, host, port, prio):
         return "%(prio)d 100 %(port)d %(host)s" % dict(host=host,prio=prio,port=port)

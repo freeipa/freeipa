@@ -64,7 +64,9 @@ class DNSKeySyncInstance(service.Service):
         super(DNSKeySyncInstance, self).__init__(
             "ipa-dnskeysyncd",
             service_desc="DNS key synchronization service",
-            fstore=fstore
+            fstore=fstore,
+            service_prefix=u'ipa-dnskeysync',
+            keytab=paths.IPA_DNSKEYSYNCD_KEYTAB
         )
         self.logger = logger
         self.extra_config = [u'dnssecVersion 1', ]  # DNSSEC enabled
@@ -406,24 +408,23 @@ class DNSKeySyncInstance(service.Service):
 
     def __setup_principal(self):
         assert self.ods_gid is not None
-        installutils.remove_keytab(paths.IPA_DNSKEYSYNCD_KEYTAB)
-        dnssynckey_principal = "ipa-dnskeysyncd/" + self.fqdn + "@" + self.realm
-        installutils.kadmin_addprinc(dnssynckey_principal)
+        installutils.remove_keytab(self.keytab)
+        installutils.kadmin_addprinc(self.principal)
 
         # Store the keytab on disk
-        installutils.create_keytab(paths.IPA_DNSKEYSYNCD_KEYTAB, dnssynckey_principal)
-        p = self.move_service(dnssynckey_principal)
+        installutils.create_keytab(self.keytab, self.principal)
+        p = self.move_service(self.principal)
         if p is None:
             # the service has already been moved, perhaps we're doing a DNS reinstall
             dnssynckey_principal_dn = DN(
-                ('krbprincipalname', dnssynckey_principal),
+                ('krbprincipalname', self.principal),
                 ('cn', 'services'), ('cn', 'accounts'), self.suffix)
         else:
             dnssynckey_principal_dn = p
 
         # Make sure access is strictly reserved to the named user
-        os.chown(paths.IPA_DNSKEYSYNCD_KEYTAB, 0, self.ods_gid)
-        os.chmod(paths.IPA_DNSKEYSYNCD_KEYTAB, 0o440)
+        os.chown(self.keytab, 0, self.ods_gid)
+        os.chmod(self.keytab, 0o440)
 
         dns_group = DN(('cn', 'DNS Servers'), ('cn', 'privileges'),
                        ('cn', 'pbac'), self.suffix)
@@ -487,4 +488,4 @@ class DNSKeySyncInstance(service.Service):
         except Exception:
             pass
 
-        installutils.remove_keytab(paths.IPA_DNSKEYSYNCD_KEYTAB)
+        installutils.remove_keytab(self.keytab)
