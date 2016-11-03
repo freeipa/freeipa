@@ -1,5 +1,4 @@
 SUBDIRS = asn1 util client contrib daemons init install ipaclient ipalib ipaplatform ipapython ipaserver ipatests po
-# doc
 
 MOSTLYCLEANFILES = ipasetup.pyc ipasetup.pyo
 
@@ -22,5 +21,6 @@ EXTRA_DIST = .mailmap \
 	     Contributors.txt \
 	     COPYING.openssl \
 	     contrib \
+	     doc \
 	     pylintrc \
 	     pytest.ini
