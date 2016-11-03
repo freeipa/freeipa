@@ -39,7 +39,7 @@ from ipaserver.dns_data_management import (
 from ipaserver.install import installutils
 from ipaserver.install import service
 from ipaserver.install import sysupgrade
-from ipapython import sysrestore, ipautil, ipaldap
+from ipapython import ipautil, ipaldap
 from ipapython import dnsutil
 from ipapython.dnsutil import DNSName
 from ipapython.ipa_log_manager import root_logger
@@ -615,26 +615,21 @@ class DnsBackup(object):
 
 class BindInstance(service.Service):
     def __init__(self, fstore=None, api=api):
-        service.Service.__init__(
-            self, "named",
-            service_desc="DNS"
+        super(BindInstance, self).__init__(
+            "named",
+            service_desc="DNS",
+            fstore=fstore,
+            api=api
         )
         self.dns_backup = DnsBackup(self)
         self.named_user = None
         self.domain = None
         self.host = None
         self.ip_addresses = []
-        self.realm = None
         self.forwarders = None
         self.sub_dict = None
         self.reverse_zones = []
-        self.api = api
         self.named_regular = services.service('named-regular')
-
-        if fstore:
-            self.fstore = fstore
-        else:
-            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     suffix = ipautil.dn_attribute_property('_suffix')
 

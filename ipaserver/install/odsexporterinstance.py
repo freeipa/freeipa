@@ -12,7 +12,7 @@ from ipaserver.install import service
 from ipaserver.install import installutils
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
-from ipapython import sysrestore, ipautil
+from ipapython import ipautil
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform import services
@@ -21,18 +21,14 @@ from ipalib import errors, api
 
 class ODSExporterInstance(service.Service):
     def __init__(self, fstore=None):
-        service.Service.__init__(
-            self, "ipa-ods-exporter",
-            service_desc="IPA OpenDNSSEC exporter daemon"
+        super(ODSExporterInstance, self).__init__(
+            "ipa-ods-exporter",
+            service_desc="IPA OpenDNSSEC exporter daemon",
+            fstore=fstore
         )
         self.ods_uid = None
         self.ods_gid = None
         self.enable_if_exists = False
-
-        if fstore:
-            self.fstore = fstore
-        else:
-            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     suffix = ipautil.dn_attribute_property('_suffix')
 

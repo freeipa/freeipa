@@ -32,7 +32,7 @@ import fnmatch
 import ldap
 
 from ipapython.ipa_log_manager import root_logger
-from ipapython import ipautil, sysrestore, ipaldap
+from ipapython import ipautil, ipaldap
 from ipapython import dogtag
 from ipaserver.install import service
 from ipaserver.install import installutils
@@ -223,10 +223,13 @@ info: IPA V2.0
 class DsInstance(service.Service):
     def __init__(self, realm_name=None, domain_name=None, fstore=None,
                  domainlevel=None, config_ldif=None):
-        service.Service.__init__(self, "dirsrv",
-                                 service_desc="directory server")
+        super(DsInstance, self).__init__(
+            "dirsrv",
+            service_desc="directory server",
+            fstore=fstore,
+            realm_name=realm_name
+        )
         self.nickname = 'Server-Cert'
-        self.realm = realm_name
         self.sub_dict = None
         self.domain = domain_name
         self.serverid = None
@@ -247,12 +250,6 @@ class DsInstance(service.Service):
             self.__setup_sub_dict()
         else:
             self.suffix = DN()
-
-        if fstore:
-            self.fstore = fstore
-        else:
-            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
-
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 

@@ -38,7 +38,6 @@ from ipaserver.install.replication import wait_for_task
 from ipalib import errors, api
 from ipalib.util import normalize_zone
 from ipapython.dn import DN
-from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger
 import ipapython.errors
@@ -135,14 +134,9 @@ class ADTRUSTInstance(service.Service):
 
         self.fqdn = None
         self.host_netbios_name = None
-        self.realm = None
 
-        service.Service.__init__(self, "smb", service_desc="CIFS")
-
-        if fstore:
-            self.fstore = fstore
-        else:
-            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
+        super(ADTRUSTInstance, self).__init__(
+            "smb", service_desc="CIFS", fstore=fstore)
 
         self.__setup_default_attributes()
 
