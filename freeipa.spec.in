@@ -792,9 +792,6 @@ mkdir -p %{buildroot}%{_usr}/share/ipa/html/
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb5.ini
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krbrealm.con
 mkdir -p %{buildroot}%{_initrddir}
-install -m 644 init/ipa_memcached.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa_memcached
-install -m 644 init/ipa-dnskeysyncd.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa-dnskeysyncd
-install -m 644 init/ipa-ods-exporter.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa-ods-exporter
 
 # Web UI plugin dir
 mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
@@ -802,11 +799,6 @@ mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
 # KDC proxy config (Apache config sets KDCPROXY_CONFIG to load this file)
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/kdcproxy/
 install -m 644 install/share/kdcproxy.conf %{buildroot}%{_sysconfdir}/ipa/kdcproxy/kdcproxy.conf
-
-# NOTE: systemd specific section
-mkdir -p %{buildroot}%{_tmpfilesdir}
-install -m 0644 init/systemd/ipa.conf.tmpfiles %{buildroot}%{_tmpfilesdir}/%{name}.conf
-# END
 
 mkdir -p %{buildroot}%{_localstatedir}/run/
 install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa_memcached/
@@ -818,13 +810,6 @@ install -d -m 0700 %{buildroot}%{_localstatedir}/run/httpd/ipa/krbcache
 mkdir -p %{buildroot}%{_libdir}/krb5/plugins/libkrb5
 touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 
-# NOTE: systemd specific section
-mkdir -p %{buildroot}%{_unitdir}
-mkdir -p %{buildroot}%{etc_systemd_dir}
-install -m 644 init/systemd/ipa.service %{buildroot}%{_unitdir}/ipa.service
-install -m 644 init/systemd/ipa_memcached.service %{buildroot}%{_unitdir}/ipa_memcached.service
-install -m 644 init/systemd/ipa-custodia.service %{buildroot}%{_unitdir}/ipa-custodia.service
-# END
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa/backup
 %endif # ONLY_CLIENT
 
@@ -1132,7 +1117,7 @@ fi
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/httpd/ipa/clientcaches/
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/httpd/ipa/krbcache/
 # NOTE: systemd specific section
-%{_tmpfilesdir}/%{name}.conf
+%{_tmpfilesdir}/ipa.conf
 %attr(644,root,root) %{_unitdir}/ipa_memcached.service
 %attr(644,root,root) %{_unitdir}/ipa-custodia.service
 %ghost %attr(644,root,root) %{etc_systemd_dir}/httpd.d/ipa.conf

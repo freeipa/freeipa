@@ -4,7 +4,7 @@ Description=IPA Custodia Service
 [Service]
 Type=simple
 
-ExecStart=/usr/sbin/custodia /etc/ipa/custodia/custodia.conf
+ExecStart=@sbindir@/custodia @IPA_SYSCONF_DIR@/custodia/custodia.conf
 PrivateTmp=yes
 Restart=on-failure
 RestartSec=60s

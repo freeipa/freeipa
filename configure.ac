@@ -241,7 +241,7 @@ dnl ---------------------------------------------------------------------------
 PKG_CHECK_MODULES([INI], [ini_config >= 1.2.0])
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for systemd unit directory
+dnl - Check for systemd directories
 dnl ---------------------------------------------------------------------------
 PKG_CHECK_EXISTS([systemd], [], [AC_MSG_ERROR([systemd not found])])
 AC_ARG_WITH([systemdsystemunitdir],
@@ -250,6 +250,13 @@ AC_ARG_WITH([systemdsystemunitdir],
             [systemdsystemunitdir=$with_systemdsystemunitdir],
 	    [systemdsystemunitdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=systemdsystemunitdir systemd)])
 AC_SUBST([systemdsystemunitdir])
+
+AC_ARG_WITH([systemdtmpfilesdir],
+            AS_HELP_STRING([--with-systemdtmpfilesdir=DIR],
+			   [Directory for systemd-tmpfiles configuration files]),
+            [systemdtmpfilesdir=$with_systemdtmpfilesdir],
+	    [systemdtmpfilesdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=tmpfilesdir systemd)])
+AC_SUBST([systemdtmpfilesdir])
 
 dnl ---------------------------------------------------------------------------
 dnl - Get /etc/sysconfig directory path
@@ -451,6 +458,9 @@ AC_CONFIG_FILES([
     daemons/ipa-slapi-plugins/topology/Makefile
     daemons/ipa-version.h
     freeipa.spec
+    init/systemd/Makefile
+    init/tmpfilesd/Makefile
+    init/Makefile
     install/Makefile
     install/certmonger/Makefile
     install/conf/Makefile
@@ -510,6 +520,7 @@ echo "
         datadir:                  ${datadir}
         krb5rundir:               ${krb5rundir}
         systemdsystemunitdir:     ${systemdsystemunitdir}
+        systemdtmpfilesdir:       ${systemdtmpfilesdir}
         source code location:     ${srcdir}
         compiler:                 ${CC}
         cflags:                   ${CFLAGS}

@@ -58,6 +58,13 @@ freeipa2-dev-doc
 
 /po/test.po
 /po/test_locale/xh_ZA/LC_MESSAGES/ipa.mo
+
+/init/ipa_memcached
+/init/systemd/ipa-custodia.service
+/init/systemd/ipa.service
+/init/systemd/ipa_memcached.service
+/init/tmpfilesd/ipa.conf
+
 !/install/ui/doc/Makefile.in
 /install/ui/release
 /install/ui/css/ipa.css
