@@ -508,12 +508,13 @@ class IPAChangeConf(object):
                 pass
         return True
 
-    def newConf(self, file, options):
+    def newConf(self, file, options, file_perms=0o644):
         """"
         Write settings to a new file, backup the old
         :param file: path to the file
         :param options: a set of dictionaries in the form:
              {'name': 'foo', 'value': 'bar', 'action': 'set/comment'}
+        :param file_perms: number defining the new file's permissions
         """
         output = ""
         f = None
@@ -525,7 +526,7 @@ class IPAChangeConf(object):
                     # The orign file did not exist
                     pass
 
-            f = openLocked(file, 0o644)
+            f = openLocked(file, file_perms)
 
             # Trunkate
             f.seek(0)

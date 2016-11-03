@@ -360,6 +360,7 @@ def configure_ipa_conf(
     target_fname = paths.IPA_DEFAULT_CONF
     fstore.backup_file(target_fname)
     ipaconf.newConf(target_fname, opts)
+    # umask applies when creating a new file but we want 0o644 here
     os.chmod(target_fname, 0o644)
 
 
@@ -746,6 +747,7 @@ def configure_krb5_conf(
     root_logger.debug("%s", krbconf.dump(opts))
 
     krbconf.newConf(filename, opts)
+    # umask applies when creating a new file but we want 0o644 here
     os.chmod(filename, 0o644)
 
 
