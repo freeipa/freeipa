@@ -833,8 +833,6 @@ mkdir -p %{buildroot}%{_sysconfdir}/ipa/
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/ca.crt
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/nssdb
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
-mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
-install -pm 644 contrib/completion/ipa.bash_completion %{buildroot}%{_sysconfdir}/bash_completion.d/ipa
 
 %if ! %{ONLY_CLIENT}
 mkdir -p %{buildroot}%{_sysconfdir}/cron.d

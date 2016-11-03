@@ -1,5 +1,4 @@
-SUBDIRS = asn1 util client daemons install ipaclient ipalib ipaplatform ipapython ipaserver ipatests po
-# contrib
+SUBDIRS = asn1 util client contrib daemons install ipaclient ipalib ipaplatform ipapython ipaserver ipatests po
 # doc
 # init
 
@@ -23,5 +22,6 @@ EXTRA_DIST = .mailmap \
 	     BUILD.txt \
 	     Contributors.txt \
 	     COPYING.openssl \
+	     contrib \
 	     pylintrc \
 	     pytest.ini
