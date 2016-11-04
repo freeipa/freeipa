@@ -1058,28 +1058,28 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa_sidgen_task.so
 %attr(755,root,root) %{plugin_dir}/libipa_extdom_extop.so
 %attr(755,root,root) %{_libdir}/krb5/plugins/kdb/ipadb.so
-%{_mandir}/man1/ipa-replica-conncheck.1.gz
-%{_mandir}/man1/ipa-replica-install.1.gz
-%{_mandir}/man1/ipa-replica-manage.1.gz
-%{_mandir}/man1/ipa-csreplica-manage.1.gz
-%{_mandir}/man1/ipa-replica-prepare.1.gz
-%{_mandir}/man1/ipa-server-certinstall.1.gz
-%{_mandir}/man1/ipa-server-install.1.gz
-%{_mandir}/man1/ipa-server-upgrade.1.gz
-%{_mandir}/man1/ipa-ca-install.1.gz
-%{_mandir}/man1/ipa-kra-install.1.gz
-%{_mandir}/man1/ipa-compat-manage.1.gz
-%{_mandir}/man1/ipa-nis-manage.1.gz
-%{_mandir}/man1/ipa-managed-entries.1.gz
-%{_mandir}/man1/ipa-ldap-updater.1.gz
-%{_mandir}/man8/ipactl.8.gz
-%{_mandir}/man8/ipa-upgradeconfig.8.gz
-%{_mandir}/man1/ipa-backup.1.gz
-%{_mandir}/man1/ipa-restore.1.gz
-%{_mandir}/man1/ipa-advise.1.gz
-%{_mandir}/man1/ipa-otptoken-import.1.gz
-%{_mandir}/man1/ipa-cacert-manage.1.gz
-%{_mandir}/man1/ipa-winsync-migrate.1.gz
+%{_mandir}/man1/ipa-replica-conncheck.1*
+%{_mandir}/man1/ipa-replica-install.1*
+%{_mandir}/man1/ipa-replica-manage.1*
+%{_mandir}/man1/ipa-csreplica-manage.1*
+%{_mandir}/man1/ipa-replica-prepare.1*
+%{_mandir}/man1/ipa-server-certinstall.1*
+%{_mandir}/man1/ipa-server-install.1*
+%{_mandir}/man1/ipa-server-upgrade.1*
+%{_mandir}/man1/ipa-ca-install.1*
+%{_mandir}/man1/ipa-kra-install.1*
+%{_mandir}/man1/ipa-compat-manage.1*
+%{_mandir}/man1/ipa-nis-manage.1*
+%{_mandir}/man1/ipa-managed-entries.1*
+%{_mandir}/man1/ipa-ldap-updater.1*
+%{_mandir}/man8/ipactl.8*
+%{_mandir}/man8/ipa-upgradeconfig.8*
+%{_mandir}/man1/ipa-backup.1*
+%{_mandir}/man1/ipa-restore.1*
+%{_mandir}/man1/ipa-advise.1*
+%{_mandir}/man1/ipa-otptoken-import.1*
+%{_mandir}/man1/ipa-cacert-manage.1*
+%{_mandir}/man1/ipa-winsync-migrate.1*
 
 
 %files -n python2-ipaserver -f server-python.list
@@ -1203,7 +1203,7 @@ fi
 %doc README Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-dns-install
-%{_mandir}/man1/ipa-dns-install.1.gz
+%{_mandir}/man1/ipa-dns-install.1*
 
 
 %files server-trust-ad
@@ -1213,7 +1213,7 @@ fi
 %{_sbindir}/ipa-adtrust-install
 %{_usr}/share/ipa/smb.conf.empty
 %attr(755,root,root) %{_libdir}/samba/pdb/ipasam.so
-%{_mandir}/man1/ipa-adtrust-install.1.gz
+%{_mandir}/man1/ipa-adtrust-install.1*
 %ghost %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 %{_sysconfdir}/dbus-1/system.d/oddjob-ipa-trust.conf
 %{_sysconfdir}/oddjobd.conf.d/oddjobd-ipa-trust.conf
@@ -1234,13 +1234,13 @@ fi
 %{_sbindir}/ipa-join
 %{_bindir}/ipa
 %config %{_sysconfdir}/bash_completion.d
-%{_mandir}/man1/ipa.1.gz
-%{_mandir}/man1/ipa-getkeytab.1.gz
-%{_mandir}/man1/ipa-rmkeytab.1.gz
-%{_mandir}/man1/ipa-client-install.1.gz
-%{_mandir}/man1/ipa-client-automount.1.gz
-%{_mandir}/man1/ipa-certupdate.1.gz
-%{_mandir}/man1/ipa-join.1.gz
+%{_mandir}/man1/ipa.1*
+%{_mandir}/man1/ipa-getkeytab.1*
+%{_mandir}/man1/ipa-rmkeytab.1*
+%{_mandir}/man1/ipa-client-install.1*
+%{_mandir}/man1/ipa-client-automount.1*
+%{_mandir}/man1/ipa-certupdate.1*
+%{_mandir}/man1/ipa-join.1*
 
 
 %files -n python2-ipaclient
@@ -1291,7 +1291,7 @@ fi
 %dir %{_usr}/share/ipa
 %dir %{_localstatedir}/lib/ipa-client
 %dir %{_localstatedir}/lib/ipa-client/sysrestore
-%{_mandir}/man5/default.conf.5.gz
+%{_mandir}/man5/default.conf.5*
 
 
 %files python-compat
@@ -1371,9 +1371,9 @@ fi
 %{_bindir}/ipa-test-config-%{python2_version}
 %{_bindir}/ipa-test-task-%{python2_version}
 %{python_sitelib}/ipatests-*.egg-info
-%{_mandir}/man1/ipa-run-tests.1.gz
-%{_mandir}/man1/ipa-test-config.1.gz
-%{_mandir}/man1/ipa-test-task.1.gz
+%{_mandir}/man1/ipa-run-tests.1*
+%{_mandir}/man1/ipa-test-config.1*
+%{_mandir}/man1/ipa-test-task.1*
 
 %if 0%{?with_python3}
 

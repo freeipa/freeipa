@@ -10,9 +10,6 @@ dist_man1_MANS =            \
 	ipa-test-task.1     \
 		$(NULL)
 
-install-data-hook:
-	@for i in $(man1_MANS) ; do gzip -f $(DESTDIR)$(man1dir)/$$i ; done
-
 MAINTAINERCLEANFILES =      \
 	Makefile.in             \
 	$(NULL)

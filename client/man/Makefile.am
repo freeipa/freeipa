@@ -15,10 +15,6 @@ dist_man1_MANS =			\
 
 dist_man5_MANS =			\
 		default.conf.5
-	
-install-data-hook:
-	@for i in $(man1_MANS) ; do gzip -f $(DESTDIR)$(man1dir)/$$i ; done
-	@for i in $(man5_MANS) ; do gzip -f $(DESTDIR)$(man5dir)/$$i ; done
 
 MAINTAINERCLEANFILES =          \
 	Makefile.in		\

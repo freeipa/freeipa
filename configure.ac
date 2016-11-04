@@ -499,9 +499,6 @@ AC_CONFIG_FILES([
     util/Makefile
 ])
 
-dnl GZIP is used for compressing manual pages
-AC_CHECK_PROG([GZIP], [gzip], [yes], [AC_MSG_ERROR(gzip not found)])
-
 AC_OUTPUT
 
 echo "
