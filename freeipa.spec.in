@@ -66,6 +66,8 @@ BuildRequires:  python3-devel
 %endif # with_python3
 # %{_unitdir}, %{_tmpfilesdir}
 BuildRequires:  systemd
+# systemd-tmpfiles which is executed from make install requires apache user
+BuildRequires:  httpd
 BuildRequires:  libini_config-devel
 BuildRequires:  cyrus-sasl-devel
 %if ! %{ONLY_CLIENT}
@@ -799,13 +801,6 @@ mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
 # KDC proxy config (Apache config sets KDCPROXY_CONFIG to load this file)
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/kdcproxy/
 install -m 644 install/share/kdcproxy.conf %{buildroot}%{_sysconfdir}/ipa/kdcproxy/kdcproxy.conf
-
-mkdir -p %{buildroot}%{_localstatedir}/run/
-install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa_memcached/
-install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa/
-install -d -m 0700 %{buildroot}%{_localstatedir}/run/httpd/ipa
-install -d -m 0700 %{buildroot}%{_localstatedir}/run/httpd/ipa/clientcaches
-install -d -m 0700 %{buildroot}%{_localstatedir}/run/httpd/ipa/krbcache
 
 mkdir -p %{buildroot}%{_libdir}/krb5/plugins/libkrb5
 touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
