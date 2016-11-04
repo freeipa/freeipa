@@ -119,11 +119,13 @@ class WebGuiInstance(service.SimpleServiceInstance):
         service.SimpleServiceInstance.__init__(self, "ipa_webgui")
 
 class HTTPInstance(service.Service):
-    def __init__(self, fstore=None, cert_nickname='Server-Cert'):
+    def __init__(self, fstore=None, cert_nickname='Server-Cert',
+                 api=api):
         super(HTTPInstance, self).__init__(
             "httpd",
             service_desc="the web interface",
             fstore=fstore,
+            api=api,
             service_prefix=u'HTTP',
             service_user=HTTPD_USER,
             keytab=paths.IPA_KEYTAB)
@@ -167,7 +169,7 @@ class HTTPInstance(service.Service):
         if self.ca_is_configured:
             self.step("configure certmonger for renewals",
                       self.configure_certmonger_renewal_guard)
-        self.step("setting up httpd keytab", self.__create_http_keytab)
+        self.step("setting up httpd keytab", self._request_service_keytab)
         self.step("setting up ssl", self.__setup_ssl)
         self.step("importing CA certificates from LDAP", self.__import_ca_certs)
         self.step("publish CA cert", self.__publish_ca_cert)
@@ -200,16 +202,6 @@ class HTTPInstance(service.Service):
                                        self.backup_state)
         except ipapython.errors.SetseboolError as e:
             self.print_msg(e.format_service_warning('web interface'))
-
-    def __create_http_keytab(self):
-        if not self.promote:
-            installutils.remove_keytab(self.keytab)
-            installutils.kadmin_addprinc(self.principal)
-            installutils.create_keytab(self.keytab, self.principal)
-            self.move_service(self.principal)
-
-        pent = pwd.getpwnam(self.service_user)
-        os.chown(paths.IPA_KEYTAB, pent.pw_uid, pent.pw_gid)
 
     def remove_httpd_ccache(self):
         # Clean up existing ccache

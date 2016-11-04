@@ -76,23 +76,6 @@ def make_pkcs12_info(directory, cert_name, password_name):
         return None
 
 
-def install_http_keytab(config, fstore, remote_api):
-
-    # Obtain keytab for the HTTP service
-    fstore.backup_file(paths.IPA_KEYTAB)
-    try:
-        os.unlink(paths.IPA_KEYTAB)
-    except OSError:
-        pass
-
-    principal = 'HTTP/%s@%s' % (config.host_name, config.realm_name)
-    installutils.install_service_keytab(remote_api,
-                                        principal,
-                                        config.master_host_name,
-                                        paths.IPA_KEYTAB,
-                                        force_service_add=True)
-
-
 def install_http_certs(host_name, realm_name, subject_base):
     principal = 'HTTP/%s@%s' % (host_name, realm_name)
     # Obtain certificate for the HTTP service
@@ -1351,7 +1334,6 @@ def install(installer):
 
         if promote:
             # we need to install http certs to setup ssl for httpd
-            install_http_keytab(config, fstore, remote_api)
             install_http_certs(config.host_name,
                                config.realm_name,
                                config.subject_base)
