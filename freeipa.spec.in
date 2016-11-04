@@ -796,10 +796,6 @@ mkdir -p %{buildroot}%{_initrddir}
 # Web UI plugin dir
 mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
 
-# KDC proxy config (Apache config sets KDCPROXY_CONFIG to load this file)
-mkdir -p %{buildroot}%{_sysconfdir}/ipa/kdcproxy/
-install -m 644 install/share/kdcproxy.conf %{buildroot}%{_sysconfdir}/ipa/kdcproxy/kdcproxy.conf
-
 mkdir -p %{buildroot}%{_libdir}/krb5/plugins/libkrb5
 touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 
@@ -1176,7 +1172,6 @@ fi
 %{_usr}/share/ipa/ipa.conf
 %{_usr}/share/ipa/ipa-rewrite.conf
 %{_usr}/share/ipa/ipa-pki-proxy.conf
-%{_usr}/share/ipa/kdcproxy.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_usr}/share/ipa/html/ca.crt
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/kerberosauth.xpi
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb.con

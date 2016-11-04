@@ -83,10 +83,13 @@ dist_app_DATA =				\
 	sasl-mapping-fallback.ldif	\
 	schema-update.ldif		\
 	vault.ldif			\
-	kdcproxy.conf			\
 	kdcproxy-enable.uldif		\
 	kdcproxy-disable.uldif		\
 	ipa-httpd.conf.template
+
+kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy
+dist_kdcproxyconf_DATA =			\
+	kdcproxy.conf
 
 MAINTAINERCLEANFILES =			\
 	*~				\
