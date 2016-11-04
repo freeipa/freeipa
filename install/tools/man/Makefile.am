@@ -34,10 +34,6 @@ dist_man8_MANS =			\
 	ipa-upgradeconfig.8		\
         $(NULL)
 
-install-data-hook:
-	@for i in $(man1_MANS) ; do gzip -f $(DESTDIR)$(man1dir)/$$i ; done
-	@for i in $(man8_MANS) ; do gzip -f $(DESTDIR)$(man8dir)/$$i ; done
-
 MAINTAINERCLEANFILES =          \
         Makefile.in             \
         $(NULL)
