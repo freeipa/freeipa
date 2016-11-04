@@ -20,7 +20,6 @@
 from __future__ import print_function
 
 import binascii
-import sys
 from cryptography.hazmat.backends import default_backend
 import cryptography.x509
 
@@ -55,12 +54,3 @@ def load_certificate_request(data):
     except binascii.Error as e:
         raise ValueError(e)
     return cryptography.x509.load_der_x509_csr(data, default_backend())
-
-
-if __name__ == '__main__':
-    # Read PEM request from stdin and print out its components
-
-    csrlines = sys.stdin.readlines()
-    csr = ''.join(csrlines)
-
-    print(load_certificate_request(csr))

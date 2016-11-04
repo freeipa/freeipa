@@ -35,7 +35,6 @@ from __future__ import print_function
 import binascii
 import datetime
 import ipaddress
-import sys
 import base64
 import re
 
@@ -486,17 +485,3 @@ def format_datetime(t):
     if t.tzinfo is None:
         t = t.replace(tzinfo=UTC())
     return unicode(t.strftime("%a %b %d %H:%M:%S %Y %Z"))
-
-
-if __name__ == '__main__':
-    # this can be run with:
-    # python ipalib/x509.py < /etc/ipa/ca.crt
-
-    # Read PEM cert from stdin and print out its components
-
-    certlines = sys.stdin.readlines()
-    cert = ''.join(certlines)
-
-    cert = load_certificate(cert)
-
-    print(cert)
