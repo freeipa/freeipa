@@ -766,8 +766,6 @@ rm %{buildroot}/%{_libdir}/samba/pdb/ipasam.la
 # Some user-modifiable HTML files are provided. Move these to /etc
 # and link back.
 mkdir -p %{buildroot}/%{_sysconfdir}/ipa/html
-mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/sysrestore
-mkdir -p %{buildroot}/%{_localstatedir}/cache/ipa/sysupgrade
 mkdir %{buildroot}%{_usr}/share/ipa/html/
 ln -s ../../../..%{_sysconfdir}/ipa/html/ffconfig.js \
     %{buildroot}%{_usr}/share/ipa/html/ffconfig.js
