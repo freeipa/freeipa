@@ -1128,20 +1128,13 @@ def promote_check(installer):
         promotion_check_ipa_domain(conn, remote_api.env.basedn)
 
         # Check that we don't already have a replication agreement
-        try:
-            _acn, adn = replman.agreement_dn(config.host_name)
-            conn.get_entry(adn, ['*'])
-        except errors.NotFound:
-            pass
-        else:
-            root_logger.info('Error: A replication agreement for this '
-                             'host already exists.')
-            print('A replication agreement for this host already exists. '
-                  'It needs to be removed.')
-            print("Run this command:")
-            print("    %% ipa-replica-manage del %s --force" %
-                  config.host_name)
-            raise ScriptError(rval=3)
+        if replman.get_replication_agreement(config.host_name):
+            msg = ("A replication agreement for this host already exists. "
+                   "It needs to be removed.\n"
+                   "Run this command:\n"
+                   "    %% ipa-replica-manage del {host} --force"
+                   .format(host=config.host_name))
+            raise ScriptError(msg, rval=3)
 
         # Detect if current level is out of supported range
         # for this IPA version
