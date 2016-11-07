@@ -103,7 +103,7 @@ def install_http_certs(host_name, realm_name, subject_base):
 
 
 def install_replica_ds(config, options, ca_is_configured, remote_api,
-                       promote=False, pkcs12_info=None):
+                       ca_file, promote=False, pkcs12_info=None):
     dsinstance.check_ports()
 
     # if we have a pkcs12 file, create the cert db from
@@ -112,11 +112,6 @@ def install_replica_ds(config, options, ca_is_configured, remote_api,
     if pkcs12_info is None:
         pkcs12_info = make_pkcs12_info(config.dir, "dscert.p12",
                                        "dirsrv_pin.txt")
-
-    if promote:
-        ca_file = paths.IPA_CA_CRT
-    else:
-        ca_file = os.path.join(config.dir, "ca.crt")
 
     ds = dsinstance.DsInstance(
         config_ldif=options.dirsrv_config_file)
@@ -130,7 +125,7 @@ def install_replica_ds(config, options, ca_is_configured, remote_api,
         pkcs12_info=pkcs12_info,
         ca_is_configured=ca_is_configured,
         ca_file=ca_file,
-        promote=promote,
+        promote=promote,  # we need promote because of replication setup
         api=remote_api,
     )
 
@@ -157,17 +152,21 @@ def install_ca_cert(ldap, base_dn, realm, cafile):
         try:
             certs = certstore.get_ca_certs(ldap, base_dn, realm, False)
         except errors.NotFound:
-            shutil.copy(cafile, constants.CACERT)
+            try:
+                shutil.copy(cafile, paths.IPA_CA_CRT)
+            except shutil.Error:
+                # cafile == IPA_CA_CRT
+                pass
         else:
             certs = [c[0] for c in certs if c[2] is not False]
-            x509.write_certificate_list(certs, constants.CACERT)
-
-        os.chmod(constants.CACERT, 0o444)
+            x509.write_certificate_list(certs, paths.IPA_CA_CRT)
     except Exception as e:
         raise ScriptError("error copying files: " + str(e))
+    return paths.IPA_CA_CRT
 
 
-def install_http(config, auto_redirect, ca_is_configured, promote=False,
+def install_http(config, auto_redirect, ca_is_configured, ca_file,
+                 promote=False,
                  pkcs12_info=None):
     # if we have a pkcs12 file, create the cert db from
     # that. Otherwise the ds setup will create the CA
@@ -175,11 +174,6 @@ def install_http(config, auto_redirect, ca_is_configured, promote=False,
     if pkcs12_info is None:
         pkcs12_info = make_pkcs12_info(config.dir, "httpcert.p12",
                                        "http_pin.txt")
-
-    if promote:
-        ca_file = paths.IPA_CA_CRT
-    else:
-        ca_file = os.path.join(config.dir, "ca.crt")
 
     memcache = memcacheinstance.MemcacheInstance()
     memcache.create_instance('MEMCACHE', config.host_name,
@@ -856,6 +850,7 @@ def install_check(installer):
 
     installer._ca_enabled = ca_enabled
     installer._kra_enabled = kra_enabled
+    installer._ca_file = cafile
     installer._remote_api = remote_api
     installer._fstore = fstore
     installer._sstore = sstore
@@ -1312,6 +1307,7 @@ def promote_check(installer):
 
     installer._ca_enabled = ca_enabled
     installer._kra_enabled = kra_enabled
+    installer._ca_file = cafile
     installer._fstore = fstore
     installer._sstore = sstore
     installer._config = config
@@ -1334,11 +1330,9 @@ def install(installer):
     sstore = installer._sstore
     config = installer._config
     promote = installer.promote
+    cafile = installer._ca_file
     dirsrv_pkcs12_info = installer._dirsrv_pkcs12_info
     http_pkcs12_info = installer._http_pkcs12_info
-
-    if not promote:
-        cafile = os.path.join(config.dir, "ca.crt")
 
     remote_api = installer._remote_api
     conn = remote_api.Backend.ldap2
@@ -1378,13 +1372,13 @@ def install(installer):
 
     try:
         conn.connect(ccache=ccache)
-        if not promote:
-            # Install CA cert so that we can do SSL connections with ldap
-            install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
+        # Update and istall updated CA file
+        cafile = install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
 
         # Configure dirsrv
         ds = install_replica_ds(config, options, ca_enabled,
                                 remote_api,
+                                ca_file=cafile,
                                 promote=promote,
                                 pkcs12_info=dirsrv_pkcs12_info)
 
@@ -1433,8 +1427,10 @@ def install(installer):
     install_http(
         config,
         auto_redirect=not options.no_ui_redirect,
-        promote=promote, pkcs12_info=http_pkcs12_info,
-        ca_is_configured=ca_enabled)
+        promote=promote,
+        pkcs12_info=http_pkcs12_info,
+        ca_is_configured=ca_enabled,
+        ca_file=cafile)
 
     otpd = otpdinstance.OtpdInstance()
     otpd.create_instance('OTPD', config.host_name,
