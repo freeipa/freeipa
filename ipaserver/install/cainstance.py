@@ -423,6 +423,10 @@ class CAInstance(DogtagInstance):
                           configure_lightweight_ca_acls)
                 self.step("Ensure lightweight CAs container exists",
                           ensure_lightweight_cas_container)
+                if self.clone and not promote:
+                    self.step(
+                        "Ensuring backward compatibility",
+                        self.__dogtag10_migration)
                 self.step("configure certificate renewals", self.configure_renewal)
                 self.step("configure Server-Cert certificate renewal", self.track_servercert)
                 self.step("Configure HTTP to proxy connections",
@@ -1275,6 +1279,15 @@ class CAInstance(DogtagInstance):
             # shouldn't happen, but don't fail if it does
             root_logger.warning(
                 "Did not find any lightweight CAs; nothing to track")
+
+    def __dogtag10_migration(self):
+        ld = ldapupdate.LDAPUpdate(ldapi=True, sub_dict={
+            'SUFFIX': api.env.basedn,
+            'FQDN': self.fqdn,
+        })
+        ld.update([os.path.join(paths.UPDATES_DIR,
+                                '50-dogtag10-migration.update')]
+                  )
 
 
 def replica_ca_install_check(config, promote):

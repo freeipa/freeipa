@@ -854,9 +854,6 @@ def install(installer):
     service.print_msg("Restarting the KDC")
     krb.restart()
 
-    if setup_ca:
-        services.knownservices['pki_tomcatd'].restart('pki-tomcat')
-
     if options.setup_dns:
         dns.install(False, False, options)
     else:
