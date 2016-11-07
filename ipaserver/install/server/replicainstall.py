@@ -663,7 +663,7 @@ def install_check(installer):
     installer._top_dir = config.top_dir
     installer._config = config
 
-    ca_enabled = ipautil.file_exists(config.dir + "/cacert.p12")
+    ca_enabled = ipautil.file_exists(os.path.join(config.dir, "cacert.p12"))
     # Create the management framework config file
     # Note: We must do this before bootstraping and finalizing ipalib.api
     create_ipa_conf(fstore, config, ca_enabled)
@@ -673,7 +673,7 @@ def install_check(installer):
 
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
 
-    cafile = config.dir + "/ca.crt"
+    cafile = os.path.join(config.dir, "ca.crt")
     if not ipautil.file_exists(cafile):
         raise RuntimeError("CA cert file is not available. Please run "
                            "ipa-replica-prepare to create a new replica file.")
