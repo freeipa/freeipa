@@ -1407,18 +1407,6 @@ def install(installer):
             # To config certmonger would try to connect to local server
             create_ipa_conf(fstore, config, ca_enabled)
 
-    if promote:
-        custodia = custodiainstance.CustodiaInstance(config.host_name,
-                                                     config.realm_name)
-        custodia.create_replica(config.master_host_name)
-    else:
-        options.dm_password = config.dirman_password
-        if ca_enabled:
-            options.realm_name = config.realm_name
-            options.domain_name = config.domain_name
-            options.host_name = config.host_name
-            ca.install_step_0(False, config, options)
-
     krb = install_krb(
         config,
         setup_pkinit=not options.no_pkinit,
@@ -1436,22 +1424,20 @@ def install(installer):
     otpd.create_instance('OTPD', config.host_name,
                          ipautil.realm_to_suffix(config.realm_name))
 
+    custodia = custodiainstance.CustodiaInstance(config.host_name,
+                                                 config.realm_name)
     if promote:
-        if ca_enabled:
-            options.realm_name = config.realm_name
-            options.domain_name = config.domain_name
-            options.host_name = config.host_name
-            options.dm_password = config.dirman_password
-            ca.install(False, config, options)
+        custodia.create_replica(config.master_host_name)
+        custodia.import_dm_password(config.master_host_name)
     else:
-        if ca_enabled:
-            # Done after install_krb() because lightweight CA key
-            # retrieval setup needs to create kerberos principal.
-            ca.install_step_1(False, config, options)
-
-        custodia = custodiainstance.CustodiaInstance(config.host_name,
-                                                     config.realm_name)
         custodia.create_instance()
+
+    if ca_enabled:
+        options.realm_name = config.realm_name
+        options.domain_name = config.domain_name
+        options.host_name = config.host_name
+        options.dm_password = config.dirman_password
+        ca.install(False, config, options)
 
     # Apply any LDAP updates. Needs to be done after the replica is synced-up
     service.print_msg("Applying LDAP updates")
@@ -1464,8 +1450,6 @@ def install(installer):
     krb.restart()
 
     if promote:
-        custodia.import_dm_password(config.master_host_name)
-
         promote_sssd(config.host_name)
         promote_openldap_conf(config.host_name, config.master_host_name)
 
