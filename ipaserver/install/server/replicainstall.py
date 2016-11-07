@@ -1352,8 +1352,6 @@ def promote_check(installer):
                                   "--dirsrv-cert-file options to provide "
                                   "custom certificates.")
                 raise ScriptError(rval=3)
-        # we now have all the information to properly setup server config
-        create_ipa_conf(fstore, config, ca_enabled)
 
         kra_host = service.find_providing_server(
                 'KRA', conn, config.kra_host_name)
@@ -1509,6 +1507,12 @@ def promote(installer):
     finally:
         if conn.isconnected():
             conn.disconnect()
+
+        # Create the management framework config file
+        # do this regardless of the state of DS installation. Even if it fails,
+        # we need to have master-like configuration in order to perform a
+        # successful uninstallation
+        create_ipa_conf(fstore, config, ca_enabled)
 
     custodia = custodiainstance.CustodiaInstance(config.host_name,
                                                  config.realm_name)
