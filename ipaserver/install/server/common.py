@@ -10,6 +10,7 @@ import sys
 import six
 
 from ipapython.dn import DN
+from ipapython.ipautil import CheckedIPAddress
 from ipapython.install import common, core
 from ipapython.install.core import Knob
 from ipalib.util import validate_domain_name
@@ -308,12 +309,21 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
     )
 
     ip_addresses = Knob(
-        (list, 'ip-local'), None,
+        (list, 'ip'), None,
         description=("Master Server IP Address. This option can be used "
                      "multiple times"),
         cli_name='ip-address',
         cli_metavar='IP_ADDRESS',
     )
+
+    @ip_addresses.validator
+    def ip_addresses(self, values):
+        for value in values:
+            try:
+                CheckedIPAddress(value, match_local=True)
+            except Exception as e:
+                raise ValueError("invalid IP address {0}: {1}".format(
+                    value, e))
 
     no_host_dns = Knob(
         bool, False,

@@ -136,6 +136,7 @@ BuildRequires:  python-jwcrypto
 BuildRequires:  python-custodia
 BuildRequires:  dbus-python
 BuildRequires:  python-dateutil
+BuildRequires:  python-enum34
 BuildRequires:  python-netifaces
 BuildRequires:  python-sss
 BuildRequires:  python-sss-murmur
@@ -525,6 +526,7 @@ Requires: python-ldap >= 2.4.15
 Requires: python-requests
 Requires: python-custodia
 Requires: python-dns >= 1.11.1
+Requires: python-enum34
 Requires: python-netifaces >= 0.10.4
 Requires: pyusb
 

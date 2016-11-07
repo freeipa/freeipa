@@ -7,6 +7,7 @@ Command line support.
 """
 
 import collections
+import enum
 import functools
 import optparse
 import signal
@@ -14,7 +15,7 @@ import signal
 import six
 
 from ipapython import admintool, ipa_log_manager
-from ipapython.ipautil import private_ccache
+from ipapython.ipautil import CheckedIPAddress, private_ccache
 
 from . import core, common
 
@@ -22,6 +23,8 @@ __all__ = ['install_tool', 'uninstall_tool']
 
 if six.PY3:
     long = int
+
+NoneType = type(None)
 
 
 def _get_usage(configurable_class):
@@ -143,13 +146,17 @@ class ConfigureTool(admintool.AdminTool):
                     parser, "{0} options".format(group_cls.description))
 
             knob_type = knob_cls.type
-            if isinstance(knob_type, tuple):
-                knob_scalar_type = knob_type[1]
+            if issubclass(knob_type, list):
+                try:
+                    # typing.List[X].__parameters__ == (X,)
+                    knob_scalar_type = knob_type.__parameters__[0]
+                except AttributeError:
+                    knob_scalar_type = str
             else:
                 knob_scalar_type = knob_type
 
             kwargs = dict()
-            if knob_scalar_type is bool:
+            if knob_scalar_type is NoneType:
                 kwargs['type'] = None
                 kwargs['const'] = True
                 kwargs['default'] = False
@@ -159,16 +166,16 @@ class ConfigureTool(admintool.AdminTool):
                 kwargs['type'] = 'int'
             elif knob_scalar_type is long:
                 kwargs['type'] = 'long'
-            elif knob_scalar_type in ('ip', 'ip-local'):
-                kwargs['type'] = knob_scalar_type
-            elif isinstance(knob_scalar_type, set):
+            elif knob_scalar_type is CheckedIPAddress:
+                kwargs['type'] = 'ip'
+            elif issubclass(knob_scalar_type, enum.Enum):
                 kwargs['type'] = 'choice'
-                kwargs['choices'] = list(knob_scalar_type)
+                kwargs['choices'] = [i.value for i in knob_scalar_type]
             else:
                 kwargs['nargs'] = 1
                 kwargs['callback_args'] = (knob_scalar_type,)
             kwargs['dest'] = name
-            if isinstance(knob_type, tuple):
+            if issubclass(knob_type, list):
                 if 'type' not in kwargs:
                     kwargs['action'] = 'callback'
                     kwargs['callback'] = (
