@@ -9,25 +9,6 @@ The quickest way to get the dependencies needed for building is:
 
 # dnf builddep -b -D "with_lint 1" --spec freeipa.spec.in
 
-or
-
-# yum install rpm-build `grep "^BuildRequires" freeipa.spec.in | awk '{ print $2 }' | grep -v "^/"`
-
-This is currently (2015-05-07):
-
-yum install rpm-build 389-ds-base-devel svrcore-devel policycoreutils \
-systemd-units samba-devel samba-python libtalloc-devel \
-libtevent-devel nspr-devel nss-devel openssl-devel openldap-devel krb5-devel \
-krb5-workstation libuuid-devel libcurl-devel xmlrpc-c-devel popt-devel \
-autoconf automake m4 libtool gettext python-devel python-ldap \
-python-setuptools python-nss python-netaddr python-gssapi \
-python-rhsm pyOpenSSL pylint python-polib libipa_hbac-python python-memcached \
-sssd python-lxml python-pyasn1 python-qrcode-core python-dns m2crypto \
-libsss_idmap-devel libsss_nss_idmap-devel java-headless rhino \
-libverto-devel systemd libunistring-devel python-lesscpy python-yubico \
-python-backports-ssl_match_hostname softhsm-devel openssl-devel \
-p11-kit-devel pki-base python-pytest-multihost python-pytest-sourceorder
-
 Building
 --------
 
