@@ -821,6 +821,10 @@ def install_check(installer):
             broadcast_ip_address_warning(config.ips)
 
         enroll_dl0_replica(installer, fstore, remote_api)
+        ccache = os.environ['KRB5CCNAME']
+        ipautil.kinit_keytab('host/{env.host}@{env.realm}'.format(env=api.env),
+                             paths.KRB5_KEYTAB,
+                             ccache)
 
     except errors.ACIError:
         raise ScriptError("\nThe password provided is incorrect for LDAP server "
@@ -841,10 +845,14 @@ def install_check(installer):
 
     # check connection
     if not options.skip_conncheck:
-        replica_conn_check(
-            config.master_host_name, config.host_name, config.realm_name,
-            options.setup_ca, config.ca_ds_port, options.admin_password,
-            ca_cert_file=cafile)
+        try:
+            del os.environ['KRB5CCNAME']
+            replica_conn_check(
+                config.master_host_name, config.host_name, config.realm_name,
+                options.setup_ca, config.ca_ds_port, options.admin_password,
+                ca_cert_file=cafile)
+        finally:
+            os.environ['KRB5CCNAME'] = ccache
 
     installer._ca_enabled = ca_enabled
     installer._kra_enabled = kra_enabled
@@ -1337,9 +1345,9 @@ def install(installer):
 
     remote_api = installer._remote_api
     conn = remote_api.Backend.ldap2
+    ccache = os.environ['KRB5CCNAME']
 
     if promote:
-        ccache = os.environ['KRB5CCNAME']
         if installer._add_to_ipaservers:
             try:
                 conn.connect(ccache=installer._ccache)
@@ -1372,12 +1380,8 @@ def install(installer):
     http_instance.create_cert_db()
 
     try:
-        if promote:
-            conn.connect(ccache=ccache)
-        else:
-            conn.connect(bind_dn=ipaldap.DIRMAN_DN,
-                         bind_pw=config.dirman_password,
-                         tls_cacertfile=cafile)
+        conn.connect(ccache=ccache)
+        if not promote:
             # Install CA cert so that we can do SSL connections with ldap
             install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
 
