@@ -32,14 +32,20 @@ Building
 --------
 
 From the root of the source tree run:
-$ make rpms
+$ ./makerpms.sh
 
 The resulting rpm packages are in dist/rpms:
 
 # yum --nogpgcheck localinstall dist/rpms/*
 # ipa-server-install
 
-It may be possible to do a simple make all install but this has not been
+You might tweak the build and run steps separatelly:
+$ autoreconf -i
+$ ./configure
+$ make
+$ make install
+
+It may be possible to do a simple make install but this has not been
 well-tested. Additional work is done in pre/post install scripts in the ipa
 spec file.
 
