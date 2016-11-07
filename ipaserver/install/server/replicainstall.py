@@ -1310,9 +1310,6 @@ def promote_check(installer):
             if add_to_ipaservers:
                 os.environ['KRB5CCNAME'] = ccache
 
-    if not ipautil.file_exists(cafile):
-        raise RuntimeError("CA cert file is not available.")
-
     installer._ca_enabled = ca_enabled
     installer._kra_enabled = kra_enabled
     installer._fstore = fstore
