@@ -8,19 +8,24 @@ The framework core.
 
 import abc
 import collections
+import enum
 import functools
 import itertools
+import re
 import sys
 
 import six
 
 from ipapython.ipa_log_manager import root_logger
+from ipapython.ipautil import CheckedIPAddress
 
-from . import util
+from . import util, typing
 from .util import from_
 
 __all__ = ['InvalidStateError', 'KnobValueError', 'Property', 'Knob',
            'Configurable', 'Group', 'Component', 'Composite']
+
+NoneType = type(None)
 
 # Configurable states
 _VALIDATE_PENDING = 'VALIDATE_PENDING'
@@ -145,11 +150,15 @@ def knob(type_or_base, default=_missing, sensitive=_missing,
          deprecated=_missing, description=_missing, cli_positional=_missing,
          cli_name=_missing, cli_short_name=_missing, cli_aliases=_missing,
          cli_metavar=_missing):
+    if type_or_base is None:
+        type_or_base = NoneType
+
+    assert isinstance(type_or_base, type)
+
     class_dict = {}
     class_dict['_order'] = next(_counter)
 
-    if (not isinstance(type_or_base, type) or
-            not issubclass(type_or_base, KnobBase)):
+    if not issubclass(type_or_base, KnobBase):
         class_dict['type'] = type_or_base
         type_or_base = KnobBase
 
@@ -179,6 +188,27 @@ def Knob(type_or_base, default=_missing, sensitive=_missing,
          deprecated=_missing, description=_missing, cli_positional=_missing,
          cli_name=_missing, cli_short_name=_missing, cli_aliases=_missing,
          cli_metavar=_missing):
+    if isinstance(type_or_base, tuple):
+        assert type_or_base[0] is list
+        scalar_type = type_or_base[1]
+    else:
+        scalar_type = type_or_base
+
+    if scalar_type is bool:
+        scalar_type = NoneType
+    elif scalar_type == 'ip':
+        scalar_type = CheckedIPAddress
+    elif isinstance(scalar_type, set):
+        scalar_type = type(
+            'Enum',
+            (enum.Enum,),
+            {re.sub(r'[^0-9A-Za-z_]', '', n): n for n in scalar_type})
+
+    if isinstance(type_or_base, tuple):
+        type_or_base = typing.List[scalar_type]
+    else:
+        type_or_base = scalar_type
+
     return knob(type_or_base,
                 default=default,
                 sensitive=sensitive,
