@@ -540,6 +540,36 @@ def check_remote_version(api):
             "the local version ({})".format(remote_version, version))
 
 
+def common_check(no_ntp):
+    if ipautil.is_fips_enabled():
+        raise RuntimeError(
+            "Installing IPA server in FIPS mode is not supported")
+
+    tasks.check_selinux_status()
+
+    if is_ipa_configured():
+        raise ScriptError(
+            "IPA server is already configured on this system.\n"
+            "If you want to reinstall the IPA server, please uninstall "
+            "it first using 'ipa-server-install --uninstall'.")
+
+    # Check to see if httpd is already configured to listen on 443
+    if httpinstance.httpd_443_configured():
+        raise ScriptError("Aborting installation")
+
+    check_dirsrv()
+
+    if not no_ntp:
+        try:
+            ipaclient.ntpconf.check_timedate_services()
+        except ipaclient.ntpconf.NTPConflictingService as e:
+            print("WARNING: conflicting time&date synchronization service "
+                  "'{svc}' will\nbe disabled in favor of ntpd\n"
+                  .format(svc=e.conflicting_service))
+        except ipaclient.ntpconf.NTPConfigurationError:
+            pass
+
+
 def enroll_dl0_replica(installer, fstore, remote_api, debug=False):
     """
     Do partial host enrollment in DL0:
@@ -597,17 +627,8 @@ def install_check(installer):
     filename = installer.replica_file
     installer._enrollment_performed = False
 
-    if ipautil.is_fips_enabled():
-        raise RuntimeError(
-            "Installing IPA server in FIPS mode is not supported")
-
-    tasks.check_selinux_status()
-
-    if is_ipa_configured():
-        raise ScriptError(
-            "IPA server is already configured on this system.\n"
-            "If you want to reinstall the IPA server, please uninstall "
-            "it first using 'ipa-server-install --uninstall'.")
+    # check FIPS, selinux status, http and DS ports, NTP conflicting services
+    common_check(options.no_ntp)
 
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     if client_fstore.has_files():
@@ -619,23 +640,6 @@ def install_check(installer):
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
-
-    # Check to see if httpd is already configured to listen on 443
-    if httpinstance.httpd_443_configured():
-        raise ScriptError("Aborting installation")
-
-    check_dirsrv()
-
-    if not options.no_ntp:
-        try:
-            ipaclient.ntpconf.check_timedate_services()
-        except ipaclient.ntpconf.NTPConflictingService as e:
-            print(("WARNING: conflicting time&date synchronization service '%s'"
-                  " will" % e.conflicting_service))
-            print("be disabled in favor of ntpd")
-            print("")
-        except ipaclient.ntpconf.NTPConfigurationError:
-            pass
 
     # get the directory manager password
     dirman_password = options.password
@@ -932,17 +936,11 @@ def promotion_check_ipa_domain(master_ldap_conn, basedn):
 @preserve_enrollment_state
 def promote_check(installer):
     options = installer
-
     installer._enrollment_performed = False
     installer._top_dir = tempfile.mkdtemp("ipa")
 
-    tasks.check_selinux_status()
-
-    if is_ipa_configured():
-        raise ScriptError(
-            "IPA server is already configured on this system.\n"
-            "If you want to reinstall the IPA server, please uninstall "
-            "it first using 'ipa-server-install --uninstall'.")
+    # check FIPS, selinux status, http and DS ports, NTP conflicting services
+    common_check(options.no_ntp)
 
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     if not client_fstore.has_files():
@@ -957,23 +955,6 @@ def promote_check(installer):
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
-
-    # Check to see if httpd is already configured to listen on 443
-    if httpinstance.httpd_443_configured():
-        raise ScriptError("Aborting installation")
-
-    check_dirsrv()
-
-    if not options.no_ntp:
-        try:
-            ipaclient.ntpconf.check_timedate_services()
-        except ipaclient.ntpconf.NTPConflictingService as e:
-            print("WARNING: conflicting time&date synchronization service '%s'"
-                  " will" % e.conflicting_service)
-            print("be disabled in favor of ntpd")
-            print("")
-        except ipaclient.ntpconf.NTPConfigurationError:
-            pass
 
     env = Env()
     env._bootstrap(context='installer', log=None)
