@@ -1127,7 +1127,7 @@ fi
 %defattr(-,root,root,-)
 %doc README Contributors.txt
 %license COPYING
-%{python_sitelib}/freeipa-*.egg-info
+%{python_sitelib}/ipaserver-*.egg-info
 %dir %{python_sitelib}/ipaserver
 %dir %{python_sitelib}/ipaserver/install
 %dir %{python_sitelib}/ipaserver/install/plugins
