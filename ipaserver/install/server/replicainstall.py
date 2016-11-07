@@ -76,7 +76,7 @@ def make_pkcs12_info(directory, cert_name, password_name):
         return None
 
 
-def install_http_certs(config, fstore, remote_api):
+def install_http_keytab(config, fstore, remote_api):
 
     # Obtain keytab for the HTTP service
     fstore.backup_file(paths.IPA_KEYTAB)
@@ -92,11 +92,14 @@ def install_http_certs(config, fstore, remote_api):
                                         paths.IPA_KEYTAB,
                                         force_service_add=True)
 
+
+def install_http_certs(host_name, realm_name, subject_base):
+    principal = 'HTTP/%s@%s' % (host_name, realm_name)
     # Obtain certificate for the HTTP service
     nssdir = certs.NSS_DIR
-    subject = config.subject_base or DN(('O', config.realm_name))
-    db = certs.CertDB(config.realm_name, nssdir=nssdir, subject_base=subject)
-    db.request_service_cert('Server-Cert', principal, config.host_name, True)
+    subject = subject_base or DN(('O', realm_name))
+    db = certs.CertDB(realm_name, nssdir=nssdir, subject_base=subject)
+    db.request_service_cert('Server-Cert', principal, host_name, True)
 
 
 def install_replica_ds(config, options, ca_is_configured, remote_api,
@@ -1388,7 +1391,11 @@ def install(installer):
         install_dns_records(config, options, remote_api)
 
         if promote:
-            install_http_certs(config, fstore, remote_api)
+            # we need to install http certs to setup ssl for httpd
+            install_http_keytab(config, fstore, remote_api)
+            install_http_certs(config.host_name,
+                               config.realm_name,
+                               config.subject_base)
 
         ntpinstance.ntp_ldap_enable(config.host_name, ds.suffix,
                                     remote_api.env.realm)
