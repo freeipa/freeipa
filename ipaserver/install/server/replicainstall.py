@@ -1376,6 +1376,10 @@ def install(installer):
         setup_pkinit=not options.no_pkinit,
         promote=promote)
 
+    # restart DS to enable ipa-pwd-extop plugin
+    print("Restarting directory server to enable password extension plugin")
+    ds.restart()
+
     install_http(
         config,
         auto_redirect=not options.no_ui_redirect,

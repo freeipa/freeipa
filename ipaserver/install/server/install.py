@@ -803,6 +803,10 @@ def install(installer):
                             setup_pkinit=not options.no_pkinit,
                             subject_base=options.subject)
 
+    # restart DS to enable ipa-pwd-extop plugin
+    print("Restarting directory server to enable password extension plugin")
+    ds.restart()
+
     if setup_ca:
         ca.install_step_1(False, None, options)
 
