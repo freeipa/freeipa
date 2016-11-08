@@ -1092,8 +1092,10 @@ def promote_check(installer):
     env._finalize_core(**dict(constants.DEFAULT_CONFIG))
 
     # pylint: disable=no-member
+    xmlrpc_uri = 'https://{}/ipa/xml'.format(ipautil.format_netloc(env.host))
     api.bootstrap(in_server=True, context='installer',
-                  ldap_uri=installutils.realm_to_ldapi_uri(env.realm))
+                  ldap_uri=installutils.realm_to_ldapi_uri(env.realm),
+                  xmlrpc_uri=xmlrpc_uri)
     # pylint: enable=no-member
     api.finalize()
 
@@ -1545,17 +1547,11 @@ def promote(installer):
     promote_sssd(config.host_name)
     promote_openldap_conf(config.host_name, config.master_host_name)
 
-    # Switch API so that it uses the new servr configuration
-    server_api = create_api(mode=None)
-    server_api.bootstrap(in_server=True, context='installer')
-    server_api.finalize()
-
-    server_api.Backend.ldap2.connect(autobind=True)
     if options.setup_dns:
-        dns.install(False, True, options, server_api)
+        dns.install(False, True, options, api)
     else:
-        server_api.Command.dns_update_system_records()
-    server_api.Backend.ldap2.disconnect()
+        api.Command.dns_update_system_records()
+    api.Backend.ldap2.disconnect()
 
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()
