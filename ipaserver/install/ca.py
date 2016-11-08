@@ -188,7 +188,8 @@ def install_step_0(standalone, replica_config, options):
                           master_replication_port=master_replication_port,
                           ra_p12=ra_p12,
                           ra_only=ra_only,
-                          promote=promote)
+                          promote=promote,
+                          use_ldaps=standalone)
 
 
 def install_step_1(standalone, replica_config, options):
