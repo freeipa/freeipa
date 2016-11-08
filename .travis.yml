@@ -13,4 +13,4 @@ script:
     - >
         docker run -v $PWD:/freeipa -w /freeipa
         martbab/freeipa-fedora-builder:${TRAVIS_BRANCH}-latest
-        /bin/bash -c 'dnf builddep -y -D "with_lint 1" --spec freeipa.spec.in && ./makerpms.sh'
+        /bin/bash -c 'dnf builddep -y -D "with_lint 1" --spec freeipa.spec.in && autoreconf -i && ./configure && make lint && make rpms'

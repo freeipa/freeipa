@@ -44,3 +44,25 @@ rpms: dist-gzip rpmroot rpmdistdir
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba $(top_builddir)/$(PACKAGE).spec
 	cp $(RPMBUILD)/RPMS/*/*.rpm $(top_builddir)/dist/rpms/
 	cp $(RPMBUILD)/SRPMS/*.src.rpm $(top_builddir)/dist/srpms/
+
+.PHONY: lint
+if WITH_PYLINT
+PYLINT_TARGET = pylint
+endif WITH_PYLINT
+lint: $(PYLINT_TARGET)
+
+.PHONY: pylint
+pylint:
+	FILES=`find $(top_srcdir) \
+		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
+		-path '*/.*' -o \
+		-path '*.in' -o \
+		-path './dist/*' -o \
+		-path './lextab.py' -o \
+		-path './yacctab.py' -o \
+		-name '*~' -o \
+		-name \*.py -print -o \
+		-type f -exec grep -qsm1 '^#!.*\bpython' '{}' \; -print`; \
+	echo "Pylint is running, please wait ..."; \
+	PYTHONPATH=$(top_srcdir) $(PYLINT) \
+		--rcfile=$(top_srcdir)/pylintrc $${FILES}
