@@ -44,8 +44,7 @@ def dnssec_container_exists(fqdn, suffix, dm_password=None, ldapi=False,
         ldap_uri = ipaldap.get_ldap_uri(fqdn, 636, ldapi=ldapi, realm=realm,
                                         cacert=CACERT)
         conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
-
-        conn.do_bind(dm_password)
+        conn.simple_bind(ipaldap.DIRMAN_DN, dm_password)
     except ldap.SERVER_DOWN:
         raise RuntimeError('LDAP server on %s is not responding. Is IPA installed?' % fqdn)
 

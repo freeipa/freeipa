@@ -749,26 +749,6 @@ class LDAPClient(object):
     def __str__(self):
         return self.ldap_uri
 
-    def do_bind(self, dm_password="", autobind=AUTOBIND_AUTO):
-        if dm_password:
-            self.simple_bind(bind_dn=DIRMAN_DN,
-                             bind_password=dm_password)
-            return
-        if (autobind != AUTOBIND_DISABLED and os.getegid() == 0 and
-                self._protocol == 'ldapi'):
-            try:
-                # autobind
-                self.external_bind()
-                return
-            except errors.NotFound:
-                if autobind == AUTOBIND_ENABLED:
-                    # autobind was required and failed, raise
-                    # exception that it failed
-                    raise
-
-        # fall back
-        self.gssapi_bind()
-
     def modify_s(self, dn, modlist):
         # FIXME: for backwards compatibility only
         assert isinstance(dn, DN)

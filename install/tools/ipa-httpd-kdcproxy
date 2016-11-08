@@ -79,7 +79,7 @@ class KDCProxyConfig(object):
         self.log.debug('ldap_uri: %s', self.ldap_uri)
         try:
             self.con = LDAPClient(self.ldap_uri)
-            self.con.do_bind()
+            self.con.external_bind()
         except (errors.NetworkError, socket.timeout) as e:
             msg = 'Unable to connect to dirsrv: %s' % e
             raise CheckError(msg)
