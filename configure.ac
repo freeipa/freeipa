@@ -414,6 +414,16 @@ fi
 dnl ---------------------------------------------------------------------------
 dnl Linters
 dnl ---------------------------------------------------------------------------
+AC_ARG_ENABLE([i18ntests],
+	       AC_HELP_STRING([--disable-i18ntests],
+			      [do not execute ipatests/i18n.py
+			       (depends on python-polib)]),
+		,
+		[enable_i18ntests="yes"]
+)
+AC_SUBST([i18ntests])
+AM_CONDITIONAL([WITH_POLINT], [test "x${enable_i18ntests}" == "xyes"])
+
 AC_ARG_WITH([pylint],
 	    AS_HELP_STRING([--with-pylint=path],
 			   [path to Pylint]),
