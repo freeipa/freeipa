@@ -53,14 +53,16 @@ def _get_usage(configurable_class):
 
 
 def install_tool(configurable_class, command_name, log_file_name,
-                 debug_option=False, use_private_ccache=True,
-                 uninstall_log_file_name=None):
+                 debug_option=False, verbose=False, console_format=None,
+                 use_private_ccache=True, uninstall_log_file_name=None):
     if uninstall_log_file_name is not None:
         uninstall_kwargs = dict(
             configurable_class=configurable_class,
             command_name=command_name,
             log_file_name=uninstall_log_file_name,
             debug_option=debug_option,
+            verbose=verbose,
+            console_format=console_format,
         )
     else:
         uninstall_kwargs = None
@@ -74,6 +76,8 @@ def install_tool(configurable_class, command_name, log_file_name,
             log_file_name=log_file_name,
             usage=_get_usage(configurable_class),
             debug_option=debug_option,
+            verbose=verbose,
+            console_format=console_format,
             uninstall_kwargs=uninstall_kwargs,
             use_private_ccache=use_private_ccache,
         )
@@ -81,7 +85,7 @@ def install_tool(configurable_class, command_name, log_file_name,
 
 
 def uninstall_tool(configurable_class, command_name, log_file_name,
-                   debug_option=False):
+                   debug_option=False, verbose=False, console_format=None):
     return type(
         'uninstall_tool({0})'.format(configurable_class.__name__),
         (UninstallTool,),
@@ -91,6 +95,8 @@ def uninstall_tool(configurable_class, command_name, log_file_name,
             log_file_name=log_file_name,
             usage=_get_usage(configurable_class),
             debug_option=debug_option,
+            verbose=verbose,
+            console_format=console_format,
         )
     )
 
@@ -109,6 +115,8 @@ def _option_callback(action, option, opt_str, value, parser, opt_type):
 class ConfigureTool(admintool.AdminTool):
     configurable_class = None
     debug_option = False
+    verbose = False
+    console_format = None
     use_private_ccache = True
 
     @staticmethod
@@ -278,8 +286,11 @@ class ConfigureTool(admintool.AdminTool):
             log_file_name = self.options.log_file
         else:
             log_file_name = self.log_file_name
-        ipa_log_manager.standard_logging_setup(log_file_name,
-                                               debug=self.options.verbose)
+        ipa_log_manager.standard_logging_setup(
+           log_file_name,
+           verbose=self.verbose,
+           debug=self.options.verbose,
+           console_format=self.console_format)
         self.log = ipa_log_manager.log_mgr.get_logger(self)
         if log_file_name:
             self.log.debug('Logging to %s' % log_file_name)

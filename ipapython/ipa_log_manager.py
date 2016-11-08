@@ -172,7 +172,10 @@ class IPALogManager(LogManager):
 #-------------------------------------------------------------------------------
 
 def standard_logging_setup(filename=None, verbose=False, debug=False,
-        filemode='w', console_format=LOGGING_FORMAT_STANDARD_CONSOLE):
+                           filemode='w', console_format=None):
+    if console_format is None:
+        console_format = LOGGING_FORMAT_STANDARD_CONSOLE
+
     handlers = []
 
     # File output is always logged at debug level
