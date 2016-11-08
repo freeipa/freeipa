@@ -167,6 +167,7 @@ class Service(object):
         self.api = api
         self.service_user = service_user
         self.dm_password = None  # silence pylint
+        self.promote = False
 
     @property
     def admin_conn(self):
@@ -567,7 +568,7 @@ class Service(object):
 
         if ldap_uri.startswith("ldapi://") and os.geteuid() == 0:
             args.extend(["-Y", "EXTERNAL"])
-        elif self.dm_password is not None:
+        elif self.dm_password is not None and not self.promote:
             args.extend(
                 ['-D', 'cn=Directory Manager',
                  '-w', self.dm_password])
