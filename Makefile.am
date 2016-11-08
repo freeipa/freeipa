@@ -52,7 +52,11 @@ endif WITH_PYLINT
 if WITH_JSLINT
 JSLINT_TARGET = jslint
 endif WITH_JSLINT
-lint: $(PYLINT_TARGET) $(JSLINT_TARGET)
+lint: acilint $(PYLINT_TARGET) $(JSLINT_TARGET)
+
+.PHONY: acilint
+acilint:
+	cd $(srcdir); ./makeaci --validate
 
 .PHONY: pylint
 pylint:
