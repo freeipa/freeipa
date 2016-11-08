@@ -46,13 +46,16 @@ rpms: dist-gzip rpmroot rpmdistdir
 	cp $(RPMBUILD)/SRPMS/*.src.rpm $(top_builddir)/dist/srpms/
 
 .PHONY: lint
+if WITH_POLINT
+POLINT_TARGET = polint
+endif WITH_POLINT
 if WITH_PYLINT
 PYLINT_TARGET = pylint
 endif WITH_PYLINT
 if WITH_JSLINT
 JSLINT_TARGET = jslint
 endif WITH_JSLINT
-lint: acilint apilint $(PYLINT_TARGET) $(JSLINT_TARGET)
+lint: acilint apilint $(POLINT_TARGET) $(PYLINT_TARGET) $(JSLINT_TARGET)
 
 .PHONY: acilint
 acilint:
@@ -61,6 +64,10 @@ acilint:
 .PHONY: apilint
 apilint:
 	cd $(srcdir); ./makeapi --validate
+
+.PHONY: polint
+polint:
+	$(MAKE) -C $(srcdir)/po validate-src-strings
 
 .PHONY: pylint
 pylint:
