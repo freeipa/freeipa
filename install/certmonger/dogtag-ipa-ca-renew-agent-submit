@@ -85,7 +85,7 @@ def ldap_connect():
     conn = None
     try:
         conn = ldap2(api)
-        conn.connect(ccache=os.environ['KRB5CCNAME'])
+        conn.connect(autobind=True)
         yield conn
     finally:
         if conn is not None and conn.isconnected():
@@ -484,11 +484,6 @@ def main():
     tmpdir = tempfile.mkdtemp(prefix="tmp-")
     certs.renewal_lock.acquire()
     try:
-        principal = str('host/%s@%s' % (api.env.host, api.env.realm))
-        ccache_filename = os.path.join(tmpdir, 'ccache')
-        os.environ['KRB5CCNAME'] = ccache_filename
-        ipautil.kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_filename)
-
         profile = os.environ.get('CERTMONGER_CA_PROFILE')
         if profile:
             handler = handlers.get(profile, request_and_store_cert)
