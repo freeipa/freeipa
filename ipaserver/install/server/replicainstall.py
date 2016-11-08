@@ -943,10 +943,6 @@ def install(installer):
     else:
         api.Command.dns_update_system_records()
 
-    # Restart httpd to pick up the new IPA configuration
-    service.print_msg("Restarting the web server")
-    http.restart()
-
     # Call client install script
     service.print_msg("Configuring client side components")
     try:

@@ -868,10 +868,6 @@ def install(installer):
                    no_dnssec_validation=options.no_dnssec_validation)
         bind.create_file_with_system_records()
 
-    # Restart httpd to pick up the new IPA configuration
-    service.print_msg("Restarting the web server")
-    http.restart()
-
     # Set the admin user kerberos password
     ds.change_admin_password(admin_password)
 

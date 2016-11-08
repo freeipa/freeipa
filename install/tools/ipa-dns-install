@@ -26,14 +26,12 @@ import sys
 
 from optparse import SUPPRESS_HELP
 
-from ipaserver.install import bindinstance, httpinstance
+from ipaserver.install import bindinstance
 from ipaserver.install import installutils
-from ipaserver.install import service
 from ipapython import version
 from ipalib import api
 from ipaplatform.paths import paths
 from ipapython import ipautil
-from ipapython import sysrestore
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import standard_logging_setup, root_logger
 
@@ -146,13 +144,6 @@ def main():
 
     dns_installer.install_check(True, api, False, options, hostname=api.env.host)
     dns_installer.install(True, False, options)
-
-    # Restart http instance to make sure that python-dns has the right resolver
-    # https://bugzilla.redhat.com/show_bug.cgi?id=800368
-    fstore = sysrestore.FileStore(paths.SYSRESTORE)
-    http = httpinstance.HTTPInstance(fstore)
-    service.print_msg("Restarting the web server")
-    http.restart()
 
     # execute ipactl to refresh services status
     ipautil.run(['ipactl', 'start', '--ignore-service-failures'],

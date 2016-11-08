@@ -322,6 +322,8 @@ def install(standalone, replica, options, api=api):
         print("")
 
     bind.create_instance()
+    print("Restarting the web server to pick up resolv.conf changes")
+    services.knownservices.httpd.restart(capture_output=True)
 
     # on dnssec master this must be installed last
     dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore)
