@@ -411,6 +411,22 @@ else
         AC_MSG_RESULT(no)
 fi
 
+dnl ---------------------------------------------------------------------------
+dnl Linters
+dnl ---------------------------------------------------------------------------
+AC_ARG_WITH([pylint],
+	    AS_HELP_STRING([--with-pylint=path],
+			   [path to Pylint]),
+dnl --without-pylint will set PYLINT=no
+	    [PYLINT=$with_pylint],
+	    [AC_PATH_PROG([PYLINT], [pylint])]
+)
+if test "x${PYLINT}" == "x"; then
+	AC_MSG_ERROR([cannot find Pylint])
+fi
+AC_SUBST([PYLINT])
+AM_CONDITIONAL([WITH_PYLINT], [test "x${PYLINT}" != "xno"])
+
 # Flags
 
 AC_SUBST(CFLAGS)
