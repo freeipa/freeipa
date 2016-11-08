@@ -330,7 +330,7 @@ class CAInstance(DogtagInstance):
                            master_replication_port=None,
                            subject_base=None, ca_signing_algorithm=None,
                            ca_type=None, ra_p12=None, ra_only=False,
-                           promote=False):
+                           promote=False, use_ldaps=False):
         """Create a CA instance.
 
            To create a clone, pass in pkcs12_info.
@@ -363,6 +363,7 @@ class CAInstance(DogtagInstance):
         else:
             self.ca_type = 'generic'
         self.no_db_setup = promote
+        self.use_ldaps = use_ldaps
 
         # Determine if we are installing as an externally-signed CA and
         # what stage we're in.
@@ -494,6 +495,9 @@ class CAInstance(DogtagInstance):
         config.set("CA", "pki_ds_password", self.dm_password)
         config.set("CA", "pki_ds_base_dn", self.basedn)
         config.set("CA", "pki_ds_database", "ipaca")
+
+        if self.use_ldaps:
+            self._use_ldaps_during_spawn(config)
 
         # Certificate subject DN's
         config.set("CA", "pki_subsystem_subject_dn",
