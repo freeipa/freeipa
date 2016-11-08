@@ -50,6 +50,7 @@ from ipalib.rpc import delete_persistent_client_session_data
 from ipalib.util import (
     broadcast_ip_address_warning,
     network_ip_address_warning,
+    normalize_hostname,
     verify_host_resolvable,
 )
 from ipaplatform import services
@@ -67,7 +68,8 @@ from ipapython.admintool import ScriptError
 from ipapython.dn import DN
 from ipapython.install import typing
 from ipapython.install.core import knob
-from ipapython.ipa_log_manager import root_logger
+from ipapython.install.common import step
+from ipapython.ipa_log_manager import log_mgr, root_logger
 from ipapython.ipautil import (
     CalledProcessError,
     dir_exists,
@@ -3309,6 +3311,41 @@ def uninstall(options):
         raise ScriptError(rval=rv)
 
 
+def init(installer):
+    try:
+        installer.debug = log_mgr.get_handler('console').level == 'debug'
+    except KeyError:
+        installer.debug = True
+    installer.unattended = not installer.interactive
+
+    if installer.domain_name:
+        installer.domain = normalize_hostname(installer.domain_name)
+    else:
+        installer.domain = None
+    installer.server = installer.servers
+    installer.realm = installer.realm_name
+    installer.primary = installer.fixed_primary
+    if installer.principal:
+        installer.password = installer.admin_password
+    else:
+        installer.password = installer.host_password
+    installer.hostname = installer.host_name
+    installer.conf_ntp = not installer.no_ntp
+    installer.trust_sshfp = installer.ssh_trust_dns
+    installer.conf_ssh = not installer.no_ssh
+    installer.conf_sshd = not installer.no_sshd
+    installer.conf_sudo = not installer.no_sudo
+    installer.create_sshfp = not installer.no_dns_sshfp
+    if installer.ca_cert_files:
+        installer.ca_cert_file = installer.ca_cert_files[-1]
+    else:
+        installer.ca_cert_file = None
+    installer.location = installer.automount_location
+    installer.dns_updates = installer.enable_dns_updates
+    installer.krb5_offline_passwords = not installer.no_krb5_offline_passwords
+    installer.sssd = not installer.no_sssd
+
+
 class ClientInstallInterface(hostname_.HostNameInstallInterface,
                              service.ServiceAdminInstallInterface):
     """
@@ -3492,3 +3529,91 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
                 raise RuntimeError(
                     "--ip-address cannot be used together with"
                     "--all-ip-addresses")
+
+
+class ClientInstall(ClientInstallInterface,
+                    automount.AutomountInstallInterface):
+    """
+    Client installer
+    """
+
+    ca_cert_files = knob(
+        bases=ClientInstallInterface.ca_cert_files,
+    )
+
+    @ca_cert_files.validator
+    def ca_cert_files(self, value):
+        if not os.path.exists(value):
+            raise ValueError("'%s' does not exist" % value)
+        if not os.path.isfile(value):
+            raise ValueError("'%s' is not a file" % value)
+        if not os.path.isabs(value):
+            raise ValueError("'%s' is not an absolute file path" % value)
+
+        try:
+            x509.load_certificate_from_file(value)
+        except Exception:
+            raise ValueError("'%s' is not a valid certificate file" % value)
+
+    @property
+    def prompt_password(self):
+        return self.interactive
+
+    automount_location = knob(
+        bases=automount.AutomountInstallInterface.automount_location,
+        default=None,
+    )
+
+    no_ac = knob(
+        None,
+        description="do not modify the nsswitch.conf and PAM configuration",
+        cli_names='--noac',
+    )
+
+    force = knob(
+        None,
+        description="force setting of LDAP/Kerberos conf",
+        cli_names=[None, '-f'],
+    )
+
+    on_master = False
+
+    configure_firefox = knob(
+        None,
+        description="configure Firefox to use IPA domain credentials",
+    )
+
+    firefox_dir = knob(
+        str, None,
+        description="specify directory where Firefox is installed (for "
+                    "example: '/usr/lib/firefox')",
+    )
+
+    no_sssd = knob(
+        None,
+        description="Do not configure the client to use SSSD for "
+                    "authentication",
+        cli_names=[None, '-S'],
+    )
+
+    def __init__(self, **kwargs):
+        super(ClientInstall, self).__init__(**kwargs)
+
+        if self.firefox_dir and not self.configure_firefox:
+            raise RuntimeError(
+                "--firefox-dir cannot be used without --configure-firefox "
+                "option")
+
+    @step()
+    def main(self):
+        init(self)
+        install_check(self)
+        yield
+        install(self)
+
+    @main.uninstaller
+    def main(self):
+        init(self)
+        uninstall_check(self)
+        yield
+        uninstall(self)
