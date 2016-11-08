@@ -427,6 +427,21 @@ fi
 AC_SUBST([PYLINT])
 AM_CONDITIONAL([WITH_PYLINT], [test "x${PYLINT}" != "xno"])
 
+
+AC_ARG_WITH([jslint],
+	    AS_HELP_STRING([--with-jslint=path to jsl],
+			   [path to JavaScript lint]),
+dnl --without-jslint will set JSLINT=no
+	    [JSLINT=$with_jslint],
+	    [AC_PATH_PROG([JSLINT], [jsl])]
+)
+if test "x${JSLINT}" == "x"; then
+	AC_MSG_ERROR([cannot find JS lint])
+fi
+AC_SUBST([JSLINT])
+AM_CONDITIONAL([WITH_JSLINT], [test "x${JSLINT}" != "xno"])
+
+
 # Flags
 
 AC_SUBST(CFLAGS)

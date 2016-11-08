@@ -49,7 +49,10 @@ rpms: dist-gzip rpmroot rpmdistdir
 if WITH_PYLINT
 PYLINT_TARGET = pylint
 endif WITH_PYLINT
-lint: $(PYLINT_TARGET)
+if WITH_JSLINT
+JSLINT_TARGET = jslint
+endif WITH_JSLINT
+lint: $(PYLINT_TARGET) $(JSLINT_TARGET)
 
 .PHONY: pylint
 pylint:
@@ -66,3 +69,24 @@ pylint:
 	echo "Pylint is running, please wait ..."; \
 	PYTHONPATH=$(top_srcdir) $(PYLINT) \
 		--rcfile=$(top_srcdir)/pylintrc $${FILES}
+
+.PHONY: jslint jslint-ui jslint-ui-test jslint-html
+jslint: jslint-ui jslint-ui-test jslint-html
+
+# create temporary symlinks to allow jslint to find libs/loader.js
+jslint-ui:
+	cd $(top_srcdir)/install/ui;				\
+	$(MKDIR_P) js;						\
+	rm -f js/libs;						\
+	$(LN_S) ../src/libs js/libs;				\
+	jsl -nologo -nosummary -nofilelisting -conf jsl.conf;	\
+	rm js/libs;						\
+	rmdir js
+
+jslint-ui-test:
+	cd $(top_srcdir)/install/ui/test;			\
+	jsl -nologo -nosummary -nofilelisting -conf jsl.conf
+
+jslint-html:
+	cd $(top_srcdir)/install/html; 				\
+	jsl -nologo -nosummary -nofilelisting -conf jsl.conf
