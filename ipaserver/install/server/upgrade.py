@@ -25,7 +25,6 @@ import ipalib.errors
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipapython import ipautil, sysrestore, version, certdb
-from ipapython import ipaldap
 from ipapython.ipa_log_manager import root_logger
 from ipapython import certmonger
 from ipapython import dnsutil
@@ -1606,9 +1605,6 @@ def upgrade_configuration():
     remove_ds_ra_cert(subject_base)
     ds.start(ds_serverid)
 
-    # Force enabling plugins via LDAPI and external bind
-    ds.ldapi = True
-    ds.autobind = ipaldap.AUTOBIND_ENABLED
     ds.fqdn = fqdn
     ds.realm = api.env.realm
     ds.suffix = ipautil.realm_to_suffix(api.env.realm)
@@ -1616,14 +1612,8 @@ def upgrade_configuration():
 
     ds_enable_sidgen_extdom_plugins(ds)
 
-    # Now 389-ds is available, run the remaining http tasks
     if not http.is_kdcproxy_configured():
         root_logger.info('[Enabling KDC Proxy]')
-        if http.admin_conn is None:
-             # 389-ds needs to be running
-            ds.start()
-            http.ldapi = True
-            http.suffix = ipautil.realm_to_suffix(api.env.realm)
         httpinstance.create_kdcproxy_user()
         http.create_kdcproxy_conf()
         http.enable_kdcproxy()
@@ -1645,12 +1635,8 @@ def upgrade_configuration():
     )
 
     for service, ldap_name in simple_service_list:
-        service.ldapi = True
         try:
             if not service.is_configured():
-                # 389-ds needs to be running to create the instances
-                # because we record the new service in cn=masters.
-                ds.start()
                 service.create_instance(ldap_name, fqdn,
                                         ipautil.realm_to_suffix(api.env.realm),
                                         realm=api.env.realm)
@@ -1661,7 +1647,6 @@ def upgrade_configuration():
     if bindinstance.named_conf_exists():
             dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore)
             if not dnskeysyncd.is_configured():
-                ds.start()
                 dnskeysyncd.create_instance(fqdn, api.env.realm)
                 dnskeysyncd.start_dnskeysyncd()
 
@@ -1749,9 +1734,7 @@ def upgrade_configuration():
 
     set_sssd_domain_option('ipa_server_mode', 'True')
 
-    if ds_running and not ds.is_running():
-        ds.start(ds_serverid)
-    elif not ds_running and ds.is_running():
+    if not ds_running:
         ds.stop(ds_serverid)
 
     if ca.is_configured():

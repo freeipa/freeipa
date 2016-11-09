@@ -40,15 +40,12 @@ class ServerUpgrade(admintool.AdminTool):
 
         api.bootstrap(in_server=True, context='updates')
         api.finalize()
-        api.Backend.ldap2.connect()
 
         try:
             server.upgrade_check(self.options)
             server.upgrade()
         except RuntimeError as e:
             raise admintool.ScriptError(str(e))
-
-        api.Backend.ldap2.disconnect()
 
     def handle_error(self, exception):
         if not isinstance(exception, SystemExit):

@@ -96,8 +96,9 @@ class IPAUpgrade(service.Service):
 
     def __stop_instance(self):
         """Stop only the main DS instance"""
+        if api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.disconnect()
         super(IPAUpgrade, self).stop(self.serverid)
-        api.Backend.ldap2.disconnect()
 
     def create_instance(self):
         ds_running = super(IPAUpgrade, self).is_running()
