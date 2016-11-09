@@ -9,6 +9,8 @@ app_DATA =				\
 nodist_app_DATA =			\
 	ipa.css
 
+CLEANFILES = $(nodist_app_DATA)
+
 EXTRA_DIST =                            \
         $(app_DATA)                     \
         $(NULL)
