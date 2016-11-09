@@ -6,6 +6,8 @@ nodist_app_DATA =			\
 	core.js 			\
 	$(NULL)
 
+CLEANFILES = $(nodist_app_DATA)
+
 EXTRA_DIST =                            \
         $(app_DATA)                     \
         $(NULL)
