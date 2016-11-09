@@ -1311,7 +1311,9 @@ fi
 %dir %{python_sitelib}/ipapython/secrets
 %{python_sitelib}/ipapython/secrets/*.py*
 %dir %{python_sitelib}/ipalib
-%{python_sitelib}/ipalib/*
+%{python_sitelib}/ipalib/*.py*
+%dir %{python_sitelib}/ipalib/install
+%{python_sitelib}/ipalib/install/*.py*
 %dir %{python_sitelib}/ipaplatform
 %{python_sitelib}/ipaplatform/*
 %{python_sitelib}/ipapython-*.egg-info

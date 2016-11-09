@@ -34,5 +34,6 @@ if __name__ == '__main__':
         package_dir={'ipalib': ''},
         packages=[
             "ipalib",
+            "ipalib.install",
         ],
     )

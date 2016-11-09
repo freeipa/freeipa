@@ -2,11 +2,24 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+"""
+CA installer module
+"""
+
 from __future__ import print_function
 
+import enum
 import os.path
 
-from ipaserver.install import cainstance, custodiainstance, dsinstance, bindinstance
+import six
+
+from ipalib.install.service import enroll_only, master_install_only, replica_install_only
+from ipapython.install import typing
+from ipapython.install.core import knob
+from ipaserver.install import (cainstance,
+                               custodiainstance,
+                               dsinstance,
+                               bindinstance)
 from ipapython import ipautil, certdb
 from ipapython.admintool import ScriptError
 from ipaplatform import services
@@ -16,6 +29,19 @@ from ipaserver.install.replication import replica_conn_check
 from ipalib import api, certstore, x509
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
+
+from . import conncheck, dogtag
+
+if six.PY3:
+    unicode = str
+
+VALID_SUBJECT_ATTRS = ['st', 'o', 'ou', 'dnqualifier', 'c',
+                       'serialnumber', 'l', 'title', 'sn', 'givenname',
+                       'initials', 'generationqualifier', 'dc', 'mail',
+                       'uid', 'postaladdress', 'postalcode', 'postofficebox',
+                       'houseidentifier', 'e', 'street', 'pseudonym',
+                       'incorporationlocality', 'incorporationstate',
+                       'incorporationcountry', 'businesscategory']
 
 external_cert_file = None
 external_ca_file = None
@@ -270,3 +296,109 @@ def uninstall():
     ca_instance.stop_tracking_certificates()
     if ca_instance.is_configured():
         ca_instance.uninstall()
+
+
+class ExternalCAType(enum.Enum):
+    GENERIC = 'generic'
+    MS_CS = 'ms-cs'
+
+
+class CASigningAlgorithm(enum.Enum):
+    SHA1_WITH_RSA = 'SHA1withRSA'
+    SHA_256_WITH_RSA = 'SHA256withRSA'
+    SHA_512_WITH_RSA = 'SHA512withRSA'
+
+
+class CAInstallInterface(dogtag.DogtagInstallInterface,
+                         conncheck.ConnCheckInterface):
+    """
+    Interface of the CA installer
+
+    Knobs defined here will be available in:
+    * ipa-server-install
+    * ipa-replica-prepare
+    * ipa-replica-install
+    * ipa-ca-install
+    """
+
+    principal = knob(
+        bases=conncheck.ConnCheckInterface.principal,
+        description="User allowed to manage replicas",
+        cli_names=(
+            list(conncheck.ConnCheckInterface.principal.cli_names) + ['-P']),
+    )
+    principal = enroll_only(principal)
+    principal = replica_install_only(principal)
+
+    admin_password = knob(
+        bases=conncheck.ConnCheckInterface.admin_password,
+        description="Admin user Kerberos password used for connection check",
+        cli_names=(
+            list(conncheck.ConnCheckInterface.admin_password.cli_names) +
+            ['-w']),
+    )
+    admin_password = enroll_only(admin_password)
+    admin_password = replica_install_only(admin_password)
+
+    external_ca = knob(
+        None,
+        description=("Generate a CSR for the IPA CA certificate to be signed "
+                     "by an external CA"),
+    )
+    external_ca = master_install_only(external_ca)
+
+    external_ca_type = knob(
+        ExternalCAType, None,
+        description="Type of the external CA",
+    )
+    external_ca_type = master_install_only(external_ca_type)
+
+    external_cert_files = knob(
+        # pylint: disable=invalid-sequence-index
+        typing.List[str], None,
+        description=("File containing the IPA CA certificate and the external "
+                     "CA certificate chain"),
+        cli_names='--external-cert-file',
+        cli_deprecated_names=['--external_cert_file', '--external_ca_file'],
+        cli_metavar='FILE',
+    )
+    external_cert_files = master_install_only(external_cert_files)
+
+    @external_cert_files.validator
+    def external_cert_files(self, value):
+        if any(not os.path.isabs(path) for path in value):
+            raise ValueError("must use an absolute path")
+
+    subject = knob(
+        str, None,
+        description="The certificate subject base (default O=<realm-name>)",
+    )
+    subject = master_install_only(subject)
+
+    @subject.validator
+    def subject(self, value):
+        v = unicode(value, 'utf-8')
+        if any(ord(c) < 0x20 for c in v):
+            raise ValueError("must not contain control characters")
+        if '&' in v:
+            raise ValueError("must not contain an ampersand (\"&\")")
+        try:
+            dn = DN(v)
+            for rdn in dn:
+                if rdn.attr.lower() not in VALID_SUBJECT_ATTRS:
+                    raise ValueError("invalid attribute: \"%s\"" % rdn.attr)
+        except ValueError as e:
+            raise ValueError("invalid subject base format: %s" % e)
+
+    ca_signing_algorithm = knob(
+        CASigningAlgorithm, None,
+        description="Signing algorithm of the IPA CA certificate",
+    )
+    ca_signing_algorithm = master_install_only(ca_signing_algorithm)
+
+    skip_schema_check = knob(
+        None,
+        description="skip check for updated CA DS schema on the remote master",
+    )
+    skip_schema_check = enroll_only(skip_schema_check)
+    skip_schema_check = replica_install_only(skip_schema_check)
