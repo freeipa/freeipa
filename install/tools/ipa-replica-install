@@ -18,17 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ipapython.install import cli
-from ipaplatform.paths import paths
-from ipaserver.install.server import Replica
+from ipaserver.install import ipa_replica_install
 
-
-ReplicaInstall = cli.install_tool(
-    Replica,
-    command_name='ipa-replica-install',
-    log_file_name=paths.IPAREPLICA_INSTALL_LOG,
-    debug_option=True,
-)
-
-
-ReplicaInstall.run_cli()
+ipa_replica_install.run()

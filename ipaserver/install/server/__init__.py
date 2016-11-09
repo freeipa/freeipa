@@ -15,7 +15,10 @@ import random
 from ipaclient.install import client
 from ipalib import constants
 from ipalib.install.service import (enroll_only,
+                                    installs_master,
+                                    installs_replica,
                                     master_install_only,
+                                    prepares,
                                     prepare_only,
                                     replica_install_only)
 from ipalib.util import validate_domain_name
@@ -23,11 +26,17 @@ from ipapython import ipautil
 from ipapython.dnsutil import check_zone_overlap
 from ipapython.install import typing
 from ipapython.install.core import knob
+from ipapython.install.common import step
 
 from .install import validate_admin_password, validate_dm_password
-from .install import Server
-from .replicainstall import Replica
-
+from .install import init as master_init
+from .install import install as master_install
+from .install import install_check as master_install_check
+from .install import uninstall, uninstall_check
+from .replicainstall import init as replica_init
+from .replicainstall import install as replica_install
+from .replicainstall import install_check as replica_install_check
+from .replicainstall import promote_check as replica_promote_check
 from .upgrade import upgrade_check, upgrade
 
 from .. import ca, conncheck, dns, kra
@@ -538,3 +547,56 @@ class ServerInstallInterface(client.ClientInstallInterface,
 
         # Automatically disable pkinit w/ dogtag until that is supported
         self.no_pkinit = True
+
+
+class ServerMasterInstall(installs_master(ServerInstallInterface)):
+    """
+    Server master installer
+    """
+
+    domain_name = None
+    servers = None
+    dm_password = None
+    no_wait_for_dns = True
+    admin_password = None
+    host_password = None
+    keytab = None
+    setup_ca = True
+    setup_kra = False
+
+    def __init__(self, **kwargs):
+        super(ServerMasterInstall, self).__init__(**kwargs)
+        master_init(self)
+
+    @step()
+    def main(self):
+        master_install_check(self)
+        yield
+        master_install(self)
+
+    @main.uninstaller
+    def main(self):
+        uninstall_check(self)
+        yield
+        uninstall(self)
+
+
+class ServerReplicaInstall(installs_replica(ServerInstallInterface)):
+    """
+    Server replica installer
+    """
+
+    subject = None
+
+    def __init__(self, **kwargs):
+        super(ServerReplicaInstall, self).__init__(**kwargs)
+        replica_init(self)
+
+    @step()
+    def main(self):
+        if self.replica_file is None:
+            replica_promote_check(self)
+        else:
+            replica_install_check(self)
+        yield
+        replica_install(self)
