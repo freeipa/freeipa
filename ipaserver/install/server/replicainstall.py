@@ -127,22 +127,22 @@ def install_krb(config, setup_pkinit=False, promote=False):
     return krb
 
 
-def install_ca_cert(ldap, base_dn, realm, cafile):
+def install_ca_cert(ldap, base_dn, realm, cafile, destfile=paths.IPA_CA_CRT):
     try:
         try:
             certs = certstore.get_ca_certs(ldap, base_dn, realm, False)
         except errors.NotFound:
             try:
-                shutil.copy(cafile, paths.IPA_CA_CRT)
+                shutil.copy(cafile, destfile)
             except shutil.Error:
                 # cafile == IPA_CA_CRT
                 pass
         else:
             certs = [c[0] for c in certs if c[2] is not False]
-            x509.write_certificate_list(certs, paths.IPA_CA_CRT)
+            x509.write_certificate_list(certs, destfile)
     except Exception as e:
         raise ScriptError("error copying files: " + str(e))
-    return paths.IPA_CA_CRT
+    return destfile
 
 
 def install_http(config, auto_redirect, ca_is_configured, ca_file,

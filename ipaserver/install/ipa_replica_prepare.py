@@ -34,6 +34,7 @@ from six.moves.configparser import SafeConfigParser
 
 from ipaserver.install import certs, installutils, bindinstance, dsinstance
 from ipaserver.install.replication import enable_replication_version_checking
+from ipaserver.install.server.replicainstall import install_ca_cert
 from ipaserver.install.bindinstance import (
     add_zone, add_fwd_rr, add_ptr_rr, dns_container_exists)
 from ipapython import ipautil, admintool
@@ -356,6 +357,7 @@ class ReplicaPrepare(admintool.AdminTool):
             if options.setup_pkinit:
                 self.copy_pkinit_certificate()
 
+            self.retrieve_ca_certs()
             self.copy_misc_files()
 
             self.save_config()
@@ -443,11 +445,16 @@ class ReplicaPrepare(admintool.AdminTool):
     def copy_misc_files(self):
         self.log.info("Copying additional files")
 
-        self.copy_info_file(CACERT, "ca.crt")
         cacert_filename = paths.CACERT_PEM
         if ipautil.file_exists(cacert_filename):
             self.copy_info_file(cacert_filename, "cacert.pem")
         self.copy_info_file(paths.IPA_DEFAULT_CONF, "default.conf")
+
+    def retrieve_ca_certs(self):
+        self.log.info("Retrieving CA certificates")
+        dest = os.path.join(self.dir, "ca.crt")
+        install_ca_cert(api.Backend.ldap2, api.env.basedn,
+                        api.env.realm, paths.IPA_CA_CRT, destfile=dest)
 
     def save_config(self):
         self.log.info("Finalizing configuration")
