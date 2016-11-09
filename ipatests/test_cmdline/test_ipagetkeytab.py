@@ -28,6 +28,7 @@ import gssapi
 import pytest
 
 from ipalib import api
+from ipaplatform.paths import paths
 from ipapython import ipautil, ipaldap
 from ipaserver.plugins.ldap2 import ldap2
 from ipatests.test_cmdline.cmdline import cmdline_test
@@ -211,7 +212,7 @@ class TestBindMethods(KeytabRetrievalTest):
 
         os.close(tempfd)
 
-        shutil.copy(os.path.join(api.env.confdir, 'ca.crt'), temp_ca_cert)
+        shutil.copy(os.path.join(paths.IPA_CA_CRT), temp_ca_cert)
 
         cls.ca_cert = temp_ca_cert
 
