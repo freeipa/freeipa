@@ -27,6 +27,7 @@ libtool
 build/
 compile
 test-driver
+freeipa-*.tar.gz
 
 # Python compilation
 *.pyc
