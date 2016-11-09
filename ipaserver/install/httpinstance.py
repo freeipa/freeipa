@@ -416,7 +416,8 @@ class HTTPInstance(service.Service):
         attr_name = 'kdcProxyEnabled'
 
         try:
-            entry = self.admin_conn.get_entry(entry_name, ['ipaConfigString'])
+            entry = api.Backend.ldap2.get_entry(
+                entry_name, ['ipaConfigString'])
         except errors.NotFound:
             pass
         else:
@@ -427,7 +428,7 @@ class HTTPInstance(service.Service):
 
             entry.setdefault('ipaConfigString', []).append(attr_name)
             try:
-                self.admin_conn.update_entry(entry)
+                api.Backend.ldap2.update_entry(entry)
             except errors.EmptyModlist:
                 root_logger.debug("service KDCPROXY already enabled")
                 return
@@ -438,7 +439,7 @@ class HTTPInstance(service.Service):
             root_logger.debug("service KDCPROXY enabled")
             return
 
-        entry = self.admin_conn.make_entry(
+        entry = api.Backend.ldap2.make_entry(
             entry_name,
             objectclass=["nsContainer", "ipaConfigObject"],
             cn=['KDC'],
@@ -446,7 +447,7 @@ class HTTPInstance(service.Service):
         )
 
         try:
-            self.admin_conn.add_entry(entry)
+            api.Backend.ldap2.add_entry(entry)
         except errors.DuplicateEntry:
             root_logger.debug("failed to add service KDCPROXY entry")
             raise

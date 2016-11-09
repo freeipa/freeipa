@@ -846,10 +846,10 @@ class BindInstance(service.Service):
         self.__add_master_records(self.fqdn, self.ip_addresses)
 
     def __add_others(self):
-        entries = self.admin_conn.get_entries(
+        entries = api.Backend.ldap2.get_entries(
             DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
                self.suffix),
-            self.admin_conn.SCOPE_ONELEVEL, None, ['dn'])
+            api.Backend.ldap2.SCOPE_ONELEVEL, None, ['dn'])
 
         for entry in entries:
             fqdn = entry.dn[0]['cn']
@@ -888,7 +888,7 @@ class BindInstance(service.Service):
         mod = [(ldap.MOD_ADD, 'member', dns_principal)]
 
         try:
-            self.admin_conn.modify_s(dns_group, mod)
+            api.Backend.ldap2.modify_s(dns_group, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
         except Exception as e:
@@ -903,7 +903,7 @@ class BindInstance(service.Service):
                (ldap.MOD_REPLACE, 'nsIdleTimeout', '-1'),
                (ldap.MOD_REPLACE, 'nsLookThroughLimit', '-1')]
         try:
-            self.admin_conn.modify_s(dns_principal, mod)
+            api.Backend.ldap2.modify_s(dns_principal, mod)
         except Exception as e:
             root_logger.critical("Could not set principal's %s LDAP limits: %s" \
                     % (dns_principal, str(e)))
@@ -933,7 +933,7 @@ class BindInstance(service.Service):
         )
 
     def __setup_server_configuration(self):
-        ensure_dnsserver_container_exists(self.admin_conn, self.api)
+        ensure_dnsserver_container_exists(api.Backend.ldap2, self.api)
         try:
             self.api.Command.dnsserver_add(
                 self.fqdn, idnssoamname=DNSName(self.fqdn).make_absolute(),

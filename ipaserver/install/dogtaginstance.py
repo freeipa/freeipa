@@ -30,7 +30,7 @@ import pwd
 from pki.client import PKIConnection
 import pki.system
 
-from ipalib import errors
+from ipalib import api, errors
 
 from ipaplatform import services
 from ipaplatform.constants import constants
@@ -421,12 +421,12 @@ class DogtagInstance(service.Service):
 
     def __add_admin_to_group(self, group):
         dn = DN(('cn', group), ('ou', 'groups'), ('o', 'ipaca'))
-        entry = self.admin_conn.get_entry(dn)
+        entry = api.Backend.ldap2.get_entry(dn)
         members = entry.get('uniqueMember', [])
         members.append(self.admin_dn)
         mod = [(ldap.MOD_REPLACE, 'uniqueMember', members)]
         try:
-            self.admin_conn.modify_s(dn, mod)
+            api.Backend.ldap2.modify_s(dn, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
             # already there
             pass
@@ -439,12 +439,12 @@ class DogtagInstance(service.Service):
 
         # remove user if left-over exists
         try:
-            entry = self.admin_conn.delete_entry(self.admin_dn)
+            entry = api.Backend.ldap2.delete_entry(self.admin_dn)
         except errors.NotFound:
             pass
 
         # add user
-        entry = self.admin_conn.make_entry(
+        entry = api.Backend.ldap2.make_entry(
             self.admin_dn,
             objectclass=["top", "person", "organizationalPerson",
                          "inetOrgPerson", "cmsuser"],
@@ -456,7 +456,7 @@ class DogtagInstance(service.Service):
             userPassword=[self.admin_password],
             userstate=['1']
         )
-        self.admin_conn.add_entry(entry)
+        api.Backend.ldap2.add_entry(entry)
 
         for group in self.admin_groups:
             self.__add_admin_to_group(group)
@@ -472,7 +472,7 @@ class DogtagInstance(service.Service):
         dn = DN(('cn', group), ('ou', 'groups'), ('o', 'ipaca'))
         mod = [(ldap.MOD_DELETE, 'uniqueMember', self.admin_dn)]
         try:
-            self.admin_conn.modify_s(dn, mod)
+            api.Backend.ldap2.modify_s(dn, mod)
         except ldap.NO_SUCH_ATTRIBUTE:
             # already removed
             pass
@@ -480,7 +480,7 @@ class DogtagInstance(service.Service):
     def teardown_admin(self):
         for group in self.admin_groups:
             self.__remove_admin_from_group(group)
-        self.admin_conn.delete_entry(self.admin_dn)
+        api.Backend.ldap2.delete_entry(self.admin_dn)
 
     def _use_ldaps_during_spawn(self, config, ds_cacert=paths.IPA_CA_CRT):
         config.set(self.subsystem, "pki_ds_ldaps_port", "636")

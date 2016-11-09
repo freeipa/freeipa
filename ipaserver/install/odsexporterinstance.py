@@ -112,7 +112,7 @@ class ODSExporterInstance(service.Service):
         mod = [(ldap.MOD_ADD, 'member', dns_exporter_principal_dn)]
 
         try:
-            self.admin_conn.modify_s(dns_group, mod)
+            api.Backend.ldap2.modify_s(dns_group, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
         except Exception as e:
@@ -127,7 +127,7 @@ class ODSExporterInstance(service.Service):
                (ldap.MOD_REPLACE, 'nsIdleTimeout', '-1'),
                (ldap.MOD_REPLACE, 'nsLookThroughLimit', '-1')]
         try:
-            self.admin_conn.modify_s(dns_exporter_principal_dn, mod)
+            api.Backend.ldap2.modify_s(dns_exporter_principal_dn, mod)
         except Exception as e:
             root_logger.critical("Could not set principal's %s LDAP limits: %s"
                                  % (dns_exporter_principal_dn, str(e)))

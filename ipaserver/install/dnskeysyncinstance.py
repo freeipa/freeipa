@@ -266,7 +266,7 @@ class DNSKeySyncInstance(service.Service):
         keylabel = replica_keylabel_template % DNSName(self.fqdn).\
             make_absolute().canonicalize().ToASCII()
 
-        ldap = self.admin_conn
+        ldap = api.Backend.ldap2
         dn_base = DN(('cn', 'keys'), ('cn', 'sec'), ('cn', 'dns'), api.env.basedn)
 
         with open(paths.DNSSEC_SOFTHSM_PIN, "r") as f:
@@ -413,7 +413,7 @@ class DNSKeySyncInstance(service.Service):
         mod = [(ldap.MOD_ADD, 'member', dnssynckey_principal_dn)]
 
         try:
-            self.admin_conn.modify_s(dns_group, mod)
+            api.Backend.ldap2.modify_s(dns_group, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
         except Exception as e:
@@ -429,7 +429,7 @@ class DNSKeySyncInstance(service.Service):
                (ldap.MOD_REPLACE, 'nsIdleTimeout', '-1'),
                (ldap.MOD_REPLACE, 'nsLookThroughLimit', '-1')]
         try:
-            self.admin_conn.modify_s(dnssynckey_principal_dn, mod)
+            api.Backend.ldap2.modify_s(dnssynckey_principal_dn, mod)
         except Exception as e:
             self.logger.critical("Could not set principal's %s LDAP limits: %s"
                                  % (dnssynckey_principal_dn, str(e)))
