@@ -43,6 +43,9 @@ from ipalib import (
     x509,
 )
 from ipalib.constants import CACERT
+from ipalib.install import hostname as hostname_
+from ipalib.install import service
+from ipalib.install.service import enroll_only, prepare_only
 from ipalib.rpc import delete_persistent_client_session_data
 from ipalib.util import (
     broadcast_ip_address_warning,
@@ -62,6 +65,8 @@ from ipapython import (
 )
 from ipapython.admintool import ScriptError
 from ipapython.dn import DN
+from ipapython.install import typing
+from ipapython.install.core import knob
 from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import (
     CalledProcessError,
@@ -73,6 +78,10 @@ from ipapython.ipautil import (
     user_input,
 )
 from ipapython.ssh import SSHPublicKey
+
+from . import automount
+
+NoneType = type(None)
 
 SUCCESS = 0
 CLIENT_INSTALL_ERROR = 1
@@ -3298,3 +3307,188 @@ def uninstall(options):
 
     if rv:
         raise ScriptError(rval=rv)
+
+
+class ClientInstallInterface(hostname_.HostNameInstallInterface,
+                             service.ServiceAdminInstallInterface):
+    """
+    Interface of the client installer
+
+    Knobs defined here will be available in:
+    * ipa-client-install
+    * ipa-server-install
+    * ipa-replica-prepare
+    * ipa-replica-install
+    """
+
+    fixed_primary = knob(
+        None,
+        description="Configure sssd to use fixed server as primary IPA server",
+    )
+    fixed_primary = enroll_only(fixed_primary)
+
+    principal = knob(
+        bases=service.ServiceAdminInstallInterface.principal,
+        description="principal to use to join the IPA realm",
+    )
+    principal = enroll_only(principal)
+
+    host_password = knob(
+        str, None,
+        sensitive=True,
+    )
+    host_password = enroll_only(host_password)
+
+    keytab = knob(
+        str, None,
+        description="path to backed up keytab from previous enrollment",
+        cli_names=[None, '-k'],
+    )
+    keytab = enroll_only(keytab)
+
+    mkhomedir = knob(
+        None,
+        description="create home directories for users on their first login",
+    )
+    mkhomedir = enroll_only(mkhomedir)
+
+    force_join = knob(
+        None,
+        description="Force client enrollment even if already enrolled",
+    )
+    force_join = enroll_only(force_join)
+
+    ntp_servers = knob(
+        # pylint: disable=invalid-sequence-index
+        typing.List[str], None,
+        description="ntp server to use. This option can be used multiple "
+                    "times",
+        cli_names='--ntp-server',
+        cli_metavar='NTP_SERVER',
+    )
+    ntp_servers = enroll_only(ntp_servers)
+
+    no_ntp = knob(
+        None,
+        description="do not configure ntp",
+        cli_names=[None, '-N'],
+    )
+    no_ntp = enroll_only(no_ntp)
+
+    force_ntpd = knob(
+        None,
+        description="Stop and disable any time&date synchronization services "
+                    "besides ntpd",
+    )
+    force_ntpd = enroll_only(force_ntpd)
+
+    nisdomain = knob(
+        str, None,
+        description="NIS domain name",
+    )
+    nisdomain = enroll_only(nisdomain)
+
+    no_nisdomain = knob(
+        None,
+        description="do not configure NIS domain name",
+    )
+    no_nisdomain = enroll_only(no_nisdomain)
+
+    ssh_trust_dns = knob(
+        None,
+        description="configure OpenSSH client to trust DNS SSHFP records",
+    )
+    ssh_trust_dns = enroll_only(ssh_trust_dns)
+
+    no_ssh = knob(
+        None,
+        description="do not configure OpenSSH client",
+    )
+    no_ssh = enroll_only(no_ssh)
+
+    no_sshd = knob(
+        None,
+        description="do not configure OpenSSH server",
+    )
+    no_sshd = enroll_only(no_sshd)
+
+    no_sudo = knob(
+        None,
+        description="do not configure SSSD as data source for sudo",
+    )
+    no_sudo = enroll_only(no_sudo)
+
+    no_dns_sshfp = knob(
+        None,
+        description="do not automatically create DNS SSHFP records",
+    )
+    no_dns_sshfp = enroll_only(no_dns_sshfp)
+
+    kinit_attempts = knob(
+        int, 5,
+        description="number of attempts to obtain host TGT (defaults to 5).",
+    )
+    kinit_attempts = enroll_only(kinit_attempts)
+
+    @kinit_attempts.validator
+    def kinit_attempts(self, value):
+        if value < 1:
+            raise ValueError("expects an integer greater than 0.")
+
+    request_cert = knob(
+        None,
+        description="request certificate for the machine",
+    )
+    request_cert = prepare_only(request_cert)
+
+    permit = knob(
+        None,
+        description="disable access rules by default, permit all access.",
+    )
+    permit = enroll_only(permit)
+
+    enable_dns_updates = knob(
+        None,
+        description="Configures the machine to attempt dns updates when the "
+                    "ip address changes.",
+    )
+    enable_dns_updates = enroll_only(enable_dns_updates)
+
+    no_krb5_offline_passwords = knob(
+        None,
+        description="Configure SSSD not to store user password when the "
+                    "server is offline",
+    )
+    no_krb5_offline_passwords = enroll_only(no_krb5_offline_passwords)
+
+    preserve_sssd = knob(
+        None,
+        description="Preserve old SSSD configuration if possible",
+    )
+    preserve_sssd = enroll_only(preserve_sssd)
+
+    def __init__(self, **kwargs):
+        super(ClientInstallInterface, self).__init__(**kwargs)
+
+        if self.servers and not self.domain_name:
+            raise RuntimeError(
+                "--server cannot be used without providing --domain")
+
+        if self.force_ntpd and self.no_ntp:
+            raise RuntimeError(
+                "--force-ntpd cannot be used together with --no-ntp")
+
+        if self.no_nisdomain and self.nisdomain:
+            raise RuntimeError(
+                "--no-nisdomain cannot be used together with --nisdomain")
+
+        if self.ip_addresses:
+            if self.enable_dns_updates:
+                raise RuntimeError(
+                    "--ip-address cannot be used together with"
+                    " --enable-dns-updates")
+
+            if self.all_ip_addresses:
+                raise RuntimeError(
+                    "--ip-address cannot be used together with"
+                    "--all-ip-addresses")

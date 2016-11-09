@@ -2,6 +2,10 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+"""
+KRA installer module
+"""
+
 import os
 import shutil
 
@@ -15,7 +19,9 @@ from ipaserver.install import custodiainstance
 from ipaserver.install import cainstance
 from ipaserver.install import krainstance
 from ipaserver.install import dsinstance
-from ipaserver.install import service
+from ipaserver.install import service as _service
+
+from . import dogtag
 
 
 def install_check(api, replica_config, options):
@@ -109,7 +115,7 @@ def install(api, replica_config, options):
                            ra_only=ra_only,
                            promote=promote)
 
-    service.print_msg("Restarting the directory server")
+    _service.print_msg("Restarting the directory server")
     ds = dsinstance.DsInstance()
     ds.restart()
 
@@ -134,3 +140,15 @@ def uninstall(standalone):
     kra.stop_tracking_certificates(stop_certmonger=not standalone)
     if kra.is_installed():
         kra.uninstall()
+
+
+class KRAInstallInterface(dogtag.DogtagInstallInterface):
+    """
+    Interface of the KRA installer
+
+    Knobs defined here will be available in:
+    * ipa-server-install
+    * ipa-replica-prepare
+    * ipa-replica-install
+    * ipa-kra-install
+    """

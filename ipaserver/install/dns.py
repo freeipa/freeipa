@@ -2,11 +2,19 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+"""
+DNS installer module
+"""
+
 from __future__ import absolute_import
 from __future__ import print_function
 
+import enum
+
 # absolute import is necessary because IPA module dns clashes with python-dns
 from dns import resolver
+import six
+
 import sys
 
 from subprocess import CalledProcessError
@@ -14,6 +22,8 @@ from subprocess import CalledProcessError
 from ipalib import api
 from ipalib import errors
 from ipalib import util
+from ipalib.install import hostname
+from ipalib.install.service import enroll_only, prepare_only
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants
 from ipaplatform import services
@@ -21,6 +31,9 @@ from ipapython import ipautil
 from ipapython import sysrestore
 from ipapython import dnsutil
 from ipapython.dn import DN
+from ipapython.dnsutil import check_zone_overlap
+from ipapython.install import typing
+from ipapython.install.core import knob
 from ipapython.ipa_log_manager import root_logger
 from ipapython.admintool import ScriptError
 from ipapython.ipautil import user_input
@@ -31,6 +44,9 @@ from ipaserver.install import bindinstance
 from ipaserver.install import dnskeysyncinstance
 from ipaserver.install import odsexporterinstance
 from ipaserver.install import opendnssecinstance
+
+if six.PY3:
+    unicode = str
 
 ip_addresses = []
 reverse_zones = []
@@ -392,3 +408,119 @@ def uninstall():
     dnskeysync = dnskeysyncinstance.DNSKeySyncInstance(fstore)
     if dnskeysync.is_configured():
         dnskeysync.uninstall()
+
+
+class DNSForwardPolicy(enum.Enum):
+    ONLY = 'only'
+    FIRST = 'first'
+
+
+class DNSInstallInterface(hostname.HostNameInstallInterface):
+    """
+    Interface of the DNS installer
+
+    Knobs defined here will be available in:
+    * ipa-server-install
+    * ipa-replica-prepare
+    * ipa-replica-install
+    * ipa-dns-install
+    """
+
+    allow_zone_overlap = knob(
+        None,
+        description="Create DNS zone even if it already exists",
+    )
+    allow_zone_overlap = prepare_only(allow_zone_overlap)
+
+    reverse_zones = knob(
+        # pylint: disable=invalid-sequence-index
+        typing.List[str], [],
+        description=("The reverse DNS zone to use. This option can be used "
+                     "multiple times"),
+        cli_names='--reverse-zone',
+        cli_metavar='REVERSE_ZONE',
+    )
+    reverse_zones = prepare_only(reverse_zones)
+
+    @reverse_zones.validator
+    def reverse_zones(self, values):
+        if not self.allow_zone_overlap:
+            for zone in values:
+                check_zone_overlap(zone)
+
+    no_reverse = knob(
+        None,
+        description="Do not create new reverse DNS zone",
+    )
+    no_reverse = prepare_only(no_reverse)
+
+    auto_reverse = knob(
+        None,
+        description="Create necessary reverse zones",
+    )
+    auto_reverse = prepare_only(auto_reverse)
+
+    zonemgr = knob(
+        str, None,
+        description=("DNS zone manager e-mail address. Defaults to "
+                     "hostmaster@DOMAIN"),
+    )
+    zonemgr = prepare_only(zonemgr)
+
+    @zonemgr.validator
+    def zonemgr(self, value):
+        # validate the value first
+        try:
+            # IDNA support requires unicode
+            encoding = getattr(sys.stdin, 'encoding', None)
+            if encoding is None:
+                encoding = 'utf-8'
+            value = value.decode(encoding)
+            bindinstance.validate_zonemgr_str(value)
+        except ValueError as e:
+            # FIXME we can do this in better way
+            # https://fedorahosted.org/freeipa/ticket/4804
+            # decode to proper stderr encoding
+            stderr_encoding = getattr(sys.stderr, 'encoding', None)
+            if stderr_encoding is None:
+                stderr_encoding = 'utf-8'
+            error = unicode(e).encode(stderr_encoding)
+            raise ValueError(error)
+
+    forwarders = knob(
+        # pylint: disable=invalid-sequence-index
+        typing.List[ipautil.CheckedIPAddress], None,
+        description=("Add a DNS forwarder. This option can be used multiple "
+                     "times"),
+        cli_names='--forwarder',
+    )
+    forwarders = enroll_only(forwarders)
+
+    no_forwarders = knob(
+        None,
+        description="Do not add any DNS forwarders, use root servers instead",
+    )
+    no_forwarders = enroll_only(no_forwarders)
+
+    auto_forwarders = knob(
+        None,
+        description="Use DNS forwarders configured in /etc/resolv.conf",
+    )
+    auto_forwarders = enroll_only(auto_forwarders)
+
+    forward_policy = knob(
+        DNSForwardPolicy, None,
+        description=("DNS forwarding policy for global forwarders"),
+    )
+    forward_policy = enroll_only(forward_policy)
+
+    no_dnssec_validation = knob(
+        None,
+        description="Disable DNSSEC validation",
+    )
+    no_dnssec_validation = enroll_only(no_dnssec_validation)
+
+    dnssec_master = False
+    disable_dnssec_master = False
+    kasp_db_file = None
+    force = False
