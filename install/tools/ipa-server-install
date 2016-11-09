@@ -20,18 +20,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ipapython.install import cli
-from ipaplatform.paths import paths
-from ipaserver.install.server import Server
+from ipaserver.install import ipa_server_install
 
-
-ServerInstall = cli.install_tool(
-    Server,
-    command_name='ipa-server-install',
-    log_file_name=paths.IPASERVER_INSTALL_LOG,
-    debug_option=True,
-    uninstall_log_file_name=paths.IPASERVER_UNINSTALL_LOG,
-)
-
-
-ServerInstall.run_cli()
+ipa_server_install.run()
