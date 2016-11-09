@@ -4,8 +4,7 @@ MOSTLYCLEANFILES = ipasetup.pyc ipasetup.pyo \
 		   ignore_import_errors.pyc ignore_import_errors.pyo \
 		   ipasetup.pyc ipasetup.pyo \
 		   lite-server.pyc lite-server.pyo \
-		   pylint_plugins.pyc pylint_plugins.pyo \
-		   $(TARBALL)
+		   pylint_plugins.pyc pylint_plugins.pyo
 
 # user-facing scripts
 dist_bin_SCRIPTS = ipa
@@ -34,8 +33,12 @@ clean-local:
 	rm -rf "$(RPMBUILD)"
 	rm -rf "$(top_builddir)/dist"
 	rm -rf "$(top_srcdir)/__pycache__"
+	rm -f "$(top_builddir)"/$(PACKAGE)-*.tar.gz
+
 
 # convenience targets for RPM build
+.PHONY: rpmroot rpmdistdir version-update _dist-version-bakein _rpms-prep \
+	rpms _rpms-body
 RPMBUILD ?= $(abs_builddir)/rpmbuild
 TARBALL = $(PACKAGE)-$(VERSION).tar.gz
 rpmroot:
@@ -49,11 +52,47 @@ rpmdistdir:
 	mkdir -p $(top_builddir)/dist/rpms
 	mkdir -p $(top_builddir)/dist/srpms
 
-rpms: dist-gzip rpmroot rpmdistdir
-	cp $(top_builddir)/$(TARBALL) $(RPMBUILD)/SOURCES/
+# force IPA version re-generation (useful for build from Git)
+version-update:
+	touch $(srcdir)/VERSION.m4
+
+# convert Git snapshot version to static value usable from inside of tarball
+_dist-version-bakein:
+if !IS_GIT_SNAPSHOT
+	@echo "version-bakein target requires IPA_VERSION_IS_GIT_SNAPSHOT=yes"
+	exit 1
+endif !IS_GIT_SNAPSHOT
+	chmod u+w $(top_distdir)/VERSION.m4
+	$(SED) -e 's/^define(IPA_VERSION_IS_GIT_SNAPSHOT,.*)/define(IPA_VERSION_IS_GIT_SNAPSHOT, no)/' -i $(top_distdir)/VERSION.m4
+	$(SED) -e 's/^define(IPA_VERSION_PRE_RELEASE,\(.*\))/define(IPA_VERSION_PRE_RELEASE,\1.$(GIT_VERSION))/' -i $(top_distdir)/VERSION.m4
+	cd $(top_distdir) && autoconf  # re-generate configure from VERSION.m4
+
+if IS_GIT_SNAPSHOT
+VERSION_UPDATE_TARGET = version-update
+VERSION_BAKEIN_TARGET = _dist-version-bakein
+endif IS_GIT_SNAPSHOT
+
+# HACK to support IPA_VERSION_IS_GIT_SNAPSHOT:
+# touch VERSION.m4 will reexecute configure and change $(VERSION) used by dist
+# but it will not change $(VERSION) in already running target rpms.
+# We need to record new $(TARBALL) value used by dist for furher use
+# in rpms target.
+dist-hook: $(VERSION_BAKEIN_TARGET)
+	echo "$(TARBALL)" > $(top_builddir)/.tarball_name
+	echo "$(VERSION)" > $(top_builddir)/.version
+
+_rpms-prep: dist-gzip rpmroot rpmdistdir
+	cp $(top_builddir)/$$(cat $(top_builddir)/.tarball_name) $(RPMBUILD)/SOURCES/
+	rm -f $(top_builddir)/.tarball_name
+
+rpms: $(VERSION_UPDATE_TARGET)
+	$(MAKE) _rpms-body
+
+_rpms-body: _rpms-prep
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba $(top_builddir)/$(PACKAGE).spec
-	cp $(RPMBUILD)/RPMS/*/*.rpm $(top_builddir)/dist/rpms/
-	cp $(RPMBUILD)/SRPMS/*.src.rpm $(top_builddir)/dist/srpms/
+	cp $(RPMBUILD)/RPMS/*/*$$(cat $(top_builddir)/.version)*.rpm $(top_builddir)/dist/rpms/
+	cp $(RPMBUILD)/SRPMS/*$$(cat $(top_builddir)/.version)*.src.rpm $(top_builddir)/dist/srpms/
+	rm -f rm -f $(top_builddir)/.version
 
 .PHONY: lint
 if WITH_POLINT

@@ -28,6 +28,8 @@ build/
 compile
 test-driver
 freeipa-*.tar.gz
+.tarball_name
+.version
 
 # Python compilation
 *.pyc

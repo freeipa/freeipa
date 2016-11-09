@@ -372,6 +372,7 @@ AC_SUBST([DATA_VERSION], [IPA_DATA_VERSION])
 AC_SUBST([NUM_VERSION], [IPA_NUM_VERSION])
 AC_SUBST(VENDOR_SUFFIX)
 AC_SUBST([VERSION], [IPA_VERSION])
+AC_SUBST([GIT_VERSION], [IPA_GIT_VERSION])
 
 dnl ---------------------------------------------------------------------------
 dnl Finish
