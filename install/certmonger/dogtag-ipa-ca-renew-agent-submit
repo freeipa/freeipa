@@ -476,6 +476,7 @@ def main():
 
     api.bootstrap(in_server=True, context='renew')
     api.finalize()
+    api.Backend.ldap2.connect()
 
     operation = os.environ.get('CERTMONGER_OPERATION')
     if operation not in ('SUBMIT', 'POLL'):
@@ -506,6 +507,8 @@ def main():
     finally:
         certs.renewal_lock.release()
         shutil.rmtree(tmpdir)
+        api.Backend.ldap2.disconnect()
+
 
 try:
     sys.exit(main())

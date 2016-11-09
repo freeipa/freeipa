@@ -39,6 +39,7 @@ def _main():
 
     api.bootstrap(in_server=True, context='restart')
     api.finalize()
+    api.Backend.ldap2.connect()
 
     tmpdir = tempfile.mkdtemp(prefix="tmp-")
     try:
@@ -65,6 +66,7 @@ def _main():
             krainstance.export_kra_agent_pem()
     finally:
         shutil.rmtree(tmpdir)
+        api.Backend.ldap2.disconnect()
 
     # Now restart Apache so the new certificate is available
     syslog.syslog(syslog.LOG_NOTICE, "Restarting httpd")
