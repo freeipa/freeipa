@@ -1,6 +1,11 @@
 SUBDIRS = asn1 util client contrib daemons init install ipaclient ipalib ipaplatform ipapython ipaserver ipatests po
 
-MOSTLYCLEANFILES = ipasetup.pyc ipasetup.pyo
+MOSTLYCLEANFILES = ipasetup.pyc ipasetup.pyo \
+		   ignore_import_errors.pyc ignore_import_errors.pyo \
+		   ipasetup.pyc ipasetup.pyo \
+		   lite-server.pyc lite-server.pyo \
+		   pylint_plugins.pyc pylint_plugins.pyo \
+		   $(TARBALL)
 
 # user-facing scripts
 dist_bin_SCRIPTS = ipa
@@ -24,6 +29,11 @@ EXTRA_DIST = .mailmap \
 	     doc \
 	     pylintrc \
 	     pytest.ini
+
+clean-local:
+	rm -rf "$(RPMBUILD)"
+	rm -rf "$(top_builddir)/dist"
+	rm -rf "$(top_srcdir)/__pycache__"
 
 # convenience targets for RPM build
 RPMBUILD ?= $(abs_builddir)/rpmbuild
