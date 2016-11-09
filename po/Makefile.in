@@ -5,7 +5,6 @@ datadir = ${datarootdir}
 localedir = ${datarootdir}/locale
 
 INSTALL = @INSTALL@
-INSTALL_DATA = @INSTALL@ -m 644
 AWK = @AWK@
 SED = @SED@
 MKDIR_P = @MKDIR_P@

@@ -17,9 +17,6 @@ AC_HEADER_STDC
 
 AM_CONDITIONAL([HAVE_GCC], [test "$ac_cv_prog_gcc" = yes])
 
-AC_SUBST(VERSION)
-AC_SUBST([INSTALL_DATA], ['$(INSTALL) -m 644 -p'])
-
 dnl ---------------------------------------------------------------------------
 dnl - Check for NSPR/NSS
 dnl ---------------------------------------------------------------------------
@@ -359,7 +356,6 @@ AC_ARG_WITH([vendor-suffix],
             [VENDOR_SUFFIX=${withval}],
 	    [VENDOR_SUFFIX=""])
 
-dnl TODO: IPA_VENDOR_RELEASE
 AC_SUBST([API_VERSION], [IPA_API_VERSION])
 AC_SUBST([DATA_VERSION], [IPA_DATA_VERSION])
 AC_SUBST([NUM_VERSION], [IPA_NUM_VERSION])
