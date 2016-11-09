@@ -1602,12 +1602,16 @@ class ReplicationManager(object):
             entry['nsDS5ReplicaBindDN'].remove(replica_binddn)
         conn.update_entry(entry)
 
-    def setup_promote_replication(self, r_hostname):
+    def setup_promote_replication(self, r_hostname, r_binddn=None,
+                                  r_bindpw=None, cacert=CACERT):
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
         ldap_uri = ipaldap.get_ldap_uri(r_hostname)
-        r_conn = ipaldap.LDAPClient(ldap_uri)
-        r_conn.gssapi_bind()
+        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=cacert)
+        if r_bindpw:
+            r_conn.simple_bind(r_binddn, r_bindpw)
+        else:
+            r_conn.gssapi_bind()
 
         # Setup the first half
         l_id = self._get_replica_id(self.conn, r_conn)
