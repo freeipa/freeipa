@@ -350,6 +350,17 @@ AC_MSG_RESULT([${IPAPLATFORM}])
 dnl ---------------------------------------------------------------------------
 dnl Version information from VERSION.m4 and command line
 dnl ---------------------------------------------------------------------------
+dnl Are we in source tree?
+AM_CONDITIONAL([IS_GIT_SNAPSHOT], [test "IPA_VERSION_IS_GIT_SNAPSHOT" == "yes"])
+AM_COND_IF([IS_GIT_SNAPSHOT], [
+	AC_MSG_CHECKING([if source directory is a Git reposistory])
+	if test ! -d "${srcdir}/.git"; then
+		AC_MSG_ERROR([Git reposistory is required by VERSION.m4 IPA_VERSION_IS_GIT_SNAPSHOT but not found])
+	else
+		AC_MSG_RESULT([yes])
+	fi
+])
+
 AC_ARG_WITH([vendor-suffix],
             AS_HELP_STRING([--with-vendor-suffix=STRING],
 			   [Vendor string used by package system, e.g. "-1.fc24"]),
