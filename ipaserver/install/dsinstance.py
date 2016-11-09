@@ -449,13 +449,13 @@ class DsInstance(service.Service):
         # they may conflict.
 
         try:
-            res = self.admin_conn.get_entries(
+            res = api.Backend.ldap2.get_entries(
                 DN(('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')),
-                self.admin_conn.SCOPE_ONELEVEL,
+                api.Backend.ldap2.SCOPE_ONELEVEL,
                 "(objectclass=nsSaslMapping)")
             for r in res:
                 try:
-                    self.admin_conn.delete_entry(r)
+                    api.Backend.ldap2.delete_entry(r)
                 except Exception as e:
                     root_logger.critical(
                         "Error during SASL mapping removal: %s", e)
@@ -464,7 +464,7 @@ class DsInstance(service.Service):
             root_logger.critical("Error while enumerating SASL mappings %s", e)
             raise
 
-        entry = self.admin_conn.make_entry(
+        entry = api.Backend.ldap2.make_entry(
             DN(
                 ('cn', 'Full Principal'), ('cn', 'mapping'), ('cn', 'sasl'),
                 ('cn', 'config')),
@@ -475,9 +475,9 @@ class DsInstance(service.Service):
             nsSaslMapFilterTemplate=['(krbPrincipalName=\\1@\\2)'],
             nsSaslMapPriority=['10'],
         )
-        self.admin_conn.add_entry(entry)
+        api.Backend.ldap2.add_entry(entry)
 
-        entry = self.admin_conn.make_entry(
+        entry = api.Backend.ldap2.make_entry(
             DN(
                 ('cn', 'Name Only'), ('cn', 'mapping'), ('cn', 'sasl'),
                 ('cn', 'config')),
@@ -488,7 +488,7 @@ class DsInstance(service.Service):
             nsSaslMapFilterTemplate=['(krbPrincipalName=&@%s)' % self.realm],
             nsSaslMapPriority=['10'],
         )
-        self.admin_conn.add_entry(entry)
+        api.Backend.ldap2.add_entry(entry)
 
     def __update_schema(self):
         # FIXME: https://fedorahosted.org/389/ticket/47490
@@ -1134,7 +1134,7 @@ class DsInstance(service.Service):
         """
         dn = DN('cn=IPA SIDGEN,cn=plugins,cn=config')
         try:
-            self.admin_conn.get_entry(dn)
+            api.Backend.ldap2.get_entry(dn)
         except errors.NotFound:
             self._ldap_mod('ipa-sidgen-conf.ldif', dict(SUFFIX=suffix))
         else:
@@ -1152,7 +1152,7 @@ class DsInstance(service.Service):
         """
         dn = DN('cn=ipa_extdom_extop,cn=plugins,cn=config')
         try:
-            self.admin_conn.get_entry(dn)
+            api.Backend.ldap2.get_entry(dn)
         except errors.NotFound:
             self._ldap_mod('ipa-extdom-extop-conf.ldif', dict(SUFFIX=suffix))
         else:

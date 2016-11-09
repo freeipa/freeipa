@@ -30,6 +30,7 @@ from ipaserver.install import service
 from ipaserver.install import installutils
 from ipapython import ipautil
 from ipapython import kernel_keyring
+from ipalib import api
 from ipalib.constants import CACERT
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
@@ -79,14 +80,14 @@ class KrbInstance(service.Service):
         """
 
         service_dn = DN(('krbprincipalname', principal), self.get_realm_suffix())
-        service_entry = self.admin_conn.get_entry(service_dn)
-        self.admin_conn.delete_entry(service_entry)
+        service_entry = api.Backend.ldap2.get_entry(service_dn)
+        api.Backend.ldap2.delete_entry(service_entry)
 
         # Create a host entry for this master
         host_dn = DN(
             ('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'),
             self.suffix)
-        host_entry = self.admin_conn.make_entry(
+        host_entry = api.Backend.ldap2.make_entry(
             host_dn,
             objectclass=[
                'top', 'ipaobject', 'nshost', 'ipahost', 'ipaservice',
@@ -108,7 +109,7 @@ class KrbInstance(service.Service):
                 'krbpasswordexpiration']
         if 'krbticketflags' in service_entry:
             host_entry['krbticketflags'] = service_entry['krbticketflags']
-        self.admin_conn.add_entry(host_entry)
+        api.Backend.ldap2.add_entry(host_entry)
 
         # Add the host to the ipaserver host group
         ld = ldapupdate.LDAPUpdate(ldapi=True)
@@ -359,9 +360,9 @@ class KrbInstance(service.Service):
         # Create the special anonymous principal
         installutils.kadmin_addprinc(princ_realm)
         dn = DN(('krbprincipalname', princ_realm), self.get_realm_suffix())
-        entry = self.admin_conn.get_entry(dn)
+        entry = api.Backend.ldap2.get_entry(dn)
         entry['nsAccountlock'] = ['TRUE']
-        self.admin_conn.update_entry(entry)
+        api.Backend.ldap2.update_entry(entry)
 
     def __convert_to_gssapi_replication(self):
         repl = replication.ReplicationManager(self.realm,

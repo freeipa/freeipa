@@ -82,7 +82,7 @@ class OpenDNSSECInstance(service.Service):
     suffix = ipautil.dn_attribute_property('_suffix')
 
     def get_masters(self):
-        return get_dnssec_key_masters(self.admin_conn)
+        return get_dnssec_key_masters(api.Backend.ldap2)
 
     def create_instance(self, fqdn, realm_name, generate_master_key=True,
                         kasp_db_file=None):
@@ -145,7 +145,7 @@ class OpenDNSSECInstance(service.Service):
         dn = DN(('cn', 'DNSSEC'), ('cn', self.fqdn), api.env.container_masters,
                 api.env.basedn)
         try:
-            entry = self.admin_conn.get_entry(dn, ['ipaConfigString'])
+            entry = api.Backend.ldap2.get_entry(dn, ['ipaConfigString'])
         except errors.NotFound as e:
             root_logger.error(
                 "DNSSEC service entry not found in the LDAP (%s)", e)
@@ -153,7 +153,7 @@ class OpenDNSSECInstance(service.Service):
             config = entry.setdefault('ipaConfigString', [])
             if KEYMASTER not in config:
                 config.append(KEYMASTER)
-                self.admin_conn.update_entry(entry)
+                api.Backend.ldap2.update_entry(entry)
 
     def __setup_conf_files(self):
         if not self.fstore.has_file(paths.OPENDNSSEC_CONF_FILE):

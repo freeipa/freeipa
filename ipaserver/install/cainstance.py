@@ -1100,8 +1100,8 @@ class CAInstance(DogtagInstance):
                 ('cn', 'etc'), api.env.basedn)
         renewal_filter = '(ipaConfigString=caRenewalMaster)'
         try:
-            self.admin_conn.get_entries(base_dn=dn, filter=renewal_filter,
-                                        attrs_list=[])
+            api.Backend.ldap2.get_entries(base_dn=dn, filter=renewal_filter,
+                                          attrs_list=[])
         except errors.NotFound:
             return False
 
@@ -1115,13 +1115,13 @@ class CAInstance(DogtagInstance):
                      api.env.basedn)
         filter = '(&(cn=CA)(ipaConfigString=caRenewalMaster))'
         try:
-            entries = self.admin_conn.get_entries(
+            entries = api.Backend.ldap2.get_entries(
                 base_dn=base_dn, filter=filter, attrs_list=['ipaConfigString'])
         except errors.NotFound:
             entries = []
 
         dn = DN(('cn', 'CA'), ('cn', fqdn), base_dn)
-        master_entry = self.admin_conn.get_entry(dn, ['ipaConfigString'])
+        master_entry = api.Backend.ldap2.get_entry(dn, ['ipaConfigString'])
 
         for entry in entries:
             if master_entry is not None and entry.dn == master_entry.dn:
@@ -1130,11 +1130,11 @@ class CAInstance(DogtagInstance):
 
             entry['ipaConfigString'] = [x for x in entry['ipaConfigString']
                                         if x.lower() != 'carenewalmaster']
-            self.admin_conn.update_entry(entry)
+            api.Backend.ldap2.update_entry(entry)
 
         if master_entry is not None:
             master_entry['ipaConfigString'].append('caRenewalMaster')
-            self.admin_conn.update_entry(master_entry)
+            api.Backend.ldap2.update_entry(master_entry)
 
     @staticmethod
     def update_cert_config(nickname, cert):
@@ -1173,25 +1173,25 @@ class CAInstance(DogtagInstance):
 
         # replication
         dn = DN(('cn', str(suffix)), ('cn', 'mapping tree'), ('cn', 'config'))
-        entry = self.admin_conn.make_entry(
+        entry = api.Backend.ldap2.make_entry(
             dn,
             objectclass=["top", "extensibleObject", "nsMappingTree"],
             cn=[suffix],
         )
         entry['nsslapd-state'] = ['Backend']
         entry['nsslapd-backend'] = [backend]
-        self.admin_conn.add_entry(entry)
+        api.Backend.ldap2.add_entry(entry)
 
         # database
         dn = DN(('cn', 'ipaca'), ('cn', 'ldbm database'), ('cn', 'plugins'),
                 ('cn', 'config'))
-        entry = self.admin_conn.make_entry(
+        entry = api.Backend.ldap2.make_entry(
             dn,
             objectclass=["top", "extensibleObject", "nsBackendInstance"],
             cn=[backend],
         )
         entry['nsslapd-suffix'] = [suffix]
-        self.admin_conn.add_entry(entry)
+        api.Backend.ldap2.add_entry(entry)
 
     def __setup_replication(self):
 
@@ -1268,7 +1268,7 @@ class CAInstance(DogtagInstance):
 
     def __add_lightweight_ca_tracking_requests(self):
         try:
-            lwcas = self.admin_conn.get_entries(
+            lwcas = api.Backend.ldap2.get_entries(
                 base_dn=api.env.basedn,
                 filter='(objectclass=ipaca)',
                 attrs_list=['cn', 'ipacaid'],

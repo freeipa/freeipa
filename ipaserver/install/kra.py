@@ -131,9 +131,10 @@ def uninstall(standalone):
 
     if standalone:
         try:
-            kra.admin_conn.delete_entry(DN(('cn', 'KRA'), ('cn', api.env.host),
-                                           ('cn', 'masters'), ('cn', 'ipa'),
-                                           ('cn', 'etc'), api.env.basedn))
+            api.Backend.ldap2.delete_entry(
+                DN(('cn', 'KRA'), ('cn', api.env.host),
+                   ('cn', 'masters'), ('cn', 'ipa'),
+                   ('cn', 'etc'), api.env.basedn))
         except errors.NotFound:
             pass
 

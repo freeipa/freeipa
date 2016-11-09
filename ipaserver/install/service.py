@@ -170,13 +170,6 @@ class Service(object):
         self.promote = False
 
     @property
-    def admin_conn(self):
-        """
-        alias for api.Backend.ldap2
-        """
-        return api.Backend.ldap2
-
-    @property
     def principal(self):
         if any(attr is None for attr in (self.realm, self.fqdn,
                                          self.service_prefix)):
@@ -209,7 +202,7 @@ class Service(object):
         # As we always connect to the local host,
         # use URI of admin connection
         if not ldap_uri:
-            ldap_uri = self.admin_conn.ldap_uri
+            ldap_uri = api.Backend.ldap2.ldap_uri
 
         args += ["-H", ldap_uri]
 
@@ -246,21 +239,21 @@ class Service(object):
 
         dn = DN(('krbprincipalname', principal), ('cn', self.realm), ('cn', 'kerberos'), self.suffix)
         try:
-            entry = self.admin_conn.get_entry(dn)
+            entry = api.Backend.ldap2.get_entry(dn)
         except errors.NotFound:
             # There is no service in the wrong location, nothing to do.
             # This can happen when installing a replica
             return None
         newdn = DN(('krbprincipalname', principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
         hostdn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
-        self.admin_conn.delete_entry(entry)
+        api.Backend.ldap2.delete_entry(entry)
         entry.dn = newdn
         classes = entry.get("objectclass")
         classes = classes + ["ipaobject", "ipaservice", "pkiuser"]
         entry["objectclass"] = list(set(classes))
         entry["ipauniqueid"] = ['autogenerate']
         entry["managedby"] = [hostdn]
-        self.admin_conn.add_entry(entry)
+        api.Backend.ldap2.add_entry(entry)
         return newdn
 
     def add_simple_service(self, principal):
@@ -271,7 +264,7 @@ class Service(object):
         """
         dn = DN(('krbprincipalname', principal), ('cn', 'services'), ('cn', 'accounts'), self.suffix)
         hostdn = DN(('fqdn', self.fqdn), ('cn', 'computers'), ('cn', 'accounts'), self.suffix)
-        entry = self.admin_conn.make_entry(
+        entry = api.Backend.ldap2.make_entry(
             dn,
             objectclass=[
                 "krbprincipal", "krbprincipalaux", "krbticketpolicyaux",
@@ -280,7 +273,7 @@ class Service(object):
             ipauniqueid=['autogenerate'],
             managedby=[hostdn],
         )
-        self.admin_conn.add_entry(entry)
+        api.Backend.ldap2.add_entry(entry)
         return dn
 
     def add_cert_to_service(self):
@@ -291,16 +284,16 @@ class Service(object):
         """
         dn = DN(('krbprincipalname', self.principal), ('cn', 'services'),
                 ('cn', 'accounts'), self.suffix)
-        entry = self.admin_conn.get_entry(dn)
+        entry = api.Backend.ldap2.get_entry(dn)
         entry.setdefault('userCertificate', []).append(self.dercert)
         try:
-            self.admin_conn.update_entry(entry)
+            api.Backend.ldap2.update_entry(entry)
         except Exception as e:
             root_logger.critical("Could not add certificate to service %s entry: %s" % (self.principal, str(e)))
 
     def import_ca_certs(self, db, ca_is_configured, conn=None):
         if conn is None:
-            conn = self.admin_conn
+            conn = api.Backend.ldap2
 
         try:
             ca_certs = certstore.get_ca_certs_nss(
@@ -453,7 +446,8 @@ class Service(object):
 
         # enable disabled service
         try:
-            entry = self.admin_conn.get_entry(entry_name, ['ipaConfigString'])
+            entry = api.Backend.ldap2.get_entry(
+                entry_name, ['ipaConfigString'])
         except errors.NotFound:
             pass
         else:
@@ -465,7 +459,7 @@ class Service(object):
             entry.setdefault('ipaConfigString', []).append(u'enabledService')
 
             try:
-                self.admin_conn.update_entry(entry)
+                api.Backend.ldap2.update_entry(entry)
             except errors.EmptyModlist:
                 root_logger.debug("service %s startup entry already enabled", name)
                 return
@@ -477,7 +471,7 @@ class Service(object):
             return
 
         order = SERVICE_LIST[name][1]
-        entry = self.admin_conn.make_entry(
+        entry = api.Backend.ldap2.make_entry(
             entry_name,
             objectclass=["nsContainer", "ipaConfigObject"],
             cn=[name],
@@ -486,7 +480,7 @@ class Service(object):
         )
 
         try:
-            self.admin_conn.add_entry(entry)
+            api.Backend.ldap2.add_entry(entry)
         except (errors.DuplicateEntry) as e:
             root_logger.debug("failed to add service %s startup entry", name)
             raise e
@@ -497,13 +491,13 @@ class Service(object):
         entry_dn = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'),
                         ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
         search_kw = {'ipaConfigString': u'enabledService'}
-        filter = self.admin_conn.make_filter(search_kw)
+        filter = api.Backend.ldap2.make_filter(search_kw)
         try:
-            entries, _truncated = self.admin_conn.find_entries(
+            entries, _truncated = api.Backend.ldap2.find_entries(
                 filter=filter,
                 attrs_list=['ipaConfigString'],
                 base_dn=entry_dn,
-                scope=self.admin_conn.SCOPE_BASE)
+                scope=api.Backend.ldap2.SCOPE_BASE)
         except errors.NotFound:
             root_logger.debug("service %s startup entry already disabled", name)
             return
@@ -518,7 +512,7 @@ class Service(object):
                 break
 
         try:
-            self.admin_conn.update_entry(entry)
+            api.Backend.ldap2.update_entry(entry)
         except errors.EmptyModlist:
             pass
         except:
@@ -531,7 +525,7 @@ class Service(object):
         entry_dn = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'),
                         ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
         try:
-            self.admin_conn.delete_entry(entry_dn)
+            api.Backend.ldap2.delete_entry(entry_dn)
         except errors.NotFound:
             root_logger.debug("service %s container already removed", name)
         else:

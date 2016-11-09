@@ -200,7 +200,7 @@ class ADTRUSTInstance(service.Service):
         admin_group_dn = DN(('cn', 'admins'), api.env.container_group,
                             self.suffix)
         try:
-            dom_entry = self.admin_conn.get_entry(self.smb_dom_dn)
+            dom_entry = api.Backend.ldap2.get_entry(self.smb_dom_dn)
         except errors.NotFound:
             self.print_msg("Samba domain object not found")
             return
@@ -211,13 +211,13 @@ class ADTRUSTInstance(service.Service):
             return
 
         try:
-            admin_entry = self.admin_conn.get_entry(admin_dn)
+            admin_entry = api.Backend.ldap2.get_entry(admin_dn)
         except errors.NotFound:
             self.print_msg("IPA admin object not found")
             return
 
         try:
-            admin_group_entry = self.admin_conn.get_entry(admin_group_dn)
+            admin_group_entry = api.Backend.ldap2.get_entry(admin_group_dn)
         except errors.NotFound:
             self.print_msg("IPA admin group object not found")
             return
@@ -226,9 +226,10 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("Admin SID already set, nothing to do")
         else:
             try:
-                self.admin_conn.modify_s(admin_dn, \
-                            [(ldap.MOD_ADD, "objectclass", self.OBJC_USER), \
-                             (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-500")])
+                api.Backend.ldap2.modify_s(
+                    admin_dn,
+                    [(ldap.MOD_ADD, "objectclass", self.OBJC_USER),
+                     (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-500")])
             except Exception:
                 self.print_msg("Failed to modify IPA admin object")
 
@@ -236,9 +237,10 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("Admin group SID already set, nothing to do")
         else:
             try:
-                self.admin_conn.modify_s(admin_group_dn, \
-                            [(ldap.MOD_ADD, "objectclass", self.OBJC_GROUP), \
-                             (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-512")])
+                api.Backend.ldap2.modify_s(
+                    admin_group_dn,
+                    [(ldap.MOD_ADD, "objectclass", self.OBJC_GROUP),
+                     (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-512")])
             except Exception:
                 self.print_msg("Failed to modify IPA admin group object")
 
@@ -247,7 +249,7 @@ class ADTRUSTInstance(service.Service):
                              api.env.container_views, self.suffix)
 
         try:
-            self.admin_conn.get_entry(default_view_dn)
+            api.Backend.ldap2.get_entry(default_view_dn)
         except errors.NotFound:
             try:
                 self._ldap_mod('default-trust-view.ldif', self.sub_dict)
@@ -260,7 +262,7 @@ class ADTRUSTInstance(service.Service):
         # _ldap_mod does not return useful error codes, so we must check again
         # if the default trust view was created properly.
         try:
-            self.admin_conn.get_entry(default_view_dn)
+            api.Backend.ldap2.get_entry(default_view_dn)
         except errors.NotFound:
             self.print_msg("Failed to add Default Trust View.")
 
@@ -276,7 +278,7 @@ class ADTRUSTInstance(service.Service):
         server.
         """
         try:
-            dom_entry = self.admin_conn.get_entry(self.smb_dom_dn)
+            dom_entry = api.Backend.ldap2.get_entry(self.smb_dom_dn)
         except errors.NotFound:
             self.print_msg("Samba domain object not found")
             return
@@ -288,7 +290,7 @@ class ADTRUSTInstance(service.Service):
         fb_group_dn = DN(('cn', self.FALLBACK_GROUP_NAME),
                          api.env.container_group, self.suffix)
         try:
-            self.admin_conn.get_entry(fb_group_dn)
+            api.Backend.ldap2.get_entry(fb_group_dn)
         except errors.NotFound:
             try:
                 self._ldap_mod('default-smb-group.ldif', self.sub_dict)
@@ -299,14 +301,14 @@ class ADTRUSTInstance(service.Service):
         # _ldap_mod does not return useful error codes, so we must check again
         # if the fallback group was created properly.
         try:
-            self.admin_conn.get_entry(fb_group_dn)
+            api.Backend.ldap2.get_entry(fb_group_dn)
         except errors.NotFound:
             self.print_msg("Failed to add fallback group.")
             return
 
         try:
             mod = [(ldap.MOD_ADD, self.ATTR_FALLBACK_GROUP, fb_group_dn)]
-            self.admin_conn.modify_s(self.smb_dom_dn, mod)
+            api.Backend.ldap2.modify_s(self.smb_dom_dn, mod)
         except Exception:
             self.print_msg("Failed to add fallback group to domain object")
 
@@ -319,7 +321,7 @@ class ADTRUSTInstance(service.Service):
 
         try:
             # Get the ranges
-            ranges = self.admin_conn.get_entries(
+            ranges = api.Backend.ldap2.get_entries(
                 DN(api.env.container_ranges, self.suffix),
                 ldap.SCOPE_ONELEVEL, "(objectclass=ipaDomainIDRange)")
 
@@ -354,7 +356,7 @@ class ADTRUSTInstance(service.Service):
             # If the RID bases would cause overlap with some other range,
             # this will be detected by ipa-range-check DS plugin
             try:
-                self.admin_conn.modify_s(local_range.dn,
+                api.Backend.ldap2.modify_s(local_range.dn,
                                          [(ldap.MOD_ADD, "ipaBaseRID",
                                                  str(self.rid_base)),
                                          (ldap.MOD_ADD, "ipaSecondaryBaseRID",
@@ -376,7 +378,7 @@ class ADTRUSTInstance(service.Service):
         self.print_msg("Reset NetBIOS domain name")
 
         try:
-            self.admin_conn.modify_s(self.smb_dom_dn,
+            api.Backend.ldap2.modify_s(self.smb_dom_dn,
                                      [(ldap.MOD_REPLACE, self.ATTR_FLAT_NAME,
                                        self.netbios_name)])
         except ldap.LDAPError:
@@ -385,7 +387,7 @@ class ADTRUSTInstance(service.Service):
     def __create_samba_domain_object(self):
 
         try:
-            self.admin_conn.get_entry(self.smb_dom_dn)
+            api.Backend.ldap2.get_entry(self.smb_dom_dn)
             if self.reset_netbios_name:
                 self.__reset_netbios_name()
             else :
@@ -398,7 +400,7 @@ class ADTRUSTInstance(service.Service):
                        DN(('cn', 'ad'), self.trust_dn), \
                        DN(api.env.container_cifsdomains, self.suffix)):
             try:
-                self.admin_conn.get_entry(new_dn)
+                api.Backend.ldap2.get_entry(new_dn)
             except errors.NotFound:
                 try:
                     name = new_dn[1].attr
@@ -406,11 +408,11 @@ class ADTRUSTInstance(service.Service):
                     self.print_msg('Cannot extract RDN attribute value from "%s": %s' % \
                           (new_dn, e))
                     return
-                entry = self.admin_conn.make_entry(
+                entry = api.Backend.ldap2.make_entry(
                     new_dn, objectclass=['nsContainer'], cn=[name])
-                self.admin_conn.add_entry(entry)
+                api.Backend.ldap2.add_entry(entry)
 
-        entry = self.admin_conn.make_entry(
+        entry = api.Backend.ldap2.make_entry(
             self.smb_dom_dn,
             {
                 'objectclass': [self.OBJC_DOMAIN, "nsContainer"],
@@ -421,7 +423,7 @@ class ADTRUSTInstance(service.Service):
             }
         )
         #TODO: which MAY attributes do we want to set ?
-        self.admin_conn.add_entry(entry)
+        api.Backend.ldap2.add_entry(entry)
 
     def __write_smb_conf(self):
         conf_fd = open(self.smb_conf, "w")
@@ -439,7 +441,7 @@ class ADTRUSTInstance(service.Service):
         try:
             plugin_dn = DN(('cn', plugin_cn), ('cn', 'plugins'),
                            ('cn', 'config'))
-            self.admin_conn.get_entry(plugin_dn)
+            api.Backend.ldap2.get_entry(plugin_dn)
             self.print_msg('%s plugin already configured, nothing to do' % name)
         except errors.NotFound:
             try:
@@ -477,7 +479,7 @@ class ADTRUSTInstance(service.Service):
 
             # Wait for the task to complete
             task_dn = DN('cn=sidgen,cn=ipa-sidgen-task,cn=tasks,cn=config')
-            wait_for_task(self.admin_conn, task_dn)
+            wait_for_task(api.Backend.ldap2, task_dn)
 
         except Exception as e:
             root_logger.warning("Exception occured during SID generation: {0}"
@@ -491,11 +493,11 @@ class ADTRUSTInstance(service.Service):
         targets_dn = DN(('cn', 'ipa-cifs-delegation-targets'), ('cn', 's4u2proxy'),
                         ('cn', 'etc'), self.suffix)
         try:
-            current = self.admin_conn.get_entry(targets_dn)
+            current = api.Backend.ldap2.get_entry(targets_dn)
             members = current.get('memberPrincipal', [])
             if not(self.principal in members):
                 current["memberPrincipal"] = members + [self.principal]
-                self.admin_conn.update_entry(current)
+                api.Backend.ldap2.update_entry(current)
             else:
                 self.print_msg('cifs principal already targeted, nothing to do.')
         except errors.NotFound:
@@ -524,8 +526,9 @@ class ADTRUSTInstance(service.Service):
         # Add the CIFS and host principals to the 'adtrust agents' group
         # as 389-ds only operates with GroupOfNames, we have to use
         # the principal's proper dn as defined in self.cifs_agent
-        service.add_principals_to_group(self.admin_conn, self.smb_dn, "member",
-                                        [self.cifs_agent, self.host_princ])
+        service.add_principals_to_group(
+            api.Backend.ldap2, self.smb_dn, "member",
+            [self.cifs_agent, self.host_princ])
 
     def __setup_principal(self):
         try:
@@ -662,7 +665,7 @@ class ADTRUSTInstance(service.Service):
         try:
             cifs_services = DN(api.env.container_service, self.suffix)
             # Search for cifs services which also belong to adtrust agents, these are our DCs
-            res = self.admin_conn.get_entries(cifs_services,
+            res = api.Backend.ldap2.get_entries(cifs_services,
                 ldap.SCOPE_ONELEVEL,
                 "(&(krbprincipalname=cifs/*@%s)(memberof=%s))" % (self.realm, str(self.smb_dn)))
             if len(res) > 1:
@@ -686,11 +689,11 @@ class ADTRUSTInstance(service.Service):
             lookup_nsswitch_name = "schema-compat-lookup-nsswitch"
             for config in (("cn=users", "user"), ("cn=groups", "group")):
                 entry_dn = DN(config[0], compat_plugin_dn)
-                current = self.admin_conn.get_entry(entry_dn)
+                current = api.Backend.ldap2.get_entry(entry_dn)
                 lookup_nsswitch = current.get(lookup_nsswitch_name, [])
                 if not(config[1] in lookup_nsswitch):
                     current[lookup_nsswitch_name] = [config[1]]
-                    self.admin_conn.update_entry(current)
+                    api.Backend.ldap2.update_entry(current)
         except Exception as e:
             root_logger.critical("Enabling nsswitch support in slapi-nis failed with error '%s'" % e)
 
@@ -767,14 +770,14 @@ class ADTRUSTInstance(service.Service):
         self.__setup_sub_dict()
 
     def find_local_id_range(self):
-        if self.admin_conn.get_entries(
+        if api.Backend.ldap2.get_entries(
                 DN(api.env.container_ranges, self.suffix),
                 ldap.SCOPE_ONELEVEL,
                 "(objectclass=ipaDomainIDRange)"):
             return
 
         try:
-            entry = self.admin_conn.get_entry(
+            entry = api.Backend.ldap2.get_entry(
                 DN(('cn', 'admins'), api.env.container_group, self.suffix))
         except errors.NotFound:
             raise ValueError("No local ID range and no admins group found.\n" \
@@ -791,13 +794,13 @@ class ADTRUSTInstance(service.Service):
                         "(gidNumber<=%d)(gidNumner>=%d)))" % \
                      ((base_id - 1), (base_id + id_range_size),
                       (base_id - 1), (base_id + id_range_size))
-        if self.admin_conn.get_entries(DN(('cn', 'accounts'), self.suffix),
+        if api.Backend.ldap2.get_entries(DN(('cn', 'accounts'), self.suffix),
                                        ldap.SCOPE_SUBTREE, id_filter):
             raise ValueError("There are objects with IDs out of the expected" \
                              "range.\nAdd local ID range manually and try " \
                              "again!")
 
-        entry = self.admin_conn.make_entry(
+        entry = api.Backend.ldap2.make_entry(
             DN(
                 ('cn', ('%s_id_range' % self.realm)),
                 api.env.container_ranges, self.suffix),
@@ -806,7 +809,7 @@ class ADTRUSTInstance(service.Service):
             ipaBaseID=[str(base_id)],
             ipaIDRangeSize=[str(id_range_size)],
         )
-        self.admin_conn.add_entry(entry)
+        api.Backend.ldap2.add_entry(entry)
 
     def create_instance(self):
         self.step("stopping smbd", self.__stop)

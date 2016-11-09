@@ -411,7 +411,7 @@ def main():
         try:
             # Search only masters which have support for domain levels
             # because only these masters will have SSSD recent enough to support AD trust agents
-            entries_m, _truncated = smb.admin_conn.find_entries(
+            entries_m, _truncated = api.Backend.ldap2.find_entries(
                 filter="(&(objectclass=ipaSupportedDomainLevelConfig)(ipaMaxDomainLevel=*)(ipaMinDomainLevel=*))",
                 base_dn=masters_dn, attrs_list=['cn'], scope=ldap.SCOPE_ONELEVEL)
         except errors.NotFound:
@@ -421,7 +421,7 @@ def main():
            print(unicode(e))
 
         try:
-           entries_a, _truncated = smb.admin_conn.find_entries(
+           entries_a, _truncated = api.Backend.ldap2.find_entries(
                filter="", base_dn=agents_dn, attrs_list=['member'],
                scope=ldap.SCOPE_BASE)
         except errors.NotFound:
@@ -470,7 +470,7 @@ def main():
                 # Add the CIFS and host principals to the 'adtrust agents' group
                 # as 389-ds only operates with GroupOfNames, we have to use
                 # the principal's proper dn as defined in self.cifs_agent
-                service.add_principals_to_group(smb.admin_conn, agents_dn, "member",
+                service.add_principals_to_group(api.Backend.ldap2, agents_dn, "member",
                                                 [x[1] for x in new_agents])
                 print("""
 WARNING: you MUST restart (e.g. ipactl restart) the following IPA masters in order
