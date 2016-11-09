@@ -410,6 +410,16 @@ class DsInstance(service.Service):
 
 
     def __setup_replica(self):
+        """
+        Setup initial replication between replica and remote master.
+        GSSAPI is always used as a replication bind method. Note, however,
+        that the bind method for the replication differs between domain levels:
+            * in domain level 0, Directory Manager credentials are used to bind
+              to remote master
+            * in domain level 1, GSSAPI using admin/privileged host credentials
+              is used (we do not have access to masters' DM password in this
+              stage)
+        """
         replication.enable_replication_version_checking(
             self.realm,
             self.dm_password)
@@ -421,12 +431,17 @@ class DsInstance(service.Service):
         repl = replication.ReplicationManager(self.realm,
                                               self.fqdn,
                                               self.dm_password, conn=conn)
-        if self.promote:
-            repl.setup_promote_replication(self.master_fqdn)
+
+        if self.dm_password is not None and not self.promote:
+            bind_dn = DN(('cn', 'Directory Manager'))
+            bind_pw = self.dm_password
         else:
-            repl.setup_replication(self.master_fqdn,
-                                   r_binddn=DN(('cn', 'Directory Manager')),
-                                   r_bindpw=self.dm_password)
+            bind_dn = bind_pw = None
+
+        repl.setup_promote_replication(self.master_fqdn,
+                                       r_binddn=bind_dn,
+                                       r_bindpw=bind_pw,
+                                       cacert=self.ca_file)
         self.run_init_memberof = repl.needs_memberof_fixup()
 
     def __configure_sasl_mappings(self):
