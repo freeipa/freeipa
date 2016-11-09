@@ -46,7 +46,7 @@ define(IPA_VERSION_PRE_RELEASE, )
 # This option works only with GNU m4:                  #
 # it requires esyscmd m4 macro.                        #
 ########################################################
-define(IPA_VERSION_IS_GIT_SNAPSHOT, no)
+define(IPA_VERSION_IS_GIT_SNAPSHOT, yes)
 
 ########################################################
 # The version of IPA data. This is used to identify    #
@@ -105,24 +105,28 @@ dnl helper for translit in IPA_VERSION
 define(NEWLINE,`
 ')
 
-define(IPA_VERSION, translit(dnl remove new lines from version (from esyscmd)
+dnl Git snapshot: 20170102030405.GITabcdefg
+define(IPA_GIT_VERSION, translit(dnl remove new lines from version (from esyscmd)
 ifelse(IPA_VERSION_IS_GIT_SNAPSHOT, yes,dnl
-dnl Git snapshot: 1.0.0.20170102030405.GITabcdefg
-IPA_VERSION_MAJOR.IPA_VERSION_MINOR.IPA_VERSION_RELEASE.dnl 1.0.0
 esyscmd(date -u +'%Y%m%d%H%M')dnl 20170102030405
 .GIT
 esyscmd(git log -1 --format="%h" HEAD),dnl abcdefg
-dnl Git end
-ifelse(IPA_VERSION_PRE_RELEASE, ,
-dnl Release version: 1.0.0
-IPA_VERSION_MAJOR.IPA_VERSION_MINOR.IPA_VERSION_RELEASE,
-dnl Pre-release: 1.0.0rc1; newline separates m4 tokens
+), NEWLINE))
+dnl IPA_GIT_VERSION end
+
+define(IPA_VERSION, translit(dnl remove new lines from version (from esyscmd)
+dnl 1.0.0
 IPA_VERSION_MAJOR.IPA_VERSION_MINOR.IPA_VERSION_RELEASE
-IPA_VERSION_PRE_RELEASE)),
+IPA_VERSION_PRE_RELEASE
+dnl version with Git snapshot: 1.0.0.20170102030405.GITabcdefg
+ifelse(IPA_VERSION_IS_GIT_SNAPSHOT, yes,
+.
+IPA_GIT_VERSION),
 NEWLINE)) dnl IPA_VERSION end
 
 dnl DEBUG: uncomment following lines and run command m4 VERSION.m4
 dnl `IPA_VERSION: ''IPA_VERSION'
+dnl `IPA_GIT_VERSION: ''IPA_GIT_VERSION'
 dnl `IPA_API_VERSION: ''IPA_API_VERSION'
 dnl `IPA_DATA_VERSION: ''IPA_DATA_VERSION'
 dnl `IPA_NUM_VERSION: ''IPA_NUM_VERSION'
