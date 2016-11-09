@@ -1378,7 +1378,6 @@ def install(installer):
                                                  config.realm_name)
     if promote:
         custodia.create_replica(config.master_host_name)
-        custodia.import_dm_password(config.master_host_name)
     else:
         custodia.create_instance()
 
@@ -1400,6 +1399,7 @@ def install(installer):
     krb.restart()
 
     if promote:
+        custodia.import_dm_password(config.master_host_name)
         promote_sssd(config.host_name)
         promote_openldap_conf(config.host_name, config.master_host_name)
 
