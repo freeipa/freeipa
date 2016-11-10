@@ -804,11 +804,8 @@ touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa/backup
 %endif # ONLY_CLIENT
 
-mkdir -p %{buildroot}%{_sysconfdir}/ipa/
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/default.conf
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/ca.crt
-mkdir -p %{buildroot}%{_sysconfdir}/ipa/nssdb
-mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
 
 %if ! %{ONLY_CLIENT}
 mkdir -p %{buildroot}%{_sysconfdir}/cron.d
