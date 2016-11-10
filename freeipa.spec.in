@@ -741,8 +741,6 @@ sed -i -e'1s/python\(3\|$\)/python2/' %{buildroot}%{_bindir}/ipa
 
 %find_lang %{gettext_domain}
 
-mkdir -p %{buildroot}%{_usr}/share/ipa
-
 %if ! %{ONLY_CLIENT}
 # Remove .la files from libtool - we don't want to package
 # these files
@@ -793,7 +791,6 @@ mkdir -p %{buildroot}%{_usr}/share/ipa/html/
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb.js
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb5.ini
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krbrealm.con
-mkdir -p %{buildroot}%{_initrddir}
 
 # Web UI plugin dir
 mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
@@ -801,7 +798,6 @@ mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
 mkdir -p %{buildroot}%{_libdir}/krb5/plugins/libkrb5
 touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 
-mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa/backup
 %endif # ONLY_CLIENT
 
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/default.conf
@@ -817,10 +813,6 @@ mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 (cd %{buildroot}/%{python_sitelib}/ipatests && find . -type f  | \
     sed -e 's,\.py.*$,.*,g' | sort -u | \
     sed -e 's,\./,%%{python_sitelib}/ipatests/,g' ) >tests-python.list
-
-mkdir -p %{buildroot}%{_sysconfdir}/ipa/custodia
-
-mkdir -p %{buildroot}%{_usr}/share/ipa/schema.d
 
 %endif # ONLY_CLIENT
 
