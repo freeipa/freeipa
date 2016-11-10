@@ -689,6 +689,8 @@ This package contains tests that verify IPA functionality under Python 3.
 %build
 # UI compilation segfaulted on some arches when the stack was lower (#1040576)
 export JAVA_STACK_SIZE="8m"
+# PATH is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1005235
+export PATH=/usr/bin:/usr/sbin:$PATH
 %configure --with-vendor-suffix=-%{release}
 %make_build
 
