@@ -29,7 +29,8 @@ def _main():
     syslog.syslog(syslog.LOG_NOTICE, 'certmonger restarted httpd')
 
     try:
-        services.knownservices.httpd.restart()
+        if services.knownservices.httpd.is_running():
+            services.knownservices.httpd.restart()
     except Exception as e:
         syslog.syslog(syslog.LOG_ERR, "Cannot restart httpd: %s" % str(e))
 

@@ -166,11 +166,11 @@ class HTTPInstance(service.Service):
         self.step("enabling mod_nss renegotiate", self.enable_mod_nss_renegotiate)
         self.step("adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
+        self.step("setting up httpd keytab", self._request_service_keytab)
+        self.step("setting up ssl", self.__setup_ssl)
         if self.ca_is_configured:
             self.step("configure certmonger for renewals",
                       self.configure_certmonger_renewal_guard)
-        self.step("setting up httpd keytab", self._request_service_keytab)
-        self.step("setting up ssl", self.__setup_ssl)
         self.step("importing CA certificates from LDAP", self.__import_ca_certs)
         self.step("publish CA cert", self.__publish_ca_cert)
         self.step("clean up any existing httpd ccache", self.remove_httpd_ccache)

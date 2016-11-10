@@ -4,6 +4,7 @@
 
 from __future__ import print_function
 
+import errno
 import os
 import pickle
 import shutil
@@ -1117,6 +1118,14 @@ def uninstall(installer):
                           'These may be untracked by executing\n'
                           ' # getcert stop-tracking -i <request_id>\n'
                           'for each id in: %s' % ', '.join(ids))
+
+    # Remove the cert renewal lock file
+    try:
+        os.remove(paths.IPA_RENEWAL_LOCK)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            root_logger.warning("Failed to remove file %s: %s",
+                                paths.IPA_RENEWAL_LOCK, e)
 
     print("Removing IPA client configuration")
     try:
