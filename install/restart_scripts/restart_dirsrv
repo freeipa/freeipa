@@ -39,7 +39,8 @@ def _main():
     syslog.syslog(syslog.LOG_NOTICE, "certmonger restarted dirsrv instance '%s'" % instance)
 
     try:
-        services.knownservices.dirsrv.restart(instance)
+        if services.knownservices.dirsrv.is_running():
+            services.knownservices.dirsrv.restart(instance)
     except Exception as e:
         syslog.syslog(syslog.LOG_ERR, "Cannot restart dirsrv (instance: '%s'): %s" % (instance, str(e)))
 

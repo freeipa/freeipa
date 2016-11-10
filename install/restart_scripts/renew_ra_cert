@@ -30,7 +30,6 @@ import traceback
 from ipapython import ipautil
 from ipalib import api
 from ipaserver.install import certs, cainstance, krainstance
-from ipaplatform import services
 from ipaplatform.paths import paths
 
 
@@ -67,15 +66,6 @@ def _main():
     finally:
         shutil.rmtree(tmpdir)
         api.Backend.ldap2.disconnect()
-
-    # Now restart Apache so the new certificate is available
-    syslog.syslog(syslog.LOG_NOTICE, "Restarting httpd")
-    try:
-        services.knownservices.httpd.restart()
-    except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, "Cannot restart httpd: %s" % e)
-    else:
-        syslog.syslog(syslog.LOG_NOTICE, "Restarted httpd")
 
 
 def main():
