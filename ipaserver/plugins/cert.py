@@ -26,7 +26,7 @@ from operator import attrgetter
 import os
 
 import cryptography.x509
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, serialization
 import six
 
 from ipalib import Command, Str, Int, Flag
@@ -750,8 +750,11 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
 
         # Request the certificate
         try:
+            # re-serialise to PEM, in case the user-supplied data has
+            # extraneous material that will cause Dogtag to freak out
+            csr_pem = csr_obj.public_bytes(serialization.Encoding.PEM)
             result = self.Backend.ra.request_certificate(
-                csr, profile_id, ca_id, request_type=request_type)
+                csr_pem, profile_id, ca_id, request_type=request_type)
         except errors.HTTPRequestError as e:
             if e.status == 409:  # pylint: disable=no-member
                 raise errors.CertificateOperationError(

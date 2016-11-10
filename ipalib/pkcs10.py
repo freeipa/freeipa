@@ -26,7 +26,7 @@ import cryptography.x509
 
 def strip_header(csr):
     """
-    Remove the header and footer from a CSR.
+    Remove the header and footer (and surrounding material) from a CSR.
     """
     headerlen = 40
     s = csr.find("-----BEGIN NEW CERTIFICATE REQUEST-----")
