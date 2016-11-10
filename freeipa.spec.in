@@ -763,37 +763,18 @@ rm %{buildroot}/%{plugin_dir}/libtopology.la
 rm %{buildroot}/%{_libdir}/krb5/plugins/kdb/ipadb.la
 rm %{buildroot}/%{_libdir}/samba/pdb/ipasam.la
 
-# Some user-modifiable HTML files are provided. Move these to /etc
-# and link back.
-mkdir -p %{buildroot}/%{_sysconfdir}/ipa/html
-mkdir %{buildroot}%{_usr}/share/ipa/html/
-ln -s ../../../..%{_sysconfdir}/ipa/html/ffconfig.js \
-    %{buildroot}%{_usr}/share/ipa/html/ffconfig.js
-ln -s ../../../..%{_sysconfdir}/ipa/html/ffconfig_page.js \
-    %{buildroot}%{_usr}/share/ipa/html/ffconfig_page.js
-ln -s ../../../..%{_sysconfdir}/ipa/html/ssbrowser.html \
-    %{buildroot}%{_usr}/share/ipa/html/ssbrowser.html
-ln -s ../../../..%{_sysconfdir}/ipa/html/unauthorized.html \
-    %{buildroot}%{_usr}/share/ipa/html/unauthorized.html
-ln -s ../../../..%{_sysconfdir}/ipa/html/browserconfig.html \
-    %{buildroot}%{_usr}/share/ipa/html/browserconfig.html
-
 # So we can own our Apache configuration
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa.conf
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-kdc-proxy.conf
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
-mkdir -p %{buildroot}%{_usr}/share/ipa/html/
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/ca.crt
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/kerberosauth.xpi
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb.con
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb.js
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb5.ini
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krbrealm.con
-
-# Web UI plugin dir
-mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
 
 mkdir -p %{buildroot}%{_libdir}/krb5/plugins/libkrb5
 touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
