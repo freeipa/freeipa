@@ -31,9 +31,7 @@ from __future__ import print_function
 try:
     import sys
     import os
-    import time
     import tempfile
-    import dns
     import socket
     import netaddr
     import logging
@@ -57,7 +55,7 @@ error was:
     sys.exit(1)
 
 
-class Paths:
+class Paths(object):
     """Collection of pathnames and executables to use"""
     IPA_CLI = "/usr/bin/ipa"
     IPA_GETKEYTAB = "/usr/sbin/ipa-getkeytab"
@@ -84,12 +82,12 @@ def parse_options():
     parser.add_argument("--realm", dest="realm", help="realm name")
     parser.add_argument("--hostname", dest="hostname", help="The hostname of this machine (FQDN)")
     parser.add_argument("--username", dest="username", help="Kerberos Username")
-    parser.add_argument("--force", action="store_true", 
+    parser.add_argument("--force", action="store_true",
             help="Perform actions even if unneccessary")
     parser.add_argument("-v", "--verbose", help="Increase Verbosity", action="count")
-    parser.add_argument("--automount", dest="automount", default=None, action="store_true", 
+    parser.add_argument("--automount", dest="automount", default=None, action="store_true",
             help="Configure mounts for automount use")
-    parser.add_argument("--noautomount", dest="automount", default=None, action="store_false", 
+    parser.add_argument("--noautomount", dest="automount", default=None, action="store_false",
             help="Do not configure mounts for automount use")
 
     options = parser.parse_args()
@@ -108,7 +106,7 @@ def have_keytab( hostname, service='host', realm=None ):
     if realm:
         principal = '%s/%s@%s' % (service, hostname, realm.upper())
 
-    logging.debug("Checking for principal %s in keytab" % principal )
+    logging.debug("Checking for principal %s in keytab", principal )
 
     try:
         out = subprocess.check_output([ Paths.KLIST, '-k'], stderr=devnull)
@@ -117,7 +115,7 @@ def have_keytab( hostname, service='host', realm=None ):
                 return True
 
     except CalledProcessError as e:
-        logging.debug("klist Error ret=%d %s" , e.returncode, e)
+        logging.debug("klist Error ret=%d %s", e.returncode, e)
         return False
 
     return False
@@ -144,7 +142,7 @@ def get_resolver_domains():
                 domain = line.split()[-1]
             elif line.lower().startswith('search'):
                 domains += line.split()[1:]
-    except:
+    except StandardError:
         pass
 
     logging.debug(" resolv.conf search domains: " + str(domains))
@@ -153,13 +151,13 @@ def get_resolver_domains():
         domains.append(domain)
     return domains
 
-            
+
 def dns_search_srv(domain, srv_record_name, default_port):
     """Search for SRV records in the domain"""
     qname = '%s.%s' % (srv_record_name, domain)
     try:
         answers = resolver.query(qname, rdatatype.SRV)
-    except DNSException, e:
+    except DNSException:
         answers = []
 
     logging.debug("  SRV query for " + qname )
@@ -169,7 +167,7 @@ def dns_search_srv(domain, srv_record_name, default_port):
         logging.debug("   - target=" + str(answer.target) + " port=" + str(answer.port))
         host = str(answer.target).rstrip(".")
         if not host:
-            continue;
+            continue
 
         if default_port is not None and answer.port != default_port:
             host = "%s:%s" % (host, str(answer.port))
@@ -179,7 +177,7 @@ def dns_search_srv(domain, srv_record_name, default_port):
 
     return servers
 
-        
+
 def search_servers( domain ):
     """Build a list of possible domain names,
        then search it for LDAP servers """
@@ -221,7 +219,6 @@ def search_realm(hostname):
     logging.debug("Searching DNS for Kerberos Realm...")
 
     domain = None
-    realm = None
     if hostname and not valid_ip(hostname):
         p = hostname.find(".")
         if p != -1:
@@ -237,14 +234,14 @@ def search_realm(hostname):
     logging.debug("  TXT query for %s" , qname)
     try:
         answers = resolver.query(qname, rdatatype.TXT)
-    except DNSException, e:
+    except DNSException:
         raise
 
     for answer in answers:
         logging.debug("   - Answer: %s" , answer.strings)
         try:
             return answer.strings[0]
-        except:
+        except LookupError:
             pass
 
     raise RuntimeError("Not found")
@@ -305,7 +302,7 @@ def search_exports():
             if not domain in exports:
                 exports.append(domain)
         return exports
-    except:
+    except StandardError:
         raise
 
 def krb5_fetchinfo():
@@ -314,9 +311,9 @@ def krb5_fetchinfo():
         cmd = [ Paths.KLIST ]
         ret = check_output(cmd)
         matches = re.findall(r'Default principal: (.*)@(.*)\n', ret)
-        logging.debug("results: %s" % matches)
+        logging.debug("results: %s" , matches)
         return dict( username=matches[0][0], realm=matches[0][1] )
-    except:
+    except StandardError:
         logging.debug("klist extract failed: %s", sys.exc_info()[1])
 
 
@@ -325,7 +322,7 @@ def krb5_valid(ccache=None):
     try:
         cmd = [ Paths.KLIST, '-s' ]
         if ccache:
-            cmd += [ '-c', ccache ];
+            cmd += [ '-c', ccache ]
         ret = check_call(cmd)
         if ret > 0:
             logging.debug("No current valid keys found in ccache")
@@ -333,7 +330,7 @@ def krb5_valid(ccache=None):
         else:
             logging.debug("Found valid ccache")
             return True
-    except:
+    except CalledProcessError:
         logging.debug("klist error: %s", sys.exc_info())
         return False
 
@@ -355,33 +352,33 @@ def krb5_init( username, realm=None, force=False, ccache=None):
         ret = check_call(cmd, stdin=sys.stdin, stdout=sys.stdout)
         if ret != 0:
             logging.error("kinit returned %d", ret)
-    except CalledProcessError as e:
+    except CalledProcessError:
         raise
 
 
 def ipa_service_exists( hostname, service='nfs', realm=None):
     """Ask IPA if this service principal exists"""
     principal = '%s/%s' % ( service, hostname )
-    try: 
-        out = check_output([ Paths.IPA_CLI, 'service-show', principal ], stderr=devnull)
+    try:
+        check_output([ Paths.IPA_CLI, 'service-show', principal ], stderr=devnull)
         return True
 
-    except CalledProcessError as e:
-        logging.debug("Failed to find service %s" % principal)
+    except CalledProcessError:
+        logging.debug("Failed to find service %s", principal)
         return False
 
 def ipa_service_add( hostname, service='nfs', realm=None, force=False):
     """Create this service principal via IPA"""
     principal = '%s/%s' % ( service, hostname )
-    logging.debug("Adding service %s" % principal)
+    logging.debug("Adding service %s", principal)
     cmd = [ Paths.IPA_CLI, 'service-add', principal ]
     if force:
         cmd.append('--force')
-    try: 
-        out = check_output( cmd )
+    try:
+        check_output( cmd )
 
     except CalledProcessError as e:
-        logging.error("'%s' failed with retcode %d: %s" % (cmd[0], e.returncode, e.output))
+        logging.error("'%s' failed with retcode %d: %s", cmd[0], e.returncode, e.output)
         raise
 
 def fetch_keytab(hostname, service='nfs', server=None, keytab=None):
@@ -393,9 +390,9 @@ def fetch_keytab(hostname, service='nfs', server=None, keytab=None):
     if keytab:
         cmd += [ '-k', keytab ]
 
-    try: 
-        out = check_output(cmd)
-    except:
+    try:
+        check_output(cmd)
+    except CalledProcessError:
         raise
 
 
@@ -410,7 +407,7 @@ def service_restart(service, force=False):
             ret = check_call(cmd, stdout=devnull, stderr=devnull)
             if ret == 0:
                 enabled = True
-        except CalledProcessError as e:
+        except CalledProcessError:
             pass
 
     # Enable it
@@ -418,20 +415,20 @@ def service_restart(service, force=False):
         cmd = [ Paths.SYSTEMCTL, 'enable', service ]
         try:
             ret = check_call(cmd, stdout=devnull, stderr=devnull)
-        except CalledProcessError as e:
-            logging.error("Error enabling service %s" % service)
+        except CalledProcessError:
+            logging.error("Error enabling service %s", service)
             raise
-   
+
     # run/restart it
     if force:
         cmd = [ Paths.SYSTEMCTL, 'restart', service ]
     else:
         cmd = [ Paths.SYSTEMCTL, 'try-restart', service ]
-        
+
     try:
         ret = check_call(cmd, stdout=devnull, stderr=devnull)
-    except CalledProcessError as e:
-        logging.error("Error restarting service %s" % service)
+    except CalledProcessError:
+        logging.error("Error restarting service %s", service)
         raise
 
 
@@ -442,7 +439,7 @@ def update_exports():
     try:
         ret = check_output( cmd )
         logging.debug(ret)
-    except:
+    except CalledProcessError:
         raise
 
 def load_ipa_config(pathname):
@@ -452,22 +449,22 @@ def load_ipa_config(pathname):
     values = dict()
     try:
         config.read([pathname])
-    except:
+    except ConfigParser.Error:
         raise
 
     try:
         values['realm'] = config.get('global', 'realm')
-    except:
+    except ConfigParser.Error:
         pass
 
     try:
         values['server'] = config.get('global', 'server')
-    except:
+    except ConfigParser.Error:
         pass
 
     try:
         values['hostname'] = config.get('global', 'host')
-    except:
+    except ConfigParser.Error:
         pass
 
     if not values:
@@ -483,57 +480,55 @@ def mapadd( hostname, directory ):
     else:
         mapname = 'auto.%s' % directory
 
-    logging.debug("Adding map '%s'  %s:%s" % (mapname, hostname, directory))
+    logging.debug("Adding map '%s'  %s:%s" , mapname, hostname, directory)
 
     try:
         # Create the map
-        logging.debug("Create map '%s'" % mapname)
+        logging.debug("Create map '%s'", mapname)
         cmd = [ Paths.IPA_CLI, 'automountmap-add', 'default', mapname ]
-        ret = check_output(cmd, stderr=devnull)
+        check_output(cmd, stderr=devnull)
 
         # set the directory and make a sub of auto.master
-        logging.debug("Add map directory '%s'" % directory)
+        logging.debug("Add map directory '%s'", directory)
         cmd = [ Paths.IPA_CLI, 'automountkey-add', 'default', '--key', directory, '--info', mapname, 'auto.master' ]
-        ret = check_output(cmd, stderr=devnull)
+        check_output(cmd, stderr=devnull)
 
         # Now set the mapping
-        logging.debug("Set map key '%s'" % hostname)
+        logging.debug("Set map key '%s'", hostname)
         cmd = [ Paths.IPA_CLI, 'automountkey-add', 'default', '--key', '*', '--info', "-fstype=nfs4,rw,sec=krb5p,soft,rsize=8192,wsize=8192 %s:%s/&" % (hostname, directory), mapname ]
-        ret = check_output(cmd, stderr=devnull)
+        check_output(cmd, stderr=devnull)
 
     except CalledProcessError as e:
-        logging.debug("Error creating map %s: %s " % (mapname, e) )
+        logging.debug("Error creating map %s: %s ", mapname, e)
         raise
 
 
 
 
 def main():
-    env={"PATH":"/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
-
     tool = 'yum'
     if os.path.exists( Paths.DNF ):
         tool = 'dnf'
 
     # basic sanity checks first
     if not os.path.exists( Paths.IPA_CLI ):
-        logging.error("%s not found. Try '%s install ipa-admintools' first" % (Paths.IPA_CLI, tool))
+        logging.error("%s not found. Try '%s install ipa-admintools' first", Paths.IPA_CLI, tool)
         sys.exit(1)
 
     if not os.path.exists( Paths.IPA_GETKEYTAB ):
-        logging.error("%s not found. Try '%s install ipa-client' first" % (Paths.IPA_GETKEYTAB, tool))
+        logging.error("%s not found. Try '%s install ipa-client' first", Paths.IPA_GETKEYTAB, tool)
         sys.exit(1)
 
     if not os.path.exists( Paths.KLIST ):
-        logging.error("%s not found. Try '%s install krb5-workstation' first" % (Paths.KLIST, tool))
+        logging.error("%s not found. Try '%s install krb5-workstation' first", Paths.KLIST, tool)
         sys.exit(1)
 
     if not os.path.exists( Paths.KINIT ):
-        logging.error("%s not found. Try '%s install krb5-workstation' first" % ( Paths.KINIT, tool))
+        logging.error("%s not found. Try '%s install krb5-workstation' first", Paths.KINIT, tool)
         sys.exit(1)
 
     if not os.path.exists( Paths.EXPORTFS ):
-        logging.error("%s not found. Try '%s install nfs-utils' first" % ( Paths.EXPORTFS, tool))
+        logging.error("%s not found. Try '%s install nfs-utils' first", Paths.EXPORTFS, tool)
         sys.exit(1)
 
 
@@ -555,28 +550,27 @@ def main():
     ipaconf = dict()
     try:
         ipaconf = load_ipa_config(Paths.IPACONFIG)
-    except:
-        logging.debug("load config failed: %s" % sys.exc_value);
-        pass
+    except StandardError:
+        logging.debug("load config failed: %s", sys.exc_value)
 
     # If we have them, try using the ipa config values next
     if not hostname:
-        try: 
+        try:
             hostname = ipaconf['hostname']
-        except:
+        except LookupError:
             pass
 
     if not realm:
         try:
             realm = ipaconf['realm']
-        except:
+        except LookupError:
             pass
 
     if not servers:
         try:
             newserver = ipaconf['server']
             servers.append( newserver )
-        except:
+        except LookupError:
             pass
 
 
@@ -599,7 +593,7 @@ def main():
     if not realm:
         try:
             realm = search_realm(hostname)
-        except:
+        except StandardError:
             pass
 
     # Maybe we have signed in already and that can tell us?
@@ -610,14 +604,14 @@ def main():
             realm = kinfo['realm']
             if not username:
                 username = kinfo['username']
-        except:
+        except StandardError:
             pass
 
     # We cant find a realm so ask the user
     if not realm:
         domain = None
         if hostname and not valid_ip(hostname):
-            p = hostname.find(".")
+            p = str(hostname).find(".")
             if p != -1:
                 domain = hostname[p+1:]
         print("Unable to determine realm, and not provided by --realm")
@@ -637,7 +631,7 @@ def main():
     # Grab a list of what is already exported on this system
     try:
         exported = search_exports()
-    except:
+    except StandardError:
         pass
 
     # Has the user given a manual list of directories to export
@@ -653,7 +647,7 @@ def main():
                 break
             exports.append(e)
 
-    realm = realm.upper()
+    realm = str(realm).upper()
 
     if exports and options.automount is None:
         print("Do you wish to enable automount ability for these mounts?")
@@ -716,7 +710,7 @@ def main():
     if not krb5_valid(ccache=ccache):
         try:
             krb5_init(username, realm, force=options.force, ccache=ccache)
-        except:
+        except CalledProcessError:
             if not options.force:
                 sys.exit(1)
         if ccache:
@@ -726,11 +720,11 @@ def main():
     if options.force or not ipa_service_exists(hostname, service='nfs'):
         try:
             ipa_service_add(hostname, service='nfs', force=options.force)
-        except:
+        except CalledProcessError:
             if not options.force:
                 sys.exit(1)
     else:
-        logging.info("Service nfs/%s already exists" % hostname)
+        logging.info("Service nfs/%s already exists", hostname)
 
     # check if we have the nfs server key, fetch it if we dont
     if options.force or not have_keytab(hostname, service='nfs', realm=realm):
@@ -738,7 +732,7 @@ def main():
         try:
             fetch_keytab(hostname, service='nfs', server=servers[0], keytab=Paths.KEYTAB)
         except CalledProcessError as e:
-            logging.debug("'%s' failed with retcode %d: %s" % (e.cmd, e.returncode, e.output))
+            logging.debug("'%s' failed with retcode %d: %s", e.cmd, e.returncode, e.output)
 
     else:
         logging.info("Already have the keytab cached, skipping")
@@ -756,26 +750,26 @@ def main():
             fp.close()
         else:
             logging.debug("Path %s is already exported, skipping", d)
-    
+
     if options.force or exports:
         try:
             update_exports()
         except CalledProcessError as e:
-            logging.error("'%s' failed with retcode %d: %s" % (e.cmd, e.returncode, e.output))
+            logging.error("'%s' failed with retcode %d: %s", e.cmd, e.returncode, e.output)
 
     if options.automount:
         logging.debug("Configuring automount")
         for d in mountlist:
             try:
                 mapadd( hostname, d )
-            except:
-                logging.error("Adding automount map for %s failed" % d)
+            except CalledProcessError:
+                logging.error("Adding automount map for %s failed", d)
 
 
     # Restart any services
     try:
         service_restart('nfs-server', force=options.force)
-    except:
+    except CalledProcessError:
         pass
 
 
@@ -783,13 +777,13 @@ def main():
     try:
         if ccache:
             os.unlink(ccache)
-    except:
+    except OSError:
         pass
 
     try:
         if ccache_dir:
             os.rmdir(ccache_dir)
-    except:
+    except OSError:
         pass
 
     print("Finished.")
@@ -799,7 +793,7 @@ def main():
 # Setup the logger, default to only error messages
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
-# use this to suppress error messages from subprocesses	
+# use this to suppress error messages from subprocesses
 devnull = open(os.devnull, 'w')
 
 # boilerplate to launch main and handle the fallout
