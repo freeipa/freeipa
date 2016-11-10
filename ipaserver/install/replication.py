@@ -32,7 +32,7 @@ from ipalib import api, errors
 from ipalib.cli import textui
 from ipalib.constants import CACERT
 from ipapython.ipa_log_manager import root_logger
-from ipapython import ipautil, ipaldap
+from ipapython import ipautil, ipaldap, kerberos
 from ipapython.admintool import ScriptError
 from ipapython.dn import DN
 from ipaplatform.paths import paths
@@ -1534,24 +1534,40 @@ class ReplicationManager(object):
         except errors.EmptyModlist:
             pass
 
-    def join_replication_managers(self, conn):
-        """
-        Create a pseudo user to use for replication.
-        """
-        dn = DN(('cn', 'replication managers'), ('cn', 'sysaccounts'),
-                ('cn', 'etc'), self.suffix)
-        mydn = DN(('krbprincipalname', 'ldap/%s@%s' % (self.hostname,
-                                                       self.realm)),
-                  ('cn', 'services'), ('cn', 'accounts'), self.suffix)
+    def _add_replication_managers(self, conn):
+        entry = conn.make_entry(
+            self.repl_man_group_dn,
+            objectclass=['top', 'groupofnames'],
+            cn=['replication managers']
+        )
+        conn.add_entry(entry)
 
-        entry = conn.get_entry(dn)
-        if mydn not in entry['member']:
-            entry['member'].append(mydn)
+    def ensure_replication_managers(self, conn, r_hostname):
+        """
+        Ensure that the 'cn=replication managers,cn=sysaccounts' group exists
+        and contains the principals for master and remote replica
+
+        On FreeIPA 3.x masters lacking support for nsds5ReplicaBinddnGroup
+        attribute, add replica bind DN directly into the replica entry.
+        """
+        my_princ = kerberos.Principal((u'ldap', unicode(self.hostname)),
+                                      realm=self.realm)
+        remote_princ = kerberos.Principal((u'ldap', unicode(r_hostname)),
+                                          realm=self.realm)
+        services_dn = DN(api.env.container_service, api.env.basedn)
+
+        mydn, remote_dn = tuple(
+            DN(('krbprincipalname', unicode(p)), services_dn) for p in (
+                my_princ, remote_princ))
 
         try:
-            conn.update_entry(entry)
-        except errors.EmptyModlist:
-            pass
+            conn.get_entry(self.repl_man_group_dn)
+        except errors.NotFound:
+            self._add_replica_bind_dn(conn, mydn)
+            self._add_replication_managers(conn)
+
+        self._add_dn_to_replication_managers(conn, mydn)
+        self._add_dn_to_replication_managers(conn, remote_dn)
 
     def add_temp_sasl_mapping(self, conn, r_hostname):
         """
@@ -1616,7 +1632,7 @@ class ReplicationManager(object):
         # Now setup the other half
         r_id = self._get_replica_id(r_conn, r_conn)
         self.basic_replication_setup(r_conn, r_id, self.repl_man_dn, None)
-        self.join_replication_managers(r_conn)
+        self.ensure_replication_managers(r_conn, r_hostname)
 
         self.setup_agreement(r_conn, self.hostname, isgssapi=True)
         self.setup_agreement(self.conn, r_hostname, isgssapi=True)
