@@ -5,7 +5,7 @@
 # 1.0.x                  New production series         #
 # 1.0.x{alpha,beta,rc}y  Alpha/Preview/Testing, Beta,  #
 #                           Release Candidate          #
-# 1.0.0.20170102030405.GITabcdefg  Build from GIT      #
+# 1.0.0.dev20170102030405+gitabcdefg  Build from GIT   #
 #                                                      #
 ########################################################
 
@@ -38,10 +38,10 @@ define(IPA_VERSION_PRE_RELEASE, )
 # in the development BRANCH, and set to 'no' only in   #
 # the IPA_X_X_RELEASE BRANCH                           #
 #                                                      #
-# <MAJOR>.<MINOR>.<RELEASE>.<TIMESTAMP>.GIT<hash>      #
+# <MAJOR>.<MINOR>.<RELEASE>.dev<TIMESTAMP>+git<hash>   #
 #                                                      #
 # e.g. define(IPA_VERSION_IS_GIT_SNAPSHOT, yes)        #
-#  ->  "1.0.0.20170102030405.GITabcdefg"               #
+#  ->  "1.0.0.dev20170102030405+gitabcdefg"            #
 #                                                      #
 # This option works only with GNU m4:                  #
 # it requires esyscmd m4 macro.                        #
@@ -105,11 +105,12 @@ dnl helper for translit in IPA_VERSION
 define(NEWLINE,`
 ')
 
-dnl Git snapshot: 20170102030405.GITabcdefg
+dnl Git snapshot: dev20170102030405+gitabcdefg
 define(IPA_GIT_VERSION, translit(dnl remove new lines from version (from esyscmd)
 ifelse(IPA_VERSION_IS_GIT_SNAPSHOT, yes,dnl
+dev
 esyscmd(date -u +'%Y%m%d%H%M')dnl 20170102030405
-.GIT
++git
 esyscmd(git log -1 --format="%h" HEAD),dnl abcdefg
 ), NEWLINE))
 dnl IPA_GIT_VERSION end
@@ -118,7 +119,7 @@ define(IPA_VERSION, translit(dnl remove new lines from version (from esyscmd)
 dnl 1.0.0
 IPA_VERSION_MAJOR.IPA_VERSION_MINOR.IPA_VERSION_RELEASE
 IPA_VERSION_PRE_RELEASE
-dnl version with Git snapshot: 1.0.0.20170102030405.GITabcdefg
+dnl version with Git snapshot: 1.0.0.dev20170102030405+gitabcdefg
 ifelse(IPA_VERSION_IS_GIT_SNAPSHOT, yes,
 .
 IPA_GIT_VERSION),
