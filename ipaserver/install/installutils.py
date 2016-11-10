@@ -1143,17 +1143,6 @@ def realm_to_ldapi_uri(realm_name):
     return 'ldapi://' + ldapurl.ldapUrlEscape(socketname)
 
 
-def install_service_keytab(api, principal, server, path,
-                           force_service_add=False):
-    try:
-        api.Command.service_add(principal, force=force_service_add)
-    except errors.DuplicateEntry:
-        pass
-
-    args = [paths.IPA_GETKEYTAB, '-k', path, '-p', principal, '-s', server]
-    ipautil.run(args)
-
-
 def check_creds(options, realm_name):
 
     # Check if ccache is available
