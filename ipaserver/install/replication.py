@@ -782,6 +782,22 @@ class ReplicationManager(object):
 
         return (a_entry[0].dn, b_entry[0].dn)
 
+    def _add_replica_bind_dn(self, conn, bind_dn):
+        rep_dn = self.replica_dn()
+        assert isinstance(rep_dn, DN)
+        try:
+            mod = [(ldap.MOD_ADD, "nsds5replicabinddn", bind_dn)]
+            conn.modify_s(rep_dn, mod)
+        except ldap.TYPE_OR_VALUE_EXISTS:
+            pass
+
+    def _add_dn_to_replication_managers(self, conn, bind_dn):
+        try:
+            mod = [(ldap.MOD_ADD, "member", bind_dn)]
+            conn.modify_s(self.repl_man_group_dn, mod)
+        except (ldap.TYPE_OR_VALUE_EXISTS, ldap.NO_SUCH_OBJECT):
+            pass
+
     def setup_krb_princs_as_replica_binddns(self, a, b):
         """
         Search the appropriate principal names so we can get
@@ -790,37 +806,16 @@ class ReplicationManager(object):
         as replication agents.
         """
 
-        rep_dn = self.replica_dn()
-        group_dn = DN(('cn', 'replication managers'), ('cn', 'sysaccounts'),
-                      ('cn', 'etc'), self.suffix)
-        assert isinstance(rep_dn, DN)
         (a_dn, b_dn) = self.get_replica_principal_dns(a, b, retries=100)
         assert isinstance(a_dn, DN)
         assert isinstance(b_dn, DN)
 
-        # Add kerberos principal DNs as valid bindDNs for replication
-        try:
-            mod = [(ldap.MOD_ADD, "nsds5replicabinddn", b_dn)]
-            a.modify_s(rep_dn, mod)
-        except ldap.TYPE_OR_VALUE_EXISTS:
-            pass
-        try:
-            mod = [(ldap.MOD_ADD, "nsds5replicabinddn", a_dn)]
-            b.modify_s(rep_dn, mod)
-        except ldap.TYPE_OR_VALUE_EXISTS:
-            pass
-        # Add kerberos principal DNs as valid bindDNs to bindDN group
-        try:
-            mod = [(ldap.MOD_ADD, "member", b_dn)]
-            a.modify_s(group_dn, mod)
-        except (ldap.TYPE_OR_VALUE_EXISTS, ldap.NO_SUCH_OBJECT):
-            pass
-        try:
-            mod = [(ldap.MOD_ADD, "member", a_dn)]
-            b.modify_s(group_dn, mod)
-        except (ldap.TYPE_OR_VALUE_EXISTS, ldap.NO_SUCH_OBJECT):
-            pass
+        for conn, bind_dn in ((a, b_dn), (b, a_dn)):
+            # Add kerberos principal DNs as valid bindDNs for replication
+            self._add_replica_bind_dn(conn, bind_dn)
 
+            # Add kerberos principal DNs as valid bindDNs to bindDN group
+            self._add_dn_to_replication_managers(conn, bind_dn)
 
     def gssapi_update_agreements(self, a, b):
 
