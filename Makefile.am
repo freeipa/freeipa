@@ -38,7 +38,7 @@ clean-local:
 
 # convenience targets for RPM build
 .PHONY: rpmroot rpmdistdir version-update _dist-version-bakein _rpms-prep \
-	rpms _rpms-body
+	rpms _rpms-body srpms _srpms-body
 RPMBUILD ?= $(abs_builddir)/rpmbuild
 TARBALL = $(PACKAGE)-$(VERSION).tar.gz
 rpmroot:
@@ -91,6 +91,14 @@ rpms: $(VERSION_UPDATE_TARGET)
 _rpms-body: _rpms-prep
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba $(top_builddir)/$(PACKAGE).spec
 	cp $(RPMBUILD)/RPMS/*/*$$(cat $(top_builddir)/.version)*.rpm $(top_builddir)/dist/rpms/
+	cp $(RPMBUILD)/SRPMS/*$$(cat $(top_builddir)/.version)*.src.rpm $(top_builddir)/dist/srpms/
+	rm -f rm -f $(top_builddir)/.version
+
+srpms: $(VERSION_UPDATE_TARGET)
+	$(MAKE) _srpms-body
+
+_srpms-body: _rpms-prep
+	rpmbuild --define "_topdir $(RPMBUILD)" -bs $(top_builddir)/$(PACKAGE).spec
 	cp $(RPMBUILD)/SRPMS/*$$(cat $(top_builddir)/.version)*.src.rpm $(top_builddir)/dist/srpms/
 	rm -f rm -f $(top_builddir)/.version
 
