@@ -1384,26 +1384,6 @@ class ra(rabase.rabase, RestClient):
         self.error('%s.%s(): %s', type(self).__name__, func_name, err_msg)
         raise errors.CertificateOperationError(error=err_msg)
 
-    @cachedproperty
-    def ca_host(self):
-        """
-        :return:   host
-                   as str
-
-        Select our CA host.
-        """
-        ldap2 = self.api.Backend.ldap2
-        if host_has_service(api.env.ca_host, ldap2, "CA"):
-            return api.env.ca_host
-        if api.env.host != api.env.ca_host:
-            if host_has_service(api.env.host, ldap2, "CA"):
-                return api.env.host
-        host = select_any_master(ldap2)
-        if host:
-            return host
-        else:
-            return api.env.ca_host
-
     def _request(self, url, port, **kw):
         """
         :param url: The URL to post to.
