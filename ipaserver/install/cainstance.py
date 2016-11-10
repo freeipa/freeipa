@@ -602,7 +602,10 @@ class CAInstance(DogtagInstance):
 
         self.backup_state('installed', True)
         try:
-            DogtagInstance.spawn_instance(self, cfg_file)
+            DogtagInstance.spawn_instance(
+                self, cfg_file,
+                nolog_list=(self.dm_password, self.admin_password)
+            )
         finally:
             os.remove(cfg_file)
 
