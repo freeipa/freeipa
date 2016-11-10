@@ -150,19 +150,13 @@ class DogtagInstance(service.Service):
         return os.path.exists(os.path.join(
             paths.VAR_LIB_PKI_TOMCAT_DIR, self.subsystem.lower()))
 
-    def spawn_instance(self, cfg_file, nolog_list=None):
+    def spawn_instance(self, cfg_file, nolog_list=()):
         """
         Create and configure a new Dogtag instance using pkispawn.
         Passes in a configuration file with IPA-specific
         parameters.
         """
         subsystem = self.subsystem
-
-        # Define the things we don't want logged
-        if nolog_list is None:
-            nolog_list = []
-        nolog = tuple(nolog_list) + (self.admin_password,)
-
         args = [paths.PKISPAWN,
                 "-s", subsystem,
                 "-f", cfg_file]
@@ -170,10 +164,10 @@ class DogtagInstance(service.Service):
         with open(cfg_file) as f:
             self.log.debug(
                 'Contents of pkispawn configuration file (%s):\n%s',
-                cfg_file, ipautil.nolog_replace(f.read(), nolog))
+                cfg_file, ipautil.nolog_replace(f.read(), nolog_list))
 
         try:
-            ipautil.run(args, nolog=nolog)
+            ipautil.run(args, nolog=nolog_list)
         except ipautil.CalledProcessError as e:
             self.handle_setup_error(e)
 
