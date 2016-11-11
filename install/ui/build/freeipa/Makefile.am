@@ -12,10 +12,6 @@ EXTRA_DIST =                            \
         $(app_DATA)                     \
         $(NULL)
 
-MAINTAINERCLEANFILES =                  \
-        *~                              \
-        Makefile.in
-
 core := $(wildcard ../../src/freeipa/*.js)
 base := $(wildcard ../../src/freeipa/_base/*.js)
 widgets := $(wildcard ../../src/freeipa/widgets/*.js)

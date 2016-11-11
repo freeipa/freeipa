@@ -15,10 +15,6 @@ EXTRA_DIST =                            \
         $(app_DATA)                     \
         $(NULL)
 
-MAINTAINERCLEANFILES =                  \
-        *~                              \
-        Makefile.in
-
 ipa := $(wildcard ../less/*.less)
 
 ipa.css: $(ipa)

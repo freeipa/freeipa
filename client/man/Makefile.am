@@ -2,8 +2,6 @@
 
 AUTOMAKE_OPTIONS = 1.7
 
-NULL =
-
 dist_man1_MANS =			\
 		ipa-getkeytab.1		\
 		ipa-rmkeytab.1		\
@@ -15,7 +13,3 @@ dist_man1_MANS =			\
 
 dist_man5_MANS =			\
 		default.conf.5
-
-MAINTAINERCLEANFILES =          \
-	Makefile.in		\
-	$(NULL)

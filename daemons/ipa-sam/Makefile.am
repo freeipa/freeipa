@@ -60,7 +60,3 @@ EXTRA_DIST =			\
 	README			\
 	ipa_sam.h		\
 	$(NULL)
-
-MAINTAINERCLEANFILES =		\
-	*~			\
-	Makefile.in

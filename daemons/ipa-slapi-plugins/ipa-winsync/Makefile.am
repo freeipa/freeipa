@@ -40,7 +40,3 @@ EXTRA_DIST =			\
 	README			\
 	$(app_DATA)		\
 	$(NULL)
-
-MAINTAINERCLEANFILES =		\
-	*~			\
-	Makefile.in

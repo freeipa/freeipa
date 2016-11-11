@@ -11,8 +11,3 @@ EXTRA_DIST =                            \
 	dojo.profile.js			\
 	freeipa				\
 	webui.profile.js
-
-MAINTAINERCLEANFILES =                  \
-        *~                              \
-        Makefile.in
-	$(NULL)

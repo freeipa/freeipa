@@ -18,7 +18,3 @@ dist_oddjobconf_DATA =					\
 	etc/oddjobd.conf.d/oddjobd-ipa-trust.conf	\
 	etc/oddjobd.conf.d/ipa-server.conf		\
 	$(NULL)
-
-MAINTAINERCLEANFILES =			\
-	*~				\
-	Makefile.in

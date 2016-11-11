@@ -33,7 +33,3 @@ dist_man8_MANS =			\
 	ipactl.8			\
 	ipa-upgradeconfig.8		\
         $(NULL)
-
-MAINTAINERCLEANFILES =          \
-        Makefile.in             \
-        $(NULL)
