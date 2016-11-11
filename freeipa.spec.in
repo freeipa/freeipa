@@ -702,6 +702,14 @@ make %{?_smp_mflags} client-check VERBOSE=yes LIBDIR=%{_libdir}
 
 
 %install
+# Please put as much logic as possible into make install. It allows:
+# - easier porting to other distributions
+# - rapid devel & install cycle using make install
+#   (instead of full RPM build and installation each time)
+#
+# All files and directories created by spec install should be marked as ghost.
+# (These are typically configuration files created by IPA installer.)
+# All other artifacts should be created by make install.
 %make_install
 # remove files which are useful only for make uninstall
 find %{buildroot} -wholename '*/site-packages/*/install_files.txt' -exec rm {} \;
