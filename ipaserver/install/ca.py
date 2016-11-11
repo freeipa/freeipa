@@ -48,6 +48,15 @@ external_cert_file = None
 external_ca_file = None
 
 
+def set_subject_base_in_config(subject_base):
+    entry_attrs = api.Backend.ldap2.get_ipa_config()
+    entry_attrs['ipacertificatesubjectbase'] = [str(subject_base)]
+    try:
+        api.Backend.ldap2.update_entry(entry_attrs)
+    except errors.EmptyModlist:
+        pass
+
+
 def install_check(standalone, replica_config, options):
     global external_cert_file
     global external_ca_file

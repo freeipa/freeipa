@@ -16,7 +16,6 @@ import six
 
 from ipalib.install import certmonger, sysrestore
 from ipapython import ipautil
-from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import (
     format_netloc, ipa_generate_password, run, user_input)
@@ -40,7 +39,6 @@ from ipaserver.install.installutils import (
     IPA_MODULES, BadHostError, get_fqdn, get_server_ip_address,
     is_ipa_configured, load_pkcs12, read_password, verify_fqdn,
     update_hosts_file)
-from ipaserver.plugins.ldap2 import ldap2
 
 if six.PY3:
     unicode = str
@@ -240,25 +238,6 @@ def check_dirsrv(unattended):
         if not ds_secure:
             msg += "\t636\n"
         raise ScriptError(msg)
-
-
-def set_subject_in_config(realm_name, dm_password, suffix, subject_base):
-        ldapuri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % (
-            installutils.realm_to_serverid(realm_name)
-        )
-        try:
-            conn = ldap2(api, ldap_uri=ldapuri)
-            conn.connect(bind_dn=DN(('cn', 'directory manager')),
-                         bind_pw=dm_password)
-        except errors.ExecutionError as e:
-            root_logger.critical("Could not connect to the Directory Server "
-                                 "on %s" % realm_name)
-            raise e
-        entry_attrs = conn.get_ipa_config()
-        if 'ipacertificatesubjectbase' not in entry_attrs:
-            entry_attrs['ipacertificatesubjectbase'] = [str(subject_base)]
-            conn.update_entry(entry_attrs)
-        conn.disconnect()
 
 
 def common_cleanup(func):
@@ -848,8 +827,7 @@ def install(installer):
     os.chmod(paths.IPA_CA_CRT, 0o644)
     ca_db.publish_ca_cert(paths.IPA_CA_CRT)
 
-    set_subject_in_config(realm_name, dm_password,
-                          ipautil.realm_to_suffix(realm_name), options.subject)
+    ca.set_subject_base_in_config(options.subject_base)
 
     # Apply any LDAP updates. Needs to be done after the configuration file
     # is created. DS is restarted in the process.
