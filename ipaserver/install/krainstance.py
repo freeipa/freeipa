@@ -51,7 +51,6 @@ ADMIN_GROUPS = [
     'Security Domain Administrators'
 ]
 
-LDAPMOD_ERR_ALREADY_EXISTS = 68
 
 class KRAInstance(DogtagInstance):
     """
@@ -126,7 +125,8 @@ class KRAInstance(DogtagInstance):
             self.step("configure certificate renewals", self.configure_renewal)
             self.step("configure HTTP to proxy connections",
                       self.http_proxy)
-            self.step("add vault container", self.__add_vault_container)
+            if not self.clone:
+                self.step("add vault container", self.__add_vault_container)
             self.step("apply LDAP updates", self.__apply_updates)
 
             self.step("enabling KRA instance", self.__enable_instance)
@@ -316,14 +316,8 @@ class KRAInstance(DogtagInstance):
         conn.disconnect()
 
     def __add_vault_container(self):
-        try:
-            self._ldap_mod('vault.ldif', {'SUFFIX': self.suffix},
-                           raise_on_err=True)
-        except ipautil.CalledProcessError as e:
-            if e.returncode == LDAPMOD_ERR_ALREADY_EXISTS:
-                self.log.debug("Vault container already exists")
-            else:
-                self.log.error("Failed to add vault container: {0}".format(e))
+        self._ldap_mod(
+            'vault.ldif', {'SUFFIX': self.suffix}, raise_on_err=True)
 
     def __apply_updates(self):
         sub_dict = {
