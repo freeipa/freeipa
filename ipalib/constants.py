@@ -125,6 +125,7 @@ DEFAULT_CONFIG = (
     ('container_ca', DN(('cn', 'cas'), ('cn', 'ca'))),
     ('container_dnsservers', DN(('cn', 'servers'), ('cn', 'dns'))),
     ('container_custodia', DN(('cn', 'custodia'), ('cn', 'ipa'), ('cn', 'etc'))),
+    ('container_sysaccounts', DN(('cn', 'sysaccounts'), ('cn', 'etc'))),
 
     # Ports, hosts, and URIs:
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),

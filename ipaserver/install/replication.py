@@ -50,6 +50,7 @@ DEFAULT_PORT = 389
 TIMEOUT = 120
 REPL_MAN_DN = DN(('cn', 'replication manager'), ('cn', 'config'))
 DNA_DN = DN(('cn', 'Posix IDs'), ('cn', 'Distributed Numeric Assignment Plugin'), ('cn', 'plugins'), ('cn', 'config'))
+REPL_MANAGERS_CN = DN(('cn', 'replication managers'))
 
 IPA_REPLICA = 1
 WINSYNC = 2
@@ -232,6 +233,8 @@ class ReplicationManager(object):
         # at runtime if you really want
         self.repl_man_dn = REPL_MAN_DN
         self.repl_man_cn = "replication manager"
+        self.repl_man_group_dn = DN(
+            REPL_MANAGERS_CN, api.env.container_sysaccounts, api.env.basedn)
 
     def _get_replica_id(self, conn, master_conn):
         """
@@ -438,9 +441,6 @@ class ReplicationManager(object):
         assert isinstance(replica_binddn, DN)
         dn = self.replica_dn()
         assert isinstance(dn, DN)
-        replica_groupdn = DN(
-            ('cn', 'replication managers'), ('cn', 'sysaccounts'),
-            ('cn', 'etc'), self.suffix)
 
         try:
             entry = conn.get_entry(dn)
@@ -454,9 +454,9 @@ class ReplicationManager(object):
                 mod.append((ldap.MOD_ADD, 'nsDS5ReplicaBindDN',
                             replica_binddn))
 
-            if replica_groupdn not in binddn_groups:
+            if self.repl_man_group_dn not in binddn_groups:
                 mod.append((ldap.MOD_ADD, 'nsds5replicabinddngroup',
-                            replica_groupdn))
+                            self.repl_man_group_dn))
             if mod:
                 conn.modify_s(dn, mod)
 
@@ -476,7 +476,7 @@ class ReplicationManager(object):
             nsds5replicatype=[replica_type],
             nsds5flags=["1"],
             nsds5replicabinddn=[replica_binddn],
-            nsds5replicabinddngroup=[replica_groupdn],
+            nsds5replicabinddngroup=[self.repl_man_group_dn],
             nsds5replicabinddngroupcheckinterval=["60"],
             nsds5replicalegacyconsumer=["off"],
         )
