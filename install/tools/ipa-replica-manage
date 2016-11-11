@@ -903,8 +903,7 @@ def ensure_last_services(conn, hostname, masters, options):
 
 def cleanup_server_dns_entries(realm, hostname, suffix, options):
     try:
-        if bindinstance.dns_container_exists(options.host, suffix,
-                                             dm_password=options.dirman_passwd):
+        if bindinstance.dns_container_exists(suffix):
             bindinstance.remove_master_dns_records(hostname, realm)
             dnskeysyncinstance.remove_replica_public_keys(hostname)
     except Exception as e:

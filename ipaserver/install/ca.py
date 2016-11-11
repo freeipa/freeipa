@@ -223,7 +223,6 @@ def install_step_1(standalone, replica_config, options):
         return
 
     realm_name = options.realm_name
-    dm_password = options.dm_password
     host_name = options.host_name
     subject_base = options.subject
 
@@ -285,7 +284,7 @@ def install_step_1(standalone, replica_config, options):
 
     if standalone:
         # Install CA DNS records
-        if bindinstance.dns_container_exists(host_name, basedn, dm_password):
+        if bindinstance.dns_container_exists(basedn):
             bind = bindinstance.BindInstance()
             bind.update_system_records()
 
