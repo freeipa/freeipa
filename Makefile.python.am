@@ -1,18 +1,26 @@
 pkgname = $(shell basename "$(abs_srcdir)")
 pkgpythondir = $(pythondir)/$(pkgname)
 
+if VERBOSE_MAKE
+VERBOSITY="--verbose"
+else
+VERBOSITY="--quiet"
+endif !VERBOSE_MAKE
+
 all-local:
-	cd $(srcdir); $(PYTHON) setup.py build \
-	--build-base "$(abs_builddir)/build" \
-	--verbose
+	cd $(srcdir); $(PYTHON) setup.py \
+		$(VERBOSITY) \
+		build \
+		--build-base "$(abs_builddir)/build"
 
 install-exec-local:
-	$(PYTHON) $(srcdir)/setup.py install \
+	$(PYTHON) $(srcdir)/setup.py \
+		$(VERBOSITY) \
+		install \
 		--prefix "$(DESTDIR)$(prefix)" \
 		--single-version-externally-managed \
 		--record "$(DESTDIR)$(pkgpythondir)/install_files.txt" \
-		--optimize 1 \
-		--verbose
+		--optimize 1
 
 uninstall-local:
 	cat "$(DESTDIR)$(pkgpythondir)/install_files.txt" | xargs rm -rf
