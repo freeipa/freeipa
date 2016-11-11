@@ -1,3 +1,5 @@
+ACLOCAL_AMFLAGS = -I m4
+
 IPACLIENT_SUBDIRS = ipaclient ipalib ipaplatform ipapython
 SUBDIRS = asn1 util client contrib daemons init install $(IPACLIENT_SUBDIRS) ipaserver ipatests po
 
@@ -23,6 +25,7 @@ EXTRA_DIST = .mailmap \
 	     ACI.txt \
 	     API.txt \
 	     BUILD.txt \
+	     config.rpath \
 	     Contributors.txt \
 	     COPYING.openssl \
 	     contrib \

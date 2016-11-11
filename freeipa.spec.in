@@ -60,6 +60,7 @@ BuildRequires:  autoconf
 BuildRequires:  automake
 BuildRequires:  libtool
 BuildRequires:  gettext
+BuildRequires:  gettext-devel
 BuildRequires:  python-devel
 %if 0%{?with_python3}
 BuildRequires:  python3-devel

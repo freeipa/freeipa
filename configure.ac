@@ -1,4 +1,5 @@
 AC_PREREQ(2.59)
+AC_CONFIG_MACRO_DIRS([m4])
 m4_include(VERSION.m4)
 AC_INIT([freeipa],
         IPA_VERSION,
@@ -283,40 +284,17 @@ dnl ---------------------------------------------------------------------------
 dnl Translations
 dnl ---------------------------------------------------------------------------
 AC_SUBST(GETTEXT_DOMAIN, [ipa])
+AM_GNU_GETTEXT_VERSION([0.19.8])
+AM_GNU_GETTEXT([external])
+
+dnl integrate our custom hacks into gettextize infrastructure
+AC_CONFIG_COMMANDS([po/Makefile-hackit],
+		   [echo "include Makefile.hack" dnl
+		    >> "${ac_abs_top_srcdir}/po/Makefile"])
 
 AC_PROG_MKDIR_P
 AC_PROG_AWK
 AC_PROG_SED
-
-AC_PATH_PROG(XGETTEXT, xgettext, [no])
-if test "x$XGETTEXT" = "xno"; then
-    AC_MSG_ERROR([xgettext not found, install gettext])
-fi
-
-AC_PATH_PROG(MSGFMT, msgfmt, [no])
-if test "x$MSGFMT" = "xno"; then
-    AC_MSG_ERROR([msgfmt not found, install gettext])
-fi
-
-AC_PATH_PROG(MSGINIT, msginit, [no])
-if test "x$MSGINIT" = "xno"; then
-    AC_MSG_ERROR([msginit not found, install gettext])
-fi
-
-AC_PATH_PROG(MSGMERGE, msgmerge, [no])
-if test "x$MSGMERGE" = "xno"; then
-    AC_MSG_ERROR([msgmerge not found, install gettext])
-fi
-
-AC_PATH_PROG(MSGCMP, msgcmp, [no])
-if test "x$MSGCMP" = "xno"; then
-    AC_MSG_ERROR([msgcmp not found, install gettext])
-fi
-
-AC_PATH_PROG(MSGATTRIB, msgattrib, [no])
-if test "x$MSGATTRIB" = "xno"; then
-    AC_MSG_ERROR([msgattrib not found, install gettext])
-fi
 
 dnl ---------------------------------------------------------------------------
 dnl IPA platform
@@ -546,7 +524,7 @@ AC_CONFIG_FILES([
     ipasetup.py
     ipatests/Makefile
     ipatests/man/Makefile
-    po/Makefile
+    po/Makefile.in
     util/Makefile
 ])
 
