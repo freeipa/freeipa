@@ -19,12 +19,10 @@ from ipaserver.install import service
 from ipaserver.install import installutils
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
-from ipapython import ipaldap
 from ipapython import ipautil
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipalib import errors, api
-from ipalib.constants import CACERT
 from ipaserver.install.bindinstance import dns_container_exists
 
 softhsm_token_label = u'ipaDNSSEC'
@@ -32,26 +30,13 @@ softhsm_slot = 0
 replica_keylabel_template = u"dnssec-replica:%s"
 
 
-def dnssec_container_exists(fqdn, suffix, dm_password=None, ldapi=False,
-                            realm=None):
+def dnssec_container_exists(suffix):
     """
     Test whether the dns container exists.
     """
     assert isinstance(suffix, DN)
-    try:
-        # At install time we may need to use LDAPI to avoid chicken/egg
-        # issues with SSL certs and truting CAs
-        ldap_uri = ipaldap.get_ldap_uri(fqdn, 636, ldapi=ldapi, realm=realm,
-                                        cacert=CACERT)
-        conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
-        conn.simple_bind(ipaldap.DIRMAN_DN, dm_password)
-    except ldap.SERVER_DOWN:
-        raise RuntimeError('LDAP server on %s is not responding. Is IPA installed?' % fqdn)
-
-    ret = conn.entry_exists(DN(('cn', 'sec'), ('cn', 'dns'), suffix))
-    conn.unbind()
-
-    return ret
+    return api.Backend.ldap2.entry_exists(
+        DN(('cn', 'sec'), ('cn', 'dns'), suffix))
 
 
 def remove_replica_public_keys(hostname):
@@ -161,9 +146,7 @@ class DNSKeySyncInstance(service.Service):
         except KeyError:
             raise RuntimeError("OpenDNSSEC GID not found")
 
-        if not dns_container_exists(
-            self.fqdn, self.suffix, realm=self.realm, ldapi=True
-        ):
+        if not dns_container_exists(self.suffix):
             raise RuntimeError("DNS container does not exist")
 
         # ready to be installed, storing a state is required to run uninstall
@@ -173,8 +156,7 @@ class DNSKeySyncInstance(service.Service):
         """
         Setup LDAP containers for DNSSEC
         """
-        if dnssec_container_exists(self.fqdn, self.suffix, ldapi=True,
-                                   realm=self.realm):
+        if dnssec_container_exists(self.suffix):
 
             self.logger.info("DNSSEC container exists (step skipped)")
             return

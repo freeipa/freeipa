@@ -39,7 +39,7 @@ from ipaserver.dns_data_management import (
 from ipaserver.install import installutils
 from ipaserver.install import service
 from ipaserver.install import sysupgrade
-from ipapython import ipautil, ipaldap
+from ipapython import ipautil
 from ipapython import dnsutil
 from ipapython.dnsutil import DNSName
 from ipapython.ipa_log_manager import root_logger
@@ -58,7 +58,6 @@ from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
                          zone_is_reverse, validate_dnssec_global_forwarder,
                          DNSSECSignatureMissingError, EDNS0UnsupportedError,
                          UnresolvableRecordError)
-from ipalib.constants import CACERT
 
 if six.PY3:
     unicode = str
@@ -229,26 +228,13 @@ def named_conf_add_include(path):
         f.write(named_conf_include_template % {'path': path})
 
 
-def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False,
-                         realm=None):
+def dns_container_exists(suffix):
     """
     Test whether the dns container exists.
     """
     assert isinstance(suffix, DN)
-    try:
-        # At install time we may need to use LDAPI to avoid chicken/egg
-        # issues with SSL certs and truting CAs
-        ldap_uri = ipaldap.get_ldap_uri(fqdn, 636, ldapi=ldapi, realm=realm,
-                                        cacert=CACERT)
-        conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
-        conn.simple_bind(ipaldap.DIRMAN_DN, dm_password)
-    except ldap.SERVER_DOWN:
-        raise RuntimeError('LDAP server on %s is not responding. Is IPA installed?' % fqdn)
+    return api.Backend.ldap2.entry_exists(DN(('cn', 'dns'), suffix))
 
-    ret = conn.entry_exists(DN(('cn', 'dns'), suffix))
-    conn.unbind()
-
-    return ret
 
 def dns_zone_exists(name, api=api):
     try:
@@ -656,8 +642,7 @@ class BindInstance(service.Service):
         else:
             self.zonemgr = normalize_zonemgr(zonemgr)
 
-        self.first_instance = not dns_container_exists(
-            self.fqdn, self.suffix, realm=self.realm, ldapi=True)
+        self.first_instance = not dns_container_exists(self.suffix)
 
         self.__setup_sub_dict()
 

@@ -171,9 +171,7 @@ def install_http(config, auto_redirect, ca_is_configured, ca_file,
 def install_dns_records(config, options, remote_api):
 
     if not bindinstance.dns_container_exists(
-            config.host_name,
-            ipautil.realm_to_suffix(config.realm_name),
-            realm=config.realm_name, ldapi=True):
+            ipautil.realm_to_suffix(config.realm_name)):
         return
 
     try:

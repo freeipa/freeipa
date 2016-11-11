@@ -253,10 +253,7 @@ class ReplicaPrepare(admintool.AdminTool):
         except installutils.BadHostError as e:
             if isinstance(e, installutils.HostLookupError):
                 if not options.ip_addresses:
-                    if dns_container_exists(
-                            api.env.host, api.env.basedn,
-                            dm_password=self.dirman_password,
-                            ldapi=True, realm=api.env.realm):
+                    if dns_container_exists(api.env.basedn):
                         self.log.info('You might use the --ip-address option '
                                       'to create a DNS entry if the DNS zone '
                                       'is managed by IPA.')
@@ -268,9 +265,7 @@ class ReplicaPrepare(admintool.AdminTool):
                 raise
 
         if options.ip_addresses:
-            if not dns_container_exists(api.env.host, api.env.basedn,
-                                        dm_password=self.dirman_password,
-                                        ldapi=True, realm=api.env.realm):
+            if not dns_container_exists(api.env.basedn):
                 self.log.error(
                     "It is not possible to add a DNS record automatically "
                     "because DNS is not managed by IPA. Please create DNS "
