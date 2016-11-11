@@ -9,7 +9,3 @@ dist_man1_MANS =            \
 	ipa-test-config.1   \
 	ipa-test-task.1     \
 		$(NULL)
-
-MAINTAINERCLEANFILES =      \
-	Makefile.in             \
-	$(NULL)

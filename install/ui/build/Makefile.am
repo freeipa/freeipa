@@ -9,8 +9,3 @@ SUBDIRS =  				\
 
 EXTRA_DIST =                            \
         $(NULL)
-
-MAINTAINERCLEANFILES =                  \
-        *~                              \
-        Makefile.in
-	$(NULL)

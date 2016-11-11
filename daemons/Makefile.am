@@ -19,28 +19,3 @@ SUBDIRS =			\
 	ipa-sam			\
 	ipa-otpd		\
 	$(NULL)
-
-DISTCLEANFILES =		\
-	$(NULL)
-
-MAINTAINERCLEANFILES =		\
-	*~			\
-	intltool-*.in		\
-	compile			\
-	configure		\
-	COPYING			\
-	INSTALL			\
-	install-sh		\
-	missing			\
-	mkinstalldirs		\
-	config.guess		\
-	ltmain.sh		\
-	config.sub		\
-	depcomp			\
-	Makefile.in		\
-	config.h.*		\
-	aclocal.m4		\
-	version.m4		\
-	ipa-client.spec		\
-	py-compile		\
-	$(NULL)

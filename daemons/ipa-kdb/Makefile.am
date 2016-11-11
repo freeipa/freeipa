@@ -89,7 +89,3 @@ EXTRA_DIST =			\
 	README			\
 	README.s4u2proxy.txt	\
 	$(NULL)
-
-MAINTAINERCLEANFILES =		\
-	*~			\
-	Makefile.in

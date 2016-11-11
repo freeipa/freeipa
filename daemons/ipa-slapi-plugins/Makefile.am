@@ -25,7 +25,3 @@ noinst_HEADERS =		\
 EXTRA_DIST =			\
 	README			\
 	$(NULL)
-
-MAINTAINERCLEANFILES =		\
-	*~			\
-	Makefile.in

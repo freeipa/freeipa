@@ -99,29 +99,6 @@ EXTRA_DIST =			\
 	$(sbin_SCRIPTS)		\
 	$(NULL)
 
-DISTCLEANFILES =		\
-	$(NULL)
-
-MAINTAINERCLEANFILES =		\
-	*~			\
-	intltool-*.in		\
-	compile			\
-	configure		\
-	COPYING			\
-	INSTALL			\
-	install-sh		\
-	missing			\
-	mkinstalldirs		\
-	config.guess		\
-	ltmain.sh		\
-	config.sub		\
-	depcomp			\
-	Makefile.in		\
-	config.h.*		\
-	aclocal.m4		\
-	version.m4		\
-	$(NULL)
-
 install-data-hook:
 	$(INSTALL) -d -m 755 $(DESTDIR)$(IPA_SYSCONF_DIR)/nssdb
 	$(INSTALL) -d -m 755 $(DESTDIR)$(localstatedir)/lib/ipa-client/sysrestore

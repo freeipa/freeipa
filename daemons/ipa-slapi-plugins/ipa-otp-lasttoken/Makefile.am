@@ -1,4 +1,3 @@
-MAINTAINERCLEANFILES = *~ Makefile.in
 PLUGIN_COMMON_DIR = $(srcdir)/../common
 AM_CPPFLAGS =							\
 	-I$(srcdir)						\

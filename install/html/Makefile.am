@@ -13,10 +13,6 @@ EXTRA_DIST =                            \
         $(app_DATA)                     \
         $(NULL)
 
-MAINTAINERCLEANFILES =                  \
-        *~                              \
-        Makefile.in
-
 # Default user-modifiable HTML files are installed into /etc.
 # /usr points to these modifiable files in /etc
 # This is ugly but we do not have time to change it right now.

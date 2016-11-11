@@ -36,7 +36,3 @@ dist_app_SCRIPTS =		\
 	ipa-httpd-kdcproxy	\
 	ipa-pki-retrieve-key	\
 	$(NULL)
-
-MAINTAINERCLEANFILES =		\
-	*~			\
-	Makefile.in

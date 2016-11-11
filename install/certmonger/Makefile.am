@@ -9,7 +9,3 @@ app_SCRIPTS =					\
 EXTRA_DIST =				\
 	$(app_SCRIPTS)			\
 	$(NULL)
-
-MAINTAINERCLEANFILES =			\
-	*~				\
-	Makefile.in

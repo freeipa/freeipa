@@ -70,7 +70,3 @@ EXTRA_DIST =			\
 	test_data		\
 	$(app_DATA)		\
 	$(NULL)
-
-MAINTAINERCLEANFILES =		\
-	*~			\
-	Makefile.in

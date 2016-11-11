@@ -90,7 +90,3 @@ dist_app_DATA =				\
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy
 dist_kdcproxyconf_DATA =			\
 	kdcproxy.conf
-
-MAINTAINERCLEANFILES =			\
-	*~				\
-	Makefile.in

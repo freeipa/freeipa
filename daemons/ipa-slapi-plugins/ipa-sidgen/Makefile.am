@@ -56,7 +56,3 @@ app_DATA =				\
 EXTRA_DIST =			\
 	$(app_DATA)		\
 	$(NULL)
-
-MAINTAINERCLEANFILES =		\
-	*~			\
-	Makefile.in
