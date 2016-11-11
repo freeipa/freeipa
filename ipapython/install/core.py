@@ -8,21 +8,18 @@ The framework core.
 
 import abc
 import collections
-import enum
 import functools
 import itertools
-import re
 import sys
 
 import six
 
 from ipapython.ipa_log_manager import root_logger
-from ipapython.ipautil import CheckedIPAddress
 
-from . import util, typing
+from . import util
 from .util import from_
 
-__all__ = ['InvalidStateError', 'KnobValueError', 'Property', 'Knob',
+__all__ = ['InvalidStateError', 'KnobValueError', 'Property', 'knob',
            'Configurable', 'group', 'Component', 'Composite']
 
 NoneType = type(None)
@@ -190,90 +187,6 @@ def knob(type_=_missing, default=_missing, bases=_missing, sensitive=_missing,
         class_dict['cli_metavar'] = cli_metavar
 
     return util.InnerClassMeta('Knob', bases, class_dict)
-
-
-def Knob(type_or_base, default=_missing, sensitive=_missing,
-         deprecated=_missing, description=_missing, cli_positional=False,
-         cli_name=_missing, cli_short_name=_missing, cli_aliases=_missing,
-         cli_metavar=_missing):
-    if isinstance(type_or_base, type) and issubclass(type_or_base, KnobBase):
-        type_ = _missing
-        bases = (type_or_base,)
-    else:
-        if isinstance(type_or_base, tuple):
-            assert type_or_base[0] is list
-            scalar_type = type_or_base[1]
-        else:
-            scalar_type = type_or_base
-
-        if scalar_type is bool:
-            scalar_type = NoneType
-        elif scalar_type == 'ip':
-            scalar_type = CheckedIPAddress
-        elif isinstance(scalar_type, set):
-            scalar_type = type(
-                'Enum',
-                (enum.Enum,),
-                {re.sub(r'[^0-9A-Za-z_]', '', n): n for n in scalar_type})
-
-        if isinstance(type_or_base, tuple):
-            type_ = typing.List[scalar_type]
-        else:
-            type_ = scalar_type
-        bases = _missing
-
-    if cli_name is not _missing or cli_short_name is not _missing:
-        if cli_positional and cli_name is not _missing:
-            cli_positional_name = [cli_name]
-        elif bases is not _missing:
-            cli_positional_name = [
-                n for n in bases[0].cli_names   # pylint: disable=no-member
-                if n is not None and n[:1] != '-'
-            ]
-        else:
-            cli_positional_name = []
-
-        if cli_short_name is not _missing:
-            cli_short_name = ['-{}'.format(cli_short_name)]
-        elif bases is not _missing:
-            cli_short_name = [
-                n for n in bases[0].cli_names   # pylint: disable=no-member
-                if n is not None and n[:1] == '-' and n[:2] != '--'
-            ]
-        else:
-            cli_short_name = []
-
-        if not cli_positional:
-            if cli_name is not _missing:
-                cli_long_name = ['--{}'.format(cli_name)]
-            else:
-                cli_long_name = [None]
-        elif bases is not _missing:
-            cli_long_name = [
-                n for n in bases[0].cli_names   # pylint: disable=no-member
-                if n is None or n[:2] == '--'
-            ]
-        else:
-            cli_long_name = []
-
-        cli_names = cli_positional_name + cli_short_name + cli_long_name
-    else:
-        cli_names = _missing
-
-    if cli_aliases is not _missing:
-        cli_deprecated_names = ['--{}'.format(n) for n in cli_aliases]
-    else:
-        cli_deprecated_names = _missing
-
-    return knob(type_,
-                default=default,
-                bases=bases,
-                sensitive=sensitive,
-                deprecated=deprecated,
-                description=description,
-                cli_names=cli_names,
-                cli_deprecated_names=cli_deprecated_names,
-                cli_metavar=cli_metavar)
 
 
 class Configurable(six.with_metaclass(abc.ABCMeta, object)):
