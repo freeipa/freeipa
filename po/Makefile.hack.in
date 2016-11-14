@@ -18,3 +18,5 @@ strip-po:
 		echo; echo Please remove the deleted files from LINGUAS!; echo; \
 	fi
 
+clean: mostlyclean
+	rm -f *~
