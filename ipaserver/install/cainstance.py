@@ -1301,7 +1301,7 @@ def replica_ca_install_check(config, promote):
         with ipaldap.LDAPClient(
                 ca_ldap_url,
                 start_tls=True,
-                cacert=config.dir + "/ca.cer",
+                cacert=config.dir + "/ca.crt",
                 force_schema_updates=False) as connection:
             connection.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                                    bind_password=config.dirman_password)
