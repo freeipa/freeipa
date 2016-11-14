@@ -188,3 +188,7 @@ bdist_wheel: $(WHEELDISTDIR)
 
 wheel_bundle: $(WHEELBUNDLEDIR) bdist_wheel
 	$(PYTHON) -m pip wheel --wheel-dir $(WHEELBUNDLEDIR) $(WHEELDISTDIR)/*.whl
+
+.PHONY:
+strip-po:
+	$(MAKE) -C po strip-po
