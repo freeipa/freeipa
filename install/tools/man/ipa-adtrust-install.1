@@ -75,33 +75,6 @@ ipa\-adtrust\-install for a second time with a different NetBIOS name will
 change the name. Please note that changing the NetBIOS name might break
 existing trust relationships to other domains.
 .TP
-\fB\-\-no\-msdcs\fR
-Do not create DNS service records for Windows in managed DNS server. Since those
-DNS service records are the only way to discover domain controllers of other
-domains they must be added manually to a different DNS server to allow trust
-realationships work properly. All needed service records are listed when
-ipa\-adtrust\-install finishes and either \-\-no\-msdcs was given or no IPA DNS
-service is configured. Typically service records for the following service names
-are needed for the IPA domain which should point to all IPA servers:
-.IP
-\(bu _ldap._tcp
-.IP
-\(bu _kerberos._tcp
-.IP
-\(bu _kerberos._udp
-.IP
-\(bu _ldap._tcp.dc._msdcs
-.IP
-\(bu _kerberos._tcp.dc._msdcs
-.IP
-\(bu _kerberos._udp.dc._msdcs
-.IP
-\(bu _ldap._tcp.Default-First-Site-Name._sites.dc._msdcs
-.IP
-\(bu _kerberos._tcp.Default-First-Site-Name._sites.dc._msdcs
-.IP
-\(bu _kerberos._udp.Default-First-Site-Name._sites.dc._msdcs
-.TP
 \fB\-\-add\-sids\fR
 Add SIDs to existing users and groups as on of final steps of the
 ipa\-adtrust\-install run. If there a many existing users and groups and a
