@@ -1,6 +1,6 @@
 Q: I've added a new source file, how do I make sure it's strings get translated?
 
-A: Add the source file to the POTFILES.in list. Then run "make ipa.pot-update".
+A: Run config.status in top-level directory and then run "make ipa.pot-update".
 
 Q: How do I pick up new strings to translate from the source files after the
    source have been modified?
@@ -28,9 +28,10 @@ A: Edit the LINGUAS file and add the new language. Then run "make create-po".
 Q: What files must be under source code control?
 
 A: The files Makefile.in, LINGUAS control the build, they must be in the SCM.
-   The *.pot and *.po files are used by translators, they must be in SCM so the
-   translator can checkout out a .po files, add the translations, and then check
-   the .po file back in.
+   The *.pot file contains list of translatable strings and can be re-generated
+   at any time from program sources, so is does not need to be in SCM.
+   *.po files contain snapshot of translated strings so they must be in SCM
+   for the case where translation service we use goes down.
 
    Be careful, .po files may be automatically updated when the source files
    change (or the .pot changes, usually the .pot file changes only as a result
@@ -42,7 +43,8 @@ A: The files Makefile.in, LINGUAS control the build, they must be in the SCM.
 
 Q: Which are automatically generated and thus do not need to be in SCM?
 
-A: The *.gmo files are automatically generated on demand from their
+A: *.pot files are automatically generated from program sources.
+   The *.gmo files are automatically generated on demand from their
    corresponding .po file.
 
 Q: What role does the .pot file play?
