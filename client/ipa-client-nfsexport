@@ -39,7 +39,9 @@ try:
     import tempfile
     import ConfigParser
     import re
+    import six
 
+    from six.moves import input
     from dns import resolver, rdatatype
     from dns.exception import DNSException
     from argparse import ArgumentParser
@@ -142,7 +144,7 @@ def get_resolver_domains():
                 domain = line.split()[-1]
             elif line.lower().startswith('search'):
                 domains += line.split()[1:]
-    except StandardError:
+    except IOError:
         pass
 
     logging.debug(" resolv.conf search domains: " + str(domains))
@@ -246,12 +248,11 @@ def search_realm(hostname):
 
     raise RuntimeError("Not found")
 
-
 def user_input(prompt, default=None, allow_empty=True):
     """Prompt the user for some input, with optional default value"""
 
-    if isinstance(default, basestring):
-        ret = raw_input("%s [%s]: " % (prompt, default))
+    if isinstance(default, six.string_types):
+        ret = input("%s [%s]: " % (prompt, default))
         if not ret.strip():
             return default
         else:
@@ -262,7 +263,7 @@ def user_input(prompt, default=None, allow_empty=True):
         else:
             choice = "no"
         while True:
-            ret = raw_input("%s [%s]: " % (prompt, choice))
+            ret = input("%s [%s]: " % (prompt, choice))
             if not ret.strip():
                 return default
             elif ret.lower()[0] == "y":
@@ -272,7 +273,7 @@ def user_input(prompt, default=None, allow_empty=True):
     elif isinstance(default, int):
         while True:
             try:
-                ret = raw_input("%s [%s]: " % (prompt, choice))
+                ret = input("%s [%s]: " % (prompt, choice))
                 if not ret.strip():
                     return default
                 ret = int(ret)
@@ -282,7 +283,7 @@ def user_input(prompt, default=None, allow_empty=True):
                 return ret
     else:
         while True:
-            ret = raw_input("%s: " % prompt)
+            ret = input("%s: " % prompt)
             if allow_empty or (ret and ret.strip()):
                 return ret
 
@@ -302,7 +303,7 @@ def search_exports():
             if not domain in exports:
                 exports.append(domain)
         return exports
-    except StandardError:
+    except IOError:
         raise
 
 def krb5_fetchinfo():
@@ -313,7 +314,7 @@ def krb5_fetchinfo():
         matches = re.findall(r'Default principal: (.*)@(.*)\n', ret)
         logging.debug("results: %s" , matches)
         return dict( username=matches[0][0], realm=matches[0][1] )
-    except StandardError:
+    except CalledProcessError:
         logging.debug("klist extract failed: %s", sys.exc_info()[1])
 
 
@@ -472,8 +473,8 @@ def load_ipa_config(pathname):
 
     return values
 
-
 def mapadd( hostname, directory ):
+    """Add automount map to the server"""
     parts = directory.rsplit('/', 1)
     if parts[1]:
         mapname = 'auto.%s' % parts[1]
@@ -490,12 +491,15 @@ def mapadd( hostname, directory ):
 
         # set the directory and make a sub of auto.master
         logging.debug("Add map directory '%s'", directory)
-        cmd = [ Paths.IPA_CLI, 'automountkey-add', 'default', '--key', directory, '--info', mapname, 'auto.master' ]
+        cmd = [ Paths.IPA_CLI, 'automountkey-add', 'default', '--key',
+            directory, '--info', mapname, 'auto.master' ]
         check_output(cmd, stderr=devnull)
 
         # Now set the mapping
         logging.debug("Set map key '%s'", hostname)
-        cmd = [ Paths.IPA_CLI, 'automountkey-add', 'default', '--key', '*', '--info', "-fstype=nfs4,rw,sec=krb5p,soft,rsize=8192,wsize=8192 %s:%s/&" % (hostname, directory), mapname ]
+        cmd = [ Paths.IPA_CLI, 'automountkey-add', 'default', '--key', '*',
+            '--info', "-fstype=nfs4,rw,sec=krb5p,soft,rsize=8192,wsize=8192 %s:%s/&" %
+            (hostname, directory), mapname ]
         check_output(cmd, stderr=devnull)
 
     except CalledProcessError as e:
@@ -550,8 +554,8 @@ def main():
     ipaconf = dict()
     try:
         ipaconf = load_ipa_config(Paths.IPACONFIG)
-    except StandardError:
-        logging.debug("load config failed: %s", sys.exc_value)
+    except (ConfigParser.Error, EOFError):
+        pass
 
     # If we have them, try using the ipa config values next
     if not hostname:
@@ -593,7 +597,7 @@ def main():
     if not realm:
         try:
             realm = search_realm(hostname)
-        except StandardError:
+        except (ValueError, DNSException, LookupError, RuntimeError):
             pass
 
     # Maybe we have signed in already and that can tell us?
@@ -604,7 +608,7 @@ def main():
             realm = kinfo['realm']
             if not username:
                 username = kinfo['username']
-        except StandardError:
+        except CalledProcessError:
             pass
 
     # We cant find a realm so ask the user
@@ -631,7 +635,7 @@ def main():
     # Grab a list of what is already exported on this system
     try:
         exported = search_exports()
-    except StandardError:
+    except IOError:
         pass
 
     # Has the user given a manual list of directories to export
