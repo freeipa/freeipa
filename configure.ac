@@ -296,6 +296,12 @@ AC_PROG_MKDIR_P
 AC_PROG_AWK
 AC_PROG_SED
 
+AC_PATH_PROG(MSGATTRIB, msgattrib, [no])
+if test "x$MSGATTRIB" = "xno"; then
+    AC_MSG_ERROR([msgattrib not found, install gettext])
+fi
+AC_SUBST([MSGATTRIB])
+
 dnl ---------------------------------------------------------------------------
 dnl IPA platform
 dnl ---------------------------------------------------------------------------
@@ -525,6 +531,7 @@ AC_CONFIG_FILES([
     ipatests/Makefile
     ipatests/man/Makefile
     po/Makefile.in
+    po/Makefile.hack
     util/Makefile
 ])
 
