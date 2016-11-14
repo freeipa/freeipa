@@ -9,6 +9,7 @@
 /po/Makefile.in.in
 /po/Makevars.template
 /po/POTFILES
+/po/POTFILES.in
 /po/remove-potcdate.sed
 /po/stamp-po
 
