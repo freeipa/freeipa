@@ -15,8 +15,73 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from __future__ import print_function
+
 import os
+import re
 import sys
+
+from setuptools.command.sdist import sdist as setuptools_sdist
+
+# from Python 3.5's shlex module
+_find_unsafe = re.compile(r'[^\w@%+=:,./-]', getattr(re, 'ASCII', 0)).search
+
+
+def shlex_quote(s):
+    """Return a shell-escaped version of the string *s*."""
+    if not s:
+        return "''"
+    if _find_unsafe(s) is None:
+        return s
+
+    # use single quotes, and put single quotes into double quotes
+    # the string $'b is then quoted as '$'"'"'b'
+    return "'" + s.replace("'", "'\"'\"'") + "'"
+
+
+class sdist_list(setuptools_sdist):
+    """Source distribution list plugin (based on standard sdist)
+    """
+    description = "create source distributon file list"
+
+    user_options = [
+        ('base-dir=', 'b', 'base directory for source files'),
+        ('source-list=', 's', 'source list file'),
+    ]
+    help_options = []
+    boolean_options = []
+
+    separator = '\n'
+
+    def initialize_options(self):
+        setuptools_sdist.initialize_options(self)
+        self.base_dir = None
+        self.source_list = None
+
+    def finalize_options(self):
+        setuptools_sdist.finalize_options(self)
+        if self.base_dir is None:
+            self.base_dir = os.path.abspath(os.getcwd())
+
+    def make_distribution(self):
+        # Don't create any distribution
+        self.archive_files = []
+
+    def run(self):
+        setuptools_sdist.run(self)
+        self.filelist.sort()
+        self.filelist.remove_duplicates()
+        filenames = []
+        for filename in self.filelist.files:
+            filename = os.path.join(self.base_dir, filename)
+            filenames.append(shlex_quote(filename))
+
+        if self.source_list is not None:
+            with open(self.source_list, 'w') as f:
+                f.write(self.separator.join(filenames))
+        else:
+            print(self.separator.join(filenames))
+
 
 common_args = dict(
     version="@VERSION@",
@@ -28,6 +93,9 @@ common_args = dict(
     url="http://www.freeipa.org/",
     download_url="http://www.freeipa.org/page/Downloads",
     platforms=["Linux", "Solaris", "Unix"],
+    cmdclass={
+        'sdist_list': sdist_list,
+    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         ("Topic :: System :: Systems Administration :: "
