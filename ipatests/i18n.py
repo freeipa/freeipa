@@ -546,7 +546,10 @@ def create_po(pot_file, po_file, mo_file):
     for k in po.metadata:
         if k.lower() == 'plural-forms':
             po.metadata[k] = 'nplurals=2; plural=(n != 1)'
-            break
+        # the auto-generated PO file should have charset set to UTF-8
+        # because we are using UTF-8 prefix and suffix below
+        elif k.lower() == 'content-type':
+            po.metadata[k] = 'Content-Type: text/plain; charset=UTF-8'
 
 
     # Iterate over all msgid's and form a msgstr by prepending
