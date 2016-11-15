@@ -19,11 +19,14 @@
 
 from __future__ import print_function
 
+import pytest
+
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 
 
+@pytest.mark.ds_acceptance
 class TestSimpleReplication(IntegrationTest):
     """Simple replication test
 
