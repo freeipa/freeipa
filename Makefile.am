@@ -128,7 +128,7 @@ apilint:
 
 .PHONY: polint
 polint:
-	$(MAKE) -C $(srcdir)/po validate-src-strings
+	$(MAKE) -C $(srcdir)/po validate-src-strings validate-po test-gettext
 
 # Run pylint for all python files. Finds all python files/packages, skips
 # folders rpmbuild, freeipa-* and dist. Skip (match, but don't print) .*,
