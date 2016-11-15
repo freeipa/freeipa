@@ -80,11 +80,21 @@ class UserTracker(KerberosAliasMixin, Tracker):
             )
 
     def make_delete_command(self, no_preserve=True, preserve=False):
-        """ Make function that deletes a user using user-del """
+        """ Make function that deletes a user using user-del
+
+        Arguments 'preserve' and 'no_preserve' represent implemented
+        options --preserve and --no-preserve of user-del command,
+        which are mutually exclusive.
+        If --preserve=True and --no-preserve=False, the user is moved
+        to deleted container.
+        If --preserve=True and --no-preserve=True, an error is raised.
+        If --preserve=False and --no-preserver=True, user is deleted.
+        """
 
         if preserve and not no_preserve:
-            # necessary to change some user attributes due to moving
-            # to different container
+            # --preserve=True and --no-preserve=False - user is moved to
+            # another container, hence it is necessary to change some user
+            # attributes
             self.attrs[u'dn'] = DN(
                 ('uid', self.uid),
                 api.env.container_deleteuser,
