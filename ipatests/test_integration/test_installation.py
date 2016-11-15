@@ -195,6 +195,7 @@ class TestInstallWithCA_DNS2(InstallTestBase2):
         super(TestInstallWithCA_DNS2, self).test_replica2_ipa_kra_install()
 
 
+@pytest.mark.cs_acceptance
 class TestInstallWithCA_KRA_DNS1(InstallTestBase1):
 
     @classmethod
