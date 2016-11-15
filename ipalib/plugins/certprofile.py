@@ -326,6 +326,11 @@ class certprofile_mod(LDAPUpdate):
             raise errors.ProtectedEntryError(label='certprofile', key=keys[0],
                 reason=_('Certificate profiles cannot be renamed'))
         if 'file' in options:
+            # ensure operator has permission to update a certprofile
+            if not ldap.can_write(dn, 'ipacertprofilestoreissued'):
+                raise errors.ACIError(info=_(
+                    "Insufficient privilege to modify a certificate profile."))
+
             with self.api.Backend.ra_certprofile as profile_api:
                 profile_api.disable_profile(keys[0])
                 try:
