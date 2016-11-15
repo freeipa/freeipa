@@ -3,8 +3,11 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-from lxml import etree
 import dns.name
+try:
+    from xml.etree import cElementTree as etree
+except ImportError:
+    from xml.etree import ElementTree as etree
 
 from ipapython import ipa_log_manager, ipautil
 
@@ -59,13 +62,15 @@ class ODSZoneListReader(ZoneListReader):
     """One-shot parser for ODS zonelist.xml."""
     def __init__(self, zonelist_text):
         super(ODSZoneListReader, self).__init__()
-        xml = etree.fromstring(zonelist_text)
-        self._parse_zonelist(xml)
+        root = etree.fromstring(zonelist_text)
+        self._parse_zonelist(root)
 
-    def _parse_zonelist(self, xml):
+    def _parse_zonelist(self, root):
         """iterate over Zone elements with attribute 'name' and
         add IPA zones to self.zones"""
-        for zone_xml in xml.xpath('/ZoneList/Zone[@name]'):
+        if not root.tag == 'ZoneList':
+            raise ValueError(root.tag)
+        for zone_xml in root.findall('./Zone[@name]'):
             name, zid = self._parse_ipa_zone(zone_xml)
             self._add_zone(name, zid)
 
@@ -79,16 +84,19 @@ class ODSZoneListReader(ZoneListReader):
             tuple (zone name, ID)
         """
         name = zone_xml.get('name')
-        in_adapters = zone_xml.xpath(
-            'Adapters/Input/Adapter[@type="File" '
-            'and starts-with(text(), "%s")]' % ENTRYUUID_PREFIX)
-        assert len(in_adapters) == 1, 'only IPA zones are supported: %s' \
-            % etree.tostring(zone_xml)
+        zids = []
+        for in_adapter in zone_xml.findall(
+                './Adapters/Input/Adapter[@type="File"]'):
+            path = in_adapter.text
+            if path.startswith(ENTRYUUID_PREFIX):
+                # strip prefix from path
+                zids.append(path[ENTRYUUID_PREFIX_LEN:])
 
-        path = in_adapters[0].text
-        # strip prefix from path
-        zid = path[ENTRYUUID_PREFIX_LEN:]
-        return (name, zid)
+        if len(zids) != 1:
+            raise ValueError('only IPA zones are supported: {}'.format(
+                etree.tostring(zone_xml)))
+
+        return name, zids[0]
 
 
 class LDAPZoneListReader(ZoneListReader):
