@@ -217,7 +217,7 @@ NAME_DB_MAP = {
 }
 
 
-class iSecStore(CSStore):
+class IPASecStore(CSStore):
 
     def __init__(self, config=None):
         self.config = config
@@ -255,3 +255,7 @@ class iSecStore(CSStore):
 
     def span(self, key):
         raise NotImplementedError
+
+
+# backwards compatibility with FreeIPA 4.3 and 4.4.
+iSecStore = IPASecStore

@@ -38,4 +38,12 @@ if __name__ == '__main__':
             "ipapython.secrets",
             "ipapython.install"
         ],
+        entry_points={
+            'custodia.authorizers': [
+                'IPAKEMKeys = ipapython.secrets.kem:IPAKEMKeys',
+            ],
+            'custodia.stores': [
+                'IPASecStore = ipapython.secrets.store:IPASecStore',
+            ],
+        },
     )
