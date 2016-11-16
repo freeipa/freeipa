@@ -20,11 +20,77 @@
 '''
 This base platform module exports default filesystem paths.
 '''
+from __future__ import print_function
 
 import os
+import stat
+import sys
+
+from six import string_types
 
 
 class BasePathNamespace(object):
+
+    def __init__(self):
+        self._dynamic_vars()
+        self._format()
+
+    def _dynamic_vars(self):
+        if sys.maxsize == (1 << 63) - 1:
+            self.ARCH_LIB_DIR = "/usr/lib64"
+        elif sys.maxsize == (1 << 31) - 1:
+            self.ARCH_LIB_DIR = "/usr/lib"
+        else:
+            raise ValueError
+
+        self.USER_CACHE_PATH = os.environ.get('XDG_CACHE_HOME')
+        if self.USER_CACHE_PATH is None:
+            self.USER_CACHE_PATH = os.path.expanduser('~/.cache')
+
+    def _format(self):
+        need_format = True
+        while need_format:
+            need_format = False
+            for k in dir(self):
+                if k.startswith("_"):
+                    continue
+                v = getattr(self, k)
+                if isinstance(v, string_types) and '{' in v:
+                    v = v.format(self)
+                    if '{' in v:
+                        need_format = True
+                setattr(self, k, v)
+
+    def _dump(self):
+        for k in sorted(dir(self)):
+            if k.startswith("_"):
+                continue
+            v = getattr(self, k)
+            if not isinstance(v, string_types):
+                continue
+            try:
+                mode = os.stat(v).st_mode
+            except OSError:
+                prefix = " ? "
+            else:
+                if stat.S_ISDIR(mode):
+                    prefix = "[D]"
+                elif stat.S_ISBLK(mode):
+                    prefix = "[B]"
+                elif stat.S_ISCHR(mode):
+                    prefix = "[C]"
+                elif stat.S_ISSOCK(mode):
+                    prefix = "[S]"
+                elif mode & stat.S_IWUSR == stat.S_IWUSR:
+                    prefix = "[X]"
+                else:
+                    prefix = '[-]'
+            print("{}  {}\t{}".format(prefix, k, v))
+
+    # see _dynamic_vars()
+    USER_CACHE_PATH = None
+    ARCH_LIB_DIR = None
+
     BASH = "/bin/bash"
     BIN_FALSE = "/bin/false"
     BIN_HOSTNAMECTL = "/bin/hostnamectl"
@@ -44,32 +110,34 @@ class BasePathNamespace(object):
     ETC_HOSTNAME = "/etc/hostname"
     HOSTS = "/etc/hosts"
     ETC_HTTPD_DIR = "/etc/httpd"
-    HTTPD_ALIAS_DIR = "/etc/httpd/alias"
-    ALIAS_CACERT_ASC = "/etc/httpd/alias/cacert.asc"
-    ALIAS_PWDFILE_TXT = "/etc/httpd/alias/pwdfile.txt"
-    HTTPD_CONF_D_DIR = "/etc/httpd/conf.d/"
-    HTTPD_IPA_KDCPROXY_CONF = "/etc/ipa/kdcproxy/ipa-kdc-proxy.conf"
-    HTTPD_IPA_KDCPROXY_CONF_SYMLINK = "/etc/httpd/conf.d/ipa-kdc-proxy.conf"
-    HTTPD_IPA_PKI_PROXY_CONF = "/etc/httpd/conf.d/ipa-pki-proxy.conf"
-    HTTPD_IPA_REWRITE_CONF = "/etc/httpd/conf.d/ipa-rewrite.conf"
-    HTTPD_IPA_CONF = "/etc/httpd/conf.d/ipa.conf"
-    HTTPD_NSS_CONF = "/etc/httpd/conf.d/nss.conf"
-    HTTPD_SSL_CONF = "/etc/httpd/conf.d/ssl.conf"
-    IPA_KEYTAB = "/etc/httpd/conf/ipa.keytab"
-    HTTPD_PASSWORD_CONF = "/etc/httpd/conf/password.conf"
+    HTTPD_ALIAS_DIR = "{.ETC_HTTPD_DIR}/alias"
+    ALIAS_CACERT_ASC = "{.ETC_HTTPD_DIR}/alias/cacert.asc"
+    ALIAS_PWDFILE_TXT = "{.ETC_HTTPD_DIR}/alias/pwdfile.txt"
+    HTTPD_CONF_D_DIR = "{.ETC_HTTPD_DIR}/conf.d/"
+    HTTPD_IPA_KDCPROXY_CONF = "{.ETC_IPA}/kdcproxy/ipa-kdc-proxy.conf"
+    HTTPD_IPA_KDCPROXY_CONF_SYMLINK = (
+        "{.ETC_HTTPD_DIR}/conf.d/ipa-kdc-proxy.conf"
+    )
+    HTTPD_IPA_PKI_PROXY_CONF = "{.ETC_HTTPD_DIR}/conf.d/ipa-pki-proxy.conf"
+    HTTPD_IPA_REWRITE_CONF = "{.ETC_HTTPD_DIR}/conf.d/ipa-rewrite.conf"
+    HTTPD_IPA_CONF = "{.ETC_HTTPD_DIR}/conf.d/ipa.conf"
+    HTTPD_NSS_CONF = "{.ETC_HTTPD_DIR}/conf.d/nss.conf"
+    HTTPD_SSL_CONF = "{.ETC_HTTPD_DIR}/conf.d/ssl.conf"
+    IPA_KEYTAB = "{.ETC_HTTPD_DIR}/conf/ipa.keytab"
+    HTTPD_PASSWORD_CONF = "{.ETC_HTTPD_DIR}/conf/password.conf"
     IDMAPD_CONF = "/etc/idmapd.conf"
     ETC_IPA = "/etc/ipa"
-    CONNCHECK_CCACHE = "/etc/ipa/.conncheck_ccache"
-    IPA_DNS_CCACHE = "/etc/ipa/.dns_ccache"
-    IPA_DNS_UPDATE_TXT = "/etc/ipa/.dns_update.txt"
-    IPA_CA_CRT = "/etc/ipa/ca.crt"
-    IPA_DEFAULT_CONF = "/etc/ipa/default.conf"
-    IPA_DNSKEYSYNCD_KEYTAB = "/etc/ipa/dnssec/ipa-dnskeysyncd.keytab"
-    IPA_ODS_EXPORTER_KEYTAB = "/etc/ipa/dnssec/ipa-ods-exporter.keytab"
-    DNSSEC_SOFTHSM2_CONF = "/etc/ipa/dnssec/softhsm2.conf"
-    DNSSEC_SOFTHSM_PIN_SO = "/etc/ipa/dnssec/softhsm_pin_so"
-    IPA_NSSDB_DIR = "/etc/ipa/nssdb"
-    IPA_NSSDB_PWDFILE_TXT = "/etc/ipa/nssdb/pwdfile.txt"
+    CONNCHECK_CCACHE = "{.ETC_IPA}/.conncheck_ccache"
+    IPA_DNS_CCACHE = "{.ETC_IPA}/.dns_ccache"
+    IPA_DNS_UPDATE_TXT = "{.ETC_IPA}/.dns_update.txt"
+    IPA_CA_CRT = "{.ETC_IPA}/ca.crt"
+    IPA_DEFAULT_CONF = "{.ETC_IPA}/default.conf"
+    IPA_DNSKEYSYNCD_KEYTAB = "{.ETC_IPA}/dnssec/ipa-dnskeysyncd.keytab"
+    IPA_ODS_EXPORTER_KEYTAB = "{.ETC_IPA}/dnssec/ipa-ods-exporter.keytab"
+    DNSSEC_SOFTHSM2_CONF = "{.ETC_IPA}/dnssec/softhsm2.conf"
+    DNSSEC_SOFTHSM_PIN_SO = "{.ETC_IPA}/dnssec/softhsm_pin_so"
+    IPA_NSSDB_DIR = "{.ETC_IPA}/nssdb"
+    IPA_NSSDB_PWDFILE_TXT = "{.ETC_IPA}/nssdb/pwdfile.txt"
     COMMON_KRB5_CONF_DIR = "/etc/krb5.conf.d/"
     KRB5_CONF = "/etc/krb5.conf"
     KRB5_KEYTAB = "/etc/krb5.keytab"
@@ -88,9 +156,9 @@ class BasePathNamespace(object):
     NTP_CONF = "/etc/ntp.conf"
     NTP_STEP_TICKERS = "/etc/ntp/step-tickers"
     ETC_OPENDNSSEC_DIR = "/etc/opendnssec"
-    OPENDNSSEC_CONF_FILE = "/etc/opendnssec/conf.xml"
-    OPENDNSSEC_KASP_FILE = "/etc/opendnssec/kasp.xml"
-    OPENDNSSEC_ZONELIST_FILE = "/etc/opendnssec/zonelist.xml"
+    OPENDNSSEC_CONF_FILE = "{.ETC_OPENDNSSEC_DIR}/conf.xml"
+    OPENDNSSEC_KASP_FILE = "{.ETC_OPENDNSSEC_DIR}/kasp.xml"
+    OPENDNSSEC_ZONELIST_FILE = "{.ETC_OPENDNSSEC_DIR}/zonelist.xml"
     OPENLDAP_LDAP_CONF = "/etc/openldap/ldap.conf"
     PAM_LDAP_CONF = "/etc/pam_ldap.conf"
     PASSWD = "/etc/passwd"
@@ -111,29 +179,42 @@ class BasePathNamespace(object):
     SSSD_CONF_BKP = "/etc/sssd/sssd.conf.bkp"
     SSSD_CONF_DELETED = "/etc/sssd/sssd.conf.deleted"
     ETC_SYSCONFIG_DIR = "/etc/sysconfig"
-    ETC_SYSCONFIG_AUTHCONFIG = "/etc/sysconfig/authconfig"
-    SYSCONFIG_AUTOFS = "/etc/sysconfig/autofs"
-    SYSCONFIG_DIRSRV = "/etc/sysconfig/dirsrv"
-    SYSCONFIG_DIRSRV_INSTANCE = "/etc/sysconfig/dirsrv-%s"
-    SYSCONFIG_DIRSRV_SYSTEMD = "/etc/sysconfig/dirsrv.systemd"
-    SYSCONFIG_IPA_DNSKEYSYNCD = "/etc/sysconfig/ipa-dnskeysyncd"
-    SYSCONFIG_IPA_ODS_EXPORTER = "/etc/sysconfig/ipa-ods-exporter"
-    SYSCONFIG_HTTPD = "/etc/sysconfig/httpd"
-    SYSCONFIG_KRB5KDC_DIR = "/etc/sysconfig/krb5kdc"
-    SYSCONFIG_NAMED = "/etc/sysconfig/named"
-    SYSCONFIG_NFS = "/etc/sysconfig/nfs"
-    SYSCONFIG_NTPD = "/etc/sysconfig/ntpd"
-    SYSCONFIG_ODS = "/etc/sysconfig/ods"
-    SYSCONFIG_PKI = "/etc/sysconfig/pki"
-    SYSCONFIG_PKI_TOMCAT = "/etc/sysconfig/pki-tomcat"
-    SYSCONFIG_PKI_TOMCAT_PKI_TOMCAT_DIR = "/etc/sysconfig/pki/tomcat/pki-tomcat"
-    ETC_SYSTEMD_SYSTEM_DIR = "/etc/systemd/system/"
-    SYSTEMD_SYSTEM_HTTPD_D_DIR = "/etc/systemd/system/httpd.service.d/"
-    SYSTEMD_SYSTEM_HTTPD_IPA_CONF = "/etc/systemd/system/httpd.service.d/ipa.conf"
-    SYSTEMD_CERTMONGER_SERVICE = "/etc/systemd/system/multi-user.target.wants/certmonger.service"
-    SYSTEMD_IPA_SERVICE = "/etc/systemd/system/multi-user.target.wants/ipa.service"
-    SYSTEMD_SSSD_SERVICE = "/etc/systemd/system/multi-user.target.wants/sssd.service"
-    SYSTEMD_PKI_TOMCAT_SERVICE = "/etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service"
+    ETC_SYSCONFIG_AUTHCONFIG = "{.ETC_SYSCONFIG_DIR}/authconfig"
+    SYSCONFIG_AUTOFS = "{.ETC_SYSCONFIG_DIR}/autofs"
+    SYSCONFIG_DIRSRV = "{.ETC_SYSCONFIG_DIR}/dirsrv"
+    SYSCONFIG_DIRSRV_INSTANCE = "{.ETC_SYSCONFIG_DIR}/dirsrv-%s"
+    SYSCONFIG_DIRSRV_SYSTEMD = "{.ETC_SYSCONFIG_DIR}/dirsrv.systemd"
+    SYSCONFIG_IPA_DNSKEYSYNCD = "{.ETC_SYSCONFIG_DIR}/ipa-dnskeysyncd"
+    SYSCONFIG_IPA_ODS_EXPORTER = "{.ETC_SYSCONFIG_DIR}/ipa-ods-exporter"
+    SYSCONFIG_HTTPD = "{.ETC_SYSCONFIG_DIR}/httpd"
+    SYSCONFIG_KRB5KDC_DIR = "{.ETC_SYSCONFIG_DIR}/krb5kdc"
+    SYSCONFIG_NAMED = "{.ETC_SYSCONFIG_DIR}/named"
+    SYSCONFIG_NFS = "{.ETC_SYSCONFIG_DIR}/nfs"
+    SYSCONFIG_NTPD = "{.ETC_SYSCONFIG_DIR}/ntpd"
+    SYSCONFIG_ODS = "{.ETC_SYSCONFIG_DIR}/ods"
+    SYSCONFIG_PKI = "{.ETC_SYSCONFIG_DIR}/pki"
+    SYSCONFIG_PKI_TOMCAT = "{.ETC_SYSCONFIG_DIR}/pki-tomcat"
+    SYSCONFIG_PKI_TOMCAT_PKI_TOMCAT_DIR = (
+        "{.ETC_SYSCONFIG_DIR}/pki/tomcat/pki-tomcat"
+    )
+    ETC_SYSTEMD_SYSTEM_DIR = "/etc/systemd/system"
+    SYSTEMD_SYSTEM_HTTPD_D_DIR = "{.ETC_SYSTEMD_SYSTEM_DIR}/httpd.service.d/"
+    SYSTEMD_SYSTEM_HTTPD_IPA_CONF = (
+        "{.ETC_SYSTEMD_SYSTEM_DIR}/httpd.service.d/ipa.conf"
+    )
+    SYSTEMD_CERTMONGER_SERVICE = (
+        "{.ETC_SYSTEMD_SYSTEM_DIR}/multi-user.target.wants/certmonger.service"
+    )
+    SYSTEMD_IPA_SERVICE = (
+        "{.ETC_SYSTEMD_SYSTEM_DIR}/multi-user.target.wants/ipa.service"
+    )
+    SYSTEMD_SSSD_SERVICE = (
+        "{.ETC_SYSTEMD_SYSTEM_DIR}/multi-user.target.wants/sssd.service"
+    )
+    SYSTEMD_PKI_TOMCAT_SERVICE = (
+        "{.ETC_SYSTEMD_SYSTEM_DIR}/pki-tomcatd.target.wants/"
+        "pki-tomcatd@pki-tomcat.service"
+    )
     ETC_TMPFILESD_DIRSRV = "/etc/tmpfiles.d/dirsrv-%s.conf"
     DNSSEC_TRUSTED_KEY = "/etc/trusted-key.key"
     HOME_DIR = "/home"
@@ -141,7 +222,7 @@ class BasePathNamespace(object):
     ROOT_IPA_CACHE = "/root/.ipa_cache"
     ROOT_PKI = "/root/.pki"
     DOGTAG_ADMIN_P12 = "/root/ca-agent.p12"
-    KRA_AGENT_PEM = "/etc/httpd/alias/kra-agent.pem"
+    KRA_AGENT_PEM = "{.ETC_HTTPD_DIR}/alias/kra-agent.pem"
     CACERT_P12 = "/root/cacert.p12"
     ROOT_IPA_CSR = "/root/ipa.csr"
     NAMED_PID = "/run/named/named.pid"
@@ -184,21 +265,20 @@ class BasePathNamespace(object):
     BIN_TIMEOUT = "/usr/bin/timeout"
     UPDATE_CA_TRUST = "/usr/bin/update-ca-trust"
     BIN_CURL = "/usr/bin/curl"
-    BIND_LDAP_SO = "/usr/lib/bind/ldap.so"
+    # BIND_LDAP_SO = "{.ARCH_LIB_DIR}/bind/ldap.so"
     BIND_LDAP_DNS_IPA_WORKDIR = "/var/named/dyndb-ldap/ipa/"
     BIND_LDAP_DNS_ZONE_WORKDIR = "/var/named/dyndb-ldap/ipa/master/"
-    USR_LIB_DIRSRV = "/usr/lib/dirsrv"
-    LIB_FIREFOX = "/usr/lib/firefox"
-    LIBSOFTHSM2_SO = "/usr/lib/pkcs11/libsofthsm2.so"
-    PAM_KRB5_SO = "/usr/lib/security/pam_krb5.so"
-    LIB_SYSTEMD_SYSTEMD_DIR = "/usr/lib/systemd/system/"
-    BIND_LDAP_SO_64 = "/usr/lib64/bind/ldap.so"
-    USR_LIB_DIRSRV_64 = "/usr/lib64/dirsrv"
-    LIB64_FIREFOX = "/usr/lib64/firefox"
-    LIBSOFTHSM2_SO_64 = "/usr/lib64/pkcs11/libsofthsm2.so"
-    PAM_KRB5_SO_64 = "/usr/lib64/security/pam_krb5.so"
-    DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT = "/usr/libexec/certmonger/dogtag-ipa-ca-renew-agent-submit"
-    DOGTAG_IPA_RENEW_AGENT_SUBMIT = "/usr/libexec/certmonger/dogtag-ipa-renew-agent-submit"
+    USR_LIB_DIRSRV = "{.ARCH_LIB_DIR}/dirsrv"
+    LIB_FIREFOX = "{.ARCH_LIB_DIR}/firefox"
+    LIBSOFTHSM2_SO = "{.ARCH_LIB_DIR}/pkcs11/libsofthsm2.so"
+    PAM_KRB5_SO = "{.ARCH_LIB_DIR}/security/pam_krb5.so"
+    LIB_SYSTEMD_SYSTEMD_DIR = "{.ARCH_LIB_DIR}/systemd/system/"
+    DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT = (
+        "/usr/libexec/certmonger/dogtag-ipa-ca-renew-agent-submit"
+    )
+    DOGTAG_IPA_RENEW_AGENT_SUBMIT = (
+        "/usr/libexec/certmonger/dogtag-ipa-renew-agent-submit"
+    )
     IPA_SERVER_GUARD = "/usr/libexec/certmonger/ipa-server-guard"
     GENERATE_RNDC_KEY = "/usr/libexec/generate-rndc-key.sh"
     IPA_DNSKEYSYNCD_REPLICA = "/usr/libexec/ipa/ipa-dnskeysync-replica"
@@ -281,14 +361,14 @@ class BasePathNamespace(object):
     VAR_LIB_PKI_DIR = "/var/lib/pki"
     VAR_LIB_PKI_CA_ALIAS_DIR = "/var/lib/pki-ca/alias"
     VAR_LIB_PKI_TOMCAT_DIR = "/var/lib/pki/pki-tomcat"
-    CA_BACKUP_KEYS_P12 = "/var/lib/pki/pki-tomcat/alias/ca_backup_keys.p12"
-    KRA_BACKUP_KEYS_P12 = "/var/lib/pki/pki-tomcat/alias/kra_backup_keys.p12"
-    CA_CS_CFG_PATH = "/var/lib/pki/pki-tomcat/conf/ca/CS.cfg"
+    CA_BACKUP_KEYS_P12 = "{.VAR_LIB_PKI_TOMCAT_DIR}/alias/ca_backup_keys.p12"
+    KRA_BACKUP_KEYS_P12 = "{.VAR_LIB_PKI_TOMCAT_DIR}/alias/kra_backup_keys.p12"
+    CA_CS_CFG_PATH = "{.VAR_LIB_PKI_TOMCAT_DIR}/conf/ca/CS.cfg"
     CAJARSIGNINGCERT_CFG = (
-        "/var/lib/pki/pki-tomcat/ca/profiles/ca/caJarSigningCert.cfg")
+        "{.VAR_LIB_PKI_TOMCAT_DIR}/ca/profiles/ca/caJarSigningCert.cfg")
     CASIGNEDLOGCERT_CFG = (
-        "/var/lib/pki/pki-tomcat/ca/profiles/ca/caSignedLogCert.cfg")
-    KRA_CS_CFG_PATH = "/var/lib/pki/pki-tomcat/conf/kra/CS.cfg"
+        "{.VAR_LIB_PKI_TOMCAT_DIR}/ca/profiles/ca/caSignedLogCert.cfg")
+    KRA_CS_CFG_PATH = "{.VAR_LIB_PKI_TOMCAT_DIR}/conf/kra/CS.cfg"
     KRACERT_P12 = "/root/kracert.p12"
     SAMBA_DIR = "/var/lib/samba/"
     SSSD_DB = "/var/lib/sss/db"
@@ -345,27 +425,18 @@ class BasePathNamespace(object):
     DB2LDIF = '/usr/sbin/db2ldif'
     BAK2DB = '/usr/sbin/bak2db'
     DB2BAK = '/usr/sbin/db2bak'
-    KDCPROXY_CONFIG = '/etc/ipa/kdcproxy/kdcproxy.conf'
+    KDCPROXY_CONFIG = '{.ETC_IPA}/kdcproxy/kdcproxy.conf'
     CERTMONGER = '/usr/sbin/certmonger'
     NETWORK_MANAGER_CONFIG_DIR = '/etc/NetworkManager/conf.d'
-    IPA_CUSTODIA_CONF_DIR = '/etc/ipa/custodia'
-    IPA_CUSTODIA_CONF = '/etc/ipa/custodia/custodia.conf'
+    IPA_CUSTODIA_CONF_DIR = '{.ETC_IPA}/custodia'
+    IPA_CUSTODIA_CONF = '{.ETC_IPA}/custodia/custodia.conf'
     IPA_CUSTODIA_SOCKET = '/run/httpd/ipa-custodia.sock'
     IPA_CUSTODIA_AUDIT_LOG = '/var/log/ipa-custodia.audit.log'
     IPA_GETKEYTAB = '/usr/sbin/ipa-getkeytab'
     EXTERNAL_SCHEMA_DIR = '/usr/share/ipa/schema.d'
 
-    @property
-    def USER_CACHE_PATH(self):
-        return (
-            os.environ.get('XDG_CACHE_HOME') or
-            os.path.join(
-                os.environ.get(
-                    'HOME',
-                    os.path.expanduser('~')
-                ),
-                '.cache'
-            )
-        )
 
-path_namespace = BasePathNamespace
+paths = BasePathNamespace()
+
+if __name__ == '__main__':
+    paths._dump()

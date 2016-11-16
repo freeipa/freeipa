@@ -79,12 +79,6 @@ ALL_SCHEMA_FILES = IPA_SCHEMA_FILES + ("05rfc2247.ldif", )
 DS_INSTANCE_PREFIX = 'slapd-'
 
 
-def find_server_root():
-    if ipautil.dir_exists(paths.USR_LIB_DIRSRV_64):
-        return paths.USR_LIB_DIRSRV_64
-    else:
-        return paths.USR_LIB_DIRSRV
-
 def config_dirname(serverid):
     return (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid) + "/"
 
@@ -486,7 +480,7 @@ class DsInstance(service.Service):
         self.disable()
 
     def __setup_sub_dict(self):
-        server_root = find_server_root()
+        server_root = paths.USR_LIB_DIRSRV
         try:
             idrange_size = self.idmax - self.idstart + 1
         except TypeError:

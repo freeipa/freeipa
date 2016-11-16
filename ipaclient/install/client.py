@@ -1882,14 +1882,10 @@ def configure_firefox(options, statestore, domain):
         else:
             # test if firefox is installed
             if file_exists(paths.FIREFOX):
-
-                # find valid preferences path
-                for path in [paths.LIB_FIREFOX, paths.LIB64_FIREFOX]:
-                    pref_path = os.path.join(path,
-                                             FIREFOX_PREFERENCES_REL_PATH)
-                    if dir_exists(pref_path):
-                        preferences_dir = pref_path
-                        break
+                pref_path = os.path.join(paths.LIB_FIREFOX,
+                                         FIREFOX_PREFERENCES_REL_PATH)
+                if dir_exists(pref_path):
+                    preferences_dir = pref_path
             else:
                 root_logger.error(
                     "Firefox configuration skipped (Firefox not found).")

@@ -22,17 +22,16 @@ This Red Hat OS family base platform module exports default filesystem paths as
 common in Red Hat OS family-based systems.
 '''
 
-import sys
-
 # Fallback to default path definitions
 from ipaplatform.base.paths import BasePathNamespace
 
 
 class RedHatPathNamespace(BasePathNamespace):
-    # https://docs.python.org/2/library/platform.html#cross-platform
-    if sys.maxsize > 2**32:
-        LIBSOFTHSM2_SO = BasePathNamespace.LIBSOFTHSM2_SO_64
-        PAM_KRB5_SO = BasePathNamespace.PAM_KRB5_SO_64
+    pass
 
 
 paths = RedHatPathNamespace()
+
+
+if __name__ == '__main__':
+    paths._dump()
