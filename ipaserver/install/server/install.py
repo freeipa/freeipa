@@ -465,7 +465,7 @@ def install_check(installer):
         realm_name = options.realm_name.upper()
 
     if not options.subject_base:
-        options.subject_base = DN(('O', realm_name))
+        options.subject_base = installutils.default_subject_base(realm_name)
 
     if options.http_cert_files:
         if options.http_pin is None:

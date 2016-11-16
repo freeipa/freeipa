@@ -1251,7 +1251,8 @@ class DsInstance(service.Service):
                                          replacevars=vardict)
 
     def __get_ds_cert(self):
-        subject = self.subject_base or DN(('O', self.realm))
+        subject = self.subject_base \
+                or installutils.default_subject_base(self.realm)
         nssdb_dir = config_dirname(self.serverid)
         db = certs.CertDB(self.realm, nssdir=nssdb_dir, subject_base=subject)
         db.create_from_cacert(paths.IPA_CA_CRT)

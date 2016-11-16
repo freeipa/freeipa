@@ -78,7 +78,7 @@ def install_http_certs(host_name, realm_name, subject_base):
     principal = 'HTTP/%s@%s' % (host_name, realm_name)
     # Obtain certificate for the HTTP service
     nssdir = certs.NSS_DIR
-    subject = subject_base or DN(('O', realm_name))
+    subject = subject_base or installutils.default_subject_base(realm_name)
     db = certs.CertDB(realm_name, nssdir=nssdir, subject_base=subject)
     db.request_service_cert('Server-Cert', principal, host_name, True)
 

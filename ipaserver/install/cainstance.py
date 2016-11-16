@@ -352,10 +352,10 @@ class CAInstance(DogtagInstance):
             self.clone = True
         self.master_host = master_host
         self.master_replication_port = master_replication_port
-        if subject_base is None:
-            self.subject_base = DN(('O', self.realm))
-        else:
-            self.subject_base = subject_base
+
+        self.subject_base = \
+            subject_base or installutils.default_subject_base(self.realm)
+
         if ca_signing_algorithm is None:
             self.ca_signing_algorithm = 'SHA256withRSA'
         else:
