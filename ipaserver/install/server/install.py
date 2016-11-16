@@ -464,8 +464,8 @@ def install_check(installer):
     else:
         realm_name = options.realm_name.upper()
 
-    if not options.subject:
-        options.subject = DN(('O', realm_name))
+    if not options.subject_base:
+        options.subject_base = DN(('O', realm_name))
 
     if options.http_cert_files:
         if options.http_pin is None:
@@ -725,7 +725,7 @@ def install(installer):
             ds.create_instance(realm_name, host_name, domain_name,
                                dm_password, dirsrv_pkcs12_info,
                                idstart=options.idstart, idmax=options.idmax,
-                               subject_base=options.subject,
+                               subject_base=options.subject_base,
                                hbac_allow=not options.no_hbac_allow)
         else:
             ds = dsinstance.DsInstance(fstore=fstore,
@@ -735,7 +735,7 @@ def install(installer):
             ds.create_instance(realm_name, host_name, domain_name,
                                dm_password,
                                idstart=options.idstart, idmax=options.idmax,
-                               subject_base=options.subject,
+                               subject_base=options.subject_base,
                                hbac_allow=not options.no_hbac_allow)
 
         ntpinstance.ntp_ldap_enable(host_name, ds.suffix, realm_name)
@@ -747,7 +747,7 @@ def install(installer):
         installer._ds = ds
         ds.init_info(
             realm_name, host_name, domain_name, dm_password,
-            options.subject, 1101, 1100, None)
+            options.subject_base, 1101, 1100, None)
 
     if setup_ca:
         if not options.external_cert_files and options.external_ca:
@@ -781,7 +781,7 @@ def install(installer):
                         dm_password, master_password,
                         setup_pkinit=not options.no_pkinit,
                         pkcs12_info=pkinit_pkcs12_info,
-                        subject_base=options.subject)
+                        subject_base=options.subject_base)
 
     # restart DS to enable ipa-pwd-extop plugin
     print("Restarting directory server to enable password extension plugin")
@@ -811,13 +811,13 @@ def install(installer):
     if options.http_cert_files:
         http.create_instance(
             realm_name, host_name, domain_name,
-            pkcs12_info=http_pkcs12_info, subject_base=options.subject,
+            pkcs12_info=http_pkcs12_info, subject_base=options.subject_base,
             auto_redirect=not options.no_ui_redirect,
             ca_is_configured=setup_ca)
     else:
         http.create_instance(
             realm_name, host_name, domain_name,
-            subject_base=options.subject,
+            subject_base=options.subject_base,
             auto_redirect=not options.no_ui_redirect,
             ca_is_configured=setup_ca)
     tasks.restore_context(paths.CACHE_IPA_SESSIONS)

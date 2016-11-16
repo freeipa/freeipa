@@ -66,7 +66,7 @@ def install_check(standalone, replica_config, options):
 
     realm_name = options.realm_name
     host_name = options.host_name
-    subject_base = options.subject
+    subject_base = options.subject_base
 
     if replica_config is not None:
         if standalone and api.env.ra_plugin == 'selfsign':
@@ -110,7 +110,7 @@ def install_check(standalone, replica_config, options):
 
         external_cert_file, external_ca_file = installutils.load_external_cert(
             options.external_cert_files,
-            DN(('CN', 'Certificate Authority'), options.subject)
+            DN(('CN', 'Certificate Authority'), options.subject_base)
         )
     elif options.external_ca:
         if cainstance.is_step_one_done():
@@ -164,7 +164,7 @@ def install_step_0(standalone, replica_config, options):
     host_name = options.host_name
 
     if replica_config is None:
-        subject_base = options.subject
+        subject_base = options.subject_base
 
         ca_signing_algorithm = options.ca_signing_algorithm
         if options.external_ca:
@@ -236,7 +236,7 @@ def install_step_1(standalone, replica_config, options):
 
     realm_name = options.realm_name
     host_name = options.host_name
-    subject_base = options.subject
+    subject_base = options.subject_base
 
     basedn = ipautil.realm_to_suffix(realm_name)
 
@@ -379,14 +379,15 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
         if any(not os.path.isabs(path) for path in value):
             raise ValueError("must use an absolute path")
 
-    subject = knob(
+    subject_base = knob(
         str, None,
         description="The certificate subject base (default O=<realm-name>)",
+        cli_deprecated_names=['--subject'],
     )
-    subject = master_install_only(subject)
+    subject_base = master_install_only(subject_base)
 
-    @subject.validator
-    def subject(self, value):
+    @subject_base.validator
+    def subject_base(self, value):
         v = unicode(value, 'utf-8')
         if any(ord(c) < 0x20 for c in v):
             raise ValueError("must not contain control characters")
