@@ -29,6 +29,11 @@ import time
 import tempfile
 import gssapi
 
+try:
+    from xml.etree import cElementTree as etree
+except ImportError:
+    from xml.etree import ElementTree as etree
+
 import SSSDConfig
 # pylint: disable=import-error
 from six.moves.urllib.parse import urlsplit
@@ -94,40 +99,34 @@ def wait_for_sssd():
         print("This may mean that sssd didn't re-start properly after the configuration changes.")
 
 def configure_xml(fstore):
-    from lxml import etree
-
-    fstore.backup_file(paths.AUTOFS_LDAP_AUTH_CONF)
+    authconf = paths.AUTOFS_LDAP_AUTH_CONF
+    fstore.backup_file(authconf)
 
     try:
-        f = open(paths.AUTOFS_LDAP_AUTH_CONF, 'r')
-        lines = f.read()
-        f.close()
-
-        saslconf = etree.fromstring(lines)
-        element = saslconf.xpath('//autofs_ldap_sasl_conf')
-        root = saslconf.getroottree()
+        tree = etree.parse(authconf)
     except IOError as e:
         root_logger.debug('Unable to open file %s' % e)
         root_logger.debug('Creating new from template')
-        element = [etree.Element('autofs_ldap_sasl_conf')]
-        root = element[0].getroottree()
+        tree = etree.ElementTree(
+            element=etree.Element('autofs_ldap_sasl_conf')
+        )
 
-    if len(element) != 1:
-        raise RuntimeError('Unable to parse %s' % paths.AUTOFS_LDAP_AUTH_CONF)
+    element = tree.getroot()
+    if element.tag != 'autofs_ldap_sasl_conf':
+        raise RuntimeError('Invalid XML root in file %s' % authconf)
 
-    element[0].set('usetls', 'no')
-    element[0].set('tlsrequired', 'no')
-    element[0].set('authrequired', 'yes')
-    element[0].set('authtype', 'GSSAPI')
-    element[0].set('clientprinc', 'host/%s@%s' % (api.env.host, api.env.realm))
+    element.set('usetls', 'no')
+    element.set('tlsrequired', 'no')
+    element.set('authrequired', 'yes')
+    element.set('authtype', 'GSSAPI')
+    element.set('clientprinc', 'host/%s@%s' % (api.env.host, api.env.realm))
 
-    newconf = open(paths.AUTOFS_LDAP_AUTH_CONF, 'w')
     try:
-        root.write(newconf, pretty_print=True, xml_declaration=True, encoding='UTF-8')
-        newconf.close()
+        tree.write(authconf, xml_declaration=True, encoding='UTF-8')
     except IOError as e:
-        print("Unable to write %s: %s" % (paths.AUTOFS_LDAP_AUTH_CONF, e))
-    print("Configured %s" % paths.AUTOFS_LDAP_AUTH_CONF)
+        print("Unable to write %s: %s" % (authconf, e))
+    else:
+        print("Configured %s" % authconf)
 
 def configure_nsswitch(fstore, options):
     """
