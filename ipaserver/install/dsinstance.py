@@ -241,6 +241,7 @@ class DsInstance(service.Service):
         self.dercert = None
         self.idstart = None
         self.idmax = None
+        self.ca_subject = None
         self.subject_base = None
         self.open_ports = []
         self.run_init_memberof = True
@@ -301,7 +302,8 @@ class DsInstance(service.Service):
         self.step("configuring directory to start on boot", self.__enable)
 
     def init_info(self, realm_name, fqdn, domain_name, dm_password,
-                  subject_base, idstart, idmax, pkcs12_info, ca_file=None):
+                  subject_base, ca_subject,
+                  idstart, idmax, pkcs12_info, ca_file=None):
         self.realm = realm_name.upper()
         self.serverid = installutils.realm_to_serverid(self.realm)
         self.suffix = ipautil.realm_to_suffix(self.realm)
@@ -309,6 +311,7 @@ class DsInstance(service.Service):
         self.dm_password = dm_password
         self.domain = domain_name
         self.subject_base = subject_base
+        self.ca_subject = ca_subject
         self.idstart = idstart
         self.idmax = idmax
         self.pkcs12_info = pkcs12_info
@@ -320,11 +323,13 @@ class DsInstance(service.Service):
 
     def create_instance(self, realm_name, fqdn, domain_name,
                         dm_password, pkcs12_info=None,
-                        idstart=1100, idmax=999999, subject_base=None,
+                        idstart=1100, idmax=999999,
+                        subject_base=None, ca_subject=None,
                         hbac_allow=True, ca_file=None):
         self.init_info(
             realm_name, fqdn, domain_name, dm_password,
-            subject_base, idstart, idmax, pkcs12_info, ca_file=ca_file)
+            subject_base, ca_subject,
+            idstart, idmax, pkcs12_info, ca_file=ca_file)
 
         self.__common_setup()
         self.step("restarting directory server", self.__restart_instance)
@@ -358,8 +363,9 @@ class DsInstance(service.Service):
         self.start_creation(runtime=10)
 
     def create_replica(self, realm_name, master_fqdn, fqdn,
-                       domain_name, dm_password, subject_base, api,
-                       pkcs12_info=None, ca_file=None,
+                       domain_name, dm_password,
+                       subject_base, ca_subject,
+                       api, pkcs12_info=None, ca_file=None,
                        ca_is_configured=None, promote=False):
         # idstart and idmax are configured so that the range is seen as
         # depleted by the DNA plugin and the replica will go and get a
@@ -374,6 +380,7 @@ class DsInstance(service.Service):
             domain_name=domain_name,
             dm_password=dm_password,
             subject_base=subject_base,
+            ca_subject=ca_subject,
             idstart=idstart,
             idmax=idmax,
             pkcs12_info=pkcs12_info,
@@ -777,7 +784,12 @@ class DsInstance(service.Service):
 
     def __enable_ssl(self):
         dirname = config_dirname(self.serverid)
-        dsdb = certs.CertDB(self.realm, nssdir=dirname, subject_base=self.subject_base)
+        dsdb = certs.CertDB(
+            self.realm,
+            nssdir=dirname,
+            subject_base=self.subject_base,
+            ca_subject=self.ca_subject,
+        )
         if self.pkcs12_info:
             if self.ca_is_configured:
                 trust_flags = 'CT,C,C'
@@ -920,8 +932,7 @@ class DsInstance(service.Service):
         self._ldap_mod("indices.ldif")
 
     def __certmap_conf(self):
-        ca_subject = 'CN=Certificate Authority,' + str(self.subject_base)
-        write_certmap_conf(self.realm, ca_subject)
+        write_certmap_conf(self.realm, self.ca_subject)
         sysupgrade.set_upgrade_state(
             'certmap.conf',
             'subject_base',
@@ -1064,7 +1075,12 @@ class DsInstance(service.Service):
         self.stop()
 
         dirname = config_dirname(installutils.realm_to_serverid(self.realm))
-        certdb = certs.CertDB(self.realm, nssdir=dirname, subject_base=self.subject_base)
+        certdb = certs.CertDB(
+            self.realm,
+            nssdir=dirname,
+            subject_base=self.subject_base,
+            ca_subject=self.ca_subject,
+        )
         if not cacert_name or len(cacert_name) == 0:
             cacert_name = "Imported CA"
         # we can't pass in the nickname, so we set the instance variable
@@ -1163,8 +1179,7 @@ class DsInstance(service.Service):
         Try to find the current value of certificate subject base.
         1) Look in sysupgrade first
         2) If no value is found there, look in DS (start DS if necessary)
-        3) Last resort, look in the certmap.conf itself
-        4) If all fails, log loudly and return None
+        3) If all fails, log loudly and return None
 
         Note that this method can only be executed AFTER the ipa server
         is configured, the api is initialized elsewhere and
@@ -1206,27 +1221,6 @@ class DsInstance(service.Service):
                 root_logger.error('Cannot connect to DS to find certificate '
                                   'subject base: %s', e)
 
-        if not subject_base:
-            root_logger.debug('Unable to find certificate subject base in DS')
-            root_logger.debug('Trying to find certificate subject base in '
-                              'certmap.conf')
-
-            certmap_dir = config_dirname(
-                installutils.realm_to_serverid(api.env.realm)
-            )
-            try:
-                with open(os.path.join(certmap_dir, 'certmap.conf')) as f:
-                    for line in f:
-                        if line.startswith('certmap ipaca'):
-                            subject_base = line.strip().split(',')[-1]
-                            root_logger.debug(
-                                'Found certificate subject base in certmap.conf: '
-                                '%s', subject_base)
-
-            except IOError as e:
-                root_logger.error('Cannot open certmap.conf to find certificate '
-                                  'subject base: %s', e.strerror)
-
         if subject_base:
             return subject_base
 
@@ -1248,10 +1242,13 @@ class DsInstance(service.Service):
                                          replacevars=vardict)
 
     def __get_ds_cert(self):
-        subject = self.subject_base \
-                or installutils.default_subject_base(self.realm)
         nssdb_dir = config_dirname(self.serverid)
-        db = certs.CertDB(self.realm, nssdir=nssdb_dir, subject_base=subject)
+        db = certs.CertDB(
+            self.realm,
+            nssdir=nssdb_dir,
+            subject_base=self.subject_base,
+            ca_subject=self.ca_subject,
+        )
         db.create_from_cacert(paths.IPA_CA_CRT)
         db.request_service_cert(self.nickname, self.principal, self.fqdn)
         db.create_pin_file()

@@ -77,7 +77,8 @@ class KRAInstance(DogtagInstance):
 
     def configure_instance(self, realm_name, host_name, dm_password,
                            admin_password, pkcs12_info=None, master_host=None,
-                           subject_base=None, ra_only=False, promote=False):
+                           subject_base=None, subject=None,
+                           ra_only=False, promote=False):
         """Create a KRA instance.
 
            To create a clone, pass in pkcs12_info.
@@ -93,6 +94,8 @@ class KRAInstance(DogtagInstance):
 
         self.subject_base = \
             subject_base or installutils.default_subject_base(realm_name)
+        self.subject = \
+            subject or installutils.default_ca_subject_dn(self.subject_base)
 
         self.realm = realm_name
         self.suffix = ipautil.realm_to_suffix(realm_name)
@@ -307,7 +310,7 @@ class KRAInstance(DogtagInstance):
             userCertificate=[cert_data],
             description=['2;%s;%s;%s' % (
                 cert.serial,
-                DN(('CN', 'Certificate Authority'), self.subject_base),
+                DN(self.subject),
                 DN(('CN', 'IPA RA'), self.subject_base))])
         conn.add_entry(entry)
 

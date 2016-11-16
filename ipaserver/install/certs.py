@@ -70,9 +70,19 @@ class CertDB(object):
 
     This class knows IPA-specific details such as nssdir location, or the
     CA cert name.
+
+    ``subject_base``
+      Realm subject base DN.  This argument is required when creating
+      server or object signing certs.
+    ``ca_subject``
+      IPA CA subject DN.  This argument is required when importing
+      CA certificates into the certificate database.
+
     """
     # TODO: Remove all selfsign code
-    def __init__(self, realm, nssdir=NSS_DIR, fstore=None, host_name=None, subject_base=None):
+    def __init__(
+            self, realm, nssdir=NSS_DIR, fstore=None, host_name=None,
+            subject_base=None, ca_subject=None):
         self.nssdb = NSSDatabase(nssdir)
 
         self.secdir = nssdir
@@ -91,14 +101,12 @@ class CertDB(object):
         self.certreq_fname = None
         self.certder_fname = None
         self.host_name = host_name
+        self.ca_subject = ca_subject
         self.subject_base = subject_base
         try:
             self.cwd = os.getcwd()
         except OSError as e:
             raise RuntimeError("Unable to determine the current directory: %s" % str(e))
-
-        if not subject_base:
-            self.subject_base = DN(('O', 'IPA'))
 
         self.cacert_name = get_ca_nickname(self.realm)
         self.valid_months = "120"
@@ -118,6 +126,7 @@ class CertDB(object):
         else:
             self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
+    ca_subject = ipautil.dn_attribute_property('_ca_subject')
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
     def __del__(self):
@@ -248,13 +257,12 @@ class CertDB(object):
         certs = fd.read()
         fd.close()
 
-        ca_dn = DN(('CN','Certificate Authority'), self.subject_base)
         st = 0
         while True:
             try:
                 (cert, st) = find_cert_from_txt(certs, st)
                 _rdn, subject_dn = get_cert_nickname(cert)
-                if subject_dn == ca_dn:
+                if subject_dn == self.ca_subject:
                     nick = get_ca_nickname(self.realm)
                 else:
                     nick = str(subject_dn)

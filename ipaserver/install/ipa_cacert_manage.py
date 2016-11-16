@@ -201,9 +201,7 @@ class CACertManage(admintool.AdminTool):
         )
 
         cert_file, ca_file = installutils.load_external_cert(
-            options.external_cert_files,
-            DN(('CN', 'Certificate Authority'), x509.subject_base())
-        )
+            options.external_cert_files, DN(old_cert_obj.subject))
 
         with open(cert_file.name) as f:
             new_cert_data = f.read()

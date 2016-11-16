@@ -78,8 +78,7 @@ def install_http_certs(host_name, realm_name, subject_base):
     principal = 'HTTP/%s@%s' % (host_name, realm_name)
     # Obtain certificate for the HTTP service
     nssdir = certs.NSS_DIR
-    subject = subject_base or installutils.default_subject_base(realm_name)
-    db = certs.CertDB(realm_name, nssdir=nssdir, subject_base=subject)
+    db = certs.CertDB(realm_name, nssdir=nssdir, subject_base=subject_base)
     db.request_service_cert('Server-Cert', principal, host_name, True)
 
 
@@ -94,6 +93,11 @@ def install_replica_ds(config, options, ca_is_configured, remote_api,
         pkcs12_info = make_pkcs12_info(config.dir, "dscert.p12",
                                        "dirsrv_pin.txt")
 
+    if ca_is_configured:
+        ca_subject = ca.lookup_ca_subject(remote_api, config.subject_base)
+    else:
+        ca_subject = installutils.default_ca_subject_dn(config.subject_base)
+
     ds = dsinstance.DsInstance(
         config_ldif=options.dirsrv_config_file)
     ds.create_replica(
@@ -103,6 +107,7 @@ def install_replica_ds(config, options, ca_is_configured, remote_api,
         domain_name=config.domain_name,
         dm_password=config.dirman_password,
         subject_base=config.subject_base,
+        ca_subject=ca_subject,
         pkcs12_info=pkcs12_info,
         ca_is_configured=ca_is_configured,
         ca_file=ca_file,
@@ -703,6 +708,10 @@ def install_check(installer):
         raise RuntimeError("CA cert file is not available. Please run "
                            "ipa-replica-prepare to create a new replica file.")
 
+    # look up CA subject name (needed for DS certmap.conf)
+    options.ca_subject = unicode(
+        DN(x509.load_certificate_from_file(cafile).subject))
+
     for pkcs12_name, pin_name in (('dscert.p12', 'dirsrv_pin.txt'),
                                   ('httpcert.p12', 'http_pin.txt')):
         pkcs12_info = make_pkcs12_info(config.dir, pkcs12_name, pin_name)
@@ -737,6 +746,7 @@ def install_check(installer):
                          confdir=paths.ETC_IPA,
                          ldap_uri=ldapuri)
     remote_api.finalize()
+    installer._remote_api = remote_api
     conn = remote_api.Backend.ldap2
     replman = None
     try:
@@ -796,7 +806,6 @@ def install_check(installer):
         if ca_enabled:
             options.realm_name = config.realm_name
             options.host_name = config.host_name
-            options.subject_base = config.subject_base
             ca.install_check(False, config, options)
 
         if kra_enabled:
@@ -855,7 +864,6 @@ def install_check(installer):
     installer._ca_enabled = ca_enabled
     installer._kra_enabled = kra_enabled
     installer._ca_file = cafile
-    installer._remote_api = remote_api
     installer._fstore = fstore
     installer._sstore = sstore
 
@@ -1067,6 +1075,7 @@ def promote_check(installer):
                          ldap_uri=ldapuri,
                          xmlrpc_uri=xmlrpc_uri)
     remote_api.finalize()
+    installer._remote_api = remote_api
 
     check_remote_version(remote_api)
 
@@ -1203,7 +1212,6 @@ def promote_check(installer):
         if ca_enabled:
             options.realm_name = config.realm_name
             options.host_name = config.host_name
-            options.subject_base = config.subject_base
             ca.install_check(False, config, options)
 
         if kra_enabled:
@@ -1263,7 +1271,6 @@ def promote_check(installer):
     installer._fstore = fstore
     installer._sstore = sstore
     installer._config = config
-    installer._remote_api = remote_api
     installer._add_to_ipaservers = add_to_ipaservers
     installer._dirsrv_pkcs12_file = dirsrv_pkcs12_file
     installer._dirsrv_pkcs12_info = dirsrv_pkcs12_info

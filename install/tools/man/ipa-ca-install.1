@@ -46,6 +46,12 @@ Type of the external CA. Possible values are "generic", "ms-cs". Default value i
 \fB\-\-external\-cert\-file\fR=\fIFILE\fR
 File containing the IPA CA certificate and the external CA certificate chain. The file is accepted in PEM and DER certificate and PKCS#7 certificate chain formats. This option may be used multiple times.
 .TP
+\fB\-\-ca\-subject\fR=\fISUBJECT\fR
+The CA certificate subject DN (default CN=Certificate Authority,O=REALM.NAME)
+.TP
+\fB\-\-subject\-base\fR=\fISUBJECT\fR
+The subject base for certificates issued by IPA (default O=REALM.NAME)
+.TP
 \fB\-\-ca\-signing\-algorithm\fR=\fIALGORITHM\fR
 Signing algorithm of the IPA CA certificate. Possible values are SHA1withRSA, SHA256withRSA, SHA512withRSA. Default value is SHA256withRSA. Use this option with --external-ca if the external CA does not support the default signing algorithm.
 .TP

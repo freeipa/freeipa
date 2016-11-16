@@ -1480,3 +1480,7 @@ def restart_dirsrv(instance_name="", capture_output=True):
 
 def default_subject_base(realm_name):
     return DN(('O', realm_name))
+
+
+def default_ca_subject_dn(subject_base):
+    return DN(('CN', 'Certificate Authority'), subject_base)

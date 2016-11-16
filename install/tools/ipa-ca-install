@@ -81,6 +81,11 @@ def parse_options():
                       help=(
                           "The certificate subject base "
                           "(default O=<realm-name>)"))
+    parser.add_option("--ca-subject", dest="ca_subject",
+                      default=None,
+                      help=(
+                          "The CA certificate subject DN "
+                          "(default CN=Certificate Authority,O=<realm-name>)"))
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -177,7 +182,6 @@ def install_replica(safe_options, options, filename):
     options.domain_name = config.domain_name
     options.dm_password = config.dirman_password
     options.host_name = config.host_name
-    options.subject_base = config.subject_base
     if os.path.exists(cafile):
         options.ca_cert_file = cafile
     else:
@@ -206,6 +210,18 @@ def install_master(safe_options, options):
 
     if not options.subject_base:
         options.subject_base = installutils.default_subject_base(api.env.realm)
+    if not options.ca_subject:
+        options.ca_subject = installutils.default_ca_subject_dn(
+            options.subject_base)
+
+    try:
+        ca.subject_validator(ca.VALID_SUBJECT_BASE_ATTRS, options.subject_base)
+    except ValueError as e:
+        sys.exit("Subject base: {}".format(e.message))
+    try:
+        ca.subject_validator(ca.VALID_SUBJECT_ATTRS, options.ca_subject)
+    except ValueError as e:
+        sys.exit("CA subject: {}".format(e.message))
 
     ca.install_check(True, None, options)
     ca.install(True, None, options)

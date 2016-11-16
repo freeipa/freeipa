@@ -467,6 +467,10 @@ def install_check(installer):
     if not options.subject_base:
         options.subject_base = installutils.default_subject_base(realm_name)
 
+    if not options.ca_subject:
+        options.ca_subject = \
+            installutils.default_ca_subject_dn(options.subject_base)
+
     if options.http_cert_files:
         if options.http_pin is None:
             options.http_pin = installutils.read_password(
@@ -726,6 +730,7 @@ def install(installer):
                                dm_password, dirsrv_pkcs12_info,
                                idstart=options.idstart, idmax=options.idmax,
                                subject_base=options.subject_base,
+                               ca_subject=options.ca_subject,
                                hbac_allow=not options.no_hbac_allow)
         else:
             ds = dsinstance.DsInstance(fstore=fstore,
@@ -736,6 +741,7 @@ def install(installer):
                                dm_password,
                                idstart=options.idstart, idmax=options.idmax,
                                subject_base=options.subject_base,
+                               ca_subject=options.ca_subject,
                                hbac_allow=not options.no_hbac_allow)
 
         ntpinstance.ntp_ldap_enable(host_name, ds.suffix, realm_name)
@@ -747,7 +753,7 @@ def install(installer):
         installer._ds = ds
         ds.init_info(
             realm_name, host_name, domain_name, dm_password,
-            options.subject_base, 1101, 1100, None)
+            options.subject_base, options.ca_subject, 1101, 1100, None)
 
     if setup_ca:
         if not options.external_cert_files and options.external_ca:

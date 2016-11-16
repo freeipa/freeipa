@@ -573,7 +573,8 @@ class ServerReplicaInstall(ServerReplicaInstallInterface):
     Server replica installer
     """
 
-    subject = None
+    subject_base = None
+    ca_subject = None
 
     admin_password = knob(
         bases=ServerReplicaInstallInterface.admin_password,
