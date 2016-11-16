@@ -330,7 +330,8 @@ class CAInstance(DogtagInstance):
                            pkcs12_info=None, master_host=None, csr_file=None,
                            cert_file=None, cert_chain_file=None,
                            master_replication_port=None,
-                           subject_base=None, ca_signing_algorithm=None,
+                           subject_base=None, ca_subject=None,
+                           ca_signing_algorithm=None,
                            ca_type=None, ra_p12=None, ra_only=False,
                            promote=False, use_ldaps=False):
         """Create a CA instance.
@@ -355,6 +356,8 @@ class CAInstance(DogtagInstance):
 
         self.subject_base = \
             subject_base or installutils.default_subject_base(self.realm)
+        self.ca_subject = \
+            ca_subject or installutils.default_ca_subject_dn(self.subject_base)
 
         if ca_signing_algorithm is None:
             self.ca_signing_algorithm = 'SHA256withRSA'
@@ -514,8 +517,9 @@ class CAInstance(DogtagInstance):
             str(DN(('cn', self.fqdn), self.subject_base)))
         config.set("CA", "pki_audit_signing_subject_dn",
             str(DN(('cn', 'CA Audit'), self.subject_base)))
-        config.set("CA", "pki_ca_signing_subject_dn",
-            str(DN(('cn', 'Certificate Authority'), self.subject_base)))
+        config.set(
+            "CA", "pki_ca_signing_subject_dn",
+            str(self.ca_subject))
 
         # Certificate nicknames
         config.set("CA", "pki_subsystem_nickname", "subsystemCert cert-pki-ca")
@@ -701,7 +705,7 @@ class CAInstance(DogtagInstance):
             userCertificate=[cert_data],
             description=['2;%s;%s;%s' % (
                 cert.serial,
-                DN(('CN', 'Certificate Authority'), self.subject_base),
+                DN(self.ca_subject),
                 DN(('CN', 'IPA RA'), self.subject_base))])
         conn.add_entry(entry)
 
@@ -754,7 +758,7 @@ class CAInstance(DogtagInstance):
         # Ok, now we have all the certificates in certs, walk through it
         # and pull out each certificate and add it to our database
 
-        ca_dn = DN(('CN','Certificate Authority'), self.subject_base)
+        ca_dn = DN(self.ca_subject)
         for cert in certlist:
             try:
                 chain_fd, chain_name = tempfile.mkstemp()

@@ -13,6 +13,7 @@ import os.path
 
 import six
 
+from ipalib.constants import IPA_CA_CN
 from ipalib.install import certstore
 from ipalib.install.service import enroll_only, master_install_only, replica_install_only
 from ipaserver.install import sysupgrade
@@ -28,7 +29,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, certs
 from ipaserver.install.replication import replica_conn_check
-from ipalib import api, x509
+from ipalib import api, errors, x509
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 
@@ -37,16 +38,51 @@ from . import conncheck, dogtag
 if six.PY3:
     unicode = str
 
-VALID_SUBJECT_ATTRS = ['st', 'o', 'ou', 'dnqualifier', 'c',
-                       'serialnumber', 'l', 'title', 'sn', 'givenname',
-                       'initials', 'generationqualifier', 'dc', 'mail',
-                       'uid', 'postaladdress', 'postalcode', 'postofficebox',
-                       'houseidentifier', 'e', 'street', 'pseudonym',
-                       'incorporationlocality', 'incorporationstate',
-                       'incorporationcountry', 'businesscategory']
+VALID_SUBJECT_BASE_ATTRS = {
+    'st', 'o', 'ou', 'dnqualifier', 'c', 'serialnumber', 'l', 'title', 'sn',
+    'givenname', 'initials', 'generationqualifier', 'dc', 'mail', 'uid',
+    'postaladdress', 'postalcode', 'postofficebox', 'houseidentifier', 'e',
+    'street', 'pseudonym', 'incorporationlocality', 'incorporationstate',
+    'incorporationcountry', 'businesscategory',
+}
+VALID_SUBJECT_ATTRS = {'cn'} | VALID_SUBJECT_BASE_ATTRS
 
 external_cert_file = None
 external_ca_file = None
+
+
+def subject_validator(valid_attrs, value):
+    v = unicode(value, 'utf-8')
+    if any(ord(c) < 0x20 for c in v):
+        raise ValueError("must not contain control characters")
+    if '&' in v:
+        raise ValueError("must not contain an ampersand (\"&\")")
+    try:
+        dn = DN(v)
+        for rdn in dn:
+            if rdn.attr.lower() not in valid_attrs:
+                raise ValueError("invalid attribute: \"%s\"" % rdn.attr)
+    except ValueError as e:
+        raise ValueError("invalid DN: %s" % e)
+
+
+def lookup_ca_subject(api, subject_base):
+    dn = DN(('cn', IPA_CA_CN), api.env.container_ca, api.env.basedn)
+    try:
+        # we do not use api.Command.ca_show because it attempts to
+        # talk to the CA (to read certificate / chain), but the RA
+        # backend may be unavailable (ipa-replica-install) or unusable
+        # due to RA Agent cert not yet created (ipa-ca-install).
+        ca_subject = api.Backend.ldap2.get_entry(dn)['ipacasubjectdn'][0]
+    except errors.NotFound:
+        # if the entry doesn't exist, we are dealing with a pre-v4.4
+        # installation, where the default CA subject was always based
+        # on the subject_base.
+        #
+        # installutils.default_ca_subject_dn is NOT used here in
+        # case the default changes in the future.
+        ca_subject = DN(('CN', 'Certificate Authority'), subject_base)
+    return six.text_type(ca_subject)
 
 
 def set_subject_base_in_config(subject_base):
@@ -62,12 +98,23 @@ def install_check(standalone, replica_config, options):
     global external_cert_file
     global external_ca_file
 
-    if replica_config is not None and not replica_config.setup_ca:
-        return
-
     realm_name = options.realm_name
     host_name = options.host_name
-    subject_base = options.subject_base
+
+    if replica_config is None:
+        options._subject_base = options.subject_base
+        options._ca_subject = options.ca_subject
+    else:
+        # during replica install, this gets invoked before local DS is
+        # available, so use the remote api.
+        _api = api if standalone else options._remote_api
+
+        # for replica-install the knobs cannot be written, hence leading '_'
+        options._subject_base = six.text_type(replica_config.subject_base)
+        options._ca_subject = lookup_ca_subject(_api, options._subject_base)
+
+    if replica_config is not None and not replica_config.setup_ca:
+        return
 
     if replica_config is not None:
         if standalone and api.env.ra_plugin == 'selfsign':
@@ -110,9 +157,7 @@ def install_check(standalone, replica_config, options):
                   "--external-ca.")
 
         external_cert_file, external_ca_file = installutils.load_external_cert(
-            options.external_cert_files,
-            DN(('CN', 'Certificate Authority'), options.subject_base)
-        )
+            options.external_cert_files, options._ca_subject)
     elif options.external_ca:
         if cainstance.is_step_one_done():
             raise ScriptError(
@@ -132,8 +177,9 @@ def install_check(standalone, replica_config, options):
     if standalone:
         dirname = dsinstance.config_dirname(
             installutils.realm_to_serverid(realm_name))
-        cadb = certs.CertDB(realm_name, subject_base=subject_base)
-        dsdb = certs.CertDB(realm_name, nssdir=dirname, subject_base=subject_base)
+        cadb = certs.CertDB(realm_name, subject_base=options._subject_base)
+        dsdb = certs.CertDB(
+            realm_name, nssdir=dirname, subject_base=options._subject_base)
 
         for db in (cadb, dsdb):
             for nickname, _trust_flags in db.list_certs():
@@ -147,8 +193,8 @@ def install_check(standalone, replica_config, options):
                 if not cert:
                     continue
                 subject = DN(x509.load_certificate(cert).subject)
-                if subject in (DN('CN=Certificate Authority', subject_base),
-                               DN('CN=IPA RA', subject_base)):
+                if subject in (DN(options._ca_subject),
+                               DN('CN=IPA RA', options._subject_base)):
                     raise ScriptError(
                         "Certificate with subject %s is present in %s, "
                         "cannot continue." % (subject, db.secdir))
@@ -163,10 +209,10 @@ def install_step_0(standalone, replica_config, options):
     realm_name = options.realm_name
     dm_password = options.dm_password
     host_name = options.host_name
+    ca_subject = options._ca_subject
+    subject_base = options._subject_base
 
     if replica_config is None:
-        subject_base = options.subject_base
-
         ca_signing_algorithm = options.ca_signing_algorithm
         if options.external_ca:
             ca_type = options.external_ca_type
@@ -198,8 +244,6 @@ def install_step_0(standalone, replica_config, options):
                 cafile,
                 replica_config.dirman_password)
 
-        subject_base = replica_config.subject_base
-
         ca_signing_algorithm = None
         ca_type = None
         csr_file = None
@@ -214,16 +258,18 @@ def install_step_0(standalone, replica_config, options):
         promote = options.promote
 
     # if upgrading from CA-less to CA-ful, need to rewrite
-    # subject_base configuration
+    # certmap.conf and subject_base configuration
     #
     set_subject_base_in_config(subject_base)
     sysupgrade.set_upgrade_state(
         'certmap.conf', 'subject_base', str(subject_base))
+    dsinstance.write_certmap_conf(realm_name, ca_subject)
 
     ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
                                host_name=host_name)
     ca.configure_instance(host_name, dm_password, dm_password,
                           subject_base=subject_base,
+                          ca_subject=ca_subject,
                           ca_signing_algorithm=ca_signing_algorithm,
                           ca_type=ca_type,
                           csr_file=csr_file,
@@ -244,8 +290,7 @@ def install_step_1(standalone, replica_config, options):
 
     realm_name = options.realm_name
     host_name = options.host_name
-    subject_base = options.subject_base
-
+    subject_base = options._subject_base
     basedn = ipautil.realm_to_suffix(realm_name)
 
     ca = cainstance.CAInstance(realm_name, certs.NSS_DIR, host_name=host_name)
@@ -396,18 +441,20 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
 
     @subject_base.validator
     def subject_base(self, value):
-        v = unicode(value, 'utf-8')
-        if any(ord(c) < 0x20 for c in v):
-            raise ValueError("must not contain control characters")
-        if '&' in v:
-            raise ValueError("must not contain an ampersand (\"&\")")
-        try:
-            dn = DN(v)
-            for rdn in dn:
-                if rdn.attr.lower() not in VALID_SUBJECT_ATTRS:
-                    raise ValueError("invalid attribute: \"%s\"" % rdn.attr)
-        except ValueError as e:
-            raise ValueError("invalid subject base format: %s" % e)
+        subject_validator(VALID_SUBJECT_BASE_ATTRS, value)
+
+    ca_subject = knob(
+        str, None,
+        description=(
+            "The CA certificate subject DN "
+            "(default CN=Certificate Authority,O=<realm-name>)"
+        ),
+    )
+    ca_subject = master_install_only(ca_subject)
+
+    @ca_subject.validator
+    def ca_subject(self, value):
+        subject_validator(VALID_SUBJECT_ATTRS, value)
 
     ca_signing_algorithm = knob(
         CASigningAlgorithm, None,
