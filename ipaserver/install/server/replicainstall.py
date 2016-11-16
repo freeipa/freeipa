@@ -796,7 +796,7 @@ def install_check(installer):
         if ca_enabled:
             options.realm_name = config.realm_name
             options.host_name = config.host_name
-            options.subject = config.subject_base
+            options.subject_base = config.subject_base
             ca.install_check(False, config, options)
 
         if kra_enabled:
@@ -1203,7 +1203,7 @@ def promote_check(installer):
         if ca_enabled:
             options.realm_name = config.realm_name
             options.host_name = config.host_name
-            options.subject = config.subject_base
+            options.subject_base = config.subject_base
             ca.install_check(False, config, options)
 
         if kra_enabled:

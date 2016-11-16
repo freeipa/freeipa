@@ -172,7 +172,7 @@ def install_replica(safe_options, options, filename):
     options.domain_name = config.domain_name
     options.dm_password = config.dirman_password
     options.host_name = config.host_name
-    options.subject = config.subject_base
+    options.subject_base = config.subject_base
     if os.path.exists(cafile):
         options.ca_cert_file = cafile
     else:
@@ -201,7 +201,7 @@ def install_master(safe_options, options):
     options.domain_name = api.env.domain
     options.dm_password = dm_password
     options.host_name = api.env.host
-    options.subject = subject_base
+    options.subject_base = subject_base
 
     ca.install_check(True, None, options)
     ca.install(True, None, options)
