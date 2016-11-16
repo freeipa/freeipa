@@ -434,7 +434,10 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
 
     subject_base = knob(
         str, None,
-        description="The certificate subject base (default O=<realm-name>)",
+        description=(
+            "The certificate subject base (default O=<realm-name>). "
+            "RDNs are in LDAP order (most specific RDN first)."
+        ),
         cli_deprecated_names=['--subject'],
     )
     subject_base = master_install_only(subject_base)
@@ -447,7 +450,8 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
         str, None,
         description=(
             "The CA certificate subject DN "
-            "(default CN=Certificate Authority,O=<realm-name>)"
+            "(default CN=Certificate Authority,O=<realm-name>). "
+            "RDNs are in LDAP order (most specific RDN first)."
         ),
     )
     ca_subject = master_install_only(ca_subject)
