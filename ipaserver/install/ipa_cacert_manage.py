@@ -192,14 +192,17 @@ class CACertManage(admintool.AdminTool):
 
         options = self.options
         conn = api.Backend.ldap2
-        cert_file, ca_file = installutils.load_external_cert(
-            options.external_cert_files, x509.subject_base())
 
         old_cert_obj = x509.load_certificate(old_cert_der, x509.DER)
         old_der_subject = x509.get_der_subject(old_cert_der, x509.DER)
         old_spki = old_cert_obj.public_key().public_bytes(
             serialization.Encoding.DER,
             serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+        cert_file, ca_file = installutils.load_external_cert(
+            options.external_cert_files,
+            DN(('CN', 'Certificate Authority'), x509.subject_base())
         )
 
         with open(cert_file.name) as f:

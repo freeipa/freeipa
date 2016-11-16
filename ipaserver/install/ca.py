@@ -109,7 +109,9 @@ def install_check(standalone, replica_config, options):
                   "--external-ca.")
 
         external_cert_file, external_ca_file = installutils.load_external_cert(
-            options.external_cert_files, options.subject)
+            options.external_cert_files,
+            DN(('CN', 'Certificate Authority'), options.subject)
+        )
     elif options.external_ca:
         if cainstance.is_step_one_done():
             raise ScriptError(
