@@ -90,10 +90,10 @@ class KRAInstance(DogtagInstance):
         if self.pkcs12_info is not None or promote:
             self.clone = True
         self.master_host = master_host
-        if subject_base is None:
-            self.subject_base = DN(('O', self.realm))
-        else:
-            self.subject_base = subject_base
+
+        self.subject_base = \
+            subject_base or installutils.default_subject_base(realm_name)
+
         self.realm = realm_name
         self.suffix = ipautil.realm_to_suffix(realm_name)
 

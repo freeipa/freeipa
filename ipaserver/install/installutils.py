@@ -1476,3 +1476,7 @@ def restart_dirsrv(instance_name="", capture_output=True):
                                           capture_output=capture_output,
                                           wait=True, ldapi=True)
     api.Backend.ldap2.connect()
+
+
+def default_subject_base(realm_name):
+    return DN(('O', realm_name))
