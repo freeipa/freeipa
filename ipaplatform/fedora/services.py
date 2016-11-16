@@ -26,7 +26,7 @@ from ipaplatform.redhat import services as redhat_services
 
 # Mappings from service names as FreeIPA code references to these services
 # to their actual systemd service names
-fedora_system_units = redhat_services.redhat_system_units
+fedora_system_units = redhat_services.redhat_system_units.copy()
 
 # Service that sets domainname on Fedora is called fedora-domainname.service
 fedora_system_units['domainname'] = 'fedora-domainname.service'
