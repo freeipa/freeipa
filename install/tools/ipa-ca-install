@@ -80,12 +80,14 @@ def parse_options():
                       default=None,
                       help=(
                           "The certificate subject base "
-                          "(default O=<realm-name>)"))
+                          "(default O=<realm-name>).  "
+                          "RDNs are in LDAP order (most specific RDN first)."))
     parser.add_option("--ca-subject", dest="ca_subject",
                       default=None,
                       help=(
                           "The CA certificate subject DN "
-                          "(default CN=Certificate Authority,O=<realm-name>)"))
+                          "(default CN=Certificate Authority,O=<realm-name>). "
+                          "RDNs are in LDAP order (most specific RDN first)."))
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
