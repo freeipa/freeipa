@@ -1095,7 +1095,8 @@ def check_entropy():
     except ValueError as e:
         root_logger.debug("Invalid value in %s %s", paths.ENTROPY_AVAIL, e)
 
-def load_external_cert(files, subject_base):
+
+def load_external_cert(files, ca_subject):
     """
     Load and verify external CA certificate chain from multiple files.
 
@@ -1103,7 +1104,7 @@ def load_external_cert(files, subject_base):
     chain formats.
 
     :param files: Names of files to import
-    :param subject_base: Subject name base for IPA certificates
+    :param ca_subject: IPA CA subject DN
     :returns: Temporary file with the IPA CA certificate and temporary file
         with the external CA certificate chain
     """
@@ -1117,7 +1118,7 @@ def load_external_cert(files, subject_base):
         except RuntimeError as e:
             raise ScriptError(str(e))
 
-        ca_subject = DN(('CN', 'Certificate Authority'), subject_base)
+        ca_subject = DN(ca_subject)
         ca_nickname = None
         cache = {}
         for nickname, _trust_flags in nssdb.list_certs():
