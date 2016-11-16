@@ -50,7 +50,7 @@ class DNSKeySyncInstance(service.Service):
             "ipa-dnskeysyncd",
             service_desc="DNS key synchronization service",
             fstore=fstore,
-            service_prefix=u'ipa-dnskeysync',
+            service_prefix=u'ipa-dnskeysyncd',
             keytab=paths.IPA_DNSKEYSYNCD_KEYTAB
         )
         self.logger = logger
