@@ -126,17 +126,21 @@ apilint:
 polint:
 	$(MAKE) -C $(srcdir)/po validate-src-strings
 
+# Run pylint for all python files. Finds all python files/packages, skips
+# folders rpmbuild, freeipa-* and dist. Skip (match, but don't print) .*,
+# *.in, *~. Finally print all python files, including scripts that do not
+# have python extension.
 .PHONY: pylint
 pylint:
 	FILES=`find $(top_srcdir) \
 		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
-		-path '*/.*' -o \
-		-path '*.in' -o \
-		-path './dist/*' -o \
-		-path './lextab.py' -o \
-		-path './yacctab.py' -o \
+		-path './rpmbuild' -prune -o \
+		-path './freeipa-*' -prune -o \
+		-path './dist' -prune -o \
+		-name '.*' -o \
+		-name '*.in' -o \
 		-name '*~' -o \
-		-name \*.py -print -o \
+		-name '*.py' -print -o \
 		-type f -exec grep -qsm1 '^#!.*\bpython' '{}' \; -print`; \
 	echo "Pylint is running, please wait ..."; \
 	PYTHONPATH=$(top_srcdir) $(PYLINT) \
