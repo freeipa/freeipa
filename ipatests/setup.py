@@ -67,7 +67,6 @@ if __name__ == '__main__':
             "ipaplatform",
             "ipapython",
             "ipaserver",
-            "lxml",
             "nose",
             "pyldap",
             "pytest",

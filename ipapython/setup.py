@@ -48,7 +48,6 @@ if __name__ == '__main__':
             "ipaplatform",
             # "ipalib",  # circular dependency
             "pyldap",
-            "lxml",
             "netaddr",
             "netifaces",
             "python-nss",
