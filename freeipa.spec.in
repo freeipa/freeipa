@@ -144,9 +144,12 @@ BuildRequires:  python-cffi
 #
 %if 0%{?with_wheels}
 BuildRequires:  dbus-glib-devel
+BuildRequires:  libffi-devel
+BuildRequires:  python-tox
 BuildRequires:  python2-twine
 BuildRequires:  python2-wheel
 %if 0%{?with_python3}
+BuildRequires:  python3-tox
 BuildRequires:  python3-twine
 BuildRequires:  python3-wheel
 %endif

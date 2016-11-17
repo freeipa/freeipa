@@ -61,6 +61,8 @@ freeipa2-dev-doc
 # Root directory
 /freeipa.spec
 /dist/
+/.tox/
+/.cache/
 /*/dist/
 /RELEASE
 /rpmbuild/

@@ -57,6 +57,7 @@ EXTRA_DIST = .mailmap \
 clean-local:
 	rm -rf "$(RPMBUILD)"
 	rm -rf "$(top_builddir)/dist"
+	rm -rf "$(top_builddir)/.tox"
 	rm -rf "$(top_srcdir)/__pycache__"
 	rm -f "$(top_builddir)"/$(PACKAGE)-*.tar.gz
 
@@ -212,6 +213,7 @@ pylint: $(top_builddir)/ipapython/version.py ipasetup.py
 		-path './freeipa-*' -prune -o \
 		-path './dist' -prune -o \
 		-path './pypi' -prune -o \
+		-path './.tox' -prune -o \
 		-name '.*' -o \
 		-name '*.in' -o \
 		-name '*~' -o \
@@ -299,12 +301,12 @@ pypi_packages: $(WHEELPYPIDIR) .wheelconstraints
 	rm -f $(WHEELPYPIDIR)/*
 	for dir in $(IPACLIENT_SUBDIRS); do \
 	    $(MAKE) $(AM_MAKEFLAGS) \
-	        IPA_OMIT_INSTALL=1 WHEELDISTDIR=$(abspath $(WHEELPYPIDIR)) \
+	        IPA_OMIT_INSTALL=1 WHEELDISTDIR="$(abspath $(WHEELPYPIDIR))" \
 	        -C $${dir} bdist_wheel || exit 1; \
 	done
 	for dir in $(IPA_PLACEHOLDERS); do \
 	    $(MAKE) $(AM_MAKEFLAGS) \
-	        IPA_OMIT_INSTALL=1 WHEELDISTDIR=$(abspath $(WHEELPYPIDIR)) \
+	        IPA_OMIT_INSTALL=1 WHEELDISTDIR="$(abspath $(WHEELPYPIDIR))" \
 	        -C $(top_srcdir)/pypi/$${dir} bdist_wheel || exit 1; \
 	done
 	@echo -e "\n\nTo upload packages to PyPI, run:\n"
