@@ -56,9 +56,9 @@ if __name__ == '__main__':
             "ipapython",
             "lxml",
             "netaddr",
-            "memcache",
             "pyasn1",
             "pyldap",
+            "python-memcached",
             "python-nss",
             "six",
             # not available on PyPI

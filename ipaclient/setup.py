@@ -48,13 +48,12 @@ if __name__ == '__main__':
             "ipalib",
             "ipapython",
             "python-nss",
+            "python-yubico",
+            "pyusb",
             "qrcode",
             "six",
         ],
-        setup_requires=[
-            "wheel",
-        ],
-        extra_requires={
+        extras_require={
             "ipaclient.install": ["ipaplatform"],
             "otptoken_yubikey": ["yubico", "usb"]
         }

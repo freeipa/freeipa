@@ -62,10 +62,10 @@ PACKAGE_VERSION = {
     'ipaserver': 'ipaserver == @VERSION@',
     'kdcproxy': 'kdcproxy >= 0.3',
     'netifaces': 'netifaces >= 0.10.4',
-    'python-nss': 'python-nss >= 0.16',
     'pyldap': 'pyldap >= 2.4.15',
+    'python-nss': 'python-nss >= 0.16',
+    'python-yubico': 'python-yubico >= 1.2.3',
     'qrcode': 'qrcode >= 5.0',
-    # 'yubico': 'yubico >= 1.2.3',
 }
 
 
