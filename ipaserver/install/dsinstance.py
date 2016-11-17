@@ -536,12 +536,12 @@ class DsInstance(service.Service):
         inf_fd = ipautil.write_tmp_file(inf_txt)
         inf_txt = re.sub(r"RootDNPwd=.*\n", "", inf_txt)
         root_logger.debug(inf_txt)
-        if ipautil.file_exists(paths.SETUP_DS_PL):
-            args = [paths.SETUP_DS_PL, "--silent", "--logfile", "-", "-f", inf_fd.name]
-            root_logger.debug("calling setup-ds.pl")
-        else:
-            args = [paths.DS_NEWINST_PL, inf_fd.name]
-            root_logger.debug("calling ds_newinst.pl")
+        args = [
+            paths.SETUP_DS_PL, "--silent",
+            "--logfile", "-",
+            "-f", inf_fd.name,
+        ]
+        root_logger.debug("calling setup-ds.pl")
         try:
             ipautil.run(args)
             root_logger.debug("completed creating ds instance")
