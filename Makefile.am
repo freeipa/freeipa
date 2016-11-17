@@ -30,6 +30,13 @@ EXTRA_DIST = .mailmap \
 	     pylintrc \
 	     pytest.ini
 
+# re-run configure after templates have been altered
+CONFIG_STATUS_DEPENDENCIES = \
+	     daemons/ipa-version.h.in \
+	     freeipa.spec.in \
+	     ipapython/version.py.in \
+	     ipasetup.py.in
+
 clean-local:
 	rm -rf "$(RPMBUILD)"
 	rm -rf "$(top_builddir)/dist"
