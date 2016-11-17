@@ -121,4 +121,5 @@ def main():
     root_logger.info('Schema updated successfully')
 
 
-main()
+if __name__ == '__main__':
+    main()

@@ -41,22 +41,28 @@ ATTRIBUTE	User-Password	2	string
 ATTRIBUTE	NAS-Identifier	32	string
 """
 
-dct = Dictionary(StringIO(DICTIONARY))
 
-proc = subprocess.Popen(["./ipa-otpd", sys.argv[1]],
-                        stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+def main():
+    dct = Dictionary(StringIO(DICTIONARY))
 
-pkt = packet.AuthPacket(secret="", dict=dct)
-pkt["User-Name"] = sys.argv[2]
-pkt["User-Password"] = pkt.PwCrypt(sys.argv[3])
-pkt["NAS-Identifier"] = "localhost"
-proc.stdin.write(pkt.RequestPacket())
+    proc = subprocess.Popen(["./ipa-otpd", sys.argv[1]],
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE)
 
-rsp = packet.Packet(secret="", dict=dict)
-buf = proc.stdout.read(4)
-buf += proc.stdout.read(struct.unpack("!BBH", buf)[2] - 4)
-rsp.DecodePacket(buf)
-pkt.VerifyReply(rsp)
+    pkt = packet.AuthPacket(secret="", dict=dct)
+    pkt["User-Name"] = sys.argv[2]
+    pkt["User-Password"] = pkt.PwCrypt(sys.argv[3])
+    pkt["NAS-Identifier"] = "localhost"
+    proc.stdin.write(pkt.RequestPacket())
 
-proc.terminate() #pylint: disable=E1101
-proc.wait()
+    rsp = packet.Packet(secret="", dict=dict)
+    buf = proc.stdout.read(4)
+    buf += proc.stdout.read(struct.unpack("!BBH", buf)[2] - 4)
+    rsp.DecodePacket(buf)
+    pkt.VerifyReply(rsp)
+
+    proc.terminate()  # pylint: disable=E1101
+    proc.wait()
+
+if __name__ == '__main__':
+    main()
