@@ -59,24 +59,24 @@ if __name__ == '__main__':
         },
         install_requires=[
             "cryptography",
-            "dbus-python",
             "dnspython",
-            "dogtag-pki",
+            "gssapi",
             "ipaclient",
             "ipalib",
             "ipaplatform",
             "ipapython",
-            "ipaserver",
             "nose",
+            "polib",
             "pyldap",
             "pytest",
-            "python-gssapi",
+            "pytest_multihost",
             "python-nss",
-            "selenium",
             "six",
-            "yaml",
         ],
-        setup_requires=[
-            "wheel",
-        ],
+        extras_require={
+            "integration": ["dbus-python", "pyyaml", "ipaserver"],
+            "ipaserver": ["ipaserver"],
+            "webui": ["selenium", "pyyaml", "ipaserver"],
+            "xmlrpc": ["ipaserver"],
+        }
     )

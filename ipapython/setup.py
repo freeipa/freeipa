@@ -51,10 +51,8 @@ if __name__ == '__main__':
             "requests",
             "six",
         ],
-        setup_requires=[
-            "wheel",
-        ],
         extras_require={
             ":python_version<'3'": ["enum34"],
+            "install": ["dbus-python"],  # for certmonger
         },
     )
