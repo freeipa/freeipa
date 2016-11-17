@@ -52,7 +52,9 @@ NO_RECURSE_DIRS = [
     'ipaserver/build',
     'ipatests/build',
     # install/share/wsgi.py
-    'install/share'
+    'install/share',
+    # integration plugin imports from ipaplatform
+    'ipatests/pytest_plugins',
 ]
 
 
