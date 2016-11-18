@@ -203,7 +203,7 @@ class NSSDatabase(object):
         """
         key_file = None
         extracted_key = None
-        extracted_certs = ''
+        extracted_certs = []
 
         for filename in files:
             try:
@@ -234,7 +234,7 @@ class NSSDatabase(object):
                                     filename, line, e)
                                 continue
                         else:
-                            extracted_certs += body + '\n'
+                            extracted_certs.append(body)
                             loaded = True
                             continue
 
@@ -252,7 +252,7 @@ class NSSDatabase(object):
                                     filename, line, e)
                             continue
                         else:
-                            extracted_certs += '\n'.join(certs) + '\n'
+                            extracted_certs.extend(certs)
                             loaded = True
                             continue
 
@@ -302,7 +302,7 @@ class NSSDatabase(object):
                 pass
             else:
                 data = x509.make_pem(base64.b64encode(data))
-                extracted_certs += data + '\n'
+                extracted_certs.append(data)
                 continue
 
             # Try to import the file as PKCS#12 file
@@ -343,14 +343,15 @@ class NSSDatabase(object):
             raise RuntimeError(
                 "No server certificates found in %s" % (', '.join(files)))
 
-        certs = x509.load_certificate_list(extracted_certs)
-        for cert in certs:
+        for cert_pem in extracted_certs:
+            cert = x509.load_certificate(cert_pem)
             nickname = str(DN(cert.subject))
             data = cert.public_bytes(serialization.Encoding.DER)
             self.add_cert(data, nickname, ',,')
 
         if extracted_key:
-            in_file = ipautil.write_tmp_file(extracted_certs + extracted_key)
+            in_file = ipautil.write_tmp_file(
+                    '\n'.join(extracted_certs) + '\n' + extracted_key)
             out_file = tempfile.NamedTemporaryFile()
             out_password = ipautil.ipa_generate_password()
             out_pwdfile = ipautil.write_tmp_file(out_password)
