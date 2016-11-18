@@ -14,8 +14,41 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from distutils import log
 import os
 import sys
+from setuptools.command.build_py import build_py as setuptools_build_py
+
+
+class build_py(setuptools_build_py):
+    """Exclude NAME.install subpackage from wheels
+    """
+    def initialize_options(self):
+        setuptools_build_py.initialize_options(self)
+        self.skip_package = None
+
+    def finalize_options(self):
+        setuptools_build_py.finalize_options(self)
+        if 'bdist_wheel' in self.distribution.commands:
+            distname = self.distribution.metadata.name
+            self.skip_package = '{}.install'.format(distname)
+            log.warn("bdist_wheel: Ignore package: %s",
+                     self.skip_package)
+
+    def build_module(self, module, module_file, package):
+        if isinstance(package, str):
+            package = package.split('.')
+        name = '.'.join(list(package) + [module])
+        if self.skip_package and name.startswith(self.skip_package):
+            # remove file in case it has been copied to build/lib before
+            outfile = self.get_module_outfile(self.build_lib, package, module)
+            try:
+                os.unlink(outfile)
+            except OSError:
+                pass
+        else:
+            return setuptools_build_py.build_module(self, module,
+                                                    module_file, package)
 
 
 PACKAGE_VERSION = {
@@ -89,6 +122,9 @@ def ipasetup(name, doc, **kwargs):
     # exclude setup helpers from getting installed
     epd = setup_kwargs.setdefault('exclude_package_data', {})
     epd.setdefault('', []).extend(['*/setup.py', '*/ipasetup.py'])
+    # exclude NAME.install from wheels
+    cmdclass = setup_kwargs.setdefault('cmdclass', {})
+    cmdclass['build_py'] = build_py
 
     os.chdir(local_path)
     try:
