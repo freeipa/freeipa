@@ -16,11 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import os
+import shutil
 
+from ipalib import api
 from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger
-import shutil
-import os
 from ipaplatform.tasks import tasks
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -189,7 +190,7 @@ def check_timedate_services():
         if service == 'ntpd':
             continue
         # Make sure that the service is not enabled
-        instance = services.service(service)
+        instance = services.service(service, api)
         if instance.is_enabled() or instance.is_running():
             raise NTPConflictingService(conflicting_service=instance.service_name)
 
@@ -201,7 +202,7 @@ def force_ntpd(statestore):
     for service in services.timedate_services:
         if service == 'ntpd':
             continue
-        instance = services.service(service)
+        instance = services.service(service, api)
         enabled = instance.is_enabled()
         running = instance.is_running()
 
@@ -224,7 +225,7 @@ def restore_forced_ntpd(statestore):
         if service == 'ntpd':
             continue
         if statestore.has_state(service):
-            instance = services.service(service)
+            instance = services.service(service, api)
             enabled = statestore.restore_state(instance.service_name, 'enabled')
             running = statestore.restore_state(instance.service_name, 'running')
             if enabled:

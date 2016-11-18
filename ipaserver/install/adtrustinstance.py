@@ -697,14 +697,14 @@ class ADTRUSTInstance(service.Service):
     def __start(self):
         try:
             self.start()
-            services.service('winbind').start()
+            services.service('winbind', api).start()
         except Exception:
             root_logger.critical("CIFS services failed to start")
 
     def __stop(self):
         self.backup_state("running", self.is_running())
         try:
-            services.service('winbind').stop()
+            services.service('winbind', api).stop()
             self.stop()
         except Exception:
             pass
@@ -856,7 +856,7 @@ class ADTRUSTInstance(service.Service):
         self.restore_state("running")
         self.restore_state("enabled")
 
-        winbind = services.service("winbind")
+        winbind = services.service("winbind", api)
         # Always try to stop and disable smb service, since we do not leave
         # working configuration after uninstall
         try:

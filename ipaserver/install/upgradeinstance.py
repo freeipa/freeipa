@@ -91,7 +91,8 @@ class IPAUpgrade(service.Service):
         self.schema_files = schema_files
 
     def __start(self):
-        services.service(self.service_name).start(self.serverid, ldapi=True)
+        srv = services.service(self.service_name, api)
+        srv.start(self.serverid, ldapi=True)
         api.Backend.ldap2.connect()
 
     def __stop_instance(self):

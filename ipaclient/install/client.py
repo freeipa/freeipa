@@ -2822,7 +2822,7 @@ def _install(options):
         root_logger.info("%s enabled", "SSSD" if options.sssd else "LDAP")
 
         if options.sssd:
-            sssd = services.service('sssd')
+            sssd = services.service('sssd', api)
             try:
                 sssd.restart()
             except CalledProcessError:
@@ -3139,7 +3139,7 @@ def uninstall(options):
 
         root_logger.info(
             "IPA domain removed from current one, restarting SSSD service")
-        sssd = services.service('sssd')
+        sssd = services.service('sssd', api)
         try:
             sssd.restart()
         except CalledProcessError:
@@ -3153,7 +3153,7 @@ def uninstall(options):
             "Other domains than IPA domain found, IPA domain was removed "
             "from /etc/sssd/sssd.conf.")
 
-        sssd = services.service('sssd')
+        sssd = services.service('sssd', api)
         try:
             sssd.restart()
         except CalledProcessError:
@@ -3172,7 +3172,7 @@ def uninstall(options):
             "Redundant SSSD configuration file "
             "/etc/sssd/sssd.conf was moved to /etc/sssd/sssd.conf.deleted")
 
-        sssd = services.service('sssd')
+        sssd = services.service('sssd', api)
         try:
             sssd.stop()
         except CalledProcessError:

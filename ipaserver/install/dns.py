@@ -219,7 +219,7 @@ def install_check(standalone, api, replica, options, hostname):
                 "Only one DNSSEC key master is supported in current version.")
 
         if options.kasp_db_file:
-            dnskeysyncd = services.service('ipa-dnskeysyncd')
+            dnskeysyncd = services.service('ipa-dnskeysyncd', api)
 
             if not dnskeysyncd.is_installed():
                 raise RuntimeError("ipa-dnskeysyncd is not configured on this "

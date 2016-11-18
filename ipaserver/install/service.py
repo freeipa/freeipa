@@ -143,7 +143,7 @@ class Service(object):
                  keytab=None):
         self.service_name = service_name
         self.service_desc = service_desc
-        self.service = services.service(service_name)
+        self.service = services.service(service_name, api)
         self.steps = []
         self.output_fd = sys.stdout
 

@@ -463,7 +463,7 @@ class HTTPInstance(service.Service):
         os.chmod(target_fname, 0o644)
 
     def enable_and_start_oddjobd(self):
-        oddjobd = services.service('oddjobd')
+        oddjobd = services.service('oddjobd', api)
         self.sstore.backup_state('oddjobd', 'running', oddjobd.is_running())
         self.sstore.backup_state('oddjobd', 'enabled', oddjobd.is_enabled())
 
@@ -484,7 +484,7 @@ class HTTPInstance(service.Service):
         enabled = self.restore_state("enabled")
 
         # Restore oddjobd to its original state
-        oddjobd = services.service('oddjobd')
+        oddjobd = services.service('oddjobd', api)
 
         if not self.sstore.restore_state('oddjobd', 'running'):
             try:

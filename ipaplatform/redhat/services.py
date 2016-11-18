@@ -31,7 +31,6 @@ from ipaplatform.base import services as base_services
 
 from ipapython import ipautil, dogtag
 from ipapython.ipa_log_manager import root_logger
-from ipalib import api
 from ipaplatform.paths import paths
 
 # Mappings from service names as FreeIPA code references to these services
@@ -76,7 +75,7 @@ redhat_system_units['ods_signerd'] = redhat_system_units['ods-signerd']
 class RedHatService(base_services.SystemdService):
     system_units = redhat_system_units
 
-    def __init__(self, service_name):
+    def __init__(self, service_name, api=None):
         systemd_name = service_name
         if service_name in self.system_units:
             systemd_name = self.system_units[service_name]
@@ -86,7 +85,7 @@ class RedHatService(base_services.SystemdService):
                 # and not a foo.target. Thus, not correct service name for
                 # systemd, default to foo.service style then
                 systemd_name = "%s.service" % (service_name)
-        super(RedHatService, self).__init__(service_name, systemd_name)
+        super(RedHatService, self).__init__(service_name, systemd_name, api)
 
 
 class RedHatDirectoryService(RedHatService):
@@ -195,12 +194,12 @@ class RedHatSSHService(RedHatService):
 class RedHatCAService(RedHatService):
     def wait_until_running(self):
         root_logger.debug('Waiting until the CA is running')
-        timeout = float(api.env.startup_timeout)
+        timeout = float(self.api.env.startup_timeout)
         op_timeout = time.time() + timeout
         while time.time() < op_timeout:
             try:
                 # check status of CA instance on this host, not remote ca_host
-                status = dogtag.ca_status(api.env.host)
+                status = dogtag.ca_status(self.api.env.host)
             except Exception as e:
                 status = 'check interrupted due to error: %s' % e
             root_logger.debug('The CA status is: %s' % status)
@@ -244,31 +243,31 @@ class RedHatCAService(RedHatService):
 # Function that constructs proper Red Hat OS family-specific server classes for
 # services of specified name
 
-def redhat_service_class_factory(name):
+def redhat_service_class_factory(name, api=None):
     if name == 'dirsrv':
-        return RedHatDirectoryService(name)
+        return RedHatDirectoryService(name, api)
     if name == 'ipa':
-        return RedHatIPAService(name)
+        return RedHatIPAService(name, api)
     if name == 'sshd':
-        return RedHatSSHService(name)
+        return RedHatSSHService(name, api)
     if name in ('pki-tomcatd', 'pki_tomcatd'):
-        return RedHatCAService(name)
-    return RedHatService(name)
+        return RedHatCAService(name, api)
+    return RedHatService(name, api)
 
 
 # Magicdict containing RedHatService instances.
 
 class RedHatServices(base_services.KnownServices):
-    def service_class_factory(self, name):
-        return redhat_service_class_factory(name)
-
     def __init__(self):
+        import ipalib  # FixMe: break import cycle
         services = dict()
         for s in base_services.wellknownservices:
-            services[s] = self.service_class_factory(s)
+            services[s] = self.service_class_factory(s, ipalib.api)
         # Call base class constructor. This will lock services to read-only
         super(RedHatServices, self).__init__(services)
 
+    def service_class_factory(self, name, api=None):
+        return redhat_service_class_factory(name, api)
 
 # Objects below are expected to be exported by platform module
 
