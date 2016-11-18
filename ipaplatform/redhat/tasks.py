@@ -44,8 +44,6 @@ from ipapython.ipa_log_manager import root_logger, log_mgr
 from ipapython import ipautil
 import ipapython.errors
 
-from ipalib import x509 # FIXME: do not import from ipalib
-
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.redhat.authconfig import RedHatAuthConfig
@@ -220,6 +218,8 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             return True
 
     def insert_ca_certs_into_systemwide_ca_store(self, ca_certs):
+        from ipalib import x509  # FixMe: break import cycle
+
         new_cacert_path = paths.SYSTEMWIDE_IPA_CA_CRT
 
         if os.path.exists(new_cacert_path):

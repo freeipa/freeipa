@@ -410,7 +410,7 @@ class Restore(admintool.AdminTool):
                 self.log.info('Starting IPA services')
                 run(['ipactl', 'start'])
                 self.log.info('Restarting SSSD')
-                sssd = services.service('sssd')
+                sssd = services.service('sssd', api)
                 sssd.restart()
                 http.remove_httpd_ccache()
         finally:

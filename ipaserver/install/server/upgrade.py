@@ -1229,21 +1229,21 @@ def uninstall_dogtag_9(ds, http):
         dsdb.untrack_server_cert("Server-Cert")
 
     try:
-        services.service('pki-cad').disable('pki-ca')
+        services.service('pki-cad', api).disable('pki-ca')
     except Exception as e:
         root_logger.warning("Failed to disable pki-cad: %s", e)
     try:
-        services.service('pki-cad').stop('pki-ca')
+        services.service('pki-cad', api).stop('pki-ca')
     except Exception as e:
         root_logger.warning("Failed to stop pki-cad: %s", e)
 
     if serverid is not None:
         try:
-            services.service('dirsrv').disable(serverid)
+            services.service('dirsrv', api).disable(serverid)
         except Exception as e:
             root_logger.warning("Failed to disable dirsrv: %s", e)
         try:
-            services.service('dirsrv').stop(serverid)
+            services.service('dirsrv', api).stop(serverid)
         except Exception as e:
             root_logger.warning("Failed to stop dirsrv: %s", e)
 
@@ -1260,7 +1260,7 @@ def mask_named_regular():
 
     if bindinstance.named_conf_exists():
         root_logger.info('[Masking named]')
-        named = services.service('named-regular')
+        named = services.service('named-regular', api)
         try:
             named.stop()
         except Exception as e:

@@ -617,7 +617,7 @@ class BindInstance(service.Service):
         self.forwarders = None
         self.sub_dict = None
         self.reverse_zones = []
-        self.named_regular = services.service('named-regular')
+        self.named_regular = services.service('named-regular', api)
 
     suffix = ipautil.dn_attribute_property('_suffix')
 

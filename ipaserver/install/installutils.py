@@ -984,7 +984,7 @@ def stopped_service(service, instance_name=""):
                       'the next set of commands is being executed.', service,
                       log_instance_name)
 
-    service_obj = services.service(service)
+    service_obj = services.service(service, api)
 
     # Figure out if the service is running, if not, yield
     if not service_obj.is_running(instance_name):

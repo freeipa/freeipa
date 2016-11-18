@@ -262,7 +262,7 @@ class server_mod(LDAPUpdate):
 
         if 'ipalocation_location' or 'ipaserviceweight' in options:
             self.add_message(messages.ServiceRestartRequired(
-                service=services.service('named').systemd_name,
+                service=services.service('named', api).systemd_name,
                 server=keys[0], ))
 
             result = self.api.Command.dns_update_system_records()

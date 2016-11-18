@@ -41,17 +41,17 @@ class FedoraService(redhat_services.RedHatService):
 # Function that constructs proper Fedora-specific server classes for services
 # of specified name
 
-def fedora_service_class_factory(name):
+def fedora_service_class_factory(name, api=None):
     if name == 'domainname':
-        return FedoraService(name)
-    return redhat_services.redhat_service_class_factory(name)
+        return FedoraService(name, api)
+    return redhat_services.redhat_service_class_factory(name, api)
 
 
 # Magicdict containing FedoraService instances.
 
 class FedoraServices(redhat_services.RedHatServices):
-    def service_class_factory(self, name):
-        return fedora_service_class_factory(name)
+    def service_class_factory(self, name, api=None):
+        return fedora_service_class_factory(name, api)
 
 
 # Objects below are expected to be exported by platform module

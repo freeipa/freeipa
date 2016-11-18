@@ -451,7 +451,7 @@ def promote_sssd(host_name):
         sssdconfig.save_domain(domain)
         sssdconfig.write()
 
-        sssd = services.service('sssd')
+        sssd = services.service('sssd', api)
         try:
             sssd.restart()
         except CalledProcessError:

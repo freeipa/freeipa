@@ -317,7 +317,7 @@ class OpenDNSSECInstance(service.Service):
         except Exception:
             pass
 
-        ods_exporter = services.service('ipa-ods-exporter')
+        ods_exporter = services.service('ipa-ods-exporter', api)
         try:
             ods_exporter.stop()
         except Exception:

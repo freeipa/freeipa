@@ -2710,7 +2710,7 @@ class dnszone(DNSZoneBase):
                 options['version'],
                 result,
                 messages.ServiceRestartRequired(
-                    service=services.service('named').systemd_name,
+                    service=services.service('named', api).systemd_name,
                     server=_('<all IPA DNS servers>'), )
                 )
 

@@ -27,10 +27,10 @@ import os
 import json
 import time
 import collections
+import warnings
 
 import six
 
-import ipalib
 from ipapython import ipautil
 from ipaplatform.paths import paths
 
@@ -63,7 +63,6 @@ class KnownServices(collections.Mapping):
     instances as its own attributes on first access (or instance creation)
     and cache them.
     """
-
     def __init__(self, d):
         self.__d = d
 
@@ -93,9 +92,17 @@ class PlatformService(object):
 
     """
 
-    def __init__(self, service_name, api=ipalib.api):
+    def __init__(self, service_name, api=None):
         self.service_name = service_name
-        self.api = api
+        if api is not None:
+            self.api = api
+        else:
+            import ipalib  # FixMe: break import cycle
+            self.api = ipalib.api
+            warnings.warn(
+                "{s.__class__.__name__}('{s.service_name}', api=None) "
+                "is deprecated.".format(s=self),
+                RuntimeWarning, stacklevel=2)
 
     def start(self, instance_name="", capture_output=True, wait=True,
         update_service_list=True):
@@ -185,10 +192,11 @@ class PlatformService(object):
 class SystemdService(PlatformService):
     SYSTEMD_SRV_TARGET = "%s.target.wants"
 
-    def __init__(self, service_name, systemd_name, **kwargs):
-        super(SystemdService, self).__init__(service_name, **kwargs)
+    def __init__(self, service_name, systemd_name, api=None):
+        super(SystemdService, self).__init__(service_name, api=api)
         self.systemd_name = systemd_name
-        self.lib_path = os.path.join(paths.LIB_SYSTEMD_SYSTEMD_DIR, self.systemd_name)
+        self.lib_path = os.path.join(paths.LIB_SYSTEMD_SYSTEMD_DIR,
+                                     self.systemd_name)
         self.lib_path_exists = None
 
     def service_instance(self, instance_name, operation=None):
