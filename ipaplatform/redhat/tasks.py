@@ -83,19 +83,25 @@ def selinux_enabled():
 class IPAVersion(object):
 
     def __init__(self, version):
-        self.version = version
+        self._version = version
+        self._bytes = version.encode('utf-8')
 
     @property
-    def _bytes(self):
-        return self.version.encode('utf-8')
+    def version(self):
+        return self._version
 
     def __eq__(self, other):
-        assert isinstance(other, IPAVersion)
+        if not isinstance(other, IPAVersion):
+            return NotImplemented
         return _librpm.rpmvercmp(self._bytes, other._bytes) == 0
 
     def __lt__(self, other):
-        assert isinstance(other, IPAVersion)
+        if not isinstance(other, IPAVersion):
+            return NotImplemented
         return _librpm.rpmvercmp(self._bytes, other._bytes) < 0
+
+    def __hash__(self):
+        return hash(self._version)
 
 
 class RedHatTaskNamespace(BaseTaskNamespace):
