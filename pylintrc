@@ -9,6 +9,15 @@ load-plugins=pylint_plugins
 # Use multiple processes to speed up Pylint.
 jobs=0
 
+# A list of packages with safe C extensions to load
+extension-pkg-whitelist=
+    _ldap,
+    cryptography,
+    gssapi,
+    netifaces,
+    nss
+
+
 [MESSAGES CONTROL]
 
 enable=
