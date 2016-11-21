@@ -24,8 +24,6 @@ The classes in this module make heavy use of Python container emulation. If
 you are unfamiliar with this Python feature, see
 http://docs.python.org/ref/sequence-types.html
 """
-
-from distutils.version import LooseVersion
 import operator
 import sys
 import threading
@@ -725,8 +723,11 @@ class API(ReadOnly):
                 except KeyError:
                     pass
                 else:
-                    version = LooseVersion(plugin.version)
-                    default_version = LooseVersion(default_version)
+                    # Technicall plugin.version is not an API version. The
+                    # APIVersion class can handle plugin versions. It's more
+                    # lean than pkg_resource.parse_version().
+                    version = ipautil.APIVersion(plugin.version)
+                    default_version = ipautil.APIVersion(default_version)
                     if version < default_version:
                         continue
             self.__default_map[plugin.name] = plugin.version

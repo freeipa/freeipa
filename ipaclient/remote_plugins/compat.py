@@ -2,7 +2,6 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-from distutils.version import LooseVersion
 import importlib
 import os
 import re
@@ -12,6 +11,7 @@ import six
 
 from ipaclient.frontend import ClientCommand, ClientMethod
 from ipalib.frontend import Object
+from ipapython.ipautil import APIVersion
 
 if six.PY3:
     unicode = str
@@ -58,7 +58,7 @@ def get_package(server_info, client):
         server_info['version'] = server_version
         server_info.update_validity()
 
-    server_version = LooseVersion(server_version)
+    server_version = APIVersion(server_version)
 
     package_names = {}
     base_name = __name__.rpartition('.')[0]
@@ -66,15 +66,14 @@ def get_package(server_info, client):
     for name in os.listdir(base_dir):
         package_dir = os.path.join(base_dir, name)
         if name.startswith('2_') and os.path.isdir(package_dir):
-            package_version = name.replace('_', '.')
+            package_version = APIVersion(name.replace('_', '.'))
             package_names[package_version] = '{}.{}'.format(base_name, name)
 
     package_version = None
-    for version in sorted(package_names, key=LooseVersion):
-        if (package_version is None or
-                LooseVersion(package_version) < LooseVersion(version)):
+    for version in sorted(package_names):
+        if package_version is None or package_version < version:
             package_version = version
-        if LooseVersion(version) >= server_version:
+        if version >= server_version:
             break
 
     package_name = package_names[package_version]

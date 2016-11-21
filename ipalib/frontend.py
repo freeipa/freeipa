@@ -20,12 +20,10 @@
 """
 Base classes for all front-end plugins.
 """
-
-from distutils import version
-
 import six
 
 from ipapython.version import API_VERSION
+from ipapython.ipautil import APIVersion
 from ipapython.ipa_log_manager import root_logger
 from ipalib.base import NameSpace
 from ipalib.plugable import Plugin, APINameSpace
@@ -770,16 +768,19 @@ class Command(HasParam):
         If the client minor version is less than or equal to the server
         then let the request proceed.
         """
-        server_ver = version.LooseVersion(API_VERSION)
-        ver = version.LooseVersion(client_version)
-        if len(ver.version) < 2:
-            raise VersionError(cver=ver.version, sver=server_ver.version, server= self.env.xmlrpc_uri)
-        client_major = ver.version[0]
+        server_apiver = APIVersion(self.api_version)
+        try:
+            client_apiver = APIVersion(client_version)
+        except ValueError:
+            raise VersionError(cver=client_version,
+                               sver=self.api_version,
+                               server=self.env.xmlrpc_uri)
 
-        server_major = server_ver.version[0]
-
-        if server_major != client_major:
-            raise VersionError(cver=client_version, sver=API_VERSION, server=self.env.xmlrpc_uri)
+        if (client_apiver.major != server_apiver.major
+                or client_apiver > server_apiver):
+            raise VersionError(cver=client_version,
+                               sver=self.api_version,
+                               server=self.env.xmlrpc_uri)
 
     def run(self, *args, **options):
         """

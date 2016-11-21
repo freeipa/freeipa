@@ -4,7 +4,6 @@
 
 from __future__ import print_function
 
-from distutils.version import LooseVersion
 import dns.exception as dnsexception
 import dns.name as dnsname
 import dns.resolver as dnsresolver
@@ -15,6 +14,7 @@ import socket
 import tempfile
 import traceback
 
+from pkg_resources import parse_version
 import six
 
 from ipapython import ipaldap, ipautil, sysrestore
@@ -510,12 +510,12 @@ def check_remote_version(api):
     finally:
         client.disconnect()
 
-    remote_version = env['version']
-    version = api.env.version
-    if LooseVersion(remote_version) > LooseVersion(version):
+    remote_version = parse_version(env['version'])
+    api_version = parse_version(api.env.version)
+    if remote_version > api_version:
         raise RuntimeError(
             "Cannot install replica of a server of higher version ({}) than"
-            "the local version ({})".format(remote_version, version))
+            "the local version ({})".format(remote_version, api_version))
 
 
 def common_check(no_ntp):

@@ -24,6 +24,7 @@ import shutil
 import os
 import pwd
 import socket
+
 import dns.name
 
 from ipaserver.install import service
@@ -39,7 +40,6 @@ from ipaserver.install import replication
 from ipaserver.install import ldapupdate
 
 from ipaserver.install import certs
-from distutils import version
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
@@ -292,8 +292,8 @@ class KrbInstance(service.Service):
                              raiseonerr=False, capture_output=True)
         if result.returncode == 0:
             verstr = result.output.split()[-1]
-            ver = version.LooseVersion(verstr)
-            min = version.LooseVersion(MIN_KRB5KDC_WITH_WORKERS)
+            ver = tasks.parse_ipa_version(verstr)
+            min = tasks.parse_ipa_version(MIN_KRB5KDC_WITH_WORKERS)
             if ver >= min:
                 workers = True
         # Write down config file

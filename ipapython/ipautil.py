@@ -1533,3 +1533,35 @@ def escape_seq(seq, *args):
     """
 
     return tuple(a.replace(seq, u'\\{}'.format(seq)) for a in args)
+
+
+class APIVersion(tuple):
+    """API version parser and handler
+
+    The class is used to parse ipapython.version.API_VERSION and plugin
+    versions.
+    """
+    __slots__ = ()
+
+    def __new__(cls, version):
+        major, dot, minor = version.partition(u'.')
+        major = int(major)
+        minor = int(minor) if dot else 0
+        return tuple.__new__(cls, (major, minor))
+
+    def __str__(self):
+        return '{}.{}'.format(*self)
+
+    def __repr__(self):
+        return "<APIVersion('{}.{}')>".format(*self)
+
+    def __getnewargs__(self):
+        return str(self)
+
+    @property
+    def major(self):
+        return self[0]
+
+    @property
+    def minor(self):
+        return self[1]
