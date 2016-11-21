@@ -25,7 +25,7 @@ This module defines a dict, ``capabilities``, that maps feature names to API
 versions they were introduced in.
 """
 
-from distutils import version
+from ipapython.ipautil import APIVersion
 
 VERSION_WITHOUT_CAPABILITIES = u'2.51'
 
@@ -64,6 +64,6 @@ def client_has_capability(client_version, capability):
     :param client_version: The API version string reported by the client
     """
 
-    version_tuple = version.LooseVersion(client_version)
+    version = APIVersion(client_version)
 
-    return version_tuple >= version.LooseVersion(capabilities[capability])
+    return version >= APIVersion(capabilities[capability])
