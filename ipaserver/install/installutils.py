@@ -593,6 +593,84 @@ def update_hosts_file(ip_addresses, host_name, fstore):
         add_record_to_hosts(str(ip_address), host_name)
 
 
+def _ensure_nonempty_string(string, message):
+    if not isinstance(string, str) or not string:
+        raise ValueError(message)
+
+
+# uses gpg to compress and encrypt a file
+def encrypt_file(source, dest, password, workdir=None):
+    _ensure_nonempty_string(source, 'Missing Source File')
+    # stat it so that we get back an exception if it does no t exist
+    os.stat(source)
+
+    _ensure_nonempty_string(dest, 'Missing Destination File')
+    _ensure_nonempty_string(password, 'Missing Password')
+
+    # create a tempdir so that we can clean up with easily
+    tempdir = tempfile.mkdtemp('', 'ipa-', workdir)
+    gpgdir = os.path.join(tempdir, ".gnupg")
+
+    try:
+        try:
+            # give gpg a fake dir so that we can leater remove all
+            # the cruft when we clean up the tempdir
+            os.mkdir(gpgdir)
+            args = [paths.GPG_AGENT,
+                    '--batch',
+                    '--homedir', gpgdir,
+                    '--daemon', paths.GPG,
+                    '--batch',
+                    '--homedir', gpgdir,
+                    '--passphrase-fd', '0',
+                    '--yes',
+                    '--no-tty',
+                    '-o', dest,
+                    '-c', source]
+            ipautil.run(args, password, skip_output=True)
+        except:
+            raise
+    finally:
+        # job done, clean up
+        shutil.rmtree(tempdir, ignore_errors=True)
+
+
+def decrypt_file(source, dest, password, workdir=None):
+    _ensure_nonempty_string(source, 'Missing Source File')
+    # stat it so that we get back an exception if it does no t exist
+    os.stat(source)
+
+    _ensure_nonempty_string(dest, 'Missing Destination File')
+    _ensure_nonempty_string(password, 'Missing Password')
+
+    # create a tempdir so that we can clean up with easily
+    tempdir = tempfile.mkdtemp('', 'ipa-', workdir)
+    gpgdir = os.path.join(tempdir, ".gnupg")
+
+    try:
+        try:
+            # give gpg a fake dir so that we can leater remove all
+            # the cruft when we clean up the tempdir
+            os.mkdir(gpgdir)
+            args = [paths.GPG_AGENT,
+                    '--batch',
+                    '--homedir', gpgdir,
+                    '--daemon', paths.GPG,
+                    '--batch',
+                    '--homedir', gpgdir,
+                    '--passphrase-fd', '0',
+                    '--yes',
+                    '--no-tty',
+                    '-o', dest,
+                    '-d', source]
+            ipautil.run(args, password, skip_output=True)
+        except:
+            raise
+    finally:
+        # job done, clean up
+        shutil.rmtree(tempdir, ignore_errors=True)
+
+
 def expand_replica_info(filename, password):
     """
     Decrypt and expand a replica installation file into a temporary
@@ -601,7 +679,7 @@ def expand_replica_info(filename, password):
     top_dir = tempfile.mkdtemp("ipa")
     tarfile = top_dir+"/files.tar"
     dir_path = top_dir + "/realm_info"
-    ipautil.decrypt_file(filename, tarfile, password, top_dir)
+    decrypt_file(filename, tarfile, password, top_dir)
     ipautil.run(["tar", "xf", tarfile, "-C", top_dir])
     os.remove(tarfile)
 

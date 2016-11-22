@@ -480,7 +480,7 @@ class ReplicaPrepare(admintool.AdminTool):
         self.log.info("Packaging replica information into %s", encfile)
         ipautil.run(
             [paths.TAR, "cf", replicafile, "-C", self.top_dir, "realm_info"])
-        ipautil.encrypt_file(
+        installutils.encrypt_file(
             replicafile, encfile, self.dirman_password, self.top_dir)
 
         os.chmod(encfile, 0o600)
