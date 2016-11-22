@@ -30,6 +30,7 @@ EXTRA_DIST = .mailmap \
 	     COPYING.openssl \
 	     contrib \
 	     doc \
+	     freeipa.spec.in \
 	     pylintrc \
 	     pytest.ini
 
@@ -45,6 +46,13 @@ clean-local:
 	rpms _rpms-body srpms _srpms-body
 RPMBUILD ?= $(abs_builddir)/rpmbuild
 TARBALL = $(PACKAGE)-$(VERSION).tar.gz
+
+freeipa.spec: freeipa.spec.in $(top_builddir)/$(CONFIG_STATUS)
+	$(AM_V_GEN)sed						\
+		-e 's|@VERSION[@]|$(VERSION)|g'			\
+		-e 's|@VENDOR_SUFFIX[@]|$(VENDOR_SUFFIX)|g'	\
+		$< > $@
+
 rpmroot:
 	mkdir -p $(RPMBUILD)/BUILD
 	mkdir -p $(RPMBUILD)/RPMS
@@ -85,7 +93,7 @@ dist-hook: $(VERSION_BAKEIN_TARGET)
 	echo "$(TARBALL)" > $(top_builddir)/.tarball_name
 	echo "$(VERSION)" > $(top_builddir)/.version
 
-_rpms-prep: dist-gzip rpmroot rpmdistdir
+_rpms-prep: dist-gzip rpmroot rpmdistdir freeipa.spec
 	cp $(top_builddir)/$$(cat $(top_builddir)/.tarball_name) $(RPMBUILD)/SOURCES/
 	rm -f $(top_builddir)/.tarball_name
 
