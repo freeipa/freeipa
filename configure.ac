@@ -539,7 +539,6 @@ AC_CONFIG_FILES([
     ipalib/Makefile
     ipaplatform/Makefile
     ipapython/Makefile
-    ipapython/version.py
     ipaserver/Makefile
     ipasetup.py
     ipatests/Makefile
