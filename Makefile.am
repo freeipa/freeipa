@@ -127,11 +127,11 @@ endif WITH_JSLINT
 lint: acilint apilint $(POLINT_TARGET) $(PYLINT_TARGET) $(JSLINT_TARGET)
 
 .PHONY: acilint
-acilint:
+acilint: $(top_builddir)/ipapython/version.py
 	cd $(srcdir); ./makeaci --validate
 
 .PHONY: apilint
-apilint:
+apilint: $(top_builddir)/ipapython/version.py
 	cd $(srcdir); ./makeapi --validate
 
 .PHONY: polint
@@ -142,8 +142,11 @@ polint:
 # folders rpmbuild, freeipa-* and dist. Skip (match, but don't print) .*,
 # *.in, *~. Finally print all python files, including scripts that do not
 # have python extension.
-.PHONY: pylint
-pylint:
+.PHONY: pylint $(top_builddir)/ipapython/version.py
+$(top_builddir)/ipapython/version.py:
+	(cd $(top_builddir)/ipapython && make version.py)
+
+pylint: $(top_builddir)/ipapython/version.py
 	FILES=`find $(top_srcdir) \
 		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
 		-path './rpmbuild' -prune -o \
