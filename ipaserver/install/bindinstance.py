@@ -913,7 +913,9 @@ class BindInstance(service.Service):
         if not self.fstore.has_file(NAMED_CONF):
             self.fstore.backup_file(NAMED_CONF)
 
-        named_txt = ipautil.template_file(ipautil.SHARE_DIR + "bind.named.conf.template", self.sub_dict)
+        named_txt = ipautil.template_file(
+            os.path.join(paths.USR_SHARE_IPA_DIR, "bind.named.conf.template"),
+            self.sub_dict)
         named_fd = open(NAMED_CONF, 'w')
         named_fd.seek(0)
         named_fd.truncate(0)

@@ -804,7 +804,8 @@ class DomainValidator(object):
 
         if not self._creds:
             self._parm = param.LoadParm()
-            self._parm.load(os.path.join(ipautil.SHARE_DIR, "smb.conf.empty"))
+            self._parm.load(
+                os.path.join(paths.USR_SHARE_IPA_DIR, "smb.conf.empty"))
             self._parm.set('netbios name', self.flatname)
             self._creds = credentials.Credentials()
             self._creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
@@ -868,7 +869,7 @@ class TrustDomainInstance(object):
 
     def __init__(self, hostname, creds=None):
         self.parm = param.LoadParm()
-        self.parm.load(os.path.join(ipautil.SHARE_DIR, "smb.conf.empty"))
+        self.parm.load(os.path.join(paths.USR_SHARE_IPA_DIR, "smb.conf.empty"))
         if len(hostname) > 0:
             self.parm.set('netbios name', hostname)
         self.creds = creds

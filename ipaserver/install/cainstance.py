@@ -1324,7 +1324,7 @@ def replica_ca_install_check(config, promote):
             'on them: %s\n'
             'If you are certain that this is a false positive, use '
             '--skip-schema-check.',
-                os.path.join(ipautil.SHARE_DIR, 'copy-schema-to-ca.py'))
+            os.path.join(paths.USR_SHARE_IPA_DIR, 'copy-schema-to-ca.py'))
         exit('IPA schema missing on master CA directory server')
 
 

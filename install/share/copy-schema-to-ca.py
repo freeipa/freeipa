@@ -17,6 +17,7 @@ import shutil
 
 from hashlib import sha1
 
+from ipaplatform.paths import paths
 from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipaserver.install.dsinstance import schema_dirname
@@ -65,7 +66,7 @@ def add_ca_schema():
     pki_pent = pwd.getpwnam(PKI_USER)
     ds_pent = pwd.getpwnam(DS_USER)
     for schema_fname in SCHEMA_FILENAMES:
-        source_fname = os.path.join(ipautil.SHARE_DIR, schema_fname)
+        source_fname = os.path.join(paths.USR_SHARE_IPA_DIR, schema_fname)
         target_fname = os.path.join(schema_dirname(SERVERID), schema_fname)
         if not os.path.exists(source_fname):
             root_logger.debug('File does not exist: %s', source_fname)

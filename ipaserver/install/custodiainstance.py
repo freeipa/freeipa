@@ -40,7 +40,7 @@ class CustodiaInstance(SimpleServiceInstance):
 
     def __config_file(self):
         template_file = os.path.basename(self.config_file) + '.template'
-        template = os.path.join(ipautil.SHARE_DIR, template_file)
+        template = os.path.join(paths.USR_SHARE_IPA_DIR, template_file)
         httpd_info = pwd.getpwnam(constants.HTTPD_USER)
         sub_dict = dict(IPA_CUSTODIA_CONF_DIR=paths.IPA_CUSTODIA_CONF_DIR,
                         IPA_CUSTODIA_SOCKET=paths.IPA_CUSTODIA_SOCKET,

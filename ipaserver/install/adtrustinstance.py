@@ -504,7 +504,7 @@ class ADTRUSTInstance(service.Service):
             self.print_msg(UPGRADE_ERROR % dict(dn=targets_dn))
 
     def __write_smb_registry(self):
-        template = os.path.join(ipautil.SHARE_DIR, "smb.conf.template")
+        template = os.path.join(paths.USR_SHARE_IPA_DIR, "smb.conf.template")
         conf = ipautil.template_file(template, self.sub_dict)
         [tmp_fd, tmp_name] = tempfile.mkstemp()
         os.write(tmp_fd, conf)
