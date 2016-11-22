@@ -49,7 +49,6 @@ from six.moves import input
 from six.moves import urllib
 
 from ipapython.ipa_log_manager import root_logger
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 
 GEN_PWD_LEN = 22
@@ -534,62 +533,6 @@ def install_file(fname, dest):
 def backup_file(fname):
     if file_exists(fname):
         os.rename(fname, fname + ".orig")
-
-def _ensure_nonempty_string(string, message):
-    if not isinstance(string, str) or not string:
-        raise ValueError(message)
-
-# uses gpg to compress and encrypt a file
-def encrypt_file(source, dest, password, workdir = None):
-    _ensure_nonempty_string(source, 'Missing Source File')
-    #stat it so that we get back an exception if it does no t exist
-    os.stat(source)
-
-    _ensure_nonempty_string(dest, 'Missing Destination File')
-    _ensure_nonempty_string(password, 'Missing Password')
-
-    #create a tempdir so that we can clean up with easily
-    tempdir = tempfile.mkdtemp('', 'ipa-', workdir)
-    gpgdir = tempdir+"/.gnupg"
-
-    try:
-        try:
-            #give gpg a fake dir so that we can leater remove all
-            #the cruft when we clean up the tempdir
-            os.mkdir(gpgdir)
-            args = [paths.GPG_AGENT, '--batch', '--homedir', gpgdir, '--daemon', paths.GPG, '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-c', source]
-            run(args, password, skip_output=True)
-        except:
-            raise
-    finally:
-        #job done, clean up
-        shutil.rmtree(tempdir, ignore_errors=True)
-
-
-def decrypt_file(source, dest, password, workdir = None):
-    _ensure_nonempty_string(source, 'Missing Source File')
-    #stat it so that we get back an exception if it does no t exist
-    os.stat(source)
-
-    _ensure_nonempty_string(dest, 'Missing Destination File')
-    _ensure_nonempty_string(password, 'Missing Password')
-
-    #create a tempdir so that we can clean up with easily
-    tempdir = tempfile.mkdtemp('', 'ipa-', workdir)
-    gpgdir = tempdir+"/.gnupg"
-
-    try:
-        try:
-            #give gpg a fake dir so that we can leater remove all
-            #the cruft when we clean up the tempdir
-            os.mkdir(gpgdir)
-            args = [paths.GPG_AGENT, '--batch', '--homedir', gpgdir, '--daemon', paths.GPG, '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-d', source]
-            run(args, password, skip_output=True)
-        except:
-            raise
-    finally:
-        #job done, clean up
-        shutil.rmtree(tempdir, ignore_errors=True)
 
 
 class CIDict(dict):

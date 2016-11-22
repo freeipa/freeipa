@@ -19,7 +19,7 @@ from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import (
-    decrypt_file, format_netloc, ipa_generate_password, run, user_input)
+    format_netloc, ipa_generate_password, run, user_input)
 from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -107,7 +107,10 @@ def read_cache(dm_password):
     top_dir = tempfile.mkdtemp("ipa")
     fname = "%s/cache" % top_dir
     try:
-        decrypt_file(paths.ROOT_IPA_CACHE, fname, dm_password, top_dir)
+        installutils.decrypt_file(paths.ROOT_IPA_CACHE,
+                                  fname,
+                                  dm_password,
+                                  top_dir)
     except Exception as e:
         shutil.rmtree(top_dir)
         raise Exception("Decryption of answer cache in %s failed, please "
@@ -144,8 +147,10 @@ def write_cache(options):
     try:
         with open(fname, 'wb') as f:
             pickle.dump(options, f)
-        ipautil.encrypt_file(fname, paths.ROOT_IPA_CACHE,
-                             options['dm_password'], top_dir)
+        installutils.encrypt_file(fname,
+                                  paths.ROOT_IPA_CACHE,
+                                  options['dm_password'],
+                                  top_dir)
     except IOError as e:
         raise Exception("Unable to cache command-line options %s" % str(e))
     finally:
