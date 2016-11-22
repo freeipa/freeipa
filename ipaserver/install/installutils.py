@@ -50,7 +50,6 @@ from ipapython import ipautil, admintool, version
 from ipapython.admintool import ScriptError
 from ipapython.ipa_log_manager import root_logger
 from ipalib.util import validate_hostname
-from ipapython import config
 from ipalib import api, errors, x509
 from ipapython.dn import DN
 from ipaserver.install import certs, service, sysupgrade
@@ -848,10 +847,6 @@ def handle_error(error, log_file_name=None):
         )
         return message, 1
 
-    if isinstance(error, config.IPAConfigError):
-        message = "An IPA server to update cannot be found. Has one been configured yet?"
-        message += "\nThe error was: %s" % error
-        return message, 1
     if isinstance(error, errors.LDAPError):
         return "An error occurred while performing operations: %s" % error, 1
 

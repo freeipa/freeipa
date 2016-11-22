@@ -58,8 +58,6 @@ def parse_options():
     config.add_standard_options(parser)
     options, args = parser.parse_args()
 
-    config.init_config(options)
-
     return options, args
 
 def get_dirman_password():
