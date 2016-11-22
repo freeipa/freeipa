@@ -39,7 +39,6 @@ from ipaserver.install import bindinstance, cainstance, certs
 from ipaserver.install import opendnssecinstance, dnskeysyncinstance
 from ipapython import version, ipaldap
 from ipalib import api, errors
-from ipalib.constants import CACERT
 from ipalib.util import has_managed_topology, verify_host_resolvable
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython.dn import DN
@@ -167,8 +166,8 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
     peers = {}
 
     try:
-        ldap_uri = ipaldap.get_ldap_uri(host, 636, cacert=CACERT)
-        conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
+        ldap_uri = ipaldap.get_ldap_uri(host, 636, cacert=paths.IPA_CA_CRT)
+        conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT)
         if dirman_passwd:
             conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                              bind_password=dirman_passwd)
@@ -628,8 +627,8 @@ def clean_dangling_ruvs(realm, host, options):
     Cleans all RUVs and CS-RUVs that are left in the system from
     uninstalled replicas
     """
-    ldap_uri = ipaldap.get_ldap_uri(host, 636, cacert=CACERT)
-    conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
+    ldap_uri = ipaldap.get_ldap_uri(host, 636, cacert=paths.IPA_CA_CRT)
+    conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT)
     try:
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=options.dirman_passwd)
@@ -676,8 +675,8 @@ def clean_dangling_ruvs(realm, host, options):
     offlines = set()
     for master_cn, master_info in info.items():
         try:
-            ldap_uri = ipaldap.get_ldap_uri(master_cn, 636, cacert=CACERT)
-            conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
+            ldap_uri = ipaldap.get_ldap_uri(master_cn, 636, cacert=paths.IPA_CA_CRT)
+            conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT)
             conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                              bind_password=options.dirman_passwd)
             master_info['online'] = True

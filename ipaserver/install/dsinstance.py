@@ -47,7 +47,6 @@ from ipalib import errors
 from ipalib import constants
 from ipaplatform.constants import constants as platformconstants
 from ipaplatform.tasks import tasks
-from ipalib.constants import CACERT
 from ipapython.dn import DN
 from ipapython.admintool import ScriptError
 from ipaplatform import services
@@ -963,8 +962,8 @@ class DsInstance(service.Service):
                     "-y", dmpwdfile, "-T", admpwdfile,
                     str(DN(('uid', 'admin'), ('cn', 'users'), ('cn', 'accounts'), self.suffix))]
             try:
-                env = { 'LDAPTLS_CACERTDIR':os.path.dirname(CACERT),
-                        'LDAPTLS_CACERT':CACERT }
+                env = {'LDAPTLS_CACERTDIR': os.path.dirname(paths.IPA_CA_CRT),
+                       'LDAPTLS_CACERT': paths.IPA_CA_CRT}
                 ipautil.run(args, env=env)
                 root_logger.debug("ldappasswd done")
             except ipautil.CalledProcessError as e:

@@ -29,7 +29,6 @@ from ipapython import admintool, ipautil
 from ipapython.certdb import get_ca_nickname, NSSDatabase
 from ipapython.dn import DN
 from ipalib import api, errors
-from ipalib.constants import CACERT
 from ipaserver.install import certs, dsinstance, installutils
 
 
@@ -191,7 +190,7 @@ class ServerCertInstall(admintool.AdminTool):
             cert_files=self.args,
             key_password=pkcs12_passwd,
             key_nickname=self.options.cert_name,
-            ca_cert_files=[CACERT],
+            ca_cert_files=[paths.IPA_CA_CRT],
             host_name=api.env.host)
 
         dirname = os.path.normpath(dirname)

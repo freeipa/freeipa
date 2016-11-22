@@ -38,7 +38,6 @@ from ipaserver.install.replication import wait_for_task
 from ipaserver.install import installutils
 from ipaserver.session import ISO8601_DATETIME_FMT
 from ipapython import ipaldap
-from ipalib.constants import CACERT
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 
@@ -149,7 +148,7 @@ class Backup(admintool.AdminTool):
         paths.SSHD_CONFIG,
         paths.SSH_CONFIG,
         paths.KRB5_CONF,
-        CACERT,
+        paths.IPA_CA_CRT,
         paths.IPA_DEFAULT_CONF,
         paths.DS_KEYTAB,
         paths.NTP_CONF,

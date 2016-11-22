@@ -25,7 +25,6 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipalib import api, constants, errors, x509
-from ipalib.constants import CACERT
 from ipalib.util import (
     validate_domain_name,
     network_ip_address_warning,
@@ -782,11 +781,11 @@ def install(installer):
 
         # Now put the CA cert where other instances exepct it
         ca_instance = cainstance.CAInstance(realm_name, certs.NSS_DIR)
-        ca_instance.publish_ca_cert(CACERT)
+        ca_instance.publish_ca_cert(paths.IPA_CA_CRT)
     else:
         # Put the CA cert where other instances expect it
-        x509.write_certificate(http_ca_cert, CACERT)
-        os.chmod(CACERT, 0o444)
+        x509.write_certificate(http_ca_cert, paths.IPA_CA_CRT)
+        os.chmod(paths.IPA_CA_CRT, 0o444)
 
     # we now need to enable ssl on the ds
     ds.enable_ssl()
@@ -844,8 +843,8 @@ def install(installer):
 
     # Export full CA chain
     ca_db = certs.CertDB(realm_name)
-    os.chmod(CACERT, 0o644)
-    ca_db.publish_ca_cert(CACERT)
+    os.chmod(paths.IPA_CA_CRT, 0o644)
+    ca_db.publish_ca_cert(paths.IPA_CA_CRT)
 
     set_subject_in_config(realm_name, dm_password,
                           ipautil.realm_to_suffix(realm_name), options.subject)

@@ -25,11 +25,11 @@ from __future__ import print_function
 import sys
 import os
 
+from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import (replication, installutils, bindinstance,
     cainstance, certs)
 from ipalib import api, errors
-from ipalib.constants import CACERT
 from ipalib.util import has_managed_topology
 from ipapython import ipautil, ipaldap, version
 from ipapython.dn import DN
@@ -93,8 +93,8 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
 
     try:
         # connect to main IPA LDAP server
-        ldap_uri = ipaldap.get_ldap_uri(host, 636, cacert=CACERT)
-        conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
+        ldap_uri = ipaldap.get_ldap_uri(host, 636, cacert=paths.IPA_CA_CRT)
+        conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT)
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=dirman_passwd)
 
@@ -295,8 +295,8 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     except Exception as e:
         sys.exit(str(e))
     try:
-        ldap_uri = ipaldap.get_ldap_uri(replica2, 636, cacert=CACERT)
-        conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
+        ldap_uri = ipaldap.get_ldap_uri(replica2, 636, cacert=paths.IPA_CA_CRT)
+        conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT)
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=dirman_passwd)
 

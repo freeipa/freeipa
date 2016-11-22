@@ -30,7 +30,6 @@ import ldap
 
 from ipalib import api, errors
 from ipalib.cli import textui
-from ipalib.constants import CACERT
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil, ipaldap, kerberos
 from ipapython.admintool import ScriptError
@@ -216,8 +215,8 @@ class ReplicationManager(object):
             # otherwise we'll do a GSSAPI bind.
             protocol = 'ldap' if starttls else None
             ldap_uri = ipaldap.get_ldap_uri(
-                hostname, port, protocol=protocol, cacert=CACERT)
-            self.conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT,
+                hostname, port, protocol=protocol, cacert=paths.IPA_CA_CRT)
+            self.conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT,
                                            start_tls=starttls)
             if dirman_passwd:
                 self.conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
@@ -1001,9 +1000,12 @@ class ReplicationManager(object):
             local_port = r_port
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
-        ldap_uri = ipaldap.get_ldap_uri(r_hostname, r_port, cacert=CACERT,
+        ldap_uri = ipaldap.get_ldap_uri(r_hostname, r_port,
+                                        cacert=paths.IPA_CA_CRT,
                                         protocol='ldap')
-        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT, start_tls=True)
+        r_conn = ipaldap.LDAPClient(ldap_uri,
+                                    cacert=paths.IPA_CA_CRT,
+                                    start_tls=True)
 
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
@@ -1045,7 +1047,7 @@ class ReplicationManager(object):
     def setup_winsync_replication(self,
                                   ad_dc_name, ad_binddn, ad_pwd,
                                   passsync_pw, ad_subtree,
-                                  cacert=CACERT):
+                                  cacert=paths.IPA_CA_CRT):
         self.ad_suffix = ""
         try:
             # Validate AD connection
@@ -1110,8 +1112,9 @@ class ReplicationManager(object):
             raise RuntimeError("Failed to start replication")
 
     def convert_to_gssapi_replication(self, r_hostname, r_binddn, r_bindpw):
-        ldap_uri = ipaldap.get_ldap_uri(r_hostname, PORT, cacert=CACERT)
-        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
+        ldap_uri = ipaldap.get_ldap_uri(r_hostname, PORT,
+                                        cacert=paths.IPA_CA_CRT)
+        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT)
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
@@ -1141,8 +1144,9 @@ class ReplicationManager(object):
         """
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
-        ldap_uri = ipaldap.get_ldap_uri(r_hostname, PORT, cacert=CACERT)
-        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=CACERT)
+        ldap_uri = ipaldap.get_ldap_uri(r_hostname, PORT,
+                                        cacert=paths.IPA_CA_CRT)
+        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT)
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
@@ -1614,7 +1618,7 @@ class ReplicationManager(object):
         conn.update_entry(entry)
 
     def setup_promote_replication(self, r_hostname, r_binddn=None,
-                                  r_bindpw=None, cacert=CACERT):
+                                  r_bindpw=None, cacert=paths.IPA_CA_CRT):
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
         ldap_uri = ipaldap.get_ldap_uri(r_hostname)

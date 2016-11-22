@@ -45,7 +45,7 @@ from ipapython import version
 from ipalib import api
 from ipalib import errors
 from ipaplatform.paths import paths
-from ipalib.constants import CACERT, DOMAIN_LEVEL_0
+from ipalib.constants import DOMAIN_LEVEL_0
 
 UNSUPPORTED_DOMAIN_LEVEL_TEMPLATE = """
 Replica creation using '{command_name}' to generate replica file
@@ -201,7 +201,7 @@ class ReplicaPrepare(admintool.AdminTool):
             cert_files=cert_files,
             key_password=key_password,
             key_nickname=key_nickname,
-            ca_cert_files=[CACERT],
+            ca_cert_files=[paths.IPA_CA_CRT],
             host_name=self.replica_fqdn)
 
     def ask_for_options(self):
