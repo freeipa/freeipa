@@ -10,9 +10,9 @@ import dns.name
 from ipaplatform.paths import paths
 from ipapython import ipautil
 
-from ipapython.dnssec.syncrepl import SyncReplConsumer
-from ipapython.dnssec.odsmgr import ODSMgr
-from ipapython.dnssec.bindmgr import BINDMgr
+from ipaserver.dnssec.syncrepl import SyncReplConsumer
+from ipaserver.dnssec.odsmgr import ODSMgr
+from ipaserver.dnssec.bindmgr import BINDMgr
 
 SIGNING_ATTR = 'idnsSecInlineSigning'
 OBJCLASS_ATTR = 'objectClass'

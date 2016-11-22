@@ -17,7 +17,7 @@ from custodia.message.kem import KEY_USAGE_SIG, KEY_USAGE_ENC, KEY_USAGE_MAP
 from jwcrypto.common import json_decode, json_encode
 from jwcrypto.common import base64url_encode
 from jwcrypto.jwk import JWK
-from ipapython.secrets.common import iSecLdap
+from ipaserver.secrets.common import iSecLdap
 from binascii import unhexlify
 import ldap
 

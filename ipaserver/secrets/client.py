@@ -4,8 +4,8 @@ from __future__ import print_function
 from custodia.message.kem import KEMClient, KEY_USAGE_SIG, KEY_USAGE_ENC
 from jwcrypto.common import json_decode
 from jwcrypto.jwk import JWK
-from ipapython.secrets.kem import IPAKEMKeys
-from ipapython.secrets.store import iSecStore
+from ipaserver.secrets.kem import IPAKEMKeys
+from ipaserver.secrets.store import iSecStore
 from ipaplatform.paths import paths
 from base64 import b64encode
 import ldapurl

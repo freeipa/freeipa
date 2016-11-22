@@ -13,13 +13,13 @@ handler = custodia.httpd.authenticators.SimpleHeaderAuth
 header = GSS_NAME
 
 [authz:kemkeys]
-handler = ipapython.secrets.kem.IPAKEMKeys
+handler = ipaserver.secrets.kem.IPAKEMKeys
 paths = /keys
 store = ipa
 server_keys = $IPA_CUSTODIA_CONF_DIR/server.keys
 
 [store:ipa]
-handler = ipapython.secrets.store.IPASecStore
+handler = ipaserver.secrets.store.IPASecStore
 ldap_uri = $LDAP_URI
 
 [/keys]

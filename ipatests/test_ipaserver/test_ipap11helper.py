@@ -17,7 +17,7 @@ import tempfile
 import pytest
 from ipaplatform.paths import paths
 
-from ipapython import p11helper as _ipap11helper
+from ipaserver import p11helper as _ipap11helper
 
 pytestmark = pytest.mark.tier0
 

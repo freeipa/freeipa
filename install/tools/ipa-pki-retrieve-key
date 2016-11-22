@@ -8,7 +8,7 @@ import sys
 from ipalib import constants
 from ipalib.config import Env
 from ipaplatform.paths import paths
-from ipapython.secrets.client import CustodiaClient
+from ipaserver.secrets.client import CustodiaClient
 
 env = Env()
 env._finalize()

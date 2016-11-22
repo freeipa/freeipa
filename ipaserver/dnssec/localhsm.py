@@ -13,8 +13,8 @@ from pprint import pprint
 
 from ipaplatform.paths import paths
 
-from ipapython import p11helper as _ipap11helper
-from ipapython.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
+from ipaserver import p11helper as _ipap11helper
+from ipaserver.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
                                      keytype_id2name, keytype_name2id,
                                      ldap2p11helper_api_params)
 

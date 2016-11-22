@@ -13,11 +13,12 @@ from ipaserver.install import service
 from ipaserver.install import installutils
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
-from ipapython import sysrestore, ipautil, p11helper
+from ipapython import sysrestore, ipautil
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipalib import errors, api
+from ipaserver import p11helper
 from ipaserver.install import dnskeysyncinstance
 
 KEYMASTER = u'dnssecKeyMaster'

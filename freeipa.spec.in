@@ -1065,12 +1065,14 @@ fi
 %license COPYING
 %{python_sitelib}/ipaserver-*.egg-info
 %dir %{python_sitelib}/ipaserver
+%dir %{python_sitelib}/ipaserver/dnssec
 %dir %{python_sitelib}/ipaserver/install
 %dir %{python_sitelib}/ipaserver/install/plugins
 %dir %{python_sitelib}/ipaserver/install/server
 %dir %{python_sitelib}/ipaserver/advise
 %dir %{python_sitelib}/ipaserver/advise/plugins
 %dir %{python_sitelib}/ipaserver/plugins
+%dir %{python_sitelib}/ipaserver/secrets
 
 
 %files server-common
@@ -1285,12 +1287,8 @@ fi
 %license COPYING
 %dir %{python_sitelib}/ipapython
 %{python_sitelib}/ipapython/*.py*
-%dir %{python_sitelib}/ipapython/dnssec
-%{python_sitelib}/ipapython/dnssec/*.py*
 %dir %{python_sitelib}/ipapython/install
 %{python_sitelib}/ipapython/install/*.py*
-%dir %{python_sitelib}/ipapython/secrets
-%{python_sitelib}/ipapython/secrets/*.py*
 %dir %{python_sitelib}/ipalib
 %{python_sitelib}/ipalib/*.py*
 %dir %{python_sitelib}/ipalib/install

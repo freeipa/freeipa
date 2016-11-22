@@ -1,7 +1,7 @@
 # Copyright (C) 2015 FreeIPa Project Contributors, see 'COPYING' for license.
 
-from ipapython.secrets.kem import IPAKEMKeys
-from ipapython.secrets.client import CustodiaClient
+from ipaserver.secrets.kem import IPAKEMKeys
+from ipaserver.secrets.client import CustodiaClient
 from ipaserver.install.certs import CertDB
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants

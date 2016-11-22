@@ -2,11 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 """
-Test the `ipapython/dnssec` package.
+Test the `ipaserver/dnssec` package.
 """
 import dns.name
 
-from ipapython.dnssec.odsmgr import ODSZoneListReader
+from ipaserver.dnssec.odsmgr import ODSZoneListReader
 
 
 ZONELIST_XML = """<?xml version="1.0" encoding="UTF-8"?>
