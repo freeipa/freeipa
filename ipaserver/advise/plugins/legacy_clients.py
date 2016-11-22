@@ -20,8 +20,9 @@ import os
 
 from ipalib import api
 from ipalib.plugable import Registry
+from ipaplatform.paths import paths
 from ipaserver.advise.base import Advice
-from ipapython.ipautil import template_file, SHARE_DIR
+from ipapython.ipautil import template_file
 
 register = Registry()
 
@@ -67,7 +68,7 @@ class config_base_legacy_client(Advice):
     def configure_and_start_sssd(self):
         uri, base = self.get_uri_and_base()
         template = os.path.join(
-            SHARE_DIR,
+            paths.USR_SHARE_IPA_DIR,
             'advise',
             'legacy',
             'sssd.conf.template'
@@ -132,7 +133,7 @@ class config_generic_linux_sssd_before_1_9(config_base_legacy_client):
         self.check_compat_plugin()
 
         with open(os.path.join(
-                SHARE_DIR,
+                paths.USR_SHARE_IPA_DIR,
                 'advise',
                 'legacy',
                 'pam.conf.sssd.template')) as fd:
@@ -222,7 +223,7 @@ class config_generic_linux_nss_pam_ldapd(config_base_legacy_client):
         self.check_compat_plugin()
 
         with open(os.path.join(
-                SHARE_DIR,
+                paths.USR_SHARE_IPA_DIR,
                 'advise',
                 'legacy',
                 'pam.conf.nss_pam_ldapd.template')) as fd:
@@ -289,7 +290,7 @@ class config_freebsd_nss_pam_ldapd(config_base_legacy_client):
         self.check_compat_plugin()
 
         with open(os.path.join(
-                SHARE_DIR,
+                paths.USR_SHARE_IPA_DIR,
                 'advise',
                 'legacy',
                 'pam_conf_sshd.template')) as fd:

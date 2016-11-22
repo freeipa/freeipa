@@ -215,7 +215,8 @@ class HTTPInstance(service.Service):
         self.update_httpd_service_ipa_conf()
 
         target_fname = paths.HTTPD_IPA_CONF
-        http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa.conf", self.sub_dict)
+        http_txt = ipautil.template_file(
+            os.path.join(paths.USR_SHARE_IPA_DIR, "ipa.conf"), self.sub_dict)
         self.fstore.backup_file(paths.HTTPD_IPA_CONF)
         http_fd = open(target_fname, "w")
         http_fd.write(http_txt)
@@ -223,7 +224,9 @@ class HTTPInstance(service.Service):
         os.chmod(target_fname, 0o644)
 
         target_fname = paths.HTTPD_IPA_REWRITE_CONF
-        http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa-rewrite.conf", self.sub_dict)
+        http_txt = ipautil.template_file(
+            os.path.join(paths.USR_SHARE_IPA_DIR, "ipa-rewrite.conf"),
+            self.sub_dict)
         self.fstore.backup_file(paths.HTTPD_IPA_REWRITE_CONF)
         http_fd = open(target_fname, "w")
         http_fd.write(http_txt)
@@ -457,7 +460,9 @@ class HTTPInstance(service.Service):
         target_fname = paths.HTTPD_IPA_KDCPROXY_CONF
         sub_dict = dict(KDCPROXY_CONFIG=paths.KDCPROXY_CONFIG)
         http_txt = ipautil.template_file(
-            ipautil.SHARE_DIR + "ipa-kdc-proxy.conf.template", sub_dict)
+            os.path.join(paths.USR_SHARE_IPA_DIR,
+                         "ipa-kdc-proxy.conf.template"),
+            sub_dict)
         self.fstore.backup_file(target_fname)
         with open(target_fname, 'w') as f:
             f.write(http_txt)

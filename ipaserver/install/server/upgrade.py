@@ -1547,12 +1547,15 @@ def upgrade_configuration():
         ds_dirname = dsinstance.config_dirname(ds_serverid)
 
         upgrade_file(sub_dict, paths.HTTPD_IPA_CONF,
-                     ipautil.SHARE_DIR + "ipa.conf")
+                     os.path.join(paths.USR_SHARE_IPA_DIR, "ipa.conf"))
         upgrade_file(sub_dict, paths.HTTPD_IPA_REWRITE_CONF,
-                     ipautil.SHARE_DIR + "ipa-rewrite.conf")
+                     os.path.join(paths.USR_SHARE_IPA_DIR, "ipa-rewrite.conf"))
         if ca.is_configured():
-            upgrade_file(sub_dict, paths.HTTPD_IPA_PKI_PROXY_CONF,
-                         ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
+            upgrade_file(
+                sub_dict,
+                paths.HTTPD_IPA_PKI_PROXY_CONF,
+                os.path.join(paths.USR_SHARE_IPA_DIR, "ipa-pki-proxy.conf"),
+                add=True)
         else:
             if ipautil.file_exists(paths.HTTPD_IPA_PKI_PROXY_CONF):
                 os.remove(paths.HTTPD_IPA_PKI_PROXY_CONF)
@@ -1560,7 +1563,7 @@ def upgrade_configuration():
             upgrade_file(
                 sub_dict,
                 os.path.join(ds_dirname, "certmap.conf"),
-                os.path.join(ipautil.SHARE_DIR, "certmap.conf.template")
+                os.path.join(paths.USR_SHARE_IPA_DIR, "certmap.conf.template")
             )
         upgrade_pki(ca, fstore)
 
@@ -1770,7 +1773,7 @@ def upgrade_check(options):
 
 def upgrade():
     realm = api.env.realm
-    schema_files = [os.path.join(ipautil.SHARE_DIR, f) for f
+    schema_files = [os.path.join(paths.USR_SHARE_IPA_DIR, f) for f
                     in dsinstance.ALL_SCHEMA_FILES]
 
     schema_files.extend(dsinstance.get_all_external_schema_files(

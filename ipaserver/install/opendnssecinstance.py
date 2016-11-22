@@ -176,7 +176,8 @@ class OpenDNSSECInstance(service.Service):
         sub_conf_dict['PIN'] = pin
 
         ods_conf_txt = ipautil.template_file(
-            ipautil.SHARE_DIR + "opendnssec_conf.template", sub_conf_dict)
+            os.path.join(paths.USR_SHARE_IPA_DIR, "opendnssec_conf.template"),
+            sub_conf_dict)
         ods_conf_fd = open(paths.OPENDNSSEC_CONF_FILE, 'w')
         ods_conf_fd.seek(0)
         ods_conf_fd.truncate(0)
@@ -184,7 +185,8 @@ class OpenDNSSECInstance(service.Service):
         ods_conf_fd.close()
 
         ods_kasp_txt = ipautil.template_file(
-            ipautil.SHARE_DIR + "opendnssec_kasp.template", self.kasp_file_dict)
+            os.path.join(paths.USR_SHARE_IPA_DIR, "opendnssec_kasp.template"),
+            self.kasp_file_dict)
         ods_kasp_fd = open(paths.OPENDNSSEC_KASP_FILE, 'w')
         ods_kasp_fd.seek(0)
         ods_kasp_fd.truncate(0)

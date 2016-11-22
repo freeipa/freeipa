@@ -607,7 +607,9 @@ class DsInstance(service.Service):
         pent = pwd.getpwnam(DS_USER)
         for schema_fname in IPA_SCHEMA_FILES:
             target_fname = schema_dirname(self.serverid) + schema_fname
-            shutil.copyfile(ipautil.SHARE_DIR + schema_fname, target_fname)
+            shutil.copyfile(
+                os.path.join(paths.USR_SHARE_IPA_DIR, schema_fname),
+                target_fname)
             os.chmod(target_fname, 0o440)    # read access for dirsrv user/group
             os.chown(target_fname, pent.pw_uid, pent.pw_gid)
 
@@ -616,7 +618,9 @@ class DsInstance(service.Service):
                             schema_dirname(self.serverid) + "05rfc2247.ldif.old")
 
             target_fname = schema_dirname(self.serverid) + "05rfc2247.ldif"
-            shutil.copyfile(ipautil.SHARE_DIR + "05rfc2247.ldif", target_fname)
+            shutil.copyfile(
+                os.path.join(paths.USR_SHARE_IPA_DIR, "05rfc2247.ldif"),
+                target_fname)
             os.chmod(target_fname, 0o440)
             os.chown(target_fname, pent.pw_uid, pent.pw_gid)
         except IOError:
@@ -919,8 +923,9 @@ class DsInstance(service.Service):
         self._ldap_mod("indices.ldif")
 
     def __certmap_conf(self):
-        shutil.copyfile(ipautil.SHARE_DIR + "certmap.conf.template",
-                        config_dirname(self.serverid) + "certmap.conf")
+        shutil.copyfile(
+            os.path.join(paths.USR_SHARE_IPA_DIR, "certmap.conf.template"),
+            os.path.join(config_dirname(self.serverid), "certmap.conf"))
         installutils.update_file(config_dirname(self.serverid) + "certmap.conf",
                                  '$SUBJECT_BASE', str(self.subject_base))
         sysupgrade.set_upgrade_state(

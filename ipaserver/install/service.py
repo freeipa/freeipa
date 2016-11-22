@@ -184,7 +184,7 @@ class Service(object):
                   ldap_uri=None, dm_password=None):
         pw_name = None
         fd = None
-        path = ipautil.SHARE_DIR + ldif
+        path = os.path.join(paths.USR_SHARE_IPA_DIR, ldif)
         nologlist = []
 
         if sub_dict is not None:

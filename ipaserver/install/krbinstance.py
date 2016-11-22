@@ -250,7 +250,8 @@ class KrbInstance(service.Service):
         self._ldap_mod("default-aci.ldif", self.sub_dict)
 
     def __template_file(self, path, chmod=0o644):
-        template = os.path.join(ipautil.SHARE_DIR, os.path.basename(path) + ".template")
+        template = os.path.join(paths.USR_SHARE_IPA_DIR,
+                                os.path.basename(path) + ".template")
         conf = ipautil.template_file(template, self.sub_dict)
         self.fstore.backup_file(path)
         fd = open(path, "w+")

@@ -446,7 +446,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             os.mkdir(paths.SYSTEMD_SYSTEM_HTTPD_D_DIR, 0o755)
 
         ipautil.copy_template_file(
-            os.path.join(ipautil.SHARE_DIR, 'ipa-httpd.conf.template'),
+            os.path.join(paths.USR_SHARE_IPA_DIR, 'ipa-httpd.conf.template'),
             paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF,
             dict(
                 KRB5CC_HTTPD=paths.KRB5CC_HTTPD,
