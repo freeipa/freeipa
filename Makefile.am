@@ -158,11 +158,15 @@ pylint:
 	PYTHONPATH=$(top_srcdir) $(PYLINT) \
 		--rcfile=$(top_srcdir)/pylintrc $${FILES}
 
-.PHONY: jslint jslint-ui jslint-ui-test jslint-html
+.PHONY: jslint jslint-ui jslint-ui-test jslint-html \
+	$(top_builddir)/install/ui/src/libs/loader.js
 jslint: jslint-ui jslint-ui-test jslint-html
 
+$(top_builddir)/install/ui/src/libs/loader.js:
+	(cd $(top_builddir)/install/ui/src/libs && make loader.js)
+
 # create temporary symlinks to allow jslint to find libs/loader.js
-jslint-ui:
+jslint-ui: $(top_builddir)/install/ui/src/libs/loader.js
 	cd $(top_srcdir)/install/ui;				\
 	$(MKDIR_P) js;						\
 	rm -f js/libs;						\

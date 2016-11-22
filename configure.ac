@@ -525,7 +525,6 @@ AC_CONFIG_FILES([
     install/ui/css/Makefile
     install/ui/src/Makefile
     install/ui/src/libs/Makefile
-    install/ui/src/libs/loader.js
     install/ui/images/Makefile
     install/ui/build/Makefile
     install/ui/build/dojo/Makefile
