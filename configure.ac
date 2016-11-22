@@ -372,6 +372,8 @@ AC_SUBST([NUM_VERSION], [IPA_NUM_VERSION])
 AC_SUBST(VENDOR_SUFFIX)
 AC_SUBST([VERSION], [IPA_VERSION])
 AC_SUBST([GIT_VERSION], [IPA_GIT_VERSION])
+# used by Makefile.am for files depending on templates
+AC_SUBST([CONFIG_STATUS])
 
 dnl ---------------------------------------------------------------------------
 dnl Finish
@@ -506,7 +508,6 @@ AC_CONFIG_FILES([
     daemons/ipa-slapi-plugins/ipa-sidgen/Makefile
     daemons/ipa-slapi-plugins/ipa-range-check/Makefile
     daemons/ipa-slapi-plugins/topology/Makefile
-    daemons/ipa-version.h
     freeipa.spec
     init/systemd/Makefile
     init/tmpfilesd/Makefile
