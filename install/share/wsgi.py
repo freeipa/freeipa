@@ -25,19 +25,8 @@ WSGI appliction for IPA server.
 """
 from ipaplatform.paths import paths
 from ipalib import api
-from ipalib.config import Env
-from ipalib.constants import DEFAULT_CONFIG
 
-# Determine what debug level is configured. We can only do this
-# by reading in the configuration file(s). The server always reads
-# default.conf and will also read in `context'.conf.
-env = Env()
-env._bootstrap(context='server', log=None, confdir=paths.ETC_IPA)
-env._finalize_core(**dict(DEFAULT_CONFIG))
-
-# Initialize the API with the proper debug level
-api.bootstrap(context='server', confdir=paths.ETC_IPA,
-              debug=env.debug, log=None)
+api.bootstrap(context='server', confdir=paths.ETC_IPA, log=None)
 try:
     api.finalize()
 except Exception as e:
