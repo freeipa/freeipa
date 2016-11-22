@@ -27,7 +27,6 @@ from .baseldap import LDAPObject, LDAPUpdate, LDAPRetrieve
 from ipalib.util import has_soa_or_ns_record, validate_domain_name
 from ipalib.util import detect_dns_zone_realm_type
 from ipapython.dn import DN
-from ipapython.ipautil import get_domain_name
 
 if six.PY3:
     unicode = str
@@ -209,7 +208,7 @@ class realmdomains_mod(LDAPUpdate):
         del_domain = entry_attrs.get('del_domain')
         force = options.get('force')
 
-        current_domain = get_domain_name()
+        current_domain = self.api.env.domain
 
         # User specified the list of domains explicitly
         if associateddomain:

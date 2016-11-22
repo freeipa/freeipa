@@ -274,7 +274,6 @@ class LDAPUpdate(object):
         self.ldapuri = installutils.realm_to_ldapi_uri(self.realm)
         if suffix is not None:
             assert isinstance(suffix, DN)
-        domain = ipautil.get_domain_name()
         libarch = self._identify_arch()
 
         fqdn = installutils.get_fqdn()
@@ -286,7 +285,7 @@ class LDAPUpdate(object):
         if not self.sub_dict.get("FQDN"):
             self.sub_dict["FQDN"] = fqdn
         if not self.sub_dict.get("DOMAIN"):
-            self.sub_dict["DOMAIN"] = domain
+            self.sub_dict["DOMAIN"] = api.env.domain
         if not self.sub_dict.get("SUFFIX") and suffix is not None:
             self.sub_dict["SUFFIX"] = suffix
         if not self.sub_dict.get("ESCAPED_SUFFIX"):
@@ -295,8 +294,6 @@ class LDAPUpdate(object):
             self.sub_dict["LIBARCH"] = libarch
         if not self.sub_dict.get("TIME"):
             self.sub_dict["TIME"] = int(time.time())
-        if not self.sub_dict.get("DOMAIN") and domain is not None:
-            self.sub_dict["DOMAIN"] = domain
         if not self.sub_dict.get("MIN_DOMAIN_LEVEL"):
             self.sub_dict["MIN_DOMAIN_LEVEL"] = str(constants.MIN_DOMAIN_LEVEL)
         if not self.sub_dict.get("MAX_DOMAIN_LEVEL"):

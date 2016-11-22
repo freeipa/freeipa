@@ -50,7 +50,6 @@ from six.moves import input
 from six.moves import urllib
 
 from ipapython.ipa_log_manager import root_logger
-from ipapython import config
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 
@@ -61,16 +60,6 @@ GEN_TMP_PWD_LEN = 12  # only for OTP password that is manually retyped by user
 KRB5_KDC_UNREACH = 2529639068 # Cannot contact any KDC for requested realm
 KRB5KDC_ERR_SVC_UNAVAILABLE = 2529638941 # A service is not available that is
                                          # required to process the request
-
-
-def get_domain_name():
-    try:
-        config.init_config()
-        domain_name = config.config.get_domain()
-    except Exception:
-        return None
-
-    return domain_name
 
 
 class UnsafeIPAddress(netaddr.IPAddress):
