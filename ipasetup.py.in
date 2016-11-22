@@ -50,16 +50,27 @@ class build_py(setuptools_build_py):
             return setuptools_build_py.build_module(self, module,
                                                     module_file, package)
 
+import setuptools
+
+VERSION = '@VERSION@'
+
+SETUPTOOLS_VERSION = tuple(int(v) for v in setuptools.__version__.split("."))
+
+# backwards compatibility with setuptools 0.9.8, split off +gitHASH suffix
+# PEP 440 was introduced in setuptools 8.
+if SETUPTOOLS_VERSION < (8, 0, 0):
+    VERSION = VERSION.split('+')[0]
+
 
 PACKAGE_VERSION = {
     'cryptography': 'cryptography >= 1.3.1',
     'dnspython': 'dnspython >= 1.13',
     'gssapi': 'gssapi > 1.2.0',
-    'ipaclient': 'ipaclient == @VERSION@',
-    'ipalib': 'ipalib == @VERSION@',
-    'ipaplatform': 'ipaplatform == @VERSION@',
-    'ipapython': 'ipapython == @VERSION@',
-    'ipaserver': 'ipaserver == @VERSION@',
+    'ipaclient': 'ipaclient == {}'.format(VERSION),
+    'ipalib': 'ipalib == {}'.format(VERSION),
+    'ipaplatform': 'ipaplatform == {}'.format(VERSION),
+    'ipapython': 'ipapython == {}'.format(VERSION),
+    'ipaserver': 'ipaserver == {}'.format(VERSION),
     'kdcproxy': 'kdcproxy >= 0.3',
     'netifaces': 'netifaces >= 0.10.4',
     'pyldap': 'pyldap >= 2.4.15',
@@ -70,7 +81,7 @@ PACKAGE_VERSION = {
 
 
 common_args = dict(
-    version="@VERSION@",
+    version=VERSION,
     license="GPLv3",
     author="FreeIPA Developers",
     author_email="freeipa-devel@redhat.com",
@@ -125,6 +136,14 @@ def ipasetup(name, doc, **kwargs):
     # exclude NAME.install from wheels
     cmdclass = setup_kwargs.setdefault('cmdclass', {})
     cmdclass['build_py'] = build_py
+
+    # Env markers like ":python_version<'3.3'" are not supported by
+    # setuptools < 18.0.
+    if 'extras_require' in setup_kwargs and SETUPTOOLS_VERSION < (18, 0, 0):
+        for k in list(setup_kwargs['extras_require']):
+            if k.startswith(':'):
+                req = setup_kwargs.setdefault('install_requires', [])
+                req.extend(setup_kwargs['extras_require'].pop(k))
 
     os.chdir(local_path)
     try:
