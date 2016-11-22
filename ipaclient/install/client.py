@@ -37,7 +37,6 @@ from ipaclient import (
 )
 from ipaclient.ipachangeconf import IPAChangeConf
 from ipalib import api, errors, x509
-from ipalib.constants import CACERT
 from ipalib.install import certmonger, certstore, service, sysrestore
 from ipalib.install import hostname as hostname_
 from ipalib.install.kinit import kinit_keytab, kinit_password
@@ -125,15 +124,15 @@ def get_cert_path(cert_path):
     """
     If a CA certificate is passed in on the command line, use that.
 
-    Else if a CA file exists in CACERT then use that.
+    Else if a CA file exists in paths.IPA_CA_CRT then use that.
 
     Otherwise return None.
     """
     if cert_path is not None:
         return cert_path
 
-    if os.path.exists(CACERT):
-        return CACERT
+    if os.path.exists(paths.IPA_CA_CRT):
+        return paths.IPA_CA_CRT
 
     return None
 
@@ -577,7 +576,7 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
             'action': 'addifnotset',
             'name': 'TLS_CACERT',
             'type': 'option',
-            'value': CACERT
+            'value': paths.IPA_CA_CRT
         },
     ]
 
@@ -713,7 +712,8 @@ def configure_krb5_conf(
             ])
         kropts.append(krbconf.setOption('default_domain', cli_domain))
 
-    kropts.append(krbconf.setOption('pkinit_anchors', 'FILE: %s' % CACERT))
+    kropts.append(
+        krbconf.setOption('pkinit_anchors', 'FILE: %s' % paths.IPA_CA_CRT))
     ropts = [{
         'name': cli_realm,
         'type': 'subsection',
@@ -935,7 +935,7 @@ def configure_sssd_conf(
     # Note that SSSD will force StartTLS because the channel is later used for
     # authentication as well if password migration is enabled. Thus set
     # the option unconditionally.
-    domain.set_option('ldap_tls_cacert', CACERT)
+    domain.set_option('ldap_tls_cacert', paths.IPA_CA_CRT)
 
     if options.dns_updates:
         domain.set_option('dyndns_update', True)
@@ -1552,7 +1552,7 @@ def get_certs_from_ldap(server, base_dn, realm, ca_enabled):
 def get_ca_certs_from_file(url):
     """
     Get the CA cert from a user supplied file and write it into the
-    CACERT file.
+    paths.IPA_CA_CRT file.
 
     Raises errors.NoCertificateError if unable to read cert.
     Raises errors.FileError if unable to write cert.
@@ -1585,8 +1585,8 @@ def get_ca_certs_from_file(url):
 
 def get_ca_certs_from_http(url, warn=True):
     """
-    Use HTTP to retrieve the CA cert and write it into the CACERT file.
-    This is insecure and should be avoided.
+    Use HTTP to retrieve the CA cert and write it into the paths.IPA_CA_CRT
+    file. This is insecure and should be avoided.
 
     Raises errors.NoCertificateError if unable to retrieve and write cert.
     """
@@ -1615,7 +1615,7 @@ def get_ca_certs_from_ldap(server, basedn, realm):
     """
     Retrieve th CA cert from the LDAP server by binding to the
     server with GSSAPI using the current Kerberos credentials.
-    Write the retrieved cert into the CACERT file.
+    Write the retrieved cert into the paths.IPA_CA_CRT file.
 
     Raises errors.NoCertificateError if cert is not found.
     Raises errors.NetworkError if LDAP connection can't be established.
@@ -1650,7 +1650,7 @@ def validate_new_ca_certs(existing_ca_certs, new_ca_certs, ask,
     if existing_ca_certs > new_ca_certs:
         root_logger.warning(
             "The CA cert available from the IPA server does not match the\n"
-            "local certificate available at %s" % CACERT)
+            "local certificate available at %s" % paths.IPA_CA_CRT)
         root_logger.warning(
             cert_summary("Existing CA cert:", existing_ca_certs))
         root_logger.warning(
@@ -1671,7 +1671,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
     Examine the different options and determine a method for obtaining
     the CA cert.
 
-    If successful the CA cert will have been written into CACERT.
+    If successful the CA cert will have been written into paths.IPA_CA_CRT.
 
     Raises errors.NoCertificateError if not successful.
 
@@ -1698,7 +1698,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
     In all cases if HTTP is used emit warning message
     """
 
-    ca_file = CACERT + ".new"
+    ca_file = paths.IPA_CA_CRT + ".new"
 
     def ldap_url():
         return urlunparse(('ldap', ipautil.format_netloc(server),
@@ -1729,17 +1729,18 @@ def get_ca_certs(fstore, options, server, basedn, realm):
             raise errors.NoCertificateError(entry=url)
         root_logger.debug("CA cert provided by user, use it!")
     else:
-        if os.path.exists(CACERT):
-            if os.path.isfile(CACERT):
+        if os.path.exists(paths.IPA_CA_CRT):
+            if os.path.isfile(paths.IPA_CA_CRT):
                 try:
                     existing_ca_certs = x509.load_certificate_list_from_file(
-                        CACERT)
+                        paths.IPA_CA_CRT)
                 except Exception as e:
-                    raise errors.FileError(reason=u"Unable to load existing" +
-                                           " CA cert '%s': %s" % (CACERT, e))
+                    raise errors.FileError(
+                        reason=u"Unable to load existing CA cert '%s': %s" %
+                               (paths.IPA_CA_CRT, e))
             else:
                 raise errors.FileError(reason=u"Existing ca cert '%s' is " +
-                                       "not a plain file" % (CACERT))
+                                       "not a plain file" % (paths.IPA_CA_CRT))
 
         if otp_auth:
             if existing_ca_certs:
@@ -1828,14 +1829,14 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                     ca_file, e)
             )
 
-        os.rename(ca_file, CACERT)
+        os.rename(ca_file, paths.IPA_CA_CRT)
 
     # Make sure the file permissions are correct
     try:
-        os.chmod(CACERT, 0o644)
+        os.chmod(paths.IPA_CA_CRT, 0o644)
     except Exception as e:
         raise errors.FileError(reason=u"Unable set permissions on ca "
-                               u"cert '%s': %s" % (CACERT, e))
+                               u"cert '%s': %s" % (paths.IPA_CA_CRT, e))
 
 # IMPORTANT: First line of FF config file is ignored
 FIREFOX_CONFIG_TEMPLATE = """
@@ -2048,9 +2049,10 @@ def install_check(options):
     # Check if old certificate exist and show warning
     if (
         not options.ca_cert_file and
-        get_cert_path(options.ca_cert_file) == CACERT
+        get_cert_path(options.ca_cert_file) == paths.IPA_CA_CRT
     ):
-        root_logger.warning("Using existing certificate '%s'.", CACERT)
+        root_logger.warning("Using existing certificate '%s'.",
+                            paths.IPA_CA_CRT)
 
     if not check_ip_addresses(options):
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
@@ -2673,7 +2675,7 @@ def _install(options):
             pass
 
         # Add CA certs to a temporary NSS database
-        ca_certs = x509.load_certificate_list_from_file(CACERT)
+        ca_certs = x509.load_certificate_list_from_file(paths.IPA_CA_CRT)
         ca_certs = [
             cert.public_bytes(serialization.Encoding.DER)
             for cert in ca_certs
@@ -3319,7 +3321,7 @@ def uninstall(options):
     tasks.remove_ca_certs_from_systemwide_ca_store()
 
     # Remove the CA cert
-    remove_file(CACERT)
+    remove_file(paths.IPA_CA_CRT)
 
     root_logger.info("Client uninstall complete.")
 

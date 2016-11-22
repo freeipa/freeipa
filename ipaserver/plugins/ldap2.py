@@ -31,7 +31,8 @@ import os
 
 import ldap as _ldap
 
-from ipalib import krb_utils, constants
+from ipalib import krb_utils
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipaldap import (LDAPClient, AUTOBIND_AUTO, AUTOBIND_ENABLED,
                                AUTOBIND_DISABLED)
@@ -154,7 +155,7 @@ class ldap2(CrudBackend, LDAPClient):
         assert isinstance(bind_dn, DN)
 
         if cacert is None:
-            cacert = constants.CACERT
+            cacert = paths.IPA_CA_CRT
 
         if time_limit is not _missing:
             self.time_limit = time_limit

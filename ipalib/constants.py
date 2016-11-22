@@ -22,7 +22,6 @@
 All constants centralised in one file.
 """
 import socket
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.version import VERSION, API_VERSION
 
@@ -33,9 +32,6 @@ except Exception:
         FQDN = socket.gethostname()
     except Exception:
         FQDN = None
-
-# Path to CA certificate bundle
-CACERT = paths.IPA_CA_CRT
 
 # regular expression NameSpace member names must match:
 NAME_REGEX = r'^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'
