@@ -34,8 +34,6 @@ if __name__ == '__main__':
         package_dir={'ipapython': ''},
         packages=[
             "ipapython",
-            "ipapython.dnssec",
-            "ipapython.secrets",
             "ipapython.install"
         ],
         install_requires=[
@@ -59,13 +57,5 @@ if __name__ == '__main__':
         ],
         extras_require={
             ":python_version<'3'": ["enum34"],
-        },
-        entry_points={
-            'custodia.authorizers': [
-                'IPAKEMKeys = ipapython.secrets.kem:IPAKEMKeys',
-            ],
-            'custodia.stores': [
-                'IPASecStore = ipapython.secrets.store:IPASecStore',
-            ],
         },
     )

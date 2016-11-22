@@ -2,7 +2,7 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-from ipapython import p11helper as _ipap11helper
+from ipaserver import p11helper as _ipap11helper
 
 attrs_id2name = {
     #_ipap11helper.CKA_ALLOWED_MECHANISMS: 'ipk11allowedmechanisms',

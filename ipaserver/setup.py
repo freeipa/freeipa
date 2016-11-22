@@ -38,7 +38,9 @@ if __name__ == '__main__':
             'ipaserver',
             'ipaserver.advise',
             'ipaserver.advise.plugins',
+            'ipaserver.dnssec',
             'ipaserver.plugins',
+            'ipaserver.secrets',
             'ipaserver.install',
             'ipaserver.install.plugins',
             'ipaserver.install.server',
@@ -69,4 +71,12 @@ if __name__ == '__main__':
         setup_requires=[
             "wheel",
         ],
+        entry_points={
+            'custodia.authorizers': [
+                'IPAKEMKeys = ipaserver.secrets.kem:IPAKEMKeys',
+            ],
+            'custodia.stores': [
+                'IPASecStore = ipaserver.secrets.store:IPASecStore',
+            ],
+        },
     )

@@ -6,7 +6,7 @@ from custodia.store.interface import CSStore
 from jwcrypto.common import json_decode, json_encode
 from ipaplatform.paths import paths
 from ipapython import ipautil
-from ipapython.secrets.common import iSecLdap
+from ipaserver.secrets.common import iSecLdap
 import ldap
 import os
 import shutil

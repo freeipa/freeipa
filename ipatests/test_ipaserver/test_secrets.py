@@ -1,7 +1,7 @@
 # Copyright (C) 2015  FreeIPA Project Contributors - see LICENSE file
 
 from __future__ import print_function
-from ipapython.secrets.store import iSecStore, NAME_DB_MAP, NSSCertDB
+from ipaserver.secrets.store import iSecStore, NAME_DB_MAP, NSSCertDB
 import os
 import shutil
 import subprocess

@@ -16,8 +16,7 @@ from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython import ipaldap
 from ipapython import ipautil
 from ipaplatform.paths import paths
-
-from ipapython.dnssec.keysyncer import KeySyncer
+from ipaserver.dnssec.keysyncer import KeySyncer
 
 # IPA framework initialization
 api.bootstrap(in_server=True, log=None)  # no logging to file

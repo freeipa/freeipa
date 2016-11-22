@@ -57,7 +57,7 @@ from ipapython.certdb import get_ca_nickname
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr,\
     standard_logging_setup, root_logger
-from ipapython.secrets.kem import IPAKEMKeys
+from ipaserver.secrets.kem import IPAKEMKeys
 
 from ipaserver.install import certs
 from ipaserver.install import custodiainstance

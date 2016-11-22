@@ -20,10 +20,11 @@ from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython import ipaldap
 from ipapython import ipautil
 from ipaplatform.paths import paths
-
-from ipapython.dnssec.abshsm import sync_pkcs11_metadata, ldap2p11helper_api_params, wrappingmech_name2id
-from ipapython.dnssec.ldapkeydb import LdapKeyDB
-from ipapython.dnssec.localhsm import LocalHSM
+from ipaserver.dnssec.abshsm import (sync_pkcs11_metadata,
+                                     ldap2p11helper_api_params,
+                                     wrappingmech_name2id)
+from ipaserver.dnssec.ldapkeydb import LdapKeyDB
+from ipaserver.dnssec.localhsm import LocalHSM
 
 DAEMONNAME = 'ipa-dnskeysyncd'
 PRINCIPAL = None  # not initialized yet
