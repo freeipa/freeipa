@@ -39,54 +39,6 @@ def get_ca_nickname(realm, format=CA_NICKNAME_FMT):
     return format % realm
 
 
-def create_ipa_nssdb():
-    db = NSSDatabase(paths.IPA_NSSDB_DIR)
-    pwdfile = os.path.join(db.secdir, 'pwdfile.txt')
-
-    ipautil.backup_file(pwdfile)
-    ipautil.backup_file(os.path.join(db.secdir, 'cert8.db'))
-    ipautil.backup_file(os.path.join(db.secdir, 'key3.db'))
-    ipautil.backup_file(os.path.join(db.secdir, 'secmod.db'))
-
-    with open(pwdfile, 'w') as f:
-        f.write(ipautil.ipa_generate_password(pwd_len=40))
-    os.chmod(pwdfile, 0o600)
-
-    db.create_db(pwdfile)
-    os.chmod(os.path.join(db.secdir, 'cert8.db'), 0o644)
-    os.chmod(os.path.join(db.secdir, 'key3.db'), 0o644)
-    os.chmod(os.path.join(db.secdir, 'secmod.db'), 0o644)
-
-
-def update_ipa_nssdb():
-    ipa_db = NSSDatabase(paths.IPA_NSSDB_DIR)
-    sys_db = NSSDatabase(paths.NSS_DB_DIR)
-
-    if not os.path.exists(os.path.join(ipa_db.secdir, 'cert8.db')):
-        create_ipa_nssdb()
-
-    for nickname, trust_flags in (('IPA CA', 'CT,C,C'),
-                                  ('External CA cert', 'C,,')):
-        try:
-            cert = sys_db.get_cert(nickname)
-        except RuntimeError:
-            continue
-        try:
-            ipa_db.add_cert(cert, nickname, trust_flags)
-        except ipautil.CalledProcessError as e:
-            raise RuntimeError("Failed to add %s to %s: %s" %
-                               (nickname, ipa_db.secdir, e))
-
-    # Remove IPA certs from /etc/pki/nssdb
-    for nickname, trust_flags in ipa_db.list_certs():
-        while sys_db.has_nickname(nickname):
-            try:
-                sys_db.delete_cert(nickname)
-            except ipautil.CalledProcessError as e:
-                raise RuntimeError("Failed to remove %s from %s: %s" %
-                                   (nickname, sys_db.secdir, e))
-
-
 def find_cert_from_txt(cert, start=0):
     """
     Given a cert blob (str) which may or may not contian leading and
