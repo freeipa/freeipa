@@ -25,7 +25,7 @@ Handles common operations like option parsing and logging
 import sys
 import os
 import traceback
-from optparse import OptionGroup
+from optparse import OptionGroup  # pylint: disable=deprecated-module
 
 from ipapython import version
 from ipapython import config

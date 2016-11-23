@@ -27,7 +27,9 @@ from ipapython import ipautil, certdb
 from ipalib import api, errors, x509
 from ipaserver.install import installutils
 import ipaclient.ipachangeconf
+# pylint: disable=deprecated-module
 from optparse import OptionGroup, OptionValueError
+# pylint: enable=deprecated-module
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 import sys
 import os

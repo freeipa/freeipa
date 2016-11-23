@@ -39,7 +39,7 @@ import SSSDConfig
 from six.moves.urllib.parse import urlsplit
 # pylint: enable=import-error
 
-from optparse import OptionParser
+from optparse import OptionParser  # pylint: disable=deprecated-module
 from ipalib import api, errors
 from ipapython import sysrestore
 from ipapython import ipautil

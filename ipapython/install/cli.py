@@ -9,7 +9,7 @@ Command line support.
 import collections
 import enum
 import functools
-import optparse
+import optparse  # pylint: disable=deprecated-module
 import signal
 
 import six

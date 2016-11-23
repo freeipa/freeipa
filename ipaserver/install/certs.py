@@ -30,6 +30,7 @@ import fcntl
 import time
 import datetime
 
+import six
 from six.moves import configparser
 
 from ipapython.ipa_log_manager import root_logger
@@ -720,7 +721,10 @@ class _CrossProcessLock(object):
 
     def _read(self, fileobj):
         p = configparser.RawConfigParser()
-        p.readfp(fileobj)
+        if six.PY2:
+            p.readfp(fileobj)  # pylint: disable=deprecated-method
+        else:
+            p.read_file(fileobj)  # pylint: disable=no-member
 
         try:
             self._locked = p.getboolean('lock', 'locked')

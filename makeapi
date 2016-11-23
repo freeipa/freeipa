@@ -86,7 +86,7 @@ OUTPUT_IGNORED_ATTRIBUTES = (
 )
 
 def parse_options():
-    from optparse import OptionParser
+    from optparse import OptionParser  # pylint: disable=deprecated-module
 
     parser = OptionParser()
     parser.add_option("--validate", dest="validate", action="store_true",

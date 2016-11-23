@@ -27,7 +27,7 @@ import textwrap
 import sys
 import getpass
 import code
-import optparse
+import optparse  # pylint: disable=deprecated-module
 import fcntl
 import termios
 import struct
@@ -41,8 +41,8 @@ if six.PY3:
     unicode = str
 
 if six.PY2:
-    reload(sys)                         # pylint: disable=reload-builtin
-    sys.setdefaultencoding('utf-8')     # pylint: disable=no-member
+    reload(sys)  # pylint: disable=reload-builtin, undefined-variable
+    sys.setdefaultencoding('utf-8')  # pylint: disable=no-member
 
 from ipalib import frontend
 from ipalib import backend

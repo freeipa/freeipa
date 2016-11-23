@@ -29,7 +29,7 @@ import sys
 import threading
 import os
 from os import path
-import optparse
+import optparse  # pylint: disable=deprecated-module
 import textwrap
 import collections
 import importlib

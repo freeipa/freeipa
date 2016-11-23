@@ -24,7 +24,7 @@ from __future__ import print_function
 import sys
 from ipaplatform.paths import paths
 try:
-    from optparse import OptionParser
+    from optparse import OptionParser  # pylint: disable=deprecated-module
     from ipapython import ipautil, config
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate

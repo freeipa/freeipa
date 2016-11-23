@@ -20,7 +20,7 @@
 from __future__ import print_function
 
 import os
-from optparse import OptionGroup
+from optparse import OptionGroup  # pylint: disable=deprecated-module
 from cryptography.hazmat.primitives import serialization
 import gssapi
 

@@ -25,7 +25,9 @@ import os
 import shutil
 import tempfile
 import time
+# pylint: disable=deprecated-module
 from optparse import OptionGroup, SUPPRESS_HELP
+# pylint: enable=deprecated-module
 
 import dns.resolver
 # pylint: disable=import-error

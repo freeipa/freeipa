@@ -21,7 +21,7 @@
 import os
 import os.path
 import pwd
-import optparse
+import optparse  # pylint: disable=deprecated-module
 
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
