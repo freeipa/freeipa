@@ -44,9 +44,9 @@ import six
 from six.moves.configparser import SafeConfigParser, NoOptionError
 # pylint: enable=import-error
 
+from ipalib.install import sysrestore
 import ipaplatform
-
-from ipapython import ipautil, sysrestore, admintool, version
+from ipapython import ipautil, admintool, version
 from ipapython.admintool import ScriptError
 from ipapython.ipa_log_manager import root_logger
 from ipalib.util import validate_hostname

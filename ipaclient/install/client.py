@@ -43,8 +43,8 @@ from ipalib import (
     x509,
 )
 from ipalib.constants import CACERT
+from ipalib.install import certmonger, service, sysrestore
 from ipalib.install import hostname as hostname_
-from ipalib.install import service
 from ipalib.install.service import enroll_only, prepare_only
 from ipalib.rpc import delete_persistent_client_session_data
 from ipalib.util import (
@@ -56,14 +56,7 @@ from ipalib.util import (
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipapython import (
-    certdb,
-    certmonger,
-    kernel_keyring,
-    ipaldap,
-    ipautil,
-    sysrestore,
-)
+from ipapython import certdb, kernel_keyring, ipaldap, ipautil
 from ipapython.admintool import ScriptError
 from ipapython.dn import DN
 from ipapython.install import typing

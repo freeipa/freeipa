@@ -27,7 +27,8 @@ import tempfile
 
 import six
 
-from ipapython import ipautil, sysrestore
+from ipalib.install import sysrestore
+from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython import kerberos

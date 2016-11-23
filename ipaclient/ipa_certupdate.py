@@ -25,8 +25,8 @@ import shutil
 from six.moves.urllib.parse import urlsplit
 # pylint: enable=import-error
 
-from ipapython import (admintool, ipautil, ipaldap, sysrestore, certmonger,
-                       certdb)
+from ipalib.install import certmonger, sysrestore
+from ipapython import admintool, certdb, ipaldap, ipautil
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks

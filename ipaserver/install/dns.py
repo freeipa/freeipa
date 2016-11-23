@@ -22,13 +22,12 @@ from subprocess import CalledProcessError
 from ipalib import api
 from ipalib import errors
 from ipalib import util
-from ipalib.install import hostname
+from ipalib.install import hostname, sysrestore
 from ipalib.install.service import enroll_only, prepare_only
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants
 from ipaplatform import services
 from ipapython import ipautil
-from ipapython import sysrestore
 from ipapython import dnsutil
 from ipapython.dn import DN
 from ipapython.dnsutil import check_zone_overlap

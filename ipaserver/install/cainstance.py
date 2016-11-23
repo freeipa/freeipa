@@ -43,14 +43,13 @@ from ipalib import api
 from ipalib import x509
 from ipalib import errors
 import ipalib.constants
-
+from ipalib.install import certmonger
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
 from ipapython import dogtag
-from ipapython import certmonger
 from ipapython import ipautil
 from ipapython import ipaldap
 from ipapython.certdb import get_ca_nickname

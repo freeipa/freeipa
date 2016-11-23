@@ -31,6 +31,7 @@ import six
 
 from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
 
+from ipalib.install import sysrestore
 from ipaserver.install import adtrustinstance
 from ipaserver.install.installutils import (
     read_password,
@@ -38,7 +39,7 @@ from ipaserver.install.installutils import (
     run_script)
 from ipaserver.install import service
 from ipapython import version
-from ipapython import ipautil, sysrestore, ipaldap
+from ipapython import ipautil, ipaldap
 from ipalib import api, errors, krb_utils
 from ipapython.config import IPAOptionParser
 from ipaplatform.paths import paths

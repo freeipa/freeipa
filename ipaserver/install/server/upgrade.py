@@ -19,14 +19,14 @@ from six.moves.configparser import SafeConfigParser
 # pylint: enable=import-error
 
 from ipalib import api
+from ipalib.install import certmonger, sysrestore
 import SSSDConfig
 import ipalib.util
 import ipalib.errors
 from ipaplatform import services
 from ipaplatform.tasks import tasks
-from ipapython import ipautil, sysrestore, version, certdb
+from ipapython import ipautil, version, certdb
 from ipapython.ipa_log_manager import root_logger
-from ipapython import certmonger
 from ipapython import dnsutil
 from ipapython.dn import DN
 from ipaplatform.constants import constants
