@@ -108,7 +108,6 @@ import six
 
 from ipalib.text import ngettext as ungettext
 from ipalib import messages
-from ipaplatform.paths import paths  # pylint: disable=unused-import
 
 
 class PrivateError(Exception):
@@ -151,7 +150,7 @@ class SubprocessError(PrivateError):
     The exit code of the sub-process is available via the ``returncode``
     instance attribute.  For example:
 
-    >>> e = SubprocessError(returncode=1, argv=(paths.BIN_FALSE,))
+    >>> e = SubprocessError(returncode=1, argv=('/bin/false',))
     >>> e.returncode
     1
     >>> e.argv  # argv is also available

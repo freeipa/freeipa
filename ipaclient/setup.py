@@ -55,6 +55,7 @@ if __name__ == '__main__':
             "wheel",
         ],
         extra_requires={
+            "ipaclient.install": ["ipaplatform"],
             "otptoken_yubikey": ["yubico", "usb"]
         }
     )
