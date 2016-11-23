@@ -690,7 +690,9 @@ class CIDict(dict):
 
     if six.PY2:
         def has_key(self, key):
+            # pylint: disable=no-member
             return super(CIDict, self).has_key(key.lower())
+            # pylint: enable=no-member
 
     def get(self, key, failobj=None):
         try:

@@ -29,7 +29,7 @@ import ldap
 
 import six
 
-from optparse import SUPPRESS_HELP
+from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
 
 from ipaserver.install import adtrustinstance
 from ipaserver.install.installutils import (

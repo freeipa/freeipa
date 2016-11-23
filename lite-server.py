@@ -32,7 +32,7 @@ Unfortunately, SSL support is broken under Python 2.6 with paste 1.7.2, see:
 """
 
 from os import path, getcwd
-import optparse
+import optparse  # pylint: disable=deprecated-module
 from paste import httpserver
 import paste.gzipper
 from paste.urlmap import URLMap

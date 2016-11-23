@@ -623,7 +623,9 @@ class KerbTransport(SSLTransport):
 
             while True:
                 if six.PY2:
+                    # pylint: disable=no-value-for-parameter
                     self.send_request(h, handler, request_body)
+                    # pylint: enable=no-value-for-parameter
                     self.send_host(h, host)
                     self.send_user_agent(h)
                     self.send_content(h, request_body)

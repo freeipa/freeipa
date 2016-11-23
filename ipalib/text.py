@@ -254,7 +254,7 @@ class Gettext(LazyText):
         else:
             t = create_translation(self.key)
         if six.PY2:
-            return t.ugettext(self.msg)
+            return t.ugettext(self.msg)  # pylint: disable=no-member
         else:
             return t.gettext(self.msg)
 
@@ -409,7 +409,9 @@ class NGettext(LazyText):
         else:
             t = create_translation(self.key)
         if six.PY2:
+            # pylint: disable=no-member
             return t.ungettext(self.singular, self.plural, count)
+            # pylint: enable=no-member
         else:
             return t.ngettext(self.singular, self.plural, count)
 

@@ -24,7 +24,7 @@ from __future__ import print_function
 import os
 import sys
 
-from optparse import SUPPRESS_HELP
+from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
 
 from ipaserver.install import bindinstance
 from ipaserver.install import installutils
