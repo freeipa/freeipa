@@ -13,6 +13,7 @@ import os.path
 
 import six
 
+from ipalib.install import certstore
 from ipalib.install.service import enroll_only, master_install_only, replica_install_only
 from ipapython.install import typing
 from ipapython.install.core import knob
@@ -26,7 +27,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, certs
 from ipaserver.install.replication import replica_conn_check
-from ipalib import api, certstore, x509
+from ipalib import api, x509
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 

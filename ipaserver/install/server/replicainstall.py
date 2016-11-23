@@ -17,7 +17,7 @@ import traceback
 from pkg_resources import parse_version
 import six
 
-from ipalib.install import sysrestore
+from ipalib.install import certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab
 from ipapython import ipaldap, ipautil
 from ipapython.dn import DN
@@ -26,7 +26,7 @@ from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
-from ipalib import api, certstore, constants, create_api, errors, rpc, x509
+from ipalib import api, constants, create_api, errors, rpc, x509
 from ipalib.config import Env
 from ipalib.util import (
     network_ip_address_warning,

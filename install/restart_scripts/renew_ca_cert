@@ -27,8 +27,9 @@ import tempfile
 import shutil
 import traceback
 
+from ipalib.install import certstore
 from ipapython import ipautil
-from ipalib import api, errors, x509, certstore
+from ipalib import api, errors, x509
 from ipalib.install.kinit import kinit_keytab
 from ipaserver.install import certs, cainstance, installutils
 from ipaserver.plugins.ldap2 import ldap2
