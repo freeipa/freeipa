@@ -478,4 +478,23 @@ class RedHatTaskNamespace(BaseTaskNamespace):
     def set_hostname(self, hostname):
         ipautil.run([paths.BIN_HOSTNAMECTL, 'set-hostname', hostname])
 
+    def is_fips_enabled(self):
+        """
+        Checks whether this host is FIPS-enabled.
+
+        Returns a boolean indicating if the host is FIPS-enabled, i.e. if the
+        file /proc/sys/crypto/fips_enabled contains a non-0 value. Otherwise,
+        or if the file /proc/sys/crypto/fips_enabled does not exist,
+        the function returns False.
+        """
+        try:
+            with open(paths.PROC_FIPS_ENABLED, 'r') as f:
+                if f.read().strip() != '0':
+                    return True
+        except IOError:
+            # Consider that the host is not fips-enabled if the file does not
+            # exist
+            pass
+        return False
+
 tasks = RedHatTaskNamespace()
