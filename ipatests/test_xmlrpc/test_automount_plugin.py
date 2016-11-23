@@ -106,7 +106,7 @@ class AutomountTest(XMLRPC_test):
                     skipped=(),
                     duplicatemaps=(),
                     duplicatekeys=(),
-                )), res)
+                )), res)  # pylint: disable=used-before-assignment
             self.check_tofiles()
         finally:
             res = api.Command['automountlocation_del'](self.locname)['result']
