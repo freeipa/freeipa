@@ -314,7 +314,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
 
         Example:
         We have a command
-            [paths.SETPASSWD, '--password', 'Secret123', 'someuser']
+            ['/usr/bin/setpasswd', '--password', 'Secret123', 'someuser']
         and we don't want to log the password so nolog would be set to:
         ('Secret123',)
         The resulting log output would be:
