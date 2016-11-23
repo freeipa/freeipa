@@ -249,3 +249,6 @@ class BaseTaskNamespace(object):
     def remove_httpd_service_ipa_conf(self):
         """Remove configuration of httpd service of IPA"""
         raise NotImplementedError()
+
+    def is_fips_enabled(self):
+        return False

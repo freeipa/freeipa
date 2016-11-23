@@ -67,7 +67,6 @@ from ipapython.ipautil import (
     CalledProcessError,
     dir_exists,
     file_exists,
-    is_fips_enabled,
     realm_to_suffix,
     run,
     user_input,
@@ -1967,7 +1966,7 @@ def install_check(options):
             "You must be root to run ipa-client-install.",
             rval=CLIENT_INSTALL_ERROR)
 
-    if is_fips_enabled():
+    if tasks.is_fips_enabled():
         raise ScriptError(
             "Installing IPA client in FIPS mode is not supported",
             rval=CLIENT_INSTALL_ERROR)

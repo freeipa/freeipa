@@ -19,8 +19,7 @@ from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import (
-    decrypt_file, format_netloc, ipa_generate_password, run, user_input,
-    is_fips_enabled)
+    decrypt_file, format_netloc, ipa_generate_password, run, user_input)
 from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -322,7 +321,7 @@ def install_check(installer):
     external_ca_file = installer._external_ca_file
     http_ca_cert = installer._ca_cert
 
-    if is_fips_enabled():
+    if tasks.is_fips_enabled():
         raise RuntimeError(
             "Installing IPA server in FIPS mode is not supported")
 

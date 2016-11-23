@@ -520,7 +520,7 @@ def check_remote_version(api):
 
 
 def common_check(no_ntp):
-    if ipautil.is_fips_enabled():
+    if tasks.is_fips_enabled():
         raise RuntimeError(
             "Installing IPA server in FIPS mode is not supported")
 
