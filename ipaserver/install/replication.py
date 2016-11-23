@@ -454,6 +454,12 @@ class ReplicationManager(object):
             if replica_groupdn not in binddn_groups:
                 mod.append((ldap.MOD_ADD, 'nsds5replicabinddngroup',
                             replica_groupdn))
+
+            if 'nsds5replicabinddngroupcheckinterval' not in entry:
+                mod.append(
+                    (ldap.MOD_ADD,
+                     'nsds5replicabinddngroupcheckinterval',
+                     '60'))
             if mod:
                 conn.modify_s(dn, mod)
 
