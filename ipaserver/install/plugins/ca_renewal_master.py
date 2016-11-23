@@ -20,8 +20,8 @@
 from ipaserver.install import installutils, certs, cainstance
 from ipalib import errors
 from ipalib import Updater
+from ipalib.install import certmonger
 from ipalib.plugable import Registry
-from ipapython import certmonger
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 

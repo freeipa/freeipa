@@ -17,7 +17,8 @@ import traceback
 from pkg_resources import parse_version
 import six
 
-from ipapython import ipaldap, ipautil, sysrestore
+from ipalib.install import sysrestore
+from ipapython import ipaldap, ipautil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython.admintool import ScriptError

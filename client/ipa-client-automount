@@ -41,7 +41,7 @@ from six.moves.urllib.parse import urlsplit
 
 from optparse import OptionParser  # pylint: disable=deprecated-module
 from ipalib import api, errors
-from ipapython import sysrestore
+from ipalib.install import sysrestore
 from ipapython import ipautil
 from ipaclient import ipadiscovery
 from ipaclient import ipachangeconf

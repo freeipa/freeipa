@@ -31,6 +31,7 @@ import fnmatch
 
 import ldap
 
+from ipalib.install import certmonger
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil, ipaldap
 from ipapython import dogtag
@@ -48,7 +49,6 @@ from ipalib import constants
 from ipaplatform.constants import constants as platformconstants
 from ipaplatform.tasks import tasks
 from ipalib.constants import CACERT
-from ipapython import certmonger
 from ipapython.dn import DN
 from ipapython.admintool import ScriptError
 from ipaplatform import services

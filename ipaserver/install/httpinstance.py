@@ -31,10 +31,10 @@ import locale
 
 import six
 
+from ipalib.install import certmonger
 from ipaserver.install import service
 from ipaserver.install import certs
 from ipaserver.install import installutils
-from ipapython import certmonger
 from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.dn import DN

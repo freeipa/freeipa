@@ -9,11 +9,12 @@ import stat
 import shutil
 from subprocess import CalledProcessError
 
+from ipalib.install import sysrestore
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
-from ipapython import sysrestore, ipautil
+from ipapython import ipautil
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths

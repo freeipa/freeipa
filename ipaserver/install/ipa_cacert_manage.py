@@ -24,7 +24,8 @@ from optparse import OptionGroup  # pylint: disable=deprecated-module
 from cryptography.hazmat.primitives import serialization
 import gssapi
 
-from ipapython import admintool, certmonger, ipautil
+from ipalib.install import certmonger
+from ipapython import admintool, ipautil
 from ipapython.dn import DN
 from ipaplatform.paths import paths
 from ipalib import api, errors, x509, certstore

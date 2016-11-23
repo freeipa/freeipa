@@ -32,10 +32,10 @@ import pki.system
 
 from ipalib import api, errors
 
+from ipalib.install import certmonger
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
-from ipapython import certmonger
 from ipapython import ipaldap
 from ipapython import ipautil
 from ipapython.dn import DN

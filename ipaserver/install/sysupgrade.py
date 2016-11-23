@@ -20,7 +20,7 @@
 import os
 import os.path
 
-from ipapython import sysrestore
+from ipalib.install import sysrestore
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import root_logger
 
