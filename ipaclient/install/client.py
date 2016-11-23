@@ -31,11 +31,6 @@ from six.moves.configparser import RawConfigParser
 from six.moves.urllib.parse import urlparse, urlunparse
 # pylint: enable=import-error
 
-from ipaclient import (
-    ipadiscovery,
-    ntpconf,
-)
-from ipaclient.ipachangeconf import IPAChangeConf
 from ipalib import api, errors, x509
 from ipalib.install import certmonger, certstore, service, sysrestore
 from ipalib.install import hostname as hostname_
@@ -68,7 +63,8 @@ from ipapython.ipautil import (
 )
 from ipapython.ssh import SSHPublicKey
 
-from . import automount
+from . import automount, ipadiscovery, ntpconf
+from .ipachangeconf import IPAChangeConf
 
 NoneType = type(None)
 

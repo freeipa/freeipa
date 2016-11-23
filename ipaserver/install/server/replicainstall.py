@@ -17,6 +17,8 @@ import traceback
 from pkg_resources import parse_version
 import six
 
+from ipaclient.install.ipachangeconf import IPAChangeConf
+import ipaclient.install.ntpconf
 from ipalib.install import certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab
 from ipapython import ipaldap, ipautil
@@ -33,8 +35,6 @@ from ipalib.util import (
     broadcast_ip_address_warning,
 )
 from ipaclient.install.client import configure_krb5_conf, purge_host_keytab
-import ipaclient.ntpconf
-from ipaclient.ipachangeconf import IPAChangeConf
 from ipaserver.install import (
     bindinstance, ca, certs, dns, dsinstance, httpinstance,
     installutils, kra, krbinstance, memcacheinstance,
@@ -541,12 +541,12 @@ def common_check(no_ntp):
 
     if not no_ntp:
         try:
-            ipaclient.ntpconf.check_timedate_services()
-        except ipaclient.ntpconf.NTPConflictingService as e:
+            ipaclient.install.ntpconf.check_timedate_services()
+        except ipaclient.install.ntpconf.NTPConflictingService as e:
             print("WARNING: conflicting time&date synchronization service "
                   "'{svc}' will\nbe disabled in favor of ntpd\n"
                   .format(svc=e.conflicting_service))
-        except ipaclient.ntpconf.NTPConfigurationError:
+        except ipaclient.install.ntpconf.NTPConfigurationError:
             pass
 
 
@@ -1304,7 +1304,7 @@ def install(installer):
 
     # Configure ntpd
     if not options.no_ntp:
-        ipaclient.ntpconf.force_ntpd(sstore)
+        ipaclient.install.ntpconf.force_ntpd(sstore)
         ntp = ntpinstance.NTPInstance()
         ntp.create_instance()
 

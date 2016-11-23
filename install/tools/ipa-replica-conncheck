@@ -20,13 +20,13 @@
 
 from __future__ import print_function
 
+import ipaclient.install.ipachangeconf
 from ipapython.config import IPAOptionParser
 from ipapython.dn import DN
 from ipapython import version
 from ipapython import ipautil, certdb
 from ipalib import api, errors, x509
 from ipaserver.install import installutils
-import ipaclient.ipachangeconf
 # pylint: disable=deprecated-module
 from optparse import OptionGroup, OptionValueError
 # pylint: enable=deprecated-module
@@ -238,7 +238,7 @@ def sigterm_handler(signum, frame):
 
 def configure_krb5_conf(realm, kdc, filename):
 
-    krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+    krbconf = ipaclient.install.ipachangeconf.IPAChangeConf("IPA Installer")
     krbconf.setOptionAssignment((" = ", " "))
     krbconf.setSectionNameDelimiters(("[","]"))
     krbconf.setSubSectionDelimiters(("{","}"))
