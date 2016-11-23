@@ -29,9 +29,10 @@ import itertools
 from six.moves.configparser import SafeConfigParser
 # pylint: enable=import-error
 
+from ipaclient.install.client import update_ipa_nssdb
 from ipalib import api, errors
 from ipalib.constants import FQDN
-from ipapython import version, ipautil, certdb
+from ipapython import version, ipautil
 from ipapython.ipautil import run, user_input
 from ipapython import admintool
 from ipapython.dn import DN
@@ -831,7 +832,7 @@ class Restore(admintool.AdminTool):
 
     def cert_restore(self):
         try:
-            certdb.update_ipa_nssdb()
+            update_ipa_nssdb()
         except RuntimeError as e:
             self.log.error("%s", e)
 
