@@ -307,7 +307,7 @@ class _RunResult(collections.namedtuple('_RunResult',
 
 def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         capture_output=False, skip_output=False, cwd=None,
-        runas=None, timeout=None, suplementary_groups=[],
+        runas=None, suplementary_groups=[],
         capture_error=False, encoding=None, redirect_output=False):
     """
     Execute an external command.
@@ -336,8 +336,6 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
     :param cwd: Current working directory
     :param runas: Name of a user that the command should be run as. The spawned
         process will have both real and effective UID and GID set.
-    :param timeout: Timeout if the command hasn't returned within the specified
-        number of seconds.
     :param suplementary_groups: List of group names that will be used as
         suplementary groups for subporcess.
         The option runas must be specified together with this option.
@@ -413,11 +411,6 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
     if six.PY3 and isinstance(stdin, str):
         stdin = stdin.encode(encoding)
 
-    if timeout:
-        # If a timeout was provided, use the timeout command
-        # to execute the requested command.
-        args[0:0] = [paths.BIN_TIMEOUT, str(timeout)]
-
     arg_string = nolog_replace(' '.join(_log_arg(a) for a in args), nolog)
     root_logger.debug('Starting external process')
     root_logger.debug('args=%s' % arg_string)
@@ -457,9 +450,6 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
     finally:
         if skip_output:
             p_out.close()   # pylint: disable=E1103
-
-    if timeout and p.returncode == 124:
-        root_logger.debug('Process did not complete before timeout')
 
     root_logger.debug('Process finished, return code=%s', p.returncode)
 

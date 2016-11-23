@@ -150,19 +150,22 @@ def synconce_ntp(server_fqdn, debug=False):
     if not os.path.exists(ntpd):
         return False
 
+    # The ntpd command will never exit if it is unable to reach the
+    # server, so timeout after 15 seconds.
+    timeout = 15
+
     tmp_ntp_conf = ipautil.write_tmp_file('server %s' % server_fqdn)
-    args = [ntpd, '-qgc', tmp_ntp_conf.name]
+    args = [paths.BIN_TIMEOUT, str(timeout), ntpd, '-qgc', tmp_ntp_conf.name]
     if debug:
         args.append('-d')
     try:
-        # The ntpd command will never exit if it is unable to reach the
-        # server, so timeout after 15 seconds.
-        timeout = 15
         root_logger.info('Attempting to sync time using ntpd.  '
                          'Will timeout after %d seconds' % timeout)
-        ipautil.run(args, timeout=timeout)
+        ipautil.run(args)
         return True
-    except ipautil.CalledProcessError:
+    except ipautil.CalledProcessError as e:
+        if e.returncode == 124:
+            root_logger.debug('Process did not complete before timeout')
         return False
 
 
