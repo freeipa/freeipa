@@ -32,6 +32,8 @@ import traceback
 import polib
 from collections import namedtuple
 
+import six
+
 '''
 We test our translations by taking the original untranslated string
 (e.g. msgid) and prepend a prefix character and then append a suffix
@@ -610,8 +612,14 @@ def test_translations(po_file, lang, domain, locale_dir):
 
     t = gettext.translation(domain, locale_dir)
 
-    get_msgstr = t.ugettext
-    get_msgstr_plural = t.ungettext
+    if six.PY2:
+        # pylint: disable=no-member
+        get_msgstr = t.ugettext
+        get_msgstr_plural = t.ungettext
+        # pylint: enable=no-member
+    else:
+        get_msgstr = t.gettext
+        get_msgstr_plural = t.ngettext
 
     return po_file_iterate(po_file, get_msgstr, get_msgstr_plural)
 

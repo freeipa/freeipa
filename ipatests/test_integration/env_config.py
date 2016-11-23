@@ -114,8 +114,8 @@ def config_from_env(env):
         try:
             import yaml
         except ImportError as e:
-            raise ImportError("%s, please install PyYAML package to fix it" %
-                              e.message)
+            raise ImportError(
+                "%s, please install PyYAML package to fix it" % e)
         with open(env['IPATEST_YAML_CONFIG']) as file:
             confdict = yaml.safe_load(file)
             return Config.from_dict(confdict)

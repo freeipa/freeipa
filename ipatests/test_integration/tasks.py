@@ -1032,7 +1032,8 @@ def install_topo(topo, master, replicas, clients, domain_level=None,
 
 def install_clients(servers, clients):
     """Install IPA clients, distributing them among the given servers"""
-    for server, client in itertools.izip(itertools.cycle(servers), clients):
+    izip = getattr(itertools, 'izip', zip)
+    for server, client in izip(itertools.cycle(servers), clients):
         log.info('Installing client %s on %s' % (server, client))
         install_client(server, client)
 

@@ -354,7 +354,7 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
                 try:
                     targetdn = DN(target.replace('ldap:///',''))
                 except ValueError as e:
-                    raise errors.ValidationError(name='subtree', error=_("invalid DN (%s)") % e.message)
+                    raise errors.ValidationError(name='subtree', error=_("invalid DN (%s)") % e)
                 if targetdn.endswith(DN(api.env.container_group, api.env.basedn)):
                     kw['targetgroup'] = targetdn[0]['cn']
                 else:

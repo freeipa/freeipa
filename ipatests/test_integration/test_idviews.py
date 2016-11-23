@@ -68,7 +68,7 @@ class TestCertsInIDOverrides(IntegrationTest):
         # Initialize NSS database
         tasks.run_certutil(master, ["-N", "-f", cls.pwname], cls.reqdir)
         # Now generate self-signed certs for a windows user
-        stdin_text = string.digits+string.letters[2:] + '\n'
+        stdin_text = string.digits+string.ascii_letters[2:] + '\n'
         tasks.run_certutil(master, ['-S', '-s',
                                     "cn=%s,dc=ad,dc=test" % cls.adcert1, '-n',
                                     cls.adcert1, '-x', '-t', 'CT,C,C', '-v',

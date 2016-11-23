@@ -132,7 +132,7 @@ def install_check(standalone, api, replica, options, hostname):
             if options.force or options.allow_zone_overlap:
                 root_logger.warning("%s Please make sure that the domain is "
                                     "properly delegated to this IPA server.",
-                                    e.message)
+                                    e)
             else:
                 raise e
 
@@ -141,7 +141,7 @@ def install_check(standalone, api, replica, options, hostname):
             dnsutil.check_zone_overlap(reverse_zone)
         except ValueError as e:
             if options.force or options.allow_zone_overlap:
-                root_logger.warning(e.message)
+                root_logger.warning(six.text_type(e))
             else:
                 raise e
 

@@ -27,7 +27,10 @@ import contextlib
 import collections
 import os
 import pwd
-from urlparse import urlparse
+
+# pylint: disable=import-error
+from six.moves.urllib.parse import urlparse
+# pylint: enable=import-error
 
 import ldap
 import ldap.sasl
