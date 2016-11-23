@@ -11,10 +11,10 @@ import signal
 import time
 
 from ipalib import api
+from ipalib.install.kinit import kinit_keytab
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython import ipaldap
-from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipaserver.dnssec.keysyncer import KeySyncer
 
@@ -65,7 +65,7 @@ PRINCIPAL = str('%s/%s' % (DAEMONNAME, api.env.host))
 log.debug('Kerberos principal: %s', PRINCIPAL)
 ccache_filename = os.path.join(WORKDIR, 'ipa-dnskeysyncd.ccache')
 try:
-    ipautil.kinit_keytab(PRINCIPAL, KEYTAB_FB, ccache_filename, attempts=5)
+    kinit_keytab(PRINCIPAL, KEYTAB_FB, ccache_filename, attempts=5)
 except Exception as ex:
     log.critical("Kerberos authentication failed: %s", ex)
     # signal failure and let init system to restart the daemon

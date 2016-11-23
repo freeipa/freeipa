@@ -29,6 +29,7 @@ import traceback
 
 from ipapython import ipautil
 from ipalib import api, errors, x509, certstore
+from ipalib.install.kinit import kinit_keytab
 from ipaserver.install import certs, cainstance, installutils
 from ipaserver.plugins.ldap2 import ldap2
 from ipaplatform import services
@@ -72,7 +73,7 @@ def _main():
     try:
         principal = str('host/%s@%s' % (api.env.host, api.env.realm))
         ccache_filename = os.path.join(tmpdir, 'ccache')
-        ipautil.kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_filename)
+        kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_filename)
         os.environ['KRB5CCNAME'] = ccache_filename
 
         ca = cainstance.CAInstance(host_name=api.env.host)

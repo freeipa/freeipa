@@ -43,6 +43,7 @@ from six.moves.xmlrpc_client import Fault
 from ipalib import plugable, errors
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib.frontend import Local
+from ipalib.install.kinit import kinit_keytab, kinit_password
 from ipalib.backend import Executioner
 from ipalib.errors import (PublicError, InternalError, JSONError,
     CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError,
@@ -1006,7 +1007,7 @@ class login_password(Backend, KerberosSession, HTTP_Status):
                    armor_principal, keytab, armor_path)
 
         try:
-            ipautil.kinit_keytab(armor_principal, paths.IPA_KEYTAB, armor_path)
+            kinit_keytab(armor_principal, paths.IPA_KEYTAB, armor_path)
         except gssapi.exceptions.GSSError as e:
             raise CCacheError(message=unicode(e))
 
@@ -1014,8 +1015,8 @@ class login_password(Backend, KerberosSession, HTTP_Status):
         principal = krb5_format_principal_name(user, realm)
 
         try:
-            ipautil.kinit_password(principal, password, ccache_name,
-                                   armor_ccache_name=armor_path)
+            kinit_password(principal, password, ccache_name,
+                           armor_ccache_name=armor_path)
 
             self.debug('Cleanup the armor ccache')
             ipautil.run(

@@ -32,9 +32,9 @@ import sqlite3
 import traceback
 
 import ipalib
+from ipalib.install.kinit import kinit_keytab
 from ipapython.dn import DN
 from ipapython import ipaldap
-from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipaserver.dnssec.abshsm import sync_pkcs11_metadata, wrappingmech_name2id
 from ipaserver.dnssec.ldapkeydb import LdapKeyDB
@@ -623,8 +623,8 @@ log.debug('Kerberos principal: %s', PRINCIPAL)
 ccache_name = paths.IPA_ODS_EXPORTER_CCACHE
 
 try:
-    ipautil.kinit_keytab(PRINCIPAL, paths.IPA_ODS_EXPORTER_KEYTAB, ccache_name,
-                         attempts=5)
+    kinit_keytab(PRINCIPAL, paths.IPA_ODS_EXPORTER_KEYTAB, ccache_name,
+                 attempts=5)
 except GSSError as e:
     log.critical('Kerberos authentication failed: %s', e)
     sys.exit(1)

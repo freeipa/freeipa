@@ -45,6 +45,7 @@ from ipalib import (
 from ipalib.constants import CACERT
 from ipalib.install import certmonger, service, sysrestore
 from ipalib.install import hostname as hostname_
+from ipalib.install.kinit import kinit_keytab, kinit_password
 from ipalib.install.service import enroll_only, prepare_only
 from ipalib.rpc import delete_persistent_client_session_data
 from ipalib.util import (
@@ -2497,8 +2498,8 @@ def _install(options):
                             stdin = sys.stdin.readline()
 
                 try:
-                    ipautil.kinit_password(principal, stdin, ccache_name,
-                                           config=krb_name)
+                    kinit_password(principal, stdin, ccache_name,
+                                   config=krb_name)
                 except RuntimeError as e:
                     print_port_conf_info()
                     raise ScriptError(
@@ -2508,10 +2509,11 @@ def _install(options):
                 join_args.append("-f")
                 if os.path.exists(options.keytab):
                     try:
-                        ipautil.kinit_keytab(host_principal, options.keytab,
-                                             ccache_name,
-                                             config=krb_name,
-                                             attempts=options.kinit_attempts)
+                        kinit_keytab(host_principal,
+                                     options.keytab,
+                                     ccache_name,
+                                     config=krb_name,
+                                     attempts=options.kinit_attempts)
                     except gssapi.exceptions.GSSError as e:
                         print_port_conf_info()
                         raise ScriptError(
@@ -2592,10 +2594,9 @@ def _install(options):
             # Other KDCs might not have replicated the principal yet.
             # Once we have the TGT, it's usable on any server.
             try:
-                ipautil.kinit_keytab(host_principal, paths.KRB5_KEYTAB,
-                                     CCACHE_FILE,
-                                     config=krb_name,
-                                     attempts=options.kinit_attempts)
+                kinit_keytab(host_principal, paths.KRB5_KEYTAB, CCACHE_FILE,
+                             config=krb_name,
+                             attempts=options.kinit_attempts)
                 env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = CCACHE_FILE
             except gssapi.exceptions.GSSError as e:
                 print_port_conf_info()
@@ -2646,9 +2647,8 @@ def _install(options):
             # If on master assume kerberos is already configured properly.
             # Get the host TGT.
             try:
-                ipautil.kinit_keytab(host_principal, paths.KRB5_KEYTAB,
-                                     CCACHE_FILE,
-                                     attempts=options.kinit_attempts)
+                kinit_keytab(host_principal, paths.KRB5_KEYTAB, CCACHE_FILE,
+                             attempts=options.kinit_attempts)
                 os.environ['KRB5CCNAME'] = CCACHE_FILE
             except gssapi.exceptions.GSSError as e:
                 root_logger.error("Failed to obtain host TGT: %s" % e)

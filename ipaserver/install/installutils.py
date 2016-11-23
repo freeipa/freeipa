@@ -45,6 +45,7 @@ from six.moves.configparser import SafeConfigParser, NoOptionError
 # pylint: enable=import-error
 
 from ipalib.install import sysrestore
+from ipalib.install.kinit import kinit_password
 import ipaplatform
 from ipapython import ipautil, admintool, version
 from ipapython.admintool import ScriptError
@@ -1204,7 +1205,7 @@ def check_creds(options, realm_name):
             options.admin_password = stdin
 
         try:
-            ipautil.kinit_password(principal, stdin, ccache_name)
+            kinit_password(principal, stdin, ccache_name)
         except RuntimeError as e:
             root_logger.error("Kerberos authentication failed: %s" % e)
             raise ScriptError("Invalid credentials: %s" % e)

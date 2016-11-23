@@ -18,6 +18,7 @@ from pkg_resources import parse_version
 import six
 
 from ipalib.install import sysrestore
+from ipalib.install.kinit import kinit_keytab
 from ipapython import ipaldap, ipautil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
@@ -816,9 +817,9 @@ def install_check(installer):
 
         enroll_dl0_replica(installer, fstore, remote_api)
         ccache = os.environ['KRB5CCNAME']
-        ipautil.kinit_keytab('host/{env.host}@{env.realm}'.format(env=api.env),
-                             paths.KRB5_KEYTAB,
-                             ccache)
+        kinit_keytab('host/{env.host}@{env.realm}'.format(env=api.env),
+                     paths.KRB5_KEYTAB,
+                     ccache)
 
     except errors.ACIError:
         raise ScriptError("\nThe password provided is incorrect for LDAP server "
@@ -1042,9 +1043,9 @@ def promote_check(installer):
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
 
     ccache = os.environ['KRB5CCNAME']
-    ipautil.kinit_keytab('host/{env.host}@{env.realm}'.format(env=api.env),
-                         paths.KRB5_KEYTAB,
-                         ccache)
+    kinit_keytab('host/{env.host}@{env.realm}'.format(env=api.env),
+                 paths.KRB5_KEYTAB,
+                 ccache)
 
     cafile = paths.IPA_CA_CRT
     if not ipautil.file_exists(cafile):

@@ -42,6 +42,7 @@ from six.moves.urllib.parse import urlsplit
 from optparse import OptionParser  # pylint: disable=deprecated-module
 from ipalib import api, errors
 from ipalib.install import sysrestore
+from ipalib.install.kinit import kinit_keytab
 from ipapython import ipautil
 from ipaclient import ipadiscovery
 from ipaclient import ipachangeconf
@@ -443,7 +444,7 @@ def main():
     try:
         try:
             host_princ = str('host/%s@%s' % (api.env.host, api.env.realm))
-            ipautil.kinit_keytab(host_princ, paths.KRB5_KEYTAB, ccache_name)
+            kinit_keytab(host_princ, paths.KRB5_KEYTAB, ccache_name)
             os.environ['KRB5CCNAME'] = ccache_name
         except gssapi.exceptions.GSSError as e:
             sys.exit("Failed to obtain host TGT: %s" % e)
