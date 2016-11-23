@@ -42,6 +42,7 @@ if __name__ == '__main__':
         install_requires=[
             "cffi",
             # "ipalib",  # circular dependency
+            "ipapython",
             "pyasn1",
             "python-nss",
             "six",

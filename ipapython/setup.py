@@ -43,7 +43,6 @@ if __name__ == '__main__':
             "dnspython",
             "gssapi",
             "jwcrypto",
-            "ipaplatform",
             # "ipalib",  # circular dependency
             "pyldap",
             "netaddr",

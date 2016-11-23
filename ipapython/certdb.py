@@ -26,11 +26,20 @@ from cryptography.hazmat.primitives import serialization
 from nss import nss
 from nss.error import NSPRError
 
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
 from ipalib import x509
+
+try:
+    from ipaplatform.paths import paths
+    CERTUTIL = paths.CERTUTIL
+    PK12UTIL = paths.PK12UTIL
+    OPENSSL = paths.OPENSSL
+except ImportError:
+    CERTUTIL = '/usr/bin/certutil'
+    PK12UTIL = '/usr/bin/pk12util'
+    OPENSSL = '/usr/bin/openssl'
 
 CA_NICKNAME_FMT = "%s IPA CA"
 
@@ -91,7 +100,7 @@ class NSSDatabase(object):
         self.close()
 
     def run_certutil(self, args, stdin=None, **kwargs):
-        new_args = [paths.CERTUTIL, "-d", self.secdir]
+        new_args = [CERTUTIL, "-d", self.secdir]
         new_args = new_args + args
         return ipautil.run(new_args, stdin, **kwargs)
 
@@ -152,7 +161,7 @@ class NSSDatabase(object):
 
     def import_pkcs12(self, pkcs12_filename, db_password_filename,
                       pkcs12_passwd=None):
-        args = [paths.PK12UTIL, "-d", self.secdir,
+        args = [PK12UTIL, "-d", self.secdir,
                 "-i", pkcs12_filename,
                 "-k", db_password_filename, '-v']
         pkcs12_password_file = None
@@ -229,7 +238,7 @@ class NSSDatabase(object):
 
                     if label in ('PKCS7', 'PKCS #7 SIGNED DATA', 'CERTIFICATE'):
                         args = [
-                            paths.OPENSSL, 'pkcs7',
+                            OPENSSL, 'pkcs7',
                             '-print_certs',
                         ]
                         try:
@@ -262,7 +271,7 @@ class NSSDatabase(object):
                                 (key_file, filename))
 
                         args = [
-                            paths.OPENSSL, 'pkcs8',
+                            OPENSSL, 'pkcs8',
                             '-topk8',
                             '-passout', 'file:' + db_password_filename,
                         ]
@@ -349,7 +358,7 @@ class NSSDatabase(object):
             out_password = ipautil.ipa_generate_password()
             out_pwdfile = ipautil.write_tmp_file(out_password)
             args = [
-                paths.OPENSSL, 'pkcs12',
+                OPENSSL, 'pkcs12',
                 '-export',
                 '-in', in_file.name,
                 '-out', out_file.name,
