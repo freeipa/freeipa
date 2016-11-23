@@ -17,8 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from ipalib.install import certstore
 from ipaserver.install import certs
-from ipalib import Registry, errors, certstore
+from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython import certdb
 from ipapython.dn import DN

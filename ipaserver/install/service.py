@@ -27,12 +27,12 @@ import tempfile
 
 import six
 
-from ipalib.install import sysrestore
+from ipalib.install import certstore, sysrestore
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython import kerberos
-from ipalib import api, errors, certstore
+from ipalib import api, errors
 from ipaplatform import services
 from ipaplatform.paths import paths
 

@@ -31,7 +31,7 @@ import fnmatch
 
 import ldap
 
-from ipalib.install import certmonger
+from ipalib.install import certmonger, certstore
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil, ipaldap
 from ipapython import dogtag
@@ -43,7 +43,6 @@ from ipaserver.install import replication
 from ipaserver.install import sysupgrade
 from ipaserver.install import upgradeinstance
 from ipalib import api
-from ipalib import certstore
 from ipalib import errors
 from ipalib import constants
 from ipaplatform.constants import constants as platformconstants

@@ -25,13 +25,13 @@ import shutil
 from six.moves.urllib.parse import urlsplit
 # pylint: enable=import-error
 
-from ipalib.install import certmonger, sysrestore
+from ipalib.install import certmonger, certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab
 from ipapython import admintool, certdb, ipaldap, ipautil
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipalib import api, errors, x509, certstore
+from ipalib import api, errors, x509
 from ipalib.constants import IPA_CA_NICKNAME, RENEWAL_CA_NAME
 
 

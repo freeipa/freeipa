@@ -36,14 +36,9 @@ from ipaclient import (
     ntpconf,
 )
 from ipaclient.ipachangeconf import IPAChangeConf
-from ipalib import (
-    api,
-    certstore,
-    errors,
-    x509,
-)
+from ipalib import api, errors, x509
 from ipalib.constants import CACERT
-from ipalib.install import certmonger, service, sysrestore
+from ipalib.install import certmonger, certstore, service, sysrestore
 from ipalib.install import hostname as hostname_
 from ipalib.install.kinit import kinit_keytab, kinit_password
 from ipalib.install.service import enroll_only, prepare_only
