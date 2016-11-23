@@ -18,6 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ipaclient.ipa_certupdate import CertUpdate
+from ipaclient.install.ipa_certupdate import CertUpdate
 
 CertUpdate.run_cli()

@@ -30,7 +30,7 @@ from ipalib.util import (
     network_ip_address_warning,
     broadcast_ip_address_warning,
 )
-import ipaclient.ntpconf
+import ipaclient.install.ntpconf
 from ipaserver.install import (
     bindinstance, ca, cainstance, certs, dns, dsinstance,
     httpinstance, installutils, kra, krbinstance, memcacheinstance,
@@ -420,13 +420,13 @@ def install_check(installer):
 
     if not options.no_ntp:
         try:
-            ipaclient.ntpconf.check_timedate_services()
-        except ipaclient.ntpconf.NTPConflictingService as e:
+            ipaclient.install.ntpconf.check_timedate_services()
+        except ipaclient.install.ntpconf.NTPConflictingService as e:
             print(("WARNING: conflicting time&date synchronization service '%s'"
                   " will be disabled" % e.conflicting_service))
             print("in favor of ntpd")
             print("")
-        except ipaclient.ntpconf.NTPConfigurationError:
+        except ipaclient.install.ntpconf.NTPConfigurationError:
             pass
 
     # Check to see if httpd is already configured to listen on 443
@@ -726,7 +726,7 @@ def install(installer):
     if not options.external_cert_files:
         # Configure ntpd
         if not options.no_ntp:
-            ipaclient.ntpconf.force_ntpd(sstore)
+            ipaclient.install.ntpconf.force_ntpd(sstore)
             ntp = ntpinstance.NTPInstance(fstore)
             if not ntp.is_configured():
                 ntp.create_instance()
@@ -1077,7 +1077,7 @@ def uninstall(installer):
 
     sstore._load()
 
-    ipaclient.ntpconf.restore_forced_ntpd(sstore)
+    ipaclient.install.ntpconf.restore_forced_ntpd(sstore)
 
     # Clean up group_exists (unused since IPA 2.2, not being set since 4.1)
     sstore.restore_state("install", "group_exists")

@@ -42,7 +42,7 @@ from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger
 import ipapython.errors
 
-import ipaclient.ipachangeconf
+import ipaclient.install.ipachangeconf
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
@@ -614,7 +614,8 @@ class ADTRUSTInstance(service.Service):
         if not self.fqdn or not self.realm:
             self.print_msg("Cannot modify /etc/krb5.conf")
 
-        krbconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
+        krbconf = (
+            ipaclient.install.ipachangeconf.IPAChangeConf("IPA Installer"))
         krbconf.setOptionAssignment((" = ", " "))
         krbconf.setSectionNameDelimiters(("[", "]"))
         krbconf.setSubSectionDelimiters(("{", "}"))
