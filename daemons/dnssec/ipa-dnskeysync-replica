@@ -15,10 +15,10 @@ import os
 import sys
 
 import ipalib
+from ipalib.install.kinit import kinit_keytab
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython import ipaldap
-from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipaserver.dnssec.abshsm import (sync_pkcs11_metadata,
                                      ldap2p11helper_api_params,
@@ -134,8 +134,8 @@ log.debug('Kerberos principal: %s', PRINCIPAL)
 ccache_filename = os.path.join(WORKDIR, 'ipa-dnskeysync-replica.ccache')
 
 try:
-    ipautil.kinit_keytab(PRINCIPAL, paths.IPA_DNSKEYSYNCD_KEYTAB,
-                         ccache_filename, attempts=5)
+    kinit_keytab(PRINCIPAL, paths.IPA_DNSKEYSYNCD_KEYTAB, ccache_filename,
+                 attempts=5)
 except GSSError as e:
     log.critical('Kerberos authentication failed: %s', e)
     sys.exit(1)

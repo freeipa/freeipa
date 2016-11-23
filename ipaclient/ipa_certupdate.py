@@ -26,6 +26,7 @@ from six.moves.urllib.parse import urlsplit
 # pylint: enable=import-error
 
 from ipalib.install import certmonger, sysrestore
+from ipalib.install.kinit import kinit_keytab
 from ipapython import admintool, certdb, ipaldap, ipautil
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -63,7 +64,7 @@ class CertUpdate(admintool.AdminTool):
         ccache_name = os.path.join(tmpdir, 'ccache')
         try:
             principal = str('host/%s@%s' % (api.env.host, api.env.realm))
-            ipautil.kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_name)
+            kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_name)
             os.environ['KRB5CCNAME'] = ccache_name
 
             api.Backend.rpcclient.connect()

@@ -7,7 +7,6 @@ from ipalib import api
 from ipapython.dn import DN
 from ipalib.config import Env
 from ipalib.constants import DEFAULT_CONFIG
-from ipapython.ipautil import kinit_keytab
 from ipaplatform.constants import constants
 import sys
 import os
@@ -15,6 +14,8 @@ import pwd
 
 import six
 import gssapi
+
+from ipalib.install.kinit import kinit_keytab
 
 if six.PY3:
     unicode = str

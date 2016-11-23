@@ -27,7 +27,7 @@ import tempfile
 import shutil
 import traceback
 
-from ipapython import ipautil
+from ipalib.install.kinit import kinit_keytab
 from ipalib import api
 from ipaserver.install import certs, cainstance, krainstance
 from ipaplatform.paths import paths
@@ -44,8 +44,7 @@ def _main():
     try:
         principal = str('host/%s@%s' % (api.env.host, api.env.realm))
         ccache_filename = os.path.join(tmpdir, 'ccache')
-        ipautil.kinit_keytab(principal, paths.KRB5_KEYTAB,
-                             ccache_filename)
+        kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_filename)
         os.environ['KRB5CCNAME'] = ccache_filename
 
         ca = cainstance.CAInstance(host_name=api.env.host)

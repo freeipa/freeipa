@@ -22,6 +22,8 @@ import sys
 import os
 import shutil
 import tempfile
+
+from ipalib.install.kinit import kinit_keytab
 from ipapython import ipautil
 
 from ipaserver.install import installutils
@@ -227,7 +229,7 @@ def promote(safe_options, options, filename):
     with ipautil.private_ccache():
         ccache = os.environ['KRB5CCNAME']
 
-        ipautil.kinit_keytab(
+        kinit_keytab(
             'host/{env.host}@{env.realm}'.format(env=api.env),
             paths.KRB5_KEYTAB,
             ccache)
