@@ -7,13 +7,18 @@ else
 VERBOSITY="--quiet"
 endif !VERBOSE_MAKE
 
-all-local:
+# hack to handle back-in-the-hierarchy depedency on ipasetup.py
+.PHONY: $(top_builddir)/ipasetup.py
+$(top_builddir)/ipasetup.py:
+	(cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) ipasetup.py)
+
+all-local: $(top_builddir)/ipasetup.py
 	cd $(srcdir); $(PYTHON) setup.py \
 		$(VERBOSITY) \
 		build \
 		--build-base "$(abs_builddir)/build"
 
-install-exec-local:
+install-exec-local: $(top_builddir)/ipasetup.py
 	$(PYTHON) $(srcdir)/setup.py \
 		$(VERBOSITY) \
 		install \
@@ -26,7 +31,7 @@ uninstall-local:
 	cat "$(DESTDIR)$(pkgpythondir)/install_files.txt" | xargs rm -rf
 	rm -rf "$(DESTDIR)$(pkgpythondir)"
 
-clean-local:
+clean-local: $(top_builddir)/ipasetup.py
 	$(PYTHON) "$(srcdir)/setup.py" clean --all
 	rm -rf "$(srcdir)/build" "$(srcdir)/dist" "$(srcdir)/MANIFEST"
 	find "$(srcdir)" \
@@ -36,7 +41,7 @@ clean-local:
 
 # take list of all Python source files and copy them into distdir
 # SOURCES.txt does not contain directories so we need to create those
-dist-hook:
+dist-hook: $(top_builddir)/ipasetup.py
 	$(PYTHON) "$(srcdir)/setup.py" egg_info
 	PYTHON_SOURCES=$$(cat "$(srcdir)/$(pkgname).egg-info/SOURCES.txt") || exit $$?;	\
 	for FILEN in $${PYTHON_SOURCES}; 						\
@@ -47,6 +52,6 @@ dist-hook:
 
 WHEELDISTDIR = $(top_builddir)/dist/wheels
 .PHONY: bdist_wheel
-bdist_wheel:
+bdist_wheel: $(top_builddir)/ipasetup.py
 	rm -rf $(WHEELDISTDIR)/$(pkgname)*.whl
 	$(PYTHON) "$(srcdir)/setup.py" bdist_wheel --dist-dir=$(WHEELDISTDIR)

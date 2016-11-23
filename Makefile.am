@@ -21,6 +21,11 @@ dist_noinst_SCRIPTS = ignore_import_errors.py \
 		      make-test \
 		      pylint_plugins.py
 
+ipasetup.py: ipasetup.py.in $(CONFIG_STATUS)
+	$(AM_V_GEN)sed						\
+		-e 's|@VERSION[@]|$(VERSION)|g'			\
+		$< > $@
+
 EXTRA_DIST = .mailmap \
 	     ACI.txt \
 	     API.txt \
@@ -31,6 +36,7 @@ EXTRA_DIST = .mailmap \
 	     contrib \
 	     doc \
 	     freeipa.spec.in \
+	     ipasetup.py.in \
 	     pylintrc \
 	     pytest.ini
 
@@ -146,7 +152,7 @@ polint:
 $(top_builddir)/ipapython/version.py:
 	(cd $(top_builddir)/ipapython && make version.py)
 
-pylint: $(top_builddir)/ipapython/version.py
+pylint: $(top_builddir)/ipapython/version.py ipasetup.py
 	FILES=`find $(top_srcdir) \
 		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
 		-path './rpmbuild' -prune -o \
