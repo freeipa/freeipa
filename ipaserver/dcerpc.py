@@ -35,13 +35,18 @@ from ipalib.util import normalize_name
 
 import os
 import struct
+import random
+
+# TODO: Remove pylint disable when Python 3 bindings are available.
+# pylint: disable=import-error
 from samba import param
 from samba import credentials
 from samba.dcerpc import security, lsa, drsblobs, nbt, netlogon
 from samba.ndr import ndr_pack, ndr_print
 from samba import net
 import samba
-import random
+# pylint: enable=import-error
+
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
 from cryptography.hazmat.backends import default_backend
 import ldap as _ldap
