@@ -73,6 +73,14 @@ class CustodiaInstance(SimpleServiceInstance):
         if not sysupgrade.get_upgrade_state("custodia", "installed"):
             root_logger.info("Custodia service is being configured")
             self.create_instance()
+        else:
+            old_config = open(self.config_file).read()
+            self.__config_file()
+            new_config = open(self.config_file).read()
+            if new_config != old_config:
+                root_logger.info("Restarting Custodia")
+                self.restart()
+
         mode = os.stat(self.server_keys).st_mode
         if stat.S_IMODE(mode) != 0o600:
             root_logger.info("Secure server.keys mode")

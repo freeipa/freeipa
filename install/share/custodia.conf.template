@@ -19,7 +19,7 @@ store = ipa
 server_keys = $IPA_CUSTODIA_CONF_DIR/server.keys
 
 [store:ipa]
-handler = ipapython.secrets.store.iSecStore
+handler = ipapython.secrets.store.IPASecStore
 ldap_uri = $LDAP_URI
 
 [/keys]
