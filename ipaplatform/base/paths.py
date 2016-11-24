@@ -33,7 +33,6 @@ class BasePathNamespace(object):
     SYSTEMCTL = "/bin/systemctl"
     TAR = "/bin/tar"
     BIN_TRUE = "/bin/true"
-    DEV_STDIN = "/dev/stdin"
     AUTOFS_LDAP_AUTH_CONF = "/etc/autofs_ldap_auth.conf"
     ETC_DIRSRV = "/etc/dirsrv"
     DS_KEYTAB = "/etc/dirsrv/ds.keytab"
