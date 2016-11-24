@@ -20,7 +20,6 @@ from ipalib.errors import SchemaUpToDate
 from ipalib.frontend import Object
 from ipalib.output import Output
 from ipalib.parameters import DefaultFrom, Flag, Password, Str
-from ipaplatform.paths import paths
 from ipapython.ipautil import fsdecode
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
@@ -30,6 +29,17 @@ FORMAT = '1'
 
 if six.PY3:
     unicode = str
+
+USER_CACHE_PATH = (
+    os.environ.get('XDG_CACHE_HOME') or
+    os.path.join(
+        os.environ.get(
+            'HOME',
+            os.path.expanduser('~')
+        ),
+        '.cache'
+    )
+)
 
 _TYPES = {
     'DN': DN,
@@ -357,7 +367,7 @@ class Schema(object):
 
     """
     namespaces = {'classes', 'commands', 'topics'}
-    _DIR = os.path.join(paths.USER_CACHE_PATH, 'ipa', 'schema', FORMAT)
+    _DIR = os.path.join(USER_CACHE_PATH, 'ipa', 'schema', FORMAT)
 
     def __init__(self, client, fingerprint=None):
         self._dict = {}
