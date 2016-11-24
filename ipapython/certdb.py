@@ -155,11 +155,12 @@ class NSSDatabase(object):
         args = [paths.PK12UTIL, "-d", self.secdir,
                 "-i", pkcs12_filename,
                 "-k", db_password_filename, '-v']
+        pkcs12_password_file = None
         if pkcs12_passwd is not None:
-            pkcs12_passwd = pkcs12_passwd + '\n'
-            args = args + ["-w", paths.DEV_STDIN]
+            pkcs12_password_file = ipautil.write_tmp_file(pkcs12_passwd)
+            args = args + ["-w", pkcs12_password_file.name]
         try:
-            ipautil.run(args, stdin=pkcs12_passwd)
+            ipautil.run(args)
         except ipautil.CalledProcessError as e:
             if e.returncode == 17:
                 raise RuntimeError("incorrect password for pkcs#12 file %s" %
@@ -169,6 +170,9 @@ class NSSDatabase(object):
             else:
                 raise RuntimeError("unknown error import pkcs#12 file %s" %
                     pkcs12_filename)
+        finally:
+            if pkcs12_password_file is not None:
+                pkcs12_password_file.close()
 
     def import_files(self, files, db_password_filename, import_keys=False,
                      key_password=None, key_nickname=None):
