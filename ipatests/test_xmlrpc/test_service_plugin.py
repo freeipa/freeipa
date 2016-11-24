@@ -270,6 +270,11 @@ class test_service(Declarative):
                     ipakrbrequirespreauth=True,
                     ipakrbokasdelegate=False,
                     ipakrboktoauthasdelegate=False,
+                    krbpwdpolicyreference=[DN(
+                        u'cn=Default Service Password Policy',
+                        api.env.container_service,
+                        api.env.basedn,
+                    )],
                 ),
             ),
         ),
@@ -334,6 +339,11 @@ class test_service(Declarative):
                         ipakrbrequirespreauth=True,
                         ipakrbokasdelegate=False,
                         ipakrboktoauthasdelegate=False,
+                        krbpwdpolicyreference=[DN(
+                            u'cn=Default Service Password Policy',
+                            api.env.container_service,
+                            api.env.basedn,
+                        )],
                     ),
                 ],
             ),

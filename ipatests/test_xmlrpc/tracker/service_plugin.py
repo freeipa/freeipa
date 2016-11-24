@@ -43,7 +43,7 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
     retrieve_all_keys = retrieve_keys | {
         u'ipaKrbPrincipalAlias', u'ipaUniqueID', u'krbExtraData',
         u'krbLastPwdChange', u'krbLoginFailedCount', u'memberof',
-        u'objectClass', u'ipakrbrequirespreauth',
+        u'objectClass', u'ipakrbrequirespreauth', u'krbpwdpolicyreference',
         u'ipakrbokasdelegate', u'ipakrboktoauthasdelegate'}
 
     create_keys = (retrieve_keys | {u'objectclass', u'ipauniqueid'}) - {
@@ -96,6 +96,11 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
             u'krbcanonicalname': [u'{0}'.format(self.name)],
             u'has_keytab': False,
             u'ipakrboktoauthasdelegate': False,
+            u'krbpwdpolicyreference': [DN(
+                u'cn=Default Service Password Policy',
+                self.api.env.container_service,
+                self.api.env.basedn,
+            )],
         }
 
         for key in self.options:
