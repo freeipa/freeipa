@@ -5,7 +5,7 @@
 %if 0%{?rhel}
 %global with_python3 0
 %else
-%global with_python3 0
+%global with_python3 1
 %endif
 
 # lint is not executed during rpmbuild
@@ -266,6 +266,37 @@ hosts, services), Authentication (SSO, 2FA), and Authorization
 features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 If you are installing an IPA server, you need to install this package.
+
+
+%if 0%{?with_python3}
+
+%package -n python3-ipaserver
+Summary: Python libraries used by IPA server
+Group: System Environment/Libraries
+BuildArch: noarch
+%{?python_provide:%python_provide python3-ipaserver}
+Requires: %{name}-server-common = %{version}-%{release}
+Requires: %{name}-common = %{version}-%{release}
+Requires: python3-ipaclient = %{version}-%{release}
+Requires: python3-pyldap >= 2.4.15
+Requires: python3-lxml
+Requires: python3-gssapi >= 1.1.2
+Requires: python3-sssdconfig
+Requires: python3-pyasn1
+Requires: python3-dbus
+Requires: python3-dns >= 1.11.1
+Requires: python3-kdcproxy >= 0.3
+Requires: rpm-libs
+
+%description -n python3-ipaserver
+IPA is an integrated solution to provide centrally managed Identity (users,
+hosts, services), Authentication (SSO, 2FA), and Authorization
+(host access control, SELinux user roles, services). The solution provides
+features for further integration with Linux based clients (SUDO, automount)
+and integration with Active Directory based infrastructures (Trusts).
+If you are installing an IPA server, you need to install this package.
+
+%endif  # with_python3
 
 
 %package server-common
@@ -687,6 +718,11 @@ This package contains tests that verify IPA functionality under Python 3.
 
 %prep
 %setup -n freeipa-%{version} -q
+%if 0%{?with_python3}
+# Workaround: We want to build Python things twice. To be sure we do not mess
+# up something, do two separate builds in separate directories.
+cp -r %{_builddir}/freeipa-%{version} %{_builddir}/freeipa-%{version}-python3
+%endif # with_python3
 
 
 %build
@@ -694,10 +730,33 @@ This package contains tests that verify IPA functionality under Python 3.
 export JAVA_STACK_SIZE="8m"
 # PATH is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1005235
 export PATH=/usr/bin:/usr/sbin:$PATH
+export PYTHON=%{__python2}
+# Workaround: make sure all shebangs are pointing to Python 2
+# This should be solved properly using setuptools
+# and this hack should be removed.
+find \
+	! -name '*.pyc' -a \
+	! -name '*.pyo' -a \
+	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
+	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python2}|' {} \;
 %configure --with-vendor-suffix=-%{release}
 # -Onone is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1398405
 %make_build -Onone
 
+%if 0%{?with_python3}
+pushd %{_builddir}/freeipa-%{version}-python3
+export PYTHON=%{__python3}
+# Workaround: make sure all shebangs are pointing to Python 3
+# This should be solved properly using setuptools
+# and this hack should be removed.
+find \
+	! -name '*.pyc' -a \
+	! -name '*.pyo' -a \
+	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
+	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python3}|' {} \;
+%configure --with-vendor-suffix=-%{release}
+popd
+%endif # with_python3
 
 %check
 %if ! %{ONLY_CLIENT}
@@ -716,16 +775,23 @@ make %{?_smp_mflags} client-check VERBOSE=yes LIBDIR=%{_libdir}
 # All files and directories created by spec install should be marked as ghost.
 # (These are typically configuration files created by IPA installer.)
 # All other artifacts should be created by make install.
-%make_install
-# remove files which are useful only for make uninstall
-find %{buildroot} -wholename '*/site-packages/*/install_files.txt' -exec rm {} \;
-
-mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version}
-mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python2_version}
-mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{python2_version}
+#
+# Exception to this rule are test programs which where want to install
+# Python2/3 versions at the same time so we need to rename them. Yuck.
 
 %if 0%{?with_python3}
-(cd ipatests && %{__python3} setup.py install --root %{buildroot})
+# Python 3 installation needs to be done first. Subsequent Python 2 install
+# will overwrite /usr/bin/ipa and other scripts with variants using
+# python2 shebang.
+pushd %{_builddir}/freeipa-%{version}-python3
+(cd ipaclient && %make_install)
+(cd ipalib && %make_install)
+(cd ipaplatform && %make_install)
+(cd ipapython && %make_install)
+(cd ipaserver && %make_install)
+(cd ipatests && %make_install)
+popd
+
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python3_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python3_version}
 mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{python3_version}
@@ -734,24 +800,22 @@ ln -s %{_bindir}/ipa-test-config-%{python3_version} %{buildroot}%{_bindir}/ipa-t
 ln -s %{_bindir}/ipa-test-task-%{python3_version} %{buildroot}%{_bindir}/ipa-test-task-3
 %endif # with_python3
 
+# Python 2 installation
+%make_install
+mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version}
+mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python2_version}
+mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{python2_version}
 ln -s %{_bindir}/ipa-run-tests-%{python2_version} %{buildroot}%{_bindir}/ipa-run-tests-2
 ln -s %{_bindir}/ipa-test-config-%{python2_version} %{buildroot}%{_bindir}/ipa-test-config-2
 ln -s %{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-test-task-2
+# test framework defaults to Python 2
 ln -s %{_bindir}/ipa-run-tests-%{python2_version} %{buildroot}%{_bindir}/ipa-run-tests
 ln -s %{_bindir}/ipa-test-config-%{python2_version} %{buildroot}%{_bindir}/ipa-test-config
 ln -s %{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-test-task
 
-%if 0%{?with_python3}
-(cd ipalib && make PYTHON=%{__python3} IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} DESTDIR=%{buildroot} LIBDIR=%{_libdir} install)
-(cd ipapython && make PYTHON=%{__python3} IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} DESTDIR=%{buildroot} LIBDIR=%{_libdir} install)
-(cd ipaplatform && %{__python3} setup.py install --root %{buildroot})
-(cd ipaclient && %{__python3} setup.py install --root %{buildroot})
-%endif # with_python3
 
-# Switch shebang of /usr/bin/ipa
-# XXX: ipa cli is not stable enough for enabling py3 support, keep it in py2
-# in any case
-sed -i -e'1s/python\(3\|$\)/python2/' %{buildroot}%{_bindir}/ipa
+# remove files which are useful only for make uninstall
+find %{buildroot} -wholename '*/site-packages/*/install_files.txt' -exec rm {} \;
 
 %find_lang %{gettext_domain}
 
@@ -800,15 +864,6 @@ touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 
 %if ! %{ONLY_CLIENT}
 mkdir -p %{buildroot}%{_sysconfdir}/cron.d
-
-(cd %{buildroot}/%{python_sitelib}/ipaserver && find . -type f  | \
-    sed -e 's,\.py.*$,.*,g' | sort -u | \
-    sed -e 's,\./,%%{python_sitelib}/ipaserver/,g' ) >server-python.list
-
-(cd %{buildroot}/%{python_sitelib}/ipatests && find . -type f  | \
-    sed -e 's,\.py.*$,.*,g' | sort -u | \
-    sed -e 's,\./,%%{python_sitelib}/ipatests/,g' ) >tests-python.list
-
 %endif # ONLY_CLIENT
 
 
@@ -1062,20 +1117,24 @@ fi
 %{_mandir}/man1/ipa-winsync-migrate.1*
 
 
-%files -n python2-ipaserver -f server-python.list
+%files -n python2-ipaserver
 %defattr(-,root,root,-)
 %doc README Contributors.txt
 %license COPYING
-%{python_sitelib}/ipaserver-*.egg-info
-%dir %{python_sitelib}/ipaserver
-%dir %{python_sitelib}/ipaserver/dnssec
-%dir %{python_sitelib}/ipaserver/install
-%dir %{python_sitelib}/ipaserver/install/plugins
-%dir %{python_sitelib}/ipaserver/install/server
-%dir %{python_sitelib}/ipaserver/advise
-%dir %{python_sitelib}/ipaserver/advise/plugins
-%dir %{python_sitelib}/ipaserver/plugins
-%dir %{python_sitelib}/ipaserver/secrets
+%{python2_sitelib}/ipaserver
+%{python2_sitelib}/ipaserver-*.egg-info
+
+
+%if 0%{?with_python3}
+
+%files -n python3-ipaserver
+%defattr(-,root,root,-)
+%doc README Contributors.txt
+%license COPYING
+%{python3_sitelib}/ipaserver
+%{python3_sitelib}/ipaserver-*.egg-info
+
+%endif # with_python3
 
 
 %files server-common
@@ -1328,21 +1387,12 @@ fi
 
 %if ! %{ONLY_CLIENT}
 
-%files -n python2-ipatests -f tests-python.list
+%files -n python2-ipatests
 %defattr(-,root,root,-)
 %doc README Contributors.txt
 %license COPYING
-%dir %{python_sitelib}/ipatests
-%dir %{python_sitelib}/ipatests/test_cmdline
-%dir %{python_sitelib}/ipatests/test_install
-%dir %{python_sitelib}/ipatests/test_ipalib
-%dir %{python_sitelib}/ipatests/test_ipapython
-%dir %{python_sitelib}/ipatests/test_ipaserver
-%dir %{python_sitelib}/ipatests/test_ipaserver/test_install
-%dir %{python_sitelib}/ipatests/test_ipaserver/data
-%dir %{python_sitelib}/ipatests/test_pkcs10
-%dir %{python_sitelib}/ipatests/test_webui
-%dir %{python_sitelib}/ipatests/test_xmlrpc
+%{python_sitelib}/ipatests
+%{python_sitelib}/ipatests-*.egg-info
 %{_bindir}/ipa-run-tests
 %{_bindir}/ipa-test-config
 %{_bindir}/ipa-test-task
@@ -1352,7 +1402,6 @@ fi
 %{_bindir}/ipa-run-tests-%{python2_version}
 %{_bindir}/ipa-test-config-%{python2_version}
 %{_bindir}/ipa-test-task-%{python2_version}
-%{python_sitelib}/ipatests-*.egg-info
 %{_mandir}/man1/ipa-run-tests.1*
 %{_mandir}/man1/ipa-test-config.1*
 %{_mandir}/man1/ipa-test-task.1*
@@ -1363,15 +1412,14 @@ fi
 %defattr(-,root,root,-)
 %doc README Contributors.txt
 %license COPYING
-
-%{python3_sitelib}/ipatests/
+%{python3_sitelib}/ipatests
+%{python3_sitelib}/ipatests-*.egg-info
 %{_bindir}/ipa-run-tests-3
 %{_bindir}/ipa-test-config-3
 %{_bindir}/ipa-test-task-3
 %{_bindir}/ipa-run-tests-%{python3_version}
 %{_bindir}/ipa-test-config-%{python3_version}
 %{_bindir}/ipa-test-task-%{python3_version}
-%{python3_sitelib}/ipatests-*.egg-info
 
 %endif # with_python3
 
