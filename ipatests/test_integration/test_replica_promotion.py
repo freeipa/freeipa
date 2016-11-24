@@ -441,3 +441,45 @@ class TestWrongClientDomain(IntegrationTest):
                                      raiseonerr=False)
         assert(result1.returncode == 0), (
             'Failed to promote the client installed with the upcase domain name')
+
+
+class TestRenewalMaster(IntegrationTest):
+
+    topology = 'star'
+    num_replicas = 1
+
+    @classmethod
+    def uninstall(cls, mh):
+        super(TestRenewalMaster, cls).uninstall(mh)
+
+    def test_replica_not_marked_as_renewal_master(self):
+        """
+        https://fedorahosted.org/freeipa/ticket/5902
+        """
+        master = self.master
+        replica = self.replicas[0]
+        result = master.run_command(["ipa", "config-show"]).stdout_text
+        assert("IPA CA renewal master: %s" % master.hostname in result), (
+            "Master hostname not found among CA renewal masters"
+        )
+        assert("IPA CA renewal master: %s" % replica.hostname not in result), (
+            "Replica hostname found among CA renewal masters"
+        )
+
+    def test_manual_renewal_master_transfer(self):
+        replica = self.replicas[0]
+        replica.run_command(['ipa', 'config-mod',
+                             '--ca-renewal-master-server', replica.hostname])
+        result = self.master.run_command(["ipa", "config-show"]).stdout_text
+        assert("IPA CA renewal master: %s" % replica.hostname in result), (
+            "Replica hostname not found among CA renewal masters"
+        )
+
+    def test_automatic_renewal_master_transfer_ondelete(self):
+        # Test that after master uninstallation, replica overtakes the cert
+        # renewal master role
+        tasks.uninstall_master(self.replicas[0])
+        result = self.master.run_command(['ipa', 'config-show']).stdout_text
+        assert("IPA CA renewal master: %s" % self.master.hostname in result), (
+            "Master hostname not found among CA renewal masters"
+        )
