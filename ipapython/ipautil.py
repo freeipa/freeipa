@@ -413,7 +413,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
     if stdin:
         p_in = subprocess.PIPE
     if skip_output:
-        p_out = p_err = open(paths.DEV_NULL, 'w')
+        p_out = p_err = open(os.devnull, 'w')
     elif redirect_output:
         p_out = sys.stdout
         p_err = sys.stderr
