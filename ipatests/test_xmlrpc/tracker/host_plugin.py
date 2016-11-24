@@ -40,7 +40,8 @@ class HostTracker(KerberosAliasMixin, Tracker):
     retrieve_all_keys = retrieve_keys | {
         u'cn', u'ipakrbokasdelegate', u'ipakrbrequirespreauth', u'ipauniqueid',
         u'krbcanonicalname', u'managing_host', u'objectclass',
-        u'serverhostname', u'ipakrboktoauthasdelegate'}
+        u'serverhostname', u'ipakrboktoauthasdelegate',
+        u'krbpwdpolicyreference'}
     create_keys = retrieve_keys | {'objectclass', 'ipauniqueid',
                                    'randompassword'}
     update_keys = retrieve_keys - {'dn'}
@@ -121,6 +122,11 @@ class HostTracker(KerberosAliasMixin, Tracker):
             managing_host=[self.fqdn],
             serverhostname=[self.shortname],
             ipakrboktoauthasdelegate=False,
+            krbpwdpolicyreference=[DN(
+                u'cn=Default Host Password Policy',
+                self.api.env.container_host,
+                self.api.env.basedn,
+            )],
         )
         self.exists = True
 
