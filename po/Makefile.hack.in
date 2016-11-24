@@ -26,10 +26,10 @@ clean: mostlyclean
 test-gettext: $(DOMAIN).pot
 	$(IPA_TEST_I18N) --test-gettext
 
-validate-pot:
+validate-pot: $(DOMAIN).pot
 	$(IPA_TEST_I18N) --show-strings --validate-pot $(DOMAIN).pot
 
-validate-po:
+validate-po: $(DOMAIN).pot
 	$(IPA_TEST_I18N) --show-strings --validate-po $(POFILES)
 
 # forcefully re-generate .pot file and test it
