@@ -568,7 +568,7 @@ class automountkey(LDAPObject):
 
         return dn
 
-    def handle_not_found(self, *keys):
+    def handle_not_found(self, *keys, **kwargs):
         pkey = keys[-1]
         key = pkey.split(self.rdn_separator)[0]
         info = self.rdn_separator.join(pkey.split(self.rdn_separator)[1:])
