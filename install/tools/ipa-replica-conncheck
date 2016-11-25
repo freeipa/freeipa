@@ -63,7 +63,7 @@ class SshExec(object):
     def __call__(self, command, verbose=False):
         # Bail if ssh is not installed
         if self.cmd is None:
-            print("WARNING: ssh not installed, skipping ssh test")
+            root_logger.warning("WARNING: ssh not installed, skipping ssh test")
             return ('', '', 0)
 
         tmpf = tempfile.NamedTemporaryFile()
@@ -110,11 +110,6 @@ BASE_PORTS = [
                 CheckedPort(80, SOCK_STREAM, "HTTP Server: Unsecure port"),
                 CheckedPort(443, SOCK_STREAM, "HTTP Server: Secure port"),
              ]
-
-
-def print_info(msg):
-    if not QUIET:
-        print(msg)
 
 
 def parse_options():
@@ -210,10 +205,6 @@ def parse_options():
     if not options.hostname:
         options.hostname = socket.getfqdn()
 
-    if options.quiet:
-        global QUIET
-        QUIET = True
-
     return safe_options, options
 
 
@@ -223,7 +214,8 @@ def logging_setup(options):
     if os.getegid() == 0 and options.log_to_file:
         log_file = paths.IPAREPLICA_CONNCHECK_LOG
 
-    standard_logging_setup(log_file, debug=options.debug)
+    standard_logging_setup(log_file, verbose=(not options.quiet),
+                           debug=options.debug, console_format='%(message)s')
 
 
 def sigterm_handler(signum, frame):
@@ -402,13 +394,14 @@ def port_check(host, port_list):
             else:
                 ports_failed.append(port)
                 result = "FAILED"
-        print_info("   %s (%d): %s" % (port.description, port.port, result))
+        root_logger.info("   %s (%d): %s" % (port.description, port.port, result))
 
     if ports_udp_warning:
-        print("The following UDP ports could not be verified as open: %s" \
-                % ", ".join(str(port.port) for port in ports_udp_warning))
-        print("This can happen if they are already bound to an application")
-        print("and ipa-replica-conncheck cannot attach own UDP responder.")
+        root_logger.warning(
+            ("The following UDP ports could not be verified as open: %s\n"
+             "This can happen if they are already bound to an application\n"
+             "and ipa-replica-conncheck cannot attach own UDP responder.")
+            % ", ".join(str(port.port) for port in ports_udp_warning))
 
     if ports_failed:
         msg_ports = []
@@ -438,29 +431,34 @@ def main():
                                           "PKI-CA: Directory Service port"))
 
     if options.replica:
-        print_info("Check connection from master to remote replica '%s':" % options.replica)
+        root_logger.info("Check connection from master to remote replica '%s':"
+                         % options.replica)
         port_check(options.replica, required_ports)
-        print_info("\nConnection from master to replica is OK.")
+        root_logger.info("\nConnection from master to replica is OK.")
 
     # kinit to foreign master
     if options.master:
         # check ports on master first
-        print_info("Check connection from replica to remote master '%s':" % options.master)
+        root_logger.info("Check connection from replica to remote master '%s':"
+                         % options.master)
         tcp_ports = [ port for port in required_ports if port.port_type == SOCK_STREAM ]
         udp_ports = [ port for port in required_ports if port.port_type == SOCK_DGRAM ]
         port_check(options.master, tcp_ports)
 
         if udp_ports:
-            print_info("\nThe following list of ports use UDP protocol and would need to be")
-            print_info("checked manually:")
+            root_logger.info("\nThe following list of ports use UDP protocol"
+                             "and would need to be\n"
+                             "checked manually:")
             for port in udp_ports:
                 result = "SKIPPED"
-                print_info("   %s (%d): %s" % (port.description, port.port, result))
+                root_logger.info("   %s (%d): %s"
+                                 % (port.description, port.port, result))
 
-        print_info("\nConnection from replica to master is OK.")
+        root_logger.info("\nConnection from replica to master is OK.")
 
         # create listeners
-        print_info("Start listening on required ports for remote master check")
+        root_logger.info("Start listening on required ports for remote "
+                         "master check")
 
         RESPONDER = PortResponder(required_ports)
         RESPONDER.start()
@@ -474,7 +472,7 @@ def main():
         remote_check_opts = ['--replica %s' % options.hostname]
 
         if options.auto_master_check:
-            print_info("Get credentials to log in to remote master")
+            root_logger.info("Get credentials to log in to remote master")
             cred = None
             if options.principal is None:
                 # Check if ccache is available
@@ -531,7 +529,7 @@ def main():
                                         result.error_output)
 
             try:
-                print_info("Check RPC connection to remote master")
+                root_logger.info("Check RPC connection to remote master")
 
                 xmlrpc_uri = ('https://%s/ipa/xml' %
                               ipautil.format_netloc(options.master))
@@ -568,11 +566,11 @@ def main():
                         api.Backend.rpcclient.connect()
                         api.Command.ping()
                     except Exception as e:
-                        print_info(
+                        root_logger.info(
                             "Could not connect to the remote host: %s" % e)
                         raise
 
-                    print_info("Execute check on remote master")
+                    root_logger.info("Execute check on remote master")
                     try:
                         result = api.Backend.rpcclient.forward(
                             'server_conncheck',
@@ -581,7 +579,7 @@ def main():
                             version=u'2.162',
                         )
                     except (errors.CommandError, errors.NetworkError) as e:
-                        print_info(
+                        root_logger.info(
                             "Remote master does not support check over RPC: "
                             "%s" % e)
                         raise
@@ -590,7 +588,7 @@ def main():
                         stderr = e
                     else:
                         for message in result['messages']:
-                            print_info(message['message'])
+                            root_logger.info(message['message'])
                         returncode = int(not result['result'])
                         stderr = ("ipa-replica-conncheck returned non-zero "
                                   "exit code")
@@ -598,48 +596,54 @@ def main():
                         if api.Backend.rpcclient.isconnected():
                             api.Backend.rpcclient.disconnect()
             except Exception:
-                print_info("Retrying using SSH...")
+                root_logger.info("Retrying using SSH...")
 
                 # Ticket 5812 Always qualify requests for admin
                 user = principal
                 ssh = SshExec(user, options.master)
 
-                print_info("Check SSH connection to remote master")
+                root_logger.info("Check SSH connection to remote master")
                 result = ssh('echo OK', verbose=True)
                 if result.returncode != 0:
-                    print('Could not SSH into remote host. Error output:')
-                    for line in result.error_output.splitlines():
-                        print('    %s' % line)
-                    raise RuntimeError('Could not SSH to remote host.')
+                    root_logger.debug(result.error_output)
+                    raise RuntimeError(
+                        'Could not SSH to remote host.\n'
+                        'See /var/log/ipareplica-conncheck.log for more '
+                        'information.')
 
-                print_info("Execute check on remote master")
+                root_logger.info("Execute check on remote master")
                 result = ssh(
                     "/usr/sbin/ipa-replica-conncheck " +
                         " ".join(remote_check_opts))
                 returncode = result.returncode
                 stderr = result.error_output
-                print_info(result.output)
+                root_logger.info(result.output)
             if returncode != 0:
-                raise RuntimeError("Remote master check failed with following error message(s):\n%s" % stderr)
+                raise RuntimeError(
+                    "Remote master check failed with following "
+                    "error message(s):\n%s" % stderr)
         else:
             # wait until user  test is ready
-            print_info("Listeners are started. Use CTRL+C to terminate the listening part after the test.")
-            print_info("")
-            print_info("Please run the following command on remote master:")
-
-            print_info("/usr/sbin/ipa-replica-conncheck " + " ".join(remote_check_opts))
+            root_logger.info(
+                "Listeners are started. Use CTRL+C to terminate the listening "
+                "part after the test.\n\n"
+                "Please run the following command on remote master:\n"
+                "/usr/sbin/ipa-replica-conncheck {opts}".format(
+                opts=" ".join(remote_check_opts)))
             time.sleep(3600)
-            print_info("Connection check timeout: terminating listening program")
+            root_logger.info(
+                "Connection check timeout: terminating listening program")
 
 
 if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt:
-        print_info("\nCleaning up...")
+        root_logger.info("\nCleaning up...")
         sys.exit(1)
     except RuntimeError as e:
-        sys.exit(e)
+        root_logger.error('ERROR: {ex}'.format(ex=e))
+        sys.exit(1)
     finally:
         if RESPONDER is not None:
             RESPONDER.stop()
