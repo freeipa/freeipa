@@ -602,8 +602,11 @@ def test_translations(po_file, lang, domain, locale_dir):
     # use a dummy language not associated with any real language,
     # but the setlocale function demands the locale be a valid
     # known locale, Zambia Xhosa is a reasonable choice :)
+    locale_envs = ('LANGUAGE', 'LC_ALL', 'LC_MESSAGES', 'LANG')
 
-    os.environ['LANG'] = lang
+    os.environ.update(
+        {locale_env: lang for locale_env in locale_envs}
+    )
 
     # Create a gettext translation object specifying our domain as
     # 'ipa' and the locale_dir as 'test_locale' (i.e. where to
