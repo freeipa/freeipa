@@ -104,7 +104,7 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
     if result.returncode != 0:
         raise ScriptError(
             "Connection check failed!"
-            "\nPlease fix your network settings according to error messages above."
+            "\nSee /var/log/ipareplica-conncheck.log for more information."
             "\nIf the check results are not valid it can be skipped with --skip-conncheck parameter.")
     else:
         print("Connection check OK")
