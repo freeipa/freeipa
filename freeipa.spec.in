@@ -692,7 +692,8 @@ export JAVA_STACK_SIZE="8m"
 # PATH is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1005235
 export PATH=/usr/bin:/usr/sbin:$PATH
 %configure --with-vendor-suffix=-%{release}
-%make_build
+# -Onone is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1398405
+%make_build -Onone
 
 
 %check
