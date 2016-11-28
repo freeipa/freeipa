@@ -181,3 +181,7 @@ class Principal(object):
             principal_string = u'@'.join([principal_string, realm])
 
         return principal_string
+
+    def __repr__(self):
+        return "{0.__module__}.{0.__name__}('{1}')".format(
+            self.__class__, self)
