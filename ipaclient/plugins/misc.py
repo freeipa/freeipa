@@ -2,14 +2,15 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-from ipaclient.frontend import CommandOverride
+from ipalib.misc import env as _env
+from ipalib.misc import plugins as _plugins
 from ipalib.plugable import Registry
 
 register = Registry()
 
 
 @register(override=True, no_fail=True)
-class env(CommandOverride):
+class env(_env):
     def output_for_cli(self, textui, output, *args, **options):
         output = dict(output)
         output.pop('count', None)
@@ -20,7 +21,7 @@ class env(CommandOverride):
 
 
 @register(override=True, no_fail=True)
-class plugins(CommandOverride):
+class plugins(_plugins):
     def output_for_cli(self, textui, output, *args, **options):
         options['all'] = True
         return super(plugins, self).output_for_cli(textui, output,
