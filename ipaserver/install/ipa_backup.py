@@ -256,7 +256,7 @@ class Backup(admintool.AdminTool):
         options = self.options
         super(Backup, self).run()
 
-        api.bootstrap(in_server=True, context='backup')
+        api.bootstrap(in_server=True, context='backup', confdir=paths.ETC_IPA)
         api.finalize()
 
         self.log.info("Preparing backup on %s", api.env.host)

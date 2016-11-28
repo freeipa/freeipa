@@ -560,7 +560,10 @@ def main():
         else:
             raise e
 
-    api.bootstrap(in_server=True, context='ipactl', debug=options.debug)
+    api.bootstrap(in_server=True,
+                  context='ipactl',
+                  confdir=paths.ETC_IPA,
+                  debug=options.debug)
     api.finalize()
 
     if '.' not in api.env.host:

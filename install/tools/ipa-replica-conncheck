@@ -480,7 +480,9 @@ def main():
                     else:
                         nss_dir = None
 
-                    api.bootstrap(context='client', xmlrpc_uri=xmlrpc_uri,
+                    api.bootstrap(context='client',
+                                  confdir=paths.ETC_IPA,
+                                  xmlrpc_uri=xmlrpc_uri,
                                   nss_dir=nss_db.secdir)
                     api.finalize()
                     try:

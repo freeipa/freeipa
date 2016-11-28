@@ -23,11 +23,12 @@ import syslog
 import traceback
 from ipalib import api
 from ipaplatform import services
+from ipaplatform.paths import paths
 from ipaserver.install import certs
 
 
 def main():
-    api.bootstrap(in_server=True, context='restart')
+    api.bootstrap(in_server=True, context='restart', confdir=paths.ETC_IPA)
     api.finalize()
 
     dogtag_service = services.knownservices['pki_tomcatd']

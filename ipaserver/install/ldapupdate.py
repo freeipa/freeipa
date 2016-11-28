@@ -308,7 +308,9 @@ class LDAPUpdate(object):
             self.sub_dict["TOTAL_EXCLUDES"] = "(objectclass=*) $ EXCLUDE " + \
                 " ".join(constants.REPL_AGMT_TOTAL_EXCLUDES)
         self.api = create_api(mode=None)
-        self.api.bootstrap(in_server=True, context='updates',
+        self.api.bootstrap(in_server=True,
+                           context='updates',
+                           confdir=paths.ETC_IPA,
                            ldap_uri=self.ldapuri)
         self.api.finalize()
         if online:

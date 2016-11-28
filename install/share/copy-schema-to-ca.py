@@ -114,7 +114,7 @@ def main():
     standard_logging_setup(verbose=True)
 
     # In 3.0, restarting needs access to api.env
-    api.bootstrap_with_global_options(context='server')
+    api.bootstrap_with_global_options(context='server', confdir=paths.ETC_IPA)
 
     add_ca_schema()
     restart_pki_ds()

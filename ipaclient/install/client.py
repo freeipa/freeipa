@@ -2620,6 +2620,7 @@ def _install(options):
 
     with certdb.NSSDatabase() as tmp_db:
         api.bootstrap(context='cli_installer',
+                      confdir=paths.ETC_IPA,
                       debug=options.debug,
                       delegate=False,
                       nss_dir=tmp_db.secdir)

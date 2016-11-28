@@ -384,6 +384,7 @@ def main():
 
     cfg = dict(
         context='cli_installer',
+        confdir=paths.ETC_IPA,
         in_server=False,
         debug=options.debug,
         verbose=0,

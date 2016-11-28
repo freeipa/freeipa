@@ -24,6 +24,7 @@ import cgi
 import errno
 from wsgiref.util import request_uri
 
+from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipapython import ipaldap
@@ -72,7 +73,7 @@ def application(environ, start_response):
 
     # API object only for configuration, finalize() not needed
     api = create_api(mode=None)
-    api.bootstrap(context='server', in_server=True)
+    api.bootstrap(context='server', confdir=paths.ETC_IPA, in_server=True)
     try:
         bind(api.env.ldap_uri, api.env.basedn,
              form_data['username'].value, form_data['password'].value)

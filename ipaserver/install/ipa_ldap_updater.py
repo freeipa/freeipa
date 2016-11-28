@@ -89,7 +89,7 @@ class LDAPUpdater(admintool.AdminTool):
     def run(self):
         super(LDAPUpdater, self).run()
 
-        api.bootstrap(in_server=True, context='updates')
+        api.bootstrap(in_server=True, context='updates', confdir=paths.ETC_IPA)
         api.finalize()
 
     def handle_error(self, exception):

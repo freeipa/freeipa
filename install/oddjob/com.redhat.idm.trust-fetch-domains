@@ -8,6 +8,7 @@ from ipapython.dn import DN
 from ipalib.config import Env
 from ipalib.constants import DEFAULT_CONFIG
 from ipaplatform.constants import constants
+from ipaplatform.paths import paths
 import sys
 import os
 import pwd
@@ -95,7 +96,8 @@ env._bootstrap(debug=options.debug, log=None)
 env._finalize_core(**dict(DEFAULT_CONFIG))
 
 # Initialize the API with the proper debug level
-api.bootstrap(in_server=True, debug=env.debug, log=None, context='server')
+api.bootstrap(in_server=True, debug=env.debug, log=None,
+              context='server', confdir=paths.ETC_IPA)
 api.finalize()
 
 # Only import trust plugin after api is initialized or internal imports
