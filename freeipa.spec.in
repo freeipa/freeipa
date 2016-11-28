@@ -124,8 +124,8 @@ BuildRequires:  python-memcached
 BuildRequires:  python-lxml
 # 5.0.0: QRCode.print_ascii
 BuildRequires:  python-qrcode-core >= 5.0.0
-# 1.11.0: resolver.YXDOMAIN, Resolver.set_flags
-BuildRequires:  python-dns >= 1.11.0
+# 1.13: python-dns URI record support
+BuildRequires:  python-dns >= 1.13
 BuildRequires:  jsl
 BuildRequires:  python-yubico
 # pki Python package
@@ -254,7 +254,7 @@ Requires: python-gssapi >= 1.1.2
 Requires: python-sssdconfig
 Requires: python-pyasn1
 Requires: dbus-python
-Requires: python-dns >= 1.11.1
+Requires: python-dns >= 1.13
 Requires: python-kdcproxy >= 0.3
 Requires: rpm-libs
 
@@ -411,7 +411,7 @@ BuildArch: noarch
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipalib = %{version}-%{release}
-Requires: python-dns >= 1.11.1
+Requires: python-dns >= 1.13
 
 %description -n python2-ipaclient
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -526,7 +526,7 @@ Requires: python-cffi
 Requires: python-ldap >= 2.4.15
 Requires: python-requests
 Requires: python-custodia
-Requires: python-dns >= 1.11.1
+Requires: python-dns >= 1.13
 Requires: python-enum34
 Requires: python-netifaces >= 0.10.4
 Requires: pyusb

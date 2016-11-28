@@ -53,7 +53,7 @@ class build_py(setuptools_build_py):
 
 PACKAGE_VERSION = {
     'cryptography': 'cryptography >= 0.9',
-    'dnspython': 'dnspython >= 1.11.1',
+    'dnspython': 'dnspython >= 1.13',
     'gssapi': 'gssapi > 1.1.2',
     'ipaclient': 'ipaclient == @VERSION@',
     'ipalib': 'ipalib == @VERSION@',
