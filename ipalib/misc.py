@@ -26,9 +26,11 @@ class env(LocalOrRemote):
     )
 
     takes_options = LocalOrRemote.takes_options + (
-        Flag('all',
+        Flag(
+            'all',
             cli_name='all',
-            doc=_('retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('retrieve and print all attributes from the server. '
+                  'Affects command output.'),
             exclude='webui',
             flags=['no_option', 'no_output'],
             default=True,
@@ -36,16 +38,19 @@ class env(LocalOrRemote):
     )
 
     has_output = (
-        Output('result',
+        Output(
+            'result',
             type=dict,
             doc=_('Dictionary mapping variable name to value'),
         ),
-        Output('total',
+        Output(
+            'total',
             type=int,
             doc=_('Total number of variables env (>= count)'),
             flags=['no_display'],
         ),
-        Output('count',
+        Output(
+            'count',
             type=int,
             doc=_('Number of variables returned (<= total)'),
             flags=['no_display'],
@@ -84,7 +89,6 @@ class env(LocalOrRemote):
         return ret
 
 
-
 class plugins(LocalOrRemote):
     __doc__ = _('Show all loaded plugins.')
 
@@ -93,9 +97,11 @@ class plugins(LocalOrRemote):
     )
 
     takes_options = LocalOrRemote.takes_options + (
-        Flag('all',
+        Flag(
+            'all',
             cli_name='all',
-            doc=_('retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('retrieve and print all attributes from the server. '
+                  'Affects command output.'),
             exclude='webui',
             flags=['no_option', 'no_output'],
             default=True,
@@ -104,7 +110,8 @@ class plugins(LocalOrRemote):
 
     has_output = (
         Output('result', dict, 'Dictionary mapping plugin names to bases'),
-        Output('count',
+        Output(
+            'count',
             type=int,
             doc=_('Number of plugins loaded'),
         ),
