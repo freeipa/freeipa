@@ -53,7 +53,7 @@ class CertUpdate(admintool.AdminTool):
             raise admintool.ScriptError(
                 "IPA client is not configured on this system.")
 
-        api.bootstrap(context='cli_installer')
+        api.bootstrap(context='cli_installer', confdir=paths.ETC_IPA)
         api.finalize()
 
         server = urlsplit(api.env.jsonrpc_uri).hostname

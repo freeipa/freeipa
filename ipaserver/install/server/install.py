@@ -566,6 +566,7 @@ def install_check(installer):
     # we are sure we have the configuration file ready.
     cfg = dict(
         context='installer',
+        confdir=paths.ETC_IPA,
         in_server=True,
         # make sure host name specified by user is used instead of default
         host=host_name,
@@ -962,6 +963,7 @@ def uninstall_check(installer):
     # we are sure we have the configuration file ready.
     cfg = dict(
         context='installer',
+        confdir=paths.ETC_IPA,
         in_server=True,
     )
 

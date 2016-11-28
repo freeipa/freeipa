@@ -841,6 +841,7 @@ class Restore(admintool.AdminTool):
         services.knownservices.certmonger.restart()
 
     def init_api(self, **overrides):
+        overrides.setdefault('confdir', paths.ETC_IPA)
         api.bootstrap(in_server=True, context='restore', **overrides)
         api.finalize()
 

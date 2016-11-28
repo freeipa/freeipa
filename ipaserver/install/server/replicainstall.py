@@ -692,7 +692,7 @@ def install_check(installer):
     # Note: We must do this before bootstraping and finalizing ipalib.api
     create_ipa_conf(fstore, config, ca_enabled)
 
-    api.bootstrap(in_server=True, context='installer')
+    api.bootstrap(in_server=True, context='installer', confdir=paths.ETC_IPA)
     api.finalize()
 
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
@@ -731,7 +731,9 @@ def install_check(installer):
 
     ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
     remote_api = create_api(mode=None)
-    remote_api.bootstrap(in_server=True, context='installer',
+    remote_api.bootstrap(in_server=True,
+                         context='installer',
+                         confdir=paths.ETC_IPA,
                          ldap_uri=ldapuri)
     remote_api.finalize()
     conn = remote_api.Backend.ldap2
@@ -954,12 +956,14 @@ def promote_check(installer):
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     env = Env()
-    env._bootstrap(context='installer', log=None)
+    env._bootstrap(context='installer', confdir=paths.ETC_IPA, log=None)
     env._finalize_core(**dict(constants.DEFAULT_CONFIG))
 
     # pylint: disable=no-member
     xmlrpc_uri = 'https://{}/ipa/xml'.format(ipautil.format_netloc(env.host))
-    api.bootstrap(in_server=True, context='installer',
+    api.bootstrap(in_server=True,
+                  context='installer',
+                  confdir=paths.ETC_IPA,
                   ldap_uri=installutils.realm_to_ldapi_uri(env.realm),
                   xmlrpc_uri=xmlrpc_uri)
     # pylint: enable=no-member
@@ -1056,8 +1060,11 @@ def promote_check(installer):
     xmlrpc_uri = 'https://{}/ipa/xml'.format(
         ipautil.format_netloc(config.master_host_name))
     remote_api = create_api(mode=None)
-    remote_api.bootstrap(in_server=True, context='installer',
-                         ldap_uri=ldapuri, xmlrpc_uri=xmlrpc_uri)
+    remote_api.bootstrap(in_server=True,
+                         context='installer',
+                         confdir=paths.ETC_IPA,
+                         ldap_uri=ldapuri,
+                         xmlrpc_uri=xmlrpc_uri)
     remote_api.finalize()
 
     check_remote_version(remote_api)

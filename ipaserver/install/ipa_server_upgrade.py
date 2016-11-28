@@ -38,7 +38,7 @@ class ServerUpgrade(admintool.AdminTool):
     def run(self):
         super(ServerUpgrade, self).run()
 
-        api.bootstrap(in_server=True, context='updates')
+        api.bootstrap(in_server=True, context='updates', confdir=paths.ETC_IPA)
         api.finalize()
 
         try:

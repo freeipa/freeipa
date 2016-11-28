@@ -494,7 +494,7 @@ def main():
         'ipaCACertRenewal':     renew_ca_cert,
     }
 
-    api.bootstrap(in_server=True, context='renew')
+    api.bootstrap(in_server=True, context='renew', confdir=paths.ETC_IPA)
     api.finalize()
     api.Backend.ldap2.connect()
 

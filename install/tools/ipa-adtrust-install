@@ -263,11 +263,12 @@ def main():
         sys.exit("Aborting installation.")
 
     # Initialize the ipalib api
-    cfg = dict(
+    api.bootstrap(
         in_server=True,
         debug=options.debug,
+        context='install',
+        confdir=paths.ETC_IPA
     )
-    api.bootstrap(**cfg)
     api.finalize()
 
     # If domain name and realm does not match, IPA server will not be able

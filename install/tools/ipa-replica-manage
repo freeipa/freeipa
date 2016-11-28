@@ -1508,7 +1508,10 @@ def main(options, args):
     if os.getegid() != 0:
         api_env['log'] = None # turn off logging for non-root
 
-    api.bootstrap(**api_env)
+    api.bootstrap(
+        context='cli', confdir=paths.ETC_IPA,
+        in_server=True, verbose=options.verbose
+    )
     api.finalize()
 
     dirman_passwd = None

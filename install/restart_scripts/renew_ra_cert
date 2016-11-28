@@ -36,7 +36,7 @@ from ipaplatform.paths import paths
 def _main():
     nickname = 'ipaCert'
 
-    api.bootstrap(in_server=True, context='restart')
+    api.bootstrap(in_server=True, context='restart', confdir=paths.ETC_IPA)
     api.finalize()
     api.Backend.ldap2.connect()
 

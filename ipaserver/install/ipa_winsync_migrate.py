@@ -24,6 +24,7 @@ import six
 
 from ipalib import api
 from ipalib import errors
+from ipaplatform.paths import paths
 from ipapython import admintool
 from ipapython.dn import DN
 from ipapython.ipautil import realm_to_suffix, posixify
@@ -346,7 +347,7 @@ class WinsyncMigrate(admintool.AdminTool):
             sys.exit(e)
 
         # Finalize API
-        api.bootstrap(in_server=True, context='server')
+        api.bootstrap(in_server=True, context='server', confdir=paths.ETC_IPA)
         api.finalize()
 
         # Setup LDAP connection
