@@ -55,7 +55,6 @@ from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipapython import dnsutil
 
 if six.PY3:
     unicode = str
@@ -470,9 +469,9 @@ def resolve_ip_addresses_nss(fqdn):
     :returns:
         list of IP addresses as UnsafeIPAddress objects
     """
-    # make sure the name is fully qualified
-    # so search path from resolv.conf does not apply
-    fqdn = str(dnsutil.DNSName(fqdn).make_absolute())
+    # it would be good disable search list processing from resolv.conf
+    # to avoid cases where we get IP address for an totally different name
+    # but there is no way to do this using getaddrinfo parameters
     try:
         addrinfos = socket.getaddrinfo(fqdn, None,
                                        socket.AF_UNSPEC, socket.SOCK_STREAM)
