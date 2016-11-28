@@ -20,7 +20,6 @@
 
 from ipaserver.install import service
 from ipaserver.install import sysupgrade
-from ipapython import ipautil
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import root_logger
@@ -60,65 +59,31 @@ class NTPInstance(service.Service):
         self.fstore.backup_file(paths.NTP_CONF)
         self.fstore.backup_file(paths.SYSCONFIG_NTPD)
 
-        # We use the OS variable to point it towards either the rhel
-        # or fedora pools. Other distros should be added in the future
-        # or we can get our own pool.
-        os = ""
-        if ipautil.file_exists(paths.ETC_FEDORA_RELEASE):
-            os = "fedora"
-        elif ipautil.file_exists(paths.ETC_REDHAT_RELEASE):
-            os = "rhel"
-
-        srv_vals = []
-        srv_vals.append("0.%s.pool.ntp.org" % os)
-        srv_vals.append("1.%s.pool.ntp.org" % os)
-        srv_vals.append("2.%s.pool.ntp.org" % os)
-        srv_vals.append("3.%s.pool.ntp.org" % os)
-        srv_vals.append("127.127.1.0")
+        local_srv = "127.127.1.0"
         fudge = ["fudge", "127.127.1.0", "stratum", "10"]
 
         #read in memory, change it, then overwrite file
-        file_changed = False
-        fudge_present = False
         ntpconf = []
         fd = open(paths.NTP_CONF, "r")
         for line in fd:
             opt = line.split()
-            if len(opt) < 1:
+            if len(opt) < 2:
                 ntpconf.append(line)
                 continue
 
-            if opt[0] == "server":
-                match = False
-                for srv in srv_vals:
-                    if opt[1] == srv:
-                        match = True
-                        break
-                if match:
-                    srv_vals.remove(srv)
-                else:
-                    file_changed = True
-                    line = ""
+            if opt[0] == "server" and opt[1] == local_srv:
+                line = ""
             elif opt[0] == "fudge":
-                if opt[0:4] == fudge[0:4]:
-                    fudge_present = True
-                else:
-                    file_changed = True
-                    line = ""
+                line = ""
 
             ntpconf.append(line)
 
-        if file_changed or len(srv_vals) != 0 or not fudge_present:
-            fd = open(paths.NTP_CONF, "w")
+        with open(paths.NTP_CONF, "w") as fd:
             for line in ntpconf:
                 fd.write(line)
             fd.write("\n### Added by IPA Installer ###\n")
-            if len(srv_vals) != 0:
-                for srv in srv_vals:
-                    fd.write("server "+srv+" iburst\n")
-            if not fudge_present:
-                fd.write("fudge 127.127.1.0 stratum 10\n")
-            fd.close()
+            fd.write("server {} iburst\n".format(local_srv))
+            fd.write("{}\n".format(' '.join(fudge)))
 
         #read in memory, find OPTIONS, check/change it, then overwrite file
         needopts = [ {'val':'-x', 'need':True},
