@@ -82,6 +82,8 @@ def test_principals(valid_principal):
         assert getattr(princ, name) == value
 
     assert unicode(princ) == principal_name
+    assert repr(princ) == "ipapython.kerberos.Principal('{}')".format(
+        principal_name)
 
 
 def test_multiple_unescaped_ats_raise_error():
