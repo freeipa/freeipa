@@ -55,6 +55,12 @@ GEN_PWD_LEN = 22
 GEN_TMP_PWD_LEN = 12  # only for OTP password that is manually retyped by user
 
 
+PROTOCOL_NAMES = {
+    socket.SOCK_STREAM: 'tcp',
+    socket.SOCK_DGRAM: 'udp'
+}
+
+
 class UnsafeIPAddress(netaddr.IPAddress):
     """Any valid IP address with or without netmask."""
 
@@ -866,15 +872,21 @@ def user_input(prompt, default = None, allow_empty = True):
                 return ret
 
 
-def host_port_open(host, port, socket_type=socket.SOCK_STREAM, socket_timeout=None):
+def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
+                   socket_timeout=None, log_errors=False):
+    """
+    host: either hostname or IP address;
+          if hostname is provided, port MUST be open on ALL resolved IPs
+
+    returns True is port is open, False otherwise
+    """
+    port_open = True
+
+    # port has to be open on ALL resolved IPs
     for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket_type):
         af, socktype, proto, _canonname, sa = res
         try:
-            try:
-                s = socket.socket(af, socktype, proto)
-            except socket.error:
-                s = None
-                continue
+            s = socket.socket(af, socktype, proto)
 
             if socket_timeout is not None:
                 s.settimeout(socket_timeout)
@@ -884,15 +896,27 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM, socket_timeout=No
             if socket_type == socket.SOCK_DGRAM:
                 s.send('')
                 s.recv(512)
-
-            return True
         except socket.error:
-            pass
+            port_open = False
+
+            if log_errors:
+                msg = ('Failed to connect to port %(port)d %(proto)s on '
+                       '%(addr)s' % dict(port=port,
+                                         proto=PROTOCOL_NAMES[socket_type],
+                                         addr=sa[0]))
+
+                # Do not log udp failures as errors (to be consistent with
+                # the rest of the code that checks for open ports)
+                if socket_type == socket.SOCK_DGRAM:
+                    root_logger.warning(msg)
+                else:
+                    root_logger.error(msg)
         finally:
             if s:
                 s.close()
+                s = None
 
-    return False
+    return port_open
 
 
 def reverse_record_exists(ip_address):
