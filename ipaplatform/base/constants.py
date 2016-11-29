@@ -26,3 +26,5 @@ class BaseConstantsNamespace(object):
     # nfsd init variable used to enable kerberized NFS
     SECURE_NFS_VAR = "SECURE_NFS"
     SSSD_USER = "sssd"
+
+constants = BaseConstantsNamespace()

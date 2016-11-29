@@ -249,3 +249,5 @@ class BaseTaskNamespace(object):
     def remove_httpd_service_ipa_conf(self):
         """Remove configuration of httpd service of IPA"""
         raise NotImplementedError()
+
+tasks = BaseTaskNamespace()

@@ -100,8 +100,3 @@ freeipa2-dev-doc
 
 /ipapython/version.py
 
-/ipaplatform/__init__.py
-/ipaplatform/constants.py
-/ipaplatform/paths.py
-/ipaplatform/services.py
-/ipaplatform/tasks.py

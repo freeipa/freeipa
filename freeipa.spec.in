@@ -1300,6 +1300,7 @@ fi
 %{python_sitelib}/ipapython-*.egg-info
 %{python_sitelib}/ipalib-*.egg-info
 %{python_sitelib}/ipaplatform-*.egg-info
+%{python_sitelib}/ipaplatform-*-nspkg.pth
 
 
 %files common -f %{gettext_domain}.lang

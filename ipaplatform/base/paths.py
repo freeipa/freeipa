@@ -367,4 +367,4 @@ class BasePathNamespace(object):
             )
         )
 
-path_namespace = BasePathNamespace
+paths = BasePathNamespace()

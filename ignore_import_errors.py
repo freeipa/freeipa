@@ -6,12 +6,17 @@
 ImportError ignoring import hook.
 """
 
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 import imp
 import inspect
 import os.path
 import sys
+
+# Load ipaplatform's meta importer before IgnoreImporter is registered as
+# meta importer.
+import ipaplatform.paths  # pylint: disable=unused-import
+
 
 DIRNAME = os.path.dirname(os.path.abspath(__file__))
 
