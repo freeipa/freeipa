@@ -647,13 +647,11 @@ class CertDB(object):
     def request_service_cert(self, nickname, principal, host, pwdconf=False):
         if pwdconf:
             self.create_password_conf()
-        reqid = certmonger.request_cert(nssdb=self.secdir,
-                                        nickname=nickname,
-                                        principal=principal,
-                                        subject=host,
-                                        passwd_fname=self.passwd_fname)
-        # Now wait for the cert to appear. Check three times then abort
-        certmonger.wait_for_request(reqid, timeout=60)
+        certmonger.request_and_wait_for_cert(nssdb=self.secdir,
+                                             nickname=nickname,
+                                             principal=principal,
+                                             subject=host,
+                                             passwd_fname=self.passwd_fname)
 
 
 class _CrossProcessLock(object):
