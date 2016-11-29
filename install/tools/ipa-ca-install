@@ -261,7 +261,10 @@ def main():
 
     # override ra_plugin setting read from default.conf so that we have
     # functional dogtag backend plugins during CA install
-    api.bootstrap(in_server=True, ra_plugin='dogtag')
+    api.bootstrap(
+        context='install', confdir=paths.ETC_IPA,
+        in_server=True, ra_plugin='dogtag'
+    )
     api.finalize()
     api.Backend.ldap2.connect()
 

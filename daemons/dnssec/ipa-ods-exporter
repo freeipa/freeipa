@@ -614,7 +614,10 @@ elif len(sys.argv) == 2:
     log.addHandler(console)
 
 # IPA framework initialization
-ipalib.api.bootstrap(in_server=True, log=None)  # no logging to file
+ipalib.api.bootstrap(
+    context='dns', confdir=paths.ETC_IPA,
+    in_server=True, log=None,  # no logging to file
+)
 ipalib.api.finalize()
 
 # Kerberos initialization

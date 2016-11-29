@@ -132,11 +132,10 @@ def main():
     installutils.check_server_configuration()
 
     # Initialize the ipalib api
-    cfg = dict(
-        in_server=True,
-        debug=options.debug,
+    api.bootstrap(
+        context='install', confdir=paths.ETC_IPA,
+        in_server=True, debug=options.debug,
     )
-    api.bootstrap(**cfg)
     api.finalize()
     api.Backend.ldap2.connect()
 

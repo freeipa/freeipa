@@ -113,7 +113,9 @@ def main():
     if not dirman_password:
         sys.exit("No password supplied")
 
-    api.bootstrap(context='cli', debug=options.debug, in_server=True)
+    api.bootstrap(
+        context='cli', confdir=paths.ETC_IPA,
+        debug=options.debug, in_server=True)
     api.finalize()
     api.Backend.ldap2.connect(bind_pw=dirman_password)
 

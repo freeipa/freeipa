@@ -408,14 +408,13 @@ def main():
 
     # Just initialize the environment. This is so the installer can have
     # access to the plugin environment
-    api_env = {'in_server' : True,
-               'verbose'   : options.verbose,
-              }
-
+    api_env = {}
     if os.getegid() != 0:
         api_env['log'] = None # turn off logging for non-root
 
-    api.bootstrap(**api_env)
+    api.bootstrap(
+        context='cli', in_server=True, verbose=options.verbose, **api_env
+    )
     api.finalize()
 
     dirman_passwd = None
