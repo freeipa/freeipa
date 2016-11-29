@@ -31,3 +31,6 @@ class FedoraPathNamespace(RedHatPathNamespace):
 
 
 paths = FedoraPathNamespace()
+
+if __name__ == '__main__':
+    paths._dump()
