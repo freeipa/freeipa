@@ -42,7 +42,7 @@ wellknownservices = ['certmonger', 'dirsrv', 'httpd', 'ipa', 'krb5kdc',
                      'messagebus', 'nslcd', 'nscd', 'ntpd', 'portmap',
                      'rpcbind', 'kadmin', 'sshd', 'autofs', 'rpcgssd',
                      'rpcidmapd', 'pki_tomcatd', 'chronyd', 'domainname',
-                     'named', 'ods_enforcerd', 'ods_signerd']
+                     'named', 'ods_enforcerd', 'ods_signerd', 'gssproxy']
 
 # The common ports for these services. This is used to wait for the
 # service to become available.

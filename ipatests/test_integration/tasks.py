@@ -474,7 +474,7 @@ def establish_trust_with_ad(master, ad_domain, extra_args=()):
     """
 
     # Force KDC to reload MS-PAC info by trying to get TGT for HTTP
-    master.run_command(['kinit', '-kt', paths.IPA_KEYTAB,
+    master.run_command(['kinit', '-kt', paths.HTTP_KEYTAB,
                         'HTTP/%s' % master.hostname])
     master.run_command(['systemctl', 'restart', 'krb5kdc.service'])
     master.run_command(['kdestroy', '-A'])

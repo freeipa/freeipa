@@ -451,7 +451,6 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             os.path.join(paths.USR_SHARE_IPA_DIR, 'ipa-httpd.conf.template'),
             paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF,
             dict(
-                KRB5CC_HTTPD=paths.KRB5CC_HTTPD,
                 KDCPROXY_CONFIG=paths.KDCPROXY_CONFIG,
                 IPA_HTTPD_KDCPROXY=paths.IPA_HTTPD_KDCPROXY,
                 POST='-{kdestroy} -A'.format(kdestroy=paths.KDESTROY)
@@ -460,6 +459,20 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         os.chmod(paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF, 0o644)
         self.restore_context(paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF)
+
+    def configure_http_gssproxy_conf(self):
+        ipautil.copy_template_file(
+            os.path.join(paths.USR_SHARE_IPA_DIR, 'gssproxy.conf.template'),
+            paths.GSSPROXY_CONF,
+            dict(
+                HTTP_KEYTAB=paths.HTTP_KEYTAB,
+                HTTP_CCACHE=paths.HTTP_CCACHE,
+                HTTPD_USER=constants.HTTPD_USER
+            )
+        )
+
+        os.chmod(paths.GSSPROXY_CONF, 0o600)
+        self.restore_context(paths.GSSPROXY_CONF)
 
     def remove_httpd_service_ipa_conf(self):
         """Remove systemd config for httpd service of IPA"""

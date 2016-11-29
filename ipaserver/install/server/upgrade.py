@@ -1431,6 +1431,14 @@ def update_ipa_httpd_service_conf(http):
     http.update_httpd_service_ipa_conf()
 
 
+def update_http_keytab(http):
+    root_logger.info('[Moving HTTPD service keytab to gssproxy]')
+    if os.path.exists(paths.OLD_IPA_KEYTAB):
+        shutil.move(paths.OLD_IPA_KEYTAB, http.keytab)
+    pent = pwd.getpwnam(http.keytab_user)
+    os.chown(http.keytab, pent.pw_uid, pent.pw_gid)
+
+
 def ds_enable_sidgen_extdom_plugins(ds):
     """For AD trust agents, make sure we enable sidgen and extdom plugins
     """
@@ -1629,6 +1637,8 @@ def upgrade_configuration():
     update_mod_nss_cipher_suite(http)
     fix_trust_flags()
     export_kra_agent_pem()
+    update_http_keytab(http)
+    http.configure_gssproxy()
     http.start()
 
     uninstall_selfsign(ds, http)

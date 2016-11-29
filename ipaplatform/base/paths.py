@@ -49,7 +49,8 @@ class BasePathNamespace(object):
     HTTPD_IPA_CONF = "/etc/httpd/conf.d/ipa.conf"
     HTTPD_NSS_CONF = "/etc/httpd/conf.d/nss.conf"
     HTTPD_SSL_CONF = "/etc/httpd/conf.d/ssl.conf"
-    IPA_KEYTAB = "/etc/httpd/conf/ipa.keytab"
+    OLD_IPA_KEYTAB = "/etc/httpd/conf/ipa.keytab"
+    HTTP_KEYTAB = "/var/lib/ipa/gssproxy/http.keytab"
     ANON_KEYTAB = "/var/lib/ipa/api/anon.keytab"
     HTTPD_PASSWORD_CONF = "/etc/httpd/conf/password.conf"
     IDMAPD_CONF = "/etc/idmapd.conf"
@@ -328,7 +329,7 @@ class BasePathNamespace(object):
     IPA_ODS_EXPORTER_CCACHE = "/var/opendnssec/tmp/ipa-ods-exporter.ccache"
     VAR_RUN_DIRSRV_DIR = "/var/run/dirsrv"
     IPA_CCACHES = "/var/run/ipa/ccaches"
-    KRB5CC_HTTPD = "/var/run/ipa/ccaches/http.ccache"
+    HTTP_CCACHE = "/var/lib/ipa/gssproxy/http.ccache"
     IPA_RENEWAL_LOCK = "/var/run/ipa/renewal.lock"
     SVC_LIST_FILE = "/var/run/ipa/services.list"
     KRB5CC_SAMBA = "/var/run/samba/krb5cc_samba"
@@ -349,5 +350,6 @@ class BasePathNamespace(object):
     IPA_CUSTODIA_AUDIT_LOG = '/var/log/ipa-custodia.audit.log'
     IPA_GETKEYTAB = '/usr/sbin/ipa-getkeytab'
     EXTERNAL_SCHEMA_DIR = '/usr/share/ipa/schema.d'
+    GSSPROXY_CONF = '/etc/gssproxy/10-ipa.conf'
 
 path_namespace = BasePathNamespace
