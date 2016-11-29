@@ -381,8 +381,9 @@ def port_check(host, port_list):
     ports_udp_warning = []  # conncheck could not verify that port is open
     for port in port_list:
         try:
-            port_open = ipautil.host_port_open(host, port.port,
-                    port.port_type, socket_timeout=CONNECT_TIMEOUT)
+            port_open = ipautil.host_port_open(
+                host, port.port, port.port_type,
+                socket_timeout=CONNECT_TIMEOUT, log_errors=True)
         except socket.gaierror:
             raise RuntimeError("Port check failed! Unable to resolve host name '%s'" % host)
         if port_open:
