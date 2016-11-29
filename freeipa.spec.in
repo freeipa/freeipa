@@ -259,6 +259,8 @@ Requires: systemd-python
 Requires: %{etc_systemd_dir}
 Requires: gzip
 Requires: oddjob
+# Require 0.6.0 for the new delegation access control features
+Requires: gssproxy >= 0.6.0
 
 Provides: %{alt_name}-server = %{version}
 Conflicts: %{alt_name}-server
@@ -1271,6 +1273,7 @@ fi
 %{_usr}/share/ipa/updates/*
 %dir %{_localstatedir}/lib/ipa
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/backup
+%attr(700,root,root) %dir %{_localstatedir}/lib/ipa/gssproxy
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysupgrade
 %attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca

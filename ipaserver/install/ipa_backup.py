@@ -141,7 +141,7 @@ class Backup(admintool.AdminTool):
         paths.OPENLDAP_LDAP_CONF,
         paths.LIMITS_CONF,
         paths.HTTPD_PASSWORD_CONF,
-        paths.IPA_KEYTAB,
+        paths.HTTP_KEYTAB,
         paths.HTTPD_IPA_KDCPROXY_CONF,
         paths.HTTPD_IPA_PKI_PROXY_CONF,
         paths.HTTPD_IPA_REWRITE_CONF,

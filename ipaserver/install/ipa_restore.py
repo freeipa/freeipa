@@ -413,7 +413,7 @@ class Restore(admintool.AdminTool):
                 self.log.info('Restarting SSSD')
                 sssd = services.service('sssd', api)
                 sssd.restart()
-                http.remove_httpd_ccache()
+                http.remove_httpd_ccaches()
         finally:
             try:
                 os.chdir(cwd)

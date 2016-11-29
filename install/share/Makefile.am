@@ -90,6 +90,7 @@ dist_app_DATA =				\
 	ipa-httpd.conf.template		\
 	gssapi.login			\
 	ipa.conf.tmpfiles		\
+	gssproxy.conf.template		\
 	$(NULL)
 
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy

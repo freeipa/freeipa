@@ -1,0 +1,8 @@
+#Installed and maintained by ipa update tools, please do not modify
+[service/ipa-httpd]
+  mechs = krb5
+  cred_store = keytab:$HTTP_KEYTAB
+  cred_store = client_keytab:$HTTP_KEYTAB
+  allow_protocol_transition = true
+  cred_usage = both
+  euid = $HTTPD_USER

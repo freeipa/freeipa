@@ -334,7 +334,7 @@ class TestNonexternalTrustWithSubdomain(ADTrustSubdomainBase):
     """
     def test_establish_trust(self):
         """ Tests establishing non-external trust with Active Directory """
-        self.master.run_command(['kinit', '-kt', paths.IPA_KEYTAB,
+        self.master.run_command(['kinit', '-kt', paths.HTTP_KEYTAB,
                                  'HTTP/%s' % self.master.hostname])
         self.master.run_command(['systemctl', 'restart', 'krb5kdc.service'])
         self.master.run_command(['kdestroy', '-A'])
@@ -401,7 +401,7 @@ class TestNonexternalTrustWithTreedomain(ADTrustTreedomainBase):
     """
     def test_establish_trust(self):
         """ Tests establishing non-external trust with Active Directory """
-        self.master.run_command(['kinit', '-kt', paths.IPA_KEYTAB,
+        self.master.run_command(['kinit', '-kt', paths.HTTP_KEYTAB,
                                  'HTTP/%s' % self.master.hostname])
         self.master.run_command(['systemctl', 'restart', 'krb5kdc.service'])
         self.master.run_command(['kdestroy', '-A'])

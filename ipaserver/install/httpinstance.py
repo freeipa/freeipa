@@ -129,10 +129,11 @@ class HTTPInstance(service.Service):
             api=api,
             service_prefix=u'HTTP',
             service_user=HTTPD_USER,
-            keytab=paths.IPA_KEYTAB)
+            keytab=paths.HTTP_KEYTAB)
 
         self.cert_nickname = cert_nickname
         self.ca_is_configured = True
+        self.keytab_user = constants.GSSPROXY_USER
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
@@ -169,13 +170,15 @@ class HTTPInstance(service.Service):
         self.step("configuring httpd", self.__configure_http)
         self.step("setting up httpd keytab", self._request_service_keytab)
         self.step("retrieving anonymous keytab", self.request_anon_keytab)
+        self.step("configuring Gssproxy", self.configure_gssproxy)
         self.step("setting up ssl", self.__setup_ssl)
         if self.ca_is_configured:
             self.step("configure certmonger for renewals",
                       self.configure_certmonger_renewal_guard)
         self.step("importing CA certificates from LDAP", self.__import_ca_certs)
         self.step("publish CA cert", self.__publish_ca_cert)
-        self.step("clean up any existing httpd ccache", self.remove_httpd_ccache)
+        self.step("clean up any existing httpd ccaches",
+                  self.remove_httpd_ccaches)
         self.step("configuring SELinux for httpd", self.configure_selinux_for_httpd)
         if not self.is_kdcproxy_configured():
             self.step("create KDC proxy user", create_kdcproxy_user)
@@ -205,13 +208,13 @@ class HTTPInstance(service.Service):
         except ipapython.errors.SetseboolError as e:
             self.print_msg(e.format_service_warning('web interface'))
 
-    def remove_httpd_ccache(self):
-        # Clean up existing ccache
+    def remove_httpd_ccaches(self):
+        # Clean up existing ccaches
         # Make sure that empty env is passed to avoid passing KRB5CCNAME from
         # current env
-        ipautil.run(
-            [paths.KDESTROY, '-A'], runas=self.service_user, raiseonerr=False,
-            env={})
+        installutils.remove_file(paths.HTTP_CCACHE)
+        for f in os.listdir(paths.IPA_CCACHES):
+            os.remove(os.path.join(paths.IPA_CCACHES, f))
 
     def __configure_http(self):
         self.update_httpd_service_ipa_conf()
@@ -234,6 +237,10 @@ class HTTPInstance(service.Service):
         http_fd.write(http_txt)
         http_fd.close()
         os.chmod(target_fname, 0o644)
+
+    def configure_gssproxy(self):
+        tasks.configure_http_gssproxy_conf()
+        services.knownservices.gssproxy.restart()
 
     def change_mod_nss_port_from_http(self):
         # mod_ssl enforces SSLEngine on for vhost on 443 even though
@@ -541,8 +548,7 @@ class HTTPInstance(service.Service):
                 root_logger.debug(error)
 
         installutils.remove_keytab(self.keytab)
-        installutils.remove_ccache(ccache_path=paths.KRB5CC_HTTPD,
-                                   run_as=self.service_user)
+        installutils.remove_file(paths.HTTP_CCACHE)
 
         # Remove the configuration files we create
         installutils.remove_file(paths.HTTPD_IPA_REWRITE_CONF)

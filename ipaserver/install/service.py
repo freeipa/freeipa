@@ -166,6 +166,7 @@ class Service(object):
         self.dercert = None
         self.api = api
         self.service_user = service_user
+        self.keytab_user = service_user
         self.dm_password = None  # silence pylint
         self.promote = False
 
@@ -584,7 +585,7 @@ class Service(object):
         self._add_service_principal()
         self.run_getkeytab(self.api.env.ldap_uri, self.keytab, self.principal)
 
-        pent = pwd.getpwnam(self.service_user)
+        pent = pwd.getpwnam(self.keytab_user)
         os.chown(self.keytab, pent.pw_uid, pent.pw_gid)
 
 
