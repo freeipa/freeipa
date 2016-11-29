@@ -312,8 +312,9 @@ def request_and_wait_for_cert(
     state = wait_for_request(reqId, timeout=60)
     ca_error = get_request_value(reqId, 'ca-error')
     if state != 'MONITORING' or ca_error:
-        raise RuntimeError("Certificate issuance failed")
+        raise RuntimeError("Certificate issuance failed ({})".format(state))
     return reqId
+
 
 def request_cert(
         nssdb, nickname, subject, principal, passwd_fname=None,
