@@ -646,7 +646,7 @@ class CAInstance(DogtagInstance):
                                    'NSS_ENABLE_PKIX_VERIFY', '1',
                                    quotes=False, separator='=')
 
-    def import_ra_cert(self, rafile, configure_renewal=True):
+    def import_ra_cert(self, rafile):
         """
         Cloned RAs will use the same RA agent cert as the master so we
         need to import from a PKCS#12 file.
@@ -662,10 +662,14 @@ class CAInstance(DogtagInstance):
         finally:
             os.remove(agent_name)
 
+        self.configure_agent_renewal()
+
     def __import_ra_key(self):
         custodia = custodiainstance.CustodiaInstance(host_name=self.fqdn,
                                                      realm=self.realm)
         custodia.import_ra_key(self.master_host)
+
+        self.configure_agent_renewal()
 
     def __create_ca_agent(self):
         """
