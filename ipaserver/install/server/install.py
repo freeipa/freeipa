@@ -1150,9 +1150,6 @@ def uninstall(installer):
 def init(installer):
     installer.unattended = not installer.interactive
 
-    installer.domain_name = installer.new_domain_name
-    installer.dm_password = installer.new_dm_password
-    installer.admin_password = installer.new_admin_password
     installer.domainlevel = installer.domain_level
 
     installer._installation_cleanup = True

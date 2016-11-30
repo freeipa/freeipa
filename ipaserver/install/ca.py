@@ -338,7 +338,6 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
             ['-w']),
     )
     admin_password = enroll_only(admin_password)
-    admin_password = replica_install_only(admin_password)
 
     external_ca = knob(
         None,
