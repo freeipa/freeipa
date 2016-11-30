@@ -21,7 +21,6 @@ from ipalib.install.service import (enroll_only,
                                     prepares,
                                     prepare_only,
                                     replica_install_only)
-from ipalib.util import validate_domain_name
 from ipapython import ipautil
 from ipapython.dnsutil import check_zone_overlap
 from ipapython.install import typing
@@ -72,22 +71,6 @@ class ServerInstallInterface(client.ClientInstallInterface,
         cli_names=(list(client.ClientInstallInterface.domain_name.cli_names) +
                    ['-n']),
     )
-    domain_name = replica_install_only(domain_name)
-
-    new_domain_name = knob(
-        bases=client.ClientInstallInterface.domain_name,
-        cli_names=['--domain', '-n'],
-        cli_metavar='DOMAIN_NAME',
-    )
-    new_domain_name = master_install_only(new_domain_name)
-
-    @new_domain_name.validator
-    def new_domain_name(self, value):
-        validate_domain_name(value)
-        if (self.setup_dns and
-                not self.allow_zone_overlap):   # pylint: disable=no-member
-            print("Checking DNS domain %s, please wait ..." % value)
-            check_zone_overlap(value, False)
 
     servers = knob(
         bases=client.ClientInstallInterface.servers,
@@ -114,18 +97,10 @@ class ServerInstallInterface(client.ClientInstallInterface,
     )
     ca_cert_files = prepare_only(ca_cert_files)
 
-    new_dm_password = knob(
-        str, None,
-        sensitive=True,
+    dm_password = knob(
+        bases=client.ClientInstallInterface.dm_password,
         description="Directory Manager password",
-        cli_names='--dm-password',
-        cli_metavar='DM_PASSWORD',
     )
-    new_dm_password = master_install_only(new_dm_password)
-
-    @new_dm_password.validator
-    def new_dm_password(self, value):
-        validate_dm_password(value)
 
     ip_addresses = knob(
         bases=client.ClientInstallInterface.ip_addresses,
@@ -141,25 +116,6 @@ class ServerInstallInterface(client.ClientInstallInterface,
                    ['-P']),
     )
     principal = replica_install_only(principal)
-
-    admin_password = knob(
-        bases=client.ClientInstallInterface.admin_password,
-        description="Kerberos password for the specified admin principal",
-    )
-    admin_password = replica_install_only(admin_password)
-
-    new_admin_password = knob(
-        str, None,
-        sensitive=True,
-        description="admin user kerberos password",
-        cli_names='--admin-password',
-        cli_metavar='ADMIN_PASSWORD',
-    )
-    new_admin_password = master_install_only(new_admin_password)
-
-    @new_admin_password.validator
-    def new_admin_password(self, value):
-        validate_admin_password(value)
 
     master_password = knob(
         str, None,
@@ -459,14 +415,14 @@ class ServerInstallInterface(client.ClientInstallInterface,
                     "--external-ca")
 
             if self.uninstalling:
-                if (self.realm_name or self.new_admin_password or
+                if (self.realm_name or self.admin_password or
                         self.master_password):
                     raise RuntimeError(
                         "In uninstall mode, -a, -r and -P options are not "
                         "allowed")
             elif not self.interactive:
-                if (not self.realm_name or not self.new_dm_password or
-                        not self.new_admin_password):
+                if (not self.realm_name or not self.dm_password or
+                        not self.admin_password):
                     raise RuntimeError(
                         "In unattended mode you need to provide at least -r, "
                         "-p and -a options")
@@ -549,20 +505,48 @@ class ServerInstallInterface(client.ClientInstallInterface,
         self.no_pkinit = True
 
 
-class ServerMasterInstall(installs_master(ServerInstallInterface)):
+ServerMasterInstallInterface = installs_master(ServerInstallInterface)
+
+
+class ServerMasterInstall(ServerMasterInstallInterface):
     """
     Server master installer
     """
 
-    domain_name = None
     servers = None
-    dm_password = None
     no_wait_for_dns = True
-    admin_password = None
     host_password = None
     keytab = None
     setup_ca = True
     setup_kra = False
+
+    domain_name = knob(
+        bases=ServerMasterInstallInterface.domain_name,
+    )
+
+    @domain_name.validator
+    def domain_name(self, value):
+        if (self.setup_dns and
+                not self.allow_zone_overlap):
+            print("Checking DNS domain %s, please wait ..." % value)
+            check_zone_overlap(value, False)
+
+    dm_password = knob(
+        bases=ServerMasterInstallInterface.dm_password,
+    )
+
+    @dm_password.validator
+    def dm_password(self, value):
+        validate_dm_password(value)
+
+    admin_password = knob(
+        bases=ServerMasterInstallInterface.admin_password,
+        description="admin user kerberos password",
+    )
+
+    @admin_password.validator
+    def admin_password(self, value):
+        validate_admin_password(value)
 
     def __init__(self, **kwargs):
         super(ServerMasterInstall, self).__init__(**kwargs)
@@ -581,12 +565,20 @@ class ServerMasterInstall(installs_master(ServerInstallInterface)):
         uninstall(self)
 
 
-class ServerReplicaInstall(installs_replica(ServerInstallInterface)):
+ServerReplicaInstallInterface = installs_replica(ServerInstallInterface)
+
+
+class ServerReplicaInstall(ServerReplicaInstallInterface):
     """
     Server replica installer
     """
 
     subject = None
+
+    admin_password = knob(
+        bases=ServerReplicaInstallInterface.admin_password,
+        description="Kerberos password for the specified admin principal",
+    )
 
     def __init__(self, **kwargs):
         super(ServerReplicaInstall, self).__init__(**kwargs)

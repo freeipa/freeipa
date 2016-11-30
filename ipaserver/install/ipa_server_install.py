@@ -15,16 +15,16 @@ class CompatServerMasterInstall(ServerMasterInstall):
     no_sudo = False
     request_cert = False
 
-    new_dm_password = knob(
+    dm_password = knob(
         # pylint: disable=no-member
-        bases=ServerMasterInstall.new_dm_password,
+        bases=ServerMasterInstall.dm_password,
         cli_names=['--ds-password', '-p'],
     )
 
-    new_admin_password = knob(
+    admin_password = knob(
         # pylint: disable=no-member
-        bases=ServerMasterInstall.new_admin_password,
-        cli_names=(list(ServerMasterInstall.new_admin_password.cli_names) +
+        bases=ServerMasterInstall.admin_password,
+        cli_names=(list(ServerMasterInstall.admin_password.cli_names) +
                    ['-a']),
     )
 
