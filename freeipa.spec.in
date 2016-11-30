@@ -115,7 +115,7 @@ BuildRequires:  samba-python
 BuildRequires:  python-setuptools
 # 0.6: serialization.load_pem_private_key, load_pem_public_key
 BuildRequires:  python-cryptography >= 0.6
-BuildRequires:  python-gssapi
+BuildRequires:  python-gssapi >= 1.2.0
 BuildRequires:  pylint >= 1.0
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 BuildRequires:  python2-polib
@@ -187,7 +187,7 @@ Requires: mod_wsgi
 Requires: mod_auth_gssapi >= 1.4.0
 Requires: mod_nss >= 1.0.8-26
 Requires: python-ldap >= 2.4.15
-Requires: python-gssapi >= 1.1.2
+Requires: python-gssapi >= 1.2.0
 Requires: acl
 Requires: memcached
 Requires: python-memcached
@@ -250,7 +250,7 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipaclient = %{version}-%{release}
 Requires: python-ldap >= 2.4.15
 Requires: python-lxml
-Requires: python-gssapi >= 1.1.2
+Requires: python-gssapi >= 1.2.0
 Requires: python-sssdconfig
 Requires: python-pyasn1
 Requires: dbus-python
@@ -374,7 +374,7 @@ Requires: certmonger >= 0.78
 Requires: nss-tools
 Requires: bind-utils
 Requires: oddjob-mkhomedir
-Requires: python-gssapi >= 1.1.2
+Requires: python-gssapi >= 1.2.0
 Requires: libsss_autofs
 Requires: autofs
 Requires: libnfsidmap
@@ -505,7 +505,7 @@ Provides: python2-ipapython = %{version}-%{release}
 Provides: python2-ipaplatform = %{version}-%{release}
 %{?python_provide:%python_provide python2-ipaplatform}
 Requires: %{name}-common = %{version}-%{release}
-Requires: python-gssapi >= 1.1.2
+Requires: python-gssapi >= 1.2.0
 Requires: gnupg
 Requires: keyutils
 Requires: pyOpenSSL
@@ -554,7 +554,7 @@ Provides: python3-ipapython = %{version}-%{release}
 Provides: python3-ipaplatform = %{version}-%{release}
 %{?python_provide:%python_provide python3-ipaplatform}
 Requires: %{name}-common = %{version}-%{release}
-Requires: python3-gssapi >= 1.1.2
+Requires: python3-gssapi >= 1.2.0
 Requires: gnupg
 Requires: keyutils
 Requires: python3-pyOpenSSL
