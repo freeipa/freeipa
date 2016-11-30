@@ -54,7 +54,7 @@ if __name__ == '__main__':
             "six",
         ],
         extras_require={
-            "ipaclient.install": ["ipaplatform"],
+            "install": ["ipaplatform"],
             "otptoken_yubikey": ["yubico", "usb"]
         }
     )

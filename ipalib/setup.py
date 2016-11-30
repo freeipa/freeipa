@@ -48,6 +48,6 @@ if __name__ == '__main__':
             "wheel",
         ],
         extras_require={
-            "ipalib.install": ["ipaplatform"],
+            "install": ["ipaplatform"],
         },
     )
