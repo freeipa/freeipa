@@ -169,7 +169,7 @@ class config(LDAPObject):
         ),
         IA5Str('ipagroupsearchfields',
             cli_name='groupsearch',
-            label='Group search fields',
+            label=_('Group search fields'),
             doc=_('A comma-separated list of fields to search in when searching for groups'),
         ),
         Bool('ipamigrationenabled',
