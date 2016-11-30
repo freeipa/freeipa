@@ -30,6 +30,7 @@ import dbus
 import shlex
 import subprocess
 import tempfile
+from ipalib import api
 from ipapython.ipa_log_manager import root_logger
 from ipaplatform.paths import paths
 from ipaplatform import services
@@ -309,7 +310,7 @@ def request_and_wait_for_cert(
     reqId = request_cert(nssdb, nickname, subject, principal,
                          passwd_fname, dns, ca, profile,
                          pre_command, post_command)
-    state = wait_for_request(reqId, timeout=60)
+    state = wait_for_request(reqId, api.env.startup_timeout)
     ca_error = get_request_value(reqId, 'ca-error')
     if state != 'MONITORING' or ca_error:
         raise RuntimeError("Certificate issuance failed ({})".format(state))
