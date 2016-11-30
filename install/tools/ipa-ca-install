@@ -76,6 +76,11 @@ def parse_options():
                       help="Signing algorithm of the IPA CA certificate")
     parser.add_option("-P", "--principal", dest="principal", sensitive=True,
                       default=None, help="User allowed to manage replicas")
+    parser.add_option("--subject-base", dest="subject_base",
+                      default=None,
+                      help=(
+                          "The certificate subject base "
+                          "(default O=<realm-name>)"))
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -194,14 +199,13 @@ def install_master(safe_options, options):
         if dm_password is None:
             sys.exit("Directory Manager password required")
 
-    config = api.Command['config_show']()['result']
-    subject_base = config['ipacertificatesubjectbase'][0]
-
     options.realm_name = api.env.realm
     options.domain_name = api.env.domain
     options.dm_password = dm_password
     options.host_name = api.env.host
-    options.subject_base = subject_base
+
+    if not options.subject_base:
+        options.subject_base = installutils.default_subject_base(api.env.realm)
 
     ca.install_check(True, None, options)
     ca.install(True, None, options)

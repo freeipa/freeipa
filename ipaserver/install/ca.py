@@ -15,6 +15,7 @@ import six
 
 from ipalib.install import certstore
 from ipalib.install.service import enroll_only, master_install_only, replica_install_only
+from ipaserver.install import sysupgrade
 from ipapython.install import typing
 from ipapython.install.core import knob
 from ipaserver.install import (cainstance,
@@ -211,6 +212,13 @@ def install_step_0(standalone, replica_config, options):
         ra_p12 = os.path.join(replica_config.dir, 'ra.p12')
         ra_only = not replica_config.setup_ca
         promote = options.promote
+
+    # if upgrading from CA-less to CA-ful, need to rewrite
+    # subject_base configuration
+    #
+    set_subject_base_in_config(subject_base)
+    sysupgrade.set_upgrade_state(
+        'certmap.conf', 'subject_base', str(subject_base))
 
     ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
                                host_name=host_name)
