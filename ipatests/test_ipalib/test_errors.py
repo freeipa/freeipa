@@ -32,7 +32,6 @@ import six
 
 from ipatests.util import assert_equal, raises
 from ipalib import errors
-from ipaplatform.paths import paths
 from ipalib.constants import TYPE_ERROR
 
 if six.PY3:
@@ -115,10 +114,11 @@ class test_SubprocessError(PrivateExceptionTester):
         """
         Test the `ipalib.errors.SubprocessError.__init__` method.
         """
-        inst = self.new(returncode=1, argv=(paths.BIN_FALSE,))
+        bin_false = '/bin/false'
+        inst = self.new(returncode=1, argv=(bin_false,))
         assert inst.returncode == 1
-        assert inst.argv == (paths.BIN_FALSE,)
-        assert str(inst) == "return code 1 from ('/bin/false',)"
+        assert inst.argv == (bin_false,)
+        assert str(inst) == "return code 1 from ('{}',)".format(bin_false)
         assert inst.message == str(inst)
 
 
