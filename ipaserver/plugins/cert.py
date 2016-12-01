@@ -620,12 +620,6 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         except cryptography.x509.extensions.ExtensionNotFound:
             ext_san = None
 
-        # self-service and host principals may bypass SAN permission check
-        if (bind_principal_string != principal_string
-                and bind_principal_type != HOST):
-            if ext_san is not None:
-                self.check_access('request certificate with subjectaltname')
-
         dn = None
         principal_obj = None
         # See if the service exists and punt if it doesn't and we aren't

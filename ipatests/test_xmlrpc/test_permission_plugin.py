@@ -3125,7 +3125,7 @@ def check_legacy_results(results):
     legacy_permissions = [p for p in results
                           if not p.get('ipapermissiontype')]
     print(legacy_permissions)
-    assert len(legacy_permissions) == 9, len(legacy_permissions)
+    assert len(legacy_permissions) == 8, len(legacy_permissions)
     return True
 
 

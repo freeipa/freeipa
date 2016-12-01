@@ -133,21 +133,6 @@ default:objectClass: top
 default:objectClass: nsContainer
 default:cn: certificate remove hold
 
-dn: cn=request certificate with subjectaltname,cn=virtual operations,cn=etc,$SUFFIX
-default:objectClass: top
-default:objectClass: nsContainer
-default:cn: request certificate with subjectaltname
-
-dn: cn=Request Certificate with SubjectAltName,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: top
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:cn: Request Certificate with SubjectAltName
-default:member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: $SUFFIX
-add:aci:(targetattr = "objectclass")(target = "ldap:///cn=request certificate with subjectaltname,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0; acl "permission:Request Certificate with SubjectAltName"; allow (write) groupdn = "ldap:///cn=Request Certificate with SubjectAltName,cn=permissions,cn=pbac,$SUFFIX";)
-
 dn: cn=request certificate ignore caacl,cn=virtual operations,cn=etc,$SUFFIX
 default:objectClass: top
 default:objectClass: nsContainer
