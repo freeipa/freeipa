@@ -185,9 +185,6 @@ class PlatformService(object):
     def remove(self, instance_name=""):
         return
 
-    def get_config_dir(self, instance_name=""):
-        return
-
 
 class SystemdService(PlatformService):
     SYSTEMD_SRV_TARGET = "%s.target.wants"

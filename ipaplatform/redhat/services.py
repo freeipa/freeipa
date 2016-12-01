@@ -186,11 +186,6 @@ class RedHatIPAService(RedHatService):
         self.restart(instance_name)
 
 
-class RedHatSSHService(RedHatService):
-    def get_config_dir(self, instance_name=""):
-        return '/etc/ssh'
-
-
 class RedHatCAService(RedHatService):
     def wait_until_running(self):
         root_logger.debug('Waiting until the CA is running')
@@ -248,8 +243,6 @@ def redhat_service_class_factory(name, api=None):
         return RedHatDirectoryService(name, api)
     if name == 'ipa':
         return RedHatIPAService(name, api)
-    if name == 'sshd':
-        return RedHatSSHService(name, api)
     if name in ('pki-tomcatd', 'pki_tomcatd'):
         return RedHatCAService(name, api)
     return RedHatService(name, api)

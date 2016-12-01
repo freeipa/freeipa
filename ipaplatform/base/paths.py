@@ -99,6 +99,7 @@ class BasePathNamespace(object):
     SAMBA_KEYTAB = "/etc/samba/samba.keytab"
     SMB_CONF = "/etc/samba/smb.conf"
     LIMITS_CONF = "/etc/security/limits.conf"
+    SSH_CONFIG_DIR = "/etc/ssh"
     SSH_CONFIG = "/etc/ssh/ssh_config"
     SSHD_CONFIG = "/etc/ssh/sshd_config"
     SSSD_CONF = "/etc/sssd/sssd.conf"

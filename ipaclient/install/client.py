@@ -845,13 +845,9 @@ def configure_sssd_conf(
         sssdconfig.new_config()
         domain = sssdconfig.new_domain(cli_domain)
 
-    ssh_dir = services.knownservices.sshd.get_config_dir()
-    ssh_config = os.path.join(ssh_dir, 'ssh_config')
-    sshd_config = os.path.join(ssh_dir, 'sshd_config')
-
     if (
-        (options.conf_ssh and file_exists(ssh_config)) or
-        (options.conf_sshd and file_exists(sshd_config))
+        (options.conf_ssh and file_exists(paths.SSH_CONFIG)) or
+        (options.conf_sshd and file_exists(paths.SSHD_CONFIG))
     ):
         try:
             sssdconfig.new_service('ssh')
@@ -1006,14 +1002,12 @@ def change_ssh_config(filename, changes, sections):
 
 
 def configure_ssh_config(fstore, options):
-    ssh_dir = services.knownservices.sshd.get_config_dir()
-    ssh_config = os.path.join(ssh_dir, 'ssh_config')
-
-    if not file_exists(ssh_config):
-        root_logger.info("%s not found, skipping configuration", ssh_config)
+    if not file_exists(paths.SSH_CONFIG):
+        root_logger.info("%s not found, skipping configuration",
+                         paths.SSH_CONFIG)
         return
 
-    fstore.backup_file(ssh_config)
+    fstore.backup_file(paths.SSH_CONFIG)
 
     changes = {'PubkeyAuthentication': 'yes'}
 
@@ -1025,20 +1019,19 @@ def configure_ssh_config(fstore, options):
         changes['VerifyHostKeyDNS'] = 'yes'
         changes['HostKeyAlgorithms'] = 'ssh-rsa,ssh-dss'
 
-    change_ssh_config(ssh_config, changes, ['Host', 'Match'])
-    root_logger.info('Configured %s', ssh_config)
+    change_ssh_config(paths.SSH_CONFIG, changes, ['Host', 'Match'])
+    root_logger.info('Configured %s', paths.SSH_CONFIG)
 
 
 def configure_sshd_config(fstore, options):
     sshd = services.knownservices.sshd
-    ssh_dir = sshd.get_config_dir()
-    sshd_config = os.path.join(ssh_dir, 'sshd_config')
 
-    if not file_exists(sshd_config):
-        root_logger.info("%s not found, skipping configuration", sshd_config)
+    if not file_exists(paths.SSHD_CONFIG):
+        root_logger.info("%s not found, skipping configuration",
+                         paths.SSHD_CONFIG)
         return
 
-    fstore.backup_file(sshd_config)
+    fstore.backup_file(paths.SSHD_CONFIG)
 
     changes = {
         'PubkeyAuthentication': 'yes',
@@ -1085,8 +1078,8 @@ def configure_sshd_config(fstore, options):
                 "loading authorized user keys. Public key authentication of "
                 "IPA users will not be available.")
 
-    change_ssh_config(sshd_config, changes, ['Match'])
-    root_logger.info('Configured %s', sshd_config)
+    change_ssh_config(paths.SSHD_CONFIG, changes, ['Match'])
+    root_logger.info('Configured %s', paths.SSHD_CONFIG)
 
     if sshd.is_running():
         try:
@@ -2787,8 +2780,7 @@ def _install(options):
         configure_certmonger(fstore, subject_base, cli_realm, hostname,
                              options, ca_enabled)
 
-    update_ssh_keys(hostname, services.knownservices.sshd.get_config_dir(),
-                    options.create_sshfp)
+    update_ssh_keys(hostname, paths.SSH_CONFIG_DIR, options.create_sshfp)
 
     try:
         os.remove(CCACHE_FILE)
@@ -3115,10 +3107,7 @@ def uninstall(options):
     was_sshd_configured = False
     if fstore.has_files():
         was_sssd_installed = fstore.has_file(paths.SSSD_CONF)
-
-        sshd_config = os.path.join(
-            services.knownservices.sshd.get_config_dir(), "sshd_config")
-        was_sshd_configured = fstore.has_file(sshd_config)
+        was_sshd_configured = fstore.has_file(paths.SSHD_CONFIG)
     try:
         tasks.restore_pre_ipa_client_configuration(fstore,
                                                    statestore,
