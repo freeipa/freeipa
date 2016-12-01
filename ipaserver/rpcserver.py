@@ -53,9 +53,6 @@ from ipalib.rpc import (xml_dumps, xml_loads,
 from ipalib.util import normalize_name
 from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
-from ipaserver.session import (
-    get_ipa_ccache_name,
-    krbccache_dir, krbccache_prefix)
 from ipalib.backend import Backend
 from ipalib.krb_utils import (
     krb5_format_principal_name,
@@ -913,7 +910,13 @@ class login_password(Backend, KerberosSession):
             return self.bad_request(environ, start_response, "no password specified")
 
         # Get the ccache we'll use and attempt to get credentials in it with user,password
-        ipa_ccache_name = get_ipa_ccache_name()
+        ipa_ccache_name = os.path.join(paths.IPA_CCACHES,
+                                       'kinit_{}'.format(os.getpid()))
+        try:
+            # try to remove in case an old file was there
+            os.unlink(ipa_ccache_name)
+        except OSError:
+            pass
         try:
             self.kinit(user, self.api.env.realm, password, ipa_ccache_name)
         except PasswordExpired as e:
@@ -931,15 +934,23 @@ class login_password(Backend, KerberosSession):
                                      str(e),
                                      'user-locked')
 
-        return self.finalize_kerberos_acquisition('login_password', ipa_ccache_name, environ, start_response)
+        result = self.finalize_kerberos_acquisition('login_password',
+                                                    ipa_ccache_name, environ,
+                                                    start_response)
+        try:
+            # Try not to litter the filesystem with unused TGTs
+            os.unlink(ipa_ccache_name)
+        except OSError:
+            pass
+        return result
 
     def kinit(self, user, realm, password, ccache_name):
         # get http service ccache as an armor for FAST to enable OTP authentication
         armor_principal = str(krb5_format_service_principal_name(
             'HTTP', self.api.env.host, realm))
         keytab = paths.IPA_KEYTAB
-        armor_name = "%sA_%s" % (krbccache_prefix, user)
-        armor_path = os.path.join(krbccache_dir, armor_name)
+        armor_path = os.path.join(paths.IPA_CCACHES,
+                                  "armor_{}".format(os.getpid()))
 
         self.debug('Obtaining armor ccache: principal=%s keytab=%s ccache=%s',
                    armor_principal, keytab, armor_path)

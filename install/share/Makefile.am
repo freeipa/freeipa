@@ -88,6 +88,7 @@ dist_app_DATA =				\
 	kdcproxy-disable.uldif		\
 	ipa-httpd.conf.template		\
 	gssapi.login			\
+	ipa.conf.tmpfiles		\
 	$(NULL)
 
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy

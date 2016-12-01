@@ -243,6 +243,14 @@ class BaseTaskNamespace(object):
         """
         raise NotImplementedError()
 
+    def configure_tmpfiles(self):
+        """Configure tmpfiles to be created at boot"""
+        raise NotImplementedError()
+
+    def create_tmpfiles_dirs(self):
+        """Create run dirs for the install phase"""
+        raise NotImplementedError()
+
     def configure_httpd_service_ipa_conf(self):
         """Configure httpd service to work with IPA"""
         raise NotImplementedError()

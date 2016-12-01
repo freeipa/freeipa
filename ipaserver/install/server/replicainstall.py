@@ -1300,6 +1300,9 @@ def install(installer):
     conn = remote_api.Backend.ldap2
     ccache = os.environ['KRB5CCNAME']
 
+    # Make sure tmpfiles dir exist before installing components
+    tasks.create_tmpfiles_dirs()
+
     if promote:
         if installer._add_to_ipaservers:
             try:

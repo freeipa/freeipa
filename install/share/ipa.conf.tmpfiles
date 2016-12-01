@@ -1,0 +1,2 @@
+d /var/run/ipa 0700 root root
+d /var/run/ipa/ccaches 0700 apache apache

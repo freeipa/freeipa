@@ -713,6 +713,9 @@ def install(installer):
     if installer._update_hosts_file:
         update_hosts_file(ip_addresses, host_name, fstore)
 
+    # Make sure tmpfiles dir exist before installing components
+    tasks.create_tmpfiles_dirs()
+
     http_instance = httpinstance.HTTPInstance()
     http_instance.create_cert_db()
 
@@ -881,6 +884,9 @@ def install(installer):
         print()
     except Exception:
         raise ScriptError("Configuration of client side components failed!")
+
+    # Make sure the files we crated in /var/run are recreated at startup
+    tasks.configure_tmpfiles()
 
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()

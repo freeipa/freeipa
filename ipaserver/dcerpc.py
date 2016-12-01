@@ -51,7 +51,6 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
 from cryptography.hazmat.backends import default_backend
 import ldap as _ldap
 from ipapython import ipaldap
-from ipaserver.session import krbccache_dir, krbccache_prefix
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 import pysss_nss_idmap
@@ -639,8 +638,8 @@ class DomainValidator(object):
         Initializes ccache with http service credentials.
 
         Applies session code defaults for ccache directory and naming prefix.
-        Session code uses krbccache_prefix+<pid>, we use
-        krbccache_prefix+<TD>+<domain netbios name> so there is no clash.
+        Session code uses kinit_+<pid>, we use
+        kinit_+<TD>+<domain netbios name> so there is no clash.
 
         Returns tuple (ccache path, principal) where (None, None) signifes an
         error on ccache initialization
@@ -648,8 +647,8 @@ class DomainValidator(object):
 
         domain_suffix = domain.replace('.', '-')
 
-        ccache_name = "%sTD%s" % (krbccache_prefix, domain_suffix)
-        ccache_path = os.path.join(krbccache_dir, ccache_name)
+        ccache_name = "kinit_TD%s" % (domain_suffix)
+        ccache_path = os.path.join(paths.IPA_CCACHES, ccache_name)
 
         realm = api.env.realm
         hostname = api.env.host
@@ -683,8 +682,8 @@ class DomainValidator(object):
         Initializes ccache with http service credentials.
 
         Applies session code defaults for ccache directory and naming prefix.
-        Session code uses krbccache_prefix+<pid>, we use
-        krbccache_prefix+<TD>+<domain netbios name> so there is no clash.
+        Session code uses kinit_+<pid>, we use
+        kinit_+<TD>+<domain netbios name> so there is no clash.
 
         Returns tuple (ccache path, principal) where (None, None) signifes an
         error on ccache initialization
@@ -695,8 +694,8 @@ class DomainValidator(object):
 
         domain_suffix = domain.replace('.', '-')
 
-        ccache_name = "%sTDA%s" % (krbccache_prefix, domain_suffix)
-        ccache_path = os.path.join(krbccache_dir, ccache_name)
+        ccache_name = "kinit_TDA%s" % (domain_suffix)
+        ccache_path = os.path.join(paths.IPA_CCACHES, ccache_name)
 
         (principal, password) = self._admin_creds.split('%', 1)
 

@@ -523,7 +523,6 @@ AC_CONFIG_FILES([
     daemons/ipa-slapi-plugins/ipa-range-check/Makefile
     daemons/ipa-slapi-plugins/topology/Makefile
     init/systemd/Makefile
-    init/tmpfilesd/Makefile
     init/Makefile
     install/Makefile
     install/certmonger/Makefile
