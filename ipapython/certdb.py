@@ -32,14 +32,16 @@ from ipapython import ipautil
 from ipalib import x509
 
 try:
-    from ipaplatform.paths import paths
-    CERTUTIL = paths.CERTUTIL
-    PK12UTIL = paths.PK12UTIL
-    OPENSSL = paths.OPENSSL
+    from ipaplatform.paths import paths  # pylint: disable=import-error
 except ImportError:
     CERTUTIL = '/usr/bin/certutil'
     PK12UTIL = '/usr/bin/pk12util'
     OPENSSL = '/usr/bin/openssl'
+else:
+    CERTUTIL = paths.CERTUTIL
+    PK12UTIL = paths.PK12UTIL
+    OPENSSL = paths.OPENSSL
+
 
 CA_NICKNAME_FMT = "%s IPA CA"
 
