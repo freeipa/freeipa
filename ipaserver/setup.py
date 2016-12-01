@@ -68,9 +68,6 @@ if __name__ == '__main__':
             # "python-SSSDConfig",
             # "samba-python",
         ],
-        setup_requires=[
-            "wheel",
-        ],
         entry_points={
             'custodia.authorizers': [
                 'IPAKEMKeys = ipaserver.secrets.kem:IPAKEMKeys',

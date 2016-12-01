@@ -44,9 +44,6 @@ if __name__ == '__main__':
             "python-nss",
             "six",
         ],
-        setup_requires=[
-            "wheel",
-        ],
         extras_require={
             "install": ["ipaplatform"],
         },
