@@ -1,4 +1,0 @@
-d @localstatedir@/run/ipa 0700 root root
-d @localstatedir@/run/httpd/ipa 0700 apache apache
-d @localstatedir@/run/httpd/ipa/clientcaches 0700 apache apache
-d @localstatedir@/run/httpd/ipa/krbcache 0700 apache apache

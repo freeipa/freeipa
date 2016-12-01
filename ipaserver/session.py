@@ -21,23 +21,7 @@ import os
 from ipalib.request import context
 from ipalib.krb_utils import (
     krb5_parse_ccache,
-    krb5_unparse_ccache
 )
-from ipaplatform.paths import paths
-
-
-krbccache_dir = paths.IPA_HTTPD_DIR
-krbccache_prefix = 'krbcc_'
-
-
-def get_ipa_ccache_name(scheme='FILE'):
-    if scheme == 'FILE':
-        name = os.path.join(krbccache_dir, '%s%s' % (krbccache_prefix, os.getpid()))
-    else:
-        raise ValueError('ccache scheme "%s" unsupported', scheme)
-
-    ccache_name = krb5_unparse_ccache(scheme, name)
-    return ccache_name
 
 
 def logout(ccache_name=None):

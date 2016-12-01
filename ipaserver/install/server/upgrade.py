@@ -1795,6 +1795,10 @@ def upgrade_check(options):
 
 
 def upgrade():
+    # Do this early so that any code depending on these dirs will not fail
+    tasks.create_tmpfiles_dirs()
+    tasks.configure_tmpfiles()
+
     realm = api.env.realm
     schema_files = [os.path.join(paths.USR_SHARE_IPA_DIR, f) for f
                     in dsinstance.ALL_SCHEMA_FILES]
