@@ -27,7 +27,7 @@ class UserTracker(KerberosAliasMixin, Tracker):
         u'telephonenumber', u'title', u'memberof', u'nsaccountlock',
         u'memberofindirect', u'ipauserauthtype', u'userclass',
         u'ipatokenradiusconfiglink', u'ipatokenradiususername',
-        u'krbprincipalexpiration', u'usercertificate;binary',
+        u'krbprincipalexpiration', u'usercertificate',
         u'has_keytab', u'has_password', u'memberof_group', u'sshpubkeyfp',
         u'krbcanonicalname', 'krbprincipalname'
     }

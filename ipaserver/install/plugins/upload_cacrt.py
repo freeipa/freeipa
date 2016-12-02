@@ -89,11 +89,11 @@ class update_upload_cacrt(Updater):
                 entry = ldap.make_entry(dn)
                 entry['objectclass'] = ['nsContainer', 'pkiCA']
                 entry.single_value['cn'] = 'CAcert'
-                entry.single_value['cACertificate;binary'] = ca_cert
+                entry.single_value['cACertificate'] = ca_cert
                 ldap.add_entry(entry)
             else:
-                if b'' in entry['cACertificate;binary']:
-                    entry.single_value['cACertificate;binary'] = ca_cert
+                if b'' in entry['cACertificate']:
+                    entry.single_value['cACertificate'] = ca_cert
                     ldap.update_entry(entry)
 
         return False, []

@@ -68,7 +68,7 @@ def init_ca_entry(entry, dercert, nickname, trusted, ext_key_usage):
     entry['ipaCertSubject'] = [subject]
     entry['ipaCertIssuerSerial'] = [issuer_serial]
     entry['ipaPublicKey'] = [public_key]
-    entry['cACertificate;binary'] = [dercert]
+    entry['cACertificate'] = [dercert]
 
     if trusted is not None:
         entry['ipaKeyTrust'] = ['trusted' if trusted else 'distrusted']
@@ -85,14 +85,14 @@ def update_compat_ca(ldap, base_dn, dercert):
     """
     dn = DN(('cn', 'CAcert'), ('cn', 'ipa'), ('cn', 'etc'), base_dn)
     try:
-        entry = ldap.get_entry(dn, attrs_list=['cACertificate;binary'])
-        entry.single_value['cACertificate;binary'] = dercert
+        entry = ldap.get_entry(dn, attrs_list=['cACertificate'])
+        entry.single_value['cACertificate'] = dercert
         ldap.update_entry(entry)
     except errors.NotFound:
         entry = ldap.make_entry(dn)
         entry['objectClass'] = ['nsContainer', 'pkiCA']
         entry.single_value['cn'] = 'CAcert'
-        entry.single_value['cACertificate;binary'] = dercert
+        entry.single_value['cACertificate'] = dercert
         ldap.add_entry(entry)
     except errors.EmptyModlist:
         pass
@@ -166,11 +166,11 @@ def update_ca_cert(ldap, base_dn, dercert, trusted=None, ext_key_usage=None,
         filter=filter,
         attrs_list=['cn', 'ipaCertSubject', 'ipaCertIssuerSerial',
                     'ipaPublicKey', 'ipaKeyTrust', 'ipaKeyExtUsage',
-                    'ipaConfigString', 'cACertificate;binary'])
+                    'ipaConfigString', 'cACertificate'])
     entry = result[0]
     dn = entry.dn
 
-    for old_cert in entry['cACertificate;binary']:
+    for old_cert in entry['cACertificate']:
         # Check if we are adding a new cert
         if old_cert == dercert:
             break
@@ -181,7 +181,7 @@ def update_ca_cert(ldap, base_dn, dercert, trusted=None, ext_key_usage=None,
         if entry.single_value['ipaPublicKey'] != public_key:
             raise ValueError("subject public key info mismatch")
         entry['ipaCertIssuerSerial'].append(issuer_serial)
-        entry['cACertificate;binary'].append(dercert)
+        entry['cACertificate'].append(dercert)
 
     # Update key trust
     if trusted is not None:
@@ -288,7 +288,7 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
             filter=ldap.combine_filters(filters, ldap.MATCH_ALL),
             attrs_list=['cn', 'ipaCertSubject', 'ipaCertIssuerSerial',
                         'ipaPublicKey', 'ipaKeyTrust', 'ipaKeyExtUsage',
-                        'cACertificate;binary'])
+                        'cACertificate'])
 
         for entry in result:
             nickname = entry.single_value['cn']
@@ -304,7 +304,7 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
                 ext_key_usage = set(str(p) for p in ext_key_usage)
                 ext_key_usage.discard(x509.EKU_PLACEHOLDER)
 
-            for cert in entry.get('cACertificate;binary', []):
+            for cert in entry.get('cACertificate', []):
                 try:
                     _parse_cert(cert)
                 except ValueError:
@@ -317,9 +317,9 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
         except errors.NotFound:
             # Fallback to cn=CAcert,cn=ipa,cn=etc,SUFFIX
             dn = DN(('cn', 'CAcert'), config_dn)
-            entry = ldap.get_entry(dn, ['cACertificate;binary'])
+            entry = ldap.get_entry(dn, ['cACertificate'])
 
-            cert = entry.single_value['cACertificate;binary']
+            cert = entry.single_value['cACertificate']
             try:
                 subject, _issuer_serial, _public_key_info = _parse_cert(cert)
             except ValueError:

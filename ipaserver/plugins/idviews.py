@@ -835,7 +835,7 @@ class idoverrideuser(baseidoverride):
     possible_objectclasses = ['ipasshuser', 'ipaSshGroupOfPubKeys']
     default_attributes = baseidoverride.default_attributes + [
        'homeDirectory', 'uidNumber', 'uid', 'ipaOriginalUid', 'loginShell',
-       'ipaSshPubkey', 'gidNumber', 'gecos', 'usercertificate;binary',
+       'ipaSshPubkey', 'gidNumber', 'gecos', 'usercertificate',
     ]
 
     search_display_attributes = baseidoverride.default_attributes + [
@@ -907,17 +907,6 @@ class idoverrideuser(baseidoverride):
             # we have no way to update the original_uid
             pass
 
-    def convert_usercertificate_pre(self, entry_attrs):
-        if 'usercertificate' in entry_attrs:
-            entry_attrs['usercertificate;binary'] = entry_attrs.pop(
-                'usercertificate')
-
-    def convert_usercertificate_post(self, entry_attrs, **options):
-        if 'usercertificate;binary' in entry_attrs:
-            entry_attrs['usercertificate'] = entry_attrs.pop(
-                'usercertificate;binary')
-
-
 
 @register()
 class idoverridegroup(baseidoverride):
@@ -974,16 +963,8 @@ class idoverrideuser_add_cert(LDAPAddAttributeViaOption):
     takes_options = LDAPAddAttributeViaOption.takes_options + (
         fallback_to_ldap_option,)
 
-    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
-                     **options):
-        dn = self.obj.get_dn(*keys, **options)
-        self.obj.convert_usercertificate_pre(entry_attrs)
-
-        return dn
-
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.obj.convert_usercertificate_post(entry_attrs, **options)
         self.obj.convert_anchor_to_human_readable_form(entry_attrs, **options)
         return dn
 
@@ -997,16 +978,8 @@ class idoverrideuser_remove_cert(LDAPRemoveAttributeViaOption):
     takes_options = LDAPRemoveAttributeViaOption.takes_options + (
         fallback_to_ldap_option,)
 
-    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
-                     **options):
-        dn = self.obj.get_dn(*keys, **options)
-        self.obj.convert_usercertificate_pre(entry_attrs)
-
-        return dn
-
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.obj.convert_usercertificate_post(entry_attrs, **options)
         self.obj.convert_anchor_to_human_readable_form(entry_attrs, **options)
 
         return dn
@@ -1022,7 +995,6 @@ class idoverrideuser_add(baseidoverride_add):
                  entry_attrs, attrs_list, *keys, **options)
 
         entry_attrs['objectclass'].append('ipasshuser')
-        self.obj.convert_usercertificate_pre(entry_attrs)
 
         # Update the ipaOriginalUid
         self.obj.update_original_uid_reference(entry_attrs)
@@ -1032,7 +1004,6 @@ class idoverrideuser_add(baseidoverride_add):
         dn = super(idoverrideuser_add, self).post_callback(ldap, dn,
                  entry_attrs, *keys, **options)
         convert_sshpubkey_post(entry_attrs)
-        self.obj.convert_usercertificate_post(entry_attrs, **options)
         return dn
 
 
@@ -1064,14 +1035,12 @@ class idoverrideuser_mod(baseidoverride_mod):
         if 'ipasshpubkey' in entry_attrs and 'ipasshuser' not in obj_classes:
             obj_classes.append('ipasshuser')
 
-        self.obj.convert_usercertificate_pre(entry_attrs)
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         dn = super(idoverrideuser_mod, self).post_callback(ldap, dn,
                  entry_attrs, *keys, **options)
         convert_sshpubkey_post(entry_attrs)
-        self.obj.convert_usercertificate_post(entry_attrs, **options)
         return dn
 
 
@@ -1086,7 +1055,6 @@ class idoverrideuser_find(baseidoverride_find):
             ldap, entries, truncated, *args, **options)
         for entry in entries:
             convert_sshpubkey_post(entry)
-            self.obj.convert_usercertificate_post(entry, **options)
         return truncated
 
 
@@ -1098,7 +1066,6 @@ class idoverrideuser_show(baseidoverride_show):
         dn = super(idoverrideuser_show, self).post_callback(ldap, dn,
                  entry_attrs, *keys, **options)
         convert_sshpubkey_post(entry_attrs)
-        self.obj.convert_usercertificate_post(entry_attrs, **options)
         return dn
 
 
