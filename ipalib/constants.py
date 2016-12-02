@@ -276,3 +276,6 @@ RENEWAL_CA_NAME = 'dogtag-ipa-ca-renew-agent'
 
 # regexp definitions
 PATTERN_GROUPUSER_NAME = '^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*[a-zA-Z0-9_.$-]?$'
+
+# Kerberos Anonymous principal name
+ANON_USER = 'WELLKNOWN/ANONYMOUS'

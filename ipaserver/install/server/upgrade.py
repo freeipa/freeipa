@@ -1757,6 +1757,7 @@ def upgrade_configuration():
             krb.stop()
         krb.start()
     enable_anonymous_principal(krb)
+    http.request_anon_keytab()
 
     if not ds_running:
         ds.stop(ds_serverid)

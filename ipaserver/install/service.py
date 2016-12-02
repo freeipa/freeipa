@@ -539,7 +539,7 @@ class Service(object):
         except errors.DuplicateEntry:
             pass
 
-    def _run_getkeytab(self):
+    def run_getkeytab(self, ldap_uri, keytab, principal, retrieve=False):
         """
         backup and remove old service keytab (if present) and fetch a new one
         using ipa-getkeytab. This assumes that the service principal is already
@@ -549,16 +549,15 @@ class Service(object):
             * self.dm_password is not none, then DM credentials are used to
               fetch keytab
         """
-        self.fstore.backup_file(self.keytab)
+        self.fstore.backup_file(keytab)
         try:
-            os.unlink(self.keytab)
+            os.unlink(keytab)
         except OSError:
             pass
 
-        ldap_uri = self.api.env.ldap_uri
         args = [paths.IPA_GETKEYTAB,
-                '-k', self.keytab,
-                '-p', self.principal,
+                '-k', keytab,
+                '-p', principal,
                 '-H', ldap_uri]
         nolog = tuple()
 
@@ -570,6 +569,9 @@ class Service(object):
                  '-w', self.dm_password])
             nolog += (self.dm_password,)
 
+        if retrieve:
+            args.extend(['-r'])
+
         ipautil.run(args, nolog=nolog)
 
     def _request_service_keytab(self):
@@ -580,7 +582,7 @@ class Service(object):
                 "name, keytab, and username")
 
         self._add_service_principal()
-        self._run_getkeytab()
+        self.run_getkeytab(self.api.env.ldap_uri, self.keytab, self.principal)
 
         pent = pwd.getpwnam(self.service_user)
         os.chown(self.keytab, pent.pw_uid, pent.pw_gid)

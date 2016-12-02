@@ -7,6 +7,7 @@ import time
 
 import gssapi
 
+from ipalib.constants import ANON_USER
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import run
@@ -61,7 +62,6 @@ def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
             else:
                 os.environ.pop('KRB5_CONFIG', None)
 
-
 def kinit_password(principal, password, ccache_name, config=None,
                    armor_ccache_name=None, canonicalize=False,
                    enterprise=False):
@@ -95,3 +95,31 @@ def kinit_password(principal, password, ccache_name, config=None,
                  capture_error=True)
     if result.returncode:
         raise RuntimeError(result.error_output)
+
+
+def kinit_armor(ccache_name):
+    """
+    perform kinit to obtain anonymous ticket to be used as armor for FAST.
+    """
+    root_logger.debug("Initializing anonymous ccache")
+
+    env = {'LC_ALL': 'C'}
+    # try with the keytab first and then again fallback to try with pkinit in
+    # case someone decided it is fun to remove Anonymous keys from the entry
+    # or in future pkinit enabled principal enforce the use of pkinit
+    try:
+        # Gssapi does not understand anonymous cred use kinit command instead
+        args = [paths.KINIT, '-k', '-t', paths.ANON_KEYTAB,
+                ANON_USER, '-c', ccache_name]
+        run(args, env=env, raiseonerr=True, capture_error=True)
+        return
+    except Exception as e:
+        root_logger.debug("Failed to init Anonymous keytab: %s", e,
+                          exc_info=True)
+
+    root_logger.debug("Fallback to slower Anonymous PKINIT")
+    args = [paths.KINIT, '-n', '-c', ccache_name]
+
+    # this workaround enables us to capture stderr and put it
+    # into the raised exception in case of unsuccessful authentication
+    run(args, env=env, raiseonerr=True, capture_error=True)

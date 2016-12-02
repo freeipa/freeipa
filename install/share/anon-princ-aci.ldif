@@ -1,0 +1,10 @@
+dn: krbPrincipalName=WELLKNOWN/ANONYMOUS@$REALM,cn=$REALM,cn=kerberos,$SUFFIX
+changetype: modify
+add: objectclass
+objectclass: ipaAllowedOperations
+-
+add: aci
+aci: (targetattr="ipaProtectedOperation;read_keys")(version 3.0; acl "Allow to retrieve keytab keys of the anonymous user"; allow(read) userattr="ipaAllowedToPerform;read_keys#GROUPDN";)
+-
+add: ipaAllowedToPerform;read_keys
+ipaAllowedToPerform;read_keys: cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX

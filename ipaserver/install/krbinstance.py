@@ -33,6 +33,7 @@ from ipaserver.install import installutils
 from ipapython import ipautil
 from ipapython import kernel_keyring
 from ipalib import api
+from ipalib.constants import ANON_USER
 from ipalib.install import certmonger
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
@@ -381,13 +382,13 @@ class KrbInstance(service.Service):
         shutil.copyfile(paths.IPA_CA_CRT, paths.CACERT_PEM)
 
     def get_anonymous_principal_name(self):
-        princ = "WELLKNOWN/ANONYMOUS"
-        return "%s@%s" % (princ, self.realm)
+        return "%s@%s" % (ANON_USER, self.realm)
 
     def add_anonymous_principal(self):
         # Create the special anonymous principal
         princ_realm = self.get_anonymous_principal_name()
         installutils.kadmin_addprinc(princ_realm)
+        self._ldap_mod("anon-princ-aci.ldif", self.sub_dict)
 
     def __convert_to_gssapi_replication(self):
         repl = replication.ReplicationManager(self.realm,
