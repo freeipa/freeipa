@@ -147,3 +147,9 @@ add:aci: (target = "ldap:///cn=*/($$dn),cn=dogtag,cn=custodia,cn=ipa,cn=etc,$SUF
 
 # Dogtag service principals can search Custodia keys
 add:aci: (target = "ldap:///cn=*,cn=custodia,cn=ipa,cn=etc,$SUFFIX")(targetattr = "ipaPublicKey || ipaKeyUsage || memberPrincipal")(version 3.0; acl "Dogtag service principals can search Custodia keys"; allow(read, search, compare) userdn = "ldap:///krbprincipalname=dogtag/*@$REALM,cn=services,cn=accounts,$SUFFIX";)
+
+# Anonymous Principal key retrieval
+dn: krbPrincipalName=WELLKNOWN/ANONYMOUS@$REALM,cn=$REALM,cn=kerberos,$SUFFIX
+addifexist: objectclass: ipaAllowedOperations
+addifexist: aci: (targetattr="ipaProtectedOperation;read_keys")(version 3.0; acl "Allow to retrieve keytab keys of the anonymous user"; allow(read) userattr="ipaAllowedToPerform;read_keys#GROUPDN";)
+addifexist: ipaAllowedToPerform;read_keys: cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX

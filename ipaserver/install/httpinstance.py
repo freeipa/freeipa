@@ -43,6 +43,7 @@ import ipapython.errors
 from ipaserver.install import sysupgrade
 from ipalib import api
 from ipalib import errors
+from ipalib.constants import ANON_USER
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
@@ -167,6 +168,7 @@ class HTTPInstance(service.Service):
         self.step("adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
         self.step("setting up httpd keytab", self._request_service_keytab)
+        self.step("retrieving anonymous keytab", self.request_anon_keytab)
         self.step("setting up ssl", self.__setup_ssl)
         if self.ca_is_configured:
             self.step("configure certmonger for renewals",
@@ -332,6 +334,17 @@ class HTTPInstance(service.Service):
             os.chmod(nss_path, 0o640)
             os.chown(nss_path, 0, pent.pw_gid)
             tasks.restore_context(nss_path)
+
+    def request_anon_keytab(self):
+        parent = os.path.dirname(paths.ANON_KEYTAB)
+        if not os.path.exists(parent):
+            os.makedirs(parent, 0o755)
+        self.run_getkeytab(self.api.env.ldap_uri, paths.ANON_KEYTAB, ANON_USER)
+
+        pent = pwd.getpwnam(self.service_user)
+        os.chmod(parent, 0o700)
+        os.chown(parent, pent.pw_uid, pent.pw_gid)
+        os.chown(paths.ANON_KEYTAB, pent.pw_uid, pent.pw_gid)
 
     def __setup_ssl(self):
         db = certs.CertDB(self.realm, subject_base=self.subject_base)

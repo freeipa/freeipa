@@ -42,7 +42,7 @@ from six.moves.xmlrpc_client import Fault
 from ipalib import plugable, errors
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib.frontend import Local
-from ipalib.install.kinit import kinit_keytab, kinit_password
+from ipalib.install.kinit import kinit_armor, kinit_password
 from ipalib.backend import Executioner
 from ipalib.errors import (PublicError, InternalError, JSONError,
     CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError,
@@ -56,7 +56,7 @@ from ipaserver.plugins.ldap2 import ldap2
 from ipalib.backend import Backend
 from ipalib.krb_utils import (
     krb5_format_principal_name,
-    krb5_format_service_principal_name, get_credentials_if_valid)
+    get_credentials_if_valid)
 from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.version import VERSION
@@ -945,20 +945,18 @@ class login_password(Backend, KerberosSession):
         return result
 
     def kinit(self, user, realm, password, ccache_name):
-        # get http service ccache as an armor for FAST to enable OTP authentication
-        armor_principal = str(krb5_format_service_principal_name(
-            'HTTP', self.api.env.host, realm))
-        keytab = paths.IPA_KEYTAB
+        # get anonymous ccache as an armor for FAST to enable OTP auth
         armor_path = os.path.join(paths.IPA_CCACHES,
                                   "armor_{}".format(os.getpid()))
 
-        self.debug('Obtaining armor ccache: principal=%s keytab=%s ccache=%s',
-                   armor_principal, keytab, armor_path)
+        self.debug('Obtaining armor in ccache %s', armor_path)
 
         try:
-            kinit_keytab(armor_principal, paths.IPA_KEYTAB, armor_path)
-        except gssapi.exceptions.GSSError as e:
-            raise CCacheError(message=unicode(e))
+            kinit_armor(armor_path)
+        except RuntimeError as e:
+            self.error("Failed to obtain armor cache")
+            # We try to continue w/o armor, 2FA will be impacted
+            armor_path = None
 
         # Format the user as a kerberos principal
         principal = krb5_format_principal_name(user, realm)
@@ -967,11 +965,10 @@ class login_password(Backend, KerberosSession):
             kinit_password(principal, password, ccache_name,
                            armor_ccache_name=armor_path)
 
-            self.debug('Cleanup the armor ccache')
-            ipautil.run(
-                [paths.KDESTROY, '-A', '-c', armor_path],
-                env={'KRB5CCNAME': armor_path},
-                raiseonerr=False)
+            if armor_path:
+                self.debug('Cleanup the armor ccache')
+                ipautil.run([paths.KDESTROY, '-A', '-c', armor_path],
+                            env={'KRB5CCNAME': armor_path}, raiseonerr=False)
         except RuntimeError as e:
             if ('kinit: Cannot read password while '
                     'getting initial credentials') in str(e):

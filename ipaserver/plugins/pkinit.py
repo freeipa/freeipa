@@ -22,6 +22,7 @@ from ipalib import Str
 from ipalib import Object, Command
 from ipalib import _
 from ipalib.plugable import Registry
+from ipalib.constants import ANON_USER
 from ipapython.dn import DN
 
 __doc__ = _("""
@@ -71,7 +72,7 @@ def valid_arg(ugettext, action):
 class pkinit_anonymous(Command):
     __doc__ = _('Enable or Disable Anonymous PKINIT.')
 
-    princ_name = 'WELLKNOWN/ANONYMOUS@%s' % api.env.realm
+    princ_name = '%s@%s' % (ANON_USER, api.env.realm)
     default_dn = DN(('krbprincipalname', princ_name), ('cn', api.env.realm), ('cn', 'kerberos'), api.env.basedn)
 
     takes_args = (
