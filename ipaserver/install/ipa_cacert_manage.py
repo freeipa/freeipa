@@ -97,7 +97,7 @@ class CACertManage(admintool.AdminTool):
     def run(self):
         command = self.command
 
-        api.bootstrap(in_server=True)
+        api.bootstrap(in_server=True, confdir=paths.ETC_IPA)
         api.finalize()
 
         self.ldap_connect()

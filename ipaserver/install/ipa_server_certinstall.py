@@ -98,7 +98,7 @@ class ServerCertInstall(admintool.AdminTool):
                     "Private key unlock password required")
 
     def run(self):
-        api.bootstrap(in_server=True)
+        api.bootstrap(in_server=True, confdir=paths.ETC_IPA)
         api.finalize()
         api.Backend.ldap2.connect(bind_pw=self.options.dirman_password)
 

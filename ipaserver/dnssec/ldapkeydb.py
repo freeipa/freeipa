@@ -9,6 +9,7 @@ import collections
 from pprint import pprint
 
 import ipalib
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython import ipaldap
 from ipapython import ipa_log_manager
@@ -414,7 +415,8 @@ if __name__ == '__main__':
     log = ipa_log_manager.root_logger
 
     # IPA framework initialization
-    ipalib.api.bootstrap(in_server=True, log=None)  # no logging to file
+    # no logging to file
+    ipalib.api.bootstrap(in_server=True, log=None, confdir=paths.ETC_IPA)
     ipalib.api.finalize()
 
     # LDAP initialization

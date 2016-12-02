@@ -180,7 +180,7 @@ class ReplicaPrepare(admintool.AdminTool):
         else:
             [self.replica_fqdn] = self.args
 
-        api.bootstrap(in_server=True)
+        api.bootstrap(in_server=True, confdir=paths.ETC_IPA)
         api.finalize()
         # Connect to LDAP, connection is closed at the end of run()
         api.Backend.ldap2.connect()

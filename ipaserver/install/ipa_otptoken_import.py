@@ -34,6 +34,7 @@ import gssapi
 import six
 from six.moves import xrange
 
+from ipaplatform.paths import paths
 from ipapython import admintool
 from ipalib import api, errors
 from ipaserver.plugins.ldap2 import AUTOBIND_DISABLED
@@ -509,7 +510,7 @@ class OTPTokenImport(admintool.AdminTool):
                 self.doc.setKey(f.read())
 
     def run(self):
-        api.bootstrap(in_server=True)
+        api.bootstrap(in_server=True, confdir=paths.ETC_IPA)
         api.finalize()
 
         try:
