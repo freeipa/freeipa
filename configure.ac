@@ -353,7 +353,7 @@ dnl Are we in source tree?
 AM_CONDITIONAL([IS_GIT_SNAPSHOT], [test "IPA_VERSION_IS_GIT_SNAPSHOT" == "yes"])
 AM_COND_IF([IS_GIT_SNAPSHOT], [
 	AC_MSG_CHECKING([if source directory is a Git reposistory])
-	if test ! -d "${srcdir}/.git"; then
+	if test ! -e "${srcdir}/.git"; then
 		AC_MSG_ERROR([Git reposistory is required by VERSION.m4 IPA_VERSION_IS_GIT_SNAPSHOT but not found])
 	else
 		AC_MSG_RESULT([yes])
