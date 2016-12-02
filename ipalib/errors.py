@@ -445,6 +445,13 @@ class RefererError(PublicError):
     format = _('Missing or invalid HTTP Referer, %(referer)s')
 
 
+class EnvironmentError(PublicError):
+    """
+    **912** Raised when a command is called with invalid environment settings
+    """
+
+    errno = 912
+
 ##############################################################################
 # 1000 - 1999: Authentication errors
 class AuthenticationError(PublicError):

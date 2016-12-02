@@ -717,10 +717,6 @@ class API(ReadOnly):
             if self.env.env_confdir == self.env.confdir:
                 self.log.info(
                     "IPA_CONFDIR env sets confdir to '%s'.", self.env.confdir)
-            else:
-                self.log.warn(
-                    "IPA_CONFDIR env is overridden by an explicit confdir "
-                    "argument.")
 
         for plugin in self.__plugins:
             if not self.env.validate_api:
