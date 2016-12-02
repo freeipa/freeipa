@@ -413,7 +413,11 @@ def main():
         api_env['log'] = None # turn off logging for non-root
 
     api.bootstrap(
-        context='cli', in_server=True, verbose=options.verbose, **api_env
+        context='cli',
+        in_server=True,
+        verbose=options.verbose,
+        confdir=paths.ETC_IPA,
+        **api_env
     )
     api.finalize()
 

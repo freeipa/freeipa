@@ -34,6 +34,7 @@ from nose.tools import assert_raises  # pylint: disable=E0611
 import nss.nss as nss
 import six
 
+from ipaplatform.paths import paths
 from ipaserver.plugins.ldap2 import ldap2
 from ipalib import api, x509, create_api, errors
 from ipapython import ipautil
@@ -111,7 +112,7 @@ class test_ldap(object):
         # a client-only api. Then we register in the commands and objects
         # we need for the test.
         myapi = create_api(mode=None)
-        myapi.bootstrap(context='cli', in_server=True)
+        myapi.bootstrap(context='cli', in_server=True, confdir=paths.ETC_IPA)
         myapi.finalize()
 
         pwfile = api.env.dot_ipa + os.sep + ".dmpw"

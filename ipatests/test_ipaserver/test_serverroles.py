@@ -11,6 +11,7 @@ from collections import namedtuple
 import ldap
 import pytest
 
+from ipaplatform.paths import paths
 from ipalib import api, create_api, errors
 from ipapython.dn import DN
 from ipatests.util import MockLDAP
@@ -469,7 +470,9 @@ class MockMasterTopology(object):
 @pytest.fixture(scope='module')
 def mock_api(request):
     test_api = create_api(mode=None)
-    test_api.bootstrap(in_server=True, ldap_uri=api.env.ldap_uri)
+    test_api.bootstrap(in_server=True,
+                       ldap_uri=api.env.ldap_uri,
+                       confdir=paths.ETC_IPA)
     test_api.finalize()
 
     if not test_api.Backend.ldap2.isconnected():

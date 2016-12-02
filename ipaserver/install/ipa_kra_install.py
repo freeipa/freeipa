@@ -77,7 +77,7 @@ class KRAInstall(admintool.AdminTool):
 
         installutils.check_server_configuration()
 
-        api.bootstrap(in_server=True)
+        api.bootstrap(in_server=True, confdir=paths.ETC_IPA)
         api.finalize()
 
     @classmethod

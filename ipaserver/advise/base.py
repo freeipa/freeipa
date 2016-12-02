@@ -25,6 +25,7 @@ from textwrap import wrap
 from ipalib import api
 from ipalib.plugable import Plugin, API
 from ipalib.errors import ValidationError
+from ipaplatform.paths import paths
 from ipapython import admintool
 from ipapython.ipa_log_manager import log_mgr
 
@@ -235,9 +236,13 @@ class IpaAdvise(admintool.AdminTool):
     def run(self):
         super(IpaAdvise, self).run()
 
-        api.bootstrap(in_server=False, context='cli')
+        api.bootstrap(in_server=False,
+                      context='cli',
+                      confdir=paths.ETC_IPA)
         api.finalize()
-        advise_api.bootstrap(in_server=False, context='cli')
+        advise_api.bootstrap(in_server=False,
+                             context='cli',
+                             confdir=paths.ETC_IPA)
         advise_api.finalize()
         if not self.options.verbose:
             # Do not print connection information by default

@@ -100,7 +100,10 @@ def main():
         if dirman_password is None:
             sys.exit("Directory Manager password required")
 
-    api.bootstrap(context='cli', in_server=True, debug=options.debug)
+    api.bootstrap(context='cli',
+                  in_server=True,
+                  debug=options.debug,
+                  confdir=paths.ETC_IPA)
     api.finalize()
     api.Backend.ldap2.connect()
 
