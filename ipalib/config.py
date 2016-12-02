@@ -43,7 +43,7 @@ from ipapython.dn import DN
 from ipalib.base import check_name
 from ipalib.constants import CONFIG_SECTION
 from ipalib.constants import OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
-from ipapython.admintool import ScriptError
+from ipalib import errors
 
 if six.PY3:
     unicode = str
@@ -462,11 +462,17 @@ class Env(object):
 
         # Set confdir:
         self.env_confdir = os.environ.get('IPA_CONFDIR')
+
+        if 'confdir' in self and self.env_confdir is not None:
+            raise errors.EnvironmentError(
+                    "IPA_CONFDIR env cannot be set because explicit confdir "
+                    "is used")
+
         if 'confdir' not in self:
             if self.env_confdir is not None:
                 if (not path.isabs(self.env_confdir)
                         or not path.isdir(self.env_confdir)):
-                    raise ScriptError(
+                    raise errors.EnvironmentError(
                         "IPA_CONFDIR env var must be an absolute path to an "
                         "existing directory, got '{}'.".format(
                             self.env_confdir))
