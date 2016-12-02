@@ -102,6 +102,7 @@ BuildRequires:  python-ldap
 BuildRequires:  python-nss
 BuildRequires:  python-netaddr
 BuildRequires:  python-pyasn1
+BuildRequires:  python-pyasn1-modules
 BuildRequires:  python-dns
 BuildRequires:  python-six
 BuildRequires:  python-libsss_nss_idmap
@@ -515,6 +516,7 @@ Requires: python-netaddr
 Requires: python-libipa_hbac
 Requires: python-qrcode-core >= 5.0.0
 Requires: python-pyasn1
+Requires: python-pyasn1-modules
 Requires: python-dateutil
 Requires: python-yubico >= 1.2.3
 Requires: python-sss-murmur
@@ -564,6 +566,7 @@ Requires: python3-netaddr
 Requires: python3-libipa_hbac
 Requires: python3-qrcode-core >= 5.0.0
 Requires: python3-pyasn1
+Requires: python3-pyasn1-modules
 Requires: python3-dateutil
 Requires: python3-yubico >= 1.2.3
 Requires: python3-sss-murmur
