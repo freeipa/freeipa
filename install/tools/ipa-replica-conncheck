@@ -297,16 +297,18 @@ class PortResponder(threading.Thread):
         self._close = False
         self._close_lock = threading.Lock()
         self.responder_data = 'FreeIPA'
-        self.ports_open = threading.Condition()
+        self.ports_opened = False
+        self.ports_open_cond = threading.Condition()
 
     def run(self):
         root_logger.debug('Starting listening thread.')
 
         for port in self.ports:
             self._bind_to_port(port.port, port.port_type)
-        with self.ports_open:
+        with self.ports_open_cond:
+            self.ports_opened = True
             root_logger.debug('Ports opened, notify original thread')
-            self.ports_open.notify()
+            self.ports_open_cond.notify()
 
         while not self._is_closing():
             ready_socks, _socks1, _socks2 = select.select(
@@ -462,9 +464,12 @@ def main():
 
         RESPONDER = PortResponder(required_ports)
         RESPONDER.start()
-        with RESPONDER.ports_open:
-            RESPONDER.ports_open.wait()
-            root_logger.debug('Original thread resumed')
+
+        with RESPONDER.ports_open_cond:
+            if not RESPONDER.ports_opened:
+                root_logger.debug('Original thread stopped')
+                RESPONDER.ports_open_cond.wait()
+                root_logger.debug('Original thread resumed')
 
         remote_check_opts = ['--replica %s' % options.hostname]
 
