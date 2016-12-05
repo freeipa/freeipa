@@ -41,7 +41,7 @@
 
 Name:           freeipa
 Version:        %{IPA_VERSION}
-Release:        upstream
+Release:        0%{?dist}
 Summary:        The Identity, Policy and Audit system
 
 Group:          System Environment/Base
