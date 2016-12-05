@@ -28,7 +28,6 @@ import os
 import textwrap
 
 from ipalib import plugable, errors, create_api
-from ipapython.admintool import ScriptError
 from ipatests.util import raises, read_only
 from ipatests.util import ClassChecker, create_test_api, TempHome
 
@@ -301,7 +300,7 @@ class test_API(ClassChecker):
 
                 os.environ['IPA_CONFDIR'] = home.join('invalid')
                 api = create_api(mode='unit_test')
-                with pytest.raises(ScriptError):
+                with pytest.raises(errors.EnvironmentError):
                     api.bootstrap()
         finally:
             if ipa_confdir:
