@@ -9,7 +9,7 @@
 %endif
 
 # lint is not executed during rpmbuild
-# %global with_lint 1
+# %%global with_lint 1
 
 %global alt_name ipa
 %if 0%{?rhel}
