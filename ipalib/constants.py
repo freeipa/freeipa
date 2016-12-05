@@ -221,6 +221,7 @@ DEFAULT_CONFIG = (
     ('dot_ipa', object),  # ~/.ipa directory
     ('context', object),  # Name of context, default is 'default'
     ('confdir', object),  # Directory containing config files
+    ('env_confdir', None),  # conf dir specified by IPA_CONFDIR env variable
     ('conf', object),  # File containing context specific config
     ('conf_default', object),  # File containing context independent config
     ('plugins_on_demand', object),  # Whether to finalize plugins on-demand (bool)
