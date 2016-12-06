@@ -1171,6 +1171,13 @@ class BindInstance(service.Service):
         self.api.Command.dnsconfig_show.output_for_cli(textui, result, None,
                                                        reverse=False)
 
+    def is_configured(self):
+        """
+        Override the default logic querying StateFile for configuration status
+        and look whether named.conf was already modified by IPA installer.
+        """
+        return named_conf_exists()
+
     def uninstall(self):
         if self.is_configured():
             self.print_msg("Unconfiguring %s" % self.service_name)
