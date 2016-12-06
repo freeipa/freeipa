@@ -394,6 +394,8 @@ class CAInstance(DogtagInstance):
                 self.step("creating installation admin user", self.setup_admin)
             self.step("configuring certificate server instance",
                       self.__spawn_instance)
+            self.step("exporting Dogtag certificate store pin",
+                      self.create_certstore_passwdfile)
             self.step("stopping certificate server instance to update CS.cfg", self.stop_instance)
             self.step("backing up CS.cfg", self.backup_config)
             self.step("disabling nonces", self.__disable_nonce)
@@ -626,6 +628,27 @@ class CAInstance(DogtagInstance):
             backup_config()
         except Exception as e:
             root_logger.warning("Failed to backup CS.cfg: %s", e)
+
+    def create_certstore_passwdfile(self):
+        """
+        This method creates a 'pwdfile.txt' file in the Dogtag certificate
+        store so that this file can be assumed and used for NSSDatabase/CertDB
+        operations in 'certutil' calls.
+        """
+        passwd = None
+        token = 'internal'
+        with open(paths.PKI_TOMCAT_PASSWORD_CONF, 'r') as f:
+            for line in f:
+                (tok, pin) = line.split('=', 1)
+                if token == tok:
+                    passwd = pin.strip()
+                    break
+            else:
+                raise RuntimeError(
+                    "The password to the 'internal' token of the Dogtag "
+                    "certificate store was not found.")
+        db = certs.CertDB(self.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
+        db.create_passwd_file(passwd)
 
     def __update_topology(self):
         ld = ldapupdate.LDAPUpdate(ldapi=True, sub_dict={

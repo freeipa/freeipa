@@ -230,8 +230,7 @@ class CACertManage(admintool.AdminTool):
                 "troubleshooting guide)")
 
         with certs.NSSDatabase() as tmpdb:
-            pw = ipautil.write_tmp_file(ipautil.ipa_generate_password())
-            tmpdb.create_db(pw.name)
+            tmpdb.create_db()
             tmpdb.add_cert(old_cert_der, 'IPA CA', 'C,,')
 
             try:
@@ -330,8 +329,7 @@ class CACertManage(admintool.AdminTool):
                                               False)
 
         with certs.NSSDatabase() as tmpdb:
-            pw = ipautil.write_tmp_file(ipautil.ipa_generate_password())
-            tmpdb.create_db(pw.name)
+            tmpdb.create_db()
             tmpdb.add_cert(cert, nickname, 'C,,')
             for ca_cert, ca_nickname, ca_trust_flags in ca_certs:
                 tmpdb.add_cert(ca_cert, ca_nickname, ca_trust_flags)

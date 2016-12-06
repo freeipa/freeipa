@@ -2284,18 +2284,8 @@ def install_check(options):
 
 def create_ipa_nssdb():
     db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
-    pwdfile = os.path.join(db.secdir, 'pwdfile.txt')
-
-    ipautil.backup_file(pwdfile)
-    ipautil.backup_file(os.path.join(db.secdir, 'cert8.db'))
-    ipautil.backup_file(os.path.join(db.secdir, 'key3.db'))
-    ipautil.backup_file(os.path.join(db.secdir, 'secmod.db'))
-
-    with open(pwdfile, 'w') as f:
-        f.write(ipautil.ipa_generate_password())
-    os.chmod(pwdfile, 0o600)
-
-    db.create_db(pwdfile)
+    db.create_db(backup=True)
+    os.chmod(db.pwd_file, 0o600)
     os.chmod(os.path.join(db.secdir, 'cert8.db'), 0o644)
     os.chmod(os.path.join(db.secdir, 'key3.db'), 0o644)
     os.chmod(os.path.join(db.secdir, 'secmod.db'), 0o644)
@@ -2667,8 +2657,7 @@ def _install(options):
             for cert in ca_certs
         ]
         try:
-            pwd_file = ipautil.write_tmp_file(ipautil.ipa_generate_password())
-            tmp_db.create_db(pwd_file.name)
+            tmp_db.create_db()
 
             for i, cert in enumerate(ca_certs):
                 tmp_db.add_cert(cert, 'CA certificate %d' % (i + 1), 'C,,')
