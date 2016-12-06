@@ -25,7 +25,6 @@ import shutil
 import xml.dom.minidom
 import pwd
 import base64
-from hashlib import sha1
 import fcntl
 import time
 import datetime
@@ -159,9 +158,6 @@ class CertDB(object):
             perms |= stat.S_IWUSR
         os.chmod(fname, perms)
 
-    def gen_password(self):
-        return sha1(ipautil.ipa_generate_password()).hexdigest()
-
     def run_certutil(self, args, stdin=None, **kwargs):
         return self.nssdb.run_certutil(args, stdin, **kwargs)
 
@@ -177,7 +173,7 @@ class CertDB(object):
         if ipautil.file_exists(self.noise_fname):
             os.remove(self.noise_fname)
         f = open(self.noise_fname, "w")
-        f.write(self.gen_password())
+        f.write(ipautil.ipa_generate_password(pwd_len=25))
         self.set_perms(self.noise_fname)
 
     def create_passwd_file(self, passwd=None):
@@ -186,7 +182,7 @@ class CertDB(object):
         if passwd is not None:
             f.write("%s\n" % passwd)
         else:
-            f.write(self.gen_password())
+            f.write(ipautil.ipa_generate_password(pwd_len=25))
         f.close()
         self.set_perms(self.passwd_fname)
 
