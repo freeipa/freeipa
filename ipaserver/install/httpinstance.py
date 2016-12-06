@@ -19,7 +19,6 @@
 
 from __future__ import print_function
 
-import binascii
 import os
 import os.path
 import pwd
@@ -314,9 +313,9 @@ class HTTPInstance(service.Service):
             ipautil.backup_file(nss_path)
 
         # Create the password file for this db
-        hex_str = binascii.hexlify(os.urandom(10))
+        password = ipautil.ipa_generate_password(pwd_len=15)
         f = os.open(pwd_file, os.O_CREAT | os.O_RDWR)
-        os.write(f, hex_str)
+        os.write(f, password)
         os.close(f)
 
         ipautil.run([paths.CERTUTIL, "-d", database, "-f", pwd_file, "-N"])

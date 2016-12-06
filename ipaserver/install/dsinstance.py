@@ -508,7 +508,7 @@ class DsInstance(service.Service):
             idrange_size = None
         self.sub_dict = dict(FQDN=self.fqdn, SERVERID=self.serverid,
                              PASSWORD=self.dm_password,
-                             RANDOM_PASSWORD=self.generate_random(),
+                             RANDOM_PASSWORD=ipautil.ipa_generate_password(),
                              SUFFIX=self.suffix,
                              REALM=self.realm, USER=DS_USER,
                              SERVER_ROOT=server_root, DOMAIN=self.domain,
@@ -774,9 +774,6 @@ class DsInstance(service.Service):
 
     def __add_enrollment_module(self):
         self._ldap_mod("enrollment-conf.ldif", self.sub_dict)
-
-    def generate_random(self):
-        return ipautil.ipa_generate_password()
 
     def __enable_ssl(self):
         dirname = config_dirname(self.serverid)

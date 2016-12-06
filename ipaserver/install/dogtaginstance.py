@@ -18,7 +18,6 @@
 #
 
 import base64
-import binascii
 import ldap
 import os
 import shutil
@@ -428,7 +427,7 @@ class DogtagInstance(service.Service):
 
     def setup_admin(self):
         self.admin_user = "admin-%s" % self.fqdn
-        self.admin_password = binascii.hexlify(os.urandom(16))
+        self.admin_password = ipautil.ipa_generate_password(pwd_len=20)
         self.admin_dn = DN(('uid', self.admin_user),
                            ('ou', 'people'), ('o', 'ipaca'))
 

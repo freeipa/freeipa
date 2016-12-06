@@ -45,7 +45,6 @@ from ipaserver.install.replication import (
     ReplicationManager, replica_conn_check)
 import SSSDConfig
 from subprocess import CalledProcessError
-from binascii import hexlify
 
 if six.PY3:
     unicode = str
@@ -1303,7 +1302,7 @@ def install(installer):
                 if conn.isconnected():
                     conn.disconnect()
                 os.environ['KRB5CCNAME'] = ccache
-        config.dirman_password = hexlify(ipautil.ipa_generate_password())
+        config.dirman_password = ipautil.ipa_generate_password()
 
         # FIXME: allow to use passed in certs instead
         if ca_enabled:
