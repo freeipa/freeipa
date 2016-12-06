@@ -1953,11 +1953,6 @@ def install_check(options):
             "You must be root to run ipa-client-install.",
             rval=CLIENT_INSTALL_ERROR)
 
-    if tasks.is_fips_enabled():
-        raise ScriptError(
-            "Installing IPA client in FIPS mode is not supported",
-            rval=CLIENT_INSTALL_ERROR)
-
     tasks.check_selinux_status()
 
     if is_ipa_client_installed(fstore, on_master=options.on_master):

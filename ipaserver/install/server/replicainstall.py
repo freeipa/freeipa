@@ -527,10 +527,6 @@ def check_remote_version(api):
 
 
 def common_check(no_ntp):
-    if tasks.is_fips_enabled():
-        raise RuntimeError(
-            "Installing IPA server in FIPS mode is not supported")
-
     tasks.check_selinux_status()
 
     if is_ipa_configured():
@@ -646,7 +642,12 @@ def install_check(installer):
     filename = installer.replica_file
     installer._enrollment_performed = False
 
-    # check FIPS, selinux status, http and DS ports, NTP conflicting services
+    if tasks.is_fips_enabled():
+        raise RuntimeError(
+            "Installing IPA server in FIPS mode on domain level 0 is not "
+            "supported")
+
+    # check selinux status, http and DS ports, NTP conflicting services
     common_check(options.no_ntp)
 
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
@@ -942,7 +943,7 @@ def promote_check(installer):
     installer._enrollment_performed = False
     installer._top_dir = tempfile.mkdtemp("ipa")
 
-    # check FIPS, selinux status, http and DS ports, NTP conflicting services
+    # check selinux status, http and DS ports, NTP conflicting services
     common_check(options.no_ntp)
 
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)

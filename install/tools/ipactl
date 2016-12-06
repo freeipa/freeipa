@@ -543,9 +543,6 @@ def main():
     elif args[0] != "start" and args[0] != "stop" and args[0] != "restart" and args[0] != "status":
         raise IpactlError("Unrecognized action [" + args[0] + "]", 2)
 
-    if tasks.is_fips_enabled():
-        raise IpactlError("Starting IPA server in FIPS mode is not supported")
-
     # check if IPA is configured at all
     try:
         check_IPA_configuration()
