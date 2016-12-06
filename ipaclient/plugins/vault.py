@@ -209,6 +209,10 @@ class vault_add(Local):
 
     NO_CLI = classproperty(__NO_CLI_getter)
 
+    @property
+    def api_version(self):
+        return self.api.Command.vault_add_internal.api_version
+
     def get_args(self):
         for arg in self.api.Command.vault_add_internal.args():
             yield arg
@@ -415,6 +419,10 @@ class vault_mod(Local):
 
     NO_CLI = classproperty(__NO_CLI_getter)
 
+    @property
+    def api_version(self):
+        return self.api.Command.vault_mod_internal.api_version
+
     def get_args(self):
         for arg in self.api.Command.vault_mod_internal.args():
             yield arg
@@ -601,6 +609,10 @@ class vault_archive(Local):
                 _fake_vault_archive_internal)
 
     NO_CLI = classproperty(__NO_CLI_getter)
+
+    @property
+    def api_version(self):
+        return self.api.Command.vault_archive_internal.api_version
 
     def get_args(self):
         for arg in self.api.Command.vault_archive_internal.args():
@@ -854,6 +866,10 @@ class vault_retrieve(Local):
                 _fake_vault_retrieve_internal)
 
     NO_CLI = classproperty(__NO_CLI_getter)
+
+    @property
+    def api_version(self):
+        return self.api.Command.vault_retrieve_internal.api_version
 
     def get_args(self):
         for arg in self.api.Command.vault_retrieve_internal.args():
