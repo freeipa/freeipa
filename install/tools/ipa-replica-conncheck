@@ -542,12 +542,7 @@ def main():
 
                 with certdb.NSSDatabase(nss_dir) as nss_db:
                     if options.ca_cert_file:
-                        nss_dir = nss_db.secdir
-
-                        password = ipautil.ipa_generate_password()
-                        password_file = ipautil.write_tmp_file(password)
-                        nss_db.create_db(password_file.name)
-
+                        nss_db.create_db()
                         ca_certs = x509.load_certificate_list_from_file(
                             options.ca_cert_file)
                         for ca_cert in ca_certs:
@@ -555,8 +550,6 @@ def main():
                                 serialization.Encoding.DER)
                             nss_db.add_cert(
                                 data, str(DN(ca_cert.subject)), 'C,,')
-                    else:
-                        nss_dir = None
 
                     api.bootstrap(context='client',
                                   confdir=paths.ETC_IPA,

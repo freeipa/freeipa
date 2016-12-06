@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import binascii
 import os
 import io
 import pwd
@@ -112,13 +111,12 @@ class NSSDatabase(object):
     def run_certutil(self, args, stdin=None, **kwargs):
         new_args = [CERTUTIL, "-d", self.secdir]
         new_args = new_args + args
+        new_args.extend(['-f', self.pwd_file])
         return ipautil.run(new_args, stdin, **kwargs)
 
-    def create_db(self, password_filename=None, user=None, group=None,
-                  mode=None, backup=False):
+    def create_db(self, user=None, group=None, mode=None, backup=False):
         """Create cert DB
 
-        :param password_filename: Name of file containing the database password
         :param user: User owner the secdir
         :param group: Group owner of the secdir
         :param mode: Mode of the secdir
@@ -145,19 +143,15 @@ class NSSDatabase(object):
         if not os.path.exists(self.secdir):
             os.makedirs(self.secdir, dirmode)
 
-        if password_filename is None:
-            password_filename = self.pwd_file
-
-        if not os.path.exists(password_filename):
+        if not os.path.exists(self.pwd_file):
             # Create the password file for this db
-            hex_str = binascii.hexlify(os.urandom(10))
-            with io.open(os.open(password_filename,
+            with io.open(os.open(self.pwd_file,
                                  os.O_CREAT | os.O_WRONLY,
-                                 filemode), 'wb', closefd=True) as f:
-                f.write(hex_str)
+                                 filemode), 'w', closefd=True) as f:
+                f.write(ipautil.ipa_generate_password())
                 f.flush()
 
-        self.run_certutil(["-N", "-f", password_filename])
+        self.run_certutil(["-N", "-f", self.pwd_file])
 
         # Finally fix up perms
         os.chown(self.secdir, uid, gid)
