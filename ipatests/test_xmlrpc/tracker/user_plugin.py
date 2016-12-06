@@ -39,18 +39,24 @@ class UserTracker(KerberosAliasMixin, Tracker):
         u'krbpasswordexpiration', u'pager', u'st', u'manager', u'cn',
         u'ipauniqueid', u'objectclass', u'mepmanagedentry',
         u'displayname', u'gecos', u'initials', u'preserved'}
+    retrieve_cli_keys = retrieve_keys - {'dn'}
 
     retrieve_preserved_keys = (retrieve_keys - {u'memberof_group'}) | {
         u'preserved'}
     retrieve_preserved_all_keys = retrieve_all_keys - {u'memberof_group'}
+    retrieve_preserved_cli_keys = retrieve_cli_keys | {u'preserved'}
 
     create_keys = retrieve_all_keys | {
         u'krbextradata', u'krbpasswordexpiration', u'krblastpwdchange',
         u'krbprincipalkey', u'userpassword', u'randompassword'}
     create_keys = create_keys - {u'nsaccountlock'}
+    create_cli_keys = create_keys - {
+        u'dn', u'ipauniqueid', u'mepmanagedentry',
+        u'objectclass'}
 
     update_keys = retrieve_keys - {u'dn'}
     activate_keys = retrieve_keys
+    activate_cli_keys = activate_keys - {u'dn', u'nsaccountlock'}
 
     find_keys = retrieve_keys - {
         u'mepmanagedentry', u'memberof_group', u'has_keytab', u'has_password',
@@ -59,8 +65,98 @@ class UserTracker(KerberosAliasMixin, Tracker):
     find_all_keys = retrieve_all_keys - {
         u'has_keytab', u'has_password'
     }
+    find_cli_keys = find_keys - {u'dn'}
 
     primary_keys = {u'uid', u'dn'}
+
+    mapping_options_user = {
+        'carlicense': 'carlicense',
+        'cn': 'cn',
+        'continue': 'continue',
+        'departmentnumber': 'departmentnumber',
+        'displayname': 'displayname',
+        'employeenumber': 'employeenumber',
+        'employeetype': 'employeetype',
+        'facsimiletelephonenumber': 'fax',
+        'gecos': 'gecos',
+        'gidnumber': 'gidnumber',
+        'givenname': 'first',
+        'homedirectory': 'homedir',
+        'in_group': 'in-groups',
+        'in_hbacrule': 'in-hbacrules',
+        'in_netgroup': 'in-netgroups',
+        'in_role': 'in-roles',
+        'in_sudorule': 'in-sudorules',
+        'initials': 'initials',
+        'ipasshpubkey': 'sshpubkey',
+        'ipatokenradiusconfiglink': 'radius',
+        'ipatokenradiususername': 'radius_username',
+        'ipauserauthtype': 'user-auth-type',
+        'krbprincipalexpiration': 'principal-expiration',
+        'krbprincipalname': 'principal',
+        'l': 'city',
+        'loginshell': 'shell',
+        'mail': 'email',
+        'manager': 'manager',
+        'mobile': 'mobile',
+        'no_members': 'no-members',
+        'no_preserve': 'no-preserve',
+        'not_in_group': 'not-in-groups',
+        'not_in_hbacrule': 'not-in-hbacrules',
+        'not_in_netgroup': 'not-in-netgroups',
+        'not_in_role': 'not-in-roles',
+        'not_in_sudorule': 'not-in-sudorules',
+        'ou': 'orgunit',
+        'pager': 'pager',
+        'pkey_only': 'pkey-only',
+        'postalcode': 'postalcode',
+        'preferredlanguage': 'preferredlanguage',
+        'preserve': 'preserve',
+        'preserved': 'preserved',
+        'random': 'random',
+        'rename': 'rename',
+        'rights': 'rights',
+        'sizelimit': 'sizelimit',
+        'sn': 'last',
+        'st': 'state',
+        'street': 'street',
+        'telephonenumber': 'phone',
+        'timelimit': 'timelimit',
+        'title': 'title',
+        'uid': 'login',
+        'uidnumber': 'uid',
+        'user': 'users',
+        'usercertificate': 'certificate',
+        'userclass': 'class',
+        'userpassword': 'password',
+        }
+
+    mapping_output_user = {
+        'Account disabled': 'nsaccountlock',
+        'Display name': 'displayname',
+        'dn': 'dn',
+        'Email address': 'mail',
+        'First name': 'givenname',
+        'Full name': 'cn',
+        'GECOS': 'gecos',
+        'GID': 'gidnumber',
+        'Home directory': 'homedirectory',
+        'Initials': 'initials',
+        'ipauniqueid': 'ipauniqueid',
+        'Kerberos keys available': 'has_keytab',
+        'Last name': 'sn',
+        'Login shell': 'loginshell',
+        'Member of groups': 'memberof_group',
+        'mepmanagedentry': 'mepmanagedentry',
+        'nsaccountlock': 'nsaccountlock',
+        'objectclass': 'objectclass',
+        'Password': 'has_password',
+        'Preserved user': 'preserved',
+        'Principal alias': 'krbprincipalname',
+        'Principal name': 'krbcanonicalname',
+        'UID': 'uidnumber',
+        'User login': 'uid',
+        }
 
     def __init__(self, name, givenname, sn, **kwargs):
         super(UserTracker, self).__init__(default_version=None)
@@ -70,6 +166,9 @@ class UserTracker(KerberosAliasMixin, Tracker):
         self.dn = DN(('uid', self.uid), api.env.container_user, api.env.basedn)
 
         self.kwargs = kwargs
+        self.mapping_options.update(self.mapping_options_user)
+        self.mapping_output.update(self.mapping_output_user)
+        self.novalue.extend(['preserve', 'no_preserve'])
 
     def make_create_command(self):
         """ Make function that crates a user using user-add """
@@ -224,31 +323,48 @@ class UserTracker(KerberosAliasMixin, Tracker):
 
     def check_create(self, result, extra_keys=()):
         """ Check 'user-add' command result """
-        expected = self.filter_attrs(self.create_keys | set(extra_keys))
-        assert_deepequal(dict(
-            value=self.uid,
-            summary=u'Added user "%s"' % self.uid,
-            result=self.filter_attrs(expected),
-            ), result)
+        if self.cli_mode():
+            expected = self.filter_attrs(
+                self.create_cli_keys | set(extra_keys))
+            assert_deepequal(dict(
+                summary=u'Added user "%s"' % self.uid,
+                result=self.filter_attrs(expected),
+                ), result)
+        else:
+            expected = self.filter_attrs(self.create_keys | set(extra_keys))
+            assert_deepequal(dict(
+                value=self.uid,
+                summary=u'Added user "%s"' % self.uid,
+                result=self.filter_attrs(expected),
+                ), result)
 
     def check_delete(self, result):
         """ Check 'user-del' command result """
-        assert_deepequal(dict(
-            value=[self.uid],
-            summary=u'Deleted user "%s"' % self.uid,
-            result=dict(failed=[]),
-            ), result)
+        if self.cli_mode():
+            assert_deepequal(dict(
+                summary=u'Deleted user "%s"' % self.uid,
+                result={},
+                ), result)
+        else:
+            assert_deepequal(dict(
+                value=[self.uid],
+                summary=u'Deleted user "%s"' % self.uid,
+                result=dict(failed=[]),
+                ), result)
 
     def check_retrieve(self, result, all=False, raw=False):
         """ Check 'user-show' command result """
         if u'preserved' in self.attrs and self.attrs[u'preserved']:
             self.retrieve_all_keys = self.retrieve_preserved_all_keys
             self.retrieve_keys = self.retrieve_preserved_keys
+            self.retrieve_cli_keys = self.retrieve_preserved_cli_keys
         elif u'preserved' not in self.attrs and all:
             self.attrs[u'preserved'] = False
 
         if all:
             expected = self.filter_attrs(self.retrieve_all_keys)
+        elif self.cli_mode():
+            expected = self.filter_attrs(self.retrieve_cli_keys)
         else:
             expected = self.filter_attrs(self.retrieve_keys)
 
@@ -261,11 +377,22 @@ class UserTracker(KerberosAliasMixin, Tracker):
             elif expected[u'nsaccountlock'] == [u'false']:
                 expected[u'nsaccountlock'] = False
 
-        assert_deepequal(dict(
-            value=self.uid,
-            summary=None,
-            result=expected,
-        ), result)
+        if self.cli_mode():
+            if 'dn' in result['result']:
+                result['result']['dn'] = result['result']['dn'][0]
+            if 'objectclass' in result['result']:
+                result['result']['objectclass'] = result[
+                    'result']['objectclass'][0].split(", ")
+            assert_deepequal(dict(
+                summary=None,
+                result=expected,
+            ), result)
+        else:
+            assert_deepequal(dict(
+                value=self.uid,
+                summary=None,
+                result=expected,
+            ), result)
 
     def check_find(self, result, all=False, pkey_only=False, raw=False,
                    expected_override=None):
@@ -276,6 +403,8 @@ class UserTracker(KerberosAliasMixin, Tracker):
             expected = self.filter_attrs(self.find_all_keys)
         elif pkey_only:
             expected = self.filter_attrs(self.primary_keys)
+        elif self.cli_mode():
+            expected = self.filter_attrs(self.find_cli_keys)
         else:
             expected = self.filter_attrs(self.find_keys)
 
@@ -292,21 +421,38 @@ class UserTracker(KerberosAliasMixin, Tracker):
             assert isinstance(expected_override, dict)
             expected.update(expected_override)
 
-        assert_deepequal(dict(
-            count=1,
-            truncated=False,
-            summary=u'1 user matched',
-            result=[expected],
-        ), result)
+        if self.cli_mode():
+            if 'dn' in result['result']:
+                result['result']['dn'] = result['result']['dn'][0]
+            if 'objectclass' in result['result']:
+                result['result']['objectclass'] = result[
+                    'result']['objectclass'][0].split(", ")
+            assert_deepequal(dict(
+                summary=u'Number of entries returned 1',
+                result=expected,
+            ), result)
+        else:
+            assert_deepequal(dict(
+                count=1,
+                truncated=False,
+                summary=u'1 user matched',
+                result=[expected],
+            ), result)
 
     def check_find_nomatch(self, result):
         """ Check 'user-find' command result when no user should be found """
-        assert_deepequal(dict(
-            count=0,
-            truncated=False,
-            summary=u'0 users matched',
-            result=[],
-        ), result)
+        if self.cli_mode():
+            assert_deepequal(dict(
+                summary=u'Number of entries returned 0',
+                result={},
+            ), result)
+        else:
+            assert_deepequal(dict(
+                count=0,
+                truncated=False,
+                summary=u'0 users matched',
+                result=[],
+            ), result)
 
     def check_update(self, result, extra_keys=()):
         """ Check 'user-mod' command result """
@@ -316,11 +462,17 @@ class UserTracker(KerberosAliasMixin, Tracker):
         elif expected[u'nsaccountlock'] == [u'false']:
             expected[u'nsaccountlock'] = False
 
-        assert_deepequal(dict(
-            value=self.uid,
-            summary=u'Modified user "%s"' % self.uid,
-            result=expected
-        ), result)
+        if self.cli_mode():
+            assert_deepequal(dict(
+                summary=u'Modified user "%s"' % self.uid,
+                result=expected
+            ), result)
+        else:
+            assert_deepequal(dict(
+                value=self.uid,
+                summary=u'Modified user "%s"' % self.uid,
+                result=expected
+            ), result)
 
     def check_enable(self, result):
         """ Check result of enable user operation """
@@ -367,18 +519,23 @@ class UserTracker(KerberosAliasMixin, Tracker):
 
     def check_activate(self, result):
         """ Check 'stageuser-activate' command result """
-        expected = dict(
-            value=self.uid,
-            summary=u'Stage user %s activated' % self.uid,
-            result=self.filter_attrs(self.activate_keys))
+        if self.cli_mode():
+            expected = dict(
+                summary=u'Stage user %s activated' % self.uid,
+                result=self.filter_attrs(self.activate_cli_keys))
+        else:
+            expected = dict(
+                value=self.uid,
+                summary=u'Stage user %s activated' % self.uid,
+                result=self.filter_attrs(self.activate_keys))
 
-        # small override because stageuser-find returns different
-        # type of nsaccountlock value than DS, but overall the value
-        # fits expected result
-        if expected['result'][u'nsaccountlock'] == [u'true']:
-            expected['result'][u'nsaccountlock'] = True
-        elif expected['result'][u'nsaccountlock'] == [u'false']:
-            expected['result'][u'nsaccountlock'] = False
+            # small override because stageuser-find returns different
+            # type of nsaccountlock value than DS, but overall the value
+            # fits expected result
+            if expected['result'][u'nsaccountlock'] == [u'true']:
+                expected['result'][u'nsaccountlock'] = True
+            elif expected['result'][u'nsaccountlock'] == [u'false']:
+                expected['result'][u'nsaccountlock'] = False
 
         assert_deepequal(expected, result)
 
@@ -386,11 +543,17 @@ class UserTracker(KerberosAliasMixin, Tracker):
 
     def check_undel(self, result):
         """ Check 'user-undel' command result """
-        assert_deepequal(dict(
-            value=self.uid,
-            summary=u'Undeleted user account "%s"' % self.uid,
-            result=True
-            ), result)
+        if self.cli_mode():
+            assert_deepequal(dict(
+                summary=u'Undeleted user account "%s"' % self.uid,
+                result={}
+                ), result)
+        else:
+            assert_deepequal(dict(
+                value=self.uid,
+                summary=u'Undeleted user account "%s"' % self.uid,
+                result=True
+                ), result)
 
     def enable(self):
         """ Enable user account if it was disabled """
@@ -441,8 +604,12 @@ class UserTracker(KerberosAliasMixin, Tracker):
             gidnumber=result[u'result'][u'gidnumber']
             ), expected)
 
+        if self.cli_mode():
+            group = [u'ipausers']
+        else:
+            group = (u'ipausers',)
         if (u'memberof_group' not in result[u'result'] or
-                result[u'result'][u'memberof_group'] != (u'ipausers',)):
+                result[u'result'][u'memberof_group'] != group):
             assert False
 
     def make_fixture_restore(self, request):
@@ -457,6 +624,7 @@ class UserTracker(KerberosAliasMixin, Tracker):
         """
         del_command = self.make_delete_command()
         try:
+            self.skip_error = True
             del_command()
         except errors.NotFound:
             pass
