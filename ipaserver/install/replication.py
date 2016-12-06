@@ -436,6 +436,34 @@ class ReplicationManager(object):
         return DN(('cn', 'replica'), ('cn', self.db_suffix),
                   ('cn', 'mapping tree'), ('cn', 'config'))
 
+    def set_replica_binddngroup(self, r_conn, entry):
+        """
+        Set nsds5replicabinddngroup attribute on remote master's replica entry.
+        Older masters (ipa < 3.3) may not support setting this attribute. In
+        this case log the error and fall back to setting replica's binddn
+        directly.
+        """
+        binddn_groups = {
+            DN(p) for p in entry.get('nsds5replicabinddngroup', [])}
+
+        mod = []
+        if self.repl_man_group_dn not in binddn_groups:
+            mod.append((ldap.MOD_ADD, 'nsds5replicabinddngroup',
+                        self.repl_man_group_dn))
+
+        if 'nsds5replicabinddngroupcheckinterval' not in entry:
+            mod.append(
+                (ldap.MOD_ADD,
+                 'nsds5replicabinddngroupcheckinterval',
+                 '60'))
+        if mod:
+            try:
+                r_conn.modify_s(entry.dn, mod)
+            except ldap.UNWILLING_TO_PERFORM:
+                root_logger.debug(
+                    "nsds5replicabinddngroup attribute not supported on "
+                    "remote master.")
+
     def replica_config(self, conn, replica_id, replica_binddn):
         assert isinstance(replica_binddn, DN)
         dn = self.replica_dn()
@@ -444,26 +472,14 @@ class ReplicationManager(object):
         try:
             entry = conn.get_entry(dn)
             managers = {DN(m) for m in entry.get('nsDS5ReplicaBindDN', [])}
-            binddn_groups = {
-                DN(p) for p in entry.get('nsds5replicabinddngroup', [])}
 
-            mod = []
             if replica_binddn not in managers:
                 # Add the new replication manager
-                mod.append((ldap.MOD_ADD, 'nsDS5ReplicaBindDN',
-                            replica_binddn))
-
-            if self.repl_man_group_dn not in binddn_groups:
-                mod.append((ldap.MOD_ADD, 'nsds5replicabinddngroup',
-                            self.repl_man_group_dn))
-
-            if 'nsds5replicabinddngroupcheckinterval' not in entry:
-                mod.append(
-                    (ldap.MOD_ADD,
-                     'nsds5replicabinddngroupcheckinterval',
-                     '60'))
-            if mod:
+                mod = [(ldap.MOD_ADD, 'nsDS5ReplicaBindDN',
+                        replica_binddn)]
                 conn.modify_s(dn, mod)
+
+            self.set_replica_binddngroup(conn, entry)
 
             # replication is already configured
             return
