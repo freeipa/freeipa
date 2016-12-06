@@ -304,10 +304,6 @@ def install_check(installer):
     external_ca_file = installer._external_ca_file
     http_ca_cert = installer._ca_cert
 
-    if tasks.is_fips_enabled():
-        raise RuntimeError(
-            "Installing IPA server in FIPS mode is not supported")
-
     tasks.check_selinux_status()
 
     if options.master_password:
