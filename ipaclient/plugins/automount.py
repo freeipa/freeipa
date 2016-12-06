@@ -60,6 +60,10 @@ class automountlocation_tofiles(MethodOverride):
 
     NO_CLI = classproperty(__NO_CLI_getter)
 
+    @property
+    def api_version(self):
+        return self.api.Command.automountlocation_show.api_version
+
     def output_for_cli(self, textui, result, *keys, **options):
         maps = result['result']['maps']
         keys = result['result']['keys']
