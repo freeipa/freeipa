@@ -28,6 +28,7 @@ import inspect
 import nose
 import contextlib
 import six
+import pytest
 
 from ipatests.util import assert_deepequal, Fuzzy
 from ipalib import api, request, errors
@@ -390,10 +391,15 @@ def raises_exact(expected_exception):
     >>> with raises_exact(errors.ValidationError(name='x', error='y')):
     ...     raise errors.ValidationError(name='x', error='y')
     """
+
+
     try:
         yield
     except errors.PublicError as got_exception:
-        assert type(expected_exception) is type(got_exception)
+        if pytest.config.getoption('cli'):
+            assert type(got_exception) is errors.ExecutionError
+        else:
+            assert type(expected_exception) is type(got_exception)
         # FIXME: We should return error information in a structured way.
         # For now just compare the strings
         assert expected_exception.strerror == got_exception.strerror
