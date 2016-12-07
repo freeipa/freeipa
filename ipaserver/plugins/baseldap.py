@@ -1922,6 +1922,38 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
             for option in self.get_member_options(attr):
                 yield option
 
+    def get_attr_filter(self, ldap, **options):
+        """
+        Returns a MATCH_ALL filter containing all required attributes from the
+        options
+        """
+        search_kw = self.args_options_2_entry(**options)
+        search_kw['objectclass'] = self.obj.object_class
+        return ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
+
+    def get_term_filter(self, ldap, term):
+        """
+        Returns a filter to search for a value (term) in any of the
+        search attributes of an entry.
+        """
+        if self.obj.search_attributes:
+            search_attrs = self.obj.search_attributes
+        else:
+            search_attrs = self.obj.default_attributes
+        if self.obj.search_attributes_config:
+            config = ldap.get_ipa_config()
+            config_attrs = config.get(
+                self.obj.search_attributes_config, [])
+            if len(config_attrs) == 1 and (
+              isinstance(config_attrs[0], six.string_types)):
+                search_attrs = config_attrs[0].split(',')
+
+        search_kw = {}
+        for a in search_attrs:
+            search_kw[a] = term
+
+        return ldap.make_filter(search_kw, exact=False)
+
     def get_member_filter(self, ldap, **options):
         filter = ''
         for attr in self.member_attributes:
@@ -1981,26 +2013,8 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
                 attrs_list.difference_update(self.obj.attribute_members)
             attrs_list = list(attrs_list)
 
-        if self.obj.search_attributes:
-            search_attrs = self.obj.search_attributes
-        else:
-            search_attrs = self.obj.default_attributes
-        if self.obj.search_attributes_config:
-            config = ldap.get_ipa_config()
-            config_attrs = config.get(
-                self.obj.search_attributes_config, [])
-            if len(config_attrs) == 1 and (
-                isinstance(config_attrs[0], six.string_types)):
-                search_attrs = config_attrs[0].split(',')
-
-        search_kw['objectclass'] = self.obj.object_class
-        attr_filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
-
-        search_kw = {}
-        for a in search_attrs:
-            search_kw[a] = term
-        term_filter = ldap.make_filter(search_kw, exact=False)
-
+        attr_filter = self.get_attr_filter(ldap, **options)
+        term_filter = self.get_term_filter(ldap, term)
         member_filter = self.get_member_filter(ldap, **options)
 
         filter = ldap.combine_filters(
