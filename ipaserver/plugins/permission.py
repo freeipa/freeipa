@@ -1306,6 +1306,13 @@ class permission_find(baseldap.LDAPSearch):
                 filters.append(ldap.make_filter_from_attr('cn',
                                                           options['name'],
                                                           exact=False))
+            index = tuple(self.args).index('criteria')
+            try:
+                term = args[index]
+                filters.append(self.get_term_filter(ldap, term))
+            except IndexError:
+                term = None
+
             attrs_list = list(self.obj.default_attributes)
             attrs_list += list(self.obj.attribute_members)
             if options.get('all'):
