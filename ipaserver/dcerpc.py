@@ -633,50 +633,6 @@ class DomainValidator(object):
         return u'S-%d-%d-%s' % (sid_rev_num, ia,
                                 '-'.join([str(s) for s in subs]),)
 
-    def kinit_as_http(self, domain):
-        """
-        Initializes ccache with http service credentials.
-
-        Applies session code defaults for ccache directory and naming prefix.
-        Session code uses kinit_+<pid>, we use
-        kinit_+<TD>+<domain netbios name> so there is no clash.
-
-        Returns tuple (ccache path, principal) where (None, None) signifes an
-        error on ccache initialization
-        """
-
-        domain_suffix = domain.replace('.', '-')
-
-        ccache_name = "kinit_TD%s" % (domain_suffix)
-        ccache_path = os.path.join(paths.IPA_CCACHES, ccache_name)
-
-        realm = api.env.realm
-        hostname = api.env.host
-        principal = 'HTTP/%s@%s' % (hostname, realm)
-        keytab = paths.IPA_KEYTAB
-
-        # Destroy the contents of the ccache
-        root_logger.debug('Destroying the contents of the separate ccache')
-
-        ipautil.run(
-            [paths.KDESTROY, '-A', '-c', ccache_path],
-            env={'KRB5CCNAME': ccache_path},
-            raiseonerr=False)
-
-        # Destroy the contents of the ccache
-        root_logger.debug('Running kinit from ipa.keytab to obtain HTTP '
-                          'service principal with MS-PAC attached.')
-
-        result = ipautil.run(
-            [paths.KINIT, '-kt', keytab, principal],
-            env={'KRB5CCNAME': ccache_path},
-            raiseonerr=False)
-
-        if result.returncode == 0:
-            return (ccache_path, principal)
-        else:
-            return (None, None)
-
     def kinit_as_administrator(self, domain):
         """
         Initializes ccache with http service credentials.
@@ -1481,7 +1437,9 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
             ccache_name, _principal = domval.kinit_as_administrator(
                 trustdomain)
         else:
-            ccache_name, _principal = domval.kinit_as_http(trustdomain)
+            raise errors.ValidationError(name=_('Credentials'),
+                                         error=_('Missing credentials for '
+                                                 'cross-forest communication'))
         td.creds = credentials.Credentials()
         td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
         if ccache_name:
