@@ -12,4 +12,3 @@ default: cn: ca
 
 dn: cn=replica,cn=o\3Dipaca,cn=mapping tree,cn=config
 onlyifexist: nsds5replicabinddngroup: cn=replication managers,cn=sysaccounts,cn=etc,$SUFFIX
-add: nsds5replicabinddngroupcheckinterval: 60
