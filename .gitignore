@@ -12,6 +12,7 @@
 /po/POTFILES
 /po/POTFILES.in
 /po/remove-potcdate.sed
+/po/Rules-quot
 /po/stamp-po
 
 # In-tree build files
