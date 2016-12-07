@@ -299,7 +299,7 @@ AC_CONFIG_COMMANDS([po/POTFILES.in],
 			> po/POTFILES.in && dnl
 			cd "${find_start_pwd}"])
 AC_SUBST(GETTEXT_DOMAIN, [ipa])
-AM_GNU_GETTEXT_VERSION([0.19.8])
+AM_GNU_GETTEXT_VERSION([0.18.2])
 AM_GNU_GETTEXT([external])
 
 dnl integrate our custom hacks into gettextize infrastructure
