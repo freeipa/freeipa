@@ -435,16 +435,19 @@ AC_ARG_ENABLE([i18ntests],
 AC_SUBST([i18ntests])
 AM_CONDITIONAL([WITH_POLINT], [test "x${enable_i18ntests}" == "xyes"])
 
-AC_ARG_WITH([pylint],
-	    AS_HELP_STRING([--with-pylint=path],
-			   [path to Pylint]),
-dnl --without-pylint will set PYLINT=no
-	    [PYLINT=$with_pylint],
-	    [AC_PATH_PROG([PYLINT], [pylint])]
+AC_ARG_ENABLE([pylint],
+	    AS_HELP_STRING([--disable-pylint],
+			   [skip Pylint in make lint target]),
+	    [PYLINT=no],
+	    [PYLINT=yes
+	     AC_MSG_CHECKING([for Pylint])
+	     $PYTHON -m pylint --version > /dev/null
+	     if test "$?" != "0"; then
+		AC_MSG_ERROR([cannot find pylint for $PYTHON])
+	     fi
+	     AC_MSG_RESULT([yes])
+	    ]
 )
-if test "x${PYLINT}" == "x"; then
-	AC_MSG_ERROR([cannot find Pylint])
-fi
 AC_SUBST([PYLINT])
 AM_CONDITIONAL([WITH_PYLINT], [test "x${PYLINT}" != "xno"])
 

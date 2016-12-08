@@ -164,7 +164,7 @@ pylint: $(top_builddir)/ipapython/version.py ipasetup.py
 		-name '*.py' -print -o \
 		-type f -exec grep -qsm1 '^#!.*\bpython' '{}' \; -print`; \
 	echo "Pylint is running, please wait ..."; \
-	PYTHONPATH=$(top_srcdir) $(PYLINT) \
+	PYTHONPATH=$(top_srcdir) $(PYTHON) -m pylint \
 		--rcfile=$(top_srcdir)/pylintrc $${FILES}
 
 .PHONY: jslint jslint-ui jslint-ui-test jslint-html \
