@@ -24,6 +24,7 @@ import time
 import datetime
 import sys
 import os
+import re
 from random import randint
 
 import ldap
@@ -441,6 +442,32 @@ class ReplicationManager(object):
         dn = self.replica_dn()
         assert isinstance(dn, DN)
 
+        support_binddngroup = False
+        try:
+            # check that the replica version is > 1.3.3 to support bind group
+            entry = conn.get_entry(DN(""), attrs_list=['vendorVersion'])
+            vendor_version = entry.get('vendorVersion')[0]
+            if vendor_version:
+                replica_version = re.search('389-Directory/(.+?) .*', vendor_version)
+                root_logger.info("Replica version: %s" % replica_version.group(1))
+                version_num = [int(s) for s in replica_version.group(1).split('.') if s.isdigit()]
+                if version_num[0] > 1:
+                    support_binddngroup = True
+                elif version_num[0] == 1:
+                    # version 1.x
+                    if version_num[1] > 3:
+                        support_binddngroup = True
+                    elif version_num[1] == 3:
+                        # version 1.3.x
+                        if version_num[2] >= 3:
+                            support_binddngroup = True
+        except Exception as e:
+            root_logger.info("Unable to check replica version: %s" % str(e))
+            raise
+        root_logger.info("Bind DN group support: %s" % support_binddngroup)
+
+
+
         try:
             entry = conn.get_entry(dn)
             managers = {DN(m) for m in entry.get('nsDS5ReplicaBindDN', [])}
@@ -453,15 +480,16 @@ class ReplicationManager(object):
                 mod.append((ldap.MOD_ADD, 'nsDS5ReplicaBindDN',
                             replica_binddn))
 
-            if self.repl_man_group_dn not in binddn_groups:
-                mod.append((ldap.MOD_ADD, 'nsds5replicabinddngroup',
-                            self.repl_man_group_dn))
+            if support_binddngroup:
+                if self.repl_man_group_dn not in binddn_groups:
+                    mod.append((ldap.MOD_ADD, 'nsds5replicabinddngroup',
+                                self.repl_man_group_dn))
 
-            if 'nsds5replicabinddngroupcheckinterval' not in entry:
-                mod.append(
-                    (ldap.MOD_ADD,
-                     'nsds5replicabinddngroupcheckinterval',
-                     '60'))
+                if 'nsds5replicabinddngroupcheckinterval' not in entry:
+                    mod.append(
+                        (ldap.MOD_ADD,
+                         'nsds5replicabinddngroupcheckinterval',
+                         '60'))
             if mod:
                 conn.modify_s(dn, mod)
 
