@@ -79,6 +79,13 @@ isodate_re = re.compile('^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
 
 
 @pytest.fixture(scope='class')
+def user_min(request):
+    """ User tracker fixture for testing user with uid no specified """
+    tracker = UserTracker(givenname=u'Testmin', sn=u'Usermin')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
 def user(request):
     tracker = UserTracker(name=u'user1', givenname=u'Test', sn=u'User1')
     return tracker.make_fixture(request)
@@ -405,6 +412,12 @@ class TestUpdate(XMLRPC_test):
 
 @pytest.mark.tier1
 class TestCreate(XMLRPC_test):
+    def test_create_user_with_min_values(self, user_min):
+        """ Create user with uid not specified """
+        user_min.ensure_missing()
+        command = user_min.make_create_command()
+        command()
+
     def test_create_with_krb_ticket_policy(self):
         """ Try to create user with krbmaxticketlife set """
         testuser = UserTracker(
