@@ -168,7 +168,7 @@ class NSSDatabase(object):
                 "-k", db_password_filename, '-v']
         pkcs12_password_file = None
         if pkcs12_passwd is not None:
-            pkcs12_password_file = ipautil.write_tmp_file(pkcs12_passwd)
+            pkcs12_password_file = ipautil.write_tmp_file(pkcs12_passwd + '\n')
             args = args + ["-w", pkcs12_password_file.name]
         try:
             ipautil.run(args)
