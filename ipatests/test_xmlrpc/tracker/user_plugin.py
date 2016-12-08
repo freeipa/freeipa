@@ -62,22 +62,42 @@ class UserTracker(KerberosAliasMixin, Tracker):
 
     primary_keys = {u'uid', u'dn'}
 
-    def __init__(self, name, givenname, sn, **kwargs):
+    def __init__(self, name=None, givenname=None, sn=None, **kwargs):
+        """ Check for non-empty unicode string for the required attributes
+        in the init method """
+
+        if not (isinstance(givenname, six.string_types) and givenname):
+            raise ValueError(
+                "Invalid first name provided: {!r}".format(givenname)
+                )
+        if not (isinstance(sn, six.string_types) and sn):
+            raise ValueError("Invalid second name provided: {!r}".format(sn))
+
         super(UserTracker, self).__init__(default_version=None)
-        self.uid = name
-        self.givenname = givenname
-        self.sn = sn
+        self.uid = unicode(name)
+        self.givenname = unicode(givenname)
+        self.sn = unicode(sn)
         self.dn = DN(('uid', self.uid), api.env.container_user, api.env.basedn)
 
         self.kwargs = kwargs
 
-    def make_create_command(self):
-        """ Make function that crates a user using user-add """
-        return self.make_command(
-            'user_add', self.uid,
-            givenname=self.givenname,
-            sn=self.sn, **self.kwargs
-            )
+    def make_create_command(self, force=None):
+
+        """ Make function that creates a user using user-add
+            with all set of attributes and with minimal values,
+            where uid is not specified """
+
+        if self.uid is not None:
+            return self.make_command(
+                'user_add', self.uid,
+                givenname=self.givenname,
+                sn=self.sn, **self.kwargs
+                )
+        else:
+            return self.make_command(
+                'user_add', givenname=self.givenname,
+                sn=self.sn, **self.kwargs
+                )
 
     def make_delete_command(self, no_preserve=True, preserve=False):
         """ Make function that deletes a user using user-del
