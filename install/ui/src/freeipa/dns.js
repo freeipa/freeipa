@@ -875,7 +875,9 @@ IPA.dns.record_search_facet = function(spec) {
 
     var that = IPA.nested_search_facet(spec);
 
-    that.get_records = function(pkeys, on_success, on_error) {
+    that.get_records = function(records, pkeys_list, on_success, on_error) {
+
+        var pkeys = pkeys_list.keys;
 
         var batch = rpc.batch_command({
             name: that.get_records_command_name(),
@@ -887,6 +889,7 @@ IPA.dns.record_search_facet = function(spec) {
 
         for (var i=0; i<pkeys.length; i++) {
             var pkey = pkeys[i];
+            var call_pkey = pkeys_list.get(pkey);
 
             var command = rpc.command({
                 entity: that.table.entity.name,

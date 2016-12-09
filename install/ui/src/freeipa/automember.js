@@ -167,9 +167,10 @@ IPA.automember.rule_search_facet = function(spec) {
         return name;
     };
 
-    that.create_get_records_command = function(pkeys, on_success, on_error) {
+    that.create_get_records_command = function(records, pkeys, on_success, on_error) {
 
-        var batch = that.table_facet_create_get_records_command(pkeys, on_success, on_error);
+        var batch = that.table_facet_create_get_records_command(records, pkeys,
+                                                        on_success, on_error);
 
         for (var i=0; i<batch.commands.length; i++) {
             var command = batch.commands[i];

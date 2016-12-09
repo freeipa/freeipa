@@ -1835,6 +1835,14 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
     var that = IPA.facet(spec, no_init);
 
     /**
+     * Sets whether table on the facet will or will not show items with the
+     * same key.
+     *
+     * @property {boolean}
+     */
+    that.show_values_with_dup_key = spec.show_values_with_dup_key || false;
+
+    /**
      * Names of additional row attributes which will be send to another facet
      * during navigation as URL parameters.
      *
@@ -2074,11 +2082,13 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
      *
      * @protected
      * @param {Object} data RPC command data
-     * @return {ordered_map} record map
+     * @return {Object} ordered_maps with records and with pkeys. keys
+     *                              are composed from pkey and index.
      */
     that.get_records_map = function(data) {
 
         var records_map = $.ordered_map();
+        var pkeys_map = $.ordered_map();
 
         var result = data.result.result;
         var pkey_name = that.managed_entity.metadata.primary_key ||
@@ -2089,11 +2099,21 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
             var record = result[i];
             var pkey = adapter.load(record, pkey_name)[0];
             if (that.filter_records(records_map, pkey, record)) {
-                records_map.put(pkey, record);
+                // This solution allows to show tables where are the same
+                // primary keys. (i.e. {User|Service} Vaults)
+                var compound_pkey = pkey;
+                if (that.show_values_with_dup_key) {
+                    compound_pkey = pkey + i;
+                }
+                records_map.put(compound_pkey, record);
+                pkeys_map.put(compound_pkey, pkey);
             }
         }
 
-        return records_map;
+        return {
+            records_map: records_map,
+            pkeys_map: pkeys_map
+        };
     };
 
     /**
@@ -2110,7 +2130,9 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
     that.load_page = function(data) {
 
         // get primary keys (and the complete records if search_all_entries is true)
-        var records_map = that.get_records_map(data);
+        var records = that.get_records_map(data);
+        var records_map = records.records_map;
+        var pkeys_map = records.pkeys_map;
 
         var total = records_map.length;
         that.table.total_pages = total ? Math.ceil(total / that.table.page_length) : 1;
@@ -2146,11 +2168,11 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
 
         // sort map based on primary keys
         if (that.sort_enabled) {
-            records_map = records_map.sort();
+            pkeys_map = pkeys_map.sort();
         }
 
         // trim map leaving the entries visible in the current page only
-        records_map = records_map.slice(start-1, end);
+        pkeys_map = pkeys_map.slice(start-1, end);
 
         var columns = that.table.columns.values;
         if (columns.length == 1) { // show primary keys only
@@ -2167,16 +2189,19 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         // get the complete records
         that.get_records(
             records_map,
+            pkeys_map,
             function(data, text_status, xhr) {
                 var results = data.result.results;
-                for (var i=0; i<records_map.length; i++) {
-                    var pkey = records_map.keys[i];
+                var show_records_map = $.ordered_map();
+                for (var i=0; i<pkeys_map.length; i++) {
+                    var pkey = pkeys_map.keys[i];
                     var record = records_map.get(pkey);
                     // merge the record obtained from the refresh()
                     // with the record obtained from get_records()
                     $.extend(record, results[i].result);
+                    show_records_map.put(pkey, record);
                 }
-                that.load_records(records_map.values);
+                that.load_records(show_records_map.values);
             },
             function(xhr, text_status, error_thrown) {
                 that.load_records([]);
@@ -2249,9 +2274,9 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
      * @param {Function} on_success command success handler
      * @param {Function} on_failure command error handler
      */
-    that.create_get_records_command = function(records, on_success, on_error) {
+    that.create_get_records_command = function(records, pkeys_list, on_success, on_error) {
 
-        var pkeys = records.keys;
+        var pkeys = pkeys_list.keys;
 
         var batch = rpc.batch_command({
             name: that.get_records_command_name(),
@@ -2261,11 +2286,12 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
 
         for (var i=0; i<pkeys.length; i++) {
             var pkey = pkeys[i];
+            var call_pkey = pkeys_list.get(pkey);
 
             var command = rpc.command({
                 entity: that.table.entity.name,
                 method: 'show',
-                args: [pkey]
+                args: [call_pkey]
             });
 
             if (that.show_command_additional_attr) {
@@ -2304,13 +2330,13 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
      * Execute command for obtaining complete records
      *
      * @protected
-     * @param {Array.<string>} pkeys primary keys
+     * @param records_map of all records
      * @param {Function} on_success command success handler
      * @param {Function} on_failure command error handler
      */
-    that.get_records = function(pkeys, on_success, on_error) {
+    that.get_records = function(records, pkeys, on_success, on_error) {
 
-        var batch = that.create_get_records_command(pkeys, on_success, on_error);
+        var batch = that.create_get_records_command(records, pkeys, on_success, on_error);
 
         batch.execute();
     };

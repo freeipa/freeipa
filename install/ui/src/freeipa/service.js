@@ -430,6 +430,7 @@ IPA.service.search_facet = function(spec) {
     that.get_records_map = function(data) {
 
         var records_map = $.ordered_map();
+        var pkeys_map = $.ordered_map();
 
         var result = data.result.result;
         var pkey_name = that.managed_entity.metadata.primary_key ||
@@ -443,11 +444,16 @@ IPA.service.search_facet = function(spec) {
                 pkey = adapter.load(record, that.alternative_pkey)[0];
             }
             if (that.filter_records(records_map, pkey, record)) {
-                records_map.put(pkey, record);
+                var compound_pkey = pkey + i;
+                records_map.put(compound_pkey, record);
+                pkeys_map.put(compound_pkey, pkey);
             }
         }
 
-        return records_map;
+        return {
+            records_map: records_map,
+            pkeys_map: pkeys_map
+        };
     };
 
     return that;
