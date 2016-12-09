@@ -490,7 +490,7 @@ topology.servers_search_facet = function(spec, no_init) {
 
     var that = IPA.search_facet(spec);
 
-    that.create_get_records_command = function(pkeys, on_success, on_error) {
+    that.create_get_records_command = function(records, pkeys, on_success, on_error) {
 
         var on_success_extended = function(data, text_status, xhr) {
             // Call original on_success handler
@@ -560,7 +560,7 @@ topology.servers_search_facet = function(spec, no_init) {
             dialog.open();
         };
 
-        var batch = that.table_facet_create_get_records_command(pkeys,
+        var batch = that.table_facet_create_get_records_command(records, pkeys,
                                                 on_success_extended, on_error);
 
         return batch;

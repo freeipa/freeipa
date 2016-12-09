@@ -1042,6 +1042,7 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
     that.facet_group = spec.facet_group;
 
     that.read_only = spec.read_only;
+    that.show_values_with_dup_key = spec.show_values_with_dup_key || false;
 
     that.associator = spec.associator || IPA.bulk_associator;
     that.add_method = spec.add_method || 'add_member';
@@ -1318,6 +1319,7 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
     that.get_records_map = function(data) {
 
         var records_map = $.ordered_map();
+        var pkeys_map = $.ordered_map();
         var association_name = that.get_attribute_name();
         var pkey_name = that.managed_entity.metadata.primary_key;
 
@@ -1326,10 +1328,18 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
             var pkey = pkeys[i];
             var record = {};
             record[pkey_name] = pkey;
-            records_map.put(pkey, record);
+            var compound_pkey = pkey;
+            if (that.show_values_with_dup_key) {
+                compound_pkey = pkey + i;
+            }
+            records_map.put(compound_pkey, record);
+            pkeys_map.put(compound_pkey, pkey);
         }
 
-        return records_map;
+        return {
+            records_map: records_map,
+            pkeys_map: pkeys_map
+        };
     };
 
     that.refresh = function() {
@@ -1488,16 +1498,22 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
     that.get_records_map = function(data) {
 
         var records_map = $.ordered_map();
+        var pkeys_map = $.ordered_map();
         var pkeys = data.result.result[that.attribute];
 
         for (var i=0; pkeys && i<pkeys.length; i++) {
             var pkey = pkeys[i];
             var record = {};
             record[that.attribute] = pkey;
-            records_map.put(pkey, record);
+            var compound_pkey = pkey + i;
+            records_map.put(compound_pkey, record);
+            pkeys_map.put(compound_pkey, pkey);
         }
 
-        return records_map;
+        return {
+            records_map: records_map,
+            pkeys_map: pkeys_map
+        };
     };
 
     that.refresh = function() {
