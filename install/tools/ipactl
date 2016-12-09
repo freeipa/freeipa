@@ -244,7 +244,7 @@ def get_config_from_file():
 
 def stop_services(svc_list):
     for svc in svc_list:
-        svc_off = services.service(svc)
+        svc_off = services.service(svc, api=api)
         try:
             svc_off.stop(capture_output=False)
         except Exception:
@@ -303,7 +303,7 @@ def ipa_start(options):
 
     svc_list = deduplicate(svc_list)
     for svc in svc_list:
-        svchandle = services.service(svc)
+        svchandle = services.service(svc, api=api)
         try:
             print("Starting %s Service" % svc)
             svchandle.start(capture_output=get_capture_output(svc, options.debug))
@@ -343,7 +343,7 @@ def ipa_stop(options):
 
     svc_list = deduplicate(svc_list)
     for svc in reversed(svc_list):
-        svchandle = services.service(svc)
+        svchandle = services.service(svc, api=api)
         try:
             print("Stopping %s Service" % svc)
             svchandle.stop(capture_output=False)
@@ -421,7 +421,7 @@ def ipa_restart(options):
         # we need to definitely stop some services
         old_svc_list = deduplicate(old_svc_list)
         for svc in reversed(old_svc_list):
-            svchandle = services.service(svc)
+            svchandle = services.service(svc, api=api)
             try:
                 print("Stopping %s Service" % svc)
                 svchandle.stop(capture_output=False)
@@ -446,7 +446,7 @@ def ipa_restart(options):
         # there are services to restart
         svc_list = deduplicate(svc_list)
         for svc in svc_list:
-            svchandle = services.service(svc)
+            svchandle = services.service(svc, api=api)
             try:
                 print("Restarting %s Service" % svc)
                 svchandle.restart(capture_output=get_capture_output(svc, options.debug))
@@ -469,7 +469,7 @@ def ipa_restart(options):
         # we still need to start some services
         new_svc_list = deduplicate(new_svc_list)
         for svc in new_svc_list:
-            svchandle = services.service(svc)
+            svchandle = services.service(svc, api=api)
             try:
                 print("Starting %s Service" % svc)
                 svchandle.start(capture_output=get_capture_output(svc, options.debug))
@@ -521,7 +521,7 @@ def ipa_status(options):
 
     svc_list = deduplicate(svc_list)
     for svc in svc_list:
-        svchandle = services.service(svc)
+        svchandle = services.service(svc, api=api)
         try:
             if svchandle.is_running():
                 print("%s Service: RUNNING" % svc)
