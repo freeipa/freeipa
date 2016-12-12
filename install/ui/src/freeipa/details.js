@@ -1647,6 +1647,7 @@ exp.value_state_evaluator = IPA.value_state_evaluator = function(spec) {
 
     spec.name = spec.name || 'value_state_evaluator';
     spec.event = spec.event || 'post_load';
+    spec.adapter = spec.adapter || {};
 
     var that = IPA.state_evaluator(spec);
 
