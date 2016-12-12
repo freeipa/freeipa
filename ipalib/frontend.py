@@ -776,8 +776,7 @@ class Command(HasParam):
                                sver=self.api_version,
                                server=self.env.xmlrpc_uri)
 
-        if (client_apiver.major != server_apiver.major
-                or client_apiver > server_apiver):
+        if client_apiver.major != server_apiver.major:
             raise VersionError(cver=client_version,
                                sver=self.api_version,
                                server=self.env.xmlrpc_uri)
