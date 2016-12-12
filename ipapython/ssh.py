@@ -25,8 +25,8 @@ SSH utilities.
 import base64
 import re
 import struct
-from hashlib import md5, sha1
-from hashlib import sha256  #pylint: disable=E0611
+from hashlib import sha1
+from hashlib import sha256  # pylint: disable=E0611
 
 import six
 
@@ -190,10 +190,11 @@ class SSHPublicKey(object):
 
         return out
 
-    def fingerprint_hex_md5(self):
-        fp = md5(self._key).hexdigest().upper()
-        fp = u':'.join([fp[j:j+2] for j in range(0, len(fp), 2)])
-        return fp
+    def fingerprint_hex_sha256(self):
+        # OpenSSH trims the trailing '=' of base64 sha256 FP representation
+        # Using unicode argument converts the result to unicode object
+        fp = base64.b64encode(sha256(self._key).digest()).rstrip(u'=')
+        return 'SHA256:{fp}'.format(fp=fp)
 
     def _fingerprint_dns(self, fpfunc, fptype):
         if self._keytype == 'ssh-rsa':
