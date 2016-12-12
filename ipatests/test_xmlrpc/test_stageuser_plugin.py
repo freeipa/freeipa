@@ -85,6 +85,11 @@ def stageduser(request):
     return tracker.make_fixture(request)
 
 
+@pytest.fixture(scope='class')
+def stageduser_min(request):
+    tracker = StageUserTracker(givenname=u'stagedmin', sn=u'usermin')
+    return tracker.make_fixture(request)
+
 @pytest.fixture(scope='class', params=options_ok, ids=options_ids)
 def stageduser2(request):
     tracker = StageUserTracker(u'suser2', u'staged', u'user', **request.param)
@@ -191,6 +196,12 @@ class TestNonexistentStagedUser(XMLRPC_test):
 
 @pytest.mark.tier1
 class TestStagedUser(XMLRPC_test):
+    def test_create_with_min_values(self, stageduser_min):
+        """ Create user with uid not specified """
+        stageduser_min.ensure_missing()
+        command = stageduser_min.make_create_command()
+        command()
+
     def test_create_duplicate(self, stageduser):
         stageduser.ensure_exists()
         command = stageduser.make_create_command()
