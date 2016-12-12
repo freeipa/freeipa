@@ -301,7 +301,7 @@ def convert_sshpubkey_post(entry_attrs):
         except (ValueError, UnicodeDecodeError):
             continue
 
-        fp = pubkey.fingerprint_hex_md5()
+        fp = pubkey.fingerprint_hex_sha256()
         comment = pubkey.comment()
         if comment:
             fp = u'%s %s' % (fp, comment)
