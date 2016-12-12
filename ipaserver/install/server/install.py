@@ -54,6 +54,22 @@ NoneType = type(None)
 SYSRESTORE_DIR_PATH = paths.SYSRESTORE
 
 
+def check_password_fips_nssdb_compatible(password):
+    """
+    Check whether the given password can be used for NSSDB setup in FIPS mode
+    """
+    gotnumeric = any(c.isdigit() for c in password[:-1])
+    gotupper = any(c.isupper() for c in password[1:])
+    gotlower = any(c.islower() for c in password)
+    gotspecial = not password.isalnum()
+    classes = sum([gotnumeric, gotupper, gotlower, gotspecial])
+    if classes < 3:
+        raise ValueError("Password must contain at least one character "
+                         "from each of three out of these four character "
+                         "classes: numeric, uppercase letters, lowercase "
+                         "letters and special symbols.")
+
+
 def validate_dm_password(password):
     if len(password) < 8:
         raise ValueError("Password must be at least 8 characters long")
@@ -77,6 +93,11 @@ def validate_dm_password(password):
     # Disallow leading/trailing whaitespaces
     if password.strip() != password:
         raise ValueError('Password must not start or end with whitespace.')
+
+    # DM password is used somewhere during install to set up an NSS database
+    # therefore it must comply to NSS in FIPS password requirements
+    if tasks.is_fips_enabled():
+        check_password_fips_nssdb_compatible(password)
 
 
 def validate_admin_password(password):
