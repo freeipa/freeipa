@@ -48,6 +48,7 @@ from ipaserver.install import dnskeysyncinstance
 from ipaserver.install import krainstance
 from ipaserver.install import dogtaginstance
 from ipaserver.install import krbinstance
+from ipaserver.install import adtrustinstance
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
 
@@ -266,6 +267,26 @@ def cleanup_adtrust(fstore):
         if fstore.has_file(backed_up_file):
             fstore.untrack_file(backed_up_file)
             root_logger.debug('Removing %s from backup', backed_up_file)
+
+
+def upgrade_adtrust_config():
+    """
+    Upgrade 'dedicated keytab file' in smb.conf to omit FILE: prefix
+    """
+
+    if not adtrustinstance.ipa_smb_conf_exists():
+        return
+
+    root_logger.info("[Remove FILE: prefix from 'dedicated keytab file' "
+                     "in Samba configuration]")
+
+    args = [paths.NET, "conf", "setparm", "global",
+            "dedicated keytab file", paths.SAMBA_KEYTAB]
+
+    try:
+        ipautil.run(args)
+    except ipautil.CalledProcessError as e:
+        root_logger.warning("Error updating Samba registry: %s", e)
 
 
 def ca_configure_profiles_acl(ca):
@@ -1668,6 +1689,7 @@ def upgrade_configuration():
 
     cleanup_kdc(fstore)
     cleanup_adtrust(fstore)
+    upgrade_adtrust_config()
 
     bind = bindinstance.BindInstance(fstore)
     if bind.is_configured() and not bind.is_running():
