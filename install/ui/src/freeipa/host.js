@@ -124,11 +124,11 @@ return {
                             add_field_label: '@i18n:authtype.auth_indicator',
                             options: [
                                 {
-                                    label: '@i18n:authtype.otp',
+                                    label: 'otp',
                                     value: 'otp'
                                 },
                                 {
-                                    label: '@i18n:authtype.type_radius',
+                                    label: 'radius',
                                     value: 'radius'
                                 }
                             ],
