@@ -546,6 +546,9 @@ aci.attributes_widget = function(spec) {
     spec.add_field_label = spec.add_field_label ||
                             '@i18n:objects.permission.attribute';
 
+    spec.set_value_to_lowercase = spec.set_value_to_lowercase === undefined ?
+                    true : spec.set_value_to_lowercase;
+
     var that = IPA.custom_checkboxes_widget(spec);
 
     that.object_type = spec.object_type;
