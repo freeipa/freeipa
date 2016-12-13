@@ -38,6 +38,7 @@ script:
         run-tests $test_set
 after_failure:
   - echo "Test runner output:"
-  - tail -n 5000 ci_results_${TRAVIS_BRANCH}.log
+  - cat ci_results_${TRAVIS_BRANCH}.log
+  - cat /var/log/httpd/error_log
   - echo "PEP-8 errors:"
   - cat pep8_errors.log
