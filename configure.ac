@@ -5,6 +5,14 @@ AC_INIT([freeipa],
         IPA_VERSION,
         [https://hosted.fedoraproject.org/projects/freeipa/newticket])
 
+dnl Make sure the build directory name does not contain spaces!
+dnl Spaces are causing problems in libtool, makefiles, autoconf itself,
+dnl gettextize framework etc.
+case "$PWD" in
+  *\ * | *\	*)
+    AC_MSG_ERROR([whitespace in working directory path is not supported]) ;;
+esac
+
 AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([foreign 1.9 tar-ustar])
