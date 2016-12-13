@@ -11,6 +11,7 @@ class BaseConstantsNamespace(object):
     DS_USER = 'dirsrv'
     DS_GROUP = 'dirsrv'
     HTTPD_USER = "apache"
+    HTTPD_GROUP = "apache"
     GSSPROXY_USER = "root"
     IPA_DNS_PACKAGE_NAME = "freeipa-server-dns"
     KDCPROXY_USER = "kdcproxy"

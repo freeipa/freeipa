@@ -814,12 +814,13 @@ class DsInstance(service.Service):
 
             # FIXME, need to set this nickname in the RA plugin
             cadb.export_ca_cert('ipaCert', False)
-            dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
+            dsdb.create_from_cacert()
             ca_args = ['/usr/libexec/certmonger/dogtag-submit',
                        '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
-                       '--dbdir', paths.HTTPD_ALIAS_DIR,
+                       '--dbdir', paths.IPA_RADB_DIR,
                        '--nickname', 'ipaCert',
-                       '--sslpinfile', paths.ALIAS_PWDFILE_TXT,
+                       '--sslpinfile', os.path.join(paths.IPA_RADB_DIR,
+                                                    'pwdfile.txt'),
                        '--agent-submit']
             helper = " ".join(ca_args)
             prev_helper = certmonger.modify_ca_helper('IPA', helper)

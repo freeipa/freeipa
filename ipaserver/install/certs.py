@@ -41,12 +41,7 @@ from ipapython.dn import DN
 from ipalib import pkcs10, x509, api
 from ipalib.errors import CertificateOperationError
 from ipalib.text import _
-from ipaplatform.constants import constants
 from ipaplatform.paths import paths
-
-# Apache needs access to this database so we need to create it
-# where apache can reach
-NSS_DIR = paths.HTTPD_ALIAS_DIR
 
 
 def get_cert_nickname(cert):
@@ -80,9 +75,8 @@ class CertDB(object):
 
     """
     # TODO: Remove all selfsign code
-    def __init__(
-            self, realm, nssdir=NSS_DIR, fstore=None, host_name=None,
-            subject_base=None, ca_subject=None):
+    def __init__(self, realm, nssdir=paths.IPA_RADB_DIR, fstore=None,
+                 host_name=None, subject_base=None, ca_subject=None):
         self.nssdb = NSSDatabase(nssdir)
 
         self.secdir = nssdir
@@ -93,10 +87,8 @@ class CertDB(object):
         self.certdb_fname = self.secdir + "/cert8.db"
         self.keydb_fname = self.secdir + "/key3.db"
         self.secmod_fname = self.secdir + "/secmod.db"
-        self.cacert_fname = self.secdir + "/cacert.asc"
         self.pk12_fname = self.secdir + "/cacert.p12"
         self.pin_fname = self.secdir + "/pin.txt"
-        self.pwd_conf = paths.HTTPD_PASSWORD_CONF
         self.reqdir = None
         self.certreq_fname = None
         self.certder_fname = None
@@ -222,21 +214,22 @@ class CertDB(object):
 
         return False
 
-    def export_ca_cert(self, nickname, create_pkcs12=False):
+    def export_ca_cert(self, nickname, create_pkcs12=False,
+                       cacert_fname=paths.ALIAS_CACERT_ASC):
         """create_pkcs12 tells us whether we should create a PKCS#12 file
            of the CA or not. If we are running on a replica then we won't
            have the private key to make a PKCS#12 file so we don't need to
            do that step."""
         # export the CA cert for use with other apps
-        ipautil.backup_file(self.cacert_fname)
+        ipautil.backup_file(cacert_fname)
         root_nicknames = self.find_root_cert(nickname)[:-1]
-        fd = open(self.cacert_fname, "w")
+        fd = open(cacert_fname, "w")
         for root in root_nicknames:
             result = self.run_certutil(["-L", "-n", root, "-a"],
                                        capture_output=True)
             fd.write(result.output)
         fd.close()
-        os.chmod(self.cacert_fname, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+        os.chmod(cacert_fname, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
         if create_pkcs12:
             ipautil.backup_file(self.pk12_fname)
             ipautil.run([paths.PK12UTIL, "-d", self.secdir,
@@ -494,19 +487,6 @@ class CertDB(object):
         pwdfile.close()
         self.set_perms(self.pin_fname)
 
-    def create_password_conf(self):
-        """
-        This is the format of mod_nss pin files.
-        """
-        ipautil.backup_file(self.pwd_conf)
-        f = open(self.pwd_conf, "w")
-        f.write("internal:")
-        pwdfile = open(self.passwd_fname)
-        f.write(pwdfile.read())
-        f.close()
-        pwdfile.close()
-        self.set_perms(self.pwd_conf, uid=constants.HTTPD_USER)
-
     def find_root_cert(self, nickname):
         """
         Given a nickname, return a list of the certificates that make up
@@ -550,7 +530,8 @@ class CertDB(object):
                      "-in", pem_fname, "-out", pkcs12_fname,
                      "-passout", "file:" + pkcs12_pwd_fname])
 
-    def create_from_cacert(self, cacert_fname, passwd=None):
+    def create_from_cacert(self, cacert_fname=paths.ALIAS_CACERT_ASC,
+                           passwd=None):
         if ipautil.file_exists(self.certdb_fname):
             # We already have a cert db, see if it is for the same CA.
             # If it is we leave things as they are.
@@ -646,15 +627,12 @@ class CertDB(object):
                      "-passin", "file:" + pwd.name])
 
     def publish_ca_cert(self, location):
-        shutil.copy(self.cacert_fname, location)
-        os.chmod(location, 0o444)
+        self.nssdb.publish_ca_cert(self.cacert_name, location)
 
     def export_pem_cert(self, nickname, location):
         return self.nssdb.export_pem_cert(nickname, location)
 
-    def request_service_cert(self, nickname, principal, host, pwdconf=False):
-        if pwdconf:
-            self.create_password_conf()
+    def request_service_cert(self, nickname, principal, host):
         certmonger.request_and_wait_for_cert(certpath=self.secdir,
                                              nickname=nickname,
                                              principal=principal,

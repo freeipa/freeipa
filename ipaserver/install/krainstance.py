@@ -33,7 +33,6 @@ from ipaplatform.paths import paths
 from ipapython import certdb
 from ipapython import ipautil
 from ipapython.dn import DN
-from ipaserver.install import certs
 from ipaserver.install import cainstance
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
@@ -107,7 +106,7 @@ class KRAInstance(DogtagInstance):
                 raise RuntimeError(
                     "KRA already installed.")
             # Confirm that a Dogtag 10 CA instance already exists
-            ca = cainstance.CAInstance(self.realm, certs.NSS_DIR)
+            ca = cainstance.CAInstance(self.realm)
             if not ca.is_installed():
                 raise RuntimeError(
                     "KRA configuration failed.  "
@@ -292,7 +291,7 @@ class KRAInstance(DogtagInstance):
         """
 
         # get ipaCert certificate
-        with certdb.NSSDatabase(paths.HTTPD_ALIAS_DIR) as ipa_nssdb:
+        with certdb.NSSDatabase(paths.IPA_RADB_DIR) as ipa_nssdb:
            cert_data = ipa_nssdb.get_cert("ipaCert")
         cert = x509.load_certificate(cert_data, x509.DER)
 

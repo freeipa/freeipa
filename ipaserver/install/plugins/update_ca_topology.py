@@ -6,7 +6,7 @@ from ipalib import errors
 from ipalib import Registry
 from ipalib import Updater
 from ipapython.dn import DN
-from ipaserver.install import certs, cainstance
+from ipaserver.install import cainstance
 from ipaserver.install import ldapupdate
 from ipaplatform.paths import paths
 
@@ -21,7 +21,7 @@ class update_ca_topology(Updater):
 
     def execute(self, **options):
 
-        ca = cainstance.CAInstance(self.api.env.realm, certs.NSS_DIR)
+        ca = cainstance.CAInstance(self.api.env.realm)
         if not ca.is_configured():
             self.log.debug("CA is not configured on this host")
             return False, []

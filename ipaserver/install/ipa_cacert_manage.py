@@ -131,7 +131,7 @@ class CACertManage(admintool.AdminTool):
         api.Backend.ldap2.connect(bind_pw=password)
 
     def renew(self):
-        ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+        ca = cainstance.CAInstance(api.env.realm)
         if not ca.is_configured():
             raise admintool.ScriptError("CA is not configured on this system")
 

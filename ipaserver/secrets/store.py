@@ -46,7 +46,7 @@ def PKI_TOMCAT_password_callback():
 
 
 def HTTPD_password_callback():
-    with open(paths.ALIAS_PWDFILE_TXT) as f:
+    with open(os.path.join(paths.IPA_RADB_DIR, 'pwdfile.txt')) as f:
         password = f.read()
     return password
 
@@ -206,7 +206,7 @@ NAME_DB_MAP = {
     },
     'ra': {
         'type': 'NSSDB',
-        'path': paths.HTTPD_ALIAS_DIR,
+        'path': paths.IPA_RADB_DIR,
         'handler': NSSCertDB,
         'pwcallback': HTTPD_password_callback,
     },

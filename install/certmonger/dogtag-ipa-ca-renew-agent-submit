@@ -208,7 +208,9 @@ def request_cert():
                   "Forwarding request to dogtag-ipa-renew-agent")
 
     path = paths.DOGTAG_IPA_RENEW_AGENT_SUBMIT
-    args = [path] + sys.argv[1:] + ['--submit-option', "requestor_name=IPA"]
+    args = [path, '--dbdir', paths.IPA_RADB_DIR]
+    args.extend(sys.argv[1:])
+    args.extend(['--submit-option', "requestor_name=IPA"])
     if os.environ.get('CERTMONGER_CA_PROFILE') == 'caCACert':
         args += ['-N', '-O', 'bypassCAnotafter=true']
     result = ipautil.run(args, raiseonerr=False, env=os.environ,

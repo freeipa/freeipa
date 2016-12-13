@@ -603,7 +603,7 @@ class ReplicaPrepare(admintool.AdminTool):
             ca_db = certs.CertDB(
                 api.env.realm, host_name=api.env.host,
                 subject_base=subject_base)
-            db.create_from_cacert(ca_db.cacert_fname)
+            db.create_from_cacert()
             db.create_server_cert(nickname, hostname, ca_db)
 
             pkcs12_fname = os.path.join(self.dir, fname + ".p12")
