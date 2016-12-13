@@ -656,7 +656,7 @@ class CAInstance(DogtagInstance):
 
         Used when setting up replication
         """
-        # Add the new RA cert to the database in /etc/httpd/alias
+        # Add the new RA cert into the RA database
         with tempfile.NamedTemporaryFile(mode="w") as agent_file:
             agent_file.write(self.dm_password)
             agent_file.flush()
@@ -970,16 +970,6 @@ class CAInstance(DogtagInstance):
                 self.log.warning("Error while removing CRL publish "
                                     "directory: %s", e)
 
-    def publish_ca_cert(self, location):
-        args = ["-L", "-n", self.canickname, "-a"]
-        result = self.__run_certutil(
-            args, capture_output=True)
-        cert = result.output
-        fd = open(location, "w+")
-        fd.write(cert)
-        fd.close()
-        os.chmod(location, 0o444)
-
     def unconfigure_certmonger_renewal_guard(self):
         if not self.is_configured():
             return
@@ -1004,8 +994,8 @@ class CAInstance(DogtagInstance):
                 ca='dogtag-ipa-ca-renew-agent',
                 nickname='ipaCert',
                 pin=None,
-                pinfile=paths.ALIAS_PWDFILE_TXT,
-                secdir=paths.HTTPD_ALIAS_DIR,
+                pinfile=os.path.join(paths.IPA_RADB_DIR, 'pwdfile.txt'),
+                secdir=paths.IPA_RADB_DIR,
                 pre_command='renew_ra_cert_pre',
                 post_command='renew_ra_cert')
         except RuntimeError as e:
@@ -1024,7 +1014,7 @@ class CAInstance(DogtagInstance):
                 certmonger.stop_tracking(self.nss_db, nickname=nickname)
 
         try:
-            certmonger.stop_tracking(paths.HTTPD_ALIAS_DIR, nickname='ipaCert')
+            certmonger.stop_tracking(paths.IPA_RADB_DIR, nickname='ipaCert')
         except RuntimeError as e:
             root_logger.error(
                 "certmonger failed to stop tracking certificate: %s", e)

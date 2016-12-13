@@ -36,7 +36,7 @@ from six.moves.xmlrpc_client import MAXINT
 from ipaclient.install import ipadiscovery
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
-from ipaserver.install import bindinstance, cainstance, certs
+from ipaserver.install import bindinstance, cainstance
 from ipaserver.install import opendnssecinstance, dnskeysyncinstance
 from ipapython import version, ipaldap
 from ipalib import api, errors
@@ -890,7 +890,7 @@ def ensure_last_services(conn, hostname, masters, options):
             print("Please disable or replace DNSSEC key master first.")
             sys.exit("Deletion aborted")
 
-    ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+    ca = cainstance.CAInstance(api.env.realm)
     if ca.is_renewal_master(hostname):
         try:
             ca.set_renewal_master(options.host)

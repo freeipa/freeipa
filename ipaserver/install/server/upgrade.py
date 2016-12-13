@@ -919,7 +919,7 @@ def certificate_renewal_update(ca, ds, http):
             'ipaCACertRenewal',
         ),
         (
-            paths.HTTPD_ALIAS_DIR,
+            paths.IPA_RADB_DIR,
             'ipaCert',
             'dogtag-ipa-ca-renew-agent',
             template % 'renew_ra_cert_pre',
@@ -1374,7 +1374,7 @@ def fix_trust_flags():
         root_logger.info("CA is not enabled")
         return
 
-    db = certs.CertDB(api.env.realm)
+    db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
     nickname = certdb.get_ca_nickname(api.env.realm)
     cert = db.get_cert_from_db(nickname)
     if cert:
@@ -1540,7 +1540,7 @@ def upgrade_configuration():
         sub_dict['SUBJECT_BASE'] = subject_base
 
     ca = cainstance.CAInstance(
-            api.env.realm, certs.NSS_DIR, host_name=api.env.host)
+            api.env.realm, paths.IPA_RADB_DIR, host_name=api.env.host)
     ca_running = ca.is_running()
 
     with installutils.stopped_service('pki-tomcatd', 'pki-tomcat'):

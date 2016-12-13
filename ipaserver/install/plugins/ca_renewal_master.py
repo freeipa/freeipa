@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipaserver.install import installutils, certs, cainstance
+from ipaserver.install import installutils, cainstance
 from ipalib import errors
 from ipalib import Updater
 from ipalib.install import certmonger
@@ -34,7 +34,7 @@ class update_ca_renewal_master(Updater):
     """
 
     def execute(self, **options):
-        ca = cainstance.CAInstance(self.api.env.realm, certs.NSS_DIR)
+        ca = cainstance.CAInstance(self.api.env.realm)
         if not ca.is_configured():
             self.debug("CA is not configured on this host")
             return False, []
@@ -74,7 +74,7 @@ class update_ca_renewal_master(Updater):
                 return False, []
 
         criteria = {
-            'cert-database': paths.HTTPD_ALIAS_DIR,
+            'cert-database': paths.IPA_RADB_DIR,
             'cert-nickname': 'ipaCert',
         }
         request_id = certmonger.get_request_id(criteria)

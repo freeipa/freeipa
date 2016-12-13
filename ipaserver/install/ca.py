@@ -265,7 +265,7 @@ def install_step_0(standalone, replica_config, options):
         'certmap.conf', 'subject_base', str(subject_base))
     dsinstance.write_certmap_conf(realm_name, ca_subject)
 
-    ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
+    ca = cainstance.CAInstance(realm_name, paths.IPA_RADB_DIR,
                                host_name=host_name)
     ca.configure_instance(host_name, dm_password, dm_password,
                           subject_base=subject_base,
@@ -293,7 +293,8 @@ def install_step_1(standalone, replica_config, options):
     subject_base = options._subject_base
     basedn = ipautil.realm_to_suffix(realm_name)
 
-    ca = cainstance.CAInstance(realm_name, certs.NSS_DIR, host_name=host_name)
+    ca = cainstance.CAInstance(realm_name, paths.IPA_RADB_DIR,
+                               host_name=host_name)
 
     ca.stop('pki-tomcat')
 
@@ -355,8 +356,7 @@ def install_step_1(standalone, replica_config, options):
 
 
 def uninstall():
-    ca_instance = cainstance.CAInstance(
-        api.env.realm, certs.NSS_DIR)
+    ca_instance = cainstance.CAInstance(api.env.realm, paths.IPA_RADB_DIR)
     ca_instance.stop_tracking_certificates()
     if ca_instance.is_configured():
         ca_instance.uninstall()

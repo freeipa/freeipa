@@ -77,12 +77,12 @@ def export_kra_agent_pem():
     """
     Export ipaCert with private key for client authentication.
     """
-    fd, filename = tempfile.mkstemp(dir=paths.HTTPD_ALIAS_DIR)
+    fd, filename = tempfile.mkstemp(dir=paths.IPA_RADB_DIR)
     os.close(fd)
 
     args = ["/usr/bin/pki",
-            "-d", paths.HTTPD_ALIAS_DIR,
-            "-C", paths.ALIAS_PWDFILE_TXT,
+            "-d", paths.IPA_RADB_DIR,
+            "-C", os.path.join(paths.IPA_RADB_DIR, 'pwdfile.txt'),
             "client-cert-show", "ipaCert",
             "--client-cert", filename]
     ipautil.run(args)

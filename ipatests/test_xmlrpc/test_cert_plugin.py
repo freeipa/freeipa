@@ -70,8 +70,8 @@ def is_db_configured():
 #
 # To test against Dogtag CA in the lite-server:
 #
-# - Copy the 3 NSS db files from /etc/httpd/alias to ~/.ipa/alias
-# - Copy /etc/httpd/alias/pwdfile.txt to  ~/.ipa/alias/.pwd.
+# - Copy the 3 NSS db files from /var/lib/ipa/radb to ~/.ipa/alias
+# - Copy /var/lib/ipa/radb/pwdfile.txt to  ~/.ipa/alias/.pwd.
 # - Change ownership of these files to be readable by you.
 #
 # The API tested depends on the value of ~/.ipa/default/ra_plugin when

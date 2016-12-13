@@ -131,7 +131,7 @@ class ServerCertInstall(admintool.AdminTool):
             pass
 
     def install_http_cert(self):
-        dirname = certs.NSS_DIR
+        dirname = paths.HTTPD_ALIAS_DIR
 
         old_cert = installutils.get_directive(paths.HTTPD_NSS_CONF,
                                               'NSSNickname')

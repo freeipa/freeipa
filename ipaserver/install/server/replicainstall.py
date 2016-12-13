@@ -77,9 +77,12 @@ def make_pkcs12_info(directory, cert_name, password_name):
 def install_http_certs(host_name, realm_name, subject_base):
     principal = 'HTTP/%s@%s' % (host_name, realm_name)
     # Obtain certificate for the HTTP service
-    nssdir = certs.NSS_DIR
+    http = httpinstance.HTTPInstance()
+    http.create_password_conf()
+    nssdir = paths.HTTPD_ALIAS_DIR
+    subject = subject_base or DN(('O', realm_name))
     db = certs.CertDB(realm_name, nssdir=nssdir, subject_base=subject_base)
-    db.request_service_cert('Server-Cert', principal, host_name, True)
+    db.request_service_cert('Server-Cert', principal, host_name)
 
 
 def install_replica_ds(config, options, ca_is_configured, remote_api,
@@ -1331,9 +1334,9 @@ def install(installer):
 
     dsinstance.create_ds_user()
 
-    # create /etc/httpd/alias NSS Database
+    # create NSS Databases
     http_instance = httpinstance.HTTPInstance()
-    http_instance.create_cert_db()
+    http_instance.create_cert_dbs()
 
     try:
         conn.connect(ccache=ccache)

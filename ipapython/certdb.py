@@ -17,7 +17,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import binascii
 import os
+import io
+import pwd
+import grp
 import re
 import tempfile
 import shutil
@@ -26,6 +30,7 @@ from cryptography.hazmat.primitives import serialization
 from nss import nss
 from nss.error import NSPRError
 
+from ipaplatform.tasks import tasks
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
@@ -44,6 +49,8 @@ else:
 
 
 CA_NICKNAME_FMT = "%s IPA CA"
+
+NSS_FILES = ("cert8.db", "key3.db", "secmod.db", "pwdfile.txt")
 
 
 def get_ca_nickname(realm, format=CA_NICKNAME_FMT):
@@ -106,12 +113,62 @@ class NSSDatabase(object):
         new_args = new_args + args
         return ipautil.run(new_args, stdin, **kwargs)
 
-    def create_db(self, password_filename):
+    def create_db(self, password_filename=None, user=None, group=None,
+                  mode=None, backup=False):
         """Create cert DB
 
         :param password_filename: Name of file containing the database password
+        :param user: User owner the secdir
+        :param group: Group owner of the secdir
+        :param mode: Mode of the secdir
+        :param backup: Backup the sedir files
         """
+        dirmode = 0o750
+        filemode = 0o640
+        if mode is not None:
+            dirmode = mode
+            filemode = mode & 0o666
+
+        uid = -1
+        gid = -1
+        if user is not None:
+            uid = pwd.getpwnam(user).pw_uid
+        if group is not None:
+            gid = grp.getgrnam(group).gr_gid
+
+        if backup:
+            for filename in NSS_FILES:
+                path = os.path.join(self.secdir, filename)
+                ipautil.backup_file(path)
+
+        if not os.path.exists(self.secdir):
+            os.makedirs(self.secdir, dirmode)
+
+        if password_filename is None:
+            password_filename = os.path.join(self.secdir, 'pwdfile.txt')
+
+        if not os.path.exists(password_filename):
+            # Create the password file for this db
+            hex_str = binascii.hexlify(os.urandom(10))
+            with io.open(os.open(password_filename,
+                                 os.O_CREAT | os.O_WRONLY,
+                                 filemode), 'wb', closefd=True) as f:
+                f.write(hex_str)
+                f.flush()
+
         self.run_certutil(["-N", "-f", password_filename])
+
+        # Finally fix up perms
+        os.chown(self.secdir, uid, gid)
+        os.chmod(self.secdir, dirmode)
+        tasks.restore_context(self.secdir)
+        for filename in NSS_FILES:
+            path = os.path.join(self.secdir, filename)
+            if os.path.exists(path):
+                if uid != -1 or gid != -1:
+                    os.chown(path, uid, gid)
+                os.chmod(path, filemode)
+                tasks.restore_context(path)
 
     def list_certs(self):
         """Return nicknames and cert flags for all certs in the database
@@ -160,6 +217,31 @@ class NSSDatabase(object):
                 root_nicknames.append(m.groups()[0])
 
         return root_nicknames
+
+    def export_pkcs12(self, nickname, pkcs12_filename, db_password_filename,
+                      pkcs12_passwd=None):
+        args = [PK12UTIL, "-d", self.secdir,
+                "-o", pkcs12_filename,
+                "-n", nickname,
+                "-k", db_password_filename]
+        pkcs12_password_file = None
+        if pkcs12_passwd is not None:
+            pkcs12_password_file = ipautil.write_tmp_file(pkcs12_passwd + '\n')
+            args = args + ["-w", pkcs12_password_file.name]
+        try:
+            ipautil.run(args)
+        except ipautil.CalledProcessError as e:
+            if e.returncode == 17:
+                raise RuntimeError("incorrect password for pkcs#12 file %s" %
+                                   pkcs12_filename)
+            elif e.returncode == 10:
+                raise RuntimeError("Failed to open %s" % pkcs12_filename)
+            else:
+                raise RuntimeError("unknown error exporting pkcs#12 file %s" %
+                                   pkcs12_filename)
+        finally:
+            if pkcs12_password_file is not None:
+                pkcs12_password_file.close()
 
     def import_pkcs12(self, pkcs12_filename, db_password_filename,
                       pkcs12_passwd=None):
@@ -508,3 +590,12 @@ class NSSDatabase(object):
         finally:
             del certdb, cert
             nss.nss_shutdown()
+
+    def publish_ca_cert(self, canickname, location):
+        args = ["-L", "-n", canickname, "-a"]
+        result = self.run_certutil(args, capture_output=True)
+        cert = result.output
+        fd = open(location, "w+")
+        fd.write(cert)
+        fd.close()
+        os.chmod(location, 0o444)

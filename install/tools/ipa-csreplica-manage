@@ -28,7 +28,7 @@ import os
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import (replication, installutils, bindinstance,
-    cainstance, certs)
+    cainstance)
 from ipalib import api, errors
 from ipalib.util import has_managed_topology
 from ipapython import ipautil, ipaldap, version
@@ -275,7 +275,7 @@ def del_master(realm, hostname, options):
             sys.exit("There were issues removing a connection: %s" % e)
 
     # 6. Pick CA renewal master
-    ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+    ca = cainstance.CAInstance(api.env.realm)
     if ca.is_renewal_master(hostname):
         ca.set_renewal_master(options.host)
 
@@ -379,7 +379,7 @@ def set_renewal_master(realm, replica):
     if not replica:
         replica = installutils.get_fqdn()
 
-    ca = cainstance.CAInstance(realm, certs.NSS_DIR)
+    ca = cainstance.CAInstance(realm)
     if ca.is_renewal_master(replica):
         sys.exit("%s is already the renewal master" % replica)
 

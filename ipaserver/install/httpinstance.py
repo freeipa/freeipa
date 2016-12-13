@@ -19,7 +19,6 @@
 
 from __future__ import print_function
 
-import io
 import os
 import os.path
 import pwd
@@ -35,6 +34,7 @@ from ipalib.install import certmonger
 from ipaserver.install import service
 from ipaserver.install import certs
 from ipaserver.install import installutils
+from ipapython import certdb
 from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.dn import DN
@@ -69,8 +69,6 @@ NSS_CIPHER_SUITE = [
     '+rsa_aes_256_gcm_sha_384', '+rsa_aes_256_sha'
 ]
 NSS_CIPHER_REVISION = '20160129'
-
-NSS_FILES = ("cert8.db", "key3.db", "secmod.db", "pwdfile.txt")
 
 
 def httpd_443_configured():
@@ -176,7 +174,6 @@ class HTTPInstance(service.Service):
             self.step("configure certmonger for renewals",
                       self.configure_certmonger_renewal_guard)
         self.step("importing CA certificates from LDAP", self.__import_ca_certs)
-        self.step("publish CA cert", self.__publish_ca_cert)
         self.step("clean up any existing httpd ccaches",
                   self.remove_httpd_ccaches)
         self.step("configuring SELinux for httpd", self.configure_selinux_for_httpd)
@@ -316,31 +313,12 @@ class HTTPInstance(service.Service):
             if certmonger_stopped:
                 certmonger.stop()
 
-    def create_cert_db(self):
-        database = certs.NSS_DIR
-        pwd_file = os.path.join(database, 'pwdfile.txt')
-
-        for p in NSS_FILES:
-            nss_path = os.path.join(database, p)
-            ipautil.backup_file(nss_path)
-
-        # Create the password file for this db
-        password = ipautil.ipa_generate_password()
-        with io.open(pwd_file, 'w') as f:
-            f.write(password)
-
-        ipautil.run([paths.CERTUTIL, "-d", database, "-f", pwd_file, "-N"])
-
-        self.fix_cert_db_perms()
-
-    def fix_cert_db_perms(self):
-        pent = pwd.getpwnam(self.service_user)
-
-        for filename in NSS_FILES:
-            nss_path = os.path.join(certs.NSS_DIR, filename)
-            os.chmod(nss_path, 0o640)
-            os.chown(nss_path, 0, pent.pw_gid)
-            tasks.restore_context(nss_path)
+    def create_cert_dbs(self):
+        nssdb = certdb.NSSDatabase(nssdir=paths.HTTPD_ALIAS_DIR)
+        nssdb.create_db(user="root", group=constants.HTTPD_GROUP, backup=True)
+        nssdb = certdb.NSSDatabase(nssdir=paths.IPA_RADB_DIR)
+        nssdb.create_db(user=constants.HTTPD_USER, group=constants.HTTPD_GROUP,
+                        mode=0o751, backup=True)
 
     def request_anon_keytab(self):
         parent = os.path.dirname(paths.ANON_KEYTAB)
@@ -353,8 +331,26 @@ class HTTPInstance(service.Service):
         os.chown(parent, pent.pw_uid, pent.pw_gid)
         os.chown(paths.ANON_KEYTAB, pent.pw_uid, pent.pw_gid)
 
+    def create_password_conf(self):
+        """
+        This is the format of mod_nss pin files.
+        """
+        pwd_conf = paths.HTTPD_PASSWORD_CONF
+
+        ipautil.backup_file(pwd_conf)
+        f = open(pwd_conf, "w")
+        f.write("internal:")
+        pwdfile = open(os.path.join(paths.HTTPD_ALIAS_DIR, 'pwdfile.txt'))
+        f.write(pwdfile.read())
+        f.close()
+        pwdfile.close()
+        pent = pwd.getpwnam(constants.HTTPD_USER)
+        os.chown(pwd_conf, pent.pw_uid, pent.pw_gid)
+        os.chmod(pwd_conf, 0o400)
+
     def __setup_ssl(self):
-        db = certs.CertDB(self.realm, subject_base=self.subject_base)
+        db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
+                          subject_base=self.subject_base)
         if self.pkcs12_info:
             if self.ca_is_configured:
                 trust_flags = 'CT,C,C'
@@ -367,7 +363,7 @@ class HTTPInstance(service.Service):
             if len(server_certs) == 0:
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])
 
-            db.create_password_conf()
+            self.create_password_conf()
 
             # We only handle one server cert
             nickname = server_certs[0][0]
@@ -383,13 +379,14 @@ class HTTPInstance(service.Service):
 
         else:
             if not self.promote:
-                db.create_password_conf()
+                self.create_password_conf()
                 ca_args = [
                     '/usr/libexec/certmonger/dogtag-submit',
                     '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
-                    '--dbdir', paths.HTTPD_ALIAS_DIR,
+                    '--dbdir', paths.IPA_RADB_DIR,
                     '--nickname', 'ipaCert',
-                    '--sslpinfile', paths.ALIAS_PWDFILE_TXT,
+                    '--sslpinfile', os.path.join(paths.IPA_RADB_DIR,
+                                                 'pwdfile.txt'),
                     '--agent-submit'
                     ]
                 helper = " ".join(ca_args)
@@ -413,21 +410,19 @@ class HTTPInstance(service.Service):
 
                 self.add_cert_to_service()
 
+            # Verify we have a valid server cert
             server_certs = db.find_server_certs()
             if not server_certs:
                 raise RuntimeError("Could not find a suitable server cert.")
 
-            # We only handle one server cert
-            nickname = server_certs[0][0]
-            db.export_ca_cert(nickname)
-
     def __import_ca_certs(self):
+        # first for the RA DB
         db = certs.CertDB(self.realm, subject_base=self.subject_base)
         self.import_ca_certs(db, self.ca_is_configured)
-
-    def __publish_ca_cert(self):
-        ca_db = certs.CertDB(self.realm)
-        ca_db.publish_ca_cert(paths.CA_CRT)
+        # and then also for the HTTPD DB
+        db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
+                          subject_base=self.subject_base)
+        self.import_ca_certs(db, self.ca_is_configured)
 
     def is_kdcproxy_configured(self):
         """Check if KDC proxy has already been configured in the past"""
@@ -574,10 +569,10 @@ class HTTPInstance(service.Service):
             self.enable()
 
     def stop_tracking_certificates(self):
-        db = certs.CertDB(api.env.realm)
+        db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
         db.untrack_server_cert(self.cert_nickname)
 
     def start_tracking_certificates(self):
-        db = certs.CertDB(self.realm)
+        db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR)
         db.track_server_cert(self.cert_nickname, self.principal,
                              db.passwd_fname, 'restart_httpd')

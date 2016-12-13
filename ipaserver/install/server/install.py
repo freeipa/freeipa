@@ -31,7 +31,7 @@ from ipalib.util import (
 )
 import ipaclient.install.ntpconf
 from ipaserver.install import (
-    bindinstance, ca, cainstance, certs, dns, dsinstance,
+    bindinstance, ca, certs, dns, dsinstance,
     httpinstance, installutils, kra, krbinstance,
     ntpinstance, otpdinstance, custodiainstance, replication, service,
     sysupgrade)
@@ -716,8 +716,9 @@ def install(installer):
     # Make sure tmpfiles dir exist before installing components
     tasks.create_tmpfiles_dirs()
 
+    # create NSS Databases
     http_instance = httpinstance.HTTPInstance()
-    http_instance.create_cert_db()
+    http_instance.create_cert_dbs()
 
     # Create DS user/group if it doesn't exist yet
     dsinstance.create_ds_user()
@@ -782,8 +783,8 @@ def install(installer):
         ca.install_step_0(False, None, options)
 
         # Now put the CA cert where other instances exepct it
-        ca_instance = cainstance.CAInstance(realm_name, certs.NSS_DIR)
-        ca_instance.publish_ca_cert(paths.IPA_CA_CRT)
+        ca_db = certs.CertDB(realm_name)
+        ca_db.publish_ca_cert(paths.IPA_CA_CRT)
     else:
         # Put the CA cert where other instances expect it
         x509.write_certificate(http_ca_cert, paths.IPA_CA_CRT)
@@ -833,11 +834,6 @@ def install(installer):
             auto_redirect=not options.no_ui_redirect,
             ca_is_configured=setup_ca)
     tasks.restore_context(paths.CACHE_IPA_SESSIONS)
-
-    # Export full CA chain
-    ca_db = certs.CertDB(realm_name)
-    os.chmod(paths.IPA_CA_CRT, 0o644)
-    ca_db.publish_ca_cert(paths.IPA_CA_CRT)
 
     ca.set_subject_base_in_config(options.subject_base)
 
@@ -1107,7 +1103,8 @@ def uninstall(installer):
     # Note that this name will be wrong after the first uninstall.
     dirname = dsinstance.config_dirname(
         installutils.realm_to_serverid(api.env.realm))
-    dirs = [dirname, paths.PKI_TOMCAT_ALIAS_DIR, certs.NSS_DIR]
+    dirs = [dirname, paths.PKI_TOMCAT_ALIAS_DIR, paths.HTTPD_ALIAS_DIR,
+            paths.IPA_RADB_DIR]
     ids = certmonger.check_state(dirs)
     if ids:
         root_logger.error('Some certificates may still be tracked by '
