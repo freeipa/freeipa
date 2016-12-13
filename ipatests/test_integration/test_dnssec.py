@@ -6,7 +6,6 @@ import dns.dnssec
 import dns.resolver
 import dns.name
 import time
-import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
@@ -106,7 +105,6 @@ class TestInstallDNSSECLast(IntegrationTest):
         ]
         self.master.run_command(args)
 
-        tasks.restart_named(self.master, self.replicas[0])
         # test master
         assert wait_until_record_is_signed(
             self.master.ip, test_zone, self.log, timeout=100
@@ -127,7 +125,6 @@ class TestInstallDNSSECLast(IntegrationTest):
         ]
         self.replicas[0].run_command(args)
 
-        tasks.restart_named(self.replicas[0])
         # test replica
         assert wait_until_record_is_signed(
             self.replicas[0].ip, test_zone_repl, self.log, timeout=300
@@ -173,7 +170,6 @@ class TestInstallDNSSECLast(IntegrationTest):
         ]
         self.master.run_command(args)
 
-        tasks.restart_named(self.master)
         # test master
         assert wait_until_record_is_signed(
             self.master.ip, test_zone, self.log, timeout=100
@@ -221,8 +217,6 @@ class TestInstallDNSSECLast(IntegrationTest):
         ]
         self.master.run_command(args)
 
-        tasks.restart_named(self.master, self.replicas[0])
-
         # test master
         assert wait_until_record_is_signed(
             self.master.ip, test_zone_repl, self.log, timeout=100
@@ -236,77 +230,6 @@ class TestInstallDNSSECLast(IntegrationTest):
         dnskey_new = resolve_with_dnssec(self.replicas[0].ip, test_zone_repl,
                                          self.log, rtype="DNSKEY").rrset
         assert dnskey_old != dnskey_new, "DNSKEY should be different"
-
-
-class TestZoneSigningWithoutNamedRestart(IntegrationTest):
-    """Test whether https://fedorahosted.org/freeipa/ticket/5348 is already
-    fixed. If the issue is not fixed, the test will expectedly fail. When
-    fixed, it will pass, which will cause the whole run to become "red"
-    """
-    num_replicas = 1
-    topology = 'star'
-
-    @classmethod
-    def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=False)
-        args = [
-            "ipa-dns-install",
-            "--dnssec-master",
-            "--forwarder", cls.master.config.dns_forwarder,
-            "-U",
-        ]
-        cls.master.run_command(args)
-
-        tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
-
-        # backup trusted key
-        tasks.backup_file(cls.master, paths.DNSSEC_TRUSTED_KEY)
-        tasks.backup_file(cls.replicas[0], paths.DNSSEC_TRUSTED_KEY)
-
-    @classmethod
-    def uninstall(cls, mh):
-        # restore trusted key
-        tasks.restore_files(cls.master)
-        tasks.restore_files(cls.replicas[0])
-
-        super(TestZoneSigningWithoutNamedRestart, cls).uninstall(mh)
-
-    @pytest.mark.xfail(strict=True)
-    def test_sign_root_zone_no_named_restart(self):
-        args = [
-            "ipa", "dnszone-add", root_zone, "--dnssec", "true",
-            "--skip-overlap-check",
-        ]
-        self.master.run_command(args)
-
-        # make BIND happy: add the glue record and delegate zone
-        args = [
-            "ipa", "dnsrecord-add", root_zone, self.master.hostname,
-            "--a-rec=" + self.master.ip
-        ]
-        self.master.run_command(args)
-        args = [
-            "ipa", "dnsrecord-add", root_zone, self.replicas[0].hostname,
-            "--a-rec=" + self.replicas[0].ip
-        ]
-        self.master.run_command(args)
-
-        time.sleep(10)  # sleep a bit until data are provided by bind-dyndb-ldap
-
-        args = [
-            "ipa", "dnsrecord-add", root_zone, self.master.domain.name,
-            "--ns-rec=" + self.master.hostname
-        ]
-        self.master.run_command(args)
-        # test master
-        assert wait_until_record_is_signed(
-            self.master.ip, root_zone, self.log, timeout=100
-        ), "Zone %s is not signed (master)" % root_zone
-
-        # test replica
-        assert wait_until_record_is_signed(
-            self.replicas[0].ip, root_zone, self.log, timeout=300
-        ), "Zone %s is not signed (replica)" % root_zone
 
 
 class TestInstallDNSSECFirst(IntegrationTest):
@@ -367,7 +290,6 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "--ns-rec=" + self.master.hostname
         ]
         self.master.run_command(args)
-        tasks.restart_named(self.master, self.replicas[0])
         # test master
         assert wait_until_record_is_signed(
             self.master.ip, root_zone, self.log, timeout=100
@@ -398,7 +320,6 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "--ns-rec=" + self.master.hostname
         ]
         self.master.run_command(args)
-        tasks.restart_named(self.master, self.replicas[0])
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.master.ip, example_test_zone, self.log, timeout=100
@@ -536,7 +457,6 @@ class TestMigrateDNSSECMaster(IntegrationTest):
 
         self.master.run_command(args)
 
-        tasks.restart_named(self.master, self.replicas[0])
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.master.ip, example_test_zone, self.log, timeout=100
@@ -593,7 +513,6 @@ class TestMigrateDNSSECMaster(IntegrationTest):
             "--skip-overlap-check",
         ]
         self.replicas[0].run_command(args)
-        tasks.restart_named(self.master, self.replicas[0])
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.replicas[0].ip, example2_test_zone, self.log, timeout=100
@@ -626,7 +545,6 @@ class TestMigrateDNSSECMaster(IntegrationTest):
             "--skip-overlap-check",
         ]
         self.replicas[1].run_command(args)
-        tasks.restart_named(self.replicas[0], self.replicas[1])
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.replicas[1].ip, example3_test_zone, self.log, timeout=200
