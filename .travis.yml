@@ -5,7 +5,6 @@ env:
     global:
         - TEST_RUNNER_IMAGE="martbab/freeipa-fedora-test-runner:master-latest"
     matrix:
-        - TESTS_TO_RUN="test_xmlrpc/test_[a-k]*.py"
         - >
             TESTS_TO_RUN="test_cmdline
             test_install
@@ -13,7 +12,7 @@ env:
             test_ipapython
             test_ipaserver
             test_pkcs10
-            test_xmlrpc/test_[l-z]*.py"
+            test_xmlrpc/test_[a-z]*.py"
 before_install:
     - pip install pep8
     - >
