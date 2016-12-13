@@ -2502,6 +2502,8 @@ IPA.custom_checkboxes_widget = function(spec) {
 
     var that = IPA.checkboxes_widget(spec);
 
+    that.set_value_to_lowercase = spec.set_value_to_lowercase || false;
+
     that.add_dialog_title = spec.add_dialog_title ||
                             "@i18n:dialogs.add_custom_value";
     that.add_field_label = spec.add_field_label ||
@@ -2619,7 +2621,7 @@ IPA.custom_checkboxes_widget = function(spec) {
 
             if (!value || value === '') continue;
 
-            value = value.toLowerCase();
+            if (that.set_value_to_lowercase) value = value.toLowerCase();
             that.values.push(value);
         }
 
