@@ -30,7 +30,7 @@ script:
     # output do not cause premature termination of the build
     - "docker pull ${TEST_RUNNER_IMAGE}"
     - >
-        travis_wait 50
+        travis_wait 120
         ipa-docker-test-runner -l ci_results_${TRAVIS_BRANCH}.log
         -c .test_runner_config.yaml
         --container-image ${TEST_RUNNER_IMAGE}
