@@ -161,15 +161,21 @@ class ca(LDAPObject):
     }
 
 
-def set_certificate_attrs(entry, options, always_include_cert=True):
+def set_certificate_attrs(entry, options, want_cert=True):
     ca_id = entry['ipacaid'][0]
     full = options.get('all', False)
+    want_chain = options.get('chain', False)
+
+    want_data = want_cert or want_chain or full
+    if not want_data:
+        return
+
     with api.Backend.ra_lightweight_ca as ca_api:
-        if always_include_cert or full:
+        if want_cert or full:
             der = ca_api.read_ca_cert(ca_id)
             entry['certificate'] = six.text_type(base64.b64encode(der))
 
-        if options.get('chain', False) or full:
+        if want_chain or full:
             pkcs7_der = ca_api.read_ca_chain(ca_id)
             pems = x509.pkcs7_to_pems(pkcs7_der, x509.DER)
             ders = [x509.normalize_certificate(pem) for pem in pems]
@@ -187,7 +193,7 @@ class ca_find(LDAPSearch):
         ca_enabled_check()
         result = super(ca_find, self).execute(*keys, **options)
         for entry in result['result']:
-            set_certificate_attrs(entry, options, always_include_cert=False)
+            set_certificate_attrs(entry, options, want_cert=False)
         return result
 
 
