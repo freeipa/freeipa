@@ -729,7 +729,11 @@ class KerbTransport(SSLTransport):
             pass
 
     def parse_response(self, response):
-        self.store_session_cookie(response.msg.getheaders('Set-Cookie'))
+        if six.PY2:
+            header = response.msg.getheaders('Set-Cookie')
+        else:
+            header = response.msg.get_all('Set-Cookie')
+        self.store_session_cookie(header)
         return SSLTransport.parse_response(self, response)
 
 
