@@ -6,6 +6,7 @@ import collections
 import contextlib
 import errno
 import fcntl
+import io
 import json
 import os
 import sys
@@ -373,7 +374,7 @@ class Schema(object):
         self._dict = {}
         self._namespaces = {}
         self._help = None
-        self._file = six.StringIO()
+        self._file = six.BytesIO()
 
         for ns in self.namespaces:
             self._dict[ns] = {}
@@ -407,7 +408,7 @@ class Schema(object):
     def _open(self, filename, mode):
         path = os.path.join(self._DIR, filename)
 
-        with open(path, mode) as f:
+        with io.open(path, mode) as f:
             if mode.startswith('r'):
                 fcntl.flock(f, fcntl.LOCK_SH)
             else:
@@ -454,7 +455,7 @@ class Schema(object):
 
     def _read_schema(self, fingerprint):
         self._file.truncate(0)
-        with self._open(fingerprint, 'r') as f:
+        with self._open(fingerprint, 'rb') as f:
             self._file.write(f.read())
 
         with zipfile.ZipFile(self._file, 'r') as schema:
@@ -504,21 +505,24 @@ class Schema(object):
                     ns = value
                     for member in ns:
                         path = '{}/{}'.format(key, member)
-                        schema.writestr(path, json.dumps(ns[member]))
+                        schema.writestr(path,
+                                        json.dumps(ns[member]).encode('utf-8'))
                 else:
-                    schema.writestr(key, json.dumps(value))
+                    schema.writestr(key, json.dumps(value).encode('utf-8'))
 
-            schema.writestr('_help',
-                            json.dumps(self._generate_help(self._dict)))
+            schema.writestr(
+                '_help',
+                json.dumps(self._generate_help(self._dict)).encode('utf-8')
+            )
 
         self._file.seek(0)
-        with self._open(fingerprint, 'w') as f:
+        with self._open(fingerprint, 'wb') as f:
             f.truncate(0)
             f.write(self._file.read())
 
     def _read(self, path):
         with zipfile.ZipFile(self._file, 'r') as zf:
-            return json.loads(zf.read(path))
+            return json.loads(zf.read(path).decode('utf-8'))
 
     def read_namespace_member(self, namespace, member):
         value = self._dict[namespace][member]
