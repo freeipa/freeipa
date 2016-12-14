@@ -69,9 +69,14 @@ class DNSName(dns.name.Name):
     def __str__(self):
         return self.to_unicode()
 
-    def ToASCII(self):
-        #method named by RFC 3490 and python standard library
-        return self.to_text().decode('ascii')  # must be unicode string
+    # method ToASCII named by RFC 3490 and python standard library
+    if six.PY2:
+        def ToASCII(self):
+            # must be unicode string in Py2
+            return self.to_text().decode('ascii')
+    else:
+        def ToASCII(self):
+            return self.to_text()
 
     def canonicalize(self):
         return DNSName(super(DNSName, self).canonicalize())
