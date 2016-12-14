@@ -920,11 +920,8 @@ class DsInstance(service.Service):
         self._ldap_mod("indices.ldif")
 
     def __certmap_conf(self):
-        shutil.copyfile(
-            os.path.join(paths.USR_SHARE_IPA_DIR, "certmap.conf.template"),
-            os.path.join(config_dirname(self.serverid), "certmap.conf"))
-        installutils.update_file(config_dirname(self.serverid) + "certmap.conf",
-                                 '$SUBJECT_BASE', str(self.subject_base))
+        ca_subject = 'CN=Certificate Authority,' + str(self.subject_base)
+        write_certmap_conf(self.realm, ca_subject)
         sysupgrade.set_upgrade_state(
             'certmap.conf',
             'subject_base',
@@ -1286,3 +1283,14 @@ class DsInstance(service.Service):
 
         # check for open secure port 636 from now on
         self.open_ports.append(636)
+
+
+def write_certmap_conf(realm, ca_subject):
+    """(Re)write certmap.conf with given CA subject DN."""
+    serverid = installutils.realm_to_serverid(realm)
+    ds_dirname = config_dirname(serverid)
+    certmap_filename = os.path.join(ds_dirname, "certmap.conf")
+    shutil.copyfile(
+        os.path.join(paths.USR_SHARE_IPA_DIR, "certmap.conf.template"),
+        certmap_filename)
+    installutils.update_file(certmap_filename, '$ISSUER_DN', str(ca_subject))
