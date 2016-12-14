@@ -41,6 +41,6 @@ certmap default         default
 #default:InitFn         <Init function's name>
 default:DNComps
 default:FilterComps     uid
-certmap ipaca           CN=Certificate Authority,$SUBJECT_BASE
+certmap ipaca           $ISSUER_DN
 ipaca:CmapLdapAttr      seeAlso
 ipaca:verifycert        on
