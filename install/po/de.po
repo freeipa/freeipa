@@ -9,14 +9,15 @@
 # David Kreitschmann <david@kreitschmann.de>, 2015. #zanata
 # Martin Kosek <mkosek@redhat.com>, 2015. #zanata
 # Tomas Babej <tbabej@redhat.com>, 2015. #zanata
+# David Kreitschmann <david@kreitschmann.de>, 2016. #zanata
 # Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-08-29 10:39+0200\n"
-"PO-Revision-Date: 2016-06-17 07:17-0400\n"
-"Last-Translator: Martin Bašti <mbasti@redhat.com>\n"
+"POT-Creation-Date: 2016-12-14 17:00+0100\n"
+"PO-Revision-Date: 2016-11-25 04:33-0500\n"
+"Last-Translator: David Kreitschmann <david@kreitschmann.de>\n"
 "Language-Team: German (http://www.transifex.com/projects/p/freeipa/language/"
 "de/)\n"
 "Language: de\n"
@@ -24,7 +25,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Zanata 3.9.3\n"
+"X-Generator: Zanata 3.9.6\n"
 
 msgid "Failed members"
 msgstr "Fehler bei Mitgliedern"
@@ -137,6 +138,9 @@ msgstr "preserve und no-preserve kann nicht gleichzeitig gesetzt sein"
 
 msgid "Invalid credentials"
 msgstr "Ungültige Zugangsdaten"
+
+msgid "Change password"
+msgstr "Passwort ändern"
 
 msgid "Data"
 msgstr "Daten"
@@ -3205,6 +3209,9 @@ msgstr "Speichern"
 msgid "Set"
 msgstr "Setzen"
 
+msgid "Stage"
+msgstr "Vorbereiten"
+
 msgid "Update"
 msgstr "Speichern"
 
@@ -4103,6 +4110,9 @@ msgstr "Die Globale Passwortregel kann nicht gelöscht werden"
 
 msgid "priority cannot be set on global policy"
 msgstr "Priorität der globalen Regel kann nicht gesetzt werden"
+
+msgid "RADIUS Servers"
+msgstr "Radius Server"
 
 msgid "roles"
 msgstr "Rollen"

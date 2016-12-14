@@ -13,13 +13,14 @@
 # jdennis <jdennis@redhat.com>, 2011
 # Petr Viktorin <encukou@gmail.com>, 2012
 # Brian Curtich <bcurtich@gmail.com>, 2016. #zanata
+# Omar Berroterán S. <omarberroteranlkf@gmail.com>, 2016. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-08-29 10:39+0200\n"
-"PO-Revision-Date: 2016-05-20 05:18-0400\n"
-"Last-Translator: Brian Curtich <bcurtich@gmail.com>\n"
+"POT-Creation-Date: 2016-12-14 17:00+0100\n"
+"PO-Revision-Date: 2016-09-08 09:31-0400\n"
+"Last-Translator: Omar Berroterán S. <omarberroteranlkf@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/projects/p/freeipa/language/"
 "es/)\n"
 "Language: es\n"
@@ -27,7 +28,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Zanata 3.9.3\n"
+"X-Generator: Zanata 3.9.6\n"
 
 msgid "Failed members"
 msgstr "Miembros fallidos"
@@ -47,11 +48,38 @@ msgstr "Fallado servicio/servicio grupos"
 msgid "Failed to remove"
 msgstr "No se ha podido quitar"
 
+msgid "Failed RunAs"
+msgstr "Error al ejecutar como"
+
+msgid "Failed RunAsGroup"
+msgstr "Erro al ejecutar grupo como"
+
+msgid "Failed profiles"
+msgstr "Errores en los perfiles"
+
+msgid "Failed CAs"
+msgstr "Error en CAs"
+
 msgid "Failed managedby"
 msgstr "Falló managedby"
 
+msgid "Failed allowed to retrieve keytab"
+msgstr "Falló permitir recuperar una KeyTab"
+
+msgid "Failed allowed to create keytab"
+msgstr "Falló permitir crear una KeyTab"
+
+msgid "Failed targets"
+msgstr "Error en Objetivos"
+
+msgid "Failed owners"
+msgstr "Error en Propietarios"
+
 msgid "Failed to add"
 msgstr "Fallo al añadir"
+
+msgid "maps not connected to /etc/auto.master:"
+msgstr "mapa no conectado a /etc/auto.master"
 
 msgid "Import automount files for a specific location."
 msgstr "Importar ficheros de automontaje para una localización específica."
@@ -72,14 +100,105 @@ msgstr ""
 msgid "File %(file)s not found"
 msgstr "No se encontró el archivo %(file)s "
 
+#, python-format
+msgid "key %(key)s already exists"
+msgstr "key %(key)s ya existe"
+
+#, python-format
+msgid "map %(map)s already exists"
+msgstr "map %(map)s ya existe"
+
+msgid "Imported maps:"
+msgstr "Mapas importados"
+
+#, python-format
+msgid "Added %(map)s"
+msgstr "%(map)s agregados"
+
+msgid "Imported keys:"
+msgstr "Llaves (keys) importadas"
+
+#, python-format
+msgid "Added %(src)s to %(dst)s"
+msgstr "Agregado %(src)s a %(dst)s"
+
+msgid "Ignored keys:"
+msgstr "Llaves ignoradas: "
+
+#, python-format
+msgid "Ignored %(src)s to %(dst)s"
+msgstr "%(src)s a %(dst)s ignorados"
+
+msgid "Duplicate maps skipped:"
+msgstr "Mapa duplicado omitido"
+
+#, python-format
+msgid "Skipped %(map)s"
+msgstr "%(map)s omitido"
+
+msgid "Duplicate keys skipped:"
+msgstr "Llaves duplicadas omitidas"
+
+#, python-format
+msgid "Skipped %(key)s"
+msgstr "%(key)s  omitida"
+
 msgid "Unrevoked"
 msgstr "No revocado"
 
 msgid "Error"
 msgstr "Error"
 
+msgid "Input filename"
+msgstr "Entrada nombre de archivo"
+
+msgid "File to load the certificate from."
+msgstr "Archivo desde donde cargar el certificado"
+
+msgid "cannot specify both raw certificate and file"
+msgstr "no puede especificar un certificado RAW y un archivo"
+
+#, python-format
+msgid "Profile configuration stored in file '%(file)s'"
+msgstr "Perfil de configuración guardado en el archivo '%(file)s'"
+
+msgid "Please choose a type of DNS resource record to be added"
+msgstr "Por favor seleccione un tipo de origen de DNS para ser agregado"
+
+#, python-format
+msgid "The most common types for this type of zone are: %s\n"
+msgstr "Los tipos mas comunes para este tipo de zona son: %s\n"
+
+msgid "DNS resource record type"
+msgstr "Registro de tipo de recurso DNS "
+
+#, python-format
+msgid "Invalid or unsupported type. Allowed values are: %s"
+msgstr "Invalido o tipo no soportado. Valores permitidos son: %s"
+
+msgid "No option to modify specific record provided."
+msgstr "No hay opción para modificar registro específico proporcionado."
+
 msgid "Current DNS record contents:\n"
 msgstr "Contenidos actuales del registro DNS:\n"
+
+#, python-format
+msgid "Modify %(name)s '%(value)s'?"
+msgstr "Modificar  %(name)s '%(value)s'?"
+
+#, python-format
+msgid ""
+"%(count)d %(type)s record skipped. Only one value per DNS record type can be "
+"modified at one time."
+msgid_plural ""
+"%(count)d %(type)s records skipped. Only one value per DNS record type can "
+"be modified at one time."
+msgstr[0] ""
+"%(count)d %(type)s registro omitido. Sólo un valor por DNS tipo de registro "
+"puede ser modificado a la vez."
+msgstr[1] ""
+"%(count)d %(type)s registros omitidos. Sólo un valor por DNS tipo de "
+"registro puede ser modificado a la vez."
 
 msgid ""
 "Neither --del-all nor options to delete a specific record provided.\n"
@@ -95,6 +214,30 @@ msgstr "Ninguna opción para  borrar un registro en concreto especificado."
 
 msgid "Delete all?"
 msgstr "¿Borrar todos?"
+
+#, python-format
+msgid "Delete %(name)s '%(value)s'?"
+msgstr "Borrar %(name)s '%(value)s'?"
+
+msgid "Server will check DNS forwarder(s)."
+msgstr "El servidor revisará los \"DNS forwarder(s)\"."
+
+msgid "This may take some time, please wait ..."
+msgstr "Esto puede tomar un poco mas de tiempo. Por favor espere ..."
+
+#, python-format
+msgid "Certificate(s) stored in file '%(file)s'"
+msgstr "Certificados(s) almacenados en el archivo '%(file)s'"
+
+msgid "Servers details:"
+msgstr "Detalles de los servidores:"
+
+msgid ""
+"Migration mode is disabled.\n"
+"Use 'ipa config-mod --enable-migration=TRUE' to enable it."
+msgstr ""
+"El modo migración esta desactivado.\n"
+"Use 'ip confi-mod --enable-migration=TRUE' para activarlo."
 
 msgid ""
 "Passwords have been migrated in pre-hashed format.\n"
