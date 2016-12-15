@@ -163,7 +163,7 @@ krb5_error_code ipadb_get_pwd_policy(krb5_context kcontext, char *name,
     }
 
     kerr = ipadb_simple_search(ipactx,
-                               ipactx->realm_base, LDAP_SCOPE_SUBTREE,
+                               ipactx->base, LDAP_SCOPE_SUBTREE,
                                src_filter, std_pwdpolicy_attrs, &res);
     if (kerr) {
         goto done;
