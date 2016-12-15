@@ -137,8 +137,7 @@ BuildRequires:  python-dns >= 1.15
 BuildRequires:  jsl
 BuildRequires:  python-yubico
 # pki Python package
-# 10.2.1: crypto.NSSCryptoProvider(password_file)
-BuildRequires:  pki-base >= 10.2.1
+BuildRequires:  pki-base-python2
 BuildRequires:  python-pytest-multihost
 BuildRequires:  python-pytest-sourceorder
 BuildRequires:  python-jwcrypto
@@ -302,7 +301,7 @@ Requires: dbus-python
 Requires: python-dns >= 1.15
 Requires: python-kdcproxy >= 0.3
 Requires: rpm-libs
-Requires: pki-base >= 10.3.5-6
+Requires: pki-base-python2
 
 %description -n python2-ipaserver
 IPA is an integrated solution to provide centrally managed Identity (users,
