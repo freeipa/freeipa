@@ -450,14 +450,17 @@ def get_directive(filename, directive, separator=' '):
     return None
 
 def kadmin(command):
-    ipautil.run(["kadmin.local", "-q", command,
-                                 "-x", "ipa-setup-override-restrictions"])
+    return ipautil.run(["kadmin.local", "-q", command,
+                        "-x", "ipa-setup-override-restrictions"],
+                       capture_output=True,
+                       capture_error=True)
+
 
 def kadmin_addprinc(principal):
-    kadmin("addprinc -randkey " + principal)
+    return kadmin("addprinc -randkey " + principal)
 
 def kadmin_modprinc(principal, options):
-    kadmin("modprinc " + options + " " + principal)
+    return kadmin("modprinc " + options + " " + principal)
 
 def create_keytab(path, principal):
     try:
@@ -466,7 +469,7 @@ def create_keytab(path, principal):
     except os.error:
         root_logger.critical("Failed to remove %s." % path)
 
-    kadmin("ktadd -k " + path + " " + principal)
+    return kadmin("ktadd -k " + path + " " + principal)
 
 def resolve_ip_addresses_nss(fqdn):
     """Get list of IP addresses for given host (using NSS/getaddrinfo).
