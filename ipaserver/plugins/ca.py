@@ -162,7 +162,10 @@ class ca(LDAPObject):
 
 
 def set_certificate_attrs(entry, options, want_cert=True):
-    ca_id = entry['ipacaid'][0]
+    try:
+        ca_id = entry['ipacaid'][0]
+    except KeyError:
+        return
     full = options.get('all', False)
     want_chain = options.get('chain', False)
 
@@ -192,8 +195,9 @@ class ca_find(LDAPSearch):
     def execute(self, *keys, **options):
         ca_enabled_check()
         result = super(ca_find, self).execute(*keys, **options)
-        for entry in result['result']:
-            set_certificate_attrs(entry, options, want_cert=False)
+        if not options.get('pkey_only', False):
+            for entry in result['result']:
+                set_certificate_attrs(entry, options, want_cert=False)
         return result
 
 
