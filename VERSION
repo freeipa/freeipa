@@ -21,7 +21,7 @@
 ########################################################
 IPA_VERSION_MAJOR=4
 IPA_VERSION_MINOR=4
-IPA_VERSION_RELEASE=2
+IPA_VERSION_RELEASE=3
 
 ########################################################
 # For 'alpha' releases the version will be             #
