@@ -50,6 +50,7 @@ static void ipadb_context_free(krb5_context kcontext,
         free((*ctx)->uri);
         free((*ctx)->base);
         free((*ctx)->realm_base);
+        free((*ctx)->accounts_base);
         free((*ctx)->kdc_hostname);
         /* ldap free lcontext */
         if ((*ctx)->lcontext) {
@@ -549,6 +550,12 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
 
     ret = asprintf(&ipactx->realm_base, "cn=%s,cn=kerberos,%s",
                                         ipactx->realm, ipactx->base);
+    if (ret == -1) {
+        ret = ENOMEM;
+        goto fail;
+    }
+
+    ret = asprintf(&ipactx->accounts_base, "cn=accounts,%s", ipactx->base);
     if (ret == -1) {
         ret = ENOMEM;
         goto fail;
