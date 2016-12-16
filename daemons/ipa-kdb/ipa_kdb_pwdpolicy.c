@@ -137,10 +137,11 @@ krb5_error_code ipadb_get_pwd_policy(krb5_context kcontext, char *name,
                                      osa_policy_ent_t *policy)
 {
     struct ipadb_context *ipactx;
+    char *bases[3] = { NULL };
     char *esc_name = NULL;
     char *src_filter = NULL;
     krb5_error_code kerr;
-    LDAPMessage *res = NULL;
+    struct ipadb_multires *res;
     LDAPMessage *lentry;
     osa_policy_ent_t pentry = NULL;
     uint32_t result;
@@ -150,6 +151,8 @@ krb5_error_code ipadb_get_pwd_policy(krb5_context kcontext, char *name,
     if (!ipactx) {
         return KRB5_KDB_DBNOTINITED;
     }
+    bases[0] = ipactx->realm_base;
+    bases[1] = ipactx->accounts_base;
 
     esc_name = ipadb_filter_escape(name, true);
     if (!esc_name) {
@@ -162,14 +165,14 @@ krb5_error_code ipadb_get_pwd_policy(krb5_context kcontext, char *name,
         goto done;
     }
 
-    kerr = ipadb_simple_search(ipactx,
-                               ipactx->base, LDAP_SCOPE_SUBTREE,
-                               src_filter, std_pwdpolicy_attrs, &res);
+    kerr = ipadb_multibase_search(ipactx, bases, LDAP_SCOPE_SUBTREE,
+                                  src_filter, std_pwdpolicy_attrs, &res,
+                                  true);
     if (kerr) {
         goto done;
     }
 
-    lentry = ldap_first_entry(ipactx->lcontext, res);
+    lentry = ipadb_multires_next_entry(res);
     if (!lentry) {
         kerr = KRB5_KDB_INTERNAL_ERROR;
         goto done;
@@ -252,7 +255,7 @@ done:
     }
     free(esc_name);
     free(src_filter);
-    ldap_msgfree(res);
+    ipadb_multires_free(res);
 
     return kerr;
 }
