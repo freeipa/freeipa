@@ -436,16 +436,31 @@ def set_directive(filename, directive, value, quotes=True, separator=' ',
     fd.close()
     os.chown(filename, st.st_uid, st.st_gid) # reset perms
 
+
 def get_directive(filename, directive, separator=' '):
     """
     A rather inefficient way to get a configuration directive.
+
+    :param filename: input filename
+    :param directive: directive name
+    :param separator: separator between directive and value
+    :param quote_char: the characters that are used in this particular config
+        file to quote values. This character will be stripped and unescaped
+        from the raw value.
+
+    :returns: The (unquoted) value if the directive was found, None otherwise
     """
     fd = open(filename, "r")
     for line in fd:
         if line.lstrip().startswith(directive):
             line = line.strip()
-            result = line.split(separator, 1)[1]
-            result = result.strip('"')
+
+            (directive, sep, value) = line.partition(separator)
+            if not sep or not value:
+                raise ValueError("Malformed directive: {}".format(line))
+
+            result = value.strip().strip(quote_char)
+            result = ipautil.unescape_seq(quote_char, result)[0]
             result = result.strip(' ')
             fd.close()
             return result
