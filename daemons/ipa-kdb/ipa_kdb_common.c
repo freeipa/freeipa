@@ -610,3 +610,106 @@ done:
     ldap_controls_free(ctrls);
     return ret;
 }
+
+struct ipadb_multires {
+    LDAP *lcontext;
+    LDAPMessage **res;
+    LDAPMessage *next;
+    ssize_t cursor;
+    ssize_t count;
+};
+
+krb5_error_code ipadb_multires_init(LDAP *lcontext, struct ipadb_multires **r)
+{
+    *r = malloc(sizeof(struct ipadb_multires));
+    if (!*r) return ENOMEM;
+    (*r)->lcontext = lcontext;
+    (*r)->res = NULL;
+    (*r)->next = NULL;
+    (*r)->cursor = -1;
+    (*r)->count = 0;
+
+    return 0;
+}
+
+void ipadb_multires_free(struct ipadb_multires *r)
+{
+    for (int i = 0; i < r->count; i++) {
+        ldap_msgfree(r->res[i]);
+    }
+    free(r);
+}
+
+LDAPMessage *ipadb_multires_next_entry(struct ipadb_multires *r)
+{
+    if (r->count == 0) return NULL;
+
+    if (r->next) {
+        r->next = ldap_next_entry(r->lcontext, r->next);
+    }
+    if (r->next == NULL) {
+        if (r->cursor >= r->count - 1) {
+            return NULL;
+        }
+        r->cursor++;
+        r->next = ldap_first_entry(r->lcontext, r->res[r->cursor]);
+    }
+
+    return r->next;
+}
+
+krb5_error_code ipadb_multibase_search(struct ipadb_context *ipactx,
+                                       char **basedns, int scope,
+                                       char *filter, char **attrs,
+                                       struct ipadb_multires **res,
+                                       bool any)
+{
+    int ret;
+
+    ret = ipadb_multires_init(ipactx->lcontext, res);
+    if (ret != 0) return ret;
+
+    ret = ipadb_check_connection(ipactx);
+    if (ret != 0)
+        return ipadb_simple_ldap_to_kerr(ret);
+
+    for (int b = 0; basedns[b]; b++) {
+        LDAPMessage *r;
+        ret = ldap_search_ext_s(ipactx->lcontext, basedns[b], scope,
+                                filter, attrs, 0, NULL, NULL,
+                                &std_timeout, LDAP_NO_LIMIT, &r);
+
+        /* first test if we need to retry to connect */
+        if (ret != 0 &&
+            ipadb_need_retry(ipactx, ret)) {
+            ldap_msgfree(r);
+            ret = ldap_search_ext_s(ipactx->lcontext, basedns[b], scope,
+                                    filter, attrs, 0, NULL, NULL,
+                                    &std_timeout, LDAP_NO_LIMIT, &r);
+        }
+
+        if (ret != 0) break;
+
+        if (ldap_count_entries(ipactx->lcontext, r) > 0) {
+            void *tmp = realloc((*res)->res, (((*res)->count + 1) *
+                                                sizeof(LDAPMessage *)));
+            if (tmp == NULL) {
+                ret = ENOMEM;
+                break;
+            }
+            (*res)->res = tmp;
+            (*res)->res[(*res)->count] = r;
+            (*res)->count++;
+
+            if (any) break;
+        }
+    }
+
+    if (ret != 0) {
+        ipadb_multires_free(*res);
+        *res = NULL;
+    }
+
+    return ipadb_simple_ldap_to_kerr(ret);
+}
+
