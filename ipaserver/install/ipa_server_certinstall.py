@@ -136,12 +136,20 @@ class ServerCertInstall(admintool.AdminTool):
         old_cert = installutils.get_directive(paths.HTTPD_NSS_CONF,
                                               'NSSNickname')
 
+        unquoted_cert = installutils.unquote_directive_value(
+            old_cert, quote_char="'")
+
         server_cert = self.import_cert(dirname, self.options.pin,
-                                       old_cert, 'HTTP/%s' % api.env.host,
+                                       unquoted_cert, 'HTTP/%s' % api.env.host,
                                        'restart_httpd')
 
-        installutils.set_directive(paths.HTTPD_NSS_CONF,
-                                   'NSSNickname', server_cert)
+        quoted_server_cert = installutils.quote_directive_value(
+            server_cert, quote_char="'")
+        installutils.set_directive(
+            paths.HTTPD_NSS_CONF,
+            'NSSNickname',
+            quoted_server_cert,
+            quotes=False)
 
         # Fix the database permissions
         os.chmod(os.path.join(dirname, 'cert8.db'), 0o640)
