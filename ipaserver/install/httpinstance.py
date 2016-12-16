@@ -253,8 +253,10 @@ class HTTPInstance(service.Service):
             print("Updating port in %s failed." % paths.HTTPD_NSS_CONF)
 
     def __set_mod_nss_nickname(self, nickname):
+        quoted_nickname = installutils.quote_directive_value(
+            nickname, quote_char="'")
         installutils.set_directive(
-            paths.HTTPD_NSS_CONF, 'NSSNickname', nickname, quote_char="'")
+            paths.HTTPD_NSS_CONF, 'NSSNickname', quoted_nickname, quotes=False)
 
     def set_mod_nss_protocol(self):
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSProtocol', 'TLSv1.0,TLSv1.1,TLSv1.2', False)
