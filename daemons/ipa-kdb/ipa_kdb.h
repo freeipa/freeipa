@@ -174,6 +174,16 @@ int ipadb_ldap_attr_has_value(LDAP *lcontext, LDAPMessage *le,
 int ipadb_ldap_deref_results(LDAP *lcontext, LDAPMessage *le,
                              LDAPDerefRes **results);
 
+struct ipadb_multires;
+krb5_error_code ipadb_multires_init(LDAP *lcontext, struct ipadb_multires **r);
+void ipadb_multires_free(struct ipadb_multires *r);
+LDAPMessage *ipadb_multires_next_entry(struct ipadb_multires *r);
+krb5_error_code ipadb_multibase_search(struct ipadb_context *ipactx,
+                                       char **basedns, int scope,
+                                       char *filter, char **attrs,
+                                       struct ipadb_multires **res,
+                                       bool any);
+
 /* PRINCIPALS FUNCTIONS */
 krb5_error_code ipadb_get_principal(krb5_context kcontext,
                                     krb5_const_principal search_for,
