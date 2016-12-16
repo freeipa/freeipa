@@ -384,11 +384,14 @@ def set_directive(filename, directive, value, quotes=True, separator=' ',
 
     This has only been tested with nss.conf
 
-   :param directive: directive name
-   :param value: value of the directive
-   :param quotes: whether to quote `value` in `quote_char`. If true, then
-        the `quote_char` are first escaped to avoid unparseable directives
-   :param quote_char: the character used for quoting `value`
+    :param filename: input filename
+    :param directive: directive name
+    :param value: value of the directive
+    :param quotes: whether to quote `value` in `quote_char`. If true, then
+        the `quote_char` are first escaped to avoid unparseable directives.
+    :param separator: character serving as separator between directive and
+        value
+    :param quote_char: the character used for quoting `value`
     """
 
     def format_directive(directive, value, separator, quotes, quote_char):
