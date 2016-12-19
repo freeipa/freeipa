@@ -196,8 +196,8 @@ def normalize_serial_number(num):
     return unicode(num)
 
 
-def ca_enabled_check():
-    if not api.Command.ca_is_enabled()['result']:
+def ca_enabled_check(_api):
+    if not _api.Command.ca_is_enabled()['result']:
         raise errors.NotFound(reason=_('CA is not configured'))
 
 def caacl_check(principal_type, principal, ca, profile_id):
@@ -538,7 +538,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             yield arg
 
     def execute(self, csr, all=False, raw=False, **kw):
-        ca_enabled_check()
+        ca_enabled_check(self.api)
 
         ldap = self.api.Backend.ldap2
         realm = unicode(self.api.env.realm)
@@ -898,7 +898,7 @@ class cert_status(Retrieve, BaseCertMethod, VirtualCommand):
     operation = "certificate status"
 
     def execute(self, request_id, **kw):
-        ca_enabled_check()
+        ca_enabled_check(self.api)
         self.check_access()
 
         # Dogtag requests are uniquely identified by their number;
@@ -1006,7 +1006,7 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
 
     def execute(self, serial_number, all=False, raw=False, no_members=False,
                 **options):
-        ca_enabled_check()
+        ca_enabled_check(self.api)
 
         # Dogtag lightweight CAs have shared serial number domain, so
         # we don't tell Dogtag the issuer (but we check the cert after).
@@ -1069,7 +1069,7 @@ class cert_revoke(PKQuery, CertMethod, VirtualCommand):
             yield option
 
     def execute(self, serial_number, **kw):
-        ca_enabled_check()
+        ca_enabled_check(self.api)
 
         # Make sure that the cert specified by issuer+serial exists.
         # Will raise NotFound if it does not.
@@ -1105,7 +1105,7 @@ class cert_remove_hold(PKQuery, CertMethod, VirtualCommand):
     operation = "certificate remove hold"
 
     def execute(self, serial_number, **kw):
-        ca_enabled_check()
+        ca_enabled_check(self.api)
 
         # Make sure that the cert specified by issuer+serial exists.
         # Will raise NotFound if it does not.
@@ -1312,7 +1312,7 @@ class cert_find(Search, CertMethod):
         complete = bool(ra_options)
 
         try:
-            ca_enabled_check()
+            ca_enabled_check(self.api)
         except errors.NotFound:
             if ra_options:
                 raise
