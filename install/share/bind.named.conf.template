@@ -43,13 +43,11 @@ zone "." IN {
 include "$RFC1912_ZONES";
 include "$ROOT_KEY";
 
-dynamic-db "ipa" {
-	library "ldap.so";
-	arg "uri ldapi://%2fvar%2frun%2fslapd-$SERVER_ID.socket";
-	arg "base cn=dns, $SUFFIX";
-	arg "server_id $FQDN";
-	arg "auth_method sasl";
-	arg "sasl_mech GSSAPI";
-	arg "sasl_user DNS/$FQDN";
-	arg "serial_autoincrement yes";
+dyndb "ipa" "$BIND_LDAP_SO" {
+	uri "ldapi://%2fvar%2frun%2fslapd-$SERVER_ID.socket";
+	base "cn=dns, $SUFFIX";
+	server_id "$FQDN";
+	auth_method "sasl";
+	sasl_mech "GSSAPI";
+	sasl_user "DNS/$FQDN";
 };
