@@ -193,7 +193,7 @@ class ca_find(LDAPSearch):
     )
 
     def execute(self, *keys, **options):
-        ca_enabled_check()
+        ca_enabled_check(self.api)
         result = super(ca_find, self).execute(*keys, **options)
         if not options.get('pkey_only', False):
             for entry in result['result']:
@@ -217,7 +217,7 @@ class ca_show(LDAPRetrieve):
     )
 
     def execute(self, *keys, **options):
-        ca_enabled_check()
+        ca_enabled_check(self.api)
         result = super(ca_show, self).execute(*keys, **options)
         set_certificate_attrs(result['result'], options)
         return result
@@ -233,7 +233,7 @@ class ca_add(LDAPCreate):
     )
 
     def pre_callback(self, ldap, dn, entry, entry_attrs, *keys, **options):
-        ca_enabled_check()
+        ca_enabled_check(self.api)
         if not ldap.can_add(dn[1:]):
             raise errors.ACIError(
                 info=_("Insufficient 'add' privilege for entry '%s'.") % dn)
@@ -276,7 +276,7 @@ class ca_del(LDAPDelete):
     msg_summary = _('Deleted CA "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
-        ca_enabled_check()
+        ca_enabled_check(self.api)
 
         if keys[0] == IPA_CA_CN:
             raise errors.ProtectedEntryError(
@@ -298,7 +298,7 @@ class ca_mod(LDAPUpdate):
     msg_summary = _('Modified CA "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        ca_enabled_check()
+        ca_enabled_check(self.api)
 
         if 'rename' in options or 'cn' in entry_attrs:
             if keys[0] == IPA_CA_CN:
@@ -314,7 +314,7 @@ class CAQuery(LDAPQuery):
     has_output = output.standard_value
 
     def execute(self, cn, **options):
-        ca_enabled_check()
+        ca_enabled_check(self.api)
 
         ca_id = self.api.Command.ca_show(cn)['result']['ipacaid'][0]
         with self.api.Backend.ra_lightweight_ca as ca_api:
