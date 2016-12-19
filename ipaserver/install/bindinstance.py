@@ -769,6 +769,7 @@ class BindInstance(service.Service):
             RFC1912_ZONES=paths.NAMED_RFC1912_ZONES,
             NAMED_PID=paths.NAMED_PID,
             NAMED_VAR_DIR=paths.NAMED_VAR_DIR,
+            BIND_LDAP_SO=paths.BIND_LDAP_SO,
             )
 
     def __setup_dns_container(self):

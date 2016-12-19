@@ -33,6 +33,7 @@ class RedHatPathNamespace(BasePathNamespace):
     if sys.maxsize > 2**32:
         LIBSOFTHSM2_SO = BasePathNamespace.LIBSOFTHSM2_SO_64
         PAM_KRB5_SO = BasePathNamespace.PAM_KRB5_SO_64
+        BIND_LDAP_SO = BasePathNamespace.BIND_LDAP_SO_64
     AUTHCONFIG = '/usr/sbin/authconfig'
 
 
