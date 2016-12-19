@@ -1,20 +1,5 @@
-.\" A man page for ipa-dns-install
-.\" Copyright (C) 2010 Red Hat, Inc.
-.\"
-.\" This program is free software; you can redistribute it and/or modify
-.\" it under the terms of the GNU General Public License as published by
-.\" the Free Software Foundation, either version 3 of the License, or
-.\" (at your option) any later version.
-.\"
-.\" This program is distributed in the hope that it will be useful, but
-.\" WITHOUT ANY WARRANTY; without even the implied warranty of
-.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-.\" General Public License for more details.
-.\"
-.\" You should have received a copy of the GNU General Public License
-.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
-.\"
-.\" Author: Rob Crittenden <rcritten@redhat.com>
+.\" A man page for ipa-server-install
+.\" Copyright (C) 2010-2016  FreeIPA Contributors see COPYING for license
 .\"
 .TH "ipa-dns-install" "1" "Jun 28, 2012" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
@@ -22,7 +7,15 @@ ipa\-dns\-install \- Add DNS as a service to an IPA server
 .SH "SYNOPSIS"
 ipa\-dns\-install [\fIOPTION\fR]...
 .SH "DESCRIPTION"
-Adds DNS as an IPA\-managed service. This requires that the IPA server is already installed and configured.
+Configure integrated DNS server on this IPA server, create DNS zone with name of the IPA primary DNS domain, and fill it in with service records necessary for IPA deployment.
+In cases where IPA server name does not belong to the primary DNS domain and is not resolvable using DNS, create DNS zone containing IPA server name as well.
+
+IPA provides an integrated DNS server which can be used to ease IPA deployment. If you decide to use it, IPA will automatically maintain SRV and other service records when you change your topology.
+
+DNS component in FreeIPA is optional and you may choose to manage all your DNS records manually in other third party DNS server. IPA DNS is not a general-purpose DNS server. If you need advanced features like DNS views, do not deploy IPA DNS.
+
+This command requires that the IPA server is already installed and configured.
+
 .SH "OPTIONS"
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
