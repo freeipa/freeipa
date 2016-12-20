@@ -44,7 +44,7 @@ import gzip
 import gssapi
 from dns import resolver, rdatatype
 from dns.exception import DNSException
-from nss.error import NSPRError
+from ssl import SSLError
 import six
 from six.moves import urllib
 
@@ -60,8 +60,7 @@ from ipapython import kernel_keyring
 from ipapython.cookie import Cookie
 from ipapython.dnsutil import DNSName
 from ipalib.text import _
-import ipapython.nsslib
-from ipapython.nsslib import NSSConnection
+from ipalib.util import create_https_connection
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, \
                              KRB5_REALM_CANT_RESOLVE, KRB5_CC_NOTFOUND, get_principal
@@ -542,48 +541,20 @@ class LanguageAwareTransport(MultiProtocolTransport):
 
         return (host, extra_headers, x509)
 
+
 class SSLTransport(LanguageAwareTransport):
     """Handles an HTTPS transaction to an XML-RPC server."""
-
-    def get_connection_dbdir(self):
-        """
-        If there is a connections open it may have already initialized
-        NSS database. Return the database location used by the connection.
-        """
-        for value in context.__dict__.values():
-            if not isinstance(value, Connection):
-                continue
-            if not isinstance(
-                    getattr(value.conn, '_ServerProxy__transport', None),
-                    SSLTransport):
-                continue
-            if hasattr(value.conn._ServerProxy__transport, 'dbdir'):
-                return value.conn._ServerProxy__transport.dbdir
-        return None
-
     def make_connection(self, host):
         host, self._extra_headers, _x509 = self.get_host_info(host)
 
         if self._connection and host == self._connection[0]:
             return self._connection[1]
 
-        dbdir = context.nss_dir
-        connection_dbdir = self.get_connection_dbdir()
-
-        if connection_dbdir:
-            # If an existing connection is already using the same NSS
-            # database there is no need to re-initialize.
-            no_init = dbdir == connection_dbdir
-
-        else:
-            # If the NSS database is already being used there is no
-            # need to re-initialize.
-            no_init = dbdir == ipapython.nsslib.current_dbdir
-
-        conn = NSSConnection(host, 443, dbdir=dbdir, no_init=no_init,
-                             tls_version_min=api.env.tls_version_min,
-                             tls_version_max=api.env.tls_version_max)
-        self.dbdir=dbdir
+        conn = create_https_connection(
+            host, 443,
+            api.env.tls_ca_cert,
+            tls_version_min=api.env.tls_version_min,
+            tls_version_max=api.env.tls_version_max)
 
         conn.connect()
 
@@ -963,15 +934,15 @@ class RPCClient(Connectible):
         return session_url
 
     def create_connection(self, ccache=None, verbose=None, fallback=None,
-                          delegate=None, nss_dir=None):
+                          delegate=None, ca_certfile=None):
         if verbose is None:
             verbose = self.api.env.verbose
         if fallback is None:
             fallback = self.api.env.fallback
         if delegate is None:
             delegate = self.api.env.delegate
-        if nss_dir is None:
-            nss_dir = self.api.env.nss_dir
+        if ca_certfile is None:
+            ca_certfile = self.api.env.tls_ca_cert
         try:
             rpc_uri = self.env[self.env_rpc_uri_key]
             principal = get_principal(ccache_name=ccache)
@@ -989,7 +960,7 @@ class RPCClient(Connectible):
         except (errors.CCacheError, ValueError):
             # No session key, do full Kerberos auth
             pass
-        context.nss_dir = nss_dir
+        context.ca_certfile = ca_certfile
         urls = self.get_url_list(rpc_uri)
         serverproxy = None
         for url in urls:
@@ -1099,7 +1070,7 @@ class RPCClient(Connectible):
                 error=e.faultString,
                 server=server,
             )
-        except NSPRError as e:
+        except SSLError as e:
             raise NetworkError(uri=server, error=str(e))
         except ProtocolError as e:
             # By catching a 401 here we can detect the case where we have
@@ -1116,22 +1087,9 @@ class RPCClient(Connectible):
                     # This shouldn't happen if we have a session but it isn't fatal.
                     pass
 
-                # Create a new serverproxy with the non-session URI. If there
-                # is an existing connection we need to save the NSS dbdir so
-                # we can skip an unnecessary NSS_Initialize() and avoid
-                # NSS_Shutdown issues.
+                # Create a new serverproxy with the non-session URI
                 serverproxy = self.create_connection(os.environ.get('KRB5CCNAME'), self.env.verbose, self.env.fallback, self.env.delegate)
-
-                dbdir = None
-                current_conn = getattr(context, self.id, None)
-                if current_conn is not None:
-                    dbdir = getattr(current_conn.conn._ServerProxy__transport, 'dbdir', None)
-                    if dbdir is not None:
-                        self.debug('Using dbdir %s' % dbdir)
                 setattr(context, self.id, Connection(serverproxy, self.disconnect))
-                if dbdir is not None:
-                    current_conn = getattr(context, self.id, None)
-                    current_conn.conn._ServerProxy__transport.dbdir = dbdir
                 return self.forward(name, *args, **kw)
             raise NetworkError(uri=server, error=e.errmsg)
         except socket.error as e:

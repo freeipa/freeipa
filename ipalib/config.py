@@ -504,6 +504,17 @@ class Env(object):
         if 'nss_dir' not in self:
             self.nss_dir = self._join('confdir', 'nssdb')
 
+        if 'tls_ca_cert' not in self:
+            self.tls_ca_cert = self._join('confdir', 'ca.crt')
+
+        # having tls_ca_cert an absolute path could help us extending this
+        # in the future for different certificate providers simply by adding
+        # a prefix to the path
+        if not path.isabs(self.tls_ca_cert):
+            raise errors.EnvironmentError(
+                "tls_ca_cert has to be an absolute path to a CA certificate, "
+                "got '{}'".format(self.tls_ca_cert))
+
         # Set plugins_on_demand:
         if 'plugins_on_demand' not in self:
             self.plugins_on_demand = (self.context == 'cli')

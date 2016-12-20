@@ -33,6 +33,7 @@ import decimal
 import dns
 import encodings
 import sys
+import ssl
 from weakref import WeakKeyDictionary
 
 import netaddr
@@ -42,14 +43,24 @@ from dns.resolver import NXDOMAIN
 from netaddr.core import AddrFormatError
 import six
 
+try:
+    from httplib import HTTPSConnection
+except ImportError:
+    # Python 3
+    from http.client import HTTPSConnection
+
 from ipalib import errors, messages
-from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib.constants import (
+    DOMAIN_LEVEL_0,
+    TLS_VERSIONS, TLS_VERSION_MINIMAL
+)
 from ipalib.text import _
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
 from ipapython.dnsutil import DNSName
 from ipapython.dnsutil import resolve_ip_addresses
 from ipapython.ipa_log_manager import root_logger
+
 
 if six.PY3:
     unicode = str
@@ -185,6 +196,137 @@ def normalize_zone(zone):
         return zone + '.'
     else:
         return zone
+
+
+def get_proper_tls_version_span(tls_version_min, tls_version_max):
+    """
+    This function checks whether the given TLS versions are known in
+    FreeIPA and that these versions fulfill the requirements for minimal
+    TLS version (see
+    `ipalib.constants: TLS_VERSIONS, TLS_VERSION_MINIMAL`).
+
+    :param tls_version_min:
+        the lower value in the TLS min-max span, raised to the lowest
+        allowed value if too low
+    :param tls_version_max:
+        the higher value in the TLS min-max span, raised to tls_version_min
+        if lower than TLS_VERSION_MINIMAL
+    :raises: ValueError
+    """
+    min_allowed_idx = TLS_VERSIONS.index(TLS_VERSION_MINIMAL)
+
+    try:
+        min_version_idx = TLS_VERSIONS.index(tls_version_min)
+    except ValueError:
+        raise ValueError("tls_version_min ('{val}') is not a known "
+                         "TLS version.".format(val=tls_version_min))
+
+    try:
+        max_version_idx = TLS_VERSIONS.index(tls_version_max)
+    except ValueError:
+        raise ValueError("tls_version_max ('{val}') is not a known "
+                         "TLS version.".format(val=tls_version_max))
+
+    if min_version_idx > max_version_idx:
+        raise ValueError("tls_version_min is higher than "
+                         "tls_version_max.")
+
+    if min_version_idx < min_allowed_idx:
+        min_version_idx = min_allowed_idx
+        root_logger.warning("tls_version_min set too low ('{old}'),"
+                            "using '{new}' instead"
+                            .format(old=tls_version_min,
+                                    new=TLS_VERSIONS[min_version_idx]))
+
+    if max_version_idx < min_allowed_idx:
+        max_version_idx = min_version_idx
+        root_logger.warning("tls_version_max set too low ('{old}'),"
+                            "using '{new}' instead"
+                            .format(old=tls_version_max,
+                                    new=TLS_VERSIONS[max_version_idx]))
+    return TLS_VERSIONS[min_version_idx:max_version_idx+1]
+
+
+def create_https_connection(
+    host, port=HTTPSConnection.default_port,
+    cafile=None,
+    client_certfile=None, client_keyfile=None,
+    keyfile_passwd=None,
+    tls_version_min="tls1.1",
+    tls_version_max="tls1.2",
+    **kwargs
+):
+    """
+    Create a customized HTTPSConnection object.
+
+    :param host:  The host to connect to
+    :param port:  The port to connect to, defaults to
+               HTTPSConnection.default_port
+    :param cafile:  A PEM-format file containning the trusted
+                    CA certificates
+    :param client_certfile:
+            A PEM-format client certificate file that will be used to
+            identificate the user to the server.
+    :param client_keyfile:
+            A file with the client private key. If this argument is not
+            supplied, the key will be sought in client_certfile.
+    :param keyfile_passwd:
+            A path to the file which stores the password that is used to
+            encrypt client_keyfile. Leave default value if the keyfile
+            is not encrypted.
+    :returns An established HTTPS connection to host:port
+    """
+    # pylint: disable=no-member
+    tls_cutoff_map = {
+        "ssl2": ssl.OP_NO_SSLv2,
+        "ssl3": ssl.OP_NO_SSLv3,
+        "tls1.0": ssl.OP_NO_TLSv1,
+        "tls1.1": ssl.OP_NO_TLSv1_1,
+        "tls1.2": ssl.OP_NO_TLSv1_2,
+    }
+    # pylint: enable=no-member
+
+    if cafile is None:
+        raise RuntimeError("cafile argument is required to perform server "
+                           "certificate verification")
+
+    # remove the slice of negating protocol options according to options
+    tls_span = get_proper_tls_version_span(tls_version_min, tls_version_max)
+
+    # official Python documentation states that the best option to get
+    # TLSv1 and later is to setup SSLContext with PROTOCOL_SSLv23
+    # and then negate the insecure SSLv2 and SSLv3
+    # pylint: disable=no-member
+    ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+    ctx.options |= (
+        ssl.OP_ALL | ssl.OP_NO_COMPRESSION | ssl.OP_SINGLE_DH_USE |
+        ssl.OP_SINGLE_ECDH_USE
+    )
+
+    # pylint: enable=no-member
+    # set up the correct TLS version flags for the SSL context
+    for version in TLS_VERSIONS:
+        if version in tls_span:
+            # make sure the required TLS versions are available if Python
+            # decides to modify the default TLS flags
+            ctx.options &= ~tls_cutoff_map[version]
+        else:
+            # disable all TLS versions not in tls_span
+            ctx.options |= tls_cutoff_map[version]
+
+    ctx.verify_mode = ssl.CERT_REQUIRED
+    ctx.check_hostname = True
+    ctx.load_verify_locations(cafile)
+
+    if client_certfile is not None:
+        if keyfile_passwd is not None:
+            with open(keyfile_passwd) as pwd_f:
+                passwd = pwd_f.read()
+        else:
+            passwd = None
+        ctx.load_cert_chain(client_certfile, client_keyfile, passwd)
+
+    return HTTPSConnection(host, port, context=ctx, **kwargs)
 
 
 def validate_dns_label(dns_label, allow_underscore=False, allow_slash=False):
