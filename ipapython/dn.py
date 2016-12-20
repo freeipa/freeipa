@@ -1155,8 +1155,14 @@ class DN(object):
     def _get_rdn(self, rdn):
         return self.RDN_type(*rdn, **{'raw': True})
 
-    def __str__(self):
+    def ldap_text(self):
         return dn2str(self.rdns)
+
+    def x500_text(self):
+        return dn2str(reversed(self.rdns))
+
+    def __str__(self):
+        return self.ldap_text()
 
     def __repr__(self):
         return "%s.%s('%s')" % (self.__module__, self.__class__.__name__, self.__str__())

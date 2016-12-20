@@ -19,14 +19,17 @@
 
 import six
 
-from ipalib import api, errors
-from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime, Bytes
+from ipalib import api, errors, x509
+from ipalib import (
+    Flag, Int, Password, Str, Bool, StrEnum, DateTime, Bytes, DNParam)
 from ipalib.parameters import Principal
 from ipalib.plugable import Registry
 from .baseldap import (
     DN, LDAPObject, LDAPCreate, LDAPUpdate, LDAPSearch, LDAPDelete,
-    LDAPRetrieve, LDAPAddAttribute, LDAPRemoveAttribute, LDAPAddMember,
-    LDAPRemoveMember, LDAPAddAttributeViaOption, LDAPRemoveAttributeViaOption)
+    LDAPRetrieve, LDAPAddAttribute, LDAPModAttribute, LDAPRemoveAttribute,
+    LDAPAddMember, LDAPRemoveMember,
+    LDAPAddAttributeViaOption, LDAPRemoveAttributeViaOption,
+    add_missing_object_class)
 from ipaserver.plugins.service import (
    validate_certificate, validate_realm, normalize_principal)
 from ipalib.request import context
@@ -134,7 +137,7 @@ class baseuser(LDAPObject):
     object_class_config = 'ipauserobjectclasses'
     possible_objectclasses = [
         'meporiginentry', 'ipauserauthtypeclass', 'ipauser',
-        'ipatokenradiusproxyuser'
+        'ipatokenradiusproxyuser', 'ipacertmapobject'
     ]
     disallow_object_classes = ['krbticketpolicyaux']
     permission_filter_objectclasses = ['posixaccount']
@@ -146,7 +149,8 @@ class baseuser(LDAPObject):
         'memberofindirect', 'ipauserauthtype', 'userclass',
         'ipatokenradiusconfiglink', 'ipatokenradiususername',
         'krbprincipalexpiration', 'usercertificate;binary',
-        'krbprincipalname', 'krbcanonicalname'
+        'krbprincipalname', 'krbcanonicalname',
+        'ipacertmapdata'
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'krbcanonicalname',
@@ -359,6 +363,13 @@ class baseuser(LDAPObject):
             cli_name='certificate',
             label=_('Certificate'),
             doc=_('Base-64 encoded user certificate'),
+        ),
+        Str(
+            'ipacertmapdata*',
+            cli_name='certmapdata',
+            label=_('Certificate mapping data'),
+            doc=_('Certificate mapping data'),
+            flags=['no_create', 'no_update', 'no_search'],
         ),
     )
 
@@ -728,3 +739,154 @@ class baseuser_remove_cert(LDAPRemoveAttributeViaOption):
         self.obj.convert_usercertificate_post(entry_attrs, **options)
 
         return dn
+
+
+class ModCertMapData(LDAPModAttribute):
+    attribute = 'ipacertmapdata'
+    takes_options = (
+        DNParam(
+            'issuer?',
+            cli_name='issuer',
+            label=_('Issuer'),
+            doc=_('Issuer of the certificate'),
+            flags=['virtual_attribute']
+        ),
+        DNParam(
+            'subject?',
+            cli_name='subject',
+            label=_('Subject'),
+            doc=_('Subject of the certificate'),
+            flags=['virtual_attribute']
+        ),
+        Bytes(
+            'certificate*', validate_certificate,
+            cli_name='certificate',
+            label=_('Certificate'),
+            doc=_('Base-64 encoded user certificate'),
+            flags=['virtual_attribute']
+        ),
+    )
+
+    @staticmethod
+    def _build_mapdata(subject, issuer):
+        return u'X509:<I>{issuer}<S>{subject}'.format(
+            issuer=issuer.x500_text(), subject=subject.x500_text())
+
+    @classmethod
+    def _convert_options_to_certmap(cls, entry_attrs, issuer=None,
+                                    subject=None, certificates=()):
+        """
+        Converts options to ipacertmapdata
+
+        When --subject --issuer or --certificate options are used,
+        the value for ipacertmapdata is built from extracting subject and
+        issuer,
+        converting their values to X500 ordering and using the format
+        X509:<I>issuer<S>subject
+        For instance:
+        X509:<I>O=DOMAIN,CN=Certificate Authority<S>O=DOMAIN,CN=user
+        A list of values can be returned if --certificate is used multiple
+        times, or in conjunction with --subject --issuer.
+        """
+        data = []
+        data.extend(entry_attrs.get(cls.attribute, list()))
+
+        if issuer or subject:
+            data.append(cls._build_mapdata(subject, issuer))
+
+        for dercert in certificates:
+            cert = x509.load_certificate(dercert, x509.DER)
+            issuer = DN(cert.issuer)
+            subject = DN(cert.subject)
+            if not subject:
+                raise errors.ValidationError(
+                    name='certificate',
+                    error=_('cannot have an empty subject'))
+            data.append(cls._build_mapdata(subject, issuer))
+
+        entry_attrs[cls.attribute] = data
+
+    def get_args(self):
+        # ipacertmapdata is not mandatory as it can be built
+        # from the values subject+issuer or from reading certificate
+        for arg in super(ModCertMapData, self).get_args():
+            if arg.name == 'ipacertmapdata':
+                yield arg.clone(required=False, alwaysask=False)
+            else:
+                yield arg.clone()
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+        # The 3 valid calls are
+        # ipa user-add-certmapdata LOGIN --subject xx --issuer yy
+        # ipa user-add-certmapdata LOGIN [DATA] --certificate xx
+        # ipa user-add-certmapdata LOGIN DATA
+        # Check that at least one of the 3 formats is used
+
+        try:
+            certmapdatas = keys[1] or []
+        except IndexError:
+            certmapdatas = []
+        issuer = options.get('issuer')
+        subject = options.get('subject')
+        certificates = options.get('certificate', [])
+
+        # If only LOGIN is supplied, then we need either subject or issuer or
+        # certificate
+        if (not certmapdatas and not issuer and not subject and
+                not certificates):
+            raise errors.RequirementError(name='ipacertmapdata')
+
+        # If subject or issuer is provided, other options are not allowed
+        if subject or issuer:
+            if certificates:
+                raise errors.MutuallyExclusiveError(
+                    reason=_('cannot specify both subject/issuer '
+                             'and certificate'))
+            if certmapdatas:
+                raise errors.MutuallyExclusiveError(
+                    reason=_('cannot specify both subject/issuer '
+                             'and ipacertmapdata'))
+            # If subject or issuer is provided, then the other one is required
+            if not subject:
+                raise errors.RequirementError(name='subject')
+            if not issuer:
+                raise errors.RequirementError(name='issuer')
+
+        # if the command is called with --subject --issuer or --certificate
+        # we need to add ipacertmapdata to the attrs_list in order to
+        # display the resulting value in the command output
+        if 'ipacertmapdata' not in attrs_list:
+            attrs_list.append('ipacertmapdata')
+
+        self._convert_options_to_certmap(
+            entry_attrs,
+            issuer=issuer,
+            subject=subject,
+            certificates=certificates)
+
+        return dn
+
+
+class baseuser_add_certmapdata(ModCertMapData, LDAPAddAttribute):
+    __doc__ = _("Add one or more certificate mappings to the user entry.")
+    msg_summary = _('Added certificate mappings to user "%(value)s"')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+
+        dn = super(baseuser_add_certmapdata, self).pre_callback(
+            ldap, dn, entry_attrs, attrs_list, *keys, **options)
+
+        # The objectclass ipacertmapobject may not be present on
+        # existing user entries. We need to add it if we define a new
+        # value for ipacertmapdata
+        add_missing_object_class(ldap, u'ipacertmapobject', dn)
+
+        return dn
+
+
+class baseuser_remove_certmapdata(ModCertMapData,
+                                  LDAPRemoveAttribute):
+    __doc__ = _("Remove one or more certificate mappings from the user entry.")
+    msg_summary = _('Removed certificate mappings from user "%(value)s"')

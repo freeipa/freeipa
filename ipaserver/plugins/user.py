@@ -22,7 +22,6 @@ import time
 from time import gmtime, strftime
 import posixpath
 import os
-
 import six
 
 from ipalib import api
@@ -46,7 +45,9 @@ from .baseuser import (
     baseuser_add_cert,
     baseuser_remove_cert,
     baseuser_add_principal,
-    baseuser_remove_principal)
+    baseuser_remove_principal,
+    baseuser_add_certmapdata,
+    baseuser_remove_certmapdata)
 from .idviews import remove_ipaobject_overrides
 from ipalib.plugable import Registry
 from .baseldap import (
@@ -179,6 +180,7 @@ class user(baseuser):
                 'secretary', 'usercertificate',
                 'usersmimecertificate', 'x500uniqueidentifier',
                 'inetuserhttpurl', 'inetuserstatus',
+                'ipacertmapdata',
             },
             'fixup_function': fix_addressbook_permission_bindrule,
         },
@@ -365,6 +367,13 @@ class user(baseuser):
                 'ntuserlastlogon',
             },
             'default_privileges': {'PassSync Service'},
+        },
+        'System: Manage User Certificate Mappings': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'ipacertmapdata', 'objectclass'},
+            'default_privileges': {
+                'Certificate Identity Mapping Administrators'
+            },
         },
     }
 
@@ -1182,6 +1191,16 @@ class user_add_cert(baseuser_add_cert):
 class user_remove_cert(baseuser_remove_cert):
     __doc__ = _('Remove one or more certificates to the user entry')
     msg_summary = _('Removed certificates from user "%(value)s"')
+
+
+@register()
+class user_add_certmapdata(baseuser_add_certmapdata):
+    __doc__ = _("Add one or more certificate mappings to the user entry.")
+
+
+@register()
+class user_remove_certmapdata(baseuser_remove_certmapdata):
+    __doc__ = _("Remove one or more certificate mappings from the user entry.")
 
 
 @register()

@@ -44,7 +44,9 @@ from .baseuser import (
     baseuser_add_principal,
     baseuser_remove_principal,
     baseuser_add_manager,
-    baseuser_remove_manager)
+    baseuser_remove_manager,
+    baseuser_add_certmapdata,
+    baseuser_remove_certmapdata)
 from ipalib.request import context
 from ipalib.util import set_krbcanonicalname
 from ipalib import _, ngettext
@@ -772,3 +774,15 @@ class stageuser_add_principal(baseuser_add_principal):
 class stageuser_remove_principal(baseuser_remove_principal):
     __doc__ = _('Remove principal alias from the stageuser entry')
     msg_summary = _('Removed aliases from stageuser "%(value)s"')
+
+
+@register()
+class stageuser_add_certmapdata(baseuser_add_certmapdata):
+    __doc__ = _("Add one or more certificate mappings to the stage user"
+                " entry.")
+
+
+@register()
+class stageuser_remove_certmapdata(baseuser_remove_certmapdata):
+    __doc__ = _("Remove one or more certificate mappings from the stage user"
+                " entry.")

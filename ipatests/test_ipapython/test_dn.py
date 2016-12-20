@@ -1184,6 +1184,26 @@ class TestDN(unittest.TestCase):
         self.assertFalse(dn3_a in s)
         self.assertFalse(dn3_b in s)
 
+    def test_x500_text(self):
+        # null DN x500 ordering and LDAP ordering are the same
+        nulldn = DN()
+        self.assertEqual(nulldn.ldap_text(), nulldn.x500_text())
+
+        # reverse a DN with a single RDN
+        self.assertEqual(self.dn1.ldap_text(), self.dn1.x500_text())
+
+        # reverse a DN with 2 RDNs
+        dn3_x500 = self.dn3.x500_text()
+        dn3_rev = DN(self.rdn2, self.rdn1)
+        self.assertEqual(dn3_rev.ldap_text(), dn3_x500)
+
+        # reverse a longer DN
+        longdn_x500 = self.base_container_dn.x500_text()
+        longdn_rev = DN(longdn_x500)
+        l = len(self.base_container_dn)
+        for i in range(l):
+            self.assertEquals(longdn_rev[i], self.base_container_dn[l-1-i])
+
 
 class TestEscapes(unittest.TestCase):
     def setUp(self):
