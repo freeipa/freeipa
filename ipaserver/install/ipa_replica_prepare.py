@@ -600,17 +600,14 @@ class ReplicaPrepare(admintool.AdminTool):
             db = certs.CertDB(
                 api.env.realm, nssdir=self.dir, subject_base=subject_base)
             db.create_passwd_file()
-            ca_db = certs.CertDB(
-                api.env.realm, host_name=api.env.host,
-                subject_base=subject_base)
             db.create_from_cacert()
-            db.create_server_cert(nickname, hostname, ca_db)
+            db.create_server_cert(nickname, hostname)
 
             pkcs12_fname = os.path.join(self.dir, fname + ".p12")
 
             try:
                 if is_kdc:
-                    ca_db.export_pem_p12(pkcs12_fname, passwd_fname,
+                    db.export_pem_p12(pkcs12_fname, passwd_fname,
                         nickname, os.path.join(self.dir, "kdc.pem"))
                 else:
                     db.export_pkcs12(pkcs12_fname, passwd_fname, nickname)

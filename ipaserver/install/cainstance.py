@@ -1584,7 +1584,6 @@ def import_included_profiles():
         cn=['certprofiles'],
     )
 
-    api.Backend.ra_certprofile._read_password()
     api.Backend.ra_certprofile.override_port = 8443
 
     for (profile_id, desc, store_issued) in dogtag.INCLUDED_PROFILES:
@@ -1621,7 +1620,6 @@ def repair_profile_caIPAserviceCert():
     This function detects and repairs occurrences of this problem.
 
     """
-    api.Backend.ra_certprofile._read_password()
     api.Backend.ra_certprofile.override_port = 8443
 
     profile_id = 'caIPAserviceCert'
@@ -1664,8 +1662,6 @@ def migrate_profiles_to_ldap():
 
     """
     ensure_ldap_profiles_container()
-
-    api.Backend.ra_certprofile._read_password()
     api.Backend.ra_certprofile.override_port = 8443
 
     with open(paths.CA_CS_CFG_PATH) as f:
@@ -1750,8 +1746,6 @@ def ensure_ipa_authority_entry():
     """
 
     # find out authority id, issuer DN and subject DN of IPA CA
-    #
-    api.Backend.ra_lightweight_ca._read_password()
     api.Backend.ra_lightweight_ca.override_port = 8443
     with api.Backend.ra_lightweight_ca as lwca:
         data = lwca.read_ca('host-authority')

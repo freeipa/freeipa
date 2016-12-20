@@ -20,16 +20,16 @@
 import collections
 import xml.dom.minidom
 
-import nss.nss as nss
 import six
 # pylint: disable=import-error
 from six.moves.urllib.parse import urlencode
 # pylint: enable=import-error
 
 from ipalib import api, errors
+from ipalib.util import create_https_connection
 from ipalib.errors import NetworkError
 from ipalib.text import _
-from ipapython import nsslib, ipautil
+from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger
 
 # Python 3 rename. The package is available in "six.moves.http_client", but
@@ -131,8 +131,8 @@ def ca_status(ca_host=None):
     return _parse_ca_status(body)
 
 
-def https_request(host, port, url, secdir, password, nickname,
-        method='POST', headers=None, body=None, **kw):
+def https_request(host, port, url, cafile, client_certfile,
+                  method='POST', headers=None, body=None, **kw):
     """
     :param method: HTTP request method (defalut: 'POST')
     :param url: The path (not complete URL!) to post to.
@@ -145,16 +145,12 @@ def https_request(host, port, url, secdir, password, nickname,
     """
 
     def connection_factory(host, port):
-        no_init = secdir == nsslib.current_dbdir
-        conn = nsslib.NSSConnection(host, port, dbdir=secdir, no_init=no_init,
-                                    tls_version_min=api.env.tls_version_min,
-                                    tls_version_max=api.env.tls_version_max)
-        conn.set_debuglevel(0)
-        conn.connect()
-        conn.sock.set_client_auth_data_callback(
-            nsslib.client_auth_data_callback,
-            nickname, password, nss.get_default_certdb())
-        return conn
+        return create_https_connection(
+            host, port,
+            cafile=cafile,
+            client_certfile=client_certfile,
+            tls_version_min=api.env.tls_version_min,
+            tls_version_max=api.env.tls_version_max)
 
     if body is None:
         body = urlencode(kw)

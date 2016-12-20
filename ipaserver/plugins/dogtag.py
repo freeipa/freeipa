@@ -1238,29 +1238,17 @@ class RestClient(Backend):
             return None
 
     def __init__(self, api):
+        self.ca_cert = api.env.tls_ca_cert
         if api.env.in_tree:
-            self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
-            self.pwd_file = self.sec_dir + os.sep + '.pwd'
+            self.client_certfile = os.path.join(
+                api.env.dot_ipa, 'ra-agent.pem')
         else:
-            self.sec_dir = paths.IPA_RADB_DIR
-            self.pwd_file = os.path.join(paths.IPA_RADB_DIR, 'pwdfile.txt')
-        self.noise_file = self.sec_dir + os.sep + '.noise'
-        self.ipa_key_size = "2048"
-        self.ipa_certificate_nickname = "ipaCert"
-        self.ca_certificate_nickname = "caCert"
-        self._read_password()
+            self.client_certfile = paths.RA_AGENT_PEM
         super(RestClient, self).__init__(api)
 
         # session cookie
         self.override_port = None
         self.cookie = None
-
-    def _read_password(self):
-        try:
-            with open(self.pwd_file) as f:
-                self.password = f.readline().strip()
-        except IOError:
-            self.password = ''
 
     @cachedproperty
     def ca_host(self):
@@ -1288,8 +1276,9 @@ class RestClient(Backend):
             return
         status, resp_headers, _resp_body = dogtag.https_request(
             self.ca_host, self.override_port or self.env.ca_agent_port,
-            '/ca/rest/account/login',
-            self.sec_dir, self.password, self.ipa_certificate_nickname,
+            url='/ca/rest/account/login',
+            cafile=self.ca_cert,
+            client_certfile=self.client_certfile,
             method='GET'
         )
         cookies = ipapython.cookie.Cookie.parse(resp_headers.get('set-cookie', ''))
@@ -1302,8 +1291,9 @@ class RestClient(Backend):
         """Log out of the REST API"""
         dogtag.https_request(
             self.ca_host, self.override_port or self.env.ca_agent_port,
-            '/ca/rest/account/logout',
-            self.sec_dir, self.password, self.ipa_certificate_nickname,
+            url='/ca/rest/account/logout',
+            cafile=self.ca_cert,
+            client_certfile=self.client_certfile,
             method='GET'
         )
         self.cookie = None
@@ -1344,8 +1334,9 @@ class RestClient(Backend):
         # perform main request
         status, resp_headers, resp_body = dogtag.https_request(
             self.ca_host, self.override_port or self.env.ca_agent_port,
-            resource,
-            self.sec_dir, self.password, self.ipa_certificate_nickname,
+            url=resource,
+            cafile=self.ca_cert,
+            client_certfile=self.client_certfile,
             method=method, headers=headers, body=body
         )
         if status < 200 or status >= 300:
@@ -1426,7 +1417,11 @@ class ra(rabase.rabase, RestClient):
 
         Perform an HTTPS request
         """
-        return dogtag.https_request(self.ca_host, port, url, self.sec_dir, self.password, self.ipa_certificate_nickname, **kw)
+        return dogtag.https_request(
+            self.ca_host, port, url,
+            cafile=self.ca_cert,
+            client_certfile=self.client_certfile,
+            **kw)
 
     def get_parse_result_xml(self, xml_text, parse_func):
         '''

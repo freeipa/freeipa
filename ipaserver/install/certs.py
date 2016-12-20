@@ -330,7 +330,7 @@ class CertDB(object):
         except RuntimeError as e:
             root_logger.error("certmonger failed to stop tracking certificate: %s" % str(e))
 
-    def create_server_cert(self, nickname, hostname, other_certdb=None, subject=None):
+    def create_server_cert(self, nickname, hostname, subject=None):
         """
         If we are using a dogtag CA then other_certdb contains the RA agent key
         that will issue our cert.
@@ -339,13 +339,10 @@ class CertDB(object):
 
         Returns a certificate in DER format.
         """
-        cdb = other_certdb
-        if not cdb:
-            cdb = self
         if subject is None:
             subject=DN(('CN', hostname), self.subject_base)
         self.request_cert(subject, san_dnsnames=[hostname])
-        cdb.issue_server_cert(self.certreq_fname, self.certder_fname)
+        self.issue_server_cert(self.certreq_fname, self.certder_fname)
         self.import_cert(self.certder_fname, nickname)
         fd = open(self.certder_fname, "r")
         dercert = fd.read()
@@ -397,12 +394,12 @@ class CertDB(object):
                 'xmlOutput': 'true'}
 
         # Send the request to the CA
-        f = open(self.passwd_fname, "r")
-        password = f.readline()
-        f.close()
         result = dogtag.https_request(
-            self.host_name, 8443, "/ca/ee/ca/profileSubmitSSLClient",
-            self.secdir, password, "ipaCert", **params)
+            self.host_name, 8443,
+            url="/ca/ee/ca/profileSubmitSSLClient",
+            cafile=api.env.tls_ca_cert,
+            client_certfile=paths.RA_AGENT_PEM,
+            **params)
         http_status, _http_headers, http_body = result
         root_logger.debug("CA answer: %s", http_body)
 
@@ -451,12 +448,12 @@ class CertDB(object):
                 'xmlOutput': 'true'}
 
         # Send the request to the CA
-        f = open(self.passwd_fname, "r")
-        password = f.readline()
-        f.close()
         result = dogtag.https_request(
-            self.host_name, 8443, "/ca/ee/ca/profileSubmitSSLClient",
-            self.secdir, password, "ipaCert", **params)
+            self.host_name, 8443,
+            url="/ca/ee/ca/profileSubmitSSLClient",
+            cafile=api.env.tls_ca_cert,
+            client_certfile=paths.RA_AGENT_PEM,
+            **params)
         http_status, _http_headers, http_body = result
         if http_status != 200:
             raise RuntimeError("Unable to submit cert request")
