@@ -390,7 +390,9 @@ class DsInstance(service.Service):
 
         self.step("creating DS keytab", self._request_service_keytab)
         if self.promote:
-            if self.ca_is_configured:
+            if self.pkcs12_info:
+                self.step("configuring ssl for ds instance", self.__enable_ssl)
+            else:
                 self.step("retrieving DS Certificate", self.__get_ds_cert)
             self.step("restarting directory server", self.__restart_instance)
 
