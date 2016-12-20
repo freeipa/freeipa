@@ -22,22 +22,7 @@ before_install:
       git+https://github.com/freeipa/ipa-docker-test-runner@release-0-2-1
 
 script:
-    - >
-        if [[ "$TRAVIS_EVENT_TYPE" == "pull_request" ]];
-        then
-            git diff origin/${TRAVIS_BRANCH} -U0 | pep8 --diff &> pep8_errors.log;
-        fi
-    - "pushd ipatests; test_set=`ls -d -1 $TESTS_TO_RUN 2> /dev/null`; popd"
-    # use travis_wait so that long running tasks (tests) which produce no
-    # output do not cause premature termination of the build
-    - "docker pull ${TEST_RUNNER_IMAGE}"
-    - >
-        travis_wait 50
-        ipa-docker-test-runner -l ci_results_${TRAVIS_BRANCH}.log
-        -c .test_runner_config.yaml
-        --container-image ${TEST_RUNNER_IMAGE}
-        --git-repo ${TRAVIS_BUILD_DIR}
-        run-tests $test_set
+    - travis_wait 50 ./.travis_run_task.sh
 after_failure:
     - echo "Test runner output:"; tail -n 5000 ci_results_${TRAVIS_BRANCH}.log
     - echo "PEP-8 errors:"; cat pep8_errors.log
