@@ -77,7 +77,7 @@ def install(api, replica_config, options):
 
         pkcs12_info = None
         master_host = None
-        ra_only = False
+        ra_only = not options.setup_kra
         promote = False
     else:
         krafile = os.path.join(replica_config.dir, 'kracert.p12')

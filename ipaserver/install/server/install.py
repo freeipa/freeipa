@@ -609,6 +609,7 @@ def install_check(installer):
 
     if setup_ca:
         ca.install_check(False, None, options)
+        kra.install_check(api, None, options)
 
     if options.setup_dns:
         dns.install_check(False, api, False, options, host_name)
@@ -809,6 +810,7 @@ def install(installer):
 
     if setup_ca:
         ca.install_step_1(False, None, options)
+        kra.install(api, None, options)
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
