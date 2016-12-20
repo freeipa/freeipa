@@ -1338,7 +1338,7 @@ def install(installer):
         # Always try to install DNS records
         install_dns_records(config, options, remote_api)
 
-        if promote:
+        if promote and ca_enabled:
             # we need to install http certs to setup ssl for httpd
             install_http_certs(config.host_name,
                                config.realm_name,
