@@ -181,6 +181,7 @@ class KRAInstaller(KRAInstall):
 
         self.options.dm_password = self.options.password
         self.options.setup_ca = False
+        self.options.setup_kra = True
 
         api.Backend.ldap2.connect()
 
