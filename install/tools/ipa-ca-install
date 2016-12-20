@@ -122,6 +122,11 @@ def get_dirman_password():
 
 
 def install_replica(safe_options, options, filename):
+    if options.ca_subject:
+        sys.exit("--ca-subject cannot be used when installing a CA replica")
+    if options.subject_base:
+        sys.exit("--subject-base cannot be used when installing a CA replica")
+
     if options.promote:
         if filename is not None:
             sys.exit("Too many parameters provided. "

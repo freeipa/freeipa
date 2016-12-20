@@ -364,6 +364,13 @@ def install_check(installer):
         setup_ca = True
     options.setup_ca = setup_ca
 
+    if not setup_ca and options.ca_subject:
+        raise ScriptError(
+            "--ca-subject cannot be used with CA-less installation")
+    if not setup_ca and options.subject_base:
+        raise ScriptError(
+            "--subject-base cannot be used with CA-less installation")
+
     # first instance of KRA must be installed by ipa-kra-install
     options.setup_kra = False
 
