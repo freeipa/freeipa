@@ -39,7 +39,5 @@ script:
         --git-repo ${TRAVIS_BUILD_DIR}
         run-tests $test_set
 after_failure:
-  - echo "Test runner output:"
-  - tail -n 5000 ci_results_${TRAVIS_BRANCH}.log
-  - echo "PEP-8 errors:"
-  - cat pep8_errors.log
+  - echo "Test runner output:"; tail -n 5000 ci_results_${TRAVIS_BRANCH}.log
+  - echo "PEP-8 errors:"; cat pep8_errors.log
