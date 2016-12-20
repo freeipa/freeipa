@@ -73,8 +73,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 218)
-# Last change: Remove no_option flag for nsaccountlock and add cli_name='disabled'
+define(IPA_API_VERSION_MINOR, 219)
+# Last change: Support for Certificate Identity Mapping
 
 
 ########################################################

@@ -824,6 +824,116 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: certmapconfig_mod/1
+args: 0,8,3
+option: Str('addattr*', cli_name='addattr')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('delattr*', cli_name='delattr')
+option: Bool('ipacertmappromptusername?', autofill=False, cli_name='promptusername')
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Flag('rights', autofill=True, default=False)
+option: Str('setattr*', cli_name='setattr')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: certmapconfig_show/1
+args: 0,4,3
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Flag('rights', autofill=True, default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: certmaprule_add/1
+args: 1,11,3
+arg: Str('cn', cli_name='rulename')
+option: Str('addattr*', cli_name='addattr')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: DNSNameParam('associateddomain*', cli_name='domain')
+option: Str('description?', cli_name='desc')
+option: Str('ipacertmapmaprule?', cli_name='maprule')
+option: Str('ipacertmapmatchrule?', cli_name='matchrule')
+option: Int('ipacertmappriority?', cli_name='priority')
+option: Flag('ipaenabledflag?', autofill=True, default=True)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('setattr*', cli_name='setattr')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: certmaprule_del/1
+args: 1,2,3
+arg: Str('cn+', cli_name='rulename')
+option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?')
+output: Output('result', type=[<type 'dict'>])
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: ListOfPrimaryKeys('value')
+command: certmaprule_disable/1
+args: 1,1,3
+arg: Str('cn', cli_name='rulename')
+option: Str('version?')
+output: Output('result', type=[<type 'bool'>])
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: certmaprule_enable/1
+args: 1,1,3
+arg: Str('cn', cli_name='rulename')
+option: Str('version?')
+output: Output('result', type=[<type 'bool'>])
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: certmaprule_find/1
+args: 1,13,4
+arg: Str('criteria?')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: DNSNameParam('associateddomain*', autofill=False, cli_name='domain')
+option: Str('cn?', autofill=False, cli_name='rulename')
+option: Str('description?', autofill=False, cli_name='desc')
+option: Str('ipacertmapmaprule?', autofill=False, cli_name='maprule')
+option: Str('ipacertmapmatchrule?', autofill=False, cli_name='matchrule')
+option: Int('ipacertmappriority?', autofill=False, cli_name='priority')
+option: Bool('ipaenabledflag?', autofill=False, default=True)
+option: Flag('pkey_only?', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Int('sizelimit?', autofill=False)
+option: Int('timelimit?', autofill=False)
+option: Str('version?')
+output: Output('count', type=[<type 'int'>])
+output: ListOfEntries('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('truncated', type=[<type 'bool'>])
+command: certmaprule_mod/1
+args: 1,13,3
+arg: Str('cn', cli_name='rulename')
+option: Str('addattr*', cli_name='addattr')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: DNSNameParam('associateddomain*', autofill=False, cli_name='domain')
+option: Str('delattr*', cli_name='delattr')
+option: Str('description?', autofill=False, cli_name='desc')
+option: Str('ipacertmapmaprule?', autofill=False, cli_name='maprule')
+option: Str('ipacertmapmatchrule?', autofill=False, cli_name='matchrule')
+option: Int('ipacertmappriority?', autofill=False, cli_name='priority')
+option: Flag('ipaenabledflag?', autofill=True, default=True)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Flag('rights', autofill=True, default=False)
+option: Str('setattr*', cli_name='setattr')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: certmaprule_show/1
+args: 1,4,3
+arg: Str('cn', cli_name='rulename')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Flag('rights', autofill=True, default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: certprofile_del/1
 args: 1,2,3
 arg: Str('cn+', cli_name='id')
@@ -4762,6 +4872,20 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: stageuser_add_certmapdata/1
+args: 2,7,3
+arg: Str('uid', cli_name='login')
+arg: Str('ipacertmapdata*', alwaysask=False, cli_name='certmapdata')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Bytes('certificate*', cli_name='certificate')
+option: DNParam('issuer?', cli_name='issuer')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: DNParam('subject?', cli_name='subject')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: stageuser_add_manager/1
 args: 1,5,3
 arg: Str('uid', cli_name='login')
@@ -4911,6 +5035,20 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Bytes('usercertificate+', alwaysask=True, cli_name='certificate')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: stageuser_remove_certmapdata/1
+args: 2,7,3
+arg: Str('uid', cli_name='login')
+arg: Str('ipacertmapdata*', alwaysask=False, cli_name='certmapdata')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Bytes('certificate*', cli_name='certificate')
+option: DNParam('issuer?', cli_name='issuer')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: DNParam('subject?', cli_name='subject')
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
@@ -5796,6 +5934,20 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: user_add_certmapdata/1
+args: 2,7,3
+arg: Str('uid', cli_name='login')
+arg: Str('ipacertmapdata*', alwaysask=False, cli_name='certmapdata')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Bytes('certificate*', cli_name='certificate')
+option: DNParam('issuer?', cli_name='issuer')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: DNParam('subject?', cli_name='subject')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: user_add_manager/1
 args: 1,5,3
 arg: Str('uid', cli_name='login')
@@ -5964,6 +6116,20 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Bytes('usercertificate+', alwaysask=True, cli_name='certificate')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: user_remove_certmapdata/1
+args: 2,7,3
+arg: Str('uid', cli_name='login')
+arg: Str('ipacertmapdata*', alwaysask=False, cli_name='certmapdata')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Bytes('certificate*', cli_name='certificate')
+option: DNParam('issuer?', cli_name='issuer')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: DNParam('subject?', cli_name='subject')
 option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
@@ -6351,6 +6517,17 @@ default: cert_request/1
 default: cert_revoke/1
 default: cert_show/1
 default: cert_status/1
+default: certmapconfig/1
+default: certmapconfig_mod/1
+default: certmapconfig_show/1
+default: certmaprule/1
+default: certmaprule_add/1
+default: certmaprule_del/1
+default: certmaprule_disable/1
+default: certmaprule_enable/1
+default: certmaprule_find/1
+default: certmaprule_mod/1
+default: certmaprule_show/1
 default: certprofile/1
 default: certprofile_del/1
 default: certprofile_find/1
@@ -6706,12 +6883,14 @@ default: stageuser/1
 default: stageuser_activate/1
 default: stageuser_add/1
 default: stageuser_add_cert/1
+default: stageuser_add_certmapdata/1
 default: stageuser_add_manager/1
 default: stageuser_add_principal/1
 default: stageuser_del/1
 default: stageuser_find/1
 default: stageuser_mod/1
 default: stageuser_remove_cert/1
+default: stageuser_remove_certmapdata/1
 default: stageuser_remove_manager/1
 default: stageuser_remove_principal/1
 default: stageuser_show/1
@@ -6789,6 +6968,7 @@ default: trustdomain_mod/1
 default: user/1
 default: user_add/1
 default: user_add_cert/1
+default: user_add_certmapdata/1
 default: user_add_manager/1
 default: user_add_principal/1
 default: user_del/1
@@ -6797,6 +6977,7 @@ default: user_enable/1
 default: user_find/1
 default: user_mod/1
 default: user_remove_cert/1
+default: user_remove_certmapdata/1
 default: user_remove_manager/1
 default: user_remove_principal/1
 default: user_show/1

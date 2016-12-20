@@ -61,6 +61,7 @@ app_DATA =				\
 	72-domainlevels.update		\
 	73-custodia.update		\
 	73-winsync.update		\
+	73-certmap.update		\
 	90-post_upgrade_plugins.update	\
 	$(NULL)
 
