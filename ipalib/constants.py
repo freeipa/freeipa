@@ -226,6 +226,7 @@ DEFAULT_CONFIG = (
     ('conf_default', object),  # File containing context independent config
     ('plugins_on_demand', object),  # Whether to finalize plugins on-demand (bool)
     ('nss_dir', object),  # Path to nssdb, default {confdir}/nssdb
+    ('tls_ca_cert', object),  # Path to CA cert file
 
     # Set in Env._finalize_core():
     ('in_server', object),  # Whether or not running in-server (bool)
