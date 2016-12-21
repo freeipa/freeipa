@@ -173,7 +173,7 @@ class CertDB(object):
         if ipautil.file_exists(self.noise_fname):
             os.remove(self.noise_fname)
         f = open(self.noise_fname, "w")
-        f.write(ipautil.ipa_generate_password(pwd_len=25))
+        f.write(ipautil.ipa_generate_password())
         self.set_perms(self.noise_fname)
 
     def create_passwd_file(self, passwd=None):
@@ -182,7 +182,7 @@ class CertDB(object):
         if passwd is not None:
             f.write("%s\n" % passwd)
         else:
-            f.write(ipautil.ipa_generate_password(pwd_len=25))
+            f.write(ipautil.ipa_generate_password())
         f.close()
         self.set_perms(self.passwd_fname)
 

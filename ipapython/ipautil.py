@@ -23,6 +23,7 @@ import string
 import tempfile
 import subprocess
 import random
+import math
 import os
 import sys
 import copy
@@ -51,8 +52,8 @@ from six.moves import urllib
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 
-GEN_PWD_LEN = 22
-GEN_TMP_PWD_LEN = 12  # only for OTP password that is manually retyped by user
+# only for OTP password that is manually retyped by user
+TMP_PWD_ENTROPY_BITS = 128
 
 
 PROTOCOL_NAMES = {
@@ -789,34 +790,89 @@ def parse_generalized_time(timestr):
     except ValueError:
         return None
 
-def ipa_generate_password(characters=None,pwd_len=None):
-    ''' Generates password. Password cannot start or end with a whitespace
-    character. It also cannot be formed by whitespace characters only.
-    Length of password as well as string of characters to be used by
-    generator could be optionaly specified by characters and pwd_len
-    parameters, otherwise default values will be used: characters string
-    will be formed by all printable non-whitespace characters and space,
-    pwd_len will be equal to value of GEN_PWD_LEN.
-    '''
-    if not characters:
-        characters=string.digits + string.ascii_letters + string.punctuation + ' '
-    else:
-        if characters.isspace():
-            raise ValueError("password cannot be formed by whitespaces only")
-    if not pwd_len:
-        pwd_len = GEN_PWD_LEN
 
-    upper_bound = len(characters) - 1
-    rndpwd = ''
-    r = random.SystemRandom()
+def ipa_generate_password(entropy_bits=256, uppercase=1, lowercase=1, digits=1,
+                          special=1, min_len=0):
+    """
+    Generate token containing at least `entropy_bits` bits and with the given
+    character restraints.
 
-    for x in range(pwd_len):
-        rndchar = characters[r.randint(0,upper_bound)]
-        if (x == 0) or (x == pwd_len-1):
-            while rndchar.isspace():
-                rndchar = characters[r.randint(0,upper_bound)]
-        rndpwd += rndchar
-    return rndpwd
+    :param entropy_bits:
+        The minimal number of entropy bits attacker has to guess:
+           128 bits entropy: secure
+           256 bits of entropy: secure enough if you care about quantum
+                                computers
+
+    Integer values specify minimal number of characters from given
+    character class and length.
+    Value None prevents given character from appearing in the token.
+
+    Example:
+    TokenGenerator(uppercase=3, lowercase=3, digits=0, special=None)
+
+    At least 3 upper and 3 lower case ASCII chars, may contain digits,
+    no special chars.
+    """
+    special_chars = '!$%&()*+,-./:;<>?@[]^_{|}~'
+    pwd_charsets = {
+        'uppercase': {
+            'chars': string.ascii_uppercase,
+            'entropy': math.log(len(string.ascii_uppercase), 2)
+        },
+        'lowercase': {
+            'chars': string.ascii_lowercase,
+            'entropy': math.log(len(string.ascii_lowercase), 2)
+        },
+        'digits': {
+            'chars': string.digits,
+            'entropy': math.log(len(string.digits), 2)
+        },
+        'special': {
+            'chars': special_chars,
+            'entropy': math.log(len(special_chars), 2)
+        },
+    }
+    req_classes = dict(
+        uppercase=uppercase,
+        lowercase=lowercase,
+        digits=digits,
+        special=special
+    )
+    # 'all' class is used when adding entropy to too-short tokens
+    # it contains characters from all allowed classes
+    pwd_charsets['all'] = {
+        'chars': ''.join([
+            charclass['chars'] for charclass_name, charclass
+            in pwd_charsets.items()
+            if req_classes[charclass_name] is not None
+        ])
+    }
+    pwd_charsets['all']['entropy'] = math.log(
+            len(pwd_charsets['all']['chars']), 2)
+    rnd = random.SystemRandom()
+
+    todo_entropy = entropy_bits
+    password = ''
+    # Generate required character classes:
+    # The order of generated characters is fixed to comply with check in
+    # NSS function sftk_newPinCheck() in nss/lib/softoken/fipstokn.c.
+    for charclass_name in ['digits', 'uppercase', 'lowercase', 'special']:
+        charclass = pwd_charsets[charclass_name]
+        todo_characters = req_classes[charclass_name]
+        while todo_characters > 0:
+            password += rnd.choice(charclass['chars'])
+            todo_entropy -= charclass['entropy']
+            todo_characters -= 1
+
+    # required character classes do not provide sufficient entropy
+    # or does not fulfill minimal length constraint
+    allchars = pwd_charsets['all']
+    while todo_entropy > 0 or len(password) < min_len:
+        password += rnd.choice(allchars['chars'])
+        todo_entropy -= allchars['entropy']
+
+    return password
+
 
 def user_input(prompt, default = None, allow_empty = True):
     if default == None:

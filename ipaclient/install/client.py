@@ -2296,7 +2296,7 @@ def create_ipa_nssdb():
     ipautil.backup_file(os.path.join(db.secdir, 'secmod.db'))
 
     with open(pwdfile, 'w') as f:
-        f.write(ipautil.ipa_generate_password(pwd_len=40))
+        f.write(ipautil.ipa_generate_password())
     os.chmod(pwdfile, 0o600)
 
     db.create_db(pwdfile)
