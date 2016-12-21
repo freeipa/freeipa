@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # NOTE: this script is intended to run in Travis CI only
-set -ev
 
+PYTHON="/usr/bin/python${TRAVIS_PYTHON_VERSION}"
 test_set=""
 developer_mode_opt="--developer-mode"
 
@@ -29,6 +29,7 @@ docker pull $TEST_RUNNER_IMAGE
 ipa-docker-test-runner -l $CI_RESULTS_LOG \
     -c $TEST_RUNNER_CONFIG \
     $developer_mode_opt \
+    --container-environment "PYTHON=$PYTHON" \
     --container-image $TEST_RUNNER_IMAGE \
     --git-repo $TRAVIS_BUILD_DIR \
     $TASK_TO_RUN $test_set
