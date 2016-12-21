@@ -1915,7 +1915,7 @@ class ra(rabase.rabase, RestClient):
 
         url = 'http://%s/ca/rest/certs/search?size=%d' % (
             ipautil.format_netloc(self.ca_host, 8080),
-            options.get('sizelimit', 100))
+            options.get('sizelimit', 0x7fffffff))
 
         opener = urllib.request.build_opener()
         opener.addheaders = [('Accept-Encoding', 'gzip, deflate'),
