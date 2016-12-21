@@ -42,21 +42,13 @@ from cryptography.hazmat.backends import default_backend
 import cryptography.x509
 from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import decoder, encoder
-from pyasn1_modules import rfc2459
+from pyasn1_modules import rfc2315, rfc2459
 import six
 
 from ipalib import api
 from ipalib import util
 from ipalib import errors
 from ipapython.dn import DN
-from ipapython import ipautil
-
-try:
-    from ipaplatform.paths import paths
-except ImportError:
-    OPENSSL = '/usr/bin/openssl'
-else:
-    OPENSSL = paths.OPENSSL
 
 if six.PY3:
     unicode = str
@@ -160,16 +152,38 @@ def pkcs7_to_pems(data, datatype=PEM):
     Extract certificates from a PKCS #7 object.
 
     Return a ``list`` of X.509 PEM strings.
-
-    May throw ``ipautil.CalledProcessError`` on invalid data.
-
     """
-    cmd = [
-        OPENSSL, "pkcs7", "-print_certs",
-        "-inform", "PEM" if datatype == PEM else "DER",
-    ]
-    result = ipautil.run(cmd, stdin=data, capture_output=True)
-    return PEM_REGEX.findall(result.output)
+    if datatype == PEM:
+        match = re.match(
+            r'-----BEGIN PKCS7-----(.*?)-----END PKCS7-----',
+            data,
+            re.DOTALL)
+        if not match:
+            raise ValueError("not a valid PKCS#7 PEM")
+
+        data = base64.b64decode(match.group(1))
+
+    content_info, tail = decoder.decode(data, rfc2315.ContentInfo())
+    if tail:
+        raise ValueError("not a valid PKCS#7 message")
+
+    if content_info['contentType'] != rfc2315.signedData:
+        raise ValueError("not a PKCS#7 signed data message")
+
+    signed_data, tail = decoder.decode(bytes(content_info['content']),
+                                       rfc2315.SignedData())
+    if tail:
+        raise ValueError("not a valid PKCS#7 signed data message")
+
+    result = []
+
+    for certificate in signed_data['certificates']:
+        certificate = encoder.encode(certificate)
+        certificate = base64.b64encode(certificate)
+        certificate = make_pem(certificate)
+        result.append(certificate)
+
+    return result
 
 
 def is_self_signed(certificate, datatype=PEM):
