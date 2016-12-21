@@ -224,10 +224,11 @@ class DNSKeySyncInstance(service.Service):
         os.chown(paths.DNSSEC_TOKENS_DIR, self.ods_uid, self.named_gid)
 
         # generate PINs for softhsm
-        allowed_chars = u'123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
         pin_length = 30  # Bind allows max 32 bytes including ending '\0'
-        pin = ipautil.ipa_generate_password(allowed_chars, pin_length)
-        pin_so = ipautil.ipa_generate_password(allowed_chars, pin_length)
+        pin = ipautil.ipa_generate_password(
+            entropy_bits=0, special=None, min_len=pin_length)
+        pin_so = ipautil.ipa_generate_password(
+            entropy_bits=0, special=None, min_len=pin_length)
 
         self.logger.debug("Saving user PIN to %s", paths.DNSSEC_SOFTHSM_PIN)
         named_fd = open(paths.DNSSEC_SOFTHSM_PIN, 'w')

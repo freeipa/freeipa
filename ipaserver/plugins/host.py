@@ -21,7 +21,6 @@
 from __future__ import absolute_import
 
 import dns.resolver
-import string
 
 import six
 
@@ -62,7 +61,7 @@ from ipalib.util import (normalize_sshpubkey, validate_sshpubkey_no_options,
 from ipapython.ipautil import (
     ipa_generate_password,
     CheckedIPAddress,
-    GEN_TMP_PWD_LEN
+    TMP_PWD_ENTROPY_BITS
 )
 from ipapython.dnsutil import DNSName
 from ipapython.ssh import SSHPublicKey
@@ -135,10 +134,6 @@ EXAMPLES:
 """)
 
 register = Registry()
-
-# Characters to be used by random password generator
-# The set was chosen to avoid the need for escaping the characters by user
-host_pwd_chars = string.digits + string.ascii_letters + '_,.@+-='
 
 
 def remove_ptr_rec(ipaddr, fqdn):
@@ -688,7 +683,7 @@ class host_add(LDAPCreate):
                 entry_attrs['objectclass'].remove('krbprincipal')
         if options.get('random'):
             entry_attrs['userpassword'] = ipa_generate_password(
-                characters=host_pwd_chars, pwd_len=GEN_TMP_PWD_LEN)
+                entropy_bits=TMP_PWD_ENTROPY_BITS)
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
         certs = options.get('usercertificate', [])
@@ -915,7 +910,8 @@ class host_mod(LDAPUpdate):
             entry_attrs['usercertificate'] = certs_der
 
         if options.get('random'):
-            entry_attrs['userpassword'] = ipa_generate_password(characters=host_pwd_chars)
+            entry_attrs['userpassword'] = ipa_generate_password(
+                entropy_bits=TMP_PWD_ENTROPY_BITS)
             setattr(context, 'randompassword', entry_attrs['userpassword'])
 
         if 'macaddress' in entry_attrs:

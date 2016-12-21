@@ -38,7 +38,6 @@ from .baseuser import (
     baseuser_find,
     baseuser_show,
     NO_UPG_MAGIC,
-    baseuser_pwdchars,
     baseuser_output_params,
     baseuser_add_manager,
     baseuser_remove_manager)
@@ -47,7 +46,7 @@ from ipalib.util import set_krbcanonicalname
 from ipalib import _, ngettext
 from ipalib import output
 from ipaplatform.paths import paths
-from ipapython.ipautil import ipa_generate_password, GEN_TMP_PWD_LEN
+from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipalib.capabilities import client_has_capability
 
 if six.PY3:
@@ -340,7 +339,7 @@ class stageuser_add(baseuser_add):
         # If requested, generate a userpassword
         if 'userpassword' not in entry_attrs and options.get('random'):
             entry_attrs['userpassword'] = ipa_generate_password(
-                baseuser_pwdchars, pwd_len=GEN_TMP_PWD_LEN)
+                entropy_bits=TMP_PWD_ENTROPY_BITS)
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
 

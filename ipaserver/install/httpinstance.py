@@ -313,7 +313,7 @@ class HTTPInstance(service.Service):
             ipautil.backup_file(nss_path)
 
         # Create the password file for this db
-        password = ipautil.ipa_generate_password(pwd_len=15)
+        password = ipautil.ipa_generate_password()
         f = os.open(pwd_file, os.O_CREAT | os.O_RDWR)
         os.write(f, password)
         os.close(f)

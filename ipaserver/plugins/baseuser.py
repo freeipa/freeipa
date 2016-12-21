@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import string
-
 import six
 
 from ipalib import api, errors
@@ -35,7 +33,7 @@ from ipalib.request import context
 from ipalib import _
 from ipalib.constants import PATTERN_GROUPUSER_NAME
 from ipapython import kerberos
-from ipapython.ipautil import ipa_generate_password, GEN_TMP_PWD_LEN
+from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipapython.ipavalidate import Email
 from ipalib.util import (
     normalize_sshpubkey,
@@ -75,8 +73,6 @@ UPG_DEFINITION_DN = DN(('cn', 'UPG Definition'),
                        ('cn', 'etc'),
                        api.env.basedn)
 
-# characters to be used for generating random user passwords
-baseuser_pwdchars = string.digits + string.ascii_letters + '_,.@+-='
 
 def validate_nsaccountlock(entry_attrs):
     if 'nsaccountlock' in entry_attrs:
@@ -554,7 +550,7 @@ class baseuser_mod(LDAPUpdate):
     def check_userpassword(self, entry_attrs, **options):
         if 'userpassword' not in entry_attrs and options.get('random'):
             entry_attrs['userpassword'] = ipa_generate_password(
-                baseuser_pwdchars, pwd_len=GEN_TMP_PWD_LEN)
+                entropy_bits=TMP_PWD_ENTROPY_BITS)
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
 

@@ -122,7 +122,7 @@ class NSSCertDB(DBMAPHandler):
             with open(nsspwfile, 'w+') as f:
                 f.write(self.nssdb_password)
             pk12pwfile = os.path.join(tdir, 'pk12pwfile')
-            password = ipautil.ipa_generate_password(pwd_len=20)
+            password = ipautil.ipa_generate_password()
             with open(pk12pwfile, 'w+') as f:
                 f.write(password)
             pk12file = os.path.join(tdir, 'pk12file')
