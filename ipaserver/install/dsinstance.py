@@ -810,10 +810,6 @@ class DsInstance(service.Service):
                     self.nickname, self.principal, dsdb.passwd_fname,
                     'restart_dirsrv %s' % self.serverid)
         else:
-            cadb = certs.CertDB(self.realm, host_name=self.fqdn, subject_base=self.subject_base)
-
-            # FIXME, need to set this nickname in the RA plugin
-            cadb.export_ca_cert('ipaCert', False)
             dsdb.create_from_cacert()
             ca_args = ['/usr/libexec/certmonger/dogtag-submit',
                        '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
@@ -1241,7 +1237,7 @@ class DsInstance(service.Service):
             subject_base=self.subject_base,
             ca_subject=self.ca_subject,
         )
-        db.create_from_cacert(paths.IPA_CA_CRT)
+        db.create_from_cacert()
         db.request_service_cert(self.nickname, self.principal, self.fqdn)
         db.create_pin_file()
 

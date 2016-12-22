@@ -185,7 +185,7 @@ def check_certs():
     """Check ca.crt is in the right place, and try to fix if not"""
     root_logger.info('[Verifying that root certificate is published]')
     if not os.path.exists(paths.CA_CRT):
-        ca_file = paths.ALIAS_CACERT_ASC
+        ca_file = paths.IPA_CA_CRT
         if os.path.exists(ca_file):
             old_umask = os.umask(0o22)   # make sure its readable by httpd
             try:
