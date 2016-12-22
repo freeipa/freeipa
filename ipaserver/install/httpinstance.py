@@ -30,12 +30,11 @@ import locale
 
 import six
 
-from ipalib.constants import IPAAPI_USER, IPAAPI_GROUP
+from ipalib.constants import IPAAPI_USER
 from ipalib.install import certmonger
 from ipaserver.install import service
 from ipaserver.install import certs
 from ipaserver.install import installutils
-from ipapython import certdb
 from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.dn import DN
@@ -314,12 +313,6 @@ class HTTPInstance(service.Service):
             if certmonger_stopped:
                 certmonger.stop()
 
-    def create_cert_dbs(self):
-        nssdb = certdb.NSSDatabase(nssdir=paths.HTTPD_ALIAS_DIR)
-        nssdb.create_db(user="root", group=constants.HTTPD_GROUP, backup=True)
-        nssdb = certdb.NSSDatabase(nssdir=paths.IPA_RADB_DIR)
-        nssdb.create_db(user=IPAAPI_USER, group=IPAAPI_GROUP, backup=True)
-
     def request_anon_keytab(self):
         parent = os.path.dirname(paths.ANON_KEYTAB)
         if not os.path.exists(parent):
@@ -350,7 +343,9 @@ class HTTPInstance(service.Service):
 
     def __setup_ssl(self):
         db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
-                          subject_base=self.subject_base)
+                          subject_base=self.subject_base, user="root",
+                          group=constants.HTTPD_GROUP,
+                          truncate=(not self.promote))
         if self.pkcs12_info:
             if self.ca_is_configured:
                 trust_flags = 'CT,C,C'

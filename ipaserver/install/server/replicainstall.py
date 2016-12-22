@@ -26,6 +26,7 @@ from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython.admintool import ScriptError
 from ipaplatform import services
+from ipaplatform.constants import constants as pconstants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 from ipalib import api, constants, create_api, errors, rpc, x509
@@ -77,13 +78,14 @@ def make_pkcs12_info(directory, cert_name, password_name):
 
 def install_http_certs(host_name, realm_name, subject_base):
     principal = 'HTTP/%s@%s' % (host_name, realm_name)
+    subject = subject_base or DN(('O', realm_name))
+    db = certs.CertDB(realm_name, nssdir=paths.HTTPD_ALIAS_DIR,
+                      subject_base=subject, user="root",
+                      group=pconstants.HTTPD_GROUP, truncate=True)
+    db.request_service_cert('Server-Cert', principal, host_name)
     # Obtain certificate for the HTTP service
     http = httpinstance.HTTPInstance()
     http.create_password_conf()
-    nssdir = paths.HTTPD_ALIAS_DIR
-    subject = subject_base or DN(('O', realm_name))
-    db = certs.CertDB(realm_name, nssdir=nssdir, subject_base=subject_base)
-    db.request_service_cert('Server-Cert', principal, host_name)
 
 
 def install_replica_ds(config, options, ca_is_configured, remote_api,
@@ -1335,10 +1337,6 @@ def install(installer):
         ntp.create_instance()
 
     dsinstance.create_ds_user()
-
-    # create NSS Databases
-    http_instance = httpinstance.HTTPInstance()
-    http_instance.create_cert_dbs()
 
     try:
         conn.connect(ccache=ccache)

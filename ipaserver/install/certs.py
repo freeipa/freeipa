@@ -23,6 +23,7 @@ import sys
 import tempfile
 import shutil
 import xml.dom.minidom
+import grp
 import pwd
 import base64
 import fcntl
@@ -76,7 +77,8 @@ class CertDB(object):
     """
     # TODO: Remove all selfsign code
     def __init__(self, realm, nssdir=paths.IPA_RADB_DIR, fstore=None,
-                 host_name=None, subject_base=None, ca_subject=None):
+                 host_name=None, subject_base=None, ca_subject=None,
+                 user=None, group=None, mode=None, truncate=False):
         self.nssdb = NSSDatabase(nssdir)
 
         self.secdir = nssdir
@@ -101,14 +103,29 @@ class CertDB(object):
 
         self.cacert_name = get_ca_nickname(self.realm)
 
-        # We are going to set the owner of all of the cert
-        # files to the owner of the containing directory
-        # instead of that of the process. This works when
-        # this is called by root for a daemon that runs as
-        # a normal user
-        mode = os.stat(self.secdir)
-        self.uid = mode[stat.ST_UID]
-        self.gid = mode[stat.ST_GID]
+        self.user = user
+        self.group = group
+        self.mode = mode
+        self.uid = 0
+        self.gid = 0
+
+        if not truncate and os.path.exists(self.secdir):
+            # We are going to set the owner of all of the cert
+            # files to the owner of the containing directory
+            # instead of that of the process. This works when
+            # this is called by root for a daemon that runs as
+            # a normal user
+            mode = os.stat(self.secdir)
+            self.uid = mode[stat.ST_UID]
+            self.gid = mode[stat.ST_GID]
+        else:
+            if user is not None:
+                pu = pwd.getpwnam(user)
+                self.uid = pu.pw_uid
+                self.gid = pu.pw_gid
+            if group is not None:
+                self.gid = grp.getgrnam(group).gr_gid
+            self.create_certdbs()
 
         if fstore:
             self.fstore = fstore
@@ -189,10 +206,8 @@ class CertDB(object):
         self.set_perms(self.passwd_fname)
 
     def create_certdbs(self):
-        ipautil.backup_file(self.certdb_fname)
-        ipautil.backup_file(self.keydb_fname)
-        ipautil.backup_file(self.secmod_fname)
-        self.nssdb.create_db()
+        self.nssdb.create_db(user=self.user, group=self.group, mode=self.mode,
+                             backup=True)
         self.set_perms(self.passwd_fname, write=True)
 
     def list_certs(self):
