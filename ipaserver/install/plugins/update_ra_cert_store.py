@@ -37,8 +37,7 @@ class update_ra_cert_store(Updater):
                 return False, []
         else:
             # Create the DB
-            newdb.create_db(os.path.join(paths.IPA_RADB_DIR, 'pwdfile.txt'),
-                            user=constants.HTTPD_USER,
+            newdb.create_db(user=constants.HTTPD_USER,
                             group=constants.HTTPD_GROUP,
                             mode=0o751, backup=True)
 
@@ -58,18 +57,16 @@ class update_ra_cert_store(Updater):
                                  "chain: {}".format(name, str(e)))
 
         # As the last step export/import/delete the RA Cert
-        ipa_httpd_pwdfile = os.path.join(paths.HTTPD_ALIAS_DIR, 'pwdfile.txt')
-        ipa_radb_pwdfile = os.path.join(paths.IPA_RADB_DIR, 'pwdfile.txt')
         pw = binascii.hexlify(os.urandom(10))
         p12file = os.path.join(paths.IPA_RADB_DIR, 'ipaCert.p12')
-        olddb.export_pkcs12('ipaCert', p12file, ipa_httpd_pwdfile, pw)
-        newdb.import_pkcs12(p12file, ipa_radb_pwdfile, pw)
+        olddb.export_pkcs12('ipaCert', p12file, pw)
+        newdb.import_pkcs12(p12file, pw)
 
         certmonger.stop_tracking(secdir=olddb.secdir,
                                  nickname='ipaCert')
         certmonger.start_tracking(secdir=newdb.secdir,
                                   nickname='ipaCert',
-                                  password_file=ipa_radb_pwdfile)
+                                  password_file=newdb.pwd_file)
 
         olddb.delete_cert('ipaCert')
 

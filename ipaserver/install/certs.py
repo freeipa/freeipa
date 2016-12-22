@@ -83,7 +83,6 @@ class CertDB(object):
         self.realm = realm
 
         self.noise_fname = self.secdir + "/noise.txt"
-        self.passwd_fname = self.secdir + "/pwdfile.txt"
         self.certdb_fname = self.secdir + "/cert8.db"
         self.keydb_fname = self.secdir + "/key3.db"
         self.secmod_fname = self.secdir + "/secmod.db"
@@ -118,6 +117,10 @@ class CertDB(object):
 
     ca_subject = ipautil.dn_attribute_property('_ca_subject')
     subject_base = ipautil.dn_attribute_property('_subject_base')
+
+    @property
+    def passwd_fname(self):
+        return self.nssdb.pwd_file
 
     def __del__(self):
         if self.reqdir is not None:
@@ -189,7 +192,7 @@ class CertDB(object):
         ipautil.backup_file(self.certdb_fname)
         ipautil.backup_file(self.keydb_fname)
         ipautil.backup_file(self.secmod_fname)
-        self.nssdb.create_db(self.passwd_fname)
+        self.nssdb.create_db()
         self.set_perms(self.passwd_fname, write=True)
 
     def list_certs(self):
@@ -510,7 +513,7 @@ class CertDB(object):
         return self.nssdb.find_server_certs()
 
     def import_pkcs12(self, pkcs12_fname, pkcs12_passwd=None):
-        return self.nssdb.import_pkcs12(pkcs12_fname, self.passwd_fname,
+        return self.nssdb.import_pkcs12(pkcs12_fname,
                                         pkcs12_passwd=pkcs12_passwd)
 
     def export_pkcs12(self, pkcs12_fname, pkcs12_pwd_fname, nickname=None):

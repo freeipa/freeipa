@@ -97,6 +97,7 @@ class NSSDatabase(object):
         else:
             self.secdir = nssdir
             self._is_temporary = False
+        self.pwd_file = os.path.join(self.secdir, 'pwdfile.txt')
 
     def close(self):
         if self._is_temporary:
@@ -145,7 +146,7 @@ class NSSDatabase(object):
             os.makedirs(self.secdir, dirmode)
 
         if password_filename is None:
-            password_filename = os.path.join(self.secdir, 'pwdfile.txt')
+            password_filename = self.pwd_file
 
         if not os.path.exists(password_filename):
             # Create the password file for this db
@@ -218,12 +219,11 @@ class NSSDatabase(object):
 
         return root_nicknames
 
-    def export_pkcs12(self, nickname, pkcs12_filename, db_password_filename,
-                      pkcs12_passwd=None):
+    def export_pkcs12(self, nickname, pkcs12_filename, pkcs12_passwd=None):
         args = [PK12UTIL, "-d", self.secdir,
                 "-o", pkcs12_filename,
                 "-n", nickname,
-                "-k", db_password_filename]
+                "-k", self.pwd_file]
         pkcs12_password_file = None
         if pkcs12_passwd is not None:
             pkcs12_password_file = ipautil.write_tmp_file(pkcs12_passwd + '\n')
@@ -243,11 +243,10 @@ class NSSDatabase(object):
             if pkcs12_password_file is not None:
                 pkcs12_password_file.close()
 
-    def import_pkcs12(self, pkcs12_filename, db_password_filename,
-                      pkcs12_passwd=None):
+    def import_pkcs12(self, pkcs12_filename, pkcs12_passwd=None):
         args = [PK12UTIL, "-d", self.secdir,
                 "-i", pkcs12_filename,
-                "-k", db_password_filename, '-v']
+                "-k", self.pwd_file, '-v']
         pkcs12_password_file = None
         if pkcs12_passwd is not None:
             pkcs12_password_file = ipautil.write_tmp_file(pkcs12_passwd + '\n')
@@ -267,8 +266,8 @@ class NSSDatabase(object):
             if pkcs12_password_file is not None:
                 pkcs12_password_file.close()
 
-    def import_files(self, files, db_password_filename, import_keys=False,
-                     key_password=None, key_nickname=None):
+    def import_files(self, files, import_keys=False, key_password=None,
+                     key_nickname=None):
         """
         Import certificates and a single private key from multiple files
 
@@ -276,8 +275,6 @@ class NSSDatabase(object):
         PKCS#8 and raw private key and PKCS#12 formats.
 
         :param files: Names of files to import
-        :param db_password_filename: Name of file containing the database
-            password
         :param import_keys: Whether to import private keys
         :param key_password: Password to decrypt private keys
         :param key_nickname: Nickname of the private key to import from PKCS#12
@@ -352,7 +349,7 @@ class NSSDatabase(object):
                         args = [
                             OPENSSL, 'pkcs8',
                             '-topk8',
-                            '-passout', 'file:' + db_password_filename,
+                            '-passout', 'file:' + self.pwd_file,
                         ]
                         if ((label != 'PRIVATE KEY' and key_password) or
                             label == 'ENCRYPTED PRIVATE KEY'):
@@ -390,8 +387,7 @@ class NSSDatabase(object):
             # Try to import the file as PKCS#12 file
             if import_keys:
                 try:
-                    self.import_pkcs12(
-                        filename, db_password_filename, key_password)
+                    self.import_pkcs12(filename, key_password)
                 except RuntimeError:
                     pass
                 else:
@@ -442,7 +438,7 @@ class NSSDatabase(object):
                 '-export',
                 '-in', in_file.name,
                 '-out', out_file.name,
-                '-passin', 'file:' + db_password_filename,
+                '-passin', 'file:' + self.pwd_file,
                 '-passout', 'file:' + out_pwdfile.name,
             ]
             try:
@@ -452,8 +448,7 @@ class NSSDatabase(object):
                     "No matching certificate found for private key from %s" %
                     key_file)
 
-            self.import_pkcs12(out_file.name, db_password_filename,
-                               out_password)
+            self.import_pkcs12(out_file.name, out_password)
 
     def trust_root_cert(self, root_nickname, trust_flags=None):
         if root_nickname[:7] == "Builtin":

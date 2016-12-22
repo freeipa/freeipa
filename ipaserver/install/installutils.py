@@ -1003,19 +1003,16 @@ def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
         the CA certificate of the CA that issued the server certificate
     """
     with certs.NSSDatabase() as nssdb:
-        db_password = ipautil.ipa_generate_password()
-        db_pwdfile = ipautil.write_tmp_file(db_password)
-        nssdb.create_db(db_pwdfile.name)
+        nssdb.create_db()
 
         try:
-            nssdb.import_files(cert_files, db_pwdfile.name,
-                               True, key_password, key_nickname)
+            nssdb.import_files(cert_files, True, key_password, key_nickname)
         except RuntimeError as e:
             raise ScriptError(str(e))
 
         if ca_cert_files:
             try:
-                nssdb.import_files(ca_cert_files, db_pwdfile.name)
+                nssdb.import_files(ca_cert_files)
             except RuntimeError as e:
                 raise ScriptError(str(e))
 
@@ -1068,7 +1065,7 @@ def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
             '-o', out_file.name,
             '-n', key_nickname,
             '-d', nssdb.secdir,
-            '-k', db_pwdfile.name,
+            '-k', nssdb.pwd_file,
             '-w', out_pwdfile.name,
         ]
         ipautil.run(args)
@@ -1143,12 +1140,10 @@ def load_external_cert(files, ca_subject):
         with the external CA certificate chain
     """
     with certs.NSSDatabase() as nssdb:
-        db_password = ipautil.ipa_generate_password()
-        db_pwdfile = ipautil.write_tmp_file(db_password)
-        nssdb.create_db(db_pwdfile.name)
+        nssdb.create_db()
 
         try:
-            nssdb.import_files(files, db_pwdfile.name)
+            nssdb.import_files(files)
         except RuntimeError as e:
             raise ScriptError(str(e))
 

@@ -54,9 +54,8 @@ def install_check(api, replica_config, options):
             return
 
         with certdb.NSSDatabase() as tmpdb:
-            pw = ipautil.write_tmp_file(ipautil.ipa_generate_password())
-            tmpdb.create_db(pw.name)
-            tmpdb.import_pkcs12(replica_config.dir + "/cacert.p12", pw.name,
+            tmpdb.create_db()
+            tmpdb.import_pkcs12(replica_config.dir + "/cacert.p12",
                                 replica_config.dirman_password)
             kra_cert_nicknames = [
                 "storageCert cert-pki-kra", "transportCert cert-pki-kra",
