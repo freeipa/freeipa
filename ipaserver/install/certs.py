@@ -217,12 +217,12 @@ class CertDB(object):
 
         return False
 
-    def export_ca_cert(self, nickname, create_pkcs12=False,
-                       cacert_fname=paths.ALIAS_CACERT_ASC):
+    def export_ca_cert(self, nickname, create_pkcs12=False):
         """create_pkcs12 tells us whether we should create a PKCS#12 file
            of the CA or not. If we are running on a replica then we won't
            have the private key to make a PKCS#12 file so we don't need to
            do that step."""
+        cacert_fname = paths.IPA_CA_CRT
         # export the CA cert for use with other apps
         ipautil.backup_file(cacert_fname)
         root_nicknames = self.find_root_cert(nickname)[:-1]
@@ -533,8 +533,8 @@ class CertDB(object):
                      "-in", pem_fname, "-out", pkcs12_fname,
                      "-passout", "file:" + pkcs12_pwd_fname])
 
-    def create_from_cacert(self, cacert_fname=paths.ALIAS_CACERT_ASC,
-                           passwd=None):
+    def create_from_cacert(self):
+        cacert_fname = paths.IPA_CA_CRT
         if ipautil.file_exists(self.certdb_fname):
             # We already have a cert db, see if it is for the same CA.
             # If it is we leave things as they are.
@@ -553,7 +553,7 @@ class CertDB(object):
 
         # The CA certificates are different or something went wrong. Start with
         # a new certificate database.
-        self.create_passwd_file(passwd)
+        self.create_passwd_file()
         self.create_certdbs()
         self.load_cacert(cacert_fname, 'CT,C,C')
 

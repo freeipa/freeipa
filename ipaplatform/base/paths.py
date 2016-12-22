@@ -40,7 +40,6 @@ class BasePathNamespace(object):
     ETC_HTTPD_DIR = "/etc/httpd"
     HTTPD_ALIAS_DIR = "/etc/httpd/alias"
     IPA_RADB_DIR = "/var/lib/ipa/radb"
-    ALIAS_CACERT_ASC = "/var/lib/ipa/radb/cacert.asc"
     HTTPD_CONF_D_DIR = "/etc/httpd/conf.d/"
     HTTPD_IPA_KDCPROXY_CONF = "/etc/ipa/kdcproxy/ipa-kdc-proxy.conf"
     HTTPD_IPA_KDCPROXY_CONF_SYMLINK = "/etc/httpd/conf.d/ipa-kdc-proxy.conf"
