@@ -25,7 +25,7 @@ import optparse  # pylint: disable=deprecated-module
 
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
-from ipapython import admintool, ipautil
+from ipapython import admintool
 from ipapython.certdb import get_ca_nickname, NSSDatabase
 from ipapython.dn import DN
 from ipalib import api, errors
@@ -164,14 +164,11 @@ class ServerCertInstall(admintool.AdminTool):
     def check_chain(self, pkcs12_filename, pkcs12_pin, nssdb):
         # create a temp nssdb
         with NSSDatabase() as tempnssdb:
-            db_password = ipautil.ipa_generate_password()
-            db_pwdfile = ipautil.write_tmp_file(db_password)
-            tempnssdb.create_db(db_pwdfile.name)
+            tempnssdb.create_db()
 
             # import the PKCS12 file, then delete all CA certificates
             # this leaves only the server certs in the temp db
-            tempnssdb.import_pkcs12(
-                pkcs12_filename, db_pwdfile.name, pkcs12_pin)
+            tempnssdb.import_pkcs12(pkcs12_filename, pkcs12_pin)
             for nickname, flags in tempnssdb.list_certs():
                 if 'u' not in flags:
                     while tempnssdb.has_nickname(nickname):
