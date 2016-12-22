@@ -14,6 +14,7 @@ import textwrap
 
 import six
 
+from ipalib.constants import IPAAPI_USER, IPAAPI_GROUP
 from ipalib.install import certmonger, sysrestore
 from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger
@@ -713,10 +714,6 @@ def install(installer):
     create_ipaapi_user()
     tasks.create_tmpfiles_dirs()
 
-    # create NSS Databases
-    http_instance = httpinstance.HTTPInstance()
-    http_instance.create_cert_dbs()
-
     # Create DS user/group if it doesn't exist yet
     dsinstance.create_ds_user()
 
@@ -777,11 +774,15 @@ def install(installer):
                           if n in options.__dict__}
             write_cache(cache_vars)
 
+        # Create RA DB
+        radb = certs.CertDB(realm_name, nssdir=paths.IPA_RADB_DIR,
+                            user=IPAAPI_USER, group=IPAAPI_GROUP,
+                            truncate=True)
+
         ca.install_step_0(False, None, options)
 
-        # Now put the CA cert where other instances exepct it
-        ca_db = certs.CertDB(realm_name)
-        ca_db.publish_ca_cert(paths.IPA_CA_CRT)
+        # Now put the CA cert where other instances expect it
+        radb.publish_ca_cert(paths.IPA_CA_CRT)
     else:
         # Put the CA cert where other instances expect it
         x509.write_certificate(http_ca_cert, paths.IPA_CA_CRT)
@@ -1113,6 +1114,11 @@ def uninstall(installer):
                           'These may be untracked by executing\n'
                           ' # getcert stop-tracking -i <request_id>\n'
                           'for each id in: %s' % ', '.join(ids))
+
+    try:
+        shutil.rmtree(paths.IPA_RADB_DIR)
+    except Exception:
+        pass
 
     # Remove the cert renewal lock file
     try:
