@@ -25,9 +25,9 @@ import re
 import tempfile
 import shutil
 import base64
+
 from cryptography.hazmat.primitives import serialization
-from nss import nss
-from nss.error import NSPRError
+import cryptography.x509
 
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
@@ -543,59 +543,39 @@ class NSSDatabase(object):
 
         Raises a ValueError if the certificate is invalid.
         """
-        certdb = cert = None
-        if nss.nss_is_initialized():
-            nss.nss_shutdown()
-        nss.nss_init(self.secdir)
-        try:
-            certdb = nss.get_default_certdb()
-            cert = nss.find_cert_from_nickname(nickname)
-            intended_usage = nss.certificateUsageSSLServer
-            try:
-                approved_usage = cert.verify_now(certdb, True, intended_usage)
-            except NSPRError as e:
-                if e.errno != -8102:
-                    raise ValueError(e.strerror)
-                approved_usage = 0
-            if not approved_usage & intended_usage:
-                raise ValueError('invalid for a SSL server')
-            if not cert.verify_hostname(hostname):
-                raise ValueError('invalid for server %s' % hostname)
-        finally:
-            del certdb, cert
-            nss.nss_shutdown()
+        cert = self.get_cert(nickname)
+        cert = x509.load_certificate(cert, x509.DER)
 
-        return None
+        try:
+            self.run_certutil(['-V', '-n', nickname, '-u', 'V'])
+        except ipautil.CalledProcessError:
+            raise ValueError('invalid for a SSL server')
+
+        try:
+            x509.match_hostname(cert, hostname)
+        except ValueError:
+            raise ValueError('invalid for server %s' % hostname)
 
     def verify_ca_cert_validity(self, nickname):
-        certdb = cert = None
-        if nss.nss_is_initialized():
-            nss.nss_shutdown()
-        nss.nss_init(self.secdir)
+        cert = self.get_cert(nickname)
+        cert = x509.load_certificate(cert, x509.DER)
+
+        if not cert.subject:
+            raise ValueError("has empty subject")
+
         try:
-            certdb = nss.get_default_certdb()
-            cert = nss.find_cert_from_nickname(nickname)
-            if not cert.subject:
-                raise ValueError("has empty subject")
-            try:
-                bc = cert.get_extension(nss.SEC_OID_X509_BASIC_CONSTRAINTS)
-            except KeyError:
-                raise ValueError("missing basic constraints")
-            bc = nss.BasicConstraints(bc.value)
-            if not bc.is_ca:
-                raise ValueError("not a CA certificate")
-            intended_usage = nss.certificateUsageSSLCA
-            try:
-                approved_usage = cert.verify_now(certdb, True, intended_usage)
-            except NSPRError as e:
-                if e.errno != -8102:    # SEC_ERROR_INADEQUATE_KEY_USAGE
-                    raise ValueError(e.strerror)
-                approved_usage = 0
-            if approved_usage & intended_usage != intended_usage:
-                raise ValueError('invalid for a CA')
-        finally:
-            del certdb, cert
-            nss.nss_shutdown()
+            bc = cert.extensions.get_extension_for_class(
+                    cryptography.x509.BasicConstraints)
+        except cryptography.x509.ExtensionNotFound:
+            raise ValueError("missing basic constraints")
+
+        if not bc.ca:
+            raise ValueError("not a CA certificate")
+
+        try:
+            self.run_certutil(['-V', '-n', nickname, '-u', 'L'])
+        except ipautil.CalledProcessError:
+            raise ValueError('invalid for a CA')
 
     def publish_ca_cert(self, canickname, location):
         args = ["-L", "-n", canickname, "-a"]

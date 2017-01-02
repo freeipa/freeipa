@@ -160,8 +160,8 @@ BuildRequires:  python3-wheel
 #
 %if 0%{?with_lint}
 BuildRequires:  samba-python
-# 1.4: the version where Certificate.serial changed to .serial_number
-BuildRequires:  python-cryptography >= 1.4
+# 1.6: x509.Name.rdns (https://github.com/pyca/cryptography/issues/3199)
+BuildRequires:  python-cryptography >= 1.6
 BuildRequires:  python-gssapi >= 1.2.0
 BuildRequires:  pylint >= 1.6
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
@@ -196,8 +196,8 @@ BuildRequires:  python2-jinja2
 %if 0%{?with_python3}
 # FIXME: this depedency is missing - server will not work
 #BuildRequires:  python3-samba
-# 1.4: the version where Certificate.serial changed to .serial_number
-BuildRequires:  python3-cryptography >= 1.4
+# 1.6: x509.Name.rdns (https://github.com/pyca/cryptography/issues/3199)
+BuildRequires:  python3-cryptography >= 1.6
 BuildRequires:  python3-gssapi >= 1.2.0
 BuildRequires:  python3-pylint >= 1.6
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
@@ -636,7 +636,7 @@ Requires: gnupg
 Requires: keyutils
 Requires: pyOpenSSL
 Requires: python-nss >= 0.16
-Requires: python-cryptography >= 1.4
+Requires: python-cryptography >= 1.6
 Requires: python-netaddr
 Requires: python-libipa_hbac
 Requires: python-qrcode-core >= 5.0.0
@@ -685,7 +685,7 @@ Requires: gnupg
 Requires: keyutils
 Requires: python3-pyOpenSSL
 Requires: python3-nss >= 0.16
-Requires: python3-cryptography >= 1.4
+Requires: python3-cryptography >= 1.6
 Requires: python3-netaddr
 Requires: python3-libipa_hbac
 Requires: python3-qrcode-core >= 5.0.0
@@ -760,7 +760,7 @@ Requires: python-pytest-multihost >= 0.5
 Requires: python-pytest-sourceorder
 Requires: ldns-utils
 Requires: python-sssdconfig
-Requires: python2-cryptography >= 1.4
+Requires: python2-cryptography >= 1.6
 
 Provides: %{alt_name}-tests = %{version}
 Conflicts: %{alt_name}-tests
@@ -794,7 +794,7 @@ Requires: python3-pytest-multihost >= 0.5
 Requires: python3-pytest-sourceorder
 Requires: ldns-utils
 Requires: python3-sssdconfig
-Requires: python3-cryptography >= 1.4
+Requires: python3-cryptography >= 1.6
 
 %description -n python3-ipatests
 IPA is an integrated solution to provide centrally managed Identity (users,
