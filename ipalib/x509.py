@@ -35,6 +35,7 @@ from __future__ import print_function
 import binascii
 import datetime
 import ipaddress
+import ssl
 import base64
 import re
 
@@ -49,6 +50,7 @@ from ipalib import api
 from ipalib import util
 from ipalib import errors
 from ipapython.dn import DN
+from ipapython.dnsutil import DNSName
 
 if six.PY3:
     unicode = str
@@ -406,6 +408,27 @@ def process_othernames(gns):
             yield gn
 
 
+def _pyasn1_get_san_general_names(cert):
+    tbs = decoder.decode(
+        cert.tbs_certificate_bytes,
+        asn1Spec=rfc2459.TBSCertificate()
+    )[0]
+    OID_SAN = univ.ObjectIdentifier('2.5.29.17')
+    # One would expect KeyError or empty iterable when the key ('extensions'
+    # in this particular case) is not pressent in the certificate but pyasn1
+    # returns None here
+    extensions = tbs['extensions'] or []
+    gns = []
+    for ext in extensions:
+        if ext['extnID'] == OID_SAN:
+            der = decoder.decode(
+                ext['extnValue'], asn1Spec=univ.OctetString())[0]
+            gns = decoder.decode(der, asn1Spec=rfc2459.SubjectAltName())[0]
+            break
+
+    return gns
+
+
 def get_san_general_names(cert):
     """
     Return SAN general names from a python-cryptography
@@ -430,22 +453,7 @@ def get_san_general_names(cert):
     and should go away.
 
     """
-    tbs = decoder.decode(
-        cert.tbs_certificate_bytes,
-        asn1Spec=rfc2459.TBSCertificate()
-    )[0]
-    OID_SAN = univ.ObjectIdentifier('2.5.29.17')
-    # One would expect KeyError or empty iterable when the key ('extensions'
-    # in this particular case) is not pressent in the certificate but pyasn1
-    # returns None here
-    extensions = tbs['extensions'] or []
-    gns = []
-    for ext in extensions:
-        if ext['extnID'] == OID_SAN:
-            der = decoder.decode(
-                ext['extnValue'], asn1Spec=univ.OctetString())[0]
-            gns = decoder.decode(der, asn1Spec=rfc2459.SubjectAltName())[0]
-            break
+    gns = _pyasn1_get_san_general_names(cert)
 
     GENERAL_NAME_CONSTRUCTORS = {
         'rfc822Name': lambda x: cryptography.x509.RFC822Name(unicode(x)),
@@ -504,6 +512,17 @@ def _pyasn1_to_cryptography_oid(oid):
     return cryptography.x509.ObjectIdentifier(str(oid))
 
 
+def get_san_a_label_dns_names(cert):
+    gns = _pyasn1_get_san_general_names(cert)
+    result = []
+
+    for gn in gns:
+        if gn.getName() == 'dNSName':
+            result.append(unicode(gn.getComponent()))
+
+    return result
+
+
 def chunk(size, s):
     """Yield chunks of the specified size from the given string.
 
@@ -543,3 +562,23 @@ def format_datetime(t):
     if t.tzinfo is None:
         t = t.replace(tzinfo=UTC())
     return unicode(t.strftime("%a %b %d %H:%M:%S %Y %Z"))
+
+
+def match_hostname(cert, hostname):
+    match_cert = {}
+
+    match_cert['subject'] = match_subject = []
+    for rdn in cert.subject.rdns:
+        match_rdn = []
+        for ava in rdn:
+            if ava.oid == cryptography.x509.oid.NameOID.COMMON_NAME:
+                match_rdn.append(('commonName', ava.value))
+        match_subject.append(match_rdn)
+
+    values = get_san_a_label_dns_names(cert)
+    if values:
+        match_cert['subjectAltName'] = match_san = []
+        for value in values:
+            match_san.append(('DNS', value))
+
+    ssl.match_hostname(match_cert, DNSName(hostname).ToASCII())
