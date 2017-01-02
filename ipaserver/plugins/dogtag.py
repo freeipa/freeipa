@@ -2026,7 +2026,7 @@ class kra(Backend):
             str(self.kra_port),
             'kra')
 
-        connection.set_authentication_cert(paths.KRA_AGENT_PEM)
+        connection.set_authentication_cert(paths.RA_AGENT_PEM)
 
         return KRAClient(connection, crypto)
 

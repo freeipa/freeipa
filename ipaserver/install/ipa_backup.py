@@ -158,7 +158,7 @@ class Backup(admintool.AdminTool):
         paths.SMB_CONF,
         paths.SAMBA_KEYTAB,
         paths.DOGTAG_ADMIN_P12,
-        paths.KRA_AGENT_PEM,
+        paths.RA_AGENT_PEM,
         paths.CACERT_P12,
         paths.KRACERT_P12,
         paths.KRB5KDC_KDC_CONF,

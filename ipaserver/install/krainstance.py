@@ -36,8 +36,7 @@ from ipapython.dn import DN
 from ipaserver.install import cainstance
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
-from ipaserver.install.dogtaginstance import (export_kra_agent_pem,
-                                              DogtagInstance)
+from ipaserver.install.dogtaginstance import DogtagInstance
 from ipaserver.plugins import ldap2
 from ipapython.ipa_log_manager import log_mgr
 
@@ -118,7 +117,6 @@ class KRAInstance(DogtagInstance):
             if not self.clone:
                 self.step("create KRA agent",
                           self.__create_kra_agent)
-        self.step("exporting KRA agent cert", export_kra_agent_pem)
         if not ra_only:
             if promote:
                 self.step("destroying installation admin user", self.teardown_admin)
@@ -285,9 +283,6 @@ class KRAInstance(DogtagInstance):
             os.remove(cfg_file)
 
         shutil.move(paths.KRA_BACKUP_KEYS_P12, paths.KRACERT_P12)
-
-        export_kra_agent_pem()
-
         self.log.debug("completed creating KRA instance")
 
     def __create_kra_agent(self):

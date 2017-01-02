@@ -139,7 +139,7 @@ class BasePathNamespace(object):
     ROOT_IPA_CACHE = "/root/.ipa_cache"
     ROOT_PKI = "/root/.pki"
     DOGTAG_ADMIN_P12 = "/root/ca-agent.p12"
-    KRA_AGENT_PEM = "/var/lib/ipa/radb/kra-agent.pem"
+    RA_AGENT_PEM = "/var/lib/ipa/ra-agent.pem"
     CACERT_P12 = "/root/cacert.p12"
     ROOT_IPA_CSR = "/root/ipa.csr"
     NAMED_PID = "/run/named/named.pid"
