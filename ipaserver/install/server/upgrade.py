@@ -44,7 +44,6 @@ from ipaserver.install import schemaupdate
 from ipaserver.install import custodiainstance
 from ipaserver.install import sysupgrade
 from ipaserver.install import dnskeysyncinstance
-from ipaserver.install import krainstance
 from ipaserver.install import dogtaginstance
 from ipaserver.install import krbinstance
 from ipaserver.install import adtrustinstance
@@ -1403,12 +1402,13 @@ def fix_trust_flags():
     sysupgrade.set_upgrade_state('http', 'fix_trust_flags', True)
 
 
-def export_kra_agent_pem():
+def export_ra_agent_pem():
     root_logger.info('[Exporting KRA agent PEM file]')
 
+    # export_kra_agent_pem is the original name of this function
     sysupgrade.remove_upgrade_state('http', 'export_kra_agent_pem')
 
-    if os.path.exists(paths.KRA_AGENT_PEM):
+    if os.path.exists(paths.RA_AGENT_PEM):
         root_logger.info("KRA agent PEM file already exported")
         return
 
@@ -1416,7 +1416,7 @@ def export_kra_agent_pem():
         root_logger.info("KRA is not enabled")
         return
 
-    krainstance.export_kra_agent_pem()
+    dogtaginstance.export_ra_agent_pem()
     installutils.remove_file(paths.OLD_KRA_AGENT_PEM)
 
 
@@ -1663,7 +1663,7 @@ def upgrade_configuration():
     update_mod_nss_protocol(http)
     update_mod_nss_cipher_suite(http)
     fix_trust_flags()
-    export_kra_agent_pem()
+    export_ra_agent_pem()
     update_http_keytab(http)
     http.configure_gssproxy()
     http.start()

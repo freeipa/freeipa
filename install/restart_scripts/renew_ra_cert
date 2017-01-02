@@ -29,7 +29,7 @@ import traceback
 
 from ipalib.install.kinit import kinit_keytab
 from ipalib import api
-from ipaserver.install import certs, cainstance, krainstance
+from ipaserver.install import certs, cainstance, dogtaginstance
 from ipaplatform.paths import paths
 
 
@@ -61,7 +61,7 @@ def _main():
             cainstance.update_people_entry(dercert)
 
         if api.Command.kra_is_enabled()['result']:
-            krainstance.export_kra_agent_pem()
+            dogtaginstance.export_ra_agent_pem()
     finally:
         shutil.rmtree(tmpdir)
         api.Backend.ldap2.disconnect()

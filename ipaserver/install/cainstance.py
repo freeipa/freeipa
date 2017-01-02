@@ -64,7 +64,8 @@ from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
-from ipaserver.install.dogtaginstance import DogtagInstance
+from ipaserver.install.dogtaginstance import (
+    DogtagInstance, export_ra_agent_pem)
 from ipaserver.plugins import ldap2
 
 # We need to reset the template because the CA uses the regular boot
@@ -414,6 +415,8 @@ class CAInstance(DogtagInstance):
                 else:
                     self.step("importing RA certificate from PKCS #12 file",
                               lambda: self.import_ra_cert(ra_p12))
+                self.step("exporting RA agent cert", export_ra_agent_pem)
+
             if not ra_only:
                 self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
                 self.step("setting up signing cert profile", self.__setup_sign_profile)
