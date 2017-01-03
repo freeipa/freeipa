@@ -1,4 +1,6 @@
-#! /bin/bash
-
+#!/bin/bash
 set -ex
-IPA_UNIT_TEST_MODE=cli_test PYTHONPATH=.:$PYTHONPATH py.test "$@"
+
+SCRIPTDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+PYTHONPATH=$SCRIPTDIR:$PYTHONPATH py.test --confcutdir="$SCRIPTDIR" "$@"

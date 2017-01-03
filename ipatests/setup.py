@@ -49,7 +49,6 @@ if __name__ == '__main__':
         ],
         scripts=['ipa-run-tests', 'ipa-test-config', 'ipa-test-task'],
         package_data={
-            'ipatests': ['pytest.ini'],
             'ipatests.test_install': ['*.update'],
             'ipatests.test_integration': ['scripts/*'],
             'ipatests.test_ipalib': ['data/*'],

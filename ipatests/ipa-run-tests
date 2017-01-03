@@ -34,12 +34,15 @@ import pytest
 
 import ipatests
 
-# This must be set so ipalib.api gets initialized property for tests:
-os.environ['IPA_UNIT_TEST_MODE'] = 'cli_test'
-
 # This is set to store --with-xunit report in an accessible place:
 os.environ['IPATEST_XUNIT_PATH'] = os.path.join(os.getcwd(), 'nosetests.xml')
 
-os.chdir(os.path.dirname(ipatests.__file__))
+HERE = os.path.dirname(os.path.abspath(ipatests.__file__))
 
-sys.exit(pytest.main(sys.argv[1:]))
+args = sys.argv[1:]
+if not any('--confcutdir' in arg for arg in args):
+    args.insert(0, '--confcutdir={}'.format(HERE))
+
+os.chdir(HERE)
+
+sys.exit(pytest.main(args))
