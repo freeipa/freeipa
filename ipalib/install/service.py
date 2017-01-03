@@ -103,7 +103,8 @@ class ServiceInstallInterface(common.Installable,
 
     domain_name = knob(
         str, None,
-        description="domain name",
+        description="primary DNS domain of the IPA deployment "
+                    "(not necessairly related to current hostname)",
         cli_names='--domain',
     )
 
@@ -121,7 +122,8 @@ class ServiceInstallInterface(common.Installable,
 
     realm_name = knob(
         str, None,
-        description="realm name",
+        description="Kerberos realm name of the IPA deployment "
+                    "(typically upper-cased name of the primary DNS domain)",
         cli_names='--realm',
     )
 
