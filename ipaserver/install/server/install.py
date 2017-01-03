@@ -775,14 +775,11 @@ def install(installer):
             write_cache(cache_vars)
 
         # Create RA DB
-        radb = certs.CertDB(realm_name, nssdir=paths.IPA_RADB_DIR,
-                            user=IPAAPI_USER, group=IPAAPI_GROUP,
-                            truncate=True)
+        certs.CertDB(realm_name, nssdir=paths.IPA_RADB_DIR,
+                     user=IPAAPI_USER, group=IPAAPI_GROUP,
+                     truncate=True)
 
         ca.install_step_0(False, None, options)
-
-        # Now put the CA cert where other instances expect it
-        radb.publish_ca_cert(paths.IPA_CA_CRT)
     else:
         # Put the CA cert where other instances expect it
         x509.write_certificate(http_ca_cert, paths.IPA_CA_CRT)
