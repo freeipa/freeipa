@@ -1,3 +1,9 @@
+#
+# Copyright (C) 2017 FreeIPA Contributors see COPYING for license
+#
+
+# Configuration file for the test runner used in Travis CI
+
 container:
   detach: true
   hostname: master.ipa.test
