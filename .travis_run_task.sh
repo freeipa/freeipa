@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#
+# Copyright (C) 2017 FreeIPA Contributors see COPYING for license
+#
 # NOTE: this script is intended to run in Travis CI only
 
 PYTHON="/usr/bin/python${TRAVIS_PYTHON_VERSION}"
