@@ -25,8 +25,8 @@ from ipalib import api, Str, Password, _
 from ipalib.messages import add_message, ResultFormattingError
 from ipalib.plugable import Registry
 from ipalib.frontend import Local
+from ipalib.util import create_https_connection
 from ipapython.dn import DN
-from ipapython.nsslib import NSSConnection
 from ipapython.version import API_VERSION
 
 import locale
@@ -126,9 +126,7 @@ class HTTPSHandler(urllib.request.HTTPSHandler):
     def __inner(self, host, **kwargs):
         tmp = self.__kwargs.copy()
         tmp.update(kwargs)
-        # NSSConnection doesn't support timeout argument
-        tmp.pop('timeout', None)
-        return NSSConnection(host, **tmp)
+        return create_https_connection(host, **tmp)
 
     def https_open(self, req):
         # pylint: disable=no-member
@@ -173,9 +171,10 @@ class otptoken_sync(Local):
 
         # Sync the token.
         # pylint: disable=E1101
-        handler = HTTPSHandler(dbdir=api.env.nss_dir,
-                               tls_version_min=api.env.tls_version_min,
-                               tls_version_max=api.env.tls_version_max)
+        handler = HTTPSHandler(
+            cafile=api.env.tls_ca_cert,
+            tls_version_min=api.env.tls_version_min,
+            tls_version_max=api.env.tls_version_max)
         rsp = urllib.request.build_opener(handler).open(sync_uri, query)
         if rsp.getcode() == 200:
             status['result'][self.header] = rsp.info().get(self.header, 'unknown')
