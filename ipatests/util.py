@@ -337,7 +337,7 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
     """
     try:
         pretty_print = pytest.config.getoption("pretty_print")  # pylint: disable=no-member
-    except AttributeError:
+    except (AttributeError, ValueError):
         pretty_print = False
 
     if pretty_print:

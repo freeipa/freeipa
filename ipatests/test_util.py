@@ -140,8 +140,10 @@ class test_Fuzzy(object):
 
 def test_assert_deepequal():
     f = util.assert_deepequal
-    # pylint: disable=no-member
-    pretty = pytest.config.getoption("pretty_print")
+    try:  # pylint: disable=no-member
+        pretty = pytest.config.getoption("pretty_print")
+    except (AttributeError, ValueError):
+        pretty = False
 
     # LEN and KEYS formats use special function to pretty print structures
     # depending on a pytest environment settings
