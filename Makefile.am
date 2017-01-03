@@ -37,8 +37,7 @@ EXTRA_DIST = .mailmap \
 	     doc \
 	     freeipa.spec.in \
 	     ipasetup.py.in \
-	     pylintrc \
-	     pytest.ini
+	     pylintrc
 
 clean-local:
 	rm -rf "$(RPMBUILD)"
