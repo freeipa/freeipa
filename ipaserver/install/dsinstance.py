@@ -278,7 +278,7 @@ class DsInstance(service.Service):
         self.step("creating indices", self.__create_indices)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         if enable_ssl:
-            self.step("configuring ssl for ds instance", self.__enable_ssl)
+            self.step("configuring TLS for DS instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("configure new location for managed entries", self.__repoint_managed_entries)
         self.step("configure dirsrv ccache", self.configure_dirsrv_ccache)
@@ -351,7 +351,7 @@ class DsInstance(service.Service):
     def enable_ssl(self):
         self.steps = []
 
-        self.step("configuring ssl for ds instance", self.__enable_ssl)
+        self.step("configuring TLS for DS instance", self.__enable_ssl)
         self.step("restarting directory server", self.__restart_instance)
         self.step("adding CA certificate entry", self.__upload_ca_cert)
 
@@ -391,7 +391,7 @@ class DsInstance(service.Service):
         self.step("creating DS keytab", self._request_service_keytab)
         if self.promote:
             if self.pkcs12_info:
-                self.step("configuring ssl for ds instance", self.__enable_ssl)
+                self.step("configuring TLS for DS instance", self.__enable_ssl)
             else:
                 self.step("retrieving DS Certificate", self.__get_ds_cert)
             self.step("restarting directory server", self.__restart_instance)
@@ -559,9 +559,9 @@ class DsInstance(service.Service):
         root_logger.debug("calling setup-ds.pl")
         try:
             ipautil.run(args)
-            root_logger.debug("completed creating ds instance")
+            root_logger.debug("completed creating DS instance")
         except ipautil.CalledProcessError as e:
-            raise RuntimeError("failed to create ds instance %s" % e)
+            raise RuntimeError("failed to create DS instance %s" % e)
 
         # check for open port 389 from now on
         self.open_ports.append(389)
@@ -1024,7 +1024,8 @@ class DsInstance(service.Service):
             try:
                 services.knownservices.dirsrv.restart(ds_instance, wait=False)
             except Exception as e:
-                root_logger.error('Unable to restart ds instance %s: %s', ds_instance, e)
+                root_logger.error(
+                    'Unable to restart DS instance %s: %s', ds_instance, e)
 
     def stop_tracking_certificates(self, serverid=None):
         if serverid is None:
