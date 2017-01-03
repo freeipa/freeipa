@@ -41,8 +41,14 @@ class ServerInfo(collections.MutableMapping):
         try:
             with open(self._path, 'r') as sc:
                 self._dict = json.load(sc)
-        except EnvironmentError as e:
-            if e.errno != errno.ENOENT:
+        except Exception as e:
+            if (isinstance(e, EnvironmentError) and
+                    e.errno == errno.ENOENT):  # pylint: disable=no-member
+                # ignore non-existent file, this happens when the cache was
+                # erased or the server is contacted for the first time
+                pass
+            else:
+                # warn that the file is unreadable, probably corrupted
                 logger.warning('Failed to read server info: {}'.format(e))
 
     def _write(self):
