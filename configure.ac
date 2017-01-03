@@ -24,6 +24,17 @@ LT_INIT
 
 AC_HEADER_STDC
 
+PKG_PROG_PKG_CONFIG
+
+AC_ARG_ENABLE([server],
+[  --disable-server        Disable server support],
+[case "${enableval}" in
+  yes) enable_server=true ;;
+  no)  enable_server=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --disable-server]) ;;
+esac],[enable_server=true])
+AM_CONDITIONAL([ENABLE_SERVER], [test x$enable_server = xtrue])
+
 AM_CONDITIONAL([HAVE_GCC], [test "$ac_cv_prog_gcc" = yes])
 
 dnl ---------------------------------------------------------------------------
@@ -33,37 +44,10 @@ PKG_CHECK_MODULES([NSPR], [nspr])
 PKG_CHECK_MODULES([NSS], [nss])
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for DS slapi plugin
-dnl ---------------------------------------------------------------------------
-
-# Need to hack CPPFLAGS to be able to correctly detetct slapi-plugin.h
-SAVE_CPPFLAGS=$CPPFLAGS
-CPPFLAGS=$NSPR_CFLAGS
-AC_CHECK_HEADER(dirsrv/slapi-plugin.h)
-if test "x$ac_cv_header_dirsrv_slapi-plugin_h" = "xno" ; then
-	AC_MSG_ERROR([Required 389-ds header not available (389-ds-base-devel)])
-fi
-AC_CHECK_HEADER(dirsrv/repl-session-plugin.h)
-if test "x$ac_cv_header_dirsrv_repl_session_plugin_h" = "xno" ; then
-	AC_MSG_ERROR([Required 389-ds header not available (389-ds-base-devel)])
-fi
-CPPFLAGS=$SAVE_CPPFLAGS
-
-if test "x$ac_cv_header_dirsrv_slapi_plugin_h" = "xno" ; then
-	AC_MSG_ERROR([Required DS slapi plugin header not available (fedora-ds-base-devel)])
-fi
-
-dnl ---------------------------------------------------------------------------
 dnl - Check for KRB5
 dnl ---------------------------------------------------------------------------
 
 PKG_CHECK_MODULES([KRB5], [krb5])
-AC_CHECK_HEADER(krad.h, [], [AC_MSG_ERROR([krad.h not found])])
-AC_CHECK_LIB(krad, main, [], [AC_MSG_ERROR([libkrad not found])])
-KRAD_LIBS="-lkrad"
-krb5rundir="${localstatedir}/run/krb5kdc"
-AC_SUBST(KRAD_LIBS)
-AC_SUBST(krb5rundir)
 
 AC_CHECK_HEADER(kdb.h, [], [AC_MSG_ERROR([kdb.h not found])])
 AC_CHECK_MEMBER(
@@ -105,11 +89,6 @@ dnl ---------------------------------------------------------------------------
 PKG_CHECK_MODULES([CRYPTO], [libcrypto])
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for UUID library
-dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([UUID], [uuid])
-
-dnl ---------------------------------------------------------------------------
 dnl - Check for Python
 dnl ---------------------------------------------------------------------------
 
@@ -120,69 +99,6 @@ AM_PATH_PYTHON(2.7)
 if test "x$PYTHON" = "x" ; then
   AC_MSG_ERROR([Python not found])
 fi
-
-dnl ---------------------------------------------------------------------------
-dnl Check for ndr_krb5pac and other samba libraries
-dnl ---------------------------------------------------------------------------
-
-PKG_PROG_PKG_CONFIG()
-PKG_CHECK_MODULES([TALLOC], [talloc])
-PKG_CHECK_MODULES([TEVENT], [tevent])
-PKG_CHECK_MODULES([NDRPAC], [ndr_krb5pac])
-PKG_CHECK_MODULES([NDRNBT], [ndr_nbt])
-PKG_CHECK_MODULES([NDR], [ndr])
-PKG_CHECK_MODULES([SAMBAUTIL], [samba-util])
-SAMBA40EXTRA_LIBPATH="-L`$PKG_CONFIG --variable=libdir samba-util`/samba -Wl,-rpath=`$PKG_CONFIG --variable=libdir samba-util`/samba"
-AC_SUBST(SAMBA40EXTRA_LIBPATH)
-
-bck_cflags="$CFLAGS"
-CFLAGS="$NDRPAC_CFLAGS"
-AC_CHECK_MEMBER(
-    [struct PAC_DOMAIN_GROUP_MEMBERSHIP.domain_sid],
-    [AC_DEFINE([HAVE_STRUCT_PAC_DOMAIN_GROUP_MEMBERSHIP], [1],
-               [struct PAC_DOMAIN_GROUP_MEMBERSHIP is available.])],
-    [AC_MSG_NOTICE([struct PAC_DOMAIN_GROUP_MEMBERSHIP is not available])],
-                 [[#include <ndr.h>
-                   #include <gen_ndr/krb5pac.h>]])
-
-CFLAGS="$bck_cflags"
-
-LIBPDB_NAME=""
-AC_CHECK_LIB([samba-passdb],
-             [make_pdb_method],
-             [LIBPDB_NAME="samba-passdb"; HAVE_LIBPDB=1],
-             [LIBPDB_NAME="pdb"],
-             [$SAMBA40EXTRA_LIBPATH])
-
-if test "x$LIB_PDB_NAME" = "xpdb" ; then
-  AC_CHECK_LIB([$LIBPDB_NAME],
-               [make_pdb_method],
-               [HAVE_LIBPDB=1],
-               [AC_MSG_ERROR([Neither libpdb nor libsamba-passdb does have make_pdb_method])],
-               [$SAMBA40EXTRA_LIBPATH])
-fi
-
-AC_SUBST(LIBPDB_NAME)
-
-AC_CHECK_LIB([$LIBPDB_NAME],[pdb_enum_upn_suffixes],
-             [AC_DEFINE([HAVE_PDB_ENUM_UPN_SUFFIXES], [1], [Ability to enumerate UPN suffixes])],
-             [AC_MSG_WARN([libpdb does not have pdb_enum_upn_suffixes, no support for realm domains in ipasam])],
-             [$SAMBA40EXTRA_LIBPATH])
-
-dnl ---------------------------------------------------------------------------
-dnl Check for libunistring
-dnl ---------------------------------------------------------------------------
-AC_CHECK_HEADERS([unicase.h],,AC_MSG_ERROR([Could not find unicase.h]))
-AC_CHECK_LIB([unistring],
-             [ulc_casecmp],
-             [UNISTRING_LIBS="-lunistring"],
-             [AC_MSG_ERROR([libunistring does not have ulc_casecmp])])
-AC_SUBST(UNISTRING_LIBS)
-
-dnl ---------------------------------------------------------------------------
-dnl Check for libverto
-dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([LIBVERTO], [libverto])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for cmocka unit test framework http://cmocka.cryptomilk.org/
@@ -226,12 +142,6 @@ AC_DEFUN([AM_CHECK_WRAPPER],
 
 AM_CHECK_WRAPPER(nss_wrapper, HAVE_NSS_WRAPPER)
 
-dnl -- dirsrv is needed for the extdom unit tests --
-PKG_CHECK_MODULES([DIRSRV], [dirsrv  >= 1.3.0])
-dnl -- sss_idmap is needed by the extdom exop --
-PKG_CHECK_MODULES([SSSIDMAP], [sss_idmap])
-PKG_CHECK_MODULES([SSSNSSIDMAP], [sss_nss_idmap >= 1.13.90])
-
 dnl ---------------------------------------------------------------------------
 dnl - Check for POPT
 dnl ---------------------------------------------------------------------------
@@ -268,24 +178,6 @@ dnl ---------------------------------------------------------------------------
 PKG_CHECK_MODULES([INI], [ini_config >= 1.2.0])
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for systemd directories
-dnl ---------------------------------------------------------------------------
-PKG_CHECK_EXISTS([systemd], [], [AC_MSG_ERROR([systemd not found])])
-AC_ARG_WITH([systemdsystemunitdir],
-            AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
-			   [Directory for systemd service files]),
-            [systemdsystemunitdir=$with_systemdsystemunitdir],
-	    [systemdsystemunitdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=systemdsystemunitdir systemd)])
-AC_SUBST([systemdsystemunitdir])
-
-AC_ARG_WITH([systemdtmpfilesdir],
-            AS_HELP_STRING([--with-systemdtmpfilesdir=DIR],
-			   [Directory for systemd-tmpfiles configuration files]),
-            [systemdtmpfilesdir=$with_systemdtmpfilesdir],
-	    [systemdtmpfilesdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=tmpfilesdir systemd)])
-AC_SUBST([systemdtmpfilesdir])
-
-dnl ---------------------------------------------------------------------------
 dnl - Get /etc/sysconfig directory path
 dnl ---------------------------------------------------------------------------
 AC_ARG_WITH([sysconfenvdir],
@@ -294,6 +186,14 @@ AC_ARG_WITH([sysconfenvdir],
             [sysconfenvdir=$with_sysconfenvdir],
             [sysconfenvdir="${sysconfdir}/sysconfig"])
 AC_SUBST([sysconfenvdir])
+
+dnl ---------------------------------------------------------------------------
+dnl - Server-only configuration
+dnl ---------------------------------------------------------------------------
+
+AM_COND_IF([ENABLE_SERVER], [
+    m4_include(server.m4)
+])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for program paths
@@ -588,7 +488,7 @@ echo "
                     IPA Server $VERSION
                     ========================
 
-	vendor version:           ${VERSION}${VENDOR_SUFFIX}
+        vendor version:           ${VERSION}${VENDOR_SUFFIX}
         prefix:                   ${prefix}
         exec_prefix:              ${exec_prefix}
         libdir:                   ${libdir}
@@ -598,14 +498,21 @@ echo "
         sysconfenvdir:            ${sysconfenvdir}
         localstatedir:            ${localstatedir}
         datadir:                  ${datadir}
-        krb5rundir:               ${krb5rundir}
-        systemdsystemunitdir:     ${systemdsystemunitdir}
-        systemdtmpfilesdir:       ${systemdtmpfilesdir}
         source code location:     ${srcdir}
         compiler:                 ${CC}
         cflags:                   ${CFLAGS}
         LDAP libs:                ${LDAP_LIBS}
-        KRB5 libs:                ${KRB5_LIBS}
-        KRAD libs:                ${KRAD_LIBS}
         OpenSSL crypto libs:      ${CRYPTO_LIBS}
-"
+        KRB5 libs:                ${KRB5_LIBS}"
+
+AM_COND_IF([ENABLE_SERVER], [
+    echo "\
+        KRAD libs:                ${KRAD_LIBS}
+        krb5rundir:               ${krb5rundir}
+        systemdsystemunitdir:     ${systemdsystemunitdir}
+        systemdtmpfilesdir:       ${systemdtmpfilesdir}
+        build mode:               server & client"
+], [
+    echo "\
+        build mode:               client only"
+])
