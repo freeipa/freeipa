@@ -2715,13 +2715,13 @@ def _install(options):
             except errors.PublicError as e2:
                 root_logger.warning(
                     "Second connect with delegate=True also failed: %s", e2)
-                root_logger.error(
-                    "Cannot connect to the IPA server RPC interface: %s", e2)
-                return CLIENT_INSTALL_ERROR
+                raise ScriptError(
+                    "Cannot connect to the IPA server RPC interface: %s" % e2,
+                    rval=CLIENT_INSTALL_ERROR)
         except errors.PublicError as e:
-            root_logger.error(
-                "Cannot connect to the server due to generic error: %s", e)
-            return CLIENT_INSTALL_ERROR
+            raise ScriptError(
+                "Cannot connect to the server due to generic error: %s" % e,
+                rval=CLIENT_INSTALL_ERROR)
 
     # Use the RPC directly so older servers are supported
     try:
@@ -2744,8 +2744,9 @@ def _install(options):
     try:
         create_ipa_nssdb()
     except ipautil.CalledProcessError as e:
-        root_logger.error("Failed to create IPA NSS database: %s", e)
-        return CLIENT_INSTALL_ERROR
+        raise ScriptError(
+            "Failed to create IPA NSS database: %s" % e,
+            rval=CLIENT_INSTALL_ERROR)
 
     # Get CA certificates from the certificate store
     try:
@@ -2768,9 +2769,9 @@ def _install(options):
         try:
             ipa_db.add_cert(cert, nickname, trust_flags)
         except CalledProcessError as e:
-            root_logger.error(
-                "Failed to add %s to the IPA NSS database.", nickname)
-            return CLIENT_INSTALL_ERROR
+            raise ScriptError(
+                "Failed to add %s to the IPA NSS database." % nickname,
+                rval=CLIENT_INSTALL_ERROR)
 
     # Add the CA certificates to the platform-dependant systemwide CA store
     tasks.insert_ca_certs_into_systemwide_ca_store(ca_certs)
@@ -2874,7 +2875,7 @@ def _install(options):
                     cli_domain, cli_server, dnsok,
                     options, nosssd_files[configurer.__name__])
                 if retcode:
-                    return CLIENT_INSTALL_ERROR
+                    raise ScriptError(rval=CLIENT_INSTALL_ERROR)
                 if conf:
                     root_logger.info(
                         "%s configured using configuration file(s) %s",
