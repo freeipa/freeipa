@@ -77,7 +77,7 @@ class KRAInstance(DogtagInstance):
     def configure_instance(self, realm_name, host_name, dm_password,
                            admin_password, pkcs12_info=None, master_host=None,
                            subject_base=None, subject=None,
-                           ra_only=False, promote=False):
+                           promote=False):
         """Create a KRA instance.
 
            To create a clone, pass in pkcs12_info.
@@ -99,38 +99,37 @@ class KRAInstance(DogtagInstance):
         self.realm = realm_name
         self.suffix = ipautil.realm_to_suffix(realm_name)
 
-        if not ra_only:
-            # Confirm that a KRA does not already exist
-            if self.is_installed():
-                raise RuntimeError(
-                    "KRA already installed.")
-            # Confirm that a Dogtag 10 CA instance already exists
-            ca = cainstance.CAInstance(self.realm)
-            if not ca.is_installed():
-                raise RuntimeError(
-                    "KRA configuration failed.  "
-                    "A Dogtag CA must be installed first")
+        # Confirm that a KRA does not already exist
+        if self.is_installed():
+            raise RuntimeError(
+                "KRA already installed.")
+        # Confirm that a Dogtag 10 CA instance already exists
+        ca = cainstance.CAInstance(self.realm)
+        if not ca.is_installed():
+            raise RuntimeError(
+                "KRA configuration failed.  "
+                "A Dogtag CA must be installed first")
 
-            if promote:
-                self.step("creating installation admin user", self.setup_admin)
-            self.step("configuring KRA instance", self.__spawn_instance)
-            if not self.clone:
-                self.step("create KRA agent",
-                          self.__create_kra_agent)
-        if not ra_only:
-            if promote:
-                self.step("destroying installation admin user", self.teardown_admin)
-            self.step("restarting KRA", self.restart_instance)
-            self.step("configure certmonger for renewals",
-                      self.configure_certmonger_renewal)
-            self.step("configure certificate renewals", self.configure_renewal)
-            self.step("configure HTTP to proxy connections",
-                      self.http_proxy)
-            if not self.clone:
-                self.step("add vault container", self.__add_vault_container)
-            self.step("apply LDAP updates", self.__apply_updates)
+        if promote:
+            self.step("creating installation admin user", self.setup_admin)
+        self.step("configuring KRA instance", self.__spawn_instance)
+        if not self.clone:
+            self.step("create KRA agent",
+                      self.__create_kra_agent)
+        if promote:
+            self.step("destroying installation admin user",
+                      self.teardown_admin)
+        self.step("restarting KRA", self.restart_instance)
+        self.step("configure certmonger for renewals",
+                  self.configure_certmonger_renewal)
+        self.step("configure certificate renewals", self.configure_renewal)
+        self.step("configure HTTP to proxy connections",
+                  self.http_proxy)
+        if not self.clone:
+            self.step("add vault container", self.__add_vault_container)
+        self.step("apply LDAP updates", self.__apply_updates)
 
-            self.step("enabling KRA instance", self.__enable_instance)
+        self.step("enabling KRA instance", self.__enable_instance)
 
         try:
             self.start_creation(runtime=126)
