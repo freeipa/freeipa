@@ -36,6 +36,8 @@ IPA.entity_adder_dialog = function(spec) {
 
     var that = IPA.dialog(spec);
 
+    that.on_cancel = that.close;
+
     IPA.confirm_mixin().apply(that);
 
     /** @property {string} method="add" API method for add command */
