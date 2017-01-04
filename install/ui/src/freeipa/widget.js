@@ -4611,7 +4611,7 @@ IPA.combobox_widget = function(spec) {
         that.list_container = $('<div/>', {
             'class': 'combobox-widget-list',
             css: { 'z-index': that.z_index, 'display':'none' },
-            keydown: that.on_list_container_keydown
+            keyup: that.on_list_container_keyup
         }).appendTo(that.input_container);
 
         var div = $('<div/>', {
@@ -4723,7 +4723,7 @@ IPA.combobox_widget = function(spec) {
         }
     };
 
-    that.on_list_container_keydown = function(e) {
+    that.on_list_container_keyup = function(e) {
         // close on ESCAPE and consume event to prevent unwanted
         // behaviour like closing dialog
         if (e.which == keys.ESCAPE) {
@@ -4756,11 +4756,16 @@ IPA.combobox_widget = function(spec) {
             e.preventDefault();
             that.select_next();
             that.list.focus();
+        } else if (key === keys.ESCAPE) {
+            e.stopPropagation();
         }
     };
 
     that.list_on_keydown = function(e) {
-        if (e.which === keys.TAB) {
+        if (e.which === keys.ESCAPE) {
+            e.stopPropagation();
+            return false;
+        } else if (e.which === keys.TAB) {
             e.preventDefault();
             if (that.searchable) {
                 that.filter.focus();
