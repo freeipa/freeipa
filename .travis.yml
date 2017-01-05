@@ -11,6 +11,7 @@ env:
           TEST_RUNNER_CONFIG=".test_runner_config.yaml"
           PEP8_ERROR_LOG="pep8_errors.log"
           CI_RESULTS_LOG="ci_results_${TRAVIS_BRANCH}.log"
+          CI_BACKLOG_SIZE=5000
     matrix:
         - TASK_TO_RUN="lint"
         - TASK_TO_RUN="run-tests"
@@ -32,5 +33,5 @@ install:
 script:
     - travis_wait 50 ./.travis_run_task.sh
 after_failure:
-    - echo "Test runner output:"; tail -n 5000 $CI_RESULTS_LOG
+    - echo "Test runner output:"; tail -n $CI_BACKLOG_SIZE $CI_RESULTS_LOG
     - echo "PEP-8 errors:"; cat $PEP8_ERROR_LOG
