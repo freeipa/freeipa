@@ -885,6 +885,7 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
     # port has to be open on ALL resolved IPs
     for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket_type):
         af, socktype, proto, _canonname, sa = res
+        s = None
         try:
             s = socket.socket(af, socktype, proto)
 
@@ -912,9 +913,8 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
                 else:
                     root_logger.error(msg)
         finally:
-            if s:
+            if s is not None:
                 s.close()
-                s = None
 
     return port_open
 
