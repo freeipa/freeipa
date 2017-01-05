@@ -33,5 +33,20 @@ install:
 script:
     - travis_wait 50 ./.travis_run_task.sh
 after_failure:
+    - >
+      echo "Sending test runner output to paste.fedoraproject.org"
+      && sudo apt-get -qq update && sudo apt-get install -y jq
+      && gzip < ci_results_${TRAVIS_BRANCH}.log > ci_results.log.gz
+      && ls -l ci_results.log.gz
+    - >
+      PASTE_ID=$(curl https://paste.fedoraproject.org/~freeipa.ci/ -H Expect:
+      --data api_submit=true
+      --data mode=json
+      --data paste_lang=text
+      --data paste_expire=$(expr 86400 '*' 28)
+      --data-urlencode paste_data@ci_results.log.gz
+      | jq --raw-output .result.id)
+      && echo "Download gzipped logfile from: https://paste.fedoraproject.org/$PASTE_ID/raw/"
+      || echo "Failed to submit paste!"
     - echo "Test runner output:"; tail -n $CI_BACKLOG_SIZE $CI_RESULTS_LOG
     - echo "PEP-8 errors:"; cat $PEP8_ERROR_LOG
