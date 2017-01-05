@@ -14,6 +14,12 @@ from ipapython.dn import DN
 from ipapython.version import API_VERSION
 from ipatests.util import Fuzzy
 
+import subprocess
+import os
+import re
+import pytest
+from ipalib.cli import to_cli
+
 
 class Tracker(object):
     """Wraps and tracks modifications to a plugin LDAP entry object
@@ -70,6 +76,22 @@ class Tracker(object):
     create_keys = None
     update_keys = None
 
+    # Mapping of API style options and output to CLI style options and output
+    mapping_options = {
+        'addattr': 'addattr',
+        'all': 'all',
+        'setattr': 'setattr',
+        'raw': 'raw',
+        'version': 'version',
+        }
+    mapping_output = {}
+
+    # Indicator for skipping errors that are not handled during CLI testing
+    skip_error = False
+
+    # List of options that do not take value
+    novalue = ['all', 'raw']
+
     _override_me_msg = "This method needs to be overridden in a subclass"
 
     def __init__(self, default_version=None):
@@ -111,26 +133,105 @@ class Tracker(object):
             raise RuntimeError('The tracker instance has no attributes.')
         return {k: v for k, v in self.attrs.items() if k in keys}
 
+    def cli_command(self, name, *args, **options):
+        """
+        Prepare CLI command for testing
+        """
+        cmd = "ipa {}".format(to_cli(name))
+        for item in args:
+            cmd += " {}".format(item)
+        for key in options:
+            if key in self.novalue and options[key]:
+                cmd += " --{0}".format(self.mapping_options[key])
+            elif key in self.novalue and not options[key]:
+                continue
+            else:
+                if type(options[key]) is unicode and ' ' in options[key]:
+                    options[key] = '"{}"'.format(options[key])
+                cmd += " --{0}={1}".format(
+                    self.mapping_options[key], options[key])
+        return cmd
+
+    def cli_output(self, result):
+        """
+        Reformats text output to dictionary to be compared with expected values
+        """
+        result = result.split("\n")
+        modresult = {'result': {}, 'summary': None}
+        for line in result:
+            if re.match("^-*$", line):
+                continue
+            elif ':' in line:
+                key = self.mapping_output[line.split(':')[0].strip()]
+                value = line.split(':')[1].strip()
+                if value == 'True':
+                    value = True
+                elif value == 'False':
+                    value = False
+                else:
+                    value = unicode(value)
+
+                if key in modresult['result']:
+                    modresult['result'][key].append(value)
+                elif value is True or value is False:
+                    modresult['result'][key] = value
+                else:
+                    modresult['result'][key] = [value]
+            else:
+                modresult['summary'] = unicode(line)
+
+        return modresult
+
+    def cli_mode(self):
+        """ Returns True if CLI testing mode is on, False otherwise """
+        return pytest.config.getoption('cli')
+
     def run_command(self, name, *args, **options):
         """Run the given IPA command
 
         Logs the command using print for easier debugging
+
+        Run in CLI testing mode if executed with --cli option,
+        run in API mode otherwise.
         """
-        cmd = self.api.Command[name]
+        if self.cli_mode():
+            cmd = self.cli_command(name, *args, **options)
+            subprocess_env = os.environ.copy()
+            del subprocess_env["IPA_UNIT_TEST_MODE"]
 
-        options.setdefault('version', self.default_version)
+            cmd = subprocess.Popen(cmd, shell=True,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   env=subprocess_env)
+            output = cmd.communicate()
+            result, error = output
 
-        args_repr = ', '.join(
-            [repr(a) for a in args] +
-            ['%s=%r' % item for item in list(options.items())])
-        try:
-            result = cmd(*args, **options)
-        except Exception as e:
-            print('Ran command: %s(%s): %s: %s' % (cmd, args_repr,
-                                                   type(e).__name__, e))
-            raise
+            if error and not self.skip_error:
+                # if stderr is not empty and the error is not supposed to be
+                # ignored, raise error
+                raise(errors.ExecutionError(message=unicode(error[12:-1])))
+            elif self.skip_error:
+                self.skip_error = False
+
+            result = self.cli_output(result)
+
         else:
-            print('Ran command: %s(%s): OK' % (cmd, args_repr))
+            cmd = self.api.Command[name]
+
+            options.setdefault('version', self.default_version)
+
+            args_repr = ', '.join(
+                [repr(a) for a in args] +
+                ['%s=%r' % item for item in list(options.items())])
+            try:
+                result = cmd(*args, **options)
+            except Exception as e:
+                print('Ran command: %s(%s): %s: %s' % (cmd, args_repr,
+                                                       type(e).__name__, e))
+                raise
+            else:
+                print('Ran command: %s(%s): OK' % (cmd, args_repr))
+
         return result
 
     def make_command(self, name, *args, **options):
@@ -145,6 +246,7 @@ class Tracker(object):
         """
         del_command = self.make_delete_command()
         try:
+            self.skip_error = True
             del_command()
         except errors.NotFound:
             pass
@@ -152,6 +254,7 @@ class Tracker(object):
         def cleanup():
             existed = self.exists
             try:
+                self.skip_error = True
                 del_command()
             except errors.NotFound:
                 if existed:
