@@ -227,7 +227,8 @@ class BaseTaskNamespace(object):
         else:
             log.debug('user %s exists', name)
 
-    def parse_ipa_version(self, version):
+    @staticmethod
+    def parse_ipa_version(version):
         """
         :param version: textual version
         :return: object implementing proper __cmp__ method for version compare

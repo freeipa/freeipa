@@ -35,6 +35,7 @@ if __name__ == '__main__':
         packages=[
             "ipaplatform",
             "ipaplatform.base",
+            "ipaplatform.debian",
             "ipaplatform.fedora",
             "ipaplatform.redhat",
             "ipaplatform.rhel"
