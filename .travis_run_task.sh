@@ -8,6 +8,17 @@ PYTHON="/usr/bin/python${TRAVIS_PYTHON_VERSION}"
 test_set=""
 developer_mode_opt="--developer-mode"
 
+function truncate_log_to_test_failures() {
+    # chop off everything in the CI_RESULTS_LOG preceding pytest error output
+    # if there are pytest errors in the log
+    error_fail_regexp='\(=== ERRORS ===\)\|\(=== FAILURES ===\)'
+
+    if grep -e "$error_fail_regexp" $CI_RESULTS_LOG > /dev/null
+    then
+        sed -i "/$error_fail_regexp/,\$!d" $CI_RESULTS_LOG
+    fi
+}
+
 if [[ "$TASK_TO_RUN" == "lint" ]]
 then
     if [[ "$TRAVIS_EVENT_TYPE" == "pull_request" ]]
@@ -35,3 +46,8 @@ ipa-docker-test-runner -l $CI_RESULTS_LOG \
     --container-image $TEST_RUNNER_IMAGE \
     --git-repo $TRAVIS_BUILD_DIR \
     $TASK_TO_RUN $test_set
+
+if $?
+then
+    truncate_log_to_test_failures
+fi
