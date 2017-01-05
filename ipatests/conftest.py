@@ -42,6 +42,12 @@ NO_RECURSE_DIRS = [
     'install/share'
 ]
 
+INIVALUES = {
+    'python_classes': ['test_', 'Test'],
+    'python_files': ['test_*.py'],
+    'python_functions': ['test_*'],
+}
+
 
 def pytest_configure(config):
     # add pytest markers
@@ -52,12 +58,10 @@ def pytest_configure(config):
     for norecursedir in NO_RECURSE_DIRS:
         config.addinivalue_line('norecursedirs', norecursedir)
 
-    # load test classes with these prefixes.
-    # addinivalue_line() adds duplicated entries.
-    python_classes = config.getini('python_classes')
-    for value in ['test_', 'Test']:
-        if value not in python_classes:
-            python_classes.append(value)
+    # addinivalue_line() adds duplicated entries and does not remove existing.
+    for name, values in INIVALUES.items():
+        current = config.getini(name)
+        current[:] = values
 
     # set default JUnit prefix
     if config.option.junitprefix is None:
