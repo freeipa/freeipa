@@ -325,7 +325,7 @@ class DogtagInstance(service.Service):
         pin = self.__get_pin()
         try:
             certmonger.dogtag_start_tracking(
-                ca='dogtag-ipa-renew-agent',
+                ca='dogtag-ipa-ca-renew-agent',
                 nickname=self.server_cert_name,
                 pin=pin,
                 pinfile=None,

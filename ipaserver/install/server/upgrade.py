@@ -917,7 +917,7 @@ def certificate_renewal_update(ca, ds, http):
     dirsrv_dir = dsinstance.config_dirname(serverid)
 
     # bump version when requests is changed
-    version = 5
+    version = 6
     requests = (
         (
             paths.PKI_TOMCAT_ALIAS_DIR,
@@ -962,7 +962,7 @@ def certificate_renewal_update(ca, ds, http):
         (
             paths.PKI_TOMCAT_ALIAS_DIR,
             'Server-Cert cert-pki-ca',
-            'dogtag-ipa-renew-agent',
+            'dogtag-ipa-ca-renew-agent',
             template % 'stop_pkicad',
             '%s "Server-Cert cert-pki-ca"' % (template % 'renew_ca_cert'),
             None,
