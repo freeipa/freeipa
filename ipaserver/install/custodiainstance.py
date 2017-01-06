@@ -2,16 +2,16 @@
 
 from ipaserver.secrets.kem import IPAKEMKeys
 from ipaserver.secrets.client import CustodiaClient
-from ipaserver.install.certs import CertDB
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants
 from ipaserver.install.service import SimpleServiceInstance
 from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger
+from ipapython.certdb import NSSDatabase
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import sysupgrade
-from base64 import b64encode, b64decode
+from base64 import b64decode
 from jwcrypto.common import json_decode
 import functools
 import shutil
@@ -129,13 +129,9 @@ class CustodiaInstance(SimpleServiceInstance):
 
         # Temporary nssdb
         tmpnssdir = tempfile.mkdtemp(dir=paths.TMP)
+        tmpdb = NSSDatabase(tmpnssdir)
+        tmpdb.create_db()
         try:
-            # Temporary nssdb password
-            nsspwfile = os.path.join(tmpnssdir, 'nsspwfile')
-            with open(nsspwfile, 'w+') as f:
-                f.write(b64encode(os.urandom(16)))
-                f.flush()
-
             # Cert file password
             crtpwfile = os.path.join(tmpnssdir, 'crtpwfile')
             with open(crtpwfile, 'w+') as f:
@@ -152,21 +148,20 @@ class CustodiaInstance(SimpleServiceInstance):
                 with open(pk12file, 'w+') as f:
                     f.write(b64decode(v['pkcs12 data']))
                 ipautil.run([paths.PK12UTIL,
-                             '-d', tmpnssdir,
-                             '-k', nsspwfile,
+                             '-d', tmpdb.secdir,
+                             '-k', tmpdb.pwd_file,
                              '-n', nickname,
                              '-i', pk12file,
                              '-w', pk12pwfile])
 
             # Add CA certificates
-            tmpdb = CertDB(self.realm, nssdir=tmpnssdir)
             self.suffix = ipautil.realm_to_suffix(self.realm)
             self.import_ca_certs(tmpdb, True)
 
             # Now that we gathered all certs, re-export
             ipautil.run([paths.PKCS12EXPORT,
-                         '-d', tmpnssdir,
-                         '-p', nsspwfile,
+                         '-d', tmpdb.secdir,
+                         '-p', tmpdb.pwd_file,
                          '-w', crtpwfile,
                          '-o', cacerts_file])
 
