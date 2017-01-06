@@ -1613,7 +1613,7 @@ def upgrade_configuration():
     if ca.is_configured() and not certmonger_service.is_running():
         certmonger_service.start()
 
-    ca.configure_certmonger_renewal_guard()
+    ca.unconfigure_certmonger_renewal_guard()
 
     update_dbmodules(api.env.realm)
     uninstall_ipa_kpasswd()
