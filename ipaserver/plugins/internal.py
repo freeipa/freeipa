@@ -427,7 +427,6 @@ class i18n_messages(Command):
                 "issued_on": _("Issued On"),
                 "issued_to": _("Issued To"),
                 "key_compromise": _("Key Compromise"),
-                "md5_fingerprint": _("MD5 Fingerprint"),
                 "missing": _("No Valid Certificate"),
                 "new_certificate": _("New Certificate"),
                 "new_cert_format": _("Certificate in base64 or PEM format"),

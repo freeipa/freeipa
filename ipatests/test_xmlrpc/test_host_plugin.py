@@ -232,7 +232,6 @@ class TestCRUD(XMLRPC_test):
                         description=[u'Updated host 1'],
                         usercertificate=[base64.b64decode(host_cert)],
                         issuer=fuzzy_issuer,
-                        md5_fingerprint=fuzzy_hash,
                         serial_number=fuzzy_digits,
                         serial_number_hex=fuzzy_hex,
                         sha1_fingerprint=fuzzy_hash,

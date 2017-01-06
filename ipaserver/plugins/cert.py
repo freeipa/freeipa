@@ -346,11 +346,6 @@ class BaseCertObject(Object):
             flags={'no_create', 'no_update', 'no_search'},
         ),
         Str(
-            'md5_fingerprint',
-            label=_('Fingerprint (MD5)'),
-            flags={'no_create', 'no_update', 'no_search'},
-        ),
-        Str(
             'sha1_fingerprint',
             label=_('Fingerprint (SHA1)'),
             flags={'no_create', 'no_update', 'no_search'},
@@ -393,8 +388,6 @@ class BaseCertObject(Object):
             obj['valid_not_after'] = x509.format_datetime(
                     cert.not_valid_after)
             if full:
-                obj['md5_fingerprint'] = x509.to_hex_with_colons(
-                    cert.fingerprint(hashes.MD5()))
                 obj['sha1_fingerprint'] = x509.to_hex_with_colons(
                     cert.fingerprint(hashes.SHA1()))
 

@@ -25,7 +25,7 @@ class HostTracker(KerberosAliasMixin, Tracker):
     retrieve_keys = {
         'dn', 'fqdn', 'description', 'l', 'krbcanonicalname',
         'krbprincipalname', 'managedby_host',
-        'has_keytab', 'has_password', 'issuer', 'md5_fingerprint',
+        'has_keytab', 'has_password', 'issuer',
         'serial_number', 'serial_number_hex', 'sha1_fingerprint',
         'subject', 'usercertificate', 'valid_not_after', 'valid_not_before',
         'macaddress', 'sshpubkeyfp', 'ipaallowedtoperform_read_keys_user',
