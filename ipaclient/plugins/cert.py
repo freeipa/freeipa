@@ -20,11 +20,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
-import subprocess
-from tempfile import NamedTemporaryFile as NTF
 
 import six
 
+from ipaclient import csrgen
 from ipaclient.frontend import MethodOverride
 from ipalib import errors
 from ipalib import x509
@@ -108,54 +107,40 @@ class cert_request(CertRetrieveOverride):
 
         if csr is None:
             if database:
-                helper = u'certutil'
-                helper_args = ['-d', database]
-                if password_file:
-                    helper_args += ['-f', password_file]
+                adaptor = csrgen.NSSAdaptor(database, password_file)
             elif private_key:
-                helper = u'openssl'
-                helper_args = [private_key]
-                if password_file:
-                    helper_args += ['-passin', 'file:%s' % password_file]
+                adaptor = csrgen.OpenSSLAdaptor(private_key, password_file)
             else:
                 raise errors.InvocationError(
                     message=u"One of 'database' or 'private_key' is required")
 
-            with NTF() as scriptfile, NTF() as csrfile:
-                # If csr_profile_id is passed, that takes precedence.
-                # Otherwise, use profile_id. If neither are passed, the default
-                # in cert_get_requestdata will be used.
-                profile_id = csr_profile_id
-                if profile_id is None:
-                    profile_id = options.get('profile_id')
+            pubkey_info = adaptor.get_subject_public_key_info()
+            pubkey_info_b64 = base64.b64encode(pubkey_info)
 
-                self.api.Command.cert_get_requestdata(
-                    profile_id=profile_id,
-                    principal=options.get('principal'),
-                    out=unicode(scriptfile.name),
-                    helper=helper)
+            # If csr_profile_id is passed, that takes precedence.
+            # Otherwise, use profile_id. If neither are passed, the default
+            # in cert_get_requestdata will be used.
+            profile_id = csr_profile_id
+            if profile_id is None:
+                profile_id = options.get('profile_id')
 
-                helper_cmd = [
-                    'bash', '-e', scriptfile.name, csrfile.name] + helper_args
+            response = self.api.Command.cert_get_requestdata(
+                profile_id=profile_id,
+                principal=options.get('principal'),
+                public_key_info=unicode(pubkey_info_b64))
 
-                try:
-                    subprocess.check_output(helper_cmd)
-                except subprocess.CalledProcessError as e:
-                    raise errors.CertificateOperationError(
-                        error=(
-                            _('Error running "%(cmd)s" to generate CSR:'
-                              ' %(err)s') %
-                            {'cmd': ' '.join(helper_cmd), 'err': e.output}))
+            req_info_b64 = response['result']['request_info']
+            req_info = base64.b64decode(req_info_b64)
 
-                try:
-                    csr = unicode(csrfile.read())
-                except IOError as e:
-                    raise errors.CertificateOperationError(
-                        error=(_('Unable to read generated CSR file: %(err)s')
-                               % {'err': e}))
-                if not csr:
-                    raise errors.CertificateOperationError(
-                        error=(_('Generated CSR was empty')))
+            csr = adaptor.sign_csr(req_info)
+
+            if not csr:
+                raise errors.CertificateOperationError(
+                    error=(_('Generated CSR was empty')))
+
+            # cert_request requires the CSR to be base64-encoded (but PEM
+            # header and footer are not required)
+            csr = unicode(base64.b64encode(csr))
         else:
             if database is not None or private_key is not None:
                 raise errors.MutuallyExclusiveError(reason=_(

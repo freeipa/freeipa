@@ -2,15 +2,18 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+import base64
+
 import six
 
-from ipaclient.csrgen import CSRGenerator, FileRuleProvider
+from ipaclient import csrgen
+from ipaclient import csrgen_ffi
 from ipalib import api
 from ipalib import errors
 from ipalib import output
 from ipalib import util
 from ipalib.frontend import Local, Str
-from ipalib.parameters import Principal
+from ipalib.parameters import File, Principal
 from ipalib.plugable import Registry
 from ipalib.text import _
 from ipapython import dogtag
@@ -43,15 +46,14 @@ class cert_get_requestdata(Local):
             label=_('Profile ID'),
             doc=_('CSR Generation Profile to use'),
         ),
-        Str(
-            'helper',
-            label=_('Name of CSR generation tool'),
-            doc=_('Name of tool (e.g. openssl, certutil) that will be used to'
-                  ' create CSR'),
+        File(
+            'public_key_info',
+            label=_('Subject Public Key Info'),
+            doc=_('DER-encoded SubjectPublicKeyInfo structure'),
         ),
         Str(
             'out?',
-            doc=_('Write CSR generation script to file'),
+            doc=_('Write CertificationRequestInfo to file'),
         ),
     )
 
@@ -65,8 +67,8 @@ class cert_get_requestdata(Local):
 
     has_output_params = (
         Str(
-            'script',
-            label=_('Generation script'),
+            'request_info',
+            label=_('CertificationRequestInfo structure'),
         )
     )
 
@@ -78,7 +80,8 @@ class cert_get_requestdata(Local):
         profile_id = options.get('profile_id')
         if profile_id is None:
             profile_id = dogtag.DEFAULT_PROFILE
-        helper = options.get('helper')
+        public_key_info = options.get('public_key_info')
+        public_key_info = base64.b64decode(public_key_info)
 
         if self.api.env.in_server:
             backend = self.api.Backend.ldap2
@@ -103,16 +106,18 @@ class cert_get_requestdata(Local):
         principal_obj = principal_obj['result']
         config = api.Command.config_show()['result']
 
-        generator = CSRGenerator(FileRuleProvider())
+        generator = csrgen.CSRGenerator(csrgen.FileRuleProvider())
 
-        script = generator.csr_config(principal_obj, config, profile_id)
+        csr_config = generator.csr_config(principal_obj, config, profile_id)
+        request_info = base64.b64encode(csrgen_ffi.build_requestinfo(
+            csr_config.encode('utf8'), public_key_info))
 
         result = {}
         if 'out' in options:
             with open(options['out'], 'wb') as f:
-                f.write(script)
+                f.write(request_info)
         else:
-            result = dict(script=script)
+            result = dict(request_info=request_info)
 
         return dict(
             result=result

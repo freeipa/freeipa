@@ -7,13 +7,22 @@ import errno
 import json
 import os.path
 import pipes
+import subprocess
 import traceback
 
 import pkg_resources
 
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.serialization import (
+    load_pem_private_key, Encoding, PublicFormat)
 import jinja2
 import jinja2.ext
 import jinja2.sandbox
+from pyasn1.codec.der import decoder, encoder
+from pyasn1.type import univ
+from pyasn1_modules import rfc2314
 import six
 
 from ipalib import api
@@ -56,7 +65,8 @@ class IPAExtension(jinja2.ext.Extension):
     def required(self, data, name):
         if not data:
             raise errors.CSRTemplateError(
-                reason=_('Required CSR generation rule %(name)s is missing data') %
+                reason=_(
+                    'Required CSR generation rule %(name)s is missing data') %
                 {'name': name})
         return data
 
@@ -373,3 +383,66 @@ class CSRGenerator(object):
                 'Template error when formatting certificate data'))
 
         return config
+
+
+class CSRLibraryAdaptor(object):
+    def get_subject_public_key_info(self):
+        raise NotImplementedError('Use a subclass of CSRLibraryAdaptor')
+
+    def sign_csr(self, certification_request_info):
+        """Sign a CertificationRequestInfo.
+
+        Returns: str, a DER-encoded signed CSR.
+        """
+        raise NotImplementedError('Use a subclass of CSRLibraryAdaptor')
+
+
+class OpenSSLAdaptor(object):
+    def __init__(self, key_filename, password_filename):
+        self.key_filename = key_filename
+        self.password_filename = password_filename
+
+    def key(self):
+        with open(self.key_filename, 'r') as key_file:
+            key_bytes = key_file.read()
+        password = None
+        if self.password_filename is not None:
+            with open(self.password_filename, 'r') as password_file:
+                password = password_file.read().strip()
+
+        key = load_pem_private_key(key_bytes, password, default_backend())
+        return key
+
+    def get_subject_public_key_info(self):
+        pubkey_info = self.key().public_key().public_bytes(
+            Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
+        return pubkey_info
+
+    def sign_csr(self, certification_request_info):
+        reqinfo = decoder.decode(
+            certification_request_info, rfc2314.CertificationRequestInfo())[0]
+        csr = rfc2314.CertificationRequest()
+        csr.setComponentByName('certificationRequestInfo', reqinfo)
+
+        algorithm = rfc2314.SignatureAlgorithmIdentifier()
+        algorithm.setComponentByName(
+            'algorithm', univ.ObjectIdentifier(
+                '1.2.840.113549.1.1.11'))  # sha256WithRSAEncryption
+        csr.setComponentByName('signatureAlgorithm', algorithm)
+
+        signature = self.key().sign(
+            certification_request_info,
+            padding.PKCS1v15(),
+            hashes.SHA256()
+        )
+        asn1sig = univ.BitString("'%s'H" % signature.encode('hex'))
+        csr.setComponentByName('signature', asn1sig)
+        return encoder.encode(csr)
+
+
+class NSSAdaptor(object):
+    def get_subject_public_key_info(self):
+        raise NotImplementedError('NSS is not yet supported')
+
+    def sign_csr(self, certification_request_info):
+        raise NotImplementedError('NSS is not yet supported')
