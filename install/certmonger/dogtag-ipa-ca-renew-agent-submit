@@ -108,6 +108,15 @@ def is_renewable():
         return x509.is_self_signed(cert) or is_lightweight_ca()
 
 
+def is_replicated():
+    return not get_nickname()
+
+
+def is_renewal_master():
+    ca = cainstance.CAInstance(host_name=api.env.host)
+    return ca.is_renewal_master()
+
+
 @contextlib.contextmanager
 def ldap_connect():
     conn = None
@@ -447,10 +456,8 @@ def renew_ca_cert():
     if operation == 'SUBMIT':
         state = 'retrieve'
 
-        if is_renewable():
-            ca = cainstance.CAInstance(host_name=api.env.host)
-            if ca.is_renewal_master():
-                state = 'request'
+        if is_renewable() and is_renewal_master():
+            state = 'request'
     elif operation == 'POLL':
         cookie = os.environ.get('CERTMONGER_CA_COOKIE')
         if not cookie:
@@ -506,14 +513,14 @@ def main():
     certs.renewal_lock.acquire()
     try:
         profile = os.environ.get('CERTMONGER_CA_PROFILE')
-        if profile:
-            handler = handlers.get(profile, request_and_store_cert)
-        else:
-            ca = cainstance.CAInstance(host_name=api.env.host)
-            if ca.is_renewal_master():
+        if is_replicated():
+            if profile or is_renewal_master():
                 handler = request_and_store_cert
             else:
                 handler = retrieve_cert_continuous
+        else:
+            handler = request_cert
+        handler = handlers.get(profile, handler)
 
         res = call_handler(handler)
         for item in res[1:]:
