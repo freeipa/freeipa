@@ -274,8 +274,6 @@ def set_certificate_attrs(entry_attrs):
     entry_attrs['valid_not_before'] = x509.format_datetime(
             cert.not_valid_before)
     entry_attrs['valid_not_after'] = x509.format_datetime(cert.not_valid_after)
-    entry_attrs['md5_fingerprint'] = x509.to_hex_with_colons(
-        cert.fingerprint(hashes.MD5()))
     entry_attrs['sha1_fingerprint'] = x509.to_hex_with_colons(
         cert.fingerprint(hashes.SHA1()))
 
@@ -502,10 +500,6 @@ class service(LDAPObject):
         ),
         Str('valid_not_after',
             label=_('Not After'),
-            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
-        ),
-        Str('md5_fingerprint',
-            label=_('Fingerprint (MD5)'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
         Str('sha1_fingerprint',

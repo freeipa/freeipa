@@ -47,7 +47,6 @@
             "managedby_host": [
                 "dev.example.com"
             ],
-            "md5_fingerprint": "08:86:a9:f9:87:af:0d:d7:42:01:e0:5f:12:9b:32:7f",
             "serial_number": "1",
             "serial_number_hex": "0x1",
             "sha1_fingerprint": "b8:4c:4b:79:4f:13:03:79:47:08:fa:6b:52:63:3d:f9:15:8e:7e:dc",

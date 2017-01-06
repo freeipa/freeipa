@@ -277,7 +277,6 @@
                             "issued_on": "Issued On",
                             "issued_to": "Issued To",
                             "key_compromise": "Key Compromise",
-                            "md5_fingerprint": "MD5 Fingerprint",
                             "missing": "No Valid Certificate",
                             "new_certificate": "New Certificate",
                             "new_cert_format": "Certificate in base64 or PEM format",
