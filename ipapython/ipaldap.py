@@ -887,7 +887,8 @@ class LDAPClient(object):
         elif isinstance(val, tuple):
             return tuple(self.encode(m) for m in val)
         elif isinstance(val, dict):
-            dct = dict((self.encode(k), self.encode(v)) for k, v in val.items())
+            # key in dict must be str not bytes
+            dct = dict((k, self.encode(v)) for k, v in val.items())
             return dct
         elif isinstance(val, datetime.datetime):
             return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
