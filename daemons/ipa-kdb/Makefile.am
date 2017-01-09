@@ -85,6 +85,9 @@ ipa_kdb_tests_LDADD =          \
 
 dist_noinst_DATA = ipa_kdb.exports
 
+clean-local:
+	rm -f tests/.dirstamp
+
 EXTRA_DIST =			\
 	README			\
 	README.s4u2proxy.txt	\

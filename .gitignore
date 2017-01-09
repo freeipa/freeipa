@@ -72,9 +72,14 @@ freeipa2-dev-doc
 /daemons/dnssec/ipa-dnskeysyncd.service
 /daemons/dnssec/ipa-ods-exporter.service
 /daemons/dnssec/ipa-ods-exporter.socket
+/daemons/ipa-kdb/ipa_kdb_tests
+/daemons/ipa-kdb/tests/.dirstamp
 /daemons/ipa-otpd/ipa-otpd
 /daemons/ipa-otpd/ipa-otpd.socket
 /daemons/ipa-otpd/ipa-otpd@.service
+/daemons/ipa-slapi-plugins/ipa-cldap/ipa_cldap_tests
+/daemons/ipa-slapi-plugins/ipa-extdom-extop/extdom_cmocka_tests
+/daemons/ipa-slapi-plugins/libotp/t_hotp
 /daemons/ipa-version.h
 /daemons/test-driver
 
