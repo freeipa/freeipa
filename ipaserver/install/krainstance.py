@@ -22,6 +22,7 @@ import pwd
 import shutil
 import tempfile
 
+import six
 # pylint: disable=import-error
 from six.moves.configparser import ConfigParser
 # pylint: enable=import-error
@@ -190,7 +191,7 @@ class KRAInstance(DogtagInstance):
         # Directory server
         config.set("KRA", "pki_ds_ldap_port", "389")
         config.set("KRA", "pki_ds_password", self.dm_password)
-        config.set("KRA", "pki_ds_base_dn", self.basedn)
+        config.set("KRA", "pki_ds_base_dn", six.text_type(self.basedn))
         config.set("KRA", "pki_ds_database", "ipaca")
         config.set("KRA", "pki_ds_create_new_db", "False")
 
