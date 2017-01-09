@@ -33,6 +33,7 @@ import syslog
 import time
 import tempfile
 
+import six
 # pylint: disable=import-error
 from six.moves.configparser import ConfigParser, RawConfigParser
 # pylint: enable=import-error
@@ -500,7 +501,7 @@ class CAInstance(DogtagInstance):
         # Directory server
         config.set("CA", "pki_ds_ldap_port", "389")
         config.set("CA", "pki_ds_password", self.dm_password)
-        config.set("CA", "pki_ds_base_dn", self.basedn)
+        config.set("CA", "pki_ds_base_dn", six.text_type(self.basedn))
         config.set("CA", "pki_ds_database", "ipaca")
 
         if self.use_ldaps:
