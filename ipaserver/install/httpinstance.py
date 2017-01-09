@@ -19,6 +19,7 @@
 
 from __future__ import print_function
 
+import io
 import os
 import os.path
 import pwd
@@ -314,9 +315,8 @@ class HTTPInstance(service.Service):
 
         # Create the password file for this db
         password = ipautil.ipa_generate_password()
-        f = os.open(pwd_file, os.O_CREAT | os.O_RDWR)
-        os.write(f, password)
-        os.close(f)
+        with io.open(pwd_file, 'w') as f:
+            f.write(password)
 
         ipautil.run([paths.CERTUTIL, "-d", database, "-f", pwd_file, "-N"])
 
