@@ -587,14 +587,15 @@ class DsInstance(service.Service):
             'dse.ldif'
         )
 
-        with tempfile.NamedTemporaryFile(delete=False) as new_dse_ldif:
+        with tempfile.NamedTemporaryFile(
+                mode='w', delete=False) as new_dse_ldif:
             temp_filename = new_dse_ldif.name
             with open(dse_filename, "r") as input_file:
                 parser = installutils.ModifyLDIF(input_file, new_dse_ldif)
                 parser.replace_value(
                         'cn=config,cn=ldbm database,cn=plugins,cn=config',
                         'nsslapd-db-locks',
-                        ['50000']
+                        [b'50000']
                         )
                 if self.config_ldif:
                     # parse modifications from ldif file supplied by the admin
