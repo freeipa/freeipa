@@ -47,7 +47,11 @@ ipa-docker-test-runner -l $CI_RESULTS_LOG \
     --git-repo $TRAVIS_BUILD_DIR \
     $TASK_TO_RUN $test_set
 
-if $?
+exit_status="$?"
+
+if [[ "$exit_status" -ne 0 ]]
 then
     truncate_log_to_test_failures
 fi
+
+exit $exit_status
