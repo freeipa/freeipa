@@ -329,14 +329,19 @@ class HTTPInstance(service.Service):
         This is the format of mod_nss pin files.
         """
         pwd_conf = paths.HTTPD_PASSWORD_CONF
-
         ipautil.backup_file(pwd_conf)
-        f = open(pwd_conf, "w")
-        f.write("internal:")
-        pwdfile = open(os.path.join(paths.HTTPD_ALIAS_DIR, 'pwdfile.txt'))
-        f.write(pwdfile.read())
-        f.close()
-        pwdfile.close()
+
+        passwd_fname = os.path.join(paths.HTTPD_ALIAS_DIR, 'pwdfile.txt')
+        with open(passwd_fname, 'r') as pwdfile:
+            password = pwdfile.read()
+
+        with open(pwd_conf, "w") as f:
+            f.write("internal:")
+            f.write(password)
+            f.write("\nNSS FIPS 140-2 Certificate DB:")
+            f.write(password)
+            # make sure other processes can access the file contents ASAP
+            f.flush()
         pent = pwd.getpwnam(constants.HTTPD_USER)
         os.chown(pwd_conf, pent.pw_uid, pent.pw_gid)
         os.chmod(pwd_conf, 0o400)
