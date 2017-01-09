@@ -1020,7 +1020,7 @@ $)''', re.VERBOSE)
     orig_stat = os.stat(filepath)
     old_values = dict()
     temp_filename = None
-    with tempfile.NamedTemporaryFile(delete=False) as new_config:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as new_config:
         temp_filename = new_config.name
         with open(filepath, 'r') as f:
             for line in f:
@@ -1106,7 +1106,7 @@ $)''', re.VERBOSE)
     orig_stat = os.stat(filepath)
     old_values = dict()
     temp_filename = None
-    with tempfile.NamedTemporaryFile(delete=False) as new_config:
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as new_config:
         temp_filename = new_config.name
         with open(filepath, 'r') as f:
             in_section = False
