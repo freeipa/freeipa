@@ -676,6 +676,7 @@ def configure_krb5_conf(
         ])
     libopts.extend([
         krbconf.setOption('rdns', 'false'),
+        krbconf.setOption('dns_canonicalize_hostname', 'false'),
         krbconf.setOption('ticket_lifetime', '24h'),
         krbconf.setOption('forwardable', 'true'),
         krbconf.setOption('udp_preference_limit', '0')
