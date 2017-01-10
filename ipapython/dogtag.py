@@ -188,9 +188,7 @@ def _httplib_request(
 
     Perform a HTTP(s) request.
     """
-    if isinstance(host, unicode):
-        host = host.encode('utf-8')
-    uri = '%s://%s%s' % (protocol, ipautil.format_netloc(host, port), path)
+    uri = u'%s://%s%s' % (protocol, ipautil.format_netloc(host, port), path)
     root_logger.debug('request %s %s', method, uri)
     root_logger.debug('request body %r', request_body)
 
