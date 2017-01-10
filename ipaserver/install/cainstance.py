@@ -657,13 +657,12 @@ class CAInstance(DogtagInstance):
         Used when setting up replication
         """
         # Add the new RA cert to the database in /etc/httpd/alias
-        (agent_fd, agent_name) = tempfile.mkstemp()
-        os.write(agent_fd, self.dm_password)
-        os.close(agent_fd)
-        try:
-            import_pkcs12(rafile, agent_name, self.ra_agent_db, self.ra_agent_pwd)
-        finally:
-            os.remove(agent_name)
+        with tempfile.NamedTemporaryFile(mode="w") as agent_file:
+            agent_file.write(self.dm_password)
+            agent_file.flush()
+
+            import_pkcs12(
+                rafile, agent_file.name, self.ra_agent_db, self.ra_agent_pwd)
 
         self.configure_agent_renewal()
 
@@ -759,10 +758,9 @@ class CAInstance(DogtagInstance):
 
         ca_dn = DN(self.ca_subject)
         for cert in certlist:
-            try:
-                chain_fd, chain_name = tempfile.mkstemp()
-                os.write(chain_fd, cert)
-                os.close(chain_fd)
+            with tempfile.NamedTemporaryFile(mode="w") as chain_file:
+                chain_file.write(cert)
+                chain_file.flush()
                 (_rdn, subject_dn) = certs.get_cert_nickname(cert)
                 if subject_dn == ca_dn:
                     nick = get_ca_nickname(self.realm)
@@ -772,10 +770,8 @@ class CAInstance(DogtagInstance):
                     trust_flags = ',,'
                 self.__run_certutil(
                     ['-A', '-t', trust_flags, '-n', nick, '-a',
-                     '-i', chain_name]
+                     '-i', chain_file.name]
                 )
-            finally:
-                os.remove(chain_name)
 
         # Restore NSS trust flags of all previously existing certificates
         for nick, trust_flags in cert_backup_list:
@@ -783,13 +779,15 @@ class CAInstance(DogtagInstance):
 
     def __request_ra_certificate(self):
         # create a temp file storing the pwd
-        (agent_fd, agent_pwdfile) = tempfile.mkstemp(dir=paths.VAR_LIB_IPA)
-        os.write(agent_fd, self.admin_password)
-        os.close(agent_fd)
+        agent_file = tempfile.NamedTemporaryFile(
+            mode="w", dir=paths.VAR_LIB_IPA, delete=False)
+        agent_file.write(self.admin_password)
+        agent_file.close()
 
         # create a temp pem file storing the CA chain
-        (chain_fd, chain_file) = tempfile.mkstemp(dir=paths.VAR_LIB_IPA)
-        os.close(chain_fd)
+        chain_file = tempfile.NamedTemporaryFile(
+            mode="w", dir=paths.VAR_LIB_IPA, delete=False)
+        chain_file.close()
 
         chain = self.__get_ca_chain()
         data = base64.b64decode(chain)
@@ -799,17 +797,17 @@ class CAInstance(DogtagInstance):
              "-inform",
              "DER",
              "-print_certs",
-             "-out", chain_file,
+             "-out", chain_file.name,
              ], stdin=data, capture_output=False)
 
         agent_args = [paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT,
                       "--dbdir", self.agent_db,
                       "--nickname", "ipa-ca-agent",
-                      "--cafile", chain_file,
+                      "--cafile", chain_file.name,
                       "--ee-url", 'http://%s:8080/ca/ee/ca/' % self.fqdn,
                       "--agent-url",
                       'https://%s:8443/ca/agent/ca/' % self.fqdn,
-                      "--sslpinfile", agent_pwdfile]
+                      "--sslpinfile", agent_file.name]
         helper = " ".join(agent_args)
 
         # configure certmonger renew agent to use temporary agent cert
@@ -842,8 +840,11 @@ class CAInstance(DogtagInstance):
             certmonger.modify_ca_helper(
                 ipalib.constants.RENEWAL_CA_NAME, old_helper)
             # remove the pwdfile
-            os.remove(agent_pwdfile)
-            os.remove(chain_file)
+            for f in (agent_file, chain_file):
+                try:
+                    os.remove(f.name)
+                except OSError:
+                    pass
 
     def __setup_sign_profile(self):
         # Tell the profile to automatically issue certs for RAs
