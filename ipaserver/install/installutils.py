@@ -376,8 +376,38 @@ def update_file(filename, orig, subst):
         return 1
 
 
-def set_directive(filename, directive, value, quotes=True, separator=' ',
-                  quote_char='\"'):
+def quote_directive_value(value, quote_char):
+    """Quote a directive value
+    :param value: string to quote
+    :param quote_char: character which is used for quoting. All prior
+        occurences will be escaped before quoting to avoid unparseable value.
+    :returns: processed value
+    """
+    if value.startswith(quote_char) and value.endswith(quote_char):
+        return value
+
+    return "{quote}{value}{quote}".format(
+        quote=quote_char,
+        value="".join(ipautil.escape_seq(quote_char, value))
+    )
+
+
+def unquote_directive_value(value, quote_char):
+    """Unquote a directive value
+    :param value: string to unquote
+    :param quote_char: character to strip. All escaped occurences of
+        `quote_char` will be uncescaped during processing
+    :returns: processed value
+    """
+    unescaped_value = "".join(ipautil.unescape_seq(quote_char, value))
+    if (unescaped_value.startswith(quote_char) and
+            unescaped_value.endswith(quote_char)):
+        return unescaped_value[1:-1]
+
+    return unescaped_value
+
+
+def set_directive(filename, directive, value, quotes=True, separator=' '):
     """Set a name/value pair directive in a configuration file.
 
     A value of None means to drop the directive.
@@ -387,25 +417,19 @@ def set_directive(filename, directive, value, quotes=True, separator=' ',
     :param filename: input filename
     :param directive: directive name
     :param value: value of the directive
-    :param quotes: whether to quote `value` in `quote_char`. If true, then
-        the `quote_char` are first escaped to avoid unparseable directives.
+    :param quotes: whether to quote `value` in double quotes. If true, then
+        any existing double quotes are first escaped to avoid
+        unparseable directives.
     :param separator: character serving as separator between directive and
         value
-    :param quote_char: the character used for quoting `value`
     """
 
-    def format_directive(directive, value, separator, quotes, quote_char):
-        directive_sep = "{directive}{separator}".format(directive=directive,
-                                                        separator=separator)
-        transformed_value = value
-        if quotes:
-            transformed_value = "{quote}{value}{quote}".format(
-                quote=quote_char,
-                value="".join(ipautil.escape_seq(quote_char, value))
-            )
+    new_directive_value = ""
+    if value is not None:
+        value_to_set = quote_directive_value(value, '"') if quotes else value
 
-        return "{directive_sep}{value}\n".format(
-            directive_sep=directive_sep, value=transformed_value)
+        new_directive_value = "".join(
+            [directive, separator, value_to_set, '\n'])
 
     valueset = False
     st = os.stat(filename)
@@ -415,17 +439,13 @@ def set_directive(filename, directive, value, quotes=True, separator=' ',
         if line.lstrip().startswith(directive):
             valueset = True
             if value is not None:
-                newfile.append(
-                    format_directive(
-                        directive, value, separator, quotes, quote_char))
+                newfile.append(new_directive_value)
         else:
             newfile.append(line)
     fd.close()
     if not valueset:
         if value is not None:
-            newfile.append(
-                format_directive(
-                    directive, value, separator, quotes, quote_char))
+            newfile.append(new_directive_value)
 
     fd = open(filename, "w")
     fd.write("".join(newfile))
@@ -440,9 +460,6 @@ def get_directive(filename, directive, separator=' '):
     :param filename: input filename
     :param directive: directive name
     :param separator: separator between directive and value
-    :param quote_char: the characters that are used in this particular config
-        file to quote values. This character will be stripped and unescaped
-        from the raw value.
 
     :returns: The (unquoted) value if the directive was found, None otherwise
     """
@@ -455,8 +472,7 @@ def get_directive(filename, directive, separator=' '):
             if not sep or not value:
                 raise ValueError("Malformed directive: {}".format(line))
 
-            result = value.strip().strip(quote_char)
-            result = ipautil.unescape_seq(quote_char, result)[0]
+            result = unquote_directive_value(value.strip(), '"')
             result = result.strip(' ')
             fd.close()
             return result
