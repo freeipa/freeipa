@@ -852,7 +852,7 @@ def ipa_generate_password(entropy_bits=256, uppercase=1, lowercase=1, digits=1,
     rnd = random.SystemRandom()
 
     todo_entropy = entropy_bits
-    password = ''
+    password = u''
     # Generate required character classes:
     # The order of generated characters is fixed to comply with check in
     # NSS function sftk_newPinCheck() in nss/lib/softoken/fipstokn.c.
