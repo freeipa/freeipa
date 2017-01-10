@@ -208,9 +208,10 @@ class Service(object):
         args += ["-H", ldap_uri]
 
         if dm_password:
-            [pw_fd, pw_name] = tempfile.mkstemp()
-            os.write(pw_fd, dm_password)
-            os.close(pw_fd)
+            with tempfile.NamedTemporaryFile(
+                    mode='w', delete=False) as pw_file:
+                pw_file.write(dm_password)
+                pw_name = pw_file.name
             auth_parms = ["-x", "-D", "cn=Directory Manager", "-y", pw_name]
         # Use GSSAPI auth when not using DM password or not being root
         elif os.getegid() != 0:
