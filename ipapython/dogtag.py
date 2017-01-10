@@ -205,7 +205,7 @@ def _httplib_request(
         res = conn.getresponse()
 
         http_status = res.status
-        http_headers = res.msg.dict
+        http_headers = res.msg
         http_body = res.read()
         conn.close()
     except Exception as e:
