@@ -385,14 +385,14 @@ class BaseTestLegacySSSDBefore19RedHat(object):
 
     advice_id = 'config-redhat-sssd-before-1-9'
     required_extra_roles = ['legacy_client_sssd_redhat']
-    optional_extra_roles = ['ad_subdomain']
+    optional_extra_roles = ['ad_subdomain', 'ad_treedomain']
 
 
 class BaseTestLegacyNssPamLdapdRedHat(object):
 
     advice_id = 'config-redhat-nss-pam-ldapd'
     required_extra_roles = ['legacy_client_nss_pam_ldapd_redhat']
-    optional_extra_roles = ['ad_subdomain']
+    optional_extra_roles = ['ad_subdomain', 'ad_treedomain']
 
     def clear_sssd_caches(self):
         tasks.clear_sssd_cache(self.master)
@@ -402,7 +402,7 @@ class BaseTestLegacyNssLdapRedHat(object):
 
     advice_id = 'config-redhat-nss-ldap'
     required_extra_roles = ['legacy_client_nss_ldap_redhat']
-    optional_extra_roles = ['ad_subdomain']
+    optional_extra_roles = ['ad_subdomain', 'ad_treedomain']
 
     def clear_sssd_caches(self):
         tasks.clear_sssd_cache(self.master)
