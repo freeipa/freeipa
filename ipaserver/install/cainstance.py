@@ -599,7 +599,7 @@ class CAInstance(DogtagInstance):
         config.set("Tomcat", "pki_ajp_host", "::1")
 
         # Generate configuration file
-        with open(cfg_file, "wb") as f:
+        with open(cfg_file, "w") as f:
             config.write(f)
 
         self.backup_state('installed', True)

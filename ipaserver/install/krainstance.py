@@ -263,7 +263,7 @@ class KRAInstance(DogtagInstance):
                 admin_path.write(cert)
 
         # Generate configuration file
-        with open(cfg_file, "wb") as f:
+        with open(cfg_file, "w") as f:
             config.write(f)
 
         try:
