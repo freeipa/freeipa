@@ -2116,16 +2116,20 @@ class ra_lightweight_ca(RestClient):
         )
         try:
             return json.loads(resp_body)
-        except:
-            raise errors.RemoteRetrieveError(reason=_("Response from CA was not valid JSON"))
+        except Exception as e:
+            self.log.debug(e, exc_info=True)
+            raise errors.RemoteRetrieveError(
+                reason=_("Response from CA was not valid JSON"))
 
     def read_ca(self, ca_id):
         _status, _resp_headers, resp_body = self._ssldo(
             'GET', ca_id, headers={'Accept': 'application/json'})
         try:
             return json.loads(resp_body)
-        except:
-            raise errors.RemoteRetrieveError(reason=_("Response from CA was not valid JSON"))
+        except Exception as e:
+            self.log.debug(e, exc_info=True)
+            raise errors.RemoteRetrieveError(
+                reason=_("Response from CA was not valid JSON"))
 
     def read_ca_cert(self, ca_id):
         _status, _resp_headers, resp_body = self._ssldo(
