@@ -975,7 +975,9 @@ def uninstall_check(installer):
 
     if installer.interactive:
         print("\nThis is a NON REVERSIBLE operation and will delete all data "
-              "and configuration!\n")
+              "and configuration!\nIt is highly recommended to take a backup of "
+              "existing data and configuration using ipa-backup utility "
+              "before proceeding.\n")
         if not user_input("Are you sure you want to continue with the "
                           "uninstall procedure?", False):
             raise ScriptError("Aborting uninstall operation.")
