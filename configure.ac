@@ -463,11 +463,12 @@ AM_CONDITIONAL([WITH_PYLINT], [test "x${PYLINT}" != "xno"])
 
 
 AC_ARG_WITH([jslint],
-	    AS_HELP_STRING([--with-jslint=path to jsl],
-			   [path to JavaScript lint]),
+        AS_HELP_STRING([--with-jslint=[FILE]],
+                       [path to JavaScript linter. Default is autodetection of
+                       utility "jsl" ]),
 dnl --without-jslint will set JSLINT=no
-	    [JSLINT=$with_jslint],
-	    [AC_PATH_PROG([JSLINT], [jsl])]
+        [JSLINT=$with_jslint],
+        [AC_PATH_PROG([JSLINT], [jsl])]
 )
 if test "x${JSLINT}" == "x"; then
 	AC_MSG_ERROR([cannot find JS lint])
