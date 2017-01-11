@@ -404,7 +404,7 @@ class WSGIExecutioner(Executioner):
                       type(self).__name__,
                       principal,
                       name,
-                      type(e).__name__)
+                      type(error).__name__)
 
         version = options.get('version', VERSION_WITHOUT_CAPABILITIES)
         return self.marshal(result, error, _id, version)
