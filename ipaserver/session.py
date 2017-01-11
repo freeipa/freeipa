@@ -21,6 +21,7 @@ import random
 import os
 import re
 import time
+import io
 
 # pylint: disable=import-error
 from six.moves.urllib.parse import urlparse
@@ -1228,9 +1229,8 @@ def load_ccache_data(ccache_name):
     scheme, name = krb5_parse_ccache(ccache_name)
     if scheme == 'FILE':
         root_logger.debug('reading ccache data from file "%s"', name)
-        src = open(name)
-        ccache_data = src.read()
-        src.close()
+        with io.open(name, "rb") as src:
+            ccache_data = src.read()
         return ccache_data
     else:
         raise ValueError('ccache scheme "%s" unsupported (%s)', scheme, ccache_name)
@@ -1239,9 +1239,8 @@ def bind_ipa_ccache(ccache_data, scheme='FILE'):
     if scheme == 'FILE':
         name = _get_krbccache_pathname()
         root_logger.debug('storing ccache data into file "%s"', name)
-        dst = open(name, 'w')
-        dst.write(ccache_data)
-        dst.close()
+        with io.open(name, 'wb') as dst:
+            dst.write(ccache_data)
     else:
         raise ValueError('ccache scheme "%s" unsupported', scheme)
 
