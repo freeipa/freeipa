@@ -828,7 +828,7 @@ class MemcacheSessionManager(SessionManager):
         result = {}
         stats = self.mc.get_stats()
         for server in stats:
-            match = self.mc_server_stat_name_re.search(server[0])
+            match = self.mc_server_stat_name_re.search(server[0].decode())
             if match:
                 name = match.group(1)
                 result[name] = server[1]
