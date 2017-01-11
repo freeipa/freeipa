@@ -1252,8 +1252,9 @@ class LDAPClient(object):
                 value = u'\\'.join(
                     value[i:i+2] for i in six.moves.range(-2, len(value), 2))
             else:
-                value = value_to_utf8(value)
+                value = six.text_type(value)
                 value = ldap.filter.escape_filter_chars(value)
+
             if not exact:
                 template = '%s'
                 if leading_wildcard:
