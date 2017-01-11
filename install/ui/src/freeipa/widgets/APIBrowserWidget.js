@@ -253,7 +253,7 @@ widgets.APIBrowserWidget = declare([Stateful, Evented], {
 
         // switch widget
         if (widget && !widget.el) widget.render();
-        if (this.current_details_w !== widget) {
+        if (widget && this.current_details_w !== widget) {
             this.details_el.empty();
             this.details_el.append(widget.el);
         }
