@@ -654,7 +654,7 @@ class LDAPObject(Object):
             del entry_attrs[attr]
 
             for member in value:
-                memberdn = DN(member)
+                memberdn = DN(member.decode('utf-8'))
                 for ldap_obj_name in self.attribute_members[attr]:
                     ldap_obj = self.api.Object[ldap_obj_name]
                     try:
