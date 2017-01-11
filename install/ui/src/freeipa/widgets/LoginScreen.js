@@ -339,10 +339,10 @@ define(['dojo/_base/declare',
         set_login_aside_text: function() {
             var aside = "";
             if (this.password_enabled()) {
-                aside += "<p>"+this.form_auth_msg;+"<p/>";
+                aside += "<p>"+this.form_auth_msg+"<p/>";
             }
             if (this.kerberos_enabled()) {
-                aside += "<p>"+this.kerberos_msg;+"<p/>";
+                aside += "<p>"+this.kerberos_msg+"<p/>";
             }
             this.set('aside', aside);
         },
