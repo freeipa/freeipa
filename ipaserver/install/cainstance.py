@@ -1528,22 +1528,19 @@ def __add_acls(new_rules):
     Return ``True`` if any ACLs were added otherwise ``False``.
 
     """
-    server_id = installutils.realm_to_serverid(api.env.realm)
-    dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
     updated = False
 
     dn = DN(('cn', 'aclResources'), ('o', 'ipaca'))
 
-    conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
-    if not conn.isconnected():
-        conn.connect(autobind=True)
-    cur_rules = conn.get_entry(dn).get('resourceACLS', [])
+    conn = api.Backend.ldap2
+    entry = conn.get_entry(dn)
+    cur_rules = entry.get('resourceACLS', [])
     add_rules = [rule for rule in new_rules if rule not in cur_rules]
     if add_rules:
-        conn.conn.modify_s(str(dn), [(ldap.MOD_ADD, 'resourceACLS', add_rules)])
+        cur_rules.extend(add_rules)
+        conn.update_entry(entry)
         updated = True
 
-    conn.disconnect()
     return updated
 
 
