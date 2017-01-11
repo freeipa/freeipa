@@ -417,7 +417,7 @@ class ldap2(CrudBackend, LDAPClient):
         # update group entry
         try:
             with self.error_handler():
-                modlist = [(a, self.encode(b), self.encode(c))
+                modlist = [(a, b, self.encode(c))
                            for a, b, c in modlist]
                 self.conn.modify_s(str(group_dn), modlist)
         except errors.DatabaseError:
