@@ -195,7 +195,7 @@ def read_input(environ):
         length = int(environ.get('CONTENT_LENGTH'))
     except (ValueError, TypeError):
         return
-    return environ['wsgi.input'].read(length)
+    return environ['wsgi.input'].read(length).decode('utf-8')
 
 
 def params_2_args_options(params):
