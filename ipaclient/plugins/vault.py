@@ -969,7 +969,7 @@ class vault_retrieve(Local):
         json_vault_data = decoding_ctx.cipher_op(wrapped_vault_data)\
             + decoding_ctx.digest_final()
 
-        vault_data = json.loads(json_vault_data)
+        vault_data = json.loads(json_vault_data.decode('utf-8'))
         data = base64.b64decode(vault_data[u'data'].encode('utf-8'))
 
         encrypted_key = None
