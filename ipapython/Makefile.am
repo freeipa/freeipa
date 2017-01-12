@@ -4,6 +4,8 @@ EXTRA_DIST = version.py.in
 
 all-local: version.py
 dist-hook: version.py
+install-exec-local: version.py
+bdist_wheel: version.py
 
 version.py: version.py.in $(top_builddir)/$(CONFIG_STATUS)
 	$(AM_V_GEN)sed						\
