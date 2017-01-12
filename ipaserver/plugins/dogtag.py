@@ -1232,7 +1232,8 @@ class RestClient(Backend):
     @staticmethod
     def _parse_dogtag_error(body):
         try:
-            return pki.PKIException.from_json(json.loads(body))
+            return pki.PKIException.from_json(
+                json.loads(ipautil.decode_json(body)))
         except Exception:
             return None
 
@@ -1667,7 +1668,7 @@ class ra(rabase.rabase, RestClient):
         )
 
         try:
-            resp_obj = json.loads(http_body)
+            resp_obj = json.loads(ipautil.decode_json(http_body))
         except ValueError:
             raise errors.RemoteRetrieveError(reason=_("Response from CA was not valid JSON"))
 
@@ -2115,7 +2116,7 @@ class ra_lightweight_ca(RestClient):
             body=json.dumps({"parentID": "host-authority", "dn": unicode(dn)}),
         )
         try:
-            return json.loads(resp_body)
+            return json.loads(ipautil.decode_json(resp_body))
         except Exception as e:
             self.log.debug(e, exc_info=True)
             raise errors.RemoteRetrieveError(
@@ -2125,7 +2126,7 @@ class ra_lightweight_ca(RestClient):
         _status, _resp_headers, resp_body = self._ssldo(
             'GET', ca_id, headers={'Accept': 'application/json'})
         try:
-            return json.loads(resp_body)
+            return json.loads(ipautil.decode_json(resp_body))
         except Exception as e:
             self.log.debug(e, exc_info=True)
             raise errors.RemoteRetrieveError(

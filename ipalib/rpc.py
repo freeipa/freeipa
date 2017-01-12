@@ -1101,7 +1101,8 @@ class JSONServerProxy(object):
         )
 
         try:
-            response = json_decode_binary(json.loads(response.decode('ascii')))
+            response = json_decode_binary(
+                json.loads(response.decode('utf-8')))
         except ValueError as e:
             raise JSONError(error=str(e))
 

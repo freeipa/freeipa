@@ -209,6 +209,7 @@ def _httplib_request(
         http_body = res.read()
         conn.close()
     except Exception as e:
+        root_logger.exception("httplib request failed:")
         raise NetworkError(uri=uri, error=str(e))
 
     root_logger.debug('response status %d',    http_status)
