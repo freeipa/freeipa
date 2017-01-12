@@ -780,7 +780,8 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                             "match requested principal") % gn.name)
             elif isinstance(gn, cryptography.x509.general_name.RFC822Name):
                 if principal_type == USER:
-                    if gn.value not in principal_obj.get('mail', []):
+                    if principal_obj and gn.value not in principal_obj.get(
+                            'mail', []):
                         raise errors.ValidationError(
                             name='csr',
                             error=_(
