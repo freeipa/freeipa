@@ -144,7 +144,7 @@ class HTTP_Status(plugable.Plugin):
         self.info('%s: URL="%s", %s', status, url, message)
         start_response(status, response_headers)
         output = _not_found_template % dict(url=escape(url))
-        return [output]
+        return [output.encode('utf-8')]
 
     def bad_request(self, environ, start_response, message):
         """
@@ -157,7 +157,7 @@ class HTTP_Status(plugable.Plugin):
 
         start_response(status, response_headers)
         output = _bad_request_template % dict(message=escape(message))
-        return [output]
+        return [output.encode('utf-8')]
 
     def internal_error(self, environ, start_response, message):
         """
@@ -170,7 +170,7 @@ class HTTP_Status(plugable.Plugin):
 
         start_response(status, response_headers)
         output = _internal_error_template % dict(message=escape(message))
-        return [output]
+        return [output.encode('utf-8')]
 
     def unauthorized(self, environ, start_response, message, reason):
         """
@@ -185,7 +185,7 @@ class HTTP_Status(plugable.Plugin):
 
         start_response(status, response_headers)
         output = _unauthorized_template % dict(message=escape(message))
-        return [output]
+        return [output.encode('utf-8')]
 
 def read_input(environ):
     """
@@ -427,7 +427,7 @@ class WSGIExecutioner(Executioner):
         except Exception:
             self.exception('WSGI %s.__call__():', self.name)
             status = HTTP_STATUS_SERVER_ERROR
-            response = status
+            response = status.encode('utf-8')
             headers = [('Content-Type', 'text/plain; charset=utf-8')]
 
         session_data = getattr(context, 'session_data', None)
@@ -489,7 +489,8 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
             version=unicode(VERSION),
         )
         response = json_encode_binary(response, version)
-        return json.dumps(response, sort_keys=True, indent=4)
+        dump = json.dumps(response, sort_keys=True, indent=4)
+        return dump.encode('utf-8')
 
     def unmarshal(self, data):
         try:
@@ -672,7 +673,7 @@ class KerberosWSGIExecutioner(WSGIExecutioner, HTTP_Status, KerberosSession):
                     'xmlserver', user_ccache, environ, start_response, headers)
         except PublicError as e:
             status = HTTP_STATUS_SUCCESS
-            response = status
+            response = status.encode('utf-8')
             start_response(status, headers)
             return self.marshal(None, e)
         finally:
@@ -758,7 +759,8 @@ class xmlserver(KerberosWSGIExecutioner):
             if isinstance(result, dict):
                 self.debug('response: entries returned %d', result.get('count', 1))
             response = (result,)
-        return xml_dumps(response, version, methodresponse=True)
+        dump = xml_dumps(response, version, methodresponse=True)
+        return dump.encode('utf-8')
 
 
 class jsonserver_session(jsonserver, KerberosSession):
@@ -782,7 +784,7 @@ class jsonserver_session(jsonserver, KerberosSession):
     def need_login(self, start_response):
         status = '401 Unauthorized'
         headers = []
-        response = ''
+        response = b''
 
         self.debug('jsonserver_session: %s need login', status)
 
@@ -1252,7 +1254,7 @@ class xmlserver_session(xmlserver, KerberosSession):
     def need_login(self, start_response):
         status = '401 Unauthorized'
         headers = []
-        response = ''
+        response = b''
 
         self.debug('xmlserver_session: %s need login', status)
 
