@@ -51,6 +51,9 @@ class TestCLIParsing(object):
     def test_ping(self):
         self.check_command('ping', 'ping')
 
+    def test_plugins(self):
+        self.check_command('plugins', 'plugins')
+
     def test_user_show(self):
         self.check_command('user-show admin', 'user_show', uid=u'admin')
 
