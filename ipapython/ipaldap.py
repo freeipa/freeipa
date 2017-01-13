@@ -896,7 +896,9 @@ class LDAPClient(object):
         elif isinstance(val, tuple):
             return tuple(self.decode(m, attr) for m in val)
         elif isinstance(val, dict):
-            dct = dict((k.decode('utf-8'), self.decode(v, k)) for k, v in val.items())
+            dct = {
+                k.decode('utf-8'): self.decode(v, k) for k, v in val.items()
+            }
             return dct
         elif val is None:
             return None
