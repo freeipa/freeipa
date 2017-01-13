@@ -1634,7 +1634,7 @@ class ra(rabase.rabase, RestClient):
         self.debug('%s.request_certificate()', type(self).__name__)
 
         # Call CMS
-        template = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        template = u'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <CertEnrollmentRequest>
                 <ProfileID>{profile}</ProfileID>
                 <Input id="i1">

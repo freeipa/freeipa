@@ -804,7 +804,9 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         try:
             # re-serialise to PEM, in case the user-supplied data has
             # extraneous material that will cause Dogtag to freak out
-            csr_pem = csr_obj.public_bytes(serialization.Encoding.PEM)
+            # keep it as string not bytes, it is required later
+            csr_pem = csr_obj.public_bytes(
+                serialization.Encoding.PEM).decode('utf-8')
             result = self.Backend.ra.request_certificate(
                 csr_pem, profile_id, ca_id, request_type=request_type)
         except errors.HTTPRequestError as e:
