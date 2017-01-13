@@ -283,3 +283,13 @@ ANON_USER = 'WELLKNOWN/ANONYMOUS'
 # IPA API Framework user
 IPAAPI_USER = 'ipaapi'
 IPAAPI_GROUP = 'ipaapi'
+
+# TLS related constants
+TLS_VERSIONS = [
+    "ssl2",
+    "ssl3",
+    "tls1.0",
+    "tls1.1",
+    "tls1.2"
+]
+TLS_VERSION_MINIMAL = "tls1.0"
