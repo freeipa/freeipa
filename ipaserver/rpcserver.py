@@ -389,8 +389,9 @@ class WSGIExecutioner(Executioner):
                 )
                 # get at least some context of what is going on
                 params = options
+                error = e
             if error:
-                result_string = type(e).__name__
+                result_string = type(error).__name__
             else:
                 result_string = 'SUCCESS'
             self.info('[%s] %s: %s(%s): %s',
