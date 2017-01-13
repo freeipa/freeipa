@@ -289,7 +289,10 @@ class ldap2(CrudBackend, LDAPClient):
         principal = getattr(context, 'principal')
         entry = self.find_entry_by_attr("krbprincipalname", principal,
             "krbPrincipalAux", base_dn=self.api.env.basedn)
-        sctrl = [GetEffectiveRightsControl(True, "dn: " + str(entry.dn))]
+        sctrl = [
+            GetEffectiveRightsControl(
+                True, "dn: {0}".format(entry.dn).encode('utf-8'))
+        ]
         self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, sctrl)
         try:
             entry = self.get_entry(dn, attrs_list)
