@@ -2,15 +2,15 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-import binascii
 import os
+import tempfile
 
 from ipalib import Registry
 from ipalib import Updater
-from ipalib.constants import IPAAPI_USER, IPAAPI_GROUP
 from ipalib.install import certmonger
 from ipaplatform.paths import paths
-from ipapython import certdb
+from ipapython.certdb import NSSDatabase
+from ipaserver.install import cainstance
 
 register = Registry()
 
@@ -18,58 +18,44 @@ register = Registry()
 @register()
 class update_ra_cert_store(Updater):
     """
-    Moves the cert store from /etc/httpd/alias to /var/lib/ipa/radb
+    Moves the ipaCert store from /etc/httpd/alias RA_AGENT_PEM, RA_AGENT_KEY
+    files
     """
 
     def execute(self, **options):
+        ra_nick = 'ipaCert'
         ca_enabled = self.api.Command.ca_is_enabled()['result']
         if not ca_enabled:
             return False, []
 
-        olddb = certdb.NSSDatabase(nssdir=paths.HTTPD_ALIAS_DIR)
-        if not olddb.has_nickname('ipaCert'):
+        certdb = NSSDatabase(nssdir=paths.HTTPD_ALIAS_DIR)
+        if not certdb.has_nickname(ra_nick):
             # Nothign to do
             return False, []
+        elif os.path.exists(paths.RA_AGENT_PEM):
+            # even though the certificate file exists, we will overwrite it
+            # as it's probabably something wrong anyway
+            self.log.warning(
+                "A certificate with the nickname 'ipaCert' exists in "
+                "the old '{}' NSS database as well as in the new "
+                "PEM file '{}'"
+                .format(paths.HTTPD_ALIAS_DIR, paths.RA_AGENT_PEM))
 
-        newdb = certdb.NSSDatabase(nssdir=paths.IPA_RADB_DIR)
-        if os.path.exists(paths.IPA_RADB_DIR):
-            if newdb.has_nickname('ipaCert'):
-                self.log.warning(
-                    "An 'ipaCert' nickname exists in both the old {} and the "
-                    "new {} NSS Databases!".format(paths.HTTPD_ALIAS_DIR,
-                                                   paths.IPA_RADB_DIR))
-                return False, []
-        else:
-            # Create the DB
-            newdb.create_db(user=IPAAPI_USER, group=IPAAPI_GROUP, backup=True)
+        _fd, p12file = tempfile.mkstemp(dir=certdb.secdir)
+        # no password is necessary as we will be saving it in clear anyway
+        certdb.export_pkcs12(ra_nick, p12file, pkcs12_passwd='')
 
-        # Import cert chain (ignore errors, as certs may already be imported)
-        certlist = olddb.list_certs()
-        certflags = {}
-        for name, flags in certlist:
-            certflags[name] = flags
-        for name in olddb.get_trust_chain('ipaCert'):
-            if name == 'ipaCert':
-                continue
-            try:
-                cert = olddb.get_cert(name, pem=True)
-                newdb.add_cert(cert, name, certflags[name], pem=True)
-            except Exception as e:  # pylint disable=broad-except
-                self.log.warning("Failed to import '{}' from trust "
-                                 "chain: {}".format(name, str(e)))
+        # stop tracking the old cert and remove it
+        certmonger.stop_tracking(paths.HTTPD_ALIAS_DIR, nickname=ra_nick)
+        certdb.delete_cert(ra_nick)
+        if os.path.exists(paths.OLD_KRA_AGENT_PEM):
+            os.remove(paths.OLD_KRA_AGENT_PEM)
 
-        # As the last step export/import/delete the RA Cert
-        pw = binascii.hexlify(os.urandom(10))
-        p12file = os.path.join(paths.IPA_RADB_DIR, 'ipaCert.p12')
-        olddb.export_pkcs12('ipaCert', p12file, pw)
-        newdb.import_pkcs12(p12file, pw)
+        # get the private key and certificate from the file and start
+        # tracking it in certmonger
+        ca = cainstance.CAInstance()
+        ca.import_ra_cert(p12file)
 
-        certmonger.stop_tracking(secdir=olddb.secdir,
-                                 nickname='ipaCert')
-        certmonger.start_tracking(certpath=newdb.secdir,
-                                  nickname='ipaCert',
-                                  pinfile=newdb.pwd_file)
-
-        olddb.delete_cert('ipaCert')
+        os.remove(p12file)
 
         return False, []

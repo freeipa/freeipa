@@ -112,6 +112,10 @@ class CustodiaInstance(SimpleServiceInstance):
 
     def import_ra_key(self, master_host_name):
         cli = self.__CustodiaClient(server=master_host_name)
+        # please note that ipaCert part has to stay here for historical
+        # reasons (old servers expect you to ask for ra/ipaCert during
+        # replication as they store the RA agent cert in an NSS database
+        # with this nickname)
         cli.fetch_key('ra/ipaCert')
 
     def import_dm_password(self, master_host_name):

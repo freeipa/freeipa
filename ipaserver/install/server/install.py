@@ -14,7 +14,6 @@ import textwrap
 
 import six
 
-from ipalib.constants import IPAAPI_USER, IPAAPI_GROUP
 from ipalib.install import certmonger, sysrestore
 from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger
@@ -24,7 +23,8 @@ from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipalib import api, constants, errors, x509
+from ipalib import api, errors, x509
+from ipalib.constants import DOMAIN_LEVEL_0
 from ipalib.util import (
     validate_domain_name,
     network_ip_address_warning,
@@ -32,7 +32,7 @@ from ipalib.util import (
 )
 import ipaclient.install.ntpconf
 from ipaserver.install import (
-    bindinstance, ca, certs, dns, dsinstance,
+    bindinstance, ca, dns, dsinstance,
     httpinstance, installutils, kra, krbinstance,
     ntpinstance, otpdinstance, custodiainstance, replication, service,
     sysupgrade)
@@ -774,11 +774,6 @@ def install(installer):
                           if n in options.__dict__}
             write_cache(cache_vars)
 
-        # Create RA DB
-        certs.CertDB(realm_name, nssdir=paths.IPA_RADB_DIR,
-                     user=IPAAPI_USER, group=IPAAPI_GROUP,
-                     truncate=True)
-
         ca.install_step_0(False, None, options)
     else:
         # Put the CA cert where other instances expect it
@@ -987,7 +982,7 @@ def uninstall_check(installer):
     else:
         dns.uninstall_check(options)
 
-        if domain_level == constants.DOMAIN_LEVEL_0:
+        if domain_level == DOMAIN_LEVEL_0:
             rm = replication.ReplicationManager(
                 realm=api.env.realm,
                 hostname=api.env.host,
@@ -1102,8 +1097,7 @@ def uninstall(installer):
     # Note that this name will be wrong after the first uninstall.
     dirname = dsinstance.config_dirname(
         installutils.realm_to_serverid(api.env.realm))
-    dirs = [dirname, paths.PKI_TOMCAT_ALIAS_DIR, paths.HTTPD_ALIAS_DIR,
-            paths.IPA_RADB_DIR]
+    dirs = [dirname, paths.PKI_TOMCAT_ALIAS_DIR, paths.HTTPD_ALIAS_DIR]
     ids = certmonger.check_state(dirs)
     if ids:
         root_logger.error('Some certificates may still be tracked by '
@@ -1115,11 +1109,6 @@ def uninstall(installer):
                           'These may be untracked by executing\n'
                           ' # getcert stop-tracking -i <request_id>\n'
                           'for each id in: %s' % ', '.join(ids))
-
-    try:
-        shutil.rmtree(paths.IPA_RADB_DIR)
-    except Exception:
-        pass
 
     # Remove the cert renewal lock file
     try:

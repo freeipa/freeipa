@@ -243,6 +243,7 @@ import datetime
 import json
 from lxml import etree
 import time
+import contextlib
 
 import six
 from six.moves import urllib
@@ -250,8 +251,7 @@ from six.moves import urllib
 from ipalib import Backend, api
 from ipapython.dn import DN
 import ipapython.cookie
-from ipapython import dogtag
-from ipapython import ipautil
+from ipapython import dogtag, ipautil, certdb
 
 if api.env.in_server:
     import pki
@@ -1242,8 +1242,12 @@ class RestClient(Backend):
         if api.env.in_tree:
             self.client_certfile = os.path.join(
                 api.env.dot_ipa, 'ra-agent.pem')
+
+            self.client_keyfile = os.path.join(
+                api.env.dot_ipa, 'ra-agent.key')
         else:
             self.client_certfile = paths.RA_AGENT_PEM
+            self.client_keyfile = paths.RA_AGENT_KEY
         super(RestClient, self).__init__(api)
 
         # session cookie
@@ -1279,6 +1283,7 @@ class RestClient(Backend):
             url='/ca/rest/account/login',
             cafile=self.ca_cert,
             client_certfile=self.client_certfile,
+            client_keyfile=self.client_keyfile,
             method='GET'
         )
         cookies = ipapython.cookie.Cookie.parse(resp_headers.get('set-cookie', ''))
@@ -1294,6 +1299,7 @@ class RestClient(Backend):
             url='/ca/rest/account/logout',
             cafile=self.ca_cert,
             client_certfile=self.client_certfile,
+            client_keyfile=self.client_keyfile,
             method='GET'
         )
         self.cookie = None
@@ -1337,6 +1343,7 @@ class RestClient(Backend):
             url=resource,
             cafile=self.ca_cert,
             client_certfile=self.client_certfile,
+            client_keyfile=self.client_keyfile,
             method=method, headers=headers, body=body
         )
         if status < 200 or status >= 300:
@@ -1421,6 +1428,7 @@ class ra(rabase.rabase, RestClient):
             self.ca_host, port, url,
             cafile=self.ca_cert,
             client_certfile=self.client_certfile,
+            client_keyfile=self.client_keyfile,
             **kw)
 
     def get_parse_result_xml(self, xml_text, parse_func):
@@ -1998,6 +2006,7 @@ class kra(Backend):
         else:
             return api.env.ca_host
 
+    @contextlib.contextmanager
     def get_client(self):
         """
         Returns an authenticated KRA client to access KRA services.
@@ -2009,9 +2018,11 @@ class kra(Backend):
             # TODO: replace this with a more specific exception
             raise RuntimeError('KRA service is not enabled')
 
+        tempdb = certdb.NSSDatabase()
+        tempdb.create_db()
         crypto = cryptoutil.NSSCryptoProvider(
-            paths.IPA_RADB_DIR,
-            password_file=os.path.join(paths.IPA_RADB_DIR, 'pwdfile.txt'))
+            tempdb.secdir,
+            password_file=tempdb.pwd_file)
 
         # TODO: obtain KRA host & port from IPA service list or point to KRA load balancer
         # https://fedorahosted.org/freeipa/ticket/4557
@@ -2021,9 +2032,16 @@ class kra(Backend):
             str(self.kra_port),
             'kra')
 
-        connection.set_authentication_cert(paths.RA_AGENT_PEM)
+        connection.session.cert = (paths.RA_AGENT_PEM, paths.RA_AGENT_KEY)
+        # uncomment the following when this commit makes it to release
+        # https://git.fedorahosted.org/cgit/pki.git/commit/?id=71ae20c
+        # connection.set_authentication_cert(paths.RA_AGENT_PEM,
+        #                                    paths.RA_AGENT_KEY)
 
-        return KRAClient(connection, crypto)
+        try:
+            yield KRAClient(connection, crypto)
+        finally:
+            tempdb.close()
 
 
 @register()

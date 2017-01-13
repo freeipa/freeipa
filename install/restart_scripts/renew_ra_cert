@@ -27,15 +27,15 @@ import tempfile
 import shutil
 import traceback
 
+from cryptography.hazmat.primitives import serialization
+
 from ipalib.install.kinit import kinit_keytab
-from ipalib import api
-from ipaserver.install import certs, cainstance, dogtaginstance
+from ipalib import api, x509
+from ipaserver.install import certs, cainstance
 from ipaplatform.paths import paths
 
 
 def _main():
-    nickname = 'ipaCert'
-
     api.bootstrap(in_server=True, context='restart', confdir=paths.ETC_IPA)
     api.finalize()
     api.Backend.ldap2.connect()
@@ -48,20 +48,28 @@ def _main():
         os.environ['KRB5CCNAME'] = ccache_filename
 
         ca = cainstance.CAInstance(host_name=api.env.host)
+        ra_certpath = paths.RA_AGENT_PEM
         if ca.is_renewal_master():
             # Fetch the new certificate
-            db = certs.CertDB(api.env.realm)
-            dercert = db.get_cert_from_db(nickname, pem=False)
-            if not dercert:
+            try:
+                cert = x509.load_certificate_from_file(ra_certpath)
+            except IOError as e:
                 syslog.syslog(
-                    syslog.LOG_ERR, "No certificate %s found." % nickname)
+                    syslog.LOG_ERR, "Can't open '{certpath}': {err}"
+                    .format(certpath=ra_certpath, err=e)
+                )
                 sys.exit(1)
+            except (TypeError, ValueError):
+                syslog.syslog(
+                    syslog.LOG_ERR, "'{certpath}' is not a valid certificate "
+                    "file".format(certpath=ra_certpath)
+                )
+                sys.exit(1)
+
+            dercert = cert.public_bytes(serialization.Encoding.DER)
 
             # Load it into dogtag
             cainstance.update_people_entry(dercert)
-
-        if api.Command.kra_is_enabled()['result']:
-            dogtaginstance.export_ra_agent_pem()
     finally:
         shutil.rmtree(tmpdir)
         api.Backend.ldap2.disconnect()

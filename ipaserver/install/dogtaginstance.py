@@ -21,17 +21,13 @@ import base64
 import ldap
 import os
 import shutil
-import tempfile
 import traceback
 import dbus
-import pwd
 
 from pki.client import PKIConnection
 import pki.system
 
 from ipalib import api, errors
-
-from ipalib.constants import IPAAPI_USER
 from ipalib.install import certmonger
 from ipaplatform import services
 from ipaplatform.constants import constants
@@ -70,27 +66,6 @@ def is_installing_replica(sys_type):
         return len(sys_list.hosts) > 0
     except KeyError:
         return False
-
-
-def export_ra_agent_pem():
-    """
-    Export ipaCert with private key for client authentication.
-    """
-    fd, filename = tempfile.mkstemp(dir=paths.IPA_RADB_DIR)
-    os.close(fd)
-
-    args = ["/usr/bin/pki",
-            "-d", paths.IPA_RADB_DIR,
-            "-C", os.path.join(paths.IPA_RADB_DIR, 'pwdfile.txt'),
-            "client-cert-show", "ipaCert",
-            "--client-cert", filename]
-    ipautil.run(args)
-
-    pent = pwd.getpwnam(IPAAPI_USER)
-    os.chown(filename, 0, pent.pw_gid)
-    os.chmod(filename, 0o440)
-
-    os.rename(filename, paths.RA_AGENT_PEM)
 
 
 class DogtagInstance(service.Service):

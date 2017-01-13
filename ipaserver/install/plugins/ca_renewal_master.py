@@ -74,17 +74,16 @@ class update_ca_renewal_master(Updater):
                 return False, []
 
         criteria = {
-            'cert-database': paths.HTTPD_ALIAS_DIR,
-            'cert-nickname': 'ipaCert',
+            'cert-file': paths.RA_AGENT_PEM,
         }
         request_id = certmonger.get_request_id(criteria)
         if request_id is not None:
-            self.debug("found certmonger request for ipaCert")
+            self.debug("found certmonger request for RA cert")
 
             ca_name = certmonger.get_request_value(request_id, 'ca-name')
             if ca_name is None:
                 self.warning(
-                    "certmonger request for ipaCert is missing ca_name, "
+                    "certmonger request for RA cert is missing ca_name, "
                     "assuming local CA is renewal slave")
                 return False, []
             ca_name = ca_name.strip()
@@ -97,11 +96,11 @@ class update_ca_renewal_master(Updater):
                 return False, []
             else:
                 self.warning(
-                    "certmonger request for ipaCert has unknown ca_name '%s', "
+                    "certmonger request for RA cert has unknown ca_name '%s', "
                     "assuming local CA is renewal slave", ca_name)
                 return False, []
         else:
-            self.debug("certmonger request for ipaCert not found")
+            self.debug("certmonger request for RA cert not found")
 
             config = installutils.get_directive(
                 paths.CA_CS_CFG_PATH, 'subsystem.select', '=')

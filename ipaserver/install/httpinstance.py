@@ -384,14 +384,13 @@ class HTTPInstance(service.Service):
             if not self.promote:
                 self.create_password_conf()
                 ca_args = [
-                    '/usr/libexec/certmonger/dogtag-submit',
+                    paths.CERTMONGER_DOGTAG_SUBMIT,
                     '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
-                    '--dbdir', paths.IPA_RADB_DIR,
-                    '--nickname', 'ipaCert',
-                    '--sslpinfile', os.path.join(paths.IPA_RADB_DIR,
-                                                 'pwdfile.txt'),
+                    '--certfile', paths.RA_AGENT_PEM,
+                    '--keyfile', paths.RA_AGENT_KEY,
+                    '--cafile', paths.IPA_CA_CRT,
                     '--agent-submit'
-                    ]
+                ]
                 helper = " ".join(ca_args)
                 prev_helper = certmonger.modify_ca_helper('IPA', helper)
 
@@ -419,10 +418,6 @@ class HTTPInstance(service.Service):
                 raise RuntimeError("Could not find a suitable server cert.")
 
     def __import_ca_certs(self):
-        # first for the RA DB
-        db = certs.CertDB(self.realm, subject_base=self.subject_base)
-        self.import_ca_certs(db, self.ca_is_configured)
-        # and then also for the HTTPD DB
         db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
                           subject_base=self.subject_base)
         self.import_ca_certs(db, self.ca_is_configured)
