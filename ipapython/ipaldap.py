@@ -69,36 +69,6 @@ TRUNCATED_ADMIN_LIMIT = object()
 DIRMAN_DN = DN(('cn', 'directory manager'))
 
 
-def unicode_from_utf8(val):
-    '''
-    val is a UTF-8 encoded string, return a unicode object.
-    '''
-    return val.decode('utf-8')
-
-
-def value_to_utf8(val):
-    '''
-    Coerce the val parameter to a UTF-8 encoded string representation
-    of the val.
-    '''
-
-    # If val is not a string we need to convert it to a string
-    # (specifically a unicode string). Naively we might think we need to
-    # call str(val) to convert to a string. This is incorrect because if
-    # val is already a unicode object then str() will call
-    # encode(default_encoding) returning a str object encoded with
-    # default_encoding. But we don't want to apply the default_encoding!
-    # Rather we want to guarantee the val object has been converted to a
-    # unicode string because from a unicode string we want to explicitly
-    # encode to a str using our desired encoding (utf-8 in this case).
-    #
-    # Note: calling unicode on a unicode object simply returns the exact
-    # same object (with it's ref count incremented). This means calling
-    # unicode on a unicode object is effectively a no-op, thus it's not
-    # inefficient.
-
-    return unicode(val).encode('utf-8')
-
 class _ServerSchema(object):
     '''
     Properties of a schema retrieved from an LDAP server.
@@ -877,7 +847,7 @@ class LDAPClient(object):
                 return 'FALSE'
         elif isinstance(val, (unicode, six.integer_types, Decimal, DN,
                               Principal)):
-            return value_to_utf8(val)
+            return six.text_type(val).encode('utf-8')
         elif isinstance(val, DNSName):
             return val.to_text()
         elif isinstance(val, bytes):
@@ -909,9 +879,12 @@ class LDAPClient(object):
                 elif target_type is unicode:
                     return val.decode('utf-8')
                 elif target_type is datetime.datetime:
-                    return datetime.datetime.strptime(val, LDAP_GENERALIZED_TIME_FORMAT)
+                    return datetime.datetime.strptime(
+                        val.decode('utf-8'), LDAP_GENERALIZED_TIME_FORMAT)
                 elif target_type is DNSName:
-                    return DNSName.from_text(val)
+                    return DNSName.from_text(val.decode('utf-8'))
+                elif target_type in (DN, Principal):
+                    return target_type(val.decode('utf-8'))
                 else:
                     return target_type(val)
             except Exception:
@@ -923,7 +896,7 @@ class LDAPClient(object):
         elif isinstance(val, tuple):
             return tuple(self.decode(m, attr) for m in val)
         elif isinstance(val, dict):
-            dct = dict((unicode_from_utf8(k), self.decode(v, k)) for k, v in val.items())
+            dct = dict((k.decode('utf-8'), self.decode(v, k)) for k, v in val.items())
             return dct
         elif val is None:
             return None
