@@ -23,6 +23,8 @@ from __future__ import print_function
 import getpass
 import socket
 from ipapython.ipa_log_manager import root_logger
+from ipapython.ipa_log_manager import log_mgr
+from ipalib.constants import TLS_VERSIONS, TLS_VERSION_MINIMAL
 
 from nss.error import NSPRError
 import nss.io as io
@@ -37,6 +39,9 @@ try:
 except ImportError:
     # pylint: disable=import-error
     import http.client as httplib
+
+# get a logger for this module
+logger = log_mgr.get_logger(__name__)
 
 # NSS database currently open
 current_dbdir = None
@@ -129,6 +134,56 @@ _af_dict = {
     socket.AF_UNSPEC: io.PR_AF_UNSPEC
 }
 
+
+def get_proper_tls_version_span(tls_version_min, tls_version_max):
+    """
+    This function checks whether the given TLS versions are known in FreeIPA
+    and that these versions fulfill the requirements for minimal TLS version
+    (see `ipalib.constants: TLS_VERSIONS, TLS_VERSION_MINIMAL`).
+
+    :param tls_version_min:
+        the lower value in the TLS min-max span, raised to the lowest allowed
+        value if too low
+    :param tls_version_max:
+        the higher value in the TLS min-max span, raised to tls_version_min
+        if lower than TLS_VERSION_MINIMAL
+    :raises: ValueError
+    """
+    min_allowed_idx = TLS_VERSIONS.index(TLS_VERSION_MINIMAL)
+
+    try:
+        min_version_idx = TLS_VERSIONS.index(tls_version_min)
+    except ValueError:
+        raise ValueError("tls_version_min ('{val}') is not a known "
+                         "TLS version.".format(val=tls_version_min))
+
+    try:
+        max_version_idx = TLS_VERSIONS.index(tls_version_max)
+    except ValueError:
+        raise ValueError("tls_version_max ('{val}') is not a known "
+                         "TLS version.".format(val=tls_version_max))
+
+    if min_version_idx > max_version_idx:
+        raise ValueError("tls_version_min is higher than "
+                         "tls_version_max.")
+
+    if min_version_idx < min_allowed_idx:
+        min_version_idx = min_allowed_idx
+        logger.warning("tls_version_min set too low ('{old}'),"
+                       "using '{new}' instead"
+                       .format(old=tls_version_min,
+                               new=TLS_VERSIONS[min_version_idx]))
+
+    if max_version_idx < min_allowed_idx:
+        max_version_idx = min_version_idx
+        logger.warning("tls_version_max set too low ('{old}'),"
+                       "using '{new}' instead"
+                       .format(old=tls_version_max,
+                               new=TLS_VERSIONS[max_version_idx]))
+
+    return TLS_VERSIONS[min_version_idx:max_version_idx+1]
+
+
 class NSSAddressFamilyFallback(object):
     def __init__(self, family):
         self.sock_family = family
@@ -217,8 +272,10 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
 
         ssl.set_domestic_policy()
         nss.set_password_callback(self.password_callback)
-        self.tls_version_min = str(tls_version_min)
-        self.tls_version_max = str(tls_version_max)
+        tls_versions = get_proper_tls_version_span(
+            tls_version_min, tls_version_max)
+        self.tls_version_min = tls_versions[0]
+        self.tls_version_max = tls_versions[-1]
 
     def _create_socket(self):
         ssl_enable_renegotiation = getattr(

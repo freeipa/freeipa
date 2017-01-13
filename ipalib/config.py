@@ -41,8 +41,11 @@ from six.moves.configparser import RawConfigParser, ParsingError
 
 from ipapython.dn import DN
 from ipalib.base import check_name
-from ipalib.constants import CONFIG_SECTION
-from ipalib.constants import OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
+from ipalib.constants import (
+    CONFIG_SECTION,
+    OVERRIDE_ERROR, SET_ERROR, DEL_ERROR,
+    TLS_VERSIONS
+)
 from ipalib import errors
 
 if six.PY3:
@@ -577,6 +580,26 @@ class Env(object):
                 self.server = parsed.netloc
 
         self._merge(**defaults)
+
+        # set the best known TLS version if min/max versions are not set
+        if 'tls_version_min' not in self:
+            self.tls_version_min = TLS_VERSIONS[-1]
+        elif self.tls_version_min not in TLS_VERSIONS:
+            raise errors.EnvironmentError(
+                "Unknown TLS version '{ver}' set in tls_version_min."
+                .format(ver=self.tls_version_min))
+
+        if 'tls_version_max' not in self:
+            self.tls_version_max = TLS_VERSIONS[-1]
+        elif self.tls_version_max not in TLS_VERSIONS:
+            raise errors.EnvironmentError(
+                "Unknown TLS version '{ver}' set in tls_version_max."
+                .format(ver=self.tls_version_max))
+
+        if self.tls_version_max < self.tls_version_min:
+            raise errors.EnvironmentError(
+                "tls_version_min is set to a higher TLS version than "
+                "tls_version_max.")
 
     def _finalize(self, **lastchance):
         """
