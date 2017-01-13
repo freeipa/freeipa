@@ -139,7 +139,6 @@ class CertUpdate(admintool.AdminTool):
             services.knownservices.dirsrv.restart(instance)
 
         self.update_db(paths.HTTPD_ALIAS_DIR, certs)
-        self.update_db(paths.IPA_RADB_DIR, certs)
         if services.knownservices.httpd.is_running():
             services.knownservices.httpd.restart()
 

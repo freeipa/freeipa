@@ -97,7 +97,7 @@ class CertDB(object):
 
     """
     # TODO: Remove all selfsign code
-    def __init__(self, realm, nssdir=paths.IPA_RADB_DIR, fstore=None,
+    def __init__(self, realm, nssdir, fstore=None,
                  host_name=None, subject_base=None, ca_subject=None,
                  user=None, group=None, mode=None, truncate=False):
         self.nssdb = NSSDatabase(nssdir)
@@ -417,6 +417,7 @@ class CertDB(object):
             url="/ca/ee/ca/profileSubmitSSLClient",
             cafile=api.env.tls_ca_cert,
             client_certfile=paths.RA_AGENT_PEM,
+            client_keyfile=paths.RA_AGENT_KEY,
             **params)
         http_status, _http_headers, http_body = result
         root_logger.debug("CA answer: %s", http_body)
@@ -471,6 +472,7 @@ class CertDB(object):
             url="/ca/ee/ca/profileSubmitSSLClient",
             cafile=api.env.tls_ca_cert,
             client_certfile=paths.RA_AGENT_PEM,
+            client_keyfile=paths.RA_AGENT_KEY,
             **params)
         http_status, _http_headers, http_body = result
         if http_status != 200:

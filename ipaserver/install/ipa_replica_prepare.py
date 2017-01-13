@@ -631,18 +631,16 @@ class ReplicaPrepare(admintool.AdminTool):
             raise admintool.ScriptError(str(e))
 
     def export_ra_pkcs12(self):
-        agent_fd, agent_name = tempfile.mkstemp()
-        os.write(agent_fd, self.dirman_password)
-        os.close(agent_fd)
-
-        try:
-            db = certs.CertDB(api.env.realm, host_name=api.env.host)
-
-            if db.has_nickname("ipaCert"):
-                pkcs12_fname = os.path.join(self.dir, "ra.p12")
-                db.export_pkcs12(pkcs12_fname, agent_name, "ipaCert")
-        finally:
-            os.remove(agent_name)
+        if (os.path.exists(paths.RA_AGENT_PEM) and
+           os.path.exists(paths.RA_AGENT_KEY)):
+            ipautil.run([
+                paths.OPENSSL,
+                "pkcs12", "-export",
+                "-inkey", paths.RA_AGENT_KEY,
+                "-in", paths.RA_AGENT_PEM,
+                "-out", os.path.join(self.dir, "ra.p12"),
+                "-passout", "pass:"
+            ])
 
     def update_pki_admin_password(self):
         dn = DN('uid=admin', 'ou=people', 'o=ipaca')

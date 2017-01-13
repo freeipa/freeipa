@@ -177,14 +177,14 @@ def install_check(standalone, replica_config, options):
     if standalone:
         dirname = dsinstance.config_dirname(
             installutils.realm_to_serverid(realm_name))
-        cadb = certs.CertDB(realm_name, subject_base=options._subject_base)
+        cadb = certs.CertDB(realm_name, nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
+                            subject_base=options._subject_base)
         dsdb = certs.CertDB(
             realm_name, nssdir=dirname, subject_base=options._subject_base)
 
         for db in (cadb, dsdb):
             for nickname, _trust_flags in db.list_certs():
-                if nickname in (certdb.get_ca_nickname(realm_name),
-                                'ipaCert'):
+                if nickname == certdb.get_ca_nickname(realm_name):
                     raise ScriptError(
                         "Certificate with nickname %s is present in %s, "
                         "cannot continue." % (nickname, db.secdir))
@@ -193,8 +193,7 @@ def install_check(standalone, replica_config, options):
                 if not cert:
                     continue
                 subject = DN(x509.load_certificate(cert).subject)
-                if subject in (DN(options._ca_subject),
-                               DN('CN=IPA RA', options._subject_base)):
+                if subject == DN(options._ca_subject):
                     raise ScriptError(
                         "Certificate with subject %s is present in %s, "
                         "cannot continue." % (subject, db.secdir))
@@ -312,31 +311,26 @@ def install_step_1(standalone, replica_config, options):
         dirname = dsinstance.config_dirname(serverid)
 
         # Store the new IPA CA cert chain in DS NSS database and LDAP
-        cadb = certs.CertDB(realm_name, subject_base=subject_base)
-        dsdb = certs.CertDB(realm_name, nssdir=dirname, subject_base=subject_base)
-        trust_flags = dict(reversed(cadb.list_certs()))
-        trust_chain = cadb.find_root_cert('ipaCert')[:-1]
-        for nickname in trust_chain[:-1]:
-            cert = cadb.get_cert_from_db(nickname, pem=False)
-            dsdb.add_cert(cert, nickname, trust_flags[nickname])
-            certstore.put_ca_cert_nss(api.Backend.ldap2, api.env.basedn,
-                                      cert, nickname, trust_flags[nickname])
-
-        nickname = trust_chain[-1]
-        cert = cadb.get_cert_from_db(nickname, pem=False)
-        dsdb.add_cert(cert, nickname, trust_flags[nickname])
+        cadb = certs.CertDB(
+            realm_name, nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
+            subject_base=subject_base)
+        dsdb = certs.CertDB(
+            realm_name, nssdir=dirname, subject_base=subject_base)
+        cacert = cadb.get_cert_from_db('caSigningCert cert-pki-ca', pem=False)
+        nickname = certdb.get_ca_nickname(realm_name)
+        trust_flags = 'CT,C,C'
+        dsdb.add_cert(cacert, nickname, trust_flags)
         certstore.put_ca_cert_nss(api.Backend.ldap2, api.env.basedn,
-                                  cert, nickname, trust_flags[nickname],
+                                  cacert, nickname, trust_flags,
                                   config_ipa=True, config_compat=True)
 
         # Store DS CA cert in Dogtag NSS database
-        dogtagdb = certs.CertDB(realm_name, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
         trust_flags = dict(reversed(dsdb.list_certs()))
         server_certs = dsdb.find_server_certs()
         trust_chain = dsdb.find_root_cert(server_certs[0][0])[:-1]
         nickname = trust_chain[-1]
         cert = dsdb.get_cert_from_db(nickname)
-        dogtagdb.add_cert(cert, nickname, trust_flags[nickname])
+        cadb.add_cert(cert, nickname, trust_flags[nickname])
 
     installutils.restart_dirsrv()
 
@@ -356,6 +350,8 @@ def install_step_1(standalone, replica_config, options):
 def uninstall():
     ca_instance = cainstance.CAInstance(api.env.realm)
     ca_instance.stop_tracking_certificates()
+    installutils.remove_file(paths.RA_AGENT_PEM)
+    installutils.remove_file(paths.RA_AGENT_KEY)
     if ca_instance.is_configured():
         ca_instance.uninstall()
 

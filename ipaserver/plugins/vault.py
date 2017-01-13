@@ -816,23 +816,22 @@ class vault_del(LDAPDelete):
     def post_callback(self, ldap, dn, *args, **options):
         assert isinstance(dn, DN)
 
-        kra_client = self.api.Backend.kra.get_client()
+        with self.api.Backend.kra.get_client() as kra_client:
+            kra_account = pki.account.AccountClient(kra_client.connection)
+            kra_account.login()
 
-        kra_account = pki.account.AccountClient(kra_client.connection)
-        kra_account.login()
+            client_key_id = self.obj.get_key_id(dn)
 
-        client_key_id = self.obj.get_key_id(dn)
+            # deactivate vault record in KRA
+            response = kra_client.keys.list_keys(
+                client_key_id, pki.key.KeyClient.KEY_STATUS_ACTIVE)
 
-        # deactivate vault record in KRA
-        response = kra_client.keys.list_keys(
-            client_key_id, pki.key.KeyClient.KEY_STATUS_ACTIVE)
+            for key_info in response.key_infos:
+                kra_client.keys.modify_key_status(
+                    key_info.get_key_id(),
+                    pki.key.KeyClient.KEY_STATUS_INACTIVE)
 
-        for key_info in response.key_infos:
-            kra_client.keys.modify_key_status(
-                key_info.get_key_id(),
-                pki.key.KeyClient.KEY_STATUS_INACTIVE)
-
-        kra_account.logout()
+            kra_account.logout()
 
         return True
 
@@ -987,12 +986,12 @@ class vaultconfig_show(Retrieve):
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
-        kra_client = self.api.Backend.kra.get_client()
-        transport_cert = kra_client.system_certs.get_transport_cert()
-        config = {'transport_cert': transport_cert.binary}
-        config.update(
-            self.api.Backend.serverroles.config_retrieve("KRA server")
-        )
+        with self.api.Backend.kra.get_client() as kra_client:
+            transport_cert = kra_client.system_certs.get_transport_cert()
+            config = {'transport_cert': transport_cert.binary}
+            config.update(
+                self.api.Backend.serverroles.config_retrieve("KRA server")
+            )
 
         return {
             'result': config,
@@ -1038,34 +1037,33 @@ class vault_archive_internal(PKQuery):
         vault = self.api.Command.vault_show(*args, **options)['result']
 
         # connect to KRA
-        kra_client = self.api.Backend.kra.get_client()
+        with self.api.Backend.kra.get_client() as kra_client:
+            kra_account = pki.account.AccountClient(kra_client.connection)
+            kra_account.login()
 
-        kra_account = pki.account.AccountClient(kra_client.connection)
-        kra_account.login()
+            client_key_id = self.obj.get_key_id(vault['dn'])
 
-        client_key_id = self.obj.get_key_id(vault['dn'])
+            # deactivate existing vault record in KRA
+            response = kra_client.keys.list_keys(
+                client_key_id,
+                pki.key.KeyClient.KEY_STATUS_ACTIVE)
 
-        # deactivate existing vault record in KRA
-        response = kra_client.keys.list_keys(
-            client_key_id,
-            pki.key.KeyClient.KEY_STATUS_ACTIVE)
+            for key_info in response.key_infos:
+                kra_client.keys.modify_key_status(
+                    key_info.get_key_id(),
+                    pki.key.KeyClient.KEY_STATUS_INACTIVE)
 
-        for key_info in response.key_infos:
-            kra_client.keys.modify_key_status(
-                key_info.get_key_id(),
-                pki.key.KeyClient.KEY_STATUS_INACTIVE)
+            # forward wrapped data to KRA
+            kra_client.keys.archive_encrypted_data(
+                client_key_id,
+                pki.key.KeyClient.PASS_PHRASE_TYPE,
+                wrapped_vault_data,
+                wrapped_session_key,
+                None,
+                nonce,
+            )
 
-        # forward wrapped data to KRA
-        kra_client.keys.archive_encrypted_data(
-            client_key_id,
-            pki.key.KeyClient.PASS_PHRASE_TYPE,
-            wrapped_vault_data,
-            wrapped_session_key,
-            None,
-            nonce,
-        )
-
-        kra_account.logout()
+            kra_account.logout()
 
         response = {
             'value': args[-1],
@@ -1105,29 +1103,28 @@ class vault_retrieve_internal(PKQuery):
         vault = self.api.Command.vault_show(*args, **options)['result']
 
         # connect to KRA
-        kra_client = self.api.Backend.kra.get_client()
+        with self.api.Backend.kra.get_client() as kra_client:
+            kra_account = pki.account.AccountClient(kra_client.connection)
+            kra_account.login()
 
-        kra_account = pki.account.AccountClient(kra_client.connection)
-        kra_account.login()
+            client_key_id = self.obj.get_key_id(vault['dn'])
 
-        client_key_id = self.obj.get_key_id(vault['dn'])
+            # find vault record in KRA
+            response = kra_client.keys.list_keys(
+                client_key_id,
+                pki.key.KeyClient.KEY_STATUS_ACTIVE)
 
-        # find vault record in KRA
-        response = kra_client.keys.list_keys(
-            client_key_id,
-            pki.key.KeyClient.KEY_STATUS_ACTIVE)
+            if not len(response.key_infos):
+                raise errors.NotFound(reason=_('No archived data.'))
 
-        if not len(response.key_infos):
-            raise errors.NotFound(reason=_('No archived data.'))
+            key_info = response.key_infos[0]
 
-        key_info = response.key_infos[0]
+            # retrieve encrypted data from KRA
+            key = kra_client.keys.retrieve_key(
+                key_info.get_key_id(),
+                wrapped_session_key)
 
-        # retrieve encrypted data from KRA
-        key = kra_client.keys.retrieve_key(
-            key_info.get_key_id(),
-            wrapped_session_key)
-
-        kra_account.logout()
+            kra_account.logout()
 
         response = {
             'value': args[-1],

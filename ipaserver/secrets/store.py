@@ -45,12 +45,6 @@ def PKI_TOMCAT_password_callback():
     return password
 
 
-def HTTPD_password_callback():
-    with open(os.path.join(paths.IPA_RADB_DIR, 'pwdfile.txt')) as f:
-        password = f.read()
-    return password
-
-
 class NSSWrappedCertDB(DBMAPHandler):
     '''
     Store that extracts private keys from an NSSDB, wrapped with the
@@ -193,11 +187,11 @@ class DMLDAP(DBMAPHandler):
 
 class PEMFileHandler(DBMAPHandler):
     def __init__(self, config, dbmap, nickname=None):
-        if 'type' not in dbmap or dbmap['type'] != 'OPENSSL':
-            raise ValueError('Invalid type "{t}", expected OPENSSL'
+        if 'type' not in dbmap or dbmap['type'] != 'PEM':
+            raise ValueError('Invalid type "{t}", expected PEM'
                              .format(t=dbmap['type']))
         self.certfile = dbmap['certfile']
-        self.keyfile = dbmap.get(['keyfile'])
+        self.keyfile = dbmap.get('keyfile')
 
     def export_key(self):
         _fd, tmpfile = tempfile.mkstemp(dir=paths.TMP)
@@ -266,10 +260,10 @@ NAME_DB_MAP = {
         'wrap_nick': 'caSigningCert cert-pki-ca',
     },
     'ra': {
-        'type': 'NSSDB',
-        'path': paths.IPA_RADB_DIR,
-        'handler': NSSCertDB,
-        'pwcallback': HTTPD_password_callback,
+        'type': 'PEM',
+        'handler': PEMFileHandler,
+        'certfile': paths.RA_AGENT_PEM,
+        'keyfile': paths.RA_AGENT_KEY,
     },
     'dm': {
         'type': 'DMLDAP',

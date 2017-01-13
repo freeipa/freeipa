@@ -131,8 +131,9 @@ def ca_status(ca_host=None):
     return _parse_ca_status(body)
 
 
-def https_request(host, port, url, cafile, client_certfile,
-                  method='POST', headers=None, body=None, **kw):
+def https_request(
+        host, port, url, cafile, client_certfile, client_keyfile,
+        method='POST', headers=None, body=None, **kw):
     """
     :param method: HTTP request method (defalut: 'POST')
     :param url: The path (not complete URL!) to post to.
@@ -149,6 +150,7 @@ def https_request(host, port, url, cafile, client_certfile,
             host, port,
             cafile=cafile,
             client_certfile=client_certfile,
+            client_keyfile=client_keyfile,
             tls_version_min=api.env.tls_version_min,
             tls_version_max=api.env.tls_version_max)
 

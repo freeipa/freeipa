@@ -811,13 +811,14 @@ class DsInstance(service.Service):
                     'restart_dirsrv %s' % self.serverid)
         else:
             dsdb.create_from_cacert()
-            ca_args = ['/usr/libexec/certmonger/dogtag-submit',
-                       '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
-                       '--dbdir', paths.IPA_RADB_DIR,
-                       '--nickname', 'ipaCert',
-                       '--sslpinfile', os.path.join(paths.IPA_RADB_DIR,
-                                                    'pwdfile.txt'),
-                       '--agent-submit']
+            ca_args = [
+                paths.CERTMONGER_DOGTAG_SUBMIT,
+                '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
+                '--certfile', paths.RA_AGENT_PEM,
+                '--keyfile', paths.RA_AGENT_KEY,
+                '--cafile', paths.IPA_CA_CRT,
+                '--agent-submit'
+            ]
             helper = " ".join(ca_args)
             prev_helper = certmonger.modify_ca_helper('IPA', helper)
             try:

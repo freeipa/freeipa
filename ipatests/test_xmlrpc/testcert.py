@@ -79,7 +79,7 @@ def makecert(reqdir, subject, principal):
     """
 
     ra = rabase.rabase(api)
-    if (not os.path.exists(ra.sec_dir) and
+    if (not os.path.exists(ra.client_certfile) and
             api.env.xmlrpc_uri == 'http://localhost:8888/ipa/xml'):
         raise AssertionError('The self-signed CA is not configured, '
                              'see ipatests/test_xmlrpc/test_cert.py')
