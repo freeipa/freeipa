@@ -276,6 +276,12 @@ class ca_del(LDAPDelete):
     def pre_callback(self, ldap, dn, *keys, **options):
         ca_enabled_check(self.api)
 
+        # ensure operator has permission to delete CA
+        # before contacting Dogtag
+        if not ldap.can_delete(dn):
+            raise errors.ACIError(info=_(
+                "Insufficient privilege to delete a CA."))
+
         if keys[0] == IPA_CA_CN:
             raise errors.ProtectedEntryError(
                 label=_("CA"),
@@ -314,9 +320,15 @@ class CAQuery(LDAPQuery):
     def execute(self, cn, **options):
         ca_enabled_check(self.api)
 
-        ca_id = self.api.Command.ca_show(cn)['result']['ipacaid'][0]
+        ca_obj = self.api.Command.ca_show(cn)['result']
+
+        # ensure operator has permission to modify CAs
+        if not self.api.Backend.ldap2.can_write(ca_obj['dn'], 'description'):
+            raise errors.ACIError(info=_(
+                "Insufficient privilege to modify a CA."))
+
         with self.api.Backend.ra_lightweight_ca as ca_api:
-            self.perform_action(ca_api, ca_id)
+            self.perform_action(ca_api, ca_obj['ipacaid'][0])
 
         return dict(
             result=True,
