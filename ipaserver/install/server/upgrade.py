@@ -409,8 +409,8 @@ def named_remove_deprecated_options():
     From IPA 3.3, persistent search is a default mechanism for new DNS zone
     detection.
 
-    Remove psearch, zone_refresh and cache_ttl options, as they have been
-    deprecated in bind-dyndb-ldap configuration file.
+    Remove psearch, zone_refresh cache_ttl and serial_autoincrement options,
+    as they have been deprecated in bind-dyndb-ldap configuration file.
 
     When some change in named.conf is done, this functions returns True.
     """
@@ -422,7 +422,8 @@ def named_remove_deprecated_options():
         root_logger.info('DNS is not configured')
         return False
 
-    deprecated_options = ['zone_refresh', 'psearch', 'cache_ttl']
+    deprecated_options = ['zone_refresh', 'psearch', 'cache_ttl',
+                          'serial_autoincrement']
     removed_options = []
 
     try:
@@ -498,54 +499,6 @@ def named_set_minimum_connections():
 
     return changed
 
-
-def named_enable_serial_autoincrement():
-    """
-    Serial autoincrement is a requirement for zone transfers or DNSSEC. It
-    should be enabled both for new installs and upgraded servers.
-
-    When some change in named.conf is done, this functions returns True
-    """
-    changed = False
-
-    root_logger.info('[Enabling serial autoincrement in DNS]')
-
-    if not bindinstance.named_conf_exists():
-        # DNS service may not be configured
-        root_logger.info('DNS is not configured')
-        return changed
-
-    try:
-        serial_autoincrement = bindinstance.named_conf_get_directive(
-                                    'serial_autoincrement')
-    except IOError as e:
-        root_logger.debug('Cannot retrieve psearch option from %s: %s',
-                          bindinstance.NAMED_CONF, e)
-        return changed
-    else:
-        serial_autoincrement = None if serial_autoincrement is None \
-                else serial_autoincrement.lower()
-
-    # enable SOA serial autoincrement
-    if not sysupgrade.get_upgrade_state('named.conf', 'autoincrement_enabled'):
-        if serial_autoincrement != 'yes':
-            try:
-                bindinstance.named_conf_set_directive('serial_autoincrement',
-                                                      'yes')
-            except IOError as e:
-                root_logger.error('Cannot enable serial_autoincrement in %s: %s',
-                        bindinstance.NAMED_CONF, e)
-                return changed
-            else:
-                root_logger.debug('Serial autoincrement enabled')
-                changed = True
-        else:
-            root_logger.debug('Serial autoincrement is alredy enabled')
-        sysupgrade.set_upgrade_state('named.conf', 'autoincrement_enabled', True)
-    else:
-        root_logger.debug('Skip serial autoincrement check')
-
-    return changed
 
 def named_update_gssapi_configuration():
     """
@@ -1706,7 +1659,6 @@ def upgrade_configuration():
     named_conf_changes = (
                           named_remove_deprecated_options(),
                           named_set_minimum_connections(),
-                          named_enable_serial_autoincrement(),
                           named_update_gssapi_configuration(),
                           named_update_pid_file(),
                           named_enable_dnssec(),
