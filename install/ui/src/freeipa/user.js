@@ -218,6 +218,18 @@ return {
                             label: '@i18n:objects.cert.certificates'
                         },
                         {
+                            $type: 'certmap_multivalued',
+                            name: 'ipacertmapdata',
+                            item_name: 'certmapdata',
+                            child_spec: {
+                                $type: 'non_editable_row',
+                                data_name: 'certmap'
+                            },
+                            tooltip: {
+                                title: '@mc:user_add_certmapdata.doc'
+                            }
+                        },
+                        {
                             $type: 'checkboxes',
                             name: 'ipauserauthtype',
                             flags: ['w_if_no_aci'],
