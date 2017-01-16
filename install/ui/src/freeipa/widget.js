@@ -1534,12 +1534,8 @@ IPA.custom_command_multivalued_widget = function(spec) {
      * Called on error of add command. Override point.
      */
     that.on_error_add = function(xhr, text_status, error_thrown) {
-        that.adder_dialog.focus_first_element();
-
-        if (error_thrown.message) {
-            var msg = error_thrown.message;
-            IPA.notify(msg, 'error');
-        }
+        that.adder_dialog.show();
+        exp.focus_invalid(that.adder_dialog);
     };
 
     /**
@@ -1599,27 +1595,16 @@ IPA.custom_command_multivalued_widget = function(spec) {
             name: 'custom-add-dialog'
         };
 
-        that.adder_dialog = IPA.dialog(spec);
-        that.adder_dialog.create_button({
-            name: 'add',
-            label: '@i18n:buttons.add',
-            click: function() {
-                if (!that.adder_dialog.validate()) {
-                    exp.focus_invalid(that.adder_dialog);
-                }
-                else {
-                    that.add(that.adder_dialog);
-                }
+        spec.on_ok = function() {
+            if (!that.adder_dialog.validate()) {
+                exp.focus_invalid(that.adder_dialog);
             }
-        });
+            else {
+                that.add(that.adder_dialog);
+            }
+        };
 
-        that.adder_dialog.create_button({
-            name: 'cancel',
-            label: '@i18n:buttons.cancel',
-            click: function() {
-                that.adder_dialog.close();
-            }
-        });
+        that.adder_dialog = IPA.custom_command_multivalued_dialog(spec);
     };
 
     /* on button 'Add' on adder dialog click */
