@@ -147,6 +147,18 @@ return {
                             label: '@i18n:objects.sshkeystore.keys'
                         },
                         {
+                            $type: 'certmap_multivalued',
+                            name: 'ipacertmapdata',
+                            item_name: 'certmapdata',
+                            child_spec: {
+                                $type: 'non_editable_row',
+                                data_name: 'certmap'
+                            },
+                            tooltip: {
+                                title: '@mc:stageuser_add_certmapdata.doc'
+                            }
+                        },
+                        {
                             $type: 'checkboxes',
                             name: 'ipauserauthtype',
                             flags: ['w_if_no_aci'],

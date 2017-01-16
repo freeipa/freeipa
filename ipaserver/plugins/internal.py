@@ -464,6 +464,18 @@ class i18n_messages(Command):
                 "view_certificate": _("Certificate for ${entity} ${primary_key}"),
                 "view_certificate_btn": _("View Certificate"),
             },
+            "certmap": {
+                "adder_title": _("Add Certificate Mapping Data"),
+                "data_label": _("Certificate mapping data"),
+                "certificate": _("Certificate"),
+                "conf_str": _("Configuration string"),
+                "deleter_content": _("Do you want to remove certificate mapping data ${data}?"),
+                "deleter_title": _("Remove Certificate Mapping Data"),
+                "issuer": _("Issuer"),
+                "issuer_subject": _("Issuer and subject"),
+                "subject": _("Subject"),
+                "version": _("Version"),
+            },
             "config": {
                 "group": _("Group Options"),
                 "search": _("Search Options"),

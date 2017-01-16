@@ -151,7 +151,21 @@ var nav = {};
                     ]
                 },
                 { entity: 'otptoken' },
-                { entity: 'radiusproxy' }
+                { entity: 'radiusproxy' },
+                {
+                    entity: 'certmaprule',
+                    facet: 'search',
+                    children: [
+                        {
+                            entity: 'certmaprule',
+                            facet: 'search'
+                        },
+                        {
+                            entity: 'certmapconfig',
+                            facet: 'details'
+                        }
+                    ]
+                }
             ]
         },
         {
