@@ -252,13 +252,11 @@ class test_API(ClassChecker):
         Test the `ipalib.plugable.API.bootstrap` method.
         """
         o, _home = create_test_api()
-        assert o.env._isdone('_bootstrap') is False
-        assert o.env._isdone('_finalize_core') is False
+        assert o.env._isdone('bootstrap') is False
         assert o.isdone('bootstrap') is False
         o.bootstrap(my_test_override='Hello, world!')
         assert o.isdone('bootstrap') is True
-        assert o.env._isdone('_bootstrap') is True
-        assert o.env._isdone('_finalize_core') is True
+        assert o.env._isdone('bootstrap') is True
         assert o.env.my_test_override == 'Hello, world!'
         e = raises(Exception, o.bootstrap)
         assert str(e) == 'API.bootstrap() already called'

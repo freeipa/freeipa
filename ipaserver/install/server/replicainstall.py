@@ -965,8 +965,8 @@ def promote_check(installer):
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     env = Env()
-    env._bootstrap(context='installer', confdir=paths.ETC_IPA, log=None)
-    env._finalize_core(**dict(constants.DEFAULT_CONFIG))
+    env.bootstrap(context='installer', confdir=paths.ETC_IPA, log=None)
+    env.finalize()
 
     # pylint: disable=no-member
     xmlrpc_uri = 'https://{}/ipa/xml'.format(ipautil.format_netloc(env.host))

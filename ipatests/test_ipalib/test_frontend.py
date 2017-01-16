@@ -154,7 +154,8 @@ class test_HasParam(ClassChecker):
             assert type(p) is parameters.Str
 
         # Test when env.context == 'cli':
-        cli = config.Env(context='cli')
+        cli = config.Env()
+        cli.context = 'cli'
         assert cli.context == 'cli'
         params = list(o._filter_param_by_context('stuff', cli))
         assert list(p.name for p in params) == ['one', 'two', 'three', 'four']
@@ -162,7 +163,8 @@ class test_HasParam(ClassChecker):
             assert type(p) is parameters.Str
 
         # Test when env.context == 'server'
-        server = config.Env(context='server')
+        server = config.Env()
+        server.context = 'server'
         assert server.context == 'server'
         params = list(o._filter_param_by_context('stuff', server))
         assert list(p.name for p in params) == ['one', 'two', 'five']
@@ -471,7 +473,8 @@ class test_Command(ClassChecker):
         Test the `ipalib.frontend.Command.validate` method.
         """
         class api(object):
-            env = config.Env(context='cli')
+            env = config.Env()
+            env.context = 'cli'
             @staticmethod
             def is_production_mode():
                 return False

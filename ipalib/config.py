@@ -40,13 +40,17 @@ from six.moves.configparser import RawConfigParser, ParsingError
 # pylint: enable=import-error
 
 from ipapython.dn import DN
+from ipapython.ipa_log_manager import log_mgr
 from ipalib.base import check_name
-from ipalib.constants import CONFIG_SECTION
+from ipalib.constants import CONFIG_SECTION, DEFAULT_CONFIG
 from ipalib.constants import OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
 from ipalib import errors
 
 if six.PY3:
     unicode = str
+
+logger = log_mgr.get_logger(__name__)
+
 
 class Env(object):
     """
@@ -179,20 +183,17 @@ class Env(object):
 
     These are the `Env` bootstraping methods, in the order they must be called:
 
-        1. `Env._bootstrap()` - initialize the run-time variables and then
-           merge-in variables specified on the command-line.
-
-        2. `Env._finalize_core()` - merge-in variables from the configuration
-           files and then merge-in variables from the internal defaults, after
+        1. `Env.bootstrap()` - initialize the run-time variables and then
+           merge-in variables specified on the command-line, variables from the
+           configuration files and variables from the internal defaults, after
            which at least all the standard variables will be set.  After this
            method is called, the plugins will be loaded, during which
            third-party plugins can merge-in defaults for additional variables
-           they use (likely using the `Env._merge()` method).
+           they use.
 
-        3. `Env._finalize()` - one last chance to merge-in variables and then
-           the instance is locked.  After this method is called, no more
-           environment variables can be set during the remaining life of the
-           process.
+        3. `Env.finalize()` - the instance is locked. After this method is
+           called, no more environment variables can be set during the
+           remaining life of the process.
 
     However, normally none of these three bootstraping methods are called
     directly and instead only `plugable.API.bootstrap()` is called, which itself
@@ -201,11 +202,9 @@ class Env(object):
 
     __locked = False
 
-    def __init__(self, **initialize):
+    def __init__(self):
         object.__setattr__(self, '_Env__d', {})
         object.__setattr__(self, '_Env__done', set())
-        if initialize:
-            self._merge(**initialize)
 
     def __lock__(self):
         """
@@ -408,9 +407,9 @@ class Env(object):
     def _isdone(self, name):
         return name in self.__done
 
-    def _bootstrap(self, **overrides):
+    def bootstrap(self, **overrides):
         """
-        Initialize basic environment.
+        Complete initialization of standard IPA environment.
 
         This method will perform the following steps:
 
@@ -420,19 +419,43 @@ class Env(object):
                in the configuration files.
 
             2. Merge-in the variables in ``overrides`` by calling
-               `Env._merge()`.  The intended use of ``overrides`` is to merge-in
-               variables specified on the command-line.
+               `Env._merge()`.  The intended use of ``overrides`` is to
+               merge-in variables specified on the command-line.
 
             3. Intelligently fill-in the *in_tree*, *context*, *conf*, and
                *conf_default* variables if they haven't been set already.
 
-        Also see `Env._finalize_core()`, the next method in the bootstrap
-        sequence.
+            4. Merge-in variables from the configuration file ``self.conf``
+               (if it exists) by calling `Env._merge_from_file()`.
+
+            5. Merge-in variables from the defaults configuration file
+               ``self.conf_default`` (if it exists) by calling
+               `Env._merge_from_file()`.
+
+            6. Intelligently fill-in the *in_server* , *logdir*, *log*, and
+               *jsonrpc_uri* variables if they haven't already been set.
+
+            7. Merge-in the variables in `constants.DEFAULT_CONFIG` by calling
+               `Env._merge()`.
+
+        After this method is called, all the environment variables used by all
+        the built-in plugins will be available.  As such, this method should be
+        called *before* any plugins are loaded.
+
+        After this method has finished, the `Env` instance is still writable
+        so that 3rd-party plugins can set variables they may require as the
+        plugins are registered.
+
+        Also see `Env.finalize()`, the final method in the bootstrap sequence.
 
         :param overrides: Variables specified via command-line options.
         """
-        self.__doing('_bootstrap')
+        self.__doing('bootstrap')
 
+        self._bootstrap(**overrides)
+        self._finalize_core(**dict(DEFAULT_CONFIG))
+
+    def _bootstrap(self, **overrides):
         # Set run-time variables (cannot be overridden):
         self.ipalib = path.dirname(path.abspath(__file__))
         self.site_packages = path.dirname(self.ipalib)
@@ -482,6 +505,11 @@ class Env(object):
             else:
                 self.confdir = path.join('/', 'etc', 'ipa')
 
+        if self.env_confdir is not None:
+            if self.env_confdir == self.confdir:
+                logger.info(
+                    "IPA_CONFDIR env sets confdir to '%s'.", self.confdir)
+
         # Set conf (config file for this context):
         if 'conf' not in self:
             self.conf = self._join('confdir', '%s.conf' % self.context)
@@ -498,42 +526,6 @@ class Env(object):
             self.plugins_on_demand = (self.context == 'cli')
 
     def _finalize_core(self, **defaults):
-        """
-        Complete initialization of standard IPA environment.
-
-        This method will perform the following steps:
-
-            1. Call `Env._bootstrap()` if it hasn't already been called.
-
-            2. Merge-in variables from the configuration file ``self.conf``
-               (if it exists) by calling `Env._merge_from_file()`.
-
-            3. Merge-in variables from the defaults configuration file
-               ``self.conf_default`` (if it exists) by calling
-               `Env._merge_from_file()`.
-
-            4. Intelligently fill-in the *in_server* , *logdir*, *log*, and
-               *jsonrpc_uri* variables if they haven't already been set.
-
-            5. Merge-in the variables in ``defaults`` by calling `Env._merge()`.
-               In normal circumstances ``defaults`` will simply be those
-               specified in `constants.DEFAULT_CONFIG`.
-
-        After this method is called, all the environment variables used by all
-        the built-in plugins will be available.  As such, this method should be
-        called *before* any plugins are loaded.
-
-        After this method has finished, the `Env` instance is still writable
-        so that 3rd-party plugins can set variables they may require as the
-        plugins are registered.
-
-        Also see `Env._finalize()`, the final method in the bootstrap sequence.
-
-        :param defaults: Internal defaults for all built-in variables.
-        """
-        self.__doing('_finalize_core')
-        self.__do_if_not_done('_bootstrap')
-
         # Merge in context config file and then default config file:
         if self.__d.get('mode', None) != 'dummy':
             self._merge_from_file(self.conf)
@@ -578,18 +570,15 @@ class Env(object):
 
         self._merge(**defaults)
 
-    def _finalize(self, **lastchance):
+    def finalize(self):
         """
         Finalize and lock environment.
 
         This method will perform the following steps:
 
-            1. Call `Env._finalize_core()` if it hasn't already been called.
+            1. Call `Env.bootstrap()` if it hasn't already been called.
 
-            2. Merge-in the variables in ``lastchance`` by calling
-               `Env._merge()`.
-
-            3. Lock this `Env` instance, after which no more environment
+            2. Lock this `Env` instance, after which no more environment
                variables can be set on this instance.  Aside from unit-tests
                and example code, normally only one `Env` instance is created,
                which means that after this step, no more variables can be set
@@ -600,7 +589,6 @@ class Env(object):
 
         :param lastchance: Any final variables to merge-in before locking.
         """
-        self.__doing('_finalize')
-        self.__do_if_not_done('_finalize_core')
-        self._merge(**lastchance)
+        self.__doing('finalize')
+        self.__do_if_not_done('bootstrap')
         self.__lock__()

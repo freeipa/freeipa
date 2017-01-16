@@ -11,7 +11,7 @@ from ipaplatform.paths import paths
 from ipaserver.secrets.client import CustodiaClient
 
 env = Env()
-env._finalize()
+env.finalize()
 
 keyname = "ca_wrapped/" + sys.argv[1]
 servername = sys.argv[2]

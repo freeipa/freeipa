@@ -712,7 +712,7 @@ This will be called before any plugins are registered, so plugin authors can
 assume these variables will all exist by the time the module containing their
 plugin (or plugins) is imported.
 
-`Env._bootstrap()`, which is called by `API.bootstrap()`, will create several
+`Env.bootstrap()`, which is called by `API.bootstrap()`, will create several
 run-time variables that cannot be overridden in configuration files or through
 command-line options.  Here is an overview of this run-time information:
 
@@ -732,8 +732,8 @@ If your plugin requires new environment variables *and* will be included in
 the freeIPA built-in plugins, you should add the defaults for your variables
 in `ipalib.constants.DEFAULT_CONFIG`.  Also, you should consider whether your
 new environment variables should have any auto-magic logic to determine their
-values if they haven't already been set by the time `config.Env._bootstrap()`,
-`config.Env._finalize_core()`, or `config.Env._finalize()` is called.
+values if they haven't already been set by the time `config.Env.bootstrap()`,
+or `config.Env.finalize()` is called.
 
 On the other hand, if your plugin requires new environment variables and will
 be installed in a 3rd-party package, your plugin should set these variables

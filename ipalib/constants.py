@@ -125,7 +125,7 @@ DEFAULT_CONFIG = (
 
     # Ports, hosts, and URIs:
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),
-    # jsonrpc_uri is set in Env._finalize_core()
+    # jsonrpc_uri is set in Env.bootstrap()
     ('ldap_uri', 'ldap://localhost:389'),
 
     ('rpc_protocol', 'jsonrpc'),
@@ -158,7 +158,7 @@ DEFAULT_CONFIG = (
     ('wait_for_dns', 0),
 
     # CA plugin:
-    ('ca_host', FQDN),  # Set in Env._finalize_core()
+    ('ca_host', FQDN),  # Set in Env.bootstrap()
     ('ca_port', 80),
     ('ca_agent_port', 443),
     ('ca_ee_port', 443),
@@ -197,18 +197,18 @@ DEFAULT_CONFIG = (
     #  The remaining keys are never set from the values here!
     # ********************************************************
     #
-    # Env._bootstrap() or Env._finalize_core() will have filled in all the keys
+    # Env.bootstrap() will have filled in all the keys
     # below by the time DEFAULT_CONFIG is merged in, so the values below are
     # never actually used.  They are listed both to provide a big picture and
     # also so DEFAULT_CONFIG contains at least all the keys that should be
-    # present after Env._finalize_core() is called.
+    # present after Env.bootstrap() is called.
     #
     # Each environment variable below is sent to ``object``, which just happens
     # to be an invalid value for an environment variable, so if for some reason
     # any of these keys were set from the values here, an exception will be
     # raised.
 
-    # Non-overridable vars set in Env._bootstrap():
+    # Non-overridable vars set in Env.bootstrap():
     ('host', FQDN),
     ('ipalib', object),  # The directory containing ipalib/__init__.py
     ('site_packages', object),  # The directory contaning ipalib
@@ -216,7 +216,7 @@ DEFAULT_CONFIG = (
     ('bin', object),  # The directory containing the script
     ('home', object),  # $HOME
 
-    # Vars set in Env._bootstrap():
+    # Vars set in Env.bootstrap():
     ('in_tree', object),  # Whether or not running in-tree (bool)
     ('dot_ipa', object),  # ~/.ipa directory
     ('context', object),  # Name of context, default is 'default'
@@ -227,12 +227,12 @@ DEFAULT_CONFIG = (
     ('plugins_on_demand', object),  # Whether to finalize plugins on-demand (bool)
     ('nss_dir', object),  # Path to nssdb, default {confdir}/nssdb
 
-    # Set in Env._finalize_core():
+    # Set in Env.bootstrap():
     ('in_server', object),  # Whether or not running in-server (bool)
     ('logdir', object),  # Directory containing log files
     ('log', object),  # Path to context specific log file
-    ('jsonrpc_uri', object),  # derived from xmlrpc_uri in Env._finalize_core()
-    ('server', object),  # derived from jsonrpc_uri in Env._finalize_core()
+    ('jsonrpc_uri', object),  # derived from xmlrpc_uri in Env.bootstrap()
+    ('server', object),  # derived from jsonrpc_uri in Env.bootstrap()
 
 )
 

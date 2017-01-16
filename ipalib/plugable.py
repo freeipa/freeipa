@@ -41,7 +41,6 @@ from ipalib.config import Env
 from ipalib.text import _
 from ipalib.util import classproperty
 from ipalib.base import ReadOnly, lock, islocked
-from ipalib.constants import DEFAULT_CONFIG
 from ipapython import ipautil
 from ipapython.ipa_log_manager import (
     log_mgr,
@@ -431,8 +430,7 @@ class API(ReadOnly):
         self.log_mgr = log_mgr
         log = log_mgr.root_logger
         self.log = log
-        self.env._bootstrap(**overrides)
-        self.env._finalize_core(**dict(DEFAULT_CONFIG))
+        self.env.bootstrap(**overrides)
 
         # Add the argument parser
         if not parser:
@@ -713,11 +711,6 @@ class API(ReadOnly):
         self.__doing('finalize')
         self.__do_if_not_done('load_plugins')
 
-        if self.env.env_confdir is not None:
-            if self.env.env_confdir == self.env.confdir:
-                self.log.info(
-                    "IPA_CONFDIR env sets confdir to '%s'.", self.env.confdir)
-
         for plugin in self.__plugins:
             if not self.env.validate_api:
                 if plugin.full_name not in DEFAULT_PLUGINS:
@@ -760,6 +753,8 @@ class API(ReadOnly):
                     assert islocked(instance)
 
         self.__finalized = True
+
+        self.env.finalize()
 
         if not production_mode:
             lock(self)
