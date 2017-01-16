@@ -1792,6 +1792,8 @@ IPA.custom_command_multivalued_widget = function(spec) {
 IPA.krb_principal_multivalued_widget = function (spec) {
 
     spec = spec || {};
+    spec.child_spec = spec.child_spec || {};
+    spec.child_spec.data_name = spec.child_spec.data_name || 'krb-principal';
 
     spec.adder_dialog_spec = spec.adder_dialog_spec || {
         title: '@i18n:krbaliases.adder_title',
@@ -1812,7 +1814,7 @@ IPA.krb_principal_multivalued_widget = function (spec) {
 
     that.create_remove_dialog_message = function(row) {
         var message = text.get('@i18n:krbaliases.remove_message');
-        message = message.replace('${alias}', row.widget.principal_name);
+        message = message.replace('${alias}', row.widget.new_value);
 
         return message;
     };
@@ -1820,7 +1822,7 @@ IPA.krb_principal_multivalued_widget = function (spec) {
 
     that.create_remove_args = function(row) {
         var pkey = that.facet.get_pkey();
-        var krbprincipalname = row.widget.principal_name;
+        var krbprincipalname = row.widget.new_value;
         krbprincipalname = [ krbprincipalname ];
 
         var args = [
@@ -1847,22 +1849,27 @@ IPA.krb_principal_multivalued_widget = function (spec) {
 };
 
 /**
- * Widget which is used as row in kerberos aliases multivalued widget.
- * It contains only string where is the principal alias name and delete button.
+ * Widget which is used as row in multivalued widget. Each row is just
+ * non-editable text field.
  *
  * @class
  * @extends IPA.input_widget
  */
-IPA.krb_principal_widget = function(spec) {
+IPA.non_editable_row_widget = function(spec) {
     spec = spec || {};
 
     var that = IPA.input_widget();
 
+    /**
+     * Prefix of CSS class of each row.
+     */
+    that.data_name = spec.data_name || 'non-editable';
+
     that.create = function(container) {
         that.widget_create(container);
 
-        that.principal_text = $('<span />', {
-            'class': 'krb-principal-name',
+        that.data_text = $('<span />', {
+            'class': that.data_name + '-data',
             text: ''
         }).appendTo(container);
 
@@ -1875,18 +1882,19 @@ IPA.krb_principal_widget = function(spec) {
 
     that.update = function(value) {
 
-        var principal_name = value[0] || '';
+        var single_value = value[0] || '';
 
-        that.principal_name = principal_name;
+        that.new_value = single_value;
         that.update_text();
     };
 
     that.update_text = function() {
-        that.principal_text.text(that.principal_name);
+        that.data_text.text(that.new_value);
     };
 
     return that;
 };
+
 
 /**
  * Option widget base
@@ -7161,6 +7169,7 @@ exp.register = function() {
     w.register('html', IPA.html_widget);
     w.register('link', IPA.link_widget);
     w.register('multivalued', IPA.multivalued_widget);
+    w.register('non_editable_row', IPA.non_editable_row_widget);
     w.register('custom_command_multivalued',
         IPA.custom_command_multivalued_widget);
     w.register('krb_principal_multivalued',

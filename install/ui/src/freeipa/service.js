@@ -81,7 +81,8 @@ return {
                             name: 'krbprincipalname',
                             item_name: 'principal',
                             child_spec: {
-                                $type: 'krb_principal'
+                                $type: 'non_editable_row',
+                                data_name: 'krb-principal'
                             }
                         },
                         {
