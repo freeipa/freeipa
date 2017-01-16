@@ -484,7 +484,16 @@ field.field = IPA.field = function(spec) {
                 writable = false;
             }
 
-            if (that.metadata.flags && array.indexOf(that.metadata.flags, 'no_update') > -1) {
+            // In case that field has set always_writable attribute, then
+            // 'no_update' flag is ignored in WebUI. It is done because of
+            // commands like user-{add,remove}-certmap. They operate with user's
+            // attribute, which cannot be changed using user-mod, but only
+            // using command user-{add,remove}-certmap. Therefore it has set
+            // 'no_update' flag, but we need to show 'Add', 'Remove' buttons in
+            // WebUI.
+            if (that.metadata.flags &&
+                array.indexOf(that.metadata.flags, 'no_update') > -1 &&
+                !that.always_writable) {
                 writable = false;
             }
         }
@@ -1259,6 +1268,37 @@ field.certs_field = IPA.certs_field = function(spec) {
     return that;
 };
 
+
+/**
+ * Used along with custom_command_multivalued widget
+ *
+ * - by default has `w_if_no_aci` to workaround missing object class
+ * - by default has always_writable=true to workaround aci rights
+ *
+ * @class
+ * @alternateClassName IPA.custom_command_multivalued_field
+ * @extends IPA.field
+ */
+field.certmap_command_multivalued_field = function(spec) {
+
+    spec = spec || {};
+    spec.flags = spec.flags || ['w_if_no_aci'];
+
+    var that = IPA.field(spec);
+
+    /**
+     * Set field always writable in case that it is set to true
+     * @param Boolean always_writable
+     */
+    that.always_writable = spec.always_writable === undefined ? true :
+            spec.always_writable;
+
+    return that;
+};
+
+
+IPA.custom_command_multivalued_field = field.custom_command_multivalued_field;
+
 /**
  * SSH Keys Adapter
  * @class
@@ -1652,6 +1692,7 @@ field.register = function() {
     f.register('checkbox', field.checkbox_field);
     f.register('checkboxes', field.field);
     f.register('combobox', field.field);
+    f.register('certmap_multivalued', field.certmap_command_multivalued_field);
     f.register('datetime', field.datetime_field);
     f.register('enable', field.enable_field);
     f.register('entity_select', field.field);
