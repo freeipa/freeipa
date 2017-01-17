@@ -29,8 +29,13 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
     except ImportError:
         _dcerpc_bindings_installed = False
 
-import pyhbac
 import six
+
+try:
+    import pyhbac
+except ImportError:
+    pyhbac = None
+
 
 if six.PY3:
     unicode = str
@@ -210,7 +215,7 @@ EXAMPLES:
 
 register = Registry()
 
-def convert_to_ipa_rule(rule):
+def _convert_to_ipa_rule(rule):
     # convert a dict with a rule to an pyhbac rule
     ipa_rule = pyhbac.HbacRule(rule['cn'][0])
     ipa_rule.enabled = rule['ipaenabledflag'][0]
@@ -309,6 +314,14 @@ class hbactest(Command):
         return host
 
     def execute(self, *args, **options):
+        if pyhbac is None:
+            raise errors.ValidationError(
+                name=_('missing pyhbac'),
+                error=_(
+                    'pyhbac is not available on the server.'
+                )
+            )
+
         # First receive all needed information:
         # 1. HBAC rules (whether enabled or disabled)
         # 2. Required options are (user, target host, service)
@@ -356,7 +369,7 @@ class hbactest(Command):
         # --disabled will import all disabled rules
         # --rules will implicitly add the rules from a rule list
         for rule in hbacset:
-            ipa_rule = convert_to_ipa_rule(rule)
+            ipa_rule = _convert_to_ipa_rule(rule)
             if ipa_rule.name in testrules:
                 ipa_rule.enabled = True
                 rules.append(ipa_rule)
