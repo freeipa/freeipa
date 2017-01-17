@@ -385,6 +385,12 @@ AC_SUBST([GIT_VERSION], [IPA_GIT_VERSION])
 # used by Makefile.am for files depending on templates
 AC_SUBST([CONFIG_STATUS])
 
+# workaround for syntax clash between make and automake
+AC_SUBST([MK_IFEQ], [ifeq])
+AC_SUBST([MK_ELSE], [else])
+AC_SUBST([MK_ENDIF], [endif])
+AC_SUBST([MK_ASSIGN], [=])
+
 dnl ---------------------------------------------------------------------------
 dnl Finish
 dnl ---------------------------------------------------------------------------

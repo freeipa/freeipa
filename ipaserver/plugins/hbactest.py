@@ -34,7 +34,7 @@ import six
 try:
     import pyhbac
 except ImportError:
-    pyhbac = None
+    raise errors.SkipPluginModule(reason=_('pyhbac is not installed.'))
 
 
 if six.PY3:
@@ -314,14 +314,6 @@ class hbactest(Command):
         return host
 
     def execute(self, *args, **options):
-        if pyhbac is None:
-            raise errors.ValidationError(
-                name=_('missing pyhbac'),
-                error=_(
-                    'pyhbac is not available on the server.'
-                )
-            )
-
         # First receive all needed information:
         # 1. HBAC rules (whether enabled or disabled)
         # 2. Required options are (user, target host, service)
