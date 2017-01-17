@@ -1304,8 +1304,10 @@ class cert_find(Search, CertMethod):
             elif isinstance(value, DN):
                 value = unicode(value)
             ra_options[name] = value
-        if sizelimit:
-            ra_options['sizelimit'] = sizelimit
+        if sizelimit > 0:
+            # Dogtag doesn't tell that the size limit was exceeded
+            # search for one more entry so that we can tell ourselves
+            ra_options['sizelimit'] = sizelimit + 1
         if exactly:
             ra_options['exactly'] = True
 
@@ -1319,11 +1321,16 @@ class cert_find(Search, CertMethod):
                 raise
             return result, False, complete
 
-        ca_objs = self.api.Command.ca_find()['result']
+        ca_objs = self.api.Command.ca_find(timelimit=0, sizelimit=0)['result']
         ca_objs = {DN(ca['ipacasubjectdn'][0]): ca for ca in ca_objs}
 
         ra = self.api.Backend.ra
         for ra_obj in ra.find(ra_options):
+            if sizelimit > 0 and len(result) >= sizelimit:
+                self.add_message(messages.SearchResultTruncated(
+                        reason=errors.SizeLimitExceeded()))
+                break
+
             issuer = DN(ra_obj['issuer'])
             serial_number = ra_obj['serial_number']
 
@@ -1453,6 +1460,12 @@ class cert_find(Search, CertMethod):
         if criteria is not None:
             return dict(result=[], count=0, truncated=False)
 
+        # respect the configured search limits
+        if timelimit is None:
+            timelimit = self.api.Backend.ldap2.time_limit
+        if sizelimit is None:
+            sizelimit = self.api.Backend.ldap2.size_limit
+
         result = collections.OrderedDict()
         truncated = False
         complete = False
@@ -1470,7 +1483,7 @@ class cert_find(Search, CertMethod):
                 **options)
 
             if sub_complete:
-                sizelimit = None
+                sizelimit = 0
 
                 for key in tuple(result):
                     if key not in sub_result:
