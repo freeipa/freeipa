@@ -29,7 +29,8 @@ class build_py(setuptools_build_py):
 
     def finalize_options(self):
         setuptools_build_py.finalize_options(self)
-        if 'bdist_wheel' in self.distribution.commands:
+        omit = os.environ.get('IPA_OMIT_INSTALL', '0')
+        if omit == '1':
             distname = self.distribution.metadata.name
             self.skip_package = '{}.install'.format(distname)
             log.warn("bdist_wheel: Ignore package: %s",

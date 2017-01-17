@@ -256,6 +256,17 @@ endif  # WITH_JSLINT
 WHEELDISTDIR = $(top_builddir)/dist/wheels
 WHEELBUNDLEDIR = $(top_builddir)/dist/bundle
 
+@MK_IFEQ@ ($(IPA_SERVER_WHEELS),1)
+    IPA_WHEEL_PACKAGES @MK_ASSIGN@ $(IPACLIENT_SUBDIRS) ipaplatform ipaserver
+    IPA_OMIT_INSTALL @MK_ASSIGN@ 0
+@MK_ELSE@
+    IPA_WHEEL_PACKAGES @MK_ASSIGN@ $(IPACLIENT_SUBDIRS)
+    IPA_OMIT_INSTALL @MK_ASSIGN@ 1
+@MK_ENDIF@
+
+# additional wheels for bundle, e.g. IPA_EXTRA_WHEELS="ipatests[webui] pylint"
+IPA_EXTRA_WHEELS=
+
 $(WHEELDISTDIR):
 	mkdir -p $(WHEELDISTDIR)
 
@@ -263,19 +274,22 @@ $(WHEELBUNDLEDIR):
 	mkdir -p $(WHEELBUNDLEDIR)
 
 bdist_wheel: $(WHEELDISTDIR)
-	for dir in $(IPACLIENT_SUBDIRS); do \
+	rm -f $(foreach item,$(IPA_WHEEL_PACKAGES) ipatests,$(WHEELDISTDIR)/$(item)-*.whl)
+	export IPA_OMIT_INSTALL=$(IPA_OMIT_INSTALL); \
+	for dir in $(IPA_WHEEL_PACKAGES) ipatests; do \
 	    $(MAKE) $(AM_MAKEFLAGS) -C $${dir} $@ || exit 1; \
 	done
 
 wheel_bundle: $(WHEELBUNDLEDIR) bdist_wheel .wheelconstraints
-	rm -f $(foreach item,$(IPACLIENT_SUBDIRS),$(WHEELBUNDLEDIR)/$(item)-*.whl)
-	$(PYTHON) -m pip wheel \
+	rm -f $(foreach item,$(IPA_WHEEL_PACKAGES) ipatests,$(WHEELBUNDLEDIR)/$(item)-*.whl)
+	@# dbus-python sometimes fails when MAKEFLAGS is set to -j2 or higher
+	MAKEFLAGS= $(PYTHON) -m pip wheel \
 	    --disable-pip-version-check \
 	    --constraint .wheelconstraints \
 	    --find-links $(WHEELDISTDIR) \
 	    --find-links $(WHEELBUNDLEDIR) \
 	    --wheel-dir $(WHEELBUNDLEDIR) \
-	    $(IPACLIENT_SUBDIRS)
+	    $(IPA_WHEEL_PACKAGES) $(IPA_EXTRA_WHEELS)
 
 wheel_placeholder: $(WHEELDISTDIR)
 	for dir in $(IPA_PLACEHOLDERS); do \

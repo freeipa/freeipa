@@ -71,7 +71,6 @@ if __name__ == '__main__':
         },
         extras_require={
             # These packages are currently not available on PyPI.
-            "caacl": ["pyhbac"],
             "dcerpc": ["samba", "pysss", "pysss_nss_idmap"],
             "hbactest": ["pyhbac"],
             "install": ["SSSDConfig"],

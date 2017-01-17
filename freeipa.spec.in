@@ -146,6 +146,7 @@ BuildRequires:  python-cffi
 # Build dependencies for wheel packaging and PyPI upload
 #
 %if 0%{with_wheels}
+BuildRequires:  dbus-glib-devel
 BuildRequires:  python2-twine
 BuildRequires:  python2-wheel
 %if 0%{?with_python3}
