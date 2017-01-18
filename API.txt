@@ -4773,6 +4773,17 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
+command: stageuser_add_principal/1
+args: 2,4,3
+arg: Str('uid', cli_name='login')
+arg: Principal('krbprincipalname+', alwaysask=True, autofill=True, cli_name='principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: stageuser_del/1
 args: 1,2,3
 arg: Str('uid+', cli_name='login')
@@ -4915,6 +4926,17 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
+command: stageuser_remove_principal/1
+args: 2,4,3
+arg: Str('uid', cli_name='login')
+arg: Principal('krbprincipalname+', alwaysask=True, autofill=True, cli_name='principal')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: stageuser_show/1
 args: 1,5,3
 arg: Str('uid', cli_name='login')
@@ -6685,11 +6707,13 @@ default: stageuser_activate/1
 default: stageuser_add/1
 default: stageuser_add_cert/1
 default: stageuser_add_manager/1
+default: stageuser_add_principal/1
 default: stageuser_del/1
 default: stageuser_find/1
 default: stageuser_mod/1
 default: stageuser_remove_cert/1
 default: stageuser_remove_manager/1
+default: stageuser_remove_principal/1
 default: stageuser_show/1
 default: sudocmd/1
 default: sudocmd_add/1
