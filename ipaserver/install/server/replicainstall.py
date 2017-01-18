@@ -40,7 +40,7 @@ from ipaserver.install import (
 from ipaserver.install.installutils import (
     create_replica_config, ReplicaConfig, load_pkcs12, is_ipa_configured)
 from ipaserver.install.replication import (
-    ReplicationManager, replica_conn_check)
+    ReplicationManager, replica_conn_check, wait_for_entry)
 import SSSDConfig
 from subprocess import CalledProcessError
 from binascii import hexlify
@@ -90,6 +90,14 @@ def install_http_certs(config, fstore, remote_api):
                                         config.master_host_name,
                                         paths.IPA_KEYTAB,
                                         force_service_add=True)
+    dn = DN(
+        ('krbprincipalname', principal),
+        api.env.container_service, api.env.basedn
+    )
+    conn = ipaldap.IPAdmin(realm=config.realm_name, ldapi=True)
+    conn.do_external_bind()
+    wait_for_entry(conn, dn)
+    conn.unbind()
 
     # Obtain certificate for the HTTP service
     nssdir = certs.NSS_DIR
