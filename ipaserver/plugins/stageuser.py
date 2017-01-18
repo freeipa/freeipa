@@ -39,6 +39,8 @@ from .baseuser import (
     baseuser_show,
     NO_UPG_MAGIC,
     baseuser_output_params,
+    baseuser_add_cert,
+    baseuser_remove_cert,
     baseuser_add_manager,
     baseuser_remove_manager)
 from ipalib.request import context
@@ -744,3 +746,15 @@ class stageuser_add_manager(baseuser_add_manager):
 @register()
 class stageuser_remove_manager(baseuser_remove_manager):
     __doc__ = _("Remove a manager to the stage user entry")
+
+
+@register()
+class stageuser_add_cert(baseuser_add_cert):
+    __doc__ = _("Add one or more certificates to the stageuser entry")
+    msg_summary = _('Added certificates to stageuser "%(value)s"')
+
+
+@register()
+class stageuser_remove_cert(baseuser_remove_cert):
+    __doc__ = _("Remove one or more certificates to the stageuser entry")
+    msg_summary = _('Removed certificates from stageuser "%(value)s"')
