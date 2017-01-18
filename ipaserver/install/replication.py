@@ -176,7 +176,7 @@ def wait_for_entry(connection, dn, timeout=7200, attr='', quiet=True):
         except errors.NotFound:
             pass  # no entry yet
         except Exception as e:  # badness
-            print("\nError reading entry", dn, e)
+            root_logger.error("Error reading entry %s: %s", dn, e)
             break
         if not entry:
             if not quiet:
@@ -185,11 +185,13 @@ def wait_for_entry(connection, dn, timeout=7200, attr='', quiet=True):
             time.sleep(1)
 
     if not entry and int(time.time()) > timeout:
-        print("\nwait_for_entry timeout for %s for %s" % (connection, dn))
+        root_logger.error(
+            "wait_for_entry timeout for %s for %s", connection, dn)
     elif entry and not quiet:
-        print("\nThe waited for entry is:", entry)
+        root_logger.error("The waited for entry is: %s", entry)
     elif not entry:
-        print("\nError: could not read entry %s from %s" % (dn, connection))
+        root_logger.error(
+            "Error: could not read entry %s from %s", dn, connection)
 
 
 class ReplicationManager(object):
