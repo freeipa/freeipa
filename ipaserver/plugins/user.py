@@ -43,6 +43,8 @@ from .baseuser import (
     fix_addressbook_permission_bindrule,
     baseuser_add_manager,
     baseuser_remove_manager,
+    baseuser_add_cert,
+    baseuser_remove_cert,
     baseuser_add_principal,
     baseuser_remove_principal)
 from .idviews import remove_ipaobject_overrides
@@ -53,9 +55,7 @@ from .baseldap import (
     LDAPCreate,
     LDAPSearch,
     LDAPQuery,
-    LDAPMultiQuery,
-    LDAPAddAttributeViaOption,
-    LDAPRemoveAttributeViaOption)
+    LDAPMultiQuery)
 from . import baseldap
 from ipalib.request import context
 from ipalib import _, ngettext
@@ -1157,47 +1157,15 @@ class user_status(LDAPQuery):
 
 
 @register()
-class user_add_cert(LDAPAddAttributeViaOption):
+class user_add_cert(baseuser_add_cert):
     __doc__ = _('Add one or more certificates to the user entry')
     msg_summary = _('Added certificates to user "%(value)s"')
-    attribute = 'usercertificate'
-
-    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
-                     **options):
-        dn = self.obj.get_either_dn(*keys, **options)
-
-        self.obj.convert_usercertificate_pre(entry_attrs)
-
-        return dn
-
-    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        assert isinstance(dn, DN)
-
-        self.obj.convert_usercertificate_post(entry_attrs, **options)
-
-        return dn
 
 
 @register()
-class user_remove_cert(LDAPRemoveAttributeViaOption):
+class user_remove_cert(baseuser_remove_cert):
     __doc__ = _('Remove one or more certificates to the user entry')
     msg_summary = _('Removed certificates from user "%(value)s"')
-    attribute = 'usercertificate'
-
-    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
-                     **options):
-        dn = self.obj.get_either_dn(*keys, **options)
-
-        self.obj.convert_usercertificate_pre(entry_attrs)
-
-        return dn
-
-    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        assert isinstance(dn, DN)
-
-        self.obj.convert_usercertificate_post(entry_attrs, **options)
-
-        return dn
 
 
 @register()

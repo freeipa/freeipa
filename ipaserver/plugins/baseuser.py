@@ -26,7 +26,7 @@ from ipalib.plugable import Registry
 from .baseldap import (
     DN, LDAPObject, LDAPCreate, LDAPUpdate, LDAPSearch, LDAPDelete,
     LDAPRetrieve, LDAPAddAttribute, LDAPRemoveAttribute, LDAPAddMember,
-    LDAPRemoveMember)
+    LDAPRemoveMember, LDAPAddAttributeViaOption, LDAPRemoveAttributeViaOption)
 from ipaserver.plugins.service import (
    validate_certificate, validate_realm, normalize_principal)
 from ipalib.request import context
@@ -693,4 +693,38 @@ class baseuser_remove_principal(LDAPRemoveAttribute):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         ensure_last_krbprincipalname(ldap, entry_attrs, *keys)
+        return dn
+
+
+class baseuser_add_cert(LDAPAddAttributeViaOption):
+    attribute = 'usercertificate'
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+        self.obj.convert_usercertificate_pre(entry_attrs)
+
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
+
+        return dn
+
+
+class baseuser_remove_cert(LDAPRemoveAttributeViaOption):
+    attribute = 'usercertificate'
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+        self.obj.convert_usercertificate_pre(entry_attrs)
+
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
+
         return dn
