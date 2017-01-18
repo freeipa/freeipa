@@ -459,7 +459,7 @@ class DogtagInstance(service.Service):
         ldap_uri = ipaldap.get_ldap_uri(self.master_host)
         master_conn = ipaldap.LDAPClient(ldap_uri)
         master_conn.gssapi_bind()
-        replication.wait_for_entry(master_conn, entry)
+        replication.wait_for_entry(master_conn, entry.dn)
         del master_conn
 
     def __remove_admin_from_group(self, group):
