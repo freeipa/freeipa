@@ -470,7 +470,7 @@ class DogtagInstance(service.Service):
                                       port=389,
                                       protocol='ldap')
         master_conn.do_sasl_gssapi_bind()
-        replication.wait_for_entry(master_conn, entry)
+        replication.wait_for_entry(master_conn, entry.dn)
         del master_conn
 
     def __remove_admin_from_group(self, group):
