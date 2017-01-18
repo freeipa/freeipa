@@ -41,6 +41,8 @@ from .baseuser import (
     baseuser_output_params,
     baseuser_add_cert,
     baseuser_remove_cert,
+    baseuser_add_principal,
+    baseuser_remove_principal,
     baseuser_add_manager,
     baseuser_remove_manager)
 from ipalib.request import context
@@ -758,3 +760,15 @@ class stageuser_add_cert(baseuser_add_cert):
 class stageuser_remove_cert(baseuser_remove_cert):
     __doc__ = _("Remove one or more certificates to the stageuser entry")
     msg_summary = _('Removed certificates from stageuser "%(value)s"')
+
+
+@register()
+class stageuser_add_principal(baseuser_add_principal):
+    __doc__ = _('Add new principal alias to the stageuser entry')
+    msg_summary = _('Added new aliases to stageuser "%(value)s"')
+
+
+@register()
+class stageuser_remove_principal(baseuser_remove_principal):
+    __doc__ = _('Remove principal alias from the stageuser entry')
+    msg_summary = _('Removed aliases from stageuser "%(value)s"')
