@@ -750,7 +750,7 @@ def unlock_principal_password(user, oldpw, newpw):
         user, api.env.container_user, api.env.basedn)
 
     args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
-            '-s', newpw, '-x']
+            '-s', newpw, '-x', '-H', api.env.ldap_uri]
     return run(args)
 
 

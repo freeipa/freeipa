@@ -1326,9 +1326,10 @@ def ldappasswd_user_change(user, oldpw, newpw, master):
     basedn = master.domain.basedn
 
     userdn = "uid={},{},{}".format(user, container_user, basedn)
+    master_ldap_uri = "ldap://{}".format(master.external_hostname)
 
     args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
-            '-s', newpw, '-x']
+            '-s', newpw, '-x', '-H', master_ldap_uri]
     master.run_command(args)
 
 
