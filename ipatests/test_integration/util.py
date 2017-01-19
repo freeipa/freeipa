@@ -21,6 +21,7 @@ import time
 import re
 
 from ipaplatform.paths import paths
+from ipalib import api
 from ipalib.constants import DEFAULT_CONFIG
 
 def run_repeatedly(host, command, assert_zero_rc=True, test=None,
@@ -86,5 +87,5 @@ def ldappasswd_user_change(user, oldpw, newpw, master):
     userdn = "uid={},{},{}".format(user, container_user, basedn)
 
     args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
-            '-s', newpw, '-x']
+            '-s', newpw, '-x', '-H', api.env.ldap_uri]
     master.run_command(args)
