@@ -15,6 +15,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
 from ipatests.test_xmlrpc.tracker.service_plugin import ServiceTracker
+from ipatests.test_xmlrpc.tracker.stageuser_plugin import StageUserTracker
 from ipatests.test_xmlrpc.mock_trust import (
     mocked_trust_containers, get_trust_dn, get_trusted_dom_dict,
     encode_mockldap_value)
@@ -120,10 +121,12 @@ class TestKerberosAliasManipulation(XMLRPC_test):
     add_remove_test_data = [
         u'testuser-alias',
         u'testhost-alias',
+        u'teststageuser-alias',
     ]
     tracker_init_data = [
         (UserTracker, (u'krbalias_user', u'krbalias', u'test',), {},),
         (HostTracker, (u'testhost-krb',), {},),
+        (StageUserTracker, (u'krbalias_stageuser', u'krbalias', u'test',), {},),
     ]
 
     tracker_data = [(add_remove_test_data[i],) + tracker_init_data[i]

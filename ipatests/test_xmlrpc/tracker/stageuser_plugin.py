@@ -7,6 +7,7 @@ import six
 from ipalib import api, errors
 
 from ipatests.test_xmlrpc.tracker.base import Tracker
+from ipatests.test_xmlrpc.tracker.kerberos_aliases import KerberosAliasMixin
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
     Fuzzy, fuzzy_string, fuzzy_dergeneralizedtime, raises_exact)
@@ -28,7 +29,7 @@ sshpubkeyfp = (u'SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE '
                'public key test (ssh-rsa)')
 
 
-class StageUserTracker(Tracker):
+class StageUserTracker(KerberosAliasMixin, Tracker):
     """ Tracker class for staged user LDAP object
 
         Implements helper functions for host plugin.
@@ -292,3 +293,9 @@ class StageUserTracker(Tracker):
         self.dn = DN(
             ('uid', self.uid), api.env.container_stageuser, api.env.basedn)
         self.attrs[u'dn'] = self.dn
+
+    def _make_add_alias_cmd(self):
+        return self.make_command('stageuser_add_principal', self.name)
+
+    def _make_remove_alias_cmd(self):
+        return self.make_command('stageuser_remove_principal', self.name)
