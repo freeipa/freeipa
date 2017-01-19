@@ -251,13 +251,22 @@ def normalize_certificate(rawcert):
 
     rawcert = strip_header(rawcert)
 
-    if util.isvalid_base64(rawcert):
-        try:
-            dercert = base64.b64decode(rawcert)
-        except Exception as e:
-            raise errors.Base64DecodeError(reason=str(e))
-    else:
+    try:
+        if isinstance(rawcert, bytes):
+            # base64 must work with utf-8, otherwise it is raw bin certificate
+            decoded_cert = rawcert.decode('utf-8')
+        else:
+            decoded_cert = rawcert
+    except UnicodeDecodeError:
         dercert = rawcert
+    else:
+        if util.isvalid_base64(decoded_cert):
+            try:
+                dercert = base64.b64decode(decoded_cert)
+            except Exception as e:
+                raise errors.Base64DecodeError(reason=str(e))
+        else:
+            dercert = rawcert
 
     # At this point we should have a DER certificate.
     # Attempt to decode it.
