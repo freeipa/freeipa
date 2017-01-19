@@ -85,12 +85,16 @@ def strip_header(pem):
     """
     Remove the header and footer from a certificate.
     """
-    s = pem.find("-----BEGIN CERTIFICATE-----")
-    if s >= 0:
-        e = pem.find("-----END CERTIFICATE-----")
-        pem = pem[s+27:e]
-
-    return pem
+    regexp = (
+        u"^-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----"
+    )
+    if isinstance(pem, bytes):
+        regexp = regexp.encode('ascii')
+    s = re.search(regexp, pem, re.MULTILINE | re.DOTALL)
+    if s is not None:
+        return s.group(1)
+    else:
+        return pem
 
 
 def load_certificate(data, datatype=PEM):
