@@ -192,9 +192,8 @@ class SSHPublicKey(object):
 
     def fingerprint_hex_sha256(self):
         # OpenSSH trims the trailing '=' of base64 sha256 FP representation
-        # Using unicode argument converts the result to unicode object
-        fp = base64.b64encode(sha256(self._key).digest()).rstrip(u'=')
-        return 'SHA256:{fp}'.format(fp=fp)
+        fp = base64.b64encode(sha256(self._key).digest()).rstrip(b'=')
+        return u'SHA256:{fp}'.format(fp=fp.decode('utf-8'))
 
     def _fingerprint_dns(self, fpfunc, fptype):
         if self._keytype == 'ssh-rsa':
