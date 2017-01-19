@@ -145,7 +145,7 @@ class baseuser(LDAPObject):
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
         'memberofindirect', 'ipauserauthtype', 'userclass',
         'ipatokenradiusconfiglink', 'ipatokenradiususername',
-        'krbprincipalexpiration', 'usercertificate;binary',
+        'krbprincipalexpiration', 'usercertificate',
         'krbprincipalname', 'krbcanonicalname'
     ]
     search_display_attributes = [
@@ -428,16 +428,6 @@ class baseuser(LDAPObject):
         assert isinstance(user, DN)
         return self._user_status(user, DN(self.delete_container_dn, api.env.basedn))
 
-    def convert_usercertificate_pre(self, entry_attrs):
-        if 'usercertificate' in entry_attrs:
-            entry_attrs['usercertificate;binary'] = entry_attrs.pop(
-                'usercertificate')
-
-    def convert_usercertificate_post(self, entry_attrs, **options):
-        if 'usercertificate;binary' in entry_attrs:
-            entry_attrs['usercertificate'] = entry_attrs.pop(
-                'usercertificate;binary')
-
     def convert_attribute_members(self, entry_attrs, *keys, **options):
         super(baseuser, self).convert_attribute_members(
             entry_attrs, *keys, **options)
@@ -466,11 +456,9 @@ class baseuser_add(LDAPCreate):
                             **options):
         assert isinstance(dn, DN)
         set_krbcanonicalname(entry_attrs)
-        self.obj.convert_usercertificate_pre(entry_attrs)
 
     def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.obj.convert_usercertificate_post(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         convert_sshpubkey_post(entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
@@ -598,7 +586,6 @@ class baseuser_mod(LDAPUpdate):
         self.check_userpassword(entry_attrs, **options)
 
         self.check_objectclass(ldap, dn, entry_attrs)
-        self.obj.convert_usercertificate_pre(entry_attrs)
         self.preserve_krbprincipalname_pre(ldap, entry_attrs, *keys, **options)
 
     def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -612,7 +599,6 @@ class baseuser_mod(LDAPUpdate):
                 pass
         convert_nsaccountlock(entry_attrs)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
-        self.obj.convert_usercertificate_post(entry_attrs, **options)
         convert_sshpubkey_post(entry_attrs)
         remove_sshpubkey_from_output_post(self.context, entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
@@ -646,7 +632,6 @@ class baseuser_find(LDAPSearch):
 
     def post_common_callback(self, ldap, entries, lockout=False, **options):
         for attrs in entries:
-            self.obj.convert_usercertificate_post(attrs, **options)
             if (lockout):
                 attrs['nsaccountlock'] = True
             else:
@@ -665,7 +650,6 @@ class baseuser_show(LDAPRetrieve):
     def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
-        self.obj.convert_usercertificate_post(entry_attrs, **options)
         convert_sshpubkey_post(entry_attrs)
         remove_sshpubkey_from_output_post(self.context, entry_attrs)
         radius_dn2pk(self.api, entry_attrs)

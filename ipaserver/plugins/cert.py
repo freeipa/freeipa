@@ -1412,24 +1412,23 @@ class cert_find(Search, CertMethod):
             truncated = bool(truncated)
 
         for entry in entries:
-            for attr in ('usercertificate', 'usercertificate;binary'):
-                for cert in entry.get(attr, []):
-                    try:
-                        key = self._get_cert_key(cert)
-                    except ValueError:
-                        truncated = True
-                        continue
+            for cert in entry.get('usercertificate', []):
+                try:
+                    key = self._get_cert_key(cert)
+                except ValueError:
+                    truncated = True
+                    continue
 
-                    try:
-                        obj = result[key]
-                    except KeyError:
-                        obj = self._get_cert_obj(cert, all, raw, pkey_only)
-                        result[key] = obj
+                try:
+                    obj = result[key]
+                except KeyError:
+                    obj = self._get_cert_obj(cert, all, raw, pkey_only)
+                    result[key] = obj
 
-                    if not pkey_only and (all or not no_members):
-                        owners = obj.setdefault('owner', [])
-                        if entry.dn not in owners:
-                            owners.append(entry.dn)
+                if not pkey_only and (all or not no_members):
+                    owners = obj.setdefault('owner', [])
+                    if entry.dn not in owners:
+                        owners.append(entry.dn)
 
         if not raw:
             for obj in six.itervalues(result):

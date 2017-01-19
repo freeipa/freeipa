@@ -1162,42 +1162,12 @@ class user_add_cert(LDAPAddAttributeViaOption):
     msg_summary = _('Added certificates to user "%(value)s"')
     attribute = 'usercertificate'
 
-    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
-                     **options):
-        dn = self.obj.get_either_dn(*keys, **options)
-
-        self.obj.convert_usercertificate_pre(entry_attrs)
-
-        return dn
-
-    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        assert isinstance(dn, DN)
-
-        self.obj.convert_usercertificate_post(entry_attrs, **options)
-
-        return dn
-
 
 @register()
 class user_remove_cert(LDAPRemoveAttributeViaOption):
     __doc__ = _('Remove one or more certificates to the user entry')
     msg_summary = _('Removed certificates from user "%(value)s"')
     attribute = 'usercertificate'
-
-    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
-                     **options):
-        dn = self.obj.get_either_dn(*keys, **options)
-
-        self.obj.convert_usercertificate_pre(entry_attrs)
-
-        return dn
-
-    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        assert isinstance(dn, DN)
-
-        self.obj.convert_usercertificate_post(entry_attrs, **options)
-
-        return dn
 
 
 @register()

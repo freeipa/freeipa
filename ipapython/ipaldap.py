@@ -632,6 +632,22 @@ class LDAPClient(object):
     SCOPE_ONELEVEL = ldap.SCOPE_ONELEVEL
     SCOPE_SUBTREE = ldap.SCOPE_SUBTREE
 
+    _ENCODING_OPTION_BINARY = 'binary'
+
+    # although per RFC 4523 it is the /syntax/ that defines whether
+    # ;binary is required, 389DS punted on implementing the RFC 4523
+    # syntaxes, and uses 1.3.6.1.4.1.1466.115.121.1.40 Octet String
+    # instead.  So we must map by attribute name.
+    _ENCODING_OPTIONS = CIDict({
+        'userCertificate':              _ENCODING_OPTION_BINARY,
+        'cACertificate':                _ENCODING_OPTION_BINARY,
+        'crossCertificatePair':         _ENCODING_OPTION_BINARY,
+        'certificateRevocationList':    _ENCODING_OPTION_BINARY,
+        'authorityRevocationList':      _ENCODING_OPTION_BINARY,
+        'deltaRevocationList':          _ENCODING_OPTION_BINARY,
+        'supportedAlgorithms':          _ENCODING_OPTION_BINARY,
+    })
+
     _SYNTAX_MAPPING = {
         '1.3.6.1.4.1.1466.115.121.1.1'   : bytes, # ACI item
         '1.3.6.1.4.1.1466.115.121.1.4'   : bytes, # Audio
@@ -756,8 +772,14 @@ class LDAPClient(object):
         # FIXME: for backwards compatibility only
         assert isinstance(dn, DN)
         dn = str(dn)
-        modlist = [(a, self.encode(b), self.encode(c)) for a, b, c in modlist]
-        return self.conn.modify_s(dn, modlist)
+        modlist_encoded = []
+        for modtype, attr, vals in modlist:
+            modlist_encoded.append((
+                modtype,
+                self.add_encoding_options(self.encode(attr)),
+                self.encode(vals)
+            ))
+        return self.conn.modify_s(dn, modlist_encoded)
 
     @property
     def conn(self):
@@ -831,6 +853,23 @@ class LDAPClient(object):
 
         return unicode
 
+    def add_encoding_options(self, name_or_oid):
+        """Add required encoding options, if any."""
+        option = self._ENCODING_OPTIONS.get(name_or_oid)
+        if option is not None:
+            name_or_oid = b';'.join([name_or_oid, option])
+        return name_or_oid
+
+    def strip_encoding_options(self, name):
+        """Remove non-subtyping encoding options from attribute description."""
+        parts = name.split(';')
+        parts[1:] = [
+            option for option in parts[1:]
+            if option != self._ENCODING_OPTIONS.get(parts[0])
+        ]
+        name = ';'.join(parts)
+        return name
+
     def has_dn_syntax(self, name_or_oid):
         """
         Check the schema to see if the attribute uses DN syntax.
@@ -886,7 +925,10 @@ class LDAPClient(object):
         elif isinstance(val, tuple):
             return tuple(self.encode(m) for m in val)
         elif isinstance(val, dict):
-            dct = dict((self.encode(k), self.encode(v)) for k, v in val.items())
+            dct = dict(
+                (self.add_encoding_options(self.encode(k)), self.encode(v))
+                for k, v in val.items()
+            )
             return dct
         elif isinstance(val, datetime.datetime):
             return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
@@ -956,6 +998,7 @@ class LDAPClient(object):
             ipa_entry = LDAPEntry(self, DN(original_dn))
 
             for attr, original_values in original_attrs.items():
+                attr = self.strip_encoding_options(attr)
                 ipa_entry.raw[attr] = original_values
             ipa_entry.reset_modlist()
 
@@ -1560,9 +1603,7 @@ class LDAPClient(object):
 
         # pass arguments to python-ldap
         with self.error_handler():
-            modlist = [(a, str(b), self.encode(c))
-                       for a, b, c in modlist]
-            self.conn.modify_s(str(entry.dn), modlist)
+            self.modify_s(entry.dn, modlist)
 
         entry.reset_modlist()
 
