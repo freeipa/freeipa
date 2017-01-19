@@ -85,13 +85,6 @@ def krbalias_user_c(request):
     return tracker.make_fixture(request)
 
 
-@pytest.fixture(scope='function')
-def krbalias_host(request):
-    tracker = HostTracker(u'testhost-krb')
-
-    return tracker.make_fixture(request)
-
-
 @pytest.fixture
 def krb_service_host(request):
     tracker = HostTracker(u'krb-srv-host')
@@ -108,6 +101,12 @@ def krbalias_service(request, krb_service_host):
     return tracker.make_fixture(request)
 
 
+@pytest.fixture(scope='function')
+def krbalias(request, tracker_cls, tracker_args, tracker_kwargs):
+    tracker = tracker_cls(*tracker_args, **tracker_kwargs)
+    return tracker.make_fixture(request)
+
+
 @pytest.fixture
 def ldapservice(request):
     tracker = ServiceTracker(
@@ -118,29 +117,32 @@ def ldapservice(request):
 
 
 class TestKerberosAliasManipulation(XMLRPC_test):
+    add_remove_test_data = [
+        u'testuser-alias',
+        u'testhost-alias',
+    ]
+    tracker_init_data = [
+        (UserTracker, (u'krbalias_user', u'krbalias', u'test',), {},),
+        (HostTracker, (u'testhost-krb',), {},),
+    ]
 
-    def test_add_user_principal_alias(self, krbalias_user):
-        krbalias_user.ensure_exists()
-        krbalias_user.add_principal([u'test-user-alias'])
-        krbalias_user.retrieve()
+    tracker_data = [(add_remove_test_data[i],) + tracker_init_data[i]
+                    for i in range(len(tracker_init_data))]
 
-    def test_remove_user_principal_alias(self, krbalias_user):
-        krbalias_user.ensure_exists()
-        krbalias_user.add_principal([u'test-user-alias'])
-        krbalias_user.remove_principal(u'test-user-alias')
-        krbalias_user.retrieve()
+    @pytest.mark.parametrize('alias,tracker_cls,tracker_args,tracker_kwargs',
+                             tracker_data)
+    def test_add_principal_alias(self, alias, krbalias):
+        krbalias.ensure_exists()
+        krbalias.add_principal([alias])
+        krbalias.retrieve()
 
-    def test_add_host_principal_alias(self, krbalias_host):
-        krbalias_host.ensure_exists()
-        krbalias_host.add_principal([u'testhost-krb-alias'])
-        krbalias_host.retrieve()
-
-    def test_remove_host_principal_alias(self, krbalias_host):
-        krbalias_host.ensure_exists()
-        krbalias_host.add_principal([u'testhost-krb-alias'])
-        krbalias_host.retrieve()
-        krbalias_host.remove_principal([u'testhost-krb-alias'])
-        krbalias_host.retrieve()
+    @pytest.mark.parametrize('alias,tracker_cls,tracker_args,tracker_kwargs',
+                             tracker_data)
+    def test_remove_principal_alias(self, alias, krbalias):
+        krbalias.ensure_exists()
+        krbalias.add_principal([alias])
+        krbalias.remove_principal(alias)
+        krbalias.retrieve()
 
     def test_add_service_principal_alias(self, krbalias_service):
         krbalias_service.ensure_exists()
