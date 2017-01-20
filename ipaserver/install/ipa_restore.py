@@ -41,7 +41,7 @@ from ipaserver.install.cainstance import create_ca_user
 from ipaserver.install.replication import (wait_for_task, ReplicationManager,
                                            get_cs_replication_manager)
 from ipaserver.install import installutils
-from ipaserver.install import dsinstance, httpinstance, cainstance
+from ipaserver.install import dsinstance, httpinstance, cainstance, krbinstance
 from ipapython import ipaldap
 import ipapython.errors
 from ipaplatform.constants import constants
@@ -820,6 +820,8 @@ class Restore(admintool.AdminTool):
         except OSError:
             # When IPA is not installed, DS NSS DB does not exist
             pass
+
+        krbinstance.KrbInstance().stop_tracking_certs()
 
         for basename in ('cert8.db', 'key3.db', 'secmod.db', 'pwdfile.txt'):
             filename = os.path.join(paths.IPA_NSSDB_DIR, basename)
