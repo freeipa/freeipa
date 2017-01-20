@@ -600,7 +600,7 @@ def _resolve_record(owner, rtype, nameserver_ip=None, edns0=False,
     :param flag_cd: requires dnssec=True, adds flag CD
     :raise DNSException: if error occurs
     """
-    assert isinstance(nameserver_ip, six.string_types)
+    assert isinstance(nameserver_ip, six.string_types) or nameserver_ip is None
     assert isinstance(rtype, six.string_types)
 
     res = dns.resolver.Resolver()
