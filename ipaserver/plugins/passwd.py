@@ -21,7 +21,7 @@ import six
 
 from ipalib import api, errors, krb_utils
 from ipalib import Command
-from ipalib import Password
+from ipalib import Password, Int
 from ipalib import _
 from ipalib import output
 from ipalib.parameters import Principal
@@ -29,6 +29,7 @@ from ipalib.plugable import Registry
 from ipalib.request import context
 from ipapython import kerberos
 from ipapython.dn import DN
+from ipapython.ipautil import ipa_generate_password
 from ipaserver.plugins.baseuser import normalize_user_principal
 from ipaserver.plugins.service import validate_realm
 
@@ -147,3 +148,75 @@ class passwd(Command):
             result=True,
             value=principal,
         )
+
+
+@register()
+class passwd_generate(Command):
+    __doc__ = _("Autogenerate a password.")
+
+    takes_options = (
+        Int('uppercase',
+            label=_('Uppercase'),
+            doc=_('Number of uppercase characters'),
+            default=1,
+            autofill=True,
+            required=False,
+        ),
+        Int('lowercase',
+            label=_('Lowercase'),
+            doc=_('Number of lowercase characters'),
+            default=1,
+            autofill=True,
+            required=False,
+        ),
+        Int('digits',
+            label=_('Digits'),
+            doc=_('Number of digits'),
+            default=1,
+            autofill=True,
+            required=False,
+        ),
+        Int('special',
+            label=_('Special characters'),
+            doc=_('Number of special characters'),
+            default=1,
+            autofill=True,
+            required=False,
+        ),
+        Int('length',
+            label=_('Length'),
+            doc=_('Password Length'),
+            default=8,
+            autofill=True,
+            required=False,
+        ),
+        Int('entropy',
+            label=_('Entropy'),
+            doc=_('Number of entropy bits'),
+            default=0,
+            autofill=True,
+            required=False,
+        ),
+    )
+
+    has_output = (
+        output.summary,
+    )
+
+    def execute(self, *keys, **options):
+        pwd_length = options.get('length')
+        entropy = options.get('entropy')
+        ucase = options.get('uppercase')
+        lcase = options.get('lowercase')
+        numbers = options.get('digits')
+        schar = options.get('special')
+
+        password = ipa_generate_password(entropy_bits=entropy,
+                                         min_len=pwd_length,
+                                         digits=numbers,
+                                         uppercase=ucase,
+                                         lowercase=lcase,
+                                         special=schar)
+        msg_summary = unicode(_('Generated password is: %s' % password))
+
+        return dict(summary=msg_summary)

@@ -3461,6 +3461,16 @@ option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('value', type=[<type 'unicode'>])
+command: passwd_generate/1
+args: 0,7,1
+option: Int('digits?', autofill=True, default=1)
+option: Int('entropy?', autofill=True, default=0)
+option: Int('length?', autofill=True, default=8)
+option: Int('lowercase?', autofill=True, default=1)
+option: Int('special?', autofill=True, default=1)
+option: Int('uppercase?', autofill=True, default=1)
+option: Str('version?')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 command: permission_add/1
 args: 1,21,3
 arg: Str('cn', cli_name='name')
@@ -6546,6 +6556,7 @@ default: param/1
 default: param_find/1
 default: param_show/1
 default: passwd/1
+default: passwd_generate/1
 default: permission/1
 default: permission_add/1
 default: permission_add_member/1
