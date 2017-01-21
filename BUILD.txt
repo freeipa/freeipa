@@ -41,7 +41,7 @@ install the rpms and then configure IPA using ipa-server-install.
 Get a TGT for the admin user with: kinit admin
 
 Next you'll need 2 sessions in the source tree. In the first session run
-python lite-server.py. In the second session copy /etc/ipa/default.conf into
+```make lite-server```. In the second session copy /etc/ipa/default.conf into
 ~/.ipa/default.conf and replace xmlrpc_uri with http://127.0.0.1:8888/ipa/xml.
 Finally run the ./ipa tool and it will make requests to the lite-server
 listening on 127.0.0.1:8888.

@@ -1,4 +1,5 @@
 SUBDIRS = completion
 
 EXTRA_DIST = \
-	nssciphersuite
+	nssciphersuite \
+	lite-server.py
