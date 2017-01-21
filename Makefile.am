@@ -6,7 +6,6 @@ SUBDIRS = asn1 util client contrib daemons init install $(IPACLIENT_SUBDIRS) ipa
 MOSTLYCLEANFILES = ipasetup.pyc ipasetup.pyo \
 		   ignore_import_errors.pyc ignore_import_errors.pyo \
 		   ipasetup.pyc ipasetup.pyo \
-		   lite-server.pyc lite-server.pyo \
 		   pylint_plugins.pyc pylint_plugins.pyo
 
 # user-facing scripts
@@ -14,7 +13,6 @@ dist_bin_SCRIPTS = ipa
 
 # files required for build but not installed
 dist_noinst_SCRIPTS = ignore_import_errors.py \
-		      lite-server.py \
 		      makeapi \
 		      makeaci \
 		      make-doc \
@@ -118,6 +116,12 @@ _srpms-body: _rpms-prep
 	rpmbuild --define "_topdir $(RPMBUILD)" -bs $(top_builddir)/$(PACKAGE).spec
 	cp $(RPMBUILD)/SRPMS/*$$(cat $(top_builddir)/.version)*.src.rpm $(top_builddir)/dist/srpms/
 	rm -f rm -f $(top_builddir)/.version
+
+.PHONY: lite-server
+lite-server: $(top_builddir)/ipapython/version.py
+	+$(MAKE) -C $(top_builddir)/install/ui
+	PYTHONPATH=$(top_srcdir) $(PYTHON) -bb \
+	    contrib/lite-server.py $(LITESERVER_ARGS)
 
 .PHONY: lint
 if WITH_POLINT
