@@ -82,7 +82,11 @@ class CATracker(Tracker):
 
     def make_delete_command(self):
         """Make function that deletes the plugin entry object."""
-        return self.make_command('ca_del', self.name)
+        def disable_then_delete():
+            self.make_command('ca_disable', self.name)()
+            return self.make_command('ca_del', self.name)()
+
+        return disable_then_delete
 
     def check_delete(self, result):
         assert_deepequal(dict(

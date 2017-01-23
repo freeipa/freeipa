@@ -286,7 +286,12 @@ class ca_del(LDAPDelete):
 
         ca_id = self.api.Command.ca_show(keys[0])['result']['ipacaid'][0]
         with self.api.Backend.ra_lightweight_ca as ca_api:
-            ca_api.disable_ca(ca_id)
+            data = ca_api.read_ca(ca_id)
+            if data['enabled']:
+                raise errors.ProtectedEntryError(
+                    label=_("CA"),
+                    key=keys[0],
+                    reason=_("Must be disabled first"))
             ca_api.delete_ca(ca_id)
 
         return dn
