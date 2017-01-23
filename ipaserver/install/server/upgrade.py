@@ -169,6 +169,9 @@ def upgrade_file(sub_dict, filename, template, add=False):
     if new < 0:
         root_logger.error("%s not found." % template)
 
+    if new == 0:
+        root_logger.error("Template %s is not versioned." % template)
+
     if old == 0:
         # The original file does not have a VERSION entry. This means it's now
         # managed by IPA, but previously was not.
@@ -1558,7 +1561,7 @@ def upgrade_configuration():
 
     subject_base = find_subject_base()
     if subject_base:
-        sub_dict['SUBJECT_BASE'] = subject_base
+        sub_dict['ISSUER_DN'] = 'CN=Certificate Authority,' + subject_base
 
     ca = cainstance.CAInstance(
             api.env.realm, host_name=api.env.host)
