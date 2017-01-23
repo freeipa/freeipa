@@ -78,7 +78,13 @@ class TestDefaultCA(XMLRPC_test):
     def test_default_ca_present(self, default_ca):
         default_ca.retrieve()
 
+    def test_default_ca_disable(self, default_ca):
+        """IPA CA cannot be disabled."""
+        with pytest.raises(errors.ProtectedEntryError):
+            default_ca.disable()
+
     def test_default_ca_delete(self, default_ca):
+        """IPA CA cannot be deleted."""
         with pytest.raises(errors.ProtectedEntryError):
             default_ca.delete()
 
@@ -104,7 +110,14 @@ class TestCAbasicCRUD(XMLRPC_test):
         )
         command()
 
-    def test_delete(self, crud_subca):
+    def test_delete_while_enabled_fails(self, crud_subca):
+        with pytest.raises(errors.ProtectedEntryError):
+            crud_subca.delete()
+
+    def test_disable(self, crud_subca):
+        crud_subca.disable()
+
+    def test_delete_after_disable_succeeds(self, crud_subca):
         crud_subca.delete()
 
     def test_find(self, crud_subca):
