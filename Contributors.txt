@@ -24,6 +24,7 @@ Developers:
 	Brian Cook
 	Rob Crittenden
 	Frank Cusack
+	Petr Čech
 	Nalin Dahyabhai
 	Don Davis
 	John Dennis
