@@ -435,8 +435,12 @@ def get_san_general_names(cert):
         asn1Spec=rfc2459.TBSCertificate()
     )[0]
     OID_SAN = univ.ObjectIdentifier('2.5.29.17')
+    # One would expect KeyError or empty iterable when the key ('extensions'
+    # in this particular case) is not pressent in the certificate but pyasn1
+    # returns None here
+    extensions = tbs['extensions'] or []
     gns = []
-    for ext in tbs['extensions']:
+    for ext in extensions:
         if ext['extnID'] == OID_SAN:
             der = decoder.decode(
                 ext['extnValue'], asn1Spec=univ.OctetString())[0]
