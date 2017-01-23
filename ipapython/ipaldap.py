@@ -19,6 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import binascii
 import time
 import datetime
 from decimal import Decimal
@@ -1245,11 +1246,13 @@ class LDAPClient(object):
             return cls.combine_filters(flts, rules)
         elif value is not None:
             if isinstance(value, bytes):
-                if six.PY3:
-                    value = value.decode('raw_unicode_escape')
+                value = binascii.hexlify(value).decode('ascii')
+                # value[-2:0] is empty string for the initial '\\'
+                value = u'\\'.join(
+                    value[i:i+2] for i in six.moves.range(-2, len(value), 2))
             else:
                 value = value_to_utf8(value)
-            value = ldap.filter.escape_filter_chars(value)
+                value = ldap.filter.escape_filter_chars(value)
             if not exact:
                 template = '%s'
                 if leading_wildcard:
