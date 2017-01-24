@@ -180,6 +180,8 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
                                     unsigned int flags,
                                     krb5_db_entry **entry);
 void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry);
+/* Helper function for DAL API 6.1 or later */
+void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data);
 krb5_error_code ipadb_put_principal(krb5_context kcontext,
                                     krb5_db_entry *entry,
                                     char **db_args);
