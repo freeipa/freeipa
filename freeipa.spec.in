@@ -57,7 +57,16 @@ BuildRequires:  nspr-devel
 BuildRequires:  nss-devel
 BuildRequires:  openssl-devel
 BuildRequires:  openldap-devel
+# For KDB DAL version, make explicit dependency so that increase of version
+# will cause the build to fail due to unsatisfied dependencies.
+# DAL version change may cause code crash or memory leaks, it is better to fail early.
+%if 0%{?fedora} > 25
+BuildRequires: krb5-devel >= 1.15-5
+BuildRequires: krb5-kdb-version = 6.1
+%else
+# 1.12+: libkrad (http://krbdev.mit.edu/rt/Ticket/Display.html?id=7678)
 BuildRequires:  krb5-devel >= 1.13
+%endif
 BuildRequires:  krb5-workstation
 BuildRequires:  libuuid-devel
 BuildRequires:  libcurl-devel >= 7.21.7-2
