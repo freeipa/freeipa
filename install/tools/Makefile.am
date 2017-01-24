@@ -23,7 +23,6 @@ dist_sbin_SCRIPTS =		\
 	ipa-managed-entries     \
 	ipa-ldap-updater	\
 	ipa-otptoken-import	\
-	ipa-upgradeconfig	\
 	ipa-backup		\
 	ipa-restore		\
 	ipa-advise		\
