@@ -1099,7 +1099,6 @@ fi
 %{_sbindir}/ipa-nis-manage
 %{_sbindir}/ipa-managed-entries
 %{_sbindir}/ipactl
-%{_sbindir}/ipa-upgradeconfig
 %{_sbindir}/ipa-advise
 %{_sbindir}/ipa-cacert-manage
 %{_sbindir}/ipa-winsync-migrate
@@ -1158,7 +1157,6 @@ fi
 %{_mandir}/man1/ipa-managed-entries.1*
 %{_mandir}/man1/ipa-ldap-updater.1*
 %{_mandir}/man8/ipactl.8*
-%{_mandir}/man8/ipa-upgradeconfig.8*
 %{_mandir}/man1/ipa-backup.1*
 %{_mandir}/man1/ipa-restore.1*
 %{_mandir}/man1/ipa-advise.1*
