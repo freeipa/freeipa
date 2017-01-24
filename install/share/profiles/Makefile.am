@@ -5,6 +5,7 @@ app_DATA =				\
 	caIPAserviceCert.cfg		\
 	IECUserRoles.cfg		\
 	KDCs_PKINIT_Certs.cfg		\
+	userCert.cfg			\
 	$(NULL)
 
 EXTRA_DIST =				\

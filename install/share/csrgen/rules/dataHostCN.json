@@ -1,0 +1,15 @@
+{
+  "rules": [
+    {
+      "helper": "openssl",
+      "template": "CN={{subject.krbprincipalname.0.partition('/')[2].partition('@')[0]}}"
+    },
+    {
+      "helper": "certutil",
+      "template": "CN={{subject.krbprincipalname.0.partition('/')[2].partition('@')[0]|quote}}"
+    }
+  ],
+  "options": {
+    "data_source": "subject.krbprincipalname.0.partition('/')[2].partition('@')[0]"
+  }
+}

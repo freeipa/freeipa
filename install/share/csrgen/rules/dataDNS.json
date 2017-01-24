@@ -1,0 +1,15 @@
+{
+  "rules": [
+    {
+      "helper": "openssl",
+      "template": "DNS = {{subject.krbprincipalname.0.partition('/')[2].partition('@')[0]}}"
+    },
+    {
+      "helper": "certutil",
+      "template": "dns:{{subject.krbprincipalname.0.partition('/')[2].partition('@')[0]|quote}}"
+    }
+  ],
+  "options": {
+    "data_source": "subject.krbprincipalname.0.partition('/')[2].partition('@')[0]"
+  }
+}

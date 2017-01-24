@@ -1,0 +1,15 @@
+{
+  "rules": [
+    {
+      "helper": "openssl",
+      "template": "email = {{subject.mail.0}}"
+    },
+    {
+      "helper": "certutil",
+      "template": "email:{{subject.mail.0|quote}}"
+    }
+  ],
+  "options": {
+    "data_source": "subject.mail.0"
+  }
+}

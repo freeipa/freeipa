@@ -1,0 +1,15 @@
+{
+  "rules": [
+    {
+      "helper": "openssl",
+      "template": "CN={{subject.uid.0}}"
+    },
+    {
+      "helper": "certutil",
+      "template": "CN={{subject.uid.0|quote}}"
+    }
+  ],
+  "options": {
+    "data_source": "subject.uid.0"
+  }
+}

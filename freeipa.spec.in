@@ -153,6 +153,7 @@ BuildRequires:  python-sssdconfig
 BuildRequires:  python-nose
 BuildRequires:  python-paste
 BuildRequires:  systemd-python
+BuildRequires:  python2-jinja2
 
 %if 0%{?with_python3}
 # FIXME: this depedency is missing - server will not work
@@ -608,6 +609,7 @@ Requires: python-dns >= 1.15
 Requires: python-enum34
 Requires: python-netifaces >= 0.10.4
 Requires: pyusb
+Requires: python2-jinja2
 
 Conflicts: %{alt_name}-python < %{version}
 
@@ -1217,6 +1219,13 @@ fi
 %{_usr}/share/ipa/advise/legacy/*.template
 %dir %{_usr}/share/ipa/profiles
 %{_usr}/share/ipa/profiles/*.cfg
+%dir %{_usr}/share/ipa/csrgen
+%dir %{_usr}/share/ipa/csrgen/templates
+%{_usr}/share/ipa/csrgen/templates/*.tmpl
+%dir %{_usr}/share/ipa/csrgen/profiles
+%{_usr}/share/ipa/csrgen/profiles/*.json
+%dir %{_usr}/share/ipa/csrgen/rules
+%{_usr}/share/ipa/csrgen/rules/*.json
 %dir %{_usr}/share/ipa/html
 %{_usr}/share/ipa/html/ffconfig.js
 %{_usr}/share/ipa/html/ffconfig_page.js

@@ -1,0 +1,15 @@
+[
+    {
+        "syntax": "syntaxSubject",
+        "data": [
+            "dataUsernameCN",
+            "dataSubjectBase"
+        ]
+    },
+    {
+        "syntax": "syntaxSAN",
+        "data": [
+            "dataEmail"
+        ]
+    }
+]

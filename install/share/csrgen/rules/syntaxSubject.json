@@ -1,0 +1,16 @@
+{
+  "rules": [
+    {
+      "helper": "openssl",
+      "template": "distinguished_name = {% call openssl.section() %}{{ datarules|reverse|join('\n') }}{% endcall %}"
+    },
+    {
+      "helper": "certutil",
+      "template": "-s {{ datarules|join(',') }}"
+    }
+  ],
+  "options": {
+    "required": true,
+    "data_source_combinator": "and"
+  }
+}
