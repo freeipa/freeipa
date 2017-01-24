@@ -259,6 +259,10 @@ class KRAInstance(DogtagInstance):
         else:
             # the admin cert file is needed for the first instance of KRA
             cert = DogtagInstance.get_admin_cert(self)
+            # First make sure that the directory exists
+            parentdir = os.path.dirname(paths.ADMIN_CERT_PATH)
+            if not os.path.exists(parentdir):
+                os.makedirs(parentdir)
             with open(paths.ADMIN_CERT_PATH, "w") as admin_path:
                 admin_path.write(cert)
 
