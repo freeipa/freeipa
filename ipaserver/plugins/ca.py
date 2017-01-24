@@ -4,8 +4,6 @@
 
 import base64
 
-import six
-
 from ipalib import api, errors, output, Bytes, DNParam, Flag, Str
 from ipalib.constants import IPA_CA_CN
 from ipalib.plugable import Registry
@@ -176,7 +174,7 @@ def set_certificate_attrs(entry, options, want_cert=True):
     with api.Backend.ra_lightweight_ca as ca_api:
         if want_cert or full:
             der = ca_api.read_ca_cert(ca_id)
-            entry['certificate'] = six.text_type(base64.b64encode(der))
+            entry['certificate'] = base64.b64encode(der).decode('ascii')
 
         if want_chain or full:
             pkcs7_der = ca_api.read_ca_chain(ca_id)
