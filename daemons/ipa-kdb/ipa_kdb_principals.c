@@ -1274,11 +1274,32 @@ done:
     return kerr;
 }
 
-void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
+void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data)
 {
     struct ipadb_e_data *ied;
-    krb5_tl_data *prev, *next;
     int i;
+
+    ied = (struct ipadb_e_data *)e_data;
+    if (ied->magic == IPA_E_DATA_MAGIC) {
+	ldap_memfree(ied->entry_dn);
+	free(ied->passwd);
+	free(ied->pw_policy_dn);
+	for (i = 0; ied->pw_history && ied->pw_history[i]; i++) {
+	    free(ied->pw_history[i]);
+	}
+	free(ied->pw_history);
+	for (i = 0; ied->authz_data && ied->authz_data[i]; i++) {
+	    free(ied->authz_data[i]);
+	}
+	free(ied->authz_data);
+	free(ied->pol);
+	free(ied);
+    }
+}
+
+void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
+{
+    krb5_tl_data *prev, *next;
 
     if (entry) {
         krb5_free_principal(kcontext, entry->princ);
@@ -1292,22 +1313,7 @@ void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
         ipa_krb5_free_key_data(entry->key_data, entry->n_key_data);
 
         if (entry->e_data) {
-            ied = (struct ipadb_e_data *)entry->e_data;
-            if (ied->magic == IPA_E_DATA_MAGIC) {
-                ldap_memfree(ied->entry_dn);
-                free(ied->passwd);
-                free(ied->pw_policy_dn);
-                for (i = 0; ied->pw_history && ied->pw_history[i]; i++) {
-                    free(ied->pw_history[i]);
-                }
-                free(ied->pw_history);
-                for (i = 0; ied->authz_data && ied->authz_data[i]; i++) {
-                    free(ied->authz_data[i]);
-                }
-                free(ied->authz_data);
-                free(ied->pol);
-                free(ied);
-            }
+	    ipadb_free_principal_e_data(kcontext, entry->e_data);
         }
 
         free(entry);
