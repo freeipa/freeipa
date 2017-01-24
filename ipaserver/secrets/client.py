@@ -70,7 +70,8 @@ class CustodiaClient(object):
         name = gssapi.Name(self.client_service,
                            gssapi.NameType.hostbased_service)
         store = {'client_keytab': self.keytab,
-                 'ccache': 'MEMORY:Custodia_%s' % b64encode(os.urandom(8))}
+                 'ccache': 'MEMORY:Custodia_%s' % b64encode(
+                     os.urandom(8)).decode('ascii')}
         return gssapi.Credentials(name=name, store=store, usage='initiate')
 
     def _auth_header(self):
@@ -78,7 +79,8 @@ class CustodiaClient(object):
             self.creds = self.init_creds()
         ctx = gssapi.SecurityContext(name=self.service_name, creds=self.creds)
         authtok = ctx.step()
-        return {'Authorization': 'Negotiate %s' % b64encode(authtok)}
+        return {'Authorization': 'Negotiate %s' % b64encode(
+            authtok).decode('ascii')}
 
     def fetch_key(self, keyname, store=True):
 

@@ -1036,7 +1036,7 @@ last, after all sets and adds."""),
                     except ValueError:
                         if isinstance(delval, bytes):
                             # This is a Binary value, base64 encode it
-                            delval = unicode(base64.b64encode(delval))
+                            delval = base64.b64encode(delval).decode('ascii')
                         raise errors.AttrValueNotFound(attr=attr, value=delval)
 
         # normalize all values

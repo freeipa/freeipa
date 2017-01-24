@@ -1260,7 +1260,7 @@ class cert_find(Search, CertMethod):
         return (DN(cert_obj.issuer), cert_obj.serial)
 
     def _get_cert_obj(self, cert, all, raw, pkey_only):
-        obj = {'certificate': unicode(base64.b64encode(cert))}
+        obj = {'certificate': base64.b64encode(cert).decode('ascii')}
 
         full = not pkey_only and all
         if not raw:
