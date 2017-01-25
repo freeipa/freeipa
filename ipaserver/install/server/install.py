@@ -1034,9 +1034,13 @@ def uninstall(installer):
 
     print("Shutting down all IPA services")
     try:
-        run([paths.IPACTL, "stop"], raiseonerr=False)
+        services.knownservices.ipa.stop()
     except Exception:
-        pass
+        # Fallback to direct ipactl stop only if system command fails
+        try:
+            run([paths.IPACTL, "stop"], raiseonerr=False)
+        except Exception:
+            pass
 
     ntpinstance.NTPInstance(fstore).uninstall()
 
