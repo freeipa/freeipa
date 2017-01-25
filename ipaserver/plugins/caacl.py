@@ -151,7 +151,13 @@ def _acl_make_rule(principal_type, obj):
     return rule
 
 
-def acl_evaluate(principal_type, principal, ca_id, profile_id):
+def acl_evaluate(principal, ca_id, profile_id):
+    if principal.is_user:
+        principal_type = 'user'
+    elif principal.is_host:
+        principal_type = 'host'
+    else:
+        principal_type = 'service'
     req = _acl_make_request(principal_type, principal, ca_id, profile_id)
     acls = api.Command.caacl_find(no_members=False)['result']
     rules = [_acl_make_rule(principal_type, obj) for obj in acls]
