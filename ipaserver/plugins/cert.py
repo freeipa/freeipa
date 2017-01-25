@@ -200,11 +200,9 @@ def ca_enabled_check(_api):
     if not _api.Command.ca_is_enabled()['result']:
         raise errors.NotFound(reason=_('CA is not configured'))
 
-def caacl_check(principal_type, principal, ca, profile_id):
-    principal_type_map = {USER: 'user', HOST: 'host', SERVICE: 'service'}
-    if not acl_evaluate(
-            principal_type_map[principal_type],
-            principal, ca, profile_id):
+
+def caacl_check(principal, ca, profile_id):
+    if not acl_evaluate(principal, ca, profile_id):
         raise errors.ACIError(info=_(
                 "Principal '%(principal)s' "
                 "is not permitted to use CA '%(ca)s' "
@@ -599,7 +597,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             if principal_type == KRBTGT:
                 ca_kdc_check(ldap, bind_principal.hostname)
             else:
-                caacl_check(principal_type, principal, ca, profile_id)
+                caacl_check(principal, ca, profile_id)
 
         try:
             csr_obj = pkcs10.load_certificate_request(csr)
@@ -756,8 +754,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                     if principal_type == KRBTGT:
                         ca_kdc_check(ldap, alt_principal.hostname)
                     else:
-                        caacl_check(principal_type, alt_principal, ca,
-                                    profile_id)
+                        caacl_check(alt_principal, ca, profile_id)
 
             elif isinstance(gn, (x509.KRB5PrincipalName, x509.UPN)):
                 if principal_type == KRBTGT:
