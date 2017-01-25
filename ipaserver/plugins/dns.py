@@ -3098,7 +3098,7 @@ class dnsrecord(LDAPObject):
 
         # Classless zones (0/25.0.0.10.in-addr.arpa.) -> skip check
         # zone has to be checked without reverse domain suffix (in-addr.arpa.)
-        for sign in ('/', '-'):
+        for sign in (b'/', b'-'):
             for name in (zone, addr):
                 for label in name.labels:
                     if sign in label:
