@@ -59,16 +59,28 @@ class VirtualCommand(Command):
         if operation is None:
             operation = self.operation
 
-        ldap = self.api.Backend.ldap2
         logger.debug("IPA: virtual verify %s", operation)
 
-        operationdn = DN(('cn', operation), self.api.env.container_virtual, self.api.env.basedn)
+        return check_operation_access(self.api, operation)
 
-        try:
-            if not ldap.can_write(operationdn, "objectclass"):
-                raise errors.ACIError(
-                    info=_('not allowed to perform operation: %s') % operation)
-        except errors.NotFound:
-            raise errors.ACIError(info=_('No such virtual command'))
 
-        return True
+def check_operation_access(api, operation):
+    """
+    Check access of bound principal to given operation.
+
+    :return: ``True``
+    :raises: ``ACIError`` on access denied or ``NotFound`` for
+             unknown virtual operation
+
+    """
+    operationdn = DN(
+        ('cn', operation), api.env.container_virtual, api.env.basedn)
+
+    try:
+        if not api.Backend.ldap2.can_write(operationdn, "objectclass"):
+            raise errors.ACIError(
+                info=_('not allowed to perform operation: %s') % operation)
+    except errors.NotFound:
+        raise errors.ACIError(info=_('No such virtual command'))
+
+    return True
