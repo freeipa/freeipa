@@ -1300,7 +1300,7 @@ def private_ccache(path=None):
     os.environ['KRB5CCNAME'] = path
 
     try:
-        yield
+        yield path
     finally:
         if original_value is not None:
             os.environ['KRB5CCNAME'] = original_value
