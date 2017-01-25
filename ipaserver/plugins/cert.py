@@ -558,29 +558,17 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
 
         principal = kw.get('principal')
         principal_string = unicode(principal)
+        principal_type = principal_to_principal_type(principal)
 
-        if principal.is_user:
-            principal_type = USER
-        elif principal.is_host:
-            principal_type = HOST
-        elif principal.service_name == 'krbtgt':
-            principal_type = KRBTGT
+        if principal_type == KRBTGT:
             if profile_id != self.Backend.ra.KDC_PROFILE:
                 raise errors.ACIError(
                     info=_("krbtgt certs can use only the %s profile") % (
                            self.Backend.ra.KDC_PROFILE))
-        else:
-            principal_type = SERVICE
 
         bind_principal = kerberos.Principal(getattr(context, 'principal'))
         bind_principal_string = unicode(bind_principal)
-
-        if bind_principal.is_user:
-            bind_principal_type = USER
-        elif bind_principal.is_host:
-            bind_principal_type = HOST
-        else:
-            bind_principal_type = SERVICE
+        bind_principal_type = principal_to_principal_type(bind_principal)
 
         if (bind_principal_string != principal_string and
                 bind_principal_type != HOST):
@@ -832,6 +820,17 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             result=result,
             value=pkey_to_value(int(result['request_id']), kw),
         )
+
+
+def principal_to_principal_type(principal):
+    if principal.is_user:
+        return USER
+    elif principal.is_host:
+        return HOST
+    elif principal.service_name == 'krbtgt':
+        return KRBTGT
+    else:
+        return SERVICE
 
 
 def _dns_name_matches_principal(name, principal, principal_obj):
