@@ -403,6 +403,25 @@ class TestCertManipCmdUser(CertManipCmdTestBase):
 
 
 @pytest.mark.tier1
+class TestCertManipCmdStageuser(CertManipCmdTestBase):
+    entity_class = 'stageuser'
+    entity_pkey = u'suser'
+    entity_subject = entity_pkey
+    entity_principal = u'suser'
+    non_existent_entity = u'nonexistentstageuser'
+
+    cmd_options = dict(
+        entity_add=dict(givenname=u'Stage', sn=u'User'),
+    )
+
+    cert_add_cmd = api.Command.stageuser_add_cert
+    cert_del_cmd = api.Command.stageuser_remove_cert
+
+    cert_add_summary = u'Added certificates to stageuser "%s"'
+    cert_del_summary = u'Removed certificates from stageuser "%s"'
+
+
+@pytest.mark.tier1
 class TestCertManipCmdHost(CertManipCmdTestBase):
     entity_class = 'host'
     entity_pkey = u'host.example.com'
