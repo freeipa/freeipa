@@ -131,6 +131,7 @@ class SearchTracker(BaseTracker):
 
 class ModificationTracker(BaseTracker):
     update_keys = None
+    singlevalue_keys = None
 
     def make_update_command(self, updates):
         """Make function that modifies the entry using ${CMD}_mod"""
@@ -311,6 +312,33 @@ class EnableTracker(BaseTracker):
         request.addfinalizer(cleanup)
 
         return super(EnableTracker, self).make_fixture(request)
+
+
+class ConfigurationTracker(RetrievalTracker, ModificationTracker):
+    def make_fixture(self, request):
+        """Make a pytest fixture for this tracker
+
+        Make sure that the state of entry in the end is the same
+        it was in the begining.
+        """
+        retrieve = self.make_retrieve_command(all=True)
+        res = retrieve()['result']
+        original_state = {}
+        for k, v in res.items():
+            if k in self.update_keys:
+                original_state[k] = v[0] if k in self.singlevalue_keys else v
+
+        def revert():
+            update = self.make_update_command(original_state)
+            try:
+                update()
+            except errors.EmptyModlist:
+                # ignore no change
+                pass
+
+        request.addfinalizer(revert)
+
+        return super(ConfigurationTracker, self).make_fixture(request)
 
 
 class Tracker(RetrievalTracker, SearchTracker, ModificationTracker,
