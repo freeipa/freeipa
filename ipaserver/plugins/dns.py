@@ -3195,7 +3195,7 @@ class dnsrecord(LDAPObject):
 
     def get_record_entry_attrs(self, entry_attrs):
         entry_attrs = entry_attrs.copy()
-        for attr in entry_attrs.keys():
+        for attr in tuple(entry_attrs.keys()):
             if attr not in self.params or self.params[attr].primary_key:
                 del entry_attrs[attr]
         return entry_attrs
