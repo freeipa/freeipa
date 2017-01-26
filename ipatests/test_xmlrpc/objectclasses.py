@@ -232,3 +232,9 @@ certmaprule = [
     u'top',
     u'ipacertmaprule',
 ]
+
+certmapconfig = [
+    u'top',
+    u'nsContainer',
+    u'ipaCertMapConfigObject',
+]
