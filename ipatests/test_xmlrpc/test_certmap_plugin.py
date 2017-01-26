@@ -9,7 +9,8 @@ import pytest
 from ipalib import api, errors
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
-from ipatests.test_xmlrpc.tracker.certmap_plugin import CertmapruleTracker
+from ipatests.test_xmlrpc.tracker.certmap_plugin import (CertmapruleTracker,
+                                                         CertmapconfigTracker)
 from ipatests.util import assert_deepequal
 from ipatests.util import change_principal, unlock_principal_password
 
@@ -41,6 +42,8 @@ certmaprule_optional_params = (
     'ipacertmappriority',
 )
 
+certmapconfig_update_params = {u'ipacertmappromptusername': u'TRUE'}
+
 CREATE_PERM = u'System: Add Certmap Rules'
 READ_PERM = u'System: Read Certmap Rules'
 UPDATE_PERM = u'System: Modify Certmap Rules'
@@ -70,6 +73,12 @@ def update_idfn(update):
 @pytest.fixture(scope='class')
 def certmap_rule(request):
     tracker = CertmapruleTracker(**certmaprule_create_params)
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def certmap_config(request):
+    tracker = CertmapconfigTracker()
     return tracker.make_fixture(request)
 
 
@@ -122,6 +131,17 @@ class TestEnableDisable(XMLRPC_test):
     def test_enable(self, certmap_rule):
         certmap_rule.ensure_exists()
         certmap_rule.enable()
+
+
+class TestConfig(XMLRPC_test):
+    def test_config_mod(self, certmap_config):
+        certmap_config.update(
+            certmapconfig_update_params,
+            {k: [v] for k, v in certmapconfig_update_params.items()}
+        )
+
+    def test_config_show(self, certmap_config):
+        certmap_config.retrieve()
 
 
 class EWE(object):
