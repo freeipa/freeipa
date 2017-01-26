@@ -3,8 +3,10 @@
 #
 
 from ipapython.dn import DN
-from ipatests.test_xmlrpc.tracker.base import Tracker, EnableTracker
+from ipatests.test_xmlrpc.tracker.base import Tracker
+from ipatests.test_xmlrpc.tracker.base import ConfigurationTracker, EnableTracker
 from ipatests.test_xmlrpc import objectclasses
+from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_string
 from ipatests.util import assert_deepequal
 
 
@@ -160,6 +162,64 @@ class CertmapruleTracker(Tracker, EnableTracker):
                 summary=u'Disabled Certificate Identity Mapping Rule "{}"'
                         u''.format(self.name),
                 result=True,
+            ),
+            result
+        )
+
+
+class CertmapconfigTracker(ConfigurationTracker):
+    retrieve_keys = {
+        u'dn',
+        u'ipacertmappromptusername',
+    }
+
+    retrieve_all_keys = retrieve_keys | {
+        u'cn',
+        u'objectclass',
+        u'aci',
+    }
+    update_keys = retrieve_keys - {u'dn'}
+    singlevalue_keys = {u'ipacertmappromptusername'}
+
+    def __init__(self, default_version=None):
+        super(CertmapconfigTracker, self).__init__(
+            default_version=default_version)
+
+        self.attrs = {
+            u'dn': DN(self.api.env.container_certmap, self.api.env.basedn),
+            u'cn': [self.api.env.container_certmap[0].value],
+            u'objectclass': objectclasses.certmapconfig,
+            u'aci': [fuzzy_string],
+            u'ipacertmappromptusername': self.api.Command.certmapconfig_show(
+                )[u'result'][u'ipacertmappromptusername']
+        }
+
+    def make_update_command(self, updates):
+        return self.make_command('certmapconfig_mod', **updates)
+
+    def check_update(self, result, extra_keys=()):
+        assert_deepequal(
+            dict(
+                value=None,
+                summary=None,
+                result=self.filter_attrs(self.update_keys | set(extra_keys)),
+            ),
+            result
+        )
+
+    def make_retrieve_command(self, all=False, raw=False):
+        return self.make_command('certmapconfig_show', all=all, raw=raw)
+
+    def check_retrieve(self, result, all=False, raw=False):
+        if all:
+            expected = self.filter_attrs(self.retrieve_all_keys)
+        else:
+            expected = self.filter_attrs(self.retrieve_keys)
+        assert_deepequal(
+            dict(
+                value=None,
+                summary=None,
+                result=expected,
             ),
             result
         )
