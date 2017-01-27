@@ -23,7 +23,7 @@ class iSecLdap(object):
         if self._basedn is None:
             conn = self.connect()
             r = conn.search_s('', ldap.SCOPE_BASE)
-            self._basedn = r[0][1]['defaultnamingcontext'][0]
+            self._basedn = r[0][1]['defaultnamingcontext'][0].decode('utf-8')
         return self._basedn
 
     def connect(self):
