@@ -35,6 +35,7 @@ from ipalib.frontend import Command
 from ipalib.parameters import Bool, Str
 from ipalib.plugable import Registry
 from ipalib import _, ngettext
+from ipalib import util
 from ipapython.dnsutil import DNSName
 
 if six.PY3:
@@ -417,6 +418,69 @@ class dnsforwardzone_mod(MethodOverride):
 
 @register(override=True, no_fail=True)
 class dns_update_system_records(MethodOverride):
+    record_groups = ('ipa_records', 'location_records')
+
+    takes_options = (
+        Str(
+            'out?',
+            include='cli',
+            doc=_('file to store DNS records in nsupdate format')
+        ),
+    )
+    def _standard_output(self, textui, result, labels):
+        """Print output in standard format common across the other plugins"""
+        for key in self.record_groups:
+            if result.get(key):
+                textui.print_indented(u'{}:'.format(labels[key]), indent=1)
+                for val in sorted(result[key]):
+                    textui.print_indented(val, indent=2)
+                textui.print_line(u'')
+
+    def _nsupdate_output_file(self, out_f, result):
+        """Store data in nsupdate format in file"""
+        def parse_rname_rtype(record):
+            """Get rname and rtype from textual representation of record"""
+            l = record.split(' ', 4)
+            return l[0], l[3]
+
+        labels = {
+            p.name: unicode(p.label) for p in self.output_params()
+        }
+
+        already_removed = set()
+        for key in self.record_groups:
+            if result.get(key):  # process only non-empty
+                out_f.write("; {}\n".format(labels[key]))  # comment
+                for val in sorted(result[key]):
+                    # delete old first
+                    r_name_type = parse_rname_rtype(val)
+                    if r_name_type not in already_removed:
+                        # remove it only once
+                        already_removed.add(r_name_type)
+                        out_f.write("update delete {rname} {rtype}\n".format(
+                            rname=r_name_type[0], rtype=r_name_type[1]
+                        ))
+                    # add new
+                    out_f.write("update add {}\n".format(val))
+                out_f.write("send\n\n")
+
+    def forward(self, *keys, **options):
+        # pop `out` before sending to server as it is only client side option
+        out = options.pop('out', None)
+        if out:
+            util.check_writable_file(out)
+
+        res = super(dns_update_system_records, self).forward(*keys, **options)
+
+        if out and 'result' in res:
+            try:
+                with open(out, "w") as f:
+                    self._nsupdate_output_file(f, res['result'])
+            except (OSError, IOError) as e:
+                raise errors.FileError(reason=unicode(e))
+
+        return res
+
     def output_for_cli(self, textui, output, *args, **options):
         output_super = copy.deepcopy(output)
         super_res = output_super.get('result', {})
@@ -431,11 +495,7 @@ class dns_update_system_records(MethodOverride):
         }
 
         result = output.get('result', {})
-        for key in ('ipa_records', 'location_records'):
-            if result.get(key):
-                textui.print_indented(u'{}:'.format(labels[key]), indent=1)
-                for val in sorted(result[key]):
-                    textui.print_indented(val, indent=2)
-                textui.print_line(u'')
+
+        self._standard_output(textui, result, labels)
 
         return int(not output['value'])
