@@ -324,14 +324,11 @@ class CertDB(object):
     def track_server_cert(self, nickname, principal, password_file=None, command=None):
         """
         Tell certmonger to track the given certificate nickname.
-
-        If command is not a full path then it is prefixed with
-        /usr/lib[64]/ipa/certmonger.
         """
-        if command is not None and not os.path.isabs(command):
-            command = paths.CERTMONGER_COMMAND_TEMPLATE % (command)
         try:
-            request_id = certmonger.start_tracking(nickname, self.secdir, password_file, command)
+            request_id = certmonger.start_tracking(
+                self.secdir, nickname=nickname, pinfile=password_file,
+                post_command=command)
         except RuntimeError as e:
             root_logger.error("certmonger failed starting to track certificate: %s" % str(e))
             return
