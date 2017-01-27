@@ -307,12 +307,11 @@ class DogtagInstance(service.Service):
 
         for nickname, profile in self.tracking_reqs:
             try:
-                certmonger.dogtag_start_tracking(
+                certmonger.start_tracking(
+                    certpath=self.nss_db,
                     ca='dogtag-ipa-ca-renew-agent',
                     nickname=nickname,
                     pin=pin,
-                    pinfile=None,
-                    secdir=self.nss_db,
                     pre_command='stop_pkicad',
                     post_command='renew_ca_cert "%s"' % nickname,
                     profile=profile)
@@ -328,12 +327,11 @@ class DogtagInstance(service.Service):
         """
         pin = self.__get_pin()
         try:
-            certmonger.dogtag_start_tracking(
+            certmonger.start_tracking(
+                certpath=self.nss_db,
                 ca='dogtag-ipa-ca-renew-agent',
                 nickname=self.server_cert_name,
                 pin=pin,
-                pinfile=None,
-                secdir=self.nss_db,
                 pre_command='stop_pkicad',
                 post_command='renew_ca_cert "%s"' % self.server_cert_name)
         except RuntimeError as e:

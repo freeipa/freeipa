@@ -66,9 +66,9 @@ class update_ra_cert_store(Updater):
 
         certmonger.stop_tracking(secdir=olddb.secdir,
                                  nickname='ipaCert')
-        certmonger.start_tracking(secdir=newdb.secdir,
+        certmonger.start_tracking(certpath=newdb.secdir,
                                   nickname='ipaCert',
-                                  password_file=newdb.pwd_file)
+                                  pinfile=newdb.pwd_file)
 
         olddb.delete_cert('ipaCert')
 

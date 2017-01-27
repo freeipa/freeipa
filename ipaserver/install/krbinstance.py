@@ -358,8 +358,7 @@ class KrbInstance(service.Service):
             krbtgt = "krbtgt/" + self.realm + "@" + self.realm
             certpath = (paths.KDC_CERT, paths.KDC_KEY)
             try:
-                reqid = certmonger.request_cert(certpath, u'KDC-Cert',
-                                                subject, krbtgt,
+                reqid = certmonger.request_cert(certpath, subject, krbtgt,
                                                 dns=self.fqdn, storage='FILE',
                                                 profile='KDCs_PKINIT_Certs')
             except dbus.DBusException as e:
