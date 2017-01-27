@@ -729,7 +729,7 @@ class LDAPClient(object):
         # FIXME: for backwards compatibility only
         assert isinstance(dn, DN)
         dn = str(dn)
-        modlist = [(a, self.encode(b), self.encode(c)) for a, b, c in modlist]
+        modlist = [(a, b, self.encode(c)) for a, b, c in modlist]
         return self.conn.modify_s(dn, modlist)
 
     @property
