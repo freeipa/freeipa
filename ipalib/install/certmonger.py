@@ -32,6 +32,7 @@ import subprocess
 import tempfile
 from ipalib import api
 from ipapython.ipa_log_manager import root_logger
+from ipapython.dn import DN
 from ipaplatform.paths import paths
 from ipaplatform import services
 
@@ -329,6 +330,10 @@ def request_cert(
     """
     if storage == 'FILE':
         certfile, keyfile = certpath
+        # This is a workaround for certmonger having different Subject
+        # representation with NSS and OpenSSL
+        # https://pagure.io/certmonger/issue/62
+        subject = str(DN(*reversed(DN(subject))))
     else:
         certfile = certpath
         keyfile = certpath
