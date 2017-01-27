@@ -35,6 +35,9 @@ import base64
 import contextlib
 import json
 
+from cryptography import x509 as crypto_x509
+from cryptography.hazmat.backends import default_backend
+
 import six
 
 from ipapython import ipautil
@@ -64,8 +67,15 @@ if six.PY3:
 
 IPA_CA_NICKNAME = 'caSigningCert cert-pki-ca'
 
+
 def get_nickname():
-    subject = os.environ.get('CERTMONGER_REQ_SUBJECT')
+    # we need to get the subject from a CSR in case we are requesting
+    # an OpenSSL certificate for which we have to reverse the order of its DN
+    # components thus changing the CERTMONGER_REQ_SUBJECT
+    # https://pagure.io/certmonger/issue/62
+    csr = os.environ.get('CERTMONGER_CSR')
+    csr_obj = crypto_x509.load_pem_x509_csr(csr, default_backend())
+    subject = csr_obj.subject
     if not subject:
         return None
 
