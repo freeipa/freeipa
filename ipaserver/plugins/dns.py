@@ -1620,8 +1620,9 @@ def _convert_to_idna(value):
         idna_val = encodings.idna.nameprep(idna_val)
         idna_val = re.split(r'(?<!\\)\.', idna_val)
         idna_val = u'%s%s%s' % (start_dot,
-                                u'.'.join(encodings.idna.ToASCII(x)
-                                          for x in idna_val),
+                                u'.'.join(
+                                    encodings.idna.ToASCII(x).decode('ascii')
+                                    for x in idna_val),
                                 end_dot)
         return idna_val
     except Exception:
