@@ -181,7 +181,7 @@ class IPAKEMKeys(KEMKeysStore):
         self.realm = conf.get('global', 'realm')
         self.ldap_uri = config.get('ldap_uri', None)
         if self.ldap_uri is None:
-            self.ldap_uri = conf.get('global', 'ldap_uri', None)
+            self.ldap_uri = conf.get('global', 'ldap_uri', raw=True)
         self._server_keys = None
 
     def find_key(self, kid, usage):
