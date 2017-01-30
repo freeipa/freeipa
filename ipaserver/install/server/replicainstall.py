@@ -1245,7 +1245,11 @@ def promote_check(installer):
 
     except errors.ACIError:
         root_logger.debug(traceback.format_exc())
-        raise ScriptError("\nInsufficient privileges to promote the server.")
+        raise ScriptError("\nInsufficient privileges to promote the server."
+                          "\nPossible issues:"
+                          "\n- A user has insufficient privileges"
+                          "\n- This client has insufficient privileges "
+                          "to become an IPA replica")
     except errors.LDAPError:
         root_logger.debug(traceback.format_exc())
         raise ScriptError("\nUnable to connect to LDAP server %s" %
