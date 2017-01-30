@@ -216,10 +216,11 @@ def install_master(safe_options, options):
     options.host_name = api.env.host
 
     if not options.subject_base:
-        options.subject_base = installutils.default_subject_base(api.env.realm)
+        options.subject_base = str(
+            installutils.default_subject_base(api.env.realm))
     if not options.ca_subject:
-        options.ca_subject = installutils.default_ca_subject_dn(
-            options.subject_base)
+        options.ca_subject = str(
+            installutils.default_ca_subject_dn(options.subject_base))
 
     try:
         ca.subject_validator(ca.VALID_SUBJECT_BASE_ATTRS, options.subject_base)
