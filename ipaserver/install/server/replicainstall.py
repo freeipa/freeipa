@@ -876,6 +876,7 @@ def ensure_enrolled(installer):
 
         args = [paths.IPA_CLIENT_INSTALL, "--unattended", "--no-ntp"]
         stdin = None
+        nolog = []
 
         if installer.domain_name:
             args.extend(["--domain", installer.domain_name])
@@ -888,6 +889,7 @@ def ensure_enrolled(installer):
 
         if installer.password:
             args.extend(["--password", installer.password])
+            nolog.append(installer.password)
         else:
             if installer.admin_password:
                 # Always set principal if password was set explicitly,
@@ -908,7 +910,7 @@ def ensure_enrolled(installer):
         if installer.mkhomedir:
             args.append("--mkhomedir")
 
-        ipautil.run(args, stdin=stdin, redirect_output=True)
+        ipautil.run(args, stdin=stdin, nolog=nolog, redirect_output=True)
         print()
     except Exception:
         raise ScriptError("Configuration of client side components failed!")
