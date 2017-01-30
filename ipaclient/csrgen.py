@@ -2,9 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+import base64
 import collections
 import errno
 import json
+import os
 import os.path
 import pipes
 import subprocess
@@ -17,6 +19,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import (
     load_pem_private_key, Encoding, PublicFormat)
+from cryptography.x509 import load_pem_x509_certificate
 import jinja2
 import jinja2.ext
 import jinja2.sandbox
@@ -441,8 +444,30 @@ class OpenSSLAdaptor(object):
 
 
 class NSSAdaptor(object):
+    def __init__(self, database, password_filename):
+        self.database = database
+        self.password_filename = password_filename
+        self.nickname = base64.b32encode(os.urandom(40))
+
     def get_subject_public_key_info(self):
-        raise NotImplementedError('NSS is not yet supported')
+        temp_cn = base64.b32encode(os.urandom(40))
+
+        password_args = []
+        if self.password_filename is not None:
+            password_args = ['-f', self.password_filename]
+
+        subprocess.check_call(
+            ['certutil', '-S', '-n', self.nickname, '-s', 'CN=%s' % temp_cn,
+             '-x', '-t', ',,', '-d', self.database] + password_args)
+        cert_pem = subprocess.check_output(
+            ['certutil', '-L', '-n', self.nickname, '-a',
+             '-d', self.database] + password_args)
+
+        cert = load_pem_x509_certificate(cert_pem, default_backend())
+        pubkey_info = cert.public_key().public_bytes(
+            Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
+
+        return pubkey_info
 
     def sign_csr(self, certification_request_info):
         raise NotImplementedError('NSS is not yet supported')
