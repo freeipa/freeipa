@@ -134,21 +134,22 @@ class IPAUpgrade(service.Service):
                                    self.filename)
 
             try:
-                port = config_entry['nsslapd-port'][0]
+                port = config_entry['nsslapd-port'][0].decode('utf-8')
             except KeyError:
                 pass
             else:
                 self.backup_state('nsslapd-port', port)
 
             try:
-                security = config_entry['nsslapd-security'][0]
+                security = config_entry['nsslapd-security'][0].decode('utf-8')
             except KeyError:
                 pass
             else:
                 self.backup_state('nsslapd-security', security)
 
             try:
-                global_lock = config_entry['nsslapd-global-backend-lock'][0]
+                global_lock = config_entry[
+                    'nsslapd-global-backend-lock'][0].decode('utf-8')
             except KeyError:
                 pass
             else:
@@ -177,16 +178,17 @@ class IPAUpgrade(service.Service):
                 parser = installutils.ModifyLDIF(in_file, out_file)
 
                 if port is not None:
-                    parser.replace_value("cn=config", "nsslapd-port", [port])
+                    parser.replace_value(
+                        "cn=config", "nsslapd-port", [port.encode('utf-8')])
                 if security is not None:
                     parser.replace_value("cn=config", "nsslapd-security",
-                                         [security])
+                                         [security.encode('utf-8')])
 
                 # disable global lock by default
                 parser.remove_value("cn=config", "nsslapd-global-backend-lock")
                 if global_lock is not None:
                     parser.add_value("cn=config", "nsslapd-global-backend-lock",
-                                     [global_lock])
+                                     [global_lock.encode('utf-8')])
 
                 parser.parse()
 
