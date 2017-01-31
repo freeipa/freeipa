@@ -124,7 +124,7 @@ class IPAUpgrade(service.Service):
 
     def __save_config(self):
         shutil.copy2(self.filename, self.savefilename)
-        with open(self.filename, "rb") as in_file:
+        with open(self.filename, "r") as in_file:
             parser = GetEntryFromLDIF(in_file, entries_dn=["cn=config"])
             parser.parse()
             try:
@@ -156,8 +156,8 @@ class IPAUpgrade(service.Service):
 
     def __enable_ds_global_write_lock(self):
         ldif_outfile = "%s.modified.out" % self.filename
-        with open(ldif_outfile, "wb") as out_file:
-            with open(self.filename, "rb") as in_file:
+        with open(ldif_outfile, "w") as out_file:
+            with open(self.filename, "r") as in_file:
                 parser = installutils.ModifyLDIF(in_file, out_file)
 
                 parser.replace_value(
@@ -172,8 +172,8 @@ class IPAUpgrade(service.Service):
         global_lock = self.restore_state('nsslapd-global-backend-lock')
 
         ldif_outfile = "%s.modified.out" % self.filename
-        with open(ldif_outfile, "wb") as out_file:
-            with open(self.filename, "rb") as in_file:
+        with open(ldif_outfile, "w") as out_file:
+            with open(self.filename, "r") as in_file:
                 parser = installutils.ModifyLDIF(in_file, out_file)
 
                 if port is not None:
@@ -194,8 +194,8 @@ class IPAUpgrade(service.Service):
 
     def __disable_listeners(self):
         ldif_outfile = "%s.modified.out" % self.filename
-        with open(ldif_outfile, "wb") as out_file:
-            with open(self.filename, "rb") as in_file:
+        with open(ldif_outfile, "w") as out_file:
+            with open(self.filename, "r") as in_file:
                 parser = installutils.ModifyLDIF(in_file, out_file)
                 parser.replace_value("cn=config", "nsslapd-port", ["0"])
                 parser.replace_value("cn=config", "nsslapd-security", ["off"])
