@@ -670,10 +670,13 @@ class BindInstance(service.Service):
                 system_records.get_base_records()
             )
         )
-        [fd, name] = tempfile.mkstemp(".db","ipa.system.records.")
-        os.write(fd, text)
-        os.close(fd)
-        print("Please add records in this file to your DNS system:", name)
+        with tempfile.NamedTemporaryFile(
+                mode="w", prefix="ipa.system.records.",
+                suffix=".db", delete=False
+        ) as f:
+            f.write(text)
+            print("Please add records in this file to your DNS system:",
+                  f.name)
 
     def create_instance(self):
 
