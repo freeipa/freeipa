@@ -951,21 +951,19 @@ class DsInstance(service.Service):
 
     def change_admin_password(self, password):
         root_logger.debug("Changing admin password")
-        dmpwdfile = ""
-        admpwdfile = ""
 
-        try:
-            (dmpwdfd, dmpwdfile) = tempfile.mkstemp(dir=paths.VAR_LIB_IPA)
-            os.write(dmpwdfd, self.dm_password)
-            os.close(dmpwdfd)
+        dir_ipa = paths.VAR_LIB_IPA
+        with tempfile.NamedTemporaryFile("w", dir=dir_ipa) as dmpwdfile, \
+                tempfile.NamedTemporaryFile("w", dir=dir_ipa) as admpwdfile:
+            dmpwdfile.write(self.dm_password)
+            dmpwdfile.flush()
 
-            (admpwdfd, admpwdfile) = tempfile.mkstemp(dir=paths.VAR_LIB_IPA)
-            os.write(admpwdfd, password)
-            os.close(admpwdfd)
+            admpwdfile.write(password)
+            admpwdfile.flush()
 
             args = [paths.LDAPPASSWD, "-h", self.fqdn,
                     "-ZZ", "-x", "-D", str(DN(('cn', 'Directory Manager'))),
-                    "-y", dmpwdfile, "-T", admpwdfile,
+                    "-y", dmpwdfile.name, "-T", admpwdfile.name,
                     str(DN(('uid', 'admin'), ('cn', 'users'), ('cn', 'accounts'), self.suffix))]
             try:
                 env = {'LDAPTLS_CACERTDIR': os.path.dirname(paths.IPA_CA_CRT),
@@ -975,12 +973,6 @@ class DsInstance(service.Service):
             except ipautil.CalledProcessError as e:
                 print("Unable to set admin password", e)
                 root_logger.debug("Unable to set admin password %s" % e)
-
-        finally:
-            if os.path.isfile(dmpwdfile):
-                os.remove(dmpwdfile)
-            if os.path.isfile(admpwdfile):
-                os.remove(admpwdfile)
 
     def uninstall(self):
         if self.is_configured():
