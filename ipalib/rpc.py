@@ -706,6 +706,7 @@ class KerbTransport(SSLTransport):
             cookie_header = [cookie_header]
 
         # Search for the session cookie
+        session_cookie = None
         try:
             for cookie in cookie_header:
                 session_cookie = \
