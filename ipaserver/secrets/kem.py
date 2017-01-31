@@ -139,8 +139,7 @@ class KEMLdap(iSecLdap):
                     ('memberPrincipal', principal.encode('utf-8')),
                     ('ipaPublicKey', public_key)]
             conn.add_s(dn, mods)
-        except Exception:  # pylint: disable=broad-except
-            # This may fail if the entry already exists
+        except ldap.ALREADY_EXISTS:
             mods = [(ldap.MOD_REPLACE, 'ipaPublicKey', public_key)]
             conn.modify_s(dn, mods)
 
