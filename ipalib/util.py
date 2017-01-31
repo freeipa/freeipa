@@ -670,8 +670,7 @@ def validate_dnssec_global_forwarder(ip_addr, log=None, timeout=10):
                               timeout=timeout)
     except DNSException as e:
         _log_response(log, e)
-        raise UnresolvableRecordError(owner=owner, rtype=rtype, ip=ip_addr,
-                                      error=e)
+        raise DNSSECSignatureMissingError(owner=owner, rtype=rtype, ip=ip_addr)
 
     try:
         ans.response.find_rrset(
