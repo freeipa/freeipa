@@ -162,7 +162,7 @@ class IPAUpgrade(service.Service):
                 parser = installutils.ModifyLDIF(in_file, out_file)
 
                 parser.replace_value(
-                    "cn=config", "nsslapd-global-backend-lock", ["on"])
+                    "cn=config", "nsslapd-global-backend-lock", [b"on"])
                 parser.parse()
 
         shutil.copy2(ldif_outfile, self.filename)
@@ -199,8 +199,8 @@ class IPAUpgrade(service.Service):
         with open(ldif_outfile, "w") as out_file:
             with open(self.filename, "r") as in_file:
                 parser = installutils.ModifyLDIF(in_file, out_file)
-                parser.replace_value("cn=config", "nsslapd-port", ["0"])
-                parser.replace_value("cn=config", "nsslapd-security", ["off"])
+                parser.replace_value("cn=config", "nsslapd-port", [b"0"])
+                parser.replace_value("cn=config", "nsslapd-security", [b"off"])
                 parser.remove_value("cn=config", "nsslapd-ldapientrysearchbase")
                 parser.parse()
 
