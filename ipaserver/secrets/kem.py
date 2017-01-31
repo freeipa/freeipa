@@ -130,13 +130,13 @@ class KEMLdap(iSecLdap):
         service_rdn = ('cn', servicename) if servicename != 'host' else DN()
         dn = str(DN(('cn', name), service_rdn, self.keysbase))
         try:
-            mods = [('objectClass', ['nsContainer',
-                                     'ipaKeyPolicy',
-                                     'ipaPublicKeyObject',
-                                     'groupOfPrincipals']),
-                    ('cn', name),
-                    ('ipaKeyUsage', RFC5280_USAGE_MAP[usage]),
-                    ('memberPrincipal', principal),
+            mods = [('objectClass', [b'nsContainer',
+                                     b'ipaKeyPolicy',
+                                     b'ipaPublicKeyObject',
+                                     b'groupOfPrincipals']),
+                    ('cn', name.encode('utf-8')),
+                    ('ipaKeyUsage', RFC5280_USAGE_MAP[usage].encode('utf-8')),
+                    ('memberPrincipal', principal.encode('utf-8')),
                     ('ipaPublicKey', public_key)]
             conn.add_s(dn, mods)
         except Exception:  # pylint: disable=broad-except
