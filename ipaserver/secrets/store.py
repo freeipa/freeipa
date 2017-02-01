@@ -191,6 +191,67 @@ class DMLDAP(DBMAPHandler):
         conn.modify_s('cn=config', mods)
 
 
+class PEMFileHandler(DBMAPHandler):
+    def __init__(self, config, dbmap, nickname=None):
+        if 'type' not in dbmap or dbmap['type'] != 'OPENSSL':
+            raise ValueError('Invalid type "{t}", expected OPENSSL'
+                             .format(t=dbmap['type']))
+        self.certfile = dbmap['certfile']
+        self.keyfile = dbmap.get(['keyfile'])
+
+    def export_key(self):
+        _fd, tmpfile = tempfile.mkstemp(dir=paths.TMP)
+        password = ipautil.ipa_generate_password()
+        args = [
+            paths.OPENSSL,
+            "pkcs12", "-export",
+            "-in", self.certfile,
+            "-out", tmpfile,
+            "-password", "pass:{pwd}".format(pwd=password)
+        ]
+        if self.keyfile is not None:
+            args.extend(["-inkey", self.keyfile])
+
+        try:
+            ipautil.run(args, nolog=password)
+            with open(tmpfile, 'r') as f:
+                data = f.read()
+        finally:
+            os.remove(tmpfile)
+        return json_encode({'export password': password,
+                            'pkcs12 data': b64encode(data)})
+
+    def import_key(self, value):
+        v = json_decode(value)
+        data = b64decode(v['pkcs12 data'])
+        password = v['export password']
+        try:
+            _fd, tmpdata = tempfile.mkstemp(dir=paths.TMP)
+            with open(tmpdata, 'w') as f:
+                f.write(data)
+
+            # get the certificate from the file
+            ipautil.run([paths.OPENSSL,
+                         "pkcs12",
+                         "-in", tmpdata,
+                         "-clcerts", "-nokeys",
+                         "-out", self.certfile,
+                         "-passin", "pass:{pwd}".format(pwd=password)],
+                        nolog=(password))
+
+            if self.keyfile is not None:
+                # get the private key from the file
+                ipautil.run([paths.OPENSSL,
+                             "pkcs12",
+                             "-in", tmpdata,
+                             "-nocerts", "-nodes",
+                             "-out", self.keyfile,
+                             "-passin", "pass:{pwd}".format(pwd=password)],
+                            nolog=(password))
+        finally:
+            os.remove(tmpdata)
+
+
 NAME_DB_MAP = {
     'ca': {
         'type': 'NSSDB',
