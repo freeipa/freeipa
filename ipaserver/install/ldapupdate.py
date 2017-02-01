@@ -119,10 +119,10 @@ def safe_output(attr, values):
         values = [values]
 
     try:
-        all(v.decode('ascii') for v in values)
+        values = [v.decode('ascii') for v in values]
     except UnicodeDecodeError:
         try:
-            values = [base64.b64encode(v) for v in values]
+            values = [base64.b64encode(v).decode('ascii') for v in values]
         except TypeError:
             pass
 
@@ -656,7 +656,9 @@ class LDAPUpdate(object):
                 try:
                     entry_values.remove(update_value)
                 except ValueError:
-                    self.debug("remove: '%s' not in %s", update_value, attr)
+                    self.debug(
+                        "remove: '%s' not in %s",
+                        safe_output(attr, update_value), attr)
                 else:
                     entry[attr] = entry_values
                     self.debug('remove: updated value %s', safe_output(
