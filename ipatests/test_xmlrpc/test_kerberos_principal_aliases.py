@@ -260,7 +260,7 @@ class TestKerberosAliasExceptions(XMLRPC_test):
         # Add an alias overlapping the UPN of a trusted domain
         upn_suffix = (
             trusted_domain_with_suffix['ldif']['ipaNTAdditionalSuffixes']
-        )
+        ).decode('utf-8')
 
         with pytest.raises(errors.ValidationError):
             krbalias_user.add_principal(
@@ -278,7 +278,7 @@ class TestKerberosAliasExceptions(XMLRPC_test):
         # Add an alias overlapping the NETBIOS name of a trusted domain
         netbios_name = (
             trusted_domain_with_suffix['ldif']['ipaNTFlatName']
-        )
+        ).decode('utf-8')
 
         with pytest.raises(errors.ValidationError):
             krbalias_user.add_principal(

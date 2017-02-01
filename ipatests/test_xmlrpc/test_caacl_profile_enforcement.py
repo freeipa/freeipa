@@ -434,7 +434,7 @@ def santest_csr(request, santest_host_1, santest_host_2):
         pkey, hashes.SHA256(), backend
     ).public_bytes(serialization.Encoding.PEM)
 
-    return unicode(csr)
+    return csr.decode('ascii')
 
 
 class SubjectAltNameOneServiceBase(XMLRPC_test):
