@@ -227,3 +227,8 @@ ca = [
     u'top',
     u'ipaca',
 ]
+
+certmaprule = [
+    u'top',
+    u'ipacertmaprule',
+]
