@@ -259,36 +259,58 @@ class CreationTracker(BaseTracker):
 
         return super(CreationTracker, self).make_fixture(request)
 
-    def find(self, all=False, raw=False):
-        """Helper function to search for this hosts and check the result"""
-        command = self.make_find_command(self.name, all=all, raw=raw)
-        result = command()
-        self.check_find(result, all=all, raw=raw)
 
-    def check_find(self, result, all=False, raw=False):
-        """Check the plugin's `find` command result"""
+class EnableTracker(BaseTracker):
+    def __init__(self, default_version=None, enabled=True):
+        super(EnableTracker, self).__init__(default_version=default_version)
+        self.original_enabled = enabled
+        self.enabled = enabled
+
+    def make_enable_command(self):
+        """Make function that enables the entry using ${CMD}_enable"""
         raise NotImplementedError(self._override_me_msg)
 
-    def update(self, updates, expected_updates=None):
-        """Helper function to update this hosts and check the result
-
-        The ``updates`` are used as options to the *_mod command,
-        and the self.attrs is updated with this dict.
-        Additionally, self.attrs is updated with ``expected_updates``.
-        """
-        if expected_updates is None:
-            expected_updates = {}
-
-        command = self.make_update_command(updates)
+    def enable(self):
+        self.enabled = True
+        command = self.make_enable_command()
         result = command()
-        self.attrs.update(updates)
-        self.attrs.update(expected_updates)
-        for key, value in self.attrs.items():
-            if value is None:
-                del self.attrs[key]
+        self.check_enable(result)
 
-        self.check_update(result, extra_keys=set(updates.keys()) |
-                                             set(expected_updates.keys()))
+    def check_enable(self, result):
+        """Check the plugin's `enable` command result"""
+        raise NotImplementedError(self._override_me_msg)
+
+    def make_disable_command(self):
+        """Make function that disables the entry using ${CMD}_disable"""
+        raise NotImplementedError(self._override_me_msg)
+
+    def disable(self):
+        self.enabled = False
+        command = self.make_disable_command()
+        result = command()
+        self.check_disable(result)
+
+    def check_disable(self, result):
+        """Check the plugin's `disable` command result"""
+        raise NotImplementedError(self._override_me_msg)
+
+    def make_fixture(self, request):
+        """Make a pytest fixture for this tracker
+
+        The fixture ensures the plugin entry is in the same state
+        (enabled/disabled) after the test as it was before it.
+        """
+        def cleanup():
+            if self.original_enabled != self.enabled:
+                if self.original_enabled:
+                    command = self.make_enable_command()
+                else:
+                    command = self.make_disable_command()
+                command()
+
+        request.addfinalizer(cleanup)
+
+        return super(EnableTracker, self).make_fixture(request)
 
 
 class Tracker(RetrievalTracker, SearchTracker, ModificationTracker,
