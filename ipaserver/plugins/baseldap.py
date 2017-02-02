@@ -722,7 +722,7 @@ class LDAPObject(Object):
         direct = set()
         indirect = set(entry.raw.get('memberof', []))
         for group_entry in result:
-            dn = str(group_entry.dn)
+            dn = str(group_entry.dn).encode('utf-8')
             if dn in indirect:
                 indirect.remove(dn)
                 direct.add(dn)

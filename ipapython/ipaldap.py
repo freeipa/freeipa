@@ -379,8 +379,10 @@ class LDAPEntry(collections.MutableMapping):
                 name, value.__class__.__name__, value))
         for (i, item) in enumerate(value):
             if not isinstance(item, bytes):
-                raise TypeError("%s[%d] value must be str, got %s object %r" % (
-                    name, i, item.__class__.__name__, item))
+                raise TypeError(
+                    "%s[%d] value must be bytes, got %s object %r" % (
+                        name, i, item.__class__.__name__, item)
+                )
 
         name = self._add_attr_name(name)
 
