@@ -18,6 +18,7 @@ AM_CPPFLAGS =						\
 	$(WARN_CFLAGS)					\
 	$(NDRPAC_CFLAGS)				\
 	$(NSS_CFLAGS)					\
+	$(SSSCERTMAP_CFLAGS)				\
 	$(NULL)
 
 plugindir = $(libdir)/krb5/plugins/kdb
@@ -39,6 +40,20 @@ ipadb_la_SOURCES = 		\
 	ipa_kdb_audit_as.c	\
 	$(NULL)
 
+if BUILD_IPA_CERTAUTH_PLUGIN
+ipadb_la_SOURCES += ipa_kdb_certauth.c
+
+
+%: %.in
+	sed \
+		-e 's|@plugindir@|$(plugindir)|g' \
+		'$(srcdir)/$@.in' >$@
+
+krb5confdir = $(sysconfdir)/krb5.conf.d
+krb5conf_DATA = ipa-certauth
+CLEANFILES = $(krb5conf_DATA)
+endif
+
 ipadb_la_LDFLAGS = 		\
 	-avoid-version 		\
 	-module			\
@@ -50,6 +65,7 @@ ipadb_la_LIBADD = 		\
 	$(NDRPAC_LIBS)		\
 	$(UNISTRING_LIBS)	\
 	$(NSS_LIBS)             \
+	$(SSSCERTMAP_LIBS)	\
 	$(top_builddir)/util/libutil.la	\
 	$(NULL)
 
@@ -70,6 +86,11 @@ ipa_kdb_tests_SOURCES =        \
        ipa_kdb_delegation.c    \
        ipa_kdb_audit_as.c      \
        $(NULL)
+
+if BUILD_IPA_CERTAUTH_PLUGIN
+ipa_kdb_tests_SOURCES += ipa_kdb_certauth.c
+endif
+
 ipa_kdb_tests_CFLAGS = $(CMOCKA_CFLAGS)
 ipa_kdb_tests_LDADD =          \
        $(CMOCKA_LIBS)          \
@@ -78,12 +99,13 @@ ipa_kdb_tests_LDADD =          \
        $(NDRPAC_LIBS)          \
        $(UNISTRING_LIBS)       \
        $(NSS_LIBS)             \
+       $(SSSCERTMAP_LIBS)      \
        $(top_builddir)/util/libutil.la	\
        -lkdb5                  \
        -lsss_idmap             \
        $(NULL)
 
-dist_noinst_DATA = ipa_kdb.exports
+dist_noinst_DATA = ipa_kdb.exports ipa-certauth.in
 
 clean-local:
 	rm -f tests/.dirstamp

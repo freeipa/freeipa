@@ -67,6 +67,8 @@ static void ipadb_context_free(krb5_context kcontext,
         }
         free(cfg->authz_data);
 
+        ipa_certauth_free_moddata(&((*ctx)->certauth_moddata));
+
         free(*ctx);
         *ctx = NULL;
     }

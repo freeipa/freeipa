@@ -120,6 +120,7 @@ BuildRequires:  libtalloc-devel
 BuildRequires:  libtevent-devel
 BuildRequires:  libuuid-devel
 BuildRequires:  libsss_idmap-devel
+BuildRequires:  libsss_certmap-devel
 # 1.14.0: sss_nss_getnamebycert (https://fedorahosted.org/sssd/ticket/2897)
 BuildRequires:  libsss_nss_idmap-devel >= 1.14.0
 BuildRequires:  rhino
@@ -1164,6 +1165,7 @@ fi
 %attr(0755,root,root) %{_libexecdir}/ipa/oddjob/org.freeipa.server.conncheck
 %config(noreplace) %{_sysconfdir}/dbus-1/system.d/org.freeipa.server.conf
 %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/ipa-server.conf
+%config(noreplace) %{_sysconfdir}/krb5.conf.d/ipa-certauth
 %dir %{_libexecdir}/ipa/certmonger
 %attr(755,root,root) %{_libexecdir}/ipa/certmonger/*
 # NOTE: systemd specific section
