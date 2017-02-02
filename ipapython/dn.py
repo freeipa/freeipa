@@ -452,7 +452,7 @@ def _adjust_indices(start, end, length):
 
 def _normalize_ava_input(val):
     if six.PY3 and isinstance(val, bytes):
-        raise TypeError('expected str, got bytes: %s' % val)
+        raise TypeError('expected str, got bytes: %r' % val)
     elif not isinstance(val, six.string_types):
         val = val_encode(six.text_type(val))
     elif six.PY2 and isinstance(val, unicode):
