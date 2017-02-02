@@ -224,7 +224,7 @@ PKG_CHECK_MODULES([SASL], [libsasl2])
 dnl ---------------------------------------------------------------------------
 dnl - Check for XMLRPC-C
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([XMLRPC], [xmlrpc_client])
+PKG_CHECK_MODULES([XMLRPC], [xmlrpc xmlrpc_client xmlrpc_util])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for libintl
