@@ -30,6 +30,19 @@ dnl -- sss_idmap is needed by the extdom exop --
 PKG_CHECK_MODULES([SSSIDMAP], [sss_idmap])
 PKG_CHECK_MODULES([SSSNSSIDMAP], [sss_nss_idmap >= 1.13.90])
 
+dnl -- sss_certmap and certauth.h are needed by the IPA KDB certauth plugin --
+PKG_CHECK_EXISTS([sss_certmap],
+                 [PKG_CHECK_MODULES([SSSCERTMAP], [sss_certmap])],
+                 [AC_MSG_NOTICE([sss_certmap not found])])
+AC_CHECK_HEADER([krb5/certauth_plugin.h],
+                [have_certauth_plugin=yes],
+                [have_certauth_plugin=no])
+AM_CONDITIONAL([BUILD_IPA_CERTAUTH_PLUGIN],
+               [test x$have_certauth_plugin = xyes -a x"$SSSCERTMAP_LIBS" != x])
+AM_COND_IF([BUILD_IPA_CERTAUTH_PLUGIN],
+           [AC_MSG_NOTICE([Build IPA KDB certauth plugin])],
+           [AC_MSG_WARN([Cannot build IPA KDB certauth plugin])])
+
 dnl ---------------------------------------------------------------------------
 dnl - Check for KRB5 krad
 dnl ---------------------------------------------------------------------------
