@@ -530,27 +530,18 @@ class ADTRUSTInstance(service.Service):
             api.Backend.ldap2, self.smb_dn, "member",
             [self.cifs_agent, self.host_princ])
 
-    def __setup_principal(self):
-        try:
-            api.Command.service_add(unicode(self.principal))
-        except errors.DuplicateEntry:
-            # CIFS principal already exists, it is not the first time
-            # adtrustinstance is managed
-            # That's fine, we we'll re-extract the key again.
-            pass
-        except Exception as e:
-            self.print_msg("Cannot add CIFS service: %s" % e)
-
+    def clean_previous_keytab(self, keytab=None):
+        """
+        Purge old CIFS keys from samba and clean up samba ccache
+        """
         self.clean_samba_keytab()
         installutils.remove_ccache(paths.KRB5CC_SAMBA)
 
-        try:
-            ipautil.run(["ipa-getkeytab", "--server", self.fqdn,
-                                          "--principal", self.principal,
-                                          "-k", self.keytab])
-        except ipautil.CalledProcessError:
-            root_logger.critical("Failed to add key for %s"
-                                 % self.principal)
+    def set_keytab_owner(self, keytab=None, owner=None):
+        """
+        Do not re-set ownership of samba keytab
+        """
+        pass
 
     def clean_samba_keytab(self):
         if os.path.exists(self.keytab):
@@ -818,7 +809,8 @@ class ADTRUSTInstance(service.Service):
                   self.__create_samba_domain_object)
         self.step("creating samba config registry", self.__write_smb_registry)
         self.step("writing samba config file", self.__write_smb_conf)
-        self.step("adding cifs Kerberos principal", self.__setup_principal)
+        self.step("adding cifs Kerberos principal",
+                  self.request_service_keytab)
         self.step("adding cifs and host Kerberos principals to the adtrust agents group", \
                   self.__setup_group_membership)
         self.step("check for cifs services defined on other replicas", self.__check_replica)
