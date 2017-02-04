@@ -51,6 +51,11 @@ class cert_request(MethodOverride):
             label=_('Path to private key file'),
             doc=_('Path to PEM file containing a private key'),
         ),
+        Str(
+            'csr_profile_id?',
+            label=_('Name of CSR generation profile (if not the same as'
+                    ' profile_id)'),
+        ),
     )
 
     def get_args(self):
@@ -62,6 +67,7 @@ class cert_request(MethodOverride):
     def forward(self, csr=None, **options):
         database = options.pop('database', None)
         private_key = options.pop('private_key', None)
+        csr_profile_id = options.pop('csr_profile_id', None)
 
         if csr is None:
             if database:
@@ -75,7 +81,12 @@ class cert_request(MethodOverride):
                     message=u"One of 'database' or 'private_key' is required")
 
             with NTF() as scriptfile, NTF() as csrfile:
-                profile_id = options.get('profile_id')
+                # If csr_profile_id is passed, that takes precedence.
+                # Otherwise, use profile_id. If neither are passed, the default
+                # in cert_get_requestdata will be used.
+                profile_id = csr_profile_id
+                if profile_id is None:
+                    profile_id = options.get('profile_id')
 
                 self.api.Command.cert_get_requestdata(
                     profile_id=profile_id,
