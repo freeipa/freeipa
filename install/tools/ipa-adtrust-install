@@ -38,6 +38,7 @@ from ipaserver.install.installutils import (
     check_server_configuration,
     run_script)
 from ipaserver.install import service
+from ipapython.admintool import ScriptError
 from ipapython import version
 from ipapython import ipautil, ipaldap
 from ipalib import api, errors, krb_utils
@@ -213,7 +214,7 @@ def set_and_check_netbios_name(netbios_name, unattended):
     if not adtrustinstance.check_netbios_name(netbios_name):
         if unattended:
             netbios_name_error(netbios_name)
-            sys.exit("Aborting installation.")
+            raise ScriptError("Aborting installation.")
         else:
             if netbios_name:
                 netbios_name_error(netbios_name)
@@ -253,7 +254,7 @@ def main():
     safe_options, options = parse_options()
 
     if os.getegid() != 0:
-        sys.exit("Must be root to setup AD trusts on server")
+        raise ScriptError("Must be root to setup AD trusts on server")
 
     standard_logging_setup(log_file_name, debug=options.debug, filemode='a')
     print("\nThe log file for this installation can be found in %s"
@@ -286,7 +287,7 @@ def main():
 
     # Check if samba packages are installed
     if not adtrustinstance.check_inst():
-        sys.exit("Aborting installation.")
+        raise ScriptError("Aborting installation.")
 
     # Initialize the ipalib api
     api.bootstrap(
@@ -311,7 +312,7 @@ def main():
             if not ipautil.user_input("Do you wish to continue?",
                                       default=False,
                                       allow_empty=False):
-                sys.exit("Aborting installation.")
+                raise ScriptError("Aborting installation.")
 
     # Check if /etc/samba/smb.conf already exists. In case it was not generated
     # by IPA, print a warning that we will break existing configuration.
@@ -322,7 +323,7 @@ def main():
                 if not ipautil.user_input("Overwrite smb.conf?",
                                           default=False,
                                           allow_empty=False):
-                    sys.exit("Aborting installation.")
+                    raise ScriptError("Aborting installation.")
 
     elif os.path.exists(paths.SMB_CONF):
         print("WARNING: The smb.conf already exists. Running "
@@ -332,7 +333,7 @@ def main():
             if not ipautil.user_input("Do you wish to continue?",
                                       default=False,
                                       allow_empty=False):
-                sys.exit("Aborting installation.")
+                raise ScriptError("Aborting installation.")
 
     if not options.unattended and not options.enable_compat:
         options.enable_compat = enable_compat_tree()
@@ -350,18 +351,20 @@ def main():
     try:
         principal = krb_utils.get_principal()
     except errors.CCacheError as e:
-        sys.exit(
+        raise ScriptError(
             "Must have Kerberos credentials to setup AD trusts on server: %s"
             % e.message)
 
     try:
         api.Backend.ldap2.connect()
     except errors.ACIError:
-        sys.exit("Outdated Kerberos credentials. "
-                 "Use kdestroy and kinit to update your ticket")
+        raise ScriptError(
+            "Outdated Kerberos credentials. "
+            "Use kdestroy and kinit to update your ticket")
     except errors.DatabaseError:
-        sys.exit("Cannot connect to the LDAP database. Please check if IPA "
-                 "is running")
+        raise ScriptError(
+            "Cannot connect to the LDAP database. Please check if IPA "
+            "is running")
 
     try:
         user = api.Command.user_show(
@@ -371,11 +374,12 @@ def main():
                 group['cn'][0] in user['memberof_group']):
             raise errors.RequirementError(name='admins group membership')
     except errors.RequirementError as e:
-        sys.exit(
+        raise ScriptError(
             "Must have administrative privileges to setup AD trusts on server"
         )
     except Exception as e:
-        sys.exit("Unrecognized error during check of admin rights: %s" % e)
+        raise ScriptError(
+            "Unrecognized error during check of admin rights: %s" % e)
 
     netbios_name, reset_netbios_name = set_and_check_netbios_name(
         options.netbios_name, options.unattended)
