@@ -849,7 +849,7 @@ class LDAPClient(object):
                               Principal)):
             return six.text_type(val).encode('utf-8')
         elif isinstance(val, DNSName):
-            return val.to_text()
+            return val.to_text().encode('ascii')
         elif isinstance(val, bytes):
             return val
         elif isinstance(val, list):
