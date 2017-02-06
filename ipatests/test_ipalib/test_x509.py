@@ -69,6 +69,17 @@ class test_x509(object):
         x509.load_certificate((newcert,))
         x509.load_certificate([newcert])
 
+        # Load a good cert with headers and leading text
+        newcert = (
+            'leading text\n-----BEGIN CERTIFICATE-----' +
+            goodcert +
+            '-----END CERTIFICATE-----')
+        x509.load_certificate(newcert)
+
+        # Should handle list/tuple
+        x509.load_certificate((newcert,))
+        x509.load_certificate([newcert])
+
         # Load a good cert with bad headers
         newcert = '-----BEGIN CERTIFICATE-----' + goodcert
         with pytest.raises((TypeError, ValueError)):
