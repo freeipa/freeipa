@@ -47,6 +47,10 @@ from ipalib.constants import (
     TLS_VERSIONS
 )
 from ipalib import errors
+try:
+    from ipaplatform.tasks import tasks
+except ImportError:
+    tasks = None
 
 if six.PY3:
     unicode = str
@@ -442,6 +446,10 @@ class Env(object):
         self.script = path.abspath(sys.argv[0])
         self.bin = path.dirname(self.script)
         self.home = os.environ.get('HOME', None)
+
+        # Set fips_mode only if ipaplatform module was loaded
+        if tasks is not None:
+            self.fips_mode = tasks.is_fips_enabled()
 
         # Merge in overrides:
         self._merge(**overrides)
