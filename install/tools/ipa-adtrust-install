@@ -356,10 +356,10 @@ def main():
 
     try:
         api.Backend.ldap2.connect()
-    except errors.ACIError as e:
+    except errors.ACIError:
         sys.exit("Outdated Kerberos credentials. "
                  "Use kdestroy and kinit to update your ticket")
-    except errors.DatabaseError as e:
+    except errors.DatabaseError:
         sys.exit("Cannot connect to the LDAP database. Please check if IPA "
                  "is running")
 
