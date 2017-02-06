@@ -512,6 +512,13 @@ def promote_openldap_conf(hostname, master):
 
 
 def check_remote_version(api):
+    """
+    Perform a check to verify remote server's version
+
+    :param api: remote API
+
+    :raises: ``ScriptError`` if the checks fails
+    """
     client = rpc.jsonclient(api)
     client.finalize()
 
@@ -524,7 +531,7 @@ def check_remote_version(api):
     remote_version = parse_version(env['version'])
     api_version = parse_version(api.env.version)
     if remote_version > api_version:
-        raise RuntimeError(
+        raise ScriptError(
             "Cannot install replica of a server of higher version ({}) than"
             "the local version ({})".format(remote_version, api_version))
 
