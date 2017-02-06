@@ -361,13 +361,13 @@ class _KRB5PrincipalName(univ.Sequence):
 
 def _decode_krb5principalname(data):
     principal = decoder.decode(data, asn1Spec=_KRB5PrincipalName())[0]
-    realm = (str(principal['realm']).replace('\\', '\\\\')
-                                    .replace('@', '\\@'))
+    realm = (unicode(principal['realm']).replace('\\', '\\\\')
+                                        .replace('@', '\\@'))
     name = principal['principalName']['name-string']
-    name = '/'.join(str(n).replace('\\', '\\\\')
-                          .replace('/', '\\/')
-                          .replace('@', '\\@') for n in name)
-    name = '%s@%s' % (name, realm)
+    name = u'/'.join(unicode(n).replace('\\', '\\\\')
+                               .replace('/', '\\/')
+                               .replace('@', '\\@') for n in name)
+    name = u'%s@%s' % (name, realm)
     return name
 
 
