@@ -122,7 +122,7 @@ rpms: $(VERSION_UPDATE_TARGET)
 	$(MAKE) _rpms-body
 
 _rpms-body: _rpms-prep
-	rpmbuild --define "_topdir $(RPMBUILD)" -ba $(top_builddir)/$(PACKAGE).spec
+	rpmbuild --define "_topdir $(RPMBUILD)" -ba $(top_builddir)/$(PACKAGE).spec  $(RPMBUILD_OPTS)
 	cp $(RPMBUILD)/RPMS/*/*$$(cat $(top_builddir)/.version)*.rpm $(top_builddir)/dist/rpms/
 	cp $(RPMBUILD)/SRPMS/*$$(cat $(top_builddir)/.version)*.src.rpm $(top_builddir)/dist/srpms/
 	rm -f rm -f $(top_builddir)/.version
@@ -131,7 +131,7 @@ srpms: $(VERSION_UPDATE_TARGET)
 	$(MAKE) _srpms-body
 
 _srpms-body: _rpms-prep
-	rpmbuild --define "_topdir $(RPMBUILD)" -bs $(top_builddir)/$(PACKAGE).spec
+	rpmbuild --define "_topdir $(RPMBUILD)" -bs $(top_builddir)/$(PACKAGE).spec $(RPMBUILD_OPTS)
 	cp $(RPMBUILD)/SRPMS/*$$(cat $(top_builddir)/.version)*.src.rpm $(top_builddir)/dist/srpms/
 	rm -f rm -f $(top_builddir)/.version
 

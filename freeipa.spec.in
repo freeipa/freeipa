@@ -17,10 +17,12 @@
     %global with_ipatests_option --without-ipatests
 %endif
 
+%if 0%{!?with_python3:1}
 %if 0%{?rhel}
 %global with_python3 0
 %else
 %global with_python3 1
+%endif
 %endif
 
 # lint is not executed during rpmbuild
