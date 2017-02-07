@@ -308,7 +308,7 @@ def json_encode_binary(val, version):
             encoded = encoded.decode('ascii')
         return {'__base64__': encoded}
     elif isinstance(val, Decimal):
-        return {'__base64__': base64.b64encode(str(val))}
+        return unicode(val)
     elif isinstance(val, DN):
         return str(val)
     elif isinstance(val, datetime.datetime):
