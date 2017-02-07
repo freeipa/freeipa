@@ -4,9 +4,16 @@
 #
 # NOTE: this script is intended to run in Travis CI only
 
-PYTHON="/usr/bin/python${TRAVIS_PYTHON_VERSION}"
 test_set=""
 developer_mode_opt="--developer-mode"
+
+if [[ $PYTHON == "/usr/bin/python2" ]]
+then
+env_opt="--define 'with_python3 0'"
+else
+env_opt=""
+fi
+
 
 function truncate_log_to_test_failures() {
     # chop off everything in the CI_RESULTS_LOG preceding pytest error output
@@ -43,6 +50,7 @@ ipa-docker-test-runner -l $CI_RESULTS_LOG \
     -c $TEST_RUNNER_CONFIG \
     $developer_mode_opt \
     --container-environment "PYTHON=$PYTHON" \
+    --container-environment "RPMBUILD_OPTS=$env_opt" \
     --container-image $TEST_RUNNER_IMAGE \
     --git-repo $TRAVIS_BUILD_DIR \
     $TASK_TO_RUN $test_set
