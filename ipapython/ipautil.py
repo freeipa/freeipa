@@ -860,6 +860,8 @@ def ipa_generate_password(entropy_bits=256, uppercase=1, lowercase=1, digits=1,
     for charclass_name in ['digits', 'uppercase', 'lowercase', 'special']:
         charclass = pwd_charsets[charclass_name]
         todo_characters = req_classes[charclass_name]
+        if todo_characters is None:
+            continue
         while todo_characters > 0:
             password += rnd.choice(charclass['chars'])
             todo_entropy -= charclass['entropy']
