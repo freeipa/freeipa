@@ -17,8 +17,10 @@ env:
     matrix:
         - TASK_TO_RUN="lint"
         - TASK_TO_RUN="run-tests"
+          PYTHON=/usr/bin/python2
           TESTS_TO_RUN="test_xmlrpc/test_[a-k]*.py"
         - TASK_TO_RUN="run-tests"
+          PYTHON=/usr/bin/python2
           TESTS_TO_RUN="test_cmdline
             test_install
             test_ipaclient
