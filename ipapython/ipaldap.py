@@ -292,13 +292,13 @@ class LDAPEntry(collections.MutableMapping):
                 continue
             nice.remove(value)
 
-        for value in nice_adds:
+        for value in sorted(nice_adds, key=nice.index):
             value = self._conn.encode(value)
             if value in raw_dels:
                 continue
             raw.append(value)
 
-        for value in raw_adds:
+        for value in sorted(raw_adds, key=raw.index):
             try:
                 value = self._conn.decode(value, name)
             except ValueError as e:
