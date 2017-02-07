@@ -62,7 +62,7 @@ def test_not_found():
     url = '/ipa/foo/stuff'
     assert_equal(
         f.not_found(None, s, url, None),
-        [t % dict(url='/ipa/foo/stuff')]
+        [(t % dict(url='/ipa/foo/stuff')).encode('utf-8')]
     )
     assert s.status == '404 Not Found'
     assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
@@ -72,7 +72,9 @@ def test_not_found():
     url ='&nbsp;' + '<script>do_bad_stuff();</script>'
     assert_equal(
         f.not_found(None, s, url, None),
-        [t % dict(url='&amp;nbsp;&lt;script&gt;do_bad_stuff();&lt;/script&gt;')]
+        [(t % dict(
+            url='&amp;nbsp;&lt;script&gt;do_bad_stuff();&lt;/script&gt;')
+        ).encode('utf-8')]
     )
     assert s.status == '404 Not Found'
     assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
@@ -86,7 +88,7 @@ def test_bad_request():
 
     assert_equal(
         f.bad_request(None, s, 'illegal request'),
-        [t % dict(message='illegal request')]
+        [(t % dict(message='illegal request')).encode('utf-8')]
     )
     assert s.status == '400 Bad Request'
     assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
@@ -100,7 +102,7 @@ def test_internal_error():
 
     assert_equal(
         f.internal_error(None, s, 'request failed'),
-        [t % dict(message='request failed')]
+        [(t % dict(message='request failed')).encode('utf-8')]
     )
     assert s.status == '500 Internal Server Error'
     assert s.headers == [('Content-Type', 'text/html; charset=utf-8')]
@@ -114,7 +116,7 @@ def test_unauthorized_error():
 
     assert_equal(
         f.unauthorized(None, s, 'unauthorized', 'password-expired'),
-        [t % dict(message='unauthorized')]
+        [(t % dict(message='unauthorized')).encode('utf-8')]
     )
     assert s.status == '401 Unauthorized'
     assert s.headers == [('Content-Type', 'text/html; charset=utf-8'),
