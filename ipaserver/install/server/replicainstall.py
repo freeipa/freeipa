@@ -529,6 +529,27 @@ def rpc_client(api):
         client.disconnect()
 
 
+def check_remote_fips_mode(client, local_fips_mode):
+    """
+    Verify remote server's fips-mode is the same as this server's fips-mode
+
+    :param client: RPC client
+    :param local_fips_mode: boolean indicating whether FIPS mode is turned on
+    :raises: ScriptError: if the checks fails
+    """
+    env = client.forward(u'env', u'fips_mode')['result']
+    remote_fips_mode = env.get('fips_mode', False)
+    if local_fips_mode != remote_fips_mode:
+        if local_fips_mode:
+            raise ScriptError(
+                "Cannot join FIPS-enabled replica into existing topology: "
+                "FIPS is not enabled on the master server.")
+        else:
+            raise ScriptError(
+                "Cannot join replica into existing FIPS-enabled topology: "
+                "FIPS has to be enabled locally first.")
+
+
 def check_remote_version(client, local_version):
     """
     Verify remote server's version is not higher than this server's version
@@ -1095,6 +1116,7 @@ def promote_check(installer):
 
     with rpc_client(remote_api) as client:
         check_remote_version(client, api.env.version)
+        check_remote_fips_mode(client, api.env.fips_mode)
 
     conn = remote_api.Backend.ldap2
     replman = None
