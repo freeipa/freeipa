@@ -1,0 +1,60 @@
+#
+# Copyright (C) 2017 FreeIPA Contributors see COPYING for license
+#
+
+# Configuration file for the test runner used in Travis CI
+# This config file is temporal and will be used only for migration period
+# from py2 to fully supported py3
+
+container:
+  detach: true
+  hostname: master.ipa.test
+  working_dir: /freeipa
+host:
+  binds:
+  - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  - /dev/urandom:/dev/random:ro
+  privileged: true
+  security_opt:
+  - label:disable
+  tmpfs:
+  - /tmp
+  - /run
+server:
+  domain: ipa.test
+  password: Secret123
+  realm: IPA.TEST
+steps:
+  build:
+  - make V=0 ${make_target}
+  builddep:
+  - rm -rf /var/cache/dnf/*
+  - "dnf makecache fast || :"
+  - dnf builddep -y ${builddep_opts} --spec freeipa.spec.in --best --allowerasing
+  cleanup:
+  - chown -R ${uid}:${gid} ${container_working_dir}
+  configure:
+  - ./autogen.sh
+  install_packages:
+  - dnf install -y ${container_working_dir}/dist/rpms/*.rpm --best --allowerasing
+  - dnf install -y python3-mod_wsgi --best --allowerasing  # Py3 temporary
+  install_server:
+  - ipa-server-install -U --domain ${server_domain} --realm ${server_realm} -p ${server_password}
+    -a ${server_password} --setup-dns --auto-forwarders
+  - ipa-kra-install -p ${server_password}
+  lint:
+  - make PYTHON=/usr/bin/python2 V=0 lint
+  - make PYTHON=/usr/bin/python3 V=0 pylint
+  prepare_tests:
+  - echo ${server_password} | kinit admin && ipa ping
+  - cp -r /etc/ipa/* ~/.ipa/
+  - echo ${server_password} > ~/.ipa/.dmpw
+  - echo 'wait_for_dns=5' >> ~/.ipa/default.conf
+  run_tests:
+  - ipa-run-tests-3 ${tests_ignore} -k-test_dns_soa ${tests_verbose} ${path}
+tests:
+  verbose: true
+  ignore:
+  - test_integration
+  - test_webui
+  - test_ipapython/test_keyring.py
