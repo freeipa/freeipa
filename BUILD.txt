@@ -36,6 +36,11 @@ It may be possible to do a simple make install but this has not been
 well-tested. Additional work is done in pre/post install scripts in the ipa
 spec file.
 
+To build only python2 packages on fedora following steps are required:
+$ autoreconf -i
+$ ./configure
+$ make rpms RPMBUILD_OPTS="--define 'with_python3 0'"
+
 Developing plugins
 ------------------
 
