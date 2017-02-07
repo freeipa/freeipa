@@ -4,6 +4,7 @@
 
 from __future__ import print_function
 
+import contextlib
 import dns.exception as dnsexception
 import dns.name as dnsname
 import dns.resolver as dnsresolver
@@ -511,29 +512,37 @@ def promote_openldap_conf(hostname, master):
         root_logger.info("Failed to update {}: {}".format(ldap_conf, e))
 
 
-def check_remote_version(api):
+@contextlib.contextmanager
+def rpc_client(api):
     """
-    Perform a check to verify remote server's version
+    Context manager for JSON RPC client.
 
-    :param api: remote API
-
-    :raises: ``ScriptError`` if the checks fails
+    :param api: api to initiate the RPC client
     """
     client = rpc.jsonclient(api)
     client.finalize()
-
     client.connect()
+
     try:
-        env = client.forward(u'env', u'version')['result']
+        yield client
     finally:
         client.disconnect()
 
+
+def check_remote_version(client, local_version):
+    """
+    Verify remote server's version is not higher than this server's version
+
+    :param client: RPC client
+    :param local_version: API version of local server
+    :raises: ScriptError: if the checks fails
+    """
+    env = client.forward(u'env', u'version')['result']
     remote_version = parse_version(env['version'])
-    api_version = parse_version(api.env.version)
-    if remote_version > api_version:
+    if remote_version > local_version:
         raise ScriptError(
             "Cannot install replica of a server of higher version ({}) than"
-            "the local version ({})".format(remote_version, api_version))
+            "the local version ({})".format(remote_version, local_version))
 
 
 def common_check(no_ntp):
@@ -745,6 +754,7 @@ def install_check(installer):
                          ldap_uri=ldapuri)
     remote_api.finalize()
     installer._remote_api = remote_api
+
     conn = remote_api.Backend.ldap2
     replman = None
     try:
@@ -1083,7 +1093,8 @@ def promote_check(installer):
     remote_api.finalize()
     installer._remote_api = remote_api
 
-    check_remote_version(remote_api)
+    with rpc_client(remote_api) as client:
+        check_remote_version(client, api.env.version)
 
     conn = remote_api.Backend.ldap2
     replman = None
