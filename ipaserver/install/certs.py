@@ -109,7 +109,6 @@ class CertDB(object):
             raise RuntimeError("Unable to determine the current directory: %s" % str(e))
 
         self.cacert_name = get_ca_nickname(self.realm)
-        self.valid_months = "120"
 
         # We are going to set the owner of all of the cert
         # files to the owner of the containing directory
