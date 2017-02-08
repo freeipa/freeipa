@@ -12,6 +12,8 @@ env:
           PEP8_ERROR_LOG="pep8_errors.log"
           CI_RESULTS_LOG="ci_results_${TRAVIS_BRANCH}.log"
           CI_BACKLOG_SIZE=5000
+          CI_RUNNER_LOGS_DIR="/tmp/test-runner-logs"
+          CI_RUNNER_LOG_ARCHIVE="freeipa-ci-pr-${TRAVIS_PULL_REQUEST}-job-${TRAVIS_JOB_NUMBER}.tar.gz"
     matrix:
         - TASK_TO_RUN="lint"
         - TASK_TO_RUN="run-tests"
@@ -31,7 +33,22 @@ install:
       git+https://github.com/freeipa/ipa-docker-test-runner@release-0-2-1
 
 script:
+    - mkdir -p $CI_RUNNER_LOGS_DIR
     - travis_wait 50 ./.travis_run_task.sh
 after_failure:
     - echo "Test runner output:"; tail -n $CI_BACKLOG_SIZE $CI_RESULTS_LOG
     - echo "PEP-8 errors:"; cat $PEP8_ERROR_LOG
+    - >
+      echo "Archiving CI logs";
+      if [[ "$TASK_TO_RUN" != "lint" ]]; then
+          tar --ignore-failed-read -uvf var_log.tar $CI_RESULTS_LOG $PEP8_ERROR_LOG;
+          gzip var_log.tar;
+          mv var_log.tar.gz $CI_RUNNER_LOG_ARCHIVE;
+
+          transfer_url=$(
+            curl --upload-file \
+            ./$CI_RUNNER_LOG_ARCHIVE \
+            https://transfer.sh/${CI_RUNNER_LOG_ARCHIVE}) &&
+            echo "Download log archive from ${transfer_url}" ||
+            echo "Failed to upload log archive!";
+       fi
