@@ -110,7 +110,6 @@ class CertDB(object):
 
         self.cacert_name = get_ca_nickname(self.realm)
         self.valid_months = "120"
-        self.keysize = "1024"
 
         # We are going to set the owner of all of the cert
         # files to the owner of the containing directory
