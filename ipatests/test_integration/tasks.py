@@ -413,6 +413,7 @@ def install_client(master, client, extra_args=()):
                         '--realm', client.domain.realm,
                         '-p', client.config.admin_name,
                         '-w', client.config.admin_password,
+                        '--ip-address', client.ip,
                         '--server', master.hostname]
                        + list(extra_args))
 
