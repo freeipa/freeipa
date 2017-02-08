@@ -3,6 +3,10 @@
 #
 from __future__ import print_function
 
+import os
+import pprint
+import sys
+
 from ipalib import api
 from ipalib.cli import cli_plugins
 try:
@@ -78,3 +82,10 @@ def pytest_cmdline_main(config):
     for klass in cli_plugins:
         api.add_plugin(klass)
     api.finalize()
+    if config.option.verbose:
+        print('api.env: ')
+        pprint.pprint({k: api.env[k] for k in api.env})
+        print("uname: {}".format(os.uname()))
+        print("euid: {}, egid: {}".format(os.geteuid(), os.getegid()))
+        print("working dir: {}".format(os.path.abspath(os.getcwd())))
+        print('sys.version: {}'.format(sys.version))
