@@ -52,6 +52,11 @@ class cert_request(MethodOverride):
             doc=_('Path to PEM file containing a private key'),
         ),
         Str(
+            'password_file?',
+            label=_(
+                'File containing a password for the private key or database'),
+        ),
+        Str(
             'csr_profile_id?',
             label=_('Name of CSR generation profile (if not the same as'
                     ' profile_id)'),
@@ -68,14 +73,19 @@ class cert_request(MethodOverride):
         database = options.pop('database', None)
         private_key = options.pop('private_key', None)
         csr_profile_id = options.pop('csr_profile_id', None)
+        password_file = options.pop('password_file', None)
 
         if csr is None:
             if database:
                 helper = u'certutil'
                 helper_args = ['-d', database]
+                if password_file:
+                    helper_args += ['-f', password_file]
             elif private_key:
                 helper = u'openssl'
                 helper_args = [private_key]
+                if password_file:
+                    helper_args += ['-passin', 'file:%s' % password_file]
             else:
                 raise errors.InvocationError(
                     message=u"One of 'database' or 'private_key' is required")
