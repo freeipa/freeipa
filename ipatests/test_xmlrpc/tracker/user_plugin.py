@@ -13,12 +13,13 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
     fuzzy_digits, fuzzy_uuid, raises_exact)
 from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc.tracker.kerberos_aliases import KerberosAliasMixin
+from ipatests.test_xmlrpc.tracker.certmapdata import CertmapdataMixin
 
 if six.PY3:
     unicode = str
 
 
-class UserTracker(KerberosAliasMixin, Tracker):
+class UserTracker(CertmapdataMixin, KerberosAliasMixin, Tracker):
     """ Class for host plugin like tests """
 
     retrieve_keys = {
@@ -530,3 +531,10 @@ class UserTracker(KerberosAliasMixin, Tracker):
 
     def _make_remove_alias_cmd(self):
         return self.make_command('user_remove_principal', self.name)
+
+    # Certificate identity mapping methods
+    def _make_add_certmap(self):
+        return self.make_command('user_add_certmapdata', self.name)
+
+    def _make_remove_certmap(self):
+        return self.make_command('user_remove_certmapdata', self.name)
