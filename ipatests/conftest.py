@@ -3,12 +3,17 @@
 #
 from __future__ import print_function
 
+import os
+
 from ipalib import api
 from ipalib.cli import cli_plugins
 try:
     import ipaserver
 except ImportError:
     ipaserver = None
+
+
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 pytest_plugins = [
@@ -71,9 +76,30 @@ def pytest_configure(config):
     config.option.doctestmodules = True
 
 
+def pytest_addoption(parser):
+    def truefalse(arg):
+        if arg.lower() == 'true':
+            return True
+        if arg.lower() == 'false':
+            return False
+        return arg  # triggers an error later
+
+    in_tree = os.path.isfile(os.path.join(HERE, os.pardir, 'ipasetup.py.in'))
+    group = parser.getgroup("IPA integration tests")
+    group.addoption(
+        '--in-tree',
+        dest="ipa_in_tree",
+        type=truefalse,
+        choices=(True, False),
+        default=in_tree,
+        help="Run IPA tests in-tree (default: auto-detect ../ipasetup.py.in)"
+    )
+
+
 def pytest_cmdline_main(config):
     api.bootstrap(
-        context=u'cli', in_server=False, in_tree=True, fallback=False
+        context=u'cli', in_server=False, in_tree=config.option.ipa_in_tree,
+        fallback=False
     )
     for klass in cli_plugins:
         api.add_plugin(klass)
