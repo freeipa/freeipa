@@ -11,6 +11,7 @@ from ipapython.dn import DN
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipatests.test_xmlrpc.tracker.certmap_plugin import (CertmapruleTracker,
                                                          CertmapconfigTracker)
+from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 from ipatests.util import assert_deepequal
 from ipatests.util import change_principal, unlock_principal_password
 
@@ -142,6 +143,64 @@ class TestConfig(XMLRPC_test):
 
     def test_config_show(self, certmap_config):
         certmap_config.retrieve()
+
+
+certmapdata_create_params = {
+    u'issuer': u'CN=CA,O=EXAMPLE.ORG',
+    u'subject': u'CN={},O=EXAMPLE.ORG'.format(CERTMAP_USER),
+    u'ipacertmapdata': (u'X509:<I>O=EXAMPLE.ORG,CN=CA'
+                        u'<S>O=EXAMPLE.ORG,CN={}'.format(CERTMAP_USER)),
+    u'certificate': (
+        u'MIICwzCCAaugAwIBAgICP9wwDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChMLRVhB\n\r'
+        'TVBMRS5PUkcxCzAJBgNVBAMTAkNBMB4XDTE3MDIxMDEzMjAyNVoXDTE3MDUxMDEz\n\r'
+        'MjAyNVowJjEUMBIGA1UEChMLRVhBTVBMRS5PUkcxDjAMBgNVBAMTBWN1c2VyMIIB\n\r'
+        'IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlEBxZ6RULSZZ+nW1YfJUfCaX\n\r'
+        'wHIIWJeAoU98m7dbdUtkZMgLCPXiceIkCkcHu0DLS3wYlsL6VDG+0nIpT56Qkxph\n\r'
+        '+qpWGdVptnuVZ5dEthbluoopzxpkAAz3ywM3NqfTCM78G9GQvftUZEOlwnfyEBbY\n\r'
+        'XXs2wBhynrVTZcpL+ORXMpzVAallU63/YUExNvBzHlqdGHy+pPJSw1gsRTpLm75p\n\r'
+        '36r3bn/5cnIih1WUygC0WnjxXQwqOdGUauBp/Z8JVRuLSe8qbPfcl/voQGnSt3u2\n\r'
+        '9CFkDKpMMp6pv/3RbnOmMwSZGO0/n4G13qEdoneIghF1SE9qaxFGWk8mSDYc5QID\n\r'
+        'AQABMA0GCSqGSIb3DQEBCwUAA4IBAQCKrvO7AUCt9YOyJ0RioDxgQZVJqQ0/E877\n\r'
+        'vBP3HPwN0xkiGgASKtEDi3uLWGQfDgJFX5qXtK1qu7yiM86cbKq9PlkLTC6UowjP\n\r'
+        'iaFAaVBwbS3nLVo731gn5cCJqZ0QrDt2NDiXaGxo4tBcqc/Y/taw5Py3f59tMDk6\n\r'
+        'TnTmKmFnI+hB4+oxZhpcFj6bX35XMJXnRyekraE5VWtSbq57SXiRnINW4gNS5B6w\n\r'
+        'dYUGo551tfFq+DOnSl0H7NnnL3q4VzCH/1AMOownorgVsw4LqMgY0NiaD/yqJyKe\n\r'
+        'SggODAjRznNYx/Sk/At/eStqDxMHjP9X8AucGFIt76bEwHAAL2uu\n'
+    ),
+}
+
+
+@pytest.fixture
+def certmap_user(request):
+    user = UserTracker(CERTMAP_USER, u'certmap', u'user')
+    return user.make_fixture(request)
+
+
+def addcertmap_id(options):
+    if options:
+        return u', '.join([k for k in options])
+    else:
+        return u' '
+
+
+class TestAddRemoveCertmap(XMLRPC_test):
+    @pytest.mark.parametrize(
+        'options', [
+            dict(o) for l in range(len(certmapdata_create_params)+1)
+            for o in itertools.combinations(
+                certmapdata_create_params.items(), l)
+        ],
+        ids=addcertmap_id,
+    )
+    def test_add_certmap(self, options, certmap_user):
+        certmap_user.ensure_exists()
+        certmap_user.add_certmap(**options)
+        certmap_user.ensure_missing()
+
+    def test_remove_certmap(self, certmap_user):
+        certmap_user.ensure_exists()
+        certmap_user.add_certmap(ipacertmapdata=u'rawdata')
+        certmap_user.remove_certmap(ipacertmapdata=u'rawdata')
 
 
 class EWE(object):
