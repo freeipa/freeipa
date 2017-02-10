@@ -847,9 +847,9 @@ class LDAPClient(object):
         # entered for a boolean value instead of the boolean clause.
         if isinstance(val, bool):
             if val:
-                return 'TRUE'
+                return b'TRUE'
             else:
-                return 'FALSE'
+                return b'FALSE'
         elif isinstance(val, (unicode, six.integer_types, Decimal, DN,
                               Principal)):
             return six.text_type(val).encode('utf-8')
