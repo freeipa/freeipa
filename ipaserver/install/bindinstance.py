@@ -65,14 +65,14 @@ if six.PY3:
 NAMED_CONF = paths.NAMED_CONF
 RESOLV_CONF = paths.RESOLV_CONF
 
-named_conf_section_ipa_start_re = re.compile('\s*dynamic-db\s+"ipa"\s+{')
+named_conf_section_ipa_start_re = re.compile('\s*dyndb\s+"ipa"\s+"[^"]+"\s+{')
 named_conf_section_options_start_re = re.compile('\s*options\s+{')
 named_conf_section_end_re = re.compile('};')
 named_conf_arg_ipa_re = re.compile(
-    r'(?P<indent>\s*)arg\s+"(?P<name>\S+)\s(?P<value>[^"]+)";')
+    r'(?P<indent>\s*)(?P<name>\S+)\s"(?P<value>[^"]+)";')
 named_conf_arg_options_re = re.compile(
     r'(?P<indent>\s*)(?P<name>\S+)\s+"(?P<value>[^"]+)"\s*;')
-named_conf_arg_ipa_template = "%(indent)sarg \"%(name)s %(value)s\";\n"
+named_conf_arg_ipa_template = "%(indent)s%(name)s \"%(value)s\";\n"
 named_conf_arg_options_template = "%(indent)s%(name)s \"%(value)s\";\n"
 # non string args for options section
 named_conf_arg_options_re_nonstr = re.compile(
@@ -91,13 +91,12 @@ def create_reverse():
 
 def named_conf_exists():
     try:
-        named_fd = open(NAMED_CONF, 'r')
+        with open(NAMED_CONF, 'r') as named_fd:
+            lines = named_fd.readlines()
     except IOError:
         return False
-    lines = named_fd.readlines()
-    named_fd.close()
     for line in lines:
-        if line.startswith('dynamic-db "ipa"'):
+        if named_conf_section_ipa_start_re.match(line):
             return True
     return False
 
