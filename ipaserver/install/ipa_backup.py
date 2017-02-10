@@ -157,6 +157,7 @@ class Backup(admintool.AdminTool):
         paths.DOGTAG_ADMIN_P12,
         paths.KRA_AGENT_PEM,
         paths.CACERT_P12,
+        paths.KRACERT_P12,
         paths.KRB5KDC_KDC_CONF,
         paths.SYSTEMD_IPA_SERVICE,
         paths.SYSTEMD_SSSD_SERVICE,
