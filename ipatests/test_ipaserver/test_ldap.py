@@ -80,7 +80,7 @@ class test_ldap(object):
         entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
         cert = cert[0]
-        serial = x509.load_certificate(cert, x509.DER).serial
+        serial = x509.load_certificate(cert, x509.DER).serial_number
         assert serial is not None
 
     def test_simple(self):
@@ -99,7 +99,7 @@ class test_ldap(object):
         entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
         cert = cert[0]
-        serial = x509.load_certificate(cert, x509.DER).serial
+        serial = x509.load_certificate(cert, x509.DER).serial_number
         assert serial is not None
 
     def test_Backend(self):
@@ -127,7 +127,7 @@ class test_ldap(object):
         entry_attrs = result['result']
         cert = entry_attrs.get('usercertificate')
         cert = cert[0]
-        serial = x509.load_certificate(cert, x509.DER).serial
+        serial = x509.load_certificate(cert, x509.DER).serial_number
         assert serial is not None
 
     def test_autobind(self):
@@ -143,7 +143,7 @@ class test_ldap(object):
         entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
         cert = cert[0]
-        serial = x509.load_certificate(cert, x509.DER).serial
+        serial = x509.load_certificate(cert, x509.DER).serial_number
         assert serial is not None
 
 

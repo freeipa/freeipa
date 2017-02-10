@@ -387,7 +387,7 @@ class BaseCertObject(Object):
             cert = x509.load_certificate(obj['certificate'])
             obj['subject'] = DN(cert.subject)
             obj['issuer'] = DN(cert.issuer)
-            obj['serial_number'] = cert.serial
+            obj['serial_number'] = cert.serial_number
             obj['valid_not_before'] = x509.format_datetime(
                     cert.not_valid_before)
             obj['valid_not_after'] = x509.format_datetime(
@@ -1257,7 +1257,7 @@ class cert_find(Search, CertMethod):
 
             raise
 
-        return (DN(cert_obj.issuer), cert_obj.serial)
+        return (DN(cert_obj.issuer), cert_obj.serial_number)
 
     def _get_cert_obj(self, cert, all, raw, pkey_only):
         obj = {'certificate': base64.b64encode(cert).decode('ascii')}
