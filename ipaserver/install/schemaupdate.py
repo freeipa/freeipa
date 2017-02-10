@@ -143,7 +143,6 @@ def update_schema(schema_files, ldapi=False, dm_password=None,):
                         # Note: An add will automatically replace any existing
                         # schema with the same OID. So, we only add.
                         value = add_x_origin(new_obj)
-                        new_elements.append(value)
 
                         if old_obj:
                             old_attr = old_entries_by_oid.get(oid)
@@ -151,6 +150,8 @@ def update_schema(schema_files, ldapi=False, dm_password=None,):
                             log.debug('   with: %s', value)
                         else:
                             log.debug('Add: %s', value)
+
+                        new_elements.append(value.encode('utf-8'))
 
                 modified = modified or new_elements
                 schema_entry[attrname].extend(new_elements)

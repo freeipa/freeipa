@@ -609,14 +609,15 @@ class LDAPUpdate(object):
             attr = item['attr']
             value = item['value']
 
-            e = entry.get(attr)
+            e = entry.raw.get(attr)
             if e:
                 # multi-valued attribute
                 e = list(e)
                 e.append(value)
             else:
                 e = [value]
-            entry[attr] = e
+
+            entry.raw[attr] = e
         entry.reset_modlist()
 
         return entry
@@ -650,6 +651,16 @@ class LDAPUpdate(object):
             attr = update['attr']
             update_value = update['value']
 
+            # do not mix comparison of bytes and unicode, everything in this
+            # function should be compared as bytes
+            if isinstance(update_value, (list, tuple)):
+                update_value = [
+                    v.encode('utf-8') if isinstance(v, unicode) else v
+                    for v in update_value
+                ]
+            elif isinstance(update_value, unicode):
+                update_value = update_value.encode('utf-8')
+
             entry_values = entry.raw.get(attr, [])
             if action == 'remove':
                 self.debug("remove: '%s' from %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr,entry_values))
@@ -660,7 +671,7 @@ class LDAPUpdate(object):
                         "remove: '%s' not in %s",
                         safe_output(attr, update_value), attr)
                 else:
-                    entry[attr] = entry_values
+                    entry.raw[attr] = entry_values
                     self.debug('remove: updated value %s', safe_output(
                         attr, entry_values))
             elif action == 'add':
@@ -672,7 +683,7 @@ class LDAPUpdate(object):
                     pass
                 entry_values.append(update_value)
                 self.debug('add: updated value %s', safe_output(attr, entry_values))
-                entry[attr] = entry_values
+                entry.raw[attr] = entry_values
             elif action == 'addifnew':
                 self.debug("addifnew: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
                 # Only add the attribute if it doesn't exist. Only works
@@ -680,7 +691,7 @@ class LDAPUpdate(object):
                 if entry.get('objectclass') and len(entry_values) == 0:
                     entry_values.append(update_value)
                     self.debug('addifnew: set %s to %s', attr, safe_output(attr, entry_values))
-                    entry[attr] = entry_values
+                    entry.raw[attr] = entry_values
             elif action == 'addifexist':
                 self.debug("addifexist: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
                 # Only add the attribute if the entry doesn't exist. We
@@ -688,7 +699,7 @@ class LDAPUpdate(object):
                 if entry.get('objectclass'):
                     entry_values.append(update_value)
                     self.debug('addifexist: set %s to %s', attr, safe_output(attr, entry_values))
-                    entry[attr] = entry_values
+                    entry.raw[attr] = entry_values
             elif action == 'only':
                 self.debug("only: set %s to '%s', current value %s", attr, safe_output(attr, update_value), safe_output(attr, entry_values))
                 if only.get(attr):
@@ -696,7 +707,7 @@ class LDAPUpdate(object):
                 else:
                     entry_values = [update_value]
                     only[attr] = True
-                entry[attr] = entry_values
+                entry.raw[attr] = entry_values
                 self.debug('only: updated value %s', safe_output(attr, entry_values))
             elif action == 'onlyifexist':
                 self.debug("onlyifexist: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
@@ -709,7 +720,7 @@ class LDAPUpdate(object):
                         entry_values = [update_value]
                         only[attr] = True
                     self.debug('onlyifexist: set %s to %s', attr, safe_output(attr, entry_values))
-                    entry[attr] = entry_values
+                    entry.raw[attr] = entry_values
             elif action == 'deleteentry':
                 # skip this update type, it occurs in  __delete_entries()
                 return None
@@ -724,7 +735,7 @@ class LDAPUpdate(object):
                 else:
                     entry_values.append(new)
                     self.debug('replace: updated value %s', safe_output(attr, entry_values))
-                    entry[attr] = entry_values
+                    entry.raw[attr] = entry_values
 
         return entry
 
