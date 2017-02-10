@@ -123,7 +123,13 @@ from ipapython.dnsutil import DNSName
 
 
 def _is_null(value):
-    return not value and value != 0 # NOTE: False == 0
+    if value:
+        return False
+    elif isinstance(value, six.integer_types + (float, decimal.Decimal)):
+        # 0 is not NULL
+        return False
+    else:
+        return True
 
 if six.PY3:
     unicode = str
