@@ -5,6 +5,7 @@
 import random
 import ctypes.util
 import binascii
+import struct
 
 import six
 from cryptography.hazmat.backends import default_backend
@@ -1824,6 +1825,18 @@ MECH_AES_KEY_WRAP = CKM_AES_KEY_WRAP
 MECH_AES_KEY_WRAP_PAD = CKM_AES_KEY_WRAP_PAD
 
 
+def gen_key_id(key_id_len=16):
+    """
+    Generate random softhsm KEY_ID
+    :param key_id_len: this should be 16
+    :return: random softhsm KEY_ID in bytes representation
+    """
+    return struct.pack(
+        "B" * key_id_len,  # key_id must be bytes
+        *(random.randint(0, 255) for _ in range(key_id_len))
+    )
+
+
 def generate_master_key(p11, keylabel=u"dnssec-master", key_length=16,
                         disable_old_keys=True):
     assert isinstance(p11, P11_Helper)
@@ -1832,7 +1845,7 @@ def generate_master_key(p11, keylabel=u"dnssec-master", key_length=16,
     while True:
         # check if key with this ID exist in LDAP or softHSM
         # id is 16 Bytes long
-        key_id = "".join(chr(random.randint(0, 255)) for _ in range(0, 16))
+        key_id = gen_key_id()
         keys = p11.find_keys(KEY_CLASS_SECRET_KEY,
                              label=keylabel,
                              id=key_id)
