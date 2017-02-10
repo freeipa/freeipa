@@ -32,6 +32,7 @@ import sys
 
 import pytest
 
+import ipalib
 import ipatests
 
 # This is set to store --with-xunit report in an accessible place:

@@ -880,8 +880,46 @@ freeIPA.org:
     http://freeipa.org/page/Contribute
 
 '''
+version_info = (2, 0, 0, 'alpha', 0)
+if version_info[3] == 'final':
+    __version__ = '%d.%d.%d' % version_info[:3]
+else:
+    __version__ = '%d.%d.%d.%s.%d' % version_info
 
-import os
+
+def _enable_warnings(error=False):
+    """Enable additional warnings during development
+    """
+    import ctypes
+    import warnings
+
+    # get reference to Py_BytesWarningFlag from Python CAPI
+    byteswarnings = ctypes.c_int.in_dll(  # pylint: disable=no-member
+        ctypes.pythonapi, 'Py_BytesWarningFlag')
+
+    if byteswarnings.value >= 2:
+        # bytes warnings flag already set to error
+        return
+
+    # default warning mode for all modules: warn once per location
+    warnings.simplefilter('default', BytesWarning)
+    if error:
+        byteswarnings.value = 2
+        action = 'error'
+    else:
+        byteswarnings.value = 1
+        action = 'default'
+
+    module = '(ipa.*|__main__)'
+    warnings.filterwarnings(action, category=BytesWarning, module=module)
+    warnings.filterwarnings(action, category=DeprecationWarning,
+                            module=module)
+
+# call this as early as possible
+if version_info[3] != 'final':
+    _enable_warnings(False)
+
+# noqa: E402
 from ipalib import plugable
 from ipalib.backend import Backend
 from ipalib.frontend import Command, LocalOrRemote, Updater
@@ -892,12 +930,6 @@ from ipalib.parameters import (BytesEnum, StrEnum, IntEnum, AccessTime, File,
                         DateTime, DNSNameParam)
 from ipalib.errors import SkipPluginModule
 from ipalib.text import _, ngettext, GettextFactory, NGettextFactory
-
-version_info = (2, 0, 0, 'alpha', 0)
-if version_info[3] == 'final':
-    __version__ = '%d.%d.%d' % version_info[:3]
-else:
-    __version__ = '%d.%d.%d.%s.%d' % version_info
 
 Registry = plugable.Registry
 
