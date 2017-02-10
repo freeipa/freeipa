@@ -68,12 +68,15 @@ RESOLV_CONF = paths.RESOLV_CONF
 named_conf_section_ipa_start_re = re.compile('\s*dynamic-db\s+"ipa"\s+{')
 named_conf_section_options_start_re = re.compile('\s*options\s+{')
 named_conf_section_end_re = re.compile('};')
-named_conf_arg_ipa_re = re.compile(r'(?P<indent>\s*)arg\s+"(?P<name>\S+)\s(?P<value>[^"]+)";')
-named_conf_arg_options_re = re.compile(r'(?P<indent>\s*)(?P<name>\S+)\s+"(?P<value>[^"]+)"\s*;')
+named_conf_arg_ipa_re = re.compile(
+    r'(?P<indent>\s*)arg\s+"(?P<name>\S+)\s(?P<value>[^"]+)";')
+named_conf_arg_options_re = re.compile(
+    r'(?P<indent>\s*)(?P<name>\S+)\s+"(?P<value>[^"]+)"\s*;')
 named_conf_arg_ipa_template = "%(indent)sarg \"%(name)s %(value)s\";\n"
 named_conf_arg_options_template = "%(indent)s%(name)s \"%(value)s\";\n"
 # non string args for options section
-named_conf_arg_options_re_nonstr = re.compile(r'(?P<indent>\s*)(?P<name>\S+)\s+(?P<value>[^"]+)\s*;')
+named_conf_arg_options_re_nonstr = re.compile(
+    r'(?P<indent>\s*)(?P<name>\S+)\s+(?P<value>[^"]+)\s*;')
 named_conf_arg_options_template_nonstr = "%(indent)s%(name)s %(value)s;\n"
 # include directive
 named_conf_include_re = re.compile(r'\s*include\s+"(?P<path>)"\s*;')
