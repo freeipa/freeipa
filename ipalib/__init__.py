@@ -880,12 +880,7 @@ freeIPA.org:
     http://freeipa.org/page/Contribute
 
 '''
-version_info = (2, 0, 0, 'alpha', 0)
-if version_info[3] == 'final':
-    __version__ = '%d.%d.%d' % version_info[:3]
-else:
-    __version__ = '%d.%d.%d.%s.%d' % version_info
-
+from ipapython.version import VERSION as __version__
 
 def _enable_warnings(error=False):
     """Enable additional warnings during development
@@ -916,7 +911,7 @@ def _enable_warnings(error=False):
                             module=module)
 
 # call this as early as possible
-if version_info[3] != 'final':
+if 'git' in __version__:
     _enable_warnings(False)
 
 # noqa: E402
