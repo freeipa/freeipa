@@ -33,7 +33,7 @@ def _parse_cert(dercert):
         cert = x509.load_certificate(dercert, x509.DER)
         subject = DN(cert.subject)
         issuer = DN(cert.issuer)
-        serial_number = cert.serial
+        serial_number = cert.serial_number
         public_key_info = x509.get_der_public_key_info(dercert, x509.DER)
     except (ValueError, PyAsn1Error) as e:
         raise ValueError("failed to decode certificate: %s" % e)

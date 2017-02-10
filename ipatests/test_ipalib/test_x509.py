@@ -116,6 +116,6 @@ class test_x509(object):
 
         assert DN(cert.subject) == DN(('CN', 'ipa.example.com'), ('O', 'IPA'))
         assert DN(cert.issuer) == DN(('CN', 'IPA Test Certificate Authority'))
-        assert cert.serial == 1093
+        assert cert.serial_number == 1093
         assert cert.not_valid_before == not_before
         assert cert.not_valid_after == not_after

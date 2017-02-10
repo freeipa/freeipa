@@ -702,7 +702,7 @@ class CAInstance(DogtagInstance):
             userstate=["1"],
             userCertificate=[cert_data],
             description=['2;%s;%s;%s' % (
-                cert.serial,
+                cert.serial_number,
                 DN(self.ca_subject),
                 DN(('CN', 'IPA RA'), self.subject_base))])
         conn.add_entry(entry)
@@ -1437,7 +1437,7 @@ def update_authority_entry(dercert):
 
     def make_entry(dercert, entry):
         cert = x509.load_certificate(dercert, datatype=x509.DER)
-        entry['authoritySerial'] = cert.serial
+        entry['authoritySerial'] = cert.serial_number
         return entry
 
     return __update_entry_from_cert(make_filter, make_entry, dercert)
