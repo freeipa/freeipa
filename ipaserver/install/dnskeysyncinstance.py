@@ -7,7 +7,6 @@ from __future__ import print_function
 import os
 import pwd
 import grp
-import random
 import shutil
 import stat
 
@@ -282,9 +281,7 @@ class DNSKeySyncInstance(service.Service):
             key_id = None
             while True:
                 # check if key with this ID exist in softHSM
-                # id is 16 Bytes long
-                key_id = "".join(chr(random.randint(0, 255))
-                                 for _ in range(0, 16))
+                key_id = _ipap11helper.gen_key_id()
                 replica_pubkey_dn = DN(('ipk11UniqueId', 'autogenerate'), dn_base)
 
 
