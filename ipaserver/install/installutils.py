@@ -41,7 +41,12 @@ import ldap
 import ldapurl
 import six
 # pylint: disable=import-error
-from six.moves.configparser import SafeConfigParser, NoOptionError
+if six.PY3:
+    # The SafeConfigParser class has been renamed to ConfigParser in Py3
+    from configparser import ConfigParser as SafeConfigParser
+else:
+    from ConfigParser import SafeConfigParser
+from six.moves.configparser import NoOptionError
 # pylint: enable=import-error
 
 from ipalib.install import sysrestore
