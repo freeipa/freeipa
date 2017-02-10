@@ -31,7 +31,11 @@ import random
 
 import six
 # pylint: disable=import-error
-from six.moves.configparser import SafeConfigParser
+if six.PY3:
+    # The SafeConfigParser class has been renamed to ConfigParser in Py3
+    from configparser import ConfigParser as SafeConfigParser
+else:
+    from ConfigParser import SafeConfigParser
 # pylint: enable=import-error
 
 from ipaplatform.tasks import tasks
