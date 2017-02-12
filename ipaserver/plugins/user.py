@@ -370,8 +370,8 @@ class user(baseuser):
 
     takes_params = baseuser.takes_params + (
         Bool('nsaccountlock?',
+            cli_name=('disabled'),
             label=_('Account disabled'),
-            flags=['no_option'],
         ),
         Bool('preserved?',
             label=_('Preserved user'),
@@ -442,6 +442,14 @@ class user_add(baseuser_add):
             doc=_('Don\'t create user private group'),
         ),
     )
+
+    def get_options(self):
+        for option in super(user_add, self).get_options():
+            if option.name == "nsaccountlock":
+                flags = set(option.flags)
+                flags.add("no_option")
+                option = option.clone(flags=flags)
+            yield option
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         delete_dn = self.obj.get_delete_dn(*keys, **options)
@@ -748,6 +756,14 @@ class user_mod(baseuser_mod):
     msg_summary = _('Modified user "%(value)s"')
 
     has_output_params = baseuser_mod.has_output_params + user_output_params
+
+    def get_options(self):
+        for option in super(user_mod, self).get_options():
+            if option.name == "nsaccountlock":
+                flags = set(option.flags)
+                flags.add("no_option")
+                option = option.clone(flags=flags)
+            yield option
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         dn = self.obj.get_either_dn(*keys, **options)
