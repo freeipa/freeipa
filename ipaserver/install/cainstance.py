@@ -1638,11 +1638,16 @@ def repair_profile_caIPAserviceCert():
             return
 
     indicators = [
-        "policyset.serverCertSet.1.default.params.name="
-            "CN=$request.req_subject_name.cn$, OU=pki-ipa, O=IPA ",
-        "policyset.serverCertSet.9.default.params.crlDistPointsPointName_0="
-            "https://ipa.example.com/ipa/crl/MasterCRL.bin",
-        ]
+        (
+            b"policyset.serverCertSet.1.default.params.name="
+            b"CN=$request.req_subject_name.cn$, OU=pki-ipa, O=IPA "
+        ),
+        (
+            b"policyset.serverCertSet.9.default.params."
+            b"crlDistPointsPointName_0="
+            b"https://ipa.example.com/ipa/crl/MasterCRL.bin"
+        ),
+    ]
     need_repair = all(l in cur_config for l in indicators)
 
     if need_repair:
