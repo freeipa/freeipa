@@ -422,9 +422,9 @@ class DummyParser(object):
 
 class MultiProtocolTransport(Transport):
     """Transport that handles both XML-RPC and JSON"""
-    def __init__(self, protocol):
+    def __init__(self, *args, **kwargs):
         Transport.__init__(self)
-        self.protocol = protocol
+        self.protocol = kwargs.get('protocol', None)
 
     def getparser(self):
         if self.protocol == 'json':
@@ -529,6 +529,8 @@ class KerbTransport(SSLTransport):
     def __init__(self, *args, **kwargs):
         SSLTransport.__init__(self, *args, **kwargs)
         self._sec_context = None
+        self.service = kwargs.pop("service", "HTTP")
+        self.ccache = kwargs.pop("ccache", None)
 
     def _handle_exception(self, e, service=None):
         minor = e.min_code
@@ -565,11 +567,16 @@ class KerbTransport(SSLTransport):
             return (host, extra_headers, x509)
 
         # Set the remote host principal
-        service = "HTTP@" + host.split(':')[0]
+        service = self.service + "@" + host.split(':')[0]
 
         try:
+            creds = None
+            if self.ccache:
+                creds = gssapi.Credentials(usage='initiate',
+                                           store={'ccache': self.ccache})
             name = gssapi.Name(service, gssapi.NameType.hostbased_service)
-            self._sec_context = gssapi.SecurityContext(name=name, flags=self.flags)
+            self._sec_context = gssapi.SecurityContext(creds=creds, name=name,
+                                                       flags=self.flags)
             response = self._sec_context.step()
         except gssapi.exceptions.GSSError as e:
             self._handle_exception(e, service=service)
@@ -895,7 +902,7 @@ class RPCClient(Connectible):
             nss_dir = self.api.env.nss_dir
         try:
             rpc_uri = self.env[self.env_rpc_uri_key]
-            principal = get_principal()
+            principal = get_principal(ccache_name=ccache)
             setattr(context, 'principal', principal)
             # We have a session cookie, try using the session URI to see if it
             # is still valid
@@ -917,7 +924,8 @@ class RPCClient(Connectible):
                     transport_class = KerbTransport
             else:
                 transport_class = LanguageAwareTransport
-            kw['transport'] = transport_class(protocol=self.protocol)
+            kw['transport'] = transport_class(protocol=self.protocol,
+                                              service='HTTP', ccache=ccache)
             self.log.info('trying %s' % url)
             setattr(context, 'request_url', url)
             serverproxy = self.server_proxy_class(url, **kw)
