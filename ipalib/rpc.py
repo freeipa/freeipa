@@ -388,7 +388,7 @@ def json_encode_binary(val, version):
     return json.dumps(result)
 
 
-def _ipa_obj_hook(dct):
+def _ipa_obj_hook(dct, _iteritems=six.iteritems, _list=list):
     if '__base64__' in dct:
         return base64.b64decode(dct['__base64__'])
     elif '__datetime__' in dct:
@@ -397,6 +397,10 @@ def _ipa_obj_hook(dct):
     elif '__dns_name__' in dct:
         return DNSName(dct['__dns_name__'])
     else:
+        # XXX tests assume tuples. Is this really necessary?
+        for k, v in _iteritems(dct):
+            if v.__class__ is _list:
+                dct[k] = tuple(v)
         return dct
 
 
