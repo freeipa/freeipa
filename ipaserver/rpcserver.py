@@ -483,7 +483,9 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
             principal=unicode(principal),
             version=unicode(VERSION),
         )
-        dump = json_encode_binary(response, version)
+        dump = json_encode_binary(
+            response, version, pretty_print=self.api.env.debug >= 2
+        )
         return dump.encode('utf-8')
 
     def unmarshal(self, data):

@@ -274,13 +274,38 @@ def xml_dumps(params, version, methodname=None, methodresponse=False,
     )
 
 
-class _JSONConverter(dict):
+class _JSONPrimer(dict):
+    """Fast JSON primer and pre-converter
+
+    Prepare a data structure for JSON serialization. In an ideal world, priming
+    could be handled by the default hook of json.dumps(). Unfortunately the
+    hook treats Python 2 str as text while FreeIPA considers str as bytes.
+
+    The primer uses a couple of tricks to archive maximum performance:
+
+    * O(1) type look instead of O(n) chain of costly isinstance() calls
+    * __missing__ and __mro__ with caching to handle subclasses
+    * inlined code with minor code duplication
+    * function default arguments to turn global into local lookups
+    * on-demand lookup of client capabilities with cache
+
+    Depending on the client version number, the primer converts:
+
+    * bytes -> {'__base64__': b64encode}
+    * datetime -> {'__datetime__': LDAP_GENERALIZED_TIME}
+    * DNSName -> {'__dns_name__': unicode}
+
+    The _ipa_obj_hook() functions unserializes the marked JSON objects to
+    bytes, datetime and DNSName.
+
+    :see: _ipa_obj_hook
+    """
     __slots__ = ('version', '_cap_datetime', '_cap_dnsname')
 
     _identity = object()
 
     def __init__(self, version, _identity=_identity):
-        super(_JSONConverter, self).__init__()
+        super(_JSONPrimer, self).__init__()
         self.version = version
         self._cap_datetime = None
         self._cap_dnsname = None
@@ -365,30 +390,28 @@ class _JSONConverter(dict):
         return result
 
 
-def json_encode_binary(val, version):
-    """
-    JSON cannot encode binary values. We encode binary values in Python str
-    objects and text in Python unicode objects. In order to allow a binary
-    object to be passed through JSON we base64 encode it thus converting it to
-    text which JSON can transport. To assure we recognize the value is a base64
-    encoded representation of the original binary value and not confuse it with
-    other text we convert the binary value to a dict in this form:
+def json_encode_binary(val, version, pretty_print=False):
+    """Serialize a Python object structure to JSON
 
-    {'__base64__' : base64_encoding_of_binary_value}
-
-    This modification of the original input value cannot be done "in place" as
-    one might first assume (e.g. replacing any binary items in a container
-    (e.g. list, tuple, dict) with the base64 dict because the container might
-    be an immutable object (i.e. a tuple). Therefore this function returns a
-    copy of any container objects it encounters with tuples replaced by lists.
-    This is O.K. because the JSON encoding will map both lists and tuples to
-    JSON arrays.
+    :param object val: Python object structure
+    :param str version: client version
+    :param bool pretty_print: indent and sort JSON (warning: slow!)
+    :return: text
+    :note: pretty printing triggers a slow path in Python's JSON module. Only
+           use pretty_print in debug mode.
     """
-    result = _JSONConverter(version).convert(val)
-    return json.dumps(result)
+    result = _JSONPrimer(version).convert(val)
+    if pretty_print:
+        return json.dumps(result, indent=4, sort_keys=True)
+    else:
+        return json.dumps(result)
 
 
 def _ipa_obj_hook(dct, _iteritems=six.iteritems, _list=list):
+    """JSON object hook
+
+    :see: _JSONPrimer
+    """
     if '__base64__' in dct:
         return base64.b64decode(dct['__base64__'])
     elif '__datetime__' in dct:
@@ -405,23 +428,12 @@ def _ipa_obj_hook(dct, _iteritems=six.iteritems, _list=list):
 
 
 def json_decode_binary(val):
-    """
-    JSON cannot transport binary data. In order to transport binary data we
-    convert binary data to a form like this:
+    """Convert serialized JSON string back to Python data structure
 
-    {'__base64__' : base64_encoding_of_binary_value}
-
-    see json_encode_binary()
-
-    After JSON had decoded the JSON stream back into a Python object we must
-    recursively scan the object looking for any dicts which might represent
-    binary values and replace the dict containing the base64 encoding of the
-    binary value with the decoded binary value. Unlike the encoding problem
-    where the input might consist of immutable object, all JSON decoded
-    container are mutable so the conversion could be done in place. However we
-    don't modify objects in place because of side effects which may be
-    dangerous. Thus we elect to spend a few more cycles and avoid the
-    possibility of unintended side effects in favor of robustness.
+    :param val: JSON string
+    :type val: str, bytes
+    :return: Python data structure
+    :see: _ipa_obj_hook, _JSONPrimer
     """
     if isinstance(val, bytes):
         val = val.decode('utf-8')
@@ -1157,14 +1169,16 @@ class JSONServerProxy(object):
         self._ServerProxy__transport = transport
 
     def __request(self, name, args):
+        print_json = self.__verbose >= 2
         payload = {'method': unicode(name), 'params': args, 'id': 0}
         version = args[1].get('version', VERSION_WITHOUT_CAPABILITIES)
-        payload = json_encode_binary(payload, version)
+        payload = json_encode_binary(
+            payload, version, pretty_print=print_json)
 
-        if self.__verbose >= 2:
+        if print_json:
             root_logger.info(
                 'Request: %s',
-                json.dumps(json.loads(payload), sort_keys=True, indent=4)
+                payload
             )
 
         response = self.__transport.request(
@@ -1179,7 +1193,7 @@ class JSONServerProxy(object):
         except ValueError as e:
             raise JSONError(error=str(e))
 
-        if self.__verbose >= 2:
+        if print_json:
             root_logger.info(
                 'Response: %s',
                 json.dumps(response, sort_keys=True, indent=4)
