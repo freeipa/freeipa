@@ -51,7 +51,7 @@ from six.moves import urllib
 from ipalib.backend import Connectible
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.errors import (public_errors, UnknownError, NetworkError,
-    KerberosError, XMLRPCMarshallError, JSONError, ConversionError)
+    KerberosError, XMLRPCMarshallError, JSONError)
 from ipalib import errors, capabilities
 from ipalib.request import context, Connection
 from ipapython.ipa_log_manager import root_logger
@@ -274,67 +274,140 @@ def xml_dumps(params, version, methodname=None, methodresponse=False,
     )
 
 
-def json_encode_binary(val, version):
-    '''
-   JSON cannot encode binary values. We encode binary values in Python str
-   objects and text in Python unicode objects. In order to allow a binary
-   object to be passed through JSON we base64 encode it thus converting it to
-   text which JSON can transport. To assure we recognize the value is a base64
-   encoded representation of the original binary value and not confuse it with
-   other text we convert the binary value to a dict in this form:
+class _JSONConverter(dict):
+    __slots__ = ('version', '_cap_datetime', '_cap_dnsname')
 
-   {'__base64__' : base64_encoding_of_binary_value}
+    _identity = object()
 
-   This modification of the original input value cannot be done "in place" as
-   one might first assume (e.g. replacing any binary items in a container
-   (e.g. list, tuple, dict) with the base64 dict because the container might be
-   an immutable object (i.e. a tuple). Therefore this function returns a copy
-   of any container objects it encounters with tuples replaced by lists. This
-   is O.K. because the JSON encoding will map both lists and tuples to JSON
-   arrays.
-   '''
+    def __init__(self, version, _identity=_identity):
+        super(_JSONConverter, self).__init__()
+        self.version = version
+        self._cap_datetime = None
+        self._cap_dnsname = None
+        self.update({
+            unicode: _identity,
+            bool: _identity,
+            type(None): _identity,
+            float: _identity,
+            Decimal: unicode,
+            DN: str,
+            Principal: unicode,
+            DNSName: self._enc_dnsname,
+            datetime.datetime: self._enc_datetime,
+            bytes: self._enc_bytes,
+            list: self._enc_list,
+            tuple: self._enc_list,
+            dict: self._enc_dict,
+        })
+        # int, long
+        for t in six.integer_types:
+            self[t] = _identity
 
-    if isinstance(val, dict):
-        new_dict = {}
-        for k, v in val.items():
-            new_dict[k] = json_encode_binary(v, version)
-        return new_dict
-    elif isinstance(val, (list, tuple)):
-        new_list = [json_encode_binary(v, version) for v in val]
-        return new_list
-    elif isinstance(val, bytes):
+    def __missing__(self, typ):
+        # walk MRO to find best match
+        for c in typ.__mro__:
+            if c in self:
+                self[typ] = self[c]
+                return self[c]
+        # use issubclass to check for registered ABCs
+        for c in self:
+            if issubclass(typ, c):
+                self[typ] = self[c]
+                return self[c]
+        raise TypeError(typ)
+
+    def convert(self, obj, _identity=_identity):
+        # obj.__class__ is twice as fast as type(obj)
+        func = self[obj.__class__]
+        return obj if func is _identity else func(obj)
+
+    def _enc_datetime(self, val):
+        cap = self._cap_datetime
+        if cap is None:
+            cap = capabilities.client_has_capability(self.version,
+                                                     'datetime_values')
+            self._cap_datetime = cap
+        if cap:
+            return {'__datetime__': val.strftime(LDAP_GENERALIZED_TIME_FORMAT)}
+        else:
+            return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
+
+    def _enc_dnsname(self, val):
+        cap = self._cap_dnsname
+        if cap is None:
+            cap = capabilities.client_has_capability(self.version,
+                                                     'dns_name_values')
+            self._cap_dnsname = cap
+        if cap:
+            return {'__dns_name__': unicode(val)}
+        else:
+            return unicode(val)
+
+    def _enc_bytes(self, val):
         encoded = base64.b64encode(val)
         if not six.PY2:
             encoded = encoded.decode('ascii')
         return {'__base64__': encoded}
-    elif isinstance(val, Decimal):
-        return unicode(val)
-    elif isinstance(val, DN):
-        return str(val)
-    elif isinstance(val, datetime.datetime):
-        if capabilities.client_has_capability(version, 'datetime_values'):
-            return {'__datetime__': val.strftime(LDAP_GENERALIZED_TIME_FORMAT)}
-        else:
-            return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
-    elif isinstance(val, DNSName):
-        if capabilities.client_has_capability(version, 'dns_name_values'):
-            return {'__dns_name__': unicode(val)}
-        else:
-            return unicode(val)
-    elif isinstance(val, Principal):
-        return unicode(val)
+
+    def _enc_list(self, val, _identity=_identity):
+        result = []
+        append = result.append
+        for v in val:
+            func = self[v.__class__]
+            append(v if func is _identity else func(v))
+        return result
+
+    def _enc_dict(self, val, _identity=_identity, _iteritems=six.iteritems):
+        result = {}
+        for k, v in _iteritems(val):
+            func = self[v.__class__]
+            result[k] = v if func is _identity else func(v)
+        return result
+
+
+def json_encode_binary(val, version):
+    """
+    JSON cannot encode binary values. We encode binary values in Python str
+    objects and text in Python unicode objects. In order to allow a binary
+    object to be passed through JSON we base64 encode it thus converting it to
+    text which JSON can transport. To assure we recognize the value is a base64
+    encoded representation of the original binary value and not confuse it with
+    other text we convert the binary value to a dict in this form:
+
+    {'__base64__' : base64_encoding_of_binary_value}
+
+    This modification of the original input value cannot be done "in place" as
+    one might first assume (e.g. replacing any binary items in a container
+    (e.g. list, tuple, dict) with the base64 dict because the container might
+    be an immutable object (i.e. a tuple). Therefore this function returns a
+    copy of any container objects it encounters with tuples replaced by lists.
+    This is O.K. because the JSON encoding will map both lists and tuples to
+    JSON arrays.
+    """
+    result = _JSONConverter(version).convert(val)
+    return json.dumps(result)
+
+
+def _ipa_obj_hook(dct):
+    if '__base64__' in dct:
+        return base64.b64decode(dct['__base64__'])
+    elif '__datetime__' in dct:
+        return datetime.datetime.strptime(dct['__datetime__'],
+                                          LDAP_GENERALIZED_TIME_FORMAT)
+    elif '__dns_name__' in dct:
+        return DNSName(dct['__dns_name__'])
     else:
-        return val
+        return dct
 
 
 def json_decode_binary(val):
-    '''
+    """
     JSON cannot transport binary data. In order to transport binary data we
     convert binary data to a form like this:
 
-   {'__base64__' : base64_encoding_of_binary_value}
+    {'__base64__' : base64_encoding_of_binary_value}
 
-   see json_encode_binary()
+    see json_encode_binary()
 
     After JSON had decoded the JSON stream back into a Python object we must
     recursively scan the object looking for any dicts which might represent
@@ -345,31 +418,11 @@ def json_decode_binary(val):
     don't modify objects in place because of side effects which may be
     dangerous. Thus we elect to spend a few more cycles and avoid the
     possibility of unintended side effects in favor of robustness.
-    '''
+    """
+    if isinstance(val, bytes):
+        val = val.decode('utf-8')
 
-    if isinstance(val, dict):
-        if '__base64__' in val:
-            return base64.b64decode(val['__base64__'])
-        elif '__datetime__' in val:
-            return datetime.datetime.strptime(val['__datetime__'],
-                                              LDAP_GENERALIZED_TIME_FORMAT)
-        elif '__dns_name__' in val:
-            return DNSName(val['__dns_name__'])
-        else:
-            return dict((k, json_decode_binary(v)) for k, v in val.items())
-    elif isinstance(val, list):
-        return tuple(json_decode_binary(v) for v in val)
-    else:
-        if isinstance(val, bytes):
-            try:
-                return val.decode('utf-8')
-            except UnicodeDecodeError:
-                raise ConversionError(
-                    name=val,
-                    error='incorrect type'
-                )
-        else:
-            return val
+    return json.loads(val, object_hook=_ipa_obj_hook)
 
 
 def decode_fault(e, encoding='UTF-8'):
@@ -1105,27 +1158,27 @@ class JSONServerProxy(object):
         payload = json_encode_binary(payload, version)
 
         if self.__verbose >= 2:
-            root_logger.info('Request: %s',
-                             json.dumps(payload, sort_keys=True, indent=4))
+            root_logger.info(
+                'Request: %s',
+                json.dumps(json.loads(payload), sort_keys=True, indent=4)
+            )
 
         response = self.__transport.request(
             self.__host,
             self.__handler,
-            json.dumps(payload).encode('utf-8'),
+            payload.encode('utf-8'),
             verbose=self.__verbose >= 3,
         )
 
         try:
-            response = json_decode_binary(
-                json.loads(response.decode('utf-8')))
+            response = json_decode_binary(response)
         except ValueError as e:
             raise JSONError(error=str(e))
 
         if self.__verbose >= 2:
             root_logger.info(
                 'Response: %s',
-                json.dumps(json_encode_binary(response, version),
-                           sort_keys=True, indent=4)
+                json.dumps(response, sort_keys=True, indent=4)
             )
         error = response.get('error')
         if error:
