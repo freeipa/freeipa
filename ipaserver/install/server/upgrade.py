@@ -1438,7 +1438,7 @@ def update_mod_nss_cipher_suite(http):
     root_logger.info('[Updating mod_nss cipher suite]')
 
     revision = sysupgrade.get_upgrade_state('nss.conf', 'cipher_suite_updated')
-    if revision >= httpinstance.NSS_CIPHER_REVISION:
+    if revision and revision >= httpinstance.NSS_CIPHER_REVISION:
         root_logger.debug("Cipher suite already updated")
         return
 
