@@ -25,8 +25,8 @@ Also see the `ipalib.rpc` module.
 
 from xml.sax.saxutils import escape
 import os
-import json
 import traceback
+
 import gssapi
 import requests
 
@@ -483,13 +483,12 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
             principal=unicode(principal),
             version=unicode(VERSION),
         )
-        response = json_encode_binary(response, version)
-        dump = json.dumps(response, sort_keys=True, indent=4)
+        dump = json_encode_binary(response, version)
         return dump.encode('utf-8')
 
     def unmarshal(self, data):
         try:
-            d = json.loads(data)
+            d = json_decode_binary(data)
         except ValueError as e:
             raise JSONError(error=e)
         if not isinstance(d, dict):
@@ -498,7 +497,6 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
             raise JSONError(error=_('Request is missing "method"'))
         if 'params' not in d:
             raise JSONError(error=_('Request is missing "params"'))
-        d = json_decode_binary(d)
         method = d['method']
         params = d['params']
         _id = d.get('id')
