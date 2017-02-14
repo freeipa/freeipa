@@ -294,7 +294,7 @@ class CAInstance(DogtagInstance):
                      ('caSigningCert cert-pki-ca', 'ipaCACertRenewal'))
     server_cert_name = 'Server-Cert cert-pki-ca'
 
-    def __init__(self, realm=None, ra_db=None, host_name=None):
+    def __init__(self, realm=None, host_name=None):
         super(CAInstance, self).__init__(
             realm=realm,
             subsystem="CA",
@@ -313,11 +313,8 @@ class CAInstance(DogtagInstance):
             self.canickname = get_ca_nickname(realm)
         else:
             self.canickname = None
-        self.ra_agent_db = ra_db
-        if self.ra_agent_db is not None:
-            self.ra_agent_pwd = self.ra_agent_db + "/pwdfile.txt"
-        else:
-            self.ra_agent_pwd = None
+        self.ra_agent_db = paths.IPA_RADB_DIR
+        self.ra_agent_pwd = os.path.join(self.ra_agent_db, "pwdfile.txt")
         self.ra_cert = None
         self.requestId = None
         self.log = log_mgr.get_logger(self)
@@ -742,16 +739,6 @@ class CAInstance(DogtagInstance):
 
         conn.disconnect()
 
-    def __run_certutil(self, args, database=None, pwd_file=None, stdin=None,
-                       **kwargs):
-        if not database:
-            database = self.ra_agent_db
-        if not pwd_file:
-            pwd_file = self.ra_agent_pwd
-        new_args = [paths.CERTUTIL, "-d", database, "-f", pwd_file]
-        new_args = new_args + args
-        return ipautil.run(new_args, stdin, nolog=(pwd_file,), **kwargs)
-
     def __get_ca_chain(self):
         try:
             return dogtag.get_ca_certchain(ca_host=self.fqdn)
@@ -791,7 +778,7 @@ class CAInstance(DogtagInstance):
                 else:
                     nick = str(subject_dn)
                     trust_flags = ',,'
-                self.__run_certutil(
+                certdb.run_certutil(
                     ['-A', '-t', trust_flags, '-n', nick, '-a',
                      '-i', chain_file.name]
                 )
@@ -852,7 +839,8 @@ class CAInstance(DogtagInstance):
                 post_command='renew_ra_cert')
 
             self.requestId = str(reqId)
-            result = self.__run_certutil(
+            certdb = certs.CertDB(self.realm)
+            result = certdb.run_certutil(
                 ['-L', '-n', 'ipaCert', '-a'], capture_output=True)
             self.ra_cert = x509.strip_header(result.output)
             self.ra_cert = "\n".join(
@@ -1017,8 +1005,8 @@ class CAInstance(DogtagInstance):
                 ca='dogtag-ipa-ca-renew-agent',
                 nickname='ipaCert',
                 pin=None,
-                pinfile=os.path.join(paths.IPA_RADB_DIR, 'pwdfile.txt'),
-                secdir=paths.IPA_RADB_DIR,
+                pinfile=self.ra_agent_pwd,
+                secdir=self.ra_agent_db,
                 pre_command='renew_ra_cert_pre',
                 post_command='renew_ra_cert')
         except RuntimeError as e:
@@ -1037,7 +1025,7 @@ class CAInstance(DogtagInstance):
                 certmonger.stop_tracking(self.nss_db, nickname=nickname)
 
         try:
-            certmonger.stop_tracking(paths.IPA_RADB_DIR, nickname='ipaCert')
+            certmonger.stop_tracking(self.ra_agent_db, nickname='ipaCert')
         except RuntimeError as e:
             root_logger.error(
                 "certmonger failed to stop tracking certificate: %s", e)
@@ -1863,5 +1851,5 @@ if __name__ == "__main__":
     standard_logging_setup("install.log")
     ds = dsinstance.DsInstance()
 
-    ca = CAInstance("EXAMPLE.COM", paths.HTTPD_ALIAS_DIR)
+    ca = CAInstance("EXAMPLE.COM")
     ca.configure_instance("catest.example.com", "password", "password")

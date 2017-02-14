@@ -1540,7 +1540,7 @@ def upgrade_configuration():
         sub_dict['SUBJECT_BASE'] = subject_base
 
     ca = cainstance.CAInstance(
-            api.env.realm, paths.IPA_RADB_DIR, host_name=api.env.host)
+            api.env.realm, host_name=api.env.host)
     ca_running = ca.is_running()
 
     # create passswd.txt file in PKI_TOMCAT_ALIAS_DIR if it does not exist
