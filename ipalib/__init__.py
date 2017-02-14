@@ -935,7 +935,9 @@ class API(plugable.API):
     @property
     def packages(self):
         if self.env.in_server:
-            import ipaserver.plugins  # pylint: disable=import-error
+            # pylint: disable=import-error,ipa-forbidden-import
+            import ipaserver.plugins
+            # pylint: enable=import-error,ipa-forbidden-import
             result = (
                 ipaserver.plugins,
             )
@@ -948,7 +950,9 @@ class API(plugable.API):
             )
 
         if self.env.context in ('installer', 'updates'):
-            import ipaserver.install.plugins  # pylint: disable=import-error
+            # pylint: disable=import-error,ipa-forbidden-import
+            import ipaserver.install.plugins
+            # pylint: enable=import-error,ipa-forbidden-import
             result += (ipaserver.install.plugins,)
 
         return result

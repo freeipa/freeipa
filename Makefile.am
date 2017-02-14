@@ -180,7 +180,9 @@ pylint: $(top_builddir)/ipapython/version.py ipasetup.py
 		-type f -exec grep -qsm1 '^#!.*\bpython' '{}' \; -print`; \
 	echo "Pylint is running, please wait ..."; \
 	PYTHONPATH=$(top_srcdir) $(PYTHON) -m pylint \
-		--rcfile=$(top_srcdir)/pylintrc $${FILES}
+		--rcfile=$(top_srcdir)/pylintrc \
+		--load-plugins pylint_plugins \
+		$${FILES}
 
 .PHONY: jslint jslint-ui jslint-ui-test jslint-html \
 	$(top_builddir)/install/ui/src/libs/loader.js

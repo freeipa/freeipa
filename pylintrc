@@ -4,7 +4,9 @@ persistent=no
 
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
-load-plugins=pylint_plugins
+# FIXME: has to be specified on the command line otherwise pylint fails with
+#        DuplicateSectionError for the IPA section
+#load-plugins=pylint_plugins
 
 # Use multiple processes to speed up Pylint.
 jobs=0
@@ -103,3 +105,14 @@ msg-template='{path}:{line}: [{msg_id}({symbol}), {obj}] {msg})'
 
 [VARIABLES]
 dummy-variables-rgx=_.+
+
+
+[IPA]
+forbidden-imports=
+    client/:ipaserver,
+    ipaclient/:ipaclient.install:ipalib.install:ipaplatform:ipaserver,
+    ipaclient/install/:ipaserver,
+    ipalib/:ipaclient.install:ipalib.install:ipaplatform:ipaserver,
+    ipalib/install/:ipaserver,
+    ipaplatform/:ipaclient:ipalib:ipaserver,
+    ipapython/:ipaclient:ipalib:ipaplatform:ipaserver

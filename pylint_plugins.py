@@ -5,14 +5,18 @@
 from __future__ import print_function
 
 import copy
+import os.path
 import sys
 
 from astroid import MANAGER
 from astroid import scoped_nodes
+from pylint.checkers import BaseChecker
+from pylint.checkers.utils import check_messages
+from pylint.interfaces import IAstroidChecker
 
 
 def register(linter):
-    pass
+    linter.register_checker(IPAChecker(linter))
 
 
 def _warning_already_exists(cls, member):
@@ -252,3 +256,80 @@ def fix_ipa_classes(cls):
         fake_class(cls, ipa_class_members[class_name_with_module])
 
 MANAGER.register_transform(scoped_nodes.Class, fix_ipa_classes)
+
+
+class IPAChecker(BaseChecker):
+    __implements__ = IAstroidChecker
+
+    name = 'ipa'
+    msgs = {
+        'W9901': (
+            'Forbidden import %s (can\'t import from %s in %s)',
+            'ipa-forbidden-import',
+            'Used when an forbidden import is detected.',
+        ),
+    }
+    options = (
+        (
+            'forbidden-imports',
+            {
+                'default': '',
+                'type': 'csv',
+                'metavar': '<path>[:<module>[:<module>...]][,<path>...]',
+                'help': 'Modules which are forbidden to be imported in the '
+                        'given paths',
+            },
+        ),
+    )
+    priority = -1
+
+    def open(self):
+        self._dir = os.path.abspath(os.path.dirname(__file__))
+
+        self._forbidden_imports = {self._dir: []}
+        for forbidden_import in self.config.forbidden_imports:
+            forbidden_import = forbidden_import.split(':')
+            path = os.path.join(self._dir, forbidden_import[0])
+            path = os.path.abspath(path)
+            modules = forbidden_import[1:]
+            self._forbidden_imports[path] = modules
+
+        self._forbidden_imports_stack = []
+
+    def _get_forbidden_import_rule(self, node):
+        path = node.source_file
+        if path:
+            path = os.path.abspath(path)
+            while path.startswith(self._dir):
+                if path in self._forbidden_imports:
+                    return path
+                path = os.path.dirname(path)
+        return self._dir
+
+    def visit_module(self, node):
+        self._forbidden_imports_stack.append(
+            self._get_forbidden_import_rule(node))
+
+    def leave_module(self, node):
+        self._forbidden_imports_stack.pop()
+
+    def _check_forbidden_imports(self, node, names):
+        path = self._forbidden_imports_stack[-1]
+        relpath = os.path.relpath(path, self._dir)
+        modules = self._forbidden_imports[path]
+        for module in modules:
+            module_prefix = module + '.'
+            for name in names:
+                if name == module or name.startswith(module_prefix):
+                    self.add_message('ipa-forbidden-import',
+                                     args=(name, module, relpath), node=node)
+
+    @check_messages('ipa-forbidden-import')
+    def visit_import(self, node):
+        names = [n[0] for n in node.names]
+        self._check_forbidden_imports(node, names)
+
+    @check_messages('ipa-forbidden-import')
+    def visit_importfrom(self, node):
+        names = ['{}.{}'.format(node.modname, n[0]) for n in node.names]
+        self._check_forbidden_imports(node, names)

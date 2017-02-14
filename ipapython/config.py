@@ -35,7 +35,9 @@ from six.moves.urllib.parse import urlsplit
 from ipapython.dn import DN
 
 try:
+    # pylint: disable=ipa-forbidden-import
     from ipaplatform.paths import paths
+    # pylint: enable=ipa-forbidden-import
 except ImportError:
     IPA_DEFAULT_CONF = '/etc/ipa/default.conf'
 else:

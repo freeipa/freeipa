@@ -32,10 +32,12 @@ from nss.error import NSPRError
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
-from ipalib import x509
+from ipalib import x509     # pylint: disable=ipa-forbidden-import
 
 try:
-    from ipaplatform.paths import paths  # pylint: disable=import-error
+    # pylint: disable=import-error,ipa-forbidden-import
+    from ipaplatform.paths import paths
+    # pylint: enable=import-error,ipa-forbidden-import
 except ImportError:
     CERTUTIL = '/usr/bin/certutil'
     PK12UTIL = '/usr/bin/pk12util'

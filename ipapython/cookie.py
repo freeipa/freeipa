@@ -599,7 +599,9 @@ class Cookie(object):
             # FIXME: At the moment we can't import from ipalib at the
             # module level because of a dependency loop (cycle) in the
             # import. Our module layout needs to be refactored.
+            # pylint: disable=ipa-forbidden-import
             from ipalib.util import validate_domain_name
+            # pylint: enable=ipa-forbidden-import
             try:
                 validate_domain_name(url_domain)
             except Exception:
