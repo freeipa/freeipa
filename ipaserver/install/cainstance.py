@@ -777,6 +777,10 @@ class CAInstance(DogtagInstance):
         for nick, trust_flags in cert_backup_list:
             certdb.trust_root_cert(nick, trust_flags)
 
+        # Restore NSS trust flags of all previously existing certificates
+        for nick, trust_flags in cert_backup_list:
+            certdb.trust_root_cert(nick, trust_flags)
+
     def __request_ra_certificate(self):
         # create a temp file storing the pwd
         agent_file = tempfile.NamedTemporaryFile(
