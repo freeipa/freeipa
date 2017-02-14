@@ -240,6 +240,47 @@ class TestFind(XMLRPC_test):
         result = command()
         user.check_find(result, pkey_only=True)
 
+    @pytest.mark.xfail(
+        reason="new users don't have set attribute nsaccountlock in LDAP, "
+               "thus this search doesn't return it in result")
+    def test_find_enabled_user(self, user):
+        """Test user-find --disabled=False with enabled user"""
+        user.ensure_exists()
+        command = user.make_find_command(
+            uid=user.uid, pkey_only=True, nsaccountlock=False)
+        result = command()
+        user.check_find(result, pkey_only=True)
+
+    def test_negative_find_enabled_user(self, user):
+        """Test user-find --disabled=True with enabled user, shouldn't
+        return any result"""
+        user.ensure_exists()
+        command = user.make_find_command(
+            uid=user.uid, pkey_only=True, nsaccountlock=True)
+        result = command()
+        user.check_find_nomatch(result)
+
+    def test_find_disabled_user(self, user):
+        """Test user-find --disabled=True with disabled user"""
+        user.ensure_exists()
+        user.disable()
+        command = user.make_find_command(
+            uid=user.uid, pkey_only=True, nsaccountlock=True)
+        result = command()
+        user.check_find(result, pkey_only=True)
+        user.enable()
+
+    def test_negative_find_disabled_user(self, user):
+        """Test user-find --disabled=False with disabled user, shouldn't
+        return any results"""
+        user.ensure_exists()
+        user.disable()
+        command = user.make_find_command(
+            uid=user.uid, pkey_only=True, nsaccountlock=False)
+        result = command()
+        user.check_find_nomatch(result)
+        user.enable()
+
 
 @pytest.mark.tier1
 class TestActive(XMLRPC_test):
