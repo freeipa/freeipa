@@ -257,7 +257,7 @@ class test_jsonserver(PluginTester):
         assert unicode(e.error) == 'params[1] (aka options) must be a dict'
 
         # Test with valid values:
-        args = (u'jdoe', )
+        args = [u'jdoe']
         options = dict(givenname=u'John', sn='Doe')
         d = dict(method=u'user_add', params=(args, options), id=18)
         assert o.unmarshal(json.dumps(d)) == (u'user_add', args, options, 18)
