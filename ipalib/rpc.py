@@ -285,9 +285,12 @@ class _JSONPrimer(dict):
 
     * O(1) type look instead of O(n) chain of costly isinstance() calls
     * __missing__ and __mro__ with caching to handle subclasses
-    * inlined code with minor code duplication
+    * inline code with minor code duplication (func lookup in enc_list/dict)
+    * avoid surplus function calls (e.g. func is _identity, obj.__class__
+      instead if type(obj))
     * function default arguments to turn global into local lookups
-    * on-demand lookup of client capabilities with cache
+    * avoid re-creation of bound method objects (e.g. result.append)
+    * on-demand lookup of client capabilities with cached values
 
     Depending on the client version number, the primer converts:
 
