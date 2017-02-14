@@ -166,7 +166,9 @@ def debian_service_class_factory(name, api=None):
 
 class DebianServices(base_services.KnownServices):
     def __init__(self):
+        # pylint: disable=ipa-forbidden-import
         import ipalib  # FixMe: break import cycle
+        # pylint: enable=ipa-forbidden-import
         services = dict()
         for s in base_services.wellknownservices:
             services[s] = self.service_class_factory(s, ipalib.api)

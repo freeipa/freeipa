@@ -93,11 +93,13 @@ class PlatformService(object):
     """
 
     def __init__(self, service_name, api=None):
+        # pylint: disable=ipa-forbidden-import
+        import ipalib  # FixMe: break import cycle
+        # pylint: enable=ipa-forbidden-import
         self.service_name = service_name
         if api is not None:
             self.api = api
         else:
-            import ipalib  # FixMe: break import cycle
             self.api = ipalib.api
             warnings.warn(
                 "{s.__class__.__name__}('{s.service_name}', api=None) "

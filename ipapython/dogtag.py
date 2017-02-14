@@ -25,10 +25,12 @@ import six
 from six.moves.urllib.parse import urlencode
 # pylint: enable=import-error
 
+# pylint: disable=ipa-forbidden-import
 from ipalib import api, errors
 from ipalib.util import create_https_connection
 from ipalib.errors import NetworkError
 from ipalib.text import _
+# pylint: enable=ipa-forbidden-import
 from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger
 

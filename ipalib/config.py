@@ -48,7 +48,9 @@ from ipalib.constants import (
 )
 from ipalib import errors
 try:
+    # pylint: disable=ipa-forbidden-import
     from ipaplatform.tasks import tasks
+    # pylint: enable=ipa-forbidden-import
 except ImportError:
     tasks = None
 

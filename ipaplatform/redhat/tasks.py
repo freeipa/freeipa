@@ -50,7 +50,9 @@ from ipaplatform.paths import paths
 from ipaplatform.redhat.authconfig import RedHatAuthConfig
 from ipaplatform.base.tasks import BaseTaskNamespace
 
+# pylint: disable=ipa-forbidden-import
 from ipalib.constants import IPAAPI_USER
+# pylint: enable=ipa-forbidden-import
 
 _ffi = FFI()
 _ffi.cdef("""
@@ -235,8 +237,10 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             return True
 
     def insert_ca_certs_into_systemwide_ca_store(self, ca_certs):
+        # pylint: disable=ipa-forbidden-import
         from ipalib import x509  # FixMe: break import cycle
         from ipalib.errors import CertificateError
+        # pylint: enable=ipa-forbidden-import
 
         new_cacert_path = paths.SYSTEMWIDE_IPA_CA_CRT
 

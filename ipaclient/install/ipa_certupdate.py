@@ -100,9 +100,9 @@ class CertUpdate(admintool.AdminTool):
         if server_fstore.has_files():
             self.update_server(certs)
             try:
-                # pylint: disable=import-error
+                # pylint: disable=import-error,ipa-forbidden-import
                 from ipaserver.install import cainstance
-                # pylint: enable=import-error
+                # pylint: enable=import-error,ipa-forbidden-import
                 cainstance.add_lightweight_ca_tracking_requests(
                     self.log, lwcas)
             except Exception:
