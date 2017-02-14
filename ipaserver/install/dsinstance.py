@@ -399,6 +399,7 @@ class DsInstance(service.Service):
                 self.step("configuring TLS for DS instance", self.__enable_ssl)
             else:
                 self.step("retrieving DS Certificate", self.__get_ds_cert)
+            self.step("configuring ssl for ds instance", self.__enable_ssl)
             self.step("restarting directory server", self.__restart_instance)
 
         self.step("setting up initial replication", self.__setup_replica)
