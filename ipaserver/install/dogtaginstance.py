@@ -127,7 +127,7 @@ class DogtagInstance(service.Service):
         self.admin_dn = DN(('uid', self.admin_user),
                            ('ou', 'people'), ('o', 'ipaca'))
         self.admin_groups = None
-        self.agent_db = tempfile.mkdtemp(prefix="tmp-", dir=paths.VAR_LIB_IPA)
+        self.tmp_agent_db = None
         self.subsystem = subsystem
         self.security_domain_name = "IPA"
         # replication parameters
@@ -137,9 +137,6 @@ class DogtagInstance(service.Service):
         self.nss_db = nss_db
 
         self.log = log_mgr.get_logger(self)
-
-    def __del__(self):
-        shutil.rmtree(self.agent_db, ignore_errors=True)
 
     def is_installed(self):
         """
@@ -170,6 +167,14 @@ class DogtagInstance(service.Service):
             ipautil.run(args, nolog=nolog_list)
         except ipautil.CalledProcessError as e:
             self.handle_setup_error(e)
+
+    def clean_pkispawn_files(self):
+        if self.tmp_agent_db is not None:
+            shutil.rmtree(self.tmp_agent_db, ignore_errors=True)
+
+        shutil.rmtree('/root/.dogtag/pki-tomcat/{subsystem}/'
+                      .format(subsystem=self.subsystem.lower()),
+                      ignore_errors=True)
 
     def restart_instance(self):
         try:
