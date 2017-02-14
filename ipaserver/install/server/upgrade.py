@@ -283,6 +283,27 @@ def cleanup_adtrust(fstore):
             root_logger.debug('Removing %s from backup', backed_up_file)
 
 
+def cleanup_dogtag():
+    """
+    pkispawn leaves some mess we were not cleaning up until recently. Try
+    to clean up what we can.
+    """
+    subsystems = []
+    if api.Command.ca_is_enabled()['result']:
+        subsystems.append('CA')
+        if api.Command.kra_is_enabled()['result']:
+            subsystems.append('KRA')
+
+    for system in subsystems:
+        root_logger.debug(
+            "Cleaning up after pkispawn for the {sub} subsystem"
+            .format(sub=system))
+        instance = dogtaginstance.DogtagInstance(
+            api.env.realm, system, service_desc=None,
+        )
+        instance.clean_pkispawn_files()
+
+
 def upgrade_adtrust_config():
     """
     Upgrade 'dedicated keytab file' in smb.conf to omit FILE: prefix
@@ -1672,6 +1693,7 @@ def upgrade_configuration():
 
     cleanup_kdc(fstore)
     cleanup_adtrust(fstore)
+    cleanup_dogtag()
     upgrade_adtrust_config()
 
     bind = bindinstance.BindInstance(fstore)

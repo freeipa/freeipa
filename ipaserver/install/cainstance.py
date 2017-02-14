@@ -449,7 +449,10 @@ class CAInstance(DogtagInstance):
                 self.step("configuring certmonger renewal for lightweight CAs",
                           self.__add_lightweight_ca_tracking_requests)
 
-        self.start_creation(runtime=210)
+        try:
+            self.start_creation(runtime=210)
+        finally:
+            self.clean_pkispawn_files()
 
     def __spawn_instance(self):
         """
@@ -463,6 +466,9 @@ class CAInstance(DogtagInstance):
         os.close(cfg_fd)
         pent = pwd.getpwnam(self.service_user)
         os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
+        self.tmp_agent_db = tempfile.mkdtemp(
+                prefix="tmp-", dir=paths.VAR_LIB_IPA)
+        self.tmp_agent_pwd = ipautil.ipa_generate_password()
 
         # Create CA configuration
         config = ConfigParser()
@@ -482,8 +488,8 @@ class CAInstance(DogtagInstance):
                 ipautil.format_netloc(api.env.domain)))
 
         # Client security database
-        config.set("CA", "pki_client_database_dir", self.agent_db)
-        config.set("CA", "pki_client_database_password", self.admin_password)
+        config.set("CA", "pki_client_database_dir", self.tmp_agent_db)
+        config.set("CA", "pki_client_database_password", self.tmp_agent_pwd)
         config.set("CA", "pki_client_database_purge", "False")
         config.set("CA", "pki_client_pkcs12_password", self.admin_password)
 
@@ -791,7 +797,7 @@ class CAInstance(DogtagInstance):
         # create a temp file storing the pwd
         agent_file = tempfile.NamedTemporaryFile(
             mode="w", dir=paths.VAR_LIB_IPA, delete=False)
-        agent_file.write(self.admin_password)
+        agent_file.write(self.tmp_agent_pwd)
         agent_file.close()
 
         # create a temp pem file storing the CA chain
@@ -811,7 +817,7 @@ class CAInstance(DogtagInstance):
              ], stdin=data, capture_output=False)
 
         agent_args = [paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT,
-                      "--dbdir", self.agent_db,
+                      "--dbdir", self.tmp_agent_db,
                       "--nickname", "ipa-ca-agent",
                       "--cafile", chain_file.name,
                       "--ee-url", 'http://%s:8080/ca/ee/ca/' % self.fqdn,
