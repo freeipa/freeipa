@@ -43,7 +43,7 @@ from ipalib.install.kinit import kinit_keytab, kinit_password
 from ipalib.plugable import Plugin
 from ipalib.request import context
 from ipapython.dn import DN
-from ipapython.ipautil import private_ccache, run
+from ipapython.ipautil import run
 from ipaplatform.paths import paths
 
 if six.PY3:
@@ -761,20 +761,25 @@ def change_principal(principal, password=None, client=None, path=None,
     client.Backend.rpcclient.disconnect()
 
     try:
-        with private_ccache(ccache_name):
-            if keytab:
-                kinit_keytab(principal, keytab, ccache_name)
-            else:
-                kinit_password(principal, password, ccache_name,
-                               canonicalize=canonicalize,
-                               enterprise=enterprise)
-            client.Backend.rpcclient.connect()
+        if keytab:
+            kinit_keytab(principal, keytab, ccache_name)
+        else:
+            kinit_password(principal, password, ccache_name,
+                           canonicalize=canonicalize,
+                           enterprise=enterprise)
+        client.Backend.rpcclient.connect(ccache=ccache_name)
 
-            try:
-                yield
-            finally:
-                client.Backend.rpcclient.disconnect()
+        try:
+            yield
+        finally:
+            client.Backend.rpcclient.disconnect()
     finally:
+        # If we generated a ccache name, try to remove it, but don't fail
+        if not path:
+            try:
+                os.remove(ccache_name)
+            except OSError:
+                pass
         client.Backend.rpcclient.connect()
 
 
