@@ -903,6 +903,12 @@ class RPCClient(Connectible):
         try:
             rpc_uri = self.env[self.env_rpc_uri_key]
             principal = get_principal(ccache_name=ccache)
+            stored_principal = getattr(context, 'principal', None)
+            if principal != stored_principal:
+                try:
+                    delattr(context, 'session_cookie')
+                except AttributeError:
+                    pass
             setattr(context, 'principal', principal)
             # We have a session cookie, try using the session URI to see if it
             # is still valid
