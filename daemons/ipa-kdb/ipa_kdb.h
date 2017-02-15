@@ -198,6 +198,17 @@ krb5_error_code ipadb_put_principal(krb5_context kcontext,
                                     char **db_args);
 krb5_error_code ipadb_delete_principal(krb5_context kcontext,
                                        krb5_const_principal search_for);
+krb5_error_code
+ipadb_fetch_principals_with_extra_filter(struct ipadb_context *ipactx,
+                                         unsigned int flags,
+                                         const char *principal,
+                                         const char *filter,
+                                         LDAPMessage **result);
+krb5_error_code ipadb_find_principal(krb5_context kcontext,
+                                     unsigned int flags,
+                                     LDAPMessage *res,
+                                     char **principal,
+                                     LDAPMessage **entry);
 #if KRB5_KDB_API_VERSION < 8
 krb5_error_code ipadb_iterate(krb5_context kcontext,
                               char *match_entry,
