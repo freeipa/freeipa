@@ -89,7 +89,6 @@ class DebianPathNamespace(BasePathNamespace):
     VAR_OPENDNSSEC_DIR = "/var/lib/opendnssec"
     OPENDNSSEC_KASP_DB = "/var/lib/opendnssec/db/kasp.db"
     IPA_ODS_EXPORTER_CCACHE = "/var/lib/opendnssec/tmp/ipa-ods-exporter.ccache"
-    KRB5CC_HTTPD = "/var/run/apache2/ipa/krbcache/krb5ccache"
     IPA_CUSTODIA_SOCKET = "/run/apache2/ipa-custodia.sock"
     IPA_CUSTODIA_AUDIT_LOG = '/var/log/ipa-custodia.audit.log'
 
