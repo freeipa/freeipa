@@ -1753,6 +1753,18 @@ def upgrade_configuration():
     krb.realm = api.env.realm
     krb.suffix = ipautil.realm_to_suffix(krb.realm)
     krb.subject_base = subject_base
+    krb.sub_dict = dict(FQDN=krb.fqdn,
+                        SUFFIX=krb.suffix,
+                        DOMAIN=api.env.domain,
+                        HOST=api.env.host,
+                        SERVER_ID=installutils.realm_to_serverid(krb.realm),
+                        REALM=krb.realm,
+                        KRB5KDC_KADM5_ACL=paths.KRB5KDC_KADM5_ACL,
+                        DICT_WORDS=paths.DICT_WORDS,
+                        KRB5KDC_KADM5_KEYTAB=paths.KRB5KDC_KADM5_KEYTAB,
+                        KDC_CERT=paths.KDC_CERT,
+                        KDC_KEY=paths.KDC_KEY,
+                        CACERT_PEM=paths.CACERT_PEM)
     if not os.path.exists(paths.KDC_CERT):
         krb.setup_pkinit()
         replacevars = dict()
