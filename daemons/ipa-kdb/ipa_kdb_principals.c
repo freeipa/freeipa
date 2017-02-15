@@ -37,6 +37,17 @@
                                 "(objectclass=krbprincipal))" \
                               "(krbprincipalname=%s))"
 
+#define PRINC_TGS_SEARCH_FILTER_EXTRA "(&(|(objectclass=krbprincipalaux)" \
+                                          "(objectclass=krbprincipal)" \
+                                          "(objectclass=ipakrbprincipal))" \
+                                        "(|(ipakrbprincipalalias=%s)" \
+                                          "(krbprincipalname:caseIgnoreIA5Match:=%s))" \
+                                         "%s)"
+
+#define PRINC_SEARCH_FILTER_EXTRA "(&(|(objectclass=krbprincipalaux)" \
+                                      "(objectclass=krbprincipal))" \
+                                    "(krbprincipalname=%s)" \
+                                    "%s)"
 static char *std_principal_attrs[] = {
     "krbPrincipalName",
     "krbCanonicalName",
@@ -864,10 +875,12 @@ done:
     return kerr;
 }
 
-static krb5_error_code ipadb_fetch_principals(struct ipadb_context *ipactx,
-                                              unsigned int flags,
-                                              char *principal,
-                                              LDAPMessage **result)
+krb5_error_code
+ipadb_fetch_principals_with_extra_filter(struct ipadb_context *ipactx,
+                                         unsigned int flags,
+                                         const char *principal,
+                                         const char *filter,
+                                         LDAPMessage **result)
 {
     krb5_error_code kerr;
     char *src_filter = NULL;
@@ -890,11 +903,21 @@ static krb5_error_code ipadb_fetch_principals(struct ipadb_context *ipactx,
         goto done;
     }
 
-    if (flags & KRB5_KDB_FLAG_ALIAS_OK) {
-        ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER,
-                       esc_original_princ, esc_original_princ);
+    if (filter == NULL) {
+        if (flags & KRB5_KDB_FLAG_ALIAS_OK) {
+            ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER,
+                           esc_original_princ, esc_original_princ);
+        } else {
+            ret = asprintf(&src_filter, PRINC_SEARCH_FILTER, esc_original_princ);
+        }
     } else {
-        ret = asprintf(&src_filter, PRINC_SEARCH_FILTER, esc_original_princ);
+        if (flags & KRB5_KDB_FLAG_ALIAS_OK) {
+            ret = asprintf(&src_filter, PRINC_TGS_SEARCH_FILTER_EXTRA,
+                           esc_original_princ, esc_original_princ, filter);
+        } else {
+            ret = asprintf(&src_filter, PRINC_SEARCH_FILTER_EXTRA,
+                           esc_original_princ, filter);
+        }
     }
 
     if (ret == -1) {
@@ -913,11 +936,20 @@ done:
     return kerr;
 }
 
-static krb5_error_code ipadb_find_principal(krb5_context kcontext,
-                                            unsigned int flags,
-                                            LDAPMessage *res,
-                                            char **principal,
-                                            LDAPMessage **entry)
+static krb5_error_code ipadb_fetch_principals(struct ipadb_context *ipactx,
+                                              unsigned int flags,
+                                              char *principal,
+                                              LDAPMessage **result)
+{
+    return ipadb_fetch_principals_with_extra_filter(ipactx, flags, principal,
+                                                    NULL, result);
+}
+
+krb5_error_code ipadb_find_principal(krb5_context kcontext,
+                                     unsigned int flags,
+                                     LDAPMessage *res,
+                                     char **principal,
+                                     LDAPMessage **entry)
 {
     struct ipadb_context *ipactx;
     bool found = false;
