@@ -458,7 +458,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             dict(
                 KDCPROXY_CONFIG=paths.KDCPROXY_CONFIG,
                 IPA_HTTPD_KDCPROXY=paths.IPA_HTTPD_KDCPROXY,
-                POST='-{kdestroy} -A'.format(kdestroy=paths.KDESTROY)
+                KRB5CC_HTTPD=paths.KRB5CC_HTTPD,
             )
         )
 
