@@ -14,10 +14,12 @@ import six
 
 from ipalib.constants import DOMAIN_LEVEL_0
 from ipalib import errors
+from ipalib.install.service import ServiceAdminInstallInterface
 from ipaplatform.paths import paths
 from ipapython.admintool import ScriptError
 from ipapython import ipaldap, ipautil
 from ipapython.dn import DN
+from ipapython.install.core import knob
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import adtrustinstance
 from ipaserver.install import service
@@ -426,3 +428,51 @@ def install(standalone, options, fstore, api):
         # Find out IPA masters which are not part of the cn=adtrust agents
         # and propose them to be added to the list
         add_new_adtrust_agents(api, options)
+
+
+class ADTrustInstallInterface(ServiceAdminInstallInterface):
+    """
+    Interface for the AD trust installer
+
+    Knobs defined here will be available in:
+    * ipa-server-install
+    * ipa-replica-install
+    * ipa-adtrust-install
+    """
+
+    # the following knobs are provided on top of those specified for
+    # admin credentials
+    add_sids = knob(
+        None,
+        description="Add SIDs for existing users and groups as the final step"
+    )
+    add_agents = knob(
+        None,
+        description="Add IPA masters to a list of hosts allowed to "
+                    "serve information about users from trusted forests"
+    )
+    enable_compat = knob(
+        None,
+        description="Enable support for trusted domains for old clients"
+    )
+    netbios_name = knob(
+        str,
+        None,
+        description="NetBIOS name of the IPA domain"
+    )
+    no_msdcs = knob(
+        None,
+        description="Deprecated: has no effect",
+        deprecated=True
+    )
+    rid_base = knob(
+        int,
+        1000,
+        description="Start value for mapping UIDs and GIDs to RIDs"
+    )
+    secondary_rid_base = knob(
+        int,
+        100000000,
+        description="Start value of the secondary range for mapping "
+                    "UIDs and GIDs to RIDs"
+    )
