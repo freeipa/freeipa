@@ -282,6 +282,41 @@ def write_tmp_file(txt):
 
     return fd
 
+
+@contextmanager
+def concurrent_open(filename, mode='r'):
+    """Ensure that complete file is read/written
+
+    Works only for r, rb, w, w+, wb, wb+ modes. Default is r.
+
+    In read mode behaves the same as build-in open. In write mode all data are
+    written to the temporary file first and then moved to target path.
+    This approach ensures that reading will be performed on complete file and
+    writting will result in complete or none file written at all.
+    """
+    if mode in ('w', 'w+', 'wb', 'wb+'):
+        directory, basename = os.path.split(os.path.abspath(filename))
+        with tempfile.NamedTemporaryFile(
+                mode=mode, dir=directory, prefix=basename, delete=False
+        ) as temp_file:
+            try:
+                yield temp_file
+            finally:
+                temp_file.flush()
+                os.fsync(temp_file.fileno())
+                try:
+                    os.rename(temp_file.name, filename)
+                except EnvironmentError:
+                    os.unlink(temp_file.name)
+                    raise
+    elif mode in ('r', 'rb'):
+        with open(filename, mode) as f:
+            yield f
+    else:
+        raise ValueError(u"mode string must be one of 'r', 'rb', 'w', 'w+', "
+                         u"'wb', 'wb+'")
+
+
 def shell_quote(string):
     if isinstance(string, str):
         return "'" + string.replace("'", "'\\''") + "'"

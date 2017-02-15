@@ -5,8 +5,6 @@
 import collections
 import contextlib
 import errno
-import fcntl
-import io
 import json
 import os
 import sys
@@ -25,6 +23,7 @@ from ipapython.ipautil import fsdecode
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipapython.ipa_log_manager import log_mgr
+from ipapython.ipautil import concurrent_open
 
 FORMAT = '1'
 
@@ -407,17 +406,9 @@ class Schema(object):
     @contextlib.contextmanager
     def _open(self, filename, mode):
         path = os.path.join(self._DIR, filename)
+        with concurrent_open(path, mode) as f:
+            yield f
 
-        with io.open(path, mode) as f:
-            if mode.startswith('r'):
-                fcntl.flock(f, fcntl.LOCK_SH)
-            else:
-                fcntl.flock(f, fcntl.LOCK_EX)
-
-            try:
-                yield f
-            finally:
-                fcntl.flock(f, fcntl.LOCK_UN)
 
     def _fetch(self, client, ignore_cache=False):
         if not client.isconnected():
