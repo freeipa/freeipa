@@ -8,4 +8,3 @@ plugin: update_referint
 plugin: update_uniqueness_plugins_to_new_syntax
 
 # last
-plugin: update_ra_cert_store

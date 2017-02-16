@@ -74,7 +74,7 @@ class update_ca_renewal_master(Updater):
                 return False, []
 
         criteria = {
-            'cert-database': paths.IPA_RADB_DIR,
+            'cert-database': paths.HTTPD_ALIAS_DIR,
             'cert-nickname': 'ipaCert',
         }
         request_id = certmonger.get_request_id(criteria)
