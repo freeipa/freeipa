@@ -2284,7 +2284,7 @@ def install_check(options):
 
 def create_ipa_nssdb():
     db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
-    db.create_db(backup=True)
+    db.create_db(mode=0o755, backup=True)
     os.chmod(db.pwd_file, 0o600)
     os.chmod(os.path.join(db.secdir, 'cert8.db'), 0o644)
     os.chmod(os.path.join(db.secdir, 'key3.db'), 0o644)
