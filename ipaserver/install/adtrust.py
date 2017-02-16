@@ -168,6 +168,69 @@ def check_for_installed_deps():
         raise ScriptError("Aborting installation.")
 
 
+def retrieve_entries_without_sid(api):
+    """
+    Retrieve a list of entries without assigned SIDs.
+    :returns: a list of entries or an empty list if an error occurs
+    """
+    # The filter corresponds to ipa_sidgen_task.c LDAP search filter
+    filter = '(&(objectclass=ipaobject)(!(objectclass=mepmanagedentry))' \
+             '(|(objectclass=posixaccount)(objectclass=posixgroup)' \
+             '(objectclass=ipaidobject))(!(ipantsecurityidentifier=*)))'
+    base_dn = api.env.basedn
+    try:
+        root_logger.debug(
+            "Searching for objects with missing SID with "
+            "filter=%s, base_dn=%s", filter, base_dn)
+        entries, _truncated = api.Backend.ldap2.find_entries(
+            filter=filter, base_dn=base_dn, attrs_list=[''])
+        return entries
+    except errors.NotFound:
+        # All objects have SIDs assigned
+        pass
+    except (errors.DatabaseError, errors.NetworkError) as e:
+        print("Could not retrieve a list of objects that need a SID "
+              "identifier assigned:")
+        print(unicode(e))
+
+    return []
+
+
+def retrieve_and_ask_about_sids(api, options):
+    entries = []
+    if api.Backend.ldap2.isconnected():
+        entries = retrieve_entries_without_sid(api)
+    else:
+        root_logger.debug(
+            "LDAP backend not connected, can not retrieve entries "
+            "with missing SID")
+
+    object_count = len(entries)
+    if object_count > 0:
+        print("")
+        print("WARNING: %d existing users or groups do not have "
+              "a SID identifier assigned." % len(entries))
+        print("Installer can run a task to have ipa-sidgen "
+              "Directory Server plugin generate")
+        print("the SID identifier for all these users. Please note, "
+              "the in case of a high")
+        print("number of users and groups, the operation might "
+              "lead to high replication")
+        print("traffic and performance degradation. Refer to "
+              "ipa-adtrust-install(1) man page")
+        print("for details.")
+        print("")
+        if options.unattended:
+            print("Unattended mode was selected, installer will "
+                  "NOT run ipa-sidgen task!")
+        else:
+            if ipautil.user_input(
+                    "Do you want to run the ipa-sidgen task?",
+                    default=False,
+                    allow_empty=False):
+                options.add_sids = True
+
+
 def install_check(standalone, options, api):
     global netbios_name
     global reset_netbios_name
@@ -225,49 +288,7 @@ def install_check(standalone, options, api):
         options.netbios_name, options.unattended, api)
 
     if not options.add_sids:
-        # The filter corresponds to ipa_sidgen_task.c LDAP search filter
-        filter = '(&(objectclass=ipaobject)(!(objectclass=mepmanagedentry))' \
-                 '(|(objectclass=posixaccount)(objectclass=posixgroup)' \
-                 '(objectclass=ipaidobject))(!(ipantsecurityidentifier=*)))'
-        base_dn = api.env.basedn
-        try:
-            root_logger.debug(
-                "Searching for objects with missing SID with "
-                "filter=%s, base_dn=%s", filter, base_dn)
-            entries, _truncated = api.Backend.ldap2.find_entries(
-                filter=filter, base_dn=base_dn, attrs_list=[''])
-        except errors.NotFound:
-            # All objects have SIDs assigned
-            pass
-        except (errors.DatabaseError, errors.NetworkError) as e:
-            print("Could not retrieve a list of objects that need a SID "
-                  "identifier assigned:")
-            print(unicode(e))
-        else:
-            object_count = len(entries)
-            if object_count > 0:
-                print("")
-                print("WARNING: %d existing users or groups do not have "
-                      "a SID identifier assigned." % len(entries))
-                print("Installer can run a task to have ipa-sidgen "
-                      "Directory Server plugin generate")
-                print("the SID identifier for all these users. Please note, "
-                      "the in case of a high")
-                print("number of users and groups, the operation might "
-                      "lead to high replication")
-                print("traffic and performance degradation. Refer to "
-                      "ipa-adtrust-install(1) man page")
-                print("for details.")
-                print("")
-                if options.unattended:
-                    print("Unattended mode was selected, installer will "
-                          "NOT run ipa-sidgen task!")
-                else:
-                    if ipautil.user_input(
-                            "Do you want to run the ipa-sidgen task?",
-                            default=False,
-                            allow_empty=False):
-                        options.add_sids = True
+        retrieve_and_ask_about_sids(api, options)
 
 
 def install(options, fstore, api):
