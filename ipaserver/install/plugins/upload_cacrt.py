@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib.install import certstore
+from ipaplatform.paths import paths
 from ipaserver.install import certs
 from ipalib import Registry, errors
 from ipalib import Updater
@@ -34,7 +35,7 @@ class update_upload_cacrt(Updater):
     """
 
     def execute(self, **options):
-        db = certs.CertDB(self.api.env.realm)
+        db = certs.CertDB(self.api.env.realm, paths.HTTPD_ALIAS_DIR)
         ca_cert = None
 
         ca_enabled = self.api.Command.ca_is_enabled()['result']

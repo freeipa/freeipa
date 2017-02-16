@@ -22,6 +22,10 @@ class update_ra_cert_store(Updater):
     """
 
     def execute(self, **options):
+        ca_enabled = self.api.Command.ca_is_enabled()['result']
+        if not ca_enabled:
+            return False, []
+
         olddb = certdb.NSSDatabase(nssdir=paths.HTTPD_ALIAS_DIR)
         if not olddb.has_nickname('ipaCert'):
             # Nothign to do
