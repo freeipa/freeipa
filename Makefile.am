@@ -9,10 +9,8 @@ if WITH_IPATESTS
 endif
 
 IPACLIENT_SUBDIRS = ipaclient ipalib ipapython
-
-SUBDIRS = asn1 util client contrib po \
+SUBDIRS = asn1 util client contrib po pypi \
 	$(IPACLIENT_SUBDIRS) ipaplatform $(IPATESTS_SUBDIRS) $(SERVER_SUBDIRS)
-
 
 MOSTLYCLEANFILES = ipasetup.pyc ipasetup.pyo \
 		   ignore_import_errors.pyc ignore_import_errors.pyo \
@@ -217,6 +215,8 @@ $(WHEELBUNDLEDIR):
 	mkdir -p $(WHEELBUNDLEDIR)
 
 bdist_wheel: $(WHEELDISTDIR)
+	$(MAKE) $(AM_MAKEFLAGS) -C packaging/ipa bdist_wheel || exit 1;
+	$(MAKE) $(AM_MAKEFLAGS) -C packaging/freeipa bdist_wheel || exit 1;
 	for dir in $(IPACLIENT_SUBDIRS); do \
 	    $(MAKE) $(AM_MAKEFLAGS) -C $${dir} $@ || exit 1; \
 	done
