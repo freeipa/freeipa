@@ -5,7 +5,6 @@
 from ipalib import Command
 from ipalib.request import context
 from ipalib.plugable import Registry
-from ipaserver.session import logout
 
 register = Registry()
 
@@ -21,7 +20,9 @@ class session_logout(Command):
         ccache_name = getattr(context, 'ccache_name', None)
         if ccache_name is None:
             self.debug('session logout command: no ccache_name found')
+        else:
+            delattr(context, 'ccache_name')
 
-        logout(ccache_name)
+        setattr(context, 'logout_cookie', '')
 
         return dict(result=None)
