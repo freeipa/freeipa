@@ -1386,7 +1386,9 @@ def fix_trust_flags():
 def export_kra_agent_pem():
     root_logger.info('[Exporting KRA agent PEM file]')
 
-    if sysupgrade.get_upgrade_state('http', 'export_kra_agent_pem'):
+    sysupgrade.remove_upgrade_state('http', 'export_kra_agent_pem')
+
+    if os.path.exists(paths.KRA_AGENT_PEM):
         root_logger.info("KRA agent PEM file already exported")
         return
 
@@ -1395,8 +1397,7 @@ def export_kra_agent_pem():
         return
 
     krainstance.export_kra_agent_pem()
-
-    sysupgrade.set_upgrade_state('http', 'export_kra_agent_pem', True)
+    installutils.remove_file(paths.OLD_KRA_AGENT_PEM)
 
 
 def update_mod_nss_protocol(http):

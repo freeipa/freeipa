@@ -39,6 +39,7 @@ class BasePathNamespace(object):
     HOSTS = "/etc/hosts"
     ETC_HTTPD_DIR = "/etc/httpd"
     HTTPD_ALIAS_DIR = "/etc/httpd/alias"
+    OLD_KRA_AGENT_PEM = "/etc/httpd/alias/kra-agent.pem"
     IPA_RADB_DIR = "/var/lib/ipa/radb"
     HTTPD_CONF_D_DIR = "/etc/httpd/conf.d/"
     HTTPD_IPA_KDCPROXY_CONF = "/etc/ipa/kdcproxy/ipa-kdc-proxy.conf"
