@@ -9,10 +9,10 @@ AD trust installer module
 from __future__ import print_function
 
 import os
-import ldap
 
 import six
 
+from ipalib.constants import DOMAIN_LEVEL_0
 from ipalib import errors
 from ipaplatform.paths import paths
 from ipapython.admintool import ScriptError
@@ -240,6 +240,110 @@ def retrieve_and_ask_about_sids(api, options):
                 options.add_sids = True
 
 
+def retrieve_potential_adtrust_agents(api):
+    """
+    Retrieve a sorted list of potential AD trust agents
+
+    :param api: initialized API instance
+    :returns: sorted list of FQDNs of masters which are not AD trust agents
+    """
+    try:
+        # Search only masters which have support for domain levels
+        # because only these masters will have SSSD recent enough
+        # to support AD trust agents
+        dl_enabled_masters = api.Command.server_find(
+            ipamindomainlevel=DOMAIN_LEVEL_0, all=True)['result']
+    except (errors.DatabaseError, errors.NetworkError) as e:
+        print("Could not retrieve a list of existing IPA masters:")
+        print(unicode(e))
+        return
+
+    try:
+        # search for existing AD trust agents
+        adtrust_agents = api.Command.server_find(
+            servrole=u'AD trust agent', all=True)['result']
+    except (errors.DatabaseError, errors.NetworkError) as e:
+        print("Could not retrieve a list of adtrust agents:")
+        print(unicode(e))
+        return
+
+    dl_enabled_master_cns = {m['cn'][0] for m in dl_enabled_masters}
+    adtrust_agents_cns = {m['cn'][0] for m in adtrust_agents}
+
+    potential_agents_cns = dl_enabled_master_cns - adtrust_agents_cns
+
+    # remove the local host from the potential agents since it will be set up
+    # by adtrustinstance configuration code
+    potential_agents_cns -= {api.env.host}
+    return sorted(potential_agents_cns)
+
+
+def add_hosts_to_adtrust_agents(api, host_list):
+    """
+    Add the CIFS and host principals to the 'adtrust agents'
+    group as 389-ds only operates with GroupOfNames, we have to
+    use the principal's proper dn as defined in self.cifs_agent
+
+    :param api: API instance
+    :param host_list: list of potential AD trust agent FQDNs
+    """
+    agents_dn = DN(
+        ('cn', 'adtrust agents'), ('cn', 'sysaccounts'),
+        ('cn', 'etc'), api.env.basedn)
+
+    service.add_principals_to_group(
+        api.Backend.ldap2,
+        agents_dn,
+        "member",
+        [api.Object.host.get_dn(x) for x in host_list])
+
+
+def add_new_adtrust_agents(api, options):
+    """
+    Find out IPA masters which are not part of the cn=adtrust agents
+    and propose them to be added to the list
+    :param api: API instance
+    :param options: parsed CLI options
+    """
+    potential_agents_cns = retrieve_potential_adtrust_agents(api)
+
+    if potential_agents_cns:
+        print("")
+        print("WARNING: %d IPA masters are not yet able to serve "
+              "information about users from trusted forests."
+              % len(potential_agents_cns))
+        print("Installer can add them to the list of IPA masters "
+              "allowed to access information about trusts.")
+        print("If you choose to do so, you also need to restart "
+              "LDAP service on those masters.")
+        print("Refer to ipa-adtrust-install(1) man page for details.")
+        print("")
+        if options.unattended:
+            print("Unattended mode was selected, installer will NOT "
+                  "add other IPA masters to the list of allowed to")
+            print("access information about trusted forests!")
+            return
+
+    new_agents = []
+
+    for name in sorted(potential_agents_cns):
+        if ipautil.user_input(
+                "IPA master [%s]?" % (name),
+                default=False,
+                allow_empty=False):
+            new_agents.append(name)
+
+    if new_agents:
+        add_hosts_to_adtrust_agents(api, new_agents)
+
+        print("""
+WARNING: you MUST restart (e.g. ipactl restart) the following IPA masters in
+order to activate them to serve information about users from trusted forests:
+""")
+        for x in new_agents:
+            print(x)
+
+
 def install_check(standalone, options, api):
     global netbios_name
     global reset_netbios_name
@@ -321,92 +425,4 @@ def install(options, fstore, api):
     if options.add_agents:
         # Find out IPA masters which are not part of the cn=adtrust agents
         # and propose them to be added to the list
-        base_dn = api.env.basedn
-        masters_dn = DN(
-            ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), base_dn)
-        agents_dn = DN(
-            ('cn', 'adtrust agents'), ('cn', 'sysaccounts'),
-            ('cn', 'etc'), base_dn)
-        new_agents = []
-        entries_m = []
-        entries_a = []
-        try:
-            # Search only masters which have support for domain levels
-            # because only these masters will have SSSD recent enough
-            # to support AD trust agents
-            entries_m, _truncated = api.Backend.ldap2.find_entries(
-                filter=("(&(objectclass=ipaSupportedDomainLevelConfig)"
-                        "(ipaMaxDomainLevel=*)(ipaMinDomainLevel=*))"),
-                base_dn=masters_dn, attrs_list=['cn'],
-                scope=ldap.SCOPE_ONELEVEL)
-        except errors.NotFound:
-            pass
-        except (errors.DatabaseError, errors.NetworkError) as e:
-            print("Could not retrieve a list of existing IPA masters:")
-            print(unicode(e))
-
-        try:
-            entries_a, _truncated = api.Backend.ldap2.find_entries(
-               filter="", base_dn=agents_dn, attrs_list=['member'],
-               scope=ldap.SCOPE_BASE)
-        except errors.NotFound:
-            pass
-        except (errors.DatabaseError, errors.NetworkError) as e:
-            print("Could not retrieve a list of adtrust agents:")
-            print(unicode(e))
-
-        if len(entries_m) > 0:
-            existing_masters = [x['cn'][0] for x in entries_m]
-            adtrust_agents = entries_a[0]['member']
-            potential_agents = []
-            for m in existing_masters:
-                mdn = DN(('fqdn', m), api.env.container_host, api.env.basedn)
-                found = False
-                for a in adtrust_agents:
-                    if mdn == a:
-                        found = True
-                        break
-                if not found:
-                    potential_agents += [[m, mdn]]
-
-            object_count = len(potential_agents)
-            if object_count > 0:
-                print("")
-                print("WARNING: %d IPA masters are not yet able to serve "
-                      "information about users from trusted forests."
-                      % (object_count))
-                print("Installer can add them to the list of IPA masters "
-                      "allowed to access information about trusts.")
-                print("If you choose to do so, you also need to restart "
-                      "LDAP service on those masters.")
-                print("Refer to ipa-adtrust-install(1) man page for details.")
-                print("")
-                if options.unattended:
-                    print("Unattended mode was selected, installer will NOT "
-                          "add other IPA masters to the list of allowed to")
-                    print("access information about trusted forests!")
-                else:
-                    print(
-                        "Do you want to allow following IPA masters to "
-                        "serve information about users from trusted forests?")
-                    for (name, dn) in potential_agents:
-                        if name == api.env.host:
-                            # Don't add this host here
-                            # it shouldn't be here as it was added by the
-                            # adtrustinstance setup code
-                            continue
-                        if ipautil.user_input(
-                                "IPA master [%s]?" % (name),
-                                default=False,
-                                allow_empty=False):
-                            new_agents += [[name, dn]]
-
-            if len(new_agents) > 0:
-                # Add the CIFS and host principals to the 'adtrust agents'
-                # group as 389-ds only operates with GroupOfNames, we have to
-                # use the principal's proper dn as defined in self.cifs_agent
-                service.add_principals_to_group(
-                    api.Backend.ldap2,
-                    agents_dn,
-                    "member",
-                    [x[1] for x in new_agents])
+        add_new_adtrust_agents(api, options)
