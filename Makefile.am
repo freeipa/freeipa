@@ -285,6 +285,8 @@ bdist_wheel: $(WHEELDISTDIR)
 	for dir in $(IPA_WHEEL_PACKAGES) ipatests; do \
 	    $(MAKE) $(AM_MAKEFLAGS) -C $${dir} $@ || exit 1; \
 	done
+	rm -f $(WHEELDISTDIR)/ipacommands-*.tar.gz
+	$(MAKE) $(AM_MAKEFLAGS) -C pypi/ipacommands sdist || exit 1;
 
 wheel_bundle: $(WHEELBUNDLEDIR) bdist_wheel .wheelconstraints
 	rm -f $(foreach item,$(IPA_WHEEL_PACKAGES) ipatests,$(WHEELBUNDLEDIR)/$(item)-*.whl)

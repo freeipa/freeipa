@@ -587,6 +587,7 @@ AC_CONFIG_FILES([
     pypi/Makefile
     pypi/freeipa/Makefile
     pypi/ipa/Makefile
+    pypi/ipacommands/Makefile
     pypi/ipaserver/Makefile
     pypi/ipatests/Makefile
     po/Makefile.in

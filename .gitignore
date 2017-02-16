@@ -112,3 +112,9 @@ freeipa2-dev-doc
 /ipapython/version.py
 /ipapython/.DEFAULT_PLUGINS
 
+/pypi/ipacommands/COPYING
+/pypi/ipacommands/Contributors.txt
+/pypi/ipacommands/asn1
+/pypi/ipacommands/client
+/pypi/ipacommands/ipasetup.py
+/pypi/ipacommands/util
