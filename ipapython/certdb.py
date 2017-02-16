@@ -124,9 +124,11 @@ class NSSDatabase(object):
         """
         dirmode = 0o750
         filemode = 0o640
+        pwdfilemode = 0o640
         if mode is not None:
             dirmode = mode
             filemode = mode & 0o666
+            pwdfilemode = mode & 0o660
 
         uid = -1
         gid = -1
@@ -147,7 +149,7 @@ class NSSDatabase(object):
             # Create the password file for this db
             with io.open(os.open(self.pwd_file,
                                  os.O_CREAT | os.O_WRONLY,
-                                 filemode), 'w', closefd=True) as f:
+                                 pwdfilemode), 'w', closefd=True) as f:
                 f.write(ipautil.ipa_generate_password())
                 f.flush()
 
@@ -162,7 +164,11 @@ class NSSDatabase(object):
             if os.path.exists(path):
                 if uid != -1 or gid != -1:
                     os.chown(path, uid, gid)
-                os.chmod(path, filemode)
+                if path == self.pwd_file:
+                    new_mode = pwdfilemode
+                else:
+                    new_mode = filemode
+                os.chmod(path, new_mode)
                 tasks.restore_context(path)
 
     def list_certs(self):
