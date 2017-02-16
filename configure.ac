@@ -487,6 +487,9 @@ AC_CONFIG_FILES([
     ipaserver/Makefile
     ipatests/Makefile
     ipatests/man/Makefile
+    packaging/Makefile
+    packaging/freeipa/Makefile
+    packaging/ipa/Makefile
     po/Makefile.in
     po/Makefile.hack
     util/Makefile
