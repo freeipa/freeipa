@@ -59,6 +59,21 @@ def read_netbios_name(netbios_default):
     return netbios_name
 
 
+def retrieve_netbios_name(api):
+    flat_name_attr = 'ipantflatname'
+    try:
+        entry = api.Backend.ldap2.get_entry(
+            DN(('cn', api.env.domain), api.env.container_cifsdomains,
+               ipautil.realm_to_suffix(api.env.realm)),
+            [flat_name_attr])
+    except errors.NotFound:
+        # trust not configured
+        root_logger.debug("No previous trust configuration found")
+        return None
+    else:
+        return entry.get(flat_name_attr)[0]
+
+
 def set_and_check_netbios_name(netbios_name, unattended, api):
     """
     Depending if trust in already configured or not a given NetBIOS domain
@@ -71,22 +86,16 @@ def set_and_check_netbios_name(netbios_name, unattended, api):
     the stored NetBIOS name it it differs from the current one.
     """
 
-    flat_name_attr = 'ipantflatname'
     cur_netbios_name = None
     gen_netbios_name = None
     reset_netbios_name = False
     entry = None
 
-    try:
-        entry = api.Backend.ldap2.get_entry(
-            DN(('cn', api.env.domain), api.env.container_cifsdomains,
-               ipautil.realm_to_suffix(api.env.realm)),
-            [flat_name_attr])
-    except errors.NotFound:
-        # trust not configured
-        pass
+    if api.Backend.ldap2.isconnected():
+        cur_netbios_name = retrieve_netbios_name(api)
     else:
-        cur_netbios_name = entry.get(flat_name_attr)[0]
+        root_logger.debug(
+            "LDAP is not connected, can not retrieve NetBIOS name")
 
     if cur_netbios_name and not netbios_name:
         # keep the current NetBIOS name
