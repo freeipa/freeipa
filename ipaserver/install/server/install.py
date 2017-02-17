@@ -32,7 +32,7 @@ from ipalib.util import (
 )
 import ipaclient.install.ntpconf
 from ipaserver.install import (
-    bindinstance, ca, dns, dsinstance,
+    adtrust, bindinstance, ca, dns, dsinstance,
     httpinstance, installutils, kra, krbinstance,
     ntpinstance, otpdinstance, custodiainstance, replication, service,
     sysupgrade)
@@ -386,6 +386,8 @@ def install_check(installer):
     print("  * Configure Apache (httpd)")
     if options.setup_dns:
         print("  * Configure DNS (bind)")
+    if options.setup_adtrust:
+        print("  * Configure Samba (smb) and winbind for managing AD trusts")
     if not options.no_pkinit:
         print("  * Configure the KDC to enable PKINIT")
     if options.no_ntp:
@@ -610,6 +612,9 @@ def install_check(installer):
         network_ip_address_warning(ip_addresses)
         broadcast_ip_address_warning(ip_addresses)
 
+    if options.setup_adtrust:
+        adtrust.install_check(False, options, api)
+
     # installer needs to update hosts file when DNS subsystem will be
     # installed or custom addresses are used
     if options.ip_addresses or options.setup_dns:
@@ -636,16 +641,17 @@ def install_check(installer):
         ))
         print()
 
-    # If domain name and realm does not match, IPA server will not be able
-    # to estabilish trust with Active Directory. Print big fat warning.
+    if not options.setup_adtrust:
+        # If domain name and realm does not match, IPA server will not be able
+        # to estabilish trust with Active Directory. Print big fat warning.
 
-    realm_not_matching_domain = (domain_name.upper() != realm_name)
+        realm_not_matching_domain = (domain_name.upper() != realm_name)
 
-    if realm_not_matching_domain:
-        print("WARNING: Realm name does not match the domain name.\n"
-              "You will not be able to estabilish trusts with Active "
-              "Directory unless\nthe realm name of the IPA server matches "
-              "its domain name.\n\n")
+        if realm_not_matching_domain:
+            print("WARNING: Realm name does not match the domain name.\n"
+                  "You will not be able to estabilish trusts with Active "
+                  "Directory unless\nthe realm name of the IPA server matches "
+                  "its domain name.\n\n")
 
     if installer.interactive and not user_input(
             "Continue to configure the system with these values?", False):
@@ -846,6 +852,9 @@ def install(installer):
                    zonemgr=options.zonemgr,
                    no_dnssec_validation=options.no_dnssec_validation)
         bind.create_file_with_system_records()
+
+    if options.setup_adtrust:
+        adtrust.install(False, options, fstore, api)
 
     # Set the admin user kerberos password
     ds.change_admin_password(admin_password)
