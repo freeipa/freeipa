@@ -199,6 +199,70 @@ Do not automatically create DNS SSHFP records.
 \fB\-\-no\-dnssec\-validation\fR
 Disable DNSSEC validation on this server.
 
+.SS "AD TRUST OPTIONS"
+.TP
+\fB\-\-netbios\-name\fR=\fINETBIOS_NAME\fR
+The NetBIOS name for the IPA domain. If not provided then this is determined
+based on the leading component of the DNS domain name. Running
+ipa\-adtrust\-install for a second time with a different NetBIOS name will
+change the name. Please note that changing the NetBIOS name might break
+existing trust relationships to other domains.
+.TP
+\fB\-\-add\-sids\fR
+Add SIDs to existing users and groups as on of final steps of the
+ipa\-adtrust\-install run. If there a many existing users and groups and a
+couple of replicas in the environment this operation might lead to a high
+replication traffic and a performance degradation of all IPA servers in the
+environment. To avoid this the SID generation can be run after
+ipa\-adtrust\-install is run and scheduled independently. To start this task
+you have to load an edited version of ipa-sidgen-task-run.ldif with the
+ldapmodify command info the directory server.
+.TP
+\fB\-\-add\-agents\fR
+Add IPA masters to the list that allows to serve information about
+users from trusted forests. Starting with FreeIPA 4.2, a regular IPA master
+can provide this information to SSSD clients. IPA masters aren't added
+to the list automatically as restart of the LDAP service on each of them
+is required. The host where ipa\-adtrust\-install is being run is added
+automatically.
+.IP
+Note that IPA masters where ipa\-adtrust\-install wasn't run, can serve
+information about users from trusted forests only if they are enabled
+via \ipa-adtrust\-install run on any other IPA master. At least SSSD
+version 1.13 on IPA master is required to be able to perform as a trust agent.
+.TP
+\fB\-\-rid-base\fR=\fIRID_BASE\fR
+First RID value of the local domain. The first Posix ID of the local domain will
+be assigned to this RID, the second to RID+1 etc. See the online help of the
+idrange CLI for details.
+.TP
+\fB\-\-secondary-rid-base\fR=\fISECONDARY_RID_BASE\fR
+Start value of the secondary RID range, which is only used in the case a user
+and a group share numerically the same Posix ID. See the online help of the
+idrange CLI for details.
+.TP
+\fB\-\-enable\-compat\fR
+Enables support for trusted domains users for old clients through Schema Compatibility plugin.
+SSSD supports trusted domains natively starting with version 1.9. For platforms that
+lack SSSD or run older SSSD version one needs to use this option. When enabled, slapi\-nis package
+needs to be installed and schema\-compat\-plugin will be configured to provide lookup of
+users and groups from trusted domains via SSSD on IPA server. These users and groups will be
+available under \fBcn=users,cn=compat,$SUFFIX\fR and \fBcn=groups,cn=compat,$SUFFIX\fR trees.
+SSSD will normalize names of users and groups to lower case.
+.IP
+In addition to providing these users and groups through the compat tree, this option enables
+authentication over LDAP for trusted domain users with DN under compat tree, i.e. using bind DN
+\fBuid=administrator@ad.domain,cn=users,cn=compat,$SUFFIX\fR.
+.IP
+LDAP authentication performed by the compat tree is done via PAM '\fBsystem\-auth\fR' service.
+This service exists by default on Linux systems and is provided by pam package as /etc/pam.d/system\-auth.
+If your IPA install does not have default HBAC rule 'allow_all' enabled, then make sure
+to define in IPA special service called '\fBsystem\-auth\fR' and create an HBAC
+rule to allow access to anyone to this rule on IPA masters.
+.IP
+As '\fBsystem\-auth\fR' PAM service is not used directly by any other
+application, it is safe to use it for trusted domain users via compatibility
+path.
 .SH "EXIT STATUS"
 0 if the command was successful
 
