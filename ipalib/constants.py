@@ -21,6 +21,8 @@
 """
 All constants centralised in one file.
 """
+
+import os
 import socket
 from ipapython.dn import DN
 from ipapython.version import VERSION, API_VERSION
@@ -299,3 +301,15 @@ TLS_VERSION_MINIMAL = "tls1.0"
 # high ciphers without RC4, MD5, TripleDES, pre-shared key
 # and secure remote password
 TLS_HIGH_CIPHERS = "HIGH:!aNULL:!eNULL:!MD5:!RC4:!3DES:!PSK:!SRP"
+
+# Use cache path
+USER_CACHE_PATH = (
+    os.environ.get('XDG_CACHE_HOME') or
+    os.path.join(
+        os.environ.get(
+            'HOME',
+            os.path.expanduser('~')
+        ),
+        '.cache'
+    )
+)
