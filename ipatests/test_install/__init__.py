@@ -20,3 +20,8 @@
 """
 Package containing LDAP updates unit tests.
 """
+import pytest
+
+
+if pytest.config.getoption('ipaclient_unittests', False):
+    pytest.skip("Skip in ipaclient unittest mode")

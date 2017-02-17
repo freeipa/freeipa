@@ -19,12 +19,8 @@
 """
 Test `adtrustinstance`
 """
-
-import os
-
-import six
-import nose
 import pytest
+import six
 
 from ipaserver.install import adtrustinstance
 
@@ -33,7 +29,7 @@ if six.PY3:
 
 
 @pytest.mark.tier0
-class test_adtrustinstance:
+class test_adtrustinstance(object):
     """
     Test `adtrustinstance`.
     """

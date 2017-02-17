@@ -20,3 +20,9 @@
 """
 Sub-package containing unit tests for `ipaserver` package.
 """
+
+import pytest
+
+
+if pytest.config.getoption('ipaclient_unittests', False):
+    pytest.skip("Skip in ipaclient unittest mode")

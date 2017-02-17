@@ -39,12 +39,23 @@ import ldap.modlist
 
 import ipalib
 from ipalib import api
-from ipalib.install.kinit import kinit_keytab, kinit_password
 from ipalib.plugable import Plugin
 from ipalib.request import context
 from ipapython.dn import DN
 from ipapython.ipautil import run
-from ipaplatform.paths import paths
+
+try:
+    # not available with client-only wheel packages
+    from ipalib.install.kinit import kinit_keytab, kinit_password
+except ImportError:
+    kinit_keytab = kinit_password = None
+
+try:
+    # not available with client-only wheel packages
+    from ipaplatform.paths import paths
+except ImportError:
+    paths = None
+
 
 if six.PY3:
     unicode = str
@@ -336,7 +347,7 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
     their elements does not matter.
     """
     try:
-        pretty_print = pytest.config.getoption("pretty_print")  # pylint: disable=no-member
+        pretty_print = pytest.config.getoption("pretty_print")
     except (AttributeError, ValueError):
         pretty_print = False
 

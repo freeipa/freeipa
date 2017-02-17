@@ -64,7 +64,6 @@ if __name__ == '__main__':
             "gssapi",
             "ipaclient",
             "ipalib",
-            "ipaplatform",
             "ipapython",
             "nose",
             "polib",
