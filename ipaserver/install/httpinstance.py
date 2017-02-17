@@ -166,7 +166,7 @@ class HTTPInstance(service.Service):
         self.step("enabling mod_nss renegotiate", self.enable_mod_nss_renegotiate)
         self.step("adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
-        self.step("setting up httpd keytab", self._request_service_keytab)
+        self.step("setting up httpd keytab", self.request_service_keytab)
         self.step("retrieving anonymous keytab", self.request_anon_keytab)
         self.step("configuring Gssproxy", self.configure_gssproxy)
         self.step("setting up ssl", self.__setup_ssl)
