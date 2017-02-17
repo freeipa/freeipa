@@ -588,7 +588,7 @@ class Service(object):
 
         ipautil.run(args, nolog=nolog)
 
-    def _request_service_keytab(self):
+    def request_service_keytab(self):
         if any(attr is None for attr in (self.principal, self.keytab)):
             raise NotImplementedError(
                 "service must have defined principal "

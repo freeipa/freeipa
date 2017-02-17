@@ -393,7 +393,7 @@ class DsInstance(service.Service):
         self.__common_setup(enable_ssl=(not self.promote))
         self.step("restarting directory server", self.__restart_instance)
 
-        self.step("creating DS keytab", self._request_service_keytab)
+        self.step("creating DS keytab", self.request_service_keytab)
         if self.promote:
             if self.pkcs12_info:
                 self.step("configuring TLS for DS instance", self.__enable_ssl)
@@ -1221,8 +1221,8 @@ class DsInstance(service.Service):
         if self.domainlevel is not None:
             self._ldap_mod("domainlevel.ldif", self.sub_dict)
 
-    def _request_service_keytab(self):
-        super(DsInstance, self)._request_service_keytab()
+    def request_service_keytab(self):
+        super(DsInstance, self).request_service_keytab()
 
         # Configure DS to use the keytab
         vardict = {"KRB5_KTNAME": self.keytab}
