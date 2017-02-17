@@ -317,12 +317,15 @@ class HTTPInstance(service.Service):
         parent = os.path.dirname(paths.ANON_KEYTAB)
         if not os.path.exists(parent):
             os.makedirs(parent, 0o755)
+
+        self.clean_previous_keytab(keytab=paths.ANON_KEYTAB)
         self.run_getkeytab(self.api.env.ldap_uri, paths.ANON_KEYTAB, ANON_USER)
 
         pent = pwd.getpwnam(IPAAPI_USER)
         os.chmod(parent, 0o700)
         os.chown(parent, pent.pw_uid, pent.pw_gid)
-        os.chown(paths.ANON_KEYTAB, pent.pw_uid, pent.pw_gid)
+
+        self.set_keytab_owner(keytab=paths.ANON_KEYTAB, owner=IPAAPI_USER)
 
     def create_password_conf(self):
         """
