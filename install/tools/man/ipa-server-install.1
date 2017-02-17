@@ -1,7 +1,7 @@
 .\" A man page for ipa-server-install
-.\" Copyright (C) 2008-2016  FreeIPA Contributors see COPYING for license
+.\" Copyright (C) 2008-2017  FreeIPA Contributors see COPYING for license
 .\"
-.TH "ipa-server-install" "1" "Dec 19 2016" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa-server-install" "1" "Feb 17 2017" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-server\-install \- Configure an IPA server
 .SH "SYNOPSIS"
@@ -56,6 +56,9 @@ Don't install allow_all HBAC rule. This rule lets any user from any host access 
 .TP
 \fB\-\-ignore-topology-disconnect\fR
 Ignore errors reported when IPA server uninstall would lead to disconnected topology. This option can be used only when domain level is 1 or more.
+.TP
+\fB\-\-ignore-last-of-role\fR
+Ignore errors reported when IPA server uninstall would lead to removal of last CA/DNS server or DNSSec master. This option can be used only when domain level is 1 or more.
 .TP
 \fB\-\-no\-ui\-redirect\fR
 Do not automatically redirect to the Web UI.
