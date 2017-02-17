@@ -578,10 +578,6 @@ class CAInstance(DogtagInstance):
             config.set("CA", "pki_external_ca_cert_chain_path", cert_chain_file.name)
             config.set("CA", "pki_external_step_two", "True")
 
-        # PKI IPv6 Configuration
-        config.add_section("Tomcat")
-        config.set("Tomcat", "pki_ajp_host", "::1")
-
         # Generate configuration file
         with open(cfg_file, "wb") as f:
             config.write(f)
