@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <time.h> /* for time_t */
+
 /* 90 days default pwd max lifetime */
 #define IPAPWD_DEFAULT_PWDLIFE (90 * 24 *3600)
 #define IPAPWD_DEFAULT_MINLEN 0
