@@ -487,9 +487,12 @@ AC_CONFIG_FILES([
     ipaserver/Makefile
     ipatests/Makefile
     ipatests/man/Makefile
-    packaging/Makefile
-    packaging/freeipa/Makefile
-    packaging/ipa/Makefile
+    pypi/Makefile
+    pypi/freeipa/Makefile
+    pypi/ipa/Makefile
+    pypi/ipaplatform/Makefile
+    pypi/ipaserver/Makefile
+    pypi/ipatests/Makefile
     po/Makefile.in
     po/Makefile.hack
     util/Makefile
