@@ -58,5 +58,5 @@ dist-hook: $(top_builddir)/ipasetup.py
 WHEELDISTDIR = $(top_builddir)/dist/wheels
 .PHONY: bdist_wheel
 bdist_wheel: $(top_builddir)/ipasetup.py
-	rm -rf $(WHEELDISTDIR)/$(pkgname)*.whl
+	rm -rf $(WHEELDISTDIR)/$(pkgname)-*.whl
 	$(PYTHON) "$(srcdir)/setup.py" bdist_wheel --dist-dir=$(WHEELDISTDIR)

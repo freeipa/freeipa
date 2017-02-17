@@ -9,6 +9,7 @@ if WITH_IPATESTS
 endif
 
 IPACLIENT_SUBDIRS = ipaclient ipalib ipapython
+IPA_PLACEHOLDERS = freeipa ipa ipaplatform ipaserver ipatests
 SUBDIRS = asn1 util client contrib po pypi \
 	$(IPACLIENT_SUBDIRS) ipaplatform $(IPATESTS_SUBDIRS) $(SERVER_SUBDIRS)
 
@@ -204,7 +205,7 @@ jslint-html:
 	cd $(top_srcdir)/install/html; 				\
 	jsl -nologo -nosummary -nofilelisting -conf jsl.conf
 
-.PHONY: bdist_wheel wheel_bundle
+.PHONY: bdist_wheel wheel_bundle wheel_placeholder pypi_packages
 WHEELDISTDIR = $(top_builddir)/dist/wheels
 WHEELBUNDLEDIR = $(top_builddir)/dist/bundle
 
@@ -215,14 +216,21 @@ $(WHEELBUNDLEDIR):
 	mkdir -p $(WHEELBUNDLEDIR)
 
 bdist_wheel: $(WHEELDISTDIR)
-	$(MAKE) $(AM_MAKEFLAGS) -C packaging/ipa bdist_wheel || exit 1;
-	$(MAKE) $(AM_MAKEFLAGS) -C packaging/freeipa bdist_wheel || exit 1;
 	for dir in $(IPACLIENT_SUBDIRS); do \
 	    $(MAKE) $(AM_MAKEFLAGS) -C $${dir} $@ || exit 1; \
 	done
 
 wheel_bundle: $(WHEELBUNDLEDIR) bdist_wheel
 	$(PYTHON) -m pip wheel --wheel-dir $(WHEELBUNDLEDIR) $(WHEELDISTDIR)/*.whl
+
+wheel_placeholder: $(WHEELDISTDIR)
+	for dir in $(IPA_PLACEHOLDERS); do \
+	    $(MAKE) $(AM_MAKEFLAGS) -C $(top_srcdir)/pypi/$${dir} bdist_wheel || exit 1; \
+	done
+
+pypi_packages: bdist_wheel wheel_placeholder
+	@echo -e "\n\nTo upload packages to PyPI, run:\n"
+	@echo -e "    twine upload $(WHEELDISTDIR)/*-$(VERSION)-py2.py3-none-any.whl\n"
 
 .PHONY:
 strip-po:

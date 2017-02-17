@@ -6,5 +6,8 @@ NULL =
 
 SUBDIRS =			\
 	freeipa			\
-	ipa			\
+	ipa				\
+	ipaplatform		\
+	ipaserver		\
+	ipatests		\
 	$(NULL)
