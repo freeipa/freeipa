@@ -15,6 +15,7 @@ import six
 
 from ipaclient.frontend import ClientCommand, ClientMethod
 from ipalib import errors, parameters, plugable
+from ipalib.constants import USER_CACHE_PATH
 from ipalib.errors import SchemaUpToDate
 from ipalib.frontend import Object
 from ipalib.output import Output
@@ -28,17 +29,6 @@ FORMAT = '1'
 
 if six.PY3:
     unicode = str
-
-USER_CACHE_PATH = (
-    os.environ.get('XDG_CACHE_HOME') or
-    os.path.join(
-        os.environ.get(
-            'HOME',
-            os.path.expanduser('~')
-        ),
-        '.cache'
-    )
-)
 
 _TYPES = {
     'DN': DN,

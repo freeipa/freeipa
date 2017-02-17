@@ -20,30 +20,38 @@
 from __future__ import print_function
 
 import base64
+import collections
+import errno
 import getpass
 import io
 import json
 import os
 import sys
+import tempfile
 
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.padding import PKCS7
 from cryptography.hazmat.primitives.serialization import (
     load_pem_public_key, load_pem_private_key)
-from cryptography.x509 import load_der_x509_certificate
 
 from ipaclient.frontend import MethodOverride
+from ipalib import x509
+from ipalib.constants import USER_CACHE_PATH
 from ipalib.frontend import Local, Method, Object
 from ipalib.util import classproperty
 from ipalib import api, errors
 from ipalib import Bytes, Flag, Str
 from ipalib.plugable import Registry
 from ipalib import _
+from ipapython.dnsutil import DNSName
+from ipapython.ipa_log_manager import log_mgr
+
+logger = log_mgr.get_logger(__name__)
 
 
 def validated_read(argname, filename, mode='r', encoding=None):
@@ -550,6 +558,79 @@ class vault_mod(Local):
         return response
 
 
+class _TransportCertCache(collections.MutableMapping):
+    def __init__(self):
+        self._dirname = os.path.join(
+                USER_CACHE_PATH, 'ipa', 'kra-transport-certs')
+        self._transport_certs = {}
+
+    def _get_filename(self, domain):
+        basename = DNSName(domain).ToASCII() + '.pem'
+        return os.path.join(self._dirname, basename)
+
+    def __getitem__(self, domain):
+        try:
+            transport_cert = self._transport_certs[domain]
+        except KeyError:
+            transport_cert = None
+
+            filename = self._get_filename(domain)
+            try:
+                try:
+                    transport_cert = x509.load_certificate_from_file(filename)
+                except EnvironmentError as e:
+                    if e.errno != errno.ENOENT:
+                        raise
+            except Exception:
+                logger.warning("Failed to load %s: %s", filename,
+                               exc_info=True)
+
+            if transport_cert is None:
+                raise KeyError(domain)
+
+            self._transport_certs[domain] = transport_cert
+
+        return transport_cert
+
+    def __setitem__(self, domain, transport_cert):
+        filename = self._get_filename(domain)
+        transport_cert_der = (
+            transport_cert.public_bytes(serialization.Encoding.DER))
+        try:
+            try:
+                os.makedirs(self._dirname)
+            except EnvironmentError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+            fd, tmpfilename = tempfile.mkstemp(dir=self._dirname)
+            os.close(fd)
+            x509.write_certificate(transport_cert_der, tmpfilename)
+            os.rename(tmpfilename, filename)
+        except Exception:
+            logger.warning("Failed to save %s", filename, exc_info=True)
+
+        self._transport_certs[domain] = transport_cert
+
+    def __delitem__(self, domain):
+        filename = self._get_filename(domain)
+        try:
+            os.unlink(filename)
+        except EnvironmentError as e:
+            if e.errno != errno.ENOENT:
+                logger.warning("Failed to remove %s", filename, exc_info=True)
+
+        del self._transport_certs[domain]
+
+    def __len__(self):
+        return len(self._transport_certs)
+
+    def __iter__(self):
+        return iter(self._transport_certs)
+
+
+_transport_cert_cache = _TransportCertCache()
+
+
 @register(override=True, no_fail=True)
 class vaultconfig_show(MethodOverride):
     def forward(self, *args, **options):
@@ -562,11 +643,68 @@ class vaultconfig_show(MethodOverride):
 
         response = super(vaultconfig_show, self).forward(*args, **options)
 
+        # cache transport certificate
+        transport_cert = x509.load_certificate(
+                response['result']['transport_cert'], x509.DER)
+        _transport_cert_cache[self.api.env.domain] = transport_cert
+
         if file:
             with open(file, 'w') as f:
                 f.write(response['result']['transport_cert'])
 
         return response
+
+
+class ModVaultData(Local):
+    def _generate_session_key(self):
+        key_length = max(algorithms.TripleDES.key_sizes)
+        algo = algorithms.TripleDES(os.urandom(key_length // 8))
+        return algo
+
+    def _do_internal(self, algo, transport_cert, raise_unexpected,
+                     *args, **options):
+        public_key = transport_cert.public_key()
+
+        # wrap session key with transport certificate
+        wrapped_session_key = public_key.encrypt(
+            algo.key,
+            padding.PKCS1v15()
+        )
+        options['session_key'] = wrapped_session_key
+
+        name = self.name + '_internal'
+        try:
+            return self.api.Command[name](*args, **options)
+        except errors.NotFound:
+            raise
+        except (errors.InternalError,
+                errors.ExecutionError,
+                errors.GenericError):
+            _transport_cert_cache.pop(self.api.env.domain, None)
+            if raise_unexpected:
+                raise
+
+    def internal(self, algo, *args, **options):
+        """
+        Calls the internal counterpart of the command.
+        """
+        domain = self.api.env.domain
+
+        # try call with cached transport certificate
+        transport_cert = _transport_cert_cache.get(domain)
+        if transport_cert is not None:
+            result = self._do_internal(algo, transport_cert, False,
+                                       *args, **options)
+            if result is not None:
+                return result
+
+        # retrieve and cache transport certificate
+        self.api.Command.vaultconfig_show()
+        transport_cert = _transport_cert_cache[domain]
+
+        # call with the retrieved transport certificate
+        return self._do_internal(algo, transport_cert, True,
+                                 *args, **options)
 
 
 @register(no_fail=True)
@@ -576,7 +714,7 @@ class _fake_vault_archive_internal(Method):
 
 
 @register()
-class vault_archive(Local):
+class vault_archive(ModVaultData):
     __doc__ = _('Archive data into a vault.')
 
     takes_options = (
@@ -640,27 +778,14 @@ class vault_archive(Local):
     def _iter_output(self):
         return self.api.Command.vault_archive_internal.output()
 
-    def _wrap_data(self, transport_cert_der, json_vault_data):
+    def _wrap_data(self, algo, json_vault_data):
         """Encrypt data with wrapped session key and transport cert
 
-        :param bytes transport_cert_der: transport cert in DER encoding
+        :param bytes algo: wrapping algorithm instance
         :param bytes json_vault_data: dumped vault data
         :return:
         """
-        transport_cert = load_der_x509_certificate(
-            transport_cert_der, default_backend())
-        public_key = transport_cert.public_key()
-
-        # generate session key
-        key_length = max(algorithms.TripleDES.key_sizes)
-        algo = algorithms.TripleDES(os.urandom(key_length // 8))
         nonce = os.urandom(algo.block_size // 8)
-
-        # wrap session key with transport certificate
-        wrapped_session_key = public_key.encrypt(
-            algo.key,
-            padding.PKCS1v15()
-        )
 
         # wrap vault_data with session key
         padder = PKCS7(algo.block_size).padder()
@@ -671,7 +796,7 @@ class vault_archive(Local):
         encryptor = cipher.encryptor()
         wrapped_vault_data = encryptor.update(padded_data) + encryptor.finalize()
 
-        return wrapped_session_key, nonce, wrapped_vault_data
+        return nonce, wrapped_vault_data
 
     def forward(self, *args, **options):
         data = options.get('data')
@@ -806,20 +931,15 @@ class vault_archive(Local):
 
         json_vault_data = json.dumps(vault_data).encode('utf-8')
 
-        # retrieve transport certificate
-        config = self.api.Command.vaultconfig_show()['result']
-        transport_cert_der = config['transport_cert']
-        # created wrapped session key and wrap vault data
-        wrapped_session_key, nonce, wrapped_vault_data = self._wrap_data(
-            transport_cert_der, json_vault_data
-
-        )
+        # generate session key
+        algo = self._generate_session_key()
+        # wrap vault data
+        nonce, wrapped_vault_data = self._wrap_data(algo, json_vault_data)
         options.update(
-            session_key=wrapped_session_key,
             nonce=nonce,
             vault_data=wrapped_vault_data
         )
-        return self.api.Command.vault_archive_internal(*args, **options)
+        return self.internal(algo, *args, **options)
 
 
 @register(no_fail=True)
@@ -829,7 +949,7 @@ class _fake_vault_retrieve_internal(Method):
 
 
 @register()
-class vault_retrieve(Local):
+class vault_retrieve(ModVaultData):
     __doc__ = _('Retrieve a data from a vault.')
 
     takes_options = (
@@ -899,20 +1019,6 @@ class vault_retrieve(Local):
     def _iter_output(self):
         return self.api.Command.vault_retrieve_internal.output()
 
-    def _wrap_session_key(self, transport_cert_der):
-        transport_cert = load_der_x509_certificate(
-            transport_cert_der, default_backend())
-        public_key = transport_cert.public_key()
-        # generate session key
-        key_length = max(algorithms.TripleDES.key_sizes)
-        algo = algorithms.TripleDES(os.urandom(key_length // 8))
-        # wrap session key with transport certificate
-        wrapped_session_key = public_key.encrypt(
-            algo.key,
-            padding.PKCS1v15()
-        )
-        return algo, wrapped_session_key
-
     def _unwrap_response(self, algo, nonce, vault_data):
         cipher = Cipher(algo, modes.CBC(nonce), backend=default_backend())
         # decrypt
@@ -957,15 +1063,10 @@ class vault_retrieve(Local):
         vault = self.api.Command.vault_show(*args, **options)['result']
         vault_type = vault['ipavaulttype'][0]
 
-        # retrieve transport certificate
-        config = self.api.Command.vaultconfig_show()['result']
-        # create algo and wrap session key with transport cert
-        algo, wrapped_session_key = self._wrap_session_key(
-            config['transport_cert']
-        )
+        # generate session key
+        algo = self._generate_session_key()
         # send retrieval request to server
-        options['session_key'] = wrapped_session_key
-        response = self.api.Command.vault_retrieve_internal(*args, **options)
+        response = self.internal(algo, *args, **options)
         # unwrap data with session key
         vault_data = self._unwrap_response(
             algo,

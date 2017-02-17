@@ -12,6 +12,7 @@ import time
 from . import compat
 from . import schema
 from ipaclient.plugins.rpcclient import rpcclient
+from ipalib.constants import USER_CACHE_PATH
 from ipapython.dnsutil import DNSName
 from ipapython.ipa_log_manager import log_mgr
 
@@ -19,7 +20,7 @@ logger = log_mgr.get_logger(__name__)
 
 
 class ServerInfo(collections.MutableMapping):
-    _DIR = os.path.join(schema.USER_CACHE_PATH, 'ipa', 'servers')
+    _DIR = os.path.join(USER_CACHE_PATH, 'ipa', 'servers')
 
     def __init__(self, api):
         hostname = DNSName(api.env.server).ToASCII()
