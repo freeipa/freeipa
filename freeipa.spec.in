@@ -124,6 +124,16 @@ BuildRequires:  python-libsss_nss_idmap
 BuildRequires:  python-cffi
 
 #
+# Build dependencies for wheel packaging
+#
+%if 0%{?fedora}
+BuildRequires:  python2-wheel
+%if 0%{?with_python3}
+BuildRequires:  python3-wheel
+%endif
+%endif # Fedora
+
+#
 # Build dependencies for lint
 #
 %if 0%{?with_lint}
