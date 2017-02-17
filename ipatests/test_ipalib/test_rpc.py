@@ -23,6 +23,7 @@ Test the `ipalib.rpc` module.
 from __future__ import print_function
 
 import nose
+import pytest
 import six
 # pylint: disable=import-error
 from six.moves.xmlrpc_client import Binary, Fault, dumps, loads
@@ -256,6 +257,7 @@ class test_xmlclient(PluginTester):
         assert context.xmlclient.conn._calledall() is True
 
 
+@pytest.mark.skip_ipaclient_unittest
 class test_xml_introspection(object):
     @classmethod
     def setup_class(cls):
