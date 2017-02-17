@@ -38,7 +38,7 @@ from ipalib.util import (
 )
 from ipaclient.install.client import configure_krb5_conf, purge_host_keytab
 from ipaserver.install import (
-    bindinstance, ca, certs, dns, dsinstance, httpinstance,
+    adtrust, bindinstance, ca, certs, dns, dsinstance, httpinstance,
     installutils, kra, krbinstance,
     ntpinstance, otpdinstance, custodiainstance, service)
 from ipaserver.install.installutils import (
@@ -862,6 +862,9 @@ def install_check(installer):
             network_ip_address_warning(config.ips)
             broadcast_ip_address_warning(config.ips)
 
+        if options.setup_adtrust:
+            adtrust.install_check(False, options, remote_api)
+
         enroll_dl0_replica(installer, fstore, remote_api)
         ccache = os.environ['KRB5CCNAME']
         kinit_keytab('host/{env.host}@{env.realm}'.format(env=api.env),
@@ -1283,6 +1286,9 @@ def promote_check(installer):
             network_ip_address_warning(config.ips)
             broadcast_ip_address_warning(config.ips)
 
+        if options.setup_adtrust:
+            adtrust.install_check(False, options, remote_api)
+
     except errors.ACIError:
         root_logger.debug(traceback.format_exc())
         raise ScriptError("\nInsufficient privileges to promote the server."
@@ -1473,6 +1479,10 @@ def install(installer):
         dns.install(False, True, options, api)
     else:
         api.Command.dns_update_system_records()
+
+    if options.setup_adtrust:
+        adtrust.install(False, options, fstore, api)
+
     api.Backend.ldap2.disconnect()
 
     if not promote:
