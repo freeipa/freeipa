@@ -7,12 +7,14 @@ from __future__ import print_function
 import copy
 import os.path
 import sys
+import textwrap
 
-from astroid import MANAGER
+from astroid import MANAGER, register_module_extender
 from astroid import scoped_nodes
 from pylint.checkers import BaseChecker
 from pylint.checkers.utils import check_messages
 from pylint.interfaces import IAstroidChecker
+from astroid.builder import AstroidBuilder
 
 
 def register(linter):
@@ -256,6 +258,18 @@ def fix_ipa_classes(cls):
         fake_class(cls, ipa_class_members[class_name_with_module])
 
 MANAGER.register_transform(scoped_nodes.Class, fix_ipa_classes)
+
+
+def pytest_config_transform():
+    """pylint.config attribute
+    """
+    return AstroidBuilder(MANAGER).string_build(textwrap.dedent('''
+    from _pytest.config import get_config
+    config = get_config()
+    '''))
+
+
+register_module_extender(MANAGER, 'pytest', pytest_config_transform)
 
 
 class IPAChecker(BaseChecker):

@@ -30,9 +30,6 @@ from pytest_multihost import make_multihost_fixture
 
 from ipapython import ipautil
 from ipapython.ipa_log_manager import log_mgr
-from ipatests.test_integration import tasks
-from ipatests.test_integration.config import Config
-from ipatests.test_integration.env_config import get_global_config
 
 log = log_mgr.get_logger(__name__)
 
@@ -155,6 +152,11 @@ def integration_logs(class_integration_logs, request):
 def mh(request, class_integration_logs):
     """IPA's multihost fixture object
     """
+    # TODO: cleanup modules
+    from ipatests.test_integration import tasks
+    from ipatests.test_integration.config import Config
+    from ipatests.test_integration.env_config import get_global_config
+
     cls = request.cls
 
     domain_description = {
