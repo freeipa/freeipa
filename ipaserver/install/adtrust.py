@@ -31,9 +31,10 @@ reset_netbios_name = False
 
 
 def netbios_name_error(name):
-    print("\nIllegal NetBIOS name [%s].\n" % name)
-    print("Up to 15 characters and only uppercase ASCII letters, digits "
-          "and dashes are allowed. Empty string is not allowed.")
+    root_logger.error("\nIllegal NetBIOS name [%s].\n" % name)
+    root_logger.error(
+        "Up to 15 characters and only uppercase ASCII letters, digits "
+        "and dashes are allowed. Empty string is not allowed.")
 
 
 def read_netbios_name(netbios_default):
@@ -198,9 +199,9 @@ def retrieve_entries_without_sid(api):
         # All objects have SIDs assigned
         pass
     except (errors.DatabaseError, errors.NetworkError) as e:
-        print("Could not retrieve a list of objects that need a SID "
-              "identifier assigned:")
-        print(unicode(e))
+        root_logger.error(
+            "Could not retrieve a list of objects that need a SID "
+            "identifier assigned: %s", e)
 
     return []
 
@@ -254,8 +255,8 @@ def retrieve_potential_adtrust_agents(api):
         dl_enabled_masters = api.Command.server_find(
             ipamindomainlevel=DOMAIN_LEVEL_0, all=True)['result']
     except (errors.DatabaseError, errors.NetworkError) as e:
-        print("Could not retrieve a list of existing IPA masters:")
-        print(unicode(e))
+        root_logger.error(
+            "Could not retrieve a list of existing IPA masters: %s", e)
         return
 
     try:
@@ -263,8 +264,7 @@ def retrieve_potential_adtrust_agents(api):
         adtrust_agents = api.Command.server_find(
             servrole=u'AD trust agent', all=True)['result']
     except (errors.DatabaseError, errors.NetworkError) as e:
-        print("Could not retrieve a list of adtrust agents:")
-        print(unicode(e))
+        root_logger.error("Could not retrieve a list of adtrust agents: %s", e)
         return
 
     dl_enabled_master_cns = {m['cn'][0] for m in dl_enabled_masters}
