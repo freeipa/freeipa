@@ -208,7 +208,7 @@ def main():
             "Unrecognized error during check of admin rights: %s" % e)
 
     adtrust.install_check(True, options, api)
-    adtrust.install(options, fstore, api)
+    adtrust.install(True, options, fstore, api)
 
     print("""
 =============================================================================

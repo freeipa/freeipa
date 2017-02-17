@@ -404,8 +404,8 @@ def install_check(standalone, options, api):
         retrieve_and_ask_about_sids(api, options)
 
 
-def install(options, fstore, api):
-    if not options.unattended:
+def install(standalone, options, fstore, api):
+    if not options.unattended and standalone:
         print("")
         print("The following operations may take some minutes to complete.")
         print("Please wait until the prompt is returned.")
