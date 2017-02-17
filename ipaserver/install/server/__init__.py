@@ -38,13 +38,14 @@ from .replicainstall import install_check as replica_install_check
 from .replicainstall import promote_check as replica_promote_check
 from .upgrade import upgrade_check, upgrade
 
-from .. import ca, conncheck, dns, kra
+from .. import adtrust, ca, conncheck, dns, kra
 
 
 class ServerInstallInterface(client.ClientInstallInterface,
                              ca.CAInstallInterface,
                              kra.KRAInstallInterface,
                              dns.DNSInstallInterface,
+                             adtrust.ADTrustInstallInterface,
                              conncheck.ConnCheckInterface):
     """
     Interface of server installers
@@ -144,6 +145,10 @@ class ServerInstallInterface(client.ClientInstallInterface,
                 "Domain Level cannot be higher than {0}".format(
                     constants.MAX_DOMAIN_LEVEL))
 
+    setup_adtrust = knob(
+        None,
+        description="configure AD trust capability"
+    )
     setup_ca = knob(
         None,
         description="configure a dogtag CA",
@@ -330,6 +335,11 @@ class ServerInstallInterface(client.ClientInstallInterface,
         cli_metavar='NAME',
     )
     pkinit_cert_name = prepare_only(pkinit_cert_name)
+
+    add_agents = knob(
+        bases=adtrust.ADTrustInstallInterface.add_agents
+    )
+    add_agents = replica_install_only(add_agents)
 
     def __init__(self, **kwargs):
         super(ServerInstallInterface, self).__init__(**kwargs)
@@ -547,6 +557,10 @@ class ServerMasterInstall(ServerMasterInstallInterface):
     @admin_password.validator
     def admin_password(self, value):
         validate_admin_password(value)
+
+    # always run sidgen task and do not allow adding agents on first master
+    add_sids = True
+    add_agents = False
 
     def __init__(self, **kwargs):
         super(ServerMasterInstall, self).__init__(**kwargs)
