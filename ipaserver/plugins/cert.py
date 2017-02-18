@@ -491,7 +491,7 @@ class certreq(BaseCertObject):
             'request_type',
             default=u'pkcs10',
             autofill=True,
-            flags={'no_update', 'no_update', 'no_search'},
+            flags={'no_option', 'no_update', 'no_update', 'no_search'},
         ),
         Str(
             'profile_id?', validate_profile_id,
