@@ -200,11 +200,11 @@ def install_check(standalone, api, replica, options, hostname):
                 "%s\n"
                 "It is possible to move DNSSEC key master role to a different "
                 "server by using --force option to skip this check.\n\n"
-                "WARNING: You have to immediatelly copy kasp.db file to a new "
+                "WARNING: You have to immediately copy kasp.db file to a new "
                 "server and run command 'ipa-dns-install --dnssec-master "
                 "--kasp-db'.\n"
                 "Your DNS zones will become unavailable if you "
-                "do not reinstall the DNSSEC key master role immediatelly." %
+                "do not reinstall the DNSSEC key master role immediately." %
                 ", ".join([str(zone) for zone in dnssec_zones]))
 
     elif options.dnssec_master:
