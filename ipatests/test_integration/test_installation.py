@@ -84,6 +84,29 @@ class InstallTestBase2(IntegrationTest):
         tasks.install_kra(self.replicas[2])
 
 
+class ADTrustInstallTestBase(IntegrationTest):
+    """
+    Base test for builtin AD trust installation im combination with other
+    components
+    """
+    num_replicas = 2
+    topology = 'star'
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=False)
+
+    def install_replica(self, replica, **kwargs):
+        tasks.install_replica(self.master, replica, setup_adtrust=True,
+                              **kwargs)
+
+    def test_replica0_only_adtrust(self):
+        self.install_replica(self.replicas[0], setup_ca=False)
+
+    def test_replica1_all_components_adtrust(self):
+        self.install_replica(self.replicas[1], setup_ca=True)
+
+
 ##
 # Master X Replicas installation tests
 ##
@@ -211,6 +234,32 @@ class TestInstallWithCA_KRA_DNS2(InstallTestBase2):
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
+
+
+class TestADTrustInstall(ADTrustInstallTestBase):
+    """
+    Tests built-in AD trust installation in various combinations (see the base
+    class for more details) against plain IPA master (no DNS, no KRA, no AD
+    trust)
+    """
+    pass
+
+
+class TestADTrustInstallWithDNS_KRA_ADTrust(ADTrustInstallTestBase):
+    """
+    Tests built-in AD trust installation in various combinations (see the base
+    class for more details) against fully equipped (DNS, CA, KRA, ADtrust)
+    master. Additional two test cases were added to test interplay including
+    KRA installer
+    """
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True, setup_kra=True,
+                             setup_adtrust=True)
+
+    def test_replica1_all_components_adtrust(self):
+        self.install_replica(self.replicas[1], setup_ca=True, setup_kra=True)
 
 
 ##
