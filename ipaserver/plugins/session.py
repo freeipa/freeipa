@@ -23,6 +23,6 @@ class session_logout(Command):
         else:
             delattr(context, 'ccache_name')
 
-        setattr(context, 'logout_cookie', '')
+        setattr(context, 'logout_cookie', 'MagBearerToken=')
 
         return dict(result=None)

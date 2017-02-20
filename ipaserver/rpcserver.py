@@ -434,6 +434,10 @@ class WSGIExecutioner(Executioner):
             response = status.encode('utf-8')
             headers = [('Content-Type', 'text/plain; charset=utf-8')]
 
+        logout_cookie = getattr(context, 'logout_cookie', None)
+        if logout_cookie is not None:
+            headers.append(('IPASESSION', logout_cookie))
+
         start_response(status, headers)
         return [response]
 
@@ -638,10 +642,6 @@ class KerberosWSGIExecutioner(WSGIExecutioner, KerberosSession):
                 'KRB5CCNAME not defined in HTTP request environment')
 
             return self.marshal(None, CCacheError())
-
-        logout_cookie = getattr(context, 'logout_cookie', None)
-        if logout_cookie:
-            self.headers.append(('IPASESSION', logout_cookie))
 
         try:
             self.create_context(ccache=user_ccache)
