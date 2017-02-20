@@ -79,14 +79,12 @@ def uninstall_ipa_memcached():
     We can't use the full service uninstaller because that will attempt
     to stop and disable the service which by now doesn't exist. We just
     want to clean up sysrestore.state to remove all references to
-    ipa_kpasswd.
+    ipa_memcached.
     """
     ipa_memcached = service.SimpleServiceInstance('ipa_memcached')
 
-    enabled = not ipa_memcached.restore_state("enabled")
+    ipa_memcached.uninstall()
 
-    if enabled is not None and not enabled:
-        ipa_memcached.remove()
 
 def backup_file(filename, ext):
     """Make a backup of filename using ext as the extension. Do not overwrite
