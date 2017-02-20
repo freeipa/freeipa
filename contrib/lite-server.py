@@ -51,10 +51,12 @@ import os
 import optparse  # pylint: disable=deprecated-module
 import ssl
 import sys
+import time
 import warnings
 
 import ipalib
 from ipalib import api
+from ipalib.errors import NetworkError
 from ipalib.krb_utils import krb5_parse_ccache
 from ipalib.krb_utils import krb5_unparse_ccache
 
@@ -130,7 +132,7 @@ class StaticFilesMiddleware(SharedDataMiddleware):
         return loader
 
 
-def init_api():
+def init_api(ccname):
     """Initialize FreeIPA API from command line
     """
     parser = optparse.OptionParser()
@@ -167,6 +169,7 @@ def init_api():
     # workaround: AttributeError: locked: cannot set ldap2.time_limit to None
     api.env.mode = 'production'
 
+    start_time = time.time()
     # pylint: disable=unused-variable
     options, args = api.bootstrap_with_global_options(parser, context='lite')
     api.env._merge(
@@ -177,6 +180,33 @@ def init_api():
         lite_pem=api.env._join('dot_ipa', 'lite.pem'),
     )
     api.finalize()
+    api_time = time.time()
+    api.log.info("API initialized in {:03f} sec".format(api_time - start_time))
+
+    # Validate LDAP connection and pre-fetch schema
+    # Pre-fetching makes the lite-server behave similar to mod_wsgi. werkzeug's
+    # multi-process WSGI server forks a new process for each request while
+    # mod_wsgi handles multiple request in a daemon process. Without schema
+    # cache, every lite server request would download the LDAP schema and
+    # distort performance profiles.
+    ldap2 = api.Backend.ldap2
+    try:
+        if not ldap2.isconnected():
+            ldap2.connect(ccache=ccname)
+    except NetworkError as e:
+        api.log.error("Unable to connect to LDAP: %s", e)
+        api.log.error("lite-server needs a working LDAP connect. Did you "
+                      "configure ldap_uri in '%s'?", api.env.conf_default)
+        sys.exit(2)
+    else:
+        # prefetch schema
+        assert ldap2.schema
+        # Disconnect main process, each WSGI request handler subprocess will
+        # must have its own connection.
+        ldap2.disconnect()
+        ldap_time = time.time()
+        api.log.info("LDAP schema retrieved {:03f} sec".format(
+            ldap_time - api_time))
 
 
 def redirect_ui(app):
@@ -209,7 +239,7 @@ def main():
         print("    kinit\n", file=sys.stderr)
         sys.exit(1)
 
-    init_api()
+    init_api(ccname)
 
     if os.path.isfile(api.env.lite_pem):
         ctx = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH)
