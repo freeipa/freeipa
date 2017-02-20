@@ -249,9 +249,9 @@ def enable_replication_debugging(host):
                      stdin_text=logging_ldif)
 
 
-def install_master(host, setup_dns=True, setup_kra=False, extra_args=(),
-                   domain_level=None, unattended=True, stdin_text=None,
-                   raiseonerr=True):
+def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
+                   extra_args=(), domain_level=None, unattended=True,
+                   stdin_text=None, raiseonerr=True):
     if domain_level is None:
         domain_level = host.config.domain_level
     setup_server_logs_collecting(host)
@@ -275,6 +275,8 @@ def install_master(host, setup_dns=True, setup_kra=False, extra_args=(),
             '--forwarder', host.config.dns_forwarder,
             '--auto-reverse'
         ])
+    if setup_adtrust:
+        args.append('--setup-adtrust')
 
     args.extend(extra_args)
     result = host.run_command(args, raiseonerr=raiseonerr,
@@ -343,8 +345,9 @@ def replica_prepare(master, replica, extra_args=(),
 
 
 def install_replica(master, replica, setup_ca=True, setup_dns=False,
-                    setup_kra=False, extra_args=(), domain_level=None,
-                    unattended=True, stdin_text=None, raiseonerr=True):
+                    setup_kra=False, setup_adtrust=False, extra_args=(),
+                    domain_level=None, unattended=True, stdin_text=None,
+                    raiseonerr=True):
     if domain_level is None:
         domain_level = domainlevel(master)
     apply_common_fixes(replica)
@@ -367,6 +370,8 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
             '--setup-dns',
             '--forwarder', replica.config.dns_forwarder
         ])
+    if setup_adtrust:
+        args.append('--setup-adtrust')
     if master_authoritative_for_client_domain(master, replica):
         args.extend(['--ip-address', replica.ip])
 
