@@ -458,11 +458,15 @@ class Schema(object):
         with self._open(fingerprint, 'rb') as f:
             self._file.write(f.read())
 
+        # It's more efficient to read zip file members at once than to open
+        # the zip file a couple of times, see #6690.
         with zipfile.ZipFile(self._file, 'r') as schema:
             for name in schema.namelist():
                 ns, _slash, key = name.partition('/')
                 if ns in self.namespaces:
-                    self._dict[ns][key] = None
+                    self._dict[ns][key] = schema.read(name)
+                elif name == '_help':
+                    self._help = schema.read(name)
 
     def __getitem__(self, key):
         try:
@@ -520,16 +524,12 @@ class Schema(object):
             f.truncate(0)
             f.write(self._file.read())
 
-    def _read(self, path):
-        with zipfile.ZipFile(self._file, 'r') as zf:
-            return json.loads(zf.read(path).decode('utf-8'))
-
     def read_namespace_member(self, namespace, member):
         value = self._dict[namespace][member]
 
-        if value is None:
-            path = '{}/{}'.format(namespace, member)
-            value = self._dict[namespace][member] = self._read(path)
+        if isinstance(value, bytes):
+            value = json.loads(value.decode('utf-8'))
+            self._dict[namespace][member] = value
 
         return value
 
@@ -537,8 +537,8 @@ class Schema(object):
         return iter(self._dict[namespace])
 
     def get_help(self, namespace, member):
-        if not self._help:
-            self._help = self._read('_help')
+        if isinstance(self._help, bytes):
+            self._help = json.loads(self._help.decode('utf-8'))
 
         return self._help[namespace][member]
 
