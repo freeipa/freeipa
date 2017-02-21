@@ -2,12 +2,16 @@ ACLOCAL_AMFLAGS = -I m4
 
 if ENABLE_SERVER
     SERVER_SUBDIRS = daemons init install ipaserver
-else
-    SERVER_SUBDIRS =
 endif
+
+if WITH_IPATESTS
+    IPATESTS_SUBDIRS = ipatests
+endif
+
 IPACLIENT_SUBDIRS = ipaclient ipalib ipapython
+
 SUBDIRS = asn1 util client contrib po \
-	$(IPACLIENT_SUBDIRS) ipaplatform ipatests $(SERVER_SUBDIRS)
+	$(IPACLIENT_SUBDIRS) ipaplatform $(IPATESTS_SUBDIRS) $(SERVER_SUBDIRS)
 
 
 MOSTLYCLEANFILES = ipasetup.pyc ipasetup.pyo \

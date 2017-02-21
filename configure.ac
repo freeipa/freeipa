@@ -27,13 +27,20 @@ AC_HEADER_STDC
 PKG_PROG_PKG_CONFIG
 
 AC_ARG_ENABLE([server],
-[  --disable-server        Disable server support],
-[case "${enableval}" in
-  yes) enable_server=true ;;
-  no)  enable_server=false ;;
-  *) AC_MSG_ERROR([bad value ${enableval} for --disable-server]) ;;
-esac],[enable_server=true])
-AM_CONDITIONAL([ENABLE_SERVER], [test x$enable_server = xtrue])
+    [AC_HELP_STRING([--disable-server], [Disable server support])],
+    [case "${enableval}" in
+         yes) enable_server=yes ;;
+          no) enable_server=no ;;
+           *) AC_MSG_ERROR([bad value ${enableval} for --disable-server]) ;;
+     esac],
+    [enable_server=yes])
+AM_CONDITIONAL([ENABLE_SERVER], [test x$enable_server = xyes])
+
+AC_ARG_WITH([ipatests],
+    [AC_HELP_STRING([--without-ipatests], [Build without ipatests])],
+    [with_ipatests=${withval}],
+    [with_ipatests=yes])
+AM_CONDITIONAL([WITH_IPATESTS], [test x"$with_ipatests" = xyes])
 
 AM_CONDITIONAL([HAVE_GCC], [test "$ac_cv_prog_gcc" = yes])
 
@@ -515,4 +522,11 @@ AM_COND_IF([ENABLE_SERVER], [
 ], [
     echo "\
         build mode:               client only"
+])
+AM_COND_IF([WITH_IPATESTS], [
+    echo "\
+        with ipatests:            yes"
+], [
+    echo "\
+        with ipatests:            no"
 ])
