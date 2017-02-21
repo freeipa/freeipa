@@ -579,6 +579,20 @@ class Env(object):
         if 'log' not in self:
             self.log = self._join('logdir', '%s.log' % self.context)
 
+        if 'basedn' not in self and 'domain' in self:
+            self.basedn = DN(*(('dc', dc) for dc in self.domain.split('.')))
+
+        # Derive xmlrpc_uri from server
+        # (Note that this is done before deriving jsonrpc_uri from xmlrpc_uri
+        # and server from jsonrpc_uri so that when only server or xmlrpc_uri
+        # is specified, all 3 keys have a value.)
+        if 'xmlrpc_uri' not in self and 'server' in self:
+            self.xmlrpc_uri = 'https://{}/ipa/xml'.format(self.server)
+
+        # Derive ldap_uri from server
+        if 'ldap_uri' not in self and 'server' in self:
+            self.ldap_uri = 'ldap://{}'.format(self.server)
+
         # Derive jsonrpc_uri from xmlrpc_uri
         if 'jsonrpc_uri' not in self:
             if 'xmlrpc_uri' in self:

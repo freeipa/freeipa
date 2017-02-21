@@ -101,7 +101,9 @@ ipa_class_members = {
         'xmlrpc_uri',
         'validate_api',
         'startup_traceback',
-        'verbose'
+        'verbose',
+        'server',
+        {'domain': dir(str)},
     ] + LOGGING_ATTRS,
     'ipalib.errors.ACIError': [
         'info',
