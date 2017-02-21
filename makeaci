@@ -99,8 +99,6 @@ def main(options):
         basedn=DN('dc=ipa,dc=example'),
         realm='IPA.EXAMPLE',
         domain="example.com",
-        xmlrpc_uri="http://localhost:8888/ipa/xml",
-        ldap_uri="ldap://localhost:389",
     )
 
     from ipaserver.install.plugins import update_managed_permissions

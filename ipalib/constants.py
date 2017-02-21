@@ -134,8 +134,9 @@ DEFAULT_CONFIG = (
     # Following values do not have any reasonable default.
     # Do not initialize them so the code which depends on them blows up early
     # and does not do crazy stuff with default values instead of real ones.
+    # ('server', 'localhost'),
     # ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),
-    # jsonrpc_uri is set in Env._finalize_core()
+    # ('jsonrpc_uri', 'http://localhost:8888/ipa/json'),
     # ('ldap_uri', 'ldap://localhost:389'),
 
     ('rpc_protocol', 'jsonrpc'),
@@ -245,8 +246,6 @@ DEFAULT_CONFIG = (
     ('in_server', object),  # Whether or not running in-server (bool)
     ('logdir', object),  # Directory containing log files
     ('log', object),  # Path to context specific log file
-    ('jsonrpc_uri', object),  # derived from xmlrpc_uri in Env._finalize_core()
-    ('server', object),  # derived from jsonrpc_uri in Env._finalize_core()
 
 )
 
