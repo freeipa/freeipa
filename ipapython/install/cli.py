@@ -321,7 +321,7 @@ class ConfigureTool(admintool.AdminTool):
                 index = self.positional_arguments.index(e.name)
             except ValueError:
                 cli_name = knob_cls.cli_names[0] or e.name.replace('_', '-')
-                desc = "option --{0}".format(cli_name)
+                desc = "option {0}".format(cli_name)
             else:
                 desc = "argument {0}".format(index + 1)
             self.option_parser.error("{0}: {1}".format(desc, e))
