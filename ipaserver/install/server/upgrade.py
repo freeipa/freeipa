@@ -83,7 +83,8 @@ def uninstall_ipa_memcached():
     """
     ipa_memcached = service.SimpleServiceInstance('ipa_memcached')
 
-    ipa_memcached.uninstall()
+    if ipa_memcached.is_configured():
+        ipa_memcached.uninstall()
 
 
 def backup_file(filename, ext):
