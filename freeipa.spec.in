@@ -75,17 +75,20 @@ BuildRequires:  automake
 BuildRequires:  libtool
 BuildRequires:  gettext
 BuildRequires:  gettext-devel
+BuildRequires:  nspr-devel
+BuildRequires:  nss-devel
+BuildRequires:  openssl-devel
 BuildRequires:  python-devel
 %if 0%{?with_python3}
 BuildRequires:  python3-devel
 %endif # with_python3
+BuildRequires:  libini_config-devel
+BuildRequires:  cyrus-sasl-devel
+%if ! %{ONLY_CLIENT}
 # %{_unitdir}, %{_tmpfilesdir}
 BuildRequires:  systemd
 # systemd-tmpfiles which is executed from make install requires apache user
 BuildRequires:  httpd
-BuildRequires:  libini_config-devel
-BuildRequires:  cyrus-sasl-devel
-%if ! %{ONLY_CLIENT}
 # 1.3.3.9: DS_Sleep (https://fedorahosted.org/389/ticket/48005)
 BuildRequires:  389-ds-base-devel >= 1.3.3.9
 BuildRequires:  svrcore-devel
@@ -96,9 +99,6 @@ BuildRequires:  samba-devel >= 2:4.0.0
 %endif
 BuildRequires:  libtalloc-devel
 BuildRequires:  libtevent-devel
-BuildRequires:  nspr-devel
-BuildRequires:  nss-devel
-BuildRequires:  openssl-devel
 BuildRequires:  libuuid-devel
 BuildRequires:  libsss_idmap-devel
 # 1.14.0: sss_nss_getnamebycert (https://fedorahosted.org/sssd/ticket/2897)
