@@ -300,11 +300,6 @@ AC_ARG_WITH([sysconfenvdir],
 AC_SUBST([sysconfenvdir])
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for program paths
-dnl ---------------------------------------------------------------------------
-AC_PATH_PROG(UNLINK, unlink, [AC_MSG_ERROR([unlink not found])])
-
-dnl ---------------------------------------------------------------------------
 dnl - Set the data install directory since we don't use pkgdatadir
 dnl ---------------------------------------------------------------------------
 
