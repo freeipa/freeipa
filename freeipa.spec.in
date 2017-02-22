@@ -11,10 +11,9 @@
 # lint is not executed during rpmbuild
 # %%global with_lint 1
 %if 0%{?with_lint}
-    %global enable_pylint_option --enable-pylint
+    %global linter_options --enable-pylint --with-jslint
 %else
-    %global enable_pylint_option --disable-pylint
-    %global without_jslint_option --without-jslint
+    %global linter_options --disable-pylint --without-jslint
 %endif
 
 # Python wheel support and PyPI packages
@@ -807,8 +806,7 @@ find \
 	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
 	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python2}|' {} \;
 %configure --with-vendor-suffix=-%{release} \
-           %{enable_pylint_option} \
-           %{?without_jslint_option}
+           %{linter_options}
 
 # -Onone is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1398405
 %make_build -Onone
@@ -825,8 +823,7 @@ find \
 	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
 	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python3}|' {} \;
 %configure --with-vendor-suffix=-%{release} \
-           %{enable_pylint_option} \
-           %{?without_jslint_option}
+           %{linter_options}
 popd
 %endif # with_python3
 

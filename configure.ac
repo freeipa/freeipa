@@ -375,17 +375,25 @@ AC_SUBST([i18ntests])
 AM_CONDITIONAL([WITH_POLINT], [test "x${enable_i18ntests}" == "xyes"])
 
 AC_ARG_ENABLE([pylint],
-	    AS_HELP_STRING([--disable-pylint],
-			   [skip Pylint in make lint target]),
+	    AS_HELP_STRING([--enable-pylint],
+			   [Require pylint. Default is autodetection with
+			    "python -m pylint".]),
 	    [PYLINT=$enableval],
-	    [PYLINT=yes]
+	    [PYLINT=check]
 )
+
 if test x$PYLINT != xno; then
     AC_MSG_CHECKING([for Pylint])
-    $PYTHON -m pylint --version > /dev/null
+    $PYTHON -m pylint --version >/dev/null 2>&1
     if test "$?" != "0"; then
-        AC_MSG_ERROR([cannot find pylint for $PYTHON])
+        if test x$PYLINT = xcheck; then
+            PYLINT=no
+            AC_MSG_NOTICE([cannot find optional pylint for $PYTHON])
+        else
+            AC_MSG_ERROR([cannot find pylint for $PYTHON])
+        fi
     else
+        PYLINT=yes
         AC_MSG_RESULT([yes])
     fi
 fi
@@ -397,13 +405,27 @@ AC_ARG_WITH([jslint],
         AS_HELP_STRING([--with-jslint=[FILE]],
                        [path to JavaScript linter. Default is autodetection of
                        utility "jsl" ]),
-dnl --without-jslint will set JSLINT=no
-        [JSLINT=$with_jslint],
-        [AC_PATH_PROG([JSLINT], [jsl])]
+        [JSLINT="$withval"],
+        [JSLINT=check]
 )
-if test "x${JSLINT}" == "x"; then
-	AC_MSG_ERROR([cannot find JS lint])
-fi
+
+AS_CASE([$JSLINT],
+    [yes], [AC_PATH_PROG([JSLINT], [jsl], [missing])
+            if test $JSLINT = missing; then
+                AC_MSG_FAILURE([jsl is missing])
+            fi],
+    [no], [],
+    [check], [AC_PATH_PROG([JSLINT], [jsl], [no])],
+    dnl user setting
+    [if ! test -f "$JSLINT"; then
+        AC_MSG_RESULT([$JSLINT non-existing])
+        AC_MSG_FAILURE([invalid value $JSLINT for jsl])
+     fi
+     if ! test -x "$JSLINT"; then
+        AC_MSG_RESULT([$JSLINT non-executable])
+        AC_MSG_FAILURE([invalid value $JSLINT for jsl])
+     fi]
+)
 AC_SUBST([JSLINT])
 AM_CONDITIONAL([WITH_JSLINT], [test "x${JSLINT}" != "xno"])
 
@@ -516,6 +538,9 @@ echo "
         source code location:     ${srcdir}
         compiler:                 ${CC}
         cflags:                   ${CFLAGS}
+        Python:                   ${PYTHON}
+        pylint:                   ${PYLINT}
+        jslint:                   ${JSLINT}
         LDAP libs:                ${LDAP_LIBS}
         OpenSSL crypto libs:      ${CRYPTO_LIBS}
         KRB5 libs:                ${KRB5_LIBS}"

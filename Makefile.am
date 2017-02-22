@@ -146,6 +146,10 @@ JSLINT_TARGET = jslint
 endif WITH_JSLINT
 lint: acilint apilint $(POLINT_TARGET) $(PYLINT_TARGET) $(JSLINT_TARGET)
 
+.PHONY: $(top_builddir)/ipapython/version.py
+$(top_builddir)/ipapython/version.py:
+	(cd $(top_builddir)/ipapython && make version.py)
+
 .PHONY: acilint
 acilint: $(top_builddir)/ipapython/version.py
 	cd $(srcdir); ./makeaci --validate
@@ -162,10 +166,10 @@ polint:
 # folders rpmbuild, freeipa-* and dist. Skip (match, but don't print) .*,
 # *.in, *~. Finally print all python files, including scripts that do not
 # have python extension.
-.PHONY: pylint $(top_builddir)/ipapython/version.py
-$(top_builddir)/ipapython/version.py:
-	(cd $(top_builddir)/ipapython && make version.py)
 
+.PHONY: pylint
+
+if WITH_PYLINT
 pylint: $(top_builddir)/ipapython/version.py ipasetup.py
 	FILES=`find $(top_srcdir) \
 		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
@@ -183,9 +187,12 @@ pylint: $(top_builddir)/ipapython/version.py ipasetup.py
 		--rcfile=$(top_srcdir)/pylintrc \
 		--load-plugins pylint_plugins \
 		$${FILES}
+endif  # WITH_PYLINT
 
 .PHONY: jslint jslint-ui jslint-ui-test jslint-html \
 	$(top_builddir)/install/ui/src/libs/loader.js
+
+if WITH_JSLINT
 jslint: jslint-ui jslint-ui-test jslint-html
 
 $(top_builddir)/install/ui/src/libs/loader.js:
@@ -208,6 +215,7 @@ jslint-ui-test:
 jslint-html:
 	cd $(top_srcdir)/install/html; 				\
 	jsl -nologo -nosummary -nofilelisting -conf jsl.conf
+endif  # WITH_JSLINT
 
 .PHONY: bdist_wheel wheel_bundle wheel_placeholder pypi_packages
 WHEELDISTDIR = $(top_builddir)/dist/wheels
