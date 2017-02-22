@@ -251,7 +251,20 @@ PKG_CHECK_MODULES([SASL], [libsasl2])
 dnl ---------------------------------------------------------------------------
 dnl - Check for XMLRPC-C
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([XMLRPC], [xmlrpc xmlrpc_client xmlrpc_util])
+PKG_CHECK_MODULES([XMLRPC], [xmlrpc xmlrpc_client xmlrpc_util], [],
+                  [try_xmlrpc_fallback=true])
+if test x"$try_xmlrpc_fallback" = xtrue; then
+    XMLRPC_LIBS=
+    AC_CHECK_HEADER([xmlrpc-c/base.h], [],
+                    [AC_MSG_ERROR([xmlrpc-c/base.h not found])])
+
+    AC_CHECK_LIB([xmlrpc_client], [xmlrpc_client_init2],
+                 [XMLRPC_LIBS="-lxmlrpc -lxmlrpc_client -lxmlrpc_util"])
+    if test "x$XMLRPC_LIBS" = "x" ; then
+        AC_MSG_ERROR([xmlrpc-c not found])
+    fi
+    AC_SUBST(XMLRPC_LIBS)
+fi
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for libintl
