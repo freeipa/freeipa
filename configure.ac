@@ -115,7 +115,20 @@ PKG_CHECK_MODULES([INI], [ini_config >= 1.1.0])
 dnl ---------------------------------------------------------------------------
 dnl - Check for server dependencies
 dnl ---------------------------------------------------------------------------
-m4_include([server.m4])
+AC_ARG_ENABLE([server],
+    [AS_HELP_STRING([--enable-server],
+                    [Enable server support. [Default: yes]])],
+    [enable_server="${enableval}"],
+    [enable_server=yes])
+if test x"$enable_server" != xyes -a x"$enable_server" != xno; then
+    AC_MSG_ERROR([Unexpected value $enable_server for --enable-server. ]
+                 [Allowed is yes or no])
+fi
+
+AM_CONDITIONAL([ENABLE_SERVER], [test x"$enable_server" = xyes])
+if test x"$enable_server" = xyes; then
+    m4_include([server.m4])
+fi
 
 dnl cmocka and nss_wrapper are optional dependencies used only in server
 dnl but they use AM_CONDITIONAL which need to be executed every time
@@ -292,7 +305,7 @@ AC_ARG_ENABLE([i18ntests],
         [--disable-i18ntests],
         [do not execute ipatests/i18n.py (depends on python-polib)])],
     [],
-    [enable_i18ntests="yes"]
+    [enable_i18ntests=$enable_server]
 )
 AC_SUBST([i18ntests])
 AM_CONDITIONAL([WITH_POLINT], [test "x${enable_i18ntests}" == "xyes"])
@@ -300,7 +313,7 @@ AM_CONDITIONAL([WITH_POLINT], [test "x${enable_i18ntests}" == "xyes"])
 AC_ARG_ENABLE([pylint],
     [AS_HELP_STRING([--disable-pylint], [skip Pylint in make lint target])],
     [PYLINT=$enableval],
-    [PYLINT=yes]
+    [PYLINT=$enable_server]
 )
 if test x$PYLINT != xno; then
     AC_MSG_CHECKING([for Pylint])
@@ -323,7 +336,7 @@ dnl --without-jslint will set JSLINT=no
         [JSLINT=$with_jslint],
         [AC_PATH_PROG([JSLINT], [jsl])]
 )
-if test "x${JSLINT}" == "x"; then
+if test "x$enable_server" = "xyes" -a "x${JSLINT}" = "x"; then
     AC_MSG_ERROR([cannot find JS lint])
 fi
 AC_SUBST([JSLINT])
@@ -431,14 +444,18 @@ echo "
         sysconfenvdir:            ${sysconfenvdir}
         localstatedir:            ${localstatedir}
         datadir:                  ${datadir}
-        krb5rundir:               ${krb5rundir}
-        systemdsystemunitdir:     ${systemdsystemunitdir}
-        systemdtmpfilesdir:       ${systemdtmpfilesdir}
         source code location:     ${srcdir}
         compiler:                 ${CC}
         cflags:                   ${CFLAGS}
         LDAP libs:                ${LDAP_LIBS}
         KRB5 libs:                ${KRB5_LIBS}
-        KRAD libs:                ${KRAD_LIBS}
         OpenSSL crypto libs:      ${CRYPTO_LIBS}
+        server support:           ${enable_server}
 "
+AS_IF([test x"$enable_server" = xyes], [
+echo "\
+        krb5rundir:               ${krb5rundir}
+        systemdsystemunitdir:     ${systemdsystemunitdir}
+        systemdtmpfilesdir:       ${systemdtmpfilesdir}
+        KRAD libs:                ${KRAD_LIBS}"
+])
