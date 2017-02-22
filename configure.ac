@@ -130,6 +130,14 @@ if test x"$enable_server" = xyes; then
     m4_include([server.m4])
 fi
 
+AC_ARG_WITH([ipatests],
+    [AC_HELP_STRING([--with-ipatests],
+                    [Whether to install ipatests. ]
+                    [Default inherited from --disable-server])],
+    [with_ipatests=$withval],
+    [with_ipatests=$enable_server])
+AM_CONDITIONAL([WITH_IPATESTS], [test x"$with_ipatests" = xyes])
+
 dnl cmocka and nss_wrapper are optional dependencies used only in server
 dnl but they use AM_CONDITIONAL which need to be executed every time
 dnl it simpler to have them directly in configure.ac
@@ -451,6 +459,7 @@ echo "
         KRB5 libs:                ${KRB5_LIBS}
         OpenSSL crypto libs:      ${CRYPTO_LIBS}
         server support:           ${enable_server}
+        ipatests:                 ${with_ipatests}
 "
 AS_IF([test x"$enable_server" = xyes], [
 echo "\
