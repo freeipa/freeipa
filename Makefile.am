@@ -1,7 +1,19 @@
 ACLOCAL_AMFLAGS = -I m4
 
 IPACLIENT_SUBDIRS = ipaclient ipalib ipapython
-SUBDIRS = asn1 util client contrib daemons init install $(IPACLIENT_SUBDIRS) ipaplatform ipaserver ipatests po
+
+if ENABLE_SERVER
+    SERVER_SUBDIRS = daemons init install ipaserver
+endif
+
+if WITH_IPATESTS
+    TEST_SUBDIRS = ipatests
+endif
+
+SUBDIRS = asn1 util client contrib $(IPACLIENT_SUBDIRS) ipaplatform po \
+          $(SERVER_SUBDIRS) \
+          $(TEST_SUBDIRS) \
+          $(NULL)
 
 MOSTLYCLEANFILES = ipasetup.pyc ipasetup.pyo \
 		   ignore_import_errors.pyc ignore_import_errors.pyo \

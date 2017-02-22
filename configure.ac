@@ -33,58 +33,10 @@ PKG_CHECK_MODULES([NSPR], [nspr])
 PKG_CHECK_MODULES([NSS], [nss])
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for DS slapi plugin
-dnl ---------------------------------------------------------------------------
-
-# Need to hack CPPFLAGS to be able to correctly detetct slapi-plugin.h
-SAVE_CPPFLAGS=$CPPFLAGS
-CPPFLAGS=$NSPR_CFLAGS
-AC_CHECK_HEADER(dirsrv/slapi-plugin.h)
-if test "x$ac_cv_header_dirsrv_slapi-plugin_h" = "xno" ; then
-	AC_MSG_ERROR([Required 389-ds header not available (389-ds-base-devel)])
-fi
-AC_CHECK_HEADER(dirsrv/repl-session-plugin.h)
-if test "x$ac_cv_header_dirsrv_repl_session_plugin_h" = "xno" ; then
-	AC_MSG_ERROR([Required 389-ds header not available (389-ds-base-devel)])
-fi
-CPPFLAGS=$SAVE_CPPFLAGS
-
-if test "x$ac_cv_header_dirsrv_slapi_plugin_h" = "xno" ; then
-	AC_MSG_ERROR([Required DS slapi plugin header not available (fedora-ds-base-devel)])
-fi
-
-dnl ---------------------------------------------------------------------------
 dnl - Check for KRB5
 dnl ---------------------------------------------------------------------------
 
 PKG_CHECK_MODULES([KRB5], [krb5])
-AC_CHECK_HEADER(krad.h, [], [AC_MSG_ERROR([krad.h not found])])
-AC_CHECK_LIB(krad, main, [], [AC_MSG_ERROR([libkrad not found])])
-KRAD_LIBS="-lkrad"
-krb5rundir="${localstatedir}/run/krb5kdc"
-AC_SUBST(KRAD_LIBS)
-AC_SUBST(krb5rundir)
-
-AC_CHECK_HEADER(kdb.h, [], [AC_MSG_ERROR([kdb.h not found])])
-AC_CHECK_MEMBER(
-	[kdb_vftabl.free_principal],
-	[AC_DEFINE([HAVE_KDB_FREEPRINCIPAL], [1],
-		   [KDB driver API has free_principal callback])],
-	[AC_MSG_NOTICE([KDB driver API has no free_principal callback])],
-	[[#include <kdb.h>]])
-AC_CHECK_MEMBER(
-	[kdb_vftabl.free_principal_e_data],
-	[AC_DEFINE([HAVE_KDB_FREEPRINCIPAL_EDATA], [1],
-		   [KDB driver API has free_principal_e_data callback])],
-	[AC_MSG_NOTICE([KDB driver API has no free_principal_e_data callback])],
-	[[#include <kdb.h>]])
-
-if test "x$ac_cv_member_kdb_vftabl_free_principal" = "xno" \
-	-a "x$ac_cv_member_kdb_vftable_free_principal_e_data" = "xno" ; then
-    AC_MSG_WARN([KDB driver API does not allow to free Kerberos principal data.])
-    AC_MSG_WARN([KDB driver will leak memory on Kerberos principal use])
-    AC_MSG_WARN([See https://github.com/krb5/krb5/pull/596 for details])
-fi
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for OpenLDAP SDK
@@ -105,137 +57,32 @@ dnl ---------------------------------------------------------------------------
 PKG_CHECK_MODULES([CRYPTO], [libcrypto])
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for UUID library
-dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([UUID], [uuid])
-
-dnl ---------------------------------------------------------------------------
 dnl - Check for Python
 dnl ---------------------------------------------------------------------------
 
 AC_MSG_NOTICE([Checking for Python])
-have_python=no
-AM_PATH_PYTHON(2.7)
+AM_PATH_PYTHON([2.7], [],
+               [AC_MSG_ERROR([Python not found])])
 
-if test "x$PYTHON" = "x" ; then
-  AC_MSG_ERROR([Python not found])
+AC_MSG_CHECKING($(basename $PYTHON) module setuptools )
+$PYTHON -c "import setuptools" 2>/dev/null
+if test $? -eq 0; then
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+    AC_MSG_ERROR([$PYTHON module setuptools is required for installation])
 fi
-
-dnl ---------------------------------------------------------------------------
-dnl Check for ndr_krb5pac and other samba libraries
-dnl ---------------------------------------------------------------------------
-
-PKG_PROG_PKG_CONFIG()
-PKG_CHECK_MODULES([TALLOC], [talloc])
-PKG_CHECK_MODULES([TEVENT], [tevent])
-PKG_CHECK_MODULES([NDRPAC], [ndr_krb5pac])
-PKG_CHECK_MODULES([NDRNBT], [ndr_nbt])
-PKG_CHECK_MODULES([NDR], [ndr])
-PKG_CHECK_MODULES([SAMBAUTIL], [samba-util])
-SAMBA40EXTRA_LIBPATH="-L`$PKG_CONFIG --variable=libdir samba-util`/samba -Wl,-rpath=`$PKG_CONFIG --variable=libdir samba-util`/samba"
-AC_SUBST(SAMBA40EXTRA_LIBPATH)
-
-bck_cflags="$CFLAGS"
-CFLAGS="$NDRPAC_CFLAGS"
-AC_CHECK_MEMBER(
-    [struct PAC_DOMAIN_GROUP_MEMBERSHIP.domain_sid],
-    [AC_DEFINE([HAVE_STRUCT_PAC_DOMAIN_GROUP_MEMBERSHIP], [1],
-               [struct PAC_DOMAIN_GROUP_MEMBERSHIP is available.])],
-    [AC_MSG_NOTICE([struct PAC_DOMAIN_GROUP_MEMBERSHIP is not available])],
-                 [[#include <ndr.h>
-                   #include <gen_ndr/krb5pac.h>]])
-
-CFLAGS="$bck_cflags"
-
-LIBPDB_NAME=""
-AC_CHECK_LIB([samba-passdb],
-             [make_pdb_method],
-             [LIBPDB_NAME="samba-passdb"; HAVE_LIBPDB=1],
-             [LIBPDB_NAME="pdb"],
-             [$SAMBA40EXTRA_LIBPATH])
-
-if test "x$LIB_PDB_NAME" = "xpdb" ; then
-  AC_CHECK_LIB([$LIBPDB_NAME],
-               [make_pdb_method],
-               [HAVE_LIBPDB=1],
-               [AC_MSG_ERROR([Neither libpdb nor libsamba-passdb does have make_pdb_method])],
-               [$SAMBA40EXTRA_LIBPATH])
-fi
-
-AC_SUBST(LIBPDB_NAME)
-
-AC_CHECK_LIB([$LIBPDB_NAME],[pdb_enum_upn_suffixes],
-             [AC_DEFINE([HAVE_PDB_ENUM_UPN_SUFFIXES], [1], [Ability to enumerate UPN suffixes])],
-             [AC_MSG_WARN([libpdb does not have pdb_enum_upn_suffixes, no support for realm domains in ipasam])],
-             [$SAMBA40EXTRA_LIBPATH])
-
-dnl ---------------------------------------------------------------------------
-dnl Check for libunistring
-dnl ---------------------------------------------------------------------------
-AC_CHECK_HEADERS([unicase.h],,AC_MSG_ERROR([Could not find unicase.h]))
-AC_CHECK_LIB([unistring],
-             [ulc_casecmp],
-             [UNISTRING_LIBS="-lunistring"],
-             [AC_MSG_ERROR([libunistring does not have ulc_casecmp])])
-AC_SUBST(UNISTRING_LIBS)
-
-dnl ---------------------------------------------------------------------------
-dnl Check for libverto
-dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([LIBVERTO], [libverto])
-
-dnl ---------------------------------------------------------------------------
-dnl - Check for cmocka unit test framework http://cmocka.cryptomilk.org/
-dnl ---------------------------------------------------------------------------
-PKG_CHECK_EXISTS(cmocka,
-    [AC_CHECK_HEADERS([stdarg.h stddef.h setjmp.h],
-        [], dnl We are only intrested in action-if-not-found
-        [AC_MSG_WARN([Header files stdarg.h stddef.h setjmp.h are required by cmocka])
-         cmocka_required_headers="no"
-        ]
-    )
-    AS_IF([test x"$cmocka_required_headers" != x"no"],
-          [PKG_CHECK_MODULES([CMOCKA], [cmocka], [have_cmocka="yes"])]
-    )],
-    dnl PKG_CHECK_EXISTS ACTION-IF-NOT-FOUND
-    [AC_MSG_WARN([No libcmocka library found, cmocka tests will not be built])]
-)
-AM_CONDITIONAL([HAVE_CMOCKA], [test x$have_cmocka = xyes])
-
-dnl A macro to check presence of a cwrap (http://cwrap.org) wrapper on the system
-dnl Usage:
-dnl     AM_CHECK_WRAPPER(name, conditional)
-dnl If the cwrap library is found, sets the HAVE_$name conditional
-AC_DEFUN([AM_CHECK_WRAPPER],
-[
-    FOUND_WRAPPER=0
-
-    AC_MSG_CHECKING([for $1])
-    PKG_CHECK_EXISTS([$1],
-                     [
-                        AC_MSG_RESULT([yes])
-                        FOUND_WRAPPER=1
-                     ],
-                     [
-                        AC_MSG_RESULT([no])
-                        AC_MSG_WARN([cwrap library $1 not found, some tests will not run])
-                     ])
-
-    AM_CONDITIONAL($2, [ test x$FOUND_WRAPPER = x1])
-])
-
-AM_CHECK_WRAPPER(nss_wrapper, HAVE_NSS_WRAPPER)
-
-dnl -- dirsrv is needed for the extdom unit tests --
-PKG_CHECK_MODULES([DIRSRV], [dirsrv  >= 1.3.0])
-dnl -- sss_idmap is needed by the extdom exop --
-PKG_CHECK_MODULES([SSSIDMAP], [sss_idmap])
-PKG_CHECK_MODULES([SSSNSSIDMAP], [sss_nss_idmap >= 1.13.90])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for POPT
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([POPT], [popt])
+POPT_LIBS=
+PKG_CHECK_MODULES([POPT], [popt], [],
+    [AC_CHECK_HEADER([popt.h], [], [AC_MSG_ERROR([popt.h not found])])
+     AC_CHECK_LIB([popt], [poptGetContext], [POPT_LIBS="-lpopt"])
+     AC_SUBST(POPT_LIBS)
+    ]
+)
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for SASL
@@ -245,60 +92,66 @@ PKG_CHECK_MODULES([SASL], [libsasl2])
 dnl ---------------------------------------------------------------------------
 dnl - Check for XMLRPC-C
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([XMLRPC], [xmlrpc xmlrpc_client xmlrpc_util])
+PKG_CHECK_MODULES([XMLRPC], [xmlrpc xmlrpc_client xmlrpc_util], [],
+                  [try_xmlrpc_fallback=true])
+if test x"$try_xmlrpc_fallback" = xtrue; then
+    XMLRPC_LIBS=
+    AC_CHECK_HEADER([xmlrpc-c/base.h], [],
+                    [AC_MSG_ERROR([xmlrpc-c/base.h not found])])
 
-dnl ---------------------------------------------------------------------------
-dnl - Check for libintl
-dnl ---------------------------------------------------------------------------
-SAVE_LIBS="$LIBS"
-LIBINTL_LIBS=
-AC_CHECK_HEADER(libintl.h, [], [AC_MSG_ERROR([libintl.h not found, please install xgettext])])
-AC_SEARCH_LIBS([bindtextdomain], [libintl],[], [])
-if test "x$ac_cv_search_bindtextdomain" = "xno" ; then
-  AC_MSG_ERROR([libintl is not found and your libc does not support gettext, please install xgettext])
-elif test "x$ac_cv_search_bindtextdomain" != "xnone required" ; then
-  LIBINTL_LIBS="$ac_cv_search_bindtextdomain"
+    AC_CHECK_LIB([xmlrpc_client], [xmlrpc_client_init2],
+                 [XMLRPC_LIBS="-lxmlrpc -lxmlrpc_client -lxmlrpc_util"])
+    if test "x$XMLRPC_LIBS" = "x" ; then
+        AC_MSG_ERROR([xmlrpc-c not found])
+    fi
+    AC_SUBST(XMLRPC_LIBS)
 fi
-LIBS="$SAVELIBS"
-AC_SUBST(LIBINTL_LIBS)
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for libini_config
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([INI], [ini_config >= 1.2.0])
+PKG_CHECK_MODULES([INI], [ini_config >= 1.1.0])
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for systemd directories
+dnl - Check for server dependencies
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_EXISTS([systemd], [], [AC_MSG_ERROR([systemd not found])])
-AC_ARG_WITH([systemdsystemunitdir],
-            AS_HELP_STRING([--with-systemdsystemunitdir=DIR],
-			   [Directory for systemd service files]),
-            [systemdsystemunitdir=$with_systemdsystemunitdir],
-	    [systemdsystemunitdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=systemdsystemunitdir systemd)])
-AC_SUBST([systemdsystemunitdir])
+AC_ARG_ENABLE([server],
+    [AS_HELP_STRING([--enable-server],
+                    [Enable server support. [Default: yes]])],
+    [enable_server="${enableval}"],
+    [enable_server=yes])
+if test x"$enable_server" != xyes -a x"$enable_server" != xno; then
+    AC_MSG_ERROR([Unexpected value $enable_server for --enable-server. ]
+                 [Allowed is yes or no])
+fi
 
-AC_ARG_WITH([systemdtmpfilesdir],
-            AS_HELP_STRING([--with-systemdtmpfilesdir=DIR],
-			   [Directory for systemd-tmpfiles configuration files]),
-            [systemdtmpfilesdir=$with_systemdtmpfilesdir],
-	    [systemdtmpfilesdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=tmpfilesdir systemd)])
-AC_SUBST([systemdtmpfilesdir])
+AM_CONDITIONAL([ENABLE_SERVER], [test x"$enable_server" = xyes])
+if test x"$enable_server" = xyes; then
+    m4_include([server.m4])
+fi
+
+AC_ARG_WITH([ipatests],
+    [AC_HELP_STRING([--with-ipatests],
+                    [Whether to install ipatests. ]
+                    [Default inherited from --disable-server])],
+    [with_ipatests=$withval],
+    [with_ipatests=$enable_server])
+AM_CONDITIONAL([WITH_IPATESTS], [test x"$with_ipatests" = xyes])
+
+dnl cmocka and nss_wrapper are optional dependencies used only in server
+dnl but they use AM_CONDITIONAL which need to be executed every time
+dnl it simpler to have them directly in configure.ac
+m4_include([unit_tests.m4])
 
 dnl ---------------------------------------------------------------------------
 dnl - Get /etc/sysconfig directory path
 dnl ---------------------------------------------------------------------------
 AC_ARG_WITH([sysconfenvdir],
-            AS_HELP_STRING([--with-sysconfenvdir=DIR],
-			   [Directory for daemon environment files]),
-            [sysconfenvdir=$with_sysconfenvdir],
-            [sysconfenvdir="${sysconfdir}/sysconfig"])
+     [AS_HELP_STRING([--with-sysconfenvdir=DIR],
+                     [Directory for daemon environment files])],
+     [sysconfenvdir=$with_sysconfenvdir],
+     [sysconfenvdir="${sysconfdir}/sysconfig"])
 AC_SUBST([sysconfenvdir])
-
-dnl ---------------------------------------------------------------------------
-dnl - Check for program paths
-dnl ---------------------------------------------------------------------------
-AC_PATH_PROG(UNLINK, unlink, [AC_MSG_ERROR([unlink not found])])
 
 dnl ---------------------------------------------------------------------------
 dnl - Set the data install directory since we don't use pkgdatadir
@@ -314,27 +167,26 @@ dnl Translations
 dnl ---------------------------------------------------------------------------
 # POTFILES.in needs to be created before calling AM_GNU_GETTEXT
 AC_CONFIG_COMMANDS([po/POTFILES.in],
-		   [find_start_pwd=`pwd` && dnl
-		    cd "${ac_abs_top_srcdir}" && dnl strip prefixes from find
-		    find . dnl
-			-path "./rpmbuild" -prune -o dnl
-			-path "./${PACKAGE}-*" -prune -o dnl dist directories
-			-path '*/build' -prune -o dnl Python builds
-			-path '*/dist' -prune -o dnl Python dists
-			-path './conf*' -prune -o dnl generated by configure
-			-name '*.py' -print -o dnl
-			-name '*.c' -print -o dnl
-			-name '*.h' -print dnl
-			> po/POTFILES.in && dnl
-			cd "${find_start_pwd}"])
+    [find_start_pwd=`pwd` && dnl
+     cd "${ac_abs_top_srcdir}" && dnl strip prefixes from find
+     find . dnl
+          -path "./rpmbuild" -prune -o dnl
+          -path "./${PACKAGE}-*" -prune -o dnl dist directories
+          -path '*/build' -prune -o dnl Python builds
+          -path '*/dist' -prune -o dnl Python dists
+          -path './conf*' -prune -o dnl generated by configure
+          -name '*.py' -print -o dnl
+          -name '*.c' -print -o dnl
+          -name '*.h' -print dnl
+          > po/POTFILES.in && dnl
+     cd "${find_start_pwd}"])
 AC_SUBST(GETTEXT_DOMAIN, [ipa])
 AM_GNU_GETTEXT_VERSION([0.18.2])
 AM_GNU_GETTEXT([external])
 
 dnl integrate our custom hacks into gettextize infrastructure
 AC_CONFIG_COMMANDS([po/Makefile-hackit],
-		   [echo "include Makefile.hack" dnl
-		    >> "${ac_abs_top_srcdir}/po/Makefile"])
+    [echo "include Makefile.hack" >> "${ac_abs_top_srcdir}/po/Makefile"])
 
 AC_PROG_MKDIR_P
 AC_PROG_AWK
@@ -350,25 +202,24 @@ dnl ---------------------------------------------------------------------------
 dnl IPA platform
 dnl ---------------------------------------------------------------------------
 AC_ARG_WITH([ipaplatform],
-	    [AC_HELP_STRING([--with-ipaplatform],
-			    [IPA platform module to use])],
-	    [IPAPLATFORM=${withval}],
-	    [IPAPLATFORM=""])
+    [AC_HELP_STRING([--with-ipaplatform], [IPA platform module to use])],
+    [IPAPLATFORM=${withval}],
+    [IPAPLATFORM=""])
 AC_MSG_CHECKING([supported IPA platform])
 
 if test "x${IPAPLATFORM}" == "x"; then
-	if test -r "/etc/os-release"; then
-		IPAPLATFORM=$(. /etc/os-release; echo "$ID")
-	else
-		AC_MSG_ERROR([unable to read /etc/os-release])
-	fi
-	if test "x${IPAPLATFORM}" == "x"; then
-		AC_MSG_ERROR([unable to find ID variable in /etc/os-release])
-	fi
+    if test -r "/etc/os-release"; then
+        IPAPLATFORM=$(. /etc/os-release; echo "$ID")
+    else
+        AC_MSG_ERROR([unable to read /etc/os-release])
+    fi
+    if test "x${IPAPLATFORM}" == "x"; then
+        AC_MSG_ERROR([unable to find ID variable in /etc/os-release])
+    fi
 fi
 
 if test ! -d "${srcdir}/ipaplatform/${IPAPLATFORM}"; then
-	AC_MSG_ERROR([IPA platform ${IPAPLATFORM} is not supported])
+    AC_MSG_ERROR([IPA platform ${IPAPLATFORM} is not supported])
 fi
 
 AC_SUBST([IPAPLATFORM])
@@ -379,21 +230,23 @@ dnl ---------------------------------------------------------------------------
 dnl Version information from VERSION.m4 and command line
 dnl ---------------------------------------------------------------------------
 dnl Are we in source tree?
-AM_CONDITIONAL([IS_GIT_SNAPSHOT], [test "IPA_VERSION_IS_GIT_SNAPSHOT" == "yes"])
+AM_CONDITIONAL([IS_GIT_SNAPSHOT],
+               [test "IPA_VERSION_IS_GIT_SNAPSHOT" == "yes"])
 AM_COND_IF([IS_GIT_SNAPSHOT], [
-	AC_MSG_CHECKING([if source directory is a Git reposistory])
-	if test ! -e "${srcdir}/.git"; then
-		AC_MSG_ERROR([Git reposistory is required by VERSION.m4 IPA_VERSION_IS_GIT_SNAPSHOT but not found])
-	else
-		AC_MSG_RESULT([yes])
-	fi
+    AC_MSG_CHECKING([if source directory is a Git reposistory])
+    if test ! -e "${srcdir}/.git"; then
+        AC_MSG_ERROR([Git reposistory is required by VERSION.m4 ]
+                     [IPA_VERSION_IS_GIT_SNAPSHOT but not found])
+    else
+        AC_MSG_RESULT([yes])
+    fi
 ])
 
 AC_ARG_WITH([vendor-suffix],
-            AS_HELP_STRING([--with-vendor-suffix=STRING],
-			   [Vendor string used by package system, e.g. "-1.fc24"]),
-            [VENDOR_SUFFIX=${withval}],
-	    [VENDOR_SUFFIX=""])
+    [AS_HELP_STRING([--with-vendor-suffix=STRING],
+                   [Vendor string used by package system, e.g. "-1.fc24"])],
+    [VENDOR_SUFFIX=${withval}],
+    [VENDOR_SUFFIX=""])
 
 AC_SUBST([API_VERSION], [IPA_API_VERSION])
 AC_SUBST([DATA_VERSION], [IPA_DATA_VERSION])
@@ -410,16 +263,17 @@ dnl ---------------------------------------------------------------------------
 
 # Turn on the additional warnings last, so -Werror doesn't affect other tests.
 
-AC_ARG_ENABLE(more-warnings,
-	[AC_HELP_STRING([--enable-more-warnings],
-	[Maximum compiler warnings])],
-	set_more_warnings="$enableval",[
-        	if test -d $srcdir/../.hg; then
-        		set_more_warnings=yes
-              	else
-                  	set_more_warnings=no
-              	fi
-        ])
+AC_ARG_ENABLE([more-warnings],
+    [AC_HELP_STRING([--enable-more-warnings],
+    [Maximum compiler warnings])],
+    [set_more_warnings="$enableval"],
+    [ if test -d $srcdir/../.hg; then
+          set_more_warnings=yes
+      else
+          set_more_warnings=no
+      fi
+    ]
+)
 AC_MSG_CHECKING(for more warnings)
 if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
         AC_MSG_RESULT(yes)
@@ -455,20 +309,19 @@ dnl ---------------------------------------------------------------------------
 dnl Linters
 dnl ---------------------------------------------------------------------------
 AC_ARG_ENABLE([i18ntests],
-	       AC_HELP_STRING([--disable-i18ntests],
-			      [do not execute ipatests/i18n.py
-			       (depends on python-polib)]),
-		,
-		[enable_i18ntests="yes"]
+    [AC_HELP_STRING(
+        [--disable-i18ntests],
+        [do not execute ipatests/i18n.py (depends on python-polib)])],
+    [],
+    [enable_i18ntests=$enable_server]
 )
 AC_SUBST([i18ntests])
 AM_CONDITIONAL([WITH_POLINT], [test "x${enable_i18ntests}" == "xyes"])
 
 AC_ARG_ENABLE([pylint],
-	    AS_HELP_STRING([--disable-pylint],
-			   [skip Pylint in make lint target]),
-	    [PYLINT=$enableval],
-	    [PYLINT=yes]
+    [AS_HELP_STRING([--disable-pylint], [skip Pylint in make lint target])],
+    [PYLINT=$enableval],
+    [PYLINT=$enable_server]
 )
 if test x$PYLINT != xno; then
     AC_MSG_CHECKING([for Pylint])
@@ -484,15 +337,15 @@ AM_CONDITIONAL([WITH_PYLINT], [test "x${PYLINT}" != "xno"])
 
 
 AC_ARG_WITH([jslint],
-        AS_HELP_STRING([--with-jslint=[FILE]],
-                       [path to JavaScript linter. Default is autodetection of
-                       utility "jsl" ]),
+    AS_HELP_STRING([--with-jslint=[FILE]],
+                   [path to JavaScript linter. Default is autodetection of ]
+                   [utility "jsl" ]),
 dnl --without-jslint will set JSLINT=no
         [JSLINT=$with_jslint],
         [AC_PATH_PROG([JSLINT], [jsl])]
 )
-if test "x${JSLINT}" == "x"; then
-	AC_MSG_ERROR([cannot find JS lint])
+if test "x$enable_server" = "xyes" -a "x${JSLINT}" = "x"; then
+    AC_MSG_ERROR([cannot find JS lint])
 fi
 AC_SUBST([JSLINT])
 AM_CONDITIONAL([WITH_JSLINT], [test "x${JSLINT}" != "xno"])
@@ -511,7 +364,8 @@ AC_CONFIG_LINKS([ipaplatform/__init__.py:ipaplatform/$IPAPLATFORM/__init__.py
                  ipaplatform/paths.py:ipaplatform/$IPAPLATFORM/paths.py
                  ipaplatform/services.py:ipaplatform/$IPAPLATFORM/services.py
                  ipaplatform/tasks.py:ipaplatform/$IPAPLATFORM/tasks.py
-		])
+                ]
+)
 
 AC_CONFIG_FILES([
     Makefile
@@ -588,7 +442,7 @@ echo "
                     IPA Server $VERSION
                     ========================
 
-	vendor version:           ${VERSION}${VENDOR_SUFFIX}
+        vendor version:           ${VERSION}${VENDOR_SUFFIX}
         prefix:                   ${prefix}
         exec_prefix:              ${exec_prefix}
         libdir:                   ${libdir}
@@ -598,14 +452,19 @@ echo "
         sysconfenvdir:            ${sysconfenvdir}
         localstatedir:            ${localstatedir}
         datadir:                  ${datadir}
-        krb5rundir:               ${krb5rundir}
-        systemdsystemunitdir:     ${systemdsystemunitdir}
-        systemdtmpfilesdir:       ${systemdtmpfilesdir}
         source code location:     ${srcdir}
         compiler:                 ${CC}
         cflags:                   ${CFLAGS}
         LDAP libs:                ${LDAP_LIBS}
         KRB5 libs:                ${KRB5_LIBS}
-        KRAD libs:                ${KRAD_LIBS}
         OpenSSL crypto libs:      ${CRYPTO_LIBS}
+        server support:           ${enable_server}
+        ipatests:                 ${with_ipatests}
 "
+AS_IF([test x"$enable_server" = xyes], [
+echo "\
+        krb5rundir:               ${krb5rundir}
+        systemdsystemunitdir:     ${systemdsystemunitdir}
+        systemdtmpfilesdir:       ${systemdtmpfilesdir}
+        KRAD libs:                ${KRAD_LIBS}"
+])
