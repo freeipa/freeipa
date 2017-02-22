@@ -63,9 +63,13 @@ if six.PY3:
 PEM = 0
 DER = 1
 
+# The first group is the whole PEM datum and the second group is
+# the base64 content (with newlines).  For findall() the result is
+# a list of 2-tuples of the PEM and base64 data.
 PEM_CERT_REGEX = re.compile(
-    b'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----',
+    b'(-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----)',
     re.DOTALL)
+
 PEM_PRIV_REGEX = re.compile(
     b'-----BEGIN(?: ENCRYPTED)?(?: (?:RSA|DSA|DH|EC))? PRIVATE KEY-----.*?'
     b'-----END(?: ENCRYPTED)?(?: (?:RSA|DSA|DH|EC))? PRIVATE KEY-----',
@@ -447,7 +451,7 @@ def load_certificate_list(data):
     Return a list of python-cryptography ``Certificate`` objects.
     """
     certs = PEM_CERT_REGEX.findall(data)
-    return [load_pem_x509_certificate(cert) for cert in certs]
+    return [load_pem_x509_certificate(cert[0]) for cert in certs]
 
 
 def load_certificate_list_from_file(filename):
