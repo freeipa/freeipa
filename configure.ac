@@ -235,7 +235,13 @@ PKG_CHECK_MODULES([SSSNSSIDMAP], [sss_nss_idmap >= 1.13.90])
 dnl ---------------------------------------------------------------------------
 dnl - Check for POPT
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([POPT], [popt])
+POPT_LIBS=
+PKG_CHECK_MODULES([POPT], [popt], [],
+    [AC_CHECK_HEADER([popt.h], [], [AC_MSG_ERROR([popt.h not found])])
+     AC_CHECK_LIB([popt], [poptGetContext], [POPT_LIBS="-lpopt"])
+     AC_SUBST(POPT_LIBS)
+    ]
+)
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for SASL
