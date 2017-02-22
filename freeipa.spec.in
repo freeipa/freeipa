@@ -1,6 +1,17 @@
+# rpmbuild --rebuild --without server freeipa.src.rpm
+#
+# The server build is enabled by default. Set --without or change
+# bcond_with server for client only build.
+%bcond_without server
+
 # Define ONLY_CLIENT to only make the ipa-client and ipa-python
 # subpackages
-%{!?ONLY_CLIENT:%global ONLY_CLIENT 0}
+%if %{with server}
+    %global ONLY_CLIENT 0
+%else
+    %global ONLY_CLIENT 1
+    %global disable_server_option --disable-server
+%endif
 
 %if 0%{?rhel}
 %global with_python3 0
@@ -791,7 +802,8 @@ find \
 	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python2}|' {} \;
 %configure --with-vendor-suffix=-%{release} \
            %{enable_pylint_option} \
-           %{?without_jslint_option}
+           %{?without_jslint_option} \
+           %{?disable_server_option}
 
 # -Onone is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1398405
 %make_build -Onone
@@ -809,7 +821,8 @@ find \
 	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python3}|' {} \;
 %configure --with-vendor-suffix=-%{release} \
            %{enable_pylint_option} \
-           %{?without_jslint_option}
+           %{?without_jslint_option} \
+           %{?disable_server_option}
 popd
 %endif # with_python3
 
@@ -817,7 +830,7 @@ popd
 %if ! %{ONLY_CLIENT}
 make %{?_smp_mflags} check VERBOSE=yes LIBDIR=%{_libdir}
 %else
-make %{?_smp_mflags} client-check VERBOSE=yes LIBDIR=%{_libdir}
+make %{?_smp_mflags} check VERBOSE=yes LIBDIR=%{_libdir}
 %endif # ONLY_CLIENT
 
 
@@ -843,20 +856,25 @@ pushd %{_builddir}/freeipa-%{version}-python3
 (cd ipalib && %make_install)
 (cd ipaplatform && %make_install)
 (cd ipapython && %make_install)
+%if ! %{ONLY_CLIENT}
 (cd ipaserver && %make_install)
 (cd ipatests && %make_install)
+%endif
 popd
 
+%if ! %{ONLY_CLIENT}
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python3_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python3_version}
 mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{python3_version}
 ln -s %{_bindir}/ipa-run-tests-%{python3_version} %{buildroot}%{_bindir}/ipa-run-tests-3
 ln -s %{_bindir}/ipa-test-config-%{python3_version} %{buildroot}%{_bindir}/ipa-test-config-3
 ln -s %{_bindir}/ipa-test-task-%{python3_version} %{buildroot}%{_bindir}/ipa-test-task-3
+%endif
 %endif # with_python3
 
 # Python 2 installation
 %make_install
+%if ! %{ONLY_CLIENT}
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python2_version}
 mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{python2_version}
@@ -867,6 +885,7 @@ ln -s %{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-tes
 ln -s %{_bindir}/ipa-run-tests-%{python2_version} %{buildroot}%{_bindir}/ipa-run-tests
 ln -s %{_bindir}/ipa-test-config-%{python2_version} %{buildroot}%{_bindir}/ipa-test-config
 ln -s %{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-test-task
+%endif
 
 
 # remove files which are useful only for make uninstall
@@ -1385,7 +1404,6 @@ fi
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/secmod.db
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/pwdfile.txt
 %ghost %config(noreplace) %{_sysconfdir}/pki/ca-trust/source/ipa.p11-kit
-%dir %{_usr}/share/ipa
 %dir %{_localstatedir}/lib/ipa-client
 %dir %{_localstatedir}/lib/ipa-client/sysrestore
 %{_mandir}/man5/default.conf.5*
