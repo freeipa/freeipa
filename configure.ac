@@ -155,7 +155,13 @@ AM_CHECK_WRAPPER(nss_wrapper, HAVE_NSS_WRAPPER)
 dnl ---------------------------------------------------------------------------
 dnl - Check for POPT
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([POPT], [popt])
+POPT_LIBS=
+PKG_CHECK_MODULES([POPT], [popt], [],
+    [AC_CHECK_HEADER([popt.h], [], [AC_MSG_ERROR([popt.h not found])])
+     AC_CHECK_LIB([popt], [poptGetContext], [POPT_LIBS="-lpopt"])
+     AC_SUBST(POPT_LIBS)
+    ]
+)
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for SASL
