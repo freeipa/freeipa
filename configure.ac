@@ -265,7 +265,7 @@ AC_SUBST(LIBINTL_LIBS)
 dnl ---------------------------------------------------------------------------
 dnl - Check for libini_config
 dnl ---------------------------------------------------------------------------
-PKG_CHECK_MODULES([INI], [ini_config >= 1.2.0])
+PKG_CHECK_MODULES([INI], [ini_config >= 1.1.0])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for systemd directories
