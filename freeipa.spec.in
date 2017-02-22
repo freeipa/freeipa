@@ -17,6 +17,9 @@
     %global without_jslint_option --without-jslint
 %endif
 
+# Python wheel support and PyPI packages
+%global with_wheels 0
+
 %global alt_name ipa
 %if 0%{?rhel}
 %global samba_version 4.0.5-1
@@ -124,14 +127,16 @@ BuildRequires:  python-libsss_nss_idmap
 BuildRequires:  python-cffi
 
 #
-# Build dependencies for wheel packaging
+# Build dependencies for wheel packaging and PyPI upload
 #
-%if 0%{?fedora}
+%if 0%{with_wheels}
+BuildRequires:  python2-twine
 BuildRequires:  python2-wheel
 %if 0%{?with_python3}
+BuildRequires:  python3-twine
 BuildRequires:  python3-wheel
 %endif
-%endif # Fedora
+%endif # with_wheels
 
 #
 # Build dependencies for lint
