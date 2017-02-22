@@ -121,6 +121,15 @@ if test "x$PYTHON" = "x" ; then
   AC_MSG_ERROR([Python not found])
 fi
 
+AC_MSG_CHECKING($(basename $PYTHON) module setuptools )
+$PYTHON -c "import setuptools" 2>/dev/null
+if test $? -eq 0; then
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
+    AC_MSG_ERROR([$PYTHON module setuptools is required for installation])
+fi
+
 dnl ---------------------------------------------------------------------------
 dnl Check for ndr_krb5pac and other samba libraries
 dnl ---------------------------------------------------------------------------
