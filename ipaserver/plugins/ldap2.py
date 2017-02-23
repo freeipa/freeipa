@@ -67,18 +67,19 @@ class ldap2(CrudBackend, LDAPClient):
     LDAP Backend Take 2.
     """
 
-    def __init__(self, api, ldap_uri=None):
-        if ldap_uri is None:
-            ldap_uri = api.env.ldap_uri
-
+    def __init__(self, api):
         force_schema_updates = api.env.context in ('installer', 'updates')
 
         CrudBackend.__init__(self, api)
-        LDAPClient.__init__(self, ldap_uri,
+        LDAPClient.__init__(self, None,
                             force_schema_updates=force_schema_updates)
 
         self._time_limit = float(LDAPClient.time_limit)
         self._size_limit = int(LDAPClient.size_limit)
+
+    @property
+    def ldap_uri(self):
+        return self.api.env.ldap_uri
 
     @property
     def time_limit(self):

@@ -704,21 +704,22 @@ class LDAPClient(object):
             If true, attributes are decoded to Python types according to their
             syntax.
         """
-        self.ldap_uri = ldap_uri
+        if ldap_uri is not None:
+            self.ldap_uri = ldap_uri
+            self.host = 'localhost'
+            self.port = None
+            url_data = urlparse(ldap_uri)
+            self._protocol = url_data.scheme
+            if self._protocol in ('ldap', 'ldaps'):
+                self.host = url_data.hostname
+                self.port = url_data.port
+
         self._start_tls = start_tls
         self._force_schema_updates = force_schema_updates
         self._no_schema = no_schema
         self._decode_attrs = decode_attrs
         self._cacert = cacert
         self._sasl_nocanon = sasl_nocanon
-
-        self.host = 'localhost'
-        self.port = None
-        url_data = urlparse(ldap_uri)
-        self._protocol = url_data.scheme
-        if self._protocol in ('ldap', 'ldaps'):
-            self.host = url_data.hostname
-            self.port = url_data.port
 
         self.log = log_mgr.get_logger(self)
         self._has_schema = False
