@@ -326,7 +326,7 @@ class dnsrecord(Object):
             'dnsclass',
             required=False,
         ),
-        parameters.Str(
+        parameters.Any(
             'dnsrecords',
             required=False,
             label=_(u'Records'),
