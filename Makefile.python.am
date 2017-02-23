@@ -17,17 +17,19 @@ all-local: $(top_builddir)/ipasetup.py
 	cd $(srcdir); $(PYTHON) setup.py \
 		$(VERBOSITY) \
 		build \
-		--build-base "$(abs_builddir)/build"
+		    --build-base "$(abs_builddir)/build"
 
 install-exec-local: $(top_builddir)/ipasetup.py
 	if [ "x$(pkginstall)" = "xtrue" ]; then \
 	    $(PYTHON) $(srcdir)/setup.py \
 		    $(VERBOSITY) \
+		    build \
+		        --build-base "$(abs_builddir)/build" \
 		    install \
-		    --prefix "$(DESTDIR)$(prefix)" \
-		    --single-version-externally-managed \
-		    --record "$(DESTDIR)$(pkgpythondir)/install_files.txt" \
-		    --optimize 1; \
+		        --prefix "$(DESTDIR)$(prefix)" \
+		        --single-version-externally-managed \
+		        --record "$(DESTDIR)$(pkgpythondir)/install_files.txt" \
+		        --optimize 1; \
 	fi
 
 uninstall-local:
@@ -37,7 +39,10 @@ uninstall-local:
 	rm -rf "$(DESTDIR)$(pkgpythondir)"
 
 clean-local: $(top_builddir)/ipasetup.py
-	$(PYTHON) "$(srcdir)/setup.py" clean --all
+	$(PYTHON) "$(srcdir)/setup.py" \
+	    clean \
+	        --all
+	        --build-base "$(abs_builddir)/build"
 	rm -rf "$(srcdir)/build" "$(srcdir)/dist" "$(srcdir)/MANIFEST"
 	find "$(srcdir)" \
 		-name "*.py[co]" -delete -o	\
@@ -59,4 +64,8 @@ WHEELDISTDIR = $(top_builddir)/dist/wheels
 .PHONY: bdist_wheel
 bdist_wheel: $(top_builddir)/ipasetup.py
 	rm -rf $(WHEELDISTDIR)/$(pkgname)-*.whl
-	$(PYTHON) "$(srcdir)/setup.py" bdist_wheel --dist-dir=$(WHEELDISTDIR)
+	$(PYTHON) "$(srcdir)/setup.py" \
+	    build \
+	        --build-base "$(abs_builddir)/build" \
+	    bdist_wheel \
+	        --dist-dir=$(WHEELDISTDIR)
