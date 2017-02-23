@@ -52,7 +52,7 @@ except ImportError:
 from ipalib import errors, messages
 from ipalib.constants import (
     DOMAIN_LEVEL_0,
-    TLS_VERSIONS, TLS_VERSION_MINIMAL
+    TLS_VERSIONS, TLS_VERSION_MINIMAL, TLS_HIGH_CIPHERS
 )
 from ipalib.text import _
 from ipapython.ssh import SSHPublicKey
@@ -302,6 +302,10 @@ def create_https_connection(
         ssl.OP_ALL | ssl.OP_NO_COMPRESSION | ssl.OP_SINGLE_DH_USE |
         ssl.OP_SINGLE_ECDH_USE
     )
+
+    # high ciphers without RC4, MD5, TripleDES, pre-shared key
+    # and secure remote password
+    ctx.set_ciphers(TLS_HIGH_CIPHERS)
 
     # pylint: enable=no-member
     # set up the correct TLS version flags for the SSL context
