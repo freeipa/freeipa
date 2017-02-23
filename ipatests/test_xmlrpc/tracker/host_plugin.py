@@ -27,6 +27,7 @@ class HostTracker(KerberosAliasMixin, Tracker):
         'krbprincipalname', 'managedby_host',
         'has_keytab', 'has_password', 'issuer',
         'serial_number', 'serial_number_hex', 'sha1_fingerprint',
+        'sha256_fingerprint',
         'subject', 'usercertificate', 'valid_not_after', 'valid_not_before',
         'macaddress', 'sshpubkeyfp', 'ipaallowedtoperform_read_keys_user',
         'memberof_hostgroup', 'memberofindirect_hostgroup',
