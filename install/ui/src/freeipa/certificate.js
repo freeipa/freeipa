@@ -361,7 +361,6 @@ IPA.cert.view_dialog = function(spec) {
     that.issuer = IPA.cert.parse_dn(spec.certificate.issuer);
     that.issued_on = spec.certificate.valid_not_before || '';
     that.expires_on = spec.certificate.valid_not_after || '';
-    that.sha1_fingerprint = spec.certificate.sha1_fingerprint || '';
     that.sha256_fingerprint = spec.certificate.sha256_fingerprint || '';
 
     that.create_button({
@@ -426,8 +425,6 @@ IPA.cert.view_dialog = function(spec) {
 
         table_layout = that.create_layout().appendTo(that.container);
 
-        new_row('@i18n:objects.cert.sha1_fingerprint', that.sha1_fingerprint)
-            .appendTo(table_layout);
         new_row('@i18n:objects.cert.sha256_fingerprint', that.sha256_fingerprint)
             .appendTo(table_layout);
     };
@@ -570,7 +567,7 @@ IPA.cert.loader = function(spec) {
             revocation_reason: result.revocation_reason,
             serial_number: result.serial_number,
             serial_number_hex: result.serial_number_hex,
-            sha1_fingerprint: result.sha1_fingerprint,
+            sha256_fingerprint: result.sha256_fingerprint,
             subject: result.subject,
             valid_not_after: result.valid_not_after,
             valid_not_before: result.valid_not_before
@@ -1575,9 +1572,9 @@ exp.create_cert_metadata = function() {
     add_param('valid_not_after',
                 text.get('@i18n:objects.cert.expires_on'),
                 text.get('@i18n:objects.cert.expires_on'));
-    add_param('sha1_fingerprint',
-                text.get('@i18n:objects.cert.sha1_fingerprint'),
-                text.get('@i18n:objects.cert.sha1_fingerprint'));
+    add_param('sha256_fingerprint',
+                text.get('@i18n:objects.cert.sha256_fingerprint'),
+                text.get('@i18n:objects.cert.sha256_fingerprint'));
     add_param('certificate',
                 text.get('@i18n:objects.cert.certificate'),
                 text.get('@i18n:objects.cert.certificate'));
@@ -1754,7 +1751,7 @@ return {
                         },
                         'valid_not_before',
                         'valid_not_after',
-                        'sha1_fingerprint',
+                        'sha256_fingerprint',
                         {
                             $type: 'revocation_reason',
                             name: 'revocation_reason'

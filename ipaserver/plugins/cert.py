@@ -346,8 +346,8 @@ class BaseCertObject(Object):
             flags={'no_create', 'no_update', 'no_search'},
         ),
         Str(
-            'sha1_fingerprint',
-            label=_('Fingerprint (SHA1)'),
+            'sha256_fingerprint',
+            label=_('Fingerprint (SHA256)'),
             flags={'no_create', 'no_update', 'no_search'},
         ),
         Int(
@@ -388,8 +388,8 @@ class BaseCertObject(Object):
             obj['valid_not_after'] = x509.format_datetime(
                     cert.not_valid_after)
             if full:
-                obj['sha1_fingerprint'] = x509.to_hex_with_colons(
-                    cert.fingerprint(hashes.SHA1()))
+                obj['sha256_fingerprint'] = x509.to_hex_with_colons(
+                    cert.fingerprint(hashes.SHA256()))
 
             general_names = x509.process_othernames(
                     x509.get_san_general_names(cert))
