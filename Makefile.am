@@ -171,6 +171,7 @@ pylint: $(top_builddir)/ipapython/version.py ipasetup.py
 		-path './rpmbuild' -prune -o \
 		-path './freeipa-*' -prune -o \
 		-path './dist' -prune -o \
+		-path './pypi' -prune -o \
 		-name '.*' -o \
 		-name '*.in' -o \
 		-name '*~' -o \
