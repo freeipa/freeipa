@@ -65,7 +65,7 @@ def parse_options():
     parser.add_option("--external-ca-type", dest="external_ca_type",
                       type="choice", choices=ext_cas,
                       metavar="{{{0}}}".format(",".join(ext_cas)),
-                      help="Type of the external CA")
+                      help="Type of the external CA. Possible values are "generic", "ms-cs". Default value is "generic")
     parser.add_option("--external-cert-file", dest="external_cert_files",
                       action="append", metavar="FILE",
                       help="File containing the IPA CA certificate and the external CA certificate chain")
