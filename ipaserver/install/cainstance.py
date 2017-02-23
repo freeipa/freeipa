@@ -738,9 +738,7 @@ class CAInstance(DogtagInstance):
         cert_data = self.ra_cert.public_bytes(serialization.Encoding.DER)
 
         # connect to CA database
-        server_id = installutils.realm_to_serverid(api.env.realm)
-        dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
-        conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
+        conn = ldap2.ldap2(api)
         conn.connect(autobind=True)
 
         # create ipara user with RA certificate
@@ -1355,14 +1353,12 @@ def __update_entry_from_cert(make_filter, make_entry, dercert):
     base_dn = DN(('o', 'ipaca'))
 
     attempts = 0
-    server_id = installutils.realm_to_serverid(api.env.realm)
-    dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
     updated = False
 
     while attempts < 10:
         conn = None
         try:
-            conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
+            conn = ldap2.ldap2(api)
             conn.connect(autobind=True)
 
             db_filter = make_filter(dercert)
@@ -1392,7 +1388,7 @@ def __update_entry_from_cert(make_filter, make_entry, dercert):
         except errors.NetworkError:
             syslog.syslog(
                 syslog.LOG_ERR,
-                'Connection to %s failed, sleeping 30s' % dogtag_uri)
+                'Connection to %s failed, sleeping 30s' % api.env.ldap_uri)
             time.sleep(30)
             attempts += 1
         except Exception as e:
@@ -1482,10 +1478,7 @@ def ensure_entry(dn, **attrs):
     otherwise add the entry and return ``True``.
 
     """
-    server_id = installutils.realm_to_serverid(api.env.realm)
-    dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
-
-    conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
+    conn = ldap2.ldap2(api)
     if not conn.isconnected():
         conn.connect(autobind=True)
 
@@ -1572,9 +1565,7 @@ def __get_profile_config(profile_id):
         '/usr/share/ipa/profiles/{}.cfg'.format(profile_id), sub_dict)
 
 def import_included_profiles():
-    server_id = installutils.realm_to_serverid(api.env.realm)
-    dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
-    conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
+    conn = ldap2.ldap2(api)
     if not conn.isconnected():
         conn.connect(autobind=True)
 
