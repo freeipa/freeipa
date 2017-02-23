@@ -21,7 +21,7 @@
 import time
 from time import gmtime, strftime
 import posixpath
-import os
+
 import six
 
 from ipalib import api
@@ -63,11 +63,9 @@ from ipalib import _, ngettext
 from ipalib import output
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+from ipapython.ipaldap import LDAPClient
 from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipalib.capabilities import client_has_capability
-
-if api.env.in_server:
-    from ipaserver.plugins.ldap2 import ldap2
 
 if six.PY3:
     unicode = str
@@ -1119,9 +1117,9 @@ class user_status(LDAPQuery):
             if host == api.env.host:
                 other_ldap = self.obj.backend
             else:
-                other_ldap = ldap2(self.api, ldap_uri='ldap://%s' % host)
                 try:
-                    other_ldap.connect(ccache=os.environ['KRB5CCNAME'])
+                    other_ldap = LDAPClient(ldap_uri='ldap://%s' % host)
+                    other_ldap.gssapi_bind()
                 except Exception as e:
                     self.error("user_status: Connecting to %s failed with %s" % (host, str(e)))
                     newresult = {'dn': dn}
@@ -1166,7 +1164,7 @@ class user_status(LDAPQuery):
                 count += 1
 
             if host != api.env.host:
-                other_ldap.disconnect()
+                other_ldap.close()
 
         return dict(result=entries,
                     count=count,
