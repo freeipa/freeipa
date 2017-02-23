@@ -276,6 +276,8 @@ def set_certificate_attrs(entry_attrs):
     entry_attrs['valid_not_after'] = x509.format_datetime(cert.not_valid_after)
     entry_attrs['sha1_fingerprint'] = x509.to_hex_with_colons(
         cert.fingerprint(hashes.SHA1()))
+    entry_attrs['sha256_fingerprint'] = x509.to_hex_with_colons(
+        cert.fingerprint(hashes.SHA256()))
 
 def check_required_principal(ldap, principal):
     """
@@ -504,6 +506,10 @@ class service(LDAPObject):
         ),
         Str('sha1_fingerprint',
             label=_('Fingerprint (SHA1)'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
+        Str('sha256_fingerprint',
+            label=_('Fingerprint (SHA256)'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
         Str('revocation_reason?',

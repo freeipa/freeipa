@@ -571,6 +571,7 @@ IPA.cert.loader = function(spec) {
             serial_number: result.serial_number,
             serial_number_hex: result.serial_number_hex,
             sha1_fingerprint: result.sha1_fingerprint,
+            sha256_fingerprint: result.sha256_fingerprint,
             subject: result.subject,
             valid_not_after: result.valid_not_after,
             valid_not_before: result.valid_not_before
@@ -1578,6 +1579,9 @@ exp.create_cert_metadata = function() {
     add_param('sha1_fingerprint',
                 text.get('@i18n:objects.cert.sha1_fingerprint'),
                 text.get('@i18n:objects.cert.sha1_fingerprint'));
+    add_param('sha256_fingerprint',
+                text.get('@i18n:objects.cert.sha256_fingerprint'),
+                text.get('@i18n:objects.cert.sha256_fingerprint'));
     add_param('certificate',
                 text.get('@i18n:objects.cert.certificate'),
                 text.get('@i18n:objects.cert.certificate'));
@@ -1755,6 +1759,7 @@ return {
                         'valid_not_before',
                         'valid_not_after',
                         'sha1_fingerprint',
+                        'sha256_fingerprint',
                         {
                             $type: 'revocation_reason',
                             name: 'revocation_reason'
@@ -1871,7 +1876,6 @@ IPA.cert.details_facet = function(spec, no_init) {
     that.create_refresh_command = function() {
 
         var command = that.details_facet_create_refresh_command();
-        delete command.options.all;
         delete command.options.rights;
 
         command.options = command.options || {};

@@ -37,8 +37,8 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
         u'dn', u'krbprincipalname', u'usercertificate', u'has_keytab',
         u'ipakrbauthzdata', u'ipaallowedtoperform', u'subject',
         u'managedby', u'serial_number', u'serial_number_hex', u'issuer',
-        u'valid_not_before', u'valid_not_after',
-        u'sha1_fingerprint', u'krbprincipalauthind', u'managedby_host',
+        u'valid_not_before', u'valid_not_after', u'sha1_fingerprint',
+        u'sha256_fingerprint', u'krbprincipalauthind', u'managedby_host',
         u'krbcanonicalname'}
     retrieve_all_keys = retrieve_keys | {
         u'ipaKrbPrincipalAlias', u'ipaUniqueID', u'krbExtraData',

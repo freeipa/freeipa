@@ -348,6 +348,11 @@ class BaseCertObject(Object):
             label=_('Fingerprint (SHA1)'),
             flags={'no_create', 'no_update', 'no_search'},
         ),
+        Str(
+            'sha256_fingerprint',
+            label=_('Fingerprint (SHA256)'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
         Int(
             'serial_number',
             label=_('Serial number'),
@@ -388,6 +393,8 @@ class BaseCertObject(Object):
             if full:
                 obj['sha1_fingerprint'] = x509.to_hex_with_colons(
                     cert.fingerprint(hashes.SHA1()))
+                obj['sha256_fingerprint'] = x509.to_hex_with_colons(
+                    cert.fingerprint(hashes.SHA256()))
 
             general_names = x509.process_othernames(
                     x509.get_san_general_names(cert))
