@@ -824,6 +824,16 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: certmap_match/1
+args: 1,3,4
+arg: Bytes('certificate', cli_name='certificate')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Output('count', type=[<type 'int'>])
+output: ListOfEntries('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('truncated', type=[<type 'bool'>])
 command: certmapconfig_mod/1
 args: 0,8,3
 option: Str('addattr*', cli_name='addattr')
@@ -6517,6 +6527,8 @@ default: cert_request/1
 default: cert_revoke/1
 default: cert_show/1
 default: cert_status/1
+default: certmap/1
+default: certmap_match/1
 default: certmapconfig/1
 default: certmapconfig_mod/1
 default: certmapconfig_show/1
