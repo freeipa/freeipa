@@ -3531,7 +3531,7 @@ for param in _dns_records:
             'dns{}record'.format(param.rrtype.lower()),
             (Object,),
             dict(
-                takes_params=(param.parts or ()) + (param.extra or ()),
+                takes_params=param.parts or (),
             )
         )
     )

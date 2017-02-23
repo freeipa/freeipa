@@ -73,6 +73,10 @@ def prompt_parts(rrtype, cmd, mod_dnsvalue=None):
         return user_options
 
     for part_id, part in enumerate(rrobj.params()):
+        name = part_name_format % (rrtype.lower(), part.name)
+        if name not in cmd.params:
+            continue
+
         if mod_parts:
             default = mod_parts[part_id]
         else:
@@ -92,6 +96,8 @@ def prompt_missing_parts(rrtype, cmd, kw, prompt_optional=False):
 
     for part in rrobj.params():
         name = part_name_format % (rrtype.lower(), part.name)
+        if name not in cmd.params:
+            continue
 
         if name in kw:
             continue
