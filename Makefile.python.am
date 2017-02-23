@@ -1,6 +1,5 @@
 pkgname = $(shell basename "$(abs_srcdir)")
 pkgpythondir = $(pythondir)/$(pkgname)
-pkginstall = true
 
 if VERBOSE_MAKE
 VERBOSITY="--verbose"
@@ -20,7 +19,7 @@ all-local: $(top_builddir)/ipasetup.py
 		    --build-base "$(abs_builddir)/build"
 
 install-exec-local: $(top_builddir)/ipasetup.py
-	if [ "x$(pkginstall)" = "xtrue" ]; then \
+	if [ "x$(pkginstall)" != "xfalse" ]; then \
 	    $(PYTHON) $(srcdir)/setup.py \
 		    $(VERBOSITY) \
 		    build \
