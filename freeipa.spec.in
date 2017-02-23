@@ -284,6 +284,8 @@ Requires: gzip
 Requires: oddjob
 # Require 0.6.0 for the new delegation access control features
 Requires: gssproxy >= 0.6.0
+# Require 1.15.1 for the certificate identity mapping feature
+Requires: sssd-dbus >= 1.15.1
 
 Provides: %{alt_name}-server = %{version}
 Conflicts: %{alt_name}-server
