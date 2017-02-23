@@ -28,13 +28,9 @@ from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, Bool
 from ipalib.cli import to_cli
 from ipalib.plugable import Registry
 from .user import NO_UPG_MAGIC
-if api.env.in_server and api.env.context in ['lite', 'server']:
-    try:
-        from ipaserver.plugins.ldap2 import ldap2
-    except Exception as e:
-        raise e
 from ipalib import _
 from ipapython.dn import DN
+from ipapython.ipaldap import LDAPClient
 from ipapython.ipautil import write_tmp_file
 from ipapython.kerberos import Principal
 import datetime
@@ -885,8 +881,6 @@ migration process might be incomplete\n''')
             return dict(result={}, failed={}, enabled=False, compat=True)
 
         # connect to DS
-        ds_ldap = ldap2(self.api, ldap_uri=ldapuri)
-
         cacert = None
         if options.get('cacertfile') is not None:
             # store CA cert into file
@@ -894,12 +888,13 @@ migration process might be incomplete\n''')
             cacert = tmp_ca_cert_f.name
 
             # start TLS connection
-            ds_ldap.connect(bind_dn=options['binddn'], bind_pw=bindpw,
-                            cacert=cacert)
+            ds_ldap = LDAPClient(ldapuri, cacert=cacert)
+            ds_ldap.simple_bind(options['binddn'], bindpw)
 
             tmp_ca_cert_f.close()
         else:
-            ds_ldap.connect(bind_dn=options['binddn'], bind_pw=bindpw)
+            ds_ldap = LDAPClient(ldapuri, cacert=cacert)
+            ds_ldap.simple_bind(options['binddn'], bindpw)
 
         # check whether the compat plugin is enabled
         if not options.get('compat'):
