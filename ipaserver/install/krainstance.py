@@ -306,9 +306,7 @@ class KRAInstance(DogtagInstance):
         cert_data = cert.public_bytes(serialization.Encoding.DER)
 
         # connect to KRA database
-        server_id = installutils.realm_to_serverid(api.env.realm)
-        dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
-        conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
+        conn = ldap2.ldap2(api)
         conn.connect(autobind=True)
 
         # create ipakra user with RA agent certificate
