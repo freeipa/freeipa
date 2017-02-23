@@ -50,7 +50,7 @@ class batch(Command):
     NO_CLI = True
 
     takes_args = (
-        parameters.Str(
+        parameters.Any(
             'methods',
             required=False,
             multivalue=True,
