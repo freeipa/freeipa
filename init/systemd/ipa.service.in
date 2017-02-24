@@ -1,7 +1,7 @@
 [Unit]
 Description=Identity, Policy, Audit
 Requires=network.target
-Requires=gssproxy.service
+Wants=gssproxy.service
 After=network.target
 
 [Service]
