@@ -47,7 +47,11 @@ def get_security_domain():
     Get the security domain from the REST interface on the local Dogtag CA
     This function will succeed if the local dogtag CA is up.
     """
-    connection = PKIConnection()
+    connection = PKIConnection(
+        protocol='https',
+        hostname=api.env.ca_host,
+        port='8443'
+    )
     domain_client = pki.system.SecurityDomainClient(connection)
     info = domain_client.get_security_domain_info()
     return info
