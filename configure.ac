@@ -24,6 +24,9 @@ LT_INIT
 
 AC_HEADER_STDC
 
+dnl fail hard when includes statements are missing
+CFLAGS+=" -Werror=implicit-function-declaration"
+
 PKG_PROG_PKG_CONFIG
 
 AC_ARG_ENABLE([server],
