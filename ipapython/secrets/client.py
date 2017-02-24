@@ -94,6 +94,7 @@ class CustodiaClient(object):
 
         # Perform request
         r = requests.get(url, headers=headers,
+                         verify=paths.IPA_CA_CRT,
                          params={'type': 'kem', 'value': request})
         r.raise_for_status()
         reply = r.json()
