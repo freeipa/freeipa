@@ -58,7 +58,6 @@ if __name__ == '__main__':
             "netaddr",
             "pyasn1",
             "pyldap",
-            "python-nss",
             "six",
             # not available on PyPI
             # "python-libipa_hbac",

@@ -71,12 +71,11 @@ if __name__ == '__main__':
             "pyldap",
             "pytest",
             "pytest_multihost",
-            "python-nss",
             "six",
         ],
         extras_require={
             "integration": ["dbus-python", "pyyaml", "ipaserver"],
-            "ipaserver": ["ipaserver"],
+            "ipaserver": ["ipaserver", "python-nss"],
             "webui": ["selenium", "pyyaml", "ipaserver"],
             "xmlrpc": ["ipaserver"],
         }
