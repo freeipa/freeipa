@@ -20,20 +20,18 @@
 import abc
 import base64
 import datetime
-import hashlib
-import hmac
 import os
 import uuid
-import struct
 
 from lxml import etree
 import dateutil.parser
 import dateutil.tz
 import gssapi
 import six
-from six.moves import xrange
 
-from cryptography.hazmat.primitives import hashes
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import hashes, hmac
+from cryptography.hazmat.primitives.padding import PKCS7
 from cryptography.hazmat.primitives.kdf import pbkdf2
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
@@ -111,25 +109,32 @@ def convertHMACType(value):
     "Converts HMAC URI to hashlib object."
 
     return {
-        "http://www.w3.org/2000/09/xmldsig#hmac-sha1":        hashlib.sha1,
-        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha224": hashlib.sha224,
-        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256": hashlib.sha256,
-        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha384": hashlib.sha384,
-        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha512": hashlib.sha512,
-    }.get(value.lower(), hashlib.sha1)
+        "http://www.w3.org/2000/09/xmldsig#hmac-sha1":        hashes.SHA1,
+        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha224": hashes.SHA224,
+        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256": hashes.SHA256,
+        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha384": hashes.SHA384,
+        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha512": hashes.SHA512,
+    }.get(value.lower(), hashes.SHA1)
 
 
 def convertAlgorithm(value):
     "Converts encryption URI to (mech, ivlen)."
 
     return {
-        "http://www.w3.org/2001/04/xmlenc#aes128-cbc": (algorithms.AES, modes.CBC, 128),
-        "http://www.w3.org/2001/04/xmlenc#aes192-cbc": (algorithms.AES, modes.CBC, 192),
-        "http://www.w3.org/2001/04/xmlenc#aes256-cbc": (algorithms.AES, modes.CBC, 256),
-        "http://www.w3.org/2001/04/xmlenc#tripledes-cbc": (algorithms.TripleDES, modes.CBC, 64),
-        "http://www.w3.org/2001/04/xmldsig-more#camellia128": (algorithms.Camellia, modes.CBC, 128),
-        "http://www.w3.org/2001/04/xmldsig-more#camellia192": (algorithms.Camellia, modes.CBC, 192),
-        "http://www.w3.org/2001/04/xmldsig-more#camellia256": (algorithms.Camellia, modes.CBC, 256),
+        "http://www.w3.org/2001/04/xmlenc#aes128-cbc": (
+            algorithms.AES, modes.CBC, 128),
+        "http://www.w3.org/2001/04/xmlenc#aes192-cbc": (
+            algorithms.AES, modes.CBC, 192),
+        "http://www.w3.org/2001/04/xmlenc#aes256-cbc": (
+            algorithms.AES, modes.CBC, 256),
+        "http://www.w3.org/2001/04/xmlenc#tripledes-cbc": (
+            algorithms.TripleDES, modes.CBC, 64),
+        "http://www.w3.org/2001/04/xmldsig-more#camellia128": (
+            algorithms.Camellia, modes.CBC, 128),
+        "http://www.w3.org/2001/04/xmldsig-more#camellia192": (
+            algorithms.Camellia, modes.CBC, 192),
+        "http://www.w3.org/2001/04/xmldsig-more#camellia256": (
+            algorithms.Camellia, modes.CBC, 256),
 
         # TODO: add support for these formats.
         # "http://www.w3.org/2001/04/xmlenc#kw-aes128": "kw-aes128",
@@ -174,10 +179,14 @@ class PBKDF2KeyDerivation(XMLKeyDerivation):
         if params is None:
             raise ValueError("XML file is missing PBKDF2 parameters!")
 
-        salt = fetch(params, "./xenc11:Salt/xenc11:Specified/text()", base64.b64decode)
-        itrs = fetch(params, "./xenc11:IterationCount/text()", int)
-        klen = fetch(params, "./xenc11:KeyLength/text()", int)
-        hmod = fetch(params, "./xenc11:PRF/@Algorithm", convertHMACType, hashlib.sha1)
+        salt = fetch(
+            params, "./xenc11:Salt/xenc11:Specified/text()", base64.b64decode)
+        itrs = fetch(
+            params, "./xenc11:IterationCount/text()", int)
+        klen = fetch(
+            params, "./xenc11:KeyLength/text()", int)
+        hmod = fetch(
+            params, "./xenc11:PRF/@Algorithm", convertHMACType, hashes.SHA1)
 
         if salt is None:
             raise ValueError("XML file is missing PBKDF2 salt!")
@@ -189,10 +198,11 @@ class PBKDF2KeyDerivation(XMLKeyDerivation):
             raise ValueError("XML file is missing PBKDF2 key length!")
 
         self.kdf = pbkdf2.PBKDF2HMAC(
-            algorithm=hmod,
+            algorithm=hmod(),
             length=klen,
             salt=salt,
-            iterations=itrs
+            iterations=itrs,
+            backend=default_backend()
         )
 
     def derive(self, masterkey):
@@ -217,8 +227,13 @@ class XMLDecryptor(object):
         self.__hmac = hmac
 
     def __call__(self, element, mac=None):
-        (algo, mode, klen) = fetch(element, "./xenc:EncryptionMethod/@Algorithm", convertAlgorithm)
-        data = fetch(element, "./xenc:CipherData/xenc:CipherValue/text()", base64.b64decode)
+        algo, mode, klen = fetch(
+            element, "./xenc:EncryptionMethod/@Algorithm", convertAlgorithm)
+        data = fetch(
+            element,
+            "./xenc:CipherData/xenc:CipherValue/text()",
+            base64.b64decode
+        )
 
         # Make sure the key is the right length.
         if len(self.__key) * 8 != klen:
@@ -228,17 +243,24 @@ class XMLDecryptor(object):
         if mac:
             tmp = self.__hmac.copy()
             tmp.update(data)
-            if tmp.digest() != mac:
-                raise ValidationError("MAC validation failed!")
+            try:
+                tmp.verify(mac)
+            except InvalidSignature as e:
+                raise ValidationError("MAC validation failed!", e)
 
-        iv = data[:algo.block_size / 8]
+        iv = data[:algo.block_size // 8]
         data = data[len(iv):]
 
-        cipher = Cipher(algo(self.__key), mode(iv))
+        algorithm = algo(self.__key)
+        cipher = Cipher(algorithm, mode(iv), default_backend())
         decryptor = cipher.decryptor()
+        padded = decryptor.update(data)
+        padded += decryptor.finalize()
 
-        out = decryptor.update(data)
-        out += decryptor.finalize()
+        unpadder = PKCS7(algorithm.block_size).unpadder()
+        out = unpadder.update(padded)
+        out += unpadder.finalize()
+
         return out
 
 
@@ -441,7 +463,11 @@ class PSKCDocument(object):
         # Load the decryptor.
         self.__decryptor = XMLDecryptor(key)
         if self.__mkey is not None and self.__algo is not None:
-            tmp = hmac.HMAC(self.__decryptor(self.__mkey), digestmod=self.__algo)
+            tmp = hmac.HMAC(
+                self.__decryptor(self.__mkey),
+                self.__algo(),
+                backend=default_backend()
+            )
             self.__decryptor = XMLDecryptor(key, tmp)
 
     def getKeyPackages(self):
