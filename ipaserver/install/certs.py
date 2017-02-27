@@ -61,6 +61,27 @@ def get_cert_nickname(cert):
     return (str(dn[0]), dn)
 
 
+def install_pem_from_p12(p12_fname, p12_passwd, pem_fname):
+    pwd = ipautil.write_tmp_file(p12_passwd)
+    ipautil.run([paths.OPENSSL, "pkcs12", "-nokeys",
+                 "-in", p12_fname, "-out", pem_fname,
+                 "-passin", "file:" + pwd.name])
+
+
+def install_key_from_p12(p12_fname, p12_passwd, pem_fname):
+    pwd = ipautil.write_tmp_file(p12_passwd)
+    ipautil.run([paths.OPENSSL, "pkcs12", "-nodes", "-nocerts",
+                 "-in", p12_fname, "-out", pem_fname,
+                 "-passin", "file:" + pwd.name])
+
+
+def export_pem_p12(pkcs12_fname, pkcs12_pwd_fname, nickname, pem_fname):
+    ipautil.run([paths.OPENSSL, "pkcs12",
+                 "-export", "-name", nickname,
+                 "-in", pem_fname, "-out", pkcs12_fname,
+                 "-passout", "file:" + pkcs12_pwd_fname])
+
+
 class CertDB(object):
     """An IPA-server-specific wrapper around NSS
 
@@ -538,13 +559,6 @@ class CertDB(object):
                      "-k", self.passwd_fname,
                      "-w", pkcs12_pwd_fname])
 
-    def export_pem_p12(self, pkcs12_fname, pkcs12_pwd_fname,
-                       nickname, pem_fname):
-        ipautil.run([paths.OPENSSL, "pkcs12",
-                     "-export", "-name", nickname,
-                     "-in", pem_fname, "-out", pkcs12_fname,
-                     "-passout", "file:" + pkcs12_pwd_fname])
-
     def create_from_cacert(self):
         cacert_fname = paths.IPA_CA_CRT
         if ipautil.file_exists(self.certdb_fname):
@@ -628,18 +642,6 @@ class CertDB(object):
 
         self.create_pin_file()
         self.export_ca_cert(nickname, False)
-
-    def install_pem_from_p12(self, p12_fname, p12_passwd, pem_fname):
-        pwd = ipautil.write_tmp_file(p12_passwd)
-        ipautil.run([paths.OPENSSL, "pkcs12", "-nokeys",
-                     "-in", p12_fname, "-out", pem_fname,
-                     "-passin", "file:" + pwd.name])
-
-    def install_key_from_p12(self, p12_fname, p12_passwd, pem_fname):
-        pwd = ipautil.write_tmp_file(p12_passwd)
-        ipautil.run([paths.OPENSSL, "pkcs12", "-nodes", "-nocerts",
-                     "-in", p12_fname, "-out", pem_fname,
-                     "-passin", "file:" + pwd.name])
 
     def publish_ca_cert(self, location):
         self.nssdb.publish_ca_cert(self.cacert_name, location)
