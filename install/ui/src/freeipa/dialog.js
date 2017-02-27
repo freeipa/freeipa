@@ -1451,6 +1451,40 @@ IPA.confirm_dialog = function(spec) {
     return that;
 };
 
+/**
+ * Custom command multivalued dialog
+ *
+ * Combines confirmation dialog which could be reopen after unsucessful command
+ * call. It also allows to define fields and widgets in the dialog.
+ *
+ * Acceptation is done by clicking on 'Add' button or hitting 'ENTER' key,
+ * refusal by clicking on 'Cancel' button or hitting 'ESCAPE' key.
+ *
+ * @class
+ * @extends IPA.form_dialog
+ */
+IPA.custom_command_multivalued_dialog = function(spec) {
+    spec = spec || {};
+
+    /**
+     * Name of confirmation button, by default set to 'Add'.
+     * @param {String} ok_label
+     */
+    spec.ok_label = spec.ok_label || '@i18n:buttons.add';
+
+    var that = IPA.form_dialog(spec);
+
+    that.close = function() {
+        that.dialog_close();
+    };
+
+    that.on_confirm = function() {
+        if (that.on_ok) that.on_ok();
+    };
+
+    return that;
+};
+
 
 /**
  *
