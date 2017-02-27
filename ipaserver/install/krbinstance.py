@@ -346,14 +346,11 @@ class KrbInstance(service.Service):
         self.move_service_to_host(host_principal)
 
     def setup_pkinit(self):
-        ca_db = certs.CertDB(self.realm, host_name=self.fqdn,
-                                subject_base=self.subject_base)
-
         if self.pkcs12_info:
-            ca_db.install_pem_from_p12(self.pkcs12_info[0],
+            certs.install_pem_from_p12(self.pkcs12_info[0],
                                        self.pkcs12_info[1],
                                        paths.KDC_CERT)
-            ca_db.install_key_from_p12(self.pkcs12_info[0],
+            certs.install_key_from_p12(self.pkcs12_info[0],
                                        self.pkcs12_info[1],
                                        paths.KDC_KEY)
         else:

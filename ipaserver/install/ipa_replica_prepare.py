@@ -607,7 +607,7 @@ class ReplicaPrepare(admintool.AdminTool):
 
             try:
                 if is_kdc:
-                    db.export_pem_p12(pkcs12_fname, passwd_fname,
+                    certs.export_pem_p12(pkcs12_fname, passwd_fname,
                         nickname, os.path.join(self.dir, "kdc.pem"))
                 else:
                     db.export_pkcs12(pkcs12_fname, passwd_fname, nickname)
