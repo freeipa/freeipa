@@ -24,6 +24,7 @@ from optparse import (
 from copy import copy
 
 from ipapython.dn import DN
+import ipalib
 
 
 class IPAFormatter(IndentedHelpFormatter):
@@ -116,3 +117,80 @@ def add_standard_options(parser):
     parser.add_option("--server", dest="server",
                       help="Override default FQDN of IPA server")
     parser.add_option("--domain", dest="domain", help="Override default IPA DNS domain")
+
+
+class IPAConfigError(Exception):
+    pass
+
+
+class IPAConfig(object):
+    def __init__(self):
+        self.default_realm = None
+        self.default_server = []
+        self.default_domain = None
+
+    def get_realm(self):
+        if self.default_realm:
+            return self.default_realm
+        else:
+            raise IPAConfigError("no default realm")
+
+    def get_server(self):
+        if len(self.default_server):
+            return self.default_server
+        else:
+            raise IPAConfigError("no default server")
+
+    def get_domain(self):
+        if self.default_domain:
+            return self.default_domain
+        else:
+            raise IPAConfigError("no default domain")
+
+
+# Global library config
+config = IPAConfig()
+
+
+def init_config(options=None):
+    """Simple init_config for backwards compatibility
+    """
+    if options is not None:
+        config.default_realm = options.realm
+        config.default_domain = options.domain
+        if options.server:
+            config.default_server.extend(options.server.split(","))
+
+    if not all((config.default_realm, config.default_domain,
+                config.default_server)):
+        if ipalib.api.isdone("bootstrap"):
+            # re-use bootstrapped api
+            api = ipalib.api
+        else:
+            # or create a new temporary API object
+            api = ipalib.create_api(None)
+            api.bootstrap()
+
+        if not config.default_realm:
+            config.default_realm = api.env.realm
+        if not config.default_domain:
+            config.default_domain = api.env.domain
+        server = api.env.server
+        if server not in config.default_server:
+            config.default_server.append(server)
+
+    if not config.default_realm:
+        raise IPAConfigError(
+            "IPA realm not found in config file (/etc/ipa/default.conf) "
+            "or on the command line."
+        )
+    if not config.default_server:
+        raise IPAConfigError(
+            "IPA server not found in the config file (/etc/ipa/default.conf) "
+            "or on the command line."
+        )
+    if not config.default_domain:
+        raise IPAConfigError(
+            "IPA domain not found in the config file (/etc/ipa/default.conf) "
+            "or on the command line."
+        )
