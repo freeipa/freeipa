@@ -29,7 +29,6 @@ from cryptography.hazmat.primitives import serialization
 from nss import nss
 from nss.error import NSPRError
 
-from ipaplatform.tasks import tasks
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
@@ -158,18 +157,15 @@ class NSSDatabase(object):
         # Finally fix up perms
         os.chown(self.secdir, uid, gid)
         os.chmod(self.secdir, dirmode)
-        tasks.restore_context(self.secdir)
         for filename in NSS_FILES:
             path = os.path.join(self.secdir, filename)
             if os.path.exists(path):
-                if uid != -1 or gid != -1:
-                    os.chown(path, uid, gid)
+                os.chown(path, uid, gid)
                 if path == self.pwd_file:
                     new_mode = pwdfilemode
                 else:
                     new_mode = filemode
                 os.chmod(path, new_mode)
-                tasks.restore_context(path)
 
     def list_certs(self):
         """Return nicknames and cert flags for all certs in the database
