@@ -562,9 +562,9 @@ class test_Env(ClassChecker):
 
         # Test using DEFAULT_CONFIG:
         defaults = dict(constants.DEFAULT_CONFIG)
-        defaults['fips_mode'] = object
         (o, home) = self.finalize_core(None, **defaults)
-        assert list(o) == sorted(defaults)
+        list_o = [key for key in o if key != 'fips_mode']
+        assert list_o == sorted(defaults)
         for (key, value) in defaults.items():
             if value is object:
                 continue
