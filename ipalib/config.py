@@ -268,7 +268,8 @@ class Env(object):
                 value = int(value)
             elif key == 'basedn':
                 value = DN(value)
-        assert type(value) in (unicode, int, float, bool, type(None), DN)
+        if type(value) not in (unicode, int, float, bool, type(None), DN):
+            raise TypeError(key, value)
         object.__setattr__(self, key, value)
         self.__d[key] = value
 
