@@ -38,7 +38,6 @@ if __name__ == '__main__':
         ],
         install_requires=[
             "cffi",
-            "custodia",
             "cryptography",
             "dnspython",
             "gssapi",

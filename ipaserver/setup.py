@@ -47,6 +47,7 @@ if __name__ == '__main__':
         ],
         install_requires=[
             "cryptography",
+            "custodia",
             "dbus-python",
             "dnspython",
             "dogtag-pki",
