@@ -18,5 +18,6 @@ CLEANFILES = $(systemdsystemunit_DATA)
 		-e 's|@IPA_SYSCONF_DIR[@]|$(IPA_SYSCONF_DIR)|g' \
 		-e 's|@localstatedir[@]|$(localstatedir)|g' \
 		-e 's|@sbindir[@]|$(sbindir)|g' \
+		-e 's|@libexecdir[@]|$(libexecdir)|g' \
 		-e 's|@sysconfenvdir[@]|$(sysconfenvdir)|g' \
 		'$(srcdir)/$@.in' >$@

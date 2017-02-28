@@ -181,7 +181,8 @@ BuildRequires:  pki-base-python2
 BuildRequires:  python-pytest-multihost
 BuildRequires:  python-pytest-sourceorder
 BuildRequires:  python-jwcrypto
-BuildRequires:  python-custodia
+# 0.3: sd_notify (https://pagure.io/freeipa/issue/5825)
+BuildRequires:  python-custodia >= 0.3.1
 BuildRequires:  dbus-python
 BuildRequires:  python-dateutil
 BuildRequires:  python-enum34
@@ -216,7 +217,8 @@ BuildRequires:  pki-base-python3
 BuildRequires:  python3-pytest-multihost
 BuildRequires:  python3-pytest-sourceorder
 BuildRequires:  python3-jwcrypto
-BuildRequires:  python3-custodia
+# 0.3: sd_notify (https://pagure.io/freeipa/issue/5825)
+BuildRequires:  python3-custodia >= 0.3.1
 BuildRequires:  python3-dbus
 BuildRequires:  python3-dateutil
 BuildRequires:  python3-enum34
@@ -340,6 +342,7 @@ BuildArch: noarch
 Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipaclient = %{version}-%{release}
+Requires: python-custodia >= 0.3.1
 Requires: python-ldap >= 2.4.15
 Requires: python-lxml
 Requires: python-gssapi >= 1.2.0
@@ -370,6 +373,7 @@ BuildArch: noarch
 Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python3-ipaclient = %{version}-%{release}
+Requires: python3-custodia >= 0.3.1
 Requires: python3-pyldap >= 2.4.15
 Requires: python3-lxml
 Requires: python3-gssapi >= 1.2.0
@@ -399,7 +403,7 @@ BuildArch: noarch
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: httpd >= 2.4.6-31
 Requires: systemd-units >= 38
-Requires: custodia
+Requires: custodia >= 0.3.1
 
 Provides: %{alt_name}-server-common = %{version}
 Conflicts: %{alt_name}-server-common
@@ -650,7 +654,6 @@ Requires: python-jwcrypto
 Requires: python-cffi
 Requires: python-ldap >= 2.4.15
 Requires: python-requests
-Requires: python-custodia
 Requires: python-dns >= 1.15
 Requires: python-enum34
 Requires: python-netifaces >= 0.10.4
@@ -699,7 +702,6 @@ Requires: python3-six
 Requires: python3-jwcrypto
 Requires: python3-cffi
 Requires: python3-pyldap >= 2.4.15
-Requires: python3-custodia
 Requires: python3-requests
 Requires: python3-dns >= 1.15
 Requires: python3-netifaces >= 0.10.4
@@ -1160,6 +1162,7 @@ fi
 %{_libexecdir}/certmonger/dogtag-ipa-ca-renew-agent-submit
 %{_libexecdir}/certmonger/ipa-server-guard
 %dir %{_libexecdir}/ipa
+%{_libexecdir}/ipa/ipa-custodia
 %{_libexecdir}/ipa/ipa-dnskeysyncd
 %{_libexecdir}/ipa/ipa-dnskeysync-replica
 %{_libexecdir}/ipa/ipa-ods-exporter
