@@ -348,7 +348,7 @@ def install_check(standalone, options, api):
     global netbios_name
     global reset_netbios_name
 
-    if standalone:
+    if not standalone:
         check_for_installed_deps()
 
     realm_not_matching_domain = (api.env.domain.upper() != api.env.realm)
