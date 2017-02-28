@@ -40,6 +40,7 @@ EXTRA_DIST = .mailmap \
 	     API.txt \
 	     BUILD.txt \
 	     config.rpath \
+	     README.md \
 	     Contributors.txt \
 	     COPYING.openssl \
 	     contrib \

@@ -1084,7 +1084,7 @@ fi
 
 %files server
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-backup
 %{_sbindir}/ipa-restore
@@ -1172,7 +1172,7 @@ fi
 
 %files -n python2-ipaserver
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %{python2_sitelib}/ipaserver
 %{python2_sitelib}/ipaserver-*.egg-info
@@ -1182,7 +1182,7 @@ fi
 
 %files -n python3-ipaserver
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %{python3_sitelib}/ipaserver
 %{python3_sitelib}/ipaserver-*.egg-info
@@ -1192,7 +1192,7 @@ fi
 
 %files server-common
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %ghost %verify(not owner group) %dir %{_sharedstatedir}/kdcproxy
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/kdcproxy
@@ -1294,7 +1294,7 @@ fi
 
 %files server-dns
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-dns-install
 %{_mandir}/man1/ipa-dns-install.1*
@@ -1302,7 +1302,7 @@ fi
 
 %files server-trust-ad
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-adtrust-install
 %{_usr}/share/ipa/smb.conf.empty
@@ -1318,7 +1318,7 @@ fi
 
 %files client
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-client-install
 %{_sbindir}/ipa-client-automount
@@ -1339,7 +1339,7 @@ fi
 
 %files -n python2-ipaclient
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %dir %{python_sitelib}/ipaclient
 %{python_sitelib}/ipaclient/*.py*
@@ -1354,7 +1354,7 @@ fi
 
 %files -n python3-ipaclient
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %dir %{python3_sitelib}/ipaclient
 %{python3_sitelib}/ipaclient/*.py
@@ -1374,7 +1374,7 @@ fi
 
 %files client-common
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
@@ -1393,13 +1393,13 @@ fi
 
 %files python-compat
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 
 
 %files -n python2-ipalib
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %dir %{python_sitelib}/ipapython
 %{python_sitelib}/ipapython/*.py*
@@ -1418,7 +1418,7 @@ fi
 
 %files common -f %{gettext_domain}.lang
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 
 
@@ -1426,7 +1426,7 @@ fi
 
 %files -n python3-ipalib
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 
 %{python3_sitelib}/ipapython/
@@ -1443,7 +1443,7 @@ fi
 
 %files -n python2-ipatests
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %{python_sitelib}/ipatests
 %{python_sitelib}/ipatests-*.egg-info
@@ -1464,7 +1464,7 @@ fi
 
 %files -n python3-ipatests
 %defattr(-,root,root,-)
-%doc README Contributors.txt
+%doc README.md Contributors.txt
 %license COPYING
 %{python3_sitelib}/ipatests
 %{python3_sitelib}/ipatests-*.egg-info
