@@ -2,9 +2,8 @@
 Description=IPA Custodia Service
 
 [Service]
-Type=simple
-
-ExecStart=@sbindir@/custodia @IPA_SYSCONF_DIR@/custodia/custodia.conf
+Type=notify
+ExecStart=@libexecdir@/ipa/ipa-custodia @IPA_SYSCONF_DIR@/custodia/custodia.conf
 PrivateTmp=yes
 Restart=on-failure
 RestartSec=60s
