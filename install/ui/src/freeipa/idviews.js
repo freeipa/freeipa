@@ -435,6 +435,7 @@ idviews.id_override_user_details_facet = function(spec) {
             retry: false,
             options: {
                 idoverrideuser: [ pkey ],
+                sizelimit: 0,
                 all: true
             }
         });
