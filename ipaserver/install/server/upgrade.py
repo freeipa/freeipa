@@ -974,6 +974,21 @@ def certificate_renewal_update(ca, ds, http):
         root_logger.info('CA is not configured')
         return False
 
+    db = certs.CertDB(api.env.realm, paths.PKI_TOMCAT_ALIAS_DIR)
+    for nickname, _trust_flags in db.list_certs():
+        if nickname.startswith('caSigningCert cert-pki-ca '):
+            requests.append(
+                {
+                    'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
+                    'cert-nickname': nickname,
+                    'ca': 'dogtag-ipa-ca-renew-agent',
+                    'cert-presave-command': template % 'stop_pkicad',
+                    'cert-postsave-command':
+                        (template % ('renew_ca_cert "%s"' % nickname)),
+                    'template-profile': 'caCACert',
+                }
+            )
+
     # State not set, lets see if we are already configured
     for request in requests:
         request_id = certmonger.get_request_id(request)
@@ -998,6 +1013,7 @@ def certificate_renewal_update(ca, ds, http):
     ca.configure_renewal()
     ca.configure_agent_renewal()
     ca.track_servercert()
+    ca.add_lightweight_ca_tracking_requests()
     ds.start_tracking_certificates(serverid)
     http.start_tracking_certificates()
 
