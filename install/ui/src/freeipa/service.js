@@ -475,6 +475,7 @@ IPA.service.details_facet = function(spec, no_init) {
             retry: false,
             options: {
                 service: [ pkey ],
+                sizelimit: 0,
                 all: true
             }
         });

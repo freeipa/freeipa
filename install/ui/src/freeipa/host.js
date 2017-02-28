@@ -494,6 +494,7 @@ IPA.host.details_facet = function(spec, no_init) {
             retry: false,
             options: {
                 host: [ pkey ],
+                sizelimit: 0,
                 all: true
             }
         });
