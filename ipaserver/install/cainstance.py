@@ -436,7 +436,7 @@ class CAInstance(DogtagInstance):
                     self.step("adding 'ipa' CA entry", ensure_ipa_authority_entry)
 
                 self.step("configuring certmonger renewal for lightweight CAs",
-                          self.__add_lightweight_ca_tracking_requests)
+                          self.add_lightweight_ca_tracking_requests)
 
         if ra_only:
             runtime = None
@@ -1246,7 +1246,7 @@ class CAInstance(DogtagInstance):
         os.chmod(keyfile, 0o600)
         os.chown(keyfile, pent.pw_uid, pent.pw_gid)
 
-    def __add_lightweight_ca_tracking_requests(self):
+    def add_lightweight_ca_tracking_requests(self):
         try:
             lwcas = api.Backend.ldap2.get_entries(
                 base_dn=api.env.basedn,
@@ -1810,11 +1810,10 @@ def add_lightweight_ca_tracking_requests(logger, lwcas):
                     pin=certmonger.get_pin('internal'),
                     nickname=nickname,
                     ca=ipalib.constants.RENEWAL_CA_NAME,
+                    profile='caCACert',
                     pre_command='stop_pkicad',
                     post_command='renew_ca_cert "%s"' % nickname,
                 )
-                request_id = certmonger.get_request_id(criteria)
-                certmonger.modify(request_id, profile='ipaCACertRenewal')
                 logger.debug(
                     'Lightweight CA renewal: '
                     'added tracking request for "%s"', nickname)
