@@ -3,13 +3,11 @@
 #
 
 import collections
-import contextlib
 import errno
-import fcntl
-import io
 import json
 import os
 import sys
+import tempfile
 import types
 import zipfile
 
@@ -374,7 +372,6 @@ class Schema(object):
         self._dict = {}
         self._namespaces = {}
         self._help = None
-        self._file = six.BytesIO()
 
         for ns in self.namespaces:
             self._dict[ns] = {}
@@ -403,21 +400,6 @@ class Schema(object):
 
         self.fingerprint = fingerprint
         self.ttl = ttl
-
-    @contextlib.contextmanager
-    def _open(self, filename, mode):
-        path = os.path.join(self._DIR, filename)
-
-        with io.open(path, mode) as f:
-            if mode.startswith('r'):
-                fcntl.flock(f, fcntl.LOCK_SH)
-            else:
-                fcntl.flock(f, fcntl.LOCK_EX)
-
-            try:
-                yield f
-            finally:
-                fcntl.flock(f, fcntl.LOCK_UN)
 
     def _fetch(self, client, ignore_cache=False):
         if not client.isconnected():
@@ -454,13 +436,10 @@ class Schema(object):
         return (fp, ttl,)
 
     def _read_schema(self, fingerprint):
-        self._file.truncate(0)
-        with self._open(fingerprint, 'rb') as f:
-            self._file.write(f.read())
-
         # It's more efficient to read zip file members at once than to open
         # the zip file a couple of times, see #6690.
-        with zipfile.ZipFile(self._file, 'r') as schema:
+        filename = os.path.join(self._DIR, fingerprint)
+        with zipfile.ZipFile(filename, 'r') as schema:
             for name in schema.namelist():
                 ns, _slash, key = name.partition('/')
                 if ns in self.namespaces:
@@ -502,8 +481,21 @@ class Schema(object):
             if e.errno != errno.EEXIST:
                 raise
 
-        self._file.truncate(0)
-        with zipfile.ZipFile(self._file, 'w', zipfile.ZIP_DEFLATED) as schema:
+        with tempfile.NamedTemporaryFile('wb', prefix=fingerprint,
+                                         dir=self._DIR, delete=False) as f:
+            try:
+                self._write_schema_data(f)
+                f.flush()
+                os.fdatasync(f.fileno())
+                f.close()
+            except Exception:
+                os.unlink(f.name)
+                raise
+            else:
+                os.rename(f.name, os.path.join(self._DIR, fingerprint))
+
+    def _write_schema_data(self, fileobj):
+        with zipfile.ZipFile(fileobj, 'w', zipfile.ZIP_DEFLATED) as schema:
             for key, value in self._dict.items():
                 if key in self.namespaces:
                     ns = value
@@ -518,11 +510,6 @@ class Schema(object):
                 '_help',
                 json.dumps(self._generate_help(self._dict)).encode('utf-8')
             )
-
-        self._file.seek(0)
-        with self._open(fingerprint, 'wb') as f:
-            f.truncate(0)
-            f.write(self._file.read())
 
     def read_namespace_member(self, namespace, member):
         value = self._dict[namespace][member]
