@@ -905,8 +905,6 @@ def certificate_renewal_update(ca, ds, http):
     template = paths.CERTMONGER_COMMAND_TEMPLATE
     serverid = installutils.realm_to_serverid(api.env.realm)
 
-    # bump version when requests is changed
-    version = 6
     requests = [
         {
             'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
@@ -971,14 +969,9 @@ def certificate_renewal_update(ca, ds, http):
         }
     ]
 
-    root_logger.info("[Update certmonger certificate renewal configuration to "
-                     "version %d]" % version)
+    root_logger.info("[Update certmonger certificate renewal configuration]")
     if not ca.is_configured():
         root_logger.info('CA is not configured')
-        return False
-
-    state = 'certificate_renewal_update_%d' % version
-    if sysupgrade.get_upgrade_state('dogtag', state):
         return False
 
     # State not set, lets see if we are already configured
@@ -987,9 +980,6 @@ def certificate_renewal_update(ca, ds, http):
         if request_id is None:
             break
     else:
-        sysupgrade.set_upgrade_state('dogtag', state, True)
-        root_logger.info("Certmonger certificate renewal configuration is "
-                         "already at version %d" % version)
         return False
 
     # Ok, now we need to stop tracking, then we can start tracking them
@@ -998,13 +988,11 @@ def certificate_renewal_update(ca, ds, http):
     ds.stop_tracking_certificates(serverid)
     http.stop_tracking_certificates()
 
-    if not sysupgrade.get_upgrade_state('dogtag',
-                                        'certificate_renewal_update_1'):
-        filename = paths.CERTMONGER_CAS_CA_RENEWAL
-        if os.path.exists(filename):
-            with installutils.stopped_service('certmonger'):
-                root_logger.info("Removing %s" % filename)
-                installutils.remove_file(filename)
+    filename = paths.CERTMONGER_CAS_CA_RENEWAL
+    if os.path.exists(filename):
+        with installutils.stopped_service('certmonger'):
+            root_logger.info("Removing %s" % filename)
+            installutils.remove_file(filename)
 
     ca.configure_certmonger_renewal()
     ca.configure_renewal()
@@ -1013,9 +1001,7 @@ def certificate_renewal_update(ca, ds, http):
     ds.start_tracking_certificates(serverid)
     http.start_tracking_certificates()
 
-    sysupgrade.set_upgrade_state('dogtag', state, True)
-    root_logger.info("Certmonger certificate renewal configuration updated to "
-                     "version %d" % version)
+    root_logger.info("Certmonger certificate renewal configuration updated")
     return True
 
 def copy_crl_file(old_path, new_path=None):
