@@ -40,7 +40,7 @@ tools for the following components:
   http://www.samba.org/
 * DNS Server based on BIND and the Bind-DynDB-LDAP plugin
   https://www.isc.org/software/bind
-  https://fedorahosted.org/bind-dyndb-ldap
+  https://pagure.io/bind-dyndb-ldap
 
 ## Project Website
 
