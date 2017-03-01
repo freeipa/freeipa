@@ -1537,7 +1537,7 @@ def upgrade_configuration():
 
     # create passswd.txt file in PKI_TOMCAT_ALIAS_DIR if it does not exist
     # this file will be required on most actions over this NSS DB in FIPS
-    if not os.path.exists(os.path.join(
+    if ca.is_configured() and not os.path.exists(os.path.join(
             paths.PKI_TOMCAT_ALIAS_DIR, 'pwdfile.txt')):
         ca.create_certstore_passwdfile()
 
