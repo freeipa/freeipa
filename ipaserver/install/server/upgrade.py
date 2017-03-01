@@ -1495,6 +1495,31 @@ def enable_anonymous_principal(krb):
         pass
 
 
+def setup_pkinit(krb):
+    root_logger.info("[Setup PKINIT]")
+
+    if os.path.exists(paths.KDC_CERT):
+        root_logger.info("PKINIT already set up")
+        return
+
+    if not api.Command.ca_is_enabled()['result']:
+        root_logger.info("CA is not enabled")
+        return
+
+    krb.setup_pkinit()
+    replacevars = dict()
+    replacevars['pkinit_identity'] = 'FILE:{},{}'.format(
+        paths.KDC_CERT,paths.KDC_KEY)
+    appendvars = {}
+    ipautil.backup_config_and_replace_variables(
+        krb.fstore, paths.KRB5KDC_KDC_CONF, replacevars=replacevars,
+        appendvars=appendvars)
+    tasks.restore_context(paths.KRB5KDC_KDC_CONF)
+    if krb.is_running():
+        krb.stop()
+    krb.start()
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1763,19 +1788,7 @@ def upgrade_configuration():
                         KDC_CERT=paths.KDC_CERT,
                         KDC_KEY=paths.KDC_KEY,
                         CACERT_PEM=paths.CACERT_PEM)
-    if not os.path.exists(paths.KDC_CERT):
-        krb.setup_pkinit()
-        replacevars = dict()
-        replacevars['pkinit_identity'] = 'FILE:{},{}'.format(
-            paths.KDC_CERT,paths.KDC_KEY)
-        appendvars = {}
-        ipautil.backup_config_and_replace_variables(
-            fstore, paths.KRB5KDC_KDC_CONF, replacevars=replacevars,
-            appendvars=appendvars)
-        tasks.restore_context(paths.KRB5KDC_KDC_CONF)
-        if krb.is_running():
-            krb.stop()
-        krb.start()
+    setup_pkinit(krb)
     enable_anonymous_principal(krb)
     http.request_anon_keytab()
 

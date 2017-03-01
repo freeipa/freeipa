@@ -347,10 +347,18 @@ class ServerInstallInterface(client.ClientInstallInterface,
         # If any of the key file options are selected, all are required.
         cert_file_req = (self.dirsrv_cert_files, self.http_cert_files)
         cert_file_opt = (self.pkinit_cert_files,)
+        if not self.no_pkinit:
+            cert_file_req += cert_file_opt
         if any(cert_file_req + cert_file_opt) and not all(cert_file_req):
             raise RuntimeError(
-                "--dirsrv-cert-file and --http-cert-file are required if any "
-                "key file options are used.")
+                "--dirsrv-cert-file, --http-cert-file, and --pkinit-cert-file "
+                "or --no-pkinit are required if any key file options are used."
+            )
+        if self.no_pkinit and self.pkinit_cert_files:
+            raise RuntimeError(
+                "--no-pkinit and --pkinit-cert-file cannot be specified "
+                "together"
+            )
 
         if not self.interactive:
             if self.dirsrv_cert_files and self.dirsrv_pin is None:
@@ -510,9 +518,6 @@ class ServerInstallInterface(client.ClientInstallInterface,
                     raise RuntimeError(
                         "You must specify at least one of --forwarder, "
                         "--auto-forwarders, or --no-forwarders options")
-
-        # Automatically enable pkinit w/ dogtag
-        self.no_pkinit = not self.setup_ca
 
 
 ServerMasterInstallInterface = installs_master(ServerInstallInterface)
