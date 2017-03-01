@@ -14,6 +14,8 @@ from . import schema
 from ipaclient.plugins.rpcclient import rpcclient
 from ipapython.dnsutil import DNSName
 from ipapython.ipa_log_manager import log_mgr
+from ipapython.ipautil import concurrent_open
+
 
 logger = log_mgr.get_logger(__name__)
 
@@ -58,7 +60,8 @@ class ServerInfo(collections.MutableMapping):
             except EnvironmentError as e:
                 if e.errno != errno.EEXIST:
                     raise
-            with open(self._path, 'w') as sc:
+
+            with concurrent_open(self._path, 'w') as sc:
                 json.dump(self._dict, sc)
         except EnvironmentError as e:
             logger.warning('Failed to write server info: {}'.format(e))
