@@ -165,6 +165,7 @@ class BasePathNamespace(object):
     BIN_KVNO = "/usr/bin/kvno"
     LDAPMODIFY = "/usr/bin/ldapmodify"
     LDAPPASSWD = "/usr/bin/ldappasswd"
+    MODUTIL = "/usr/bin/modutil"
     NET = "/usr/bin/net"
     BIN_NISDOMAINNAME = "/usr/bin/nisdomainname"
     NSUPDATE = "/usr/bin/nsupdate"
