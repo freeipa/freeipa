@@ -120,7 +120,8 @@ class IPAUpgrade(service.Service):
         if ds_running:
             self.step("starting directory server", self.__start)
         self.start_creation(start_message="Upgrading IPA:",
-                            show_service_name=False)
+                            show_service_name=False,
+                            runtime=90)
 
     def __save_config(self):
         shutil.copy2(self.filename, self.savefilename)

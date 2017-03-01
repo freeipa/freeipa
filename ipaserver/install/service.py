@@ -365,7 +365,7 @@ class Service(object):
         self.steps.append((message, method, run_after_failure))
 
     def start_creation(self, start_message=None, end_message=None,
-        show_service_name=True, runtime=-1):
+                       show_service_name=True, runtime=None):
         """
         Starts creation of the service.
 
@@ -401,7 +401,7 @@ class Service(object):
                 else:
                     end_message = "Done configuring %s." % self.service_desc
 
-        if runtime > 0:
+        if runtime is not None and runtime > 0:
             self.print_msg('%s. Estimated time: %s' % (start_message,
                                                       format_seconds(runtime)))
         else:

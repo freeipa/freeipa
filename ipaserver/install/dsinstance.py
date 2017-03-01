@@ -350,7 +350,7 @@ class DsInstance(service.Service):
 
         self.__common_post_setup()
 
-        self.start_creation(runtime=60)
+        self.start_creation(runtime=30)
 
     def enable_ssl(self):
         self.steps = []
@@ -359,7 +359,7 @@ class DsInstance(service.Service):
         self.step("restarting directory server", self.__restart_instance)
         self.step("adding CA certificate entry", self.__upload_ca_cert)
 
-        self.start_creation(runtime=10)
+        self.start_creation()
 
     def create_replica(self, realm_name, master_fqdn, fqdn,
                        domain_name, dm_password,
@@ -412,7 +412,7 @@ class DsInstance(service.Service):
 
         self.__common_post_setup()
 
-        self.start_creation(runtime=60)
+        self.start_creation(runtime=30)
 
 
     def __setup_replica(self):
