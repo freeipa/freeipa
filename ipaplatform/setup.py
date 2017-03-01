@@ -45,7 +45,6 @@ if __name__ == '__main__':
             # "ipalib",  # circular dependency
             "ipapython",
             "pyasn1",
-            "python-nss",
             "six",
         ],
     )

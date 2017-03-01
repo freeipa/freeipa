@@ -33,12 +33,11 @@ import base64
 import traceback
 import errno
 
-from cffi import FFI
 from ctypes.util import find_library
 from functools import total_ordering
-
 from subprocess import CalledProcessError
-from nss.error import NSPRError
+
+from cffi import FFI
 from pyasn1.error import PyAsn1Error
 from six.moves import urllib
 
@@ -223,6 +222,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
     def insert_ca_certs_into_systemwide_ca_store(self, ca_certs):
         from ipalib import x509  # FixMe: break import cycle
+        from ipalib.errors import CertificateError
 
         new_cacert_path = paths.SYSTEMWIDE_IPA_CA_CRT
 
@@ -252,7 +252,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 issuer = x509.get_der_issuer(cert, x509.DER)
                 serial_number = x509.get_der_serial_number(cert, x509.DER)
                 public_key_info = x509.get_der_public_key_info(cert, x509.DER)
-            except (NSPRError, PyAsn1Error, ValueError) as e:
+            except (PyAsn1Error, ValueError, CertificateError) as e:
                 root_logger.warning(
                     "Failed to decode certificate \"%s\": %s", nickname, e)
                 continue
