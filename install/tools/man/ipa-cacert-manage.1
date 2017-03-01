@@ -31,7 +31,7 @@ ipa\-cacert\-manage \- Manage CA certificates in IPA
 \- Renew the IPA CA certificate
 .sp
 .RS
-This command can be used to manually renew the CA certificate of the IPA CA.
+This command can be used to manually renew the CA certificate of the IPA CA (NSS database nickname: "caSigningCert cert-pki-ca"). To renew other certificates, use getcert-resubmit(1).
 .sp
 When the IPA CA is the root CA (the default), it is not usually necessary to manually renew the CA certificate, as it will be renewed automatically when it is about to expire, but you can do so if you wish.
 .sp
@@ -100,3 +100,6 @@ p \- not trusted
 0 if the command was successful
 
 1 if an error occurred
+
+.SH "SEE ALSO"
+.BR getcert-resubmit(1)
