@@ -31,7 +31,6 @@ import sys
 import pytest
 import nose
 from nose.tools import assert_raises  # pylint: disable=E0611
-import nss.nss as nss
 import six
 
 from ipaplatform.paths import paths
@@ -53,7 +52,6 @@ class test_ldap(object):
     def setup(self):
         self.conn = None
         self.ldapuri = 'ldap://%s' % ipautil.format_netloc(api.env.host)
-        nss.nss_init_nodb()
         self.dn = DN(('krbprincipalname','ldap/%s@%s' % (api.env.host, api.env.realm)),
                      ('cn','services'),('cn','accounts'),api.env.basedn)
 
