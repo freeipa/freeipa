@@ -160,16 +160,21 @@ class ReplicaPrepare(admintool.AdminTool):
             self.option_parser.error("You cannot specify a --reverse-zone "
                 "option together with --no-reverse")
 
-        #Automatically disable pkinit w/ dogtag until that is supported
-        options.setup_pkinit = False
-
         # If any of the PKCS#12 options are selected, all are required.
         cert_file_req = (options.dirsrv_cert_files, options.http_cert_files)
         cert_file_opt = (options.pkinit_cert_files,)
+        if options.setup_pkinit:
+            cert_file_req += cert_file_opt
         if any(cert_file_req + cert_file_opt) and not all(cert_file_req):
             self.option_parser.error(
-                "--dirsrv-cert-file and --http-cert-file are required if any "
-                "PKCS#12 options are used.")
+                "--dirsrv-cert-file, --http-cert-file, and --pkinit-cert-file "
+                "or --no-pkinit are required if any key file options are used."
+            )
+        if not options.setup_pkinit and options.pkinit_cert_files:
+            self.option_parser.error(
+                "--no-pkinit and --pkinit-cert-file cannot be specified "
+                "together"
+            )
 
         if len(self.args) < 1:
             self.option_parser.error(
