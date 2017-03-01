@@ -132,7 +132,7 @@ class KRAInstance(DogtagInstance):
         self.step("enabling KRA instance", self.__enable_instance)
 
         try:
-            self.start_creation(runtime=126)
+            self.start_creation(runtime=120)
         finally:
             self.clean_pkispawn_files()
 

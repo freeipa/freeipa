@@ -185,7 +185,7 @@ class HTTPInstance(service.Service):
         self.step("configuring httpd to start on boot", self.__enable)
         self.step("enabling oddjobd", self.enable_and_start_oddjobd)
 
-        self.start_creation(runtime=60)
+        self.start_creation()
 
     def __start(self):
         self.backup_state("running", self.is_running())

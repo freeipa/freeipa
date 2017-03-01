@@ -450,8 +450,13 @@ class CAInstance(DogtagInstance):
                 self.step("configuring certmonger renewal for lightweight CAs",
                           self.__add_lightweight_ca_tracking_requests)
 
+        if ra_only:
+            runtime = None
+        else:
+            runtime = 180
+
         try:
-            self.start_creation(runtime=210)
+            self.start_creation(runtime=runtime)
         finally:
             self.clean_pkispawn_files()
 

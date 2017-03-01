@@ -164,7 +164,7 @@ class KrbInstance(service.Service):
             self.step("installing X509 Certificate for PKINIT",
                       self.setup_pkinit)
 
-        self.start_creation(runtime=30)
+        self.start_creation()
 
         self.kpasswd = KpasswdInstance()
         self.kpasswd.create_instance('KPASSWD', self.fqdn, self.suffix,
@@ -189,7 +189,7 @@ class KrbInstance(service.Service):
 
         self.__common_post_setup()
 
-        self.start_creation(runtime=30)
+        self.start_creation()
 
         self.kpasswd = KpasswdInstance()
         self.kpasswd.create_instance('KPASSWD', self.fqdn, self.suffix)
