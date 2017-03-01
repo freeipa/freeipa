@@ -207,7 +207,7 @@ class PEMFileHandler(DBMAPHandler):
             args.extend(["-inkey", self.keyfile])
 
         try:
-            ipautil.run(args, nolog=password)
+            ipautil.run(args, nolog=(password, ))
             with open(tmpfile, 'r') as f:
                 data = f.read()
         finally:
@@ -231,7 +231,7 @@ class PEMFileHandler(DBMAPHandler):
                          "-clcerts", "-nokeys",
                          "-out", self.certfile,
                          "-passin", "pass:{pwd}".format(pwd=password)],
-                        nolog=(password))
+                        nolog=(password, ))
 
             if self.keyfile is not None:
                 # get the private key from the file
@@ -241,7 +241,7 @@ class PEMFileHandler(DBMAPHandler):
                              "-nocerts", "-nodes",
                              "-out", self.keyfile,
                              "-passin", "pass:{pwd}".format(pwd=password)],
-                            nolog=(password))
+                            nolog=(password, ))
         finally:
             os.remove(tmpdata)
 
