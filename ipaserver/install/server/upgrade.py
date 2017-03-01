@@ -1520,6 +1520,21 @@ def setup_pkinit(krb):
     krb.start()
 
 
+def disable_httpd_system_trust(http):
+    ca_certs = []
+
+    db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
+    for nickname, trust_flags in db.list_certs():
+        if 'u' not in trust_flags:
+            cert = db.get_cert_from_db(nickname, pem=False)
+            if cert:
+                ca_certs.append((cert, nickname, trust_flags))
+
+    if http.disable_system_trust():
+        for cert, nickname, trust_flags in ca_certs:
+            db.add_cert(cert, nickname, trust_flags)
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1655,6 +1670,7 @@ def upgrade_configuration():
         http.enable_kdcproxy()
 
     http.stop()
+    disable_httpd_system_trust(http)
     update_ipa_httpd_service_conf(http)
     update_mod_nss_protocol(http)
     update_mod_nss_cipher_suite(http)

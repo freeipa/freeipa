@@ -349,11 +349,25 @@ class HTTPInstance(service.Service):
         os.chown(pwd_conf, pent.pw_uid, pent.pw_gid)
         os.chmod(pwd_conf, 0o400)
 
+    def disable_system_trust(self):
+        name = 'Root Certs'
+        args = [paths.MODUTIL, '-dbdir', paths.HTTPD_ALIAS_DIR, '-force']
+
+        result = ipautil.run(args + ['-list', name],
+                             env={},
+                             capture_output=True)
+        if 'Status: Enabled' in result.output:
+            ipautil.run(args + ['-disable', name], env={})
+            return True
+
+        return False
+
     def __setup_ssl(self):
         db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
                           subject_base=self.subject_base, user="root",
                           group=constants.HTTPD_GROUP,
                           truncate=(not self.promote))
+        self.disable_system_trust()
         if self.pkcs12_info:
             if self.ca_is_configured:
                 trust_flags = 'CT,C,C'
