@@ -463,7 +463,6 @@ AC_CONFIG_FILES([
     install/share/Makefile
     install/share/advise/Makefile
     install/share/advise/legacy/Makefile
-    install/share/csrgen/Makefile
     install/share/profiles/Makefile
     install/share/schema.d/Makefile
     install/ui/Makefile

@@ -43,6 +43,13 @@ if __name__ == '__main__':
             "ipaclient.remote_plugins.2_156",
             "ipaclient.remote_plugins.2_164",
         ],
+        package_data={
+            'ipaclient': [
+                'csrgen/profiles/*.json',
+                'csrgen/rules/*.json',
+                'csrgen/templates/*.tmpl',
+            ],
+        },
         install_requires=[
             "cryptography",
             "ipalib",
@@ -56,5 +63,6 @@ if __name__ == '__main__':
         extras_require={
             "install": ["ipaplatform"],
             "otptoken_yubikey": ["yubico", "usb"]
-        }
+        },
+        zip_safe=False,
     )

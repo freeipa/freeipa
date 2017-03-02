@@ -8,6 +8,8 @@ import os.path
 import pipes
 import traceback
 
+import pkg_resources
+
 import jinja2
 import jinja2.ext
 import jinja2.sandbox
@@ -15,7 +17,6 @@ import six
 
 from ipalib import errors
 from ipalib.text import _
-from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import log_mgr
 
 if six.PY3:
@@ -72,10 +73,14 @@ class Formatter(object):
     """
     base_template_name = None
 
-    def __init__(self, csr_data_dir=paths.CSR_DATA_DIR):
+    def __init__(self, csr_data_dir=None):
+        if csr_data_dir is not None:
+            loader = jinja2.FileSystemLoader(
+                os.path.join(csr_data_dir, 'templates'))
+        else:
+            loader = jinja2.PackageLoader('ipaclient', 'csrgen/templates')
         self.jinja2 = jinja2.sandbox.SandboxedEnvironment(
-            loader=jinja2.FileSystemLoader(
-                os.path.join(csr_data_dir, 'templates')),
+            loader=loader,
             extensions=[jinja2.ext.ExprStmtExtension, IPAExtension],
             keep_trailing_newline=True, undefined=IndexableUndefined)
 
@@ -277,9 +282,13 @@ class RuleProvider(object):
 
 
 class FileRuleProvider(RuleProvider):
-    def __init__(self, csr_data_dir=paths.CSR_DATA_DIR):
+    def __init__(self, csr_data_dir=None):
         self.rules = {}
-        self.csr_data_dir = csr_data_dir
+        if csr_data_dir is None:
+            self.csr_data_dir = pkg_resources.resource_filename(
+                'ipaclient', 'csrgen')
+        else:
+            self.csr_data_dir = csr_data_dir
 
     def _rule(self, rule_name, helper):
         if (rule_name, helper) not in self.rules:
