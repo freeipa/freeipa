@@ -73,8 +73,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 219)
-# Last change: Support for Certificate Identity Mapping
+define(IPA_API_VERSION_MINOR, 220)
+# Last change: Add whoami command
 
 
 ########################################################

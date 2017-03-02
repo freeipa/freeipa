@@ -818,6 +818,11 @@ class idoverrideuser(baseidoverride):
     label_singular = _('User ID override')
     rdn_is_primary_key = True
 
+    # ID user overrides are bindable because we map SASL GSSAPI
+    # authentication of trusted users to ID user overrides in the
+    # default trust view.
+    bindable = True
+
     permission_filter_objectclasses = ['ipaUserOverride']
     managed_permissions = {
         'System: Read User ID Overrides': {
