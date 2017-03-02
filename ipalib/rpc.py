@@ -699,8 +699,11 @@ class KerbTransport(SSLTransport):
 
         # Search for the session cookie
         try:
-            session_cookie = Cookie.get_named_cookie_from_string(cookie_header,
-                                                                 COOKIE_NAME, request_url)
+            session_cookie = (
+                    Cookie.get_named_cookie_from_string(
+                        cookie_header, COOKIE_NAME, request_url,
+                        timestamp=datetime.datetime.utcnow())
+            )
         except Exception as e:
             root_logger.error("unable to parse cookie header '%s': %s", cookie_header, e)
             return
@@ -794,8 +797,10 @@ class RPCClient(Connectible):
 
         # Search for the session cookie within the cookie string
         try:
-            session_cookie = Cookie.get_named_cookie_from_string(cookie_string, COOKIE_NAME)
-        except Exception as e:
+            session_cookie = Cookie.get_named_cookie_from_string(
+                cookie_string, COOKIE_NAME,
+                timestamp=datetime.datetime.utcnow())
+        except Exception:
             return None
 
         return session_cookie
