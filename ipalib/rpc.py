@@ -759,9 +759,11 @@ class KerbTransport(SSLTransport):
         session_cookie = None
         try:
             for cookie in cookie_header:
-                session_cookie = \
-                    Cookie.get_named_cookie_from_string(cookie, COOKIE_NAME,
-                                                        request_url)
+                session_cookie = (
+                    Cookie.get_named_cookie_from_string(
+                        cookie, COOKIE_NAME, request_url,
+                        timestamp=datetime.datetime.utcnow())
+                    )
                 if session_cookie is not None:
                     break
         except Exception as e:
@@ -861,7 +863,9 @@ class RPCClient(Connectible):
 
         # Search for the session cookie within the cookie string
         try:
-            session_cookie = Cookie.get_named_cookie_from_string(cookie_string, COOKIE_NAME)
+            session_cookie = Cookie.get_named_cookie_from_string(
+                cookie_string, COOKIE_NAME,
+                timestamp=datetime.datetime.utcnow())
         except Exception:
             return None
 
