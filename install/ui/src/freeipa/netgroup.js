@@ -43,6 +43,10 @@ var spec = {
     facets: [
         {
             $type: 'search',
+            tab_label: '@i18n:objects.netgroup.netgroups',
+            facet_groups: [IPA.group.search_facet_group],
+            tabs_in_sidebar: true,
+            disable_facet_tabs: false,
             columns: [
                 'cn',
                 'description'

@@ -32,7 +32,17 @@ define([
         './entity'],
     function(on, IPA, $, phases, reg) {
 
-var exp = IPA.group = {};
+var exp = IPA.group = {
+    search_facet_group: {
+        name: 'search',
+        label: '@i18n:objects.group.group_categories',
+        facets: {
+            search_group: 'group_search',
+            search_hostgroup: 'hostgroup_search',
+            search_netgroup: 'netgroup_search'
+        }
+    }
+};
 
 var make_spec = function() {
 return {
@@ -40,6 +50,10 @@ return {
     facets: [
         {
             $type: 'search',
+            tab_label: '@i18n:objects.group.user_groups',
+            facet_groups: [IPA.group.search_facet_group],
+            tabs_in_sidebar: true,
+            disable_facet_tabs: false,
             columns: [
                 'cn',
                 'gidnumber',
