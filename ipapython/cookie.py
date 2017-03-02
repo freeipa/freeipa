@@ -321,7 +321,8 @@ class Cookie(object):
         return cookies
 
     @classmethod
-    def get_named_cookie_from_string(cls, cookie_string, cookie_name, request_url=None):
+    def get_named_cookie_from_string(cls, cookie_string, cookie_name,
+                                     request_url=None, timestamp=None):
         '''
         A cookie string may contain multiple cookies, parse the cookie
         string and return the last cookie in the string matching the
@@ -343,6 +344,8 @@ class Cookie(object):
             if cookie.key == cookie_name:
                 target_cookie = cookie
 
+        if timestamp is not None:
+            target_cookie.timestamp = timestamp
         if request_url is not None:
             target_cookie.normalize(request_url)
         return target_cookie
