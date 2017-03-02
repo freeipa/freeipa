@@ -146,6 +146,12 @@ Name of the Kerberos KDC SSL certificate to install
 \fB\-\-skip\-schema\-check\fR
 Skip check for updated CA DS schema on the remote master
 
+.SS "SECRET MANAGEMENT OPTIONS"
+.TP
+\fB\-\-setup\-kra\fR
+Install and configure a KRA on this replica. If a KRA is not configured then
+vault operations will be forwarded to a master with a KRA installed.
+
 .SS "DNS OPTIONS"
 .TP
 \fB\-\-setup\-dns\fR
