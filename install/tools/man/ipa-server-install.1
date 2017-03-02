@@ -134,6 +134,11 @@ The subject base for certificates issued by IPA (default O=REALM.NAME).  RDNs ar
 \fB\-\-ca\-signing\-algorithm\fR=\fIALGORITHM\fR
 Signing algorithm of the IPA CA certificate. Possible values are SHA1withRSA, SHA256withRSA, SHA512withRSA. Default value is SHA256withRSA. Use this option with --external-ca if the external CA does not support the default signing algorithm.
 
+.SS "SECRET MANAGEMENT OPTIONS"
+.TP
+\fB\-\-setup\-kra\fR
+Install and configure a KRA on this server.
+
 .SS "DNS OPTIONS"
 IPA provides an integrated DNS server which can be used to simplify IPA deployment. If you decide to use it, IPA will automatically maintain SRV and other service records when you change your topology.
 

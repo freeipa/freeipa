@@ -367,9 +367,9 @@ def install_check(installer):
     if not setup_ca and options.subject_base:
         raise ScriptError(
             "--subject-base cannot be used with CA-less installation")
-
-    # first instance of KRA must be installed by ipa-kra-install
-    options.setup_kra = False
+    if not setup_ca and options.setup_kra:
+        raise ScriptError(
+            "--setup-kra cannot be used with CA-less installation")
 
     print("======================================="
           "=======================================")
@@ -384,6 +384,8 @@ def install_check(installer):
     print("  * Create and configure an instance of Directory Server")
     print("  * Create and configure a Kerberos Key Distribution Center (KDC)")
     print("  * Configure Apache (httpd)")
+    if options.setup_kra:
+        print("  * Configure KRA (dogtag) for secret management")
     if options.setup_dns:
         print("  * Configure DNS (bind)")
     if options.setup_adtrust:
@@ -598,6 +600,7 @@ def install_check(installer):
 
     if setup_ca:
         ca.install_check(False, None, options)
+    if options.setup_kra:
         kra.install_check(api, None, options)
 
     if options.setup_dns:
@@ -802,7 +805,6 @@ def install(installer):
 
     if setup_ca:
         ca.install_step_1(False, None, options)
-        kra.install(api, None, options)
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
@@ -841,6 +843,9 @@ def install(installer):
     # Restart krb after configurations have been changed
     service.print_msg("Restarting the KDC")
     krb.restart()
+
+    if options.setup_kra:
+        kra.install(api, None, options)
 
     if options.setup_dns:
         dns.install(False, False, options)

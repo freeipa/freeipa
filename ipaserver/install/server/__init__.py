@@ -533,7 +533,6 @@ class ServerMasterInstall(ServerMasterInstallInterface):
     host_password = None
     keytab = None
     setup_ca = True
-    setup_kra = False
 
     domain_name = knob(
         bases=ServerMasterInstallInterface.domain_name,
