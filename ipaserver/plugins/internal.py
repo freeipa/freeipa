@@ -522,11 +522,14 @@ class i18n_messages(Command):
             "group": {
                 "details": _("Group Settings"),
                 "external": _("External"),
+                "groups": _("Groups"),
+                "group_categories": _("Group categories"),
                 "make_external": _("Change to external group"),
                 "make_posix": _("Change to POSIX group"),
                 "nonposix": _("Non-POSIX"),
                 "posix": _("POSIX"),
                 "type": _("Group Type"),
+                "user_groups": _("User Groups"),
             },
             "hbacrule": {
                 "any_host": _("Any Host"),
@@ -587,6 +590,7 @@ class i18n_messages(Command):
                 "unprovisioned": _("Host unprovisioned"),
             },
             "hostgroup": {
+                "host_group": _("Host Groups"),
                 "identity": _("Host Group Settings"),
             },
             "idoverrideuser": {
@@ -629,6 +633,7 @@ class i18n_messages(Command):
                 "hostgroups": _("Host Groups"),
                 "hosts": _("Hosts"),
                 "identity": _("Netgroup Settings"),
+                "netgroups": _("Netgroups"),
                 "specified_hosts": _("Specified Hosts and Groups"),
                 "specified_users": _("Specified Users and Groups"),
                 "user": _("User"),

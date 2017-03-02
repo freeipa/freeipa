@@ -52,11 +52,26 @@ var nav = {};
                         }
                     ]
                 },
-                { entity: 'group' },
                 { entity: 'host' },
-                { entity: 'hostgroup' },
-                { entity: 'netgroup' },
                 { entity: 'service' },
+                {
+                    entity: 'group',
+                    label: '@i18n:objects.group.groups',
+                    facet: 'search',
+                    children: [
+                        {
+                            entity: 'hostgroup',
+                            facet: 'search',
+                            hidden: true
+                        },
+                        {
+                            entity: 'netgroup',
+                            facet: 'search',
+                            hidden: true
+                        }
+                    ]
+                },
+                { entity: 'idview' },
                 {
                     name: 'automember',
                     label: '@i18n:tabs.automember',
@@ -201,7 +216,6 @@ var nav = {};
                     ]
                 },
                 { entity: 'idrange' },
-                { entity: 'idview' },
                 { entity: 'realmdomains' },
                 {
                     name: 'trusts',
