@@ -1231,13 +1231,6 @@ fi
 %{_usr}/share/ipa/advise/legacy/*.template
 %dir %{_usr}/share/ipa/profiles
 %{_usr}/share/ipa/profiles/*.cfg
-%dir %{_usr}/share/ipa/csrgen
-%dir %{_usr}/share/ipa/csrgen/templates
-%{_usr}/share/ipa/csrgen/templates/*.tmpl
-%dir %{_usr}/share/ipa/csrgen/profiles
-%{_usr}/share/ipa/csrgen/profiles/*.json
-%dir %{_usr}/share/ipa/csrgen/rules
-%{_usr}/share/ipa/csrgen/rules/*.json
 %dir %{_usr}/share/ipa/html
 %{_usr}/share/ipa/html/ffconfig.js
 %{_usr}/share/ipa/html/ffconfig_page.js
@@ -1364,6 +1357,9 @@ fi
 %{python_sitelib}/ipaclient/plugins/*.py*
 %{python_sitelib}/ipaclient/remote_plugins/*.py*
 %{python_sitelib}/ipaclient/remote_plugins/2_*/*.py*
+%{python_sitelib}/ipaclient/csrgen/profiles/*.json
+%{python_sitelib}/ipaclient/csrgen/rules/*.json
+%{python_sitelib}/ipaclient/csrgen/templates/*.tmpl
 %{python_sitelib}/ipaclient-*.egg-info
 
 
@@ -1384,6 +1380,9 @@ fi
 %{python3_sitelib}/ipaclient/remote_plugins/__pycache__/*.py*
 %{python3_sitelib}/ipaclient/remote_plugins/2_*/*.py
 %{python3_sitelib}/ipaclient/remote_plugins/2_*/__pycache__/*.py*
+%{python3_sitelib}/ipaclient/csrgen/profiles/*.json
+%{python3_sitelib}/ipaclient/csrgen/rules/*.json
+%{python3_sitelib}/ipaclient/csrgen/templates/*.tmpl
 %{python3_sitelib}/ipaclient-*.egg-info
 
 %endif # with_python3
