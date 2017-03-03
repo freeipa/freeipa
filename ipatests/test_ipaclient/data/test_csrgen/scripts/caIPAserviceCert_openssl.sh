@@ -1,14 +1,15 @@
 #!/bin/bash -e
 
-if [[ $# -ne 2 ]]; then
-echo "Usage: $0 <outfile> <keyfile>"
+if [[ $# -lt 2 ]]; then
+echo "Usage: $0 <outfile> <keyfile> <other openssl arguments>"
 echo "Called as: $0 $@"
 exit 1
 fi
 
 CONFIG="$(mktemp)"
 CSR="$1"
-shift
+KEYFILE="$2"
+shift; shift
 
 echo \
 '[ req ]
@@ -29,5 +30,5 @@ DNS = machine.example.com
 subjectAltName = @sec1
 ' > "$CONFIG"
 
-openssl req -new -config "$CONFIG" -out "$CSR" -key $1
+openssl req -new -config "$CONFIG" -out "$CSR" -key "$KEYFILE" "$@"
 rm "$CONFIG"
