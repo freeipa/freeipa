@@ -3,6 +3,7 @@
 #
 
 import collections
+import errno
 import json
 import os.path
 import pipes
@@ -15,6 +16,7 @@ import jinja2.ext
 import jinja2.sandbox
 import six
 
+from ipalib import api
 from ipalib import errors
 from ipalib.text import _
 from ipapython.ipa_log_manager import log_mgr
@@ -74,13 +76,22 @@ class Formatter(object):
     base_template_name = None
 
     def __init__(self, csr_data_dir=None):
+        # chain loaders:
+        # 1) csr_data_dir/templates
+        # 2) /etc/ipa/csrgen/templates
+        # 3) ipaclient/csrgen/templates
+        loaders = []
         if csr_data_dir is not None:
-            loader = jinja2.FileSystemLoader(
+            loaders.append(jinja2.FileSystemLoader(
                 os.path.join(csr_data_dir, 'templates'))
-        else:
-            loader = jinja2.PackageLoader('ipaclient', 'csrgen/templates')
+            )
+        loaders.append(jinja2.FileSystemLoader(
+            os.path.join(api.env.confdir, 'csrgen/templates'))
+        )
+        loaders.append(jinja2.PackageLoader('ipaclient', 'csrgen/templates'))
+
         self.jinja2 = jinja2.sandbox.SandboxedEnvironment(
-            loader=loader,
+            loader=jinja2.ChoiceLoader(loaders),
             extensions=[jinja2.ext.ExprStmtExtension, IPAExtension],
             keep_trailing_newline=True, undefined=IndexableUndefined)
 
@@ -284,19 +295,37 @@ class RuleProvider(object):
 class FileRuleProvider(RuleProvider):
     def __init__(self, csr_data_dir=None):
         self.rules = {}
-        if csr_data_dir is None:
-            self.csr_data_dir = pkg_resources.resource_filename(
-                'ipaclient', 'csrgen')
-        else:
-            self.csr_data_dir = csr_data_dir
+        self._csrgen_data_dirs = []
+        if csr_data_dir is not None:
+            self._csrgen_data_dirs.append(csr_data_dir)
+        self._csrgen_data_dirs.append(
+            os.path.join(api.env.confdir, 'csrgen')
+        )
+        self._csrgen_data_dirs.append(
+            pkg_resources.resource_filename('ipaclient', 'csrgen')
+        )
+
+    def _open(self, subdir, filename):
+        for data_dir in self._csrgen_data_dirs:
+            path = os.path.join(data_dir, subdir, filename)
+            try:
+                return open(path)
+            except IOError as e:
+                if e.errno != errno.ENOENT:
+                    raise
+        raise IOError(
+            errno.ENOENT,
+            "'{}' not found in {}".format(
+                os.path.join(subdir, filename),
+                ", ".join(self._csrgen_data_dirs)
+            )
+        )
 
     def _rule(self, rule_name, helper):
         if (rule_name, helper) not in self.rules:
-            rule_path = os.path.join(self.csr_data_dir, 'rules',
-                                     '%s.json' % rule_name)
             try:
-                with open(rule_path) as rule_file:
-                    ruleset = json.load(rule_file)
+                with self._open('rules', '%s.json' % rule_name) as f:
+                    ruleset = json.load(f)
             except IOError:
                 raise errors.NotFound(
                     reason=_('Ruleset %(ruleset)s does not exist.') %
@@ -326,11 +355,9 @@ class FileRuleProvider(RuleProvider):
         return self.rules[(rule_name, helper)]
 
     def rules_for_profile(self, profile_id, helper):
-        profile_path = os.path.join(self.csr_data_dir, 'profiles',
-                                    '%s.json' % profile_id)
         try:
-            with open(profile_path) as profile_file:
-                profile = json.load(profile_file)
+            with self._open('profiles', '%s.json' % profile_id) as f:
+                profile = json.load(f)
         except IOError:
             raise errors.NotFound(
                 reason=_('No CSR generation rules are defined for profile'
