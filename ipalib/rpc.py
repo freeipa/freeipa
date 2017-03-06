@@ -56,7 +56,7 @@ from ipalib import errors, capabilities
 from ipalib.request import context, Connection
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
-from ipapython import kernel_keyring
+from ipapython import session_storage
 from ipapython.cookie import Cookie
 from ipapython.dnsutil import DNSName
 from ipalib.text import _
@@ -84,18 +84,10 @@ if six.PY3:
     unicode = str
 
 COOKIE_NAME = 'ipa_session'
-KEYRING_COOKIE_NAME = '%s_cookie:%%s' % COOKIE_NAME
+CCACHE_COOKIE_KEY = 'X-IPA-Session-Cookie'
 
 errors_by_code = dict((e.errno, e) for e in public_errors)
 
-
-def client_session_keyring_keyname(principal):
-    '''
-    Return the key name used for storing the client session data for
-    the given principal.
-    '''
-
-    return KEYRING_COOKIE_NAME % principal
 
 def update_persistent_client_session_data(principal, data):
     '''
@@ -106,12 +98,9 @@ def update_persistent_client_session_data(principal, data):
     '''
 
     try:
-        keyname = client_session_keyring_keyname(principal)
+        session_storage.store_data(principal, CCACHE_COOKIE_KEY, data)
     except Exception as e:
         raise ValueError(str(e))
-
-    # kernel_keyring only raises ValueError (why??)
-    kernel_keyring.update_key(keyname, data)
 
 def read_persistent_client_session_data(principal):
     '''
@@ -122,12 +111,9 @@ def read_persistent_client_session_data(principal):
     '''
 
     try:
-        keyname = client_session_keyring_keyname(principal)
+        return session_storage.get_data(principal, CCACHE_COOKIE_KEY)
     except Exception as e:
         raise ValueError(str(e))
-
-    # kernel_keyring only raises ValueError (why??)
-    return kernel_keyring.read_key(keyname)
 
 def delete_persistent_client_session_data(principal):
     '''
@@ -138,12 +124,9 @@ def delete_persistent_client_session_data(principal):
     '''
 
     try:
-        keyname = client_session_keyring_keyname(principal)
+        session_storage.remove_data(principal, CCACHE_COOKIE_KEY)
     except Exception as e:
         raise ValueError(str(e))
-
-    # kernel_keyring only raises ValueError (why??)
-    kernel_keyring.del_key(keyname)
 
 def xml_wrap(value, version):
     """
