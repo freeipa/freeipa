@@ -59,7 +59,7 @@ class rabase(Backend):
         """
         raise errors.NotImplementedError(name='%s.check_request_status' % self.name)
 
-    def get_certificate(self, serial_number=None):
+    def get_certificate(self, serial_number):
         """
         Retrieve an existing certificate.
 
