@@ -1,4 +1,4 @@
-Here is a quickie guide to get you started in IPA development.
+Here is a quick guide to get you started in IPA development.
 
 Dependencies
 ------------
