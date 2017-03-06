@@ -131,8 +131,12 @@ def fuzzy_set_ci(s):
     return Fuzzy(test=lambda other: set(x.lower() for x in other) == set(y.lower() for y in s))
 
 try:
-    if not api.Backend.rpcclient.isconnected():
-        api.Backend.rpcclient.connect()
+    if api.env.in_server:
+        if not api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.connect()
+    else:
+        if not api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.connect()
     res = api.Command['user_show'](u'notfound')
 except errors.NetworkError:
     server_available = False
@@ -206,8 +210,12 @@ class XMLRPC_test(object):
         if not server_available:
             raise nose.SkipTest('%r: Server not available: %r' %
                                 (cls.__module__, api.env.xmlrpc_uri))
-        if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect()
+        if api.env.in_server:
+            if not api.Backend.ldap2.isconnected():
+                api.Backend.ldap2.connect()
+        else:
+            if not api.Backend.rpcclient.isconnected():
+                api.Backend.rpcclient.connect()
 
     @classmethod
     def teardown_class(cls):
