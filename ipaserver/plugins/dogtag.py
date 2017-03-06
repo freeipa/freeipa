@@ -1502,7 +1502,7 @@ class ra(rabase.rabase, RestClient):
 
         return cmd_result
 
-    def get_certificate(self, serial_number=None):
+    def get_certificate(self, serial_number):
         """
         Retrieve an existing certificate.
 
