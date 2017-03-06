@@ -9,10 +9,9 @@ import sys
 
 from astroid import MANAGER
 from astroid import scoped_nodes
-
-
-def register(linter):
-    pass
+from pylint.checkers import BaseChecker
+from pylint.checkers.utils import check_messages
+from pylint.interfaces import IAstroidChecker
 
 
 def _warning_already_exists(cls, member):
@@ -246,9 +245,70 @@ ipa_class_members = {
 }
 
 
+# prefix match is used for all values specified here --> all submodules are
+# matched
+# module names must be specified in absolute path
+FORBIDDEN_IMPORTS = (
+    # ( checked module, [# forbidden.import.1, # forbidden.import.2])
+    ('ipapython', ('ipalib',)),
+)
+
+
 def fix_ipa_classes(cls):
     class_name_with_module = "{}.{}".format(cls.root().name, cls.name)
     if class_name_with_module in ipa_class_members:
         fake_class(cls, ipa_class_members[class_name_with_module])
+
+
+class IPAImportChecker(BaseChecker):
+    """Check for specified imports from FORBIDDEN_IMPORTS and return
+    warning when module is not allowed ot be imported
+    into the particular module"""
+
+    __implements__ = IAstroidChecker
+
+    name = 'ipa-imports'
+    msgs = {
+        'W9999': (
+            'IPA: forbidden import "%s" ("%s" should not import "%s")',
+            'ipa-forbidden-import',
+            'Used when import of module is not '
+            'allowed in the particular module.'
+        ),
+    }
+    priority = -2
+
+    def _check_imports(self, node, import_abs_name):
+        # name of the module where import statement is
+        current = node.root().name
+        for importer, imports in FORBIDDEN_IMPORTS:
+            if current.startswith(importer):
+                # current node is listed in rules
+                for imprt in imports:
+                    if import_abs_name.startswith(imprt):
+                        self.add_message(
+                            'ipa-forbidden-import',
+                            args=(import_abs_name, importer, imprt),
+                            node=node)
+                        break
+                break
+
+    @check_messages('ipa-forbidden-import')
+    def visit_import(self, node):
+        """triggered when an import statement is seen"""
+        modnode = [name for name, _obj in node.names]
+        for m in modnode:
+            self._check_imports(node, m)
+
+    @check_messages('ipa-forbidden-import')
+    def visit_importfrom(self, node):
+        """triggered when a from statement is seen"""
+        basename = node.modname
+        self._check_imports(node, basename)
+
+
+def register(linter):
+    linter.register_checker(IPAImportChecker(linter))
+
 
 MANAGER.register_transform(scoped_nodes.Class, fix_ipa_classes)
