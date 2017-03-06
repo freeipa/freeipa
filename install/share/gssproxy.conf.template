@@ -4,6 +4,7 @@
   cred_store = keytab:$HTTP_KEYTAB
   cred_store = client_keytab:$HTTP_KEYTAB
   allow_protocol_transition = true
+  allow_client_ccache_sync = true
   cred_usage = both
   euid = $HTTPD_USER
 
@@ -12,5 +13,6 @@
   cred_store = keytab:$HTTP_KEYTAB
   cred_store = client_keytab:$HTTP_KEYTAB
   allow_constrained_delegation = true
+  allow_client_ccache_sync = true
   cred_usage = initiate
   euid = $IPAAPI_USER
