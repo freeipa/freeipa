@@ -452,7 +452,6 @@ class i18n_messages(Command):
                 "revoked_status": _("REVOKED"),
                 "serial_number": _("Serial Number"),
                 "serial_number_hex": _("Serial Number (hex)"),
-                "sha1_fingerprint": _("SHA1 Fingerprint"),
                 "sha256_fingerprint": _("SHA256 Fingerprint"),
                 "status": _("Status"),
                 "superseded": _("Superseded"),

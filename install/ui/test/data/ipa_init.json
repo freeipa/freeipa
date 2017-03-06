@@ -302,7 +302,6 @@
                             "revoked_status": "REVOKED",
                             "serial_number": "Serial Number",
                             "serial_number_hex": "Serial Number (hex)",
-                            "sha1_fingerprint": "SHA1 Fingerprint",
                             "sha256_fingerprint": "SHA256 Fingerprint",
                             "status": "Status",
                             "superseded": "Superseded",

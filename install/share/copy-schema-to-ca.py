@@ -15,7 +15,7 @@ import sys
 import pwd
 import shutil
 
-from hashlib import sha1
+from hashlib import sha256
 
 from ipaplatform.paths import paths
 from ipapython import ipautil
@@ -55,9 +55,9 @@ SCHEMA_FILENAMES = (
 )
 
 
-def _sha1_file(filename):
+def _file_digest(filename):
     with open(filename, 'rb') as f:
-        return sha1(f.read()).hexdigest()
+        return sha256(f.read()).hexdigest()
 
 
 def add_ca_schema():
@@ -72,17 +72,17 @@ def add_ca_schema():
             root_logger.debug('File does not exist: %s', source_fname)
             continue
         if os.path.exists(target_fname):
-            target_sha1 = _sha1_file(target_fname)
-            source_sha1 = _sha1_file(source_fname)
-            if target_sha1 != source_sha1:
+            target_digest = _file_digest(target_fname)
+            source_digest = _file_digest(source_fname)
+            if target_digest != source_digest:
                 target_size = os.stat(target_fname).st_size
                 source_size = os.stat(source_fname).st_size
                 root_logger.info('Target file %s exists but the content is '
                                  'different', target_fname)
-                root_logger.info('\tTarget file: sha1: %s, size: %s B',
-                                 target_sha1, target_size)
-                root_logger.info('\tSource file: sha1: %s, size: %s B',
-                                 source_sha1, source_size)
+                root_logger.info('\tTarget file: sha256: %s, size: %s B',
+                                 target_digest, target_size)
+                root_logger.info('\tSource file: sha256: %s, size: %s B',
+                                 source_digest, source_size)
                 if not ipautil.user_input("Do you want replace %s file?" %
                                           target_fname, True):
                     continue
