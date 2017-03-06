@@ -52,6 +52,7 @@ if six.PY3:
 
 # Global variable to define SASL auth
 SASL_GSSAPI = ldap.sasl.sasl({}, 'GSSAPI')
+SASL_GSS_SPNEGO = ldap.sasl.sasl({}, 'GSS-SPNEGO')
 
 _debug_log_ldap = False
 
@@ -1112,7 +1113,10 @@ class LDAPClient(object):
         Perform SASL bind operation using the SASL GSSAPI mechanism.
         """
         with self.error_handler():
-            auth_tokens = ldap.sasl.sasl({}, 'GSSAPI')
+            if self._protocol == 'ldapi':
+                auth_tokens = SASL_GSS_SPNEGO
+            else:
+                auth_tokens = SASL_GSSAPI
             self._flush_schema()
             self.conn.sasl_interactive_bind_s(
                 '', auth_tokens, server_controls, client_controls)
