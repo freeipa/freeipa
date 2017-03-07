@@ -305,6 +305,7 @@ def install_check(installer):
     external_ca_file = installer._external_ca_file
     http_ca_cert = installer._ca_cert
 
+    tasks.check_ipv6_stack_enabled()
     tasks.check_selinux_status()
 
     if options.master_password:

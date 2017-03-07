@@ -567,6 +567,7 @@ def check_remote_version(client, local_version):
 
 
 def common_check(no_ntp):
+    tasks.check_ipv6_stack_enabled()
     tasks.check_selinux_status()
 
     if is_ipa_configured():
