@@ -275,6 +275,8 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
             '--forwarder', host.config.dns_forwarder,
             '--auto-reverse'
         ])
+    if setup_kra:
+        args.append('--setup-kra')
     if setup_adtrust:
         args.append('--setup-adtrust')
 
@@ -284,13 +286,6 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
     if result.returncode == 0:
         enable_replication_debugging(host)
         setup_sssd_debugging(host)
-        if setup_kra:
-            args = [
-                "ipa-kra-install",
-                "-p", host.config.dirman_password,
-                "-U",
-            ]
-            host.run_command(args)
         kinit_admin(host)
     return result
 
