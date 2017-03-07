@@ -1495,6 +1495,84 @@ field.AlternateAttrFieldAdapter = declare([field.Adapter], {
 
 
 /**
+ * Custom adapter specifically implemented for certmap_match where it
+ * transform items in format {domain: "xxx", uid: [arrayof_uids]} to
+ * {[{domain: "xxx", uid: "uid1"}, {domain: "xxx", uid: 'uid2'}, ...]}.
+ * This is necessary for possibility to correctly display table.
+ *
+ * @class
+ * @extends field.Adapter
+ */
+field.CertMatchTransformAdapter = declare([field.Adapter], {
+
+    /**
+    * @param {Array} record
+    */
+    transform_one_record: function(record) {
+        var domain = record.domain;
+        var uids = record.uid;
+        var results = [];
+
+        for (var i=0, l=uids.length; i<l; i++) {
+            results.push({
+                domain: domain,
+                uid: uids[i]
+            });
+        }
+
+        return results;
+    },
+
+    /**
+     * Transform record to array of arrays with objects in the following format:
+     * {domain: 'xxx', uid: 'uid1'}
+     *
+     * @param {Array|Object} record
+     */
+    transform_record: function(record) {
+        if (lang.isArray(record)) {
+            for (var i=0, l=record.length; i<l; i++) {
+                record[i] = this.transform_one_record(record[i]);
+            }
+        } else {
+            record = this.transform_one_record(record);
+        }
+    },
+
+    /**
+     * Merge array of arrays of object into array of objects.
+     *
+     * @param {Array} records
+     */
+    merge_object_into_array: function(records) {
+        if (!lang.isArray(records)) return records;
+
+        var merged = [];
+        for (var i=0, l=records.length; i<l; i++) {
+            merged = merged.concat(records[i]);
+        }
+
+        return merged;
+    },
+
+    /**
+     *
+     * @param {Object} data Object which contains the record or the record
+     * @returns {Array} attribute values
+     */
+    load: function(data) {
+        var record = this.get_record(data);
+
+        this.transform_record(record);
+
+        var values = this.merge_object_into_array(record);
+
+        return values;
+    }
+});
+
+
+/**
  * Field for enabling/disabling entity
  *
  * - expects radio widget
@@ -1769,6 +1847,7 @@ field.register = function() {
     l.register('adapter', field.Adapter);
     l.register('object_adapter', field.ObjectAdapter);
     l.register('alternate_attr_field_adapter', field.AlternateAttrFieldAdapter);
+    l.register('certmatch_transform', field.CertMatchTransformAdapter);
 };
 phases.on('registration', field.register);
 
