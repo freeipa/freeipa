@@ -353,5 +353,6 @@ class BasePathNamespace(object):
     EXTERNAL_SCHEMA_DIR = '/usr/share/ipa/schema.d'
     GSSPROXY_CONF = '/etc/gssproxy/10-ipa.conf'
     KRB5CC_HTTPD = '/tmp/krb5cc-httpd'
+    IF_INET6 = '/proc/net/if_inet6'
 
 path_namespace = BasePathNamespace
