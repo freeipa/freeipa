@@ -118,6 +118,10 @@ class ServerInstallInterface(client.ClientInstallInterface,
     )
     principal = replica_install_only(principal)
 
+    admin_password = extend_knob(
+        client.ClientInstallInterface.admin_password,
+    )
+
     master_password = knob(
         str, None,
         sensitive=True,
