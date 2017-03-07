@@ -33,6 +33,7 @@ define([
     './plugins/caacl',
     './plugins/certprofile',
     './plugins/certmap',
+    './plugins/certmapmatch',
     './dns',
     './group',
     './hbac',

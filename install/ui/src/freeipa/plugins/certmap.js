@@ -30,7 +30,8 @@ var certmap = IPA.certmap = {
     search_facet_group: {
         facets: {
             certmaprule_search: 'certmaprule_search',
-            certmapconfig: 'certmapconfig_details'
+            certmapconfig: 'certmapconfig_details',
+            certmapmatch: 'certmapmatch_details'
         }
     }
 };
