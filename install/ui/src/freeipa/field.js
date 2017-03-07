@@ -196,6 +196,14 @@ field.field = IPA.field = function(spec) {
     that.required = spec.required;
 
     /**
+     * Turns off loading value from command output on details pages.
+     * Used in certmap_match.
+     * @property {boolean}
+     */
+    that.autoload_value = spec.autoload_value === undefined ? true :
+                                spec.autoload_value;
+
+    /**
      * read_only is set when widget is created
      * @readonly
      * @property {boolean}
