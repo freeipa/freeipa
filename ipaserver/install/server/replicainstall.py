@@ -517,6 +517,7 @@ def install_check(installer):
         raise RuntimeError(
             "Installing IPA server in FIPS mode is not supported")
 
+    tasks.check_ipv6_stack_enabled()
     tasks.check_selinux_status()
 
     if is_ipa_configured():
@@ -1007,6 +1008,7 @@ def promote_check(installer):
     installer._enrollment_performed = False
     installer._top_dir = tempfile.mkdtemp("ipa")
 
+    tasks.check_ipv6_stack_enabled()
     tasks.check_selinux_status()
 
     if is_ipa_configured():

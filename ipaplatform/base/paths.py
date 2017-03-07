@@ -358,6 +358,7 @@ class BasePathNamespace(object):
     IPA_CUSTODIA_AUDIT_LOG = '/var/log/ipa-custodia.audit.log'
     IPA_GETKEYTAB = '/usr/sbin/ipa-getkeytab'
     EXTERNAL_SCHEMA_DIR = '/usr/share/ipa/schema.d'
+    IF_INET6 = '/proc/net/if_inet6'
 
     @property
     def USER_CACHE_PATH(self):

@@ -134,6 +134,20 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                                'Install the policycoreutils package and start '
                                'the installation again.' % restorecon)
 
+    def check_ipv6_stack_enabled(self):
+        """Checks whether IPv6 kernel module is loaded.
+
+        Function checks if /proc/net/if_inet6 is present. If IPv6 stack is
+        enabled, it exists and contains the interfaces configuration.
+
+        :raises: RuntimeError when IPv6 stack is disabled
+        """
+        if not os.path.exists(paths.IF_INET6):
+            raise RuntimeError(
+                "IPv6 kernel module has to be enabled. If you do not wish to "
+                "use IPv6, please disable it on the interfaces in "
+                "sysctl.conf and enable the IPv6 kernel module.")
+
     def restore_pre_ipa_client_configuration(self, fstore, statestore,
                                              was_sssd_installed,
                                              was_sssd_configured):
