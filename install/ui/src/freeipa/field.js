@@ -819,6 +819,15 @@ field.Adapter = declare(null, {
     result_index: 0,
 
     /**
+     * When result of API call is an array of object this object index
+     * allows to specify exact object in array according to its position.
+     * Default value is null which means do not use object_index.
+     *
+     * @type {Number|null}
+     */
+    object_index: null,
+
+    /**
      * Name of the record which we want to extract from the result.
      * Used in dnslocations.
      * @type {String}
@@ -849,6 +858,10 @@ field.Adapter = declare(null, {
             else if (dr.results) {
                 var result = dr.results[this.result_index];
                 if (result) record = result[this.result_name];
+                var res_type = typeof record;
+                var obj_in_type = typeof this.object_index;
+                if (res_type === 'object' && obj_in_type === 'number')
+                    record = record[this.object_index];
             }
         }
         return record;
