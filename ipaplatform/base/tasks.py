@@ -103,6 +103,11 @@ class BaseTaskNamespace(object):
 
         raise NotImplementedError()
 
+    def check_ipv6_stack_enabled(self):
+        """Check whether IPv6 kernel module is loaded"""
+
+        raise NotImplementedError()
+
     def restore_hostname(self, fstore, statestore):
         """
         Restores the original hostname as backed up in the

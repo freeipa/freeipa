@@ -330,6 +330,7 @@ def install_check(installer):
         raise RuntimeError(
             "Installing IPA server in FIPS mode is not supported")
 
+    tasks.check_ipv6_stack_enabled()
     tasks.check_selinux_status()
 
     if options.master_password:
