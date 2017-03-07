@@ -221,30 +221,6 @@ class ServerInstallInterface(client.ClientInstallInterface,
     )
     no_ui_redirect = enroll_only(no_ui_redirect)
 
-    ssh_trust_dns = knob(
-        None,
-        description="configure OpenSSH client to trust DNS SSHFP records",
-    )
-    ssh_trust_dns = enroll_only(ssh_trust_dns)
-
-    no_ssh = knob(
-        None,
-        description="do not configure OpenSSH client",
-    )
-    no_ssh = enroll_only(no_ssh)
-
-    no_sshd = knob(
-        None,
-        description="do not configure OpenSSH server",
-    )
-    no_sshd = enroll_only(no_sshd)
-
-    no_dns_sshfp = knob(
-        None,
-        description="Do not automatically create DNS SSHFP records",
-    )
-    no_dns_sshfp = enroll_only(no_dns_sshfp)
-
     dirsrv_config_file = knob(
         str, None,
         description="The path to LDIF file that will be used to modify "
