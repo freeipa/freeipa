@@ -743,7 +743,8 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         var fields = that.fields.get_fields();
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
-            field.load(data);
+
+            if (field.autoload_value) field.load(data);
         }
         that.policies.post_load(data);
         that.post_load.notify([data], that);
