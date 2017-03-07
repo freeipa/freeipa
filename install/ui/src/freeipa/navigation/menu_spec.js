@@ -178,6 +178,10 @@ var nav = {};
                         {
                             entity: 'certmapconfig',
                             facet: 'details'
+                        },
+                        {
+                            label: '@i18n:objects.certmap_match.facet_label',
+                            entity: 'certmap_match'
                         }
                     ]
                 }
