@@ -63,6 +63,9 @@ def get_dirman_password():
 def main():
     retval = 0
     def_dn = None
+
+    installutils.check_server_configuration()
+
     options, args = parse_options()
 
     if options.list_managed_entries:
