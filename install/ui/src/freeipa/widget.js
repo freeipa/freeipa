@@ -2626,7 +2626,7 @@ IPA.custom_checkboxes_widget = function(spec) {
         that.populate();
         that.append();
         that.owb_create(that.container);
-        that.owb_update(values);
+        that.owb_update(that.values);
     };
 
     /**
