@@ -32,7 +32,7 @@ from ipapython import dnsutil
 from ipapython.dn import DN
 from ipapython.dnsutil import check_zone_overlap
 from ipapython.install import typing
-from ipapython.install.core import knob
+from ipapython.install.core import group, knob
 from ipapython.ipa_log_manager import root_logger
 from ipapython.admintool import ScriptError
 from ipapython.ipautil import user_input
@@ -414,6 +414,7 @@ class DNSForwardPolicy(enum.Enum):
     FIRST = 'first'
 
 
+@group
 class DNSInstallInterface(hostname.HostNameInstallInterface):
     """
     Interface of the DNS installer
@@ -424,6 +425,7 @@ class DNSInstallInterface(hostname.HostNameInstallInterface):
     * ipa-replica-install
     * ipa-dns-install
     """
+    description = "DNS"
 
     allow_zone_overlap = knob(
         None,

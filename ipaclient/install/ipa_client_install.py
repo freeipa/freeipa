@@ -5,16 +5,17 @@
 from ipaclient.install import client
 from ipaplatform.paths import paths
 from ipapython.install import cli
-from ipapython.install.core import knob
+from ipapython.install.core import knob, extend_knob
 
 
 class StandaloneClientInstall(client.ClientInstall):
     no_host_dns = False
     no_wait_for_dns = False
 
-    principal = knob(
-        bases=client.ClientInstall.principal,
-        cli_names=list(client.ClientInstall.principal.cli_names) + ['-p'],
+    principal = client.ClientInstall.principal
+    principal = extend_knob(
+        principal,
+        cli_names=list(principal.cli_names) + ['-p'],
     )
 
     password = knob(

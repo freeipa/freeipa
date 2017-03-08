@@ -15,11 +15,12 @@ import six
 from ipalib.constants import DOMAIN_LEVEL_0
 from ipalib import errors
 from ipalib.install.service import ServiceAdminInstallInterface
+from ipalib.install.service import replica_install_only
 from ipaplatform.paths import paths
 from ipapython.admintool import ScriptError
 from ipapython import ipaldap, ipautil
 from ipapython.dn import DN
-from ipapython.install.core import knob
+from ipapython.install.core import group, knob
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import adtrustinstance
 from ipaserver.install import service
@@ -430,6 +431,7 @@ def install(standalone, options, fstore, api):
         add_new_adtrust_agents(api, options)
 
 
+@group
 class ADTrustInstallInterface(ServiceAdminInstallInterface):
     """
     Interface for the AD trust installer
@@ -439,6 +441,7 @@ class ADTrustInstallInterface(ServiceAdminInstallInterface):
     * ipa-replica-install
     * ipa-adtrust-install
     """
+    description = "AD trust"
 
     # the following knobs are provided on top of those specified for
     # admin credentials
@@ -451,6 +454,7 @@ class ADTrustInstallInterface(ServiceAdminInstallInterface):
         description="Add IPA masters to a list of hosts allowed to "
                     "serve information about users from trusted forests"
     )
+    add_agents = replica_install_only(add_agents)
     enable_compat = knob(
         None,
         description="Enable support for trusted domains for old clients"

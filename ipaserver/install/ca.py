@@ -18,7 +18,7 @@ from ipalib.install import certstore
 from ipalib.install.service import enroll_only, master_install_only, replica_install_only
 from ipaserver.install import sysupgrade
 from ipapython.install import typing
-from ipapython.install.core import knob
+from ipapython.install.core import group, knob, extend_knob
 from ipaserver.install import (cainstance,
                                custodiainstance,
                                dsinstance,
@@ -367,6 +367,7 @@ class CASigningAlgorithm(enum.Enum):
     SHA_512_WITH_RSA = 'SHA512withRSA'
 
 
+@group
 class CAInstallInterface(dogtag.DogtagInstallInterface,
                          conncheck.ConnCheckInterface):
     """
@@ -378,22 +379,22 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
     * ipa-replica-install
     * ipa-ca-install
     """
+    description = "Certificate system"
 
-    principal = knob(
-        bases=conncheck.ConnCheckInterface.principal,
+    principal = conncheck.ConnCheckInterface.principal
+    principal = extend_knob(
+        principal,
         description="User allowed to manage replicas",
-        cli_names=(
-            list(conncheck.ConnCheckInterface.principal.cli_names) + ['-P']),
+        cli_names=list(principal.cli_names) + ['-P'],
     )
     principal = enroll_only(principal)
     principal = replica_install_only(principal)
 
-    admin_password = knob(
-        bases=conncheck.ConnCheckInterface.admin_password,
+    admin_password = conncheck.ConnCheckInterface.admin_password
+    admin_password = extend_knob(
+        admin_password,
         description="Admin user Kerberos password used for connection check",
-        cli_names=(
-            list(conncheck.ConnCheckInterface.admin_password.cli_names) +
-            ['-w']),
+        cli_names=list(admin_password.cli_names) + ['-w'],
     )
     admin_password = enroll_only(admin_password)
 
