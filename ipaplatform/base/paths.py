@@ -309,7 +309,6 @@ class BasePathNamespace(object):
     IPARESTORE_LOG = "/var/log/iparestore.log"
     IPASERVER_INSTALL_LOG = "/var/log/ipaserver-install.log"
     IPASERVER_KRA_INSTALL_LOG = "/var/log/ipaserver-kra-install.log"
-    IPASERVER_KRA_UNINSTALL_LOG = "/var/log/ipaserver-kra-uninstall.log"
     IPASERVER_UNINSTALL_LOG = "/var/log/ipaserver-uninstall.log"
     IPAUPGRADE_LOG = "/var/log/ipaupgrade.log"
     KADMIND_LOG = "/var/log/kadmind.log"

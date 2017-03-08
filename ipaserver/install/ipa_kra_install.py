@@ -20,7 +20,9 @@
 
 from __future__ import print_function
 
+import sys
 import tempfile
+from optparse import SUPPRESS_HELP
 
 from textwrap import dedent
 from ipalib import api
@@ -69,8 +71,7 @@ class KRAInstall(admintool.AdminTool):
         parser.add_option(
             "--uninstall",
             dest="uninstall", action="store_true", default=False,
-            help="uninstall an existing installation. The uninstall can "
-                 "be run with --unattended option")
+            help=SUPPRESS_HELP)
 
     def validate_options(self, needs_root=True):
         super(KRAInstall, self).validate_options(needs_root=True)
@@ -83,31 +84,12 @@ class KRAInstall(admintool.AdminTool):
     @classmethod
     def get_command_class(cls, options, args):
         if options.uninstall:
-            return KRAUninstaller
+            sys.exit(
+                'ERROR: Standalone KRA uninstallation was removed in '
+                'FreeIPA 4.5 as it had never worked properly and only caused '
+                'issues.')
         else:
             return KRAInstaller
-
-
-class KRAUninstaller(KRAInstall):
-    log_file_name = paths.IPASERVER_KRA_UNINSTALL_LOG
-
-    def validate_options(self, needs_root=True):
-        super(KRAUninstaller, self).validate_options(needs_root=True)
-
-        if self.args:
-            self.option_parser.error("Too many parameters provided.")
-
-        _kra = krainstance.KRAInstance(api)
-        if not _kra.is_installed():
-            self.option_parser.error(
-                "Cannot uninstall.  There is no KRA installed on this system."
-            )
-
-    def run(self):
-        super(KRAUninstaller, self).run()
-        api.Backend.ldap2.connect()
-        kra.uninstall(True)
-        api.Backend.ldap2.disconnect()
 
 
 class KRAInstaller(KRAInstall):

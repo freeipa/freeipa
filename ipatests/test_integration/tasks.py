@@ -68,9 +68,7 @@ def setup_server_logs_collecting(host):
     host.collect_log(paths.IPA_CUSTODIA_AUDIT_LOG)
 
     # IPA uninstall logs
-    host.collect_log(paths.IPASERVER_KRA_UNINSTALL_LOG)
     host.collect_log(paths.IPACLIENT_UNINSTALL_LOG)
-    host.collect_log(paths.IPASERVER_KRA_UNINSTALL_LOG)
 
     # IPA backup and restore logs
     host.collect_log(paths.IPARESTORE_LOG)

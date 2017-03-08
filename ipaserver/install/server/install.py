@@ -1051,7 +1051,7 @@ def uninstall(installer):
 
     ntpinstance.NTPInstance(fstore).uninstall()
 
-    kra.uninstall(False)
+    kra.uninstall()
 
     ca.uninstall()
 
