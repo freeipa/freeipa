@@ -63,7 +63,7 @@ from ipapython.ipautil import (
 )
 from ipapython.ssh import SSHPublicKey
 
-from . import automount, ipadiscovery, ntpconf
+from . import automount, ipadiscovery, ntpconf, sssd
 from .ipachangeconf import IPAChangeConf
 
 NoneType = type(None)
@@ -3356,7 +3356,8 @@ def init(installer):
 
 
 class ClientInstallInterface(hostname_.HostNameInstallInterface,
-                             service.ServiceAdminInstallInterface):
+                             service.ServiceAdminInstallInterface,
+                             sssd.SSSDInstallInterface):
     """
     Interface of the client installer
 
@@ -3366,12 +3367,6 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
     * ipa-replica-prepare
     * ipa-replica-install
     """
-
-    fixed_primary = knob(
-        None,
-        description="Configure sssd to use fixed server as primary IPA server",
-    )
-    fixed_primary = enroll_only(fixed_primary)
 
     principal = knob(
         bases=service.ServiceAdminInstallInterface.principal,
@@ -3487,32 +3482,6 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
     )
     request_cert = prepare_only(request_cert)
 
-    permit = knob(
-        None,
-        description="disable access rules by default, permit all access.",
-    )
-    permit = enroll_only(permit)
-
-    enable_dns_updates = knob(
-        None,
-        description="Configures the machine to attempt dns updates when the "
-                    "ip address changes.",
-    )
-    enable_dns_updates = enroll_only(enable_dns_updates)
-
-    no_krb5_offline_passwords = knob(
-        None,
-        description="Configure SSSD not to store user password when the "
-                    "server is offline",
-    )
-    no_krb5_offline_passwords = enroll_only(no_krb5_offline_passwords)
-
-    preserve_sssd = knob(
-        None,
-        description="Preserve old SSSD configuration if possible",
-    )
-    preserve_sssd = enroll_only(preserve_sssd)
-
     def __init__(self, **kwargs):
         super(ClientInstallInterface, self).__init__(**kwargs)
 
@@ -3603,13 +3572,6 @@ class ClientInstall(ClientInstallInterface,
         str, None,
         description="specify directory where Firefox is installed (for "
                     "example: '/usr/lib/firefox')",
-    )
-
-    no_sssd = knob(
-        None,
-        description="Do not configure the client to use SSSD for "
-                    "authentication",
-        cli_names=[None, '-S'],
     )
 
     def __init__(self, **kwargs):
