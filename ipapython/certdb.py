@@ -169,6 +169,19 @@ class NSSDatabase(object):
                     new_mode = filemode
                 os.chmod(path, new_mode)
 
+    def restore(self):
+        for filename in NSS_FILES:
+            path = os.path.join(self.secdir, filename)
+            backup_path = path + '.orig'
+            save_path = path + '.ipasave'
+            try:
+                if os.path.exists(path):
+                    os.rename(path, save_path)
+                if os.path.exists(backup_path):
+                    os.rename(backup_path, path)
+            except OSError as e:
+                root_logger.debug(e)
+
     def list_certs(self):
         """Return nicknames and cert flags for all certs in the database
 

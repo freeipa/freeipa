@@ -234,6 +234,9 @@ class CertDB(object):
                              backup=True)
         self.set_perms(self.passwd_fname, write=True)
 
+    def restore(self):
+        self.nssdb.restore()
+
     def list_certs(self):
         """
         Return a tuple of tuples containing (nickname, trust)

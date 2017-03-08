@@ -555,6 +555,9 @@ class HTTPInstance(service.Service):
                 ca_iface.Set('org.fedorahosted.certmonger.ca',
                              'external-helper', helper)
 
+        db = certs.CertDB(self.realm, paths.HTTPD_ALIAS_DIR)
+        db.restore()
+
         for f in [paths.HTTPD_IPA_CONF, paths.HTTPD_SSL_CONF, paths.HTTPD_NSS_CONF]:
             try:
                 self.fstore.restore_file(f)
