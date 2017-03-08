@@ -556,8 +556,8 @@
                             "label_singular": "Server Role",
                         },
                         "servers": {
-                            "ca_warning_message": "It is strongly recommended to keep the CA services installed on more than one server.",
-                            "ca_warning_title": "Warning: Only One CA Server Detected",
+                            "svc_warning_title": "Warning: Consider service replication",
+                            "svc_warning_message": "It is strongly recommended to keep the following services installed on more than one server:",
                             "remove_server": "Delete Server",
                             "remove_server_msg": "Deleting a server removes it permanently from the topology. Note that this is a non-reversible action."
                         },
