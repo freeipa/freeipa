@@ -73,7 +73,11 @@ def main():
         sys.exit("Unrecognized action [" + args[0] + "]")
     standard_logging_setup(None, debug=options.debug)
 
-    api.bootstrap(context='cli', debug=options.debug, confdir=paths.ETC_IPA)
+    api.bootstrap(
+        context='cli',
+        in_server=True,
+        debug=options.debug,
+        confdir=paths.ETC_IPA)
     api.finalize()
     api.Backend.ldap2.connect(bind_pw=options.dirman_password)
 
