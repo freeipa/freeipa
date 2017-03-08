@@ -22,9 +22,35 @@ from optparse import (
     Option, Values, OptionParser, IndentedHelpFormatter, OptionValueError)
 # pylint: enable=deprecated-module
 from copy import copy
+import socket
+
+from dns import resolver, rdatatype
+from dns.exception import DNSException
+import dns.name
+# pylint: disable=import-error
+from six.moves.configparser import SafeConfigParser
+from six.moves.urllib.parse import urlsplit
+# pylint: enable=import-error
 
 from ipapython.dn import DN
 
+try:
+    from ipaplatform.paths import paths
+except ImportError:
+    IPA_DEFAULT_CONF = '/etc/ipa/default.conf'
+else:
+    IPA_DEFAULT_CONF = paths.IPA_DEFAULT_CONF
+
+
+class IPAConfigError(Exception):
+    def __init__(self, msg=''):
+        self.msg = msg
+        Exception.__init__(self, msg)
+
+    def __repr__(self):
+        return self.msg
+
+    __str__ = __repr__
 
 class IPAFormatter(IndentedHelpFormatter):
     """Our own optparse formatter that indents multiple lined usage string."""
@@ -111,8 +137,131 @@ def verify_args(parser, args, needed_args = None):
         parser.error("no %s specified" % needed_list[len_have])
 
 
+class IPAConfig(object):
+    def __init__(self):
+        self.default_realm = None
+        self.default_server = []
+        self.default_domain = None
+
+    def get_realm(self):
+        if self.default_realm:
+            return self.default_realm
+        else:
+            raise IPAConfigError("no default realm")
+
+    def get_server(self):
+        if len(self.default_server):
+            return self.default_server
+        else:
+            raise IPAConfigError("no default server")
+
+    def get_domain(self):
+        if self.default_domain:
+            return self.default_domain
+        else:
+            raise IPAConfigError("no default domain")
+
+# Global library config
+config = IPAConfig()
+
+def __parse_config(discover_server = True):
+    p = SafeConfigParser()
+    p.read(IPA_DEFAULT_CONF)
+
+    try:
+        if not config.default_realm:
+            config.default_realm = p.get("global", "realm")
+    except Exception:
+        pass
+    if discover_server:
+        try:
+            s = p.get("global", "xmlrpc_uri")
+            server = urlsplit(s)
+            config.default_server.append(server.netloc)
+        except Exception:
+            pass
+    try:
+        if not config.default_domain:
+            config.default_domain = p.get("global", "domain")
+    except Exception:
+        pass
+
+def __discover_config(discover_server = True):
+    servers = []
+    try:
+        if not config.default_domain:
+            # try once with REALM -> domain
+            domain = str(config.default_realm).lower()
+            name = "_ldap._tcp." + domain
+
+            try:
+                servers = resolver.query(name, rdatatype.SRV)
+            except DNSException:
+                # try cycling on domain components of FQDN
+                try:
+                    domain = dns.name.from_text(socket.getfqdn())
+                except DNSException:
+                    return False
+
+                while True:
+                    domain = domain.parent()
+
+                    if str(domain) == '.':
+                        return False
+                    name = "_ldap._tcp.%s" % domain
+                    try:
+                        servers = resolver.query(name, rdatatype.SRV)
+                        break
+                    except DNSException:
+                        pass
+
+            config.default_domain = str(domain).rstrip(".")
+
+        if discover_server:
+            if not servers:
+                name = "_ldap._tcp.%s." % config.default_domain
+                try:
+                    servers = resolver.query(name, rdatatype.SRV)
+                except DNSException:
+                    pass
+
+            for server in servers:
+                hostname = str(server.target).rstrip(".")
+                config.default_server.append(hostname)
+
+    except Exception:
+        pass
+
 def add_standard_options(parser):
     parser.add_option("--realm", dest="realm", help="Override default IPA realm")
     parser.add_option("--server", dest="server",
                       help="Override default FQDN of IPA server")
     parser.add_option("--domain", dest="domain", help="Override default IPA DNS domain")
+
+def init_config(options=None):
+    if options:
+        config.default_realm = options.realm
+        config.default_domain = options.domain
+        if options.server:
+            config.default_server.extend(options.server.split(","))
+
+    if len(config.default_server):
+        discover_server = False
+    else:
+        discover_server = True
+    __parse_config(discover_server)
+    __discover_config(discover_server)
+
+    # make sure the server list only contains unique items
+    new_server = []
+    for server in config.default_server:
+        if server not in new_server:
+            new_server.append(server)
+    config.default_server = new_server
+
+    if not config.default_realm:
+        raise IPAConfigError("IPA realm not found in DNS, in the config file (/etc/ipa/default.conf) or on the command line.")
+    if not config.default_server:
+        raise IPAConfigError("IPA server not found in DNS, in the config file (/etc/ipa/default.conf) or on the command line.")
+    if not config.default_domain:
+        raise IPAConfigError("IPA domain not found in the config file (/etc/ipa/default.conf) or on the command line.")
