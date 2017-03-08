@@ -8,9 +8,10 @@ Automount installer module
 
 from ipalib.install import service
 from ipalib.install.service import enroll_only
-from ipapython.install.core import knob
+from ipapython.install.core import group, knob
 
 
+@group
 class AutomountInstallInterface(service.ServiceInstallInterface):
     """
     Interface of the automount installer
@@ -19,9 +20,10 @@ class AutomountInstallInterface(service.ServiceInstallInterface):
     * ipa-client-install
     * ipa-client-automount
     """
+    description = "Automount"
 
     automount_location = knob(
-        str, 'default',
+        str, None,
         description="Automount location",
     )
     automount_location = enroll_only(automount_location)

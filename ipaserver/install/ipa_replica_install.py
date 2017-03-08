@@ -3,7 +3,7 @@
 #
 
 from ipapython.install import cli
-from ipapython.install.core import knob
+from ipapython.install.core import knob, extend_knob
 from ipaplatform.paths import paths
 from ipaserver.install.server import ServerReplicaInstall
 
@@ -19,9 +19,8 @@ class CompatServerReplicaInstall(ServerReplicaInstall):
     ca_file = None
     zonemgr = None
 
-    replica_file = knob(
-        # pylint: disable=no-member
-        bases=ServerReplicaInstall.replica_file,
+    replica_file = extend_knob(
+        ServerReplicaInstall.replica_file,  # pylint: disable=no-member
         cli_names='replica_file',
     )
 
@@ -52,17 +51,18 @@ class CompatServerReplicaInstall(ServerReplicaInstall):
     def dm_password(self, value):
         self.__dm_password = value
 
-    ip_addresses = knob(
-        # pylint: disable=no-member
-        bases=ServerReplicaInstall.ip_addresses,
+    ip_addresses = extend_knob(
+        ServerReplicaInstall.ip_addresses,  # pylint: disable=no-member
         description="Replica server IP Address. This option can be used "
                     "multiple times",
     )
 
-    admin_password = knob(
-        # pylint: disable=no-member
-        bases=ServerReplicaInstall.admin_password,
-        cli_names=list(ServerReplicaInstall.admin_password.cli_names) + ['-w'],
+    admin_password = (
+        ServerReplicaInstall.admin_password     # pylint: disable=no-member
+    )
+    admin_password = extend_knob(
+        admin_password,
+        cli_names=list(admin_password.cli_names) + ['-w'],
     )
 
     @admin_password.default_getter

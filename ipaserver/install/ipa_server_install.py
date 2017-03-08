@@ -3,7 +3,7 @@
 #
 
 from ipapython.install import cli
-from ipapython.install.core import knob
+from ipapython.install.core import extend_knob
 from ipaplatform.paths import paths
 from ipaserver.install.server import ServerMasterInstall
 
@@ -15,22 +15,20 @@ class CompatServerMasterInstall(ServerMasterInstall):
     no_sudo = False
     request_cert = False
 
-    dm_password = knob(
-        # pylint: disable=no-member
-        bases=ServerMasterInstall.dm_password,
+    dm_password = extend_knob(
+        ServerMasterInstall.dm_password,    # pylint: disable=no-member
         cli_names=['--ds-password', '-p'],
     )
 
-    admin_password = knob(
+    admin_password = ServerMasterInstall.admin_password
+    admin_password = extend_knob(
+        admin_password,
         # pylint: disable=no-member
-        bases=ServerMasterInstall.admin_password,
-        cli_names=(list(ServerMasterInstall.admin_password.cli_names) +
-                   ['-a']),
+        cli_names=list(admin_password.cli_names) + ['-a'],
     )
 
-    ip_addresses = knob(
-        # pylint: disable=no-member
-        bases=ServerMasterInstall.ip_addresses,
+    ip_addresses = extend_knob(
+        ServerMasterInstall.ip_addresses,   # pylint: disable=no-member
         description="Master Server IP Address. This option can be used "
                     "multiple times",
     )

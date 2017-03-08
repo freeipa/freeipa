@@ -8,7 +8,7 @@ Base service installer module
 
 from ipalib.util import validate_domain_name
 from ipapython.install import common, core, typing
-from ipapython.install.core import knob
+from ipapython.install.core import group, knob
 
 
 def prepare_only(obj):
@@ -94,12 +94,14 @@ def installs_replica(cls):
     return _does(cls, 'replica_install')
 
 
+@group
 class ServiceInstallInterface(common.Installable,
                               common.Interactive,
                               core.Composite):
     """
     Interface common to all service installers
     """
+    description = "Basic"
 
     domain_name = knob(
         str, None,

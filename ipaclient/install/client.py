@@ -50,7 +50,7 @@ from ipapython import certdb, kernel_keyring, ipaldap, ipautil
 from ipapython.admintool import ScriptError
 from ipapython.dn import DN
 from ipapython.install import typing
-from ipapython.install.core import knob
+from ipapython.install.core import group, knob, extend_knob
 from ipapython.install.common import step
 from ipapython.ipa_log_manager import log_mgr, root_logger
 from ipapython.ipautil import (
@@ -3355,6 +3355,7 @@ def init(installer):
     installer.sssd = not installer.no_sssd
 
 
+@group
 class ClientInstallInterface(hostname_.HostNameInstallInterface,
                              service.ServiceAdminInstallInterface,
                              sssd.SSSDInstallInterface):
@@ -3367,9 +3368,10 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
     * ipa-replica-prepare
     * ipa-replica-install
     """
+    description = "Client"
 
-    principal = knob(
-        bases=service.ServiceAdminInstallInterface.principal,
+    principal = extend_knob(
+        service.ServiceAdminInstallInterface.principal,
         description="principal to use to join the IPA realm",
     )
     principal = enroll_only(principal)
@@ -3518,8 +3520,8 @@ class ClientInstall(ClientInstallInterface,
     replica_file = None
     dm_password = None
 
-    ca_cert_files = knob(
-        bases=ClientInstallInterface.ca_cert_files,
+    ca_cert_files = extend_knob(
+        ClientInstallInterface.ca_cert_files,
     )
 
     @ca_cert_files.validator
@@ -3543,11 +3545,6 @@ class ClientInstall(ClientInstallInterface,
     @property
     def prompt_password(self):
         return self.interactive
-
-    automount_location = knob(
-        bases=automount.AutomountInstallInterface.automount_location,
-        default=None,
-    )
 
     no_ac = knob(
         None,

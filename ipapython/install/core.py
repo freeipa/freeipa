@@ -11,6 +11,7 @@ import collections
 import functools
 import itertools
 import sys
+import types
 
 import six
 
@@ -123,6 +124,10 @@ class KnobBase(PropertyBase):
         pass
 
     @classmethod
+    def group(cls):
+        return cls.__outer_class__.group()
+
+    @classmethod
     def is_cli_positional(cls):
         return all(n is not None and not n.startswith('-')
                    for n in cls.cli_names)
@@ -146,15 +151,16 @@ class KnobBase(PropertyBase):
         return cls
 
 
-def knob(type_=_missing, default=_missing, bases=_missing, sensitive=_missing,
-         deprecated=_missing, description=_missing, cli_names=_missing,
-         cli_deprecated_names=_missing, cli_metavar=_missing):
-    if type_ is None:
-        type_ = NoneType
+def _knob(type=_missing, default=_missing, bases=_missing, _order=_missing,
+          sensitive=_missing, deprecated=_missing, description=_missing,
+          group=_missing, cli_names=_missing, cli_deprecated_names=_missing,
+          cli_metavar=_missing):
+    if type is None:
+        type = NoneType
 
     if bases is _missing:
         bases = (KnobBase,)
-    elif isinstance(bases, type):
+    elif isinstance(bases, types.TypeType):
         bases = (bases,)
 
     if cli_names is None or isinstance(cli_names, str):
@@ -168,17 +174,20 @@ def knob(type_=_missing, default=_missing, bases=_missing, sensitive=_missing,
         cli_deprecated_names = tuple(cli_deprecated_names)
 
     class_dict = {}
-    class_dict['_order'] = next(_counter)
-    if type_ is not _missing:
-        class_dict['type'] = type_
+    if type is not _missing:
+        class_dict['type'] = type
     if default is not _missing:
         class_dict['default'] = default
+    if _order is not _missing:
+        class_dict['_order'] = _order
     if sensitive is not _missing:
         class_dict['sensitive'] = sensitive
     if deprecated is not _missing:
         class_dict['deprecated'] = deprecated
     if description is not _missing:
         class_dict['description'] = description
+    if group is not _missing:
+        class_dict['group'] = group
     if cli_names is not _missing:
         class_dict['cli_names'] = cli_names
     if cli_deprecated_names is not _missing:
@@ -187,6 +196,37 @@ def knob(type_=_missing, default=_missing, bases=_missing, sensitive=_missing,
         class_dict['cli_metavar'] = cli_metavar
 
     return util.InnerClassMeta('Knob', bases, class_dict)
+
+
+def knob(type, default=_missing, **kwargs):
+    """
+    Define a new knob.
+    """
+    return _knob(
+        type, default,
+        _order=next(_counter),
+        **kwargs
+    )
+
+
+def extend_knob(base, default=_missing, bases=_missing, group=_missing,
+                **kwargs):
+    """
+    Extend an existing knob.
+    """
+    if bases is _missing:
+        bases = (base,)
+
+    if group is _missing:
+        group = staticmethod(base.group)
+
+    return _knob(
+        _missing, default,
+        bases=bases,
+        _order=_missing,
+        group=group,
+        **kwargs
+    )
 
 
 class Configurable(six.with_metaclass(abc.ABCMeta, object)):

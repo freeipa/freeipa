@@ -15,6 +15,7 @@ from ipaplatform.paths import paths
 from ipapython import certdb
 from ipapython import ipautil
 from ipapython.dn import DN
+from ipapython.install.core import group
 from ipaserver.install import custodiainstance
 from ipaserver.install import cainstance
 from ipaserver.install import krainstance
@@ -141,6 +142,7 @@ def uninstall(standalone):
         kra.uninstall()
 
 
+@group
 class KRAInstallInterface(dogtag.DogtagInstallInterface):
     """
     Interface of the KRA installer
@@ -151,3 +153,4 @@ class KRAInstallInterface(dogtag.DogtagInstallInterface):
     * ipa-replica-install
     * ipa-kra-install
     """
+    description = "KRA"
