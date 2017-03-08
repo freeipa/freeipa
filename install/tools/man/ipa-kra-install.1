@@ -31,16 +31,13 @@ ipa\-kra\-install will contact the CA to determine if a KRA has already been ins
 
 The replica_file is created using the ipa\-replica\-prepare utility.  A new replica_file should be generated on the master IPA server after the KRA has been installed and configured, so that the replica_file will contain the master KRA configuration and system certificates.
 
-The uninstall option can be  used to remove the KRA from the local IPA server. KRA instances on other replicas are not affected.  The KRA will also be removed if the entire server is removed using ipa\-server\-install \-\-uninstall.
+KRA can only be removed along with the entire server using ipa\-server\-install \-\-uninstall.
 .SH "OPTIONS"
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 Directory Manager (existing master) password
 .TP
 \fB\-U\fR, \fB\-\-unattended\fR
 An unattended installation that will never prompt for user input
-.TP
-\fB\-\-uninstall\fR
-Uninstall the KRA from the local IPA server.
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 Enable debug output when more verbose output is needed

@@ -9,12 +9,11 @@ KRA installer module
 import os
 import shutil
 
-from ipalib import api, errors
+from ipalib import api
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython import certdb
 from ipapython import ipautil
-from ipapython.dn import DN
 from ipapython.install.core import group
 from ipaserver.install import custodiainstance
 from ipaserver.install import cainstance
@@ -125,19 +124,9 @@ def install(api, replica_config, options):
     services.knownservices.httpd.restart(capture_output=True)
 
 
-def uninstall(standalone):
+def uninstall():
     kra = krainstance.KRAInstance(api.env.realm)
-
-    if standalone:
-        try:
-            api.Backend.ldap2.delete_entry(
-                DN(('cn', 'KRA'), ('cn', api.env.host),
-                   ('cn', 'masters'), ('cn', 'ipa'),
-                   ('cn', 'etc'), api.env.basedn))
-        except errors.NotFound:
-            pass
-
-    kra.stop_tracking_certificates(stop_certmonger=not standalone)
+    kra.stop_tracking_certificates()
     if kra.is_installed():
         kra.uninstall()
 
