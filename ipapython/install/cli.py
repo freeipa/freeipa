@@ -136,22 +136,22 @@ class ConfigureTool(admintool.AdminTool):
                 help="unattended (un)installation never prompts the user",
             )
 
-        basic_group = optparse.OptionGroup(parser, "basic options")
-
         groups = collections.OrderedDict()
-        groups[None] = basic_group
+        # if no group is defined, add the option to the parser top level
+        groups[None] = parser
 
         for owner_cls, name in transformed_cls.knobs():
             knob_cls = getattr(owner_cls, name)
             if knob_cls.is_cli_positional() is not positional:
                 continue
 
-            group_cls = owner_cls.group()
+            group_cls = knob_cls.group()
             try:
                 opt_group = groups[group_cls]
             except KeyError:
                 opt_group = groups[group_cls] = optparse.OptionGroup(
-                    parser, "{0} options".format(group_cls.description))
+                        parser, "{0} options".format(group_cls.description))
+                parser.add_option_group(opt_group)
 
             knob_type = knob_cls.type
             if issubclass(knob_type, list):
@@ -236,9 +236,6 @@ class ConfigureTool(admintool.AdminTool):
                     help=help,
                     **kwargs
                 )
-
-        for opt_group in groups.values():
-            parser.add_option_group(opt_group)
 
         super(ConfigureTool, cls).add_options(parser,
                                               debug_option=cls.debug_option)
@@ -353,8 +350,7 @@ class InstallTool(ConfigureTool):
         super(InstallTool, cls).add_options(parser, positional)
 
         if cls.uninstall_kwargs is not None:
-            uninstall_group = optparse.OptionGroup(parser, "uninstall options")
-            uninstall_group.add_option(
+            parser.add_option(
                 '--uninstall',
                 dest='uninstall',
                 default=False,
@@ -362,7 +358,6 @@ class InstallTool(ConfigureTool):
                 help=("uninstall an existing installation. The uninstall can "
                       "be run with --unattended option"),
             )
-            parser.add_option_group(uninstall_group)
 
     @classmethod
     def get_command_class(cls, options, args):
