@@ -73,8 +73,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 222)
->>>>>>> ipaconfig: add the ability to manipulate domain resolution order
+define(IPA_API_VERSION_MINOR, 223)
+# Last change: Add domain resolution order to ID views
 
 
 ########################################################
