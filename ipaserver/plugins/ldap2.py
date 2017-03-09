@@ -77,42 +77,42 @@ class ldap2(CrudBackend, LDAPClient):
         LDAPClient.__init__(self, ldap_uri,
                             force_schema_updates=force_schema_updates)
 
-        self.__time_limit = float(LDAPClient.time_limit)
-        self.__size_limit = int(LDAPClient.size_limit)
+        self._time_limit = float(LDAPClient.time_limit)
+        self._size_limit = int(LDAPClient.size_limit)
 
     @property
     def time_limit(self):
-        if self.__time_limit is None:
+        if self._time_limit is None:
             return float(self.get_ipa_config().single_value.get(
                 'ipasearchtimelimit', 2))
-        return self.__time_limit
+        return self._time_limit
 
     @time_limit.setter
     def time_limit(self, val):
         if val is not None:
             val = float(val)
-        self.__time_limit = val
+        object.__setattr__(self, '_time_limit', val)
 
     @time_limit.deleter
     def time_limit(self):
-        self.__time_limit = int(LDAPClient.size_limit)
+        object.__setattr__(self, '_time_limit', int(LDAPClient.size_limit))
 
     @property
     def size_limit(self):
-        if self.__size_limit is None:
+        if self._size_limit is None:
             return int(self.get_ipa_config().single_value.get(
                 'ipasearchrecordslimit', 0))
-        return self.__size_limit
+        return self._size_limit
 
     @size_limit.setter
     def size_limit(self, val):
         if val is not None:
             val = int(val)
-        self.__size_limit = val
+        object.__setattr__(self, '_size_limit', val)
 
     @size_limit.deleter
     def size_limit(self):
-        self.__size_limit = float(LDAPClient.time_limit)
+        object.__setattr__(self, '_size_limit', float(LDAPClient.time_limit))
 
     def _connect(self):
         # Connectible.conn is a proxy to thread-local storage;
@@ -158,9 +158,9 @@ class ldap2(CrudBackend, LDAPClient):
             cacert = paths.IPA_CA_CRT
 
         if time_limit is not _missing:
-            self.time_limit = time_limit
+            object.__setattr__(self, 'time_limit', time_limit)
         if size_limit is not _missing:
-            self.size_limit = size_limit
+            object.__setattr__(self, 'size_limit', size_limit)
 
         client = LDAPClient(self.ldap_uri,
                             force_schema_updates=self._force_schema_updates,
@@ -219,8 +219,8 @@ class ldap2(CrudBackend, LDAPClient):
             # ignore when trying to unbind multiple times
             pass
 
-        del self.time_limit
-        del self.size_limit
+        object.__delattr__(self, 'time_limit')
+        object.__delattr__(self, 'size_limit')
 
     def get_ipa_config(self, attrs_list=None):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
