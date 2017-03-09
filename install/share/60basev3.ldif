@@ -57,6 +57,7 @@ attributeTypes: (2.16.840.1.113730.3.8.11.65 NAME 'ipaWrappingMech' DESC 'PKCS#1
 attributeTypes: (2.16.840.1.113730.3.8.11.70 NAME 'ipaPermTargetTo' DESC 'Destination location to move an entry IPA permission ACI' EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE X-ORIGIN 'IPA v4.0' )
 attributeTypes: (2.16.840.1.113730.3.8.11.71 NAME 'ipaPermTargetFrom' DESC 'Source location from where moving an entry IPA permission ACI' EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE X-ORIGIN 'IPA v4.0' )
 attributeTypes: ( 2.16.840.1.113730.3.8.11.75 NAME 'ipaNTAdditionalSuffixes' DESC 'Suffix for the user principal name associated with the domain' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
+attributeTypes: (2.16.840.1.113730.3.8.11.77 NAME 'ipaDomainResolutionOrder' DESC 'List of domains used to resolve a short name' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'IPA v4.5')
 attributeTypes: (2.16.840.1.113730.3.8.18.2.1 NAME 'ipaVaultType' DESC 'IPA vault type' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.2')
 attributeTypes: (2.16.840.1.113730.3.8.18.2.2 NAME 'ipaVaultSalt' DESC 'IPA vault salt' EQUALITY octetStringMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 X-ORIGIN 'IPA v4.2' )
 # FIXME: https://bugzilla.redhat.com/show_bug.cgi?id=1267782
@@ -84,5 +85,6 @@ objectClasses: (2.16.840.1.113730.3.8.12.24 NAME 'ipaPublicKeyObject' DESC 'Wrap
 objectClasses: (2.16.840.1.113730.3.8.12.25 NAME 'ipaPrivateKeyObject' DESC 'Wrapped private keys' SUP top AUXILIARY MUST ( ipaPrivateKey $ ipaWrappingKey $ ipaWrappingMech ) X-ORIGIN 'IPA v4.1' )
 objectClasses: (2.16.840.1.113730.3.8.12.26 NAME 'ipaSecretKeyObject' DESC 'Wrapped secret keys' SUP top AUXILIARY MUST ( ipaSecretKey $ ipaWrappingKey $ ipaWrappingMech ) X-ORIGIN 'IPA v4.1' )
 objectClasses: (2.16.840.1.113730.3.8.12.34 NAME 'ipaSecretKeyRefObject' DESC 'Indirect storage for encoded key material' SUP top AUXILIARY MUST ( ipaSecretKeyRef ) X-ORIGIN 'IPA v4.1' )
+objectClasses: (2.16.840.1.113730.3.8.12.39 NAME 'ipaNameResolutionData' DESC 'Data used to resolve short names to fully-qualified form' SUP top AUXILIARY MAY ( ipaDomainResolutionOrder ) X-ORIGIN 'IPA v4.5')
 objectClasses: (2.16.840.1.113730.3.8.18.1.1 NAME 'ipaVault' DESC 'IPA vault' SUP top STRUCTURAL MUST ( cn ) MAY ( description $ ipaVaultType $ ipaVaultSalt $ ipaVaultPublicKey $ owner $ member ) X-ORIGIN 'IPA v4.2' )
 objectClasses: (2.16.840.1.113730.3.8.18.1.2 NAME 'ipaVaultContainer' DESC 'IPA vault container' SUP top STRUCTURAL MUST ( cn ) MAY ( description $ owner ) X-ORIGIN 'IPA v4.2' )
