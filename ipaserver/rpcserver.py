@@ -834,6 +834,16 @@ class login_kerberos(KerberosLogin):
 class login_x509(KerberosLogin):
     key = '/session/login_x509'
 
+    def __call__(self, environ, start_response):
+        self.debug('WSGI login_x509.__call__:')
+
+        if 'KRB5CCNAME' not in environ:
+            return self.unauthorized(
+                environ, start_response, 'KRB5CCNAME not set',
+                'Authentication failed')
+
+        super(login_x509, self).__call__(environ, start_response)
+
 
 class login_password(Backend, KerberosSession):
 
