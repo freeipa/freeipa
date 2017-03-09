@@ -69,6 +69,7 @@ class KrbInstance(service.Service):
         self.sub_dict = None
         self.pkcs12_info = None
         self.master_fqdn = None
+        self.config_pkinit = None
 
     suffix = ipautil.dn_attribute_property('_suffix')
     subject_base = ipautil.dn_attribute_property('_subject_base')
@@ -147,6 +148,7 @@ class KrbInstance(service.Service):
         self.master_password = master_password
         self.pkcs12_info = pkcs12_info
         self.subject_base = subject_base
+        self.config_pkinit = setup_pkinit
 
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
@@ -160,10 +162,6 @@ class KrbInstance(service.Service):
         self.step("creating anonymous principal", self.add_anonymous_principal)
 
         self.__common_post_setup()
-
-        if setup_pkinit:
-            self.step("installing X509 Certificate for PKINIT",
-                      self.setup_pkinit)
 
         self.start_creation()
 
@@ -179,14 +177,12 @@ class KrbInstance(service.Service):
         self.pkcs12_info = pkcs12_info
         self.subject_base = subject_base
         self.master_fqdn = master_fqdn
+        self.config_pkinit = setup_pkinit
 
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
         self.step("configuring KDC", self.__configure_instance)
         self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
-        if setup_pkinit:
-            self.step("installing X509 Certificate for PKINIT",
-                      self.setup_pkinit)
 
         self.__common_post_setup()
 
@@ -392,6 +388,20 @@ class KrbInstance(service.Service):
         # Finally copy the cacert in the krb directory so we don't
         # have any selinux issues with the file context
         shutil.copyfile(paths.IPA_CA_CRT, paths.CACERT_PEM)
+
+        try:
+            self.restart()
+        except Exception:
+            root_logger.critical("krb5kdc service failed to restart")
+            raise
+
+    def enable_ssl(self):
+        if self.config_pkinit:
+            self.steps = []
+            self.step("installing X509 Certificate for PKINIT",
+                      self.setup_pkinit)
+
+            self.start_creation()
 
     def get_anonymous_principal_name(self):
         return "%s@%s" % (ANON_USER, self.realm)

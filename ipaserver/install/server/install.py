@@ -836,6 +836,9 @@ def install(installer):
 
     ca.set_subject_base_in_config(options.subject_base)
 
+    # configure PKINIT now that all required services are in place
+    krb.enable_ssl()
+
     # Apply any LDAP updates. Needs to be done after the configuration file
     # is created. DS is restarted in the process.
     service.print_msg("Applying LDAP updates")
