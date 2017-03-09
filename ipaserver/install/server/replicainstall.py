@@ -1461,6 +1461,9 @@ def install(installer):
         options.dm_password = config.dirman_password
         ca.install(False, config, options)
 
+    # configure PKINIT now that all required services are in place
+    krb.enable_ssl()
+
     # Apply any LDAP updates. Needs to be done after the replica is synced-up
     service.print_msg("Applying LDAP updates")
     ds.apply_updates()
