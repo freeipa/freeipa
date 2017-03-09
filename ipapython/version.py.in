@@ -49,5 +49,5 @@ API_VERSION=u'@API_VERSION@'
 
 
 DEFAULT_PLUGINS = frozenset(l.strip() for l in """
-__DEFAULT_PLUGINS__
+@DEFAULT_PLUGINS@
 """.strip().splitlines())
