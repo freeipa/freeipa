@@ -111,7 +111,7 @@ auth.Auth = declare([Stateful, Evented], {
      * Enabled auth methods
      * @property {string[]}
      */
-    auth_methods: ['kerberos', 'password'],
+    auth_methods: ['kerberos', 'password', 'certificate'],
 
     /**
      * Authenticated user's Kerberos principal

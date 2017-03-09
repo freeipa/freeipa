@@ -328,6 +328,11 @@ define(['dojo/_base/declare',
             return auth.current.auth_methods.indexOf('password') > -1;
         },
 
+        certificate_enabled: function() {
+            return auth.current.auth_methods.indexOf('certificate') > -1;
+        },
+
+
         postscript: function(args) {
             this.create_fields();
         },
