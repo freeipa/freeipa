@@ -255,6 +255,7 @@ Requires: mod_wsgi
 Requires: mod_auth_gssapi >= 1.5.0
 Requires: mod_nss >= 1.0.8-26
 Requires: mod_session
+Requires: mod_lookup_identity
 Requires: python-ldap >= 2.4.15
 Requires: python-gssapi >= 1.2.0
 Requires: acl

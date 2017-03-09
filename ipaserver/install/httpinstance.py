@@ -53,6 +53,7 @@ SELINUX_BOOLEAN_SETTINGS = dict(
     httpd_can_network_connect='on',
     httpd_manage_ipa='on',
     httpd_run_ipa='on',
+    httpd_dbus_sssd='on',
 )
 
 HTTPD_USER = constants.HTTPD_USER
