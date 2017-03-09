@@ -95,7 +95,8 @@ class idview(LDAPObject):
     object_name = _('ID View')
     object_name_plural = _('ID Views')
     object_class = ['ipaIDView', 'top']
-    default_attributes = ['cn', 'description']
+    possible_objectclasses = ['ipaNameResolutionData']
+    default_attributes = ['cn', 'description', 'ipadomainresolutionorder']
     rdn_is_primary_key = True
 
     label = _('ID Views')
@@ -123,6 +124,14 @@ class idview(LDAPObject):
             label=_('Hosts the view applies to'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
+        Str(
+            'ipadomainresolutionorder?',
+            cli_name='domain_resolution_order',
+            label=_('Domain resolution order'),
+            doc=_('colon-separated list of domains used for short name'
+                  ' qualification'),
+            flags={'no_search'}
+        )
     )
 
     permission_filter_objectclasses = ['nsContainer']
@@ -131,16 +140,33 @@ class idview(LDAPObject):
             'ipapermbindruletype': 'all',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
-                'cn', 'description', 'objectClass',
+                'cn', 'description', 'ipadomainresolutionorder', 'objectClass',
             },
         },
     }
+
+    def ensure_possible_objectclasses(self, ldap, dn, entry_attrs):
+        orig_entry_attrs = ldap.get_entry(dn, ['objectclass'])
+
+        orig_objectclasses = {
+            o.lower() for o in orig_entry_attrs.get('objectclass', [])}
+
+        entry_attrs['objectclass'] = orig_entry_attrs['objectclass']
+
+        for obj_class_name in self.possible_objectclasses:
+            if obj_class_name.lower() not in orig_objectclasses:
+                entry_attrs['objectclass'].append(obj_class_name)
 
 
 @register()
 class idview_add(LDAPCreate):
     __doc__ = _('Add a new ID View.')
     msg_summary = _('Added ID View "%(value)s"')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        self.api.Object.config.validate_domain_resolution_order(entry_attrs)
+
+        return dn
 
 
 @register()
@@ -165,6 +191,9 @@ class idview_mod(LDAPUpdate):
         for key in keys:
             if key.lower() == DEFAULT_TRUST_VIEW_NAME:
                 raise protected_default_trust_view_error
+
+        self.api.Object.config.validate_domain_resolution_order(entry_attrs)
+        self.obj.ensure_possible_objectclasses(ldap, dn, entry_attrs)
 
         return dn
 

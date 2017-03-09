@@ -183,7 +183,7 @@ aci: (targetattr = "createtimestamp || description || entryusn || gecos || gidnu
 dn: cn=ranges,cn=etc,dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || entryusn || ipabaseid || ipabaserid || ipaidrangesize || ipanttrusteddomainsid || iparangetype || ipasecondarybaserid || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaidrange)")(version 3.0;acl "permission:System: Read ID Ranges";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=views,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "cn || createtimestamp || description || entryusn || modifytimestamp || objectclass")(targetfilter = "(objectclass=nsContainer)")(version 3.0;acl "permission:System: Read ID Views";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "cn || createtimestamp || description || entryusn || ipadomainresolutionorder || modifytimestamp || objectclass")(targetfilter = "(objectclass=nsContainer)")(version 3.0;acl "permission:System: Read ID Views";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=IPA.EXAMPLE,cn=kerberos,dc=ipa,dc=example
 aci: (targetattr = "createtimestamp || entryusn || krbdefaultencsalttypes || krbmaxrenewableage || krbmaxticketlife || krbsupportedencsalttypes || modifytimestamp || objectclass")(targetfilter = "(objectclass=krbticketpolicyaux)")(version 3.0;acl "permission:System: Read Default Kerberos Ticket Policy";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Default Kerberos Ticket Policy,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
