@@ -1289,7 +1289,7 @@ class RestClient(Backend):
         cookies = ipapython.cookie.Cookie.parse(resp_headers.get('set-cookie', ''))
         if status != 200 or len(cookies) == 0:
             raise errors.RemoteRetrieveError(reason=_('Failed to authenticate to CA REST API'))
-        self.cookie = str(cookies[0])
+        object.__setattr__(self, 'cookie', str(cookies[0]))
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -1302,7 +1302,7 @@ class RestClient(Backend):
             client_keyfile=self.client_keyfile,
             method='GET'
         )
-        self.cookie = None
+        object.__setattr__(self, 'cookie', None)
 
     def _ssldo(self, method, path, headers=None, body=None, use_session=True):
         """

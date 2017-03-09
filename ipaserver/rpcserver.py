@@ -628,8 +628,10 @@ class KerberosWSGIExecutioner(WSGIExecutioner, KerberosSession):
         self.debug('KerberosWSGIExecutioner.__call__:')
         user_ccache=environ.get('KRB5CCNAME')
 
-        self.headers = [('Content-Type',
-                         '%s; charset=utf-8' % self.content_type)]
+        object.__setattr__(
+            self, 'headers',
+            [('Content-Type', '%s; charset=utf-8' % self.content_type)]
+        )
 
         if user_ccache is None:
 
