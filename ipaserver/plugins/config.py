@@ -22,6 +22,7 @@ from ipalib import api
 from ipalib import Bool, Int, Str, IA5Str, StrEnum, DNParam
 from ipalib import errors
 from ipalib.plugable import Registry
+from ipalib.util import validate_domain_name
 from .baseldap import (
     LDAPObject,
     LDAPUpdate,
@@ -33,6 +34,8 @@ from ipapython.dn import DN
 # 389-ds attributes that should be skipped in attribute checks
 OPERATIONAL_ATTRIBUTES = ('nsaccountlock', 'member', 'memberof',
     'memberindirect', 'memberofindirect',)
+
+DOMAIN_RESOLUTION_ORDER_SEPARATOR = u':'
 
 __doc__ = _("""
 Server configuration
@@ -95,7 +98,7 @@ class config(LDAPObject):
         'ipamigrationenabled', 'ipacertificatesubjectbase',
         'ipapwdexpadvnotify', 'ipaselinuxusermaporder',
         'ipaselinuxusermapdefault', 'ipaconfigstring', 'ipakrbauthzdata',
-        'ipauserauthtype'
+        'ipauserauthtype', 'ipadomainresolutionorder'
     ]
     container_dn = DN(('cn', 'ipaconfig'), ('cn', 'etc'))
     permission_filter_objectclasses = ['ipaguiconfig']
@@ -108,7 +111,8 @@ class config(LDAPObject):
                 'cn', 'objectclass',
                 'ipacertificatesubjectbase', 'ipaconfigstring',
                 'ipadefaultemaildomain', 'ipadefaultloginshell',
-                'ipadefaultprimarygroup', 'ipagroupobjectclasses',
+                'ipadefaultprimarygroup', 'ipadomainresolutionorder',
+                'ipagroupobjectclasses',
                 'ipagroupsearchfields', 'ipahomesrootdir',
                 'ipakrbauthzdata', 'ipamaxusernamelength',
                 'ipamigrationenabled', 'ipapwdexpadvnotify',
@@ -250,6 +254,13 @@ class config(LDAPObject):
             label=_('IPA CA renewal master'),
             doc=_('Renewal master for IPA certificate authority'),
             flags={'virtual_attribute', 'no_create'}
+        ),
+        Str(
+            'ipadomainresolutionorder?',
+            cli_name='domain_resolution_order',
+            label=_('Domain resolution order'),
+            doc=_('colon-separated list of domains used for short name'
+                  ' qualification')
         )
     )
 
@@ -265,6 +276,104 @@ class config(LDAPObject):
         for role in ("CA server", "IPA master", "NTP server"):
             config = backend.config_retrieve(role)
             entry_attrs.update(config)
+
+    def gather_trusted_domains(self):
+        """
+        Aggregate all trusted domains into a dict keyed by domain names with
+        values corresponding to domain status (enabled/disabled)
+        """
+        command = self.api.Command
+        try:
+            ad_forests = command.trust_find(sizelimit=0)['result']
+        except errors.NotFound:
+            return {}
+
+        trusted_domains = {}
+        for forest_name in [a['cn'][0] for a in ad_forests]:
+            forest_domains = command.trustdomain_find(
+                forest_name, sizelimit=0)['result']
+
+            trusted_domains.update(
+                {
+                    dom['cn'][0]: dom['domain_enabled'][0]
+                    for dom in forest_domains if 'domain_enabled' in dom
+                }
+            )
+
+        return trusted_domains
+
+    def _validate_single_domain(self, attr_name, domain, known_domains):
+        """
+        Validate a single domain from domain resolution order
+
+        :param attr_name: name of attribute that holds domain resolution order
+        :param domain: domain name
+        :param known_domains: dict of domains known to IPA keyed by domain name
+            and valued by boolean value corresponding to domain status
+            (enabled/disabled)
+
+        :raises: ValidationError if the domain name is empty, syntactically
+            invalid or corresponds to a disable domain
+                 NotFound if a syntactically correct domain name unknown to IPA
+                 is supplied (not IPA domain and not any of trusted domains)
+        """
+        if not domain:
+            raise errors.ValidationError(
+                name=attr_name,
+                error=_("Empty domain is not allowed")
+            )
+
+        try:
+            validate_domain_name(domain)
+        except ValueError as e:
+            raise errors.ValidationError(
+                name=attr_name,
+                error=_("Invalid domain name '%(domain)s': %(e)s")
+                % dict(domain=domain, e=e))
+
+        if domain not in known_domains:
+            raise errors.NotFound(
+                reason=_("Server has no information about domain '%(domain)s'")
+                % dict(domain=domain)
+            )
+
+        if not known_domains[domain]:
+            raise errors.ValidationError(
+                name=attr_name,
+                error=_("Disabled domain '%(domain)s' is not allowed")
+                % dict(domain=domain)
+            )
+
+    def validate_domain_resolution_order(self, entry_attrs):
+        """
+        Validate domain resolution order, e.g. split by the delimiter (colon)
+        and check each domain name for non-emptiness, syntactic correctness,
+        and status (enabled/disabled).
+
+        supplying empty order (':') bypasses validations and allows to specify
+        empty attribute value.
+        """
+        attr_name = 'ipadomainresolutionorder'
+        if attr_name not in entry_attrs:
+            return
+
+        domain_resolution_order = entry_attrs[attr_name]
+
+        # empty resolution order is signalized by single separator, do nothing
+        # and let it pass
+        if domain_resolution_order == DOMAIN_RESOLUTION_ORDER_SEPARATOR:
+            return
+
+        submitted_domains = domain_resolution_order.split(
+                DOMAIN_RESOLUTION_ORDER_SEPARATOR)
+
+        known_domains = self.gather_trusted_domains()
+
+        # add FreeIPA domain to the list of domains. This one is always enabled
+        known_domains.update({self.api.env.domain: True})
+
+        for domain in submitted_domains:
+            self._validate_single_domain(attr_name, domain, known_domains)
 
 
 @register()
@@ -395,6 +504,8 @@ class config_mod(LDAPUpdate):
 
             backend = self.api.Backend.serverroles
             backend.config_update(ca_renewal_master_server=new_master)
+
+        self.obj.validate_domain_resolution_order(entry_attrs)
 
         return dn
 

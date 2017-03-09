@@ -1061,7 +1061,7 @@ args: 0,1,1
 option: Str('version?')
 output: Output('result')
 command: config_mod/1
-args: 0,26,3
+args: 0,27,3
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('ca_renewal_master_server?', autofill=False)
@@ -1070,6 +1070,7 @@ option: StrEnum('ipaconfigstring*', autofill=False, cli_name='ipaconfigstring', 
 option: Str('ipadefaultemaildomain?', autofill=False, cli_name='emaildomain')
 option: Str('ipadefaultloginshell?', autofill=False, cli_name='defaultshell')
 option: Str('ipadefaultprimarygroup?', autofill=False, cli_name='defaultgroup')
+option: Str('ipadomainresolutionorder?', autofill=False, cli_name='domain_resolution_order')
 option: Str('ipagroupobjectclasses*', autofill=False, cli_name='groupobjectclasses')
 option: IA5Str('ipagroupsearchfields?', autofill=False, cli_name='groupsearch')
 option: IA5Str('ipahomesrootdir?', autofill=False, cli_name='homedirectory')
