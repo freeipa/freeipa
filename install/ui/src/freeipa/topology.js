@@ -497,6 +497,10 @@ topology.servers_search_facet = function(spec, no_init) {
             on_success(data, text_status, xhr);
 
             var result = data.result.results;
+
+            // Do not show warning if there is only one master
+            if (result.length <= 1) return;
+
             var counter = 0;
 
             for (var i=0, l=result.length; i<l; i++) {
