@@ -23,6 +23,7 @@ from ipalib.install import certmonger, sysrestore
 import SSSDConfig
 import ipalib.util
 import ipalib.errors
+from ipaclient.install.client import sssd_enable_service
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipapython import ipautil, version, certdb
@@ -1770,6 +1771,10 @@ def upgrade_configuration():
         cainstance.ensure_ipa_authority_entry()
 
     set_sssd_domain_option('ipa_server_mode', 'True')
+
+    sssdconfig = SSSDConfig.SSSDConfig()
+    sssdconfig.import_config()
+    sssd_enable_service(sssdconfig, 'ifp')
 
     krb = krbinstance.KrbInstance(fstore)
     krb.fqdn = fqdn

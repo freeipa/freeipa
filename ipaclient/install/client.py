@@ -846,6 +846,9 @@ def configure_sssd_conf(
         sssdconfig.new_config()
         domain = sssdconfig.new_domain(cli_domain)
 
+    if options.on_master:
+        sssd_enable_service(sssdconfig, 'ifp')
+
     if (
         (options.conf_ssh and file_exists(paths.SSH_CONFIG)) or
         (options.conf_sshd and file_exists(paths.SSHD_CONFIG))
@@ -946,6 +949,23 @@ def configure_sssd_conf(
     sssdconfig.write(paths.SSSD_CONF)
 
     return 0
+
+
+def sssd_enable_service(sssdconfig, service):
+    try:
+        sssdconfig.new_service(service)
+    except SSSDConfig.ServiceAlreadyExists:
+        pass
+    except SSSDConfig.ServiceNotRecognizedError:
+        root_logger.error(
+            "Unable to activate the %s service in SSSD config.", service)
+        root_logger.info(
+            "Please make sure you have SSSD built with %s support "
+            "installed.", service)
+        root_logger.info(
+            "Configure %s support manually in /etc/sssd/sssd.conf.", service)
+
+    sssdconfig.activate_service(service)
 
 
 def change_ssh_config(filename, changes, sections):
