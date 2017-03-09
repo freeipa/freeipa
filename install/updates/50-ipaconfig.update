@@ -4,3 +4,4 @@ add:ipaSELinuxUserMapDefault: unconfined_u:s0-s0:c0.c1023
 add:ipaUserObjectClasses: ipasshuser
 remove:ipaConfigString:AllowLMhash
 add:objectClass: ipaUserAuthTypeClass
+add:objectClass: ipaNameResolutionData
