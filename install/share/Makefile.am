@@ -81,7 +81,6 @@ dist_app_DATA =				\
 	automember.ldif			\
 	replica-automember.ldif		\
 	replica-s4u2proxy.ldif		\
-	copy-schema-to-ca.py		\
 	sasl-mapping-fallback.ldif	\
 	schema-update.ldif		\
 	vault.ldif			\
