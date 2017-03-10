@@ -698,6 +698,8 @@ class CAInstance(DogtagInstance):
 
         self.configure_agent_renewal()
 
+        self.configure_agent_renewal()
+
     def __import_ra_key(self):
         custodia = custodiainstance.CustodiaInstance(host_name=self.fqdn,
                                                      realm=self.realm)
@@ -715,6 +717,8 @@ class CAInstance(DogtagInstance):
             os.chown(fname, -1, ipaapi_gid)
             os.chmod(fname, 0o440)
             tasks.restore_context(fname)
+
+        self.configure_agent_renewal()
 
     def __create_ca_agent(self):
         """
