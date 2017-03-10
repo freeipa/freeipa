@@ -48,6 +48,8 @@ steps:
   install_server:
   - ipa-server-install -U --domain ${server_domain} --realm ${server_realm} -p ${server_password}
     -a ${server_password} --setup-dns --setup-kra --auto-forwarders
+  - sed -ri "s/mode = production/mode = development/" /etc/ipa/default.conf
+  - systemctl restart httpd.service
   lint:
   - PYTHON=/usr/bin/python2 make V=0 lint
   - PYTHON=/usr/bin/python3 make V=0 pylint
