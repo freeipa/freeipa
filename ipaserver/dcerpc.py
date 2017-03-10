@@ -44,11 +44,10 @@ from samba import credentials
 from samba.dcerpc import security, lsa, drsblobs, nbt, netlogon
 from samba.ndr import ndr_pack, ndr_print
 from samba import net
+from samba import arcfour_encrypt
 import samba
 # pylint: enable=import-error
 
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
-from cryptography.hazmat.backends import default_backend
 import ldap as _ldap
 from ipapython import ipaldap
 from dns import resolver, rdatatype
@@ -166,13 +165,6 @@ def assess_dcerpc_exception(num=None, message=None):
                'message "%(message)s" (both may be "None")') % \
         dict(num=num, message=message)
     return errors.RemoteRetrieveError(reason=reason)
-
-
-def arcfour_encrypt(key, data):
-    algorithm = algorithms.ARC4(key)
-    cipher = Cipher(algorithm, mode=None, backend=default_backend())
-    encryptor = cipher.encryptor()
-    return encryptor.update(data)
 
 
 class ExtendedDNControl(LDAPControl):
