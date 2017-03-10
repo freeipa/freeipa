@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import base64
 import subprocess
 from tempfile import NamedTemporaryFile as NTF
 
@@ -38,9 +39,36 @@ if six.PY3:
 register = Registry()
 
 
-@register(override=True, no_fail=True)
-class cert_request(MethodOverride):
+class CertRetrieveOverride(MethodOverride):
     takes_options = (
+        Str(
+            'certificate_out?',
+            doc=_('Write certificate (chain if --chain used) to file'),
+            include='cli',
+            cli_metavar='FILE',
+        ),
+    )
+
+    def forward(self, *args, **options):
+        certificate_out = options.pop('certificate_out', None)
+        if certificate_out is not None:
+            util.check_writable_file(certificate_out)
+
+        result = super(CertRetrieveOverride, self).forward(*args, **options)
+
+        if certificate_out is not None:
+            certs = [result['result']['certificate']]
+            certs = (x509.normalize_certificate(cert) for cert in certs)
+            certs = (x509.make_pem(base64.b64encode(cert)) for cert in certs)
+            with open(certificate_out, 'w') as f:
+                f.write('\n'.join(certs))
+
+        return result
+
+
+@register(override=True, no_fail=True)
+class cert_request(CertRetrieveOverride):
+    takes_options = CertRetrieveOverride.takes_options + (
         Str(
             'database?',
             label=_('Path to NSS database'),
@@ -135,18 +163,28 @@ class cert_request(MethodOverride):
 
 
 @register(override=True, no_fail=True)
-class cert_show(MethodOverride):
-    def forward(self, *keys, **options):
-        if 'out' in options:
-            util.check_writable_file(options['out'])
-            result = super(cert_show, self).forward(*keys, **options)
-            if 'certificate' in result['result']:
-                x509.write_certificate(result['result']['certificate'], options['out'])
-                return result
-            else:
-                raise errors.NoCertificateError(entry=keys[-1])
-        else:
-            return super(cert_show, self).forward(*keys, **options)
+class cert_show(CertRetrieveOverride):
+    def get_options(self):
+        for option in super(cert_show, self).get_options():
+            if option.name == 'out':
+                # skip server-defined --out
+                continue
+            if option.name == 'certificate_out':
+                # add --out as a deprecated alias of --certificate-out
+                option = option.clone_rename(
+                    'out',
+                    cli_name='certificate_out',
+                    deprecated_cli_aliases={'out'},
+                )
+            yield option
+
+    def forward(self, *args, **options):
+        try:
+            options['certificate_out'] = options.pop('out')
+        except KeyError:
+            pass
+
+        return super(cert_show, self).forward(*args, **options)
 
 
 @register(override=True, no_fail=True)
