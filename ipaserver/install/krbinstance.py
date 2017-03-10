@@ -68,6 +68,7 @@ class KrbInstance(service.Service):
         self.kdc_password = None
         self.sub_dict = None
         self.pkcs12_info = None
+        self.config_pkinit = None
 
     suffix = ipautil.dn_attribute_property('_suffix')
     subject_base = ipautil.dn_attribute_property('_subject_base')
@@ -140,12 +141,16 @@ class KrbInstance(service.Service):
 
     def __common_post_setup(self):
         self.step("starting the KDC", self.__start_instance)
+        if self.config_pkinit:
+            self.step("installing X509 Certificate for PKINIT",
+                      self.setup_pkinit)
         self.step("configuring KDC to start on boot", self.__enable)
 
     def create_instance(self, realm_name, host_name, domain_name, admin_password, master_password, setup_pkinit=False, pkcs12_info=None, subject_base=None):
         self.master_password = master_password
         self.pkcs12_info = pkcs12_info
         self.subject_base = subject_base
+        self.config_pkinit = setup_pkinit
 
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
@@ -159,10 +164,6 @@ class KrbInstance(service.Service):
         self.step("creating anonymous principal", self.add_anonymous_principal)
 
         self.__common_post_setup()
-
-        if setup_pkinit:
-            self.step("installing X509 Certificate for PKINIT",
-                      self.setup_pkinit)
 
         self.start_creation(runtime=30)
 
@@ -178,14 +179,12 @@ class KrbInstance(service.Service):
         self.pkcs12_info = pkcs12_info
         self.subject_base = subject_base
         self.master_fqdn = master_fqdn
+        self.config_pkinit = setup_pkinit
 
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
         self.step("configuring KDC", self.__configure_instance)
         self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
-        if setup_pkinit:
-            self.step("installing X509 Certificate for PKINIT",
-                      self.setup_pkinit)
 
         self.__common_post_setup()
 
@@ -220,6 +219,7 @@ class KrbInstance(service.Service):
                              KRB5KDC_KADM5_ACL=paths.KRB5KDC_KADM5_ACL,
                              DICT_WORDS=paths.DICT_WORDS,
                              KRB5KDC_KADM5_KEYTAB=paths.KRB5KDC_KADM5_KEYTAB,
+                             NOPK=';',
                              KDC_CERT=paths.KDC_CERT,
                              KDC_KEY=paths.KDC_KEY,
                              CACERT_PEM=paths.CACERT_PEM)
@@ -255,11 +255,12 @@ class KrbInstance(service.Service):
     def __add_default_acis(self):
         self._ldap_mod("default-aci.ldif", self.sub_dict)
 
-    def __template_file(self, path, chmod=0o644):
+    def __template_file(self, path, chmod=0o644, backup=True):
         template = os.path.join(paths.USR_SHARE_IPA_DIR,
                                 os.path.basename(path) + ".template")
         conf = ipautil.template_file(template, self.sub_dict)
-        self.fstore.backup_file(path)
+        if backup:
+            self.fstore.backup_file(path)
         fd = open(path, "w+")
         fd.write(conf)
         fd.close()
@@ -376,6 +377,15 @@ class KrbInstance(service.Service):
         # Finally copy the cacert in the krb directory so we don't
         # have any selinux issues with the file context
         shutil.copyfile(paths.IPA_CA_CRT, paths.CACERT_PEM)
+
+        # Now modify configuration to add pkinit anchors and restart KDC
+        self.sub_dict['NOPK'] = ''
+        self.__template_file(paths.KRB5KDC_KDC_CONF, chmod=None, backup=False)
+        try:
+            self.restart()
+        except Exception:
+            root_logger.critical("krb5kdc service failed to restart")
+            raise
 
     def get_anonymous_principal_name(self):
         return "%s@%s" % (ANON_USER, self.realm)
