@@ -147,7 +147,7 @@ BuildRequires:  python-setuptools
 # 1.4: the version where Certificate.serial changed to .serial_number
 BuildRequires:  python-cryptography >= 1.4
 BuildRequires:  python-gssapi >= 1.2.0
-BuildRequires:  pylint >= 1.0
+BuildRequires:  pylint >= 1.6
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 BuildRequires:  python2-polib
 BuildRequires:  python-libipa_hbac
@@ -183,7 +183,7 @@ BuildRequires:  python3-setuptools
 # 1.4: the version where Certificate.serial changed to .serial_number
 BuildRequires:  python3-cryptography >= 1.4
 BuildRequires:  python3-gssapi >= 1.2.0
-BuildRequires:  python3-pylint >= 1.0
+BuildRequires:  python3-pylint >= 1.6
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 BuildRequires:  python3-polib
 BuildRequires:  python3-libipa_hbac
