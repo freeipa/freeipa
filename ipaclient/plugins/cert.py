@@ -57,7 +57,10 @@ class CertRetrieveOverride(MethodOverride):
         result = super(CertRetrieveOverride, self).forward(*args, **options)
 
         if certificate_out is not None:
-            certs = [result['result']['certificate']]
+            if options.get('chain', False):
+                certs = result['result']['certificate_chain']
+            else:
+                certs = [result['result']['certificate']]
             certs = (x509.normalize_certificate(cert) for cert in certs)
             certs = (x509.make_pem(base64.b64encode(cert)) for cert in certs)
             with open(certificate_out, 'w') as f:

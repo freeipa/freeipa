@@ -73,8 +73,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 220)
-# Last change: Add whoami command
+define(IPA_API_VERSION_MINOR, 221)
+# Last change: cert: include certificate chain in cert command output
 
 
 ########################################################
