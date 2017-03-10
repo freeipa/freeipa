@@ -782,11 +782,12 @@ option: Str('cacn?', autofill=True, cli_name='ca', default=u'ipa')
 option: Str('version?')
 output: Output('result')
 command: cert_request/1
-args: 1,8,3
+args: 1,9,3
 arg: Str('csr', cli_name='csr_file')
 option: Flag('add', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('cacn?', autofill=True, cli_name='ca', default=u'ipa')
+option: Flag('chain', autofill=True, default=False)
 option: Principal('principal')
 option: Str('profile_id?')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
@@ -803,10 +804,11 @@ option: Int('revocation_reason', autofill=True, default=0)
 option: Str('version?')
 output: Output('result')
 command: cert_show/1
-args: 1,6,3
+args: 1,7,3
 arg: Int('serial_number')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('cacn?', autofill=True, cli_name='ca', default=u'ipa')
+option: Flag('chain', autofill=True, default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Str('out?')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
