@@ -1136,16 +1136,17 @@ class JSONServerProxy(object):
             verbose=self.__verbose >= 3,
         )
 
+        if print_json:
+            root_logger.info(
+                'Response: %s',
+                json.dumps(json.loads(response), sort_keys=True, indent=4)
+            )
+
         try:
             response = json_decode_binary(response)
         except ValueError as e:
             raise JSONError(error=str(e))
 
-        if print_json:
-            root_logger.info(
-                'Response: %s',
-                json.dumps(response, sort_keys=True, indent=4)
-            )
         error = response.get('error')
         if error:
             try:
