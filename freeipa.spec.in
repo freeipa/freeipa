@@ -1221,7 +1221,6 @@ fi
 # END
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/wsgi.py*
-%{_usr}/share/ipa/copy-schema-to-ca.py*
 %{_usr}/share/ipa/*.ldif
 %{_usr}/share/ipa/*.uldif
 %{_usr}/share/ipa/*.template

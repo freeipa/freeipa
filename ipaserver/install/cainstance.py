@@ -1290,11 +1290,9 @@ def replica_ca_install_check(config, promote):
     else:
         root_logger.critical(
             'The master CA directory server does not have necessary schema. '
-            'Please copy the following script to all CA masters and run it '
-            'on them: %s\n'
+            'Please run copy-schema-to-ca.py on all CA masters.\n'
             'If you are certain that this is a false positive, use '
-            '--skip-schema-check.',
-            os.path.join(paths.USR_SHARE_IPA_DIR, 'copy-schema-to-ca.py'))
+            '--skip-schema-check.')
         exit('IPA schema missing on master CA directory server')
 
 
