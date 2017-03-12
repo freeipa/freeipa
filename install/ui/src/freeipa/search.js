@@ -37,12 +37,33 @@ var exp = {};
 
 exp.search_facet_control_buttons_pre_op = function(spec, context) {
 
-    spec.actions = spec.actions || [];
-    spec.actions.unshift(
-        'refresh',
-        'batch_remove',
-        'add');
+    var override_actions = function(cust_acts, def_acts) {
+        if (!cust_acts) return def_acts;
 
+        var new_default_actions = [];
+        for (var i=0, l=def_acts.length; i<l; i++) {
+            var d_action = def_acts[i];
+
+            var chosen_action = d_action;
+
+            for (var k=0, j=cust_acts.length; k<j; k++) {
+                var custom_act = cust_acts[k];
+                if (custom_act === d_action || (custom_act.$type && custom_act.$type === d_action)) {
+                    chosen_action = custom_act;
+                    break;
+                }
+            }
+
+            new_default_actions.push(chosen_action);
+        }
+
+        return new_default_actions;
+    };
+
+    var default_actions = ['refresh', 'batch_remove', 'add'];
+    var merged_actions = override_actions(spec.custom_actions, default_actions);
+
+    spec.actions = merged_actions.concat(spec.actions);
     spec.control_buttons = spec.control_buttons || [];
 
     if (!spec.no_update) {
