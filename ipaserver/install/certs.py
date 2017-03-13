@@ -368,8 +368,11 @@ class CertDB(object):
             with open(self.certder_fname, "r") as f:
                 dercert = f.read()
         finally:
-            os.unlink(self.certreq_fname)
-            os.unlink(self.certder_fname)
+            for fname in (self.certreq_fname, self.certder_fname):
+                try:
+                    os.unlink(fname)
+                except OSError:
+                    pass
 
         return dercert
 
