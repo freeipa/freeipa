@@ -174,6 +174,7 @@ class HTTPInstance(service.Service):
             self.step("configure certmonger for renewals",
                       self.configure_certmonger_renewal_guard)
         self.step("importing CA certificates from LDAP", self.__import_ca_certs)
+        self.step("publish CA cert", self.__publish_ca_cert)
         self.step("clean up any existing httpd ccaches",
                   self.remove_httpd_ccaches)
         self.step("configuring SELinux for httpd", self.configure_selinux_for_httpd)
@@ -421,6 +422,11 @@ class HTTPInstance(service.Service):
         db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
                           subject_base=self.subject_base)
         self.import_ca_certs(db, self.ca_is_configured)
+
+    def __publish_ca_cert(self):
+        ca_db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
+                             subject_base=self.subject_base)
+        ca_db.publish_ca_cert(paths.CA_CRT)
 
     def is_kdcproxy_configured(self):
         """Check if KDC proxy has already been configured in the past"""
