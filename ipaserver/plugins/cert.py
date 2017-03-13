@@ -679,7 +679,8 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             # fail if any email addr from DN does not appear in ldap entry
             email_addrs = csr_obj.subject.get_attributes_for_oid(
                     cryptography.x509.oid.NameOID.EMAIL_ADDRESS)
-            if len(set(email_addrs) - set(principal_obj.get('mail', []))) > 0:
+            if principal_obj is None or len(set(email_addrs) - set(
+                    principal_obj.get('mail', []))) > 0:
                 raise errors.ValidationError(
                     name='csr',
                     error=_(
