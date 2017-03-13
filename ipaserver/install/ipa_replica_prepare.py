@@ -603,7 +603,8 @@ class ReplicaPrepare(admintool.AdminTool):
 
         try:
             db = certs.CertDB(
-                api.env.realm, nssdir=self.dir, subject_base=subject_base)
+                api.env.realm, nssdir=self.dir, subject_base=subject_base,
+                host_name=api.env.host)
             db.create_passwd_file()
             db.create_from_cacert()
             db.create_server_cert(nickname, hostname)
