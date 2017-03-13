@@ -56,6 +56,10 @@ return {
                         'ipausersearchfields',
                         'ipadefaultemaildomain',
                         {
+                            name: 'ipadomainresolutionorder',
+                            tooltip: '@mc-opt:config_mod:ipadomainresolutionorder:doc'
+                        },
+                        {
                             $type: 'entity_select',
                             name: 'ipadefaultprimarygroup',
                             other_entity: 'group',

@@ -100,6 +100,10 @@ return {
                     fields: [
                         'cn',
                         {
+                            name: 'ipadomainresolutionorder',
+                            tooltip: '@mc-opt:idview_mod:ipadomainresolutionorder:doc'
+                        },
+                        {
                             $type: 'textarea',
                             name: 'description'
                         }
