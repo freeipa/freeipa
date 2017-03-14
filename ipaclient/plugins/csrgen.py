@@ -29,6 +29,8 @@ Commands to build certificate requests automatically
 class cert_get_requestdata(Local):
     __doc__ = _('Gather data for a certificate signing request.')
 
+    NO_CLI = True
+
     takes_options = (
         Principal(
             'principal',
