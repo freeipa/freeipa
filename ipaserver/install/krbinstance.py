@@ -357,21 +357,21 @@ class KrbInstance(service.Service):
             subject = str(DN(('cn', self.fqdn), self.subject_base))
             krbtgt = "krbtgt/" + self.realm + "@" + self.realm
             certpath = (paths.KDC_CERT, paths.KDC_KEY)
+
             try:
-                reqid = certmonger.request_cert(certpath, subject, krbtgt,
-                                                dns=self.fqdn, storage='FILE',
-                                                profile='KDCs_PKINIT_Certs')
+                certmonger.request_and_wait_for_cert(
+                    certpath,
+                    subject,
+                    krbtgt,
+                    dns=self.fqdn,
+                    storage='FILE',
+                    profile='KDCs_PKINIT_Certs')
             except dbus.DBusException as e:
                 # if the certificate is already tracked, ignore the error
                 name = e.get_dbus_name()
                 if name != 'org.fedorahosted.certmonger.duplicate':
                     root_logger.error("Failed to initiate the request: %s", e)
                 return
-
-            try:
-                certmonger.wait_for_request(reqid)
-            except RuntimeError as e:
-                root_logger.error("Failed to wait for request: %s", e)
 
         # Finally copy the cacert in the krb directory so we don't
         # have any selinux issues with the file context
