@@ -71,6 +71,7 @@ class DebianPathNamespace(BasePathNamespace):
     GENERATE_RNDC_KEY = "/bin/true"
     IPA_DNSKEYSYNCD_REPLICA = "/usr/lib/ipa/ipa-dnskeysync-replica"
     IPA_DNSKEYSYNCD = "/usr/lib/ipa/ipa-dnskeysyncd"
+    IPA_HTTPD_KDCPROXY = "/usr/lib/ipa/ipa-httpd-kdcproxy"
     IPA_ODS_EXPORTER = "/usr/lib/ipa/ipa-ods-exporter"
     HTTPD = "/usr/sbin/apache2ctl"
     REMOVE_DS_PL = "/usr/sbin/remove-ds"
