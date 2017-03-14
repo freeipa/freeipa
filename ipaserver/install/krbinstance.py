@@ -68,6 +68,7 @@ class KrbInstance(service.Service):
         self.kdc_password = None
         self.sub_dict = None
         self.pkcs12_info = None
+        self.master_fqdn = None
 
     suffix = ipautil.dn_attribute_property('_suffix')
     subject_base = ipautil.dn_attribute_property('_subject_base')
@@ -359,6 +360,18 @@ class KrbInstance(service.Service):
             certpath = (paths.KDC_CERT, paths.KDC_KEY)
 
             try:
+                prev_helper = None
+                if self.master_fqdn is None:
+                    ca_args = [
+                        paths.CERTMONGER_DOGTAG_SUBMIT,
+                        '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
+                        '--certfile', paths.RA_AGENT_PEM,
+                        '--keyfile', paths.RA_AGENT_KEY,
+                        '--cafile', paths.IPA_CA_CRT,
+                        '--agent-submit'
+                    ]
+                    helper = " ".join(ca_args)
+                    prev_helper = certmonger.modify_ca_helper('IPA', helper)
                 certmonger.request_and_wait_for_cert(
                     certpath,
                     subject,
@@ -372,6 +385,9 @@ class KrbInstance(service.Service):
                 if name != 'org.fedorahosted.certmonger.duplicate':
                     root_logger.error("Failed to initiate the request: %s", e)
                 return
+            finally:
+                if prev_helper is not None:
+                    certmonger.modify_ca_helper('IPA', prev_helper)
 
         # Finally copy the cacert in the krb directory so we don't
         # have any selinux issues with the file context
