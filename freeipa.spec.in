@@ -79,8 +79,10 @@ BuildRequires:  libtool
 BuildRequires:  gettext
 BuildRequires:  gettext-devel
 BuildRequires:  python-devel
+BuildRequires:  python-setuptools
 %if 0%{?with_python3}
 BuildRequires:  python3-devel
+BuildRequires:  python3-setuptools
 %endif # with_python3
 # %{_unitdir}, %{_tmpfilesdir}
 BuildRequires:  systemd
@@ -143,7 +145,6 @@ BuildRequires:  python3-wheel
 #
 %if 0%{?with_lint}
 BuildRequires:  samba-python
-BuildRequires:  python-setuptools
 # 1.4: the version where Certificate.serial changed to .serial_number
 BuildRequires:  python-cryptography >= 1.4
 BuildRequires:  python-gssapi >= 1.2.0
@@ -179,7 +180,6 @@ BuildRequires:  python2-jinja2
 %if 0%{?with_python3}
 # FIXME: this depedency is missing - server will not work
 #BuildRequires:  python3-samba
-BuildRequires:  python3-setuptools
 # 1.4: the version where Certificate.serial changed to .serial_number
 BuildRequires:  python3-cryptography >= 1.4
 BuildRequires:  python3-gssapi >= 1.2.0
