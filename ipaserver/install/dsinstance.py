@@ -838,7 +838,8 @@ class DsInstance(service.Service):
                 certmonger.modify_ca_helper('IPA', prev_helper)
 
             self.dercert = dsdb.get_cert_from_db(self.nickname, pem=False)
-            dsdb.create_pin_file()
+
+        dsdb.create_pin_file()
 
         self.cacert_name = dsdb.cacert_name
 
