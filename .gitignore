@@ -106,6 +106,7 @@ freeipa2-dev-doc
 /client/ipa-rmkeytab
 
 /ipapython/version.py
+/ipapython/.DEFAULT_PLUGINS
 
 /ipaplatform/__init__.py
 /ipaplatform/constants.py
