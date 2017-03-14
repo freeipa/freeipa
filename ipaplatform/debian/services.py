@@ -72,7 +72,7 @@ class DebianSysvService(base_services.PlatformService):
         if wait and self.is_running(instance_name):
             self.__wait_for_open_ports(instance_name)
 
-    def is_running(self, instance_name=""):
+    def is_running(self, instance_name="", wait=True):
         ret = True
         try:
             result = ipautil.run([paths.SBIN_SERVICE,
