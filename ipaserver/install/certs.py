@@ -635,7 +635,6 @@ class CertDB(object):
         self.cacert_name = ca_names[-1]
         self.trust_root_cert(self.cacert_name, trust_flags)
 
-        self.create_pin_file()
         self.export_ca_cert(nickname, False)
 
     def publish_ca_cert(self, location):
