@@ -26,7 +26,7 @@ class DebianPathNamespace(BasePathNamespace):
     HTTPD_IPA_REWRITE_CONF = "/etc/apache2/conf-available/ipa-rewrite.conf"
     HTTPD_IPA_CONF = "/etc/apache2/conf-enabled/ipa.conf"
     HTTPD_NSS_CONF = "/etc/apache2/mods-available/nss.conf"
-    IPA_KEYTAB = "/etc/apache2/ipa.keytab"
+    OLD_IPA_KEYTAB = "/etc/apache2/ipa.keytab"
     HTTPD_PASSWORD_CONF = "/etc/apache2/password.conf"
     NAMED_CONF = "/etc/bind/named.conf"
     NAMED_VAR_DIR = "/var/cache/bind"
