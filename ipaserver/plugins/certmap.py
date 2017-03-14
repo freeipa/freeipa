@@ -100,15 +100,10 @@ def check_associateddomain_is_trusted(api_inst, options):
     """
     domains = options.get('associateddomain')
     if domains:
-        trust_suffix_namespace = set()
+        trusted_domains = api_inst.Object.config.gather_trusted_domains()
+        trust_suffix_namespace = {dom_name.lower() for dom_name in
+                                  trusted_domains}
         trust_suffix_namespace.add(api_inst.env.domain.lower())
-
-        trust_objects = api_inst.Command.trust_find(sizelimit=0)['result']
-        for obj in trust_objects:
-            trustdomains = api_inst.Command.trustdomain_find(
-                obj['cn'][0], sizelimit=0)['result']
-            for domain in trustdomains:
-                trust_suffix_namespace.add(domain['cn'][0].lower())
 
         for dom in domains:
             if not str(dom).lower() in trust_suffix_namespace:
