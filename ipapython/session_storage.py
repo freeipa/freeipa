@@ -104,6 +104,13 @@ def store_data(princ_name, key, value):
     """
     Stores the session cookie in a hidden ccache entry.
     """
+    if not isinstance(princ_name, bytes):
+        princ_name = princ_name.encode('utf-8')
+    if not isinstance(key, bytes):
+        key = key.encode('ascii')
+    if not isinstance(value, bytes):
+        value = value.encode('utf-8')
+
     context = krb5_context()
     principal = krb5_principal()
     ccache = krb5_ccache()
@@ -136,6 +143,11 @@ def get_data(princ_name, key):
     """
     Gets the session cookie in a hidden ccache entry.
     """
+    if not isinstance(princ_name, bytes):
+        princ_name = princ_name.encode('utf-8')
+    if not isinstance(key, bytes):
+        key = key.encode('utf-8')
+
     context = krb5_context()
     principal = krb5_principal()
     ccache = krb5_ccache()
@@ -152,7 +164,7 @@ def get_data(princ_name, key):
         krb5_cc_get_config(context, ccache, principal, key,
                            ctypes.byref(data))
 
-        return str(data.data)
+        return data.data.decode('utf-8')
 
     finally:
         if principal:
@@ -169,6 +181,11 @@ def remove_data(princ_name, key):
     """
     Removes the hidden ccache entry with the session cookie.
     """
+    if not isinstance(princ_name, bytes):
+        princ_name = princ_name.encode('utf-8')
+    if not isinstance(key, bytes):
+        key = key.encode('utf-8')
+
     context = krb5_context()
     principal = krb5_principal()
     ccache = krb5_ccache()
