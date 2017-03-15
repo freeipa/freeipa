@@ -4,9 +4,9 @@ Description=IPA key daemon
 [Service]
 EnvironmentFile=@sysconfenvdir@/ipa-dnskeysyncd
 ExecStart=@libexecdir@/ipa/ipa-dnskeysyncd
-User=ods
-Group=named
-SupplementaryGroups=ods
+User=@ODS_USER@
+Group=@NAMED_GROUP@
+SupplementaryGroups=@ODS_USER@
 PrivateTmp=yes
 Restart=on-failure
 RestartSec=60s

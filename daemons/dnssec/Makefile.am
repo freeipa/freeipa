@@ -25,6 +25,8 @@ CLEANFILES = $(systemdsystemunit_DATA)
 		-e 's|@libexecdir[@]|$(libexecdir)|g' \
 		-e 's|@localstatedir[@]|$(localstatedir)|g' \
 		-e 's|@sysconfenvdir[@]|$(sysconfenvdir)|g' \
+		-e 's|@ODS_USER[@]|$(ODS_USER)|g' \
+		-e 's|@NAMED_GROUP[@]|$(NAMED_GROUP)|g' \
 		'$(srcdir)/$@.in' >$@
 
 dnssecconfdir = $(IPA_SYSCONF_DIR)/dnssec

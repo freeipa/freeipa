@@ -291,13 +291,31 @@ AC_SUBST([IPAPLATFORM])
 AC_MSG_RESULT([${IPAPLATFORM}])
 
 if test "x${IPAPLATFORM}" == "xdebian"; then
+    NAMED_GROUP="bind"
+    ODS_USER="opendnssec"
     # see https://www.debian.org/doc/packaging-manuals/python-policy/ap-packaging_tools.html
     PYTHON_INSTALL_EXTRA_OPTIONS="--install-layout=deb"
 else
+    NAMED_GROUP="named"
+    ODS_USER="ods"
     PYTHON_INSTALL_EXTRA_OPTIONS=""
 fi
+
+AC_MSG_CHECKING([NAMED_GROUP])
+AC_SUBST([NAMED_GROUP])
+AC_MSG_RESULT([${NAMED_GROUP}])
+
+AC_MSG_CHECKING([ODS_USER])
+AC_SUBST([ODS_USER])
+AC_MSG_RESULT([${ODS_USER}])
+
+AC_MSG_CHECKING([python setup.py install extra options])
 AC_SUBST([PYTHON_INSTALL_EXTRA_OPTIONS])
-AC_MSG_RESULT([python setup.py install extra options ${PYTHON_INSTALL_EXTRA_OPTIONS}])
+if test "x${PYTHON_INSTALL_EXTRA_OPTIONS}" == "x"; then
+    AC_MSG_RESULT([none])
+else
+    AC_MSG_RESULT([${PYTHON_INSTALL_EXTRA_OPTIONS}])
+fi
 
 dnl ---------------------------------------------------------------------------
 dnl Version information from VERSION.m4 and command line
