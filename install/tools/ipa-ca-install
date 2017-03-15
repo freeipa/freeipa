@@ -225,11 +225,11 @@ def install_master(safe_options, options):
     try:
         ca.subject_validator(ca.VALID_SUBJECT_BASE_ATTRS, options.subject_base)
     except ValueError as e:
-        sys.exit("Subject base: {}".format(e.message))
+        sys.exit("Subject base: {}".format(e))
     try:
         ca.subject_validator(ca.VALID_SUBJECT_ATTRS, options.ca_subject)
     except ValueError as e:
-        sys.exit("CA subject: {}".format(e.message))
+        sys.exit("CA subject: {}".format(e))
 
     ca.install_check(True, None, options)
     ca.install(True, None, options)

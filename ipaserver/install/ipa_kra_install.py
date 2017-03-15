@@ -22,7 +22,7 @@ from __future__ import print_function
 
 import sys
 import tempfile
-from optparse import SUPPRESS_HELP
+from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
 
 from textwrap import dedent
 from ipalib import api

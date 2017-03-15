@@ -11,7 +11,6 @@ import collections
 import functools
 import itertools
 import sys
-import types
 
 import six
 
@@ -24,6 +23,7 @@ __all__ = ['InvalidStateError', 'KnobValueError', 'Property', 'knob',
            'Configurable', 'group', 'Component', 'Composite']
 
 NoneType = type(None)
+builtin_type = type
 
 # Configurable states
 _VALIDATE_PENDING = 'VALIDATE_PENDING'
@@ -160,7 +160,7 @@ def _knob(type=_missing, default=_missing, bases=_missing, _order=_missing,
 
     if bases is _missing:
         bases = (KnobBase,)
-    elif isinstance(bases, types.TypeType):
+    elif isinstance(bases, builtin_type):
         bases = (bases,)
 
     if cli_names is None or isinstance(cli_names, str):
