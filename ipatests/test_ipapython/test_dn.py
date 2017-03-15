@@ -1202,7 +1202,7 @@ class TestDN(unittest.TestCase):
         longdn_rev = DN(longdn_x500)
         l = len(self.base_container_dn)
         for i in range(l):
-            self.assertEquals(longdn_rev[i], self.base_container_dn[l-1-i])
+            self.assertEqual(longdn_rev[i], self.base_container_dn[l-1-i])
 
 
 class TestEscapes(unittest.TestCase):
