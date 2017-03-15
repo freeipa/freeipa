@@ -28,7 +28,8 @@ install-exec-local: $(top_builddir)/ipasetup.py
 		        --prefix "$(DESTDIR)$(prefix)" \
 		        --single-version-externally-managed \
 		        --record "$(DESTDIR)$(pkgpythondir)/install_files.txt" \
-		        --optimize 1; \
+		        --optimize 1 \
+		        $(PYTHON_INSTALL_EXTRA_OPTIONS); \
 	fi
 
 uninstall-local:
