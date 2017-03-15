@@ -1696,14 +1696,17 @@ def upgrade_configuration():
         ds_dirname = dsinstance.config_dirname(ds_serverid)
 
         upgrade_file(sub_dict, paths.HTTPD_IPA_CONF,
-                     os.path.join(paths.USR_SHARE_IPA_DIR, "ipa.conf"))
+                     os.path.join(paths.USR_SHARE_IPA_DIR,
+                                  "ipa.conf.template"))
         upgrade_file(sub_dict, paths.HTTPD_IPA_REWRITE_CONF,
-                     os.path.join(paths.USR_SHARE_IPA_DIR, "ipa-rewrite.conf"))
+                     os.path.join(paths.USR_SHARE_IPA_DIR,
+                                  "ipa-rewrite.conf.template"))
         if ca.is_configured():
             upgrade_file(
                 sub_dict,
                 paths.HTTPD_IPA_PKI_PROXY_CONF,
-                os.path.join(paths.USR_SHARE_IPA_DIR, "ipa-pki-proxy.conf"),
+                os.path.join(paths.USR_SHARE_IPA_DIR,
+                             "ipa-pki-proxy.conf.template"),
                 add=True)
         else:
             if os.path.isfile(paths.HTTPD_IPA_PKI_PROXY_CONF):

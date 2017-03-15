@@ -232,7 +232,8 @@ class DogtagInstance(service.Service):
     def http_proxy(self):
         """ Update the http proxy file  """
         template_filename = (
-            os.path.join(paths.USR_SHARE_IPA_DIR, "ipa-pki-proxy.conf"))
+            os.path.join(paths.USR_SHARE_IPA_DIR,
+                         "ipa-pki-proxy.conf.template"))
         sub_dict = dict(
             DOGTAG_PORT=8009,
             CLONE='' if self.clone else '#',

@@ -217,7 +217,9 @@ class HTTPInstance(service.Service):
 
         target_fname = paths.HTTPD_IPA_CONF
         http_txt = ipautil.template_file(
-            os.path.join(paths.USR_SHARE_IPA_DIR, "ipa.conf"), self.sub_dict)
+            os.path.join(paths.USR_SHARE_IPA_DIR,
+                         "ipa.conf.template"),
+            self.sub_dict)
         self.fstore.backup_file(paths.HTTPD_IPA_CONF)
         http_fd = open(target_fname, "w")
         http_fd.write(http_txt)
@@ -226,7 +228,8 @@ class HTTPInstance(service.Service):
 
         target_fname = paths.HTTPD_IPA_REWRITE_CONF
         http_txt = ipautil.template_file(
-            os.path.join(paths.USR_SHARE_IPA_DIR, "ipa-rewrite.conf"),
+            os.path.join(paths.USR_SHARE_IPA_DIR,
+                         "ipa-rewrite.conf.template"),
             self.sub_dict)
         self.fstore.backup_file(paths.HTTPD_IPA_REWRITE_CONF)
         http_fd = open(target_fname, "w")

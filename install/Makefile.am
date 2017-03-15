@@ -6,7 +6,6 @@ NULL =
 
 SUBDIRS =			\
         certmonger		\
-        conf			\
         html			\
         migration		\
         share			\

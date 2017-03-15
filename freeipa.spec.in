@@ -1504,9 +1504,6 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/kdcproxy/ipa-kdc-proxy.conf
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/dnssec
-%{_usr}/share/ipa/ipa.conf
-%{_usr}/share/ipa/ipa-rewrite.conf
-%{_usr}/share/ipa/ipa-pki-proxy.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_usr}/share/ipa/html/ca.crt
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb.con
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb5.ini
