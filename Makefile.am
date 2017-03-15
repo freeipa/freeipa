@@ -152,6 +152,35 @@ JSLINT_TARGET = jslint
 endif WITH_JSLINT
 lint: acilint apilint $(POLINT_TARGET) $(PYLINT_TARGET) $(JSLINT_TARGET)
 
+.PHONY: devcheck
+devcheck: all
+if ! WITH_POLINT
+	@echo "ERROR: polint not available"; exit 1
+endif
+if ! WITH_PYLINT
+	@echo "ERROR: pylint not available"; exit 1
+endif
+if ! WITH_JSLINT
+	@echo "ERROR: jslint not available"; exit 1
+endif
+if ! WITH_PYTHON2
+	@echo "ERROR: python2 not available"; exit 1
+endif
+	@ # run all linters, tests, and check with Python 2
+	PYTHONPATH=$(top_srcdir) $(PYTHON2) ipatests/ipa-run-tests \
+	    --ipaclient-unittests
+	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint jslint check
+	$(MAKE) $(AM_MAKEFLAGS) PYTHON=$(PYTHON2) pylint
+if WITH_PYTHON3
+	@ # just tests and pylint on Python 3
+	PYTHONPATH=$(top_srcdir) $(PYTHON3) ipatests/ipa-run-tests \
+	    --ipaclient-unittests
+	$(MAKE) $(AM_MAKEFLAGS) PYTHON=$(PYTHON3) pylint
+else
+	@echo "WARNING: python3 not available"
+endif
+	@echo "All tests passed."
+
 .PHONY: $(top_builddir)/ipapython/version.py
 $(top_builddir)/ipapython/version.py:
 	(cd $(top_builddir)/ipapython && make version.py)
@@ -188,7 +217,7 @@ pylint: $(top_builddir)/ipapython/version.py ipasetup.py
 		-name '*~' -o \
 		-name '*.py' -print -o \
 		-type f -exec grep -qsm1 '^#!.*\bpython' '{}' \; -print`; \
-	echo "Pylint is running, please wait ..."; \
+	echo "Pylint on $(PYTHON) is running, please wait ..."; \
 	PYTHONPATH=$(top_srcdir) $(PYTHON) -m pylint \
 		--rcfile=$(top_srcdir)/pylintrc \
 		--load-plugins pylint_plugins \
