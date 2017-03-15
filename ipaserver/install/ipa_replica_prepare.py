@@ -447,7 +447,10 @@ class ReplicaPrepare(admintool.AdminTool):
             self.copy_info_file(self.pkinit_pkcs12_file.name, "pkinitcert.p12")
         else:
             self.log.info("Creating SSL certificate for the KDC")
-            self.export_certdb("pkinitcert", passwd_fname, is_kdc=True)
+            pkcs12_fname = os.path.join(self.dir, "pkinitcert.p12")
+            certs.export_pem_p12(
+                pkcs12_fname, passwd_fname, "KDC-Cert",
+                pem_fname=paths.KDC_CERT, key_fname=paths.KDC_KEY)
 
     def copy_misc_files(self):
         self.log.info("Copying additional files")
@@ -596,11 +599,7 @@ class ReplicaPrepare(admintool.AdminTool):
         hostname = self.replica_fqdn
         subject_base = self.subject_base
 
-        if is_kdc:
-            nickname = "KDC-Cert"
-        else:
-            nickname = "Server-Cert"
-
+        nickname = "Server-Cert"
         try:
             db = certs.CertDB(
                 api.env.realm, nssdir=self.dir, subject_base=subject_base,
@@ -612,11 +611,7 @@ class ReplicaPrepare(admintool.AdminTool):
             pkcs12_fname = os.path.join(self.dir, fname + ".p12")
 
             try:
-                if is_kdc:
-                    certs.export_pem_p12(pkcs12_fname, passwd_fname,
-                        nickname, os.path.join(self.dir, "kdc.pem"))
-                else:
-                    db.export_pkcs12(pkcs12_fname, passwd_fname, nickname)
+                db.export_pkcs12(pkcs12_fname, passwd_fname, nickname)
             except ipautil.CalledProcessError as e:
                 self.log.info("error exporting Server certificate: %s", e)
                 installutils.remove_file(pkcs12_fname)
@@ -626,9 +621,6 @@ class ReplicaPrepare(admintool.AdminTool):
             self.remove_info_file("key3.db")
             self.remove_info_file("secmod.db")
             self.remove_info_file("noise.txt")
-
-            if is_kdc:
-                self.remove_info_file("kdc.pem")
 
             orig_filename = passwd_fname + ".orig"
             if ipautil.file_exists(orig_filename):

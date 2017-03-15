@@ -75,11 +75,17 @@ def install_key_from_p12(p12_fname, p12_passwd, pem_fname):
                  "-passin", "file:" + pwd.name])
 
 
-def export_pem_p12(pkcs12_fname, pkcs12_pwd_fname, nickname, pem_fname):
-    ipautil.run([paths.OPENSSL, "pkcs12",
-                 "-export", "-name", nickname,
-                 "-in", pem_fname, "-out", pkcs12_fname,
-                 "-passout", "file:" + pkcs12_pwd_fname])
+def export_pem_p12(pkcs12_fname, pkcs12_pwd_fname, nickname, pem_fname,
+                   key_fname=None):
+    args = [
+        paths.OPENSSL, "pkcs12",
+        "-export", "-name", nickname,
+        "-in", pem_fname, "-out", pkcs12_fname,
+        "-passout", "file:" + pkcs12_pwd_fname
+    ]
+    if key_fname is not None:
+        args.extend(['-inkey', key_fname])
+    ipautil.run(args)
 
 
 class CertDB(object):
