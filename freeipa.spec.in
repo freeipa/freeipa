@@ -1,6 +1,11 @@
 # Define ONLY_CLIENT to only make the ipa-client and ipa-python
 # subpackages
 %{!?ONLY_CLIENT:%global ONLY_CLIENT 0}
+%if %{ONLY_CLIENT}
+    %global enable_server_option --disable-server
+%else
+    %global enable_server_option --enable-server
+%endif
 
 # Build with ipatests
 %if ! %{ONLY_CLIENT}
@@ -97,6 +102,9 @@ BuildRequires:  python3-setuptools
 BuildRequires:  systemd
 # systemd-tmpfiles which is executed from make install requires apache user
 BuildRequires:  httpd
+BuildRequires:  nspr-devel
+BuildRequires:  nss-devel
+BuildRequires:  openssl-devel
 BuildRequires:  libini_config-devel
 BuildRequires:  cyrus-sasl-devel
 %if ! %{ONLY_CLIENT}
@@ -110,9 +118,6 @@ BuildRequires:  samba-devel >= 2:4.0.0
 %endif
 BuildRequires:  libtalloc-devel
 BuildRequires:  libtevent-devel
-BuildRequires:  nspr-devel
-BuildRequires:  nss-devel
-BuildRequires:  openssl-devel
 BuildRequires:  libuuid-devel
 BuildRequires:  libsss_idmap-devel
 # 1.14.0: sss_nss_getnamebycert (https://fedorahosted.org/sssd/ticket/2897)
@@ -816,6 +821,7 @@ find \
 	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
 	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python2}|' {} \;
 %configure --with-vendor-suffix=-%{release} \
+           %{enable_server_option} \
            %{with_ipatests_option} \
            %{linter_options}
 
@@ -834,17 +840,14 @@ find \
 	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
 	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python3}|' {} \;
 %configure --with-vendor-suffix=-%{release} \
+           %{enable_server_option} \
            %{with_ipatests_option} \
            %{linter_options}
 popd
 %endif # with_python3
 
 %check
-%if ! %{ONLY_CLIENT}
 make %{?_smp_mflags} check VERBOSE=yes LIBDIR=%{_libdir}
-%else
-make %{?_smp_mflags} client-check VERBOSE=yes LIBDIR=%{_libdir}
-%endif # ONLY_CLIENT
 
 
 %install
@@ -869,7 +872,9 @@ pushd %{_builddir}/freeipa-%{version}-python3
 (cd ipalib && %make_install)
 (cd ipaplatform && %make_install)
 (cd ipapython && %make_install)
+%if ! %{ONLY_CLIENT}
 (cd ipaserver && %make_install)
+%endif # ONLY_CLIENT
 %if 0%{?with_ipatests}
 (cd ipatests && %make_install)
 %endif # with_ipatests
@@ -1416,7 +1421,6 @@ fi
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/secmod.db
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/pwdfile.txt
 %ghost %config(noreplace) %{_sysconfdir}/pki/ca-trust/source/ipa.p11-kit
-%dir %{_usr}/share/ipa
 %dir %{_localstatedir}/lib/ipa-client
 %dir %{_localstatedir}/lib/ipa-client/sysrestore
 %{_mandir}/man5/default.conf.5*
