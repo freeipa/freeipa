@@ -111,6 +111,18 @@ if test "x$PYTHON" = "x" ; then
 fi
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for Python 2/3 for devcheck
+dnl ---------------------------------------------------------------------------
+
+AC_PATH_PROG(PYTHON2, python2)
+AC_SUBST([PYTHON2])
+AM_CONDITIONAL([WITH_PYTHON2], [test "x${PYTHON2}" != "x"])
+
+AC_PATH_PROG(PYTHON3, python3)
+AC_SUBST([PYTHON3])
+AM_CONDITIONAL([WITH_PYTHON3], [test "x${PYTHON3}" != "x"])
+
+dnl ---------------------------------------------------------------------------
 dnl - Check for cmocka unit test framework http://cmocka.cryptomilk.org/
 dnl ---------------------------------------------------------------------------
 PKG_CHECK_EXISTS(cmocka,
