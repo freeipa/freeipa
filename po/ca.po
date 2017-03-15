@@ -1,261 +1,30 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Red Hat
-# This file is distributed under the same license as the PACKAGE package.
 #
-# Translators:
-# Jordi Mas <jmas@softcatala.org>, 2013
 msgid ""
 msgstr ""
-"Project-Id-Version: ipa\n"
+"Project-Id-Version: freeipa 4.4.90.dev201703151542+gita1686a9\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-08-29 10:39+0200\n"
-"PO-Revision-Date: 2015-01-05 01:08-0500\n"
-"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
-"Language-Team: Catalan (http://www.transifex.com/projects/p/freeipa/language/"
-"ca/)\n"
-"Language: ca\n"
+"POT-Creation-Date: 2017-03-15 16:43+0100\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Zanata 3.9.3\n"
+"PO-Revision-Date: 2015-01-05 01:08-0500\n"
+"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
+"Language-Team: Catalan\n"
+"Language: ca\n"
+"X-Generator: Zanata 3.9.6\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-msgid "Error"
-msgstr "Error"
-
-msgid "Password"
-msgstr "Contrasenya"
-
-msgid "Invalid credentials"
-msgstr "Credencials no vàlides"
-
-msgid "Data"
-msgstr "Dades"
-
-msgid "Permission"
-msgstr "Permís"
-
-msgid "Permissions"
-msgstr "Permisos"
-
-msgid "Attributes"
-msgstr "Atributs"
-
-msgid "Type"
-msgstr "Tipus"
-
-msgid "Filter"
-msgstr "Filtre"
-
-msgid "Subtree"
-msgstr "Subarbre"
-
-msgid "Description"
-msgstr "Descripció"
-
-msgid "Rights"
-msgstr "Drets"
-
-msgid "Users"
-msgstr "Usuaris"
-
-msgid "Key"
-msgstr "Tecla"
-
-msgid "description"
-msgstr "descripció"
-
-msgid "Location"
-msgstr "Ubicació"
-
-msgid "Map"
-msgstr "Mapa"
-
-msgid "Rename"
-msgstr "Canvia el nom"
-
-msgid "Mount point"
-msgstr "Punt de muntatge"
-
-msgid "Subject"
-msgstr "Assumpte"
-
-msgid "Reason"
-msgstr "Raó"
-
-msgid "Serial number"
-msgstr "Número de sèrie"
-
-msgid "IP Address"
-msgstr "Adreça IP"
-
-msgid "Subtype"
-msgstr "Subtipus"
-
-msgid "Hostname"
-msgstr "Nom de l'ordinador"
-
-msgid "Algorithm"
-msgstr "Algorisme"
-
-msgid "Target"
-msgstr "Objectiu"
-
-msgid "Size"
-msgstr "Mida"
-
-msgid "Flags"
-msgstr "Indicadors"
-
-msgid "Regular Expression"
-msgstr "Expressió regular"
-
-msgid "Priority"
-msgstr "Prioritat"
-
-msgid "Weight"
-msgstr "Pes"
-
-msgid "Port"
-msgstr "Port"
-
-msgid "Fingerprint"
-msgstr "Empremta"
-
-msgid "Force"
-msgstr "Força"
-
-msgid "Group name"
-msgstr "Nom del grup"
+msgid "Out of memory\n"
+msgstr "Sense memòria\n"
 
 msgid "user"
 msgstr "usuari"
 
-msgid "group"
-msgstr "grup"
-
-msgid "Enabled"
-msgstr "S'ha habilitat"
-
-msgid "Services"
-msgstr "Serveis"
-
-msgid "User name"
-msgstr "Nom d'usuari"
-
-msgid "Warning"
-msgstr "Avís"
-
-msgid "Host name"
-msgstr "Nom de l'amfitrió"
-
-msgid "Locality"
-msgstr "Localitat"
-
-msgid "Platform"
-msgstr "Plataforma"
-
-msgid "Operating system"
-msgstr "Sistema operatiu"
-
 msgid "Certificate"
 msgstr "Certificat"
 
-msgid "Class"
-msgstr "Classe"
-
-msgid "User login"
-msgstr "Entrada"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "Home directory"
-msgstr "Directori de l'usuari"
-
-msgid "Login shell"
-msgstr "Intèrpret d'ordres de l'inici de sessió"
-
-msgid "Continue"
-msgstr "Continua"
-
-msgid "Netgroup name"
-msgstr "Nom de grup de xarxa"
-
-msgid "Manager"
-msgstr "Gestor"
-
-msgid "Disabled"
-msgstr "Inhabilitat"
-
-msgid "New Password"
-msgstr "Contrasenya nova"
-
-msgid "permissions"
-msgstr "permisos"
-
-msgid "Group"
-msgstr "Grup"
-
-msgid "User"
-msgstr "Usuari"
-
-msgid "Server"
-msgstr "Servidor"
-
-msgid "Domain"
-msgstr "Domini"
-
-msgid "Commands"
-msgstr "Ordres"
-
-msgid "First name"
-msgstr "Nom"
-
-msgid "Last name"
-msgstr "Cognom"
-
-msgid "Full name"
-msgstr "Nom complet"
-
-msgid "Initials"
-msgstr "Inicials"
-
-msgid "Email address"
-msgstr "Adreça de correu electrònic"
-
-msgid "City"
-msgstr "Ciutat"
-
-msgid "State/Province"
-msgstr "Estat/província"
-
-msgid "Telephone Number"
-msgstr "Número de telèfon"
-
-msgid "Pager Number"
-msgstr "Número de buscapersones"
-
-msgid "Fax Number"
-msgstr "Número de fax"
-
-msgid "Job Title"
-msgstr "Càrrec"
-
-msgid "Self"
-msgstr "Ell mateix"
-
-msgid "Username"
-msgstr "Nom d'usuari"
-
-msgid "Passwords do not match"
-msgstr "Les contrasenyes no coincideixen"
-
-msgid "Command not implemented"
-msgstr "No s'ha implementat l'ordre"
-
-msgid "entry"
-msgstr "entrada"
+msgid "Subject"
+msgstr "Assumpte"
 
 msgid "Issuer"
 msgstr "Emissor"
@@ -266,23 +35,125 @@ msgstr "No abans"
 msgid "Not After"
 msgstr "No després"
 
+msgid "Serial number"
+msgstr "Número de sèrie"
+
 msgid "Status"
 msgstr "Estat"
 
 msgid "Revoked"
 msgstr "Revocat"
 
-msgid "Configuration"
-msgstr "Configuració"
+msgid "Description"
+msgstr "Descripció"
 
-msgid "Access time"
-msgstr "Temps d'accés"
+msgid "Type"
+msgstr "Tipus"
 
-msgid "Host"
-msgstr "Ordinador central"
+msgid "group"
+msgstr "grup"
+
+msgid "Users"
+msgstr "Usuaris"
+
+msgid "User"
+msgstr "Usuari"
+
+msgid "users"
+msgstr "usuaris"
+
+msgid "Self"
+msgstr "Ell mateix"
+
+msgid "Server"
+msgstr "Servidor"
+
+msgid "Time now"
+msgstr "L'hora actual"
+
+msgid "Active Directory domain"
+msgstr "Domini d'Active Directory"
+
+msgid "Unknown"
+msgstr "Desconegut"
+
+msgid "Trust"
+msgstr "Confiança"
+
+msgid "Domain"
+msgstr "Domini"
+
+msgid "Enabled"
+msgstr "S'ha habilitat"
+
+msgid "Commands"
+msgstr "Ordres"
+
+msgid "services"
+msgstr "serveis"
+
+msgid "Services"
+msgstr "Serveis"
 
 msgid "Serial Number"
 msgstr "Número de sèrie"
+
+msgid "Force"
+msgstr "Força"
+
+msgid "Location"
+msgstr "Ubicació"
+
+msgid "Permissions"
+msgstr "Permisos"
+
+msgid "Attributes"
+msgstr "Atributs"
+
+msgid "Role"
+msgstr "Rol"
+
+msgid "Group"
+msgstr "Grup"
+
+msgid "Priority"
+msgstr "Prioritat"
+
+msgid "permissions"
+msgstr "permisos"
+
+msgid "Permission"
+msgstr "Permís"
+
+msgid "Subtree"
+msgstr "Subarbre"
+
+msgid "User name"
+msgstr "Nom d'usuari"
+
+msgid "New Password"
+msgstr "Contrasenya nova"
+
+msgid "Invalid credentials"
+msgstr "Credencials no vàlides"
+
+msgid "Manager"
+msgstr "Gestor"
+
+msgid "Disabled"
+msgstr "Inhabilitat"
+
+msgid "Key"
+msgstr "Tecla"
+
+msgid "Algorithm"
+msgstr "Algorisme"
+
+msgid "Password"
+msgstr "Contrasenya"
+
+msgid "Continue"
+msgstr "Continua"
 
 msgid "Apply"
 msgstr "Aplica"
@@ -310,6 +181,9 @@ msgstr "Edita"
 
 msgid "Enable"
 msgstr "Habilita"
+
+msgid "Filter"
+msgstr "Filtre"
 
 msgid "Find"
 msgstr "Cerca"
@@ -362,6 +236,9 @@ msgstr "Canvis sense desar"
 msgid "Show details"
 msgstr "Mostra els detalls"
 
+msgid "Error"
+msgstr "Error"
+
 msgid "Unknown Error"
 msgstr "Error desconegut"
 
@@ -382,6 +259,9 @@ msgstr "Entra"
 
 msgid "Logout"
 msgstr "Surt"
+
+msgid "Username"
+msgstr "Nom d'usuari"
 
 msgid "seconds"
 msgstr "segons"
@@ -437,9 +317,6 @@ msgstr "Emès a nom de"
 msgid "Key Compromise"
 msgstr "Clau en compromís"
 
-msgid "MD5 Fingerprint"
-msgstr "Empremta digital MD5"
-
 msgid "Note"
 msgstr "Nota"
 
@@ -464,14 +341,17 @@ msgstr "Validesa"
 msgid "Options"
 msgstr "Opcions"
 
+msgid "Data"
+msgstr "Dades"
+
 msgid "Record Type"
 msgstr "Tipus de registre"
 
 msgid "External"
 msgstr "Extern"
 
-msgid "Normal"
-msgstr "Normal"
+msgid "Groups"
+msgstr "Grups"
 
 msgid "Who"
 msgstr "Qui"
@@ -494,14 +374,14 @@ msgstr "No coincideix"
 msgid "Host Name"
 msgstr "Nom de l'ordinador"
 
-msgid "Active Directory domain"
-msgstr "Domini d'Active Directory"
+msgid "Host"
+msgstr "Ordinador central"
+
+msgid "Target"
+msgstr "Objectiu"
 
 msgid "Modified"
 msgstr "Modificat"
-
-msgid "Groups"
-msgstr "Grups"
 
 msgid "Allow"
 msgstr "Permet"
@@ -545,35 +425,143 @@ msgstr "Pàgina"
 msgid "Prev"
 msgstr "Anterior"
 
-msgid "Role"
-msgstr "Rol"
+msgid "User login"
+msgstr "Entrada"
 
-msgid "services"
-msgstr "serveis"
+msgid "UID"
+msgstr "UID"
 
-msgid "users"
-msgstr "usuaris"
+msgid "Home directory"
+msgstr "Directori de l'usuari"
 
-msgid "Unknown"
-msgstr "Desconegut"
+msgid "Login shell"
+msgstr "Intèrpret d'ordres de l'inici de sessió"
 
-msgid "Trust"
-msgstr "Confiança"
+msgid "Group name"
+msgstr "Nom del grup"
 
-msgid "Time now"
-msgstr "L'hora actual"
+msgid "Host name"
+msgstr "Nom de l'amfitrió"
+
+msgid "Locality"
+msgstr "Localitat"
+
+msgid "Platform"
+msgstr "Plataforma"
+
+msgid "Operating system"
+msgstr "Sistema operatiu"
+
+msgid "Class"
+msgstr "Classe"
+
+msgid "IP Address"
+msgstr "Adreça IP"
+
+msgid "Warning"
+msgstr "Avís"
+
+msgid "Access time"
+msgstr "Temps d'accés"
+
+msgid "Subtype"
+msgstr "Subtipus"
+
+msgid "Hostname"
+msgstr "Nom de l'ordinador"
+
+msgid "Size"
+msgstr "Mida"
+
+msgid "Flags"
+msgstr "Indicadors"
+
+msgid "Regular Expression"
+msgstr "Expressió regular"
+
+msgid "Weight"
+msgstr "Pes"
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Fingerprint"
+msgstr "Empremta"
+
+msgid "Configuration"
+msgstr "Configuració"
+
+msgid "First name"
+msgstr "Nom"
+
+msgid "Last name"
+msgstr "Cognom"
+
+msgid "Full name"
+msgstr "Nom complet"
+
+msgid "Initials"
+msgstr "Inicials"
+
+msgid "Email address"
+msgstr "Adreça de correu electrònic"
+
+msgid "City"
+msgstr "Ciutat"
+
+msgid "State/Province"
+msgstr "Estat/província"
+
+msgid "Telephone Number"
+msgstr "Número de telèfon"
+
+msgid "Pager Number"
+msgstr "Número de buscapersones"
+
+msgid "Fax Number"
+msgstr "Número de fax"
+
+msgid "Job Title"
+msgstr "Càrrec"
+
+msgid "entry"
+msgstr "entrada"
+
+msgid "Rights"
+msgstr "Drets"
+
+msgid "Rename"
+msgstr "Canvia el nom"
+
+msgid "Netgroup name"
+msgstr "Nom de grup de xarxa"
+
+msgid "Map"
+msgstr "Mapa"
+
+msgid "description"
+msgstr "descripció"
+
+msgid "Mount point"
+msgstr "Punt de muntatge"
+
+msgid "Passwords do not match"
+msgstr "Les contrasenyes no coincideixen"
+
+msgid "Command not implemented"
+msgstr "No s'ha implementat l'ordre"
+
+msgid "Reason"
+msgstr "Raó"
 
 msgid "Server Name"
 msgstr "Nom del servidor"
+
+msgid "Debugging output"
+msgstr "Sortida de depuració"
 
 msgid "filename"
 msgstr "nomdelfitxer"
 
 msgid "password"
 msgstr "contrasenya"
-
-msgid "Debugging output"
-msgstr "Sortida de depuració"
-
-msgid "Out of memory\n"
-msgstr "Sense memòria\n"
