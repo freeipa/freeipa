@@ -215,11 +215,23 @@ def caacl_check(principal, ca, profile_id):
         )
 
 
-def ca_kdc_check(ldap, hostname):
-    result = api.Command.config_show()['result']
-    if hostname not in result['ipa_master_server']:
+def ca_kdc_check(api_instance, hostname):
+    master_dn = api_instance.Object.server.get_dn(unicode(hostname))
+    kdc_dn = DN(('cn', 'KDC'), master_dn)
+
+    try:
+        kdc_entry = api_instance.Backend.ldap2.get_entry(
+            kdc_dn, ['ipaConfigString'])
+
+        ipaconfigstring = {val.lower() for val in kdc_entry['ipaConfigString']}
+
+        if 'enabledservice' not in ipaconfigstring:
+            raise errors.NotFound()
+
+    except errors.NotFound:
         raise errors.ACIError(info=_(
-                "Host '%(hostname)s' is not a KDC") % dict(hostname=hostname))
+                "Host '%(hostname)s' is not an active KDC")
+                 % dict(hostname=hostname))
 
 
 def validate_certificate(value):
@@ -604,7 +616,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
 
         if not bypass_caacl:
             if principal_type == KRBTGT:
-                ca_kdc_check(ldap, bind_principal.hostname)
+                ca_kdc_check(self.api, bind_principal.hostname)
             else:
                 caacl_check(principal, ca, profile_id)
 
