@@ -315,6 +315,7 @@ Summary: Python libraries used by IPA server
 Group: System Environment/Libraries
 BuildArch: noarch
 %{?python_provide:%python_provide python2-ipaserver}
+%{!?python_provide:Provides: python-ipaserver = %{version}-%{release}}
 Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipaclient = %{version}-%{release}
@@ -504,6 +505,7 @@ Summary: Python libraries used by IPA client
 Group: System Environment/Libraries
 BuildArch: noarch
 %{?python_provide:%python_provide python2-ipaclient}
+%{!?python_provide:Provides: python-ipaclient = %{version}-%{release}}
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipalib = %{version}-%{release}
@@ -598,10 +600,13 @@ Group: System Environment/Libraries
 BuildArch: noarch
 Conflicts: %{name}-python < 4.2.91
 %{?python_provide:%python_provide python2-ipalib}
+%{!?python_provide:Provides: python-ipalib = %{version}-%{release}}
 Provides: python2-ipapython = %{version}-%{release}
 %{?python_provide:%python_provide python2-ipapython}
+%{!?python_provide:Provides: python-ipapython = %{version}-%{release}}
 Provides: python2-ipaplatform = %{version}-%{release}
 %{?python_provide:%python_provide python2-ipaplatform}
+%{!?python_provide:Provides: python-ipaplatform = %{version}-%{release}}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python-gssapi >= 1.2.0
 Requires: gnupg
@@ -719,6 +724,7 @@ BuildArch: noarch
 Obsoletes: %{name}-tests < 4.2.91
 Provides: %{name}-tests = %{version}-%{release}
 %{?python_provide:%python_provide python2-ipatests}
+%{!?python_provide:Provides: python-ipatests = %{version}-%{release}}
 Requires: python2-ipaclient = %{version}-%{release}
 Requires: python2-ipaserver = %{version}-%{release}
 Requires: tar
