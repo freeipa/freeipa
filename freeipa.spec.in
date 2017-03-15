@@ -2,6 +2,16 @@
 # subpackages
 %{!?ONLY_CLIENT:%global ONLY_CLIENT 0}
 
+# Build with ipatests
+%if ! %{ONLY_CLIENT}
+    %global with_ipatests 1
+%endif
+%if 0%{?with_ipatests}
+    %global with_ipatests_option --with-ipatests
+%else
+    %global with_ipatests_option --without-ipatests
+%endif
+
 %if 0%{?rhel}
 %global with_python3 0
 %else
@@ -711,7 +721,7 @@ and integration with Active Directory based infrastructures (Trusts).
 If you are using IPA, you need to install this package.
 
 
-%if ! %{ONLY_CLIENT}
+%if 0%{?with_ipatests}
 
 %package -n python2-ipatests
 Summary: IPA tests and test tools
@@ -779,7 +789,7 @@ This package contains tests that verify IPA functionality under Python 3.
 
 %endif # with_python3
 
-%endif # ONLY_CLIENT
+%endif # with_ipatests
 
 
 %prep
@@ -806,6 +816,7 @@ find \
 	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
 	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python2}|' {} \;
 %configure --with-vendor-suffix=-%{release} \
+           %{with_ipatests_option} \
            %{linter_options}
 
 # -Onone is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1398405
@@ -823,6 +834,7 @@ find \
 	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
 	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python3}|' {} \;
 %configure --with-vendor-suffix=-%{release} \
+           %{with_ipatests_option} \
            %{linter_options}
 popd
 %endif # with_python3
@@ -858,19 +870,26 @@ pushd %{_builddir}/freeipa-%{version}-python3
 (cd ipaplatform && %make_install)
 (cd ipapython && %make_install)
 (cd ipaserver && %make_install)
+%if 0%{?with_ipatests}
 (cd ipatests && %make_install)
+%endif # with_ipatests
 popd
 
+%if 0%{?with_ipatests}
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python3_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python3_version}
 mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{python3_version}
 ln -s %{_bindir}/ipa-run-tests-%{python3_version} %{buildroot}%{_bindir}/ipa-run-tests-3
 ln -s %{_bindir}/ipa-test-config-%{python3_version} %{buildroot}%{_bindir}/ipa-test-config-3
 ln -s %{_bindir}/ipa-test-task-%{python3_version} %{buildroot}%{_bindir}/ipa-test-task-3
+%endif # with_ipatests
+
 %endif # with_python3
 
 # Python 2 installation
 %make_install
+
+%if 0%{?with_ipatests}
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python2_version}
 mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{python2_version}
@@ -881,7 +900,7 @@ ln -s %{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-tes
 ln -s %{_bindir}/ipa-run-tests-%{python2_version} %{buildroot}%{_bindir}/ipa-run-tests
 ln -s %{_bindir}/ipa-test-config-%{python2_version} %{buildroot}%{_bindir}/ipa-test-config
 ln -s %{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-test-task
-
+%endif # with_ipatests
 
 # remove files which are useful only for make uninstall
 find %{buildroot} -wholename '*/site-packages/*/install_files.txt' -exec rm {} \;
@@ -1451,7 +1470,7 @@ fi
 %endif # with_python3
 
 
-%if ! %{ONLY_CLIENT}
+%if 0%{?with_ipatests}
 
 %files -n python2-ipatests
 %defattr(-,root,root,-)
@@ -1489,7 +1508,7 @@ fi
 
 %endif # with_python3
 
-%endif # ONLY_CLIENT
+%endif # with_ipatests
 
 
 %changelog
