@@ -23,6 +23,8 @@ fi
 
 dnl -- dirsrv is needed for the extdom unit tests --
 PKG_CHECK_MODULES([DIRSRV], [dirsrv  >= 1.3.0])
+# slapi-plugin.h includes nspr.h
+DIRSRV_CFLAGS="$DIRSRV_CFLAGS $NSPR_CFLAGS"
 
 dnl -- sss_idmap is needed by the extdom exop --
 PKG_CHECK_MODULES([SSSIDMAP], [sss_idmap])
