@@ -145,8 +145,11 @@ class idview(LDAPObject):
         },
     }
 
-    def ensure_possible_objectclasses(self, ldap, dn, entry_attrs):
-        orig_entry_attrs = ldap.get_entry(dn, ['objectclass'])
+    def ensure_possible_objectclasses(self, ldap, dn, entry_attrs, *keys):
+        try:
+            orig_entry_attrs = ldap.get_entry(dn, ['objectclass'])
+        except errors.NotFound:
+            self.handle_not_found(*keys)
 
         orig_objectclasses = {
             o.lower() for o in orig_entry_attrs.get('objectclass', [])}
@@ -193,7 +196,7 @@ class idview_mod(LDAPUpdate):
                 raise protected_default_trust_view_error
 
         self.api.Object.config.validate_domain_resolution_order(entry_attrs)
-        self.obj.ensure_possible_objectclasses(ldap, dn, entry_attrs)
+        self.obj.ensure_possible_objectclasses(ldap, dn, entry_attrs, *keys)
 
         return dn
 
