@@ -1,6 +1,12 @@
+NULL =
+
 PLUGIN_COMMON_DIR = $(srcdir)/../common
-AM_CPPFLAGS = -I/usr/include/dirsrv		\
-	-I$(PLUGIN_COMMON_DIR)
+AM_CPPFLAGS =							\
+	-I$(PLUGIN_COMMON_DIR)					\
+	$(DIRSRV_CFLAGS)					\
+	$(NSPR_CFLAGS)						\
+	$(NSS_CFLAGS)						\
+	$(NULL)
 
 noinst_LTLIBRARIES = libhotp.la libotp.la
 libhotp_la_SOURCES = hotp.c hotp.h

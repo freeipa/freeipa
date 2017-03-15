@@ -5,12 +5,12 @@ PLUGIN_COMMON_DIR = $(srcdir)/../common
 AM_CPPFLAGS =							\
 	-I$(srcdir)						\
 	-I$(PLUGIN_COMMON_DIR)					\
-	-I/usr/include/dirsrv					\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
 	-DLIBDIR=\""$(libdir)"\" 				\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
+	$(DIRSRV_CFLAGS)					\
 	$(LDAP_CFLAGS)						\
 	$(WARN_CFLAGS)						\
 	$(NULL)

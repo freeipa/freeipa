@@ -6,12 +6,12 @@ AM_CPPFLAGS =							\
 	-I$(srcdir)						\
 	-I$(top_builddir)/daemons/				\
 	-I$(PLUGIN_COMMON_DIR)					\
-	-I/usr/include/dirsrv					\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
 	-DLIBDIR=\""$(libdir)"\" 				\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
+	$(DIRSRV_CFLAGS)					\
 	$(LDAP_CFLAGS)					\
 	$(KRB5_CFLAGS)						\
 	$(WARN_CFLAGS)						\
