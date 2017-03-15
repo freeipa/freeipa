@@ -410,6 +410,12 @@ class KrbInstance(service.Service):
             root_logger.critical("krb5kdc service failed to restart")
             raise
 
+        with ipautil.private_ccache() as anon_ccache:
+            try:
+                ipautil.run([paths.KINIT, '-n', '-c', anon_ccache])
+            except ipautil.CalledProcessError as e:
+                raise RuntimeError("Failed to configure anonymous PKINIT")
+
     def enable_ssl(self):
         if self.config_pkinit:
             self.steps = []
