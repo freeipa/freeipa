@@ -30,6 +30,7 @@ import dns.name
 
 from ipaserver.install import service
 from ipaserver.install import installutils
+from ipapython import ipaldap
 from ipapython import ipautil
 from ipapython import kernel_keyring
 from ipalib import api
@@ -342,6 +343,17 @@ class KrbInstance(service.Service):
 
         self.move_service_to_host(host_principal)
 
+    def _wait_for_replica_kdc_entry(self):
+        master_dn = self.api.Object.server.get_dn(self.fqdn)
+        kdc_dn = DN(('cn', 'KDC'), master_dn)
+
+        ldap_uri = 'ldap://{}'.format(self.master_fqdn)
+
+        with ipaldap.LDAPClient(
+                ldap_uri, cacert=paths.IPA_CA_CRT) as remote_ldap:
+            remote_ldap.gssapi_bind()
+            replication.wait_for_entry(remote_ldap, kdc_dn, timeout=60)
+
     def setup_pkinit(self):
         if self.pkcs12_info:
             certs.install_pem_from_p12(self.pkcs12_info[0],
@@ -368,6 +380,9 @@ class KrbInstance(service.Service):
                     ]
                     helper = " ".join(ca_args)
                     prev_helper = certmonger.modify_ca_helper('IPA', helper)
+                else:
+                    self._wait_for_replica_kdc_entry()
+
                 certmonger.request_and_wait_for_cert(
                     certpath,
                     subject,

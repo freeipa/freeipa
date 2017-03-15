@@ -229,9 +229,9 @@ def ca_kdc_check(api_instance, hostname):
             raise errors.NotFound()
 
     except errors.NotFound:
-        raise errors.ACIError(info=_(
-                "Host '%(hostname)s' is not an active KDC")
-                 % dict(hostname=hostname))
+        raise errors.ACIError(
+            info=_("Host '%(hostname)s' is not an active KDC")
+            % dict(hostname=hostname))
 
 
 def validate_certificate(value):
