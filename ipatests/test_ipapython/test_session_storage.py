@@ -5,7 +5,6 @@
 """
 Test the `session_storage.py` module.
 """
-
 from ipapython import session_storage
 
 
