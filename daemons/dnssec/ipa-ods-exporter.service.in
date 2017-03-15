@@ -6,7 +6,7 @@ After=ipa-ods-exporter.socket
 [Service]
 EnvironmentFile=@sysconfenvdir@/ipa-ods-exporter
 ExecStart=@libexecdir@/ipa/ipa-ods-exporter
-User=ods
+User=@ODS_USER@
 PrivateTmp=yes
 Restart=on-failure
 RestartSec=60s
