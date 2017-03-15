@@ -284,6 +284,14 @@ fi
 AC_SUBST([IPAPLATFORM])
 AC_MSG_RESULT([${IPAPLATFORM}])
 
+if test "x${IPAPLATFORM}" == "xdebian"; then
+    # see https://www.debian.org/doc/packaging-manuals/python-policy/ap-packaging_tools.html
+    PYTHON_INSTALL_EXTRA_OPTIONS="--install-layout=deb"
+else
+    PYTHON_INSTALL_EXTRA_OPTIONS=""
+fi
+AC_SUBST([PYTHON_INSTALL_EXTRA_OPTIONS])
+AC_MSG_RESULT([python setup.py install extra options ${PYTHON_INSTALL_EXTRA_OPTIONS}])
 
 dnl ---------------------------------------------------------------------------
 dnl Version information from VERSION.m4 and command line
