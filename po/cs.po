@@ -1,76 +1,24 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Red Hat
-# This file is distributed under the same license as the PACKAGE package.
-#
-# Translators:
-# Petr Viktorin <encukou@gmail.com>, 2013
 # Josef Hruška <hrusjos@gmail.com>, 2015. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: ipa\n"
+"Project-Id-Version: freeipa 4.4.90.dev201703151542+gita1686a9\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-08-29 10:39+0200\n"
-"PO-Revision-Date: 2015-06-29 01:17-0400\n"
-"Last-Translator: Josef Hruška <hrusjos@gmail.com>\n"
-"Language-Team: Czech (http://www.transifex.com/projects/p/freeipa/language/"
-"cs/)\n"
-"Language: cs\n"
+"POT-Creation-Date: 2017-03-15 16:43+0100\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Zanata 3.9.3\n"
-
-msgid "A string searched in all relevant object attributes"
-msgstr "Řetězec vyhledávaný ve všech odpovídajících atributech objektu"
+"PO-Revision-Date: 2015-06-29 01:17-0400\n"
+"Last-Translator: Josef Hruška <hrusjos@gmail.com>\n"
+"Language-Team: Czech\n"
+"Language: cs\n"
+"X-Generator: Zanata 3.9.6\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2\n"
 
 msgid "Operating system"
 msgstr "Operační systém"
 
 msgid "User password"
 msgstr "Uživatelské heslo"
-
-#, python-format
-msgid "Enter %(label)s again to verify: "
-msgstr "Vložte znovu své %(label)s, aby se ověřila jeho správnost."
-
-#, c-format
-msgid "Passwords do not match!"
-msgstr "Hesla se neshodují!"
-
-msgid "No matching entries found"
-msgstr "Nenalezeny žádné shodné položky"
-
-msgid "Topic or Command"
-msgstr "Téma nebo příkaz"
-
-msgid "The topic or command name."
-msgstr "Název tématu nebo příkazu."
-
-msgid "Topic commands:"
-msgstr "Příkazy tématu:"
-
-msgid "To get command help, use:"
-msgstr "Chceteli získat nápovědu k příkazu, použijte:"
-
-msgid "  ipa <command> --help"
-msgstr "  ipa <command> --help"
-
-msgid "Command name"
-msgstr "Název příkazu"
-
-msgid "Positional arguments"
-msgstr "Poziční argumenty"
-
-#, python-format
-msgid "Same as --%s"
-msgstr "Stejné jako --%s"
-
-msgid "Deprecated options"
-msgstr "Zastaralé volby"
-
-msgid "No file to read"
-msgstr "Žádný soubor k přečtení"
 
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
@@ -130,3 +78,48 @@ msgstr "Nenalezena mezipamět ověřovacích údajů"
 #, python-format
 msgid "%(reason)s"
 msgstr "%(reason)s"
+
+#, python-format
+msgid "Enter %(label)s again to verify: "
+msgstr "Vložte znovu své %(label)s, aby se ověřila jeho správnost."
+
+#, c-format
+msgid "Passwords do not match!"
+msgstr "Hesla se neshodují!"
+
+msgid "No matching entries found"
+msgstr "Nenalezeny žádné shodné položky"
+
+msgid "Topic or Command"
+msgstr "Téma nebo příkaz"
+
+msgid "The topic or command name."
+msgstr "Název tématu nebo příkazu."
+
+msgid "Topic commands:"
+msgstr "Příkazy tématu:"
+
+msgid "To get command help, use:"
+msgstr "Chceteli získat nápovědu k příkazu, použijte:"
+
+msgid "  ipa <command> --help"
+msgstr "  ipa <command> --help"
+
+msgid "Command name"
+msgstr "Název příkazu"
+
+msgid "Positional arguments"
+msgstr "Poziční argumenty"
+
+#, python-format
+msgid "Same as --%s"
+msgstr "Stejné jako --%s"
+
+msgid "Deprecated options"
+msgstr "Zastaralé volby"
+
+msgid "No file to read"
+msgstr "Žádný soubor k přečtení"
+
+msgid "A string searched in all relevant object attributes"
+msgstr "Řetězec vyhledávaný ve všech odpovídajících atributech objektu"
