@@ -483,6 +483,9 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         os.chmod(paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF, 0o644)
         self.restore_context(paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF)
 
+        ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"],
+                    raiseonerr=False)
+
     def configure_http_gssproxy_conf(self):
         ipautil.copy_template_file(
             os.path.join(paths.USR_SHARE_IPA_DIR, 'gssproxy.conf.template'),
@@ -513,6 +516,10 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                     'Error removing %s: %s',
                     paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF, e
                 )
+            return
+
+        ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"],
+                    raiseonerr=False)
 
     def set_hostname(self, hostname):
         ipautil.run([paths.BIN_HOSTNAMECTL, 'set-hostname', hostname])
