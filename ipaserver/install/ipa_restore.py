@@ -414,6 +414,8 @@ class Restore(admintool.AdminTool):
                 sssd = services.service('sssd', api)
                 sssd.restart()
                 http.remove_httpd_ccaches()
+                # have the daemons pick up their restored configs
+                run([paths.SYSTEMCTL, "--system", "daemon-reload"])
         finally:
             try:
                 os.chdir(cwd)
