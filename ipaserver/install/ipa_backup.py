@@ -166,6 +166,7 @@ class Backup(admintool.AdminTool):
         paths.KDC_CERT,
         paths.KDC_KEY,
         paths.SYSTEMD_IPA_SERVICE,
+        paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF,
         paths.SYSTEMD_SSSD_SERVICE,
         paths.SYSTEMD_CERTMONGER_SERVICE,
         paths.SYSTEMD_PKI_TOMCAT_SERVICE,
