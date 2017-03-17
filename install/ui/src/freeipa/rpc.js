@@ -72,6 +72,12 @@ rpc.command = function(spec) {
     that.options = $.extend({}, spec.options || {});
 
     /**
+     * @property {Array} suppress_warnings array of message codes which
+     * are suppressed
+     */
+    that.suppress_warnings = spec.suppress_warnings || [];
+
+    /**
      * Success handler
      * @property {Function}
      * @param {Object} data
@@ -219,6 +225,7 @@ rpc.command = function(spec) {
 
         for (var i=0,l=msgs.length; i<l; i++) {
             var msg = lang.clone(msgs[i]);
+            if (that.suppress_warnings.indexOf(msg.code) > -1) continue;
             // escape and reformat message
             msg.message = util.beautify_message(msg.message);
             IPA.notify(msg.message, msg.type);
