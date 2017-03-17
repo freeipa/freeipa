@@ -5012,7 +5012,8 @@ IPA.entity_select_widget = function(spec) {
             entity: that.other_entity.name,
             method: 'find',
             args: [filter],
-            options: that.filter_options
+            options: that.filter_options,
+            suppress_warnings: [13017]
         });
         var no_members = metadata.get('@mc-opt:' + cmd.get_command() + ':no_members');
         if (no_members) {
