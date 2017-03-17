@@ -515,7 +515,7 @@ int pack_ber_user(struct ipa_extdom_ctx *ctx,
     char *short_user_name = NULL;
 
     short_user_name = strdup(user_name);
-    if ((locat = strchr(short_user_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
+    if ((locat = strrchr(short_user_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
         if (strcasecmp(locat+1, domain_name) == 0  ) {
             locat[0] = '\0';
         } else {
@@ -626,7 +626,7 @@ int pack_ber_group(enum response_types response_type,
     char *short_group_name = NULL;
 
     short_group_name = strdup(group_name);
-    if ((locat = strchr(short_group_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
+    if ((locat = strrchr(short_group_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
         if (strcasecmp(locat+1, domain_name) == 0  ) {
             locat[0] = '\0';
         } else {
@@ -901,7 +901,7 @@ static int handle_sid_or_cert_request(struct ipa_extdom_ctx *ctx,
         goto done;
     }
 
-    sep = strchr(fq_name, SSSD_DOMAIN_SEPARATOR);
+    sep = strrchr(fq_name, SSSD_DOMAIN_SEPARATOR);
     if (sep == NULL) {
         set_err_msg(req, "Failed to split fully qualified name");
         ret = LDAP_OPERATIONS_ERROR;
