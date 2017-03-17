@@ -28,7 +28,7 @@ DIRSRV_CFLAGS="$DIRSRV_CFLAGS $NSPR_CFLAGS"
 
 dnl -- sss_idmap is needed by the extdom exop --
 PKG_CHECK_MODULES([SSSIDMAP], [sss_idmap])
-PKG_CHECK_MODULES([SSSNSSIDMAP], [sss_nss_idmap >= 1.13.90])
+PKG_CHECK_MODULES([SSSNSSIDMAP], [sss_nss_idmap >= 1.15.2])
 
 dnl -- sss_certmap and certauth.h are needed by the IPA KDB certauth plugin --
 PKG_CHECK_EXISTS([sss_certmap],
