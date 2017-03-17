@@ -66,6 +66,7 @@ freeipa2-dev-doc
 /rpmbuild/
 # Build
 /ipasetup.py
+/.wheelconstraints
 *.egg-info
 
 # Subdirectories

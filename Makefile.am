@@ -34,6 +34,11 @@ ipasetup.py: ipasetup.py.in $(CONFIG_STATUS)
 		-e 's|@VERSION[@]|$(VERSION)|g'			\
 		$< > $@
 
+.wheelconstraints: .wheelconstraints.in $(CONFIG_STATUS)
+	$(AM_V_GEN)sed						\
+		-e 's|@VERSION[@]|$(VERSION)|g'			\
+		$< > $@
+
 EXTRA_DIST = .mailmap \
 	     ACI.txt \
 	     API.txt \
@@ -46,7 +51,8 @@ EXTRA_DIST = .mailmap \
 	     doc \
 	     freeipa.spec.in \
 	     ipasetup.py.in \
-	     pylintrc
+	     pylintrc \
+	     .wheelconstraints.in
 
 clean-local:
 	rm -rf "$(RPMBUILD)"
@@ -232,8 +238,15 @@ bdist_wheel: $(WHEELDISTDIR)
 	    $(MAKE) $(AM_MAKEFLAGS) -C $${dir} $@ || exit 1; \
 	done
 
-wheel_bundle: $(WHEELBUNDLEDIR) bdist_wheel
-	$(PYTHON) -m pip wheel --wheel-dir $(WHEELBUNDLEDIR) $(WHEELDISTDIR)/*.whl
+wheel_bundle: $(WHEELBUNDLEDIR) bdist_wheel .wheelconstraints
+	rm -f $(foreach item,$(IPACLIENT_SUBDIRS),$(WHEELBUNDLEDIR)/$(item)-*.whl)
+	$(PYTHON) -m pip wheel \
+	    --disable-pip-version-check \
+	    --constraint .wheelconstraints \
+	    --find-links $(WHEELDISTDIR) \
+	    --find-links $(WHEELBUNDLEDIR) \
+	    --wheel-dir $(WHEELBUNDLEDIR) \
+	    $(IPACLIENT_SUBDIRS)
 
 wheel_placeholder: $(WHEELDISTDIR)
 	for dir in $(IPA_PLACEHOLDERS); do \
