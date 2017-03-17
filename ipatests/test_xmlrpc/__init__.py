@@ -20,8 +20,7 @@
 """
 Sub-package containing unit tests for `xmlrpc` package.
 """
-import pytest
+import ipatests.util
 
 
-if pytest.config.getoption('ipaclient_unittests', False):
-    pytest.skip("Skip in ipaclient unittest mode")
+ipatests.util.check_ipaclient_unittests()
