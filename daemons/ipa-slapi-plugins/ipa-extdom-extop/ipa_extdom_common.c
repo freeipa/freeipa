@@ -698,6 +698,90 @@ done:
     return ret;
 }
 
+int pack_ber_name_list(struct extdom_req *req, char **fq_name_list,
+                       struct berval **berval)
+{
+    BerElement *ber = NULL;
+    int ret;
+    char *sep;
+    size_t c;
+    size_t len;
+    size_t name_len;
+
+    /* count the names */
+    for (c = 0; fq_name_list[c] != NULL; c++);
+    if (c == 0) {
+        set_err_msg(req, "Empty name list");
+        return LDAP_NO_SUCH_OBJECT;
+    }
+
+    ber = ber_alloc_t( LBER_USE_DER );
+    if (ber == NULL) {
+        set_err_msg(req, "BER alloc failed");
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+
+    ret = ber_printf(ber,"{e{", RESP_NAME_LIST);
+    if (ret == -1) {
+        set_err_msg(req, "BER start failed");
+        ber_free(ber, 1);
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    for (c = 0; fq_name_list[c] != NULL; c++) {
+        len = strlen(fq_name_list[c]);
+        if (len < 3) {
+            set_err_msg(req, "Fully qualified name too short");
+            ber_free(ber, 1);
+            return LDAP_OPERATIONS_ERROR;
+        }
+
+        sep = strrchr(fq_name_list[c], SSSD_DOMAIN_SEPARATOR);
+        if (sep == NULL) {
+            set_err_msg(req, "Failed to split fully qualified name");
+            ber_free(ber, 1);
+            return LDAP_OPERATIONS_ERROR;
+        }
+
+        name_len = sep - fq_name_list[c];
+        if (name_len == 0) {
+            set_err_msg(req, "Missing name.");
+            ber_free(ber, 1);
+            return LDAP_OPERATIONS_ERROR;
+        }
+        if (name_len + 1 == len) {
+            set_err_msg(req, "Missing domain.");
+            ber_free(ber, 1);
+            return LDAP_OPERATIONS_ERROR;
+        }
+
+        ret = ber_printf(ber,"{oo}", (sep + 1),  len - name_len -1,
+                                      fq_name_list[c], name_len);
+        if (ret == -1) {
+        set_err_msg(req, "BER list item failed");
+            ber_free(ber, 1);
+            return LDAP_OPERATIONS_ERROR;
+        }
+    }
+
+    ret = ber_printf(ber,"}}");
+    if (ret == -1) {
+        set_err_msg(req, "BER end failed");
+        ber_free(ber, 1);
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    ret = ber_flatten(ber, berval);
+    ber_free(ber, 1);
+    if (ret == -1) {
+        set_err_msg(req, "BER flatten failed");
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    return LDAP_SUCCESS;
+}
+
 int pack_ber_name(const char *domain_name, const char *name,
                   struct berval **berval)
 {
@@ -867,12 +951,56 @@ done:
     return ret;
 }
 
-static int handle_sid_or_cert_request(struct ipa_extdom_ctx *ctx,
-                                      struct extdom_req *req,
-                                      enum request_types request_type,
-                                      enum input_types input_type,
-                                      const char *input,
-                                      struct berval **berval)
+static int handle_cert_request(struct ipa_extdom_ctx *ctx,
+                               struct extdom_req *req,
+                               enum request_types request_type,
+                               enum input_types input_type,
+                               const char *input,
+                               struct berval **berval)
+{
+    int ret;
+    char **fq_names = NULL;
+    enum sss_id_type *id_types = NULL;
+    size_t c;
+
+    if (request_type != REQ_SIMPLE) {
+        set_err_msg(req, "Only simple request type allowed "
+                         "for lookups by certificate");
+        ret = LDAP_PROTOCOL_ERROR;
+        goto done;
+    }
+
+    ret = sss_nss_getlistbycert(input, &fq_names, &id_types);
+    if (ret != 0) {
+        if (ret == ENOENT) {
+            ret = LDAP_NO_SUCH_OBJECT;
+        } else {
+            set_err_msg(req, "Failed to lookup name by certificate");
+            ret = LDAP_OPERATIONS_ERROR;
+        }
+        goto done;
+    }
+
+    ret = pack_ber_name_list(req, fq_names, berval);
+
+done:
+    if (fq_names != NULL) {
+        for (c = 0; fq_names[c] != NULL; c++) {
+            free(fq_names[c]);
+        }
+        free(fq_names);
+    }
+    free(id_types);
+
+    return ret;
+}
+
+static int handle_sid_request(struct ipa_extdom_ctx *ctx,
+                              struct extdom_req *req,
+                              enum request_types request_type,
+                              enum input_types input_type,
+                              const char *input,
+                              struct berval **berval)
 {
     int ret;
     struct passwd pwd;
@@ -886,11 +1014,7 @@ static int handle_sid_or_cert_request(struct ipa_extdom_ctx *ctx,
     enum sss_id_type id_type;
     struct sss_nss_kv *kv_list = NULL;
 
-    if (input_type == INP_SID) {
-        ret = sss_nss_getnamebysid(input, &fq_name, &id_type);
-    } else {
-        ret = sss_nss_getnamebycert(input, &fq_name, &id_type);
-    }
+    ret = sss_nss_getnamebysid(input, &fq_name, &id_type);
     if (ret != 0) {
         if (ret == ENOENT) {
             ret = LDAP_NO_SUCH_OBJECT;
@@ -1147,13 +1271,12 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
 
         break;
     case INP_SID:
+        ret = handle_sid_request(ctx, req, req->request_type,
+                                 req->input_type, req->data.sid, berval);
+        break;
     case INP_CERT:
-        ret = handle_sid_or_cert_request(ctx, req, req->request_type,
-                                         req->input_type,
-                                         req->input_type == INP_SID ?
-                                                                 req->data.sid :
-                                                                 req->data.cert,
-                                         berval);
+        ret = handle_cert_request(ctx, req, req->request_type,
+                                  req->input_type, req->data.cert, berval);
         break;
     case INP_NAME:
         ret = handle_name_request(ctx, req, req->request_type,
