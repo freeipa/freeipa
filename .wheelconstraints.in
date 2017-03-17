@@ -1,0 +1,11 @@
+# placeholder
+freeipa == @VERSION@
+ipa == @VERSION@
+# actual packages
+ipaclient == @VERSION@
+ipalib == @VERSION@
+ipaplatform == @VERSION@
+ipapython == @VERSION@
+ipaserver == @VERSION@
+ipatests == @VERSION@
+
