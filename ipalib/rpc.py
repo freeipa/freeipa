@@ -849,7 +849,10 @@ class RPCClient(Connectible):
             session_cookie = Cookie.get_named_cookie_from_string(
                 cookie_string, COOKIE_NAME,
                 timestamp=datetime.datetime.utcnow())
-        except Exception:
+        except Exception as e:
+            self.log.debug(
+                'Error retrieving cookie from the persistent storage: {err}'
+                .format(err=e))
             return None
 
         return session_cookie
