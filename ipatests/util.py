@@ -61,6 +61,22 @@ if six.PY3:
     unicode = str
 
 
+PYTEST_VERSION = tuple(int(v) for v in pytest.__version__.split('.'))
+
+
+def check_ipaclient_unittests(reason="Skip in ipaclient unittest mode"):
+    """Call this in a package to skip the package in ipaclient-unittest mode
+    """
+    if pytest.config.getoption('ipaclient_unittests', False):
+        if PYTEST_VERSION[0] >= 3:
+            # pytest 3+ does no longer allow pytest.skip() on module level
+            # pylint: disable=unexpected-keyword-arg
+            raise pytest.skip.Exception(reason, allow_module_level=True)
+            # pylint: enable=unexpected-keyword-arg
+        else:
+            raise pytest.skip(reason)
+
+
 class TempDir(object):
     def __init__(self):
         self.__path = tempfile.mkdtemp(prefix='ipa.tests.')

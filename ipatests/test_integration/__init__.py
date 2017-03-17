@@ -16,8 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import pytest
+import ipatests.util
 
 
-if pytest.config.getoption('ipaclient_unittests', False):
-    pytest.skip("Skip in ipaclient unittest mode")
+ipatests.util.check_ipaclient_unittests()
