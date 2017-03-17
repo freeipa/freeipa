@@ -95,7 +95,8 @@ enum response_types {
     RESP_USER,
     RESP_GROUP,
     RESP_USER_GROUPLIST,
-    RESP_GROUP_MEMBERS
+    RESP_GROUP_MEMBERS,
+    RESP_NAME_LIST
 };
 
 struct extdom_req {
