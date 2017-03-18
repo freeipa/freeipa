@@ -142,6 +142,8 @@ class KrbInstance(service.Service):
             pass
 
     def __common_post_setup(self):
+        self.step("configuring Kerberos library to use local KDC",
+                  self.__configure_krb5_conf)
         self.step("starting the KDC", self.__start_instance)
         self.step("configuring KDC to start on boot", self.__enable)
 
@@ -285,7 +287,6 @@ class KrbInstance(service.Service):
 
     def __configure_instance(self):
         self.__template_file(paths.KRB5KDC_KDC_CONF, chmod=None)
-        self.__template_file(paths.KRB5_CONF)
         self.__template_file(paths.HTML_KRB5_INI)
         self.__template_file(paths.KRB_CON)
         self.__template_file(paths.HTML_KRBREALM_CON)
@@ -311,6 +312,9 @@ class KrbInstance(service.Service):
                                                     replacevars=replacevars,
                                                     appendvars=appendvars)
         tasks.restore_context(paths.SYSCONFIG_KRB5KDC_DIR)
+
+    def __configure_krb5_conf(self):
+        self.__template_file(paths.KRB5_CONF)
 
     #add the password extop module
     def __add_pwd_extop_module(self):
