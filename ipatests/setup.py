@@ -35,6 +35,7 @@ if __name__ == '__main__':
         packages=[
             "ipatests",
             "ipatests.pytest_plugins",
+            "ipatests.pytest_plugins.integration",
             "ipatests.test_cmdline",
             "ipatests.test_install",
             "ipatests.test_integration",
