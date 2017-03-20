@@ -59,6 +59,8 @@ steps:
   - echo ${server_password} > ~/.ipa/.dmpw
   - echo 'wait_for_dns=5' >> ~/.ipa/default.conf
   run_tests:
+  - ipa-test-config --help
+  - ipa-test-task --help
   - ipa-run-tests ${tests_ignore} -k-test_dns_soa ${tests_verbose} ${path}
 tests:
   ignore:
