@@ -31,7 +31,7 @@ import collections
 import six
 
 from ipapython import ipautil
-from ipatests.test_integration.config import Config, Domain
+from ipatests.pytest_plugins.integration.config import Config, Domain
 from ipalib.constants import MAX_DOMAIN_LEVEL
 
 TESTHOST_PREFIX = 'TESTHOST_'
