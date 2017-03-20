@@ -27,6 +27,7 @@ import uuid
 import string
 import struct
 import re
+import socket
 
 import six
 
@@ -689,6 +690,15 @@ class ADTRUSTInstance(service.Service):
         except Exception as e:
             root_logger.critical("Enabling nsswitch support in slapi-nis failed with error '%s'" % e)
 
+    def __validate_server_hostname(self):
+        hostname = socket.gethostname()
+        if hostname != self.fqdn:
+            raise ValueError("Host reports different name than configured: "
+                             "'%s' versus '%s'. Samba requires to have "
+                             "the same hostname or Kerberos principal "
+                             "'cifs/%s' will not be found in Samba keytab." %
+                             (hostname, self.fqdn, self.fqdn))
+
     def __start(self):
         try:
             self.start()
@@ -804,6 +814,8 @@ class ADTRUSTInstance(service.Service):
         api.Backend.ldap2.add_entry(entry)
 
     def create_instance(self):
+        self.step("validate server hostname",
+                  self.__validate_server_hostname)
         self.step("stopping smbd", self.__stop)
         self.step("creating samba domain object", \
                   self.__create_samba_domain_object)
