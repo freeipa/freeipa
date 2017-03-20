@@ -686,7 +686,7 @@ class KerbTransport(SSLTransport):
                 return self.parse_response(response)
         except gssapi.exceptions.GSSError as e:
             self._handle_exception(e)
-        finally:
+        except BaseException:
             self.close()
 
     if six.PY3:
