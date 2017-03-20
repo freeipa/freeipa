@@ -79,6 +79,13 @@ except ImportError:
     from xmlrpc.client import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
             Transport, ProtocolError, MININT, MAXINT)
 
+# pylint: disable=import-error
+if six.PY3:
+    from http.client import RemoteDisconnected
+else:
+    from httplib import BadStatusLine as RemoteDisconnected
+# pylint: enable=import-error
+
 
 if six.PY3:
     unicode = str
@@ -531,6 +538,7 @@ class SSLTransport(LanguageAwareTransport):
         host, self._extra_headers, _x509 = self.get_host_info(host)
 
         if self._connection and host == self._connection[0]:
+            root_logger.debug("HTTP connection keep-alive (%s)", host)
             return self._connection[1]
 
         conn = create_https_connection(
@@ -540,6 +548,7 @@ class SSLTransport(LanguageAwareTransport):
             tls_version_max=api.env.tls_version_max)
 
         conn.connect()
+        root_logger.debug("New HTTP connection (%s)", host)
 
         self._connection = host, conn
         return self._connection[1]
@@ -686,8 +695,18 @@ class KerbTransport(SSLTransport):
                 return self.parse_response(response)
         except gssapi.exceptions.GSSError as e:
             self._handle_exception(e)
-        except BaseException:
+        except RemoteDisconnected:
+            # keep-alive connection was terminated by remote peer, close
+            # connection and let transport handle reconnect for us.
             self.close()
+            root_logger.debug("HTTP server has closed connection (%s)", host)
+            raise
+        except BaseException as e:
+            # Unexpected exception may leave connections in a bad state.
+            self.close()
+            root_logger.debug("HTTP connection destroyed (%s)",
+                              host, exc_info=True)
+            raise
 
     if six.PY3:
         def __send_request(self, connection, host, handler, request_body, debug):
