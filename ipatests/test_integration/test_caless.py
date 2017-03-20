@@ -31,7 +31,7 @@ from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.test_integration import tasks
+from ipatests.pytest_plugins.integration import tasks
 from ipalib.constants import DOMAIN_LEVEL_0
 
 _DEFAULT = object()
