@@ -27,8 +27,7 @@ import argparse
 import json
 
 from ipalib.constants import FQDN
-from ipatests.test_integration import env_config
-from ipatests.pytest_plugins.integration import config
+from ipatests.pytest_plugins.integration import config, env_config
 
 
 def main(argv):

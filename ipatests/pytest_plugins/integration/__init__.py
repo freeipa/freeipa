@@ -31,6 +31,7 @@ from pytest_multihost import make_multihost_fixture
 from ipapython import ipautil
 from ipapython.ipa_log_manager import log_mgr
 from .config import Config
+from .env_config import get_global_config
 
 log = log_mgr.get_logger(__name__)
 
@@ -155,7 +156,6 @@ def mh(request, class_integration_logs):
     """
     # TODO: cleanup modules
     from ipatests.test_integration import tasks
-    from ipatests.test_integration.env_config import get_global_config
 
     cls = request.cls
 
