@@ -8,7 +8,7 @@ import dns.name
 import time
 
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.test_integration import tasks
+from ipatests.pytest_plugins.integration import tasks
 from ipaplatform.paths import paths
 
 test_zone = "dnssec.test."

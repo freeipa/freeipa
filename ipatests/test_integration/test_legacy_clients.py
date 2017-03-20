@@ -26,7 +26,7 @@ import re
 import nose
 from ipaplatform.paths import paths
 
-from ipatests.test_integration import tasks
+from ipatests.pytest_plugins.integration import tasks
 
 # importing test_trust under different name to avoid nose executing the test
 # base class imported from this module

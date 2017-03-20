@@ -3,7 +3,7 @@
 #
 
 import six
-from ipatests.test_integration import tasks
+from ipatests.pytest_plugins.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 from ipaplatform.paths import paths
 

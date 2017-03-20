@@ -22,7 +22,7 @@
 import pytest
 
 from ipapython.ipa_log_manager import log_mgr
-from ipatests.test_integration import tasks
+from ipatests.pytest_plugins.integration import tasks
 from pytest_sourceorder import ordered
 
 log = log_mgr.get_logger(__name__)

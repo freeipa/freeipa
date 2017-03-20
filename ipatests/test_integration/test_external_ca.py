@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 
-from ipatests.test_integration import tasks
+from ipatests.pytest_plugins.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 
 
