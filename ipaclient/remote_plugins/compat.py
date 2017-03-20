@@ -12,6 +12,7 @@ import six
 from ipaclient.frontend import ClientCommand, ClientMethod
 from ipalib.frontend import Object
 from ipapython.ipautil import APIVersion
+from ipapython.version import API_VERSION
 
 if six.PY3:
     unicode = str
@@ -32,31 +33,35 @@ class CompatObject(Object):
 
 
 def get_package(server_info, client):
-    try:
-        server_version = server_info['version']
-    except KeyError:
-        is_valid = False
-    else:
-        is_valid = server_info.is_valid()
-
-    if not is_valid:
-        if not client.isconnected():
-            client.connect(verbose=False)
-        env = client.forward(u'env', u'api_version', version=u'2.0')
+    if not client.api.env.force_client_compat:
         try:
-            server_version = env['result']['api_version']
+            server_version = server_info['version']
         except KeyError:
-            ping = client.forward(u'ping', version=u'2.0')
+            is_valid = False
+        else:
+            is_valid = server_info.is_valid()
+
+        if not is_valid:
+            if not client.isconnected():
+                client.connect(verbose=False)
+            env = client.forward(u'env', u'api_version', version=u'2.0')
             try:
-                match = re.search(u'API version (2\.[0-9]+)', ping['summary'])
+                server_version = env['result']['api_version']
             except KeyError:
-                match = None
-            if match is not None:
-                server_version = match.group(1)
-            else:
-                server_version = u'2.0'
-        server_info['version'] = server_version
-        server_info.update_validity()
+                ping = client.forward(u'ping', version=u'2.0')
+                try:
+                    match = re.search(u'API version (2\.[0-9]+)',
+                                      ping['summary'])
+                except KeyError:
+                    match = None
+                if match is not None:
+                    server_version = match.group(1)
+                else:
+                    server_version = u'2.0'
+            server_info['version'] = server_version
+            server_info.update_validity()
+    else:
+        server_version = API_VERSION
 
     server_version = APIVersion(server_version)
 

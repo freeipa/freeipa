@@ -196,6 +196,8 @@ DEFAULT_CONFIG = (
 
     # Ignore TTL. Perform schema call and download schema if not in cache.
     ('force_schema_check', False),
+    # Force client API to use compat remote plugins
+    ('force_client_compat', False),
 
     # ********************************************************
     #  The remaining keys are never set from the values here!
