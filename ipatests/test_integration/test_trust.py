@@ -80,8 +80,8 @@ class ADTrustBase(IntegrationTest):
                     % dict(idauth=_sid_identifier_authority)
         stdout_re = re.escape('  ipaNTSecurityIdentifier: ') + sid_regex
 
-        util.run_repeatedly(cls.master, command,
-                            test=lambda x: re.search(stdout_re, x))
+        tasks.run_repeatedly(cls.master, command,
+                             test=lambda x: re.search(stdout_re, x))
 
     @classmethod
     def configure_dns_and_time(cls):
