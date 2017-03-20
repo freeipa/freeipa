@@ -1573,6 +1573,38 @@ def setup_pkinit(krb):
         aug.close()
 
 
+def enable_certauth(krb):
+    root_logger.info("[Enable certauth]")
+
+    aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD,
+                 loadpath=paths.USR_SHARE_IPA_DIR)
+    try:
+        aug.transform('IPAKrb5', paths.KRB5_CONF)
+        aug.load()
+
+        path = '/files{}/plugins/certauth'.format(paths.KRB5_CONF)
+        modified = False
+
+        if not aug.match(path):
+            aug.set('{}/module'.format(path), 'ipakdb:kdb/ipadb.so')
+            aug.set('{}/enable_only'.format(path), 'ipakdb')
+            modified = True
+
+        if modified:
+            try:
+                aug.save()
+            except IOError:
+                for error_path in aug.match('/augeas//error'):
+                    root_logger.error('augeas: %s', aug.get(error_path))
+                raise
+
+            if krb.is_running():
+                krb.stop()
+            krb.start()
+    finally:
+        aug.close()
+
+
 def disable_httpd_system_trust(http):
     ca_certs = []
 
@@ -1867,6 +1899,7 @@ def upgrade_configuration():
                         CA_BUNDLE_PEM=paths.CA_BUNDLE_PEM)
     krb.add_anonymous_principal()
     setup_pkinit(krb)
+    enable_certauth(krb)
 
     if not ds_running:
         ds.stop(ds_serverid)
