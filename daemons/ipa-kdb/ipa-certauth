@@ -1,5 +1,0 @@
-[plugins]
- certauth = {
-  module = ipakdb:kdb/ipadb.so
-  enable_only = ipakdb
- }

@@ -1,4 +1,4 @@
-includedir /etc/krb5.conf.d/
+$INCLUDES
 includedir /var/lib/sss/pubconf/krb5.include.d/
 
 [logging]
@@ -35,3 +35,8 @@ $OTHER_DOMAIN_REALM_MAPS
     db_library = ipadb.so
   }
 
+[plugins]
+ certauth = {
+  module = ipakdb:kdb/ipadb.so
+  enable_only = ipakdb
+ }

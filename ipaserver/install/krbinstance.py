@@ -249,6 +249,11 @@ class KrbInstance(service.Service):
             root_logger.critical("krb5kdc service failed to start")
 
     def __setup_sub_dict(self):
+        if os.path.exists(paths.COMMON_KRB5_CONF_DIR):
+            includes = 'includedir {}'.format(paths.COMMON_KRB5_CONF_DIR)
+        else:
+            includes = ''
+
         self.sub_dict = dict(FQDN=self.fqdn,
                              IP=self.ip,
                              PASSWORD=self.kdc_password,
@@ -264,7 +269,8 @@ class KrbInstance(service.Service):
                              KDC_KEY=paths.KDC_KEY,
                              CACERT_PEM=paths.CACERT_PEM,
                              KDC_CA_BUNDLE_PEM=paths.KDC_CA_BUNDLE_PEM,
-                             CA_BUNDLE_PEM=paths.CA_BUNDLE_PEM)
+                             CA_BUNDLE_PEM=paths.CA_BUNDLE_PEM,
+                             INCLUDES=includes)
 
         # IPA server/KDC is not a subdomain of default domain
         # Proper domain-realm mapping needs to be specified

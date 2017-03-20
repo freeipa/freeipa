@@ -640,13 +640,17 @@ def configure_krb5_conf(
             'value': 'File modified by ipa-client-install'
         },
         krbconf.emptyLine(),
-        {
-            'name': 'includedir',
-            'type': 'option',
-            'value': paths.COMMON_KRB5_CONF_DIR,
-            'delim': ' '
-        }
     ]
+
+    if os.path.exists(paths.COMMON_KRB5_CONF_DIR):
+        opts.extend([
+            {
+                'name': 'includedir',
+                'type': 'option',
+                'value': paths.COMMON_KRB5_CONF_DIR,
+                'delim': ' '
+            }
+        ])
 
     # SSSD include dir
     if configure_sssd:

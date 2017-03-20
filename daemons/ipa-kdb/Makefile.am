@@ -44,12 +44,6 @@ dist_noinst_DATA = ipa_kdb.exports
 
 if BUILD_IPA_CERTAUTH_PLUGIN
 ipadb_la_SOURCES += ipa_kdb_certauth.c
-
-
-krb5confdir = $(sysconfdir)/krb5.conf.d
-krb5conf_DATA = ipa-certauth
-else
-dist_noinst_DATA += ipa-certauth
 endif
 
 ipadb_la_LDFLAGS = 		\
