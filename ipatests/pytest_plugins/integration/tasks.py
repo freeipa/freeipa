@@ -38,7 +38,7 @@ from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_integration import util
 from ipatests.pytest_plugins.integration.env_config import env_to_script
-from ipatests.test_integration.host import Host
+from ipatests.pytest_plugins.integration.host import Host
 from ipalib import errors
 from ipalib.util import get_reverse_zone_default, verify_host_resolvable
 from ipalib.constants import DOMAIN_SUFFIX_NAME

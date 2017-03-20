@@ -120,7 +120,7 @@ class Domain(pytest_multihost.config.Domain):
             raise LookupError(self.type)
 
     def get_host_class(self, host_dict):
-        from ipatests.test_integration.host import Host, WinHost
+        from ipatests.pytest_plugins.integration.host import Host, WinHost
 
         if self.type == 'IPA':
             return Host
