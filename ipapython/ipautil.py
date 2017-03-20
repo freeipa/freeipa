@@ -505,7 +505,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
 def nolog_replace(string, nolog):
     """Replace occurences of strings given in `nolog` with XXXXXXXX"""
     for value in nolog:
-        if not isinstance(value, six.string_types):
+        if not value or not isinstance(value, six.string_types):
             continue
 
         quoted = urllib.parse.quote(value)
