@@ -5,7 +5,7 @@
 import time
 import pytest
 from ipalib.constants import DOMAIN_LEVEL_0
-from ipatests.test_integration.env_config import get_global_config
+from ipatests.pytest_plugins.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 
