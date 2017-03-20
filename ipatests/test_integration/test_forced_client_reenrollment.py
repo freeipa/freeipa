@@ -22,7 +22,7 @@ from ipaplatform.paths import paths
 import pytest
 
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.test_integration import tasks
+from ipatests.pytest_plugins.integration import tasks
 
 CLIENT_KEYTAB = paths.KRB5_KEYTAB
 

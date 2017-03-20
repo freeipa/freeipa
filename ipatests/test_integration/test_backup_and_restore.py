@@ -27,7 +27,7 @@ from ipaplatform.constants import constants
 from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.test_integration import tasks
+from ipatests.pytest_plugins.integration import tasks
 from ipatests.test_integration.test_dnssec import wait_until_record_is_signed
 from ipatests.util import assert_deepequal
 

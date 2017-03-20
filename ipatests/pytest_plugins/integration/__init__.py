@@ -32,6 +32,7 @@ from ipapython import ipautil
 from ipapython.ipa_log_manager import log_mgr
 from .config import Config
 from .env_config import get_global_config
+from . import tasks
 
 log = log_mgr.get_logger(__name__)
 
@@ -154,9 +155,6 @@ def integration_logs(class_integration_logs, request):
 def mh(request, class_integration_logs):
     """IPA's multihost fixture object
     """
-    # TODO: cleanup modules
-    from ipatests.test_integration import tasks
-
     cls = request.cls
 
     domain_description = {

@@ -20,7 +20,8 @@
 import pytest
 
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.test_integration.tasks import clear_sssd_cache, modify_sssd_conf
+from ipatests.pytest_plugins.integration.tasks import (
+    clear_sssd_cache, modify_sssd_conf)
 from ipatests.test_integration import util
 
 
