@@ -36,12 +36,14 @@ from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
-from ipatests.pytest_plugins.integration.env_config import env_to_script
-from ipatests.pytest_plugins.integration.host import Host
 from ipalib import errors
 from ipalib.util import get_reverse_zone_default, verify_host_resolvable
-from ipalib.constants import DOMAIN_SUFFIX_NAME
-from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib.constants import (
+    DEFAULT_CONFIG, DOMAIN_SUFFIX_NAME, DOMAIN_LEVEL_0)
+
+from .env_config import env_to_script
+from .host import Host
+
 
 log = log_mgr.get_logger(__name__)
 
@@ -1285,3 +1287,30 @@ def run_repeatedly(host, command, assert_zero_rc=True, test=None,
                          .format(cmd=' '.join(command),
                                  times=timeout // time_step,
                                  timeout=timeout))
+
+
+def get_host_ip_with_hostmask(host):
+    """
+    Detects the IP of the host including the hostmask.
+
+    Returns None if the IP could not be detected.
+    """
+
+    ip = host.ip
+    result = host.run_command(['ip', 'addr'])
+    full_ip_regex = r'(?P<full_ip>%s/\d{1,2}) ' % re.escape(ip)
+    match = re.search(full_ip_regex, result.stdout_text)
+
+    if match:
+        return match.group('full_ip')
+
+
+def ldappasswd_user_change(user, oldpw, newpw, master):
+    container_user = dict(DEFAULT_CONFIG)['container_user']
+    basedn = master.domain.basedn
+
+    userdn = "uid={},{},{}".format(user, container_user, basedn)
+
+    args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
+            '-s', newpw, '-x']
+    master.run_command(args)
