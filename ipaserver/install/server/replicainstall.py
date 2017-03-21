@@ -1391,7 +1391,16 @@ def install(installer):
     dsinstance.create_ds_user()
 
     try:
-        conn.connect(ccache=ccache)
+        if promote:
+            conn.connect(ccache=ccache)
+        else:
+            # dmlvl 0 replica install should always use DM credentials
+            # to create remote LDAP connection. Since ACIs permitting hosts
+            # to manage their own services were added in 4.2 release,
+            # the master denies this operations.
+            conn.connect(bind_dn=ipaldap.DIRMAN_DN, cacert=cafile,
+                         bind_pw=config.dirman_password)
+
         # Update and istall updated CA file
         cafile = install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
 
