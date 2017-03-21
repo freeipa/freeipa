@@ -195,6 +195,7 @@ struct ipasam_privates {
 	char *trust_dn;
 	char *flat_name;
 	struct dom_sid fallback_primary_group;
+	char *fallback_primary_group_gid_str;
 	char *server_princ;
 	char *client_princ;
 	struct sss_idmap_ctx *idmap_ctx;
@@ -2419,6 +2420,9 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	if (entry == NULL || sid == NULL) {
 		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
 				 LDAP_ATTRIBUTE_UIDNUMBER, IPA_MAGIC_ID_STR);
+		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+		                 LDAP_ATTRIBUTE_GIDNUMBER,
+				 ldap_state->ipasam_privates->fallback_primary_group_gid_str);
 	}
 
 	if (td->netbios_name != NULL) {
@@ -2829,6 +2833,7 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 {
 	NTSTATUS status;
 	struct dom_sid *u_sid;
+	struct dom_sid *g_sid;
 	char *name;
 	char *trustpw = NULL;
 	char *trustpw_utf8 = NULL;
@@ -2883,6 +2888,11 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 		return false;
 	}
 	talloc_free(u_sid);
+
+	g_sid = &ldap_state->ipasam_privates->fallback_primary_group;
+	if (!pdb_set_group_sid(user, g_sid, PDB_SET)) {
+		return false;
+	}
 
 	status = get_trust_pwd(user, &td->trust_auth_incoming, &trustpw, NULL);
 	if (!NT_STATUS_IS_OK(status)) {
@@ -3594,14 +3604,17 @@ static void ipasam_free_private_data(void **vp)
 static struct dom_sid *get_fallback_group_sid(TALLOC_CTX *mem_ctx,
 					      struct smbldap_state *ldap_state,
 					      struct sss_idmap_ctx *idmap_ctx,
-					      LDAPMessage *dom_entry)
+					      LDAPMessage *dom_entry,
+					      char **fallback_group_gid_str)
 {
 	char *dn;
 	char *sid;
+	char *gidnumber;
 	int ret;
 	const char *filter = "objectClass=*";
 	const char *attr_list[] = {
 					LDAP_ATTRIBUTE_SID,
+					LDAP_ATTRIBUTE_GIDNUMBER,
 					NULL};
 	LDAPMessage *result;
 	LDAPMessage *entry;
@@ -3648,9 +3661,20 @@ static struct dom_sid *get_fallback_group_sid(TALLOC_CTX *mem_ctx,
 		talloc_free(sid);
 		return NULL;
 	}
+	talloc_free(sid);
+
+	gidnumber = get_single_attribute(mem_ctx, ldap_state->ldap_struct,
+					entry, LDAP_ATTRIBUTE_GIDNUMBER);
+	if (gidnumber == NULL) {
+		DEBUG(0, ("Missing mandatory attribute %s.\n",
+			  LDAP_ATTRIBUTE_GIDNUMBER));
+		ldap_msgfree(result);
+		return NULL;
+	}
+
+	*fallback_group_gid_str = gidnumber;
 
 	ldap_msgfree(result);
-	talloc_free(sid);
 
 	return fallback_group_sid;
 }
@@ -4443,6 +4467,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	char *domain_sid_string = NULL;
 	struct dom_sid *ldap_domain_sid = NULL;
 	struct dom_sid *fallback_group_sid = NULL;
+	char *fallback_group_gid_str = NULL;
 
 	LDAPMessage *result = NULL;
 	LDAPMessage *entry = NULL;
@@ -4586,7 +4611,8 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	fallback_group_sid = get_fallback_group_sid(ldap_state,
 					ldap_state->smbldap_state,
 					ldap_state->ipasam_privates->idmap_ctx,
-					result);
+					result,
+					&fallback_group_gid_str);
 	if (fallback_group_sid == NULL) {
 		DEBUG(0, ("Cannot find SID of fallback group.\n"));
 		ldap_msgfree(result);
@@ -4595,6 +4621,14 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	sid_copy(&ldap_state->ipasam_privates->fallback_primary_group,
 		 fallback_group_sid);
 	talloc_free(fallback_group_sid);
+
+	if (fallback_group_gid_str == NULL) {
+		DEBUG(0, ("Cannot find gidNumber of fallback group.\n"));
+		ldap_msgfree(result);
+		return NT_STATUS_INVALID_PARAMETER;
+	}
+	ldap_state->ipasam_privates->fallback_primary_group_gid_str =
+		fallback_group_gid_str;
 
 	domain_sid_string = get_single_attribute(
 				ldap_state,
