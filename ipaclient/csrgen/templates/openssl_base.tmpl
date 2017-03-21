@@ -1,21 +1,6 @@
 {% raw -%}
 {% import "openssl_macros.tmpl" as openssl -%}
-{%- endraw %}
-#!/bin/bash -e
-
-if [[ $# -lt 2 ]]; then
-echo "Usage: $0 <outfile> <keyfile> <other openssl arguments>"
-echo "Called as: $0 $@"
-exit 1
-fi
-
-CONFIG="$(mktemp)"
-CSR="$1"
-KEYFILE="$2"
-shift; shift
-
-echo \
-{% raw %}{% filter quote %}{% endraw -%}
+{% endraw -%}
 [ req ]
 prompt = no
 encrypt_key = no
@@ -29,7 +14,4 @@ encrypt_key = no
 req_extensions = {% call openssl.section() %}{{ rendered_extensions }}{% endcall %}
 {% endif %}
 {{ openssl.openssl_sections|join('\n\n') }}
-{% endfilter %}{%- endraw %} > "$CONFIG"
-
-openssl req -new -config "$CONFIG" -out "$CSR" -key "$KEYFILE" "$@"
-rm "$CONFIG"
+{%- endraw %}

@@ -105,8 +105,7 @@ class cert_get_requestdata(Local):
 
         generator = CSRGenerator(FileRuleProvider())
 
-        script = generator.csr_script(
-            principal_obj, config, profile_id)
+        script = generator.csr_config(principal_obj, config, profile_id)
 
         result = {}
         if 'out' in options:
