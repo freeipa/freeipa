@@ -1809,9 +1809,9 @@ def upgrade_configuration():
                         KDC_CERT=paths.KDC_CERT,
                         KDC_KEY=paths.KDC_KEY,
                         CACERT_PEM=paths.CACERT_PEM)
-    setup_pkinit(krb)
     enable_anonymous_principal(krb)
     http.request_anon_keytab()
+    setup_pkinit(krb)
 
     if not ds_running:
         ds.stop(ds_serverid)
