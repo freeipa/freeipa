@@ -66,7 +66,7 @@ class Formatter(object):
     Class for processing a set of CSR generation rules into a template.
 
     The template can be rendered with user and database data to produce a
-    script, which generates a CSR when run.
+    config, which specifies how to build a CSR.
 
     Subclasses of Formatter should set the value of base_template_name to the
     filename of a base template with spaces for the processed rules.
@@ -214,7 +214,7 @@ class Formatter(object):
 
 
 class OpenSSLFormatter(Formatter):
-    """Formatter class supporting the openssl command-line tool."""
+    """Formatter class generating the openssl config-file format."""
 
     base_template_name = 'openssl_base.tmpl'
 
@@ -359,17 +359,17 @@ class CSRGenerator(object):
         self.rule_provider = rule_provider
         self.formatter = formatter_class()
 
-    def csr_script(self, principal, config, profile_id):
+    def csr_config(self, principal, config, profile_id):
         render_data = {'subject': principal, 'config': config}
 
         rules = self.rule_provider.rules_for_profile(profile_id)
         template = self.formatter.build_template(rules)
 
         try:
-            script = template.render(render_data)
+            config = template.render(render_data)
         except jinja2.UndefinedError:
             logger.debug(traceback.format_exc())
             raise errors.CSRTemplateError(reason=_(
                 'Template error when formatting certificate data'))
 
-        return script
+        return config
