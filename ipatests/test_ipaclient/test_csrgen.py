@@ -36,7 +36,7 @@ class StubRuleProvider(csrgen.RuleProvider):
             'example', self.syntax_rule, [self.data_rule])
         self.rules = [self.field_mapping]
 
-    def rules_for_profile(self, profile_id, helper):
+    def rules_for_profile(self, profile_id):
         return self.rules
 
 
@@ -48,10 +48,6 @@ class IdentityFormatter(csrgen.Formatter):
 
     def _get_template_params(self, syntax_rules):
         return {'options': syntax_rules}
-
-
-class IdentityCSRGenerator(csrgen.CSRGenerator):
-    FORMATTERS = {'identity': IdentityFormatter}
 
 
 class test_Formatter(object):
@@ -139,40 +135,23 @@ class test_FileRuleProvider(object):
     def test_rule_basic(self, rule_provider):
         rule_name = 'basic'
 
-        rule1 = rule_provider._rule(rule_name, 'openssl')
-        rule2 = rule_provider._rule(rule_name, 'certutil')
+        rule = rule_provider._rule(rule_name)
 
-        assert rule1.template == 'openssl_rule'
-        assert rule2.template == 'certutil_rule'
+        assert rule.template == 'openssl_rule'
 
     def test_rule_global_options(self, rule_provider):
         rule_name = 'options'
 
-        rule1 = rule_provider._rule(rule_name, 'openssl')
-        rule2 = rule_provider._rule(rule_name, 'certutil')
+        rule = rule_provider._rule(rule_name)
 
-        assert rule1.options['global_option'] is True
-        assert rule2.options['global_option'] is True
-
-    def test_rule_helper_options(self, rule_provider):
-        rule_name = 'options'
-
-        rule1 = rule_provider._rule(rule_name, 'openssl')
-        rule2 = rule_provider._rule(rule_name, 'certutil')
-
-        assert rule1.options['helper_option'] is True
-        assert 'helper_option' not in rule2.options
+        assert rule.options['rule_option'] is True
 
     def test_rule_nosuchrule(self, rule_provider):
         with pytest.raises(errors.NotFound):
-            rule_provider._rule('nosuchrule', 'openssl')
-
-    def test_rule_nosuchhelper(self, rule_provider):
-        with pytest.raises(errors.EmptyResult):
-            rule_provider._rule('basic', 'nosuchhelper')
+            rule_provider._rule('nosuchrule')
 
     def test_rules_for_profile_success(self, rule_provider):
-        rules = rule_provider.rules_for_profile('profile', 'certutil')
+        rules = rule_provider.rules_for_profile('profile')
 
         assert len(rules) == 1
         field_mapping = rules[0]
@@ -182,7 +161,7 @@ class test_FileRuleProvider(object):
 
     def test_rules_for_profile_nosuchprofile(self, rule_provider):
         with pytest.raises(errors.NotFound):
-            rule_provider.rules_for_profile('nosuchprofile', 'certutil')
+            rule_provider.rules_for_profile('nosuchprofile')
 
 
 class test_CSRGenerator(object):
@@ -197,28 +176,9 @@ class test_CSRGenerator(object):
             ],
         }
 
-        script = generator.csr_script(principal, config, 'userCert', 'openssl')
+        script = generator.csr_script(principal, config, 'userCert')
         with open(os.path.join(
-                CSR_DATA_DIR, 'scripts', 'userCert_openssl.sh')) as f:
-            expected_script = f.read()
-        assert script == expected_script
-
-    def test_userCert_Certutil(self, generator):
-        principal = {
-            'uid': ['testuser'],
-            'mail': ['testuser@example.com'],
-        }
-        config = {
-            'ipacertificatesubjectbase': [
-                'O=DOMAIN.EXAMPLE.COM'
-            ],
-        }
-
-        script = generator.csr_script(
-            principal, config, 'userCert', 'certutil')
-
-        with open(os.path.join(
-                CSR_DATA_DIR, 'scripts', 'userCert_certutil.sh')) as f:
+                CSR_DATA_DIR, 'configs', 'userCert.conf')) as f:
             expected_script = f.read()
         assert script == expected_script
 
@@ -235,28 +195,9 @@ class test_CSRGenerator(object):
         }
 
         script = generator.csr_script(
-            principal, config, 'caIPAserviceCert', 'openssl')
+            principal, config, 'caIPAserviceCert')
         with open(os.path.join(
-                CSR_DATA_DIR, 'scripts', 'caIPAserviceCert_openssl.sh')) as f:
-            expected_script = f.read()
-        assert script == expected_script
-
-    def test_caIPAserviceCert_Certutil(self, generator):
-        principal = {
-            'krbprincipalname': [
-                'HTTP/machine.example.com@DOMAIN.EXAMPLE.COM'
-            ],
-        }
-        config = {
-            'ipacertificatesubjectbase': [
-                'O=DOMAIN.EXAMPLE.COM'
-            ],
-        }
-
-        script = generator.csr_script(
-            principal, config, 'caIPAserviceCert', 'certutil')
-        with open(os.path.join(
-                CSR_DATA_DIR, 'scripts', 'caIPAserviceCert_certutil.sh')) as f:
+                CSR_DATA_DIR, 'configs', 'caIPAserviceCert.conf')) as f:
             expected_script = f.read()
         assert script == expected_script
 
@@ -267,10 +208,11 @@ class test_rule_handling(object):
         rule_provider = StubRuleProvider()
         rule_provider.data_rule.template = '{{subject.mail}}'
         rule_provider.data_rule.options = {'data_source': 'subject.mail'}
-        generator = IdentityCSRGenerator(rule_provider)
+        generator = csrgen.CSRGenerator(
+            rule_provider, formatter_class=IdentityFormatter)
 
         script = generator.csr_script(
-            principal, {}, 'example', 'identity')
+            principal, {}, 'example')
         assert script == '\n'
 
     def test_twoDataRulesOneMissing(self, generator):
@@ -280,9 +222,10 @@ class test_rule_handling(object):
         rule_provider.data_rule.options = {'data_source': 'subject.mail'}
         rule_provider.field_mapping.data_rules.append(csrgen.Rule(
             'data2', '{{subject.uid}}', {'data_source': 'subject.uid'}))
-        generator = IdentityCSRGenerator(rule_provider)
+        generator = csrgen.CSRGenerator(
+            rule_provider, formatter_class=IdentityFormatter)
 
-        script = generator.csr_script(principal, {}, 'example', 'identity')
+        script = generator.csr_script(principal, {}, 'example')
         assert script == ',testuser\n'
 
     def test_requiredAttributeMissing(self):
@@ -291,8 +234,9 @@ class test_rule_handling(object):
         rule_provider.data_rule.template = '{{subject.mail}}'
         rule_provider.data_rule.options = {'data_source': 'subject.mail'}
         rule_provider.syntax_rule.options = {'required': True}
-        generator = IdentityCSRGenerator(rule_provider)
+        generator = csrgen.CSRGenerator(
+            rule_provider, formatter_class=IdentityFormatter)
 
         with pytest.raises(errors.CSRTemplateError):
             _script = generator.csr_script(
-                principal, {}, 'example', 'identity')
+                principal, {}, 'example')

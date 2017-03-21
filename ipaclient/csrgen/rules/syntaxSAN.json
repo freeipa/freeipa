@@ -1,15 +1,8 @@
 {
-  "rules": [
-    {
-      "helper": "openssl",
-      "template": "subjectAltName = @{% call openssl.section() %}{{ datarules|join('\n') }}{% endcall %}",
-      "options": {
-        "extension": true
-      }
-    },
-    {
-      "helper": "certutil",
-      "template": "--extSAN {{ datarules|join(',') }}"
-    }
-  ]
+  "rule": {
+    "template": "subjectAltName = @{% call openssl.section() %}{{ datarules|join('\n') }}{% endcall %}"
+  },
+  "options": {
+    "extension": true
+  }
 }
