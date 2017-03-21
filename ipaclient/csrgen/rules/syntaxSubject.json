@@ -1,14 +1,7 @@
 {
-  "rules": [
-    {
-      "helper": "openssl",
-      "template": "distinguished_name = {% call openssl.section() %}{{ datarules|reverse|join('\n') }}{% endcall %}"
-    },
-    {
-      "helper": "certutil",
-      "template": "-s {{ datarules|join(',') }}"
-    }
-  ],
+  "rule": {
+    "template": "distinguished_name = {% call openssl.section() %}{{ datarules|reverse|join('\n') }}{% endcall %}"
+  },
   "options": {
     "required": true,
     "data_source_combinator": "and"

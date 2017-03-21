@@ -244,13 +244,6 @@ class OpenSSLFormatter(Formatter):
         return self.SyntaxRule(prepared_template, is_extension)
 
 
-class CertutilFormatter(Formatter):
-    base_template_name = 'certutil_base.tmpl'
-
-    def _get_template_params(self, syntax_rules):
-        return {'options': syntax_rules}
-
-
 class FieldMapping(object):
     """Representation of the rules needed to construct a complete cert field.
 
@@ -279,13 +272,11 @@ class Rule(object):
 
 
 class RuleProvider(object):
-    def rules_for_profile(self, profile_id, helper):
+    def rules_for_profile(self, profile_id):
         """
         Return the rules needed to build a CSR using the given profile.
 
         :param profile_id: str, name of the CSR generation profile to use
-        :param helper: str, name of tool (e.g. openssl, certutil) that will be
-            used to create CSR
 
         :returns: list of FieldMapping, filled out with the appropriate rules
         """
@@ -321,40 +312,31 @@ class FileRuleProvider(RuleProvider):
             )
         )
 
-    def _rule(self, rule_name, helper):
-        if (rule_name, helper) not in self.rules:
+    def _rule(self, rule_name):
+        if rule_name not in self.rules:
             try:
                 with self._open('rules', '%s.json' % rule_name) as f:
-                    ruleset = json.load(f)
+                    ruleconf = json.load(f)
             except IOError:
                 raise errors.NotFound(
-                    reason=_('Ruleset %(ruleset)s does not exist.') %
-                    {'ruleset': rule_name})
+                    reason=_('No generation rule %(rulename)s found.') %
+                    {'rulename': rule_name})
 
-            matching_rules = [r for r in ruleset['rules']
-                              if r['helper'] == helper]
-            if len(matching_rules) == 0:
+            try:
+                rule = ruleconf['rule']
+            except KeyError:
                 raise errors.EmptyResult(
-                    reason=_('No transformation in "%(ruleset)s" rule supports'
-                             ' helper "%(helper)s"') %
-                    {'ruleset': rule_name, 'helper': helper})
-            elif len(matching_rules) > 1:
-                raise errors.RedundantMappingRule(
-                    ruleset=rule_name, helper=helper)
-            rule = matching_rules[0]
+                    reason=_('Generation rule "%(rulename)s" is missing the'
+                             ' "rule" key') % {'rulename': rule_name})
 
-            options = {}
-            if 'options' in ruleset:
-                options.update(ruleset['options'])
-            if 'options' in rule:
-                options.update(rule['options'])
+            options = ruleconf.get('options', {})
 
-            self.rules[(rule_name, helper)] = Rule(
+            self.rules[rule_name] = Rule(
                 rule_name, rule['template'], options)
 
-        return self.rules[(rule_name, helper)]
+        return self.rules[rule_name]
 
-    def rules_for_profile(self, profile_id, helper):
+    def rules_for_profile(self, profile_id):
         try:
             with self._open('profiles', '%s.json' % profile_id) as f:
                 profile = json.load(f)
@@ -365,28 +347,23 @@ class FileRuleProvider(RuleProvider):
 
         field_mappings = []
         for field in profile:
-            syntax_rule = self._rule(field['syntax'], helper)
-            data_rules = [self._rule(name, helper) for name in field['data']]
+            syntax_rule = self._rule(field['syntax'])
+            data_rules = [self._rule(name) for name in field['data']]
             field_mappings.append(FieldMapping(
                 syntax_rule.name, syntax_rule, data_rules))
         return field_mappings
 
 
 class CSRGenerator(object):
-    FORMATTERS = {
-        'openssl': OpenSSLFormatter,
-        'certutil': CertutilFormatter,
-    }
-
-    def __init__(self, rule_provider):
+    def __init__(self, rule_provider, formatter_class=OpenSSLFormatter):
         self.rule_provider = rule_provider
+        self.formatter = formatter_class()
 
-    def csr_script(self, principal, config, profile_id, helper):
+    def csr_script(self, principal, config, profile_id):
         render_data = {'subject': principal, 'config': config}
 
-        formatter = self.FORMATTERS[helper]()
-        rules = self.rule_provider.rules_for_profile(profile_id, helper)
-        template = formatter.build_template(rules)
+        rules = self.rule_provider.rules_for_profile(profile_id)
+        template = self.formatter.build_template(rules)
 
         try:
             script = template.render(render_data)

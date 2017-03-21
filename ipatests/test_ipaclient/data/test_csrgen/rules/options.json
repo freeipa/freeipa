@@ -1,18 +1,8 @@
 {
-  "rules": [
-    {
-      "helper": "openssl",
-      "template": "openssl_rule",
-      "options": {
-        "helper_option": true
-      }
-    },
-    {
-      "helper": "certutil",
-      "template": "certutil_rule"
-    }
-  ],
+  "rule": {
+    "template": "openssl_rule"
+  },
   "options": {
-    "global_option": true
+    "rule_option": true
   }
 }
