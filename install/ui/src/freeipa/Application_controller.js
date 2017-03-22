@@ -69,6 +69,16 @@ define([
         facet_changing: false,
 
         /**
+         * Listeners for user menu items
+         */
+         on_profile_listener: null,
+         on_passwd_reset_listener: null,
+         on_logout_listener: null,
+         on_item_select_listener: null,
+         on_configuration_listerer: null,
+         on_about_listener: null,
+
+        /**
          * Currently displayed facet
          *
          */
@@ -109,12 +119,7 @@ define([
                 }
             };
 
-            on(this.app_widget.menu_widget, 'item-select', this.on_menu_click.bind(this));
-            on(this.app_widget, 'profile-click', this.on_profile.bind(this));
-            on(this.app_widget, 'logout-click', this.on_logout.bind(this));
-            on(this.app_widget, 'password-reset-click', this.on_password_reset.bind(this));
-            on(this.app_widget, 'configuration-click', this.on_configuration.bind(this));
-            on(this.app_widget, 'about-click', this.on_about.bind(this));
+            this.register_user_menu_listeners();
 
             on(this.router, 'facet-show', this.on_facet_show.bind(this));
             on(this.router, 'facet-change', this.on_facet_change.bind(this));
@@ -131,6 +136,31 @@ define([
             var load_facet = reg.facet.get('load');
             this.show_facet(load_facet);
             IPA.opened_dialogs.start_handling(this);
+        },
+
+        register_user_menu_listeners: function() {
+            this.on_profile_listener = on(this.app_widget, 'profile-click',
+                    this.on_profile.bind(this));
+            this.on_passwd_reset_listener = on(this.app_widget,
+                    'password-reset-click', this.on_password_reset.bind(this));
+            this.on_logout_listener = on(this.app_widget, 'logout-click',
+                    this.on_logout.bind(this));
+            this.on_item_select_listener = on(this.app_widget.menu_widget,
+                    'item-select', this.on_menu_click.bind(this));
+            this.on_configuration_listerer = on(this.app_widget,
+                    'configuration-click', this.on_configuration.bind(this));
+            this.on_about_listener = on(this.app_widget,
+                    'about-click', this.on_about.bind(this));
+        },
+
+        /**
+         * Turns off one item in user dropdown menu and remove its listener.
+         * @param {string} name of the user menu item which should be disabled
+         * @param {Object} listener disable this listener
+         */
+        disable_user_menu_item: function(name, listener) {
+            this.app_widget.disable_user_menu_item(name);
+            listener.remove();
         },
 
         /**
