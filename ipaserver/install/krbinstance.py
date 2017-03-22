@@ -33,7 +33,7 @@ from ipaserver.install import installutils
 from ipapython import ipaldap
 from ipapython import ipautil
 from ipapython import kernel_keyring
-from ipalib import api
+from ipalib import api, errors
 from ipalib.constants import ANON_USER
 from ipalib.install import certmonger
 from ipapython.ipa_log_manager import root_logger
@@ -142,6 +142,7 @@ class KrbInstance(service.Service):
             pass
 
     def __common_post_setup(self):
+        self.step("creating anonymous principal", self.add_anonymous_principal)
         self.step("starting the KDC", self.__start_instance)
         self.step("configuring KDC to start on boot", self.__enable)
 
@@ -160,7 +161,6 @@ class KrbInstance(service.Service):
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
         self.step("creating a keytab for the machine", self.__create_host_keytab)
         self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
-        self.step("creating anonymous principal", self.add_anonymous_principal)
 
         self.__common_post_setup()
 
@@ -432,8 +432,17 @@ class KrbInstance(service.Service):
     def add_anonymous_principal(self):
         # Create the special anonymous principal
         princ_realm = self.get_anonymous_principal_name()
-        installutils.kadmin_addprinc(princ_realm)
-        self._ldap_mod("anon-princ-aci.ldif", self.sub_dict)
+        dn = DN(('krbprincipalname', princ_realm), self.get_realm_suffix())
+        try:
+            self.api.Backend.ldap2.get_entry(dn)
+        except errors.NotFound:
+            installutils.kadmin_addprinc(princ_realm)
+            self._ldap_mod("anon-princ-aci.ldif", self.sub_dict)
+
+        try:
+            self.api.Backend.ldap2.set_entry_active(dn, True)
+        except errors.AlreadyActive:
+            pass
 
     def __convert_to_gssapi_replication(self):
         repl = replication.ReplicationManager(self.realm,
