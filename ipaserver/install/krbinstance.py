@@ -410,6 +410,7 @@ class KrbInstance(service.Service):
             root_logger.critical("krb5kdc service failed to restart")
             raise
 
+    def test_anonymous_pkinit(self):
         with ipautil.private_ccache() as anon_ccache:
             try:
                 ipautil.run([paths.KINIT, '-n', '-c', anon_ccache])
@@ -421,6 +422,7 @@ class KrbInstance(service.Service):
             self.steps = []
             self.step("installing X509 Certificate for PKINIT",
                       self.setup_pkinit)
+            self.step("testing anonymous PKINIT", self.test_anonymous_pkinit)
 
             self.start_creation()
 
