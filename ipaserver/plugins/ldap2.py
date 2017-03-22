@@ -286,12 +286,11 @@ class ldap2(CrudBackend, LDAPClient):
 
         assert isinstance(dn, DN)
 
-        principal = getattr(context, 'principal')
-        entry = self.find_entry_by_attr("krbprincipalname", principal,
-            "krbPrincipalAux", base_dn=self.api.env.basedn)
+        bind_dn = self.conn.whoami_s()[4:]
+
         sctrl = [
             GetEffectiveRightsControl(
-                True, "dn: {0}".format(entry.dn).encode('utf-8'))
+                True, "dn: {0}".format(bind_dn).encode('utf-8'))
         ]
         self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, sctrl)
         try:
