@@ -94,7 +94,7 @@ BuildRequires:  python-memcached
 BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
 BuildRequires:  python-qrcode-core >= 5.0.0
-BuildRequires:  python-dns >= 1.11.1
+BuildRequires:  python-dns >= 1.13
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_nss_idmap-devel >= 1.14.0
 BuildRequires:  java-headless
@@ -226,7 +226,7 @@ Requires: python-gssapi >= 1.1.2
 Requires: python-sssdconfig
 Requires: python-pyasn1
 Requires: dbus-python
-Requires: python-dns >= 1.11.1
+Requires: python-dns >= 1.13
 Requires: python-kdcproxy >= 0.3
 Requires: rpm-libs
 
@@ -383,7 +383,7 @@ BuildArch: noarch
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipalib = %{version}-%{release}
-Requires: python-dns >= 1.11.1
+Requires: python-dns >= 1.13
 
 %description -n python2-ipaclient
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -499,7 +499,7 @@ Requires: python-cffi
 Requires: python-ldap >= 2.4.15
 Requires: python-requests
 Requires: python-custodia
-Requires: python-dns >= 1.11.1
+Requires: python-dns >= 1.13
 Requires: python-netifaces >= 0.10.4
 Requires: pyusb
 
