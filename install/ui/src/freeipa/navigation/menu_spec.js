@@ -353,5 +353,15 @@ nav.self_service = {
     ]
 };
 
+nav.ad_self_service = {
+    name: 'ad_self_service',
+    items: [
+        {
+            entity: 'idoverrideuser',
+            label: 'Profile'
+        }
+    ]
+};
+
 return nav;
 });

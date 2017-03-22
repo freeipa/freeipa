@@ -625,6 +625,7 @@ class i18n_messages(Command):
                 "anchor_label": _("User to override"),
                 "anchor_tooltip": _("Enter trusted or IPA user login. Note: search doesn't list users from trusted domains."),
                 "anchor_tooltip_ad": _("Enter trusted user login."),
+                "profile": _("Profile"),
             },
             "idoverridegroup": {
                 "anchor_label": _("Group to override"),
