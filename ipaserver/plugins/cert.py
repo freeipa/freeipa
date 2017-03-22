@@ -1324,7 +1324,7 @@ class cert_find(Search, CertMethod):
 
         return result, False, True
 
-    def _ca_search(self, all, raw, pkey_only, sizelimit, exactly, **options):
+    def _ca_search(self, all, raw, pkey_only, exactly, **options):
         ra_options = {}
         for name in ('revocation_reason',
                      'issuer',
@@ -1343,10 +1343,6 @@ class cert_find(Search, CertMethod):
             elif isinstance(value, DN):
                 value = unicode(value)
             ra_options[name] = value
-        if sizelimit > 0:
-            # Dogtag doesn't tell that the size limit was exceeded
-            # search for one more entry so that we can tell ourselves
-            ra_options['sizelimit'] = sizelimit + 1
         if exactly:
             ra_options['exactly'] = True
 
@@ -1369,11 +1365,6 @@ class cert_find(Search, CertMethod):
 
         ra = self.api.Backend.ra
         for ra_obj in ra.find(ra_options):
-            if sizelimit > 0 and len(result) >= sizelimit:
-                self.add_message(messages.SearchResultTruncated(
-                        reason=errors.SizeLimitExceeded()))
-                break
-
             issuer = DN(ra_obj['issuer'])
             serial_number = ra_obj['serial_number']
 
@@ -1411,8 +1402,7 @@ class cert_find(Search, CertMethod):
 
         return result, False, complete
 
-    def _ldap_search(self, all, raw, pkey_only, no_members, timelimit,
-                     sizelimit, **options):
+    def _ldap_search(self, all, raw, pkey_only, no_members, **options):
         ldap = self.api.Backend.ldap2
 
         filters = []
@@ -1453,8 +1443,8 @@ class cert_find(Search, CertMethod):
                 base_dn=self.api.env.basedn,
                 filter=filter,
                 attrs_list=['usercertificate'],
-                time_limit=timelimit,
-                size_limit=sizelimit,
+                time_limit=0,
+                size_limit=0,
             )
         except errors.EmptyResult:
             entries = []
@@ -1527,13 +1517,9 @@ class cert_find(Search, CertMethod):
                 raw=raw,
                 pkey_only=pkey_only,
                 no_members=no_members,
-                timelimit=timelimit,
-                sizelimit=sizelimit,
                 **options)
 
             if sub_complete:
-                sizelimit = 0
-
                 for key in tuple(result):
                     if key not in sub_result:
                         del result[key]
@@ -1552,6 +1538,12 @@ class cert_find(Search, CertMethod):
             complete = complete or sub_complete
 
         result = list(six.itervalues(result))
+        if sizelimit > 0 and len(result) > sizelimit:
+            if not truncated:
+                self.add_message(messages.SearchResultTruncated(
+                        reason=errors.SizeLimitExceeded()))
+            result = result[:sizelimit]
+            truncated = True
 
         ret = dict(
             result=result
