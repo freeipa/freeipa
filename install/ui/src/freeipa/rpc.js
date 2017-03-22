@@ -389,7 +389,8 @@ rpc.command = function(spec) {
             } else if (IPA.version && data.version && IPA.version !== data.version) {
                 window.location.reload();
 
-            } else if (IPA.principal && data.principal && IPA.principal !== data.principal) {
+            } else if (IPA.principal && data.principal &&
+                IPA.principal.toLowerCase() !== data.principal.toLowerCase()) {
                 window.location.reload();
 
             } else if (data.error) {
