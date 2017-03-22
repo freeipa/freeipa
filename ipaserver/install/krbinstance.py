@@ -413,7 +413,7 @@ class KrbInstance(service.Service):
         with ipautil.private_ccache() as anon_ccache:
             try:
                 ipautil.run([paths.KINIT, '-n', '-c', anon_ccache])
-            except ipautil.CalledProcessError as e:
+            except ipautil.CalledProcessError:
                 raise RuntimeError("Failed to configure anonymous PKINIT")
 
     def enable_ssl(self):
