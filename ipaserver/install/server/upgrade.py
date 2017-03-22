@@ -1499,15 +1499,14 @@ def enable_anonymous_principal(krb):
 def setup_pkinit(krb):
     root_logger.info("[Setup PKINIT]")
 
-    if os.path.exists(paths.KDC_CERT):
-        root_logger.info("PKINIT already set up")
-        return
-
     if not api.Command.ca_is_enabled()['result']:
         root_logger.info("CA is not enabled")
         return
 
-    krb.setup_pkinit()
+    if not os.path.exists(paths.KDC_CERT):
+        root_logger.info("Requesting PKINIT certificate")
+        krb.setup_pkinit()
+
     replacevars = dict()
     replacevars['pkinit_identity'] = 'FILE:{},{}'.format(
         paths.KDC_CERT,paths.KDC_KEY)
@@ -1519,6 +1518,7 @@ def setup_pkinit(krb):
     if krb.is_running():
         krb.stop()
     krb.start()
+    krb.test_anonymous_pkinit()
 
 
 def disable_httpd_system_trust(http):
