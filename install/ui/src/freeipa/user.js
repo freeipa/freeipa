@@ -735,7 +735,7 @@ IPA.user.password_dialog = function(spec) {
     var that = dialogs.command_dialog(spec);
 
     that.is_self_service = function() {
-        var self_service = that.args[0] === IPA.whoami.uid[0];
+        var self_service = that.args[0] === IPA.whoami.data.uid[0];
         return self_service;
     };
 
@@ -895,7 +895,8 @@ IPA.user.self_service_other_user_evaluator = function(spec) {
         that.state = [];
 
         var value = that.adapter.load(data);
-        if (IPA.is_selfservice && IPA.whoami.uid[0] !== value[0]) {
+        if (IPA.is_aduser_selfservice ||
+            (IPA.is_selfservice && IPA.whoami.data.uid[0] !== value[0])) {
             that.state.push('self-service-other');
         }
 

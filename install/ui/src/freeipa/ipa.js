@@ -86,7 +86,8 @@ var IPA = function () {
     /**
      * User information
      *
-     * - output of ipa user-find --whoami
+     * - output of ipa whoami in that.whoami.metadata and then object_show method
+     * in that.whoami.data
      */
     that.whoami = {};
 
@@ -263,19 +264,33 @@ var IPA = function () {
      */
     that.get_whoami_command = function(batch) {
         return rpc.command({
-            entity: 'user',
-            method: 'find',
-            options: {
-                whoami: true,
-                all: true
-            },
+            method: 'whoami',
             on_success: function(data, text_status, xhr) {
-                that.whoami = batch ? data.result[0] : data.result.result[0];
-                var cn = that.whoami.krbcanonicalname;
-                if (cn) that.principal = cn[0];
-                if (!that.principal) {
-                    that.principal = that.whoami.krbprincipalname[0];
-                }
+                that.whoami.metadata = data;
+
+                rpc.command({
+                    method: data.details || data.command,
+                    args: data.arguments,
+                    options: function() {
+                        var options = data.options || [];
+                        $.extend(options, {all: true});
+                        return options;
+                    }(),
+                    on_success: function(data, text_status, xhr) {
+                        that.whoami.data = false ? data.result[0] : data.result.result;
+                        var entity = that.whoami.metadata.object;
+
+                        if (entity === 'user') {
+                            var cn = that.whoami.data.krbcanonicalname;
+                            if (cn) that.principal = cn[0];
+                            if (!that.principal) {
+                                that.principal = that.whoami.data.krbprincipalname[0];
+                            }
+                        } else if (entity === 'idoverrideuser') {
+                            that.principal = that.whoami.data.ipaoriginaluid[0];
+                        }
+                    }
+                }).execute();
             }
         });
     };
@@ -616,7 +631,7 @@ IPA.update_password_expiration = function() {
 
     var now, expires, notify_days, diff, message, container, notify;
 
-    expires = rpc.extract_objects(IPA.whoami.krbpasswordexpiration);
+    expires = rpc.extract_objects(IPA.whoami.data.krbpasswordexpiration);
     expires = expires ? datetime.parse(expires[0]) : null;
 
     notify_days = IPA.server_config.ipapwdexpadvnotify;
@@ -650,13 +665,13 @@ IPA.update_password_expiration = function() {
 IPA.password_selfservice = function() {
     var reset_dialog = builder.build('dialog', {
         $type: 'user_password',
-        args: [IPA.whoami.uid[0]]
+        args: [IPA.whoami.data.uid[0]]
     });
     reset_dialog.succeeded.attach(function() {
         var command = IPA.get_whoami_command();
         var orig_on_success = command.on_success;
         command.on_success = function(data, text_status, xhr) {
-            orig_on_success.call(this, data, text_status, xhr);
+            orig_on_success.call(this, data.result, text_status, xhr);
             IPA.update_password_expiration();
         };
         command.execute();
