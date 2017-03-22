@@ -340,15 +340,15 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
         cert_file_opt = (self.pkinit_cert_files,)
         if not self.no_pkinit:
             cert_file_req += cert_file_opt
-        if any(cert_file_req + cert_file_opt) and not all(cert_file_req):
-            raise RuntimeError(
-                "--dirsrv-cert-file, --http-cert-file, and --pkinit-cert-file "
-                "or --no-pkinit are required if any key file options are used."
-            )
         if self.no_pkinit and self.pkinit_cert_files:
             raise RuntimeError(
                 "--no-pkinit and --pkinit-cert-file cannot be specified "
                 "together"
+            )
+        if any(cert_file_req + cert_file_opt) and not all(cert_file_req):
+            raise RuntimeError(
+                "--dirsrv-cert-file, --http-cert-file, and --pkinit-cert-file "
+                "or --no-pkinit are required if any key file options are used."
             )
 
         if not self.interactive:
