@@ -332,8 +332,23 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
         if not os.path.exists(value):
             raise ValueError("File %s does not exist." % value)
 
+    def _is_promote(self):
+        """
+        :returns: True if domain level options correspond to domain level > 0
+        """
+        raise NotImplementedError()
+
     def __init__(self, **kwargs):
         super(ServerInstallInterface, self).__init__(**kwargs)
+
+        # pkinit is not supported on DL0, don't allow related options
+        if not self._is_promote():
+            if (self.no_pkinit or self.pkinit_cert_files is not None or
+                    self.pkinit_pin is not None):
+                raise RuntimeError(
+                    "pkinit on domain level 0 is not supported. Please "
+                    "don't use any pkinit-related options.")
+            self.no_pkinit = True
 
         # If any of the key file options are selected, all are required.
         cert_file_req = (self.dirsrv_cert_files, self.http_cert_files)
@@ -557,6 +572,9 @@ class ServerMasterInstall(ServerMasterInstallInterface):
     add_sids = True
     add_agents = False
 
+    def _is_promote(self):
+        return self.domain_level > constants.DOMAIN_LEVEL_0
+
     def __init__(self, **kwargs):
         super(ServerMasterInstall, self).__init__(**kwargs)
         master_init(self)
@@ -589,6 +607,9 @@ class ServerReplicaInstall(ServerReplicaInstallInterface):
         ServerReplicaInstallInterface.admin_password,
         description="Kerberos password for the specified admin principal",
     )
+
+    def _is_promote(self):
+        return self.replica_file is None
 
     def __init__(self, **kwargs):
         super(ServerReplicaInstall, self).__init__(**kwargs)
