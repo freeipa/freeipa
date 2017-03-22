@@ -194,9 +194,9 @@ class Fuzzy(object):
     Use of a regular expression by default implies the ``unicode`` type, so
     comparing with an ``str`` instance will evaluate to ``False``:
 
-    >>> phone.type
-    <type 'unicode'>
-    >>> '123-456-7890' == phone
+    >>> phone.type is six.text_type
+    True
+    >>> b'123-456-7890' == phone
     False
 
     The *type* kwarg allows you to specify a type constraint, so you can force
@@ -236,15 +236,15 @@ class Fuzzy(object):
     >>> fuzzy = Fuzzy('.+', type=str, test=lambda other: True)
     >>> fuzzy.regex
     '.+'
-    >>> fuzzy.type
-    <type 'str'>
+    >>> fuzzy.type is str
+    True
     >>> fuzzy.test  # doctest:+ELLIPSIS
     <function <lambda> at 0x...>
 
     To aid debugging, `Fuzzy.__repr__()` reveals these kwargs as well:
 
     >>> fuzzy  # doctest:+ELLIPSIS
-    Fuzzy('.+', <type 'str'>, <function <lambda> at 0x...>)
+    Fuzzy('.+', <... 'str'>, <function <lambda> at 0x...>)
     """
 
     def __init__(self, regex=None, type=None, test=None):
@@ -344,20 +344,20 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
     If the tests fails, it will raise an ``AssertionError`` with detailed
     information, including the path to the offending value.  For example:
 
-    >>> expected = [u'Hello', dict(world=u'how are you?')]
-    >>> got = [u'Hello', dict(world='how are you?')]
+    >>> expected = [u'Hello', dict(world=1)]
+    >>> got = [u'Hello', dict(world=1.0)]
     >>> expected == got
     True
-    >>> assert_deepequal(expected, got, doc='Testing my nested data')
+    >>> assert_deepequal(expected, got, doc='Testing my nested data')  # doctest:+ELLIPSIS
     Traceback (most recent call last):
       ...
     AssertionError: assert_deepequal: type(expected) is not type(got).
       Testing my nested data
-      type(expected) = <type 'unicode'>
-      type(got) = <type 'str'>
-      expected = u'how are you?'
-      got = 'how are you?'
-      path = (0, 'world')
+      type(expected) = <... 'int'>
+      type(got) = <... 'float'>
+      expected = 1
+      got = 1.0
+      path = (..., 'world')
 
     Note that lists and tuples are considered equivalent, and the order of
     their elements does not matter.
