@@ -46,6 +46,8 @@ When the IPA CA is not configured, this command is not available.
 .RS
 This command can be used to install the certificate contained in \fICERTFILE\fR as an additional CA certificate to IPA.
 .sp
+Important: this does not replace IPA CA but adds the provided certificate as a known CA. This is useful for instance when using ipa-server-certinstall to replace HTTP/LDAP certificates with third-party certificates signed by this additional CA.
+.sp
 Please do not forget to run ipa-certupdate on the master, all the replicas and all the clients after this command in order to update IPA certificates databases.
 .RE
 .SH "COMMON OPTIONS"
