@@ -222,6 +222,10 @@ define(['dojo/_base/declare',
             }
         },
 
+        disable_user_menu_item: function(name) {
+            this.user_menu.disable_item(name);
+        },
+
         on_menu_item_click: function(item) {
             this.collapse_menu();
         },
