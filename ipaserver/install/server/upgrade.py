@@ -1482,20 +1482,6 @@ def add_default_caacl(ca):
     sysupgrade.set_upgrade_state('caacl', 'add_default_caacl', True)
 
 
-def enable_anonymous_principal(krb):
-    princ_realm = krb.get_anonymous_principal_name()
-    dn = DN(('krbprincipalname', princ_realm), krb.get_realm_suffix())
-    try:
-        _ = api.Backend.ldap2.get_entry(dn)  # pylint: disable=unused-variable
-    except ipalib.errors.NotFound:
-        krb.add_anonymous_principal()
-
-    try:
-        api.Backend.ldap2.set_entry_active(dn, True)
-    except ipalib.errors.AlreadyActive:
-        pass
-
-
 def setup_pkinit(krb):
     root_logger.info("[Setup PKINIT]")
 
@@ -1809,7 +1795,7 @@ def upgrade_configuration():
                         KDC_CERT=paths.KDC_CERT,
                         KDC_KEY=paths.KDC_KEY,
                         CACERT_PEM=paths.CACERT_PEM)
-    enable_anonymous_principal(krb)
+    krb.add_anonymous_principal()
     http.request_anon_keytab()
     setup_pkinit(krb)
 
