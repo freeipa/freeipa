@@ -586,22 +586,33 @@ class KerbTransport(SSLTransport):
         else:
             raise errors.KerberosError(message=unicode(e))
 
-    def get_host_info(self, host):
+    def _get_host(self):
+        return self._connection[0]
+
+    def _remove_extra_header(self, name):
+        for (h, v) in self._extra_headers:
+            if h == name:
+                self._extra_headers.remove((h, v))
+                break
+
+    def get_auth_info(self, use_cookie=True):
         """
         Two things can happen here. If we have a session we will add
         a cookie for that. If not we will set an Authorization header.
         """
-        (host, extra_headers, x509) = SSLTransport.get_host_info(self, host)
+        if not isinstance(self._extra_headers, list):
+            self._extra_headers = []
 
-        if not isinstance(extra_headers, list):
-            extra_headers = []
-
-        session_cookie = getattr(context, 'session_cookie', None)
-        if session_cookie:
-            extra_headers.append(('Cookie', session_cookie))
-            return (host, extra_headers, x509)
+        # Remove any existing Cookie first
+        self._remove_extra_header('Cookie')
+        if use_cookie:
+            session_cookie = getattr(context, 'session_cookie', None)
+            if session_cookie:
+                self._extra_headers.append(('Cookie', session_cookie))
+                return
 
         # Set the remote host principal
+        host = self._get_host()
         service = self.service + "@" + host.split(':')[0]
 
         try:
@@ -616,18 +627,14 @@ class KerbTransport(SSLTransport):
         except gssapi.exceptions.GSSError as e:
             self._handle_exception(e, service=service)
 
-        self._set_auth_header(extra_headers, response)
+        self._set_auth_header(response)
 
-        return (host, extra_headers, x509)
-
-    def _set_auth_header(self, extra_headers, token):
-        for (h, v) in extra_headers:
-            if h == 'Authorization':
-                extra_headers.remove((h, v))
-                break
+    def _set_auth_header(self, token):
+        # Remove any existing authorization header first
+        self._remove_extra_header('Authorization')
 
         if token:
-            extra_headers.append(
+            self._extra_headers.append(
                 ('Authorization', 'negotiate %s' % base64.b64encode(token).decode('ascii'))
             )
 
@@ -651,17 +658,22 @@ class KerbTransport(SSLTransport):
             if self._sec_context.complete:
                 self._sec_context = None
                 return True
-            self._set_auth_header(self._extra_headers, token)
+            self._set_auth_header(token)
+            return False
+        elif response.status == 401:
+            self.get_auth_info(use_cookie=False)
             return False
         return True
 
     def single_request(self, host, handler, request_body, verbose=0):
         # Based on Python 2.7's xmllib.Transport.single_request
         try:
-            h = SSLTransport.make_connection(self, host)
+            h = self.make_connection(host)
 
             if verbose:
                 h.set_debuglevel(1)
+
+            self.get_auth_info()
 
             while True:
                 if six.PY2:
