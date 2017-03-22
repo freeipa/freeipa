@@ -361,7 +361,7 @@ otptoken.adder_dialog = function(spec) {
 
         var command = that.entity_adder_dialog_create_add_command(record);
         if (that.self_service) {
-            command.set_option('ipatokenowner', IPA.whoami.uid[0]);
+            command.set_option('ipatokenowner', IPA.whoami.data.uid[0]);
         }
         return command;
     };
