@@ -92,6 +92,7 @@ if six.PY3:
 
 COOKIE_NAME = 'ipa_session'
 CCACHE_COOKIE_KEY = 'X-IPA-Session-Cookie'
+CCACHE_COOKIE_EMPTY_VALUE = 'X-IPA-Session-Cookie-Empty'
 
 errors_by_code = dict((e.errno, e) for e in public_errors)
 
@@ -118,7 +119,10 @@ def read_persistent_client_session_data(principal):
     '''
 
     try:
-        return session_storage.get_data(principal, CCACHE_COOKIE_KEY)
+        value = session_storage.get_data(principal, CCACHE_COOKIE_KEY)
+        if value == CCACHE_COOKIE_EMPTY_VALUE:
+            raise ValueError(CCACHE_COOKIE_EMPTY_VALUE)
+        return value
     except Exception as e:
         raise ValueError(str(e))
 
@@ -127,11 +131,17 @@ def delete_persistent_client_session_data(principal):
     Given a principal remove the session data for that
     principal from the persistent secure storage.
 
+    The code first overrides the session data with a value of
+    the constant CCACHE_COOKIE_EMPTY_VALUE as most ccache
+    types in MIT Kerberos do not support removal of creds.
+
     Raises ValueError if unable to perform the action for any reason.
     '''
 
     try:
-        session_storage.remove_data(principal, CCACHE_COOKIE_KEY)
+        session_storage.store_data(principal, CCACHE_COOKIE_KEY,
+                                   CCACHE_COOKIE_EMPTY_VALUE)
+        #session_storage.remove_data(principal, CCACHE_COOKIE_KEY)
     except Exception as e:
         raise ValueError(str(e))
 
@@ -644,7 +654,7 @@ class KerbTransport(SSLTransport):
                     # b64decode raises TypeError on invalid input
                     except (TypeError, UnicodeError):
                         pass
-            if not token:
+            if token is None:
                 raise KerberosError(
                     message=u"No valid Negotiate header in server response")
             token = self._sec_context.step(token=token)
@@ -658,7 +668,7 @@ class KerbTransport(SSLTransport):
     def single_request(self, host, handler, request_body, verbose=0):
         # Based on Python 2.7's xmllib.Transport.single_request
         try:
-            h = SSLTransport.make_connection(self, host)
+            h = self.make_connection(host)
 
             if verbose:
                 h.set_debuglevel(1)
@@ -1021,7 +1031,7 @@ class RPCClient(Connectible):
                     except Exception as e:
                         # This shouldn't happen if we have a session but it isn't fatal.
                         pass
-                    return self.create_connection(ccache, verbose, fallback, delegate)
+                    return self.create_connection(ccache, verbose, fallback, delegate, ca_cerfile)
                 if not fallback:
                     raise
                 serverproxy = None
