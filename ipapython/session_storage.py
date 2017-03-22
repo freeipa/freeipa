@@ -111,6 +111,12 @@ def store_data(princ_name, key, value):
     if not isinstance(value, bytes):
         value = value.encode('utf-8')
 
+    # FILE ccaches grow every time an entry is stored, so we need
+    # to avoid storing the same entry multiple times.
+    oldvalue = get_data(princ_name, key)
+    if oldvalue == value:
+        return
+
     context = krb5_context()
     principal = krb5_principal()
     ccache = krb5_ccache()
