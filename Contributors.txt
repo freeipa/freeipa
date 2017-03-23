@@ -33,6 +33,7 @@ Developers:
 	Lenka Doudova
 	Benjamin Drung
 	Patrice Duc-Jacquet
+	Tibor Dudlák
 	Drew Erny
 	Oleg Fayans
 	Jérôme Fenal
@@ -42,6 +43,7 @@ Developers:
 	Nick Hatch
 	Christian Heimes
 	Jakub Hrozek
+	Ganna Kaihorodova
 	Abhijeet Kasurde
 	Nathan Kinder
 	Krzysztof Klimonda
@@ -49,6 +51,7 @@ Developers:
 	Martin Košek
 	Ludwig Krispenz
 	Ana Krivokapić
+	Tomas Krizek
 	Milan Kubík
 	Ian Kumlien
 	David Kupka
@@ -56,6 +59,7 @@ Developers:
 	Peter Lacko
 	Stanislav Laznicka
 	Ade Lee
+	Ben Lipton
 	Karl MacMillan
 	Niranjan Mallapadi
 	Ales 'alich' Marecek
@@ -92,7 +96,7 @@ Developers:
 	Fraser Tweedale
 	Petr Viktorin
 	Petr Voborník
-	Pavel Vomacka
+	Pavel Vomáčka
 	Andrew Wnuk
 	Jason Woods
 	Adam Young
