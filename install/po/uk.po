@@ -9,19 +9,20 @@
 # Yuri Chornoivan <yurchor@ukr.net>, 2015. #zanata
 # Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 # Yuri Chornoivan <yurchor@ukr.net>, 2016. #zanata
+# Yuri Chornoivan <yurchor@ukr.net>, 2017. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-12-14 17:00+0100\n"
-"PO-Revision-Date: 2016-11-28 11:15-0500\n"
+"POT-Creation-Date: 2017-03-23 16:24+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2017-03-16 01:08-0400\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian (http://www.transifex.com/projects/p/freeipa/"
 "language/uk/)\n"
 "Language: uk\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Zanata 3.9.6\n"
@@ -17847,6 +17848,9 @@ msgstr "Вилучити запис CA."
 msgid "Deleted CA \"%(value)s\""
 msgstr "Вилучено запис CA «%(value)s»"
 
+msgid "Insufficient privilege to delete a CA."
+msgstr "Недостатні права доступу для вилучення запису CA."
+
 msgid "CA"
 msgstr "CA"
 
@@ -17859,6 +17863,9 @@ msgstr "Змінити налаштування CA."
 #, python-format
 msgid "Modified CA \"%(value)s\""
 msgstr "Змінено CA «%(value)s»"
+
+msgid "Insufficient privilege to modify a CA."
+msgstr "Недостатні права доступу для внесення змін до запису CA."
 
 msgid "Disable a CA."
 msgstr "Вимкнути службу сертифікації."
@@ -18812,6 +18819,9 @@ msgstr "Змінено профіль сертифікатів «%(value)s»"
 
 msgid "Certificate profiles cannot be renamed"
 msgstr "Профілі сертифікатів не можна перейменовувати"
+
+msgid "Insufficient privilege to modify a certificate profile."
+msgstr "Недостатні права доступу для внесення змін до профілю сертифікації."
 
 msgid "configuration options"
 msgstr "параметри налаштування"
@@ -20066,6 +20076,14 @@ msgstr "Відповідь від CA не була коректним кодом
 
 msgid "find not supported on CAs upgraded from 9 to 10"
 msgstr "знайти непідтримувані у CA після оновлення з 9 до 10"
+
+#, python-brace-format
+msgid ""
+"Domain Level cannot be raised to {0}, existing replication conflicts have to "
+"be resolved."
+msgstr ""
+"Рівень домену не може бути підвищено до {0}, слід розв’язати наявні "
+"конфлікти реплікації."
 
 msgid "Domain Level cannot be lowered."
 msgstr "Не можна знижувати рівень домену."

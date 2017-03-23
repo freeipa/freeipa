@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2016-12-14 17:00+0100\n"
+"POT-Creation-Date: 2017-03-23 16:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35884,7 +35884,7 @@ msgstr ""
 msgid "Service principal is required"
 msgstr ""
 
-#: ipalib/rpc.py:953
+#: ipalib/rpc.py:961
 msgid "any of the configured servers"
 msgstr ""
 
@@ -37184,42 +37184,50 @@ msgstr ""
 msgid "Deleted CA \"%(value)s\""
 msgstr ""
 
-#: ipaserver/plugins/ca.py:218 ipaserver/plugins/ca.py:241
-#: ipaserver/plugins/ca.py:275 ipaserver/plugins/internal.py:398
+#: ipaserver/plugins/ca.py:220
+msgid "Insufficient privilege to delete a CA."
+msgstr ""
+
+#: ipaserver/plugins/ca.py:224 ipaserver/plugins/ca.py:247
+#: ipaserver/plugins/ca.py:287 ipaserver/plugins/internal.py:398
 msgid "CA"
 msgstr ""
 
-#: ipaserver/plugins/ca.py:220
+#: ipaserver/plugins/ca.py:226
 msgid "IPA CA cannot be deleted"
 msgstr ""
 
-#: ipaserver/plugins/ca.py:232
+#: ipaserver/plugins/ca.py:238
 msgid "Modify CA configuration."
 msgstr ""
 
-#: ipaserver/plugins/ca.py:233
+#: ipaserver/plugins/ca.py:239
 #, python-format
 msgid "Modified CA \"%(value)s\""
 msgstr ""
 
-#: ipaserver/plugins/ca.py:269
+#: ipaserver/plugins/ca.py:265
+msgid "Insufficient privilege to modify a CA."
+msgstr ""
+
+#: ipaserver/plugins/ca.py:281
 msgid "Disable a CA."
 msgstr ""
 
-#: ipaserver/plugins/ca.py:270
+#: ipaserver/plugins/ca.py:282
 #, python-format
 msgid "Disabled CA \"%(value)s\""
 msgstr ""
 
-#: ipaserver/plugins/ca.py:277
+#: ipaserver/plugins/ca.py:289
 msgid "IPA CA cannot be disabled"
 msgstr ""
 
-#: ipaserver/plugins/ca.py:287
+#: ipaserver/plugins/ca.py:299
 msgid "Enable a CA."
 msgstr ""
 
-#: ipaserver/plugins/ca.py:288
+#: ipaserver/plugins/ca.py:300
 #, python-format
 msgid "Enabled CA \"%(value)s\""
 msgstr ""
@@ -38082,6 +38090,10 @@ msgstr ""
 
 #: ipaserver/plugins/certprofile.py:311
 msgid "Certificate profiles cannot be renamed"
+msgstr ""
+
+#: ipaserver/plugins/certprofile.py:316
+msgid "Insufficient privilege to modify a certificate profile."
 msgstr ""
 
 #: ipaserver/plugins/config.py:90
