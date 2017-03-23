@@ -38,6 +38,7 @@ import os
 import locale
 import base64
 import json
+import re
 import socket
 import gzip
 
@@ -737,6 +738,20 @@ class KerbTransport(SSLTransport):
             self.send_content(connection, request_body)
             return connection
 
+    # Find all occurrences of the expiry component
+    expiry_re = re.compile(r'.*?(&expiry=\d+).*?')
+
+    def _slice_session_cookie(self, session_cookie):
+        # Keep only the cookie value and strip away all other info.
+        # This is to reduce the churn on FILE ccaches which grow every time we
+        # set new data. The expiration time for the cookie is set in the
+        # encrypted data anyway and will be enforced by the server
+        http_cookie = session_cookie.http_cookie()
+        # We also remove the "expiry" part from the data which is not required
+        for exp in self.expiry_re.findall(http_cookie):
+            http_cookie = http_cookie.replace(exp, '')
+        return http_cookie
+
     def store_session_cookie(self, cookie_header):
         '''
         Given the contents of a Set-Cookie header scan the header and
@@ -787,7 +802,7 @@ class KerbTransport(SSLTransport):
         if session_cookie is None:
             return
 
-        cookie_string = str(session_cookie)
+        cookie_string = self._slice_session_cookie(session_cookie)
         root_logger.debug("storing cookie '%s' for principal %s", cookie_string, principal)
         try:
             update_persistent_client_session_data(principal, cookie_string)
