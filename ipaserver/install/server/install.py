@@ -1042,6 +1042,10 @@ def uninstall(installer):
 
     rv = 0
 
+    # further steps assumes that temporary directories exists so rather
+    # ensure they are created
+    tasks.create_tmpfiles_dirs()
+
     print("Shutting down all IPA services")
     try:
         services.knownservices.ipa.stop()
