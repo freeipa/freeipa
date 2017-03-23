@@ -267,9 +267,11 @@ Requires: ntp
 Requires: httpd >= 2.4.6-31
 Requires: mod_wsgi
 Requires: mod_auth_gssapi >= 1.5.0
-Requires: mod_nss >= 1.0.8-26
+# 1.0.14-3: https://bugzilla.redhat.com/show_bug.cgi?id=1431206
+Requires: mod_nss >= 1.0.14-3
 Requires: mod_session
-Requires: mod_lookup_identity
+# 0.9.9: https://github.com/adelton/mod_lookup_identity/pull/3
+Requires: mod_lookup_identity >= 0.9.9
 Requires: python-ldap >= 2.4.15
 Requires: python-gssapi >= 1.2.0
 Requires: acl
@@ -297,9 +299,10 @@ Requires: systemd-python
 Requires: %{etc_systemd_dir}
 Requires: gzip
 Requires: oddjob
-Requires: gssproxy >= 0.7.0
-# Require 1.15.1 for the certificate identity mapping feature
-Requires: sssd-dbus >= 1.15.1
+# 0.7.0-2: https://pagure.io/gssproxy/pull-request/172
+Requires: gssproxy >= 0.7.0-2
+# 1.15.2: FindByNameAndCertificate (https://pagure.io/SSSD/sssd/issue/3050)
+Requires: sssd-dbus >= 1.15.2
 
 Provides: %{alt_name}-server = %{version}
 Conflicts: %{alt_name}-server
