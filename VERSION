@@ -21,7 +21,7 @@
 ########################################################
 IPA_VERSION_MAJOR=4
 IPA_VERSION_MINOR=3
-IPA_VERSION_RELEASE=2
+IPA_VERSION_RELEASE=3
 
 ########################################################
 # For 'alpha' releases the version will be             #
@@ -63,7 +63,7 @@ IPA_VERSION_RC_RELEASE=
 # e.g. IPA_VERSION_IS_SVN_SNAPSHOT=yes                 #
 #  ->  "1.0.0GITabcdefg"                               #
 ########################################################
-IPA_VERSION_IS_GIT_SNAPSHOT="yes"
+IPA_VERSION_IS_GIT_SNAPSHOT="no"
 
 ########################################################
 # The version of IPA data. This is used to identify    #
