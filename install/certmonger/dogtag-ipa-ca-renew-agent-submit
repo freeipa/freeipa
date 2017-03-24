@@ -119,7 +119,7 @@ def is_renewable():
 
 
 def is_replicated():
-    return not get_nickname()
+    return bool(get_nickname())
 
 
 def is_renewal_master():
