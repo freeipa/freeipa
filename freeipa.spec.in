@@ -36,11 +36,13 @@
 
 %global alt_name ipa
 %if 0%{?rhel}
-%global samba_version 4.0.5-1
+# Require 4.6.0-4 which brings RC4 for FIPS + trust fixes to priv. separation
+%global samba_version 4.6.0-4
 %global selinux_policy_version 3.12.1-153
 %global slapi_nis_version 0.56.0-4
 %else
-%global samba_version 2:4.0.5-1
+# Require 4.6.0-4 which brings RC4 for FIPS + trust fixes to priv. separation
+%global samba_version 2:4.6.0-4
 %global selinux_policy_version 3.13.1-158.4
 %global slapi_nis_version 0.56.1
 %endif
