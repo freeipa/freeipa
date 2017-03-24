@@ -43,26 +43,17 @@ File containing the Directory Server SSL certificate and private key. The files 
 \fB\-\-http\-cert\-file\fR=\fIFILE\fR
 File containing the Apache Server SSL certificate and private key. The files are accepted in PEM and DER certificate, PKCS#7 certificate chain, PKCS#8 and raw private key and PKCS#12 formats. This option may be used multiple times.
 .TP
-\fB\-\-pkinit\-cert\-file\fR=\fIFILE\fR
-File containing the Kerberos KDC SSL certificate and private key. The files are accepted in PEM and DER certificate, PKCS#7 certificate chain, PKCS#8 and raw private key and PKCS#12 formats. This option may be used multiple times.
-.TP
 \fB\-\-dirsrv\-pin\fR=\fIPIN\fR
 The password to unlock the Directory Server private key
 .TP
 \fB\-\-http\-pin\fR=\fIPIN\fR
 The password to unlock the Apache Server private key
 .TP
-\fB\-\-pkinit\-pin\fR=\fIPIN\fR
-The password to unlock the Kerberos KDC private key
-.TP
 \fB\-\-dirsrv\-cert\-name\fR=\fINAME\fR
 Name of the Directory Server SSL certificate to install
 .TP
 \fB\-\-http\-cert\-name\fR=\fINAME\fR
 Name of the Apache Server SSL certificate to install
-.TP
-\fB\-\-pkinit\-cert\-name\fR=\fINAME\fR
-Name of the Kerberos KDC SSL certificate to install
 .TP
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 Directory Manager (existing master) password
@@ -80,9 +71,6 @@ Do not create reverse DNS zone
 .TP
 \fB\-\-ca\fR=\fICA_FILE\fR
 Location of CA PKCS#12 file, default /root/cacert.p12
-.TP
-\fB\-\-no\-pkinit\fR
-Disables pkinit setup steps
 .TP
 \fB\-\-debug\fR
 Prints info log messages to the output
