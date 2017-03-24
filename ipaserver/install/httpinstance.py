@@ -118,6 +118,7 @@ class WebGuiInstance(service.SimpleServiceInstance):
     def __init__(self):
         service.SimpleServiceInstance.__init__(self, "ipa_webgui")
 
+
 class HTTPInstance(service.Service):
     def __init__(self, fstore=None, cert_nickname='Server-Cert',
                  api=api):
@@ -130,6 +131,7 @@ class HTTPInstance(service.Service):
             service_user=HTTPD_USER,
             keytab=paths.HTTP_KEYTAB)
 
+        self.cacert_nickname = None
         self.cert_nickname = cert_nickname
         self.ca_is_configured = True
         self.keytab_user = constants.GSSPROXY_USER
@@ -441,6 +443,9 @@ class HTTPInstance(service.Service):
             if not server_certs:
                 raise RuntimeError("Could not find a suitable server cert.")
 
+        # store the CA cert nickname so that we can publish it later on
+        self.cacert_nickname = db.cacert_name
+
     def __import_ca_certs(self):
         db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
                           subject_base=self.subject_base)
@@ -449,7 +454,7 @@ class HTTPInstance(service.Service):
     def __publish_ca_cert(self):
         ca_db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
                              subject_base=self.subject_base)
-        ca_db.publish_ca_cert(paths.CA_CRT)
+        ca_db.export_pem_cert(self.cacert_nickname, paths.CA_CRT)
 
     def is_kdcproxy_configured(self):
         """Check if KDC proxy has already been configured in the past"""
