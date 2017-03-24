@@ -326,6 +326,7 @@ nav.self_service = {
         { entity: 'user' },
         { entity: 'otptoken' },
         {
+            name: 'vault',
             entity: 'vault',
             facet: 'search',
             children: [
