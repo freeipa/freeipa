@@ -809,9 +809,11 @@ vault.config_sidebar_policy = function(spec) {
 
 
 vault.remove_vault_menu_item = function() {
-    if (!IPA.vault_enabled) {
-        menu.remove_item('network_services/vault');
-    }
+    if (IPA.vault_enabled) return;
+
+    var menu_location = IPA.is_selfservice ? 'vault' : 'network_services/vault';
+
+    menu.remove_item(menu_location);
 };
 
 vault.my_vault_spec = make_my_vault_spec();
