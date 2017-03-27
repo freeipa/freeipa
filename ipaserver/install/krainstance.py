@@ -150,6 +150,7 @@ class KRAInstance(DogtagInstance):
         os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
         self.tmp_agent_db = tempfile.mkdtemp(
                 prefix="tmp-", dir=paths.VAR_LIB_IPA)
+        tmp_agent_pwd = ipautil.ipa_generate_password()
 
         # Create KRA configuration
         config = ConfigParser()
@@ -173,8 +174,7 @@ class KRAInstance(DogtagInstance):
 
         # Client security database
         config.set("KRA", "pki_client_database_dir", self.tmp_agent_db)
-        config.set("KRA", "pki_client_database_password",
-                   ipautil.ipa_generate_password())
+        config.set("KRA", "pki_client_database_password", tmp_agent_pwd)
         config.set("KRA", "pki_client_database_purge", "True")
         config.set("KRA", "pki_client_pkcs12_password", self.admin_password)
 
@@ -279,7 +279,10 @@ class KRAInstance(DogtagInstance):
         try:
             DogtagInstance.spawn_instance(
                 self, cfg_file,
-                nolog_list=(self.dm_password, self.admin_password, pki_pin)
+                nolog_list=(self.dm_password,
+                            self.admin_password,
+                            pki_pin,
+                            tmp_agent_pwd)
             )
         finally:
             os.remove(p12_tmpfile_name)
