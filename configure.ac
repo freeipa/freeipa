@@ -231,6 +231,8 @@ dnl ---------------------------------------------------------------------------
 AM_CONDITIONAL([BUILD_IPA_CERTAUTH_PLUGIN],
                [test x$have_certauth_plugin = xyes -a x"$SSSCERTMAP_LIBS" != x])
 AM_COND_IF([BUILD_IPA_CERTAUTH_PLUGIN], [
+    AC_DEFINE([HAVE_KRB5_CERTAUTH_PLUGIN], [1],
+        [MIT Kerberos version supports certauth plugin])
     AM_COND_IF([ENABLE_SERVER],
                [AC_MSG_NOTICE([Build IPA KDB certauth plugin])],
                [AC_MSG_WARN([Cannot build IPA KDB certauth plugin])])
