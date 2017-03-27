@@ -640,9 +640,6 @@ class CertDB(object):
 
         self.export_ca_cert(nickname, False)
 
-    def publish_ca_cert(self, location):
-        self.nssdb.publish_ca_cert(self.cacert_name, location)
-
     def export_pem_cert(self, nickname, location):
         return self.nssdb.export_pem_cert(nickname, location)
 

@@ -576,12 +576,3 @@ class NSSDatabase(object):
             self.run_certutil(['-V', '-n', nickname, '-u', 'L'])
         except ipautil.CalledProcessError:
             raise ValueError('invalid for a CA')
-
-    def publish_ca_cert(self, canickname, location):
-        args = ["-L", "-n", canickname, "-a"]
-        result = self.run_certutil(args, capture_output=True)
-        cert = result.output
-        fd = open(location, "w+")
-        fd.write(cert)
-        fd.close()
-        os.chmod(location, 0o444)
