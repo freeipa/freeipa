@@ -143,7 +143,7 @@ class otptoken(LDAPObject):
     relationships = {
         'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
     }
-    rdn_is_primary_key = True
+    allow_rename = True
 
     label = _('OTP Tokens')
     label_singular = _('OTP Token')

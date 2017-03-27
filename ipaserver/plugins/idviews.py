@@ -97,7 +97,7 @@ class idview(LDAPObject):
     object_class = ['ipaIDView', 'top']
     possible_objectclasses = ['ipaNameResolutionData']
     default_attributes = ['cn', 'description', 'ipadomainresolutionorder']
-    rdn_is_primary_key = True
+    allow_rename = True
 
     label = _('ID Views')
     label_singular = _('ID View')
@@ -848,7 +848,7 @@ class idoverrideuser(baseidoverride):
 
     label = _('User ID overrides')
     label_singular = _('User ID override')
-    rdn_is_primary_key = True
+    allow_rename = True
 
     # ID user overrides are bindable because we map SASL GSSAPI
     # authentication of trusted users to ID user overrides in the
@@ -964,7 +964,7 @@ class idoverridegroup(baseidoverride):
 
     label = _('Group ID overrides')
     label_singular = _('Group ID override')
-    rdn_is_primary_key = True
+    allow_rename = True
 
     permission_filter_objectclasses = ['ipaGroupOverride']
     managed_permissions = {

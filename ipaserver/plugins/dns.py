@@ -3000,7 +3000,7 @@ class dnsrecord(LDAPObject):
     possible_objectclasses = ['idnsTemplateObject']
     permission_filter_objectclasses = ['idnsrecord']
     default_attributes = ['idnsname'] + _record_attributes
-    rdn_is_primary_key = True
+    allow_rename = True
 
     label = _('DNS Resource Records')
     label_singular = _('DNS Resource Record')
