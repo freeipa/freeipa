@@ -225,6 +225,18 @@ AM_COND_IF([ENABLE_SERVER], [
 ])
 
 dnl ---------------------------------------------------------------------------
+dnl - Check if IPA certauth plugin can be build
+dnl ---------------------------------------------------------------------------
+
+AM_CONDITIONAL([BUILD_IPA_CERTAUTH_PLUGIN],
+               [test x$have_certauth_plugin = xyes -a x"$SSSCERTMAP_LIBS" != x])
+AM_COND_IF([BUILD_IPA_CERTAUTH_PLUGIN], [
+    AM_COND_IF([ENABLE_SERVER],
+               [AC_MSG_NOTICE([Build IPA KDB certauth plugin])],
+               [AC_MSG_WARN([Cannot build IPA KDB certauth plugin])])
+])
+
+dnl ---------------------------------------------------------------------------
 dnl - Check for program paths
 dnl ---------------------------------------------------------------------------
 AC_PATH_PROG(UNLINK, unlink, [AC_MSG_ERROR([unlink not found])])

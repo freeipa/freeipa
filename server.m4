@@ -37,11 +37,6 @@ PKG_CHECK_EXISTS([sss_certmap],
 AC_CHECK_HEADER([krb5/certauth_plugin.h],
                 [have_certauth_plugin=yes],
                 [have_certauth_plugin=no])
-AM_CONDITIONAL([BUILD_IPA_CERTAUTH_PLUGIN],
-               [test x$have_certauth_plugin = xyes -a x"$SSSCERTMAP_LIBS" != x])
-AM_COND_IF([BUILD_IPA_CERTAUTH_PLUGIN],
-           [AC_MSG_NOTICE([Build IPA KDB certauth plugin])],
-           [AC_MSG_WARN([Cannot build IPA KDB certauth plugin])])
 
 dnl ---------------------------------------------------------------------------
 dnl - Check for KRB5 krad
