@@ -842,7 +842,7 @@ class login_x509(KerberosLogin):
                 environ, start_response, 'KRB5CCNAME not set',
                 'Authentication failed')
 
-        super(login_x509, self).__call__(environ, start_response)
+        return super(login_x509, self).__call__(environ, start_response)
 
 
 class login_password(Backend, KerberosSession):
