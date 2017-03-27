@@ -68,7 +68,7 @@ class ca(LDAPObject):
         'cn', 'description', 'ipacaid', 'ipacaissuerdn', 'ipacasubjectdn',
     ]
     rdn_attribute = 'cn'
-    rdn_is_primary_key = True
+    allow_rename = True
     label = _('Certificate Authorities')
     label_singular = _('Certificate Authority')
 

@@ -101,7 +101,7 @@ class radiusproxy(LDAPObject):
         'ipatokenradiustimeout', 'ipatokenradiusretries', 'ipatokenusermapattribute'
     ]
     search_attributes = ['cn', 'description', 'ipatokenradiusserver']
-    rdn_is_primary_key = True
+    allow_rename = True
     label = _('RADIUS Servers')
     label_singular = _('RADIUS Server')
 

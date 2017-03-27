@@ -173,7 +173,7 @@ class group(LDAPObject):
         'memberofindirect': ['group', 'netgroup', 'role', 'hbacrule',
         'sudorule'],
     }
-    rdn_is_primary_key = True
+    allow_rename = True
     managed_permissions = {
         'System: Read Groups': {
             'replaces_global_anonymous_aci': True,
