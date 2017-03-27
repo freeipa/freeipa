@@ -30,6 +30,8 @@
  * filtering purposes */
 #define SECURID 1
 
+#include "config.h"
+
 #include <errno.h>
 #include <kdb.h>
 #include <ldap.h>
@@ -40,7 +42,9 @@
 #include <arpa/inet.h>
 #include <endian.h>
 #include <unistd.h>
+#ifdef HAVE_KRB5_CERTAUTH_PLUGIN
 #include <krb5/certauth_plugin.h>
+#endif
 
 #include "ipa_krb5.h"
 #include "ipa_pwd.h"
@@ -112,7 +116,9 @@ struct ipadb_context {
     krb5_key_salt_tuple *def_encs;
     int n_def_encs;
     struct ipadb_mspac *mspac;
+#ifdef HAVE_KRB5_CERTAUTH_PLUGIN
     krb5_certauth_moddata certauth_moddata;
+#endif
 
     /* Don't access this directly, use ipadb_get_global_config(). */
     struct ipadb_global_config config;
@@ -334,5 +340,7 @@ int ipadb_get_enc_salt_types(struct ipadb_context *ipactx, LDAPMessage *entry,
                              char *attr, krb5_key_salt_tuple **enc_salt_types,
                              int *n_enc_salt_types);
 
+#ifdef HAVE_KRB5_CERTAUTH_PLUGIN
 /* CERTAUTH PLUGIN */
 void ipa_certauth_free_moddata(krb5_certauth_moddata *moddata);
+#endif
