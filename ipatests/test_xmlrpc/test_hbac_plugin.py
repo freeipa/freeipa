@@ -34,6 +34,7 @@ class test_hbac(XMLRPC_test):
     Test the `hbacrule` plugin.
     """
     rule_name = u'testing_rule1234'
+    rule_renamed = u'mega_testing_rule'
     rule_type = u'allow'
     rule_type_fail = u'value not allowed'
     rule_service = u'ssh'
@@ -458,6 +459,20 @@ class test_hbac(XMLRPC_test):
         entry = api.Command['hbacrule_show'](self.rule_name)['result']
         assert_attr_equal(entry, 'cn', self.rule_name)
         assert_attr_equal(entry, 'memberservice_hbacsvc', self.test_service)
+
+    def test_o_hbacrule_rename(self):
+        """
+        Test renaming an HBAC rule, rename it back afterwards
+        """
+        api.Command['hbacrule_mod'](
+            self.rule_name, rename=self.rule_renamed
+        )
+        entry = api.Command['hbacrule_show'](self.rule_renamed)['result']
+        assert_attr_equal(entry, 'cn', self.rule_renamed)
+        # clean up by renaming the rule back
+        api.Command['hbacrule_mod'](
+            self.rule_renamed, rename=self.rule_name
+        )
 
     def test_y_hbacrule_zap_testing_data(self):
         """
