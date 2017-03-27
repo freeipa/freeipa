@@ -165,6 +165,7 @@ class Backup(admintool.AdminTool):
         paths.KRB5KDC_KDC_CONF,
         paths.KDC_CERT,
         paths.KDC_KEY,
+        paths.CACERT_PEM,
         paths.SYSTEMD_IPA_SERVICE,
         paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF,
         paths.SYSTEMD_SSSD_SERVICE,
