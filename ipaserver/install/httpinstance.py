@@ -355,9 +355,17 @@ class HTTPInstance(service.Service):
         name = 'Root Certs'
         args = [paths.MODUTIL, '-dbdir', paths.HTTPD_ALIAS_DIR, '-force']
 
-        result = ipautil.run(args + ['-list', name],
-                             env={},
-                             capture_output=True)
+        try:
+            result = ipautil.run(args + ['-list', name],
+                                 env={},
+                                 capture_output=True)
+        except ipautil.CalledProcessError as e:
+            if e.returncode == 29:  # ERROR: Module not found in database.
+                root_logger.debug(
+                    'Module %s not available, treating as disabled', name)
+                return False
+            raise
+
         if 'Status: Enabled' in result.output:
             ipautil.run(args + ['-disable', name], env={})
             return True
