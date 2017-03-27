@@ -92,7 +92,7 @@ class role(LDAPObject):
     reverse_members = {
         'member': ['privilege'],
     }
-    rdn_is_primary_key = True
+    allow_rename = True
     managed_permissions = {
         'System: Read Roles': {
             'replaces_global_anonymous_aci': True,

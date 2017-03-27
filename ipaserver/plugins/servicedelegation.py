@@ -138,7 +138,7 @@ class servicedelegation(LDAPObject):
         },
     }
 
-    rdn_is_primary_key = True
+    allow_rename = True
 
     takes_params = (
         Str(

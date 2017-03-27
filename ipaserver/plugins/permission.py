@@ -188,7 +188,7 @@ class permission(baseldap.LDAPObject):
         'member': ['privilege'],
         'memberindirect': ['role'],
     }
-    rdn_is_primary_key = True
+    allow_rename = True
     managed_permissions = {
         'System: Read Permissions': {
             'replaces_global_anonymous_aci': True,

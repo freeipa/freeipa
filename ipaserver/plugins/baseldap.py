@@ -36,7 +36,7 @@ from ipalib.text import _
 from ipalib.util import json_serialize, validate_hostname
 from ipalib.capabilities import client_has_capability
 from ipalib.messages import add_message, SearchResultTruncated
-from ipapython.dn import DN
+from ipapython.dn import DN, RDN
 from ipapython.version import API_VERSION
 
 if six.PY3:
@@ -549,7 +549,7 @@ class LDAPObject(Object):
     rdn_attribute = ''
     uuid_attribute = ''
     attribute_members = {}
-    rdn_is_primary_key = False # Do we need RDN change to do a rename?
+    allow_rename = False
     password_attributes = []
     # Can bind as this entry (has userPassword or krbPrincipalKey)
     bindable = False
@@ -1384,7 +1384,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     def get_options(self):
         for option in super(LDAPUpdate, self).get_options():
             yield option
-        if self.obj.rdn_is_primary_key:
+        if self.obj.allow_rename:
             yield self._get_rename_option()
 
     def execute(self, *keys, **options):
@@ -1419,15 +1419,19 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), list(entry_attrs), allow_only=False)
 
         rdnupdate = False
-        try:
-            if self.obj.rdn_is_primary_key and 'rename' in options:
-                if not options['rename']:
-                    raise errors.ValidationError(name='rename', error=u'can\'t be empty')
-                entry_attrs[self.obj.primary_key.name] = options['rename']
+        if 'rename' in options:
+            if not options['rename']:
+                raise errors.ValidationError(
+                    name='rename', error=u'can\'t be empty')
+            entry_attrs[self.obj.primary_key.name] = options['rename']
 
-            if self.obj.rdn_is_primary_key and self.obj.primary_key.name in entry_attrs:
+        # if setattr was used to change the RDN, the primary_key.name is
+        # already in entry_attrs
+        if self.obj.allow_rename and self.obj.primary_key.name in entry_attrs:
+            # perform RDN change if the primary key is also RDN
+            if (RDN((self.obj.primary_key.name, keys[-1])) ==
+                    entry_attrs.dn[0]):
                 try:
-                    # RDN change
                     new_dn = DN((self.obj.primary_key.name,
                                  entry_attrs[self.obj.primary_key.name]),
                                 *entry_attrs.dn[1:])
@@ -1435,17 +1439,21 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                         entry_attrs.dn,
                         new_dn)
 
-                    rdnkeys = keys[:-1] + (entry_attrs[self.obj.primary_key.name], )
+                    rdnkeys = (keys[:-1] +
+                               (entry_attrs[self.obj.primary_key.name], ))
                     entry_attrs.dn = self.obj.get_dn(*rdnkeys)
                     options['rdnupdate'] = True
                     rdnupdate = True
                 except errors.EmptyModlist:
                     # Attempt to rename to the current name, ignore
                     pass
+                except errors.NotFound:
+                    self.obj.handle_not_found(*keys)
                 finally:
                     # Delete the primary_key from entry_attrs either way
                     del entry_attrs[self.obj.primary_key.name]
 
+        try:
             # Exception callbacks will need to test for options['rdnupdate']
             # to decide what to do. An EmptyModlist in this context doesn't
             # mean an error occurred, just that there were no other updates to
