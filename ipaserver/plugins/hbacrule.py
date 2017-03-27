@@ -141,6 +141,7 @@ class hbacrule(LDAPObject):
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
+    allow_rename = True
     attribute_members = {
         'memberuser': ['user', 'group'],
         'memberhost': ['host', 'hostgroup'],

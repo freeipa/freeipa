@@ -2163,7 +2163,7 @@ output: ListOfEntries('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: hbacrule_mod/1
-args: 1,16,3
+args: 1,17,3
 arg: Str('cn', cli_name='name')
 option: StrEnum('accessruletype?', autofill=False, cli_name='type', default=u'allow', values=[u'allow', u'deny'])
 option: Str('addattr*', cli_name='addattr')
@@ -2175,6 +2175,7 @@ option: StrEnum('hostcategory?', autofill=False, cli_name='hostcat', values=[u'a
 option: Bool('ipaenabledflag?', autofill=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('rename?', cli_name='rename')
 option: Flag('rights', autofill=True, default=False)
 option: StrEnum('servicecategory?', autofill=False, cli_name='servicecat', values=[u'all'])
 option: Str('setattr*', cli_name='setattr')
