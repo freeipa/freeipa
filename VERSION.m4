@@ -74,7 +74,7 @@ define(IPA_DATA_VERSION, 20100614120000)
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
 define(IPA_API_VERSION_MINOR, 224)
-# Last change: Add rename option to HBAC rule objects
+# Last change: Add rename option to sudorule objects
 
 
 ########################################################
