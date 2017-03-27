@@ -42,6 +42,7 @@ class test_sudorule(XMLRPC_test):
     """
     rule_name = u'testing_sudorule1'
     rule_name2 = u'testing_sudorule2'
+    rule_renamed = u'testing_mega_sudorule'
     rule_command = u'/usr/bin/testsudocmd1'
     rule_desc = u'description'
     rule_desc_mod = u'description modified'
@@ -782,6 +783,19 @@ class test_sudorule(XMLRPC_test):
         api.Command['sudorule_mod'](self.rule_name, sudoorder=None)
         api.Command['sudorule_mod'](self.rule_name2, sudoorder=None)
 
+    def test_l_1_sudorule_rename(self):
+        """
+        Test renaming an HBAC rule, rename it back afterwards
+        """
+        api.Command['sudorule_mod'](
+            self.rule_name, rename=self.rule_renamed
+        )
+        entry = api.Command['sudorule_show'](self.rule_renamed)['result']
+        assert_attr_equal(entry, 'cn', self.rule_renamed)
+        # clean up by renaming the rule back
+        api.Command['sudorule_mod'](
+            self.rule_renamed, rename=self.rule_name
+        )
 
     def test_m_sudorule_del(self):
         """
