@@ -8,6 +8,7 @@ define([
         'dojo/_base/declare',
         'dojo/Evented',
         'dojo/on',
+        '../certificate',
         '../navigation',
         '../field',
         '../ipa',
@@ -19,8 +20,8 @@ define([
         // plain imports
         '../search',
         '../entity'],
-            function(lang, declare, Evented, on, navigation, mod_field, IPA,
-                     phases, reg, widget_mod, text, util) {
+            function(lang, declare, Evented, on, certificate, navigation,
+                 mod_field, IPA, phases, reg, widget_mod, text, util) {
 /**
  * Certificate map module
  * @class
@@ -312,6 +313,12 @@ certmap.certmap_multivalued_widget = function (spec) {
         var widget = widgets[0];
         var inner_widgets = widget.widgets.get_widgets();
 
+        var normalize_certs = function(certs) {
+            for (var k = 0, l = certs.length; k<l; k++) {
+                certs[k] = certificate.get_base64(certs[k]);
+            }
+        };
+
         for (var i = 0, l = inner_widgets.length; i<l; i++) {
             var w = inner_widgets[i];
 
@@ -321,6 +328,8 @@ certmap.certmap_multivalued_widget = function (spec) {
 
                 if (field.name === 'issuer' || field.name === 'subject') {
                     value = value[0];
+                } else if (field.name === 'certificate') {
+                    normalize_certs(value);
                 }
 
                 if (!util.is_empty(value)) options[field.name] = value;
