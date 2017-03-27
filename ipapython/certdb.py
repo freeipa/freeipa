@@ -596,12 +596,3 @@ class NSSDatabase(object):
         finally:
             del certdb, cert
             nss.nss_shutdown()
-
-    def publish_ca_cert(self, canickname, location):
-        args = ["-L", "-n", canickname, "-a"]
-        result = self.run_certutil(args, capture_output=True)
-        cert = result.output
-        fd = open(location, "w+")
-        fd.write(cert)
-        fd.close()
-        os.chmod(location, 0o444)
