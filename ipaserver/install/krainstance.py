@@ -235,6 +235,10 @@ class KRAInstance(DogtagInstance):
             "KRA", "pki_share_dbuser_dn",
             str(DN(('uid', 'pkidbuser'), ('ou', 'people'), ('o', 'ipaca'))))
 
+        # generate pin which we know can be used for FIPS NSS database
+        pki_pin = ipautil.ipa_generate_password()
+        config.set("KRA", "pki_pin", pki_pin)
+
         _p12_tmpfile_handle, p12_tmpfile_name = tempfile.mkstemp(dir=paths.TMP)
 
         if self.clone:
@@ -275,7 +279,7 @@ class KRAInstance(DogtagInstance):
         try:
             DogtagInstance.spawn_instance(
                 self, cfg_file,
-                nolog_list=(self.dm_password, self.admin_password)
+                nolog_list=(self.dm_password, self.admin_password, pki_pin)
             )
         finally:
             os.remove(p12_tmpfile_name)
