@@ -411,7 +411,7 @@ class idrange_add(LDAPCreate):
 
         # This needs to stay in options since there is no
         # ipanttrusteddomainname attribute in LDAP
-        if 'ipanttrusteddomainname' in options:
+        if options.get('ipanttrusteddomainname'):
             if is_set('ipanttrusteddomainsid'):
                 raise errors.ValidationError(name='ID Range setup',
                     error=_('Options dom-sid and dom-name '
