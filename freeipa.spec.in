@@ -80,12 +80,10 @@ BuildRequires:  openldap-devel
 # will cause the build to fail due to unsatisfied dependencies.
 # DAL version change may cause code crash or memory leaks, it is better to fail early.
 %if 0%{?fedora} > 25
-BuildRequires: krb5-devel >= 1.15-5
 BuildRequires: krb5-kdb-version = 6.1
-%else
-# 1.12: libkrad (http://krbdev.mit.edu/rt/Ticket/Display.html?id=7678)
-BuildRequires:  krb5-devel >= 1.12
 %endif
+# 1.15.1-3: certauth (http://krbdev.mit.edu/rt/Ticket/Display.html?id=8561)
+BuildRequires:  krb5-devel >= 1.15.1-3
 # 1.27.4: xmlrpc_curl_xportparms.gssapi_delegation
 BuildRequires:  xmlrpc-c-devel >= 1.27.4
 BuildRequires:  popt-devel
