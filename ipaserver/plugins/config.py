@@ -359,6 +359,11 @@ class config(LDAPObject):
 
         domain_resolution_order = entry_attrs[attr_name]
 
+        # setting up an empty string means that the previous configuration has
+        # to be cleaned up/removed. So, do nothing and let it pass
+        if not domain_resolution_order:
+            return
+
         # empty resolution order is signalized by single separator, do nothing
         # and let it pass
         if domain_resolution_order == DOMAIN_RESOLUTION_ORDER_SEPARATOR:
