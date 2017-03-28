@@ -541,6 +541,10 @@ class CAInstance(DogtagInstance):
         # CA key algorithm
         config.set("CA", "pki_ca_signing_key_algorithm", self.ca_signing_algorithm)
 
+        # generate pin which we know can be used for FIPS NSS database
+        pki_pin = ipautil.ipa_generate_password()
+        config.set("CA", "pki_pin", pki_pin)
+
         if self.clone:
 
             if self.no_db_setup:
@@ -613,7 +617,7 @@ class CAInstance(DogtagInstance):
         try:
             DogtagInstance.spawn_instance(
                 self, cfg_file,
-                nolog_list=(self.dm_password, self.admin_password)
+                nolog_list=(self.dm_password, self.admin_password, pki_pin)
             )
         finally:
             os.remove(cfg_file)
