@@ -313,3 +313,5 @@ USER_CACHE_PATH = (
         '.cache'
     )
 )
+
+SOFTHSM_DNSSEC_TOKEN_LABEL = u'ipaDNSSEC'
