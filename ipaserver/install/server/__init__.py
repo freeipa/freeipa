@@ -470,16 +470,8 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
                     "idmax (%s) cannot be smaller than idstart (%s)" %
                     (self.idmax, self.idstart))
         else:
-            cert_file_req = (self.dirsrv_cert_files, self.http_cert_files)
-            cert_file_opt = (self.pkinit_cert_files,)
-
+            # replica installers
             if self.replica_file is None:
-                # If any of the PKCS#12 options are selected, all are required.
-                if any(cert_file_req + cert_file_opt) and not all(cert_file_req):
-                    raise RuntimeError(
-                        "--dirsrv-cert-file and --http-cert-file are required "
-                        "if any PKCS#12 options are used")
-
                 if self.servers and not self.domain_name:
                     raise RuntimeError(
                         "The --server option cannot be used without providing "
