@@ -18,10 +18,9 @@ from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipalib import errors, api
-from ipaserver.install import dnskeysyncinstance
+from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 
 KEYMASTER = u'dnssecKeyMaster'
-softhsm_slot = 0
 
 
 def get_dnssec_key_masters(conn):
@@ -72,7 +71,7 @@ class OpenDNSSECInstance(service.Service):
         self.ods_gid = None
         self.conf_file_dict = {
             'SOFTHSM_LIB': paths.LIBSOFTHSM2_SO,
-            'TOKEN_LABEL': dnskeysyncinstance.softhsm_token_label,
+            'TOKEN_LABEL': SOFTHSM_DNSSEC_TOKEN_LABEL,
             'KASP_DB': paths.OPENDNSSEC_KASP_DB,
             'ODS_USER': constants.ODS_USER,
             'ODS_GROUP': constants.ODS_GROUP,
@@ -247,7 +246,8 @@ class OpenDNSSECInstance(service.Service):
             pin = f.read()
 
         os.environ["SOFTHSM2_CONF"] = paths.DNSSEC_SOFTHSM2_CONF
-        p11 = p11helper.P11_Helper(softhsm_slot, pin, paths.LIBSOFTHSM2_SO)
+        p11 = p11helper.P11_Helper(
+            SOFTHSM_DNSSEC_TOKEN_LABEL, pin, paths.LIBSOFTHSM2_SO)
         try:
             # generate master key
             root_logger.debug("Creating master key")
