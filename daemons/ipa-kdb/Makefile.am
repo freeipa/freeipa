@@ -40,18 +40,16 @@ ipadb_la_SOURCES = 		\
 	ipa_kdb_audit_as.c	\
 	$(NULL)
 
+dist_noinst_DATA = ipa_kdb.exports
+
 if BUILD_IPA_CERTAUTH_PLUGIN
 ipadb_la_SOURCES += ipa_kdb_certauth.c
 
 
-%: %.in
-	sed \
-		-e 's|@plugindir@|$(plugindir)|g' \
-		'$(srcdir)/$@.in' >$@
-
 krb5confdir = $(sysconfdir)/krb5.conf.d
 krb5conf_DATA = ipa-certauth
-CLEANFILES = $(krb5conf_DATA)
+else
+dist_noinst_DATA += ipa-certauth
 endif
 
 ipadb_la_LDFLAGS = 		\
@@ -104,8 +102,6 @@ ipa_kdb_tests_LDADD =          \
        -lkdb5                  \
        -lsss_idmap             \
        $(NULL)
-
-dist_noinst_DATA = ipa_kdb.exports ipa-certauth.in
 
 clean-local:
 	rm -f tests/.dirstamp
