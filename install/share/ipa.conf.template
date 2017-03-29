@@ -43,7 +43,7 @@ FileETag None
 
 # FIXME: WSGISocketPrefix is a server-scope directive.  The mod_wsgi package
 # should really be fixed by adding this its /etc/httpd/conf.d/wsgi.conf:
-WSGISocketPrefix /run/httpd/wsgi
+WSGISocketPrefix $WSGI_PREFIX_DIR
 
 
 # Configure mod_wsgi handler for /ipa
@@ -77,10 +77,10 @@ WSGIScriptReloading Off
   # Uncomment the following to have shorter sessions, but beware this may break
   # old IPA client tols that incorrectly parse cookies.
   # SessionMaxAge 1800
-  GssapiSessionKey file:/etc/httpd/alias/ipasession.key
+  GssapiSessionKey file:$GSSAPI_SESSION_KEY
 
   GssapiImpersonate On
-  GssapiDelegCcacheDir /var/run/ipa/ccaches
+  GssapiDelegCcacheDir $IPA_CCACHES
   GssapiDelegCcachePerms mode:0660 gid:ipaapi
   GssapiUseS4U2Proxy on
   GssapiAllowedMech krb5
@@ -111,7 +111,7 @@ Alias /ipa/session/cookie "/usr/share/ipa/gssapi.login"
 # This configuration needs to be loaded after <Location "/ipa">
 <Location "/ipa/session/login_x509">
   AuthType none
-  GssapiDelegCcacheDir /var/run/ipa/ccaches
+  GssapiDelegCcacheDir $IPA_CCACHES
   GssapiDelegCcachePerms mode:0660 gid:ipaapi
   NSSVerifyClient require
   NSSUserName SSL_CLIENT_CERT
@@ -126,7 +126,7 @@ Alias /ipa/session/cookie "/usr/share/ipa/gssapi.login"
   SessionCookieName ipa_session path=/ipa;httponly;secure;
   SessionHeader IPASESSION
   SessionMaxAge 1800
-  GssapiSessionKey file:/etc/httpd/alias/ipasession.key
+  GssapiSessionKey file:$GSSAPI_SESSION_KEY
 
   Header unset Set-Cookie
 </Location>
@@ -146,7 +146,7 @@ Alias /ipa/session/cookie "/usr/share/ipa/gssapi.login"
 # Custodia stuff is redirected to the custodia daemon
 # after authentication
 <Location "/ipa/keys/">
-    ProxyPass "unix:/run/httpd/ipa-custodia.sock|http://localhost/keys/"
+    ProxyPass "unix:${IPA_CUSTODIA_SOCKET}|http://localhost/keys/"
     RequestHeader set GSS_NAME %{GSS_NAME}s
     RequestHeader set REMOTE_USER %{REMOTE_USER}s
 </Location>
@@ -180,9 +180,9 @@ Alias /ipa/crl "$CRL_PUBLISH_PATH"
 
 
 #  List explicitly only the fonts we want to serve
-Alias /ipa/ui/fonts/open-sans "/usr/share/fonts/open-sans"
-Alias /ipa/ui/fonts/fontawesome "/usr/share/fonts/fontawesome"
-<Directory "/usr/share/fonts">
+Alias /ipa/ui/fonts/open-sans "${FONTS_DIR}/open-sans"
+Alias /ipa/ui/fonts/fontawesome "${FONTS_DIR}/fontawesome"
+<Directory "${FONTS_DIR}">
   SetHandler None
   AllowOverride None
   Satisfy Any
