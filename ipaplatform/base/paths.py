@@ -41,6 +41,7 @@ class BasePathNamespace(object):
     HOSTS = "/etc/hosts"
     ETC_HTTPD_DIR = "/etc/httpd"
     HTTPD_ALIAS_DIR = "/etc/httpd/alias"
+    GSSAPI_SESSION_KEY = "/etc/httpd/alias/ipasession.key"
     OLD_KRA_AGENT_PEM = "/etc/httpd/alias/kra-agent.pem"
     HTTPD_CONF_D_DIR = "/etc/httpd/conf.d/"
     HTTPD_IPA_KDCPROXY_CONF = "/etc/ipa/kdcproxy/ipa-kdc-proxy.conf"
@@ -230,6 +231,7 @@ class BasePathNamespace(object):
     SETUP_DS_PL = "/usr/sbin/setup-ds.pl"
     SMBD = "/usr/sbin/smbd"
     USERADD = "/usr/sbin/useradd"
+    FONTS_DIR = "/usr/share/fonts"
     USR_SHARE_IPA_DIR = "/usr/share/ipa/"
     CA_TOPOLOGY_ULDIF = "/usr/share/ipa/ca-topology.uldif"
     IPA_HTML_DIR = "/usr/share/ipa/html"
@@ -363,6 +365,7 @@ class BasePathNamespace(object):
     GSSPROXY_CONF = '/etc/gssproxy/10-ipa.conf'
     KRB5CC_HTTPD = '/tmp/krb5cc-httpd'
     IF_INET6 = '/proc/net/if_inet6'
+    WSGI_PREFIX_DIR = "/run/httpd/wsgi"
     AUTHCONFIG = None
     IPA_SERVER_UPGRADE = '/usr/sbin/ipa-server-upgrade'
     KEYCTL = '/usr/bin/keyctl'

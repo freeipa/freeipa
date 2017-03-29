@@ -147,6 +147,11 @@ class HTTPInstance(service.Service):
             DOMAIN=self.domain,
             AUTOREDIR='' if auto_redirect else '#',
             CRL_PUBLISH_PATH=paths.PKI_CA_PUBLISH_DIR,
+            FONTS_DIR=paths.FONTS_DIR,
+            GSSAPI_SESSION_KEY=paths.GSSAPI_SESSION_KEY,
+            IPA_CUSTODIA_SOCKET=paths.IPA_CUSTODIA_SOCKET,
+            IPA_CCACHES=paths.IPA_CCACHES,
+            WSGI_PREFIX_DIR=paths.WSGI_PREFIX_DIR,
         )
         self.ca_file = ca_file
         if ca_is_configured is not None:
