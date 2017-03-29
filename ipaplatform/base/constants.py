@@ -17,6 +17,8 @@ class BaseConstantsNamespace(object):
     KDCPROXY_USER = "kdcproxy"
     NAMED_USER = "named"
     NAMED_GROUP = "named"
+    NAMED_DATA_DIR = "data/"
+    NAMED_ZONE_COMMENT = ""
     PKI_USER = 'pkiuser'
     PKI_GROUP = 'pkiuser'
     # ntpd init variable used for daemon options
