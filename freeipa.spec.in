@@ -121,8 +121,8 @@ BuildRequires:  libtevent-devel
 BuildRequires:  libuuid-devel
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_certmap-devel
-# 1.14.0: sss_nss_getnamebycert (https://fedorahosted.org/sssd/ticket/2897)
-BuildRequires:  libsss_nss_idmap-devel >= 1.14.0
+# 1.15.3: sss_nss_getlistbycert (https://pagure.io/SSSD/sssd/issue/3050)
+BuildRequires:  libsss_nss_idmap-devel >= 1.15.3
 BuildRequires:  rhino
 BuildRequires:  libverto-devel
 BuildRequires:  libunistring-devel
