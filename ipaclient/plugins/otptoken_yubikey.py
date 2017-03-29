@@ -20,14 +20,19 @@
 import os
 
 import six
-import usb.core
-import yubico
 
 from ipalib import _, api, IntEnum
-from ipalib.errors import NotFound
+from ipalib.errors import NotFound, SkipPluginModule
 from ipalib.frontend import Command, Method, Object
 from ipalib.plugable import Registry
 from ipalib.util import classproperty
+
+try:
+    import usb.core
+    import yubico
+except ImportError:
+    # python-yubico depends on pyusb
+    raise SkipPluginModule(reason=_("python-yubico is not installed."))
 
 if six.PY3:
     unicode = str
