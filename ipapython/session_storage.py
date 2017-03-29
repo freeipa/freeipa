@@ -214,8 +214,8 @@ krb5_free_unparsed_name = LIBKRB5.krb5_free_unparsed_name
 krb5_free_unparsed_name.argtypes = (krb5_context, ctypes.c_char_p, )
 krb5_free_unparsed_name.restype = None
 
-CONF_REALM = "X-CACHECONF:"
-CONF_NAME = "krb5_ccache_conf_data"
+CONF_REALM = b"X-CACHECONF:"
+CONF_NAME = b"krb5_ccache_conf_data"
 
 
 def store_data(princ_name, key, value):
