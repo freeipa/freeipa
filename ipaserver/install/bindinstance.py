@@ -805,6 +805,8 @@ class BindInstance(service.Service):
             NAMED_VAR_DIR=paths.NAMED_VAR_DIR,
             BIND_LDAP_SO=paths.BIND_LDAP_SO,
             INCLUDE_CRYPTO_POLICY=crypto_policy,
+            NAMED_DATA_DIR=constants.NAMED_DATA_DIR,
+            NAMED_ZONE_COMMENT=constants.NAMED_ZONE_COMMENT,
         )
 
     def __setup_dns_container(self):

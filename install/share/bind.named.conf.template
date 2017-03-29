@@ -4,9 +4,9 @@ options {
 
 	// Put files that named is allowed to write in the data/ directory:
 	directory "$NAMED_VAR_DIR"; // the default
-	dump-file		"data/cache_dump.db";
-	statistics-file		"data/named_stats.txt";
-	memstatistics-file	"data/named_mem_stats.txt";
+	dump-file		"${NAMED_DATA_DIR}cache_dump.db";
+	statistics-file		"${NAMED_DATA_DIR}named_stats.txt";
+	memstatistics-file	"${NAMED_DATA_DIR}named_mem_stats.txt";
 
 	// Any host is permitted to issue recursive queries
 	allow-recursion { any; };
@@ -32,16 +32,16 @@ options {
  */
 logging {
 	channel default_debug {
-		file "data/named.run";
+		file "${NAMED_DATA_DIR}named.run";
 		severity dynamic;
 		print-time yes;
 	};
 };
 
-zone "." IN {
-	type hint;
-	file "named.ca";
-};
+${NAMED_ZONE_COMMENT}zone "." IN {
+${NAMED_ZONE_COMMENT}	type hint;
+${NAMED_ZONE_COMMENT}	file "named.ca";
+${NAMED_ZONE_COMMENT}};
 
 include "$RFC1912_ZONES";
 include "$ROOT_KEY";
