@@ -55,12 +55,12 @@ def p11(request):
     with open('softhsm2.conf', 'w') as cfg:
         cfg.write(CONFIG_DATA % token_path)
     os.environ['SOFTHSM2_CONF'] = os.path.join(token_path, 'softhsm2.conf')
-    subprocess.check_call([SOFTHSM2_UTIL, '--init-token', '--slot', '0',
+    subprocess.check_call([SOFTHSM2_UTIL, '--init-token', '--free',
                            '--label', 'test', '--pin', '1234', '--so-pin',
                            '1234'])
 
     try:
-        p11 = _ipap11helper.P11_Helper(0, "1234", LIBSOFTHSM)
+        p11 = _ipap11helper.P11_Helper('test', "1234", LIBSOFTHSM)
     except _ipap11helper.Error:
         pytest.fail('Failed to initialize the helper object.', pytrace=False)
 
@@ -70,6 +70,8 @@ def p11(request):
         except _ipap11helper.Error:
             pytest.fail('Failed to finalize the helper object.', pytrace=False)
         finally:
+            subprocess.call(
+                [SOFTHSM2_UTIL, '--delete-token', '--label', 'test'])
             del os.environ['SOFTHSM2_CONF']
 
     request.addfinalizer(fin)

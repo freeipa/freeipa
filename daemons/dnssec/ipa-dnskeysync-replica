@@ -15,6 +15,7 @@ import os
 import sys
 
 import ipalib
+from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython import ipaldap
@@ -154,8 +155,7 @@ ldapkeydb = LdapKeyDB(log, ldap,
         DN(('cn', 'keys'), ('cn', 'sec'), ipalib.api.env.container_dns,
            ipalib.api.env.basedn))
 
-# TODO: slot number could be configurable
-localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, 0,
+localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, SOFTHSM_DNSSEC_TOKEN_LABEL,
         open(paths.DNSSEC_SOFTHSM_PIN).read())
 
 ldap2replica_master_keys_sync(log, ldapkeydb, localhsm)

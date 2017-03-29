@@ -26,10 +26,9 @@ from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipalib import errors, api
 from ipalib.constants import CACERT
+from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipaserver.install.bindinstance import dns_container_exists
 
-softhsm_token_label = u'ipaDNSSEC'
-softhsm_slot = 0
 replica_keylabel_template = u"dnssec-replica:%s"
 
 
@@ -289,8 +288,8 @@ class DNSKeySyncInstance(service.Service):
         command = [
             paths.SOFTHSM2_UTIL,
             '--init-token',
-            '--slot', str(softhsm_slot),
-            '--label', softhsm_token_label,
+            '--free',  # use random free slot
+            '--label', SOFTHSM_DNSSEC_TOKEN_LABEL,
             '--pin', pin,
             '--so-pin', pin_so,
         ]
@@ -309,7 +308,8 @@ class DNSKeySyncInstance(service.Service):
                 pin = f.read()
 
         os.environ["SOFTHSM2_CONF"] = paths.DNSSEC_SOFTHSM2_CONF
-        p11 = _ipap11helper.P11_Helper(softhsm_slot, pin, paths.LIBSOFTHSM2_SO)
+        p11 = _ipap11helper.P11_Helper(
+            SOFTHSM_DNSSEC_TOKEN_LABEL, pin, paths.LIBSOFTHSM2_SO)
 
         try:
             # generate replica keypair

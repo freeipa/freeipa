@@ -30,6 +30,7 @@ struct _CK_VERSION
 };
 
 typedef unsigned long CK_SLOT_ID;
+typedef CK_SLOT_ID *CK_SLOT_ID_PTR;
 
 typedef unsigned long CK_SESSION_HANDLE;
 
@@ -42,6 +43,13 @@ typedef unsigned long CK_OBJECT_CLASS;
 typedef unsigned long CK_KEY_TYPE;
 
 typedef unsigned long CK_ATTRIBUTE_TYPE;
+
+typedef unsigned long ck_flags_t;
+
+typedef unsigned char CK_BBOOL;
+
+typedef unsigned long int CK_ULONG;
+typedef CK_ULONG *CK_ULONG_PTR;
 
 struct _CK_ATTRIBUTE
 {
@@ -59,6 +67,31 @@ struct _CK_MECHANISM
   unsigned long ulParameterLen;
 };
 
+struct _CK_TOKEN_INFO
+{
+  unsigned char label[32];
+  unsigned char manufacturer_id[32];
+  unsigned char model[16];
+  unsigned char serial_number[16];
+  ck_flags_t flags;
+  unsigned long max_session_count;
+  unsigned long session_count;
+  unsigned long max_rw_session_count;
+  unsigned long rw_session_count;
+  unsigned long max_pin_len;
+  unsigned long min_pin_len;
+  unsigned long total_public_memory;
+  unsigned long free_public_memory;
+  unsigned long total_private_memory;
+  unsigned long free_private_memory;
+  struct _CK_VERSION hardware_version;
+  struct _CK_VERSION firmware_version;
+  unsigned char utc_time[16];
+};
+
+typedef struct _CK_TOKEN_INFO CK_TOKEN_INFO;
+typedef CK_TOKEN_INFO *CK_TOKEN_INFO_PTR;
+
 typedef unsigned long CK_RV;
 
 typedef ... *CK_NOTIFY;
@@ -70,9 +103,12 @@ typedef CK_RV (*CK_C_Finalize) (void *pReserved);
 typedef ... *CK_C_GetInfo;
 typedef ... *CK_C_GetFunctionList;
 CK_RV C_GetFunctionList (struct _CK_FUNCTION_LIST **function_list);
-typedef ... *CK_C_GetSlotList;
+typedef CK_RV (*CK_C_GetSlotList) (CK_BBOOL tokenPresent,
+                                   CK_SLOT_ID_PTR pSlotList,
+                                   CK_ULONG_PTR pulCount);
 typedef ... *CK_C_GetSlotInfo;
-typedef ... *CK_C_GetTokenInfo;
+typedef CK_RV (*CK_C_GetTokenInfo) (CK_SLOT_ID slotID,
+                                    CK_TOKEN_INFO_PTR pInfo);
 typedef ... *CK_C_WaitForSlotEvent;
 typedef ... *CK_C_GetMechanismList;
 typedef ... *CK_C_GetMechanismInfo;
@@ -255,10 +291,7 @@ struct _CK_FUNCTION_LIST
 
 typedef unsigned char CK_BYTE;
 typedef unsigned char CK_UTF8CHAR;
-typedef unsigned char CK_BBOOL;
-typedef unsigned long int CK_ULONG;
 typedef CK_BYTE *CK_BYTE_PTR;
-typedef CK_ULONG *CK_ULONG_PTR;
 
 typedef CK_OBJECT_HANDLE *CK_OBJECT_HANDLE_PTR;
 
@@ -387,6 +420,7 @@ CKM_AES_KEY_GEN = 0x1080
 CKR_OK = 0
 CKR_ATTRIBUTE_TYPE_INVALID = 0x12
 CKR_USER_NOT_LOGGED_IN = 0x101
+CKR_BUFFER_TOO_SMALL = 0x150
 
 CK_BYTE = _ffi.typeof('CK_BYTE')
 CK_BBOOL = _ffi.typeof('CK_BBOOL')
@@ -402,6 +436,10 @@ CK_ATTRIBUTE = _ffi.typeof('CK_ATTRIBUTE')
 CK_MECHANISM = _ffi.typeof('CK_MECHANISM')
 
 CK_FUNCTION_LIST_PTR = _ffi.typeof('CK_FUNCTION_LIST_PTR')
+
+CK_SLOT_ID = _ffi.typeof('CK_SLOT_ID')
+
+CK_TOKEN_INFO = _ffi.typeof('CK_TOKEN_INFO')
 
 NULL_PTR = NULL
 
@@ -796,11 +834,10 @@ class P11_Helper(object):
         # Object not found
         return False
 
-    def __init__(self, slot, user_pin, library_path):
+    def __init__(self, token_label, user_pin, library_path):
         self.p11_ptr = new_ptr(CK_FUNCTION_LIST_PTR)
         self.session_ptr = new_ptr(CK_SESSION_HANDLE)
 
-        self.slot = 0
         self.session_ptr[0] = 0
         self.p11_ptr[0] = NULL
         self.module_handle = None
@@ -808,7 +845,7 @@ class P11_Helper(object):
         # Parse method args
         if isinstance(user_pin, unicode):
             user_pin = user_pin.encode()
-        self.slot = slot
+        self.token_label = token_label
 
         try:
             pGetFunctionList, module_handle = loadLibrary(library_path)
@@ -829,9 +866,16 @@ class P11_Helper(object):
         check_return_value(rv, "initialize")
 
         #
+        # Get Slot
+        #
+        slot = self.get_slot()
+        if slot is None:
+            raise Error("No slot for label {} found".format(self.token_label))
+
+        #
         # Start session
         #
-        rv = self.p11.C_OpenSession(self.slot,
+        rv = self.p11.C_OpenSession(slot,
                                     CKF_SERIAL_SESSION | CKF_RW_SESSION, NULL,
                                     NULL, self.session_ptr)
         check_return_value(rv, "open session")
@@ -841,6 +885,49 @@ class P11_Helper(object):
         #
         rv = self.p11.C_Login(self.session, CKU_USER, user_pin, len(user_pin))
         check_return_value(rv, "log in")
+
+    def get_slot(self):
+        """Get slot where then token is located
+        :return: slot number or None when slot not found
+        """
+        object_count_ptr = new_ptr(CK_ULONG)
+
+        # get slots ID
+        slots = None
+        for _i in range(0, 10):
+            # try max N times, then die to avoid infinite iteration
+            rv = self.p11.C_GetSlotList(CK_TRUE, NULL, object_count_ptr)
+            check_return_value(rv, "get slots IDs - prepare")
+
+            result_ids_ptr = new_array(CK_SLOT_ID, object_count_ptr[0])
+
+            rv = self.p11.C_GetSlotList(
+                CK_TRUE, result_ids_ptr, object_count_ptr)
+            if rv == CKR_BUFFER_TOO_SMALL:
+                continue
+            check_return_value(rv, "get slots IDs")
+            slots = result_ids_ptr
+            break  # we have slots !!!
+
+        if slots is None:
+            raise Error("Failed to get slots")
+
+        for slot in slots:
+            token_info_ptr = new_ptr(CK_TOKEN_INFO)
+            rv = self.p11.C_GetTokenInfo(slot, token_info_ptr)
+            check_return_value(rv, 'get token info')
+
+            # softhsm always returns label 32 bytes long with padding made of
+            # white spaces (#32), so we have to rstrip() padding and compare
+            # Label was created by softhsm-util so it is not our fault that
+            # there are #32 as padding (cffi initializes structures with
+            # zeroes)
+            # In case that this is not valid anymore, keep in mind backward
+            # compatibility
+
+            if self.token_label == char_array_to_unicode(
+                    token_info_ptr[0].label, 32).rstrip():
+                return slot
 
     def finalize(self):
         """
@@ -868,7 +955,6 @@ class P11_Helper(object):
 
         self.p11_ptr[0] = NULL
         self.session_ptr[0] = 0
-        self.slot = 0
         self.module_handle = None
 
     #################################################################

@@ -32,6 +32,7 @@ import sqlite3
 import traceback
 
 import ipalib
+from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipapython.dn import DN
 from ipapython import ipaldap
 from ipapython import ipautil
@@ -645,7 +646,7 @@ log.debug('Connected')
 ldapkeydb = LdapKeyDB(log, ldap, DN(('cn', 'keys'), ('cn', 'sec'),
                                     ipalib.api.env.container_dns,
                                     ipalib.api.env.basedn))
-localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, 0,
+localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, SOFTHSM_DNSSEC_TOKEN_LABEL,
         open(paths.DNSSEC_SOFTHSM_PIN).read())
 
 ldap2master_replica_keys_sync(log, ldapkeydb, localhsm)
