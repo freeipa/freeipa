@@ -6,8 +6,6 @@ import base64
 
 import six
 
-from ipaclient import csrgen
-from ipaclient import csrgen_ffi
 from ipalib import api
 from ipalib import errors
 from ipalib import output
@@ -17,6 +15,14 @@ from ipalib.parameters import File, Principal
 from ipalib.plugable import Registry
 from ipalib.text import _
 from ipapython import dogtag
+
+try:
+    import jinja2  # pylint: disable=unused-import
+except ImportError:
+    raise errors.SkipPluginModule(reason=_("jinja2 is not installed."))
+else:
+    from ipaclient import csrgen
+    from ipaclient import csrgen_ffi
 
 if six.PY3:
     unicode = str

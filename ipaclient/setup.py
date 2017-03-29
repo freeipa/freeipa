@@ -50,11 +50,9 @@ if __name__ == '__main__':
             ],
         },
         install_requires=[
-            "cffi",
             "cryptography",
             "ipalib",
             "ipapython",
-            "jinja2",
             "qrcode",
             "six",
         ],
@@ -66,6 +64,7 @@ if __name__ == '__main__':
         extras_require={
             "install": ["ipaplatform"],
             "otptoken_yubikey": ["python-yubico", "pyusb"],
+            "csrgen": ["cffi", "jinja2"],
         },
         zip_safe=False,
     )
