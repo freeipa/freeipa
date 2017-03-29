@@ -89,10 +89,11 @@ class Key(collections.MutableMapping):
     def __repr__(self):
         return self.__str__()
 
+
 class LocalHSM(AbstractHSM):
-    def __init__(self, library, slot, pin):
+    def __init__(self, library, label, pin):
         self.cache_replica_pubkeys = None
-        self.p11 = _ipap11helper.P11_Helper(slot, pin, library)
+        self.p11 = _ipap11helper.P11_Helper(label, pin, library)
         self.log = logging.getLogger()
 
     def __del__(self):
