@@ -90,6 +90,7 @@ dist_app_DATA =				\
 	gssapi.login			\
 	ipa.conf.tmpfiles		\
 	gssproxy.conf.template		\
+	kdcproxy.wsgi			\
 	$(NULL)
 
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy
