@@ -160,6 +160,8 @@ class CustodiaInstance(SimpleServiceInstance):
 
             # Add CA certificates
             self.suffix = ipautil.realm_to_suffix(self.realm)
+            if self.admin_conn is not None:
+                self.ldap_disconnect()
             self.import_ca_certs(tmpdb, True)
 
             # Now that we gathered all certs, re-export
