@@ -16,8 +16,7 @@ extension-pkg-whitelist=
     _ldap,
     cryptography,
     gssapi,
-    netifaces,
-    nss
+    netifaces
 
 
 [MESSAGES CONTROL]
