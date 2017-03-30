@@ -1945,6 +1945,16 @@ class ra(rabase.rabase, RestClient):
             if len(issuer_dn) == 1:
                 response_request['issuer'] = unicode(issuer_dn[0].text)
 
+            not_valid_before = cert.xpath('NotValidBefore')
+            if len(not_valid_before) == 1:
+                response_request['valid_not_before'] = (
+                    unicode(not_valid_before[0].text))
+
+            not_valid_after = cert.xpath('NotValidAfter')
+            if len(not_valid_after) == 1:
+                response_request['valid_not_after'] = (
+                    unicode(not_valid_after[0].text))
+
             status = cert.xpath('Status')
             if len(status) == 1:
                 response_request['status'] = unicode(status[0].text)
