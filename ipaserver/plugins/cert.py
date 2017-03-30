@@ -162,6 +162,11 @@ def normalize_pkidate(value):
     return datetime.datetime.strptime(value, PKIDATE_FORMAT)
 
 
+def convert_pkidatetime(value):
+    value = datetime.datetime.fromtimestamp(int(value) // 1000)
+    return x509.format_datetime(value)
+
+
 def validate_csr(ugettext, csr):
     """
     Ensure the CSR is base64-encoded and can be decoded by our PKCS#10
@@ -1296,18 +1301,7 @@ class cert_find(Search, CertMethod):
 
         return (DN(cert_obj.issuer), cert_obj.serial_number)
 
-    def _get_cert_obj(self, cert, all, raw, pkey_only):
-        obj = {'certificate': base64.b64encode(cert).decode('ascii')}
-
-        full = not pkey_only and all
-        if not raw:
-            self.obj._parse(obj, full)
-        if not full:
-            del obj['certificate']
-
-        return obj
-
-    def _cert_search(self, all, raw, pkey_only, **options):
+    def _cert_search(self, pkey_only, **options):
         result = collections.OrderedDict()
 
         try:
@@ -1316,15 +1310,19 @@ class cert_find(Search, CertMethod):
             return result, False, False
 
         try:
-            key = self._get_cert_key(cert)
+            issuer, serial_number = self._get_cert_key(cert)
         except ValueError:
             return result, True, True
 
-        result[key] = self._get_cert_obj(cert, all, raw, pkey_only)
+        obj = {'serial_number': serial_number}
+        if not pkey_only:
+            obj['certificate'] = base64.b64encode(cert).decode('ascii')
+
+        result[issuer, serial_number] = obj
 
         return result, False, True
 
-    def _ca_search(self, all, raw, pkey_only, exactly, **options):
+    def _ca_search(self, raw, pkey_only, exactly, **options):
         ra_options = {}
         for name in ('revocation_reason',
                      'issuer',
@@ -1357,7 +1355,6 @@ class cert_find(Search, CertMethod):
             return result, False, complete
 
         ca_objs = self.api.Command.ca_find(
-            all=all,
             timelimit=0,
             sizelimit=0,
         )['result']
@@ -1377,24 +1374,16 @@ class cert_find(Search, CertMethod):
                 obj = {'serial_number': serial_number}
             else:
                 obj = ra_obj
-                if all:
-                    obj.update(ra.get_certificate(str(serial_number)))
 
                 if not raw:
                     obj['issuer'] = issuer
                     obj['subject'] = DN(ra_obj['subject'])
+                    obj['valid_not_before'] = (
+                        convert_pkidatetime(obj['valid_not_before']))
+                    obj['valid_not_after'] = (
+                        convert_pkidatetime(obj['valid_not_after']))
                     obj['revoked'] = (
                         ra_obj['status'] in (u'REVOKED', u'REVOKED_EXPIRED'))
-                    if all:
-                        obj['certificate'] = (
-                            obj['certificate'].replace('\r\n', ''))
-                        self.obj._parse(obj)
-
-                if 'certificate_chain' in ca_obj:
-                    cert = x509.load_certificate(obj['certificate'])
-                    cert_der = cert.public_bytes(serialization.Encoding.DER)
-                    obj['certificate_chain'] = (
-                        [cert_der] + ca_obj['certificate_chain'])
 
             obj['cacn'] = ca_obj['cn'][0]
 
@@ -1402,7 +1391,7 @@ class cert_find(Search, CertMethod):
 
         return result, False, complete
 
-    def _ldap_search(self, all, raw, pkey_only, no_members, **options):
+    def _ldap_search(self, all, pkey_only, no_members, **options):
         ldap = self.api.Backend.ldap2
 
         filters = []
@@ -1461,25 +1450,24 @@ class cert_find(Search, CertMethod):
             for attr in ('usercertificate', 'usercertificate;binary'):
                 for cert in entry.get(attr, []):
                     try:
-                        key = self._get_cert_key(cert)
+                        issuer, serial_number = self._get_cert_key(cert)
                     except ValueError:
                         truncated = True
                         continue
 
                     try:
-                        obj = result[key]
+                        obj = result[issuer, serial_number]
                     except KeyError:
-                        obj = self._get_cert_obj(cert, all, raw, pkey_only)
-                        result[key] = obj
+                        obj = {'serial_number': serial_number}
+                        if not pkey_only and all:
+                            obj['certificate'] = (
+                                base64.b64encode(cert).decode('ascii'))
+                        result[issuer, serial_number] = obj
 
                     if not pkey_only and (all or not no_members):
                         owners = obj.setdefault('owner', [])
                         if entry.dn not in owners:
                             owners.append(entry.dn)
-
-        if not raw:
-            for obj in six.itervalues(result):
-                self.obj._fill_owners(obj)
 
         return result, truncated, complete
 
@@ -1536,6 +1524,37 @@ class cert_find(Search, CertMethod):
 
             truncated = truncated or sub_truncated
             complete = complete or sub_complete
+
+        if not pkey_only:
+            ca_objs = {}
+            ra = self.api.Backend.ra
+
+            for key, obj in six.iteritems(result):
+                if all and 'cacn' in obj:
+                    _issuer, serial_number = key
+                    cacn = obj['cacn']
+
+                    try:
+                        ca_obj = ca_objs[cacn]
+                    except KeyError:
+                        ca_obj = ca_objs[cacn] = (
+                            self.api.Command.ca_show(cacn, all=True)['result'])
+
+                    obj.update(ra.get_certificate(str(serial_number)))
+                    if not raw:
+                        obj['certificate'] = (
+                            obj['certificate'].replace('\r\n', ''))
+
+                    if 'certificate_chain' in ca_obj:
+                        cert = x509.load_certificate(obj['certificate'])
+                        cert_der = (
+                            cert.public_bytes(serialization.Encoding.DER))
+                        obj['certificate_chain'] = (
+                            [cert_der] + ca_obj['certificate_chain'])
+
+                if not raw:
+                    self.obj._parse(obj, all)
+                    self.obj._fill_owners(obj)
 
         result = list(six.itervalues(result))
         if sizelimit > 0 and len(result) > sizelimit:
