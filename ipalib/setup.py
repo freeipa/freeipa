@@ -41,7 +41,6 @@ if __name__ == '__main__':
             "netaddr",
             "pyasn1",
             "pyasn1-modules",
-            "python-nss",
             "six",
         ],
         extras_require={

@@ -46,7 +46,6 @@ if __name__ == '__main__':
             "pyldap",
             "netaddr",
             "netifaces",
-            "python-nss",
             "requests",
             "six",
         ],
