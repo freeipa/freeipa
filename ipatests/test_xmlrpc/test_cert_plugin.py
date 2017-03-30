@@ -103,9 +103,8 @@ class BaseCert(XMLRPC_test):
         self.certfile = self.reqdir + "/cert.crt"
 
         # Create an empty password file
-        fp = open(self.pwname, "w")
-        fp.write("\n")
-        fp.close()
+        with open(self.pwname, "w") as fp:
+            fp.write("\n")
 
         # Create our temporary NSS database
         self.run_certutil(["-N", "-f", self.pwname])
@@ -122,9 +121,8 @@ class BaseCert(XMLRPC_test):
                            "-f", self.pwname,
                            "-a",
                            ])
-        fp = open(self.reqfile, "r")
-        data = fp.read()
-        fp.close()
+        with open(self.reqfile, "r") as fp:
+            data = fp.read()
         return data
 
     host_fqdn = u'ipatestcert.%s' % api.env.domain

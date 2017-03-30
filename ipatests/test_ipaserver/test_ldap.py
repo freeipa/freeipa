@@ -88,9 +88,8 @@ class test_ldap(object):
         """
         pwfile = api.env.dot_ipa + os.sep + ".dmpw"
         if ipautil.file_exists(pwfile):
-            fp = open(pwfile, "r")
-            dm_password = fp.read().rstrip()
-            fp.close()
+            with open(pwfile, "r") as fp:
+                dm_password = fp.read().rstrip()
         else:
             raise nose.SkipTest("No directory manager password in %s" % pwfile)
         self.conn = ldap2(api, ldap_uri=self.ldapuri)
@@ -115,9 +114,8 @@ class test_ldap(object):
 
         pwfile = api.env.dot_ipa + os.sep + ".dmpw"
         if ipautil.file_exists(pwfile):
-            fp = open(pwfile, "r")
-            dm_password = fp.read().rstrip()
-            fp.close()
+            with open(pwfile, "r") as fp:
+                dm_password = fp.read().rstrip()
         else:
             raise nose.SkipTest("No directory manager password in %s" % pwfile)
         myapi.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=dm_password)

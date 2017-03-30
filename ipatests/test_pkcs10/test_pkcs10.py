@@ -41,9 +41,8 @@ class test_update(object):
             raise nose.SkipTest("Unable to find test update files")
 
     def read_file(self, filename):
-        fp = open(os.path.join(self.testdir, filename), "r")
-        data = fp.read()
-        fp.close()
+        with open(os.path.join(self.testdir, filename), "r") as fp:
+            data = fp.read()
         return data
 
     def test_0(self):
