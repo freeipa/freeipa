@@ -261,7 +261,7 @@ class user(baseuser):
             ],
             'ipapermdefaultattr': {
                 'krbprincipalkey', 'passwordhistory', 'sambalmpassword',
-                'sambantpassword', 'userpassword'
+                'sambantpassword', 'userpassword', 'krbpasswordexpiration'
             },
             'replaces': [
                 '(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:Change a user password";allow (write) groupdn = "ldap:///cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX";)',
