@@ -10,16 +10,17 @@ import os
 import os.path
 import pipes
 import subprocess
+import tempfile
 import traceback
 
 import pkg_resources
 
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import (
-    load_pem_private_key, Encoding, PublicFormat)
-from cryptography.x509 import load_pem_x509_certificate
+    load_pem_private_key, Encoding, NoEncryption, PrivateFormat, PublicFormat)
+from cryptography.x509 import load_der_x509_certificate
 import jinja2
 import jinja2.ext
 import jinja2.sandbox
@@ -389,39 +390,28 @@ class CSRGenerator(object):
 
 
 class CSRLibraryAdaptor(object):
-    def get_subject_public_key_info(self):
+    def key(self):
+        """Return the private key to be used in the cert.
+
+        Returns: cryptography.hazmat.primitives.asymmetric.rsa.RSAPrivateKey
+            representing the private key.
+        """
         raise NotImplementedError('Use a subclass of CSRLibraryAdaptor')
+
+    def get_subject_public_key_info(self):
+        """Return the public key info for the cert.
+
+        Returns: str, a DER-encoded SubjectPublicKeyInfo structure.
+        """
+        pubkey_info = self.key().public_key().public_bytes(
+            Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
+        return pubkey_info
 
     def sign_csr(self, certification_request_info):
         """Sign a CertificationRequestInfo.
 
         Returns: str, a DER-encoded signed CSR.
         """
-        raise NotImplementedError('Use a subclass of CSRLibraryAdaptor')
-
-
-class OpenSSLAdaptor(object):
-    def __init__(self, key_filename, password_filename):
-        self.key_filename = key_filename
-        self.password_filename = password_filename
-
-    def key(self):
-        with open(self.key_filename, 'r') as key_file:
-            key_bytes = key_file.read()
-        password = None
-        if self.password_filename is not None:
-            with open(self.password_filename, 'r') as password_file:
-                password = password_file.read().strip()
-
-        key = load_pem_private_key(key_bytes, password, default_backend())
-        return key
-
-    def get_subject_public_key_info(self):
-        pubkey_info = self.key().public_key().public_bytes(
-            Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
-        return pubkey_info
-
-    def sign_csr(self, certification_request_info):
         reqinfo = decoder.decode(
             certification_request_info, rfc2314.CertificationRequestInfo())[0]
         csr = rfc2314.CertificationRequest()
@@ -442,32 +432,78 @@ class OpenSSLAdaptor(object):
         csr.setComponentByName('signature', asn1sig)
         return encoder.encode(csr)
 
+    def process_cert(self, cert):
+        """Perform any required post-processing on the certificate."""
 
-class NSSAdaptor(object):
-    def __init__(self, database, password_filename):
-        self.database = database
+
+class OpenSSLAdaptor(CSRLibraryAdaptor):
+    def __init__(self, key_filename, password_filename):
+        self.key_filename = key_filename
         self.password_filename = password_filename
-        self.nickname = base64.b32encode(os.urandom(40))
+        self._key = None
 
-    def get_subject_public_key_info(self):
-        temp_cn = base64.b32encode(os.urandom(40))
+    def key(self):
+        if self._key is None:
+            with open(self.key_filename, 'r') as key_file:
+                key_bytes = key_file.read()
+            password = None
+            if self.password_filename is not None:
+                with open(self.password_filename, 'r') as password_file:
+                    password = password_file.read().strip()
+
+            self._key = load_pem_private_key(
+                key_bytes, password, default_backend())
+        return self._key
+
+
+class NSSAdaptor(CSRLibraryAdaptor):
+    """Adaptor that stores certificates and keys in an NSS DB.
+
+    A new key is generated from scratch. Once the certificate is requested, key
+    and certificate are stored in the database.
+    """
+    def __init__(self, database, nickname, password_filename):
+        super(NSSAdaptor, self).__init__()
+        self.database = database
+        self.nickname = nickname
+        self.password_filename = password_filename
+        self._key = None
+
+    def key(self):
+        if self._key is None:
+            self._key = rsa.generate_private_key(
+                65537, 2048, default_backend())
+        return self._key
+
+    def process_cert(self, cert_der):
+        cert = load_der_x509_certificate(cert_der, default_backend())
+        cert_pem = cert.public_bytes(Encoding.PEM)
+        key_pem = self.key().private_bytes(
+            Encoding.PEM, PrivateFormat.PKCS8, NoEncryption())
+
+        p12_pass = base64.b32encode(os.urandom(40))
+
+        popen = subprocess.Popen(
+            ['openssl', 'pkcs12', '-export',
+             '-passout', 'pass:%s' % p12_pass, '-name', self.nickname],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        p12, _stderr = popen.communicate(key_pem + cert_pem)
+        if popen.returncode != 0:
+            raise errors.CertificateOperationError(
+                error=_('Unable to convert to PKCS #12 format'))
 
         password_args = []
         if self.password_filename is not None:
-            password_args = ['-f', self.password_filename]
+            password_args = ['-k', self.password_filename]
 
-        subprocess.check_call(
-            ['certutil', '-S', '-n', self.nickname, '-s', 'CN=%s' % temp_cn,
-             '-x', '-t', ',,', '-d', self.database] + password_args)
-        cert_pem = subprocess.check_output(
-            ['certutil', '-L', '-n', self.nickname, '-a',
-             '-d', self.database] + password_args)
-
-        cert = load_pem_x509_certificate(cert_pem, default_backend())
-        pubkey_info = cert.public_key().public_bytes(
-            Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
-
-        return pubkey_info
-
-    def sign_csr(self, certification_request_info):
-        raise NotImplementedError('NSS is not yet supported')
+        with tempfile.NamedTemporaryFile() as p12_file:
+            p12_file.write(p12)
+            p12_file.flush()
+            try:
+                subprocess.check_call(
+                    ['pk12util', '-i', p12_file.name, '-d', self.database,
+                     '-W', p12_pass] + password_args)
+            except subprocess.CalledProcessError:
+                raise errors.CertificateOperationError(
+                    error=_('Unable to save certificate to NSS database'))

@@ -77,6 +77,11 @@ class cert_request(CertRetrieveOverride):
             doc=_('Path to NSS database to use for private key'),
         ),
         Str(
+            'nickname?',
+            label=_('Nickname for new cert'),
+            doc=_('Nickname for new cert in NSS database'),
+        ),
+        Str(
             'private_key?',
             label=_('Path to private key file'),
             doc=_('Path to PEM file containing a private key'),
@@ -101,13 +106,19 @@ class cert_request(CertRetrieveOverride):
 
     def forward(self, csr=None, **options):
         database = options.pop('database', None)
+        nickname = options.pop('nickname', None)
         private_key = options.pop('private_key', None)
         csr_profile_id = options.pop('csr_profile_id', None)
         password_file = options.pop('password_file', None)
 
+        adaptor = None
+
         if csr is None:
             if database:
-                adaptor = csrgen.NSSAdaptor(database, password_file)
+                if nickname is None:
+                    raise errors.InvocationError(
+                        "'database' was specified, 'nickname' must be as well")
+                adaptor = csrgen.NSSAdaptor(database, nickname, password_file)
             elif private_key:
                 adaptor = csrgen.OpenSSLAdaptor(private_key, password_file)
             else:
@@ -147,7 +158,13 @@ class cert_request(CertRetrieveOverride):
                     "Options 'database' and 'private_key' are not compatible"
                     " with 'csr'"))
 
-        return super(cert_request, self).forward(csr, **options)
+        result = super(cert_request, self).forward(csr, **options)
+
+        if adaptor is not None and 'certificate' in result['result']:
+            adaptor.process_cert(base64.b64decode(
+                result['result']['certificate']))
+
+        return result
 
 
 @register(override=True, no_fail=True)
