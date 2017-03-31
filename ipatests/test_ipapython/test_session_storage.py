@@ -5,9 +5,12 @@
 """
 Test the `session_storage.py` module.
 """
+import pytest
+
 from ipapython import session_storage
 
 
+@pytest.mark.skip_ipaclient_unittest
 class test_session_storage(object):
     """
     Test the session storage interface
