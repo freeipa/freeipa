@@ -8,4 +8,4 @@ SocketMode=0600
 Accept=true
 
 [Install]
-WantedBy=krb5kdc.service
+WantedBy=@KRB5KDC_SERVICE@

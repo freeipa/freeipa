@@ -330,15 +330,19 @@ AC_SUBST([IPAPLATFORM])
 AC_MSG_RESULT([${IPAPLATFORM}])
 
 if test "x${IPAPLATFORM}" == "xdebian"; then
+    KRB5KDC_SERVICE="krb5-kdc.service"
     NAMED_GROUP="bind"
     ODS_USER="opendnssec"
     # see https://www.debian.org/doc/packaging-manuals/python-policy/ap-packaging_tools.html
     PYTHON_INSTALL_EXTRA_OPTIONS="--install-layout=deb"
 else
+    KRB5KDC_SERVICE="krb5kdc.service"
     NAMED_GROUP="named"
     ODS_USER="ods"
     PYTHON_INSTALL_EXTRA_OPTIONS=""
 fi
+
+AC_SUBST([KRB5KDC_SERVICE])
 
 AC_MSG_CHECKING([NAMED_GROUP])
 AC_SUBST([NAMED_GROUP])
