@@ -1665,12 +1665,16 @@ class DateTime(Param):
 
     def _convert_scalar(self, value, index=None):
         if isinstance(value, six.string_types):
-            for date_format in self.accepted_formats:
-                try:
-                    time = datetime.datetime.strptime(value, date_format)
-                    return time
-                except ValueError:
-                    pass
+            if value == u'now':
+                time = datetime.datetime.utcnow()
+                return time
+            else:
+                for date_format in self.accepted_formats:
+                    try:
+                        time = datetime.datetime.strptime(value, date_format)
+                        return time
+                    except ValueError:
+                        pass
 
             # If we get here, the strptime call did not succeed for any
             # the accepted formats, therefore raise error

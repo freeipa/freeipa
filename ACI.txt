@@ -351,7 +351,7 @@ aci: (targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Add Users";allow (add) groupdn = "ldap:///cn=System: Add Users,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "krbprincipalkey || passwordhistory || sambalmpassword || sambantpassword || userpassword")(targetfilter = "(&(!(memberOf=cn=admins,cn=groups,cn=accounts,dc=ipa,dc=example))(objectclass=posixaccount))")(version 3.0;acl "permission:System: Change User password";allow (write) groupdn = "ldap:///cn=System: Change User password,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetattr = "krbpasswordexpiration || krbprincipalkey || passwordhistory || sambalmpassword || sambantpassword || userpassword")(targetfilter = "(&(!(memberOf=cn=admins,cn=groups,cn=accounts,dc=ipa,dc=example))(objectclass=posixaccount))")(version 3.0;acl "permission:System: Change User password";allow (write) groupdn = "ldap:///cn=System: Change User password,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "ipacertmapdata || objectclass")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Manage User Certificate Mappings";allow (write) groupdn = "ldap:///cn=System: Manage User Certificate Mappings,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
