@@ -1,6 +1,6 @@
 # Copyright (C) 2015 FreeIPa Project Contributors, see 'COPYING' for license.
 
-from ipaserver.secrets.kem import IPAKEMKeys
+from ipaserver.secrets.kem import IPAKEMKeys, KEMLdap
 from ipaserver.secrets.client import CustodiaClient
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants
@@ -18,6 +18,7 @@ import shutil
 import os
 import stat
 import tempfile
+import time
 import pwd
 
 
@@ -122,12 +123,37 @@ class CustodiaInstance(SimpleServiceInstance):
         cli = self.__CustodiaClient(server=master_host_name)
         cli.fetch_key('dm/DMHash')
 
+    def __wait_keys(self, host, timeout=300):
+        ldap_uri = 'ldap://%s' % host
+        deadline = int(time.time()) + timeout
+        root_logger.info("Waiting up to {} seconds to see our keys "
+                         "appear on host: {}".format(timeout, host))
+
+        konn = KEMLdap(ldap_uri)
+        saved_e = None
+        while True:
+            try:
+                return konn.check_host_keys(self.fqdn)
+            except Exception as e:
+                # log only once for the same error
+                if not isinstance(e, type(saved_e)):
+                    root_logger.debug(
+                        "Transient error getting keys: '{err}'".format(err=e))
+                    saved_e = e
+                if int(time.time()) > deadline:
+                    raise RuntimeError("Timed out trying to obtain keys.")
+                time.sleep(1)
+
     def __get_keys(self, ca_host, cacerts_file, cacerts_pwd, data):
         # Fecth all needed certs one by one, then combine them in a single
         # p12 file
 
         prefix = data['prefix']
         certlist = data['list']
+
+        # Before we attempt to fetch keys from this host, make sure our public
+        # keys have been replicated there.
+        self.__wait_keys(ca_host)
 
         cli = self.__CustodiaClient(server=ca_host)
 
