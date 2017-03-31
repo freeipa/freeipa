@@ -38,6 +38,7 @@ from ipalib.constants import ANON_USER
 from ipalib.install import certmonger
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
+from ipapython.dogtag import KDC_PROFILE
 
 from ipaserver.install import replication
 from ipaserver.install import ldapupdate
@@ -354,61 +355,84 @@ class KrbInstance(service.Service):
             remote_ldap.gssapi_bind()
             replication.wait_for_entry(remote_ldap, kdc_dn, timeout=60)
 
-    def setup_pkinit(self):
-        if self.pkcs12_info:
-            certs.install_pem_from_p12(self.pkcs12_info[0],
-                                       self.pkcs12_info[1],
-                                       paths.KDC_CERT)
-            certs.install_key_from_p12(self.pkcs12_info[0],
-                                       self.pkcs12_info[1],
-                                       paths.KDC_KEY)
-        else:
-            subject = str(DN(('cn', self.fqdn), self.subject_base))
-            krbtgt = "krbtgt/" + self.realm + "@" + self.realm
-            certpath = (paths.KDC_CERT, paths.KDC_KEY)
-
-            try:
-                prev_helper = None
-                if self.master_fqdn is None:
-                    ca_args = [
-                        paths.CERTMONGER_DOGTAG_SUBMIT,
-                        '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
-                        '--certfile', paths.RA_AGENT_PEM,
-                        '--keyfile', paths.RA_AGENT_KEY,
-                        '--cafile', paths.IPA_CA_CRT,
-                        '--agent-submit'
-                    ]
-                    helper = " ".join(ca_args)
-                    prev_helper = certmonger.modify_ca_helper('IPA', helper)
-                else:
-                    self._wait_for_replica_kdc_entry()
-
-                certmonger.request_and_wait_for_cert(
-                    certpath,
-                    subject,
-                    krbtgt,
-                    dns=self.fqdn,
-                    storage='FILE',
-                    profile='KDCs_PKINIT_Certs')
-            except dbus.DBusException as e:
-                # if the certificate is already tracked, ignore the error
-                name = e.get_dbus_name()
-                if name != 'org.fedorahosted.certmonger.duplicate':
-                    root_logger.error("Failed to initiate the request: %s", e)
-                return
-            finally:
-                if prev_helper is not None:
-                    certmonger.modify_ca_helper('IPA', prev_helper)
-
-        # Finally copy the cacert in the krb directory so we don't
-        # have any selinux issues with the file context
-        shutil.copyfile(paths.IPA_CA_CRT, paths.CACERT_PEM)
+    def _call_certmonger(self, certmonger_ca='IPA'):
+        subject = str(DN(('cn', self.fqdn), self.subject_base))
+        krbtgt = "krbtgt/" + self.realm + "@" + self.realm
+        certpath = (paths.KDC_CERT, paths.KDC_KEY)
 
         try:
-            self.restart()
-        except Exception:
-            root_logger.critical("krb5kdc service failed to restart")
-            raise
+            prev_helper = None
+            # on the first CA-ful master without '--no-pkinit', we issue the
+            # certificate by contacting Dogtag directly
+            use_dogtag_submit = all(
+                [self.master_fqdn is None,
+                 self.pkcs12_info is None,
+                 self.config_pkinit])
+
+            if use_dogtag_submit:
+                ca_args = [
+                    paths.CERTMONGER_DOGTAG_SUBMIT,
+                    '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
+                    '--certfile', paths.RA_AGENT_PEM,
+                    '--keyfile', paths.RA_AGENT_KEY,
+                    '--cafile', paths.IPA_CA_CRT,
+                    '--agent-submit'
+                ]
+                helper = " ".join(ca_args)
+                prev_helper = certmonger.modify_ca_helper(certmonger_ca, helper)
+
+            certmonger.request_and_wait_for_cert(
+                certpath,
+                subject,
+                krbtgt,
+                ca=certmonger_ca,
+                dns=self.fqdn,
+                storage='FILE',
+                profile=KDC_PROFILE)
+        except dbus.DBusException as e:
+            # if the certificate is already tracked, ignore the error
+            name = e.get_dbus_name()
+            if name != 'org.fedorahosted.certmonger.duplicate':
+                root_logger.error("Failed to initiate the request: %s", e)
+            return
+        finally:
+            if prev_helper is not None:
+                certmonger.modify_ca_helper(certmonger_ca, prev_helper)
+
+    def issue_selfsigned_pkinit_certs(self):
+        self._call_certmonger(certmonger_ca="SelfSign")
+        # for self-signed certificate, the certificate is its own CA, copy it
+        # as CA cert
+        shutil.copyfile(paths.KDC_CERT, paths.CACERT_PEM)
+
+    def issue_ipa_ca_signed_pkinit_certs(self):
+        try:
+            self._call_certmonger()
+            # copy IPA CA bundle to the KDC's CA cert bundle
+            shutil.copyfile(paths.IPA_CA_CRT, paths.CACERT_PEM)
+        except RuntimeError as e:
+            root_logger.error("PKINIT certificate request failed: %s", e)
+            root_logger.error("Failed to configure PKINIT")
+            self.stop_tracking_certs()
+            self.issue_selfsigned_pkinit_certs()
+
+    def install_external_pkinit_certs(self):
+        certs.install_pem_from_p12(self.pkcs12_info[0],
+                                   self.pkcs12_info[1],
+                                   paths.KDC_CERT)
+        certs.install_key_from_p12(self.pkcs12_info[0],
+                                   self.pkcs12_info[1],
+                                   paths.KDC_KEY)
+        # copy IPA CA bundle to the KDC's CA cert bundle
+        # NOTE: this may not be the same set of CA certificates trusted by
+        # externally provided PKINIT cert.
+        shutil.copyfile(paths.IPA_CA_CRT, paths.CACERT_PEM)
+
+    def setup_pkinit(self):
+        if self.pkcs12_info:
+            self.install_external_pkinit_certs()
+        elif self.config_pkinit:
+            self.issue_ipa_ca_signed_pkinit_certs()
 
     def test_anonymous_pkinit(self):
         with ipautil.private_ccache() as anon_ccache:
@@ -418,6 +442,15 @@ class KrbInstance(service.Service):
                 raise RuntimeError("Failed to configure anonymous PKINIT")
 
     def enable_ssl(self):
+        """
+        generate PKINIT certificate for KDC. If `--no-pkinit` was specified,
+        only configure local self-signed KDC certificate for use as a FAST
+        channel generator for WebUI. Do not advertise the installation steps in
+        this case.
+        """
+        if self.master_fqdn is not None:
+            self._wait_for_replica_kdc_entry()
+
         if self.config_pkinit:
             self.steps = []
             self.step("installing X509 Certificate for PKINIT",
@@ -425,6 +458,14 @@ class KrbInstance(service.Service):
             self.step("testing anonymous PKINIT", self.test_anonymous_pkinit)
 
             self.start_creation()
+        else:
+            self.issue_selfsigned_pkinit_certs()
+
+        try:
+            self.restart()
+        except Exception:
+            root_logger.critical("krb5kdc service failed to restart")
+            raise
 
     def get_anonymous_principal_name(self):
         return "%s@%s" % (ANON_USER, self.realm)
