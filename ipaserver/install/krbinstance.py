@@ -48,6 +48,38 @@ from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 
+PKINIT_ENABLED = 'pkinitEnabled'
+
+
+def get_pkinit_request_ca():
+    """
+    Return the certmonger CA name which is serving the PKINIT certificate
+    request. If the certificate is not tracked by Certmonger, return None
+    """
+    pkinit_request_id = certmonger.get_request_id(
+        {'cert-file': paths.KDC_CERT})
+
+    if pkinit_request_id is None:
+        return
+
+    return certmonger.get_request_value(pkinit_request_id, 'ca-name')
+
+
+def is_pkinit_enabled():
+    """
+    check whether PKINIT is enabled on the master by checking for the presence
+    of KDC certificate and it's tracking CA
+    """
+
+    if os.path.exists(paths.KDC_CERT):
+        pkinit_request_ca = get_pkinit_request_ca()
+
+        if pkinit_request_ca != "SelfSign":
+            return True
+
+    return False
+
+
 class KpasswdInstance(service.SimpleServiceInstance):
     def __init__(self):
         service.SimpleServiceInstance.__init__(self, "kadmin")
@@ -399,6 +431,13 @@ class KrbInstance(service.Service):
             if prev_helper is not None:
                 certmonger.modify_ca_helper(certmonger_ca, prev_helper)
 
+    def pkinit_enable(self):
+        """
+        advertise enabled PKINIT feature in master's KDC entry in LDAP
+        """
+        service.set_service_entry_config(
+            'KDC', self.fqdn, [PKINIT_ENABLED], self.suffix)
+
     def issue_selfsigned_pkinit_certs(self):
         self._call_certmonger(certmonger_ca="SelfSign")
         # for self-signed certificate, the certificate is its own CA, copy it
@@ -410,6 +449,7 @@ class KrbInstance(service.Service):
             self._call_certmonger()
             # copy IPA CA bundle to the KDC's CA cert bundle
             shutil.copyfile(paths.IPA_CA_CRT, paths.CACERT_PEM)
+            self.pkinit_enable()
         except RuntimeError as e:
             root_logger.error("PKINIT certificate request failed: %s", e)
             root_logger.error("Failed to configure PKINIT")
@@ -427,6 +467,7 @@ class KrbInstance(service.Service):
         # NOTE: this may not be the same set of CA certificates trusted by
         # externally provided PKINIT cert.
         shutil.copyfile(paths.IPA_CA_CRT, paths.CACERT_PEM)
+        self.pkinit_enable()
 
     def setup_pkinit(self):
         if self.pkcs12_info:
