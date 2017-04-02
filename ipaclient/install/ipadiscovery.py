@@ -493,15 +493,15 @@ class IPADiscovery(object):
 
         try:
             answers = []
-			dns_answers = resolver.query(qname, rdatatype.SRV)
-			for answer in dns_answers:
-				if not len(answers):
-					answers.append(answer)
-				else:
-					i = 0
-					while i < len(answers) and answer.priority > answers[i].priority:
-						i += 1
-					answers.insert(i, answer)
+            dns_answers = resolver.query(qname, rdatatype.SRV)
+            for answer in dns_answers:
+                if not len(answers):
+                    answers.append(answer)
+                else:
+                    i = 0
+                    while i < len(answers) and answer.priority > answers[i].priority:
+                        i += 1
+                    answers.insert(i, answer)
         except DNSException as e:
             root_logger.debug("DNS record not found: %s", e.__class__.__name__)
             answers = []
@@ -531,15 +531,15 @@ class IPADiscovery(object):
 
         try:
             answers = []
-			dns_answers = resolver.query(qname, rdatatype.SRV)
-			for answer in dns_answers:
-				if not len(answers):
-					answers.append(answer)
-				else:
-					i = 0
-					while i < len(answers) and answer.priority > answers[i].priority:
-						i += 1
-					answers.insert(i, answer)
+            dns_answers = resolver.query(qname, rdatatype.SRV)
+            for answer in dns_answers:
+                if not len(answers):
+                    answers.append(answer)
+                else:
+                    i = 0
+                    while i < len(answers) and answer.priority > answers[i].priority:
+                        i += 1
+                    answers.insert(i, answer)
         except DNSException as e:
             root_logger.debug("DNS record not found: %s", e.__class__.__name__)
             answers = []
