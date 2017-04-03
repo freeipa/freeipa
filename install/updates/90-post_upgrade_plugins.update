@@ -10,6 +10,7 @@ plugin: update_sigden_extdom_broken_config
 plugin: update_sids
 plugin: update_default_range
 plugin: update_default_trust_view
+plugin: update_tdo_gidnumber
 plugin: update_ca_renewal_master
 plugin: update_idrange_type
 plugin: update_pacs
