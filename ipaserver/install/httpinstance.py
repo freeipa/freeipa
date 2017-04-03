@@ -375,10 +375,11 @@ class HTTPInstance(service.Service):
         return False
 
     def __setup_ssl(self):
+        truncate = not self.promote or not self.ca_is_configured
         db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
                           subject_base=self.subject_base, user="root",
                           group=constants.HTTPD_GROUP,
-                          truncate=(not self.promote))
+                          truncate=truncate)
         self.disable_system_trust()
         if self.pkcs12_info:
             if self.ca_is_configured:
