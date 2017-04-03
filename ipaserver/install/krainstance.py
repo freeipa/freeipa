@@ -235,9 +235,13 @@ class KRAInstance(DogtagInstance):
             "KRA", "pki_share_dbuser_dn",
             str(DN(('uid', 'pkidbuser'), ('ou', 'people'), ('o', 'ipaca'))))
 
-        # generate pin which we know can be used for FIPS NSS database
-        pki_pin = ipautil.ipa_generate_password()
-        config.set("KRA", "pki_pin", pki_pin)
+        if not (os.path.isdir(paths.PKI_TOMCAT_ALIAS_DIR) and
+                os.path.isfile(paths.PKI_TOMCAT_PASSWORD_CONF)):
+            # generate pin which we know can be used for FIPS NSS database
+            pki_pin = ipautil.ipa_generate_password()
+            config.set("KRA", "pki_pin", pki_pin)
+        else:
+            pki_pin = None
 
         _p12_tmpfile_handle, p12_tmpfile_name = tempfile.mkstemp(dir=paths.TMP)
 
