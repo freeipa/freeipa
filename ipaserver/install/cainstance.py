@@ -541,9 +541,13 @@ class CAInstance(DogtagInstance):
         # CA key algorithm
         config.set("CA", "pki_ca_signing_key_algorithm", self.ca_signing_algorithm)
 
-        # generate pin which we know can be used for FIPS NSS database
-        pki_pin = ipautil.ipa_generate_password()
-        config.set("CA", "pki_pin", pki_pin)
+        if not (os.path.isdir(paths.PKI_TOMCAT_ALIAS_DIR) and
+                os.path.isfile(paths.PKI_TOMCAT_PASSWORD_CONF)):
+            # generate pin which we know can be used for FIPS NSS database
+            pki_pin = ipautil.ipa_generate_password()
+            config.set("CA", "pki_pin", pki_pin)
+        else:
+            pki_pin = None
 
         if self.clone:
 
