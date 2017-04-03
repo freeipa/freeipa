@@ -117,16 +117,24 @@ dcerpc_error_codes = {
                   # we simply will skip the binding
         access_denied_error,
     -1073741772:  # NT_STATUS_OBJECT_NAME_NOT_FOUND
-        errors.RemoteRetrieveError(
-            reason=_('CIFS server configuration does not allow '
-                     'access to \\\\pipe\\lsarpc')),
+        errors.NotFound(
+            reason=_('Cannot find specified domain or server name')),
 }
 
 dcerpc_error_messages = {
     "NT_STATUS_OBJECT_NAME_NOT_FOUND":
         errors.NotFound(
             reason=_('Cannot find specified domain or server name')),
+    "The object name is not found.":
+        errors.NotFound(
+            reason=_('Cannot find specified domain or server name')),
     "WERR_NO_LOGON_SERVERS":
+        errors.RemoteRetrieveError(
+            reason=_('AD DC was unable to reach any IPA domain controller. '
+                     'Most likely it is a DNS or firewall issue')),
+    # This is a very long key, don't change it
+    "There are currently no logon servers available to "
+    "service the logon request.":
         errors.RemoteRetrieveError(
             reason=_('AD DC was unable to reach any IPA domain controller. '
                      'Most likely it is a DNS or firewall issue')),
@@ -802,7 +810,8 @@ class DomainValidator(object):
 
         # Both methods should not fail at the same time
         if finddc_error and len(info['gc']) == 0:
-            raise assess_dcerpc_exception(message=str(finddc_error))
+            num, message = e.args  # pylint: disable=unpacking-non-sequence
+            raise assess_dcerpc_exception(num=num, message=message)
 
         self._info[domain] = info
         return info
@@ -908,7 +917,8 @@ class TrustDomainInstance(object):
             else:
                 result = netrc.finddc(address=remote_host, flags=flags)
         except RuntimeError as e:
-            raise assess_dcerpc_exception(message=str(e))
+            num, message = e.args  # pylint: disable=unpacking-non-sequence
+            raise assess_dcerpc_exception(num=num, message=message)
 
         if not result:
             return False
@@ -1408,7 +1418,8 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
             result = netrc.finddc(domain=trustdomain,
                                   flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
     except RuntimeError as e:
-        raise assess_dcerpc_exception(message=str(e))
+        num, message = e.args  # pylint: disable=unpacking-non-sequence
+        raise assess_dcerpc_exception(num=num, message=message)
 
     td.info['dc'] = unicode(result.pdc_dns_name)
     td.info['name'] = unicode(result.dns_domain)
