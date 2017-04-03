@@ -22,6 +22,7 @@ from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import sysupgrade
+from ipaserver.install.adtrustinstance import ADTRUSTInstance
 
 register = Registry()
 
@@ -315,4 +316,59 @@ class update_sids(Updater):
                     "running 'ipa trust-add' again.", domain)
 
         sysupgrade.set_upgrade_state('sidgen', 'update_sids', False)
+        return False, ()
+
+
+@register()
+class update_tdo_gidnumber(Updater):
+    """
+    Create a gidNumber attribute for Trusted Domain Objects.
+
+    The value is taken from the fallback group defined in cn=Default SMB Group.
+    """
+    def execute(self, **options):
+        ldap = self.api.Backend.ldap2
+
+        # Read the gidnumber of the fallback group
+        dn = DN(('cn', ADTRUSTInstance.FALLBACK_GROUP_NAME),
+                self.api.env.container_group,
+                self.api.env.basedn)
+
+        try:
+            entry = ldap.get_entry(dn, ['gidnumber'])
+            gidNumber = entry.get('gidnumber')
+        except errors.NotFound:
+            self.log.error("{0} not found".format(
+                ADTRUSTInstance.FALLBACK_GROUP_NAME))
+            return False, ()
+
+        if not gidNumber:
+            self.log.error("{0} does not have a gidnumber".format(
+                ADTRUSTInstance.FALLBACK_GROUP_NAME))
+            return False, ()
+
+        # For each trusted domain object, add gidNumber
+        try:
+            tdos = ldap.get_entries(
+                DN(self.api.env.container_adtrusts, self.api.env.basedn),
+                scope=ldap.SCOPE_ONELEVEL,
+                filter="(objectclass=ipaNTTrustedDomain)",
+                attrs_list=['gidnumber'])
+            for tdo in tdos:
+                # if the trusted domain object does not contain gidnumber,
+                # add the default fallback group gidnumber
+                if not tdo.get('gidnumber'):
+                    try:
+                        tdo['gidnumber'] = gidNumber
+                        ldap.update_entry(tdo)
+                        self.log.debug("Added gidnumber {0} to {1}".format(
+                            gidNumber, tdo.dn))
+                    except Exception:
+                        self.log.warning(
+                            "Failed to add gidnumber to {0}".format(tdo.dn))
+
+        except errors.NotFound:
+            self.log.debug("No trusted domain object to update")
+            return False, ()
+
         return False, ()
