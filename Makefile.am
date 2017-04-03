@@ -254,6 +254,7 @@ endif  # WITH_JSLINT
 
 .PHONY: bdist_wheel wheel_bundle wheel_placeholder pypi_packages
 WHEELDISTDIR = $(top_builddir)/dist/wheels
+WHEELPYPIDIR = $(top_builddir)/dist/pypi
 WHEELBUNDLEDIR = $(top_builddir)/dist/bundle
 
 @MK_IFEQ@ ($(IPA_SERVER_WHEELS),1)
@@ -273,6 +274,9 @@ $(WHEELDISTDIR):
 $(WHEELBUNDLEDIR):
 	mkdir -p $(WHEELBUNDLEDIR)
 
+$(WHEELPYPIDIR):
+	mkdir -p $(WHEELPYPIDIR)
+
 bdist_wheel: $(WHEELDISTDIR)
 	rm -f $(foreach item,$(IPA_WHEEL_PACKAGES) ipatests,$(WHEELDISTDIR)/$(item)-*.whl)
 	export IPA_OMIT_INSTALL=$(IPA_OMIT_INSTALL); \
@@ -291,14 +295,20 @@ wheel_bundle: $(WHEELBUNDLEDIR) bdist_wheel .wheelconstraints
 	    --wheel-dir $(WHEELBUNDLEDIR) \
 	    $(IPA_WHEEL_PACKAGES) $(IPA_EXTRA_WHEELS)
 
-wheel_placeholder: $(WHEELDISTDIR)
-	for dir in $(IPA_PLACEHOLDERS); do \
-	    $(MAKE) $(AM_MAKEFLAGS) -C $(top_srcdir)/pypi/$${dir} bdist_wheel || exit 1; \
+pypi_packages: $(WHEELPYPIDIR) .wheelconstraints
+	rm -f $(WHEELPYPIDIR)/*
+	for dir in $(IPACLIENT_SUBDIRS); do \
+	    $(MAKE) $(AM_MAKEFLAGS) \
+	        IPA_OMIT_INSTALL=1 WHEELDISTDIR=$(abspath $(WHEELPYPIDIR)) \
+	        -C $${dir} bdist_wheel || exit 1; \
 	done
-
-pypi_packages: bdist_wheel wheel_placeholder
+	for dir in $(IPA_PLACEHOLDERS); do \
+	    $(MAKE) $(AM_MAKEFLAGS) \
+	        IPA_OMIT_INSTALL=1 WHEELDISTDIR=$(abspath $(WHEELPYPIDIR)) \
+	        -C $(top_srcdir)/pypi/$${dir} bdist_wheel || exit 1; \
+	done
 	@echo -e "\n\nTo upload packages to PyPI, run:\n"
-	@echo -e "    twine upload $(WHEELDISTDIR)/*-$(VERSION)-py2.py3-none-any.whl\n"
+	@echo -e "    twine upload $(WHEELPYPIDIR)/*-$(VERSION)-py2.py3-none-any.whl\n"
 
 .PHONY:
 strip-po:
