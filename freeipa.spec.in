@@ -31,9 +31,6 @@
     %global linter_options --disable-pylint --without-jslint
 %endif
 
-# Python wheel support and PyPI packages
-%global with_wheels 0
-
 %global alt_name ipa
 %if 0%{?rhel}
 # Require 4.6.0-4 which brings RC4 for FIPS + trust fixes to priv. separation
@@ -145,7 +142,7 @@ BuildRequires:  python-cffi
 #
 # Build dependencies for wheel packaging and PyPI upload
 #
-%if 0%{with_wheels}
+%if 0%{?with_wheels}
 BuildRequires:  dbus-glib-devel
 BuildRequires:  python2-twine
 BuildRequires:  python2-wheel
