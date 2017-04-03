@@ -569,7 +569,7 @@ class NSSDatabase(object):
         except cryptography.x509.ExtensionNotFound:
             raise ValueError("missing basic constraints")
 
-        if not bc.ca:
+        if not bc.value.ca:
             raise ValueError("not a CA certificate")
 
         try:
