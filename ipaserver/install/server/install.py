@@ -513,11 +513,6 @@ def install_check(installer):
         dirsrv_pkcs12_info = (dirsrv_pkcs12_file.name, dirsrv_pin)
 
     if options.pkinit_cert_files:
-        if not options.no_pkinit:
-            raise ScriptError("Cannot create KDC PKINIT certificate and use "
-                              "provided external PKINIT certificate at the "
-                              "same time. Please choose one of them.")
-
         if options.pkinit_pin is None:
             options.pkinit_pin = read_password(
                 "Enter Kerberos KDC private key unlock",
