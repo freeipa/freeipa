@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import operator
 import socket
 
 import six
@@ -493,6 +494,7 @@ class IPADiscovery(object):
 
         try:
             answers = resolver.query(qname, rdatatype.SRV)
+            answers = sorted(answers, key=operator.attrgetter('priority'))
         except DNSException as e:
             root_logger.debug("DNS record not found: %s", e.__class__.__name__)
             answers = []
