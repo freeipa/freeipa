@@ -21,6 +21,7 @@ import socket
 
 import six
 
+from operator import attrgetter
 from ipapython.ipa_log_manager import root_logger
 from dns import resolver, rdatatype
 from dns.exception import DNSException
@@ -492,16 +493,8 @@ class IPADiscovery(object):
         root_logger.debug("Search DNS for SRV record of %s", qname)
 
         try:
-            answers = []
-            dns_answers = resolver.query(qname, rdatatype.SRV)
-            for answer in dns_answers:
-                if not len(answers):
-                    answers.append(answer)
-                else:
-                    i = 0
-                    while i < len(answers) and answer.priority > answers[i].priority:
-                        i += 1
-                    answers.insert(i, answer)
+            answers = resolver.query(qname, rdatatype.SRV)
+            answers = sorted(answers, key=attrgetter('priority'))
         except DNSException as e:
             root_logger.debug("DNS record not found: %s", e.__class__.__name__)
             answers = []
@@ -530,16 +523,7 @@ class IPADiscovery(object):
         root_logger.debug("Search DNS for TXT record of %s", qname)
 
         try:
-            answers = []
-            dns_answers = resolver.query(qname, rdatatype.SRV)
-            for answer in dns_answers:
-                if not len(answers):
-                    answers.append(answer)
-                else:
-                    i = 0
-                    while i < len(answers) and answer.priority > answers[i].priority:
-                        i += 1
-                    answers.insert(i, answer)
+            answers = resolver.query(qname, rdatatype.TXT)
         except DNSException as e:
             root_logger.debug("DNS record not found: %s", e.__class__.__name__)
             answers = []
