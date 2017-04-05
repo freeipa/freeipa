@@ -166,7 +166,6 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
     """
     description = "Server"
 
-    force_join = False
     kinit_attempts = 1
     fixed_primary = True
     ntp_servers = None
@@ -526,6 +525,7 @@ class ServerMasterInstall(ServerMasterInstallInterface):
     Server master installer
     """
 
+    force_join = False
     servers = None
     no_wait_for_dns = True
     host_password = None
