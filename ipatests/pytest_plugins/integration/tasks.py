@@ -84,6 +84,9 @@ def setup_server_logs_collecting(host):
     # dogtag logs
     host.collect_log(os.path.join(paths.VAR_LOG_PKI_DIR))
 
+    # selinux logs
+    host.collect_log(paths.VAR_LOG_AUDIT)
+
     # SSSD debugging must be set after client is installed (function
     # setup_sssd_debugging)
 
