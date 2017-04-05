@@ -50,7 +50,6 @@ class BasePathNamespace(object):
     HTTPD_SSL_CONF = "/etc/httpd/conf.d/ssl.conf"
     OLD_IPA_KEYTAB = "/etc/httpd/conf/ipa.keytab"
     HTTP_KEYTAB = "/var/lib/ipa/gssproxy/http.keytab"
-    ANON_KEYTAB = "/var/lib/ipa/api/anon.keytab"
     HTTPD_PASSWORD_CONF = "/etc/httpd/conf/password.conf"
     IDMAPD_CONF = "/etc/idmapd.conf"
     ETC_IPA = "/etc/ipa"

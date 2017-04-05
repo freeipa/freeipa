@@ -30,7 +30,6 @@ import locale
 
 import six
 
-from ipalib.constants import IPAAPI_USER
 from ipalib.install import certmonger
 from ipaserver.install import service
 from ipaserver.install import certs
@@ -42,7 +41,6 @@ from ipapython.ipa_log_manager import root_logger
 import ipapython.errors
 from ipaserver.install import sysupgrade
 from ipalib import api
-from ipalib.constants import ANON_USER
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
@@ -158,7 +156,6 @@ class HTTPInstance(service.Service):
         self.step("adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
         self.step("setting up httpd keytab", self.request_service_keytab)
-        self.step("retrieving anonymous keytab", self.request_anon_keytab)
         self.step("configuring Gssproxy", self.configure_gssproxy)
         self.step("setting up ssl", self.__setup_ssl)
         if self.ca_is_configured:
@@ -303,20 +300,6 @@ class HTTPInstance(service.Service):
         finally:
             if certmonger_stopped:
                 certmonger.stop()
-
-    def request_anon_keytab(self):
-        parent = os.path.dirname(paths.ANON_KEYTAB)
-        if not os.path.exists(parent):
-            os.makedirs(parent, 0o755)
-
-        self.clean_previous_keytab(keytab=paths.ANON_KEYTAB)
-        self.run_getkeytab(self.api.env.ldap_uri, paths.ANON_KEYTAB, ANON_USER)
-
-        pent = pwd.getpwnam(IPAAPI_USER)
-        os.chmod(parent, 0o700)
-        os.chown(parent, pent.pw_uid, pent.pw_gid)
-
-        self.set_keytab_owner(keytab=paths.ANON_KEYTAB, owner=IPAAPI_USER)
 
     def create_password_conf(self):
         """

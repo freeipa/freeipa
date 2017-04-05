@@ -120,7 +120,6 @@ class Backup(admintool.AdminTool):
     )
 
     files = (
-        paths.ANON_KEYTAB,
         paths.NAMED_CONF,
         paths.NAMED_KEYTAB,
         paths.RESOLV_CONF,
