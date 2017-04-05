@@ -1742,47 +1742,24 @@ class trust_fetch_domains(LDAPRetrieve):
         ldap = self.api.Backend.ldap2
         verify_samba_component_presence(ldap, self.api)
 
-        trust = self.api.Command.trust_show(
-            keys[0], all=True, raw=True)['result']
+        # Check first that the trust actually exists
+        result = self.api.Command.trust_show(keys[0], all=True, raw=True)
+        self.obj.warning_if_ad_trust_dom_have_missing_SID(result, **options)
 
         result = dict()
         result['result'] = []
         result['count'] = 0
         result['truncated'] = False
 
-        trust_direction = int(trust['ipanttrustdirection'][0])
-        is_nontransitive = int(trust.get('ipanttrustattributes',
-                               [0])[0]) & LSA_TRUST_ATTRIBUTE_NON_TRANSITIVE
         # For one-way trust and external trust fetch over DBus.
         # We don't get the list in this case.
-        if trust_direction != TRUST_BIDIRECTIONAL or is_nontransitive:
-            fetch_trusted_domains_over_dbus(self.api, self.log, keys[0])
-            result['summary'] = unicode(_('List of trust domains successfully refreshed. Use trustdomain-find command to list them.'))
-            return result
-
-        trustinstance = ipaserver.dcerpc.TrustDomainJoins(self.api)
-        if not trustinstance.configured:
-            raise errors.NotFound(
-                name=_('AD Trust setup'),
-                reason=_(
-                    'Cannot perform join operation without own domain '
-                    'configured. Make sure you have run ipa-adtrust-install '
-                    'on the IPA server first'
-                )
-            )
-
-        trustinstance.populate_remote_domain(keys[0])
-
-        res = fetch_domains_from_trust(self.api, trustinstance, **options)
-        domains = add_new_domains_from_trust(self.api, trustinstance, trust, res, **options)
-
-        if len(domains) > 0:
-            result['summary'] = unicode(_('List of trust domains successfully refreshed'))
-        else:
-            result['summary'] = unicode(_('No new trust domains were found'))
-
-        result['result'] = domains
-        result['count'] = len(domains)
+        # With privilege separation we also cannot authenticate as
+        # HTTP/ principal because we have no access to its key material.
+        # Thus, we'll use DBus call out to oddjobd helper in all cases
+        fetch_trusted_domains_over_dbus(self.api, self.log, keys[0])
+        result['summary'] = unicode(_('List of trust domains successfully '
+                                      'refreshed. Use trustdomain-find '
+                                      'command to list them.'))
         return result
 
 
