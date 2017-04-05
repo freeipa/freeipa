@@ -948,6 +948,8 @@ def ensure_enrolled(installer):
             args.append("--no-sshd")
         if installer.mkhomedir:
             args.append("--mkhomedir")
+        if installer.force_join:
+            args.append("--force-join")
 
         ipautil.run(args, stdin=stdin, nolog=nolog, redirect_output=True)
         print()
