@@ -31,7 +31,7 @@ PKG_CHECK_MODULES([SSSIDMAP], [sss_idmap])
 PKG_CHECK_MODULES([SSSNSSIDMAP], [sss_nss_idmap >= 1.15.2])
 AC_CHECK_LIB([sss_nss_idmap],
              [sss_nss_getlistbycert],
-             [],
+             [ ],
              [AC_MSG_ERROR([Required sss_nss_getlistbycert symbol in sss_nss_idmap not found])],
              [])
 
@@ -48,7 +48,7 @@ dnl - Check for KRB5 krad
 dnl ---------------------------------------------------------------------------
 
 AC_CHECK_HEADER(krad.h, [], [AC_MSG_ERROR([krad.h not found])])
-AC_CHECK_LIB(krad, main, [], [AC_MSG_ERROR([libkrad not found])])
+AC_CHECK_LIB(krad, main, [ ], [AC_MSG_ERROR([libkrad not found])])
 KRAD_LIBS="-lkrad"
 krb5rundir="${localstatedir}/run/krb5kdc"
 AC_SUBST(KRAD_LIBS)
