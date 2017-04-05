@@ -113,6 +113,12 @@ testrange8_size = 50
 testrange8_base_rid = rid_shift + 700
 testrange8_secondary_base_rid = rid_shift + 800
 
+testrange9 = u'testrange9'
+testrange9_base_id = id_shift + 800
+testrange9_size = 50
+testrange9_base_rid = rid_shift + 800
+testrange9_secondary_base_rid = rid_shift + 1800
+
 # Domain ranges definitions
 
 # Domain1 - AD domain nonactive (not present in LDAP)
@@ -416,7 +422,8 @@ class test_range(Declarative):
 
     cleanup_commands = [
         ('idrange_del', [testrange1, testrange2, testrange3, testrange4,
-                         testrange5, testrange6, testrange7, testrange8],
+                         testrange5, testrange6, testrange7, testrange8,
+                         testrange9],
                         {'continue': True}),
         ('user_del', [user1], {}),
         ('group_del', [group1], {}),
@@ -870,6 +877,46 @@ class test_range(Declarative):
                 desc='Constraint violation',
                 info='New primary rid range overlaps with existing primary rid '
                      'range.'),
+        ),
+
+        # Test for bug 6404
+        # if dom-name is empty, add should not fail
+
+        dict(
+            desc='Create ID range %r' % (testrange9),
+            command=('idrange_add', [testrange9],
+                     dict(ipanttrusteddomainname=None,
+                          ipabaseid=testrange9_base_id,
+                          ipaidrangesize=testrange9_size,
+                          ipabaserid=testrange9_base_rid,
+                          ipasecondarybaserid=testrange9_secondary_base_rid)),
+            expected=dict(
+                result=dict(
+                    dn=DN(('cn', testrange9), ('cn', 'ranges'), ('cn', 'etc'),
+                          api.env.basedn),
+                    cn=[testrange9],
+                    objectclass=[u'ipaIDrange', u'ipadomainidrange'],
+                    ipabaseid=[unicode(testrange9_base_id)],
+                    ipabaserid=[unicode(testrange9_base_rid)],
+                    ipasecondarybaserid=[
+                        unicode(testrange9_secondary_base_rid)],
+                    ipaidrangesize=[unicode(testrange9_size)],
+                    iparangetyperaw=[u'ipa-local'],
+                    iparangetype=[u'local domain range'],
+                ),
+                value=testrange9,
+                summary=u'Added ID range "%s"' % (testrange9),
+            ),
+        ),
+
+        dict(
+            desc='Delete ID range %r' % testrange9,
+            command=('idrange_del', [testrange9], {}),
+            expected=dict(
+                result=dict(failed=[]),
+                value=[testrange9],
+                summary=u'Deleted ID range "%s"' % testrange9,
+            ),
         ),
 
     ]
