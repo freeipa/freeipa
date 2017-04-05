@@ -908,52 +908,51 @@ def install_check(installer):
 
 
 def ensure_enrolled(installer):
-    # Call client install script
-    service.print_msg("Configuring client side components")
+    args = [paths.IPA_CLIENT_INSTALL, "--unattended", "--no-ntp"]
+    stdin = None
+    nolog = []
+
+    if installer.domain_name:
+        args.extend(["--domain", installer.domain_name])
+    if installer.server:
+        args.extend(["--server", installer.server])
+    if installer.realm_name:
+        args.extend(["--realm", installer.realm_name])
+    if installer.host_name:
+        args.extend(["--hostname", installer.host_name])
+
+    if installer.password:
+        args.extend(["--password", installer.password])
+        nolog.append(installer.password)
+    else:
+        if installer.admin_password:
+            # Always set principal if password was set explicitly,
+            # the password itself gets passed directly via stdin
+            args.extend(["--principal", installer.principal or "admin"])
+            stdin = installer.admin_password
+        if installer.keytab:
+            args.extend(["--keytab", installer.keytab])
+
+    if installer.no_dns_sshfp:
+        args.append("--no-dns-sshfp")
+    if installer.ssh_trust_dns:
+        args.append("--ssh-trust-dns")
+    if installer.no_ssh:
+        args.append("--no-ssh")
+    if installer.no_sshd:
+        args.append("--no-sshd")
+    if installer.mkhomedir:
+        args.append("--mkhomedir")
+    if installer.force_join:
+        args.append("--force-join")
+
     try:
+        # Call client install script
+        service.print_msg("Configuring client side components")
         installer._enrollment_performed = True
-
-        args = [paths.IPA_CLIENT_INSTALL, "--unattended", "--no-ntp"]
-        stdin = None
-        nolog = []
-
-        if installer.domain_name:
-            args.extend(["--domain", installer.domain_name])
-        if installer.server:
-            args.extend(["--server", installer.server])
-        if installer.realm_name:
-            args.extend(["--realm", installer.realm_name])
-        if installer.host_name:
-            args.extend(["--hostname", installer.host_name])
-
-        if installer.password:
-            args.extend(["--password", installer.password])
-            nolog.append(installer.password)
-        else:
-            if installer.admin_password:
-                # Always set principal if password was set explicitly,
-                # the password itself gets passed directly via stdin
-                args.extend(["--principal", installer.principal or "admin"])
-                stdin = installer.admin_password
-            if installer.keytab:
-                args.extend(["--keytab", installer.keytab])
-
-        if installer.no_dns_sshfp:
-            args.append("--no-dns-sshfp")
-        if installer.ssh_trust_dns:
-            args.append("--ssh-trust-dns")
-        if installer.no_ssh:
-            args.append("--no-ssh")
-        if installer.no_sshd:
-            args.append("--no-sshd")
-        if installer.mkhomedir:
-            args.append("--mkhomedir")
-        if installer.force_join:
-            args.append("--force-join")
-
         ipautil.run(args, stdin=stdin, nolog=nolog, redirect_output=True)
         print()
-    except Exception:
+    except ipautil.CalledProcessError:
         raise ScriptError("Configuration of client side components failed!")
 
 
