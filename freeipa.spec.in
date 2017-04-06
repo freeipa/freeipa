@@ -195,6 +195,7 @@ BuildRequires:  python-nose
 BuildRequires:  python-paste
 BuildRequires:  systemd-python
 BuildRequires:  python2-jinja2
+BuildRequires:  python-augeas
 
 %if 0%{?with_python3}
 # FIXME: this depedency is missing - server will not work
@@ -232,6 +233,7 @@ BuildRequires:  python3-nose
 BuildRequires:  python3-paste
 BuildRequires:  python3-systemd
 BuildRequires:  python3-jinja2
+BuildRequires:  python3-augeas
 %endif # with_python3
 %endif # with_lint
 
@@ -355,6 +357,7 @@ Requires: python-dns >= 1.15
 Requires: python-kdcproxy >= 0.3
 Requires: rpm-libs
 Requires: pki-base-python2
+Requires: python-augeas
 
 %description -n python2-ipaserver
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -384,6 +387,7 @@ Requires: python3-pyasn1
 Requires: python3-dbus
 Requires: python3-dns >= 1.15
 Requires: python3-kdcproxy >= 0.3
+Requires: python3-augeas
 Requires: rpm-libs
 Requires: pki-base-python3
 

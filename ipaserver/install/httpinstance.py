@@ -29,6 +29,7 @@ import pipes
 import locale
 
 import six
+from augeas import Augeas
 
 from ipalib.install import certmonger
 from ipaserver.install import service
@@ -153,6 +154,7 @@ class HTTPInstance(service.Service):
                   self.set_mod_nss_protocol)
         self.step("setting mod_nss password file", self.__set_mod_nss_passwordfile)
         self.step("enabling mod_nss renegotiate", self.enable_mod_nss_renegotiate)
+        self.step("enabling mod_nss OCSP", self.enable_mod_nss_ocsp)
         self.step("adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
         self.step("setting up httpd keytab", self.request_service_keytab)
@@ -259,6 +261,31 @@ class HTTPInstance(service.Service):
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSRenegotiation', 'on', False)
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSRequireSafeNegotiation', 'on', False)
 
+    def enable_mod_nss_ocsp(self):
+        aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD)
+
+        aug.set('/augeas/load/Httpd/lens', 'Httpd.lns')
+        aug.set('/augeas/load/Httpd/incl', paths.HTTPD_NSS_CONF)
+        aug.load()
+
+        path = '/files{}/VirtualHost'.format(paths.HTTPD_NSS_CONF)
+
+        ocsp_comment = aug.get(
+                        '{}/#comment[.=~regexp("NSSOCSP .*")]'.format(path))
+        ocsp_dir = aug.get('{}/directive[.="NSSOCSP"]'.format(path))
+
+        if ocsp_dir is None and ocsp_comment is not None:
+            # Directive is missing, comment is present
+            aug.set('{}/#comment[.=~regexp("NSSOCSP .*")]'.format(path),
+                    'NSSOCSP')
+            aug.rename('{}/#comment[.="NSSOCSP"]'.format(path), 'directive')
+        elif ocsp_dir is None:
+            # Directive is missing and comment is missing
+            aug.set('{}/directive[last()+1]'.format(path), "NSSOCSP")
+
+        aug.set('{}/directive[. = "NSSOCSP"]/arg'.format(path), 'on')
+        aug.save()
+
     def set_mod_nss_cipher_suite(self):
         ciphers = ','.join(NSS_CIPHER_SUITE)
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSCipherSuite', ciphers, False)
@@ -351,6 +378,7 @@ class HTTPInstance(service.Service):
                           create=True)
         self.disable_system_trust()
         self.create_password_conf()
+
         if self.pkcs12_info:
             if self.ca_is_configured:
                 trust_flags = 'CT,C,C'
@@ -374,6 +402,8 @@ class HTTPInstance(service.Service):
 
             self.__set_mod_nss_nickname(nickname)
             self.add_cert_to_service()
+
+            db.trust_root_cert(nickname, "P,,")
 
         else:
             if not self.promote:

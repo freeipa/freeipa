@@ -21,11 +21,23 @@
 
 import syslog
 import traceback
+from ipalib import api
 from ipaplatform import services
-from ipaserver.install import certs
+from ipaplatform.paths import paths
+from ipaserver.install import certs, installutils
 
 
 def _main():
+
+    api.bootstrap(in_server=True, context='restart', confdir=paths.ETC_IPA)
+    api.finalize()
+
+    db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
+    nickname = installutils.get_directive(paths.HTTPD_NSS_CONF, "NSSNickname")
+
+    # Add trust flag which set certificate trusted for SSL connections.
+    db.trust_root_cert(nickname, "P,,")
+
     syslog.syslog(syslog.LOG_NOTICE, 'certmonger restarted httpd')
 
     try:
