@@ -1485,14 +1485,17 @@ def add_default_caacl(ca):
 def setup_pkinit(krb):
     root_logger.info("[Setup PKINIT]")
 
-    if not api.Command.ca_is_enabled()['result']:
-        root_logger.info("CA is not enabled")
-        return
+    pkinit_is_enabled = krbinstance.is_pkinit_enabled()
+    ca_is_enabled = api.Command.ca_is_enabled()['result']
 
-    if not os.path.exists(paths.KDC_CERT):
-        root_logger.info("Requesting PKINIT certificate")
-        krb.setup_pkinit()
+    if not pkinit_is_enabled:
+        if ca_is_enabled:
+            krb.issue_ipa_ca_signed_pkinit_certs()
+        else:
+            krb.issue_selfsigned_pkinit_certs()
 
+    # reconfigure KDC just in case in order to handle potentially broken
+    # 4.5.0 -> 4.5.1 upgrade path
     replacevars = dict()
     replacevars['pkinit_identity'] = 'FILE:{},{}'.format(
         paths.KDC_CERT,paths.KDC_KEY)
