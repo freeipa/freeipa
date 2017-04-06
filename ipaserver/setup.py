@@ -61,6 +61,7 @@ if __name__ == '__main__':
             "pyasn1",
             "requests",
             "six",
+            "python-augeas",
         ],
         entry_points={
             'custodia.authorizers': [
