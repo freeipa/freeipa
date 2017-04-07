@@ -3,13 +3,18 @@
 #
 
 import ctypes
+import sys
 
 
 KRB5_CC_NOSUPP = -1765328137
 
+if sys.platform == 'darwin':
+    LIBKRB5_FILENAME = 'libkrb5.dylib'
+else:
+    LIBKRB5_FILENAME = 'libkrb5.so.3'
 
 try:
-    LIBKRB5 = ctypes.CDLL('libkrb5.so.3')
+    LIBKRB5 = ctypes.CDLL(LIBKRB5_FILENAME)
 except OSError as e:  # pragma: no cover
     raise ImportError(str(e))
 
