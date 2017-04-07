@@ -27,7 +27,6 @@ from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython.admintool import ScriptError
 from ipaplatform import services
-from ipaplatform.constants import constants as pconstants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 from ipalib import api, constants, create_api, errors, rpc, x509
@@ -75,18 +74,6 @@ def make_pkcs12_info(directory, cert_name, password_name):
         return cert_path, password
     else:
         return None
-
-
-def install_http_certs(host_name, realm_name, subject_base):
-    principal = 'HTTP/%s@%s' % (host_name, realm_name)
-    subject = subject_base or DN(('O', realm_name))
-    db = certs.CertDB(realm_name, nssdir=paths.HTTPD_ALIAS_DIR,
-                      subject_base=subject, user="root",
-                      group=pconstants.HTTPD_GROUP, truncate=True)
-    db.request_service_cert('Server-Cert', principal, host_name)
-    # Obtain certificate for the HTTP service
-    http = httpinstance.HTTPInstance()
-    http.create_password_conf()
 
 
 def install_replica_ds(config, options, ca_is_configured, remote_api,
@@ -175,7 +162,8 @@ def install_http(config, auto_redirect, ca_is_configured, ca_file,
     http.create_instance(
         config.realm_name, config.host_name, config.domain_name,
         pkcs12_info, auto_redirect=auto_redirect, ca_file=ca_file,
-        ca_is_configured=ca_is_configured, promote=promote)
+        ca_is_configured=ca_is_configured, promote=promote,
+        subject_base=config.subject_base)
 
     return http
 
@@ -1413,12 +1401,6 @@ def install(installer):
 
         # Always try to install DNS records
         install_dns_records(config, options, remote_api)
-
-        if promote and ca_enabled:
-            # we need to install http certs to setup ssl for httpd
-            install_http_certs(config.host_name,
-                               config.realm_name,
-                               config.subject_base)
 
         ntpinstance.ntp_ldap_enable(config.host_name, ds.suffix,
                                     remote_api.env.realm)
