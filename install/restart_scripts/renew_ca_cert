@@ -42,7 +42,6 @@ def _main():
 
     api.bootstrap(in_server=True, context='restart', confdir=paths.ETC_IPA)
     api.finalize()
-    api.Backend.ldap2.connect()
 
     dogtag_service = services.knownservices['pki_tomcatd']
 
@@ -76,6 +75,8 @@ def _main():
         ccache_filename = os.path.join(tmpdir, 'ccache')
         kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_filename)
         os.environ['KRB5CCNAME'] = ccache_filename
+
+        api.Backend.ldap2.connect()
 
         ca = cainstance.CAInstance(host_name=api.env.host)
         ca.update_cert_config(nickname, cert)
@@ -184,8 +185,9 @@ def _main():
                 if conn is not None and conn.isconnected():
                     conn.disconnect()
     finally:
+        if api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.disconnect()
         shutil.rmtree(tmpdir)
-        api.Backend.ldap2.disconnect()
 
     # Now we can start the CA. Using the services start should fire
     # off the servlet to verify that the CA is actually up and responding so
