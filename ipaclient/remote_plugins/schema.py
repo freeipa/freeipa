@@ -383,6 +383,7 @@ class Schema(object):
 
         if fingerprint is None:
             fingerprint, ttl = self._fetch(client, ignore_cache=read_failed)
+            self._help = self._generate_help(self._dict)
             try:
                 self._write_schema(fingerprint)
             except Exception as e:
@@ -498,7 +499,7 @@ class Schema(object):
 
             schema.writestr(
                 '_help',
-                json.dumps(self._generate_help(self._dict)).encode('utf-8')
+                json.dumps(self._help).encode('utf-8')
             )
 
     def read_namespace_member(self, namespace, member):
