@@ -38,7 +38,6 @@ from ipaplatform.paths import paths
 def _main():
     api.bootstrap(in_server=True, context='restart', confdir=paths.ETC_IPA)
     api.finalize()
-    api.Backend.ldap2.connect()
 
     tmpdir = tempfile.mkdtemp(prefix="tmp-")
     try:
@@ -46,6 +45,8 @@ def _main():
         ccache_filename = os.path.join(tmpdir, 'ccache')
         kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_filename)
         os.environ['KRB5CCNAME'] = ccache_filename
+
+        api.Backend.ldap2.connect()
 
         ca = cainstance.CAInstance(host_name=api.env.host)
         ra_certpath = paths.RA_AGENT_PEM
@@ -71,8 +72,9 @@ def _main():
             # Load it into dogtag
             cainstance.update_people_entry(dercert)
     finally:
+        if api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.disconnect()
         shutil.rmtree(tmpdir)
-        api.Backend.ldap2.disconnect()
 
 
 def main():
