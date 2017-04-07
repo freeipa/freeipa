@@ -160,6 +160,7 @@ class HTTPInstance(service.Service):
             self.ca_is_configured = ca_is_configured
         self.promote = promote
 
+        self.step("stopping httpd", self.__stop)
         self.step("setting mod_nss port to 443", self.__set_mod_nss_port)
         self.step("setting mod_nss cipher suite",
                   self.set_mod_nss_cipher_suite)
@@ -185,15 +186,15 @@ class HTTPInstance(service.Service):
             self.step("create KDC proxy user", create_kdcproxy_user)
             self.step("create KDC proxy config", self.create_kdcproxy_conf)
             self.step("enable KDC proxy", self.enable_kdcproxy)
-        self.step("restarting httpd", self.__start)
+        self.step("starting httpd", self.start)
         self.step("configuring httpd to start on boot", self.__enable)
         self.step("enabling oddjobd", self.enable_and_start_oddjobd)
 
         self.start_creation()
 
-    def __start(self):
+    def __stop(self):
         self.backup_state("running", self.is_running())
-        self.restart()
+        self.stop()
 
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
