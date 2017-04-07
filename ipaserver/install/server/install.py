@@ -807,10 +807,6 @@ def install(installer):
     if setup_ca:
         ca.install_step_1(False, None, options)
 
-    # The DS instance is created before the keytab, add the SSL cert we
-    # generated
-    ds.add_cert_to_service()
-
     otpd = otpdinstance.OtpdInstance()
     otpd.create_instance('OTPD', host_name,
                          ipautil.realm_to_suffix(realm_name))

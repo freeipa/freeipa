@@ -396,10 +396,7 @@ class DsInstance(service.Service):
 
         self.step("creating DS keytab", self.request_service_keytab)
         if self.promote:
-            if self.pkcs12_info:
-                self.step("configuring TLS for DS instance", self.__enable_ssl)
-            else:
-                self.step("retrieving DS Certificate", self.__get_ds_cert)
+            self.step("configuring TLS for DS instance", self.__enable_ssl)
             self.step("restarting directory server", self.__restart_instance)
 
         self.step("setting up initial replication", self.__setup_replica)
@@ -810,18 +807,23 @@ class DsInstance(service.Service):
                 dsdb.track_server_cert(
                     self.nickname, self.principal, dsdb.passwd_fname,
                     'restart_dirsrv %s' % self.serverid)
+
+            self.add_cert_to_service()
         else:
             dsdb.create_from_cacert()
-            ca_args = [
-                paths.CERTMONGER_DOGTAG_SUBMIT,
-                '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
-                '--certfile', paths.RA_AGENT_PEM,
-                '--keyfile', paths.RA_AGENT_KEY,
-                '--cafile', paths.IPA_CA_CRT,
-                '--agent-submit'
-            ]
-            helper = " ".join(ca_args)
-            prev_helper = certmonger.modify_ca_helper('IPA', helper)
+            if self.master_fqdn is None:
+                ca_args = [
+                    paths.CERTMONGER_DOGTAG_SUBMIT,
+                    '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
+                    '--certfile', paths.RA_AGENT_PEM,
+                    '--keyfile', paths.RA_AGENT_KEY,
+                    '--cafile', paths.IPA_CA_CRT,
+                    '--agent-submit'
+                ]
+                helper = " ".join(ca_args)
+                prev_helper = certmonger.modify_ca_helper('IPA', helper)
+            else:
+                prev_helper = None
             try:
                 cmd = 'restart_dirsrv %s' % self.serverid
                 certmonger.request_and_wait_for_cert(
@@ -835,13 +837,17 @@ class DsInstance(service.Service):
                     dns=[self.fqdn],
                     post_command=cmd)
             finally:
-                certmonger.modify_ca_helper('IPA', prev_helper)
+                if prev_helper is not None:
+                    certmonger.modify_ca_helper('IPA', prev_helper)
 
             # restart_dirsrv in the request above restarts DS, reconnect ldap2
             api.Backend.ldap2.disconnect()
             api.Backend.ldap2.connect()
 
             self.dercert = dsdb.get_cert_from_db(self.nickname, pem=False)
+
+            if prev_helper is not None:
+                self.add_cert_to_service()
 
         dsdb.create_pin_file()
 
@@ -1235,46 +1241,6 @@ class DsInstance(service.Service):
         vardict = {"KRB5_KTNAME": self.keytab}
         ipautil.config_replace_variables(paths.SYSCONFIG_DIRSRV,
                                          replacevars=vardict)
-
-    def __get_ds_cert(self):
-        nssdb_dir = config_dirname(self.serverid)
-        db = certs.CertDB(
-            self.realm,
-            nssdir=nssdb_dir,
-            subject_base=self.subject_base,
-            ca_subject=self.ca_subject,
-        )
-        db.create_from_cacert()
-        db.request_service_cert(self.nickname, self.principal, self.fqdn)
-        db.create_pin_file()
-
-        # Connect to self over ldapi as Directory Manager and configure SSL
-        ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=self.realm)
-        conn = ipaldap.LDAPClient(ldap_uri)
-        conn.external_bind()
-
-        mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
-               (ldap.MOD_REPLACE, "nsSSL3Ciphers", "default"),
-               (ldap.MOD_REPLACE, "allowWeakCipher", "off")]
-        conn.modify_s(DN(('cn', 'encryption'), ('cn', 'config')), mod)
-
-        mod = [(ldap.MOD_ADD, "nsslapd-security", "on")]
-        conn.modify_s(DN(('cn', 'config')), mod)
-
-        entry = conn.make_entry(
-            DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')),
-            objectclass=["top", "nsEncryptionModule"],
-            cn=["RSA"],
-            nsSSLPersonalitySSL=[self.nickname],
-            nsSSLToken=["internal (software)"],
-            nsSSLActivation=["on"],
-        )
-        conn.add_entry(entry)
-
-        conn.unbind()
-
-        # check for open secure port 636 from now on
-        self.open_ports.append(636)
 
 
 def write_certmap_conf(realm, ca_subject):
