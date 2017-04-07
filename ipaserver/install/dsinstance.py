@@ -837,6 +837,10 @@ class DsInstance(service.Service):
             finally:
                 certmonger.modify_ca_helper('IPA', prev_helper)
 
+            # restart_dirsrv in the request above restarts DS, reconnect ldap2
+            api.Backend.ldap2.disconnect()
+            api.Backend.ldap2.connect()
+
             self.dercert = dsdb.get_cert_from_db(self.nickname, pem=False)
 
         dsdb.create_pin_file()
