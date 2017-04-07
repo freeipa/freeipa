@@ -518,7 +518,6 @@ def main():
 
     api.bootstrap(in_server=True, context='renew', confdir=paths.ETC_IPA)
     api.finalize()
-    api.Backend.ldap2.connect()
 
     operation = os.environ.get('CERTMONGER_OPERATION')
     if operation not in ('SUBMIT', 'POLL'):
@@ -531,6 +530,8 @@ def main():
         ccache_filename = os.path.join(tmpdir, 'ccache')
         os.environ['KRB5CCNAME'] = ccache_filename
         kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_filename)
+
+        api.Backend.ldap2.connect()
 
         profile = os.environ.get('CERTMONGER_CA_PROFILE')
         if is_replicated():
@@ -547,9 +548,10 @@ def main():
             print(item)
         return res[0]
     finally:
+        if api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.disconnect()
         certs.renewal_lock.release()
         shutil.rmtree(tmpdir)
-        api.Backend.ldap2.disconnect()
 
 
 try:
