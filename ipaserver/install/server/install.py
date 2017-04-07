@@ -770,6 +770,13 @@ def install(installer):
             realm_name, host_name, domain_name, dm_password,
             options.subject_base, options.ca_subject, 1101, 1100, None)
 
+    krb = krbinstance.KrbInstance(fstore)
+    krb.create_instance(realm_name, host_name, domain_name,
+                        dm_password, master_password,
+                        setup_pkinit=not options.no_pkinit,
+                        pkcs12_info=pkinit_pkcs12_info,
+                        subject_base=options.subject_base)
+
     if setup_ca:
         if not options.external_cert_files and options.external_ca:
             # stage 1 of external CA installation
@@ -792,17 +799,6 @@ def install(installer):
 
     # we now need to enable ssl on the ds
     ds.enable_ssl()
-
-    krb = krbinstance.KrbInstance(fstore)
-    krb.create_instance(realm_name, host_name, domain_name,
-                        dm_password, master_password,
-                        setup_pkinit=not options.no_pkinit,
-                        pkcs12_info=pkinit_pkcs12_info,
-                        subject_base=options.subject_base)
-
-    # restart DS to enable ipa-pwd-extop plugin
-    print("Restarting directory server to enable password extension plugin")
-    ds.restart()
 
     if setup_ca:
         ca.install_step_1(False, None, options)

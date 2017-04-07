@@ -256,7 +256,7 @@ class DsInstance(service.Service):
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
-    def __common_setup(self, enable_ssl=False):
+    def __common_setup(self):
 
         self.step("creating directory server user", create_ds_user)
         self.step("creating directory server instance", self.__create_instance)
@@ -279,8 +279,6 @@ class DsInstance(service.Service):
         self.step("configuring topology plugin", self.__config_topology_module)
         self.step("creating indices", self.__create_indices)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
-        if enable_ssl:
-            self.step("configuring TLS for DS instance", self.__enable_ssl)
         self.step("configuring certmap.conf", self.__certmap_conf)
         self.step("configure new location for managed entries", self.__repoint_managed_entries)
         self.step("configure dirsrv ccache", self.configure_dirsrv_ccache)
@@ -356,8 +354,12 @@ class DsInstance(service.Service):
         self.steps = []
 
         self.step("configuring TLS for DS instance", self.__enable_ssl)
+        if self.master_fqdn is None:
+            self.step("adding CA certificate entry", self.__upload_ca_cert)
+        else:
+            self.step("importing CA certificates from LDAP",
+                      self.__import_ca_certs)
         self.step("restarting directory server", self.__restart_instance)
-        self.step("adding CA certificate entry", self.__upload_ca_cert)
 
         self.start_creation()
 
@@ -391,21 +393,16 @@ class DsInstance(service.Service):
         self.promote = promote
         self.api = api
 
-        self.__common_setup(enable_ssl=(not self.promote))
+        self.__common_setup()
         self.step("restarting directory server", self.__restart_instance)
 
         self.step("creating DS keytab", self.request_service_keytab)
-        if self.promote:
-            self.step("configuring TLS for DS instance", self.__enable_ssl)
-            self.step("restarting directory server", self.__restart_instance)
-
         self.step("setting up initial replication", self.__setup_replica)
         self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
         self.step("updating schema", self.__update_schema)
         # See LDIFs for automember configuration during replica install
         self.step("setting Auto Member configuration", self.__add_replica_automember_config)
         self.step("enabling S4U2Proxy delegation", self.__setup_s4u2proxy)
-        self.step("importing CA certificates from LDAP", self.__import_ca_certs)
 
         self.__common_post_setup()
 
