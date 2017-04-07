@@ -376,12 +376,12 @@ class HTTPInstance(service.Service):
         return False
 
     def __setup_ssl(self):
-        truncate = not self.promote or not self.ca_is_configured
         db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
                           subject_base=self.subject_base, user="root",
                           group=constants.HTTPD_GROUP,
-                          truncate=truncate)
+                          truncate=True)
         self.disable_system_trust()
+        self.create_password_conf()
         if self.pkcs12_info:
             if self.ca_is_configured:
                 trust_flags = 'CT,C,C'
@@ -393,8 +393,6 @@ class HTTPInstance(service.Service):
             server_certs = db.find_server_certs()
             if len(server_certs) == 0:
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])
-
-            self.create_password_conf()
 
             # We only handle one server cert
             nickname = server_certs[0][0]
@@ -410,7 +408,6 @@ class HTTPInstance(service.Service):
 
         else:
             if not self.promote:
-                self.create_password_conf()
                 ca_args = [
                     paths.CERTMONGER_DOGTAG_SUBMIT,
                     '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
@@ -421,23 +418,26 @@ class HTTPInstance(service.Service):
                 ]
                 helper = " ".join(ca_args)
                 prev_helper = certmonger.modify_ca_helper('IPA', helper)
-
-                try:
-                    certmonger.request_and_wait_for_cert(
-                        certpath=db.secdir,
-                        nickname=self.cert_nickname,
-                        principal=self.principal,
-                        passwd_fname=db.passwd_fname,
-                        subject=str(DN(('CN', self.fqdn), self.subject_base)),
-                        ca='IPA',
-                        profile=dogtag.DEFAULT_PROFILE,
-                        dns=[self.fqdn],
-                        post_command='restart_httpd')
-                    self.dercert = db.get_cert_from_db(
-                        self.cert_nickname, pem=False)
-                finally:
+            else:
+                prev_helper = None
+            try:
+                certmonger.request_and_wait_for_cert(
+                    certpath=db.secdir,
+                    nickname=self.cert_nickname,
+                    principal=self.principal,
+                    passwd_fname=db.passwd_fname,
+                    subject=str(DN(('CN', self.fqdn), self.subject_base)),
+                    ca='IPA',
+                    profile=dogtag.DEFAULT_PROFILE,
+                    dns=[self.fqdn],
+                    post_command='restart_httpd')
+            finally:
+                if prev_helper is not None:
                     certmonger.modify_ca_helper('IPA', prev_helper)
 
+            self.dercert = db.get_cert_from_db(self.cert_nickname, pem=False)
+
+            if prev_helper is not None:
                 self.add_cert_to_service()
 
             # Verify we have a valid server cert
