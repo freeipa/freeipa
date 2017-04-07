@@ -41,7 +41,7 @@ def _main():
 
     try:
         if services.knownservices.dirsrv.is_running():
-            services.knownservices.dirsrv.restart(instance)
+            services.knownservices.dirsrv.restart(instance, ldapi=True)
     except Exception as e:
         syslog.syslog(syslog.LOG_ERR, "Cannot restart dirsrv (instance: '%s'): %s" % (instance, str(e)))
 
