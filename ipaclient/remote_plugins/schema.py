@@ -476,7 +476,7 @@ class Schema(object):
             try:
                 self._write_schema_data(f)
                 f.flush()
-                os.fdatasync(f.fileno())
+                os.fsync(f.fileno())
                 f.close()
             except Exception:
                 os.unlink(f.name)

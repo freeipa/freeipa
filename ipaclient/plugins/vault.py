@@ -579,7 +579,7 @@ class _TransportCertCache(object):
                 try:
                     f.write(pem)
                     f.flush()
-                    os.fdatasync(f.fileno())
+                    os.fsync(f.fileno())
                     f.close()
                     os.rename(f.name, filename)
                 except Exception:
