@@ -40,6 +40,7 @@ from cryptography.hazmat.backends import default_backend
 
 import six
 
+from ipalib.install.kinit import kinit_keytab
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipalib import api, errors, x509
@@ -132,7 +133,7 @@ def ldap_connect():
     conn = None
     try:
         conn = ldap2(api)
-        conn.connect(autobind=True)
+        conn.connect(ccache=os.environ['KRB5CCNAME'])
         yield conn
     finally:
         if conn is not None and conn.isconnected():
@@ -526,6 +527,11 @@ def main():
     tmpdir = tempfile.mkdtemp(prefix="tmp-")
     certs.renewal_lock.acquire()
     try:
+        principal = str('host/%s@%s' % (api.env.host, api.env.realm))
+        ccache_filename = os.path.join(tmpdir, 'ccache')
+        os.environ['KRB5CCNAME'] = ccache_filename
+        kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_filename)
+
         profile = os.environ.get('CERTMONGER_CA_PROFILE')
         if is_replicated():
             if profile or is_renewal_master():
