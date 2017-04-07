@@ -1422,9 +1422,8 @@ def install(installer):
         setup_pkinit=not options.no_pkinit,
         promote=promote)
 
-    # restart DS to enable ipa-pwd-extop plugin
-    print("Restarting directory server to enable password extension plugin")
-    ds.restart()
+    # we now need to enable ssl on the ds
+    ds.enable_ssl()
 
     install_http(
         config,
