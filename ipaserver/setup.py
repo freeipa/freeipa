@@ -55,17 +55,12 @@ if __name__ == '__main__':
             "ipalib",
             "ipaplatform",
             "ipapython",
+            "jwcrypto",
             "lxml",
             "netaddr",
             "pyasn1",
-            "pyldap",
+            "requests",
             "six",
-            # not available on PyPI
-            # "python-libipa_hbac",
-            # "python-sss",
-            # "python-sss-murmur",
-            # "python-SSSDConfig",
-            # "samba-python",
         ],
         entry_points={
             'custodia.authorizers': [
@@ -75,4 +70,13 @@ if __name__ == '__main__':
                 'IPASecStore = ipaserver.secrets.store:IPASecStore',
             ],
         },
+        extras_require={
+            ":python_version<'3'": ["python-ldap"],
+            ":python_version>='3'": ["pyldap"],
+            # These packages are currently not available on PyPI.
+            "dcerpc": ["samba", "pysss", "pysss_nss_idmap"],
+            "hbactest": ["pyhbac"],
+            "install": ["SSSDConfig"],
+            "trust": ["pysss_murmur", "pysss_nss_idmap"],
+        }
     )

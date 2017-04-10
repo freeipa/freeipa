@@ -101,6 +101,7 @@ common_args = dict(
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: Implementation :: CPython",
         "Operating System :: POSIX",
         "Operating System :: POSIX :: Linux",
@@ -138,13 +139,20 @@ def ipasetup(name, doc, **kwargs):
     cmdclass = setup_kwargs.setdefault('cmdclass', {})
     cmdclass['build_py'] = build_py
 
-    # Env markers like ":python_version<'3.3'" are not supported by
+    # Env markers like ":python_version<'3'" are not supported by
     # setuptools < 18.0.
     if 'extras_require' in setup_kwargs and SETUPTOOLS_VERSION < (18, 0, 0):
         for k in list(setup_kwargs['extras_require']):
-            if k.startswith(':'):
-                req = setup_kwargs.setdefault('install_requires', [])
-                req.extend(setup_kwargs['extras_require'].pop(k))
+            if not k.startswith(':'):
+                continue
+            values = setup_kwargs['extras_require'].pop(k)
+            req = setup_kwargs.setdefault('install_requires', [])
+            if k == ":python_version<'3'" and sys.version_info.major == 2:
+                req.extend(values)
+            elif k == ":python_version>='3'" and sys.version_info.major >= 3:
+                req.extend(values)
+            else:
+                raise ValueError(k, values)
 
     os.chdir(local_path)
     try:
