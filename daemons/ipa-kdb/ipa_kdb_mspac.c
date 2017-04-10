@@ -2117,6 +2117,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     struct ipadb_context *ipactx;
     bool with_pac;
     bool with_pad;
+    bool make_ad = false;
     int result;
     krb5_db_entry *client_entry = NULL;
     krb5_boolean is_equal;
@@ -2165,7 +2166,14 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
                                   "currently not supported.");
     }
 
-    if (is_as_req && with_pac && (flags & KRB5_KDB_FLAG_INCLUDE_PAC)) {
+    /* we need to create a PAC if we are requested one and this is an AS REQ,
+     * or we are doing protocol transition (s4u2self) */
+    if ((is_as_req && (flags & KRB5_KDB_FLAG_INCLUDE_PAC)) ||
+        (flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION)) {
+        make_ad = true;
+    }
+
+    if (with_pac && make_ad) {
         /* Be aggressive here: special case for discovering range type
          * immediately after establishing the trust by IPA framework */
         if ((krb5_princ_size(context, ks_client_princ) == 2) &&
@@ -2188,9 +2196,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         if (kerr != 0 && kerr != ENOENT) {
             goto done;
         }
-    }
-
-    if (!is_as_req && with_pac) {
+    } else if (with_pac && !is_as_req) {
         /* find the existing PAC, if present */
         kerr = krb5_find_authdata(context, tgt_auth_data, NULL,
                                   KRB5_AUTHDATA_WIN2K_PAC, &pac_auth_data);
