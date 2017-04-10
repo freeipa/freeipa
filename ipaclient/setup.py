@@ -50,12 +50,11 @@ if __name__ == '__main__':
             ],
         },
         install_requires=[
+            "cffi",
             "cryptography",
             "ipalib",
             "ipapython",
             "jinja2",
-            "python-yubico",
-            "pyusb",
             "qrcode",
             "six",
         ],
@@ -66,7 +65,7 @@ if __name__ == '__main__':
         },
         extras_require={
             "install": ["ipaplatform"],
-            "otptoken_yubikey": ["yubico", "usb"]
+            "otptoken_yubikey": ["python-yubico", "pyusb"],
         },
         zip_safe=False,
     )

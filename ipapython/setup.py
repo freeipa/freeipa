@@ -41,16 +41,14 @@ if __name__ == '__main__':
             "cryptography",
             "dnspython",
             "gssapi",
-            "jwcrypto",
             # "ipalib",  # circular dependency
-            "pyldap",
             "netaddr",
             "netifaces",
-            "requests",
             "six",
         ],
         extras_require={
-            ":python_version<'3'": ["enum34"],
+            ":python_version<'3'": ["enum34", "python-ldap"],
+            ":python_version>='3'": ["pyldap"],
             "install": ["dbus-python"],  # for certmonger
         },
     )
