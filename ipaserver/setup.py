@@ -55,10 +55,11 @@ if __name__ == '__main__':
             "ipalib",
             "ipaplatform",
             "ipapython",
+            "jwcrypto",
             "lxml",
             "netaddr",
             "pyasn1",
-            "pyldap",
+            "requests",
             "six",
         ],
         entry_points={
@@ -70,6 +71,8 @@ if __name__ == '__main__':
             ],
         },
         extras_require={
+            ":python_version<'3'": ["python-ldap"],
+            ":python_version>='3'": ["pyldap"],
             # These packages are currently not available on PyPI.
             "dcerpc": ["samba", "pysss", "pysss_nss_idmap"],
             "hbactest": ["pyhbac"],
