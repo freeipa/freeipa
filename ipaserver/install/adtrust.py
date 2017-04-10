@@ -226,7 +226,7 @@ def retrieve_and_ask_about_sids(api, options):
         print("Installer can run a task to have ipa-sidgen "
               "Directory Server plugin generate")
         print("the SID identifier for all these users. Please note, "
-              "the in case of a high")
+              "in case of a high")
         print("number of users and groups, the operation might "
               "lead to high replication")
         print("traffic and performance degradation. Refer to "
