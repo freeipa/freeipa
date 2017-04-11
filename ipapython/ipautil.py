@@ -309,7 +309,7 @@ class _RunResult(collections.namedtuple('_RunResult',
 def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         capture_output=False, skip_output=False, cwd=None,
         runas=None, suplementary_groups=[],
-        capture_error=False, encoding=None, redirect_output=False):
+        capture_error=False, encoding=None, redirect_output=False, umask=None):
     """
     Execute an external command.
 
@@ -345,6 +345,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         error_output, and (if it's not bytes) stdin.
         If None, the current encoding according to locale is used.
     :param redirect_output: Redirect (error) output to standard (error) output.
+    :param umask: Set file-creation mask before running the command.
 
     :return: An object with these attributes:
 
@@ -416,25 +417,27 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
     root_logger.debug('Starting external process')
     root_logger.debug('args=%s' % arg_string)
 
-    preexec_fn = None
-    if runas is not None:
-        pent = pwd.getpwnam(runas)
+    def preexec_fn():
+        if runas is not None:
+            pent = pwd.getpwnam(runas)
 
-        suplementary_gids = [
-            grp.getgrnam(group).gr_gid for group in suplementary_groups
-        ]
+            suplementary_gids = [
+                grp.getgrnam(group).gr_gid for group in suplementary_groups
+            ]
 
-        root_logger.debug('runas=%s (UID %d, GID %s)', runas,
-            pent.pw_uid, pent.pw_gid)
-        if suplementary_groups:
-            for group, gid in zip(suplementary_groups, suplementary_gids):
-                root_logger.debug('suplementary_group=%s (GID %d)', group, gid)
+            root_logger.debug('runas=%s (UID %d, GID %s)', runas,
+                              pent.pw_uid, pent.pw_gid)
+            if suplementary_groups:
+                for group, gid in zip(suplementary_groups, suplementary_gids):
+                    root_logger.debug('suplementary_group=%s (GID %d)',
+                                      group, gid)
 
-        preexec_fn = lambda: (
-            os.setgroups(suplementary_gids),
-            os.setregid(pent.pw_gid, pent.pw_gid),
-            os.setreuid(pent.pw_uid, pent.pw_uid),
-        )
+            os.setgroups(suplementary_gids)
+            os.setregid(pent.pw_gid, pent.pw_gid)
+            os.setreuid(pent.pw_uid, pent.pw_uid)
+
+        if umask:
+            os.umask(umask)
 
     try:
         p = subprocess.Popen(args, stdin=p_in, stdout=p_out, stderr=p_err,
