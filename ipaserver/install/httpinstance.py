@@ -379,7 +379,7 @@ class HTTPInstance(service.Service):
         db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
                           subject_base=self.subject_base, user="root",
                           group=constants.HTTPD_GROUP,
-                          truncate=True)
+                          create=True)
         self.disable_system_trust()
         self.create_password_conf()
         if self.pkcs12_info:

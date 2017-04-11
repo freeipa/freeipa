@@ -99,7 +99,7 @@ class CertDB(object):
     # TODO: Remove all selfsign code
     def __init__(self, realm, nssdir, fstore=None,
                  host_name=None, subject_base=None, ca_subject=None,
-                 user=None, group=None, mode=None, truncate=False):
+                 user=None, group=None, mode=None, create=False):
         self.nssdb = NSSDatabase(nssdir)
 
         self.secdir = nssdir
@@ -132,15 +132,16 @@ class CertDB(object):
         self.uid = 0
         self.gid = 0
 
-        if not truncate and os.path.exists(self.secdir):
-            # We are going to set the owner of all of the cert
-            # files to the owner of the containing directory
-            # instead of that of the process. This works when
-            # this is called by root for a daemon that runs as
-            # a normal user
-            mode = os.stat(self.secdir)
-            self.uid = mode[stat.ST_UID]
-            self.gid = mode[stat.ST_GID]
+        if not create:
+            if os.path.isdir(self.secdir):
+                # We are going to set the owner of all of the cert
+                # files to the owner of the containing directory
+                # instead of that of the process. This works when
+                # this is called by root for a daemon that runs as
+                # a normal user
+                mode = os.stat(self.secdir)
+                self.uid = mode[stat.ST_UID]
+                self.gid = mode[stat.ST_GID]
         else:
             if user is not None:
                 pu = pwd.getpwnam(user)
@@ -161,6 +162,23 @@ class CertDB(object):
     @property
     def passwd_fname(self):
         return self.nssdb.pwd_file
+
+    def exists(self):
+        """
+        Checks whether all NSS database files + our pwd_file exist
+        """
+        db_files = (
+            self.secdir,
+            self.certdb_fname,
+            self.keydb_fname,
+            self.secmod_fname,
+            self.nssdb.pwd_file,
+        )
+
+        for f in db_files:
+            if not os.path.exists(f):
+                return False
+        return True
 
     def __del__(self):
         if self.reqdir is not None:
