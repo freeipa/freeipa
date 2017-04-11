@@ -36,8 +36,6 @@ from ipapython import version, ipautil
 from ipapython.ipautil import run, user_input
 from ipapython import admintool
 from ipapython.dn import DN
-from ipaserver.install.dsinstance import create_ds_user
-from ipaserver.install.cainstance import create_ca_user
 from ipaserver.install.replication import (wait_for_task, ReplicationManager,
                                            get_cs_replication_manager)
 from ipaserver.install import installutils
@@ -296,7 +294,6 @@ class Restore(admintool.AdminTool):
                     not user_input("Continue to restore?", False)):
                 raise admintool.ScriptError("Aborted")
 
-        create_ds_user()
         pent = pwd.getpwnam(constants.DS_USER)
 
         # Temporary directory for decrypting files before restoring
@@ -379,15 +376,11 @@ class Restore(admintool.AdminTool):
             # We do either a full file restore or we restore data.
             if restore_type == 'FULL':
                 self.remove_old_files()
-                if 'CA' in self.backup_services:
-                    create_ca_user()
                 self.cert_restore_prepare()
                 self.file_restore(options.no_logs)
                 self.cert_restore()
                 if 'CA' in self.backup_services:
                     self.__create_dogtag_log_dirs()
-                if http.is_kdcproxy_configured():
-                    httpinstance.create_kdcproxy_user()
 
             # Always restore the data from ldif
             # We need to restore both userRoot and ipaca.
