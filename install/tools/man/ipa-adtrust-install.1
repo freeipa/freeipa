@@ -16,7 +16,7 @@
 .\"
 .\" Author: Sumit Bose <sbose@redhat.com>
 .\"
-.TH "ipa-adtrust-install" "1" "Aug 23 2011" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa-adtrust-install" "1" "April 11 2017" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-adtrust\-install \- Prepare an IPA server to be able to establish trust relationships with AD domains
 .SH "SYNOPSIS"
@@ -30,7 +30,7 @@ Please note you will not be able to estabilish an trust to an Active Directory
 domain unless the realm name of the IPA server matches its domain name.
 
 ipa\-adtrust\-install can be run multiple times to reinstall deleted objects or
-broken configuration files. E.g. a fresh samba configuration (smb.conf file and
+broken configuration files. E.g. a fresh samba configuration (smb.conf) file and
 registry based configuration can be created. Other items like e.g. the
 configuration of the local range cannot be changed by running
 ipa\-adtrust\-install a second time because with changes here other objects
@@ -66,7 +66,7 @@ on an incoming request.
 .SH "OPTIONS"
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
-Enable debug logging when more verbose output is needed
+Enable debug logging when more verbose output is needed.
 .TP
 \fB\-\-netbios\-name\fR=\fINETBIOS_NAME\fR
 The NetBIOS name for the IPA domain. If not provided then this is determined
@@ -76,7 +76,7 @@ change the name. Please note that changing the NetBIOS name might break
 existing trust relationships to other domains.
 .TP
 \fB\-\-add\-sids\fR
-Add SIDs to existing users and groups as on of final steps of the
+Add SIDs to existing users and groups as one of the final steps of the
 ipa\-adtrust\-install run. If there a many existing users and groups and a
 couple of replicas in the environment this operation might lead to a high
 replication traffic and a performance degradation of all IPA servers in the
@@ -99,7 +99,7 @@ via \ipa-adtrust\-install run on any other IPA master. At least SSSD
 version 1.13 on IPA master is required to be able to perform as a trust agent.
 .TP
 \fB\-U\fR, \fB\-\-unattended\fR
-An unattended installation that will never prompt for user input
+An unattended installation that will never prompt for user input.
 .TP
 \fB\-\-rid-base\fR=\fIRID_BASE\fR
 First RID value of the local domain. The first Posix ID of the local domain will
