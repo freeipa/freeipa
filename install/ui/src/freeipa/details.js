@@ -900,7 +900,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
 
     /**
      * Takes url argument which is named arg_name and its value. Creates object
-     * from this infromation {arg_name: arg_name_value} and attach it as option
+     * from this information {arg_name: arg_name_value} and attach it as option
      * to command.
      *
      * @protected
