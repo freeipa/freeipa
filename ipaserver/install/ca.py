@@ -183,6 +183,8 @@ def install_check(standalone, replica_config, options):
             realm_name, nssdir=dirname, subject_base=options._subject_base)
 
         for db in (cadb, dsdb):
+            if not db.exists():
+                continue
             for nickname, _trust_flags in db.list_certs():
                 if nickname == certdb.get_ca_nickname(realm_name):
                     raise ScriptError(
