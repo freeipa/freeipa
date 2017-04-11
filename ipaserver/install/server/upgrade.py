@@ -1652,7 +1652,6 @@ def upgrade_configuration():
 
     if not http.is_kdcproxy_configured():
         root_logger.info('[Enabling KDC Proxy]')
-        httpinstance.create_kdcproxy_user()
         http.create_kdcproxy_conf()
         http.enable_kdcproxy()
 
@@ -1837,7 +1836,6 @@ def upgrade_check(options):
 
 def upgrade():
     # Do this early so that any code depending on these dirs will not fail
-    installutils.create_ipaapi_user()
     tasks.create_tmpfiles_dirs()
     tasks.configure_tmpfiles()
 

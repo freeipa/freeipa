@@ -1025,6 +1025,15 @@ if [ -e /usr/sbin/ipa_kpasswd ]; then
 # END
 fi
 
+# create users and groups
+# create kdcproxy group and user
+getent group kdcproxy >/dev/null || groupadd -f -r kdcproxy
+getent passwd kdcproxy >/dev/null || useradd -r -g kdcproxy -s /sbin/nologin -d / -c "IPA KDC Proxy User" kdcproxy
+# create ipaapi group and user
+getent group ipaapi >/dev/null || groupadd -f -r ipaapi
+getent passwd ipaapi >/dev/null || useradd -r -g ipaapi -s /sbin/nologin -d / -c "IPA Framework User" ipaapi
+# add apache to ipaaapi group
+id -Gn apache | grep '\bipaapi\b' >/dev/null || usermod apache -a -G ipaapi
 
 %postun server-trust-ad
 if [ "$1" -ge "1" ]; then

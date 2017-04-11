@@ -158,16 +158,6 @@ def is_ds_running(server_id=''):
     return services.knownservices.dirsrv.is_running(instance_name=server_id)
 
 
-def create_ds_user():
-    """Create DS user/group if it doesn't exist yet."""
-    tasks.create_system_user(
-        name=DS_USER,
-        group=DS_USER,
-        homedir=paths.VAR_LIB_DIRSRV,
-        shell=paths.NOLOGIN,
-    )
-
-
 def get_domain_level(api=api):
     ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=api.env.realm)
     conn = ipaldap.LDAPClient(ldap_uri)
@@ -258,7 +248,6 @@ class DsInstance(service.Service):
 
     def __common_setup(self):
 
-        self.step("creating directory server user", create_ds_user)
         self.step("creating directory server instance", self.__create_instance)
         self.step("enabling ldapi", self.__enable_ldapi)
         self.step("configure autobind for root", self.__root_autobind)

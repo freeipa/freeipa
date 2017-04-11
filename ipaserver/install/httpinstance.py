@@ -102,18 +102,6 @@ def httpd_443_configured():
     return False
 
 
-def create_kdcproxy_user():
-    """Create KDC proxy user/group if it doesn't exist yet."""
-    tasks.create_system_user(
-        name=KDCPROXY_USER,
-        group=KDCPROXY_USER,
-        homedir=paths.VAR_LIB_KDCPROXY,
-        shell=paths.NOLOGIN,
-        comment="IPA KDC Proxy User",
-        create_homedir=True,
-    )
-
-
 class WebGuiInstance(service.SimpleServiceInstance):
     def __init__(self):
         service.SimpleServiceInstance.__init__(self, "ipa_webgui")
@@ -183,7 +171,6 @@ class HTTPInstance(service.Service):
                   self.remove_httpd_ccaches)
         self.step("configuring SELinux for httpd", self.configure_selinux_for_httpd)
         if not self.is_kdcproxy_configured():
-            self.step("create KDC proxy user", create_kdcproxy_user)
             self.step("create KDC proxy config", self.create_kdcproxy_conf)
             self.step("enable KDC proxy", self.enable_kdcproxy)
         self.step("starting httpd", self.start)
