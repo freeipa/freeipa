@@ -46,7 +46,6 @@ from ipalib import errors
 import ipalib.constants
 from ipalib.install import certmonger
 from ipaplatform import services
-from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
@@ -263,16 +262,6 @@ def is_ca_installed_locally():
     return os.path.exists(paths.CA_CS_CFG_PATH)
 
 
-def create_ca_user():
-    """Create PKI user/group if it doesn't exist yet."""
-    tasks.create_system_user(
-        name=constants.PKI_USER,
-        group=constants.PKI_GROUP,
-        homedir=paths.VAR_LIB,
-        shell=paths.NOLOGIN,
-    )
-
-
 class CAInstance(DogtagInstance):
     """
     When using a dogtag CA the DS database contains just the
@@ -382,7 +371,6 @@ class CAInstance(DogtagInstance):
             has_ra_cert = False
 
         if not ra_only:
-            self.step("creating certificate server user", create_ca_user)
             if promote:
                 # Setup Database
                 self.step("creating certificate server db", self.__create_ds_db)
