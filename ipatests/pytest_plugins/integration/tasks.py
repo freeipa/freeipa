@@ -77,6 +77,7 @@ def setup_server_logs_collecting(host):
 
     # kerberos related logs
     host.collect_log(paths.KADMIND_LOG)
+    host.collect_log(paths.KRB5KDC_LOG)
 
     # httpd logs
     host.collect_log(paths.VAR_LOG_HTTPD_ERROR)
