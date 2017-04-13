@@ -9,7 +9,6 @@ app_DATA =				\
 	10-selinuxusermap.update	\
 	10-rootdse.update		\
 	10-uniqueness.update		\
-	10-schema_compat.update		\
 	19-managed-entries.update	\
 	20-aci.update			\
 	20-dna.update			\
@@ -62,6 +61,7 @@ app_DATA =				\
 	73-custodia.update		\
 	73-winsync.update		\
 	73-certmap.update		\
+	80-schema_compat.update \
 	90-post_upgrade_plugins.update	\
 	$(NULL)
 

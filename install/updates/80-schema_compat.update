@@ -1,5 +1,6 @@
 #
-# Enable the Schema Compatibility plugin provided by slapi-nis.
+# Setup the Schema Compatibility plugin provided by slapi-nis.
+# This should be done after all other updates have been applied
 #
 # http://slapi-nis.fedorahosted.org/
 #
@@ -126,3 +127,96 @@ default:schema-compat-entry-attribute: macAddress=%{macAddress}
 dn: oid=2.16.840.1.113730.3.4.9,cn=features,cn=config
 only:aci: (targetattr !="aci")(version 3.0; acl "VLV Request Control"; allow (read, search, compare, proxy) userdn = "ldap:///anyone"; )
 
+dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
+only:schema-compat-entry-rdn:%ifeq("ipaEnabledFlag", "FALSE", "DISABLED", "cn=%{cn}")
+add:schema-compat-entry-attribute: sudoHost=%ifeq("hostCategory","all","ALL","%{hostMask}")
+add:schema-compat-entry-attribute: sudoRunAsUser=%%%{ipaSudoRunAsExtUserGroup}
+# Fix for #4324 (regression of #1309)
+remove:schema-compat-entry-attribute:sudoRunAsGroup=%deref("ipaSudoRunAs","cn")
+remove:schema-compat-entry-attribute:sudoRunAsUser=%{ipaSudoRunAsExtUser}
+remove:schema-compat-entry-attribute:sudoRunAsUser=%%%{ipaSudoRunAsExtUserGroup}
+remove:schema-compat-entry-attribute:sudoRunAsUser=%deref("ipaSudoRunAs","uid")
+remove:schema-compat-entry-attribute:sudoRunAsGroup=%{ipaSudoRunAsExtGroup}
+remove:schema-compat-entry-attribute:sudoRunAsGroup=%deref_f("ipaSudoRunAsGroup","(objectclass=posixGroup)","cn")
+
+# We need to add the value in a separate transaction
+dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
+add: schema-compat-entry-attribute: sudoRunAsGroup=%deref_f("ipaSudoRunAsGroup","(objectclass=posixGroup)","cn")
+add: schema-compat-entry-attribute: sudoRunAsUser=%ifeq("ipaSudoRunAsUserCategory","all","ALL","%{ipaSudoRunAsExtUser}")
+add: schema-compat-entry-attribute: sudoRunAsUser=%ifeq("ipaSudoRunAsUserCategory","all","ALL","%%%{ipaSudoRunAsExtUserGroup}")
+add: schema-compat-entry-attribute: sudoRunAsUser=%ifeq("ipaSudoRunAsUserCategory","all","ALL","%deref_f(\"ipaSudoRunAs\",\"(objectclass=posixAccount)\",\"uid\")")
+add: schema-compat-entry-attribute: sudoRunAsGroup=%ifeq("ipaSudoRunAsGroupCategory","all","ALL","%{ipaSudoRunAsExtGroup}")
+add: schema-compat-entry-attribute: sudoRunAsGroup=%ifeq("ipaSudoRunAsGroupCategory","all","ALL","%deref_f(\"ipaSudoRunAsGroup\",\"(objectclass=posixGroup)\",\"cn\")")
+remove: schema-compat-ignore-subtree: cn=changelog
+remove: schema-compat-ignore-subtree: o=ipaca
+add: schema-compat-restrict-subtree: $SUFFIX
+add: schema-compat-restrict-subtree: cn=Schema Compatibility,cn=plugins,cn=config
+add: schema-compat-ignore-subtree: cn=dna,cn=ipa,cn=etc,$SUFFIX
+
+# Change padding for host and userCategory so the pad returns the same value
+# as the original, '' or -.
+dn: cn=ng,cn=Schema Compatibility,cn=plugins,cn=config
+replace: schema-compat-entry-attribute:nisNetgroupTriple=(%link("%ifeq(\"hostCategory\",\"all\",\"\",\"%collect(\\\"%{externalHost}\\\",\\\"%deref(\\\\\\\"memberHost\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberHost\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\")\")","-",",","%ifeq(\"userCategory\",\"all\",\"\",\"%collect(\\\"%deref(\\\\\\\"memberUser\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberUser\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\")\")","-"),%{nisDomainName:-})::nisNetgroupTriple=(%link("%ifeq(\"hostCategory\",\"all\",\"\",\"%collect(\\\"%{externalHost}\\\",\\\"%deref(\\\\\\\"memberHost\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberHost\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"fqdn\\\\\\\")\\\")\")","%ifeq(\"hostCategory\",\"all\",\"\",\"-\")",",","%ifeq(\"userCategory\",\"all\",\"\",\"%collect(\\\"%deref(\\\\\\\"memberUser\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberUser\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\")\")","%ifeq(\"userCategory\",\"all\",\"\",\"-\")"),%{nisDomainName:-})
+remove: schema-compat-ignore-subtree: cn=changelog
+remove: schema-compat-ignore-subtree: o=ipaca
+add: schema-compat-restrict-subtree: $SUFFIX
+add: schema-compat-restrict-subtree: cn=Schema Compatibility,cn=plugins,cn=config
+add: schema-compat-ignore-subtree: cn=dna,cn=ipa,cn=etc,$SUFFIX
+
+dn: cn=computers, cn=Schema Compatibility, cn=plugins, cn=config
+default:objectClass: top
+default:objectClass: extensibleObject
+default:cn: computers
+default:schema-compat-container-group: cn=compat, $SUFFIX
+default:schema-compat-container-rdn: cn=computers
+default:schema-compat-search-base: cn=computers, cn=accounts, $SUFFIX
+default:schema-compat-search-filter: (&(macAddress=*)(fqdn=*)(objectClass=ipaHost))
+default:schema-compat-entry-rdn: cn=%first("%{fqdn}")
+default:schema-compat-entry-attribute: objectclass=device
+default:schema-compat-entry-attribute: objectclass=ieee802Device
+default:schema-compat-entry-attribute: cn=%{fqdn}
+default:schema-compat-entry-attribute: macAddress=%{macAddress}
+remove: schema-compat-ignore-subtree: cn=changelog
+remove: schema-compat-ignore-subtree: o=ipaca
+add: schema-compat-restrict-subtree: $SUFFIX
+add: schema-compat-restrict-subtree: cn=Schema Compatibility,cn=plugins,cn=config
+add: schema-compat-ignore-subtree: cn=dna,cn=ipa,cn=etc,$SUFFIX
+
+dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
+add:schema-compat-entry-attribute: sudoOrder=%{sudoOrder}
+
+dn: cn=users,cn=Schema Compatibility,cn=plugins,cn=config
+remove: schema-compat-ignore-subtree: cn=changelog
+remove: schema-compat-ignore-subtree: o=ipaca
+add: schema-compat-restrict-subtree: $SUFFIX
+add: schema-compat-restrict-subtree: cn=Schema Compatibility,cn=plugins,cn=config
+add: schema-compat-ignore-subtree: cn=dna,cn=ipa,cn=etc,$SUFFIX
+
+dn: cn=groups,cn=Schema Compatibility,cn=plugins,cn=config
+remove: schema-compat-ignore-subtree: cn=changelog
+remove: schema-compat-ignore-subtree: o=ipaca
+add: schema-compat-restrict-subtree: $SUFFIX
+add: schema-compat-restrict-subtree: cn=Schema Compatibility,cn=plugins,cn=config
+add: schema-compat-ignore-subtree: cn=dna,cn=ipa,cn=etc,$SUFFIX
+
+dn: cn=Schema Compatibility,cn=plugins,cn=config
+# We need to run schema-compat pre-bind callback before
+# other IPA pre-bind callbacks to make sure bind DN is
+# rewritten to the original entry if needed
+add:nsslapd-pluginprecedence: 40
+
+dn: cn=users,cn=Schema Compatibility,cn=plugins,cn=config
+add:schema-compat-entry-attribute: %ifeq("ipauniqueid","%{ipauniqueid}","objectclass=ipaOverrideTarget","")
+add:schema-compat-entry-attribute: %ifeq("ipauniqueid","%{ipauniqueid}","ipaanchoruuid=:IPA:$DOMAIN:%{ipauniqueid}","")
+add:schema-compat-entry-attribute: ipaanchoruuid=%{ipaanchoruuid}
+add:schema-compat-entry-attribute: %ifeq("ipaanchoruuid","%{ipaanchoruuid}","objectclass=ipaOverrideTarget","")
+
+dn: cn=groups,cn=Schema Compatibility,cn=plugins,cn=config
+add:schema-compat-entry-attribute: %ifeq("ipauniqueid","%{ipauniqueid}","objectclass=ipaOverrideTarget","")
+add:schema-compat-entry-attribute: %ifeq("ipauniqueid","%{ipauniqueid}","ipaanchoruuid=:IPA:$DOMAIN:%{ipauniqueid}","")
+add:schema-compat-entry-attribute: ipaanchoruuid=%{ipaanchoruuid}
+add:schema-compat-entry-attribute: %ifeq("ipaanchoruuid","%{ipaanchoruuid}","objectclass=ipaOverrideTarget","")
+
+dn: cn=users,cn=Schema Compatibility,cn=plugins,cn=config
+add:schema-compat-entry-attribute: uid=%{uid}
+replace:schema-compat-entry-rdn: uid=%{uid}::uid=%first("%{uid}")
