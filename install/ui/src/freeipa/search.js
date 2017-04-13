@@ -213,7 +213,7 @@ IPA.search_facet = function(spec, no_init) {
         var title;
         if (!values.length) {
             title = text.get('@i18n:dialogs.remove_empty');
-            alert(title);
+            window.alert(title);
             return null;
         }
 

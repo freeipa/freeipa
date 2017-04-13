@@ -116,7 +116,7 @@ IPA.serial_associator = function(spec) {
 
             batch.add_command(command);
         }
-        //alert(JSON.stringify(command.to_json()));
+        //window.alert(JSON.stringify(command.to_json()));
 
         batch.execute();
     };
@@ -154,7 +154,7 @@ IPA.bulk_associator = function(spec) {
 
         command.set_option(that.other_entity.name, that.values);
 
-        //alert(JSON.stringify(command.to_json()));
+        //window.alert(JSON.stringify(command.to_json()));
 
         command.execute();
     };
@@ -731,7 +731,7 @@ IPA.association_table_widget = function (spec) {
 
         if (!selected_values.length) {
             var message = text.get('@i18n:dialogs.remove_empty');
-            alert(message);
+            window.alert(message);
             return;
         }
 
@@ -1268,7 +1268,7 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
 
         if (!values.length) {
             var message = text.get('@i18n:dialogs.remove_empty');
-            alert(message);
+            window.alert(message);
             return;
         }
 
@@ -1579,7 +1579,7 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
 
         if (!selected_values.length) {
             var message = text.get('@i18n:dialogs.remove_empty');
-            alert(message);
+            window.alert(message);
             return;
         }
 
