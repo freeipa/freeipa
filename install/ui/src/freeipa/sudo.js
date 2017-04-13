@@ -860,7 +860,7 @@ IPA.sudo.options_section = function(spec) {
 
         if (!values.length) {
             var message = text.get('@i18n:dialogs.remove_empty');
-            alert(message);
+            window.alert(message);
             return;
         }
 

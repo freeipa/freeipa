@@ -1949,7 +1949,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         if (!selected_values.length) {
             var message = text.get('@i18n:dialogs.remove_empty');
-            alert(message);
+            window.alert(message);
             return;
         }
 
