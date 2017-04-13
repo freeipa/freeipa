@@ -888,7 +888,7 @@ field.Adapter = declare(null, {
                 if (result) record = result[this.result_name];
                 var res_type = typeof record;
                 var obj_in_type = typeof this.object_index;
-                if (res_type === 'object' && obj_in_type === 'number')
+                if (record && res_type === 'object' && obj_in_type === 'number')
                     record = record[this.object_index];
             }
         }
