@@ -38,7 +38,6 @@ from ipapython import dogtag
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install import certs
-from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
 from ipaserver.install import upgradeinstance
@@ -281,8 +280,6 @@ class DsInstance(service.Service):
         self.step("configuring Posix uid/gid generation",
                   self.__config_uidgid_gen)
         self.step("adding replication acis", self.__add_replication_acis)
-        self.step("enabling compatibility plugin",
-                  self.__enable_compat_plugin)
         self.step("activating sidgen plugin", self._add_sidgen_plugin)
         self.step("activating extdom plugin", self._add_extdom_plugin)
         self.step("tuning directory server", self.__tuning)
@@ -705,12 +702,6 @@ class DsInstance(service.Service):
 
     def __add_winsync_module(self):
         self._ldap_mod("ipa-winsync-conf.ldif")
-
-    def __enable_compat_plugin(self):
-        ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password, sub_dict=self.sub_dict)
-        rv = ld.update([paths.SCHEMA_COMPAT_ULDIF])
-        if not rv:
-            raise RuntimeError("Enabling compatibility plugin failed")
 
     def __config_version_module(self):
         self._ldap_mod("version-conf.ldif")
