@@ -379,11 +379,7 @@ vault.public_key_widget = function(spec) {
                 status = String.fromCharCode(decimal_check_i);
             }
         } else {
-            if (!value || value === '') {
-                status = text.get('@i18n:objects.publickey.status_new_ns');
-            } else {
-                status = text.get('@i18n:objects.publickey.status_new_ns');
-            }
+            status = text.get('@i18n:objects.publickey.status_new_ns');
         }
 
         return status;
