@@ -221,11 +221,25 @@ field.field = IPA.field = function(spec) {
     that.read_only = spec.read_only;
 
     /**
+     * Attribute for storing previous value of read_only attribute.
+     * It is set during changing read_only attribute.
+     * @property {boolean}
+     */
+    that.old_read_only = spec.read_only;
+
+    /**
      * Writable is set during load
      * @readonly
      * @property {boolean}
      */
     that.writable = true;
+
+    /**
+     * Attribute for storing previous value of writable attribute.
+     * It is set during changing writable attribute.
+     * @property {boolean}
+     */
+    that.old_writable = true;
 
     /**
      * Enabled
@@ -348,6 +362,19 @@ field.field = IPA.field = function(spec) {
         that.validators.push(IPA.metadata_validator());
     };
 
+
+    /**
+     * Evaluate if field was required before
+     * @return {boolean}
+     */
+    that.was_required = function() {
+        if (that.old_read_only) return false;
+        if (!that.old_writable) return false;
+
+        if (that.required !== undefined) return that.required;
+        return that.metadata && that.metadata.required;
+    };
+
     /**
      * Evaluate if field has to have some value
      * @return {boolean}
@@ -369,7 +396,7 @@ field.field = IPA.field = function(spec) {
      * @param {boolean} required
      */
     that.set_required = function(required) {
-        var old = that.is_required();
+        var old = that.was_required();
         that.required = required;
         var current = that.is_required();
 
@@ -570,9 +597,9 @@ field.field = IPA.field = function(spec) {
      */
     that.set_writable = function(writable) {
 
-        var old = !!that.writable;
+        that.old_writable = !!that.writable;
         that.writable = writable;
-        if (old !== writable) {
+        if (that.old_writable !== writable) {
             that.emit('writable-change', { source: that, writable: writable });
         }
 
@@ -586,11 +613,12 @@ field.field = IPA.field = function(spec) {
      */
     that.set_read_only = function(read_only) {
 
-        var old = !!that.read_only;
+        that.old_read_only = !!that.read_only;
         that.read_only = read_only;
-        if (old !== read_only) {
+        if (that.old_read_only !== read_only) {
             that.emit('readonly-change', { source: that, readonly: read_only });
         }
+
         that.set_required(that.required); // force update of required
     };
 
