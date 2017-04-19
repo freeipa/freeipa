@@ -253,12 +253,15 @@ class DogtagInstance(service.Service):
         obj = bus.get_object('org.fedorahosted.certmonger',
                              '/org/fedorahosted/certmonger')
         iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
-        path = iface.find_ca_by_nickname('dogtag-ipa-ca-renew-agent')
-        if not path:
-            iface.add_known_ca(
-                'dogtag-ipa-ca-renew-agent',
-                paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT,
-                dbus.Array([], dbus.Signature('s')))
+        for suffix, args in [('', ''), ('-reuse', ' --reuse-existing')]:
+            name = 'dogtag-ipa-ca-renew-agent' + suffix
+            path = iface.find_ca_by_nickname(name)
+            if not path:
+                command = paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT + args
+                iface.add_known_ca(
+                    name,
+                    command,
+                    dbus.Array([], dbus.Signature('s')))
 
     def __get_pin(self):
         try:
