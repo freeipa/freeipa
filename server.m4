@@ -106,6 +106,10 @@ AC_CHECK_LIB([$LIBPDB_NAME],[pdb_enum_upn_suffixes],
              [AC_MSG_WARN([libpdb does not have pdb_enum_upn_suffixes, no support for realm domains in ipasam])],
              [$SAMBA40EXTRA_LIBPATH])
 
+AC_CHECK_LIB([smbldap],[smbldap_get_ldap],
+             [AC_DEFINE([HAVE_SMBLDAP_GET_LDAP], [1], [struct smbldap_state is opaque])],
+             [AC_MSG_WARN([libsmbldap is not opaque, not using smbldap_get_ldap])],
+             [$SAMBA40EXTRA_LIBPATH])
 
 dnl ---------------------------------------------------------------------------
 dnl Check for libunistring

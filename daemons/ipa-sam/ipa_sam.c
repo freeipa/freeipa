@@ -190,7 +190,19 @@ bool E_md4hash(const char *passwd, uint8_t p16[16]); /* available in libcliauth-
 const struct dom_sid global_sid_Builtin = { 1, 1, {0,0,0,0,0,5},
 					   {32,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
 
-struct ipasam_privates {
+/* With Samba 4.7 ldapsam_privates structure is not public anymore.
+ * FreeIPA needs to use own structure */
+
+struct ipasam_private {
+	struct smbldap_state *ldap_state;
+	/* Former statics */
+	LDAPMessage *result;
+	LDAPMessage *entry;
+
+	const char *domain_name;
+	struct dom_sid domain_sid;
+
+	char *domain_dn;
 	char *realm;
 	char *base_dn;
 	char *trust_dn;
@@ -204,7 +216,7 @@ struct ipasam_privates {
 };
 
 
-static NTSTATUS ipasam_get_domain_name(struct ldapsam_privates *ldap_state,
+static NTSTATUS ipasam_get_domain_name(struct ipasam_private *ipasam_state,
 				       TALLOC_CTX *mem_ctx,
 				       char **domain_name);
 
@@ -332,9 +344,35 @@ static bool strnequal(const char *s1, const char *s2, size_t n) {
 	return false;
 }
 
-static LDAP *priv2ld(struct ldapsam_privates *priv)
+static LDAP *_smbldap_get_ldap(struct smbldap_state *state) {
+#ifdef HAVE_SMBLDAP_GET_LDAP
+	return smbldap_get_ldap(state);
+#else
+	return state->ldap_struct;
+#endif
+
+}
+
+static bool _smbldap_get_paged_results(struct smbldap_state *state) {
+#ifdef HAVE_SMBLDAP_GET_LDAP
+	return smbldap_get_paged_results(state);
+#else
+	return state->paged_results;
+#endif
+}
+
+static void _smbldap_set_paged_results(struct smbldap_state *state,
+			       bool paged_results) {
+#ifdef HAVE_SMBLDAP_GET_LDAP
+	smbldap_set_paged_results(state, paged_results);
+#else
+	state->paged_results = paged_results;
+#endif
+}
+
+static LDAP *priv2ld(struct ipasam_private *priv)
 {
-	return priv->smbldap_state->ldap_struct;
+	return _smbldap_get_ldap(priv->ldap_state);
 }
 
 /*
@@ -508,8 +546,8 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 				    const char **names,
 				    enum lsa_SidType *attrs)
 {
-	struct ldapsam_privates *ldap_state =
-		(struct ldapsam_privates *)methods->private_data;
+	struct ipasam_private *ipasam_state =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	LDAPMessage *msg = NULL;
 	LDAPMessage *entry;
 	char *allsids = NULL;
@@ -526,7 +564,7 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 	}
 
 	if (!sid_check_is_builtin(domain_sid) &&
-	     dom_sid_compare_domain(&ldap_state->domain_sid, domain_sid) != 0) {
+	     dom_sid_compare_domain(&ipasam_state->domain_sid, domain_sid) != 0) {
 		result = NT_STATUS_INVALID_PARAMETER;
 		goto done;
 	}
@@ -570,8 +608,8 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 			goto done;
 		}
 
-		rc = smbldap_search(ldap_state->smbldap_state,
-				    ldap_state->ipasam_privates->base_dn,
+		rc = smbldap_search(ipasam_state->ldap_state,
+				    ipasam_state->base_dn,
 				    LDAP_SCOPE_SUBTREE, filter, ldap_attrs, 0,
 				    &msg);
 		smbldap_talloc_autofree_ldapmsg(mem_ctx, msg);
@@ -580,7 +618,7 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 	if (rc != LDAP_SUCCESS)
 		goto done;
 
-	ld = ldap_state->smbldap_state->ldap_struct;
+	ld = priv2ld(ipasam_state);
 	num_mapped = 0;
 
 	for (entry = ldap_first_entry(ld, msg);
@@ -591,7 +629,7 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 		const char *name;
 
 		if (!ldapsam_extract_rid_from_entry(ld, entry,
-						    ldap_state->ipasam_privates->idmap_ctx,
+						    ipasam_state->idmap_ctx,
 						    domain_sid,
 						    &rid)) {
 			DEBUG(2, ("Could not find sid from ldap entry\n"));
@@ -640,8 +678,8 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 			goto done;
 		}
 
-		rc = smbldap_search(ldap_state->smbldap_state,
-				    ldap_state->ipasam_privates->base_dn,
+		rc = smbldap_search(ipasam_state->ldap_state,
+				    ipasam_state->base_dn,
 				    LDAP_SCOPE_SUBTREE, filter, ldap_attrs, 0,
 				    &msg);
 		smbldap_talloc_autofree_ldapmsg(mem_ctx, msg);
@@ -652,7 +690,7 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 
 	/* ldap_struct might have changed due to a reconnect */
 
-	ld = ldap_state->smbldap_state->ldap_struct;
+	ld = priv2ld(ipasam_state);
 
 	/* For consistency checks, we already checked we're only domain or builtin */
 
@@ -678,7 +716,7 @@ static NTSTATUS ldapsam_lookup_rids(struct pdb_methods *methods,
 		}
 
 		if (!ldapsam_extract_rid_from_entry(ld, entry,
-						    ldap_state->ipasam_privates->idmap_ctx,
+						    ipasam_state->idmap_ctx,
 						    domain_sid, &rid)) {
 			DEBUG(2, ("Could not find sid from ldap entry %s\n", dn));
 			continue;
@@ -727,8 +765,8 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 			      const struct dom_sid *sid,
 			      struct unixid *id)
 {
-	struct ldapsam_privates *priv =
-		(struct ldapsam_privates *)methods->private_data;
+	struct ipasam_private *priv =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	char *filter;
 	const char *attrs[] = { "objectClass", "gidNumber", "uidNumber",
 				NULL };
@@ -758,7 +796,7 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 		goto done;
 	}
 
-	rc = smbldap_search_suffix(priv->smbldap_state, filter,
+	rc = smbldap_search_suffix(priv->ldap_state, filter,
 				   attrs, &result);
 	if (rc != LDAP_SUCCESS) {
 		goto done;
@@ -827,11 +865,11 @@ static bool ldapsam_sid_to_id(struct pdb_methods *methods,
 	return ret;
 }
 
-static bool ldapsam_uid_to_sid(struct pdb_methods *methods, uid_t uid,
+static bool ipasam_uid_to_sid(struct pdb_methods *methods, uid_t uid,
 			       struct dom_sid *sid)
 {
-	struct ldapsam_privates *priv =
-		(struct ldapsam_privates *)methods->private_data;
+	struct ipasam_private *priv =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	char *filter;
 	const char *attrs[] = { LDAP_ATTRIBUTE_SID, NULL };
 	LDAPMessage *result = NULL;
@@ -867,7 +905,7 @@ static bool ldapsam_uid_to_sid(struct pdb_methods *methods, uid_t uid,
 		goto done;
 	}
 
-	rc = smbldap_search_suffix(priv->smbldap_state, filter, attrs, &result);
+	rc = smbldap_search_suffix(priv->ldap_state, filter, attrs, &result);
 	if (rc != LDAP_SUCCESS) {
 		goto done;
 	}
@@ -890,7 +928,7 @@ static bool ldapsam_uid_to_sid(struct pdb_methods *methods, uid_t uid,
 		goto done;
 	}
 
-	err = sss_idmap_sid_to_smb_sid(priv->ipasam_privates->idmap_ctx,
+	err = sss_idmap_sid_to_smb_sid(priv->idmap_ctx,
 				       user_sid_string, &user_sid);
 	if (err != IDMAP_SUCCESS) {
 		DEBUG(3, ("Error calling sid_string_talloc for sid '%s'\n",
@@ -912,11 +950,11 @@ done:
 	return ret;
 }
 
-static bool ldapsam_gid_to_sid(struct pdb_methods *methods, gid_t gid,
+static bool ipasam_gid_to_sid(struct pdb_methods *methods, gid_t gid,
 			       struct dom_sid *sid)
 {
-	struct ldapsam_privates *priv =
-		(struct ldapsam_privates *)methods->private_data;
+	struct ipasam_private *priv =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	char *filter;
 	const char *attrs[] = { LDAP_ATTRIBUTE_SID, LDAP_ATTRIBUTE_OBJECTCLASS, NULL };
 	LDAPMessage *result = NULL;
@@ -947,7 +985,7 @@ static bool ldapsam_gid_to_sid(struct pdb_methods *methods, gid_t gid,
 		goto done;
 	}
 
-	rc = smbldap_search_suffix(priv->smbldap_state, filter, attrs, &result);
+	rc = smbldap_search_suffix(priv->ldap_state, filter, attrs, &result);
 	if (rc != LDAP_SUCCESS) {
 		goto done;
 	}
@@ -988,7 +1026,7 @@ found:
 			   "returning fallback group.\n", (unsigned int)gid));
 
 		sid_copy(sid,
-			 &priv->ipasam_privates->fallback_primary_group);
+			 &priv->fallback_primary_group);
 		ret = true;
 		goto done;
 
@@ -1002,8 +1040,8 @@ found:
 		goto done;
 	}
 
-	err = sss_idmap_sid_to_smb_sid(priv->ipasam_privates->idmap_ctx,
-					   group_sid_string, &group_sid);
+	err = sss_idmap_sid_to_smb_sid(priv->idmap_ctx,
+				       group_sid_string, &group_sid);
 	if (err != IDMAP_SUCCESS) {
 		DEBUG(3, ("Error calling sid_string_talloc for sid '%s'\n",
 			  group_sid_string));
@@ -1031,10 +1069,10 @@ static bool ipasam_id_to_sid(struct pdb_methods *methods, struct unixid *id, str
 	bool result = false;
 
 	if (id->type != ID_TYPE_GID) {
-		result = ldapsam_uid_to_sid(methods, id->id, sid);
+		result = ipasam_uid_to_sid(methods, id->id, sid);
 	}
 	if (!result && id->type != ID_TYPE_UID) {
-		result = ldapsam_gid_to_sid(methods, id->id, sid);
+		result = ipasam_gid_to_sid(methods, id->id, sid);
 	}
 
 	return result;
@@ -1112,16 +1150,16 @@ struct ldap_search_state {
 				  struct samr_displayentry *result);
 };
 
-static bool ldapsam_search_firstpage(struct pdb_search *search)
+static bool ipasam_search_firstpage(struct pdb_search *search)
 {
 	struct ldap_search_state *state =
-		(struct ldap_search_state *)search->private_data;
+		talloc_get_type_abort(search->private_data, struct ldap_search_state);
 	LDAP *ld;
 	int rc = LDAP_OPERATIONS_ERROR;
 
 	state->entries = NULL;
 
-	if (state->connection->paged_results) {
+	if (_smbldap_get_paged_results(state->connection)) {
 		rc = smbldap_search_paged(state->connection, state->base,
 					  state->scope, state->filter,
 					  state->attrs, state->attrsonly,
@@ -1146,10 +1184,10 @@ static bool ldapsam_search_firstpage(struct pdb_search *search)
 
 		/* Ok, the server was lying. It told us it could do paged
 		 * searches when it could not. */
-		state->connection->paged_results = false;
+		_smbldap_set_paged_results(state->connection, false);
 	}
 
-        ld = state->connection->ldap_struct;
+        ld = _smbldap_get_ldap(state->connection);
         if ( ld == NULL) {
                 DEBUG(5, ("Don't have an LDAP connection right after a "
 			  "search\n"));
@@ -1160,13 +1198,14 @@ static bool ldapsam_search_firstpage(struct pdb_search *search)
 	return true;
 }
 
-static bool ldapsam_search_nextpage(struct pdb_search *search)
+static bool ipasam_search_nextpage(struct pdb_search *search)
 {
 	struct ldap_search_state *state =
-		(struct ldap_search_state *)search->private_data;
+		talloc_get_type_abort(search->private_data, struct ldap_search_state);
+	LDAP *ld;
 	int rc;
 
-	if (!state->connection->paged_results) {
+	if (!_smbldap_get_paged_results(state->connection)) {
 		/* There is no next page when there are no paged results */
 		return false;
 	}
@@ -1180,7 +1219,14 @@ static bool ldapsam_search_nextpage(struct pdb_search *search)
 	if ((rc != LDAP_SUCCESS) || (state->entries == NULL))
 		return false;
 
-	state->current_entry = ldap_first_entry(state->connection->ldap_struct, state->entries);
+        ld = _smbldap_get_ldap(state->connection);
+        if ( ld == NULL) {
+                DEBUG(5, ("Don't have an LDAP connection right after a "
+			  "search\n"));
+                return false;
+        }
+	state->current_entry = ldap_first_entry(ld,
+						state->entries);
 
 	if (state->current_entry == NULL) {
 		ldap_msgfree(state->entries);
@@ -1191,38 +1237,44 @@ static bool ldapsam_search_nextpage(struct pdb_search *search)
 	return true;
 }
 
-static bool ldapsam_search_next_entry(struct pdb_search *search,
+static bool ipasam_search_next_entry(struct pdb_search *search,
 				      struct samr_displayentry *entry)
 {
 	struct ldap_search_state *state =
-		(struct ldap_search_state *)search->private_data;
+		talloc_get_type_abort(search->private_data, struct ldap_search_state);
 	bool result;
+	LDAP *ld;
 
  retry:
 	if ((state->entries == NULL) && (state->pagedresults_cookie == NULL))
 		return false;
 
 	if ((state->entries == NULL) &&
-	    !ldapsam_search_nextpage(search))
+	    !ipasam_search_nextpage(search))
 		    return false;
 
 	if (state->current_entry == NULL) {
 		return false;
 	}
 
+        ld = _smbldap_get_ldap(state->connection);
+        if ( ld == NULL) {
+                DEBUG(5, ("Don't have an LDAP connection right after a "
+			  "search\n"));
+                return false;
+        }
 	result = state->ldap2displayentry(state, search,
-					  state->connection->ldap_struct,
+					  ld,
 					  state->current_entry, entry);
 
 	if (!result) {
 		char *dn;
-		dn = ldap_get_dn(state->connection->ldap_struct,
-				 state->current_entry);
+		dn = ldap_get_dn(ld, state->current_entry);
 		DEBUG(5, ("Skipping entry %s\n", dn != NULL ? dn : "<NULL>"));
 		if (dn != NULL) ldap_memfree(dn);
 	}
 
-	state->current_entry = ldap_next_entry(state->connection->ldap_struct,
+	state->current_entry = ldap_next_entry(ld,
 					       state->current_entry);
 
 	if (state->current_entry == NULL) {
@@ -1235,10 +1287,10 @@ static bool ldapsam_search_next_entry(struct pdb_search *search,
 	return true;
 }
 
-static void ldapsam_search_end(struct pdb_search *search)
+static void ipasam_search_end(struct pdb_search *search)
 {
 	struct ldap_search_state *state =
-		(struct ldap_search_state *)search->private_data;
+		talloc_get_type_abort(search->private_data, struct ldap_search_state);
 	int rc;
 
 	if (state->pagedresults_cookie == NULL)
@@ -1250,7 +1302,7 @@ static void ldapsam_search_end(struct pdb_search *search)
 	state->entries = NULL;
 	state->current_entry = NULL;
 
-	if (!state->connection->paged_results)
+	if (!_smbldap_get_paged_results(state->connection))
 		return;
 
 	/* Tell the LDAP server we're not interested in the rest anymore. */
@@ -1263,7 +1315,6 @@ static void ldapsam_search_end(struct pdb_search *search)
 	if (rc != LDAP_SUCCESS)
 		DEBUG(5, ("Could not end search properly\n"));
 
-	return;
 }
 
 static bool ldapuser2displayentry(struct ldap_search_state *state,
@@ -1355,12 +1406,12 @@ static bool ldapuser2displayentry(struct ldap_search_state *state,
 	return true;
 }
 
-static bool ldapsam_search_users(struct pdb_methods *methods,
+static bool ipasam_search_users(struct pdb_methods *methods,
 				 struct pdb_search *search,
 				 uint32_t acct_flags)
 {
-	struct ldapsam_privates *ldap_state =
-		(struct ldapsam_privates *)methods->private_data;
+	struct ipasam_private *ipasam_state =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	struct ldap_search_state *state;
 
 	state = talloc(search, struct ldap_search_state);
@@ -1369,9 +1420,9 @@ static bool ldapsam_search_users(struct pdb_methods *methods,
 		return false;
 	}
 
-	state->connection = ldap_state->smbldap_state;
+	state->connection = ipasam_state->ldap_state;
 
-	state->base = talloc_strdup(search, ldap_state->ipasam_privates->base_dn);
+	state->base = talloc_strdup(search, ipasam_state->base_dn);
 
 	state->acct_flags = acct_flags;
 	state->scope = LDAP_SCOPE_SUBTREE;
@@ -1382,8 +1433,8 @@ static bool ldapsam_search_users(struct pdb_methods *methods,
 	state->attrsonly = 0;
 	state->pagedresults_cookie = NULL;
 	state->entries = NULL;
-	state->idmap_ctx = ldap_state->ipasam_privates->idmap_ctx;
-	state->dom_sid = &ldap_state->domain_sid;
+	state->idmap_ctx = ipasam_state->idmap_ctx;
+	state->dom_sid = &ipasam_state->domain_sid;
 	state->ldap2displayentry = ldapuser2displayentry;
 
 	if ((state->filter == NULL) || (state->attrs == NULL)) {
@@ -1392,10 +1443,10 @@ static bool ldapsam_search_users(struct pdb_methods *methods,
 	}
 
 	search->private_data = state;
-	search->next_entry = ldapsam_search_next_entry;
-	search->search_end = ldapsam_search_end;
+	search->next_entry = ipasam_search_next_entry;
+	search->search_end = ipasam_search_end;
 
-	return ldapsam_search_firstpage(search);
+	return ipasam_search_firstpage(search);
 }
 
 static bool ldapgroup2displayentry(struct ldap_search_state *state,
@@ -1496,8 +1547,8 @@ static bool ldapgroup2displayentry(struct ldap_search_state *state,
 		case SID_NAME_DOM_GRP:
 		case SID_NAME_ALIAS:
 
-			if (!sid_peek_check_rid(state->dom_sid, sid, &result->rid)
-				&& !sid_peek_check_rid(&global_sid_Builtin, sid, &result->rid))
+			if (!sid_peek_check_rid(state->dom_sid, sid, &result->rid) &&
+			    !sid_peek_check_rid(&global_sid_Builtin, sid, &result->rid))
 			{
 				talloc_free(sid);
 				DEBUG(0, ("SID is not in our domain\n"));
@@ -1517,13 +1568,13 @@ static bool ldapgroup2displayentry(struct ldap_search_state *state,
 	return true;
 }
 
-static bool ldapsam_search_grouptype(struct pdb_methods *methods,
+static bool ipasam_search_grouptype(struct pdb_methods *methods,
 				     struct pdb_search *search,
 				     const struct dom_sid *sid,
 				     enum lsa_SidType type)
 {
-	struct ldapsam_privates *ldap_state =
-		(struct ldapsam_privates *)methods->private_data;
+	struct ipasam_private *ipasam_state =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	struct ldap_search_state *state;
 
 	state = talloc(search, struct ldap_search_state);
@@ -1532,8 +1583,8 @@ static bool ldapsam_search_grouptype(struct pdb_methods *methods,
 		return false;
 	}
 
-	state->base = talloc_strdup(search, ldap_state->ipasam_privates->base_dn);
-	state->connection = ldap_state->smbldap_state;
+	state->base = talloc_strdup(search, ipasam_state->base_dn);
+	state->connection = ipasam_state->ldap_state;
 	state->scope = LDAP_SCOPE_SUBTREE;
 	state->filter =	talloc_asprintf(search, "(&(objectclass=%s)"
 					"(%s=%s*))",
@@ -1547,8 +1598,8 @@ static bool ldapsam_search_grouptype(struct pdb_methods *methods,
 	state->pagedresults_cookie = NULL;
 	state->entries = NULL;
 	state->group_type = type;
-	state->idmap_ctx = ldap_state->ipasam_privates->idmap_ctx;
-	state->dom_sid = &ldap_state->domain_sid;
+	state->idmap_ctx = ipasam_state->idmap_ctx;
+	state->dom_sid = &ipasam_state->domain_sid;
 	state->ldap2displayentry = ldapgroup2displayentry;
 
 	if ((state->filter == NULL) || (state->attrs == NULL)) {
@@ -1557,56 +1608,48 @@ static bool ldapsam_search_grouptype(struct pdb_methods *methods,
 	}
 
 	search->private_data = state;
-	search->next_entry = ldapsam_search_next_entry;
-	search->search_end = ldapsam_search_end;
+	search->next_entry = ipasam_search_next_entry;
+	search->search_end = ipasam_search_end;
 
-	return ldapsam_search_firstpage(search);
+	return ipasam_search_firstpage(search);
 }
 
-static bool ldapsam_search_groups(struct pdb_methods *methods,
+static bool ipasam_search_groups(struct pdb_methods *methods,
 				  struct pdb_search *search)
 {
-	struct ldapsam_privates *ldap_state =
-		(struct ldapsam_privates *)methods->private_data;
+	struct ipasam_private *ipasam_state =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 
-	return ldapsam_search_grouptype(methods, search,
-					&ldap_state->domain_sid,
+	return ipasam_search_grouptype(methods, search,
+					&ipasam_state->domain_sid,
                                         SID_NAME_DOM_GRP);
 }
 
-static bool ldapsam_search_aliases(struct pdb_methods *methods,
+static bool ipasam_search_aliases(struct pdb_methods *methods,
 				   struct pdb_search *search,
 				   const struct dom_sid *sid)
 {
-	return ldapsam_search_groups(methods, search);
+	return ipasam_search_grouptype(methods, search,
+				       sid, SID_NAME_ALIAS);
 }
 
-
-
-
-
-
-
-
-
-
 static char *trusted_domain_dn(TALLOC_CTX *mem_ctx,
-			       struct ldapsam_privates *ldap_state,
+			       struct ipasam_private *ipasam_state,
 			       const char *domain)
 {
 	return talloc_asprintf(mem_ctx, "%s=%s,%s",
 			       LDAP_ATTRIBUTE_CN, domain,
-			       ldap_state->ipasam_privates->trust_dn);
+			       ipasam_state->trust_dn);
 }
 
-static NTSTATUS ipasam_get_objectclasses(struct ldapsam_privates *ldap_state,
+static NTSTATUS ipasam_get_objectclasses(struct ipasam_private *ipasam_state,
 					 const char *dn, LDAPMessage *entry,
 					 uint32_t *has_objectclass)
 {
 	struct berval **bervals;
 	size_t c;
 
-	bervals = ldap_get_values_len(priv2ld(ldap_state), entry,
+	bervals = ldap_get_values_len(priv2ld(ipasam_state), entry,
 					LDAP_ATTRIBUTE_OBJECTCLASS);
 	if (bervals == NULL) {
 		DEBUG(0, ("Entry [%s] does not have any objectclasses.\n", dn));
@@ -1643,7 +1686,7 @@ static NTSTATUS ipasam_get_objectclasses(struct ldapsam_privates *ldap_state,
 	return NT_STATUS_OK;
 }
 
-static bool search_krb_princ(struct ldapsam_privates *ldap_state,
+static bool search_krb_princ(struct ipasam_private *ipasam_state,
 			     TALLOC_CTX *mem_ctx,
 			     const char *princ, const char *base_dn,
 			     LDAPMessage **entry)
@@ -1659,7 +1702,7 @@ static bool search_krb_princ(struct ldapsam_privates *ldap_state,
 		return false;
 	}
 
-	rc = smbldap_search(ldap_state->smbldap_state, base_dn,
+	rc = smbldap_search(ipasam_state->ldap_state, base_dn,
 			    LDAP_SCOPE_SUBTREE, filter, NULL, 0, &result);
 
 	if (result != NULL) {
@@ -1675,7 +1718,7 @@ static bool search_krb_princ(struct ldapsam_privates *ldap_state,
 		return false;
 	}
 
-	num_result = ldap_count_entries(priv2ld(ldap_state), result);
+	num_result = ldap_count_entries(priv2ld(ipasam_state), result);
 
 	if (num_result > 1) {
 		DEBUG(1, ("search_krb_princ: more than one object found "
@@ -1688,7 +1731,7 @@ static bool search_krb_princ(struct ldapsam_privates *ldap_state,
 			  "with filter '%s'.\n", filter));
 		*entry = NULL;
 	} else {
-		*entry = ldap_first_entry(priv2ld(ldap_state), result);
+		*entry = ldap_first_entry(priv2ld(ipasam_state), result);
 	}
 
 	return true;
@@ -1701,7 +1744,7 @@ long default_enctypes[DEF_ENCTYPE_NUM] = {
     ENCTYPE_ARCFOUR_HMAC
 };
 
-static int set_cross_realm_pw(struct ldapsam_privates *ldap_state,
+static int set_cross_realm_pw(struct ipasam_private *ipasam_state,
 			      const char *princ,
 			      const char *pwd)
 {
@@ -1720,7 +1763,7 @@ static int set_cross_realm_pw(struct ldapsam_privates *ldap_state,
         reqdata.bv_len = buflen;
         reqdata.bv_val = buffer;
 
-	ret = smbldap_extended_operation(ldap_state->smbldap_state,
+	ret = smbldap_extended_operation(ipasam_state->ldap_state,
 					 KEYTAB_GET_OID, &reqdata, NULL, NULL,
 					 &retoid, &retdata);
 	if (ret != LDAP_SUCCESS) {
@@ -1744,7 +1787,7 @@ done:
 #define KRB_PRINC_CREATE_DISABLED           0x00000001
 #define KRB_PRINC_CREATE_AGENT_PERMISSION   0x00000002
 
-static bool set_krb_princ(struct ldapsam_privates *ldap_state,
+static bool set_krb_princ(struct ipasam_private *ipasam_state,
 			  TALLOC_CTX *mem_ctx,
 			  const char *princ, const char *saltprinc,
 			  const char *pwd,
@@ -1758,17 +1801,17 @@ static bool set_krb_princ(struct ldapsam_privates *ldap_state,
 	uint32_t has_objectclass = 0;
 	NTSTATUS status;
 
-	if (!search_krb_princ(ldap_state, mem_ctx, princ, base_dn, &entry)) {
+	if (!search_krb_princ(ipasam_state, mem_ctx, princ, base_dn, &entry)) {
 		return false;
 	}
 
 	if (entry) {
-		dn = get_dn(mem_ctx, priv2ld(ldap_state), entry);
+		dn = get_dn(mem_ctx, priv2ld(ipasam_state), entry);
 		if (!dn) {
 			return false;
 		}
 
-		status = ipasam_get_objectclasses(ldap_state, dn, entry,
+		status = ipasam_get_objectclasses(ipasam_state, dn, entry,
 						  &has_objectclass);
 		if (!NT_STATUS_IS_OK(status)) {
 			return false;
@@ -1810,13 +1853,13 @@ static bool set_krb_princ(struct ldapsam_privates *ldap_state,
         }
 
 	if ((create_flags & KRB_PRINC_CREATE_DISABLED)) {
-		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 				LDAP_ATTRIBUTE_KRB_TICKET_FLAGS, __TALLOC_STRING_LINE2__(IPASAM_DISALLOW_ALL_TIX));
 	}
 
 	if ((create_flags & KRB_PRINC_CREATE_AGENT_PERMISSION)) {
 		char *agent_dn = NULL;
-		agent_dn = talloc_asprintf(mem_ctx, LDAP_CN_ADTRUST_AGENTS",%s", ldap_state->ipasam_privates->base_dn);
+		agent_dn = talloc_asprintf(mem_ctx, LDAP_CN_ADTRUST_AGENTS",%s", ipasam_state->base_dn);
 		if (agent_dn == NULL) {
 			DEBUG(1, ("error configuring cross realm principal data!\n"));
 			return false;
@@ -1824,29 +1867,29 @@ static bool set_krb_princ(struct ldapsam_privates *ldap_state,
 		smbldap_set_mod(&mods, LDAP_MOD_ADD,
 				LDAP_ATTRIBUTE_OBJECTCLASS,
 				LDAP_OBJ_IPAOPALLOW);
-		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 				LDAP_ATTRIBUTE_IPAOPALLOW, agent_dn);
-		agent_dn = talloc_asprintf(mem_ctx, LDAP_CN_ADTRUST_ADMINS",%s", ldap_state->ipasam_privates->base_dn);
+		agent_dn = talloc_asprintf(mem_ctx, LDAP_CN_ADTRUST_ADMINS",%s", ipasam_state->base_dn);
 		if (agent_dn == NULL) {
 			DEBUG(1, ("error configuring cross realm principal data for trust admins!\n"));
 			return false;
 		}
-		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 				LDAP_ATTRIBUTE_IPAOPALLOW, agent_dn);
 	}
 
 
 	if (entry == NULL) {
-		ret = smbldap_add(ldap_state->smbldap_state, dn, mods);
+		ret = smbldap_add(ipasam_state->ldap_state, dn, mods);
 	} else {
-		ret = smbldap_modify(ldap_state->smbldap_state, dn, mods);
+		ret = smbldap_modify(ipasam_state->ldap_state, dn, mods);
 	}
 	if (ret != LDAP_SUCCESS) {
 		DEBUG(1, ("error writing cross realm principal data!\n"));
 		return false;
 	}
 
-	ret = set_cross_realm_pw(ldap_state, saltprinc ? saltprinc : princ, pwd);
+	ret = set_cross_realm_pw(ipasam_state, saltprinc ? saltprinc : princ, pwd);
 	if (ret != 0) {
 		DEBUG(1, ("set_cross_realm_pw failed.\n"));
 		return false;
@@ -1855,7 +1898,7 @@ static bool set_krb_princ(struct ldapsam_privates *ldap_state,
 	return true;
 }
 
-static bool del_krb_princ(struct ldapsam_privates *ldap_state,
+static bool del_krb_princ(struct ipasam_private *ipasam_state,
 			  TALLOC_CTX *mem_ctx,
 			  const char *princ, const char *base_dn)
 {
@@ -1863,17 +1906,17 @@ static bool del_krb_princ(struct ldapsam_privates *ldap_state,
 	char *dn = NULL;
 	int ret;
 
-	if (!search_krb_princ(ldap_state, mem_ctx, princ, base_dn, &entry)) {
+	if (!search_krb_princ(ipasam_state, mem_ctx, princ, base_dn, &entry)) {
 		return false;
 	}
 
 	if (entry) {
-		dn = get_dn(mem_ctx, priv2ld(ldap_state), entry);
+		dn = get_dn(mem_ctx, priv2ld(ipasam_state), entry);
 		if (!dn) {
 			return false;
 		}
 
-		ret = smbldap_delete(ldap_state->smbldap_state, dn);
+		ret = smbldap_delete(ipasam_state->ldap_state, dn);
 		if (ret != LDAP_SUCCESS) {
 			return false;
 		}
@@ -1887,7 +1930,7 @@ enum princ_mod {
 	DEL_PRINC
 };
 
-static bool handle_cross_realm_princs(struct ldapsam_privates *ldap_state,
+static bool handle_cross_realm_princs(struct ipasam_private *ipasam_state,
 				      const char *domain, const char *pwd,
 				      uint32_t trust_direction,
 				      enum princ_mod mod)
@@ -1912,18 +1955,18 @@ static bool handle_cross_realm_princs(struct ldapsam_privates *ldap_state,
 		goto done;
 	}
 
-	trusted_dn = trusted_domain_dn(tmp_ctx, ldap_state, domain);
+	trusted_dn = trusted_domain_dn(tmp_ctx, ipasam_state, domain);
 
 	princ_l = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s", remote_realm,
-			ldap_state->ipasam_privates->realm);
+			ipasam_state->realm);
 	princ_r = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
-			ldap_state->ipasam_privates->realm, remote_realm);
+			ipasam_state->realm, remote_realm);
 
 	princ_tdo = talloc_asprintf(tmp_ctx, "%s$@%s",
-			ldap_state->ipasam_privates->flat_name, remote_realm);
+			ipasam_state->flat_name, remote_realm);
 
 	saltprinc_tdo = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
-			ldap_state->ipasam_privates->flat_name, remote_realm);
+			ipasam_state->flat_name, remote_realm);
 
 	if (trusted_dn == NULL || princ_l == NULL ||
 	    princ_r == NULL || princ_tdo == NULL || saltprinc_tdo == NULL) {
@@ -1934,23 +1977,23 @@ static bool handle_cross_realm_princs(struct ldapsam_privates *ldap_state,
 	switch (mod) {
 		case SET_PRINC:
 			/* Create Kerberos principal for inbound trust, enabled by default */
-			ok   = set_krb_princ(ldap_state, tmp_ctx, princ_r, NULL, pwd, trusted_dn, KRB_PRINC_CREATE_DEFAULT);
+			ok   = set_krb_princ(ipasam_state, tmp_ctx, princ_r, NULL, pwd, trusted_dn, KRB_PRINC_CREATE_DEFAULT);
 			/* Create Kerberos principal corresponding to TDO in AD for SSSD usage, disabled by default */
-			ok |= set_krb_princ(ldap_state, tmp_ctx, princ_tdo, saltprinc_tdo, pwd, trusted_dn,
+			ok |= set_krb_princ(ipasam_state, tmp_ctx, princ_tdo, saltprinc_tdo, pwd, trusted_dn,
 					    KRB_PRINC_CREATE_DISABLED | KRB_PRINC_CREATE_AGENT_PERMISSION);
 			if ((trust_direction & LSA_TRUST_DIRECTION_OUTBOUND) != 0) {
 				/* Create Kerberos principal for outbound trust, enabled by default */
-				ok |= set_krb_princ(ldap_state, tmp_ctx, princ_l, NULL, pwd, trusted_dn, KRB_PRINC_CREATE_DEFAULT);
+				ok |= set_krb_princ(ipasam_state, tmp_ctx, princ_l, NULL, pwd, trusted_dn, KRB_PRINC_CREATE_DEFAULT);
 			}
 			if (!ok) {
 				goto done;
 			}
 			break;
 		case DEL_PRINC:
-			ok  = del_krb_princ(ldap_state, tmp_ctx, princ_r, trusted_dn);
-			ok |= del_krb_princ(ldap_state, tmp_ctx, princ_tdo, trusted_dn);
+			ok  = del_krb_princ(ipasam_state, tmp_ctx, princ_r, trusted_dn);
+			ok |= del_krb_princ(ipasam_state, tmp_ctx, princ_tdo, trusted_dn);
 			if ((trust_direction & LSA_TRUST_DIRECTION_OUTBOUND) != 0) {
-				ok |= del_krb_princ(ldap_state, tmp_ctx, princ_l, trusted_dn);
+				ok |= del_krb_princ(ipasam_state, tmp_ctx, princ_l, trusted_dn);
 			}
 			if (!ok) {
 				goto done;
@@ -1968,20 +2011,20 @@ done:
 	return ok;
 }
 
-static bool set_cross_realm_princs(struct ldapsam_privates *ldap_state,
+static bool set_cross_realm_princs(struct ipasam_private *ipasam_state,
 				   const char *domain, const char *pwd, uint32_t trust_direction)
 {
-	return handle_cross_realm_princs(ldap_state, domain, pwd, trust_direction, SET_PRINC);
+	return handle_cross_realm_princs(ipasam_state, domain, pwd, trust_direction, SET_PRINC);
 }
 
-static bool del_cross_realm_princs(struct ldapsam_privates *ldap_state,
+static bool del_cross_realm_princs(struct ipasam_private *ipasam_state,
 				   const char *domain)
 {
 	uint32_t trust_direction = LSA_TRUST_DIRECTION_INBOUND | LSA_TRUST_DIRECTION_OUTBOUND;
-	return handle_cross_realm_princs(ldap_state, domain, NULL, trust_direction, DEL_PRINC);
+	return handle_cross_realm_princs(ipasam_state, domain, NULL, trust_direction, DEL_PRINC);
 }
 
-static bool get_trusted_domain_int(struct ldapsam_privates *ldap_state,
+static bool get_trusted_domain_int(struct ipasam_private *ipasam_state,
 				   TALLOC_CTX *mem_ctx,
 				   const char *filter, LDAPMessage **entry)
 {
@@ -1989,8 +2032,8 @@ static bool get_trusted_domain_int(struct ldapsam_privates *ldap_state,
 	LDAPMessage *result = NULL;
 	uint32_t num_result;
 
-	rc = smbldap_search(ldap_state->smbldap_state,
-			    ldap_state->ipasam_privates->trust_dn,
+	rc = smbldap_search(ipasam_state->ldap_state,
+			    ipasam_state->trust_dn,
 			    LDAP_SCOPE_SUBTREE, filter, NULL, 0, &result);
 
 	if (result != NULL) {
@@ -2006,7 +2049,7 @@ static bool get_trusted_domain_int(struct ldapsam_privates *ldap_state,
 		return false;
 	}
 
-	num_result = ldap_count_entries(priv2ld(ldap_state), result);
+	num_result = ldap_count_entries(priv2ld(ipasam_state), result);
 
 	if (num_result > 1) {
 		DEBUG(1, ("get_trusted_domain_int: more than one "
@@ -2021,13 +2064,13 @@ static bool get_trusted_domain_int(struct ldapsam_privates *ldap_state,
 			  LDAP_OBJ_TRUSTED_DOMAIN, filter));
 		*entry = NULL;
 	} else {
-		*entry = ldap_first_entry(priv2ld(ldap_state), result);
+		*entry = ldap_first_entry(priv2ld(ipasam_state), result);
 	}
 
 	return true;
 }
 
-static bool get_trusted_domain_by_name_int(struct ldapsam_privates *ldap_state,
+static bool get_trusted_domain_by_name_int(struct ipasam_private *ipasam_state,
 					  TALLOC_CTX *mem_ctx,
 					  const char *domain,
 					  LDAPMessage **entry)
@@ -2044,13 +2087,13 @@ static bool get_trusted_domain_by_name_int(struct ldapsam_privates *ldap_state,
 		return false;
 	}
 
-	ok = get_trusted_domain_int(ldap_state, mem_ctx, filter, entry);
+	ok = get_trusted_domain_int(ipasam_state, mem_ctx, filter, entry);
 	talloc_free(filter);
 
 	return ok;
 }
 
-static bool get_trusted_domain_by_sid_int(struct ldapsam_privates *ldap_state,
+static bool get_trusted_domain_by_sid_int(struct ipasam_private *ipasam_state,
 					   TALLOC_CTX *mem_ctx,
 					   const char *sid, LDAPMessage **entry)
 {
@@ -2064,13 +2107,13 @@ static bool get_trusted_domain_by_sid_int(struct ldapsam_privates *ldap_state,
 		return false;
 	}
 
-	ok = get_trusted_domain_int(ldap_state, mem_ctx, filter, entry);
+	ok = get_trusted_domain_int(ipasam_state, mem_ctx, filter, entry);
 	talloc_free(filter);
 
 	return ok;
 }
 
-static bool get_uint32_t_from_ldap_msg(struct ldapsam_privates *ldap_state,
+static bool get_uint32_t_from_ldap_msg(struct ipasam_private *ipasam_state,
 				       LDAPMessage *entry,
 				       const char *attr,
 				       uint32_t *val)
@@ -2079,7 +2122,7 @@ static bool get_uint32_t_from_ldap_msg(struct ldapsam_privates *ldap_state,
 	long int l;
 	char *endptr;
 
-	dummy = get_single_attribute(NULL, priv2ld(ldap_state), entry, attr);
+	dummy = get_single_attribute(NULL, priv2ld(ipasam_state), entry, attr);
 	if (dummy == NULL) {
 		DEBUG(9, ("Attribute %s not present.\n", attr));
 		*val = 0;
@@ -2100,7 +2143,7 @@ static bool get_uint32_t_from_ldap_msg(struct ldapsam_privates *ldap_state,
 }
 
 static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
-				    struct ldapsam_privates *ldap_state,
+				    struct ipasam_private *ipasam_state,
 				    LDAPMessage *entry,
 				    struct pdb_trusted_domain **_td)
 {
@@ -2121,14 +2164,14 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 
 	/* All attributes are MAY */
 
-	dummy = get_single_attribute(NULL, priv2ld(ldap_state), entry,
+	dummy = get_single_attribute(NULL, priv2ld(ipasam_state), entry,
 				     LDAP_ATTRIBUTE_TRUST_SID);
 	if (dummy == NULL) {
 		DEBUG(9, ("Attribute %s not present.\n",
 			  LDAP_ATTRIBUTE_TRUST_SID));
 		ZERO_STRUCT(td->security_identifier);
 	} else {
-		err = sss_idmap_sid_to_smb_sid(ldap_state->ipasam_privates->idmap_ctx,
+		err = sss_idmap_sid_to_smb_sid(ipasam_state->idmap_ctx,
 					       dummy, &sid);
 		TALLOC_FREE(dummy);
 		if (err != IDMAP_SUCCESS) {
@@ -2138,34 +2181,34 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 		talloc_free(sid);
 	}
 
-	if (!smbldap_talloc_single_blob(td, priv2ld(ldap_state), entry,
+	if (!smbldap_talloc_single_blob(td, priv2ld(ipasam_state), entry,
 					LDAP_ATTRIBUTE_TRUST_AUTH_INCOMING,
 					&td->trust_auth_incoming)) {
 		DEBUG(9, ("Failed to set incoming auth info.\n"));
 	}
 
 
-	if (!smbldap_talloc_single_blob(td, priv2ld(ldap_state), entry,
+	if (!smbldap_talloc_single_blob(td, priv2ld(ipasam_state), entry,
 					LDAP_ATTRIBUTE_TRUST_AUTH_OUTGOING,
 					&td->trust_auth_outgoing)) {
 		DEBUG(9, ("Failed to set outgoing auth info.\n"));
 	}
 
-	td->netbios_name = get_single_attribute(td, priv2ld(ldap_state), entry,
+	td->netbios_name = get_single_attribute(td, priv2ld(ipasam_state), entry,
 						LDAP_ATTRIBUTE_FLAT_NAME);
 	if (td->netbios_name == NULL) {
 		DEBUG(9, ("Attribute %s not present.\n",
 			  LDAP_ATTRIBUTE_FLAT_NAME));
 	}
 
-	td->domain_name = get_single_attribute(td, priv2ld(ldap_state), entry,
+	td->domain_name = get_single_attribute(td, priv2ld(ipasam_state), entry,
 					       LDAP_ATTRIBUTE_TRUST_PARTNER);
 	if (td->domain_name == NULL) {
 		DEBUG(9, ("Attribute %s not present.\n",
 			  LDAP_ATTRIBUTE_TRUST_PARTNER));
 	}
 
-	res = get_uint32_t_from_ldap_msg(ldap_state, entry,
+	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					 LDAP_ATTRIBUTE_TRUST_DIRECTION,
 					 &td->trust_direction);
 	if (!res) {
@@ -2176,7 +2219,7 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 		td->trust_direction = LSA_TRUST_DIRECTION_INBOUND | LSA_TRUST_DIRECTION_OUTBOUND;
 	}
 
-	res = get_uint32_t_from_ldap_msg(ldap_state, entry,
+	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					 LDAP_ATTRIBUTE_TRUST_ATTRIBUTES,
 					 &td->trust_attributes);
 	if (!res) {
@@ -2187,7 +2230,7 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 		td->trust_attributes = LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE;
 	}
 
-	res = get_uint32_t_from_ldap_msg(ldap_state, entry,
+	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					 LDAP_ATTRIBUTE_TRUST_TYPE,
 					 &td->trust_type);
 	if (!res) {
@@ -2202,7 +2245,7 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 	if (td->trust_posix_offset == NULL) {
 		return false;
 	}
-	res = get_uint32_t_from_ldap_msg(ldap_state, entry,
+	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					 LDAP_ATTRIBUTE_TRUST_POSIX_OFFSET,
 					 td->trust_posix_offset);
 	if (!res) {
@@ -2213,17 +2256,17 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 	if (td->supported_enc_type == NULL) {
 		return false;
 	}
-	res = get_uint32_t_from_ldap_msg(ldap_state, entry,
+	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					 LDAP_ATTRIBUTE_SUPPORTED_ENC_TYPE,
 					 td->supported_enc_type);
 	if (!res) {
 		return false;
 	}
 	if (*td->supported_enc_type == 0) {
-		*td->supported_enc_type = ldap_state->ipasam_privates->supported_enctypes;
+		*td->supported_enc_type = ipasam_state->supported_enctypes;
 	}
 
-	if (!smbldap_talloc_single_blob(td, priv2ld(ldap_state), entry,
+	if (!smbldap_talloc_single_blob(td, priv2ld(ipasam_state), entry,
 					LDAP_ATTRIBUTE_TRUST_FOREST_TRUST_INFO,
 					&td->trust_forest_trust_info)) {
 		DEBUG(9, ("Failed to set forest trust info.\n"));
@@ -2239,13 +2282,13 @@ static NTSTATUS ipasam_get_trusted_domain(struct pdb_methods *methods,
 					  const char *domain,
 					  struct pdb_trusted_domain **td)
 {
-	struct ldapsam_privates *ldap_state =
-		(struct ldapsam_privates *)methods->private_data;
+	struct ipasam_private *ipasam_state =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	LDAPMessage *entry = NULL;
 
 	DEBUG(10, ("ipasam_get_trusted_domain called for domain %s\n", domain));
 
-	if (!get_trusted_domain_by_name_int(ldap_state, mem_ctx, domain,
+	if (!get_trusted_domain_by_name_int(ipasam_state, mem_ctx, domain,
 					    &entry)) {
 		return NT_STATUS_UNSUCCESSFUL;
 	}
@@ -2255,7 +2298,7 @@ static NTSTATUS ipasam_get_trusted_domain(struct pdb_methods *methods,
 		return NT_STATUS_NO_SUCH_DOMAIN;
 	}
 
-	if (!fill_pdb_trusted_domain(mem_ctx, ldap_state, entry, td)) {
+	if (!fill_pdb_trusted_domain(mem_ctx, ipasam_state, entry, td)) {
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
@@ -2267,8 +2310,8 @@ static NTSTATUS ipasam_get_trusted_domain_by_sid(struct pdb_methods *methods,
 						 struct dom_sid *sid,
 						 struct pdb_trusted_domain **td)
 {
-	struct ldapsam_privates *ldap_state =
-		(struct ldapsam_privates *)methods->private_data;
+	struct ipasam_private *ipasam_state =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	LDAPMessage *entry = NULL;
 	char *sid_str;
 	bool ok;
@@ -2281,7 +2324,7 @@ static NTSTATUS ipasam_get_trusted_domain_by_sid(struct pdb_methods *methods,
 	DEBUG(10, ("ipasam_get_trusted_domain_by_sid called for sid %s\n",
 		   sid_str));
 
-	ok = get_trusted_domain_by_sid_int(ldap_state, mem_ctx, sid_str,
+	ok = get_trusted_domain_by_sid_int(ipasam_state, mem_ctx, sid_str,
 					   &entry);
 	talloc_free(sid_str);
 	if (!ok) {
@@ -2293,7 +2336,7 @@ static NTSTATUS ipasam_get_trusted_domain_by_sid(struct pdb_methods *methods,
 		return NT_STATUS_NO_SUCH_DOMAIN;
 	}
 
-	ok = fill_pdb_trusted_domain(mem_ctx, ldap_state, entry, td);
+	ok = fill_pdb_trusted_domain(mem_ctx, ipasam_state, entry, td);
 	if (!ok) {
 		return NT_STATUS_UNSUCCESSFUL;
 	}
@@ -2377,8 +2420,8 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 					  const char* domain,
 					  const struct pdb_trusted_domain *td)
 {
-	struct ldapsam_privates *ldap_state =
-		(struct ldapsam_privates *)methods->private_data;
+	struct ipasam_private *ipasam_state =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	LDAPMessage *entry = NULL;
 	LDAPMod **mods;
 	bool res;
@@ -2399,7 +2442,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 		return NT_STATUS_NO_MEMORY;
 	}
 
-	res = get_trusted_domain_by_name_int(ldap_state, tmp_ctx, domain,
+	res = get_trusted_domain_by_name_int(ipasam_state, tmp_ctx, domain,
 					     &entry);
 	if (!res) {
 		status = NT_STATUS_UNSUCCESSFUL;
@@ -2408,44 +2451,44 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 
 	mods = NULL;
 	if (entry == NULL) {
-		smbldap_make_mod(priv2ld(ldap_state), entry, &mods, "objectClass",
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods, "objectClass",
 				 LDAP_OBJ_TRUSTED_DOMAIN);
-		smbldap_make_mod(priv2ld(ldap_state), entry, &mods, "objectClass",
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods, "objectClass",
 				 LDAP_OBJ_ID_OBJECT);
 	}
 
 	if (entry != NULL) {
-		sid = get_single_attribute(tmp_ctx, priv2ld(ldap_state), entry,
+		sid = get_single_attribute(tmp_ctx, priv2ld(ipasam_state), entry,
 					   LDAP_ATTRIBUTE_SID);
 	}
 	if (entry == NULL || sid == NULL) {
-		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 				 LDAP_ATTRIBUTE_UIDNUMBER, IPA_MAGIC_ID_STR);
-		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 		                 LDAP_ATTRIBUTE_GIDNUMBER,
-				 ldap_state->ipasam_privates->fallback_primary_group_gid_str);
+				 ipasam_state->fallback_primary_group_gid_str);
 	}
 
 	if (td->netbios_name != NULL) {
-		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 				 LDAP_ATTRIBUTE_FLAT_NAME,
 				 td->netbios_name);
 	}
 
 	if (td->domain_name != NULL) {
-		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 				 LDAP_ATTRIBUTE_TRUST_PARTNER,
 				 td->domain_name);
 	}
 
 	if (!is_null_sid(&td->security_identifier)) {
-		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+		smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 				 LDAP_ATTRIBUTE_TRUST_SID,
 				 sid_string_talloc(tmp_ctx, &td->security_identifier));
 	}
 
 	if (td->trust_type != 0) {
-		res = smbldap_make_mod_uint32_t(priv2ld(ldap_state), entry,
+		res = smbldap_make_mod_uint32_t(priv2ld(ipasam_state), entry,
 						&mods, LDAP_ATTRIBUTE_TRUST_TYPE,
 						td->trust_type);
 		if (!res) {
@@ -2455,7 +2498,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	}
 
 	if (td->trust_attributes != 0) {
-		res = smbldap_make_mod_uint32_t(priv2ld(ldap_state), entry,
+		res = smbldap_make_mod_uint32_t(priv2ld(ipasam_state), entry,
 						&mods,
 						LDAP_ATTRIBUTE_TRUST_ATTRIBUTES,
 						td->trust_attributes);
@@ -2466,7 +2509,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	}
 
 	if (td->trust_direction != 0) {
-		res = smbldap_make_mod_uint32_t(priv2ld(ldap_state), entry,
+		res = smbldap_make_mod_uint32_t(priv2ld(ipasam_state), entry,
 						&mods,
 						LDAP_ATTRIBUTE_TRUST_DIRECTION,
 						td->trust_direction);
@@ -2481,7 +2524,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 		trust_offset = *td->trust_posix_offset;
 	}
 
-	res = smbldap_make_mod_uint32_t(priv2ld(ldap_state), entry,
+	res = smbldap_make_mod_uint32_t(priv2ld(ipasam_state), entry,
 					&mods,
 					LDAP_ATTRIBUTE_TRUST_POSIX_OFFSET,
 					trust_offset);
@@ -2490,12 +2533,12 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 		goto done;
 	}
 
-	enctypes = ldap_state->ipasam_privates->supported_enctypes;
+	enctypes = ipasam_state->supported_enctypes;
 	if (td->supported_enc_type != NULL) {
 		enctypes = *td->supported_enc_type;
 	}
 
-	res = smbldap_make_mod_uint32_t(priv2ld(ldap_state), entry,
+	res = smbldap_make_mod_uint32_t(priv2ld(ipasam_state), entry,
 					&mods,
 					LDAP_ATTRIBUTE_SUPPORTED_ENC_TYPE,
 					enctypes);
@@ -2505,38 +2548,38 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	}
 
 	if (td->trust_auth_outgoing.data != NULL) {
-		smbldap_make_mod_blob(priv2ld(ldap_state), entry, &mods,
+		smbldap_make_mod_blob(priv2ld(ipasam_state), entry, &mods,
 				      LDAP_ATTRIBUTE_TRUST_AUTH_OUTGOING,
 				      &td->trust_auth_outgoing);
 	}
 
 	if (td->trust_auth_incoming.data != NULL) {
-		smbldap_make_mod_blob(priv2ld(ldap_state), entry, &mods,
+		smbldap_make_mod_blob(priv2ld(ipasam_state), entry, &mods,
 				      LDAP_ATTRIBUTE_TRUST_AUTH_INCOMING,
 				      &td->trust_auth_incoming);
 	}
 
 	if (td->trust_forest_trust_info.data != NULL) {
-		smbldap_make_mod_blob(priv2ld(ldap_state), entry, &mods,
+		smbldap_make_mod_blob(priv2ld(ipasam_state), entry, &mods,
 				      LDAP_ATTRIBUTE_TRUST_FOREST_TRUST_INFO,
 				      &td->trust_forest_trust_info);
 	}
 
 
 	/* Only add default blacklists for incoming and outgoing SIDs but don't modify existing ones */
-	in_blacklist = get_attribute_values(tmp_ctx, ldap_state->smbldap_state->ldap_struct, entry,
+	in_blacklist = get_attribute_values(tmp_ctx, priv2ld(ipasam_state), entry,
 						LDAP_ATTRIBUTE_SID_BLACKLIST_INCOMING, &count);
-	out_blacklist = get_attribute_values(tmp_ctx, ldap_state->smbldap_state->ldap_struct, entry,
+	out_blacklist = get_attribute_values(tmp_ctx, priv2ld(ipasam_state), entry,
 						LDAP_ATTRIBUTE_SID_BLACKLIST_OUTGOING, &count);
 
 	for (i = 0; ipa_mspac_well_known_sids[i]; i++) {
 		if (in_blacklist == NULL) {
-			smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+			smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 					      LDAP_ATTRIBUTE_SID_BLACKLIST_INCOMING,
 					      ipa_mspac_well_known_sids[i]);
 		}
 		if (out_blacklist == NULL) {
-			smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+			smbldap_make_mod(priv2ld(ipasam_state), entry, &mods,
 					      LDAP_ATTRIBUTE_SID_BLACKLIST_OUTGOING,
 					      ipa_mspac_well_known_sids[i]);
 		}
@@ -2545,16 +2588,16 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 	smbldap_talloc_autofree_ldapmod(tmp_ctx, mods);
 
 	if (mods != NULL) {
-		trusted_dn = trusted_domain_dn(tmp_ctx, ldap_state, domain);
+		trusted_dn = trusted_domain_dn(tmp_ctx, ipasam_state, domain);
 		if (trusted_dn == NULL) {
 			status = NT_STATUS_NO_MEMORY;
 			goto done;
 		}
 
 		if (entry == NULL) {
-			ret = smbldap_add(ldap_state->smbldap_state, trusted_dn, mods);
+			ret = smbldap_add(ipasam_state->ldap_state, trusted_dn, mods);
 		} else {
-			ret = smbldap_modify(ldap_state->smbldap_state, trusted_dn, mods);
+			ret = smbldap_modify(ipasam_state->ldap_state, trusted_dn, mods);
 		}
 		if (ret != LDAP_SUCCESS) {
 			DEBUG(1, ("error writing trusted domain data!\n"));
@@ -2569,7 +2612,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 		if (!NT_STATUS_IS_OK(status)) {
 			goto done;
 		}
-		res = set_cross_realm_princs(ldap_state, td->domain_name,
+		res = set_cross_realm_princs(ipasam_state, td->domain_name,
 					     trustpw, td->trust_direction);
 		memset(trustpw, 0, strlen(trustpw));
 		if (!res) {
@@ -2585,9 +2628,9 @@ done:
 	return status;
 }
 
-static int delete_subtree(struct ldapsam_privates *ldap_state, char* dn)
+static int delete_subtree(struct ipasam_private *ipasam_state, char* dn)
 {
-	LDAP *state = priv2ld(ldap_state);
+	LDAP *state = priv2ld(ipasam_state);
 	int rc;
 	char *filter = NULL;
 	int scope = LDAP_SCOPE_SUBTREE;
@@ -2601,7 +2644,7 @@ static int delete_subtree(struct ldapsam_privates *ldap_state, char* dn)
 		return LDAP_NO_MEMORY;
 	}
 
-	rc = smbldap_search(ldap_state->smbldap_state, dn, scope, filter, NULL, 0, &result);
+	rc = smbldap_search(ipasam_state->ldap_state, dn, scope, filter, NULL, 0, &result);
 	TALLOC_FREE(filter);
 
 	if (rc != LDAP_SUCCESS) {
@@ -2620,13 +2663,13 @@ static int delete_subtree(struct ldapsam_privates *ldap_state, char* dn)
 		entry_dn = get_dn(dn, state, entry);
 		/* remove child entries */
 		if ((entry_dn != NULL) && (strcmp(entry_dn, dn) != 0)) {
-			rc = smbldap_delete(ldap_state->smbldap_state, entry_dn);
+			rc = smbldap_delete(ipasam_state->ldap_state, entry_dn);
 			if (rc != LDAP_SUCCESS) {
 				return rc;
 			}
 		}
 	}
-	rc = smbldap_delete(ldap_state->smbldap_state, dn);
+	rc = smbldap_delete(ipasam_state->ldap_state, dn);
 
 	/* caller will destroy dn */
 	return rc;
@@ -2636,8 +2679,8 @@ static NTSTATUS ipasam_del_trusted_domain(struct pdb_methods *methods,
 					   const char *domain)
 {
 	int ret;
-	struct ldapsam_privates *ldap_state =
-		(struct ldapsam_privates *)methods->private_data;
+	struct ipasam_private *ipasam_state =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	LDAPMessage *entry = NULL;
 	char *dn;
 	const char *domain_name;
@@ -2649,7 +2692,7 @@ static NTSTATUS ipasam_del_trusted_domain(struct pdb_methods *methods,
 		return NT_STATUS_NO_MEMORY;
 	}
 
-	if (!get_trusted_domain_by_name_int(ldap_state, tmp_ctx, domain,
+	if (!get_trusted_domain_by_name_int(ipasam_state, tmp_ctx, domain,
 					    &entry)) {
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
@@ -2662,14 +2705,14 @@ static NTSTATUS ipasam_del_trusted_domain(struct pdb_methods *methods,
 		goto done;
 	}
 
-	dn = get_dn(tmp_ctx, priv2ld(ldap_state), entry);
+	dn = get_dn(tmp_ctx, priv2ld(ipasam_state), entry);
 	if (dn == NULL) {
 		DEBUG(0,("ipasam_del_trusted_domain: Out of memory!\n"));
 		status = NT_STATUS_NO_MEMORY;
 		goto done;
 	}
 
-	domain_name = get_single_attribute(tmp_ctx, priv2ld(ldap_state), entry,
+	domain_name = get_single_attribute(tmp_ctx, priv2ld(ipasam_state), entry,
 					   LDAP_ATTRIBUTE_TRUST_PARTNER);
 	if (domain_name == NULL) {
 		DEBUG(1, ("Attribute %s not present.\n",
@@ -2678,16 +2721,16 @@ static NTSTATUS ipasam_del_trusted_domain(struct pdb_methods *methods,
 		goto done;
 	}
 
-	if (!del_cross_realm_princs(ldap_state, domain_name)) {
+	if (!del_cross_realm_princs(ipasam_state, domain_name)) {
 		DEBUG(1, ("error deleting cross realm principals!\n"));
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
 	}
 
-	ret = smbldap_delete(ldap_state->smbldap_state, dn);
+	ret = smbldap_delete(ipasam_state->ldap_state, dn);
 	if (ret == LDAP_NOT_ALLOWED_ON_NONLEAF) {
 		/* delete_subtree will use 'dn' as temporary context too */
-		ret = delete_subtree(ldap_state, dn);
+		ret = delete_subtree(ipasam_state, dn);
 	}
 
 	if (ret != LDAP_SUCCESS) {
@@ -2707,8 +2750,8 @@ static NTSTATUS ipasam_enum_trusted_domains(struct pdb_methods *methods,
 					    struct pdb_trusted_domain ***domains)
 {
 	int rc;
-	struct ldapsam_privates *ldap_state =
-		(struct ldapsam_privates *)methods->private_data;
+	struct ipasam_private *ipasam_state =
+		talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	char *filter = NULL;
 	int scope = LDAP_SCOPE_SUBTREE;
 	LDAPMessage *result = NULL;
@@ -2721,8 +2764,8 @@ static NTSTATUS ipasam_enum_trusted_domains(struct pdb_methods *methods,
 		return NT_STATUS_NO_MEMORY;
 	}
 
-	rc = smbldap_search(ldap_state->smbldap_state,
-			    ldap_state->ipasam_privates->trust_dn,
+	rc = smbldap_search(ipasam_state->ldap_state,
+			    ipasam_state->trust_dn,
 			    scope, filter, NULL, 0, &result);
 	TALLOC_FREE(filter);
 
@@ -2746,13 +2789,13 @@ static NTSTATUS ipasam_enum_trusted_domains(struct pdb_methods *methods,
 		return NT_STATUS_NO_MEMORY;
 	}
 
-	for (entry = ldap_first_entry(priv2ld(ldap_state), result);
+	for (entry = ldap_first_entry(priv2ld(ipasam_state), result);
 	     entry != NULL;
-	     entry = ldap_next_entry(priv2ld(ldap_state), entry))
+	     entry = ldap_next_entry(priv2ld(ipasam_state), entry))
 	{
 		struct pdb_trusted_domain *dom_info;
 
-		if (!fill_pdb_trusted_domain(*domains, ldap_state, entry,
+		if (!fill_pdb_trusted_domain(*domains, ipasam_state, entry,
 					     &dom_info)) {
 			talloc_free(*domains);
 			return NT_STATUS_UNSUCCESSFUL;
@@ -2830,7 +2873,7 @@ static uint32_t pdb_ipasam_capabilities(struct pdb_methods *methods)
 
 static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 			     LDAPMessage *entry,
-			     struct ldapsam_privates *ldap_state)
+			     struct ipasam_private *ipasam_state)
 {
 	NTSTATUS status;
 	struct dom_sid *u_sid;
@@ -2847,7 +2890,7 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 		return false;
 	}
 
-	if (!pdb_set_domain(user, ldap_state->domain_name, PDB_DEFAULT)) {
+	if (!pdb_set_domain(user, ipasam_state->domain_name, PDB_DEFAULT)) {
 		return false;
 	}
 
@@ -2864,14 +2907,14 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 		return false;
 	}
 
-	sid_str = get_single_attribute(user, priv2ld(ldap_state), entry,
+	sid_str = get_single_attribute(user, priv2ld(ipasam_state), entry,
 				       LDAP_ATTRIBUTE_SID);
 	if (sid_str == NULL) {
 		DEBUG(5, ("Missing SID for trusted domain object.\n"));
 		return false;
 	}
 
-	err = sss_idmap_sid_to_smb_sid(ldap_state->ipasam_privates->idmap_ctx,
+	err = sss_idmap_sid_to_smb_sid(ipasam_state->idmap_ctx,
 				       sid_str, &u_sid);
 	if (err != IDMAP_SUCCESS) {
 		DEBUG(10, ("Could not convert string %s to sid.\n", sid_str));
@@ -2886,7 +2929,7 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 	}
 	talloc_free(u_sid);
 
-	g_sid = &ldap_state->ipasam_privates->fallback_primary_group;
+	g_sid = &ipasam_state->fallback_primary_group;
 	if (!pdb_set_group_sid(user, g_sid, PDB_SET)) {
 		return false;
 	}
@@ -2916,7 +2959,7 @@ done:
 	return res;
 }
 
-static bool ipasam_nthash_retrieve(struct ldapsam_privates *ldap_state,
+static bool ipasam_nthash_retrieve(struct ipasam_private *ipasam_state,
 				       TALLOC_CTX *mem_ctx,
 				       char *entry_dn,
 				       DATA_BLOB *nthash)
@@ -2926,13 +2969,13 @@ static bool ipasam_nthash_retrieve(struct ldapsam_privates *ldap_state,
 	LDAPMessage *result;
 	LDAPMessage *entry = NULL;
 	int count;
-	struct smbldap_state *smbldap_state = ldap_state->smbldap_state;
+	struct smbldap_state *ldap_state = ipasam_state->ldap_state;
 	const char *attr_list[] = {
 					LDAP_ATTRIBUTE_NTHASH,
 					NULL
 				  };
 
-	ret = smbldap_search(smbldap_state, entry_dn,
+	ret = smbldap_search(ldap_state, entry_dn,
 			     LDAP_SCOPE_BASE, "(objectclass=*)", attr_list, 0,
 			     &result);
 	if (ret != LDAP_SUCCESS) {
@@ -2941,7 +2984,7 @@ static bool ipasam_nthash_retrieve(struct ldapsam_privates *ldap_state,
 		return false;
 	}
 
-	count = ldap_count_entries(smbldap_state->ldap_struct, result);
+	count = ldap_count_entries(priv2ld(ipasam_state), result);
 
 	if (count != 1) {
 		DEBUG(1, ("Unexpected number of results [%d] for NT hash "
@@ -2950,7 +2993,7 @@ static bool ipasam_nthash_retrieve(struct ldapsam_privates *ldap_state,
 		return false;
 	}
 
-	entry = ldap_first_entry(smbldap_state->ldap_struct, result);
+	entry = ldap_first_entry(priv2ld(ipasam_state), result);
 	if (entry == NULL) {
 		DEBUG(0, ("Could not get entry\n"));
 		ldap_msgfree(result);
@@ -2958,14 +3001,14 @@ static bool ipasam_nthash_retrieve(struct ldapsam_privates *ldap_state,
 	}
 
 	retval = smbldap_talloc_single_blob(mem_ctx,
-					smbldap_state->ldap_struct,
+					priv2ld(ipasam_state),
 					entry, LDAP_ATTRIBUTE_NTHASH,
 					nthash);
 	ldap_msgfree(result);
 	return retval;
 }
 
-static bool ipasam_nthash_regen(struct ldapsam_privates *ldap_state,
+static bool ipasam_nthash_regen(struct ipasam_private *ipasam_state,
 				TALLOC_CTX *mem_ctx,
 				char * entry_dn)
 {
@@ -2975,14 +3018,14 @@ static bool ipasam_nthash_regen(struct ldapsam_privates *ldap_state,
 	smbldap_set_mod(&mods, LDAP_MOD_ADD, LDAP_ATTRIBUTE_NTHASH, "MagicRegen");
 	smbldap_talloc_autofree_ldapmod(mem_ctx, mods);
 
-	ret = smbldap_modify(ldap_state->smbldap_state, entry_dn, mods);
+	ret = smbldap_modify(ipasam_state->ldap_state, entry_dn, mods);
 	if (ret != LDAP_SUCCESS) {
 		DEBUG(5, ("ipasam: attempt to regen ipaNTHash failed\n"));
 	}
 	return (ret == LDAP_SUCCESS);
 }
 
-static int ipasam_get_sid_by_gid(struct ldapsam_privates *ldap_state,
+static int ipasam_get_sid_by_gid(struct ipasam_private *ipasam_state,
 				 uint32_t gid,
 				 struct dom_sid *_sid)
 {
@@ -3014,8 +3057,8 @@ static int ipasam_get_sid_by_gid(struct ldapsam_privates *ldap_state,
 		goto done;
 	}
 
-	ret = smbldap_search(ldap_state->smbldap_state,
-			     ldap_state->ipasam_privates->base_dn,
+	ret = smbldap_search(ipasam_state->ldap_state,
+			     ipasam_state->base_dn,
 			     LDAP_SCOPE_SUBTREE,filter, NULL, 0,
 			     &result);
 	if (ret != LDAP_SUCCESS) {
@@ -3023,28 +3066,27 @@ static int ipasam_get_sid_by_gid(struct ldapsam_privates *ldap_state,
 		goto done;
 	}
 
-	count = ldap_count_entries(ldap_state->smbldap_state->ldap_struct,
-				   result);
+	count = ldap_count_entries(priv2ld(ipasam_state), result);
 	if (count != 1) {
 		ret = ENOENT;
 		goto done;
 	}
 
-	entry = ldap_first_entry(ldap_state->smbldap_state->ldap_struct, result);
+	entry = ldap_first_entry(priv2ld(ipasam_state), result);
 	if (entry == NULL) {
 		ret = ENOENT;
 		goto done;
 	}
 
 	sid_str = get_single_attribute(tmp_ctx,
-				       ldap_state->smbldap_state->ldap_struct,
+				       priv2ld(ipasam_state),
 				       entry, LDAP_ATTRIBUTE_SID);
 	if (sid_str == NULL) {
 		ret = ENOENT;
 		goto done;
 	}
 
-	err = sss_idmap_sid_to_smb_sid(ldap_state->ipasam_privates->idmap_ctx,
+	err = sss_idmap_sid_to_smb_sid(ipasam_state->idmap_ctx,
 				       sid_str, &sid);
 	if (err != IDMAP_SUCCESS) {
 		ret = EFAULT;
@@ -3067,7 +3109,7 @@ done:
 }
 
 static int ipasam_get_primary_group_sid(TALLOC_CTX *mem_ctx,
-					struct ldapsam_privates *ldap_state,
+					struct ipasam_private *ipasam_state,
 					LDAPMessage *entry,
 					struct dom_sid **_group_sid)
 {
@@ -3082,14 +3124,14 @@ static int ipasam_get_primary_group_sid(TALLOC_CTX *mem_ctx,
 		return ENOMEM;
 	}
 
-	if (!get_uint32_t_from_ldap_msg(ldap_state, entry,
+	if (!get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					LDAP_ATTRIBUTE_UIDNUMBER, &uid)) {
 		ret = ENOENT;
 		DEBUG(1, ("No uidnumber attribute found for this user!\n"));
 		goto done;
 	}
 
-	if (!get_uint32_t_from_ldap_msg(ldap_state, entry,
+	if (!get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					LDAP_ATTRIBUTE_GIDNUMBER, &gid)) {
 		ret = ENOENT;
 		DEBUG(1, ("No gidnumber attribute found for this user!\n"));
@@ -3104,11 +3146,11 @@ static int ipasam_get_primary_group_sid(TALLOC_CTX *mem_ctx,
 
 	if (uid == gid) { /* User private group, use default fallback group */
 		sid_copy(group_sid,
-			 &ldap_state->ipasam_privates->fallback_primary_group);
+			 &ipasam_state->fallback_primary_group);
 		ret = 0;
 		goto done;
 	} else {
-		ret = ipasam_get_sid_by_gid(ldap_state, gid, group_sid);
+		ret = ipasam_get_sid_by_gid(ipasam_state, gid, group_sid);
 		if (ret != 0) {
 			goto done;
 		}
@@ -3130,7 +3172,7 @@ done:
 	return ret;
 }
 
-static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
+static bool init_sam_from_ldap(struct ipasam_private *ipasam_state,
 				struct samu * sampass,
 				LDAPMessage * entry)
 {
@@ -3153,18 +3195,18 @@ static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 	if (!tmp_ctx) {
 		return false;
 	}
-	if (sampass == NULL || ldap_state == NULL || entry == NULL) {
+	if (sampass == NULL || ipasam_state == NULL || entry == NULL) {
 		DEBUG(0, ("init_sam_from_ldap: NULL parameters found!\n"));
 		goto fn_exit;
 	}
 
-	if (priv2ld(ldap_state) == NULL) {
-		DEBUG(0, ("init_sam_from_ldap: ldap_state->smbldap_state->"
+	if (priv2ld(ipasam_state) == NULL) {
+		DEBUG(0, ("init_sam_from_ldap: ipasam_state->ldap_state->"
 			  "ldap_struct is NULL!\n"));
 		goto fn_exit;
 	}
 
-	if (!(username = smbldap_talloc_first_attribute(priv2ld(ldap_state),
+	if (!(username = smbldap_talloc_first_attribute(priv2ld(ipasam_state),
 					entry, LDAP_ATTRIBUTE_UID, tmp_ctx))) {
 		DEBUG(1, ("init_sam_from_ldap: No uid attribute found for "
 			  "this user!\n"));
@@ -3178,7 +3220,7 @@ static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 		goto fn_exit;
 	}
 
-	domain = talloc_strdup(tmp_ctx, ldap_state->domain_name);
+	domain = talloc_strdup(tmp_ctx, ipasam_state->domain_name);
 	if (!domain) {
 		goto fn_exit;
 	}
@@ -3189,12 +3231,12 @@ static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 	pdb_set_nt_username(sampass, nt_username, PDB_SET);
 
 	if ((temp = smbldap_talloc_single_attribute(
-			ldap_state->smbldap_state->ldap_struct,
+			priv2ld(ipasam_state),
 			entry, LDAP_ATTRIBUTE_SECURITY_IDENTIFIER,
 			tmp_ctx)) != NULL) {
 		pdb_set_user_sid_from_string(sampass, temp, PDB_SET);
 
-		status = ipasam_get_primary_group_sid(tmp_ctx, ldap_state,
+		status = ipasam_get_primary_group_sid(tmp_ctx, ipasam_state,
 						      entry, &group_sid);
 		if (status != 0) {
 			goto fn_exit;
@@ -3204,7 +3246,7 @@ static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 	}
 
 	fullname = smbldap_talloc_single_attribute(
-			ldap_state->smbldap_state->ldap_struct,
+			priv2ld(ipasam_state),
 			entry,
 			LDAP_ATTRIBUTE_CN,
 			tmp_ctx);
@@ -3213,28 +3255,28 @@ static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 	}
 
 	dir_drive = smbldap_talloc_single_attribute(
-			ldap_state->smbldap_state->ldap_struct,
+			priv2ld(ipasam_state),
 			entry, LDAP_ATTRIBUTE_HOME_DRIVE, tmp_ctx);
 	if (dir_drive) {
 		pdb_set_dir_drive(sampass, dir_drive, PDB_SET);
 	}
 
 	homedir = smbldap_talloc_single_attribute(
-			ldap_state->smbldap_state->ldap_struct,
+			priv2ld(ipasam_state),
 			entry, LDAP_ATTRIBUTE_HOME_PATH, tmp_ctx);
 	if (homedir) {
 		pdb_set_homedir(sampass, homedir, PDB_SET);
 	}
 
 	logon_script = smbldap_talloc_single_attribute(
-			ldap_state->smbldap_state->ldap_struct,
+			priv2ld(ipasam_state),
 			entry, LDAP_ATTRIBUTE_LOGON_SCRIPT, tmp_ctx);
 	if (logon_script) {
 		pdb_set_logon_script(sampass, logon_script, PDB_SET);
 	}
 
 	profile_path = smbldap_talloc_single_attribute(
-			ldap_state->smbldap_state->ldap_struct,
+			priv2ld(ipasam_state),
 			entry, LDAP_ATTRIBUTE_PROFILE_PATH, tmp_ctx);
 	if (profile_path) {
 		pdb_set_profile_path(sampass, profile_path, PDB_SET);
@@ -3244,7 +3286,7 @@ static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 	pdb_set_acct_ctrl(sampass, ACB_NORMAL, PDB_SET);
 
 	retval = smbldap_talloc_single_blob(tmp_ctx,
-					ldap_state->smbldap_state->ldap_struct,
+					priv2ld(ipasam_state),
 					entry, LDAP_ATTRIBUTE_NTHASH,
 					&nthash);
 	if (!retval) {
@@ -3253,12 +3295,12 @@ static bool init_sam_from_ldap(struct ldapsam_privates *ldap_state,
 		 * IPA 389-ds plugin allows to ask for it by setting
 		 * ipaNTHash to MagicRegen value.
 		 * */
-		temp = smbldap_talloc_dn(tmp_ctx, ldap_state->smbldap_state->ldap_struct, entry);
+		temp = smbldap_talloc_dn(tmp_ctx, priv2ld(ipasam_state), entry);
 		if (temp) {
-			retval = ipasam_nthash_regen(ldap_state,
+			retval = ipasam_nthash_regen(ipasam_state,
 						     tmp_ctx, temp);
 			if (retval) {
-				retval = ipasam_nthash_retrieve(ldap_state,
+				retval = ipasam_nthash_retrieve(ipasam_state,
 								tmp_ctx, temp, &nthash);
 			}
 		}
@@ -3293,8 +3335,8 @@ static NTSTATUS getsam_interdom_trust_account(struct pdb_methods *methods,
 					      const char *sname, int lastidx)
 {
 	char *dom_name;
-	struct ldapsam_privates *ldap_state =
-			(struct ldapsam_privates *) methods->private_data;
+	struct ipasam_private *ipasam_state =
+			talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	TALLOC_CTX *tmp_ctx;
 	struct pdb_trusted_domain *td;
 	NTSTATUS status;
@@ -3316,7 +3358,7 @@ static NTSTATUS getsam_interdom_trust_account(struct pdb_methods *methods,
 	}
 	dom_name[lastidx] = '\0';
 
-	if (!get_trusted_domain_by_name_int(ldap_state, tmp_ctx, dom_name,
+	if (!get_trusted_domain_by_name_int(ipasam_state, tmp_ctx, dom_name,
 					    &entry)) {
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
@@ -3328,12 +3370,12 @@ static NTSTATUS getsam_interdom_trust_account(struct pdb_methods *methods,
 		goto done;
 	}
 
-	if (!fill_pdb_trusted_domain(tmp_ctx, ldap_state, entry, &td)) {
+	if (!fill_pdb_trusted_domain(tmp_ctx, ipasam_state, entry, &td)) {
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
 	}
 
-	if (!init_sam_from_td(user, td, entry, ldap_state)) {
+	if (!init_sam_from_td(user, td, entry, ipasam_state)) {
 		DEBUG(5, ("init_sam_from_td failed.\n"));
 		status = NT_STATUS_NO_SUCH_USER;
 		goto done;
@@ -3346,12 +3388,12 @@ done:
 	return status;
 }
 
-static NTSTATUS ldapsam_getsampwnam(struct pdb_methods *methods,
+static NTSTATUS ipasam_getsampwnam(struct pdb_methods *methods,
 				    struct samu *user,
 				    const char *sname)
 {
-	struct ldapsam_privates *ldap_state =
-			(struct ldapsam_privates *) methods->private_data;
+	struct ipasam_private *ipasam_state =
+			talloc_get_type_abort(methods->private_data, struct ipasam_private);
 	int lastidx;
 	TALLOC_CTX *tmp_ctx;
 	NTSTATUS status;
@@ -3398,8 +3440,8 @@ static NTSTATUS ldapsam_getsampwnam(struct pdb_methods *methods,
 		goto done;
 	}
 
-	ret = smbldap_search(ldap_state->smbldap_state,
-			     ldap_state->ipasam_privates->base_dn,
+	ret = smbldap_search(ipasam_state->ldap_state,
+			     ipasam_state->base_dn,
 			     LDAP_SCOPE_SUBTREE,filter, NULL, 0,
 			     &result);
 	if (ret != LDAP_SUCCESS) {
@@ -3407,20 +3449,19 @@ static NTSTATUS ldapsam_getsampwnam(struct pdb_methods *methods,
 		goto done;
 	}
 
-	count = ldap_count_entries(ldap_state->smbldap_state->ldap_struct,
-				   result);
+	count = ldap_count_entries(priv2ld(ipasam_state), result);
 	if (count != 1) {
 		status = NT_STATUS_NO_SUCH_USER;
 		goto done;
 	}
 
-	entry = ldap_first_entry(ldap_state->smbldap_state->ldap_struct, result);
+	entry = ldap_first_entry(priv2ld(ipasam_state), result);
 	if (entry == NULL) {
 		status = NT_STATUS_NO_SUCH_USER;
 		goto done;
 	}
 
-	if (!init_sam_from_ldap(ldap_state, user, entry)) {
+	if (!init_sam_from_ldap(ipasam_state, user, entry)) {
 		status = NT_STATUS_NO_SUCH_USER;
 		goto done;
 	}
@@ -3507,8 +3548,8 @@ static struct pdb_domain_info *pdb_ipasam_get_domain_info(struct pdb_methods *pd
 							  TALLOC_CTX *mem_ctx)
 {
 	struct pdb_domain_info *info;
-	struct ldapsam_privates *ldap_state =
-			(struct ldapsam_privates *)pdb_methods->private_data;
+	struct ipasam_private *ipasam_state =
+			talloc_get_type_abort(pdb_methods->private_data, struct ipasam_private);
 	char sid_buf[24];
 	DATA_BLOB sid_blob;
 	NTSTATUS status;
@@ -3519,24 +3560,24 @@ static struct pdb_domain_info *pdb_ipasam_get_domain_info(struct pdb_methods *pd
 		return NULL;
 	}
 
-	info->name = talloc_strdup(info, ldap_state->ipasam_privates->flat_name);
+	info->name = talloc_strdup(info, ipasam_state->flat_name);
 	if (info->name == NULL) {
 		DEBUG(1, ("talloc_strdup domain_name failed\n"));
 		goto fail;
 	}
 
-	status = ipasam_get_domain_name(ldap_state, info, &info->dns_domain);
+	status = ipasam_get_domain_name(ipasam_state, info, &info->dns_domain);
 	if (!NT_STATUS_IS_OK(status) || (info->dns_domain == NULL)) {
 		goto fail;
 	}
 	info->dns_forest = talloc_strdup(info, info->dns_domain);
 
 	/* we expect a domain SID to have 4 sub IDs */
-	if (ldap_state->domain_sid.num_auths != 4) {
+	if (ipasam_state->domain_sid.num_auths != 4) {
 		goto fail;
 	}
 
-	sid_copy(&info->sid, &ldap_state->domain_sid);
+	sid_copy(&info->sid, &ipasam_state->domain_sid);
 
 	if (!sid_linearize(sid_buf, sizeof(sid_buf), &info->sid)) {
 		goto fail;
@@ -3561,19 +3602,19 @@ fail:
 
 static void ipasam_free_private_data(void **vp)
 {
-	struct ldapsam_privates **ldap_state = (struct ldapsam_privates **)vp;
+	struct ipasam_private **ipasam_state = (struct ipasam_private **)vp;
 
-	smbldap_free_struct(&(*ldap_state)->smbldap_state);
+	smbldap_free_struct(&(*ipasam_state)->ldap_state);
 
-	if ((*ldap_state)->result != NULL) {
-		ldap_msgfree((*ldap_state)->result);
-		(*ldap_state)->result = NULL;
+	if ((*ipasam_state)->result != NULL) {
+		ldap_msgfree((*ipasam_state)->result);
+		(*ipasam_state)->result = NULL;
 	}
-	if ((*ldap_state)->domain_dn != NULL) {
-		SAFE_FREE((*ldap_state)->domain_dn);
+	if ((*ipasam_state)->domain_dn != NULL) {
+		SAFE_FREE((*ipasam_state)->domain_dn);
 	}
 
-	*ldap_state = NULL;
+	*ipasam_state = NULL;
 
 	/* No need to free any further, as it is talloc()ed */
 }
@@ -3595,10 +3636,12 @@ static struct dom_sid *get_fallback_group_sid(TALLOC_CTX *mem_ctx,
 					NULL};
 	LDAPMessage *result;
 	LDAPMessage *entry;
+	LDAP *ld = NULL;
 	enum idmap_error_code err;
 	struct dom_sid *fallback_group_sid;
 
-	dn = get_single_attribute(mem_ctx, ldap_state->ldap_struct,
+	ld = _smbldap_get_ldap(ldap_state);
+	dn = get_single_attribute(mem_ctx, ld,
 				  dom_entry,
 				  LDAP_ATTRIBUTE_FALLBACK_PRIMARY_GROUP);
 	if (dn == NULL) {
@@ -3615,14 +3658,15 @@ static struct dom_sid *get_fallback_group_sid(TALLOC_CTX *mem_ctx,
 		return NULL;
 	}
 
-	entry = ldap_first_entry(ldap_state->ldap_struct, result);
+	ld = _smbldap_get_ldap(ldap_state);
+	entry = ldap_first_entry(ld, result);
 	if (entry == NULL) {
 		DEBUG(0, ("Could not get fallback group entry\n"));
 		ldap_msgfree(result);
 		return NULL;
 	}
 
-	sid = get_single_attribute(mem_ctx, ldap_state->ldap_struct,
+	sid = get_single_attribute(mem_ctx, ld,
 				  entry, LDAP_ATTRIBUTE_SID);
 	if (sid == NULL) {
 		DEBUG(0, ("Missing mandatory attribute %s.\n",
@@ -3640,7 +3684,7 @@ static struct dom_sid *get_fallback_group_sid(TALLOC_CTX *mem_ctx,
 	}
 	talloc_free(sid);
 
-	gidnumber = get_single_attribute(mem_ctx, ldap_state->ldap_struct,
+	gidnumber = get_single_attribute(mem_ctx, ld,
 					entry, LDAP_ATTRIBUTE_GIDNUMBER);
 	if (gidnumber == NULL) {
 		DEBUG(0, ("Missing mandatory attribute %s.\n",
@@ -3679,7 +3723,7 @@ static NTSTATUS ipasam_search_domain_info(struct smbldap_state *ldap_state,
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	count = ldap_count_entries(ldap_state->ldap_struct, *result);
+	count = ldap_count_entries(_smbldap_get_ldap(ldap_state), *result);
 
 	if (count == 1) {
 		return NT_STATUS_OK;
@@ -3691,12 +3735,13 @@ static NTSTATUS ipasam_search_domain_info(struct smbldap_state *ldap_state,
 	return NT_STATUS_UNSUCCESSFUL;
 }
 
-static NTSTATUS ipasam_get_base_dn(struct smbldap_state *smbldap_state,
+static NTSTATUS ipasam_get_base_dn(struct smbldap_state *ldap_state,
 				   TALLOC_CTX *mem_ctx, char **base_dn)
 {
 	int ret;
 	LDAPMessage *result;
 	LDAPMessage *entry = NULL;
+	LDAP *ld = NULL;
 	int count;
 	char *nc;
 	const char *attr_list[] = {
@@ -3705,7 +3750,7 @@ static NTSTATUS ipasam_get_base_dn(struct smbldap_state *smbldap_state,
 					NULL
 				  };
 
-	ret = smbldap_search(smbldap_state, "", LDAP_SCOPE_BASE,
+	ret = smbldap_search(ldap_state, "", LDAP_SCOPE_BASE,
 			     "(objectclass=*)", attr_list, 0, &result);
 	if (ret != LDAP_SUCCESS) {
 		DEBUG(1, ("Failed to get base DN from RootDSE: %s\n",
@@ -3713,7 +3758,8 @@ static NTSTATUS ipasam_get_base_dn(struct smbldap_state *smbldap_state,
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	count = ldap_count_entries(smbldap_state->ldap_struct, result);
+	ld = _smbldap_get_ldap(ldap_state);
+	count = ldap_count_entries(ld, result);
 
 	if (count != 1) {
 		DEBUG(1, ("Unexpected number of results [%d] for base DN "
@@ -3722,15 +3768,14 @@ static NTSTATUS ipasam_get_base_dn(struct smbldap_state *smbldap_state,
 		return NT_STATUS_OK;
 	}
 
-	entry = ldap_first_entry(smbldap_state->ldap_struct,
-				 result);
+	entry = ldap_first_entry(ld, result);
 	if (entry == NULL) {
 		DEBUG(0, ("Could not get RootDSE entry\n"));
 		ldap_msgfree(result);
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	nc = get_single_attribute(mem_ctx, smbldap_state->ldap_struct, entry,
+	nc = get_single_attribute(mem_ctx, ld, entry,
 				  "defaultNamingContext");
 	if (nc != NULL) {
 		*base_dn = nc;
@@ -3738,7 +3783,7 @@ static NTSTATUS ipasam_get_base_dn(struct smbldap_state *smbldap_state,
 		return NT_STATUS_OK;
 	}
 
-	nc = get_single_attribute(mem_ctx, smbldap_state->ldap_struct, entry,
+	nc = get_single_attribute(mem_ctx, ld, entry,
 				  "namingContexts");
 	if (nc != NULL) {
 		*base_dn = nc;
@@ -3750,23 +3795,24 @@ static NTSTATUS ipasam_get_base_dn(struct smbldap_state *smbldap_state,
 	return NT_STATUS_UNSUCCESSFUL;
 }
 
-static NTSTATUS ipasam_get_domain_name(struct ldapsam_privates *ldap_state,
+static NTSTATUS ipasam_get_domain_name(struct ipasam_private *ipasam_state,
 				       TALLOC_CTX *mem_ctx,
 				       char **domain_name)
 {
 	int ret;
 	LDAPMessage *result;
 	LDAPMessage *entry = NULL;
+	LDAP *ld = NULL;
 	int count;
 	char *cn;
-	struct smbldap_state *smbldap_state = ldap_state->smbldap_state;
+	struct smbldap_state *ldap_state = ipasam_state->ldap_state;
 	const char *attr_list[] = {
 					LDAP_ATTRIBUTE_ASSOCIATED_DOMAIN,
 					NULL
 				  };
 
-	ret = smbldap_search(smbldap_state,
-			     ldap_state->ipasam_privates->base_dn,
+	ret = smbldap_search(ldap_state,
+			     ipasam_state->base_dn,
 			     LDAP_SCOPE_BASE,
 			     "objectclass=" LDAP_OBJ_DOMAINRELATED, attr_list, 0,
 			     &result);
@@ -3776,7 +3822,8 @@ static NTSTATUS ipasam_get_domain_name(struct ldapsam_privates *ldap_state,
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	count = ldap_count_entries(smbldap_state->ldap_struct, result);
+	ld = _smbldap_get_ldap(ldap_state);
+	count = ldap_count_entries(ld, result);
 
 	if (count != 1) {
 		DEBUG(1, ("Unexpected number of results [%d] for domain name "
@@ -3785,14 +3832,14 @@ static NTSTATUS ipasam_get_domain_name(struct ldapsam_privates *ldap_state,
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	entry = ldap_first_entry(smbldap_state->ldap_struct, result);
+	entry = ldap_first_entry(ld, result);
 	if (entry == NULL) {
 		DEBUG(0, ("Could not get domainRelatedObject entry\n"));
 		ldap_msgfree(result);
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	cn = get_single_attribute(mem_ctx, smbldap_state->ldap_struct, entry,
+	cn = get_single_attribute(mem_ctx, ld, entry,
 				  LDAP_ATTRIBUTE_ASSOCIATED_DOMAIN);
 	if (cn == NULL) {
 		ldap_msgfree(result);
@@ -3804,33 +3851,33 @@ static NTSTATUS ipasam_get_domain_name(struct ldapsam_privates *ldap_state,
 	return NT_STATUS_OK;
 }
 
-static NTSTATUS ipasam_get_enctypes(struct ldapsam_privates *ldap_state,
-				    TALLOC_CTX *mem_ctx,
+static NTSTATUS ipasam_get_enctypes(struct ipasam_private *ipasam_state,
 				    uint32_t *enctypes)
 {
 	int ret;
 	LDAPMessage *result;
 	LDAPMessage *entry = NULL;
+	LDAP *ld = NULL;
 	int count, i;
 	char **enctype_list, *dn;
 	krb5_enctype enctype;
 	krb5_error_code err;
-	struct smbldap_state *smbldap_state = ldap_state->smbldap_state;
+	struct smbldap_state *ldap_state = ipasam_state->ldap_state;
 	const char *attr_list[] = {
 					"krbDefaultEncSaltTypes",
 					NULL
 				  };
 
-	dn = talloc_asprintf(mem_ctx, "cn=%s,cn=kerberos,%s",
-			     ldap_state->ipasam_privates->realm,
-			     ldap_state->ipasam_privates->base_dn);
+	dn = talloc_asprintf(ipasam_state, "cn=%s,cn=kerberos,%s",
+			     ipasam_state->realm,
+			     ipasam_state->base_dn);
 
 	if (dn == NULL) {
 		DEBUG(1, ("Failed to construct DN to the realm's kerberos container\n"));
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	ret = smbldap_search(smbldap_state, dn, LDAP_SCOPE_BASE,
+	ret = smbldap_search(ldap_state, dn, LDAP_SCOPE_BASE,
 			     "objectclass=krbrealmcontainer", attr_list, 0,
 			     &result);
 	if (ret != LDAP_SUCCESS) {
@@ -3840,7 +3887,8 @@ static NTSTATUS ipasam_get_enctypes(struct ldapsam_privates *ldap_state,
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	count = ldap_count_entries(smbldap_state->ldap_struct, result);
+	ld = _smbldap_get_ldap(ldap_state);
+	count = ldap_count_entries(ld, result);
 
 	if (count != 1) {
 		DEBUG(1, ("Unexpected number of results [%d] for realm "
@@ -3850,7 +3898,7 @@ static NTSTATUS ipasam_get_enctypes(struct ldapsam_privates *ldap_state,
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	entry = ldap_first_entry(smbldap_state->ldap_struct, result);
+	entry = ldap_first_entry(ld, result);
 	if (entry == NULL) {
 		DEBUG(0, ("Could not get krbrealmcontainer entry\n"));
 		ldap_msgfree(result);
@@ -3858,7 +3906,7 @@ static NTSTATUS ipasam_get_enctypes(struct ldapsam_privates *ldap_state,
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	enctype_list = get_attribute_values(dn, smbldap_state->ldap_struct, entry,
+	enctype_list = get_attribute_values(dn, ld, entry,
 					    "krbDefaultEncSaltTypes", &count);
 	ldap_msgfree(result);
 	if (enctype_list == NULL) {
@@ -3904,23 +3952,23 @@ static NTSTATUS ipasam_get_enctypes(struct ldapsam_privates *ldap_state,
 	return NT_STATUS_OK;
 }
 
-static NTSTATUS ipasam_get_realm(struct ldapsam_privates *ldap_state,
-				 TALLOC_CTX *mem_ctx,
+static NTSTATUS ipasam_get_realm(struct ipasam_private *ipasam_state,
 				 char **realm)
 {
 	int ret;
 	LDAPMessage *result;
 	LDAPMessage *entry = NULL;
+	LDAP *ld = NULL;
 	int count;
 	char *cn;
-	struct smbldap_state *smbldap_state = ldap_state->smbldap_state;
+	struct smbldap_state *ldap_state = ipasam_state->ldap_state;
 	const char *attr_list[] = {
 					"cn",
 					NULL
 				  };
 
-	ret = smbldap_search(smbldap_state,
-			     ldap_state->ipasam_privates->base_dn,
+	ret = smbldap_search(ldap_state,
+			     ipasam_state->base_dn,
 			     LDAP_SCOPE_SUBTREE,
 			     "objectclass=krbrealmcontainer", attr_list, 0,
 			     &result);
@@ -3930,7 +3978,8 @@ static NTSTATUS ipasam_get_realm(struct ldapsam_privates *ldap_state,
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	count = ldap_count_entries(smbldap_state->ldap_struct, result);
+	ld = _smbldap_get_ldap(ldap_state);
+	count = ldap_count_entries(ld, result);
 
 	if (count != 1) {
 		DEBUG(1, ("Unexpected number of results [%d] for realm "
@@ -3939,15 +3988,15 @@ static NTSTATUS ipasam_get_realm(struct ldapsam_privates *ldap_state,
 		return NT_STATUS_OK;
 	}
 
-	entry = ldap_first_entry(smbldap_state->ldap_struct,
-				 result);
+	entry = ldap_first_entry(ld, result);
 	if (entry == NULL) {
 		DEBUG(0, ("Could not get krbrealmcontainer entry\n"));
 		ldap_msgfree(result);
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	cn = get_single_attribute(mem_ctx, smbldap_state->ldap_struct, entry,
+	cn = get_single_attribute(ipasam_state, ld,
+				  entry,
 				  "cn");
 	if (cn == NULL) {
 		ldap_msgfree(result);
@@ -3968,11 +4017,12 @@ static NTSTATUS ipasam_enum_upn_suffixes(struct pdb_methods *pdb_methods,
 	int ret;
 	LDAPMessage *result;
 	LDAPMessage *entry = NULL;
+	LDAP *ld = NULL;
 	int count, i;
 	char *realmdomains_dn = NULL;
 	char **domains = NULL;
-	struct ldapsam_privates *ldap_state;
-	struct smbldap_state *smbldap_state;
+	struct ipasam_private *ipasam_state;
+	struct smbldap_state *ldap_state;
 	const char *attr_list[] = {
 					LDAP_ATTRIBUTE_ASSOCIATED_DOMAIN,
 					NULL
@@ -3982,16 +4032,16 @@ static NTSTATUS ipasam_enum_upn_suffixes(struct pdb_methods *pdb_methods,
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	ldap_state = (struct ldapsam_privates *)pdb_methods->private_data;
-	smbldap_state = ldap_state->smbldap_state;
+	ipasam_state = talloc_get_type_abort(pdb_methods->private_data, struct ipasam_private);
+	ldap_state = ipasam_state->ldap_state;
 
 	realmdomains_dn = talloc_asprintf(mem_ctx, "%s,%s", LDAP_CN_REALM_DOMAINS,
-					  ldap_state->ipasam_privates->base_dn);
+					  ipasam_state->base_dn);
 	if (realmdomains_dn == NULL) {
 		return NT_STATUS_NO_MEMORY;
 	}
 
-	ret = smbldap_search(smbldap_state,
+	ret = smbldap_search(ldap_state,
 			     realmdomains_dn,
 			     LDAP_SCOPE_BASE,
 			     "objectclass=" LDAP_OBJ_DOMAINRELATED, attr_list, 0,
@@ -4002,7 +4052,8 @@ static NTSTATUS ipasam_enum_upn_suffixes(struct pdb_methods *pdb_methods,
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	count = ldap_count_entries(smbldap_state->ldap_struct, result);
+	ld = _smbldap_get_ldap(ldap_state);
+	count = ldap_count_entries(ld, result);
 	if (count != 1) {
 		DEBUG(1, ("Unexpected number of results [%d] for realm domains "
 			  "search.\n", count));
@@ -4010,14 +4061,14 @@ static NTSTATUS ipasam_enum_upn_suffixes(struct pdb_methods *pdb_methods,
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	entry = ldap_first_entry(smbldap_state->ldap_struct, result);
+	entry = ldap_first_entry(ld, result);
 	if (entry == NULL) {
 		DEBUG(0, ("Could not get domainRelatedObject entry\n"));
 		ldap_msgfree(result);
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	domains = get_attribute_values(mem_ctx, smbldap_state->ldap_struct, entry,
+	domains = get_attribute_values(mem_ctx, ld, entry,
 					LDAP_ATTRIBUTE_ASSOCIATED_DOMAIN, &count);
 	if (domains == NULL) {
 		ldap_msgfree(result);
@@ -4027,7 +4078,7 @@ static NTSTATUS ipasam_enum_upn_suffixes(struct pdb_methods *pdb_methods,
 	/* Since associatedDomain has attributeType MUST, there must be at least one domain */
 	for (i = 0; i < count ; i++) {
 		/* TODO: use comparison function friendly to IDN */
-		if (strcasecmp(ldap_state->domain_name, domains[i]) == 0) {
+		if (strcasecmp(ipasam_state->domain_name, domains[i]) == 0) {
 			break;
 		}
 	}
@@ -4078,7 +4129,7 @@ static char *sec_key(TALLOC_CTX *mem_ctx, const char *d)
 	return res;
 }
 
-static NTSTATUS save_sid_to_secret(struct ldapsam_privates *ldap_state)
+static NTSTATUS save_sid_to_secret(struct ipasam_private *ipasam_state)
 {
 	char hostname[255];
 	int ret;
@@ -4091,16 +4142,16 @@ static NTSTATUS save_sid_to_secret(struct ldapsam_privates *ldap_state)
 		return NT_STATUS_NO_MEMORY;
 	}
 
-	if (!secrets_store(sec_key(tmp_ctx, ldap_state->domain_name),
-			   &ldap_state->domain_sid, sizeof(struct dom_sid))) {
+	if (!secrets_store(sec_key(tmp_ctx, ipasam_state->domain_name),
+			   &ipasam_state->domain_sid, sizeof(struct dom_sid))) {
 		DEBUG(1, ("Failed to store domain SID"));
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
 	}
 
 	if (!secrets_store(sec_key(tmp_ctx,
-				   ldap_state->ipasam_privates->flat_name),
-			   &ldap_state->domain_sid, sizeof(struct dom_sid))) {
+				   ipasam_state->flat_name),
+			   &ipasam_state->domain_sid, sizeof(struct dom_sid))) {
 		DEBUG(1, ("Failed to store domain SID"));
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
@@ -4119,7 +4170,7 @@ static NTSTATUS save_sid_to_secret(struct ldapsam_privates *ldap_state)
 	}
 
 	if (!secrets_store(sec_key(tmp_ctx, hostname),
-			   &ldap_state->domain_sid, sizeof(struct dom_sid))) {
+			   &ipasam_state->domain_sid, sizeof(struct dom_sid))) {
 		DEBUG(1, ("Failed to store domain SID"));
 		status = NT_STATUS_UNSUCCESSFUL;
 		goto done;
@@ -4241,20 +4292,21 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 	krb5_creds in_creds;
 
 	struct ipasam_sasl_interact_priv data;
-	struct ipasam_privates *ipasam_private = NULL;
+	struct ipasam_private *ipasam_state = NULL;
 	int ret;
 
 	memset(&data, 0, sizeof(struct ipasam_sasl_interact_priv));
 	memset(&in_creds, 0, sizeof(krb5_creds));
 
-	ipasam_private = (struct ipasam_privates*)ipasam_priv;
+	ipasam_state = talloc_get_type_abort(ipasam_priv, struct ipasam_private);
 
-	if ((ipasam_private->client_princ == NULL) || (ipasam_private->server_princ == NULL)) {
+	if ((ipasam_state->client_princ == NULL) ||
+	    (ipasam_state->server_princ == NULL)) {
 		DEBUG(0, ("bind_callback: ipasam service principals are not set, cannot use GSSAPI bind\n"));
 		return LDAP_LOCAL_ERROR;
 	}
 
-	data.name = ipasam_private->client_princ;
+	data.name = ipasam_state->client_princ;
 	data.name_len = strlen(data.name);
 
 	rc = krb5_init_context(&data.context);
@@ -4281,14 +4333,14 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 		return LDAP_LOCAL_ERROR;
 	}
 
-	rc = krb5_parse_name(data.context, ipasam_private->client_princ, &in_creds.client);
+	rc = krb5_parse_name(data.context, ipasam_state->client_princ, &in_creds.client);
 	if (rc) {
 		krb5_free_principal(data.context, data.creds.client);
 		bind_callback_cleanup(&data, rc);
 		return LDAP_LOCAL_ERROR;
 	}
 
-	rc = krb5_parse_name(data.context, ipasam_private->server_princ, &in_creds.server);
+	rc = krb5_parse_name(data.context, ipasam_state->server_princ, &in_creds.server);
 	if (rc) {
 		krb5_free_principal(data.context, in_creds.server);
 		bind_callback_cleanup(&data, rc);
@@ -4357,7 +4409,7 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 	return ret;
 }
 
-static NTSTATUS ipasam_generate_principals(struct ipasam_privates *privates) {
+static NTSTATUS ipasam_generate_principals(struct ipasam_private *ipasam_state) {
 
 	krb5_error_code rc;
 	int ret;
@@ -4366,7 +4418,7 @@ static NTSTATUS ipasam_generate_principals(struct ipasam_privates *privates) {
 	char hostname[255];
 	char *default_realm = NULL;
 
-	if (!privates) {
+	if (!ipasam_state) {
 		return status;
 	}
 
@@ -4387,33 +4439,33 @@ static NTSTATUS ipasam_generate_principals(struct ipasam_privates *privates) {
 		goto done;
 	};
 
-	if (privates->client_princ) {
-		talloc_free(privates->client_princ);
-		privates->client_princ = NULL;
+	if (ipasam_state->client_princ) {
+		talloc_free(ipasam_state->client_princ);
+		ipasam_state->client_princ = NULL;
 	}
 
-	privates->client_princ = talloc_asprintf(privates,
-						"cifs/%s@%s",
-						hostname,
-						default_realm);
+	ipasam_state->client_princ = talloc_asprintf(ipasam_state,
+						     "cifs/%s@%s",
+						     hostname,
+						     default_realm);
 
-	if (privates->client_princ == NULL) {
+	if (ipasam_state->client_princ == NULL) {
 		DEBUG(0, ("Failed to create ipasam client principal.\n"));
 		status = NT_STATUS_NO_MEMORY;
 		goto done;
 	}
 
-	if (privates->server_princ) {
-		talloc_free(privates->server_princ);
-		privates->server_princ = NULL;
+	if (ipasam_state->server_princ) {
+		talloc_free(ipasam_state->server_princ);
+		ipasam_state->server_princ = NULL;
 	}
 
-	privates->server_princ = talloc_asprintf(privates,
-						"ldap/%s@%s",
-						hostname,
-						default_realm);
+	ipasam_state->server_princ = talloc_asprintf(ipasam_state,
+						     "ldap/%s@%s",
+						     hostname,
+						     default_realm);
 
-	if (privates->server_princ == NULL) {
+	if (ipasam_state->server_princ == NULL) {
 		DEBUG(0, ("Failed to create ipasam server principal.\n"));
 		status = NT_STATUS_NO_MEMORY;
 		goto done;
@@ -4436,7 +4488,7 @@ done:
 static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 				const char *location)
 {
-	struct ldapsam_privates *ldap_state;
+	struct ipasam_private *ipasam_state;
 
 	char *uri;
 	NTSTATUS status;
@@ -4458,25 +4510,18 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 
 	(*pdb_method)->name = "ipasam";
 
-	if ( !(ldap_state = talloc_zero(*pdb_method, struct ldapsam_privates)) ) {
-		DEBUG(0, ("pdb_init_ipasam: talloc() failed for ldapsam private_data!\n"));
+	if ( !(ipasam_state = talloc_zero(*pdb_method, struct ipasam_private)) ) {
+		DEBUG(0, ("pdb_init_ipasam: talloc() failed for ipasam private_data!\n"));
 		return NT_STATUS_NO_MEMORY;
 	}
 
-	ldap_state->ipasam_privates = talloc_zero(ldap_state,
-						  struct ipasam_privates);
-	if (ldap_state->ipasam_privates == NULL) {
-		return NT_STATUS_NO_MEMORY;
-	}
-	ldap_state->is_ipa_ldap = true;
-
-	uri = talloc_strdup( NULL, location );
+	uri = talloc_strdup(ipasam_state, location );
 	if (uri == NULL) {
 		return NT_STATUS_NO_MEMORY;
 	}
 	trim_string( uri, "\"", "\"" );
 
-	status = ipasam_generate_principals(ldap_state->ipasam_privates);
+	status = ipasam_generate_principals(ipasam_state);
 
 	if (!NT_STATUS_IS_OK(status)) {
 		DEBUG(0, ("Failed to generate kerberos principal for LDAP authentication.\n"));
@@ -4484,11 +4529,11 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	} else {
 		/* We authenticate via GSSAPI and thus will use kerberos principal to bind our access */
 		status = smbldap_init(*pdb_method, pdb_get_tevent_context(),
-			      uri, false, NULL, NULL,
-			      &ldap_state->smbldap_state);
+				      uri, false, NULL, NULL,
+				      &ipasam_state->ldap_state);
 		if (NT_STATUS_IS_OK(status)) {
-			ldap_state->smbldap_state->bind_callback = bind_callback;
-			ldap_state->smbldap_state->bind_callback_data = ldap_state->ipasam_privates;
+			ipasam_state->ldap_state->bind_callback = bind_callback;
+			ipasam_state->ldap_state->bind_callback_data = ipasam_state;
 		}
 	}
 
@@ -4497,47 +4542,46 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		return status;
 	}
 
-	(*pdb_method)->private_data = ldap_state;
+	(*pdb_method)->private_data = ipasam_state;
 	(*pdb_method)->free_private_data = ipasam_free_private_data;
 
-	status = ipasam_get_base_dn(ldap_state->smbldap_state,
-				    ldap_state->ipasam_privates,
-				    &ldap_state->ipasam_privates->base_dn);
+	status = ipasam_get_base_dn(ipasam_state->ldap_state,
+				    ipasam_state,
+				    &ipasam_state->base_dn);
 	if (!NT_STATUS_IS_OK(status)) {
 		DEBUG(0, ("Failed to get base DN.\n"));
 		return status;
 	}
 
-	if (!(smbldap_has_extension(priv2ld(ldap_state), IPA_KEYTAB_SET_OID) ||
-	      smbldap_has_extension(priv2ld(ldap_state), IPA_KEYTAB_SET_OID_OLD))) {
+	if (!(smbldap_has_extension(priv2ld(ipasam_state), IPA_KEYTAB_SET_OID) ||
+	      smbldap_has_extension(priv2ld(ipasam_state), IPA_KEYTAB_SET_OID_OLD))) {
 		DEBUG(0, ("Server is not an IPA server.\n"));
 		return NT_STATUS_INVALID_PARAMETER;
 	}
 
-	ldap_state->ipasam_privates->trust_dn = talloc_asprintf(
-					  ldap_state->ipasam_privates,
-					  "cn=ad,cn=trusts,%s",
-					  ldap_state->ipasam_privates->base_dn);
-	if (ldap_state->ipasam_privates->trust_dn == NULL) {
+	ipasam_state->trust_dn = talloc_asprintf(ipasam_state,
+						 "cn=ad,cn=trusts,%s",
+						 ipasam_state->base_dn);
+	if (ipasam_state->trust_dn == NULL) {
 		DEBUG(0, ("Failed to create trsut DN.\n"));
 		return NT_STATUS_NO_MEMORY;
 	}
 
-	status = ipasam_get_domain_name(ldap_state, ldap_state,
-					(char**) &ldap_state->domain_name);
+	status = ipasam_get_domain_name(ipasam_state, ipasam_state,
+					(char**) &ipasam_state->domain_name);
 	if (!NT_STATUS_IS_OK(status)) {
 		DEBUG(0, ("Failed to get domain name.\n"));
 		return status;
 	}
 
-	status = ipasam_get_realm(ldap_state, ldap_state->ipasam_privates,
-				  &ldap_state->ipasam_privates->realm);
+	status = ipasam_get_realm(ipasam_state,
+				  &ipasam_state->realm);
 	if (!NT_STATUS_IS_OK(status)) {
 		DEBUG(0, ("Failed to get realm.\n"));
 		return status;
 	}
 
-	status = ipasam_search_domain_info(ldap_state->smbldap_state, &result);
+	status = ipasam_search_domain_info(ipasam_state->ldap_state, &result);
 
 	if (!NT_STATUS_IS_OK(status)) {
 		DEBUG(0, ("pdb_init_ldapsam: WARNING: Could not get domain "
@@ -4546,8 +4590,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		return NT_STATUS_CANT_ACCESS_DOMAIN_INFO;
 	}
 
-	entry = ldap_first_entry(ldap_state->smbldap_state->ldap_struct,
-				 result);
+	entry = ldap_first_entry(priv2ld(ipasam_state), result);
 	if (entry == NULL) {
 		DEBUG(0, ("pdb_init_ipasam: Could not get domain info "
 			  "entry\n"));
@@ -4555,39 +4598,38 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	dn = get_dn(ldap_state, ldap_state->smbldap_state->ldap_struct, entry);
+	dn = get_dn(ipasam_state, priv2ld(ipasam_state), entry);
 	if (dn == NULL) {
 		ldap_msgfree(result);
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	ldap_state->domain_dn = smb_xstrdup(dn);
+	ipasam_state->domain_dn = smb_xstrdup(dn);
 	talloc_free(dn);
 
-	ldap_state->ipasam_privates->flat_name = get_single_attribute(
-					ldap_state,
-					ldap_state->smbldap_state->ldap_struct,
-					entry,
-					LDAP_ATTRIBUTE_FLAT_NAME);
-	if (ldap_state->ipasam_privates->flat_name == NULL) {
+	ipasam_state->flat_name = get_single_attribute(ipasam_state,
+						       priv2ld(ipasam_state),
+						       entry,
+						       LDAP_ATTRIBUTE_FLAT_NAME);
+	if (ipasam_state->flat_name == NULL) {
 		DEBUG(0, ("Missing mandatory attribute %s.\n",
 			  LDAP_ATTRIBUTE_FLAT_NAME));
 		ldap_msgfree(result);
 		return NT_STATUS_INVALID_PARAMETER;
 	}
 
-	err = sss_idmap_init(idmap_talloc, ldap_state->ipasam_privates,
+	err = sss_idmap_init(idmap_talloc, ipasam_state,
 			     idmap_talloc_free,
-			     &ldap_state->ipasam_privates->idmap_ctx);
+			     &ipasam_state->idmap_ctx);
 	if (err != IDMAP_SUCCESS) {
 		DEBUG(1, ("Failed to setup idmap context.\n"));
 		ldap_msgfree(result);
 		return NT_STATUS_UNSUCCESSFUL;
 	}
 
-	fallback_group_sid = get_fallback_group_sid(ldap_state,
-					ldap_state->smbldap_state,
-					ldap_state->ipasam_privates->idmap_ctx,
+	fallback_group_sid = get_fallback_group_sid(ipasam_state,
+					ipasam_state->ldap_state,
+					ipasam_state->idmap_ctx,
 					result,
 					&fallback_group_gid_str);
 	if (fallback_group_sid == NULL) {
@@ -4595,8 +4637,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		ldap_msgfree(result);
 		return NT_STATUS_INVALID_PARAMETER;
 	}
-	sid_copy(&ldap_state->ipasam_privates->fallback_primary_group,
-		 fallback_group_sid);
+	sid_copy(&ipasam_state->fallback_primary_group, fallback_group_sid);
 	talloc_free(fallback_group_sid);
 
 	if (fallback_group_gid_str == NULL) {
@@ -4604,17 +4645,15 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		ldap_msgfree(result);
 		return NT_STATUS_INVALID_PARAMETER;
 	}
-	ldap_state->ipasam_privates->fallback_primary_group_gid_str =
-		fallback_group_gid_str;
+	ipasam_state->fallback_primary_group_gid_str = fallback_group_gid_str;
 
-	domain_sid_string = get_single_attribute(
-				ldap_state,
-				ldap_state->smbldap_state->ldap_struct,
-				entry,
-				LDAP_ATTRIBUTE_SID);
+	domain_sid_string = get_single_attribute(ipasam_state,
+						 priv2ld(ipasam_state),
+						 entry,
+						 LDAP_ATTRIBUTE_SID);
 
 	if (domain_sid_string) {
-		err = sss_idmap_sid_to_smb_sid(ldap_state->ipasam_privates->idmap_ctx,
+		err = sss_idmap_sid_to_smb_sid(ipasam_state->idmap_ctx,
 					       domain_sid_string,
 					       &ldap_domain_sid);
 		if (err != IDMAP_SUCCESS) {
@@ -4624,11 +4663,11 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 			TALLOC_FREE(domain_sid_string);
 			return NT_STATUS_INVALID_PARAMETER;
 		}
-		sid_copy(&ldap_state->domain_sid, ldap_domain_sid);
+		sid_copy(&ipasam_state->domain_sid, ldap_domain_sid);
 		talloc_free(ldap_domain_sid);
 		talloc_free(domain_sid_string);
 
-		status = save_sid_to_secret(ldap_state);
+		status = save_sid_to_secret(ipasam_state);
 		if (!NT_STATUS_IS_OK(status)) {
 			ldap_msgfree(result);
 			return status;
@@ -4637,8 +4676,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 
 	ldap_msgfree(result);
 
-	status = ipasam_get_enctypes(ldap_state,
-				     ldap_state->ipasam_privates,
+	status = ipasam_get_enctypes(ipasam_state,
 				     &enctypes);
 
 	if (!NT_STATUS_IS_OK(status)) {
@@ -4647,20 +4685,20 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 			   KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96;
 	}
 
-	ldap_state->ipasam_privates->supported_enctypes = enctypes;
+	ipasam_state->supported_enctypes = enctypes;
 
-	(*pdb_method)->getsampwnam = ldapsam_getsampwnam;
-	(*pdb_method)->search_users = ldapsam_search_users;
-	(*pdb_method)->search_groups = ldapsam_search_groups;
-	(*pdb_method)->search_aliases = ldapsam_search_aliases;
+	(*pdb_method)->getsampwnam = ipasam_getsampwnam;
+	(*pdb_method)->search_users = ipasam_search_users;
+	(*pdb_method)->search_groups = ipasam_search_groups;
+	(*pdb_method)->search_aliases = ipasam_search_aliases;
 	(*pdb_method)->lookup_rids = ldapsam_lookup_rids;
 	(*pdb_method)->sid_to_id = ldapsam_sid_to_id;
 #if PASSDB_INTERFACE_VERSION >= 24
 /* Since version 24, uid_to_sid() and gid_to_sid() were removed in favor of id_to_sid() */
 	(*pdb_method)->id_to_sid = ipasam_id_to_sid;
 #else
-	(*pdb_method)->uid_to_sid = ldapsam_uid_to_sid;
-	(*pdb_method)->gid_to_sid = ldapsam_gid_to_sid;
+	(*pdb_method)->uid_to_sid = ipasam_uid_to_sid;
+	(*pdb_method)->gid_to_sid = ipasam_gid_to_sid;
 #endif
 
 	(*pdb_method)->capabilities = pdb_ipasam_capabilities;
@@ -4679,7 +4717,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 #ifdef HAVE_PDB_ENUM_UPN_SUFFIXES
 	(*pdb_method)->enum_upn_suffixes = ipasam_enum_upn_suffixes;
 	DEBUG(1, ("pdb_init_ipasam: support for pdb_enum_upn_suffixes "
-		  "enabled for domain %s\n", ldap_state->domain_name));
+		  "enabled for domain %s\n", ipasam_state->domain_name));
 #endif
 
 	return NT_STATUS_OK;
