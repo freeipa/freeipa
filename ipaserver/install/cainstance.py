@@ -338,6 +338,7 @@ class CAInstance(DogtagInstance):
             self.clone = True
         self.master_host = master_host
         self.master_replication_port = master_replication_port
+        self.ra_p12 = ra_p12
 
         self.subject_base = \
             subject_base or installutils.default_subject_base(self.realm)
@@ -400,7 +401,7 @@ class CAInstance(DogtagInstance):
                     self.step("Importing RA key", self.__import_ra_key)
                 else:
                     self.step("importing RA certificate from PKCS #12 file",
-                              lambda: self.import_ra_cert(ra_p12))
+                              self.__import_ra_cert)
 
             if not ra_only:
                 self.step("setting up signing cert profile", self.__setup_sign_profile)
@@ -673,28 +674,36 @@ class CAInstance(DogtagInstance):
                                    'NSS_ENABLE_PKIX_VERIFY', '1',
                                    quotes=False, separator='=')
 
-    def import_ra_cert(self, rafile):
+    def __import_ra_cert(self):
+        """
+        Helper method for IPA domain level 0 replica install
+        """
+        self.import_ra_cert(self.ra_p12, self.dm_password)
+
+    def import_ra_cert(self, rafile, password=''):
         """
         Cloned RAs will use the same RA agent cert as the master so we
         need to import from a PKCS#12 file.
 
         Used when setting up replication
         """
-        # get the private key from the file
-        ipautil.run([paths.OPENSSL,
-                     "pkcs12",
-                     "-in", rafile,
-                     "-nocerts", "-nodes",
-                     "-out", paths.RA_AGENT_KEY,
-                     "-passin", "pass:"])
+        with ipautil.write_tmp_file(password) as f:
+            pwdarg = 'file:{file}'.format(file=f.name)
+            # get the private key from the file
+            ipautil.run([paths.OPENSSL,
+                         "pkcs12",
+                         "-in", rafile,
+                         "-nocerts", "-nodes",
+                         "-out", paths.RA_AGENT_KEY,
+                         "-passin", pwdarg])
 
-        # get the certificate from the pkcs12 file
-        ipautil.run([paths.OPENSSL,
-                     "pkcs12",
-                     "-in", rafile,
-                     "-clcerts", "-nokeys",
-                     "-out", paths.RA_AGENT_PEM,
-                     "-passin", "pass:"])
+            # get the certificate from the pkcs12 file
+            ipautil.run([paths.OPENSSL,
+                         "pkcs12",
+                         "-in", rafile,
+                         "-clcerts", "-nokeys",
+                         "-out", paths.RA_AGENT_PEM,
+                         "-passin", pwdarg])
         self.__set_ra_cert_perms()
 
         self.configure_agent_renewal()
