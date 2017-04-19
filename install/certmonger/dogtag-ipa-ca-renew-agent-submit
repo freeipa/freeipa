@@ -193,10 +193,18 @@ def call_handler(_handler, *args, **kwargs):
 
     return result
 
-def request_cert():
+
+def request_cert(reuse_existing, **kwargs):
     """
     Request certificate from IPA CA.
     """
+    if reuse_existing:
+        cert = os.environ.get('CERTMONGER_CERTIFICATE')
+        if cert:
+            return (ISSUED, cert)
+        else:
+            return (REJECTED, "New certificate requests not supported")
+
     syslog.syslog(syslog.LOG_NOTICE,
                   "Forwarding request to dogtag-ipa-renew-agent")
 
@@ -231,7 +239,8 @@ def request_cert():
     else:
         return (rc, stdout)
 
-def store_cert():
+
+def store_cert(**kwargs):
     """
     Store certificate in LDAP.
     """
@@ -292,7 +301,8 @@ def store_cert():
 
     return (ISSUED, cert)
 
-def request_and_store_cert():
+
+def request_and_store_cert(**kwargs):
     """
     Request certificate from IPA CA and store it in LDAP.
     """
@@ -318,7 +328,7 @@ def request_and_store_cert():
         else:
             os.environ['CERTMONGER_CA_COOKIE'] = cookie
 
-        result = call_handler(request_cert)
+        result = call_handler(request_cert, **kwargs)
         if result[0] == WAIT:
             return (result[0], 'request:%s' % result[1])
         elif result[0] == WAIT_WITH_DELAY:
@@ -337,7 +347,7 @@ def request_and_store_cert():
         os.environ['CERTMONGER_CA_COOKIE'] = cookie
     os.environ['CERTMONGER_CERTIFICATE'] = cert
 
-    result = call_handler(store_cert)
+    result = call_handler(store_cert, **kwargs)
     if result[0] == WAIT:
         return (result[0], 'store:%s:%s' % (cert, result[1]))
     elif result[0] == WAIT_WITH_DELAY:
@@ -345,7 +355,8 @@ def request_and_store_cert():
     else:
         return result
 
-def retrieve_or_reuse_cert():
+
+def retrieve_or_reuse_cert(**kwargs):
     """
     Retrieve certificate from LDAP. If the certificate is not available, reuse
     the old certificate.
@@ -373,7 +384,8 @@ def retrieve_or_reuse_cert():
 
     return (ISSUED, cert)
 
-def retrieve_cert_continuous():
+
+def retrieve_cert_continuous(reuse_existing, **kwargs):
     """
     Retrieve new certificate from LDAP. Repeat every eight hours until the
     certificate is available.
@@ -382,8 +394,10 @@ def retrieve_cert_continuous():
     if old_cert:
         old_cert = x509.normalize_certificate(old_cert)
 
-    result = call_handler(retrieve_or_reuse_cert)
-    if result[0] != ISSUED:
+    result = call_handler(retrieve_or_reuse_cert,
+                          reuse_existing=reuse_existing,
+                          **kwargs)
+    if result[0] != ISSUED or reuse_existing:
         return result
 
     new_cert = x509.normalize_certificate(result[1])
@@ -394,17 +408,19 @@ def retrieve_cert_continuous():
 
     return result
 
-def retrieve_cert():
+
+def retrieve_cert(**kwargs):
     """
     Retrieve new certificate from LDAP.
     """
-    result = call_handler(retrieve_cert_continuous)
+    result = call_handler(retrieve_cert_continuous, **kwargs)
     if result[0] == WAIT_WITH_DELAY:
         return (REJECTED, "Updated certificate not available")
 
     return result
 
-def export_csr():
+
+def export_csr(**kwargs):
     """
     This does not actually renew the cert, it just writes the CSR provided
     by certmonger to /var/lib/ipa/ca.csr and returns the existing cert.
@@ -430,7 +446,8 @@ def export_csr():
 
     return (ISSUED, cert)
 
-def renew_ca_cert():
+
+def renew_ca_cert(reuse_existing, **kwargs):
     """
     This is used for automatic CA certificate renewal.
     """
@@ -443,7 +460,7 @@ def renew_ca_cert():
     if operation == 'SUBMIT':
         state = 'retrieve'
 
-        if is_self_signed and is_renewal_master():
+        if is_self_signed and not reuse_existing and is_renewal_master():
             state = 'request'
     elif operation == 'POLL':
         cookie = os.environ.get('CERTMONGER_CA_COOKIE')
@@ -460,8 +477,10 @@ def renew_ca_cert():
         return (OPERATION_NOT_SUPPORTED_BY_HELPER,)
 
     if state == 'retrieve':
-        result = call_handler(retrieve_cert)
-        if result[0] == REJECTED and not is_self_signed:
+        result = call_handler(retrieve_cert,
+                              reuse_existing=reuse_existing,
+                              **kwargs)
+        if result[0] == REJECTED and not is_self_signed and not reuse_existing:
             syslog.syslog(syslog.LOG_ALERT,
                           "Certificate with subject '%s' is about to expire, "
                           "use ipa-cacert-manage to renew it"
@@ -469,7 +488,9 @@ def renew_ca_cert():
     elif state == 'request':
         profile = os.environ['CERTMONGER_CA_PROFILE']
         os.environ['CERTMONGER_CA_PROFILE'] = 'caCACert'
-        result = call_handler(request_and_store_cert)
+        result = call_handler(request_and_store_cert,
+                              reuse_existing=reuse_existing,
+                              **kwargs)
         os.environ['CERTMONGER_CA_PROFILE'] = profile
 
     if result[0] == WAIT:
@@ -480,6 +501,16 @@ def renew_ca_cert():
         return result
 
 def main():
+    kwargs = {
+        'reuse_existing': False,
+    }
+    try:
+        sys.argv.remove('--reuse-existing')
+    except ValueError:
+        pass
+    else:
+        kwargs['reuse_existing'] = True
+
     handlers = {
         'ipaStorage':           store_cert,
         'ipaRetrievalOrReuse':  retrieve_or_reuse_cert,
@@ -515,7 +546,7 @@ def main():
             handler = request_cert
         handler = handlers.get(profile, handler)
 
-        res = call_handler(handler)
+        res = call_handler(handler, **kwargs)
         for item in res[1:]:
             print(item)
         return res[0]

@@ -964,9 +964,11 @@ class CAInstance(DogtagInstance):
         obj = bus.get_object('org.fedorahosted.certmonger',
                              '/org/fedorahosted/certmonger')
         iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
-        path = iface.find_ca_by_nickname('dogtag-ipa-ca-renew-agent')
-        if path:
-            iface.remove_known_ca(path)
+        for suffix in ['', '-reuse']:
+            name = 'dogtag-ipa-ca-renew-agent' + suffix
+            path = iface.find_ca_by_nickname(name)
+            if path:
+                iface.remove_known_ca(path)
 
         cmonger.stop()
 
