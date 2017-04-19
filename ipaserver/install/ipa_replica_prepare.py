@@ -571,14 +571,15 @@ class ReplicaPrepare(admintool.AdminTool):
     def export_ra_pkcs12(self):
         if (os.path.exists(paths.RA_AGENT_PEM) and
            os.path.exists(paths.RA_AGENT_KEY)):
-            ipautil.run([
-                paths.OPENSSL,
-                "pkcs12", "-export",
-                "-inkey", paths.RA_AGENT_KEY,
-                "-in", paths.RA_AGENT_PEM,
-                "-out", os.path.join(self.dir, "ra.p12"),
-                "-passout", "pass:"
-            ])
+            with ipautil.write_tmp_file(self.dirman_password) as f:
+                ipautil.run([
+                    paths.OPENSSL,
+                    "pkcs12", "-export",
+                    "-inkey", paths.RA_AGENT_KEY,
+                    "-in", paths.RA_AGENT_PEM,
+                    "-out", os.path.join(self.dir, "ra.p12"),
+                    "-passout", "file:{pwfile}".format(pwfile=f.name)
+                ])
 
     def update_pki_admin_password(self):
         dn = DN('uid=admin', 'ou=people', 'o=ipaca')
