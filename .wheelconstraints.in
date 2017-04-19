@@ -9,3 +9,5 @@ ipapython == @VERSION@
 ipaserver == @VERSION@
 ipatests == @VERSION@
 
+# see https://pagure.io/freeipa/issue/6874
+pylint < 1.7
