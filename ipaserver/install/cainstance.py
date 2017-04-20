@@ -687,7 +687,7 @@ class CAInstance(DogtagInstance):
 
         Used when setting up replication
         """
-        with ipautil.write_tmp_file(password) as f:
+        with ipautil.write_tmp_file(password + '\n') as f:
             pwdarg = 'file:{file}'.format(file=f.name)
             # get the private key from the file
             ipautil.run([paths.OPENSSL,
