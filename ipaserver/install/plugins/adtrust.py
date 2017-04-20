@@ -329,6 +329,11 @@ class update_tdo_gidnumber(Updater):
     def execute(self, **options):
         ldap = self.api.Backend.ldap2
 
+        # First, see if trusts are enabled on the server
+        if not self.api.Command.adtrust_is_enabled()['result']:
+            self.log.debug('AD Trusts are not enabled on this server')
+            return False, []
+
         # Read the gidnumber of the fallback group
         dn = DN(('cn', ADTRUSTInstance.FALLBACK_GROUP_NAME),
                 self.api.env.container_group,
