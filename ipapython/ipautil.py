@@ -394,7 +394,6 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
     if env is None:
         # copy default env
         env = copy.deepcopy(os.environ)
-        env["PATH"] = "/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"
     if stdin:
         p_in = subprocess.PIPE
     if skip_output:
