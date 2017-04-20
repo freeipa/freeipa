@@ -52,6 +52,7 @@ define([
     './trust',
     './topology',
     './user',
+    './log',
     './stageuser',
     'dojo/domReady!'
 ],function(app_container) {

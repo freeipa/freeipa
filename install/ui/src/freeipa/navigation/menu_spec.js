@@ -239,6 +239,13 @@ var nav = {};
                 },
                 { entity: 'config' }
             ]
+        },
+        {
+            name: 'log',
+            label: 'IPA日志',
+            children: [
+                { entity: 'log' }
+            ]
         }
     ]
 };

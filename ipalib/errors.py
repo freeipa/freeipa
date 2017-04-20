@@ -1752,6 +1752,22 @@ class CertificateInvalidError(CertificateError):
     errno = 4310
     format = _('%(name)s certificate is not valid')
 
+# add log primary key error judge
+class NotInt(ExecutionError):
+    """
+    **4311** Raised when an pkey is not int.
+ 
+    For example:
+ 
+    >>> raise NotInt(reason='not logline')
+    Traceback (most recent call last):
+      ...
+    NotInt: not logline
+ 
+    """
+
+    errno = 4311
+    format = _('%(reason)s')
 
 class DNSError(ExecutionError):
     """
