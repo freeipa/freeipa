@@ -606,6 +606,11 @@ class CAInstance(DogtagInstance):
         with open(cfg_file, "w") as f:
             config.write(f)
 
+        # Create parent directory for pki-tomcatd service file
+        PKI_SERVICE_LOCATION="/etc/systemd/system/pki-tomcatd.target.wants"
+        if not os.path.exists(PKI_SERVICE_LOCATION):
+            os.mkdir(PKI_SERVICE_LOCATION)
+
         self.backup_state('installed', True)
         try:
             DogtagInstance.spawn_instance(
