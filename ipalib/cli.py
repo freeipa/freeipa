@@ -248,7 +248,7 @@ class textui(backend.Backend):
         >>> ui.print_indented('No indentation.', indent=0)
         No indentation.
         """
-        print((CLI_TAB * indent + text))
+        print((CLI_TAB * indent + text.encode("utf-8")))
 
     def print_keyval(self, rows, indent=1):
         """
