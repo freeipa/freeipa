@@ -762,11 +762,12 @@ def install(installer):
             options.subject_base, options.ca_subject, 1101, 1100, None)
 
     krb = krbinstance.KrbInstance(fstore)
-    krb.create_instance(realm_name, host_name, domain_name,
-                        dm_password, master_password,
-                        setup_pkinit=not options.no_pkinit,
-                        pkcs12_info=pkinit_pkcs12_info,
-                        subject_base=options.subject_base)
+    if not options.external_cert_files:
+        krb.create_instance(realm_name, host_name, domain_name,
+                            dm_password, master_password,
+                            setup_pkinit=not options.no_pkinit,
+                            pkcs12_info=pkinit_pkcs12_info,
+                            subject_base=options.subject_base)
 
     if setup_ca:
         if not options.external_cert_files and options.external_ca:

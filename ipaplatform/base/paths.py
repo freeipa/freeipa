@@ -314,6 +314,7 @@ class BasePathNamespace(object):
     IPASERVER_UNINSTALL_LOG = "/var/log/ipaserver-uninstall.log"
     IPAUPGRADE_LOG = "/var/log/ipaupgrade.log"
     KADMIND_LOG = "/var/log/kadmind.log"
+    KRB5KDC_LOG = "/var/log/krb5kdc.log"
     MESSAGES = "/var/log/messages"
     VAR_LOG_PKI_DIR = "/var/log/pki/"
     TOMCAT_TOPLEVEL_DIR = "/var/log/pki/pki-tomcat"

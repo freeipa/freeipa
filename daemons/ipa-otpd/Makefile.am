@@ -11,6 +11,7 @@ ipa_otpd_SOURCES = bind.c forward.c main.c parse.c query.c queue.c stdio.c
 
 %.socket: %.socket.in
 	@sed -e 's|@krb5rundir[@]|$(krb5rundir)|g' \
+	     -e 's|@KRB5KDC_SERVICE[@]|$(KRB5KDC_SERVICE)|g' \
 	     -e 's|@UNLINK[@]|@UNLINK@|g' \
 	     $< > $@
 
