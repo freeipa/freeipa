@@ -39,6 +39,7 @@ from ipaserver.dns_data_management import (
 from ipaserver.install import installutils
 from ipaserver.install import service
 from ipaserver.install import sysupgrade
+from ipaserver import servroles
 from ipapython import ipautil
 from ipapython import dnsutil
 from ipapython.dnsutil import DNSName
@@ -1068,6 +1069,18 @@ class BindInstance(service.Service):
                 del_rr(rzone, record, "PTR", normalize_zone(fqdn),
                        api=self.api)
         self.update_system_records()
+
+    def is_configured(self):
+        if self.api.Backend.ldap2.isconnected():
+            try:
+                result = self.api.Command.server_role_show(
+                    unicode(self.fqdn), u'DNS server')['result']
+
+                return result[u'status'] != servroles.ABSENT
+            except errors.NetworkError:
+                pass
+
+        return super(BindInstance, self).is_configured()
 
     def remove_server_ns_records(self, fqdn):
         """
