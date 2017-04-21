@@ -63,6 +63,12 @@ PROTOCOL_NAMES = {
 }
 
 
+PROTOCOL_NAMES = {
+    socket.SOCK_STREAM: 'tcp',
+    socket.SOCK_DGRAM: 'udp'
+}
+
+
 class UnsafeIPAddress(netaddr.IPAddress):
     """Any valid IP address with or without netmask."""
 
@@ -974,6 +980,7 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
         finally:
             if s is not None:
                 s.close()
+                s = None
 
     return port_open
 
