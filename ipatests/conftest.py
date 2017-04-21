@@ -57,6 +57,12 @@ NO_RECURSE_DIRS = [
     'ipatests/pytest_plugins',
 ]
 
+INIVALUES = {
+    'python_classes': ['test_', 'Test'],
+    'python_files': ['test_*.py'],
+    'python_functions': ['test_*'],
+}
+
 
 INIVALUES = {
     'python_classes': ['test_', 'Test'],
