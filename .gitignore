@@ -51,6 +51,7 @@ freeipa-*.tar.gz
 .version
 
 # Python compilation
+.eggs
 *.pyc
 py-compile
 
