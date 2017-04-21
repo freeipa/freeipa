@@ -105,7 +105,7 @@ def main():
                   debug=options.debug,
                   confdir=paths.ETC_IPA)
     api.finalize()
-    api.Backend.ldap2.connect()
+    api.Backend.ldap2.connect(bind_pw=dirman_password)
 
     if args[0] == "status":
         entry = None
