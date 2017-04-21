@@ -1374,6 +1374,7 @@ fi
 %license COPYING
 %{_sbindir}/ipa-client-install
 %{_sbindir}/ipa-client-automount
+%{_sbindir}/ipa-client-nfsexport
 %{_sbindir}/ipa-certupdate
 %{_sbindir}/ipa-getkeytab
 %{_sbindir}/ipa-rmkeytab

@@ -42,6 +42,7 @@ sbin_PROGRAMS =			\
 sbin_SCRIPTS =			\
 	ipa-client-install	\
 	ipa-client-automount	\
+	ipa-client-nfsexport	\
 	ipa-certupdate		\
 	$(NULL)
 
