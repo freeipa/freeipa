@@ -65,13 +65,17 @@ The principal function of the CLI is to execute administrative commands specifie
 
 From the implementation perspective, the CLI distinguishes two types of commands \- built\-ins and plugin provided.
 
-Built\-in commands are static and are all available in all installations of IPA. There are two of them:
+Built\-in commands are static and are all available in all installations of IPA. There are three of them:
 .TP
 \fBconsole\fR
 Start the IPA interactive Python console.
 .TP
 \fBhelp\fR [\fITOPIC\fR | \fICOMMAND\fR | \fBtopics\fR | \fBcommands\fR]
 Display help for a command or topic.
+\fBlocal-env\fR
+Show local IPA api.env values.
+.TP
+
 
 The \fBhelp\fR command invokes the built\-in documentation system. Without parameters a list of built\-in commands and help topics is displayed. Help topics are generated from loaded IPA plugin modules. Executing \fBhelp\fR with the name of an available topic displays a help message provided by the corresponding plugin module and list of commands it contains.
 .LP

@@ -54,6 +54,7 @@ from ipalib.constants import CLI_TAB, LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.parameters import File, Str, Enum, Any, Flag
 from ipalib.text import _
 from ipalib import api  # pylint: disable=unused-import
+from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
 import datetime
@@ -859,6 +860,28 @@ class help(frontend.Local):
                 writer(_('  ipa <command> --help'))
             writer()
 
+
+class local_env(frontend.Local):
+    """Dump local api.env vars
+    """
+
+    takes_args = ()
+    takes_options = ()
+    has_output = ()
+    topic = None
+
+    def run(self, *args, **options):
+        for key in sorted(self.api.env):
+            value = getattr(api.env, key)
+            if isinstance(value, DN):
+                value = unicode(value)
+            if isinstance(value, (str, unicode)):
+                # shell escape
+                value = value.replace(r'"', r'\"')
+                value = value.replace('$', r'$$')
+            print('{}="{}"'.format(key, value))
+
+
 class show_mappings(frontend.Command):
     """
     Show mapping of LDAP attributes to command-line option.
@@ -1336,6 +1359,7 @@ cli_plugins = (
     console,
     help,
     show_mappings,
+    local_env,
 )
 
 
