@@ -2,7 +2,7 @@
 # Setup the Schema Compatibility plugin provided by slapi-nis.
 # This should be done after all other updates have been applied
 #
-# http://slapi-nis.fedorahosted.org/
+# https://pagure.io/slapi-nis/
 #
 dn: cn=Schema Compatibility, cn=plugins, cn=config
 default:objectclass: top
