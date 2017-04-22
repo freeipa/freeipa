@@ -75,7 +75,7 @@ if __name__ == '__main__':
         ],
         extras_require={
             "integration": ["dbus-python", "pyyaml", "ipaserver"],
-            "ipaserver": ["ipaserver"],
+            "ipaserver": ["ipaserver", "python-nss"],
             "webui": ["selenium", "pyyaml", "ipaserver"],
             "xmlrpc": ["ipaserver"],
         }
