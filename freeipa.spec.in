@@ -284,6 +284,7 @@ Requires(pre): systemd-units
 Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base >= %{selinux_policy_version}
+Requires(post): coreutils
 Requires: slapi-nis >= %{slapi_nis_version}
 Requires: pki-ca >= 10.3.5-11
 Requires: pki-kra >= 10.3.5-11
@@ -986,6 +987,8 @@ fi
 /bin/systemctl reload-or-try-restart dbus
 /bin/systemctl reload-or-try-restart oddjobd
 
+%post server
+chcon system_u:object_r:ipa_otpd_exec_t:s0 /usr/libexec/ipa/ipa-otpd
 
 %posttrans server
 # don't execute upgrade and restart of IPA when server is not installed
