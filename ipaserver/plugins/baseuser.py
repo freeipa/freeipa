@@ -481,6 +481,7 @@ class baseuser_add(LDAPCreate):
                             **options):
         assert isinstance(dn, DN)
         set_krbcanonicalname(entry_attrs)
+        convert_nsaccountlock(entry_attrs)
         self.obj.convert_usercertificate_pre(entry_attrs)
 
     def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):
