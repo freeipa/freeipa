@@ -87,6 +87,10 @@ class TestCAbasicCRUD(XMLRPC_test):
     def test_retrieve_all(self, crud_subca):
         crud_subca.retrieve(all=True)
 
+    def test_delete_while_not_disabled(self, crud_subca):
+        with pytest.raises(errors.ProtectedEntryError):
+            crud_subca.make_command('ca_del', crud_subca.name)()
+
     def test_delete(self, crud_subca):
         crud_subca.delete()
 
