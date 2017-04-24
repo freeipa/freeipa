@@ -501,18 +501,29 @@ def stop_tracking(secdir=None, request_id=None, nickname=None, certfile=None):
         request.parent.obj_if.remove_request(request.path)
 
 
-def modify(request_id, profile=None):
-    if profile:
+def modify(request_id, ca=None, profile=None):
+    if ca or profile:
         request = _get_request({'nickname': request_id})
-        if request:
-            request.obj_if.modify({'template-profile': profile})
+        update = {}
+        if ca is not None:
+            cm = _certmonger()
+            update['CA'] = cm.obj_if.find_ca_by_nickname(ca)
+        if profile is not None:
+            update['template-profile'] = profile
+        request.obj_if.modify(update)
 
 
-def resubmit_request(request_id, profile=None):
+def resubmit_request(request_id, ca=None, profile=None):
     request = _get_request({'nickname': request_id})
     if request:
-        if profile:
-            request.obj_if.modify({'template-profile': profile})
+        if ca or profile:
+            update = {}
+            if ca is not None:
+                cm = _certmonger()
+                update['CA'] = cm.obj_if.find_ca_by_nickname(ca)
+            if profile is not None:
+                update['template-profile'] = profile
+            request.obj_if.modify(update)
         request.obj_if.resubmit()
 
 

@@ -275,7 +275,7 @@ class DogtagInstance(service.Service):
         """ Configure certmonger to renew system certs """
         pin = self.__get_pin()
 
-        for nickname, profile in self.tracking_reqs:
+        for nickname in self.tracking_reqs:
             try:
                 certmonger.start_tracking(
                     certpath=self.nss_db,
@@ -284,7 +284,7 @@ class DogtagInstance(service.Service):
                     pin=pin,
                     pre_command='stop_pkicad',
                     post_command='renew_ca_cert "%s"' % nickname,
-                    profile=profile)
+                )
             except RuntimeError as e:
                 self.log.error(
                     "certmonger failed to start tracking certificate: %s", e)
@@ -319,7 +319,7 @@ class DogtagInstance(service.Service):
         services.knownservices.messagebus.start()
         cmonger.start()
 
-        nicknames = [nickname for nickname, _profile in self.tracking_reqs]
+        nicknames = self.tracking_reqs
         if self.server_cert_name is not None:
             nicknames.append(self.server_cert_name)
 

@@ -297,7 +297,7 @@ def store_cert(**kwargs):
             syslog.syslog(
                 syslog.LOG_ERR,
                 "Giving up. To retry storing the certificate, resubmit the "
-                "request with profile \"ipaStorage\"")
+                "request with CA \"dogtag-ipa-ca-renew-agent-reuse\"")
 
     return (ISSUED, cert)
 
@@ -420,33 +420,6 @@ def retrieve_cert(**kwargs):
     return result
 
 
-def export_csr(**kwargs):
-    """
-    This does not actually renew the cert, it just writes the CSR provided
-    by certmonger to /var/lib/ipa/ca.csr and returns the existing cert.
-    """
-    operation = os.environ.get('CERTMONGER_OPERATION')
-    if operation != 'SUBMIT':
-        return (OPERATION_NOT_SUPPORTED_BY_HELPER,)
-
-    csr = os.environ.get('CERTMONGER_CSR')
-    if not csr:
-        return (UNCONFIGURED, "Certificate request not provided")
-
-    cert = os.environ.get('CERTMONGER_CERTIFICATE')
-    if not cert:
-        return (REJECTED, "New certificate requests not supported")
-
-    csr_file = paths.IPA_CA_CSR
-    try:
-        with open(csr_file, 'wb') as f:
-            f.write(csr)
-    except Exception as e:
-        return (UNREACHABLE, "Failed to write %s: %s" % (csr_file, e))
-
-    return (ISSUED, cert)
-
-
 def renew_ca_cert(reuse_existing, **kwargs):
     """
     This is used for automatic CA certificate renewal.
@@ -497,12 +470,15 @@ def renew_ca_cert(reuse_existing, **kwargs):
                           "use ipa-cacert-manage to renew it"
                           % (os.environ.get("CERTMONGER_REQ_SUBJECT"),))
     elif state == 'request':
-        profile = os.environ['CERTMONGER_CA_PROFILE']
+        profile = os.environ.get('CERTMONGER_CA_PROFILE')
         os.environ['CERTMONGER_CA_PROFILE'] = 'caCACert'
         result = call_handler(request_and_store_cert,
                               reuse_existing=reuse_existing,
                               **kwargs)
-        os.environ['CERTMONGER_CA_PROFILE'] = profile
+        if profile is not None:
+            os.environ['CERTMONGER_CA_PROFILE'] = profile
+        else:
+            del os.environ['CERTMONGER_CA_PROFILE']
 
     if result[0] == WAIT:
         return (result[0], '%s:%s' % (state, result[1]))
@@ -522,14 +498,6 @@ def main():
     else:
         kwargs['reuse_existing'] = True
 
-    handlers = {
-        'ipaStorage':           store_cert,
-        'ipaRetrievalOrReuse':  retrieve_or_reuse_cert,
-        'ipaRetrieval':         retrieve_cert,
-        'ipaCSRExport':         export_csr,
-        'ipaCACertRenewal':     renew_ca_cert,
-    }
-
     api.bootstrap(in_server=True, context='renew', confdir=paths.ETC_IPA)
     api.finalize()
 
@@ -547,15 +515,15 @@ def main():
 
         api.Backend.ldap2.connect()
 
-        profile = os.environ.get('CERTMONGER_CA_PROFILE')
-        if is_replicated():
+        if get_nickname() == IPA_CA_NICKNAME:
+            handler = renew_ca_cert
+        elif is_replicated():
             if is_renewal_master():
                 handler = request_and_store_cert
             else:
                 handler = retrieve_cert_continuous
         else:
             handler = request_cert
-        handler = handlers.get(profile, handler)
 
         res = call_handler(handler, **kwargs)
         for item in res[1:]:

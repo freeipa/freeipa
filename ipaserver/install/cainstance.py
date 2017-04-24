@@ -279,10 +279,10 @@ class CAInstance(DogtagInstance):
        2 = have signed cert, continue installation
     """
 
-    tracking_reqs = (('auditSigningCert cert-pki-ca', None),
-                     ('ocspSigningCert cert-pki-ca', None),
-                     ('subsystemCert cert-pki-ca', None),
-                     ('caSigningCert cert-pki-ca', 'ipaCACertRenewal'))
+    tracking_reqs = ('auditSigningCert cert-pki-ca',
+                     'ocspSigningCert cert-pki-ca',
+                     'subsystemCert cert-pki-ca',
+                     'caSigningCert cert-pki-ca')
     server_cert_name = 'Server-Cert cert-pki-ca'
 
     def __init__(self, realm=None, host_name=None):
