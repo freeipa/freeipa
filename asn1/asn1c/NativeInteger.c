@@ -16,7 +16,7 @@
 /*
  * NativeInteger basic type description.
  */
-static ber_tlv_tag_t asn_DEF_NativeInteger_tags[] = {
+static const ber_tlv_tag_t asn_DEF_NativeInteger_tags[] = {
 	(ASN_TAG_CLASS_UNIVERSAL | (2 << 2))
 };
 asn_TYPE_descriptor_t asn_DEF_NativeInteger = {
@@ -178,7 +178,7 @@ NativeInteger_decode_xer(asn_codec_ctx_t *opt_codec_ctx,
 
 	if(!native) {
 		native = (long *)(*sptr = CALLOC(1, sizeof(*native)));
-		if(!native) _ASN_DECODE_FAILED;
+		if(!native) ASN__DECODE_FAILED;
 	}
 
 	memset(&st, 0, sizeof(st));
@@ -219,16 +219,16 @@ NativeInteger_encode_xer(asn_TYPE_descriptor_t *td, void *sptr,
 	(void)ilevel;
 	(void)flags;
 
-	if(!native) _ASN_ENCODE_FAILED;
+	if(!native) ASN__ENCODE_FAILED;
 
 	er.encoded = snprintf(scratch, sizeof(scratch),
 			(specs && specs->field_unsigned)
 			? "%lu" : "%ld", *native);
 	if(er.encoded <= 0 || (size_t)er.encoded >= sizeof(scratch)
 		|| cb(scratch, er.encoded, app_key) < 0)
-		_ASN_ENCODE_FAILED;
+		ASN__ENCODE_FAILED;
 
-	_ASN_ENCODED_OK(er);
+	ASN__ENCODED_OK(er);
 }
 
 asn_dec_rval_t
@@ -247,7 +247,7 @@ NativeInteger_decode_uper(asn_codec_ctx_t *opt_codec_ctx,
 
 	if(!native) {
 		native = (long *)(*sptr = CALLOC(1, sizeof(*native)));
-		if(!native) _ASN_DECODE_FAILED;
+		if(!native) ASN__DECODE_FAILED;
 	}
 
 	memset(&tmpint, 0, sizeof tmpint);
@@ -275,7 +275,7 @@ NativeInteger_encode_uper(asn_TYPE_descriptor_t *td,
 	long native;
 	INTEGER_t tmpint;
 
-	if(!sptr) _ASN_ENCODE_FAILED;
+	if(!sptr) ASN__ENCODE_FAILED;
 
 	native = *(long *)sptr;
 
@@ -285,7 +285,7 @@ NativeInteger_encode_uper(asn_TYPE_descriptor_t *td,
 	if((specs&&specs->field_unsigned)
 		? asn_ulong2INTEGER(&tmpint, native)
 		: asn_long2INTEGER(&tmpint, native))
-		_ASN_ENCODE_FAILED;
+		ASN__ENCODE_FAILED;
 	er = INTEGER_encode_uper(td, constraints, &tmpint, po);
 	ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_INTEGER, &tmpint);
 	return er;

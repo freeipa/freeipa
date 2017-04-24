@@ -80,8 +80,8 @@ der_write_tags(asn_TYPE_descriptor_t *sd,
 		ber_tlv_tag_t tag,	/* EXPLICIT or IMPLICIT tag */
 		asn_app_consume_bytes_f *cb,
 		void *app_key) {
-	ber_tlv_tag_t *tags;	/* Copy of tags stream */
-	int tags_count;		/* Number of tags */
+	const ber_tlv_tag_t *tags;	/* Copy of tags stream */
+	int tags_count;			/* Number of tags */
 	size_t overall_length;
 	ssize_t *lens;
 	int i;
@@ -102,8 +102,9 @@ der_write_tags(asn_TYPE_descriptor_t *sd,
 		 * and initialize it appropriately.
 		 */
 		int stag_offset;
-		tags = (ber_tlv_tag_t *)alloca((sd->tags_count + 1) * sizeof(ber_tlv_tag_t));
-		if(!tags) {	/* Can fail on !x86 */
+		ber_tlv_tag_t *tags_buf;
+		tags_buf = (ber_tlv_tag_t *)alloca((sd->tags_count + 1) * sizeof(ber_tlv_tag_t));
+		if(!tags_buf) {	/* Can fail on !x86 */
 			errno = ENOMEM;
 			return -1;
 		}
@@ -111,10 +112,11 @@ der_write_tags(asn_TYPE_descriptor_t *sd,
 			+ 1	/* EXPLICIT or IMPLICIT tag is given */
 			- ((tag_mode == -1) && sd->tags_count);
 		/* Copy tags over */
-		tags[0] = tag;
+		tags_buf[0] = tag;
 		stag_offset = -1 + ((tag_mode == -1) && sd->tags_count);
 		for(i = 1; i < tags_count; i++)
-			tags[i] = sd->tags[i + stag_offset];
+			tags_buf[i] = sd->tags[i + stag_offset];
+		tags = tags_buf;
 	} else {
 		tags = sd->tags;
 		tags_count = sd->tags_count;
@@ -144,8 +146,8 @@ der_write_tags(asn_TYPE_descriptor_t *sd,
 
 	if(!cb) return overall_length - struct_length;
 
-	ASN_DEBUG("Encoding %s TL sequence (%d elements)", sd->name,
-                  tags_count);
+	ASN_DEBUG("%s %s TL sequence (%d elements)",
+		cb?"Encoding":"Estimating", sd->name, tags_count);
 
 	/*
 	 * Encode the TL sequence for real.

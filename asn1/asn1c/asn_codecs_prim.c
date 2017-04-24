@@ -15,14 +15,14 @@ ber_decode_primitive(asn_codec_ctx_t *opt_codec_ctx,
 	void **sptr, const void *buf_ptr, size_t size, int tag_mode) {
 	ASN__PRIMITIVE_TYPE_t *st = (ASN__PRIMITIVE_TYPE_t *)*sptr;
 	asn_dec_rval_t rval;
-	ber_tlv_len_t length = 0; // =0 to avoid [incorrect] warning.
+	ber_tlv_len_t length = 0; /* =0 to avoid [incorrect] warning. */
 
 	/*
 	 * If the structure is not there, allocate it.
 	 */
 	if(st == NULL) {
 		st = (ASN__PRIMITIVE_TYPE_t *)CALLOC(1, sizeof(*st));
-		if(st == NULL) _ASN_DECODE_FAILED;
+		if(st == NULL) ASN__DECODE_FAILED;
 		*sptr = (void *)st;
 	}
 
@@ -55,13 +55,13 @@ ber_decode_primitive(asn_codec_ctx_t *opt_codec_ctx,
 	if(sizeof(st->size) != sizeof(length)
 			&& (ber_tlv_len_t)st->size != length) {
 		st->size = 0;
-		_ASN_DECODE_FAILED;
+		ASN__DECODE_FAILED;
 	}
 
 	st->buf = (uint8_t *)MALLOC(length + 1);
 	if(!st->buf) {
 		st->size = 0;
-		_ASN_DECODE_FAILED;
+		ASN__DECODE_FAILED;
 	}
 
 	memcpy(st->buf, buf_ptr, length);
@@ -111,7 +111,7 @@ der_encode_primitive(asn_TYPE_descriptor_t *td, void *sptr,
 	}
 
 	erval.encoded += st->size;
-	_ASN_ENCODED_OK(erval);
+	ASN__ENCODED_OK(erval);
 }
 
 void
@@ -258,7 +258,7 @@ xer_decode_primitive(asn_codec_ctx_t *opt_codec_ctx,
 	 */
 	if(!*sptr) {
 		*sptr = CALLOC(1, struct_size);
-		if(!*sptr) _ASN_DECODE_FAILED;
+		if(!*sptr) ASN__DECODE_FAILED;
 	}
 
 	memset(&s_ctx, 0, sizeof(s_ctx));
@@ -288,7 +288,7 @@ xer_decode_primitive(asn_codec_ctx_t *opt_codec_ctx,
 				/*
 				 * This decoder does not like empty stuff.
 				 */
-				_ASN_DECODE_FAILED;
+				ASN__DECODE_FAILED;
 			}
 		}
 		break;
@@ -304,7 +304,7 @@ xer_decode_primitive(asn_codec_ctx_t *opt_codec_ctx,
 		if(s_arg.want_more)
 			rc.code = RC_WMORE;
 		else
-			_ASN_DECODE_FAILED;
+			ASN__DECODE_FAILED;
 		break;
 	}
 	return rc;

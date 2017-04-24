@@ -15,7 +15,7 @@ extern "C" {
 /*
  * Pre-computed PER constraints.
  */
-typedef struct asn_per_constraint_s {
+typedef const struct asn_per_constraint_s {
 	enum asn_per_constraint_flags {
 		APC_UNCONSTRAINED	= 0x0,	/* No PER visible constraints */
 		APC_SEMI_CONSTRAINED	= 0x1,	/* Constrained at "lb" */
@@ -27,9 +27,9 @@ typedef struct asn_per_constraint_s {
 	long lower_bound;		/* "lb" value */
 	long upper_bound;		/* "ub" value */
 } asn_per_constraint_t;
-typedef struct asn_per_constraints_s {
-	asn_per_constraint_t value;
-	asn_per_constraint_t size;
+typedef const struct asn_per_constraints_s {
+	struct asn_per_constraint_s value;
+	struct asn_per_constraint_s size;
 	int (*value2code)(unsigned int value);
 	int (*code2value)(unsigned int code);
 } asn_per_constraints_t;

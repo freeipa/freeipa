@@ -5,8 +5,8 @@
 /*
  * Application-level ASN.1 callbacks.
  */
-#ifndef	_ASN_APPLICATION_H_
-#define	_ASN_APPLICATION_H_
+#ifndef	ASN_APPLICATION_H
+#define	ASN_APPLICATION_H
 
 #include "asn_system.h"		/* for platform-dependent types */
 #include "asn_codecs.h"		/* for ASN.1 codecs specifics */
@@ -44,4 +44,4 @@ typedef void (asn_app_constraint_failed_f)(void *application_specific_key,
 
 #include "constr_TYPE.h"	/* for asn_TYPE_descriptor_t */
 
-#endif	/* _ASN_APPLICATION_H_ */
+#endif	/* ASN_APPLICATION_H */
