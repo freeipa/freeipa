@@ -153,7 +153,7 @@ class CertUpdate(admintool.AdminTool):
 
             self.log.debug("resubmitting certmonger request '%s'", request_id)
             certmonger.resubmit_request(
-                request_id, profile='ipaRetrievalOrReuse')
+                request_id, ca='dogtag-ipa-ca-renew-agent-reuse', profile='')
             try:
                 state = certmonger.wait_for_request(request_id, timeout)
             except RuntimeError:
@@ -167,7 +167,7 @@ class CertUpdate(admintool.AdminTool):
                     "please check the request manually" % request_id)
 
             self.log.debug("modifying certmonger request '%s'", request_id)
-            certmonger.modify(request_id, profile='ipaCACertRenewal')
+            certmonger.modify(request_id, ca='dogtag-ipa-ca-renew-agent')
 
         self.update_file(paths.CA_CRT, certs)
 

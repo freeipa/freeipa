@@ -937,7 +937,7 @@ def certificate_renewal_update(ca, ds, http):
             'cert-presave-command': template % 'stop_pkicad',
             'cert-postsave-command':
                 (template % 'renew_ca_cert "caSigningCert cert-pki-ca"'),
-            'template-profile': 'ipaCACertRenewal',
+            'template-profile': '',
         },
         {
             'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,

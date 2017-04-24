@@ -60,9 +60,9 @@ class KRAInstance(DogtagInstance):
     be the same for both the CA and KRA.
     """
 
-    tracking_reqs = (('auditSigningCert cert-pki-kra', None),
-                     ('transportCert cert-pki-kra', None),
-                     ('storageCert cert-pki-kra', None))
+    tracking_reqs = ('auditSigningCert cert-pki-kra',
+                     'transportCert cert-pki-kra',
+                     'storageCert cert-pki-kra')
 
     def __init__(self, realm):
         super(KRAInstance, self).__init__(
