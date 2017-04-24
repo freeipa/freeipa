@@ -76,4 +76,5 @@ noinst_LTLIBRARIES=libasn1c.la
 
 regenerate:
 	asn1c -fskeletons-copy -fnative-types ipa.asn1
+	$(SED) -i s/_BSD_SOURCE/_DEFAULT_SOURCE/g asn_system.h
 	rm -f converter-sample.c Makefile.am.sample
