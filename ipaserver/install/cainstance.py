@@ -822,7 +822,7 @@ class CAInstance(DogtagInstance):
              "-out", chain_file.name,
              ], stdin=data, capture_output=False)
 
-        agent_args = [paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT,
+        agent_args = [paths.CERTMONGER_DOGTAG_SUBMIT,
                       "--dbdir", self.tmp_agent_db,
                       "--nickname", "ipa-ca-agent",
                       "--cafile", chain_file.name,
