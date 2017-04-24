@@ -451,6 +451,10 @@ def renew_ca_cert(reuse_existing, **kwargs):
     """
     This is used for automatic CA certificate renewal.
     """
+    csr = os.environ.get('CERTMONGER_CSR')
+    if not csr:
+        return (UNCONFIGURED, "Certificate request not provided")
+
     cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if not cert:
         return (REJECTED, "New certificate requests not supported")
@@ -462,6 +466,13 @@ def renew_ca_cert(reuse_existing, **kwargs):
 
         if is_self_signed and not reuse_existing and is_renewal_master():
             state = 'request'
+
+        csr_file = paths.IPA_CA_CSR
+        try:
+            with open(csr_file, 'wb') as f:
+                f.write(csr)
+        except Exception as e:
+            return (UNREACHABLE, "Failed to write %s: %s" % (csr_file, e))
     elif operation == 'POLL':
         cookie = os.environ.get('CERTMONGER_CA_COOKIE')
         if not cookie:
