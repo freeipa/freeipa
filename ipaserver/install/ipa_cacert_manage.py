@@ -54,6 +54,12 @@ class CACertManage(admintool.AdminTool):
             "--self-signed", dest='self_signed',
             action='store_true',
             help="Sign the renewed certificate by itself")
+        ext_cas = ("generic", "ms-cs")
+        renew_group.add_option(
+            "--external-ca-type", dest="external_ca_type",
+            type="choice", choices=ext_cas,
+            metavar="{{{0}}}".format(",".join(ext_cas)),
+            help="Type of the external CA. Default: generic")
         renew_group.add_option(
             "--external-ca", dest='self_signed',
             action='store_false',
@@ -179,7 +185,12 @@ class CACertManage(admintool.AdminTool):
     def renew_external_step_1(self, ca):
         print("Exporting CA certificate signing request, please wait")
 
-        self.resubmit_request('dogtag-ipa-ca-renew-agent-reuse')
+        if self.options.external_ca_type == 'ms-cs':
+            profile = 'SubCA'
+        else:
+            profile = ''
+
+        self.resubmit_request('dogtag-ipa-ca-renew-agent-reuse', profile)
 
         print(("The next step is to get %s signed by your CA and re-run "
               "ipa-cacert-manage as:" % paths.IPA_CA_CSR))
@@ -286,11 +297,11 @@ class CACertManage(admintool.AdminTool):
 
         print("CA certificate successfully renewed")
 
-    def resubmit_request(self, ca='dogtag-ipa-ca-renew-agent'):
+    def resubmit_request(self, ca='dogtag-ipa-ca-renew-agent', profile=''):
         timeout = api.env.startup_timeout + 60
 
         self.log.debug("resubmitting certmonger request '%s'", self.request_id)
-        certmonger.resubmit_request(self.request_id, ca=ca, profile='')
+        certmonger.resubmit_request(self.request_id, ca=ca, profile=profile)
         try:
             state = certmonger.wait_for_request(self.request_id, timeout)
         except RuntimeError:
@@ -304,7 +315,9 @@ class CACertManage(admintool.AdminTool):
                 "please check the request manually" % self.request_id)
 
         self.log.debug("modifying certmonger request '%s'", self.request_id)
-        certmonger.modify(self.request_id, ca='dogtag-ipa-ca-renew-agent')
+        certmonger.modify(self.request_id,
+                          ca='dogtag-ipa-ca-renew-agent',
+                          profile='')
 
     def install(self):
         print("Installing CA certificate, please wait")
