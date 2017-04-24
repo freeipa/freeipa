@@ -65,7 +65,7 @@ uper_open_type_get_simple(asn_codec_ctx_t *ctx, asn_TYPE_descriptor_t *td,
 	asn_per_data_t spd;
 	size_t padding;
 
-	_ASN_STACK_OVERFLOW_CHECK(ctx);
+	ASN__STACK_OVERFLOW_CHECK(ctx);
 
 	ASN_DEBUG("Getting open type %s...", td->name);
 
@@ -73,7 +73,7 @@ uper_open_type_get_simple(asn_codec_ctx_t *ctx, asn_TYPE_descriptor_t *td,
 		chunk_bytes = uper_get_length(pd, -1, &repeat);
 		if(chunk_bytes < 0) {
 			FREEMEM(buf);
-			_ASN_DECODE_STARVED;
+			ASN__DECODE_STARVED;
 		}
 		if(bufLen + chunk_bytes > bufSize) {
 			void *ptr;
@@ -81,13 +81,13 @@ uper_open_type_get_simple(asn_codec_ctx_t *ctx, asn_TYPE_descriptor_t *td,
 			ptr = REALLOC(buf, bufSize);
 			if(!ptr) {
 				FREEMEM(buf);
-				_ASN_DECODE_FAILED;
+				ASN__DECODE_FAILED;
 			}
 			buf = ptr;
 		}
 		if(per_get_many_bits(pd, buf + bufLen, 0, chunk_bytes << 3)) {
 			FREEMEM(buf);
-			_ASN_DECODE_STARVED;
+			ASN__DECODE_STARVED;
 		}
 		bufLen += chunk_bytes;
 	} while(repeat);
@@ -117,10 +117,10 @@ uper_open_type_get_simple(asn_codec_ctx_t *ctx, asn_TYPE_descriptor_t *td,
 		FREEMEM(buf);
 		if(padding >= 8) {
 			ASN_DEBUG("Too large padding %d in open type", (int)padding);
-			_ASN_DECODE_FAILED;
+			ASN__DECODE_FAILED;
 		} else {
 			ASN_DEBUG("Non-zero padding");
-			_ASN_DECODE_FAILED;
+			ASN__DECODE_FAILED;
 		}
 	} else {
 		FREEMEM(buf);
@@ -138,7 +138,7 @@ uper_open_type_get_complex(asn_codec_ctx_t *ctx, asn_TYPE_descriptor_t *td,
 	asn_dec_rval_t rv;
 	ssize_t padding;
 
-	_ASN_STACK_OVERFLOW_CHECK(ctx);
+	ASN__STACK_OVERFLOW_CHECK(ctx);
 
 	ASN_DEBUG("Getting open type %s from %s", td->name,
 		per_data_string(pd));
@@ -190,13 +190,13 @@ uper_open_type_get_complex(asn_codec_ctx_t *ctx, asn_TYPE_descriptor_t *td,
 		case -1:
 			ASN_DEBUG("Padding skip failed");
 			UPDRESTOREPD;
-			_ASN_DECODE_STARVED;
+			ASN__DECODE_STARVED;
 		case 0: break;
 		default:
 			ASN_DEBUG("Non-blank padding (%d bits 0x%02x)",
 				(int)padding, (int)pvalue);
 			UPDRESTOREPD;
-			_ASN_DECODE_FAILED;
+			ASN__DECODE_FAILED;
 		}
 	}
 	if(pd->nboff != pd->nbits) {
@@ -204,7 +204,7 @@ uper_open_type_get_complex(asn_codec_ctx_t *ctx, asn_TYPE_descriptor_t *td,
 			per_data_string(pd), per_data_string(&arg.oldpd));
 		if(1) {
 			UPDRESTOREPD;
-			_ASN_DECODE_FAILED;
+			ASN__DECODE_FAILED;
 		} else {
 			arg.unclaimed += pd->nbits - pd->nboff;
 		}
@@ -219,14 +219,14 @@ uper_open_type_get_complex(asn_codec_ctx_t *ctx, asn_TYPE_descriptor_t *td,
 		switch(per_skip_bits(pd, arg.unclaimed)) {
 		case -1:
 			ASN_DEBUG("Claim of %d failed", (int)arg.unclaimed);
-			_ASN_DECODE_STARVED;
+			ASN__DECODE_STARVED;
 		case 0:
 			ASN_DEBUG("Got claim of %d", (int)arg.unclaimed);
 			break;
 		default:
 			/* Padding must be blank */
 			ASN_DEBUG("Non-blank unconsumed padding");
-			_ASN_DECODE_FAILED;
+			ASN__DECODE_FAILED;
 		}
 		arg.unclaimed = 0;
 	}

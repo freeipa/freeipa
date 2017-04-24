@@ -6,11 +6,15 @@
 /*
  * Miscellaneous system-dependent types.
  */
-#ifndef	_ASN_SYSTEM_H_
-#define	_ASN_SYSTEM_H_
+#ifndef	ASN_SYSTEM_H
+#define	ASN_SYSTEM_H
 
 #ifdef	HAVE_CONFIG_H
 #include "config.h"
+#endif
+
+#ifndef _BSD_SOURCE
+#define _BSD_SOURCE /* for snprintf() on some linux systems  */
 #endif
 
 #include <stdio.h>	/* For snprintf(3) */
@@ -20,6 +24,10 @@
 #include <limits.h>	/* For LONG_MAX */
 #include <stdarg.h>	/* For va_start */
 #include <stddef.h>	/* for offsetof and ptrdiff_t */
+
+#ifdef	HAVE_ALLOCA_H
+#include <alloca.h>	/* For alloca(3) */
+#endif
 
 #ifdef	_WIN32
 
@@ -126,4 +134,4 @@ typedef	unsigned int	uint32_t;
 #endif /* __GNUC__ */
 #endif	/* MIN */
 
-#endif	/* _ASN_SYSTEM_H_ */
+#endif	/* ASN_SYSTEM_H */

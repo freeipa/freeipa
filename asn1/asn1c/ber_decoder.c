@@ -44,7 +44,7 @@ ber_decode(asn_codec_ctx_t *opt_codec_ctx,
 	} else {
 		/* If context is not given, be security-conscious anyway */
 		memset(&s_codec_ctx, 0, sizeof(s_codec_ctx));
-		s_codec_ctx.max_stack_size = _ASN_DEFAULT_STACK_MAX;
+		s_codec_ctx.max_stack_size = ASN__DEFAULT_STACK_MAX;
 		opt_codec_ctx = &s_codec_ctx;
 	}
 
@@ -80,7 +80,7 @@ ber_check_tags(asn_codec_ctx_t *opt_codec_ctx,
 	/*
 	 * Make sure we didn't exceed the maximum stack size.
 	 */
-	if(_ASN_STACK_OVERFLOW_CHECK(opt_codec_ctx))
+	if(ASN__STACK_OVERFLOW_CHECK(opt_codec_ctx))
 		RETURN(RC_FAIL);
 
 	/*

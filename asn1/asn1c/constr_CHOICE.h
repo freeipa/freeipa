@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-typedef struct asn_CHOICE_specifics_s {
+typedef const struct asn_CHOICE_specifics_s {
 	/*
 	 * Target structure description.
 	 */
@@ -24,7 +24,7 @@ typedef struct asn_CHOICE_specifics_s {
 	/*
 	 * Tags to members mapping table.
 	 */
-	asn_TYPE_tag2member_t *tag2el;
+	const asn_TYPE_tag2member_t *tag2el;
 	int tag2el_count;
 
 	/* Canonical ordering of CHOICE elements, for PER */

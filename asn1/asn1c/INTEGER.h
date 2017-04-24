@@ -24,9 +24,9 @@ typedef struct asn_INTEGER_enum_map_s {
 } asn_INTEGER_enum_map_t;
 
 /* This type describes an enumeration for INTEGER and ENUMERATED types */
-typedef struct asn_INTEGER_specifics_s {
-	asn_INTEGER_enum_map_t *value2enum;	/* N -> "tag"; sorted by N */
-	unsigned int *enum2value;		/* "tag" => N; sorted by tag */
+typedef const struct asn_INTEGER_specifics_s {
+	const asn_INTEGER_enum_map_t *value2enum;	/* N -> "tag"; sorted by N */
+	const unsigned int *enum2value;		/* "tag" => N; sorted by tag */
 	int map_count;				/* Elements in either map */
 	int extension;				/* This map is extensible */
 	int strict_enumeration;			/* Enumeration set is fixed */
@@ -63,7 +63,7 @@ enum asn_strtol_result_e {
     ASN_STRTOL_ERROR_INVAL = -2,  /* Invalid data encountered (e.g., "+-") */
     ASN_STRTOL_EXPECT_MORE = -1,  /* More data expected (e.g. "+") */
     ASN_STRTOL_OK          =  0,  /* Conversion succeded, number ends at (*end) */
-    ASN_STRTOL_EXTRA_DATA  =  1,  /* Conversion succeded, but the string has extra stuff */
+    ASN_STRTOL_EXTRA_DATA  =  1   /* Conversion succeded, but the string has extra stuff */
 };
 enum asn_strtol_result_e asn_strtol_lim(const char *str, const char **end, long *l);
 

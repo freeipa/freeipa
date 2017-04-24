@@ -60,11 +60,12 @@ asn_dec_rval_t xer_decode_general(asn_codec_ctx_t *opt_codec_ctx,
  * Fetch the next XER (XML) token from the stream.
  * The function returns the number of bytes occupied by the chunk type,
  * returned in the _ch_type. The _ch_type is only set (and valid) when
- * the return value is greater than 0.
+ * the return value is >= 0.
  */
   typedef enum pxer_chunk_type {
-	PXER_TAG,	/* Complete XER tag */
-	PXER_TEXT,	/* Plain text between XER tags */
+	PXER_WMORE,     /* Chunk type is not clear, more data expected. */
+	PXER_TAG,	    /* Complete XER tag */
+	PXER_TEXT,	    /* Plain text between XER tags */
 	PXER_COMMENT	/* A comment, may be part of */
   } pxer_chunk_type_e;
 ssize_t xer_next_token(int *stateContext,
