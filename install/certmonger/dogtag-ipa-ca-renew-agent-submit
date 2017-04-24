@@ -535,7 +535,7 @@ def main():
 
         profile = os.environ.get('CERTMONGER_CA_PROFILE')
         if is_replicated():
-            if profile or is_renewal_master():
+            if is_renewal_master():
                 handler = request_and_store_cert
             else:
                 handler = retrieve_cert_continuous
