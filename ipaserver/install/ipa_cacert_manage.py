@@ -172,14 +172,14 @@ class CACertManage(admintool.AdminTool):
         except errors.NotFound:
             raise admintool.ScriptError("CA renewal master not found")
 
-        self.resubmit_request(ca, 'caCACert')
+        self.resubmit_request()
 
         print("CA certificate successfully renewed")
 
     def renew_external_step_1(self, ca):
         print("Exporting CA certificate signing request, please wait")
 
-        self.resubmit_request(ca, 'ipaCSRExport')
+        self.resubmit_request('dogtag-ipa-ca-renew-agent-reuse')
 
         print(("The next step is to get %s signed by your CA and re-run "
               "ipa-cacert-manage as:" % paths.IPA_CA_CSR))
@@ -282,15 +282,15 @@ class CACertManage(admintool.AdminTool):
         except errors.NotFound:
             raise admintool.ScriptError("CA renewal master not found")
 
-        self.resubmit_request(ca, 'ipaRetrieval')
+        self.resubmit_request('dogtag-ipa-ca-renew-agent-reuse')
 
         print("CA certificate successfully renewed")
 
-    def resubmit_request(self, ca, profile):
+    def resubmit_request(self, ca='dogtag-ipa-ca-renew-agent'):
         timeout = api.env.startup_timeout + 60
 
         self.log.debug("resubmitting certmonger request '%s'", self.request_id)
-        certmonger.resubmit_request(self.request_id, profile=profile)
+        certmonger.resubmit_request(self.request_id, ca=ca, profile='')
         try:
             state = certmonger.wait_for_request(self.request_id, timeout)
         except RuntimeError:
@@ -304,7 +304,7 @@ class CACertManage(admintool.AdminTool):
                 "please check the request manually" % self.request_id)
 
         self.log.debug("modifying certmonger request '%s'", self.request_id)
-        certmonger.modify(self.request_id, profile='ipaCACertRenewal')
+        certmonger.modify(self.request_id, ca='dogtag-ipa-ca-renew-agent')
 
     def install(self):
         print("Installing CA certificate, please wait")
