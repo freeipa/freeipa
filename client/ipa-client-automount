@@ -193,7 +193,7 @@ def configure_autofs_sssd(fstore, statestore, autodiscover, options):
     sssdconfig.write(paths.SSSD_CONF)
     statestore.backup_state('autofs', 'sssd', True)
 
-    sssd = services.service('sssd')
+    sssd = services.service('sssd', api)
     sssd.restart()
     print("Restarting sssd, waiting for it to become available.")
     wait_for_sssd()
@@ -281,7 +281,7 @@ def uninstall(fstore, statestore):
                         break
                 sssdconfig.save_domain(domain)
                 sssdconfig.write(paths.SSSD_CONF)
-                sssd = services.service('sssd')
+                sssd = services.service('sssd', api)
                 sssd.restart()
                 wait_for_sssd()
             except Exception as e:
@@ -379,9 +379,6 @@ def main():
         paths.IPACLIENT_INSTALL_LOG, verbose=False, debug=options.debug,
         filemode='a', console_format='%(message)s')
 
-    if options.uninstall:
-        return uninstall(fstore, statestore)
-
     cfg = dict(
         context='cli_installer',
         confdir=paths.ETC_IPA,
@@ -390,8 +387,11 @@ def main():
         verbose=0,
     )
 
+    # Bootstrap API early so that env object is available
     api.bootstrap(**cfg)
-    api.finalize()
+
+    if options.uninstall:
+        return uninstall(fstore, statestore)
 
     ca_cert_path = None
     if os.path.exists(paths.IPA_CA_CRT):
@@ -449,6 +449,10 @@ def main():
             os.environ['KRB5CCNAME'] = ccache_name
         except gssapi.exceptions.GSSError as e:
             sys.exit("Failed to obtain host TGT: %s" % e)
+
+        # Finalize API when TGT obtained using host keytab exists
+        api.finalize()
+
         # Now we have a TGT, connect to IPA
         try:
             api.Backend.rpcclient.connect()
