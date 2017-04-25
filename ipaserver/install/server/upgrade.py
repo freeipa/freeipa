@@ -1507,7 +1507,6 @@ def setup_pkinit(krb):
     if krb.is_running():
         krb.stop()
     krb.start()
-    krb.test_anonymous_pkinit()
 
 
 def disable_httpd_system_trust(http):
