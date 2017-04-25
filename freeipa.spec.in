@@ -33,11 +33,15 @@
 
 %global alt_name ipa
 %if 0%{?rhel}
+# 0.7.16: https://github.com/drkjam/netaddr/issues/71
+%global python_netaddr_version 0.7.5-8
 # Require 4.6.0-4 which brings RC4 for FIPS + trust fixes to priv. separation
 %global samba_version 4.6.0-4
 %global selinux_policy_version 3.12.1-153
 %global slapi_nis_version 0.56.0-4
 %else
+# 0.7.16: https://github.com/drkjam/netaddr/issues/71
+%global python_netaddr_version 0.7.16
 # Require 4.6.0-4 which brings RC4 for FIPS + trust fixes to priv. separation
 %global samba_version 2:4.6.0-4
 %global selinux_policy_version 3.13.1-158.4
@@ -636,7 +640,7 @@ Requires: gnupg
 Requires: keyutils
 Requires: pyOpenSSL
 Requires: python-cryptography >= 1.6
-Requires: python-netaddr
+Requires: python-netaddr >= %{python_netaddr_version}
 Requires: python-libipa_hbac
 Requires: python-qrcode-core >= 5.0.0
 Requires: python-pyasn1
@@ -684,7 +688,7 @@ Requires: gnupg
 Requires: keyutils
 Requires: python3-pyOpenSSL
 Requires: python3-cryptography >= 1.6
-Requires: python3-netaddr
+Requires: python3-netaddr >= %{python_netaddr_version}
 Requires: python3-libipa_hbac
 Requires: python3-qrcode-core >= 5.0.0
 Requires: python3-pyasn1
