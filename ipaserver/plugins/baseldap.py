@@ -1937,7 +1937,16 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         """
         search_kw = self.args_options_2_entry(**options)
         search_kw['objectclass'] = self.obj.object_class
-        return ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
+
+        filters = []
+        for name, value in search_kw.items():
+            default = self.get_default_of(name, **options)
+            fltr = ldap.make_filter_from_attr(name, value, ldap.MATCH_ALL)
+            if default is not None and value == default:
+                fltr = ldap.combine_filters([fltr, '(!({}=*))'.format(name)])
+            filters.append(fltr)
+
+        return ldap.combine_filters(filters, rules=ldap.MATCH_ALL)
 
     def get_term_filter(self, ldap, term):
         """
