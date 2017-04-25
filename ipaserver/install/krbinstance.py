@@ -475,13 +475,6 @@ class KrbInstance(service.Service):
         elif self.config_pkinit:
             self.issue_ipa_ca_signed_pkinit_certs()
 
-    def test_anonymous_pkinit(self):
-        with ipautil.private_ccache() as anon_ccache:
-            try:
-                ipautil.run([paths.KINIT, '-n', '-c', anon_ccache])
-            except ipautil.CalledProcessError:
-                raise RuntimeError("Failed to configure anonymous PKINIT")
-
     def enable_ssl(self):
         """
         generate PKINIT certificate for KDC. If `--no-pkinit` was specified,
@@ -496,8 +489,6 @@ class KrbInstance(service.Service):
             self.steps = []
             self.step("installing X509 Certificate for PKINIT",
                       self.setup_pkinit)
-            self.step("testing anonymous PKINIT", self.test_anonymous_pkinit)
-
             self.start_creation()
         else:
             self.issue_selfsigned_pkinit_certs()
