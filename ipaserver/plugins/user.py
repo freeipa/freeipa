@@ -380,6 +380,7 @@ class user(baseuser):
     takes_params = baseuser.takes_params + (
         Bool('nsaccountlock?',
             cli_name=('disabled'),
+            default=False,
             label=_('Account disabled'),
         ),
         Bool('preserved?',

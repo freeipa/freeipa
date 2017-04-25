@@ -240,9 +240,6 @@ class TestFind(XMLRPC_test):
         result = command()
         user.check_find(result, pkey_only=True)
 
-    @pytest.mark.xfail(
-        reason="new users don't have set attribute nsaccountlock in LDAP, "
-               "thus this search doesn't return it in result")
     def test_find_enabled_user(self, user):
         """Test user-find --disabled=False with enabled user"""
         user.ensure_exists()
