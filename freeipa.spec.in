@@ -33,6 +33,8 @@
 
 %global alt_name ipa
 %if 0%{?rhel}
+# 1.15.1-7: certauth (http://krbdev.mit.edu/rt/Ticket/Display.html?id=8561)
+%global krb5_version 1.15.1-4
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.5-8
 # Require 4.6.0-4 which brings RC4 for FIPS + trust fixes to priv. separation
@@ -40,6 +42,8 @@
 %global selinux_policy_version 3.12.1-153
 %global slapi_nis_version 0.56.0-4
 %else
+# 1.15.1-7: certauth (http://krbdev.mit.edu/rt/Ticket/Display.html?id=8561)
+%global krb5_version 1.15.1-7
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.16
 # Require 4.6.0-4 which brings RC4 for FIPS + trust fixes to priv. separation
@@ -83,8 +87,7 @@ BuildRequires:  openldap-devel
 %if 0%{?fedora} > 25
 BuildRequires: krb5-kdb-version = 6.1
 %endif
-# 1.15.1-3: certauth (http://krbdev.mit.edu/rt/Ticket/Display.html?id=8561)
-BuildRequires:  krb5-devel >= 1.15.1-3
+BuildRequires:  krb5-devel >= %{krb5_version}
 # 1.27.4: xmlrpc_curl_xportparms.gssapi_delegation
 BuildRequires:  xmlrpc-c-devel >= 1.27.4
 BuildRequires:  popt-devel
@@ -267,8 +270,9 @@ Requires: 389-ds-base >= 1.3.5.14
 Requires: openldap-clients > 2.4.35-4
 Requires: nss >= 3.14.3-12.0
 Requires: nss-tools >= 3.14.3-12.0
+Requires(post): krb5-server >= %{krb5_version}
 Requires(post): krb5-server >= %{krb5_base_version}, krb5-server < %{krb5_base_version}.100
-Requires: krb5-pkinit-openssl
+Requires: krb5-pkinit-openssl >= %{krb5_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
 Requires: httpd >= 2.4.6-31
@@ -485,7 +489,7 @@ Requires: python2-ipaclient = %{version}-%{release}
 Requires: python-ldap
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
-Requires: krb5-workstation
+Requires: krb5-workstation >= %{krb5_version}
 Requires: authconfig
 Requires: curl
 # NIS domain name config: /usr/lib/systemd/system/*-domainname.service
