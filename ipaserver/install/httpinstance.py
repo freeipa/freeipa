@@ -42,7 +42,6 @@ from ipapython.ipa_log_manager import root_logger
 import ipapython.errors
 from ipaserver.install import sysupgrade
 from ipalib import api
-from ipalib import errors
 from ipalib.constants import ANON_USER
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
@@ -451,46 +450,8 @@ class HTTPInstance(service.Service):
 
     def enable_kdcproxy(self):
         """Add ipaConfigString=kdcProxyEnabled to cn=KDC"""
-        entry_name = DN(('cn', 'KDC'), ('cn', self.fqdn), ('cn', 'masters'),
-                        ('cn', 'ipa'), ('cn', 'etc'), self.suffix)
-        attr_name = 'kdcProxyEnabled'
-
-        try:
-            entry = api.Backend.ldap2.get_entry(
-                entry_name, ['ipaConfigString'])
-        except errors.NotFound:
-            pass
-        else:
-            if any(attr_name.lower() == val.lower()
-                   for val in entry.get('ipaConfigString', [])):
-                root_logger.debug("service KDCPROXY already enabled")
-                return
-
-            entry.setdefault('ipaConfigString', []).append(attr_name)
-            try:
-                api.Backend.ldap2.update_entry(entry)
-            except errors.EmptyModlist:
-                root_logger.debug("service KDCPROXY already enabled")
-                return
-            except:
-                root_logger.debug("failed to enable service KDCPROXY")
-                raise
-
-            root_logger.debug("service KDCPROXY enabled")
-            return
-
-        entry = api.Backend.ldap2.make_entry(
-            entry_name,
-            objectclass=["nsContainer", "ipaConfigObject"],
-            cn=['KDC'],
-            ipaconfigstring=[attr_name]
-        )
-
-        try:
-            api.Backend.ldap2.add_entry(entry)
-        except errors.DuplicateEntry:
-            root_logger.debug("failed to add service KDCPROXY entry")
-            raise
+        service.set_service_entry_config(
+            'KDC', self.fqdn, [u'kdcProxyEnabled'], self.suffix)
 
     def create_kdcproxy_conf(self):
         """Create ipa-kdc-proxy.conf in /etc/ipa/kdcproxy"""
