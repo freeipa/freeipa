@@ -602,7 +602,8 @@ class KerberosSession(HTTP_Status):
         try:
             target = self.api.env.host
             r = requests.get('http://{0}/ipa/session/cookie'.format(target),
-                             auth=NegotiateAuth(target, ccache_name))
+                             auth=NegotiateAuth(target, ccache_name),
+                             verify=paths.IPA_CA_CRT)
             session_cookie = r.cookies.get("ipa_session")
             if not session_cookie:
                 raise ValueError('No session cookie found')
