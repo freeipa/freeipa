@@ -295,7 +295,7 @@ wheel_bundle: $(WHEELBUNDLEDIR) bdist_wheel .wheelconstraints
 	    --find-links $(WHEELDISTDIR) \
 	    --find-links $(WHEELBUNDLEDIR) \
 	    --wheel-dir $(WHEELBUNDLEDIR) \
-	    $(IPA_WHEEL_PACKAGES) $(IPA_EXTRA_WHEELS)
+	    $(IPA_EXTRA_WHEELS) $(IPA_WHEEL_PACKAGES)
 
 pypi_packages: $(WHEELPYPIDIR) .wheelconstraints
 	rm -f $(WHEELPYPIDIR)/*
