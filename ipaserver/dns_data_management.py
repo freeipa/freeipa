@@ -37,6 +37,23 @@ IPA_DEFAULT_MASTER_SRV_REC = (
     (DNSName(u'_kpasswd._udp'), 464),
 )
 
+IPA_DEFAULT_KDC_URI_REC = (
+    # URI record name, target
+    (DNSName(u'_kpasswd'), u'krb5srv:M:tcp:{server}'),
+    (DNSName(u'_kpasswd'), u'krb5srv:M:udp:{server}'),
+    (DNSName(u'_kerberos'), u'krb5srv:M:tcp:{server}'),
+    (DNSName(u'_kerberos'), u'krb5srv:M:udp:{server}'),
+)
+
+# URI records for KDCProxy must have lower priority than for KDC, clients must
+# prefer to connect directly to KDC
+IPA_KDCPROXY_PRIORITY_PENALIZATION = 10
+IPA_DEFAULT_KDCPROXY_URI_REC = (
+    # URI record name, target
+    (DNSName(u'_kpasswd'), u'krb5srv:M:kkdcp:https://{server}/KdcProxy'),
+    (DNSName(u'_kerberos'), u'krb5srv:M:kkdcp:https://{server}/KdcProxy'),
+)
+
 IPA_DEFAULT_ADTRUST_SRV_REC = (
     # srv record name, port
     (DNSName(u'_ldap._tcp.Default-First-Site-Name._sites.dc._msdcs'), 389),
@@ -127,6 +144,34 @@ class IPASystemRecords(object):
                 r_name, rdatatype.SRV, create=True)
             rdataset.add(rd, ttl=86400)  # FIXME: use TTL from config
 
+    def __add_kdc_uri_records(
+        self, zone_obj, hostname, rname_target_map,
+        weight=100, priority=0, location=None
+    ):
+        assert isinstance(hostname, DNSName)
+        assert isinstance(priority, int)
+        assert isinstance(weight, int)
+
+        if location:
+            suffix = self.__get_location_suffix(location)
+        else:
+            suffix = self.domain_abs
+
+        for name, target in rname_target_map:
+            rd = rdata.from_text(
+                rdataclass.IN, rdatatype.URI,
+                '{0} {1} {2}'.format(
+                    priority, weight,
+                    target.format(server=hostname.ToASCII())
+                )
+            )
+
+            r_name = name.derelativize(suffix)
+
+            rdataset = zone_obj.get_rdataset(
+                r_name, rdatatype.URI, create=True)
+            rdataset.add(rd, ttl=86400)  # FIXME: use TTL from config
+
     def __add_ca_records_from_hostname(self, zone_obj, hostname):
         assert isinstance(hostname, DNSName) and hostname.is_absolute()
         r_name = DNSName('ipa-ca') + self.domain_abs
@@ -173,6 +218,7 @@ class IPASystemRecords(object):
         else:
             eff_roles = server['roles']
         hostname_abs = DNSName(hostname).make_absolute()
+        hostname_rel = DNSName(hostname)
 
         if include_kerberos_realm:
             self.__add_kerberos_txt_rec(zone_obj)
@@ -184,6 +230,21 @@ class IPASystemRecords(object):
                 hostname_abs,
                 IPA_DEFAULT_MASTER_SRV_REC,
                 weight=server['weight']
+            )
+            self.__add_kdc_uri_records(
+                zone_obj,
+                hostname_rel,
+                IPA_DEFAULT_KDC_URI_REC,
+                weight=server['weight']
+            )
+
+            # FIXME: create KDC Proxy records only when KDC proxy is enabled
+            self.__add_kdc_uri_records(
+                zone_obj,
+                hostname_rel,
+                IPA_DEFAULT_KDCPROXY_URI_REC,
+                weight=server['weight'],
+                priority=IPA_KDCPROXY_PRIORITY_PENALIZATION
             )
 
         if 'CA server' in eff_roles:
@@ -214,6 +275,7 @@ class IPASystemRecords(object):
         else:
             eff_roles = server['roles']
         hostname_abs = DNSName(hostname).make_absolute()
+        hostname_rel = DNSName(hostname)
 
         # generate locations specific records
         for location in locations:
@@ -229,6 +291,24 @@ class IPASystemRecords(object):
                     IPA_DEFAULT_MASTER_SRV_REC,
                     weight=server['weight'],
                     priority=priority,
+                    location=location
+                )
+                self.__add_kdc_uri_records(
+                    zone_obj,
+                    hostname_rel,
+                    IPA_DEFAULT_KDC_URI_REC,
+                    weight=server['weight'],
+                    priority=priority,
+                    location=location
+                )
+
+                # FIXME: create KDC Proxy records only when KDC proxy is enabled
+                self.__add_kdc_uri_records(
+                    zone_obj,
+                    hostname_rel,
+                    IPA_DEFAULT_KDCPROXY_URI_REC,
+                    weight=server['weight'],
+                    priority=priority + IPA_KDCPROXY_PRIORITY_PENALIZATION,
                     location=location
                 )
 
@@ -369,7 +449,9 @@ class IPASystemRecords(object):
             rec[0].derelativize(self.domain_abs) for rec in (
                 IPA_DEFAULT_MASTER_SRV_REC +
                 IPA_DEFAULT_ADTRUST_SRV_REC +
-                IPA_DEFAULT_NTP_SRV_REC
+                IPA_DEFAULT_NTP_SRV_REC +
+                IPA_DEFAULT_KDC_URI_REC +
+                IPA_DEFAULT_KDCPROXY_URI_REC
             )
         )
 
@@ -442,7 +524,9 @@ class IPASystemRecords(object):
         for records in (
                 IPA_DEFAULT_MASTER_SRV_REC,
                 IPA_DEFAULT_ADTRUST_SRV_REC,
-                IPA_DEFAULT_NTP_SRV_REC
+                IPA_DEFAULT_NTP_SRV_REC,
+                IPA_DEFAULT_KDC_URI_REC,
+                IPA_DEFAULT_KDCPROXY_URI_REC
         ):
             for name, _port in records:
                 loc_records.append(

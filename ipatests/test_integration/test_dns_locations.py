@@ -22,6 +22,21 @@ IPA_DEFAULT_MASTER_SRV_REC = (
     (DNSName(u'_kpasswd._udp'), 464),
 )
 
+IPA_DEFAULT_KDC_URI_REC = (
+    # URI record name, target
+    (DNSName(u'_kpasswd'), u'krb5srv:M:tcp:{server}'),
+    (DNSName(u'_kpasswd'), u'krb5srv:M:udp:{server}'),
+    (DNSName(u'_kerberos'), u'krb5srv:M:tcp:{server}'),
+    (DNSName(u'_kerberos'), u'krb5srv:M:udp:{server}'),
+)
+
+IPA_KDCPROXY_PRIORITY_PENALIZATION = 10
+IPA_DEFAULT_KDCPROXY_URI_REC = (
+    # URI record name, target
+    (DNSName(u'_kpasswd'), u'krb5srv:M:kkdcp:https://{server}/KdcProxy'),
+    (DNSName(u'_kerberos'), u'krb5srv:M:kkdcp:https://{server}/KdcProxy'),
+)
+
 
 def resolve_records_from_server(rname, rtype, nameserver, logger):
     res = dns.resolver.Resolver()
@@ -45,6 +60,21 @@ def _gen_expected_srv_rrset(rname, port, servers, ttl=86400):
     ]
     return dns.rrset.from_text_list(
         rname, ttl, dns.rdataclass.IN, dns.rdatatype.SRV, rdata_list
+    )
+
+
+def _gen_expected_kdc_uri_rrset(
+        rname, target, servers, ttl=86400, priority_penalization=0):
+    rdata_list = [
+        "{prio} {weight} {target}".format(
+            prio=prio + priority_penalization,
+            weight=weight,
+            target=target.format(server=servername)
+        )
+        for prio, weight, servername in servers
+    ]
+    return dns.rrset.from_text_list(
+        rname, ttl, dns.rdataclass.IN, dns.rdatatype.URI, rdata_list
     )
 
 
@@ -91,6 +121,28 @@ class TestDNSLocations(IntegrationTest):
                 "Expected and received DNS data do not match on server "
                 "with IP: '{}' for name '{}' (expected:\n{}\ngot:\n{})".format(
                     server_ip, name_abs, expected, query))
+
+        for records, penalization in (
+            (IPA_DEFAULT_KDC_URI_REC, 0),
+            (IPA_DEFAULT_KDCPROXY_URI_REC, IPA_KDCPROXY_PRIORITY_PENALIZATION)
+        ):
+            expected = None
+            for rname, target in records:
+                name_abs = rname.derelativize(domain)
+                res = _gen_expected_kdc_uri_rrset(
+                    name_abs, target, expected_servers,
+                    priority_penalization=penalization
+                )
+                if expected:
+                    expected.update(res)
+                else:
+                    expected = res
+            query = resolve_records_from_server(
+                name_abs, 'URI', server_ip, self.log)
+            assert expected == query, (
+                "Expected and received DNS data do not match on server "
+                "with IP: '{}' for name '{}' (expected:\n{}\ngot:\n{}"
+                ")".format(server_ip, name_abs, expected, query))
 
     def test_without_locations(self):
         """Servers are not in locations, this tests if basic system records
