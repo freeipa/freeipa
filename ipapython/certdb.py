@@ -77,6 +77,11 @@ def find_cert_from_txt(cert, start=0):
     return (cert, e)
 
 
+def get_file_cont(slot, token, filename):
+    with open(filename) as f:
+        return f.read()
+
+
 class NSSDatabase(object):
     """A general-purpose wrapper around a NSS cert database
 
@@ -547,12 +552,14 @@ class NSSDatabase(object):
         if nss.nss_is_initialized():
             nss.nss_shutdown()
         nss.nss_init(self.secdir)
+        nss.set_password_callback(get_file_cont)
         try:
             certdb = nss.get_default_certdb()
             cert = nss.find_cert_from_nickname(nickname)
             intended_usage = nss.certificateUsageSSLServer
             try:
-                approved_usage = cert.verify_now(certdb, True, intended_usage)
+                approved_usage = cert.verify_now(certdb, True, intended_usage,
+                                                 self.pwd_file)
             except NSPRError as e:
                 if e.errno != -8102:
                     raise ValueError(e.strerror)
@@ -572,6 +579,7 @@ class NSSDatabase(object):
         if nss.nss_is_initialized():
             nss.nss_shutdown()
         nss.nss_init(self.secdir)
+        nss.set_password_callback(get_file_cont)
         try:
             certdb = nss.get_default_certdb()
             cert = nss.find_cert_from_nickname(nickname)
@@ -586,7 +594,8 @@ class NSSDatabase(object):
                 raise ValueError("not a CA certificate")
             intended_usage = nss.certificateUsageSSLCA
             try:
-                approved_usage = cert.verify_now(certdb, True, intended_usage)
+                approved_usage = cert.verify_now(certdb, True, intended_usage,
+                                                 self.pwd_file)
             except NSPRError as e:
                 if e.errno != -8102:    # SEC_ERROR_INADEQUATE_KEY_USAGE
                     raise ValueError(e.strerror)
