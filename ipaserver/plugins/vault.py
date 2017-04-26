@@ -38,6 +38,14 @@ from ipapython.dn import DN
 if api.env.in_server:
     import pki.account
     import pki.key
+    # pylint: disable=no-member
+    try:
+        # pki >= 10.4.0
+        from pki.crypto import DES_EDE3_CBC_OID
+    except ImportError:
+        DES_EDE3_CBC_OID = pki.key.KeyClient.DES_EDE3_CBC_OID
+    # pylint: enable=no-member
+
 
 if six.PY3:
     unicode = str
@@ -1059,8 +1067,8 @@ class vault_archive_internal(PKQuery):
                 pki.key.KeyClient.PASS_PHRASE_TYPE,
                 wrapped_vault_data,
                 wrapped_session_key,
-                None,
-                nonce,
+                algorithm_oid=DES_EDE3_CBC_OID,
+                nonce_iv=nonce,
             )
 
             kra_account.logout()
