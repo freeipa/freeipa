@@ -154,6 +154,10 @@ class PlatformService(object):
 
         return
 
+    def reload_or_restart(self, instance_name="", capture_output=True,
+                          wait=True):
+        return
+
     def restart(self, instance_name="", capture_output=True, wait=True):
         return
 
@@ -298,13 +302,24 @@ class SystemdService(PlatformService):
             instance_name,
             update_service_list=update_service_list)
 
-    def restart(self, instance_name="", capture_output=True, wait=True):
-        ipautil.run([paths.SYSTEMCTL, "restart",
-                     self.service_instance(instance_name)],
+    def _restart_base(self, instance_name, operation, capture_output=True,
+                      wait=False):
+
+        ipautil.run([paths.SYSTEMCTL, operation,
+                    self.service_instance(instance_name)],
                     skip_output=not capture_output)
 
         if wait and self.is_running(instance_name):
             self.wait_for_open_ports(self.service_instance(instance_name))
+
+    def reload_or_restart(self, instance_name="", capture_output=True,
+                          wait=True):
+        self._restart_base(instance_name, "reload-or-restart",
+                           capture_output, wait)
+
+    def restart(self, instance_name="", capture_output=True, wait=True):
+        self._restart_base(instance_name, "restart",
+                           capture_output, wait)
 
     def is_running(self, instance_name="", wait=True):
         instance = self.service_instance(instance_name, 'is-active')
