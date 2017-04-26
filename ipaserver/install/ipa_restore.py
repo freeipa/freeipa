@@ -401,6 +401,9 @@ class Restore(admintool.AdminTool):
                 services.knownservices.pki_tomcatd.enable()
                 services.knownservices.pki_tomcatd.disable()
 
+                self.log.info('Restarting GSS-proxy')
+                gssproxy = services.service('gssproxy', api)
+                gssproxy.reload_or_restart()
                 self.log.info('Starting IPA services')
                 run(['ipactl', 'start'])
                 self.log.info('Restarting SSSD')
