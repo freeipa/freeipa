@@ -471,14 +471,12 @@ class NSSDatabase(object):
 
             self.import_pkcs12(out_file.name, out_password)
 
-    def trust_root_cert(self, root_nickname, trust_flags=None):
+    def trust_root_cert(self, root_nickname, trust_flags):
         if root_nickname[:7] == "Builtin":
             root_logger.debug(
                 "No need to add trust for built-in root CAs, skipping %s" %
                 root_nickname)
         else:
-            if trust_flags is None:
-                trust_flags = EXTERNAL_CA_TRUST_FLAGS
             try:
                 self.run_certutil(["-M", "-n", root_nickname,
                                    "-t", trust_flags])

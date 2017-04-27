@@ -23,7 +23,7 @@ import ipaclient.install.ntpconf
 from ipalib.install import certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab
 from ipapython import ipaldap, ipautil
-from ipapython.certdb import IPA_CA_TRUST_FLAGS
+from ipapython.certdb import IPA_CA_TRUST_FLAGS, EXTERNAL_CA_TRUST_FLAGS
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython.admintool import ScriptError
@@ -740,7 +740,7 @@ def install_check(installer):
             if ca_enabled:
                 trust_flags = IPA_CA_TRUST_FLAGS
             else:
-                trust_flags = None
+                trust_flags = EXTERNAL_CA_TRUST_FLAGS
             tmp_db.create_from_pkcs12(pkcs12_info[0], pkcs12_info[1],
                                       ca_file=cafile,
                                       trust_flags=trust_flags)

@@ -32,7 +32,9 @@ import six
 from augeas import Augeas
 
 from ipalib.install import certmonger
-from ipapython.certdb import IPA_CA_TRUST_FLAGS, TRUSTED_PEER_TRUST_FLAGS
+from ipapython.certdb import (IPA_CA_TRUST_FLAGS,
+                              EXTERNAL_CA_TRUST_FLAGS,
+                              TRUSTED_PEER_TRUST_FLAGS)
 from ipaserver.install import service
 from ipaserver.install import certs
 from ipaserver.install import installutils
@@ -384,7 +386,7 @@ class HTTPInstance(service.Service):
             if self.ca_is_configured:
                 trust_flags = IPA_CA_TRUST_FLAGS
             else:
-                trust_flags = None
+                trust_flags = EXTERNAL_CA_TRUST_FLAGS
             db.init_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
                                 ca_file=self.ca_file,
                                 trust_flags=trust_flags)

@@ -49,6 +49,7 @@ from ipalib.install.kinit import kinit_password
 import ipaplatform
 from ipapython import ipautil, admintool, version
 from ipapython.admintool import ScriptError
+from ipapython.certdb import EXTERNAL_CA_TRUST_FLAGS
 from ipapython.ipa_log_manager import root_logger
 from ipapython.ipaldap import DIRMAN_DN, LDAPClient
 from ipalib.util import validate_hostname
@@ -1036,7 +1037,7 @@ def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
             if 'u' in trust_flags:
                 key_nickname = nickname
                 continue
-            nssdb.trust_root_cert(nickname)
+            nssdb.trust_root_cert(nickname, EXTERNAL_CA_TRUST_FLAGS)
 
         # Check we have the whole cert chain & the CA is in it
         trust_chain = list(reversed(nssdb.get_trust_chain(key_nickname)))
@@ -1176,7 +1177,7 @@ def load_external_cert(files, ca_subject):
             cache[nickname] = (cert, subject, issuer)
             if subject == ca_subject:
                 ca_nickname = nickname
-            nssdb.trust_root_cert(nickname)
+            nssdb.trust_root_cert(nickname, EXTERNAL_CA_TRUST_FLAGS)
 
         if ca_nickname is None:
             raise ScriptError(
