@@ -32,6 +32,7 @@ import six
 from augeas import Augeas
 
 from ipalib.install import certmonger
+from ipapython.certdb import IPA_CA_TRUST_FLAGS, TRUSTED_PEER_TRUST_FLAGS
 from ipaserver.install import service
 from ipaserver.install import certs
 from ipaserver.install import installutils
@@ -381,7 +382,7 @@ class HTTPInstance(service.Service):
 
         if self.pkcs12_info:
             if self.ca_is_configured:
-                trust_flags = 'CT,C,C'
+                trust_flags = IPA_CA_TRUST_FLAGS
             else:
                 trust_flags = None
             db.init_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
@@ -403,7 +404,7 @@ class HTTPInstance(service.Service):
             self.__set_mod_nss_nickname(nickname)
             self.add_cert_to_service()
 
-            db.trust_root_cert(nickname, "P,,")
+            db.trust_root_cert(nickname, TRUSTED_PEER_TRUST_FLAGS)
 
         else:
             if not self.promote:

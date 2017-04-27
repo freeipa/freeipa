@@ -55,7 +55,7 @@ class update_upload_cacrt(Updater):
             if 'u' in trust_flags:
                 continue
             if nickname == ca_nickname and ca_enabled:
-                trust_flags = 'CT,C,C'
+                trust_flags = certdb.IPA_CA_TRUST_FLAGS
             cert = db.get_cert_from_db(nickname, pem=False)
             trust, _ca, eku = certstore.trust_flags_to_key_policy(trust_flags)
 
