@@ -549,7 +549,9 @@ def main():
                             data = ca_cert.public_bytes(
                                 serialization.Encoding.DER)
                             nss_db.add_cert(
-                                data, str(DN(ca_cert.subject)), 'C,,')
+                                data,
+                                str(DN(ca_cert.subject)),
+                                certdb.EXTERNAL_CA_TRUST_FLAGS)
 
                     api.bootstrap(context='client',
                                   confdir=paths.ETC_IPA,

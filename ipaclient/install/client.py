@@ -2318,8 +2318,9 @@ def update_ipa_nssdb():
     if not os.path.exists(os.path.join(ipa_db.secdir, 'cert8.db')):
         create_ipa_nssdb()
 
-    for nickname, trust_flags in (('IPA CA', 'CT,C,C'),
-                                  ('External CA cert', 'C,,')):
+    for nickname, trust_flags in (
+            ('IPA CA', certdb.IPA_CA_TRUST_FLAGS),
+            ('External CA cert', certdb.EXTERNAL_CA_TRUST_FLAGS)):
         try:
             cert = sys_db.get_cert(nickname)
         except RuntimeError:
@@ -2680,7 +2681,9 @@ def _install(options):
             tmp_db.create_db()
 
             for i, cert in enumerate(ca_certs):
-                tmp_db.add_cert(cert, 'CA certificate %d' % (i + 1), 'C,,')
+                tmp_db.add_cert(cert,
+                                'CA certificate %d' % (i + 1),
+                                certdb.EXTERNAL_CA_TRUST_FLAGS)
         except CalledProcessError:
             raise ScriptError(
                 "Failed to add CA to temporary NSS database.",

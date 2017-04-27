@@ -37,6 +37,7 @@ from ipalib.install import certmonger, sysrestore
 from ipapython.ipa_log_manager import root_logger
 from ipapython import dogtag
 from ipapython import ipautil
+from ipapython.certdb import EMPTY_TRUST_FLAGS, IPA_CA_TRUST_FLAGS
 from ipapython.certdb import get_ca_nickname, find_cert_from_txt, NSSDatabase
 from ipapython.dn import DN
 from ipalib import pkcs10, x509, api
@@ -597,7 +598,7 @@ class CertDB(object):
         # a new certificate database.
         self.create_passwd_file()
         self.create_certdbs()
-        self.load_cacert(cacert_fname, 'CT,C,C')
+        self.load_cacert(cacert_fname, IPA_CA_TRUST_FLAGS)
 
     def create_from_pkcs12(self, pkcs12_fname, pkcs12_passwd, passwd=None,
                            ca_file=None, trust_flags=None):
@@ -643,7 +644,7 @@ class CertDB(object):
                     cert, st = find_cert_from_txt(certs, st)
                 except RuntimeError:
                     break
-                self.add_cert(cert, 'CA %s' % num, ',,', pem=True)
+                self.add_cert(cert, 'CA %s' % num, EMPTY_TRUST_FLAGS, pem=True)
                 num += 1
 
         # We only handle one server cert

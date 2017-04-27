@@ -32,6 +32,7 @@ import fnmatch
 import ldap
 
 from ipalib.install import certmonger, certstore
+from ipapython.certdb import IPA_CA_TRUST_FLAGS, EXTERNAL_CA_TRUST_FLAGS
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil, ipaldap
 from ipapython import dogtag
@@ -766,7 +767,7 @@ class DsInstance(service.Service):
         )
         if self.pkcs12_info:
             if self.ca_is_configured:
-                trust_flags = 'CT,C,C'
+                trust_flags = IPA_CA_TRUST_FLAGS
             else:
                 trust_flags = None
             dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
@@ -1065,7 +1066,7 @@ class DsInstance(service.Service):
         certdb.cacert_name = cacert_name
         status = True
         try:
-            certdb.load_cacert(cacert_fname, 'C,,')
+            certdb.load_cacert(cacert_fname, EXTERNAL_CA_TRUST_FLAGS)
         except ipautil.CalledProcessError as e:
             root_logger.critical("Error importing CA cert file named [%s]: %s" %
                                          (cacert_fname, str(e)))

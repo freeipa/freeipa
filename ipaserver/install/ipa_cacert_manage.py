@@ -26,6 +26,7 @@ import gssapi
 
 from ipalib.install import certmonger, certstore
 from ipapython import admintool, ipautil
+from ipapython.certdb import EMPTY_TRUST_FLAGS, EXTERNAL_CA_TRUST_FLAGS
 from ipapython.dn import DN
 from ipaplatform.paths import paths
 from ipalib import api, errors, x509
@@ -242,10 +243,10 @@ class CACertManage(admintool.AdminTool):
 
         with certs.NSSDatabase() as tmpdb:
             tmpdb.create_db()
-            tmpdb.add_cert(old_cert_der, 'IPA CA', 'C,,')
+            tmpdb.add_cert(old_cert_der, 'IPA CA', EXTERNAL_CA_TRUST_FLAGS)
 
             try:
-                tmpdb.add_cert(new_cert_der, 'IPA CA', 'C,,')
+                tmpdb.add_cert(new_cert_der, 'IPA CA', EXTERNAL_CA_TRUST_FLAGS)
             except ipautil.CalledProcessError as e:
                 raise admintool.ScriptError(
                     "Not compatible with the current CA certificate: %s" % e)
@@ -253,7 +254,8 @@ class CACertManage(admintool.AdminTool):
             ca_certs = x509.load_certificate_list_from_file(ca_file.name)
             for ca_cert in ca_certs:
                 data = ca_cert.public_bytes(serialization.Encoding.DER)
-                tmpdb.add_cert(data, str(DN(ca_cert.subject)), 'C,,')
+                tmpdb.add_cert(
+                    data, str(DN(ca_cert.subject)), EXTERNAL_CA_TRUST_FLAGS)
 
             try:
                 tmpdb.verify_ca_cert_validity('IPA CA')
@@ -270,7 +272,11 @@ class CACertManage(admintool.AdminTool):
                 except RuntimeError:
                     break
                 certstore.put_ca_cert_nss(
-                    conn, api.env.basedn, ca_cert, nickname, ',,')
+                    conn,
+                    api.env.basedn,
+                    ca_cert,
+                    nickname,
+                    EMPTY_TRUST_FLAGS)
 
         dn = DN(('cn', self.cert_nickname), ('cn', 'ca_renewal'),
                 ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
@@ -343,7 +349,7 @@ class CACertManage(admintool.AdminTool):
 
         with certs.NSSDatabase() as tmpdb:
             tmpdb.create_db()
-            tmpdb.add_cert(cert, nickname, 'C,,')
+            tmpdb.add_cert(cert, nickname, EXTERNAL_CA_TRUST_FLAGS)
             for ca_cert, ca_nickname, ca_trust_flags in ca_certs:
                 tmpdb.add_cert(ca_cert, ca_nickname, ca_trust_flags)
 
