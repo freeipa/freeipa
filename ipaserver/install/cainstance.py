@@ -610,7 +610,10 @@ class CAInstance(DogtagInstance):
         try:
             DogtagInstance.spawn_instance(
                 self, cfg_file,
-                nolog_list=(self.dm_password, self.admin_password, pki_pin)
+                nolog_list=(self.dm_password,
+                            self.admin_password,
+                            pki_pin,
+                            self.tmp_agent_pwd)
             )
         finally:
             os.remove(cfg_file)
