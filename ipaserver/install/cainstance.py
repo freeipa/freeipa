@@ -425,6 +425,8 @@ class CAInstance(DogtagInstance):
                 self.step("Configure HTTP to proxy connections",
                           self.http_proxy)
                 self.step("restarting certificate server", self.restart_instance)
+                self.step("updating IPA configuration", update_ipa_conf)
+                self.step("enabling CA instance", self.__enable_instance)
                 if not promote:
                     self.step("migrating certificate profiles to LDAP",
                               migrate_profiles_to_ldap)
@@ -432,9 +434,6 @@ class CAInstance(DogtagInstance):
                               import_included_profiles)
                     self.step("adding default CA ACL", ensure_default_caacl)
                     self.step("adding 'ipa' CA entry", ensure_ipa_authority_entry)
-                self.step("updating IPA configuration", update_ipa_conf)
-
-                self.step("enabling CA instance", self.__enable_instance)
 
                 self.step("configuring certmonger renewal for lightweight CAs",
                           self.__add_lightweight_ca_tracking_requests)

@@ -1202,7 +1202,6 @@ import os
 import random
 from ipaserver.plugins import rabase
 from ipalib.constants import TYPE_ERROR
-from ipalib.util import cachedproperty
 from ipalib import _
 from ipaplatform.paths import paths
 
@@ -1250,34 +1249,41 @@ class RestClient(Backend):
             self.client_keyfile = paths.RA_AGENT_KEY
         super(RestClient, self).__init__(api)
 
+        self._ca_host = None
         # session cookie
         self.override_port = None
         self.cookie = None
 
-    @cachedproperty
+    @property
     def ca_host(self):
         """
-        :return:   host
-                   as str
+        :returns: FQDN of a host hopefully providing a CA service
 
-        Select our CA host.
+        Select our CA host, cache it for the first time.
         """
+        if self._ca_host is not None:
+            return self._ca_host
+
         ldap2 = self.api.Backend.ldap2
         if host_has_service(api.env.ca_host, ldap2, "CA"):
-            return api.env.ca_host
-        if api.env.host != api.env.ca_host:
+            object.__setattr__(self, '_ca_host', api.env.ca_host)
+        elif api.env.host != api.env.ca_host:
             if host_has_service(api.env.host, ldap2, "CA"):
-                return api.env.host
-        host = select_any_master(ldap2)
-        if host:
-            return host
+                object.__setattr__(self, '_ca_host', api.env.host)
         else:
-            return api.env.ca_host
+            object.__setattr__(self, '_ca_host', select_any_master(ldap2))
+        if self._ca_host is None:
+            object.__setattr__(self, '_ca_host', api.env.ca_host)
+        return self._ca_host
 
     def __enter__(self):
         """Log into the REST API"""
         if self.cookie is not None:
             return
+
+        # Refresh the ca_host property
+        object.__setattr__(self, '_ca_host', None)
+
         status, resp_headers, _resp_body = dogtag.https_request(
             self.ca_host, self.override_port or self.env.ca_agent_port,
             url='/ca/rest/account/login',
