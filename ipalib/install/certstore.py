@@ -25,7 +25,7 @@ LDAP shared certificate store.
 from pyasn1.error import PyAsn1Error
 
 from ipapython.dn import DN
-from ipapython.certdb import get_ca_nickname
+from ipapython.certdb import get_ca_nickname, TrustFlags
 from ipalib import errors, x509
 
 def _parse_cert(dercert):
@@ -344,57 +344,14 @@ def trust_flags_to_key_policy(trust_flags):
     """
     Convert certutil trust flags to certificate store key policy.
     """
-    if 'p' in trust_flags:
-        if 'C' in trust_flags or 'P' in trust_flags or 'T' in trust_flags:
-            raise ValueError("cannot be both trusted and not trusted")
-        return False, None, None
-    elif 'C' in trust_flags or 'T' in trust_flags:
-        if 'P' in trust_flags:
-            raise ValueError("cannot be both CA and not CA")
-        ca = True
-    elif 'P' in trust_flags:
-        ca = False
-    else:
-        return None, None, set()
-
-    trust_flags = trust_flags.split(',')
-    ext_key_usage = set()
-    for i, kp in enumerate((x509.EKU_SERVER_AUTH,
-                            x509.EKU_EMAIL_PROTECTION,
-                            x509.EKU_CODE_SIGNING)):
-        if 'C' in trust_flags[i] or 'P' in trust_flags[i]:
-            ext_key_usage.add(kp)
-    if 'T' in trust_flags[0]:
-        ext_key_usage.add(x509.EKU_CLIENT_AUTH)
-
-    return True, ca, ext_key_usage
+    return trust_flags[1:]
 
 
 def key_policy_to_trust_flags(trusted, ca, ext_key_usage):
     """
     Convert certificate store key policy to certutil trust flags.
     """
-    if trusted is False:
-        return 'p,p,p'
-    elif trusted is None or ca is None:
-        return ',,'
-    elif ext_key_usage is None:
-        if ca:
-            return 'CT,C,C'
-        else:
-            return 'P,P,P'
-
-    trust_flags = ['', '', '']
-    for i, kp in enumerate((x509.EKU_SERVER_AUTH,
-                            x509.EKU_EMAIL_PROTECTION,
-                            x509.EKU_CODE_SIGNING)):
-        if kp in ext_key_usage:
-            trust_flags[i] += ('C' if ca else 'P')
-    if ca and x509.EKU_CLIENT_AUTH in ext_key_usage:
-        trust_flags[0] += 'T'
-
-    trust_flags = ','.join(trust_flags)
-    return trust_flags
+    return TrustFlags(False, trusted, ca, ext_key_usage)
 
 
 def put_ca_cert_nss(ldap, base_dn, dercert, nickname, trust_flags,

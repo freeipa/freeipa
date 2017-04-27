@@ -26,7 +26,9 @@ import gssapi
 
 from ipalib.install import certmonger, certstore
 from ipapython import admintool, ipautil
-from ipapython.certdb import EMPTY_TRUST_FLAGS, EXTERNAL_CA_TRUST_FLAGS
+from ipapython.certdb import (EMPTY_TRUST_FLAGS,
+                              EXTERNAL_CA_TRUST_FLAGS,
+                              parse_trust_flags)
 from ipapython.dn import DN
 from ipaplatform.paths import paths
 from ipalib import api, errors, x509
@@ -365,6 +367,8 @@ class CACertManage(admintool.AdminTool):
         if ((set(trust_flags) - set(',CPTcgpuw')) or
             len(trust_flags.split(',')) != 3):
             raise admintool.ScriptError("Invalid trust flags")
+
+        trust_flags = parse_trust_flags(trust_flags)
 
         try:
             certstore.put_ca_cert_nss(
