@@ -550,7 +550,7 @@ class CertDB(object):
 
         return root_nicknames
 
-    def trust_root_cert(self, root_nickname, trust_flags=None):
+    def trust_root_cert(self, root_nickname, trust_flags):
         if root_nickname is None:
             root_logger.debug("Unable to identify root certificate to trust. Continuing but things are likely to fail.")
             return
@@ -600,14 +600,13 @@ class CertDB(object):
         self.create_certdbs()
         self.load_cacert(cacert_fname, IPA_CA_TRUST_FLAGS)
 
-    def create_from_pkcs12(self, pkcs12_fname, pkcs12_passwd, passwd=None,
-                           ca_file=None, trust_flags=None):
+    def create_from_pkcs12(self, pkcs12_fname, pkcs12_passwd,
+                           ca_file, trust_flags):
         """Create a new NSS database using the certificates in a PKCS#12 file.
 
            pkcs12_fname: the filename of the PKCS#12 file
            pkcs12_pwd_fname: the file containing the pin for the PKCS#12 file
            nickname: the nickname/friendly-name of the cert we are loading
-           passwd: The password to use for the new NSS database we are creating
 
            The global CA may be added as well in case it wasn't included in the
            PKCS#12 file. Extra certs won't hurt in any case.
@@ -615,7 +614,7 @@ class CertDB(object):
            The global CA may be specified in ca_file, as a PEM filename.
         """
         self.create_noise_file()
-        self.create_passwd_file(passwd)
+        self.create_passwd_file()
         self.create_certdbs()
         self.init_from_pkcs12(
             pkcs12_fname,
@@ -624,7 +623,7 @@ class CertDB(object):
             trust_flags=trust_flags)
 
     def init_from_pkcs12(self, pkcs12_fname, pkcs12_passwd,
-                         ca_file=None, trust_flags=None):
+                         ca_file, trust_flags):
         self.import_pkcs12(pkcs12_fname, pkcs12_passwd)
         server_certs = self.find_server_certs()
         if len(server_certs) == 0:
