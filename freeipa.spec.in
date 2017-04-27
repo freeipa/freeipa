@@ -759,6 +759,7 @@ Requires: python-pytest-sourceorder
 Requires: ldns-utils
 Requires: python-sssdconfig
 Requires: python2-cryptography >= 1.6
+Requires: iptables
 
 Provides: %{alt_name}-tests = %{version}
 Conflicts: %{alt_name}-tests
@@ -793,6 +794,7 @@ Requires: python3-pytest-sourceorder
 Requires: ldns-utils
 Requires: python3-sssdconfig
 Requires: python3-cryptography >= 1.6
+Requires: iptables
 
 %description -n python3-ipatests
 IPA is an integrated solution to provide centrally managed Identity (users,
