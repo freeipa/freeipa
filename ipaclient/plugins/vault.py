@@ -21,11 +21,9 @@ from __future__ import print_function
 
 import base64
 import errno
-import getpass
 import io
 import json
 import os
-import sys
 import tempfile
 
 from cryptography.fernet import Fernet, InvalidToken
@@ -82,29 +80,6 @@ def validated_read(argname, filename, mode='r', encoding=None):
 register = Registry()
 
 MAX_VAULT_DATA_SIZE = 2**20  # = 1 MB
-
-
-def get_new_password():
-    """
-    Gets new password from user and verify it.
-    """
-    while True:
-        password = getpass.getpass('New password: ').decode(
-            sys.stdin.encoding)
-        password2 = getpass.getpass('Verify password: ').decode(
-            sys.stdin.encoding)
-
-        if password == password2:
-            return password
-
-        print('  ** Passwords do not match! **')
-
-
-def get_existing_password():
-    """
-    Gets existing password from user.
-    """
-    return getpass.getpass('Password: ').decode(sys.stdin.encoding)
 
 
 def generate_symmetric_key(password, salt):
@@ -304,7 +279,8 @@ class vault_add(Local):
                 password = password.rstrip('\n')
 
             else:
-                password = get_new_password()
+                password = self.api.Backend.textui.prompt_password(
+                    'New password')
 
             # generate vault salt
             options['ipavaultsalt'] = os.urandom(16)
@@ -887,9 +863,11 @@ class vault_archive(ModVaultData):
 
             else:
                 if override_password:
-                    password = get_new_password()
+                    password = self.api.Backend.textui.prompt_password(
+                        'New password')
                 else:
-                    password = get_existing_password()
+                    password = self.api.Backend.textui.prompt_password(
+                        'Password', confirm=False)
 
             if not override_password:
                 # verify password by retrieving existing data
@@ -1112,7 +1090,8 @@ class vault_retrieve(ModVaultData):
                 password = password.rstrip('\n')
 
             else:
-                password = get_existing_password()
+                password = self.api.Backend.textui.prompt_password(
+                    'Password', confirm=False)
 
             # generate encryption key from password
             encryption_key = generate_symmetric_key(password, salt)
