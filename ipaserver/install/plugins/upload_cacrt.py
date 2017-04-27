@@ -52,7 +52,7 @@ class update_upload_cacrt(Updater):
         ldap = self.api.Backend.ldap2
 
         for nickname, trust_flags in db.list_certs():
-            if 'u' in trust_flags:
+            if trust_flags.has_key:
                 continue
             if nickname == ca_nickname and ca_enabled:
                 trust_flags = certdb.IPA_CA_TRUST_FLAGS
