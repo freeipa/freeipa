@@ -23,6 +23,7 @@ import ipaclient.install.ntpconf
 from ipalib.install import certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab
 from ipapython import ipaldap, ipautil
+from ipapython.certdb import IPA_CA_TRUST_FLAGS
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipapython.admintool import ScriptError
@@ -737,7 +738,7 @@ def install_check(installer):
                                   nssdir=tmp_db_dir,
                                   subject_base=config.subject_base)
             if ca_enabled:
-                trust_flags = 'CT,C,C'
+                trust_flags = IPA_CA_TRUST_FLAGS
             else:
                 trust_flags = None
             tmp_db.create_from_pkcs12(pkcs12_info[0], pkcs12_info[1],

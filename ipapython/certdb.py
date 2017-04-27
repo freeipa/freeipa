@@ -54,6 +54,11 @@ NSS_FILES = ("cert8.db", "key3.db", "secmod.db", "pwdfile.txt")
 
 BAD_USAGE_ERR = 'Certificate key usage inadequate for attempted operation.'
 
+EMPTY_TRUST_FLAGS = ',,'
+IPA_CA_TRUST_FLAGS = 'CT,C,C'
+EXTERNAL_CA_TRUST_FLAGS = 'C,,'
+TRUSTED_PEER_TRUST_FLAGS = 'P,,'
+
 
 def get_ca_nickname(realm, format=CA_NICKNAME_FMT):
     return format % realm
@@ -438,7 +443,7 @@ class NSSDatabase(object):
             cert = x509.load_certificate(cert_pem)
             nickname = str(DN(cert.subject))
             data = cert.public_bytes(serialization.Encoding.DER)
-            self.add_cert(data, nickname, ',,')
+            self.add_cert(data, nickname, EMPTY_TRUST_FLAGS)
 
         if extracted_key:
             in_file = ipautil.write_tmp_file(
@@ -470,7 +475,7 @@ class NSSDatabase(object):
                 root_nickname)
         else:
             if trust_flags is None:
-                trust_flags = 'C,,'
+                trust_flags = EXTERNAL_CA_TRUST_FLAGS
             try:
                 self.run_certutil(["-M", "-n", root_nickname,
                                    "-t", trust_flags])
