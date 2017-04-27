@@ -1034,7 +1034,7 @@ def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
                 raise ScriptError(str(e))
 
         for nickname, trust_flags in nssdb.list_certs():
-            if 'u' in trust_flags:
+            if trust_flags.has_key:
                 key_nickname = nickname
                 continue
             nssdb.trust_root_cert(nickname, EXTERNAL_CA_TRUST_FLAGS)

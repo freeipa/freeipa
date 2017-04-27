@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import collections
 import os
 import io
 import pwd
@@ -54,10 +55,26 @@ NSS_FILES = ("cert8.db", "key3.db", "secmod.db", "pwdfile.txt")
 
 BAD_USAGE_ERR = 'Certificate key usage inadequate for attempted operation.'
 
-EMPTY_TRUST_FLAGS = ',,'
-IPA_CA_TRUST_FLAGS = 'CT,C,C'
-EXTERNAL_CA_TRUST_FLAGS = 'C,,'
-TRUSTED_PEER_TRUST_FLAGS = 'P,,'
+TrustFlags = collections.namedtuple('TrustFlags', 'has_key trusted ca usages')
+
+EMPTY_TRUST_FLAGS = TrustFlags(False, None, None, None)
+
+IPA_CA_TRUST_FLAGS = TrustFlags(
+    False, True, True, frozenset({
+        x509.EKU_SERVER_AUTH,
+        x509.EKU_CLIENT_AUTH,
+        x509.EKU_CODE_SIGNING,
+        x509.EKU_EMAIL_PROTECTION,
+    }),
+)
+
+EXTERNAL_CA_TRUST_FLAGS = TrustFlags(
+    False, True, True, frozenset({x509.EKU_SERVER_AUTH}),
+)
+
+TRUSTED_PEER_TRUST_FLAGS = TrustFlags(
+    False, True, False, frozenset({x509.EKU_SERVER_AUTH}),
+)
 
 
 def get_ca_nickname(realm, format=CA_NICKNAME_FMT):
@@ -82,6 +99,82 @@ def find_cert_from_txt(cert, start=0):
 
     cert = cert[s:e]
     return (cert, e)
+
+
+def parse_trust_flags(trust_flags):
+    """
+    Convert certutil trust flags to TrustFlags object.
+    """
+    has_key = 'u' in trust_flags
+
+    if 'p' in trust_flags:
+        if 'C' in trust_flags or 'P' in trust_flags or 'T' in trust_flags:
+            raise ValueError("cannot be both trusted and not trusted")
+        return False, None, None
+    elif 'C' in trust_flags or 'T' in trust_flags:
+        if 'P' in trust_flags:
+            raise ValueError("cannot be both CA and not CA")
+        ca = True
+    elif 'P' in trust_flags:
+        ca = False
+    else:
+        return TrustFlags(has_key, None, None, frozenset())
+
+    trust_flags = trust_flags.split(',')
+    ext_key_usage = set()
+    for i, kp in enumerate((x509.EKU_SERVER_AUTH,
+                            x509.EKU_EMAIL_PROTECTION,
+                            x509.EKU_CODE_SIGNING)):
+        if 'C' in trust_flags[i] or 'P' in trust_flags[i]:
+            ext_key_usage.add(kp)
+    if 'T' in trust_flags[0]:
+        ext_key_usage.add(x509.EKU_CLIENT_AUTH)
+
+    return TrustFlags(has_key, True, ca, frozenset(ext_key_usage))
+
+
+def unparse_trust_flags(trust_flags):
+    """
+    Convert TrustFlags object to certutil trust flags.
+    """
+    has_key, trusted, ca, ext_key_usage = trust_flags
+
+    if trusted is False:
+        if has_key:
+            return 'pu,pu,pu'
+        else:
+            return 'p,p,p'
+    elif trusted is None or ca is None:
+        if has_key:
+            return 'u,u,u'
+        else:
+            return ',,'
+    elif ext_key_usage is None:
+        if ca:
+            if has_key:
+                return 'CTu,Cu,Cu'
+            else:
+                return 'CT,C,C'
+        else:
+            if has_key:
+                return 'Pu,Pu,Pu'
+            else:
+                return 'P,P,P'
+
+    trust_flags = ['', '', '']
+    for i, kp in enumerate((x509.EKU_SERVER_AUTH,
+                            x509.EKU_EMAIL_PROTECTION,
+                            x509.EKU_CODE_SIGNING)):
+        if kp in ext_key_usage:
+            trust_flags[i] += ('C' if ca else 'P')
+    if ca and x509.EKU_CLIENT_AUTH in ext_key_usage:
+        trust_flags[0] += 'T'
+    if has_key:
+        for i in range(3):
+            trust_flags[i] += 'u'
+
+    trust_flags = ','.join(trust_flags)
+    return trust_flags
 
 
 class NSSDatabase(object):
@@ -202,7 +295,9 @@ class NSSDatabase(object):
         for cert in certs:
             match = re.match(r'^(.+?)\s+(\w*,\w*,\w*)\s*$', cert)
             if match:
-                certlist.append(match.groups())
+                nickname = match.group(1)
+                trust_flags = parse_trust_flags(match.group(2))
+                certlist.append((nickname, trust_flags))
 
         return tuple(certlist)
 
@@ -215,7 +310,7 @@ class NSSDatabase(object):
         """
         server_certs = []
         for name, flags in self.list_certs():
-            if 'u' in flags:
+            if flags.has_key:
                 server_certs.append((name, flags))
 
         return server_certs
@@ -474,6 +569,7 @@ class NSSDatabase(object):
                 "No need to add trust for built-in root CAs, skipping %s" %
                 root_nickname)
         else:
+            trust_flags = unparse_trust_flags(trust_flags)
             try:
                 self.run_certutil(["-M", "-n", root_nickname,
                                    "-t", trust_flags])
@@ -535,6 +631,7 @@ class NSSDatabase(object):
                              location)
 
     def add_cert(self, cert, nick, flags, pem=False):
+        flags = unparse_trust_flags(flags)
         args = ["-A", "-n", nick, "-t", flags]
         if pem:
             args.append("-a")
