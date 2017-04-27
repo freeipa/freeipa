@@ -170,13 +170,13 @@ class ServerCertInstall(admintool.AdminTool):
             # this leaves only the server certs in the temp db
             tempnssdb.import_pkcs12(pkcs12_filename, pkcs12_pin)
             for nickname, flags in tempnssdb.list_certs():
-                if 'u' not in flags:
+                if not flags.has_key:
                     while tempnssdb.has_nickname(nickname):
                         tempnssdb.delete_cert(nickname)
 
             # import all the CA certs from nssdb into the temp db
             for nickname, flags in nssdb.list_certs():
-                if 'u' not in flags:
+                if not flags.has_key:
                     cert = nssdb.get_cert_from_db(nickname)
                     tempnssdb.add_cert(cert, nickname, flags)
 

@@ -125,7 +125,7 @@ def _main():
 
             # Remove old external CA certificates
             for ca_nick, ca_flags in db.list_certs():
-                if 'u' in ca_flags:
+                if ca_flags.has_key:
                     continue
                 # Delete *all* certificates that use the nickname
                 while True:
