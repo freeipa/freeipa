@@ -24,6 +24,7 @@ import traceback
 from ipalib import api
 from ipaplatform import services
 from ipaplatform.paths import paths
+from ipapython.certdb import TRUSTED_PEER_TRUST_FLAGS
 from ipaserver.install import certs, installutils
 
 
@@ -36,7 +37,7 @@ def _main():
     nickname = installutils.get_directive(paths.HTTPD_NSS_CONF, "NSSNickname")
 
     # Add trust flag which set certificate trusted for SSL connections.
-    db.trust_root_cert(nickname, "P,,")
+    db.trust_root_cert(nickname, TRUSTED_PEER_TRUST_FLAGS)
 
     syslog.syslog(syslog.LOG_NOTICE, 'certmonger restarted httpd')
 

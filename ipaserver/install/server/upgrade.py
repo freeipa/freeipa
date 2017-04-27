@@ -1389,7 +1389,7 @@ def fix_trust_flags():
     nickname = certdb.get_ca_nickname(api.env.realm)
     cert = db.get_cert_from_db(nickname)
     if cert:
-        db.trust_root_cert(nickname, 'CT,C,C')
+        db.trust_root_cert(nickname, certdb.IPA_CA_TRUST_FLAGS)
 
     sysupgrade.set_upgrade_state('http', 'fix_trust_flags', True)
 
@@ -1407,7 +1407,7 @@ def fix_server_cert_trust_flags():
     sc_nickname = installutils.get_directive(paths.HTTPD_NSS_CONF,
                                              "NSSNickname")
     # Add trust flag which set certificate trusted for SSL connections.
-    db.trust_root_cert(sc_nickname, "P,,")
+    db.trust_root_cert(sc_nickname, certdb.TRUSTED_PEER_TRUST_FLAGS)
 
     sysupgrade.set_upgrade_state('http', 'fix_serv_cert_trust_flags', True)
 
