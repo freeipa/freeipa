@@ -34,7 +34,6 @@ import dns
 import encodings
 import sys
 import ssl
-from weakref import WeakKeyDictionary
 
 import netaddr
 from dns import resolver, rdatatype
@@ -491,39 +490,6 @@ def remove_sshpubkey_from_output_list_post(context, entries):
             entry_attrs.pop('ipasshpubkey', None)
         delattr(context, 'ipasshpubkey_added')
 
-
-class cachedproperty(object):
-    """
-    A property-like attribute that caches the return value of a method call.
-
-    When the attribute is first read, the method is called and its return
-    value is saved and returned. On subsequent reads, the saved value is
-    returned.
-
-    Typical usage:
-    class C(object):
-        @cachedproperty
-        def attr(self):
-            return 'value'
-    """
-    __slots__ = ('getter', 'store')
-
-    def __init__(self, getter):
-        self.getter = getter
-        self.store = WeakKeyDictionary()
-
-    def __get__(self, obj, cls):
-        if obj is None:
-            return None
-        if obj not in self.store:
-            self.store[obj] = self.getter(obj)
-        return self.store[obj]
-
-    def __set__(self, obj, value):
-        raise AttributeError("can't set attribute")
-
-    def __delete__(self, obj):
-        raise AttributeError("can't delete attribute")
 
 # regexp matching signed floating point number (group 1) followed by
 # optional whitespace followed by time unit, e.g. day, hour (group 7)
