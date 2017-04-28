@@ -1408,6 +1408,7 @@ fi
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{python_sitelib}/ipaclient
+%dir %{python_sitelib}/ipaclient/plugins
 %{python_sitelib}/ipaclient/*.py*
 %{python_sitelib}/ipaclient/install/*.py*
 %{python_sitelib}/ipaclient/plugins/*.py*
@@ -1426,6 +1427,7 @@ fi
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{python3_sitelib}/ipaclient
+%dir %{python3_sitelib}/ipaclient/plugins
 %{python3_sitelib}/ipaclient/*.py
 %{python3_sitelib}/ipaclient/__pycache__/*.py*
 %{python3_sitelib}/ipaclient/install/*.py
