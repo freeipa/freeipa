@@ -41,7 +41,7 @@ class HostNameInstallInterface(service.ServiceInstallInterface):
 
     all_ip_addresses = knob(
         None,
-        description="All routable IP addresses configured on any inteface "
+        description="All routable IP addresses configured on any interface "
                     "will be added to DNS",
     )
     all_ip_addresses = prepare_only(all_ip_addresses)
