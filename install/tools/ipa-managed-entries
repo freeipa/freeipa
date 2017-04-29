@@ -44,7 +44,7 @@ def parse_options():
                       help="DN for the Managed Entry Definition")
     parser.add_option("-l", "--list", dest="list_managed_entries",
                       action="store_true",
-                      help="DN for the Managed Entry Definition")
+                      help="List available Managed Entries")
     parser.add_option("-p", "--password", dest="dirman_password",
                       help="Directory Manager password")
 

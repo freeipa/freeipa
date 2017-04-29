@@ -91,23 +91,23 @@
                 <p id="config-success" style="display:none">Browser successfully configured</p>
                 <p id="config-aborted" style="display:none">Configuration aborted</p>
                 <p id="config-noext" style="display:none">Configuration was not successful, extension isn't installed or is disabled. Please proceed to step 2.</p>
-                <p id="config-error" style="display:none">Configuration was not successful, unknown error uccured.</p>
+                <p id="config-error" style="display:none">Configuration was not successful, unknown error occurred.</p>
             </div>
 
             <div id="step2b" class="step">
                 <h2>Step 2</h2>
                 <ol>
                     <li>
-                        In the address bar of Firefox, type <code>about:config</code> to display the list of current configuration options.
+                        In the address bar of Firefox, type <code>about:config</code> and press enter to display the list of current configuration options.
                     </li>
                     <li>
-                        In the Filter field, type <code>negotiate</code> to restrict the list of options.
+                        In the Filter field, type <code>network.negotiate-auth.trusted-uris</code> to restrict the list of options.
                     </li>
                     <li>
-                        Double-click the <code>network.negotiate-auth.trusted-uris</code> entry to display the Enter string value dialog box.
+                        Double-click the entry to display the "Enter string value" dialog box.
                     </li>
                     <li>
-                        Enter the name of the domain against which you want to authenticate, for example, <code class="example-domain">.example.com.</code>
+                        Enter the name of the domain against which you want to authenticate, <code class="example-domain">.example.com</code> as an example.
                     </li>
                 </ol>
             </div>
