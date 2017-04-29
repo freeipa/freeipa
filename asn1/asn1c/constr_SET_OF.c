@@ -854,7 +854,7 @@ SET_OF_constraint(asn_TYPE_descriptor_t *td, const void *sptr,
 	}
 
 	/*
-	 * Cannot inherit it eralier:
+	 * Cannot inherit it earlier:
 	 * need to make sure we get the updated version.
 	 */
 	if(!elm->memb_constraints)

@@ -518,7 +518,7 @@ CHOICE_constraint(asn_TYPE_descriptor_t *td, const void *sptr,
 			int ret = elm->type->check_constraints(elm->type,
 					memb_ptr, ctfailcb, app_key);
 			/*
-			 * Cannot inherit it eralier:
+			 * Cannot inherit it earlier:
 			 * need to make sure we get the updated version.
 			 */
 			elm->memb_constraints = elm->type->check_constraints;

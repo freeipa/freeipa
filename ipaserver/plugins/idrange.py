@@ -92,7 +92,7 @@ while creating the ID range.
 This ID range is then used by the IPA server and the SSSD IPA provider to
 assign Posix UIDs to users from the trusted domain.
 
-If e.g a range for a trusted domain is configured with the following values:
+If e.g. a range for a trusted domain is configured with the following values:
  base-id = 1200000
  range-size = 200000
  rid-base = 0

@@ -54,7 +54,9 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
 
 __doc__ = _("""
 ID Views
+
 Manage ID Views
+
 IPA allows to override certain properties of users and groups per each host.
 This functionality is primarily used to allow migration from older systems or
 other Identity Management solutions.
@@ -357,7 +359,7 @@ class baseidview_apply(LDAPQuery):
 
                 ldap.update_entry(host_entry)
 
-                # If no exception was raised, view assigment went well
+                # If no exception was raised, view assignment went well
                 completed = completed + 1
                 succeeded['host'].append(host)
             except errors.EmptyModlist:
@@ -527,7 +529,7 @@ def resolve_object_to_anchor(ldap, obj_type, obj, fallback_to_ldap):
     Takes options:
         ldap - the backend
         obj_type - either 'user' or 'group'
-        obj - the name of the object, e.g 'admin' or 'testuser'
+        obj - the name of the object, e.g. 'admin' or 'testuser'
     """
 
     try:
@@ -546,7 +548,7 @@ def resolve_object_to_anchor(ldap, obj_type, obj, fallback_to_ldap):
         if required_objectclass not in entry['objectclass']:
             raise errors.ValidationError(
                     name=_('IPA object'),
-                    error=_('system IPA objects (e.g system groups, user '
+                    error=_('system IPA objects (e.g. system groups, user '
                             'private groups) cannot be overridden')
                 )
 
@@ -559,7 +561,7 @@ def resolve_object_to_anchor(ldap, obj_type, obj, fallback_to_ldap):
     except errors.NotFound:
         pass
 
-    # If not successfull, try looking up the object in the trusted domain
+    # If not successful, try looking up the object in the trusted domain
     try:
         if _dcerpc_bindings_installed:
             domain_validator = ipaserver.dcerpc.DomainValidator(api)

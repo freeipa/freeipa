@@ -16,7 +16,7 @@ An authorized user is required to join a client machine to IPA. This can take th
 This same tool is used to unconfigure IPA and attempts to return the machine to its previous state. Part of this process is to unenroll the host from the IPA server. Unenrollment consists of disabling the principal key on the IPA server so that it may be re\-enrolled. The machine principal in /etc/krb5.keytab (host/<fqdn>@REALM) is used to authenticate to the IPA server to unenroll itself. If this principal does not exist then unenrollment will fail and an administrator will need to disable the host principal (ipa host\-disable <fqdn>).
 
 .SS "Assumptions"
-The ipa\-client\-install script assumes that the machine has already generated SSH keys. It will not generate SSH keys of its own accord. If SSH keys are not present (e.g when running the ipa\-client\-install in a kickstart, before ever running sshd), they will not be uploaded to the client host entry on the server.
+The ipa\-client\-install script assumes that the machine has already generated SSH keys. It will not generate SSH keys of its own accord. If SSH keys are not present (e.g. when running the ipa\-client\-install in a kickstart, before ever running sshd), they will not be uploaded to the client host entry on the server.
 
 .SS "Hostname Requirements"
 Client must use a \fBstatic hostname\fR. If the machine hostname changes for example due to a dynamic hostname assignment by a DHCP server, client enrollment to IPA server breaks and user then would not be able to perform Kerberos authentication.
@@ -53,7 +53,7 @@ There are two method of authenticating a re\-enrollment:
 
 1. You can use \-\-force\-join option with ipa\-client\-install command. This authenticates the re\-enrollment using the admin's credentials provided via the \-w/\-\-password option.
 .br
-2. If providing the admin's password via the command line is not an option (e.g you want to create a script to re\-enroll a host and keep the admin's password secure), you can use backed up keytab from the previous enrollment of this host to authenticate. See \-\-keytab option.
+2. If providing the admin's password via the command line is not an option (e.g. you want to create a script to re\-enroll a host and keep the admin's password secure), you can use backed up keytab from the previous enrollment of this host to authenticate. See \-\-keytab option.
 
 Consequences of the re\-enrollment on the host entry:
 

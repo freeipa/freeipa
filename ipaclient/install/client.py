@@ -261,7 +261,7 @@ def configure_nsswitch_database(fstore, database, services, preserve=True,
     Arguments:
         fstore - FileStore to backup the nsswitch.conf
         database - database configuration that should be ammended,
-                   e.g 'sudoers'
+                   e.g. 'sudoers'
         service - list of services that should be added, e.g. ['sss']
         preserve - if True, the already configured services will be preserved
 

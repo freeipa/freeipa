@@ -259,7 +259,7 @@ EXAMPLES:
    queries, which cannot be answered from its local cache, to configured
    forwarders.
 """) + _("""
- Semantics of the --forwarder-policy option:
+ Semantics of the --forward-policy option:
    * none - disable forwarding for the given zone.
    * first - forward all queries to configured forwarders. If they fail,
    do resolution using DNS root servers.
