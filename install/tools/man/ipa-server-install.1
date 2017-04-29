@@ -15,7 +15,7 @@ Configures the services needed by an IPA server. This includes setting up a Kerb
 \fB\-r\fR \fIREALM_NAME\fR, \fB\-\-realm\fR=\fIREALM_NAME\fR
 The Kerberos realm name for the new IPA deployment.
 
-It is strongly recommended to \fBuse an upper-cased name of the primary DNS domain name\fR of your IPA deployment. You will not be able to estabilish trust with Active Directory unless the realm name is the upper-cased domain name.
+It is strongly recommended to \fBuse an upper-cased name of the primary DNS domain name\fR of your IPA deployment. You will not be able to establish trust with Active Directory unless the realm name is the upper-cased domain name.
 
 The realm name cannot be changed after the installation.
 .TP
@@ -27,26 +27,26 @@ It is strongly recommended to \fBuse a lower-cased name of the IPA Kerberos real
 The primary DNS domain name cannot be changed after the installation.
 .TP
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-ds\-password\fR=\fIDM_PASSWORD\fR
-The password to be used by the Directory Server for the Directory Manager user
+The password to be used by the Directory Server for the Directory Manager user.
 .TP
 \fB\-a\fR \fIADMIN_PASSWORD\fR, \fB\-\-admin\-password\fR=\fIADMIN_PASSWORD\fR
-The password for the IPA admin user
+The password for the IPA admin user.
 .TP
 \fB\-\-mkhomedir\fR
-Create home directories for users on their first login
+Create home directories for users on their first login.
 .TP
 \fB\-\-hostname\fR=\fIHOST_NAME\fR
 The fully\-qualified DNS name of this server.
 .TP
 \fB\-\-ip\-address\fR=\fIIP_ADDRESS\fR
-The IP address of this server. If this address does not match the address the host resolves to and \-\-setup\-dns is not selected the installation will fail. If the server hostname is not resolvable, a record for the hostname and IP_ADDRESS is added to /etc/hosts.
-This this option can be used multiple times to specify more IP addresses of the server (e.g. multihomed and/or dualstacked server).
+The IP address of this server. If this address does not match the address the host resolves to and \-\-setup\-dns is not selected, the installation will fail. If the server hostname is not resolvable, a record for the hostname and IP_ADDRESS is added to /etc/hosts.
+This option can be used multiple times to specify more IP addresses of the server (e.g. multihomed and/or dualstacked server).
 .TP
 \fB\-N\fR, \fB\-\-no\-ntp\fR
-Do not configure NTP
+Do not configure NTP.
 .TP
 \fB\-\-idstart\fR=\fIIDSTART\fR
-The starting user and group id number (default random)
+The starting user and group id number (default random).
 .TP
 \fB\-\-idmax\fR=\fIIDMAX\fR
 The maximum user and group id number (default: idstart+199999). If set to zero, the default value will be used.
@@ -73,13 +73,13 @@ Do not configure OpenSSH client.
 Do not configure OpenSSH server.
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
-Enable debug logging when more verbose output is needed
+Enable debug logging when more verbose output is needed.
 .TP
 \fB\-U\fR, \fB\-\-unattended\fR
-An unattended installation that will never prompt for user input
+An unattended installation that will never prompt for user input.
 .TP
 \fB\-\-dirsrv\-config\-file\fR
-The path to LDIF file that will be used to modify configuration of dse.ldif during installation of the directory server instance
+The path to LDIF file that will be used to modify configuration of dse.ldif during installation of the directory server instance.
 
 .SS "CERTIFICATE SYSTEM OPTIONS"
 .TP
@@ -105,22 +105,22 @@ File containing the Apache Server SSL certificate and private key. The files are
 File containing the Kerberos KDC SSL certificate and private key. The files are accepted in PEM and DER certificate, PKCS#7 certificate chain, PKCS#8 and raw private key and PKCS#12 formats. This option may be used multiple times.
 .TP
 \fB\-\-dirsrv\-pin\fR=\fIPIN\fR
-The password to unlock the Directory Server private key
+The password to unlock the Directory Server private key.
 .TP
 \fB\-\-http\-pin\fR=\fIPIN\fR
-The password to unlock the Apache Server private key
+The password to unlock the Apache Server private key.
 .TP
 \fB\-\-pkinit\-pin\fR=\fIPIN\fR
-The password to unlock the Kerberos KDC private key
+The password to unlock the Kerberos KDC private key.
 .TP
 \fB\-\-dirsrv\-cert\-name\fR=\fINAME\fR
-Name of the Directory Server SSL certificate to install
+Name of the Directory Server SSL certificate to install.
 .TP
 \fB\-\-http\-cert\-name\fR=\fINAME\fR
-Name of the Apache Server SSL certificate to install
+Name of the Apache Server SSL certificate to install.
 .TP
 \fB\-\-pkinit\-cert\-name\fR=\fINAME\fR
-Name of the Kerberos KDC SSL certificate to install
+Name of the Kerberos KDC SSL certificate to install.
 .TP
 \fB\-\-ca\-cert\-file\fR=\fIFILE\fR
 File containing the CA certificate of the CA which issued the Directory Server, Apache Server and Kerberos KDC certificates. The file is accepted in PEM and DER certificate and PKCS#7 certificate chain formats. This option may be used multiple times. Use this option if the CA certificate is not present in the certificate files.
@@ -180,16 +180,16 @@ IP address is detected.
 The reverse DNS zone to use. This option can be used multiple times to specify multiple reverse zones.
 .TP
 \fB\-\-no\-reverse\fR
-Do not create reverse DNS zone
+Do not create reverse DNS zone.
 .TP
 \fB\-\-auto\-reverse\fR
-Try to resolve reverse records and reverse zones for server IP addresses and if neither is resolvable creates these reverse zones.
+Try to resolve reverse records and reverse zones for server IP addresses. If neither is resolvable, creates the reverse zones.
 .TP
 \fB\-\-zonemgr\fR
 The e\-mail address of the DNS zone manager. Defaults to hostmaster@DOMAIN
 .TP
 \fB\-\-no\-host\-dns\fR
-Do not use DNS for hostname lookup during installation
+Do not use DNS for hostname lookup during installation.
 .TP
 \fB\-\-no\-dns\-sshfp\fR
 Do not automatically create DNS SSHFP records.
@@ -198,29 +198,29 @@ Do not automatically create DNS SSHFP records.
 Disable DNSSEC validation on this server.
 .TP
 \fB\-\-allow\-zone\-overlap\fR
-Allow creatin of (reverse) zone even if the zone is already resolvable. Using this option is discouraged as it result in later problems with domain name resolution.
+Allow creation of (reverse) zone even if the zone is already resolvable. Using this option is discouraged as it result in later problems with domain name resolution.
 
-.SS "AD TRUST OPRIONS"
+.SS "AD TRUST OPTIONS"
 
 .TP
 \fB\-\-setup\-adtrust\fR
 Configure AD Trust capability.
 .TP
 \fB\-\-netbios\-name\fR=\fINETBIOS_NAME\fR
-The NetBIOS name for the IPA domain. If not provided then this is determined
+The NetBIOS name for the IPA domain. If not provided, this is determined
 based on the leading component of the DNS domain name. Running
 ipa\-adtrust\-install for a second time with a different NetBIOS name will
 change the name. Please note that changing the NetBIOS name might break
 existing trust relationships to other domains.
 .TP
 \fB\-\-rid-base\fR=\fIRID_BASE\fR
-First RID value of the local domain. The first Posix ID of the local domain will
+First RID value of the local domain. The first POSIX ID of the local domain will
 be assigned to this RID, the second to RID+1 etc. See the online help of the
 idrange CLI for details.
 .TP
 \fB\-\-secondary-rid-base\fR=\fISECONDARY_RID_BASE\fR
 Start value of the secondary RID range, which is only used in the case a user
-and a group share numerically the same Posix ID. See the online help of the
+and a group share numerically the same POSIX ID. See the online help of the
 idrange CLI for details.
 .TP
 \fB\-\-enable\-compat\fR
@@ -249,10 +249,10 @@ path.
 .SS "UNINSTALL OPTIONS"
 .TP
 \fB\-\-uninstall\fR
-Uninstall an existing IPA installation
+Uninstall an existing IPA installation.
 .TP
 \fB\-U\fR, \fB\-\-unattended\fR
-An unattended uninstallation that will never prompt for user input
+An unattended uninstallation that will never prompt for user input.
 
 .SH "DEPRECATED OPTIONS"
 .TP

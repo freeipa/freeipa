@@ -18,7 +18,9 @@ if six.PY3:
 
 __doc__ = _("""
 ID Views
+
 Manage ID Views
+
 IPA allows to override certain properties of users and groups per each host.
 This functionality is primarily used to allow migration from older systems or
 other Identity Management solutions.

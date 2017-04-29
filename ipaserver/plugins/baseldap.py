@@ -375,7 +375,7 @@ def add_external_post_callback(ldap, dn, entry_attrs, failed, completed,
         membertype - the object type of the member (e.g. host)
         externalattr - the attribute name that IPA uses to store the membership
                        of the entries that are not managed by IPA
-                       (e.g externalhost)
+                       (e.g. externalhost)
 
     Returns the number of completed entries so far (the number of entries
     handled by IPA incremented by the number of handled external entries) and
@@ -445,7 +445,7 @@ def remove_external_post_callback(ldap, dn, entry_attrs, failed, completed,
         membertype - the object type of the member (e.g. host)
         externalattr - the attribute name that IPA uses to store the membership
                        of the entries that are not managed by IPA
-                       (e.g externalhost)
+                       (e.g. externalhost)
 
     Returns the number of completed entries so far (the number of entries
     handled by IPA incremented by the number of handled external entries) and
