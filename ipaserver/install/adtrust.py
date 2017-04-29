@@ -80,14 +80,14 @@ def retrieve_netbios_name(api):
 
 def set_and_check_netbios_name(netbios_name, unattended, api):
     """
-    Depending if trust in already configured or not a given NetBIOS domain
-    name must be handled differently.
+    Depending on whether trust is already configured or not a given NetBIOS
+    domain name must be handled differently.
 
-    If trust is not configured the given NetBIOS is used or the NetBIOS is
+    If trust is not configured, the given NetBIOS is used. The NetBIOS is
     generated if none was given on the command line.
 
-    If trust is  already configured the given NetBIOS name is used to reset
-    the stored NetBIOS name it it differs from the current one.
+    If trust is already configured, the given NetBIOS name is used to reset
+    the stored NetBIOS name in case it differs from the current one.
     """
 
     cur_netbios_name = None
