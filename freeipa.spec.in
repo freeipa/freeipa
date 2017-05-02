@@ -643,6 +643,7 @@ Requires: python-gssapi >= 1.2.0
 Requires: gnupg
 Requires: keyutils
 Requires: pyOpenSSL
+Requires: python >= 2.7.9
 Requires: python-cryptography >= 1.6
 Requires: python-netaddr >= %{python_netaddr_version}
 Requires: python-libipa_hbac
