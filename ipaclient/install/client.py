@@ -710,7 +710,7 @@ def configure_krb5_conf(
         kropts.append(krbconf.setOption('default_domain', cli_domain))
 
     kropts.append(
-        krbconf.setOption('pkinit_anchors', 'FILE: %s' % paths.IPA_CA_CRT))
+        krbconf.setOption('pkinit_anchors', 'FILE:%s' % paths.IPA_CA_CRT))
     ropts = [{
         'name': cli_realm,
         'type': 'subsection',
