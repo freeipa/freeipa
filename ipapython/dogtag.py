@@ -163,9 +163,10 @@ def https_request(
         method=method, headers=headers)
 
 
-def http_request(host, port, url, **kw):
+def http_request(host, port, url, timeout=None, **kw):
     """
     :param url: The path (not complete URL!) to post to.
+    :param timeout: Timeout in seconds for waiting for reply.
     :param kw: Keyword arguments to encode into POST body.
     :return:   (http_status, http_headers, http_body)
                 as (integer, dict, str)
@@ -173,21 +174,32 @@ def http_request(host, port, url, **kw):
     Perform an HTTP request.
     """
     body = urlencode(kw)
+    if timeout is None:
+        conn_opt = {}
+    else:
+        conn_opt = {"timeout": timeout}
+
     return _httplib_request(
-        'http', host, port, url, httplib.HTTPConnection, body)
+        'http', host, port, url, httplib.HTTPConnection, body,
+        connection_options=conn_opt)
 
 
 def _httplib_request(
         protocol, host, port, path, connection_factory, request_body,
-        method='POST', headers=None):
+        method='POST', headers=None, connection_options=None):
     """
     :param request_body: Request body
     :param connection_factory: Connection class to use. Will be called
         with the host and port arguments.
     :param method: HTTP request method (default: 'POST')
+    :param connection_options: a dictionary that will be passed to
+        connection_factory as keyword arguments.
 
     Perform a HTTP(s) request.
     """
+    if connection_options is None:
+        connection_options = {}
+
     uri = u'%s://%s%s' % (protocol, ipautil.format_netloc(host, port), path)
     root_logger.debug('request %s %s', method, uri)
     root_logger.debug('request body %r', request_body)
@@ -200,7 +212,7 @@ def _httplib_request(
         headers['content-type'] = 'application/x-www-form-urlencoded'
 
     try:
-        conn = connection_factory(host, port)
+        conn = connection_factory(host, port, **connection_options)
         conn.request(method, uri, body=request_body, headers=headers)
         res = conn.getresponse()
 
