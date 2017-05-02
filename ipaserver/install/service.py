@@ -181,7 +181,7 @@ def set_service_entry_config(name, fqdn, config_values,
     except errors.NotFound:
         pass
     else:
-        existing_values = entry.get('ipaConnfigString', [])
+        existing_values = entry.get('ipaConfigString', [])
         for value in config_values:
             if case_insensitive_attr_has_value(existing_values, value):
                 root_logger.debug(
