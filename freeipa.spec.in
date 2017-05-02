@@ -639,6 +639,7 @@ Requires: python-gssapi >= 1.2.0
 Requires: gnupg
 Requires: keyutils
 Requires: pyOpenSSL
+Requires: python >= 2.7.9
 Requires: python-nss >= 0.16
 Requires: python-cryptography >= 1.4
 Requires: python-netaddr
