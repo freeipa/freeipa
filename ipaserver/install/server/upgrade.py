@@ -1630,6 +1630,7 @@ def upgrade_configuration():
     http = httpinstance.HTTPInstance(fstore)
     http.fqdn = fqdn
     http.realm = api.env.realm
+    http.suffix = ipautil.realm_to_suffix(api.env.realm)
     http.configure_selinux_for_httpd()
     http.change_mod_nss_port_from_http()
 
