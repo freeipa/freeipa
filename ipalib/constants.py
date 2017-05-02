@@ -140,6 +140,8 @@ DEFAULT_CONFIG = (
 
     # Time to wait for a service to start, in seconds
     ('startup_timeout', 300),
+    # How long http connection should wait for reply [seconds].
+    ('http_timeout', 30),
 
     # Web Application mount points
     ('mount_ipa', '/ipa/'),
