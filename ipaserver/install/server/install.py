@@ -768,6 +768,10 @@ def install(installer):
                             setup_pkinit=not options.no_pkinit,
                             pkcs12_info=pkinit_pkcs12_info,
                             subject_base=options.subject_base)
+    else:
+        krb.init_info(realm_name, host_name,
+                      setup_pkinit=not options.no_pkinit,
+                      subject_base=options.subject_base)
 
     if setup_ca:
         if not options.external_cert_files and options.external_ca:
