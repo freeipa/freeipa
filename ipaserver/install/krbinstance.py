@@ -20,7 +20,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import shutil
 import os
 import pwd
 import socket
@@ -28,6 +27,8 @@ import dbus
 
 import dns.name
 
+from ipalib import x509
+from ipalib.install import certstore
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipapython import ipaldap
@@ -430,7 +431,8 @@ class KrbInstance(service.Service):
                 ca=certmonger_ca,
                 dns=self.fqdn,
                 storage='FILE',
-                profile=KDC_PROFILE)
+                profile=KDC_PROFILE,
+                post_command='renew_kdc_cert')
         except dbus.DBusException as e:
             # if the certificate is already tracked, ignore the error
             name = e.get_dbus_name()
@@ -448,17 +450,23 @@ class KrbInstance(service.Service):
         service.set_service_entry_config(
             'KDC', self.fqdn, [PKINIT_ENABLED], self.suffix)
 
+    def _install_pkinit_ca_bundle(self):
+        ca_certs = certstore.get_ca_certs(self.api.Backend.ldap2,
+                                          self.api.env.basedn,
+                                          self.api.env.realm,
+                                          False)
+        ca_certs = [c for c, _n, t, _u in ca_certs if t is not False]
+        x509.write_certificate_list(ca_certs, paths.CACERT_PEM)
+
     def issue_selfsigned_pkinit_certs(self):
         self._call_certmonger(certmonger_ca="SelfSign")
-        # for self-signed certificate, the certificate is its own CA, copy it
-        # as CA cert
-        shutil.copyfile(paths.KDC_CERT, paths.CACERT_PEM)
+        with open(paths.CACERT_PEM, 'w'):
+            pass
 
     def issue_ipa_ca_signed_pkinit_certs(self):
         try:
             self._call_certmonger()
-            # copy IPA CA bundle to the KDC's CA cert bundle
-            shutil.copyfile(paths.IPA_CA_CRT, paths.CACERT_PEM)
+            self._install_pkinit_ca_bundle()
             self.pkinit_enable()
         except RuntimeError as e:
             root_logger.error("PKINIT certificate request failed: %s", e)
@@ -473,10 +481,7 @@ class KrbInstance(service.Service):
         certs.install_key_from_p12(self.pkcs12_info[0],
                                    self.pkcs12_info[1],
                                    paths.KDC_KEY)
-        # copy IPA CA bundle to the KDC's CA cert bundle
-        # NOTE: this may not be the same set of CA certificates trusted by
-        # externally provided PKINIT cert.
-        shutil.copyfile(paths.IPA_CA_CRT, paths.CACERT_PEM)
+        self._install_pkinit_ca_bundle()
         self.pkinit_enable()
 
     def setup_pkinit(self):

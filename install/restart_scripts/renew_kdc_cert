@@ -1,0 +1,31 @@
+#!/usr/bin/python2 -E
+#
+# Copyright (C) 2017  FreeIPA Contributors see COPYING for license
+#
+
+import os
+import syslog
+import traceback
+
+from ipaplatform import services
+from ipaplatform.paths import paths
+from ipaserver.install import certs
+
+
+def main():
+    with certs.renewal_lock:
+        os.chmod(paths.KDC_CERT, 0o644)
+
+        try:
+            if services.knownservices.krb5kdc.is_running():
+                syslog.syslog(syslog.LOG_NOTICE, 'restarting krb5kdc')
+                services.knownservices.krb5kdc.restart()
+        except Exception as e:
+            syslog.syslog(
+                syslog.LOG_ERR, "cannot restart krb5kdc: {}".format(e))
+
+
+try:
+    main()
+except Exception:
+    syslog.syslog(syslog.LOG_ERR, traceback.format_exc())

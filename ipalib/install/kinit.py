@@ -96,7 +96,7 @@ def kinit_password(principal, password, ccache_name, config=None,
         raise RuntimeError(result.error_output)
 
 
-def kinit_armor(ccache_name, pkinit_anchor=None):
+def kinit_armor(ccache_name, pkinit_anchors=None):
     """
     perform anonymous pkinit to obtain anonymous ticket to be used as armor
     for FAST.
@@ -113,8 +113,9 @@ def kinit_armor(ccache_name, pkinit_anchor=None):
     env = {'LC_ALL': 'C'}
     args = [paths.KINIT, '-n', '-c', ccache_name]
 
-    if pkinit_anchor is not None:
-        args.extend(['-X', 'X509_anchors=FILE:{}'.format(pkinit_anchor)])
+    if pkinit_anchors is not None:
+        for pkinit_anchor in pkinit_anchors:
+            args.extend(['-X', 'X509_anchors=FILE:{}'.format(pkinit_anchor)])
 
     # this workaround enables us to capture stderr and put it
     # into the raised exception in case of unsuccessful authentication
