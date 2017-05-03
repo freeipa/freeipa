@@ -1831,7 +1831,9 @@ def upgrade_configuration():
                         KRB5KDC_KADM5_KEYTAB=paths.KRB5KDC_KADM5_KEYTAB,
                         KDC_CERT=paths.KDC_CERT,
                         KDC_KEY=paths.KDC_KEY,
-                        CACERT_PEM=paths.CACERT_PEM)
+                        CACERT_PEM=paths.CACERT_PEM,
+                        KDC_CA_BUNDLE_PEM=paths.KDC_CA_BUNDLE_PEM,
+                        CA_BUNDLE_PEM=paths.CA_BUNDLE_PEM)
     krb.add_anonymous_principal()
     setup_pkinit(krb)
 

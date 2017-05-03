@@ -113,6 +113,8 @@ class CertUpdate(admintool.AdminTool):
 
     def update_client(self, certs):
         self.update_file(paths.IPA_CA_CRT, certs)
+        self.update_file(paths.KDC_CA_BUNDLE_PEM, certs)
+        self.update_file(paths.CA_BUNDLE_PEM, certs)
 
         ipa_db = certdb.NSSDatabase(api.env.nss_dir)
 

@@ -710,7 +710,11 @@ def configure_krb5_conf(
         kropts.append(krbconf.setOption('default_domain', cli_domain))
 
     kropts.append(
-        krbconf.setOption('pkinit_anchors', 'FILE:%s' % paths.IPA_CA_CRT))
+        krbconf.setOption('pkinit_anchors',
+                          'FILE:%s' % paths.KDC_CA_BUNDLE_PEM))
+    kropts.append(
+        krbconf.setOption('pkinit_pool',
+                          'FILE:%s' % paths.CA_BUNDLE_PEM))
     ropts = [{
         'name': cli_realm,
         'type': 'subsection',
@@ -2770,6 +2774,13 @@ def _install(options):
     ca_certs_trust = [(c, n, certstore.key_policy_to_trust_flags(t, True, u))
                       for (c, n, t, u) in ca_certs]
 
+    x509.write_certificate_list(
+        [c for c, n, t, u in ca_certs if t is not False],
+        paths.KDC_CA_BUNDLE_PEM)
+    x509.write_certificate_list(
+        [c for c, n, t, u in ca_certs if t is not False],
+        paths.CA_BUNDLE_PEM)
+
     # Add the CA certificates to the IPA NSS database
     root_logger.debug("Adding CA certificates to the IPA NSS database.")
     ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
@@ -3317,6 +3328,8 @@ def uninstall(options):
 
     # Remove the CA cert
     remove_file(paths.IPA_CA_CRT)
+    remove_file(paths.KDC_CA_BUNDLE_PEM)
+    remove_file(paths.CA_BUNDLE_PEM)
 
     root_logger.info("Client uninstall complete.")
 
