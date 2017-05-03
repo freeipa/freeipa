@@ -31,8 +31,11 @@ import fnmatch
 
 import ldap
 
+from ipalib import x509
 from ipalib.install import certmonger, certstore
-from ipapython.certdb import IPA_CA_TRUST_FLAGS, EXTERNAL_CA_TRUST_FLAGS
+from ipapython.certdb import (IPA_CA_TRUST_FLAGS,
+                              EXTERNAL_CA_TRUST_FLAGS,
+                              TrustFlags)
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil, ipaldap
 from ipapython import dogtag
@@ -289,7 +292,8 @@ class DsInstance(service.Service):
 
     def init_info(self, realm_name, fqdn, domain_name, dm_password,
                   subject_base, ca_subject,
-                  idstart, idmax, pkcs12_info, ca_file=None):
+                  idstart, idmax, pkcs12_info, ca_file=None,
+                  setup_pkinit=False):
         self.realm = realm_name.upper()
         self.serverid = installutils.realm_to_serverid(self.realm)
         self.suffix = ipautil.realm_to_suffix(self.realm)
@@ -303,6 +307,7 @@ class DsInstance(service.Service):
         self.pkcs12_info = pkcs12_info
         if pkcs12_info:
             self.ca_is_configured = False
+        self.setup_pkinit = setup_pkinit
         self.ca_file = ca_file
 
         self.__setup_sub_dict()
@@ -311,11 +316,12 @@ class DsInstance(service.Service):
                         dm_password, pkcs12_info=None,
                         idstart=1100, idmax=999999,
                         subject_base=None, ca_subject=None,
-                        hbac_allow=True, ca_file=None):
+                        hbac_allow=True, ca_file=None, setup_pkinit=False):
         self.init_info(
             realm_name, fqdn, domain_name, dm_password,
             subject_base, ca_subject,
-            idstart, idmax, pkcs12_info, ca_file=ca_file)
+            idstart, idmax, pkcs12_info, ca_file=ca_file,
+            setup_pkinit=setup_pkinit)
 
         self.__common_setup()
         self.step("restarting directory server", self.__restart_instance)
@@ -354,7 +360,8 @@ class DsInstance(service.Service):
                        domain_name, dm_password,
                        subject_base, ca_subject,
                        api, pkcs12_info=None, ca_file=None,
-                       ca_is_configured=None, promote=False):
+                       ca_is_configured=None, promote=False,
+                       setup_pkinit=False):
         # idstart and idmax are configured so that the range is seen as
         # depleted by the DNA plugin and the replica will go and get a
         # new range from the master.
@@ -372,7 +379,8 @@ class DsInstance(service.Service):
             idstart=idstart,
             idmax=idmax,
             pkcs12_info=pkcs12_info,
-            ca_file=ca_file
+            ca_file=ca_file,
+            setup_pkinit=setup_pkinit,
         )
         self.master_fqdn = master_fqdn
         if ca_is_configured is not None:
@@ -882,8 +890,17 @@ class DsInstance(service.Service):
 
         nickname = self.cacert_name
         cert = dsdb.get_cert_from_db(nickname, pem=False)
+        cacert_flags = trust_flags[nickname]
+        if self.setup_pkinit:
+            cacert_flags = TrustFlags(
+                cacert_flags.has_key,
+                cacert_flags.trusted,
+                cacert_flags.ca,
+                (cacert_flags.usages |
+                    {x509.EKU_PKINIT_CLIENT_AUTH, x509.EKU_PKINIT_KDC}),
+            )
         certstore.put_ca_cert_nss(conn, self.suffix, cert, nickname,
-                                  trust_flags[nickname],
+                                  cacert_flags,
                                   config_ipa=self.ca_is_configured,
                                   config_compat=self.master_fqdn is None)
 

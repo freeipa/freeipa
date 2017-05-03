@@ -65,6 +65,8 @@ IPA_CA_TRUST_FLAGS = TrustFlags(
         x509.EKU_CLIENT_AUTH,
         x509.EKU_CODE_SIGNING,
         x509.EKU_EMAIL_PROTECTION,
+        x509.EKU_PKINIT_CLIENT_AUTH,
+        x509.EKU_PKINIT_KDC,
     }),
 )
 
