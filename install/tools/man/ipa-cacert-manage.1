@@ -90,7 +90,7 @@ File containing the IPA CA certificate and the external CA certificate chain. Th
 Nickname for the certificate.
 .TP
 \fB\-t\fR \fITRUST_FLAGS\fR, \fB\-\-trust\-flags\fR=\fITRUST_FLAGS\fR
-Trust flags for the certificate in certutil format. Trust flags are of the form "X,Y,Z" where X is for SSL, Y is for S/MIME, and Z is for code signing. Use ",," for no explicit trust.
+Trust flags for the certificate in certutil format. Trust flags are of the form "A,B,C" or "A,B,C,D" where A is for SSL, B is for S/MIME, C is for code signing, and D is for PKINIT. Use ",," for no explicit trust.
 .sp
 The supported trust flags are:
 .RS
