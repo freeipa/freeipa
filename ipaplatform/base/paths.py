@@ -331,6 +331,8 @@ class BasePathNamespace(object):
     VAR_RUN_DIRSRV_DIR = "/var/run/dirsrv"
     IPA_CCACHES = "/var/run/ipa/ccaches"
     HTTP_CCACHE = "/var/lib/ipa/gssproxy/http.ccache"
+    CA_BUNDLE_PEM = "/var/lib/ipa-client/pki/ca-bundle.pem"
+    KDC_CA_BUNDLE_PEM = "/var/lib/ipa-client/pki/kdc-ca-bundle.pem"
     IPA_RENEWAL_LOCK = "/var/run/ipa/renewal.lock"
     SVC_LIST_FILE = "/var/run/ipa/services.list"
     KRB5CC_SAMBA = "/var/run/samba/krb5cc_samba"
