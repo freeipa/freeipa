@@ -796,6 +796,16 @@ def install(installer):
         x509.write_certificate(http_ca_cert, paths.IPA_CA_CRT)
         os.chmod(paths.IPA_CA_CRT, 0o444)
 
+        if not options.no_pkinit:
+            x509.write_certificate(http_ca_cert, paths.KDC_CA_BUNDLE_PEM)
+        else:
+            with open(paths.KDC_CA_BUNDLE_PEM, 'w'):
+                pass
+        os.chmod(paths.KDC_CA_BUNDLE_PEM, 0o444)
+
+        x509.write_certificate(http_ca_cert, paths.CA_BUNDLE_PEM)
+        os.chmod(paths.CA_BUNDLE_PEM, 0o444)
+
     # we now need to enable ssl on the ds
     ds.enable_ssl()
 

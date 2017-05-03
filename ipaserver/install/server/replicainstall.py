@@ -1390,6 +1390,10 @@ def install(installer):
 
         # Update and istall updated CA file
         cafile = install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
+        install_ca_cert(conn, api.env.basedn, api.env.realm, cafile,
+                        destfile=paths.KDC_CA_BUNDLE_PEM)
+        install_ca_cert(conn, api.env.basedn, api.env.realm, cafile,
+                        destfile=paths.CA_BUNDLE_PEM)
 
         # Configure dirsrv
         ds = install_replica_ds(config, options, ca_enabled,

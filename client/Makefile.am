@@ -101,4 +101,5 @@ EXTRA_DIST =			\
 
 install-data-hook:
 	$(INSTALL) -d -m 755 $(DESTDIR)$(IPA_SYSCONF_DIR)/nssdb
+	$(INSTALL) -d -m 755 $(DESTDIR)$(localstatedir)/lib/ipa-client/pki
 	$(INSTALL) -d -m 755 $(DESTDIR)$(localstatedir)/lib/ipa-client/sysrestore

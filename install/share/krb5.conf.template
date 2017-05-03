@@ -21,7 +21,8 @@ $OTHER_LIBDEFAULTS
   master_kdc = $FQDN:88
   admin_server = $FQDN:749
   default_domain = $DOMAIN
-  pkinit_anchors = FILE:/etc/ipa/ca.crt
+  pkinit_anchors = FILE:$KDC_CA_BUNDLE_PEM
+  pkinit_pool = FILE:$CA_BUNDLE_PEM
 }
 
 [domain_realm]
