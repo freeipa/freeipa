@@ -117,17 +117,19 @@ def parse_options():
 
 
 def _get_dirman_password(password=None, unattended=False):
+    # sys.exit() is used on purpose, because otherwise user is advised to
+    # uninstall the component, even though it is not needed
     if not password:
         if unattended:
             sys.exit('Directory Manager password required')
-        try:
-            password = installutils.read_password(
-                "Directory Manager (existing master)", confirm=False,
-                validate=False)
-        except KeyboardInterrupt:
-            sys.exit(0)
-        if password is None:
-            sys.exit("Directory Manager password required")
+        password = installutils.read_password(
+            "Directory Manager (existing master)", confirm=False,
+            validate=False)
+    try:
+        installutils.validate_dm_password_ldap(password)
+    except ValueError:
+        sys.exit("Directory Manager password is invalid")
+
     return password
 
 

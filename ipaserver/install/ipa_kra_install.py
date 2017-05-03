@@ -137,6 +137,14 @@ class KRAInstaller(KRAInstall):
     def run(self):
         super(KRAInstaller, self).run()
 
+        # Verify DM password. This has to be called after ask_for_options(),
+        # so it can't be placed in validate_options().
+        try:
+            installutils.validate_dm_password_ldap(self.options.password)
+        except ValueError:
+            raise admintool.ScriptError(
+                "Directory Manager password is invalid")
+
         if not cainstance.is_ca_installed_locally():
             raise RuntimeError("Dogtag CA is not installed. "
                                "Please install the CA first")
