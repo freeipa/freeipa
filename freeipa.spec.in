@@ -112,7 +112,8 @@ BuildRequires:  python-pytest-sourceorder
 BuildRequires:  python-kdcproxy >= 0.3
 BuildRequires:  python-six
 BuildRequires:  python-jwcrypto
-BuildRequires:  custodia
+# install/tools/ipa-custodia needs custodia 0.2+
+BuildRequires:  custodia >= 0.2
 BuildRequires:  libini_config-devel >= 1.2.0
 BuildRequires:  dbus-python
 BuildRequires:  python-netifaces >= 0.10.4
@@ -246,7 +247,7 @@ BuildArch: noarch
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: httpd >= 2.4.6-31
 Requires: systemd-units >= 38
-Requires: custodia
+Requires: custodia >= 0.2
 
 Provides: %{alt_name}-server-common = %{version}
 Conflicts: %{alt_name}-server-common
@@ -498,7 +499,7 @@ Requires: python-jwcrypto
 Requires: python-cffi
 Requires: python-ldap >= 2.4.15
 Requires: python-requests
-Requires: python-custodia
+Requires: python-custodia >= 0.2
 Requires: python-dns >= 1.13
 Requires: python-netifaces >= 0.10.4
 Requires: pyusb
@@ -546,7 +547,7 @@ Requires: python3-six
 Requires: python3-jwcrypto
 Requires: python3-cffi
 Requires: python3-pyldap >= 2.4.15
-Requires: python3-custodia
+Requires: python3-custodia >= 0.2
 Requires: python3-requests
 Requires: python3-dns >= 1.11.1
 Requires: python3-netifaces >= 0.10.4
@@ -1069,6 +1070,7 @@ fi
 %{_libexecdir}/certmonger/ipa-server-guard
 %{_libexecdir}/ipa-otpd
 %dir %{_libexecdir}/ipa
+%{_libexecdir}/ipa/ipa-custodia
 %{_libexecdir}/ipa/ipa-dnskeysyncd
 %{_libexecdir}/ipa/ipa-dnskeysync-replica
 %{_libexecdir}/ipa/ipa-ods-exporter
