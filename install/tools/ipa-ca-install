@@ -116,9 +116,19 @@ def parse_options():
     return safe_options, options, filename
 
 
-def get_dirman_password():
-    return installutils.read_password(
-        "Directory Manager (existing master)", confirm=False, validate=False)
+def _get_dirman_password(password=None, unattended=False):
+    if not password:
+        if unattended:
+            sys.exit('Directory Manager password required')
+        try:
+            password = installutils.read_password(
+                "Directory Manager (existing master)", confirm=False,
+                validate=False)
+        except KeyboardInterrupt:
+            sys.exit(0)
+        if password is None:
+            sys.exit("Directory Manager password required")
+    return password
 
 
 def install_replica(safe_options, options, filename):
@@ -142,16 +152,8 @@ def install_replica(safe_options, options, filename):
         check_creds(options, api.env.realm)
 
     # get the directory manager password
-    dirman_password = options.password
-    if not dirman_password:
-        if options.unattended:
-            sys.exit('Directory Manager password required')
-        try:
-            dirman_password = get_dirman_password()
-        except KeyboardInterrupt:
-            sys.exit(0)
-        if dirman_password is None:
-            sys.exit("Directory Manager password required")
+    dirman_password = _get_dirman_password(
+        options.password, options.unattended)
 
     if (not options.promote and not options.admin_password and
             not options.skip_conncheck and options.unattended):
@@ -199,16 +201,8 @@ def install_replica(safe_options, options, filename):
 
 
 def install_master(safe_options, options):
-    dm_password = options.password
-    if not dm_password:
-        if options.unattended:
-            sys.exit('Directory Manager password required')
-        try:
-            dm_password = get_dirman_password()
-        except KeyboardInterrupt:
-            sys.exit(0)
-        if dm_password is None:
-            sys.exit("Directory Manager password required")
+    dm_password = _get_dirman_password(
+        options.password, options.unattended)
 
     options.realm_name = api.env.realm
     options.domain_name = api.env.domain
