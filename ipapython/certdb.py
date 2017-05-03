@@ -24,14 +24,17 @@ import pwd
 import grp
 import re
 import tempfile
+from tempfile import NamedTemporaryFile
 import shutil
 import base64
 from cryptography.hazmat.primitives import serialization
+import cryptography.x509
 from nss import nss
 from nss.error import NSPRError
 
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
+from ipapython.kerberos import Principal
 from ipapython import ipautil
 from ipalib import x509     # pylint: disable=ipa-forbidden-import
 
@@ -180,6 +183,38 @@ def unparse_trust_flags(trust_flags):
 
     trust_flags = ','.join(trust_flags)
     return trust_flags
+
+
+def verify_kdc_cert_validity(kdc_cert, ca_certs, realm):
+    pem_kdc_cert = kdc_cert.public_bytes(serialization.Encoding.PEM)
+    pem_ca_certs = '\n'.join(
+        cert.public_bytes(serialization.Encoding.PEM) for cert in ca_certs)
+
+    with NamedTemporaryFile() as kdc_file, NamedTemporaryFile() as ca_file:
+        kdc_file.write(pem_kdc_cert)
+        kdc_file.flush()
+        ca_file.write(pem_ca_certs)
+        ca_file.flush()
+
+        try:
+            ipautil.run(
+                [OPENSSL, 'verify', '-CAfile', ca_file.name, kdc_file.name])
+            eku = kdc_cert.extensions.get_extension_for_class(
+                cryptography.x509.ExtendedKeyUsage)
+            list(eku.value).index(
+                cryptography.x509.ObjectIdentifier(x509.EKU_PKINIT_KDC))
+        except (ipautil.CalledProcessError,
+                cryptography.x509.ExtensionNotFound,
+                ValueError):
+            raise ValueError("invalid for a KDC")
+
+        principal = str(Principal(['krbtgt', realm], realm))
+        gns = x509.process_othernames(x509.get_san_general_names(kdc_cert))
+        for gn in gns:
+            if isinstance(gn, x509.KRB5PrincipalName) and gn.name == principal:
+                break
+        else:
+            raise ValueError("invalid for realm %s" % realm)
 
 
 class NSSDatabase(object):
@@ -707,3 +742,10 @@ class NSSDatabase(object):
         finally:
             del certdb, cert
             nss.nss_shutdown()
+
+    def verify_kdc_cert_validity(self, nickname, realm):
+        nicknames = self.get_trust_chain(nickname)
+        certs = [self.get_cert(nickname) for nickname in nicknames]
+        certs = [x509.load_certificate(cert, x509.DER) for cert in certs]
+
+        verify_kdc_cert_validity(certs[-1], certs[:-1], realm)

@@ -1001,7 +1001,7 @@ def handle_error(error, log_file_name=None):
 
 
 def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
-                host_name):
+                host_name=None, realm_name=None):
     """
     Load and verify server certificate and private key from multiple files
 
@@ -1066,13 +1066,21 @@ def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
                     "CA certificate %s in %s is not valid: %s" %
                     (subject, ", ".join(cert_files), e))
 
-        # Check server validity
-        try:
-            nssdb.verify_server_cert_validity(key_nickname, host_name)
-        except ValueError as e:
-            raise ScriptError(
-                "The server certificate in %s is not valid: %s" %
-                (", ".join(cert_files), e))
+        if host_name is not None:
+            try:
+                nssdb.verify_server_cert_validity(key_nickname, host_name)
+            except ValueError as e:
+                raise ScriptError(
+                    "The server certificate in %s is not valid: %s" %
+                    (", ".join(cert_files), e))
+
+        if realm_name is not None:
+            try:
+                nssdb.verify_kdc_cert_validity(key_nickname, realm_name)
+            except ValueError as e:
+                raise ScriptError(
+                    "The KDC certificate in %s is not valid: %s" %
+                    (", ".join(cert_files), e))
 
         out_file = tempfile.NamedTemporaryFile()
         out_password = ipautil.ipa_generate_password()
