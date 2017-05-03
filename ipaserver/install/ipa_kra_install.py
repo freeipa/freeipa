@@ -103,7 +103,7 @@ class KRAInstaller(KRAInstall):
 
     FAIL_MESSAGE = '''
         Your system may be partly configured.
-        Run ipa-kra-install --uninstall to clean up.
+        If you run into issues, you may have to re-install IPA on this server.
     '''
 
     def validate_options(self, needs_root=True):
