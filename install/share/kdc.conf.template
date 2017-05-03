@@ -13,5 +13,7 @@
   default_principal_flags = +preauth
 ;  admin_keytab = $KRB5KDC_KADM5_KEYTAB
   pkinit_identity = FILE:$KDC_CERT,$KDC_KEY
+  pkinit_anchors = FILE:$KDC_CERT
   pkinit_anchors = FILE:$CACERT_PEM
+  pkinit_pool = FILE:$CA_BUNDLE_PEM
  }
