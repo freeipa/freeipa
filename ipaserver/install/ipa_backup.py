@@ -150,6 +150,8 @@ class Backup(admintool.AdminTool):
         paths.SSHD_CONFIG,
         paths.SSH_CONFIG,
         paths.KRB5_CONF,
+        paths.KDC_CA_BUNDLE_PEM,
+        paths.CA_BUNDLE_PEM,
         paths.IPA_CA_CRT,
         paths.IPA_DEFAULT_CONF,
         paths.DS_KEYTAB,

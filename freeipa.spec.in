@@ -1101,6 +1101,15 @@ if [ $1 -gt 1 ] ; then
         fi
     fi
 
+    if [ $restore -ge 2 ]; then
+        if grep -E -q '\s*pkinit_anchors = FILE:/etc/ipa/ca.crt$' /etc/krb5.conf 2>/dev/null; then
+            sed -E 's|(\s*)pkinit_anchors = FILE:/etc/ipa/ca.crt$|\1pkinit_anchors = FILE:/var/lib/ipa-client/pki/kdc-ca-bundle.pem\n\1pkinit_pool = FILE:/var/lib/ipa-client/pki/ca-bundle.pem|' /etc/krb5.conf >/etc/krb5.conf.ipanew
+            mv -Z /etc/krb5.conf.ipanew /etc/krb5.conf
+            cp /etc/ipa/ca.crt /var/lib/ipa-client/pki/kdc-ca-bundle.pem
+            cp /etc/ipa/ca.crt /var/lib/ipa-client/pki/ca-bundle.pem
+        fi
+    fi
+
     if [ -f '/etc/sysconfig/ntpd' -a $restore -ge 2 ]; then
         if grep -E -q 'OPTIONS=.*-u ntp:ntp' /etc/sysconfig/ntpd 2>/dev/null; then
             sed -r '/OPTIONS=/ { s/\s+-u ntp:ntp\s+/ /; s/\s*-u ntp:ntp\s*// }' /etc/sysconfig/ntpd >/etc/sysconfig/ntpd.ipanew
@@ -1472,6 +1481,7 @@ fi
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/pwdfile.txt
 %ghost %config(noreplace) %{_sysconfdir}/pki/ca-trust/source/ipa.p11-kit
 %dir %{_localstatedir}/lib/ipa-client
+%dir %{_localstatedir}/lib/ipa-client/pki
 %dir %{_localstatedir}/lib/ipa-client/sysrestore
 %{_mandir}/man5/default.conf.5*
 
