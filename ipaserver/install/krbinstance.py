@@ -108,6 +108,14 @@ class KrbInstance(service.Service):
     suffix = ipautil.dn_attribute_property('_suffix')
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
+    def init_info(self, realm_name, host_name, setup_pkinit=False,
+                  subject_base=None):
+        self.fqdn = host_name
+        self.realm = realm_name
+        self.suffix = ipautil.realm_to_suffix(realm_name)
+        self.subject_base = subject_base
+        self.config_pkinit = setup_pkinit
+
     def get_realm_suffix(self):
         return DN(('cn', self.realm), ('cn', 'kerberos'), self.suffix)
 
