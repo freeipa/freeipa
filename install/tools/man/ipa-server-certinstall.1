@@ -22,7 +22,7 @@ ipa\-server\-certinstall \- Install new SSL server certificates
 .SH "SYNOPSIS"
 ipa\-server\-certinstall [\fIOPTION\fR]... FILE...
 .SH "DESCRIPTION"
-Replace the current SSL Directory and/or Apache server certificate(s) with the certificate in the specified files. The files are accepted in PEM and DER certificate, PKCS#7 certificate chain, PKCS#8 and raw private key and PKCS#12 formats.
+Replace the current Directory server SSL certificate, Apache server SSL certificate and/or Kerberos KDC certificate with the certificate in the specified files. The files are accepted in PEM and DER certificate, PKCS#7 certificate chain, PKCS#8 and raw private key and PKCS#12 formats.
 
 PKCS#12 is a file format used to safely transport SSL certificates and public/private keypairs.
 
@@ -36,6 +36,9 @@ Install the certificate on the Directory Server
 .TP 
 \fB\-w\fR, \fB\-\-http\fR
 Install the certificate in the Apache Web Server
+.TP
+\fB\-k\fR, \fB\-\-kdc\fR
+Install the certificate in the Kerberos KDC
 .TP
 \fB\-\-pin\fR=\fIPIN\fR
 The password to unlock the private key

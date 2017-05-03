@@ -21,12 +21,17 @@
 import os
 import os.path
 import pwd
+import tempfile
 import optparse  # pylint: disable=deprecated-module
 
+from ipalib import x509
+from ipalib.install import certmonger
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import admintool
-from ipapython.certdb import get_ca_nickname, NSSDatabase
+from ipapython.certdb import (get_ca_nickname,
+                              NSSDatabase,
+                              verify_kdc_cert_validity)
 from ipapython.dn import DN
 from ipalib import api, errors
 from ipaserver.install import certs, dsinstance, installutils
@@ -35,7 +40,7 @@ from ipaserver.install import certs, dsinstance, installutils
 class ServerCertInstall(admintool.AdminTool):
     command_name = 'ipa-server-certinstall'
 
-    usage = "%prog <-d|-w> [options] <file> ..."
+    usage = "%prog <-d|-w|-k> [options] <file> ..."
 
     description = "Install new SSL server certificates."
 
@@ -51,6 +56,10 @@ class ServerCertInstall(admintool.AdminTool):
             "-w", "--http",
             dest="http", action="store_true", default=False,
             help="install certificate for the http server")
+        parser.add_option(
+            "-k", "--kdc",
+            dest="kdc", action="store_true", default=False,
+            help="install PKINIT certificate for the KDC")
         parser.add_option(
             "--pin",
             dest="pin", metavar="PIN", sensitive=True,
@@ -73,8 +82,9 @@ class ServerCertInstall(admintool.AdminTool):
 
         installutils.check_server_configuration()
 
-        if not self.options.dirsrv and not self.options.http:
-            self.option_parser.error("you must specify dirsrv and/or http")
+        if not any((self.options.dirsrv, self.options.http, self.options.kdc)):
+            self.option_parser.error(
+                "you must specify dirsrv, http and/or kdc")
 
         if not self.args:
             self.option_parser.error("you must provide certificate filename")
@@ -107,6 +117,9 @@ class ServerCertInstall(admintool.AdminTool):
 
         if self.options.http:
             self.install_http_cert()
+
+        if self.options.kdc:
+            self.install_kdc_cert()
 
         api.Backend.ldap2.disconnect()
 
@@ -160,6 +173,55 @@ class ServerCertInstall(admintool.AdminTool):
         os.chown(os.path.join(dirname, 'cert8.db'), 0, pent.pw_gid)
         os.chown(os.path.join(dirname, 'key3.db'), 0, pent.pw_gid)
         os.chown(os.path.join(dirname, 'secmod.db'), 0, pent.pw_gid)
+
+    def install_kdc_cert(self):
+        ca_cert_file = paths.CA_BUNDLE_PEM
+        pkcs12_file, pin, ca_cert = installutils.load_pkcs12(
+            cert_files=self.args,
+            key_password=self.options.pin,
+            key_nickname=self.options.cert_name,
+            ca_cert_files=[ca_cert_file],
+            realm_name=api.env.realm)
+
+        cdb = certs.CertDB(api.env.realm, nssdir=paths.IPA_NSSDB_DIR)
+
+        # Check that the ca_cert is known and trusted
+        with tempfile.NamedTemporaryFile() as temp:
+            certs.install_pem_from_p12(pkcs12_file.name, pin, temp.name)
+
+            kdc_cert = x509.load_certificate_from_file(temp.name)
+            ca_certs = x509.load_certificate_list_from_file(ca_cert_file)
+
+            try:
+                verify_kdc_cert_validity(kdc_cert, ca_certs, api.env.realm)
+            except ValueError as e:
+                raise admintool.ScriptError(
+                    "Peer's certificate issuer is not trusted (%s). "
+                    "Please run ipa-cacert-manage install and ipa-certupdate "
+                    "to install the CA certificate." % str(e))
+
+        try:
+            ca_enabled = api.Command.ca_is_enabled()['result']
+            if ca_enabled:
+                certmonger.stop_tracking(certfile=paths.KDC_CERT)
+
+            certs.install_pem_from_p12(pkcs12_file.name, pin, paths.KDC_CERT)
+            certs.install_key_from_p12(pkcs12_file.name, pin, paths.KDC_KEY)
+
+            if ca_enabled:
+                # Start tracking only if the cert was issued by IPA CA
+                # Retrieve IPA CA
+                ipa_ca_cert = cdb.get_cert_from_db(
+                    get_ca_nickname(api.env.realm),
+                    pem=False)
+                # And compare with the CA which signed this certificate
+                if ca_cert == ipa_ca_cert:
+                    certmonger.start_tracking(
+                        (paths.KDC_CERT, paths.KDC_KEY),
+                        storage='FILE',
+                        profile='KDCs_PKINIT_Certs')
+        except RuntimeError as e:
+            raise admintool.ScriptError(str(e))
 
     def check_chain(self, pkcs12_filename, pkcs12_pin, nssdb):
         # create a temp nssdb
