@@ -50,6 +50,7 @@ import ipaplatform
 from ipapython import ipautil, admintool, version
 from ipapython.admintool import ScriptError
 from ipapython.ipa_log_manager import root_logger
+from ipapython.ipaldap import DIRMAN_DN, LDAPClient
 from ipalib.util import validate_hostname
 from ipalib import api, errors, x509
 from ipapython.dn import DN
@@ -328,6 +329,21 @@ def get_password(prompt):
 def _read_password_default_validator(password):
     if len(password) < 8:
         raise ValueError("Password must be at least 8 characters long")
+
+
+def validate_dm_password_ldap(password):
+    """
+    Validate DM password by attempting to connect to LDAP. api.env has to
+    contain valid ldap_uri.
+    """
+    client = LDAPClient(api.env.ldap_uri, cacert=paths.IPA_CA_CRT)
+    try:
+        client.simple_bind(DIRMAN_DN, password)
+    except errors.ACIError:
+        raise ValueError("Invalid Directory Manager password")
+    else:
+        client.unbind()
+
 
 def read_password(user, confirm=True, validate=True, retry=True, validator=_read_password_default_validator):
     correct = False
