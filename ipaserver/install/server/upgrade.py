@@ -11,6 +11,7 @@ import pwd
 import fileinput
 import sys
 
+from augeas import Augeas
 import dns.exception
 
 import six
@@ -1527,19 +1528,49 @@ def setup_pkinit(krb):
         else:
             krb.issue_selfsigned_pkinit_certs()
 
-    # reconfigure KDC just in case in order to handle potentially broken
-    # 4.5.0 -> 4.5.1 upgrade path
-    replacevars = dict()
-    replacevars['pkinit_identity'] = 'FILE:{},{}'.format(
-        paths.KDC_CERT,paths.KDC_KEY)
-    appendvars = {}
-    ipautil.backup_config_and_replace_variables(
-        krb.fstore, paths.KRB5KDC_KDC_CONF, replacevars=replacevars,
-        appendvars=appendvars)
-    tasks.restore_context(paths.KRB5KDC_KDC_CONF)
-    if krb.is_running():
-        krb.stop()
-    krb.start()
+    aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD,
+                 loadpath=paths.USR_SHARE_IPA_DIR)
+    try:
+        aug.transform('IPAKrb5', paths.KRB5KDC_KDC_CONF)
+        aug.load()
+
+        path = '/files{}/realms/{}'.format(paths.KRB5KDC_KDC_CONF, krb.realm)
+        modified = False
+
+        value = 'FILE:{},{}'.format(paths.KDC_CERT, paths.KDC_KEY)
+        expr = '{}[count(pkinit_identity)=1][pkinit_identity="{}"]'.format(
+            path, value)
+        if not aug.match(expr):
+            aug.remove('{}/pkinit_identity'.format(path))
+            aug.set('{}/pkinit_identity'.format(path), value)
+            modified = True
+
+        for value in  ['FILE:{}'.format(paths.KDC_CERT),
+                       'FILE:{}'.format(paths.CACERT_PEM)]:
+            expr = '{}/pkinit_anchors[.="{}"]'.format(path, value)
+            if not aug.match(expr):
+                aug.set('{}/pkinit_anchors[last()+1]'.format(path), value)
+                modified = True
+
+        value = 'FILE:{}'.format(paths.CA_BUNDLE_PEM)
+        expr = '{}/pkinit_pool[.="{}"]'.format(path, value)
+        if not aug.match(expr):
+            aug.set('{}/pkinit_pool[last()+1]'.format(path), value)
+            modified = True
+
+        if modified:
+            try:
+                aug.save()
+            except IOError:
+                for error_path in aug.match('/augeas//error'):
+                    root_logger.error('augeas: %s', aug.get(error_path))
+                raise
+
+            if krb.is_running():
+                krb.stop()
+            krb.start()
+    finally:
+        aug.close()
 
 
 def disable_httpd_system_trust(http):
