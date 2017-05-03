@@ -107,6 +107,7 @@ def install_replica_ds(config, options, ca_is_configured, remote_api,
         ca_file=ca_file,
         promote=promote,  # we need promote because of replication setup
         api=remote_api,
+        setup_pkinit=not options.no_pkinit,
     )
 
     return ds
