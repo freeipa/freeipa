@@ -520,18 +520,25 @@ def install_check(installer):
             if options.pkinit_pin is None:
                 raise ScriptError(
                     "Kerberos KDC private key unlock password required")
-        pkinit_pkcs12_file, pkinit_pin, _pkinit_ca_cert = load_pkcs12(
+        pkinit_pkcs12_file, pkinit_pin, pkinit_ca_cert = load_pkcs12(
             cert_files=options.pkinit_cert_files,
             key_password=options.pkinit_pin,
             key_nickname=options.pkinit_cert_name,
             ca_cert_files=options.ca_cert_files,
-            host_name=host_name)
+            realm_name=realm_name)
         pkinit_pkcs12_info = (pkinit_pkcs12_file.name, pkinit_pin)
 
     if (options.http_cert_files and options.dirsrv_cert_files and
             http_ca_cert != dirsrv_ca_cert):
         raise ScriptError(
             "Apache Server SSL certificate and Directory Server SSL "
+            "certificate are not signed by the same CA certificate")
+
+    if (options.http_cert_files and
+            options.pkinit_cert_files and
+            http_ca_cert != pkinit_ca_cert):
+        raise ScriptError(
+            "Apache Server SSL certificate and PKINIT KDC "
             "certificate are not signed by the same CA certificate")
 
     if not options.dm_password:
