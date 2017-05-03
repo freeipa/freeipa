@@ -64,7 +64,7 @@ def get_cert_nickname(cert):
 
 def install_pem_from_p12(p12_fname, p12_passwd, pem_fname):
     pwd = ipautil.write_tmp_file(p12_passwd)
-    ipautil.run([paths.OPENSSL, "pkcs12", "-nokeys",
+    ipautil.run([paths.OPENSSL, "pkcs12", "-nokeys", "-clcerts",
                  "-in", p12_fname, "-out", pem_fname,
                  "-passin", "file:" + pwd.name])
 
