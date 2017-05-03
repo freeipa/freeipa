@@ -1427,7 +1427,15 @@ def update_ipa_httpd_service_conf(http):
 def update_http_keytab(http):
     root_logger.info('[Moving HTTPD service keytab to gssproxy]')
     if os.path.exists(paths.OLD_IPA_KEYTAB):
-        shutil.move(paths.OLD_IPA_KEYTAB, http.keytab)
+        # ensure proper SELinux context by using copy operation
+        shutil.copy(paths.OLD_IPA_KEYTAB, http.keytab)
+        try:
+            os.remove(paths.OLD_IPA_KEYTAB)
+        except OSError as e:
+            root_logger.error(
+                'Cannot remove file %s (%s). Please remove the file manually.',
+                paths.OLD_IPA_KEYTAB, e
+            )
     pent = pwd.getpwnam(http.keytab_user)
     os.chown(http.keytab, pent.pw_uid, pent.pw_gid)
 
