@@ -737,7 +737,8 @@ def install(installer):
                                idstart=options.idstart, idmax=options.idmax,
                                subject_base=options.subject_base,
                                ca_subject=options.ca_subject,
-                               hbac_allow=not options.no_hbac_allow)
+                               hbac_allow=not options.no_hbac_allow,
+                               setup_pkinit=not options.no_pkinit)
         else:
             ds = dsinstance.DsInstance(fstore=fstore,
                                        domainlevel=options.domainlevel,
@@ -748,7 +749,8 @@ def install(installer):
                                idstart=options.idstart, idmax=options.idmax,
                                subject_base=options.subject_base,
                                ca_subject=options.ca_subject,
-                               hbac_allow=not options.no_hbac_allow)
+                               hbac_allow=not options.no_hbac_allow,
+                               setup_pkinit=not options.no_pkinit)
 
         ntpinstance.ntp_ldap_enable(host_name, ds.suffix, realm_name)
 
@@ -759,7 +761,8 @@ def install(installer):
         installer._ds = ds
         ds.init_info(
             realm_name, host_name, domain_name, dm_password,
-            options.subject_base, options.ca_subject, 1101, 1100, None)
+            options.subject_base, options.ca_subject, 1101, 1100, None,
+            setup_pkinit=not options.no_pkinit)
 
     krb = krbinstance.KrbInstance(fstore)
     if not options.external_cert_files:

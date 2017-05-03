@@ -79,7 +79,11 @@ class update_upload_cacrt(Updater):
             try:
                 ldap.add_entry(entry)
             except errors.DuplicateEntry:
-                pass
+                if nickname == ca_nickname and ca_enabled:
+                    try:
+                        ldap.update_entry(entry)
+                    except errors.EmptyModlist:
+                        pass
 
         if ca_cert:
             dn = DN(('cn', 'CACert'), ('cn', 'ipa'), ('cn','etc'),
