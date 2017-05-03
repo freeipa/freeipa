@@ -172,6 +172,7 @@ class CertUpdate(admintool.AdminTool):
             certmonger.modify(request_id, ca='dogtag-ipa-ca-renew-agent')
 
         self.update_file(paths.CA_CRT, certs)
+        self.update_file(paths.CACERT_PEM, certs)
 
     def update_file(self, filename, certs, mode=0o444):
         certs = (c[0] for c in certs if c[2] is not False)

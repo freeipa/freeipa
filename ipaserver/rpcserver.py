@@ -945,7 +945,10 @@ class login_password(Backend, KerberosSession):
         self.debug('Obtaining armor in ccache %s', armor_path)
 
         try:
-            kinit_armor(armor_path, pkinit_anchor=paths.CACERT_PEM)
+            kinit_armor(
+                armor_path,
+                pkinit_anchors=[paths.KDC_CERT, paths.KDC_CA_BUNDLE_PEM],
+            )
         except RuntimeError as e:
             self.error("Failed to obtain armor cache")
             # We try to continue w/o armor, 2FA will be impacted
