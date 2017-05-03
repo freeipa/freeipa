@@ -28,6 +28,7 @@ from ipalib.install import certmonger, certstore
 from ipapython import admintool, ipautil
 from ipapython.certdb import (EMPTY_TRUST_FLAGS,
                               EXTERNAL_CA_TRUST_FLAGS,
+                              TrustFlags,
                               parse_trust_flags)
 from ipapython.dn import DN
 from ipaplatform.paths import paths
@@ -363,12 +364,24 @@ class CACertManage(admintool.AdminTool):
                     "http://www.freeipa.org/page/Troubleshooting for "
                     "troubleshooting guide)" % e)
 
-        trust_flags = options.trust_flags
-        if ((set(trust_flags) - set(',CPTcgpuw')) or
-            len(trust_flags.split(',')) != 3):
+        trust_flags = options.trust_flags.split(',')
+        if (set(options.trust_flags) - set(',CPTcgpuw') or
+                len(trust_flags) not in [3, 4]):
             raise admintool.ScriptError("Invalid trust flags")
 
-        trust_flags = parse_trust_flags(trust_flags)
+        extra_flags = trust_flags[3:]
+        extra_usages = set()
+        if extra_flags:
+            if 'C' in extra_flags[0]:
+                extra_usages.add(x509.EKU_PKINIT_KDC)
+            if 'T' in extra_flags[0]:
+                extra_usages.add(x509.EKU_PKINIT_CLIENT_AUTH)
+
+        trust_flags = parse_trust_flags(','.join(trust_flags[:3]))
+        trust_flags = TrustFlags(trust_flags.has_key,
+                                 trust_flags.trusted,
+                                 trust_flags.ca,
+                                 trust_flags.usages | extra_usages)
 
         try:
             certstore.put_ca_cert_nss(
