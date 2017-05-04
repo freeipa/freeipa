@@ -20,6 +20,7 @@
 
 from __future__ import print_function
 
+import os
 import re
 import sys
 from optparse import OptionParser  # pylint: disable=deprecated-module
@@ -193,4 +194,6 @@ def main():
     return retval
 
 if __name__ == '__main__':
+    if not os.geteuid() == 0:
+        sys.exit("\nMust be run as root\n")
     installutils.run_script(main, operation_name='ipa-managed-entries')
