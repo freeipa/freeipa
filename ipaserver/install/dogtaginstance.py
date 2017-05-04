@@ -156,22 +156,10 @@ class DogtagInstance(service.Service):
                       ignore_errors=True)
 
     def restart_instance(self):
-        try:
-            self.restart('pki-tomcat')
-        except Exception:
-            self.log.debug(traceback.format_exc())
-            self.log.critical(
-                "Failed to restart the Dogtag instance."
-                "See the installation log for details.")
+        self.restart('pki-tomcat')
 
     def start_instance(self):
-        try:
-            self.start('pki-tomcat')
-        except Exception:
-            self.log.debug(traceback.format_exc())
-            self.log.critical(
-                "Failed to restart the Dogtag instance."
-                "See the installation log for details.")
+        self.start('pki-tomcat')
 
     def stop_instance(self):
         try:
