@@ -167,7 +167,7 @@ class DogtagInstance(service.Service):
         except Exception:
             self.log.debug(traceback.format_exc())
             self.log.critical(
-                "Failed to restart the Dogtag instance."
+                "Failed to stop the Dogtag instance."
                 "See the installation log for details.")
 
     def enable_client_auth_to_db(self, config):
