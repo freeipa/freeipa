@@ -27,6 +27,7 @@ import shutil
 import tempfile
 
 from ipalib.install.kinit import kinit_keytab
+from ipapython.dn import DN
 from ipapython import ipautil
 
 from ipaclient.install import ipa_certupdate
@@ -35,12 +36,14 @@ from ipaserver.install.installutils import create_replica_config
 from ipaserver.install.installutils import check_creds, ReplicaConfig
 from ipaserver.install import dsinstance, ca
 from ipaserver.install import cainstance, service
+from ipaserver.install import krainstance
 from ipapython import version
-from ipalib import api
+from ipalib import api, errors
 from ipalib.constants import DOMAIN_LEVEL_0
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import standard_logging_setup
 from ipaplatform.paths import paths
+from ipaplatform import services
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -50,6 +53,8 @@ REPLICA_INFO_TOP_DIR = None
 def parse_options():
     usage = "%prog [options] [REPLICA_FILE]"
     parser = IPAOptionParser(usage=usage, version=version.VERSION)
+    parser.add_option("--uninstall", dest="uninstall", action="store_true",
+                      default=False, help="uninstall the CA")
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="gather extra debugging information")
     parser.add_option("-p", "--password", dest="password", sensitive=True,
@@ -289,6 +294,67 @@ def install(safe_options, options, filename):
                 pass
 
 
+def uninstall(options):
+    # Uninstaller meant only for blown replica installations.
+
+    # Does NOT remove replication agreements or the ipaca backend.
+
+    ca_instance = cainstance.CAInstance(api.env.realm)
+
+    if not cainstance.is_ca_installed_locally():
+        ca_instance.print_msg(
+            "CA does not appear to be installed on this host."
+        )
+
+    kra = krainstance.KRAInstance(api.env.realm)
+    if kra.is_installed():
+        sys.exit("Cannot deal with KRA at this time.")
+
+    if options.unattended:
+        ca_instance.print_msg(
+            "Ignoring unattended uninstall request.\n"
+        )
+    ca_instance.print_msg(
+        "This is for failed installs only, do not use otherwise."
+    )
+    if not ipautil.user_input("Are you sure you want to continue with the "
+                      "uninstall procedure?", False):
+        ca_instance.print_msg("Aborting uninstall operation.")
+        sys.exit(0)
+
+    # Note that I'm completely ignoring the replication agreement so it
+    # doesn't matter what domain level this is. This is based on the
+    # (bad) assumption that this is only being executed to fix a blown
+    # install and not to remove the CA as a component.
+
+    # TODO: Figure out what is going on with serial # ranges
+
+    ca_instance.print_msg("Shutting down CA")
+    ca_instance.stop_instance()
+
+    try:
+        ca.uninstall()
+    except Exception as e:
+        root_logger.debug("CA uninstall failed with %s", e)
+
+    # certmonger is stopped as a side-effect of unintalling the CA
+    cmonger = services.knownservices.certmonger
+    cmonger.start()
+
+    ca_instance.print_msg("Removing CA from list of services")
+    dn = DN(('cn', 'CA'), ('cn', api.env.host), ('cn', 'masters'),
+            ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    try:
+        api.Backend.ldap2.delete(dn)
+    except errors.NotFound:
+        pass
+
+    # Remove the old services list file so pki-tomcatd isn't managed
+    installutils.remove_file(paths.SVC_LIST_FILE)
+
+    sys.exit(0)
+
+
 def promote(safe_options, options, filename):
     options.promote = True
 
@@ -317,6 +383,7 @@ def main():
         sys.exit("IPA server is not configured on this system.\n")
 
     if (not options.external_cert_files and
+            not options.uninstall and
             cainstance.is_ca_installed_locally()):
         sys.exit("CA is already installed on this host.")
 
@@ -333,6 +400,9 @@ def main():
     )
     api.finalize()
     api.Backend.ldap2.connect()
+
+    if options.uninstall:
+        uninstall(options)
 
     domain_level = dsinstance.get_domain_level(api)
     if domain_level > DOMAIN_LEVEL_0:
