@@ -72,7 +72,7 @@ class KEMLdap(iSecLdap):
                                          'princ': principal})
         r = conn.search_s(self.keysbase, scope, ldap_filter)
         if len(r) != 1:
-            raise ValueError("Incorrect number of results (%d) searching for"
+            raise ValueError("Incorrect number of results (%d) searching for "
                              "public key for %s" % (len(r), principal))
         ipa_public_key = r[0][1]['ipaPublicKey'][0]
         jwk = self._parse_public_key(ipa_public_key)
@@ -85,9 +85,8 @@ class KEMLdap(iSecLdap):
 
         ldap_filter = self.build_filter(IPA_CHECK_QUERY, {'host': host})
         r = conn.search_s(self.keysbase, scope, ldap_filter)
-        if len(r) != 1:
-            raise ValueError("Incorrect number of results (%d) searching for"
-                             "public key for %s" % (len(r), host))
+        if not r:
+            raise ValueError("No public keys were found for %s" % host)
         return True
 
     def _format_public_key(self, key):
