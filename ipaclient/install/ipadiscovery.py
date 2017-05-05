@@ -21,6 +21,7 @@ import socket
 
 import six
 
+from operator import attrgetter
 from ipapython.ipa_log_manager import root_logger
 from dns import resolver, rdatatype
 from dns.exception import DNSException
@@ -493,6 +494,7 @@ class IPADiscovery(object):
 
         try:
             answers = resolver.query(qname, rdatatype.SRV)
+            answers = sorted(answers, key=attrgetter('priority'))
         except DNSException as e:
             root_logger.debug("DNS record not found: %s", e.__class__.__name__)
             answers = []
