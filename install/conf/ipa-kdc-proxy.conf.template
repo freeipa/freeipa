@@ -27,4 +27,5 @@ WSGIScriptReloading Off
   Allow from all
   WSGIProcessGroup kdcproxy
   WSGIApplicationGroup kdcproxy
+  LimitRequestBody 100000
 </Location>
