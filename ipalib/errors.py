@@ -1995,5 +1995,7 @@ class GenericError(PublicError):
 public_errors = tuple(sorted(
     messages.iter_messages(globals(), PublicError), key=lambda E: E.errno))
 
+errors_by_code = dict((e.errno, e) for e in public_errors)
+
 if __name__ == '__main__':
     messages.print_report('public errors', public_errors)

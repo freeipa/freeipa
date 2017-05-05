@@ -51,7 +51,7 @@ from six.moves import urllib
 
 from ipalib.backend import Connectible
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
-from ipalib.errors import (public_errors, UnknownError, NetworkError,
+from ipalib.errors import (errors_by_code, UnknownError, NetworkError,
     KerberosError, XMLRPCMarshallError, JSONError)
 from ipalib import errors, capabilities
 from ipalib.request import context, Connection
@@ -93,8 +93,6 @@ if six.PY3:
 
 COOKIE_NAME = 'ipa_session'
 CCACHE_COOKIE_KEY = 'X-IPA-Session-Cookie'
-
-errors_by_code = dict((e.errno, e) for e in public_errors)
 
 
 def update_persistent_client_session_data(principal, data):
