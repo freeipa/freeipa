@@ -261,7 +261,7 @@ class dnsrecord_add(MethodOverride):
                 continue
             ok = True
 
-        user_options = prompt_parts(rrtype, self)
+        user_options = prompt_missing_parts(rrtype, self, kw)
         kw.update(user_options)
 
 
