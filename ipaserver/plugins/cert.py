@@ -771,6 +771,18 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         cn = cns[-1].value  # "most specific" is end of list
 
         if principal_type in (SERVICE, HOST):
+
+            has_dns_in_san_ext = False
+            if ext_san:
+                for gn in x509.process_othernames(ext_san.value):
+                    if isinstance(gn, cryptography.x509.general_name.DNSName):
+                        has_dns_in_san_ext = True
+
+            if not ext_san or not has_dns_in_san_ext:
+                print('Warning: The SAN extension '
+                      'should be provided. Please, check the RFC 2818.')
+
+
             if not _dns_name_matches_principal(cn, principal, principal_obj):
                 raise errors.ValidationError(
                     name='csr',
