@@ -28,6 +28,8 @@ env:
             test_pkcs10
             test_xmlrpc/test_[l-z]*.py"
 install:
+    - pip install --upgrade pip
+    - pip3 install --upgrade pip
     - pip install pep8
     - >
       pip3 install
