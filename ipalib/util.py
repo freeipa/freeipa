@@ -170,7 +170,7 @@ def check_writable_file(filename):
     if filename is None:
         raise errors.FileError(reason=_('Filename is empty'))
     try:
-        if os.path.exists(filename):
+        if os.path.isfile(filename):
             if not os.access(filename, os.W_OK):
                 raise errors.FileError(reason=_('Permission denied: %(file)s') % dict(file=filename))
         else:
