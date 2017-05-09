@@ -49,9 +49,15 @@ class CertRetrieveOverride(MethodOverride):
     )
 
     def forward(self, *args, **options):
-        certificate_out = options.pop('certificate_out', None)
-        if certificate_out is not None:
-            util.check_writable_file(certificate_out)
+        if 'certificate_out' in options:
+            certificate_out = options.pop('certificate_out')
+            try:
+                util.check_writable_file(certificate_out)
+            except errors.FileError as e:
+                raise errors.ValidationError(name='certificate-out',
+                                             error=str(e))
+        else:
+            certificate_out = None
 
         result = super(CertRetrieveOverride, self).forward(*args, **options)
 

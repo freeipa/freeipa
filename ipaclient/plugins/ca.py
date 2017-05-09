@@ -4,7 +4,7 @@
 
 import base64
 from ipaclient.frontend import MethodOverride
-from ipalib import util, x509, Str
+from ipalib import errors, util, x509, Str
 from ipalib.plugable import Registry
 from ipalib.text import _
 
@@ -26,7 +26,11 @@ class WithCertOutArgs(MethodOverride):
         filename = None
         if 'certificate_out' in options:
             filename = options.pop('certificate_out')
-            util.check_writable_file(filename)
+            try:
+                util.check_writable_file(filename)
+            except errors.FileError as e:
+                raise errors.ValidationError(name='certificate-out',
+                                             error=str(e))
 
         result = super(WithCertOutArgs, self).forward(*keys, **options)
         if filename:
