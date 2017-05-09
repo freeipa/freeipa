@@ -61,11 +61,11 @@ def ipa_certs_cleanup(host):
                      raiseonerr=False)
     # A workaround for https://fedorahosted.org/freeipa/ticket/4639
     result = host.run_command(['certutil', '-L', '-d',
-                               paths.HTTPD_ALIAS_DIR])
+                               paths.HTTPD_ALIAS_DIR], raiseonerr=False)
     for rawcert in result.stdout_text.split('\n')[4: -1]:
         cert = rawcert.split('    ')[0]
         host.run_command(['certutil', '-D', '-d', paths.HTTPD_ALIAS_DIR,
-                          '-n', cert])
+                          '-n', cert], raiseonerr=False)
 
 
 def server_install_teardown(func):
@@ -123,10 +123,12 @@ class CALessBase(IntegrationTest):
             client_hostname = 'unused-client.test'
         cls.env = {
             'domain': cls.master.domain.name,
+            'realm': cls.master.domain.name.upper(),
             'server1': cls.master.hostname,
             'server2': replica_hostname,
             'client': client_hostname,
             'dbdir': 'nssdb',
+            'dbpassword': cls.cert_password,
             'crl_path': cls.crl_path,
             'dirman_password': cls.master.config.dirman_password,
         }
@@ -154,8 +156,9 @@ class CALessBase(IntegrationTest):
     def install_server(cls, host=None,
                        http_pkcs12='server.p12', dirsrv_pkcs12='server.p12',
                        http_pkcs12_exists=True, dirsrv_pkcs12_exists=True,
-                       http_pin=_DEFAULT, dirsrv_pin=_DEFAULT,
-                       root_ca_file='root.pem', unattended=True,
+                       http_pin=_DEFAULT, dirsrv_pin=_DEFAULT, pkinit_pin=None,
+                       root_ca_file='root.pem', pkinit_pkcs12_exists=False,
+                       pkinit_pkcs12='pkinit-server.p12', unattended=True,
                        stdin_text=None):
         """Install a CA-less server
 
@@ -163,16 +166,29 @@ class CALessBase(IntegrationTest):
         """
         if host is None:
             host = cls.master
+
+        extra_args = ['--http-cert-file', http_pkcs12,
+                      '--dirsrv-cert-file', dirsrv_pkcs12,
+                      '--ca-cert-file', root_ca_file,
+                      '--ip-address', host.ip]
+
         if http_pin is _DEFAULT:
             http_pin = cls.cert_password
         if dirsrv_pin is _DEFAULT:
             dirsrv_pin = cls.cert_password
+        if pkinit_pin is _DEFAULT:
+            pkinit_pin = cls.cert_password
         tasks.prepare_host(host)
         files_to_copy = ['root.pem']
         if http_pkcs12_exists:
             files_to_copy.append(http_pkcs12)
         if dirsrv_pkcs12_exists:
             files_to_copy.append(dirsrv_pkcs12)
+
+        if pkinit_pkcs12_exists:
+            extra_args.extend(['--pkinit-cert-file', pkinit_pkcs12])
+        else:
+            extra_args.append('--no-pkinit')
         for filename in set(files_to_copy):
             cls.copy_cert(host, filename)
 
@@ -181,15 +197,12 @@ class CALessBase(IntegrationTest):
         host.run_command(args + ["ca1"], raiseonerr=False)
         host.run_command(args + ["ca1/server"], raiseonerr=False)
 
-        extra_args = ['--http-cert-file', http_pkcs12,
-                      '--dirsrv-cert-file', dirsrv_pkcs12,
-                      '--ca-cert-file', root_ca_file,
-                      '--ip-address', host.ip]
-
         if http_pin is not None:
             extra_args.extend(['--http-pin', http_pin])
         if dirsrv_pin is not None:
             extra_args.extend(['--dirsrv-pin', dirsrv_pin])
+        if pkinit_pin is not None:
+            extra_args.extend(['--pkinit-pin', dirsrv_pin])
         return tasks.install_master(host, extra_args=extra_args,
                                     unattended=unattended,
                                     stdin_text=stdin_text,
@@ -199,12 +212,19 @@ class CALessBase(IntegrationTest):
     def copy_cert(cls, host, filename):
         host.transport.put_file(os.path.join(cls.cert_dir, filename),
                                 os.path.join(host.config.test_dir, filename))
+    @classmethod
+    def copy_pkinit_cert(cls, host, pkinit_nick):
+        filename = pkinit_nick.split('/')[-1]
+        host.transport.put_file(os.path.join(cls.cert_dir, 'nssdb', pkinit_nick),
+                                os.path.join(host.config.test_dir, filename))
+
 
     def prepare_replica(self, _replica_number=0, replica=None, master=None,
                         http_pkcs12='replica.p12', dirsrv_pkcs12='replica.p12',
                         http_pkcs12_exists=True, dirsrv_pkcs12_exists=True,
-                        http_pin=_DEFAULT, dirsrv_pin=_DEFAULT,
-                        root_ca_file='root.pem', unattended=True,
+                        http_pin=_DEFAULT, dirsrv_pin=_DEFAULT, pkinit_pin=None,
+                        root_ca_file='root.pem', pkinit_pkcs12_exists=False,
+                        pkinit_pkcs12='pkinit-replica.p12', unattended=True,
                         stdin_text=None, domain_level=None):
         """Prepare a CA-less replica
 
@@ -221,6 +241,9 @@ class CALessBase(IntegrationTest):
             http_pin = self.cert_password
         if dirsrv_pin is _DEFAULT:
             dirsrv_pin = self.cert_password
+        if pkinit_pin is _DEFAULT:
+            pkinit_pin = self.cert_password
+
         if domain_level is None:
             domain_level = tasks.domainlevel(master)
         files_to_copy = ['root.pem']
@@ -248,11 +271,18 @@ class CALessBase(IntegrationTest):
             extra_args.extend(['--http-cert-file', http_pkcs12])
         if dirsrv_pkcs12_exists:
             extra_args.extend(['--dirsrv-cert-file', dirsrv_pkcs12])
+        if pkinit_pkcs12_exists and domain_level != DOMAIN_LEVEL_0:
+            extra_args.extend(['--pkinit-cert-file', pkinit_pkcs12])
+        else:
+            extra_args.append('--no-pkinit')
 
         if http_pin is not None:
             extra_args.extend(['--http-pin', http_pin])
         if dirsrv_pin is not None:
             extra_args.extend(['--dirsrv-pin', dirsrv_pin])
+        if pkinit_pin is not None:
+            extra_args.extend(['--pkinit-pin', dirsrv_pin])
+
         if domain_level == DOMAIN_LEVEL_0:
             result = tasks.replica_prepare(master, replica,
                                            extra_args=extra_args,
@@ -1472,3 +1502,27 @@ class TestCertinstall(CALessBase):
         result = self.certinstall('d', 'ca1/server',
                                   args=args, stdin_text=stdin_text)
         assert_error(result, "no such option: --dirsrv-pin")
+
+
+class TestPKINIT(CALessBase):
+    num_replicas = 1
+
+    @classmethod
+    def install(cls, mh):
+        super(TestPKINIT, cls).install(mh)
+        cls.export_pkcs12('ca1/server')
+        cls.copy_pkinit_cert(cls.master, 'ca1/pkinit-server.p12')
+        with open(cls.pem_filename, 'w') as f:
+            f.write(cls.get_pem('ca1'))
+        result = cls.install_server(pkinit_pkcs12_exists=True,
+                                    pkinit_pin=_DEFAULT)
+        assert result.returncode == 0
+
+    @replica_install_teardown
+    def test_server_replica_install_pkinit(self):
+        self.export_pkcs12('ca1/replica', filename='replica.p12')
+        self.copy_pkinit_cert(self.replicas[0], 'ca1/pkinit-replica.p12')
+        result = self.prepare_replica(pkinit_pkcs12_exists=True,
+                                      pkinit_pin=_DEFAULT)
+        assert result.returncode == 0
+        self.verify_installation()
