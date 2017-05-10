@@ -3736,11 +3736,6 @@ command: ping/1
 args: 0,1,1
 option: Str('version?')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-command: pkinit_anonymous/1
-args: 1,1,1
-arg: Str('action')
-option: Str('version?')
-output: Output('result')
 command: plugins/1
 args: 0,3,3
 option: Flag('all', autofill=True, cli_name='all', default=True)
@@ -6809,7 +6804,6 @@ default: permission_remove_member/1
 default: permission_show/1
 default: ping/1
 default: pkinit/1
-default: pkinit_anonymous/1
 default: plugins/1
 default: privilege/1
 default: privilege_add/1
