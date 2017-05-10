@@ -1408,14 +1408,20 @@ fi
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{python_sitelib}/ipaclient
-%dir %{python_sitelib}/ipaclient/plugins
 %{python_sitelib}/ipaclient/*.py*
+%dir %{python_sitelib}/ipaclient/install
 %{python_sitelib}/ipaclient/install/*.py*
+%dir %{python_sitelib}/ipaclient/plugins
 %{python_sitelib}/ipaclient/plugins/*.py*
+%dir %{python_sitelib}/ipaclient/remote_plugins
 %{python_sitelib}/ipaclient/remote_plugins/*.py*
 %{python_sitelib}/ipaclient/remote_plugins/2_*/*.py*
+%dir %{python_sitelib}/ipaclient/csrgen
+%dir %{python_sitelib}/ipaclient/csrgen/profiles
 %{python_sitelib}/ipaclient/csrgen/profiles/*.json
+%dir %{python_sitelib}/ipaclient/csrgen/rules
 %{python_sitelib}/ipaclient/csrgen/rules/*.json
+%dir %{python_sitelib}/ipaclient/csrgen/templates
 %{python_sitelib}/ipaclient/csrgen/templates/*.tmpl
 %{python_sitelib}/ipaclient-*.egg-info
 
@@ -1427,19 +1433,25 @@ fi
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{python3_sitelib}/ipaclient
-%dir %{python3_sitelib}/ipaclient/plugins
 %{python3_sitelib}/ipaclient/*.py
 %{python3_sitelib}/ipaclient/__pycache__/*.py*
+%dir %{python3_sitelib}/ipaclient/install
 %{python3_sitelib}/ipaclient/install/*.py
 %{python3_sitelib}/ipaclient/install/__pycache__/*.py*
+%dir %{python3_sitelib}/ipaclient/plugins
 %{python3_sitelib}/ipaclient/plugins/*.py
 %{python3_sitelib}/ipaclient/plugins/__pycache__/*.py*
+%dir %{python3_sitelib}/ipaclient/remote_plugins
 %{python3_sitelib}/ipaclient/remote_plugins/*.py
 %{python3_sitelib}/ipaclient/remote_plugins/__pycache__/*.py*
 %{python3_sitelib}/ipaclient/remote_plugins/2_*/*.py
 %{python3_sitelib}/ipaclient/remote_plugins/2_*/__pycache__/*.py*
+%dir %{python3_sitelib}/ipaclient/csrgen
+%dir %{python3_sitelib}/ipaclient/csrgen/profiles
 %{python3_sitelib}/ipaclient/csrgen/profiles/*.json
+%dir %{python3_sitelib}/ipaclient/csrgen/rules
 %{python3_sitelib}/ipaclient/csrgen/rules/*.json
+%dir %{python3_sitelib}/ipaclient/csrgen/templates
 %{python3_sitelib}/ipaclient/csrgen/templates/*.tmpl
 %{python3_sitelib}/ipaclient-*.egg-info
 
