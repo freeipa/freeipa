@@ -16,25 +16,36 @@
 .\"
 .\" Author: Ade Lee <alee@redhat.com>
 .\"
-.TH "ipa-kra-install" "1" "Aug 24 2014" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa-kra-install" "1" "May 10 2017" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-kra\-install \- Install a KRA on a server
 .SH "SYNOPSIS"
+.SS "DOMAIN LEVEL 0"
+.TP
 ipa\-kra\-install [\fIOPTION\fR]... [replica_file]
+.SS "DOMAIN LEVEL 1"
+.TP
+ipa\-kra\-install [\fIOPTION\fR]...
 .SH "DESCRIPTION"
 Adds a KRA as an IPA\-managed service. This requires that the IPA server is already installed and configured, including a CA.
 
 The KRA (Key Recovery Authority) is a component used to securely store secrets such as passwords, symmetric keys and private asymmetric keys.  It is used as the back-end repository for the IPA Password Vault.
 
-ipa\-kra\-install can be run without replica_file to add KRA to the existing CA.
+In a domain at domain level 0, ipa\-kra\-install can be run without replica_file to add KRA to the existing CA, or with replica_file to install the KRA service on the replica.
 ipa\-kra\-install will contact the CA to determine if a KRA has already been installed on another replica, and if so, will exit indicating that a replica_file is required.
 
 The replica_file is created using the ipa\-replica\-prepare utility.  A new replica_file should be generated on the master IPA server after the KRA has been installed and configured, so that the replica_file will contain the master KRA configuration and system certificates.
 
+In a domain at domain level 1, ipa\-kra\-install can be used to add KRA to the existing CA, or to install the KRA service on a replica, and does not require any replica file.
+
 KRA can only be removed along with the entire server using ipa\-server\-install \-\-uninstall.
 .SH "OPTIONS"
+.TP
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 Directory Manager (existing master) password
+.TP
+\fB\-\-no-host-dns\fR
+Do not use DNS for hostname lookup during installation
 .TP
 \fB\-U\fR, \fB\-\-unattended\fR
 An unattended installation that will never prompt for user input
@@ -45,7 +56,7 @@ Enable debug output when more verbose output is needed
 \fB\-q\fR, \fB\-\-quiet\fR
 Output only errors
 .TP
-\fB\-v\fR, \fB\-\-log-file\fR=\fFILE\fR
+\fB\-\-log-file\fR=\fRFILE\fR
 Log to the given file
 .SH "EXIT STATUS"
 0 if the command was successful
