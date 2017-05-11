@@ -252,7 +252,7 @@ class KRAInstance(DogtagInstance):
             os.chown(p12_tmpfile_name, pent.pw_uid, pent.pw_gid)
 
             # Security domain registration
-            config.set("KRA", "pki_security_domain_hostname", self.master_host)
+            config.set("KRA", "pki_security_domain_hostname", self.fqdn)
             config.set("KRA", "pki_security_domain_https_port", "443")
             config.set("KRA", "pki_security_domain_user", self.admin_user)
             config.set("KRA", "pki_security_domain_password",
