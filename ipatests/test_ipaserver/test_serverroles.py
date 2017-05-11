@@ -706,7 +706,7 @@ class TestServerAttributes(object):
         actual_attr_masters = self.config_retrieve(
             assoc_role, mock_api)[attr_name]
 
-        assert actual_attr_masters == fqdn
+        assert actual_attr_masters == [fqdn]
 
     def test_set_attribute_on_the_same_provider_raises_emptymodlist(
             self, mock_api, mock_masters):
@@ -727,7 +727,7 @@ class TestServerAttributes(object):
         non_ca_fqdn = mock_masters.get_fqdn('trust-controller-dns')
 
         with pytest.raises(errors.ValidationError):
-            self.config_update(mock_api, **{attr_name: non_ca_fqdn})
+            self.config_update(mock_api, **{attr_name: [non_ca_fqdn]})
 
     def test_set_unknown_attribute_on_master_raises_notfound(
             self, mock_api, mock_masters):
@@ -735,7 +735,7 @@ class TestServerAttributes(object):
         fqdn = mock_masters.get_fqdn('trust-controller-ca')
 
         with pytest.raises(errors.NotFound):
-            self.config_update(mock_api, **{attr_name: fqdn})
+            self.config_update(mock_api, **{attr_name: [fqdn]})
 
     def test_set_ca_renewal_master_on_other_ca_and_back(self, mock_api,
                                                         mock_masters):
@@ -747,7 +747,7 @@ class TestServerAttributes(object):
         other_ca_server = mock_masters.get_fqdn('trust-controller-ca')
 
         for host in (other_ca_server, original_renewal_master):
-            self.config_update(mock_api, **{attr_name: host})
+            self.config_update(mock_api, **{attr_name: [host]})
 
             assert (
-                self.config_retrieve(role_name, mock_api)[attr_name] == host)
+                self.config_retrieve(role_name, mock_api)[attr_name] == [host])
