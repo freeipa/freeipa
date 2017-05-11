@@ -884,7 +884,8 @@ class host_mod(LDAPUpdate):
                 msg = 'Principal name already set, it is unchangeable.'
                 raise errors.ACIError(info=msg)
             obj_classes = entry_attrs_old['objectclass']
-            if 'krbprincipalaux' not in obj_classes:
+            if 'krbprincipalaux' not in (item.lower() for item in
+                                         obj_classes):
                 obj_classes.append('krbprincipalaux')
                 entry_attrs['objectclass'] = obj_classes
 
@@ -920,7 +921,7 @@ class host_mod(LDAPUpdate):
             else:
                 _entry_attrs = ldap.get_entry(dn, ['objectclass'])
                 obj_classes = _entry_attrs['objectclass']
-            if 'ieee802device' not in obj_classes:
+            if 'ieee802device' not in (item.lower() for item in obj_classes):
                 obj_classes.append('ieee802device')
                 entry_attrs['objectclass'] = obj_classes
 
@@ -940,7 +941,7 @@ class host_mod(LDAPUpdate):
             else:
                 _entry_attrs = ldap.get_entry(dn, ['objectclass'])
                 obj_classes = entry_attrs['objectclass'] = _entry_attrs['objectclass']
-            if 'ipasshhost' not in obj_classes:
+            if 'ipasshhost' not in (item.lower() for item in obj_classes):
                 obj_classes.append('ipasshhost')
 
         update_krbticketflags(ldap, entry_attrs, attrs_list, options, True)
@@ -949,14 +950,16 @@ class host_mod(LDAPUpdate):
             if 'objectclass' not in entry_attrs:
                 entry_attrs_old = ldap.get_entry(dn, ['objectclass'])
                 entry_attrs['objectclass'] = entry_attrs_old['objectclass']
-            if 'krbticketpolicyaux' not in entry_attrs['objectclass']:
+            if 'krbticketpolicyaux' not in (item.lower() for item in
+                                            entry_attrs['objectclass']):
                 entry_attrs['objectclass'].append('krbticketpolicyaux')
 
         if 'krbprincipalauthind' in entry_attrs:
             if 'objectclass' not in entry_attrs:
                 entry_attrs_old = ldap.get_entry(dn, ['objectclass'])
                 entry_attrs['objectclass'] = entry_attrs_old['objectclass']
-            if 'krbprincipalaux' not in entry_attrs['objectclass']:
+            if 'krbprincipalaux' not in (item.lower() for item in
+                                         entry_attrs['objectclass']):
                 entry_attrs['objectclass'].append('krbprincipalaux')
 
         add_sshpubkey_to_attrs_pre(self.context, attrs_list)
