@@ -798,7 +798,9 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             # fail if any email addr from DN does not appear in ldap entry
             email_addrs = csr_obj.subject.get_attributes_for_oid(
                     cryptography.x509.oid.NameOID.EMAIL_ADDRESS)
-            if len(set(email_addrs) - set(principal_obj.get('mail', []))) > 0:
+            csr_emails = [attr.value for attr in email_addrs]
+            if not _emails_are_valid(csr_emails,
+                                     principal_obj.get('mail', [])):
                 raise errors.ValidationError(
                     name='csr',
                     error=_(
@@ -884,8 +886,8 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                             "match requested principal") % gn.name)
             elif isinstance(gn, cryptography.x509.general_name.RFC822Name):
                 if principal_type == USER:
-                    if principal_obj and gn.value not in principal_obj.get(
-                            'mail', []):
+                    if not _emails_are_valid([gn.value],
+                                             principal_obj.get('mail', [])):
                         raise errors.ValidationError(
                             name='csr',
                             error=_(
@@ -951,6 +953,25 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             result=result,
             value=pkey_to_value(int(result['request_id']), kw),
         )
+
+
+def _emails_are_valid(csr_emails, principal_emails):
+    """
+    Checks if any email address from certificate request does not
+    appear in ldap entry, comparing the domain part case-insensitively.
+    """
+
+    def lower_domain(email):
+        email_splitted = email.split('@', 1)
+        if len(email_splitted) > 1:
+            email_splitted[1] = email_splitted[1].lower()
+
+        return '@'.join(email_splitted)
+
+    principal_emails_lower = set(map(lower_domain, principal_emails))
+    csr_emails_lower = set(map(lower_domain, csr_emails))
+
+    return csr_emails_lower.issubset(principal_emails_lower)
 
 
 def principal_to_principal_type(principal):
