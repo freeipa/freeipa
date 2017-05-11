@@ -113,12 +113,13 @@ def install_replica_ds(config, options, ca_is_configured, remote_api,
     return ds
 
 
-def install_krb(config, setup_pkinit=False, promote=False):
+def install_krb(config, setup_pkinit=False, pkcs12_info=None, promote=False):
     krb = krbinstance.KrbInstance()
 
     # pkinit files
-    pkcs12_info = make_pkcs12_info(config.dir, "pkinitcert.p12",
-                                   "pkinit_pin.txt")
+    if pkcs12_info is None:
+        pkcs12_info = make_pkcs12_info(config.dir, "pkinitcert.p12",
+                                       "pkinit_pin.txt")
 
     krb.create_replica(config.realm_name,
                        config.master_host_name, config.host_name,
@@ -1350,6 +1351,7 @@ def install(installer):
     cafile = installer._ca_file
     dirsrv_pkcs12_info = installer._dirsrv_pkcs12_info
     http_pkcs12_info = installer._http_pkcs12_info
+    pkinit_pkcs12_info = installer._pkinit_pkcs12_info
 
     remote_api = installer._remote_api
     conn = remote_api.Backend.ldap2
@@ -1430,6 +1432,7 @@ def install(installer):
     krb = install_krb(
         config,
         setup_pkinit=not options.no_pkinit,
+        pkcs12_info=pkinit_pkcs12_info,
         promote=promote)
 
     # we now need to enable ssl on the ds
