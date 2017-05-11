@@ -608,14 +608,14 @@ class server_del(LDAPDelete):
             dn = DN(('cn', 'default'), ('ou', 'profile'), env.basedn)
             ret = conn.get_entry(dn)
             srvlist = ret.single_value.get('defaultServerList', '')
-            srvlist = srvlist[0].split()
+            srvlist = srvlist.split()
             if master in srvlist:
                 srvlist.remove(master)
                 attr = ' '.join(srvlist)
-                mod = [(ldap.MOD_REPLACE, 'defaultServerList', attr)]
-                conn.conn.modify_s(str(dn), mod)
-        except (errors.NotFound, ldap.NO_SUCH_ATTRIBUTE,
-                ldap.TYPE_OR_VALUE_EXISTS):
+                ret['defaultServerList'] = attr
+                conn.update_entry(ret)
+        except (errors.NotFound, errors.MidairCollision,
+                errors.EmptyModlist):
             pass
         except Exception as e:
             self.add_message(
