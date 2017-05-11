@@ -251,6 +251,29 @@ class test_cert(BaseCert):
         res = api.Command['service_find'](self.service_princ)
         assert res['count'] == 0
 
+    def test_00011_emails_are_valid(self):
+        """
+        Verify the different scenarios when checking if any email addr
+        from DN or SAN extension does not appear in ldap entry.
+        """
+
+        from ipaserver.plugins.cert import _emails_are_valid
+        email_addrs = [u'any@EmAiL.CoM']
+        result = _emails_are_valid(email_addrs, [u'any@email.com'])
+        assert True == result, result
+
+        email_addrs = [u'any@EmAiL.CoM']
+        result = _emails_are_valid(email_addrs, [u'any@email.com',
+                                                 u'another@email.com'])
+        assert True == result, result
+
+        result = _emails_are_valid([], [u'any@email.com'])
+        assert True == result, result
+
+        email_addrs = [u'invalidEmailAddress']
+        result = _emails_are_valid(email_addrs, [])
+        assert False == result, result
+
 
 @pytest.mark.tier1
 class test_cert_find(XMLRPC_test):
