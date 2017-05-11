@@ -73,7 +73,8 @@ def install_key_from_p12(p12_fname, p12_passwd, pem_fname):
     pwd = ipautil.write_tmp_file(p12_passwd)
     ipautil.run([paths.OPENSSL, "pkcs12", "-nodes", "-nocerts",
                  "-in", p12_fname, "-out", pem_fname,
-                 "-passin", "file:" + pwd.name])
+                 "-passin", "file:" + pwd.name],
+                umask=0o077)
 
 
 def export_pem_p12(pkcs12_fname, pkcs12_pwd_fname, nickname, pem_fname):
