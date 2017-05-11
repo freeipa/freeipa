@@ -136,9 +136,7 @@ class serverroles(Backend):
 
         for name, attr in assoc_attributes.items():
             attr_value = attr.get(self.api)
-
-            if attr_value is not None:
-                result.update({name: attr_value})
+            result.update({name: attr_value})
 
         return result
 

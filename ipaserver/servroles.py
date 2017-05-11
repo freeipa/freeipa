@@ -277,29 +277,33 @@ class ServerAttribute(LDAPBasedProperty):
         try:
             entries = ldap2.get_entries(search_base, filter=search_filter)
         except errors.EmptyResult:
-            return
+            return []
 
-        master_cn = entries[0].dn[1]['cn']
+        master_cns = {e.dn[1]['cn'] for e in entries}
 
         associated_role_providers = set(
             self._get_assoc_role_providers(api_instance))
 
-        if master_cn not in associated_role_providers:
+        if not master_cns.issubset(associated_role_providers):
             raise errors.ValidationError(
                 name=self.name,
                 error=_("all masters must have %(role)s role enabled" %
                         {'role': self.associated_role.name})
             )
 
-        return master_cn
+        return sorted(master_cns)
 
-    def _get_master_dn(self, api_instance, server):
-        return DN(('cn', server), api_instance.env.container_masters,
-                  api_instance.env.basedn)
+    def _get_master_dns(self, api_instance, servers):
+        return [
+            DN(('cn', server), api_instance.env.container_masters,
+               api_instance.env.basedn) for server in servers]
 
-    def _get_masters_service_entry(self, ldap, master_dn):
-        service_dn = DN(('cn', self.associated_service_name), master_dn)
-        return ldap.get_entry(service_dn)
+    def _get_masters_service_entries(self, ldap, master_dns):
+        service_dns = [
+            DN(('cn', self.associated_service_name), master_dn) for master_dn
+            in master_dns]
+
+        return [ldap.get_entry(service_dn) for service_dn in service_dns]
 
     def _add_attribute_to_svc_entry(self, ldap, service_entry):
         """
@@ -341,65 +345,98 @@ class ServerAttribute(LDAPBasedProperty):
             r[u'server_server'] for r in self.associated_role.status(
                 api_instance) if r[u'status'] == ENABLED]
 
-    def _remove(self, api_instance, master):
+    def _remove(self, api_instance, masters):
         """
-        remove attribute from the master
+        remove attribute from one or more masters
 
         :param api_instance: API instance
-        :param master: master FQDN
+        :param master: list or iterable containing master FQDNs
         """
 
         ldap = api_instance.Backend.ldap2
 
-        master_dn = self._get_master_dn(api_instance, master)
-        service_entry = self._get_masters_service_entry(ldap, master_dn)
-        self._remove_attribute_from_svc_entry(ldap, service_entry)
+        master_dns = self._get_master_dns(api_instance, masters)
+        service_entries = self._get_masters_service_entries(ldap, master_dns)
 
-    def _add(self, api_instance, master):
+        for service_entry in service_entries:
+            self._remove_attribute_from_svc_entry(ldap, service_entry)
+
+    def _add(self, api_instance, masters):
         """
         add attribute to the master
         :param api_instance: API instance
-        :param master: master FQDN
+        :param master: iterable containing master FQDNs
 
         :raises: * errors.ValidationError if the associated role is not enabled
                    on the master
         """
 
-        assoc_role_providers = self._get_assoc_role_providers(api_instance)
+        assoc_role_providers = set(
+            self._get_assoc_role_providers(api_instance))
+        masters_set = set(masters)
         ldap = api_instance.Backend.ldap2
 
-        if master not in assoc_role_providers:
+        masters_without_role = masters_set - assoc_role_providers
+
+        if masters_without_role:
             raise errors.ValidationError(
-                name=master,
+                name=', '.join(sorted(masters_without_role)),
                 error=_("must have %(role)s role enabled" %
                         {'role': self.associated_role.name})
             )
 
-        master_dn = self._get_master_dn(api_instance, master)
-        service_entry = self._get_masters_service_entry(ldap, master_dn)
-        self._add_attribute_to_svc_entry(ldap, service_entry)
+        master_dns = self._get_master_dns(api_instance, masters)
+        service_entries = self._get_masters_service_entries(ldap, master_dns)
+        for service_entry in service_entries:
+            self._add_attribute_to_svc_entry(ldap, service_entry)
 
-    def set(self, api_instance, master):
+    def set(self, api_instance, masters):
         """
-        set the attribute on master
+        set the attribute on masters
 
         :param api_instance: API instance
-        :param master: FQDN of the new master
+        :param masters: an interable with FQDNs of the new masters
 
-        the attribute is automatically unset from previous master if present
+        the attribute is automatically unset from previous masters if present
 
         :raises: errors.EmptyModlist if the new masters is the same as
-                 the original on
+                 the original ones
         """
-        old_master = self.get(api_instance)
+        old_masters = self.get(api_instance)
 
-        if old_master == master:
+        if sorted(old_masters) == sorted(masters):
             raise errors.EmptyModlist
 
-        self._add(api_instance, master)
+        if old_masters:
+            self._remove(api_instance, old_masters)
 
-        if old_master is not None:
-            self._remove(api_instance, old_master)
+        self._add(api_instance, masters)
+
+
+class SingleValuedServerAttribute(ServerAttribute):
+    """
+    Base class for server attributes that are forced to be single valued
+
+    this means that `get` method will return a one-element list, and `set`
+    method will accept only one-element list
+    """
+
+    def set(self, api_instance, masters):
+        if len(masters) > 1:
+            raise errors.ValidationError(
+                name=self.attr_name,
+                error=_("must be enabled only on a single master"))
+
+        super(SingleValuedServerAttribute, self).set(api_instance, masters)
+
+    def get(self, api_instance):
+        masters = super(SingleValuedServerAttribute, self).get(api_instance)
+        num_masters = len(masters)
+
+        if num_masters > 1:
+            raise errors.SingleMatchExpected(found=num_masters)
+
+        return masters
 
 
 _Service = namedtuple('Service', ['name', 'enabled'])
@@ -574,14 +611,14 @@ role_instances = (
 )
 
 attribute_instances = (
-    ServerAttribute(
+    SingleValuedServerAttribute(
         u"ca_renewal_master_server",
         u"CA renewal master",
         u"ca_server_server",
         u"CA",
         u"caRenewalMaster",
     ),
-    ServerAttribute(
+    SingleValuedServerAttribute(
         u"dnssec_key_master_server",
         u"DNSSec key master",
         u"dns_server_server",
