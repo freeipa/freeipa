@@ -58,7 +58,7 @@ _adtrust_agents = DN(
 
 
 master_data = {
-    'ca-dns-dnssec-keymaster': {
+    'ca-dns-dnssec-keymaster-pkinit-server': {
         'services': {
             'CA': {
                 'enabled': True,
@@ -72,14 +72,19 @@ master_data = {
             'DNSSEC': {
                 'enabled': True,
                 'config': ['DNSSecKeyMaster']
+            },
+            'KDC': {
+                'enabled': True,
+                'config': ['pkinitEnabled']
             }
         },
         'expected_roles': {
             'enabled': ['IPA master', 'CA server', 'DNS server']
         },
-        'expected_attributes': {'DNS server': 'dnssec_key_master_server'}
+        'expected_attributes': {'DNS server': 'dnssec_key_master_server',
+                                'IPA master': 'pkinit_server_server'}
     },
-    'ca-kra-renewal-master': {
+    'ca-kra-renewal-master-pkinit-server': {
         'services': {
             'CA': {
                 'enabled': True,
@@ -88,11 +93,16 @@ master_data = {
             'KRA': {
                 'enabled': True,
             },
+            'KDC': {
+                'enabled': True,
+                'config': ['pkinitEnabled']
+            },
         },
         'expected_roles': {
             'enabled': ['IPA master', 'CA server', 'KRA server']
         },
-        'expected_attributes': {'CA server': 'ca_renewal_master_server'}
+        'expected_attributes': {'CA server': 'ca_renewal_master_server',
+                                'IPA master': 'pkinit_server_server'}
     },
     'dns-trust-agent': {
         'services': {
@@ -234,7 +244,7 @@ class MockMasterTopology(object):
                 no_members=True,
                 raw=True)['result']}
 
-        self.existing_attributes = self._check_test_host_attributes()
+        self.original_dns_configs = self._remove_test_host_attrs()
 
     def iter_domain_data(self):
         MasterData = namedtuple('MasterData',
@@ -287,7 +297,6 @@ class MockMasterTopology(object):
             pass
 
     def _add_svc_entries(self, master_dn, svc_desc):
-        self._add_ipamaster_services(master_dn)
         for name in svc_desc:
             svc_dn = self.get_service_dn(name, master_dn)
             svc_mods = svc_desc[name]
@@ -297,6 +306,8 @@ class MockMasterTopology(object):
                 _make_service_entry_mods(
                     enabled=svc_mods['enabled'],
                     other_config=svc_mods.get('config', None)))
+
+        self._add_ipamaster_services(master_dn)
 
     def _remove_svc_master_entries(self, master_dn):
         try:
@@ -317,7 +328,11 @@ class MockMasterTopology(object):
         """
         for svc_name in self.ipamaster_services:
             svc_dn = self.get_service_dn(svc_name, master_dn)
-            self.ldap.add_entry(str(svc_dn), _make_service_entry_mods())
+            try:
+                self.api.Backend.ldap2.get_entry(svc_dn)
+            except errors.NotFound:
+                self.ldap.add_entry(
+                    str(svc_dn), _make_service_entry_mods())
 
     def _add_members(self, dn, fqdn, member_attrs):
         _entry, attrs = self.ldap.connection.search_s(
@@ -376,57 +391,36 @@ class MockMasterTopology(object):
         except (ldap.NO_SUCH_OBJECT, ldap.NO_SUCH_ATTRIBUTE):
             pass
 
-    def _check_test_host_attributes(self):
-        existing_attributes = set()
+    def _remove_test_host_attrs(self):
+        original_dns_configs = []
 
-        for service, value, attr_name in (
-                ('CA', 'caRenewalMaster', 'ca renewal master'),
-                ('DNSSEC', 'DNSSecKeyMaster', 'dnssec key master')):
-
-            svc_dn = DN(('cn', service), self.test_master_dn)
+        for attr_name in (
+                'caRenewalMaster', 'dnssecKeyMaster', 'pkinitEnabled'):
             try:
-                svc_entry = self.api.Backend.ldap2.get_entry(svc_dn)
+                svc_entry = self.api.Backend.ldap2.find_entry_by_attr(
+                    'ipaConfigString', attr_name, 'ipaConfigObject',
+                    base_dn=self.test_master_dn)
             except errors.NotFound:
                 continue
             else:
-                config_string_val = svc_entry.get('ipaConfigString', [])
+                original_dns_configs.append(
+                    (svc_entry.dn, list(svc_entry.get('ipaConfigString', [])))
+                )
+                svc_entry[u'ipaConfigString'].remove(attr_name)
+                self.api.Backend.ldap2.update_entry(svc_entry)
 
-                if value in config_string_val:
-                    existing_attributes.add(attr_name)
+        return original_dns_configs
 
-        return existing_attributes
-
-    def _remove_ca_renewal_master(self):
-        if 'ca renewal master' not in self.existing_attributes:
-            return
-
-        ca_dn = DN(('cn', 'CA'), self.test_master_dn)
-        ca_entry = self.api.Backend.ldap2.get_entry(ca_dn)
-
-        config_string_val = ca_entry.get('ipaConfigString', [])
-        try:
-            config_string_val.remove('caRenewalMaster')
-        except KeyError:
-            return
-
-        ca_entry.update({'ipaConfigString': config_string_val})
-        self.api.Backend.ldap2.update_entry(ca_entry)
-
-    def _restore_ca_renewal_master(self):
-        if 'ca renewal master' not in self.existing_attributes:
-            return
-
-        ca_dn = DN(('cn', 'CA'), self.test_master_dn)
-        ca_entry = self.api.Backend.ldap2.get_entry(ca_dn)
-
-        config_string_val = ca_entry.get('ipaConfigString', [])
-        config_string_val.append('caRenewalMaster')
-
-        ca_entry.update({'ipaConfigString': config_string_val})
-        self.api.Backend.ldap2.update_entry(ca_entry)
+    def _restore_test_host_attrs(self):
+        for dn, config in self.original_dns_configs:
+            try:
+                svc_entry = self.api.Backend.ldap2.get_entry(dn)
+                svc_entry['ipaConfigString'] = config
+                self.api.Backend.ldap2.update_entry(svc_entry)
+            except (errors.NotFound, errors.EmptyModlist):
+                continue
 
     def setup_data(self):
-        self._remove_ca_renewal_master()
         for master_data in self.iter_domain_data():
             # create host
             self._add_host_entry(master_data.fqdn)
@@ -449,7 +443,6 @@ class MockMasterTopology(object):
                     )
 
     def teardown_data(self):
-        self._restore_ca_renewal_master()
         for master_data in self.iter_domain_data():
             # first remove the master entries and service containers
             self._remove_svc_master_entries(master_data.dn)
@@ -465,6 +458,8 @@ class MockMasterTopology(object):
 
             # finally remove host entry
             self._del_host_entry(master_data.fqdn)
+
+        self._restore_test_host_attrs()
 
 
 @pytest.fixture(scope='module')
@@ -665,14 +660,14 @@ class TestServerRoleStatusRetrieval(object):
 
     def test_unknown_role_status_raises_notfound(self, mock_api, mock_masters):
         unknown_role = 'IAP maestr'
-        fqdn = mock_masters.get_fqdn('ca-dns-dnssec-keymaster')
+        fqdn = mock_masters.get_fqdn('ca-dns-dnssec-keymaster-pkinit-server')
         with pytest.raises(errors.NotFound):
             mock_api.Backend.serverroles.server_role_retrieve(
                 fqdn, unknown_role)
 
     def test_no_servrole_queries_all_roles_on_server(self, mock_api,
                                                      mock_masters):
-        master_name = 'ca-dns-dnssec-keymaster'
+        master_name = 'ca-dns-dnssec-keymaster-pkinit-server'
         enabled_roles = master_data[master_name]['expected_roles']['enabled']
         result = self.find_role(None, mock_api, mock_masters,
                                 master=master_name)
@@ -688,7 +683,7 @@ class TestServerRoleStatusRetrieval(object):
         invalid_substr = 'fwfgbb'
 
         assert (not self.find_role(invalid_substr, mock_api, mock_masters,
-                                   'ca-dns-dnssec-keymaster'))
+                                   'ca-dns-dnssec-keymaster-pkinit-server'))
 
 
 class TestServerAttributes(object):
@@ -706,7 +701,7 @@ class TestServerAttributes(object):
         actual_attr_masters = self.config_retrieve(
             assoc_role, mock_api)[attr_name]
 
-        assert actual_attr_masters == [fqdn]
+        assert fqdn in actual_attr_masters
 
     def test_set_attribute_on_the_same_provider_raises_emptymodlist(
             self, mock_api, mock_masters):
@@ -744,10 +739,10 @@ class TestServerAttributes(object):
         original_renewal_master = self.config_retrieve(
             role_name, mock_api)[attr_name]
 
-        other_ca_server = mock_masters.get_fqdn('trust-controller-ca')
+        other_ca_server = [mock_masters.get_fqdn('trust-controller-ca')]
 
         for host in (other_ca_server, original_renewal_master):
-            self.config_update(mock_api, **{attr_name: [host]})
+            self.config_update(mock_api, **{attr_name: host})
 
             assert (
-                self.config_retrieve(role_name, mock_api)[attr_name] == [host])
+                self.config_retrieve(role_name, mock_api)[attr_name] == host)

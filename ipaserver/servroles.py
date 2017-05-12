@@ -625,4 +625,11 @@ attribute_instances = (
         u"DNSSEC",
         u"dnssecKeyMaster",
     ),
+    ServerAttribute(
+        u"pkinit_server_server",
+        u"PKINIT enabled server",
+        u"ipa_master_server",
+        u"KDC",
+        u"pkinitEnabled"
+    )
 )
