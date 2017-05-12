@@ -256,6 +256,12 @@ class config(LDAPObject):
             flags={'virtual_attribute', 'no_create'}
         ),
         Str(
+            'pkinit_server_server*',
+            label=_('IPA master capable of PKINIT'),
+            doc=_('IPA master which can process PKINIT requests'),
+            flags={'virtual_attribute', 'no_create', 'no_update'}
+        ),
+        Str(
             'ipadomainresolutionorder?',
             cli_name='domain_resolution_order',
             label=_('Domain resolution order'),
