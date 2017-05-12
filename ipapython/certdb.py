@@ -52,6 +52,8 @@ CA_NICKNAME_FMT = "%s IPA CA"
 
 NSS_FILES = ("cert8.db", "key3.db", "secmod.db", "pwdfile.txt")
 
+BAD_USAGE_ERR = 'Certificate key usage inadequate for attempted operation.'
+
 
 def get_ca_nickname(realm, format=CA_NICKNAME_FMT):
     return format % realm
@@ -547,9 +549,15 @@ class NSSDatabase(object):
         cert = x509.load_certificate(cert, x509.DER)
 
         try:
-            self.run_certutil(['-V', '-n', nickname, '-u', 'V'])
-        except ipautil.CalledProcessError:
-            raise ValueError('invalid for a SSL server')
+            self.run_certutil(['-V', '-n', nickname, '-u', 'V'],
+                              capture_output=True)
+        except ipautil.CalledProcessError as e:
+            # certutil output in case of error is
+            # 'certutil: certificate is invalid: <ERROR_STRING>\n'
+            msg = e.output.split(': ')[2].strip()
+            if msg == BAD_USAGE_ERR:
+                msg = 'invalid for a SSL server.'
+            raise ValueError(msg)
 
         try:
             x509.match_hostname(cert, hostname)
@@ -573,6 +581,12 @@ class NSSDatabase(object):
             raise ValueError("not a CA certificate")
 
         try:
-            self.run_certutil(['-V', '-n', nickname, '-u', 'L'])
-        except ipautil.CalledProcessError:
-            raise ValueError('invalid for a CA')
+            self.run_certutil(['-V', '-n', nickname, '-u', 'L'],
+                              capture_output=True)
+        except ipautil.CalledProcessError as e:
+            # certutil output in case of error is
+            # 'certutil: certificate is invalid: <ERROR_STRING>\n'
+            msg = e.output.split(': ')[2].strip()
+            if msg == BAD_USAGE_ERR:
+                msg = 'invalid for a CA.'
+            raise ValueError(msg)
