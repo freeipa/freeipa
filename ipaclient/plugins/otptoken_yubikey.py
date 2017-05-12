@@ -147,7 +147,10 @@ class otptoken_add_yubikey(Command):
 
         # Write the config.
         cfg = yk.init_config()
-        cfg.mode_oath_hotp(key, kwargs['ipatokenotpdigits'])
+        cfg.mode_oath_hotp(key, kwargs.get(
+            'ipatokenotpdigits',
+            self.get_default_of('ipatokenotpdigits')
+        ))
         cfg.extended_flag('SERIAL_API_VISIBLE', True)
         yk.write_config(cfg, slot=kwargs['slot'])
 
