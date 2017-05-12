@@ -38,6 +38,8 @@ _DEFAULT = object()
 
 assert_error = tasks.assert_error
 
+CERT_EXPIRED_MSG = "Peer's Certificate has expired."
+
 
 def get_install_stdin(cert_passwords=()):
     lines = [
@@ -495,9 +497,8 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in http.p12 is not valid: '
-                     "(SEC_ERROR_EXPIRED_CERTIFICATE) Peer's Certificate has "
-                     'expired.')
+                     'The server certificate in http.p12 is not valid: {err}'
+                     .format(err=CERT_EXPIRED_MSG))
 
     @server_install_teardown
     def test_expired_ds(self):
@@ -511,9 +512,8 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in dirsrv.p12 is not valid: '
-                     "(SEC_ERROR_EXPIRED_CERTIFICATE) Peer's Certificate has "
-                     'expired.')
+                     'The server certificate in dirsrv.p12 is not valid: {err}'
+                     .format(err=CERT_EXPIRED_MSG))
 
     @server_install_teardown
     def test_http_bad_usage(self):
@@ -884,9 +884,8 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in http.p12 is not valid: '
-                     "(SEC_ERROR_EXPIRED_CERTIFICATE) Peer's Certificate has "
-                     'expired.')
+                     'The server certificate in http.p12 is not valid: {err}'
+                     .format(err=CERT_EXPIRED_MSG))
 
     @replica_install_teardown
     def test_expired_ds(self):
@@ -898,9 +897,8 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in http.p12 is not valid: '
-                     "(SEC_ERROR_EXPIRED_CERTIFICATE) Peer's Certificate has "
-                     'expired.')
+                     'The server certificate in http.p12 is not valid: {err}'
+                     .format(err=CERT_EXPIRED_MSG))
 
     @replica_install_teardown
     def test_http_bad_usage(self):
@@ -1311,18 +1309,16 @@ class TestCertinstall(CALessBase):
 
         result = self.certinstall('w', 'ca1/server-expired')
         assert_error(result,
-                     'The server certificate in server.p12 is not valid: '
-                     "(SEC_ERROR_EXPIRED_CERTIFICATE) Peer's Certificate has "
-                     'expired.')
+                     'The server certificate in server.p12 is not valid: {err}'
+                     .format(err=CERT_EXPIRED_MSG))
 
     def test_expired_ds(self):
         "Install new expired DS certificate"
 
         result = self.certinstall('d', 'ca1/server-expired')
         assert_error(result,
-                     'The server certificate in server.p12 is not valid: '
-                     "(SEC_ERROR_EXPIRED_CERTIFICATE) Peer's Certificate has "
-                     'expired.')
+                     'The server certificate in server.p12 is not valid: {err}'
+                     .format(err=CERT_EXPIRED_MSG))
 
     def test_http_bad_usage(self):
         "Install new HTTP certificate with invalid key usage"
