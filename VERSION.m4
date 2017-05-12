@@ -73,8 +73,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-define(IPA_API_VERSION_MINOR, 226)
-# Last change: Remove the pkinit-anonymous command
+define(IPA_API_VERSION_MINOR, 227)
+# Last change: Add `pkinit-status` command
 
 
 ########################################################
