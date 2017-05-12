@@ -1336,17 +1336,17 @@ class ReplicationManager(object):
             dn = DN(('cn', 'default'), ('ou', 'profile'), self.suffix)
             ret = self.conn.get_entry(dn)
             srvlist = ret.single_value.get('defaultServerList', '')
-            srvlist = srvlist[0].split()
+            srvlist = srvlist.split()
             if replica in srvlist:
                 srvlist.remove(replica)
                 attr = ' '.join(srvlist)
-                mod = [(ldap.MOD_REPLACE, 'defaultServerList', attr)]
-                self.conn.modify_s(dn, mod)
+                ret['defaultServerList'] = attr
+                self.conn.update_entry(ret)
         except errors.NotFound:
             pass
-        except ldap.NO_SUCH_ATTRIBUTE:
+        except errors.MidairCollision:
             pass
-        except ldap.TYPE_OR_VALUE_EXISTS:
+        except errors.EmptyModlist:
             pass
         except Exception as e:
             if force and err:
