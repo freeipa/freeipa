@@ -319,7 +319,7 @@ class DogtagInstance(service.Service):
         services.knownservices.messagebus.start()
         cmonger.start()
 
-        nicknames = self.tracking_reqs
+        nicknames = list(self.tracking_reqs)
         if self.server_cert_name is not None:
             nicknames.append(self.server_cert_name)
 
