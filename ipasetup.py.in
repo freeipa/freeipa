@@ -147,10 +147,12 @@ def ipasetup(name, doc, **kwargs):
                 continue
             values = setup_kwargs['extras_require'].pop(k)
             req = setup_kwargs.setdefault('install_requires', [])
-            if k == ":python_version<'3'" and sys.version_info.major == 2:
-                req.extend(values)
-            elif k == ":python_version>='3'" and sys.version_info.major >= 3:
-                req.extend(values)
+            if k == ":python_version<'3'":
+                if sys.version_info.major == 2:
+                    req.extend(values)
+            elif k == ":python_version>='3'":
+                if sys.version_info.major >= 3:
+                    req.extend(values)
             else:
                 raise ValueError(k, values)
 
