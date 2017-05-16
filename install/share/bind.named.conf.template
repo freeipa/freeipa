@@ -43,6 +43,9 @@ zone "." IN {
 include "$RFC1912_ZONES";
 include "$ROOT_KEY";
 
+/* WARNING: This part of the config file is IPA-managed.
+ * Modifications may break IPA setup or upgrades.
+ */
 dyndb "ipa" "$BIND_LDAP_SO" {
 	uri "ldapi://%2fvar%2frun%2fslapd-$SERVER_ID.socket";
 	base "cn=dns, $SUFFIX";
@@ -51,3 +54,4 @@ dyndb "ipa" "$BIND_LDAP_SO" {
 	sasl_mech "GSSAPI";
 	sasl_user "DNS/$FQDN";
 };
+/* End of IPA-managed part. */
