@@ -4184,16 +4184,6 @@ class dnsconfig(LDAPObject):
         if is_config_empty:
             result['summary'] = unicode(_('Global DNS configuration is empty'))
 
-    def show_servroles_attributes(self, entry_attrs, **options):
-        if options.get('raw', False):
-            return
-
-        backend = self.api.Backend.serverroles
-        entry_attrs.update(
-            backend.config_retrieve("DNS server")
-        )
-
-
 @register()
 class dnsconfig_mod(LDAPUpdate):
     __doc__ = _('Modify global DNS configuration.')
@@ -4247,7 +4237,8 @@ class dnsconfig_mod(LDAPUpdate):
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        self.obj.show_servroles_attributes(entry_attrs, **options)
+        self.api.Object.config.show_servroles_attributes(
+            entry_attrs, "DNS server", **options)
         return dn
 
 
@@ -4261,7 +4252,8 @@ class dnsconfig_show(LDAPRetrieve):
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        self.obj.show_servroles_attributes(entry_attrs, **options)
+        self.api.Object.config.show_servroles_attributes(
+            entry_attrs, "DNS server", **options)
         return dn
 
 

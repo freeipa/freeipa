@@ -997,9 +997,9 @@ class vaultconfig_show(Retrieve):
         with self.api.Backend.kra.get_client() as kra_client:
             transport_cert = kra_client.system_certs.get_transport_cert()
             config = {'transport_cert': transport_cert.binary}
-            config.update(
-                self.api.Backend.serverroles.config_retrieve("KRA server")
-            )
+
+        self.api.Object.config.show_servroles_attributes(
+            config, "KRA server", **options)
 
         return {
             'result': config,
