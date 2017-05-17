@@ -356,5 +356,6 @@ class BasePathNamespace(object):
     GSSPROXY_CONF = '/etc/gssproxy/10-ipa.conf'
     KRB5CC_HTTPD = '/tmp/krb5cc-httpd'
     IF_INET6 = '/proc/net/if_inet6'
+    KRB5KDC_LOG = '/var/log/krb5kdc.log'
 
 path_namespace = BasePathNamespace
