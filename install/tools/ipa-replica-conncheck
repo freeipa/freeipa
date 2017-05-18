@@ -59,12 +59,11 @@ class SshExec(object):
         self.user = user
         self.addr = addr
         self.cmd = distutils.spawn.find_executable('ssh')
-
-    def __call__(self, command, verbose=False):
         # Bail if ssh is not installed
         if self.cmd is None:
-            root_logger.warning("WARNING: ssh not installed, skipping ssh test")
-            return ('', '', 0)
+            raise RuntimeError("ssh not installed")
+
+    def __call__(self, command, verbose=False):
 
         tmpf = tempfile.NamedTemporaryFile()
         cmd = [
@@ -596,7 +595,11 @@ def main():
 
                 # Ticket 5812 Always qualify requests for admin
                 user = principal
-                ssh = SshExec(user, options.master)
+                try:
+                    ssh = SshExec(user, options.master)
+                except RuntimeError as e:
+                    root_logger.warning("WARNING: %s, skipping ssh test" % e)
+                    return 0
 
                 root_logger.info("Check SSH connection to remote master")
                 result = ssh('echo OK', verbose=True)
