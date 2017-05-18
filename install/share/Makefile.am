@@ -90,6 +90,7 @@ dist_app_DATA =				\
 	ipa.conf.tmpfiles		\
 	gssproxy.conf.template		\
 	kdcproxy.wsgi			\
+	ipakrb5.aug			\
 	$(NULL)
 
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy
