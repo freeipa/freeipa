@@ -799,7 +799,7 @@ class Restore(admintool.AdminTool):
         bools = dict(constants.SELINUX_BOOLEAN_HTTPD)
         if 'ADTRUST' in self.backup_services:
             if adtrustinstance:
-                bools.update(adtrustinstance.SELINUX_BOOLEAN_SETTINGS)
+                bools.update(constants.SELINUX_BOOLEAN_ADTRUST)
             else:
                 self.log.error(
                     'The AD trust package was not found, '
