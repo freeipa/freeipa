@@ -89,6 +89,7 @@ dist_app_DATA =				\
 	gssapi.login			\
 	ipa.conf.tmpfiles		\
 	gssproxy.conf.template		\
+	ipakrb5.aug			\
 	$(NULL)
 
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy

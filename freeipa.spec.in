@@ -1366,6 +1366,7 @@ fi
 %dir %{_usr}/share/ipa/schema.d
 %attr(0644,root,root) %{_usr}/share/ipa/schema.d/README
 %attr(0644,root,root) %{_usr}/share/ipa/gssapi.login
+%{_usr}/share/ipa/ipakrb5.aug
 
 %files server-dns
 %defattr(-,root,root,-)
