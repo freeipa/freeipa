@@ -796,7 +796,7 @@ class Restore(admintool.AdminTool):
                 self.log.error('Problem with %s: %s' % (dir, e))
 
     def restore_selinux_booleans(self):
-        bools = dict(httpinstance.SELINUX_BOOLEAN_SETTINGS)
+        bools = dict(constants.SELINUX_BOOLEAN_HTTPD)
         if 'ADTRUST' in self.backup_services:
             if adtrustinstance:
                 bools.update(adtrustinstance.SELINUX_BOOLEAN_SETTINGS)
