@@ -64,7 +64,7 @@ def parse_options():
                       default=False, help="unattended installation never prompts the user")
     parser.add_option("--external-ca", dest="external_ca", action="store_true",
                       default=False, help="Generate a CSR to be signed by an external CA")
-    ext_cas = ("generic", "ms-cs")
+    ext_cas = tuple(x.value for x in cainstance.ExternalCAType)
     parser.add_option("--external-ca-type", dest="external_ca_type",
                       type="choice", choices=ext_cas,
                       metavar="{{{0}}}".format(",".join(ext_cas)),

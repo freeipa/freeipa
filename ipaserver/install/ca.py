@@ -363,11 +363,6 @@ def uninstall():
         ca_instance.uninstall()
 
 
-class ExternalCAType(enum.Enum):
-    GENERIC = 'generic'
-    MS_CS = 'ms-cs'
-
-
 class CASigningAlgorithm(enum.Enum):
     SHA1_WITH_RSA = 'SHA1withRSA'
     SHA_256_WITH_RSA = 'SHA256withRSA'
@@ -413,7 +408,7 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
     external_ca = master_install_only(external_ca)
 
     external_ca_type = knob(
-        ExternalCAType, None,
+        cainstance.ExternalCAType, None,
         description="Type of the external CA",
     )
     external_ca_type = master_install_only(external_ca_type)
