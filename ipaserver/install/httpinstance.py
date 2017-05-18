@@ -50,13 +50,6 @@ from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 from ipaplatform import services
 
-SELINUX_BOOLEAN_SETTINGS = dict(
-    httpd_can_network_connect='on',
-    httpd_manage_ipa='on',
-    httpd_run_ipa='on',
-    httpd_dbus_sssd='on',
-)
-
 HTTPD_USER = constants.HTTPD_USER
 KDCPROXY_USER = constants.KDCPROXY_USER
 
@@ -193,7 +186,7 @@ class HTTPInstance(service.Service):
 
     def configure_selinux_for_httpd(self):
         try:
-            tasks.set_selinux_booleans(SELINUX_BOOLEAN_SETTINGS,
+            tasks.set_selinux_booleans(constants.SELINUX_BOOLEAN_HTTPD,
                                        self.backup_state)
         except ipapython.errors.SetseboolError as e:
             self.print_msg(e.format_service_warning('web interface'))
@@ -556,7 +549,7 @@ class HTTPInstance(service.Service):
 
         # Restore SELinux boolean states
         boolean_states = {name: self.restore_state(name)
-                          for name in SELINUX_BOOLEAN_SETTINGS}
+                          for name in constants.SELINUX_BOOLEAN_HTTPD}
         try:
             tasks.set_selinux_booleans(boolean_states)
         except ipapython.errors.SetseboolError as e:

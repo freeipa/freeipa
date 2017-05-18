@@ -27,4 +27,10 @@ class BaseConstantsNamespace(object):
     ODS_GROUP = "ods"
     # nfsd init variable used to enable kerberized NFS
     SECURE_NFS_VAR = "SECURE_NFS"
+    SELINUX_BOOLEAN_HTTPD = {
+        'httpd_can_network_connect': 'on',
+        'httpd_manage_ipa': 'on',
+        'httpd_run_ipa': 'on',
+        'httpd_dbus_sssd': 'on',
+    }
     SSSD_USER = "sssd"
