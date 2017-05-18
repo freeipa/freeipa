@@ -58,7 +58,7 @@ class CACertManage(admintool.AdminTool):
             "--self-signed", dest='self_signed',
             action='store_true',
             help="Sign the renewed certificate by itself")
-        ext_cas = ("generic", "ms-cs")
+        ext_cas = tuple(x.value for x in cainstance.ExternalCAType)
         renew_group.add_option(
             "--external-ca-type", dest="external_ca_type",
             type="choice", choices=ext_cas,
@@ -189,7 +189,8 @@ class CACertManage(admintool.AdminTool):
     def renew_external_step_1(self, ca):
         print("Exporting CA certificate signing request, please wait")
 
-        if self.options.external_ca_type == 'ms-cs':
+        if self.options.external_ca_type \
+                == cainstance.ExternalCAType.MS_CS.value:
             profile = 'SubCA'
         else:
             profile = ''
