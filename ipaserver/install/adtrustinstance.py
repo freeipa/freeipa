@@ -45,6 +45,7 @@ import ipapython.errors
 
 import ipaclient.install.ipachangeconf
 from ipaplatform import services
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
@@ -59,8 +60,6 @@ This means upgrade from IPA 2.x to 3.x did not went well and required S4U2Proxy
 configuration was not set up properly. Please run ipa-ldap-updater manually
 and re-run ipa-adtrust-instal again afterwards.
 """
-
-SELINUX_BOOLEAN_SETTINGS = {'samba_portmapper': 'on'}
 
 
 def check_inst():
@@ -593,7 +592,7 @@ class ADTRUSTInstance(service.Service):
 
     def __configure_selinux_for_smbd(self):
         try:
-            tasks.set_selinux_booleans(SELINUX_BOOLEAN_SETTINGS,
+            tasks.set_selinux_booleans(constants.SELINUX_BOOLEAN_ADTRUST,
                                        self.backup_state)
         except ipapython.errors.SetseboolError as e:
             self.print_msg(e.format_service_warning('adtrust service'))
@@ -880,7 +879,7 @@ class ADTRUSTInstance(service.Service):
 
         # Restore the state of affected selinux booleans
         boolean_states = {name: self.restore_state(name)
-                          for name in SELINUX_BOOLEAN_SETTINGS}
+                          for name in constants.SELINUX_BOOLEAN_ADTRUST}
         try:
             tasks.set_selinux_booleans(boolean_states)
         except ipapython.errors.SetseboolError as e:
