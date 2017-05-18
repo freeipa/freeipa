@@ -14,40 +14,39 @@ import pytest
 from ipaplatform.paths import paths
 from ipalib import api, create_api, errors
 from ipapython.dn import DN
-from ipatests.util import MockLDAP
 
 
-def _make_service_entry_mods(enabled=True, other_config=None):
+def _make_service_entry(ldap_backend, dn, enabled=True, other_config=None):
     mods = {
-        b'objectClass': [b'top', b'nsContainer', b'ipaConfigObject'],
+        'objectClass': ['top', 'nsContainer', 'ipaConfigObject'],
     }
     if enabled:
-        mods.update({b'ipaConfigString': [b'enabledService']})
+        mods.update({'ipaConfigString': ['enabledService']})
 
     if other_config is not None:
-        mods.setdefault(b'ipaConfigString', [])
-        mods[b'ipaConfigString'].extend(other_config)
+        mods.setdefault('ipaConfigString', [])
+        mods['ipaConfigString'].extend(other_config)
 
-    return mods
+    return ldap_backend.make_entry(dn, **mods)
 
 
-def _make_master_entry_mods(ca=False):
+def _make_master_entry(ldap_backend, dn, ca=False):
     mods = {
-        b'objectClass': [
-            b'top',
-            b'nsContainer',
-            b'ipaReplTopoManagedServer',
-            b'ipaSupportedDomainLevelConfig',
-            b'ipaConfigObject',
+        'objectClass': [
+            'top',
+            'nsContainer',
+            'ipaReplTopoManagedServer',
+            'ipaSupportedDomainLevelConfig',
+            'ipaConfigObject',
         ],
-        b'ipaMaxDomainLevel': [b'1'],
-        b'ipaMinDomainLevel': [b'0'],
-        b'ipaReplTopoManagedsuffix': [str(api.env.basedn)]
+        'ipaMaxDomainLevel': ['1'],
+        'ipaMinDomainLevel': ['0'],
+        'ipaReplTopoManagedsuffix': [str(api.env.basedn)]
     }
     if ca:
-        mods[b'ipaReplTopoManagedsuffix'].append(b'o=ipaca')
+        mods['ipaReplTopoManagedsuffix'].append('o=ipaca')
 
-    return mods
+    return ldap_backend.make_entry(dn, **mods)
 
 _adtrust_agents = DN(
     ('cn', 'adtrust agents'),
@@ -235,7 +234,7 @@ class MockMasterTopology(object):
             ('cn', self.api.env.host), self.api.env.container_masters,
             self.api.env.basedn)
 
-        self.ldap = MockLDAP()
+        self.ldap = self.api.Backend.ldap2
 
         self.existing_masters = {
             m['cn'][0] for m in self.api.Command.server_find(
@@ -302,8 +301,9 @@ class MockMasterTopology(object):
             svc_mods = svc_desc[name]
 
             self.ldap.add_entry(
-                str(svc_dn),
-                _make_service_entry_mods(
+                _make_service_entry(
+                    self.ldap,
+                    svc_dn,
                     enabled=svc_mods['enabled'],
                     other_config=svc_mods.get('config', None)))
 
@@ -311,16 +311,16 @@ class MockMasterTopology(object):
 
     def _remove_svc_master_entries(self, master_dn):
         try:
-            entries = self.ldap.connection.search_s(
-                str(master_dn), ldap.SCOPE_SUBTREE
+            entries = self.ldap.get_entries(
+                master_dn, ldap.SCOPE_SUBTREE
             )
-        except ldap.NO_SUCH_OBJECT:
+        except errors.NotFound:
             return
 
         if entries:
-            entries.sort(key=lambda x: len(x[0]), reverse=True)
-            for entry_dn, _attrs in entries:
-                self.ldap.del_entry(str(entry_dn))
+            entries.sort(key=lambda x: len(x.dn), reverse=True)
+            for entry in entries:
+                self.ldap.delete_entry(entry)
 
     def _add_ipamaster_services(self, master_dn):
         """
@@ -329,19 +329,14 @@ class MockMasterTopology(object):
         for svc_name in self.ipamaster_services:
             svc_dn = self.get_service_dn(svc_name, master_dn)
             try:
-                self.api.Backend.ldap2.get_entry(svc_dn)
+                self.ldap.get_entry(svc_dn)
             except errors.NotFound:
-                self.ldap.add_entry(
-                    str(svc_dn), _make_service_entry_mods())
+                self.ldap.add_entry(_make_service_entry(self.ldap, svc_dn))
 
     def _add_members(self, dn, fqdn, member_attrs):
-        _entry, attrs = self.ldap.connection.search_s(
-            str(dn), ldap.SCOPE_SUBTREE)[0]
-        mods = []
-        value = attrs.get('member', [])
-        mod_op = ldap.MOD_REPLACE
-        if not value:
-            mod_op = ldap.MOD_ADD
+        entry_attrs = self.ldap.get_entry(dn)
+
+        value = entry_attrs.get('member', [])
 
         for a in member_attrs:
 
@@ -352,20 +347,18 @@ class MockMasterTopology(object):
                 result = self._add_service_entry(a, fqdn)['result']
                 value.append(str(result['dn']))
 
-        mods.append(
-            (mod_op, 'member', value)
-        )
-
-        self.ldap.connection.modify_s(str(dn), mods)
+        entry_attrs['member'] = value
+        self.ldap.update_entry(entry_attrs)
 
     def _remove_members(self, dn, fqdn, member_attrs):
-        _entry, attrs = self.ldap.connection.search_s(
-            str(dn), ldap.SCOPE_SUBTREE)[0]
-        mods = []
+        entry_attrs = self.ldap.get_entry(dn)
+
+        value = set(entry_attrs.get('member', []))
+
+        if not value:
+            return
+
         for a in member_attrs:
-            value = set(attrs.get('member', []))
-            if not value:
-                continue
 
             if a == 'host':
                 try:
@@ -382,13 +375,11 @@ class MockMasterTopology(object):
                     pass
                 self._del_service_entry(a, fqdn)
 
-        mods.append(
-            (ldap.MOD_REPLACE, 'member', list(value))
-        )
+        entry_attrs['member'] = list(value)
 
         try:
-            self.ldap.connection.modify_s(str(dn), mods)
-        except (ldap.NO_SUCH_OBJECT, ldap.NO_SUCH_ATTRIBUTE):
+            self.ldap.update_entry(entry_attrs)
+        except (errors.NotFound, errors.EmptyModlist):
             pass
 
     def _remove_test_host_attrs(self):
@@ -397,7 +388,7 @@ class MockMasterTopology(object):
         for attr_name in (
                 'caRenewalMaster', 'dnssecKeyMaster', 'pkinitEnabled'):
             try:
-                svc_entry = self.api.Backend.ldap2.find_entry_by_attr(
+                svc_entry = self.ldap.find_entry_by_attr(
                     'ipaConfigString', attr_name, 'ipaConfigObject',
                     base_dn=self.test_master_dn)
             except errors.NotFound:
@@ -407,7 +398,7 @@ class MockMasterTopology(object):
                     (svc_entry.dn, list(svc_entry.get('ipaConfigString', [])))
                 )
                 svc_entry[u'ipaConfigString'].remove(attr_name)
-                self.api.Backend.ldap2.update_entry(svc_entry)
+                self.ldap.update_entry(svc_entry)
 
         return original_dns_configs
 
@@ -416,7 +407,7 @@ class MockMasterTopology(object):
             try:
                 svc_entry = self.api.Backend.ldap2.get_entry(dn)
                 svc_entry['ipaConfigString'] = config
-                self.api.Backend.ldap2.update_entry(svc_entry)
+                self.ldap.update_entry(svc_entry)
             except (errors.NotFound, errors.EmptyModlist):
                 continue
 
@@ -427,7 +418,9 @@ class MockMasterTopology(object):
 
             # create master
             self.ldap.add_entry(
-                str(master_data.dn), _make_master_entry_mods(
+                _make_master_entry(
+                    self.ldap,
+                    master_data.dn,
                     ca='CA' in master_data.services))
 
             # now add service entries
