@@ -25,6 +25,7 @@ import base64
 import logging
 
 import dbus
+import enum
 import ldap
 import os
 import pwd
@@ -93,6 +94,11 @@ ADMIN_GROUPS = [
     'Enterprise KRA Administrators',
     'Security Domain Administrators'
 ]
+
+
+class ExternalCAType(enum.Enum):
+    GENERIC = 'generic'
+    MS_CS = 'ms-cs'
 
 
 def check_port():
@@ -353,7 +359,7 @@ class CAInstance(DogtagInstance):
         if ca_type is not None:
             self.ca_type = ca_type
         else:
-            self.ca_type = 'generic'
+            self.ca_type = ExternalCAType.GENERIC.value
         self.no_db_setup = promote
         self.use_ldaps = use_ldaps
 
@@ -565,7 +571,7 @@ class CAInstance(DogtagInstance):
             config.set("CA", "pki_external", "True")
             config.set("CA", "pki_external_csr_path", self.csr_file)
 
-            if self.ca_type == 'ms-cs':
+            if self.ca_type == ExternalCAType.MS_CS.value:
                 # Include MS template name extension in the CSR
                 config.set("CA", "pki_req_ext_add", "True")
                 config.set("CA", "pki_req_ext_oid", "1.3.6.1.4.1.311.20.2")
