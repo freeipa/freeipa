@@ -27,4 +27,7 @@ class BaseConstantsNamespace(object):
     ODS_GROUP = "ods"
     # nfsd init variable used to enable kerberized NFS
     SECURE_NFS_VAR = "SECURE_NFS"
+    SELINUX_BOOLEAN_DNSKEYSYNCD = {
+        'authlogin_nsswitch_use_ldap': 'on',
+    }
     SSSD_USER = "sssd"

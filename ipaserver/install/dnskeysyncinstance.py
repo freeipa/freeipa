@@ -15,6 +15,7 @@ import ldap
 
 from ipaserver import p11helper as _ipap11helper
 from ipapython.dnsutil import DNSName
+from ipapython.errors import SetseboolError
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipapython.ipa_log_manager import root_logger
@@ -22,6 +23,7 @@ from ipapython.dn import DN
 from ipapython import ipautil
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 from ipalib import errors, api
 from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipaserver.install.bindinstance import dns_container_exists
@@ -115,6 +117,7 @@ class DNSKeySyncInstance(service.Service):
         self.step("setting up SoftHSM", self.__setup_softhsm)
         self.step("adding DNSSEC containers", self.__setup_dnssec_containers)
         self.step("creating replica keys", self.__setup_replica_keys)
+        self.step("configuring SELinux", self.configure_selinux)
         self.step("configuring ipa-dnskeysyncd to start on boot", self.__enable)
         # we need restart named after setting up this service
         self.start_creation()
@@ -443,6 +446,12 @@ class DNSKeySyncInstance(service.Service):
             print("Failed to start ipa-dnskeysyncd")
             self.logger.debug("Failed to start ipa-dnskeysyncd: %s", e)
 
+    def configure_selinux(self):
+        try:
+            tasks.set_selinux_booleans(constants.SELINUX_BOOLEAN_DNSKEYSYNCD,
+                                       self.backup_state)
+        except SetseboolError as e:
+            self.print_msg(e.format_service_warning('ipa-dnskeysyncd'))
 
     def uninstall(self):
         if self.is_configured():
@@ -472,3 +481,13 @@ class DNSKeySyncInstance(service.Service):
             pass
 
         installutils.remove_keytab(self.keytab)
+
+        # Restore SELinux boolean states
+        boolean_states = {
+            name: self.restore_state(name)
+            for name in constants.SELINUX_BOOLEAN_DNSKEYSYNCD
+        }
+        try:
+            tasks.set_selinux_booleans(boolean_states)
+        except SetseboolError as e:
+            self.print_msg('WARNING: {}'.format(e))

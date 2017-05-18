@@ -1725,6 +1725,7 @@ def upgrade_configuration():
             if not dnskeysyncd.is_configured():
                 dnskeysyncd.create_instance(fqdn, api.env.realm)
                 dnskeysyncd.start_dnskeysyncd()
+            dnskeysyncd.configure_selinux()
 
     cleanup_kdc(fstore)
     cleanup_adtrust(fstore)
