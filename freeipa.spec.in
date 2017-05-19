@@ -168,7 +168,7 @@ BuildRequires:  python3-wheel
 %if 0%{?with_lint}
 BuildRequires:  samba-python
 # 1.4: the version where Certificate.serial changed to .serial_number
-BuildRequires:  python-cryptography >= 1.4
+BuildRequires:  python2-cryptography >= 1.4
 BuildRequires:  python-gssapi >= 1.2.0
 BuildRequires:  pylint >= 1.6
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
@@ -649,7 +649,7 @@ Requires: keyutils
 Requires: pyOpenSSL
 Requires: python >= 2.7.9
 Requires: python-nss >= 0.16
-Requires: python-cryptography >= 1.4
+Requires: python2-cryptography >= 1.4
 Requires: python-netaddr >= %{python_netaddr_version}
 Requires: python-libipa_hbac
 Requires: python-qrcode-core >= 5.0.0
