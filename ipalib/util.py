@@ -169,6 +169,10 @@ def check_writable_file(filename):
     """
     if filename is None:
         raise errors.FileError(reason=_('Filename is empty'))
+
+    if not os.path.isfile(filename):
+        raise errors.FileError(reason=_('Expected file but %(fname)s is not a '
+                                        'regular file' % dict(fname=filename)))
     try:
         if os.path.isfile(filename):
             if not os.access(filename, os.W_OK):
