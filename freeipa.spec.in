@@ -76,8 +76,9 @@ Summary:        The Identity, Policy and Audit system
 
 Group:          System Environment/Base
 License:        GPLv3+
-URL:            http://www.freeipa.org/
-Source0:        freeipa-%{version}.tar.gz
+URL:            https://www.freeipa.org/
+Source0:        https://releases.pagure.org/freeipa/freeipa-%{version}.tar.gz
+Source1:        https://releases.pagure.org/freeipa/freeipa-%{version}.tar.gz.asc
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  openldap-devel
