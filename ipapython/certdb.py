@@ -192,13 +192,17 @@ def verify_kdc_cert_validity(kdc_cert, ca_certs, realm):
 
         try:
             ipautil.run(
-                [OPENSSL, 'verify', '-CAfile', ca_file.name, kdc_file.name])
+                [OPENSSL, 'verify', '-CAfile', ca_file.name, kdc_file.name],
+                capture_output=True)
+        except ipautil.CalledProcessError as e:
+            raise ValueError(e.output)
+
+        try:
             eku = kdc_cert.extensions.get_extension_for_class(
                 cryptography.x509.ExtendedKeyUsage)
             list(eku.value).index(
                 cryptography.x509.ObjectIdentifier(x509.EKU_PKINIT_KDC))
-        except (ipautil.CalledProcessError,
-                cryptography.x509.ExtensionNotFound,
+        except (cryptography.x509.ExtensionNotFound,
                 ValueError):
             raise ValueError("invalid for a KDC")
 
