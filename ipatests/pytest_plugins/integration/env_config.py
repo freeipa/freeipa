@@ -63,6 +63,8 @@ _setting_infos = (
     _SettingInfo('ipv6', 'IPv6SETUP', False),
     _SettingInfo('debug', 'IPADEBUG', False),
     _SettingInfo('domain_level', 'DOMAINLVL', MAX_DOMAIN_LEVEL),
+
+    _SettingInfo('log_journal_since', 'LOG_JOURNAL_SINCE', '-1h'),
 )
 
 

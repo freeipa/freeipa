@@ -41,7 +41,8 @@ DEFAULT_OUTPUT_DICT = {
     "dirman_password": "Secret123",
     "ntp_server": "ntp.clock.test",
     "admin_password": "Secret123",
-    "domain_level": MAX_DOMAIN_LEVEL
+    "domain_level": MAX_DOMAIN_LEVEL,
+    "log_journal_since": "-1h",
 }
 
 DEFAULT_OUTPUT_ENV = {
@@ -60,6 +61,7 @@ DEFAULT_OUTPUT_ENV = {
     "IPv6SETUP": "",
     "IPADEBUG": "",
     "DOMAINLVL": str(MAX_DOMAIN_LEVEL),
+    "LOG_JOURNAL_SINCE": "-1h",
 }
 
 DEFAULT_INPUT_ENV = {

@@ -72,6 +72,36 @@ def collect_test_logs(node, logs_dict, test_config):
     )
 
 
+def collect_systemd_journal(node, hosts, test_config):
+    """Collect systemd journal from remote hosts
+
+    :param node: The pytest collection node (request.node)
+    :param hosts: List of hosts from which to collect journal
+    :param test_config: Pytest configuration
+    """
+    name = _get_logname_from_node(node)
+    logfile_dir = test_config.getoption('logfile_dir')
+
+    for host in hosts:
+        log.info("Collecting journal from: %s", host.hostname)
+
+        topdirname = os.path.join(logfile_dir, name, host.hostname)
+        if not os.path.exists(topdirname):
+            os.makedirs(topdirname)
+
+        # Get journal content
+        cmd = host.run_command(
+            ['journalctl', '--since', host.config.log_journal_since],
+            log_stdout=False, raiseonerr=False)
+        if cmd.returncode:
+            log.error('An error occurred while collecting journal')
+            continue
+
+        # Write journal to file
+        with open(os.path.join(topdirname, "journal"), 'w') as f:
+            f.write(cmd.stdout_text)
+
+
 def collect_logs(name, logs_dict, logfile_dir=None, beakerlib_plugin=None):
     """Collect logs from remote hosts
 
@@ -158,7 +188,9 @@ def integration_logs(class_integration_logs, request):
     """Provides access to test integration logs, and collects after each test
     """
     yield class_integration_logs
+    hosts = class_integration_logs.keys()
     collect_test_logs(request.node, class_integration_logs, request.config)
+    collect_systemd_journal(request.node, hosts, request.config)
 
 
 @yield_fixture(scope='class')
