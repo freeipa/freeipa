@@ -777,8 +777,17 @@ class jsonserver_session(jsonserver, KerberosSession):
             self.debug('no ccache, need login')
             return self.need_login(start_response)
 
+        # If we have a ccache, make sure we have a GSS_NAME and use
+        # it to resolve the ccache name (Issue: 6972 )
+        principal = environ.get('GSS_NAME')
+        if principal is None:
+            self.debug('no GSS Name, need login')
+            return self.need_login(start_response)
+        gss_name = gssapi.Name(principal, gssapi.NameType.kerberos_principal)
+
         # Redirect to login if Kerberos credentials are expired
-        creds = get_credentials_if_valid(ccache_name=ccache_name)
+        creds = get_credentials_if_valid(name=gss_name,
+                                         ccache_name=ccache_name)
         if not creds:
             self.debug('ccache expired, deleting session, need login')
             # The request is finished with the ccache, destroy it.
