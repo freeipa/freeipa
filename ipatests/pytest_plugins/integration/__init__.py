@@ -24,6 +24,7 @@ from __future__ import print_function
 import os
 import tempfile
 import shutil
+import re
 
 import pytest
 from pytest_multihost import make_multihost_fixture
@@ -46,6 +47,14 @@ def pytest_addoption(parser):
         help="Directory to store integration test logs in.")
 
 
+def _get_logname_from_node(node):
+    name = node.nodeid
+    name = re.sub('\(\)/', '', name)      # remove ()/
+    name = re.sub('[()]', '', name)       # and standalone brackets
+    name = re.sub('(/|::)', '-', name)
+    return name
+
+
 def collect_test_logs(node, logs_dict, test_config):
     """Collect logs from a test
 
@@ -56,7 +65,7 @@ def collect_test_logs(node, logs_dict, test_config):
     :param test_config: Pytest configuration
     """
     collect_logs(
-        name=node.nodeid.replace('/', '-').replace('::', '-'),
+        name=_get_logname_from_node(node),
         logs_dict=logs_dict,
         logfile_dir=test_config.getoption('logfile_dir'),
         beakerlib_plugin=test_config.pluginmanager.getplugin('BeakerLibPlugin'),
