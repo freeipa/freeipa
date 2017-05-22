@@ -32,9 +32,11 @@ import six
 from augeas import Augeas
 
 from ipalib.install import certmonger
+from ipapython import ipaldap
 from ipapython.certdb import (IPA_CA_TRUST_FLAGS,
                               EXTERNAL_CA_TRUST_FLAGS,
                               TRUSTED_PEER_TRUST_FLAGS)
+from ipaserver.install import replication
 from ipaserver.install import service
 from ipaserver.install import certs
 from ipaserver.install import installutils
@@ -120,12 +122,15 @@ class HTTPInstance(service.Service):
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
-    def create_instance(self, realm, fqdn, domain_name, pkcs12_info=None,
+    def create_instance(self, realm, fqdn, domain_name, dm_password=None,
+                        pkcs12_info=None,
                         subject_base=None, auto_redirect=True, ca_file=None,
-                        ca_is_configured=None, promote=False):
+                        ca_is_configured=None, promote=False,
+                        master_fqdn=None):
         self.fqdn = fqdn
         self.realm = realm
         self.domain = domain_name
+        self.dm_password = dm_password
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.pkcs12_info = pkcs12_info
         self.dercert = None
@@ -141,6 +146,7 @@ class HTTPInstance(service.Service):
         if ca_is_configured is not None:
             self.ca_is_configured = ca_is_configured
         self.promote = promote
+        self.master_fqdn = master_fqdn
 
         self.step("stopping httpd", self.__stop)
         self.step("setting mod_nss port to 443", self.__set_mod_nss_port)
@@ -570,3 +576,22 @@ class HTTPInstance(service.Service):
         db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR)
         db.track_server_cert(self.cert_nickname, self.principal,
                              db.passwd_fname, 'restart_httpd')
+
+    def request_service_keytab(self):
+        super(HTTPInstance, self).request_service_keytab()
+
+        if self.master_fqdn is not None:
+            service_dn = DN(('krbprincipalname', self.principal),
+                            api.env.container_service,
+                            self.suffix)
+
+            ldap_uri = ipaldap.get_ldap_uri(self.master_fqdn)
+            with ipaldap.LDAPClient(ldap_uri,
+                                    start_tls=not self.promote,
+                                    cacert=paths.IPA_CA_CRT) as remote_ldap:
+                if self.promote:
+                    remote_ldap.gssapi_bind()
+                else:
+                    remote_ldap.simple_bind(ipaldap.DIRMAN_DN,
+                                            self.dm_password)
+                replication.wait_for_entry(remote_ldap, service_dn, timeout=60)

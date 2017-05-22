@@ -830,13 +830,13 @@ def install(installer):
     http = httpinstance.HTTPInstance(fstore)
     if options.http_cert_files:
         http.create_instance(
-            realm_name, host_name, domain_name,
+            realm_name, host_name, domain_name, dm_password,
             pkcs12_info=http_pkcs12_info, subject_base=options.subject_base,
             auto_redirect=not options.no_ui_redirect,
             ca_is_configured=setup_ca)
     else:
         http.create_instance(
-            realm_name, host_name, domain_name,
+            realm_name, host_name, domain_name, dm_password,
             subject_base=options.subject_base,
             auto_redirect=not options.no_ui_redirect,
             ca_is_configured=setup_ca)

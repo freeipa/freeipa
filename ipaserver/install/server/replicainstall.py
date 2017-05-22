@@ -163,9 +163,10 @@ def install_http(config, auto_redirect, ca_is_configured, ca_file,
     http = httpinstance.HTTPInstance()
     http.create_instance(
         config.realm_name, config.host_name, config.domain_name,
-        pkcs12_info, auto_redirect=auto_redirect, ca_file=ca_file,
+        config.dirman_password, pkcs12_info,
+        auto_redirect=auto_redirect, ca_file=ca_file,
         ca_is_configured=ca_is_configured, promote=promote,
-        subject_base=config.subject_base)
+        subject_base=config.subject_base, master_fqdn=config.master_host_name)
 
     return http
 
