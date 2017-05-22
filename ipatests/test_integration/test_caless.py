@@ -38,7 +38,10 @@ _DEFAULT = object()
 
 assert_error = tasks.assert_error
 
-CERT_EXPIRED_MSG = "Peer's Certificate has expired."
+NSS_INVALID_FMT = "certutil: certificate is invalid: %s"
+CERT_EXPIRED_MSG = NSS_INVALID_FMT % "Peer's Certificate has expired."
+BAD_USAGE_MSG = NSS_INVALID_FMT % ("Certificate key usage inadequate for "
+                                   "attempted operation.")
 
 
 def get_install_stdin(cert_passwords=()):
@@ -557,8 +560,8 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in http.p12 is not valid: '
-                     'invalid for a SSL server')
+                     'The server certificate in http.p12 is not valid: {err}'
+                     .format(err=BAD_USAGE_MSG))
 
     @server_install_teardown
     def test_ds_bad_usage(self):
@@ -572,8 +575,8 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in dirsrv.p12 is not valid: '
-                     'invalid for a SSL server')
+                     'The server certificate in dirsrv.p12 is not valid: {err}'
+                     .format(err=BAD_USAGE_MSG))
 
     @server_install_teardown
     def test_revoked_http(self):
@@ -940,8 +943,8 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in http.p12 is not valid: '
-                     'invalid for a SSL server')
+                     'The server certificate in http.p12 is not valid: {err}'
+                     .format(err=BAD_USAGE_MSG))
 
     @replica_install_teardown
     def test_ds_bad_usage(self):
@@ -953,8 +956,8 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in dirsrv.p12 is not valid: '
-                     'invalid for a SSL server')
+                     'The server certificate in dirsrv.p12 is not valid: {err}'
+                     .format(err=BAD_USAGE_MSG))
 
     @replica_install_teardown
     def test_revoked_http(self):
@@ -1355,16 +1358,16 @@ class TestCertinstall(CALessBase):
 
         result = self.certinstall('w', 'ca1/server-badusage')
         assert_error(result,
-                     'The server certificate in server.p12 is not valid: '
-                     'invalid for a SSL server')
+                     'The server certificate in server.p12 is not valid: {err}'
+                     .format(err=BAD_USAGE_MSG))
 
     def test_ds_bad_usage(self):
         "Install new DS certificate with invalid key usage"
 
         result = self.certinstall('d', 'ca1/server-badusage')
         assert_error(result,
-                     'The server certificate in server.p12 is not valid: '
-                     'invalid for a SSL server')
+                     'The server certificate in server.p12 is not valid: {err}'
+                     .format(err=BAD_USAGE_MSG))
 
     def test_revoked_http(self):
         "Install new revoked HTTP certificate"
