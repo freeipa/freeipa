@@ -55,8 +55,6 @@ CA_NICKNAME_FMT = "%s IPA CA"
 
 NSS_FILES = ("cert8.db", "key3.db", "secmod.db", "pwdfile.txt")
 
-BAD_USAGE_ERR = 'Certificate key usage inadequate for attempted operation.'
-
 TrustFlags = collections.namedtuple('TrustFlags', 'has_key trusted ca usages')
 
 EMPTY_TRUST_FLAGS = TrustFlags(False, None, None, None)
@@ -690,10 +688,7 @@ class NSSDatabase(object):
         except ipautil.CalledProcessError as e:
             # certutil output in case of error is
             # 'certutil: certificate is invalid: <ERROR_STRING>\n'
-            msg = e.output.split(': ')[2].strip()
-            if msg == BAD_USAGE_ERR:
-                msg = 'invalid for a SSL server.'
-            raise ValueError(msg)
+            raise ValueError(e.output)
 
         try:
             x509.match_hostname(cert, hostname)
@@ -728,10 +723,7 @@ class NSSDatabase(object):
         except ipautil.CalledProcessError as e:
             # certutil output in case of error is
             # 'certutil: certificate is invalid: <ERROR_STRING>\n'
-            msg = e.output.split(': ')[2].strip()
-            if msg == BAD_USAGE_ERR:
-                msg = 'invalid for a CA.'
-            raise ValueError(msg)
+            raise ValueError(e.output)
 
     def verify_kdc_cert_validity(self, nickname, realm):
         nicknames = self.get_trust_chain(nickname)
