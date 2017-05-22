@@ -432,7 +432,8 @@ class KrbInstance(service.Service):
                 dns=self.fqdn,
                 storage='FILE',
                 profile=KDC_PROFILE,
-                post_command='renew_kdc_cert')
+                post_command='renew_kdc_cert',
+                perms=(0o644, 0o600))
         except dbus.DBusException as e:
             # if the certificate is already tracked, ignore the error
             name = e.get_dbus_name()

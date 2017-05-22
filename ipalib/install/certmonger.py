@@ -302,7 +302,7 @@ def add_subject(request_id, subject):
 def request_and_wait_for_cert(
         certpath, subject, principal, nickname=None, passwd_fname=None,
         dns=None, ca='IPA', profile=None,
-        pre_command=None, post_command=None, storage='NSSDB'):
+        pre_command=None, post_command=None, storage='NSSDB', perms=None):
     """
     Execute certmonger to request a server certificate.
 
@@ -310,7 +310,7 @@ def request_and_wait_for_cert(
     """
     reqId = request_cert(certpath, subject, principal, nickname,
                          passwd_fname, dns, ca, profile,
-                         pre_command, post_command, storage)
+                         pre_command, post_command, storage, perms)
     state = wait_for_request(reqId, api.env.startup_timeout)
     ca_error = get_request_value(reqId, 'ca-error')
     if state != 'MONITORING' or ca_error:
@@ -321,12 +321,14 @@ def request_and_wait_for_cert(
 def request_cert(
         certpath, subject, principal, nickname=None, passwd_fname=None,
         dns=None, ca='IPA', profile=None,
-        pre_command=None, post_command=None, storage='NSSDB'):
+        pre_command=None, post_command=None, storage='NSSDB', perms=None):
     """
     Execute certmonger to request a server certificate.
 
     ``dns``
         A sequence of DNS names to appear in SAN request extension.
+    ``perms``
+        A tuple of (cert, key) permissions in e.g., (0644,0660)
     """
     if storage == 'FILE':
         certfile, keyfile = certpath
@@ -366,6 +368,10 @@ def request_cert(
         if not os.path.isabs(post_command):
             post_command = certmonger_cmd_template % (post_command)
         request_parameters['cert-postsave-command'] = post_command
+
+    if perms:
+        request_parameters['key-perms'] = perms[0]
+        request_parameters['cert-perms'] = perms[1]
 
     result = cm.obj_if.add_request(request_parameters)
     try:
