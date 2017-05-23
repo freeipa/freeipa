@@ -1,9 +1,9 @@
 # Alex <alexgluck@bk.ru>, 2015. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.4.90.dev201703151542+gita1686a9\n"
+"Project-Id-Version: freeipa 4.5.0.dev201705231055+git653d2f4\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-03-15 16:43+0100\n"
+"POT-Creation-Date: 2017-05-23 12:55+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -26,18 +26,41 @@ msgstr ""
 "\n"
 "ПРИМЕРЫ:\n"
 
-msgid "user"
-msgstr "пользователь"
-
 msgid "host"
 msgstr "узел"
 
-#, python-format
-msgid "Failure decoding Certificate Signing Request: %s"
-msgstr "Сбой при декодировании запроса на создание сертификата: %s"
+msgid "hosts"
+msgstr "узлы"
 
-msgid "CA is not configured"
-msgstr "CA не настроен"
+msgid "Hosts"
+msgstr "Узлы"
+
+msgid "Host"
+msgstr "Узел"
+
+msgid "Description"
+msgstr "Описание"
+
+msgid "Location"
+msgstr "Расположение"
+
+msgid "Platform"
+msgstr "Платформа"
+
+msgid "Host hardware platform (e.g. \"Lenovo T61\")"
+msgstr "Аппаратная платформа узла (например, «Lenovo T61»)"
+
+msgid "Operating system"
+msgstr "Операционная система"
+
+msgid "Host operating system and version (e.g. \"Fedora 9\")"
+msgstr "Операционная система узла и ее версия (например, «Fedora 9»)"
+
+msgid "User password"
+msgstr "Пароль пользователя"
+
+msgid "Random password"
+msgstr "Случайный пароль"
 
 msgid "Certificate"
 msgstr "Сертификат"
@@ -57,89 +80,60 @@ msgstr "Недействителен после"
 msgid "Fingerprint (SHA1)"
 msgstr "Отпечаток (SHA1)"
 
-msgid "Serial number"
-msgstr "Серийный номер"
-
-msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
-msgstr "Серийный номер в десятичной или если есть префикс 0x в HEX формате"
-
-msgid "Serial number (hex)"
-msgstr "Серийный номер (hex)"
-
-msgid "Profile ID"
-msgstr "Идентификатор профиля"
-
-msgid "Certificate Profile to use"
-msgstr "Использовать сертификат профиля"
-
-msgid "Request status"
-msgstr "Статус запроса"
-
-msgid "Request id"
-msgstr "ID запроса"
-
-msgid "Submit a certificate signing request."
-msgstr "Отправить запрос подписи сертификата."
-
-msgid "CSR"
-msgstr "CSR"
-
-msgid "Principal"
-msgstr "Основной"
-
-msgid "RFC822Name does not match any of user's email addresses"
-msgstr "RFC822 Имя не совпадает ни с одним пользователем электронной почты"
-
-msgid "Check the status of a certificate signing request."
-msgstr "Проверьте статус запроса подписи сертификата."
-
-msgid "Revoked"
-msgstr "Отозван"
-
 msgid "Revocation reason"
 msgstr "Причина отзыва"
 
-msgid "Retrieve an existing certificate."
-msgstr "Получить существующий сертификат."
+msgid "MAC address"
+msgstr "MAC-адрес"
 
-msgid "Output filename"
-msgstr "Исходящие имя файла"
+msgid "Hardware MAC address(es) on this host"
+msgstr "MAC-адрес(а) данного узла"
 
-msgid "File to store the certificate in."
-msgstr "Файл для сохранения сертификата."
+msgid "SSH public key"
+msgstr "SSH публичный ключ"
 
-msgid "Revoke a certificate."
-msgstr "Отозвать сертификат"
+msgid "SSH public key fingerprint"
+msgstr "SSH публичный отпечатков ключей"
 
-msgid "7 is not a valid revocation reason"
-msgstr "7 неверная причина отзыва сертификата"
+msgid "Class"
+msgstr "Класс"
 
-msgid "Search for existing certificates."
-msgstr "Поиск по существующим сертификатам."
+msgid "Add a new host."
+msgstr "Добавить новый узел."
 
-msgid "minimum serial number"
-msgstr "минимальный серийный номер"
+#, python-format
+msgid "Added host \"%(value)s\""
+msgstr "Добавлен узел «%(value)s»"
 
-msgid "maximum serial number"
-msgstr "Максимальный серийный номер"
+msgid "Force"
+msgstr "Принудительно"
 
-msgid "Revoked on from this date (YYYY-mm-dd)"
-msgstr "Отозван с даты (YYYY-mm-dd)"
+msgid "IP Address"
+msgstr "IP-адрес"
 
-msgid "Primary key only"
-msgstr "Только главный ключ"
+msgid "Delete a host."
+msgstr "Удалить узел."
 
-msgid "Time Limit"
-msgstr "Ограничение по времени"
+#, python-format
+msgid "Deleted host \"%(value)s\""
+msgstr "Удален узел «%(value)s»"
 
-msgid "Size Limit"
-msgstr "Ограничение по размеру"
+msgid "Modify information about a host."
+msgstr "Изменить информацию об узле."
 
-msgid "Description"
-msgstr "Описание"
+#, python-format
+msgid "Modified host \"%(value)s\""
+msgstr "Изменен узел «%(value)s»"
 
-msgid "Type"
-msgstr "Тип"
+msgid "Update DNS entries"
+msgstr "Обновить записи DNS"
+
+#, python-format
+msgid "%(count)d host matched"
+msgid_plural "%(count)d hosts matched"
+msgstr[0] "Найден %(count)d узел"
+msgstr[1] "Найдено %(count)d узла"
+msgstr[2] "Найдено %(count)d узлов"
 
 msgid "group"
 msgstr "группа"
@@ -149,6 +143,9 @@ msgstr "Пользователи"
 
 msgid "User"
 msgstr "Пользователь"
+
+msgid "user"
+msgstr "пользователь"
 
 msgid "users"
 msgstr "пользователи"
@@ -223,251 +220,6 @@ msgstr "Последняя ошибка входа"
 msgid "Time now"
 msgstr "Время сейчас"
 
-msgid "Rule name"
-msgstr "Имя правила"
-
-msgid "Enabled"
-msgstr "Включено"
-
-msgid "User category"
-msgstr "Категория пользователя"
-
-msgid "Host category"
-msgstr "Категория хоста"
-
-msgid "User Groups"
-msgstr "Группы пользователей"
-
-msgid "Hosts"
-msgstr "Узлы"
-
-msgid "Host Groups"
-msgstr "Группы узлов"
-
-msgid "hosts"
-msgstr "узлы"
-
-msgid "Sudo Command Groups"
-msgstr "Группы команды SUDO"
-
-msgid "Group description"
-msgstr "Описание группы"
-
-msgid "Services"
-msgstr "Службы"
-
-#, python-format
-msgid "Added service \"%(value)s\""
-msgstr "Добавлена служба «%(value)s»"
-
-msgid "Force"
-msgstr "Принудительно"
-
-#, python-format
-msgid "Deleted service \"%(value)s\""
-msgstr "Удалена служба «%(value)s»"
-
-msgid "Location"
-msgstr "Расположение"
-
-msgid "Permissions"
-msgstr "Разрешения"
-
-msgid "Attributes"
-msgstr "Атрибуты"
-
-msgid "ACI"
-msgstr "ACI"
-
-msgid "role"
-msgstr "роль"
-
-msgid "roles"
-msgstr "роли"
-
-msgid "Roles"
-msgstr "Роли"
-
-msgid "Role"
-msgstr "Роль"
-
-msgid "Priority"
-msgstr "Приоритет"
-
-msgid "priority cannot be set on global policy"
-msgstr "приоритет не может быть задан для глобальной политики"
-
-msgid "PKINIT"
-msgstr "PKINIT"
-
-msgid "permission"
-msgstr "разрешение"
-
-msgid "permissions"
-msgstr "разрешения"
-
-msgid "Permission"
-msgstr "Разрешения"
-
-msgid "Subtree"
-msgstr "Поддерево"
-
-msgid "Target group"
-msgstr "Целевая группа"
-
-msgid "Manager"
-msgstr "Руководитель"
-
-msgid "Key"
-msgstr "Ключ"
-
-msgid "Algorithm"
-msgstr "Алгоритм"
-
-msgid "Password"
-msgstr "Пароль"
-
-msgid "Bind DN"
-msgstr "Bind DN"
-
-msgid "LDAP schema"
-msgstr "Схема LDAP"
-
-msgid "Add"
-msgstr "Добавить"
-
-msgid "Add and Close"
-msgstr "Добавить и закрыть"
-
-msgid "Add and Edit"
-msgstr "Добавить и редактировать"
-
-msgid "Cancel"
-msgstr "Отменить"
-
-msgid "Close"
-msgstr "Закрыть"
-
-msgid "Filter"
-msgstr "Фильтр"
-
-msgid "OK"
-msgstr "OK"
-
-msgid "Refresh"
-msgstr "Обновить"
-
-msgid "Delete"
-msgstr "Удалить"
-
-msgid "Reset"
-msgstr "Сбросить"
-
-msgid "Restore"
-msgstr "Восстановить"
-
-msgid "Retry"
-msgstr "Получить"
-
-msgid "Revoke"
-msgstr "Отозвать"
-
-msgid "Set"
-msgstr "Уставновить"
-
-msgid "Update"
-msgstr "Обновить"
-
-msgid "Collapse All"
-msgstr "Свернуть все"
-
-msgid "Expand All"
-msgstr "Развернуть все"
-
-msgid "Hide details"
-msgstr "Скрыть детали"
-
-msgid "Error"
-msgstr "Ошибка"
-
-msgid "URL"
-msgstr "URL"
-
-msgid "Username"
-msgstr "Имя пользователя"
-
-msgid "Profiles"
-msgstr "Профили"
-
-msgid "Organization"
-msgstr "Организация"
-
-msgid "Organizational Unit"
-msgstr "Организационное подразделение"
-
-msgid "Reason for Revocation"
-msgstr "Причина отзыва"
-
-msgid "User Options"
-msgstr "Параметры пользователя"
-
-msgid "Data"
-msgstr "Данные"
-
-msgid "DNS Zone Settings"
-msgstr "Настройки зоны DNS"
-
-msgid "Rules"
-msgstr "Правила"
-
-msgid "Host Certificate"
-msgstr "Сертификат узла"
-
-msgid "Host Name"
-msgstr "Имя узла"
-
-msgid "Kerberos Key"
-msgstr "Ключ Kerberos"
-
-msgid "One-Time-Password"
-msgstr "Одноразовый пароль"
-
-msgid "Reset OTP"
-msgstr "Сбросить ОРП"
-
-msgid "Reset One-Time-Password"
-msgstr "Сбросить одноразовый пароль"
-
-msgid "Set OTP"
-msgstr "Установить ОРП"
-
-msgid "Set One-Time-Password"
-msgstr "Установить одноразовый пароль"
-
-msgid "Host"
-msgstr "Узел"
-
-msgid "SSH public keys"
-msgstr "Открытые ключи SSH"
-
-msgid "Audit"
-msgstr "Аудит"
-
-msgid "DNS"
-msgstr "DNS"
-
-msgid "Sudo"
-msgstr "Sudo"
-
-msgid "Next"
-msgstr "Далее"
-
-msgid "Page"
-msgstr "Страница"
-
-msgid "Prev"
-msgstr "Назад"
-
 msgid "User login"
 msgstr "Логин пользователя"
 
@@ -489,173 +241,14 @@ msgstr "Домашний каталог"
 msgid "Login shell"
 msgstr "Оболочка входа"
 
-msgid "SSH public key"
-msgstr "SSH публичный ключ"
-
 msgid "Group name"
 msgstr "Имя группы"
-
-msgid "host group"
-msgstr "группа узлов"
-
-msgid "host groups"
-msgstr "группы узлов"
-
-msgid "Host Group"
-msgstr "Группа узлов"
-
-msgid "Host-group"
-msgstr "Группа узлов"
-
-#, python-format
-msgid "Added hostgroup \"%(value)s\""
-msgstr "Добавлена группа узлов «%(value)s»"
-
-#, python-format
-msgid "Deleted hostgroup \"%(value)s\""
-msgstr "Удалена группа узлов «%(value)s»"
-
-#, python-format
-msgid "Modified hostgroup \"%(value)s\""
-msgstr "Изменена группа узлов «%(value)s»"
-
-#, python-format
-msgid "%(count)d hostgroup matched"
-msgid_plural "%(count)d hostgroups matched"
-msgstr[0] "Найдена %(count)d группа узлов"
-msgstr[1] "Найдено %(count)d группы узлов"
-msgstr[2] "Найдено %(count)d групп узлов"
-
-msgid "Platform"
-msgstr "Платформа"
-
-msgid "Host hardware platform (e.g. \"Lenovo T61\")"
-msgstr "Аппаратная платформа узла (например, «Lenovo T61»)"
-
-msgid "Operating system"
-msgstr "Операционная система"
-
-msgid "Host operating system and version (e.g. \"Fedora 9\")"
-msgstr "Операционная система узла и ее версия (например, «Fedora 9»)"
-
-msgid "User password"
-msgstr "Пароль пользователя"
-
-msgid "Random password"
-msgstr "Случайный пароль"
-
-msgid "MAC address"
-msgstr "MAC-адрес"
-
-msgid "Hardware MAC address(es) on this host"
-msgstr "MAC-адрес(а) данного узла"
-
-msgid "SSH public key fingerprint"
-msgstr "SSH публичный отпечатков ключей"
-
-msgid "Class"
-msgstr "Класс"
-
-msgid "Add a new host."
-msgstr "Добавить новый узел."
-
-#, python-format
-msgid "Added host \"%(value)s\""
-msgstr "Добавлен узел «%(value)s»"
-
-msgid "IP Address"
-msgstr "IP-адрес"
-
-msgid "Delete a host."
-msgstr "Удалить узел."
-
-#, python-format
-msgid "Deleted host \"%(value)s\""
-msgstr "Удален узел «%(value)s»"
-
-msgid "Modify information about a host."
-msgstr "Изменить информацию об узле."
-
-#, python-format
-msgid "Modified host \"%(value)s\""
-msgstr "Изменен узел «%(value)s»"
-
-msgid "Update DNS entries"
-msgstr "Обновить записи DNS"
-
-#, python-format
-msgid "%(count)d host matched"
-msgid_plural "%(count)d hosts matched"
-msgstr[0] "Найден %(count)d узел"
-msgstr[1] "Найдено %(count)d узла"
-msgstr[2] "Найдено %(count)d узлов"
 
 msgid "Warning"
 msgstr "Предупреждение"
 
-msgid "Service name"
-msgstr "Имя службы"
-
-msgid "Rule type"
-msgstr "Тип правила"
-
-msgid "Service category"
-msgstr "Категория службы"
-
-msgid "Service Groups"
-msgstr "Группы сервисов"
-
-msgid "Access time"
-msgstr "Время доступа"
-
-msgid "groups"
-msgstr "группы"
-
-msgid "Create a new group."
-msgstr "Создать новую группу."
-
-#, python-format
-msgid "Added group \"%(value)s\""
-msgstr "Добавлена группа «%(value)s»"
-
-msgid "Delete group."
-msgstr "Удалить группу."
-
-#, python-format
-msgid "Deleted group \"%(value)s\""
-msgstr "Удалена группа «%(value)s»"
-
-msgid "Modify a group."
-msgstr "Изменить группу."
-
-#, python-format
-msgid "Modified group \"%(value)s\""
-msgstr "Изменена группа «%(value)s»"
-
-msgid "change to a POSIX group"
-msgstr "изменить на группу POSIX"
-
-msgid "Search for groups."
-msgstr "Поиск групп."
-
-#, python-format
-msgid "%(count)d group matched"
-msgid_plural "%(count)d groups matched"
-msgstr[0] "Найдена %(count)d группа"
-msgstr[1] "Найдено %(count)d группы"
-msgstr[2] "Найдено %(count)d групп"
-
-msgid "search for private groups"
-msgstr "поиск личных групп"
-
-msgid "not allowed to modify user entries"
-msgstr "изменение записей пользователя не разрешено"
-
-msgid "not allowed to modify group entries"
-msgstr "изменение записей группы не разрешено"
-
-msgid "Not a managed group"
-msgstr "Нет управляемой группы"
+msgid "Size Limit"
+msgstr "Ограничение по размеру"
 
 msgid "invalid IP network format"
 msgstr "неправильный формат подсети"
@@ -670,6 +263,9 @@ msgstr "\"%s\" является обязательной частью DNS-зап
 
 msgid "Hostname"
 msgstr "Имя узла"
+
+msgid "Algorithm"
+msgstr "Алгоритм"
 
 msgid "Certificate/CRL"
 msgstr "Сертификат/СОС"
@@ -742,62 +338,84 @@ msgstr "Создать новую зону DNS (SOA-запись)"
 msgid "Host '%(host)s' not found"
 msgstr "Узел \"%(host)s\" не найден"
 
-msgid "delegation"
-msgstr "делегирование"
+#, python-format
+msgid "Failure decoding Certificate Signing Request: %s"
+msgstr "Сбой при декодировании запроса на создание сертификата: %s"
 
-msgid "delegations"
-msgstr "делегирования"
+msgid "CA is not configured"
+msgstr "CA не настроен"
 
-msgid "Delegations"
-msgstr "Делегирования"
+msgid "Serial number"
+msgstr "Серийный номер"
 
-msgid "Delegation"
-msgstr "Делегирование"
+msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
+msgstr "Серийный номер в десятичной или если есть префикс 0x в HEX формате"
 
-msgid "User group"
-msgstr "Группа пользователей"
+msgid "Serial number (hex)"
+msgstr "Серийный номер (hex)"
 
-msgid "User group ACI grants access to"
-msgstr "Добавить пользовательскую группу ACL на"
+msgid "Profile ID"
+msgstr "Идентификатор профиля"
 
-msgid "Configuration"
-msgstr "Настройка"
+msgid "Certificate Profile to use"
+msgstr "Использовать сертификат профиля"
 
-msgid "Maximum username length"
-msgstr "Максимальная длина имени пользователя"
+msgid "Request status"
+msgstr "Статус запроса"
 
-msgid "Default location of home directories"
-msgstr "Расположение домашних каталогов по умолчанию"
+msgid "Request id"
+msgstr "ID запроса"
 
-msgid "Default shell"
-msgstr "Оболочка по умолчанию"
+msgid "Submit a certificate signing request."
+msgstr "Отправить запрос подписи сертификата."
 
-msgid "Default shell for new users"
-msgstr "Оболочка по умолчанию для новых пользователей"
+msgid "CSR"
+msgstr "CSR"
 
-msgid "Default users group"
-msgstr "Группа пользователей по умолчанию"
+msgid "Principal"
+msgstr "Основной"
 
-msgid "Default group for new users"
-msgstr "Группа по умолчанию для новых пользователей"
+msgid "RFC822Name does not match any of user's email addresses"
+msgstr "RFC822 Имя не совпадает ни с одним пользователем электронной почты"
 
-msgid "Default e-mail domain"
-msgstr "Почтовый домен по умолчанию"
+msgid "Check the status of a certificate signing request."
+msgstr "Проверьте статус запроса подписи сертификата."
 
-msgid "Default group objectclasses"
-msgstr "Классы объектов для групп по умолчанию"
+msgid "Revoked"
+msgstr "Отозван"
 
-msgid "Default group objectclasses (comma-separated list)"
-msgstr "Классы объектов для групп по умолчанию (через запятую)"
+msgid "Retrieve an existing certificate."
+msgstr "Получить существующий сертификат."
 
-msgid "Default user objectclasses"
-msgstr "Классы объектов для пользователей по умолчанию"
+msgid "Output filename"
+msgstr "Исходящие имя файла"
 
-msgid "Default user objectclasses (comma-separated list)"
-msgstr "Классы объектов для пользователей по умолчанию (через запятую)"
+msgid "File to store the certificate in."
+msgstr "Файл для сохранения сертификата."
 
-msgid "Password Expiration Notification (days)"
-msgstr "Оповещение об истечении пароля (в дня)"
+msgid "Revoke a certificate."
+msgstr "Отозвать сертификат"
+
+msgid "7 is not a valid revocation reason"
+msgstr "7 неверная причина отзыва сертификата"
+
+msgid "Search for existing certificates."
+msgstr "Поиск по существующим сертификатам."
+
+msgid "minimum serial number"
+msgstr "минимальный серийный номер"
+
+msgid "maximum serial number"
+msgstr "Максимальный серийный номер"
+
+msgid "Revoked on from this date (YYYY-mm-dd)"
+msgstr "Отозван с даты (YYYY-mm-dd)"
+
+msgid "Primary key only"
+msgstr "Только главный ключ"
+
+msgid "Time Limit"
+msgstr "Ограничение по времени"
 
 msgid "CA ACL"
 msgstr "CA ACL"
@@ -808,8 +426,32 @@ msgstr "CA ACLs"
 msgid "ACL name"
 msgstr "ACL имя"
 
+msgid "Enabled"
+msgstr "Включено"
+
 msgid "Profile category"
 msgstr "Категория профиля"
+
+msgid "User category"
+msgstr "Категория пользователя"
+
+msgid "Host category"
+msgstr "Категория хоста"
+
+msgid "Service category"
+msgstr "Категория службы"
+
+msgid "Profiles"
+msgstr "Профили"
+
+msgid "User Groups"
+msgstr "Группы пользователей"
+
+msgid "Host Groups"
+msgstr "Группы узлов"
+
+msgid "Services"
+msgstr "Службы"
 
 msgid "Create a new CA ACL."
 msgstr "Создать новый CA ACL."
@@ -967,6 +609,9 @@ msgstr "Инициалы"
 msgid "Email address"
 msgstr "Электронный адрес"
 
+msgid "Password"
+msgstr "Пароль"
+
 msgid "Prompt to set the user password"
 msgstr "Запросить пароль у пользователя"
 
@@ -1006,6 +651,9 @@ msgstr "Отдел"
 msgid "Job Title"
 msgstr "Должность"
 
+msgid "Manager"
+msgstr "Руководитель"
+
 msgid "Car License"
 msgstr "Номер автомобиля"
 
@@ -1034,6 +682,15 @@ msgstr "неправильный формат почты: %(email)s"
 #, python-format
 msgid "manager %(manager)s not found"
 msgstr "руководитель %(manager)s не найден"
+
+msgid "Permissions"
+msgstr "Разрешения"
+
+msgid "Roles"
+msgstr "Роли"
+
+msgid "Sudo Command Groups"
+msgstr "Группы команды SUDO"
 
 msgid "Failed to remove"
 msgstr "Ошибка при удалении"
@@ -1129,110 +786,354 @@ msgid ""
 msgstr ""
 "Поиск для %(searched_object)s без таких %(relationship)s %(ldap_object)s."
 
-msgid "A list of ACI values"
-msgstr "Список значений ACI"
+msgid "Type"
+msgstr "Тип"
 
-msgid "type, filter, subtree and targetgroup are mutually exclusive"
-msgstr "type, filter, subtree и targetgroup являются взаимоисключающими"
+msgid "Rule name"
+msgstr "Имя правила"
 
-msgid "ACI prefix is required"
-msgstr "Требуется ACL префикс"
-
-msgid ""
-"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
-"required"
-msgstr ""
-"требуется как минимум одно из: type, filter, subtree, targetgroup, attrs или "
-"memberof"
-
-msgid "One of group, permission or self is required"
-msgstr "Требуется одно из групп, разрешений или владелец"
+msgid "Group description"
+msgstr "Описание группы"
 
 #, python-format
-msgid "Group '%s' does not exist"
-msgstr "Группа «%s» не существует"
-
-msgid "empty filter"
-msgstr "пустой фильтр"
+msgid "Added service \"%(value)s\""
+msgstr "Добавлена служба «%(value)s»"
 
 #, python-format
-msgid "Syntax Error: %(error)s"
-msgstr "Ошибка синтаксиса: %(error)s"
+msgid "Deleted service \"%(value)s\""
+msgstr "Удалена служба «%(value)s»"
 
-#, python-format
-msgid "invalid DN (%s)"
-msgstr "Неправильный DN (%s)"
+msgid "role"
+msgstr "роль"
 
-#, python-format
-msgid "ACI with name \"%s\" not found"
-msgstr "ACI с именем «%s» не найдена"
+msgid "roles"
+msgstr "роли"
 
-msgid "ACI prefix"
-msgstr "Префикс ACI"
+msgid "Attributes"
+msgstr "Атрибуты"
 
-msgid "ACIs"
+msgid "ACI"
 msgstr "ACI"
 
-msgid "ACI name"
-msgstr "Имя ACI"
+msgid "Role"
+msgstr "Роль"
 
-msgid "Permission ACI grants access to"
-msgstr "Добавить разрешения ACL на"
+msgid "Priority"
+msgstr "Приоритет"
 
-msgid "Permissions to grant(read, write, add, delete, all)"
-msgstr "Установить разрешения (для чтения, записи, добавления, удаления, все)"
+msgid "priority cannot be set on global policy"
+msgstr "приоритет не может быть задан для глобальной политики"
 
-msgid "type of IPA object (user, group, host, hostgroup, service, netgroup)"
-msgstr ""
-"Тип объекта IPA (пользователь, группа, хост, группа хостов, сервис, сетевая "
-"группа)"
+msgid "PKINIT"
+msgstr "PKINIT"
 
-msgid "Member of"
-msgstr "Член"
+msgid "permission"
+msgstr "разрешение"
 
-msgid "Member of a group"
-msgstr "Член группы"
+msgid "permissions"
+msgstr "разрешения"
 
-msgid "Group to apply ACI to"
-msgstr "Группа для добавления ACL на"
+msgid "Permission"
+msgstr "Разрешения"
 
-#, python-format
-msgid "Created ACI \"%(value)s\""
-msgstr "Создана ACI «%(value)s»"
+msgid "Subtree"
+msgstr "Поддерево"
 
-msgid "Test the ACI syntax but don't write anything"
-msgstr "Проверить синтаксис ACL, но никуда не записывать"
+msgid "Target group"
+msgstr "Целевая группа"
 
-#, python-format
-msgid "Deleted ACI \"%(value)s\""
-msgstr "Удалена ACI «%(value)s»"
+msgid "Key"
+msgstr "Ключ"
 
-#, python-format
-msgid "Modified ACI \"%(value)s\""
-msgstr "Изменена ACI «%(value)s»"
+msgid "Bind DN"
+msgstr "Bind DN"
 
-#, python-format
-msgid "%(count)d ACI matched"
-msgid_plural "%(count)d ACIs matched"
-msgstr[0] "Найдено %(count)d ACI"
-msgstr[1] "Найдено %(count)d ACI"
-msgstr[2] "Найдено %(count)d ACI"
-
-msgid "Location of the ACI"
-msgstr "Расположение ACL"
-
-msgid "New ACI name"
-msgstr "Новое имя ACL"
-
-#, python-format
-msgid "Renamed ACI to \"%(value)s\""
-msgstr "Переименовать ACL в \"%(value)s\""
+msgid "LDAP schema"
+msgstr "Схема LDAP"
 
 msgid "Hardware platform of the host (e.g. Lenovo T61)"
 msgstr "Аппаратная платформа узла (например, Lenovo T61)"
 
 msgid "Operating System and version of the host (e.g. Fedora 9)"
 msgstr "Операционная система и версия узла (например, Fedora 9)"
+
+msgid "Add"
+msgstr "Добавить"
+
+msgid "Add and Close"
+msgstr "Добавить и закрыть"
+
+msgid "Add and Edit"
+msgstr "Добавить и редактировать"
+
+msgid "Cancel"
+msgstr "Отменить"
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Filter"
+msgstr "Фильтр"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Refresh"
+msgstr "Обновить"
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Reset"
+msgstr "Сбросить"
+
+msgid "Restore"
+msgstr "Восстановить"
+
+msgid "Retry"
+msgstr "Получить"
+
+msgid "Revoke"
+msgstr "Отозвать"
+
+msgid "Set"
+msgstr "Уставновить"
+
+msgid "Update"
+msgstr "Обновить"
+
+msgid "Collapse All"
+msgstr "Свернуть все"
+
+msgid "Expand All"
+msgstr "Развернуть все"
+
+msgid "Hide details"
+msgstr "Скрыть детали"
+
+msgid "Error"
+msgstr "Ошибка"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Username"
+msgstr "Имя пользователя"
+
+msgid "Organization"
+msgstr "Организация"
+
+msgid "Organizational Unit"
+msgstr "Организационное подразделение"
+
+msgid "Reason for Revocation"
+msgstr "Причина отзыва"
+
+msgid "User Options"
+msgstr "Параметры пользователя"
+
+msgid "Data"
+msgstr "Данные"
+
+msgid "DNS Zone Settings"
+msgstr "Настройки зоны DNS"
+
+msgid "Rules"
+msgstr "Правила"
+
+msgid "Host Certificate"
+msgstr "Сертификат узла"
+
+msgid "Host Name"
+msgstr "Имя узла"
+
+msgid "Kerberos Key"
+msgstr "Ключ Kerberos"
+
+msgid "One-Time-Password"
+msgstr "Одноразовый пароль"
+
+msgid "Reset OTP"
+msgstr "Сбросить ОРП"
+
+msgid "Reset One-Time-Password"
+msgstr "Сбросить одноразовый пароль"
+
+msgid "Set OTP"
+msgstr "Установить ОРП"
+
+msgid "Set One-Time-Password"
+msgstr "Установить одноразовый пароль"
+
+msgid "SSH public keys"
+msgstr "Открытые ключи SSH"
+
+msgid "Audit"
+msgstr "Аудит"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "Sudo"
+msgstr "Sudo"
+
+msgid "Next"
+msgstr "Далее"
+
+msgid "Page"
+msgstr "Страница"
+
+msgid "Prev"
+msgstr "Назад"
+
+msgid "host group"
+msgstr "группа узлов"
+
+msgid "host groups"
+msgstr "группы узлов"
+
+msgid "Host Group"
+msgstr "Группа узлов"
+
+msgid "Host-group"
+msgstr "Группа узлов"
+
+#, python-format
+msgid "Added hostgroup \"%(value)s\""
+msgstr "Добавлена группа узлов «%(value)s»"
+
+#, python-format
+msgid "Deleted hostgroup \"%(value)s\""
+msgstr "Удалена группа узлов «%(value)s»"
+
+#, python-format
+msgid "Modified hostgroup \"%(value)s\""
+msgstr "Изменена группа узлов «%(value)s»"
+
+#, python-format
+msgid "%(count)d hostgroup matched"
+msgid_plural "%(count)d hostgroups matched"
+msgstr[0] "Найдена %(count)d группа узлов"
+msgstr[1] "Найдено %(count)d группы узлов"
+msgstr[2] "Найдено %(count)d групп узлов"
+
+msgid "Service name"
+msgstr "Имя службы"
+
+msgid "Rule type"
+msgstr "Тип правила"
+
+msgid "Service Groups"
+msgstr "Группы сервисов"
+
+msgid "Access time"
+msgstr "Время доступа"
+
+msgid "groups"
+msgstr "группы"
+
+msgid "Create a new group."
+msgstr "Создать новую группу."
+
+#, python-format
+msgid "Added group \"%(value)s\""
+msgstr "Добавлена группа «%(value)s»"
+
+msgid "Delete group."
+msgstr "Удалить группу."
+
+#, python-format
+msgid "Deleted group \"%(value)s\""
+msgstr "Удалена группа «%(value)s»"
+
+msgid "Modify a group."
+msgstr "Изменить группу."
+
+#, python-format
+msgid "Modified group \"%(value)s\""
+msgstr "Изменена группа «%(value)s»"
+
+msgid "change to a POSIX group"
+msgstr "изменить на группу POSIX"
+
+msgid "Search for groups."
+msgstr "Поиск групп."
+
+#, python-format
+msgid "%(count)d group matched"
+msgid_plural "%(count)d groups matched"
+msgstr[0] "Найдена %(count)d группа"
+msgstr[1] "Найдено %(count)d группы"
+msgstr[2] "Найдено %(count)d групп"
+
+msgid "search for private groups"
+msgstr "поиск личных групп"
+
+msgid "not allowed to modify user entries"
+msgstr "изменение записей пользователя не разрешено"
+
+msgid "not allowed to modify group entries"
+msgstr "изменение записей группы не разрешено"
+
+msgid "Not a managed group"
+msgstr "Нет управляемой группы"
+
+msgid "delegation"
+msgstr "делегирование"
+
+msgid "delegations"
+msgstr "делегирования"
+
+msgid "Delegations"
+msgstr "Делегирования"
+
+msgid "Delegation"
+msgstr "Делегирование"
+
+msgid "User group"
+msgstr "Группа пользователей"
+
+msgid "User group ACI grants access to"
+msgstr "Добавить пользовательскую группу ACL на"
+
+msgid "Configuration"
+msgstr "Настройка"
+
+msgid "Maximum username length"
+msgstr "Максимальная длина имени пользователя"
+
+msgid "Default location of home directories"
+msgstr "Расположение домашних каталогов по умолчанию"
+
+msgid "Default shell"
+msgstr "Оболочка по умолчанию"
+
+msgid "Default shell for new users"
+msgstr "Оболочка по умолчанию для новых пользователей"
+
+msgid "Default users group"
+msgstr "Группа пользователей по умолчанию"
+
+msgid "Default group for new users"
+msgstr "Группа по умолчанию для новых пользователей"
+
+msgid "Default e-mail domain"
+msgstr "Почтовый домен по умолчанию"
+
+msgid "Default group objectclasses"
+msgstr "Классы объектов для групп по умолчанию"
+
+msgid "Default group objectclasses (comma-separated list)"
+msgstr "Классы объектов для групп по умолчанию (через запятую)"
+
+msgid "Default user objectclasses"
+msgstr "Классы объектов для пользователей по умолчанию"
+
+msgid "Default user objectclasses (comma-separated list)"
+msgstr "Классы объектов для пользователей по умолчанию (через запятую)"
+
+msgid "Password Expiration Notification (days)"
+msgstr "Оповещение об истечении пароля (в дня)"
 
 msgid "automount location"
 msgstr "расположение автомонтирования"
@@ -1373,22 +1274,108 @@ msgstr "пользователи не могут быть установлены
 msgid "Task DN = '%s'"
 msgstr "Задача DN = '%s'"
 
+msgid "A list of ACI values"
+msgstr "Список значений ACI"
+
+msgid "type, filter, subtree and targetgroup are mutually exclusive"
+msgstr "type, filter, subtree и targetgroup являются взаимоисключающими"
+
+msgid "ACI prefix is required"
+msgstr "Требуется ACL префикс"
+
+msgid ""
+"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
+"required"
+msgstr ""
+"требуется как минимум одно из: type, filter, subtree, targetgroup, attrs или "
+"memberof"
+
+msgid "One of group, permission or self is required"
+msgstr "Требуется одно из групп, разрешений или владелец"
+
+#, python-format
+msgid "Group '%s' does not exist"
+msgstr "Группа «%s» не существует"
+
+msgid "empty filter"
+msgstr "пустой фильтр"
+
+#, python-format
+msgid "Syntax Error: %(error)s"
+msgstr "Ошибка синтаксиса: %(error)s"
+
+#, python-format
+msgid "invalid DN (%s)"
+msgstr "Неправильный DN (%s)"
+
+#, python-format
+msgid "ACI with name \"%s\" not found"
+msgstr "ACI с именем «%s» не найдена"
+
+msgid "ACI prefix"
+msgstr "Префикс ACI"
+
+msgid "ACIs"
+msgstr "ACI"
+
+msgid "ACI name"
+msgstr "Имя ACI"
+
+msgid "Permission ACI grants access to"
+msgstr "Добавить разрешения ACL на"
+
+msgid "Permissions to grant(read, write, add, delete, all)"
+msgstr "Установить разрешения (для чтения, записи, добавления, удаления, все)"
+
+msgid "type of IPA object (user, group, host, hostgroup, service, netgroup)"
+msgstr ""
+"Тип объекта IPA (пользователь, группа, хост, группа хостов, сервис, сетевая "
+"группа)"
+
+msgid "Member of"
+msgstr "Член"
+
+msgid "Member of a group"
+msgstr "Член группы"
+
+msgid "Group to apply ACI to"
+msgstr "Группа для добавления ACL на"
+
+#, python-format
+msgid "Created ACI \"%(value)s\""
+msgstr "Создана ACI «%(value)s»"
+
+msgid "Test the ACI syntax but don't write anything"
+msgstr "Проверить синтаксис ACL, но никуда не записывать"
+
+#, python-format
+msgid "Deleted ACI \"%(value)s\""
+msgstr "Удалена ACI «%(value)s»"
+
+#, python-format
+msgid "Modified ACI \"%(value)s\""
+msgstr "Изменена ACI «%(value)s»"
+
+#, python-format
+msgid "%(count)d ACI matched"
+msgid_plural "%(count)d ACIs matched"
+msgstr[0] "Найдено %(count)d ACI"
+msgstr[1] "Найдено %(count)d ACI"
+msgstr[2] "Найдено %(count)d ACI"
+
+msgid "Location of the ACI"
+msgstr "Расположение ACL"
+
+msgid "New ACI name"
+msgstr "Новое имя ACL"
+
+#, python-format
+msgid "Renamed ACI to \"%(value)s\""
+msgstr "Переименовать ACL в \"%(value)s\""
+
 #, python-format
 msgid "objectclass %s not found"
 msgstr "класс объектов %s не найден"
-
-msgid "too many '@' characters"
-msgstr "слишком много символов @"
-
-msgid "invalid SSH public key"
-msgstr "неверный открытый ключ SSH"
-
-#, python-format
-msgid "invalid domain-name: %s"
-msgstr "неправильное доменное имя: %s"
-
-msgid "invalid IP address format"
-msgstr "неправильный формат IP-адреса"
 
 msgid "incorrect type"
 msgstr "неверный тип"
@@ -1479,6 +1466,28 @@ msgstr "должно быть DNS имя"
 msgid "must be absolute"
 msgstr "должно быть единственным"
 
+msgid "too many '@' characters"
+msgstr "слишком много символов @"
+
+msgid "invalid SSH public key"
+msgstr "неверный открытый ключ SSH"
+
+#, python-format
+msgid "invalid domain-name: %s"
+msgstr "неправильное доменное имя: %s"
+
+msgid "invalid IP address format"
+msgstr "неправильный формат IP-адреса"
+
+msgid "A list of LDAP entries"
+msgstr "Список записей LDAP"
+
+msgid "Number of entries returned"
+msgstr "Количество вернутых значений"
+
+msgid "True if not all results were returned"
+msgstr "Верно если не все результаты были возвращены"
+
 #, python-format
 msgid "%(count)d variables"
 msgstr "%(count)d переменных"
@@ -1489,6 +1498,51 @@ msgid_plural "%(count)d plugins loaded"
 msgstr[0] "Загружен %(count)d подключаемый модуль"
 msgstr[1] "Загружено %(count)d подключаемых модуля"
 msgstr[2] "Загружено %(count)d подключаемых модулей"
+
+msgid "Additional instructions:"
+msgstr "Дополнительные инструкции:"
+
+#, python-format
+msgid ""
+"DNSSEC support is experimental.\n"
+"%(additional_info)s"
+msgstr ""
+"Экспериментальная поддержка DNSSEC.\n"
+"%(additional_info)s"
+
+#, python-format
+msgid "'%(option)s' option is deprecated. %(additional_info)s"
+msgstr "'%(option)s' опция не поддерживается. %(additional_info)s"
+
+#, python-format
+msgid "DNS server %(server)s: %(error)s."
+msgstr "DNS сервер %(server)s: %(error)s."
+
+#, python-format
+msgid ""
+"DNS server %(server)s does not support DNSSEC: %(error)s.\n"
+"If DNSSEC validation is enabled on IPA server(s), please disable it."
+msgstr ""
+"DNS сервер %(server)s не поддерживает DNSSEC: %(error)s.\n"
+"Если проверка DNSSEC включена в IPA, пожалуйста выключите."
+
+#, python-format
+msgid ""
+"DNS server %(server)s does not support EDNS0 (RFC 6891): %(error)s.\n"
+"If DNSSEC validation is enabled on IPA server(s), please disable it."
+msgstr ""
+"DNS сервер %(server)s не поддерживает EDNS0 (RFC 6891): %(error)s.\n"
+"Если проверка DNSSEC включена в IPA, пожалуйста выключите."
+
+#, python-format
+msgid ""
+"DNSSEC validation failed: %(error)s.\n"
+"Please verify your DNSSEC configuration or disable DNSSEC validation on all "
+"IPA servers."
+msgstr ""
+"Проверка DNSSEC провалена: %(error)s.\n"
+"Пожалуйста проверьте ваше конфигурацию DNSSEC или отключите проверку DNSSEC "
+"на всех IPA серверах."
 
 msgid "Results are truncated, try a more specific search"
 msgstr "Результаты усечены. Попробуйте задать более точные условия поиска"
@@ -1704,6 +1758,9 @@ msgstr "%(label)s %(key)s не может быть удалено/изменен
 msgid "%(name)s certificate is not valid"
 msgstr "%(name)s ошибка сертификата"
 
+msgid "A string searched in all relevant object attributes"
+msgstr "Поиск по всем атрибутам объекта"
+
 #, python-format
 msgid "Enter %(label)s again to verify: "
 msgstr "Повторно введите %(label)s для проверки: "
@@ -1737,63 +1794,6 @@ msgstr "Не поддерживаемые опции"
 msgid "No file to read"
 msgstr "Нет файла"
 
-msgid "A list of LDAP entries"
-msgstr "Список записей LDAP"
-
-msgid "Number of entries returned"
-msgstr "Количество вернутых значений"
-
-msgid "True if not all results were returned"
-msgstr "Верно если не все результаты были возвращены"
-
-msgid "Additional instructions:"
-msgstr "Дополнительные инструкции:"
-
-#, python-format
-msgid ""
-"DNSSEC support is experimental.\n"
-"%(additional_info)s"
-msgstr ""
-"Экспериментальная поддержка DNSSEC.\n"
-"%(additional_info)s"
-
-#, python-format
-msgid "'%(option)s' option is deprecated. %(additional_info)s"
-msgstr "'%(option)s' опция не поддерживается. %(additional_info)s"
-
-#, python-format
-msgid "DNS server %(server)s: %(error)s."
-msgstr "DNS сервер %(server)s: %(error)s."
-
-#, python-format
-msgid ""
-"DNS server %(server)s does not support DNSSEC: %(error)s.\n"
-"If DNSSEC validation is enabled on IPA server(s), please disable it."
-msgstr ""
-"DNS сервер %(server)s не поддерживает DNSSEC: %(error)s.\n"
-"Если проверка DNSSEC включена в IPA, пожалуйста выключите."
-
-#, python-format
-msgid ""
-"DNS server %(server)s does not support EDNS0 (RFC 6891): %(error)s.\n"
-"If DNSSEC validation is enabled on IPA server(s), please disable it."
-msgstr ""
-"DNS сервер %(server)s не поддерживает EDNS0 (RFC 6891): %(error)s.\n"
-"Если проверка DNSSEC включена в IPA, пожалуйста выключите."
-
-#, python-format
-msgid ""
-"DNSSEC validation failed: %(error)s.\n"
-"Please verify your DNSSEC configuration or disable DNSSEC validation on all "
-"IPA servers."
-msgstr ""
-"Проверка DNSSEC провалена: %(error)s.\n"
-"Пожалуйста проверьте ваше конфигурацию DNSSEC или отключите проверку DNSSEC "
-"на всех IPA серверах."
-
-msgid "A string searched in all relevant object attributes"
-msgstr "Поиск по всем атрибутам объекта"
-
 msgid "Time limit of search in seconds"
 msgstr "Ограничение времени поиска в секундах"
 
@@ -1815,11 +1815,11 @@ msgstr "Причина"
 msgid "Reason for revoking the certificate (0-10)"
 msgstr "Причина для отзыва сертификата (0-10)"
 
-msgid "Delete all?"
-msgstr "Удалить все?"
-
 msgid "Unrevoked"
 msgstr "Неотозванный"
+
+msgid "Delete all?"
+msgstr "Удалить все?"
 
 msgid "Master file"
 msgstr "Главный файл"
@@ -1835,12 +1835,6 @@ msgstr "Файл %(file)s не найден"
 msgid "key %(key)s already exists"
 msgstr "ключ %(key)s уже существует"
 
-msgid "LDAP DN"
-msgstr "LDAP DN"
-
-msgid "LDAP password"
-msgstr "Пароль LDAP"
-
 #, c-format
 msgid "kvno %d\n"
 msgstr "kvno %d\n"
@@ -1853,6 +1847,12 @@ msgstr "LDAP basedn"
 
 msgid "basedn"
 msgstr "basedn"
+
+msgid "LDAP DN"
+msgstr "LDAP DN"
+
+msgid "LDAP password"
+msgstr "Пароль LDAP"
 
 #, c-format
 msgid "cannot open configuration file %s\n"

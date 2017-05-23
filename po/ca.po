@@ -1,9 +1,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.4.90.dev201703151542+gita1686a9\n"
+"Project-Id-Version: freeipa 4.5.0.dev201705231055+git653d2f4\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-03-15 16:43+0100\n"
+"POT-Creation-Date: 2017-05-23 12:55+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -17,14 +17,35 @@ msgstr ""
 msgid "Out of memory\n"
 msgstr "Sense memòria\n"
 
-msgid "user"
-msgstr "usuari"
+msgid "Host"
+msgstr "Ordinador central"
+
+msgid "Host name"
+msgstr "Nom de l'amfitrió"
+
+msgid "Description"
+msgstr "Descripció"
+
+msgid "Locality"
+msgstr "Localitat"
+
+msgid "Location"
+msgstr "Ubicació"
+
+msgid "Platform"
+msgstr "Plataforma"
+
+msgid "Operating system"
+msgstr "Sistema operatiu"
 
 msgid "Certificate"
 msgstr "Certificat"
 
 msgid "Subject"
 msgstr "Assumpte"
+
+msgid "Serial Number"
+msgstr "Número de sèrie"
 
 msgid "Issuer"
 msgstr "Emissor"
@@ -35,20 +56,14 @@ msgstr "No abans"
 msgid "Not After"
 msgstr "No després"
 
-msgid "Serial number"
-msgstr "Número de sèrie"
+msgid "Class"
+msgstr "Classe"
 
-msgid "Status"
-msgstr "Estat"
+msgid "Force"
+msgstr "Força"
 
-msgid "Revoked"
-msgstr "Revocat"
-
-msgid "Description"
-msgstr "Descripció"
-
-msgid "Type"
-msgstr "Tipus"
+msgid "IP Address"
+msgstr "Adreça IP"
 
 msgid "group"
 msgstr "grup"
@@ -58,6 +73,9 @@ msgstr "Usuaris"
 
 msgid "User"
 msgstr "Usuari"
+
+msgid "user"
+msgstr "usuari"
 
 msgid "users"
 msgstr "usuaris"
@@ -71,6 +89,126 @@ msgstr "Servidor"
 msgid "Time now"
 msgstr "L'hora actual"
 
+msgid "User login"
+msgstr "Entrada"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "Home directory"
+msgstr "Directori de l'usuari"
+
+msgid "Login shell"
+msgstr "Intèrpret d'ordres de l'inici de sessió"
+
+msgid "Group name"
+msgstr "Nom del grup"
+
+msgid "Warning"
+msgstr "Avís"
+
+msgid "User name"
+msgstr "Nom d'usuari"
+
+msgid "Subtype"
+msgstr "Subtipus"
+
+msgid "Hostname"
+msgstr "Nom de l'ordinador"
+
+msgid "Algorithm"
+msgstr "Algorisme"
+
+msgid "Target"
+msgstr "Objectiu"
+
+msgid "Size"
+msgstr "Mida"
+
+msgid "Flags"
+msgstr "Indicadors"
+
+msgid "Regular Expression"
+msgstr "Expressió regular"
+
+msgid "Weight"
+msgstr "Pes"
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Fingerprint"
+msgstr "Empremta"
+
+msgid "Serial number"
+msgstr "Número de sèrie"
+
+msgid "Status"
+msgstr "Estat"
+
+msgid "Revoked"
+msgstr "Revocat"
+
+msgid "Enabled"
+msgstr "S'ha habilitat"
+
+msgid "Services"
+msgstr "Serveis"
+
+msgid "First name"
+msgstr "Nom"
+
+msgid "Last name"
+msgstr "Cognom"
+
+msgid "Full name"
+msgstr "Nom complet"
+
+msgid "Initials"
+msgstr "Inicials"
+
+msgid "Email address"
+msgstr "Adreça de correu electrònic"
+
+msgid "Password"
+msgstr "Contrasenya"
+
+msgid "City"
+msgstr "Ciutat"
+
+msgid "State/Province"
+msgstr "Estat/província"
+
+msgid "Telephone Number"
+msgstr "Número de telèfon"
+
+msgid "Pager Number"
+msgstr "Número de buscapersones"
+
+msgid "Fax Number"
+msgstr "Número de fax"
+
+msgid "Job Title"
+msgstr "Càrrec"
+
+msgid "Manager"
+msgstr "Gestor"
+
+msgid "Permissions"
+msgstr "Permisos"
+
+msgid "entry"
+msgstr "entrada"
+
+msgid "Rights"
+msgstr "Drets"
+
+msgid "Rename"
+msgstr "Canvia el nom"
+
+msgid "Type"
+msgstr "Tipus"
+
 msgid "Active Directory domain"
 msgstr "Domini d'Active Directory"
 
@@ -83,29 +221,11 @@ msgstr "Confiança"
 msgid "Domain"
 msgstr "Domini"
 
-msgid "Enabled"
-msgstr "S'ha habilitat"
-
 msgid "Commands"
 msgstr "Ordres"
 
 msgid "services"
 msgstr "serveis"
-
-msgid "Services"
-msgstr "Serveis"
-
-msgid "Serial Number"
-msgstr "Número de sèrie"
-
-msgid "Force"
-msgstr "Força"
-
-msgid "Location"
-msgstr "Ubicació"
-
-msgid "Permissions"
-msgstr "Permisos"
 
 msgid "Attributes"
 msgstr "Atributs"
@@ -128,17 +248,11 @@ msgstr "Permís"
 msgid "Subtree"
 msgstr "Subarbre"
 
-msgid "User name"
-msgstr "Nom d'usuari"
-
 msgid "New Password"
 msgstr "Contrasenya nova"
 
 msgid "Invalid credentials"
 msgstr "Credencials no vàlides"
-
-msgid "Manager"
-msgstr "Gestor"
 
 msgid "Disabled"
 msgstr "Inhabilitat"
@@ -146,11 +260,8 @@ msgstr "Inhabilitat"
 msgid "Key"
 msgstr "Tecla"
 
-msgid "Algorithm"
-msgstr "Algorisme"
-
-msgid "Password"
-msgstr "Contrasenya"
+msgid "Netgroup name"
+msgstr "Nom de grup de xarxa"
 
 msgid "Continue"
 msgstr "Continua"
@@ -374,12 +485,6 @@ msgstr "No coincideix"
 msgid "Host Name"
 msgstr "Nom de l'ordinador"
 
-msgid "Host"
-msgstr "Ordinador central"
-
-msgid "Target"
-msgstr "Objectiu"
-
 msgid "Modified"
 msgstr "Modificat"
 
@@ -425,116 +530,11 @@ msgstr "Pàgina"
 msgid "Prev"
 msgstr "Anterior"
 
-msgid "User login"
-msgstr "Entrada"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "Home directory"
-msgstr "Directori de l'usuari"
-
-msgid "Login shell"
-msgstr "Intèrpret d'ordres de l'inici de sessió"
-
-msgid "Group name"
-msgstr "Nom del grup"
-
-msgid "Host name"
-msgstr "Nom de l'amfitrió"
-
-msgid "Locality"
-msgstr "Localitat"
-
-msgid "Platform"
-msgstr "Plataforma"
-
-msgid "Operating system"
-msgstr "Sistema operatiu"
-
-msgid "Class"
-msgstr "Classe"
-
-msgid "IP Address"
-msgstr "Adreça IP"
-
-msgid "Warning"
-msgstr "Avís"
-
 msgid "Access time"
 msgstr "Temps d'accés"
 
-msgid "Subtype"
-msgstr "Subtipus"
-
-msgid "Hostname"
-msgstr "Nom de l'ordinador"
-
-msgid "Size"
-msgstr "Mida"
-
-msgid "Flags"
-msgstr "Indicadors"
-
-msgid "Regular Expression"
-msgstr "Expressió regular"
-
-msgid "Weight"
-msgstr "Pes"
-
-msgid "Port"
-msgstr "Port"
-
-msgid "Fingerprint"
-msgstr "Empremta"
-
 msgid "Configuration"
 msgstr "Configuració"
-
-msgid "First name"
-msgstr "Nom"
-
-msgid "Last name"
-msgstr "Cognom"
-
-msgid "Full name"
-msgstr "Nom complet"
-
-msgid "Initials"
-msgstr "Inicials"
-
-msgid "Email address"
-msgstr "Adreça de correu electrònic"
-
-msgid "City"
-msgstr "Ciutat"
-
-msgid "State/Province"
-msgstr "Estat/província"
-
-msgid "Telephone Number"
-msgstr "Número de telèfon"
-
-msgid "Pager Number"
-msgstr "Número de buscapersones"
-
-msgid "Fax Number"
-msgstr "Número de fax"
-
-msgid "Job Title"
-msgstr "Càrrec"
-
-msgid "entry"
-msgstr "entrada"
-
-msgid "Rights"
-msgstr "Drets"
-
-msgid "Rename"
-msgstr "Canvia el nom"
-
-msgid "Netgroup name"
-msgstr "Nom de grup de xarxa"
 
 msgid "Map"
 msgstr "Mapa"
@@ -554,9 +554,6 @@ msgstr "No s'ha implementat l'ordre"
 msgid "Reason"
 msgstr "Raó"
 
-msgid "Server Name"
-msgstr "Nom del servidor"
-
 msgid "Debugging output"
 msgstr "Sortida de depuració"
 
@@ -565,3 +562,6 @@ msgstr "nomdelfitxer"
 
 msgid "password"
 msgstr "contrasenya"
+
+msgid "Server Name"
+msgstr "Nom del servidor"

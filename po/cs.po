@@ -1,9 +1,9 @@
 # Josef Hruška <hrusjos@gmail.com>, 2015. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.4.90.dev201703151542+gita1686a9\n"
+"Project-Id-Version: freeipa 4.5.0.dev201705231055+git653d2f4\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-03-15 16:43+0100\n"
+"POT-Creation-Date: 2017-05-23 12:55+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -79,6 +79,9 @@ msgstr "Nenalezena mezipamět ověřovacích údajů"
 msgid "%(reason)s"
 msgstr "%(reason)s"
 
+msgid "A string searched in all relevant object attributes"
+msgstr "Řetězec vyhledávaný ve všech odpovídajících atributech objektu"
+
 #, python-format
 msgid "Enter %(label)s again to verify: "
 msgstr "Vložte znovu své %(label)s, aby se ověřila jeho správnost."
@@ -120,6 +123,3 @@ msgstr "Zastaralé volby"
 
 msgid "No file to read"
 msgstr "Žádný soubor k přečtení"
-
-msgid "A string searched in all relevant object attributes"
-msgstr "Řetězec vyhledávaný ve všech odpovídajících atributech objektu"

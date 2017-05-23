@@ -1,9 +1,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.4.90.dev201703151542+gita1686a9\n"
+"Project-Id-Version: freeipa 4.5.0.dev201705231055+git653d2f4\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-03-15 16:43+0100\n"
+"POT-Creation-Date: 2017-05-23 12:55+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -13,6 +13,9 @@ msgstr ""
 "Language: hu\n"
 "X-Generator: Zanata 3.9.6\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+msgid "Description"
+msgstr "Leírás"
 
 msgid "Certificate"
 msgstr "Tanúsítvány"
@@ -32,6 +35,18 @@ msgstr "Érvényesség vége"
 msgid "Fingerprint (SHA1)"
 msgstr "Ujjlenyomat (SHA1)"
 
+msgid "Revocation reason"
+msgstr "Visszavonás oka"
+
+msgid "GID"
+msgstr "GID"
+
+msgid "Zone name (FQDN)"
+msgstr "Zóna neve (FQDN)"
+
+msgid "SOA serial"
+msgstr "SOA sorozatszám"
+
 msgid "Serial number"
 msgstr "Sorozatszám"
 
@@ -44,17 +59,14 @@ msgstr "Igénylés azonosítója"
 msgid "Revoked"
 msgstr "Visszavont"
 
-msgid "Revocation reason"
-msgstr "Visszavonás oka"
+msgid "Services"
+msgstr "Szolgáltatások"
 
-msgid "Description"
-msgstr "Leírás"
+msgid "Permissions"
+msgstr "Jogosultságok"
 
 msgid "Rule name"
 msgstr "Szabály neve"
-
-msgid "Services"
-msgstr "Szolgáltatások"
 
 #, python-format
 msgid "Added service \"%(value)s\""
@@ -63,9 +75,6 @@ msgstr "A %(value)s szolgáltatás hozzáadva"
 #, python-format
 msgid "Deleted service \"%(value)s\""
 msgstr "A %(value)s szolgáltatás eltávolítva"
-
-msgid "Permissions"
-msgstr "Jogosultságok"
 
 msgid "Max lifetime (days)"
 msgstr "Élettartam legfeljebb (nap)"
@@ -88,9 +97,6 @@ msgstr "Karakterosztályok"
 msgid "LDAP URI"
 msgstr "LDAP URI"
 
-msgid "GID"
-msgstr "GID"
-
 msgid "Service group name"
 msgstr "Szolgáltatás-csoport neve"
 
@@ -109,12 +115,6 @@ msgstr "GID (kézzel történő beállításhoz)"
 msgid "change to a POSIX group"
 msgstr "POSIX-csoportra módosít"
 
-msgid "Zone name (FQDN)"
-msgstr "Zóna neve (FQDN)"
-
-msgid "SOA serial"
-msgstr "SOA sorozatszám"
-
 msgid "User group"
 msgstr "Felhasználói csport"
 
@@ -127,6 +127,9 @@ msgstr "Alapértelmezett csoport"
 #, python-format
 msgid "Group '%s' does not exist"
 msgstr "A '%s' csoport nem létezik"
+
+msgid "A list of LDAP entries"
+msgstr "LDAP-bejegyzések listája"
 
 msgid "Passwords do not match"
 msgstr "A jelszavak nem egyeznek meg"
@@ -150,9 +153,6 @@ msgstr "Az alapértelmezett csoport nem távolítható el"
 #, python-format
 msgid "Certificate format error: %(error)s"
 msgstr "Tanúsítványhiba: %(error)s"
-
-msgid "A list of LDAP entries"
-msgstr "LDAP-bejegyzések listája"
 
 msgid "Reason"
 msgstr "Ok"
