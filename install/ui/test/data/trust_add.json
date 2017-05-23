@@ -1,9 +1,0 @@
-{
-    "error": null,
-    "id": null,
-    "result": {
-        "result": {},
-        "summary": "Added Active Directory trust for realm \"ad.test\"",
-        "value": "ad.test"
-    }
-}
