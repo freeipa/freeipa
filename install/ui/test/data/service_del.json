@@ -1,9 +1,0 @@
-{
-    "error": null,
-    "id": 0,
-    "result": {
-        "result": true,
-        "summary": "Deleted service \"test/dev.example.com@EXAMPLE.COM\"",
-        "value": "test/dev.example.com@EXAMPLE.COM"
-    }
-}
