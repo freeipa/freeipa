@@ -1,6 +1,7 @@
 #
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
+import logging
 import time
 import dns.resolver
 import dns.rrset
@@ -10,6 +11,8 @@ import dns.rdataclass
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
 from ipapython.dnsutil import DNSName
+
+logger = logging.getLogger(__name__)
 
 IPA_DEFAULT_MASTER_SRV_REC = (
     # srv record name, port
@@ -23,7 +26,7 @@ IPA_DEFAULT_MASTER_SRV_REC = (
 )
 
 
-def resolve_records_from_server(rname, rtype, nameserver, logger):
+def resolve_records_from_server(rname, rtype, nameserver):
     res = dns.resolver.Resolver()
     res.nameservers = [nameserver]
     res.lifetime = 10
@@ -86,7 +89,7 @@ class TestDNSLocations(IntegrationTest):
             expected = _gen_expected_srv_rrset(
                 name_abs, port, expected_servers)
             query = resolve_records_from_server(
-                name_abs, 'SRV', server_ip, self.log)
+                name_abs, 'SRV', server_ip)
             assert expected == query, (
                 "Expected and received DNS data do not match on server "
                 "with IP: '{}' for name '{}' (expected:\n{}\ngot:\n{})".format(

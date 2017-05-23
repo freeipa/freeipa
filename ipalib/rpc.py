@@ -34,6 +34,7 @@ from __future__ import absolute_import
 
 from decimal import Decimal
 import datetime
+import logging
 import os
 import locale
 import base64
@@ -90,6 +91,8 @@ else:
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 COOKIE_NAME = 'ipa_session'
 CCACHE_COOKIE_KEY = 'X-IPA-Session-Cookie'
@@ -889,8 +892,7 @@ class RPCClient(Connectible):
             cookie_string = read_persistent_client_session_data(principal)
             cookie_string = cookie_string.decode('utf-8')
         except Exception as e:
-            self.log.debug('Error reading client session data: {err}'
-                           .format(err=e))
+            logger.debug('Error reading client session data: %s', e)
             return None
 
         # Search for the session cookie within the cookie string
@@ -899,9 +901,9 @@ class RPCClient(Connectible):
                 cookie_string, COOKIE_NAME,
                 timestamp=datetime.datetime.utcnow())
         except Exception as e:
-            self.log.debug(
-                'Error retrieving cookie from the persistent storage: {err}'
-                .format(err=e))
+            logger.debug(
+                'Error retrieving cookie from the persistent storage: %s',
+                e)
             return None
 
         return session_cookie
@@ -934,33 +936,37 @@ class RPCClient(Connectible):
 
         session_cookie = self.get_session_cookie_from_persistent_storage(principal)
         if session_cookie is None:
-            self.log.debug("failed to find session_cookie in persistent storage for principal '%s'",
-                           principal)
+            logger.debug("failed to find session_cookie in persistent storage "
+                         "for principal '%s'",
+                         principal)
             return original_url
         else:
-            self.debug("found session_cookie in persistent storage for principal '%s', cookie: '%s'",
-                       principal, session_cookie)
+            logger.debug("found session_cookie in persistent storage for "
+                         "principal '%s', cookie: '%s'",
+                         principal, session_cookie)
 
         # Decide if we should send the cookie to the server
         try:
             session_cookie.http_return_ok(original_url)
         except Cookie.Expired as e:
-            self.debug("deleting session data for principal '%s': %s", principal, e)
+            logger.debug("deleting session data for principal '%s': %s",
+                         principal, e)
             try:
                 delete_persistent_client_session_data(principal)
             except Exception as e:
                 pass
             return original_url
         except Cookie.URLMismatch as e:
-            self.debug("not sending session cookie, URL mismatch: %s", e)
+            logger.debug("not sending session cookie, URL mismatch: %s", e)
             return original_url
         except Exception as e:
-            self.error("not sending session cookie, unknown error: %s", e)
+            logger.error("not sending session cookie, unknown error: %s", e)
             return original_url
 
         # O.K. session_cookie is valid to be returned, stash it away where it will will
         # get included in a HTTP Cookie headed sent to the server.
-        self.log.debug("setting session_cookie into context '%s'", session_cookie.http_cookie())
+        logger.debug("setting session_cookie into context '%s'",
+                     session_cookie.http_cookie())
         setattr(context, 'session_cookie', session_cookie.http_cookie())
 
         # Form the session URL by substituting the session path into the original URL
@@ -1023,7 +1029,7 @@ class RPCClient(Connectible):
                     transport_class = LanguageAwareTransport
                 proxy_kw['transport'] = transport_class(
                     protocol=self.protocol, service='HTTP', ccache=ccache)
-                self.log.info('trying %s' % url)
+                logger.info('trying %s', url)
                 setattr(context, 'request_url', url)
                 serverproxy = self.server_proxy_class(url, **proxy_kw)
                 if len(urls) == 1:
@@ -1066,7 +1072,7 @@ class RPCClient(Connectible):
                     if not fallback:
                         raise
                     else:
-                        self.log.info(
+                        logger.info(
                             'Connection to %s failed with %s', url, e)
                     # try the next url
                     break
@@ -1074,7 +1080,7 @@ class RPCClient(Connectible):
                     if not fallback:
                         raise
                     else:
-                        self.log.info(
+                        logger.info(
                             'Connection to %s failed with %s', url, e)
                     # try the next url
                     break
@@ -1113,14 +1119,14 @@ class RPCClient(Connectible):
         # each time should we be getting UNAUTHORIZED error from the server
         max_tries = 5
         for try_num in range(0, max_tries):
-            self.log.info("[try %d]: Forwarding '%s' to %s server '%s'",
-                          try_num+1, name, self.protocol, server)
+            logger.info("[try %d]: Forwarding '%s' to %s server '%s'",
+                        try_num+1, name, self.protocol, server)
             try:
                 return self._call_command(command, params)
             except Fault as e:
                 e = decode_fault(e)
-                self.debug('Caught fault %d from server %s: %s', e.faultCode,
-                           server, e.faultString)
+                logger.debug('Caught fault %d from server %s: %s', e.faultCode,
+                             server, e.faultString)
                 if e.faultCode in errors_by_code:
                     error = errors_by_code[e.faultCode]
                     raise error(message=e.faultString)
@@ -1143,8 +1149,8 @@ class RPCClient(Connectible):
                     except Exception as e:
                         # This shouldn't happen if we have a session
                         # but it isn't fatal.
-                        self.debug("Error trying to remove persisent session "
-                                   "data: {err}".format(err=e))
+                        logger.debug("Error trying to remove persisent "
+                                     "session data: %s", e)
 
                     # Create a new serverproxy with the non-session URI
                     serverproxy = self.create_connection(

@@ -17,9 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -38,18 +42,18 @@ class update_pacs(Updater):
             entry = ldap.get_entry(dn, ['ipakrbauthzdata'])
             pacs = entry.get('ipakrbauthzdata', [])
         except errors.NotFound:
-            self.log.warning('Error retrieving: %s' % str(dn))
+            logger.warning('Error retrieving: %s', str(dn))
             return False, []
 
         nfs_pac_set = any(pac.startswith('nfs:') for pac in pacs)
 
         if not nfs_pac_set:
-            self.log.debug('Adding nfs:NONE to default PAC types')
+            logger.debug('Adding nfs:NONE to default PAC types')
 
             updated_pacs = pacs + [u'nfs:NONE']
             entry['ipakrbauthzdata'] = updated_pacs
             ldap.update_entry(entry)
         else:
-            self.log.debug('PAC for nfs is already set, not adding nfs:NONE.')
+            logger.debug('PAC for nfs is already set, not adding nfs:NONE.')
 
         return False, []

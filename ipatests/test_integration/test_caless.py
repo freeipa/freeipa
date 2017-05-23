@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import os
 import tempfile
 import shutil
@@ -33,6 +34,8 @@ from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
 from ipalib.constants import DOMAIN_LEVEL_0
+
+logger = logging.getLogger(__name__)
 
 _DEFAULT = object()
 
@@ -331,20 +334,20 @@ class CALessBase(IntegrationTest):
         """
         with open(self.pem_filename) as f:
             expected_cacrt = f.read()
-        self.log.debug('Expected /etc/ipa/ca.crt contents:\n%s',
-                       expected_cacrt)
+        logger.debug('Expected /etc/ipa/ca.crt contents:\n%s',
+                     expected_cacrt)
         expected_binary_cacrt = base64.b64decode(x509.strip_header(
             expected_cacrt))
-        self.log.debug('Expected binary CA cert:\n%r',
-                       expected_binary_cacrt)
+        logger.debug('Expected binary CA cert:\n%r',
+                     expected_binary_cacrt)
         for host in [self.master] + self.replicas:
             # Check the LDAP entry
             ldap = host.ldap_connect()
             entry = ldap.get_entry(DN(('cn', 'CACert'), ('cn', 'ipa'),
                                       ('cn', 'etc'), host.domain.basedn))
             cert_from_ldap = entry.single_value['cACertificate']
-            self.log.debug('CA cert from LDAP on %s:\n%r',
-                           host, cert_from_ldap)
+            logger.debug('CA cert from LDAP on %s:\n%r',
+                         host, cert_from_ldap)
             assert cert_from_ldap == expected_binary_cacrt
 
             # Verify certmonger was not started
@@ -354,11 +357,11 @@ class CALessBase(IntegrationTest):
         for host in self.get_all_hosts():
             # Check the cert PEM file
             remote_cacrt = host.get_file_contents(paths.IPA_CA_CRT)
-            self.log.debug('%s:/etc/ipa/ca.crt contents:\n%s',
-                           host, remote_cacrt)
+            logger.debug('%s:/etc/ipa/ca.crt contents:\n%s',
+                         host, remote_cacrt)
             binary_cacrt = base64.b64decode(x509.strip_header(remote_cacrt))
-            self.log.debug('%s: Decoded /etc/ipa/ca.crt:\n%r',
-                           host, binary_cacrt)
+            logger.debug('%s: Decoded /etc/ipa/ca.crt:\n%r',
+                         host, binary_cacrt)
             assert expected_binary_cacrt == binary_cacrt
 
 
@@ -1182,7 +1185,7 @@ class TestIPACommands(CALessBase):
         tasks.kinit_admin(cls.master)
 
         cls.client_pem = ''.join(cls.get_pem('ca1/client').splitlines()[1:-1])
-        cls.log.debug('Client PEM:\n%r' % cls.client_pem)
+        logger.debug('Client PEM:\n%r', cls.client_pem)
         cls.test_hostname = 'testhost.%s' % cls.master.domain.name
         cls.test_service = 'test/%s' % cls.test_hostname
 

@@ -7,6 +7,8 @@ This script implements a syncrepl consumer which syncs data from server
 to a local dict.
 """
 
+import logging
+
 # Import the python-ldap modules
 import ldap
 # Import specific classes from python-ldap
@@ -14,7 +16,7 @@ from ldap.cidict import cidict
 from ldap.ldapobject import ReconnectLDAPObject
 from ldap.syncrepl import SyncreplConsumer
 
-from ipapython import ipa_log_manager
+logger = logging.getLogger(__name__)
 
 
 class SyncReplConsumer(ReconnectLDAPObject, SyncreplConsumer):
@@ -23,7 +25,6 @@ class SyncReplConsumer(ReconnectLDAPObject, SyncreplConsumer):
     """
 
     def __init__(self, *args, **kwargs):
-        self.log = ipa_log_manager.log_mgr.get_logger(self)
         # Initialise the LDAP Connection first
         ldap.ldapobject.ReconnectLDAPObject.__init__(self, *args, **kwargs)
         # Now prepare the data store
@@ -39,13 +40,13 @@ class SyncReplConsumer(ReconnectLDAPObject, SyncreplConsumer):
     def syncrepl_get_cookie(self):
         if 'cookie' in self.__data:
             cookie = self.__data['cookie']
-            self.log.debug('Current cookie is: %s', cookie)
+            logger.debug('Current cookie is: %s', cookie)
             return cookie
         else:
-            self.log.debug('Current cookie is: None (not received yet)')
+            logger.debug('Current cookie is: None (not received yet)')
 
     def syncrepl_set_cookie(self, cookie):
-        self.log.debug('New cookie is: %s', cookie)
+        logger.debug('New cookie is: %s', cookie)
         self.__data['cookie'] = cookie
 
     def syncrepl_entry(self, dn, attributes, uuid):
@@ -63,7 +64,7 @@ class SyncReplConsumer(ReconnectLDAPObject, SyncreplConsumer):
         attributes['dn'] = dn
         self.__data['uuids'][uuid] = attributes
         # Debugging
-        self.log.debug('Detected %s of entry: %s %s', change_type, dn, uuid)
+        logger.debug('Detected %s of entry: %s %s', change_type, dn, uuid)
         if change_type == 'modify':
             self.application_sync(uuid, dn, attributes, previous_attributes)
         else:
@@ -76,7 +77,7 @@ class SyncReplConsumer(ReconnectLDAPObject, SyncreplConsumer):
         for uuid in uuids:
             attributes = self.__data['uuids'][uuid]
             dn = attributes['dn']
-            self.log.debug('Detected deletion of entry: %s %s', dn, uuid)
+            logger.debug('Detected deletion of entry: %s %s', dn, uuid)
             self.application_del(uuid, dn, attributes)
             del self.__data['uuids'][uuid]
 
@@ -99,17 +100,17 @@ class SyncReplConsumer(ReconnectLDAPObject, SyncreplConsumer):
                 self.__presentUUIDs[uuid] = True
 
     def application_add(self, uuid, dn, attributes):
-        self.log.info('Performing application add for: %s %s', dn, uuid)
-        self.log.debug('New attributes: %s', attributes)
+        logger.info('Performing application add for: %s %s', dn, uuid)
+        logger.debug('New attributes: %s', attributes)
         return True
 
     def application_sync(self, uuid, dn, attributes, previous_attributes):
-        self.log.info('Performing application sync for: %s %s', dn, uuid)
-        self.log.debug('Old attributes: %s', previous_attributes)
-        self.log.debug('New attributes: %s', attributes)
+        logger.info('Performing application sync for: %s %s', dn, uuid)
+        logger.debug('Old attributes: %s', previous_attributes)
+        logger.debug('New attributes: %s', attributes)
         return True
 
     def application_del(self, uuid, dn, previous_attributes):
-        self.log.info('Performing application delete for: %s %s', dn, uuid)
-        self.log.debug('Old attributes: %s', previous_attributes)
+        logger.info('Performing application delete for: %s %s', dn, uuid)
+        logger.debug('Old attributes: %s', previous_attributes)
         return True

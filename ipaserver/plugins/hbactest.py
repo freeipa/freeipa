@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from ipalib import api, errors, output, util
 from ipalib import Command, Str, Flag, Int
 from ipalib import _
@@ -212,6 +214,8 @@ EXAMPLES:
       Matched rules: allow_all
       Not matched rules: can_login
 """)
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -479,10 +483,11 @@ class hbactest(Command):
                     code, rule_name = e.args
                     if code == pyhbac.HBAC_EVAL_ERROR:
                         error_rules.append(rule_name)
-                        self.log.info('Native IPA HBAC rule "%s" parsing error: %s' % \
-                                      (rule_name, pyhbac.hbac_result_string(code)))
+                        logger.info('Native IPA HBAC rule "%s" parsing error: '
+                                    '%s',
+                                    rule_name, pyhbac.hbac_result_string(code))
                 except (TypeError, IOError) as info:
-                    self.log.error('Native IPA HBAC module error: %s' % info)
+                    logger.error('Native IPA HBAC module error: %s', info)
 
             access_granted = len(matched_rules) > 0
         else:

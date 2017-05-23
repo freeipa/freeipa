@@ -20,6 +20,7 @@
 #
 
 import binascii
+import logging
 import time
 import datetime
 from decimal import Decimal
@@ -44,13 +45,14 @@ from ipalib import errors, _
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 # pylint: enable=ipa-forbidden-import
 from ipapython.ipautil import format_netloc, CIDict
-from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipapython.kerberos import Principal
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 # Global variable to define SASL auth
 SASL_GSSAPI = ldap.sasl.sasl({}, 'GSSAPI')
@@ -89,7 +91,6 @@ class SchemaCache(object):
     '''
 
     def __init__(self):
-        self.log = log_mgr.get_logger(self)
         self.servers = {}
 
     def get_schema(self, url, conn, force_update=False):
@@ -113,7 +114,7 @@ class SchemaCache(object):
         return server_schema.schema
 
     def flush(self, url):
-        self.log.debug('flushing %s from SchemaCache', url)
+        logger.debug('flushing %s from SchemaCache', url)
         try:
             del self.servers[url]
         except KeyError:
@@ -134,7 +135,7 @@ class SchemaCache(object):
         """
         assert conn is not None
 
-        self.log.debug(
+        logger.debug(
             'retrieving schema for SchemaCache url=%s conn=%s', url, conn)
 
         try:
@@ -144,7 +145,7 @@ class SchemaCache(object):
             except ldap.NO_SUCH_OBJECT:
                 # try different location for schema
                 # openldap has schema located in cn=subschema
-                self.log.debug('cn=schema not found, fallback to cn=subschema')
+                logger.debug('cn=schema not found, fallback to cn=subschema')
                 schema_entry = conn.search_s('cn=subschema', ldap.SCOPE_BASE,
                     attrlist=['attributetypes', 'objectclasses'])[0]
         except ldap.SERVER_DOWN:
@@ -721,7 +722,6 @@ class LDAPClient(object):
         self._cacert = cacert
         self._sasl_nocanon = sasl_nocanon
 
-        self.log = log_mgr.get_logger(self)
         self._has_schema = False
         self._schema = None
 
@@ -896,7 +896,7 @@ class LDAPClient(object):
                     return target_type(val)
             except Exception:
                 msg = 'unable to convert the attribute %r value %r to type %s' % (attr, val, target_type)
-                self.log.error(msg)
+                logger.error('%s', msg)
                 raise ValueError(msg)
         elif isinstance(val, list):
             return [self.decode(m, attr) for m in val]
@@ -933,7 +933,7 @@ class LDAPClient(object):
             if original_dn is None:
                 log_msg = 'Referral entry ignored: {ref}'\
                           .format(ref=str(original_attrs))
-                self.log.debug(log_msg)
+                logger.debug('%s', log_msg)
 
                 continue
 
@@ -946,7 +946,7 @@ class LDAPClient(object):
             ipa_result.append(ipa_entry)
 
         if _debug_log_ldap:
-            self.log.debug('ldap.result: %s', ipa_result)
+            logger.debug('ldap.result: %s', ipa_result)
         return ipa_result
 
     @contextlib.contextmanager
@@ -1019,8 +1019,8 @@ class LDAPClient(object):
             if 'NOT_ALLOWED_TO_DELEGATE' in info:
                 raise errors.ACIError(
                     info="KDC returned NOT_ALLOWED_TO_DELEGATE")
-            self.log.debug(
-                'Unhandled LDAPError: %s: %s' % (type(e).__name__, str(e)))
+            logger.debug(
+                'Unhandled LDAPError: %s: %s', type(e).__name__, str(e))
             raise errors.DatabaseError(desc=desc, info=info)
 
     @staticmethod
@@ -1317,10 +1317,9 @@ class LDAPClient(object):
         try:
             self.handle_truncated_result(truncated)
         except errors.LimitsExceeded as e:
-            self.log.error(
-                "{} while getting entries (base DN: {}, filter: {})".format(
-                    e, base_dn, filter
-                )
+            logger.error(
+                "%s while getting entries (base DN: %s, filter: %s)",
+                e, base_dn, filter
             )
             raise
 
@@ -1429,7 +1428,7 @@ class LDAPClient(object):
                                 serverctrls=sctrls, timeout=time_limit,
                                 sizelimit=size_limit)
                         except ldap.LDAPError as e:
-                            self.log.warning(
+                            logger.warning(
                                 "Error cancelling paged search: %s", e)
                         cookie = ''
 

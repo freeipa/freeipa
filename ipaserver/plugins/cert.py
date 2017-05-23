@@ -22,6 +22,7 @@
 import base64
 import collections
 import datetime
+import logging
 from operator import attrgetter
 import os
 
@@ -147,6 +148,8 @@ Note that reason code 7 is not used.  See RFC 5280 for more details:
 http://www.ietf.org/rfc/rfc5280.txt
 
 """)
+
+logger = logging.getLogger(__name__)
 
 USER, HOST, KRBTGT, SERVICE = range(4)
 
@@ -921,8 +924,8 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             elif principal_type == USER:
                 api.Command['user_mod'](principal.username, **kwargs)
             elif principal_type == KRBTGT:
-                self.log.error("Profiles used to store cert should't be "
-                               "used for krbtgt certificates")
+                logger.error("Profiles used to store cert should't be "
+                             "used for krbtgt certificates")
 
         if 'certificate_chain' in ca_obj:
             cert = x509.load_certificate(result['certificate'])
@@ -1194,7 +1197,8 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
         try:
             self.check_access()
         except errors.ACIError as acierr:
-            self.debug("Not granted by ACI to retrieve certificate, looking at principal")
+            logger.debug("Not granted by ACI to retrieve certificate, "
+                         "looking at principal")
             if not bind_principal_can_manage_cert(cert):
                 raise acierr  # pylint: disable=E0702
 
@@ -1264,7 +1268,8 @@ class cert_revoke(PKQuery, CertMethod, VirtualCommand):
         try:
             self.check_access()
         except errors.ACIError as acierr:
-            self.debug("Not granted by ACI to revoke certificate, looking at principal")
+            logger.debug("Not granted by ACI to revoke certificate, "
+                         "looking at principal")
             try:
                 cert = x509.load_certificate(resp['result']['certificate'])
                 if not bind_principal_can_manage_cert(cert):

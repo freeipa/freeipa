@@ -206,18 +206,17 @@ ipa_class_members = {
         'Method',
         'Updater',
         'Advice',
-    ] + LOGGING_ATTRS,
+    ],
     'ipalib.util.ForwarderValidationError': [
         'msg',
     ],
-    'ipaserver.install.ldapupdate.LDAPUpdate': LOGGING_ATTRS,
     'ipaserver.plugins.dns.DNSRecord': [
         'validatedns',
         'normalizedns',
     ],
     'ipaserver.rpcserver.KerberosSession': [
         fake_api,
-    ] + LOGGING_ATTRS,
+    ],
     'ipatests.test_integration.base.IntegrationTest': [
         'domain',
         {'master': [

@@ -16,6 +16,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import logging
 import os
 import subprocess
 from ipaplatform.paths import paths
@@ -23,6 +25,8 @@ import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
+
+logger = logging.getLogger(__name__)
 
 CLIENT_KEYTAB = paths.KRB5_KEYTAB
 
@@ -253,7 +257,8 @@ class TestForcedClientReenrollment(IntegrationTest):
         assert sshfp_record, 'SSHFP record not found'
 
         sshfp_record = set(sshfp_record.split(', '))
-        self.log.debug("SSHFP record for host %s: %s", client_host, str(sshfp_record))
+        logger.debug("SSHFP record for host %s: %s",
+                     client_host, str(sshfp_record))
 
         return sshfp_record
 

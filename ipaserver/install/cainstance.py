@@ -22,6 +22,8 @@
 from __future__ import print_function
 
 import base64
+import logging
+
 import dbus
 import ldap
 import os
@@ -54,8 +56,7 @@ from ipapython import ipautil
 from ipapython import ipaldap
 from ipapython.certdb import get_ca_nickname
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import log_mgr,\
-    standard_logging_setup, root_logger
+from ipapython.ipa_log_manager import standard_logging_setup, root_logger
 from ipaserver.secrets.kem import IPAKEMKeys
 
 from ipaserver.install import certs
@@ -67,6 +68,8 @@ from ipaserver.install import replication
 from ipaserver.install import sysupgrade
 from ipaserver.install.dogtaginstance import DogtagInstance
 from ipaserver.plugins import ldap2
+
+logger = logging.getLogger(__name__)
 
 # We need to reset the template because the CA uses the regular boot
 # information
@@ -306,7 +309,6 @@ class CAInstance(DogtagInstance):
             self.canickname = None
         self.ra_cert = None
         self.requestId = None
-        self.log = log_mgr.get_logger(self)
         self.no_db_setup = False
         self.keytab = os.path.join(
             paths.PKI_TOMCAT, self.service_prefix + '.keytab')
@@ -625,7 +627,7 @@ class CAInstance(DogtagInstance):
             shutil.move(paths.CA_BACKUP_KEYS_P12,
                         paths.CACERT_P12)
 
-        self.log.debug("completed creating ca instance")
+        logger.debug("completed creating ca instance")
 
     def backup_config(self):
         try:
@@ -982,22 +984,22 @@ class CAInstance(DogtagInstance):
         cmonger.stop()
 
         # remove CRL files
-        self.log.info("Remove old CRL files")
+        logger.info("Remove old CRL files")
         try:
             for f in get_crl_files():
-                self.log.debug("Remove %s", f)
+                logger.debug("Remove %s", f)
                 installutils.remove_file(f)
         except OSError as e:
-            self.log.warning("Error while removing old CRL files: %s", e)
+            logger.warning("Error while removing old CRL files: %s", e)
 
         # remove CRL directory
-        self.log.info("Remove CRL directory")
+        logger.info("Remove CRL directory")
         if os.path.exists(paths.PKI_CA_PUBLISH_DIR):
             try:
                 shutil.rmtree(paths.PKI_CA_PUBLISH_DIR)
             except OSError as e:
-                self.log.warning("Error while removing CRL publish "
-                                    "directory: %s", e)
+                logger.warning("Error while removing CRL publish "
+                               "directory: %s", e)
 
     def unconfigure_certmonger_renewal_guard(self):
         if not self.is_configured():
@@ -1026,7 +1028,7 @@ class CAInstance(DogtagInstance):
                 post_command='renew_ra_cert',
                 storage='FILE')
         except RuntimeError as e:
-            self.log.error(
+            logger.error(
                 "certmonger failed to start tracking certificate: %s", e)
 
     def stop_tracking_certificates(self):
@@ -1061,7 +1063,7 @@ class CAInstance(DogtagInstance):
             'policyset.caLogSigningSet.2.default.params.range',
             separator='='
         )
-        self.log.debug(
+        logger.debug(
             'caSignedLogCert.cfg profile validity range is %s', cert_range)
         if cert_range == "180":
             installutils.set_directive(
@@ -1078,7 +1080,7 @@ class CAInstance(DogtagInstance):
                 quotes=False,
                 separator='='
             )
-            self.log.debug(
+            logger.debug(
                 'updated caSignedLogCert.cfg profile validity range to 720')
             return True
         return False
@@ -1264,7 +1266,7 @@ class CAInstance(DogtagInstance):
                 filter='(objectclass=ipaca)',
                 attrs_list=['cn', 'ipacaid'],
             )
-            add_lightweight_ca_tracking_requests(self.log, lwcas)
+            add_lightweight_ca_tracking_requests(lwcas)
         except errors.NotFound:
             # shouldn't happen, but don't fail if it does
             root_logger.warning(
@@ -1791,7 +1793,7 @@ def ensure_default_caacl():
             certprofile=(u'caIPAserviceCert',))
 
 
-def add_lightweight_ca_tracking_requests(logger, lwcas):
+def add_lightweight_ca_tracking_requests(lwcas):
     """Add tracking requests for the given lightweight CAs.
 
     The entries must have the 'cn' and 'ipacaid' attributes.

@@ -2,6 +2,8 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+import logging
+
 from ipalib import errors
 from ipalib import Registry
 from ipalib import Updater
@@ -9,6 +11,8 @@ from ipapython.dn import DN
 from ipaserver.install import cainstance
 from ipaserver.install import ldapupdate
 from ipaplatform.paths import paths
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -23,7 +27,7 @@ class update_ca_topology(Updater):
 
         ca = cainstance.CAInstance(self.api.env.realm)
         if not ca.is_configured():
-            self.log.debug("CA is not configured on this host")
+            logger.debug("CA is not configured on this host")
             return False, []
 
         ld = ldapupdate.LDAPUpdate(ldapi=True, sub_dict={

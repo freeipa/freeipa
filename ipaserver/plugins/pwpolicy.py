@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from ipalib import api
 from ipalib import Int, Str, DNParam
 from ipalib import errors
@@ -80,6 +82,8 @@ EXAMPLES:
  Modify a group password policy:
    ipa pwpolicy-mod --minclasses=2 localadmins
 """)
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -435,7 +439,7 @@ class pwpolicy_add(LDAPCreate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        self.log.info('%r' % entry_attrs)
+        logger.info('%r', entry_attrs)
         # attribute rights are not allowed for pwpolicy_add
         self.obj.add_cospriority(entry_attrs, keys[-1], rights=False)
         self.obj.convert_time_for_output(entry_attrs, **options)

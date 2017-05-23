@@ -4,10 +4,14 @@
 
 from __future__ import print_function
 
+import logging
+
 from ipalib import api
 from ipaplatform.paths import paths
 from ipapython.admintool import AdminTool
 from ipaserver.install.krbinstance import KrbInstance, is_pkinit_enabled
+
+logger = logging.getLogger(__name__)
 
 
 class PKINITManage(AdminTool):
@@ -64,7 +68,7 @@ class PKINITManage(AdminTool):
                 krb.stop_tracking_certs()
             except RuntimeError as e:
                 if ca_enabled:
-                    self.log.warning(
+                    logger.warning(
                         "Failed to stop tracking certificates: %s", e)
 
             krb.enable_ssl()
@@ -76,9 +80,9 @@ class PKINITManage(AdminTool):
 
     def enable(self):
         if not api.Command.ca_is_enabled()['result']:
-            self.log.error("Cannot enable PKINIT in CA-less deployment")
-            self.log.error("Use ipa-server-certinstall to install KDC "
-                           "certificate manually")
+            logger.error("Cannot enable PKINIT in CA-less deployment")
+            logger.error("Use ipa-server-certinstall to install KDC "
+                         "certificate manually")
             raise RuntimeError("Cannot enable PKINIT in CA-less deployment")
 
         self._setup(True)

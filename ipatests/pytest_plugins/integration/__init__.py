@@ -242,7 +242,7 @@ def mh(request, class_integration_logs):
     print(mh.config)
     for host in mh.config.get_all_hosts():
         host.add_log_collector(collect_log)
-        cls.log.info('Preparing host %s', host.hostname)
+        log.info('Preparing host %s', host.hostname)
         tasks.prepare_host(host)
 
     setup_class(cls, mh)

@@ -20,6 +20,8 @@
 """
 Base classes for all front-end plugins.
 """
+import logging
+
 import six
 
 from ipapython.version import API_VERSION
@@ -40,6 +42,8 @@ from ipalib.util import classproperty, json_serialize
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 RULE_FLAG = 'validation_rule'
 
@@ -459,14 +463,14 @@ class Command(HasParam):
                 self.add_message(
                     messages.VersionMissing(server_version=self.api_version))
         params = self.args_options_2_params(*args, **options)
-        self.debug(
+        logger.debug(
             'raw: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
         if self.api.env.in_server:
             params.update(self.get_default(**params))
         params = self.normalize(**params)
         params = self.convert(**params)
-        self.debug(
+        logger.debug(
             '%s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
         if self.api.env.in_server:
@@ -1463,7 +1467,7 @@ class Updater(Plugin):
         raise NotImplementedError('%s.execute()' % self.name)
 
     def __call__(self, **options):
-        self.debug(
+        logger.debug(
             'raw: %s', self.name
         )
 

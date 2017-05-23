@@ -20,6 +20,7 @@
 
 from __future__ import print_function
 
+import logging
 import sys
 import tempfile
 from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
@@ -39,6 +40,8 @@ from ipaserver.install.installutils import create_replica_config
 from ipaserver.install import dogtaginstance
 from ipaserver.install import kra
 from ipaserver.install.installutils import ReplicaConfig
+
+logger = logging.getLogger(__name__)
 
 
 class KRAInstall(admintool.AdminTool):
@@ -214,7 +217,7 @@ class KRAInstaller(KRAInstall):
         try:
             kra.install(api, config, self.options)
         except:
-            self.log.error(dedent(self.FAIL_MESSAGE))
+            logger.error('%s', dedent(self.FAIL_MESSAGE))
             raise
 
         api.Backend.ldap2.disconnect()

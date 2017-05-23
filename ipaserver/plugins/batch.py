@@ -45,6 +45,8 @@ And then a nested response for each IPA command method sent in the request
 
 """
 
+import logging
+
 import six
 
 from ipalib import api, errors
@@ -59,6 +61,8 @@ from ipapython.version import API_VERSION
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -120,7 +124,7 @@ class batch(Command):
                 newkw.setdefault('version', options['version'])
 
                 result = api.Command[name](*a, **newkw)
-                self.info(
+                logger.info(
                     '%s: batch: %s(%s): SUCCESS',
                     getattr(context, 'principal', 'UNKNOWN'),
                     name,
@@ -130,13 +134,13 @@ class batch(Command):
             except Exception as e:
                 if isinstance(e, errors.RequirementError) or \
                     isinstance(e, errors.CommandError):
-                    self.info(
+                    logger.info(
                         '%s: batch: %s',
                         context.principal,  # pylint: disable=no-member
                         e.__class__.__name__
                     )
                 else:
-                    self.info(
+                    logger.info(
                         '%s: batch: %s(%s): %s',
                         context.principal, name,  # pylint: disable=no-member
                         ', '.join(api.Command[name]._repr_iter(**params)),

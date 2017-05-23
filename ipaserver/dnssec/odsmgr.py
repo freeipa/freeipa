@@ -3,6 +3,8 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
+import logging
+
 import dns.name
 try:
     from xml.etree import cElementTree as etree
@@ -10,6 +12,8 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 from ipapython import ipa_log_manager, ipautil
+
+logger = logging.getLogger(__name__)
 
 # hack: zone object UUID is stored as path to imaginary zone file
 ENTRYUUID_PREFIX = "/var/lib/ipa/dns/zone/entryUUID/"
@@ -21,7 +25,6 @@ class ZoneListReader(object):
         self.names = set()  # dns.name
         self.uuids = set()  # UUID strings
         self.mapping = dict()      # {UUID: dns.name}
-        self.log = ipa_log_manager.log_mgr.get_logger(self)
 
     def _add_zone(self, name, zid):
         """Add zone & UUID to internal structures.
@@ -125,7 +128,6 @@ class ODSMgr(object):
     has to be solved seperatelly.
     """
     def __init__(self):
-        self.log = ipa_log_manager.log_mgr.get_logger(self)
         self.zl_ldap = LDAPZoneListReader()
 
     def ksmutil(self, params):
@@ -146,7 +148,7 @@ class ODSMgr(object):
         zone_path = '%s%s' % (ENTRYUUID_PREFIX, uuid)
         cmd = ['zone', 'add', '--zone', str(name), '--input', zone_path]
         output = self.ksmutil(cmd)
-        self.log.info(output)
+        logger.info('%s', output)
         self.notify_enforcer()
 
     def del_ods_zone(self, name):
@@ -157,19 +159,19 @@ class ODSMgr(object):
             name = dns.name.root
         cmd = ['zone', 'delete', '--zone', str(name)]
         output = self.ksmutil(cmd)
-        self.log.info(output)
+        logger.info('%s', output)
         self.notify_enforcer()
         self.cleanup_signer(name)
 
     def notify_enforcer(self):
         cmd = ['notify']
         output = self.ksmutil(cmd)
-        self.log.info(output)
+        logger.info('%s', output)
 
     def cleanup_signer(self, zone_name):
         cmd = ['ods-signer', 'ldap-cleanup', str(zone_name)]
         output = ipautil.run(cmd, capture_output=True)
-        self.log.info(output)
+        logger.info('%s', output)
 
     def ldap_event(self, op, uuid, attrs):
         """Record single LDAP event - zone addition or deletion.
@@ -178,16 +180,16 @@ class ODSMgr(object):
         self.sync() have to be called to synchronize change to ODS."""
         assert op == 'add' or op == 'del'
         self.zl_ldap.process_ipa_zone(op, uuid, attrs)
-        self.log.debug("LDAP zones: %s", self.zl_ldap.mapping)
+        logger.debug("LDAP zones: %s", self.zl_ldap.mapping)
 
     def sync(self):
         """Synchronize list of zones in LDAP with ODS."""
         zl_ods = self.get_ods_zonelist()
-        self.log.debug("ODS zones: %s", zl_ods.mapping)
+        logger.debug("ODS zones: %s", zl_ods.mapping)
         removed = self.diff_zl(zl_ods, self.zl_ldap)
-        self.log.info("Zones removed from LDAP: %s", removed)
+        logger.info("Zones removed from LDAP: %s", removed)
         added = self.diff_zl(self.zl_ldap, zl_ods)
-        self.log.info("Zones added to LDAP: %s", added)
+        logger.info("Zones added to LDAP: %s", added)
         for (uuid, name) in removed:
             self.del_ods_zone(name)
         for (uuid, name) in added:

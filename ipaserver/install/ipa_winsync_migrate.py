@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 import gssapi
 import sys
 
@@ -32,6 +34,8 @@ from ipaserver.install import replication, installutils
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_TRUST_VIEW_NAME = u'Default Trust View'
 
@@ -180,10 +184,10 @@ class WinsyncMigrate(admintool.AdminTool):
                 **kwargs
             )
         except Exception as e:
-            self.log.warning("Migration failed: %s (%s)"
-                             % (user_identifier, str(e)))
+            logger.warning("Migration failed: %s (%s)",
+                           user_identifier, str(e))
         else:
-            self.log.debug("Migrated: %s" % user_identifier)
+            logger.debug("Migrated: %s", user_identifier)
 
     def find_winsync_users(self):
         """
@@ -198,7 +202,7 @@ class WinsyncMigrate(admintool.AdminTool):
             paged_search=True)
 
         for entry in entries:
-            self.log.debug("Discovered entry: %s" % entry)
+            logger.debug("Discovered entry: %s", entry)
 
         return entries
 
@@ -328,10 +332,11 @@ class WinsyncMigrate(admintool.AdminTool):
         )
 
     def warn_passsync(self):
-        self.log.warning("Migration completed. Please note that if PassSync "
-            "was configured on the given Active Directory server, "
-            "it needs to be manually removed, otherwise it may try "
-            "to reset password for accounts that are no longer existent.")
+        logger.warning("Migration completed. Please note that if PassSync "
+                       "was configured on the given Active Directory server, "
+                       "it needs to be manually removed, otherwise it may try "
+                       "to reset password for accounts that are no longer "
+                       "existent.")
 
     @classmethod
     def main(cls, argv):

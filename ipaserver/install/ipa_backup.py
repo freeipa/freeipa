@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 import os
 import shutil
 import tempfile
@@ -47,6 +48,8 @@ from ipaplatform.tasks import tasks
 
 
 ISO8601_DATETIME_FMT = '%Y-%m-%dT%H:%M:%S'
+
+logger = logging.getLogger(__name__)
 
 """
 A test gpg can be generated like this:
@@ -274,7 +277,7 @@ class Backup(admintool.AdminTool):
         api.bootstrap(in_server=True, context='backup', confdir=paths.ETC_IPA)
         api.finalize()
 
-        self.log.info("Preparing backup on %s", api.env.host)
+        logger.info("Preparing backup on %s", api.env.host)
 
         pent = pwd.getpwnam(constants.DS_USER)
 
@@ -302,10 +305,10 @@ class Backup(admintool.AdminTool):
             self.create_header(options.data_only)
             if options.data_only:
                 if not options.online:
-                    self.log.info('Stopping Directory Server')
+                    logger.info('Stopping Directory Server')
                     dirsrv.stop(capture_output=False)
             else:
-                self.log.info('Stopping IPA services')
+                logger.info('Stopping IPA services')
                 run(['ipactl', 'stop'])
 
             instance = installutils.realm_to_serverid(api.env.realm)
@@ -325,17 +328,17 @@ class Backup(admintool.AdminTool):
 
             if options.data_only:
                 if not options.online:
-                    self.log.info('Starting Directory Server')
+                    logger.info('Starting Directory Server')
                     dirsrv.start(capture_output=False)
             else:
-                self.log.info('Starting IPA service')
+                logger.info('Starting IPA service')
                 run(['ipactl', 'start'])
 
         finally:
             try:
                 os.chdir(cwd)
             except Exception as e:
-                self.log.error('Cannot change directory to %s: %s' % (cwd, e))
+                logger.error('Cannot change directory to %s: %s', cwd, e)
             shutil.rmtree(self.top_dir)
 
 
@@ -376,8 +379,8 @@ class Backup(admintool.AdminTool):
         try:
             self._conn.external_bind()
         except Exception as e:
-            self.log.error("Unable to bind to LDAP server %s: %s" %
-                (self._conn.host, e))
+            logger.error("Unable to bind to LDAP server %s: %s",
+                         self._conn.host, e)
 
         return self._conn
 
@@ -391,7 +394,7 @@ class Backup(admintool.AdminTool):
         For SELinux reasons this writes out to the 389-ds backup location
         and we move it.
         '''
-        self.log.info('Backing up %s in %s to LDIF' % (backend, instance))
+        logger.info('Backing up %s in %s to LDIF', backend, instance)
 
         cn = time.strftime('export_%Y_%m_%d_%H_%M_%S')
         dn = DN(('cn', cn), ('cn', 'export'), ('cn', 'tasks'), ('cn', 'config'))
@@ -421,7 +424,7 @@ class Backup(admintool.AdminTool):
                 raise admintool.ScriptError('Unable to add LDIF task: %s'
                     % e)
 
-            self.log.info("Waiting for LDIF to finish")
+            logger.info("Waiting for LDIF to finish")
             wait_for_task(conn, dn)
         else:
             args = [paths.DB2LDIF,
@@ -431,7 +434,7 @@ class Backup(admintool.AdminTool):
                     '-a', ldiffile]
             result = run(args, raiseonerr=False)
             if result.returncode != 0:
-                self.log.critical('db2ldif failed: %s', result.error_log)
+                logger.critical('db2ldif failed: %s', result.error_log)
 
         # Move the LDIF backup to our location
         shutil.move(ldiffile, os.path.join(self.dir, ldifname))
@@ -443,7 +446,7 @@ class Backup(admintool.AdminTool):
 
         If executed online create a task and wait for it to complete.
         '''
-        self.log.info('Backing up %s' % instance)
+        logger.info('Backing up %s', instance)
         cn = time.strftime('backup_%Y_%m_%d_%H_%M_%S')
         dn = DN(('cn', cn), ('cn', 'backup'), ('cn', 'tasks'), ('cn', 'config'))
 
@@ -468,13 +471,13 @@ class Backup(admintool.AdminTool):
                 raise admintool.ScriptError('Unable to to add backup task: %s'
                     % e)
 
-            self.log.info("Waiting for BAK to finish")
+            logger.info("Waiting for BAK to finish")
             wait_for_task(conn, dn)
         else:
             args = [paths.DB2BAK, bakdir, '-Z', instance]
             result = run(args, raiseonerr=False)
             if result.returncode != 0:
-                self.log.critical('db2bak failed: %s', result.error_log)
+                logger.critical('db2bak failed: %s', result.error_log)
 
         shutil.move(bakdir, self.dir)
 
@@ -486,7 +489,7 @@ class Backup(admintool.AdminTool):
 
         tarfile = os.path.join(self.dir, 'files.tar')
 
-        self.log.info("Backing up files")
+        logger.info("Backing up files")
         args = ['tar',
                 '--exclude=/var/lib/ipa/backup',
                 '--xattrs',
@@ -564,11 +567,11 @@ class Backup(admintool.AdminTool):
             conn = self.get_connection()
             services = conn.get_entries(dn, conn.SCOPE_ONELEVEL)
         except errors.NetworkError:
-            self.log.critical(
+            logger.critical(
               "Unable to obtain list of master services, continuing anyway")
         except Exception as e:
-            self.log.error("Failed to read services from '%s': %s" %
-                (conn.host, e))
+            logger.error("Failed to read services from '%s': %s",
+                         conn.host, e)
         else:
             services_cns = [s.single_value['cn'] for s in services]
 
@@ -615,9 +618,9 @@ class Backup(admintool.AdminTool):
                 (result.returncode, result.error_log))
 
         if encrypt:
-            self.log.info('Encrypting %s' % filename)
+            logger.info('Encrypting %s', filename)
             filename = encrypt_file(filename, keyring)
 
         shutil.move(self.header, backup_dir)
 
-        self.log.info('Backed up to %s', backup_dir)
+        logger.info('Backed up to %s', backup_dir)

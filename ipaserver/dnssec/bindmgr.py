@@ -3,6 +3,8 @@
 #
 
 from datetime import datetime
+import logging
+
 import dns.name
 import errno
 import os
@@ -11,10 +13,12 @@ import stat
 
 import ipalib.constants
 from ipapython.dn import DN
-from ipapython import ipa_log_manager, ipautil
+from ipapython import ipautil
 from ipaplatform.paths import paths
 
 from ipaserver.dnssec.temp import TemporaryDirectory
+
+logger = logging.getLogger(__name__)
 
 time_bindfmt = '%Y%m%d%H%M%S'
 
@@ -31,14 +35,13 @@ class BINDMgr(object):
     """
     def __init__(self, api):
         self.api = api
-        self.log = ipa_log_manager.log_mgr.get_logger(self)
         self.ldap_keys = {}
         self.modified_zones = set()
 
     def notify_zone(self, zone):
         cmd = ['rndc', 'sign', zone.to_text()]
         result = ipautil.run(cmd, capture_output=True)
-        self.log.info('%s', result.output_log)
+        logger.info('%s', result.output_log)
 
     def dn2zone_name(self, dn):
         """cn=KSK-20140813162153Z-cede9e182fc4af76c4bddbc19123a565,cn=keys,idnsname=test,cn=dns,dc=ipa,dc=example"""
@@ -83,21 +86,24 @@ class BINDMgr(object):
         self.modified_zones.add(zone)
         zone_keys = self.ldap_keys.setdefault(zone, {})
         if op == 'add':
-            self.log.info('Key metadata %s added to zone %s' % (attrs['dn'], zone))
+            logger.info('Key metadata %s added to zone %s',
+                        attrs['dn'], zone)
             zone_keys[uuid] = attrs
 
         elif op == 'del':
-            self.log.info('Key metadata %s deleted from zone %s' % (attrs['dn'], zone))
+            logger.info('Key metadata %s deleted from zone %s',
+                        attrs['dn'], zone)
             zone_keys.pop(uuid)
 
         elif op == 'mod':
-            self.log.info('Key metadata %s updated in zone %s' % (attrs['dn'], zone))
+            logger.info('Key metadata %s updated in zone %s',
+                        attrs['dn'], zone)
             zone_keys[uuid] = attrs
 
     def install_key(self, zone, uuid, attrs, workdir):
         """Run dnssec-keyfromlabel on given LDAP object.
         :returns: base file name of output files, e.g. Kaaa.test.+008+19719"""
-        self.log.info('attrs: %s', attrs)
+        logger.info('attrs: %s', attrs)
         assert attrs.get('idnsseckeyzone', ['FALSE'])[0] == 'TRUE', \
             'object %s is not a DNS zone key' % attrs['dn']
 
@@ -152,7 +158,7 @@ class BINDMgr(object):
         return escaped[:-1]
 
     def sync_zone(self, zone):
-        self.log.info('Synchronizing zone %s' % zone)
+        logger.info('Synchronizing zone %s', zone)
         zone_path = os.path.join(paths.BIND_LDAP_DNS_ZONE_WORKDIR,
                 self.get_zone_dir_name(zone))
         try:
@@ -166,11 +172,11 @@ class BINDMgr(object):
         for prefix, dirs, files in os.walk(paths.DNSSEC_TOKENS_DIR, topdown=True):
             for name in dirs:
                 fpath = os.path.join(prefix, name)
-                self.log.debug('Fixing directory permissions: %s', fpath)
+                logger.debug('Fixing directory permissions: %s', fpath)
                 os.chmod(fpath, DIR_PERM | stat.S_ISGID)
             for name in files:
                 fpath = os.path.join(prefix, name)
-                self.log.debug('Fixing file permissions: %s', fpath)
+                logger.debug('Fixing file permissions: %s', fpath)
                 os.chmod(fpath, FILE_PERM)
         # TODO: move out
 
@@ -199,9 +205,9 @@ class BINDMgr(object):
         have old metadata objects and DNSSEC disabled. Such zones must be
         ignored to prevent errors while calling dnssec-keyfromlabel or rndc.
         """
-        self.log.debug('Key metadata in LDAP: %s' % self.ldap_keys)
-        self.log.debug('Zones modified but skipped during bindmgr.sync: %s',
-                       self.modified_zones - dnssec_zones)
+        logger.debug('Key metadata in LDAP: %s', self.ldap_keys)
+        logger.debug('Zones modified but skipped during bindmgr.sync: %s',
+                     self.modified_zones - dnssec_zones)
         for zone in self.modified_zones.intersection(dnssec_zones):
             self.sync_zone(zone)
 

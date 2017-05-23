@@ -18,6 +18,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
+import logging
+
 import dbus
 import six
 
@@ -43,6 +45,8 @@ from ipaserver.plugins.service import validate_certificate
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 __doc__ = _("""
 Certificate Identity Mapping
@@ -403,14 +407,14 @@ class _sssd(object):
     """
     Auxiliary class for SSSD infopipe DBus.
     """
-    def __init__(self, log):
+    def __init__(self):
         """
         Initialize the Users object and interface.
 
        :raise RemoteRetrieveError: if DBus error occurs
         """
         try:
-            self.log = log
+            self.log = logger
             self._bus = dbus.SystemBus()
             self._users_obj = self._bus.get_object(
                 DBUS_SSSD_NAME, DBUS_SSSD_USERS_PATH)
@@ -535,7 +539,7 @@ class certmap_match(Search):
         FreeIPA domain and trusted domains.
         :raise RemoteRetrieveError: if DBus returns an exception
         """
-        sssd = _sssd(self.log)
+        sssd = _sssd()
 
         cert = args[0]
         users = sssd.list_users_by_cert(cert)

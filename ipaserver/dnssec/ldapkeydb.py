@@ -6,6 +6,7 @@ from __future__ import print_function
 
 from binascii import hexlify
 import collections
+import logging
 from pprint import pprint
 
 import ipalib
@@ -21,6 +22,9 @@ from ipaserver.dnssec.abshsm import (
     populate_pkcs11_metadata)
 from ipaserver import p11helper as _ipap11helper
 import uuid
+
+logger = logging.getLogger(__name__)
+
 
 def uri_escape(val):
     """convert val to %-notation suitable for ID component in URI"""
@@ -119,7 +123,7 @@ class Key(collections.MutableMapping):
         self._delentry = None  # indicates that object was deleted
         self.ldap = ldap
         self.ldapkeydb = ldapkeydb
-        self.log = ldap.log.getChild(__name__)
+        self.log = logger.getChild(__name__)
 
     def __assert_not_deleted(self):
         assert self.entry and not self._delentry, (

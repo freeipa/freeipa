@@ -21,6 +21,8 @@
 Joining an IPA domain
 """
 
+import logging
+
 import six
 
 from ipalib import Registry, api
@@ -31,6 +33,8 @@ from ipaserver.install import installutils
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -100,16 +104,16 @@ class join(Command):
             dn = attrs_list['dn']
 
             # No error raised so far means that host entry exists
-            self.log.info('Host entry for %s already exists, '
-                          'joining may fail on the client side '
-                          'if not forced', hostname)
+            logger.info('Host entry for %s already exists, '
+                        'joining may fail on the client side '
+                        'if not forced', hostname)
 
             # If no principal name is set yet we need to try to add
             # one.
             if 'krbprincipalname' not in attrs_list:
                 service = "host/%s@%s" % (hostname, api.env.realm)
                 api.Command['host_mod'](hostname, krbprincipalname=service)
-                self.log.info('No principal set, setting to %s', service)
+                logger.info('No principal set, setting to %s', service)
 
             # It exists, can we write the password attributes?
             allowed = ldap.can_write(dn, 'krblastpwdchange')

@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 import os
 import tempfile
 import shutil
@@ -33,6 +34,8 @@ from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipalib import api, errors, x509
 from ipalib.constants import IPA_CA_NICKNAME, RENEWAL_CA_NAME
+
+logger = logging.getLogger(__name__)
 
 
 class CertUpdate(admintool.AdminTool):
@@ -103,10 +106,9 @@ class CertUpdate(admintool.AdminTool):
                 # pylint: disable=import-error,ipa-forbidden-import
                 from ipaserver.install import cainstance
                 # pylint: enable=import-error,ipa-forbidden-import
-                cainstance.add_lightweight_ca_tracking_requests(
-                    self.log, lwcas)
+                cainstance.add_lightweight_ca_tracking_requests(lwcas)
             except Exception:
-                self.log.exception(
+                logger.exception(
                     "Failed to add lightweight CA tracking requests")
 
         self.update_client(certs)
@@ -124,8 +126,8 @@ class CertUpdate(admintool.AdminTool):
                 try:
                     ipa_db.delete_cert(nickname)
                 except ipautil.CalledProcessError as e:
-                    self.log.error("Failed to remove %s from %s: %s",
-                                   nickname, ipa_db.secdir, e)
+                    logger.error("Failed to remove %s from %s: %s",
+                                 nickname, ipa_db.secdir, e)
                     break
 
         self.update_db(ipa_db.secdir, certs)
@@ -153,7 +155,7 @@ class CertUpdate(admintool.AdminTool):
         if request_id is not None:
             timeout = api.env.startup_timeout + 60
 
-            self.log.debug("resubmitting certmonger request '%s'", request_id)
+            logger.debug("resubmitting certmonger request '%s'", request_id)
             certmonger.resubmit_request(
                 request_id, ca='dogtag-ipa-ca-renew-agent-reuse', profile='')
             try:
@@ -168,7 +170,7 @@ class CertUpdate(admintool.AdminTool):
                     "Error resubmitting certmonger request '%s', "
                     "please check the request manually" % request_id)
 
-            self.log.debug("modifying certmonger request '%s'", request_id)
+            logger.debug("modifying certmonger request '%s'", request_id)
             certmonger.modify(request_id, ca='dogtag-ipa-ca-renew-agent')
 
         self.update_file(paths.CA_CRT, certs)
@@ -179,7 +181,7 @@ class CertUpdate(admintool.AdminTool):
         try:
             x509.write_certificate_list(certs, filename)
         except Exception as e:
-            self.log.error("failed to update %s: %s", filename, e)
+            logger.error("failed to update %s: %s", filename, e)
 
     def update_db(self, path, certs):
         db = certdb.NSSDatabase(path)
@@ -189,5 +191,5 @@ class CertUpdate(admintool.AdminTool):
             try:
                 db.add_cert(cert, nickname, trust_flags)
             except ipautil.CalledProcessError as e:
-                self.log.error(
+                logger.error(
                     "failed to update %s in %s: %s", nickname, path, e)

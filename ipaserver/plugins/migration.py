@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import re
 from ldap import MOD_ADD
 from ldap import SCOPE_BASE, SCOPE_ONELEVEL, SCOPE_SUBTREE
@@ -131,6 +132,8 @@ If the log level is debug, either by setting debug = True in
 for each user added plus a summary when the default user group is
 updated.
 """)
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -758,10 +761,9 @@ migration process might be incomplete\n''')
                     truncated = False
                     entries = []
             if truncated:
-                self.log.error(
-                    '%s: %s' % (
-                        ldap_obj.name, self.truncated_err_msg
-                    )
+                logger.error(
+                    '%s: %s',
+                    ldap_obj.name, self.truncated_err_msg
                 )
 
             blacklists = {}

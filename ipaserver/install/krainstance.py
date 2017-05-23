@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 import os
 import pwd
 import shutil
@@ -38,7 +39,8 @@ from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install.dogtaginstance import DogtagInstance
 from ipaserver.plugins import ldap2
-from ipapython.ipa_log_manager import log_mgr
+
+logger = logging.getLogger(__name__)
 
 # When IPA is installed with DNS support, this CNAME should hold all IPA
 # replicas with KRA configured
@@ -72,7 +74,6 @@ class KRAInstance(DogtagInstance):
         )
 
         self.basedn = DN(('o', 'kra'), ('o', 'ipaca'))
-        self.log = log_mgr.get_logger(self)
 
     def configure_instance(self, realm_name, host_name, dm_password,
                            admin_password, pkcs12_info=None, master_host=None,
@@ -293,7 +294,7 @@ class KRAInstance(DogtagInstance):
             os.remove(cfg_file)
 
         shutil.move(paths.KRA_BACKUP_KEYS_P12, paths.KRACERT_P12)
-        self.log.debug("completed creating KRA instance")
+        logger.debug("completed creating KRA instance")
 
     def __create_kra_agent(self):
         """

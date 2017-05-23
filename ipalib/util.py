@@ -26,6 +26,7 @@ from __future__ import (
     print_function,
 )
 
+import logging
 import os
 import socket
 import re
@@ -63,6 +64,8 @@ from ipapython.ipa_log_manager import root_logger
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 
 def json_serialize(obj):
@@ -697,10 +700,9 @@ def _log_response(log, e):
     :param e: DNSException
     """
     assert isinstance(e, DNSException)
-    if log is not None:
-        response = getattr(e, 'kwargs', {}).get('response')
-        if response:
-            log.debug("DNSException: %s; server response: %s", e, response)
+    response = getattr(e, 'kwargs', {}).get('response')
+    if response:
+        log.debug("DNSException: %s; server response: %s", e, response)
 
 
 def _resolve_record(owner, rtype, nameserver_ip=None, edns0=False,
@@ -736,7 +738,7 @@ def _resolve_record(owner, rtype, nameserver_ip=None, edns0=False,
     return res.query(owner, rtype)
 
 
-def _validate_edns0_forwarder(owner, rtype, ip_addr, log=None, timeout=10):
+def _validate_edns0_forwarder(owner, rtype, ip_addr, log=logger, timeout=10):
     """
     Validate if forwarder supports EDNS0
 
@@ -760,7 +762,7 @@ def _validate_edns0_forwarder(owner, rtype, ip_addr, log=None, timeout=10):
                                     error=e)
 
 
-def validate_dnssec_global_forwarder(ip_addr, log=None, timeout=10):
+def validate_dnssec_global_forwarder(ip_addr, log=logger, timeout=10):
     """Test DNS forwarder properties. against root zone.
 
     Global forwarders should be able return signed root zone
@@ -793,17 +795,16 @@ def validate_dnssec_global_forwarder(ip_addr, log=None, timeout=10):
         raise DNSSECSignatureMissingError(owner=owner, rtype=rtype, ip=ip_addr)
 
 
-def validate_dnssec_zone_forwarder_step1(ip_addr, fwzone, log=None, timeout=10):
+def validate_dnssec_zone_forwarder_step1(ip_addr, fwzone, timeout=10):
     """
     Only forwarders in forward zones can be validated in this way
     :raise UnresolvableRecordError: record cannot be resolved
     :raise EDNS0UnsupportedError: ENDS0 is not supported by forwarder
     """
-    _validate_edns0_forwarder(fwzone, "SOA", ip_addr, log=log, timeout=timeout)
+    _validate_edns0_forwarder(fwzone, "SOA", ip_addr, timeout=timeout)
 
 
-def validate_dnssec_zone_forwarder_step2(ipa_ip_addr, fwzone, log=None,
-                                         timeout=10):
+def validate_dnssec_zone_forwarder_step2(ipa_ip_addr, fwzone, timeout=10):
     """
     This step must be executed after forwarders are added into LDAP, and only
     when we are sure the forwarders work.
@@ -813,6 +814,7 @@ def validate_dnssec_zone_forwarder_step2(ipa_ip_addr, fwzone, log=None,
     :raise UnresolvableRecordError: record cannot be resolved
     :raise DNSSECValidationError: response from forwarder is not DNSSEC valid
     """
+    log = logger
     rtype = "SOA"
     try:
         ans_cd = _resolve_record(fwzone, rtype, nameserver_ip=ipa_ip_addr,

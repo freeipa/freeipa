@@ -27,8 +27,6 @@ import six
 from six.moves.urllib.parse import urlparse
 # pylint: enable=import-error
 
-from ipapython.ipa_log_manager import log_mgr
-
 '''
 Core Python has two cookie libraries, Cookie.py targeted to server
 side and cookielib.py targeted to client side. So why this module and
@@ -354,9 +352,6 @@ class Cookie(object):
 
     def __init__(self, key, value, domain=None, path=None, max_age=None, expires=None,
                  secure=None, httponly=None, timestamp=None):
-
-        log_mgr.get_logger(self, True)
-
         self.key = key
         self.value = value
         self.domain = domain

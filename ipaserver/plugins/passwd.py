@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 import six
 
 from ipalib import api, errors, krb_utils
@@ -53,6 +55,8 @@ EXAMPLES:
  To change another user's password:
    ipa passwd tuser1
 """)
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -134,7 +138,8 @@ class passwd(Command):
         if principal == getattr(context, 'principal') and \
             current_password == MAGIC_VALUE:
             # No cheating
-            self.log.warning('User attempted to change password using magic value')
+            logger.warning('User attempted to change password using magic '
+                           'value')
             raise errors.ACIError(info=_('Invalid credentials'))
 
         if current_password == MAGIC_VALUE:

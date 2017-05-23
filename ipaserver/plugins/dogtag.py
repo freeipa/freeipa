@@ -241,6 +241,8 @@ digits and nothing else follows.
 
 import datetime
 import json
+import logging
+
 from lxml import etree
 import time
 import contextlib
@@ -261,6 +263,8 @@ if api.env.in_server:
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 # These are general status return values used when
 # CMSServlet.outputError() is invoked.
@@ -1387,7 +1391,7 @@ class ra(rabase.rabase, RestClient):
         if detail is not None:
             err_msg = u'%s (%s)' % (err_msg, detail)
 
-        self.error('%s.%s(): %s', type(self).__name__, func_name, err_msg)
+        logger.error('%s.%s(): %s', type(self).__name__, func_name, err_msg)
         raise errors.CertificateOperationError(error=err_msg)
 
     def _request(self, url, port, **kw):
@@ -1434,7 +1438,7 @@ class ra(rabase.rabase, RestClient):
             self.raise_certificate_operation_error('get_parse_result_xml',
                                                    detail=str(e))
         result = parse_func(doc)
-        self.debug(
+        logger.debug(
             "%s() xml_text:\n%r\nparse_result:\n%r",
             parse_func.__name__, xml_text, result)
         return result
@@ -1473,7 +1477,7 @@ class ra(rabase.rabase, RestClient):
 
 
         """
-        self.debug('%s.check_request_status()', type(self).__name__)
+        logger.debug('%s.check_request_status()', type(self).__name__)
 
         # Call CMS
         http_status, _http_headers, http_body = (
@@ -1554,7 +1558,7 @@ class ra(rabase.rabase, RestClient):
 
 
         """
-        self.debug('%s.get_certificate()', type(self).__name__)
+        logger.debug('%s.get_certificate()', type(self).__name__)
 
         # Convert serial number to integral type from string to properly handle
         # radix issues. Note: the int object constructor will properly handle large
@@ -1621,7 +1625,7 @@ class ra(rabase.rabase, RestClient):
             ``unicode``, decimal representation
 
         """
-        self.debug('%s.request_certificate()', type(self).__name__)
+        logger.debug('%s.request_certificate()', type(self).__name__)
 
         # Call CMS
         template = u'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -1711,7 +1715,7 @@ class ra(rabase.rabase, RestClient):
         +---------------+---------------+---------------+
 
         """
-        self.debug('%s.revoke_certificate()', type(self).__name__)
+        logger.debug('%s.revoke_certificate()', type(self).__name__)
         if type(revocation_reason) is not int:
             raise TypeError(TYPE_ERROR % ('revocation_reason', int, revocation_reason, type(revocation_reason)))
 
@@ -1773,7 +1777,7 @@ class ra(rabase.rabase, RestClient):
         +---------------+---------------+---------------+
         """
 
-        self.debug('%s.take_certificate_off_hold()', type(self).__name__)
+        logger.debug('%s.take_certificate_off_hold()', type(self).__name__)
 
         # Convert serial number to integral type from string to properly handle
         # radix issues. Note: the int object constructor will properly handle large
@@ -1825,7 +1829,7 @@ class ra(rabase.rabase, RestClient):
             ts = time.strptime(value, '%Y-%m-%d')
             return int(time.mktime(ts) * 1000)
 
-        self.debug('%s.find()', type(self).__name__)
+        logger.debug('%s.find()', type(self).__name__)
 
         # Create the root element
         page = etree.Element('CertSearchRequest')
@@ -1901,7 +1905,7 @@ class ra(rabase.rabase, RestClient):
             e.text = str(booloptions[opt]).lower()
 
         payload = etree.tostring(doc, pretty_print=False, xml_declaration=True, encoding='UTF-8')
-        self.debug('%s.find(): request: %s', type(self).__name__, payload)
+        logger.debug('%s.find(): request: %s', type(self).__name__, payload)
 
         url = 'http://%s/ca/rest/certs/search?size=%d' % (
             ipautil.format_netloc(self.ca_host, 80),
@@ -1915,7 +1919,7 @@ class ra(rabase.rabase, RestClient):
         try:
             response = opener.open(req)
         except urllib.error.HTTPError as e:
-            self.debug('HTTP Response code: %d' % e.getcode())
+            logger.debug('HTTP Response code: %d', e.getcode())
             if e.getcode() == 501:
                 self.raise_certificate_operation_error('find',
                     detail=_('find not supported on CAs upgraded from 9 to 10'))
@@ -1926,7 +1930,7 @@ class ra(rabase.rabase, RestClient):
                                                    detail=e.reason)
 
         data = response.readlines()
-        self.debug('%s.find(): response: %s', type(self).__name__, data)
+        logger.debug('%s.find(): response: %s', type(self).__name__, data)
         parser = etree.XMLParser()
         try:
             doc = etree.fromstring(data[0], parser)
@@ -2128,7 +2132,7 @@ class ra_lightweight_ca(RestClient):
         try:
             return json.loads(ipautil.decode_json(resp_body))
         except Exception as e:
-            self.log.debug(e, exc_info=True)
+            logger.debug('%s', e, exc_info=True)
             raise errors.RemoteRetrieveError(
                 reason=_("Response from CA was not valid JSON"))
 
@@ -2138,7 +2142,7 @@ class ra_lightweight_ca(RestClient):
         try:
             return json.loads(ipautil.decode_json(resp_body))
         except Exception as e:
-            self.log.debug(e, exc_info=True)
+            logger.debug('%s', e, exc_info=True)
             raise errors.RemoteRetrieveError(
                 reason=_("Response from CA was not valid JSON"))
 
