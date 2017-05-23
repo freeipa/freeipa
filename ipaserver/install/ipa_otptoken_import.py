@@ -20,6 +20,7 @@
 import abc
 import base64
 import datetime
+import logging
 import os
 import uuid
 
@@ -44,6 +45,8 @@ from ipaserver.plugins.ldap2 import AUTOBIND_DISABLED
 if six.PY3:
     unicode = str
     long = int
+
+logger = logging.getLogger(__name__)
 
 
 class ValidationError(Exception):
@@ -538,9 +541,9 @@ class OTPTokenImport(admintool.AdminTool):
                 try:
                     api.Command.otptoken_add(keypkg.id, no_qrcode=True, **keypkg.options)
                 except Exception as e:
-                    self.log.warning("Error adding token: %s", e)
+                    logger.warning("Error adding token: %s", e)
                 else:
-                    self.log.info("Added token: %s", keypkg.id)
+                    logger.info("Added token: %s", keypkg.id)
                     keypkg.remove()
         finally:
             api.Backend.ldap2.disconnect()

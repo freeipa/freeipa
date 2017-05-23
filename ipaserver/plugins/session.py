@@ -2,9 +2,13 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+import logging
+
 from ipalib import Command
 from ipalib.request import context
 from ipalib.plugable import Registry
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -19,7 +23,7 @@ class session_logout(Command):
     def execute(self, *args, **options):
         ccache_name = getattr(context, 'ccache_name', None)
         if ccache_name is None:
-            self.debug('session logout command: no ccache_name found')
+            logger.debug('session logout command: no ccache_name found')
         else:
             delattr(context, 'ccache_name')
 

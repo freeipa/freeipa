@@ -158,7 +158,7 @@ class TestBackupAndRestore(IntegrationTest):
         with restore_checker(self.master):
             backup_path = backup(self.master)
 
-            self.log.info('Backup path for %s is %s', self.master, backup_path)
+            log.info('Backup path for %s is %s', self.master, backup_path)
 
             self.master.run_command(['ipa-server-install',
                                      '--uninstall',
@@ -181,7 +181,7 @@ class TestBackupAndRestore(IntegrationTest):
         with restore_checker(self.master):
             backup_path = backup(self.master)
 
-            self.log.info('Backup path for %s is %s', self.master, backup_path)
+            log.info('Backup path for %s is %s', self.master, backup_path)
 
             self.master.run_command(['ipa-server-install',
                                      '--uninstall',
@@ -295,8 +295,10 @@ class BaseBackupAndRestoreWithDNSSEC(IntegrationTest):
                 '--dnssec', 'true',
             ])
 
-            assert wait_until_record_is_signed(self.master.ip,
-                self.example_test_zone, self.log), "Zone is not signed"
+            assert (
+                wait_until_record_is_signed(
+                    self.master.ip, self.example_test_zone)
+            ), "Zone is not signed"
 
             backup_path = backup(self.master)
 
@@ -311,9 +313,10 @@ class BaseBackupAndRestoreWithDNSSEC(IntegrationTest):
             self.master.run_command(['ipa-restore', backup_path],
                                     stdin_text=dirman_password + '\nyes')
 
-            assert wait_until_record_is_signed(self.master.ip,
-                self.example_test_zone, self.log), ("Zone is not signed after "
-                                                    "restore")
+            assert (
+                wait_until_record_is_signed(
+                    self.master.ip, self.example_test_zone)
+            ), "Zone is not signed after restore"
 
             tasks.kinit_admin(self.master)
             self.master.run_command([
@@ -322,8 +325,10 @@ class BaseBackupAndRestoreWithDNSSEC(IntegrationTest):
                 '--dnssec', 'true',
             ])
 
-            assert wait_until_record_is_signed(self.master.ip,
-                self.example2_test_zone, self.log), "A new zone is not signed"
+            assert (
+                wait_until_record_is_signed(
+                    self.master.ip, self.example2_test_zone)
+            ), "A new zone is not signed"
 
 
 class TestBackupAndRestoreWithDNSSEC(BaseBackupAndRestoreWithDNSSEC):

@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import time
 from time import gmtime, strftime
 import posixpath
@@ -112,6 +113,8 @@ EXAMPLES:
  Delete a user:
    ipa user-del tuser1
 """)
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -640,7 +643,7 @@ class user_del(baseuser_del):
         dn = self.obj.get_either_dn(pkey, **options)
         delete_dn = DN(dn[0], delete_container)
         ldap = self.obj.backend
-        self.log.debug("preserve move %s -> %s" % (dn, delete_dn))
+        logger.debug("preserve move %s -> %s", dn, delete_dn)
 
         if dn.endswith(delete_container):
             raise errors.ExecutionError(
@@ -1108,7 +1111,7 @@ class user_status(LDAPQuery):
             )
         except errors.NotFound:
             # If this happens we have some pretty serious problems
-            self.error('No IPA masters found!')
+            logger.error('No IPA masters found!')
 
         entries = []
         count = 0
@@ -1121,7 +1124,8 @@ class user_status(LDAPQuery):
                     other_ldap = LDAPClient(ldap_uri='ldap://%s' % host)
                     other_ldap.gssapi_bind()
                 except Exception as e:
-                    self.error("user_status: Connecting to %s failed with %s" % (host, str(e)))
+                    logger.error("user_status: Connecting to %s failed with "
+                                 "%s", host, str(e))
                     newresult = {'dn': dn}
                     newresult['server'] = _("%(host)s failed: %(error)s") % dict(host=host, error=str(e))
                     entries.append(newresult)
@@ -1141,7 +1145,8 @@ class user_status(LDAPQuery):
                             newtime = time.strptime(newresult[attr][0], '%Y%m%d%H%M%SZ')
                             newresult[attr][0] = unicode(time.strftime('%Y-%m-%dT%H:%M:%SZ', newtime))
                         except Exception as e:
-                            self.debug("time conversion failed with %s" % str(e))
+                            logger.debug("time conversion failed with %s",
+                                         str(e))
                 newresult['server'] = host
                 if options.get('raw', False):
                     time_format = '%Y%m%d%H%M%SZ'
@@ -1157,7 +1162,8 @@ class user_status(LDAPQuery):
             except errors.NotFound:
                 self.api.Object.user.handle_not_found(*keys)
             except Exception as e:
-                self.error("user_status: Retrieving status for %s failed with %s" % (dn, str(e)))
+                logger.error("user_status: Retrieving status for %s failed "
+                             "with %s", dn, str(e))
                 newresult = {'dn': dn}
                 newresult['server'] = _("%(host)s failed") % dict(host=host)
                 entries.append(newresult)

@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import posixpath
 from copy import deepcopy
 
@@ -100,6 +101,8 @@ EXAMPLES:
    ipa stageuser-add  --first=Tim --last=User --from-delete tuser1
 
 """)
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -449,7 +452,8 @@ class stageuser_find(baseuser_find):
         # but then they have to create inetOrgPerson stage user
         stagefilter = filter.replace(container_filter,
                                      "(|%s(objectclass=inetOrgPerson))" % container_filter)
-        self.log.debug("stageuser_find: pre_callback new filter=%s " % (stagefilter))
+        logger.debug("stageuser_find: pre_callback new filter=%s ",
+                     stagefilter)
         return (stagefilter, base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
@@ -583,9 +587,10 @@ class stageuser_activate(LDAPQuery):
                    (isinstance(v, unicode) and v in (u'', None)):
                     try:
                         v.decode('utf-8')
-                        self.log.debug("merge: %s:%r wiped" % (attr, v))
+                        logger.debug("merge: %s:%r wiped", attr, v)
                     except Exception:
-                        self.log.debug("merge %s: [no_print %s]" % (attr, v.__class__.__name__))
+                        logger.debug("merge %s: [no_print %s]",
+                                     attr, v.__class__.__name__)
                     if isinstance(entry_to[attr], (list, tuple)):
                         # multi value attribute
                         if v not in entry_to[attr]:
@@ -599,9 +604,10 @@ class stageuser_activate(LDAPQuery):
                 else:
                     try:
                         v.decode('utf-8')
-                        self.log.debug("Add: %s:%r" % (attr, v))
+                        logger.debug("Add: %s:%r", attr, v)
                     except Exception:
-                        self.log.debug("Add %s: [no_print %s]" % (attr, v.__class__.__name__))
+                        logger.debug("Add %s: [no_print %s]",
+                                     attr, v.__class__.__name__)
 
                     if isinstance(entry_to[attr], (list, tuple)):
                         # multi value attribute
@@ -697,7 +703,7 @@ class stageuser_activate(LDAPQuery):
                 del result_entry['description']
 
         for (k, v) in new_entry_attrs.items():
-            self.log.debug("new entry: k=%r and v=%r)"  % (k, v))
+            logger.debug("new entry: k=%r and v=%r)", k, v)
 
         self._build_new_entry(ldap, staging_dn, entry_attrs, new_entry_attrs)
 
@@ -710,10 +716,12 @@ class stageuser_activate(LDAPQuery):
             self._exc_wrapper(args, options, ldap.delete_entry)(staging_dn)
         except:
             try:
-                self.log.error("Fail to delete the Staging user after activating it %s " % (staging_dn))
+                logger.error("Fail to delete the Staging user after "
+                             "activating it %s ", staging_dn)
                 self._exc_wrapper(args, options, ldap.delete_entry)(active_dn)
             except Exception:
-                self.log.error("Fail to cleanup activation. The user remains active %s" % (active_dn))
+                logger.error("Fail to cleanup activation. The user remains "
+                             "active %s", active_dn)
             raise
 
         # add the user we just created into the default primary group

@@ -2,6 +2,7 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+import logging
 import os
 import tempfile
 
@@ -11,6 +12,8 @@ from ipalib.install import certmonger
 from ipaplatform.paths import paths
 from ipapython.certdb import NSSDatabase
 from ipaserver.install import cainstance
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -35,11 +38,11 @@ class update_ra_cert_store(Updater):
         elif os.path.exists(paths.RA_AGENT_PEM):
             # even though the certificate file exists, we will overwrite it
             # as it's probabably something wrong anyway
-            self.log.warning(
+            logger.warning(
                 "A certificate with the nickname 'ipaCert' exists in "
-                "the old '{}' NSS database as well as in the new "
-                "PEM file '{}'"
-                .format(paths.HTTPD_ALIAS_DIR, paths.RA_AGENT_PEM))
+                "the old '%s' NSS database as well as in the new "
+                "PEM file '%s'",
+                paths.HTTPD_ALIAS_DIR, paths.RA_AGENT_PEM)
 
         _fd, p12file = tempfile.mkstemp(dir=certdb.secdir)
         # no password is necessary as we will be saving it in clear anyway

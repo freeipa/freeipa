@@ -21,6 +21,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import logging
 import os
 import shutil
 import tempfile
@@ -51,6 +52,8 @@ from ipalib import api
 from ipalib import errors
 from ipaplatform.paths import paths
 from ipalib.constants import DOMAIN_LEVEL_0
+
+logger = logging.getLogger(__name__)
 
 UNSUPPORTED_DOMAIN_LEVEL_TEMPLATE = """
 Replica creation using '{command_name}' to generate replica file
@@ -242,9 +245,9 @@ class ReplicaPrepare(admintool.AdminTool):
             if isinstance(e, installutils.HostLookupError):
                 if not options.ip_addresses:
                     if dns_container_exists(api.env.basedn):
-                        self.log.info('You might use the --ip-address option '
-                                      'to create a DNS entry if the DNS zone '
-                                      'is managed by IPA.')
+                        logger.info('You might use the --ip-address option '
+                                    'to create a DNS entry if the DNS zone '
+                                    'is managed by IPA.')
                     raise
                 else:
                     # The host doesn't exist in DNS but we're adding it.
@@ -254,7 +257,7 @@ class ReplicaPrepare(admintool.AdminTool):
 
         if options.ip_addresses:
             if not dns_container_exists(api.env.basedn):
-                self.log.error(
+                logger.error(
                     "It is not possible to add a DNS record automatically "
                     "because DNS is not managed by IPA. Please create DNS "
                     "record manually and then omit --ip-address option.")
@@ -266,9 +269,9 @@ class ReplicaPrepare(admintool.AdminTool):
 
             _host, zone = self.replica_fqdn.split('.', 1)
             if not bindinstance.dns_zone_exists(zone, api=api):
-                self.log.error("DNS zone %s does not exist in IPA managed DNS "
-                               "server. Either create DNS zone or omit "
-                               "--ip-address option." % zone)
+                logger.error("DNS zone %s does not exist in IPA managed DNS "
+                             "server. Either create DNS zone or omit "
+                             "--ip-address option.", zone)
                 raise admintool.ScriptError("Cannot add DNS record")
 
         self.http_pin = self.dirsrv_pin = None
@@ -312,8 +315,8 @@ class ReplicaPrepare(admintool.AdminTool):
         options = self.options
         super(ReplicaPrepare, self).run()
 
-        self.log.info("Preparing replica for %s from %s",
-            self.replica_fqdn, api.env.host)
+        logger.info("Preparing replica for %s from %s",
+                    self.replica_fqdn, api.env.host)
         enable_replication_version_checking(
             api.env.realm,
             self.dirman_password)
@@ -352,7 +355,7 @@ class ReplicaPrepare(admintool.AdminTool):
             fd.write("%s\n" % (self.dirsrv_pin or ''))
 
         if options.dirsrv_cert_files:
-            self.log.info("Copying SSL certificate for the Directory Server")
+            logger.info("Copying SSL certificate for the Directory Server")
             self.copy_info_file(self.dirsrv_pkcs12_file.name, "dscert.p12")
         else:
             if ipautil.file_exists(options.ca_file):
@@ -366,15 +369,15 @@ class ReplicaPrepare(admintool.AdminTool):
                 raise admintool.ScriptError("Root CA PKCS#12 not "
                     "found in %s" % options.ca_file)
 
-            self.log.info(
+            logger.info(
                 "Creating SSL certificate for the Directory Server")
             self.export_certdb("dscert", passwd_fname)
 
         if not options.dirsrv_cert_files:
-            self.log.info(
+            logger.info(
                 "Creating SSL certificate for the dogtag Directory Server")
             self.export_certdb("dogtagcert", passwd_fname)
-            self.log.info("Saving dogtag Directory Server port")
+            logger.info("Saving dogtag Directory Server port")
             port_fname = os.path.join(
                 self.dir, "dogtag_directory_port.txt")
             with open(port_fname, "w") as fd:
@@ -388,17 +391,17 @@ class ReplicaPrepare(admintool.AdminTool):
             fd.write("%s\n" % (self.http_pin or ''))
 
         if options.http_cert_files:
-            self.log.info("Copying SSL certificate for the Web Server")
+            logger.info("Copying SSL certificate for the Web Server")
             self.copy_info_file(self.http_pkcs12_file.name, "httpcert.p12")
         else:
-            self.log.info("Creating SSL certificate for the Web Server")
+            logger.info("Creating SSL certificate for the Web Server")
             self.export_certdb("httpcert", passwd_fname)
 
-            self.log.info("Exporting RA certificate")
+            logger.info("Exporting RA certificate")
             self.export_ra_pkcs12()
 
     def copy_misc_files(self):
-        self.log.info("Copying additional files")
+        logger.info("Copying additional files")
 
         cacert_filename = paths.CACERT_PEM
         if ipautil.file_exists(cacert_filename):
@@ -406,13 +409,13 @@ class ReplicaPrepare(admintool.AdminTool):
         self.copy_info_file(paths.IPA_DEFAULT_CONF, "default.conf")
 
     def retrieve_ca_certs(self):
-        self.log.info("Retrieving CA certificates")
+        logger.info("Retrieving CA certificates")
         dest = os.path.join(self.dir, "ca.crt")
         install_ca_cert(api.Backend.ldap2, api.env.basedn,
                         api.env.realm, paths.IPA_CA_CRT, destfile=dest)
 
     def save_config(self):
-        self.log.info("Finalizing configuration")
+        logger.info("Finalizing configuration")
 
         config = SafeConfigParser()
         config.add_section("realm")
@@ -430,7 +433,7 @@ class ReplicaPrepare(admintool.AdminTool):
         replicafile = paths.REPLICA_INFO_TEMPLATE % self.replica_fqdn
         encfile = "%s.gpg" % replicafile
 
-        self.log.info("Packaging replica information into %s", encfile)
+        logger.info("Packaging replica information into %s", encfile)
         ipautil.run(
             [paths.TAR, "cf", replicafile, "-C", self.top_dir, "realm_info"])
         installutils.encrypt_file(
@@ -443,11 +446,11 @@ class ReplicaPrepare(admintool.AdminTool):
     def add_dns_records(self):
         options = self.options
 
-        self.log.info("Adding DNS records for %s", self.replica_fqdn)
+        logger.info("Adding DNS records for %s", self.replica_fqdn)
         name, domain = self.replica_fqdn.split(".", 1)
 
         for reverse_zone in options.reverse_zones:
-            self.log.info("Adding reverse zone %s", reverse_zone)
+            logger.info("Adding reverse zone %s", reverse_zone)
             add_zone(reverse_zone)
 
         for ip in options.ip_addresses:
@@ -461,7 +464,7 @@ class ReplicaPrepare(admintool.AdminTool):
             if not options.no_reverse:
                 reverse_zone = bindinstance.find_reverse_zone(ip)
                 if reverse_zone is None:
-                    self.log.warning(
+                    logger.warning(
                         "Could not find any IPA managed reverse zone. "
                         "Not creating PTR records")
                     return
@@ -486,8 +489,8 @@ class ReplicaPrepare(admintool.AdminTool):
             except exceptions:
                 return False
         except Exception as e:
-            self.log.warning('Exception while waiting for DNS record: %s: %s',
-                          type(e).__name__, e)
+            logger.warning('Exception while waiting for DNS record: %s: %s',
+                           type(e).__name__, e)
 
         return True
 
@@ -499,20 +502,20 @@ class ReplicaPrepare(admintool.AdminTool):
             replica_fqdn += '.'
 
         if self.check_dns(replica_fqdn):
-            self.log.debug('%s A/AAAA record resolvable', replica_fqdn)
+            logger.debug('%s A/AAAA record resolvable', replica_fqdn)
             return
 
-        self.log.info('Waiting for %s A or AAAA record to be resolvable',
-                      replica_fqdn)
+        logger.info('Waiting for %s A or AAAA record to be resolvable',
+                    replica_fqdn)
         print('This can be safely interrupted (Ctrl+C)')
 
         try:
             while not self.check_dns(replica_fqdn):
                 time.sleep(1)
         except KeyboardInterrupt:
-            self.log.info('Interrupted')
+            logger.info('Interrupted')
         else:
-            self.log.debug('%s A/AAAA record resolvable', replica_fqdn)
+            logger.debug('%s A/AAAA record resolvable', replica_fqdn)
 
     def copy_info_file(self, source, dest):
         """Copy a file into the info directory
@@ -521,7 +524,7 @@ class ReplicaPrepare(admintool.AdminTool):
         :param dest: The destination file (relative to the info directory)
         """
         dest_path = os.path.join(self.dir, dest)
-        self.log.debug('Copying %s to %s', source, dest_path)
+        logger.debug('Copying %s to %s', source, dest_path)
         try:
             shutil.copy(source, dest_path)
         except IOError as e:
@@ -558,7 +561,7 @@ class ReplicaPrepare(admintool.AdminTool):
             try:
                 db.export_pkcs12(pkcs12_fname, passwd_fname, nickname)
             except ipautil.CalledProcessError as e:
-                self.log.info("error exporting Server certificate: %s", e)
+                logger.info("error exporting Server certificate: %s", e)
                 installutils.remove_file(pkcs12_fname)
                 installutils.remove_file(passwd_fname)
 
@@ -619,7 +622,8 @@ class ReplicaPrepare(admintool.AdminTool):
 
         domain_level = dsinstance.get_domain_level(api)
         if domain_level > DOMAIN_LEVEL_0:
-            self.log.error(
+            logger.error(
+                '%s',
                 UNSUPPORTED_DOMAIN_LEVEL_TEMPLATE.format(
                     command_name=self.command_name,
                     domain_level=DOMAIN_LEVEL_0,

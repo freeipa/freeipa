@@ -9,12 +9,14 @@ Command line support.
 import collections
 import enum
 import functools
+import logging
 import optparse  # pylint: disable=deprecated-module
 import signal
 
 import six
 
-from ipapython import admintool, ipa_log_manager
+from ipapython import admintool
+from ipapython.ipa_log_manager import standard_logging_setup
 from ipapython.ipautil import CheckedIPAddress, private_ccache
 
 from . import core, common
@@ -25,6 +27,8 @@ if six.PY3:
     long = int
 
 NoneType = type(None)
+
+logger = logging.getLogger(__name__)
 
 
 def _get_usage(configurable_class):
@@ -285,16 +289,15 @@ class ConfigureTool(admintool.AdminTool):
             log_file_name = self.options.log_file
         else:
             log_file_name = self.log_file_name
-        ipa_log_manager.standard_logging_setup(
+        standard_logging_setup(
            log_file_name,
            verbose=self.verbose,
            debug=self.options.verbose,
            console_format=self.console_format)
-        self.log = ipa_log_manager.log_mgr.get_logger(self)
         if log_file_name:
-            self.log.debug('Logging to %s' % log_file_name)
+            logger.debug('Logging to %s', log_file_name)
         elif not no_file:
-            self.log.debug('Not logging to a file')
+            logger.debug('Not logging to a file')
 
     def run(self):
         kwargs = {}

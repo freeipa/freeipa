@@ -17,12 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 import six
 
 from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython import ipautil
 from ipapython.dn import DN
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -56,8 +60,8 @@ class GenerateUpdateMixin(object):
         If the input DN doesn't end with old_suffix, log, an raise ValueError.
         """
         if not dn.endswith(old_suffix):
-            self.error("unable to replace suffix '%s' with '%s' in '%s'",
-                       old_suffix, new_suffix, dn)
+            logger.error("unable to replace suffix '%s' with '%s' in '%s'",
+                         old_suffix, new_suffix, dn)
             raise ValueError('no replacement made')
         return DN(*dn[:-len(old_suffix)]) + new_suffix
 

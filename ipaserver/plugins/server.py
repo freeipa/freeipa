@@ -2,6 +2,8 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+import logging
+
 import dbus
 import dbus.mainloop.glib
 import ldap
@@ -40,6 +42,8 @@ EXAMPLES:
   Show specific server:
     ipa server-show ipa.example.com
 """)
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -575,9 +579,9 @@ class server_del(LDAPDelete):
                 mod = [(ldap.MOD_DELETE, 'memberPrincipal', member_principal)]
                 conn.conn.modify_s(str(dn), mod)
             except (ldap.NO_SUCH_OBJECT, ldap.NO_SUCH_ATTRIBUTE):
-                self.log.debug(
-                    "Replica (%s) memberPrincipal (%s) not found in %s" %
-                    (master, member_principal, dn))
+                logger.debug(
+                    "Replica (%s) memberPrincipal (%s) not found in %s",
+                    master, member_principal, dn)
             except Exception as e:
                 self.add_message(
                     messages.ServerRemovalWarning(
@@ -803,11 +807,11 @@ class server_del(LDAPDelete):
                     return
                 time.sleep(2)
                 if i == 2:  # taking too long, something is wrong, report
-                    self.log.info(
+                    logger.info(
                         "Waiting for removal of replication agreements")
                 if i > 90:
-                    self.log.info("Taking too long, skipping")
-                    self.log.info("Following segments were not deleted:")
+                    logger.info("Taking too long, skipping")
+                    logger.info("Following segments were not deleted:")
                     self.add_message(messages.ServerRemovalWarning(
                         message=_("Following segments were not deleted:")))
                     for s in left:
@@ -833,14 +837,14 @@ class server_del(LDAPDelete):
                 # If the server was already deleted, we can expect that all
                 # removals had been done in previous run and dangling segments
                 # were not deleted.
-                self.log.info(
+                logger.info(
                     "Skipping replication agreement deletion check for "
-                    "suffix '{0}'".format(suffix_name))
+                    "suffix '%s'", suffix_name)
                 continue
 
-            self.log.info(
-                "Checking for deleted segments in suffix '{0}'".format(
-                    suffix_name))
+            logger.info(
+                "Checking for deleted segments in suffix '%s",
+                suffix_name)
 
             wait_for_segment_removal(
                 hostname,

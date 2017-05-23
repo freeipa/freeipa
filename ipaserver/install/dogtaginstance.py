@@ -18,6 +18,8 @@
 #
 
 import base64
+import logging
+
 import ldap
 import os
 import shutil
@@ -39,7 +41,8 @@ from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install import replication
 from ipaserver.install.installutils import stopped_service
-from ipapython.ipa_log_manager import log_mgr
+
+logger = logging.getLogger(__name__)
 
 
 def get_security_domain():
@@ -115,8 +118,6 @@ class DogtagInstance(service.Service):
         self.subject_base = None
         self.nss_db = nss_db
 
-        self.log = log_mgr.get_logger(self)
-
     def is_installed(self):
         """
         Determine if subsystem instance has been installed.
@@ -138,7 +139,7 @@ class DogtagInstance(service.Service):
                 "-f", cfg_file]
 
         with open(cfg_file) as f:
-            self.log.debug(
+            logger.debug(
                 'Contents of pkispawn configuration file (%s):\n%s',
                 cfg_file, ipautil.nolog_replace(f.read(), nolog_list))
 
@@ -165,8 +166,8 @@ class DogtagInstance(service.Service):
         try:
             self.stop('pki-tomcat')
         except Exception:
-            self.log.debug(traceback.format_exc())
-            self.log.critical(
+            logger.debug("%s", traceback.format_exc())
+            logger.critical(
                 "Failed to stop the Dogtag instance."
                 "See the installation log for details.")
 
@@ -223,8 +224,8 @@ class DogtagInstance(service.Service):
                          "-i", 'pki-tomcat',
                          "-s", self.subsystem])
         except ipautil.CalledProcessError as e:
-            self.log.critical("failed to uninstall %s instance %s",
-                              self.subsystem, e)
+            logger.critical("failed to uninstall %s instance %s",
+                            self.subsystem, e)
 
     def http_proxy(self):
         """ Update the http proxy file  """
@@ -267,7 +268,7 @@ class DogtagInstance(service.Service):
         try:
             return certmonger.get_pin('internal')
         except IOError as e:
-            self.log.debug(
+            logger.debug(
                 'Unable to determine PIN for the Dogtag instance: %s', e)
             raise RuntimeError(e)
 
@@ -286,7 +287,7 @@ class DogtagInstance(service.Service):
                     post_command='renew_ca_cert "%s"' % nickname,
                 )
             except RuntimeError as e:
-                self.log.error(
+                logger.error(
                     "certmonger failed to start tracking certificate: %s", e)
 
     def track_servercert(self):
@@ -305,8 +306,8 @@ class DogtagInstance(service.Service):
                 pre_command='stop_pkicad',
                 post_command='renew_ca_cert "%s"' % self.server_cert_name)
         except RuntimeError as e:
-            self.log.error(
-                "certmonger failed to start tracking certificate: %s" % e)
+            logger.error(
+                "certmonger failed to start tracking certificate: %s", e)
 
     def stop_tracking_certificates(self, stop_certmonger=True):
         """Stop tracking our certificates. Called on uninstall.
@@ -328,7 +329,7 @@ class DogtagInstance(service.Service):
                 certmonger.stop_tracking(
                     self.nss_db, nickname=nickname)
             except RuntimeError as e:
-                self.log.error(
+                logger.error(
                     "certmonger failed to stop tracking certificate: %s", e)
 
         if stop_certmonger:
@@ -358,7 +359,7 @@ class DogtagInstance(service.Service):
         Get the certificate for the admin user by checking the ldap entry
         for the user.  There should be only one certificate per user.
         """
-        self.log.debug('Trying to find the certificate for the admin user')
+        logger.debug('Trying to find the certificate for the admin user')
         conn = None
 
         try:
@@ -377,11 +378,11 @@ class DogtagInstance(service.Service):
         return base64.b64encode(admin_cert)
 
     def handle_setup_error(self, e):
-        self.log.critical("Failed to configure %s instance: %s"
-                          % (self.subsystem, e))
-        self.log.critical("See the installation logs and the following "
-                          "files/directories for more information:")
-        self.log.critical("  %s" % paths.TOMCAT_TOPLEVEL_DIR)
+        logger.critical("Failed to configure %s instance: %s",
+                        self.subsystem, e)
+        logger.critical("See the installation logs and the following "
+                        "files/directories for more information:")
+        logger.critical("  %s", paths.TOMCAT_TOPLEVEL_DIR)
 
         raise RuntimeError("%s configuration failed." % self.subsystem)
 

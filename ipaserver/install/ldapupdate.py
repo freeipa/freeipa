@@ -23,6 +23,7 @@
 # save undo files?
 
 import base64
+import logging
 import sys
 import uuid
 import platform
@@ -41,10 +42,11 @@ from ipalib import api, create_api
 from ipalib import constants
 from ipaplatform.paths import paths
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import log_mgr
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 UPDATES_DIR=paths.UPDATES_DIR
 UPDATE_SEARCH_TIME_LIMIT = 30  # seconds
@@ -250,7 +252,6 @@ class LDAPUpdate(object):
         update format.
 
         '''
-        log_mgr.get_logger(self, True)
         self.sub_dict = sub_dict
         self.dm_password = dm_password
         self.conn = None
@@ -548,8 +549,8 @@ class LDAPUpdate(object):
             nsIndexAttribute=[attribute],
         )
 
-        self.debug("Creating task to index attribute: %s", attribute)
-        self.debug("Task id: %s", dn)
+        logger.debug("Creating task to index attribute: %s", attribute)
+        logger.debug("Task id: %s", dn)
 
         self.conn.add_entry(e)
 
@@ -571,10 +572,10 @@ class LDAPUpdate(object):
             try:
                 entry = self.conn.get_entry(dn, attrlist)
             except errors.NotFound as e:
-                self.error("Task not found: %s", dn)
+                logger.error("Task not found: %s", dn)
                 return
             except errors.DatabaseError as e:
-                self.error("Task lookup failure %s", e)
+                logger.error("Task lookup failure %s", e)
                 return
 
             status = entry.single_value.get('nstaskstatus')
@@ -584,10 +585,10 @@ class LDAPUpdate(object):
                 continue
 
             if status.lower().find("finished") > -1:
-                self.debug("Indexing finished")
+                logger.debug("Indexing finished")
                 break
 
-            self.debug("Indexing in progress")
+            logger.debug("Indexing in progress")
             time.sleep(1)
 
         return
@@ -663,54 +664,76 @@ class LDAPUpdate(object):
 
             entry_values = entry.raw.get(attr, [])
             if action == 'remove':
-                self.debug("remove: '%s' from %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr,entry_values))
+                logger.debug("remove: '%s' from %s, current value %s",
+                             safe_output(attr, update_value),
+                             attr,
+                             safe_output(attr, entry_values))
                 try:
                     entry_values.remove(update_value)
                 except ValueError:
-                    self.debug(
+                    logger.debug(
                         "remove: '%s' not in %s",
                         safe_output(attr, update_value), attr)
                 else:
                     entry.raw[attr] = entry_values
-                    self.debug('remove: updated value %s', safe_output(
+                    logger.debug('remove: updated value %s', safe_output(
                         attr, entry_values))
             elif action == 'add':
-                self.debug("add: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
+                logger.debug("add: '%s' to %s, current value %s",
+                             safe_output(attr, update_value),
+                             attr,
+                             safe_output(attr, entry_values))
                 # Remove it, ignoring errors so we can blindly add it later
                 try:
                     entry_values.remove(update_value)
                 except ValueError:
                     pass
                 entry_values.append(update_value)
-                self.debug('add: updated value %s', safe_output(attr, entry_values))
+                logger.debug('add: updated value %s',
+                             safe_output(attr, entry_values))
                 entry.raw[attr] = entry_values
             elif action == 'addifnew':
-                self.debug("addifnew: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
+                logger.debug("addifnew: '%s' to %s, current value %s",
+                             safe_output(attr, update_value),
+                             attr,
+                             safe_output(attr, entry_values))
                 # Only add the attribute if it doesn't exist. Only works
                 # with single-value attributes. Entry must exist.
                 if entry.get('objectclass') and len(entry_values) == 0:
                     entry_values.append(update_value)
-                    self.debug('addifnew: set %s to %s', attr, safe_output(attr, entry_values))
+                    logger.debug('addifnew: set %s to %s',
+                                 attr, safe_output(attr, entry_values))
                     entry.raw[attr] = entry_values
             elif action == 'addifexist':
-                self.debug("addifexist: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
+                logger.debug("addifexist: '%s' to %s, current value %s",
+                             safe_output(attr, update_value),
+                             attr,
+                             safe_output(attr, entry_values))
                 # Only add the attribute if the entry doesn't exist. We
                 # determine this based on whether it has an objectclass
                 if entry.get('objectclass'):
                     entry_values.append(update_value)
-                    self.debug('addifexist: set %s to %s', attr, safe_output(attr, entry_values))
+                    logger.debug('addifexist: set %s to %s',
+                                 attr, safe_output(attr, entry_values))
                     entry.raw[attr] = entry_values
             elif action == 'only':
-                self.debug("only: set %s to '%s', current value %s", attr, safe_output(attr, update_value), safe_output(attr, entry_values))
+                logger.debug("only: set %s to '%s', current value %s",
+                             attr,
+                             safe_output(attr, update_value),
+                             safe_output(attr, entry_values))
                 if only.get(attr):
                     entry_values.append(update_value)
                 else:
                     entry_values = [update_value]
                     only[attr] = True
                 entry.raw[attr] = entry_values
-                self.debug('only: updated value %s', safe_output(attr, entry_values))
+                logger.debug('only: updated value %s',
+                             safe_output(attr, entry_values))
             elif action == 'onlyifexist':
-                self.debug("onlyifexist: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
+                logger.debug("onlyifexist: '%s' to %s, current value %s",
+                             safe_output(attr, update_value),
+                             attr,
+                             safe_output(attr, entry_values))
                 # Only set the attribute if the entry exist's. We
                 # determine this based on whether it has an objectclass
                 if entry.get('objectclass'):
@@ -719,7 +742,8 @@ class LDAPUpdate(object):
                     else:
                         entry_values = [update_value]
                         only[attr] = True
-                    self.debug('onlyifexist: set %s to %s', attr, safe_output(attr, entry_values))
+                    logger.debug('onlyifexist: set %s to %s',
+                                 attr, safe_output(attr, entry_values))
                     entry.raw[attr] = entry_values
             elif action == 'deleteentry':
                 # skip this update type, it occurs in  __delete_entries()
@@ -731,24 +755,26 @@ class LDAPUpdate(object):
                 try:
                     entry_values.remove(old)
                 except ValueError:
-                    self.debug('replace: %s not found, skipping', safe_output(attr, old))
+                    logger.debug('replace: %s not found, skipping',
+                                 safe_output(attr, old))
                 else:
                     entry_values.append(new)
-                    self.debug('replace: updated value %s', safe_output(attr, entry_values))
+                    logger.debug('replace: updated value %s',
+                                 safe_output(attr, entry_values))
                     entry.raw[attr] = entry_values
 
         return entry
 
     def print_entity(self, e, message=None):
         """The entity object currently lacks a str() method"""
-        self.debug("---------------------------------------------")
+        logger.debug("---------------------------------------------")
         if message:
-            self.debug("%s", message)
-        self.debug("dn: %s", e.dn)
+            logger.debug("%s", message)
+        logger.debug("dn: %s", e.dn)
         for a, value in e.raw.items():
-            self.debug('%s:', a)
+            logger.debug('%s:', a)
             for l in value:
-                self.debug("\t%s", safe_output(a, l))
+                logger.debug("\t%s", safe_output(a, l))
 
     def _update_record(self, update):
         found = False
@@ -763,15 +789,15 @@ class LDAPUpdate(object):
                 raise BadSyntax("More than 1 entry returned on a dn search!? %s" % new_entry.dn)
             entry = e[0]
             found = True
-            self.debug("Updating existing entry: %s", entry.dn)
+            logger.debug("Updating existing entry: %s", entry.dn)
         except errors.NotFound:
             # Doesn't exist, start with the default entry
             entry = new_entry
-            self.debug("New entry: %s", entry.dn)
+            logger.debug("New entry: %s", entry.dn)
         except errors.DatabaseError:
             # Doesn't exist, start with the default entry
             entry = new_entry
-            self.debug("New entry, using default value: %s", entry.dn)
+            logger.debug("New entry, using default value: %s", entry.dn)
 
         self.print_entity(entry, "Initial value")
 
@@ -796,13 +822,13 @@ class LDAPUpdate(object):
                     except errors.NotFound:
                         # parent entry of the added entry does not exist
                         # this may not be an error (e.g. entries in NIS container)
-                        self.error("Parent DN of %s may not exist, cannot "
-                                   "create the entry", entry.dn)
+                        logger.error("Parent DN of %s may not exist, cannot "
+                                     "create the entry", entry.dn)
                         return
                 added = True
                 self.modified = True
             except Exception as e:
-                self.error("Add failure %s", e)
+                logger.error("Add failure %s", e)
         else:
             # Update LDAP
             try:
@@ -812,19 +838,19 @@ class LDAPUpdate(object):
                 safe_changes = []
                 for (type, attr, values) in changes:
                     safe_changes.append((type, attr, safe_output(attr, values)))
-                self.debug("%s" % safe_changes)
-                self.debug("Updated %d" % updated)
+                logger.debug("%s", safe_changes)
+                logger.debug("Updated %d", updated)
                 if updated:
                     self.conn.update_entry(entry)
-                self.debug("Done")
+                logger.debug("Done")
             except errors.EmptyModlist:
-                self.debug("Entry already up-to-date")
+                logger.debug("Entry already up-to-date")
                 updated = False
             except errors.DatabaseError as e:
-                self.error("Update failed: %s", e)
+                logger.error("Update failed: %s", e)
                 updated = False
             except errors.ACIError as e:
-                self.error("Update failed: %s", e)
+                logger.error("Update failed: %s", e)
                 updated = False
 
             if updated:
@@ -844,14 +870,14 @@ class LDAPUpdate(object):
 
         dn = updates['dn']
         try:
-            self.debug("Deleting entry %s", dn)
+            logger.debug("Deleting entry %s", dn)
             self.conn.delete_entry(dn)
             self.modified = True
         except errors.NotFound as e:
-            self.debug("%s did not exist:%s", dn, e)
+            logger.debug("%s did not exist:%s", dn, e)
             self.modified = True
         except errors.DatabaseError as e:
-            self.error("Delete failed: %s", e)
+            logger.error("Delete failed: %s", e)
 
     def get_all_files(self, root, recursive=False):
         """Get all update files"""
@@ -866,7 +892,7 @@ class LDAPUpdate(object):
         return f
 
     def _run_update_plugin(self, plugin_name):
-        self.log.debug("Executing upgrade plugin: %s", plugin_name)
+        logger.debug("Executing upgrade plugin: %s", plugin_name)
         restart_ds, updates = self.api.Updater[plugin_name]()
         if updates:
             self._run_updates(updates)
@@ -912,10 +938,10 @@ class LDAPUpdate(object):
 
             for f in upgrade_files:
                 try:
-                    self.debug("Parsing update file '%s'" % f)
+                    logger.debug("Parsing update file '%s'", f)
                     data = self.read_file(f)
                 except Exception as e:
-                    self.error("error reading update file '%s'", f)
+                    logger.error("error reading update file '%s'", f)
                     raise RuntimeError(e)
 
                 self.parse_update_file(f, data, all_updates)
@@ -933,5 +959,5 @@ class LDAPUpdate(object):
             self.conn = None
 
     def restart_ds(self):
-        self.log.debug('Restarting directory server to apply updates')
+        logger.debug('Restarting directory server to apply updates')
         installutils.restart_dirsrv()

@@ -27,6 +27,7 @@ Backend plugin for LDAP.
 # binding encodes them into the appropriate representation. This applies to
 # everything except the CrudBackend methods, where dn is part of the entry dict.
 
+import logging
 import os
 
 import ldap as _ldap
@@ -55,6 +56,8 @@ except ImportError:
 from ipalib import Registry, errors, _
 from ipalib.crud import CrudBackend
 from ipalib.request import context
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -402,7 +405,7 @@ class ldap2(CrudBackend, LDAPClient):
         assert isinstance(dn, DN)
         assert isinstance(group_dn, DN)
 
-        self.log.debug(
+        logger.debug(
             "add_entry_to_group: dn=%s group_dn=%s member_attr=%s",
             dn, group_dn, member_attr)
 
@@ -432,7 +435,7 @@ class ldap2(CrudBackend, LDAPClient):
         assert isinstance(dn, DN)
         assert isinstance(group_dn, DN)
 
-        self.log.debug(
+        logger.debug(
             "remove_entry_from_group: dn=%s group_dn=%s member_attr=%s",
             dn, group_dn, member_attr)
 

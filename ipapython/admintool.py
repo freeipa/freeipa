@@ -31,6 +31,9 @@ from optparse import OptionGroup  # pylint: disable=deprecated-module
 from ipapython import version
 from ipapython import config
 from ipapython import ipa_log_manager
+from ipapython.ipa_log_manager import standard_logging_setup
+
+logger = logging.getLogger(__name__)
 
 
 class ScriptError(Exception):
@@ -88,7 +91,6 @@ class AdminTool(object):
     usage = None
     description = None
 
-    log = None
     _option_parsers = dict()
 
     @classmethod
@@ -226,7 +228,7 @@ class AdminTool(object):
         - a plain print for things that should not be log (for example,
             interactive prompting)
 
-        To log, use `self.log.info()`, `self.log.warning()`, etc.
+        To log, use a module-level logger.
 
         Logging to file is only set up after option validation and prompting;
         before that, all output will go to the console only.
@@ -258,14 +260,13 @@ class AdminTool(object):
                 verbose = False
             else:
                 verbose = True
-        ipa_log_manager.standard_logging_setup(
+        standard_logging_setup(
             log_file_name, console_format=console_format,
             filemode=log_file_mode, debug=debug, verbose=verbose)
-        self.log = ipa_log_manager.log_mgr.get_logger(self)
         if log_file_name:
-            self.log.debug('Logging to %s' % log_file_name)
+            logger.debug('Logging to %s', log_file_name)
         elif not no_file:
-            self.log.debug('Not logging to a file')
+            logger.debug('Not logging to a file')
 
 
     def handle_error(self, exception):
@@ -290,20 +291,20 @@ class AdminTool(object):
         assumed to have run successfully, and the return value is used as the
         SystemExit code.
         """
-        self.log.debug('%s was invoked with arguments %s and options: %s',
-                self.command_name, self.args, self.safe_options)
-        self.log.debug('IPA version %s' % version.VENDOR_VERSION)
+        logger.debug('%s was invoked with arguments %s and options: %s',
+                     self.command_name, self.args, self.safe_options)
+        logger.debug('IPA version %s', version.VENDOR_VERSION)
 
     def log_failure(self, error_message, return_value, exception, backtrace):
-        self.log.debug(''.join(traceback.format_tb(backtrace)))
-        self.log.debug('The %s command failed, exception: %s: %s',
-            self.command_name, type(exception).__name__, exception)
+        logger.debug('%s', ''.join(traceback.format_tb(backtrace)))
+        logger.debug('The %s command failed, exception: %s: %s',
+                     self.command_name, type(exception).__name__, exception)
         if error_message:
-            self.log.error(error_message)
+            logger.error('%s', error_message)
         message = "The %s command failed." % self.command_name
         if self.log_file_name:
             message += " See %s for more information" % self.log_file_name
-        self.log.error(message)
+        logger.error('%s', message)
 
     def log_success(self):
-        self.log.info('The %s command was successful', self.command_name)
+        logger.info('The %s command was successful', self.command_name)

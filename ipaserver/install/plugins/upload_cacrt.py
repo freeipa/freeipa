@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from ipalib.install import certstore
 from ipaplatform.paths import paths
 from ipaserver.install import certs
@@ -24,6 +26,8 @@ from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython import certdb
 from ipapython.dn import DN
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -66,8 +70,8 @@ class update_upload_cacrt(Updater):
             try:
                 certstore.init_ca_entry(entry, cert, nickname, trust, eku)
             except Exception as e:
-                self.log.warning("Failed to create entry for %s: %s",
-                                 nickname, e)
+                logger.warning("Failed to create entry for %s: %s",
+                               nickname, e)
                 continue
             if nickname == ca_nickname:
                 ca_cert = cert

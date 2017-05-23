@@ -20,6 +20,8 @@
 
 from __future__ import absolute_import
 
+import logging
+
 import netaddr
 import time
 import re
@@ -310,6 +312,8 @@ server:
  Modify global DNS configuration and set a list of global forwarders:
    ipa dnsconfig-mod --forwarder=203.0.113.113
 """)
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -1542,7 +1546,7 @@ def __dns_record_options_iter():
 _dns_record_options = tuple(__dns_record_options_iter())
 
 
-def check_ns_rec_resolvable(zone, name, log):
+def check_ns_rec_resolvable(zone, name):
     assert isinstance(zone, DNSName)
     assert isinstance(name, DNSName)
 
@@ -2772,8 +2776,7 @@ class dnszone_add(DNSZoneBase_add):
 
             # verify if user specified server is resolvable
             if not options['skip_nameserver_check']:
-                check_ns_rec_resolvable(keys[0], entry_attrs['idnssoamname'],
-                                        self.log)
+                check_ns_rec_resolvable(keys[0], entry_attrs['idnssoamname'])
             # show warning about --name-server option
             context.show_warning_nameserver_option = True
         else:
@@ -2871,7 +2874,7 @@ class dnszone_mod(DNSZoneBase_mod):
             nameserver = entry_attrs['idnssoamname']
             if nameserver:
                 if not nameserver.is_empty() and not options['force']:
-                    check_ns_rec_resolvable(keys[0], nameserver, self.log)
+                    check_ns_rec_resolvable(keys[0], nameserver)
                 context.show_warning_nameserver_option = True
             else:
                 # empty value, this option is required by ldap
@@ -3044,7 +3047,7 @@ class dnsrecord(LDAPObject):
         if options.get('force', False) or nsrecords is None:
             return
         for nsrecord in nsrecords:
-            check_ns_rec_resolvable(keys[0], DNSName(nsrecord), self.log)
+            check_ns_rec_resolvable(keys[0], DNSName(nsrecord))
 
     def _idnsname_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
@@ -3350,8 +3353,8 @@ class dnsrecord(LDAPObject):
                 ldap_rrsets[rdtype] = ldap_rrset
 
             except dns.exception.SyntaxError as e:
-                self.log.error('DNS syntax error: %s %s %s: %s', dns_name,
-                               dns.rdatatype.to_text(rdtype), value, e)
+                logger.error('DNS syntax error: %s %s %s: %s', dns_name,
+                             dns.rdatatype.to_text(rdtype), value, e)
                 raise
 
         return ldap_rrsets
@@ -3376,14 +3379,14 @@ class dnsrecord(LDAPObject):
         warn_attempts = max_attempts // 2
         period = 1  # second
         attempt = 0
-        log_fn = self.log.debug
+        log_fn = logger.debug
         log_fn('querying DNS server: expecting answer {%s}', ldap_rrset)
         wait_template = 'waiting for DNS answer {%s}: got {%s} (attempt %s); '\
                         'waiting %s seconds before next try'
 
         while attempt < max_attempts:
             if attempt >= warn_attempts:
-                log_fn = self.log.warning
+                log_fn = logger.warning
             attempt += 1
             try:
                 dns_answer = resolver.query(dns_name, rdtype,
@@ -3453,14 +3456,14 @@ class dnsrecord(LDAPObject):
                 else:
                     e = errors.DNSDataMismatch(expected=ldap_rrset,
                                                got="NXDOMAIN")
-                    self.log.error(e)
+                    logger.error('%s', e)
                     raise e
 
             except dns.resolver.NoNameservers as e:
                 # Do not raise exception if we have got SERVFAILs.
                 # Maybe the user has created an invalid zone intentionally.
-                self.log.warning('waiting for DNS answer {%s}: got {%s}; '
-                              'ignoring', ldap_rrset, type(e))
+                logger.warning('waiting for DNS answer {%s}: got {%s}; '
+                               'ignoring', ldap_rrset, type(e))
                 continue
 
             except dns.exception.DNSException as e:
@@ -3469,7 +3472,7 @@ class dnsrecord(LDAPObject):
                 if err_str:
                     err_desc += ": %s" % err_str
                 e = errors.DNSDataMismatch(expected=ldap_rrset, got=err_desc)
-                self.log.error(e)
+                logger.error('%s', e)
                 raise e
 
     def wait_for_modified_entries(self, entries):
@@ -4211,7 +4214,7 @@ class dnsconfig_mod(LDAPUpdate):
             # forwarders were changed
             for forwarder in forwarders:
                 try:
-                    validate_dnssec_global_forwarder(forwarder, log=self.log)
+                    validate_dnssec_global_forwarder(forwarder)
                 except DNSSECSignatureMissingError as e:
                     messages.add_message(
                         options['version'],
@@ -4286,8 +4289,7 @@ class dnsforwardzone(DNSZoneBase):
 
         for forwarder in forwarders:
             try:
-                validate_dnssec_zone_forwarder_step1(forwarder, fwzone,
-                                                     log=self.log)
+                validate_dnssec_zone_forwarder_step1(forwarder, fwzone)
             except UnresolvableRecordError as e:
                 messages.add_message(
                     options['version'],
@@ -4320,8 +4322,8 @@ class dnsforwardzone(DNSZoneBase):
         if not ipa_dns_masters:
             # something very bad happened, DNS is installed, but no IPA DNS
             # servers available
-            self.log.error("No IPA DNS server can be found, but integrated DNS "
-                           "is installed")
+            logger.error("No IPA DNS server can be found, but integrated DNS "
+                         "is installed")
             return
 
         ipa_dns_ip = None
@@ -4335,7 +4337,7 @@ class dnsforwardzone(DNSZoneBase):
                 break
 
         if not ipa_dns_ip:
-            self.log.error("Cannot resolve %s hostname", ipa_dns_masters[0])
+            logger.error("Cannot resolve %s hostname", ipa_dns_masters[0])
             return
 
         # sleep a bit, adding new zone to BIND from LDAP may take a while
@@ -4344,8 +4346,7 @@ class dnsforwardzone(DNSZoneBase):
 
         # Test if IPA is able to receive replies from forwarders
         try:
-            validate_dnssec_zone_forwarder_step2(ipa_dns_ip, fwzone,
-                                                 log=self.log)
+            validate_dnssec_zone_forwarder_step2(ipa_dns_ip, fwzone)
         except DNSSECValidationError as e:
             messages.add_message(
                 options['version'],

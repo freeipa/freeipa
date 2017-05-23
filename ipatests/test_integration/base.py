@@ -84,6 +84,3 @@ class IntegrationTest(object):
             tasks.uninstall_master(replica)
         for client in cls.clients:
             tasks.uninstall_client(client)
-
-
-IntegrationTest.log = log_mgr.get_logger(IntegrationTest())

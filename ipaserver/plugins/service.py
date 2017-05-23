@@ -19,6 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from cryptography.hazmat.primitives import hashes
 import six
 
@@ -115,6 +117,8 @@ EXAMPLES:
    ipa-getkeytab -s ipa.example.com -p HTTP/web.example.com -k /etc/httpd/httpd.keytab
 
 """)
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -791,7 +795,7 @@ class service_find(LDAPSearch):
                         reason=e
                     )
                 )
-                self.log.error("Invalid certificate: {err}".format(err=e))
+                logger.error("Invalid certificate: %s", e)
                 del(entry_attrs['usercertificate'])
 
             set_kerberos_attrs(entry_attrs, options)
@@ -829,7 +833,7 @@ class service_show(LDAPRetrieve):
                     reason=e,
                 )
             )
-            self.log.error("Invalid certificate: {err}".format(err=e))
+            logger.error("Invalid certificate: %s", e)
             del(entry_attrs['usercertificate'])
 
         set_kerberos_attrs(entry_attrs, options)

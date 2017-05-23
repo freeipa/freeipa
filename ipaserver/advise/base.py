@@ -507,7 +507,7 @@ class IpaAdvise(admintool.AdminTool):
         advise_api.finalize()
         if not self.options.verbose:
             # Do not print connection information by default
-            logger_name = r'ipalib\.plugins\.rpcclient'
+            logger_name = r'ipalib\.rpc'
             root_logger.addFilter(Filter(logger_name, logging.WARNING))
 
         # With no argument, print the list out and exit

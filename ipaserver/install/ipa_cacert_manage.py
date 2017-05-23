@@ -19,6 +19,7 @@
 
 from __future__ import print_function
 
+import logging
 import os
 from optparse import OptionGroup  # pylint: disable=deprecated-module
 from cryptography.hazmat.primitives import serialization
@@ -34,6 +35,8 @@ from ipapython.dn import DN
 from ipaplatform.paths import paths
 from ipalib import api, errors, x509
 from ipaserver.install import certs, cainstance, installutils
+
+logger = logging.getLogger(__name__)
 
 
 class CACertManage(admintool.AdminTool):
@@ -154,7 +157,7 @@ class CACertManage(admintool.AdminTool):
         if self.request_id is None:
             raise admintool.ScriptError(
                 "CA certificate is not tracked by certmonger")
-        self.log.debug(
+        logger.debug(
             "Found certmonger request id %r", self.request_id)
 
         db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
@@ -309,7 +312,7 @@ class CACertManage(admintool.AdminTool):
     def resubmit_request(self, ca='dogtag-ipa-ca-renew-agent', profile=''):
         timeout = api.env.startup_timeout + 60
 
-        self.log.debug("resubmitting certmonger request '%s'", self.request_id)
+        logger.debug("resubmitting certmonger request '%s'", self.request_id)
         certmonger.resubmit_request(self.request_id, ca=ca, profile=profile)
         try:
             state = certmonger.wait_for_request(self.request_id, timeout)
@@ -323,7 +326,7 @@ class CACertManage(admintool.AdminTool):
                 "Error resubmitting certmonger request '%s', "
                 "please check the request manually" % self.request_id)
 
-        self.log.debug("modifying certmonger request '%s'", self.request_id)
+        logger.debug("modifying certmonger request '%s'", self.request_id)
         certmonger.modify(self.request_id,
                           ca='dogtag-ipa-ca-renew-agent',
                           profile='')

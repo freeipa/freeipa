@@ -2,6 +2,8 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
+import logging
+
 import ldap.dn
 import os
 
@@ -13,6 +15,8 @@ from ipapython import ipautil
 from ipaserver.dnssec.syncrepl import SyncReplConsumer
 from ipaserver.dnssec.odsmgr import ODSMgr
 from ipaserver.dnssec.bindmgr import BINDMgr
+
+logger = logging.getLogger(__name__)
 
 SIGNING_ATTR = 'idnsSecInlineSigning'
 OBJCLASS_ATTR = 'objectClass'
@@ -109,7 +113,8 @@ class KeySyncer(SyncReplConsumer):
             self.hsm_master_sync()
 
     def syncrepl_refreshdone(self):
-        self.log.info('Initial LDAP dump is done, sychronizing with ODS and BIND')
+        logger.info('Initial LDAP dump is done, sychronizing with ODS and '
+                    'BIND')
         self.init_done = True
         self.ods_sync()
         self.hsm_replica_sync()

@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import re
 import traceback
 
@@ -102,6 +103,8 @@ EXAMPLES:
  Add a permission that grants the ability to manage group membership:
    ipa permission-add --attrs=member --permissions=write --type=group "Manage Group Members"
 """)
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -610,7 +613,7 @@ class permission(baseldap.LDAPObject):
         location = permission_entry.single_value.get('ipapermlocation',
                                                      self.api.env.basedn)
 
-        self.log.debug('Adding ACI %r to %s' % (acistring, location))
+        logger.debug('Adding ACI %r to %s', acistring, location)
         try:
             entry = ldap.get_entry(location, ['aci'])
         except errors.NotFound:
@@ -654,15 +657,15 @@ class permission(baseldap.LDAPObject):
         acidn = acientry.dn  # pylint: disable=E1103
 
         if acistring is not None:
-            self.log.debug('Removing ACI %r from %s' % (acistring, acidn))
+            logger.debug('Removing ACI %r from %s', acistring, acidn)
             acientry['aci'].remove(acistring)
         if new_acistring:
-            self.log.debug('Adding ACI %r to %s' % (new_acistring, acidn))
+            logger.debug('Adding ACI %r to %s', new_acistring, acidn)
             acientry.setdefault('aci', []).append(new_acistring)
         try:
             ldap.update_entry(acientry)
         except errors.EmptyModlist:
-            self.log.debug('No changes to ACI')
+            logger.debug('No changes to ACI')
         return acientry, acistring
 
     def _get_aci_entry_and_string(self, permission_entry, name=None,
@@ -696,8 +699,8 @@ class permission(baseldap.LDAPObject):
             try:
                 aci = ACI(acistring)
             except SyntaxError as e:
-                self.log.warning('Unparseable ACI %s: %s (at %s)',
-                                 acistring, e, location)
+                logger.warning('Unparseable ACI %s: %s (at %s)',
+                               acistring, e, location)
                 continue
             if aci.name == wanted_aciname:
                 return acientry, acistring
@@ -1194,7 +1197,7 @@ class permission_mod(baseldap.LDAPUpdate):
             try:
                 context.old_aci_info = self.obj.remove_aci(old_entry)
             except errors.NotFound as e:
-                self.log.error('permission ACI not found: %s' % e)
+                logger.error('permission ACI not found: %s', e)
 
         # To pass data to postcallback, we currently need to use the context
         context.old_entry = old_entry
@@ -1212,8 +1215,8 @@ class permission_mod(baseldap.LDAPUpdate):
             # Try to roll back the old ACI
             entry, old_aci_string = old_aci_info
             if old_aci_string:
-                self.log.warning('Reverting ACI on %s to %s' % (entry.dn,
-                                                            old_aci_string))
+                logger.warning('Reverting ACI on %s to %s', entry.dn,
+                               old_aci_string)
                 entry['aci'].append(old_aci_string)
                 self.Backend.ldap2.update_entry(entry)
 
@@ -1229,8 +1232,8 @@ class permission_mod(baseldap.LDAPUpdate):
             # Don't revert attribute which doesn't exist in LDAP
             entry.pop('attributelevelrights', None)
 
-            self.log.error('Error updating ACI: %s' % traceback.format_exc())
-            self.log.warning('Reverting entry')
+            logger.error('Error updating ACI: %s', traceback.format_exc())
+            logger.warning('Reverting entry')
             old_entry.reset_modlist(entry)
             ldap.update_entry(old_entry)
             self._revert_aci()
@@ -1326,7 +1329,7 @@ class permission_find(baseldap.LDAPSearch):
                 root_entry = ldap.get_entry(DN(api.env.basedn), ['aci'])
             except errors.NotFound:
                 legacy_entries = ()
-            self.log.debug('potential legacy entries: %s', len(legacy_entries))
+            logger.debug('potential legacy entries: %s', len(legacy_entries))
             nonlegacy_names = {e.single_value['cn'] for e in entries}
             for entry in legacy_entries:
                 if entry.single_value['cn'] in nonlegacy_names:

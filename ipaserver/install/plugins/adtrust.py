@@ -17,12 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import sysupgrade
 from ipaserver.install.adtrustinstance import ADTRUSTInstance
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -146,7 +150,7 @@ class update_default_trust_view(Updater):
 
         # First, see if trusts are enabled on the server
         if not self.api.Command.adtrust_is_enabled()['result']:
-            self.log.debug('AD Trusts are not enabled on this server')
+            logger.debug('AD Trusts are not enabled on this server')
             return False, []
 
         # Second, make sure the Default Trust View does not exist yet
@@ -155,7 +159,7 @@ class update_default_trust_view(Updater):
         except errors.NotFound:
             pass
         else:
-            self.log.debug('Default Trust View already present on this server')
+            logger.debug('Default Trust View already present on this server')
             return False, []
 
         # We have a server with AD trust support without Default Trust View.
@@ -200,7 +204,7 @@ class update_sigden_extdom_broken_config(Updater):
             try:
                 entry = ldap.get_entry(dn, attrs_list=[basedn_attr])
             except errors.NotFound:
-                self.log.debug("configuration for %s not found, skipping", dn)
+                logger.debug("configuration for %s not found, skipping", dn)
             else:
                 configured_suffix = entry.single_value.get(basedn_attr)
                 if configured_suffix is None:
@@ -212,19 +216,19 @@ class update_sigden_extdom_broken_config(Updater):
                 elif configured_suffix == "$SUFFIX":
                     # configured value is wrong, fix it
                     entry.single_value[basedn_attr] = str(self.api.env.basedn)
-                    self.log.debug("updating attribute %s of %s to correct "
-                                   "value %s", basedn_attr, dn,
-                                   self.api.env.basedn)
+                    logger.debug("updating attribute %s of %s to correct "
+                                 "value %s",
+                                 basedn_attr, dn, self.api.env.basedn)
                     ldap.update_entry(entry)
                     modified = True
                 else:
-                    self.log.debug("configured basedn for %s is okay", dn)
+                    logger.debug("configured basedn for %s is okay", dn)
 
         return modified
 
     def execute(self, **options):
         if sysupgrade.get_upgrade_state('sidgen', 'config_basedn_updated'):
-            self.log.debug("Already done, skipping")
+            logger.debug("Already done, skipping")
             return False, ()
 
         restart = False
@@ -250,7 +254,7 @@ class update_sids(Updater):
         ldap = self.api.Backend.ldap2
 
         if sysupgrade.get_upgrade_state('sidgen', 'update_sids') is not True:
-            self.log.debug("SIDs do not need to be generated")
+            logger.debug("SIDs do not need to be generated")
             return False, ()
 
         # check if IPA domain for AD trust has been created, and if we need to
@@ -264,8 +268,8 @@ class update_sids(Updater):
         try:
             entry = ldap.get_entry(domain_IPA_AD_dn, attrs_list=[attr_name])
         except errors.NotFound:
-            self.log.debug("IPA domain object %s is not configured",
-                           domain_IPA_AD_dn)
+            logger.debug("IPA domain object %s is not configured",
+                         domain_IPA_AD_dn)
             sysupgrade.set_upgrade_state('sidgen', 'update_sids', False)
             return False, ()
         else:
@@ -286,9 +290,9 @@ class update_sids(Updater):
                 try:
                     ldap.add_entry(task_entry)
                 except errors.DuplicateEntry:
-                    self.log.debug("sidgen task already created")
+                    logger.debug("sidgen task already created")
                 else:
-                    self.log.debug("sidgen task has been created")
+                    logger.debug("sidgen task has been created")
 
         # we have to check all trusts domains which may been affected by the
         # bug. Symptom is missing 'ipaNTSecurityIdentifier' attribute
@@ -307,11 +311,11 @@ class update_sids(Updater):
             pass
         else:
             if truncated:
-                self.log.warning("update_sids: Search results were truncated")
+                logger.warning("update_sids: Search results were truncated")
 
             for entry in trust_domain_entries:
                 domain = entry.single_value["cn"]
-                self.log.error(
+                logger.error(
                     "Your trust to %s is broken. Please re-create it by "
                     "running 'ipa trust-add' again.", domain)
 
@@ -331,7 +335,7 @@ class update_tdo_gidnumber(Updater):
 
         # First, see if trusts are enabled on the server
         if not self.api.Command.adtrust_is_enabled()['result']:
-            self.log.debug('AD Trusts are not enabled on this server')
+            logger.debug('AD Trusts are not enabled on this server')
             return False, []
 
         # Read the gidnumber of the fallback group
@@ -343,13 +347,13 @@ class update_tdo_gidnumber(Updater):
             entry = ldap.get_entry(dn, ['gidnumber'])
             gidNumber = entry.get('gidnumber')
         except errors.NotFound:
-            self.log.error("{0} not found".format(
-                ADTRUSTInstance.FALLBACK_GROUP_NAME))
+            logger.error("%s not found",
+                         ADTRUSTInstance.FALLBACK_GROUP_NAME)
             return False, ()
 
         if not gidNumber:
-            self.log.error("{0} does not have a gidnumber".format(
-                ADTRUSTInstance.FALLBACK_GROUP_NAME))
+            logger.error("%s does not have a gidnumber",
+                         ADTRUSTInstance.FALLBACK_GROUP_NAME)
             return False, ()
 
         # For each trusted domain object, add gidNumber
@@ -366,14 +370,14 @@ class update_tdo_gidnumber(Updater):
                     try:
                         tdo['gidnumber'] = gidNumber
                         ldap.update_entry(tdo)
-                        self.log.debug("Added gidnumber {0} to {1}".format(
-                            gidNumber, tdo.dn))
+                        logger.debug("Added gidnumber %s to %s",
+                                     gidNumber, tdo.dn)
                     except Exception:
-                        self.log.warning(
-                            "Failed to add gidnumber to {0}".format(tdo.dn))
+                        logger.warning(
+                            "Failed to add gidnumber to %s", tdo.dn)
 
         except errors.NotFound:
-            self.log.debug("No trusted domain object to update")
+            logger.debug("No trusted domain object to update")
             return False, ()
 
         return False, ()

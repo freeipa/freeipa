@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 import six
 
 from ipalib.messages import (
@@ -154,6 +156,8 @@ particular type.
 
    ipa trustconfig-mod --type ad --fallback-primary-group "Default SMB Group"
 """)
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -437,7 +441,8 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
     # Return the values that were generated inside this function
     return range_type, range_size, base_id
 
-def fetch_trusted_domains_over_dbus(myapi, log, forest_name):
+
+def fetch_trusted_domains_over_dbus(myapi, forest_name):
     if not _bindings_installed:
         return
     # Calling oddjobd-activated service via DBus has some quirks:
@@ -454,12 +459,13 @@ def fetch_trusted_domains_over_dbus(myapi, log, forest_name):
         fetch_domains_method = intf.get_dbus_method('fetch_domains', dbus_interface=DBUS_IFACE_TRUST)
         (_ret, _stdout, _stderr) = fetch_domains_method(forest_name)
     except dbus.DBusException as e:
-        log.error('Failed to call %(iface)s.fetch_domains helper.'
-                       'DBus exception is %(exc)s.' % dict(iface=DBUS_IFACE_TRUST, exc=str(e)))
+        logger.error('Failed to call %s.fetch_domains helper.'
+                     'DBus exception is %s.', DBUS_IFACE_TRUST, str(e))
         if _ret != 0:
-            log.error('Helper was called for forest %(forest)s, return code is %(ret)d' % dict(forest=forest_name, ret=_ret))
-            log.error('Standard output from the helper:\n%s---\n' % (_stdout))
-            log.error('Error output from the helper:\n%s--\n' % (_stderr))
+            logger.error('Helper was called for forest %s, return code is %d',
+                         forest_name, _ret)
+            logger.error('Standard output from the helper:\n%s---\n', _stdout)
+            logger.error('Error output from the helper:\n%s--\n', _stderr)
         raise errors.ServerCommandError(server=myapi.env.host,
                                         error=_('Fetching domains from trusted forest failed. '
                                                 'See details in the error_log'))
@@ -784,7 +790,7 @@ sides.
                 # object credentials to authenticate to AD with Kerberos,
                 # run DCE RPC calls to do discovery and will call
                 # add_new_domains_from_trust() on its own.
-                fetch_trusted_domains_over_dbus(self.api, self.log, result['value'])
+                fetch_trusted_domains_over_dbus(self.api, result['value'])
 
         # Format the output into human-readable values unless `--raw` is given
         self._format_trust_attrs(result, **options)
@@ -1743,7 +1749,7 @@ class trust_fetch_domains(LDAPRetrieve):
         # With privilege separation we also cannot authenticate as
         # HTTP/ principal because we have no access to its key material.
         # Thus, we'll use DBus call out to oddjobd helper in all cases
-        fetch_trusted_domains_over_dbus(self.api, self.log, keys[0])
+        fetch_trusted_domains_over_dbus(self.api, keys[0])
         result['summary'] = unicode(_('List of trust domains successfully '
                                       'refreshed. Use trustdomain-find '
                                       'command to list them.'))

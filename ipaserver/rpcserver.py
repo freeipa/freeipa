@@ -23,6 +23,7 @@ RPC server.
 Also see the `ipalib.rpc` module.
 """
 
+import logging
 from xml.sax.saxutils import escape
 import os
 import traceback
@@ -66,6 +67,8 @@ from requests.auth import AuthBase
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 HTTP_STATUS_SUCCESS = '200 Success'
 HTTP_STATUS_SERVER_ERROR = '500 Internal Server Error'
@@ -138,7 +141,7 @@ class HTTP_Status(plugable.Plugin):
         status = '404 Not Found'
         response_headers = [('Content-Type', 'text/html; charset=utf-8')]
 
-        self.info('%s: URL="%s", %s', status, url, message)
+        logger.info('%s: URL="%s", %s', status, url, message)
         start_response(status, response_headers)
         output = _not_found_template % dict(url=escape(url))
         return [output.encode('utf-8')]
@@ -150,7 +153,7 @@ class HTTP_Status(plugable.Plugin):
         status = '400 Bad Request'
         response_headers = [('Content-Type', 'text/html; charset=utf-8')]
 
-        self.info('%s: %s', status, message)
+        logger.info('%s: %s', status, message)
 
         start_response(status, response_headers)
         output = _bad_request_template % dict(message=escape(message))
@@ -163,7 +166,7 @@ class HTTP_Status(plugable.Plugin):
         status = HTTP_STATUS_SERVER_ERROR
         response_headers = [('Content-Type', 'text/html; charset=utf-8')]
 
-        self.error('%s: %s', status, message)
+        logger.error('%s: %s', status, message)
 
         start_response(status, response_headers)
         output = _internal_error_template % dict(message=escape(message))
@@ -178,7 +181,7 @@ class HTTP_Status(plugable.Plugin):
         if reason:
             response_headers.append(('X-IPA-Rejection-Reason', reason))
 
-        self.info('%s: %s', status, message)
+        logger.info('%s: %s', status, message)
 
         start_response(status, response_headers)
         output = _unauthorized_template % dict(message=escape(message))
@@ -257,7 +260,7 @@ class wsgi_dispatch(Executioner, HTTP_Status):
         return key in self.__apps
 
     def __call__(self, environ, start_response):
-        self.debug('WSGI wsgi_dispatch.__call__:')
+        logger.debug('WSGI wsgi_dispatch.__call__:')
         try:
             return self.route(environ, start_response)
         finally:
@@ -288,7 +291,7 @@ class wsgi_dispatch(Executioner, HTTP_Status):
             raise Exception('%s.mount(): cannot replace %r with %r at %r' % (
                 self.name, self.__apps[key], app, key)
             )
-        self.debug('Mounting %r at %r', app, key)
+        logger.debug('Mounting %r at %r', app, key)
         self.__apps[key] = app
 
 
@@ -367,10 +370,11 @@ class WSGIExecutioner(Executioner):
                 result = command(*args, **options)
         except PublicError as e:
             if self.api.env.debug:
-                self.debug('WSGI wsgi_execute PublicError: %s', traceback.format_exc())
+                logger.debug('WSGI wsgi_execute PublicError: %s',
+                             traceback.format_exc())
             error = e
         except Exception as e:
-            self.exception(
+            logger.exception(
                 'non-public: %s: %s', e.__class__.__name__, str(e)
             )
             error = InternalError()
@@ -382,8 +386,9 @@ class WSGIExecutioner(Executioner):
             try:
                 params = command.args_options_2_params(*args, **options)
             except Exception as e:
-                self.info(
-                   'exception %s caught when converting options: %s', e.__class__.__name__, str(e)
+                logger.info(
+                   'exception %s caught when converting options: %s',
+                   e.__class__.__name__, str(e)
                 )
                 # get at least some context of what is going on
                 params = options
@@ -392,18 +397,18 @@ class WSGIExecutioner(Executioner):
                 result_string = type(error).__name__
             else:
                 result_string = 'SUCCESS'
-            self.info('[%s] %s: %s(%s): %s',
-                      type(self).__name__,
-                      principal,
-                      name,
-                      ', '.join(command._repr_iter(**params)),
-                      result_string)
+            logger.info('[%s] %s: %s(%s): %s',
+                        type(self).__name__,
+                        principal,
+                        name,
+                        ', '.join(command._repr_iter(**params)),
+                        result_string)
         else:
-            self.info('[%s] %s: %s: %s',
-                      type(self).__name__,
-                      principal,
-                      name,
-                      type(error).__name__)
+            logger.info('[%s] %s: %s: %s',
+                        type(self).__name__,
+                        principal,
+                        name,
+                        type(error).__name__)
 
         version = options.get('version', VERSION_WITHOUT_CAPABILITIES)
         return self.marshal(result, error, _id, version)
@@ -418,7 +423,7 @@ class WSGIExecutioner(Executioner):
         WSGI application for execution.
         """
 
-        self.debug('WSGI WSGIExecutioner.__call__:')
+        logger.debug('WSGI WSGIExecutioner.__call__:')
         try:
             status = HTTP_STATUS_SUCCESS
             response = self.wsgi_execute(environ)
@@ -428,7 +433,7 @@ class WSGIExecutioner(Executioner):
                 headers = [('Content-Type',
                             self.content_type + '; charset=utf-8')]
         except Exception:
-            self.exception('WSGI %s.__call__():', self.name)
+            logger.exception('WSGI %s.__call__():', self.name)
             status = HTTP_STATUS_SERVER_ERROR
             response = status.encode('utf-8')
             headers = [('Content-Type', 'text/plain; charset=utf-8')]
@@ -463,7 +468,7 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
         '''
         '''
 
-        self.debug('WSGI jsonserver.__call__:')
+        logger.debug('WSGI jsonserver.__call__:')
 
         response = super(jsonserver, self).__call__(environ, start_response)
         return response
@@ -598,7 +603,7 @@ class KerberosSession(HTTP_Status):
         headers = []
         response = b''
 
-        self.debug('%s need login', status)
+        logger.debug('%s need login', status)
 
         start_response(status, headers)
         return [response]
@@ -607,13 +612,13 @@ class KerberosSession(HTTP_Status):
         # If we have a ccache ...
         ccache_name = environ.get('KRB5CCNAME')
         if ccache_name is None:
-            self.debug('no ccache, need login')
+            logger.debug('no ccache, need login')
             return
 
         # ... make sure we have a name ...
         principal = environ.get('GSS_NAME')
         if principal is None:
-            self.debug('no Principal Name, need login')
+            logger.debug('no Principal Name, need login')
             return
 
         # ... and use it to resolve the ccache name (Issue: 6972 )
@@ -623,7 +628,8 @@ class KerberosSession(HTTP_Status):
         creds = get_credentials_if_valid(name=gss_name,
                                          ccache_name=ccache_name)
         if not creds:
-            self.debug('ccache expired or invalid, deleting session, need login')
+            logger.debug(
+                'ccache expired or invalid, deleting session, need login')
             return
 
         return ccache_name
@@ -662,7 +668,7 @@ class KerberosWSGIExecutioner(WSGIExecutioner, KerberosSession):
         super(KerberosWSGIExecutioner, self)._on_finalize()
 
     def __call__(self, environ, start_response):
-        self.debug('KerberosWSGIExecutioner.__call__:')
+        logger.debug('KerberosWSGIExecutioner.__call__:')
         user_ccache=environ.get('KRB5CCNAME')
 
         object.__setattr__(
@@ -674,7 +680,7 @@ class KerberosWSGIExecutioner(WSGIExecutioner, KerberosSession):
 
             status = HTTP_STATUS_SERVER_ERROR
 
-            self.log.error(
+            logger.error(
                 '%s: %s', status,
                 'KerberosWSGIExecutioner.__call__: '
                 'KRB5CCNAME not defined in HTTP request environment')
@@ -767,11 +773,13 @@ class xmlserver(KerberosWSGIExecutioner):
     def marshal(self, result, error, _id=None,
                 version=VERSION_WITHOUT_CAPABILITIES):
         if error:
-            self.debug('response: %s: %s', error.__class__.__name__, str(error))
+            logger.debug('response: %s: %s',
+                         error.__class__.__name__, str(error))
             response = Fault(error.errno, error.strerror)
         else:
             if isinstance(result, dict):
-                self.debug('response: entries returned %d', result.get('count', 1))
+                logger.debug('response: entries returned %d',
+                             result.get('count', 1))
             response = (result,)
         dump = xml_dumps(response, version, methodresponse=True)
         return dump.encode('utf-8')
@@ -794,7 +802,7 @@ class jsonserver_session(jsonserver, KerberosSession):
         '''
         '''
 
-        self.debug('WSGI jsonserver_session.__call__:')
+        logger.debug('WSGI jsonserver_session.__call__:')
 
         # Redirect to login if no Kerberos credentials
         ccache_name = self.get_environ_creds(environ)
@@ -834,7 +842,7 @@ class KerberosLogin(Backend, KerberosSession):
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
 
     def __call__(self, environ, start_response):
-        self.debug('WSGI KerberosLogin.__call__:')
+        logger.debug('WSGI KerberosLogin.__call__:')
 
         # Redirect to login if no Kerberos credentials
         user_ccache_name = self.get_environ_creds(environ)
@@ -852,7 +860,7 @@ class login_x509(KerberosLogin):
     key = '/session/login_x509'
 
     def __call__(self, environ, start_response):
-        self.debug('WSGI login_x509.__call__:')
+        logger.debug('WSGI login_x509.__call__:')
 
         if 'KRB5CCNAME' not in environ:
             return self.unauthorized(
@@ -872,7 +880,7 @@ class login_password(Backend, KerberosSession):
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
 
     def __call__(self, environ, start_response):
-        self.debug('WSGI login_password.__call__:')
+        logger.debug('WSGI login_password.__call__:')
 
         # Get the user and password parameters from the request
         content_type = environ.get('CONTENT_TYPE', '').lower()
@@ -958,7 +966,7 @@ class login_password(Backend, KerberosSession):
         armor_path = os.path.join(paths.IPA_CCACHES,
                                   "armor_{}".format(os.getpid()))
 
-        self.debug('Obtaining armor in ccache %s', armor_path)
+        logger.debug('Obtaining armor in ccache %s', armor_path)
 
         try:
             kinit_armor(
@@ -966,7 +974,7 @@ class login_password(Backend, KerberosSession):
                 pkinit_anchors=[paths.KDC_CERT, paths.KDC_CA_BUNDLE_PEM],
             )
         except RuntimeError as e:
-            self.error("Failed to obtain armor cache")
+            logger.error("Failed to obtain armor cache")
             # We try to continue w/o armor, 2FA will be impacted
             armor_path = None
 
@@ -980,7 +988,7 @@ class login_password(Backend, KerberosSession):
                 lifetime=self.api.env.kinit_lifetime)
 
             if armor_path:
-                self.debug('Cleanup the armor ccache')
+                logger.debug('Cleanup the armor ccache')
                 ipautil.run([paths.KDESTROY, '-A', '-c', armor_path],
                             env={'KRB5CCNAME': armor_path}, raiseonerr=False)
         except RuntimeError as e:
@@ -1009,7 +1017,7 @@ class change_password(Backend, HTTP_Status):
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
 
     def __call__(self, environ, start_response):
-        self.info('WSGI change_password.__call__:')
+        logger.info('WSGI change_password.__call__:')
 
         # Get the user and password parameters from the request
         content_type = environ.get('CONTENT_TYPE', '').lower()
@@ -1040,7 +1048,8 @@ class change_password(Backend, HTTP_Status):
                 return self.bad_request(environ, start_response, "no %s specified" % field)
 
         # start building the response
-        self.info("WSGI change_password: start password change of user '%s'", data['user'])
+        logger.info("WSGI change_password: start password change of user '%s'",
+                    data['user'])
         status = HTTP_STATUS_SUCCESS
         response_headers = [('Content-Type', 'text/html; charset=utf-8')]
         title = 'Password change rejected'
@@ -1061,8 +1070,9 @@ class change_password(Backend, HTTP_Status):
             message = 'The old password or username is not correct.'
         except Exception as e:
             message = "Could not connect to LDAP server."
-            self.error("change_password: cannot authenticate '%s' to LDAP server: %s",
-                    data['user'], str(e))
+            logger.error("change_password: cannot authenticate '%s' to LDAP "
+                         "server: %s",
+                         data['user'], str(e))
         else:
             try:
                 conn.modify_password(bind_dn, data['new_password'], data['old_password'], skip_bind=True)
@@ -1072,8 +1082,9 @@ class change_password(Backend, HTTP_Status):
                 message = "Password change was rejected: %s" % escape(str(e))
             except Exception as e:
                 message = "Could not change the password"
-                self.error("change_password: cannot change password of '%s': %s",
-                        data['user'], str(e))
+                logger.error("change_password: cannot change password of "
+                             "'%s': %s",
+                             data['user'], str(e))
             else:
                 result = 'ok'
                 title = "Password change successful"
@@ -1082,7 +1093,7 @@ class change_password(Backend, HTTP_Status):
                 if conn.isconnected():
                     conn.disconnect()
 
-        self.info('%s: %s', status, message)
+        logger.info('%s: %s', status, message)
 
         response_headers.append(('X-IPA-Pwchange-Result', result))
         if policy_error:
@@ -1178,8 +1189,9 @@ class sync_token(Backend, HTTP_Status):
         except Exception as e:
             result = 'error'
             message = "Could not connect to LDAP server."
-            self.error("token_sync: cannot authenticate '%s' to LDAP server: %s",
-                       data['user'], str(e))
+            logger.error("token_sync: cannot authenticate '%s' to LDAP "
+                         "server: %s",
+                         data['user'], str(e))
         finally:
             if conn.isconnected():
                 conn.disconnect()
@@ -1209,7 +1221,7 @@ class xmlserver_session(xmlserver, KerberosSession):
         headers = []
         response = b''
 
-        self.debug('xmlserver_session: %s need login', status)
+        logger.debug('xmlserver_session: %s need login', status)
 
         start_response(status, headers)
         return [response]
@@ -1218,19 +1230,20 @@ class xmlserver_session(xmlserver, KerberosSession):
         '''
         '''
 
-        self.debug('WSGI xmlserver_session.__call__:')
+        logger.debug('WSGI xmlserver_session.__call__:')
 
         ccache_name = environ.get('KRB5CCNAME')
 
         # Redirect to /ipa/xml if no Kerberos credentials
         if ccache_name is None:
-            self.debug('xmlserver_session.__call_: no ccache, need TGT')
+            logger.debug('xmlserver_session.__call_: no ccache, need TGT')
             return self.need_login(start_response)
 
         # Redirect to /ipa/xml if Kerberos credentials are expired
         creds = get_credentials_if_valid(ccache_name=ccache_name)
         if not creds:
-            self.debug('xmlserver_session.__call_: ccache expired, deleting session, need login')
+            logger.debug('xmlserver_session.__call_: ccache expired, deleting '
+                         'session, need login')
             # The request is finished with the ccache, destroy it.
             return self.need_login(start_response)
 

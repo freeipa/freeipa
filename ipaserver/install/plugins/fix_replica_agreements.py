@@ -17,9 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from ipaserver.install import replication
 from ipalib import Registry
 from ipalib import Updater
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -36,7 +40,7 @@ class update_replica_attribute_lists(Updater):
 
     def execute(self, **options):
         # We need an LDAPClient connection to the backend
-        self.log.debug("Start replication agreement exclude list update task")
+        logger.debug("Start replication agreement exclude list update task")
         conn = self.api.Backend.ldap2
 
         repl = replication.ReplicationManager(self.api.env.realm,
@@ -46,11 +50,11 @@ class update_replica_attribute_lists(Updater):
         # We need to update only IPA replica agreements, not winsync
         ipa_replicas = repl.find_ipa_replication_agreements()
 
-        self.log.debug("Found %d agreement(s)", len(ipa_replicas))
+        logger.debug("Found %d agreement(s)", len(ipa_replicas))
 
         for replica in ipa_replicas:
             for desc in replica.get('description', []):
-                self.log.debug(desc)
+                logger.debug('%s', desc)
 
             self._update_attr(repl, replica,
                 'nsDS5ReplicatedAttributeList',
@@ -61,7 +65,7 @@ class update_replica_attribute_lists(Updater):
             self._update_attr(repl, replica,
                 'nsds5ReplicaStripAttrs', replication.STRIP_ATTRS)
 
-        self.log.debug("Done updating agreements")
+        logger.debug("Done updating agreements")
 
         return False, []  # No restart, no updates
 
@@ -81,16 +85,16 @@ class update_replica_attribute_lists(Updater):
         """
         attrlist = replica.single_value.get(attribute)
         if attrlist is None:
-            self.log.debug("Adding %s", attribute)
+            logger.debug("Adding %s", attribute)
 
             # Need to add it altogether
             replica[attribute] = [template % " ".join(values)]
 
             try:
                 repl.conn.update_entry(replica)
-                self.log.debug("Updated")
+                logger.debug("Updated")
             except Exception as e:
-                self.log.error("Error caught updating replica: %s", str(e))
+                logger.error("Error caught updating replica: %s", str(e))
 
         else:
             attrlist_normalized = attrlist.lower().split()
@@ -98,17 +102,17 @@ class update_replica_attribute_lists(Updater):
                 if a.lower() not in attrlist_normalized]
 
             if missing:
-                self.log.debug("%s needs updating (missing: %s)", attribute,
-                    ', '.join(missing))
+                logger.debug("%s needs updating (missing: %s)", attribute,
+                             ', '.join(missing))
 
                 replica[attribute] = [
                     '%s %s' % (attrlist, ' '.join(missing))]
 
                 try:
                     repl.conn.update_entry(replica)
-                    self.log.debug("Updated %s", attribute)
+                    logger.debug("Updated %s", attribute)
                 except Exception as e:
-                    self.log.error("Error caught updating %s: %s",
-                        attribute, str(e))
+                    logger.error("Error caught updating %s: %s",
+                                 attribute, str(e))
             else:
-                self.log.debug("%s: No update necessary" % attribute)
+                logger.debug("%s: No update necessary", attribute)

@@ -19,6 +19,8 @@
 
 from __future__ import absolute_import
 
+import logging
+
 import dns.exception
 import re
 import traceback
@@ -34,6 +36,8 @@ from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import sysupgrade
 from ipaserver.install.bindinstance import ensure_dnsserver_container_exists
 from ipaserver.plugins.dns import dns_container_exists
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -65,8 +69,8 @@ class DNSUpdater(Updater):
     @property
     def ldif_writer(self):
         if not self._ldif_writer:
-            self.log.info('Original zones will be saved in LDIF format in '
-                          '%s file' % self.backup_path)
+            logger.info('Original zones will be saved in LDIF format in '
+                        '%s file', self.backup_path)
             self._ldif_writer = LDIFWriter(open(self.backup_path, 'w'))
         return self._ldif_writer
 
@@ -137,7 +141,7 @@ class update_ipaconfigstring_dnsversion_to_ipadnsversion(Updater):
             # version data are already migrated
             return False, []
 
-        self.log.debug('Migrating DNS ipaConfigString to ipaDNSVersion')
+        logger.debug('Migrating DNS ipaConfigString to ipaDNSVersion')
         container_entry['objectclass'].append('ipadnscontainer')
         version = 0
         for config_option in container_entry.get("ipaConfigString", []):
@@ -146,12 +150,12 @@ class update_ipaconfigstring_dnsversion_to_ipadnsversion(Updater):
             if matched:
                 version = int(matched.group("version"))
             else:
-                self.log.error(
+                logger.error(
                     'Failed to parse DNS version from ipaConfigString, '
                     'defaulting to version %s', version)
         container_entry['ipadnsversion'] = version
         ldap.update_entry(container_entry)
-        self.log.debug('ipaDNSVersion = %s', version)
+        logger.debug('ipaDNSVersion = %s', version)
         return False, []
 
 
@@ -189,7 +193,7 @@ class update_dnszones(Updater):
         try:
             zones = self.api.Command.dnszone_find(all=True)['result']
         except errors.NotFound:
-            self.log.debug('No DNS zone to update found')
+            logger.debug('No DNS zone to update found')
             return False, []
 
         for zone in zones:
@@ -284,7 +288,7 @@ class update_master_to_dnsforwardzones(DNSUpdater):
             # no upgrade is required
             return False, []
 
-        self.log.debug('Updating forward zones')
+        logger.debug('Updating forward zones')
         # update the DNSVersion, following upgrade can be executed only once
         self.api.Command['dnsconfig_mod'](ipadnsversion=1)
 
@@ -311,7 +315,7 @@ class update_master_to_dnsforwardzones(DNSUpdater):
             pass
 
         if not zones:
-            self.log.debug('No DNS zone to update found')
+            logger.debug('No DNS zone to update found')
             return False, []
 
         zones_to_transform = []
@@ -326,27 +330,27 @@ class update_master_to_dnsforwardzones(DNSUpdater):
             zones_to_transform.append(zone)
 
         if zones_to_transform:
-            self.log.info('Zones with specified forwarders with policy different'
-                          ' than none will be transformed to forward zones.')
+            logger.info('Zones with specified forwarders with policy '
+                        'different than none will be transformed to forward '
+                        'zones.')
             # update
             for zone in zones_to_transform:
                 try:
                     self.backup_zone(zone)
                 except Exception:
-                    self.log.error('Unable to create backup for zone, '
-                                   'terminating zone upgrade')
-                    self.log.error(traceback.format_exc())
+                    logger.error('Unable to create backup for zone, '
+                                 'terminating zone upgrade')
+                    logger.error("%s", traceback.format_exc())
                     return False, []
 
                 # delete master zone
                 try:
                     self.api.Command['dnszone_del'](zone['idnsname'])
                 except Exception as e:
-                    self.log.error('Transform to forwardzone terminated: '
-                                   'removing zone %s failed (%s)' % (
-                                       zone['idnsname'][0], e)
-                                  )
-                    self.log.error(traceback.format_exc())
+                    logger.error('Transform to forwardzone terminated: '
+                                 'removing zone %s failed (%s)',
+                                 zone['idnsname'][0], e)
+                    logger.error("%s", traceback.format_exc())
                     continue
 
                 # create forward zone
@@ -358,11 +362,11 @@ class update_master_to_dnsforwardzones(DNSUpdater):
                         'skip_overlap_check': True,
                     }
                     self.api.Command['dnsforwardzone_add'](zone['idnsname'][0], **kw)
-                except Exception as e:
-                    self.log.error('Transform to forwardzone terminated: creating '
-                                   'forwardzone %s failed' %
-                                   zone['idnsname'][0])
-                    self.log.error(traceback.format_exc())
+                except Exception:
+                    logger.error('Transform to forwardzone terminated: '
+                                 'creating forwardzone %s failed',
+                                 zone['idnsname'][0])
+                    logger.error("%s", traceback.format_exc())
                     continue
 
                 # create permission if original zone has one
@@ -370,14 +374,14 @@ class update_master_to_dnsforwardzones(DNSUpdater):
                     try:
                         perm_name = self.api.Command['dnsforwardzone_add_permission'](
                                         zone['idnsname'][0])['value']
-                    except Exception as e:
-                        self.log.error('Transform to forwardzone terminated: '
-                                       'Adding managed by permission to forward zone'
-                                       ' %s failed' % zone['idnsname'])
-                        self.log.error(traceback.format_exc())
-                        self.log.info('Zone %s was transformed to forward zone '
-                                      ' without managed permissions',
-                                      zone['idnsname'][0])
+                    except Exception:
+                        logger.error('Transform to forwardzone terminated: '
+                                     'Adding managed by permission to forward '
+                                     'zone %s failed', zone['idnsname'])
+                        logger.error("%s", traceback.format_exc())
+                        logger.info('Zone %s was transformed to forward zone '
+                                    ' without managed permissions',
+                                    zone['idnsname'][0])
                         continue
 
                     else:
@@ -388,18 +392,20 @@ class update_master_to_dnsforwardzones(DNSUpdater):
                             try:
                                 self.api.Command['permission_add_member'](perm_name,
                                                     privilege=privileges)
-                            except Exception as e:
-                                self.log.error('Unable to restore privileges for '
-                                       'permission %s, for zone %s'
-                                        % (perm_name, zone['idnsname']))
-                                self.log.error(traceback.format_exc())
-                                self.log.info('Zone %s was transformed to forward zone'
-                                              ' without restored privileges',
-                                              zone['idnsname'][0])
+                            except Exception:
+                                logger.error('Unable to restore privileges '
+                                             'for permission %s, for zone %s',
+                                             perm_name, zone['idnsname'])
+                                logger.error("%s", traceback.format_exc())
+                                logger.info('Zone %s was transformed to '
+                                            'forward zone without restored '
+                                            'privileges',
+                                            zone['idnsname'][0])
                                 continue
 
-                self.log.debug('Zone %s was sucessfully transformed to forward zone',
-                              zone['idnsname'][0])
+                logger.debug('Zone %s was sucessfully transformed to forward '
+                             'zone',
+                             zone['idnsname'][0])
 
         return False, []
 
@@ -437,18 +443,18 @@ class update_dnsforward_emptyzones(DNSUpdater):
                 continue
 
             if not logged_once:
-                self.log.info('Forward policy for zones conflicting with '
-                              'automatic empty zones will be changed to '
-                              '"only"')
+                logger.info('Forward policy for zones conflicting with '
+                            'automatic empty zones will be changed to "only"')
                 logged_once = True
 
             # backup
             try:
                 self.backup_zone(zone)
             except Exception:
-                self.log.error('Unable to create backup for zone %s, '
-                               'terminating zone upgrade', zone['idnsname'][0])
-                self.log.error(traceback.format_exc())
+                logger.error('Unable to create backup for zone %s, '
+                             'terminating zone upgrade',
+                             zone['idnsname'][0])
+                logger.error("%s", traceback.format_exc())
                 continue
 
             # change forward policy
@@ -458,13 +464,13 @@ class update_dnsforward_emptyzones(DNSUpdater):
                     idnsforwardpolicy=u'only'
                 )
             except Exception as e:
-                self.log.error('Forward policy update for zone %s failed '
-                               '(%s)' % (zone['idnsname'][0], e))
-                self.log.error(traceback.format_exc())
+                logger.error('Forward policy update for zone %s failed '
+                             '(%s)', zone['idnsname'][0], e)
+                logger.error("%s", traceback.format_exc())
                 continue
 
-            self.log.debug('Zone %s was sucessfully modified to use '
-                           'forward policy "only"', zone['idnsname'][0])
+            logger.debug('Zone %s was sucessfully modified to use forward '
+                         'policy "only"', zone['idnsname'][0])
 
     def update_global_ldap_forwarder(self):
         config = self.api.Command['dnsconfig_show'](all=True,
@@ -473,9 +479,9 @@ class update_dnsforward_emptyzones(DNSUpdater):
             config.get('idnsforwardpolicy', [u'first'])[0] == u'first'
             and config.get('idnsforwarders', [])
         ):
-            self.log.info('Global forward policy in LDAP for all servers will '
-                          'be changed to "only" to avoid conflicts with '
-                          'automatic empty zones')
+            logger.info('Global forward policy in LDAP for all servers will '
+                        'be changed to "only" to avoid conflicts with '
+                        'automatic empty zones')
             self.backup_zone(config)
             self.api.Command['dnsconfig_mod'](idnsforwardpolicy=u'only')
 
@@ -485,8 +491,8 @@ class update_dnsforward_emptyzones(DNSUpdater):
             # forwardzones already use new semantics, no upgrade is required
             return False, []
 
-        self.log.debug('Updating forwarding policies in LDAP '
-                       'to avoid conflicts with automatic empty zones')
+        logger.debug('Updating forwarding policies in LDAP '
+                     'to avoid conflicts with automatic empty zones')
         # update the DNSVersion, following upgrade can be executed only once
         self.api.Command['dnsconfig_mod'](ipadnsversion=2)
 
@@ -495,11 +501,11 @@ class update_dnsforward_emptyzones(DNSUpdater):
             if dnsutil.has_empty_zone_addresses(self.api.env.host):
                 self.update_global_ldap_forwarder()
         except dns.exception.DNSException as ex:
-            self.log.error('Skipping update of global DNS forwarder in LDAP: '
-                           'Unable to determine if local server is using an '
-                           'IP address belonging to an automatic empty zone. '
-                           'Consider changing forwarding policy to "only". '
-                           'DNS exception: %s', ex)
+            logger.error('Skipping update of global DNS forwarder in LDAP: '
+                         'Unable to determine if local server is using an '
+                         'IP address belonging to an automatic empty zone. '
+                         'Consider changing forwarding policy to "only". '
+                         'DNS exception: %s', ex)
 
         return False, []
 
@@ -513,33 +519,33 @@ class update_dnsserver_configuration_into_ldap(DNSUpdater):
     def execute(self, **options):
         ldap = self.api.Backend.ldap2
         if sysupgrade.get_upgrade_state('dns', 'server_config_to_ldap'):
-            self.log.debug('upgrade is not needed')
+            logger.debug('upgrade is not needed')
             return False, []
 
         dns_container_dn = DN(self.api.env.container_dns, self.api.env.basedn)
         try:
             ldap.get_entry(dns_container_dn)
         except errors.NotFound:
-            self.log.debug('DNS container not found, nothing to upgrade')
+            logger.debug('DNS container not found, nothing to upgrade')
             sysupgrade.set_upgrade_state('dns', 'server_config_to_ldap', True)
             return False, []
 
         result = self.api.Command.server_show(self.api.env.host)['result']
         if not 'DNS server' in result.get('enabled_role_servrole', []):
-            self.log.debug('This server is not DNS server, nothing to upgrade')
+            logger.debug('This server is not DNS server, nothing to upgrade')
             sysupgrade.set_upgrade_state('dns', 'server_config_to_ldap', True)
             return False, []
 
         # create container first, if doesn't exist
-        ensure_dnsserver_container_exists(ldap, self.api, logger=self.log)
+        ensure_dnsserver_container_exists(ldap, self.api)
 
         try:
             self.api.Command.dnsserver_add(self.api.env.host)
         except errors.DuplicateEntry:
-            self.log.debug("DNS server configuration already exists "
-                           "in LDAP database")
+            logger.debug("DNS server configuration already exists "
+                         "in LDAP database")
         else:
-            self.log.debug("DNS server configuration has been sucessfully "
-                           "created in LDAP database")
+            logger.debug("DNS server configuration has been sucessfully "
+                         "created in LDAP database")
         sysupgrade.set_upgrade_state('dns', 'server_config_to_ldap', True)
         return False, []

@@ -527,7 +527,7 @@ the following:
 
 Also note that your ``execute()`` method should not contain any ``print``
 statements or otherwise cause any output on ``sys.stdout``.  Your command can
-(and should) produce log messages by using ``self.log`` (see below).
+(and should) produce log messages by using a module-level logger (see below).
 
 To learn more about XML-RPC (XML Remote Procedure Call), see:
 
@@ -670,18 +670,19 @@ See the `ipalib.cli.textui` plugin for a description of its methods.
 Logging from your plugin
 ------------------------
 
-After `plugable.Plugin.__init__()` is called, your plugin will have a
-``self.log`` attribute.  Plugins should only log through this attribute.
+Plugins should log through a module-level logger.
 For example:
 
+>>> import logging
+>>> logger = logging.getLogger(__name__)
 >>> class paint_house(Command):
 ...
 ...     takes_args = 'color'
 ...
 ...     def execute(self, color, **options):
-...         """Uses self.log.error()"""
+...         """Uses logger.error()"""
 ...         if color not in ('red', 'blue', 'green'):
-...             self.log.error("I don't have %s paint!", color) # Log error
+...             logger.error("I don't have %s paint!", color) # Log error
 ...             return
 ...         return 'I painted the house %s.' % color
 ...
@@ -691,7 +692,7 @@ Some basic knowledge of the Python ``logging`` module might be helpful. See:
     http://docs.python.org/library/logging.html
 
 The important thing to remember is that your plugin should not configure
-logging itself, but should instead simply use the ``self.log`` logger.
+logging itself, but should instead simply use the module-level logger.
 
 Also see the `plugable.API.bootstrap()` method for details on how the logging
 is configured.

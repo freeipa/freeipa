@@ -2,6 +2,7 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+import logging
 import time
 import ldap
 
@@ -9,6 +10,8 @@ from ipalib.plugable import Registry
 from ipalib import errors
 from ipalib import Updater
 from ipapython.dn import DN
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -35,23 +38,23 @@ class update_dna_shared_config(Updater):
             if entry.single_value.get('nsslapd-pluginenabled') == 'off':
                 return False, ()
         except errors.NotFound:
-            self.log.error("Could not find DNA plugin entry: %s" %
-                           dna_config_base)
+            logger.error("Could not find DNA plugin entry: %s",
+                         dna_config_base)
             return False, ()
 
         try:
             entry = conn.get_entry(dna_config_base)
         except errors.NotFound:
-            self.log.error("Could not find DNA config entry: %s" %
-                           dna_config_base)
+            logger.error("Could not find DNA config entry: %s",
+                         dna_config_base)
             return False, ()
 
         sharedcfgdn = entry.single_value.get("dnaSharedCfgDN")
         if sharedcfgdn is not None:
             sharedcfgdn = DN(sharedcfgdn)
         else:
-            self.log.error(
-                "Could not find DNA shared config DN in entry: %s" %
+            logger.error(
+                "Could not find DNA shared config DN in entry: %s",
                 dna_config_base)
             return False, ()
 
@@ -80,25 +83,25 @@ class update_dna_shared_config(Updater):
                 )
                 break
             except errors.NotFound:
-                self.log.debug(
+                logger.debug(
                     "Unable to find DNA shared config entry for "
-                    "dnaHostname=%s (under %s) so far. Retry in 2 sec." %
-                    (fqdn, sharedcfgdn)
+                    "dnaHostname=%s (under %s) so far. Retry in 2 sec.",
+                    fqdn, sharedcfgdn
                 )
                 time.sleep(2)
         else:
-            self.log.error(
-                "Could not get dnaHostname entries in {} seconds".format(
-                    max_wait * 2)
+            logger.error(
+                "Could not get dnaHostname entries in %s seconds",
+                max_wait * 2
             )
             return False, ()
 
         # If there are several entries, all of them will be updated
         # just log a debug msg. This is likely the result of #5510
         if len(entries) != 1:
-            self.log.debug(
-                "%d entries dnaHostname=%s under %s. One expected" %
-                (len(entries), fqdn, sharedcfgdn)
+            logger.debug(
+                "%d entries dnaHostname=%s under %s. One expected",
+                len(entries), fqdn, sharedcfgdn
             )
 
         # time to set the bind method and the protocol in the
@@ -117,9 +120,9 @@ class update_dna_shared_config(Updater):
                 try:
                     conn.update_entry(entry)
                 except Exception as e:
-                    self.log.error(
+                    logger.error(
                         "Failed to set SASL/GSSAPI bind method/protocol "
-                        "in entry {}: {}".format(entry, e)
+                        "in entry %s: %s", entry, e
                     )
         # no restart, no update
         return False, ()

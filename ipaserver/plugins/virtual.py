@@ -20,10 +20,16 @@
 """
 Base classes for non-LDAP backend plugins.
 """
+
+import logging
+
 from ipalib import Command
 from ipalib import errors
 from ipapython.dn import DN
 from ipalib.text import _
+
+logger = logging.getLogger(__name__)
+
 
 class VirtualCommand(Command):
     """
@@ -54,7 +60,7 @@ class VirtualCommand(Command):
             operation = self.operation
 
         ldap = self.api.Backend.ldap2
-        self.log.debug("IPA: virtual verify %s" % operation)
+        logger.debug("IPA: virtual verify %s", operation)
 
         operationdn = DN(('cn', operation), self.api.env.container_virtual, self.api.env.basedn)
 

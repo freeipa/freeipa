@@ -20,6 +20,8 @@
 
 from __future__ import absolute_import
 
+import logging
+
 import dns.resolver
 
 import six
@@ -132,6 +134,8 @@ EXAMPLES:
  Allow user to create a keytab:
    ipa host-allow-create-keytab test2 --users=tuser1
 """)
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -1073,7 +1077,7 @@ class host_find(LDAPSearch):
                         reason=e,
                     )
                 )
-                self.log.error("Invalid certificate: {err}".format(err=e))
+                logger.error("Invalid certificate: %s", e)
                 del(entry_attrs['usercertificate'])
 
             set_kerberos_attrs(entry_attrs, options)
