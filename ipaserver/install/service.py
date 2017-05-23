@@ -674,18 +674,21 @@ class SimpleServiceInstance(Service):
         else:
             self.ldap_enable(self.gensvc_name, self.fqdn, None, self.suffix)
 
+    def is_installed(self):
+        return self.service.is_installed()
+
     def uninstall(self):
         if self.is_configured():
             self.print_msg("Unconfiguring %s" % self.service_name)
 
-        self.stop()
-        self.disable()
-
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
 
-        # restore the original state of service
-        if running:
-            self.start()
-        if enabled:
-            self.enable()
+        if self.is_installed():
+            self.stop()
+            self.disable()
+
+            if running:
+                self.start()
+            if enabled:
+                self.enable()
