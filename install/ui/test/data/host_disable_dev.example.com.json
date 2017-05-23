@@ -1,9 +1,0 @@
-{
-    "error": null,
-    "id": 0,
-    "result": {
-        "result": true,
-        "summary": "Removed kerberos key from \"dev.example.com\"",
-        "value": "dev.example.com"
-    }
-}

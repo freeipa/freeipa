@@ -1,9 +1,0 @@
-{
-    "error": null,
-    "id": 0,
-    "result": {
-        "result": true,
-        "summary": "Deleted sudo command group \"group1\"",
-        "value": "group1"
-    }
-}
