@@ -1,9 +1,9 @@
 # Piotr Drąg <piotrdrag@gmail.com>, 2016. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.4.90.dev201703151542+gita1686a9\n"
+"Project-Id-Version: freeipa 4.5.0.dev201705231055+git653d2f4\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-03-15 16:43+0100\n"
+"POT-Creation-Date: 2017-05-23 12:55+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -38,9 +38,50 @@ msgstr "Utworzenie klucza się nie powiodło.\n"
 msgid "Out of memory!\n"
 msgstr "Brak pamięci.\n"
 
-#, python-format
-msgid "Failure decoding Certificate Signing Request: %s"
-msgstr "Dekodowanie żądania podpisywania certyfikatu się nie powiodło: %s"
+msgid "Keytab"
+msgstr "Tabela kluczy"
+
+msgid "Hosts"
+msgstr "Komputery"
+
+msgid "Host name"
+msgstr "Nazwa komputera"
+
+msgid "Description"
+msgstr "Opis"
+
+msgid "A description of this host"
+msgstr "Opis tego komputera"
+
+msgid "Locality"
+msgstr "Lokalizacja"
+
+msgid "Host locality (e.g. \"Baltimore, MD\")"
+msgstr "Lokalizacja komputera (np. „Baltimore, MD”)"
+
+msgid "Location"
+msgstr "Położenie"
+
+msgid "Host location (e.g. \"Lab 2\")"
+msgstr "Położenie komputera (np. „Laboratorium nr 2”)"
+
+msgid "Platform"
+msgstr "Platforma"
+
+msgid "Host hardware platform (e.g. \"Lenovo T61\")"
+msgstr "Platforma sprzętowa komputera (np. „Lenovo T61”)"
+
+msgid "Operating system"
+msgstr "System operacyjny"
+
+msgid "Host operating system and version (e.g. \"Fedora 9\")"
+msgstr "System operacyjny komputera i jego wersja (np. „Fedora 9”)"
+
+msgid "User password"
+msgstr "Hasło użytkownika"
+
+msgid "Password used in bulk enrollment"
+msgstr "Hasło używane w zapisywaniu większej części"
 
 msgid "Certificate"
 msgstr "Certyfikat"
@@ -60,45 +101,36 @@ msgstr "Nie po"
 msgid "Fingerprint (SHA1)"
 msgstr "Odcisk (SHA1)"
 
-msgid "Serial number"
-msgstr "Numer seryjny"
-
-msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
-msgstr ""
-"Numer seryjny w formie dziesiętnej lub szesnastkowej, jeśli poprzedzone 0x"
-
-msgid "Request status"
-msgstr "Stan żądania"
-
-msgid "Request id"
-msgstr "Identyfikator żądania"
-
-msgid "Principal"
-msgstr "Naczelnik"
-
-msgid "Status"
-msgstr "Stan"
-
-msgid "Revoked"
-msgstr "Unieważniono"
-
 msgid "Revocation reason"
 msgstr "Przyczyna unieważnienia"
 
-msgid "Revoke a certificate."
-msgstr "Odrzuć certyfikat."
+msgid "Principal name"
+msgstr "Nazwa naczelnika"
 
-msgid "Time Limit"
-msgstr "Ograniczenie czasu"
+msgid "Class"
+msgstr "Klasa"
 
-msgid "Size Limit"
-msgstr "Ograniczenie rozmiaru"
+#, python-format
+msgid "Added host \"%(value)s\""
+msgstr "Dodano komputer „%(value)s”"
 
-msgid "Description"
-msgstr "Opis"
+msgid "force host name even if not in DNS"
+msgstr "wymuszenie nazwy komputera, nawet jeśli nie w DNS"
 
-msgid "Type"
-msgstr "Typ"
+#, python-format
+msgid "Deleted host \"%(value)s\""
+msgstr "Usunięto komputer „%(value)s”"
+
+#, python-format
+msgid "Modified host \"%(value)s\""
+msgstr "Zmodyfikowano komputer „%(value)s”"
+
+#, python-format
+msgid "%(count)d host matched"
+msgid_plural "%(count)d hosts matched"
+msgstr[0] "Pasuje %(count)d komputer"
+msgstr[1] "Pasuje %(count)d komputery"
+msgstr[2] "Pasuje %(count)d komputerów"
 
 msgid "Users"
 msgstr "Użytkownicy"
@@ -139,11 +171,114 @@ msgstr "Wyłączono konto użytkownika „%(value)s”"
 msgid "Enabled user account \"%(value)s\""
 msgstr "Włączono konto użytkownika „%(value)s”"
 
-msgid "Realm name"
-msgstr "Nazwa obszaru"
+msgid "User login"
+msgstr "Login użytkownika"
 
-msgid "Rule name"
-msgstr "Nazwa reguły"
+msgid "UID"
+msgstr "UID"
+
+msgid "GID"
+msgstr "GID"
+
+msgid "Home directory"
+msgstr "Katalog domowy"
+
+msgid "Login shell"
+msgstr "Powłoka logowania"
+
+msgid "Group name"
+msgstr "Nazwa grupy"
+
+msgid "User name"
+msgstr "Nazwa użytkownika"
+
+msgid "Size Limit"
+msgstr "Ograniczenie rozmiaru"
+
+msgid "Hostname"
+msgstr "Nazwa komputera"
+
+msgid "Target"
+msgstr "Cel"
+
+msgid "Zone name"
+msgstr "Nazwa strefy"
+
+msgid "Zone name (FQDN)"
+msgstr "Nazwa strefy (FQDN)"
+
+msgid "Active zone"
+msgstr "Aktywna strefa"
+
+msgid "DNS is not configured"
+msgstr "DNS nie jest skonfigurowany"
+
+msgid "Administrator e-mail address"
+msgstr "Adres e-mail administratora"
+
+msgid "SOA serial"
+msgstr "Numer seryjny SOA"
+
+msgid "SOA refresh"
+msgstr "Odświeżenie SOA"
+
+msgid "SOA retry"
+msgstr "Ponowienie SOA"
+
+msgid "SOA expire"
+msgstr "Wygaszenie SOA"
+
+msgid "SOA minimum"
+msgstr "Minimalne SOA"
+
+msgid "Time to live"
+msgstr "Czas życia"
+
+msgid "BIND update policy"
+msgstr "Polityka aktualizacji BIND"
+
+msgid "Delete all associated records"
+msgstr "Usuń wszystkie powiązane wpisy"
+
+#, python-format
+msgid "Found '%(value)s'"
+msgstr "Odnaleziono „%(value)s”"
+
+#, python-format
+msgid "Host '%(host)s' not found"
+msgstr "Nie odnaleziono komputera „%(host)s”"
+
+#, python-format
+msgid "Failure decoding Certificate Signing Request: %s"
+msgstr "Dekodowanie żądania podpisywania certyfikatu się nie powiodło: %s"
+
+msgid "Serial number"
+msgstr "Numer seryjny"
+
+msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
+msgstr ""
+"Numer seryjny w formie dziesiętnej lub szesnastkowej, jeśli poprzedzone 0x"
+
+msgid "Request status"
+msgstr "Stan żądania"
+
+msgid "Request id"
+msgstr "Identyfikator żądania"
+
+msgid "Principal"
+msgstr "Naczelnik"
+
+msgid "Status"
+msgstr "Stan"
+
+msgid "Revoked"
+msgstr "Unieważniono"
+
+msgid "Revoke a certificate."
+msgstr "Odrzuć certyfikat."
+
+msgid "Time Limit"
+msgstr "Ograniczenie czasu"
 
 msgid "Enabled"
 msgstr "Włączone"
@@ -151,32 +286,155 @@ msgstr "Włączone"
 msgid "User category"
 msgstr "Kategoria użytkowników"
 
-msgid "User category the rule applies to"
-msgstr "Kategoria użytkowników, do których zastosowywana jest reguła"
-
 msgid "Host category"
 msgstr "Kategoria komputerów"
 
-msgid "Host category the rule applies to"
-msgstr "Kategoria komputerów, do których zastosowywana jest reguła"
+msgid "Service category"
+msgstr "Kategoria usług"
 
 msgid "User Groups"
 msgstr "Grupy użytkowników"
 
-msgid "Hosts"
-msgstr "Komputery"
-
 msgid "Host Groups"
 msgstr "Grupy komputerów"
+
+msgid "Services"
+msgstr "Usługi"
+
+msgid "First name"
+msgstr "Imię"
+
+msgid "Last name"
+msgstr "Nazwisko"
+
+msgid "Full name"
+msgstr "Pełna nazwa"
+
+msgid "Email address"
+msgstr "Adres e-mail"
+
+msgid "Password"
+msgstr "Hasło"
+
+msgid "User ID Number (system will assign one if not provided)"
+msgstr ""
+"Numer identyfikacyjny użytkownika (system go przydzieli, jeśli nie zostanie "
+"podany)"
+
+msgid "Street address"
+msgstr "Adres zamieszkania"
+
+msgid "City"
+msgstr "Miasto"
+
+msgid "Telephone Number"
+msgstr "Numer telefonu"
+
+msgid "Mobile Telephone Number"
+msgstr "Numer telefonu komórkowego"
+
+msgid "Pager Number"
+msgstr "Numer pagera"
+
+msgid "Fax Number"
+msgstr "Numer faksu"
+
+msgid "Failed members"
+msgstr "Elementy, które się nie powiodły"
+
+msgid "Member users"
+msgstr "Elementy użytkowników"
+
+msgid "Member groups"
+msgstr "Elementy grupy"
+
+msgid "Member of groups"
+msgstr "Członek grup"
+
+msgid "Member hosts"
+msgstr "Element komputerów"
+
+msgid "Member host-groups"
+msgstr "Element grupy komputerów"
+
+msgid "Member of host-groups"
+msgstr "Element grupy komputerów"
+
+msgid "Permissions"
+msgstr "Uprawnienia"
+
+msgid "Roles"
+msgstr "Role"
+
+msgid "Sudo Command Groups"
+msgstr "Grupy polecenia sudo"
+
+msgid "Member services"
+msgstr "Usługi elementów"
+
+msgid "Member service groups"
+msgstr "Grupy usługi elementów"
+
+msgid "External host"
+msgstr "Zewnętrzny komputer"
+
+#, python-format
+msgid "container entry (%(container)s) not found"
+msgstr "nie odnaleziono wpisu kontenera (%(container)s)"
+
+#, python-format
+msgid "%(parent)s: %(oname)s not found"
+msgstr "%(parent)s: nie odnaleziono %(oname)s"
+
+#, python-format
+msgid "%(pkey)s: %(oname)s not found"
+msgstr "%(pkey)s: nie odnaleziono %(oname)s"
+
+msgid "Continuous mode: Don't stop on errors."
+msgstr "Tryb ciągły: bez zatrzymywania po błędach."
+
+msgid "Rights"
+msgstr "Uprawnienia"
+
+msgid "the entry was deleted while being modified"
+msgstr "wpis został usunięty podczas modyfikowania"
+
+#, python-format
+msgid "member %s"
+msgstr "członek %s"
+
+msgid "Members that could not be added"
+msgstr "Elementy, które nie mogły zostać dodane"
+
+msgid "Number of members added"
+msgstr "Liczba dodanych elementów"
+
+msgid "Members that could not be removed"
+msgstr "Liczba elementów, które nie mogły zostać usunięte"
+
+msgid "Number of members removed"
+msgstr "Liczba usuniętych elementów"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Realm name"
+msgstr "Nazwa obszaru"
+
+msgid "Rule name"
+msgstr "Nazwa reguły"
+
+msgid "User category the rule applies to"
+msgstr "Kategoria użytkowników, do których zastosowywana jest reguła"
+
+msgid "Host category the rule applies to"
+msgstr "Kategoria komputerów, do których zastosowywana jest reguła"
 
 msgid "Sudo Allow Commands"
 msgstr "Polecenia zezwolone sudo"
 
 msgid "Sudo Deny Commands"
 msgstr "Polecenia zabronione sudo"
-
-msgid "Sudo Command Groups"
-msgstr "Grupy polecenia sudo"
 
 msgid "Group description"
 msgstr "Opis grupy"
@@ -189,15 +447,6 @@ msgstr "Polecenie sudo"
 
 msgid "A description of this command"
 msgstr "Opis tego polecenia"
-
-msgid "Keytab"
-msgstr "Tabela kluczy"
-
-msgid "Services"
-msgstr "Usługi"
-
-msgid "Principal name"
-msgstr "Nazwa naczelnika"
 
 msgid "Service principal"
 msgstr "Naczelnik usługi"
@@ -224,23 +473,11 @@ msgstr[0] "Pasuje %(count)d usługa"
 msgstr[1] "Pasuje %(count)d usługi"
 msgstr[2] "Pasuje %(count)d usług"
 
-msgid "Location"
-msgstr "Położenie"
-
-msgid "Permissions"
-msgstr "Uprawnienia"
-
 msgid "Attributes"
 msgstr "Atrybuty"
 
-msgid "Roles"
-msgstr "Role"
-
 msgid "A description of this role-group"
 msgstr "Opis tej grupy rol"
-
-msgid "Members that could not be added"
-msgstr "Elementy, które nie mogły zostać dodane"
 
 #, python-format
 msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
@@ -311,9 +548,6 @@ msgstr "Członek grupy"
 msgid "Target group"
 msgstr "Grupa docelowa"
 
-msgid "User name"
-msgstr "Nazwa użytkownika"
-
 msgid "New Password"
 msgstr "Nowe hasło"
 
@@ -323,6 +557,24 @@ msgstr "Zmieniono hasło dla „%(value)s”"
 
 msgid "Key"
 msgstr "Klucz"
+
+msgid "Member Host"
+msgstr "Komputer elementu"
+
+msgid "Netgroups"
+msgstr "Grupy sieciowe"
+
+msgid "Netgroup name"
+msgstr "Nazwa grupy sieciowej"
+
+msgid "Netgroup description"
+msgstr "Opis grupy sieciowej"
+
+msgid "NIS domain name"
+msgstr "Nazwa domeny NIS"
+
+msgid "IPA unique ID"
+msgstr "Unikalny identyfikator IPA"
 
 #, python-format
 msgid ""
@@ -343,9 +595,6 @@ msgstr "Adres URI LDAP"
 
 msgid "LDAP URI of DS server to migrate from"
 msgstr "Adres URI LDAP serwera DS, z którego migrować"
-
-msgid "Password"
-msgstr "Hasło"
 
 msgid "bind password"
 msgstr "hasło Bind"
@@ -372,6 +621,36 @@ msgstr ""
 
 msgid "False if migration mode was disabled."
 msgstr "Fałsz, jeśli wyłączono tryb migracji"
+
+msgid "Kerberos Ticket Policy"
+msgstr "Polityka zgłoszeń Kerberosa"
+
+msgid "Manage ticket policy for specific user"
+msgstr "Zarządzanie polityką zgłoszeń dla podanego użytkownika"
+
+msgid "Max life"
+msgstr "Maksymalny czas życia"
+
+msgid "Maximum ticket life (seconds)"
+msgstr "Minimalny czas życia zgłoszenia (sekundy)"
+
+msgid "Max renew"
+msgstr "Maksymalne odnowienie"
+
+msgid "Maximum renewable age (seconds)"
+msgstr "Maksymalny czas, w którym możliwe jest odnowienie (sekundy)"
+
+msgid "The hostname to register as"
+msgstr "Nazwa komputera, pod jaką zarejestrować"
+
+msgid "The IPA realm"
+msgstr "Obszar IPA"
+
+msgid "Hardware platform of the host (e.g. Lenovo T61)"
+msgstr "Platforma sprzętowa komputera (np. Lenovo T61)"
+
+msgid "Operating System and version of the host (e.g. Fedora 9)"
+msgstr "System operacyjny komputera i jego wersja (np. Fedora 9)"
 
 msgid "Name of object to export"
 msgstr "Nazwa obiektu do wyeksportowania"
@@ -454,15 +733,6 @@ msgstr "Nazwa komputera"
 msgid "Set OTP"
 msgstr "Ustaw OTP"
 
-msgid "Kerberos Ticket Policy"
-msgstr "Polityka zgłoszeń Kerberosa"
-
-msgid "Netgroups"
-msgstr "Grupy sieciowe"
-
-msgid "Target"
-msgstr "Cel"
-
 msgid "Account Settings"
 msgstr "Ustawienia konta"
 
@@ -499,24 +769,6 @@ msgstr "Kontrola dostępu oparta na rolach"
 msgid "Dict of I18N messages"
 msgstr "Słownik komunikatów umiędzynaradawiania"
 
-msgid "User login"
-msgstr "Login użytkownika"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "GID"
-msgstr "GID"
-
-msgid "Home directory"
-msgstr "Katalog domowy"
-
-msgid "Login shell"
-msgstr "Powłoka logowania"
-
-msgid "Group name"
-msgstr "Nazwa grupy"
-
 msgid "Host-group"
 msgstr "Grupa komputerów"
 
@@ -545,64 +797,6 @@ msgstr[0] "Pasuje %(count)d grupa komputerów"
 msgstr[1] "Pasują %(count)d grupy komputerów"
 msgstr[2] "Pasuje %(count)d grup komputerów"
 
-msgid "Host name"
-msgstr "Nazwa komputera"
-
-msgid "A description of this host"
-msgstr "Opis tego komputera"
-
-msgid "Locality"
-msgstr "Lokalizacja"
-
-msgid "Host locality (e.g. \"Baltimore, MD\")"
-msgstr "Lokalizacja komputera (np. „Baltimore, MD”)"
-
-msgid "Host location (e.g. \"Lab 2\")"
-msgstr "Położenie komputera (np. „Laboratorium nr 2”)"
-
-msgid "Platform"
-msgstr "Platforma"
-
-msgid "Host hardware platform (e.g. \"Lenovo T61\")"
-msgstr "Platforma sprzętowa komputera (np. „Lenovo T61”)"
-
-msgid "Operating system"
-msgstr "System operacyjny"
-
-msgid "Host operating system and version (e.g. \"Fedora 9\")"
-msgstr "System operacyjny komputera i jego wersja (np. „Fedora 9”)"
-
-msgid "User password"
-msgstr "Hasło użytkownika"
-
-msgid "Password used in bulk enrollment"
-msgstr "Hasło używane w zapisywaniu większej części"
-
-msgid "Class"
-msgstr "Klasa"
-
-#, python-format
-msgid "Added host \"%(value)s\""
-msgstr "Dodano komputer „%(value)s”"
-
-msgid "force host name even if not in DNS"
-msgstr "wymuszenie nazwy komputera, nawet jeśli nie w DNS"
-
-#, python-format
-msgid "Deleted host \"%(value)s\""
-msgstr "Usunięto komputer „%(value)s”"
-
-#, python-format
-msgid "Modified host \"%(value)s\""
-msgstr "Zmodyfikowano komputer „%(value)s”"
-
-#, python-format
-msgid "%(count)d host matched"
-msgid_plural "%(count)d hosts matched"
-msgstr[0] "Pasuje %(count)d komputer"
-msgstr[1] "Pasuje %(count)d komputery"
-msgstr[2] "Pasuje %(count)d komputerów"
-
 msgid "Service group name"
 msgstr "Nazwa grupy usługi"
 
@@ -614,9 +808,6 @@ msgstr "Nazwa usługi"
 
 msgid "Rule type"
 msgstr "Typ reguły"
-
-msgid "Service category"
-msgstr "Kategoria usług"
 
 msgid "Service category the rule applies to"
 msgstr "Kategoria usług, do których zastosowywana jest reguła"
@@ -665,56 +856,6 @@ msgstr "modyfikowanie wpisów grup nie jest dozwolone"
 msgid "Not a managed group"
 msgstr "Nie jest zarządzaną grupą"
 
-msgid "Hostname"
-msgstr "Nazwa komputera"
-
-msgid "Zone name"
-msgstr "Nazwa strefy"
-
-msgid "Zone name (FQDN)"
-msgstr "Nazwa strefy (FQDN)"
-
-msgid "Active zone"
-msgstr "Aktywna strefa"
-
-msgid "DNS is not configured"
-msgstr "DNS nie jest skonfigurowany"
-
-msgid "Administrator e-mail address"
-msgstr "Adres e-mail administratora"
-
-msgid "SOA serial"
-msgstr "Numer seryjny SOA"
-
-msgid "SOA refresh"
-msgstr "Odświeżenie SOA"
-
-msgid "SOA retry"
-msgstr "Ponowienie SOA"
-
-msgid "SOA expire"
-msgstr "Wygaszenie SOA"
-
-msgid "SOA minimum"
-msgstr "Minimalne SOA"
-
-msgid "Time to live"
-msgstr "Czas życia"
-
-msgid "BIND update policy"
-msgstr "Polityka aktualizacji BIND"
-
-msgid "Delete all associated records"
-msgstr "Usuń wszystkie powiązane wpisy"
-
-#, python-format
-msgid "Found '%(value)s'"
-msgstr "Odnaleziono „%(value)s”"
-
-#, python-format
-msgid "Host '%(host)s' not found"
-msgstr "Nie odnaleziono komputera „%(host)s”"
-
 msgid "User group"
 msgstr "Grupa użytkowników"
 
@@ -751,104 +892,26 @@ msgstr "Pola wyszukiwania użytkowników"
 msgid "Certificate Subject base"
 msgstr "Podstawa tematu certyfikatu"
 
-msgid "First name"
-msgstr "Imię"
+msgid "Map"
+msgstr "Mapa"
 
-msgid "Last name"
-msgstr "Nazwisko"
+msgid "Automount Maps"
+msgstr "Automatyczne montowanie map"
 
-msgid "Full name"
-msgstr "Pełna nazwa"
+msgid "Mount information"
+msgstr "Informacje o montowaniu"
 
-msgid "Email address"
-msgstr "Adres e-mail"
+msgid "description"
+msgstr "opis"
 
-msgid "User ID Number (system will assign one if not provided)"
-msgstr ""
-"Numer identyfikacyjny użytkownika (system go przydzieli, jeśli nie zostanie "
-"podany)"
+msgid "Automount Keys"
+msgstr "Automatyczne montowanie kluczy"
 
-msgid "Street address"
-msgstr "Adres zamieszkania"
+msgid "Mount point"
+msgstr "Punkt montowania"
 
-msgid "City"
-msgstr "Miasto"
-
-msgid "Telephone Number"
-msgstr "Numer telefonu"
-
-msgid "Mobile Telephone Number"
-msgstr "Numer telefonu komórkowego"
-
-msgid "Pager Number"
-msgstr "Numer pagera"
-
-msgid "Fax Number"
-msgstr "Numer faksu"
-
-msgid "Failed members"
-msgstr "Elementy, które się nie powiodły"
-
-msgid "Member users"
-msgstr "Elementy użytkowników"
-
-msgid "Member groups"
-msgstr "Elementy grupy"
-
-msgid "Member of groups"
-msgstr "Członek grup"
-
-msgid "Member hosts"
-msgstr "Element komputerów"
-
-msgid "Member host-groups"
-msgstr "Element grupy komputerów"
-
-msgid "Member of host-groups"
-msgstr "Element grupy komputerów"
-
-msgid "Member services"
-msgstr "Usługi elementów"
-
-msgid "Member service groups"
-msgstr "Grupy usługi elementów"
-
-msgid "External host"
-msgstr "Zewnętrzny komputer"
-
-#, python-format
-msgid "container entry (%(container)s) not found"
-msgstr "nie odnaleziono wpisu kontenera (%(container)s)"
-
-#, python-format
-msgid "%(parent)s: %(oname)s not found"
-msgstr "%(parent)s: nie odnaleziono %(oname)s"
-
-#, python-format
-msgid "%(pkey)s: %(oname)s not found"
-msgstr "%(pkey)s: nie odnaleziono %(oname)s"
-
-msgid "Continuous mode: Don't stop on errors."
-msgstr "Tryb ciągły: bez zatrzymywania po błędach."
-
-msgid "Rights"
-msgstr "Uprawnienia"
-
-msgid "the entry was deleted while being modified"
-msgstr "wpis został usunięty podczas modyfikowania"
-
-#, python-format
-msgid "member %s"
-msgstr "członek %s"
-
-msgid "Number of members added"
-msgstr "Liczba dodanych elementów"
-
-msgid "Members that could not be removed"
-msgstr "Liczba elementów, które nie mogły zostać usunięte"
-
-msgid "Number of members removed"
-msgstr "Liczba usuniętych elementów"
+msgid "Parent map"
+msgstr "Mapa nadrzędna"
 
 msgid "A list of ACI values"
 msgstr "Lista wartości ACI"
@@ -922,69 +985,6 @@ msgstr[0] "Pasuje %(count)d ACI"
 msgstr[1] "Pasują %(count)d ACI"
 msgstr[2] "Pasuje %(count)d ACI"
 
-msgid "Member Host"
-msgstr "Komputer elementu"
-
-msgid "Netgroup name"
-msgstr "Nazwa grupy sieciowej"
-
-msgid "Netgroup description"
-msgstr "Opis grupy sieciowej"
-
-msgid "NIS domain name"
-msgstr "Nazwa domeny NIS"
-
-msgid "IPA unique ID"
-msgstr "Unikalny identyfikator IPA"
-
-msgid "Manage ticket policy for specific user"
-msgstr "Zarządzanie polityką zgłoszeń dla podanego użytkownika"
-
-msgid "Max life"
-msgstr "Maksymalny czas życia"
-
-msgid "Maximum ticket life (seconds)"
-msgstr "Minimalny czas życia zgłoszenia (sekundy)"
-
-msgid "Max renew"
-msgstr "Maksymalne odnowienie"
-
-msgid "Maximum renewable age (seconds)"
-msgstr "Maksymalny czas, w którym możliwe jest odnowienie (sekundy)"
-
-msgid "The hostname to register as"
-msgstr "Nazwa komputera, pod jaką zarejestrować"
-
-msgid "The IPA realm"
-msgstr "Obszar IPA"
-
-msgid "Hardware platform of the host (e.g. Lenovo T61)"
-msgstr "Platforma sprzętowa komputera (np. Lenovo T61)"
-
-msgid "Operating System and version of the host (e.g. Fedora 9)"
-msgstr "System operacyjny komputera i jego wersja (np. Fedora 9)"
-
-msgid "Map"
-msgstr "Mapa"
-
-msgid "Automount Maps"
-msgstr "Automatyczne montowanie map"
-
-msgid "Mount information"
-msgstr "Informacje o montowaniu"
-
-msgid "description"
-msgstr "opis"
-
-msgid "Automount Keys"
-msgstr "Automatyczne montowanie kluczy"
-
-msgid "Mount point"
-msgstr "Punkt montowania"
-
-msgid "Parent map"
-msgstr "Mapa nadrzędna"
-
 msgid "incorrect type"
 msgstr "niepoprawny typ"
 
@@ -1041,6 +1041,15 @@ msgstr "może wynosić co najwyżej %(maxlength)d znaków"
 #, python-format
 msgid "must be exactly %(length)d characters"
 msgstr "musi wynosić dokładnie %(length)d znaków"
+
+msgid "A dictionary representing an LDAP entry"
+msgstr "Słownik reprezentujący wpis LDAP"
+
+msgid "A list of LDAP entries"
+msgstr "Lista wpisów LDAP"
+
+msgid "All commands should at least have a result"
+msgstr "Wszystkie polecenia powinny powiadać przynajmniej wynik"
 
 #, python-format
 msgid "%(count)d variables"
@@ -1195,18 +1204,6 @@ msgstr "Proszę podać %(label)s ponownie, aby sprawdzić: "
 msgid "Passwords do not match!"
 msgstr "Hasła się nie zgadzają."
 
-msgid "A dictionary representing an LDAP entry"
-msgstr "Słownik reprezentujący wpis LDAP"
-
-msgid "A list of LDAP entries"
-msgstr "Lista wpisów LDAP"
-
-msgid "All commands should at least have a result"
-msgstr "Wszystkie polecenia powinny powiadać przynajmniej wynik"
-
-msgid "SOA class"
-msgstr "Klasa SOA"
-
 msgid "Time limit of search in seconds"
 msgstr "Ograniczenie czasu wyszukiwania w sekundach"
 
@@ -1222,6 +1219,9 @@ msgstr "Certyfikat serwera zakodowany za pomocą Base-64"
 msgid "Kerberos principal name for this host"
 msgstr "Nazwa naczelnika Kerberosa dla tego komputera"
 
+msgid "SOA class"
+msgstr "Klasa SOA"
+
 msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
 msgstr "Naczelnik usługi dla tego certyfikatu (np. HTTP/test.przykład.pl)"
 
@@ -1234,15 +1234,8 @@ msgstr "Przyczyna"
 msgid "Reason for revoking the certificate (0-10)"
 msgstr "Przyczyna unieważnienia certyfikatu (0-10)"
 
-msgid "Delete all?"
-msgstr "Usunąć wszystko?"
-
 msgid "Unrevoked"
 msgstr "Cofnięto unieważnienie"
-
-#, python-format
-msgid "File %(file)s not found"
-msgstr "Nie odnaleziono pliku %(file)s"
 
 msgid ""
 "Passwords have been migrated in pre-hashed format.\n"
@@ -1258,156 +1251,12 @@ msgstr ""
 "https://twoja.domena/ipa/migration/, zanim będą mogli\n"
 "używać swoich kont Kerberosa."
 
-#, c-format
-msgid "No keys accepted by KDC\n"
-msgstr "Żadne klucze nie zostały zaakceptowane przez KDC\n"
+msgid "Delete all?"
+msgstr "Usunąć wszystko?"
 
-#, c-format
-msgid "Out of memory \n"
-msgstr "Brak pamięci \n"
-
-#, c-format
-msgid "Unable to initialize ldap library!\n"
-msgstr "Nie można zainicjować biblioteki LDAP.\n"
-
-#, c-format
-msgid "Simple bind failed\n"
-msgstr "Proste dowiązanie się nie powiodło\n"
-
-#, c-format
-msgid "Missing reply control!\n"
-msgstr "Brak kontroli odpowiedzi.\n"
-
-#, c-format
-msgid "Out of Memory!\n"
-msgstr "Brak pamięci.\n"
-
-#, c-format
-msgid "Failed to create control!\n"
-msgstr "Utworzenie kontroli się nie powiodło.\n"
-
-#, c-format
-msgid "ber_init() failed, Invalid control ?!\n"
-msgstr "ber_init() się nie powiodło, nieprawidłowa kontrola?\n"
-
-msgid "New Principal Password"
-msgstr "Nowe hasło naczelnika"
-
-msgid "Verify Principal Password"
-msgstr "Sprawdzenie hasła naczelnika"
-
-msgid "Print as little as possible"
-msgstr "Wyświetla tak mało, jak to możliwe"
-
-msgid "Output only on errors"
-msgstr "Wyświetla tylko błędy"
-
-msgid "Contact this specific KDC Server"
-msgstr "Kontaktuje się z konkretnym serwerem KDC"
-
-msgid "Server Name"
-msgstr "Nazwa serwera"
-
-msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
-msgstr ""
-"Naczelnik, dla którego uzyskać tablicę kluczy (np.: ftp/ftp.example."
-"com@EXAMPLE.COM)"
-
-msgid "Kerberos Service Principal Name"
-msgstr "Nazwa naczelnika usługi Kerberos"
-
-msgid "File were to store the keytab information"
-msgstr "Plik, w którym przechowywać informację o tablicy kluczy"
-
-msgid "Keytab File Name"
-msgstr "Nazwa pliku tablicy kluczy"
-
-msgid "Encryption types to request"
-msgstr "Typy szyfrowania do zażądania"
-
-msgid "Comma separated encryption types list"
-msgstr "Lista typów szyfrowania oddzielonych przecinkami"
-
-msgid "Show the list of permitted encryption types and exit"
-msgstr "Wyświetla listę dozwolonych typów szyfrowania i kończy działanie"
-
-msgid "Permitted Encryption Types"
-msgstr "Dozwolone typy szyfrowania"
-
-msgid "Asks for a non-random password to use for the principal"
-msgstr "Pyta o nielosowe hasło do użycia z naczelnikiem"
-
-msgid "LDAP DN"
-msgstr "DN LDAP"
-
-msgid "DN to bind as if not using kerberos"
-msgstr "DN do dowiązania, jeśli nie jest używany Kerberos"
-
-msgid "LDAP password"
-msgstr "Hasło LDAP"
-
-msgid "password to use if not using kerberos"
-msgstr "hasło do użycia, jeśli nie jest używany Kerberos"
-
-#, c-format
-msgid "Kerberos context initialization failed\n"
-msgstr "Zainicjowanie kontekstu Kerberosa się nie powiodło\n"
-
-#, c-format
-msgid "Supported encryption types:\n"
-msgstr "Obsługiwane typy szyfrowania:\n"
-
-#, c-format
-msgid "Warning: failed to convert type (#%d)\n"
-msgstr "Ostrzeżenie: przekonwertowanie typu (#%d) się nie powiodło\n"
-
-#, c-format
-msgid "Bind password required when using a bind DN.\n"
-msgstr "Hasło dowiązania jest wymagane podczas używania dowiązania DN.\n"
-
-#, c-format
-msgid ""
-"Warning: salt types are not honored with randomized passwords (see opt. -P)\n"
-msgstr ""
-"Ostrzeżenie: typy salt nie są uwzględniane z losowymi hasłami (proszę "
-"zobaczyć opcję -P)\n"
-
-#, c-format
-msgid "Invalid Service Principal Name\n"
-msgstr "Nieprawidłowa nazwa naczelnika usługi\n"
-
-#, c-format
-msgid "Kerberos Credential Cache not found. Do you have a Kerberos Ticket?\n"
-msgstr ""
-"Nie odnaleziono pamięci podręcznej danych uwierzytelniających. Istnieje "
-"zgłoszenie Kerberosa?\n"
-
-#, c-format
-msgid ""
-"Kerberos User Principal not found. Do you have a valid Credential Cache?\n"
-msgstr ""
-"Nie odnaleziono naczelnika użytkownika Kerberosa. Istnieje prawidłowa pamięć "
-"podręczna danych uwierzytelniających?\n"
-
-#, c-format
-msgid "Failed to open Keytab\n"
-msgstr "Otwarcie tablicy kluczy się nie powiodło\n"
-
-#, c-format
-msgid "Failed to create key material\n"
-msgstr "Utworzenie materiału klucza się nie powiodło\n"
-
-#, c-format
-msgid "Failed to add key to the keytab\n"
-msgstr "Dodanie klucza do tablicy kluczy się nie powiodło\n"
-
-#, c-format
-msgid "Failed to close the keytab\n"
-msgstr "Zamknięcie tablicy kluczy się nie powiodło\n"
-
-#, c-format
-msgid "Keytab successfully retrieved and stored in: %s\n"
-msgstr "Pomyślnie pobrano tablicę kluczy i przechowano ją w: %s\n"
+#, python-format
+msgid "File %(file)s not found"
+msgstr "Nie odnaleziono pliku %(file)s"
 
 #, c-format
 msgid "Unable to parse principal name\n"
@@ -1443,8 +1292,18 @@ msgstr "Wyświetlanie informacji o debugowaniu"
 msgid "Debugging output"
 msgstr "Wyjście debugowania"
 
+msgid "Kerberos Service Principal Name"
+msgstr "Nazwa naczelnika usługi Kerberos"
+
+msgid "Keytab File Name"
+msgstr "Nazwa pliku tablicy kluczy"
+
 msgid "Remove all principals in this realm"
 msgstr "Usuwa wszystkich naczelników w tym obszarze"
+
+#, c-format
+msgid "Kerberos context initialization failed\n"
+msgstr "Zainicjowanie kontekstu Kerberosa się nie powiodło\n"
 
 #, c-format
 msgid "Closing keytab failed\n"
@@ -1590,6 +1449,147 @@ msgstr "Serwer IPA do użycia"
 
 msgid "password"
 msgstr "hasło"
+
+#, c-format
+msgid "No keys accepted by KDC\n"
+msgstr "Żadne klucze nie zostały zaakceptowane przez KDC\n"
+
+#, c-format
+msgid "Out of memory \n"
+msgstr "Brak pamięci \n"
+
+#, c-format
+msgid "Unable to initialize ldap library!\n"
+msgstr "Nie można zainicjować biblioteki LDAP.\n"
+
+#, c-format
+msgid "Simple bind failed\n"
+msgstr "Proste dowiązanie się nie powiodło\n"
+
+#, c-format
+msgid "Missing reply control!\n"
+msgstr "Brak kontroli odpowiedzi.\n"
+
+#, c-format
+msgid "Out of Memory!\n"
+msgstr "Brak pamięci.\n"
+
+#, c-format
+msgid "Failed to create control!\n"
+msgstr "Utworzenie kontroli się nie powiodło.\n"
+
+#, c-format
+msgid "ber_init() failed, Invalid control ?!\n"
+msgstr "ber_init() się nie powiodło, nieprawidłowa kontrola?\n"
+
+msgid "New Principal Password"
+msgstr "Nowe hasło naczelnika"
+
+msgid "Verify Principal Password"
+msgstr "Sprawdzenie hasła naczelnika"
+
+msgid "Print as little as possible"
+msgstr "Wyświetla tak mało, jak to możliwe"
+
+msgid "Output only on errors"
+msgstr "Wyświetla tylko błędy"
+
+msgid "Contact this specific KDC Server"
+msgstr "Kontaktuje się z konkretnym serwerem KDC"
+
+msgid "Server Name"
+msgstr "Nazwa serwera"
+
+msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
+msgstr ""
+"Naczelnik, dla którego uzyskać tablicę kluczy (np.: ftp/ftp.example."
+"com@EXAMPLE.COM)"
+
+msgid "File were to store the keytab information"
+msgstr "Plik, w którym przechowywać informację o tablicy kluczy"
+
+msgid "Encryption types to request"
+msgstr "Typy szyfrowania do zażądania"
+
+msgid "Comma separated encryption types list"
+msgstr "Lista typów szyfrowania oddzielonych przecinkami"
+
+msgid "Show the list of permitted encryption types and exit"
+msgstr "Wyświetla listę dozwolonych typów szyfrowania i kończy działanie"
+
+msgid "Permitted Encryption Types"
+msgstr "Dozwolone typy szyfrowania"
+
+msgid "Asks for a non-random password to use for the principal"
+msgstr "Pyta o nielosowe hasło do użycia z naczelnikiem"
+
+msgid "LDAP DN"
+msgstr "DN LDAP"
+
+msgid "DN to bind as if not using kerberos"
+msgstr "DN do dowiązania, jeśli nie jest używany Kerberos"
+
+msgid "LDAP password"
+msgstr "Hasło LDAP"
+
+msgid "password to use if not using kerberos"
+msgstr "hasło do użycia, jeśli nie jest używany Kerberos"
+
+#, c-format
+msgid "Supported encryption types:\n"
+msgstr "Obsługiwane typy szyfrowania:\n"
+
+#, c-format
+msgid "Warning: failed to convert type (#%d)\n"
+msgstr "Ostrzeżenie: przekonwertowanie typu (#%d) się nie powiodło\n"
+
+#, c-format
+msgid "Bind password required when using a bind DN.\n"
+msgstr "Hasło dowiązania jest wymagane podczas używania dowiązania DN.\n"
+
+#, c-format
+msgid ""
+"Warning: salt types are not honored with randomized passwords (see opt. -P)\n"
+msgstr ""
+"Ostrzeżenie: typy salt nie są uwzględniane z losowymi hasłami (proszę "
+"zobaczyć opcję -P)\n"
+
+#, c-format
+msgid "Invalid Service Principal Name\n"
+msgstr "Nieprawidłowa nazwa naczelnika usługi\n"
+
+#, c-format
+msgid "Kerberos Credential Cache not found. Do you have a Kerberos Ticket?\n"
+msgstr ""
+"Nie odnaleziono pamięci podręcznej danych uwierzytelniających. Istnieje "
+"zgłoszenie Kerberosa?\n"
+
+#, c-format
+msgid ""
+"Kerberos User Principal not found. Do you have a valid Credential Cache?\n"
+msgstr ""
+"Nie odnaleziono naczelnika użytkownika Kerberosa. Istnieje prawidłowa pamięć "
+"podręczna danych uwierzytelniających?\n"
+
+#, c-format
+msgid "Failed to open Keytab\n"
+msgstr "Otwarcie tablicy kluczy się nie powiodło\n"
+
+#, c-format
+msgid "Failed to create key material\n"
+msgstr "Utworzenie materiału klucza się nie powiodło\n"
+
+#, c-format
+msgid "Failed to add key to the keytab\n"
+msgstr "Dodanie klucza do tablicy kluczy się nie powiodło\n"
+
+#, c-format
+msgid "Failed to close the keytab\n"
+msgstr "Zamknięcie tablicy kluczy się nie powiodło\n"
+
+#, c-format
+msgid "Keytab successfully retrieved and stored in: %s\n"
+msgstr "Pomyślnie pobrano tablicę kluczy i przechowano ją w: %s\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
