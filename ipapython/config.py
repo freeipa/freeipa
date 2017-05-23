@@ -79,16 +79,28 @@ def check_dn_option(option, opt, value):
     except Exception as e:
         raise OptionValueError("option %s: invalid DN: %s" % (opt, e))
 
+
+def check_constructor(option, opt, value):
+    con = option.constructor
+    assert con is not None, "Oops! Developer forgot to set 'constructor' kwarg"
+    try:
+        return con(value)
+    except Exception as e:
+        raise OptionValueError("option {} invalid: {}".format(opt, e))
+
+
 class IPAOption(Option):
     """
     optparse.Option subclass with support of options labeled as
     security-sensitive such as passwords.
     """
-    ATTRS = Option.ATTRS + ["sensitive"]
-    TYPES = Option.TYPES + ("ip", "dn")
+    ATTRS = Option.ATTRS + ["sensitive", "constructor"]
+    TYPES = Option.TYPES + ("ip", "dn", "constructor")
     TYPE_CHECKER = copy(Option.TYPE_CHECKER)
     TYPE_CHECKER["ip"] = check_ip_option
     TYPE_CHECKER["dn"] = check_dn_option
+    TYPE_CHECKER["constructor"] = check_constructor
+
 
 class IPAOptionParser(OptionParser):
     """
