@@ -38,8 +38,10 @@ Developers:
 	Drew Erny
 	Oleg Fayans
 	Jérôme Fenal
+	Fabiano Fidêncio
 	Stephen Gallagher
 	James Groffen
+	Oliver Gutierrez
 	Ondřej Hamada
 	Nick Hatch
 	Christian Heimes
@@ -80,6 +82,7 @@ Developers:
 	Jan Pazdziora
 	W. Michael Petullo
 	Gowrishankar Rajaiyan
+	Michal Reznik
 	Lubomír Rintel
 	Matt Rogers
 	Lynn Root
@@ -98,6 +101,7 @@ Developers:
 	Fraser Tweedale
 	Petr Viktorin
 	Petr Voborník
+	Felipe Volpone
 	Pavel Vomáčka
 	Andrew Wnuk
 	Jason Woods
