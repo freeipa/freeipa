@@ -437,6 +437,11 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
                     "You cannot specify --external-ca-type without "
                     "--external-ca")
 
+            if self.external_ca_profile and not self.external_ca:
+                raise RuntimeError(
+                    "You cannot specify --external-ca-profile without "
+                    "--external-ca")
+
             if self.uninstalling:
                 if (self.realm_name or self.admin_password or
                         self.master_password):
