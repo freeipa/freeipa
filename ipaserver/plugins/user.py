@@ -598,22 +598,16 @@ class user_add(baseuser_add):
         except errors.AlreadyGroupMember:
             pass
 
-        # delete description attribute NO_UPG_MAGIC if present
-        if options.get('noprivate', False):
-            if not options.get('all', False):
-                desc_attr = ldap.get_entry(dn, ['description'])
-                entry_attrs.update(desc_attr)
-            if 'description' in entry_attrs and NO_UPG_MAGIC in entry_attrs['description']:
-                entry_attrs['description'].remove(NO_UPG_MAGIC)
-                kw = {'setattr': unicode('description=%s' % ','.join(entry_attrs['description']))}
-                try:
-                    self.api.Command['user_mod'](keys[-1], **kw)
-                except (errors.EmptyModlist, errors.NotFound):
-                    pass
-
         # Fetch the entry again to update memberof, mep data, etc updated
         # at the end of the transaction.
         newentry = ldap.get_entry(dn, ['*'])
+
+        # delete description attribute NO_UPG_MAGIC if present
+        if options.get('noprivate', False) and 'description' in newentry and \
+                NO_UPG_MAGIC in newentry['description']:
+            newentry['description'].remove(NO_UPG_MAGIC)
+            ldap.update_entry(newentry)
+
         entry_attrs.update(newentry)
 
         if options.get('random', False):
