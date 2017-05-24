@@ -693,7 +693,7 @@ class DNSSECValidationError(ForwarderValidationError):
                "failed DNSSEC validation on server %(ip)s")
 
 
-def _log_response(log, e):
+def _log_response(e):
     """
     If exception contains response from server, log this response to debug log
     :param log: if log is None, do not log
@@ -702,7 +702,7 @@ def _log_response(log, e):
     assert isinstance(e, DNSException)
     response = getattr(e, 'kwargs', {}).get('response')
     if response:
-        log.debug("DNSException: %s; server response: %s", e, response)
+        logger.debug("DNSException: %s; server response: %s", e, response)
 
 
 def _resolve_record(owner, rtype, nameserver_ip=None, edns0=False,
@@ -738,7 +738,7 @@ def _resolve_record(owner, rtype, nameserver_ip=None, edns0=False,
     return res.query(owner, rtype)
 
 
-def _validate_edns0_forwarder(owner, rtype, ip_addr, log=logger, timeout=10):
+def _validate_edns0_forwarder(owner, rtype, ip_addr, timeout=10):
     """
     Validate if forwarder supports EDNS0
 
@@ -749,7 +749,7 @@ def _validate_edns0_forwarder(owner, rtype, ip_addr, log=logger, timeout=10):
     try:
         _resolve_record(owner, rtype, nameserver_ip=ip_addr, timeout=timeout)
     except DNSException as e:
-        _log_response(log, e)
+        _log_response(e)
         raise UnresolvableRecordError(owner=owner, rtype=rtype, ip=ip_addr,
                                       error=e)
 
@@ -757,12 +757,12 @@ def _validate_edns0_forwarder(owner, rtype, ip_addr, log=logger, timeout=10):
         _resolve_record(owner, rtype, nameserver_ip=ip_addr, edns0=True,
                         timeout=timeout)
     except DNSException as e:
-        _log_response(log, e)
+        _log_response(e)
         raise EDNS0UnsupportedError(owner=owner, rtype=rtype, ip=ip_addr,
                                     error=e)
 
 
-def validate_dnssec_global_forwarder(ip_addr, log=logger, timeout=10):
+def validate_dnssec_global_forwarder(ip_addr, timeout=10):
     """Test DNS forwarder properties. against root zone.
 
     Global forwarders should be able return signed root zone
@@ -776,14 +776,14 @@ def validate_dnssec_global_forwarder(ip_addr, log=logger, timeout=10):
     owner = "."
     rtype = "SOA"
 
-    _validate_edns0_forwarder(owner, rtype, ip_addr, log=log, timeout=timeout)
+    _validate_edns0_forwarder(owner, rtype, ip_addr, timeout=timeout)
 
     # DNS root has to be signed
     try:
         ans = _resolve_record(owner, rtype, nameserver_ip=ip_addr, dnssec=True,
                               timeout=timeout)
     except DNSException as e:
-        _log_response(log, e)
+        _log_response(e)
         raise DNSSECSignatureMissingError(owner=owner, rtype=rtype, ip=ip_addr)
 
     try:
@@ -814,7 +814,6 @@ def validate_dnssec_zone_forwarder_step2(ipa_ip_addr, fwzone, timeout=10):
     :raise UnresolvableRecordError: record cannot be resolved
     :raise DNSSECValidationError: response from forwarder is not DNSSEC valid
     """
-    log = logger
     rtype = "SOA"
     try:
         ans_cd = _resolve_record(fwzone, rtype, nameserver_ip=ipa_ip_addr,
@@ -822,10 +821,10 @@ def validate_dnssec_zone_forwarder_step2(ipa_ip_addr, fwzone, timeout=10):
                                  timeout=timeout)
     except NXDOMAIN as e:
         # sometimes CD flag is ignored and NXDomain is returned
-        _log_response(log, e)
+        _log_response(e)
         raise DNSSECValidationError(owner=fwzone, rtype=rtype, ip=ipa_ip_addr)
     except DNSException as e:
-        _log_response(log, e)
+        _log_response(e)
         raise UnresolvableRecordError(owner=fwzone, rtype=rtype,
                                       ip=ipa_ip_addr, error=e)
 
@@ -833,7 +832,7 @@ def validate_dnssec_zone_forwarder_step2(ipa_ip_addr, fwzone, timeout=10):
         ans_do = _resolve_record(fwzone, rtype, nameserver_ip=ipa_ip_addr,
                                  edns0=True, dnssec=True, timeout=timeout)
     except DNSException as e:
-        _log_response(log, e)
+        _log_response(e)
         raise DNSSECValidationError(owner=fwzone, rtype=rtype, ip=ipa_ip_addr)
     else:
         if (ans_do.canonical_name == ans_cd.canonical_name

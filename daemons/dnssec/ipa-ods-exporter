@@ -42,6 +42,8 @@ from ipaserver.dnssec.abshsm import sync_pkcs11_metadata, wrappingmech_name2id
 from ipaserver.dnssec.ldapkeydb import LdapKeyDB
 from ipaserver.dnssec.localhsm import LocalHSM
 
+logger = logging.getLogger(os.path.basename(__file__))
+
 DAEMONNAME = 'ipa-ods-exporter'
 PRINCIPAL = None  # not initialized yet
 WORKDIR = os.path.join(paths.VAR_OPENDNSSEC_DIR ,'tmp')
@@ -269,76 +271,86 @@ def get_ods_keys(zone_name):
 
         key_data.update(sql2ldap_keyid(row['HSMkey_id']))
         keys[key_id] = key_data
-        log.debug("key %s metadata: %s", key_id, key_data)
+        logger.debug("key %s metadata: %s", key_id, key_data)
 
     return keys
 
-def sync_set_metadata_2ldap(log, source_set, target_set):
+def sync_set_metadata_2ldap(name, source_set, target_set):
     """sync metadata from source key set to target key set in LDAP
 
     Keys not present in both sets are left intact."""
-    log = log.getChild('sync_set_metadata_2ldap')
     matching_keys = set(source_set.keys()).intersection(set(target_set.keys()))
-    log.info("keys in local HSM & LDAP: %s", hex_set(matching_keys))
+    logger.info("%s: keys in local HSM & LDAP: %s",
+                name, hex_set(matching_keys))
     for key_id in matching_keys:
-        sync_pkcs11_metadata(log, source_set[key_id], target_set[key_id])
+        sync_pkcs11_metadata(name, source_set[key_id], target_set[key_id])
 
-def ldap2master_replica_keys_sync(log, ldapkeydb, localhsm):
+def ldap2master_replica_keys_sync(ldapkeydb, localhsm):
     """LDAP=>master's local HSM replica key synchronization"""
     # import new replica keys from LDAP
-    log = log.getChild('ldap2master_replica')
-    log.debug("replica pub keys in LDAP: %s", hex_set(ldapkeydb.replica_pubkeys_wrap))
-    log.debug("replica pub keys in SoftHSM: %s", hex_set(localhsm.replica_pubkeys_wrap))
+    logger.debug("replica pub keys in LDAP: %s",
+                 hex_set(ldapkeydb.replica_pubkeys_wrap))
+    logger.debug("replica pub keys in SoftHSM: %s",
+                 hex_set(localhsm.replica_pubkeys_wrap))
     new_replica_keys = set(ldapkeydb.replica_pubkeys_wrap.keys()) \
             - set(localhsm.replica_pubkeys_wrap.keys())
-    log.info("new replica keys in LDAP: %s", hex_set(new_replica_keys))
+    logger.info("new replica keys in LDAP: %s",
+                hex_set(new_replica_keys))
     for key_id in new_replica_keys:
         new_key_ldap = ldapkeydb.replica_pubkeys_wrap[key_id]
-        log.debug('label=%s, id=%s, data=%s',
-                new_key_ldap['ipk11label'],
-                hexlify(new_key_ldap['ipk11id']),
-                hexlify(new_key_ldap['ipapublickey']))
+        logger.debug('label=%s, id=%s, data=%s',
+                     new_key_ldap['ipk11label'],
+                     hexlify(new_key_ldap['ipk11id']),
+                     hexlify(new_key_ldap['ipapublickey']))
         localhsm.import_public_key(new_key_ldap, new_key_ldap['ipapublickey'])
 
     # set CKA_WRAP = FALSE for all replica keys removed from LDAP
     removed_replica_keys = set(localhsm.replica_pubkeys_wrap.keys()) \
             - set(ldapkeydb.replica_pubkeys_wrap.keys())
-    log.info("obsolete replica keys in local HSM: %s",
-            hex_set(removed_replica_keys))
+    logger.info("obsolete replica keys in local HSM: %s",
+                hex_set(removed_replica_keys))
     for key_id in removed_replica_keys:
         localhsm.replica_pubkeys_wrap[key_id]['ipk11wrap'] = False
 
     # synchronize replica key attributes from LDAP to local HSM
-    sync_set_metadata_2ldap(log, localhsm.replica_pubkeys_wrap,
-            ldapkeydb.replica_pubkeys_wrap)
+    sync_set_metadata_2ldap('ldap2master_replica',
+                            localhsm.replica_pubkeys_wrap,
+                            ldapkeydb.replica_pubkeys_wrap)
 
-def master2ldap_master_keys_sync(log, ldapkeydb, localhsm):
+def master2ldap_master_keys_sync(ldapkeydb, localhsm):
     ## master key -> LDAP synchronization
     # export new master keys to LDAP
     new_master_keys = set(localhsm.master_keys.keys()) \
             - set(ldapkeydb.master_keys.keys())
-    log.debug("master keys in local HSM: %s", hex_set(localhsm.master_keys.keys()))
-    log.debug("master keys in LDAP HSM: %s", hex_set(ldapkeydb.master_keys.keys()))
-    log.debug("new master keys in local HSM: %s", hex_set(new_master_keys))
+    logger.debug("master keys in local HSM: %s",
+                 hex_set(localhsm.master_keys.keys()))
+    logger.debug("master keys in LDAP HSM: %s",
+                 hex_set(ldapkeydb.master_keys.keys()))
+    logger.debug("new master keys in local HSM: %s",
+                 hex_set(new_master_keys))
     for mkey_id in new_master_keys:
         mkey = localhsm.master_keys[mkey_id]
         ldapkeydb.import_master_key(mkey)
 
     # re-fill cache with keys we just added
     ldapkeydb.flush()
-    log.debug('master keys in LDAP after flush: %s', hex_set(ldapkeydb.master_keys))
+    logger.debug('master keys in LDAP after flush: %s',
+                 hex_set(ldapkeydb.master_keys))
 
     # synchronize master key metadata to LDAP
     for mkey_id, mkey_local in localhsm.master_keys.items():
-        log.debug('synchronizing master key metadata: 0x%s', hexlify(mkey_id))
-        sync_pkcs11_metadata(log, mkey_local, ldapkeydb.master_keys[mkey_id])
+        logger.debug('synchronizing master key metadata: 0x%s',
+                     hexlify(mkey_id))
+        sync_pkcs11_metadata('master2ldap_master', mkey_local, ldapkeydb.master_keys[mkey_id])
 
     # re-wrap all master keys in LDAP with new replica keys (as necessary)
     enabled_replica_key_ids = set(localhsm.replica_pubkeys_wrap.keys())
-    log.debug('enabled replica key ids: %s', hex_set(enabled_replica_key_ids))
+    logger.debug('enabled replica key ids: %s',
+                 hex_set(enabled_replica_key_ids))
 
     for mkey_id, mkey_ldap in ldapkeydb.master_keys.items():
-        log.debug('processing master key data: 0x%s', hexlify(mkey_id))
+        logger.debug('processing master key data: 0x%s',
+                     hexlify(mkey_id))
 
         # check that all active replicas have own copy of master key
         used_replica_keys = set()
@@ -355,14 +367,14 @@ def master2ldap_master_keys_sync(log, ldapkeydb, localhsm):
                 used_replica_keys.add(matching_key['ipk11id'])
 
         new_replica_keys = enabled_replica_key_ids - used_replica_keys
-        log.debug('master key 0x%s is not wrapped with replica keys %s',
-                hexlify(mkey_id), hex_set(new_replica_keys))
+        logger.debug('master key 0x%s is not wrapped with replica keys %s',
+                     hexlify(mkey_id), hex_set(new_replica_keys))
 
         # wrap master key with new replica keys
         mkey_local = localhsm.find_keys(id=mkey_id).popitem()[1]
         for replica_key_id in new_replica_keys:
-            log.info('adding master key 0x%s wrapped with replica key 0x%s' % (
-                hexlify(mkey_id), hexlify(replica_key_id)))
+            logger.info('adding master key 0x%s wrapped with replica key 0x%s',
+                        hexlify(mkey_id), hexlify(replica_key_id))
             replica_key = localhsm.replica_pubkeys_wrap[replica_key_id]
             keydata = localhsm.p11.export_wrapped_key(mkey_local.handle,
                     replica_key.handle,
@@ -372,18 +384,17 @@ def master2ldap_master_keys_sync(log, ldapkeydb, localhsm):
 
     ldapkeydb.flush()
 
-def master2ldap_zone_keys_sync(log, ldapkeydb, localhsm):
+def master2ldap_zone_keys_sync(ldapkeydb, localhsm):
     """add and update zone key material from local HSM to LDAP
 
     No key material will be removed, only new keys will be added or updated.
     Key removal is hanled by master2ldap_zone_keys_purge()."""
-    log = log.getChild('master2ldap_zone_keys')
     keypairs_ldap = ldapkeydb.zone_keypairs
-    log.debug("zone keys in LDAP: %s", hex_set(keypairs_ldap))
+    logger.debug("zone keys in LDAP: %s", hex_set(keypairs_ldap))
 
     pubkeys_local = localhsm.zone_pubkeys
     privkeys_local = localhsm.zone_privkeys
-    log.debug("zone keys in local HSM: %s", hex_set(privkeys_local))
+    logger.debug("zone keys in local HSM: %s", hex_set(privkeys_local))
 
     assert set(pubkeys_local) == set(privkeys_local), (
             "IDs of private and public keys for DNS zones in local HSM does "
@@ -391,7 +402,7 @@ def master2ldap_zone_keys_sync(log, ldapkeydb, localhsm):
             (hex_set(pubkeys_local), hex_set(privkeys_local)))
 
     new_keys = set(pubkeys_local) - set(keypairs_ldap)
-    log.debug("new zone keys in local HSM: %s", hex_set(new_keys))
+    logger.debug("new zone keys in local HSM: %s", hex_set(new_keys))
     mkey = localhsm.active_master_key
     # wrap each new zone key pair with selected master key
     for zkey_id in new_keys:
@@ -405,30 +416,30 @@ def master2ldap_zone_keys_sync(log, ldapkeydb, localhsm):
         ldapkeydb.import_zone_key(pubkey, pubkey_data, privkey, privkey_data,
                 PRIVKEY_WRAPPING_MECH, mkey['ipk11id'])
 
-    sync_set_metadata_2ldap(log, pubkeys_local, keypairs_ldap)
-    sync_set_metadata_2ldap(log, privkeys_local, keypairs_ldap)
+    sync_set_metadata_2ldap('master2ldap_zone_keys', pubkeys_local, keypairs_ldap)
+    sync_set_metadata_2ldap('master2ldap_zone_keys', privkeys_local, keypairs_ldap)
     ldapkeydb.flush()
 
-def master2ldap_zone_keys_purge(log, ldapkeydb, localhsm):
+def master2ldap_zone_keys_purge(ldapkeydb, localhsm):
     """purge removed key material from LDAP (but not metadata)
 
     Keys which are present in LDAP but not in local HSM will be removed.
     Key metadata must be removed first so references to removed key material
     are removed before actually removing the keys."""
     keypairs_ldap = ldapkeydb.zone_keypairs
-    log.debug("zone keys in LDAP: %s", hex_set(keypairs_ldap))
+    logger.debug("zone keys in LDAP: %s", hex_set(keypairs_ldap))
 
     pubkeys_local = localhsm.zone_pubkeys
     privkeys_local = localhsm.zone_privkeys
-    log.debug("zone keys in local HSM: %s", hex_set(privkeys_local))
+    logger.debug("zone keys in local HSM: %s", hex_set(privkeys_local))
     assert set(pubkeys_local) == set(privkeys_local), \
             "IDs of private and public keys for DNS zones in local HSM does " \
             "not match to key pairs: %s vs. %s" % \
             (hex_set(pubkeys_local), hex_set(privkeys_local))
 
     deleted_key_ids = set(keypairs_ldap) - set(pubkeys_local)
-    log.debug("zone keys deleted from local HSM but present in LDAP: %s",
-            hex_set(deleted_key_ids))
+    logger.debug("zone keys deleted from local HSM but present in LDAP: %s",
+                 hex_set(deleted_key_ids))
     for zkey_id in deleted_key_ids:
         keypairs_ldap[zkey_id].schedule_deletion()
     ldapkeydb.flush()
@@ -439,7 +450,7 @@ def hex_set(s):
         out.add("0x%s" % hexlify(i))
     return out
 
-def receive_systemd_command(log):
+def receive_systemd_command():
     fds = systemd.daemon.listen_fds()
     if len(fds) != 1:
         raise KeyError('Exactly one socket is expected.')
@@ -447,16 +458,17 @@ def receive_systemd_command(log):
     sck = socket.fromfd(fds[0], socket.AF_UNIX, socket.SOCK_STREAM)
     rlist, _wlist, _xlist = select.select([sck], [], [], 0)
     if not rlist:
-        log.critical('socket activation did not return socket with a command')
+        logger.critical('socket activation did not return socket with a '
+                        'command')
         sys.exit(0)
 
-    log.debug('accepting new connection')
+    logger.debug('accepting new connection')
     conn, _addr = sck.accept()
-    log.debug('accepted new connection %s', repr(conn))
+    logger.debug('accepted new connection %s', repr(conn))
 
     # this implements cmdhandler_handle_cmd() logic
     cmd = conn.recv(ODS_SE_MAXLINE).strip()
-    log.debug('received command "%s" from systemd socket', cmd)
+    logger.debug('received command "%s" from systemd socket', cmd)
     return (cmd, conn)
 
 def parse_command(cmd):
@@ -514,13 +526,12 @@ def cmd2ods_zone_name(cmd):
 
     return zone_name
 
-def sync_zone(log, ldap, dns_dn, zone_name):
+def sync_zone(ldap, dns_dn, zone_name):
     """synchronize metadata about zone keys for single DNS zone
 
     Key material has to be synchronized elsewhere.
     Keep in mind that keys could be shared among multiple zones!"""
-    log.getChild("%s.%s" % (__name__, zone_name))
-    log.debug('synchronizing zone "%s"', zone_name)
+    logger.debug('%s: synchronizing zone "%s"', zone_name, zone_name)
     ods_keys = get_ods_keys(zone_name)
     ods_keys_id = set(ods_keys.keys())
 
@@ -552,54 +563,58 @@ def sync_zone(log, ldap, dns_dn, zone_name):
     ldap_keys_id = set(ldap_keys.keys())
 
     new_keys_id = ods_keys_id - ldap_keys_id
-    log.info('new key metadata from ODS: %s', new_keys_id)
+    logger.info('%s: new key metadata from ODS: %s', zone_name, new_keys_id)
     for key_id in new_keys_id:
         cn = "cn=%s" % key_id
         key_dn = DN(cn, keys_dn)
-        log.debug('adding key metadata "%s" to LDAP', key_dn)
+        logger.debug('%s: adding key metadata "%s" to LDAP', zone_name, key_dn)
         ldap_key = ldap.make_entry(key_dn,
                                    objectClass=['idnsSecKey'],
                                    **ods_keys[key_id])
         ldap.add_entry(ldap_key)
 
     deleted_keys_id = ldap_keys_id - ods_keys_id
-    log.info('deleted key metadata in LDAP: %s', deleted_keys_id)
+    logger.info('%s: deleted key metadata in LDAP: %s',
+                zone_name, deleted_keys_id)
     for key_id in deleted_keys_id:
         cn = "cn=%s" % key_id
         key_dn = DN(cn, keys_dn)
-        log.debug('deleting key metadata "%s" from LDAP', key_dn)
+        logger.debug('%s: deleting key metadata "%s" from LDAP',
+                     zone_name, key_dn)
         ldap.delete_entry(key_dn)
 
     update_keys_id = ldap_keys_id.intersection(ods_keys_id)
-    log.info('key metadata in LDAP & ODS: %s', update_keys_id)
+    logger.info('%s: key metadata in LDAP & ODS: %s',
+                zone_name, update_keys_id)
     for key_id in update_keys_id:
         ldap_key = ldap_keys[key_id]
         ods_key = ods_keys[key_id]
-        log.debug('updating key metadata "%s" in LDAP', ldap_key.dn)
+        logger.debug('%s: updating key metadata "%s" in LDAP',
+                     zone_name, ldap_key.dn)
         ldap_key.update(ods_key)
         try:
             ldap.update_entry(ldap_key)
         except ipalib.errors.EmptyModlist:
             continue
 
-def cleanup_ldap_zone(log, ldap, dns_dn, zone_name):
+def cleanup_ldap_zone(ldap, dns_dn, zone_name):
     """delete all key metadata about zone keys for single DNS zone
 
     Key material has to be synchronized elsewhere.
     Keep in mind that keys could be shared among multiple zones!"""
-    log = log.getChild("%s.%s" % (__name__, zone_name))
-    log.debug('cleaning up key metadata from zone "%s"', zone_name)
+    logger.debug('%s: cleaning up key metadata from zone "%s"',
+                 zone_name, zone_name)
 
     try:
         ldap_zone = get_ldap_zone(ldap, dns_dn, zone_name)
         ldap_keys = get_ldap_keys(ldap, ldap_zone.dn)
     except ipalib.errors.NotFound as ex:
         # zone or cn=keys container does not exist, we are done
-        log.debug(str(ex))
+        logger.debug('%s: %s', zone_name, str(ex))
         return
 
     for ldap_key in ldap_keys:
-        log.debug('deleting key metadata "%s"', ldap_key.dn)
+        logger.debug('%s: deleting key metadata "%s"', zone_name, ldap_key.dn)
         ldap.delete_entry(ldap_key)
 
 log = root_logger
@@ -643,22 +658,23 @@ log.debug('Connected')
 
 
 ### DNSSEC master: key material upload & synchronization (but not deletion)
-ldapkeydb = LdapKeyDB(log, ldap, DN(('cn', 'keys'), ('cn', 'sec'),
-                                    ipalib.api.env.container_dns,
-                                    ipalib.api.env.basedn))
+ldapkeydb = LdapKeyDB(ldap, DN(('cn', 'keys'),
+                               ('cn', 'sec'),
+                               ipalib.api.env.container_dns,
+                               ipalib.api.env.basedn))
 localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, SOFTHSM_DNSSEC_TOKEN_LABEL,
         open(paths.DNSSEC_SOFTHSM_PIN).read())
 
-ldap2master_replica_keys_sync(log, ldapkeydb, localhsm)
-master2ldap_master_keys_sync(log, ldapkeydb, localhsm)
-master2ldap_zone_keys_sync(log, ldapkeydb, localhsm)
+ldap2master_replica_keys_sync(ldapkeydb, localhsm)
+master2ldap_master_keys_sync(ldapkeydb, localhsm)
+master2ldap_zone_keys_sync(ldapkeydb, localhsm)
 
 
 ### DNSSEC master: DNSSEC key metadata upload & synchronization & deletion
 # command receive is delayed so the command will stay in socket queue until
 # the problem with LDAP server or HSM is fixed
 try:
-    cmd, conn = receive_systemd_command(log)
+    cmd, conn = receive_systemd_command()
     if len(sys.argv) != 1:
         log.critical('No additional parameters are accepted when '
                      'socket activation is used.')
@@ -703,18 +719,18 @@ try:
     if zone_name is not None:
         # only one zone should be processed
         if cmd == 'update':
-            sync_zone(log, ldap, dns_dn, zone_name)
+            sync_zone(ldap, dns_dn, zone_name)
         elif cmd == 'ldap-cleanup':
-            cleanup_ldap_zone(log, ldap, dns_dn, zone_name)
+            cleanup_ldap_zone(ldap, dns_dn, zone_name)
     else:
         # process all zones
         for zone_row in db.execute("SELECT name FROM zones"):
-            sync_zone(log, ldap, dns_dn, zone_row['name'])
+            sync_zone(ldap, dns_dn, zone_row['name'])
 
     ### DNSSEC master: DNSSEC key material purging
     # references to old key material were removed above in sync_zone()
     # so now we can purge old key material from LDAP
-    master2ldap_zone_keys_purge(log, ldapkeydb, localhsm)
+    master2ldap_zone_keys_purge(ldapkeydb, localhsm)
 
 except Exception as ex:
     msg = "ipa-ods-exporter exception: %s" % traceback.format_exc(ex)

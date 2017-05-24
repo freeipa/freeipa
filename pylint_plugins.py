@@ -75,12 +75,6 @@ fake_api_env = {'env': [
 # this is due ipaserver.rpcserver.KerberosSession where api is undefined
 fake_api = {'api': [fake_api_env] + NAMESPACE_ATTRS}
 
-_LOGGING_ATTRS = ['debug', 'info', 'warning', 'error', 'exception',
-                  'critical']
-LOGGING_ATTRS = [
-    {'log': _LOGGING_ATTRS},
-] + _LOGGING_ATTRS
-
 # 'class': ['generated', 'properties']
 ipa_class_members = {
     # Python standard library & 3rd party classes
@@ -102,9 +96,10 @@ ipa_class_members = {
         'validate_api',
         'startup_traceback',
         'verbose',
+        'debug',
         'server',
         {'domain': dir(str)},
-    ] + LOGGING_ATTRS,
+    ],
     'ipalib.errors.ACIError': [
         'info',
     ],
@@ -200,7 +195,7 @@ ipa_class_members = {
     ],
     'ipalib.plugable.API': [
         fake_api_env,
-    ] + NAMESPACE_ATTRS + LOGGING_ATTRS,
+    ] + NAMESPACE_ATTRS,
     'ipalib.plugable.Plugin': [
         'Object',
         'Method',

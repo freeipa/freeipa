@@ -751,15 +751,15 @@ def run(api):
         sys.exit(api.Backend.cli.run(argv))
     except KeyboardInterrupt:
         print('')
-        api.log.info('operation aborted')
+        logger.info('operation aborted')
     except PublicError as e:
         error = e
     except Exception as e:
-        api.log.exception('%s: %s', e.__class__.__name__, str(e))
+        logger.exception('%s: %s', e.__class__.__name__, str(e))
         error = InternalError()
     if error is not None:
         assert isinstance(error, PublicError)
-        api.log.error(error.strerror)
+        logger.error(error.strerror)
         sys.exit(error.rval)
 #+END_SRC
 

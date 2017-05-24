@@ -503,7 +503,7 @@ def check_forwarders(dns_forwarders, logger):
     for forwarder in dns_forwarders:
         logger.debug("Checking DNS server: %s", forwarder)
         try:
-            validate_dnssec_global_forwarder(forwarder, log=logger)
+            validate_dnssec_global_forwarder(forwarder)
         except DNSSECSignatureMissingError as e:
             forwarders_dnssec_valid = False
             logger.warning("DNS server %s does not support DNSSEC: %s",

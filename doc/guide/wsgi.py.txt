@@ -1,17 +1,23 @@
+import logging
+import os
+
 from ipaplatform.paths import paths
 from ipalib import api
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 api.bootstrap(context='server', confdir=paths.ETC_IPA, log=None) (ref:wsgi-app-bootstrap)
 try:
     api.finalize() (ref:wsgi-app-finalize)
 except Exception as e:
-    api.log.error('Failed to start IPA: %s' % e)
+    logger.error('Failed to start IPA: %s', e)
 else:
-    api.log.info('*** PROCESS START ***')
+    logger.info('*** PROCESS START ***')
 
     # This is the WSGI callable:
     def application(environ, start_response): (ref:wsgi-app-start)
         if not environ['wsgi.multithread']:
             return api.Backend.session(environ, start_response)
         else:
-            api.log.error("IPA does not work with the threaded MPM, use the pre-fork MPM") (ref:wsgi-app-end)
+            logger.error("IPA does not work with the threaded MPM, "
+                         "use the pre-fork MPM") (ref:wsgi-app-end)

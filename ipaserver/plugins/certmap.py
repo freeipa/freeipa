@@ -414,16 +414,15 @@ class _sssd(object):
        :raise RemoteRetrieveError: if DBus error occurs
         """
         try:
-            self.log = logger
             self._bus = dbus.SystemBus()
             self._users_obj = self._bus.get_object(
                 DBUS_SSSD_NAME, DBUS_SSSD_USERS_PATH)
             self._users_iface = dbus.Interface(
                 self._users_obj, DBUS_SSSD_USERS_IF)
         except dbus.DBusException as e:
-            self.log.error(
-                'Failed to initialize DBus interface {iface}. DBus '
-                'exception is {exc}.'.format(iface=DBUS_SSSD_USERS_IF, exc=e)
+            logger.error(
+                'Failed to initialize DBus interface %s. DBus '
+                'exception is %s.', DBUS_SSSD_USERS_IF, e
                 )
             raise errors.RemoteRetrieveError(
                 reason=_('Failed to connect to sssd over SystemBus. '
@@ -469,9 +468,9 @@ class _sssd(object):
             # exception and return an empty list
             if err_name == 'org.freedesktop.sssd.Error.NotFound':
                 return dict()
-            self.log.error(
-                'Failed to use interface {iface}. DBus '
-                'exception is {exc}.'.format(iface=DBUS_SSSD_USERS_IF, exc=e))
+            logger.error(
+                'Failed to use interface %s. DBus '
+                'exception is %s.', DBUS_SSSD_USERS_IF, e)
             raise errors.RemoteRetrieveError(
                 reason=_('Failed to find users over SystemBus. '
                          ' See details in the error_log'))

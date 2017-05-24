@@ -123,7 +123,6 @@ class Key(collections.MutableMapping):
         self._delentry = None  # indicates that object was deleted
         self.ldap = ldap
         self.ldapkeydb = ldapkeydb
-        self.log = logger.getChild(__name__)
 
     def __assert_not_deleted(self):
         assert self.entry and not self._delentry, (
@@ -197,9 +196,9 @@ class Key(collections.MutableMapping):
         assert not self.entry, (
             "Key._delete_key() called before Key.schedule_deletion()")
         assert self._delentry, "Key._delete_key() called more than once"
-        self.log.debug('deleting key id 0x%s DN %s from LDAP',
-                       hexlify(self._delentry.single_value['ipk11id']),
-                       self._delentry.dn)
+        logger.debug('deleting key id 0x%s DN %s from LDAP',
+                     hexlify(self._delentry.single_value['ipk11id']),
+                     self._delentry.dn)
         self.ldap.delete_entry(self._delentry)
         self._delentry = None
         self.ldap = None
@@ -259,10 +258,11 @@ class MasterKey(Key):
                    ipaWrappingKey=wrapping_key_uri,
                    ipaWrappingMech=wrapping_mech)
 
-        self.log.info('adding master key 0x%s wrapped with replica key 0x%s to %s',
-                hexlify(self['ipk11id']),
-                hexlify(replica_key_id),
-                entry_dn)
+        logger.info('adding master key 0x%s wrapped with replica key 0x%s to '
+                    '%s',
+                    hexlify(self['ipk11id']),
+                    hexlify(replica_key_id),
+                    entry_dn)
         self.ldap.add_entry(entry)
         if 'ipaSecretKeyRef' not in self.entry:
             self.entry['objectClass'] += ['ipaSecretKeyRefObject']
@@ -270,10 +270,9 @@ class MasterKey(Key):
 
 
 class LdapKeyDB(AbstractHSM):
-    def __init__(self, log, ldap, base_dn):
+    def __init__(self, ldap, base_dn):
         self.ldap = ldap
         self.base_dn = base_dn
-        self.log = log
         self.cache_replica_pubkeys_wrap = None
         self.cache_masterkeys = None
         self.cache_zone_keypairs = None
@@ -348,7 +347,7 @@ class LdapKeyDB(AbstractHSM):
         new_key = self._import_keys_metadata(
                 [(mkey, _ipap11helper.KEY_CLASS_SECRET_KEY)])
         self.ldap.add_entry(new_key.entry)
-        self.log.debug('imported master key metadata: %s', new_key.entry)
+        logger.debug('imported master key metadata: %s', new_key.entry)
 
     def import_zone_key(self, pubkey, pubkey_data, privkey,
             privkey_wrapped_data, wrapping_mech, master_key_id):
@@ -366,7 +365,7 @@ class LdapKeyDB(AbstractHSM):
         new_key.entry['ipaPublicKey'] = pubkey_data
 
         self.ldap.add_entry(new_key.entry)
-        self.log.debug('imported zone key id: 0x%s', hexlify(new_key['ipk11id']))
+        logger.debug('imported zone key id: 0x%s', hexlify(new_key['ipk11id']))
 
     @property
     def replica_pubkeys_wrap(self):
@@ -431,9 +430,10 @@ if __name__ == '__main__':
     ldap.gssapi_bind()
     log.debug('Connected')
 
-    ldapkeydb = LdapKeyDB(log, ldap, DN(('cn', 'keys'), ('cn', 'sec'),
-                          ipalib.api.env.container_dns,
-                          ipalib.api.env.basedn))
+    ldapkeydb = LdapKeyDB(ldap, DN(('cn', 'keys'),
+                                   ('cn', 'sec'),
+                                   ipalib.api.env.container_dns,
+                                   ipalib.api.env.basedn))
 
     print('replica public keys: CKA_WRAP = TRUE')
     print('====================================')

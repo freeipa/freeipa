@@ -54,6 +54,8 @@ from ipapython.version import VERSION, API_VERSION, DEFAULT_PLUGINS
 if six.PY3:
     unicode = str
 
+logger = logging.getLogger(__name__)
+
 # FIXME: Updated constants.TYPE_ERROR to use this clearer format from wehjit:
 TYPE_ERROR = '%s: need a %r; got a %r: %r'
 
@@ -430,9 +432,7 @@ class API(ReadOnly):
         Initialize environment variables and logging.
         """
         self.__doing('bootstrap')
-        self.log_mgr = log_mgr
-        log = log_mgr.root_logger
-        self.log = log
+        self.log = log_mgr.get_logger(self)
         self.env._bootstrap(**overrides)
         self.env._finalize_core(**dict(DEFAULT_CONFIG))
 
@@ -509,7 +509,7 @@ class API(ReadOnly):
             try:
                 os.makedirs(log_dir)
             except OSError:
-                log.error('Could not create log_dir %r', log_dir)
+                logger.error('Could not create log_dir %r', log_dir)
                 return
 
         level = logging.INFO
@@ -518,7 +518,7 @@ class API(ReadOnly):
         try:
             handler = logging.FileHandler(self.env.log)
         except IOError as e:
-            log.error('Cannot open log file %r: %s', self.env.log, e)
+            logger.error('Cannot open log file %r: %s', self.env.log, e)
             return
         handler.setLevel(level)
         handler.setFormatter(ipa_log_manager.Formatter(LOGGING_FORMAT_FILE))
@@ -645,28 +645,26 @@ class API(ReadOnly):
                 name=package_name, file=package_file
             )
 
-        self.log.debug("importing all plugin modules in %s...", package_name)
+        logger.debug("importing all plugin modules in %s...", package_name)
         modules = getattr(package, 'modules', find_modules_in_dir(package_dir))
         modules = ['.'.join((package_name, name)) for name in modules]
 
         for name in modules:
-            self.log.debug("importing plugin module %s", name)
+            logger.debug("importing plugin module %s", name)
             try:
                 module = importlib.import_module(name)
             except errors.SkipPluginModule as e:
-                self.log.debug("skipping plugin module %s: %s", name, e.reason)
+                logger.debug("skipping plugin module %s: %s", name, e.reason)
                 continue
             except Exception as e:
                 if self.env.startup_traceback:
-                    import traceback
-                    self.log.error("could not load plugin module %s\n%s", name,
-                                   traceback.format_exc())
+                    logger.exception("could not load plugin module %s", name)
                 raise
 
             try:
                 self.add_module(module)
             except errors.PluginModuleError as e:
-                self.log.debug("%s", e)
+                logger.debug("%s", e)
 
     def add_module(self, module):
         """
@@ -750,7 +748,7 @@ class API(ReadOnly):
 
         if self.env.env_confdir is not None:
             if self.env.env_confdir == self.env.confdir:
-                self.log.info(
+                logger.info(
                     "IPA_CONFDIR env sets confdir to '%s'.", self.env.confdir)
 
         for plugin in self.__plugins:

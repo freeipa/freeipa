@@ -23,20 +23,26 @@
 """
 WSGI appliction for IPA server.
 """
+import logging
+import os
+
 from ipaplatform.paths import paths
 from ipalib import api
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 api.bootstrap(context='server', confdir=paths.ETC_IPA, log=None)
 try:
     api.finalize()
 except Exception as e:
-    api.log.error('Failed to start IPA: %s' % e)
+    logger.error('Failed to start IPA: %s', e)
 else:
-    api.log.info('*** PROCESS START ***')
+    logger.info('*** PROCESS START ***')
 
     # This is the WSGI callable:
     def application(environ, start_response):
         if not environ['wsgi.multithread']:
             return api.Backend.wsgi_dispatch(environ, start_response)
         else:
-            api.log.error("IPA does not work with the threaded MPM, use the pre-fork MPM")
+            logger.error("IPA does not work with the threaded MPM, "
+                         "use the pre-fork MPM")

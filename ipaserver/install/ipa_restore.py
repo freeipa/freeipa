@@ -109,7 +109,6 @@ class RemoveRUVParser(ldif.LDIFParser):
     def __init__(self, input_file, writer):
         ldif.LDIFParser.__init__(self, input_file)
         self.writer = writer
-        self.log = logger
 
     def handle(self, dn, entry):
         objectclass = None
@@ -125,7 +124,7 @@ class RemoveRUVParser(ldif.LDIFParser):
         if (objectclass and nsuniqueid and
             'nstombstone' in objectclass and
             'ffffffff-ffffffff-ffffffff-ffffffff' in nsuniqueid):
-            self.log.debug("Removing RUV entry %s", dn)
+            logger.debug("Removing RUV entry %s", dn)
             return
 
         self.writer.unparse(dn, entry)

@@ -22,6 +22,7 @@
 # Make sure we only run this module at the server where samba4-python
 # package is installed to avoid issues with unavailable modules
 
+import logging
 import re
 import time
 
@@ -75,6 +76,8 @@ Classes to manage trust joins using DCE-RPC calls
 The code in this module relies heavily on samba4-python package
 and Samba4 python bindings.
 """)
+
+logger = logging.getLogger(__name__)
 
 # Both constants can be used as masks against trust direction
 # because bi-directional has two lower bits set.
@@ -257,8 +260,8 @@ class DomainValidator(object):
                 except KeyError as exc:
                     # Some piece of trusted domain info in LDAP is missing
                     # Skip the domain, but leave log entry for investigation
-                    api.log.warning("Trusted domain '%s' entry misses an "
-                                    "attribute: %s", e.dn, exc)
+                    logger.warning("Trusted domain '%s' entry misses an "
+                                   "attribute: %s", e.dn, exc)
                     continue
 
                 result[t_partner] = (fname_norm,

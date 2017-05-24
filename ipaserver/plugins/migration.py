@@ -193,8 +193,9 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
         # See if the gidNumber at least points to a valid group on the remote
         # server.
         if entry_attrs['gidnumber'][0] in invalid_gids:
-            api.log.warning('GID number %s of migrated user %s does not point to a known group.' \
-                         % (entry_attrs['gidnumber'][0], pkey))
+            logger.warning('GID number %s of migrated user %s does not point '
+                           'to a known group.',
+                           entry_attrs['gidnumber'][0], pkey)
         elif entry_attrs['gidnumber'][0] not in valid_gids:
             try:
                 remote_entry = ds_ldap.find_entry_by_attr(
@@ -203,15 +204,18 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                 )
                 valid_gids.add(entry_attrs['gidnumber'][0])
             except errors.NotFound:
-                api.log.warning('GID number %s of migrated user %s does not point to a known group.' \
-                             % (entry_attrs['gidnumber'][0], pkey))
+                logger.warning('GID number %s of migrated user %s does not '
+                               'point to a known group.',
+                               entry_attrs['gidnumber'][0], pkey)
                 invalid_gids.add(entry_attrs['gidnumber'][0])
             except errors.SingleMatchExpected as e:
                 # GID number matched more groups, this should not happen
-                api.log.warning('GID number %s of migrated user %s should match 1 group, but it matched %d groups' \
-                             % (entry_attrs['gidnumber'][0], pkey, e.found))
+                logger.warning('GID number %s of migrated user %s should '
+                               'match 1 group, but it matched %d groups',
+                               entry_attrs['gidnumber'][0], pkey, e.found)
             except errors.LimitsExceeded as e:
-                api.log.warning('Search limit exceeded searching for GID %s' % entry_attrs['gidnumber'][0])
+                logger.warning('Search limit exceeded searching for GID %s',
+                               entry_attrs['gidnumber'][0])
 
     # We don't want to create a UPG so set the magic value in description
     # to let the DS plugin know.
@@ -254,19 +258,22 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                     # value is not DN instance, the automatic encoding may have
                     # failed due to missing schema or the remote attribute type OID was
                     # not detected as DN type. Try to work this around
-                    api.log.debug('%s: value %s of type %s in attribute %s is not a DN'
-                        ', convert it', pkey, value, type(value), attr)
+                    logger.debug('%s: value %s of type %s in attribute %s is '
+                                 'not a DN, convert it',
+                                 pkey, value, type(value), attr)
                     try:
                         value = DN(value)
                     except ValueError as e:
-                        api.log.warning('%s: skipping normalization of value %s of type %s '
-                            'in attribute %s which could not be converted to DN: %s',
-                                pkey, value, type(value), attr, e)
+                        logger.warning('%s: skipping normalization of value '
+                                       '%s of type %s in attribute %s which '
+                                       'could not be converted to DN: %s',
+                                       pkey, value, type(value), attr, e)
                         continue
                 try:
                     remote_entry = ds_ldap.get_entry(value, [api.Object.user.primary_key.name, api.Object.group.primary_key.name])
                 except errors.NotFound:
-                    api.log.warning('%s: attribute %s refers to non-existent entry %s' % (pkey, attr, value))
+                    logger.warning('%s: attribute %s refers to non-existent '
+                                   'entry %s', pkey, attr, value)
                     continue
                 if value.endswith(search_bases['user']):
                     primary_key = api.Object.user.primary_key.name
@@ -275,14 +282,18 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                     primary_key = api.Object.group.primary_key.name
                     container = api.env.container_group
                 else:
-                    api.log.warning('%s: value %s in attribute %s does not belong into any known container' % (pkey, value, attr))
+                    logger.warning('%s: value %s in attribute %s does not '
+                                   'belong into any known container',
+                                   pkey, value, attr)
                     continue
 
                 if not remote_entry.get(primary_key):
-                    api.log.warning('%s: there is no primary key %s to migrate for %s' % (pkey, primary_key, attr))
+                    logger.warning('%s: there is no primary key %s to migrate '
+                                   'for %s', pkey, primary_key, attr)
                     continue
 
-                api.log.debug('converting DN value %s for %s in %s' % (value, attr, dn))
+                logger.debug('converting DN value %s for %s in %s',
+                             value, attr, dn)
                 rdnval = remote_entry[primary_key][0].lower()
                 entry_attrs[attr][ind] = DN((primary_key, rdnval), container, api.env.basedn)
 
@@ -318,7 +329,7 @@ def _update_default_group(ldap, ctx, force):
                 searchfilter, [''], DN(api.env.container_user, api.env.basedn),
                 scope=ldap.SCOPE_SUBTREE, time_limit=-1, size_limit=-1)
         except errors.NotFound:
-            api.log.debug('All users have default group set')
+            logger.debug('All users have default group set')
             return
 
         member_dns = [m.dn for m in result]
@@ -327,14 +338,14 @@ def _update_default_group(ldap, ctx, force):
             with ldap.error_handler():
                 ldap.conn.modify_s(str(group_dn), modlist)
         except errors.DatabaseError as e:
-            api.log.error('Adding new members to default group failed: %s \n'
-                          'members: %s', e, ','.join(member_dns))
+            logger.error('Adding new members to default group failed: %s \n'
+                         'members: %s', e, ','.join(member_dns))
 
         e = datetime.datetime.now()
         d = e - s
         mode = " (forced)" if force else ""
-        api.log.info('Adding %d users to group%s duration %s',
-                      len(member_dns), mode, d)
+        logger.info('Adding %d users to group%s duration %s',
+                    len(member_dns), mode, d)
 
 # GROUP MIGRATION CALLBACKS AND VARS
 
@@ -352,24 +363,25 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
             except ValueError as e:
                 # This should be impossible unless the remote server
                 # doesn't enforce syntax checking.
-                api.log.error('Malformed DN %s: %s'  % (m, e))
+                logger.error('Malformed DN %s: %s', m, e)
                 continue
             try:
                 rdnval = m[0].value
             except IndexError:
-                api.log.error('Malformed DN %s has no RDN?' % m)
+                logger.error('Malformed DN %s has no RDN?', m)
                 continue
 
             if m.endswith(search_bases['user']):
-                api.log.debug('migrating %s user %s', member_attr, m)
+                logger.debug('migrating %s user %s', member_attr, m)
                 m = DN((api.Object.user.primary_key.name, rdnval),
                        api.env.container_user, api.env.basedn)
             elif m.endswith(search_bases['group']):
-                api.log.debug('migrating %s group %s', member_attr, m)
+                logger.debug('migrating %s group %s', member_attr, m)
                 m = DN((api.Object.group.primary_key.name, rdnval),
                        api.env.container_group, api.env.basedn)
             else:
-                api.log.error('entry %s does not belong into any known container' % m)
+                logger.error('entry %s does not belong into any known '
+                             'container', m)
                 continue
 
             new_members.append(m)
@@ -861,8 +873,10 @@ migration process might be incomplete\n''')
                 total_dur = e - migration_start
                 migrate_cnt += 1
                 if migrate_cnt > 0 and migrate_cnt % 100 == 0:
-                    api.log.info("%d %ss migrated. %s elapsed." % (migrate_cnt, ldap_obj_name, total_dur))
-                api.log.debug("%d %ss migrated, duration: %s (total %s)" % (migrate_cnt, ldap_obj_name, d, total_dur))
+                    logger.info("%d %ss migrated. %s elapsed.",
+                                migrate_cnt, ldap_obj_name, total_dur)
+                logger.debug("%d %ss migrated, duration: %s (total %s)",
+                             migrate_cnt, ldap_obj_name, d, total_dur)
 
         if 'def_group_dn' in context:
             _update_default_group(ldap, context, True)
