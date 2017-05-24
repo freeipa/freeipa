@@ -1,12 +1,13 @@
 # Copyright (C) 2015 FreeIPa Project Contributors, see 'COPYING' for license.
 
+import logging
+
 from ipaserver.secrets.kem import IPAKEMKeys, KEMLdap
 from ipaserver.secrets.client import CustodiaClient
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants
 from ipaserver.install.service import SimpleServiceInstance
 from ipapython import ipautil
-from ipapython.ipa_log_manager import root_logger
 from ipapython.certdb import NSSDatabase
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
@@ -19,6 +20,8 @@ import stat
 import tempfile
 import time
 import pwd
+
+logger = logging.getLogger(__name__)
 
 
 class CustodiaInstance(SimpleServiceInstance):
@@ -64,19 +67,19 @@ class CustodiaInstance(SimpleServiceInstance):
 
     def upgrade_instance(self):
         if not sysupgrade.get_upgrade_state("custodia", "installed"):
-            root_logger.info("Custodia service is being configured")
+            logger.info("Custodia service is being configured")
             self.create_instance()
         else:
             old_config = open(self.config_file).read()
             self.__config_file()
             new_config = open(self.config_file).read()
             if new_config != old_config:
-                root_logger.info("Restarting Custodia")
+                logger.info("Restarting Custodia")
                 self.restart()
 
         mode = os.stat(self.server_keys).st_mode
         if stat.S_IMODE(mode) != 0o600:
-            root_logger.info("Secure server.keys mode")
+            logger.info("Secure server.keys mode")
             os.chmod(self.server_keys, 0o600)
 
     def create_replica(self, master_host_name):
@@ -118,8 +121,8 @@ class CustodiaInstance(SimpleServiceInstance):
     def __wait_keys(self, host, timeout=300):
         ldap_uri = 'ldap://%s' % host
         deadline = int(time.time()) + timeout
-        root_logger.info("Waiting up to {} seconds to see our keys "
-                         "appear on host: {}".format(timeout, host))
+        logger.info("Waiting up to %s seconds to see our keys "
+                    "appear on host: %s", timeout, host)
 
         konn = KEMLdap(ldap_uri)
         saved_e = None
@@ -129,8 +132,8 @@ class CustodiaInstance(SimpleServiceInstance):
             except Exception as e:
                 # log only once for the same error
                 if not isinstance(e, type(saved_e)):
-                    root_logger.debug(
-                        "Transient error getting keys: '{err}'".format(err=e))
+                    logger.debug(
+                        "Transient error getting keys: '%s'", e)
                     saved_e = e
                 if int(time.time()) > deadline:
                     raise RuntimeError("Timed out trying to obtain keys.")

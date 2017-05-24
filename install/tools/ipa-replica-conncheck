@@ -20,6 +20,8 @@
 
 from __future__ import print_function
 
+import logging
+
 import ipaclient.install.ipachangeconf
 from ipapython.config import IPAOptionParser
 from ipapython.dn import DN
@@ -30,7 +32,7 @@ from ipaserver.install import installutils
 # pylint: disable=deprecated-module
 from optparse import OptionGroup, OptionValueError
 # pylint: enable=deprecated-module
-from ipapython.ipa_log_manager import root_logger, standard_logging_setup
+from ipapython.ipa_log_manager import standard_logging_setup
 import copy
 import sys
 import os
@@ -46,6 +48,8 @@ import distutils.spawn
 from ipaplatform.paths import paths
 import gssapi
 from cryptography.hazmat.primitives import serialization
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 CONNECT_TIMEOUT = 5
 RESPONDER = None
@@ -266,8 +270,8 @@ def configure_krb5_conf(realm, kdc, filename):
     appopts = [{'name':'pam', 'type':'subsection', 'value':pamopts}]
     opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
 
-    root_logger.debug("Writing temporary Kerberos configuration to %s:\n%s"
-                              % (filename, krbconf.dump(opts)))
+    logger.debug("Writing temporary Kerberos configuration to %s:\n%s",
+                 filename, krbconf.dump(opts))
 
     krbconf.newConf(filename, opts)
 
@@ -292,13 +296,13 @@ class PortResponder(threading.Thread):
         self.ports_open_cond = threading.Condition()
 
     def run(self):
-        root_logger.debug('Starting listening thread.')
+        logger.debug('Starting listening thread.')
 
         for port in self.ports:
             self._bind_to_port(port.port, port.port_type)
         with self.ports_open_cond:
             self.ports_opened = True
-            root_logger.debug('Ports opened, notify original thread')
+            logger.debug('Ports opened, notify original thread')
             self.ports_open_cond.notify()
 
         while not self._is_closing():
@@ -312,8 +316,7 @@ class PortResponder(threading.Thread):
             port = sock.getsockname()[1]
             proto = PortResponder.PROTO[sock.type]
             sock.close()
-            root_logger.debug('%(port)d %(proto)s: Stopped listening' %
-                              dict(port=port, proto=proto))
+            logger.debug('%d %s: Stopped listening', port, proto)
 
     def _is_closing(self):
         with self._close_lock:
@@ -343,12 +346,10 @@ class PortResponder(threading.Thread):
                 # connections. Thus a backlog size of at least 1 is needed.
                 sock.listen(1)
 
-            root_logger.debug('%(port)d %(proto)s: Started listening' %
-                              dict(port=port, proto=proto))
+            logger.debug('%d %s: Started listening', port, proto)
         except socket.error as e:
-            root_logger.warning('%(port)d %(proto)s: Failed to bind' %
-                                dict(port=port, proto=proto))
-            root_logger.debug(traceback.format_exc(e))
+            logger.warning('%d %s: Failed to bind', port, proto)
+            logger.debug("%s", traceback.format_exc(e))
         else:
             self._sockets.append(sock)
 
@@ -358,18 +359,16 @@ class PortResponder(threading.Thread):
             connection, addr = sock.accept()
             try:
                 connection.sendall(self.responder_data)
-                root_logger.debug('%(port)d tcp: Responded to %(addr)s' %
-                                  dict(port=port, addr=addr[0]))
+                logger.debug('%d tcp: Responded to %s', port, addr[0])
             finally:
                 connection.close()
         elif sock.type == socket.SOCK_DGRAM:
             _data, addr = sock.recvfrom(1)
             sock.sendto(self.responder_data, addr)
-            root_logger.debug('%(port)d udp: Responded to %(addr)s' %
-                              dict(port=port, addr=addr[0]))
+            logger.debug('%d udp: Responded to %s', port, addr[0])
 
     def stop(self):
-        root_logger.debug('Stopping listening thread.')
+        logger.debug('Stopping listening thread.')
 
         with self._close_lock:
             self._close = True
@@ -394,14 +393,14 @@ def port_check(host, port_list):
             else:
                 ports_failed.append(port)
                 result = "FAILED"
-        root_logger.info("   %s (%d): %s" % (port.description, port.port, result))
+        logger.info("   %s (%d): %s", port.description, port.port, result)
 
     if ports_udp_warning:
-        root_logger.warning(
+        logger.warning(
             ("The following UDP ports could not be verified as open: %s\n"
              "This can happen if they are already bound to an application\n"
-             "and ipa-replica-conncheck cannot attach own UDP responder.")
-            % ", ".join(str(port.port) for port in ports_udp_warning))
+             "and ipa-replica-conncheck cannot attach own UDP responder."),
+            ", ".join(str(port.port) for port in ports_udp_warning))
 
     if ports_failed:
         msg_ports = []
@@ -417,9 +416,9 @@ def main():
     safe_options, options = parse_options()
 
     logging_setup(options)
-    root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
-    root_logger.debug("missing options might be asked for interactively later\n")
-    root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
+    logger.debug('%s was invoked with options: %s', sys.argv[0], safe_options)
+    logger.debug("missing options might be asked for interactively later\n")
+    logger.debug('IPA version %s', version.VENDOR_VERSION)
 
     signal.signal(signal.SIGTERM, sigterm_handler)
 
@@ -431,59 +430,59 @@ def main():
                                           "PKI-CA: Directory Service port"))
 
     if options.replica:
-        root_logger.info("Check connection from master to remote replica '%s':"
-                         % options.replica)
+        logger.info("Check connection from master to remote replica '%s':",
+                    options.replica)
         port_check(options.replica, required_ports)
-        root_logger.info("\nConnection from master to replica is OK.")
+        logger.info("\nConnection from master to replica is OK.")
 
     # kinit to foreign master
     if options.master:
         # check ports on master first
-        root_logger.info("Check connection from replica to remote master '%s':"
-                         % options.master)
+        logger.info("Check connection from replica to remote master '%s':",
+                    options.master)
         tcp_ports = [ port for port in required_ports if port.port_type == SOCK_STREAM ]
         udp_ports = [ port for port in required_ports if port.port_type == SOCK_DGRAM ]
         port_check(options.master, tcp_ports)
 
         if udp_ports:
-            root_logger.info("\nThe following list of ports use UDP protocol"
-                             "and would need to be\n"
-                             "checked manually:")
+            logger.info("\nThe following list of ports use UDP protocol"
+                        "and would need to be\n"
+                        "checked manually:")
             for port in udp_ports:
                 result = "SKIPPED"
-                root_logger.info("   %s (%d): %s"
-                                 % (port.description, port.port, result))
+                logger.info("   %s (%d): %s",
+                            port.description, port.port, result)
 
-        root_logger.info("\nConnection from replica to master is OK.")
+        logger.info("\nConnection from replica to master is OK.")
 
         # create listeners
-        root_logger.info("Start listening on required ports for remote "
-                         "master check")
+        logger.info("Start listening on required ports for remote "
+                    "master check")
 
         RESPONDER = PortResponder(required_ports)
         RESPONDER.start()
 
         with RESPONDER.ports_open_cond:
             if not RESPONDER.ports_opened:
-                root_logger.debug('Original thread stopped')
+                logger.debug('Original thread stopped')
                 RESPONDER.ports_open_cond.wait()
-                root_logger.debug('Original thread resumed')
+                logger.debug('Original thread resumed')
 
         remote_check_opts = ['--replica %s' % options.hostname]
 
         if options.auto_master_check:
-            root_logger.info("Get credentials to log in to remote master")
+            logger.info("Get credentials to log in to remote master")
             cred = None
             if options.principal is None:
                 # Check if ccache is available
                 try:
-                    root_logger.debug('KRB5CCNAME set to %s' %
-                                      os.environ.get('KRB5CCNAME', None))
+                    logger.debug('KRB5CCNAME set to %s',
+                                 os.environ.get('KRB5CCNAME', None))
                     # get default creds, will raise if none found
                     cred = gssapi.creds.Credentials()
                     principal = str(cred.name)
                 except gssapi.raw.misc.GSSError as e:
-                    root_logger.debug('Failed to find default ccache: %s' % e)
+                    logger.debug('Failed to find default ccache: %s', e)
                     # Use admin as the default principal
                     principal = "admin"
             else:
@@ -529,7 +528,7 @@ def main():
                                         result.error_output)
 
             try:
-                root_logger.info("Check RPC connection to remote master")
+                logger.info("Check RPC connection to remote master")
 
                 xmlrpc_uri = ('https://%s/ipa/xml' %
                               ipautil.format_netloc(options.master))
@@ -561,11 +560,11 @@ def main():
                         api.Backend.rpcclient.connect()
                         api.Command.ping()
                     except Exception as e:
-                        root_logger.info(
-                            "Could not connect to the remote host: %s" % e)
+                        logger.info(
+                            "Could not connect to the remote host: %s", e)
                         raise
 
-                    root_logger.info("Execute check on remote master")
+                    logger.info("Execute check on remote master")
                     try:
                         result = api.Backend.rpcclient.forward(
                             'server_conncheck',
@@ -574,16 +573,16 @@ def main():
                             version=u'2.162',
                         )
                     except (errors.CommandError, errors.NetworkError) as e:
-                        root_logger.info(
+                        logger.info(
                             "Remote master does not support check over RPC: "
-                            "%s" % e)
+                            "%s", e)
                         raise
                     except errors.PublicError as e:
                         returncode = 1
                         stderr = e
                     else:
                         for message in result['messages']:
-                            root_logger.info(message['message'])
+                            logger.info('%s', message['message'])
                         returncode = int(not result['result'])
                         stderr = ("ipa-replica-conncheck returned non-zero "
                                   "exit code")
@@ -591,46 +590,46 @@ def main():
                         if api.Backend.rpcclient.isconnected():
                             api.Backend.rpcclient.disconnect()
             except Exception:
-                root_logger.info("Retrying using SSH...")
+                logger.info("Retrying using SSH...")
 
                 # Ticket 5812 Always qualify requests for admin
                 user = principal
                 try:
                     ssh = SshExec(user, options.master)
                 except RuntimeError as e:
-                    root_logger.warning("WARNING: %s, skipping ssh test" % e)
+                    logger.warning("WARNING: %s, skipping ssh test", e)
                     return 0
 
-                root_logger.info("Check SSH connection to remote master")
+                logger.info("Check SSH connection to remote master")
                 result = ssh('echo OK', verbose=True)
                 if result.returncode != 0:
-                    root_logger.debug(result.error_output)
+                    logger.debug('%s', result.error_output)
                     raise RuntimeError(
                         'Could not SSH to remote host.\n'
                         'See /var/log/ipareplica-conncheck.log for more '
                         'information.')
 
-                root_logger.info("Execute check on remote master")
+                logger.info("Execute check on remote master")
                 result = ssh(
                     "/usr/sbin/ipa-replica-conncheck " +
                         " ".join(remote_check_opts))
                 returncode = result.returncode
                 stderr = result.error_output
-                root_logger.info(result.output)
+                logger.info('%s', result.output)
             if returncode != 0:
                 raise RuntimeError(
                     "Remote master check failed with following "
                     "error message(s):\n%s" % stderr)
         else:
             # wait until user  test is ready
-            root_logger.info(
+            logger.info(
                 "Listeners are started. Use CTRL+C to terminate the listening "
                 "part after the test.\n\n"
                 "Please run the following command on remote master:\n"
-                "/usr/sbin/ipa-replica-conncheck {opts}".format(
-                opts=" ".join(remote_check_opts)))
+                "/usr/sbin/ipa-replica-conncheck %s",
+                " ".join(remote_check_opts))
             time.sleep(3600)
-            root_logger.info(
+            logger.info(
                 "Connection check timeout: terminating listening program")
 
 
@@ -638,10 +637,10 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt:
-        root_logger.info("\nCleaning up...")
+        logger.info("\nCleaning up...")
         sys.exit(1)
     except RuntimeError as e:
-        root_logger.error('ERROR: {ex}'.format(ex=e))
+        logger.error('ERROR: %s', e)
         sys.exit(1)
     finally:
         if RESPONDER is not None:

@@ -20,6 +20,7 @@
 
 from __future__ import print_function
 
+import logging
 import sys
 import os
 
@@ -41,10 +42,12 @@ from ipaserver.install import opendnssecinstance, dnskeysyncinstance
 from ipapython import version, ipaldap
 from ipalib import api, errors
 from ipalib.util import has_managed_topology, verify_host_resolvable
-from ipapython.ipa_log_manager import root_logger, standard_logging_setup
+from ipapython.ipa_log_manager import standard_logging_setup
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
 from ipaplatform.paths import paths
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 # dict of command name and tuples of min/max num of args needed
 commands = {
@@ -371,7 +374,7 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False):
         else:
             thisrepl = replication.ReplicationManager(realm, host, dirman_passwd)
     except Exception as e:
-        root_logger.debug(traceback.format_exc())
+        logger.debug("%s", traceback.format_exc())
         raise RuntimeError("Failed to connect to server {host}: {err}"
                            .format(host=host, err=e))
 
@@ -381,7 +384,7 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False):
             thisrepl.db_suffix, thisrepl.conn.SCOPE_SUBTREE, search_filter,
             ['nsds50ruv'])
     except errors.NotFound:
-        root_logger.debug(traceback.format_exc())
+        logger.debug("%s", traceback.format_exc())
         raise NoRUVsFound("No RUV records found.")
 
     servers = []
@@ -418,7 +421,7 @@ def get_ruv_both_suffixes(realm, host, dirman_passwd, verbose, nolookup=False):
             fail_gracefully = False
             if verbose:
                 print(err)
-        root_logger.debug(err)
+        logger.debug('%s', err)
     try:
         ruvs['domain'] = get_ruv(realm, host, dirman_passwd, nolookup)
     except (NoRUVsFound, RuntimeError) as e:
@@ -428,7 +431,7 @@ def get_ruv_both_suffixes(realm, host, dirman_passwd, verbose, nolookup=False):
                 raise
             if verbose:
                 print(err)
-        root_logger.debug(err)
+        logger.debug('%s', err)
 
     if not ruvs.keys():
         raise NoRUVsFound("No RUV records found.")
@@ -1091,10 +1094,11 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
 
     if options.winsync:
         if not options.binddn or not options.bindpw or not options.cacert or not options.passsync:
-            root_logger.error("The arguments --binddn, --bindpw, --passsync and --cacert are required to create a winsync agreement")
+            logger.error("The arguments --binddn, --bindpw, --passsync and "
+                         "--cacert are required to create a winsync agreement")
             sys.exit(1)
         if os.getegid() != 0:
-            root_logger.error("winsync agreements need to be created as root")
+            logger.error("winsync agreements need to be created as root")
             sys.exit(1)
     elif has_managed_topology(api):
         exit_on_managed_topology("Creation of IPA replication agreement")

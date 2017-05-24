@@ -21,6 +21,7 @@
 
 from __future__ import print_function
 
+import logging
 import os
 import sys
 
@@ -33,9 +34,11 @@ from ipalib import api
 from ipaplatform.paths import paths
 from ipapython import ipautil
 from ipapython.config import IPAOptionParser
-from ipapython.ipa_log_manager import standard_logging_setup, root_logger
+from ipapython.ipa_log_manager import standard_logging_setup
 
 from ipaserver.install import dns as dns_installer
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 log_file_name = paths.IPASERVER_INSTALL_LOG
 
@@ -127,9 +130,9 @@ def main():
     standard_logging_setup(log_file_name, debug=options.debug, filemode='a')
     print("\nThe log file for this installation can be found in %s" % log_file_name)
 
-    root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
-    root_logger.debug("missing options might be asked for interactively later\n")
-    root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
+    logger.debug('%s was invoked with options: %s', sys.argv[0], safe_options)
+    logger.debug("missing options might be asked for interactively later\n")
+    logger.debug('IPA version %s', version.VENDOR_VERSION)
 
     installutils.check_server_configuration()
 

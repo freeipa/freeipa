@@ -26,7 +26,6 @@ import six
 
 from ipapython.version import API_VERSION
 from ipapython.ipautil import APIVersion
-from ipapython.ipa_log_manager import root_logger
 from ipalib.base import NameSpace
 from ipalib.plugable import Plugin, APINameSpace
 from ipalib.parameters import create_param, Param, Str, Flag
@@ -1007,7 +1006,7 @@ class Command(HasParam):
         if self.msg_summary:
             return self.msg_summary % output
 
-    def log_messages(self, output, logger):
+    def log_messages(self, output):
         logger_functions = dict(
             debug=logger.debug,
             info=logger.info,
@@ -1040,7 +1039,7 @@ class Command(HasParam):
 
         rv = 0
 
-        self.log_messages(output, root_logger)
+        self.log_messages(output)
 
         order = [p.name for p in self.output_params()]
         if options.get('all', False):

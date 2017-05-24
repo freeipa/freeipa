@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 import sys
 import os
 import pwd
@@ -30,12 +31,12 @@ import six
 from ipalib.install import certstore, sysrestore
 from ipapython import ipautil
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger
 from ipapython import kerberos
 from ipalib import api, errors
 from ipaplatform import services
 from ipaplatform.paths import paths
 
+logger = logging.getLogger(__name__)
 
 if six.PY3:
     unicode = str
@@ -60,7 +61,7 @@ SERVICE_LIST = {
 }
 
 def print_msg(message, output_fd=sys.stdout):
-    root_logger.debug(message)
+    logger.debug("%s", message)
     output_fd.write(message)
     output_fd.write("\n")
     output_fd.flush()
@@ -184,7 +185,7 @@ def set_service_entry_config(name, fqdn, config_values,
         existing_values = entry.get('ipaConfigString', [])
         for value in config_values:
             if case_insensitive_attr_has_value(existing_values, value):
-                root_logger.debug(
+                logger.debug(
                     "service %s: config string %s already set", name, value)
 
             entry.setdefault('ipaConfigString', []).append(value)
@@ -192,15 +193,15 @@ def set_service_entry_config(name, fqdn, config_values,
         try:
             api.Backend.ldap2.update_entry(entry)
         except errors.EmptyModlist:
-            root_logger.debug(
+            logger.debug(
                 "service %s has already enabled config values %s", name,
                 config_values)
             return
         except:
-            root_logger.debug("failed to set service %s config values", name)
+            logger.debug("failed to set service %s config values", name)
             raise
 
-        root_logger.debug("service %s has all config values set", name)
+        logger.debug("service %s has all config values set", name)
         return
 
     entry = api.Backend.ldap2.make_entry(
@@ -213,7 +214,7 @@ def set_service_entry_config(name, fqdn, config_values,
     try:
         api.Backend.ldap2.add_entry(entry)
     except (errors.DuplicateEntry) as e:
-        root_logger.debug("failed to add service entry %s", name)
+        logger.debug("failed to add service entry %s", name)
         raise e
 
 
@@ -307,7 +308,7 @@ class Service(object):
             try:
                 ipautil.run(args, nolog=nologlist)
             except ipautil.CalledProcessError as e:
-                root_logger.critical("Failed to load %s: %s" % (ldif, str(e)))
+                logger.critical("Failed to load %s: %s", ldif, str(e))
                 if raise_on_err:
                     raise
         finally:
@@ -373,7 +374,8 @@ class Service(object):
         try:
             api.Backend.ldap2.update_entry(entry)
         except Exception as e:
-            root_logger.critical("Could not add certificate to service %s entry: %s" % (self.principal, str(e)))
+            logger.critical("Could not add certificate to service %s entry: "
+                            "%s", self.principal, str(e))
 
     def import_ca_certs(self, db, ca_is_configured, conn=None):
         if conn is None:
@@ -494,7 +496,7 @@ class Service(object):
             method()
             e = datetime.datetime.now()
             d = e - s
-            root_logger.debug("  duration: %d seconds" % d.seconds)
+            logger.debug("  duration: %d seconds", d.seconds)
 
         step = 0
         steps_iter = iter(self.steps)
@@ -507,7 +509,7 @@ class Service(object):
             if not (isinstance(e, SystemExit) and
                     e.code == 0):  # pylint: disable=no-member
                 # show the traceback, so it's not lost if cleanup method fails
-                root_logger.debug("%s" % traceback.format_exc())
+                logger.debug("%s", traceback.format_exc())
                 self.print_msg('  [error] %s: %s' % (type(e).__name__, e))
 
                 # run through remaining methods marked run_after_failure
@@ -551,7 +553,7 @@ class Service(object):
                 base_dn=entry_dn,
                 scope=api.Backend.ldap2.SCOPE_BASE)
         except errors.NotFound:
-            root_logger.debug("service %s startup entry already disabled", name)
+            logger.debug("service %s startup entry already disabled", name)
             return
 
         assert len(entries) == 1  # only one entry is expected
@@ -568,10 +570,10 @@ class Service(object):
         except errors.EmptyModlist:
             pass
         except:
-            root_logger.debug("failed to disable service %s startup entry", name)
+            logger.debug("failed to disable service %s startup entry", name)
             raise
 
-        root_logger.debug("service %s startup entry disabled", name)
+        logger.debug("service %s startup entry disabled", name)
 
     def ldap_remove_service_container(self, name, fqdn, ldap_suffix):
         entry_dn = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'),
@@ -579,9 +581,9 @@ class Service(object):
         try:
             api.Backend.ldap2.delete_entry(entry_dn)
         except errors.NotFound:
-            root_logger.debug("service %s container already removed", name)
+            logger.debug("service %s container already removed", name)
         else:
-            root_logger.debug("service %s container sucessfully removed", name)
+            logger.debug("service %s container sucessfully removed", name)
 
     def _add_service_principal(self):
         try:

@@ -2,6 +2,7 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
+import logging
 import os
 import pwd
 import grp
@@ -12,7 +13,6 @@ from subprocess import CalledProcessError
 from ipalib.install import sysrestore
 from ipaserver.install import service
 from ipaserver.install import installutils
-from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipapython import ipautil
 from ipaplatform import services
@@ -21,6 +21,8 @@ from ipaplatform.paths import paths
 from ipalib import errors, api
 from ipaserver import p11helper
 from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
+
+logger = logging.getLogger(__name__)
 
 KEYMASTER = u'dnssecKeyMaster'
 
@@ -139,7 +141,7 @@ class OpenDNSSECInstance(service.Service):
             self.ldap_enable('DNSSEC', self.fqdn, None,
                              self.suffix, self.extra_config)
         except errors.DuplicateEntry:
-            root_logger.error("DNSSEC service already exists")
+            logger.error("DNSSEC service already exists")
 
         # add the KEYMASTER identifier into ipaConfigString
         # this is needed for the re-enabled DNSSEC master
@@ -148,7 +150,7 @@ class OpenDNSSECInstance(service.Service):
         try:
             entry = api.Backend.ldap2.get_entry(dn, ['ipaConfigString'])
         except errors.NotFound as e:
-            root_logger.error(
+            logger.error(
                 "DNSSEC service entry not found in the LDAP (%s)", e)
         else:
             config = entry.setdefault('ipaConfigString', [])
@@ -240,11 +242,11 @@ class OpenDNSSECInstance(service.Service):
             SOFTHSM_DNSSEC_TOKEN_LABEL, pin, paths.LIBSOFTHSM2_SO)
         try:
             # generate master key
-            root_logger.debug("Creating master key")
+            logger.debug("Creating master key")
             p11helper.generate_master_key(p11)
 
             # change tokens mod/owner
-            root_logger.debug("Changing ownership of token files")
+            logger.debug("Changing ownership of token files")
             for (root, dirs, files) in os.walk(paths.DNSSEC_TOKENS_DIR):
                 for directory in dirs:
                     dir_path = os.path.join(root, directory)
@@ -261,7 +263,7 @@ class OpenDNSSECInstance(service.Service):
     def __setup_dnssec(self):
         # run once only
         if self.get_state("kasp_db_configured") and not self.kasp_db_file:
-            root_logger.debug("Already configured, skipping step")
+            logger.debug("Already configured, skipping step")
             return
 
         self.backup_state("kasp_db_configured", True)
@@ -344,18 +346,18 @@ class OpenDNSSECInstance(service.Service):
                 self.print_msg("Exporting DNSSEC data before uninstallation")
                 ipautil.run(cmd, runas=constants.ODS_USER)
             except CalledProcessError:
-                root_logger.error("DNSSEC data export failed")
+                logger.error("DNSSEC data export failed")
 
             try:
                 shutil.copy(paths.OPENDNSSEC_KASP_DB,
                             paths.IPA_KASP_DB_BACKUP)
             except IOError as e:
-                root_logger.error(
+                logger.error(
                     "Unable to backup OpenDNSSEC database %s, "
                     "restore will be skipped: %s", paths.OPENDNSSEC_KASP_DB, e)
             else:
-                root_logger.info("OpenDNSSEC database backed up in %s",
-                                 paths.IPA_KASP_DB_BACKUP)
+                logger.info("OpenDNSSEC database backed up in %s",
+                            paths.IPA_KASP_DB_BACKUP)
                 # restore OpenDNSSEC's KASP DB only if backup succeeded
                 # removing the file without backup could totally break DNSSEC
                 restore_list.append(paths.OPENDNSSEC_KASP_DB)
@@ -364,7 +366,7 @@ class OpenDNSSECInstance(service.Service):
             try:
                 self.fstore.restore_file(f)
             except ValueError as error:
-                root_logger.debug(error)
+                logger.debug("%s", error)
 
         self.restore_state("kasp_db_configured")  # just eat state
 

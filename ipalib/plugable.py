@@ -441,7 +441,7 @@ class API(ReadOnly):
             parser = self.build_global_parser()
         self.parser = parser
 
-        root_logger = ipa_log_manager.root_logger
+        root_logger = logging.getLogger()
 
         # If logging has already been configured somewhere else (like in the
         # installer), don't add handlers or change levels:

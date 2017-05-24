@@ -29,7 +29,6 @@ import time
 from ipalib import api, _
 from ipalib import errors
 from ipapython import ipautil
-from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipaserver.install import installutils
 from ipalib.util import normalize_name
@@ -470,7 +469,7 @@ class DomainValidator(object):
         return pysss_type_key_translation_dict.get(object_type)
 
     def get_trusted_domain_object_from_sid(self, sid):
-        root_logger.debug("Converting SID to object name: %s" % sid)
+        logger.debug("Converting SID to object name: %s", sid)
 
         # Check if the given SID is valid
         if not self.is_trusted_sid_valid(sid):
@@ -488,7 +487,7 @@ class DomainValidator(object):
                 return result.get(pysss_nss_idmap.NAME_KEY)
 
         # If unsuccessful, search AD DC LDAP
-        root_logger.debug("Searching AD DC LDAP")
+        logger.debug("Searching AD DC LDAP")
 
         escaped_sid = escape_filter_chars(
             security.dom_sid(sid).__ndr_pack__(),
@@ -659,7 +658,7 @@ class DomainValidator(object):
         (principal, password) = self._admin_creds.split('%', 1)
 
         # Destroy the contents of the ccache
-        root_logger.debug('Destroying the contents of the separate ccache')
+        logger.debug('Destroying the contents of the separate ccache')
 
         ipautil.run(
             [paths.KDESTROY, '-A', '-c', ccache_path],
@@ -667,7 +666,7 @@ class DomainValidator(object):
             raiseonerr=False)
 
         # Destroy the contents of the ccache
-        root_logger.debug('Running kinit with credentials of AD administrator')
+        logger.debug('Running kinit with credentials of AD administrator')
 
         result = ipautil.run(
             [paths.KINIT, principal],
@@ -743,9 +742,9 @@ class DomainValidator(object):
                     msg = "Search on AD DC {host}:{port} failed with: {err}"\
                           .format(host=host, port=str(port), err=str(e))
                     if quiet:
-                        root_logger.debug(msg)
+                        logger.debug('%s', msg)
                     else:
-                        root_logger.warning(msg)
+                        logger.warning('%s', msg)
 
                 return entries
 
@@ -944,15 +943,15 @@ class TrustDomainInstance(object):
             search_result = res['defaultNamingContext'][0]
             self.info['dns_hostname'] = res['dnsHostName'][0]
         except _ldap.LDAPError as e:
-            root_logger.error(
-                "LDAP error when connecting to %(host)s: %(error)s" %
-                dict(host=unicode(result.pdc_name), error=str(e)))
+            logger.error(
+                "LDAP error when connecting to %s: %s",
+                unicode(result.pdc_name), str(e))
         except KeyError as e:
-            root_logger.error("KeyError: {err}, LDAP entry from {host} "
-                              "returned malformed. Your DNS might be "
-                              "misconfigured."
-                              .format(host=unicode(result.pdc_name),
-                                      err=unicode(e)))
+            logger.error("KeyError: %s, LDAP entry from %s "
+                         "returned malformed. Your DNS might be "
+                         "misconfigured.",
+                         unicode(e),
+                         unicode(result.pdc_name))
 
         if search_result:
             self.info['sid'] = self.parse_naming_context(search_result)
@@ -1110,7 +1109,7 @@ class TrustDomainInstance(object):
         # Collision information contains entries for specific trusted domains
         # we collide with. Look into TLN collisions and add a TLN exclusion
         # entry to the specific domain trust.
-        root_logger.error("Attempt to solve forest trust topology conflicts")
+        logger.error("Attempt to solve forest trust topology conflicts")
         for rec in cinfo.entries:
             if rec.type == lsa.LSA_FOREST_TRUST_COLLISION_TDO:
                 dominfo = self._pipe.lsaRQueryForestTrustInformation(
@@ -1122,14 +1121,14 @@ class TrustDomainInstance(object):
                 # trusted domain (forest).
                 if not dominfo:
                     result.append(rec)
-                    root_logger.error("Unable to resolve conflict for "
-                                      "DNS domain %s in the forest %s "
-                                      "for domain trust %s. Trust cannot "
-                                      "be established unless this conflict "
-                                      "is fixed manually."
-                                      % (another_domain.info['dns_domain'],
-                                         self.info['dns_domain'],
-                                         rec.name.string))
+                    logger.error("Unable to resolve conflict for "
+                                 "DNS domain %s in the forest %s "
+                                 "for domain trust %s. Trust cannot "
+                                 "be established unless this conflict "
+                                 "is fixed manually.",
+                                 another_domain.info['dns_domain'],
+                                 self.info['dns_domain'],
+                                 rec.name.string)
                     continue
 
                 # Copy over the entries, extend with TLN exclusion
@@ -1165,27 +1164,27 @@ class TrustDomainInstance(object):
                              fti, 0)
                 if cninfo:
                     result.append(rec)
-                    root_logger.error("When defining exception for DNS "
-                                      "domain %s in forest %s for "
-                                      "trusted forest %s, "
-                                      "got collision info back:\n%s"
-                                      % (another_domain.info['dns_domain'],
-                                         self.info['dns_domain'],
-                                         rec.name.string,
-                                         ndr_print(cninfo)))
+                    logger.error("When defining exception for DNS "
+                                 "domain %s in forest %s for "
+                                 "trusted forest %s, "
+                                 "got collision info back:\n%s",
+                                 another_domain.info['dns_domain'],
+                                 self.info['dns_domain'],
+                                 rec.name.string,
+                                 ndr_print(cninfo))
             else:
                 result.append(rec)
-                root_logger.error("Unable to resolve conflict for "
-                                  "DNS domain %s in the forest %s "
-                                  "for in-forest domain %s. Trust cannot "
-                                  "be established unless this conflict "
-                                  "is fixed manually."
-                                  % (another_domain.info['dns_domain'],
-                                     self.info['dns_domain'],
-                                     rec.name.string))
+                logger.error("Unable to resolve conflict for "
+                             "DNS domain %s in the forest %s "
+                             "for in-forest domain %s. Trust cannot "
+                             "be established unless this conflict "
+                             "is fixed manually.",
+                             another_domain.info['dns_domain'],
+                             self.info['dns_domain'],
+                             rec.name.string)
 
         if len(result) == 0:
-            root_logger.error("Successfully solved all conflicts")
+            logger.error("Successfully solved all conflicts")
             raise TrustTopologyConflictSolved()
 
         # Otherwise, raise TrustTopologyConflictError() exception
@@ -1217,9 +1216,9 @@ class TrustDomainInstance(object):
                         ftlevel,
                         ftinfo, 0)
             if cinfo:
-                root_logger.error("When setting forest trust information, "
-                                  "got collision info back:\n%s"
-                                  % (ndr_print(cinfo)))
+                logger.error("When setting forest trust information, "
+                             "got collision info back:\n%s",
+                             ndr_print(cinfo))
                 self.clear_ftinfo_conflict(another_domain, cinfo)
 
     def establish_trust(self, another_domain, trustdom_secret,
@@ -1310,8 +1309,8 @@ class TrustDomainInstance(object):
                                       trustdom_handle,
                                       lsa.LSA_TRUSTED_DOMAIN_INFO_INFO_EX, info)
             except RuntimeError as e:
-                root_logger.error(
-                      'unable to set trust transitivity status: %s' % (str(e)))
+                logger.error(
+                      'unable to set trust transitivity status: %s', str(e))
 
         # Updating forest trust info may fail
         # If it failed due to topology conflict, it may be fixed automatically

@@ -19,6 +19,7 @@
 
 from __future__ import print_function
 
+import logging
 import os
 import os.path
 import pwd
@@ -42,7 +43,6 @@ from ipaserver.install import installutils
 from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger
 import ipapython.errors
 from ipaserver.install import sysupgrade
 from ipalib import api
@@ -50,6 +50,8 @@ from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 from ipaplatform import services
+
+logger = logging.getLogger(__name__)
 
 HTTPD_USER = constants.HTTPD_USER
 KDCPROXY_USER = constants.KDCPROXY_USER
@@ -369,7 +371,7 @@ class HTTPInstance(service.Service):
                                  capture_output=True)
         except ipautil.CalledProcessError as e:
             if e.returncode == 29:  # ERROR: Module not found in database.
-                root_logger.debug(
+                logger.debug(
                     'Module %s not available, treating as disabled', name)
                 return False
             raise
@@ -495,7 +497,7 @@ class HTTPInstance(service.Service):
             oddjobd.enable()
             oddjobd.start()
         except Exception as e:
-            root_logger.critical("Unable to start oddjobd: {0}".format(str(e)))
+            logger.critical("Unable to start oddjobd: %s", str(e))
 
     def update_httpd_service_ipa_conf(self):
         tasks.configure_httpd_service_ipa_conf()
@@ -545,7 +547,7 @@ class HTTPInstance(service.Service):
             try:
                 self.fstore.restore_file(f)
             except ValueError as error:
-                root_logger.debug(error)
+                logger.debug("%s", error)
 
         installutils.remove_keytab(self.keytab)
         installutils.remove_file(paths.HTTP_CCACHE)

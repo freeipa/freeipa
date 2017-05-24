@@ -49,7 +49,6 @@ from ipalib.request import context
 from ipalib import output
 from ipapython import kerberos
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger
 from ipaserver.plugins.service import normalize_principal, validate_realm
 
 try:
@@ -514,7 +513,7 @@ class BaseCertObject(Object):
                 except Exception:
                     # Invalid GeneralName (i.e. not a valid X.509 cert);
                     # don't fail but log something about it
-                    root_logger.warning(
+                    logger.warning(
                         "Encountered bad GeneralName; skipping", exc_info=True)
 
         serial_number = obj.get('serial_number')

@@ -150,6 +150,7 @@ def standard_logging_setup(filename=None, verbose=False, debug=False,
     if console_format is None:
         console_format = LOGGING_FORMAT_STANDARD_CONSOLE
 
+    root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
 
     # File output is always logged at debug level
@@ -178,4 +179,5 @@ def standard_logging_setup(filename=None, verbose=False, debug=False,
 # Single shared instance of log manager
 log_mgr = sys.modules[__name__]
 
-root_logger = logging.getLogger()
+root_logger = _DeprecatedLogger(logging.getLogger(),
+                                '{}.log_mgr.root_logger'.format(__name__))

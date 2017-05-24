@@ -118,6 +118,7 @@ targetattr REPLACES the current attributes, it does not add to them.
 
 """
 from copy import deepcopy
+import logging
 
 import six
 
@@ -129,11 +130,12 @@ from ipalib import output
 from ipalib import _, ngettext
 from ipalib.plugable import Registry
 from .baseldap import gen_pkey_only_option, pkey_to_value
-from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -394,7 +396,7 @@ def _convert_strings_to_acis(acistrs):
         try:
             acis.append(ACI(a))
         except SyntaxError:
-            root_logger.warning("Failed to parse: %s" % a)
+            logger.warning("Failed to parse: %s", a)
     return acis
 
 def _find_aci_by_name(acis, aciprefix, aciname):

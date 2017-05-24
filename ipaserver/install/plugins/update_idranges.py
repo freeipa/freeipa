@@ -17,10 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -37,8 +40,8 @@ class update_idrange_type(Updater):
 
         base_dn = DN(self.api.env.container_ranges, self.api.env.basedn)
         search_filter = ("(&(objectClass=ipaIDrange)(!(ipaRangeType=*)))")
-        root_logger.debug("update_idrange_type: search for ID ranges with no "
-                          "type set")
+        logger.debug("update_idrange_type: search for ID ranges with no "
+                     "type set")
 
         while True:
             # Run the search in loop to avoid issues when LDAP limits are hit
@@ -49,24 +52,23 @@ class update_idrange_type(Updater):
                     ['objectclass'], base_dn, time_limit=0, size_limit=0)
 
             except errors.NotFound:
-                root_logger.debug("update_idrange_type: no ID range without "
-                                  "type set found")
+                logger.debug("update_idrange_type: no ID range without "
+                             "type set found")
                 return False, []
 
             except errors.ExecutionError as e:
-                root_logger.error("update_idrange_type: cannot retrieve list "
-                                  "of ranges with no type set: %s", e)
+                logger.error("update_idrange_type: cannot retrieve list "
+                             "of ranges with no type set: %s", e)
                 return False, []
 
             if not entries:
                 # No entry was returned, rather break than continue cycling
-                root_logger.debug("update_idrange_type: no ID range was "
-                                  "returned")
+                logger.debug("update_idrange_type: no ID range was returned")
                 return False, []
 
-            root_logger.debug("update_idrange_type: found %d "
-                              "idranges to update, truncated: %s",
-                              len(entries), truncated)
+            logger.debug("update_idrange_type: found %d "
+                         "idranges to update, truncated: %s",
+                         len(entries), truncated)
 
             error = False
 
@@ -83,30 +85,30 @@ class update_idrange_type(Updater):
                     entry['ipaRangeType'] = ['ipa-local']
                 else:
                     entry['ipaRangeType'] = ['unknown']
-                    root_logger.error("update_idrange_type: could not detect "
-                                      "range type for entry: %s" % str(entry.dn))
-                    root_logger.error("update_idrange_type: ID range type set "
-                                      "to 'unknown' for entry: %s" % str(entry.dn))
+                    logger.error("update_idrange_type: could not detect "
+                                 "range type for entry: %s", str(entry.dn))
+                    logger.error("update_idrange_type: ID range type set "
+                                 "to 'unknown' for entry: %s", str(entry.dn))
 
                 try:
                     ldap.update_entry(entry)
                 except (errors.EmptyModlist, errors.NotFound):
                     pass
                 except errors.ExecutionError as e:
-                    root_logger.debug("update_idrange_type: cannot "
-                                      "update idrange type: %s", e)
+                    logger.debug("update_idrange_type: cannot "
+                                 "update idrange type: %s", e)
                     error = True
 
             if error:
                 # Exit loop to avoid infinite cycles
-                root_logger.error("update_idrange_type: error(s) "
-                                  "detected during idrange type update")
+                logger.error("update_idrange_type: error(s) "
+                             "detected during idrange type update")
                 return False, []
 
             elif not truncated:
                 # All affected entries updated, exit the loop
-                root_logger.debug("update_idrange_type: all affected idranges "
-                                  "were assigned types")
+                logger.debug("update_idrange_type: all affected idranges "
+                             "were assigned types")
                 return False, []
 
         return False, []
@@ -126,7 +128,7 @@ class update_idrange_baserid(Updater):
         search_filter = ("(&(objectClass=ipaTrustedADDomainRange)"
                          "(ipaRangeType=ipa-ad-trust-posix)"
                          "(!(ipaBaseRID=0)))")
-        root_logger.debug(
+        logger.debug(
             "update_idrange_baserid: search for ipa-ad-trust-posix ID ranges "
             "with ipaBaseRID != 0"
         )
@@ -137,18 +139,18 @@ class update_idrange_baserid(Updater):
                 paged_search=True, time_limit=0, size_limit=0)
 
         except errors.NotFound:
-            root_logger.debug("update_idrange_baserid: no AD domain "
-                              "range with posix attributes found")
+            logger.debug("update_idrange_baserid: no AD domain "
+                         "range with posix attributes found")
             return False, []
 
         except errors.ExecutionError as e:
-            root_logger.error("update_idrange_baserid: cannot retrieve "
-                              "list of affected ranges: %s", e)
+            logger.error("update_idrange_baserid: cannot retrieve "
+                         "list of affected ranges: %s", e)
             return False, []
 
-        root_logger.debug("update_idrange_baserid: found %d "
-                          "idranges possible to update",
-                          len(entries))
+        logger.debug("update_idrange_baserid: found %d "
+                     "idranges possible to update",
+                     len(entries))
 
         error = False
 
@@ -156,22 +158,22 @@ class update_idrange_baserid(Updater):
         for entry in entries:
             entry['ipabaserid'] = 0
             try:
-                root_logger.debug("Updating existing idrange: %s" % (entry.dn))
+                logger.debug("Updating existing idrange: %s", entry.dn)
                 ldap.update_entry(entry)
-                root_logger.info("Done")
+                logger.info("Done")
             except (errors.EmptyModlist, errors.NotFound):
                 pass
             except errors.ExecutionError as e:
-                root_logger.debug("update_idrange_type: cannot "
-                                  "update idrange: %s", e)
+                logger.debug("update_idrange_type: cannot "
+                             "update idrange: %s", e)
                 error = True
 
         if error:
-            root_logger.error("update_idrange_baserid: error(s) "
-                              "detected during idrange baserid update")
+            logger.error("update_idrange_baserid: error(s) "
+                         "detected during idrange baserid update")
         else:
             # All affected entries updated, exit the loop
-            root_logger.debug("update_idrange_baserid: all affected "
-                              "idranges updated")
+            logger.debug("update_idrange_baserid: all affected "
+                         "idranges updated")
 
         return False, []

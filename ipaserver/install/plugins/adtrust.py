@@ -22,7 +22,6 @@ import logging
 from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import sysupgrade
 from ipaserver.install.adtrustinstance import ADTRUSTInstance
 
@@ -49,7 +48,8 @@ class update_default_range(Updater):
         except errors.NotFound:
             pass
         else:
-            root_logger.debug("default_range: ipaDomainIDRange entry found, skip plugin")
+            logger.debug("default_range: ipaDomainIDRange entry found, skip "
+                         "plugin")
             return False, []
 
         dn = DN(('cn', 'admins'), self.api.env.container_group,
@@ -57,8 +57,8 @@ class update_default_range(Updater):
         try:
             admins_entry = ldap.get_entry(dn, ['gidnumber'])
         except errors.NotFound:
-            root_logger.error("default_range: No local ID range and no admins "
-                              "group found. Cannot create default ID range")
+            logger.error("default_range: No local ID range and no admins "
+                         "group found. Cannot create default ID range")
             return False, []
 
         id_range_base_id = admins_entry['gidnumber'][0]
@@ -92,8 +92,8 @@ class update_default_range(Updater):
         try:
             (entries, _truncated) = ldap.find_entries(search_filter, attrs, dn)
         except errors.NotFound:
-            root_logger.warning("default_range: no dnaSharedConfig object found. "
-                                "Cannot check default range size.")
+            logger.warning("default_range: no dnaSharedConfig object found. "
+                           "Cannot check default range size.")
         else:
             masters = set()
             remaining_values_sum = 0
@@ -105,8 +105,9 @@ class update_default_range(Updater):
                 try:
                     remaining_values = int(remaining_values)
                 except ValueError:
-                    root_logger.warning("default_range: could not parse "
-                        "remaining values from '%s'", remaining_values)
+                    logger.warning("default_range: could not parse "
+                                   "remaining values from '%s'",
+                                   remaining_values)
                     continue
                 else:
                     remaining_values_sum += remaining_values
@@ -122,7 +123,7 @@ class update_default_range(Updater):
                        '  RANGE_SIZE = (--idmax) - (--idstart) + 1'
                       ]
 
-                root_logger.error("default_range: %s", "\n".join(msg))
+                logger.error("default_range: %s", "\n".join(msg))
 
         return False, [update]
 

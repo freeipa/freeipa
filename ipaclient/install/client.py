@@ -53,7 +53,6 @@ from ipapython.dn import DN
 from ipapython.install import typing
 from ipapython.install.core import group, knob, extend_knob
 from ipapython.install.common import step
-from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import (
     CalledProcessError,
     dir_exists,
@@ -68,6 +67,8 @@ from . import automount, ipadiscovery, ntpconf, sssd
 from .ipachangeconf import IPAChangeConf
 
 NoneType = type(None)
+
+logger = logging.getLogger(__name__)
 
 SUCCESS = 0
 CLIENT_INSTALL_ERROR = 1
@@ -108,13 +109,13 @@ def remove_file(filename):
         if e.errno == 2:
             return
 
-        root_logger.error("Failed to remove file %s: %s", filename, e)
-        root_logger.error('Please remove %s manually, as it can cause '
-                          'subsequent installation to fail.', filename)
+        logger.error("Failed to remove file %s: %s", filename, e)
+        logger.error('Please remove %s manually, as it can cause '
+                     'subsequent installation to fail.', filename)
 
 
 def log_service_error(name, action, error):
-    root_logger.error("%s failed to %s: %s", name, action, str(error))
+    logger.error("%s failed to %s: %s", name, action, str(error))
 
 
 def get_cert_path(cert_path):
@@ -151,7 +152,7 @@ def restore_state(service, statestore):
         try:
             service.enable()
         except Exception:
-            root_logger.warning(
+            logger.warning(
                 "Failed to configure automatic startup of the %s daemon",
                 service.service_name
             )
@@ -159,7 +160,7 @@ def restore_state(service, statestore):
         try:
             service.start()
         except Exception:
-            root_logger.warning(
+            logger.warning(
                 "Failed to restart the %s daemon",
                 service.service_name
             )
@@ -227,11 +228,11 @@ def delete_ipa_domain():
             sssdconfig.delete_domain(ipa_domain_name)
             sssdconfig.write()
         else:
-            root_logger.warning(
+            logger.warning(
                 "IPA domain could not be found in "
                 "/etc/sssd/sssd.conf and therefore not deleted")
     except IOError:
-        root_logger.warning(
+        logger.warning(
             "IPA domain could not be deleted. "
             "No access to the /etc/sssd/sssd.conf file.")
 
@@ -316,7 +317,7 @@ def configure_nsswitch_database(fstore, database, services, preserve=True,
     ]
 
     conf.changeConf(paths.NSSWITCH_CONF, opts)
-    root_logger.info("Configured %s in %s" % (database, paths.NSSWITCH_CONF))
+    logger.info("Configured %s in %s", database, paths.NSSWITCH_CONF)
 
 
 def configure_ipa_conf(
@@ -427,7 +428,7 @@ def configure_ldap_conf(
             fstore.backup_file(filename)
             ldapconf.newConf(filename, opts)
         except Exception as e:
-            root_logger.error("Creation of %s failed: %s", filename, str(e))
+            logger.error("Creation of %s failed: %s", filename, str(e))
             return (1, 'LDAP', filename)
 
     if files:
@@ -478,7 +479,7 @@ def configure_nslcd_conf(
             fstore.backup_file(filename)
             nslcdconf.newConf(filename, opts)
         except Exception as e:
-            root_logger.error("Creation of %s failed: %s", filename, str(e))
+            logger.error("Creation of %s failed: %s", filename, str(e))
             return (1, None, None)
 
     nslcd = services.knownservices.nslcd
@@ -491,11 +492,11 @@ def configure_nslcd_conf(
         try:
             nslcd.enable()
         except Exception as e:
-            root_logger.error(
+            logger.error(
                 "Failed to enable automatic startup of the %s daemon: %s",
                 nslcd.service_name, str(e))
     else:
-        root_logger.debug(
+        logger.debug(
             "%s daemon is not installed, skip configuration",
             nslcd.service_name)
         return (0, None, None)
@@ -585,15 +586,15 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
     try:
         ldapconf.changeConf(target_fname, opts)
     except SyntaxError as e:
-        root_logger.info("Could not parse {path}".format(path=target_fname))
-        root_logger.debug(error_msg.format(path=target_fname, err=str(e)))
+        logger.info("Could not parse %s", target_fname)
+        logger.debug('%s', error_msg.format(path=target_fname, err=str(e)))
         return False
     except IOError as e:
-        root_logger.info("{path} does not exist.".format(path=target_fname))
-        root_logger.debug(error_msg.format(path=target_fname, err=str(e)))
+        logger.info("%s does not exist.", target_fname)
+        logger.debug('%s', error_msg.format(path=target_fname, err=str(e)))
         return False
     except Exception as e:  # we do not want to fail in an optional step
-        root_logger.debug(error_msg.format(path=target_fname, err=str(e)))
+        logger.debug('%s', error_msg.format(path=target_fname, err=str(e)))
         return False
 
     os.chmod(target_fname, 0o644)
@@ -619,7 +620,7 @@ def hardcode_ldap_server(cli_server):
 
     # Errors raised by this should be caught by the caller
     ldapconf.changeConf(paths.LDAP_CONF, opts)
-    root_logger.info(
+    logger.info(
         "Changed configuration of /etc/ldap.conf to use "
         "hardcoded server name: %s", cli_server[0])
 
@@ -689,7 +690,7 @@ def configure_krb5_conf(
 
     # Configure KEYRING CCACHE if supported
     if kernel_keyring.is_persistent_keyring_supported():
-        root_logger.debug("Enabling persistent keyring CCACHE")
+        logger.debug("Enabling persistent keyring CCACHE")
         libopts.append(krbconf.setOption('default_ccache_name',
                                          'KEYRING:persistent:%{uid}'))
 
@@ -748,8 +749,8 @@ def configure_krb5_conf(
         krbconf.emptyLine()
     ])
 
-    root_logger.debug("Writing Kerberos configuration to %s:", filename)
-    root_logger.debug("%s", krbconf.dump(opts))
+    logger.debug("Writing Kerberos configuration to %s:", filename)
+    logger.debug("%s", krbconf.dump(opts))
 
     krbconf.newConf(filename, opts)
     # umask applies when creating a new file but we want 0o644 here
@@ -763,8 +764,8 @@ def configure_certmonger(
         return
 
     if not ca_enabled:
-        root_logger.warning("An RA is not configured on the server. "
-                            "Not requesting host certificate.")
+        logger.warning("An RA is not configured on the server. "
+                       "Not requesting host certificate.")
         return
 
     principal = 'host/%s@%s' % (hostname, cli_realm)
@@ -778,10 +779,10 @@ def configure_certmonger(
     try:
         cmonger.enable()
     except Exception as e:
-        root_logger.error(
+        logger.error(
             "Failed to configure automatic startup of the %s daemon: %s",
             cmonger.service_name, str(e))
-        root_logger.warning(
+        logger.warning(
             "Automatic certificate management will not be available")
 
     # Request our host cert
@@ -793,7 +794,7 @@ def configure_certmonger(
             nickname='Local IPA host', subject=subject, dns=[hostname],
             principal=principal, passwd_fname=passwd_fname)
     except Exception as ex:
-        root_logger.error(
+        logger.error(
             "%s request for host certificate failed: %s",
             cmonger.service_name, ex)
 
@@ -809,11 +810,11 @@ def configure_sssd_conf(
             # SSSD config is in place but we are unable to read it
             # In addition, we are instructed to preserve it
             # This all means we can't use it and have to bail out
-            root_logger.error(
+            logger.error(
                 "SSSD config exists but cannot be parsed: %s", str(e))
-            root_logger.error(
+            logger.error(
                 "Was instructed to preserve existing SSSD config")
-            root_logger.info(
+            logger.info(
                 "Correct errors in /etc/sssd/sssd.conf and re-run "
                 "installation")
             return 1
@@ -830,25 +831,25 @@ def configure_sssd_conf(
             pass
         else:
             # It was not IOError so it must have been parsing error
-            root_logger.error(
+            logger.error(
                 "Unable to parse existing SSSD config. "
                 "As option --preserve-sssd was not specified, new config "
                 "will override the old one.")
-            root_logger.info(
+            logger.info(
                 "The old /etc/sssd/sssd.conf is backed up and "
                 "will be restored during uninstall.")
-        root_logger.info("New SSSD config will be created")
+        logger.info("New SSSD config will be created")
         sssdconfig = SSSDConfig.SSSDConfig()
         sssdconfig.new_config()
 
     try:
         domain = sssdconfig.new_domain(cli_domain)
     except SSSDConfig.DomainAlreadyExistsError:
-        root_logger.info(
+        logger.info(
             "Domain %s is already configured in existing SSSD "
             "config, creating a new one.",
             cli_domain)
-        root_logger.info(
+        logger.info(
             "The old /etc/sssd/sssd.conf is backed up and will be restored "
             "during uninstall.")
         sssdconfig = SSSDConfig.SSSDConfig()
@@ -867,12 +868,12 @@ def configure_sssd_conf(
         except SSSDConfig.ServiceAlreadyExists:
             pass
         except SSSDConfig.ServiceNotRecognizedError:
-            root_logger.error(
+            logger.error(
                 "Unable to activate the SSH service in SSSD config.")
-            root_logger.info(
+            logger.info(
                 "Please make sure you have SSSD built with SSH support "
                 "installed.")
-            root_logger.info(
+            logger.info(
                 "Configure SSH support manually in /etc/sssd/sssd.conf.")
 
         sssdconfig.activate_service('ssh')
@@ -884,7 +885,7 @@ def configure_sssd_conf(
         except SSSDConfig.ServiceAlreadyExists:
             pass
         except SSSDConfig.ServiceNotRecognizedError:
-            root_logger.error(
+            logger.error(
                 "Unable to activate the SUDO service in SSSD config.")
 
         sssdconfig.activate_service('sudo')
@@ -966,12 +967,12 @@ def sssd_enable_service(sssdconfig, service):
     except SSSDConfig.ServiceAlreadyExists:
         pass
     except SSSDConfig.ServiceNotRecognizedError:
-        root_logger.error(
+        logger.error(
             "Unable to activate the %s service in SSSD config.", service)
-        root_logger.info(
+        logger.info(
             "Please make sure you have SSSD built with %s support "
             "installed.", service)
-        root_logger.info(
+        logger.info(
             "Configure %s support manually in /etc/sssd/sssd.conf.", service)
 
     sssdconfig.activate_service(service)
@@ -984,7 +985,7 @@ def change_ssh_config(filename, changes, sections):
     try:
         f = open(filename, 'r')
     except IOError as e:
-        root_logger.error("Failed to open '%s': %s", filename, str(e))
+        logger.error("Failed to open '%s': %s", filename, str(e))
         return False
 
     change_keys = tuple(key.lower() for key in changes)
@@ -1021,7 +1022,7 @@ def change_ssh_config(filename, changes, sections):
     try:
         f = open(filename, 'w')
     except IOError as e:
-        root_logger.error("Failed to open '%s': %s", filename, str(e))
+        logger.error("Failed to open '%s': %s", filename, str(e))
         return False
 
     f.write('\n'.join(lines))
@@ -1033,8 +1034,7 @@ def change_ssh_config(filename, changes, sections):
 
 def configure_ssh_config(fstore, options):
     if not file_exists(paths.SSH_CONFIG):
-        root_logger.info("%s not found, skipping configuration",
-                         paths.SSH_CONFIG)
+        logger.info("%s not found, skipping configuration", paths.SSH_CONFIG)
         return
 
     fstore.backup_file(paths.SSH_CONFIG)
@@ -1050,15 +1050,14 @@ def configure_ssh_config(fstore, options):
         changes['HostKeyAlgorithms'] = 'ssh-rsa,ssh-dss'
 
     change_ssh_config(paths.SSH_CONFIG, changes, ['Host', 'Match'])
-    root_logger.info('Configured %s', paths.SSH_CONFIG)
+    logger.info('Configured %s', paths.SSH_CONFIG)
 
 
 def configure_sshd_config(fstore, options):
     sshd = services.knownservices.sshd
 
     if not file_exists(paths.SSHD_CONFIG):
-        root_logger.info("%s not found, skipping configuration",
-                         paths.SSHD_CONFIG)
+        logger.info("%s not found, skipping configuration", paths.SSHD_CONFIG)
         return
 
     fstore.backup_file(paths.SSHD_CONFIG)
@@ -1103,13 +1102,13 @@ def configure_sshd_config(fstore, options):
         if authorized_keys_changes is not None:
             changes.update(authorized_keys_changes)
         else:
-            root_logger.warning(
+            logger.warning(
                 "Installed OpenSSH server does not support dynamically "
                 "loading authorized user keys. Public key authentication of "
                 "IPA users will not be available.")
 
     change_ssh_config(paths.SSHD_CONFIG, changes, ['Match'])
-    root_logger.info('Configured %s', paths.SSHD_CONFIG)
+    logger.info('Configured %s', paths.SSHD_CONFIG)
 
     if sshd.is_running():
         try:
@@ -1119,7 +1118,7 @@ def configure_sshd_config(fstore, options):
 
 
 def configure_automount(options):
-    root_logger.info('\nConfiguring automount:')
+    logger.info('\nConfiguring automount:')
 
     args = [
         'ipa-client-automount', '--debug', '-U', '--location',
@@ -1134,14 +1133,14 @@ def configure_automount(options):
     try:
         result = run(args)
     except Exception as e:
-        root_logger.error('Automount configuration failed: %s', str(e))
+        logger.error('Automount configuration failed: %s', str(e))
     else:
-        root_logger.info(result.output_log)
+        logger.info('%s', result.output_log)
 
 
 def configure_nisdomain(options, domain, statestore):
     domain = options.nisdomain or domain
-    root_logger.info('Configuring %s as NIS domain.' % domain)
+    logger.info('Configuring %s as NIS domain.', domain)
 
     nis_domain_name = ''
 
@@ -1179,9 +1178,9 @@ def unconfigure_nisdomain(statestore):
         old_nisdomain = statestore.restore_state('network', 'nisdomain') or ''
 
         if old_nisdomain:
-            root_logger.info('Restoring %s as NIS domain.' % old_nisdomain)
+            logger.info('Restoring %s as NIS domain.', old_nisdomain)
         else:
-            root_logger.info('Unconfiguring the NIS domain.')
+            logger.info('Unconfiguring the NIS domain.')
 
         tasks.set_nisdomain(old_nisdomain)
 
@@ -1215,15 +1214,15 @@ def get_local_ipaddresses(iface=None):
             for ip in if_addrs.get(family, []):
                 try:
                     ips.append(ipautil.CheckedIPAddress(ip['addr']))
-                    root_logger.debug('IP check successful: %s' % ip['addr'])
+                    logger.debug('IP check successful: %s', ip['addr'])
                 except ValueError as e:
-                    root_logger.debug('IP check failed: %s' % e)
+                    logger.debug('IP check failed: %s', e)
     return ips
 
 
 def do_nsupdate(update_txt):
-    root_logger.debug("Writing nsupdate commands to %s:", UPDATE_FILE)
-    root_logger.debug("%s", update_txt)
+    logger.debug("Writing nsupdate commands to %s:", UPDATE_FILE)
+    logger.debug("%s", update_txt)
 
     update_fd = open(UPDATE_FILE, "w")
     update_fd.write(update_txt)
@@ -1235,7 +1234,7 @@ def do_nsupdate(update_txt):
         ipautil.run([paths.NSUPDATE, '-g', UPDATE_FILE])
         result = True
     except CalledProcessError as e:
-        root_logger.debug('nsupdate failed: %s', str(e))
+        logger.debug('nsupdate failed: %s', str(e))
 
     try:
         os.remove(UPDATE_FILE)
@@ -1278,8 +1277,8 @@ def update_dns(server, hostname, options):
     try:
         ips = get_local_ipaddresses()
     except CalledProcessError as e:
-        root_logger.error("Cannot update DNS records. %s" % e)
-        root_logger.debug("Unable to get local IP addresses.")
+        logger.error("Cannot update DNS records. %s", e)
+        logger.debug("Unable to get local IP addresses.")
 
     if options.all_ip_addresses:
         update_ips = ips
@@ -1291,16 +1290,16 @@ def update_dns(server, hostname, options):
         try:
             iface = get_server_connection_interface(server)
         except RuntimeError as e:
-            root_logger.error("Cannot update DNS records. %s" % e)
+            logger.error("Cannot update DNS records. %s", e)
             return
         try:
             update_ips = get_local_ipaddresses(iface)
         except CalledProcessError as e:
-            root_logger.error("Cannot update DNS records. %s" % e)
+            logger.error("Cannot update DNS records. %s", e)
             return
 
     if not update_ips:
-        root_logger.info("Failed to determine this machine's ip address(es).")
+        logger.info("Failed to determine this machine's ip address(es).")
         return
 
     no_matching_interface_for_ip_address_warning(update_ips)
@@ -1320,7 +1319,7 @@ def update_dns(server, hostname, options):
         update_txt += ipautil.template_str(template, sub_dict)
 
     if not do_nsupdate(update_txt):
-        root_logger.error("Failed to update DNS records.")
+        logger.error("Failed to update DNS records.")
     verify_dns_update(hostname, update_ips)
 
 
@@ -1333,17 +1332,16 @@ def verify_dns_update(fqdn, ips):
     missing_ips = [str(ip) for ip in ips]
     extra_ips = []
     for record_type in [dns.rdatatype.A, dns.rdatatype.AAAA]:
-        root_logger.debug('DNS resolver: Query: %s IN %s' %
-                          (fqdn, dns.rdatatype.to_text(record_type)))
+        logger.debug('DNS resolver: Query: %s IN %s',
+                     fqdn, dns.rdatatype.to_text(record_type))
         try:
             answers = dns.resolver.query(fqdn, record_type)
         except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
-            root_logger.debug('DNS resolver: No record.')
+            logger.debug('DNS resolver: No record.')
         except dns.resolver.NoNameservers:
-            root_logger.debug('DNS resolver: No nameservers answered the'
-                              'query.')
+            logger.debug('DNS resolver: No nameservers answered the query.')
         except dns.exception.DNSException:
-            root_logger.debug('DNS resolver error.')
+            logger.debug('DNS resolver error.')
         else:
             for rdata in answers:
                 try:
@@ -1358,16 +1356,15 @@ def verify_dns_update(fqdn, ips):
     for ip in ips:
         ip_str = str(ip)
         addr = dns.reversename.from_address(ip_str)
-        root_logger.debug('DNS resolver: Query: %s IN PTR' % addr)
+        logger.debug('DNS resolver: Query: %s IN PTR', addr)
         try:
             answers = dns.resolver.query(addr, dns.rdatatype.PTR)
         except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
-            root_logger.debug('DNS resolver: No record.')
+            logger.debug('DNS resolver: No record.')
         except dns.resolver.NoNameservers:
-            root_logger.debug('DNS resolver: No nameservers answered the'
-                              'query.')
+            logger.debug('DNS resolver: No nameservers answered thequery.')
         except dns.exception.DNSException:
-            root_logger.debug('DNS resolver error.')
+            logger.debug('DNS resolver error.')
         else:
             missing_reverse.remove(ip_str)
             for rdata in answers:
@@ -1375,20 +1372,20 @@ def verify_dns_update(fqdn, ips):
                     wrong_reverse.setdefault(ip_str, []).append(rdata.target)
 
     if missing_ips:
-        root_logger.warning('Missing A/AAAA record(s) for host %s: %s.' %
-                            (fqdn, ', '.join(missing_ips)))
+        logger.warning('Missing A/AAAA record(s) for host %s: %s.',
+                       fqdn, ', '.join(missing_ips))
     if extra_ips:
-        root_logger.warning('Extra A/AAAA record(s) for host %s: %s.' %
-                            (fqdn, ', '.join(extra_ips)))
+        logger.warning('Extra A/AAAA record(s) for host %s: %s.',
+                       fqdn, ', '.join(extra_ips))
     if missing_reverse:
-        root_logger.warning('Missing reverse record(s) for address(es): %s.' %
-                            ', '.join(missing_reverse))
+        logger.warning('Missing reverse record(s) for address(es): %s.',
+                       ', '.join(missing_reverse))
     if wrong_reverse:
-        root_logger.warning('Incorrect reverse record(s):')
+        logger.warning('Incorrect reverse record(s):')
         for ip in wrong_reverse:
             for target in wrong_reverse[ip]:
-                root_logger.warning('%s is pointing to %s instead of %s' %
-                                    (ip, target, fqdn_name))
+                logger.warning('%s is pointing to %s instead of %s',
+                               ip, target, fqdn_name)
 
 
 def get_server_connection_interface(server):
@@ -1430,12 +1427,12 @@ def client_dns(server, hostname, options):
         verify_host_resolvable(hostname)
         dns_ok = True
     except errors.DNSNotARecordError:
-        root_logger.warning("Hostname (%s) does not have A/AAAA record.",
-                            hostname)
+        logger.warning("Hostname (%s) does not have A/AAAA record.",
+                       hostname)
         dns_ok = False
     except errors.DNSResolverError as ex:
-        root_logger.warning("DNS resolution for hostname %s failed: %s",
-                            hostname, ex)
+        logger.warning("DNS resolution for hostname %s failed: %s",
+                       hostname, ex)
         dns_ok = False
 
     if (
@@ -1451,7 +1448,7 @@ def check_ip_addresses(options):
             try:
                 ipautil.CheckedIPAddress(ip)
             except ValueError as e:
-                root_logger.error(e)
+                logger.error('%s', e)
                 return False
     return True
 
@@ -1469,7 +1466,7 @@ def update_ssh_keys(hostname, ssh_dir, create_sshfp):
         try:
             f = open(filename, 'r')
         except IOError as e:
-            root_logger.warning("Failed to open '%s': %s", filename, str(e))
+            logger.warning("Failed to open '%s': %s", filename, str(e))
             continue
 
         for line in f:
@@ -1480,7 +1477,7 @@ def update_ssh_keys(hostname, ssh_dir, create_sshfp):
                 pubkey = SSHPublicKey(line)
             except (ValueError, UnicodeDecodeError):
                 continue
-            root_logger.info("Adding SSH public key from %s", filename)
+            logger.info("Adding SSH public key from %s", filename)
             pubkeys.append(pubkey)
 
         f.close()
@@ -1497,8 +1494,8 @@ def update_ssh_keys(hostname, ssh_dir, create_sshfp):
     except errors.EmptyModlist:
         pass
     except Exception as e:
-        root_logger.info("host_mod: %s", str(e))
-        root_logger.warning("Failed to upload host SSH public keys.")
+        logger.info("host_mod: %s", str(e))
+        logger.warning("Failed to upload host SSH public keys.")
         return
 
     if create_sshfp:
@@ -1518,11 +1515,11 @@ def update_ssh_keys(hostname, ssh_dir, create_sshfp):
         update_txt += 'show\nsend\n'
 
         if not do_nsupdate(update_txt):
-            root_logger.warning("Could not update DNS SSHFP records.")
+            logger.warning("Could not update DNS SSHFP records.")
 
 
 def print_port_conf_info():
-    root_logger.info(
+    logger.info(
         "Please make sure the following ports are opened "
         "in the firewall settings:\n"
         "     TCP: 80, 88, 389\n"
@@ -1592,7 +1589,7 @@ def get_ca_certs_from_file(url):
     if not os.path.isfile(filename):
         raise errors.FileError(reason="file '%s' is not a file" % filename)
 
-    root_logger.debug("trying to retrieve CA cert from file %s", filename)
+    logger.debug("trying to retrieve CA cert from file %s", filename)
     try:
         certs = x509.load_certificate_list_from_file(filename)
     except Exception:
@@ -1610,10 +1607,10 @@ def get_ca_certs_from_http(url, warn=True):
     """
 
     if warn:
-        root_logger.warning("Downloading the CA certificate via HTTP, " +
-                            "this is INSECURE")
+        logger.warning("Downloading the CA certificate via HTTP, "
+                       "this is INSECURE")
 
-    root_logger.debug("trying to retrieve CA cert via HTTP from %s", url)
+    logger.debug("trying to retrieve CA cert via HTTP from %s", url)
     try:
 
         result = run([paths.BIN_CURL, "-o", "-", url], capture_output=True)
@@ -1642,12 +1639,12 @@ def get_ca_certs_from_ldap(server, basedn, realm):
     Raises errors.FileError if unable to write cert.
     """
 
-    root_logger.debug("trying to retrieve CA cert via LDAP from %s", server)
+    logger.debug("trying to retrieve CA cert via LDAP from %s", server)
 
     try:
         certs = get_certs_from_ldap(server, basedn, realm, False)
     except Exception as e:
-        root_logger.debug("get_ca_certs_from_ldap() error: %s", e)
+        logger.debug("get_ca_certs_from_ldap() error: %s", e)
         raise
 
     certs = [x509.load_certificate(c[0], x509.DER) for c in certs
@@ -1659,28 +1656,31 @@ def get_ca_certs_from_ldap(server, basedn, realm):
 def validate_new_ca_certs(existing_ca_certs, new_ca_certs, ask,
                           override=False):
     if existing_ca_certs is None:
-        root_logger.info(
+        logger.info(
+            "%s",
             cert_summary("Successfully retrieved CA cert", new_ca_certs))
         return
 
     existing_ca_certs = set(existing_ca_certs)
     new_ca_certs = set(new_ca_certs)
     if existing_ca_certs > new_ca_certs:
-        root_logger.warning(
+        logger.warning(
             "The CA cert available from the IPA server does not match the\n"
-            "local certificate available at %s" % paths.IPA_CA_CRT)
-        root_logger.warning(
+            "local certificate available at %s", paths.IPA_CA_CRT)
+        logger.warning(
+            "%s",
             cert_summary("Existing CA cert:", existing_ca_certs))
-        root_logger.warning(
+        logger.warning(
+            "%s",
             cert_summary("Retrieved CA cert:", new_ca_certs))
         if override:
-            root_logger.warning("Overriding existing CA cert\n")
+            logger.warning("Overriding existing CA cert\n")
         elif not ask or not user_input(
                 "Do you want to replace the local certificate with the CA\n"
                 "certificate retrieved from the IPA server?", True):
             raise errors.CertificateInvalidError(name='Retrieved CA')
     else:
-        root_logger.debug(
+        logger.debug(
                 "Existing CA cert and Retrieved CA cert are identical")
 
 
@@ -1740,12 +1740,12 @@ def get_ca_certs(fstore, options, server, basedn, realm):
         try:
             ca_certs = get_ca_certs_from_file(url)
         except errors.FileError as e:
-            root_logger.debug(e)
+            logger.debug("%s", e)
             raise
         except Exception as e:
-            root_logger.debug(e)
+            logger.debug("%s", e)
             raise errors.NoCertificateError(entry=url)
-        root_logger.debug("CA cert provided by user, use it!")
+        logger.debug("CA cert provided by user, use it!")
     else:
         if os.path.exists(paths.IPA_CA_CRT):
             if os.path.isfile(paths.IPA_CA_CRT):
@@ -1762,7 +1762,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
 
         if otp_auth:
             if existing_ca_certs:
-                root_logger.info("OTP case, CA cert preexisted, use it")
+                logger.info("OTP case, CA cert preexisted, use it")
             else:
                 url = http_url()
                 override = not interactive
@@ -1775,7 +1775,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                 try:
                     ca_certs = get_ca_certs_from_http(url, override)
                 except Exception as e:
-                    root_logger.debug(e)
+                    logger.debug("%s", e)
                     raise errors.NoCertificateError(entry=url)
 
                 validate_new_ca_certs(existing_ca_certs, ca_certs, False,
@@ -1787,13 +1787,13 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                 ca_certs = get_ca_certs_from_ldap(server, basedn, realm)
                 validate_new_ca_certs(existing_ca_certs, ca_certs, interactive)
             except errors.FileError as e:
-                root_logger.debug(e)
+                logger.debug("%s", e)
                 raise
             except (errors.NoCertificateError, errors.LDAPError) as e:
-                root_logger.debug(str(e))
+                logger.debug("%s", str(e))
                 url = http_url()
                 if existing_ca_certs:
-                    root_logger.warning(
+                    logger.warning(
                         "Unable to download CA cert from LDAP\n"
                         "but found preexisting cert, using it.\n")
                 elif interactive and not user_input(
@@ -1805,7 +1805,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                         message=u"HTTP "
                         "certificate download declined by user")
                 elif not interactive and not options.force:
-                    root_logger.error(
+                    logger.error(
                         "In unattended mode without a One Time Password "
                         "(OTP) or without --ca-cert-file\nYou must specify"
                         " --force to retrieve the CA cert using HTTP")
@@ -1816,12 +1816,12 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                     try:
                         ca_certs = get_ca_certs_from_http(url)
                     except Exception as e:
-                        root_logger.debug(e)
+                        logger.debug("%s", e)
                         raise errors.NoCertificateError(entry=url)
                     validate_new_ca_certs(existing_ca_certs, ca_certs,
                                           interactive)
             except Exception as e:
-                root_logger.debug(str(e))
+                logger.debug("%s", str(e))
                 raise errors.NoCertificateError(entry=url)
 
         if ca_certs is None and existing_ca_certs is None:
@@ -1840,7 +1840,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                 try:
                     os.unlink(ca_file)
                 except OSError as e:
-                    root_logger.error(
+                    logger.error(
                         "Failed to remove '%s': %s", ca_file, e)
             raise errors.FileError(
                 reason=u"cannot write certificate file '%s': %s" % (
@@ -1874,7 +1874,7 @@ FIREFOX_PREFERENCES_REL_PATH = "browser/defaults/preferences"
 
 def configure_firefox(options, statestore, domain):
     try:
-        root_logger.debug("Setting up Firefox configuration.")
+        logger.debug("Setting up Firefox configuration.")
 
         preferences_dir = None
 
@@ -1885,7 +1885,7 @@ def configure_firefox(options, statestore, domain):
             if dir_exists(pref_path):
                 preferences_dir = pref_path
             else:
-                root_logger.error("Directory '%s' does not exists.", pref_path)
+                logger.error("Directory '%s' does not exists.", pref_path)
         else:
             # test if firefox is installed
             if file_exists(paths.FIREFOX):
@@ -1898,7 +1898,7 @@ def configure_firefox(options, statestore, domain):
                         preferences_dir = pref_path
                         break
             else:
-                root_logger.error(
+                logger.error(
                     "Firefox configuration skipped (Firefox not found).")
                 return
 
@@ -1907,36 +1907,36 @@ def configure_firefox(options, statestore, domain):
 
             # user could specify relative path, we need to store absolute
             preferences_dir = os.path.abspath(preferences_dir)
-            root_logger.debug(
+            logger.debug(
                 "Firefox preferences directory found '%s'.", preferences_dir)
             preferences_fname = os.path.join(
                 preferences_dir, FIREFOX_PREFERENCES_FILENAME)
             update_txt = ipautil.template_str(
                 FIREFOX_CONFIG_TEMPLATE, dict(DOMAIN=domain))
-            root_logger.debug(
+            logger.debug(
                 "Firefox trusted uris will be set as '.%s' domain.", domain)
-            root_logger.debug(
+            logger.debug(
                 "Firefox configuration will be stored in '%s' file.",
                 preferences_fname)
 
             try:
                 with open(preferences_fname, 'w') as f:
                     f.write(update_txt)
-                root_logger.info("Firefox sucessfully configured.")
+                logger.info("Firefox sucessfully configured.")
                 statestore.backup_state(
                     'firefox', 'preferences_fname', preferences_fname)
             except Exception as e:
-                root_logger.debug(
+                logger.debug(
                     "An error occured during creating preferences file: %s.",
                     e)
-                root_logger.error("Firefox configuration failed.")
+                logger.error("Firefox configuration failed.")
         else:
-            root_logger.debug("Firefox preferences directory not found.")
-            root_logger.error("Firefox configuration failed.")
+            logger.debug("Firefox preferences directory not found.")
+            logger.error("Firefox configuration failed.")
 
     except Exception as e:
-        root_logger.debug(str(e))
-        root_logger.error("Firefox configuration failed.")
+        logger.debug("%s", str(e))
+        logger.error("Firefox configuration failed.")
 
 
 def purge_host_keytab(realm):
@@ -1949,11 +1949,11 @@ def purge_host_keytab(realm):
         if e.returncode not in (3, 5):
             # 3 - Unable to open keytab
             # 5 - Principal name or realm not found in keytab
-            root_logger.error(
+            logger.error(
                 "Error trying to clean keytab: "
                 "/usr/sbin/ipa-rmkeytab returned %s", e.returncode)
     else:
-        root_logger.info(
+        logger.info(
             "Removed old keys for realm %s from %s",
             realm, paths.KRB5_KEYTAB)
 
@@ -1984,9 +1984,9 @@ def install_check(options):
     tasks.check_selinux_status()
 
     if is_ipa_client_installed(fstore, on_master=options.on_master):
-        root_logger.error("IPA client is already configured on this system.")
-        root_logger.info(
-            "If you want to reinstall the IPA client, uninstall it first " +
+        logger.error("IPA client is already configured on this system.")
+        logger.info(
+            "If you want to reinstall the IPA client, uninstall it first "
             "using 'ipa-client-install --uninstall'.")
         raise ScriptError(rval=CLIENT_ALREADY_CONFIGURED)
 
@@ -2056,16 +2056,15 @@ def install_check(options):
             rval=CLIENT_INSTALL_ERROR)
 
     if options.keytab and options.force_join:
-        root_logger.warning("Option 'force-join' has no additional effect "
-                            "when used with together with option 'keytab'.")
+        logger.warning("Option 'force-join' has no additional effect "
+                       "when used with together with option 'keytab'.")
 
     # Check if old certificate exist and show warning
     if (
         not options.ca_cert_file and
         get_cert_path(options.ca_cert_file) == paths.IPA_CA_CRT
     ):
-        root_logger.warning("Using existing certificate '%s'.",
-                            paths.IPA_CA_CRT)
+        logger.warning("Using existing certificate '%s'.", paths.IPA_CA_CRT)
 
     if not check_ip_addresses(options):
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
@@ -2085,18 +2084,18 @@ def install_check(options):
         # There is no point to continue with installation as server list was
         # passed as a fixed list of server and thus we cannot discover any
         # better result
-        root_logger.error(
+        logger.error(
             "Failed to verify that %s is an IPA Server.",
             ', '.join(options.server))
-        root_logger.error(
+        logger.error(
             "This may mean that the remote server is not up "
             "or is not reachable due to network or firewall settings.")
         print_port_conf_info()
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
     if ret == ipadiscovery.BAD_HOST_CONFIG:
-        root_logger.error("Can't get the fully qualified name of this host")
-        root_logger.info("Check that the client is properly configured")
+        logger.error("Can't get the fully qualified name of this host")
+        logger.info("Check that the client is properly configured")
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
     if ret == ipadiscovery.NOT_FQDN:
         raise ScriptError(
@@ -2106,16 +2105,16 @@ def install_check(options):
             or not ds.domain:
         if ret == ipadiscovery.NO_LDAP_SERVER:
             if ds.server:
-                root_logger.debug("%s is not an LDAP server" % ds.server)
+                logger.debug("%s is not an LDAP server", ds.server)
             else:
-                root_logger.debug("No LDAP server found")
+                logger.debug("No LDAP server found")
         elif ret == ipadiscovery.NOT_IPA_SERVER:
             if ds.server:
-                root_logger.debug("%s is not an IPA server" % ds.server)
+                logger.debug("%s is not an IPA server", ds.server)
             else:
-                root_logger.debug("No IPA server found")
+                logger.debug("No IPA server found")
         else:
-            root_logger.debug("Domain not found")
+            logger.debug("Domain not found")
         if options.domain:
             cli_domain = options.domain
             cli_domain_source = 'Provided as option'
@@ -2124,13 +2123,13 @@ def install_check(options):
                 "Unable to discover domain, not provided on command line",
                 rval=CLIENT_INSTALL_ERROR)
         else:
-            root_logger.info(
+            logger.info(
                 "DNS discovery failed to determine your DNS domain")
             cli_domain = user_input(
                 "Provide the domain name of your IPA server (ex: example.com)",
                 allow_empty=False)
             cli_domain_source = 'Provided interactively'
-            root_logger.debug(
+            logger.debug(
                 "will use interactively provided domain: %s", cli_domain)
         ret = ds.search(
             domain=cli_domain,
@@ -2142,13 +2141,13 @@ def install_check(options):
         if ds.domain:
             cli_domain = ds.domain
             cli_domain_source = ds.domain_source
-            root_logger.debug("will use discovered domain: %s", cli_domain)
+            logger.debug("will use discovered domain: %s", cli_domain)
 
     client_domain = hostname[hostname.find(".")+1:]
 
     if ret in (ipadiscovery.NO_LDAP_SERVER, ipadiscovery.NOT_IPA_SERVER) \
             or not ds.server:
-        root_logger.debug("IPA Server not found")
+        logger.debug("IPA Server not found")
         if options.server:
             cli_server = options.server
             cli_server_source = 'Provided as option'
@@ -2157,14 +2156,14 @@ def install_check(options):
                 "Unable to find IPA Server to join",
                 rval=CLIENT_INSTALL_ERROR)
         else:
-            root_logger.debug("DNS discovery failed to find the IPA Server")
+            logger.debug("DNS discovery failed to find the IPA Server")
             cli_server = [
                 user_input(
                     "Provide your IPA server name (ex: ipa.example.com)",
                     allow_empty=False)
             ]
             cli_server_source = 'Provided interactively'
-            root_logger.debug(
+            logger.debug(
                 "will use interactively provided server: %s", cli_server[0])
         ret = ds.search(
             domain=cli_domain,
@@ -2179,76 +2178,76 @@ def install_check(options):
             (server, domain) = ds.check_domain(
                 ds.domain, set(), "Validating DNS Discovery")
             if server and domain:
-                root_logger.debug("DNS validated, enabling discovery")
+                logger.debug("DNS validated, enabling discovery")
                 dnsok = True
             else:
-                root_logger.debug("DNS discovery failed, disabling discovery")
+                logger.debug("DNS discovery failed, disabling discovery")
         else:
-            root_logger.debug(
+            logger.debug(
                 "Using servers from command line, disabling DNS discovery")
 
     if not cli_server:
         if options.server:
             cli_server = ds.servers
             cli_server_source = 'Provided as option'
-            root_logger.debug(
+            logger.debug(
                 "will use provided server: %s", ', '.join(options.server))
         elif ds.server:
             cli_server = ds.servers
             cli_server_source = ds.server_source
-            root_logger.debug("will use discovered server: %s", cli_server[0])
+            logger.debug("will use discovered server: %s", cli_server[0])
 
     if ret == ipadiscovery.NOT_IPA_SERVER:
-        root_logger.error("%s is not an IPA v2 Server.", cli_server[0])
+        logger.error("%s is not an IPA v2 Server.", cli_server[0])
         print_port_conf_info()
-        root_logger.debug("(%s: %s)", cli_server[0], cli_server_source)
+        logger.debug("(%s: %s)", cli_server[0], cli_server_source)
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
     if ret == ipadiscovery.NO_ACCESS_TO_LDAP:
-        root_logger.warning("Anonymous access to the LDAP server is disabled.")
-        root_logger.info("Proceeding without strict verification.")
-        root_logger.info(
+        logger.warning("Anonymous access to the LDAP server is disabled.")
+        logger.info("Proceeding without strict verification.")
+        logger.info(
             "Note: This is not an error if anonymous access "
             "has been explicitly restricted.")
         ret = 0
 
     if ret == ipadiscovery.NO_TLS_LDAP:
-        root_logger.warning(
+        logger.warning(
             "The LDAP server requires TLS is but we do not have the CA.")
-        root_logger.info("Proceeding without strict verification.")
+        logger.info("Proceeding without strict verification.")
         ret = 0
 
     if ret != 0:
-        root_logger.error(
+        logger.error(
             "Failed to verify that %s is an IPA Server.",
             cli_server[0])
-        root_logger.error(
+        logger.error(
             "This may mean that the remote server is not up "
             "or is not reachable due to network or firewall settings.")
         print_port_conf_info()
-        root_logger.debug("(%s: %s)", cli_server[0], cli_server_source)
+        logger.debug("(%s: %s)", cli_server[0], cli_server_source)
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
     cli_kdc = ds.kdc
     if dnsok and not cli_kdc:
-        root_logger.error(
+        logger.error(
             "DNS domain '%s' is not configured for automatic "
             "KDC address lookup.", ds.realm.lower())
-        root_logger.debug("(%s: %s)", ds.realm, ds.realm_source)
-        root_logger.error("KDC address will be set to fixed value.")
+        logger.debug("(%s: %s)", ds.realm, ds.realm_source)
+        logger.error("KDC address will be set to fixed value.")
 
     if dnsok:
-        root_logger.info("Discovery was successful!")
+        logger.info("Discovery was successful!")
     elif not options.unattended:
         if not options.server:
-            root_logger.warning(
+            logger.warning(
                 "The failure to use DNS to find your IPA "
                 "server indicates that your resolv.conf file is not properly "
                 "configured.")
-        root_logger.info(
+        logger.info(
             "Autodiscovery of servers for failover cannot work "
             "with this configuration.")
-        root_logger.info(
+        logger.info(
             "If you proceed with the installation, services "
             "will be configured to always access the discovered server for "
             "all operations and will not fail over to other servers in case "
@@ -2259,30 +2258,30 @@ def install_check(options):
 
     cli_realm = ds.realm
     cli_realm_source = ds.realm_source
-    root_logger.debug("will use discovered realm: %s", cli_realm)
+    logger.debug("will use discovered realm: %s", cli_realm)
 
     if options.realm_name and options.realm_name != cli_realm:
-        root_logger.error(
+        logger.error(
             "The provided realm name [%s] does not match discovered one [%s]",
             options.realm_name, cli_realm)
-        root_logger.debug("(%s: %s)", cli_realm, cli_realm_source)
+        logger.debug("(%s: %s)", cli_realm, cli_realm_source)
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
     cli_basedn = ds.basedn
     cli_basedn_source = ds.basedn_source
-    root_logger.debug("will use discovered basedn: %s", cli_basedn)
+    logger.debug("will use discovered basedn: %s", cli_basedn)
     subject_base = DN(('O', cli_realm))
 
-    root_logger.info("Client hostname: %s", hostname)
-    root_logger.debug("Hostname source: %s", hostname_source)
-    root_logger.info("Realm: %s", cli_realm)
-    root_logger.debug("Realm source: %s", cli_realm_source)
-    root_logger.info("DNS Domain: %s", cli_domain)
-    root_logger.debug("DNS Domain source: %s", cli_domain_source)
-    root_logger.info("IPA Server: %s", ', '.join(cli_server))
-    root_logger.debug("IPA Server source: %s", cli_server_source)
-    root_logger.info("BaseDN: %s", cli_basedn)
-    root_logger.debug("BaseDN source: %s", cli_basedn_source)
+    logger.info("Client hostname: %s", hostname)
+    logger.debug("Hostname source: %s", hostname_source)
+    logger.info("Realm: %s", cli_realm)
+    logger.debug("Realm source: %s", cli_realm_source)
+    logger.info("DNS Domain: %s", cli_domain)
+    logger.debug("DNS Domain source: %s", cli_domain_source)
+    logger.info("IPA Server: %s", ', '.join(cli_server))
+    logger.debug("IPA Server source: %s", cli_server_source)
+    logger.info("BaseDN: %s", cli_basedn)
+    logger.debug("BaseDN source: %s", cli_basedn_source)
 
     # ipa-join would fail with IP address instead of a FQDN
     for srv in cli_server:
@@ -2298,7 +2297,7 @@ def install_check(options):
 
         if is_ipaddr:
             print()
-            root_logger.warning(
+            logger.warning(
                 "It seems that you are using an IP address "
                 "instead of FQDN as an argument to --server. The "
                 "installation may fail.")
@@ -2355,21 +2354,21 @@ def install(options):
     except ScriptError as e:
         if e.rval == CLIENT_INSTALL_ERROR:
             if options.force:
-                root_logger.warning(
+                logger.warning(
                     "Installation failed. Force set so not rolling back "
                     "changes.")
             elif options.on_master:
-                root_logger.warning(
+                logger.warning(
                     "Installation failed. As this is IPA server, changes will "
                     "not be rolled back.")
             else:
-                root_logger.error("Installation failed. Rolling back changes.")
+                logger.error("Installation failed. Rolling back changes.")
                 options.unattended = True
                 try:
                     uninstall(options)
                 except Exception as ex:
-                    root_logger.debug(traceback.format_exc())
-                    root_logger.error(ex)
+                    logger.debug("%s", traceback.format_exc())
+                    logger.error("%s", ex)
         raise
     finally:
         try:
@@ -2402,7 +2401,7 @@ def _install(options):
         # in the DNS.
         # If that fails, we try to sync directly with IPA server,
         # assuming it runs NTP
-        root_logger.info('Synchronizing time with KDC...')
+        logger.info('Synchronizing time with KDC...')
         ds = ipadiscovery.IPADiscovery()
         ntp_srv_servers = ds.ipadns_search_srv(cli_domain, '_ntp._udp',
                                                None, break_on_first=False)
@@ -2421,19 +2420,19 @@ def _install(options):
         if not synced_ntp and not options.ntp_servers:
             synced_ntp = ntpconf.synconce_ntp(cli_server[0], options.debug)
         if not synced_ntp:
-            root_logger.warning(
+            logger.warning(
                 "Unable to sync time with NTP "
                 "server, assuming the time is in sync. Please check "
                 "that 123 UDP port is opened.")
     else:
-        root_logger.info('Skipping synchronizing time with NTP server.')
+        logger.info('Skipping synchronizing time with NTP server.')
 
     if not options.unattended:
         if (options.principal is None and options.password is None and
                 options.prompt_password is False and options.keytab is None):
             options.principal = user_input("User authorized to enroll "
                                            "computers", allow_empty=False)
-            root_logger.debug(
+            logger.debug(
                 "will use principal provided as option: %s", options.principal)
 
     host_principal = 'host/%s@%s' % (hostname, cli_realm)
@@ -2487,10 +2486,10 @@ def _install(options):
                                 rval=CLIENT_INSTALL_ERROR)
                     else:
                         if sys.stdin.isatty():
-                            root_logger.error(
+                            logger.error(
                                 "Password must be provided in "
                                 "non-interactive mode.")
-                            root_logger.info(
+                            logger.info(
                                 "This can be done via "
                                 "echo password | ipa-client-install ... "
                                 "or with the -w option.")
@@ -2554,10 +2553,10 @@ def _install(options):
                              cli_realm)
                 del os.environ['KRB5_CONFIG']
             except errors.FileError as e:
-                root_logger.error(e)
+                logger.error('%s', e)
                 raise ScriptError(rval=CLIENT_INSTALL_ERROR)
             except Exception as e:
-                root_logger.error("Cannot obtain CA certificate\n%s", e)
+                logger.error("Cannot obtain CA certificate\n%s", e)
                 raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
             # Now join the domain
@@ -2567,18 +2566,18 @@ def _install(options):
             stderr = result.error_output
 
             if result.returncode != 0:
-                root_logger.error("Joining realm failed: %s", stderr)
+                logger.error("Joining realm failed: %s", stderr)
                 if not options.force:
                     if result.returncode == 13:
-                        root_logger.info(
+                        logger.info(
                             "Use --force-join option to override the host "
                             "entry on the server and force client enrollment.")
                     raise ScriptError(rval=CLIENT_INSTALL_ERROR)
-                root_logger.info(
+                logger.info(
                     "Use ipa-getkeytab to obtain a host "
                     "principal for this server.")
             else:
-                root_logger.info("Enrolled in IPA realm %s", cli_realm)
+                logger.info("Enrolled in IPA realm %s", cli_realm)
 
             start = stderr.find('Certificate subject base is: ')
             if start >= 0:
@@ -2601,7 +2600,7 @@ def _install(options):
                 env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = CCACHE_FILE
             except gssapi.exceptions.GSSError as e:
                 print_port_conf_info()
-                root_logger.error("Failed to obtain host TGT: %s" % e)
+                logger.error("Failed to obtain host TGT: %s", e)
                 # failure to get ticket makes it impossible to login and bind
                 # from sssd to LDAP, abort installation and rollback changes
                 raise ScriptError(rval=CLIENT_INSTALL_ERROR)
@@ -2610,7 +2609,7 @@ def _install(options):
             try:
                 os.remove(krb_name)
             except OSError:
-                root_logger.error("Could not remove %s", krb_name)
+                logger.error("Could not remove %s", krb_name)
             try:
                 os.rmdir(ccache_dir)
             except OSError:
@@ -2618,13 +2617,13 @@ def _install(options):
             try:
                 os.remove(krb_name + ".ipabkp")
             except OSError:
-                root_logger.error("Could not remove %s.ipabkp", krb_name)
+                logger.error("Could not remove %s.ipabkp", krb_name)
 
     # Configure ipa.conf
     if not options.on_master:
         configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain,
                            cli_server, hostname)
-        root_logger.info("Created /etc/ipa/default.conf")
+        logger.info("Created /etc/ipa/default.conf")
 
     with certdb.NSSDatabase() as tmp_db:
         api.bootstrap(context='cli_installer',
@@ -2643,7 +2642,7 @@ def _install(options):
             if configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server,
                                    options, client_domain, hostname):
                 raise ScriptError(rval=CLIENT_INSTALL_ERROR)
-            root_logger.info("Configured /etc/sssd/sssd.conf")
+            logger.info("Configured /etc/sssd/sssd.conf")
 
         if options.on_master:
             # If on master assume kerberos is already configured properly.
@@ -2653,7 +2652,7 @@ def _install(options):
                              attempts=options.kinit_attempts)
                 os.environ['KRB5CCNAME'] = CCACHE_FILE
             except gssapi.exceptions.GSSError as e:
-                root_logger.error("Failed to obtain host TGT: %s" % e)
+                logger.error("Failed to obtain host TGT: %s", e)
                 raise ScriptError(rval=CLIENT_INSTALL_ERROR)
         else:
             # Configure krb5.conf
@@ -2670,7 +2669,7 @@ def _install(options):
                 configure_sssd=options.sssd,
                 force=options.force)
 
-            root_logger.info(
+            logger.info(
                 "Configured /etc/krb5.conf for IPA realm %s", cli_realm)
 
         # Clear out any current session keyring information
@@ -2704,32 +2703,32 @@ def _install(options):
         try:
             api.Backend.rpcclient.connect()
             connected = True
-            root_logger.debug("Try RPC connection")
+            logger.debug("Try RPC connection")
             api.Backend.rpcclient.forward('ping')
         except errors.KerberosError as e:
             if connected:
                 api.Backend.rpcclient.disconnect()
-            root_logger.info(
+            logger.info(
                 "Cannot connect to the server due to Kerberos error: %s. "
                 "Trying with delegate=True", e)
             try:
                 api.Backend.rpcclient.connect(delegate=True)
-                root_logger.debug("Try RPC connection")
+                logger.debug("Try RPC connection")
                 api.Backend.rpcclient.forward('ping')
 
-                root_logger.info("Connection with delegate=True successful")
+                logger.info("Connection with delegate=True successful")
 
                 # The remote server is not capable of Kerberos S4U2Proxy
                 # delegation. This features is implemented in IPA server
                 # version 2.2 and higher
-                root_logger.warning(
+                logger.warning(
                     "Target IPA server has a lower version than the enrolled "
                     "client")
-                root_logger.warning(
+                logger.warning(
                     "Some capabilities including the ipa command capability "
                     "may not be available")
             except errors.PublicError as e2:
-                root_logger.warning(
+                logger.warning(
                     "Second connect with delegate=True also failed: %s", e2)
                 raise ScriptError(
                     "Cannot connect to the IPA server RPC interface: %s" % e2,
@@ -2786,7 +2785,7 @@ def _install(options):
         paths.CA_BUNDLE_PEM)
 
     # Add the CA certificates to the IPA NSS database
-    root_logger.debug("Adding CA certificates to the IPA NSS database.")
+    logger.debug("Adding CA certificates to the IPA NSS database.")
     ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
     for cert, nickname, trust_flags in ca_certs_trust:
         try:
@@ -2825,11 +2824,11 @@ def _install(options):
                 nscd_service_action = 'restart'
                 nscd.restart()
         except Exception:
-            root_logger.warning(
+            logger.warning(
                 "Failed to %s the %s daemon",
                 nscd_service_action, nscd.service_name)
             if not options.sssd:
-                root_logger.warning(
+                logger.warning(
                     "Caching of users/groups will not be available")
 
         try:
@@ -2839,21 +2838,21 @@ def _install(options):
                 nscd.enable()
         except Exception:
             if not options.sssd:
-                root_logger.warning(
+                logger.warning(
                     "Failed to configure automatic startup of the %s daemon",
                     nscd.service_name)
-                root_logger.info(
+                logger.info(
                     "Caching of users/groups will not be "
                     "available after reboot")
             else:
-                root_logger.warning(
+                logger.warning(
                     "Failed to disable %s daemon. Disable it manually.",
                     nscd.service_name)
 
     else:
         # this is optional service, just log
         if not options.sssd:
-            root_logger.info(
+            logger.info(
                 "%s daemon is not installed, skip configuration",
                 nscd.service_name)
 
@@ -2869,25 +2868,25 @@ def _install(options):
                                         mkhomedir=options.mkhomedir,
                                         statestore=statestore)
 
-        root_logger.info("%s enabled", "SSSD" if options.sssd else "LDAP")
+        logger.info("%s enabled", "SSSD" if options.sssd else "LDAP")
 
         if options.sssd:
             sssd = services.service('sssd', api)
             try:
                 sssd.restart()
             except CalledProcessError:
-                root_logger.warning("SSSD service restart was unsuccessful.")
+                logger.warning("SSSD service restart was unsuccessful.")
 
             try:
                 sssd.enable()
             except CalledProcessError as e:
-                root_logger.warning(
+                logger.warning(
                     "Failed to enable automatic startup of the SSSD daemon: "
                     "%s", e)
 
         if not options.sssd:
             tasks.modify_pam_to_use_krb5(statestore)
-            root_logger.info("Kerberos 5 enabled")
+            logger.info("Kerberos 5 enabled")
 
         # Update non-SSSD LDAP configuration after authconfig calls as it would
         # change its configuration otherways
@@ -2900,23 +2899,23 @@ def _install(options):
                 if retcode:
                     raise ScriptError(rval=CLIENT_INSTALL_ERROR)
                 if conf:
-                    root_logger.info(
+                    logger.info(
                         "%s configured using configuration file(s) %s",
                         conf, filenames)
 
         if configure_openldap_conf(fstore, cli_basedn, cli_server):
-            root_logger.info("Configured /etc/openldap/ldap.conf")
+            logger.info("Configured /etc/openldap/ldap.conf")
         else:
-            root_logger.info("Failed to configure /etc/openldap/ldap.conf")
+            logger.info("Failed to configure /etc/openldap/ldap.conf")
 
         # Check that nss is working properly
         if not options.on_master:
             user = options.principal
             if user is None:
                 user = "admin@%s" % cli_domain
-                root_logger.info("Principal is not set when enrolling with OTP"
-                                 "; using principal '%s' for 'getent passwd'",
-                                 user)
+                logger.info("Principal is not set when enrolling with OTP"
+                            "; using principal '%s' for 'getent passwd'",
+                            user)
             elif '@' not in user:
                 user = "%s@%s" % (user, cli_domain)
             n = 0
@@ -2934,19 +2933,19 @@ def _install(options):
                     n = n + 1
 
             if not found:
-                root_logger.error("Unable to find '%s' user with 'getent "
-                                  "passwd %s'!" % (user.split("@")[0], user))
+                logger.error("Unable to find '%s' user with 'getent "
+                             "passwd %s'!", user.split("@")[0], user)
                 if conf:
-                    root_logger.info("Recognized configuration: %s", conf)
+                    logger.info("Recognized configuration: %s", conf)
                 else:
-                    root_logger.error(
+                    logger.error(
                         "Unable to reliably detect "
                         "configuration. Check NSS setup manually.")
 
                 try:
                     hardcode_ldap_server(cli_server)
                 except Exception as e:
-                    root_logger.error(
+                    logger.error(
                         "Adding hardcoded server name to "
                         "/etc/ldap.conf failed: %s", str(e))
 
@@ -2960,12 +2959,12 @@ def _install(options):
         elif ntp_srv_servers:
             ntp_servers = ntp_srv_servers
         else:
-            root_logger.warning("No SRV records of NTP servers found. IPA "
-                                "server address will be used")
+            logger.warning("No SRV records of NTP servers found. IPA "
+                           "server address will be used")
             ntp_servers = cli_server
 
         ntpconf.config_ntp(ntp_servers, fstore, statestore)
-        root_logger.info("NTP enabled")
+        logger.info("NTP enabled")
 
     if options.conf_ssh:
         configure_ssh_config(fstore, options)
@@ -2983,7 +2982,7 @@ def _install(options):
         configure_nisdomain(
             options=options, domain=cli_domain, statestore=statestore)
 
-    root_logger.info('Client configuration complete.')
+    logger.info('Client configuration complete.')
 
 
 def uninstall_check(options):
@@ -2996,9 +2995,9 @@ def uninstall_check(options):
 
     server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
     if server_fstore.has_files() and not options.on_master:
-        root_logger.error(
+        logger.error(
             "IPA client is configured as a part of IPA server on this system.")
-        root_logger.info("Refer to ipa-server-install for uninstallation.")
+        logger.info("Refer to ipa-server-install for uninstallation.")
         raise ScriptError(rval=CLIENT_NOT_CONFIGURED)
 
 
@@ -3011,7 +3010,7 @@ def uninstall(options):
     try:
         run(["ipa-client-automount", "--uninstall", "--debug"])
     except Exception as e:
-        root_logger.error(
+        logger.error(
             "Unconfigured automount client failed: %s", str(e))
 
     # Reload the state as automount unconfigure may have modified it
@@ -3069,8 +3068,8 @@ def uninstall(options):
             certmonger.stop_tracking(paths.IPA_NSSDB_DIR,
                                      nickname='Local IPA host')
         except RuntimeError as e:
-            root_logger.error("%s failed to stop tracking certificate: %s",
-                              cmonger.service_name, e)
+            logger.error("%s failed to stop tracking certificate: %s",
+                         cmonger.service_name, e)
 
     client_nss_nickname = 'IPA Machine Certificate - %s' % hostname
     if sys_db.has_nickname(client_nss_nickname):
@@ -3078,8 +3077,8 @@ def uninstall(options):
             certmonger.stop_tracking(paths.NSS_DB_DIR,
                                      nickname=client_nss_nickname)
         except RuntimeError as e:
-            root_logger.error("%s failed to stop tracking certificate: %s",
-                              cmonger.service_name, e)
+            logger.error("%s failed to stop tracking certificate: %s",
+                         cmonger.service_name, e)
 
     for filename in (os.path.join(ipa_db.secdir, 'cert8.db'),
                      os.path.join(ipa_db.secdir, 'key3.db'),
@@ -3098,22 +3097,22 @@ def uninstall(options):
     try:
         cmonger.disable()
     except Exception as e:
-        root_logger.error(
+        logger.error(
             "Failed to disable automatic startup of the %s service: %s",
             cmonger.service_name, str(e))
 
     if not options.on_master and os.path.exists(paths.IPA_DEFAULT_CONF):
-        root_logger.info("Unenrolling client from IPA server")
+        logger.info("Unenrolling client from IPA server")
         join_args = [paths.SBIN_IPA_JOIN, "--unenroll", "-h", hostname]
         if options.debug:
             join_args.append("-d")
             env['XMLRPC_TRACE_CURL'] = 'yes'
         result = run(join_args, raiseonerr=False, env=env)
         if result.returncode != 0:
-            root_logger.error("Unenrolling host failed: %s", result.error_log)
+            logger.error("Unenrolling host failed: %s", result.error_log)
 
     if os.path.exists(paths.IPA_DEFAULT_CONF):
-        root_logger.info(
+        logger.info(
             "Removing Kerberos service principals from /etc/krb5.keytab")
         try:
             parser = RawConfigParser()
@@ -3126,14 +3125,14 @@ def uninstall(options):
             if err.returncode != 5:
                 # 5 means Principal name or realm not found in keytab
                 # and can be ignored
-                root_logger.error(
+                logger.error(
                     "Failed to remove Kerberos service principals: %s",
                     str(err))
         except Exception as e:
-            root_logger.error(
+            logger.error(
                 "Failed to remove Kerberos service principals: %s", str(e))
 
-    root_logger.info("Disabling client Kerberos and LDAP configurations")
+    logger.info("Disabling client Kerberos and LDAP configurations")
     was_sssd_installed = False
     was_sshd_configured = False
     if fstore.has_files():
@@ -3172,7 +3171,7 @@ def uninstall(options):
     # found, restore backed up sssd.conf to sssd.conf.bkp and remove IPA
     # domain from the current sssd.conf
     if was_sssd_installed and was_sssd_configured:
-        root_logger.info(
+        logger.info(
             "The original configuration of SSSD included other domains than "
             "the IPA-based one.")
 
@@ -3183,27 +3182,27 @@ def uninstall(options):
             restored = fstore.restore_file(
                 paths.SSSD_CONF, paths.SSSD_CONF_BKP)
         except OSError:
-            root_logger.debug(
+            logger.debug(
                 "Error while restoring pre-IPA /etc/sssd/sssd.conf.")
 
         if restored:
-            root_logger.info(
+            logger.info(
                 "Original pre-IPA SSSD configuration file was "
                 "restored to /etc/sssd/sssd.conf.bkp.")
 
-        root_logger.info(
+        logger.info(
             "IPA domain removed from current one, restarting SSSD service")
         sssd = services.service('sssd', api)
         try:
             sssd.restart()
         except CalledProcessError:
-            root_logger.warning("SSSD service restart was unsuccessful.")
+            logger.warning("SSSD service restart was unsuccessful.")
 
     # SSSD was not installed before our installation, but other domains found,
     # delete IPA domain, but leave other domains intact
     elif not was_sssd_installed and was_sssd_configured:
         delete_ipa_domain()
-        root_logger.info(
+        logger.info(
             "Other domains than IPA domain found, IPA domain was removed "
             "from /etc/sssd/sssd.conf.")
 
@@ -3211,7 +3210,7 @@ def uninstall(options):
         try:
             sssd.restart()
         except CalledProcessError:
-            root_logger.warning("SSSD service restart was unsuccessful.")
+            logger.warning("SSSD service restart was unsuccessful.")
 
     # SSSD was not installed before our installation, and no other domains
     # than IPA are configured in sssd.conf - make sure config file is removed
@@ -3219,10 +3218,10 @@ def uninstall(options):
         try:
             os.rename(paths.SSSD_CONF, paths.SSSD_CONF_DELETED)
         except OSError:
-            root_logger.debug("Error while moving /etc/sssd/sssd.conf to %s" %
-                              paths.SSSD_CONF_DELETED)
+            logger.debug("Error while moving /etc/sssd/sssd.conf to %s",
+                         paths.SSSD_CONF_DELETED)
 
-        root_logger.info(
+        logger.info(
             "Redundant SSSD configuration file "
             "/etc/sssd/sssd.conf was moved to /etc/sssd/sssd.conf.deleted")
 
@@ -3230,19 +3229,19 @@ def uninstall(options):
         try:
             sssd.stop()
         except CalledProcessError:
-            root_logger.warning("SSSD service could not be stopped")
+            logger.warning("SSSD service could not be stopped")
 
         try:
             sssd.disable()
         except CalledProcessError as e:
-            root_logger.warning(
+            logger.warning(
                 "Failed to disable automatic startup of the SSSD daemon: %s",
                 e)
 
     tasks.restore_hostname(fstore, statestore)
 
     if fstore.has_files():
-        root_logger.info("Restoring client configuration files")
+        logger.info("Restoring client configuration files")
         fstore.restore_all_files()
 
     unconfigure_nisdomain(statestore)
@@ -3255,7 +3254,7 @@ def uninstall(options):
             restore_state(service, statestore)
         else:
             # this is an optional service, just log
-            root_logger.info(
+            logger.info(
                 "%s daemon is not installed, skip configuration",
                 service.service_name
             )
@@ -3288,14 +3287,14 @@ def uninstall(options):
     try:
         ntpconf.restore_forced_ntpd(statestore)
     except CalledProcessError as e:
-        root_logger.error('Failed to start chronyd: %s', e)
+        logger.error('Failed to start chronyd: %s', e)
 
     if was_sshd_configured and services.knownservices.sshd.is_running():
         services.knownservices.sshd.restart()
 
     # Remove the Firefox configuration
     if statestore.has_state('firefox'):
-        root_logger.info("Removing Firefox configuration.")
+        logger.info("Removing Firefox configuration.")
         preferences_fname = statestore.restore_state(
             'firefox', 'preferences_fname')
         if preferences_fname is not None:
@@ -3303,20 +3302,20 @@ def uninstall(options):
                 try:
                     os.remove(preferences_fname)
                 except Exception as e:
-                    root_logger.warning(
+                    logger.warning(
                         "'%s' could not be removed: %s.",
                         preferences_fname, str(e))
-                    root_logger.warning(
+                    logger.warning(
                         "Please remove file '%s' manually.", preferences_fname)
 
     rv = SUCCESS
 
     if fstore.has_files():
-        root_logger.error('Some files have not been restored, see %s' %
-                          paths.SYSRESTORE_INDEX)
+        logger.error('Some files have not been restored, see %s',
+                     paths.SYSRESTORE_INDEX)
     has_state = False
     for module in statestore.modules:
-            root_logger.error(
+            logger.error(
                 'Some installation state for %s has not been '
                 'restored, see /var/lib/ipa/sysrestore/sysrestore.state',
                 module)
@@ -3324,7 +3323,7 @@ def uninstall(options):
             rv = CLIENT_UNINSTALL_ERROR
 
     if has_state:
-        root_logger.warning(
+        logger.warning(
             'Some installation state has not been restored.\n'
             'This may cause re-installation to fail.\n'
             'It should be safe to remove /var/lib/ipa-client/sysrestore.state '
@@ -3342,15 +3341,15 @@ def uninstall(options):
     remove_file(paths.KDC_CA_BUNDLE_PEM)
     remove_file(paths.CA_BUNDLE_PEM)
 
-    root_logger.info("Client uninstall complete.")
+    logger.info("Client uninstall complete.")
 
     # The next block of code prompts for reboot, therefore all uninstall
     # logic has to be done before
 
     if not options.unattended:
-        root_logger.info(
+        logger.info(
             "The original nsswitch.conf configuration has been restored.")
-        root_logger.info(
+        logger.info(
             "You may need to restart services or reboot the machine.")
         if not options.on_master:
             if user_input("Do you want to reboot the machine?", False):
@@ -3368,6 +3367,7 @@ def uninstall(options):
 
 
 def init(installer):
+    root_logger = logging.getLogger()
     for handler in root_logger.handlers:
         if (isinstance(handler, logging.StreamHandler) and
                 handler.stream is sys.stderr):  # pylint: disable=no-member

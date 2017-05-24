@@ -8,6 +8,7 @@ AD trust installer module
 
 from __future__ import print_function
 
+import logging
 import os
 
 import six
@@ -21,7 +22,6 @@ from ipapython.admintool import ScriptError
 from ipapython import ipaldap, ipautil
 from ipapython.dn import DN
 from ipapython.install.core import group, knob
-from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import adtrustinstance
 from ipaserver.install import service
 
@@ -29,13 +29,15 @@ from ipaserver.install import service
 if six.PY3:
     unicode = str
 
+logger = logging.getLogger(__name__)
+
 netbios_name = None
 reset_netbios_name = False
 
 
 def netbios_name_error(name):
-    root_logger.error("\nIllegal NetBIOS name [%s].\n" % name)
-    root_logger.error(
+    logger.error("\nIllegal NetBIOS name [%s].\n", name)
+    logger.error(
         "Up to 15 characters and only uppercase ASCII letters, digits "
         "and dashes are allowed. Empty string is not allowed.")
 
@@ -72,7 +74,7 @@ def retrieve_netbios_name(api):
             [flat_name_attr])
     except errors.NotFound:
         # trust not configured
-        root_logger.debug("No previous trust configuration found")
+        logger.debug("No previous trust configuration found")
         return None
     else:
         return entry.get(flat_name_attr)[0]
@@ -98,7 +100,7 @@ def set_and_check_netbios_name(netbios_name, unattended, api):
     if api.Backend.ldap2.isconnected():
         cur_netbios_name = retrieve_netbios_name(api)
     else:
-        root_logger.debug(
+        logger.debug(
             "LDAP is not connected, can not retrieve NetBIOS name")
 
     if cur_netbios_name and not netbios_name:
@@ -192,7 +194,7 @@ def retrieve_entries_without_sid(api):
              '(objectclass=ipaidobject))(!(ipantsecurityidentifier=*)))'
     base_dn = api.env.basedn
     try:
-        root_logger.debug(
+        logger.debug(
             "Searching for objects with missing SID with "
             "filter=%s, base_dn=%s", filter, base_dn)
         entries, _truncated = api.Backend.ldap2.find_entries(
@@ -202,7 +204,7 @@ def retrieve_entries_without_sid(api):
         # All objects have SIDs assigned
         pass
     except (errors.DatabaseError, errors.NetworkError) as e:
-        root_logger.error(
+        logger.error(
             "Could not retrieve a list of objects that need a SID "
             "identifier assigned: %s", e)
 
@@ -214,7 +216,7 @@ def retrieve_and_ask_about_sids(api, options):
     if api.Backend.ldap2.isconnected():
         entries = retrieve_entries_without_sid(api)
     else:
-        root_logger.debug(
+        logger.debug(
             "LDAP backend not connected, can not retrieve entries "
             "with missing SID")
 
@@ -258,7 +260,7 @@ def retrieve_potential_adtrust_agents(api):
         dl_enabled_masters = api.Command.server_find(
             ipamindomainlevel=DOMAIN_LEVEL_0, all=True)['result']
     except (errors.DatabaseError, errors.NetworkError) as e:
-        root_logger.error(
+        logger.error(
             "Could not retrieve a list of existing IPA masters: %s", e)
         return
 
@@ -267,7 +269,7 @@ def retrieve_potential_adtrust_agents(api):
         adtrust_agents = api.Command.server_find(
             servrole=u'AD trust agent', all=True)['result']
     except (errors.DatabaseError, errors.NetworkError) as e:
-        root_logger.error("Could not retrieve a list of adtrust agents: %s", e)
+        logger.error("Could not retrieve a list of adtrust agents: %s", e)
         return
 
     dl_enabled_master_cns = {m['cn'][0] for m in dl_enabled_masters}

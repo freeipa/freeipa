@@ -20,6 +20,7 @@
 
 from __future__ import print_function
 
+import logging
 import shutil
 import pwd
 import os
@@ -36,7 +37,6 @@ from ipalib.install import certmonger, certstore
 from ipapython.certdb import (IPA_CA_TRUST_FLAGS,
                               EXTERNAL_CA_TRUST_FLAGS,
                               TrustFlags)
-from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil, ipaldap
 from ipapython import dogtag
 from ipaserver.install import service
@@ -54,6 +54,8 @@ from ipapython.dn import DN
 from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
+
+logger = logging.getLogger(__name__)
 
 DS_USER = platformconstants.DS_USER
 DS_GROUP = platformconstants.DS_GROUP
@@ -104,16 +106,16 @@ def remove_ds_instance(serverid, force=False):
     args = [paths.REMOVE_DS_PL, '-i', instance_name]
     if force:
         args.append('-f')
-        root_logger.debug("Forcing instance removal")
+        logger.debug("Forcing instance removal")
 
     try:
         ipautil.run(args)
     except ipautil.CalledProcessError:
         if force:
-            root_logger.error("Instance removal failed.")
+            logger.error("Instance removal failed.")
             raise
-        root_logger.debug("'%s' failed. "
-                          "Attempting to force removal" % paths.REMOVE_DS_PL)
+        logger.debug("'%s' failed. "
+                     "Attempting to force removal", paths.REMOVE_DS_PL)
         remove_ds_instance(serverid, force=True)
 
 
@@ -452,11 +454,11 @@ class DsInstance(service.Service):
                 try:
                     api.Backend.ldap2.delete_entry(r)
                 except Exception as e:
-                    root_logger.critical(
+                    logger.critical(
                         "Error during SASL mapping removal: %s", e)
                     raise
         except Exception as e:
-            root_logger.critical("Error while enumerating SASL mappings %s", e)
+            logger.critical("Error while enumerating SASL mappings %s", e)
             raise
 
         entry = api.Backend.ldap2.make_entry(
@@ -530,7 +532,7 @@ class DsInstance(service.Service):
 
         self.sub_dict['BASEDC'] = self.realm.split('.')[0].lower()
         base_txt = ipautil.template_str(BASE_TEMPLATE, self.sub_dict)
-        root_logger.debug(base_txt)
+        logger.debug("%s", base_txt)
 
         target_fname = paths.DIRSRV_BOOT_LDIF
         base_fd = open(target_fname, "w")
@@ -542,19 +544,19 @@ class DsInstance(service.Service):
         os.chown(target_fname, pent.pw_uid, pent.pw_gid)
 
         inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
-        root_logger.debug("writing inf template")
+        logger.debug("writing inf template")
         inf_fd = ipautil.write_tmp_file(inf_txt)
         inf_txt = re.sub(r"RootDNPwd=.*\n", "", inf_txt)
-        root_logger.debug(inf_txt)
+        logger.debug("%s", inf_txt)
         args = [
             paths.SETUP_DS_PL, "--silent",
             "--logfile", "-",
             "-f", inf_fd.name,
         ]
-        root_logger.debug("calling setup-ds.pl")
+        logger.debug("calling setup-ds.pl")
         try:
             ipautil.run(args)
-            root_logger.debug("completed creating DS instance")
+            logger.debug("completed creating DS instance")
         except ipautil.CalledProcessError as e:
             raise RuntimeError("failed to create DS instance %s" % e)
 
@@ -597,7 +599,7 @@ class DsInstance(service.Service):
         try:
             os.remove(temp_filename)
         except OSError as e:
-            root_logger.debug("Failed to clean temporary file: %s" % e)
+            logger.debug("Failed to clean temporary file: %s", e)
 
     def __add_default_schemas(self):
         pent = pwd.getpwnam(DS_USER)
@@ -638,13 +640,15 @@ class DsInstance(service.Service):
         try:
             super(DsInstance, self).restart(instance)
             if not is_ds_running(instance):
-                root_logger.critical("Failed to restart the directory server. See the installation log for details.")
+                logger.critical("Failed to restart the directory server. "
+                                "See the installation log for details.")
                 raise ScriptError()
         except SystemExit as e:
             raise e
         except Exception as e:
             # TODO: roll back here?
-            root_logger.critical("Failed to restart the directory server (%s). See the installation log for details." % e)
+            logger.critical("Failed to restart the directory server (%s). "
+                            "See the installation log for details.", e)
         api.Backend.ldap2.connect()
 
     def __start_instance(self):
@@ -671,7 +675,7 @@ class DsInstance(service.Service):
         # Note, keep dn in sync with dn in install/share/memberof-task.ldif
         dn = DN(('cn', 'IPA install %s' % self.sub_dict["TIME"]), ('cn', 'memberof task'),
                 ('cn', 'tasks'), ('cn', 'config'))
-        root_logger.debug("Waiting for memberof task to complete.")
+        logger.debug("Waiting for memberof task to complete.")
         ldap_uri = ipaldap.get_ldap_uri(self.fqdn)
         conn = ipaldap.LDAPClient(ldap_uri)
         if self.dm_password:
@@ -955,7 +959,7 @@ class DsInstance(service.Service):
         self._ldap_mod("default-hbac.ldif", self.sub_dict)
 
     def change_admin_password(self, password):
-        root_logger.debug("Changing admin password")
+        logger.debug("Changing admin password")
 
         dir_ipa = paths.VAR_LIB_IPA
         with tempfile.NamedTemporaryFile("w", dir=dir_ipa) as dmpwdfile, \
@@ -974,10 +978,10 @@ class DsInstance(service.Service):
                 env = {'LDAPTLS_CACERTDIR': os.path.dirname(paths.IPA_CA_CRT),
                        'LDAPTLS_CACERT': paths.IPA_CA_CRT}
                 ipautil.run(args, env=env)
-                root_logger.debug("ldappasswd done")
+                logger.debug("ldappasswd done")
             except ipautil.CalledProcessError as e:
                 print("Unable to set admin password", e)
-                root_logger.debug("Unable to set admin password %s" % e)
+                logger.debug("Unable to set admin password %s", e)
 
     def uninstall(self):
         if self.is_configured():
@@ -992,7 +996,7 @@ class DsInstance(service.Service):
             self.fstore.restore_file(paths.LIMITS_CONF)
             self.fstore.restore_file(paths.SYSCONFIG_DIRSRV)
         except ValueError as error:
-            root_logger.debug(error)
+            logger.debug("%s", error)
 
         # disabled during IPA installation
         if enabled:
@@ -1001,14 +1005,14 @@ class DsInstance(service.Service):
         serverid = self.restore_state("serverid")
         if serverid is not None:
             self.stop_tracking_certificates(serverid)
-            root_logger.debug("Removing DS instance %s" % serverid)
+            logger.debug("Removing DS instance %s", serverid)
             try:
                 remove_ds_instance(serverid)
                 installutils.remove_keytab(paths.DS_KEYTAB)
                 installutils.remove_ccache(run_as=DS_USER)
             except ipautil.CalledProcessError:
-                root_logger.error("Failed to remove DS instance. You may "
-                                  "need to remove instance data manually")
+                logger.error("Failed to remove DS instance. You may "
+                             "need to remove instance data manually")
 
         # Just eat this state
         self.restore_state("user_exists")
@@ -1025,7 +1029,7 @@ class DsInstance(service.Service):
             try:
                 services.knownservices.dirsrv.restart(ds_instance, wait=False)
             except Exception as e:
-                root_logger.error(
+                logger.error(
                     'Unable to restart DS instance %s: %s', ds_instance, e)
 
     def stop_tracking_certificates(self, serverid=None):
@@ -1059,12 +1063,12 @@ class DsInstance(service.Service):
         # first make sure we have a valid cacert_fname
         try:
             if not os.access(cacert_fname, os.R_OK):
-                root_logger.critical("The given CA cert file named [%s] could not be read" %
-                                             cacert_fname)
+                logger.critical("The given CA cert file named [%s] could not "
+                                "be read", cacert_fname)
                 return False
         except OSError as e:
-            root_logger.critical("The given CA cert file named [%s] could not be read: %s" %
-                                         (cacert_fname, str(e)))
+            logger.critical("The given CA cert file named [%s] could not "
+                            "be read: %s", cacert_fname, str(e))
             return False
         # ok - ca cert file can be read
         # shutdown the server
@@ -1085,8 +1089,8 @@ class DsInstance(service.Service):
         try:
             certdb.load_cacert(cacert_fname, EXTERNAL_CA_TRUST_FLAGS)
         except ipautil.CalledProcessError as e:
-            root_logger.critical("Error importing CA cert file named [%s]: %s" %
-                                         (cacert_fname, str(e)))
+            logger.critical("Error importing CA cert file named [%s]: %s",
+                            cacert_fname, str(e))
             status = False
         # restart the directory server
         self.start()
@@ -1150,7 +1154,7 @@ class DsInstance(service.Service):
         except errors.NotFound:
             self._ldap_mod('ipa-sidgen-conf.ldif', dict(SUFFIX=suffix))
         else:
-            root_logger.debug("sidgen plugin is already configured")
+            logger.debug("sidgen plugin is already configured")
 
     def _add_extdom_plugin(self):
         """
@@ -1168,7 +1172,7 @@ class DsInstance(service.Service):
         except errors.NotFound:
             self._ldap_mod('ipa-extdom-extop-conf.ldif', dict(SUFFIX=suffix))
         else:
-            root_logger.debug("extdom plugin is already configured")
+            logger.debug("extdom plugin is already configured")
 
     def find_subject_base(self):
         """
@@ -1181,20 +1185,20 @@ class DsInstance(service.Service):
         is configured, the api is initialized elsewhere and
         that a ticket already have been acquired.
         """
-        root_logger.debug(
+        logger.debug(
             'Trying to find certificate subject base in sysupgrade')
         subject_base = sysupgrade.get_upgrade_state(
             'certmap.conf', 'subject_base')
 
         if subject_base:
-            root_logger.debug(
+            logger.debug(
                 'Found certificate subject base in sysupgrade: %s',
                 subject_base)
             return subject_base
 
-        root_logger.debug(
+        logger.debug(
             'Unable to find certificate subject base in sysupgrade')
-        root_logger.debug(
+        logger.debug(
             'Trying to find certificate subject base in DS')
 
         ds_is_running = is_ds_running()
@@ -1203,25 +1207,24 @@ class DsInstance(service.Service):
                 self.start()
                 ds_is_running = True
             except ipautil.CalledProcessError as e:
-                root_logger.error('Cannot start DS to find certificate '
-                                  'subject base: %s', e)
+                logger.error('Cannot start DS to find certificate '
+                             'subject base: %s', e)
 
         if ds_is_running:
             try:
                 ret = api.Command['config_show']()
                 subject_base = str(
                     ret['result']['ipacertificatesubjectbase'][0])
-                root_logger.debug(
+                logger.debug(
                     'Found certificate subject base in DS: %s', subject_base)
             except errors.PublicError as e:
-                root_logger.error('Cannot connect to DS to find certificate '
-                                  'subject base: %s', e)
+                logger.error('Cannot connect to DS to find certificate '
+                             'subject base: %s', e)
 
         if subject_base:
             return subject_base
 
-        root_logger.debug('Unable to find certificate subject base in '
-                          'certmap.conf')
+        logger.debug('Unable to find certificate subject base in certmap.conf')
         return None
 
     def __set_domain_level(self):

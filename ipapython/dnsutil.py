@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 import dns.name
 import dns.exception
 import dns.resolver
@@ -25,10 +27,11 @@ import copy
 import six
 
 from ipapython.ipautil import UnsafeIPAddress
-from ipapython.ipa_log_manager import root_logger
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 
 @six.python_2_unicode_compatible
@@ -308,18 +311,19 @@ def resolve_rrsets(fqdn, rdtypes):
     for rdtype in rdtypes:
         try:
             answer = dns.resolver.query(fqdn, rdtype)
-            root_logger.debug('found %d %s records for %s: %s',
-                              len(answer), rdtype, fqdn, ' '.join(
-                                  str(rr) for rr in answer))
+            logger.debug('found %d %s records for %s: %s',
+                         len(answer),
+                         rdtype,
+                         fqdn,
+                         ' '.join(str(rr) for rr in answer))
             rrsets.append(answer.rrset)
         except dns.resolver.NXDOMAIN as ex:
-            root_logger.debug(ex)
+            logger.debug('%s', ex)
             break  # no such FQDN, do not iterate
         except dns.resolver.NoAnswer as ex:
-            root_logger.debug(ex)  # record type does not exist for given FQDN
+            logger.debug('%s', ex)  # record type does not exist for given FQDN
         except dns.exception.DNSException as ex:
-            root_logger.error('DNS query for %s %s failed: %s',
-                              fqdn, rdtype, ex)
+            logger.error('DNS query for %s %s failed: %s', fqdn, rdtype, ex)
             raise
 
     return rrsets
@@ -338,7 +342,7 @@ def resolve_ip_addresses(fqdn):
 
 
 def check_zone_overlap(zone, raise_on_error=True):
-    root_logger.info("Checking DNS domain %s, please wait ..." % zone)
+    logger.info("Checking DNS domain %s, please wait ...", zone)
     if not isinstance(zone, DNSName):
         zone = DNSName(zone).make_absolute()
 
@@ -354,15 +358,15 @@ def check_zone_overlap(zone, raise_on_error=True):
         if raise_on_error:
             raise ValueError(msg)
         else:
-            root_logger.warning(msg)
+            logger.warning('%s', msg)
             return
 
     if containing_zone == zone:
         try:
             ns = [ans.to_text() for ans in dns.resolver.query(zone, 'NS')]
         except dns.exception.DNSException as e:
-            root_logger.debug("Failed to resolve nameserver(s) for domain"
-                              " {0}: {1}".format(zone, e))
+            logger.debug("Failed to resolve nameserver(s) for domain %s: %s",
+                         zone, e)
             ns = []
 
         msg = u"DNS zone {0} already exists in DNS".format(zone)

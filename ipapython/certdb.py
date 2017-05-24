@@ -18,6 +18,7 @@
 #
 
 import collections
+import logging
 import os
 import io
 import pwd
@@ -32,7 +33,6 @@ from cryptography.hazmat.primitives import serialization
 import cryptography.x509
 
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger
 from ipapython.kerberos import Principal
 from ipapython import ipautil
 from ipalib import x509     # pylint: disable=ipa-forbidden-import
@@ -50,6 +50,8 @@ else:
     PK12UTIL = paths.PK12UTIL
     OPENSSL = paths.OPENSSL
 
+
+logger = logging.getLogger(__name__)
 
 CA_NICKNAME_FMT = "%s IPA CA"
 
@@ -318,7 +320,7 @@ class NSSDatabase(object):
                 if os.path.exists(backup_path):
                     os.rename(backup_path, path)
             except OSError as e:
-                root_logger.debug(e)
+                logger.debug('%s', e)
 
     def list_certs(self):
         """Return nicknames and cert flags for all certs in the database
@@ -459,8 +461,9 @@ class NSSDatabase(object):
                             x509.load_certificate(match.group(2))
                         except ValueError as e:
                             if label != 'CERTIFICATE':
-                                root_logger.warning(
-                                    "Skipping certificate in %s at line %s: %s",
+                                logger.warning(
+                                    "Skipping certificate in %s at line %s: "
+                                    "%s",
                                     filename, line, e)
                                 continue
                         else:
@@ -473,11 +476,12 @@ class NSSDatabase(object):
                             certs = x509.pkcs7_to_pems(body)
                         except ipautil.CalledProcessError as e:
                             if label == 'CERTIFICATE':
-                                root_logger.warning(
-                                    "Skipping certificate in %s at line %s: %s",
+                                logger.warning(
+                                    "Skipping certificate in %s at line %s: "
+                                    "%s",
                                     filename, line, e)
                             else:
-                                root_logger.warning(
+                                logger.warning(
                                     "Skipping PKCS#7 in %s at line %s: %s",
                                     filename, line, e)
                             continue
@@ -512,7 +516,7 @@ class NSSDatabase(object):
                             result = ipautil.run(
                                 args, stdin=body, capture_output=True)
                         except ipautil.CalledProcessError as e:
-                            root_logger.warning(
+                            logger.warning(
                                 "Skipping private key in %s at line %s: %s",
                                 filename, line, e)
                             continue
@@ -603,8 +607,8 @@ class NSSDatabase(object):
 
     def trust_root_cert(self, root_nickname, trust_flags):
         if root_nickname[:7] == "Builtin":
-            root_logger.debug(
-                "No need to add trust for built-in root CAs, skipping %s" %
+            logger.debug(
+                "No need to add trust for built-in root CAs, skipping %s",
                 root_nickname)
         else:
             trust_flags = unparse_trust_flags(trust_flags)

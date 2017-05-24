@@ -10,6 +10,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import enum
+import logging
 
 # absolute import is necessary because IPA module dns clashes with python-dns
 from dns import resolver
@@ -33,7 +34,6 @@ from ipapython.dn import DN
 from ipapython.dnsutil import check_zone_overlap
 from ipapython.install import typing
 from ipapython.install.core import group, knob
-from ipapython.ipa_log_manager import root_logger
 from ipapython.admintool import ScriptError
 from ipapython.ipautil import user_input
 from ipaserver.install.installutils import get_server_ip_address
@@ -46,6 +46,8 @@ from ipaserver.install import opendnssecinstance
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 ip_addresses = []
 reverse_zones = []
@@ -129,9 +131,9 @@ def install_check(standalone, api, replica, options, hostname):
             dnsutil.check_zone_overlap(domain, raise_on_error=False)
         except ValueError as e:
             if options.force or options.allow_zone_overlap:
-                root_logger.warning("%s Please make sure that the domain is "
-                                    "properly delegated to this IPA server.",
-                                    e)
+                logger.warning("%s Please make sure that the domain is "
+                               "properly delegated to this IPA server.",
+                               e)
             else:
                 raise e
 
@@ -140,7 +142,7 @@ def install_check(standalone, api, replica, options, hostname):
             dnsutil.check_zone_overlap(reverse_zone)
         except ValueError as e:
             if options.force or options.allow_zone_overlap:
-                root_logger.warning(six.text_type(e))
+                logger.warning('%s', six.text_type(e))
             else:
                 raise e
 
@@ -239,7 +241,7 @@ def install_check(standalone, api, replica, options, hostname):
                             runas=constants.ODS_USER,
                             suplementary_groups=[constants.NAMED_GROUP])
             except CalledProcessError as e:
-                root_logger.debug("%s", e)
+                logger.debug("%s", e)
                 raise RuntimeError("This IPA server cannot be promoted to "
                                    "DNSSEC master role because some keys were "
                                    "not replicated from the original "
@@ -273,8 +275,8 @@ def install_check(standalone, api, replica, options, hostname):
         for ip in ip_addresses:
             if dnsutil.inside_auto_empty_zone(dnsutil.DNSName(ip.reverse_dns)):
                 options.forward_policy = 'only'
-                root_logger.debug('IP address %s belongs to a private range, '
-                                  'using forward policy only', ip)
+                logger.debug('IP address %s belongs to a private range, '
+                             'using forward policy only', ip)
                 break
 
     if options.no_forwarders:
@@ -289,13 +291,12 @@ def install_check(standalone, api, replica, options, hostname):
 
     # test DNSSEC forwarders
     if options.forwarders:
-        if (not bindinstance.check_forwarders(options.forwarders,
-                                              root_logger)
+        if (not bindinstance.check_forwarders(options.forwarders)
                 and not options.no_dnssec_validation):
             options.no_dnssec_validation = True
             print("WARNING: DNSSEC validation will be disabled")
 
-    root_logger.debug("will use DNS forwarders: %s\n", options.forwarders)
+    logger.debug("will use DNS forwarders: %s\n", options.forwarders)
 
     if not standalone:
         search_reverse_zones = False

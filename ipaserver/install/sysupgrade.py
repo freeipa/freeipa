@@ -17,12 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 import os
 import os.path
 
 from ipalib.install import sysrestore
 from ipaplatform.paths import paths
-from ipapython.ipa_log_manager import root_logger
+
+logger = logging.getLogger(__name__)
 
 STATEFILE_FILE = 'sysupgrade.state'
 
@@ -49,4 +51,4 @@ def remove_upgrade_file():
     try:
         os.remove(os.path.join(paths.STATEFILE_DIR, STATEFILE_FILE))
     except Exception as e:
-        root_logger.debug('Cannot remove sysupgrade state file: %s', e)
+        logger.debug('Cannot remove sysupgrade state file: %s', e)

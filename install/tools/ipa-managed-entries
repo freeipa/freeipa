@@ -20,6 +20,7 @@
 
 from __future__ import print_function
 
+import logging
 import os
 import re
 import sys
@@ -29,8 +30,11 @@ from ipaplatform.paths import paths
 from ipapython import config
 from ipaserver.install import installutils
 from ipalib import api, errors
-from ipapython.ipa_log_manager import root_logger, standard_logging_setup
+from ipapython.ipa_log_manager import standard_logging_setup
 from ipapython.dn import DN
+
+logger = logging.getLogger(os.path.basename(__file__))
+
 
 def parse_options():
     usage = "%prog [options] <status|enable|disable>\n"
@@ -101,7 +105,7 @@ def main():
             entries = api.Backend.ldap2.get_entries(
                 managed_entry_definitions_dn, api.Backend.ldap2.SCOPE_SUBTREE, filter)
         except Exception as e:
-            root_logger.debug("Search for managed entries failed: %s" % str(e))
+            logger.debug("Search for managed entries failed: %s", str(e))
             sys.exit("Unable to find managed entries at %s" % managed_entry_definitions_dn)
         managed_entries = [entry.single_value['cn'] for entry in entries]
         if managed_entries:

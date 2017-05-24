@@ -19,6 +19,7 @@
 
 from __future__ import print_function
 
+import logging
 import os
 import errno
 import ldap
@@ -40,7 +41,6 @@ from ipalib import errors, api
 from ipalib.util import normalize_zone
 from ipapython.dn import DN
 from ipapython import ipautil
-from ipapython.ipa_log_manager import root_logger
 import ipapython.errors
 
 import ipaclient.install.ipachangeconf
@@ -51,6 +51,8 @@ from ipaplatform.tasks import tasks
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits + '-'
 
@@ -339,8 +341,8 @@ class ADTRUSTInstance(service.Service):
 
             # Abort if RID base needs to be added to more than one range
             if len(ranges_with_no_rid_base) != 1:
-                root_logger.critical("Found more than one local domain ID "
-                                     "range with no RID base set.")
+                logger.critical("Found more than one local domain ID "
+                                "range with no RID base set.")
                 raise RuntimeError("Too many ID ranges\n")
 
             # Abort if RID bases are too close
@@ -372,8 +374,8 @@ class ADTRUSTInstance(service.Service):
                 raise RuntimeError("Constraint violation.\n")
 
         except errors.NotFound as e:
-            root_logger.critical("ID range of the local domain not found, "
-                                 "define it and run again.")
+            logger.critical("ID range of the local domain not found, "
+                            "define it and run again.")
             raise e
 
     def __reset_netbios_name(self):
@@ -487,8 +489,8 @@ class ADTRUSTInstance(service.Service):
             wait_for_task(api.Backend.ldap2, task_dn)
 
         except Exception as e:
-            root_logger.warning("Exception occured during SID generation: {0}"
-                                .format(str(e)))
+            logger.warning("Exception occured during SID generation: %s",
+                           str(e))
 
     def __add_s4u2proxy_target(self):
         """
@@ -549,8 +551,8 @@ class ADTRUSTInstance(service.Service):
                              "-k", self.keytab])
             except ipautil.CalledProcessError as e:
                 if e.returncode != 5:
-                    root_logger.critical("Failed to remove old key for %s"
-                                         % self.principal)
+                    logger.critical("Failed to remove old key for %s",
+                                    self.principal)
 
     def srv_rec(self, host, port, prio):
         return "%(prio)d 100 %(port)d %(host)s" % dict(host=host,prio=prio,port=port)
@@ -672,7 +674,8 @@ class ADTRUSTInstance(service.Service):
                             self.cifs_hosts.append(normalize_zone(fqdn))
 
         except Exception as e:
-            root_logger.critical("Checking replicas for cifs principals failed with error '%s'" % e)
+            logger.critical("Checking replicas for cifs principals failed "
+                            "with error '%s'", e)
 
     def __enable_compat_tree(self):
         try:
@@ -686,7 +689,8 @@ class ADTRUSTInstance(service.Service):
                     current[lookup_nsswitch_name] = [config[1]]
                     api.Backend.ldap2.update_entry(current)
         except Exception as e:
-            root_logger.critical("Enabling nsswitch support in slapi-nis failed with error '%s'" % e)
+            logger.critical("Enabling nsswitch support in slapi-nis failed "
+                            "with error '%s'", e)
 
     def __validate_server_hostname(self):
         hostname = socket.gethostname()
@@ -702,7 +706,7 @@ class ADTRUSTInstance(service.Service):
             self.start()
             services.service('winbind', api).start()
         except Exception:
-            root_logger.critical("CIFS services failed to start")
+            logger.critical("CIFS services failed to start")
 
     def __stop(self):
         self.backup_state("running", self.is_running())
@@ -734,12 +738,12 @@ class ADTRUSTInstance(service.Service):
         try:
             self.ldap_enable('ADTRUST', self.fqdn, None, self.suffix)
         except (ldap.ALREADY_EXISTS, errors.DuplicateEntry):
-            root_logger.info("ADTRUST Service startup entry already exists.")
+            logger.info("ADTRUST Service startup entry already exists.")
 
         try:
             self.ldap_enable('EXTID', self.fqdn, None, self.suffix)
         except (ldap.ALREADY_EXISTS, errors.DuplicateEntry):
-            root_logger.info("EXTID Service startup entry already exists.")
+            logger.info("EXTID Service startup entry already exists.")
 
     def __setup_sub_dict(self):
         self.sub_dict = dict(REALM = self.realm,

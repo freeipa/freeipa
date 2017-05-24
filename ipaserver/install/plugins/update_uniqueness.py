@@ -17,10 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -182,8 +185,8 @@ class update_uniqueness_plugins_to_new_syntax(Updater):
                 base_dn=self.plugins_dn,
             )
         except errors.NotFound:
-            root_logger.debug("No uniqueness plugin entries with old style "
-                              "configuration found")
+            logger.debug("No uniqueness plugin entries with old style "
+                         "configuration found")
             return False, []
 
         update_list = []
@@ -198,14 +201,14 @@ class update_uniqueness_plugins_to_new_syntax(Updater):
         for entry in entries:
             # test for mixed configuration
             if any(attr in entry for attr in new_attributes):
-                root_logger.critical("Mixed old and new style configuration "
-                                     "for plugin %s. Plugin will not work. "
-                                     "Skipping plugin migration, please fix it "
-                                     "manually",
-                                     entry.dn)
+                logger.critical("Mixed old and new style configuration "
+                                "for plugin %s. Plugin will not work. "
+                                "Skipping plugin migration, please fix it "
+                                "manually",
+                                entry.dn)
                 continue
-            root_logger.debug("Configuration of plugin %s will be migrated "
-                             "to new style", entry.dn)
+            logger.debug("Configuration of plugin %s will be migrated "
+                         "to new style", entry.dn)
             try:
                 # detect which configuration was used
                 arg0 = entry.get('nsslapd-pluginarg0')
@@ -214,9 +217,9 @@ class update_uniqueness_plugins_to_new_syntax(Updater):
                 else:
                     update = self.__subtree_style(entry)
             except ValueError as e:
-                root_logger.error("Unable to migrate configuration of "
-                                  "plugin %s (%s)",
-                                  entry.dn, e)
+                logger.error("Unable to migrate configuration of "
+                             "plugin %s (%s)",
+                             entry.dn, e)
             else:
                 update_list.append(update)
 

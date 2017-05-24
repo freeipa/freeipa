@@ -21,9 +21,12 @@
 Plugin index generation script
 """
 
+import logging
 import os
 from ipaplatform.paths import paths
-from ipapython.ipa_log_manager import root_logger
+
+logger = logging.getLogger(os.path.basename(__file__))
+
 
 def get_plugin_index():
 
@@ -46,7 +49,7 @@ def application(environ, start_response):
         index = get_plugin_index()
         status = '200 OK'
     except Exception as e:
-        root_logger.error('plugin index generation failed: %s' % e)
+        logger.error('plugin index generation failed: %s', e)
         status = '200 OK'
         index = get_failed()
     headers = [('Content-type', 'application/javascript'),

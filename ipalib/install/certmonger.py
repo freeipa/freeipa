@@ -24,6 +24,7 @@
 
 from __future__ import print_function
 
+import logging
 import os
 import time
 import dbus
@@ -31,10 +32,11 @@ import shlex
 import subprocess
 import tempfile
 from ipalib import api
-from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipaplatform.paths import paths
 from ipaplatform import services
+
+logger = logging.getLogger(__name__)
 
 DBUS_CM_PATH = '/org/fedorahosted/certmonger'
 DBUS_CM_IF = 'org.fedorahosted.certmonger'
@@ -106,7 +108,7 @@ class _certmonger(_cm_dbus_object):
                 if retcode is not None:
                     return
                 time.sleep(5)
-            root_logger.error("Failed to stop certmonger.")
+            logger.error("Failed to stop certmonger.")
 
     def __del__(self):
         self._stop_private_conn()
@@ -120,15 +122,15 @@ class _certmonger(_cm_dbus_object):
             err_name = e.get_dbus_name()
             if err_name not in ['org.freedesktop.DBus.Error.NoServer',
                                 'org.freedesktop.DBus.Error.FileNotFound']:
-                root_logger.error("Failed to connect to certmonger over "
-                                  "SystemBus: %s" % e)
+                logger.error("Failed to connect to certmonger over "
+                             "SystemBus: %s", e)
                 raise
             try:
                 self._private_sock = self._start_private_conn()
                 self._bus = dbus.connection.Connection(self._private_sock)
             except dbus.DBusException as e:
-                root_logger.error("Failed to connect to certmonger over "
-                                  "private socket: %s" % e)
+                logger.error("Failed to connect to certmonger over "
+                             "private socket: %s", e)
                 raise
         else:
             try:
@@ -137,7 +139,7 @@ class _certmonger(_cm_dbus_object):
                 try:
                     services.knownservices.certmonger.start()
                 except Exception as e:
-                    root_logger.error("Failed to start certmonger: %s" % e)
+                    logger.error("Failed to start certmonger: %s", e)
                     raise
 
                 for _t in range(0, self.timeout, 5):
@@ -214,7 +216,7 @@ def get_request_value(request_id, directive):
     try:
         request = _get_request(dict(nickname=request_id))
     except RuntimeError as e:
-        root_logger.error('Failed to get request: %s' % e)
+        logger.error('Failed to get request: %s', e)
         raise
     if request:
         if directive == 'ca-name':
@@ -242,7 +244,7 @@ def get_request_id(criteria):
     try:
         request = _get_request(criteria)
     except RuntimeError as e:
-        root_logger.error('Failed to get request: %s' % e)
+        logger.error('Failed to get request: %s', e)
         raise
     if request:
         return request.prop_if.Get(DBUS_CM_REQUEST_IF, 'nickname')
@@ -272,7 +274,7 @@ def add_request_value(request_id, directive, value):
     try:
         request = _get_request({'nickname': request_id})
     except RuntimeError as e:
-        root_logger.error('Failed to get request: %s' % e)
+        logger.error('Failed to get request: %s', e)
         raise
     if request:
         request.obj_if.modify({directive: value})
@@ -381,8 +383,7 @@ def request_cert(
         else:
             raise RuntimeError('add_request() returned False')
     except Exception as e:
-        root_logger.error('Failed to create a new request: {error}'
-                          .format(error=e))
+        logger.error('Failed to create a new request: %s', e)
         raise
     return request.obj_if.get_nickname()
 
@@ -471,8 +472,7 @@ def start_tracking(
         else:
             raise RuntimeError('add_request() returned False')
     except Exception as e:
-        root_logger.error('Failed to add new request: {error}'
-                          .format(error=e))
+        logger.error('Failed to add new request: %s', e)
         raise
     return request.prop_if.Get(DBUS_CM_REQUEST_IF, 'nickname')
 
@@ -501,7 +501,7 @@ def stop_tracking(secdir=None, request_id=None, nickname=None, certfile=None):
     try:
         request = _get_request(criteria)
     except RuntimeError as e:
-        root_logger.error('Failed to get request: %s' % e)
+        logger.error('Failed to get request: %s', e)
         raise
     if request:
         request.parent.obj_if.remove_request(request.path)
@@ -633,7 +633,7 @@ def check_state(dirs):
 def wait_for_request(request_id, timeout=120):
     for _i in range(0, timeout, 5):
         state = get_request_value(request_id, 'status')
-        root_logger.debug("certmonger request is in state %r", state)
+        logger.debug("certmonger request is in state %r", state)
         if state in ('CA_REJECTED', 'CA_UNREACHABLE', 'CA_UNCONFIGURED',
                      'NEED_GUIDANCE', 'NEED_CA', 'MONITORING'):
             break

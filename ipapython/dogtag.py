@@ -18,6 +18,7 @@
 #
 
 import collections
+import logging
 import xml.dom.minidom
 
 import six
@@ -32,7 +33,6 @@ from ipalib.errors import NetworkError
 from ipalib.text import _
 # pylint: enable=ipa-forbidden-import
 from ipapython import ipautil
-from ipapython.ipa_log_manager import root_logger
 
 # Python 3 rename. The package is available in "six.moves.http_client", but
 # pylint cannot handle classes from that alias
@@ -44,6 +44,8 @@ except ImportError:
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 Profile = collections.namedtuple('Profile', ['profile_id', 'description', 'store_issued'])
 
@@ -203,8 +205,8 @@ def _httplib_request(
         connection_options = {}
 
     uri = u'%s://%s%s' % (protocol, ipautil.format_netloc(host, port), path)
-    root_logger.debug('request %s %s', method, uri)
-    root_logger.debug('request body %r', request_body)
+    logger.debug('request %s %s', method, uri)
+    logger.debug('request body %r', request_body)
 
     headers = headers or {}
     if (
@@ -223,11 +225,11 @@ def _httplib_request(
         http_body = res.read()
         conn.close()
     except Exception as e:
-        root_logger.debug("httplib request failed:", exc_info=True)
+        logger.debug("httplib request failed:", exc_info=True)
         raise NetworkError(uri=uri, error=str(e))
 
-    root_logger.debug('response status %d',    http_status)
-    root_logger.debug('response headers %s',   http_headers)
-    root_logger.debug('response body %r',      http_body)
+    logger.debug('response status %d',    http_status)
+    logger.debug('response headers %s',   http_headers)
+    logger.debug('response body %r',      http_body)
 
     return http_status, http_headers, http_body

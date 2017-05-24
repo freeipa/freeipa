@@ -21,6 +21,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import errno
+import logging
 import socket
 import getpass
 import gssapi
@@ -55,7 +56,6 @@ import ipaplatform
 from ipapython import ipautil, admintool, version
 from ipapython.admintool import ScriptError
 from ipapython.certdb import EXTERNAL_CA_TRUST_FLAGS
-from ipapython.ipa_log_manager import root_logger
 from ipapython.ipaldap import DIRMAN_DN, LDAPClient
 from ipalib.util import validate_hostname
 from ipalib import api, errors, x509
@@ -67,6 +67,8 @@ from ipaplatform.tasks import tasks
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 # Used to determine install status
 IPA_MODULES = [
@@ -166,16 +168,17 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
 
     if local_hostname:
         try:
-            root_logger.debug('Check if %s is a primary hostname for localhost', host_name)
+            logger.debug('Check if %s is a primary hostname for localhost',
+                         host_name)
             ex_name = socket.gethostbyaddr(host_name)
-            root_logger.debug('Primary hostname for localhost: %s', ex_name[0])
+            logger.debug('Primary hostname for localhost: %s', ex_name[0])
             if host_name != ex_name[0]:
                 raise HostLookupError("The host name %s does not match the primary host name %s. "\
                         "Please check /etc/hosts or DNS name resolution" % (host_name, ex_name[0]))
         except socket.gaierror:
             pass
         except socket.error as e:
-            root_logger.debug(
+            logger.debug(
                 'socket.gethostbyaddr() error: %d: %s',
                 e.errno, e.strerror)  # pylint: disable=no-member
 
@@ -184,10 +187,10 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
         return
 
     try:
-        root_logger.debug('Search DNS for %s', host_name)
+        logger.debug('Search DNS for %s', host_name)
         hostaddr = socket.getaddrinfo(host_name, None)
     except Exception as e:
-        root_logger.debug('Search failed: %s', e)
+        logger.debug('Search failed: %s', e)
         raise HostForwardLookupError("Unable to resolve host name, check /etc/hosts or DNS name resolution")
 
     if len(hostaddr) == 0:
@@ -195,7 +198,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
 
     # Verify this is NOT a CNAME
     try:
-        root_logger.debug('Check if %s is not a CNAME', host_name)
+        logger.debug('Check if %s is not a CNAME', host_name)
         resolver.query(host_name, rdatatype.CNAME)
         raise HostReverseLookupError("The IPA Server Hostname cannot be a CNAME, only A and AAAA names are allowed.")
     except DNSException:
@@ -210,17 +213,17 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
         if address == '127.0.0.1' or address == '::1':
             raise HostForwardLookupError("The IPA Server hostname must not resolve to localhost (%s). A routable IP address must be used. Check /etc/hosts to see if %s is an alias for %s" % (address, host_name, address))
         try:
-            root_logger.debug('Check reverse address of %s', address)
+            logger.debug('Check reverse address of %s', address)
             revname = socket.gethostbyaddr(address)[0]
         except Exception as e:
-            root_logger.debug('Check failed: %s', e)
-            root_logger.error(
+            logger.debug('Check failed: %s', e)
+            logger.error(
                 "Unable to resolve the IP address %s to a host name, "
                 "check /etc/hosts and DNS name resolution", address)
         else:
-            root_logger.debug('Found reverse name: %s', revname)
+            logger.debug('Found reverse name: %s', revname)
             if revname != host_name:
-                root_logger.error(
+                logger.error(
                     "The host name %s does not match the value %s obtained "
                     "by reverse lookup on IP address %s", host_name, revname,
                     address)
@@ -523,7 +526,7 @@ def create_keytab(path, principal):
         if ipautil.file_exists(path):
             os.remove(path)
     except os.error:
-        root_logger.critical("Failed to remove %s." % path)
+        logger.critical("Failed to remove %s.", path)
 
     return kadmin("ktadd -k " + path + " " + principal)
 
@@ -540,8 +543,7 @@ def resolve_ip_addresses_nss(fqdn):
                                        socket.AF_UNSPEC, socket.SOCK_STREAM)
     except socket.error as ex:
         if ex.errno == socket.EAI_NODATA or ex.errno == socket.EAI_NONAME:
-            root_logger.debug('Name %s does not have any address: %s',
-                              fqdn, ex)
+            logger.debug('Name %s does not have any address: %s', fqdn, ex)
             return set()
         else:
             raise
@@ -554,11 +556,11 @@ def resolve_ip_addresses_nss(fqdn):
         except ValueError as ex:
             # getaddinfo may return link-local address other similar oddities
             # which are not accepted by CheckedIPAddress - skip these
-            root_logger.warning('Name %s resolved to an unacceptable IP '
-                                'address %s: %s', fqdn, ai[4][0], ex)
+            logger.warning('Name %s resolved to an unacceptable IP '
+                           'address %s: %s', fqdn, ai[4][0], ex)
         else:
             ip_addresses.add(ip)
-    root_logger.debug('Name %s resolved to %s', fqdn, ip_addresses)
+    logger.debug('Name %s resolved to %s', fqdn, ip_addresses)
     return ip_addresses
 
 def get_host_name(no_host_dns):
@@ -592,7 +594,8 @@ def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
             try:
                 ips.append(ipautil.CheckedIPAddress(ha))
             except ValueError as e:
-                root_logger.warning("Invalid IP address %s for %s: %s", ha, host_name, unicode(e))
+                logger.warning("Invalid IP address %s for %s: %s",
+                               ha, host_name, unicode(e))
 
     if not ips and not ip_addresses:
         if not unattended:
@@ -773,8 +776,8 @@ def read_replica_info_dogtag_port(config_dir):
             try:
                 dogtag_master_ds_port = int(fd.read())
             except (ValueError, IOError) as e:
-                root_logger.debug('Cannot parse dogtag DS port: %s', e)
-                root_logger.debug('Default to %d', default_port)
+                logger.debug('Cannot parse dogtag DS port: %s', e)
+                logger.debug('Default to %d', default_port)
                 dogtag_master_ds_port = default_port
 
     return dogtag_master_ds_port
@@ -785,31 +788,33 @@ def create_replica_config(dirman_password, filename, options):
     try:
         top_dir, dir = expand_replica_info(filename, dirman_password)
     except Exception as e:
-        root_logger.error("Failed to decrypt or open the replica file.")
+        logger.error("Failed to decrypt or open the replica file.")
         raise ScriptError(
             "ERROR: Failed to decrypt or open the replica file.\n"
             "Verify you entered the correct Directory Manager password.")
     config = ReplicaConfig(top_dir)
     read_replica_info(dir, config)
-    root_logger.debug(
-        'Installing replica file with version %d (0 means no version in prepared file).',
+    logger.debug(
+        'Installing replica file with version %d '
+        '(0 means no version in prepared file).',
         config.version)
     if config.version and config.version > version.NUM_VERSION:
-        root_logger.error(
-            'A replica file from a newer release (%d) cannot be installed on an older version (%d)',
+        logger.error(
+            'A replica file from a newer release (%d) cannot be installed on '
+            'an older version (%d)',
             config.version, version.NUM_VERSION)
         raise ScriptError()
     config.dirman_password = dirman_password
     try:
         host = get_host_name(options.no_host_dns)
     except BadHostError as e:
-        root_logger.error(str(e))
+        logger.error("%s", str(e))
         raise ScriptError()
     if config.host_name != host:
         try:
             print("This replica was created for '%s' but this machine is named '%s'" % (config.host_name, host))
             if not ipautil.user_input("This may cause problems. Continue?", False):
-                root_logger.debug(
+                logger.debug(
                     "Replica was created for %s but machine is named %s  "
                     "User chose to exit",
                     config.host_name, host)
@@ -817,7 +822,7 @@ def create_replica_config(dirman_password, filename, options):
             config.host_name = host
             print("")
         except KeyboardInterrupt:
-            root_logger.debug("Keyboard Interrupt")
+            logger.debug("Keyboard Interrupt")
             raise ScriptError(rval=0)
     config.dir = dir
     config.ca_ds_port = read_replica_info_dogtag_port(config.dir)
@@ -849,7 +854,7 @@ def remove_file(filename):
         if os.path.lexists(filename):
             os.unlink(filename)
     except Exception as e:
-        root_logger.error('Error removing %s: %s' % (filename, str(e)))
+        logger.error('Error removing %s: %s', filename, str(e))
 
 
 def rmtree(path):
@@ -860,7 +865,7 @@ def rmtree(path):
         if os.path.exists(path):
             shutil.rmtree(path)
     except Exception as e:
-        root_logger.error('Error removing %s: %s' % (path, str(e)))
+        logger.error('Error removing %s: %s', path, str(e))
 
 
 def is_ipa_configured():
@@ -875,16 +880,16 @@ def is_ipa_configured():
 
     for module in IPA_MODULES:
         if sstore.has_state(module):
-            root_logger.debug('%s is configured' % module)
+            logger.debug('%s is configured', module)
             installed = True
         else:
-            root_logger.debug('%s is not configured' % module)
+            logger.debug('%s is not configured', module)
 
     if fstore.has_files():
-        root_logger.debug('filestore has files')
+        logger.debug('filestore has files')
         installed = True
     else:
-        root_logger.debug('filestore is tracking no files')
+        logger.debug('filestore is tracking no files')
 
     return installed
 
@@ -905,7 +910,7 @@ def run_script(main_function, operation_name, log_file_name=None,
     :param fail_message: Optional message displayed on failure
     """
 
-    root_logger.info('Starting script: %s', operation_name)
+    logger.info('Starting script: %s', operation_name)
     try:
         try:
             return_value = main_function()
@@ -915,26 +920,24 @@ def run_script(main_function, operation_name, log_file_name=None,
                 (e.code is None or e.code == 0)  # pylint: disable=no-member
             ):
                 # Not an error after all
-                root_logger.info('The %s command was successful',
-                    operation_name)
+                logger.info('The %s command was successful', operation_name)
             else:
                 # Log at the DEBUG level, which is not output to the console
                 # (unless in debug/verbose mode), but is written to a logfile
                 # if one is open.
                 tb = sys.exc_info()[2]
-                root_logger.debug('\n'.join(traceback.format_tb(tb)))
-                root_logger.debug('The %s command failed, exception: %s: %s',
-                                  operation_name, type(e).__name__, e)
+                logger.debug("%s", '\n'.join(traceback.format_tb(tb)))
+                logger.debug('The %s command failed, exception: %s: %s',
+                             operation_name, type(e).__name__, e)
                 if fail_message and not isinstance(e, SystemExit):
                     print(fail_message)
                 raise
         else:
             if return_value:
-                root_logger.info('The %s command failed, return value %s',
-                    operation_name, return_value)
+                logger.info('The %s command failed, return value %s',
+                            operation_name, return_value)
             else:
-                root_logger.info('The %s command was successful',
-                    operation_name)
+                logger.info('The %s command was successful', operation_name)
             sys.exit(return_value)
 
     except BaseException as error:
@@ -1116,25 +1119,25 @@ def stopped_service(service, instance_name=""):
     else:
         log_instance_name = ""
 
-    root_logger.debug('Ensuring that service %s%s is not running while '
-                      'the next set of commands is being executed.', service,
-                      log_instance_name)
+    logger.debug('Ensuring that service %s%s is not running while '
+                 'the next set of commands is being executed.', service,
+                 log_instance_name)
 
     service_obj = services.service(service, api)
 
     # Figure out if the service is running, if not, yield
     if not service_obj.is_running(instance_name):
-        root_logger.debug('Service %s%s is not running, continue.', service,
-                          log_instance_name)
+        logger.debug('Service %s%s is not running, continue.', service,
+                     log_instance_name)
         yield
     else:
         # Stop the service, do the required stuff and start it again
-        root_logger.debug('Stopping %s%s.', service, log_instance_name)
+        logger.debug('Stopping %s%s.', service, log_instance_name)
         service_obj.stop(instance_name)
         try:
             yield
         finally:
-            root_logger.debug('Starting %s%s.', service, log_instance_name)
+            logger.debug('Starting %s%s.', service, log_instance_name)
             service_obj.start(instance_name)
 
 
@@ -1148,12 +1151,12 @@ def check_entropy():
                 emsg = 'WARNING: Your system is running out of entropy, ' \
                         'you may experience long delays'
                 service.print_msg(emsg)
-                root_logger.debug(emsg)
+                logger.debug("%s", emsg)
     except IOError as e:
-        root_logger.debug(
+        logger.debug(
             "Could not open %s: %s", paths.ENTROPY_AVAIL, e)
     except ValueError as e:
-        root_logger.debug("Invalid value in %s %s", paths.ENTROPY_AVAIL, e)
+        logger.debug("Invalid value in %s %s", paths.ENTROPY_AVAIL, e)
 
 
 def load_external_cert(files, ca_subject):
@@ -1285,13 +1288,13 @@ def check_creds(options, realm_name):
     # Check if ccache is available
     default_cred = None
     try:
-        root_logger.debug('KRB5CCNAME set to %s' %
-                          os.environ.get('KRB5CCNAME', None))
+        logger.debug('KRB5CCNAME set to %s',
+                     os.environ.get('KRB5CCNAME', None))
         # get default creds, will raise if none found
         default_cred = gssapi.creds.Credentials()
         principal = str(default_cred.name)
     except gssapi.raw.misc.GSSError as e:
-        root_logger.debug('Failed to find default ccache: %s' % e)
+        logger.debug('Failed to find default ccache: %s', e)
         principal = None
 
     # Check if the principal matches the requested one (if any)
@@ -1300,9 +1303,9 @@ def check_creds(options, realm_name):
         if op.find('@') == -1:
             op = '%s@%s' % (op, realm_name)
         if principal != op:
-            root_logger.debug('Specified principal %s does not match '
-                              'available credentials (%s)' %
-                              (options.principal, principal))
+            logger.debug('Specified principal %s does not match '
+                         'available credentials (%s)',
+                         options.principal, principal)
             principal = None
 
     if principal is None:
@@ -1326,16 +1329,16 @@ def check_creds(options, realm_name):
                 except EOFError:
                     stdin = None
                 if not stdin:
-                    root_logger.error(
+                    logger.error(
                         "Password must be provided for %s.", principal)
                     raise ScriptError("Missing password for %s" % principal)
             else:
                 if sys.stdin.isatty():
-                    root_logger.error("Password must be provided in " +
-                                      "non-interactive mode.")
-                    root_logger.info("This can be done via " +
-                                     "echo password | ipa-client-install " +
-                                     "... or with the -w option.")
+                    logger.error("Password must be provided in "
+                                 "non-interactive mode.")
+                    logger.info("This can be done via "
+                                "echo password | ipa-client-install "
+                                "... or with the -w option.")
                     raise ScriptError("Missing password for %s" % principal)
                 else:
                     stdin = sys.stdin.readline()
@@ -1346,7 +1349,7 @@ def check_creds(options, realm_name):
         try:
             kinit_password(principal, stdin, ccache_name)
         except RuntimeError as e:
-            root_logger.error("Kerberos authentication failed: %s" % e)
+            logger.error("Kerberos authentication failed: %s", e)
             raise ScriptError("Invalid credentials: %s" % e)
 
         os.environ['KRB5CCNAME'] = ccache_name
@@ -1450,9 +1453,9 @@ class ModifyLDIF(ldif.LDIFParser):
                         raise ValueError("add: {dn}, {attr}: values are "
                                          "missing".format(dn=dn, attr=attr))
             else:
-                root_logger.error("Ignoring entry: %s : only modifications "
-                                  "are allowed (missing \"changetype: "
-                                  "modify\")", dn)
+                logger.error("Ignoring entry: %s : only modifications "
+                             "are allowed (missing \"changetype: "
+                             "modify\")", dn)
 
     def handle(self, dn, entry):
         if dn in self.modifications:
@@ -1485,7 +1488,7 @@ class ModifyLDIF(ldif.LDIFParser):
         # check if there are any remaining modifications
         remaining_changes = set(self.modifications.keys()) - self.dn_updated
         for dn in remaining_changes:
-            root_logger.error(
+            logger.error(
                 "DN: %s does not exists or haven't been updated", dn)
 
 
@@ -1496,13 +1499,13 @@ def remove_keytab(keytab_path):
     :param keytab_path: path to the keytab file
     """
     try:
-        root_logger.debug("Removing service keytab: {}".format(keytab_path))
+        logger.debug("Removing service keytab: %s", keytab_path)
         os.remove(keytab_path)
     except OSError as e:
         if e.errno != errno.ENOENT:
-            root_logger.warning("Failed to remove Kerberos keytab '{}': "
-                                "{}".format(keytab_path, e))
-            root_logger.warning("You may have to remove it manually")
+            logger.warning("Failed to remove Kerberos keytab '%s': %s",
+                           keytab_path, e)
+            logger.warning("You may have to remove it manually")
 
 
 def remove_ccache(ccache_path=None, run_as=None):
@@ -1512,17 +1515,17 @@ def remove_ccache(ccache_path=None, run_as=None):
     :param ccache_path: path to the ccache file
     :param run_as: run kdestroy as this user
     """
-    root_logger.debug("Removing service credentials cache")
+    logger.debug("Removing service credentials cache")
     kdestroy_cmd = [paths.KDESTROY]
     if ccache_path is not None:
-        root_logger.debug("Ccache path: '{}'".format(ccache_path))
+        logger.debug("Ccache path: '%s'", ccache_path)
         kdestroy_cmd.extend(['-c', ccache_path])
 
     try:
         ipautil.run(kdestroy_cmd, runas=run_as, env={})
     except ipautil.CalledProcessError as e:
-        root_logger.warning(
-            "Failed to clear Kerberos credentials cache: {}".format(e))
+        logger.warning(
+            "Failed to clear Kerberos credentials cache: %s", e)
 
 
 def restart_dirsrv(instance_name="", capture_output=True):

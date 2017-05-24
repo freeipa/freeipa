@@ -59,8 +59,6 @@ from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
 from ipapython.dnsutil import DNSName
 from ipapython.dnsutil import resolve_ip_addresses
-from ipapython.ipa_log_manager import root_logger
-
 
 if six.PY3:
     unicode = str
@@ -235,17 +233,13 @@ def get_proper_tls_version_span(tls_version_min, tls_version_max):
 
     if min_version_idx < min_allowed_idx:
         min_version_idx = min_allowed_idx
-        root_logger.warning("tls_version_min set too low ('{old}'),"
-                            "using '{new}' instead"
-                            .format(old=tls_version_min,
-                                    new=TLS_VERSIONS[min_version_idx]))
+        logger.warning("tls_version_min set too low ('%s'),using '%s' instead",
+                       tls_version_min, TLS_VERSIONS[min_version_idx])
 
     if max_version_idx < min_allowed_idx:
         max_version_idx = min_version_idx
-        root_logger.warning("tls_version_max set too low ('{old}'),"
-                            "using '{new}' instead"
-                            .format(old=tls_version_max,
-                                    new=TLS_VERSIONS[max_version_idx]))
+        logger.warning("tls_version_max set too low ('%s'),using '%s' instead",
+                       tls_version_max, TLS_VERSIONS[max_version_idx])
     return TLS_VERSIONS[min_version_idx:max_version_idx+1]
 
 
@@ -1114,7 +1108,7 @@ def check_principal_realm_in_trust_namespace(api_instance, *keys):
 def no_matching_interface_for_ip_address_warning(addr_list):
     for ip in addr_list:
         if not ip.get_matching_interface():
-            root_logger.warning(
+            logger.warning(
                 "No network interface matches the IP address %s", ip)
             # fixme: once when loggers will be fixed, we can remove this
             # print
