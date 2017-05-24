@@ -174,6 +174,22 @@ def install_check(standalone, replica_config, options):
                 "remove the file and run the installer again." %
                 paths.ROOT_IPA_CSR)
 
+        if not options.external_ca_type:
+            options.external_ca_type = \
+                cainstance.ExternalCAType.GENERIC.value
+
+        if options.external_ca_profile is not None:
+            # check that profile is valid for the external ca type
+            if options.external_ca_type \
+                    not in options.external_ca_profile.valid_for:
+                raise ScriptError(
+                    "External CA profile specification '{}' "
+                    "cannot be used with external CA type '{}'."
+                    .format(
+                        options.external_ca_profile.unparsed_input,
+                        options.external_ca_type)
+                    )
+
     if not options.external_cert_files:
         if not cainstance.check_port():
             print("IPA requires port 8443 for PKI but it is currently in use.")
@@ -217,11 +233,13 @@ def install_step_0(standalone, replica_config, options):
     host_name = options.host_name
     ca_subject = options._ca_subject
     subject_base = options._subject_base
+    external_ca_profile = None
 
     if replica_config is None:
         ca_signing_algorithm = options.ca_signing_algorithm
         if options.external_ca:
             ca_type = options.external_ca_type
+            external_ca_profile = options.external_ca_profile
             csr_file = paths.ROOT_IPA_CSR
         else:
             ca_type = None
@@ -277,6 +295,7 @@ def install_step_0(standalone, replica_config, options):
                           ca_subject=ca_subject,
                           ca_signing_algorithm=ca_signing_algorithm,
                           ca_type=ca_type,
+                          external_ca_profile=external_ca_profile,
                           csr_file=csr_file,
                           cert_file=cert_file,
                           cert_chain_file=cert_chain_file,
@@ -412,6 +431,15 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
         description="Type of the external CA",
     )
     external_ca_type = master_install_only(external_ca_type)
+
+    external_ca_profile = knob(
+        type=cainstance.ExternalCAProfile,
+        default=None,
+        description=(
+            "Specify the certificate profile/template to use at the "
+            "external CA"),
+    )
+    external_ca_profile = master_install_only(external_ca_profile)
 
     external_cert_files = knob(
         # pylint: disable=invalid-sequence-index
