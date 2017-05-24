@@ -145,7 +145,7 @@ def remove_ptr_rec(ipaddr, fqdn):
     Remove PTR record of IP address (ipaddr)
     :return: True if PTR record was removed, False if record was not found
     """
-    api.log.debug('deleting PTR record of ipaddr %s', ipaddr)
+    logger.debug('deleting PTR record of ipaddr %s', ipaddr)
     try:
         revzone, revname = get_reverse_zone(ipaddr)
 
@@ -155,7 +155,7 @@ def remove_ptr_rec(ipaddr, fqdn):
 
         api.Command['dnsrecord_del'](revzone, revname, **delkw)
     except (errors.NotFound, errors.AttrValueNotFound):
-        api.log.debug('PTR record of ipaddr %s not found', ipaddr)
+        logger.debug('PTR record of ipaddr %s not found', ipaddr)
         return False
 
     return True

@@ -7,7 +7,6 @@ from __future__ import print_function
 
 from binascii import hexlify
 import collections
-import logging
 import os
 from pprint import pprint
 
@@ -94,7 +93,6 @@ class LocalHSM(AbstractHSM):
     def __init__(self, library, label, pin):
         self.cache_replica_pubkeys = None
         self.p11 = _ipap11helper.P11_Helper(label, pin, library)
-        self.log = logging.getLogger()
 
     def __del__(self):
         self.p11.finalize()

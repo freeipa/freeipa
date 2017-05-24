@@ -10,7 +10,7 @@ This program should be run only on replicas, not on DNSSEC masters.
 
 from binascii import hexlify
 from gssapi.exceptions import GSSError
-
+import logging
 import os
 import sys
 
@@ -27,6 +27,8 @@ from ipaserver.dnssec.abshsm import (sync_pkcs11_metadata,
 from ipaserver.dnssec.ldapkeydb import LdapKeyDB
 from ipaserver.dnssec.localhsm import LocalHSM
 
+logger = logging.getLogger(os.path.basename(__file__))
+
 DAEMONNAME = 'ipa-dnskeysyncd'
 PRINCIPAL = None  # not initialized yet
 WORKDIR = '/tmp'
@@ -37,18 +39,19 @@ def hex_set(s):
         out.add("0x%s" % hexlify(i))
     return out
 
-def update_metadata_set(log, source_set, target_set):
+def update_metadata_set(source_set, target_set):
     """sync metadata from source key set to target key set
 
     Keys not present in both sets are left intact."""
-    log = log.getChild('sync_metadata')
+    name = 'sync_metadata'
     matching_keys = set(source_set.keys()).intersection(set(target_set.keys()))
-    log.info("keys in local HSM & LDAP: %s", hex_set(matching_keys))
+    logger.info("%s: keys in local HSM & LDAP: %s",
+                name, hex_set(matching_keys))
     for key_id in matching_keys:
-        sync_pkcs11_metadata(log, source_set[key_id], target_set[key_id])
+        sync_pkcs11_metadata(name, source_set[key_id], target_set[key_id])
 
 
-def find_unwrapping_key(log, localhsm, wrapping_key_uri):
+def find_unwrapping_key(localhsm, wrapping_key_uri):
     wrap_keys = localhsm.find_keys(uri=wrapping_key_uri)
     # find usable unwrapping key with matching ID
     for key_id in wrap_keys.keys():
@@ -56,20 +59,23 @@ def find_unwrapping_key(log, localhsm, wrapping_key_uri):
         if len(unwrap_keys) > 0:
             return unwrap_keys.popitem()[1]
 
-def ldap2replica_master_keys_sync(log, ldapkeydb, localhsm):
+def ldap2replica_master_keys_sync(ldapkeydb, localhsm):
     ## LDAP -> replica master key synchronization
     # import new master keys from LDAP
     new_keys = set(ldapkeydb.master_keys.keys()) \
             - set(localhsm.master_keys.keys())
-    log.debug("master keys in local HSM: %s", hex_set(localhsm.master_keys.keys()))
-    log.debug("master keys in LDAP HSM: %s", hex_set(ldapkeydb.master_keys.keys()))
-    log.debug("new master keys in LDAP HSM: %s", hex_set(new_keys))
+    logger.debug("master keys in local HSM: %s",
+                 hex_set(localhsm.master_keys.keys()))
+    logger.debug("master keys in LDAP HSM: %s",
+                 hex_set(ldapkeydb.master_keys.keys()))
+    logger.debug("new master keys in LDAP HSM: %s",
+                 hex_set(new_keys))
     for mkey_id in new_keys:
         mkey_ldap = ldapkeydb.master_keys[mkey_id]
         assert mkey_ldap.wrapped_entries, "Master key 0x%s in LDAP is missing key material referenced by ipaSecretKeyRefObject attribute" % hexlify(mkey_id)
         for wrapped_ldap in mkey_ldap.wrapped_entries:
-            unwrapping_key = find_unwrapping_key(log, localhsm,
-                    wrapped_ldap.single_value['ipaWrappingKey'])
+            unwrapping_key = find_unwrapping_key(
+                localhsm, wrapped_ldap.single_value['ipaWrappingKey'])
             if unwrapping_key:
                 break
 
@@ -80,38 +86,42 @@ def ldap2replica_master_keys_sync(log, ldapkeydb, localhsm):
         params['data'] = wrapped_ldap.single_value['ipaSecretKey']
         params['unwrapping_key'] = unwrapping_key.handle
         params['wrapping_mech'] = wrappingmech_name2id[wrapped_ldap.single_value['ipaWrappingMech']]
-        log.debug('Importing new master key: 0x%s %s', hexlify(mkey_id), params)
+        logger.debug('Importing new master key: 0x%s %s',
+                     hexlify(mkey_id), params)
         localhsm.p11.import_wrapped_secret_key(**params)
 
     # synchronize metadata about master keys in LDAP
-    update_metadata_set(log, ldapkeydb.master_keys, localhsm.master_keys)
+    update_metadata_set(ldapkeydb.master_keys, localhsm.master_keys)
 
-def ldap2replica_zone_keys_sync(log, ldapkeydb, localhsm):
+def ldap2replica_zone_keys_sync(ldapkeydb, localhsm):
     ## LDAP -> replica zone key synchronization
     # import new zone keys from LDAP
     new_keys = set(ldapkeydb.zone_keypairs.keys()) \
             - set(localhsm.zone_privkeys.keys())
 
-    log.debug("zone keys in local HSM: %s", hex_set(localhsm.master_keys.keys()))
-    log.debug("zone keys in LDAP HSM: %s", hex_set(ldapkeydb.master_keys.keys()))
-    log.debug("new zone keys in LDAP HSM: %s", hex_set(new_keys))
+    logger.debug("zone keys in local HSM: %s",
+                 hex_set(localhsm.master_keys.keys()))
+    logger.debug("zone keys in LDAP HSM: %s",
+                 hex_set(ldapkeydb.master_keys.keys()))
+    logger.debug("new zone keys in LDAP HSM: %s",
+                 hex_set(new_keys))
     for zkey_id in new_keys:
         zkey_ldap = ldapkeydb.zone_keypairs[zkey_id]
-        log.debug('Looking for unwrapping key "%s" for zone key 0x%s',
-                zkey_ldap['ipaWrappingKey'], hexlify(zkey_id))
-        unwrapping_key = find_unwrapping_key(log, localhsm,
-                zkey_ldap['ipaWrappingKey'])
+        logger.debug('Looking for unwrapping key "%s" for zone key 0x%s',
+                     zkey_ldap['ipaWrappingKey'], hexlify(zkey_id))
+        unwrapping_key = find_unwrapping_key(
+            localhsm, zkey_ldap['ipaWrappingKey'])
         assert unwrapping_key is not None, \
                 "Local HSM does not contain suitable unwrapping key for ' \
                 'zone key 0x%s" % hexlify(zkey_id)
 
-        log.debug('Importing zone key pair 0x%s', hexlify(zkey_id))
+        logger.debug('Importing zone key pair 0x%s', hexlify(zkey_id))
         localhsm.import_private_key(zkey_ldap, zkey_ldap['ipaPrivateKey'],
                 unwrapping_key)
         localhsm.import_public_key(zkey_ldap, zkey_ldap['ipaPublicKey'])
 
     # synchronize metadata about zone keys in LDAP & local HSM
-    update_metadata_set(log, ldapkeydb.master_keys, localhsm.master_keys)
+    update_metadata_set(ldapkeydb.master_keys, localhsm.master_keys)
 
     # delete keys removed from LDAP
     deleted_keys = set(localhsm.zone_privkeys.keys()) \
@@ -151,14 +161,15 @@ log.debug('Connected')
 
 
 ### DNSSEC master: key synchronization
-ldapkeydb = LdapKeyDB(log, ldap,
-        DN(('cn', 'keys'), ('cn', 'sec'), ipalib.api.env.container_dns,
-           ipalib.api.env.basedn))
+ldapkeydb = LdapKeyDB(ldap, DN(('cn', 'keys'),
+                               ('cn', 'sec'),
+                               ipalib.api.env.container_dns,
+                               ipalib.api.env.basedn))
 
 localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, SOFTHSM_DNSSEC_TOKEN_LABEL,
         open(paths.DNSSEC_SOFTHSM_PIN).read())
 
-ldap2replica_master_keys_sync(log, ldapkeydb, localhsm)
-ldap2replica_zone_keys_sync(log, ldapkeydb, localhsm)
+ldap2replica_master_keys_sync(ldapkeydb, localhsm)
+ldap2replica_zone_keys_sync(ldapkeydb, localhsm)
 
 sys.exit(0)

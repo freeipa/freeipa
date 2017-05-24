@@ -14,8 +14,6 @@ import sys
 
 import six
 
-from ipapython.ipa_log_manager import root_logger
-
 from . import util
 from .util import from_
 
@@ -283,8 +281,6 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
         """
         Initialize the configurable.
         """
-
-        self.log = root_logger
 
         cls = self.__class__
         for owner_cls, name in cls.properties():

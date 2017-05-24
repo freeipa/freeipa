@@ -4,6 +4,7 @@
 
 from __future__ import print_function
 
+import logging
 import os
 import pwd
 import grp
@@ -24,6 +25,8 @@ from ipaplatform.paths import paths
 from ipalib import errors, api
 from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipaserver.install.bindinstance import dns_container_exists
+
+logger = logging.getLogger(__name__)
 
 replica_keylabel_template = u"dnssec-replica:%s"
 
@@ -51,7 +54,6 @@ class DNSKeySyncInstance(service.Service):
             service_prefix=u'ipa-dnskeysyncd',
             keytab=paths.IPA_DNSKEYSYNCD_KEYTAB
         )
-        self.logger = logger
         self.extra_config = [u'dnssecVersion 1', ]  # DNSSEC enabled
         self.named_uid = None
         self.named_gid = None
@@ -156,7 +158,7 @@ class DNSKeySyncInstance(service.Service):
         """
         if dnssec_container_exists(self.suffix):
 
-            self.logger.info("DNSSEC container exists (step skipped)")
+            logger.info("DNSSEC container exists (step skipped)")
             return
 
         self._ldap_mod("dnssec.ldif", {'SUFFIX': self.suffix, })
@@ -169,7 +171,7 @@ class DNSKeySyncInstance(service.Service):
 
         # create dnssec directory
         if not os.path.exists(paths.IPA_DNSSEC_DIR):
-            self.logger.debug("Creating %s directory", paths.IPA_DNSSEC_DIR)
+            logger.debug("Creating %s directory", paths.IPA_DNSSEC_DIR)
             os.mkdir(paths.IPA_DNSSEC_DIR)
             os.chmod(paths.IPA_DNSSEC_DIR, 0o770)
             # chown ods:named
@@ -182,7 +184,7 @@ class DNSKeySyncInstance(service.Service):
                             "objectstore.backend = file") % {
                                'tokens_dir': paths.DNSSEC_TOKENS_DIR
                             }
-        self.logger.debug("Creating new softhsm config file")
+        logger.debug("Creating new softhsm config file")
         named_fd = open(paths.DNSSEC_SOFTHSM2_CONF, 'w')
         named_fd.seek(0)
         named_fd.truncate(0)
@@ -208,13 +210,12 @@ class DNSKeySyncInstance(service.Service):
 
         # remove old tokens
         if token_dir_exists:
-            self.logger.debug('Removing old tokens directory %s',
-                              paths.DNSSEC_TOKENS_DIR)
+            logger.debug('Removing old tokens directory %s',
+                         paths.DNSSEC_TOKENS_DIR)
             shutil.rmtree(paths.DNSSEC_TOKENS_DIR)
 
         # create tokens subdirectory
-        self.logger.debug('Creating tokens %s directory',
-                          paths.DNSSEC_TOKENS_DIR)
+        logger.debug('Creating tokens %s directory', paths.DNSSEC_TOKENS_DIR)
         # sticky bit is required by daemon
         os.mkdir(paths.DNSSEC_TOKENS_DIR)
         os.chmod(paths.DNSSEC_TOKENS_DIR, 0o770 | stat.S_ISGID)
@@ -228,7 +229,7 @@ class DNSKeySyncInstance(service.Service):
         pin_so = ipautil.ipa_generate_password(
             entropy_bits=0, special=None, min_len=pin_length)
 
-        self.logger.debug("Saving user PIN to %s", paths.DNSSEC_SOFTHSM_PIN)
+        logger.debug("Saving user PIN to %s", paths.DNSSEC_SOFTHSM_PIN)
         named_fd = open(paths.DNSSEC_SOFTHSM_PIN, 'w')
         named_fd.seek(0)
         named_fd.truncate(0)
@@ -238,7 +239,7 @@ class DNSKeySyncInstance(service.Service):
         # chown to ods:named
         os.chown(paths.DNSSEC_SOFTHSM_PIN, self.ods_uid, self.named_gid)
 
-        self.logger.debug("Saving SO PIN to %s", paths.DNSSEC_SOFTHSM_PIN_SO)
+        logger.debug("Saving SO PIN to %s", paths.DNSSEC_SOFTHSM_PIN_SO)
         named_fd = open(paths.DNSSEC_SOFTHSM_PIN_SO, 'w')
         named_fd.seek(0)
         named_fd.truncate(0)
@@ -257,7 +258,7 @@ class DNSKeySyncInstance(service.Service):
             '--pin', pin,
             '--so-pin', pin_so,
         ]
-        self.logger.debug("Initializing tokens")
+        logger.debug("Initializing tokens")
         os.environ["SOFTHSM2_CONF"] = paths.DNSSEC_SOFTHSM2_CONF
         ipautil.run(command, nolog=(pin, pin_so,))
 
@@ -277,7 +278,7 @@ class DNSKeySyncInstance(service.Service):
 
         try:
             # generate replica keypair
-            self.logger.debug("Creating replica's key pair")
+            logger.debug("Creating replica's key pair")
             key_id = None
             while True:
                 # check if key with this ID exist in softHSM
@@ -325,14 +326,14 @@ class DNSKeySyncInstance(service.Service):
                 'ipk11VerifyRecover': [False],
             }
 
-            self.logger.debug("Storing replica public key to LDAP, %s",
-                              replica_pubkey_dn)
+            logger.debug("Storing replica public key to LDAP, %s",
+                         replica_pubkey_dn)
 
             entry = ldap.make_entry(replica_pubkey_dn, **kw)
             ldap.add_entry(entry)
-            self.logger.debug("Replica public key stored")
+            logger.debug("Replica public key stored")
 
-            self.logger.debug("Setting CKA_WRAP=False for old replica keys")
+            logger.debug("Setting CKA_WRAP=False for old replica keys")
             # first create new keys, we don't want disable keys before, we
             # have new keys in softhsm and LDAP
 
@@ -366,7 +367,7 @@ class DNSKeySyncInstance(service.Service):
             p11.finalize()
 
         # change tokens mod/owner
-        self.logger.debug("Changing ownership of token files")
+        logger.debug("Changing ownership of token files")
         for (root, dirs, files) in os.walk(paths.DNSSEC_TOKENS_DIR):
             for directory in dirs:
                 dir_path = os.path.join(root, directory)
@@ -384,7 +385,7 @@ class DNSKeySyncInstance(service.Service):
             self.ldap_enable('DNSKeySync', self.fqdn, None,
                              self.suffix, self.extra_config)
         except errors.DuplicateEntry:
-            self.logger.error("DNSKeySync service already exists")
+            logger.error("DNSKeySync service already exists")
 
     def __setup_principal(self):
         assert self.ods_gid is not None
@@ -415,8 +416,8 @@ class DNSKeySyncInstance(service.Service):
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
         except Exception as e:
-            self.logger.critical("Could not modify principal's %s entry: %s"
-                                 % (dnssynckey_principal_dn, str(e)))
+            logger.critical("Could not modify principal's %s entry: %s",
+                            dnssynckey_principal_dn, str(e))
             raise
 
         # bind-dyndb-ldap persistent search feature requires both size and time
@@ -429,8 +430,8 @@ class DNSKeySyncInstance(service.Service):
         try:
             api.Backend.ldap2.modify_s(dnssynckey_principal_dn, mod)
         except Exception as e:
-            self.logger.critical("Could not set principal's %s LDAP limits: %s"
-                                 % (dnssynckey_principal_dn, str(e)))
+            logger.critical("Could not set principal's %s LDAP limits: %s",
+                            dnssynckey_principal_dn, str(e))
             raise
 
     def __start(self):
@@ -438,7 +439,7 @@ class DNSKeySyncInstance(service.Service):
             self.restart()
         except Exception as e:
             print("Failed to start ipa-dnskeysyncd")
-            self.logger.debug("Failed to start ipa-dnskeysyncd: %s", e)
+            logger.debug("Failed to start ipa-dnskeysyncd: %s", e)
 
 
     def uninstall(self):
@@ -458,7 +459,7 @@ class DNSKeySyncInstance(service.Service):
             try:
                 self.fstore.restore_file(f)
             except ValueError as error:
-                self.logger.debug(error)
+                logger.debug('%s', error)
 
         # remove softhsm pin, to make sure new installation will generate
         # new token database

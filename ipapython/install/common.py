@@ -6,6 +6,7 @@
 Common stuff.
 """
 
+import logging
 import traceback
 
 from . import core
@@ -13,6 +14,8 @@ from .util import from_
 
 __all__ = ['step', 'Installable', 'Interactive', 'Continuous', 'installer',
            'uninstaller']
+
+logger = logging.getLogger(__name__)
 
 
 def step():
@@ -90,9 +93,9 @@ class Continuous(core.Configurable):
         try:
             super(Continuous, self)._handle_execute_exception(exc_info)
         except BaseException as e:
-            self.log.debug(traceback.format_exc())
+            logger.debug("%s", traceback.format_exc())
             if isinstance(e, Exception):
-                self.log.error("%s", e)
+                logger.error("%s", e)
 
 
 def installer(cls):

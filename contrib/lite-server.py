@@ -47,6 +47,7 @@ For more information see
 """
 from __future__ import print_function
 
+import logging
 import os
 import optparse  # pylint: disable=deprecated-module
 import ssl
@@ -67,6 +68,8 @@ from werkzeug.serving import run_simple
 from werkzeug.utils import redirect, append_slash_redirect
 from werkzeug.wsgi import DispatcherMiddleware, SharedDataMiddleware
 # pylint: enable=import-error
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 
 BASEDIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -181,7 +184,7 @@ def init_api(ccname):
     )
     api.finalize()
     api_time = time.time()
-    api.log.info("API initialized in {:03f} sec".format(api_time - start_time))
+    logger.info("API initialized in %03f sec", api_time - start_time)
 
     # Validate LDAP connection and pre-fetch schema
     # Pre-fetching makes the lite-server behave similar to mod_wsgi. werkzeug's
@@ -194,9 +197,9 @@ def init_api(ccname):
         if not ldap2.isconnected():
             ldap2.connect(ccache=ccname)
     except NetworkError as e:
-        api.log.error("Unable to connect to LDAP: %s", e)
-        api.log.error("lite-server needs a working LDAP connect. Did you "
-                      "configure ldap_uri in '%s'?", api.env.conf_default)
+        logger.error("Unable to connect to LDAP: %s", e)
+        logger.error("lite-server needs a working LDAP connect. Did you "
+                     "configure ldap_uri in '%s'?", api.env.conf_default)
         sys.exit(2)
     else:
         # prefetch schema
@@ -205,8 +208,7 @@ def init_api(ccname):
         # must have its own connection.
         ldap2.disconnect()
         ldap_time = time.time()
-        api.log.info("LDAP schema retrieved {:03f} sec".format(
-            ldap_time - api_time))
+        logger.info("LDAP schema retrieved %03f sec", ldap_time - api_time)
 
 
 def redirect_ui(app):

@@ -2,7 +2,11 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
+import logging
+
 from ipaserver import p11helper as _ipap11helper
+
+logger = logging.getLogger(__name__)
 
 attrs_id2name = {
     #_ipap11helper.CKA_ALLOWED_MECHANISMS: 'ipk11allowedmechanisms',
@@ -106,7 +110,8 @@ modifiable_attrs_id2name = {
 
 modifiable_attrs_name2id = {v: k for k, v in modifiable_attrs_id2name.items()}
 
-def sync_pkcs11_metadata(log, source, target):
+
+def sync_pkcs11_metadata(name, source, target):
     """sync ipk11 metadata from source object to target object"""
 
     # iterate over list of modifiable PKCS#11 attributes - this prevents us
@@ -114,7 +119,11 @@ def sync_pkcs11_metadata(log, source, target):
     for attr in modifiable_attrs_name2id:
         if attr in source:
             if source[attr] != target[attr]:
-                log.debug('Updating attribute %s from "%s" to "%s"', attr, repr(source[attr]), repr(target[attr]))
+                logger.debug('%s: Updating attribute %s from "%s" to "%s"',
+                             name,
+                             attr,
+                             repr(source[attr]),
+                             repr(target[attr]))
                 target[attr] = source[attr]
 
 def populate_pkcs11_metadata(source, target):

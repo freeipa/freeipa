@@ -23,6 +23,7 @@ Functionality for Command Line Interface.
 from __future__ import print_function
 
 import importlib
+import logging
 import textwrap
 import sys
 import getpass
@@ -57,6 +58,8 @@ from ipalib import api  # pylint: disable=unused-import
 from ipapython.dnsutil import DNSName
 
 import datetime
+
+logger = logging.getLogger(__name__)
 
 
 def to_cli(name):
@@ -1351,13 +1354,13 @@ def run(api):
         sys.exit(api.Backend.cli.run(argv))
     except KeyboardInterrupt:
         print('')
-        api.log.info('operation aborted')
+        logger.info('operation aborted')
     except PublicError as e:
         error = e
     except Exception as e:
-        api.log.exception('%s: %s', e.__class__.__name__, str(e))
+        logger.exception('%s: %s', e.__class__.__name__, str(e))
         error = InternalError()
     if error is not None:
         assert isinstance(error, PublicError)
-        api.log.error(error.strerror)
+        logger.error(error.strerror)
         sys.exit(error.rval)
