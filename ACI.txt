@@ -27,6 +27,8 @@ aci: (targetfilter = "(objectclass=ipaca)")(version 3.0;acl "permission:System: 
 dn: cn=cas,cn=ca,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipaca)")(version 3.0;acl "permission:System: Delete CA";allow (delete) groupdn = "ldap:///cn=System: Delete CA,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=cas,cn=ca,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=nscontainer)")(version 3.0;acl "permission:System: Grant add on CAs container";allow (add) groupdn = "ldap:///cn=System: Grant add on CAs container,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=cas,cn=ca,dc=ipa,dc=example
 aci: (targetattr = "cn || description")(targetfilter = "(objectclass=ipaca)")(version 3.0;acl "permission:System: Modify CA";allow (write) groupdn = "ldap:///cn=System: Modify CA,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=cas,cn=ca,dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || description || entryusn || ipacaid || ipacaissuerdn || ipacasubjectdn || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaca)")(version 3.0;acl "permission:System: Read CAs";allow (compare,read,search) userdn = "ldap:///all";)
