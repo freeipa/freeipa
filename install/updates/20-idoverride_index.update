@@ -11,9 +11,12 @@ only: nsIndexType: eq
 only: nsIndexType: pres
 
 dn: cn=ipaAnchorUUID,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-default:cn: ipaOriginalUid
+default:cn: ipaAnchorUUID
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
 only: nsIndexType: eq
 only: nsIndexType: pres
+
+dn: cn=ipaAnchorUUID,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+remove:cn: ipaOriginalUid
