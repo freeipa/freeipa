@@ -5,6 +5,7 @@
 from __future__ import print_function
 
 import errno
+import logging
 import os
 import pickle
 import shutil
@@ -16,7 +17,6 @@ import six
 
 from ipalib.install import certmonger, sysrestore
 from ipapython import ipautil
-from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import (
     format_netloc, ipa_generate_password, run, user_input)
 from ipapython.admintool import ScriptError
@@ -50,6 +50,8 @@ except ImportError:
     _server_trust_ad_installed = False
 
 NoneType = type(None)
+
+logger = logging.getLogger(__name__)
 
 SYSRESTORE_DIR_PATH = paths.SYSRESTORE
 
@@ -257,9 +259,9 @@ def common_cleanup(func):
                     try:
                         dsinstance.remove_ds_instance(ds.serverid)
                     except ipautil.CalledProcessError:
-                        root_logger.error("Failed to remove DS instance. You "
-                                          "may need to remove instance data "
-                                          "manually")
+                        logger.error("Failed to remove DS instance. You "
+                                     "may need to remove instance data "
+                                     "manually")
             raise ScriptError()
         finally:
             if not success and installer._installation_cleanup:
@@ -288,7 +290,7 @@ def remove_master_from_managed_topology(api_instance, options):
         raise ScriptError(str(e))
     except Exception as e:
         # if the master was already deleted we will just get a warning
-        root_logger.warning("Failed to delete master: {}".format(e))
+        logger.warning("Failed to delete master: %s", e)
 
 
 @common_cleanup
@@ -451,12 +453,12 @@ def install_check(installer):
         raise ScriptError(e)
 
     host_name = host_name.lower()
-    root_logger.debug("will use host_name: %s\n" % host_name)
+    logger.debug("will use host_name: %s\n", host_name)
 
     if not options.domain_name:
         domain_name = read_domain_name(host_name[host_name.find(".")+1:],
                                        not installer.interactive)
-        root_logger.debug("read domain_name: %s\n" % domain_name)
+        logger.debug("read domain_name: %s\n", domain_name)
         try:
             validate_domain_name(domain_name)
         except ValueError as e:
@@ -468,7 +470,7 @@ def install_check(installer):
 
     if not options.realm_name:
         realm_name = read_realm_name(domain_name, not installer.interactive)
-        root_logger.debug("read realm_name: %s\n" % realm_name)
+        logger.debug("read realm_name: %s\n", realm_name)
     else:
         realm_name = options.realm_name.upper()
 
@@ -1103,24 +1105,24 @@ def uninstall(installer):
     sysupgrade.remove_upgrade_file()
 
     if fstore.has_files():
-        root_logger.error('Some files have not been restored, see '
-                          '%s/sysrestore.index' % SYSRESTORE_DIR_PATH)
+        logger.error('Some files have not been restored, see '
+                     '%s/sysrestore.index', SYSRESTORE_DIR_PATH)
     has_state = False
     for module in IPA_MODULES:  # from installutils
         if sstore.has_state(module):
-            root_logger.error('Some installation state for %s has not been '
-                              'restored, see %s/sysrestore.state' %
-                              (module, SYSRESTORE_DIR_PATH))
+            logger.error('Some installation state for %s has not been '
+                         'restored, see %s/sysrestore.state',
+                         module, SYSRESTORE_DIR_PATH)
             has_state = True
             rv = 1
 
     if has_state:
-        root_logger.error('Some installation state has not been restored.\n'
-                          'This may cause re-installation to fail.\n'
-                          'It should be safe to remove %s/sysrestore.state '
-                          'but it may\n'
-                          'mean your system hasn\'t be restored to its '
-                          'pre-installation state.' % SYSRESTORE_DIR_PATH)
+        logger.error('Some installation state has not been restored.\n'
+                     'This may cause re-installation to fail.\n'
+                     'It should be safe to remove %s/sysrestore.state '
+                     'but it may\n'
+                     'mean your system hasn\'t be restored to its '
+                     'pre-installation state.', SYSRESTORE_DIR_PATH)
 
     # Note that this name will be wrong after the first uninstall.
     dirname = dsinstance.config_dirname(
@@ -1128,23 +1130,23 @@ def uninstall(installer):
     dirs = [dirname, paths.PKI_TOMCAT_ALIAS_DIR, paths.HTTPD_ALIAS_DIR]
     ids = certmonger.check_state(dirs)
     if ids:
-        root_logger.error('Some certificates may still be tracked by '
-                          'certmonger.\n'
-                          'This will cause re-installation to fail.\n'
-                          'Start the certmonger service and list the '
-                          'certificates being tracked\n'
-                          ' # getcert list\n'
-                          'These may be untracked by executing\n'
-                          ' # getcert stop-tracking -i <request_id>\n'
-                          'for each id in: %s' % ', '.join(ids))
+        logger.error('Some certificates may still be tracked by '
+                     'certmonger.\n'
+                     'This will cause re-installation to fail.\n'
+                     'Start the certmonger service and list the '
+                     'certificates being tracked\n'
+                     ' # getcert list\n'
+                     'These may be untracked by executing\n'
+                     ' # getcert stop-tracking -i <request_id>\n'
+                     'for each id in: %s', ', '.join(ids))
 
     # Remove the cert renewal lock file
     try:
         os.remove(paths.IPA_RENEWAL_LOCK)
     except OSError as e:
         if e.errno != errno.ENOENT:
-            root_logger.warning("Failed to remove file %s: %s",
-                                paths.IPA_RENEWAL_LOCK, e)
+            logger.warning("Failed to remove file %s: %s",
+                           paths.IPA_RENEWAL_LOCK, e)
 
     print("Removing IPA client configuration")
     try:

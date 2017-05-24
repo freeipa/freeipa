@@ -56,7 +56,6 @@ from ipalib.errors import (public_errors, UnknownError, NetworkError,
                            XMLRPCMarshallError, JSONError)
 from ipalib import errors, capabilities
 from ipalib.request import context, Connection
-from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
 from ipapython import session_storage
 from ipapython.cookie import Cookie
@@ -542,7 +541,7 @@ class SSLTransport(LanguageAwareTransport):
         host, self._extra_headers, _x509 = self.get_host_info(host)
 
         if self._connection and host == self._connection[0]:
-            root_logger.debug("HTTP connection keep-alive (%s)", host)
+            logger.debug("HTTP connection keep-alive (%s)", host)
             return self._connection[1]
 
         conn = create_https_connection(
@@ -552,7 +551,7 @@ class SSLTransport(LanguageAwareTransport):
             tls_version_max=api.env.tls_version_max)
 
         conn.connect()
-        root_logger.debug("New HTTP connection (%s)", host)
+        logger.debug("New HTTP connection (%s)", host)
 
         self._connection = host, conn
         return self._connection[1]
@@ -715,13 +714,13 @@ class KerbTransport(SSLTransport):
             # keep-alive connection was terminated by remote peer, close
             # connection and let transport handle reconnect for us.
             self.close()
-            root_logger.debug("HTTP server has closed connection (%s)", host)
+            logger.debug("HTTP server has closed connection (%s)", host)
             raise
         except BaseException as e:
             # Unexpected exception may leave connections in a bad state.
             self.close()
-            root_logger.debug("HTTP connection destroyed (%s)",
-                              host, exc_info=True)
+            logger.debug("HTTP connection destroyed (%s)",
+                         host, exc_info=True)
             raise
 
     if six.PY3:
@@ -781,8 +780,8 @@ class KerbTransport(SSLTransport):
 
         principal = getattr(context, 'principal', None)
         request_url = getattr(context, 'request_url', None)
-        root_logger.debug("received Set-Cookie (%s)'%s'", type(cookie_header),
-                          cookie_header)
+        logger.debug("received Set-Cookie (%s)'%s'", type(cookie_header),
+                     cookie_header)
 
         if not isinstance(cookie_header, list):
             cookie_header = [cookie_header]
@@ -799,14 +798,16 @@ class KerbTransport(SSLTransport):
                 if session_cookie is not None:
                     break
         except Exception as e:
-            root_logger.error("unable to parse cookie header '%s': %s", cookie_header, e)
+            logger.error("unable to parse cookie header '%s': %s",
+                         cookie_header, e)
             return
 
         if session_cookie is None:
             return
 
         cookie_string = self._slice_session_cookie(session_cookie)
-        root_logger.debug("storing cookie '%s' for principal %s", cookie_string, principal)
+        logger.debug("storing cookie '%s' for principal %s",
+                     cookie_string, principal)
         try:
             update_persistent_client_session_data(principal, cookie_string)
         except Exception as e:
@@ -1210,7 +1211,7 @@ class JSONServerProxy(object):
             payload, version, pretty_print=print_json)
 
         if print_json:
-            root_logger.info(
+            logger.info(
                 'Request: %s',
                 payload
             )
@@ -1223,7 +1224,7 @@ class JSONServerProxy(object):
         )
 
         if print_json:
-            root_logger.info(
+            logger.info(
                 'Response: %s',
                 json.dumps(json.loads(response), sort_keys=True, indent=4)
             )

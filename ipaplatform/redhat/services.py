@@ -22,6 +22,7 @@
 Contains Red Hat OS family-specific service class implementations.
 """
 
+import logging
 import os
 import time
 import contextlib
@@ -30,8 +31,9 @@ from ipaplatform.tasks import tasks
 from ipaplatform.base import services as base_services
 
 from ipapython import ipautil, dogtag
-from ipapython.ipa_log_manager import root_logger
 from ipaplatform.paths import paths
+
+logger = logging.getLogger(__name__)
 
 # Mappings from service names as FreeIPA code references to these services
 # to their actual systemd service names
@@ -189,7 +191,7 @@ class RedHatIPAService(RedHatService):
 
 class RedHatCAService(RedHatService):
     def wait_until_running(self):
-        root_logger.debug('Waiting until the CA is running')
+        logger.debug('Waiting until the CA is running')
         timeout = float(self.api.env.startup_timeout)
         op_timeout = time.time() + timeout
         while time.time() < op_timeout:
@@ -198,10 +200,10 @@ class RedHatCAService(RedHatService):
                 status = dogtag.ca_status(self.api.env.host)
             except Exception as e:
                 status = 'check interrupted due to error: %s' % e
-            root_logger.debug('The CA status is: %s' % status)
+            logger.debug('The CA status is: %s', status)
             if status == 'running':
                 break
-            root_logger.debug('Waiting for CA to start...')
+            logger.debug('Waiting for CA to start...')
             time.sleep(1)
         else:
             raise RuntimeError('CA did not start in %ss' % timeout)
@@ -230,8 +232,8 @@ class RedHatCAService(RedHatService):
                 self.wait_until_running()
                 return True
         except Exception as e:
-            root_logger.debug(
-                'Failed to check CA status: {err}'.format(err=e)
+            logger.debug(
+                'Failed to check CA status: %s', e
             )
         return False
 

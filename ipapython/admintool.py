@@ -30,7 +30,6 @@ from optparse import OptionGroup  # pylint: disable=deprecated-module
 
 from ipapython import version
 from ipapython import config
-from ipapython import ipa_log_manager
 from ipapython.ipa_log_manager import standard_logging_setup
 
 logger = logging.getLogger(__name__)
@@ -233,7 +232,7 @@ class AdminTool(object):
         Logging to file is only set up after option validation and prompting;
         before that, all output will go to the console only.
         """
-        root_logger = ipa_log_manager.root_logger
+        root_logger = logging.getLogger()
         for handler in root_logger.handlers:
             if (isinstance(handler, logging.StreamHandler) and
                     handler.stream is sys.stderr):  # pylint: disable=no-member

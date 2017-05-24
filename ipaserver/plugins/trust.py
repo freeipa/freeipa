@@ -39,7 +39,6 @@ from .baseldap import (
 from .dns import dns_container_exists
 from ipapython.dn import DN
 from ipapython.ipautil import realm_to_suffix
-from ipapython.ipa_log_manager import root_logger
 from ipalib import api, Str, StrEnum, Password, Bool, _, ngettext, Int, Flag
 from ipalib import Command
 from ipalib import errors
@@ -394,10 +393,10 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
 
         if not info_list:
             # We were unable to gain UNIX specific info from the AD
-            root_logger.debug("Unable to gain POSIX info from the AD")
+            logger.debug("Unable to gain POSIX info from the AD")
         else:
             if all(attr in info for attr in required_msSFU_attrs):
-                root_logger.debug("Able to gain POSIX info from the AD")
+                logger.debug("Able to gain POSIX info from the AD")
                 range_type = u'ipa-ad-trust-posix'
 
                 max_uid = info.get('msSFU30MaxUidNumber')

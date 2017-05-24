@@ -23,10 +23,10 @@
 # parts of the system configuration to the way it was
 # before ipa-server-install was first run
 
+import logging
 import os
 import os.path
 import shutil
-from ipapython.ipa_log_manager import root_logger
 import random
 
 import six
@@ -43,6 +43,8 @@ from ipaplatform.paths import paths
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 SYSRESTORE_PATH = paths.TMP
 SYSRESTORE_INDEXFILE = "sysrestore.index"
@@ -72,7 +74,7 @@ class FileStore(object):
         be an empty dictionary if the file doesn't exist.
         """
 
-        root_logger.debug("Loading Index file from '%s'", self._index)
+        logger.debug("Loading Index file from '%s'", self._index)
 
         self.files = {}
 
@@ -90,10 +92,10 @@ class FileStore(object):
         """Save the file list to @_index. If @files is an empty
         dict, then @_index should be removed.
         """
-        root_logger.debug("Saving Index File to '%s'", self._index)
+        logger.debug("Saving Index File to '%s'", self._index)
 
         if len(self.files) == 0:
-            root_logger.debug("  -> no files, removing file")
+            logger.debug("  -> no files, removing file")
             if os.path.exists(self._index):
                 os.remove(self._index)
             return
@@ -113,13 +115,13 @@ class FileStore(object):
         does not already exist - which will be restored to its
         original location by restore_files().
         """
-        root_logger.debug("Backing up system configuration file '%s'", path)
+        logger.debug("Backing up system configuration file '%s'", path)
 
         if not os.path.isabs(path):
             raise ValueError("Absolute path required")
 
         if not os.path.isfile(path):
-            root_logger.debug("  -> Not backing up - '%s' doesn't exist", path)
+            logger.debug("  -> Not backing up - '%s' doesn't exist", path)
             return
 
         _reldir, backupfile = os.path.split(path)
@@ -132,7 +134,8 @@ class FileStore(object):
 
         backup_path = os.path.join(self._path, filename)
         if os.path.exists(backup_path):
-            root_logger.debug("  -> Not backing up - already have a copy of '%s'", path)
+            logger.debug("  -> Not backing up - already have a copy of '%s'",
+                         path)
             return
 
         shutil.copy2(path, backup_path)
@@ -168,9 +171,11 @@ class FileStore(object):
         """
 
         if new_path is None:
-            root_logger.debug("Restoring system configuration file '%s'", path)
+            logger.debug("Restoring system configuration file '%s'",
+                         path)
         else:
-            root_logger.debug("Restoring system configuration file '%s' to '%s'", path, new_path)
+            logger.debug("Restoring system configuration file '%s' to '%s'",
+                         path, new_path)
 
         if not os.path.isabs(path):
             raise ValueError("Absolute path required")
@@ -193,7 +198,8 @@ class FileStore(object):
 
         backup_path = os.path.join(self._path, filename)
         if not os.path.exists(backup_path):
-            root_logger.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
+            logger.debug("  -> Not restoring - '%s' doesn't exist",
+                         backup_path)
             return False
 
         if new_path is not None:
@@ -229,7 +235,8 @@ class FileStore(object):
 
             backup_path = os.path.join(self._path, filename)
             if not os.path.exists(backup_path):
-                root_logger.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
+                logger.debug("  -> Not restoring - '%s' doesn't exist",
+                             backup_path)
                 continue
 
             shutil.copy(backup_path, path)  # SELinux needs copy
@@ -263,7 +270,7 @@ class FileStore(object):
         was no backup file to restore
         """
 
-        root_logger.debug("Untracking system configuration file '%s'", path)
+        logger.debug("Untracking system configuration file '%s'", path)
 
         if not os.path.isabs(path):
             raise ValueError("Absolute path required")
@@ -281,13 +288,14 @@ class FileStore(object):
 
         backup_path = os.path.join(self._path, filename)
         if not os.path.exists(backup_path):
-            root_logger.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
+            logger.debug("  -> Not restoring - '%s' doesn't exist",
+                         backup_path)
             return False
 
         try:
             os.unlink(backup_path)
         except Exception as e:
-            root_logger.error('Error removing %s: %s' % (backup_path, str(e)))
+            logger.error('Error removing %s: %s', backup_path, str(e))
 
         del self.files[filename]
         self.save()
@@ -329,7 +337,7 @@ class StateFile(object):
         """Load the modules from the file @_path. @modules will
         be an empty dictionary if the file doesn't exist.
         """
-        root_logger.debug("Loading StateFile from '%s'", self._path)
+        logger.debug("Loading StateFile from '%s'", self._path)
 
         self.modules = {}
 
@@ -350,14 +358,14 @@ class StateFile(object):
         """Save the modules to @_path. If @modules is an empty
         dict, then @_path should be removed.
         """
-        root_logger.debug("Saving StateFile to '%s'", self._path)
+        logger.debug("Saving StateFile to '%s'", self._path)
 
         for module in list(self.modules):
             if len(self.modules[module]) == 0:
                 del self.modules[module]
 
         if len(self.modules) == 0:
-            root_logger.debug("  -> no modules, removing file")
+            logger.debug("  -> no modules, removing file")
             if os.path.exists(self._path):
                 os.remove(self._path)
             return

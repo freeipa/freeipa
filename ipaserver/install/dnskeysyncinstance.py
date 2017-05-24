@@ -17,7 +17,6 @@ from ipaserver import p11helper as _ipap11helper
 from ipapython.dnsutil import DNSName
 from ipaserver.install import service
 from ipaserver.install import installutils
-from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipapython import ipautil
 from ipaplatform.constants import constants
@@ -46,7 +45,7 @@ def remove_replica_public_keys(hostname):
 
 
 class DNSKeySyncInstance(service.Service):
-    def __init__(self, fstore=None, logger=root_logger):
+    def __init__(self, fstore=None, logger=logger):
         super(DNSKeySyncInstance, self).__init__(
             "ipa-dnskeysyncd",
             service_desc="DNS key synchronization service",

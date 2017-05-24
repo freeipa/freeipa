@@ -4,6 +4,7 @@
 
 from __future__ import print_function
 
+import logging
 import re
 import os
 import shutil
@@ -32,7 +33,6 @@ from ipaclient.install.client import sssd_enable_service
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipapython import ipautil, version, certdb
-from ipapython.ipa_log_manager import root_logger
 from ipapython import dnsutil
 from ipapython.dn import DN
 from ipaplatform.constants import constants
@@ -58,6 +58,8 @@ from ipaserver.install.ldapupdate import BadSyntax
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 
 class KpasswdInstance(service.SimpleServiceInstance):
@@ -168,29 +170,30 @@ def upgrade_file(sub_dict, filename, template, add=False):
     new = int(find_version(template))
 
     if old < 0 and not add:
-        root_logger.error("%s not found." % filename)
+        logger.error("%s not found.", filename)
         raise RuntimeError("%s not found." % filename)
 
     if new < 0:
-        root_logger.error("%s not found." % template)
+        logger.error("%s not found.", template)
 
     if new == 0:
-        root_logger.error("Template %s is not versioned." % template)
+        logger.error("Template %s is not versioned.", template)
 
     if old == 0:
         # The original file does not have a VERSION entry. This means it's now
         # managed by IPA, but previously was not.
-        root_logger.warning("%s is now managed by IPA. It will be "
-            "overwritten. A backup of the original will be made.", filename)
+        logger.warning("%s is now managed by IPA. It will be "
+                       "overwritten. A backup of the original will be made.",
+                       filename)
 
     if old < new or (add and old == 0):
         backup_file(filename, new)
         update_conf(sub_dict, filename, template)
-        root_logger.info("Upgraded %s to version %d", filename, new)
+        logger.info("Upgraded %s to version %d", filename, new)
 
 def check_certs():
     """Check ca.crt is in the right place, and try to fix if not"""
-    root_logger.info('[Verifying that root certificate is published]')
+    logger.info('[Verifying that root certificate is published]')
     if not os.path.exists(paths.CA_CRT):
         ca_file = paths.IPA_CA_CRT
         if os.path.exists(ca_file):
@@ -200,10 +203,11 @@ def check_certs():
             finally:
                 os.umask(old_umask)
         else:
-            root_logger.error("Missing Certification Authority file.")
-            root_logger.error("You should place a copy of the CA certificate in /usr/share/ipa/html/ca.crt")
+            logger.error("Missing Certification Authority file.")
+            logger.error("You should place a copy of the CA certificate in "
+                         "/usr/share/ipa/html/ca.crt")
     else:
-        root_logger.debug('Certificate file exists')
+        logger.debug('Certificate file exists')
 
 def upgrade_pki(ca, fstore):
     """
@@ -212,15 +216,15 @@ def upgrade_pki(ca, fstore):
 
     This requires enabling SSL renegotiation.
     """
-    root_logger.info('[Verifying that CA proxy configuration is correct]')
+    logger.info('[Verifying that CA proxy configuration is correct]')
     if not ca.is_configured():
-        root_logger.info('CA is not configured')
+        logger.info('CA is not configured')
         return
 
     http = httpinstance.HTTPInstance(fstore)
     http.enable_mod_nss_renegotiate()
 
-    root_logger.debug('Proxy configuration up-to-date')
+    logger.debug('Proxy configuration up-to-date')
 
 def update_dbmodules(realm, filename=paths.KRB5_CONF):
     newfile = []
@@ -228,14 +232,14 @@ def update_dbmodules(realm, filename=paths.KRB5_CONF):
     found_realm = False
     prefix = ''
 
-    root_logger.info('[Verifying that KDC configuration is using ipa-kdb backend]')
+    logger.info('[Verifying that KDC configuration is using ipa-kdb backend]')
     fd = open(filename)
 
     lines = fd.readlines()
     fd.close()
 
     if '    db_library = ipadb.so\n' in lines:
-        root_logger.debug('dbmodules already updated in %s', filename)
+        logger.debug('dbmodules already updated in %s', filename)
         return
 
     for line in lines:
@@ -261,33 +265,33 @@ def update_dbmodules(realm, filename=paths.KRB5_CONF):
     fd = open(filename, 'w')
     fd.write("".join(newfile))
     fd.close()
-    root_logger.debug('%s updated', filename)
+    logger.debug('%s updated', filename)
 
 def cleanup_kdc(fstore):
     """
     Clean up old KDC files if they exist. We need to remove the actual
     file and any references in the uninstall configuration.
     """
-    root_logger.info('[Checking for deprecated KDC configuration files]')
+    logger.info('[Checking for deprecated KDC configuration files]')
     for file in ['kpasswd.keytab', 'ldappwd']:
         filename = os.path.join(paths.VAR_KERBEROS_KRB5KDC_DIR, file)
         installutils.remove_file(filename)
         if fstore.has_file(filename):
             fstore.untrack_file(filename)
-            root_logger.debug('Uninstalling %s', filename)
+            logger.debug('Uninstalling %s', filename)
 
 def cleanup_adtrust(fstore):
     """
     Clean up any old Samba backup files that were deprecated.
     """
 
-    root_logger.info('[Checking for deprecated backups of Samba '
-                     'configuration files]')
+    logger.info('[Checking for deprecated backups of Samba '
+                'configuration files]')
 
     for backed_up_file in [paths.SMB_CONF]:
         if fstore.has_file(backed_up_file):
             fstore.untrack_file(backed_up_file)
-            root_logger.debug('Removing %s from backup', backed_up_file)
+            logger.debug('Removing %s from backup', backed_up_file)
 
 
 def cleanup_dogtag():
@@ -302,9 +306,9 @@ def cleanup_dogtag():
             subsystems.append('KRA')
 
     for system in subsystems:
-        root_logger.debug(
-            "Cleaning up after pkispawn for the {sub} subsystem"
-            .format(sub=system))
+        logger.debug(
+            "Cleaning up after pkispawn for the %s subsystem",
+            system)
         instance = dogtaginstance.DogtagInstance(
             api.env.realm, system, service_desc=None,
         )
@@ -319,8 +323,8 @@ def upgrade_adtrust_config():
     if not adtrustinstance.ipa_smb_conf_exists():
         return
 
-    root_logger.info("[Remove FILE: prefix from 'dedicated keytab file' "
-                     "in Samba configuration]")
+    logger.info("[Remove FILE: prefix from 'dedicated keytab file' "
+                "in Samba configuration]")
 
     args = [paths.NET, "conf", "setparm", "global",
             "dedicated keytab file", paths.SAMBA_KEYTAB]
@@ -328,33 +332,33 @@ def upgrade_adtrust_config():
     try:
         ipautil.run(args)
     except ipautil.CalledProcessError as e:
-        root_logger.warning("Error updating Samba registry: %s", e)
+        logger.warning("Error updating Samba registry: %s", e)
 
 
 def ca_configure_profiles_acl(ca):
-    root_logger.info('[Authorizing RA Agent to modify profiles]')
+    logger.info('[Authorizing RA Agent to modify profiles]')
 
     if not ca.is_configured():
-        root_logger.info('CA is not configured')
+        logger.info('CA is not configured')
         return False
 
     return cainstance.configure_profiles_acl()
 
 
 def ca_configure_lightweight_ca_acls(ca):
-    root_logger.info('[Authorizing RA Agent to manage lightweight CAs]')
+    logger.info('[Authorizing RA Agent to manage lightweight CAs]')
 
     if not ca.is_configured():
-        root_logger.info('CA is not configured')
+        logger.info('CA is not configured')
         return False
 
     return cainstance.configure_lightweight_ca_acls()
 
 
 def ca_enable_ldap_profile_subsystem(ca):
-    root_logger.info('[Ensuring CA is using LDAPProfileSubsystem]')
+    logger.info('[Ensuring CA is using LDAPProfileSubsystem]')
     if not ca.is_configured():
-        root_logger.info('CA is not configured')
+        logger.info('CA is not configured')
         return False
 
     needs_update = False
@@ -370,8 +374,8 @@ def ca_enable_ldap_profile_subsystem(ca):
                 needs_update = True
                 break
     except OSError as e:
-        root_logger.error('Cannot read CA configuration file "%s": %s',
-                          paths.CA_CS_CFG_PATH, e)
+        logger.error('Cannot read CA configuration file "%s": %s',
+                     paths.CA_CS_CFG_PATH, e)
         return False
 
     if needs_update:
@@ -384,36 +388,37 @@ def ca_enable_ldap_profile_subsystem(ca):
 
         ca.restart('pki-tomcat')
 
-    root_logger.info('[Migrating certificate profiles to LDAP]')
+    logger.info('[Migrating certificate profiles to LDAP]')
     cainstance.migrate_profiles_to_ldap()
 
     return needs_update
 
 
 def ca_import_included_profiles(ca):
-    root_logger.info('[Ensuring presence of included profiles]')
+    logger.info('[Ensuring presence of included profiles]')
 
     if not ca.is_configured():
-        root_logger.info('CA is not configured')
+        logger.info('CA is not configured')
         return False
 
     return cainstance.import_included_profiles()
 
 
 def ca_ensure_lightweight_cas_container(ca):
-    root_logger.info('[Ensuring Lightweight CAs container exists in Dogtag database]')
+    logger.info('[Ensuring Lightweight CAs container exists in Dogtag '
+                'database]')
 
     if not ca.is_configured():
-        root_logger.info('CA is not configured')
+        logger.info('CA is not configured')
         return False
 
     return cainstance.ensure_lightweight_cas_container()
 
 
 def ca_add_default_ocsp_uri(ca):
-    root_logger.info('[Adding default OCSP URI configuration]')
+    logger.info('[Adding default OCSP URI configuration]')
     if not ca.is_configured():
-        root_logger.info('CA is not configured')
+        logger.info('CA is not configured')
         return False
 
     value = installutils.get_directive(
@@ -438,11 +443,11 @@ def upgrade_ca_audit_cert_validity(ca):
 
     Returns True if restart is needed, False otherwise.
     """
-    root_logger.info('[Verifying that CA audit signing cert has 2 year validity]')
+    logger.info('[Verifying that CA audit signing cert has 2 year validity]')
     if ca.is_configured():
         return ca.set_audit_renewal()
     else:
-        root_logger.info('CA is not configured')
+        logger.info('CA is not configured')
         return False
 
 
@@ -457,11 +462,11 @@ def named_remove_deprecated_options():
     When some change in named.conf is done, this functions returns True.
     """
 
-    root_logger.info('[Removing deprecated DNS configuration options]')
+    logger.info('[Removing deprecated DNS configuration options]')
 
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
-        root_logger.info('DNS is not configured')
+        logger.info('DNS is not configured')
         return False
 
     deprecated_options = ['zone_refresh', 'psearch', 'cache_ttl',
@@ -478,16 +483,16 @@ def named_remove_deprecated_options():
                 removed_options.append(option)
 
     except IOError as e:
-        root_logger.error('Cannot modify DNS configuration in %s: %s',
-                          bindinstance.NAMED_CONF, e)
+        logger.error('Cannot modify DNS configuration in %s: %s',
+                     bindinstance.NAMED_CONF, e)
 
     # Log only the changed options
     if not removed_options:
-        root_logger.debug('No changes made')
+        logger.debug('No changes made')
         return False
 
-    root_logger.debug('The following configuration options have been removed: '
-                      '{options}'.format(options = ', '.join(removed_options)))
+    logger.debug('The following configuration options have been removed: %s',
+                 ', '.join(removed_options))
     return True
 
 
@@ -500,11 +505,11 @@ def named_set_minimum_connections():
 
     changed = False
 
-    root_logger.info('[Ensuring minimal number of connections]')
+    logger.info('[Ensuring minimal number of connections]')
 
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
-        root_logger.info('DNS is not configured')
+        logger.info('DNS is not configured')
         return changed
 
     # make sure number of connections is right
@@ -513,8 +518,8 @@ def named_set_minimum_connections():
     try:
         connections = bindinstance.named_conf_get_directive('connections')
     except IOError as e:
-        root_logger.debug('Cannot retrieve connections option from %s: %s',
-                bindinstance.NAMED_CONF, e)
+        logger.debug('Cannot retrieve connections option from %s: %s',
+                     bindinstance.NAMED_CONF, e)
         return changed
 
     try:
@@ -529,15 +534,15 @@ def named_set_minimum_connections():
             try:
                 bindinstance.named_conf_set_directive('connections',
                                                        minimum_connections)
-                root_logger.debug('Connections set to %d', minimum_connections)
+                logger.debug('Connections set to %d', minimum_connections)
             except IOError as e:
-                root_logger.error('Cannot update connections in %s: %s',
-                        bindinstance.NAMED_CONF, e)
+                logger.error('Cannot update connections in %s: %s',
+                             bindinstance.NAMED_CONF, e)
             else:
                 changed = True
 
     if not changed:
-        root_logger.debug('No changes made')
+        logger.debug('No changes made')
 
     return changed
 
@@ -551,27 +556,27 @@ def named_update_gssapi_configuration():
     When some change in named.conf is done, this functions returns True
     """
 
-    root_logger.info('[Updating GSSAPI configuration in DNS]')
+    logger.info('[Updating GSSAPI configuration in DNS]')
 
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
-        root_logger.info('DNS is not configured')
+        logger.info('DNS is not configured')
         return False
 
     if sysupgrade.get_upgrade_state('named.conf', 'gssapi_updated'):
-        root_logger.debug('Skip GSSAPI configuration check')
+        logger.debug('Skip GSSAPI configuration check')
         return False
 
     try:
         gssapi_keytab = bindinstance.named_conf_get_directive('tkey-gssapi-keytab',
                 bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
-        root_logger.error('Cannot retrieve tkey-gssapi-keytab option from %s: %s',
-                bindinstance.NAMED_CONF, e)
+        logger.error('Cannot retrieve tkey-gssapi-keytab option from %s: %s',
+                     bindinstance.NAMED_CONF, e)
         return False
     else:
         if gssapi_keytab:
-            root_logger.debug('GSSAPI configuration already updated')
+            logger.debug('GSSAPI configuration already updated')
             sysupgrade.set_upgrade_state('named.conf', 'gssapi_updated', True)
             return False
 
@@ -581,13 +586,14 @@ def named_update_gssapi_configuration():
         tkey_domain = bindinstance.named_conf_get_directive('tkey-domain',
                 bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
-        root_logger.error('Cannot retrieve tkey-gssapi-credential option from %s: %s',
-                bindinstance.NAMED_CONF, e)
+        logger.error('Cannot retrieve tkey-gssapi-credential option from %s: '
+                     '%s',
+                     bindinstance.NAMED_CONF, e)
         return False
 
     if not tkey_credential or not tkey_domain:
-        root_logger.error('Either tkey-gssapi-credential or tkey-domain is missing in %s. '
-            'Skip update.', bindinstance.NAMED_CONF)
+        logger.error('Either tkey-gssapi-credential or tkey-domain is missing '
+                     'in %s. Skip update.', bindinstance.NAMED_CONF)
         return False
 
     try:
@@ -601,11 +607,11 @@ def named_update_gssapi_configuration():
             'tkey-gssapi-keytab', paths.NAMED_KEYTAB,
             bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
-        root_logger.error('Cannot update GSSAPI configuration in %s: %s',
-                bindinstance.NAMED_CONF, e)
+        logger.error('Cannot update GSSAPI configuration in %s: %s',
+                     bindinstance.NAMED_CONF, e)
         return False
     else:
-        root_logger.debug('GSSAPI configuration updated')
+        logger.debug('GSSAPI configuration updated')
 
     sysupgrade.set_upgrade_state('named.conf', 'gssapi_updated', True)
     return True
@@ -615,27 +621,27 @@ def named_update_pid_file():
     """
     Make sure that named reads the pid file from the right file
     """
-    root_logger.info('[Updating pid-file configuration in DNS]')
+    logger.info('[Updating pid-file configuration in DNS]')
 
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
-        root_logger.info('DNS is not configured')
+        logger.info('DNS is not configured')
         return False
 
     if sysupgrade.get_upgrade_state('named.conf', 'pid-file_updated'):
-        root_logger.debug('Skip pid-file configuration check')
+        logger.debug('Skip pid-file configuration check')
         return False
 
     try:
         pid_file = bindinstance.named_conf_get_directive('pid-file',
                 bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
-        root_logger.error('Cannot retrieve pid-file option from %s: %s',
-                bindinstance.NAMED_CONF, e)
+        logger.error('Cannot retrieve pid-file option from %s: %s',
+                     bindinstance.NAMED_CONF, e)
         return False
     else:
         if pid_file:
-            root_logger.debug('pid-file configuration already updated')
+            logger.debug('pid-file configuration already updated')
             sysupgrade.set_upgrade_state('named.conf', 'pid-file_updated', True)
             return False
 
@@ -643,11 +649,11 @@ def named_update_pid_file():
         bindinstance.named_conf_set_directive('pid-file', paths.NAMED_PID,
                                               bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
-        root_logger.error('Cannot update pid-file configuration in %s: %s',
-                bindinstance.NAMED_CONF, e)
+        logger.error('Cannot update pid-file configuration in %s: %s',
+                     bindinstance.NAMED_CONF, e)
         return False
     else:
-        root_logger.debug('pid-file configuration updated')
+        logger.debug('pid-file configuration updated')
 
     sysupgrade.set_upgrade_state('named.conf', 'pid-file_updated', True)
     return True
@@ -658,21 +664,21 @@ def named_enable_dnssec():
     """
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
-        root_logger.info('DNS is not configured')
+        logger.info('DNS is not configured')
         return False
 
     if not sysupgrade.get_upgrade_state('named.conf', 'dnssec_enabled'):
-        root_logger.info('[Enabling "dnssec-enable" configuration in DNS]')
+        logger.info('[Enabling "dnssec-enable" configuration in DNS]')
         try:
             bindinstance.named_conf_set_directive('dnssec-enable', 'yes',
                                                   bindinstance.NAMED_SECTION_OPTIONS,
                                                   str_val=False)
         except IOError as e:
-            root_logger.error('Cannot update dnssec-enable configuration in %s: %s',
-                    bindinstance.NAMED_CONF, e)
+            logger.error('Cannot update dnssec-enable configuration in %s: %s',
+                         bindinstance.NAMED_CONF, e)
             return False
     else:
-        root_logger.debug('dnssec-enabled in %s' % bindinstance.NAMED_CONF)
+        logger.debug('dnssec-enabled in %s', bindinstance.NAMED_CONF)
 
     sysupgrade.set_upgrade_state('named.conf', 'dnssec_enabled', True)
     return True
@@ -686,7 +692,7 @@ def named_validate_dnssec():
     """
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
-        root_logger.info('DNS is not configured')
+        logger.info('DNS is not configured')
         return False
 
     if (not sysupgrade.get_upgrade_state('named.conf', 'dnssec_validation_upgraded')
@@ -694,17 +700,19 @@ def named_validate_dnssec():
                 'dnssec-validation', bindinstance.NAMED_SECTION_OPTIONS,
                 str_val=False) is None):
         # dnssec-validation is not configured, disable it
-        root_logger.info('[Disabling "dnssec-validate" configuration in DNS]')
+        logger.info('[Disabling "dnssec-validate" configuration in DNS]')
         try:
             bindinstance.named_conf_set_directive('dnssec-validation', 'no',
                                                   bindinstance.NAMED_SECTION_OPTIONS,
                                                   str_val=False)
         except IOError as e:
-            root_logger.error('Cannot update dnssec-validate configuration in %s: %s',
-                    bindinstance.NAMED_CONF, e)
+            logger.error('Cannot update dnssec-validate configuration in %s: '
+                         '%s',
+                         bindinstance.NAMED_CONF, e)
             return False
     else:
-        root_logger.debug('dnssec-validate already configured in %s' % bindinstance.NAMED_CONF)
+        logger.debug('dnssec-validate already configured in %s',
+                     bindinstance.NAMED_CONF)
 
     sysupgrade.set_upgrade_state('named.conf', 'dnssec_validation_upgraded', True)
     return True
@@ -715,34 +723,34 @@ def named_bindkey_file_option():
     """
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
-        root_logger.info('DNS is not configured')
+        logger.info('DNS is not configured')
         return False
 
     if sysupgrade.get_upgrade_state('named.conf', 'bindkey-file_updated'):
-        root_logger.debug('Skip bindkey-file configuration check')
+        logger.debug('Skip bindkey-file configuration check')
         return False
 
     try:
         bindkey_file = bindinstance.named_conf_get_directive('bindkey-file',
                 bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
-        root_logger.error('Cannot retrieve bindkey-file option from %s: %s',
-                bindinstance.NAMED_CONF, e)
+        logger.error('Cannot retrieve bindkey-file option from %s: %s',
+                     bindinstance.NAMED_CONF, e)
         return False
     else:
         if bindkey_file:
-            root_logger.debug('bindkey-file configuration already updated')
+            logger.debug('bindkey-file configuration already updated')
             sysupgrade.set_upgrade_state('named.conf', 'bindkey-file_updated', True)
             return False
 
-    root_logger.info('[Setting "bindkeys-file" option in named.conf]')
+    logger.info('[Setting "bindkeys-file" option in named.conf]')
     try:
         bindinstance.named_conf_set_directive('bindkeys-file',
                                               paths.NAMED_BINDKEYS_FILE,
                                               bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
-        root_logger.error('Cannot update bindkeys-file configuration in %s: %s',
-                bindinstance.NAMED_CONF, e)
+        logger.error('Cannot update bindkeys-file configuration in %s: %s',
+                     bindinstance.NAMED_CONF, e)
         return False
 
 
@@ -755,34 +763,37 @@ def named_managed_keys_dir_option():
     """
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
-        root_logger.info('DNS is not configured')
+        logger.info('DNS is not configured')
         return False
 
     if sysupgrade.get_upgrade_state('named.conf', 'managed-keys-directory_updated'):
-        root_logger.debug('Skip managed-keys-directory configuration check')
+        logger.debug('Skip managed-keys-directory configuration check')
         return False
 
     try:
         managed_keys = bindinstance.named_conf_get_directive('managed-keys-directory',
                 bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
-        root_logger.error('Cannot retrieve managed-keys-directory option from %s: %s',
-                bindinstance.NAMED_CONF, e)
+        logger.error('Cannot retrieve managed-keys-directory option from %s: '
+                     '%s',
+                     bindinstance.NAMED_CONF, e)
         return False
     else:
         if managed_keys:
-            root_logger.debug('managed_keys_directory configuration already updated')
+            logger.debug('managed_keys_directory configuration already '
+                         'updated')
             sysupgrade.set_upgrade_state('named.conf', 'managed-keys-directory_updated', True)
             return False
 
-    root_logger.info('[Setting "managed-keys-directory" option in named.conf]')
+    logger.info('[Setting "managed-keys-directory" option in named.conf]')
     try:
         bindinstance.named_conf_set_directive('managed-keys-directory',
                                               paths.NAMED_MANAGED_KEYS_DIR,
                                               bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
-        root_logger.error('Cannot update managed-keys-directory configuration in %s: %s',
-                bindinstance.NAMED_CONF, e)
+        logger.error('Cannot update managed-keys-directory configuration in '
+                     '%s: %s',
+                     bindinstance.NAMED_CONF, e)
         return False
 
 
@@ -795,31 +806,31 @@ def named_root_key_include():
     """
     if not bindinstance.named_conf_exists():
         # DNS service may not be configured
-        root_logger.info('DNS is not configured')
+        logger.info('DNS is not configured')
         return False
 
     if sysupgrade.get_upgrade_state('named.conf', 'root_key_updated'):
-        root_logger.debug('Skip root key configuration check')
+        logger.debug('Skip root key configuration check')
         return False
 
     try:
         root_key = bindinstance.named_conf_include_exists(paths.NAMED_ROOT_KEY)
     except IOError as e:
-        root_logger.error('Cannot check root key include in %s: %s',
-                bindinstance.NAMED_CONF, e)
+        logger.error('Cannot check root key include in %s: %s',
+                     bindinstance.NAMED_CONF, e)
         return False
     else:
         if root_key:
-            root_logger.debug('root keys configuration already updated')
+            logger.debug('root keys configuration already updated')
             sysupgrade.set_upgrade_state('named.conf', 'root_key_updated', True)
             return False
 
-    root_logger.info('[Including named root key in named.conf]')
+    logger.info('[Including named root key in named.conf]')
     try:
         bindinstance.named_conf_add_include(paths.NAMED_ROOT_KEY)
     except IOError as e:
-        root_logger.error('Cannot update named root key include in %s: %s',
-                bindinstance.NAMED_CONF, e)
+        logger.error('Cannot update named root key include in %s: %s',
+                     bindinstance.NAMED_CONF, e)
         return False
 
 
@@ -831,11 +842,11 @@ def named_update_global_forwarder_policy():
     bind = bindinstance.BindInstance()
     if not bindinstance.named_conf_exists() or not bind.is_configured():
         # DNS service may not be configured
-        root_logger.info('DNS is not configured')
+        logger.info('DNS is not configured')
         return False
 
-    root_logger.info('[Checking global forwarding policy in named.conf '
-                     'to avoid conflicts with automatic empty zones]')
+    logger.info('[Checking global forwarding policy in named.conf '
+                'to avoid conflicts with automatic empty zones]')
     if sysupgrade.get_upgrade_state(
         'named.conf', 'forward_policy_conflict_with_empty_zones_handled'
     ):
@@ -853,7 +864,7 @@ def named_update_global_forwarder_policy():
             # ranges so hopefully automatic empty zones are not a problem
             return False
     except dns.exception.DNSException as ex:
-        root_logger.error(
+        logger.error(
             'Skipping update of global DNS forwarder in named.conf: '
             'Unable to determine if local server is using an '
             'IP address belonging to an automatic empty zone. '
@@ -868,9 +879,9 @@ def named_update_global_forwarder_policy():
     ) == 'only':
         return False
 
-    root_logger.info('Global forward policy in named.conf will '
-                     'be changed to "only" to avoid conflicts with '
-                     'automatic empty zones')
+    logger.info('Global forward policy in named.conf will '
+                'be changed to "only" to avoid conflicts with '
+                'automatic empty zones')
     bindinstance.named_conf_set_directive(
         'forward',
         'only',
@@ -889,14 +900,14 @@ def named_add_server_id():
     bind = bindinstance.BindInstance()
     if not bindinstance.named_conf_exists() or not bind.is_configured():
         # DNS service may not be configured
-        root_logger.info('DNS is not configured')
+        logger.info('DNS is not configured')
         return False
 
     if sysupgrade.get_upgrade_state('named.conf', 'add_server_id'):
         # upgrade was done already
         return False
 
-    root_logger.info('[Adding server_id to named.conf]')
+    logger.info('[Adding server_id to named.conf]')
     bindinstance.named_conf_set_directive('server_id', api.env.host)
     sysupgrade.set_upgrade_state('named.conf', 'add_server_id', True)
     return True
@@ -974,9 +985,9 @@ def certificate_renewal_update(ca, ds, http):
         }
     ]
 
-    root_logger.info("[Update certmonger certificate renewal configuration]")
+    logger.info("[Update certmonger certificate renewal configuration]")
     if not ca.is_configured():
-        root_logger.info('CA is not configured')
+        logger.info('CA is not configured')
         return False
 
     db = certs.CertDB(api.env.realm, paths.PKI_TOMCAT_ALIAS_DIR)
@@ -1011,7 +1022,7 @@ def certificate_renewal_update(ca, ds, http):
     filename = paths.CERTMONGER_CAS_CA_RENEWAL
     if os.path.exists(filename):
         with installutils.stopped_service('certmonger'):
-            root_logger.info("Removing %s" % filename)
+            logger.info("Removing %s", filename)
             installutils.remove_file(filename)
 
     ca.configure_certmonger_renewal()
@@ -1022,7 +1033,7 @@ def certificate_renewal_update(ca, ds, http):
     ds.start_tracking_certificates(serverid)
     http.start_tracking_certificates()
 
-    root_logger.info("Certmonger certificate renewal configuration updated")
+    logger.info("Certmonger certificate renewal configuration updated")
     return True
 
 def copy_crl_file(old_path, new_path=None):
@@ -1032,14 +1043,14 @@ def copy_crl_file(old_path, new_path=None):
     if new_path is None:
         filename = os.path.basename(old_path)
         new_path = os.path.join(paths.PKI_CA_PUBLISH_DIR, filename)
-    root_logger.debug('copy_crl_file: %s -> %s', old_path, new_path)
+    logger.debug('copy_crl_file: %s -> %s', old_path, new_path)
 
     if os.path.islink(old_path):
         # update symlink to the most most recent CRL file
         filename = os.path.basename(os.readlink(old_path))
         realpath = os.path.join(paths.PKI_CA_PUBLISH_DIR, filename)
-        root_logger.debug('copy_crl_file: Create symlink %s -> %s',
-            new_path, realpath)
+        logger.debug('copy_crl_file: Create symlink %s -> %s',
+                     new_path, realpath)
         os.symlink(realpath, new_path)
     else:
         shutil.copy2(old_path, new_path)
@@ -1053,13 +1064,13 @@ def migrate_crl_publish_dir(ca):
     Move CRL publish dir from /var/lib/pki-ca/publish to IPA controlled tree:
     /var/lib/ipa/pki-ca/publish
     """
-    root_logger.info('[Migrate CRL publish directory]')
+    logger.info('[Migrate CRL publish directory]')
     if sysupgrade.get_upgrade_state('dogtag', 'moved_crl_publish_dir'):
-        root_logger.info('CRL tree already moved')
+        logger.info('CRL tree already moved')
         return False
 
     if not ca.is_configured():
-        root_logger.info('CA is not configured')
+        logger.info('CA is not configured')
         return False
 
     try:
@@ -1068,8 +1079,8 @@ def migrate_crl_publish_dir(ca):
             'ca.publish.publisher.instance.FileBaseCRLPublisher.directory',
             separator='=')
     except OSError as e:
-        root_logger.error('Cannot read CA configuration file "%s": %s',
-                          paths.CA_CS_CFG_PATH, e)
+        logger.error('Cannot read CA configuration file "%s": %s',
+                     paths.CA_CS_CFG_PATH, e)
         return False
 
     # Prepare target publish dir (creation, permissions, SELinux context)
@@ -1078,16 +1089,16 @@ def migrate_crl_publish_dir(ca):
 
     if old_publish_dir == paths.PKI_CA_PUBLISH_DIR:
         # publish dir is already updated
-        root_logger.info('Publish directory already set to new location')
+        logger.info('Publish directory already set to new location')
         sysupgrade.set_upgrade_state('dogtag', 'moved_crl_publish_dir', True)
         return False
 
     # Copy all CRLs to new directory
-    root_logger.info('Copy all CRLs to new publish directory')
+    logger.info('Copy all CRLs to new publish directory')
     try:
         crl_files_unsorted = cainstance.get_crl_files(old_publish_dir)
     except OSError as e:
-        root_logger.error('Cannot move CRL files to new directory: %s', e)
+        logger.error('Cannot move CRL files to new directory: %s', e)
     else:
         # Move CRL files at the end of the list to make sure that the actual
         # CRL files are copied first
@@ -1097,7 +1108,7 @@ def migrate_crl_publish_dir(ca):
             try:
                 copy_crl_file(f)
             except Exception as e:
-                root_logger.error('Cannot move CRL file to new directory: %s', e)
+                logger.error('Cannot move CRL file to new directory: %s', e)
 
     try:
         installutils.set_directive(
@@ -1105,23 +1116,23 @@ def migrate_crl_publish_dir(ca):
             'ca.publish.publisher.instance.FileBaseCRLPublisher.directory',
             publishdir, quotes=False, separator='=')
     except OSError as e:
-        root_logger.error('Cannot update CA configuration file "%s": %s',
-                          paths.CA_CS_CFG_PATH, e)
+        logger.error('Cannot update CA configuration file "%s": %s',
+                     paths.CA_CS_CFG_PATH, e)
         return False
     sysupgrade.set_upgrade_state('dogtag', 'moved_crl_publish_dir', True)
-    root_logger.info('CRL publish directory has been migrated, '
-                     'request pki-tomcat restart')
+    logger.info('CRL publish directory has been migrated, '
+                'request pki-tomcat restart')
     return True
 
 
 def ca_enable_pkix(ca):
-    root_logger.info('[Enable PKIX certificate path discovery and validation]')
+    logger.info('[Enable PKIX certificate path discovery and validation]')
     if sysupgrade.get_upgrade_state('dogtag', 'pkix_enabled'):
-        root_logger.info('PKIX already enabled')
+        logger.info('PKIX already enabled')
         return False
 
     if not ca.is_configured():
-        root_logger.info('CA is not configured')
+        logger.info('CA is not configured')
         return False
 
     ca.enable_pkix()
@@ -1131,15 +1142,15 @@ def ca_enable_pkix(ca):
 
 
 def add_ca_dns_records():
-    root_logger.info('[Add missing CA DNS records]')
+    logger.info('[Add missing CA DNS records]')
 
     if sysupgrade.get_upgrade_state('dns', 'ipa_ca_records'):
-        root_logger.info('IPA CA DNS records already processed')
+        logger.info('IPA CA DNS records already processed')
         return
 
     ret = api.Command['dns_is_enabled']()
     if not ret['result']:
-        root_logger.info('DNS is not configured')
+        logger.info('DNS is not configured')
         sysupgrade.set_upgrade_state('dns', 'ipa_ca_records', True)
         return
 
@@ -1167,18 +1178,18 @@ def find_subject_base():
         )
         return subject_base
 
-    root_logger.error('Unable to determine certificate subject base. '
-                      'certmap.conf will not be updated.')
+    logger.error('Unable to determine certificate subject base. '
+                 'certmap.conf will not be updated.')
 
 
 def uninstall_selfsign(ds, http):
-    root_logger.info('[Removing self-signed CA]')
+    logger.info('[Removing self-signed CA]')
     """Replace self-signed CA by a CA-less install"""
     if api.env.ra_plugin != 'selfsign':
-        root_logger.debug('Self-signed CA is not installed')
+        logger.debug('Self-signed CA is not installed')
         return
 
-    root_logger.warning(
+    logger.warning(
         'Removing self-signed CA. Certificates will need to managed manually.')
     p = SafeConfigParser()
     p.read(paths.IPA_DEFAULT_CONF)
@@ -1192,13 +1203,13 @@ def uninstall_selfsign(ds, http):
 
 
 def uninstall_dogtag_9(ds, http):
-    root_logger.info('[Removing Dogtag 9 CA]')
+    logger.info('[Removing Dogtag 9 CA]')
 
     if api.env.ra_plugin != 'dogtag':
-        root_logger.debug('Dogtag CA is not installed')
+        logger.debug('Dogtag CA is not installed')
         return
     if api.env.dogtag_version >= 10:
-        root_logger.debug('Dogtag is version 10 or above')
+        logger.debug('Dogtag is version 10 or above')
         return
 
     dn = DN(('cn', 'CA'), ('cn', api.env.host), ('cn', 'masters'),
@@ -1206,7 +1217,7 @@ def uninstall_dogtag_9(ds, http):
     try:
         api.Backend.ldap2.delete_entry(dn)
     except ipalib.errors.PublicError as e:
-        root_logger.error("Cannot delete %s: %s", dn, e)
+        logger.error("Cannot delete %s: %s", dn, e)
 
     p = SafeConfigParser()
     p.read(paths.IPA_DEFAULT_CONF)
@@ -1236,21 +1247,21 @@ def uninstall_dogtag_9(ds, http):
     try:
         services.service('pki-cad', api).disable('pki-ca')
     except Exception as e:
-        root_logger.warning("Failed to disable pki-cad: %s", e)
+        logger.warning("Failed to disable pki-cad: %s", e)
     try:
         services.service('pki-cad', api).stop('pki-ca')
     except Exception as e:
-        root_logger.warning("Failed to stop pki-cad: %s", e)
+        logger.warning("Failed to stop pki-cad: %s", e)
 
     if serverid is not None:
         try:
             services.service('dirsrv', api).disable(serverid)
         except Exception as e:
-            root_logger.warning("Failed to disable dirsrv: %s", e)
+            logger.warning("Failed to disable dirsrv: %s", e)
         try:
             services.service('dirsrv', api).stop(serverid)
         except Exception as e:
-            root_logger.warning("Failed to stop dirsrv: %s", e)
+            logger.warning("Failed to stop dirsrv: %s", e)
 
     http.restart()
 
@@ -1264,17 +1275,17 @@ def mask_named_regular():
     sysupgrade.set_upgrade_state('dns', 'regular_named_masked', True)
 
     if bindinstance.named_conf_exists():
-        root_logger.info('[Masking named]')
+        logger.info('[Masking named]')
         named = services.service('named-regular', api)
         try:
             named.stop()
         except Exception as e:
-            root_logger.warning('Unable to stop named service (%s)', e)
+            logger.warning('Unable to stop named service (%s)', e)
 
         try:
             named.mask()
         except Exception as e:
-            root_logger.warning('Unable to mask named service (%s)', e)
+            logger.warning('Unable to mask named service (%s)', e)
 
         return True
 
@@ -1287,7 +1298,7 @@ def fix_dyndb_ldap_workdir_permissions():
         return
 
     if bindinstance.named_conf_exists():
-        root_logger.info('[Fix bind-dyndb-ldap IPA working directory]')
+        logger.info('[Fix bind-dyndb-ldap IPA working directory]')
         dnskeysync = dnskeysyncinstance.DNSKeySyncInstance()
         dnskeysync.set_dyndb_ldap_workdir_permissions()
 
@@ -1299,14 +1310,14 @@ def fix_schema_file_syntax():
 
     https://fedorahosted.org/freeipa/ticket/3578
     """
-    root_logger.info('[Fix DS schema file syntax]')
+    logger.info('[Fix DS schema file syntax]')
 
     # This is not handled by normal schema updates, because pre-1.3.2 DS will
     # ignore (auto-fix) these syntax errors, and 1.3.2 and above will choke on
     # them before checking dynamic schema updates.
 
     if sysupgrade.get_upgrade_state('ds', 'fix_schema_syntax'):
-        root_logger.info('Syntax already fixed')
+        logger.info('Syntax already fixed')
         return
 
     serverid = installutils.realm_to_serverid(api.env.realm)
@@ -1323,7 +1334,7 @@ def fix_schema_file_syntax():
                     "NAME 'idnsRecord'" in line and
                     line.count('(') == 2 and
                     line.count(')') == 1):
-                root_logger.debug('Add closing parenthesis in idnsRecord')
+                logger.debug('Add closing parenthesis in idnsRecord')
                 line += ' )'
             result_lines.append(line)
 
@@ -1339,7 +1350,7 @@ def fix_schema_file_syntax():
             line = line.strip('\n')
             if (line.startswith('objectClasses:') and
                     "NAME 'ipaSudoRule'" in line):
-                root_logger.debug('Remove extra dollar sign in ipaSudoRule')
+                logger.debug('Remove extra dollar sign in ipaSudoRule')
                 line = line.replace('$$', '$')
             result_lines.append(line)
 
@@ -1361,10 +1372,10 @@ def set_sssd_domain_option(option, value):
 
 
 def remove_ds_ra_cert(subject_base):
-    root_logger.info('[Removing RA cert from DS NSS database]')
+    logger.info('[Removing RA cert from DS NSS database]')
 
     if sysupgrade.get_upgrade_state('ds', 'remove_ra_cert'):
-        root_logger.info('RA cert already removed')
+        logger.info('RA cert already removed')
         return
 
     dbdir = dsinstance.config_dirname(
@@ -1380,14 +1391,14 @@ def remove_ds_ra_cert(subject_base):
 
 
 def fix_trust_flags():
-    root_logger.info('[Fixing trust flags in %s]' % paths.HTTPD_ALIAS_DIR)
+    logger.info('[Fixing trust flags in %s]', paths.HTTPD_ALIAS_DIR)
 
     if sysupgrade.get_upgrade_state('http', 'fix_trust_flags'):
-        root_logger.info("Trust flags already processed")
+        logger.info("Trust flags already processed")
         return
 
     if not api.Command.ca_is_enabled()['result']:
-        root_logger.info("CA is not enabled")
+        logger.info("CA is not enabled")
         return
 
     db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
@@ -1400,10 +1411,10 @@ def fix_trust_flags():
 
 
 def update_mod_nss_protocol(http):
-    root_logger.info('[Updating mod_nss protocol versions]')
+    logger.info('[Updating mod_nss protocol versions]')
 
     if sysupgrade.get_upgrade_state('nss.conf', 'protocol_updated_tls12'):
-        root_logger.info("Protocol versions already updated")
+        logger.info("Protocol versions already updated")
         return
 
     http.set_mod_nss_protocol()
@@ -1412,16 +1423,16 @@ def update_mod_nss_protocol(http):
 
 
 def disable_mod_nss_ocsp(http):
-    root_logger.info('[Updating mod_nss enabling OCSP]')
+    logger.info('[Updating mod_nss enabling OCSP]')
     http.disable_mod_nss_ocsp()
 
 
 def update_mod_nss_cipher_suite(http):
-    root_logger.info('[Updating mod_nss cipher suite]')
+    logger.info('[Updating mod_nss cipher suite]')
 
     revision = sysupgrade.get_upgrade_state('nss.conf', 'cipher_suite_updated')
     if revision and revision >= httpinstance.NSS_CIPHER_REVISION:
-        root_logger.debug("Cipher suite already updated")
+        logger.debug("Cipher suite already updated")
         return
 
     http.set_mod_nss_cipher_suite()
@@ -1432,19 +1443,19 @@ def update_mod_nss_cipher_suite(http):
         httpinstance.NSS_CIPHER_REVISION)
 
 def update_ipa_httpd_service_conf(http):
-    root_logger.info('[Updating HTTPD service IPA configuration]')
+    logger.info('[Updating HTTPD service IPA configuration]')
     http.update_httpd_service_ipa_conf()
 
 
 def update_http_keytab(http):
-    root_logger.info('[Moving HTTPD service keytab to gssproxy]')
+    logger.info('[Moving HTTPD service keytab to gssproxy]')
     if os.path.exists(paths.OLD_IPA_KEYTAB):
         # ensure proper SELinux context by using copy operation
         shutil.copy(paths.OLD_IPA_KEYTAB, http.keytab)
         try:
             os.remove(paths.OLD_IPA_KEYTAB)
         except OSError as e:
-            root_logger.error(
+            logger.error(
                 'Cannot remove file %s (%s). Please remove the file manually.',
                 paths.OLD_IPA_KEYTAB, e
             )
@@ -1455,10 +1466,10 @@ def update_http_keytab(http):
 def ds_enable_sidgen_extdom_plugins(ds):
     """For AD trust agents, make sure we enable sidgen and extdom plugins
     """
-    root_logger.info('[Enable sidgen and extdom plugins by default]')
+    logger.info('[Enable sidgen and extdom plugins by default]')
 
     if sysupgrade.get_upgrade_state('ds', 'enable_ds_sidgen_extdom_plugins'):
-        root_logger.debug('sidgen and extdom plugins are enabled already')
+        logger.debug('sidgen and extdom plugins are enabled already')
         return
 
     ds.add_sidgen_plugin(api.env.basedn)
@@ -1466,9 +1477,9 @@ def ds_enable_sidgen_extdom_plugins(ds):
     sysupgrade.set_upgrade_state('ds', 'enable_ds_sidgen_extdom_plugins', True)
 
 def ca_upgrade_schema(ca):
-    root_logger.info('[Upgrading CA schema]')
+    logger.info('[Upgrading CA schema]')
     if not ca.is_configured():
-        root_logger.info('CA is not configured')
+        logger.info('CA is not configured')
         return False
 
     schema_files=[
@@ -1478,22 +1489,22 @@ def ca_upgrade_schema(ca):
     try:
         modified = schemaupdate.update_schema(schema_files, ldapi=True)
     except Exception as e:
-        root_logger.error("%s", e)
+        logger.error("%s", e)
         raise RuntimeError('CA schema upgrade failed.', 1)
     else:
         if modified:
-            root_logger.info('CA schema update complete')
+            logger.info('CA schema update complete')
             return True
         else:
-            root_logger.info('CA schema update complete (no changes)')
+            logger.info('CA schema update complete (no changes)')
             return False
 
 
 def add_default_caacl(ca):
-    root_logger.info('[Add default CA ACL]')
+    logger.info('[Add default CA ACL]')
 
     if sysupgrade.get_upgrade_state('caacl', 'add_default_caacl'):
-        root_logger.info('Default CA ACL already added')
+        logger.info('Default CA ACL already added')
         return
 
     if ca.is_configured():
@@ -1503,7 +1514,7 @@ def add_default_caacl(ca):
 
 
 def setup_pkinit(krb):
-    root_logger.info("[Setup PKINIT]")
+    logger.info("[Setup PKINIT]")
 
     if not krbinstance.is_pkinit_enabled():
         krb.issue_selfsigned_pkinit_certs()
@@ -1543,7 +1554,7 @@ def setup_pkinit(krb):
                 aug.save()
             except IOError:
                 for error_path in aug.match('/augeas//error'):
-                    root_logger.error('augeas: %s', aug.get(error_path))
+                    logger.error('augeas: %s', aug.get(error_path))
                 raise
 
             if krb.is_running():
@@ -1554,7 +1565,7 @@ def setup_pkinit(krb):
 
 
 def enable_certauth(krb):
-    root_logger.info("[Enable certauth]")
+    logger.info("[Enable certauth]")
 
     aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD,
                  loadpath=paths.USR_SHARE_IPA_DIR)
@@ -1575,7 +1586,7 @@ def enable_certauth(krb):
                 aug.save()
             except IOError:
                 for error_path in aug.match('/augeas//error'):
-                    root_logger.error('augeas: %s', aug.get(error_path))
+                    logger.error('augeas: %s', aug.get(error_path))
                 raise
 
             if krb.is_running():
@@ -1605,7 +1616,7 @@ def upgrade_configuration():
     Execute configuration upgrade of the IPA services
     """
 
-    root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
+    logger.debug('IPA version %s', version.VENDOR_VERSION)
 
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
@@ -1699,8 +1710,8 @@ def upgrade_configuration():
 
     removed_sysconfig_file = paths.SYSCONFIG_HTTPD
     if fstore.has_file(removed_sysconfig_file):
-        root_logger.info('Restoring %s as it is no longer required',
-                         removed_sysconfig_file)
+        logger.info('Restoring %s as it is no longer required',
+                    removed_sysconfig_file)
         fstore.restore_file(removed_sysconfig_file)
 
     http = httpinstance.HTTPInstance(fstore)
@@ -1730,7 +1741,7 @@ def upgrade_configuration():
     ds_enable_sidgen_extdom_plugins(ds)
 
     if not http.is_kdcproxy_configured():
-        root_logger.info('[Enabling KDC Proxy]')
+        logger.info('[Enabling KDC Proxy]')
         http.create_kdcproxy_conf()
         http.enable_kdcproxy()
 
@@ -1803,13 +1814,13 @@ def upgrade_configuration():
 
     if any(named_conf_changes):
         # configuration has changed, restart the name server
-        root_logger.info('Changes to named.conf have been made, restart named')
+        logger.info('Changes to named.conf have been made, restart named')
         bind = bindinstance.BindInstance(fstore)
         try:
             if bind.is_running():
                 bind.restart()
         except ipautil.CalledProcessError as e:
-            root_logger.error("Failed to restart %s: %s", bind.service_name, e)
+            logger.error("Failed to restart %s: %s", bind.service_name, e)
 
     if bind_started:
         bind.stop()
@@ -1830,12 +1841,12 @@ def upgrade_configuration():
     ])
 
     if ca_restart:
-        root_logger.info(
+        logger.info(
             'pki-tomcat configuration changed, restart pki-tomcat')
         try:
             ca.restart('pki-tomcat')
         except ipautil.CalledProcessError as e:
-            root_logger.error("Failed to restart %s: %s", ca.service_name, e)
+            logger.error("Failed to restart %s: %s", ca.service_name, e)
 
     ca_enable_ldap_profile_subsystem(ca)
 
@@ -1894,7 +1905,7 @@ def upgrade_check(options):
     try:
         installutils.check_server_configuration()
     except RuntimeError as e:
-        root_logger.error(e)
+        logger.error("%s", e)
         sys.exit(1)
 
     if not options.skip_version_check:
@@ -1906,14 +1917,13 @@ def upgrade_check(options):
             raise RuntimeError(
                 'Unable to execute IPA upgrade: %s' % e, 1)
         except installutils.UpgradeMissingVersionError as e:
-            root_logger.info("Missing version: %s", e)
+            logger.info("Missing version: %s", e)
         except installutils.UpgradeVersionError:
             # Ignore other errors
             pass
     else:
-        root_logger.info("Skipping version check")
-        root_logger.warning("Upgrade without version check may break your "
-                         "system")
+        logger.info("Skipping version check")
+        logger.warning("Upgrade without version check may break your system")
 
 
 def upgrade():
@@ -1938,14 +1948,14 @@ def upgrade():
         raise RuntimeError('IPA upgrade failed.', 1)
     else:
         if data_upgrade.modified:
-            root_logger.info('Update complete')
+            logger.info('Update complete')
         else:
-            root_logger.info('Update complete, no data were modified')
+            logger.info('Update complete, no data were modified')
 
     # store new data version after upgrade
     installutils.store_version()
 
     print('Upgrading IPA services')
-    root_logger.info('Upgrading the configuration of the IPA services')
+    logger.info('Upgrading the configuration of the IPA services')
     upgrade_configuration()
-    root_logger.info('The IPA services were upgraded')
+    logger.info('The IPA services were upgraded')

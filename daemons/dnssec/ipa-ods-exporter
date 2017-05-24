@@ -35,7 +35,6 @@ import ipalib
 from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipalib.install.kinit import kinit_keytab
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger
 from ipapython import ipaldap
 from ipaplatform.paths import paths
 from ipaserver.dnssec.abshsm import sync_pkcs11_metadata, wrappingmech_name2id
@@ -617,8 +616,9 @@ def cleanup_ldap_zone(ldap, dns_dn, zone_name):
         logger.debug('%s: deleting key metadata "%s"', zone_name, ldap_key.dn)
         ldap.delete_entry(ldap_key)
 
-log = root_logger
+
 # this service is usually socket-activated
+root_logger = logging.getLogger()
 root_logger.addHandler(systemd.journal.JournalHandler())
 root_logger.setLevel(level=logging.DEBUG)
 
@@ -636,25 +636,25 @@ ipalib.api.finalize()
 
 # Kerberos initialization
 PRINCIPAL = str('%s/%s' % (DAEMONNAME, ipalib.api.env.host))
-log.debug('Kerberos principal: %s', PRINCIPAL)
+logger.debug('Kerberos principal: %s', PRINCIPAL)
 ccache_name = paths.IPA_ODS_EXPORTER_CCACHE
 
 try:
     kinit_keytab(PRINCIPAL, paths.IPA_ODS_EXPORTER_KEYTAB, ccache_name,
                  attempts=5)
 except GSSError as e:
-    log.critical('Kerberos authentication failed: %s', e)
+    logger.critical('Kerberos authentication failed: %s', e)
     sys.exit(1)
 
 os.environ['KRB5CCNAME'] = ccache_name
-log.debug('Got TGT')
+logger.debug('Got TGT')
 
 # LDAP initialization
 dns_dn = DN(ipalib.api.env.container_dns, ipalib.api.env.basedn)
 ldap = ipaldap.LDAPClient(ipalib.api.env.ldap_uri)
-log.debug('Connecting to LDAP')
+logger.debug('Connecting to LDAP')
 ldap.gssapi_bind()
-log.debug('Connected')
+logger.debug('Connected')
 
 
 ### DNSSEC master: key material upload & synchronization (but not deletion)
@@ -676,8 +676,8 @@ master2ldap_zone_keys_sync(ldapkeydb, localhsm)
 try:
     cmd, conn = receive_systemd_command()
     if len(sys.argv) != 1:
-        log.critical('No additional parameters are accepted when '
-                     'socket activation is used.')
+        logger.critical('No additional parameters are accepted when '
+                        'socket activation is used.')
         sys.exit(1)
 # Handle cases where somebody ran the program without systemd.
 except KeyError as e:
@@ -693,10 +693,10 @@ exitcode, msg, zone_name, cmd = parse_command(cmd)
 if exitcode is not None:
     if conn:
         send_systemd_reply(conn, msg)
-    log.info(msg)
+    logger.info("%s", msg)
     sys.exit(exitcode)
 else:
-    log.debug(msg)
+    logger.debug("%s", msg)
 
 # Open DB directly and read key timestamps etc.
 db = None
@@ -734,7 +734,7 @@ try:
 
 except Exception as ex:
     msg = "ipa-ods-exporter exception: %s" % traceback.format_exc(ex)
-    log.exception(ex)
+    logger.exception("%s", ex)
     raise ex
 
 finally:
@@ -745,4 +745,4 @@ finally:
         if conn:
             send_systemd_reply(conn, msg)
 
-log.debug('Done')
+logger.debug('Done')

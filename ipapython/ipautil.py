@@ -20,6 +20,7 @@
 from __future__ import print_function
 
 import codecs
+import logging
 import string
 import tempfile
 import subprocess
@@ -50,8 +51,9 @@ import six
 from six.moves import input
 from six.moves import urllib
 
-from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
+
+logger = logging.getLogger(__name__)
 
 # only for OTP password that is manually retyped by user
 TMP_PWD_ENTROPY_BITS = 128
@@ -197,7 +199,7 @@ class CheckedIPAddress(UnsafeIPAddress):
         :return: InterfaceDetails named tuple or None if no interface has
         this address
         """
-        root_logger.debug("Searching for an interface of IP address: %s", self)
+        logger.debug("Searching for an interface of IP address: %s", self)
         if self.version == 4:
             family = netifaces.AF_INET
         elif self.version == 6:
@@ -223,7 +225,7 @@ class CheckedIPAddress(UnsafeIPAddress):
                     addr=ifaddr,
                     netmask=ifmask
                 )
-                root_logger.debug(
+                logger.debug(
                     "Testing local IP address: %s (interface: %s)",
                     ifaddrmask, interface)
 
@@ -438,8 +440,8 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         stdin = stdin.encode(encoding)
 
     arg_string = nolog_replace(' '.join(_log_arg(a) for a in args), nolog)
-    root_logger.debug('Starting external process')
-    root_logger.debug('args=%s' % arg_string)
+    logger.debug('Starting external process')
+    logger.debug('args=%s', arg_string)
 
     def preexec_fn():
         if runas is not None:
@@ -449,12 +451,11 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
                 grp.getgrnam(group).gr_gid for group in suplementary_groups
             ]
 
-            root_logger.debug('runas=%s (UID %d, GID %s)', runas,
-                              pent.pw_uid, pent.pw_gid)
+            logger.debug('runas=%s (UID %d, GID %s)', runas,
+                         pent.pw_uid, pent.pw_gid)
             if suplementary_groups:
                 for group, gid in zip(suplementary_groups, suplementary_gids):
-                    root_logger.debug('suplementary_group=%s (GID %d)',
-                                      group, gid)
+                    logger.debug('suplementary_group=%s (GID %d)', group, gid)
 
             os.setgroups(suplementary_gids)
             os.setregid(pent.pw_gid, pent.pw_gid)
@@ -469,17 +470,17 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
                              preexec_fn=preexec_fn)
         stdout, stderr = p.communicate(stdin)
     except KeyboardInterrupt:
-        root_logger.debug('Process interrupted')
+        logger.debug('Process interrupted')
         p.wait()
         raise
     except:
-        root_logger.debug('Process execution failed')
+        logger.debug('Process execution failed')
         raise
     finally:
         if skip_output:
             p_out.close()   # pylint: disable=E1103
 
-    root_logger.debug('Process finished, return code=%s', p.returncode)
+    logger.debug('Process finished, return code=%s', p.returncode)
 
     # The command and its output may include passwords that we don't want
     # to log. Replace those.
@@ -498,9 +499,9 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         else:
             error_log = stderr
         output_log = nolog_replace(output_log, nolog)
-        root_logger.debug('stdout=%s' % output_log)
+        logger.debug('stdout=%s', output_log)
         error_log = nolog_replace(error_log, nolog)
-        root_logger.debug('stderr=%s' % error_log)
+        logger.debug('stderr=%s', error_log)
 
     if capture_output:
         if six.PY2:
@@ -995,9 +996,9 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
                 # Do not log udp failures as errors (to be consistent with
                 # the rest of the code that checks for open ports)
                 if socket_type == socket.SOCK_DGRAM:
-                    root_logger.warning(msg)
+                    logger.warning('%s', msg)
                 else:
-                    root_logger.error(msg)
+                    logger.error('%s', msg)
         finally:
             if s is not None:
                 s.close()
@@ -1225,7 +1226,7 @@ def wait_for_open_ports(host, ports, timeout=0):
     if not isinstance(ports, (tuple, list)):
         ports = [ports]
 
-    root_logger.debug('wait_for_open_ports: %s %s timeout %d', host, ports, timeout)
+    logger.debug('wait_for_open_ports: %s %s timeout %d', host, ports, timeout)
     op_timeout = time.time() + timeout
 
     for port in ports:

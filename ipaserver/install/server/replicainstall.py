@@ -5,6 +5,8 @@
 from __future__ import print_function
 
 import contextlib
+import logging
+
 import dns.exception as dnsexception
 import dns.name as dnsname
 import dns.resolver as dnsresolver
@@ -25,7 +27,6 @@ from ipalib.install.kinit import kinit_keytab
 from ipapython import ipaldap, ipautil
 from ipapython.certdb import IPA_CA_TRUST_FLAGS, EXTERNAL_CA_TRUST_FLAGS
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger
 from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.tasks import tasks
@@ -49,6 +50,8 @@ if six.PY3:
     unicode = str
 
 NoneType = type(None)
+
+logger = logging.getLogger(__name__)
 
 
 def get_dirman_password():
@@ -185,13 +188,13 @@ def install_dns_records(config, options, remote_api):
                                         config.domain_name,
                                         reverse_zone)
     except errors.NotFound as e:
-        root_logger.debug('Replica DNS records could not be added '
-                          'on master: %s', str(e))
+        logger.debug('Replica DNS records could not be added '
+                     'on master: %s', str(e))
 
     # we should not fail here no matter what
     except Exception as e:
-        root_logger.info('Replica DNS records could not be added '
-                         'on master: %s', str(e))
+        logger.info('Replica DNS records could not be added '
+                    'on master: %s', str(e))
 
 
 def create_ipa_conf(fstore, config, ca_enabled):
@@ -270,14 +273,14 @@ def check_dns_resolution(host_name, dns_servers):
         else:
             break
     if not server_ips:
-        root_logger.error(
+        logger.error(
             'Could not resolve any DNS server hostname: %s', dns_servers)
         return False
     resolver = dnsresolver.Resolver()
     resolver.nameservers = server_ips
 
-    root_logger.debug('Search DNS server %s (%s) for %s',
-                      dns_server, server_ips, host_name)
+    logger.debug('Search DNS server %s (%s) for %s',
+                 dns_server, server_ips, host_name)
 
     # Get IP addresses of host_name
     addresses = set()
@@ -292,7 +295,7 @@ def check_dns_resolution(host_name, dns_servers):
             addresses.update(r.address for r in result.rrset)
 
     if not addresses:
-        root_logger.error(
+        logger.error(
             'Could not resolve hostname %s using DNS. '
             'Clients may not function properly. '
             'Please check your DNS setup. '
@@ -310,13 +313,12 @@ def check_dns_resolution(host_name, dns_servers):
             continue
         checked.add(address)
         try:
-            root_logger.debug('Check reverse address %s (%s)',
-                              address, host_name)
+            logger.debug('Check reverse address %s (%s)', address, host_name)
             revname = dnsreversename.from_address(address)
             rrset = resolver.query(revname, 'PTR').rrset
         except Exception as e:
-            root_logger.debug('Check failed: %s %s', type(e).__name__, e)
-            root_logger.error(
+            logger.debug('Check failed: %s %s', type(e).__name__, e)
+            logger.error(
                 'Reverse DNS resolution of address %s (%s) failed. '
                 'Clients may not function properly. '
                 'Please check your DNS setup. '
@@ -330,11 +332,11 @@ def check_dns_resolution(host_name, dns_servers):
                 names = [r.target.to_text() for r in rrset]
             else:
                 names = []
-            root_logger.debug(
+            logger.debug(
                 'Address %s resolves to: %s. ', address, ', '.join(names))
             if not rrset or not any(
                     r.target == host_name_obj for r in rrset):
-                root_logger.error(
+                logger.error(
                     'The IP address %s of host %s resolves to: %s. '
                     'Clients may not function properly. '
                     'Please check your DNS setup. '
@@ -455,7 +457,7 @@ def promote_sssd(host_name):
         try:
             sssd.restart()
         except CalledProcessError:
-            root_logger.warning("SSSD service restart was unsuccessful.")
+            logger.warning("SSSD service restart was unsuccessful.")
 
 
 def promote_openldap_conf(hostname, master):
@@ -497,7 +499,7 @@ def promote_openldap_conf(hostname, master):
         ldap_change_conf.newConf(ldap_conf, new_opts)
         ldap_change_conf.changeConf(ldap_conf, change_opts)
     except Exception as e:
-        root_logger.info("Failed to update {}: {}".format(ldap_conf, e))
+        logger.info("Failed to update %s: %s", ldap_conf, e)
 
 
 @contextlib.contextmanager
@@ -610,7 +612,7 @@ def check_domain_level_is_supported(current):
                    "raised before installing a replica with "
                    "this version is allowed to be installed "
                    "within this domain.")
-        root_logger.error(message)
+        logger.error("%s", message)
         raise ScriptError(message, rval=3)
 
 
@@ -622,7 +624,7 @@ def enroll_dl0_replica(installer, fstore, remote_api, debug=False):
         * configure client-like /etc/krb5.conf to enable GSSAPI auth further
           down the replica installation
     """
-    root_logger.info("Enrolling host to IPA domain")
+    logger.info("Enrolling host to IPA domain")
     config = installer._config
     hostname = config.host_name
 
@@ -749,7 +751,7 @@ def install_check(installer):
                     "Could not find a suitable server cert in import in %s" %
                     pkcs12_info[0])
         except Exception as e:
-            root_logger.error('%s', e)
+            logger.error('%s', e)
             raise RuntimeError(
                 "Server cert is not valid. Please run ipa-replica-prepare to "
                 "create a new replica file.")
@@ -777,8 +779,8 @@ def install_check(installer):
 
         # Check that we don't already have a replication agreement
         if replman.get_replication_agreement(config.host_name):
-            root_logger.info('Error: A replication agreement for this '
-                             'host already exists.')
+            logger.info('Error: A replication agreement for this '
+                        'host already exists.')
             msg = ("A replication agreement for this host already exists. "
                    "It needs to be removed.\n"
                    "Run this on the master that generated the info file:\n"
@@ -802,8 +804,8 @@ def install_check(installer):
         except errors.NotFound:
             pass
         else:
-            root_logger.info('Error: Host %s already exists on the master '
-                             'server.' % config.host_name)
+            logger.info('Error: Host %s already exists on the master '
+                        'server.', config.host_name)
             msg = ("The host %s already exists on the master server.\n"
                    "You should remove it before proceeding:\n"
                    "    %% ipa host-del %s" %
@@ -814,7 +816,7 @@ def install_check(installer):
         if dns_masters:
             if not options.no_host_dns:
                 master = config.master_host_name
-                root_logger.debug('Check forward/reverse DNS resolution')
+                logger.debug('Check forward/reverse DNS resolution')
                 resolution_ok = (
                     check_dns_resolution(master, dns_masters) and
                     check_dns_resolution(config.host_name, dns_masters))
@@ -822,8 +824,8 @@ def install_check(installer):
                     if not ipautil.user_input("Continue?", False):
                         raise ScriptError(rval=0)
         else:
-            root_logger.debug('No IPA DNS servers, '
-                              'skipping forward/reverse resolution check')
+            logger.debug('No IPA DNS servers, '
+                         'skipping forward/reverse resolution check')
 
         kra_enabled = remote_api.Command.kra_is_enabled()['result']
 
@@ -949,7 +951,7 @@ def promotion_check_ipa_domain(master_ldap_conn, basedn):
         raise RuntimeError('IPA domain not found in LDAP.')
 
     if len(entry['associatedDomain']) > 1:
-        root_logger.critical(
+        logger.critical(
             "Multiple IPA domains found. We are so sorry :-(, you are "
             "probably experiencing this bug "
             "https://fedorahosted.org/freeipa/ticket/5976. Please contact us "
@@ -1200,13 +1202,13 @@ def promote_check(installer):
                    "Upgrade the peer master or use the ipa-replica-prepare "
                    "command on the master and use a prep file to install "
                    "this replica.")
-            root_logger.error(msg)
+            logger.error("%s", msg)
             raise ScriptError(rval=3)
 
         dns_masters = remote_api.Object['dnsrecord'].get_dns_masters()
         if dns_masters:
             if not options.no_host_dns:
-                root_logger.debug('Check forward/reverse DNS resolution')
+                logger.debug('Check forward/reverse DNS resolution')
                 resolution_ok = (
                     check_dns_resolution(config.master_host_name,
                                          dns_masters) and
@@ -1215,8 +1217,8 @@ def promote_check(installer):
                     if not ipautil.user_input("Continue?", False):
                         raise ScriptError(rval=0)
         else:
-            root_logger.debug('No IPA DNS servers, '
-                              'skipping forward/reverse resolution check')
+            logger.debug('No IPA DNS servers, '
+                         'skipping forward/reverse resolution check')
 
         entry_attrs = conn.get_ipa_config()
         subject_base = entry_attrs.get('ipacertificatesubjectbase', [None])[0]
@@ -1230,20 +1232,20 @@ def promote_check(installer):
             config.ca_host_name = ca_host
             ca_enabled = True
             if options.dirsrv_cert_files:
-                root_logger.error("Certificates could not be provided when "
-                                  "CA is present on some master.")
+                logger.error("Certificates could not be provided when "
+                             "CA is present on some master.")
                 raise ScriptError(rval=3)
         else:
             if options.setup_ca:
-                root_logger.error("The remote master does not have a CA "
-                                  "installed, can't set up CA")
+                logger.error("The remote master does not have a CA "
+                             "installed, can't set up CA")
                 raise ScriptError(rval=3)
             ca_enabled = False
             if not options.dirsrv_cert_files:
-                root_logger.error("Cannot issue certificates: a CA is not "
-                                  "installed. Use the --http-cert-file, "
-                                  "--dirsrv-cert-file options to provide "
-                                  "custom certificates.")
+                logger.error("Cannot issue certificates: a CA is not "
+                             "installed. Use the --http-cert-file, "
+                             "--dirsrv-cert-file options to provide "
+                             "custom certificates.")
                 raise ScriptError(rval=3)
 
         kra_host = service.find_providing_server(
@@ -1253,8 +1255,8 @@ def promote_check(installer):
             kra_enabled = True
         else:
             if options.setup_kra:
-                root_logger.error("There is no KRA server in the domain, "
-                                  "can't setup a KRA clone")
+                logger.error("There is no KRA server in the domain, "
+                             "can't setup a KRA clone")
                 raise ScriptError(rval=3)
             kra_enabled = False
 
@@ -1285,14 +1287,14 @@ def promote_check(installer):
             adtrust.install_check(False, options, remote_api)
 
     except errors.ACIError:
-        root_logger.debug(traceback.format_exc())
+        logger.debug("%s", traceback.format_exc())
         raise ScriptError("\nInsufficient privileges to promote the server."
                           "\nPossible issues:"
                           "\n- A user has insufficient privileges"
                           "\n- This client has insufficient privileges "
                           "to become an IPA replica")
     except errors.LDAPError:
-        root_logger.debug(traceback.format_exc())
+        logger.debug("%s", traceback.format_exc())
         raise ScriptError("\nUnable to connect to LDAP server %s" %
                           config.master_host_name)
     finally:

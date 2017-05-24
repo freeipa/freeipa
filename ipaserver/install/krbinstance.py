@@ -20,6 +20,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import logging
 import os
 import pwd
 import socket
@@ -37,7 +38,6 @@ from ipapython import kernel_keyring
 from ipalib import api, errors
 from ipalib.constants import ANON_USER
 from ipalib.install import certmonger
-from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipapython.dogtag import KDC_PROFILE
 
@@ -48,6 +48,8 @@ from ipaserver.install import certs
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
+
+logger = logging.getLogger(__name__)
 
 PKINIT_ENABLED = 'pkinitEnabled'
 
@@ -246,7 +248,7 @@ class KrbInstance(service.Service):
         try:
             self.start()
         except Exception:
-            root_logger.critical("krb5kdc service failed to start")
+            logger.critical("krb5kdc service failed to start")
 
     def __setup_sub_dict(self):
         if os.path.exists(paths.COMMON_KRB5_CONF_DIR):
@@ -277,11 +279,11 @@ class KrbInstance(service.Service):
         domain = dns.name.from_text(self.domain)
         fqdn = dns.name.from_text(self.fqdn)
         if not fqdn.is_subdomain(domain):
-            root_logger.debug("IPA FQDN '%s' is not located in default domain '%s'",
-                    fqdn, domain)
+            logger.debug("IPA FQDN '%s' is not located in default domain '%s'",
+                         fqdn, domain)
             server_domain = fqdn.parent().to_unicode(omit_final_dot=True)
-            root_logger.debug("Domain '%s' needs additional mapping in krb5.conf",
-                server_domain)
+            logger.debug("Domain '%s' needs additional mapping in krb5.conf",
+                         server_domain)
             dr_map = " .%(domain)s = %(realm)s\n %(domain)s = %(realm)s\n" \
                         % dict(domain=server_domain, realm=self.realm)
         else:
@@ -290,11 +292,11 @@ class KrbInstance(service.Service):
 
         # Configure KEYRING CCACHE if supported
         if kernel_keyring.is_persistent_keyring_supported():
-            root_logger.debug("Enabling persistent keyring CCACHE")
+            logger.debug("Enabling persistent keyring CCACHE")
             self.sub_dict['OTHER_LIBDEFAULTS'] = \
                 " default_ccache_name = KEYRING:persistent:%{uid}\n"
         else:
-            root_logger.debug("Persistent keyring CCACHE is not enabled")
+            logger.debug("Persistent keyring CCACHE is not enabled")
             self.sub_dict['OTHER_LIBDEFAULTS'] = ''
 
     def __add_krb_container(self):
@@ -444,7 +446,7 @@ class KrbInstance(service.Service):
             # if the certificate is already tracked, ignore the error
             name = e.get_dbus_name()
             if name != 'org.fedorahosted.certmonger.duplicate':
-                root_logger.error("Failed to initiate the request: %s", e)
+                logger.error("Failed to initiate the request: %s", e)
             return
         finally:
             if prev_helper is not None:
@@ -500,8 +502,8 @@ class KrbInstance(service.Service):
             self._install_pkinit_ca_bundle()
             self.pkinit_enable()
         except RuntimeError as e:
-            root_logger.error("PKINIT certificate request failed: %s", e)
-            root_logger.error("Failed to configure PKINIT")
+            logger.error("PKINIT certificate request failed: %s", e)
+            logger.error("Failed to configure PKINIT")
             self.stop_tracking_certs()
             self.issue_selfsigned_pkinit_certs()
 
@@ -542,7 +544,7 @@ class KrbInstance(service.Service):
         try:
             self.restart()
         except Exception:
-            root_logger.critical("krb5kdc service failed to restart")
+            logger.critical("krb5kdc service failed to restart")
             raise
 
     def get_anonymous_principal_name(self):
@@ -590,7 +592,7 @@ class KrbInstance(service.Service):
             try:
                 self.fstore.restore_file(f)
             except ValueError as error:
-                root_logger.debug(error)
+                logger.debug("%s", error)
 
         # disabled by default, by ldap_enable()
         if enabled:

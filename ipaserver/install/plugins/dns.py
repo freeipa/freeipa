@@ -32,7 +32,6 @@ from ipalib import Registry, errors, util
 from ipalib import Updater
 from ipapython.dn import DN
 from ipapython import dnsutil
-from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import sysupgrade
 from ipaserver.install.bindinstance import ensure_dnsserver_container_exists
 from ipaserver.plugins.dns import dns_container_exists
@@ -246,11 +245,13 @@ class update_dns_limits(Updater):
             entry = ldap.get_entry(dns_service_dn, self.limit_attributes)
         except errors.NotFound:
             # this host may not have DNS service set
-            root_logger.debug("DNS: service %s not found, no need to update limits" % dns_service_dn)
+            logger.debug("DNS: service %s not found, no need to update limits",
+                         dns_service_dn)
             return False, []
 
         if all(entry.get(limit.lower(), [None])[0] == self.limit_value for limit in self.limit_attributes):
-            root_logger.debug("DNS: limits for service %s already set" % dns_service_dn)
+            logger.debug("DNS: limits for service %s already set",
+                         dns_service_dn)
             # service is already updated
             return False, []
 
@@ -261,7 +262,8 @@ class update_dns_limits(Updater):
                                       value=self.limit_value))
 
         dnsupdate = {'dn': dns_service_dn, 'updates': limit_updates}
-        root_logger.debug("DNS: limits for service %s will be updated" % dns_service_dn)
+        logger.debug("DNS: limits for service %s will be updated",
+                     dns_service_dn)
 
 
         return False, [dnsupdate]

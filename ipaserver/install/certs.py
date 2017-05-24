@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 import os
 import stat
 import sys
@@ -34,7 +35,6 @@ import six
 from six.moves import configparser
 
 from ipalib.install import certmonger, sysrestore
-from ipapython.ipa_log_manager import root_logger
 from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.certdb import EMPTY_TRUST_FLAGS, IPA_CA_TRUST_FLAGS
@@ -44,6 +44,8 @@ from ipalib import pkcs10, x509, api
 from ipalib.errors import CertificateOperationError
 from ipalib.text import _
 from ipaplatform.paths import paths
+
+logger = logging.getLogger(__name__)
 
 
 def get_cert_nickname(cert):
@@ -355,7 +357,8 @@ class CertDB(object):
                 self.secdir, nickname=nickname, pinfile=password_file,
                 post_command=command)
         except RuntimeError as e:
-            root_logger.error("certmonger failed starting to track certificate: %s" % str(e))
+            logger.error("certmonger failed starting to track certificate: %s",
+                         str(e))
             return
 
         cert = self.get_cert_from_db(nickname)
@@ -371,7 +374,8 @@ class CertDB(object):
         try:
             certmonger.stop_tracking(self.secdir, nickname=nickname)
         except RuntimeError as e:
-            root_logger.error("certmonger failed to stop tracking certificate: %s" % str(e))
+            logger.error("certmonger failed to stop tracking certificate: %s",
+                         str(e))
 
     def create_server_cert(self, nickname, hostname, subject=None):
         """
@@ -446,7 +450,7 @@ class CertDB(object):
             client_keyfile=paths.RA_AGENT_KEY,
             **params)
         http_status, _http_headers, http_body = result
-        root_logger.debug("CA answer: %s", http_body)
+        logger.debug("CA answer: %s", http_body)
 
         if http_status != 200:
             raise CertificateOperationError(
@@ -553,7 +557,8 @@ class CertDB(object):
 
     def trust_root_cert(self, root_nickname, trust_flags):
         if root_nickname is None:
-            root_logger.debug("Unable to identify root certificate to trust. Continuing but things are likely to fail.")
+            logger.debug("Unable to identify root certificate to trust. "
+                         "Continuing but things are likely to fail.")
             return
 
         try:

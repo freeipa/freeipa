@@ -56,7 +56,7 @@ from ipapython import ipautil
 from ipapython import ipaldap
 from ipapython.certdb import get_ca_nickname
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import standard_logging_setup, root_logger
+from ipapython.ipa_log_manager import standard_logging_setup
 from ipaserver.secrets.kem import IPAKEMKeys
 
 from ipaserver.install import certs
@@ -114,7 +114,7 @@ def get_preop_pin(instance_root, instance_name):
     try:
         f = open(filename)
     except IOError as e:
-        root_logger.error("Cannot open configuration file." + str(e))
+        logger.error("Cannot open configuration file.%s", str(e))
         raise e
     data = f.read()
     data = data.split('\n')
@@ -633,7 +633,7 @@ class CAInstance(DogtagInstance):
         try:
             backup_config()
         except Exception as e:
-            root_logger.warning("Failed to backup CS.cfg: %s", e)
+            logger.warning("Failed to backup CS.cfg: %s", e)
 
     def create_certstore_passwdfile(self):
         """
@@ -1045,7 +1045,7 @@ class CAInstance(DogtagInstance):
         try:
             certmonger.stop_tracking(certfile=paths.RA_AGENT_PEM)
         except RuntimeError as e:
-            root_logger.error(
+            logger.error(
                 "certmonger failed to stop tracking certificate: %s", e)
 
         services.knownservices.certmonger.stop()
@@ -1206,12 +1206,12 @@ class CAInstance(DogtagInstance):
         if sysupgrade.get_upgrade_state('dogtag', 'setup_lwca_key_retrieval'):
             return
 
-        root_logger.info('[Set up lightweight CA key retrieval]')
+        logger.info('[Set up lightweight CA key retrieval]')
 
         self.__setup_lightweight_ca_key_retrieval_kerberos()
         self.__setup_lightweight_ca_key_retrieval_custodia()
 
-        root_logger.info('Configuring key retriever')
+        logger.info('Configuring key retriever')
         directives = [
             ('features.authority.keyRetrieverClass',
                 'com.netscape.ca.ExternalProcessKeyRetriever'),
@@ -1227,12 +1227,12 @@ class CAInstance(DogtagInstance):
     def __setup_lightweight_ca_key_retrieval_kerberos(self):
         pent = pwd.getpwnam(self.service_user)
 
-        root_logger.info('Creating principal')
+        logger.info('Creating principal')
         installutils.kadmin_addprinc(self.principal)
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.move_service(self.principal)
 
-        root_logger.info('Retrieving keytab')
+        logger.info('Retrieving keytab')
         installutils.create_keytab(self.keytab, self.principal)
         os.chmod(self.keytab, 0o600)
         os.chown(self.keytab, pent.pw_uid, pent.pw_gid)
@@ -1240,7 +1240,7 @@ class CAInstance(DogtagInstance):
     def __setup_lightweight_ca_key_retrieval_custodia(self):
         pent = pwd.getpwnam(self.service_user)
 
-        root_logger.info('Creating Custodia keys')
+        logger.info('Creating Custodia keys')
         custodia_basedn = DN(
             ('cn', 'custodia'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
         ensure_entry(
@@ -1269,7 +1269,7 @@ class CAInstance(DogtagInstance):
             add_lightweight_ca_tracking_requests(lwcas)
         except errors.NotFound:
             # shouldn't happen, but don't fail if it does
-            root_logger.warning(
+            logger.warning(
                 "Did not find any lightweight CAs; nothing to track")
 
     def __dogtag10_migration(self):
@@ -1289,7 +1289,7 @@ def replica_ca_install_check(config, promote):
     # Check if the master has the necessary schema in its CA instance
     ca_ldap_url = 'ldap://%s:%s' % (config.ca_host_name, config.ca_ds_port)
     objectclass = 'ipaObject'
-    root_logger.debug('Checking if IPA schema is present in %s', ca_ldap_url)
+    logger.debug('Checking if IPA schema is present in %s', ca_ldap_url)
     try:
         with ipaldap.LDAPClient(
                 ca_ldap_url,
@@ -1302,14 +1302,14 @@ def replica_ca_install_check(config, promote):
             result = rschema.get_obj(ldap.schema.models.ObjectClass,
                                      objectclass)
     except Exception:
-        root_logger.critical(
+        logger.critical(
             'CA DS schema check failed. Make sure the PKI service on the '
             'remote master is operational.')
         raise
     if result:
-        root_logger.debug('Check OK')
+        logger.debug('Check OK')
     else:
-        root_logger.critical(
+        logger.critical(
             'The master CA directory server does not have necessary schema. '
             'Please run copy-schema-to-ca.py on all CA masters.\n'
             'If you are certain that this is a false positive, use '
@@ -1604,7 +1604,7 @@ def import_included_profiles():
             # Create the profile, replacing any existing profile of same name
             profile_data = __get_profile_config(profile_id)
             _create_dogtag_profile(profile_id, profile_data, overwrite=True)
-            root_logger.info("Imported profile '%s'", profile_id)
+            logger.info("Imported profile '%s'", profile_id)
 
     api.Backend.ra_certprofile.override_port = None
     conn.disconnect()
@@ -1644,12 +1644,12 @@ def repair_profile_caIPAserviceCert():
     need_repair = all(l in cur_config for l in indicators)
 
     if need_repair:
-        root_logger.debug(
-            "Detected that profile '{}' has been replaced with "
-            "incorrect version; begin repair.".format(profile_id))
+        logger.debug(
+            "Detected that profile '%s' has been replaced with "
+            "incorrect version; begin repair.", profile_id)
         _create_dogtag_profile(
             profile_id, __get_profile_config(profile_id), overwrite=True)
-        root_logger.debug("Repair of profile '{}' complete.".format(profile_id))
+        logger.debug("Repair of profile '%s' complete.", profile_id)
 
     api.Backend.ra_certprofile.override_port = None
 
@@ -1678,7 +1678,7 @@ def migrate_profiles_to_ldap():
             cs_cfg, re.MULTILINE
         )
         if match is None:
-            root_logger.info("No file for profile '%s'; skipping", profile_id)
+            logger.info("No file for profile '%s'; skipping", profile_id)
             continue
         filename = match.group(1)
 
@@ -1687,7 +1687,7 @@ def migrate_profiles_to_ldap():
             cs_cfg, re.MULTILINE
         )
         if match is None:
-            root_logger.info("No class_id for profile '%s'; skipping", profile_id)
+            logger.info("No class_id for profile '%s'; skipping", profile_id)
             continue
         class_id = match.group(1)
 
@@ -1712,29 +1712,30 @@ def _create_dogtag_profile(profile_id, profile_data, overwrite):
         # import the profile
         try:
             profile_api.create_profile(profile_data)
-            root_logger.info("Profile '%s' successfully migrated to LDAP",
-                             profile_id)
+            logger.info("Profile '%s' successfully migrated to LDAP",
+                        profile_id)
         except errors.RemoteRetrieveError as e:
-            root_logger.debug("Error migrating '{}': {}".format(
-                profile_id, e))
+            logger.debug("Error migrating '%s': %s", profile_id, e)
 
             # profile already exists
             if overwrite:
                 try:
                     profile_api.disable_profile(profile_id)
                 except errors.RemoteRetrieveError:
-                    root_logger.debug(
+                    logger.debug(
                         "Failed to disable profile '%s' "
-                        "(it is probably already disabled)")
+                        "(it is probably already disabled)",
+                        profile_id)
                 profile_api.update_profile(profile_id, profile_data)
 
         # enable the profile
         try:
             profile_api.enable_profile(profile_id)
         except errors.RemoteRetrieveError:
-            root_logger.debug(
+            logger.debug(
                 "Failed to enable profile '%s' "
-                "(it is probably already enabled)")
+                "(it is probably already enabled)",
+                profile_id)
 
 
 def ensure_ipa_authority_entry():

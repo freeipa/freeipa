@@ -16,15 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import logging
 import os
 import shutil
 
 from ipalib import api
 from ipapython import ipautil
-from ipapython.ipa_log_manager import root_logger
 from ipaplatform.tasks import tasks
 from ipaplatform import services
 from ipaplatform.paths import paths
+
+logger = logging.getLogger(__name__)
 
 ntp_conf = """# Permit time synchronization with our time source, but do not
 # permit the source to query or modify the service on this system.
@@ -159,13 +161,13 @@ def synconce_ntp(server_fqdn, debug=False):
     if debug:
         args.append('-d')
     try:
-        root_logger.info('Attempting to sync time using ntpd.  '
-                         'Will timeout after %d seconds' % timeout)
+        logger.info('Attempting to sync time using ntpd.  '
+                    'Will timeout after %d seconds', timeout)
         ipautil.run(args)
         return True
     except ipautil.CalledProcessError as e:
         if e.returncode == 124:
-            root_logger.debug('Process did not complete before timeout')
+            logger.debug('Process did not complete before timeout')
         return False
 
 

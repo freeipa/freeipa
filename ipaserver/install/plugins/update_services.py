@@ -17,10 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -39,8 +42,8 @@ class update_service_principalalias(Updater):
         base_dn = DN(self.api.env.container_service, self.api.env.basedn)
         search_filter = ("(&(objectclass=krbprincipal)(objectclass=ipaservice)"
                          "(!(objectclass=ipakrbprincipal)))")
-        root_logger.debug("update_service_principalalias: search for affected "
-                          "services")
+        logger.debug("update_service_principalalias: search for affected "
+                     "services")
 
         while True:
             # run the search in loop to avoid issues when LDAP limits are hit
@@ -50,21 +53,21 @@ class update_service_principalalias(Updater):
                     ['objectclass', 'krbprincipalname'], base_dn,
                     time_limit=0, size_limit=0)
             except errors.NotFound:
-                root_logger.debug("update_service_principalalias: no service "
-                                  "to update found")
+                logger.debug("update_service_principalalias: no service "
+                             "to update found")
                 return False, []
             except errors.ExecutionError as e:
-                root_logger.error("update_service_principalalias: cannot "
-                                  "retrieve list of affected services: %s", e)
+                logger.error("update_service_principalalias: cannot "
+                             "retrieve list of affected services: %s", e)
                 return False, []
             if not entries:
                 # no entry was returned, rather break than continue cycling
-                root_logger.debug("update_service_principalalias: no service "
-                                  "was returned")
+                logger.debug("update_service_principalalias: no service "
+                             "was returned")
                 return False, []
-            root_logger.debug("update_service_principalalias: found %d "
-                              "services to update, truncated: %s",
-                              len(entries), truncated)
+            logger.debug("update_service_principalalias: found %d "
+                         "services to update, truncated: %s",
+                         len(entries), truncated)
 
             error = False
             for entry in entries:
@@ -76,18 +79,18 @@ class update_service_principalalias(Updater):
                 except (errors.EmptyModlist, errors.NotFound):
                     pass
                 except errors.ExecutionError as e:
-                    root_logger.debug("update_service_principalalias: cannot "
-                                      "update service: %s", e)
+                    logger.debug("update_service_principalalias: cannot "
+                                 "update service: %s", e)
                     error = True
 
             if error:
                 # exit loop to avoid infinite cycles
-                root_logger.error("update_service_principalalias: error(s)"
-                                  "detected during service update")
+                logger.error("update_service_principalalias: error(s)"
+                             "detected during service update")
                 return False, []
             elif not truncated:
                 # all affected entries updated, exit the loop
-                root_logger.debug("update_service_principalalias: all affected"
-                                  " services updated")
+                logger.debug("update_service_principalalias: all affected"
+                             " services updated")
                 return False, []
         return False, []

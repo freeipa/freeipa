@@ -9,6 +9,7 @@ CA installer module
 from __future__ import print_function
 
 import enum
+import logging
 import os.path
 
 import six
@@ -31,7 +32,6 @@ from ipaserver.install import installutils, certs
 from ipaserver.install.replication import replica_conn_check
 from ipalib import api, errors, x509
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger
 
 from . import conncheck, dogtag
 
@@ -46,6 +46,8 @@ VALID_SUBJECT_BASE_ATTRS = {
     'incorporationcountry', 'businesscategory',
 }
 VALID_SUBJECT_ATTRS = {'cn'} | VALID_SUBJECT_BASE_ATTRS
+
+logger = logging.getLogger(__name__)
 
 external_cert_file = None
 external_ca_file = None
@@ -132,7 +134,7 @@ def install_check(standalone, replica_config, options):
                 principal=principal, ca_cert_file=options.ca_cert_file)
 
         if options.skip_schema_check:
-            root_logger.info("Skipping CA DS schema check")
+            logger.info("Skipping CA DS schema check")
         else:
             cainstance.replica_ca_install_check(replica_config, options.promote)
 

@@ -22,13 +22,16 @@ Password migration script
 
 import cgi
 import errno
+import logging
+import os.path
 from wsgiref.util import request_uri
 
 from ipaplatform.paths import paths
-from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipapython import ipaldap
 from ipalib import errors, create_api
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 
 def wsgi_redirect(start_response, loc):
@@ -45,19 +48,19 @@ def get_ui_url(environ):
 
 def bind(ldap_uri, base_dn, username, password):
     if not base_dn:
-        root_logger.error('migration unable to get base dn')
+        logger.error('migration unable to get base dn')
         raise IOError(errno.EIO, 'Cannot get Base DN')
     bind_dn = DN(('uid', username), ('cn', 'users'), ('cn', 'accounts'), base_dn)
     try:
         conn = ipaldap.LDAPClient(ldap_uri)
         conn.simple_bind(bind_dn, password)
     except (errors.ACIError, errors.DatabaseError, errors.NotFound) as e:
-        root_logger.error(
-            'migration invalid credentials for %s: %s' % (bind_dn, e))
+        logger.error(
+            'migration invalid credentials for %s: %s', bind_dn, e)
         raise IOError(
             errno.EPERM, 'Invalid LDAP credentials for user %s' % username)
     except Exception as e:
-        root_logger.error('migration bind failed: %s' % e)
+        logger.error('migration bind failed: %s', e)
         raise IOError(errno.EIO, 'Bind error')
     finally:
         conn.unbind()

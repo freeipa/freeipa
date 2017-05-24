@@ -415,7 +415,6 @@ if __name__ == '__main__':
     # print information we think are useful to stdout
     # other garbage goes via logger to stderr
     ipa_log_manager.standard_logging_setup(debug=True)
-    log = ipa_log_manager.root_logger
 
     # IPA framework initialization
     # no logging to file
@@ -425,10 +424,10 @@ if __name__ == '__main__':
     # LDAP initialization
     dns_dn = DN(ipalib.api.env.container_dns, ipalib.api.env.basedn)
     ldap = ipaldap.LDAPClient(ipalib.api.env.ldap_uri)
-    log.debug('Connecting to LDAP')
+    logger.debug('Connecting to LDAP')
     # GSSAPI will be used, used has to be kinited already
     ldap.gssapi_bind()
-    log.debug('Connected')
+    logger.debug('Connected')
 
     ldapkeydb = LdapKeyDB(ldap, DN(('cn', 'keys'),
                                    ('cn', 'sec'),

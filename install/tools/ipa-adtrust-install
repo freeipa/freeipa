@@ -23,6 +23,7 @@
 
 from __future__ import print_function
 
+import logging
 import os
 import sys
 
@@ -42,10 +43,12 @@ from ipapython import ipautil
 from ipalib import api, errors, krb_utils
 from ipapython.config import IPAOptionParser
 from ipaplatform.paths import paths
-from ipapython.ipa_log_manager import root_logger, standard_logging_setup
+from ipapython.ipa_log_manager import standard_logging_setup
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 log_file_name = paths.IPASERVER_INSTALL_LOG
 
@@ -125,11 +128,10 @@ def main():
     print("\nThe log file for this installation can be found in %s"
           % log_file_name)
 
-    root_logger.debug('%s was invoked with options: %s'
-                      % (sys.argv[0], safe_options))
-    root_logger.debug(
+    logger.debug('%s was invoked with options: %s', sys.argv[0], safe_options)
+    logger.debug(
         "missing options might be asked for interactively later\n")
-    root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
+    logger.debug('IPA version %s', version.VENDOR_VERSION)
 
     check_server_configuration()
 

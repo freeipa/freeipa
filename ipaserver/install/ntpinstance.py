@@ -18,11 +18,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 from ipaserver.install import service
 from ipaserver.install import sysupgrade
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
-from ipapython.ipa_log_manager import root_logger
+
+logger = logging.getLogger(__name__)
 
 NTPD_OPTS_VAR = constants.NTPD_OPTS_VAR
 NTPD_OPTS_QUOTE = constants.NTPD_OPTS_QUOTE
@@ -160,7 +163,7 @@ class NTPInstance(service.Service):
         try:
             self.fstore.restore_file(paths.NTP_CONF)
         except ValueError as error:
-            root_logger.debug(error)
+            logger.debug("%s", error)
 
         if enabled:
             self.enable()

@@ -22,17 +22,19 @@
 
 from __future__ import print_function
 
+import logging
 import sys
 import os
 
 from ipaplatform.paths import paths
-from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import (replication, installutils, bindinstance,
     cainstance)
 from ipalib import api, errors
 from ipalib.util import has_managed_topology
 from ipapython import ipautil, ipaldap, version
 from ipapython.dn import DN
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 # dict of command name and tuples of min/max num of args needed
 commands = {
@@ -354,10 +356,12 @@ def re_initialize(realm, options):
         entry = repl.conn.get_entries(
             DN(('cn', 'config')), repl.conn.SCOPE_SUBTREE, filter)
     except errors.NotFound:
-        root_logger.error("Unable to find %s -> %s replication agreement" % (options.fromhost, thishost))
+        logger.error("Unable to find %s -> %s replication agreement",
+                     options.fromhost, thishost)
         sys.exit(1)
     if len(entry) > 1:
-        root_logger.error("Found multiple agreements for %s. Only initializing the first one returned: %s" % (thishost, entry[0].dn))
+        logger.error("Found multiple agreements for %s. Only initializing the "
+                     "first one returned: %s", thishost, entry[0].dn)
 
     repl.hostnames = thisrepl.hostnames = [thishost, options.fromhost]
     thisrepl.enable_agreement(options.fromhost)

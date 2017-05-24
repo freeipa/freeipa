@@ -209,4 +209,4 @@ if __name__ == '__main__':
     ipa_log_manager.standard_logging_setup(debug=True)
     ods = ODSMgr()
     reader = ods.get_ods_zonelist()
-    ipa_log_manager.root_logger.info('ODS zones: %s', reader.mapping)
+    logger.info('ODS zones: %s', reader.mapping)

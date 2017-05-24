@@ -18,7 +18,7 @@ import ipalib
 from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipalib.install.kinit import kinit_keytab
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger, standard_logging_setup
+from ipapython.ipa_log_manager import standard_logging_setup
 from ipapython import ipaldap
 from ipaplatform.paths import paths
 from ipaserver.dnssec.abshsm import (sync_pkcs11_metadata,
@@ -136,28 +136,27 @@ def ldap2replica_zone_keys_sync(ldapkeydb, localhsm):
 standard_logging_setup(verbose=True, debug=True)
 ipalib.api.bootstrap(context='dns', confdir=paths.ETC_IPA, in_server=True)
 ipalib.api.finalize()
-log = root_logger
 
 # Kerberos initialization
 PRINCIPAL = str('%s/%s' % (DAEMONNAME, ipalib.api.env.host))
-log.debug('Kerberos principal: %s', PRINCIPAL)
+logger.debug('Kerberos principal: %s', PRINCIPAL)
 ccache_filename = os.path.join(WORKDIR, 'ipa-dnskeysync-replica.ccache')
 
 try:
     kinit_keytab(PRINCIPAL, paths.IPA_DNSKEYSYNCD_KEYTAB, ccache_filename,
                  attempts=5)
 except GSSError as e:
-    log.critical('Kerberos authentication failed: %s', e)
+    logger.critical('Kerberos authentication failed: %s', e)
     sys.exit(1)
 
 os.environ['KRB5CCNAME'] = ccache_filename
-log.debug('Got TGT')
+logger.debug('Got TGT')
 
 # LDAP initialization
 ldap = ipaldap.LDAPClient(ipalib.api.env.ldap_uri)
-log.debug('Connecting to LDAP')
+logger.debug('Connecting to LDAP')
 ldap.gssapi_bind()
-log.debug('Connected')
+logger.debug('Connected')
 
 
 ### DNSSEC master: key synchronization

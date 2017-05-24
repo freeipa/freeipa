@@ -25,12 +25,13 @@ If the plugin is active, sets up IPA logging to also log to Beaker.
 
 import logging
 
-from ipapython.ipa_log_manager import Formatter, root_logger
+from ipapython.ipa_log_manager import Formatter
 
 
 def pytest_configure(config):
     plugin = config.pluginmanager.getplugin('BeakerLibPlugin')
     if plugin:
+        root_logger = logging.getLogger()
         root_logger.setLevel(logging.DEBUG)
 
         handler = BeakerLibLogHandler(plugin.run_beakerlib_command)

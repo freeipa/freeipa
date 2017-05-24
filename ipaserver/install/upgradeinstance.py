@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 import ldif
 import shutil
 import random
@@ -24,12 +26,13 @@ import traceback
 from ipalib import api
 from ipaplatform.paths import paths
 from ipaplatform import services
-from ipapython.ipa_log_manager import root_logger
 
 from ipaserver.install import installutils
 from ipaserver.install import schemaupdate
 from ipaserver.install import ldapupdate
 from ipaserver.install import service
+
+logger = logging.getLogger(__name__)
 
 DSE = 'dse.ldif'
 
@@ -219,10 +222,10 @@ class IPAUpgrade(service.Service):
                 self.files = ld.get_all_files(ldapupdate.UPDATES_DIR)
             self.modified = (ld.update(self.files) or self.modified)
         except ldapupdate.BadSyntax as e:
-            root_logger.error('Bad syntax in upgrade %s', e)
+            logger.error('Bad syntax in upgrade %s', e)
             raise
         except Exception as e:
             # Bad things happened, return gracefully
-            root_logger.error('Upgrade failed with %s', e)
-            root_logger.debug('%s', traceback.format_exc())
+            logger.error('Upgrade failed with %s', e)
+            logger.debug('%s', traceback.format_exc())
             raise RuntimeError(e)

@@ -2,14 +2,16 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+import logging
 import os
 import time
 
 import gssapi
 
 from ipaplatform.paths import paths
-from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import run
+
+logger = logging.getLogger(__name__)
 
 # Cannot contact any KDC for requested realm
 KRB5_KDC_UNREACH = 2529639068
@@ -27,9 +29,9 @@ def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
     """
     errors_to_retry = {KRB5KDC_ERR_SVC_UNAVAILABLE,
                        KRB5_KDC_UNREACH}
-    root_logger.debug("Initializing principal %s using keytab %s"
-                      % (principal, keytab))
-    root_logger.debug("using ccache %s" % ccache_name)
+    logger.debug("Initializing principal %s using keytab %s",
+                 principal, keytab)
+    logger.debug("using ccache %s", ccache_name)
     for attempt in range(1, attempts + 1):
         old_config = os.environ.get('KRB5_CONFIG')
         if config is not None:
@@ -41,19 +43,17 @@ def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
             store = {'ccache': ccache_name,
                      'client_keytab': keytab}
             cred = gssapi.Credentials(name=name, store=store, usage='initiate')
-            root_logger.debug("Attempt %d/%d: success"
-                              % (attempt, attempts))
+            logger.debug("Attempt %d/%d: success", attempt, attempts)
             return cred
         except gssapi.exceptions.GSSError as e:
             if e.min_code not in errors_to_retry:  # pylint: disable=no-member
                 raise
-            root_logger.debug("Attempt %d/%d: failed: %s"
-                              % (attempt, attempts, e))
+            logger.debug("Attempt %d/%d: failed: %s", attempt, attempts, e)
             if attempt == attempts:
-                root_logger.debug("Maximum number of attempts (%d) reached"
-                                  % attempts)
+                logger.debug("Maximum number of attempts (%d) reached",
+                             attempts)
                 raise
-            root_logger.debug("Waiting 5 seconds before next retry")
+            logger.debug("Waiting 5 seconds before next retry")
             time.sleep(5)
         finally:
             if old_config is not None:
@@ -69,22 +69,22 @@ def kinit_password(principal, password, ccache_name, config=None,
     web-based authentication, use armor_ccache_path to specify http service
     ccache.
     """
-    root_logger.debug("Initializing principal %s using password" % principal)
+    logger.debug("Initializing principal %s using password", principal)
     args = [paths.KINIT, principal, '-c', ccache_name]
     if armor_ccache_name is not None:
-        root_logger.debug("Using armor ccache %s for FAST webauth"
-                          % armor_ccache_name)
+        logger.debug("Using armor ccache %s for FAST webauth",
+                     armor_ccache_name)
         args.extend(['-T', armor_ccache_name])
 
     if lifetime:
         args.extend(['-l', lifetime])
 
     if canonicalize:
-        root_logger.debug("Requesting principal canonicalization")
+        logger.debug("Requesting principal canonicalization")
         args.append('-C')
 
     if enterprise:
-        root_logger.debug("Using enterprise principal")
+        logger.debug("Using enterprise principal")
         args.append('-E')
 
     env = {'LC_ALL': 'C'}
@@ -111,7 +111,7 @@ def kinit_armor(ccache_name, pkinit_anchors=None):
 
     :raises: CalledProcessError if the anonymous PKINIT fails
     """
-    root_logger.debug("Initializing anonymous ccache")
+    logger.debug("Initializing anonymous ccache")
 
     env = {'LC_ALL': 'C'}
     args = [paths.KINIT, '-n', '-c', ccache_name]

@@ -41,7 +41,7 @@ from cffi import FFI
 from pyasn1.error import PyAsn1Error
 from six.moves import urllib
 
-from ipapython.ipa_log_manager import root_logger, log_mgr
+from ipapython.ipa_log_manager import log_mgr
 from ipapython import ipautil
 import ipapython.errors
 
@@ -229,11 +229,11 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         try:
             ipautil.run([paths.UPDATE_CA_TRUST])
         except CalledProcessError as e:
-            root_logger.error(
+            log.error(
                 "Could not update systemwide CA trust database: %s", e)
             return False
         else:
-            root_logger.info("Systemwide CA database updated.")
+            log.info("Systemwide CA database updated.")
             return True
 
     def insert_ca_certs_into_systemwide_ca_store(self, ca_certs):
@@ -248,7 +248,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             try:
                 os.remove(new_cacert_path)
             except OSError as e:
-                root_logger.error(
+                log.error(
                     "Could not remove %s: %s", new_cacert_path, e)
                 return False
 
@@ -257,7 +257,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         try:
             f = open(new_cacert_path, 'w')
         except IOError as e:
-            root_logger.info("Failed to open %s: %s" % (new_cacert_path, e))
+            log.info("Failed to open %s: %s", new_cacert_path, e)
             return False
 
         f.write("# This file was created by IPA. Do not edit.\n"
@@ -271,7 +271,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 serial_number = x509.get_der_serial_number(cert, x509.DER)
                 public_key_info = x509.get_der_public_key_info(cert, x509.DER)
             except (PyAsn1Error, ValueError, CertificateError) as e:
-                root_logger.warning(
+                log.warning(
                     "Failed to decode certificate \"%s\": %s", nickname, e)
                 continue
 
@@ -311,7 +311,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 try:
                     ext_key_usage = x509.encode_ext_key_usage(ext_key_usage)
                 except PyAsn1Error as e:
-                    root_logger.warning(
+                    log.warning(
                         "Failed to encode extended key usage for \"%s\": %s",
                         nickname, e)
                     continue
@@ -348,7 +348,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             try:
                 os.remove(new_cacert_path)
             except OSError as e:
-                root_logger.error(
+                log.error(
                     "Could not remove %s: %s", new_cacert_path, e)
                 result = False
             else:
@@ -376,8 +376,8 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             try:
                 self.set_hostname(old_hostname)
             except ipautil.CalledProcessError as e:
-                root_logger.debug(traceback.format_exc())
-                root_logger.error(
+                log.debug("%s", traceback.format_exc())
+                log.error(
                     "Failed to restore this machine hostname to %s (%s).",
                     old_hostname, e
                 )
@@ -481,12 +481,12 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             os.unlink(paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF)
         except OSError as e:
             if e.errno == errno.ENOENT:
-                root_logger.debug(
+                log.debug(
                     'Trying to remove %s but file does not exist',
                     paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF
                 )
             else:
-                root_logger.error(
+                log.error(
                     'Error removing %s: %s',
                     paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF, e
                 )

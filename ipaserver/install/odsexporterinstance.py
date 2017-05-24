@@ -2,6 +2,7 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
+import logging
 import os
 import pwd
 import grp
@@ -10,13 +11,14 @@ import ldap
 
 from ipaserver.install import service
 from ipaserver.install import installutils
-from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipapython import ipautil
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform import services
 from ipalib import errors, api
+
+logger = logging.getLogger(__name__)
 
 
 class ODSExporterInstance(service.Service):
@@ -72,7 +74,7 @@ class ODSExporterInstance(service.Service):
             self.ldap_enable('DNSKeyExporter', self.fqdn, None,
                              self.suffix)
         except errors.DuplicateEntry:
-            root_logger.error("DNSKeyExporter service already exists")
+            logger.error("DNSKeyExporter service already exists")
 
     def __setup_key_exporter(self):
         installutils.set_directive(paths.SYSCONFIG_IPA_ODS_EXPORTER,
@@ -116,8 +118,8 @@ class ODSExporterInstance(service.Service):
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
         except Exception as e:
-            root_logger.critical("Could not modify principal's %s entry: %s"
-                                 % (dns_exporter_principal_dn, str(e)))
+            logger.critical("Could not modify principal's %s entry: %s",
+                            dns_exporter_principal_dn, str(e))
             raise
 
         # limit-free connection
@@ -129,8 +131,8 @@ class ODSExporterInstance(service.Service):
         try:
             api.Backend.ldap2.modify_s(dns_exporter_principal_dn, mod)
         except Exception as e:
-            root_logger.critical("Could not set principal's %s LDAP limits: %s"
-                                 % (dns_exporter_principal_dn, str(e)))
+            logger.critical("Could not set principal's %s LDAP limits: %s",
+                            dns_exporter_principal_dn, str(e))
             raise
 
     def __disable_signerd(self):

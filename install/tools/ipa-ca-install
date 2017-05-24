@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 import sys
 import os
 import shutil
@@ -35,8 +36,10 @@ from ipapython import version
 from ipalib import api
 from ipalib.constants import DOMAIN_LEVEL_0
 from ipapython.config import IPAOptionParser
-from ipapython.ipa_log_manager import root_logger, standard_logging_setup
+from ipapython.ipa_log_manager import standard_logging_setup
 from ipaplatform.paths import paths
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 log_file_name = paths.IPAREPLICA_CA_INSTALL_LOG
 REPLICA_INFO_TOP_DIR = None
@@ -282,9 +285,9 @@ def main():
         sys.exit("CA is already installed on this host.")
 
     standard_logging_setup(log_file_name, debug=options.debug)
-    root_logger.debug("%s was invoked with options: %s,%s",
-                      sys.argv[0], safe_options, filename)
-    root_logger.debug("IPA version %s", version.VENDOR_VERSION)
+    logger.debug("%s was invoked with options: %s,%s",
+                 sys.argv[0], safe_options, filename)
+    logger.debug("IPA version %s", version.VENDOR_VERSION)
 
     # override ra_plugin setting read from default.conf so that we have
     # functional dogtag backend plugins during CA install

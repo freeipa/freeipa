@@ -2,10 +2,13 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
+import logging
+
 from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger
+
+logger = logging.getLogger(__name__)
 
 register = Registry()
 
@@ -30,39 +33,39 @@ class update_referint(Updater):
 
     def execute(self, **options):
 
-        root_logger.debug("Upgrading referential integrity plugin configuration")
+        logger.debug("Upgrading referential integrity plugin configuration")
         ldap = self.api.Backend.ldap2
         try:
             entry = ldap.get_entry(self.referint_dn)
         except errors.NotFound:
-            root_logger.error("Referential integrity configuration not found")
+            logger.error("Referential integrity configuration not found")
             return False, []
 
         referint_membership_attrs = []
 
-        root_logger.debug("Initial value: %s", repr(entry))
+        logger.debug("Initial value: %s", repr(entry))
 
         # nsslapd-pluginArg0    -> referint-update-delay
         update_delay = entry.get('nsslapd-pluginArg0')
         if update_delay:
-            root_logger.debug("add: referint-update-delay: %s", update_delay)
+            logger.debug("add: referint-update-delay: %s", update_delay)
             entry['referint-update-delay'] = update_delay
             entry['nsslapd-pluginArg0'] = None
         else:
-            root_logger.debug("Plugin already uses new style, skipping")
+            logger.debug("Plugin already uses new style, skipping")
             return False, []
 
         # nsslapd-pluginArg1    -> referint-logfile
         logfile = entry.get('nsslapd-pluginArg1')
         if logfile:
-            root_logger.debug("add: referint-logfile: %s", logfile)
+            logger.debug("add: referint-logfile: %s", logfile)
             entry['referint-logfile'] = logfile
             entry['nsslapd-pluginArg1'] = None
 
         # nsslapd-pluginArg2    -> referint-logchanges
         logchanges = entry.get('nsslapd-pluginArg2')
         if logchanges:
-            root_logger.debug("add: referint-logchanges: %s", logchanges)
+            logger.debug("add: referint-logchanges: %s", logchanges)
             entry['referint-logchanges'] = logchanges
             entry['nsslapd-pluginArg2'] = None
 
@@ -79,11 +82,11 @@ class update_referint(Updater):
             # mixing old and new style
             entry['referint-membership-attr'] = referint_membership_attrs
 
-        root_logger.debug("Final value: %s", repr(entry))
+        logger.debug("Final value: %s", repr(entry))
         try:
             ldap.update_entry(entry)
         except errors.EmptyModlist:
-            root_logger.debug("No modifications required")
+            logger.debug("No modifications required")
             return False, []
 
         return False, []
