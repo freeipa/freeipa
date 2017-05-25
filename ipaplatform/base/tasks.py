@@ -22,13 +22,14 @@
 This module contains default platform-specific implementations of system tasks.
 '''
 
+import logging
+
 from pkg_resources import parse_version
 
 from ipaplatform.paths import paths
-from ipapython.ipa_log_manager import log_mgr
 from ipapython import ipautil
 
-log = log_mgr.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class BaseTaskNamespace(object):
@@ -219,10 +220,10 @@ class BaseTaskNamespace(object):
         return False
 
     def add_user_to_group(self, user, group):
-        log.debug('Adding user %s to group %s', user, group)
+        logger.debug('Adding user %s to group %s', user, group)
         args = [paths.USERMOD, '-a', '-G', group, user]
         try:
             ipautil.run(args)
-            log.debug('Done adding user to group')
+            logger.debug('Done adding user to group')
         except ipautil.CalledProcessError as e:
-            log.debug('Failed to add user to group: %s', e)
+            logger.debug('Failed to add user to group: %s', e)

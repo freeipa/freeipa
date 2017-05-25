@@ -21,6 +21,7 @@
 
 from __future__ import print_function
 
+import logging
 import os
 import tempfile
 import shutil
@@ -30,13 +31,12 @@ import pytest
 from pytest_multihost import make_multihost_fixture
 
 from ipapython import ipautil
-from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_util import yield_fixture
 from .config import Config
 from .env_config import get_global_config
 from . import tasks
 
-log = log_mgr.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def pytest_addoption(parser):
@@ -86,7 +86,7 @@ def collect_systemd_journal(node, hosts, test_config):
         return
 
     for host in hosts:
-        log.info("Collecting journal from: %s", host.hostname)
+        logger.info("Collecting journal from: %s", host.hostname)
 
         topdirname = os.path.join(logfile_dir, name, host.hostname)
         if not os.path.exists(topdirname):
@@ -97,7 +97,7 @@ def collect_systemd_journal(node, hosts, test_config):
             ['journalctl', '--since', host.config.log_journal_since],
             log_stdout=False, raiseonerr=False)
         if cmd.returncode:
-            log.error('An error occurred while collecting journal')
+            logger.error('An error occurred while collecting journal')
             continue
 
         # Write journal to file
@@ -130,14 +130,14 @@ def collect_logs(name, logs_dict, logfile_dir=None, beakerlib_plugin=None):
         topdirname = os.path.join(logfile_dir, name)
 
         for host, logs in logs_dict.items():
-            log.info('Collecting logs from: %s', host.hostname)
+            logger.info('Collecting logs from: %s', host.hostname)
 
             # Tar up the logs on the remote server
             cmd = host.run_command(
                 ['tar', '-c',  '--ignore-failed-read', '-J', '-v'] + logs,
                 log_stdout=False, raiseonerr=False)
             if cmd.returncode:
-                log.warning('Could not collect all requested logs')
+                logger.warning('Could not collect all requested logs')
 
             # Unpack on the local side
             dirname = os.path.join(topdirname, host.hostname)
@@ -162,7 +162,7 @@ def collect_logs(name, logs_dict, logfile_dir=None, beakerlib_plugin=None):
                     for filename in filenames:
                         fullname = os.path.relpath(
                             os.path.join(dirpath, filename), topdirname)
-                        log.debug('Submitting file: %s', fullname)
+                        logger.debug('Submitting file: %s', fullname)
                         beakerlib_plugin.run_beakerlib_command(
                             ['rlFileSubmit', fullname])
             finally:
@@ -235,14 +235,14 @@ def mh(request, class_integration_logs):
     cls.logs_to_collect = class_integration_logs
 
     def collect_log(host, filename):
-        log.info('Adding %s:%s to list of logs to collect' %
-                 (host.external_hostname, filename))
+        logger.info('Adding %s:%s to list of logs to collect',
+                    host.external_hostname, filename)
         class_integration_logs.setdefault(host, []).append(filename)
 
     print(mh.config)
     for host in mh.config.get_all_hosts():
         host.add_log_collector(collect_log)
-        log.info('Preparing host %s', host.hostname)
+        logger.info('Preparing host %s', host.hostname)
         tasks.prepare_host(host)
 
     setup_class(cls, mh)

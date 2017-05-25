@@ -94,6 +94,11 @@ class _DeprecatedLogger(object):
 
 def get_logger(who, bind_logger_names=False):
     if isinstance(who, six.string_types):
+        warnings.warn(
+            "{}.log_mgr.get_logger is deprecated, use "
+            "logging.getLogger".format(__name__),
+            DeprecationWarning)
+
         logger_name = who
     else:
         caller_globals = sys._getframe(1).f_globals

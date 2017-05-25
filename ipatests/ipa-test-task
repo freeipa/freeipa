@@ -21,11 +21,12 @@
 
 from __future__ import print_function
 
+import logging
 import sys
 import os
 import argparse
 
-from ipapython.ipa_log_manager import log_mgr, standard_logging_setup
+from ipapython.ipa_log_manager import standard_logging_setup
 from ipatests.pytest_plugins.integration import config
 from ipatests.pytest_plugins.integration import tasks
 from ipatests.pytest_plugins.integration.host import Host
@@ -36,8 +37,7 @@ try:
 except ImportError:
     BeakerLibProcess = None
 
-
-log = log_mgr.get_logger(__name__)
+logger = logging.getLogger(os.path.basename(__file__))
 
 
 class TaskRunner(object):
@@ -333,36 +333,37 @@ class TaskRunner(object):
 
     def install_master(self, args):
         master = self.get_host(args.host, default=args.domain.master)
-        log.info('Installing master %s', master.hostname)
+        logger.info('Installing master %s', master.hostname)
         tasks.install_master(master)
 
     def install_replica(self, args):
         replica = self.get_host(args.replica)
         master = self.get_host(args.master, default=args.domain.master)
-        log.info('Installing replica %s from %s',
-                replica.hostname, master.hostname)
+        logger.info('Installing replica %s from %s',
+                    replica.hostname, master.hostname)
         tasks.install_replica(master, replica)
 
     def install_client(self, args):
         client = self.get_host(args.client)
         master = self.get_host(args.master, default=args.domain.master)
-        log.info('Installing client %s on %s', client.hostname, master.hostname)
+        logger.info('Installing client %s on %s',
+                    client.hostname, master.hostname)
         tasks.install_client(master, client)
 
     def uninstall_master(self, args):
         default_hosts = [args.domain.master] + args.domain.replicas
         hosts = self.get_hosts(args.host, default=default_hosts)
-        log.info('Uninstalling masters: %s', [h.hostname for h in hosts])
+        logger.info('Uninstalling masters: %s', [h.hostname for h in hosts])
         for master in hosts:
-            log.info('Uninstalling %s', master.hostname)
+            logger.info('Uninstalling %s', master.hostname)
             tasks.uninstall_master(master)
 
     def uninstall_client(self, args):
         default_hosts = args.domain.clients
         hosts = self.get_hosts(args.host, default=default_hosts)
-        log.info('Uninstalling clients: %s', [h.hostname for h in hosts])
+        logger.info('Uninstalling clients: %s', [h.hostname for h in hosts])
         for client in hosts:
-            log.info('Uninstalling %s', client.hostname)
+            logger.info('Uninstalling %s', client.hostname)
             tasks.uninstall_client(client)
 
     def uninstall_all(self, args):
@@ -372,9 +373,9 @@ class TaskRunner(object):
     def cleanup(self, args):
         default_hosts = args.domain.hosts
         hosts = self.get_hosts(args.host, default=default_hosts)
-        log.info('Cleaning up hosts: %s', [h.hostname for h in hosts])
+        logger.info('Cleaning up hosts: %s', [h.hostname for h in hosts])
         for host in hosts:
-            log.info('Cleaning up %s', host.hostname)
+            logger.info('Cleaning up %s', host.hostname)
             tasks.unapply_fixes(host)
 
     def connect_replica(self, args):
@@ -402,7 +403,7 @@ class TaskRunner(object):
 
     def install_adtrust(self, args):
         master = self.get_host(args.host, default=args.domain.master)
-        log.info('Configuring AD trust support on %s', master.hostname)
+        logger.info('Configuring AD trust support on %s', master.hostname)
         tasks.install_adtrust(master)
 
     def configure_dns_for_trust(self, args):

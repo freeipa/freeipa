@@ -19,18 +19,18 @@
 
 from __future__ import print_function
 
+import logging
 import os
 import re
 import contextlib
 
-from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
 from ipatests.test_integration.test_dnssec import wait_until_record_is_signed
 from ipatests.util import assert_deepequal
 
-log = log_mgr.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def assert_entries_equal(a, b):
@@ -109,13 +109,13 @@ def restore_checker(host):
 
     results = []
     for check, assert_func in CHECKS:
-        log.info('Storing result for %s', check)
+        logger.info('Storing result for %s', check)
         results.append(check(host))
 
     yield
 
     for (check, assert_func), expected in zip(CHECKS, results):
-        log.info('Checking result for %s', check)
+        logger.info('Checking result for %s', check)
         got = check(host)
         assert_func(expected, got)
 
@@ -130,7 +130,7 @@ def backup(host):
                   'INFO: Backed up to ')
         if line.startswith(prefix):
             backup_path = line[len(prefix):].strip()
-            log.info('Backup path for %s is %s', host, backup_path)
+            logger.info('Backup path for %s is %s', host, backup_path)
             return backup_path
     else:
         raise AssertionError('Backup directory not found in output')
@@ -158,7 +158,7 @@ class TestBackupAndRestore(IntegrationTest):
         with restore_checker(self.master):
             backup_path = backup(self.master)
 
-            log.info('Backup path for %s is %s', self.master, backup_path)
+            logger.info('Backup path for %s is %s', self.master, backup_path)
 
             self.master.run_command(['ipa-server-install',
                                      '--uninstall',
@@ -181,7 +181,7 @@ class TestBackupAndRestore(IntegrationTest):
         with restore_checker(self.master):
             backup_path = backup(self.master)
 
-            log.info('Backup path for %s is %s', self.master, backup_path)
+            logger.info('Backup path for %s is %s', self.master, backup_path)
 
             self.master.run_command(['ipa-server-install',
                                      '--uninstall',
