@@ -24,7 +24,7 @@ import tempfile
 
 import six
 # pylint: disable=import-error
-from six.moves.configparser import ConfigParser
+from six.moves.configparser import RawConfigParser
 # pylint: enable=import-error
 from cryptography.hazmat.primitives import serialization
 
@@ -153,7 +153,7 @@ class KRAInstance(DogtagInstance):
         tmp_agent_pwd = ipautil.ipa_generate_password()
 
         # Create KRA configuration
-        config = ConfigParser()
+        config = RawConfigParser()
         config.optionxform = str
         config.add_section("KRA")
 
