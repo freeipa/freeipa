@@ -717,6 +717,12 @@ class NSSDatabase(object):
             raise ValueError("not a CA certificate")
 
         try:
+            cert.extensions.get_extension_for_class(
+                    cryptography.x509.SubjectKeyIdentifier)
+        except cryptography.x509.ExtensionNotFound:
+            raise ValueError("missing subject key identifier extension")
+
+        try:
             self.run_certutil(['-V', '-n', nickname, '-u', 'L'],
                               capture_output=True)
         except ipautil.CalledProcessError as e:
