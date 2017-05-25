@@ -36,7 +36,7 @@ import tempfile
 
 import six
 # pylint: disable=import-error
-from six.moves.configparser import ConfigParser, RawConfigParser
+from six.moves.configparser import RawConfigParser
 # pylint: enable=import-error
 from cryptography.hazmat.primitives import serialization
 
@@ -465,7 +465,7 @@ class CAInstance(DogtagInstance):
         self.tmp_agent_pwd = ipautil.ipa_generate_password()
 
         # Create CA configuration
-        config = ConfigParser()
+        config = RawConfigParser()
         config.optionxform = str
         config.add_section("CA")
 
