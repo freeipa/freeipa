@@ -17,13 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 import pprint
 
 import ldap.schema
 
 import ipapython.version
 from ipalib import api
-from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN
 from ipaserver.install.ldapupdate import connect
 from ipaserver.install import installutils
@@ -38,7 +38,7 @@ SCHEMA_ELEMENT_CLASSES = (
 
 ORIGIN = 'IPA v%s' % ipapython.version.VERSION
 
-log = log_mgr.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def _get_oid_dependency_order(schema, cls):
@@ -124,7 +124,7 @@ def update_schema(schema_files, ldapi=False, dm_password=None,):
                           for attr in schema_entry[attrname]}
 
     for filename in schema_files:
-        log.debug('Processing schema LDIF file %s', filename)
+        logger.debug('Processing schema LDIF file %s', filename)
         url = "file://{}".format(filename)
         _dn, new_schema = ldap.schema.subentry.urlfetch(url)
 
@@ -147,10 +147,10 @@ def update_schema(schema_files, ldapi=False, dm_password=None,):
 
                         if old_obj:
                             old_attr = old_entries_by_oid.get(oid)
-                            log.debug('Replace: %s', old_attr)
-                            log.debug('   with: %s', value)
+                            logger.debug('Replace: %s', old_attr)
+                            logger.debug('   with: %s', value)
                         else:
-                            log.debug('Add: %s', value)
+                            logger.debug('Add: %s', value)
 
                         new_elements.append(value.encode('utf-8'))
 
@@ -161,11 +161,12 @@ def update_schema(schema_files, ldapi=False, dm_password=None,):
                 # so updates must be executed with groups of independent OIDs
                 if new_elements:
                     modlist = schema_entry.generate_modlist()
-                    log.debug("Schema modlist:\n%s", pprint.pformat(modlist))
+                    logger.debug("Schema modlist:\n%s",
+                                 pprint.pformat(modlist))
                     conn.update_entry(schema_entry)
 
     if not modified:
-        log.debug('Not updating schema')
+        logger.debug('Not updating schema')
 
     return modified
 

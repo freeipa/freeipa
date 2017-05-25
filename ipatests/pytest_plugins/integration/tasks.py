@@ -19,6 +19,7 @@
 
 """Common tasks for FreeIPA integration tests"""
 
+import logging
 import os
 import textwrap
 import re
@@ -35,7 +36,6 @@ from six import StringIO
 from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import log_mgr
 from ipalib import errors
 from ipalib.util import get_reverse_zone_default, verify_host_resolvable
 from ipalib.constants import (
@@ -44,8 +44,7 @@ from ipalib.constants import (
 from .env_config import env_to_script
 from .host import Host
 
-
-log = log_mgr.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def setup_server_logs_collecting(host):
@@ -115,7 +114,7 @@ def prepare_reverse_zone(host, ip):
                       "dnszone-add",
                       zone], raiseonerr=False)
     if result.returncode > 0:
-        log.warning(result.stderr_text)
+        logger.warning("%s", result.stderr_text)
     return zone, result.returncode
 
 def prepare_host(host):
@@ -231,14 +230,14 @@ def restore_hostname(host):
     try:
         hostname = host.get_file_contents(backupname)
     except IOError:
-        log.debug('No hostname backed up on %s' % host.hostname)
+        logger.debug('No hostname backed up on %s', host.hostname)
     else:
         host.run_command(['hostname', hostname.strip()])
         host.run_command(['rm', backupname])
 
 
 def enable_replication_debugging(host):
-    log.info('Enable LDAP replication logging')
+    logger.info('Enable LDAP replication logging')
     logging_ldif = textwrap.dedent("""
         dn: cn=config
         changetype: modify
@@ -1020,10 +1019,10 @@ def install_topo(topo, master, replicas, clients, domain_level=None,
 
     for parent, child in get_topo(topo)(master, replicas):
         if child in installed:
-            log.info('Connecting replica %s to %s' % (parent, child))
+            logger.info('Connecting replica %s to %s', parent, child)
             connect_replica(parent, child)
         else:
-            log.info('Installing replica %s from %s' % (parent, child))
+            logger.info('Installing replica %s from %s', parent, child)
             install_replica(
                 parent, child,
                 setup_ca=setup_replica_cas,
@@ -1037,7 +1036,7 @@ def install_clients(servers, clients):
     """Install IPA clients, distributing them among the given servers"""
     izip = getattr(itertools, 'izip', zip)
     for server, client in izip(itertools.cycle(servers), clients):
-        log.info('Installing client %s on %s' % (server, client))
+        logger.info('Installing client %s on %s', server, client)
         install_client(server, client)
 
 
@@ -1060,7 +1059,7 @@ def wait_for_replication(ldap, timeout=30):
     Note that this waits for updates originating on this host, not those
     coming from other hosts.
     """
-    log.debug('Waiting for replication to finish')
+    logger.debug('Waiting for replication to finish')
     for i in range(timeout):
         time.sleep(1)
         status_attr = 'nsds5replicaLastUpdateStatus'
@@ -1069,7 +1068,7 @@ def wait_for_replication(ldap, timeout=30):
             DN(('cn', 'mapping tree'), ('cn', 'config')),
             filter='(objectclass=nsds5replicationagreement)',
             attrs_list=[status_attr, progress_attr])
-        log.debug('Replication agreements: \n%s', _entries_to_ldif(entries))
+        logger.debug('Replication agreements: \n%s', _entries_to_ldif(entries))
         if any(
                 not (
                     # older DS format
@@ -1079,16 +1078,16 @@ def wait_for_replication(ldap, timeout=30):
                 )
             for e in entries
         ):
-            log.error('Replication error')
+            logger.error('Replication error')
             continue
         if any(e.single_value[progress_attr] == 'TRUE' for e in entries):
-            log.debug('Replication in progress (waited %s/%ss)',
-                      i, timeout)
+            logger.debug('Replication in progress (waited %s/%ss)',
+                         i, timeout)
         else:
-            log.debug('Replication finished')
+            logger.debug('Replication finished')
             break
     else:
-        log.error('Giving up wait for replication to finish')
+        logger.error('Giving up wait for replication to finish')
 
 
 def add_a_records_for_hosts_in_master_domain(master):
@@ -1097,10 +1096,11 @@ def add_a_records_for_hosts_in_master_domain(master):
         # domain
         try:
             verify_host_resolvable(host.hostname)
-            log.debug("The host (%s) is resolvable." % host.domain.name)
+            logger.debug("The host (%s) is resolvable.", host.domain.name)
         except errors.DNSNotARecordError:
-            log.debug("Hostname (%s) does not have A/AAAA record. Adding new one.",
-                     master.hostname)
+            logger.debug("Hostname (%s) does not have A/AAAA record. Adding "
+                         "new one.",
+                         master.hostname)
             add_a_record(master, host)
 
 

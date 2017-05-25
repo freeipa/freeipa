@@ -23,6 +23,7 @@ import base64
 import errno
 import io
 import json
+import logging
 import os
 import tempfile
 
@@ -46,9 +47,8 @@ from ipalib import Bytes, Flag, Str
 from ipalib.plugable import Registry
 from ipalib import _
 from ipapython.dnsutil import DNSName
-from ipapython.ipa_log_manager import log_mgr
 
-logger = log_mgr.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def validated_read(argname, filename, mode='r', encoding=None):

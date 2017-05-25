@@ -6,6 +6,7 @@ import base64
 import collections
 import errno
 import json
+import logging
 import os
 import os.path
 import pipes
@@ -31,7 +32,6 @@ import six
 from ipalib import api
 from ipalib import errors
 from ipalib.text import _
-from ipapython.ipa_log_manager import log_mgr
 
 if six.PY3:
     unicode = str
@@ -41,7 +41,7 @@ Routines for constructing certificate signing requests using IPA data and
 stored templates.
 """)
 
-logger = log_mgr.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class IndexableUndefined(jinja2.Undefined):
@@ -164,7 +164,7 @@ class Formatter(object):
                 'Template error when formatting certificate data'))
 
         logger.debug(
-            'Formatting with template: %s' % combined_template_source)
+            'Formatting with template: %s', combined_template_source)
         combined_template = self.jinja2.from_string(combined_template_source)
 
         return combined_template
@@ -190,7 +190,7 @@ class Formatter(object):
 
     def _prepare_syntax_rule(
             self, syntax_rule, data_rules, description, data_sources):
-        logger.debug('Syntax rule template: %s' % syntax_rule.template)
+        logger.debug('Syntax rule template: %s', syntax_rule.template)
         template = self.jinja2.from_string(
             syntax_rule.template, globals=self.passthrough_globals)
         is_required = syntax_rule.options.get('required', False)

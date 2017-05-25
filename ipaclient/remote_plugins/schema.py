@@ -5,6 +5,7 @@
 import collections
 import errno
 import json
+import logging
 import os
 import sys
 import tempfile
@@ -23,7 +24,8 @@ from ipalib.parameters import DefaultFrom, Flag, Password, Str
 from ipapython.ipautil import fsdecode
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
-from ipapython.ipa_log_manager import log_mgr
+
+logger = logging.getLogger(__name__)
 
 FORMAT = '1'
 
@@ -56,8 +58,6 @@ _PARAMS = {
     'int': parameters.Int,
     'str': parameters.Str,
 }
-
-logger = log_mgr.get_logger(__name__)
 
 
 class _SchemaCommand(ClientCommand):
@@ -377,7 +377,7 @@ class Schema(object):
                 # Failed to read the schema from cache. There may be a lot of
                 # causes and not much we can do about it. Just ensure we will
                 # ignore the cache and fetch the schema from server.
-                logger.warning("Failed to read schema: {}".format(e))
+                logger.warning("Failed to read schema: %s", e)
                 fingerprint = None
                 read_failed = True
 
@@ -387,7 +387,7 @@ class Schema(object):
             try:
                 self._write_schema(fingerprint)
             except Exception as e:
-                logger.warning("Failed to write schema: {}".format(e))
+                logger.warning("Failed to write schema: %s", e)
 
         self.fingerprint = fingerprint
         self.ttl = ttl

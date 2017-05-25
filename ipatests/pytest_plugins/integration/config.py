@@ -20,12 +20,12 @@
 
 """Utilities for configuration of multi-master tests"""
 
+import logging
 import random
 
 import pytest_multihost.config
 
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import log_mgr
 from ipalib.constants import MAX_DOMAIN_LEVEL
 
 
@@ -71,7 +71,7 @@ class Config(pytest_multihost.config.Config):
         return Domain
 
     def get_logger(self, name):
-        return log_mgr.get_logger(name)
+        return logging.getLogger(name)
 
     @property
     def ad_domains(self):
