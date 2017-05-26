@@ -2007,7 +2007,14 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         except IndexError:
             term = None
         if self.obj.parent_object:
-            base_dn = self.api.Object[self.obj.parent_object].get_dn(*keys)
+            try:
+                base_dn = self.api.Object[self.obj.parent_object].get_dn(*keys)
+            except errors.NotFound:
+                return {
+                    'result': [],
+                    'count': 0,
+                    'truncated': False,
+                }
         else:
             base_dn = DN(self.obj.container_dn, api.env.basedn)
         assert isinstance(base_dn, DN)
