@@ -51,8 +51,8 @@ steps:
   - sed -ri "s/mode = production/mode = development/" /etc/ipa/default.conf
   - systemctl restart httpd.service
   lint:
-  - PYTHON=/usr/bin/python2 make V=0 lint
-  - PYTHON=/usr/bin/python3 make V=0 pylint
+  - make PYTHON=/usr/bin/python2 V=0 lint
+  - make PYTHON=/usr/bin/python3 V=0 pylint
   prepare_tests:
   - echo ${server_password} | kinit admin && ipa ping
   - cp -r /etc/ipa/* ~/.ipa/
