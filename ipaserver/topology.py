@@ -72,12 +72,15 @@ def get_topology_connection_errors(graph):
 
 def map_masters_to_suffixes(masters):
     masters_to_suffix = {}
+    managed_suffix_attr = 'iparepltopomanagedsuffix_topologysuffix'
 
     for master in masters:
-        try:
-            managed_suffixes = master.get(
-                'iparepltopomanagedsuffix_topologysuffix')
-        except KeyError:
+        if managed_suffix_attr not in master:
+            continue
+
+        managed_suffixes = master[managed_suffix_attr]
+
+        if managed_suffixes is None:
             continue
 
         for suffix_name in managed_suffixes:
