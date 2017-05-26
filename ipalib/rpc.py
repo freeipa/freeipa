@@ -1088,50 +1088,63 @@ class RPCClient(Connectible):
         :param kw: Keyword arguments to pass to remote command.
         """
         server = getattr(context, 'request_url', None)
-        self.log.info("Forwarding '%s' to %s server '%s'",
-                      name, self.protocol, server)
         command = getattr(self.conn, name)
         params = [args, kw]
-        try:
-            return self._call_command(command, params)
-        except Fault as e:
-            e = decode_fault(e)
-            self.debug('Caught fault %d from server %s: %s', e.faultCode,
-                server, e.faultString)
-            if e.faultCode in errors_by_code:
-                error = errors_by_code[e.faultCode]
-                raise error(message=e.faultString)
-            raise UnknownError(
-                code=e.faultCode,
-                error=e.faultString,
-                server=server,
-            )
-        except SSLError as e:
-            raise NetworkError(uri=server, error=str(e))
-        except ProtocolError as e:
-            # By catching a 401 here we can detect the case where we have
-            # a single IPA server and the session is invalid. Otherwise
-            # we always have to do a ping().
-            session_cookie = getattr(context, 'session_cookie', None)
-            if session_cookie and e.errcode == 401:
-                # Unauthorized. Remove the session and try again.
-                delattr(context, 'session_cookie')
-                try:
-                    principal = getattr(context, 'principal', None)
-                    delete_persistent_client_session_data(principal)
-                except Exception as e:
-                    # This shouldn't happen if we have a session but it isn't fatal.
-                    pass
 
-                # Create a new serverproxy with the non-session URI
-                serverproxy = self.create_connection(os.environ.get('KRB5CCNAME'), self.env.verbose, self.env.fallback, self.env.delegate)
-                setattr(context, self.id, Connection(serverproxy, self.disconnect))
-                return self.forward(name, *args, **kw)
-            raise NetworkError(uri=server, error=e.errmsg)
-        except socket.error as e:
-            raise NetworkError(uri=server, error=str(e))
-        except (OverflowError, TypeError) as e:
-            raise XMLRPCMarshallError(error=str(e))
+        # we'll be trying to connect multiple times with a new session cookie
+        # each time should we be getting UNAUTHORIZED error from the server
+        max_tries = 5
+        for try_num in range(0, max_tries):
+            self.log.info("[try %d]: Forwarding '%s' to %s server '%s'",
+                          try_num+1, name, self.protocol, server)
+            try:
+                return self._call_command(command, params)
+            except Fault as e:
+                e = decode_fault(e)
+                self.debug('Caught fault %d from server %s: %s', e.faultCode,
+                           server, e.faultString)
+                if e.faultCode in errors_by_code:
+                    error = errors_by_code[e.faultCode]
+                    raise error(message=e.faultString)
+                raise UnknownError(
+                    code=e.faultCode,
+                    error=e.faultString,
+                    server=server,
+                )
+            except ProtocolError as e:
+                # By catching a 401 here we can detect the case where we have
+                # a single IPA server and the session is invalid. Otherwise
+                # we always have to do a ping().
+                session_cookie = getattr(context, 'session_cookie', None)
+                if session_cookie and e.errcode == 401:
+                    # Unauthorized. Remove the session and try again.
+                    delattr(context, 'session_cookie')
+                    try:
+                        principal = getattr(context, 'principal', None)
+                        delete_persistent_client_session_data(principal)
+                    except Exception as e:
+                        # This shouldn't happen if we have a session
+                        # but it isn't fatal.
+                        self.debug("Error trying to remove persisent session "
+                                   "data: {err}".format(err=e))
+
+                    # Create a new serverproxy with the non-session URI
+                    serverproxy = self.create_connection(
+                        os.environ.get('KRB5CCNAME'), self.env.verbose,
+                        self.env.fallback, self.env.delegate)
+
+                    setattr(context, self.id,
+                            Connection(serverproxy, self.disconnect))
+                    # try to connect again with the new session cookie
+                    continue
+                raise NetworkError(uri=server, error=e.errmsg)
+            except (SSLError, socket.error) as e:
+                raise NetworkError(uri=server, error=str(e))
+            except (OverflowError, TypeError) as e:
+                raise XMLRPCMarshallError(error=str(e))
+        raise NetworkError(
+            uri=server,
+            error=_("Exceeded number of tries to forward a request."))
 
 
 class xmlclient(RPCClient):
