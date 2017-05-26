@@ -311,7 +311,7 @@ class IPAChecker(BaseChecker):
         self._forbidden_imports_stack = []
 
     def _get_forbidden_import_rule(self, node):
-        path = node.source_file
+        path = node.path
         if path:
             path = os.path.abspath(path)
             while path.startswith(self._dir):
