@@ -238,6 +238,10 @@ BuildRequires:  python3-paste
 BuildRequires:  python3-systemd
 BuildRequires:  python3-jinja2
 BuildRequires:  python3-augeas
+BuildRequires:  python3-netaddr
+BuildRequires:  python3-pyasn1
+BuildRequires:  python3-pyasn1-modules
+BuildRequires:  python3-pyldap
 %endif # with_python3
 %endif # with_lint
 
