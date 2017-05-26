@@ -170,7 +170,11 @@ BuildRequires:  samba-python
 # 1.6: x509.Name.rdns (https://github.com/pyca/cryptography/issues/3199)
 BuildRequires:  python2-cryptography >= 1.6
 BuildRequires:  python-gssapi >= 1.2.0
+%if 0%{?fedora} >= 26
+BuildRequires:  python2-pylint
+%else
 BuildRequires:  pylint >= 1.6
+%endif
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 BuildRequires:  python2-polib
 BuildRequires:  python-libipa_hbac
