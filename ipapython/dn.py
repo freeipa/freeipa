@@ -1131,7 +1131,7 @@ class DN(object):
         elif isinstance(value, cryptography.x509.name.Name):
             rdns = list(reversed([
                 [get_ava(
-                    _ATTR_NAME_BY_OID.get(ava.oid, ava.oid.dotted_string),
+                    ATTR_NAME_BY_OID.get(ava.oid, ava.oid.dotted_string),
                     ava.value)]
                 for ava in value
             ]))
@@ -1426,7 +1426,7 @@ class DN(object):
         return i
 
 
-_ATTR_NAME_BY_OID = {
+ATTR_NAME_BY_OID = {
     cryptography.x509.oid.NameOID.COMMON_NAME: 'CN',
     cryptography.x509.oid.NameOID.COUNTRY_NAME: 'C',
     cryptography.x509.oid.NameOID.LOCALITY_NAME: 'L',

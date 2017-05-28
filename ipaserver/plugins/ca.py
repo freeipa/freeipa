@@ -4,9 +4,12 @@
 
 import base64
 
+import six
+
 from ipalib import api, errors, output, Bytes, DNParam, Flag, Str
 from ipalib.constants import IPA_CA_CN
 from ipalib.plugable import Registry
+from ipapython.dn import ATTR_NAME_BY_OID
 from ipaserver.plugins.baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate, LDAPDelete,
     LDAPUpdate, LDAPRetrieve, LDAPQuery, pkey_to_value)
@@ -235,6 +238,24 @@ class ca_add(LDAPCreate):
         if not ldap.can_add(dn[1:]):
             raise errors.ACIError(
                 info=_("Insufficient 'add' privilege for entry '%s'.") % dn)
+
+        # check that DN only includes standard naming attributes
+        dn_attrs = {
+            ava.attr.lower()
+            for rdn in options['ipacasubjectdn']
+            for ava in rdn
+        }
+        x509_attrs = {
+            attr.lower()
+            for attr in six.viewvalues(ATTR_NAME_BY_OID)
+        }
+        unknown_attrs = dn_attrs - x509_attrs
+        if len(unknown_attrs) > 0:
+            raise errors.ValidationError(
+                name=_("Subject DN"),
+                error=_("Unrecognized attributes: %(attrs)s")
+                    % dict(attrs=", ".join(unknown_attrs))
+            )
 
         # check for name collision before creating CA in Dogtag
         try:
