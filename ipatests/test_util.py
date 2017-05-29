@@ -35,6 +35,17 @@ if six.PY3:
 pytestmark = pytest.mark.tier0
 
 
+# pytest >= 2.10 supports yield based fixtures with pytest.fixture. In
+# pytest < 2.10 pytest.yield_fixture is required. But that function
+# also raises a deprecation warning in pytest >= 3.0.
+PYTEST_VERSION = tuple(int(p) for p in pytest.__version__.split('.'))
+
+if PYTEST_VERSION < (2, 10):
+    yield_fixture = pytest.yield_fixture
+else:
+    yield_fixture = pytest.fixture
+
+
 class Prop(object):
     def __init__(self, *ops):
         self.__ops = frozenset(ops)
