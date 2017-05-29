@@ -13,9 +13,10 @@ import tempfile
 from ipalib import api
 
 from ipaserver.install import installutils
+from ipatests.test_util import yield_fixture
 
 
-@pytest.yield_fixture()
+@yield_fixture()
 def keytab():
     fd, keytab_path = tempfile.mkstemp(suffix='.keytab')
     os.close(fd)

@@ -34,6 +34,7 @@ from ipapython import ipautil
 from ipalib import api, errors, x509
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
+from ipatests.test_util import yield_fixture
 from ipatests.test_xmlrpc.xmlrpc_test import (XMLRPC_test,
     fuzzy_uuid, fuzzy_digits, fuzzy_hash, fuzzy_date, fuzzy_issuer,
     fuzzy_hex, raises_exact)
@@ -505,7 +506,7 @@ class TestValidation(XMLRPC_test):
         ), result)
 
 
-@pytest.yield_fixture
+@yield_fixture
 def keytabname(request):
     keytabfd, keytabname = tempfile.mkstemp()
     try:
@@ -589,7 +590,7 @@ class TestHostFalsePwdChange(XMLRPC_test):
             command()
 
 
-@pytest.yield_fixture(scope='class')
+@yield_fixture(scope='class')
 def dns_setup(host):
     try:
         host.run_command('dnszone_del', dnszone, revzone, revipv6zone,
