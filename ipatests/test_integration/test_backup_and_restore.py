@@ -58,6 +58,7 @@ def check_admin_in_ldap(host):
     assert entry.dn == user_dn
     assert entry['uid'] == ['admin']
 
+
     del entry['krbLastSuccessfulAuth']
 
     return entry
