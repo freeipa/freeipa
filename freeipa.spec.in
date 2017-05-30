@@ -1430,6 +1430,7 @@ fi
 %{python_sitelib}/ipaclient/plugins/*.py*
 %dir %{python_sitelib}/ipaclient/remote_plugins
 %{python_sitelib}/ipaclient/remote_plugins/*.py*
+%dir %{python_sitelib}/ipaclient/remote_plugins/2_*
 %{python_sitelib}/ipaclient/remote_plugins/2_*/*.py*
 %dir %{python_sitelib}/ipaclient/csrgen
 %dir %{python_sitelib}/ipaclient/csrgen/profiles
@@ -1459,6 +1460,7 @@ fi
 %dir %{python3_sitelib}/ipaclient/remote_plugins
 %{python3_sitelib}/ipaclient/remote_plugins/*.py
 %{python3_sitelib}/ipaclient/remote_plugins/__pycache__/*.py*
+%dir %{python3_sitelib}/ipaclient/remote_plugins/2_*
 %{python3_sitelib}/ipaclient/remote_plugins/2_*/*.py
 %{python3_sitelib}/ipaclient/remote_plugins/2_*/__pycache__/*.py*
 %dir %{python3_sitelib}/ipaclient/csrgen
