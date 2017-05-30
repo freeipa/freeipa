@@ -711,9 +711,8 @@ class Restore(admintool.AdminTool):
         Read the backup file header that contains the meta data about
         this particular backup.
         '''
-        with open(self.header) as fd:
-            config = SafeConfigParser()
-            config.readfp(fd)
+        config = SafeConfigParser()
+        config.read(self.header)
 
         self.backup_type = config.get('ipa', 'type')
         self.backup_time = config.get('ipa', 'time')
