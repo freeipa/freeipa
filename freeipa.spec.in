@@ -499,7 +499,7 @@ Requires: python-jwcrypto
 Requires: python-cffi
 Requires: python-ldap >= 2.4.15
 Requires: python-requests
-Requires: python-custodia >= 0.2
+Requires: python2-custodia >= 0.2
 Requires: python-dns >= 1.13
 Requires: python-netifaces >= 0.10.4
 Requires: pyusb
