@@ -187,7 +187,7 @@ BuildRequires:  python-pytest-multihost
 BuildRequires:  python-pytest-sourceorder
 BuildRequires:  python-jwcrypto
 # 0.3: sd_notify (https://pagure.io/freeipa/issue/5825)
-BuildRequires:  python-custodia >= 0.3.1
+BuildRequires:  python2-custodia >= 0.3.1
 BuildRequires:  dbus-python
 BuildRequires:  python-dateutil
 BuildRequires:  python-enum34
@@ -350,7 +350,7 @@ BuildArch: noarch
 Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipaclient = %{version}-%{release}
-Requires: python-custodia >= 0.3.1
+Requires: python2-custodia >= 0.3.1
 Requires: python-ldap >= 2.4.15
 Requires: python-lxml
 Requires: python-gssapi >= 1.2.0
