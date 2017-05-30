@@ -32,61 +32,53 @@ if six.PY3:
 
 pytestmark = pytest.mark.tier0
 
+b64 = 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6XHBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGIwA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNmcSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM019Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF0L'
+raw = base64.b64decode(b64)
+openssh = 'ssh-rsa %s' % b64
 
-def make_public_key_checker(pk, out):
-    def check_public_key():
-        try:
-            parsed = ssh.SSHPublicKey(pk)
-            assert parsed.openssh() == out
-        except Exception as e:
-            assert type(e) is out
-    check_public_key.description = "Test SSH public key parsing (%s)" % repr(pk)
-    return check_public_key
 
-def test_public_key_parsing():
-    b64 = 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6XHBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGIwA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNmcSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM019Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF0L'
-    raw = base64.b64decode(b64)
-    openssh = 'ssh-rsa %s' % b64
+@pytest.mark.parametrize("pk,out", [
+    (b'\xff', UnicodeDecodeError),
+    (u'\xff', ValueError),
 
-    pks = [
-        (b'\xff',                   UnicodeDecodeError),
-        (u'\xff',                   ValueError),
+    (raw, openssh),
+    (b'\0\0\0\x04none', u'none AAAABG5vbmU='),
+    (b'\0\0\0', ValueError),
+    (b'\0\0\0\0', ValueError),
+    (b'\0\0\0\x01', ValueError),
+    (b'\0\0\0\x01\xff', ValueError),
 
-        (raw,                       openssh),
-        (b'\0\0\0\x04none',         u'none AAAABG5vbmU='),
-        (b'\0\0\0',                 ValueError),
-        (b'\0\0\0\0',               ValueError),
-        (b'\0\0\0\x01',             ValueError),
-        (b'\0\0\0\x01\xff',         ValueError),
+    (u'\0\0\0\x04none', ValueError),
+    (u'\0\0\0', ValueError),
+    (u'\0\0\0\0', ValueError),
+    (u'\0\0\0\x01', ValueError),
+    (u'\0\0\0\x01\xff', ValueError),
 
-        (u'\0\0\0\x04none',         ValueError),
-        (u'\0\0\0',                 ValueError),
-        (u'\0\0\0\0',               ValueError),
-        (u'\0\0\0\x01',             ValueError),
-        (u'\0\0\0\x01\xff',         ValueError),
+    (b64, openssh),
+    (unicode(b64), openssh),
+    (b64.encode('ascii'), openssh),
+    (u'\n%s\n\n' % b64, openssh),
+    (u'AAAABG5vbmU=', u'none AAAABG5vbmU='),
+    (u'AAAAB', ValueError),
 
-        (b64,                       openssh),
-        (unicode(b64),              openssh),
-        (b64.encode('ascii'),       openssh),
-        (u'\n%s\n\n' % b64,         openssh),
-        (u'AAAABG5vbmU=',           u'none AAAABG5vbmU='),
-        (u'AAAAB',                  ValueError),
-
-        (openssh,                   openssh),
-        (unicode(openssh),          openssh),
-        (openssh.encode('ascii'),   openssh),
-        (u'none AAAABG5vbmU=',      u'none AAAABG5vbmU='),
-        (u'\t \t ssh-rsa \t \t%s\t \tthis is a comment\t \t ' % b64,
-                                    u'%s this is a comment' % openssh),
-        (u'opt3,opt2="\tx ",opt1,opt2="\\"x " %s comment ' % openssh,
-                                    u'opt1,opt2="\\"x ",opt3 %s comment' % openssh),
-        (u'ssh-rsa\n%s' % b64,      ValueError),
-        (u'ssh-rsa\t%s' % b64,      ValueError),
-        (u'vanitas %s' % b64,       ValueError),
-        (u'@opt %s' % openssh,      ValueError),
-        (u'opt=val %s' % openssh,   ValueError),
-        (u'opt, %s' % openssh,      ValueError),
-    ]
-
-    for pk in pks:
-        yield make_public_key_checker(*pk)
+    (openssh, openssh),
+    (unicode(openssh), openssh),
+    (openssh.encode('ascii'), openssh),
+    (u'none AAAABG5vbmU=', u'none AAAABG5vbmU='),
+    (u'\t \t ssh-rsa \t \t%s\t \tthis is a comment\t \t ' % b64,
+     u'%s this is a comment' % openssh),
+    (u'opt3,opt2="\tx ",opt1,opt2="\\"x " %s comment ' % openssh,
+     u'opt1,opt2="\\"x ",opt3 %s comment' % openssh),
+    (u'ssh-rsa\n%s' % b64, ValueError),
+    (u'ssh-rsa\t%s' % b64, ValueError),
+    (u'vanitas %s' % b64, ValueError),
+    (u'@opt %s' % openssh, ValueError),
+    (u'opt=val %s' % openssh, ValueError),
+    (u'opt, %s' % openssh, ValueError),
+])
+def test_public_key_parsing(pk, out):
+    if isinstance(out, type) and issubclass(out, Exception):
+        pytest.raises(out, ssh.SSHPublicKey, pk)
+    else:
+        parsed = ssh.SSHPublicKey(pk)
+        assert parsed.openssh() == out
