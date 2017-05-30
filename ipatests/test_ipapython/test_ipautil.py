@@ -31,53 +31,44 @@ from ipapython import ipautil
 pytestmark = pytest.mark.tier0
 
 
-def make_ipaddress_checker(addr, words=None, prefixlen=None):
-    def check_ipaddress():
-        try:
-            ip = ipautil.CheckedIPAddress(addr, match_local=False)
-            assert ip.words == words and ip.prefixlen == prefixlen
-        except Exception:
-            assert words is None and prefixlen is None
-    check_ipaddress.description = "Test IP address parsing and verification (%s)" % addr
-    return check_ipaddress
-
-
-def test_ip_address():
-    addrs = [
-        ('0.0.0.0/0',),
-        ('10.11.12.13',     (10, 11, 12, 13),   8),
-        ('10.11.12.13/14',  (10, 11, 12, 13),   14),
-        ('10.11.12.13%zoneid',),
-        ('10.11.12.13%zoneid/14',),
-        ('10.11.12.1337',),
-        ('10.11.12.13/33',),
-        ('127.0.0.1',),
-        ('241.1.2.3',),
-        ('169.254.1.2',),
-        ('10.11.12.0/24',   (10, 11, 12, 0),   24),
-        ('10.0.0.255',      (10, 0, 0, 255),   8),
-        ('224.5.6.7',),
-        ('10.11.12.255/24', (10, 11, 12, 255), 24),
-        ('255.255.255.255',),
-
-        ('::/0',),
-        ('2001::1',         (0x2001, 0, 0, 0, 0, 0, 0, 1), 64),
-        ('2001::1/72',      (0x2001, 0, 0, 0, 0, 0, 0, 1), 72),
-        ('2001::1%zoneid',  (0x2001, 0, 0, 0, 0, 0, 0, 1), 64),
-        ('2001::1%zoneid/72',),
-        ('2001::1beef',),
-        ('2001::1/129',),
-        ('::1',),
-        ('6789::1',),
-        ('fe89::1',),
-        ('2001::/64',       (0x2001, 0, 0, 0, 0, 0, 0, 0), 64),
-        ('ff01::1',),
-
-        ('junk',)
-    ]
-
-    for addr in addrs:
-        yield make_ipaddress_checker(*addr)
+@pytest.mark.parametrize("addr,words,prefixlen", [
+    ('0.0.0.0/0', None, None),
+    ('10.11.12.13', (10, 11, 12, 13), 8),
+    ('10.11.12.13/14', (10, 11, 12, 13), 14),
+    ('10.11.12.13%zoneid', None, None),
+    ('10.11.12.13%zoneid/14', None, None),
+    ('10.11.12.1337', None, None),
+    ('10.11.12.13/33', None, None),
+    ('127.0.0.1', None, None),
+    ('241.1.2.3', None, None),
+    ('169.254.1.2', None, None),
+    ('10.11.12.0/24', (10, 11, 12, 0), 24),
+    ('10.0.0.255', (10, 0, 0, 255), 8),
+    ('224.5.6.7', None, None),
+    ('10.11.12.255/24', (10, 11, 12, 255), 24),
+    ('255.255.255.255', None, None),
+    ('::/0', None, None),
+    ('2001::1', (0x2001, 0, 0, 0, 0, 0, 0, 1), 64),
+    ('2001::1/72', (0x2001, 0, 0, 0, 0, 0, 0, 1), 72),
+    ('2001::1%zoneid', (0x2001, 0, 0, 0, 0, 0, 0, 1), 64),
+    ('2001::1%zoneid/72', None, None),
+    ('2001::1beef', None, None),
+    ('2001::1/129', None, None),
+    ('::1', None, None),
+    ('6789::1', None, None),
+    ('fe89::1', None, None),
+    ('2001::/64', (0x2001, 0, 0, 0, 0, 0, 0, 0), 64),
+    ('ff01::1', None, None),
+    ('junk', None, None)
+])
+def test_ip_address(addr, words, prefixlen):
+    if words is None:
+        pytest.raises(
+            ValueError, ipautil.CheckedIPAddress, addr, match_local=False)
+    else:
+        ip = ipautil.CheckedIPAddress(addr, match_local=False)
+        assert ip.words == words
+        assert ip.prefixlen == prefixlen
 
 
 class TestCIDict(object):
