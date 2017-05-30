@@ -2907,6 +2907,14 @@ def _install(options):
 
         # Check that nss is working properly
         if not options.on_master:
+            user = options.principal
+            if user is None:
+                user = "admin@%s" % cli_domain
+                root_logger.info("Principal is not set when enrolling with OTP"
+                                 "; using principal '%s' for 'getent passwd'",
+                                 user)
+            elif '@' not in user:
+                user = "%s@%s" % (user, cli_domain)
             n = 0
             found = False
             # Loop for up to 10 seconds to see if nss is working properly.
@@ -2915,16 +2923,15 @@ def _install(options):
             # Particulary, SSSD might take longer than 6-8 seconds.
             while n < 10 and not found:
                 try:
-                    ipautil.run(["getent", "passwd", "admin@%s" % cli_domain])
+                    ipautil.run(["getent", "passwd", user])
                     found = True
                 except Exception as e:
                     time.sleep(1)
                     n = n + 1
 
             if not found:
-                root_logger.error(
-                    "Unable to find 'admin' user with "
-                    "'getent passwd admin@%s'!" % cli_domain)
+                root_logger.error("Unable to find '%s' user with 'getent "
+                                  "passwd %s'!" % (user.split("@")[0], user))
                 if conf:
                     root_logger.info("Recognized configuration: %s", conf)
                 else:
