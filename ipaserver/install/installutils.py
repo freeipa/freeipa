@@ -749,10 +749,9 @@ def read_replica_info(dir_path, rconfig):
 
     rconfig is a ReplicaConfig object
     """
-    filename = dir_path + "/realm_info"
-    fd = open(filename)
+    filename = os.path.join(dir_path, "realm_info")
     config = SafeConfigParser()
-    config.readfp(fd)
+    config.read(filename)
 
     rconfig.realm_name = config.get("realm", "realm_name")
     rconfig.master_host_name = config.get("realm", "master_host_name")
