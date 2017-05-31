@@ -1128,3 +1128,17 @@ def broadcast_ip_address_warning(addr_list):
             # print
             print("WARNING: IP address {} might be broadcast address".format(
                 ip), file=sys.stderr)
+
+
+def no_matching_interface_for_ip_address_warning(addr_list):
+    for ip in addr_list:
+        if not ip.get_matching_interface():
+            root_logger.warning(
+                "No network interface matches the IP address %s", ip)
+            # fixme: once when loggers will be fixed, we can remove this
+            # print
+            print(
+                "WARNING: No network interface matches the IP address "
+                "{}".format(ip),
+                file=sys.stderr
+            )

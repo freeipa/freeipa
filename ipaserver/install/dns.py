@@ -266,6 +266,7 @@ def install_check(standalone, api, replica, options, hostname):
 
     util.network_ip_address_warning(ip_addresses)
     util.broadcast_ip_address_warning(ip_addresses)
+    util.no_matching_interface_for_ip_address_warning(ip_addresses)
 
     if not options.forward_policy:
         # user did not specify policy, derive it: default is 'first' but

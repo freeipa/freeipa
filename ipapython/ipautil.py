@@ -161,34 +161,7 @@ class CheckedIPAddress(UnsafeIPAddress):
             raise ValueError("cannot use multicast IP address {}".format(addr))
 
         if match_local:
-            if self.version == 4:
-                family = netifaces.AF_INET
-            elif self.version == 6:
-                family = netifaces.AF_INET6
-            else:
-                raise ValueError(
-                    "Unsupported address family ({})".format(self.version)
-                )
-
-            iface = None
-            for interface in netifaces.interfaces():
-                for ifdata in netifaces.ifaddresses(interface).get(family, []):
-
-                    # link-local addresses contain '%suffix' that causes parse
-                    # errors in IPNetwork
-                    ifaddr = ifdata['addr'].split(u'%', 1)[0]
-
-                    ifnet = netaddr.IPNetwork('{addr}/{netmask}'.format(
-                        addr=ifaddr,
-                        netmask=ifdata['netmask']
-                    ))
-                    if ifnet == self._net or (
-                            self._net is None and ifnet.ip == self):
-                        self._net = ifnet
-                        iface = interface
-                        break
-
-            if iface is None:
+            if not self.get_matching_interface():
                 raise ValueError('no network interface matches the IP address '
                                  'and netmask {}'.format(addr))
 
@@ -217,6 +190,39 @@ class CheckedIPAddress(UnsafeIPAddress):
 
     def is_broadcast_addr(self):
         return self.version == 4 and self == self._net.broadcast
+
+    def get_matching_interface(self):
+        """Find matching local interface for address
+        :return: Interface name or None if no interface has this address
+        """
+        if self.version == 4:
+            family = netifaces.AF_INET
+        elif self.version == 6:
+            family = netifaces.AF_INET6
+        else:
+            raise ValueError(
+                "Unsupported address family ({})".format(self.version)
+            )
+
+        iface = None
+        for interface in netifaces.interfaces():
+            for ifdata in netifaces.ifaddresses(interface).get(family, []):
+
+                # link-local addresses contain '%suffix' that causes parse
+                # errors in IPNetwork
+                ifaddr = ifdata['addr'].split(u'%', 1)[0]
+
+                ifnet = netaddr.IPNetwork('{addr}/{netmask}'.format(
+                    addr=ifaddr,
+                    netmask=ifdata['netmask']
+                ))
+                if ifnet == self._net or (
+                                self._net is None and ifnet.ip == self):
+                    self._net = ifnet
+                    iface = interface
+                    break
+
+        return iface
 
 
 def valid_ip(addr):
