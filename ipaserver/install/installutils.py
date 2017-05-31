@@ -276,7 +276,7 @@ def read_ip_addresses():
         if not ip:
             break
         try:
-            ip_parsed = ipautil.CheckedIPAddress(ip, match_local=True)
+            ip_parsed = ipautil.CheckedIPAddress(ip)
         except Exception as e:
             print("Error: Invalid IP Address %s: %s" % (ip, e))
             continue
@@ -585,7 +585,7 @@ def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
     if len(hostaddr):
         for ha in hostaddr:
             try:
-                ips.append(ipautil.CheckedIPAddress(ha, match_local=True))
+                ips.append(ipautil.CheckedIPAddress(ha, match_local=False))
             except ValueError as e:
                 root_logger.warning("Invalid IP address %s for %s: %s", ha, host_name, unicode(e))
 

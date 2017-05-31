@@ -41,6 +41,7 @@ from ipalib.util import (
     broadcast_ip_address_warning,
     network_ip_address_warning,
     normalize_hostname,
+    no_matching_interface_for_ip_address_warning,
     verify_host_resolvable,
 )
 from ipaplatform import services
@@ -1300,6 +1301,7 @@ def update_dns(server, hostname, options):
 
     network_ip_address_warning(update_ips)
     broadcast_ip_address_warning(update_ips)
+    no_matching_interface_for_ip_address_warning(update_ips)
 
     update_txt = "debug\n"
     update_txt += ipautil.template_str(DELETE_TEMPLATE_A,
@@ -1445,7 +1447,7 @@ def check_ip_addresses(options):
     if options.ip_addresses:
         for ip in options.ip_addresses:
             try:
-                ipautil.CheckedIPAddress(ip, match_local=True)
+                ipautil.CheckedIPAddress(ip)
             except ValueError as e:
                 root_logger.error(e)
                 return False

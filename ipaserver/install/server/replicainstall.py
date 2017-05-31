@@ -35,6 +35,7 @@ from ipalib.config import Env
 from ipalib.util import (
     network_ip_address_warning,
     broadcast_ip_address_warning,
+    no_matching_interface_for_ip_address_warning,
 )
 from ipaclient.install.client import configure_krb5_conf, purge_host_keytab
 from ipaserver.install import (
@@ -1285,6 +1286,7 @@ def promote_check(installer):
             # check addresses here, dns module is doing own check
             network_ip_address_warning(config.ips)
             broadcast_ip_address_warning(config.ips)
+            no_matching_interface_for_ip_address_warning(config.ips)
 
         if options.setup_adtrust:
             adtrust.install_check(False, options, remote_api)
