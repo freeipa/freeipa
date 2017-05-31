@@ -29,6 +29,7 @@ from ipalib.util import (
     validate_domain_name,
     network_ip_address_warning,
     broadcast_ip_address_warning,
+    no_matching_interface_for_ip_address_warning,
 )
 import ipaclient.install.ntpconf
 from ipaserver.install import (
@@ -617,6 +618,7 @@ def install_check(installer):
         # check addresses here, dns module is doing own check
         network_ip_address_warning(ip_addresses)
         broadcast_ip_address_warning(ip_addresses)
+        no_matching_interface_for_ip_address_warning(ip_addresses)
 
     if options.setup_adtrust:
         adtrust.install_check(False, options, api)

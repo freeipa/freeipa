@@ -34,7 +34,7 @@ class HostNameInstallInterface(service.ServiceInstallInterface):
     def ip_addresses(self, values):
         for value in values:
             try:
-                CheckedIPAddress(value, match_local=True)
+                CheckedIPAddress(value)
             except Exception as e:
                 raise ValueError("invalid IP address {0}: {1}".format(
                     value, e))
