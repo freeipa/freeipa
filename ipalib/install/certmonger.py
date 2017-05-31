@@ -370,8 +370,8 @@ def request_cert(
         request_parameters['cert-postsave-command'] = post_command
 
     if perms:
-        request_parameters['key-perms'] = perms[0]
-        request_parameters['cert-perms'] = perms[1]
+        request_parameters['cert-perms'] = perms[0]
+        request_parameters['key-perms'] = perms[1]
 
     result = cm.obj_if.add_request(request_parameters)
     try:
