@@ -52,7 +52,7 @@ from six.moves import urllib
 from ipalib.backend import Connectible
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.errors import (public_errors, UnknownError, NetworkError,
-    KerberosError, XMLRPCMarshallError, JSONError)
+                           XMLRPCMarshallError, JSONError)
 from ipalib import errors, capabilities
 from ipalib.request import context, Connection
 from ipapython.ipa_log_manager import root_logger
@@ -653,7 +653,7 @@ class KerbTransport(SSLTransport):
                     except (TypeError, UnicodeError):
                         pass
             if not token:
-                raise KerberosError(
+                raise errors.KerberosError(
                     message=u"No valid Negotiate header in server response")
             token = self._sec_context.step(token=token)
             if self._sec_context.complete:
@@ -979,8 +979,10 @@ class RPCClient(Connectible):
             delegate = self.api.env.delegate
         if ca_certfile is None:
             ca_certfile = self.api.env.tls_ca_cert
+        context.ca_certfile = ca_certfile
+
+        rpc_uri = self.env[self.env_rpc_uri_key]
         try:
-            rpc_uri = self.env[self.env_rpc_uri_key]
             principal = get_principal(ccache_name=ccache)
             stored_principal = getattr(context, 'principal', None)
             if principal != stored_principal:
@@ -996,12 +998,14 @@ class RPCClient(Connectible):
         except (errors.CCacheError, ValueError):
             # No session key, do full Kerberos auth
             pass
-        context.ca_certfile = ca_certfile
         urls = self.get_url_list(rpc_uri)
         serverproxy = None
         for url in urls:
-            kw = dict(allow_none=True, encoding='UTF-8')
-            kw['verbose'] = verbose
+            kw = {
+                'allow_none': True,
+                'encoding': 'UTF-8',
+                'verbose': verbose
+            }
             if url.startswith('https://'):
                 if delegate:
                     transport_class = DelegatedKerbTransport
@@ -1036,21 +1040,24 @@ class RPCClient(Connectible):
                         )
                 # We don't care about the response, just that we got one
                 break
-            except KerberosError as krberr:
+            except errors.KerberosError:
                 # kerberos error on one server is likely on all
-                raise errors.KerberosError(message=unicode(krberr))
+                raise
             except ProtocolError as e:
                 if hasattr(context, 'session_cookie') and e.errcode == 401:
                     # Unauthorized. Remove the session and try again.
                     delattr(context, 'session_cookie')
                     try:
                         delete_persistent_client_session_data(principal)
-                    except Exception as e:
+                    except Exception:
                         # This shouldn't happen if we have a session but it isn't fatal.
                         pass
-                    return self.create_connection(ccache, verbose, fallback, delegate)
+                    return self.create_connection(
+                        ccache, verbose, fallback, delegate)
                 if not fallback:
                     raise
+                else:
+                    self.log.info('Connection to %s failed with %s', url, e)
                 serverproxy = None
             except Exception as e:
                 if not fallback:
