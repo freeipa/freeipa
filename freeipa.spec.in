@@ -139,12 +139,12 @@ BuildRequires:  python-lesscpy
 #
 BuildRequires:  python-ldap
 BuildRequires:  python-netaddr
-BuildRequires:  python-pyasn1
-BuildRequires:  python-pyasn1-modules
-BuildRequires:  python-dns
+BuildRequires:  python2-pyasn1
+BuildRequires:  python2-pyasn1-modules
+BuildRequires:  python2-dns
 BuildRequires:  python-six
-BuildRequires:  python-libsss_nss_idmap
-BuildRequires:  python-cffi
+BuildRequires:  python2-libsss_nss_idmap
+BuildRequires:  python2-cffi
 
 #
 # Build dependencies for wheel packaging and PyPI upload
@@ -152,7 +152,7 @@ BuildRequires:  python-cffi
 %if 0%{?with_wheels}
 BuildRequires:  dbus-glib-devel
 BuildRequires:  libffi-devel
-BuildRequires:  python-tox
+BuildRequires:  python2-tox
 BuildRequires:  python2-twine
 BuildRequires:  python2-wheel
 %if 0%{?with_python3}
@@ -177,14 +177,14 @@ BuildRequires:  pylint >= 1.6
 %endif
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 BuildRequires:  python2-polib
-BuildRequires:  python-libipa_hbac
-BuildRequires:  python-lxml
+BuildRequires:  python2-libipa_hbac
+BuildRequires:  python2-lxml
 # 5.0.0: QRCode.print_ascii
 BuildRequires:  python-qrcode-core >= 5.0.0
 # 1.15: python-dns changed return type in to_text() method in PY3
-BuildRequires:  python-dns >= 1.15
+BuildRequires:  python2-dns >= 1.15
 BuildRequires:  jsl
-BuildRequires:  python-yubico
+BuildRequires:  python2-yubico
 # pki Python package
 BuildRequires:  pki-base-python2
 BuildRequires:  python-pytest-multihost
@@ -193,17 +193,17 @@ BuildRequires:  python-jwcrypto
 # 0.3: sd_notify (https://pagure.io/freeipa/issue/5825)
 BuildRequires:  python2-custodia >= 0.3.1
 BuildRequires:  dbus-python
-BuildRequires:  python-dateutil
+BuildRequires:  python2-dateutil
 BuildRequires:  python-enum34
 BuildRequires:  python-netifaces
-BuildRequires:  python-sss
-BuildRequires:  python-sss-murmur
-BuildRequires:  python-sssdconfig
-BuildRequires:  python-nose
-BuildRequires:  python-paste
+BuildRequires:  python2-sss
+BuildRequires:  python2-sss-murmur
+BuildRequires:  python2-sssdconfig
+BuildRequires:  python2-nose
+BuildRequires:  python2-paste
 BuildRequires:  systemd-python
 BuildRequires:  python2-jinja2
-BuildRequires:  python-augeas
+BuildRequires:  python2-augeas
 
 %if 0%{?with_python3}
 # FIXME: this depedency is missing - server will not work
@@ -360,16 +360,16 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipaclient = %{version}-%{release}
 Requires: python2-custodia >= 0.3.1
 Requires: python-ldap >= 2.4.15
-Requires: python-lxml
+Requires: python2-lxml
 Requires: python-gssapi >= 1.2.0-5
-Requires: python-sssdconfig
-Requires: python-pyasn1
+Requires: python2-sssdconfig
+Requires: python2-pyasn1
 Requires: dbus-python
-Requires: python-dns >= 1.15
+Requires: python2-dns >= 1.15
 Requires: python-kdcproxy >= 0.3
 Requires: rpm-libs
 Requires: pki-base-python2
-Requires: python-augeas
+Requires: python2-augeas
 
 %description -n python2-ipaserver
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -552,7 +552,7 @@ BuildArch: noarch
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipalib = %{version}-%{release}
-Requires: python-dns >= 1.15
+Requires: python2-dns >= 1.15
 Requires: python2-jinja2
 
 %description -n python2-ipaclient
@@ -658,21 +658,21 @@ Requires: pyOpenSSL
 Requires: python >= 2.7.9
 Requires: python2-cryptography >= 1.6
 Requires: python-netaddr >= %{python_netaddr_version}
-Requires: python-libipa_hbac
+Requires: python2-libipa_hbac
 Requires: python-qrcode-core >= 5.0.0
-Requires: python-pyasn1
-Requires: python-pyasn1-modules
-Requires: python-dateutil
-Requires: python-yubico >= 1.2.3
-Requires: python-sss-murmur
+Requires: python2-pyasn1
+Requires: python2-pyasn1-modules
+Requires: python2-dateutil
+Requires: python2-yubico >= 1.2.3
+Requires: python2-sss-murmur
 Requires: dbus-python
-Requires: python-setuptools
+Requires: python2-setuptools
 Requires: python-six
 Requires: python-jwcrypto
-Requires: python-cffi
+Requires: python2-cffi
 Requires: python-ldap >= 2.4.15
-Requires: python-requests
-Requires: python-dns >= 1.15
+Requires: python2-requests
+Requires: python2-dns >= 1.15
 Requires: python-enum34
 Requires: python-netifaces >= 0.10.4
 Requires: pyusb
@@ -769,16 +769,16 @@ Requires: python2-ipaclient = %{version}-%{release}
 Requires: python2-ipaserver = %{version}-%{release}
 Requires: tar
 Requires: xz
-Requires: python-nose
+Requires: python2-nose
 Requires: pytest >= 2.6
-Requires: python-paste
-Requires: python-coverage
+Requires: python2-paste
+Requires: python2-coverage
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 Requires: python2-polib
 Requires: python-pytest-multihost >= 0.5
 Requires: python-pytest-sourceorder
 Requires: ldns-utils
-Requires: python-sssdconfig
+Requires: python2-sssdconfig
 Requires: python2-cryptography >= 1.6
 Requires: iptables
 
