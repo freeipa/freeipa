@@ -94,8 +94,6 @@ disable=
     consider-merging-isinstance,  # new in pylint 1.7
     unsupported-assignment-operation  # new in pylint 1.7
     consider-iterating-dictionary,  # wontfix for better python2/3 code
-    logging-not-lazy,
-    logging-format-interpolation,
 
 
 [REPORTS]
