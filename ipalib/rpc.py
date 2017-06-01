@@ -999,77 +999,85 @@ class RPCClient(Connectible):
             # No session key, do full Kerberos auth
             pass
         urls = self.get_url_list(rpc_uri)
-        serverproxy = None
-        for url in urls:
-            kw = {
-                'allow_none': True,
-                'encoding': 'UTF-8',
-                'verbose': verbose
-            }
-            if url.startswith('https://'):
-                if delegate:
-                    transport_class = DelegatedKerbTransport
-                else:
-                    transport_class = KerbTransport
-            else:
-                transport_class = LanguageAwareTransport
-            kw['transport'] = transport_class(protocol=self.protocol,
-                                              service='HTTP', ccache=ccache)
-            self.log.info('trying %s' % url)
-            setattr(context, 'request_url', url)
-            serverproxy = self.server_proxy_class(url, **kw)
-            if len(urls) == 1:
-                # if we have only 1 server and then let the
-                # main requester handle any errors. This also means it
-                # must handle a 401 but we save a ping.
-                return serverproxy
-            try:
-                command = getattr(serverproxy, 'ping')
-                try:
-                    command([], {})
-                except Fault as e:
-                    e = decode_fault(e)
-                    if e.faultCode in errors_by_code:
-                        error = errors_by_code[e.faultCode]
-                        raise error(message=e.faultString)
-                    else:
-                        raise UnknownError(
-                            code=e.faultCode,
-                            error=e.faultString,
-                            server=url,
-                        )
-                # We don't care about the response, just that we got one
-                break
-            except errors.KerberosError:
-                # kerberos error on one server is likely on all
-                raise
-            except ProtocolError as e:
-                if hasattr(context, 'session_cookie') and e.errcode == 401:
-                    # Unauthorized. Remove the session and try again.
-                    delattr(context, 'session_cookie')
-                    try:
-                        delete_persistent_client_session_data(principal)
-                    except Exception:
-                        # This shouldn't happen if we have a session but it isn't fatal.
-                        pass
-                    return self.create_connection(
-                        ccache, verbose, fallback, delegate)
-                if not fallback:
-                    raise
-                else:
-                    self.log.info('Connection to %s failed with %s', url, e)
-                serverproxy = None
-            except Exception as e:
-                if not fallback:
-                    raise
-                else:
-                    self.log.info('Connection to %s failed with %s', url, e)
-                serverproxy = None
 
-        if serverproxy is None:
-            raise NetworkError(uri=_('any of the configured servers'),
-                error=', '.join(urls))
-        return serverproxy
+        proxy_kw = {
+            'allow_none': True,
+            'encoding': 'UTF-8',
+            'verbose': verbose
+        }
+
+        for url in urls:
+            # should we get ProtocolError (=> error in HTTP response) and
+            # 401 (=> Unauthorized), we'll be re-trying with new session
+            # cookies several times
+            for _try_num in range(0, 5):
+                if url.startswith('https://'):
+                    if delegate:
+                        transport_class = DelegatedKerbTransport
+                    else:
+                        transport_class = KerbTransport
+                else:
+                    transport_class = LanguageAwareTransport
+                proxy_kw['transport'] = transport_class(
+                    protocol=self.protocol, service='HTTP', ccache=ccache)
+                self.log.info('trying %s' % url)
+                setattr(context, 'request_url', url)
+                serverproxy = self.server_proxy_class(url, **proxy_kw)
+                if len(urls) == 1:
+                    # if we have only 1 server and then let the
+                    # main requester handle any errors. This also means it
+                    # must handle a 401 but we save a ping.
+                    return serverproxy
+                try:
+                    command = getattr(serverproxy, 'ping')
+                    try:
+                        command([], {})
+                    except Fault as e:
+                        e = decode_fault(e)
+                        if e.faultCode in errors_by_code:
+                            error = errors_by_code[e.faultCode]
+                            raise error(message=e.faultString)
+                        else:
+                            raise UnknownError(
+                                code=e.faultCode,
+                                error=e.faultString,
+                                server=url,
+                            )
+                    # We don't care about the response, just that we got one
+                    return serverproxy
+                except errors.KerberosError:
+                    # kerberos error on one server is likely on all
+                    raise
+                except ProtocolError as e:
+                    if hasattr(context, 'session_cookie') and e.errcode == 401:
+                        # Unauthorized. Remove the session and try again.
+                        delattr(context, 'session_cookie')
+                        try:
+                            delete_persistent_client_session_data(principal)
+                        except Exception:
+                            # This shouldn't happen if we have a session but
+                            # it isn't fatal.
+                            pass
+                        # try the same url once more with a new session cookie
+                        continue
+                    if not fallback:
+                        raise
+                    else:
+                        self.log.info(
+                            'Connection to %s failed with %s', url, e)
+                    # try the next url
+                    break
+                except Exception as e:
+                    if not fallback:
+                        raise
+                    else:
+                        self.log.info(
+                            'Connection to %s failed with %s', url, e)
+                    # try the next url
+                    break
+        # finished all tries but no serverproxy was found
+        raise NetworkError(uri=_('any of the configured servers'),
+                           error=', '.join(urls))
 
     def destroy_connection(self):
         conn = getattr(context, self.id, None)
