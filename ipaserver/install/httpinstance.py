@@ -34,8 +34,7 @@ from augeas import Augeas
 from ipalib.install import certmonger
 from ipapython import ipaldap
 from ipapython.certdb import (IPA_CA_TRUST_FLAGS,
-                              EXTERNAL_CA_TRUST_FLAGS,
-                              TRUSTED_PEER_TRUST_FLAGS)
+                              EXTERNAL_CA_TRUST_FLAGS)
 from ipaserver.install import replication
 from ipaserver.install import service
 from ipaserver.install import certs
@@ -66,6 +65,10 @@ NSS_CIPHER_SUITE = [
     '+rsa_aes_256_gcm_sha_384', '+rsa_aes_256_sha'
 ]
 NSS_CIPHER_REVISION = '20160129'
+
+OCSP_DIRECTIVE = 'NSSOCSP'
+
+NSS_OCSP_ENABLED = 'nss_ocsp_enabled'
 
 
 def httpd_443_configured():
@@ -156,7 +159,7 @@ class HTTPInstance(service.Service):
                   self.set_mod_nss_protocol)
         self.step("setting mod_nss password file", self.__set_mod_nss_passwordfile)
         self.step("enabling mod_nss renegotiate", self.enable_mod_nss_renegotiate)
-        self.step("enabling mod_nss OCSP", self.enable_mod_nss_ocsp)
+        self.step("disabling mod_nss OCSP", self.disable_mod_nss_ocsp)
         self.step("adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
         self.step("setting up httpd keytab", self.request_service_keytab)
@@ -263,7 +266,12 @@ class HTTPInstance(service.Service):
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSRenegotiation', 'on', False)
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSRequireSafeNegotiation', 'on', False)
 
-    def enable_mod_nss_ocsp(self):
+    def disable_mod_nss_ocsp(self):
+        if sysupgrade.get_upgrade_state('http', NSS_OCSP_ENABLED) is None:
+            self.__disable_mod_nss_ocsp()
+            sysupgrade.set_upgrade_state('http', NSS_OCSP_ENABLED, False)
+
+    def __disable_mod_nss_ocsp(self):
         aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD)
 
         aug.set('/augeas/load/Httpd/lens', 'Httpd.lns')
@@ -271,22 +279,21 @@ class HTTPInstance(service.Service):
         aug.load()
 
         path = '/files{}/VirtualHost'.format(paths.HTTPD_NSS_CONF)
+        ocsp_path = '{}/directive[.="{}"]'.format(path, OCSP_DIRECTIVE)
+        ocsp_arg = '{}/arg'.format(ocsp_path)
+        ocsp_comment = '{}/#comment[.="{}"]'.format(path, OCSP_DIRECTIVE)
 
-        ocsp_comment = aug.get(
-                        '{}/#comment[.=~regexp("NSSOCSP .*")]'.format(path))
-        ocsp_dir = aug.get('{}/directive[.="NSSOCSP"]'.format(path))
+        ocsp_dir = aug.get(ocsp_path)
 
-        if ocsp_dir is None and ocsp_comment is not None:
-            # Directive is missing, comment is present
-            aug.set('{}/#comment[.=~regexp("NSSOCSP .*")]'.format(path),
-                    'NSSOCSP')
-            aug.rename('{}/#comment[.="NSSOCSP"]'.format(path), 'directive')
-        elif ocsp_dir is None:
-            # Directive is missing and comment is missing
-            aug.set('{}/directive[last()+1]'.format(path), "NSSOCSP")
+        # there is NSSOCSP directive in nss.conf file, comment it
+        # otherwise just do nothing
+        if ocsp_dir is not None:
+            ocsp_state = aug.get(ocsp_arg)
+            aug.remove(ocsp_arg)
+            aug.rename(ocsp_path, '#comment')
+            aug.set(ocsp_comment, '{} {}'.format(OCSP_DIRECTIVE, ocsp_state))
+            aug.save()
 
-        aug.set('{}/directive[. = "NSSOCSP"]/arg'.format(path), 'on')
-        aug.save()
 
     def set_mod_nss_cipher_suite(self):
         ciphers = ','.join(NSS_CIPHER_SUITE)
@@ -404,8 +411,6 @@ class HTTPInstance(service.Service):
 
             self.__set_mod_nss_nickname(nickname)
             self.add_cert_to_service()
-
-            db.trust_root_cert(nickname, TRUSTED_PEER_TRUST_FLAGS)
 
         else:
             if not self.promote:
