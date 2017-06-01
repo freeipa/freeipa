@@ -284,7 +284,7 @@ static krb5_error_code ipa_certauth_authorize(krb5_context context,
         }
     }
 
-    ret = krb5_unparse_name(context, princ, &principal);
+    ret = krb5_unparse_name(context, db_entry->princ, &principal);
     if (ret != 0) {
         ret = KRB5KDC_ERR_CERTIFICATE_MISMATCH;
         goto done;
