@@ -1395,24 +1395,6 @@ def fix_trust_flags():
     sysupgrade.set_upgrade_state('http', 'fix_trust_flags', True)
 
 
-def fix_server_cert_trust_flags():
-    root_logger.info(
-        '[Fixing server certificate trust flags in %s]' %
-        paths.HTTPD_ALIAS_DIR)
-
-    if sysupgrade.get_upgrade_state('http', 'fix_serv_cert_trust_flags'):
-        root_logger.info("Trust flags already processed")
-        return
-
-    db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
-    sc_nickname = installutils.get_directive(paths.HTTPD_NSS_CONF,
-                                             "NSSNickname")
-    # Add trust flag which set certificate trusted for SSL connections.
-    db.trust_root_cert(sc_nickname, certdb.TRUSTED_PEER_TRUST_FLAGS)
-
-    sysupgrade.set_upgrade_state('http', 'fix_serv_cert_trust_flags', True)
-
-
 def update_mod_nss_protocol(http):
     root_logger.info('[Updating mod_nss protocol versions]')
 
@@ -1425,9 +1407,9 @@ def update_mod_nss_protocol(http):
     sysupgrade.set_upgrade_state('nss.conf', 'protocol_updated_tls12', True)
 
 
-def enable_mod_nss_ocsp(http):
+def disable_mod_nss_ocsp(http):
     root_logger.info('[Updating mod_nss enabling OCSP]')
-    http.enable_mod_nss_ocsp()
+    http.disable_mod_nss_ocsp()
 
 
 def update_mod_nss_cipher_suite(http):
@@ -1721,9 +1703,8 @@ def upgrade_configuration():
     update_ipa_httpd_service_conf(http)
     update_mod_nss_protocol(http)
     update_mod_nss_cipher_suite(http)
-    enable_mod_nss_ocsp(http)
+    disable_mod_nss_ocsp(http)
     fix_trust_flags()
-    fix_server_cert_trust_flags()
     update_http_keytab(http)
     http.configure_gssproxy()
     http.start()
