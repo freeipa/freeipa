@@ -91,3 +91,12 @@ add:member: cn=Security Architect,cn=roles,cn=accounts,$SUFFIX
 dn: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
 add:member: cn=Security Architect,cn=roles,cn=accounts,$SUFFIX
 
+dn: cn=Enrollment Administrator,cn=roles,cn=accounts,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:objectClass: top
+default:cn: Enrollment Administrator
+default:description: Enrollment Administrator responsible for client(host) enrollment
+
+dn: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
+add:member: cn=Enrollment Administrator,cn=roles,cn=accounts,$SUFFIX
