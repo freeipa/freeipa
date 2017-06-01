@@ -545,6 +545,10 @@ class Restore(admintool.AdminTool):
                 ldif_parser = RemoveRUVParser(in_file, ldif_writer, self.log)
                 ldif_parser.parse()
 
+        # Make sure the modified ldiffile is owned by DS_USER
+        pent = pwd.getpwnam(constants.DS_USER)
+        os.chown(ldiffile, pent.pw_uid, pent.pw_gid)
+
         if online:
             conn = self.get_connection()
             ent = conn.make_entry(
