@@ -26,8 +26,10 @@ from ipalib import errors
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
                                               fuzzy_uuid, fuzzy_netgroupdn)
 from ipatests.test_xmlrpc import objectclasses
+from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
+from ipatests.util import run
 import pytest
 
 # Global so we can save the value between tests
@@ -1408,3 +1410,114 @@ class test_netgroup(Declarative):
 #        # and even which user gets into which triple can be random.
 #        assert '(nosuchhost,jexample,example.com)' in triples
 #        assert '(ipatesthost.%s,pexample,example.com)' % api.env.domain in triples
+
+
+@pytest.fixture(scope='function')
+def netgroup_test1(request):
+    name = u'netgroup-test-1'
+
+    def ng_cleanup():
+        api.Command.netgroup_del(name)
+
+    request.addfinalizer(ng_cleanup)
+
+    api.Command.netgroup_add(name)
+    return name
+
+
+@pytest.fixture(scope='function')
+def netgroup_test2(request):
+    name = u'netgroup-test-2'
+
+    def ng_cleanup():
+        api.Command.netgroup_del(name)
+    request.addfinalizer(ng_cleanup)
+
+    api.Command.netgroup_add(name)
+    return name
+
+
+@pytest.fixture(scope='function')
+def netgroup_test3(request):
+    name = u'netgroup-test-3'
+
+    def ng_cleanup():
+        api.Command.netgroup_del(name)
+    request.addfinalizer(ng_cleanup)
+
+    api.Command.netgroup_add(name)
+    return name
+
+
+@pytest.fixture(scope='function')
+def netgroup_user1(request):
+    tr = UserTracker(u'ng_user_1', u'ng', u'user')
+
+    return tr.make_fixture(request)
+
+
+@pytest.fixture(scope='function')
+def netgroup_user2(request):
+    tr = UserTracker(u'ng_user_2', u'ng', u'user')
+
+    return tr.make_fixture(request)
+
+
+@pytest.fixture(scope='function')
+def netgroup_user3(request):
+    tr = UserTracker(u'ng_user_3', u'ng', u'user')
+
+    return tr.make_fixture(request)
+
+
+def test_netgroup_nested_groups(
+        netgroup_test1, netgroup_test2, netgroup_test3,
+        netgroup_user1, netgroup_user2, netgroup_user3):
+    """Test resolution of nested netgroup membership
+
+    The test sets up a chain of netgroups with user members in
+    each of the groups. Then the membership is evaluated on each
+    group, expecting the membership of users in nested groups to be
+    propagated into parent groups.
+    """
+
+    netgroup_user1.create()
+    netgroup_user2.create()
+    netgroup_user3.create()
+
+    # Prepare the nested netgroup hierarchy
+    api.Command.netgroup_add_member(netgroup_test1, netgroup=netgroup_test2)
+    api.Command.netgroup_add_member(netgroup_test2, netgroup=netgroup_test3)
+
+    # Add an user to each group
+    api.Command.netgroup_add_member(netgroup_test1, user=netgroup_user1.name)
+    api.Command.netgroup_add_member(netgroup_test2, user=netgroup_user2.name)
+    api.Command.netgroup_add_member(netgroup_test3, user=netgroup_user3.name)
+
+    # Clean the sssd cache
+    run(['sudo', 'sss_cache', '-E'], raiseonerr=False)
+
+    # Call getent for each group and check if the users are in the right groups
+
+    # Expected results: getent output in form (-,USERNAME,DOMAIN)
+    # where the DOMAIN part is the nisDomainName of the netgroup
+    nisdomain = (
+        api.Command.netgroup_show(netgroup_test1)['result']['nisdomainname'][0]
+    )
+
+    ng_rec_tmpl = '(-,{user},{domain})'
+    ng_rec_u1 = ng_rec_tmpl.format(user=netgroup_user1.name, domain=nisdomain)
+    ng_rec_u2 = ng_rec_tmpl.format(user=netgroup_user2.name, domain=nisdomain)
+    ng_rec_u3 = ng_rec_tmpl.format(user=netgroup_user3.name, domain=nisdomain)
+
+    r1 = run(['getent', 'netgroup', netgroup_test1], capture_output=True)
+    r2 = run(['getent', 'netgroup', netgroup_test2], capture_output=True)
+    r3 = run(['getent', 'netgroup', netgroup_test3], capture_output=True)
+
+    assert ng_rec_u3 in r3.output
+    assert ng_rec_u3 in r2.output and ng_rec_u2 in r2.output
+    assert (
+        ng_rec_u3 in r1.output and
+        ng_rec_u2 in r1.output and
+        ng_rec_u1 in r1.output
+    )
