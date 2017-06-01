@@ -981,8 +981,8 @@ class cert(BaseCertObject):
                 param = param.clone(flags=param.flags - {'no_search'})
             yield param
 
-        for owner in self._owners():
-            yield owner.primary_key.clone_rename(
+        for owner, search_key in self._owners():
+            yield search_key.clone_rename(
                 'owner_{0}'.format(owner.name),
                 required=False,
                 multivalue=True,
@@ -992,15 +992,22 @@ class cert(BaseCertObject):
             )
 
     def _owners(self):
-        for name in ('user', 'host', 'service'):
-            yield self.api.Object[name]
+        for obj_name, search_key in [('user', None),
+                                     ('host', None),
+                                     ('service', 'krbprincipalname')]:
+            obj = self.api.Object[obj_name]
+            if search_key is None:
+                pkey = obj.primary_key
+            else:
+                pkey = obj.params[search_key]
+            yield obj, pkey
 
     def _fill_owners(self, obj):
         dns = obj.pop('owner', None)
         if dns is None:
             return
 
-        for owner in self._owners():
+        for owner, _search_key in self._owners():
             container_dn = DN(owner.container_dn, self.api.env.basedn)
             name = 'owner_' + owner.name
             for dn in dns:
@@ -1264,8 +1271,8 @@ class cert_find(Search, CertMethod):
                 option = option.clone(default=None, autofill=None)
             yield option
 
-        for owner in self.obj._owners():
-            yield owner.primary_key.clone_rename(
+        for owner, search_key in self.obj._owners():
+            yield search_key.clone_rename(
                 '{0}'.format(owner.name),
                 required=False,
                 multivalue=True,
@@ -1276,7 +1283,7 @@ class cert_find(Search, CertMethod):
                      owner.object_name_plural),
                 label=owner.object_name,
             )
-            yield owner.primary_key.clone_rename(
+            yield search_key.clone_rename(
                 'no_{0}'.format(owner.name),
                 required=False,
                 multivalue=True,
@@ -1395,7 +1402,7 @@ class cert_find(Search, CertMethod):
         ldap = self.api.Backend.ldap2
 
         filters = []
-        for owner in self.obj._owners():
+        for owner, search_key in self.obj._owners():
             for prefix, rule in (('', ldap.MATCH_ALL),
                                  ('no_', ldap.MATCH_NONE)):
                 try:
@@ -1411,7 +1418,7 @@ class cert_find(Search, CertMethod):
                     filters.append(filter)
 
                 filter = ldap.make_filter_from_attr(
-                    owner.primary_key.name,
+                    search_key.name,
                     value,
                     rule)
                 filters.append(filter)
