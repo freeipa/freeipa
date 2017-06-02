@@ -531,7 +531,13 @@ class IPADiscovery(object):
         for answer in answers:
             root_logger.debug("DNS record found: %s", answer)
             if answer.strings:
-                realm = answer.strings[0]
+                try:
+                    realm = answer.strings[0].decode('utf-8')
+                except UnicodeDecodeError as e:
+                    root_logger.debug(
+                        'A TXT record cannot be decoded as UTF-8: {err}'
+                        .format(err=e))
+                    continue
                 if realm:
                     break
         return realm
