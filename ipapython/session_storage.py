@@ -336,7 +336,7 @@ def get_data(princ_name, key):
             krb5_cc_end_seq_get(context, ccache, ctypes.byref(cursor))
 
         if got_creds:
-            data = creds.ticket.data.decode('utf-8')
+            data = creds.ticket.data
             krb5_free_cred_contents(context, ctypes.byref(creds))
             return data
 

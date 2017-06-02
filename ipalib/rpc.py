@@ -887,7 +887,10 @@ class RPCClient(Connectible):
         # (possibly with more than one cookie).
         try:
             cookie_string = read_persistent_client_session_data(principal)
-        except Exception:
+            cookie_string = cookie_string.decode('utf-8')
+        except Exception as e:
+            self.log.debug('Error reading client session data: {err}'
+                           .format(err=e))
             return None
 
         # Search for the session cookie within the cookie string
