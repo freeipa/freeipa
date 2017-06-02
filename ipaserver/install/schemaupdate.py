@@ -119,7 +119,7 @@ def update_schema(schema_files, ldapi=False, dm_password=None,):
 
     # The exact representation the DS gives us for each OID
     # (for debug logging)
-    old_entries_by_oid = {cls(attr.decode('utf-8')).oid: attr.decode('utf-8')
+    old_entries_by_oid = {cls(attr).oid: attr.decode('utf-8')
                           for (attrname, cls) in SCHEMA_ELEMENT_CLASSES
                           for attr in schema_entry[attrname]}
 
