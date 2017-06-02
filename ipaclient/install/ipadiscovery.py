@@ -514,7 +514,11 @@ class IPADiscovery(object):
         return servers
 
     def ipadnssearchkrbrealm(self, domain=None):
-        realm = None
+        """
+        :param domain: Domain to be searched in
+        :returns: string of a realm found in a TXT record
+                  None if no realm was found
+        """
         if not domain:
             domain = self.domain
         # now, check for a Kerberos realm the local host or domain is in
@@ -528,6 +532,7 @@ class IPADiscovery(object):
             root_logger.debug("DNS record not found: %s", e.__class__.__name__)
             answers = []
 
+        realm = None
         for answer in answers:
             root_logger.debug("DNS record found: %s", answer)
             if answer.strings:
@@ -539,8 +544,7 @@ class IPADiscovery(object):
                         .format(err=e))
                     continue
                 if realm:
-                    break
-        return realm
+                    return realm
 
     def ipadnssearchkrbkdc(self, domain=None):
         kdc = None
