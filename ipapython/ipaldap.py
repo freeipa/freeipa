@@ -168,7 +168,8 @@ schema_cache = SchemaCache()
 
 class LDAPEntry(collections.MutableMapping):
     __slots__ = ('_conn', '_dn', '_names', '_nice', '_raw', '_sync',
-                 '_not_list', '_orig', '_raw_view', '_single_value_view')
+                 '_not_list', '_orig_raw', '_raw_view',
+                 '_single_value_view')
 
     def __init__(self, _conn, _dn=None, _obj=None, **kwargs):
         """
@@ -210,14 +211,14 @@ class LDAPEntry(collections.MutableMapping):
         self._raw = {}
         self._sync = {}
         self._not_list = set()
-        self._orig = {}
+        self._orig_raw = {}
         self._raw_view = None
         self._single_value_view = None
 
         if isinstance(_obj, LDAPEntry):
             #pylint: disable=E1103
             self._not_list = set(_obj._not_list)
-            self._orig = dict(_obj._orig)
+            self._orig_raw = dict(_obj._orig_raw)
             if _obj.conn is _conn:
                 self._names = CIDict(_obj._names)
                 self._nice = dict(_obj._nice)
@@ -346,9 +347,9 @@ class LDAPEntry(collections.MutableMapping):
 
         self._names[name] = name
 
-        for oldname in list(self._orig):
+        for oldname in list(self._orig_raw):
             if self._names.get(oldname) == name:
-                self._orig[name] = self._orig.pop(oldname)
+                self._orig_raw[name] = self._orig_raw.pop(oldname)
                 break
 
         return name
@@ -483,16 +484,16 @@ class LDAPEntry(collections.MutableMapping):
         if other is None:
             other = self
         assert isinstance(other, LDAPEntry)
-        self._orig = deepcopy(dict(other.raw))
+        self._orig_raw = deepcopy(dict(other.raw))
 
     def generate_modlist(self):
         modlist = []
 
         names = set(self)
-        names.update(self._orig)
+        names.update(self._orig_raw)
         for name in names:
             new = self.raw.get(name, [])
-            old = self._orig.get(name, [])
+            old = self._orig_raw.get(name, [])
             if old and not new:
                 modlist.append((ldap.MOD_DELETE, name, None))
                 continue
