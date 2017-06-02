@@ -1054,9 +1054,6 @@ class LDAPClient(object):
                     reason=_('objectclass %s not found') % oc)
         return [unicode(a).lower() for a in list(set(allowed_attributes))]
 
-    def __del__(self):
-        self.close()
-
     def __enter__(self):
         return self
 
