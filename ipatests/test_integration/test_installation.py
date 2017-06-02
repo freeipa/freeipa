@@ -110,7 +110,6 @@ class ADTrustInstallTestBase(IntegrationTest):
 ##
 # Master X Replicas installation tests
 ##
-
 class TestInstallWithCA1(InstallTestBase1):
 
     @classmethod
@@ -119,18 +118,24 @@ class TestInstallWithCA1(InstallTestBase1):
 
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
-    def test_replica1_ipa_kra_install(self):
-        super(TestInstallWithCA1, self).test_replica1_ipa_kra_install()
+    def test_replica2_ipa_dns_install(self):
+        super(TestInstallWithCA1, self).test_replica2_ipa_dns_install()
+
+
+class TestInstallWithCA1_KRA1(InstallTestBase1):
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=False, setup_kra=True)
 
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica2_with_ca_kra_install(self):
-        super(TestInstallWithCA1, self).test_replica2_with_ca_kra_install()
+        super(TestInstallWithCA1_KRA1, 
+              self).test_replica2_with_ca_kra_install()
 
-    @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
-                        reason='does not work on DOMAIN_LEVEL_0 by design')
-    def test_replica2_ipa_dns_install(self):
-        super(TestInstallWithCA1, self).test_replica2_ipa_dns_install()
+    def test_replica1_ipa_kra_install(self):
+        super(TestInstallWithCA1_KRA1, self).test_replica1_ipa_kra_install()
 
 
 class TestInstallWithCA2(InstallTestBase2):
