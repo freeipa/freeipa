@@ -45,6 +45,7 @@ class SSSDInstallInterface(service.ServiceInstallInterface):
 
     no_sssd = knob(
         None,
+        deprecated=True,
         description="Do not configure the client to use SSSD for "
                     "authentication",
         cli_names=[None, '-S'],
