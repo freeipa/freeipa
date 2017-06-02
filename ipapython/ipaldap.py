@@ -867,7 +867,7 @@ class LDAPClient(object):
             dct = dict((k, self.encode(v)) for k, v in val.items())
             return dct
         elif isinstance(val, datetime.datetime):
-            return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
+            return val.strftime(LDAP_GENERALIZED_TIME_FORMAT).encode('utf-8')
         elif val is None:
             return None
         else:
