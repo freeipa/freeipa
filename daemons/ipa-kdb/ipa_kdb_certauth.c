@@ -267,6 +267,7 @@ static krb5_error_code ipa_certauth_authorize(krb5_context context,
     int ret;
     size_t c;
     char *principal = NULL;
+    char **auth_inds = NULL;
     LDAPMessage *res = NULL;
     krb5_error_code kerr;
     LDAPMessage *lentry;
@@ -350,6 +351,20 @@ static krb5_error_code ipa_certauth_authorize(krb5_context context,
         goto done;
     }
 
+    /* Associate authentication indicator "pkinit" with the successful match.
+     * SSSD interface doesn't give us a clue which rule did match
+     * so there is nothing more to add here. */
+    auth_inds = calloc(2, sizeof(char *));
+    if (auth_inds != NULL) {
+	ret = asprintf(&auth_inds[0], "pkinit");
+	if (ret != -1) {
+            auth_inds[1] = NULL;
+            *authinds_out = auth_inds;
+	} else {
+	    free(auth_inds);
+        }
+    }
+
     /* TODO: add more tests ? */
 
     ret = 0;
@@ -384,6 +399,24 @@ static void ipa_certauth_fini(krb5_context context,
     return;
 }
 
+static void ipa_certauth_free_indicator(krb5_context context,
+                                        krb5_certauth_moddata moddata,
+                                        char **authinds)
+{
+    size_t i = 0;
+
+    if ((authinds == NULL) || (moddata == NULL)) {
+	return;
+    }
+
+    for(i=0; authinds[i]; i++) {
+	free(authinds[i]);
+	authinds[i] = NULL;
+    }
+
+    free(authinds);
+}
+
 
 krb5_error_code certauth_ipakdb_initvt(krb5_context context,
                                           int maj_ver, int min_ver,
@@ -401,7 +434,6 @@ krb5_error_code certauth_ipakdb_initvt(krb5_context context,
     vt->authorize = ipa_certauth_authorize;
     vt->init = ipa_certauth_init;
     vt->fini = ipa_certauth_fini;
-    /* currently we do not return authentication indicators */
-    vt->free_ind = NULL;
+    vt->free_ind = ipa_certauth_free_indicator;
     return 0;
 }
