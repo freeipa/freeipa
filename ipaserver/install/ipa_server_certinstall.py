@@ -34,7 +34,7 @@ from ipapython.certdb import (get_ca_nickname,
                               verify_kdc_cert_validity)
 from ipapython.dn import DN
 from ipalib import api, errors
-from ipaserver.install import certs, dsinstance, installutils
+from ipaserver.install import certs, dsinstance, installutils, krbinstance
 
 
 class ServerCertInstall(admintool.AdminTool):
@@ -222,6 +222,13 @@ class ServerCertInstall(admintool.AdminTool):
                         profile='KDCs_PKINIT_Certs')
         except RuntimeError as e:
             raise admintool.ScriptError(str(e))
+
+        krb = krbinstance.KrbInstance()
+        krb.init_info(
+            realm_name=api.env.realm,
+            host_name=api.env.host,
+        )
+        krb.pkinit_enable()
 
     def check_chain(self, pkcs12_filename, pkcs12_pin, nssdb):
         # create a temp nssdb
