@@ -1,0 +1,34 @@
+.\"
+.\" Copyright (C) 2017  FreeIPA Contributors see COPYING for license
+.\"
+.TH "ipa-pkinit-manage" "1" "Jun 05 2017" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-pkinit\-manage \- Enables or disables PKINIT
+.SH "SYNOPSIS"
+ipa\-pkinit\-manage [options] <enable|disable|status>
+.SH "DESCRIPTION"
+Run the command with the \fBenable\fR option to enable PKINIT.
+
+Run the command with the \fBdisable\fR option to disable PKINIT.
+
+Run the command with the \fBstatus\fR to determine the current status of PKINIT.
+.SH "OPTIONS"
+.TP
+\fB\-\-version\fR
+Show the program's version and exit.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show the help for this program.
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Print debugging information.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Output only errors.
+.TP
+\fB\-\-log\-file\fR=\fIFILE\fR
+Log to the given file.
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred

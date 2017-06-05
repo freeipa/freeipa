@@ -27,6 +27,7 @@ dist_man1_MANS = 			\
 	ipa-otptoken-import.1		\
 	ipa-cacert-manage.1		\
 	ipa-winsync-migrate.1		\
+	ipa-pkinit-manage.1		\
         $(NULL)
 
 dist_man8_MANS =			\
