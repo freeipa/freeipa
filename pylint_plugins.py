@@ -69,6 +69,7 @@ fake_api_env = {'env': [
     'realm',
     'session_auth_duration',
     'session_duration_type',
+    'kinit_lifetime',
 ]}
 
 # this is due ipaserver.rpcserver.KerberosSession where api is undefined
