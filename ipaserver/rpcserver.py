@@ -969,7 +969,8 @@ class login_password(Backend, KerberosSession):
                 password,
                 ccache_name,
                 armor_ccache_name=armor_path,
-                enterprise=True)
+                enterprise=True,
+                lifetime=self.api.env.kinit_lifetime)
 
             if armor_path:
                 self.debug('Cleanup the armor ccache')
