@@ -94,8 +94,67 @@ class _AdviceOutput(object):
         if self.options.verbose:
             self.comment('DEBUG: ' + line)
 
-    def command(self, line):
-        self.content.append(line)
+    def command(self, line, indent_spaces=0):
+        self.content.append(
+            '{}{}'.format(self._format_indent(indent_spaces), line))
+
+    def _format_indent(self, num_spaces):
+        return ' ' * num_spaces
+
+    def echo_error(self, error_message, indent_spaces=0):
+        self.command(
+            self._format_error(error_message), indent_spaces=indent_spaces)
+
+    def _format_error(self, error_message):
+        return 'echo "{}" >&2'.format(error_message)
+
+    def exit_on_failed_command(self, command_to_run,
+                               error_message_lines, indent_spaces=0):
+        self.command(command_to_run, indent_spaces=indent_spaces)
+        self.exit_on_predicate(
+            '[ "$?" -ne "0" ]',
+            error_message_lines,
+            indent_spaces=indent_spaces)
+
+    def exit_on_nonroot_euid(self):
+        self.exit_on_predicate(
+            '[ "$(id -u)" -ne "0" ]',
+            ["This script has to be run as root user"]
+        )
+
+    def exit_on_predicate(self, predicate, error_message_lines,
+                          indent_spaces=0):
+        commands_to_run = [
+            self._format_error(error_message_line)
+            for error_message_line in error_message_lines]
+
+        commands_to_run.append('exit 1')
+        self.commands_on_predicate(
+            predicate,
+            commands_to_run,
+            indent_spaces=indent_spaces)
+
+    def commands_on_predicate(self, predicate, commands_to_run_when_true,
+                              commands_to_run_when_false=None,
+                              indent_spaces=0):
+        if_command = 'if {}'.format(predicate)
+        self.command(if_command, indent_spaces=indent_spaces)
+        self.command('then', indent_spaces=indent_spaces)
+
+        indented_block_spaces = indent_spaces + 2
+
+        for command_to_run_when_true in commands_to_run_when_true:
+            self.command(
+                command_to_run_when_true, indent_spaces=indented_block_spaces)
+
+        if commands_to_run_when_false is not None:
+            self.command("else", indent_spaces=indent_spaces)
+            for command_to_run_when_false in commands_to_run_when_false:
+                self.command(
+                    command_to_run_when_false,
+                    indent_spaces=indented_block_spaces)
+
+        self.command('fi', indent_spaces=indent_spaces)
 
 
 class Advice(Plugin):
