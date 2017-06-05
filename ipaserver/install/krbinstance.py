@@ -451,6 +451,30 @@ class KrbInstance(service.Service):
         service.set_service_entry_config(
             'KDC', self.fqdn, [PKINIT_ENABLED], self.suffix)
 
+    def pkinit_disable(self):
+        """
+        unadvertise enabled PKINIT feature in master's KDC entry in LDAP
+        """
+        ldap = api.Backend.ldap2
+        dn = DN(('cn', 'KDC'),
+                ('cn', self.fqdn),
+                ('cn', 'masters'),
+                ('cn', 'ipa'),
+                ('cn', 'etc'),
+                self.suffix)
+
+        entry = ldap.get_entry(dn, ['ipaConfigString'])
+
+        config = entry.setdefault('ipaConfigString', [])
+        config = [value for value in config
+                  if value.lower() != PKINIT_ENABLED.lower()]
+        entry['ipaConfigString'][:] = config
+
+        try:
+            ldap.update_entry(entry)
+        except errors.EmptyModlist:
+            pass
+
     def _install_pkinit_ca_bundle(self):
         ca_certs = certstore.get_ca_certs(self.api.Backend.ldap2,
                                           self.api.env.basedn,
