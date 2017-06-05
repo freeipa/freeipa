@@ -1519,14 +1519,8 @@ def add_default_caacl(ca):
 def setup_pkinit(krb):
     root_logger.info("[Setup PKINIT]")
 
-    pkinit_is_enabled = krbinstance.is_pkinit_enabled()
-    ca_is_enabled = api.Command.ca_is_enabled()['result']
-
-    if not pkinit_is_enabled:
-        if ca_is_enabled:
-            krb.issue_ipa_ca_signed_pkinit_certs()
-        else:
-            krb.issue_selfsigned_pkinit_certs()
+    if not krbinstance.is_pkinit_enabled():
+        krb.issue_selfsigned_pkinit_certs()
 
     aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD,
                  loadpath=paths.USR_SHARE_IPA_DIR)
