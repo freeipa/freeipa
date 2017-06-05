@@ -805,10 +805,10 @@ class CAInstance(DogtagInstance):
         for path in [paths.IPA_CA_CRT,
                      paths.KDC_CA_BUNDLE_PEM,
                      paths.CA_BUNDLE_PEM]:
-            with open(path, 'w') as ipaca_pem:
+            with open(path, 'wb') as ipaca_pem:
                 for cert in certlist:
                     ipaca_pem.write(cert)
-                    ipaca_pem.write('\n')
+                    ipaca_pem.write(b'\n')
 
     def __request_ra_certificate(self):
         # create a temp file storing the pwd

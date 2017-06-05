@@ -96,4 +96,4 @@ def makecert(reqdir, subject, principal):
     csr = unicode(generate_csr(reqdir, pwname, str(subject)))
 
     res = api.Command['cert_request'](csr, principal=principal, add=True)
-    return x509.make_pem(res['result']['certificate'])
+    return x509.make_pem(res['result']['certificate'].encode('ascii'))

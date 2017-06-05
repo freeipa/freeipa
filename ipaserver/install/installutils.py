@@ -1217,11 +1217,11 @@ def load_external_cert(files, ca_subject):
                     (subject, ", ".join(files), e))
 
     cert_file = tempfile.NamedTemporaryFile()
-    cert_file.write(ca_cert_chain[0] + '\n')
+    cert_file.write(ca_cert_chain[0] + b'\n')
     cert_file.flush()
 
     ca_file = tempfile.NamedTemporaryFile()
-    ca_file.write('\n'.join(ca_cert_chain[1:]) + '\n')
+    ca_file.write(b'\n'.join(ca_cert_chain[1:]) + b'\n')
     ca_file.flush()
 
     return cert_file, ca_file

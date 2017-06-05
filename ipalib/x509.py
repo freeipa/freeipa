@@ -235,12 +235,10 @@ def make_pem(data):
     Convert a raw base64-encoded blob into something that looks like a PE
     file with lines split to 64 characters and proper headers.
     """
-    if isinstance(data, bytes):
-        data = data.decode('ascii')
-    pemcert = '\r\n'.join([data[x:x+64] for x in range(0, len(data), 64)])
-    return '-----BEGIN CERTIFICATE-----\n' + \
-    pemcert + \
-    '\n-----END CERTIFICATE-----'
+    pemcert = b'\r\n'.join([data[x:x+64] for x in range(0, len(data), 64)])
+    return (b'-----BEGIN CERTIFICATE-----\n' + pemcert +
+            b'\n-----END CERTIFICATE-----')
+
 
 def normalize_certificate(rawcert):
     """
@@ -299,7 +297,7 @@ def write_certificate(rawcert, filename):
     dercert = normalize_certificate(rawcert)
 
     try:
-        fp = open(filename, 'w')
+        fp = open(filename, 'wb')
         fp.write(make_pem(base64.b64encode(dercert)))
         fp.close()
     except (IOError, OSError) as e:
@@ -315,11 +313,11 @@ def write_certificate_list(rawcerts, filename):
     dercerts = [normalize_certificate(rawcert) for rawcert in rawcerts]
 
     try:
-        with open(filename, 'w') as f:
+        with open(filename, 'wb') as f:
             for cert in dercerts:
                 cert = base64.b64encode(cert)
                 cert = make_pem(cert)
-                f.write(cert + '\n')
+                f.write(cert + b'\n')
     except (IOError, OSError) as e:
         raise errors.FileError(reason=str(e))
 
