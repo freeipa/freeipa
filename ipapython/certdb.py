@@ -440,8 +440,12 @@ class NSSDatabase(object):
                     "Failed to open %s: %s" % (filename, e.strerror))
 
             # Try to parse the file as PEM file
-            matches = list(re.finditer(
-                r'-----BEGIN (.+?)-----(.*?)-----END \1-----', data, re.DOTALL))
+            matches = list(
+                re.finditer(
+                    br'-----BEGIN (.+?)-----(.*?)-----END \1-----',
+                    data, re.DOTALL
+                )
+            )
             if matches:
                 loaded = False
                 for match in matches:
@@ -449,12 +453,12 @@ class NSSDatabase(object):
                     label = match.group(1)
                     line = len(data[:match.start() + 1].splitlines())
 
-                    if label in ('CERTIFICATE', 'X509 CERTIFICATE',
-                                 'X.509 CERTIFICATE'):
+                    if label in (b'CERTIFICATE', b'X509 CERTIFICATE',
+                                 b'X.509 CERTIFICATE'):
                         try:
                             cert = x509.load_pem_x509_certificate(body)
                         except ValueError as e:
-                            if label != 'CERTIFICATE':
+                            if label != b'CERTIFICATE':
                                 logger.warning(
                                     "Skipping certificate in %s at line %s: "
                                     "%s",
@@ -465,11 +469,12 @@ class NSSDatabase(object):
                             loaded = True
                             continue
 
-                    if label in ('PKCS7', 'PKCS #7 SIGNED DATA', 'CERTIFICATE'):
+                    if label in (b'PKCS7', b'PKCS #7 SIGNED DATA',
+                                 b'CERTIFICATE'):
                         try:
                             certs = x509.pkcs7_to_certs(body)
                         except ipautil.CalledProcessError as e:
-                            if label == 'CERTIFICATE':
+                            if label == b'CERTIFICATE':
                                 logger.warning(
                                     "Skipping certificate in %s at line %s: "
                                     "%s",
@@ -484,9 +489,9 @@ class NSSDatabase(object):
                             loaded = True
                             continue
 
-                    if label in ('PRIVATE KEY', 'ENCRYPTED PRIVATE KEY',
-                                 'RSA PRIVATE KEY', 'DSA PRIVATE KEY',
-                                 'EC PRIVATE KEY'):
+                    if label in (b'PRIVATE KEY', b'ENCRYPTED PRIVATE KEY',
+                                 b'RSA PRIVATE KEY', b'DSA PRIVATE KEY',
+                                 b'EC PRIVATE KEY'):
                         if not import_keys:
                             continue
 
@@ -500,8 +505,8 @@ class NSSDatabase(object):
                             '-topk8',
                             '-passout', 'file:' + self.pwd_file,
                         ]
-                        if ((label != 'PRIVATE KEY' and key_password) or
-                            label == 'ENCRYPTED PRIVATE KEY'):
+                        if ((label != b'PRIVATE KEY' and key_password) or
+                                label == b'ENCRYPTED PRIVATE KEY'):
                             key_pwdfile = ipautil.write_tmp_file(key_password)
                             args += [
                                 '-passin', 'file:' + key_pwdfile.name,
@@ -613,6 +618,11 @@ class NSSDatabase(object):
                     "Setting trust on %s failed" % root_nickname)
 
     def get_cert(self, nickname):
+        """
+        :param nickname: nickname of the certificate in the NSS database
+        :returns: string in Python2
+                  bytes in Python3
+        """
         args = ['-L', '-n', nickname, '-a']
         try:
             result = self.run_certutil(args, capture_output=True)
