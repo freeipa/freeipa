@@ -692,6 +692,12 @@ class server_del(LDAPDelete):
                     message=_("You may need to manually remove them from the "
                               "tree")))
 
+    def _cleanup_server_dns_config(self, hostname):
+        try:
+            self.api.Command.dnsserver_del(hostname)
+        except errors.NotFound:
+            pass
+
     def pre_callback(self, ldap, dn, *keys, **options):
         pkey = self.obj.get_primary_key_from_dn(dn)
 
@@ -730,6 +736,9 @@ class server_del(LDAPDelete):
 
         # try to clean up the leftover DNS entries
         self._cleanup_server_dns_records(pkey)
+
+        # try to clean up the DNS config from ldap
+        self._cleanup_server_dns_config(pkey)
 
         return dn
 
