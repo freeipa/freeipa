@@ -354,7 +354,7 @@ class ADTRUSTInstance(service.Service):
 
             if abs(self.rid_base - self.secondary_rid_base) < size:
                 self.print_msg("Primary and secondary RID base are too close. "
-                      "They have to differ at least by %d." % size)
+                               "They have to differ at least by %d." % size)
                 raise RuntimeError("RID bases too close.\n")
 
             # Modify the range
