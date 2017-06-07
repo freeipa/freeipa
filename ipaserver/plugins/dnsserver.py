@@ -29,6 +29,7 @@ from ipaserver.plugins.baseldap import (
     LDAPDelete,
 )
 from .dns import dns_container_exists
+from ipapython.dn import DN
 
 
 __doc__ = _("""
@@ -165,6 +166,16 @@ class dnsserver_find(LDAPSearch):
         '%(count)d DNS server matched',
         '%(count)d DNS servers matched', 0
     )
+
+    def pre_callback(self, ldap, filters, attrs_list,
+                     base_dn, scope, *args, **options):
+        assert isinstance(base_dn, DN)
+
+        if not dns_container_exists(self.api.Backend.ldap2):
+            raise errors.InvocationError(
+                format=_('IPA DNS Server is not installed'))
+
+        return (filters, base_dn, scope)
 
 
 @register()
