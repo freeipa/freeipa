@@ -169,7 +169,7 @@ BuildRequires:  python3-wheel
 BuildRequires:  samba-python
 # 1.4: the version where Certificate.serial changed to .serial_number
 BuildRequires:  python2-cryptography >= 1.4
-BuildRequires:  python-gssapi >= 1.2.0
+BuildRequires:  python-gssapi >= 1.2.0-5
 BuildRequires:  pylint >= 1.6
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 BuildRequires:  python2-polib
@@ -286,7 +286,7 @@ Requires: mod_session
 # 0.9.9: https://github.com/adelton/mod_lookup_identity/pull/3
 Requires: mod_lookup_identity >= 0.9.9
 Requires: python-ldap >= 2.4.15
-Requires: python-gssapi >= 1.2.0
+Requires: python-gssapi >= 1.2.0-5
 Requires: acl
 Requires: systemd-units >= 38
 Requires(pre): shadow-utils
@@ -353,7 +353,7 @@ Requires: python2-ipaclient = %{version}-%{release}
 Requires: python2-custodia >= 0.3.1
 Requires: python-ldap >= 2.4.15
 Requires: python-lxml
-Requires: python-gssapi >= 1.2.0
+Requires: python-gssapi >= 1.2.0-5
 Requires: python-sssdconfig
 Requires: python-pyasn1
 Requires: dbus-python
@@ -506,7 +506,7 @@ Requires: certmonger >= 0.78
 Requires: nss-tools
 Requires: bind-utils
 Requires: oddjob-mkhomedir
-Requires: python-gssapi >= 1.2.0
+Requires: python-gssapi >= 1.2.0-5
 Requires: libsss_autofs
 Requires: autofs
 Requires: libnfsidmap
@@ -643,7 +643,7 @@ Provides: python2-ipaplatform = %{version}-%{release}
 %{?python_provide:%python_provide python2-ipaplatform}
 %{!?python_provide:Provides: python-ipaplatform = %{version}-%{release}}
 Requires: %{name}-common = %{version}-%{release}
-Requires: python-gssapi >= 1.2.0
+Requires: python-gssapi >= 1.2.0-5
 Requires: gnupg
 Requires: keyutils
 Requires: pyOpenSSL
