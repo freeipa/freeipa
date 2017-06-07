@@ -345,9 +345,14 @@ class ADTRUSTInstance(service.Service):
 
             # Abort if RID bases are too close
             local_range = ranges_with_no_rid_base[0]
-            size = local_range.single_value.get('ipaIDRangeSize')
+            try:
+                size = int(local_range.single_value.get('ipaIDRangeSize'))
+            except ValueError:
+                raise RuntimeError('ipaIDRangeSize is set to a non-integer '
+                                   'value or is not set at all (got {val})'
+                                   .format(val=size))
 
-            if abs(self.rid_base - self.secondary_rid_base) > size:
+            if abs(self.rid_base - self.secondary_rid_base) < size:
                 self.print_msg("Primary and secondary RID base are too close. "
                       "They have to differ at least by %d." % size)
                 raise RuntimeError("RID bases too close.\n")
