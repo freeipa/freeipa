@@ -509,23 +509,17 @@ class ADTRUSTInstance(service.Service):
             self.print_msg(UPGRADE_ERROR % dict(dn=targets_dn))
 
     def __write_smb_registry(self):
-        template = os.path.join(paths.USR_SHARE_IPA_DIR, "smb.conf.template")
-        conf = ipautil.template_file(template, self.sub_dict)
-        [tmp_fd, tmp_name] = tempfile.mkstemp()
-        os.write(tmp_fd, conf)
-        os.close(tmp_fd)
-
         # Workaround for: https://fedorahosted.org/freeipa/ticket/5687
         # We make sure that paths.SMB_CONF file exists, hence touch it
         with open(paths.SMB_CONF, 'a'):
             os.utime(paths.SMB_CONF, None)
 
-        args = [paths.NET, "conf", "import", tmp_name]
-
-        try:
-            ipautil.run(args)
-        finally:
-            os.remove(tmp_name)
+        template = os.path.join(paths.USR_SHARE_IPA_DIR, "smb.conf.template")
+        conf = ipautil.template_file(template, self.sub_dict)
+        with tempfile.NamedTemporaryFile(mode='w') as tmp_conf:
+            tmp_conf.write(conf)
+            tmp_conf.flush()
+            ipautil.run([paths.NET, "conf", "import", tmp_conf.name])
 
     def __setup_group_membership(self):
         # Add the CIFS and host principals to the 'adtrust agents' group
