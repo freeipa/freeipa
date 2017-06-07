@@ -96,4 +96,10 @@ def makecert(reqdir, subject, principal):
     csr = unicode(generate_csr(reqdir, pwname, str(subject)))
 
     res = api.Command['cert_request'](csr, principal=principal, add=True)
-    return x509.make_pem(res['result']['certificate'].encode('ascii'))
+    cert = res['result']['certificate']
+    if six.PY3:
+        # in Python 3, make_pem expects a bytes instance
+        # in Python 2, we need to pass unicode so that the PEM cert is handled
+        # properly in the Bytes._covnert_scalar() method
+        cert = cert.encode('ascii')
+    return x509.make_pem(cert)
