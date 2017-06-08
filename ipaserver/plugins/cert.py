@@ -544,6 +544,7 @@ class BaseCertObject(Object):
         }
         default_attrs = {
             'san_rfc822name', 'san_dnsname', 'san_other_upn', 'san_other_kpn',
+            'san_directoryname',
         }
 
         if type(gn) not in name_type_map:
@@ -900,6 +901,12 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                         error=_(
                             "subject alt name type %s is forbidden "
                             "for non-user principals") % "RFC822Name"
+                    )
+            elif isinstance(gn, cryptography.x509.general_name.DirectoryName):
+                if DN(gn.value) != principal_obj['dn']:
+                    raise errors.ValidationError(
+                        name='csr',
+                        error=_("Directory Name does not match principal's DN")
                     )
             else:
                 raise errors.ACIError(
