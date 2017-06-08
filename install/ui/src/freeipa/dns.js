@@ -294,6 +294,11 @@ return {
         height: 300,
         sections: [
             {
+                name: 'dnszone_title',
+                label: 'Select the required zone type.',
+                fields: []
+            },
+            {
                 name: 'name',
                 layout: IPA.dnszone_name_section_layout,
                 fields: [
@@ -307,6 +312,7 @@ return {
                         $type: 'dnszone_name',
                         name: 'name_from_ip',
                         radio_name: 'dnszone_name_type',
+                        required: false,
                         validators: ['network']
                     }
                 ]
@@ -750,18 +756,12 @@ IPA.add_dns_zone_name_policy = function() {
             idnsname_w.input.prop('disabled', false);
             name_from_ip_w.input.prop('disabled', true);
 
-            idnsname_f.set_required(true);
-            name_from_ip_f.set_required(false);
-
             name_from_ip_f.reset();
         });
 
         name_from_ip_w.radio_clicked.attach(function() {
             idnsname_w.input.prop('disabled', true);
             name_from_ip_w.input.prop('disabled', false);
-
-            idnsname_f.set_required(false);
-            name_from_ip_f.set_required(true);
 
             idnsname_f.reset();
         });
