@@ -278,3 +278,12 @@ objectClass: nsIndex
 nsSystemIndex: false
 nsIndexType: eq
 nsIndexType: sub
+
+dn: cn=serverhostname,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: serverhostname
+objectClass: top
+objectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: sub

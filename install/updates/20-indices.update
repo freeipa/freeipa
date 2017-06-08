@@ -259,3 +259,11 @@ default: objectClass: nsIndex
 only: nsSystemIndex: false
 only: nsIndexType: eq
 only: nsIndexType: sub
+
+dn: cn=serverhostname,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default: cn: serverhostname
+default: objectClass: top
+default: objectClass: nsIndex
+only: nsSystemIndex: false
+only: nsIndexType: eq
+only: nsIndexType: sub
