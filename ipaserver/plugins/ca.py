@@ -141,6 +141,12 @@ class ca(LDAPObject):
             ],
             'default_privileges': {'CA Administrator'},
         },
+        'System: Grant add on CAs container': {
+            'ipapermtargetfilter': {'(objectclass=nscontainer)'},
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'add'},
+            'default_privileges': {'CA Administrator'},
+        },
         'System: Delete CA': {
             'ipapermright': {'delete'},
             'replaces': [
