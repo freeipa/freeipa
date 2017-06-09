@@ -82,6 +82,9 @@ def collect_systemd_journal(node, hosts, test_config):
     name = _get_logname_from_node(node)
     logfile_dir = test_config.getoption('logfile_dir')
 
+    if logfile_dir is None:
+        return
+
     for host in hosts:
         log.info("Collecting journal from: %s", host.hostname)
 
