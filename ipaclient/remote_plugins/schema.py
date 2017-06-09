@@ -516,7 +516,9 @@ class Schema(object):
 
     def get_help(self, namespace, member):
         if isinstance(self._help, bytes):
-            self._help = json.loads(self._help.decode('utf-8'))
+            self._help = json.loads(
+                self._help.decode('utf-8')  # pylint: disable=no-member
+            )
 
         return self._help[namespace][member]
 
