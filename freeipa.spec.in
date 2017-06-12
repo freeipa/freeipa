@@ -1306,6 +1306,7 @@ fi
 %dir %{_usr}/share/ipa/advise/legacy
 %{_usr}/share/ipa/advise/legacy/*.template
 %dir %{_usr}/share/ipa/profiles
+%{_usr}/share/ipa/profiles/README
 %{_usr}/share/ipa/profiles/*.cfg
 %dir %{_usr}/share/ipa/html
 %{_usr}/share/ipa/html/ffconfig.js
