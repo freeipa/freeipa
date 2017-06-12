@@ -553,8 +553,9 @@ class trust(LDAPObject):
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
         Str('ipantadditionalsuffixes*',
+            cli_name='upn_suffixes',
             label=_('UPN suffixes'),
-            flags={'no_create', 'no_update', 'no_search'},
+            flags={'no_create', 'no_search'},
         ),
     )
 
