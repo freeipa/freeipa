@@ -147,8 +147,7 @@ return {
                     fields: [
                         {
                             $type: 'multivalued',
-                            name: 'ipantadditionalsuffixes',
-                            read_only: true
+                            name: 'ipantadditionalsuffixes'
                         }
                     ]
                 },
