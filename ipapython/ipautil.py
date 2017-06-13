@@ -216,10 +216,10 @@ class CheckedIPAddress(UnsafeIPAddress):
                     addr=ifaddr,
                     netmask=ifdata['netmask']
                 ))
-                if ifnet == self._net or (
-                                self._net is None and ifnet.ip == self):
-                    self._net = ifnet
+
+                if ifnet.ip == self:
                     iface = interface
+                    self._net = ifnet
                     break
 
         return iface
