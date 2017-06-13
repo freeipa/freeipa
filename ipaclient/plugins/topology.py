@@ -18,19 +18,18 @@ register = Registry()
 class topologysuffix_verify(MethodOverride):
     def output_for_cli(self, textui, output, *args, **options):
 
-        in_order = output['result']['in_order']
         connect_errors = output['result']['connect_errors']
         max_agmts_errors = output['result']['max_agmts_errors']
 
-        if in_order:
+        if not connect_errors and not max_agmts_errors:
             header = _('Replication topology of suffix "%(suffix)s" '
                        'is in order.')
-        else:
-            header = _('Replication topology of suffix "%(suffix)s" contains '
-                       'errors.')
-        textui.print_h1(header % {'suffix': args[0]})
+            textui.print_h1(header % {'suffix': args[0]})
 
         if connect_errors:
+            header = _('Replication topology of suffix "%(suffix)s" contains '
+                       'errors.')
+            textui.print_h1(header % {'suffix': args[0]})
             textui.print_dashed(unicode(_('Topology is disconnected')))
             for err in connect_errors:
                 msg = _("Server %(srv)s can't contact servers: %(replicas)s")
