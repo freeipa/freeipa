@@ -1220,6 +1220,7 @@ fi
 %attr(644,root,root) %{_unitdir}/ipa-dnskeysyncd.service
 %attr(644,root,root) %{_unitdir}/ipa-ods-exporter.socket
 %attr(644,root,root) %{_unitdir}/ipa-ods-exporter.service
+%attr(644,root,root) %{_unitdir}/ipa-named-pkcs11.service
 # END
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
 %attr(755,root,root) %{plugin_dir}/libipa_enrollment_extop.so

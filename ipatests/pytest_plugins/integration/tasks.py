@@ -445,7 +445,7 @@ def install_adtrust(host):
     result = host.run_command(['systemctl', 'is-enabled', 'named'],
                               raiseonerr=False)
     if result.stdout_text.startswith("masked"):
-        host.run_command(['systemctl', 'restart', 'named-pkcs11'])
+        host.run_command(['systemctl', 'restart', 'ipa-named-pkcs11'])
     else:
         host.run_command(['systemctl', 'restart', 'named'])
 
@@ -1249,7 +1249,7 @@ def assert_error(result, stderr_text, returncode=None):
 def restart_named(*args):
     time.sleep(20)  # give a time to DNSSEC daemons to provide keys for named
     for host in args:
-        host.run_command(["systemctl", "restart", "named-pkcs11.service"])
+        host.run_command(["systemctl", "restart", "ipa-named-pkcs11.service"])
     time.sleep(20)  # give a time to named to be ready (zone loading)
 
 

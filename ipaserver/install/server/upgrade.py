@@ -1592,6 +1592,40 @@ def disable_httpd_system_trust(http):
             db.add_cert(cert, nickname, trust_flags)
 
 
+def swap_bind_unit_files(fstore):
+    """
+    IPA changed its unit file, stop named-pkcs11 service using the old and
+    use the new instead
+    """
+    root_logger.info('[Making bind use FreeIPA-specific unit file]')
+
+    if sysupgrade.get_upgrade_state('named-pkcs11.service',
+                                    'ipa_unit_file'):
+        root_logger.info("Already using the IPA-specific unit file")
+        return
+
+    bind_old = services.service('named-pkcs11-regular', api=api)
+    bind = bindinstance.BindInstance(fstore)
+    if bind_old.is_running():
+        try:
+            bind_old.stop()
+        except Exception as e:
+            root_logger.warning('Unable to stop named-pkcs11 service (%s)', e)
+        try:
+            bind.start()
+        except Exception as e:
+            root_logger.warning(
+                'Unable to start ipa-named-pkcs11 service (%s)', e)
+
+    try:
+        bind_old.mask()
+    except Exception as e:
+        root_logger.warning('Unable to mask named service (%s)', e)
+
+    sysupgrade.set_upgrade_state(
+        'named-pkcs11.service', 'ipa_unit_file', True)
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1756,10 +1790,13 @@ def upgrade_configuration():
 
     # install DNSKeySync service only if DNS is configured on server
     if bindinstance.named_conf_exists():
-            dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore)
-            if not dnskeysyncd.is_configured():
-                dnskeysyncd.create_instance(fqdn, api.env.realm)
-                dnskeysyncd.start_dnskeysyncd()
+        # swap the named-pkcs11 systemd unit file for ipa-specific
+        swap_bind_unit_files(fstore)
+
+        dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore)
+        if not dnskeysyncd.is_configured():
+            dnskeysyncd.create_instance(fqdn, api.env.realm)
+            dnskeysyncd.start_dnskeysyncd()
 
     cleanup_kdc(fstore)
     cleanup_adtrust(fstore)
