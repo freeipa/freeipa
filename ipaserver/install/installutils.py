@@ -590,7 +590,7 @@ def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
     if len(hostaddr):
         for ha in hostaddr:
             try:
-                ips.append(ipautil.CheckedIPAddress(ha, match_local=False))
+                ips.append(ipautil.CheckedIPAddress(ha))
             except ValueError as e:
                 root_logger.warning("Invalid IP address %s for %s: %s", ha, host_name, unicode(e))
 
