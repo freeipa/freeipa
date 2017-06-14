@@ -68,10 +68,9 @@ class IPAFormatter(IndentedHelpFormatter):
 def check_ip_option(option, opt, value):
     from ipapython.ipautil import CheckedIPAddress
 
-    ip_local = option.ip_local is True
     ip_netmask = option.ip_netmask is True
     try:
-        return CheckedIPAddress(value, parse_netmask=ip_netmask, match_local=ip_local)
+        return CheckedIPAddress(value, parse_netmask=ip_netmask)
     except Exception as e:
         raise OptionValueError("option %s: invalid IP address %s: %s" % (opt, value, e))
 
@@ -86,7 +85,7 @@ class IPAOption(Option):
     optparse.Option subclass with support of options labeled as
     security-sensitive such as passwords.
     """
-    ATTRS = Option.ATTRS + ["sensitive", "ip_local", "ip_netmask"]
+    ATTRS = Option.ATTRS + ["sensitive", "ip_netmask"]
     TYPES = Option.TYPES + ("ip", "dn")
     TYPE_CHECKER = copy(Option.TYPE_CHECKER)
     TYPE_CHECKER["ip"] = check_ip_option

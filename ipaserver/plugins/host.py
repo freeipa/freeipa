@@ -245,7 +245,7 @@ def validate_ipaddr(ugettext, ipaddr):
     Verify that we have either an IPv4 or IPv6 address.
     """
     try:
-        CheckedIPAddress(ipaddr, match_local=False)
+        CheckedIPAddress(ipaddr)
     except Exception as e:
         return unicode(e)
     return None

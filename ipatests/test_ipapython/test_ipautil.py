@@ -30,11 +30,10 @@ from ipapython import ipautil
 
 pytestmark = pytest.mark.tier0
 
-
 def make_ipaddress_checker(addr, words=None, prefixlen=None):
     def check_ipaddress():
         try:
-            ip = ipautil.CheckedIPAddress(addr, match_local=False)
+            ip = ipautil.CheckedIPAddress(addr)
             assert ip.words == words and ip.prefixlen == prefixlen
         except Exception:
             assert words is None and prefixlen is None
