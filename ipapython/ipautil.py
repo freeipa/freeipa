@@ -135,7 +135,7 @@ class CheckedIPAddress(UnsafeIPAddress):
 
     Reserved or link-local addresses are never accepted.
     """
-    def __init__(self, addr, match_local=False, parse_netmask=True,
+    def __init__(self, addr, parse_netmask=True,
                  allow_loopback=False, allow_multicast=False):
         try:
             super(CheckedIPAddress, self).__init__(addr)
@@ -165,14 +165,6 @@ class CheckedIPAddress(UnsafeIPAddress):
                 "cannot use link-local IP address {}".format(addr))
         if not allow_multicast and self.is_multicast():
             raise ValueError("cannot use multicast IP address {}".format(addr))
-
-        if match_local:
-            intf_details = self.get_matching_interface()
-            if not intf_details:
-                raise ValueError('no network interface matches the IP address '
-                                 'and netmask {}'.format(addr))
-            else:
-                self.set_ip_net(intf_details.ifnet)
 
         if self._net is None:
             if self.version == 4:
