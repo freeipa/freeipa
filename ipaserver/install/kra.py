@@ -10,6 +10,7 @@ import os
 import shutil
 
 from ipalib import api
+from ipalib.install.kinit import kinit_keytab
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython import certdb
@@ -84,13 +85,19 @@ def install(api, replica_config, options):
             return
         krafile = os.path.join(replica_config.dir, 'kracert.p12')
         if options.promote:
-            custodia = custodiainstance.CustodiaInstance(
-                replica_config.host_name,
-                replica_config.realm_name)
-            custodia.get_kra_keys(
-                replica_config.kra_host_name,
-                krafile,
-                replica_config.dirman_password)
+            with ipautil.private_ccache():
+                ccache = os.environ['KRB5CCNAME']
+                kinit_keytab(
+                    'host/{env.host}@{env.realm}'.format(env=api.env),
+                    paths.KRB5_KEYTAB,
+                    ccache)
+                custodia = custodiainstance.CustodiaInstance(
+                    replica_config.host_name,
+                    replica_config.realm_name)
+                custodia.get_kra_keys(
+                    replica_config.kra_host_name,
+                    krafile,
+                    replica_config.dirman_password)
         else:
             cafile = os.path.join(replica_config.dir, 'cacert.p12')
             if not ipautil.file_exists(cafile):
