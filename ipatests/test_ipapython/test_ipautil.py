@@ -64,9 +64,9 @@ pytestmark = pytest.mark.tier0
 def test_ip_address(addr, words, prefixlen):
     if words is None:
         pytest.raises(
-            ValueError, ipautil.CheckedIPAddress, addr, match_local=False)
+            ValueError, ipautil.CheckedIPAddress, addr)
     else:
-        ip = ipautil.CheckedIPAddress(addr, match_local=False)
+        ip = ipautil.CheckedIPAddress(addr)
         assert ip.words == words
         assert ip.prefixlen == prefixlen
 
