@@ -62,6 +62,12 @@ PROTOCOL_NAMES = {
     socket.SOCK_DGRAM: 'udp'
 }
 
+InterfaceDetails = collections.namedtuple(
+    'InterfaceDetails', [
+        'name',  # interface name
+        'ifnet'  # network details of interface
+    ])
+
 
 class UnsafeIPAddress(netaddr.IPAddress):
     """Any valid IP address with or without netmask."""
@@ -161,9 +167,12 @@ class CheckedIPAddress(UnsafeIPAddress):
             raise ValueError("cannot use multicast IP address {}".format(addr))
 
         if match_local:
-            if not self.get_matching_interface():
+            intf_details = self.get_matching_interface()
+            if not intf_details:
                 raise ValueError('no network interface matches the IP address '
                                  'and netmask {}'.format(addr))
+            else:
+                self.set_ip_net(intf_details.ifnet)
 
         if self._net is None:
             if self.version == 4:
@@ -193,7 +202,8 @@ class CheckedIPAddress(UnsafeIPAddress):
 
     def get_matching_interface(self):
         """Find matching local interface for address
-        :return: Interface name or None if no interface has this address
+        :return: InterfaceDetails named tuple or None if no interface has
+        this address
         """
         if self.version == 4:
             family = netifaces.AF_INET
@@ -204,7 +214,6 @@ class CheckedIPAddress(UnsafeIPAddress):
                 "Unsupported address family ({})".format(self.version)
             )
 
-        iface = None
         for interface in netifaces.interfaces():
             for ifdata in netifaces.ifaddresses(interface).get(family, []):
 
@@ -218,11 +227,17 @@ class CheckedIPAddress(UnsafeIPAddress):
                 ))
 
                 if ifnet.ip == self:
-                    iface = interface
-                    self._net = ifnet
-                    break
+                    return InterfaceDetails(interface, ifnet)
 
-        return iface
+    def set_ip_net(self, ifnet):
+        """Set IP Network details for this address. IPNetwork is valid only
+        locally, so this should be set only for local IP addresses
+
+        :param ifnet: netaddr.IPNetwork object with information about IP
+        network where particula address belongs locally
+        """
+        assert isinstance(ifnet, netaddr.IPNetwork)
+        self._net = ifnet
 
 
 def valid_ip(addr):
