@@ -1903,7 +1903,7 @@ class ra(rabase.rabase, RestClient):
         self.debug('%s.find(): request: %s', type(self).__name__, payload)
 
         url = 'http://%s/ca/rest/certs/search?size=%d' % (
-            ipautil.format_netloc(self.ca_host, 8080),
+            ipautil.format_netloc(self.ca_host, 80),
             options.get('sizelimit', 0x7fffffff))
 
         opener = urllib.request.build_opener()
