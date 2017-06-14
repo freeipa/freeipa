@@ -47,7 +47,9 @@ def parse_options():
                       default=False, help="print debugging information")
     parser.add_option("--ip-address", dest="ip_addresses", metavar="IP_ADDRESS",
                       default=[], action="append",
-                      type="ip", ip_local=True, help="Master Server IP Address. This option can be used multiple times")
+                      type="ip",
+                      help="Master Server IP Address. This option can be used "
+                           "multiple times")
     parser.add_option("--forwarder", dest="forwarders", action="append",
                       type="ip", help="Add a DNS forwarder. This option can be used multiple times")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
