@@ -38,8 +38,6 @@ from ipalib.install.kinit import kinit_keytab, kinit_password
 from ipalib.install.service import enroll_only, prepare_only
 from ipalib.rpc import delete_persistent_client_session_data
 from ipalib.util import (
-    broadcast_ip_address_warning,
-    network_ip_address_warning,
     normalize_hostname,
     no_matching_interface_for_ip_address_warning,
     verify_host_resolvable,
@@ -1299,8 +1297,6 @@ def update_dns(server, hostname, options):
         root_logger.info("Failed to determine this machine's ip address(es).")
         return
 
-    network_ip_address_warning(update_ips)
-    broadcast_ip_address_warning(update_ips)
     no_matching_interface_for_ip_address_warning(update_ips)
 
     update_txt = "debug\n"
