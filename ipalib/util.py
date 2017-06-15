@@ -1110,26 +1110,6 @@ def check_principal_realm_in_trust_namespace(api_instance, *keys):
                         'namespace'))
 
 
-def network_ip_address_warning(addr_list):
-    for ip in addr_list:
-        if ip.is_network_addr():
-            root_logger.warning("IP address %s might be network address", ip)
-            # fixme: once when loggers will be fixed, we can remove this
-            # print
-            print("WARNING: IP address {} might be network address".format(ip),
-                  file=sys.stderr)
-
-
-def broadcast_ip_address_warning(addr_list):
-    for ip in addr_list:
-        if ip.is_broadcast_addr():
-            root_logger.warning("IP address %s might be broadcast address", ip)
-            # fixme: once when loggers will be fixed, we can remove this
-            # print
-            print("WARNING: IP address {} might be broadcast address".format(
-                ip), file=sys.stderr)
-
-
 def no_matching_interface_for_ip_address_warning(addr_list):
     for ip in addr_list:
         if not ip.get_matching_interface():
