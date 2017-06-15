@@ -264,8 +264,6 @@ def install_check(standalone, api, replica, options, hostname):
     ip_addresses = get_server_ip_address(hostname, options.unattended,
                                          True, options.ip_addresses)
 
-    util.network_ip_address_warning(ip_addresses)
-    util.broadcast_ip_address_warning(ip_addresses)
     util.no_matching_interface_for_ip_address_warning(ip_addresses)
 
     if not options.forward_policy:
