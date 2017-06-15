@@ -854,6 +854,7 @@ def install_check(installer):
             # check addresses here, dns module is doing own check
             network_ip_address_warning(config.ips)
             broadcast_ip_address_warning(config.ips)
+            no_matching_interface_for_ip_address_warning(config.ips)
 
         if options.setup_adtrust:
             adtrust.install_check(False, options, remote_api)
