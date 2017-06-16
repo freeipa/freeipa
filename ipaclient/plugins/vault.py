@@ -624,15 +624,15 @@ class vaultconfig_show(MethodOverride):
         response = super(vaultconfig_show, self).forward(*args, **options)
 
         # cache transport certificate
-        transport_cert = x509.load_certificate(
-                response['result']['transport_cert'], x509.DER)
+        transport_cert = x509.load_der_x509_certificate(
+                response['result']['transport_cert'])
 
         _transport_cert_cache.store_cert(
             self.api.env.domain, transport_cert
         )
 
         if file:
-            with open(file, 'w') as f:
+            with open(file, 'wb') as f:
                 f.write(response['result']['transport_cert'])
 
         return response

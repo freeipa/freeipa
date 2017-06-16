@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import base64
 import logging
 
 import dbus
@@ -439,12 +438,14 @@ class _sssd(object):
         :raise RemoteRetrieveError: if DBus error occurs
         """
         try:
-            pem = x509.make_pem(base64.b64encode(cert))
+            cert_obj = x509.load_der_x509_certificate(cert)
             # bug 3306 in sssd returns 0 entry when max_entries = 0
             # Temp workaround is to use a non-null value, not too high
             # to avoid reserving unneeded memory
             max_entries = dbus.UInt32(100)
-            user_paths = self._users_iface.ListByCertificate(pem, max_entries)
+            user_paths = self._users_iface.ListByCertificate(
+                cert_obj.public_bytes(x509.Encoding.PEM),
+                max_entries)
             users = dict()
             for user_path in user_paths:
                 user_obj = self._bus.get_object(DBUS_SSSD_NAME, user_path)

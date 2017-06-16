@@ -320,7 +320,7 @@ def install_step_1(standalone, replica_config, options):
             subject_base=subject_base)
         dsdb = certs.CertDB(
             realm_name, nssdir=dirname, subject_base=subject_base)
-        cacert = cadb.get_cert_from_db('caSigningCert cert-pki-ca', pem=False)
+        cacert = cadb.get_cert_from_db('caSigningCert cert-pki-ca')
         nickname = certdb.get_ca_nickname(realm_name)
         trust_flags = certdb.IPA_CA_TRUST_FLAGS
         dsdb.add_cert(cacert, nickname, trust_flags)

@@ -30,7 +30,6 @@ import os
 import pwd
 import shutil
 import socket
-import base64
 import traceback
 import errno
 
@@ -266,10 +265,10 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         has_eku = set()
         for cert, nickname, trusted, ext_key_usage in ca_certs:
             try:
-                subject = x509.get_der_subject(cert, x509.DER)
-                issuer = x509.get_der_issuer(cert, x509.DER)
-                serial_number = x509.get_der_serial_number(cert, x509.DER)
-                public_key_info = x509.get_der_public_key_info(cert, x509.DER)
+                subject = cert.subject_bytes
+                issuer = cert.issuer_bytes
+                serial_number = cert.serial_number
+                public_key_info = cert.public_key_info_bytes
             except (PyAsn1Error, ValueError, CertificateError) as e:
                 logger.warning(
                     "Failed to decode certificate \"%s\": %s", nickname, e)
@@ -278,11 +277,8 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             label = urllib.parse.quote(nickname)
             subject = urllib.parse.quote(subject)
             issuer = urllib.parse.quote(issuer)
-            serial_number = urllib.parse.quote(serial_number)
+            serial_number = urllib.parse.quote(str(serial_number))
             public_key_info = urllib.parse.quote(public_key_info)
-
-            cert = base64.b64encode(cert)
-            cert = x509.make_pem(cert)
 
             obj = ("[p11-kit-object-v1]\n"
                    "class: certificate\n"
@@ -302,14 +298,12 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 obj += "trusted: true\n"
             elif trusted is False:
                 obj += "x-distrusted: true\n"
-            obj += "%s\n\n" % cert
+            obj += "%s\n\n" % cert.public_bytes(x509.Encoding.PEM)
             f.write(obj)
 
             if ext_key_usage is not None and public_key_info not in has_eku:
-                if not ext_key_usage:
-                    ext_key_usage = {x509.EKU_PLACEHOLDER}
                 try:
-                    ext_key_usage = x509.encode_ext_key_usage(ext_key_usage)
+                    ext_key_usage = cert.extended_key_usage_bytes
                 except PyAsn1Error as e:
                     logger.warning(
                         "Failed to encode extended key usage for \"%s\": %s",

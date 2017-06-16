@@ -67,10 +67,9 @@ class user_show(MethodOverride):
             util.check_writable_file(options['out'])
             result = super(user_show, self).forward(*keys, **options)
             if 'usercertificate' in result['result']:
-                x509.write_certificate_list(
-                    result['result']['usercertificate'],
-                    options['out']
-                )
+                certs = (x509.load_der_x509_certificate(c)
+                         for c in result['result']['usercertificate'])
+                x509.write_certificate_list(certs, options['out'])
                 result['summary'] = (
                     _('Certificate(s) stored in file \'%(file)s\'')
                     % dict(file=options['out'])

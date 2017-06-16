@@ -32,7 +32,7 @@ from ipalib.install import certstore, sysrestore
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython import kerberos
-from ipalib import api, errors
+from ipalib import api, errors, x509
 from ipaplatform import services
 from ipaplatform.paths import paths
 
@@ -245,7 +245,7 @@ class Service(object):
         self.suffix = DN()
         self.service_prefix = service_prefix
         self.keytab = keytab
-        self.dercert = None
+        self.cert = None
         self.api = api
         self.service_user = service_user
         self.keytab_user = service_user
@@ -370,7 +370,8 @@ class Service(object):
         dn = DN(('krbprincipalname', self.principal), ('cn', 'services'),
                 ('cn', 'accounts'), self.suffix)
         entry = api.Backend.ldap2.get_entry(dn)
-        entry.setdefault('userCertificate', []).append(self.dercert)
+        entry.setdefault('userCertificate', []).append(
+            self.cert.public_bytes(x509.Encoding.DER))
         try:
             api.Backend.ldap2.update_entry(entry)
         except Exception as e:

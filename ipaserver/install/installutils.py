@@ -1054,9 +1054,8 @@ def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
             if ca_cert is None:
                 ca_cert = cert
 
-            cert_obj = x509.load_der_x509_certificate(cert)
-            subject = DN(cert_obj.subject)
-            issuer = DN(cert_obj.issuer)
+            subject = DN(cert.subject)
+            issuer = DN(cert.issuer)
 
             if subject == issuer:
                 break
@@ -1183,11 +1182,9 @@ def load_external_cert(files, ca_subject):
         ca_nickname = None
         cache = {}
         for nickname, _trust_flags in nssdb.list_certs():
-            cert = nssdb.get_cert(nickname, pem=True)
-
-            cert_obj = x509.load_pem_x509_certificate(cert)
-            subject = DN(cert_obj.subject)
-            issuer = DN(cert_obj.issuer)
+            cert = nssdb.get_cert(nickname)
+            subject = DN(cert.subject)
+            issuer = DN(cert.issuer)
 
             cache[nickname] = (cert, subject, issuer)
             if subject == ca_subject:
@@ -1220,11 +1217,11 @@ def load_external_cert(files, ca_subject):
                     (subject, ", ".join(files), e))
 
     cert_file = tempfile.NamedTemporaryFile()
-    cert_file.write(ca_cert_chain[0] + '\n')
+    cert_file.write(ca_cert_chain[0].public_bytes(x509.Encoding.PEM) + b'\n')
     cert_file.flush()
 
     ca_file = tempfile.NamedTemporaryFile()
-    ca_file.write('\n'.join(ca_cert_chain[1:]) + '\n')
+    x509.write_certificate_list(ca_cert_chain[1:], ca_file.name)
     ca_file.flush()
 
     return cert_file, ca_file

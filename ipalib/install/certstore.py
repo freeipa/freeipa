@@ -28,13 +28,13 @@ from ipapython.dn import DN
 from ipapython.certdb import get_ca_nickname, TrustFlags
 from ipalib import errors, x509
 
-def _parse_cert(dercert):
+
+def _parse_cert(cert):
     try:
-        cert = x509.load_der_x509_certificate(dercert)
         subject = DN(cert.subject)
         issuer = DN(cert.issuer)
         serial_number = cert.serial_number
-        public_key_info = x509.get_der_public_key_info(dercert, x509.DER)
+        public_key_info = cert.public_key_info_bytes
     except (ValueError, PyAsn1Error) as e:
         raise ValueError("failed to decode certificate: %s" % e)
 
@@ -45,15 +45,15 @@ def _parse_cert(dercert):
     return subject, issuer_serial, public_key_info
 
 
-def init_ca_entry(entry, dercert, nickname, trusted, ext_key_usage):
+def init_ca_entry(entry, cert, nickname, trusted, ext_key_usage):
     """
     Initialize certificate store entry for a CA certificate.
     """
-    subject, issuer_serial, public_key = _parse_cert(dercert)
+    subject, issuer_serial, public_key = _parse_cert(cert)
 
     if ext_key_usage is not None:
         try:
-            cert_eku = x509.get_ext_key_usage(dercert, x509.DER)
+            cert_eku = cert.extended_key_usage
         except ValueError as e:
             raise ValueError("failed to decode certificate: %s" % e)
         if cert_eku is not None:
@@ -68,7 +68,7 @@ def init_ca_entry(entry, dercert, nickname, trusted, ext_key_usage):
     entry['ipaCertSubject'] = [subject]
     entry['ipaCertIssuerSerial'] = [issuer_serial]
     entry['ipaPublicKey'] = [public_key]
-    entry['cACertificate;binary'] = [dercert]
+    entry['cACertificate;binary'] = [cert.public_bytes(x509.Encoding.DER)]
 
     if trusted is not None:
         entry['ipaKeyTrust'] = ['trusted' if trusted else 'distrusted']
@@ -79,11 +79,12 @@ def init_ca_entry(entry, dercert, nickname, trusted, ext_key_usage):
         entry['ipaKeyExtUsage'] = ext_key_usage
 
 
-def update_compat_ca(ldap, base_dn, dercert):
+def update_compat_ca(ldap, base_dn, cert):
     """
     Update the CA certificate in cn=CAcert,cn=ipa,cn=etc,SUFFIX.
     """
     dn = DN(('cn', 'CAcert'), ('cn', 'ipa'), ('cn', 'etc'), base_dn)
+    dercert = cert.public_bytes(x509.Encoding.DER)
     try:
         entry = ldap.get_entry(dn, attrs_list=['cACertificate;binary'])
         entry.single_value['cACertificate;binary'] = dercert
@@ -152,12 +153,12 @@ def add_ca_cert(ldap, base_dn, dercert, nickname, trusted=None,
     clean_old_config(ldap, base_dn, dn, config_ipa, config_compat)
 
 
-def update_ca_cert(ldap, base_dn, dercert, trusted=None, ext_key_usage=None,
+def update_ca_cert(ldap, base_dn, cert, trusted=None, ext_key_usage=None,
                    config_ipa=False, config_compat=False):
     """
     Update existing entry for a CA certificate in the certificate store.
     """
-    subject, issuer_serial, public_key = _parse_cert(dercert)
+    subject, issuer_serial, public_key = _parse_cert(cert)
 
     filter = ldap.make_filter({'ipaCertSubject': subject})
     result, _truncated = ldap.find_entries(
@@ -172,7 +173,7 @@ def update_ca_cert(ldap, base_dn, dercert, trusted=None, ext_key_usage=None,
 
     for old_cert in entry['cACertificate;binary']:
         # Check if we are adding a new cert
-        if old_cert == dercert:
+        if old_cert == cert:
             break
     else:
         # We are adding a new cert, validate it
@@ -181,7 +182,8 @@ def update_ca_cert(ldap, base_dn, dercert, trusted=None, ext_key_usage=None,
         if entry.single_value['ipaPublicKey'] != public_key:
             raise ValueError("subject public key info mismatch")
         entry['ipaCertIssuerSerial'].append(issuer_serial)
-        entry['cACertificate;binary'].append(dercert)
+        entry['cACertificate;binary'].append(
+            cert.public_bytes(x509.Encoding.DER))
 
     # Update key trust
     if trusted is not None:
@@ -217,22 +219,24 @@ def update_ca_cert(ldap, base_dn, dercert, trusted=None, ext_key_usage=None,
         entry.setdefault('ipaConfigString', []).append('compatCA')
 
     if is_compat or config_compat:
-        update_compat_ca(ldap, base_dn, dercert)
+        update_compat_ca(ldap, base_dn, cert)
 
     ldap.update_entry(entry)
     clean_old_config(ldap, base_dn, dn, config_ipa, config_compat)
 
 
-def put_ca_cert(ldap, base_dn, dercert, nickname, trusted=None,
+def put_ca_cert(ldap, base_dn, cert, nickname, trusted=None,
                 ext_key_usage=None, config_ipa=False, config_compat=False):
     """
     Add or update entry for a CA certificate in the certificate store.
+
+    :param cert: IPACertificate
     """
     try:
-        update_ca_cert(ldap, base_dn, dercert, trusted, ext_key_usage,
+        update_ca_cert(ldap, base_dn, cert, trusted, ext_key_usage,
                        config_ipa=config_ipa, config_compat=config_compat)
     except errors.NotFound:
-        add_ca_cert(ldap, base_dn, dercert, nickname, trusted, ext_key_usage,
+        add_ca_cert(ldap, base_dn, cert, nickname, trusted, ext_key_usage,
                     config_ipa=config_ipa, config_compat=config_compat)
     except errors.EmptyModlist:
         pass
@@ -306,11 +310,12 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
 
             for cert in entry.get('cACertificate;binary', []):
                 try:
-                    _parse_cert(cert)
+                    cert_obj = x509.load_der_x509_certificate(cert)
+                    _parse_cert(cert_obj)
                 except ValueError:
                     certs = []
                     break
-                certs.append((cert, nickname, trusted, ext_key_usage))
+                certs.append((cert_obj, nickname, trusted, ext_key_usage))
     except errors.NotFound:
         try:
             ldap.get_entry(container_dn, [''])
@@ -319,7 +324,8 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
             dn = DN(('cn', 'CAcert'), config_dn)
             entry = ldap.get_entry(dn, ['cACertificate;binary'])
 
-            cert = entry.single_value['cACertificate;binary']
+            cert = x509.load_der_x509_certificate(
+                entry.single_value['cACertificate;binary'])
             try:
                 subject, _issuer_serial, _public_key_info = _parse_cert(cert)
             except ValueError:
@@ -354,16 +360,18 @@ def key_policy_to_trust_flags(trusted, ca, ext_key_usage):
     return TrustFlags(False, trusted, ca, ext_key_usage)
 
 
-def put_ca_cert_nss(ldap, base_dn, dercert, nickname, trust_flags,
+def put_ca_cert_nss(ldap, base_dn, cert, nickname, trust_flags,
                     config_ipa=False, config_compat=False):
     """
     Add or update entry for a CA certificate in the certificate store.
+
+    :param cert: IPACertificate
     """
     trusted, ca, ext_key_usage = trust_flags_to_key_policy(trust_flags)
     if ca is False:
         raise ValueError("must be CA certificate")
 
-    put_ca_cert(ldap, base_dn, dercert, nickname, trusted, ext_key_usage,
+    put_ca_cert(ldap, base_dn, cert, nickname, trusted, ext_key_usage,
                 config_ipa, config_compat)
 
 
