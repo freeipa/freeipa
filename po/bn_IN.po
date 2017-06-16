@@ -1,9 +1,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.0.dev201705231055+git653d2f4\n"
+"Project-Id-Version: freeipa 4.5.1.dev201706161303+git960b9a3\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-05-23 12:55+0200\n"
+"POT-Creation-Date: 2017-06-16 15:03+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -13,19 +13,6 @@ msgstr ""
 "Language: bn-IN\n"
 "X-Generator: Zanata 3.9.6\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-
-#, python-format
-msgid "Added user \"%(value)s\""
-msgstr "\"%(value)s\" ব্যবহারকারী যোগ করা হয়েছে"
-
-msgid "incorrect type"
-msgstr "ভুল প্রকার"
-
-msgid "Only one value is allowed"
-msgstr "কেবলমাত্র একটি মান অনুমদিত"
-
-msgid "must be a decimal number"
-msgstr "একটি দশমিক সংখ্যা হওয়া জরুরি"
 
 #, python-format
 msgid "%(count)d variables"
@@ -46,3 +33,16 @@ msgstr "একটি পসিক্স (posix) গ্রুপ আগে থে
 #, python-format
 msgid "%(info)s"
 msgstr "%(info)s"
+
+msgid "incorrect type"
+msgstr "ভুল প্রকার"
+
+msgid "Only one value is allowed"
+msgstr "কেবলমাত্র একটি মান অনুমদিত"
+
+msgid "must be a decimal number"
+msgstr "একটি দশমিক সংখ্যা হওয়া জরুরি"
+
+#, python-format
+msgid "Added user \"%(value)s\""
+msgstr "\"%(value)s\" ব্যবহারকারী যোগ করা হয়েছে"

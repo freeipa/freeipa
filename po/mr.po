@@ -1,9 +1,9 @@
 # Abhijeet Kasurde <akasurde@redhat.com>, 2015. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.0.dev201705231055+git653d2f4\n"
+"Project-Id-Version: freeipa 4.5.1.dev201706161303+git960b9a3\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-05-23 12:55+0200\n"
+"POT-Creation-Date: 2017-06-16 15:03+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -52,9 +52,6 @@ msgstr "Kerberos credentials प्राप्त झाले नाहीत"
 msgid "Service '%(service)s' not found in Kerberos database"
 msgstr "सेवा '%(service)s' Kerberos माहितीकोष आढली नाही"
 
-msgid "A string searched in all relevant object attributes"
-msgstr "एक शब्द सर्व संबंधित ऑब्जेक्ट गुणधर्मात शोधला"
-
 #, python-format
 msgid "Enter %(label)s again to verify: "
 msgstr "सत्यापित करण्यासाठी आपण पुन्हा %(label)s प्रविष्ट करा:"
@@ -96,3 +93,6 @@ msgstr "वापरात नसलेले पर्याय"
 
 msgid "No file to read"
 msgstr "कोणतीही फाइल वाचण्यासाठी नाही "
+
+msgid "A string searched in all relevant object attributes"
+msgstr "एक शब्द सर्व संबंधित ऑब्जेक्ट गुणधर्मात शोधला"
