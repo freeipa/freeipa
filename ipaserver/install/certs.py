@@ -58,7 +58,7 @@ def get_cert_nickname(cert):
     representation of the first RDN in the subject and subject_dn
     is a DN object.
     """
-    cert_obj = x509.load_certificate(cert)
+    cert_obj = x509.load_pem_x509_certificate(cert)
     dn = DN(cert_obj.subject)
 
     return (str(dn[0]), dn)
@@ -362,7 +362,7 @@ class CertDB(object):
             return
 
         cert = self.get_cert_from_db(nickname)
-        cert_obj = x509.load_certificate(cert)
+        cert_obj = x509.load_pem_x509_certificate(cert)
         subject = str(DN(cert_obj.subject))
         certmonger.add_principal(request_id, principal)
         certmonger.add_subject(request_id, subject)
