@@ -110,6 +110,7 @@ char *sid_string_dbg(const struct dom_sid *sid); /* available in libsmbconf.so *
 char *escape_ldap_string(TALLOC_CTX *mem_ctx, const char *s); /* available in libsmbconf.so */
 bool secrets_store(const char *key, const void *data, size_t size); /* available in libpdb.so */
 void idmap_cache_set_sid2unixid(const struct dom_sid *sid, struct unixid *unix_id); /* available in libsmbconf.so */
+bool E_md4hash(const char *passwd, uint8_t p16[16]); /* available in libcliauth-samba4.so */
 
 #define LDAP_OBJ_SAMBASAMACCOUNT "ipaNTUserAttrs"
 #define LDAP_OBJ_TRUSTED_DOMAIN "ipaNTTrustedDomain"
@@ -2836,11 +2837,7 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 	struct dom_sid *g_sid;
 	char *name;
 	char *trustpw = NULL;
-	char *trustpw_utf8 = NULL;
-	char *tmp_str = NULL;
-	int ret;
 	uint8_t nt_key[16];
-	size_t converted_size;
 	bool res;
 	char *sid_str;
 	enum idmap_error_code err;
@@ -2899,19 +2896,7 @@ static bool init_sam_from_td(struct samu *user, struct pdb_trusted_domain *td,
 		return false;
 	}
 
-	if (!push_utf8_talloc(user, &trustpw_utf8, trustpw, &converted_size)) {
-		res = false;
-		goto done;
-	}
-
-	tmp_str = talloc_strdup_upper(user, trustpw);
-	if (tmp_str == NULL) {
-		res = false;
-		goto done;
-	}
-
-	ret = encode_nt_key(trustpw_utf8, nt_key);
-	if (ret != 0) {
+	if (!E_md4hash(trustpw, nt_key)) {
 		res = false;
 		goto done;
 	}
@@ -2926,14 +2911,6 @@ done:
 	if (trustpw != NULL) {
 		memset(trustpw, 0, strlen(trustpw));
 		talloc_free(trustpw);
-	}
-	if (trustpw_utf8 != NULL) {
-		memset(trustpw_utf8, 0, strlen(trustpw_utf8));
-		talloc_free(trustpw_utf8);
-	}
-	if (tmp_str != NULL) {
-		memset(tmp_str, 0, strlen(tmp_str));
-		talloc_free(tmp_str);
 	}
 
 	return res;
