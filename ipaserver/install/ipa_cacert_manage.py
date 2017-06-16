@@ -22,7 +22,6 @@ from __future__ import print_function
 import logging
 import os
 from optparse import OptionGroup  # pylint: disable=deprecated-module
-from cryptography.hazmat.primitives import serialization
 import gssapi
 
 from ipalib.install import certmonger, certstore
@@ -161,7 +160,7 @@ class CACertManage(admintool.AdminTool):
             "Found certmonger request id %r", self.request_id)
 
         db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
-        cert = db.get_cert_from_db(self.cert_nickname, pem=False)
+        cert = db.get_cert_from_db(self.cert_nickname)
 
         options = self.options
         if options.external_cert_files:
@@ -170,7 +169,7 @@ class CACertManage(admintool.AdminTool):
         if options.self_signed is not None:
             self_signed = options.self_signed
         else:
-            self_signed = x509.is_self_signed(cert, x509.DER)
+            self_signed = cert.is_self_signed()
 
         if self_signed:
             return self.renew_self_signed(ca)
@@ -205,38 +204,28 @@ class CACertManage(admintool.AdminTool):
               "--external-cert-file=/path/to/signed_certificate "
               "--external-cert-file=/path/to/external_ca_certificate")
 
-    def renew_external_step_2(self, ca, old_cert_der):
+    def renew_external_step_2(self, ca, old_cert):
         print("Importing the renewed CA certificate, please wait")
 
         options = self.options
         conn = api.Backend.ldap2
 
-        old_cert_obj = x509.load_certificate(old_cert_der, x509.DER)
-        old_der_subject = x509.get_der_subject(old_cert_der, x509.DER)
-        old_spki = old_cert_obj.public_key().public_bytes(
-            serialization.Encoding.DER,
-            serialization.PublicFormat.SubjectPublicKeyInfo
-        )
+        old_spki = old_cert.public_key_info_bytes
 
         cert_file, ca_file = installutils.load_external_cert(
-            options.external_cert_files, DN(old_cert_obj.subject))
+            options.external_cert_files, DN(old_cert.subject))
 
         with open(cert_file.name) as f:
             new_cert_data = f.read()
-        new_cert_der = x509.normalize_certificate(new_cert_data)
-        new_cert_obj = x509.load_certificate(new_cert_der, x509.DER)
-        new_der_subject = x509.get_der_subject(new_cert_der, x509.DER)
-        new_spki = new_cert_obj.public_key().public_bytes(
-            serialization.Encoding.DER,
-            serialization.PublicFormat.SubjectPublicKeyInfo
-        )
+        new_cert = x509.load_pem_x509_certificate(new_cert_data)
+        new_spki = new_cert.public_key_info_bytes
 
-        if new_cert_obj.subject != old_cert_obj.subject:
+        if new_cert.subject != old_cert.subject:
             raise admintool.ScriptError(
                 "Subject name mismatch (visit "
                 "http://www.freeipa.org/page/Troubleshooting for "
                 "troubleshooting guide)")
-        if new_der_subject != old_der_subject:
+        if new_cert.subject_bytes != old_cert.subject_bytes:
             raise admintool.ScriptError(
                 "Subject name encoding mismatch (visit "
                 "http://www.freeipa.org/page/Troubleshooting for "
@@ -249,19 +238,18 @@ class CACertManage(admintool.AdminTool):
 
         with certs.NSSDatabase() as tmpdb:
             tmpdb.create_db()
-            tmpdb.add_cert(old_cert_der, 'IPA CA', EXTERNAL_CA_TRUST_FLAGS)
+            tmpdb.add_cert(old_cert, 'IPA CA', EXTERNAL_CA_TRUST_FLAGS)
 
             try:
-                tmpdb.add_cert(new_cert_der, 'IPA CA', EXTERNAL_CA_TRUST_FLAGS)
+                tmpdb.add_cert(new_cert, 'IPA CA', EXTERNAL_CA_TRUST_FLAGS)
             except ipautil.CalledProcessError as e:
                 raise admintool.ScriptError(
                     "Not compatible with the current CA certificate: %s" % e)
 
             ca_certs = x509.load_certificate_list_from_file(ca_file.name)
             for ca_cert in ca_certs:
-                data = ca_cert.public_bytes(serialization.Encoding.DER)
                 tmpdb.add_cert(
-                    data, str(DN(ca_cert.subject)), EXTERNAL_CA_TRUST_FLAGS)
+                    ca_cert, str(DN(ca_cert.subject)), EXTERNAL_CA_TRUST_FLAGS)
 
             try:
                 tmpdb.verify_ca_cert_validity('IPA CA')
@@ -286,6 +274,8 @@ class CACertManage(admintool.AdminTool):
 
         dn = DN(('cn', self.cert_nickname), ('cn', 'ca_renewal'),
                 ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+
+        new_cert_der = new_cert.public_bytes(x509.Encoding.DER)
         try:
             entry = conn.get_entry(dn, ['usercertificate'])
             entry['usercertificate'] = [new_cert_der]
@@ -338,15 +328,14 @@ class CACertManage(admintool.AdminTool):
         cert_filename = self.args[1]
 
         try:
-            cert_obj = x509.load_certificate_from_file(cert_filename)
+            cert = x509.load_certificate_from_file(cert_filename)
         except IOError as e:
             raise admintool.ScriptError(
                 "Can't open \"%s\": %s" % (cert_filename, e))
         except (TypeError, ValueError) as e:
             raise admintool.ScriptError("Not a valid certificate: %s" % e)
-        cert = cert_obj.public_bytes(serialization.Encoding.DER)
 
-        nickname = options.nickname or str(DN(cert_obj.subject))
+        nickname = options.nickname or str(DN(cert.subject))
 
         ca_certs = certstore.get_ca_certs_nss(api.Backend.ldap2,
                                               api.env.basedn,

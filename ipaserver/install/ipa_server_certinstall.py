@@ -212,8 +212,7 @@ class ServerCertInstall(admintool.AdminTool):
                 # Start tracking only if the cert was issued by IPA CA
                 # Retrieve IPA CA
                 ipa_ca_cert = cdb.get_cert_from_db(
-                    get_ca_nickname(api.env.realm),
-                    pem=False)
+                    get_ca_nickname(api.env.realm))
                 # And compare with the CA which signed this certificate
                 if ca_cert == ipa_ca_cert:
                     certmonger.start_tracking(
@@ -289,8 +288,7 @@ class ServerCertInstall(admintool.AdminTool):
                 # Start tracking only if the cert was issued by IPA CA
                 # Retrieve IPA CA
                 ipa_ca_cert = cdb.get_cert_from_db(
-                    get_ca_nickname(api.env.realm),
-                    pem=False)
+                    get_ca_nickname(api.env.realm))
                 # And compare with the CA which signed this certificate
                 if ca_cert == ipa_ca_cert:
                     cdb.track_server_cert(server_cert,

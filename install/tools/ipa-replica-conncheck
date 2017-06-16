@@ -47,7 +47,6 @@ from socket import SOCK_STREAM, SOCK_DGRAM
 import distutils.spawn
 from ipaplatform.paths import paths
 import gssapi
-from cryptography.hazmat.primitives import serialization
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -544,10 +543,8 @@ def main():
                         ca_certs = x509.load_certificate_list_from_file(
                             options.ca_cert_file)
                         for ca_cert in ca_certs:
-                            data = ca_cert.public_bytes(
-                                serialization.Encoding.DER)
                             nss_db.add_cert(
-                                data,
+                                ca_cert,
                                 str(DN(ca_cert.subject)),
                                 certdb.EXTERNAL_CA_TRUST_FLAGS)
 

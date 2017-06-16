@@ -81,11 +81,11 @@ class test_x509(object):
 
         # Load a good cert with headers and leading text
         newcert = (
-            'leading text\n' + goodcert_headers)
+            b'leading text\n' + goodcert_headers)
         x509.load_pem_x509_certificate(newcert)
 
         # Load a good cert with bad headers
-        newcert = '-----BEGIN CERTIFICATE-----' + goodcert_headers
+        newcert = b'-----BEGIN CERTIFICATE-----' + goodcert_headers
         with pytest.raises((TypeError, ValueError)):
             x509.load_pem_x509_certificate(newcert)
 

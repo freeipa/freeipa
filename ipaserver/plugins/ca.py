@@ -181,8 +181,8 @@ def set_certificate_attrs(entry, options, want_cert=True):
 
         if want_chain or full:
             pkcs7_der = ca_api.read_ca_chain(ca_id)
-            pems = x509.pkcs7_to_pems(pkcs7_der, x509.DER)
-            ders = [x509.normalize_certificate(pem) for pem in pems]
+            certs = x509.pkcs7_to_certs(pkcs7_der, x509.DER)
+            ders = [cert.public_bytes(x509.Encoding.DER) for cert in certs]
             entry['certificate_chain'] = ders
 
 

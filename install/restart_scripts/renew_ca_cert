@@ -29,7 +29,7 @@ import traceback
 
 from ipalib.install import certstore
 from ipapython import ipautil
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipalib.install.kinit import kinit_keytab
 from ipaserver.install import certs, cainstance, installutils
 from ipaserver.plugins.ldap2 import ldap2
@@ -64,7 +64,7 @@ def _main():
 
     # Fetch the new certificate
     db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
-    cert = db.get_cert_from_db(nickname, pem=False)
+    cert = db.get_cert_from_db(nickname)
     if not cert:
         syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
         sys.exit(1)
@@ -106,7 +106,7 @@ def _main():
                 cfg_path, 'subsystem.select', '=')
             if config == 'New':
                 syslog.syslog(syslog.LOG_NOTICE, "Updating CS.cfg")
-                if x509.is_self_signed(cert, x509.DER):
+                if cert.is_self_signed():
                     installutils.set_directive(
                         cfg_path, 'hierarchy.select', 'Root',
                         quotes=False, separator='=')

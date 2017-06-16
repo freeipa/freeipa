@@ -1602,7 +1602,7 @@ def disable_httpd_system_trust(http):
     db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
     for nickname, trust_flags in db.list_certs():
         if not trust_flags.has_key:
-            cert = db.get_cert_from_db(nickname, pem=False)
+            cert = db.get_cert_from_db(nickname)
             if cert:
                 ca_certs.append((cert, nickname, trust_flags))
 

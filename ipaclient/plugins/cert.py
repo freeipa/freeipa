@@ -66,10 +66,9 @@ class CertRetrieveOverride(MethodOverride):
                 certs = result['result']['certificate_chain']
             else:
                 certs = [result['result']['certificate']]
-            certs = (x509.ensure_der_format(cert) for cert in certs)
-            certs = (x509.make_pem(base64.b64encode(cert)) for cert in certs)
-            with open(certificate_out, 'w') as f:
-                f.write('\n'.join(certs))
+            certs = (x509.load_der_x509_certificate(
+                     x509.ensure_der_format(cert)) for cert in certs)
+            x509.write_certificate_list(certs, certificate_out)
 
         return result
 

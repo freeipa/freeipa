@@ -27,7 +27,6 @@ import six
 # pylint: disable=import-error
 from six.moves.configparser import RawConfigParser
 # pylint: enable=import-error
-from cryptography.hazmat.primitives import serialization
 
 from ipalib import api
 from ipalib import x509
@@ -304,7 +303,7 @@ class KRAInstance(DogtagInstance):
 
         # get RA agent certificate
         cert = x509.load_certificate_from_file(paths.RA_AGENT_PEM)
-        cert_data = cert.public_bytes(serialization.Encoding.DER)
+        cert_data = cert.public_bytes(x509.Encoding.DER)
 
         # connect to KRA database
         conn = ldap2.ldap2(api)

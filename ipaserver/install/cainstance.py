@@ -791,24 +791,19 @@ class CAInstance(DogtagInstance):
         data = base64.b64decode(chain)
 
         # Get list of PEM certificates
-        certlist = x509.pkcs7_to_pems(data, x509.DER)
+        certlist = x509.pkcs7_to_certs(data, x509.DER)
 
         # We need to append the certs to the existing file, so start by
         # reading the file
         if ipautil.file_exists(paths.IPA_CA_CRT):
             ca_certs = x509.load_certificate_list_from_file(paths.IPA_CA_CRT)
-            ca_certs = [cert.public_bytes(serialization.Encoding.PEM)
-                        for cert in ca_certs]
             certlist.extend(ca_certs)
 
         # We have all the certificates in certlist, write them to a PEM file
         for path in [paths.IPA_CA_CRT,
                      paths.KDC_CA_BUNDLE_PEM,
                      paths.CA_BUNDLE_PEM]:
-            with open(path, 'w') as ipaca_pem:
-                for cert in certlist:
-                    ipaca_pem.write(cert)
-                    ipaca_pem.write('\n')
+            x509.write_certificate_list(certlist, path)
 
     def __request_ra_certificate(self):
         # create a temp file storing the pwd
