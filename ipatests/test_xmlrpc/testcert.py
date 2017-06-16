@@ -29,6 +29,7 @@ import os
 import tempfile
 import shutil
 import six
+import base64
 
 from ipalib import api, x509
 from ipaserver.plugins import rabase
@@ -96,4 +97,6 @@ def makecert(reqdir, subject, principal):
     csr = unicode(generate_csr(reqdir, pwname, str(subject)))
 
     res = api.Command['cert_request'](csr, principal=principal, add=True)
-    return x509.make_pem(res['result']['certificate'])
+    cert = x509.load_der_x509_certificate(
+        base64.b64decode(res['result']['certificate']))
+    return cert.public_bytes(x509.Encoding.PEM).decode('utf-8')

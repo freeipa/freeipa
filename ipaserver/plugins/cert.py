@@ -490,7 +490,8 @@ class BaseCertObject(Object):
 
         """
         if 'certificate' in obj:
-            cert = x509.load_pem_x509_certificate(obj['certificate'])
+            cert = x509.load_der_x509_certificate(
+                base64.b64decode(obj['certificate']))
             obj['subject'] = DN(cert.subject)
             obj['issuer'] = DN(cert.issuer)
             obj['serial_number'] = cert.serial_number
@@ -505,7 +506,7 @@ class BaseCertObject(Object):
                     cert.fingerprint(hashes.SHA256()))
 
             general_names = x509.process_othernames(
-                    x509.get_san_general_names(cert))
+                    cert.san_general_names)
 
             for gn in general_names:
                 try:
@@ -911,7 +912,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         profile = api.Command['certprofile_show'](profile_id)
         store = profile['result']['ipacertprofilestoreissued'][0] == 'TRUE'
         if store and 'certificate' in result:
-            cert = str(result.get('certificate'))
+            cert = result.get('certificate')
             kwargs = dict(addattr=u'usercertificate={}'.format(cert))
             # note: we call different commands for the different
             # principal types because handling of 'userCertificate'
@@ -927,7 +928,8 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                              "used for krbtgt certificates")
 
         if 'certificate_chain' in ca_obj:
-            cert = x509.load_pem_x509_certificate(result['certificate'])
+            cert = x509.load_der_x509_certificate(
+                base64.b64decode(result['certificate']))
             cert = cert.public_bytes(serialization.Encoding.DER)
             result['certificate_chain'] = [cert] + ca_obj['certificate_chain']
 
@@ -1191,7 +1193,8 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
         # we don't tell Dogtag the issuer (but we check the cert after).
         #
         result = self.Backend.ra.get_certificate(str(serial_number))
-        cert = x509.load_pem_x509_certificate(result['certificate'])
+        cert = x509.load_der_x509_certificate(
+                    base64.b64decode(result['certificate']))
 
         try:
             self.check_access()

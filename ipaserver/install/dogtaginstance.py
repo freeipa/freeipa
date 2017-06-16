@@ -29,7 +29,7 @@ import dbus
 from pki.client import PKIConnection
 import pki.system
 
-from ipalib import api, errors
+from ipalib import api, errors, x509
 from ipalib.install import certmonger
 from ipaplatform import services
 from ipaplatform.constants import constants
@@ -342,7 +342,7 @@ class DogtagInstance(service.Service):
         needs to get the new certificate as well.
 
         ``directive`` is the directive to update in CS.cfg
-        cert is a DER-encoded certificate.
+        cert is IPACertificate.
         cs_cfg is the path to the CS.cfg file
         """
 
@@ -350,7 +350,8 @@ class DogtagInstance(service.Service):
             installutils.set_directive(
                 cs_cfg,
                 directive,
-                base64.b64encode(cert),
+                # the cert must be only the base64 string without headers
+                base64.b64encode(cert.public_bytes(x509.Encoding.DER)),
                 quotes=False,
                 separator='=')
 

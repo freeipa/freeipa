@@ -78,9 +78,8 @@ class test_ldap(object):
         self.conn.connect(autobind=AUTOBIND_DISABLED)
         entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
-        cert = cert[0]
-        serial = x509.load_certificate(cert, x509.DER).serial_number
-        assert serial is not None
+        cert = x509.load_der_x509_certificate(cert[0])
+        assert cert.serial_number is not None
 
     def test_simple(self):
         """
@@ -96,9 +95,8 @@ class test_ldap(object):
         self.conn.connect(bind_dn=DN(('cn', 'directory manager')), bind_pw=dm_password)
         entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
-        cert = cert[0]
-        serial = x509.load_certificate(cert, x509.DER).serial_number
-        assert serial is not None
+        cert = x509.load_der_x509_certificate(cert[0])
+        assert cert.serial_number is not None
 
     def test_Backend(self):
         """
@@ -123,9 +121,8 @@ class test_ldap(object):
         result = myapi.Command['service_show']('ldap/%s@%s' %  (api.env.host, api.env.realm,))
         entry_attrs = result['result']
         cert = entry_attrs.get('usercertificate')
-        cert = cert[0]
-        serial = x509.load_certificate(cert, x509.DER).serial_number
-        assert serial is not None
+        cert = x509.load_der_x509_certificate(cert[0])
+        assert cert.serial_number is not None
 
     def test_autobind(self):
         """
@@ -138,9 +135,8 @@ class test_ldap(object):
             raise nose.SkipTest("Only executed as root")
         entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
-        cert = cert[0]
-        serial = x509.load_certificate(cert, x509.DER).serial_number
-        assert serial is not None
+        cert = x509.load_der_x509_certificate(cert[0])
+        assert cert.serial_number is not None
 
 
 @pytest.mark.tier0

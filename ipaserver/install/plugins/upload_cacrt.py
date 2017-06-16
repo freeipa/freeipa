@@ -22,7 +22,7 @@ import logging
 from ipalib.install import certstore
 from ipaplatform.paths import paths
 from ipaserver.install import certs
-from ipalib import Registry, errors
+from ipalib import Registry, errors, x509
 from ipalib import Updater
 from ipapython import certdb
 from ipapython.dn import DN
@@ -60,7 +60,7 @@ class update_upload_cacrt(Updater):
                 continue
             if nickname == ca_nickname and ca_enabled:
                 trust_flags = certdb.IPA_CA_TRUST_FLAGS
-            cert = db.get_cert_from_db(nickname, pem=False)
+            cert = db.get_cert_from_db(nickname)
             trust, _ca, eku = certstore.trust_flags_to_key_policy(trust_flags)
 
             dn = DN(('cn', nickname), ('cn', 'certificates'), ('cn', 'ipa'),
@@ -90,6 +90,7 @@ class update_upload_cacrt(Updater):
                         pass
 
         if ca_cert:
+            dercert = ca_cert.public_bytes(x509.Encoding.DER)
             dn = DN(('cn', 'CACert'), ('cn', 'ipa'), ('cn','etc'),
                     self.api.env.basedn)
             try:
@@ -98,11 +99,11 @@ class update_upload_cacrt(Updater):
                 entry = ldap.make_entry(dn)
                 entry['objectclass'] = ['nsContainer', 'pkiCA']
                 entry.single_value['cn'] = 'CAcert'
-                entry.single_value['cACertificate;binary'] = ca_cert
+                entry.single_value['cACertificate;binary'] = dercert
                 ldap.add_entry(entry)
             else:
                 if b'' in entry['cACertificate;binary']:
-                    entry.single_value['cACertificate;binary'] = ca_cert
+                    entry.single_value['cACertificate;binary'] = dercert
                     ldap.update_entry(entry)
 
         return False, []

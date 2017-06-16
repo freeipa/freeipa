@@ -31,7 +31,6 @@ import syslog
 import traceback
 import tempfile
 import shutil
-import base64
 import contextlib
 import json
 
@@ -266,8 +265,8 @@ def store_cert(**kwargs):
     cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if not cert:
         return (REJECTED, "New certificate requests not supported")
-
-    dercert = x509.normalize_certificate(cert)
+    cert = x509.load_pem_x509_certificate(cert)
+    dercert = cert.public_bytes(x509.Encoding.DER)
 
     dn = DN(('cn', nickname), ('cn', 'ca_renewal'),
             ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
@@ -365,7 +364,8 @@ def retrieve_or_reuse_cert(**kwargs):
     if not nickname:
         return (REJECTED, "Nickname could not be determined")
 
-    cert = os.environ.get('CERTMONGER_CERTIFICATE')
+    cert = x509.load_pem_x509_certificate(
+        fix_pem(os.environ.get('CERTMONGER_CERTIFICATE'))) # TODO: the fix_pem somehow got there early, so making this comment way too long to get rid of it later
     if not cert:
         return (REJECTED, "New certificate requests not supported")
 
@@ -378,11 +378,10 @@ def retrieve_or_reuse_cert(**kwargs):
         except errors.NotFound:
             pass
         else:
-            cert = entry.single_value['usercertificate']
-            cert = base64.b64encode(cert)
-            cert = x509.make_pem(cert)
+            cert = x509.load_der_x509_certificate(
+                entry.single_value['usercertificate'])
 
-    return (ISSUED, cert)
+    return (ISSUED, cert.public_bytes(x509.Encoding.PEM))
 
 
 def retrieve_cert_continuous(reuse_existing, **kwargs):
@@ -392,7 +391,7 @@ def retrieve_cert_continuous(reuse_existing, **kwargs):
     """
     old_cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if old_cert:
-        old_cert = x509.normalize_certificate(old_cert)
+        old_cert = x509.load_pem_x509_certificate(old_cert)
 
     result = call_handler(retrieve_or_reuse_cert,
                           reuse_existing=reuse_existing,
@@ -400,7 +399,7 @@ def retrieve_cert_continuous(reuse_existing, **kwargs):
     if result[0] != ISSUED or reuse_existing:
         return result
 
-    new_cert = x509.normalize_certificate(result[1])
+    new_cert = x509.load_pem_x509_certificate(result[1])
     if new_cert == old_cert:
         syslog.syslog(syslog.LOG_INFO, "Updated certificate not available")
         # No cert available yet, tell certmonger to wait another 8 hours
@@ -431,7 +430,8 @@ def renew_ca_cert(reuse_existing, **kwargs):
     cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if not cert:
         return (REJECTED, "New certificate requests not supported")
-    is_self_signed = x509.is_self_signed(cert)
+    cert = x509.load_pem_x509_certificate(cert)
+    is_self_signed = cert.is_self_signed()
 
     operation = os.environ.get('CERTMONGER_OPERATION')
     if operation == 'SUBMIT':
