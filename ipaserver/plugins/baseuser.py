@@ -799,7 +799,7 @@ class ModCertMapData(LDAPModAttribute):
             data.append(cls._build_mapdata(subject, issuer))
 
         for dercert in certificates:
-            cert = x509.load_certificate(dercert, x509.DER)
+            cert = x509.load_der_x509_certificate(dercert)
             issuer = DN(cert.issuer)
             subject = DN(cert.subject)
             if not subject:

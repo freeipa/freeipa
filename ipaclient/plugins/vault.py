@@ -683,8 +683,8 @@ class ModVaultData(Local):
 
         # retrieve transport certificate (cached by vaultconfig_show)
         response = self.api.Command.vaultconfig_show()
-        transport_cert = x509.load_certificate(
-            response['result']['transport_cert'], x509.DER)
+        transport_cert = x509.load_der_x509_certificate(
+            response['result']['transport_cert'])
         # call with the retrieved transport certificate
         return self._do_internal(algo, transport_cert, True,
                                  *args, **options)

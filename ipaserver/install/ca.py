@@ -196,7 +196,7 @@ def install_check(standalone, replica_config, options):
                 cert = db.get_cert_from_db(nickname)
                 if not cert:
                     continue
-                subject = DN(x509.load_certificate(cert).subject)
+                subject = DN(x509.load_pem_x509_certificate(cert).subject)
                 if subject == DN(options._ca_subject):
                     raise ScriptError(
                         "Certificate with subject %s is present in %s, "
