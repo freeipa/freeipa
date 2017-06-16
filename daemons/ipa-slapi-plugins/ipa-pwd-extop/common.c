@@ -46,6 +46,8 @@
 /* Type of connection for this operation;*/
 #define LDAP_EXTOP_PASSMOD_CONN_SECURE
 
+#define PROC_SYS_FIPS "/proc/sys/crypto/fips_enabled"
+
 /* Uncomment the following #undef FOR TESTING:
  * allows non-SSL connections to use the password change extended op */
 /* #undef LDAP_EXTOP_PASSMOD_CONN_SECURE */
@@ -61,6 +63,27 @@ static const char *ipapwd_def_encsalts[] = {
     "aes128-cts:special",
     NULL
 };
+
+static bool fips_enabled(void)
+{
+    int fd;
+    ssize_t len;
+    char buf[8];
+
+    fd = open(PROC_SYS_FIPS, O_RDONLY);
+    if (fd != -1) {
+        len = read(fd, buf, sizeof(buf));
+        close(fd);
+        /* Assume FIPS in enabled if PROC_SYS_FIPS contains a non-0 value
+         * similar to the is_fips_enabled() check in
+         * ipaplatform/redhat/tasks.py */
+        if (!(len == 2 && buf[0] == '0' && buf[1] == '\n')) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 static struct ipapwd_krbcfg *ipapwd_getConfig(void)
 {
@@ -232,23 +255,27 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
 
     /* get the ipa etc/ipaConfig entry */
     config->allow_nt_hash = false;
-    ret = ipapwd_getEntry(ipa_etc_config_dn, &config_entry, NULL);
-    if (ret != LDAP_SUCCESS) {
-        LOG_FATAL("No config Entry?\n");
-        goto free_and_error;
+    if (fips_enabled()) {
+        LOG("FIPS mode is enabled, NT hashes are not allowed.\n");
     } else {
-        tmparray = slapi_entry_attr_get_charray(config_entry,
-                                                "ipaConfigString");
-        for (i = 0; tmparray && tmparray[i]; i++) {
-            if (strcasecmp(tmparray[i], "AllowNThash") == 0) {
-                config->allow_nt_hash = true;
-                continue;
+        ret = ipapwd_getEntry(ipa_etc_config_dn, &config_entry, NULL);
+        if (ret != LDAP_SUCCESS) {
+            LOG_FATAL("No config Entry?\n");
+            goto free_and_error;
+        } else {
+            tmparray = slapi_entry_attr_get_charray(config_entry,
+                                                    "ipaConfigString");
+            for (i = 0; tmparray && tmparray[i]; i++) {
+                if (strcasecmp(tmparray[i], "AllowNThash") == 0) {
+                    config->allow_nt_hash = true;
+                    continue;
+                }
             }
+            if (tmparray) slapi_ch_array_free(tmparray);
         }
-        if (tmparray) slapi_ch_array_free(tmparray);
-    }
 
-    slapi_entry_free(config_entry);
+        slapi_entry_free(config_entry);
+    }
 
     return config;
 
