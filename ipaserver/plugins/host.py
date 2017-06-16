@@ -691,7 +691,7 @@ class host_add(LDAPCreate):
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
         certs = options.get('usercertificate', [])
-        certs_der = [x509.normalize_certificate(c) for c in certs]
+        certs_der = [x509.ensure_der_format(c) for c in certs]
         entry_attrs['usercertificate'] = certs_der
         entry_attrs['managedby'] = dn
         entry_attrs['objectclass'].append('ieee802device')
@@ -895,7 +895,7 @@ class host_mod(LDAPUpdate):
 
         # verify certificates
         certs = entry_attrs.get('usercertificate') or []
-        certs_der = [x509.normalize_certificate(c) for c in certs]
+        certs_der = [x509.ensure_der_format(c) for c in certs]
 
         # revoke removed certificates
         ca_is_enabled = self.api.Command.ca_is_enabled()['result']
@@ -905,7 +905,7 @@ class host_mod(LDAPUpdate):
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
             old_certs = entry_attrs_old.get('usercertificate', [])
-            old_certs_der = [x509.normalize_certificate(c) for c in old_certs]
+            old_certs_der = [x509.ensure_der_format(c) for c in old_certs]
             removed_certs_der = set(old_certs_der) - set(certs_der)
             for der in removed_certs_der:
                 rm_certs = api.Command.cert_find(certificate=der)['result']

@@ -1054,7 +1054,7 @@ def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
             if ca_cert is None:
                 ca_cert = cert
 
-            cert_obj = x509.load_certificate(cert, x509.DER)
+            cert_obj = x509.load_der_x509_certificate(cert)
             subject = DN(cert_obj.subject)
             issuer = DN(cert_obj.issuer)
 
@@ -1185,7 +1185,7 @@ def load_external_cert(files, ca_subject):
         for nickname, _trust_flags in nssdb.list_certs():
             cert = nssdb.get_cert(nickname, pem=True)
 
-            cert_obj = x509.load_certificate(cert)
+            cert_obj = x509.load_pem_x509_certificate(cert)
             subject = DN(cert_obj.subject)
             issuer = DN(cert_obj.issuer)
 

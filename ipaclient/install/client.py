@@ -1647,7 +1647,7 @@ def get_ca_certs_from_ldap(server, basedn, realm):
         logger.debug("get_ca_certs_from_ldap() error: %s", e)
         raise
 
-    certs = [x509.load_certificate(c[0], x509.DER) for c in certs
+    certs = [x509.load_der_x509_certificate(c[0]) for c in certs
              if c[2] is not False]
 
     return certs

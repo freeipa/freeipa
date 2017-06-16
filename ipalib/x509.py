@@ -19,7 +19,7 @@
 
 # Certificates should be stored internally DER-encoded. We can be passed
 # a certificate several ways: read if from LDAP, read it from a 3rd party
-# app (dogtag, candlepin, etc) or as user input. The normalize_certificate()
+# app (dogtag, candlepin, etc) or as user input. The ensure_der_format()
 # function will convert an incoming certificate to DER-encoding.
 
 # Conventions
@@ -101,24 +101,26 @@ def strip_header(pem):
         return pem
 
 
-def load_certificate(data, datatype=PEM):
+def load_pem_x509_certificate(data):
     """
-    Load an X.509 certificate.
+    Load an X.509 certificate in PEM format.
 
-    :param datatype: PEM for base64-encoded data (with or without header),
-                     or DER
-    :return: a python-cryptography ``CertificateSigningRequest`` object.
+    :returns: a python-cryptography ``Certificate`` object.
     :raises: ``ValueError`` if unable to load the certificate.
-
     """
-    if type(data) in (tuple, list):
-        data = data[0]
+    return crypto_x509.load_pem_x509_certificate(data,
+                                                 backend=default_backend())
 
-    if (datatype == PEM):
-        data = strip_header(data)
-        data = base64.b64decode(data)
 
-    return cryptography.x509.load_der_x509_certificate(data, default_backend())
+def load_der_x509_certificate(data):
+    """
+    Load an X.509 certificate in DER format.
+
+    :returns: a python-cryptography ``Certificate`` object.
+    :raises: ``ValueError`` if unable to load the certificate.
+    """
+    return crypto_x509.load_der_x509_certificate(data,
+                                                 backend=default_backend())
 
 
 def load_certificate_from_file(filename, dbdir=None):
@@ -126,10 +128,9 @@ def load_certificate_from_file(filename, dbdir=None):
     Load a certificate from a PEM file.
 
     Returns a python-cryptography ``Certificate`` object.
-
     """
     with open(filename, mode='rb') as f:
-        return load_certificate(f.read(), PEM)
+        return load_pem_x509_certificate(f.read())
 
 
 def load_certificate_list(data):
@@ -140,8 +141,7 @@ def load_certificate_list(data):
 
     """
     certs = PEM_REGEX.findall(data)
-    certs = [load_certificate(cert, PEM) for cert in certs]
-    return certs
+    return [load_pem_x509_certificate(cert) for cert in certs]
 
 
 def load_certificate_list_from_file(filename):
@@ -151,7 +151,7 @@ def load_certificate_list_from_file(filename):
     Return a list of python-cryptography ``Certificate`` objects.
 
     """
-    with open(filename) as f:
+    with open(filename, 'rb') as f:
         return load_certificate_list(f.read())
 
 
@@ -242,7 +242,8 @@ def make_pem(data):
     pemcert + \
     '\n-----END CERTIFICATE-----'
 
-def normalize_certificate(rawcert):
+
+def ensure_der_format(rawcert):
     """
     Incoming certificates should be DER-encoded. If not it is converted to
     DER-format.
@@ -274,17 +275,26 @@ def normalize_certificate(rawcert):
 
     # At this point we should have a DER certificate.
     # Attempt to decode it.
-    validate_certificate(dercert, datatype=DER)
-
+    validate_der_x509_certificate(dercert)
     return dercert
 
 
-def validate_certificate(cert, datatype=PEM):
+def validate_pem_x509_certificate(cert):
     """
     Perform cert validation by trying to load it via python-cryptography.
     """
     try:
-        load_certificate(cert, datatype=datatype)
+        load_pem_x509_certificate(cert)
+    except ValueError as e:
+        raise errors.CertificateFormatError(error=str(e))
+
+
+def validate_der_x509_certificate(cert):
+    """
+    Perform cert validation by trying to load it via python-cryptography.
+    """
+    try:
+        load_der_x509_certificate(cert)
     except ValueError as e:
         raise errors.CertificateFormatError(error=str(e))
 

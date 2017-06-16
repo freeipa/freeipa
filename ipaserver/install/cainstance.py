@@ -1413,7 +1413,7 @@ def update_people_entry(dercert):
     is needed when a certificate is renewed.
     """
     def make_filter(dercert):
-        cert = x509.load_certificate(dercert, datatype=x509.DER)
+        cert = x509.load_der_x509_certificate(dercert)
         subject = DN(cert.subject)
         issuer = DN(cert.issuer)
         return ldap2.ldap2.combine_filters(
@@ -1426,8 +1426,8 @@ def update_people_entry(dercert):
             ldap2.ldap2.MATCH_ALL)
 
     def make_entry(dercert, entry):
-        cert = x509.load_certificate(dercert, datatype=x509.DER)
-        serial_number = cert.serial
+        cert = x509.load_der_x509_certificate(dercert)
+        serial_number = cert.serial_number
         subject = DN(cert.subject)
         issuer = DN(cert.issuer)
         entry['usercertificate'].append(dercert)
@@ -1443,7 +1443,7 @@ def update_authority_entry(dercert):
     serial number to match the given cert.
     """
     def make_filter(dercert):
-        cert = x509.load_certificate(dercert, datatype=x509.DER)
+        cert = x509.load_der_x509_certificate(dercert)
         subject = str(DN(cert.subject))
         return ldap2.ldap2.make_filter(
             dict(objectclass='authority', authoritydn=subject),
@@ -1451,7 +1451,7 @@ def update_authority_entry(dercert):
         )
 
     def make_entry(dercert, entry):
-        cert = x509.load_certificate(dercert, datatype=x509.DER)
+        cert = x509.load_der_x509_certificate(dercert)
         entry['authoritySerial'] = cert.serial_number
         return entry
 

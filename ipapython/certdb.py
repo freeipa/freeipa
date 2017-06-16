@@ -458,7 +458,7 @@ class NSSDatabase(object):
                     if label in ('CERTIFICATE', 'X509 CERTIFICATE',
                                  'X.509 CERTIFICATE'):
                         try:
-                            x509.load_certificate(match.group(2))
+                            x509.load_pem_x509_certificate(match.group(2))
                         except ValueError as e:
                             if label != 'CERTIFICATE':
                                 logger.warning(
@@ -531,7 +531,7 @@ class NSSDatabase(object):
 
             # Try to load the file as DER certificate
             try:
-                x509.load_certificate(data, x509.DER)
+                x509.load_der_x509_certificate(data)
             except ValueError:
                 pass
             else:
@@ -577,7 +577,7 @@ class NSSDatabase(object):
                 "No server certificates found in %s" % (', '.join(files)))
 
         for cert_pem in extracted_certs:
-            cert = x509.load_certificate(cert_pem)
+            cert = x509.load_pem_x509_certificate(cert_pem)
             nickname = str(DN(cert.subject))
             data = cert.public_bytes(serialization.Encoding.DER)
             self.add_cert(data, nickname, EMPTY_TRUST_FLAGS)
@@ -688,7 +688,7 @@ class NSSDatabase(object):
         Raises a ValueError if the certificate is invalid.
         """
         cert = self.get_cert(nickname)
-        cert = x509.load_certificate(cert, x509.DER)
+        cert = x509.load_der_x509_certificate(cert)
 
         try:
             self.run_certutil(['-V', '-n', nickname, '-u', 'V'],
@@ -705,7 +705,7 @@ class NSSDatabase(object):
 
     def verify_ca_cert_validity(self, nickname):
         cert = self.get_cert(nickname)
-        cert = x509.load_certificate(cert, x509.DER)
+        cert = x509.load_der_x509_certificate(cert)
 
         if not cert.subject:
             raise ValueError("has empty subject")
@@ -736,6 +736,6 @@ class NSSDatabase(object):
     def verify_kdc_cert_validity(self, nickname, realm):
         nicknames = self.get_trust_chain(nickname)
         certs = [self.get_cert(nickname) for nickname in nicknames]
-        certs = [x509.load_certificate(cert, x509.DER) for cert in certs]
+        certs = [x509.load_der_x509_certificate(cert) for cert in certs]
 
         verify_kdc_cert_validity(certs[-1], certs[:-1], realm)

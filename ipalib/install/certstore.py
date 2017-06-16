@@ -30,7 +30,7 @@ from ipalib import errors, x509
 
 def _parse_cert(dercert):
     try:
-        cert = x509.load_certificate(dercert, x509.DER)
+        cert = x509.load_der_x509_certificate(dercert)
         subject = DN(cert.subject)
         issuer = DN(cert.issuer)
         serial_number = cert.serial_number

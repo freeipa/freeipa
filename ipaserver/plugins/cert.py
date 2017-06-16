@@ -325,7 +325,7 @@ def ca_kdc_check(api_instance, hostname):
 
 
 def validate_certificate(value):
-    return x509.validate_certificate(value, x509.DER)
+    return x509.validate_der_x509_certificate(value)
 
 
 def bind_principal_can_manage_cert(cert):
@@ -366,7 +366,7 @@ class BaseCertObject(Object):
             'certificate', validate_certificate,
             label=_("Certificate"),
             doc=_("Base-64 encoded certificate."),
-            normalizer=x509.normalize_certificate,
+            normalizer=x509.ensure_der_format,
             flags={'no_create', 'no_update', 'no_search'},
         ),
         Bytes(
@@ -490,7 +490,7 @@ class BaseCertObject(Object):
 
         """
         if 'certificate' in obj:
-            cert = x509.load_certificate(obj['certificate'])
+            cert = x509.load_pem_x509_certificate(obj['certificate'])
             obj['subject'] = DN(cert.subject)
             obj['issuer'] = DN(cert.issuer)
             obj['serial_number'] = cert.serial_number
@@ -927,7 +927,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                              "used for krbtgt certificates")
 
         if 'certificate_chain' in ca_obj:
-            cert = x509.load_certificate(result['certificate'])
+            cert = x509.load_pem_x509_certificate(result['certificate'])
             cert = cert.public_bytes(serialization.Encoding.DER)
             result['certificate_chain'] = [cert] + ca_obj['certificate_chain']
 
@@ -1191,7 +1191,7 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
         # we don't tell Dogtag the issuer (but we check the cert after).
         #
         result = self.Backend.ra.get_certificate(str(serial_number))
-        cert = x509.load_certificate(result['certificate'])
+        cert = x509.load_pem_x509_certificate(result['certificate'])
 
         try:
             self.check_access()
@@ -1270,7 +1270,8 @@ class cert_revoke(PKQuery, CertMethod, VirtualCommand):
             logger.debug("Not granted by ACI to revoke certificate, "
                          "looking at principal")
             try:
-                cert = x509.load_certificate(resp['result']['certificate'])
+                cert = x509.load_pem_x509_certificate(
+                    resp['result']['certificate'])
                 if not bind_principal_can_manage_cert(cert):
                     raise acierr
             except errors.NotImplementedError:
@@ -1435,7 +1436,7 @@ class cert_find(Search, CertMethod):
 
     def _get_cert_key(self, cert):
         try:
-            cert_obj = x509.load_certificate(cert, x509.DER)
+            cert_obj = x509.load_der_x509_certificate(cert)
         except ValueError as e:
             message = messages.SearchResultTruncated(
                 reason=_("failed to load certificate: %s") % e,
@@ -1691,7 +1692,8 @@ class cert_find(Search, CertMethod):
                             obj['certificate'].replace('\r\n', ''))
 
                     if 'certificate_chain' in ca_obj:
-                        cert = x509.load_certificate(obj['certificate'])
+                        cert = x509.load_der_x509_certificate(
+                                obj['certificate'])
                         cert_der = (
                             cert.public_bytes(serialization.Encoding.DER))
                         obj['certificate_chain'] = (
