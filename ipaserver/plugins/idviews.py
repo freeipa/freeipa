@@ -545,7 +545,7 @@ def resolve_object_to_anchor(ldap, obj_type, obj, fallback_to_ldap):
             'group': 'ipausergroup',
         }[obj_type]
 
-        if required_objectclass not in entry['objectclass']:
+        if required_objectclass not in map(str.lower, entry['objectclass']):
             raise errors.ValidationError(
                     name=_('IPA object'),
                     error=_('system IPA objects (e.g. system groups, user '
