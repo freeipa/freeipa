@@ -923,7 +923,7 @@ from ipalib.crud import Create, Retrieve, Update, Delete, Search
 from ipalib.parameters import DefaultFrom, Bool, Flag, Int, Decimal, Bytes, Str, IA5Str, Password, DNParam
 from ipalib.parameters import (BytesEnum, StrEnum, IntEnum, AccessTime, File,
                         DateTime, DNSNameParam)
-from ipalib.errors import SkipPluginModule
+from ipalib.errors import SkipPluginModule, GenericError, NetworkError
 from ipalib.text import _, ngettext, GettextFactory, NGettextFactory
 
 Registry = plugable.Registry
@@ -942,12 +942,17 @@ class API(plugable.API):
                 ipaserver.plugins,
             )
         else:
-            import ipaclient.remote_plugins
-            import ipaclient.plugins
-            result = (
-                ipaclient.remote_plugins.get_package(self),
-                ipaclient.plugins,
-            )
+            try:
+                import ipaclient.remote_plugins
+                import ipaclient.plugins
+                result = (
+                    ipaclient.remote_plugins.get_package(self),
+                    ipaclient.plugins,
+                )
+            except NetworkError:
+                #  instead of raising the default error connection message,
+                #  raising a more user-friendly one
+                raise GenericError('Cannot find IPA server to contact')
 
         if self.env.context in ('installer', 'updates'):
             # pylint: disable=import-error,ipa-forbidden-import
