@@ -66,6 +66,7 @@ env:
           TEST_RUNNER_CONFIG=".test_runner_config_py3_temp.yaml"
           TESTS_TO_RUN="test_cmdline
                 test_ipalib
+                test_ipapython
                 test_ipaserver/test_changepw.py
                 test_pkcs10
                 test_xmlrpc/test_location_plugin.py
@@ -91,13 +92,6 @@ env:
                 test_xmlrpc/test_sudorule_plugin.py"
             ### Tests which haven't been ported to py3 yet ###
             ## test_install
-            ## test_ipapython
-            # test_ipapython/test_cookie.py
-            # test_ipapython/test_dn.py
-            # test_ipapython/test_ipautil.py
-            # test_ipapython/test_ipavalidate.py
-            # test_ipapython/test_kerberos.py
-            # test_ipapython/test_ssh.py
             # test_ipaserver/httptest.py
             # test_ipaserver/test_dnssec.py
             # test_ipaserver/test_install/test_adtrustinstance.py
