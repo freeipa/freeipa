@@ -22,7 +22,7 @@ class test_session_storage(object):
         # os.environ['KRB5CCNAME'] = 'FILE:%s/ccache' % tmpdir
         self.principal = 'admin'
         self.key = 'X-IPA-test-session-storage'
-        self.data = 'Test Data'
+        self.data = b'Test Data'
 
     def test_01(self):
         session_storage.store_data(self.principal, self.key, self.data)

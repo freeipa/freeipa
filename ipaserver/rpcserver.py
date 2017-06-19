@@ -487,7 +487,7 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
             version=unicode(VERSION),
         )
         dump = json_encode_binary(
-            response, version, pretty_print=self.api.env.debug >= 2
+            response, version, pretty_print=self.api.env.debug
         )
         return dump.encode('utf-8')
 
