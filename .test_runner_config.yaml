@@ -62,6 +62,7 @@ steps:
   - ipa-test-config --help
   - ipa-test-task --help
   - ipa-run-tests ${tests_ignore} -k-test_dns_soa ${tests_verbose} ${path}
+  - '! grep -n -C5 BytesWarning /var/log/httpd/error_log'
   - ipa-server-install --uninstall -U
 tests:
   ignore:
