@@ -465,6 +465,12 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
     ret = ipadb_reinit_mspac(ipactx, false);
     if (ret && ret != ENOENT) {
         /* TODO: log that there is an issue with adtrust settings */
+        if (ipactx->lcontext == NULL) {
+            /* for some reason ldap connection was reset in ipadb_reinit_mspac
+             * and is no longer established => failure of ipadb_get_connection
+             */
+            goto done;
+        }
     }
 
     ret = 0;
