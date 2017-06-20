@@ -378,7 +378,10 @@ class PSKCKeyPackage(object):
 
             result = fetch(element, path)
             if result is not None:
-                if getattr(getattr(v[1], "func_code", None), "co_argcount", 0) > 1:
+                lambda_code_attr = "__code__" if six.PY3 else "func_code"
+                if getattr(
+                        getattr(v[1], lambda_code_attr, None),
+                        "co_argcount", 0) > 1:
                     data[v[0]] = v[1](result, decryptor)
                 else:
                     data[v[0]] = v[1](result)
