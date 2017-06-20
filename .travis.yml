@@ -67,7 +67,7 @@ env:
           TESTS_TO_RUN="test_cmdline
                 test_ipalib
                 test_ipapython
-                test_ipaserver/test_changepw.py
+                test_ipaserver
                 test_pkcs10
                 test_xmlrpc/test_location_plugin.py
                 test_xmlrpc/test_nesting.py
@@ -91,21 +91,6 @@ env:
                 test_xmlrpc/test_sudocmdgroup_plugin.py
                 test_xmlrpc/test_sudorule_plugin.py"
             ### Tests which haven't been ported to py3 yet ###
-            ## test_install
-            # test_ipaserver/httptest.py
-            # test_ipaserver/test_dnssec.py
-            # test_ipaserver/test_install/test_adtrustinstance.py
-            # test_ipaserver/test_install/test_service.py
-            # test_ipaserver/test_ipap11helper.py
-            # test_ipaserver/test_kadmin.py
-            # test_ipaserver/test_ldap.py
-            # test_ipaserver/test_otptoken_import.py
-            # test_ipaserver/test_rpcserver.py
-            # test_ipaserver/test_secrets.py
-            # test_ipaserver/test_serverroles.py
-            # test_ipaserver/test_topology_plugin.py
-            # test_ipaserver/test_version_comparison.py
-            ## test_ipaserver
             ## test_xmlrpc/test_[l-z]*.py
             # test_xmlrpc/test_range_plugin.py
             # test_xmlrpc/test_trust_plugin.py
