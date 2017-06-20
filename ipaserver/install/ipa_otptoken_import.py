@@ -315,7 +315,11 @@ class PSKCKeyPackage(object):
         ('model',       'ipatokenmodel',           lambda v, o: v.strip()),
         ('serial',      'ipatokenserial',          lambda v, o: v.strip()),
         ('issueno',     'ipatokenserial',          lambda v, o: o.get('ipatokenserial', '') + '-' + v.strip()),
-        ('key',         'ipatokenotpkey',          lambda v, o: unicode(base64.b32encode(v))),
+        (
+            'key',
+            'ipatokenotpkey',
+            lambda v, o: base64.b32encode(v).decode('ascii')
+        ),
         ('digits',      'ipatokenotpdigits',       lambda v, o: v),
         ('algorithm',   'ipatokenotpalgorithm',    lambda v, o: v),
         ('counter',     'ipatokenhotpcounter',     lambda v, o: v),
