@@ -52,6 +52,7 @@ steps:
   - echo 'wait_for_dns=5' >> ~/.ipa/default.conf
   run_tests:
   - ipa-run-tests-3 ${tests_ignore} -k-test_dns_soa ${tests_verbose} ${path}
+  - '! grep -n -C5 BytesWarning /var/log/httpd/error_log'
 tests:
   verbose: true
   ignore:
