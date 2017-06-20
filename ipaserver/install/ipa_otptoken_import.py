@@ -52,6 +52,7 @@ class ValidationError(Exception):
 
 def fetchAll(element, xpath, conv=lambda x: x):
     return [conv(e) for e in element.xpath(xpath, namespaces={
+        "pkcs5": "http://www.rsasecurity.com/rsalabs/pkcs/schemas/pkcs-5v2-0#",
         "pskc": "urn:ietf:params:xml:ns:keyprov:pskc",
         "xenc11": "http://www.w3.org/2009/xmlenc11#",
         "xenc": "http://www.w3.org/2001/04/xmlenc#",
@@ -175,18 +176,14 @@ class XMLKeyDerivation(six.with_metaclass(abc.ABCMeta, object)):
 
 class PBKDF2KeyDerivation(XMLKeyDerivation):
     def __init__(self, enckey):
-        params = fetch(enckey, "./xenc11:DerivedKey/xenc11:KeyDerivationMethod/xenc11:PBKDF2-params")
+        params = fetch(enckey, "./xenc11:DerivedKey/xenc11:KeyDerivationMethod/pkcs5:PBKDF2-params")
         if params is None:
             raise ValueError("XML file is missing PBKDF2 parameters!")
 
-        salt = fetch(
-            params, "./xenc11:Salt/xenc11:Specified/text()", base64.b64decode)
-        itrs = fetch(
-            params, "./xenc11:IterationCount/text()", int)
-        klen = fetch(
-            params, "./xenc11:KeyLength/text()", int)
-        hmod = fetch(
-            params, "./xenc11:PRF/@Algorithm", convertHMACType, hashes.SHA1)
+        salt = fetch(params, "./Salt/Specified/text()", base64.b64decode)
+        itrs = fetch(params, "./IterationCount/text()", int)
+        klen = fetch(params, "./KeyLength/text()", int)
+        hmod = fetch(params, "./PRF/@Algorithm", convertHMACType, hashes.SHA1)
 
         if salt is None:
             raise ValueError("XML file is missing PBKDF2 salt!")
