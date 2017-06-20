@@ -8,14 +8,14 @@
     <xenc11:DerivedKey>
       <xenc11:KeyDerivationMethod
 	  Algorithm="http://www.rsasecurity.com/rsalabs/pkcs/schemas/pkcs-5v2-0#pbkdf2">
-        <xenc11:PBKDF2-params>
-          <xenc11:Salt>
-            <xenc11:Specified>Ej7/PEpyEpw=</xenc11:Specified>
-          </xenc11:Salt>
-          <xenc11:IterationCount>1000</xenc11:IterationCount>
-          <xenc11:KeyLength>16</xenc11:KeyLength>
-          <xenc11:PRF/>
-        </xenc11:PBKDF2-params>
+        <pkcs5:PBKDF2-params>
+          <Salt>
+            <Specified>Ej7/PEpyEpw=</Specified>
+          </Salt>
+          <IterationCount>1000</IterationCount>
+          <KeyLength>16</KeyLength>
+          <PRF/>
+        </pkcs5:PBKDF2-params>
       </xenc11:KeyDerivationMethod>
       <xenc:ReferenceList>
         <xenc:DataReference URI="#ED"/>
