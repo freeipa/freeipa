@@ -76,7 +76,7 @@ class test_otptoken_import(object):
     def test_figure7(self):
         doc = PSKCDocument(os.path.join(basename, "pskc-figure7.xml"))
         assert doc.keyname == 'My Password 1'
-        doc.setKey('qwerty')
+        doc.setKey(b'qwerty')
         assert [(t.id, t.options) for t in doc.getKeyPackages()] == \
             [(u'123456', {
                 'ipatokenotpkey': u'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',
