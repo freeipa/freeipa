@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import codecs
 import os
 import pytest
 
@@ -62,7 +63,7 @@ class test_otptoken_import(object):
     def test_figure6(self):
         doc = PSKCDocument(os.path.join(basename, "pskc-figure6.xml"))
         assert doc.keyname == 'Pre-shared-key'
-        doc.setKey('12345678901234567890123456789012'.decode('hex'))
+        doc.setKey(codecs.decode('12345678901234567890123456789012', 'hex'))
         assert [(t.id, t.options) for t in doc.getKeyPackages()] == \
             [(u'12345678', {
                 'ipatokenotpkey': u'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',
