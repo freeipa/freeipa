@@ -230,6 +230,9 @@ class AdminTool(object):
         Logging to file is only set up after option validation and prompting;
         before that, all output will go to the console only.
         """
+        if 'console' in ipa_log_manager.log_mgr.handlers:
+            ipa_log_manager.log_mgr.remove_handler('console')
+
         self._setup_logging(log_file_mode=log_file_mode)
 
     def _setup_logging(self, log_file_mode='w', no_file=False):

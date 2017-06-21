@@ -188,8 +188,6 @@ def standard_logging_setup(filename=None, verbose=False, debug=False,
                             format=LOGGING_FORMAT_STANDARD_FILE)
         handlers.append(file_handler)
 
-    if 'console' in log_mgr.handlers:
-        log_mgr.remove_handler('console')
     level = 'error'
     if verbose:
         level = 'info'
@@ -214,14 +212,9 @@ def standard_logging_setup(filename=None, verbose=False, debug=False,
 #-------------------------------------------------------------------------------
 
 # Single shared instance of log manager
-#
-# By default always starts with stderr console handler at error level
-# so messages generated before logging is fully configured have some
-# place to got and won't get lost.
 
 log_mgr = IPALogManager()
 log_mgr.configure(dict(default_level='error',
-                       handlers=[dict(name='console',
-                                      stream=sys.stderr)]),
+                       handlers=[]),
                   configure_state='default')
 root_logger = log_mgr.root_logger

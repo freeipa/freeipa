@@ -3,6 +3,7 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
+import logging
 import sys
 import ldap
 import ldapurl
@@ -19,13 +20,12 @@ from ipaplatform.paths import paths
 from ipaserver.dnssec.keysyncer import KeySyncer
 
 # IPA framework initialization
-api.bootstrap(
-    context='dns', confdir=paths.ETC_IPA,
-    in_server=True, log=None,  # no logging to file
-)
+standard_logging_setup(verbose=True)
+api.bootstrap(context='dns', confdir=paths.ETC_IPA, in_server=True)
 api.finalize()
-standard_logging_setup(verbose=True, debug=api.env.debug)
 log = root_logger
+if api.env.debug:
+    log.setLevel(logging.DEBUG)
 #log.addHandler(systemd.journal.JournalHandler())
 
 # Global state

@@ -10,7 +10,7 @@ This program should be run only on replicas, not on DNSSEC masters.
 
 from binascii import hexlify
 from gssapi.exceptions import GSSError
-import logging
+
 import os
 import sys
 
@@ -123,14 +123,10 @@ def ldap2replica_zone_keys_sync(log, ldapkeydb, localhsm):
 
 
 # IPA framework initialization
-ipalib.api.bootstrap(
-    context='dns', confdir=paths.ETC_IPA,
-    in_server=True, log=None,  # no logging to file
-)
+standard_logging_setup(verbose=True, debug=True)
+ipalib.api.bootstrap(context='dns', confdir=paths.ETC_IPA, in_server=True)
 ipalib.api.finalize()
-standard_logging_setup(verbose=True, debug = True)  # debug=ipalib.api.env.debug)
 log = root_logger
-log.setLevel(level=logging.DEBUG)
 
 # Kerberos initialization
 PRINCIPAL = str('%s/%s' % (DAEMONNAME, ipalib.api.env.host))
