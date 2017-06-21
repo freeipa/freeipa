@@ -278,8 +278,7 @@ class config(LDAPObject):
 
         role_config = backend.config_retrieve(role_name)
         for key, value in role_config.items():
-            if value:
-                entry_attrs.update({key: value})
+            entry_attrs.update({key: value})
 
 
     def show_servroles_attributes(self, entry_attrs, *roles, **options):
