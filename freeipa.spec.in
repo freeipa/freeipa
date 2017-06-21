@@ -864,6 +864,25 @@ find \
 	! -name '*.pyo' -a \
 	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
 	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python2}|' {} \;
+
+%if 0%{?with_python3}
+# TODO: temporary solution until all scripts are ported to python3,
+# TODO: workaround: some scripts are copied over, so the are always py2.
+# We have to explicitly set python3 here for ported files here
+PY3_SUBST_PATHS='
+install/tools/ipa-backup
+install/tools/ipa-compat-manage
+install/tools/ipa-dns-install
+install/tools/ipa-managed-entries
+install/tools/ipa-nis-manage
+install/tools/ipactl
+'
+for P in $PY3_SUBST_PATHS; do
+    sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python3}|' $P
+done;
+
+%endif # with_python3
+
 %configure --with-vendor-suffix=-%{release} \
            %{enable_server_option} \
            %{with_ipatests_option} \
