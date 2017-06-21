@@ -40,6 +40,6 @@ class iSecLdap(object):
 
     def build_filter(self, formatstr, args):
         escaped_args = dict()
-        for key, value in args.iteritems():
+        for key, value in args.items():
             escaped_args[key] = ldap.filter.escape_filter_chars(value)
         return formatstr.format(**escaped_args)
