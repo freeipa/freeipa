@@ -3,6 +3,7 @@
 #
 
 from ipalib.plugable import Registry
+from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.advise.base import Advice
 from ipaserver.install.httpinstance import NSS_OCSP_ENABLED
@@ -18,6 +19,16 @@ class common_smart_card_auth_config(Advice):
 
     systemwide_nssdb = paths.NSS_DB_DIR
     smart_card_ca_cert_variable_name = "SC_CA_CERT"
+
+    def check_ccache_not_empty(self):
+        self.log.comment('Check whether the credential cache is not empty')
+        self.log.exit_on_failed_command(
+            'klist',
+            [
+                "Credential cache is empty",
+                'Use kinit as privileged user to obtain Kerberos credentials'
+            ])
+
 
     def check_and_set_ca_cert_path(self):
         ca_path_variable = self.smart_card_ca_cert_variable_name
@@ -40,6 +51,20 @@ class common_smart_card_auth_config(Advice):
             )
         )
 
+    def install_smart_card_signing_ca_cert(self):
+        self.log.exit_on_failed_command(
+            'ipa-cacert-manage install ${} -t CT,C,C'.format(
+                self.smart_card_ca_cert_variable_name
+            ),
+            ['Failed to install external CA certificate to IPA']
+        )
+
+    def update_ipa_ca_certificate_store(self):
+        self.log.exit_on_failed_command(
+            'ipa-certupdate',
+            ['Failed to update IPA CA certificate database']
+        )
+
 
 @register()
 class config_server_for_smart_card_auth(common_smart_card_auth_config):
@@ -56,6 +81,7 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
     nss_conf = paths.HTTPD_NSS_CONF
     nss_ocsp_directive = 'NSSOCSP'
     nss_nickname_directive = 'NSSNickname'
+    kdc_service_name = services.knownservices.krb5kdc.systemd_name
 
     def get_info(self):
         self.log.exit_on_nonroot_euid()
@@ -70,15 +96,8 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
         self.check_and_enable_pkinit()
         self.enable_ok_to_auth_as_delegate_on_http_principal()
         self.upload_smartcard_ca_certificate_to_systemwide_db()
-
-    def check_ccache_not_empty(self):
-        self.log.comment('Check whether the credential cache is not empty')
-        self.log.exit_on_failed_command(
-            'klist',
-            [
-                "Credential cache is empty",
-                'Use kinit as privileged user to obtain Kerberos credentials'
-            ])
+        self.update_ipa_ca_certificate_store()
+        self.restart_kdc()
 
     def check_hostname_is_in_masters(self):
         self.log.comment('Check whether the host is IPA master')
@@ -193,6 +212,12 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
             ["Failed to set OK_AS_AUTH_AS_DELEGATE flag on HTTP principal"]
         )
 
+    def restart_kdc(self):
+        self.log.exit_on_failed_command(
+            'systemctl restart {}'.format(self.kdc_service_name),
+            ['Failed to restart KDC. Please restart the service manually.']
+        )
+
 
 @register()
 class config_client_for_smart_card_auth(common_smart_card_auth_config):
@@ -214,11 +239,14 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
     def get_info(self):
         self.log.exit_on_nonroot_euid()
         self.check_and_set_ca_cert_path()
+        self.check_ccache_not_empty()
         self.check_and_remove_pam_pkcs11()
         self.install_opensc_and_dconf_packages()
         self.start_enable_smartcard_daemon()
         self.add_pkcs11_module_to_systemwide_db()
         self.upload_smartcard_ca_certificate_to_systemwide_db()
+        self.install_smart_card_signing_ca_cert()
+        self.update_ipa_ca_certificate_store()
         self.run_authconfig_to_configure_smart_card_auth()
         self.restart_sssd()
 
