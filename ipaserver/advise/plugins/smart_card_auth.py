@@ -10,8 +10,39 @@ from ipaserver.install.httpinstance import NSS_OCSP_ENABLED
 register = Registry()
 
 
+class common_smart_card_auth_config(Advice):
+    """
+    Common steps required to properly configure both server and client for
+    smart card auth
+    """
+
+    systemwide_nssdb = paths.NSS_DB_DIR
+    smart_card_ca_cert_variable_name = "SC_CA_CERT"
+
+    def check_and_set_ca_cert_path(self):
+        ca_path_variable = self.smart_card_ca_cert_variable_name
+        self.log.command("{}=$1".format(ca_path_variable))
+        self.log.exit_on_predicate(
+            '[ -z "${}" ]'.format(ca_path_variable),
+            ['You need to provide the path to the PEM file containing CA '
+             'signing the Smart Cards']
+        )
+        self.log.exit_on_predicate(
+            '[ ! -f "${}" ]'.format(ca_path_variable),
+            ['Invalid CA certificate filename: ${}'.format(ca_path_variable),
+             'Please check that the path exists and is a valid file']
+        )
+
+    def upload_smartcard_ca_certificate_to_systemwide_db(self):
+        self.log.command(
+            'certutil -d {} -A -i ${} -n "Smart Card CA" -t CT,C,C'.format(
+                self.systemwide_nssdb, self.smart_card_ca_cert_variable_name
+            )
+        )
+
+
 @register()
-class config_server_for_smart_card_auth(Advice):
+class config_server_for_smart_card_auth(common_smart_card_auth_config):
     """
     Configures smart card authentication via Kerberos (PKINIT) and for WebUI
     """
@@ -28,6 +59,7 @@ class config_server_for_smart_card_auth(Advice):
 
     def get_info(self):
         self.log.exit_on_nonroot_euid()
+        self.check_and_set_ca_cert_path()
         self.check_ccache_not_empty()
         self.check_hostname_is_in_masters()
         self.resolve_ipaca_records()
@@ -37,6 +69,7 @@ class config_server_for_smart_card_auth(Advice):
         self.record_httpd_ocsp_status()
         self.check_and_enable_pkinit()
         self.enable_ok_to_auth_as_delegate_on_http_principal()
+        self.upload_smartcard_ca_certificate_to_systemwide_db()
 
     def check_ccache_not_empty(self):
         self.log.comment('Check whether the credential cache is not empty')
@@ -162,11 +195,10 @@ class config_server_for_smart_card_auth(Advice):
 
 
 @register()
-class config_client_for_smart_card_auth(Advice):
+class config_client_for_smart_card_auth(common_smart_card_auth_config):
     """
     Configures smart card authentication on FreeIPA client
     """
-    smart_card_ca_cert_variable_name = "SC_CA_CERT"
 
     description = ("Instructions for enabling Smart Card authentication on "
                    " a single FreeIPA client. Configures Smart Card daemon, "
@@ -189,20 +221,6 @@ class config_client_for_smart_card_auth(Advice):
         self.upload_smartcard_ca_certificate_to_systemwide_db()
         self.run_authconfig_to_configure_smart_card_auth()
         self.restart_sssd()
-
-    def check_and_set_ca_cert_path(self):
-        ca_path_variable = self.smart_card_ca_cert_variable_name
-        self.log.command("{}=$1".format(ca_path_variable))
-        self.log.exit_on_predicate(
-            '[ -z "${}" ]'.format(ca_path_variable),
-            ['You need to provide the path to the PEM file containing CA '
-             'signing the Smart Cards']
-        )
-        self.log.exit_on_predicate(
-            '[ ! -f "${}" ]'.format(ca_path_variable),
-            ['Invalid CA certificate filename: ${}'.format(ca_path_variable),
-             'Please check that the path exists and is a valid file']
-        )
 
     def check_and_remove_pam_pkcs11(self):
         self.log.command('rpm -qi pam_pkcs11 > /dev/null')
@@ -245,13 +263,6 @@ class config_client_for_smart_card_auth(Advice):
                 'echo "" | modutil -dbdir {} -add "{}" -libfile {}'.format(
                     nssdb, module_name, shared_lib),
             ]
-        )
-
-    def upload_smartcard_ca_certificate_to_systemwide_db(self):
-        self.log.command(
-            'certutil -d {} -A -i ${} -n "Smart Card CA" -t CT,C,C'.format(
-                self.systemwide_nssdb, self.smart_card_ca_cert_variable_name
-            )
         )
 
     def run_authconfig_to_configure_smart_card_auth(self):
