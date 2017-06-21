@@ -79,7 +79,7 @@ test("Testing IPA.get_entity_param().", function() {
 test("Testing IPA.get_member_attribute().", function() {
 
     equals(
-        IPA.get_member_attribute("user", "group"), "memberof",
+        IPA.get_member_attribute("user", "group"), "memberofindirect",
         "IPA.get_member_attribute(\"user\", \"group\")");
 
     equals(
@@ -119,7 +119,9 @@ test("Testing successful rpc.command().", function() {
 
     var orig = $.ajax;
 
-    var xhr = {};
+    // Result needs to be there as it is place where message from API call is
+    // stored
+    var xhr = {"result": {}};
     var text_status = null;
     var error_thrown = {name:'ERROR', message:'An error has occurred'};
 
@@ -137,6 +139,9 @@ test("Testing successful rpc.command().", function() {
         equals(
             data.method, object+'_'+method,
             "Checking method");
+
+        // By default all rpc calls contain version of API
+        $.extend(options, {'version': window.ipa_loader.api_version});
 
         same(
             data.params, [args, options],
@@ -212,7 +217,13 @@ test("Testing unsuccessful rpc.command().", function() {
 
         equals(data.method, object+'_'+method, "Checking method");
 
+        // By default all rpc calls contain version of API
+        $.extend(options, { 'version': window.ipa_loader.api_version});
+
         same(data.params, [args, options], "Checking parameters");
+
+        // remove api version from options object
+        delete options.version;
 
         request.error(xhr, text_status, error_thrown);
     };
