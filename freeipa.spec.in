@@ -277,6 +277,9 @@ Group: System Environment/Base
 Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
+%if 0%{?with_python3}
+Requires: python3-ipaserver = %{version}-%{release}
+%endif
 Requires: python2-ipaserver = %{version}-%{release}
 Requires: 389-ds-base >= 1.3.5.14
 Requires: openldap-clients > 2.4.35-4
@@ -499,6 +502,9 @@ Summary: IPA authentication for use on clients
 Group: System Environment/Base
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
+%if 0%{?with_python3}
+Requires: python3-ipaclient = %{version}-%{release}
+%endif
 Requires: python2-ipaclient = %{version}-%{release}
 Requires: python-ldap
 Requires: cyrus-sasl-gssapi%{?_isa}
@@ -618,6 +624,9 @@ BuildArch: noarch
 Obsoletes: %{name}-python < 4.2.91
 Provides: %{name}-python = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
+%if 0%{?with_python3}
+Requires: python3-ipalib = %{version}-%{release}
+%endif
 Requires: python2-ipalib = %{version}-%{release}
 
 Provides: %{alt_name}-python-compat = %{version}
