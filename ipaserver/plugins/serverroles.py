@@ -81,13 +81,17 @@ class serverroles(Backend):
                 reason=_("{role}: role not found".format(role=role_name)))
 
     def _get_enabled_masters(self, role_name):
+        result = {}
         role = self._get_role(role_name)
 
         enabled_masters = [
             r[u'server_server'] for r in role.status(self.api, server=None) if
             r[u'status'] == ENABLED]
 
-        return {role.attr_name: enabled_masters}
+        if enabled_masters:
+            result.update({role.attr_name: enabled_masters})
+
+        return result
 
     def _get_assoc_attributes(self, role_name):
         role = self._get_role(role_name)
@@ -136,7 +140,9 @@ class serverroles(Backend):
 
         for name, attr in assoc_attributes.items():
             attr_value = attr.get(self.api)
-            result.update({name: attr_value})
+
+            if attr_value:
+                result.update({name: attr_value})
 
         return result
 
