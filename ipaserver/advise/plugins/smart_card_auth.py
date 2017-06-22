@@ -44,13 +44,13 @@ class common_smart_card_auth_config(Advice):
             "for {} in ${}".format(
                 single_ca_path_variable, ca_paths_variable))
         self.log.command("do")
-        self.log.exit_on_predicate(
-            '[ ! -f "${}" ]'.format(single_ca_path_variable),
-            ['Invalid CA certificate filename: ${}'.format(
-                single_ca_path_variable),
-             'Please check that the path exists and is a valid file'],
-            indent_spaces=2
-        )
+        with self.log.indented_block():
+            self.log.exit_on_predicate(
+                '[ ! -f "${}" ]'.format(single_ca_path_variable),
+                ['Invalid CA certificate filename: ${}'.format(
+                    single_ca_path_variable),
+                 'Please check that the path exists and is a valid file']
+            )
         self.log.command("done")
 
     def upload_smartcard_ca_certificates_to_systemwide_db(self):
@@ -59,13 +59,13 @@ class common_smart_card_auth_config(Advice):
                 self.single_ca_cert_variable_name,
                 self.smart_card_ca_certs_variable_name))
         self.log.command("do")
-        self.log.command(
-            'certutil -d {} -A -i ${} -n "Smart Card CA $(uuidgen)" '
-            '-t CT,C,C'.format(
-                self.systemwide_nssdb, self.single_ca_cert_variable_name
-            ),
-            indent_spaces=2
-        )
+        with self.log.indented_block():
+            self.log.command(
+                'certutil -d {} -A -i ${} -n "Smart Card CA $(uuidgen)" '
+                '-t CT,C,C'.format(
+                    self.systemwide_nssdb, self.single_ca_cert_variable_name
+                ),
+            )
         self.log.command("done")
 
     def install_smart_card_signing_ca_certs(self):
@@ -74,13 +74,13 @@ class common_smart_card_auth_config(Advice):
                 self.single_ca_cert_variable_name,
                 self.smart_card_ca_certs_variable_name))
         self.log.command("do")
-        self.log.exit_on_failed_command(
-            'ipa-cacert-manage install ${} -t CT,C,C'.format(
-                self.single_ca_cert_variable_name
-            ),
-            ['Failed to install external CA certificate to IPA'],
-            indent_spaces=2
-        )
+        with self.log.indented_block():
+            self.log.exit_on_failed_command(
+                'ipa-cacert-manage install ${} -t CT,C,C'.format(
+                    self.single_ca_cert_variable_name
+                ),
+                ['Failed to install external CA certificate to IPA']
+            )
         self.log.command("done")
 
     def update_ipa_ca_certificate_store(self):
@@ -221,8 +221,7 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
         self.log.command('else')
         self.log.exit_on_failed_command(
             'ipa-pkinit-manage enable',
-            ['Failed to issue PKINIT certificates to local KDC'],
-            indent_spaces=2)
+            ['Failed to issue PKINIT certificates to local KDC'])
         self.log.command('fi')
 
     def enable_ok_to_auth_as_delegate_on_http_principal(self):

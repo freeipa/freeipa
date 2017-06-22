@@ -19,6 +19,7 @@
 
 from __future__ import print_function
 
+from contextlib import contextmanager
 import os
 from textwrap import wrap
 
@@ -74,6 +75,8 @@ As a result, you can redirect the advice's output directly to a script file.
 # ipa-advise sample-advice > script.sh
 # ./script.sh
 """
+
+DEFAULT_INDENTATION_INCREMENT = 2
 
 
 class _IndentationTracker(object):
@@ -131,39 +134,77 @@ class _AdviceOutput(object):
         self.content = []
         self.prefix = '# '
         self.options = None
+        self._indentation_tracker = _IndentationTracker(
+            spaces_per_indent=DEFAULT_INDENTATION_INCREMENT)
+
+    def indent(self):
+        """
+        Indent the statements by one level
+        """
+        self._indentation_tracker.indent()
+
+    def dedent(self):
+        """
+        Dedent the statements by one level
+        """
+        self._indentation_tracker.dedent()
+
+    @contextmanager
+    def indented_block(self):
+        self.indent()
+        try:
+            yield
+        finally:
+            self.dedent()
 
     def comment(self, line, wrapped=True):
         if wrapped:
-            for wrapped_line in wrap(line, 70):
-                self.content.append(self.prefix + wrapped_line)
+            self.append_wrapped_and_indented_comment(line)
         else:
-            self.content.append(self.prefix + line)
+            self.append_comment(line)
+
+    def append_wrapped_and_indented_comment(self, line, character_limit=70):
+        """
+        append wrapped and indented comment to the output
+        """
+        for wrapped_indented_line in wrap(
+                self.indent_statement(line), character_limit):
+            self.append_comment(wrapped_indented_line)
+
+    def append_comment(self, line):
+        self.append_statement(self.prefix + line)
+
+    def append_statement(self, statement):
+        """
+        Append a line to the generated content indenting it by tracked number
+        of spaces
+        """
+        self.content.append(self.indent_statement(statement))
+
+    def indent_statement(self, statement):
+        return '{indent}{statement}'.format(
+            indent=self._indentation_tracker.indentation_string,
+            statement=statement)
 
     def debug(self, line):
         if self.options.verbose:
             self.comment('DEBUG: ' + line)
 
-    def command(self, line, indent_spaces=0):
-        self.content.append(
-            '{}{}'.format(self._format_indent(indent_spaces), line))
+    def command(self, line):
+        self.append_statement(line)
 
-    def _format_indent(self, num_spaces):
-        return ' ' * num_spaces
-
-    def echo_error(self, error_message, indent_spaces=0):
-        self.command(
-            self._format_error(error_message), indent_spaces=indent_spaces)
+    def echo_error(self, error_message):
+        self.command(self._format_error(error_message))
 
     def _format_error(self, error_message):
         return 'echo "{}" >&2'.format(error_message)
 
     def exit_on_failed_command(self, command_to_run,
-                               error_message_lines, indent_spaces=0):
-        self.command(command_to_run, indent_spaces=indent_spaces)
+                               error_message_lines):
+        self.command(command_to_run)
         self.exit_on_predicate(
             '[ "$?" -ne "0" ]',
-            error_message_lines,
-            indent_spaces=indent_spaces)
+            error_message_lines)
 
     def exit_on_nonroot_euid(self):
         self.exit_on_predicate(
@@ -171,8 +212,7 @@ class _AdviceOutput(object):
             ["This script has to be run as root user"]
         )
 
-    def exit_on_predicate(self, predicate, error_message_lines,
-                          indent_spaces=0):
+    def exit_on_predicate(self, predicate, error_message_lines):
         commands_to_run = [
             self._format_error(error_message_line)
             for error_message_line in error_message_lines]
@@ -180,30 +220,26 @@ class _AdviceOutput(object):
         commands_to_run.append('exit 1')
         self.commands_on_predicate(
             predicate,
-            commands_to_run,
-            indent_spaces=indent_spaces)
+            commands_to_run)
 
     def commands_on_predicate(self, predicate, commands_to_run_when_true,
-                              commands_to_run_when_false=None,
-                              indent_spaces=0):
+                              commands_to_run_when_false=None):
         if_command = 'if {}'.format(predicate)
-        self.command(if_command, indent_spaces=indent_spaces)
-        self.command('then', indent_spaces=indent_spaces)
+        self.command(if_command)
+        self.command('then')
 
-        indented_block_spaces = indent_spaces + 2
-
-        for command_to_run_when_true in commands_to_run_when_true:
-            self.command(
-                command_to_run_when_true, indent_spaces=indented_block_spaces)
+        with self.indented_block():
+            for command_to_run_when_true in commands_to_run_when_true:
+                self.command(
+                    command_to_run_when_true)
 
         if commands_to_run_when_false is not None:
-            self.command("else", indent_spaces=indent_spaces)
-            for command_to_run_when_false in commands_to_run_when_false:
-                self.command(
-                    command_to_run_when_false,
-                    indent_spaces=indented_block_spaces)
+            self.command("else")
+            with self.indented_block():
+                for command_to_run_when_false in commands_to_run_when_false:
+                    self.command(command_to_run_when_false)
 
-        self.command('fi', indent_spaces=indent_spaces)
+        self.command('fi')
 
 
 class Advice(Plugin):
