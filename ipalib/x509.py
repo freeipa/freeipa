@@ -421,6 +421,20 @@ def load_der_x509_certificate(data):
     )
 
 
+def load_unknown_x509_certificate(data):
+    """
+    Only use this function when you can't be sure what kind of format does
+    your certificate have, e.g. input certificate files in installers
+
+    :returns: a ``_IPACertificate`` object.
+    :raises: ``ValueError`` if unable to load the certificate.
+    """
+    try:
+        return load_pem_x509_certificate(data)
+    except ValueError:
+        return load_der_x509_certificate(data)
+
+
 def load_certificate_from_file(filename, dbdir=None):
     """
     Load a certificate from a PEM file.
