@@ -214,15 +214,13 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
 
     def check_and_enable_pkinit(self):
         self.log.comment('check whether PKINIT is configured on the master')
-        self.log.command(
-            "if ipa-pkinit-manage status | grep -q 'enabled'")
-        self.log.command('then')
-        self.log.command('  echo "PKINIT already enabled"')
-        self.log.command('else')
-        self.log.exit_on_failed_command(
-            'ipa-pkinit-manage enable',
-            ['Failed to issue PKINIT certificates to local KDC'])
-        self.log.command('fi')
+        with self.log.if_branch(
+                "ipa-pkinit-manage status | grep -q 'enabled'"):
+            self.log.command('echo "PKINIT already enabled"')
+        with self.log.else_branch():
+            self.log.exit_on_failed_command(
+                'ipa-pkinit-manage enable',
+                ['Failed to issue PKINIT certificates to local KDC'])
 
     def enable_ok_to_auth_as_delegate_on_http_principal(self):
         self.log.comment('Enable OK-AS-DELEGATE flag on the HTTP principal')
