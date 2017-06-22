@@ -128,6 +128,79 @@ class _IndentationTracker(object):
         self._recompute_indentation_level()
 
 
+class CompoundStatement(object):
+    """
+    Wrapper around indented blocks of Bash statements.
+
+    Override `begin_statement` and `end_statement` methods to issue
+    opening/closing commands using the passed in _AdviceOutput instance
+    """
+
+    def __init__(self, advice_output):
+        self.advice_output = advice_output
+
+    def __enter__(self):
+        self.begin_statement()
+        self.advice_output.indent()
+
+    def begin_statement(self):
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.advice_output.dedent()
+        self.end_statement()
+
+    def end_statement(self):
+        pass
+
+
+class IfBranch(CompoundStatement):
+    """
+    Base wrapper around `if` branch. The closing statement is empty so it
+    leaves trailing block that can be closed off or continued by else branches
+    """
+    def __init__(self, advice_output, conditional):
+        super(IfBranch, self).__init__(advice_output)
+        self.conditional = conditional
+
+    def begin_statement(self):
+        self.advice_output.command('if {}'.format(self.conditional))
+        self.advice_output.command('then')
+
+
+class ElseIfBranch(CompoundStatement):
+    """
+    Wrapper for `else if <CONDITIONAL>`
+    """
+    def __init__(self, advice_output, alternative_conditional):
+        super(ElseIfBranch, self).__init__(advice_output)
+        self.alternative_conditional = alternative_conditional
+
+    def begin_statement(self):
+        command = 'else if {}'.format(self.alternative_conditional)
+
+        self.advice_output.command(command)
+
+
+class ElseBranch(CompoundStatement):
+    """
+    Wrapper for final `else` block
+    """
+    def begin_statement(self):
+        self.advice_output.command('else')
+
+    def end_statement(self):
+        self.advice_output.command('fi')
+
+
+class UnbranchedIfStatement(IfBranch):
+    """
+    Plain `if` without branches
+    """
+    def end_statement(self):
+        self.advice_output.command('fi')
+
+
 class _AdviceOutput(object):
 
     def __init__(self):
