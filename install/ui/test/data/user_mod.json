@@ -1,0 +1,170 @@
+{
+   "version" : "4.5.90.dev201706131442+gitd665224",
+   "id" : null,
+   "result" : {
+      "summary" : "Modified user \"kfrog\"",
+      "result" : {
+         "uid" : [
+            "kfrog"
+         ],
+         "initials" : [
+            "kf"
+         ],
+         "has_keytab" : false,
+         "gidnumber" : [
+            "771200109"
+         ],
+         "givenname" : [
+            "k"
+         ],
+         "sn" : [
+            "frog"
+         ],
+         "uidnumber" : [
+            "771200109"
+         ],
+         "has_password" : false,
+         "mail" : [
+            "kfrog@dom.example.com"
+         ],
+         "nsaccountlock" : false,
+         "displayname" : [
+            "k frog"
+         ],
+         "homedirectory" : [
+            "/home/kfrog"
+         ],
+         "loginshell" : [
+            "/bin/sh"
+         ],
+         "ipauniqueid" : [
+            "01cdce66-5a8b-11e7-93c8-001a4a231594"
+         ],
+         "krbprincipalname" : [
+            "kfrog@DOM.EXAMPLE.COM"
+         ],
+         "memberof_group" : [
+            "ipausers"
+         ],
+         "attributelevelrights" : {
+            "x121address" : "rscwo",
+            "photo" : "rscwo",
+            "internationalisdnnumber" : "rscwo",
+            "street" : "rscwo",
+            "krblastpwdchange" : "rsc",
+            "krbticketpolicyreference" : "rscwo",
+            "pager" : "rscwo",
+            "ou" : "rscwo",
+            "aci" : "rscwo",
+            "krbprincipalaliases" : "rscwo",
+            "cn" : "rscwo",
+            "krblastfailedauth" : "rsc",
+            "objectclass" : "rscwo",
+            "st" : "rscwo",
+            "postalcode" : "rscwo",
+            "krbpasswordexpiration" : "rscwo",
+            "jpegphoto" : "rscwo",
+            "x500uniqueidentifier" : "rscwo",
+            "roomnumber" : "rscwo",
+            "seealso" : "rscwo",
+            "ipasshpubkey" : "rscwo",
+            "krballowedtodelegateto" : "rscwo",
+            "registeredaddress" : "rscwo",
+            "initials" : "rscwo",
+            "uid" : "rscwo",
+            "usersmimecertificate" : "rscwo",
+            "facsimiletelephonenumber" : "rscwo",
+            "krbprincipaltype" : "rscwo",
+            "krbprincipalauthind" : "rscwo",
+            "preferredlanguage" : "rscwo",
+            "krbmaxrenewableage" : "rscwo",
+            "labeleduri" : "rscwo",
+            "secretary" : "rscwo",
+            "krbupenabled" : "rscwo",
+            "carlicense" : "rscwo",
+            "krbprincipalkey" : "swo",
+            "userpassword" : "swo",
+            "businesscategory" : "rscwo",
+            "mail" : "rscwo",
+            "nsaccountlock" : "rscwo",
+            "krbloginfailedcount" : "rscwo",
+            "manager" : "rscwo",
+            "homepostaladdress" : "rscwo",
+            "givenname" : "rscwo",
+            "l" : "rscwo",
+            "preferreddeliverymethod" : "rscwo",
+            "mepmanagedentry" : "rscwo",
+            "krbticketflags" : "rscwo",
+            "inetuserhttpurl" : "rscwo",
+            "krbprincipalname" : "rscwo",
+            "destinationindicator" : "rscwo",
+            "ipauniqueid" : "rsc",
+            "memberof" : "rsc",
+            "employeetype" : "rscwo",
+            "postofficebox" : "rscwo",
+            "employeenumber" : "rscwo",
+            "teletexterminalidentifier" : "rscwo",
+            "mobile" : "rscwo",
+            "krbpwdpolicyreference" : "rscwo",
+            "homephone" : "rscwo",
+            "krbpwdhistory" : "",
+            "uidnumber" : "rscwo",
+            "userpkcs12" : "rscwo",
+            "krbextradata" : "rsc",
+            "telephonenumber" : "rscwo",
+            "gidnumber" : "rscwo",
+            "krblastadminunlock" : "rscwo",
+            "inetuserstatus" : "rscwo",
+            "o" : "rscwo",
+            "krbcanonicalname" : "rscwo",
+            "description" : "rscwo",
+            "gecos" : "rscwo",
+            "physicaldeliveryofficename" : "rscwo",
+            "postaladdress" : "rscwo",
+            "telexnumber" : "rscwo",
+            "audio" : "rscwo",
+            "loginshell" : "rscwo",
+            "homedirectory" : "rscwo",
+            "krbmaxticketlife" : "rscwo",
+            "departmentnumber" : "rscwo",
+            "displayname" : "rscwo",
+            "title" : "rscwo",
+            "krbprincipalexpiration" : "rscwo",
+            "usercertificate" : "rscwo",
+            "krblastsuccessfulauth" : "rsc",
+            "sn" : "rscwo"
+         },
+         "gecos" : [
+            "k frogx"
+         ],
+         "dn" : "uid=kfrog,cn=users,cn=accounts,dc=dom,dc=example,dc=com",
+         "objectclass" : [
+            "top",
+            "person",
+            "organizationalperson",
+            "inetorgperson",
+            "inetuser",
+            "posixaccount",
+            "krbprincipalaux",
+            "krbticketpolicyaux",
+            "ipaobject",
+            "ipasshuser",
+            "ipaSshGroupOfPubKeys",
+            "mepOriginEntry"
+         ],
+         "cn" : [
+            "k frog"
+         ],
+         "krbcanonicalname" : [
+            "kfrog@DOM.EXAMPLE.COM"
+         ],
+         "mepmanagedentry" : [
+            "cn=kfrog,cn=groups,cn=accounts,dc=dom,dc=example,dc=com"
+         ],
+         "preserved" : false
+      },
+      "value" : "kfrog"
+   },
+   "principal" : "admin@DOM.EXAMPLE.COM",
+   "error" : null
+}
