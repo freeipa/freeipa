@@ -201,6 +201,24 @@ class UnbranchedIfStatement(IfBranch):
         self.advice_output.command('fi')
 
 
+class ForLoop(CompoundStatement):
+    """
+    Wrapper around the for loop
+    """
+    def __init__(self, advice_output, loop_variable, iterable):
+        super(ForLoop, self).__init__(advice_output)
+        self.loop_variable = loop_variable
+        self.iterable = iterable
+
+    def begin_statement(self):
+        self.advice_output.command(
+            'for {} in {}'.format(self.loop_variable, self.iterable))
+        self.advice_output.command('do')
+
+    def end_statement(self):
+        self.advice_output.command('done')
+
+
 class _AdviceOutput(object):
 
     def __init__(self):
@@ -332,6 +350,11 @@ class _AdviceOutput(object):
     @contextmanager
     def else_if_branch(self, predicate):
         with self._compound_statement(ElseIfBranch, predicate):
+            yield
+
+    @contextmanager
+    def for_loop(self, loop_variable, iterable):
+        with self._compound_statement(ForLoop, loop_variable, iterable):
             yield
 
 
