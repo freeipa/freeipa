@@ -18,7 +18,8 @@ class common_smart_card_auth_config(Advice):
     """
 
     systemwide_nssdb = paths.NSS_DB_DIR
-    smart_card_ca_cert_variable_name = "SC_CA_CERT"
+    smart_card_ca_certs_variable_name = "SC_CA_CERTS"
+    single_ca_cert_variable_name = 'ca_cert'
 
     def check_ccache_not_empty(self):
         self.log.comment('Check whether the credential cache is not empty')
@@ -29,35 +30,58 @@ class common_smart_card_auth_config(Advice):
                 'Use kinit as privileged user to obtain Kerberos credentials'
             ])
 
+    def check_and_set_ca_cert_paths(self):
+        ca_paths_variable = self.smart_card_ca_certs_variable_name
+        single_ca_path_variable = self.single_ca_cert_variable_name
 
-    def check_and_set_ca_cert_path(self):
-        ca_path_variable = self.smart_card_ca_cert_variable_name
-        self.log.command("{}=$1".format(ca_path_variable))
+        self.log.command("{}=$@".format(ca_paths_variable))
         self.log.exit_on_predicate(
-            '[ -z "${}" ]'.format(ca_path_variable),
-            ['You need to provide the path to the PEM file containing CA '
-             'signing the Smart Cards']
+            '[ -z "${}" ]'.format(ca_paths_variable),
+            ['You need to provide one or more paths to the PEM files '
+             'containing CAs signing the Smart Cards']
         )
-        self.log.exit_on_predicate(
-            '[ ! -f "${}" ]'.format(ca_path_variable),
-            ['Invalid CA certificate filename: ${}'.format(ca_path_variable),
-             'Please check that the path exists and is a valid file']
-        )
-
-    def upload_smartcard_ca_certificate_to_systemwide_db(self):
         self.log.command(
-            'certutil -d {} -A -i ${} -n "Smart Card CA" -t CT,C,C'.format(
-                self.systemwide_nssdb, self.smart_card_ca_cert_variable_name
-            )
+            "for {} in ${}".format(
+                single_ca_path_variable, ca_paths_variable))
+        self.log.command("do")
+        self.log.exit_on_predicate(
+            '[ ! -f "${}" ]'.format(single_ca_path_variable),
+            ['Invalid CA certificate filename: ${}'.format(
+                single_ca_path_variable),
+             'Please check that the path exists and is a valid file'],
+            indent_spaces=2
         )
+        self.log.command("done")
 
-    def install_smart_card_signing_ca_cert(self):
+    def upload_smartcard_ca_certificates_to_systemwide_db(self):
+        self.log.command(
+            "for {} in ${}".format(
+                self.single_ca_cert_variable_name,
+                self.smart_card_ca_certs_variable_name))
+        self.log.command("do")
+        self.log.command(
+            'certutil -d {} -A -i ${} -n "Smart Card CA $(uuidgen)" '
+            '-t CT,C,C'.format(
+                self.systemwide_nssdb, self.single_ca_cert_variable_name
+            ),
+            indent_spaces=2
+        )
+        self.log.command("done")
+
+    def install_smart_card_signing_ca_certs(self):
+        self.log.command(
+            "for {} in ${}".format(
+                self.single_ca_cert_variable_name,
+                self.smart_card_ca_certs_variable_name))
+        self.log.command("do")
         self.log.exit_on_failed_command(
             'ipa-cacert-manage install ${} -t CT,C,C'.format(
-                self.smart_card_ca_cert_variable_name
+                self.single_ca_cert_variable_name
             ),
-            ['Failed to install external CA certificate to IPA']
+            ['Failed to install external CA certificate to IPA'],
+            indent_spaces=2
         )
+        self.log.command("done")
 
     def update_ipa_ca_certificate_store(self):
         self.log.exit_on_failed_command(
@@ -85,7 +109,7 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
 
     def get_info(self):
         self.log.exit_on_nonroot_euid()
-        self.check_and_set_ca_cert_path()
+        self.check_and_set_ca_cert_paths()
         self.check_ccache_not_empty()
         self.check_hostname_is_in_masters()
         self.resolve_ipaca_records()
@@ -95,7 +119,8 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
         self.record_httpd_ocsp_status()
         self.check_and_enable_pkinit()
         self.enable_ok_to_auth_as_delegate_on_http_principal()
-        self.upload_smartcard_ca_certificate_to_systemwide_db()
+        self.upload_smartcard_ca_certificates_to_systemwide_db()
+        self.install_smart_card_signing_ca_certs()
         self.update_ipa_ca_certificate_store()
         self.restart_kdc()
 
@@ -234,18 +259,16 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
     pkcs11_shared_lib = '/usr/lib64/opensc-pkcs11.so'
     smart_card_service_file = 'pcscd.service'
     smart_card_socket = 'pcscd.socket'
-    systemwide_nssdb = paths.NSS_DB_DIR
 
     def get_info(self):
         self.log.exit_on_nonroot_euid()
-        self.check_and_set_ca_cert_path()
+        self.check_and_set_ca_cert_paths()
         self.check_ccache_not_empty()
         self.check_and_remove_pam_pkcs11()
         self.install_opensc_and_dconf_packages()
         self.start_enable_smartcard_daemon()
         self.add_pkcs11_module_to_systemwide_db()
-        self.upload_smartcard_ca_certificate_to_systemwide_db()
-        self.install_smart_card_signing_ca_cert()
+        self.upload_smartcard_ca_certificates_to_systemwide_db()
         self.update_ipa_ca_certificate_store()
         self.run_authconfig_to_configure_smart_card_auth()
         self.restart_sssd()
