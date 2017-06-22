@@ -827,7 +827,7 @@ class vault_archive(ModVaultData):
             data = validated_read('in', input_file, mode='rb')
 
         else:
-            data = ''
+            data = b''
 
         if self.api.env.in_server:
             backend = self.api.Backend.ldap2
