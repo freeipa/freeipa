@@ -50,7 +50,8 @@ env:
             test_xmlrpc/test_hbactest_plugin.py
             test_xmlrpc/test_host_plugin.py
             test_xmlrpc/test_hostgroup_plugin.py
-            test_xmlrpc/test_krbtpolicy.py"
+            test_xmlrpc/test_krbtpolicy.py
+            test_xmlrpc/test_kerberos_principal_aliases.py"
             ### Tests which haven't been ported to py3 yet ###
             ## test_xmlrpc/test_[a-k]*.py
             # test_xmlrpc/test_ca_plugin.py
@@ -60,7 +61,6 @@ env:
             # test_xmlrpc/test_dns_realmdomains_integration.py
             # test_xmlrpc/test_external_members.py
             # test_xmlrpc/test_idviews_plugin.py
-            # test_xmlrpc/test_kerberos_principal_aliases.py
         - TASK_TO_RUN="run-tests"
           PYTHON=/usr/bin/python3
           TEST_RUNNER_CONFIG=".test_runner_config_py3_temp.yaml"

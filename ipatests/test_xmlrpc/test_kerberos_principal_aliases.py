@@ -33,6 +33,21 @@ TRUSTED_DOMAIN_MOCK['ldif'] = get_trusted_dom_dict(
     TRUSTED_DOMAIN_MOCK['name'], TRUSTED_DOMAIN_MOCK['sid']
 )
 
+ADD_REMOVE_TEST_DATA = [
+    u'testuser-alias',
+    u'testhost-alias',
+    u'teststageuser-alias',
+]
+TRACKER_INIT_DATA = [
+    (UserTracker, (u'krbalias_user', u'krbalias', u'test',), {},),
+    (HostTracker, (u'testhost-krb',), {},),
+    (StageUserTracker, (u'krbalias_stageuser', u'krbalias', u'test',), {},),
+]
+TRACKER_DATA = [
+    (ADD_REMOVE_TEST_DATA[i],) + TRACKER_INIT_DATA[i]
+    for i in range(len(TRACKER_INIT_DATA))
+]
+
 
 @yield_fixture
 def trusted_domain():
@@ -117,31 +132,17 @@ def ldapservice(request):
     tracker.track_create()
     return tracker
 
-
 class TestKerberosAliasManipulation(XMLRPC_test):
-    add_remove_test_data = [
-        u'testuser-alias',
-        u'testhost-alias',
-        u'teststageuser-alias',
-    ]
-    tracker_init_data = [
-        (UserTracker, (u'krbalias_user', u'krbalias', u'test',), {},),
-        (HostTracker, (u'testhost-krb',), {},),
-        (StageUserTracker, (u'krbalias_stageuser', u'krbalias', u'test',), {},),
-    ]
-
-    tracker_data = [(add_remove_test_data[i],) + tracker_init_data[i]
-                    for i in range(len(tracker_init_data))]
 
     @pytest.mark.parametrize('alias,tracker_cls,tracker_args,tracker_kwargs',
-                             tracker_data)
+                             TRACKER_DATA)
     def test_add_principal_alias(self, alias, krbalias):
         krbalias.ensure_exists()
         krbalias.add_principal([alias])
         krbalias.retrieve()
 
     @pytest.mark.parametrize('alias,tracker_cls,tracker_args,tracker_kwargs',
-                             tracker_data)
+                             TRACKER_DATA)
     def test_remove_principal_alias(self, alias, krbalias):
         krbalias.ensure_exists()
         krbalias.add_principal([alias])
