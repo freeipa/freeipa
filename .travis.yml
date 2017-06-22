@@ -67,6 +67,7 @@ env:
           TESTS_TO_RUN="test_cmdline
                 test_ipalib
                 test_pkcs10
+                test_xmlrpc/test_location_plugin.py
                 test_xmlrpc/test_nesting.py
                 test_xmlrpc/test_netgroup_plugin.py
                 test_xmlrpc/test_old_permission_plugin.py
@@ -112,7 +113,6 @@ env:
             # test_ipaserver/test_version_comparison.py
             ## test_ipaserver
             ## test_xmlrpc/test_[l-z]*.py
-            # test_xmlrpc/test_location_plugin.py
             # test_xmlrpc/test_range_plugin.py
             # test_xmlrpc/test_trust_plugin.py
             # test_xmlrpc/test_vault_plugin.py
