@@ -34,7 +34,8 @@ env:
         - TASK_TO_RUN="run-tests"
           PYTHON=/usr/bin/python3
           TEST_RUNNER_CONFIG=".test_runner_config_py3_temp.yaml"
-          TESTS_TO_RUN="test_xmlrpc/test_attr.py
+          TESTS_TO_RUN="test_xmlrpc/test_add_remove_cert_cmd.py
+            test_xmlrpc/test_attr.py
             test_xmlrpc/test_automember_plugin.py
             test_xmlrpc/test_automount_plugin.py
             test_xmlrpc/test_baseldap_plugin.py
@@ -52,7 +53,6 @@ env:
             test_xmlrpc/test_krbtpolicy.py"
             ### Tests which haven't been ported to py3 yet ###
             ## test_xmlrpc/test_[a-k]*.py
-            # test_xmlrpc/test_add_remove_cert_cmd.py
             # test_xmlrpc/test_ca_plugin.py
             # test_xmlrpc/test_caacl_plugin.py
             # test_xmlrpc/test_caacl_profile_enforcement.py

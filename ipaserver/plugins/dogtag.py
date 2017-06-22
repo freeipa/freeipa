@@ -1434,8 +1434,9 @@ class ra(rabase.rabase, RestClient):
             self.raise_certificate_operation_error('get_parse_result_xml',
                                                    detail=str(e))
         result = parse_func(doc)
-        self.debug("%s() xml_text:\n%s\n"
-                   "parse_result:\n%s" % (parse_func.__name__, xml_text, result))
+        self.debug(
+            "%s() xml_text:\n%r\nparse_result:\n%r",
+            parse_func.__name__, xml_text, result)
         return result
 
     def check_request_status(self, request_id):
