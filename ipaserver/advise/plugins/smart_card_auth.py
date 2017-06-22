@@ -165,13 +165,13 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
             predicate,
             [
                 self._interpolate_ocsp_directive_file_into_command(
-                    "  sed -i.ipabkp -r "
+                    "sed -i.ipabkp -r "
                     "'s/^#*[[:space:]]*{directive}[[:space:]]+(on|off)$"
                     "/{directive} on/' {filename}")
             ],
             commands_to_run_when_false=[
                 self._interpolate_ocsp_directive_file_into_command(
-                    "  sed -i.ipabkp '/<\/VirtualHost>/i {directive} on' "
+                    "sed -i.ipabkp '/<\/VirtualHost>/i {directive} on' "
                     "{filename}")
             ]
         )
