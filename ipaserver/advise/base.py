@@ -76,6 +76,55 @@ As a result, you can redirect the advice's output directly to a script file.
 """
 
 
+class _IndentationTracker(object):
+    """
+    A simple wrapper that tracks the indentation level of the generated bash
+    commands
+    """
+    def __init__(self, spaces_per_indent=0):
+        if spaces_per_indent <= 0:
+            raise ValueError(
+                "Indentation increments cannot be zero or negative")
+        self.spaces_per_indent = spaces_per_indent
+        self._indentation_stack = []
+        self._total_indentation_level = 0
+
+    @property
+    def indentation_string(self):
+        """
+        return a string containing number of spaces corresponding to
+        indentation level
+        """
+        return " " * self._total_indentation_level
+
+    def indent(self):
+        """
+        track a single indentation of the generated code
+        """
+        self._indentation_stack.append(self.spaces_per_indent)
+        self._recompute_indentation_level()
+
+    def _recompute_indentation_level(self):
+        """
+        Track total indentation level of the generated code
+        """
+        self._total_indentation_level = sum(self._indentation_stack)
+
+    def dedent(self):
+        """
+        track a single dedentation of the generated code
+        dedents that would result in zero or negative indentation level will be
+        ignored
+        """
+        try:
+            self._indentation_stack.pop()
+        except IndexError:
+            # can not dedent any further
+            pass
+
+        self._recompute_indentation_level()
+
+
 class _AdviceOutput(object):
 
     def __init__(self):
