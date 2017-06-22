@@ -286,33 +286,53 @@ class _AdviceOutput(object):
         )
 
     def exit_on_predicate(self, predicate, error_message_lines):
-        commands_to_run = [
-            self._format_error(error_message_line)
-            for error_message_line in error_message_lines]
+        with self.unbranched_if(predicate):
+            for error_message_line in error_message_lines:
+                self.command(self._format_error(error_message_line))
 
-        commands_to_run.append('exit 1')
-        self.commands_on_predicate(
-            predicate,
-            commands_to_run)
+            self.command('exit 1')
+
+    @contextmanager
+    def unbranched_if(self, predicate):
+        with self._compound_statement(UnbranchedIfStatement, predicate):
+            yield
+
+    @contextmanager
+    def _compound_statement(self, statement_cls, *args):
+        with statement_cls(self, *args):
+            yield
 
     def commands_on_predicate(self, predicate, commands_to_run_when_true,
                               commands_to_run_when_false=None):
-        if_command = 'if {}'.format(predicate)
-        self.command(if_command)
-        self.command('then')
+        if commands_to_run_when_false is not None:
+            if_statement = self.if_branch
+        else:
+            if_statement = self.unbranched_if
 
-        with self.indented_block():
+        with if_statement(predicate):
             for command_to_run_when_true in commands_to_run_when_true:
                 self.command(
                     command_to_run_when_true)
 
         if commands_to_run_when_false is not None:
-            self.command("else")
-            with self.indented_block():
+            with self.else_branch():
                 for command_to_run_when_false in commands_to_run_when_false:
                     self.command(command_to_run_when_false)
 
-        self.command('fi')
+    @contextmanager
+    def if_branch(self, predicate):
+        with self._compound_statement(IfBranch, predicate):
+            yield
+
+    @contextmanager
+    def else_branch(self):
+        with self._compound_statement(ElseBranch):
+            yield
+
+    @contextmanager
+    def else_if_branch(self, predicate):
+        with self._compound_statement(ElseIfBranch, predicate):
+            yield
 
 
 class Advice(Plugin):
