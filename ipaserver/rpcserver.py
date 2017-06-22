@@ -592,6 +592,41 @@ class KerberosSession(HTTP_Status):
     needing this do not share a common base class.
     '''
 
+    def need_login(self, start_response):
+        status = '401 Unauthorized'
+        headers = []
+        response = b''
+
+        self.debug('%s need login', status)
+
+        start_response(status, headers)
+        return [response]
+
+    def get_environ_creds(self, environ):
+        # If we have a ccache ...
+        ccache_name = environ.get('KRB5CCNAME')
+        if ccache_name is None:
+            self.debug('no ccache, need login')
+            return
+
+        # ... make sure we have a name ...
+        principal = environ.get('GSS_NAME')
+        if principal is None:
+            self.debug('no Principal Name, need login')
+            return
+
+        # ... and use it to resolve the ccache name (Issue: 6972 )
+        gss_name = gssapi.Name(principal, gssapi.NameType.kerberos_principal)
+
+        # Fail if Kerberos credentials are expired or missing
+        creds = get_credentials_if_valid(name=gss_name,
+                                         ccache_name=ccache_name)
+        if not creds:
+            self.debug('ccache expired or invalid, deleting session, need login')
+            return
+
+        return ccache_name
+
 
     def finalize_kerberos_acquisition(self, who, ccache_name, environ, start_response, headers=None):
         if headers is None:
@@ -754,43 +789,15 @@ class jsonserver_session(jsonserver, KerberosSession):
     def _on_finalize(self):
         super(jsonserver_session, self)._on_finalize()
 
-    def need_login(self, start_response):
-        status = '401 Unauthorized'
-        headers = []
-        response = b''
-
-        self.debug('jsonserver_session: %s need login', status)
-
-        start_response(status, headers)
-        return [response]
-
     def __call__(self, environ, start_response):
         '''
         '''
 
         self.debug('WSGI jsonserver_session.__call__:')
 
-        ccache_name = environ.get('KRB5CCNAME')
-
         # Redirect to login if no Kerberos credentials
+        ccache_name = self.get_environ_creds(environ)
         if ccache_name is None:
-            self.debug('no ccache, need login')
-            return self.need_login(start_response)
-
-        # If we have a ccache, make sure we have a GSS_NAME and use
-        # it to resolve the ccache name (Issue: 6972 )
-        principal = environ.get('GSS_NAME')
-        if principal is None:
-            self.debug('no GSS Name, need login')
-            return self.need_login(start_response)
-        gss_name = gssapi.Name(principal, gssapi.NameType.kerberos_principal)
-
-        # Redirect to login if Kerberos credentials are expired
-        creds = get_credentials_if_valid(name=gss_name,
-                                         ccache_name=ccache_name)
-        if not creds:
-            self.debug('ccache expired, deleting session, need login')
-            # The request is finished with the ccache, destroy it.
             return self.need_login(start_response)
 
         # Store the ccache name in the per-thread context
@@ -828,11 +835,10 @@ class KerberosLogin(Backend, KerberosSession):
     def __call__(self, environ, start_response):
         self.debug('WSGI KerberosLogin.__call__:')
 
-        # Get the ccache created by mod_auth_gssapi
-        user_ccache_name=environ.get('KRB5CCNAME')
+        # Redirect to login if no Kerberos credentials
+        user_ccache_name = self.get_environ_creds(environ)
         if user_ccache_name is None:
-            return self.internal_error(environ, start_response,
-                                       'login_kerberos: KRB5CCNAME not defined in HTTP request environment')
+            return self.need_login(start_response)
 
         return self.finalize_kerberos_acquisition('login_kerberos', user_ccache_name, environ, start_response)
 
