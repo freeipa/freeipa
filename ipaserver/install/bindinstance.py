@@ -619,7 +619,11 @@ class BindInstance(service.Service):
         self.forwarders = None
         self.sub_dict = None
         self.reverse_zones = []
-        self.named_regular = services.service('named-regular', api)
+        # these DNS services should be disabled prior to setting up our own
+        self.regular_dns_services = {
+            'named': services.service('named-regular', api),
+            'named-pkcs11': services.service('named-pkcs11-regular', api)
+        }
 
     suffix = ipautil.dn_attribute_property('_suffix')
 
@@ -735,8 +739,9 @@ class BindInstance(service.Service):
     def __enable(self):
         if self.get_state("enabled") is None:
             self.backup_state("enabled", self.is_running())
-            self.backup_state("named-regular-enabled",
-                              self.named_regular.is_running())
+            for svc_name, svc in self.regular_dns_services.items():
+                self.backup_state("{}-regular-enabled".format(svc_name),
+                                  svc.is_running())
         # We do not let the system start IPA components on its own,
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
@@ -747,20 +752,24 @@ class BindInstance(service.Service):
             # don't crash, just report error
             root_logger.error("DNS service already exists")
 
-        # disable named, we need to run named-pkcs11 only
-        if self.get_state("named-regular-running") is None:
-            # first time store status
-            self.backup_state("named-regular-running",
-                              self.named_regular.is_running())
-        try:
-            self.named_regular.stop()
-        except Exception as e:
-            root_logger.debug("Unable to stop named (%s)", e)
-
-        try:
-            self.named_regular.mask()
-        except Exception as e:
-            root_logger.debug("Unable to mask named (%s)", e)
+        for svc_name, svc in self.regular_dns_services.items():
+            # disable named, we need to run named-pkcs11 only
+            if self.get_state("{}-regular-running".format(svc_name)) is None:
+                # first time store status
+                self.backup_state("{}-regular-running".format(svc_name),
+                                  svc.is_running())
+            try:
+                svc.stop()
+            except Exception as e:
+                root_logger.debug(
+                    "Unable to stop {name} ({err})"
+                    .format(name=svc_name, err=e))
+            try:
+                svc.mask()
+            except Exception as e:
+                root_logger.debug(
+                    "Unable to mask {name} ({err})"
+                    .format(name=svc_name, err=e))
 
     def __setup_sub_dict(self):
         self.sub_dict = dict(
@@ -1163,31 +1172,30 @@ class BindInstance(service.Service):
 
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
-        named_regular_running = self.restore_state("named-regular-running")
-        named_regular_enabled = self.restore_state("named-regular-enabled")
 
         self.dns_backup.clear_records(self.api.Backend.ldap2.isconnected())
-
-
         for f in [NAMED_CONF, RESOLV_CONF]:
             try:
                 self.fstore.restore_file(f)
             except ValueError as error:
                 root_logger.debug(error)
-
         # disabled by default, by ldap_enable()
         if enabled:
             self.enable()
-
         if running:
             self.restart()
 
-        self.named_regular.unmask()
-        if named_regular_enabled:
-            self.named_regular.enable()
+        for svc_name, svc in self.regular_dns_services.items():
+            svc_running = self.restore_state(
+                "{}-regular-running".format(svc_name))
+            svc_enabled = self.restore_state(
+                "{}-regular-enabled".format(svc_name))
 
-        if named_regular_running:
-            self.named_regular.start()
+            svc.unmask()
+            if svc_enabled:
+                svc.enable()
+            if svc_running:
+                svc.start()
 
         installutils.remove_keytab(self.keytab)
         installutils.remove_ccache(run_as=self.service_user)

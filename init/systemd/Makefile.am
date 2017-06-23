@@ -3,10 +3,12 @@
 AUTOMAKE_OPTIONS = 1.7
 
 dist_noinst_DATA = 			\
+	ipa-named-pkcs11.service.in \
 	ipa-custodia.service.in		\
 	ipa.service.in
 
 systemdsystemunit_DATA = 	\
+	ipa-named-pkcs11.service \
 	ipa-custodia.service	\
 	ipa.service
 

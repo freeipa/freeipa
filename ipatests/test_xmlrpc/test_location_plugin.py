@@ -126,9 +126,9 @@ class TestCRUD(XMLRPC_test):
     not api.Command.dns_is_enabled()['result'], reason='DNS not configured')
 class TestLocationsServer(XMLRPC_test):
     messages = [{
-        u'data': {u'service': u'named-pkcs11.service',
+        u'data': {u'service': u'ipa-named-pkcs11.service',
                   u'server': u'%s' % api.env.host},
-        u'message': (u'Service named-pkcs11.service requires restart '
+        u'message': (u'Service ipa-named-pkcs11.service requires restart '
                      u'on IPA server %s to apply configuration '
                      u'changes.' % api.env.host),
         u'code': 13025,
