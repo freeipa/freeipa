@@ -2,6 +2,8 @@
 # Copyright (C) 2017 FreeIPA Contributors see COPYING for license
 #
 
+import os
+
 from ipalib.plugable import Registry
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -172,6 +174,8 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
         return fmt_line.format(directive=directive, filename=filename)
 
     def mark_httpd_cert_as_trusted(self):
+        httpd_nss_database_pwd_file = os.path.join(
+            paths.HTTPD_ALIAS_DIR, 'pwdfile.txt')
         self.log.comment(
             'mark the HTTP certificate as trusted peer to avoid '
             'chicken-egg startup issue')
@@ -181,8 +185,9 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
                 " cut -f 2 -d ' ')"))
 
         self.log.exit_on_failed_command(
-            'certutil -M -n $http_cert_nick -d "{}" -t "Pu,u,u"'.format(
-                paths.HTTPD_ALIAS_DIR),
+            'certutil -M -n $http_cert_nick -d "{}" -f {} -t "Pu,u,u"'.format(
+                paths.HTTPD_ALIAS_DIR,
+                httpd_nss_database_pwd_file),
             ['Can not set trust flags on HTTP certificate'])
 
     def _interpolate_nssnickname_directive_file_into_command(self, fmt_line):
