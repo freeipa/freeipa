@@ -13,7 +13,6 @@ from ipaserver.install import ldapupdate
 from ipaserver.install import sysupgrade
 from base64 import b64decode
 from jwcrypto.common import json_decode
-import functools
 import shutil
 import os
 import stat
@@ -31,13 +30,6 @@ class CustodiaInstance(SimpleServiceInstance):
         self.ldap_uri = None
         self.fqdn = host_name
         self.realm = realm
-        self.__CustodiaClient = functools.partial(
-            CustodiaClient,
-            client_service='host@%s' % self.fqdn,
-            keyfile=self.server_keys,
-            keytab=paths.KRB5_KEYTAB,
-            realm=realm,
-        )
 
     def __config_file(self):
         template_file = os.path.basename(self.config_file) + '.template'
@@ -144,16 +136,20 @@ class CustodiaInstance(SimpleServiceInstance):
                     raise RuntimeError("Timed out trying to obtain keys.")
                 time.sleep(1)
 
+    def __CustodiaClient(self, server):
+        # Before we attempt to fetch keys from this host, make sure our public
+        # keys have been replicated there.
+        self.__wait_keys(server)
+
+        return CustodiaClient('host@%s' % self.fqdn, self.server_keys,
+                              paths.KRB5_KEYTAB, server, realm=self.realm)
+
     def __get_keys(self, ca_host, cacerts_file, cacerts_pwd, data):
         # Fecth all needed certs one by one, then combine them in a single
         # p12 file
 
         prefix = data['prefix']
         certlist = data['list']
-
-        # Before we attempt to fetch keys from this host, make sure our public
-        # keys have been replicated there.
-        self.__wait_keys(ca_host)
 
         cli = self.__CustodiaClient(server=ca_host)
 
