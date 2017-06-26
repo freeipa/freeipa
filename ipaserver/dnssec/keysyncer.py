@@ -46,7 +46,7 @@ class KeySyncer(SyncReplConsumer):
 
         Given set of attributes has to have exactly one supported object class.
         """
-        supported_objclasses = set(['idnszone', 'idnsseckey', 'ipk11publickey'])
+        supported_objclasses = {b'idnszone', b'idnsseckey', b'ipk11publickey'}
         present_objclasses = set([o.lower() for o in attrs[OBJCLASS_ATTR]]).intersection(supported_objclasses)
         assert len(present_objclasses) == 1, attrs[OBJCLASS_ATTR]
         return present_objclasses.pop()
@@ -55,44 +55,44 @@ class KeySyncer(SyncReplConsumer):
         """Get SIGNING_ATTR from dictionary with LDAP zone attributes.
 
         Returned value is normalized to TRUE or FALSE, defaults to FALSE."""
-        values = attrs.get(SIGNING_ATTR, ['FALSE'])
+        values = attrs.get(SIGNING_ATTR, [b'FALSE'])
         assert len(values) == 1, '%s is expected to be single-valued' \
             % SIGNING_ATTR
         return values[0].upper()
 
     def __is_dnssec_enabled(self, attrs):
         """Test if LDAP DNS zone with given attributes is DNSSEC enabled."""
-        return self.__get_signing_attr(attrs) == 'TRUE'
+        return self.__get_signing_attr(attrs) == b'TRUE'
 
     def __is_replica_pubkey(self, attrs):
         vals = attrs.get('ipk11label', [])
         if len(vals) != 1:
             return False
-        return vals[0].startswith('dnssec-replica:')
+        return vals[0].startswith(b'dnssec-replica:')
 
     def application_add(self, uuid, dn, newattrs):
         objclass = self._get_objclass(newattrs)
-        if objclass == 'idnszone':
+        if objclass == b'idnszone':
             self.zone_add(uuid, dn, newattrs)
-        elif objclass == 'idnsseckey':
+        elif objclass == b'idnsseckey':
             self.key_meta_add(uuid, dn, newattrs)
-        elif objclass == 'ipk11publickey' and \
+        elif objclass == b'ipk11publickey' and \
                 self.__is_replica_pubkey(newattrs):
             self.hsm_master_sync()
 
     def application_del(self, uuid, dn, oldattrs):
         objclass = self._get_objclass(oldattrs)
-        if objclass == 'idnszone':
+        if objclass == b'idnszone':
             self.zone_del(uuid, dn, oldattrs)
-        elif objclass == 'idnsseckey':
+        elif objclass == b'idnsseckey':
             self.key_meta_del(uuid, dn, oldattrs)
-        elif objclass == 'ipk11publickey' and \
+        elif objclass == b'ipk11publickey' and \
                 self.__is_replica_pubkey(oldattrs):
             self.hsm_master_sync()
 
     def application_sync(self, uuid, dn, newattrs, oldattrs):
         objclass = self._get_objclass(oldattrs)
-        if objclass == 'idnszone':
+        if objclass == b'idnszone':
             olddn = ldap.dn.str2dn(oldattrs['dn'])
             newdn = ldap.dn.str2dn(newattrs['dn'])
             assert olddn == newdn, 'modrdn operation is not supported'
@@ -105,10 +105,10 @@ class KeySyncer(SyncReplConsumer):
                 else:
                     self.zone_del(uuid, olddn, oldattrs)
 
-        elif objclass == 'idnsseckey':
+        elif objclass == b'idnsseckey':
             self.key_metadata_sync(uuid, dn, oldattrs, newattrs)
 
-        elif objclass == 'ipk11publickey' and \
+        elif objclass == b'ipk11publickey' and \
                 self.__is_replica_pubkey(newattrs):
             self.hsm_master_sync()
 
