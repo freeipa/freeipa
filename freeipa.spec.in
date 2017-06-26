@@ -1045,6 +1045,10 @@ fi
 python2 -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
 
 if [  $? -eq 0 ]; then
+    # This is necessary for Fedora system upgrades which by default
+    # work with the network being offline
+    /bin/systemctl start network-online.target
+
     # This must be run in posttrans so that updates from previous
     # execution that may no longer be shipped are not applied.
     /usr/sbin/ipa-server-upgrade --quiet >/dev/null || :
