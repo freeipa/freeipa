@@ -63,7 +63,7 @@ exp.search_facet_control_buttons_pre_op = function(spec, context) {
     var default_actions = ['refresh', 'batch_remove', 'add'];
     var merged_actions = override_actions(spec.custom_actions, default_actions);
 
-    spec.actions = merged_actions.concat(spec.actions);
+    spec.actions = merged_actions.concat(spec.actions || []);
     spec.control_buttons = spec.control_buttons || [];
 
     if (!spec.no_update) {
