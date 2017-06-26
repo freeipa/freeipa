@@ -27,7 +27,7 @@ define([
         'freeipa/reg',
         'freeipa/entity',
         'freeipa/details'],
-    function(IPA, $, mod_facet, mod_search, reg) {
+    function(IPA, $, mod_facet, mod_search, reg, mod_ent, mod_details) {
             return function() {
 
 var container;
@@ -38,6 +38,7 @@ module('entity',{
         IPA.ajax_options.async = false;
 
         mod_search.register();
+        mod_details.register();
 
         IPA.init({
             url: 'data',
