@@ -650,7 +650,7 @@ class KerberosSession(HTTP_Status):
         headers.append(('IPASESSION', session_cookie))
 
         start_response(HTTP_STATUS_SUCCESS, headers)
-        return ['']
+        return [b'']
 
 
 class KerberosWSGIExecutioner(WSGIExecutioner, KerberosSession):
@@ -1090,7 +1090,7 @@ class change_password(Backend, HTTP_Status):
         start_response(status, response_headers)
         output = _success_template % dict(title=str(title),
                                           message=str(message))
-        return [output]
+        return [output.encode('utf-8')]
 
 class sync_token(Backend, HTTP_Status):
     content_type = 'text/plain'
@@ -1188,7 +1188,7 @@ class sync_token(Backend, HTTP_Status):
         start_response(status, response_headers)
         output = _success_template % dict(title=str(title),
                                           message=str(message))
-        return [output]
+        return [output.encode('utf-8')]
 
 class xmlserver_session(xmlserver, KerberosSession):
     """

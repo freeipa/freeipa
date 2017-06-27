@@ -34,10 +34,12 @@ def get_plugin_index():
     index = 'define([],function(){return['
     index += ','.join("'"+x+"'" for x in dirs)
     index += '];});'
-    return index
+    return index.encode('utf-8')
 
 def get_failed():
-    return 'define([],function(){return[];});/*error occured: serving default */'
+    return (
+        b'define([],function(){return[];});/*error occured: serving default */'
+    )
 
 def application(environ, start_response):
     try:
