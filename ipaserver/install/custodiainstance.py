@@ -1,5 +1,7 @@
 # Copyright (C) 2015 FreeIPa Project Contributors, see 'COPYING' for license.
 
+from __future__ import print_function
+
 import logging
 
 from ipaserver.secrets.kem import IPAKEMKeys, KEMLdap
@@ -123,6 +125,10 @@ class CustodiaInstance(SimpleServiceInstance):
         deadline = int(time.time()) + timeout
         logger.info("Waiting up to %s seconds to see our keys "
                     "appear on host: %s", timeout, host)
+        # FIXME: Change once there's better way to show this mesage
+        # in installer output
+        print("Waiting for keys to appear on host: {}, "
+              "please wait until this has completed.".format(host))
 
         konn = KEMLdap(ldap_uri)
         saved_e = None
