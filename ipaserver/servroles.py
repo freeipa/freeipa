@@ -371,11 +371,18 @@ class ServerAttribute(LDAPBasedProperty):
                    on the master
         """
 
+        ldap = api_instance.Backend.ldap2
+
+        master_dns = self._get_master_dns(api_instance, masters)
+        service_entries = self._get_masters_service_entries(ldap, master_dns)
+        for service_entry in service_entries:
+            self._add_attribute_to_svc_entry(ldap, service_entry)
+
+    def _check_receiving_masters_having_associated_role(self, api_instance,
+                                                      masters):
         assoc_role_providers = set(
             self._get_assoc_role_providers(api_instance))
         masters_set = set(masters)
-        ldap = api_instance.Backend.ldap2
-
         masters_without_role = masters_set - assoc_role_providers
 
         if masters_without_role:
@@ -384,11 +391,6 @@ class ServerAttribute(LDAPBasedProperty):
                 error=_("must have %(role)s role enabled" %
                         {'role': self.associated_role.name})
             )
-
-        master_dns = self._get_master_dns(api_instance, masters)
-        service_entries = self._get_masters_service_entries(ldap, master_dns)
-        for service_entry in service_entries:
-            self._add_attribute_to_svc_entry(ldap, service_entry)
 
     def set(self, api_instance, masters):
         """
@@ -406,6 +408,9 @@ class ServerAttribute(LDAPBasedProperty):
 
         if sorted(old_masters) == sorted(masters):
             raise errors.EmptyModlist
+
+        self._check_receiving_masters_having_associated_role(
+            api_instance, masters)
 
         if old_masters:
             self._remove(api_instance, old_masters)
