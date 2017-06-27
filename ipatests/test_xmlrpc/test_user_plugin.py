@@ -68,6 +68,7 @@ invalidlanguages = {
     u'en-us;q=0.1234', u'en-us;q=1.1', u'en-us;q=1.0000'
     }
 
+password_expiration_now = datetime.datetime.utcnow()
 principal_expiration_string = "2020-12-07T19:54:13Z"
 principal_expiration_date = datetime.datetime(2020, 12, 7, 19, 54, 13)
 
@@ -435,6 +436,23 @@ class TestUpdate(XMLRPC_test):
             dict(random=None, randompassword=fuzzy_password)
         )
         user.delete()
+
+    def test_set_immediate_password_expiration(self, user):
+        """ Set immediate password expiration for user """
+        user.ensure_exists()
+        command = user.make_update_command(
+            updates=dict(krbpasswordexpiration=u'now')
+        )
+        result = command()
+        user.check_update(result)
+
+    def test_set_delayed_password_expiration(self, user):
+        """ Set delayed expiration for user """
+        user.ensure_exists()
+        user.update(
+            dict(krbpasswordexpiration=principal_expiration_string),
+            dict(krbpasswordexpiration=[principal_expiration_date])
+        )
 
     def test_rename_to_invalid_login(self, user):
         """ Try to change user login to an invalid value """
