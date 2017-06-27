@@ -545,7 +545,8 @@ class NegotiateAuth(AuthBase):
         return token
 
     def _set_authz_header(self, request, token):
-        request.headers['Authorization'] = 'Negotiate ' + b64encode(token)
+        request.headers['Authorization'] = (
+            'Negotiate {}'.format(b64encode(token).decode('utf-8')))
 
     def initial_step(self, request, response=None):
         if self.context is None:
