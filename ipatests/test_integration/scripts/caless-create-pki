@@ -3,8 +3,9 @@
 # Copyright (C) 2017  FreeIPA Contributors see COPYING for license
 #
 
-profile_ca_request_options=(-1 -2 -4)
-profile_ca_request_input="\$'0\n1\n5\n6\n9\ny\ny\n\ny\n1\n7\nfile://'\$(readlink -f \$dbdir)/\$ca.crl\$'\n-1\n-1\n-1\nn\nn\n'"
+profile_ca_request_options=(-1 -2 -3 -4 --extSKID)
+profile_ca_request_input="\$'0\n1\n5\n6\n9\ny\ny\n\ny\ny\n0x'\$aki\$'\n-1\n\nn\n0x'\$ski\$'\nn\n1\n7\nfile://'\$(readlink -f \$dbdir)/\$ca.crl\$'\n-1\n-1\n-1\nn\nn\n'"
+#                            <-   keyUsage   -><- BC -><-  authority key id   -><- sub key id -><-                Authority Information Access                     ->
 profile_ca_create_options=(-v 120)
 profile_ca_add_options=(-t CT,C,C)
 profile_server_request_options=(-4)
@@ -26,10 +27,10 @@ write_chain() {
 }
 
 gen_cert() {
-    local profile="$1" nick="$2" subject="$3" ca request_options request_input create_options serial add_options pwfile noise csr crt
-    shift 3
+    local profile="$1" nick="$2" ski="$3" aki="$4" subject="$5" ca request_options request_input create_options serial add_options pwfile noise csr crt
+    shift 5
 
-    echo "gen_cert(profile=$profile nick=$nick subject=$subject)"
+    echo "gen_cert(profile=$profile nick=$nick subject=$subject ski=$ski aki=$aki)"
 
     ca="$(dirname $nick)"
     if [ "$ca" = "." ]; then
@@ -105,17 +106,17 @@ EOF
 }
 
 gen_server_certs() {
-    local nick="$1" hostname="$2" org="$3"
-    shift 3
+    local nick="$1" ski="$2" aki="$3" hostname="$4" org="$5"
+    shift 5
 
     echo "gen_server_certs(nick=$nick hostname=$hostname org=$org)"
 
-    gen_cert server "$nick" "CN=$hostname,O=$org" "$@"
-    gen_cert server "$nick-badname" "CN=not-$hostname,O=$org" "$@"
-    gen_cert server "$nick-altname" "CN=alt-$hostname,O=$org" -8 "$hostname" "$@"
-    gen_cert server "$nick-expired" "CN=$hostname,OU=Expired,O=$org" -w -24 "$@"
-    gen_cert server "$nick-badusage" "CN=$hostname,OU=Bad Usage,O=$org" --keyUsage dataEncipherment,keyAgreement "$@"
-    gen_cert server "$nick-revoked" "CN=$hostname,OU=Revoked,O=$org" "$@"
+    gen_cert server "$nick" "$ski" "$aki" "CN=$hostname,O=$org" "$@"
+    gen_cert server "$nick-badname" "$ski" "$aki" "CN=not-$hostname,O=$org" "$@"
+    gen_cert server "$nick-altname" "$ski" "$aki" "CN=alt-$hostname,O=$org" -8 "$hostname" "$@"
+    gen_cert server "$nick-expired" "$ski" "$aki" "CN=$hostname,OU=Expired,O=$org" -w -24 "$@"
+    gen_cert server "$nick-badusage" "$ski" "$aki" "CN=$hostname,OU=Bad Usage,O=$org" --keyUsage dataEncipherment,keyAgreement "$@"
+    gen_cert server "$nick-revoked" "$ski" "$aki" "CN=$hostname,OU=Revoked,O=$org" "$@"
     revoke_cert "$nick-revoked"
 }
 
@@ -163,26 +164,43 @@ gen_pkinit_cert() {
 }
 
 gen_subtree() {
-    local nick="$1" org="$2"
-    shift 2
+    local nick="$1" ski="$2" aki="$3" org="$4"
+    shift 4
 
     echo "gen_subtree(nick=$nick org=$org)"
 
-    gen_cert ca "$nick" "CN=CA,O=$org" "$@"
-    gen_cert server "$nick/wildcard" "CN=*.$domain,O=$org"
+    gen_cert ca "$nick" "$ski" "$aki" "CN=CA,O=$org" "$@"
+    gen_cert server "$nick/wildcard" "$ski" "$aki" "CN=*.$domain,O=$org"
     gen_pkinit_cert "$nick" "/O=$realm/CN=$server1" "pkinit-server"
     gen_pkinit_cert "$nick" "/O=$realm/CN=$server2" "pkinit-replica"
-    gen_server_certs "$nick/server" "$server1" "$org"
-    gen_server_certs "$nick/replica" "$server2" "$org"
-    gen_server_certs "$nick/client" "$client" "$org"
+    gen_server_certs "$nick/server" "$ski" "$aki" "$server1" "$org"
+    gen_server_certs "$nick/replica" "$ski" "$aki" "$server2" "$org"
+    gen_server_certs "$nick/client" "$ski" "$aki" "$client" "$org"
 }
 
-gen_cert server server-selfsign "CN=$server1,O=Self-signed"
-gen_cert server replica-selfsign "CN=$server2,O=Self-signed"
+# generate a random key identifier
+gen_key_id() {
+    dd if=/dev/urandom bs=20 count=1 status=none | xxd -p
+}
+
+KEYID_SERVER_SELFSIGN=$(gen_key_id)
+gen_cert server server-selfsign "$KEYID_SERVER_SELFSIGN" "$KEYID_SERVER_SELFSIGN" "CN=$server1,O=Self-signed"
+KEYID_REPLICA_SELFSIGN=$(gen_key_id)
+gen_cert server replica-selfsign "$KEYID_REPLICA_SELFSIGN" "$KEYID_REPLICA_SELFSIGN" "CN=$server2,O=Self-signed"
 gen_pkinit_extensions
-gen_cert server noca "CN=$server1,O=No-CA"
-gen_subtree ca1 'Example Organization'
-gen_subtree ca1/subca 'Subsidiary Example Organization'
-gen_subtree ca2 'Other Example Organization'
-gen_subtree ca3 'Unknown Organization'
+KEYID_NOCA=$(gen_key_id)
+gen_cert server noca "$KEYID_NOCA" "$KEYID_NOCA" "CN=$server1,O=No-CA"
+
+KEYID_CA1=$(gen_key_id)
+gen_subtree ca1 "$KEYID_CA1" "$KEYID_CA1" 'Example Organization'
+
+KEYID_CA1_SUBCA=$(gen_key_id)
+gen_subtree ca1/subca "$KEYID_CA1_SUBCA" "$KEYID_CA1" 'Subsidiary Example Organization'
+
+KEYID_CA2=$(gen_key_id)
+gen_subtree ca2 "$KEYID_CA2" "$KEYID_CA2" 'Other Example Organization'
+
+KEYID_CA3=$(gen_key_id)
+gen_subtree ca3 "$KEYID_CA3" "$KEYID_CA3" 'Unknown Organization'
+
 certutil -D -d "$dbdir" -n ca3
