@@ -256,6 +256,7 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
         self.check_ccache_not_empty()
         self.check_and_remove_pam_pkcs11()
         self.install_opensc_and_dconf_packages()
+        self.install_krb5_client_dependencies()
         self.start_enable_smartcard_daemon()
         self.add_pkcs11_module_to_systemwide_db()
         self.upload_smartcard_ca_certificates_to_systemwide_db()
@@ -279,6 +280,12 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
         self.log.exit_on_failed_command(
             'yum install -y {} dconf'.format(self.opensc_module_name.lower()),
             ['Could not install OpenSC package']
+        )
+
+    def install_krb5_client_dependencies(self):
+        self.log.exit_on_failed_command(
+            'yum install -y krb5-pkinit-openssl',
+            ['Failed to install Kerberos client PKINIT extensions.']
         )
 
     def start_enable_smartcard_daemon(self):
