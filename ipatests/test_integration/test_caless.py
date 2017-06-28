@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import os
 import tempfile
 import shutil
@@ -25,14 +26,21 @@ import glob
 import contextlib
 import nose
 import pytest
+import six
 
 from ipalib import x509
 from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration import create_caless_pki
 from ipatests.pytest_plugins.integration import tasks
 from ipalib.constants import DOMAIN_LEVEL_0
+
+if six.PY3:
+    unicode = str
+
+logger = logging.getLogger(__name__)
 
 _DEFAULT = object()
 
@@ -109,11 +117,7 @@ class CALessBase(IntegrationTest):
     def install(cls, mh):
         cls.cert_dir = tempfile.mkdtemp(prefix="ipatest-")
         cls.pem_filename = os.path.join(cls.cert_dir, 'root.pem')
-        scriptfile = os.path.join(os.path.dirname(__file__),
-                                  'scripts',
-                                  'caless-create-pki')
         cls.cert_password = cls.master.config.admin_password
-
         cls.crl_path = os.path.join(cls.master.config.test_dir, 'crl')
 
         if cls.replicas:
@@ -124,26 +128,25 @@ class CALessBase(IntegrationTest):
             client_hostname = cls.clients[0].hostname
         else:
             client_hostname = 'unused-client.test'
-        cls.env = {
-            'domain': cls.master.domain.name,
-            'realm': cls.master.domain.name.upper(),
-            'server1': cls.master.hostname,
-            'server2': replica_hostname,
-            'client': client_hostname,
-            'dbdir': 'nssdb',
-            'dbpassword': cls.cert_password,
-            'crl_path': cls.crl_path,
-            'dirman_password': cls.master.config.dirman_password,
-        }
-        ipautil.run(['bash', '-ex', scriptfile], cwd=cls.cert_dir, env=cls.env)
+
+        create_caless_pki.domain = unicode(cls.master.domain.name)
+        create_caless_pki.realm = unicode(cls.master.domain.name.upper())
+        create_caless_pki.server1 = unicode(cls.master.hostname)
+        create_caless_pki.server2 = unicode(replica_hostname)
+        create_caless_pki.client = unicode(client_hostname)
+        create_caless_pki.password = unicode(cls.master.config.dirman_password)
+        create_caless_pki.cert_dir = unicode(cls.cert_dir)
+
+        # here we generate our certificates (not yet converted to .p12)
+        logger.info('Generating certificates to %s', cls.cert_dir)
+        create_caless_pki.create_pki()
 
         for host in cls.get_all_hosts():
             tasks.apply_common_fixes(host)
 
             # Copy CRLs over
-            base = os.path.join(cls.cert_dir, 'nssdb')
             host.transport.mkdir_recursive(cls.crl_path)
-            for source in glob.glob(os.path.join(base, '*.crl')):
+            for source in glob.glob(os.path.join(cls.cert_dir, '*.crl')):
                 dest = os.path.join(cls.crl_path, os.path.basename(source))
                 host.transport.put_file(source, dest)
 
@@ -161,7 +164,7 @@ class CALessBase(IntegrationTest):
                        http_pkcs12_exists=True, dirsrv_pkcs12_exists=True,
                        http_pin=_DEFAULT, dirsrv_pin=_DEFAULT, pkinit_pin=None,
                        root_ca_file='root.pem', pkinit_pkcs12_exists=False,
-                       pkinit_pkcs12='pkinit-server.p12', unattended=True,
+                       pkinit_pkcs12='server-kdc.p12', unattended=True,
                        stdin_text=None):
         """Install a CA-less server
 
@@ -187,8 +190,8 @@ class CALessBase(IntegrationTest):
             files_to_copy.append(http_pkcs12)
         if dirsrv_pkcs12_exists:
             files_to_copy.append(dirsrv_pkcs12)
-
         if pkinit_pkcs12_exists:
+            files_to_copy.append(pkinit_pkcs12)
             extra_args.extend(['--pkinit-cert-file', pkinit_pkcs12])
         else:
             extra_args.append('--no-pkinit')
@@ -215,19 +218,14 @@ class CALessBase(IntegrationTest):
     def copy_cert(cls, host, filename):
         host.transport.put_file(os.path.join(cls.cert_dir, filename),
                                 os.path.join(host.config.test_dir, filename))
-    @classmethod
-    def copy_pkinit_cert(cls, host, pkinit_nick):
-        filename = pkinit_nick.split('/')[-1]
-        host.transport.put_file(os.path.join(cls.cert_dir, 'nssdb', pkinit_nick),
-                                os.path.join(host.config.test_dir, filename))
-
 
     def prepare_replica(self, _replica_number=0, replica=None, master=None,
                         http_pkcs12='replica.p12', dirsrv_pkcs12='replica.p12',
                         http_pkcs12_exists=True, dirsrv_pkcs12_exists=True,
-                        http_pin=_DEFAULT, dirsrv_pin=_DEFAULT, pkinit_pin=None,
-                        root_ca_file='root.pem', pkinit_pkcs12_exists=False,
-                        pkinit_pkcs12='pkinit-replica.p12', unattended=True,
+                        http_pin=_DEFAULT, dirsrv_pin=_DEFAULT,
+                        pkinit_pin=None, root_ca_file='root.pem',
+                        pkinit_pkcs12_exists=False,
+                        pkinit_pkcs12='replica-kdc.p12', unattended=True,
                         stdin_text=None, domain_level=None):
         """Prepare a CA-less replica
 
@@ -254,6 +252,8 @@ class CALessBase(IntegrationTest):
             files_to_copy.append(http_pkcs12)
         if dirsrv_pkcs12_exists:
             files_to_copy.append(dirsrv_pkcs12)
+        if pkinit_pkcs12_exists:
+            files_to_copy.append(pkinit_pkcs12)
         if domain_level == DOMAIN_LEVEL_0:
             destination_host = master
         else:
@@ -304,23 +304,49 @@ class CALessBase(IntegrationTest):
                             'replica-info.gpg')
 
     @classmethod
-    def export_pkcs12(cls, nickname, filename='server.p12', password=None):
-        """Export a cert as PKCS#12 to the given file"""
+    def create_pkcs12(cls, nickname, filename='server.p12', password=None):
+        """Create a cert chain and generate pkcs12 cert"""
         if password is None:
             password = cls.cert_password
-        ipautil.run(['pk12util',
-                     '-o', filename,
-                     '-n', nickname,
-                     '-d', 'nssdb',
-                     '-K', cls.cert_password,
-                     '-W', password], cwd=cls.cert_dir)
+
+        fname_chain = []
+
+        key_fname = '{}.key'.format(os.path.join(cls.cert_dir, nickname))
+        certchain_fname = '{}.pem'.format(os.path.join(cls.cert_dir, nickname))
+
+        nick_chain = nickname.split('/')
+
+        # to construct whole chain e.g "ca1 - ca1/sub - ca1/sub/server"
+        for index, _value in enumerate(nick_chain):
+            cert_nick = '/'.join(nick_chain[:index+1])
+            cert_path = '{}.crt'.format(os.path.join(cls.cert_dir, cert_nick))
+            if os.path.isfile(cert_path):
+                fname_chain.append(cert_path)
+
+        # create the chain file
+        with open(certchain_fname, 'w') as chain:
+            for cert_fname in fname_chain:
+                with open(cert_fname) as cert:
+                    chain.write(cert.read())
+
+        ipautil.run(["openssl", "pkcs12", "-export", "-out", filename,
+                     "-inkey", key_fname, "-in", certchain_fname, "-passin",
+                     "pass:"+cls.cert_password, "-passout", "pass:"+password,
+                     "-name", nickname], cwd=cls.cert_dir)
+
+    @classmethod
+    def prepare_cacert(cls, nickname):
+        """ Prepare pem file for root_ca_file/ca-cert-file option """
+        # create_caless_pki saves certificates with ".crt" extension by default
+        fname_from_nick = '{}.crt'.format(os.path.join(cls.cert_dir, nickname))
+        shutil.copy(fname_from_nick, cls.pem_filename)
 
     @classmethod
     def get_pem(cls, nickname):
-        result = ipautil.run(
-            [paths.CERTUTIL, '-L', '-d', 'nssdb', '-n', nickname, '-a'],
-            cwd=cls.cert_dir, capture_output=True)
-        return result.output
+        """ Return PEM cert as base64 encoded ascii for TestIPACommands """
+        cacert_fname = '{}.crt'.format(os.path.join(cls.cert_dir, nickname))
+        with open(cacert_fname, 'r') as f:
+            return f.read()
 
     def verify_installation(self):
         """Verify CA cert PEM file and LDAP entry created by install
@@ -329,20 +355,21 @@ class CALessBase(IntegrationTest):
         """
         with open(self.pem_filename) as f:
             expected_cacrt = f.read()
-        self.log.debug('Expected /etc/ipa/ca.crt contents:\n%s',
-                       expected_cacrt)
+        logger.debug('Expected /etc/ipa/ca.crt contents:\n%s',
+                     expected_cacrt)
         expected_binary_cacrt = base64.b64decode(x509.strip_header(
             expected_cacrt))
-        self.log.debug('Expected binary CA cert:\n%r',
-                       expected_binary_cacrt)
+        logger.debug('Expected binary CA cert:\n%r',
+                     expected_binary_cacrt)
         for host in [self.master] + self.replicas:
             # Check the LDAP entry
             ldap = host.ldap_connect()
+
             entry = ldap.get_entry(DN(('cn', 'CACert'), ('cn', 'ipa'),
                                       ('cn', 'etc'), host.domain.basedn))
             cert_from_ldap = entry.single_value['cACertificate']
-            self.log.debug('CA cert from LDAP on %s:\n%r',
-                           host, cert_from_ldap)
+            logger.debug('CA cert from LDAP on %s:\n%r',
+                         host, cert_from_ldap)
             assert cert_from_ldap == expected_binary_cacrt
 
             # Verify certmonger was not started
@@ -352,11 +379,11 @@ class CALessBase(IntegrationTest):
         for host in self.get_all_hosts():
             # Check the cert PEM file
             remote_cacrt = host.get_file_contents(paths.IPA_CA_CRT)
-            self.log.debug('%s:/etc/ipa/ca.crt contents:\n%s',
-                           host, remote_cacrt)
+            logger.debug('%s:/etc/ipa/ca.crt contents:\n%s',
+                         host, remote_cacrt)
             binary_cacrt = base64.b64decode(x509.strip_header(remote_cacrt))
-            self.log.debug('%s: Decoded /etc/ipa/ca.crt:\n%r',
-                           host, binary_cacrt)
+            logger.debug('%s: Decoded /etc/ipa/ca.crt:\n%r',
+                         host, binary_cacrt)
             assert expected_binary_cacrt == binary_cacrt
 
 
@@ -367,9 +394,8 @@ class TestServerInstall(CALessBase):
     def test_nonexistent_ca_pem_file(self):
         "IPA server install with non-existent CA PEM file "
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca2'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca2')
 
         result = self.install_server(root_ca_file='does_not_exist')
         assert_error(result,
@@ -380,9 +406,8 @@ class TestServerInstall(CALessBase):
     def test_unknown_ca(self):
         "IPA server install with CA PEM file with unknown CA certificate"
 
-        self.export_pkcs12('ca3/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca2'))
+        self.create_pkcs12('ca3/server')
+        self.prepare_cacert('ca2')
 
         result = self.install_server()
         assert_error(result,
@@ -392,9 +417,8 @@ class TestServerInstall(CALessBase):
     def test_ca_server_cert(self):
         "IPA server install with CA PEM file with server certificate"
 
-        self.export_pkcs12('noca')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('noca'))
+        self.create_pkcs12('noca')
+        self.prepare_cacert('noca')
 
         result = self.install_server()
         assert_error(result,
@@ -405,10 +429,9 @@ class TestServerInstall(CALessBase):
     def test_ca_2_certs(self):
         "IPA server install with CA PEM file with 2 certificates"
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
-            f.write(self.get_pem('ca2'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
+        self.prepare_cacert('ca2')
 
         result = self.install_server()
         assert_error(result, 'root.pem contains more than one certificate')
@@ -417,9 +440,8 @@ class TestServerInstall(CALessBase):
     def test_nonexistent_http_pkcs12_file(self):
         "IPA server install with non-existent HTTP PKCS#12 file"
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='does_not_exist',
                                      http_pkcs12_exists=False)
@@ -429,9 +451,8 @@ class TestServerInstall(CALessBase):
     def test_nonexistent_ds_pkcs12_file(self):
         "IPA server install with non-existent DS PKCS#12 file"
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca2')
 
         result = self.install_server(dirsrv_pkcs12='does_not_exist',
                                      dirsrv_pkcs12_exists=False)
@@ -441,9 +462,8 @@ class TestServerInstall(CALessBase):
     def test_missing_http_password(self):
         "IPA server install with missing HTTP PKCS#12 password (unattended)"
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pin=None)
         assert_error(result,
@@ -454,9 +474,8 @@ class TestServerInstall(CALessBase):
     def test_missing_ds_password(self):
         "IPA server install with missing DS PKCS#12 password (unattended)"
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(dirsrv_pin=None)
         assert_error(result,
@@ -468,9 +487,8 @@ class TestServerInstall(CALessBase):
     def test_incorect_http_pin(self):
         "IPA server install with incorrect HTTP PKCS#12 password"
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pin='bad<pin>')
         assert_error(result, 'incorrect password for pkcs#12 file server.p12')
@@ -480,9 +498,8 @@ class TestServerInstall(CALessBase):
     def test_incorect_ds_pin(self):
         "IPA server install with incorrect DS PKCS#12 password"
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(dirsrv_pin='bad<pin>')
         assert_error(result, 'incorrect password for pkcs#12 file server.p12')
@@ -491,10 +508,9 @@ class TestServerInstall(CALessBase):
     def test_invalid_http_cn(self):
         "IPA server install with HTTP certificate with invalid CN"
 
-        self.export_pkcs12('ca1/server-badname', filename='http.p12')
-        self.export_pkcs12('ca1/server', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server-badname', filename='http.p12')
+        self.create_pkcs12('ca1/server', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -506,9 +522,8 @@ class TestServerInstall(CALessBase):
     def test_invalid_ds_cn(self):
         "IPA server install with DS certificate with invalid CN"
 
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -520,10 +535,9 @@ class TestServerInstall(CALessBase):
     def test_expired_http(self):
         "IPA server install with expired HTTP certificate"
 
-        self.export_pkcs12('ca1/server-expired', filename='http.p12')
-        self.export_pkcs12('ca1/server', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server-expired', filename='http.p12')
+        self.create_pkcs12('ca1/server', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -536,10 +550,9 @@ class TestServerInstall(CALessBase):
     def test_expired_ds(self):
         "IPA server install with expired DS certificate"
 
-        self.export_pkcs12('ca1/server', filename='http.p12')
-        self.export_pkcs12('ca1/server-expired', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server', filename='http.p12')
+        self.create_pkcs12('ca1/server-expired', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -552,10 +565,9 @@ class TestServerInstall(CALessBase):
     def test_http_bad_usage(self):
         "IPA server install with HTTP certificate with invalid key usage"
 
-        self.export_pkcs12('ca1/server-badusage', filename='http.p12')
-        self.export_pkcs12('ca1/server', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server-badusage', filename='http.p12')
+        self.create_pkcs12('ca1/server', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -567,10 +579,9 @@ class TestServerInstall(CALessBase):
     def test_ds_bad_usage(self):
         "IPA server install with DS certificate with invalid key usage"
 
-        self.export_pkcs12('ca1/server', filename='http.p12')
-        self.export_pkcs12('ca1/server-badusage', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server', filename='http.p12')
+        self.create_pkcs12('ca1/server-badusage', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -582,10 +593,9 @@ class TestServerInstall(CALessBase):
     def test_revoked_http(self):
         "IPA server install with revoked HTTP certificate"
 
-        self.export_pkcs12('ca1/server-revoked', filename='http.p12')
-        self.export_pkcs12('ca1/server', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server-revoked', filename='http.p12')
+        self.create_pkcs12('ca1/server', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -601,10 +611,9 @@ class TestServerInstall(CALessBase):
     def test_revoked_ds(self):
         "IPA server install with revoked DS certificate"
 
-        self.export_pkcs12('ca1/server', filename='http.p12')
-        self.export_pkcs12('ca1/server-revoked', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server', filename='http.p12')
+        self.create_pkcs12('ca1/server-revoked', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -620,10 +629,9 @@ class TestServerInstall(CALessBase):
     def test_http_intermediate_ca(self):
         "IPA server install with HTTP certificate issued by intermediate CA"
 
-        self.export_pkcs12('ca1/subca/server', filename='http.p12')
-        self.export_pkcs12('ca1/server', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/subca/server', filename='http.p12')
+        self.create_pkcs12('ca1/server', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -635,10 +643,9 @@ class TestServerInstall(CALessBase):
     def test_ds_intermediate_ca(self):
         "IPA server install with DS certificate issued by intermediate CA"
 
-        self.export_pkcs12('ca1/server', filename='http.p12')
-        self.export_pkcs12('ca1/subca/server', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server', filename='http.p12')
+        self.create_pkcs12('ca1/subca/server', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -650,9 +657,8 @@ class TestServerInstall(CALessBase):
     def test_ca_self_signed(self):
         "IPA server install with self-signed certificate"
 
-        self.export_pkcs12('server-selfsign')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('server-selfsign'))
+        self.create_pkcs12('server-selfsign')
+        self.prepare_cacert('server-selfsign')
 
         result = self.install_server()
         assert result.returncode > 0
@@ -661,9 +667,8 @@ class TestServerInstall(CALessBase):
     def test_valid_certs(self):
         "IPA server install with valid certificates"
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
 
         result = self.install_server()
         assert result.returncode == 0
@@ -674,10 +679,9 @@ class TestServerInstall(CALessBase):
     def test_wildcard_http(self):
         "IPA server install with wildcard HTTP certificate"
 
-        self.export_pkcs12('ca1/wildcard', filename='http.p12')
-        self.export_pkcs12('ca1/server', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/wildcard', filename='http.p12')
+        self.create_pkcs12('ca1/server', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -689,10 +693,9 @@ class TestServerInstall(CALessBase):
     def test_wildcard_ds(self):
         "IPA server install with wildcard DS certificate"
 
-        self.export_pkcs12('ca1/server', filename='http.p12')
-        self.export_pkcs12('ca1/wildcard', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server', filename='http.p12')
+        self.create_pkcs12('ca1/wildcard', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -703,10 +706,9 @@ class TestServerInstall(CALessBase):
     def test_http_san(self):
         "IPA server install with HTTP certificate with SAN"
 
-        self.export_pkcs12('ca1/server-altname', filename='http.p12')
-        self.export_pkcs12('ca1/server', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server-altname', filename='http.p12')
+        self.create_pkcs12('ca1/server', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -717,10 +719,9 @@ class TestServerInstall(CALessBase):
     def test_ds_san(self):
         "IPA server install with DS certificate with SAN"
 
-        self.export_pkcs12('ca1/server', filename='http.p12')
-        self.export_pkcs12('ca1/server-altname', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server', filename='http.p12')
+        self.create_pkcs12('ca1/server-altname', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
@@ -731,9 +732,8 @@ class TestServerInstall(CALessBase):
     def test_interactive_missing_http_pkcs_password(self):
         "IPA server install with prompt for HTTP PKCS#12 password"
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
 
         stdin_text = get_install_stdin(cert_passwords=[self.cert_password])
 
@@ -748,9 +748,8 @@ class TestServerInstall(CALessBase):
     def test_interactive_missing_ds_pkcs_password(self):
         "IPA server install with prompt for DS PKCS#12 password"
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
 
         stdin_text = get_install_stdin(cert_passwords=[self.cert_password])
 
@@ -765,10 +764,9 @@ class TestServerInstall(CALessBase):
     def test_no_http_password(self):
         "IPA server install with empty HTTP password"
 
-        self.export_pkcs12('ca1/server', filename='http.p12', password='')
-        self.export_pkcs12('ca1/server', filename='dirsrv.p12')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server', filename='http.p12', password='')
+        self.create_pkcs12('ca1/server', filename='dirsrv.p12')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12',
@@ -780,10 +778,9 @@ class TestServerInstall(CALessBase):
     def test_no_ds_password(self):
         "IPA server install with empty DS password"
 
-        self.export_pkcs12('ca1/server', filename='http.p12')
-        self.export_pkcs12('ca1/server', filename='dirsrv.p12', password='')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server', filename='http.p12')
+        self.create_pkcs12('ca1/server', filename='dirsrv.p12', password='')
+        self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12',
@@ -798,9 +795,8 @@ class TestReplicaInstall(CALessBase):
     @classmethod
     def install(cls, mh):
         super(TestReplicaInstall, cls).install(mh)
-        cls.export_pkcs12('ca1/server')
-        with open(cls.pem_filename, 'w') as f:
-            f.write(cls.get_pem('ca1'))
+        cls.create_pkcs12('ca1/server')
+        cls.prepare_cacert('ca1')
         result = cls.install_server()
         assert result.returncode == 0
 
@@ -818,7 +814,7 @@ class TestReplicaInstall(CALessBase):
     def test_nonexistent_http_pkcs12_file(self):
         "IPA replica install with non-existent DS PKCS#12 file"
 
-        self.export_pkcs12('ca1/replica', filename='http.p12')
+        self.create_pkcs12('ca1/replica', filename='http.p12')
 
         result = self.prepare_replica(dirsrv_pkcs12='does_not_exist',
                                       http_pkcs12='http.p12')
@@ -828,7 +824,7 @@ class TestReplicaInstall(CALessBase):
     def test_nonexistent_ds_pkcs12_file(self):
         "IPA replica install with non-existent HTTP PKCS#12 file"
 
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='does_not_exist',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -839,7 +835,7 @@ class TestReplicaInstall(CALessBase):
     def test_incorect_http_pin(self):
         "IPA replica install with incorrect HTTP PKCS#12 password"
 
-        self.export_pkcs12('ca1/replica', filename='replica.p12')
+        self.create_pkcs12('ca1/replica', filename='replica.p12')
 
         result = self.prepare_replica(http_pin='bad<pin>')
         assert result.returncode > 0
@@ -850,7 +846,7 @@ class TestReplicaInstall(CALessBase):
     def test_incorect_ds_pin(self):
         "IPA replica install with incorrect DS PKCS#12 password"
 
-        self.export_pkcs12('ca1/replica', filename='replica.p12')
+        self.create_pkcs12('ca1/replica', filename='replica.p12')
 
         result = self.prepare_replica(dirsrv_pin='bad<pin>')
         assert_error(result, 'incorrect password for pkcs#12 file replica.p12')
@@ -859,8 +855,8 @@ class TestReplicaInstall(CALessBase):
     def test_http_unknown_ca(self):
         "IPA replica install with HTTP certificate issued by unknown CA"
 
-        self.export_pkcs12('ca2/replica', filename='http.p12')
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca2/replica', filename='http.p12')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -872,8 +868,8 @@ class TestReplicaInstall(CALessBase):
     def test_ds_unknown_ca(self):
         "IPA replica install with DS certificate issued by unknown CA"
 
-        self.export_pkcs12('ca1/replica', filename='http.p12')
-        self.export_pkcs12('ca2/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica', filename='http.p12')
+        self.create_pkcs12('ca2/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -885,8 +881,8 @@ class TestReplicaInstall(CALessBase):
     def test_invalid_http_cn(self):
         "IPA replica install with HTTP certificate with invalid CN"
 
-        self.export_pkcs12('ca1/replica-badname', filename='http.p12')
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica-badname', filename='http.p12')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -898,8 +894,8 @@ class TestReplicaInstall(CALessBase):
     def test_invalid_ds_cn(self):
         "IPA replica install with DS certificate with invalid CN"
 
-        self.export_pkcs12('ca1/replica', filename='http.p12')
-        self.export_pkcs12('ca1/replica-badname', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica', filename='http.p12')
+        self.create_pkcs12('ca1/replica-badname', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -911,8 +907,8 @@ class TestReplicaInstall(CALessBase):
     def test_expired_http(self):
         "IPA replica install with expired HTTP certificate"
 
-        self.export_pkcs12('ca1/replica-expired', filename='http.p12')
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica-expired', filename='http.p12')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -925,8 +921,8 @@ class TestReplicaInstall(CALessBase):
     def test_expired_ds(self):
         "IPA replica install with expired DS certificate"
 
-        self.export_pkcs12('ca1/replica-expired', filename='http.p12')
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica-expired', filename='http.p12')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -939,8 +935,8 @@ class TestReplicaInstall(CALessBase):
     def test_http_bad_usage(self):
         "IPA replica install with HTTP certificate with invalid key usage"
 
-        self.export_pkcs12('ca1/replica-badusage', filename='http.p12')
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica-badusage', filename='http.p12')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -952,8 +948,8 @@ class TestReplicaInstall(CALessBase):
     def test_ds_bad_usage(self):
         "IPA replica install with DS certificate with invalid key usage"
 
-        self.export_pkcs12('ca1/replica', filename='http.p12')
-        self.export_pkcs12('ca1/replica-badusage', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica', filename='http.p12')
+        self.create_pkcs12('ca1/replica-badusage', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -965,8 +961,8 @@ class TestReplicaInstall(CALessBase):
     def test_revoked_http(self):
         "IPA replica install with revoked HTTP certificate"
 
-        self.export_pkcs12('ca1/replica-revoked', filename='http.p12')
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica-revoked', filename='http.p12')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -982,8 +978,8 @@ class TestReplicaInstall(CALessBase):
     def test_revoked_ds(self):
         "IPA replica install with revoked DS certificate"
 
-        self.export_pkcs12('ca1/replica', filename='http.p12')
-        self.export_pkcs12('ca1/replica-revoked', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica', filename='http.p12')
+        self.create_pkcs12('ca1/replica-revoked', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -999,8 +995,8 @@ class TestReplicaInstall(CALessBase):
     def test_http_intermediate_ca(self):
         "IPA replica install with HTTP certificate issued by intermediate CA"
 
-        self.export_pkcs12('ca1/subca/replica', filename='http.p12')
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/subca/replica', filename='http.p12')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -1012,8 +1008,8 @@ class TestReplicaInstall(CALessBase):
     def test_ds_intermediate_ca(self):
         "IPA replica install with DS certificate issued by intermediate CA"
 
-        self.export_pkcs12('ca1/replica', filename='http.p12')
-        self.export_pkcs12('ca1/subca/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica', filename='http.p12')
+        self.create_pkcs12('ca1/subca/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -1025,7 +1021,7 @@ class TestReplicaInstall(CALessBase):
     def test_valid_certs(self):
         "IPA replica install with valid certificates"
 
-        self.export_pkcs12('ca1/replica', filename='server.p12')
+        self.create_pkcs12('ca1/replica', filename='server.p12')
 
         result = self.prepare_replica(http_pkcs12='server.p12',
                                       dirsrv_pkcs12='server.p12')
@@ -1038,8 +1034,8 @@ class TestReplicaInstall(CALessBase):
     def test_wildcard_http(self):
         "IPA replica install with wildcard HTTP certificate"
 
-        self.export_pkcs12('ca1/wildcard', filename='http.p12')
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/wildcard', filename='http.p12')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -1052,8 +1048,8 @@ class TestReplicaInstall(CALessBase):
     def test_wildcard_ds(self):
         "IPA replica install with wildcard DS certificate"
 
-        self.export_pkcs12('ca1/wildcard', filename='http.p12')
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/wildcard', filename='http.p12')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -1065,8 +1061,8 @@ class TestReplicaInstall(CALessBase):
     def test_http_san(self):
         "IPA replica install with HTTP certificate with SAN"
 
-        self.export_pkcs12('ca1/replica-altname', filename='http.p12')
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica-altname', filename='http.p12')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -1078,8 +1074,8 @@ class TestReplicaInstall(CALessBase):
     def test_ds_san(self):
         "IPA replica install with DS certificate with SAN"
 
-        self.export_pkcs12('ca1/replica', filename='http.p12')
-        self.export_pkcs12('ca1/replica-altname', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica', filename='http.p12')
+        self.create_pkcs12('ca1/replica-altname', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
@@ -1091,7 +1087,7 @@ class TestReplicaInstall(CALessBase):
     def test_interactive_missing_http_pkcs_password(self):
         "IPA replica install with missing HTTP PKCS#12 password"
 
-        self.export_pkcs12('ca1/replica', filename='replica.p12')
+        self.create_pkcs12('ca1/replica', filename='replica.p12')
 
         stdin_text = get_replica_prepare_stdin(
             cert_passwords=[self.cert_password])
@@ -1106,7 +1102,7 @@ class TestReplicaInstall(CALessBase):
     def test_interactive_missing_ds_pkcs_password(self):
         "IPA replica install with missing DS PKCS#12 password"
 
-        self.export_pkcs12('ca1/replica', filename='replica.p12')
+        self.create_pkcs12('ca1/replica', filename='replica.p12')
 
         stdin_text = get_replica_prepare_stdin(
             cert_passwords=[self.cert_password])
@@ -1121,8 +1117,8 @@ class TestReplicaInstall(CALessBase):
     def test_no_http_password(self):
         "IPA replica install with empty HTTP password"
 
-        self.export_pkcs12('ca1/replica', filename='http.p12', password='')
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/replica', filename='http.p12', password='')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12',
@@ -1135,8 +1131,8 @@ class TestReplicaInstall(CALessBase):
     def test_no_ds_password(self):
         "IPA replica install with empty DS password"
 
-        self.export_pkcs12('ca1/replica', filename='http.p12')
-        self.export_pkcs12('ca1/replica', filename='dirsrv.p12', password='')
+        self.create_pkcs12('ca1/replica', filename='http.p12')
+        self.create_pkcs12('ca1/replica', filename='dirsrv.p12', password='')
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12',
@@ -1152,9 +1148,8 @@ class TestClientInstall(CALessBase):
     def test_client_install(self):
         "IPA client install"
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
 
         result = self.install_server()
         assert result.returncode == 0
@@ -1174,9 +1169,8 @@ class TestIPACommands(CALessBase):
     def install(cls, mh):
         super(TestIPACommands, cls).install(mh)
 
-        cls.export_pkcs12('ca1/server')
-        with open(cls.pem_filename, 'w') as f:
-            f.write(cls.get_pem('ca1'))
+        cls.create_pkcs12('ca1/server')
+        cls.prepare_cacert('ca1')
 
         result = cls.install_server()
         assert result.returncode == 0
@@ -1184,7 +1178,7 @@ class TestIPACommands(CALessBase):
         tasks.kinit_admin(cls.master)
 
         cls.client_pem = ''.join(cls.get_pem('ca1/client').splitlines()[1:-1])
-        cls.log.debug('Client PEM:\n%r' % cls.client_pem)
+        logger.debug('Client PEM:\n%r', cls.client_pem)
         cls.test_hostname = 'testhost.%s' % cls.master.domain.name
         cls.test_service = 'test/%s' % cls.test_hostname
 
@@ -1260,14 +1254,13 @@ class TestIPACommands(CALessBase):
             self.master.run_command(['ipa', 'host-del', self.test_hostname])
 
 
-class TestCertinstall(CALessBase):
+class TestCertInstall(CALessBase):
     @classmethod
     def install(cls, mh):
-        super(TestCertinstall, cls).install(mh)
+        super(TestCertInstall, cls).install(mh)
 
-        cls.export_pkcs12('ca1/server')
-        with open(cls.pem_filename, 'w') as f:
-            f.write(cls.get_pem('ca1'))
+        cls.create_pkcs12('ca1/server')
+        cls.prepare_cacert('ca1')
 
         result = cls.install_server()
         assert result.returncode == 0
@@ -1278,7 +1271,7 @@ class TestCertinstall(CALessBase):
                     filename='server.p12', pin=_DEFAULT, stdin_text=None,
                     p12_pin=None, args=None):
         if cert_nick:
-            self.export_pkcs12(cert_nick, password=p12_pin)
+            self.create_pkcs12(cert_nick, password=p12_pin)
         if pin is _DEFAULT:
             pin = self.cert_password
         if cert_exists:
@@ -1515,18 +1508,17 @@ class TestPKINIT(CALessBase):
     @classmethod
     def install(cls, mh):
         super(TestPKINIT, cls).install(mh)
-        cls.export_pkcs12('ca1/server')
-        cls.copy_pkinit_cert(cls.master, 'ca1/pkinit-server.p12')
-        with open(cls.pem_filename, 'w') as f:
-            f.write(cls.get_pem('ca1'))
+        cls.create_pkcs12('ca1/server')
+        cls.create_pkcs12('ca1/server-kdc', filename='server-kdc.p12')
+        cls.prepare_cacert('ca1')
         result = cls.install_server(pkinit_pkcs12_exists=True,
                                     pkinit_pin=_DEFAULT)
         assert result.returncode == 0
 
     @replica_install_teardown
     def test_server_replica_install_pkinit(self):
-        self.export_pkcs12('ca1/replica', filename='replica.p12')
-        self.copy_pkinit_cert(self.replicas[0], 'ca1/pkinit-replica.p12')
+        self.create_pkcs12('ca1/replica', filename='replica.p12')
+        self.create_pkcs12('ca1/replica-kdc', filename='replica-kdc.p12')
         result = self.prepare_replica(pkinit_pkcs12_exists=True,
                                       pkinit_pin=_DEFAULT)
         assert result.returncode == 0
@@ -1543,14 +1535,13 @@ class TestServerReplicaCALessToCAFull(CALessBase):
     def test_install_caless_server_replica(self):
         """Install CA-less master and replica"""
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
 
         master = self.install_server()
         assert master.returncode == 0
 
-        self.export_pkcs12('ca1/replica', filename='replica.p12')
+        self.create_pkcs12('ca1/replica', filename='replica.p12')
 
         replica = self.prepare_replica()
         assert replica.returncode == 0
@@ -1582,14 +1573,13 @@ class TestReplicaCALessToCAFull(CALessBase):
     def test_install_caless_server_replica(self):
         """Install CA-less master and replica"""
 
-        self.export_pkcs12('ca1/server')
-        with open(self.pem_filename, 'w') as f:
-            f.write(self.get_pem('ca1'))
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
 
         master = self.install_server()
         assert master.returncode == 0
 
-        self.export_pkcs12('ca1/replica', filename='replica.p12')
+        self.create_pkcs12('ca1/replica', filename='replica.p12')
 
         replica = self.prepare_replica()
         assert replica.returncode == 0
