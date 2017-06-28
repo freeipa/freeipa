@@ -87,7 +87,8 @@ class whoami(Command):
     has_output = (
         output.Output('object', unicode, _('Object class name')),
         output.Output('command', unicode, _('Function to get details')),
-        output.Output('arguments', list, _('Arguments to details function')),
+        output.Output('arguments', (list, tuple),
+                      _('Arguments to details function')),
     )
 
     def execute(self, **options):

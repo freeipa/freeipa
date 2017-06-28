@@ -6477,7 +6477,7 @@ output: PrimaryKey('value')
 command: whoami/1
 args: 0,1,3
 option: Str('version?')
-output: Output('arguments', type=[<type 'list'>])
+output: Output('arguments', type=[<type 'list'>, <type 'tuple'>])
 output: Output('command', type=[<type 'unicode'>])
 output: Output('object', type=[<type 'unicode'>])
 default: aci/1
