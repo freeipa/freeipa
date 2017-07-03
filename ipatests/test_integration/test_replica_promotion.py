@@ -196,6 +196,40 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
                                      '-U'])
 
 
+class TestReplicaPromotionLevel1Interactively(ReplicaPromotionBase):
+
+    topology = 'star'
+    num_replicas = 1
+    domain_level = DOMAIN_LEVEL_1
+
+    @replicas_cleanup
+    def test_replica_install_inserting_only_password(self):
+        replica = self.replicas[0]
+        tasks.install_client(self.master, replica)
+        tasks.kinit_admin(self.master)
+        self.replicas[0].run_command(['ipa-replica-install'],
+                                     stdin_text=self.master.config.admin_password)
+
+
+class TestReplicaPromotionLevel1NotInteractive(ReplicaPromotionBase):
+
+    topology = 'star'
+    num_replicas = 1
+    domain_level = DOMAIN_LEVEL_1
+
+    @replicas_cleanup
+    def test_replica_install_not_interactive_mode(self):
+        replica = self.replicas[0]
+        tasks.install_client(self.master, replica)
+        tasks.kinit_admin(self.master)
+        self.replicas[0].run_command(['ipa-replica-install', '-w',
+                                      self.master.config.admin_password,
+                                      '-n', self.master.domain.name,
+                                      '-r', self.master.domain.realm,
+                                      '--server', self.master.hostname,
+                                      '-U'])
+
+
 @pytest.mark.xfail(reason="Ticket N 6274")
 class TestReplicaManageCommands(IntegrationTest):
     topology = "star"
