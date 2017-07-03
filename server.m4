@@ -111,6 +111,11 @@ AC_CHECK_LIB([smbldap],[smbldap_get_ldap],
              [AC_MSG_WARN([libsmbldap is not opaque, not using smbldap_get_ldap])],
              [$SAMBA40EXTRA_LIBPATH])
 
+AC_CHECK_LIB([smbldap],[smbldap_set_bind_callback],
+             [AC_DEFINE([HAVE_SMBLDAP_SET_BIND_CALLBACK], [1], [struct smbldap_state is opaque])],
+             [AC_MSG_WARN([libsmbldap is not opaque, not using smbldap_set_bind_callback])],
+             [$SAMBA40EXTRA_LIBPATH])
+
 dnl ---------------------------------------------------------------------------
 dnl Check for libunistring
 dnl ---------------------------------------------------------------------------
