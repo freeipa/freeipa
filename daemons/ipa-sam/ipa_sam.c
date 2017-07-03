@@ -4532,8 +4532,12 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 				      uri, false, NULL, NULL,
 				      &ipasam_state->ldap_state);
 		if (NT_STATUS_IS_OK(status)) {
+#ifdef HAVE_SMBLDAP_SET_BIND_CALLBACK
+			smbldap_set_bind_callback(ipasam_state->ldap_state, bind_callback, ipasam_state);
+#else
 			ipasam_state->ldap_state->bind_callback = bind_callback;
 			ipasam_state->ldap_state->bind_callback_data = ipasam_state;
+#endif
 		}
 	}
 
