@@ -310,12 +310,11 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
 
             for cert in entry.get('cACertificate;binary', []):
                 try:
-                    cert_obj = x509.load_der_x509_certificate(cert)
-                    _parse_cert(cert_obj)
+                    _parse_cert(cert)
                 except ValueError:
                     certs = []
                     break
-                certs.append((cert_obj, nickname, trusted, ext_key_usage))
+                certs.append((cert, nickname, trusted, ext_key_usage))
     except errors.NotFound:
         try:
             ldap.get_entry(container_dn, [''])
@@ -324,8 +323,7 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
             dn = DN(('cn', 'CAcert'), config_dn)
             entry = ldap.get_entry(dn, ['cACertificate;binary'])
 
-            cert = x509.load_der_x509_certificate(
-                entry.single_value['cACertificate;binary'])
+            cert = entry.single_value['cACertificate;binary']
             try:
                 subject, _issuer_serial, _public_key_info = _parse_cert(cert)
             except ValueError:

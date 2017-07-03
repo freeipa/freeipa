@@ -66,8 +66,8 @@ class CertRetrieveOverride(MethodOverride):
                 certs = result['result']['certificate_chain']
             else:
                 certs = [result['result']['certificate']]
-            certs = (x509.load_der_x509_certificate(
-                     x509.ensure_der_format(cert)) for cert in certs)
+            certs = (x509.load_der_x509_certificate(base64.b64decode(cert))
+                     for cert in certs)
             x509.write_certificate_list(certs, certificate_out)
 
         return result

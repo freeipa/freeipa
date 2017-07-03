@@ -23,10 +23,9 @@ import dbus
 import six
 
 from ipalib import api, errors, x509
-from ipalib import Bytes
 from ipalib.crud import Search
 from ipalib.frontend import Object
-from ipalib.parameters import Bool, DNSNameParam, Flag, Int, Str
+from ipalib.parameters import Bool, DNSNameParam, Flag, Int, Str, Certificate
 from ipalib.plugable import Registry
 from .baseldap import (
     LDAPCreate,
@@ -39,7 +38,6 @@ from .baseldap import (
     pkey_to_value)
 from ipalib import _, ngettext
 from ipalib import output
-from ipaserver.plugins.service import validate_certificate
 
 
 if six.PY3:
@@ -521,8 +519,8 @@ class certmap_match(Search):
             if arg.name == 'criteria':
                 continue
             yield arg
-        yield Bytes(
-            'certificate', validate_certificate,
+        yield Certificate(
+            'certificate',
             cli_name='certificate',
             label=_('Certificate'),
             doc=_('Base-64 encoded user certificate'),

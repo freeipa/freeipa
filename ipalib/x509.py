@@ -19,8 +19,7 @@
 
 # Certificates should be stored internally DER-encoded. We can be passed
 # a certificate several ways: read if from LDAP, read it from a 3rd party
-# app (dogtag, candlepin, etc) or as user input. The ensure_der_format()
-# function will convert an incoming certificate to DER-encoding.
+# app (dogtag, candlepin, etc) or as user input.
 
 # Conventions
 #
@@ -51,8 +50,6 @@ from pyasn1.codec.der import decoder, encoder
 from pyasn1_modules import rfc2315, rfc2459
 import six
 
-from ipalib import api
-from ipalib import util
 from ipalib import errors
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
@@ -82,6 +79,7 @@ SAN_KRB5PRINCIPALNAME = '1.3.6.1.5.2.2'
 _subject_base = None
 
 def subject_base():
+    from ipalib import api
     global _subject_base
 
     if _subject_base is None:
@@ -502,40 +500,6 @@ def pkcs7_to_certs(data, datatype=PEM):
         result.append(certificate)
 
     return result
-
-
-def ensure_der_format(rawcert):
-    """
-    Incoming certificates should be DER-encoded. If not it is converted to
-    DER-format.
-
-    Note that this can't be a normalizer on a Param because only unicode
-    variables are normalized.
-    """
-    if not rawcert:
-        return None
-
-    try:
-        if isinstance(rawcert, bytes):
-            # base64 must work with utf-8, otherwise it is raw bin certificate
-            decoded_cert = rawcert.decode('utf-8')
-        else:
-            decoded_cert = rawcert
-    except UnicodeDecodeError:
-        dercert = rawcert
-    else:
-        if util.isvalid_base64(decoded_cert):
-            try:
-                dercert = base64.b64decode(decoded_cert)
-            except Exception as e:
-                raise errors.Base64DecodeError(reason=str(e))
-        else:
-            dercert = rawcert
-
-    # At this point we should have a DER certificate.
-    # Attempt to decode it.
-    validate_der_x509_certificate(dercert)
-    return dercert
 
 
 def validate_pem_x509_certificate(cert):

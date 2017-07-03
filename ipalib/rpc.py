@@ -42,6 +42,7 @@ import json
 import re
 import socket
 import gzip
+from cryptography import x509 as crypto_x509
 
 import gssapi
 from dns import resolver, rdatatype
@@ -56,6 +57,7 @@ from ipalib.errors import (public_errors, UnknownError, NetworkError,
                            XMLRPCMarshallError, JSONError)
 from ipalib import errors, capabilities
 from ipalib.request import context, Connection
+from ipalib.x509 import Encoding as x509_Encoding
 from ipapython import ipautil
 from ipapython import session_storage
 from ipapython.cookie import Cookie
@@ -191,6 +193,10 @@ def xml_wrap(value, version):
     if isinstance(value, Principal):
         return unicode(value)
 
+    if isinstance(value, crypto_x509.Certificate):
+        return base64.b64encode(
+            value.public_bytes(x509_Encoding.DER)).encode('ascii')
+
     assert type(value) in (unicode, float, bool, type(None)) + six.integer_types
     return value
 
@@ -318,6 +324,7 @@ class _JSONPrimer(dict):
             list: self._enc_list,
             tuple: self._enc_list,
             dict: self._enc_dict,
+            crypto_x509.Certificate: self._enc_certificate,
         })
         # int, long
         for t in six.integer_types:
@@ -383,6 +390,9 @@ class _JSONPrimer(dict):
             func = self[v.__class__]
             result[k] = v if func is _identity else func(v)
         return result
+
+    def _enc_certificate(self, val):
+        return self._enc_bytes(val.public_bytes(x509_Encoding.DER))
 
 
 def json_encode_binary(val, version, pretty_print=False):

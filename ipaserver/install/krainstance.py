@@ -22,6 +22,7 @@ import os
 import pwd
 import shutil
 import tempfile
+import base64
 
 import six
 # pylint: disable=import-error
@@ -268,13 +269,15 @@ class KRAInstance(DogtagInstance):
                 "https://%s" % ipautil.format_netloc(self.master_host, 443))
         else:
             # the admin cert file is needed for the first instance of KRA
-            cert = DogtagInstance.get_admin_cert(self)
+            cert = self.get_admin_cert()
             # First make sure that the directory exists
             parentdir = os.path.dirname(paths.ADMIN_CERT_PATH)
             if not os.path.exists(parentdir):
                 os.makedirs(parentdir)
             with open(paths.ADMIN_CERT_PATH, "w") as admin_path:
-                admin_path.write(cert)
+                admin_path.write(
+                    base64.b64encode(cert.public_bytes(x509.Encoding.DER))
+                )
 
         # Generate configuration file
         with open(cfg_file, "w") as f:
