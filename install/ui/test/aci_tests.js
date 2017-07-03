@@ -152,17 +152,19 @@ test("aci.attributes_widget", function() {
 
     widget.create(container);
 
-    var table = $('table', container);
+    var list = $('ul', container);
 
     ok(
-        table,
-        'Widget contains table');
+        list,
+        'Widget contains list');
 
-    widget.update({});
-    var tr = $('tbody tr', table);
+    widget.update([]);
+
+    list = $('ul', container); // reload the DOM node which contains options
+    var li = $('li', list);
 
     same(
-        tr.length, aciattrs.length,
+        li.length, aciattrs.length,
         'Widget contains all user ACI attributes');
 
     var record = {
@@ -175,14 +177,15 @@ test("aci.attributes_widget", function() {
 
     same(
         widget.save(), [],
-        'Widget has no initial values');
+        'Widget has no initialy checked values');
 
     widget.update(record.attrs);
 
-    tr = $('tbody tr', table);
+    list = $('ul', container); // reload the DOM node which contains options
+    li = $('li', list);
 
     same(
-        tr.length, aciattrs.length+1,
+        li.length, aciattrs.length+1,
         'Widget contains all user ACI attributes plus 1 unmatched attribute');
 
     same(
