@@ -129,7 +129,8 @@ def normalize_name(name):
 
 def isvalid_base64(data):
     """
-    Validate the incoming data as valid base64 data or not.
+    Validate the incoming data as valid base64 data or not. This is only
+    used in the ipalib.Parameters module which expects ``data`` to be unicode.
 
     The character set must only include of a-z, A-Z, 0-9, + or / and
     be padded with = to be a length divisible by 4 (so only 0-2 =s are

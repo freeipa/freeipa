@@ -108,15 +108,19 @@ import six
 # pylint: disable=import-error
 from six.moves.xmlrpc_client import MAXINT, MININT
 # pylint: enable=import-error
+from cryptography import x509 as crypto_x509
 
 from ipalib.text import _ as ugettext
 from ipalib.base import check_name
 from ipalib.plugable import ReadOnly, lock
 from ipalib.errors import ConversionError, RequirementError, ValidationError
-from ipalib.errors import PasswordMismatch, Base64DecodeError
+from ipalib.errors import (
+    PasswordMismatch, Base64DecodeError, CertificateFormatError
+)
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.text import Gettext, FixMe
 from ipalib.util import json_serialize, validate_idna_domain
+from ipalib.x509 import load_der_x509_certificate, IPACertificate
 from ipapython import kerberos
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
@@ -1405,6 +1409,42 @@ class Bytes(Data):
             except (TypeError, ValueError) as e:
                 raise Base64DecodeError(reason=str(e))
         return super(Bytes, self)._convert_scalar(value)
+
+
+class Certificate(Param):
+    type = crypto_x509.Certificate
+    type_error = _('must be a certificate')
+    allowed_types = (IPACertificate, bytes, unicode)
+
+    def _convert_scalar(self, value, index=None):
+        """
+        :param value: either DER certificate or base64 encoded certificate
+        :returns: bytes representing value converted to DER format
+        """
+        if isinstance(value, bytes):
+            try:
+                value = value.decode('ascii')
+            except UnicodeDecodeError:
+                # value is possibly a DER-encoded certificate
+                pass
+
+        if isinstance(value, unicode):
+            # if we received unicodes right away or we got them after the
+            # decoding, we will now try to receive DER-certificate
+            try:
+                value = base64.b64decode(value)
+            except (TypeError, ValueError) as e:
+                raise Base64DecodeError(reason=str(e))
+
+        if isinstance(value, bytes):
+            # we now only have either bytes or an IPACertificate object
+            # if it's bytes, make it an IPACertificate object
+            try:
+                value = load_der_x509_certificate(value)
+            except ValueError as e:
+                raise CertificateFormatError(error=str(e))
+
+        return super(Certificate, self)._convert_scalar(value)
 
 
 class Str(Data):

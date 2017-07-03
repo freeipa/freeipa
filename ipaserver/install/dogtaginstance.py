@@ -376,7 +376,7 @@ class DogtagInstance(service.Service):
             if conn is not None:
                 conn.unbind()
 
-        return base64.b64encode(admin_cert)
+        return admin_cert
 
     def handle_setup_error(self, e):
         logger.critical("Failed to configure %s instance: %s",

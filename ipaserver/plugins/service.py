@@ -25,8 +25,8 @@ from cryptography.hazmat.primitives import hashes
 import six
 
 from ipalib import api, errors, messages
-from ipalib import Bytes, StrEnum, Bool, Str, Flag
-from ipalib.parameters import Principal
+from ipalib import StrEnum, Bool, Str, Flag
+from ipalib.parameters import Principal, Certificate
 from ipalib.plugable import Registry
 from .baseldap import (
     host_is_master,
@@ -215,13 +215,6 @@ def normalize_principal(value):
 
     return unicode(principal)
 
-def validate_certificate(ugettext, cert):
-    """
-    Check whether the certificate is properly encoded to DER
-    """
-    if api.env.in_server:
-        x509.validate_der_x509_certificate(cert)
-
 
 def revoke_certs(certs):
     """
@@ -269,8 +262,6 @@ def set_certificate_attrs(entry_attrs):
         cert = entry_attrs['usercertificate'][0]
     else:
         cert = entry_attrs['usercertificate']
-    cert = x509.ensure_der_format(cert)
-    cert = x509.load_der_x509_certificate(cert)
     entry_attrs['subject'] = unicode(DN(cert.subject))
     entry_attrs['serial_number'] = unicode(cert.serial_number)
     entry_attrs['serial_number_hex'] = u'0x%X' % cert.serial_number
@@ -478,7 +469,7 @@ class service(LDAPObject):
             require_service=True,
             flags={'no_create'}
         ),
-        Bytes('usercertificate*', validate_certificate,
+        Certificate('usercertificate*',
             cli_name='certificate',
             label=_('Certificate'),
             doc=_('Base-64 encoded service certificate'),
@@ -632,9 +623,7 @@ class service_add(LDAPCreate):
 
         self.obj.validate_ipakrbauthzdata(entry_attrs)
 
-        certs = options.get('usercertificate', [])
-        certs_der = [x509.ensure_der_format(c) for c in certs]
-        entry_attrs['usercertificate'] = certs_der
+        entry_attrs['usercertificate'] = options.get('usercertificate', [])
 
         if not options.get('force', False):
             # We know the host exists if we've gotten this far but we
@@ -705,7 +694,6 @@ class service_mod(LDAPUpdate):
 
         # verify certificates
         certs = entry_attrs.get('usercertificate') or []
-        certs_der = [x509.ensure_der_format(c) for c in certs]
         # revoke removed certificates
         ca_is_enabled = self.api.Command.ca_is_enabled()['result']
         if 'usercertificate' in options and ca_is_enabled:
@@ -714,14 +702,14 @@ class service_mod(LDAPUpdate):
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
             old_certs = entry_attrs_old.get('usercertificate', [])
-            old_certs_der = [x509.ensure_der_format(c) for c in old_certs]
-            removed_certs_der = set(old_certs_der) - set(certs_der)
-            for der in removed_certs_der:
-                rm_certs = api.Command.cert_find(certificate=der)['result']
+            removed_certs = set(old_certs) - set(certs)
+            for cert in removed_certs:
+                rm_certs = api.Command.cert_find(
+                    certificate=cert.public_bytes(x509.Encoding.DER))['result']
                 revoke_certs(rm_certs)
 
         if certs:
-            entry_attrs['usercertificate'] = certs_der
+            entry_attrs['usercertificate'] = certs
 
         update_krbticketflags(ldap, entry_attrs, attrs_list, options, True)
 
@@ -997,7 +985,8 @@ class service_remove_cert(LDAPRemoveAttributeViaOption):
         assert isinstance(dn, DN)
 
         for cert in options.get('usercertificate', []):
-            revoke_certs(api.Command.cert_find(certificate=cert)['result'])
+            revoke_certs(api.Command.cert_find(
+                certificate=cert.public_bytes(x509.Encoding.DER))['result'])
 
         return dn
 

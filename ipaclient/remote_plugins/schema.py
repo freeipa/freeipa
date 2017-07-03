@@ -12,6 +12,8 @@ import tempfile
 import types
 import zipfile
 
+from cryptography import x509 as crypto_x509
+
 import six
 
 from ipaclient.frontend import ClientCommand, ClientMethod
@@ -44,6 +46,7 @@ _TYPES = {
     'list': list,
     'tuple': tuple,
     'unicode': unicode,
+    'Certificate': crypto_x509.Certificate,
 }
 
 _PARAMS = {
@@ -57,6 +60,7 @@ _PARAMS = {
     'dict': parameters.Dict,
     'int': parameters.Int,
     'str': parameters.Str,
+    'Certificate': parameters.Certificate,
 }
 
 
