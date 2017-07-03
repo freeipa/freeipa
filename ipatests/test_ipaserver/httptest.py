@@ -22,15 +22,7 @@ Base class for HTTP request tests
 
 from six.moves import urllib
 
-from ipalib import api
-
-# Python 3 rename. The package is available in "six.moves.http_client", but
-# pylint cannot handle classes from that alias
-try:
-    import httplib
-except ImportError:
-    # pylint: disable=import-error
-    import http.client as httplib
+from ipalib import api, util
 
 class Unauthorized_HTTP_test(object):
     """
@@ -39,6 +31,7 @@ class Unauthorized_HTTP_test(object):
     """
     app_uri = ''
     host = api.env.host
+    cacert = api.env.tls_ca_cert
     content_type = 'application/x-www-form-urlencoded'
 
     def send_request(self, method='POST', params=None):
@@ -56,6 +49,7 @@ class Unauthorized_HTTP_test(object):
         headers = {'Content-Type' : self.content_type,
                    'Referer' : url}
 
-        conn = httplib.HTTPSConnection(self.host)
+        conn = util.create_https_connection(
+                self.host, cafile=self.cacert)
         conn.request(method, self.app_uri, params, headers)
         return conn.getresponse()
