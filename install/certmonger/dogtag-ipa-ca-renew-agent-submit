@@ -68,6 +68,22 @@ if six.PY3:
 IPA_CA_NICKNAME = 'caSigningCert cert-pki-ca'
 
 
+def fix_pem(pem_cert):
+    """
+    This function fixes the PEM certificate formatting returned by Certmonger
+    so that it removes the empty line after the base64-encoded string before
+    the ending header. It makes it readable for OpenSSL this way otherwise
+    it fails horribly to read the certificate.
+
+    ===== THIS FUNCTION SHOULD BE REMOVED BEFORE IPA 4.6 IS RELEASED =====
+    If you're seeing this after FreeIPA 4.6 release then I'm sorry and either
+    I, FreeIPA or Certmonger teams failed horribly to fix their issues and
+    this is here for the time being.
+    """
+    # TODO: remove this when https://pagure.io/certmonger/issue/76 is fixed
+    return b'\n'.join(l for l in pem_cert.split(b'\n') if l != b'')
+
+
 def get_nickname():
     # we need to get the subject from a CSR in case we are requesting
     # an OpenSSL certificate for which we have to reverse the order of its DN
@@ -265,7 +281,7 @@ def store_cert(**kwargs):
     cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if not cert:
         return (REJECTED, "New certificate requests not supported")
-    cert = x509.load_pem_x509_certificate(cert)
+    cert = x509.load_pem_x509_certificate(fix_pem(cert))
     dercert = cert.public_bytes(x509.Encoding.DER)
 
     dn = DN(('cn', nickname), ('cn', 'ca_renewal'),
@@ -391,7 +407,7 @@ def retrieve_cert_continuous(reuse_existing, **kwargs):
     """
     old_cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if old_cert:
-        old_cert = x509.load_pem_x509_certificate(old_cert)
+        old_cert = x509.load_pem_x509_certificate(fix_pem(old_cert))
 
     result = call_handler(retrieve_or_reuse_cert,
                           reuse_existing=reuse_existing,
@@ -399,7 +415,7 @@ def retrieve_cert_continuous(reuse_existing, **kwargs):
     if result[0] != ISSUED or reuse_existing:
         return result
 
-    new_cert = x509.load_pem_x509_certificate(result[1])
+    new_cert = x509.load_pem_x509_certificate(fix_pem(result[1]))
     if new_cert == old_cert:
         syslog.syslog(syslog.LOG_INFO, "Updated certificate not available")
         # No cert available yet, tell certmonger to wait another 8 hours
@@ -430,7 +446,7 @@ def renew_ca_cert(reuse_existing, **kwargs):
     cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if not cert:
         return (REJECTED, "New certificate requests not supported")
-    cert = x509.load_pem_x509_certificate(cert)
+    cert = x509.load_pem_x509_certificate(fix_pem(cert))
     is_self_signed = cert.is_self_signed()
 
     operation = os.environ.get('CERTMONGER_OPERATION')
