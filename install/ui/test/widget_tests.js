@@ -66,7 +66,7 @@ function base_widget_test(value){
     widget = factory(spec);
 
     var field_name = widget.name;
-    ok (widget, "Created Widget");
+    ok(widget, "Created Widget");
 
     //init reads param info for an entity.  We'll use the user entity
     widget.name = field_name;
@@ -320,13 +320,12 @@ test("IPA.entity_link_widget" ,function(){
     };
 
     widget.entity = mock_entity;
-    widget.create(widget_container);
 
     var nonlink = widget_container.find('label');
     var link = widget_container.find('a');
 
-    ok(nonlink.length > 1);
-    ok(link.length > 1);
+    ok(nonlink.length === 1, "Only one <label> element exists");
+    ok(link.length === 1, "Only one <a> element exists");
 
     var mock_record = { gidnumber: ['123456']};
     widget.update(mock_record.gidnumber);
