@@ -11,6 +11,8 @@ import os
 import shutil
 import stat
 
+import six
+
 import ipalib.constants
 from ipapython.dn import DN
 from ipapython import ipautil
@@ -141,17 +143,21 @@ class BINDMgr(object):
         escaped = ""
         for label in zone:
             for char in label:
-                c = ord(char)
-                if ((c >= 0x30 and c <= 0x39) or   # digit
-                   (c >= 0x41 and c <= 0x5A) or    # uppercase
-                   (c >= 0x61 and c <= 0x7A) or    # lowercase
-                   c == 0x2D or                    # hyphen
-                   c == 0x5F):                     # underscore
-                    if (c >= 0x41 and c <= 0x5A):  # downcase
-                        c += 0x20
-                    escaped += chr(c)
+                if six.PY2:
+                    # PY3 char is already int
+                    char = ord(char)
+                if (
+                    (char >= 0x30 and char <= 0x39) or  # digit
+                    (char >= 0x41 and char <= 0x5A) or  # uppercase
+                    (char >= 0x61 and char <= 0x7A) or  # lowercase
+                    char == 0x2D or                     # hyphen
+                    char == 0x5F                        # underscore
+                ):
+                    if char >= 0x41 and char <= 0x5A:  # downcase
+                        char += 0x20
+                    escaped += chr(char)
                 else:
-                    escaped += "%%%02X" % c
+                    escaped += "%%%02X" % char
             escaped += '.'
 
         # strip trailing period
