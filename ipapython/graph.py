@@ -54,8 +54,9 @@ class Graph(object):
             adj[:] = [v for v in adj if v != vertex]
 
         # delete edges
-        edges = [e for e in self.edges if e[0] != vertex and e[1] != vertex]
-        self.edges[:] = edges
+        self.edges = [
+            e for e in self.edges if e[0] != vertex and e[1] != vertex
+        ]
 
     def get_tails(self, head):
         """
