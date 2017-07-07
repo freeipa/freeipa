@@ -1,6 +1,7 @@
 #
-# Copyright (C) 2015  FreeIPA Contributors see COPYING for license
+# Copyright (C) 2015-2017  FreeIPA Contributors see COPYING for license
 #
+from collections import deque
 
 
 class Graph(object):
@@ -69,11 +70,12 @@ class Graph(object):
         Return a set of all visited vertices
         """
         if not start:
-            start = list(self.vertices)[0]
+            start = next(iter(self.vertices))
         visited = set()
-        queue = [start]
+        queue = deque([start])
+
         while queue:
-            vertex = queue.pop(0)
+            vertex = queue.popleft()
             if vertex not in visited:
                 visited.add(vertex)
                 queue.extend(set(self._adj.get(vertex, [])) - visited)
