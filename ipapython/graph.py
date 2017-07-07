@@ -24,8 +24,10 @@ class Graph(object):
     def add_edge(self, tail, head):
         if tail not in self.vertices:
             raise ValueError("tail is not a vertex")
+
         if head not in self.vertices:
             raise ValueError("head is not a vertex")
+
         self.edges.append((tail, head))
         self._adj[tail].append(head)
 
@@ -34,14 +36,17 @@ class Graph(object):
             self.edges.remove((tail, head))
         except KeyError:
             raise ValueError(
-                "graph does not contain edge: (%s, %s)" % (tail, head))
+                "graph does not contain edge: ({0}, {1})".format(tail, head)
+            )
         self._adj[tail].remove(head)
 
     def remove_vertex(self, vertex):
         try:
             self.vertices.remove(vertex)
         except KeyError:
-            raise ValueError("graph does not contain vertex: %s" % vertex)
+            raise ValueError(
+                "graph does not contain vertex: {0}".format(vertex)
+            )
 
         # delete _adjacencies
         del self._adj[vertex]
