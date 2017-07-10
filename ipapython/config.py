@@ -114,7 +114,10 @@ class IPAOptionParser(OptionParser):
         Returns all options except those with sensitive=True in the same
         fashion as parse_args would
         """
-        all_opts_dict = dict([ (o.dest, o) for o in self._get_all_options() if hasattr(o, 'sensitive') ])
+        all_opts_dict = {
+            o.dest: o for o in self._get_all_options()
+            if hasattr(o, 'sensitive')
+        }
         safe_opts_dict = {}
 
         for option, value in opts.__dict__.items():
