@@ -26,6 +26,9 @@ import sys
 import tempfile
 import time
 import traceback
+import shutil
+
+from augeas import Augeas
 
 # pylint: disable=import-error
 from six.moves.configparser import RawConfigParser
@@ -627,131 +630,140 @@ def configure_krb5_conf(
         filename, client_domain, client_hostname, force=False,
         configure_sssd=True):
 
-    krbconf = IPAChangeConf("IPA Installer")
-    krbconf.setOptionAssignment((" = ", " "))
-    krbconf.setSectionNameDelimiters(("[", "]"))
-    krbconf.setSubSectionDelimiters(("{", "}"))
-    krbconf.setIndent(("", "  ", "    "))
+    aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD,
+                 loadpath=paths.USR_SHARE_IPA_DIR)
 
-    opts = [
-        {
-            'name': 'comment',
-            'type': 'comment',
-            'value': 'File modified by ipa-client-install'
-        },
-        krbconf.emptyLine(),
-    ]
+    try:
+        logger.debug("Checking krb5.conf")
+        krb5_conf = os.path.abspath(paths.KRB5_CONF)
+        aug.transform('IPAKrb5', krb5_conf)  # loads lens file
+        aug.load()  # loads augeas tree
+        # augeas needs to prepend path with '/files'
+        path = '/files{path}'.format(path=krb5_conf)
+        includedir_path = paths.COMMON_KRB5_CONF_DIR
 
-    if os.path.exists(paths.COMMON_KRB5_CONF_DIR):
-        opts.extend([
-            {
-                'name': 'includedir',
-                'type': 'option',
-                'value': paths.COMMON_KRB5_CONF_DIR,
-                'delim': ' '
-            }
-        ])
+        if not os.path.exists(includedir_path):
+            raise RuntimeError("Directory %s does not exitst", includedir_path)
 
-    # SSSD include dir
-    if configure_sssd:
-        opts.extend([
-            {
-                'name': 'includedir',
-                'type': 'option',
-                'value': paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR,
-                'delim': ' '
-            },
-            krbconf.emptyLine()])
+        expr = '{}[includedir="{}"]'.format(path, includedir_path)
+        # check for presence 'includedir /etc/krb5.conf.d/' in /etc/krb5.conf
+        if not aug.match(expr):
+            logger.debug("Setting includedir %s", includedir_path)
+            # matches first non-comment label in krb5.conf
+            first = '{}/*[label() != "#comment"][position()=1]'.format(path)
+            # inserts includedir label before first label
+            aug.insert(first, 'includedir', before=True)
+            aug.set('{}/includedir[1]'.format(path), includedir_path)
+        else:
+            logger.debug("includedir %s is already set", includedir_path)
 
-    # [libdefaults]
-    libopts = [
-        krbconf.setOption('default_realm', cli_realm)
-    ]
-    if not dnsok or not cli_kdc or force:
-        libopts.extend([
-            krbconf.setOption('dns_lookup_realm', 'false'),
-            krbconf.setOption('dns_lookup_kdc', 'false')
-        ])
-    else:
-        libopts.extend([
-            krbconf.setOption('dns_lookup_realm', 'true'),
-            krbconf.setOption('dns_lookup_kdc', 'true')
-        ])
-    libopts.extend([
-        krbconf.setOption('rdns', 'false'),
-        krbconf.setOption('dns_canonicalize_hostname', 'false'),
-        krbconf.setOption('ticket_lifetime', '24h'),
-        krbconf.setOption('forwardable', 'true'),
-        krbconf.setOption('udp_preference_limit', '0')
-    ])
+        # save configuration to krb5.conf
+        try:
+            aug.save()
+        except Exception:
+            logger.error("Augeas failed to configure file %s", filename)
 
-    # Configure KEYRING CCACHE if supported
-    if kernel_keyring.is_persistent_keyring_supported():
-        logger.debug("Enabling persistent keyring CCACHE")
-        libopts.append(krbconf.setOption('default_ccache_name',
-                                         'KEYRING:persistent:%{uid}'))
+        # create ipaclient_krb5.conf file and content
+        logger.debug("Creating ipaclient_krb5.conf")
+        # paths.COMMON_KRB5_CONF_DIR + paths.IPACLIENT_KRB5_CONF_NAME
+        client_conf = os.path.abspath(filename)
 
-    opts.extend([
-        krbconf.setSection('libdefaults', libopts),
-        krbconf.emptyLine()
-    ])
+        # create empty ipaclient_krb5.conf file if does not exists
+        open(client_conf, 'a').close()
 
-    # the following are necessary only if DNS discovery does not work
-    kropts = []
-    if not dnsok or not cli_kdc or force:
-        # [realms]
-        for server in cli_server:
-            kropts.extend([
-                krbconf.setOption('kdc', ipautil.format_netloc(server, 88)),
-                krbconf.setOption('master_kdc',
-                                  ipautil.format_netloc(server, 88)),
-                krbconf.setOption('admin_server',
-                                  ipautil.format_netloc(server, 749)),
-                krbconf.setOption('kpasswd_server',
-                                  ipautil.format_netloc(server, 464))
-            ])
-        kropts.append(krbconf.setOption('default_domain', cli_domain))
+        aug.transform('IPAKrb5', client_conf)
+        path = '/files{path}'.format(path=client_conf)
+        aug.load()
 
-    kropts.append(
-        krbconf.setOption('pkinit_anchors',
-                          'FILE:%s' % paths.KDC_CA_BUNDLE_PEM))
-    kropts.append(
-        krbconf.setOption('pkinit_pool',
-                          'FILE:%s' % paths.CA_BUNDLE_PEM))
-    ropts = [{
-        'name': cli_realm,
-        'type': 'subsection',
-        'value': kropts
-    }]
+        value = 'File generated by ipa-client-install'
+        aug.set('{}/#comment[last()+1]'.format(path), value)
 
-    opts.append(krbconf.setSection('realms', ropts))
-    opts.append(krbconf.emptyLine())
+        if (configure_sssd and
+                paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR is not includedir_path):
+            aug.set('{}/includedir[last()+1]'.format(path),
+                    paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR)
 
-    # [domain_realm]
-    dropts = [
-        krbconf.setOption('.{}'.format(cli_domain), cli_realm),
-        krbconf.setOption(cli_domain, cli_realm),
-        krbconf.setOption(client_hostname, cli_realm)
-    ]
+        libdef_path = '{}/libdefaults'.format(path)
 
-    # add client domain mapping if different from server domain
-    if cli_domain != client_domain:
-        dropts.extend([
-            krbconf.setOption('.{}'.format(client_domain), cli_realm),
-            krbconf.setOption(client_domain, cli_realm)
-        ])
+        aug.set('{}/default_realm'.format(libdef_path), cli_realm)
 
-    opts.extend([
-        krbconf.setSection('domain_realm', dropts),
-        krbconf.emptyLine()
-    ])
+        if not dnsok or not cli_kdc or force:
+            aug.set('{}/dns_lookup_realm'.format(libdef_path), 'false')
+            aug.set('{}/dns_lookup_kdc'.format(libdef_path), 'false')
+        else:
+            aug.set('{}/dns_lookup_realm'.format(libdef_path), 'true')
+            aug.set('{}/dns_lookup_kdc'.format(libdef_path), 'true')
 
-    logger.debug("Writing Kerberos configuration to %s:", filename)
-    logger.debug("%s", krbconf.dump(opts))
+        aug.set('{}/rdns'.format(libdef_path), 'false')
+        aug.set('{}/dns_canonicalize_hostname'.format(libdef_path), 'false')
+        aug.set('{}/ticket_lifetime'.format(libdef_path), '24h')
+        aug.set('{}/forwardable'.format(libdef_path), 'true')
+        aug.set('{}/udp_preference_limit'.format(libdef_path), '0')
 
-    krbconf.newConf(filename, opts)
-    # umask applies when creating a new file but we want 0o644 here
-    os.chmod(filename, 0o644)
+        # Configure KEYRING CCACHE if supported
+        if kernel_keyring.is_persistent_keyring_supported():
+            logger.debug("Enabling persistent keyring CCACHE")
+            aug.set('{}/default_ccache_name'.format(libdef_path),
+                    'KEYRING:persistent:%{{uid}}'.format())
+
+        realms_path = '{}/realms/{}'.format(path, cli_realm)
+
+        if not dnsok or not cli_kdc or force:
+            for server in cli_server:
+                aug.set('{}/kdc[last()+1]'.format(realms_path),
+                        ipautil.format_netloc(server, 88))
+                aug.set('{}/master_kdc[last()+1]'.format(realms_path),
+                        ipautil.format_netloc(server, 88))
+                aug.set('{}/admin_server[last()+1]'.format(realms_path),
+                        ipautil.format_netloc(server, 749))
+                aug.set('{}/kpasswd_server[last()+1]'.format(realms_path),
+                        ipautil.format_netloc(server, 464))
+
+            aug.set('{}/default_domain'.format(realms_path), cli_domain)
+
+        aug.set('{}/pkinit_anchors'.format(realms_path),
+                'FILE:{}'.format(paths.KDC_CA_BUNDLE_PEM))
+
+        aug.set('{}/pkinit_pool'.format(realms_path),
+                'FILE:{}'.format(paths.CA_BUNDLE_PEM))
+
+        # [domain_realm]
+        dom_realm_path = '{}/domain_realm'.format(path)
+
+        aug.set('{path}/.{key}'.format(path=dom_realm_path,
+                key=cli_domain), cli_realm)
+        aug.set('{path}/{key}'.format(path=dom_realm_path,
+                key=cli_domain), cli_realm)
+        aug.set('{path}/{key}'.format(path=dom_realm_path,
+                key=client_hostname), cli_realm)
+
+        # add client domain mapping if different from server domain
+        if cli_domain != client_domain:
+            aug.set('{path}/.{key}'.format(path=dom_realm_path,
+                    key=client_domain), cli_realm)
+            aug.set('{path}/{key}'.format(path=dom_realm_path,
+                    key=client_domain), cli_realm)
+
+        logger.debug("Writing Kerberos configuration to %s", client_conf)
+
+        # backup oginal conf file
+        try:
+            if os.stat(client_conf).st_size != 0:
+                logger.debug("Backing up %s", client_conf)
+                shutil.copy2(client_conf, (client_conf + ".ipabkp"))
+        except IOError as err:
+            if err.errno == 2:
+                # The original file did not exist
+                logger.error("File %s does not exists.", client_conf)
+
+        try:
+            aug.save()
+        except Exception as e:
+            logger.error("Augeas failed to configure file %s", client_conf)
+    except Exception as e:
+        logger.error("Configuration failed with: %s", e)
+    finally:
+        aug.close()
 
 
 def configure_certmonger(
@@ -2643,7 +2655,9 @@ def _install(options):
                 logger.error("Failed to obtain host TGT: %s", e)
                 raise ScriptError(rval=CLIENT_INSTALL_ERROR)
         else:
-            # Configure krb5.conf
+            # Set path to ipaclient_krb5.conf
+            krb5_client_conf = "{}{}".format(paths.COMMON_KRB5_CONF_DIR,
+                                             paths.IPACLIENT_KRB5_CONF_NAME)
             fstore.backup_file(paths.KRB5_CONF)
             configure_krb5_conf(
                 cli_realm=cli_realm,
@@ -2651,14 +2665,15 @@ def _install(options):
                 cli_server=cli_server,
                 cli_kdc=cli_kdc,
                 dnsok=dnsok,
-                filename=paths.KRB5_CONF,
+                filename=krb5_client_conf,
                 client_domain=client_domain,
                 client_hostname=hostname,
                 configure_sssd=options.sssd,
                 force=options.force)
 
             logger.info(
-                "Configured /etc/krb5.conf for IPA realm %s", cli_realm)
+                "Configured %s for IPA realm %s",
+                krb5_client_conf, cli_realm)
 
         # Clear out any current session keyring information
         try:
@@ -3288,6 +3303,13 @@ def uninstall(options):
                         "Please remove file '%s' manually.", preferences_fname)
 
     rv = SUCCESS
+
+    try:
+        os.remove("{}{}".format(paths.COMMON_KRB5_CONF_DIR,
+                                paths.IPACLIENT_KRB5_CONF_NAME))
+    except OSError:
+        logger.error("Could not remove %s", os.path.join(
+            paths.COMMON_KRB5_CONF_DIR, paths.IPACLIENT_KRB5_CONF_NAME))
 
     if fstore.has_files():
         logger.error('Some files have not been restored, see %s',

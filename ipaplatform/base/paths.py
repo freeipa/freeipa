@@ -67,6 +67,7 @@ class BasePathNamespace(object):
     COMMON_KRB5_CONF_DIR = "/etc/krb5.conf.d/"
     KRB5_CONF = "/etc/krb5.conf"
     KRB5_KEYTAB = "/etc/krb5.keytab"
+    IPACLIENT_KRB5_CONF_NAME = "ipaclient_krb5.conf"
     LDAP_CONF = "/etc/ldap.conf"
     LIBNSS_LDAP_CONF = "/etc/libnss-ldap.conf"
     NAMED_CONF = "/etc/named.conf"

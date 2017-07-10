@@ -76,7 +76,7 @@ if __name__ == '__main__':
             # These packages are currently not available on PyPI.
             "dcerpc": ["samba", "pysss", "pysss_nss_idmap"],
             "hbactest": ["pyhbac"],
-            "install": ["SSSDConfig"],
+            "install": ["python-augeas", "SSSDConfig"],
             "trust": ["pysss_murmur", "pysss_nss_idmap"],
         }
     )

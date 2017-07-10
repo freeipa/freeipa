@@ -62,7 +62,7 @@ if __name__ == '__main__':
             ]
         },
         extras_require={
-            "install": ["ipaplatform"],
+            "install": ["ipaplatform", "python-augeas"],
             "otptoken_yubikey": ["python-yubico", "pyusb"],
             "csrgen": ["cffi", "jinja2"],
         },
