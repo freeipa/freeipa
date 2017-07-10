@@ -18,6 +18,7 @@ except ImportError:
     ipaplatform = None
 try:
     import ipaserver
+    from ipaserver.install import installutils
 except ImportError:
     ipaserver = None
 
@@ -105,7 +106,7 @@ def pytest_cmdline_main(config):
 
     # XXX workaround until https://fedorahosted.org/freeipa/ticket/6408 has
     # been resolved.
-    if ipaserver is not None:
+    if ipaserver is not None and installutils.is_ipa_configured():
         api.finalize()
 
     if config.option.verbose:
