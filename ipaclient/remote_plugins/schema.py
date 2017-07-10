@@ -524,6 +524,9 @@ class Schema(object):
 
 
 def get_package(server_info, client):
+    if client.api.env.force_client_compat:
+        raise NotAvailable()
+
     NO_FINGERPRINT = object()
 
     fingerprint = NO_FINGERPRINT
