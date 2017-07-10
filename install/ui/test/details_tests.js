@@ -276,6 +276,8 @@ test("Testing IPA.details_section_create again()",function() {
 
     var facet = IPA.details_facet({
         entity: IPA.get_entity('user'),
+        disable_breadcrumb: true,
+        disable_facet_tabs: true,
         sections: [
             {
                 name:'IDIDID',
