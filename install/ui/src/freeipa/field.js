@@ -1049,8 +1049,50 @@ field.validator = IPA.validator = function(spec) {
          return that.true_result();
      };
 
+     that.integer_validate = that.validate;
+
      return that;
  };
+
+
+/**
+ * Javascript positive integer validator
+ *
+ * It allows to insert only positive integer.
+ *
+ * @class
+ * @alternateClassName IPA.positive_integer_validator
+ * @extends IPA.validator
+ */
+ field.positive_integer_validator = IPA.positive_integer_validator = function(spec) {
+
+    var that = IPA.integer_validator(spec);
+
+    /**
+    * @inheritDoc
+    */
+
+    that.validate = function(value) {
+
+        var integer_check = that.integer_validate(value);
+
+        if (!integer_check.valid) {
+            return integer_check;
+        }
+
+        var num = parseInt(value);
+
+        if (num <= 0) {
+            return that.false_result(
+                text.get('@i18n:widget.validation.positive_number'));
+        }
+
+        return that.true_result();
+    };
+
+    return that;
+ };
+
 
 /**
  * Metadata validator
@@ -1871,6 +1913,7 @@ field.register = function() {
     v.register('unsupported', field.unsupported_validator);
     v.register('same_password', field.same_password_validator);
     v.register('integer', field.integer_validator);
+    v.register('positive_integer', field.positive_integer_validator);
 
     l.register('adapter', field.Adapter);
     l.register('object_adapter', field.ObjectAdapter);
