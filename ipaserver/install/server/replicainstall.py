@@ -1515,6 +1515,9 @@ def install(installer):
         # remove the extracted replica file
         remove_replica_info_dir(installer)
 
+    # Make sure the files we crated in /var/run are recreated at startup
+    tasks.configure_tmpfiles()
+
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()
 
