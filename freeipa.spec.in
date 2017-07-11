@@ -1089,6 +1089,7 @@ fi
 /bin/systemctl reload-or-try-restart dbus
 /bin/systemctl reload-or-try-restart oddjobd
 
+%tmpfiles_create ipa.conf
 
 %posttrans server
 # don't execute upgrade and restart of IPA when server is not installed
@@ -1375,6 +1376,8 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-dnskeysyncd
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-ods-exporter
 %config(noreplace) %{_sysconfdir}/ipa/kdcproxy/kdcproxy.conf
+# NOTE: systemd specific section
+%{_tmpfilesdir}/ipa.conf
 %attr(644,root,root) %{_unitdir}/ipa-custodia.service
 %ghost %attr(644,root,root) %{etc_systemd_dir}/httpd.d/ipa.conf
 # END
@@ -1384,7 +1387,6 @@ fi
 %{_usr}/share/ipa/*.ldif
 %{_usr}/share/ipa/*.uldif
 %{_usr}/share/ipa/*.template
-%{_usr}/share/ipa/ipa.conf.tmpfiles
 %dir %{_usr}/share/ipa/advise
 %dir %{_usr}/share/ipa/advise/legacy
 %{_usr}/share/ipa/advise/legacy/*.template

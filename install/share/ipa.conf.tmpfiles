@@ -1,2 +1,0 @@
-d /var/run/ipa 0711 root root
-d /var/run/ipa/ccaches 0770 ipaapi ipaapi

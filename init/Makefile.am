@@ -2,7 +2,7 @@
 #
 AUTOMAKE_OPTIONS = 1.7
 
-SUBDIRS = systemd
+SUBDIRS = systemd tmpfilesd
 
 dist_sysconfenv_DATA = 		\
 	ipa-dnskeysyncd		\
