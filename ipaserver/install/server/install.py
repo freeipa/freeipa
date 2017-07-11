@@ -722,9 +722,6 @@ def install(installer):
     if installer._update_hosts_file:
         update_hosts_file(ip_addresses, host_name, fstore)
 
-    # Make sure tmpfiles dir exist before installing components
-    tasks.create_tmpfiles_dirs()
-
     # Create a directory server instance
     if not options.external_cert_files:
         # Configure ntpd
@@ -897,9 +894,6 @@ def install(installer):
     except Exception:
         raise ScriptError("Configuration of client side components failed!")
 
-    # Make sure the files we crated in /var/run are recreated at startup
-    tasks.configure_tmpfiles()
-
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()
 
@@ -1049,10 +1043,6 @@ def uninstall(installer):
     sstore = installer._sstore
 
     rv = 0
-
-    # further steps assumes that temporary directories exists so rather
-    # ensure they are created
-    tasks.create_tmpfiles_dirs()
 
     print("Shutting down all IPA services")
     try:

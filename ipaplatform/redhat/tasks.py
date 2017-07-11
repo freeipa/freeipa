@@ -27,8 +27,6 @@ from __future__ import print_function
 
 import logging
 import os
-import pwd
-import shutil
 import socket
 import traceback
 import errno
@@ -511,25 +509,6 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             # exist
             pass
         return False
-
-    def _create_tmpfiles_dir(self, name, mode, uid, gid):
-        if not os.path.exists(name):
-            os.mkdir(name)
-        os.chmod(name, mode)
-        os.chown(name, uid, gid)
-
-    def create_tmpfiles_dirs(self):
-        parent = os.path.dirname(paths.IPA_CCACHES)
-        pent = pwd.getpwnam(IPAAPI_USER)
-        self._create_tmpfiles_dir(parent, 0o711, 0, 0)
-        self._create_tmpfiles_dir(paths.IPA_CCACHES, 0o770,
-                                  pent.pw_uid, pent.pw_gid)
-
-    def configure_tmpfiles(self):
-        shutil.copy(
-            os.path.join(paths.USR_SHARE_IPA_DIR, 'ipa.conf.tmpfiles'),
-            paths.ETC_TMPFILESD_IPA
-        )
 
 
 tasks = RedHatTaskNamespace()
