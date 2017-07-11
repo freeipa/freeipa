@@ -982,6 +982,7 @@ class i18n_messages(Command):
                 "min_value": _("Minimum value is ${value}"),
                 "net_address": _("Not a valid network address (examples: 2001:db8::/64, 192.0.2.0/24)"),
                 "parse": _("Parse error"),
+                "positive_number": _("Must be a positive number"),
                 "port": _("'${port}' is not a valid port"),
                 "required": _("Required field"),
                 "unsupported": _("Unsupported value"),
