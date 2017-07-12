@@ -39,8 +39,8 @@
 %global krb5_version 1.15.1-4
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.5-8
-# Require 4.6.0-4 which brings RC4 for FIPS + trust fixes to priv. separation
-%global samba_version 4.6.0-4
+# Require 4.7.0 which brings Python 3 bindings
+%global samba_version 4.7.0
 %global selinux_policy_version 3.12.1-153
 %global slapi_nis_version 0.56.0-4
 %else
@@ -48,8 +48,8 @@
 %global krb5_version 1.15.1-7
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.16
-# Require 4.6.0-4 which brings RC4 for FIPS + trust fixes to priv. separation
-%global samba_version 2:4.6.0-4
+# Require 4.7.0 which brings Python 3 bindings
+%global samba_version 2:4.7.0
 %global selinux_policy_version 3.13.1-158.4
 %global slapi_nis_version 0.56.1
 %endif
@@ -209,8 +209,7 @@ BuildRequires:  python2-jinja2
 BuildRequires:  python2-augeas
 
 %if 0%{?with_python3}
-# FIXME: this depedency is missing - server will not work
-#BuildRequires:  python3-samba
+BuildRequires:  python3-samba
 # 1.6: x509.Name.rdns (https://github.com/pyca/cryptography/issues/3199)
 BuildRequires:  python3-cryptography >= 1.6
 BuildRequires:  python3-gssapi >= 1.2.0
@@ -483,12 +482,21 @@ Summary: Virtual package to install packages required for Active Directory trust
 Group: System Environment/Base
 Requires: %{name}-server = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
-Requires: samba-python
+
 Requires: samba >= %{samba_version}
 Requires: samba-winbind
 Requires: libsss_idmap
-Requires: python-libsss_nss_idmap
-Requires: python-sss
+
+%if 0%{?with_python3}
+Requires: python3-samba
+Requires: python3-libsss_nss_idmap
+Requires: python3-sss
+%else
+Requires: python2-samba
+Requires: python2-libsss_nss_idmap
+Requires: python2-sss
+%endif  # with_python3
+
 # We use alternatives to divert winbind_krb5_locator.so plugin to libkrb5
 # on the installes where server-trust-ad subpackage is installed because
 # IPA AD trusts cannot be used at the same time with the locator plugin
