@@ -2406,7 +2406,7 @@ class BaseLDAPModAttribute(LDAPQuery):
 
 
 class BaseLDAPAddAttribute(BaseLDAPModAttribute):
-    msg_summary = _('added attribute value to entry %(value)')
+    msg_summary = _('added attribute value to entry %(value)s')
 
     def _update_attrs(self, update, entry_attrs):
         for name, value in entry_attrs.items():
@@ -2422,7 +2422,7 @@ class BaseLDAPAddAttribute(BaseLDAPModAttribute):
 
 
 class BaseLDAPRemoveAttribute(BaseLDAPModAttribute):
-    msg_summary = _('removed attribute values from entry %(value)')
+    msg_summary = _('removed attribute values from entry %(value)s')
 
     def _update_attrs(self, update, entry_attrs):
         for name, value in entry_attrs.items():
