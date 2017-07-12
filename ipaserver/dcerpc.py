@@ -37,8 +37,6 @@ import os
 import struct
 import random
 
-# TODO: Remove pylint disable when Python 3 bindings are available.
-# pylint: disable=import-error
 from samba import param
 from samba import credentials
 from samba.dcerpc import security, lsa, drsblobs, nbt, netlogon
@@ -46,7 +44,6 @@ from samba.ndr import ndr_pack, ndr_print
 from samba import net
 from samba import arcfour_encrypt
 import samba
-# pylint: enable=import-error
 
 import ldap as _ldap
 from ipapython import ipaldap
