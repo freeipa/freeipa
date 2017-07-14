@@ -188,7 +188,7 @@ class ExtendedDNControl(LDAPControl):
         self.integerValue = 1
 
     def encodeControlValue(self, value=None):
-        return '0\x03\x02\x01\x01'
+        return b'0\x03\x02\x01\x01'
 
 
 class DomainValidator(object):
@@ -820,6 +820,8 @@ class DomainValidator(object):
 
 
 def string_to_array(what):
+    if six.PY3 and isinstance(what, bytes):
+        return [v for v in what]
     return [ord(v) for v in what]
 
 
@@ -940,6 +942,14 @@ class TrustDomainInstance(object):
         search_result = None
         try:
             _objtype, res = conn.search_s('', _ldap.SCOPE_BASE)[0]
+            for o in res.keys():
+                if isinstance(res[o], list):
+                    t = res[o]
+                    for z, v in enumerate(t):
+                        if isinstance(v, bytes):
+                            t[z] = v.decode('utf-8')
+                elif isinstance(res[o], bytes):
+                    res[o] = res[o].decode('utf-8')
             search_result = res['defaultNamingContext'][0]
             self.info['dns_hostname'] = res['dnsHostName'][0]
         except _ldap.LDAPError as e:
