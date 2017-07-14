@@ -12,6 +12,7 @@ except ImportError:
     from xml.etree import ElementTree as etree
 
 from ipapython import ipa_log_manager, ipautil
+from ipaplatform.paths import paths
 
 logger = logging.getLogger(__name__)
 
@@ -130,42 +131,39 @@ class ODSMgr(object):
     def __init__(self):
         self.zl_ldap = LDAPZoneListReader()
 
-    def ksmutil(self, params):
-        """Call ods-ksmutil with given parameters and return stdout.
+    def enforcer(self, params):
+        """Call ods-enforcer with given parameters and return stdout.
 
         Raises CalledProcessError if returncode != 0.
         """
-        cmd = ['ods-ksmutil'] + params
+        cmd = ['ods-enforcer'] + params
         result = ipautil.run(cmd, capture_output=True)
         return result.output
 
     def get_ods_zonelist(self):
-        stdout = self.ksmutil(['zonelist', 'export'])
-        reader = ODSZoneListReader(stdout)
+        stdout = self.enforcer(['zonelist', 'export'])
+        with open(paths.OPENDNSSEC_ZONELIST_FILE) as f:
+            reader = ODSZoneListReader(f.read())
         return reader
 
     def add_ods_zone(self, uuid, name):
         zone_path = '%s%s' % (ENTRYUUID_PREFIX, uuid)
         cmd = ['zone', 'add', '--zone', str(name), '--input', zone_path]
-        output = self.ksmutil(cmd)
+        output = self.enforcer(cmd)
         logger.info('%s', output)
-        self.notify_enforcer()
 
     def del_ods_zone(self, name):
-        # ods-ksmutil blows up if zone name has period at the end
-        name = name.relativize(dns.name.root)
         # detect if name is root zone
         if name == dns.name.empty:
             name = dns.name.root
         cmd = ['zone', 'delete', '--zone', str(name)]
-        output = self.ksmutil(cmd)
+        output = self.enforcer(cmd)
         logger.info('%s', output)
-        self.notify_enforcer()
         self.cleanup_signer(name)
 
     def notify_enforcer(self):
         cmd = ['notify']
-        output = self.ksmutil(cmd)
+        output = self.enforcer(cmd)
         logger.info('%s', output)
 
     def cleanup_signer(self, zone_name):

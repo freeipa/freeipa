@@ -8,7 +8,7 @@
 			<Module>$SOFTHSM_LIB</Module>
 			<TokenLabel>$TOKEN_LABEL</TokenLabel>
 			<PIN>$PIN</PIN>
-            <AllowExtraction/>
+			<AllowExtraction/>
 		</Repository>
 
 	</RepositoryList>
@@ -18,12 +18,9 @@
 			<Syslog><Facility>local0</Facility></Syslog>
 		</Logging>
 
-		<PolicyFile>/etc/opendnssec/kasp.xml</PolicyFile>
-		<ZoneListFile>/etc/opendnssec/zonelist.xml</ZoneListFile>
-
-	<!--
-		<ZoneFetchFile>/etc/opendnssec/zonefetch.xml</ZoneFetchFile>
-	-->
+		<PolicyFile>$ETC_OPENDNSSEC/kasp.xml</PolicyFile>
+		<ZoneListFile>$ETC_OPENDNSSEC/zonelist.xml</ZoneListFile>
+		<!-- <ZoneFetchFile>$ETC_OPENDNSSEC/zonefetch.xml</ZoneFetchFile> -->
 	</Common>
 
 	<Enforcer>
@@ -33,7 +30,7 @@
 		</Privileges>
 
 		<Datastore><SQLite>$KASP_DB</SQLite></Datastore>
-		<Interval>PT3600S</Interval>
+
 		<!-- <ManualKeyGeneration/> -->
 		<!-- <RolloverNotification>P14D</RolloverNotification> -->
 
@@ -41,6 +38,34 @@
 		     DNSKEYs (as a RRset) on standard input
 		-->
 		<!-- <DelegationSignerSubmitCommand>/usr/sbin/eppclient</DelegationSignerSubmitCommand> -->
+		<!-- <WorkingDirectory>$VAR_OPENDNSSEC/tmp</WorkingDirectory> -->
+
+		<!--<WorkerThreads>4</WorkerThreads>-->
 	</Enforcer>
 
+	<Signer>
+		<Privileges>
+			<User>$ODS_USER</User>
+			<Group>$ODS_GROUP</Group>
+		</Privileges>
+
+		<!-- <WorkingDirectory>$VAR_OPENDNSSEC/tmp</WorkingDirectory> -->
+		<WorkerThreads>4</WorkerThreads>
+
+		<!-- <SignerThreads>4</SignerThreads> -->
+
+		<!-- <Listener>
+			<Interface><Port>53</Port></Interface>
+		</Listener> -->
+
+
+		<!-- the <NotifyCommmand> will expand the following variables:
+
+			%zone      the name of the zone that was signed
+			%zonefile  the filename of the signed zone
+		-->
+
+		<!-- <NotifyCommand>/usr/local/bin/my_nameserver_reload_command</NotifyCommand> -->
+		<!-- <NotifyCommand>/usr/sbin/rndc reload %zone</NotifyCommand> -->
+	</Signer>
 </Configuration>

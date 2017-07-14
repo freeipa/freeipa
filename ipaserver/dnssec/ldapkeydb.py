@@ -79,7 +79,7 @@ def get_default_attrs(object_classes):
         },
         u'ipk11secretkey': {
             'ipk11alwaysauthenticate': False,
-            'ipk11alwayssensitive': True,
+            'ipk11alwayssensitive': False,
             'ipk11copyable': True,
             'ipk11decrypt': False,
             'ipk11derive': False,
@@ -89,7 +89,7 @@ def get_default_attrs(object_classes):
             'ipk11modifiable': True,
             'ipk11neverextractable': False,
             'ipk11private': True,
-            'ipk11sensitive': True,
+            'ipk11sensitive': False,
             'ipk11sign': False,
             'ipk11trusted': False,
             'ipk11unwrap': True,
