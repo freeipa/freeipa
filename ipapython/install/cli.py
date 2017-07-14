@@ -8,7 +8,6 @@ Command line support.
 
 import collections
 import enum
-import functools
 import optparse  # pylint: disable=deprecated-module
 import signal
 
@@ -101,17 +100,6 @@ def uninstall_tool(configurable_class, command_name, log_file_name,
     )
 
 
-def _option_callback(action, option, opt_str, value, parser, opt_type):
-    try:
-        value = opt_type(value)
-    except ValueError as e:
-        raise optparse.OptionValueError(
-            "option {0}: {1}".format(opt_str, e))
-
-    option.take_action(
-        action, option.dest, opt_str, value, parser.values, parser)
-
-
 class ConfigureTool(admintool.AdminTool):
     configurable_class = None
     debug_option = False
@@ -182,24 +170,16 @@ class ConfigureTool(admintool.AdminTool):
                 kwargs['metavar'] = "{{{0}}}".format(
                                                 ",".join(kwargs['choices']))
             else:
-                kwargs['nargs'] = 1
-                kwargs['callback_args'] = (knob_scalar_type,)
+                kwargs['type'] = 'constructor'
+                kwargs['constructor'] = knob_scalar_type
             kwargs['dest'] = name
             if issubclass(knob_type, list):
-                if 'type' not in kwargs:
-                    kwargs['action'] = 'callback'
-                    kwargs['callback'] = (
-                        functools.partial(_option_callback, 'append'))
-                elif kwargs['type'] is None:
+                if kwargs['type'] is None:
                     kwargs['action'] = 'append_const'
                 else:
                     kwargs['action'] = 'append'
             else:
-                if 'type' not in kwargs:
-                    kwargs['action'] = 'callback'
-                    kwargs['callback'] = (
-                        functools.partial(_option_callback, 'store'))
-                elif kwargs['type'] is None:
+                if kwargs['type'] is None:
                     kwargs['action'] = 'store_const'
                 else:
                     kwargs['action'] = 'store'
