@@ -1,0 +1,19 @@
+jobs:
+  fedora-25/build:
+    requires: []
+    priority: 100
+    job:
+      class: Build
+      args:
+        git_refspec: '{target_refspec}'
+        timeout: 1800
+
+  fedora-25/simple_replication:
+    requires: [fedora-25/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{build_url}'
+        test_suite: test_integration/test_simple_replication.py
+        timeout: 3600
