@@ -461,21 +461,7 @@ class API(ReadOnly):
             if not match:
                 continue
 
-            value = match.group(1)
-            try:
-                level = int(value)
-            except ValueError:
-                try:
-                    level = {
-                        'debug': logging.DEBUG,
-                        'info': logging.INFO,
-                        'warn': logging.WARNING,
-                        'warning': logging.WARNING,
-                        'error': logging.ERROR,
-                        'critical': logging.CRITICAL
-                    }[value]
-                except KeyError:
-                    raise ValueError('unknown log level (%s)' % value)
+            level = ipa_log_manager.convert_log_level(match.group(1))
 
             value = getattr(self.env, attr)
             regexps = re.split('\s*,\s*', value)
