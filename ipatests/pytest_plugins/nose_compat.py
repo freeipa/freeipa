@@ -23,7 +23,7 @@ import os
 import sys
 import logging
 
-from ipapython.ipa_log_manager import Formatter
+from ipapython.ipa_log_manager import Formatter, convert_log_level
 
 
 def pytest_addoption(parser):
@@ -61,8 +61,10 @@ def pytest_configure(config):
                     capture._capturing.resume_capturing()
                 sys.stdout, sys.stderr = orig_stdout, orig_stderr
 
+        level = convert_log_level(config.getoption('logging_level'))
+
         handler = LogHandler()
         handler.setFormatter(Formatter('[%(name)s] %(message)s'))
-        handler.setLevel(config.getoption('logging_level'))
+        handler.setLevel(level)
         root_logger = logging.getLogger()
         root_logger.addHandler(handler)

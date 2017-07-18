@@ -181,6 +181,24 @@ def standard_logging_setup(filename=None, verbose=False, debug=False,
     root_logger.addHandler(console_handler)
 
 
+def convert_log_level(value):
+    try:
+        level = int(value)
+    except ValueError:
+        try:
+            level = {
+                'debug': logging.DEBUG,
+                'info': logging.INFO,
+                'warn': logging.WARNING,
+                'warning': logging.WARNING,
+                'error': logging.ERROR,
+                'critical': logging.CRITICAL
+            }[value.lower()]
+        except KeyError:
+            raise ValueError('unknown log level (%s)' % value)
+    return level
+
+
 # Single shared instance of log manager
 log_mgr = sys.modules[__name__]
 
