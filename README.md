@@ -60,7 +60,7 @@ http://www.freeipa.org/page/Quick_Start_Guide
 * Building FreeIPA from source
     * http://www.freeipa.org/page/Build
     * See the BUILD.txt file in the source root directory
- 
+
 ## Licensing
 
 Please see the file called COPYING.
