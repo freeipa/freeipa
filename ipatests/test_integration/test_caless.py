@@ -672,7 +672,6 @@ class TestServerInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
-    @pytest.mark.xfail(reason='freeipa ticket 5603')
     @server_install_teardown
     def test_wildcard_http(self):
         "IPA server install with wildcard HTTP certificate"
@@ -687,7 +686,6 @@ class TestServerInstall(CALessBase):
         assert result.returncode == 0
         self.verify_installation()
 
-    @pytest.mark.xfail(reason='freeipa ticket 5603')
     @server_install_teardown
     def test_wildcard_ds(self):
         "IPA server install with wildcard DS certificate"
@@ -1034,7 +1032,6 @@ class TestReplicaInstall(CALessBase):
         if self.domain_level > DOMAIN_LEVEL_0:
             self.verify_installation()
 
-    @pytest.mark.xfail(reason='freeipa ticket 5603')
     @replica_install_teardown
     def test_wildcard_http(self):
         "IPA replica install with wildcard HTTP certificate"
@@ -1048,7 +1045,6 @@ class TestReplicaInstall(CALessBase):
         if self.domain_level > DOMAIN_LEVEL_0:
             self.verify_installation()
 
-    @pytest.mark.xfail(reason='freeipa ticket 5603')
     @replica_install_teardown
     def test_wildcard_ds(self):
         "IPA replica install with wildcard DS certificate"
@@ -1429,14 +1425,12 @@ class TestCertinstall(CALessBase):
         result = self.certinstall('d', 'ca1/server')
         assert result.returncode == 0
 
-    @pytest.mark.xfail(reason='freeipa ticket 5603')
     def test_wildcard_http(self):
         "Install new wildcard HTTP certificate"
 
         result = self.certinstall('w', 'ca1/wildcard')
         assert result.returncode == 0
 
-    @pytest.mark.xfail(reason='freeipa ticket 5603')
     def test_wildcard_ds(self):
         "Install new wildcard DS certificate"
 
