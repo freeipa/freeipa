@@ -467,17 +467,14 @@ class Param(ReadOnly):
                         value = kind(value)
                     elif type(value) is str:
                         value = kind([value])
-                if (
-                    type(kind) is type and not isinstance(value, kind)
-                    or
-                    type(kind) is tuple and not isinstance(value, kind)
-                ):
-                    raise TypeError(
-                        TYPE_ERROR % (key, kind, value, type(value))
-                    )
-                elif kind is callable and not callable(value):
+                if kind is callable and not callable(value):
                     raise TypeError(
                         CALLABLE_ERROR % (key, value, type(value))
+                    )
+                elif (isinstance(kind, (type, tuple)) and
+                      not isinstance(value, kind)):
+                    raise TypeError(
+                        TYPE_ERROR % (key, kind, value, type(value))
                     )
                 kw[key] = value
             elif key not in ('required', 'multivalue'):
@@ -502,7 +499,7 @@ class Param(ReadOnly):
         self.nice = '%s(%r)' % (self.__class__.__name__, self.param_spec)
 
         # Make sure no unknown kw were given:
-        assert all(type(t) is type for t in self.allowed_types)
+        assert all(isinstance(t, type) for t in self.allowed_types)
         if not set(t[0] for t in self.kwargs).issuperset(self.__kw):
             extra = set(kw) - set(t[0] for t in self.kwargs)
             raise TypeError(
