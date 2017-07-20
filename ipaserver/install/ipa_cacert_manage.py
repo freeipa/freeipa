@@ -25,14 +25,14 @@ from optparse import OptionGroup  # pylint: disable=deprecated-module
 import gssapi
 
 from ipalib.install import certmonger, certstore
-from ipapython import admintool, ipautil
+from ipapython import admintool, ipautil, x509
 from ipapython.certdb import (EMPTY_TRUST_FLAGS,
                               EXTERNAL_CA_TRUST_FLAGS,
                               TrustFlags,
                               parse_trust_flags)
 from ipapython.dn import DN
 from ipaplatform.paths import paths
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipaserver.install import certs, cainstance, installutils
 
 logger = logging.getLogger(__name__)

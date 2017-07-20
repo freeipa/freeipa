@@ -31,13 +31,26 @@ import shutil
 import six
 import base64
 
-from ipalib import api, x509
+from ipalib import api
 from ipaserver.plugins import rabase
-from ipapython import ipautil
+from ipapython import ipautil, x509
+from ipapython.dn import DN
 from ipaplatform.paths import paths
 
 if six.PY3:
     unicode = str
+
+_subject_base = None
+
+
+def subject_base():
+    global _subject_base
+
+    if _subject_base is None:
+        config = api.Command['config_show']()['result']
+        _subject_base = DN(config['ipacertificatesubjectbase'][0])
+
+    return _subject_base
 
 
 def get_testcert(subject, principal):

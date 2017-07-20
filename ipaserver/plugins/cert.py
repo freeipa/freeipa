@@ -34,7 +34,6 @@ from ipalib import Command, Str, Int, Flag
 from ipalib import api
 from ipalib import errors, messages
 from ipalib import pkcs10
-from ipalib import x509
 from ipalib import ngettext
 from ipalib.constants import IPA_CA_CN
 from ipalib.crud import Create, PKQuery, Retrieve, Search
@@ -49,7 +48,7 @@ from .certprofile import validate_profile_id
 from ipalib.text import _
 from ipalib.request import context
 from ipalib import output
-from ipapython import kerberos
+from ipapython import kerberos, x509
 from ipapython.dn import DN
 from ipaserver.plugins.service import normalize_principal, validate_realm
 

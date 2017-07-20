@@ -120,7 +120,7 @@ from ipalib.errors import (
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.text import Gettext, FixMe
 from ipalib.util import json_serialize, validate_idna_domain
-from ipalib.x509 import load_der_x509_certificate, _IPACertificate
+from ipapython.x509 import load_der_x509_certificate, _IPACertificate
 from ipapython import kerberos
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName

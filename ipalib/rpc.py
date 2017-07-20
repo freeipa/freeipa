@@ -57,9 +57,9 @@ from ipalib.errors import (public_errors, UnknownError, NetworkError,
                            XMLRPCMarshallError, JSONError)
 from ipalib import errors, capabilities
 from ipalib.request import context, Connection
-from ipalib.x509 import Encoding as x509_Encoding
 from ipapython import ipautil
 from ipapython import session_storage
+from ipapython.x509 import Encoding as x509_Encoding
 from ipapython.cookie import Cookie
 from ipapython.dnsutil import DNSName
 from ipalib.text import _

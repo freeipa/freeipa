@@ -38,7 +38,6 @@ from cryptography.hazmat.primitives.serialization import (
     load_pem_public_key, load_pem_private_key)
 
 from ipaclient.frontend import MethodOverride
-from ipalib import x509
 from ipalib.constants import USER_CACHE_PATH
 from ipalib.frontend import Local, Method, Object
 from ipalib.util import classproperty
@@ -46,6 +45,7 @@ from ipalib import api, errors
 from ipalib import Bytes, Flag, Str
 from ipalib.plugable import Registry
 from ipalib import _
+from ipapython import x509
 from ipapython.dnsutil import DNSName
 
 logger = logging.getLogger(__name__)

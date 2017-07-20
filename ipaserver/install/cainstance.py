@@ -43,7 +43,6 @@ from six.moves.configparser import RawConfigParser
 from cryptography.hazmat.primitives import serialization
 
 from ipalib import api
-from ipalib import x509
 from ipalib import errors
 import ipalib.constants
 from ipalib.install import certmonger
@@ -53,7 +52,7 @@ from ipaplatform.tasks import tasks
 
 from ipapython import dogtag
 from ipapython import ipautil
-from ipapython import ipaldap
+from ipapython import ipaldap, x509
 from ipapython.certdb import get_ca_nickname
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import standard_logging_setup

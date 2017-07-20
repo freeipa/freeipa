@@ -22,7 +22,8 @@ import logging
 import dbus
 import six
 
-from ipalib import api, errors, x509
+from ipapython import x509
+from ipalib import api, errors
 from ipalib.crud import Search
 from ipalib.frontend import Object
 from ipalib.parameters import Bool, DNSNameParam, Flag, Int, Str, Certificate

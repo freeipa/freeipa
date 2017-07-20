@@ -28,11 +28,11 @@ from six.moves.urllib.parse import urlsplit
 
 from ipalib.install import certmonger, certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab
-from ipapython import admintool, certdb, ipaldap, ipautil
+from ipapython import admintool, certdb, ipaldap, ipautil, x509
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipalib.constants import IPA_CA_NICKNAME, RENEWAL_CA_NAME
 
 logger = logging.getLogger(__name__)

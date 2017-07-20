@@ -24,13 +24,13 @@ from ipaserver.install import (cainstance,
                                custodiainstance,
                                dsinstance,
                                bindinstance)
-from ipapython import ipautil, certdb
+from ipapython import ipautil, certdb, x509
 from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, certs
 from ipaserver.install.replication import replica_conn_check
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipapython.dn import DN
 
 from . import conncheck, dogtag

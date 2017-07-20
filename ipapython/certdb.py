@@ -32,8 +32,7 @@ import cryptography.x509
 
 from ipapython.dn import DN
 from ipapython.kerberos import Principal
-from ipapython import ipautil
-from ipalib import x509     # pylint: disable=ipa-forbidden-import
+from ipapython import ipautil, x509
 
 try:
     # pylint: disable=import-error,ipa-forbidden-import

@@ -24,9 +24,10 @@ LDAP shared certificate store.
 
 from pyasn1.error import PyAsn1Error
 
+from ipapython import x509
 from ipapython.dn import DN
 from ipapython.certdb import get_ca_nickname, TrustFlags
-from ipalib import errors, x509
+from ipalib import errors
 
 
 def _parse_cert(cert):

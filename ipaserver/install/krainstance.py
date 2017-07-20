@@ -30,9 +30,8 @@ from six.moves.configparser import RawConfigParser
 # pylint: enable=import-error
 
 from ipalib import api
-from ipalib import x509
 from ipaplatform.paths import paths
-from ipapython import ipautil
+from ipapython import ipautil, x509
 from ipapython.dn import DN
 from ipaserver.install import cainstance
 from ipaserver.install import installutils

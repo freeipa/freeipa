@@ -36,11 +36,11 @@ from six.moves import configparser
 
 from ipalib.install import certmonger, sysrestore
 from ipapython import dogtag
-from ipapython import ipautil
+from ipapython import ipautil, x509
 from ipapython.certdb import EMPTY_TRUST_FLAGS, IPA_CA_TRUST_FLAGS
 from ipapython.certdb import get_ca_nickname, find_cert_from_txt, NSSDatabase
 from ipapython.dn import DN
-from ipalib import pkcs10, x509, api
+from ipalib import pkcs10, api
 from ipalib.errors import CertificateOperationError
 from ipalib.text import _
 from ipaplatform.paths import paths

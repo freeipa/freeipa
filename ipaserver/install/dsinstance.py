@@ -32,12 +32,11 @@ import fnmatch
 
 import ldap
 
-from ipalib import x509
 from ipalib.install import certmonger, certstore
 from ipapython.certdb import (IPA_CA_TRUST_FLAGS,
                               EXTERNAL_CA_TRUST_FLAGS,
                               TrustFlags)
-from ipapython import ipautil, ipaldap
+from ipapython import ipautil, ipaldap, x509
 from ipapython import dogtag
 from ipaserver.install import service
 from ipaserver.install import installutils

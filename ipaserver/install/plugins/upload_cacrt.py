@@ -22,9 +22,9 @@ import logging
 from ipalib.install import certstore
 from ipaplatform.paths import paths
 from ipaserver.install import certs
-from ipalib import Registry, errors, x509
+from ipalib import Registry, errors
 from ipalib import Updater
-from ipapython import certdb
+from ipapython import certdb, x509
 from ipapython.dn import DN
 
 logger = logging.getLogger(__name__)

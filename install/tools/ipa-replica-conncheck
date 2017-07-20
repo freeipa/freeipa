@@ -26,8 +26,8 @@ import ipaclient.install.ipachangeconf
 from ipapython.config import IPAOptionParser
 from ipapython.dn import DN
 from ipapython import version
-from ipapython import ipautil, certdb
-from ipalib import api, errors, x509
+from ipapython import ipautil, certdb, x509
+from ipalib import api, errors
 from ipaserver.install import installutils
 # pylint: disable=deprecated-module
 from optparse import OptionGroup, OptionValueError

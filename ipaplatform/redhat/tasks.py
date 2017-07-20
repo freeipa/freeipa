@@ -41,7 +41,7 @@ from cffi import FFI
 from pyasn1.error import PyAsn1Error
 from six.moves import urllib
 
-from ipapython import ipautil
+from ipapython import ipautil, x509
 import ipapython.errors
 
 from ipaplatform.constants import constants
@@ -237,7 +237,6 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
     def insert_ca_certs_into_systemwide_ca_store(self, ca_certs):
         # pylint: disable=ipa-forbidden-import
-        from ipalib import x509  # FixMe: break import cycle
         from ipalib.errors import CertificateError
         # pylint: enable=ipa-forbidden-import
 

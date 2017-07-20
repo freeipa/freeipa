@@ -25,8 +25,8 @@ import six
 
 from ipaclient import csrgen
 from ipaclient.frontend import MethodOverride
+from ipapython import x509
 from ipalib import errors
-from ipalib import x509
 from ipalib import util
 from ipalib.parameters import File, Flag, Str
 from ipalib.plugable import Registry

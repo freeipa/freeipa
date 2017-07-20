@@ -31,8 +31,8 @@ import six
 from ipalib.install import certstore, sysrestore
 from ipapython import ipautil
 from ipapython.dn import DN
-from ipapython import kerberos
-from ipalib import api, errors, x509
+from ipapython import kerberos, x509
+from ipalib import api, errors
 from ipaplatform import services
 from ipaplatform.paths import paths
 

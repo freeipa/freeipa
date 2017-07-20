@@ -9,12 +9,13 @@ import six
 from ipalib import api, errors, output, Bytes, DNParam, Flag, Str
 from ipalib.constants import IPA_CA_CN
 from ipalib.plugable import Registry
+from ipapython import x509
 from ipapython.dn import ATTR_NAME_BY_OID
 from ipaserver.plugins.baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate, LDAPDelete,
     LDAPUpdate, LDAPRetrieve, LDAPQuery, pkey_to_value)
 from ipaserver.plugins.cert import ca_enabled_check
-from ipalib import _, ngettext, x509
+from ipalib import _, ngettext
 
 
 __doc__ = _("""

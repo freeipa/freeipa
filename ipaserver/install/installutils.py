@@ -53,12 +53,12 @@ from six.moves.configparser import NoOptionError
 from ipalib.install import sysrestore
 from ipalib.install.kinit import kinit_password
 import ipaplatform
-from ipapython import ipautil, admintool, version
+from ipapython import ipautil, admintool, version, x509
 from ipapython.admintool import ScriptError
 from ipapython.certdb import EXTERNAL_CA_TRUST_FLAGS
 from ipapython.ipaldap import DIRMAN_DN, LDAPClient
 from ipalib.util import validate_hostname
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipapython.dn import DN
 from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services

@@ -45,11 +45,10 @@ from .baseldap import (
     LDAPRemoveAttribute,
     LDAPAddAttributeViaOption,
     LDAPRemoveAttributeViaOption)
-from ipalib import x509
 from ipalib import _, ngettext
 from ipalib import util
 from ipalib import output
-from ipapython import kerberos
+from ipapython import kerberos, x509
 from ipapython.dn import DN
 
 

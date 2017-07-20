@@ -40,9 +40,9 @@ from cryptography.hazmat.backends import default_backend
 import six
 
 from ipalib.install.kinit import kinit_keytab
-from ipapython import ipautil
+from ipapython import ipautil, x509
 from ipapython.dn import DN
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipaplatform.paths import paths
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance, dsinstance, certs

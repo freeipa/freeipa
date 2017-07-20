@@ -19,12 +19,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipaclient.frontend import MethodOverride
+from ipapython import x509
 from ipalib import errors
 from ipalib import Flag
 from ipalib import util
 from ipalib.plugable import Registry
 from ipalib import _
-from ipalib import x509
 
 register = Registry()
 

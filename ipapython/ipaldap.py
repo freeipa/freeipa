@@ -43,9 +43,10 @@ from ldap.controls import SimplePagedResultsControl
 import six
 
 # pylint: disable=ipa-forbidden-import
-from ipalib import errors, x509, _
+from ipalib import errors, _
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 # pylint: enable=ipa-forbidden-import
+from ipapython import x509
 from ipapython.ipautil import format_netloc, CIDict
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName

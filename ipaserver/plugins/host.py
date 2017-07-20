@@ -27,7 +27,6 @@ import dns.resolver
 import six
 
 from ipalib import api, errors, util
-from ipalib.x509 import Encoding as x509_Encoding
 from ipalib import messages
 from ipalib import Str, Flag
 from ipalib.parameters import Principal, Certificate
@@ -68,6 +67,7 @@ from ipapython.ipautil import (
 from ipapython.dnsutil import DNSName
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN
+from ipapython.x509 import Encoding as x509_Encoding
 from ipapython import kerberos
 from functools import reduce
 

@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Test the `ipalib.x509` module.
+Test the `ipapython.x509` module.
 """
 
 import base64
@@ -26,7 +26,7 @@ import datetime
 
 import pytest
 
-from ipalib import x509
+from ipapython import x509
 from ipapython.dn import DN
 
 pytestmark = pytest.mark.tier0
@@ -63,7 +63,7 @@ badcert = (
 
 class test_x509(object):
     """
-    Test `ipalib.x509`
+    Test `ipapython.x509`
 
     I created the contents of this certificate with a self-signed CA with:
       % certutil -R -s "CN=ipa.example.com,O=IPA" -d . -a -o example.csr

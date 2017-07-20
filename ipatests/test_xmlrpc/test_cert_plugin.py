@@ -30,11 +30,11 @@ import six
 import tempfile
 from ipalib import api
 from ipalib import errors
-from ipalib import x509
 from ipaplatform.paths import paths
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.ipautil import run
+from ipatests.test_xmlrpc import testcert
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from nose.tools import raises, assert_raises
 
@@ -109,7 +109,7 @@ class BaseCert(XMLRPC_test):
         # Create our temporary NSS database
         self.run_certutil(["-N", "-f", self.pwname])
 
-        self.subject = DN(('CN', self.host_fqdn), x509.subject_base())
+        self.subject = DN(('CN', self.host_fqdn), testcert.subject_base())
 
     def teardown(self):
         shutil.rmtree(self.reqdir, ignore_errors=True)

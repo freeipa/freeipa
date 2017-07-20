@@ -29,13 +29,13 @@ import dbus
 from pki.client import PKIConnection
 import pki.system
 
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipalib.install import certmonger
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import ipaldap
-from ipapython import ipautil
+from ipapython import ipautil, x509
 from ipapython.dn import DN
 from ipaserver.install import service
 from ipaserver.install import installutils

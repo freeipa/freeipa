@@ -24,11 +24,10 @@ import pwd
 import tempfile
 import optparse  # pylint: disable=deprecated-module
 
-from ipalib import x509
 from ipalib.install import certmonger
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
-from ipapython import admintool
+from ipapython import admintool, x509
 from ipapython.certdb import (get_ca_nickname,
                               NSSDatabase,
                               verify_kdc_cert_validity)
