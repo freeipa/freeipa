@@ -1080,7 +1080,7 @@ field.validator = IPA.validator = function(spec) {
             return integer_check;
         }
 
-        var num = parseInt(value);
+        var num = parseInt(value, 10);
 
         if (num <= 0) {
             return that.false_result(
