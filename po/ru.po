@@ -1,9 +1,9 @@
 # Alex <alexgluck@bk.ru>, 2015. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.1.dev201706161303+git960b9a3\n"
+"Project-Id-Version: freeipa 4.5.2.dev201707211258+git0571e38\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-06-16 15:03+0200\n"
+"POT-Creation-Date: 2017-07-21 14:58+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
