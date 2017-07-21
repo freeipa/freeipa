@@ -593,6 +593,14 @@ class i18n_messages(Command):
             "host": {
                 "certificate": _("Host Certificate"),
                 "cn": _("Host Name"),
+                "cockpit_title": _("Cockpit"),
+                "cockpit_detected": _(
+                    "Cockpit has been detected on host."
+                ),
+                "cockpit_not_detected": _(
+                    "Cockpit has not been detected on ${host}."
+                ),
+                "cockpit_link": _("[Open Cockpit]"),
                 "delete_key_unprovision": _("Delete Key, Unprovision"),
                 "details": _("Host Settings"),
                 "enrolled": _("Enrolled"),

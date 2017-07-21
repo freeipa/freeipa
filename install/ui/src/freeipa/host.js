@@ -184,6 +184,16 @@ return {
                     ]
                 },
                 {
+                    name: 'cockpit_integration',
+                    label: '@i18n:objects.host.cockpit_title',
+                    $factory: IPA.section,
+                    fields: [
+                        {
+                            $type: 'cockpit_link'
+                        }
+                    ]
+                },
+                {
                     $factory: IPA.section,
                     name: 'divider',
                     layout_css_class: 'col-sm-12',
@@ -648,6 +658,86 @@ IPA.host_fqdn_field = function(spec) {
 
     that.child_value_changed = function() {
         that.set_value(that.widget.save());
+    };
+
+    return that;
+};
+
+IPA.cockpit_link_widget = function(spec) {
+    spec = spec || {};
+
+    var that = IPA.link_widget(spec);
+
+    /**
+     * Port on which Cockpit is listening.
+     *
+     * In the future might be configurable.
+     * @property {number}
+     */
+    that.port = spec.port || 9090;
+
+    /**
+     * Cockpit component link.
+     *
+     * It is possible to set Cockpit component which will be shown by default
+     * after clicking on the link.
+     * @property {string}
+     */
+    that.component = spec.component || '';
+
+    that.create = function(container) {
+        that.create_link(container);
+
+        // link is attached to the container before nonlink element
+        // this code swaps link and non link element
+        that.link.insertAfter(that.nonlink);
+        that.link.unbind('click');
+
+        that.afterlink = $('<span/>').appendTo(container);
+    };
+
+    that.check_cockpit_availability = function(link) {
+        var xhr = $.ajax({
+            method: 'GET',
+            url: link + '/ping',
+            success: function() {
+                that.set_cockpit_detected(link);
+            },
+            error: function() {
+                that.set_cockpit_notdetected(link);
+            }
+        });
+    };
+
+    that.update = function() {
+        var pkey = this.facet.get_pkey();
+        var link = "https://" + pkey + ":" + that.port;
+
+        that.clear_widget();
+        that.check_cockpit_availability(link);
+    };
+
+    that.set_cockpit_detected = function(link) {
+        var msg = text.get('@i18n:objects.host.cockpit_detected');
+        var open_c = ' ' + text.get('@i18n:objects.host.cockpit_link') + ' ';
+
+        that.link.attr("href", link + that.component);
+        that.link.html(open_c);
+        that.nonlink.html(msg);
+        that.afterlink.html('(' + link + ')');
+    };
+
+    that.set_cockpit_notdetected = function(link) {
+        var msg = text.get('@i18n:objects.host.cockpit_not_detected');
+        msg = msg.replace(/\$\{host\}/, link);
+
+        that.nonlink.html(msg);
+    };
+
+    that.clear_widget = function() {
+        that.link.html('');
+        that.nonlink.html('');
+        that.afterlink.html('');
     };
 
     return that;
@@ -1124,6 +1214,7 @@ exp.register = function() {
     w.register('force_host_add_checkbox', IPA.force_host_add_checkbox_widget);
     f.register('host_password', IPA.field);
     w.register('host_password', IPA.host_password_widget);
+    w.register('cockpit_link', IPA.cockpit_link_widget);
 
     a.register('host_unprovision', exp.unprovision_action);
 };

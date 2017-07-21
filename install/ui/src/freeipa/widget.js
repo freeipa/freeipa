@@ -5209,6 +5209,7 @@ IPA.link_widget = function(spec) {
         that.link.text('');
     };
 
+    that.create_link = that.create;
 
     return that;
 };
