@@ -649,13 +649,13 @@ def install_check(installer):
 
     if not options.setup_adtrust:
         # If domain name and realm does not match, IPA server will not be able
-        # to estabilish trust with Active Directory. Print big fat warning.
+        # to establish trust with Active Directory. Print big fat warning.
 
         realm_not_matching_domain = (domain_name.upper() != realm_name)
 
         if realm_not_matching_domain:
             print("WARNING: Realm name does not match the domain name.\n"
-                  "You will not be able to estabilish trusts with Active "
+                  "You will not be able to establish trusts with Active "
                   "Directory unless\nthe realm name of the IPA server matches "
                   "its domain name.\n\n")
 

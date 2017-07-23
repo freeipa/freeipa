@@ -360,7 +360,7 @@ def install_check(standalone, options, api):
 
     if realm_not_matching_domain:
         print("WARNING: Realm name does not match the domain name.\n"
-              "You will not be able to estabilish trusts with Active "
+              "You will not be able to establish trusts with Active "
               "Directory unless\nthe realm name of the IPA server matches its "
               "domain name.\n\n")
         if not options.unattended:
