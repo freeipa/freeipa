@@ -69,6 +69,11 @@ def parse_options():
                       type="choice", choices=ext_cas,
                       metavar="{{{0}}}".format(",".join(ext_cas)),
                       help="Type of the external CA. Default: generic")
+    parser.add_option("--external-ca-profile", dest="external_ca_profile",
+                      type='constructor', constructor=cainstance.ExternalCAProfile,
+                      default=None, metavar="PROFILE-SPEC",
+                      help="Specify the certificate profile/template to use "
+                           "at the external CA")
     parser.add_option("--external-cert-file", dest="external_cert_files",
                       action="append", metavar="FILE",
                       help="File containing the IPA CA certificate and the external CA certificate chain")
@@ -115,6 +120,11 @@ def parse_options():
         if options.external_ca_type and not options.external_ca:
             parser.error(
                 "You cannot specify --external-ca-type without --external-ca")
+
+        if options.external_ca_profile and not options.external_ca:
+            parser.error(
+                "You cannot specify --external-ca-profile "
+                "without --external-ca")
 
     return safe_options, options, filename
 
