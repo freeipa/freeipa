@@ -1647,7 +1647,11 @@ return {
             facet_groups: [exp.facet_group],
             facet_group: 'certificates',
             additional_navigation_arguments: [ 'cacn' ],
-            pagination: false,
+            command_options: { all: true },
+            dont_call_show_method: true,
+            search_all_entries: true,
+            sort_enabled: false,
+            show_values_with_dup_key: true,
             no_update: true,
             columns: [
                 {

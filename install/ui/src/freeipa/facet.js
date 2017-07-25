@@ -2180,7 +2180,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
             return;
         }
 
-        if (that.search_all_entries) {
+        if (that.search_all_entries && !that.pagination) {
             // map contains the primary keys and the complete records
             that.load_records(records_map.values);
             return;
