@@ -589,7 +589,8 @@ def main():
                     finally:
                         if api.Backend.rpcclient.isconnected():
                             api.Backend.rpcclient.disconnect()
-            except Exception:
+            except Exception as e:
+                logger.debug("RPC connection failed: %s", e)
                 logger.info("Retrying using SSH...")
 
                 # Ticket 5812 Always qualify requests for admin
