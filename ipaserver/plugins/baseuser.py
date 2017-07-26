@@ -19,10 +19,10 @@
 
 import six
 
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipalib import (
-    Flag, Int, Password, Str, Bool, StrEnum, DateTime, Bytes, DNParam)
-from ipalib.parameters import Principal
+    Flag, Int, Password, Str, Bool, StrEnum, DateTime, DNParam)
+from ipalib.parameters import Principal, Certificate
 from ipalib.plugable import Registry
 from .baseldap import (
     DN, LDAPObject, LDAPCreate, LDAPUpdate, LDAPSearch, LDAPDelete,
@@ -30,8 +30,7 @@ from .baseldap import (
     LDAPAddMember, LDAPRemoveMember,
     LDAPAddAttributeViaOption, LDAPRemoveAttributeViaOption,
     add_missing_object_class)
-from ipaserver.plugins.service import (
-   validate_certificate, validate_realm, normalize_principal)
+from ipaserver.plugins.service import (validate_realm, normalize_principal)
 from ipalib.request import context
 from ipalib import _
 from ipalib.constants import PATTERN_GROUPUSER_NAME
@@ -363,7 +362,7 @@ class baseuser(LDAPObject):
              + '(\s*,\s*[a-zA-Z]{1,8}(-[a-zA-Z]{1,8})?(;q\=((0(\.[0-9]{0,3})?)|(1(\.0{0,3})?)))?)*)|(\*))$',
             pattern_errmsg='must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"',
         ),
-        Bytes('usercertificate*', validate_certificate,
+        Certificate('usercertificate*',
             cli_name='certificate',
             label=_('Certificate'),
             doc=_('Base-64 encoded user certificate'),
@@ -762,8 +761,8 @@ class ModCertMapData(LDAPModAttribute):
             doc=_('Subject of the certificate'),
             flags=['virtual_attribute']
         ),
-        Bytes(
-            'certificate*', validate_certificate,
+        Certificate(
+            'certificate*',
             cli_name='certificate',
             label=_('Certificate'),
             doc=_('Base-64 encoded user certificate'),
@@ -798,8 +797,7 @@ class ModCertMapData(LDAPModAttribute):
         if issuer or subject:
             data.append(cls._build_mapdata(subject, issuer))
 
-        for dercert in certificates:
-            cert = x509.load_certificate(dercert, x509.DER)
+        for cert in certificates:
             issuer = DN(cert.issuer)
             subject = DN(cert.subject)
             if not subject:

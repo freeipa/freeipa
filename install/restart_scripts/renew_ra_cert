@@ -29,8 +29,9 @@ import traceback
 
 from cryptography.hazmat.primitives import serialization
 
+from ipapython import x509
 from ipalib.install.kinit import kinit_keytab
-from ipalib import api, x509
+from ipalib import api
 from ipaserver.install import certs, cainstance
 from ipaplatform.paths import paths
 

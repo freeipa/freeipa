@@ -108,15 +108,19 @@ import six
 # pylint: disable=import-error
 from six.moves.xmlrpc_client import MAXINT, MININT
 # pylint: enable=import-error
+from cryptography import x509 as crypto_x509
 
 from ipalib.text import _ as ugettext
 from ipalib.base import check_name
 from ipalib.plugable import ReadOnly, lock
 from ipalib.errors import ConversionError, RequirementError, ValidationError
-from ipalib.errors import PasswordMismatch, Base64DecodeError
+from ipalib.errors import (
+    PasswordMismatch, Base64DecodeError, CertificateFormatError
+)
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.text import Gettext, FixMe
 from ipalib.util import json_serialize, validate_idna_domain
+from ipapython.x509 import load_der_x509_certificate, _IPACertificate
 from ipapython import kerberos
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
@@ -467,17 +471,14 @@ class Param(ReadOnly):
                         value = kind(value)
                     elif type(value) is str:
                         value = kind([value])
-                if (
-                    type(kind) is type and not isinstance(value, kind)
-                    or
-                    type(kind) is tuple and not isinstance(value, kind)
-                ):
-                    raise TypeError(
-                        TYPE_ERROR % (key, kind, value, type(value))
-                    )
-                elif kind is callable and not callable(value):
+                if kind is callable and not callable(value):
                     raise TypeError(
                         CALLABLE_ERROR % (key, value, type(value))
+                    )
+                elif (isinstance(kind, (type, tuple)) and
+                      not isinstance(value, kind)):
+                    raise TypeError(
+                        TYPE_ERROR % (key, kind, value, type(value))
                     )
                 kw[key] = value
             elif key not in ('required', 'multivalue'):
@@ -502,7 +503,7 @@ class Param(ReadOnly):
         self.nice = '%s(%r)' % (self.__class__.__name__, self.param_spec)
 
         # Make sure no unknown kw were given:
-        assert all(type(t) is type for t in self.allowed_types)
+        assert all(isinstance(t, type) for t in self.allowed_types)
         if not set(t[0] for t in self.kwargs).issuperset(self.__kw):
             extra = set(kw) - set(t[0] for t in self.kwargs)
             raise TypeError(
@@ -1408,6 +1409,42 @@ class Bytes(Data):
             except (TypeError, ValueError) as e:
                 raise Base64DecodeError(reason=str(e))
         return super(Bytes, self)._convert_scalar(value)
+
+
+class Certificate(Param):
+    type = crypto_x509.Certificate
+    type_error = _('must be a certificate')
+    allowed_types = (_IPACertificate, bytes, unicode)
+
+    def _convert_scalar(self, value, index=None):
+        """
+        :param value: either DER certificate or base64 encoded certificate
+        :returns: bytes representing value converted to DER format
+        """
+        if isinstance(value, bytes):
+            try:
+                value = value.decode('ascii')
+            except UnicodeDecodeError:
+                # value is possibly a DER-encoded certificate
+                pass
+
+        if isinstance(value, unicode):
+            # if we received unicodes right away or we got them after the
+            # decoding, we will now try to receive DER-certificate
+            try:
+                value = base64.b64decode(value)
+            except (TypeError, ValueError) as e:
+                raise Base64DecodeError(reason=str(e))
+
+        if isinstance(value, bytes):
+            # we now only have either bytes or an _IPACertificate object
+            # if it's bytes, make it an _IPACertificate object
+            try:
+                value = load_der_x509_certificate(value)
+            except ValueError as e:
+                raise CertificateFormatError(error=str(e))
+
+        return super(Certificate, self)._convert_scalar(value)
 
 
 class Str(Data):

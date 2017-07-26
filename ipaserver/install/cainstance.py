@@ -43,7 +43,6 @@ from six.moves.configparser import RawConfigParser
 from cryptography.hazmat.primitives import serialization
 
 from ipalib import api
-from ipalib import x509
 from ipalib import errors
 import ipalib.constants
 from ipalib.install import certmonger
@@ -53,7 +52,7 @@ from ipaplatform.tasks import tasks
 
 from ipapython import dogtag
 from ipapython import ipautil
-from ipapython import ipaldap
+from ipapython import ipaldap, x509
 from ipapython.certdb import get_ca_nickname
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import standard_logging_setup
@@ -582,7 +581,8 @@ class CAInstance(DogtagInstance):
         elif self.external == 2:
             cert_file = tempfile.NamedTemporaryFile()
             with open(self.cert_file) as f:
-                x509.write_certificate(f.read(), cert_file.name)
+                ext_cert = x509.load_unknown_x509_certificate(f.read())
+            cert_file.write(ext_cert.public_bytes(x509.Encoding.PEM))
             cert_file.flush()
 
             result = ipautil.run(
@@ -791,24 +791,19 @@ class CAInstance(DogtagInstance):
         data = base64.b64decode(chain)
 
         # Get list of PEM certificates
-        certlist = x509.pkcs7_to_pems(data, x509.DER)
+        certlist = x509.pkcs7_to_certs(data, x509.DER)
 
         # We need to append the certs to the existing file, so start by
         # reading the file
         if ipautil.file_exists(paths.IPA_CA_CRT):
             ca_certs = x509.load_certificate_list_from_file(paths.IPA_CA_CRT)
-            ca_certs = [cert.public_bytes(serialization.Encoding.PEM)
-                        for cert in ca_certs]
             certlist.extend(ca_certs)
 
         # We have all the certificates in certlist, write them to a PEM file
         for path in [paths.IPA_CA_CRT,
                      paths.KDC_CA_BUNDLE_PEM,
                      paths.CA_BUNDLE_PEM]:
-            with open(path, 'w') as ipaca_pem:
-                for cert in certlist:
-                    ipaca_pem.write(cert)
-                    ipaca_pem.write('\n')
+            x509.write_certificate_list(certlist, path)
 
     def __request_ra_certificate(self):
         # create a temp file storing the pwd
@@ -1413,7 +1408,7 @@ def update_people_entry(dercert):
     is needed when a certificate is renewed.
     """
     def make_filter(dercert):
-        cert = x509.load_certificate(dercert, datatype=x509.DER)
+        cert = x509.load_der_x509_certificate(dercert)
         subject = DN(cert.subject)
         issuer = DN(cert.issuer)
         return ldap2.ldap2.combine_filters(
@@ -1426,8 +1421,8 @@ def update_people_entry(dercert):
             ldap2.ldap2.MATCH_ALL)
 
     def make_entry(dercert, entry):
-        cert = x509.load_certificate(dercert, datatype=x509.DER)
-        serial_number = cert.serial
+        cert = x509.load_der_x509_certificate(dercert)
+        serial_number = cert.serial_number
         subject = DN(cert.subject)
         issuer = DN(cert.issuer)
         entry['usercertificate'].append(dercert)
@@ -1443,7 +1438,7 @@ def update_authority_entry(dercert):
     serial number to match the given cert.
     """
     def make_filter(dercert):
-        cert = x509.load_certificate(dercert, datatype=x509.DER)
+        cert = x509.load_der_x509_certificate(dercert)
         subject = str(DN(cert.subject))
         return ldap2.ldap2.make_filter(
             dict(objectclass='authority', authoritydn=subject),
@@ -1451,7 +1446,7 @@ def update_authority_entry(dercert):
         )
 
     def make_entry(dercert, entry):
-        cert = x509.load_certificate(dercert, datatype=x509.DER)
+        cert = x509.load_der_x509_certificate(dercert)
         entry['authoritySerial'] = cert.serial_number
         return entry
 

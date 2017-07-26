@@ -35,7 +35,7 @@ from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import ipaldap
-from ipapython import ipautil
+from ipapython import ipautil, x509
 from ipapython.dn import DN
 from ipaserver.install import service
 from ipaserver.install import installutils
@@ -342,7 +342,7 @@ class DogtagInstance(service.Service):
         needs to get the new certificate as well.
 
         ``directive`` is the directive to update in CS.cfg
-        cert is a DER-encoded certificate.
+        cert is IPACertificate.
         cs_cfg is the path to the CS.cfg file
         """
 
@@ -350,7 +350,8 @@ class DogtagInstance(service.Service):
             installutils.set_directive(
                 cs_cfg,
                 directive,
-                base64.b64encode(cert),
+                # the cert must be only the base64 string without headers
+                base64.b64encode(cert.public_bytes(x509.Encoding.DER)),
                 quotes=False,
                 separator='=')
 
@@ -375,7 +376,7 @@ class DogtagInstance(service.Service):
             if conn is not None:
                 conn.unbind()
 
-        return base64.b64encode(admin_cert)
+        return admin_cert
 
     def handle_setup_error(self, e):
         logger.critical("Failed to configure %s instance: %s",

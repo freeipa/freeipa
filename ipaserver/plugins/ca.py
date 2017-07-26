@@ -9,12 +9,13 @@ import six
 from ipalib import api, errors, output, Bytes, DNParam, Flag, Str
 from ipalib.constants import IPA_CA_CN
 from ipalib.plugable import Registry
+from ipapython import x509
 from ipapython.dn import ATTR_NAME_BY_OID
 from ipaserver.plugins.baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate, LDAPDelete,
     LDAPUpdate, LDAPRetrieve, LDAPQuery, pkey_to_value)
 from ipaserver.plugins.cert import ca_enabled_check
-from ipalib import _, ngettext, x509
+from ipalib import _, ngettext
 
 
 __doc__ = _("""
@@ -181,8 +182,8 @@ def set_certificate_attrs(entry, options, want_cert=True):
 
         if want_chain or full:
             pkcs7_der = ca_api.read_ca_chain(ca_id)
-            pems = x509.pkcs7_to_pems(pkcs7_der, x509.DER)
-            ders = [x509.normalize_certificate(pem) for pem in pems]
+            certs = x509.pkcs7_to_certs(pkcs7_der, x509.DER)
+            ders = [cert.public_bytes(x509.Encoding.DER) for cert in certs]
             entry['certificate_chain'] = ders
 
 

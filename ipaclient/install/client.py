@@ -27,13 +27,12 @@ import tempfile
 import time
 import traceback
 
-from cryptography.hazmat.primitives import serialization
 # pylint: disable=import-error
 from six.moves.configparser import RawConfigParser
 from six.moves.urllib.parse import urlparse, urlunparse
 # pylint: enable=import-error
 
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipalib.install import certmonger, certstore, service, sysrestore
 from ipalib.install import hostname as hostname_
 from ipalib.install.kinit import kinit_keytab, kinit_password
@@ -47,7 +46,7 @@ from ipalib.util import (
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipapython import certdb, kernel_keyring, ipaldap, ipautil
+from ipapython import certdb, kernel_keyring, ipaldap, ipautil, x509
 from ipapython.admintool import ScriptError
 from ipapython.dn import DN
 from ipapython.install import typing
@@ -1647,9 +1646,7 @@ def get_ca_certs_from_ldap(server, basedn, realm):
         logger.debug("get_ca_certs_from_ldap() error: %s", e)
         raise
 
-    certs = [x509.load_certificate(c[0], x509.DER) for c in certs
-             if c[2] is not False]
-
+    certs = (c[0] for c in certs if c[2] is not False)
     return certs
 
 
@@ -1830,10 +1827,6 @@ def get_ca_certs(fstore, options, server, basedn, realm):
 
     if ca_certs is not None:
         try:
-            ca_certs = [
-                cert.public_bytes(serialization.Encoding.DER)
-                for cert in ca_certs
-            ]
             x509.write_certificate_list(ca_certs, ca_file)
         except Exception as e:
             if os.path.exists(ca_file):
@@ -2680,10 +2673,6 @@ def _install(options):
 
         # Add CA certs to a temporary NSS database
         ca_certs = x509.load_certificate_list_from_file(paths.IPA_CA_CRT)
-        ca_certs = [
-            cert.public_bytes(serialization.Encoding.DER)
-            for cert in ca_certs
-        ]
         try:
             tmp_db.create_db()
 

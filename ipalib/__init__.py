@@ -921,9 +921,10 @@ from ipalib.backend import Backend
 from ipalib.frontend import Command, LocalOrRemote, Updater
 from ipalib.frontend import Object, Method
 from ipalib.crud import Create, Retrieve, Update, Delete, Search
-from ipalib.parameters import DefaultFrom, Bool, Flag, Int, Decimal, Bytes, Str, IA5Str, Password, DNParam
-from ipalib.parameters import (BytesEnum, StrEnum, IntEnum, AccessTime, File,
-                        DateTime, DNSNameParam)
+from ipalib.parameters import (
+    DefaultFrom, Bool, Flag, Int, Decimal, Bytes, Str, IA5Str, Password,
+    DNParam, BytesEnum, StrEnum, IntEnum, AccessTime, File, DateTime,
+    DNSNameParam)
 from ipalib.errors import SkipPluginModule
 from ipalib.text import _, ngettext, GettextFactory, NGettextFactory
 

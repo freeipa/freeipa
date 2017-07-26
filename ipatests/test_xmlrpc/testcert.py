@@ -29,14 +29,28 @@ import os
 import tempfile
 import shutil
 import six
+import base64
 
-from ipalib import api, x509
+from ipalib import api
 from ipaserver.plugins import rabase
-from ipapython import ipautil
+from ipapython import ipautil, x509
+from ipapython.dn import DN
 from ipaplatform.paths import paths
 
 if six.PY3:
     unicode = str
+
+_subject_base = None
+
+
+def subject_base():
+    global _subject_base
+
+    if _subject_base is None:
+        config = api.Command['config_show']()['result']
+        _subject_base = DN(config['ipacertificatesubjectbase'][0])
+
+    return _subject_base
 
 
 def get_testcert(subject, principal):
@@ -96,4 +110,6 @@ def makecert(reqdir, subject, principal):
     csr = unicode(generate_csr(reqdir, pwname, str(subject)))
 
     res = api.Command['cert_request'](csr, principal=principal, add=True)
-    return x509.make_pem(res['result']['certificate'])
+    cert = x509.load_der_x509_certificate(
+        base64.b64decode(res['result']['certificate']))
+    return cert.public_bytes(x509.Encoding.PEM).decode('utf-8')

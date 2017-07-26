@@ -34,6 +34,8 @@ import pwd
 from six.moves.urllib.parse import urlparse
 # pylint: enable=import-error
 
+from cryptography import x509 as crypto_x509
+
 import ldap
 import ldap.sasl
 import ldap.filter
@@ -44,6 +46,7 @@ import six
 from ipalib import errors, _
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 # pylint: enable=ipa-forbidden-import
+from ipapython import x509
 from ipapython.ipautil import format_netloc, CIDict
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
@@ -670,6 +673,10 @@ class LDAPClient(object):
         'dnszoneidnsname': DNSName,
         'krbcanonicalname': Principal,
         'krbprincipalname': Principal,
+        'usercertificate': crypto_x509.Certificate,
+        'usercertificate;binary': crypto_x509.Certificate,
+        'cACertificate': crypto_x509.Certificate,
+        'cACertificate;binary': crypto_x509.Certificate,
         'nsds5replicalastupdatestart': unicode,
         'nsds5replicalastupdateend': unicode,
         'nsds5replicalastinitstart': unicode,
@@ -842,7 +849,7 @@ class LDAPClient(object):
 
     def encode(self, val):
         """
-        Encode attribute value to LDAP representation (str).
+        Encode attribute value to LDAP representation (str/bytes).
         """
         # Booleans are both an instance of bool and int, therefore
         # test for bool before int otherwise the int clause will be
@@ -869,6 +876,8 @@ class LDAPClient(object):
             return dct
         elif isinstance(val, datetime.datetime):
             return val.strftime(LDAP_GENERALIZED_TIME_FORMAT).encode('utf-8')
+        elif isinstance(val, crypto_x509.Certificate):
+            return val.public_bytes(x509.Encoding.DER)
         elif val is None:
             return None
         else:
@@ -876,7 +885,7 @@ class LDAPClient(object):
 
     def decode(self, val, attr):
         """
-        Decode attribute value from LDAP representation (str).
+        Decode attribute value from LDAP representation (str/bytes).
         """
         if isinstance(val, bytes):
             target_type = self.get_attribute_type(attr)
@@ -892,6 +901,8 @@ class LDAPClient(object):
                     return DNSName.from_text(val.decode('utf-8'))
                 elif target_type in (DN, Principal):
                     return target_type(val.decode('utf-8'))
+                elif target_type is crypto_x509.Certificate:
+                    return x509.load_der_x509_certificate(val)
                 else:
                     return target_type(val)
             except Exception:

@@ -32,12 +32,11 @@ import fnmatch
 
 import ldap
 
-from ipalib import x509
 from ipalib.install import certmonger, certstore
 from ipapython.certdb import (IPA_CA_TRUST_FLAGS,
                               EXTERNAL_CA_TRUST_FLAGS,
                               TrustFlags)
-from ipapython import ipautil, ipaldap
+from ipapython import ipautil, ipaldap, x509
 from ipapython import dogtag
 from ipaserver.install import service
 from ipaserver.install import installutils
@@ -234,7 +233,7 @@ class DsInstance(service.Service):
         self.pkcs12_info = None
         self.cacert_name = None
         self.ca_is_configured = True
-        self.dercert = None
+        self.cert = None
         self.idstart = None
         self.idmax = None
         self.ca_subject = None
@@ -791,7 +790,7 @@ class DsInstance(service.Service):
 
             # We only handle one server cert
             self.nickname = server_certs[0][0]
-            self.dercert = dsdb.get_cert_from_db(self.nickname, pem=False)
+            self.cert = dsdb.get_cert_from_db(self.nickname)
 
             if self.ca_is_configured:
                 dsdb.track_server_cert(
@@ -834,7 +833,7 @@ class DsInstance(service.Service):
             api.Backend.ldap2.disconnect()
             api.Backend.ldap2.connect()
 
-            self.dercert = dsdb.get_cert_from_db(self.nickname, pem=False)
+            self.cert = dsdb.get_cert_from_db(self.nickname)
 
             if prev_helper is not None:
                 self.add_cert_to_service()
@@ -888,12 +887,12 @@ class DsInstance(service.Service):
 
         nicknames = dsdb.find_root_cert(self.cacert_name)[:-1]
         for nickname in nicknames:
-            cert = dsdb.get_cert_from_db(nickname, pem=False)
+            cert = dsdb.get_cert_from_db(nickname)
             certstore.put_ca_cert_nss(conn, self.suffix, cert, nickname,
                                       trust_flags[nickname])
 
         nickname = self.cacert_name
-        cert = dsdb.get_cert_from_db(nickname, pem=False)
+        cert = dsdb.get_cert_from_db(nickname)
         cacert_flags = trust_flags[nickname]
         if self.setup_pkinit:
             cacert_flags = TrustFlags(

@@ -36,11 +36,11 @@ from six.moves import configparser
 
 from ipalib.install import certmonger, sysrestore
 from ipapython import dogtag
-from ipapython import ipautil
+from ipapython import ipautil, x509
 from ipapython.certdb import EMPTY_TRUST_FLAGS, IPA_CA_TRUST_FLAGS
 from ipapython.certdb import get_ca_nickname, find_cert_from_txt, NSSDatabase
 from ipapython.dn import DN
-from ipalib import pkcs10, x509, api
+from ipalib import pkcs10, api
 from ipalib.errors import CertificateOperationError
 from ipalib.text import _
 from ipaplatform.paths import paths
@@ -58,9 +58,7 @@ def get_cert_nickname(cert):
     representation of the first RDN in the subject and subject_dn
     is a DN object.
     """
-    cert_obj = x509.load_certificate(cert)
-    dn = DN(cert_obj.subject)
-
+    dn = DN(cert.subject)
     return (str(dn[0]), dn)
 
 
@@ -323,30 +321,20 @@ class CertDB(object):
                     nick = get_ca_nickname(self.realm)
                 else:
                     nick = str(subject_dn)
-                self.nssdb.add_cert(cert, nick, trust_flags, pem=True)
+                self.nssdb.add_cert(cert, nick, trust_flags)
             except RuntimeError:
                 break
 
-    def get_cert_from_db(self, nickname, pem=True):
+    def get_cert_from_db(self, nickname):
         """
         Retrieve a certificate from the current NSS database for nickname.
-
-        pem controls whether the value returned PEM or DER-encoded. The
-        default is the data straight from certutil -a.
         """
         try:
             args = ["-L", "-n", nickname, "-a"]
             result = self.run_certutil(args, capture_output=True)
-            cert = result.output
-            if pem:
-                return cert
-            else:
-                cert, _start = find_cert_from_txt(cert, start=0)
-                cert = x509.strip_header(cert)
-                dercert = base64.b64decode(cert)
-                return dercert
+            return x509.load_pem_x509_certificate(result.raw_output)
         except ipautil.CalledProcessError:
-            return ''
+            return None
 
     def track_server_cert(self, nickname, principal, password_file=None, command=None):
         """
@@ -362,8 +350,7 @@ class CertDB(object):
             return
 
         cert = self.get_cert_from_db(nickname)
-        cert_obj = x509.load_certificate(cert)
-        subject = str(DN(cert_obj.subject))
+        subject = str(DN(cert.subject))
         certmonger.add_principal(request_id, principal)
         certmonger.add_subject(request_id, subject)
 
@@ -392,16 +379,16 @@ class CertDB(object):
         try:
             self.issue_server_cert(self.certreq_fname, self.certder_fname)
             self.import_cert(self.certder_fname, nickname)
+
             with open(self.certder_fname, "r") as f:
                 dercert = f.read()
+                return x509.load_der_x509_certificate(dercert)
         finally:
             for fname in (self.certreq_fname, self.certder_fname):
                 try:
                     os.unlink(fname)
                 except OSError:
                     pass
-
-        return dercert
 
     def request_cert(
             self, subject, certtype="rsa", keysize="2048",
@@ -519,8 +506,8 @@ class CertDB(object):
         with open(cert_fname, "w") as f:
             f.write(cert)
 
-    def add_cert(self, cert, nick, flags, pem=False):
-        self.nssdb.add_cert(cert, nick, flags, pem)
+    def add_cert(self, cert, nick, flags):
+        self.nssdb.add_cert(cert, nick, flags)
 
     def import_cert(self, cert_fname, nickname):
         """
@@ -594,8 +581,6 @@ class CertDB(object):
             newca, _st = find_cert_from_txt(newca)
 
             cacert = self.get_cert_from_db(self.cacert_name)
-            if cacert != '':
-                cacert, _st = find_cert_from_txt(cacert)
 
             if newca == cacert:
                 return
@@ -649,7 +634,7 @@ class CertDB(object):
                     cert, st = find_cert_from_txt(certs, st)
                 except RuntimeError:
                     break
-                self.add_cert(cert, 'CA %s' % num, EMPTY_TRUST_FLAGS, pem=True)
+                self.add_cert(cert, 'CA %s' % num, EMPTY_TRUST_FLAGS)
                 num += 1
 
         # We only handle one server cert

@@ -27,8 +27,10 @@ from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPRemoveAttributeViaOption,
                                      LDAPRetrieve, global_output_params)
 from .hostgroup import get_complete_hostgroup_member_list
-from .service import validate_certificate
-from ipalib import api, Str, Int, Bytes, Flag, _, ngettext, errors, output
+from ipalib import (
+    api, Str, Int, Flag, _, ngettext, errors, output
+)
+from ipalib.parameters import Certificate
 from ipalib.constants import (
     IPA_ANCHOR_PREFIX,
     SID_ANCHOR_PREFIX,
@@ -922,7 +924,7 @@ class idoverrideuser(baseidoverride):
             normalizer=normalize_sshpubkey,
             flags=['no_search'],
         ),
-        Bytes('usercertificate*', validate_certificate,
+        Certificate('usercertificate*',
               cli_name='certificate',
               label=_('Certificate'),
               doc=_('Base-64 encoded user certificate'),

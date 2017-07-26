@@ -25,8 +25,8 @@ import six
 
 from ipaclient import csrgen
 from ipaclient.frontend import MethodOverride
+from ipapython import x509
 from ipalib import errors
-from ipalib import x509
 from ipalib import util
 from ipalib.parameters import File, Flag, Str
 from ipalib.plugable import Registry
@@ -66,10 +66,9 @@ class CertRetrieveOverride(MethodOverride):
                 certs = result['result']['certificate_chain']
             else:
                 certs = [result['result']['certificate']]
-            certs = (x509.normalize_certificate(cert) for cert in certs)
-            certs = (x509.make_pem(base64.b64encode(cert)) for cert in certs)
-            with open(certificate_out, 'w') as f:
-                f.write('\n'.join(certs))
+            certs = (x509.load_der_x509_certificate(base64.b64decode(cert))
+                     for cert in certs)
+            x509.write_certificate_list(certs, certificate_out)
 
         return result
 

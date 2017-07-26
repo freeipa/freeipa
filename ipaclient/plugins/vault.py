@@ -38,7 +38,6 @@ from cryptography.hazmat.primitives.serialization import (
     load_pem_public_key, load_pem_private_key)
 
 from ipaclient.frontend import MethodOverride
-from ipalib import x509
 from ipalib.constants import USER_CACHE_PATH
 from ipalib.frontend import Local, Method, Object
 from ipalib.util import classproperty
@@ -46,6 +45,7 @@ from ipalib import api, errors
 from ipalib import Bytes, Flag, Str
 from ipalib.plugable import Registry
 from ipalib import _
+from ipapython import x509
 from ipapython.dnsutil import DNSName
 
 logger = logging.getLogger(__name__)
@@ -624,15 +624,15 @@ class vaultconfig_show(MethodOverride):
         response = super(vaultconfig_show, self).forward(*args, **options)
 
         # cache transport certificate
-        transport_cert = x509.load_certificate(
-                response['result']['transport_cert'], x509.DER)
+        transport_cert = x509.load_der_x509_certificate(
+                response['result']['transport_cert'])
 
         _transport_cert_cache.store_cert(
             self.api.env.domain, transport_cert
         )
 
         if file:
-            with open(file, 'w') as f:
+            with open(file, 'wb') as f:
                 f.write(response['result']['transport_cert'])
 
         return response
@@ -683,8 +683,8 @@ class ModVaultData(Local):
 
         # retrieve transport certificate (cached by vaultconfig_show)
         response = self.api.Command.vaultconfig_show()
-        transport_cert = x509.load_certificate(
-            response['result']['transport_cert'], x509.DER)
+        transport_cert = x509.load_der_x509_certificate(
+            response['result']['transport_cert'])
         # call with the retrieved transport certificate
         return self._do_internal(algo, transport_cert, True,
                                  *args, **options)

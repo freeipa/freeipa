@@ -138,7 +138,7 @@ class HTTPInstance(service.Service):
         self.dm_password = dm_password
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.pkcs12_info = pkcs12_info
-        self.dercert = None
+        self.cert = None
         self.subject_base = subject_base
         self.sub_dict = dict(
             REALM=realm,
@@ -406,7 +406,7 @@ class HTTPInstance(service.Service):
             nickname = server_certs[0][0]
             if nickname == 'ipaCert':
                 nickname = server_certs[1][0]
-            self.dercert = db.get_cert_from_db(nickname, pem=False)
+            self.cert = db.get_cert_from_db(nickname)
 
             if self.ca_is_configured:
                 db.track_server_cert(nickname, self.principal, db.passwd_fname, 'restart_httpd')
@@ -443,7 +443,7 @@ class HTTPInstance(service.Service):
                 if prev_helper is not None:
                     certmonger.modify_ca_helper('IPA', prev_helper)
 
-            self.dercert = db.get_cert_from_db(self.cert_nickname, pem=False)
+            self.cert = db.get_cert_from_db(self.cert_nickname)
 
             if prev_helper is not None:
                 self.add_cert_to_service()

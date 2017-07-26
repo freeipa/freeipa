@@ -19,12 +19,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipaclient.frontend import MethodOverride
+from ipapython import x509
 from ipalib import errors
 from ipalib import Flag
 from ipalib import util
 from ipalib.plugable import Registry
 from ipalib import _
-from ipalib import x509
 
 register = Registry()
 
@@ -67,10 +67,9 @@ class user_show(MethodOverride):
             util.check_writable_file(options['out'])
             result = super(user_show, self).forward(*keys, **options)
             if 'usercertificate' in result['result']:
-                x509.write_certificate_list(
-                    result['result']['usercertificate'],
-                    options['out']
-                )
+                certs = (x509.load_der_x509_certificate(c)
+                         for c in result['result']['usercertificate'])
+                x509.write_certificate_list(certs, options['out'])
                 result['summary'] = (
                     _('Certificate(s) stored in file \'%(file)s\'')
                     % dict(file=options['out'])

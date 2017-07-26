@@ -22,17 +22,16 @@ import os
 import pwd
 import shutil
 import tempfile
+import base64
 
 import six
 # pylint: disable=import-error
 from six.moves.configparser import RawConfigParser
 # pylint: enable=import-error
-from cryptography.hazmat.primitives import serialization
 
 from ipalib import api
-from ipalib import x509
 from ipaplatform.paths import paths
-from ipapython import ipautil
+from ipapython import ipautil, x509
 from ipapython.dn import DN
 from ipaserver.install import cainstance
 from ipaserver.install import installutils
@@ -269,13 +268,15 @@ class KRAInstance(DogtagInstance):
                 "https://%s" % ipautil.format_netloc(self.master_host, 443))
         else:
             # the admin cert file is needed for the first instance of KRA
-            cert = DogtagInstance.get_admin_cert(self)
+            cert = self.get_admin_cert()
             # First make sure that the directory exists
             parentdir = os.path.dirname(paths.ADMIN_CERT_PATH)
             if not os.path.exists(parentdir):
                 os.makedirs(parentdir)
             with open(paths.ADMIN_CERT_PATH, "w") as admin_path:
-                admin_path.write(cert)
+                admin_path.write(
+                    base64.b64encode(cert.public_bytes(x509.Encoding.DER))
+                )
 
         # Generate configuration file
         with open(cfg_file, "w") as f:
@@ -304,7 +305,7 @@ class KRAInstance(DogtagInstance):
 
         # get RA agent certificate
         cert = x509.load_certificate_from_file(paths.RA_AGENT_PEM)
-        cert_data = cert.public_bytes(serialization.Encoding.DER)
+        cert_data = cert.public_bytes(x509.Encoding.DER)
 
         # connect to KRA database
         conn = ldap2.ldap2(api)

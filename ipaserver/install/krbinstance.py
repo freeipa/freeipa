@@ -28,11 +28,10 @@ import dbus
 
 import dns.name
 
-from ipalib import x509
 from ipalib.install import certstore
 from ipaserver.install import service
 from ipaserver.install import installutils
-from ipapython import ipaldap
+from ipapython import ipaldap, x509
 from ipapython import ipautil
 from ipapython import kernel_keyring
 from ipalib import api, errors

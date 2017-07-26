@@ -28,8 +28,7 @@ import nose
 import pytest
 import six
 
-from ipalib import x509
-from ipapython import ipautil
+from ipapython import ipautil, x509
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest

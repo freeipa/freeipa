@@ -3,7 +3,8 @@
 #
 
 from ipaclient.frontend import MethodOverride
-from ipalib import errors, x509
+from ipapython import x509
+from ipalib import errors
 from ipalib.parameters import File
 from ipalib.plugable import Registry
 from ipalib.text import _

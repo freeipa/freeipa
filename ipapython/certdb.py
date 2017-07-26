@@ -27,15 +27,12 @@ import re
 import tempfile
 from tempfile import NamedTemporaryFile
 import shutil
-import base64
 
-from cryptography.hazmat.primitives import serialization
 import cryptography.x509
 
 from ipapython.dn import DN
 from ipapython.kerberos import Principal
-from ipapython import ipautil
-from ipalib import x509     # pylint: disable=ipa-forbidden-import
+from ipapython import ipautil, x509
 
 try:
     # pylint: disable=import-error,ipa-forbidden-import
@@ -91,7 +88,7 @@ def find_cert_from_txt(cert, start=0):
     trailing text, pull out just the certificate part. This will return
     the FIRST cert in a stream of data.
 
-    Returns a tuple (certificate, last position in cert)
+    :returns: a tuple (IPACertificate, last position in cert)
     """
     s = cert.find('-----BEGIN CERTIFICATE-----', start)
     e = cert.find('-----END CERTIFICATE-----', s)
@@ -101,7 +98,7 @@ def find_cert_from_txt(cert, start=0):
     if s < 0 or e < 0:
         raise RuntimeError("Unable to find certificate")
 
-    cert = cert[s:e]
+    cert = x509.load_pem_x509_certificate(cert[s:e].encode('utf-8'))
     return (cert, e)
 
 
@@ -182,14 +179,10 @@ def unparse_trust_flags(trust_flags):
 
 
 def verify_kdc_cert_validity(kdc_cert, ca_certs, realm):
-    pem_kdc_cert = kdc_cert.public_bytes(serialization.Encoding.PEM)
-    pem_ca_certs = '\n'.join(
-        cert.public_bytes(serialization.Encoding.PEM) for cert in ca_certs)
-
     with NamedTemporaryFile() as kdc_file, NamedTemporaryFile() as ca_file:
-        kdc_file.write(pem_kdc_cert)
+        kdc_file.write(kdc_cert.public_bytes(x509.Encoding.PEM))
         kdc_file.flush()
-        ca_file.write(pem_ca_certs)
+        x509.write_certificate_list(ca_certs, ca_file.name)
         ca_file.flush()
 
         try:
@@ -209,7 +202,7 @@ def verify_kdc_cert_validity(kdc_cert, ca_certs, realm):
             raise ValueError("invalid for a KDC")
 
         principal = str(Principal(['krbtgt', realm], realm))
-        gns = x509.process_othernames(x509.get_san_general_names(kdc_cert))
+        gns = x509.process_othernames(kdc_cert.san_general_names)
         for gn in gns:
             if isinstance(gn, x509.KRB5PrincipalName) and gn.name == principal:
                 break
@@ -446,8 +439,12 @@ class NSSDatabase(object):
                     "Failed to open %s: %s" % (filename, e.strerror))
 
             # Try to parse the file as PEM file
-            matches = list(re.finditer(
-                r'-----BEGIN (.+?)-----(.*?)-----END \1-----', data, re.DOTALL))
+            matches = list(
+                re.finditer(
+                    br'-----BEGIN (.+?)-----(.*?)-----END \1-----',
+                    data, re.DOTALL
+                )
+            )
             if matches:
                 loaded = False
                 for match in matches:
@@ -455,27 +452,28 @@ class NSSDatabase(object):
                     label = match.group(1)
                     line = len(data[:match.start() + 1].splitlines())
 
-                    if label in ('CERTIFICATE', 'X509 CERTIFICATE',
-                                 'X.509 CERTIFICATE'):
+                    if label in (b'CERTIFICATE', b'X509 CERTIFICATE',
+                                 b'X.509 CERTIFICATE'):
                         try:
-                            x509.load_certificate(match.group(2))
+                            cert = x509.load_pem_x509_certificate(body)
                         except ValueError as e:
-                            if label != 'CERTIFICATE':
+                            if label != b'CERTIFICATE':
                                 logger.warning(
                                     "Skipping certificate in %s at line %s: "
                                     "%s",
                                     filename, line, e)
                                 continue
                         else:
-                            extracted_certs.append(body)
+                            extracted_certs.append(cert)
                             loaded = True
                             continue
 
-                    if label in ('PKCS7', 'PKCS #7 SIGNED DATA', 'CERTIFICATE'):
+                    if label in (b'PKCS7', b'PKCS #7 SIGNED DATA',
+                                 b'CERTIFICATE'):
                         try:
-                            certs = x509.pkcs7_to_pems(body)
+                            certs = x509.pkcs7_to_certs(body)
                         except ipautil.CalledProcessError as e:
-                            if label == 'CERTIFICATE':
+                            if label == b'CERTIFICATE':
                                 logger.warning(
                                     "Skipping certificate in %s at line %s: "
                                     "%s",
@@ -490,9 +488,9 @@ class NSSDatabase(object):
                             loaded = True
                             continue
 
-                    if label in ('PRIVATE KEY', 'ENCRYPTED PRIVATE KEY',
-                                 'RSA PRIVATE KEY', 'DSA PRIVATE KEY',
-                                 'EC PRIVATE KEY'):
+                    if label in (b'PRIVATE KEY', b'ENCRYPTED PRIVATE KEY',
+                                 b'RSA PRIVATE KEY', b'DSA PRIVATE KEY',
+                                 b'EC PRIVATE KEY'):
                         if not import_keys:
                             continue
 
@@ -506,8 +504,8 @@ class NSSDatabase(object):
                             '-topk8',
                             '-passout', 'file:' + self.pwd_file,
                         ]
-                        if ((label != 'PRIVATE KEY' and key_password) or
-                            label == 'ENCRYPTED PRIVATE KEY'):
+                        if ((label != b'PRIVATE KEY' and key_password) or
+                                label == b'ENCRYPTED PRIVATE KEY'):
                             key_pwdfile = ipautil.write_tmp_file(key_password)
                             args += [
                                 '-passin', 'file:' + key_pwdfile.name,
@@ -521,7 +519,7 @@ class NSSDatabase(object):
                                 filename, line, e)
                             continue
                         else:
-                            extracted_key = result.output
+                            extracted_key = result.raw_output
                             key_file = filename
                             loaded = True
                             continue
@@ -531,12 +529,11 @@ class NSSDatabase(object):
 
             # Try to load the file as DER certificate
             try:
-                x509.load_certificate(data, x509.DER)
+                cert = x509.load_der_x509_certificate(data)
             except ValueError:
                 pass
             else:
-                data = x509.make_pem(base64.b64encode(data))
-                extracted_certs.append(data)
+                extracted_certs.append(cert)
                 continue
 
             # Try to import the file as PKCS#12 file
@@ -576,34 +573,34 @@ class NSSDatabase(object):
             raise RuntimeError(
                 "No server certificates found in %s" % (', '.join(files)))
 
-        for cert_pem in extracted_certs:
-            cert = x509.load_certificate(cert_pem)
+        for cert in extracted_certs:
             nickname = str(DN(cert.subject))
-            data = cert.public_bytes(serialization.Encoding.DER)
-            self.add_cert(data, nickname, EMPTY_TRUST_FLAGS)
+            self.add_cert(cert, nickname, EMPTY_TRUST_FLAGS)
 
         if extracted_key:
-            in_file = ipautil.write_tmp_file(
-                    '\n'.join(extracted_certs) + '\n' + extracted_key)
-            out_file = tempfile.NamedTemporaryFile()
-            out_password = ipautil.ipa_generate_password()
-            out_pwdfile = ipautil.write_tmp_file(out_password)
-            args = [
-                OPENSSL, 'pkcs12',
-                '-export',
-                '-in', in_file.name,
-                '-out', out_file.name,
-                '-passin', 'file:' + self.pwd_file,
-                '-passout', 'file:' + out_pwdfile.name,
-            ]
-            try:
-                ipautil.run(args)
-            except ipautil.CalledProcessError as e:
-                raise RuntimeError(
-                    "No matching certificate found for private key from %s" %
-                    key_file)
+            with tempfile.NamedTemporaryFile(), tempfile.NamedTemporaryFile() \
+                    as (in_file, out_file):
+                x509.write_certificate_list(extracted_certs, in_file.name)
+                in_file.write(extracted_key)
+                in_file.flush()
+                out_password = ipautil.ipa_generate_password()
+                out_pwdfile = ipautil.write_tmp_file(out_password)
+                args = [
+                    OPENSSL, 'pkcs12',
+                    '-export',
+                    '-in', in_file.name,
+                    '-out', out_file.name,
+                    '-passin', 'file:' + self.pwd_file,
+                    '-passout', 'file:' + out_pwdfile.name,
+                ]
+                try:
+                    ipautil.run(args)
+                except ipautil.CalledProcessError as e:
+                    raise RuntimeError(
+                        "No matching certificate found for private key from "
+                        "%s" % key_file)
 
-            self.import_pkcs12(out_file.name, out_password)
+                self.import_pkcs12(out_file.name, out_password)
 
     def trust_root_cert(self, root_nickname, trust_flags):
         if root_nickname[:7] == "Builtin":
@@ -619,17 +616,18 @@ class NSSDatabase(object):
                 raise RuntimeError(
                     "Setting trust on %s failed" % root_nickname)
 
-    def get_cert(self, nickname, pem=False):
+    def get_cert(self, nickname):
+        """
+        :param nickname: nickname of the certificate in the NSS database
+        :returns: string in Python2
+                  bytes in Python3
+        """
         args = ['-L', '-n', nickname, '-a']
         try:
             result = self.run_certutil(args, capture_output=True)
         except ipautil.CalledProcessError:
             raise RuntimeError("Failed to get %s" % nickname)
-        cert = result.output
-        if not pem:
-            cert, _start = find_cert_from_txt(cert, start=0)
-            cert = x509.strip_header(cert)
-            cert = base64.b64decode(cert)
+        cert, _start = find_cert_from_txt(result.output, start=0)
         return cert
 
     def has_nickname(self, nickname):
@@ -643,9 +641,9 @@ class NSSDatabase(object):
 
     def export_pem_cert(self, nickname, location):
         """Export the given cert to PEM file in the given location"""
-        cert = self.get_cert(nickname, pem=True)
-        with open(location, "w+") as fd:
-            fd.write(cert)
+        cert = self.get_cert(nickname)
+        with open(location, "wb") as fd:
+            fd.write(cert.public_bytes(x509.Encoding.PEM))
         os.chmod(location, 0o444)
 
     def import_pem_cert(self, nickname, flags, location):
@@ -662,7 +660,7 @@ class NSSDatabase(object):
             )
 
         cert, st = find_cert_from_txt(certs)
-        self.add_cert(cert, nickname, flags, pem=True)
+        self.add_cert(cert, nickname, flags)
 
         try:
             find_cert_from_txt(certs, st)
@@ -672,12 +670,10 @@ class NSSDatabase(object):
             raise ValueError('%s contains more than one certificate' %
                              location)
 
-    def add_cert(self, cert, nick, flags, pem=False):
+    def add_cert(self, cert, nick, flags):
         flags = unparse_trust_flags(flags)
-        args = ["-A", "-n", nick, "-t", flags]
-        if pem:
-            args.append("-a")
-        self.run_certutil(args, stdin=cert)
+        args = ["-A", "-n", nick, "-t", flags, '-a']
+        self.run_certutil(args, stdin=cert.public_bytes(x509.Encoding.PEM))
 
     def delete_cert(self, nick):
         self.run_certutil(["-D", "-n", nick])
@@ -688,7 +684,6 @@ class NSSDatabase(object):
         Raises a ValueError if the certificate is invalid.
         """
         cert = self.get_cert(nickname)
-        cert = x509.load_certificate(cert, x509.DER)
 
         try:
             self.run_certutil(['-V', '-n', nickname, '-u', 'V'],
@@ -699,13 +694,12 @@ class NSSDatabase(object):
             raise ValueError(e.output)
 
         try:
-            x509.match_hostname(cert, hostname)
+            cert.match_hostname(hostname)
         except ValueError:
             raise ValueError('invalid for server %s' % hostname)
 
     def verify_ca_cert_validity(self, nickname):
         cert = self.get_cert(nickname)
-        cert = x509.load_certificate(cert, x509.DER)
 
         if not cert.subject:
             raise ValueError("has empty subject")
@@ -736,6 +730,5 @@ class NSSDatabase(object):
     def verify_kdc_cert_validity(self, nickname, realm):
         nicknames = self.get_trust_chain(nickname)
         certs = [self.get_cert(nickname) for nickname in nicknames]
-        certs = [x509.load_certificate(cert, x509.DER) for cert in certs]
 
         verify_kdc_cert_validity(certs[-1], certs[:-1], realm)

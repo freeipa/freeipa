@@ -24,13 +24,13 @@ from ipaserver.install import (cainstance,
                                custodiainstance,
                                dsinstance,
                                bindinstance)
-from ipapython import ipautil, certdb
+from ipapython import ipautil, certdb, x509
 from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, certs
 from ipaserver.install.replication import replica_conn_check
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipapython.dn import DN
 
 from . import conncheck, dogtag
@@ -196,7 +196,7 @@ def install_check(standalone, replica_config, options):
                 cert = db.get_cert_from_db(nickname)
                 if not cert:
                     continue
-                subject = DN(x509.load_certificate(cert).subject)
+                subject = DN(x509.load_pem_x509_certificate(cert).subject)
                 if subject == DN(options._ca_subject):
                     raise ScriptError(
                         "Certificate with subject %s is present in %s, "
@@ -320,7 +320,7 @@ def install_step_1(standalone, replica_config, options):
             subject_base=subject_base)
         dsdb = certs.CertDB(
             realm_name, nssdir=dirname, subject_base=subject_base)
-        cacert = cadb.get_cert_from_db('caSigningCert cert-pki-ca', pem=False)
+        cacert = cadb.get_cert_from_db('caSigningCert cert-pki-ca')
         nickname = certdb.get_ca_nickname(realm_name)
         trust_flags = certdb.IPA_CA_TRUST_FLAGS
         dsdb.add_cert(cacert, nickname, trust_flags)

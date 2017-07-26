@@ -16,14 +16,14 @@ import textwrap
 import six
 
 from ipalib.install import certmonger, sysrestore
-from ipapython import ipautil
+from ipapython import ipautil, x509
 from ipapython.ipautil import (
     format_netloc, ipa_generate_password, run, user_input)
 from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipalib.constants import DOMAIN_LEVEL_0
 from ipalib.util import (
     validate_domain_name,

@@ -28,8 +28,8 @@ import six
 
 from ipalib import api, errors, util
 from ipalib import messages
-from ipalib import Str, Flag, Bytes
-from ipalib.parameters import Principal
+from ipalib import Str, Flag
+from ipalib.parameters import Principal, Certificate
 from ipalib.plugable import Registry
 from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
@@ -40,7 +40,7 @@ from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPAddAttributeViaOption,
                                      LDAPRemoveAttributeViaOption)
 from .service import (
-    validate_realm, normalize_principal, validate_certificate,
+    validate_realm, normalize_principal,
     set_certificate_attrs, ticket_flags_params, update_krbticketflags,
     set_kerberos_attrs, rename_ipaallowedtoperform_from_ldap,
     rename_ipaallowedtoperform_to_ldap, revoke_certs)
@@ -48,7 +48,6 @@ from .dns import (dns_container_exists,
         add_records_for_host_validation, add_records_for_host,
         get_reverse_zone)
 from ipalib import _, ngettext
-from ipalib import x509
 from ipalib import output
 from ipalib.request import context
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey_no_options,
@@ -68,6 +67,7 @@ from ipapython.ipautil import (
 from ipapython.dnsutil import DNSName
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN
+from ipapython.x509 import Encoding as x509_Encoding
 from ipapython import kerberos
 from functools import reduce
 
@@ -485,7 +485,7 @@ class host(LDAPObject):
             label=_('Random password'),
             flags=('no_create', 'no_update', 'no_search', 'virtual_attribute'),
         ),
-        Bytes('usercertificate*', validate_certificate,
+        Certificate('usercertificate*',
             cli_name='certificate',
             label=_('Certificate'),
             doc=_('Base-64 encoded host certificate'),
@@ -690,9 +690,8 @@ class host_add(LDAPCreate):
                 entropy_bits=TMP_PWD_ENTROPY_BITS)
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
-        certs = options.get('usercertificate', [])
-        certs_der = [x509.normalize_certificate(c) for c in certs]
-        entry_attrs['usercertificate'] = certs_der
+
+        entry_attrs['usercertificate'] = options.get('usercertificate', [])
         entry_attrs['managedby'] = dn
         entry_attrs['objectclass'].append('ieee802device')
         entry_attrs['objectclass'].append('ipasshhost')
@@ -895,7 +894,6 @@ class host_mod(LDAPUpdate):
 
         # verify certificates
         certs = entry_attrs.get('usercertificate') or []
-        certs_der = [x509.normalize_certificate(c) for c in certs]
 
         # revoke removed certificates
         ca_is_enabled = self.api.Command.ca_is_enabled()['result']
@@ -905,14 +903,13 @@ class host_mod(LDAPUpdate):
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
             old_certs = entry_attrs_old.get('usercertificate', [])
-            old_certs_der = [x509.normalize_certificate(c) for c in old_certs]
-            removed_certs_der = set(old_certs_der) - set(certs_der)
+            removed_certs_der = set(old_certs) - set(certs)
             for der in removed_certs_der:
                 rm_certs = api.Command.cert_find(certificate=der)['result']
                 revoke_certs(rm_certs)
 
         if certs:
-            entry_attrs['usercertificate'] = certs_der
+            entry_attrs['usercertificate'] = certs
 
         if options.get('random'):
             entry_attrs['userpassword'] = ipa_generate_password(
@@ -1344,7 +1341,8 @@ class host_remove_cert(LDAPRemoveAttributeViaOption):
         assert isinstance(dn, DN)
 
         for cert in options.get('usercertificate', []):
-            revoke_certs(api.Command.cert_find(certificate=cert)['result'])
+            revoke_certs(api.Command.cert_find(
+                certificate=cert.public_bytes(x509_Encoding.DER))['result'])
 
         return dn
 
