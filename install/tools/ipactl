@@ -138,7 +138,8 @@ def version_check():
     try:
         installutils.check_version()
     except (installutils.UpgradeMissingVersionError,
-            installutils.UpgradeDataOlderVersionError):
+            installutils.UpgradeDataOlderVersionError) as exc:
+        emit_err("IPA version error: %s" % exc)
         emit_err("Upgrade required: please run ipa-server-upgrade command")
         raise IpactlError("Aborting ipactl")
     except installutils.UpgradeVersionError as e:
