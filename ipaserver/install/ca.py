@@ -30,7 +30,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, certs
 from ipaserver.install.replication import replica_conn_check
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipapython.dn import DN
 
 from . import conncheck, dogtag
@@ -196,7 +196,7 @@ def install_check(standalone, replica_config, options):
                 cert = db.get_cert_from_db(nickname)
                 if not cert:
                     continue
-                subject = DN(x509.load_pem_x509_certificate(cert).subject)
+                subject = DN(cert.subject)
                 if subject == DN(options._ca_subject):
                     raise ScriptError(
                         "Certificate with subject %s is present in %s, "
