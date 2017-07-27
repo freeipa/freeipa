@@ -379,7 +379,7 @@ def validate_domain_name(domain_name, allow_underscore=False, allow_slash=False)
 
 def validate_zonemgr(zonemgr):
     assert isinstance(zonemgr, DNSName)
-    if any('@' in label for label in zonemgr.labels):
+    if any(b'@' in label for label in zonemgr.labels):
         raise ValueError(_('too many \'@\' characters'))
 
 
