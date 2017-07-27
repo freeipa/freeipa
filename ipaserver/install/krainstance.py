@@ -274,7 +274,7 @@ class KRAInstance(DogtagInstance):
             parentdir = os.path.dirname(paths.ADMIN_CERT_PATH)
             if not os.path.exists(parentdir):
                 os.makedirs(parentdir)
-            with open(paths.ADMIN_CERT_PATH, "w") as admin_path:
+            with open(paths.ADMIN_CERT_PATH, "wb") as admin_path:
                 admin_path.write(
                     base64.b64encode(cert.public_bytes(x509.Encoding.DER))
                 )
