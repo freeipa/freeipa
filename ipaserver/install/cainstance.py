@@ -581,7 +581,7 @@ class CAInstance(DogtagInstance):
 
         elif self.external == 2:
             cert_file = tempfile.NamedTemporaryFile()
-            with open(self.cert_file) as f:
+            with open(self.cert_file, 'rb') as f:
                 ext_cert = x509.load_unknown_x509_certificate(f.read())
             cert_file.write(ext_cert.public_bytes(x509.Encoding.PEM))
             cert_file.flush()
