@@ -61,7 +61,7 @@ PEM = 0
 DER = 1
 
 PEM_REGEX = re.compile(
-    r'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----',
+    b'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----',
     re.DOTALL)
 
 EKU_SERVER_AUTH = '1.3.6.1.5.5.7.3.1'
