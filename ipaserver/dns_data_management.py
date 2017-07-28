@@ -52,6 +52,8 @@ IPA_DEFAULT_NTP_SRV_REC = (
     (DNSName("_ntp._udp"), 123),
 )
 
+CA_RECORDS_DNS_TIMEOUT = 30  # timeout in seconds
+
 
 class IPADomainIsNotManagedByIPAError(Exception):
     pass
@@ -131,7 +133,7 @@ class IPASystemRecords(object):
         assert isinstance(hostname, DNSName) and hostname.is_absolute()
         r_name = DNSName('ipa-ca') + self.domain_abs
         rrsets = []
-        end_time = time() + 120  # timeout in seconds
+        end_time = time() + CA_RECORDS_DNS_TIMEOUT
         while time() < end_time:
             try:
                 rrsets = resolve_rrsets(hostname, (rdatatype.A, rdatatype.AAAA))
