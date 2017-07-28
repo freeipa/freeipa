@@ -162,7 +162,7 @@ def profile_ca(builder, ca_nick, ca):
 
 def profile_server(builder, ca_nick, ca,
                    warp=datetime.timedelta(days=0), dns_name=None,
-                   badusage=False):
+                   badusage=False, wildcard=False):
     now = datetime.datetime.utcnow() + warp
 
     builder = builder.not_valid_before(now)
@@ -202,6 +202,16 @@ def profile_server(builder, ca_nick, ca,
                 decipher_only=False
             ),
             critical=False
+        )
+
+    if wildcard:
+        names = [x509.DNSName(u'*.' + domain)]
+        server_split = server1.split('.', 1)
+        if len(server_split) == 2 and domain != server_split[1]:
+            names.append(x509.DNSName(u'*.' + server_split[1]))
+        builder = builder.add_extension(
+            x509.SubjectAlternativeName(names),
+            critical=False,
         )
 
     return builder
@@ -488,7 +498,7 @@ def gen_subtree(nick_base, org, ca=None):
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
                 x509.NameAttribute(NameOID.COMMON_NAME, u'*.' + domain)
              ]),
-             subca
+             subca, wildcard=True
              )
     gen_server_certs(u'server', server1, org, subca)
     gen_server_certs(u'replica', server2, org, subca)
