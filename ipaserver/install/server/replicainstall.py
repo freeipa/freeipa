@@ -1116,7 +1116,7 @@ def promote_check(installer):
     installer._remote_api = remote_api
 
     with rpc_client(remote_api) as client:
-        check_remote_version(client, api.env.version)
+        check_remote_version(client, parse_version(api.env.version))
         check_remote_fips_mode(client, api.env.fips_mode)
 
     conn = remote_api.Backend.ldap2
