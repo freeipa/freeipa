@@ -875,6 +875,7 @@ install/tools/ipa-compat-manage
 install/tools/ipa-dns-install
 install/tools/ipa-managed-entries
 install/tools/ipa-nis-manage
+install/tools/ipa-replica-prepare
 install/tools/ipactl
 '
 for P in $PY3_SUBST_PATHS; do
