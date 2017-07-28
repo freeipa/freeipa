@@ -131,6 +131,9 @@ class otptoken_add_yubikey(Command):
             raise NotFound(reason="No YubiKey found: %s" % e.strerror)
         except yubico.yubikey.YubiKeyError as e:
             raise NotFound(reason=e.reason)
+        except ValueError as e:
+            raise NotFound(reason=str(e) + ". Please install 'libyubikey' "
+                           "and 'libusb' packages first.")
 
         assert yk.version_num() >= (2, 1)
 
