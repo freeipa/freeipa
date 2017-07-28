@@ -380,7 +380,7 @@ class CertDB(object):
             self.issue_server_cert(self.certreq_fname, self.certder_fname)
             self.import_cert(self.certder_fname, nickname)
 
-            with open(self.certder_fname, "r") as f:
+            with open(self.certder_fname, "rb") as f:
                 dercert = f.read()
                 return x509.load_der_x509_certificate(dercert)
         finally:
@@ -459,7 +459,7 @@ class CertDB(object):
 
         # Write the certificate to a file. It will be imported in a later
         # step. This file will be read later to be imported.
-        with open(cert_fname, "w") as f:
+        with open(cert_fname, "wb") as f:
             f.write(cert)
 
     def issue_signing_cert(self, certreq_fname, cert_fname):
@@ -503,7 +503,7 @@ class CertDB(object):
 
         # Write the certificate to a file. It will be imported in a later
         # step. This file will be read later to be imported.
-        with open(cert_fname, "w") as f:
+        with open(cert_fname, "wb") as f:
             f.write(cert)
 
     def add_cert(self, cert, nick, flags):
