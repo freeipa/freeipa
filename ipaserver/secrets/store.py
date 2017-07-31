@@ -84,14 +84,14 @@ class NSSWrappedCertDB(DBMAPHandler):
                 paths.CERTUTIL, '-d', self.nssdb_path,
                 '-L', '-n', self.target_nick,
                 '-a', '-o', certificate_file])
-            with open(wrapped_key_file, 'r') as f:
+            with open(wrapped_key_file, 'rb') as f:
                 wrapped_key = f.read()
             with open(certificate_file, 'r') as f:
                 certificate = f.read()
         finally:
             shutil.rmtree(tdir)
         return json_encode({
-            'wrapped_key': b64encode(wrapped_key),
+            'wrapped_key': b64encode(wrapped_key).decode('ascii'),
             'certificate': certificate})
 
 
@@ -113,11 +113,11 @@ class NSSCertDB(DBMAPHandler):
         tdir = tempfile.mkdtemp(dir=paths.TMP)
         try:
             nsspwfile = os.path.join(tdir, 'nsspwfile')
-            with open(nsspwfile, 'w+') as f:
+            with open(nsspwfile, 'w') as f:
                 f.write(self.nssdb_password)
             pk12pwfile = os.path.join(tdir, 'pk12pwfile')
             password = ipautil.ipa_generate_password()
-            with open(pk12pwfile, 'w+') as f:
+            with open(pk12pwfile, 'w') as f:
                 f.write(password)
             pk12file = os.path.join(tdir, 'pk12file')
             ipautil.run([paths.PK12UTIL,
@@ -126,25 +126,25 @@ class NSSCertDB(DBMAPHandler):
                          "-n", self.nickname,
                          "-k", nsspwfile,
                          "-w", pk12pwfile])
-            with open(pk12file, 'r') as f:
+            with open(pk12file, 'rb') as f:
                 data = f.read()
         finally:
             shutil.rmtree(tdir)
         return json_encode({'export password': password,
-                            'pkcs12 data': b64encode(data)})
+                            'pkcs12 data': b64encode(data).decode('ascii')})
 
     def import_key(self, value):
         v = json_decode(value)
         tdir = tempfile.mkdtemp(dir=paths.TMP)
         try:
             nsspwfile = os.path.join(tdir, 'nsspwfile')
-            with open(nsspwfile, 'w+') as f:
+            with open(nsspwfile, 'w') as f:
                 f.write(self.nssdb_password)
             pk12pwfile = os.path.join(tdir, 'pk12pwfile')
-            with open(pk12pwfile, 'w+') as f:
+            with open(pk12pwfile, 'w') as f:
                 f.write(v['export password'])
             pk12file = os.path.join(tdir, 'pk12file')
-            with open(pk12file, 'w+') as f:
+            with open(pk12file, 'wb') as f:
                 f.write(b64decode(v['pkcs12 data']))
             ipautil.run([paths.PK12UTIL,
                          "-d", self.nssdb_path,
@@ -176,12 +176,14 @@ class DMLDAP(DBMAPHandler):
                           attrlist=['nsslapd-rootpw'])
         if len(r) != 1:
             raise RuntimeError('DM Hash not found!')
-        return json_encode({'dmhash': r[0][1]['nsslapd-rootpw'][0]})
+        rootpw = r[0][1]['nsslapd-rootpw'][0]
+        return json_encode({'dmhash': rootpw.decode('ascii')})
 
     def import_key(self, value):
         v = json_decode(value)
+        rootpw = v['dmhash'].encode('ascii')
         conn = self.ldap.connect()
-        mods = [(ldap.MOD_REPLACE, 'nsslapd-rootpw', str(v['dmhash']))]
+        mods = [(ldap.MOD_REPLACE, 'nsslapd-rootpw', rootpw)]
         conn.modify_s('cn=config', mods)
 
 
@@ -208,12 +210,12 @@ class PEMFileHandler(DBMAPHandler):
 
         try:
             ipautil.run(args, nolog=(password, ))
-            with open(tmpfile, 'r') as f:
+            with open(tmpfile, 'rb') as f:
                 data = f.read()
         finally:
             os.remove(tmpfile)
         return json_encode({'export password': password,
-                            'pkcs12 data': b64encode(data)})
+                            'pkcs12 data': b64encode(data).decode('ascii')})
 
     def import_key(self, value):
         v = json_decode(value)
@@ -221,7 +223,8 @@ class PEMFileHandler(DBMAPHandler):
         password = v['export password']
         try:
             _fd, tmpdata = tempfile.mkstemp(dir=paths.TMP)
-            with open(tmpdata, 'w') as f:
+            os.close(_fd)
+            with open(tmpdata, 'wb') as f:
                 f.write(data)
 
             # get the certificate from the file
@@ -291,7 +294,7 @@ class IPASecStore(CSStore):
             key_handler = self._get_handler(key)
             value = key_handler.export_key()
         except Exception as e:  # pylint: disable=broad-except
-            log_error('Error retrievieng key "%s": %s' % (key, str(e)))
+            log_error('Error retrieving key "%s": %s' % (key, str(e)))
             value = None
         return value
 

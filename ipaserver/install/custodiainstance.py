@@ -180,7 +180,7 @@ class CustodiaInstance(SimpleServiceInstance):
                 with open(pk12pwfile, 'w+') as f:
                     f.write(v['export password'])
                 pk12file = os.path.join(tmpnssdir, 'pk12file')
-                with open(pk12file, 'w+') as f:
+                with open(pk12file, 'wb') as f:
                     f.write(b64decode(v['pkcs12 data']))
                 ipautil.run([paths.PK12UTIL,
                              '-d', tmpdb.secdir,
