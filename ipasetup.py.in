@@ -73,6 +73,7 @@ PACKAGE_VERSION = {
     'ipaplatform': 'ipaplatform == {}'.format(VERSION),
     'ipapython': 'ipapython == {}'.format(VERSION),
     'ipaserver': 'ipaserver == {}'.format(VERSION),
+    'jwcrypto': 'jwcrpyto >= 0.4.2',
     'kdcproxy': 'kdcproxy >= 0.3',
     'netifaces': 'netifaces >= 0.10.4',
     'pyldap': 'pyldap >= 2.4.15',

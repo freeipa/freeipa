@@ -191,7 +191,8 @@ BuildRequires:  python2-yubico
 BuildRequires:  pki-base-python2
 BuildRequires:  python-pytest-multihost
 BuildRequires:  python-pytest-sourceorder
-BuildRequires:  python-jwcrypto
+# 0.4.2: Py3 fix https://bugzilla.redhat.com/show_bug.cgi?id=1476150
+BuildRequires:  python-jwcrypto >= 0.4.2
 # 0.3: sd_notify (https://pagure.io/freeipa/issue/5825)
 BuildRequires:  python2-custodia >= 0.3.1
 BuildRequires:  dbus-python
@@ -228,7 +229,8 @@ BuildRequires:  python3-yubico
 BuildRequires:  pki-base-python3
 BuildRequires:  python3-pytest-multihost
 BuildRequires:  python3-pytest-sourceorder
-BuildRequires:  python3-jwcrypto
+# 0.4.2: Py3 fix https://bugzilla.redhat.com/show_bug.cgi?id=1476150
+BuildRequires:  python3-jwcrypto >= 0.4.2
 # 0.3: sd_notify (https://pagure.io/freeipa/issue/5825)
 BuildRequires:  python3-custodia >= 0.3.1
 BuildRequires:  python3-dbus
@@ -679,7 +681,8 @@ Requires: python2-sss-murmur
 Requires: dbus-python
 Requires: python2-setuptools
 Requires: python-six
-Requires: python-jwcrypto
+# 0.4.2: Py3 fix https://bugzilla.redhat.com/show_bug.cgi?id=1476150
+Requires: python-jwcrypto >= 0.4.2
 Requires: python2-cffi
 Requires: python-ldap >= 2.4.15
 Requires: python2-requests
@@ -727,7 +730,8 @@ Requires: python3-sss-murmur
 Requires: python3-dbus
 Requires: python3-setuptools
 Requires: python3-six
-Requires: python3-jwcrypto
+# 0.4.2: Py3 fix https://bugzilla.redhat.com/show_bug.cgi?id=1476150
+Requires: python3-jwcrypto >= 0.4.2
 Requires: python3-cffi
 Requires: python3-pyldap >= 2.4.15
 Requires: python3-requests
