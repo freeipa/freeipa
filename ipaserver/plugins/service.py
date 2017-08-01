@@ -623,8 +623,6 @@ class service_add(LDAPCreate):
 
         self.obj.validate_ipakrbauthzdata(entry_attrs)
 
-        entry_attrs['usercertificate'] = options.get('usercertificate', [])
-
         if not options.get('force', False):
             # We know the host exists if we've gotten this far but we
             # really want to discourage creating services for hosts that
