@@ -691,7 +691,6 @@ class host_add(LDAPCreate):
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
 
-        entry_attrs['usercertificate'] = options.get('usercertificate', [])
         entry_attrs['managedby'] = dn
         entry_attrs['objectclass'].append('ieee802device')
         entry_attrs['objectclass'].append('ipasshhost')
