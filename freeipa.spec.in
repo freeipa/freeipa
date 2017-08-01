@@ -933,6 +933,7 @@ install/tools/ipa-cacert-manage
 install/tools/ipa-compat-manage
 install/tools/ipa-csreplica-manage
 install/tools/ipa-custodia
+install/tools/ipa-custodia-check
 install/tools/ipa-dns-install
 install/tools/ipa-httpd-kdcproxy
 install/tools/ipa-kra-install
@@ -1322,6 +1323,7 @@ fi
 %{_libexecdir}/certmonger/ipa-server-guard
 %dir %{_libexecdir}/ipa
 %{_libexecdir}/ipa/ipa-custodia
+%{_libexecdir}/ipa/ipa-custodia-check
 %{_libexecdir}/ipa/ipa-dnskeysyncd
 %{_libexecdir}/ipa/ipa-dnskeysync-replica
 %{_libexecdir}/ipa/ipa-ods-exporter
