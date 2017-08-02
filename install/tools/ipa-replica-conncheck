@@ -346,9 +346,9 @@ class PortResponder(threading.Thread):
                 sock.listen(1)
 
             logger.debug('%d %s: Started listening', port, proto)
-        except socket.error as e:
+        except socket.error:
             logger.warning('%d %s: Failed to bind', port, proto)
-            logger.debug("%s", traceback.format_exc(e))
+            logger.debug("%s", traceback.format_exc())
         else:
             self._sockets.append(sock)
 
