@@ -298,7 +298,8 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 obj += "trusted: true\n"
             elif trusted is False:
                 obj += "x-distrusted: true\n"
-            obj += "{pem}\n\n".format(pem=cert.public_bytes(x509.Encoding.PEM))
+            obj += "{pem}\n\n".format(
+                pem=cert.public_bytes(x509.Encoding.PEM).encode('ascii'))
             f.write(obj)
 
             if ext_key_usage is not None and public_key_info not in has_eku:
