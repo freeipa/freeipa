@@ -558,19 +558,19 @@ class server_del(LDAPDelete):
         conn = self.Backend.ldap2
         env = self.api.env
 
-        master_principal = "{}@{}".format(master, env.realm)
+        master_principal = "{}@{}".format(master, env.realm).encode('utf-8')
 
         # remove replica memberPrincipal from s4u2proxy configuration
         s4u2proxy_subtree = DN(env.container_s4u2proxy,
                                env.basedn)
         dn1 = DN(('cn', 'ipa-http-delegation'), s4u2proxy_subtree)
-        member_principal1 = "HTTP/{}".format(master_principal)
+        member_principal1 = b"HTTP/%s" % master_principal
 
         dn2 = DN(('cn', 'ipa-ldap-delegation-targets'), s4u2proxy_subtree)
-        member_principal2 = "ldap/{}".format(master_principal)
+        member_principal2 = b"ldap/%s" % master_principal
 
         dn3 = DN(('cn', 'ipa-cifs-delegation-targets'), s4u2proxy_subtree)
-        member_principal3 = "cifs/{}".format(master_principal)
+        member_principal3 = b"cifs/%s" % master_principal
 
         for (dn, member_principal) in ((dn1, member_principal1),
                                        (dn2, member_principal2),
