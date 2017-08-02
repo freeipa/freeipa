@@ -380,7 +380,8 @@ def port_check(host, port_list):
         try:
             port_open = ipautil.host_port_open(
                 host, port.port, port.port_type,
-                socket_timeout=CONNECT_TIMEOUT, log_errors=True)
+                socket_timeout=CONNECT_TIMEOUT, log_errors=True,
+                check_all_ifaces=True)
         except socket.gaierror:
             raise RuntimeError("Port check failed! Unable to resolve host name '%s'" % host)
         if port_open:
