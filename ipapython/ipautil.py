@@ -1224,14 +1224,19 @@ def wait_for_open_ports(host, ports, timeout=0):
     op_timeout = time.time() + timeout
 
     for port in ports:
+        root_logger.debug('waiting for port: %s', port)
+        log_error = True
         while True:
-            port_open = host_port_open(host, port)
+            port_open = host_port_open(host, port, log_errors=log_error)
+            log_error = False  # Log only first err so that the log is readable
 
             if port_open:
+                root_logger.debug('SUCCESS: port: %s', port)
                 break
             if timeout and time.time() > op_timeout: # timeout exceeded
                 raise socket.timeout("Timeout exceeded")
             time.sleep(1)
+
 
 def wait_for_open_socket(socket_name, timeout=0):
     """
