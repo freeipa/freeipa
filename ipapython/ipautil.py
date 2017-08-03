@@ -960,14 +960,16 @@ def user_input(prompt, default = None, allow_empty = True):
 
 
 def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
-                   socket_timeout=None, log_errors=False):
+                   socket_timeout=None, log_errors=False,
+                   check_all_ifaces=False):
     """
     host: either hostname or IP address;
           if hostname is provided, port MUST be open on ALL resolved IPs
 
     returns True is port is open, False otherwise
     """
-    port_open = True
+    all_open = True
+    some_open = False
 
     # port has to be open on ALL resolved IPs
     for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket_type):
@@ -984,9 +986,10 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
             if socket_type == socket.SOCK_DGRAM:
                 s.send('')
                 s.recv(512)
-        except socket.error:
-            port_open = False
 
+            some_open = True
+        except socket.error:
+            all_open = False
             if log_errors:
                 msg = ('Failed to connect to port %(port)d %(proto)s on '
                        '%(addr)s' % dict(port=port,
@@ -1003,7 +1006,7 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
             if s is not None:
                 s.close()
 
-    return port_open
+    return all_open if check_all_ifaces else some_open
 
 
 def reverse_record_exists(ip_address):
