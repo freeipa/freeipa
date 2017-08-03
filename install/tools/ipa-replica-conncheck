@@ -46,6 +46,8 @@ import distutils.spawn
 from ipaplatform.paths import paths
 import gssapi
 from cryptography.hazmat.primitives import serialization
+import logging
+
 
 CONNECT_TIMEOUT = 5
 RESPONDER = None
@@ -378,11 +380,16 @@ class PortResponder(threading.Thread):
 def port_check(host, port_list):
     ports_failed = []
     ports_udp_warning = []  # conncheck could not verify that port is open
+    log_level = {
+        SOCK_DGRAM: logging.WARNING,
+        SOCK_STREAM: logging.ERROR
+    }
     for port in port_list:
         try:
             port_open = ipautil.host_port_open(
                 host, port.port, port.port_type,
-                socket_timeout=CONNECT_TIMEOUT, log_errors=True)
+                socket_timeout=CONNECT_TIMEOUT, log_errors=True,
+                log_level=log_level[port.port_type])
         except socket.gaierror:
             raise RuntimeError("Port check failed! Unable to resolve host name '%s'" % host)
         if port_open:
