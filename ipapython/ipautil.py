@@ -960,7 +960,8 @@ def user_input(prompt, default = None, allow_empty = True):
 
 
 def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
-                   socket_timeout=None, log_errors=False):
+                   socket_timeout=None, log_errors=False,
+                   log_level=logging.DEBUG):
     """
     host: either hostname or IP address;
           if hostname is provided, port MUST be open on ALL resolved IPs
@@ -986,19 +987,12 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
                 s.recv(512)
         except socket.error:
             port_open = False
-
             if log_errors:
-                msg = ('Failed to connect to port %(port)d %(proto)s on '
+                msg = ('Failed to connect to port %(port)s %(proto)s on '
                        '%(addr)s' % dict(port=port,
                                          proto=PROTOCOL_NAMES[socket_type],
                                          addr=sa[0]))
-
-                # Do not log udp failures as errors (to be consistent with
-                # the rest of the code that checks for open ports)
-                if socket_type == socket.SOCK_DGRAM:
-                    logger.warning('%s', msg)
-                else:
-                    logger.error('%s', msg)
+                logger.log(log_level, msg)
         finally:
             if s is not None:
                 s.close()
