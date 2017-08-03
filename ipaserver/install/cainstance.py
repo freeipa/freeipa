@@ -462,9 +462,6 @@ class CAInstance(DogtagInstance):
         os.close(cfg_fd)
         pent = pwd.getpwnam(self.service_user)
         os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
-        self.tmp_agent_db = tempfile.mkdtemp(
-                prefix="tmp-", dir=paths.VAR_LIB_IPA)
-        self.tmp_agent_pwd = ipautil.ipa_generate_password()
 
         # Create CA configuration
         config = RawConfigParser()
@@ -484,9 +481,6 @@ class CAInstance(DogtagInstance):
                 ipautil.format_netloc(api.env.domain)))
 
         # Client security database
-        config.set("CA", "pki_client_database_dir", self.tmp_agent_db)
-        config.set("CA", "pki_client_database_password", self.tmp_agent_pwd)
-        config.set("CA", "pki_client_database_purge", "False")
         config.set("CA", "pki_client_pkcs12_password", self.admin_password)
 
         # Administrator
@@ -614,8 +608,7 @@ class CAInstance(DogtagInstance):
                 self, cfg_file,
                 nolog_list=(self.dm_password,
                             self.admin_password,
-                            pki_pin,
-                            self.tmp_agent_pwd)
+                            pki_pin)
             )
         finally:
             os.remove(cfg_file)
@@ -807,13 +800,20 @@ class CAInstance(DogtagInstance):
             x509.write_certificate_list(certlist, path)
 
     def __request_ra_certificate(self):
-        # create a temp file storing the pwd
-        agent_file = tempfile.NamedTemporaryFile(
-            mode="w", dir=paths.VAR_LIB_IPA, delete=False)
-        agent_file.write(self.tmp_agent_pwd)
-        agent_file.close()
+        """
+        Request the IPA RA certificate from dogtag.
 
-        # create a temp pem file storing the CA chain
+        dogtag automatically generates an admin certificate that
+        in a usual deployment would be used in the UI to handle
+        administrative duties. IPA does not use this certificate
+        except as a bootstrap to generate the RA.
+
+        To do this it bends over backwards a bit by modifying the
+        way typical certificates are retrieved using certmonger by
+        forcing it to call dogtag-submit directly.
+        """
+
+        # create a temp PEM file storing the CA chain
         chain_file = tempfile.NamedTemporaryFile(
             mode="w", dir=paths.VAR_LIB_IPA, delete=False)
         chain_file.close()
@@ -829,14 +829,31 @@ class CAInstance(DogtagInstance):
              "-out", chain_file.name,
              ], stdin=data, capture_output=False)
 
+        # CA agent cert in PEM form
+        agent_cert = tempfile.NamedTemporaryFile(
+            mode="w", dir=paths.VAR_LIB_IPA, delete=False)
+        agent_cert.close()
+
+        # CA agent key in PEM form
+        agent_key = tempfile.NamedTemporaryFile(
+            mode="w", dir=paths.VAR_LIB_IPA, delete=False)
+        agent_key.close()
+
+        certs.install_pem_from_p12(paths.DOGTAG_ADMIN_P12,
+                                   self.dm_password,
+                                   agent_cert.name)
+        certs.install_key_from_p12(paths.DOGTAG_ADMIN_P12,
+                                   self.dm_password,
+                                   agent_key.name)
+
         agent_args = [paths.CERTMONGER_DOGTAG_SUBMIT,
-                      "--dbdir", self.tmp_agent_db,
-                      "--nickname", "ipa-ca-agent",
                       "--cafile", chain_file.name,
                       "--ee-url", 'http://%s:8080/ca/ee/ca/' % self.fqdn,
                       "--agent-url",
                       'https://%s:8443/ca/agent/ca/' % self.fqdn,
-                      "--sslpinfile", agent_file.name]
+                      "--certfile", agent_cert.name,
+                      "--keyfile", agent_key.name, ]
+
         helper = " ".join(agent_args)
 
         # configure certmonger renew agent to use temporary agent cert
@@ -864,8 +881,8 @@ class CAInstance(DogtagInstance):
             # we can restore the helper parameters
             certmonger.modify_ca_helper(
                 ipalib.constants.RENEWAL_CA_NAME, old_helper)
-            # remove the pwdfile
-            for f in (agent_file, chain_file):
+            # remove any temporary files
+            for f in (chain_file, agent_cert, agent_key):
                 try:
                     os.remove(f.name)
                 except OSError:
