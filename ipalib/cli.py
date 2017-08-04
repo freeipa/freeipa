@@ -54,7 +54,9 @@ from ipalib.constants import CLI_TAB, LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.parameters import File, Str, Enum, Any, Flag
 from ipalib.text import _
 from ipalib import api  # pylint: disable=unused-import
+from ipalib.util import check_client_configuration
 from ipapython.dnsutil import DNSName
+from ipapython.admintool import ScriptError
 
 import datetime
 
@@ -1343,6 +1345,12 @@ def run(api):
     error = None
     try:
         (_options, argv) = api.bootstrap_with_global_options(context='cli')
+
+        try:
+            check_client_configuration()
+        except ScriptError as e:
+            sys.exit(e)
+
         for klass in cli_plugins:
             api.add_plugin(klass)
         api.finalize()
