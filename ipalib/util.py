@@ -54,12 +54,15 @@ from ipalib.constants import (
     TLS_VERSIONS, TLS_VERSION_MINIMAL, TLS_HIGH_CIPHERS
 )
 from ipalib.text import _
+# pylint: disable=ipa-forbidden-import
+from ipalib.install import sysrestore
+from ipaplatform.paths import paths
+# pylint: enable=ipa-forbidden-import
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
-from ipapython.dnsutil import DNSName
-from ipapython.dnsutil import resolve_ip_addresses
+from ipapython.dnsutil import DNSName, resolve_ip_addresses
 from ipapython.ipa_log_manager import root_logger
-
+from ipapython.admintool import ScriptError
 
 if six.PY3:
     unicode = str
@@ -1071,6 +1074,15 @@ def ensure_krbcanonicalname_set(ldap, entry_attrs):
     old_entry.pop('objectclass', None)
 
     entry_attrs.update(old_entry)
+
+
+def check_client_configuration():
+    """
+    Check if IPA client is configured on the system.
+    """
+    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+    if not fstore.has_files() and not os.path.exists(paths.IPA_DEFAULT_CONF):
+        raise ScriptError('IPA client is not configured on this system')
 
 
 def check_principal_realm_in_trust_namespace(api_instance, *keys):

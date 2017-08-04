@@ -33,6 +33,7 @@ from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipalib import api, errors, x509
 from ipalib.constants import IPA_CA_NICKNAME, RENEWAL_CA_NAME
+from ipalib.util import check_client_configuration
 
 
 class CertUpdate(admintool.AdminTool):
@@ -47,11 +48,7 @@ class CertUpdate(admintool.AdminTool):
         super(CertUpdate, self).validate_options(needs_root=True)
 
     def run(self):
-        fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-        if (not fstore.has_files() and
-            not os.path.exists(paths.IPA_DEFAULT_CONF)):
-            raise admintool.ScriptError(
-                "IPA client is not configured on this system.")
+        check_client_configuration()
 
         api.bootstrap(context='cli_installer', confdir=paths.ETC_IPA)
         api.finalize()
