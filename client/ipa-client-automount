@@ -46,6 +46,7 @@ from ipaclient.install import ipachangeconf, ipadiscovery
 from ipalib import api, errors
 from ipalib.install import sysrestore
 from ipalib.install.kinit import kinit_keytab
+from ipalib.util import check_client_configuration
 from ipapython import ipautil
 from ipapython.ipa_log_manager import standard_logging_setup
 from ipapython.dn import DN
@@ -53,6 +54,8 @@ from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform import services
 from ipaplatform.paths import paths
+from ipapython.admintool import ScriptError
+
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -376,11 +379,13 @@ def configure_nfs(fstore, statestore):
                      rpcgssd.service_name, str(e))
 
 def main():
+    try:
+        check_client_configuration()
+    except ScriptError as e:
+        sys.exit(e)
 
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
-    if not fstore.has_files() and not os.path.exists(paths.IPA_DEFAULT_CONF):
-        sys.exit('IPA client is not configured on this system.\n')
 
     options, _args = parse_options()
 
