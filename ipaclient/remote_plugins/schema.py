@@ -427,6 +427,7 @@ class Schema(object):
         except KeyError as e:
             logger.warning("Failed to fetch schema: %s", e)
             raise NotAvailable()
+        self._help = self._generate_help(self._dict)
 
         return (fp, ttl,)
 
