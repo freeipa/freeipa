@@ -17,9 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
+import base64
 
 from ipatests.pytest_plugins.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
+
+
+EXTERNAL_CA_KEY_ID = base64.b64encode(os.urandom(64))
+IPA_CA_KEY_ID = base64.b64encode(os.urandom(64))
 
 
 class TestExternalCA(IntegrationTest):
@@ -71,8 +76,9 @@ class TestExternalCA(IntegrationTest):
             '-m', '0',
             '-v', '60',
             '-z', noisefile,
-            '-2', '-1', '-5'
-        ], stdin_text='5\n9\nn\ny\n10\ny\n5\n6\n7\n9\nn\n')
+            '-2', '-1', '-5', '--extSKID'
+        ], stdin_text='5\n9\nn\ny\n10\ny\n{}\nn\n5\n6\n7\n9\nn\n'
+                      ''.format(EXTERNAL_CA_KEY_ID))
 
         # Sign IPA cert request using the external CA
         self.master.run_command([
@@ -82,11 +88,12 @@ class TestExternalCA(IntegrationTest):
             '-c', 'external',
             '-m', '1',
             '-v', '60',
-            '-2', '-1', '-5',
+            '-2', '-1', '-3', '--extSKID',
             '-i', '/root/ipa.csr',
             '-o', external_cert_file,
             '-a'
-        ], stdin_text='0\n1\n5\n9\ny\ny\n\ny\n5\n6\n7\n9\nn\n')
+        ], stdin_text='0\n1\n5\n9\ny\ny\n\ny\ny\n{}\n-1\n\nn\n{}\nn\n'
+                      ''.format(EXTERNAL_CA_KEY_ID, IPA_CA_KEY_ID))
 
         # Export external CA file
         self.master.run_command(
