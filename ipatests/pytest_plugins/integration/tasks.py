@@ -1159,7 +1159,9 @@ def install_kra(host, domain_level=None, first_instance=False, raiseonerr=True):
     if domain_level == DOMAIN_LEVEL_0 and not first_instance:
         replica_file = get_replica_filename(host)
         command.append(replica_file)
-    return host.run_command(command, raiseonerr=raiseonerr)
+    result = host.run_command(command, raiseonerr=raiseonerr)
+    setup_server_logs_collecting(host)
+    return result
 
 
 def install_ca(host, domain_level=None, first_instance=False, raiseonerr=True):
