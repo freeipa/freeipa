@@ -1568,8 +1568,22 @@ def __get_profile_config(profile_id):
         CRL_ISSUER='CN=Certificate Authority,o=ipaca',
         SUBJECT_DN_O=dsinstance.DsInstance().find_subject_base(),
     )
-    return ipautil.template_file(
-        '/usr/share/ipa/profiles/{}.cfg'.format(profile_id), sub_dict)
+
+    # To work around lack of proper profile upgrade system, we ship
+    # two versions of some profiles - one for new installs only, and
+    # the other for upgrading to LDAP-based profiles in an existing
+    # deployment.
+    #
+    # Select UPGRADE version if we are in the 'updates' API context
+    # and an upgrade-specific version of the profile exists.
+    #
+    profile_filename = '/usr/share/ipa/profiles/{}.cfg'.format(profile_id)
+    profile_upg_filename = \
+        '/usr/share/ipa/profiles/{}.UPGRADE.cfg'.format(profile_id)
+    if api.env.context == 'updates' and os.path.isfile(profile_upg_filename):
+        profile_filename = profile_upg_filename
+
+    return ipautil.template_file(profile_filename, sub_dict)
 
 def import_included_profiles():
     server_id = installutils.realm_to_serverid(api.env.realm)
