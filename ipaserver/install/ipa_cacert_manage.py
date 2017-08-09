@@ -310,7 +310,8 @@ class CACertManage(admintool.AdminTool):
         timeout = api.env.startup_timeout + 60
 
         self.log.debug("resubmitting certmonger request '%s'", self.request_id)
-        certmonger.resubmit_request(self.request_id, ca=ca, profile=profile)
+        certmonger.resubmit_request(self.request_id, ca=ca, profile=profile,
+                                    is_ca=True)
         try:
             state = certmonger.wait_for_request(self.request_id, timeout)
         except RuntimeError:

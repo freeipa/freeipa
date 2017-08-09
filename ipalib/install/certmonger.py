@@ -519,16 +519,25 @@ def modify(request_id, ca=None, profile=None):
         request.obj_if.modify(update)
 
 
-def resubmit_request(request_id, ca=None, profile=None):
+def resubmit_request(request_id, ca=None, profile=None, is_ca=False):
+    """
+    :param request_id: the certmonger numeric request ID
+    :param ca: the nickname for the certmonger CA, e.g. IPA or SelfSign
+    :param profile: the dogtag template profile to use, e.g. SubCA
+    :param is_ca: boolean that if True adds the CA basic constraint
+    """
     request = _get_request({'nickname': request_id})
     if request:
-        if ca or profile:
+        if ca or profile or is_ca:
             update = {}
             if ca is not None:
                 cm = _certmonger()
                 update['CA'] = cm.obj_if.find_ca_by_nickname(ca)
             if profile is not None:
                 update['template-profile'] = profile
+            if is_ca:
+                update['template-is-ca'] = True
+                update['template-ca-path-length'] = -1  # no path length
             request.obj_if.modify(update)
         request.obj_if.resubmit()
 
