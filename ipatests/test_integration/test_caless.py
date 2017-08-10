@@ -1507,6 +1507,7 @@ class TestCertinstall(CALessBase):
 
 
 class TestPKINIT(CALessBase):
+    """Install master and replica with PKINIT"""
     num_replicas = 1
 
     @classmethod
@@ -1528,3 +1529,41 @@ class TestPKINIT(CALessBase):
                                       pkinit_pin=_DEFAULT)
         assert result.returncode == 0
         self.verify_installation()
+
+
+class TestServerReplicaCALessToCAFull(CALessBase):
+    """
+    Test server and replica caless to cafull scenario:
+    Master (caless) / replica (caless) >> master (ca) / replica (ca)
+    """
+    num_replicas = 1
+
+    def test_install_caless_server_replica(self):
+        """Install CA-less master and replica"""
+
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
+
+        master = self.install_server()
+        assert master.returncode == 0
+
+        self.create_pkcs12('ca1/replica', filename='replica.p12')
+
+        replica = self.prepare_replica()
+        assert replica.returncode == 0
+
+    def test_server_ipa_ca_install(self):
+        """Install CA on master"""
+
+        ca_master = tasks.install_ca(self.master)
+        assert ca_master.returncode == 0
+        cert_update_master = self.master.run_command(['ipa-certupdate'])
+        assert cert_update_master.returncode == 0
+        cert_update_replica = self.replicas[0].run_command(['ipa-certupdate'])
+        assert cert_update_replica.returncode == 0
+
+    def test_replica_ipa_ca_install(self):
+        """Install CA on replica"""
+
+        ca_replica = tasks.install_ca(self.replicas[0])
+        assert ca_replica.returncode == 0
