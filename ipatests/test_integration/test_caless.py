@@ -1552,3 +1552,31 @@ class TestServerReplicaCALessToCAFull(CALessBase):
 
         ca_replica = tasks.install_ca(self.replicas[0])
         assert ca_replica.returncode == 0
+
+
+class TestReplicaCALessToCAFull(CALessBase):
+    """
+    Test replica caless to cafull when master stays caless scenario:
+    Master (caless) / replica (caless) >> replica (ca)
+    """
+    num_replicas = 1
+
+    def test_install_caless_server_replica(self):
+        """Install CA-less master and replica"""
+
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
+
+        master = self.install_server()
+        assert master.returncode == 0
+
+        self.create_pkcs12('ca1/replica', filename='replica.p12')
+
+        replica = self.prepare_replica()
+        assert replica.returncode == 0
+
+    def test_replica_ipa_ca_install(self):
+        """Install CA on replica (master caless)"""
+
+        ca_replica = tasks.install_ca(self.replicas[0])
+        assert ca_replica.returncode == 0
