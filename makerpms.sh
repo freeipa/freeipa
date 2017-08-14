@@ -26,4 +26,8 @@ test ! -f "Makefile" && ./configure --enable-silent-rules \
 	"$@"
 make rpms
 
+# Workaround to ignore re-generated *.po files in git repo
+# See https://pagure.io/freeipa/issue/6605
+git checkout po/*.po ||:
+
 popd
