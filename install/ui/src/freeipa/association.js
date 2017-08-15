@@ -1103,7 +1103,7 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
         var columns = that.columns.values;
         for (i=0; i<columns.length; i++) {
             column = columns[i];
-            column.link = spec.link;
+            if (column.primary_key) column.link = spec.link;
         }
 
         that.init_table(that.other_entity);
