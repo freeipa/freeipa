@@ -351,7 +351,8 @@ class DogtagInstance(service.Service):
                 cs_cfg,
                 directive,
                 # the cert must be only the base64 string without headers
-                base64.b64encode(cert.public_bytes(x509.Encoding.DER)),
+                (base64.b64encode(cert.public_bytes(x509.Encoding.DER))
+                 .decode('ascii')),
                 quotes=False,
                 separator='=')
 
