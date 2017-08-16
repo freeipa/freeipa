@@ -379,10 +379,10 @@ def retrieve_or_reuse_cert(**kwargs):
     if not nickname:
         return (REJECTED, "Nickname could not be determined")
 
-    cert = x509.load_pem_x509_certificate(
-        fix_pem(os.environ.get('CERTMONGER_CERTIFICATE'))) # TODO: the fix_pem somehow got there early, so making this comment way too long to get rid of it later
+    cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if not cert:
         return (REJECTED, "New certificate requests not supported")
+    cert = x509.load_pem_x509_certificate(fix_pem(cert.encode('ascii')))
 
     with ldap_connect() as conn:
         try:
