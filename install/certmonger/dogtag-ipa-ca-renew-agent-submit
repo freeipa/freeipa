@@ -314,7 +314,7 @@ def store_cert(**kwargs):
                 "Giving up. To retry storing the certificate, resubmit the "
                 "request with CA \"dogtag-ipa-ca-renew-agent-reuse\"")
 
-    return (ISSUED, cert)
+    return (ISSUED, cert.public_bytes(x509.Encoding.PEM).decode('ascii'))
 
 
 def request_and_store_cert(**kwargs):
