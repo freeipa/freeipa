@@ -281,8 +281,7 @@ def store_cert(**kwargs):
     cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if not cert:
         return (REJECTED, "New certificate requests not supported")
-    cert = x509.load_pem_x509_certificate(fix_pem(cert))
-    dercert = cert.public_bytes(x509.Encoding.DER)
+    cert = x509.load_pem_x509_certificate(fix_pem(cert.encode('ascii')))
 
     dn = DN(('cn', nickname), ('cn', 'ca_renewal'),
             ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
@@ -290,14 +289,14 @@ def store_cert(**kwargs):
         with ldap_connect() as conn:
             try:
                 entry = conn.get_entry(dn, ['usercertificate'])
-                entry['usercertificate'] = [dercert]
+                entry['usercertificate'] = [cert]
                 conn.update_entry(entry)
             except errors.NotFound:
                 entry = conn.make_entry(
                     dn,
                     objectclass=['top', 'pkiuser', 'nscontainer'],
                     cn=[nickname],
-                    usercertificate=[dercert])
+                    usercertificate=[cert])
                 conn.add_entry(entry)
             except errors.EmptyModlist:
                 pass
@@ -394,8 +393,7 @@ def retrieve_or_reuse_cert(**kwargs):
         except errors.NotFound:
             pass
         else:
-            cert = x509.load_der_x509_certificate(
-                entry.single_value['usercertificate'])
+            cert = entry.single_value['usercertificate']
 
     return (ISSUED, cert.public_bytes(x509.Encoding.PEM))
 
