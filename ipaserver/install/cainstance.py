@@ -1340,23 +1340,23 @@ def backup_config():
             "Dogtag must be stopped when creating backup of %s" % path)
     shutil.copy(path, path + '.ipabkp')
 
-def __update_entry_from_cert(make_filter, make_entry, dercert):
+def __update_entry_from_cert(make_filter, make_entry, cert):
     """
     Given a certificate and functions to make a filter based on the
     cert, and make a new entry based on the cert, update database
     accordingly.
 
-    ``make_filter``
+    :param make_filter:
         function that takes a certificate in DER format and
         returns an LDAP search filter
 
-    ``make_entry``
+    :param make_entry:
         function that takes a certificate in DER format and an
         LDAP entry, and returns the new state of the LDAP entry.
         Return the input unchanged to skip an entry.
 
-    ``dercert``
-        An X509.3 certificate in DER format
+    :param cert:
+        An IPACertificate object
 
     Logging is done via syslog.
 
@@ -1376,7 +1376,7 @@ def __update_entry_from_cert(make_filter, make_entry, dercert):
             conn = ldap2.ldap2(api)
             conn.connect(autobind=True)
 
-            db_filter = make_filter(dercert)
+            db_filter = make_filter(cert)
             try:
                 entries = conn.get_entries(base_dn, conn.SCOPE_SUBTREE, db_filter)
             except errors.NotFound:
@@ -1389,7 +1389,7 @@ def __update_entry_from_cert(make_filter, make_entry, dercert):
                     syslog.LOG_NOTICE, 'Updating entry %s' % str(entry.dn))
 
                 try:
-                    entry = make_entry(dercert, entry)
+                    entry = make_entry(cert, entry)
                     conn.update_entry(entry)
                 except errors.EmptyModlist:
                     pass
@@ -1420,13 +1420,12 @@ def __update_entry_from_cert(make_filter, make_entry, dercert):
     return True
 
 
-def update_people_entry(dercert):
+def update_people_entry(cert):
     """
     Update the userCerticate for an entry in the dogtag ou=People. This
     is needed when a certificate is renewed.
     """
-    def make_filter(dercert):
-        cert = x509.load_der_x509_certificate(dercert)
+    def make_filter(cert):
         subject = DN(cert.subject)
         issuer = DN(cert.issuer)
         return ldap2.ldap2.combine_filters(
@@ -1438,37 +1437,34 @@ def update_people_entry(dercert):
             ],
             ldap2.ldap2.MATCH_ALL)
 
-    def make_entry(dercert, entry):
-        cert = x509.load_der_x509_certificate(dercert)
+    def make_entry(cert, entry):
         serial_number = cert.serial_number
         subject = DN(cert.subject)
         issuer = DN(cert.issuer)
-        entry['usercertificate'].append(dercert)
+        entry['usercertificate'].append(cert)
         entry['description'] = '2;%d;%s;%s' % (serial_number, issuer, subject)
         return entry
 
-    return __update_entry_from_cert(make_filter, make_entry, dercert)
+    return __update_entry_from_cert(make_filter, make_entry, cert)
 
 
-def update_authority_entry(dercert):
+def update_authority_entry(cert):
     """
     Find the authority entry for the given cert, and update the
     serial number to match the given cert.
     """
-    def make_filter(dercert):
-        cert = x509.load_der_x509_certificate(dercert)
+    def make_filter(cert):
         subject = str(DN(cert.subject))
         return ldap2.ldap2.make_filter(
             dict(objectclass='authority', authoritydn=subject),
             rules=ldap2.ldap2.MATCH_ALL,
         )
 
-    def make_entry(dercert, entry):
-        cert = x509.load_der_x509_certificate(dercert)
+    def make_entry(cert, entry):
         entry['authoritySerial'] = cert.serial_number
         return entry
 
-    return __update_entry_from_cert(make_filter, make_entry, dercert)
+    return __update_entry_from_cert(make_filter, make_entry, cert)
 
 
 def ensure_ldap_profiles_container():
