@@ -983,7 +983,7 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
             s.connect(sa)
 
             if socket_type == socket.SOCK_DGRAM:
-                s.send('')
+                s.send(b'')
                 s.recv(512)
         except socket.error:
             port_open = False
