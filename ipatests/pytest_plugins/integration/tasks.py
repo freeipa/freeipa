@@ -1019,10 +1019,10 @@ def install_topo(topo, master, replicas, clients, domain_level=None,
 
     for parent, child in get_topo(topo)(master, replicas):
         if child in installed:
-            logger.info('Connecting replica %s to %s', parent, child)
+            logger.info('Connecting replica %s to %s', parent.hostname, child.hostname)
             connect_replica(parent, child)
         else:
-            logger.info('Installing replica %s from %s', parent, child)
+            logger.info('Installing replica %s from %s', parent.hostname, child.hostname)
             install_replica(
                 parent, child,
                 setup_ca=setup_replica_cas,
