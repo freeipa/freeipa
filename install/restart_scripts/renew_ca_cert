@@ -30,11 +30,13 @@ import traceback
 from ipalib.install import certstore
 from ipapython import ipautil
 from ipalib import api, errors
+from ipalib import x509
 from ipalib.install.kinit import kinit_keytab
 from ipaserver.install import certs, cainstance, installutils
 from ipaserver.plugins.ldap2 import ldap2
 from ipaplatform import services
 from ipaplatform.paths import paths
+from ipapython.certdb import TrustFlags
 
 
 def _main():
@@ -180,7 +182,11 @@ def _main():
                 # Pass Dogtag's self-tests
                 for ca_nick in db.find_root_cert(nickname)[-2:-1]:
                     ca_flags = dict(cc[1:] for cc in ca_certs)[ca_nick]
-                    db.trust_root_cert(ca_nick, 'C' + ca_flags)
+                    usages = ca_flags.usages or set()
+                    ca_flags_modified = TrustFlags(ca_flags.has_key,
+                        True, True,
+                        usages | {x509.EKU_SERVER_AUTH})
+                    db.trust_root_cert(ca_nick, ca_flags_modified)
             finally:
                 if conn is not None and conn.isconnected():
                     conn.disconnect()
