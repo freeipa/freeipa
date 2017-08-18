@@ -54,7 +54,10 @@ external_ca_file = None
 
 
 def subject_validator(valid_attrs, value):
-    v = unicode(value, 'utf-8')
+    if not isinstance(value, unicode):
+        v = unicode(value, 'utf-8')
+    else:
+        v = value
     if any(ord(c) < 0x20 for c in v):
         raise ValueError("must not contain control characters")
     if '&' in v:
