@@ -215,7 +215,7 @@ class CACertManage(admintool.AdminTool):
         cert_file, ca_file = installutils.load_external_cert(
             options.external_cert_files, DN(old_cert.subject))
 
-        with open(cert_file.name) as f:
+        with open(cert_file.name, 'rb') as f:
             new_cert_data = f.read()
         new_cert = x509.load_pem_x509_certificate(new_cert_data)
         new_spki = new_cert.public_key_info_bytes
