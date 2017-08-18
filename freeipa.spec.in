@@ -398,7 +398,8 @@ Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-custodia >= 0.3.1
-Requires: python3-pyldap >= 2.4.15
+# we need pre-requires since earlier versions may break upgrade
+Requires(pre): python3-pyldap >= 2.4.35.1-2
 Requires: python3-lxml
 Requires: python3-gssapi >= 1.2.0
 Requires: python3-sssdconfig
@@ -733,7 +734,8 @@ Requires: python3-six
 # 0.4.2: Py3 fix https://bugzilla.redhat.com/show_bug.cgi?id=1476150
 Requires: python3-jwcrypto >= 0.4.2
 Requires: python3-cffi
-Requires: python3-pyldap >= 2.4.15
+# we need pre-requires since earlier versions may break upgrade
+Requires(pre): python3-pyldap >= 2.4.35.1-2
 Requires: python3-requests
 Requires: python3-dns >= 1.15
 Requires: python3-netifaces >= 0.10.4
