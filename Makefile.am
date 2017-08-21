@@ -236,12 +236,7 @@ $(top_builddir)/install/ui/src/libs/loader.js:
 # create temporary symlinks to allow jslint to find libs/loader.js
 jslint-ui: $(top_builddir)/install/ui/src/libs/loader.js
 	cd $(top_srcdir)/install/ui;				\
-	$(MKDIR_P) js;						\
-	rm -f js/libs;						\
-	$(LN_S) ../src/libs js/libs;				\
-	jsl -nologo -nosummary -nofilelisting -conf jsl.conf;	\
-	rm js/libs;						\
-	rmdir js
+	jsl -nologo -nosummary -nofilelisting -conf jsl.conf;
 
 jslint-ui-test:
 	cd $(top_srcdir)/install/ui/test;			\
