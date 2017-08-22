@@ -318,7 +318,7 @@ class PortResponder(threading.Thread):
             logger.debug('%d %s: Stopped listening', port, proto)
 
     def _is_closing(self):
-        with self._close_lock:
+        with self._close_lock:  # pylint: disable=not-context-manager
             return self._close
 
     def _bind_to_port(self, port, socket_type):
@@ -369,7 +369,7 @@ class PortResponder(threading.Thread):
     def stop(self):
         logger.debug('Stopping listening thread.')
 
-        with self._close_lock:
+        with self._close_lock:  # pylint: disable=not-context-manager
             self._close = True
 
 
