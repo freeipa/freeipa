@@ -1275,7 +1275,9 @@ class TrustDomainInstance(object):
             self._pipe.DeleteTrustedDomain(self._policy_handle,
                                            res.info_ex.sid)
         except RuntimeError as e:
-            num, message = e.args  # pylint: disable=unpacking-non-sequence
+            # pylint: disable=unbalanced-tuple-unpacking
+            num, _message = e.args
+            # pylint: enable=unbalanced-tuple-unpacking
             # Ignore anything but access denied (NT_STATUS_ACCESS_DENIED)
             if num == -1073741790:
                 raise access_denied_error
