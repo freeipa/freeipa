@@ -1227,7 +1227,7 @@ class Decimal(Number):
     def _enforce_precision(self, value):
         assert type(value) is decimal.Decimal
         if self.precision is not None:
-            quantize_exp = decimal.Decimal(10) ** -self.precision
+            quantize_exp = decimal.Decimal(10) ** -int(self.precision)
             try:
                 value = value.quantize(quantize_exp)
             except decimal.DecimalException as e:
