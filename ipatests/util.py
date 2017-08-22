@@ -247,6 +247,8 @@ class Fuzzy(object):
     Fuzzy('.+', <... 'str'>, <function <lambda> at 0x...>)
     """
 
+    __hash__ = None
+
     def __init__(self, regex=None, type=None, test=None):
         """
         Initialize.
