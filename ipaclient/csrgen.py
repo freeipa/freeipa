@@ -12,6 +12,7 @@ import os.path
 import pipes
 import subprocess
 import traceback
+import codecs
 
 import pkg_resources
 
@@ -438,7 +439,10 @@ class OpenSSLAdaptor(object):
             padding.PKCS1v15(),
             hashes.SHA256()
         )
-        asn1sig = univ.BitString("'%s'H" % signature.encode('hex'))
+        asn1sig = univ.BitString("'{sig}'H".format(
+                                    sig=codecs.encode(signature, 'hex')
+                                    .decode('ascii'))
+                                 )
         csr.setComponentByName('signature', asn1sig)
         return encoder.encode(csr)
 
