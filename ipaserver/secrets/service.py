@@ -1,7 +1,7 @@
 # Copyright (C) 2017  IPA Project Contributors, see COPYING for license
 import argparse
 
-import custodia.server
+import custodia.server  # pylint: disable=relative-import
 
 
 argparser = argparse.ArgumentParser(

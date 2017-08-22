@@ -12,8 +12,10 @@ from ipapython.dn import DN
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
+# pylint: disable=relative-import
 from custodia.message.kem import KEMKeysStore
 from custodia.message.kem import KEY_USAGE_SIG, KEY_USAGE_ENC, KEY_USAGE_MAP
+# pylint: enable=relative-import
 from jwcrypto.common import json_decode, json_encode
 from jwcrypto.common import base64url_encode
 from jwcrypto.jwk import JWK
