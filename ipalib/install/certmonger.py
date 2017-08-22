@@ -507,23 +507,36 @@ def stop_tracking(secdir=None, request_id=None, nickname=None, certfile=None):
         request.parent.obj_if.remove_request(request.path)
 
 
-def modify(request_id, ca=None, profile=None):
+def modify(request_id, ca=None, profile=None, template_v2=None):
     update = {}
     if ca is not None:
         cm = _certmonger()
         update['CA'] = cm.obj_if.find_ca_by_nickname(ca)
     if profile is not None:
         update['template-profile'] = profile
+    if template_v2 is not None:
+        update['template-ms-certificate-template'] = template_v2
+
     if len(update) > 0:
         request = _get_request({'nickname': request_id})
         request.obj_if.modify(update)
 
 
-def resubmit_request(request_id, ca=None, profile=None, is_ca=False):
+def resubmit_request(
+        request_id,
+        ca=None,
+        profile=None,
+        template_v2=None,
+        is_ca=False):
     """
     :param request_id: the certmonger numeric request ID
     :param ca: the nickname for the certmonger CA, e.g. IPA or SelfSign
-    :param profile: the dogtag template profile to use, e.g. SubCA
+    :param profile: the profile to use, e.g. SubCA.  For requests using the
+                    Dogtag CA, this is the profile to use.  This also causes
+                    the Microsoft certificate tempalte name extension to the
+                    CSR (for telling AD CS what template to use).
+    :param template_v2: Microsoft V2 template specifier extension value.
+                        Format: <oid>:<major-version>[:<minor-version>]
     :param is_ca: boolean that if True adds the CA basic constraint
     """
     request = _get_request({'nickname': request_id})
@@ -534,6 +547,8 @@ def resubmit_request(request_id, ca=None, profile=None, is_ca=False):
             update['CA'] = cm.obj_if.find_ca_by_nickname(ca)
         if profile is not None:
             update['template-profile'] = profile
+        if template_v2 is not None:
+            update['template-ms-certificate-template'] = template_v2
         if is_ca:
             update['template-is-ca'] = True
             update['template-ca-path-length'] = -1  # no path length
