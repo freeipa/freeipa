@@ -28,7 +28,7 @@ from ipalib import api, errors, output
 from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, Bool
 from ipalib.cli import to_cli
 from ipalib.plugable import Registry
-from .user import NO_UPG_MAGIC
+from ipaserver.plugins.user import NO_UPG_MAGIC
 from ipalib import _
 from ipapython.dn import DN
 from ipapython.ipaldap import LDAPClient
