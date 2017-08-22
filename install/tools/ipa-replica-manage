@@ -1447,7 +1447,7 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
             entries = repl.conn.get_entries(dn, repl.conn.SCOPE_ONELEVEL,
                                         "(objectclass=ipaDomainIDRange)")
         except errors.NotFound as e:
-            sys.exit('Unable to load IPA ranges: %s' % e.message)
+            sys.exit('Unable to load IPA ranges: {err}'.format(err=e))
 
         for ent in entries:
             entry_start = int(ent.single_value['ipabaseid'])

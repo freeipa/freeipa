@@ -180,8 +180,8 @@ def main():
         principal = krb_utils.get_principal()
     except errors.CCacheError as e:
         raise ScriptError(
-            "Must have Kerberos credentials to setup AD trusts on server: %s"
-            % e.message)
+            "Must have Kerberos credentials to setup AD trusts on server: "
+            "{err}".format(err=e))
 
     try:
         api.Backend.ldap2.connect()
