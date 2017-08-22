@@ -126,7 +126,7 @@ class sudocmd(LDAPObject):
 
     def get_dn(self, *keys, **options):
         if keys[-1].endswith('.'):
-            keys[-1] = keys[-1][:-1]
+            keys = (keys[:-1] + (keys[-1][:-1], ))
         dn = super(sudocmd, self).get_dn(*keys, **options)
         try:
             self.backend.get_entry(dn, [''])
