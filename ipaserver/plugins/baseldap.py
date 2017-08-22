@@ -412,7 +412,7 @@ def add_external_post_callback(ldap, dn, entry_attrs, failed, completed,
             elif (membername in lc_external_entries and
                member_dn not in members):
                 # Already an external member, reset the error message
-                msg = unicode(errors.AlreadyGroupMember().message)
+                msg = unicode(errors.AlreadyGroupMember())
                 newerror = (entry[0], msg)
                 ind = failed[memberattr][membertype].index(entry)
                 failed[memberattr][membertype][ind] = newerror
@@ -472,7 +472,7 @@ def remove_external_post_callback(ldap, dn, entry_attrs, failed, completed,
                     external_entries.remove(entry[0])
                 completed_external += 1
             else:
-                msg = unicode(errors.NotGroupMember().message)
+                msg = unicode(errors.NotGroupMember())
                 newerror = (entry[0], msg)
                 ind = failed[memberattr][membertype].index(entry)
                 failed[memberattr][membertype][ind] = newerror
