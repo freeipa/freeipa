@@ -1,7 +1,9 @@
 # Copyright (C) 2015  IPA Project Contributors, see COPYING for license
 
 from __future__ import print_function
+# pylint: disable=relative-import
 from custodia.message.kem import KEMClient, KEY_USAGE_SIG, KEY_USAGE_ENC
+# pylint: enable=relative-import
 from jwcrypto.common import json_decode
 from jwcrypto.jwk import JWK
 from ipaserver.secrets.kem import IPAKEMKeys
