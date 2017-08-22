@@ -508,14 +508,14 @@ def stop_tracking(secdir=None, request_id=None, nickname=None, certfile=None):
 
 
 def modify(request_id, ca=None, profile=None):
-    if ca or profile:
+    update = {}
+    if ca is not None:
+        cm = _certmonger()
+        update['CA'] = cm.obj_if.find_ca_by_nickname(ca)
+    if profile is not None:
+        update['template-profile'] = profile
+    if len(update) > 0:
         request = _get_request({'nickname': request_id})
-        update = {}
-        if ca is not None:
-            cm = _certmonger()
-            update['CA'] = cm.obj_if.find_ca_by_nickname(ca)
-        if profile is not None:
-            update['template-profile'] = profile
         request.obj_if.modify(update)
 
 
@@ -528,16 +528,17 @@ def resubmit_request(request_id, ca=None, profile=None, is_ca=False):
     """
     request = _get_request({'nickname': request_id})
     if request:
-        if ca or profile or is_ca:
-            update = {}
-            if ca is not None:
-                cm = _certmonger()
-                update['CA'] = cm.obj_if.find_ca_by_nickname(ca)
-            if profile is not None:
-                update['template-profile'] = profile
-            if is_ca:
-                update['template-is-ca'] = True
-                update['template-ca-path-length'] = -1  # no path length
+        update = {}
+        if ca is not None:
+            cm = _certmonger()
+            update['CA'] = cm.obj_if.find_ca_by_nickname(ca)
+        if profile is not None:
+            update['template-profile'] = profile
+        if is_ca:
+            update['template-is-ca'] = True
+            update['template-ca-path-length'] = -1  # no path length
+
+        if len(update) > 0:
             request.obj_if.modify(update)
         request.obj_if.resubmit()
 
