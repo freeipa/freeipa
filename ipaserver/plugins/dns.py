@@ -2920,7 +2920,7 @@ class dnszone_find(DNSZoneBase_find):
         if options.get('forward_only', False):
             search_kw = {}
             search_kw['idnsname'] = [revzone.ToASCII() for revzone in
-                                     REVERSE_DNS_ZONES.keys()]
+                                     REVERSE_DNS_ZONES]
             rev_zone_filter = ldap.make_filter(search_kw,
                                                rules=ldap.MATCH_NONE,
                                                exact=False,
@@ -3094,7 +3094,7 @@ class dnsrecord(LDAPObject):
 
         if not zone_len:
             allowed_zones = ', '.join([unicode(revzone) for revzone in
-                                       REVERSE_DNS_ZONES.keys()])
+                                       REVERSE_DNS_ZONES])
             raise errors.ValidationError(name='ptrrecord',
                     error=unicode(_('Reverse zone for PTR record should be a sub-zone of one the following fully qualified domains: %s') % allowed_zones))
 
