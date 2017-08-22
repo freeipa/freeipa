@@ -79,7 +79,26 @@ Sign the renewed certificate by itself.
 Sign the renewed certificate by external CA.
 .TP
 \fB\-\-external\-ca\-type\fR=\fITYPE\fR
-Type of the external CA. Possible values are "generic", "ms-cs". Default value is "generic". Use "ms-cs" to include template name required by Microsoft Certificate Services (MS CS) in the generated CSR.
+Type of the external CA. Possible values are "generic", "ms-cs". Default value is "generic". Use "ms-cs" to include the template name required by Microsoft Certificate Services (MS CS) in the generated CSR (see \fB\-\-external\-ca\-profile\fR for full details).
+
+.TP
+\fB\-\-external\-ca\-profile\fR=\fIPROFILE_SPEC\fR
+Specify the certificate profile or template to use at the external CA.
+
+When \fB\-\-external\-ca\-type\fR is "ms-cs" the following specifiers may be used:
+
+.RS
+.TP
+\fB<oid>:<majorVersion>[:<minorVersion>]\fR
+Specify a certificate template by OID and major version, optionally also specifying minor version.
+.TP
+\fB<name>\fR
+Specify a certificate template by name.  The name cannot contain any \fI:\fR characters and cannot be an OID (otherwise the OID-based template specifier syntax takes precedence).
+.TP
+\fBdefault\fR
+If no template is specified, the template name "SubCA" is used.
+.RE
+
 .TP
 \fB\-\-external\-cert\-file\fR=\fIFILE\fR
 File containing the IPA CA certificate and the external CA certificate chain. The file is accepted in PEM and DER certificate and PKCS#7 certificate chain formats. This option may be used multiple times.

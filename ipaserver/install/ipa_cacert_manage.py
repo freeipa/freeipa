@@ -60,6 +60,10 @@ class CACertManage(admintool.AdminTool):
             "--self-signed", dest='self_signed',
             action='store_true',
             help="Sign the renewed certificate by itself")
+        renew_group.add_option(
+            "--external-ca", dest='self_signed',
+            action='store_false',
+            help="Sign the renewed certificate by external CA")
         ext_cas = tuple(x.value for x in cainstance.ExternalCAType)
         renew_group.add_option(
             "--external-ca-type", dest="external_ca_type",
@@ -67,9 +71,11 @@ class CACertManage(admintool.AdminTool):
             metavar="{{{0}}}".format(",".join(ext_cas)),
             help="Type of the external CA. Default: generic")
         renew_group.add_option(
-            "--external-ca", dest='self_signed',
-            action='store_false',
-            help="Sign the renewed certificate by external CA")
+            "--external-ca-profile", dest="external_ca_profile",
+            type='constructor', constructor=cainstance.ExternalCAProfile,
+            default=None, metavar="PROFILE-SPEC",
+            help="Specify the certificate profile/template to use "
+                 "at the external CA")
         renew_group.add_option(
             "--external-cert-file", dest="external_cert_files",
             action="append", metavar="FILE",
@@ -179,6 +185,12 @@ class CACertManage(admintool.AdminTool):
     def renew_self_signed(self, ca):
         print("Renewing CA certificate, please wait")
 
+        msg = "You cannot specify {} when renewing a self-signed CA"
+        if self.options.external_ca_type:
+            raise admintool.ScriptError(msg.format("--external-ca-type"))
+        if self.options.external_ca_profile:
+            raise admintool.ScriptError(msg.format("--external-ca-profile"))
+
         try:
             ca.set_renewal_master()
         except errors.NotFound:
@@ -191,13 +203,30 @@ class CACertManage(admintool.AdminTool):
     def renew_external_step_1(self, ca):
         print("Exporting CA certificate signing request, please wait")
 
-        if self.options.external_ca_type \
-                == cainstance.ExternalCAType.MS_CS.value:
-            profile = 'SubCA'
-        else:
-            profile = ''
+        options = self.options
 
-        self.resubmit_request('dogtag-ipa-ca-renew-agent-reuse', profile)
+        if not options.external_ca_type:
+            options.external_ca_type = cainstance.ExternalCAType.GENERIC.value
+
+        if options.external_ca_type == cainstance.ExternalCAType.MS_CS.value \
+                and options.external_ca_profile is None:
+            options.external_ca_profile = cainstance.MSCSTemplateV1(u"SubCA")
+
+        if options.external_ca_profile is not None:
+            # check that profile is valid for the external ca type
+            if options.external_ca_type \
+                    not in options.external_ca_profile.valid_for:
+                raise admintool.ScriptError(
+                    "External CA profile specification '{}' "
+                    "cannot be used with external CA type '{}'."
+                    .format(
+                        options.external_ca_profile.unparsed_input,
+                        options.external_ca_type)
+                    )
+
+        self.resubmit_request(
+            'dogtag-ipa-ca-renew-agent-reuse',
+            profile=options.external_ca_profile)
 
         print(("The next step is to get %s signed by your CA and re-run "
               "ipa-cacert-manage as:" % paths.IPA_CA_CSR))
@@ -299,12 +328,20 @@ class CACertManage(admintool.AdminTool):
 
         print("CA certificate successfully renewed")
 
-    def resubmit_request(self, ca='dogtag-ipa-ca-renew-agent', profile=''):
+    def resubmit_request(self, ca='dogtag-ipa-ca-renew-agent', profile=None):
         timeout = api.env.startup_timeout + 60
 
+        cm_profile = None
+        if isinstance(profile, cainstance.MSCSTemplateV1):
+            cm_profile = profile.unparsed_input
+
+        cm_template = None
+        if isinstance(profile, cainstance.MSCSTemplateV2):
+            cm_template = profile.unparsed_input
+
         logger.debug("resubmitting certmonger request '%s'", self.request_id)
-        certmonger.resubmit_request(self.request_id, ca=ca, profile=profile,
-                                    is_ca=True)
+        certmonger.resubmit_request(self.request_id, ca=ca, profile=cm_profile,
+                                    template_v2=cm_template, is_ca=True)
         try:
             state = certmonger.wait_for_request(self.request_id, timeout)
         except RuntimeError:
@@ -320,7 +357,7 @@ class CACertManage(admintool.AdminTool):
         logger.debug("modifying certmonger request '%s'", self.request_id)
         certmonger.modify(self.request_id,
                           ca='dogtag-ipa-ca-renew-agent',
-                          profile='')
+                          profile='', template_v2='')
 
     def install(self):
         print("Installing CA certificate, please wait")
