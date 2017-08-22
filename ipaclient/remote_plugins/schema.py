@@ -586,7 +586,7 @@ def get_package(server_info, client):
     for plugin_cls in (_SchemaCommandPlugin, _SchemaObjectPlugin):
         for full_name in schema[plugin_cls.schema_key]:
             plugin = plugin_cls(schema, str(full_name))
-            plugin = module.register()(plugin)
+            plugin = module.register()(plugin)  # pylint: disable=no-member
     sys.modules[module_name] = module
 
     for full_name, topic in six.iteritems(schema['topics']):
