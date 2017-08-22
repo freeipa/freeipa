@@ -273,7 +273,9 @@ class Env(object):
         if type(value) not in (unicode, int, float, bool, type(None), DN):
             raise TypeError(key, value)
         object.__setattr__(self, key, value)
+        # pylint: disable=unsupported-assignment-operation
         self.__d[key] = value
+        # pylint: enable=unsupported-assignment-operation
 
     def __getitem__(self, key):
         """

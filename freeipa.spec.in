@@ -175,7 +175,7 @@ BuildRequires:  python-gssapi >= 1.2.0-5
 %if 0%{?fedora} >= 26
 BuildRequires:  python2-pylint
 %else
-BuildRequires:  pylint >= 1.6
+BuildRequires:  pylint >= 1.7
 %endif
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 BuildRequires:  python2-polib
@@ -214,7 +214,7 @@ BuildRequires:  python2-augeas
 # 1.6: x509.Name.rdns (https://github.com/pyca/cryptography/issues/3199)
 BuildRequires:  python3-cryptography >= 1.6
 BuildRequires:  python3-gssapi >= 1.2.0
-BuildRequires:  python3-pylint >= 1.6
+BuildRequires:  python3-pylint >= 1.7
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 BuildRequires:  python3-polib
 BuildRequires:  python3-libipa_hbac

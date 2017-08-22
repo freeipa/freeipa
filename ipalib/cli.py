@@ -999,7 +999,9 @@ class Collector(object):
                 value = v + (value,)
             else:
                 value = (v, value)
+        # pylint: disable=unsupported-assignment-operation
         self.__options[name] = value
+        # pylint: enable=unsupported-assignment-operation
         object.__setattr__(self, name, value)
 
     def __todict__(self):
