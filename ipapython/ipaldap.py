@@ -174,6 +174,8 @@ class LDAPEntry(collections.MutableMapping):
                  '_not_list', '_orig_raw', '_raw_view',
                  '_single_value_view')
 
+    __hash__ = None
+
     def __init__(self, _conn, _dn=None, _obj=None, **kwargs):
         """
         LDAPEntry constructor.
