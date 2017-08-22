@@ -46,6 +46,8 @@ class ACI(object):
     entry in LDAP.  Has methods to parse an ACI string and export to an
     ACI String.
     """
+    __hash__ = None
+
     def __init__(self,acistr=None):
         self.name = None
         self.source_group = None

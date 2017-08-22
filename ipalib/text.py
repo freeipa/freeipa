@@ -146,6 +146,7 @@ class LazyText(object):
     """
 
     __slots__ = ('domain', 'localedir', 'key', 'args')
+    __hash__ = None
 
     def __init__(self, domain=None, localedir=None):
         """
