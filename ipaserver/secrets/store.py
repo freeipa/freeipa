@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 from base64 import b64encode, b64decode
-from custodia.store.interface import CSStore
+from custodia.store.interface import CSStore  # pylint: disable=relative-import
 from jwcrypto.common import json_decode, json_encode
 from ipaplatform.paths import paths
 from ipapython import ipautil
