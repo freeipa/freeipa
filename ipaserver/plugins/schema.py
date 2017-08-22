@@ -377,8 +377,10 @@ class topic_(MetaObject):
                     'full_name': topic_full_name,
                 }
                 topics.append(topic)
+                # pylint: disable=unsupported-assignment-operation
                 topics_by_key[topic_name] = topic
                 topics_by_key[topic_full_name] = topic
+                # pylint: enable=unsupported-assignment-operation
 
                 for package in self.api.packages:
                     module_name = '.'.join((package.__name__, topic_name))
