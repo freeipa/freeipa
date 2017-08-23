@@ -27,7 +27,6 @@ import dns.resolver
 import six
 
 from ipalib import api, errors, util
-from ipalib.x509 import Encoding as x509_Encoding
 from ipalib import messages
 from ipalib import Str, Flag
 from ipalib.parameters import Principal, Certificate
@@ -902,9 +901,9 @@ class host_mod(LDAPUpdate):
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
             old_certs = entry_attrs_old.get('usercertificate', [])
-            removed_certs_der = set(old_certs) - set(certs)
-            for der in removed_certs_der:
-                rm_certs = api.Command.cert_find(certificate=der)['result']
+            removed_certs = set(old_certs) - set(certs)
+            for cert in removed_certs:
+                rm_certs = api.Command.cert_find(certificate=cert)['result']
                 revoke_certs(rm_certs)
 
         if certs:
@@ -1340,8 +1339,7 @@ class host_remove_cert(LDAPRemoveAttributeViaOption):
         assert isinstance(dn, DN)
 
         for cert in options.get('usercertificate', []):
-            revoke_certs(api.Command.cert_find(
-                certificate=cert.public_bytes(x509_Encoding.DER))['result'])
+            revoke_certs(api.Command.cert_find(certificate=cert)['result'])
 
         return dn
 

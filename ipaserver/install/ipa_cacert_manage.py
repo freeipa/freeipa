@@ -275,17 +275,16 @@ class CACertManage(admintool.AdminTool):
         dn = DN(('cn', self.cert_nickname), ('cn', 'ca_renewal'),
                 ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
 
-        new_cert_der = new_cert.public_bytes(x509.Encoding.DER)
         try:
             entry = conn.get_entry(dn, ['usercertificate'])
-            entry['usercertificate'] = [new_cert_der]
+            entry['usercertificate'] = [new_cert]
             conn.update_entry(entry)
         except errors.NotFound:
             entry = conn.make_entry(
                 dn,
                 objectclass=['top', 'pkiuser', 'nscontainer'],
                 cn=[self.cert_nickname],
-                usercertificate=[new_cert_der])
+                usercertificate=[new_cert])
             conn.add_entry(entry)
         except errors.EmptyModlist:
             pass

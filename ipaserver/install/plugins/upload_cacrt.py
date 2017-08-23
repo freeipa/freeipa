@@ -22,7 +22,7 @@ import logging
 from ipalib.install import certstore
 from ipaplatform.paths import paths
 from ipaserver.install import certs
-from ipalib import Registry, errors, x509
+from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython import certdb
 from ipapython.dn import DN
@@ -90,7 +90,6 @@ class update_upload_cacrt(Updater):
                         pass
 
         if ca_cert:
-            dercert = ca_cert.public_bytes(x509.Encoding.DER)
             dn = DN(('cn', 'CACert'), ('cn', 'ipa'), ('cn','etc'),
                     self.api.env.basedn)
             try:
@@ -99,11 +98,11 @@ class update_upload_cacrt(Updater):
                 entry = ldap.make_entry(dn)
                 entry['objectclass'] = ['nsContainer', 'pkiCA']
                 entry.single_value['cn'] = 'CAcert'
-                entry.single_value['cACertificate;binary'] = dercert
+                entry.single_value['cACertificate;binary'] = ca_cert
                 ldap.add_entry(entry)
             else:
                 if b'' in entry['cACertificate;binary']:
-                    entry.single_value['cACertificate;binary'] = dercert
+                    entry.single_value['cACertificate;binary'] = ca_cert
                     ldap.update_entry(entry)
 
         return False, []

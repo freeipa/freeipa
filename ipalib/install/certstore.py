@@ -68,7 +68,7 @@ def init_ca_entry(entry, cert, nickname, trusted, ext_key_usage):
     entry['ipaCertSubject'] = [subject]
     entry['ipaCertIssuerSerial'] = [issuer_serial]
     entry['ipaPublicKey'] = [public_key]
-    entry['cACertificate;binary'] = [cert.public_bytes(x509.Encoding.DER)]
+    entry['cACertificate;binary'] = [cert]
 
     if trusted is not None:
         entry['ipaKeyTrust'] = ['trusted' if trusted else 'distrusted']
@@ -84,16 +84,15 @@ def update_compat_ca(ldap, base_dn, cert):
     Update the CA certificate in cn=CAcert,cn=ipa,cn=etc,SUFFIX.
     """
     dn = DN(('cn', 'CAcert'), ('cn', 'ipa'), ('cn', 'etc'), base_dn)
-    dercert = cert.public_bytes(x509.Encoding.DER)
     try:
         entry = ldap.get_entry(dn, attrs_list=['cACertificate;binary'])
-        entry.single_value['cACertificate;binary'] = dercert
+        entry.single_value['cACertificate;binary'] = cert
         ldap.update_entry(entry)
     except errors.NotFound:
         entry = ldap.make_entry(dn)
         entry['objectClass'] = ['nsContainer', 'pkiCA']
         entry.single_value['cn'] = 'CAcert'
-        entry.single_value['cACertificate;binary'] = dercert
+        entry.single_value['cACertificate;binary'] = cert
         ldap.add_entry(entry)
     except errors.EmptyModlist:
         pass
@@ -129,7 +128,7 @@ def clean_old_config(ldap, base_dn, dn, config_ipa, config_compat):
             pass
 
 
-def add_ca_cert(ldap, base_dn, dercert, nickname, trusted=None,
+def add_ca_cert(ldap, base_dn, cert, nickname, trusted=None,
                 ext_key_usage=None, config_ipa=False, config_compat=False):
     """
     Add new entry for a CA certificate to the certificate store.
@@ -139,7 +138,7 @@ def add_ca_cert(ldap, base_dn, dercert, nickname, trusted=None,
     dn = DN(('cn', nickname), container_dn)
     entry = ldap.make_entry(dn)
 
-    init_ca_entry(entry, dercert, nickname, trusted, ext_key_usage)
+    init_ca_entry(entry, cert, nickname, trusted, ext_key_usage)
 
     if config_ipa:
         entry.setdefault('ipaConfigString', []).append('ipaCA')
@@ -147,7 +146,7 @@ def add_ca_cert(ldap, base_dn, dercert, nickname, trusted=None,
         entry.setdefault('ipaConfigString', []).append('compatCA')
 
     if config_compat:
-        update_compat_ca(ldap, base_dn, dercert)
+        update_compat_ca(ldap, base_dn, cert)
 
     ldap.add_entry(entry)
     clean_old_config(ldap, base_dn, dn, config_ipa, config_compat)
@@ -182,8 +181,7 @@ def update_ca_cert(ldap, base_dn, cert, trusted=None, ext_key_usage=None,
         if entry.single_value['ipaPublicKey'] != public_key:
             raise ValueError("subject public key info mismatch")
         entry['ipaCertIssuerSerial'].append(issuer_serial)
-        entry['cACertificate;binary'].append(
-            cert.public_bytes(x509.Encoding.DER))
+        entry['cACertificate;binary'].append(cert)
 
     # Update key trust
     if trusted is not None:
