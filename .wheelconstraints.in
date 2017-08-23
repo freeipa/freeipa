@@ -9,5 +9,5 @@ ipapython == @VERSION@
 ipaserver == @VERSION@
 ipatests == @VERSION@
 
-# see https://pagure.io/freeipa/issue/6874
-pylint < 1.7
+# we include some checks available only in pylint-1.7 and on
+pylint >= 1.7
