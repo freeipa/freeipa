@@ -715,7 +715,7 @@ class TestServerAttributes(object):
         non_ca_fqdn = mock_masters.get_fqdn('trust-controller-dns')
 
         with pytest.raises(errors.ValidationError):
-            self.config_update(mock_api, **{attr_name: [non_ca_fqdn]})
+            self.config_update(mock_api, **{attr_name: non_ca_fqdn})
 
     def test_set_unknown_attribute_on_master_raises_notfound(
             self, mock_api, mock_masters):
@@ -732,7 +732,7 @@ class TestServerAttributes(object):
         original_renewal_master = self.config_retrieve(
             role_name, mock_api)[attr_name]
 
-        other_ca_server = [mock_masters.get_fqdn('trust-controller-ca')]
+        other_ca_server = mock_masters.get_fqdn('trust-controller-ca')
 
         for host in (other_ca_server, original_renewal_master):
             self.config_update(mock_api, **{attr_name: host})

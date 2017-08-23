@@ -46,6 +46,7 @@ from ipalib import errors, _
 from ipalib.backend import Backend
 from ipalib.plugable import Registry
 from ipaserver.servroles import (attribute_instances, ENABLED, role_instances)
+from ipaserver.servroles import SingleValuedServerAttribute
 
 
 if six.PY3:
@@ -142,6 +143,10 @@ class serverroles(Backend):
             attr_value = attr.get(self.api)
 
             if attr_value:
+                # attr can be a SingleValuedServerAttribute
+                # in this case, the API expects a value, not a list of values
+                if isinstance(attr, SingleValuedServerAttribute):
+                    attr_value = attr_value[0]
                 result.update({name: attr_value})
 
         return result
@@ -149,6 +154,13 @@ class serverroles(Backend):
     def config_update(self, **attrs_values):
         for attr, value in attrs_values.items():
             try:
+                # when the attribute is single valued, it will be stored
+                # in a SingleValuedServerAttribute. The set method expects
+                # a list containing a single value.
+                # We need to convert value to a list containing value
+                if isinstance(self.attributes[attr],
+                              SingleValuedServerAttribute):
+                    value = [value]
                 self.attributes[attr].set(self.api, value)
             except KeyError:
                 raise errors.NotFound(
