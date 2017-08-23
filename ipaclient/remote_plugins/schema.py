@@ -64,6 +64,12 @@ _PARAMS = {
 }
 
 
+def json_default(obj):
+    if isinstance(obj, bytes):
+        return obj.decode('utf-8')
+    raise TypeError
+
+
 class _SchemaCommand(ClientCommand):
     pass
 
@@ -496,14 +502,14 @@ class Schema(object):
                     ns = value
                     for member in ns:
                         path = '{}/{}'.format(key, member)
-                        schema.writestr(path,
-                                        json.dumps(ns[member]).encode('utf-8'))
+                        s = json.dumps(ns[member], default=json_default)
+                        schema.writestr(path, s.encode('utf-8'))
                 else:
                     schema.writestr(key, json.dumps(value).encode('utf-8'))
 
             schema.writestr(
                 '_help',
-                json.dumps(self._help).encode('utf-8')
+                json.dumps(self._help, default=json_default).encode('utf-8')
             )
 
     def read_namespace_member(self, namespace, member):
@@ -593,7 +599,10 @@ def get_package(server_info, client):
             module.__file__ = os.path.join(package_dir, '{}.py'.format(name))
         module.__doc__ = topic.get('doc')
         if 'topic_topic' in topic:
-            module.topic = str(topic['topic_topic']).partition('/')[0]
+            s = topic['topic_topic']
+            if isinstance(s, bytes):
+                s = s.decode('utf-8')
+            module.topic = s.partition('/')[0]
         else:
             module.topic = None
 
