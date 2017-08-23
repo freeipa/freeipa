@@ -581,14 +581,15 @@ class server_del(LDAPDelete):
             except (ldap.NO_SUCH_OBJECT, ldap.NO_SUCH_ATTRIBUTE):
                 logger.debug(
                     "Replica (%s) memberPrincipal (%s) not found in %s",
-                    master, member_principal, dn)
+                    master, member_principal.decode('utf-8'), dn)
             except Exception as e:
                 self.add_message(
                     messages.ServerRemovalWarning(
                         message=_("Failed to clean memberPrincipal "
                                   "%(principal)s from s4u2proxy entry %(dn)s: "
                                   "%(err)s") % dict(
-                                      principal=member_principal,
+                                      principal=(member_principal
+                                                 .decode('utf-8')),
                                       dn=dn, err=e)))
 
         try:
