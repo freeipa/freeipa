@@ -10,12 +10,13 @@ import collections
 import os
 from pprint import pprint
 
+from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipaplatform.paths import paths
-
 from ipaserver import p11helper as _ipap11helper
 from ipaserver.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
                                      keytype_id2name, keytype_name2id,
                                      ldap2p11helper_api_params)
+
 
 private_key_api_params = set(["label", "id", "data", "unwrapping_key",
     "wrapping_mech", "key_type", "cka_always_authenticate", "cka_copyable",
@@ -188,7 +189,7 @@ class LocalHSM(AbstractHSM):
 if __name__ == '__main__':
     if 'SOFTHSM2_CONF' not in os.environ:
         os.environ['SOFTHSM2_CONF'] = paths.DNSSEC_SOFTHSM2_CONF
-    localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, 0,
+    localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, SOFTHSM_DNSSEC_TOKEN_LABEL,
             open(paths.DNSSEC_SOFTHSM_PIN).read())
 
     print('replica public keys: CKA_WRAP = TRUE')
