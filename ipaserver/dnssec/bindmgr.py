@@ -56,8 +56,10 @@ class BINDMgr(object):
         return dns.name.from_text(dn[idx - 1]['idnsname'])
 
     def time_ldap2bindfmt(self, str_val):
+        if isinstance(str_val, bytes):
+            str_val = str_val.decode('utf-8')
         dt = datetime.strptime(str_val, ipalib.constants.LDAP_GENERALIZED_TIME_FORMAT)
-        return dt.strftime(time_bindfmt)
+        return dt.strftime(time_bindfmt).encode('utf-8')
 
     def dates2params(self, ldap_attrs):
         """Convert LDAP timestamps to list of parameters suitable
@@ -106,15 +108,15 @@ class BINDMgr(object):
         """Run dnssec-keyfromlabel on given LDAP object.
         :returns: base file name of output files, e.g. Kaaa.test.+008+19719"""
         logger.info('attrs: %s', attrs)
-        assert attrs.get('idnsseckeyzone', ['FALSE'])[0] == 'TRUE', \
-            'object %s is not a DNS zone key' % attrs['dn']
+        assert attrs.get('idnsseckeyzone', [b'FALSE'])[0] == b'TRUE', \
+            b'object %s is not a DNS zone key' % attrs['dn']
 
-        uri = "%s;pin-source=%s" % (attrs['idnsSecKeyRef'][0], paths.DNSSEC_SOFTHSM_PIN)
+        uri = b"%s;pin-source=%s" % (attrs['idnsSecKeyRef'][0], paths.DNSSEC_SOFTHSM_PIN.encode('utf-8'))
         cmd = [paths.DNSSEC_KEYFROMLABEL, '-K', workdir, '-a', attrs['idnsSecAlgorithm'][0], '-l', uri]
         cmd += self.dates2params(attrs)
-        if attrs.get('idnsSecKeySep', ['FALSE'])[0].upper() == 'TRUE':
+        if attrs.get('idnsSecKeySep', [b'FALSE'])[0].upper() == b'TRUE':
             cmd += ['-f', 'KSK']
-        if attrs.get('idnsSecKeyRevoke', ['FALSE'])[0].upper() == 'TRUE':
+        if attrs.get('idnsSecKeyRevoke', [b'FALSE'])[0].upper() == b'TRUE':
             cmd += ['-R', datetime.now().strftime(time_bindfmt)]
         cmd.append(zone.to_text())
 
