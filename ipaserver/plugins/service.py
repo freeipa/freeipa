@@ -983,8 +983,7 @@ class service_remove_cert(LDAPRemoveAttributeViaOption):
         assert isinstance(dn, DN)
 
         for cert in options.get('usercertificate', []):
-            revoke_certs(api.Command.cert_find(
-                certificate=cert.public_bytes(x509.Encoding.DER))['result'])
+            revoke_certs(api.Command.cert_find(certificate=cert)['result'])
 
         return dn
 

@@ -40,7 +40,6 @@ import six
 # pylint: disable=import-error
 from six.moves.configparser import RawConfigParser
 # pylint: enable=import-error
-from cryptography.hazmat.primitives import serialization
 
 from ipalib import api
 from ipalib import x509
@@ -730,9 +729,6 @@ class CAInstance(DogtagInstance):
         the appropriate groups for accessing CA services.
         """
 
-        # get RA certificate
-        cert_data = self.ra_cert.public_bytes(serialization.Encoding.DER)
-
         # connect to CA database
         conn = ldap2.ldap2(api)
         conn.connect(autobind=True)
@@ -748,7 +744,7 @@ class CAInstance(DogtagInstance):
             cn=["ipara"],
             usertype=["agentType"],
             userstate=["1"],
-            userCertificate=[cert_data],
+            userCertificate=[self.ra_cert],
             description=['2;%s;%s;%s' % (
                 self.ra_cert.serial_number,
                 DN(self.ca_subject),

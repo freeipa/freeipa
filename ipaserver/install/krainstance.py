@@ -306,7 +306,6 @@ class KRAInstance(DogtagInstance):
 
         # get RA agent certificate
         cert = x509.load_certificate_from_file(paths.RA_AGENT_PEM)
-        cert_data = cert.public_bytes(x509.Encoding.DER)
 
         # connect to KRA database
         conn = ldap2.ldap2(api)
@@ -322,7 +321,7 @@ class KRAInstance(DogtagInstance):
             sn=["IPA KRA User"],
             cn=["IPA KRA User"],
             usertype=["undefined"],
-            userCertificate=[cert_data],
+            userCertificate=[cert],
             description=['2;%s;%s;%s' % (
                 cert.serial_number,
                 DN(self.subject),
