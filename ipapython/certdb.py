@@ -579,8 +579,8 @@ class NSSDatabase(object):
             self.add_cert(cert, nickname, EMPTY_TRUST_FLAGS)
 
         if extracted_key:
-            with tempfile.NamedTemporaryFile(), tempfile.NamedTemporaryFile() \
-                    as (in_file, out_file):
+            with tempfile.NamedTemporaryFile() as in_file, \
+                    tempfile.NamedTemporaryFile() as out_file:
                 x509.write_certificate_list(extracted_certs, in_file.name)
                 in_file.write(extracted_key)
                 in_file.flush()
