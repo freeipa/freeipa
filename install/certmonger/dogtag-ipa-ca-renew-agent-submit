@@ -45,7 +45,7 @@ from ipapython.dn import DN
 from ipalib import api, errors, x509
 from ipaplatform.paths import paths
 from ipaserver.plugins.ldap2 import ldap2
-from ipaserver.install import cainstance, dsinstance, certs
+from ipaserver.install import ca, cainstance, dsinstance, certs
 
 # This is a certmonger CA helper script for IPA CA subsystem cert renewal. See
 # https://git.fedorahosted.org/cgit/certmonger.git/tree/doc/submit.txt for more
@@ -83,9 +83,10 @@ def get_nickname():
     if not subject_base:
         return None
 
+    ca_subject_dn = ca.lookup_ca_subject(api, subject_base)
+
     nickname_by_subject_dn = {
-        DN('CN=Certificate Authority', subject_base):
-            'caSigningCert cert-pki-ca',
+        DN(ca_subject_dn): 'caSigningCert cert-pki-ca',
         DN('CN=CA Audit', subject_base): 'auditSigningCert cert-pki-ca',
         DN('CN=OCSP Subsystem', subject_base): 'ocspSigningCert cert-pki-ca',
         DN('CN=CA Subsystem', subject_base): 'subsystemCert cert-pki-ca',
