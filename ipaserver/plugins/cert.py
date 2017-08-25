@@ -560,7 +560,7 @@ def _format_othername(on):
     """Format a python-cryptography OtherName for display."""
     return u'{}:{}'.format(
         on.type_id.dotted_string,
-        base64.b64encode(on.value)
+        base64.b64encode(on.value).decode('ascii')
     )
 
 
