@@ -457,25 +457,19 @@ AC_SUBST([i18ntests])
 AM_CONDITIONAL([WITH_POLINT], [test "x${enable_i18ntests}" == "xyes"])
 
 AC_ARG_ENABLE([pylint],
-	    AS_HELP_STRING([--enable-pylint],
-			   [Require pylint. Default is autodetection with
-			    "python -m pylint".]),
+	    AS_HELP_STRING([--disable-pylint],
+			   [skip Pylint in make lint target
+This feature is optional and aimed for checking issues in python code.
+You can skip this check wich configure time option --disable-pylint.]),
 	    [PYLINT=$enableval],
-	    [PYLINT=check]
+	    [PYLINT=yes]
 )
-
 if test x$PYLINT != xno; then
     AC_MSG_CHECKING([for Pylint])
     $PYTHON -m pylint --version >/dev/null 2>&1
     if test "$?" != "0"; then
-        if test x$PYLINT = xcheck; then
-            PYLINT=no
-            AC_MSG_NOTICE([cannot find optional pylint for $PYTHON])
-        else
-            AC_MSG_ERROR([cannot find pylint for $PYTHON])
-        fi
+        AC_MSG_ERROR([cannot find pylint for $PYTHON])
     else
-        PYLINT=yes
         AC_MSG_RESULT([yes])
     fi
 fi
@@ -485,29 +479,16 @@ AM_CONDITIONAL([WITH_PYLINT], [test "x${PYLINT}" != "xno"])
 
 AC_ARG_WITH([jslint],
         AS_HELP_STRING([--with-jslint=[FILE]],
-                       [path to JavaScript linter. Default is autodetection of
-                       utility "jsl" ]),
-        [JSLINT="$withval"],
-        [JSLINT=check]
+                       [path to JavaScript linter.
+This feature is optional and aimed for web ui developers.
+You can skip this check wich configure time option --without-jslint]),
+dnl --without-jslint will set JSLINT=no
+        [JSLINT=$with_jslint],
+        [AC_PATH_PROG([JSLINT], [jsl])]
 )
-
-AS_CASE([$JSLINT],
-    [yes], [AC_PATH_PROG([JSLINT], [jsl], [missing])
-            if test $JSLINT = missing; then
-                AC_MSG_FAILURE([jsl is missing])
-            fi],
-    [no], [],
-    [check], [AC_PATH_PROG([JSLINT], [jsl], [no])],
-    dnl user setting
-    [if ! test -f "$JSLINT"; then
-        AC_MSG_RESULT([$JSLINT non-existing])
-        AC_MSG_FAILURE([invalid value $JSLINT for jsl])
-     fi
-     if ! test -x "$JSLINT"; then
-        AC_MSG_RESULT([$JSLINT non-executable])
-        AC_MSG_FAILURE([invalid value $JSLINT for jsl])
-     fi]
-)
+if test "x${JSLINT}" == "x"; then
+	AC_MSG_ERROR([cannot find JS lint])
+fi
 AC_SUBST([JSLINT])
 AM_CONDITIONAL([WITH_JSLINT], [test "x${JSLINT}" != "xno"])
 
