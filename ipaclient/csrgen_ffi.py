@@ -34,6 +34,9 @@ char *NCONF_get_string(const CONF *conf, const char *group, const char *name);
 /* openssl/stack.h */
 typedef ... _STACK;
 
+int OPENSSL_sk_num(const _STACK *);
+void *OPENSSL_sk_value(const _STACK *, int);
+
 int sk_num(const _STACK *);
 void *sk_value(const _STACK *, int);
 
@@ -125,8 +128,12 @@ NCONF_get_section = _libcrypto.NCONF_get_section
 NCONF_get_string = _libcrypto.NCONF_get_string
 
 # openssl/stack.h
-sk_num = _libcrypto.sk_num
-sk_value = _libcrypto.sk_value
+try:
+    sk_num = _libcrypto.OPENSSL_sk_num
+    sk_value = _libcrypto.OPENSSL_sk_value
+except AttributeError as e:
+    sk_num = _libcrypto.sk_num
+    sk_value = _libcrypto.sk_value
 
 
 def sk_CONF_VALUE_num(sk):
