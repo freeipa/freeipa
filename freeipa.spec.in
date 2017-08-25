@@ -730,7 +730,8 @@ Requires: python3-qrcode-core >= 5.0.0
 Requires: python3-pyasn1
 Requires: python3-pyasn1-modules
 Requires: python3-dateutil
-Requires: python3-yubico >= 1.2.3
+# fixes searching for yubikeys in python3
+Requires: python3-yubico >= 1.3.2-7
 Requires: python3-sss-murmur
 Requires: python3-dbus
 Requires: python3-setuptools
