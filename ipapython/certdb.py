@@ -581,7 +581,8 @@ class NSSDatabase(object):
         if extracted_key:
             with tempfile.NamedTemporaryFile() as in_file, \
                     tempfile.NamedTemporaryFile() as out_file:
-                x509.write_certificate_list(extracted_certs, in_file.name)
+                for cert in extracted_certs:
+                    in_file.write(cert.public_bytes(x509.Encoding.PEM))
                 in_file.write(extracted_key)
                 in_file.flush()
                 out_password = ipautil.ipa_generate_password()
