@@ -8,7 +8,6 @@ Download keys from LDAP to local HSM.
 This program should be run only on replicas, not on DNSSEC masters.
 """
 
-from binascii import hexlify
 from gssapi.exceptions import GSSError
 import logging
 import os
@@ -24,7 +23,7 @@ from ipaplatform.paths import paths
 from ipaserver.dnssec.abshsm import (sync_pkcs11_metadata,
                                      ldap2p11helper_api_params,
                                      wrappingmech_name2id)
-from ipaserver.dnssec.ldapkeydb import LdapKeyDB
+from ipaserver.dnssec.ldapkeydb import LdapKeyDB, str_hexlify
 from ipaserver.dnssec.localhsm import LocalHSM
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -36,7 +35,7 @@ WORKDIR = '/tmp'
 def hex_set(s):
     out = set()
     for i in s:
-        out.add("0x%s" % hexlify(i))
+        out.add("0x%s" % str_hexlify(i))
     return out
 
 def update_metadata_set(source_set, target_set):
@@ -72,7 +71,9 @@ def ldap2replica_master_keys_sync(ldapkeydb, localhsm):
                  hex_set(new_keys))
     for mkey_id in new_keys:
         mkey_ldap = ldapkeydb.master_keys[mkey_id]
-        assert mkey_ldap.wrapped_entries, "Master key 0x%s in LDAP is missing key material referenced by ipaSecretKeyRefObject attribute" % hexlify(mkey_id)
+        assert mkey_ldap.wrapped_entries, ("Master key 0x%s in LDAP is " \
+            "missing key material referenced by ipaSecretKeyRefObject " \
+            "attribute") % str_hexlify(mkey_id)
         for wrapped_ldap in mkey_ldap.wrapped_entries:
             unwrapping_key = find_unwrapping_key(
                 localhsm, wrapped_ldap.single_value['ipaWrappingKey'])
@@ -80,14 +81,16 @@ def ldap2replica_master_keys_sync(ldapkeydb, localhsm):
                 break
 
         # TODO: Could it happen in normal cases?
-        assert unwrapping_key is not None, "Local HSM does not contain suitable unwrapping key for master key 0x%s" % hexlify(mkey_id)
+        assert unwrapping_key is not None, ("Local HSM does not contain " \
+            "suitable unwrapping key for master key 0x%s") % \
+            str_hexlify(mkey_id)
 
         params = ldap2p11helper_api_params(mkey_ldap)
         params['data'] = wrapped_ldap.single_value['ipaSecretKey']
         params['unwrapping_key'] = unwrapping_key.handle
         params['wrapping_mech'] = wrappingmech_name2id[wrapped_ldap.single_value['ipaWrappingMech']]
         logger.debug('Importing new master key: 0x%s %s',
-                     hexlify(mkey_id), params)
+                     str_hexlify(mkey_id), params)
         localhsm.p11.import_wrapped_secret_key(**params)
 
     # synchronize metadata about master keys in LDAP
@@ -108,14 +111,14 @@ def ldap2replica_zone_keys_sync(ldapkeydb, localhsm):
     for zkey_id in new_keys:
         zkey_ldap = ldapkeydb.zone_keypairs[zkey_id]
         logger.debug('Looking for unwrapping key "%s" for zone key 0x%s',
-                     zkey_ldap['ipaWrappingKey'], hexlify(zkey_id))
+                     zkey_ldap['ipaWrappingKey'], str_hexlify(zkey_id))
         unwrapping_key = find_unwrapping_key(
             localhsm, zkey_ldap['ipaWrappingKey'])
         assert unwrapping_key is not None, \
                 "Local HSM does not contain suitable unwrapping key for ' \
-                'zone key 0x%s" % hexlify(zkey_id)
+                'zone key 0x%s" % str_hexlify(zkey_id)
 
-        logger.debug('Importing zone key pair 0x%s', hexlify(zkey_id))
+        logger.debug('Importing zone key pair 0x%s', str_hexlify(zkey_id))
         localhsm.import_private_key(zkey_ldap, zkey_ldap['ipaPrivateKey'],
                 unwrapping_key)
         localhsm.import_public_key(zkey_ldap, zkey_ldap['ipaPublicKey'])
