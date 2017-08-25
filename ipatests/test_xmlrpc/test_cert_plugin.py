@@ -50,6 +50,7 @@ _DOMAIN = api.env.domain
 _EXP_CRL_URI = ''.join(['http://ipa-ca.', _DOMAIN, '/ipa/crl/MasterCRL.bin'])
 _EXP_OCSP_URI = ''.join(['http://ipa-ca.', _DOMAIN, '/ca/ocsp'])
 
+
 def is_db_configured():
     """
     Raise an exception if we are testing against lite-server and the
@@ -88,6 +89,8 @@ class BaseCert(XMLRPC_test):
             raise nose.SkipTest('cert_request not registered')
         if 'cert_show' not in api.Command:
             raise nose.SkipTest('cert_show not registered')
+        if 'cert_status' not in api.Command:
+            raise nose.SkipTest('cert_status not registered')
 
         is_db_configured()
 
@@ -97,7 +100,7 @@ class BaseCert(XMLRPC_test):
         return ipautil.run(new_args, stdin)
 
     def setup(self):
-        self.reqdir = tempfile.mkdtemp(prefix = "tmp-")
+        self.reqdir = tempfile.mkdtemp(prefix="tmp-")
         self.reqfile = self.reqdir + "/test.csr"
         self.pwname = self.reqdir + "/pwd"
         self.certfile = self.reqdir + "/cert.crt"
@@ -189,10 +192,10 @@ class test_cert(BaseCert):
 
         See https://fedorahosted.org/freeipa/ticket/5881
         """
-        result = api.Command.cert_show(sn, out=unicode(self.certfile))
+        api.Command['cert_show'](sn, out=unicode(self.certfile))
         with open(self.certfile, "r") as f:
             pem_cert = unicode(f.read())
-        result = run(['openssl', 'x509', '-text'],
+        result = run([paths.OPENSSL, 'x509', '-text'],
                      stdin=pem_cert, capture_output=True)
         assert _EXP_CRL_URI in result.output
         assert _EXP_OCSP_URI in result.output
@@ -311,6 +314,7 @@ class test_cert_find(XMLRPC_test):
         """
         res = api.Command['cert_find'](subject=u'Certificate Authority')
         assert 'count' in res and res['count'] == 1
+        assert u'CN=Certificate Authority' in res['result'][0]['subject']
 
     def test_0003_find_OCSP(self):
         """
@@ -319,6 +323,7 @@ class test_cert_find(XMLRPC_test):
         res = api.Command['cert_find'](subject=u'OCSP Subsystem')
         assert 'count' in res
         assert res['count'], "No OSCP certificate found"
+        assert u'CN=OCSP Subsystem' in res['result'][0]['subject']
 
     def test_0004_find_this_host(self):
         """
@@ -326,6 +331,7 @@ class test_cert_find(XMLRPC_test):
         """
         res = api.Command['cert_find'](subject=api.env.host)
         assert 'count' in res and res['count'] > 1
+        assert api.env.host in res['result'][0]['subject']
 
     def test_0005_find_this_host_exact(self):
         """
@@ -333,6 +339,7 @@ class test_cert_find(XMLRPC_test):
         """
         res = api.Command['cert_find'](subject=api.env.host, exactly=True)
         assert 'count' in res and res['count'] > 1
+        assert api.env.host in res['result'][0]['subject']
 
     def test_0006_find_this_short_host_exact(self):
         """
@@ -340,6 +347,7 @@ class test_cert_find(XMLRPC_test):
         """
         res = api.Command['cert_find'](subject=self.short, exactly=True)
         assert 'count' in res and res['count'] == 0
+        assert u'0 certificates matched' in res['summary']
 
     # tests 0007 to 0016 removed
 
@@ -444,6 +452,7 @@ class test_cert_find(XMLRPC_test):
         """
         res = api.Command['cert_find'](subject=u'notfound')
         assert 'count' in res and res['count'] == 0
+        assert u'0 certificates matched' in res['summary']
 
     def test_0030_search_for_testcerts(self):
         """
@@ -520,3 +529,34 @@ class test_cert_revocation(BaseCert):
 
     def test_revoke_with_reason_10(self):
         self.revoke_cert(10)
+
+
+@pytest.mark.tier1
+class test_cert_status(BaseCert):
+
+    @classmethod
+    def setup_class(cls):
+        super(test_cert_status, cls).setup_class()
+
+    """
+    Test the `cert-status` command.
+    """
+
+    def test_0001_cert_status(self):
+        """
+        Show status of certificate using request id
+        """
+        res = api.Command['cert_status'](request_id=1)['result']
+
+        assert 'cert_request_status' in res
+        assert 'complete' in res['cert_request_status']
+
+    def test_0002_cert_status_ca(self):
+        """
+        Show status of certificate using request id and CA
+        """
+        res = api.Command['cert_status'](request_id=1,
+                                         cacn=unicode('ipa'))['result']
+
+        assert 'cert_request_status' in res
+        assert 'complete' in res['cert_request_status']
