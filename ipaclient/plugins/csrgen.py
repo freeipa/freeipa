@@ -83,6 +83,10 @@ class cert_get_requestdata(Local):
             util.check_writable_file(options['out'])
 
         principal = options.get('principal')
+        if principal is None:
+            raise errors.InvocationError(
+                message=_('Principal is required')
+            )
         profile_id = options.get('profile_id')
         if profile_id is None:
             profile_id = dogtag.DEFAULT_PROFILE
