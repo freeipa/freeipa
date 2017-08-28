@@ -1270,8 +1270,8 @@ class cert_revoke(PKQuery, CertMethod, VirtualCommand):
             logger.debug("Not granted by ACI to revoke certificate, "
                          "looking at principal")
             try:
-                cert = x509.load_pem_x509_certificate(
-                    resp['result']['certificate'])
+                cert = x509.load_der_x509_certificate(
+                    base64.b64decode(resp['result']['certificate']))
                 if not bind_principal_can_manage_cert(cert):
                     raise acierr
             except errors.NotImplementedError:
