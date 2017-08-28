@@ -8,7 +8,7 @@ python:
 cache: pip
 env:
     global:
-        - TEST_RUNNER_IMAGE="martbab/freeipa-fedora-test-runner:master-latest"
+        - TEST_RUNNER_IMAGE="freeipa/freeipa-test-runner:master-latest"
           PEP8_ERROR_LOG="pep8_errors.log"
           CI_RESULTS_LOG="ci_results_${TRAVIS_BRANCH}.log"
           CI_BACKLOG_SIZE=5000
