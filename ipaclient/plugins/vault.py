@@ -890,7 +890,7 @@ class vault_archive(ModVaultData):
 
         elif vault_type == u'asymmetric':
 
-            public_key = vault['ipavaultpublickey'][0].encode('utf-8')
+            public_key = vault['ipavaultpublickey'][0]
 
             # generate encryption key
             encryption_key = base64.b64encode(os.urandom(32))
