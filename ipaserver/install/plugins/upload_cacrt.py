@@ -20,7 +20,7 @@
 from ipalib.install import certstore
 from ipaplatform.paths import paths
 from ipaserver.install import certs
-from ipalib import Registry, errors
+from ipalib import Registry, errors, x509
 from ipalib import Updater
 from ipapython import certdb
 from ipapython.dn import DN
@@ -41,6 +41,10 @@ class update_upload_cacrt(Updater):
         ca_enabled = self.api.Command.ca_is_enabled()['result']
         if ca_enabled:
             ca_nickname = certdb.get_ca_nickname(self.api.env.realm)
+            ca_subject = certstore.get_ca_subject(
+                self.api.Backend.ldap2,
+                self.api.env.container_ca,
+                self.api.env.basedn)
         else:
             ca_nickname = None
             server_certs = db.find_server_certs()
@@ -54,9 +58,18 @@ class update_upload_cacrt(Updater):
         for nickname, trust_flags in db.list_certs():
             if trust_flags.has_key:
                 continue
-            if nickname == ca_nickname and ca_enabled:
-                trust_flags = certdb.IPA_CA_TRUST_FLAGS
             cert = db.get_cert_from_db(nickname, pem=False)
+            subject = DN(
+                x509.load_certificate(cert, datatype=x509.DER).subject)
+            if ca_enabled and subject == ca_subject:
+                # When ca is enabled, we can have the IPA CA cert stored
+                # in the nss db with a different nickname (for instance
+                # when the server was installed with --subject to
+                # customize the CA cert subject), but it must always be
+                # stored in LDAP with the DN cn=$DOMAIN IPA CA
+                # This is why we check the subject instead of the nickname here
+                nickname = ca_nickname
+                trust_flags = certdb.IPA_CA_TRUST_FLAGS
             trust, _ca, eku = certstore.trust_flags_to_key_policy(trust_flags)
 
             dn = DN(('cn', nickname), ('cn', 'certificates'), ('cn', 'ipa'),

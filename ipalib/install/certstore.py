@@ -27,6 +27,7 @@ from pyasn1.error import PyAsn1Error
 from ipapython.dn import DN
 from ipapython.certdb import get_ca_nickname, TrustFlags
 from ipalib import errors, x509
+from ipalib.constants import IPA_CA_CN
 
 def _parse_cert(dercert):
     try:
@@ -381,3 +382,21 @@ def get_ca_certs_nss(ldap, base_dn, compat_realm, compat_ipa_ca,
         nss_certs.append((cert, nickname, trust_flags))
 
     return nss_certs
+
+
+def get_ca_subject(ldap, container_ca, base_dn):
+    """
+    Look for the IPA CA certificate subject.
+    """
+    dn = DN(('cn', IPA_CA_CN), container_ca, base_dn)
+    try:
+        cacert_subject = ldap.get_entry(dn)['ipacasubjectdn'][0]
+    except errors.NotFound:
+        # if the entry doesn't exist, we are dealing with a pre-v4.4
+        # installation, where the default CA subject was always based
+        # on the subject_base.
+        attrs = ldap.get_ipa_config()
+        subject_base = attrs.get('ipacertificatesubjectbase')[0]
+        cacert_subject = DN(('CN', 'Certificate Authority'), subject_base)
+
+    return cacert_subject
