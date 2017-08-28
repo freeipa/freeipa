@@ -27,7 +27,7 @@ steps:
   - make V=0 ${make_target}
   builddep:
   - rm -rf /var/cache/dnf/*
-  - "dnf makecache fast || :"
+  - "dnf makecache || :"
   - dnf builddep -y ${builddep_opts} --spec freeipa.spec.in --best --allowerasing
   cleanup:
   - chown -R ${uid}:${gid} ${container_working_dir}
