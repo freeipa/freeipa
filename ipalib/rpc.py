@@ -195,7 +195,7 @@ def xml_wrap(value, version):
 
     if isinstance(value, crypto_x509.Certificate):
         return base64.b64encode(
-            value.public_bytes(x509_Encoding.DER)).encode('ascii')
+            value.public_bytes(x509_Encoding.DER)).decode('ascii')
 
     assert type(value) in (unicode, float, bool, type(None)) + six.integer_types
     return value
