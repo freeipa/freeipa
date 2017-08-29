@@ -22,3 +22,13 @@ jobs:
         test_suite: test_integration/test_simple_replication.py
         template: *ci-master-f25
         timeout: 3600
+
+  fedora-25/caless:
+    requires: [fedora-25/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-25/build_url}'
+        test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
+        template: *ci-master-f25
