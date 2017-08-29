@@ -626,16 +626,25 @@ class param(BaseParam):
         return obj
 
     def _retrieve(self, metaobjectfull_name, name, **kwargs):
+        found = False
         try:
             metaobj = self.api.Command[metaobjectfull_name]
             plugin = self.api.Object['command']
         except KeyError:
-            metaobj = self.api.Object[metaobjectfull_name]
-            plugin = self.api.Object['class']
+            try:
+                metaobj = self.api.Object[metaobjectfull_name]
+                plugin = self.api.Object['class']
+            except KeyError:
+                pass
+            else:
+                found = True
+        else:
+            found = True
 
-        for param in plugin._iter_params(metaobj):
-            if param.name == name:
-                return metaobj, param
+        if found:
+            for param in plugin._iter_params(metaobj):
+                if param.name == name:
+                    return metaobj, param
 
         raise errors.NotFound(
             reason=_("%(pkey)s: %(oname)s not found") % {
@@ -648,8 +657,11 @@ class param(BaseParam):
             metaobj = self.api.Command[metaobjectfull_name]
             plugin = self.api.Object['command']
         except KeyError:
-            metaobj = self.api.Object[metaobjectfull_name]
-            plugin = self.api.Object['class']
+            try:
+                metaobj = self.api.Object[metaobjectfull_name]
+                plugin = self.api.Object['class']
+            except KeyError:
+                return tuple()
 
         return ((metaobj, param) for param in plugin._iter_params(metaobj))
 
