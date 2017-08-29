@@ -459,6 +459,10 @@ Requires: bind-utils >= 9.11.0-6.P2
 Requires: bind-pkcs11 >= 9.11.0-6.P2
 Requires: bind-pkcs11-utils >= 9.11.0-6.P2
 Requires: opendnssec >= 1.4.6-4
+# Keep python2 dependencies until DNSSEC daemons are ported to Python 3
+Requires: python2
+Requires: python2-ipalib
+Requires: python2-ipaserver
 
 Provides: %{alt_name}-server-dns = %{version}
 Conflicts: %{alt_name}-server-dns
@@ -884,9 +888,6 @@ PY3_SUBST_PATHS='
 client/ipa-certupdate
 client/ipa-client-automount
 client/ipa-client-install
-daemons/dnssec/ipa-dnskeysync-replica
-daemons/dnssec/ipa-dnskeysyncd
-daemons/dnssec/ipa-ods-exporter
 daemons/ipa-otpd/test.py
 install/certmonger/ipa-server-guard
 install/certmonger/dogtag-ipa-ca-renew-agent-submit
