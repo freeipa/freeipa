@@ -47,10 +47,6 @@ from ipaplatform.paths import paths
 from ipaplatform.redhat.authconfig import RedHatAuthConfig
 from ipaplatform.base.tasks import BaseTaskNamespace
 
-# pylint: disable=ipa-forbidden-import
-from ipalib.constants import IPAAPI_USER
-# pylint: enable=ipa-forbidden-import
-
 logger = logging.getLogger(__name__)
 
 _ffi = FFI()
@@ -453,7 +449,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"],
                     raiseonerr=False)
 
-    def configure_http_gssproxy_conf(self):
+    def configure_http_gssproxy_conf(self, ipaapi_user):
         ipautil.copy_template_file(
             os.path.join(paths.USR_SHARE_IPA_DIR, 'gssproxy.conf.template'),
             paths.GSSPROXY_CONF,
@@ -461,7 +457,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 HTTP_KEYTAB=paths.HTTP_KEYTAB,
                 HTTP_CCACHE=paths.HTTP_CCACHE,
                 HTTPD_USER=constants.HTTPD_USER,
-                IPAAPI_USER=IPAAPI_USER,
+                IPAAPI_USER=ipaapi_user,
             )
         )
 

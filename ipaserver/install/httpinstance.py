@@ -46,6 +46,7 @@ from ipapython.dn import DN
 import ipapython.errors
 from ipaserver.install import sysupgrade
 from ipalib import api
+from ipalib.constants import IPAAPI_USER
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
@@ -233,7 +234,7 @@ class HTTPInstance(service.Service):
         os.chmod(target_fname, 0o644)
 
     def configure_gssproxy(self):
-        tasks.configure_http_gssproxy_conf()
+        tasks.configure_http_gssproxy_conf(IPAAPI_USER)
         services.knownservices.gssproxy.restart()
 
     def change_mod_nss_port_from_http(self):
