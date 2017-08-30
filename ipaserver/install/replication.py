@@ -1089,7 +1089,8 @@ class ReplicationManager(object):
                                    ['defaultNamingContext'])
             for dn,entry in res:
                 if dn == "":
-                    self.ad_suffix = entry['defaultNamingContext'][0]
+                    ad_suffix = entry['defaultNamingContext'][0]
+                    self.ad_suffix = ad_suffix.decode('utf-8')
                     logger.info("AD Suffix is: %s", self.ad_suffix)
             if self.ad_suffix == "":
                 raise RuntimeError("Failed to lookup AD's Ldap suffix")
