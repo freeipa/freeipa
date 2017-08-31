@@ -24,6 +24,7 @@ from ipalib.install import certmonger, sysrestore
 import SSSDConfig
 import ipalib.util
 import ipalib.errors
+from ipalib.constants import IPAAPI_USER
 from ipaclient.install.client import sssd_enable_service
 from ipaplatform import services
 from ipaplatform.tasks import tasks
@@ -1881,7 +1882,7 @@ def upgrade_check(options):
 
 def upgrade():
     # Do this early so that any code depending on these dirs will not fail
-    tasks.create_tmpfiles_dirs()
+    tasks.create_tmpfiles_dirs(IPAAPI_USER)
     tasks.configure_tmpfiles()
 
     realm = api.env.realm

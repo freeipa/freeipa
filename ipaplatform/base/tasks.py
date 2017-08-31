@@ -203,7 +203,7 @@ class BaseTaskNamespace(object):
         """Configure tmpfiles to be created at boot"""
         raise NotImplementedError()
 
-    def create_tmpfiles_dirs(self):
+    def create_tmpfiles_dirs(self, ipaapi_user):
         """Create run dirs for the install phase"""
         raise NotImplementedError()
 

@@ -50,9 +50,6 @@ from ipaplatform.paths import paths
 from ipaplatform.redhat.authconfig import RedHatAuthConfig
 from ipaplatform.base.tasks import BaseTaskNamespace
 
-# pylint: disable=ipa-forbidden-import
-from ipalib.constants import IPAAPI_USER
-# pylint: enable=ipa-forbidden-import
 
 _ffi = FFI()
 _ffi.cdef("""
@@ -460,7 +457,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"],
                     raiseonerr=False)
 
-    def configure_http_gssproxy_conf(self):
+    def configure_http_gssproxy_conf(self, ipaapi_user):
         ipautil.copy_template_file(
             os.path.join(paths.USR_SHARE_IPA_DIR, 'gssproxy.conf.template'),
             paths.GSSPROXY_CONF,
@@ -468,7 +465,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 HTTP_KEYTAB=paths.HTTP_KEYTAB,
                 HTTP_CCACHE=paths.HTTP_CCACHE,
                 HTTPD_USER=constants.HTTPD_USER,
-                IPAAPI_USER=IPAAPI_USER,
+                IPAAPI_USER=ipaapi_user,
             )
         )
 
@@ -523,9 +520,9 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         os.chmod(name, mode)
         os.chown(name, uid, gid)
 
-    def create_tmpfiles_dirs(self):
+    def create_tmpfiles_dirs(self, ipaapi_user):
         parent = os.path.dirname(paths.IPA_CCACHES)
-        pent = pwd.getpwnam(IPAAPI_USER)
+        pent = pwd.getpwnam(ipaapi_user)
         self._create_tmpfiles_dir(parent, 0o711, 0, 0)
         self._create_tmpfiles_dir(paths.IPA_CCACHES, 0o770,
                                   pent.pw_uid, pent.pw_gid)
