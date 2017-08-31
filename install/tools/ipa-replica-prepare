@@ -1,4 +1,4 @@
-#! /usr/bin/python2 -E
+#!/usr/bin/python3 -E
 # Authors: Petr Viktorin <pviktori@redhat.com>
 #
 # Copyright (C) 2012  Red Hat

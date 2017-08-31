@@ -1,4 +1,4 @@
-#! /usr/bin/python2 -E
+#!/usr/bin/python3 -E
 # Authors: Simo Sorce <ssorce@redhat.com>
 #          Karl MacMillan <kmacmillan@mentalrootkit.com>
 #

@@ -1,4 +1,4 @@
-#! /usr/bin/python2 -E
+#!/usr/bin/python3 -E
 # Authors: Jan Cholasta <jcholast@redhat.com>
 #
 # Copyright (C) 2013  Red Hat

@@ -929,6 +929,8 @@ export JAVA_STACK_SIZE="8m"
 # PATH is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1005235
 export PATH=/usr/bin:/usr/sbin:$PATH
 export PYTHON=%{__python2}
+
+%if ! 0%{?with_python3}
 # Workaround: make sure all shebangs are pointing to Python 2
 # This should be solved properly using setuptools
 # and this hack should be removed.
@@ -937,64 +939,7 @@ find \
 	! -name '*.pyo' -a \
 	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
 	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python2}|' {} \;
-
-%if 0%{?with_python3}
-# TODO: temporary solution until all scripts are ported to python3,
-# TODO: workaround: some scripts are copied over, so the are always py2.
-# We have to explicitly set python3 here for ported files here
-PY3_SUBST_PATHS='
-client/ipa-certupdate
-client/ipa-client-automount
-client/ipa-client-install
-daemons/dnssec/ipa-dnskeysyncd
-daemons/dnssec/ipa-dnskeysync-replica
-daemons/dnssec/ipa-ods-exporter
-daemons/ipa-otpd/test.py
-install/certmonger/ipa-server-guard
-install/certmonger/dogtag-ipa-ca-renew-agent-submit
-install/oddjob/com.redhat.idm.trust-fetch-domains
-install/restart_scripts/renew_ra_cert_pre
-install/restart_scripts/renew_ca_cert
-install/restart_scripts/renew_ra_cert
-install/restart_scripts/restart_httpd
-install/restart_scripts/renew_kdc_cert
-install/restart_scripts/stop_pkicad
-install/restart_scripts/restart_dirsrv
-install/tools/ipa-advise
-install/tools/ipa-adtrust-install
-install/tools/ipa-backup
-install/tools/ipa-ca-install
-install/tools/ipa-cacert-manage
-install/tools/ipa-compat-manage
-install/tools/ipa-csreplica-manage
-install/tools/ipa-custodia
-install/tools/ipa-custodia-check
-install/tools/ipa-dns-install
-install/tools/ipa-httpd-kdcproxy
-install/tools/ipa-kra-install
-install/tools/ipa-ldap-updater
-install/tools/ipa-managed-entries
-install/tools/ipa-nis-manage
-install/tools/ipa-otptoken-import
-install/tools/ipa-pkinit-manage
-install/tools/ipa-pki-retrieve-key
-install/tools/ipa-replica-conncheck
-install/tools/ipa-replica-install
-install/tools/ipa-replica-manage
-install/tools/ipa-replica-prepare
-install/tools/ipa-restore
-install/tools/ipa-server-certinstall
-install/tools/ipa-server-install
-install/tools/ipa-server-upgrade
-install/tools/ipa-winsync-migrate
-install/tools/ipactl
-ipa
-'
-for P in $PY3_SUBST_PATHS; do
-    sed -i -e '1 s|^#!\s\?.*\bpython[0-9]*|#!%{__python3}|' $P
-done;
-
-%endif # with_python3
+%endif # ! with_python3
 
 %configure --with-vendor-suffix=-%{release} \
            %{enable_server_option} \
@@ -1005,22 +950,14 @@ done;
 %make_build -Onone
 
 %if 0%{?with_python3}
-pushd %{_builddir}/freeipa-%{version}-python3
 export PYTHON=%{__python3}
-# Workaround: make sure all shebangs are pointing to Python 3
-# This should be solved properly using setuptools
-# and this hack should be removed.
-find \
-	! -name '*.pyc' -a \
-	! -name '*.pyo' -a \
-	-type f -exec grep -qsm1 '^#!.*\bpython' {} \; \
-	-exec sed -i -e '1 s|^#!.*\bpython[^ ]*|#!%{__python3}|' {} \;
+pushd %{_builddir}/freeipa-%{version}-python3
 %configure --with-vendor-suffix=-%{release} \
            %{enable_server_option} \
            %{with_ipatests_option} \
            %{linter_options}
 popd
-%endif # with_python3
+%endif  # with_python3
 
 %check
 make %{?_smp_mflags} check VERBOSE=yes LIBDIR=%{_libdir}
