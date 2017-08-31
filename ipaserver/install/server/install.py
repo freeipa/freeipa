@@ -24,7 +24,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipalib import api, errors, x509
-from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib.constants import DOMAIN_LEVEL_0, IPAAPI_USER
 from ipalib.util import (
     validate_domain_name,
     no_matching_interface_for_ip_address_warning,
@@ -721,7 +721,7 @@ def install(installer):
         update_hosts_file(ip_addresses, host_name, fstore)
 
     # Make sure tmpfiles dir exist before installing components
-    tasks.create_tmpfiles_dirs()
+    tasks.create_tmpfiles_dirs(IPAAPI_USER)
 
     # Create a directory server instance
     if not options.external_cert_files:
@@ -1050,7 +1050,7 @@ def uninstall(installer):
 
     # further steps assumes that temporary directories exists so rather
     # ensure they are created
-    tasks.create_tmpfiles_dirs()
+    tasks.create_tmpfiles_dirs(IPAAPI_USER)
 
     print("Shutting down all IPA services")
     try:

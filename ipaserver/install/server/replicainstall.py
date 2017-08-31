@@ -1354,7 +1354,7 @@ def install(installer):
     ccache = os.environ['KRB5CCNAME']
 
     # Make sure tmpfiles dir exist before installing components
-    tasks.create_tmpfiles_dirs()
+    tasks.create_tmpfiles_dirs(constants.IPAAPI_USER)
 
     if promote:
         if installer._add_to_ipaservers:
