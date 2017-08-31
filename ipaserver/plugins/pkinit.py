@@ -121,6 +121,7 @@ class pkinit_status(Search):
         if server is not None:
             self.api.Object.server_role.ensure_master_exists(server)
 
-        result = sorted(self.get_pkinit_status(server, status))
+        result = sorted(self.get_pkinit_status(server, status),
+                        key=lambda d: d.get('server_server'))
 
         return dict(result=result, count=len(result), truncated=False)
