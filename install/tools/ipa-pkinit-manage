@@ -1,4 +1,4 @@
-#! /usr/bin/python2 -E
+#!/usr/bin/python3 -E
 #
 # Copyright (C) 2017  FreeIPA Contributors see COPYING for license
 #

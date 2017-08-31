@@ -1,4 +1,4 @@
-#! /usr/bin/python2
+#!/usr/bin/python2
 
 """Copy the IPA schema to the CA directory server instance
 
