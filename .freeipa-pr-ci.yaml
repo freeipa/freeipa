@@ -33,3 +33,14 @@ jobs:
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
         template: *ci-master-f26
         timeout: 3600
+
+  fedora-26/external_ca:
+    requires: [fedora-26/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-26/build_url}'
+        test_suite: test_integration/test_external_ca.py::TestExternalCA
+        template: *ci-master-f26
+        timeout: 3600
