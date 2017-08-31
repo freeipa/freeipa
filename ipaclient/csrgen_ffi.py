@@ -131,7 +131,7 @@ NCONF_get_string = _libcrypto.NCONF_get_string
 try:
     sk_num = _libcrypto.OPENSSL_sk_num
     sk_value = _libcrypto.OPENSSL_sk_value
-except AttributeError as e:
+except AttributeError:
     sk_num = _libcrypto.sk_num
     sk_value = _libcrypto.sk_value
 
