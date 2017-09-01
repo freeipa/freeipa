@@ -226,14 +226,6 @@ class CertDB(object):
     def run_certutil(self, args, stdin=None, **kwargs):
         return self.nssdb.run_certutil(args, stdin, **kwargs)
 
-    def run_signtool(self, args, stdin=None):
-        with open(self.passwd_fname, "r") as f:
-            password = f.readline()
-        new_args = [paths.SIGNTOOL, "-d", self.secdir, "-p", password]
-
-        new_args = new_args + args
-        ipautil.run(new_args, stdin)
-
     def create_noise_file(self):
         if ipautil.file_exists(self.noise_fname):
             os.remove(self.noise_fname)

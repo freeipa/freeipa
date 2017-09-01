@@ -55,7 +55,7 @@ define(['dojo/_base/declare',
 
         kerberos_msg: "<i class=\"fa fa-info-circle\"></i> To login with <strong>Kerberos</strong>, please make sure you" +
                     " have valid tickets (obtainable via kinit) and " +
-                    "<a href='http://${host}/ipa/config/unauthorized.html'>configured</a>" +
+                    "<a href='http://${host}/ipa/config/ssbrowser.html'>configured</a>" +
                     " the browser correctly, then click Login. ",
         cert_msg: "<i class=\"fa fa-info-circle\"></i> To login with <strong>certificate</strong>," +
               " please make sure you have valid personal certificate. ",

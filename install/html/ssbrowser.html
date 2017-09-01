@@ -6,23 +6,14 @@
     <script type="text/javascript" src="../ui/js/libs/loader.js"></script>
     <script type="text/javascript">
         (function() {
-            function loaded() {
-                $(document).ready(function() {
-                    var domain = '.' + (IPA_DOMAIN || 'example.com');
-                    $('.example-domain').text(domain);
-                });
-            }
-
             var styles = [
                 '../ui/css/patternfly.css',
                 '../ui/css/ipa.css'
             ];
             var scripts = [
-                '../ui/js/libs/jquery.js',
-                'krb.js',
-                'ffconfig.js'
+                '../ui/js/libs/jquery.js'
             ];
-            ipa_loader.scripts(scripts, loaded);
+            ipa_loader.scripts(scripts);
             ipa_loader.styles(styles);
         })();
     </script>
@@ -51,7 +42,12 @@
 
         <ol>
             <li>
-                Import <a href="ca.crt">CA certificate</a>. Make sure you checked all three checkboxes.
+                <p>
+                    <a href="ca.crt" id="ca-link" class="btn btn-default">Import Certificate Authority certificate</a>
+                </p>
+                <p>
+                    Make sure you select <b>all three</b> checkboxes.
+                </p>
             </li>
             <li>
                 In the address bar of Firefox, type <code>about:config</code> to display the list of current configuration options.
@@ -65,7 +61,7 @@
             <li>
                 Enter the name of the domain against which you want to authenticate, for example, <code class="example-domain">.example.com.</code>
             </li>
-            <li><strong> You are all set. </strong></li>
+            <li><a href="../ui/index.html" id="return-link" class="btn btn-default">Return to Web UI</a></li>
         </ol>
 
         <h2>Chrome</h2>
