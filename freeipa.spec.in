@@ -1067,9 +1067,7 @@ mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/ca.crt
-/bin/touch %{buildroot}%{_usr}/share/ipa/html/kerberosauth.xpi
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb.con
-/bin/touch %{buildroot}%{_usr}/share/ipa/html/krb.js
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb5.ini
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krbrealm.con
 
@@ -1407,10 +1405,7 @@ fi
 %{_usr}/share/ipa/profiles/README
 %{_usr}/share/ipa/profiles/*.cfg
 %dir %{_usr}/share/ipa/html
-%{_usr}/share/ipa/html/ffconfig.js
-%{_usr}/share/ipa/html/ffconfig_page.js
 %{_usr}/share/ipa/html/ssbrowser.html
-%{_usr}/share/ipa/html/browserconfig.html
 %{_usr}/share/ipa/html/unauthorized.html
 %dir %{_usr}/share/ipa/migration
 %{_usr}/share/ipa/migration/error.html
@@ -1442,11 +1437,8 @@ fi
 %{_usr}/share/ipa/wsgi/plugins.py*
 %dir %{_sysconfdir}/ipa
 %dir %{_sysconfdir}/ipa/html
-%config(noreplace) %{_sysconfdir}/ipa/html/ffconfig.js
-%config(noreplace) %{_sysconfdir}/ipa/html/ffconfig_page.js
 %config(noreplace) %{_sysconfdir}/ipa/html/ssbrowser.html
 %config(noreplace) %{_sysconfdir}/ipa/html/unauthorized.html
-%config(noreplace) %{_sysconfdir}/ipa/html/browserconfig.html
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-kdc-proxy.conf
@@ -1457,9 +1449,7 @@ fi
 %{_usr}/share/ipa/ipa-rewrite.conf
 %{_usr}/share/ipa/ipa-pki-proxy.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_usr}/share/ipa/html/ca.crt
-%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/kerberosauth.xpi
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb.con
-%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb.js
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb5.ini
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krbrealm.con
 %dir %{_usr}/share/ipa/updates/
