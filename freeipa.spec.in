@@ -932,7 +932,7 @@ install/tools/ipactl
 ipa
 '
 for P in $PY3_SUBST_PATHS; do
-    sed -i -e '1 s|^#!.*\bpython[0-9]*\(\s\+-\)\?|#!%{__python3} -bb|' $P
+    sed -i -e '1 s|^#!\s\?.*\bpython[0-9]*|#!%{__python3}|' $P
 done;
 
 %endif # with_python3
