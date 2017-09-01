@@ -171,7 +171,6 @@ class BasePathNamespace(object):
     ODS_SIGNER = "/usr/sbin/ods-signer"
     OPENSSL = "/usr/bin/openssl"
     PK12UTIL = "/usr/bin/pk12util"
-    SIGNTOOL = "/usr/bin/signtool"
     SOFTHSM2_UTIL = "/usr/bin/softhsm2-util"
     SSLGET = "/usr/bin/sslget"
     SSS_SSH_AUTHORIZEDKEYS = "/usr/bin/sss_ssh_authorizedkeys"
