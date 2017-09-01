@@ -35,11 +35,15 @@ Developers:
 	Benjamin Drung
 	Patrice Duc-Jacquet
 	Tibor Dudlák
+	Lewis Eason
 	Drew Erny
 	Oleg Fayans
 	Jérôme Fenal
+	Fabiano Fidêncio
 	Stephen Gallagher
+	René Genz
 	James Groffen
+	Oliver Gutierrez
 	Ondřej Hamada
 	Nick Hatch
 	Christian Heimes
@@ -50,6 +54,7 @@ Developers:
 	Krzysztof Klimonda
 	Nikolai Kondrashov
 	Martin Košek
+	David Kreitschmann
 	Ludwig Krispenz
 	Ana Krivokapić
 	Tomáš Křížek
@@ -80,6 +85,8 @@ Developers:
 	Jan Pazdziora
 	W. Michael Petullo
 	Gowrishankar Rajaiyan
+	realsobek
+	Michal Reznik
 	Lubomír Rintel
 	Matt Rogers
 	Lynn Root
@@ -90,6 +97,7 @@ Developers:
 	Michael Simacek
 	Lars Sjostrom
 	Filip Skola
+	Aleksei Slaikovskii
 	Lukáš Slebodník
 	Simo Sorce
 	Petr Špaček
@@ -98,11 +106,13 @@ Developers:
 	Fraser Tweedale
 	Petr Viktorin
 	Petr Voborník
+	Felipe Volpone
 	Pavel Vomáčka
 	Andrew Wnuk
 	Jason Woods
 	Adam Young
 	Jan Zelený
+	Alex Zeleznikov
 	Michal Židek
 	Pavel Zůna
 
