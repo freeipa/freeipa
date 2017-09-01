@@ -826,8 +826,7 @@ Summary: IPA tests and test tools
 BuildArch: noarch
 %{?python_provide:%python_provide python3-ipatests}
 Requires: python3-ipaclient = %{version}-%{release}
-# FIXME: uncomment once there's python3-ipaserver
-#Requires: python3-ipaserver = %{version}-%{release}
+Requires: python3-ipaserver = %{version}-%{release}
 Requires: tar
 Requires: xz
 Requires: python3-nose
