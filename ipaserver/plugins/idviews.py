@@ -547,7 +547,8 @@ def resolve_object_to_anchor(ldap, obj_type, obj, fallback_to_ldap):
             'group': 'ipausergroup',
         }[obj_type]
 
-        if required_objectclass not in entry['objectclass']:
+        if not api.Object[obj_type].has_objectclass(entry['objectclass'],
+                                                    required_objectclass):
             raise errors.ValidationError(
                     name=_('IPA object'),
                     error=_('system IPA objects (e.g. system groups, user '
@@ -790,12 +791,10 @@ class baseidoverride_del(LDAPDelete):
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
-        required_object_classes = set(self.obj.object_class)
-        actual_object_classes = set(entry['objectclass'])
-
         # If not, treat it as a failed search
-        if not required_object_classes.issubset(actual_object_classes):
-            self.obj.handle_not_found(*keys)
+        for required_oc in self.obj.object_class:
+            if not self.obj.has_objectclass(entry['objectclass'], required_oc):
+                self.obj.handle_not_found(*keys)
 
         return dn
 
