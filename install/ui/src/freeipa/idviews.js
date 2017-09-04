@@ -257,8 +257,7 @@ return {
                         {
                             $type: 'link',
                             name: 'ipaanchoruuid',
-                            label: '@i18n:objects.idoverrideuser.anchor_label',
-                            other_entity: 'user'
+                            label: '@i18n:objects.idoverrideuser.anchor_label'
                         },
                         {
                             $type: 'textarea',
