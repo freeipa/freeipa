@@ -1028,22 +1028,59 @@ class DsInstance(service.Service):
                 root_logger.error(
                     'Unable to restart DS instance %s: %s', ds_instance, e)
 
+    def get_server_cert_nickname(self, serverid=None):
+        """
+        Retrieve the nickname of the server cert used by dirsrv.
+
+        The method directly reads the dse.ldif to find the attribute
+        nsSSLPersonalitySSL of cn=RSA,cn=encryption,cn=config because
+        LDAP is not always accessible when we need to get the nickname
+        (for instance during uninstall).
+        """
+        if serverid is None:
+            serverid = self.get_state("serverid")
+        if serverid is not None:
+            dirname = config_dirname(serverid)
+            config_file = os.path.join(dirname, "dse.ldif")
+            rsa_dn = "cn=RSA,cn=encryption,cn=config"
+            with open(config_file, "r") as in_file:
+                parser = upgradeinstance.GetEntryFromLDIF(
+                    in_file,
+                    entries_dn=[rsa_dn])
+                parser.parse()
+                try:
+                    config_entry = parser.get_results()[rsa_dn]
+                    nickname = config_entry["nsSSLPersonalitySSL"][0]
+                    return nickname.decode('utf-8')
+                except (KeyError, IndexError):
+                    root_logger.error("Unable to find server cert nickname in "
+                                      "%s", config_file)
+
+        root_logger.debug("Falling back to nickname Server-Cert")
+        return 'Server-Cert'
+
     def stop_tracking_certificates(self, serverid=None):
         if serverid is None:
             serverid = self.get_state("serverid")
         if not serverid is None:
+            nickname = self.get_server_cert_nickname(serverid)
             # drop the trailing / off the config_dirname so the directory
             # will match what is in certmonger
             dirname = config_dirname(serverid)[:-1]
             dsdb = certs.CertDB(self.realm, nssdir=dirname)
-            dsdb.untrack_server_cert(self.nickname)
+            dsdb.untrack_server_cert(nickname)
 
     def start_tracking_certificates(self, serverid):
+        nickname = self.get_server_cert_nickname(serverid)
         dirname = config_dirname(serverid)[:-1]
         dsdb = certs.CertDB(self.realm, nssdir=dirname)
-        dsdb.track_server_cert(self.nickname, self.principal,
-                               dsdb.passwd_fname,
-                               'restart_dirsrv %s' % serverid)
+        if dsdb.is_ipa_issued_cert(api, nickname):
+            dsdb.track_server_cert(nickname, self.principal,
+                                   dsdb.passwd_fname,
+                                   'restart_dirsrv %s' % serverid)
+        else:
+            root_logger.debug("Will not track DS server certificate %s as it "
+                              "is not issued by IPA", nickname)
 
     # we could probably move this function into the service.Service
     # class - it's very generic - all we need is a way to get an

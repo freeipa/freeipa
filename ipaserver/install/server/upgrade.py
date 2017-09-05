@@ -958,13 +958,13 @@ def certificate_renewal_update(ca, ds, http):
         },
         {
             'cert-database': paths.HTTPD_ALIAS_DIR,
-            'cert-nickname': 'Server-Cert',
+            'cert-nickname': http.get_mod_nss_nickname(),
             'ca': 'IPA',
             'cert-postsave-command': template % 'restart_httpd',
         },
         {
             'cert-database': dsinstance.config_dirname(serverid),
-            'cert-nickname': 'Server-Cert',
+            'cert-nickname': ds.get_server_cert_nickname(serverid),
             'ca': 'IPA',
             'cert-postsave-command':
                 '%s %s' % (template % 'restart_dirsrv', serverid),
