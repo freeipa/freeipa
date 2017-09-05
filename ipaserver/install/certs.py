@@ -42,6 +42,7 @@ from ipapython.certdb import get_ca_nickname, find_cert_from_txt, NSSDatabase
 from ipapython.dn import DN
 from ipalib import pkcs10, x509, api
 from ipalib.errors import CertificateOperationError
+from ipalib.install import certstore
 from ipalib.text import _
 from ipaplatform.paths import paths
 
@@ -658,6 +659,31 @@ class CertDB(object):
                                              principal=principal,
                                              subject=host,
                                              passwd_fname=self.passwd_fname)
+
+    def is_ipa_issued_cert(self, api, nickname):
+        """
+        Return True if the certificate contained in the CertDB with the
+        provided nickname has been issued by IPA.
+
+        Note that this method can only be executed if api has been initialized
+        """
+        # This method needs to compare the cert issuer (from the NSS DB
+        # and the subject from the CA (from LDAP), because nicknames are not
+        # always aligned.
+
+        cacert_subject = certstore.get_ca_subject(
+            api.Backend.ldap2,
+            api.env.container_ca,
+            api.env.basedn)
+
+        # The cert can be issued directly by IPA. In this case, the cert
+        # issuer is IPA CA subject.
+        cert = self.get_cert_from_db(nickname)
+        if cert is None:
+            raise RuntimeError("Could not find the cert %s in %s"
+                               % (nickname, self.secdir))
+
+        return DN(cert.issuer) == cacert_subject
 
 
 class _CrossProcessLock(object):
