@@ -248,7 +248,6 @@ import time
 import contextlib
 
 import six
-from six.moves import urllib
 
 from ipalib import Backend, api
 from ipapython.dn import DN
@@ -1904,36 +1903,33 @@ class ra(rabase.rabase, RestClient):
             e = etree.SubElement(page, opt)
             e.text = str(booloptions[opt]).lower()
 
-        payload = etree.tostring(doc, pretty_print=False, xml_declaration=True, encoding='UTF-8')
+        payload = etree.tostring(doc, pretty_print=False,
+                                 xml_declaration=True, encoding='UTF-8')
         logger.debug('%s.find(): request: %s', type(self).__name__, payload)
 
-        url = 'http://%s/ca/rest/certs/search?size=%d' % (
-            ipautil.format_netloc(self.ca_host, 80),
-            options.get('sizelimit', 0x7fffffff))
+        # pylint: disable=unused-variable
+        status, _, data = dogtag.https_request(
+            self.ca_host, 443,
+            url='/ca/rest/certs/search?size=%d' % (
+                 options.get('sizelimit', 0x7fffffff)),
+            client_certfile=None,
+            client_keyfile=None,
+            cafile=self.ca_cert,
+            method='POST',
+            headers={'Accept-Encoding': 'gzip, deflate',
+                     'User-Agent': 'IPA',
+                     'Content-Type': 'application/xml'},
+            body=payload
+        )
 
-        opener = urllib.request.build_opener()
-        opener.addheaders = [('Accept-Encoding', 'gzip, deflate'),
-                             ('User-Agent', 'IPA')]
-
-        req = urllib.request.Request(url=url, data=payload, headers={'Content-Type': 'application/xml'})
-        try:
-            response = opener.open(req)
-        except urllib.error.HTTPError as e:
-            logger.debug('HTTP Response code: %d', e.getcode())
-            if e.getcode() == 501:
-                self.raise_certificate_operation_error('find',
-                    detail=_('find not supported on CAs upgraded from 9 to 10'))
+        if status != 200:
             self.raise_certificate_operation_error('find',
-                                                   detail=e.msg)
-        except urllib.error.URLError as e:
-            self.raise_certificate_operation_error('find',
-                                                   detail=e.reason)
+                                                   detail=status)
 
-        data = response.readlines()
         logger.debug('%s.find(): response: %s', type(self).__name__, data)
         parser = etree.XMLParser()
         try:
-            doc = etree.fromstring(data[0], parser)
+            doc = etree.fromstring(data, parser)
         except etree.XMLSyntaxError as e:
             self.raise_certificate_operation_error('find',
                                                    detail=e.msg)
