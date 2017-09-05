@@ -262,6 +262,11 @@ class HTTPInstance(service.Service):
         installutils.set_directive(
             paths.HTTPD_NSS_CONF, 'NSSNickname', quoted_nickname, quotes=False)
 
+    def get_mod_nss_nickname(self):
+        cert = installutils.get_directive(paths.HTTPD_NSS_CONF, 'NSSNickname')
+        nickname = installutils.unquote_directive_value(cert, quote_char="'")
+        return nickname
+
     def set_mod_nss_protocol(self):
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSProtocol', 'TLSv1.0,TLSv1.1,TLSv1.2', False)
 
@@ -578,12 +583,17 @@ class HTTPInstance(service.Service):
 
     def stop_tracking_certificates(self):
         db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
-        db.untrack_server_cert(self.cert_nickname)
+        db.untrack_server_cert(self.get_mod_nss_nickname())
 
     def start_tracking_certificates(self):
         db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR)
-        db.track_server_cert(self.cert_nickname, self.principal,
-                             db.passwd_fname, 'restart_httpd')
+        nickname = self.get_mod_nss_nickname()
+        if db.is_ipa_issued_cert(api, nickname):
+            db.track_server_cert(nickname, self.principal,
+                                 db.passwd_fname, 'restart_httpd')
+        else:
+            logger.debug("Will not track HTTP server cert %s as it is not "
+                         "issued by IPA", nickname)
 
     def request_service_keytab(self):
         super(HTTPInstance, self).request_service_keytab()
