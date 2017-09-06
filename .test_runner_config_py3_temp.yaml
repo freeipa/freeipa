@@ -33,6 +33,15 @@ steps:
   - dnf builddep -y ${builddep_opts} --spec freeipa.spec.in --best --allowerasing
   cleanup:
   - chown -R ${uid}:${gid} ${container_working_dir}
+  - >
+      tar --ignore-failed-read -cvf ${container_working_dir}/var_log.tar
+      /var/log/dirsrv
+      /var/log/httpd
+      /var/log/ipa*
+      /var/log/krb5kdc.log
+      /var/log/pki
+      systemd_journal.log
+  - chown ${uid}:${gid} ${container_working_dir}/var_log.tar
   configure:
   - ./autogen.sh
   install_packages:
