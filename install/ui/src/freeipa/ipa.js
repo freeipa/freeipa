@@ -264,18 +264,19 @@ var IPA = function () {
         return rpc.command({
             method: 'whoami',
             on_success: function(data, text_status, xhr) {
-                that.whoami.metadata = data;
+                that.whoami.metadata = data.result || data;
+                var wa_data = that.whoami.metadata;
 
                 rpc.command({
-                    method: data.details || data.command,
-                    args: data.arguments,
+                    method: wa_data.details || wa_data.command,
+                    args: wa_data.arguments,
                     options: function() {
-                        var options = data.options || [];
+                        var options = wa_data.options || [];
                         $.extend(options, {all: true});
                         return options;
                     }(),
                     on_success: function(data, text_status, xhr) {
-                        that.whoami.data = false ? data.result[0] : data.result.result;
+                        that.whoami.data = data.result.result;
                         var entity = that.whoami.metadata.object;
 
                         if (entity === 'user') {
