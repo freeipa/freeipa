@@ -20,12 +20,14 @@ import os
 from ipatests.pytest_plugins.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.create_external_ca import ExternalCA
+from ipatests.util import collect_logs
 
 
 class TestExternalCA(IntegrationTest):
     """
     Test of FreeIPA server installation with exernal CA
     """
+    @collect_logs
     def test_external_ca(self):
         # Step 1 of ipa-server-install
         self.master.run_command([
