@@ -191,7 +191,7 @@ var IPA = function () {
             }
         }));
 
-        batch.add_command(that.get_whoami_command(true));
+        batch.add_command(that.get_whoami_command());
 
         batch.add_command(rpc.command({
             method: 'env',
@@ -259,10 +259,8 @@ var IPA = function () {
     /**
      * Prepares `user-find --whoami` command
      * @protected
-     * @param {boolean} batch - Specifies if it will be used as single command or
-     *                          in a batch.
      */
-    that.get_whoami_command = function(batch) {
+    that.get_whoami_command = function() {
         return rpc.command({
             method: 'whoami',
             on_success: function(data, text_status, xhr) {
