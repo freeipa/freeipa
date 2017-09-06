@@ -556,7 +556,7 @@ class SSLTransport(LanguageAwareTransport):
 
         conn = create_https_connection(
             host, 443,
-            api.env.tls_ca_cert,
+            getattr(context, 'ca_certfile', None),
             tls_version_min=api.env.tls_version_min,
             tls_version_max=api.env.tls_version_max)
 
