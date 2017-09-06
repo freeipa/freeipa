@@ -43,6 +43,9 @@ from ipalib.plugable import Plugin
 from ipalib.request import context
 from ipapython.dn import DN
 from ipapython.ipautil import run
+from ipatests.pytest_plugins.integration.tasks import (
+    setup_server_logs_collecting)
+
 
 try:
     # not available with client-only wheel packages
@@ -834,3 +837,19 @@ def get_group_dn(cn):
 
 def get_user_dn(uid):
     return DN(('uid', uid), api.env.container_user, api.env.basedn)
+
+
+def collect_logs(func):
+    def wrapper(*args):
+        try:
+            func(*args)
+        finally:
+            if hasattr(args[0], 'master'):
+                setup_server_logs_collecting(args[0].master)
+            if hasattr(args[0], 'replicas') and args[0].replicas:
+                for replica in args[0].replicas:
+                    setup_server_logs_collecting(replica)
+            if hasattr(args[0], 'clients') and args[0].clients:
+                for client in args[0].clients:
+                    setup_server_logs_collecting(client)
+    return wrapper
