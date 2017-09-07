@@ -1434,6 +1434,7 @@ class ModifyLDIF(ldif.LDIFParser):
 
             if "replace" in entry:
                 for attr in entry["replace"]:
+                    attr = attr.decode('utf-8')
                     try:
                         self.replace_value(dn, attr, entry[attr])
                     except KeyError:
@@ -1441,9 +1442,11 @@ class ModifyLDIF(ldif.LDIFParser):
                                          "missing".format(dn=dn, attr=attr))
             elif "delete" in entry:
                 for attr in entry["delete"]:
+                    attr = attr.decode('utf-8')
                     self.remove_value(dn, attr, entry.get(attr, None))
             elif "add" in entry:
                 for attr in entry["add"]:
+                    attr = attr.decode('utf-8')
                     try:
                         self.replace_value(dn, attr, entry[attr])
                     except KeyError:
