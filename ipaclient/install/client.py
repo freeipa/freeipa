@@ -3105,9 +3105,7 @@ def uninstall(options):
             "Removing Kerberos service principals from /etc/krb5.keytab")
         try:
             parser = RawConfigParser()
-            fp = open(paths.IPA_DEFAULT_CONF, 'r')
-            parser.readfp(fp)
-            fp.close()
+            parser.read(paths.IPA_DEFAULT_CONF)
             realm = parser.get('global', 'realm')
             run([paths.IPA_RMKEYTAB, "-k", paths.KRB5_KEYTAB, "-r", realm])
         except CalledProcessError as err:
