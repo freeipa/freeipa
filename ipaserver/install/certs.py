@@ -437,7 +437,7 @@ class CertDB(object):
             client_keyfile=paths.RA_AGENT_KEY,
             **params)
         http_status, _http_headers, http_body = result
-        logger.debug("CA answer: %s", http_body)
+        logger.debug("CA answer: %r", http_body)
 
         if http_status != 200:
             raise CertificateOperationError(
