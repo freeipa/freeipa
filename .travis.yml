@@ -35,67 +35,19 @@ env:
         - TASK_TO_RUN="run-tests"
           PYTHON=/usr/bin/python3
           TEST_RUNNER_CONFIG=".test_runner_config_py3_temp.yaml"
-          TESTS_TO_RUN="test_xmlrpc/test_add_remove_cert_cmd.py
-            test_xmlrpc/test_attr.py
-            test_xmlrpc/test_automember_plugin.py
-            test_xmlrpc/test_automount_plugin.py
-            test_xmlrpc/test_baseldap_plugin.py
-            test_xmlrpc/test_batch_plugin.py
-            test_xmlrpc/test_cert_plugin.py
-            test_xmlrpc/test_certprofile_plugin.py
-            test_xmlrpc/test_config_plugin.py
-            test_xmlrpc/test_delegation_plugin.py
-            test_xmlrpc/test_group_plugin.py
-            test_xmlrpc/test_hbac_plugin.py
-            test_xmlrpc/test_hbacsvcgroup_plugin.py
-            test_xmlrpc/test_hbactest_plugin.py
-            test_xmlrpc/test_host_plugin.py
-            test_xmlrpc/test_hostgroup_plugin.py
-            test_xmlrpc/test_krbtpolicy.py
-            test_xmlrpc/test_kerberos_principal_aliases.py"
-            ### Tests which haven't been ported to py3 yet ###
-            ## test_xmlrpc/test_[a-k]*.py
-            # test_xmlrpc/test_ca_plugin.py
-            # test_xmlrpc/test_caacl_plugin.py
-            # test_xmlrpc/test_caacl_profile_enforcement.py
-            # test_xmlrpc/test_dns_plugin.py
-            # test_xmlrpc/test_dns_realmdomains_integration.py
-            # test_xmlrpc/test_external_members.py
-            # test_xmlrpc/test_idviews_plugin.py
+          TESTS_TO_RUN="test_xmlrpc/test_[a-k]*.py"
         - TASK_TO_RUN="run-tests"
           PYTHON=/usr/bin/python3
           TEST_RUNNER_CONFIG=".test_runner_config_py3_temp.yaml"
           TESTS_TO_RUN="test_cmdline
+                test_install
+                test_ipaclient
                 test_ipalib
                 test_ipapython
                 test_ipaserver
                 test_pkcs10
-                test_xmlrpc/test_location_plugin.py
-                test_xmlrpc/test_nesting.py
-                test_xmlrpc/test_netgroup_plugin.py
-                test_xmlrpc/test_old_permission_plugin.py
-                test_xmlrpc/test_passwd_plugin.py
-                test_xmlrpc/test_permission_plugin.py
-                test_xmlrpc/test_ping_plugin.py
-                test_xmlrpc/test_privilege_plugin.py
-                test_xmlrpc/test_pwpolicy_plugin.py
-                test_xmlrpc/test_radiusproxy_plugin.py
-                test_xmlrpc/test_realmdomains_plugin.py
-                test_xmlrpc/test_replace.py
-                test_xmlrpc/test_role_plugin.py
-                test_xmlrpc/test_selfservice_plugin.py
-                test_xmlrpc/test_selinuxusermap_plugin.py
-                test_xmlrpc/test_service_plugin.py
-                test_xmlrpc/test_servicedelegation_plugin.py
-                test_xmlrpc/test_stageuser_plugin.py
-                test_xmlrpc/test_sudocmd_plugin.py
-                test_xmlrpc/test_sudocmdgroup_plugin.py
-                test_xmlrpc/test_sudorule_plugin.py"
-            ### Tests which haven't been ported to py3 yet ###
-            ## test_xmlrpc/test_[l-z]*.py
-            # test_xmlrpc/test_range_plugin.py
-            # test_xmlrpc/test_trust_plugin.py
-            # test_xmlrpc/test_vault_plugin.py
+                test_xmlrpc/test_[l-uw-z]*.py"
+                # FIXME: add vault tests once PKI finally fixes vault
 install:
     - pip install --upgrade pip
     - pip3 install --upgrade pip
