@@ -1,6 +1,8 @@
 #
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
+import base64
+
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from nose.tools import assert_raises
@@ -50,11 +52,9 @@ class CertmapdataMixin(object):
                     certs = [certs]
 
             for cert in certs:
-                cert = x509.load_pem_x509_certificate(
-                    (b'-----BEGIN CERTIFICATE-----\n'
-                     b'{}-----END CERTIFICATE-----\n'
-                     .format(cert)),
-                    default_backend()
+                cert = x509.load_der_x509_certificate(
+                    base64.b64decode(cert),
+                    backend=default_backend()
                 )
                 issuer = DN(cert.issuer).x500_text()
                 subject = DN(cert.subject).x500_text()
