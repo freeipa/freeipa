@@ -353,7 +353,7 @@ class ldap2(CrudBackend, LDAPClient):
 
         attrs = self.get_effective_rights(dn, ["*"])
         if 'entrylevelrights' in attrs:
-            entry_rights = attrs['entrylevelrights'][0].decode('UTF-8')
+            entry_rights = attrs['entrylevelrights'][0]
             if 'd' in entry_rights:
                 return True
 
@@ -366,7 +366,7 @@ class ldap2(CrudBackend, LDAPClient):
         assert isinstance(dn, DN)
         attrs = self.get_effective_rights(dn, ["*"])
         if 'entrylevelrights' in attrs:
-            entry_rights = attrs['entrylevelrights'][0].decode('UTF-8')
+            entry_rights = attrs['entrylevelrights'][0]
             if 'a' in entry_rights:
                 return True
 
