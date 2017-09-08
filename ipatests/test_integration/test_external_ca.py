@@ -1,8 +1,6 @@
-# Authors:
-#   Ana Krivokapic <akrivoka@redhat.com>
 #
-# Copyright (C) 2013  Red Hat
-# see file 'COPYING' for use and warranty information
+# Copyright (C) 2017  FreeIPA Contributors see COPYING for license
+#
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,15 +14,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import os
-import base64
 
 from ipatests.pytest_plugins.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
-
-
-EXTERNAL_CA_KEY_ID = base64.b64encode(os.urandom(64))
-IPA_CA_KEY_ID = base64.b64encode(os.urandom(64))
+from ipatests.test_integration.create_external_ca import ExternalCA
 
 
 class TestExternalCA(IntegrationTest):
@@ -44,70 +39,31 @@ class TestExternalCA(IntegrationTest):
             '--external-ca'
         ])
 
-        nss_db = os.path.join(self.master.config.test_dir, 'testdb')
-        external_cert_file = os.path.join(nss_db, 'ipa.crt')
-        external_ca_file = os.path.join(nss_db, 'ca.crt')
-        noisefile = os.path.join(self.master.config.test_dir, 'noise.txt')
-        pwdfile = os.path.join(self.master.config.test_dir, 'pwdfile.txt')
+        test_dir = self.master.config.test_dir
 
-        # Create noise and password files for NSS database
-        self.master.run_command('date | sha256sum > %s' % noisefile)
-        self.master.run_command('echo %s > %s' %
-                                (self.master.config.admin_password, pwdfile))
+        # Get IPA CSR as bytes
+        ipa_csr = self.master.get_file_contents('/root/ipa.csr')
 
-        # Create NSS database
-        self.master.run_command(['mkdir', nss_db])
-        self.master.run_command([
-            'certutil', '-N',
-            '-d', nss_db,
-            '-f', pwdfile
-        ])
+        external_ca = ExternalCA()
+        # Create root CA
+        root_ca = external_ca.create_ca()
+        # Sign CSR
+        ipa_ca = external_ca.sign_csr(ipa_csr)
 
-        # Create external CA
-        self.master.run_command([
-            'certutil', '-S',
-            '-d', nss_db,
-            '-f', pwdfile,
-            '-n', 'external',
-            '-s', 'CN=External CA, O=%s' % self.master.domain.name,
-            '-x',
-            '-t', 'CTu,CTu,CTu',
-            '-g', '2048',
-            '-m', '0',
-            '-v', '60',
-            '-z', noisefile,
-            '-2', '-1', '-5', '--extSKID'
-        ], stdin_text='5\n9\nn\ny\n10\ny\n{}\nn\n5\n6\n7\n9\nn\n'
-                      ''.format(EXTERNAL_CA_KEY_ID))
+        root_ca_fname = os.path.join(test_dir, 'root_ca.crt')
+        ipa_ca_fname = os.path.join(test_dir, 'ipa_ca.crt')
 
-        # Sign IPA cert request using the external CA
-        self.master.run_command([
-            'certutil', '-C',
-            '-d', nss_db,
-            '-f', pwdfile,
-            '-c', 'external',
-            '-m', '1',
-            '-v', '60',
-            '-2', '-1', '-3', '--extSKID',
-            '-i', '/root/ipa.csr',
-            '-o', external_cert_file,
-            '-a'
-        ], stdin_text='0\n1\n5\n9\ny\ny\n\ny\ny\n{}\n-1\n\nn\n{}\nn\n'
-                      ''.format(EXTERNAL_CA_KEY_ID, IPA_CA_KEY_ID))
-
-        # Export external CA file
-        self.master.run_command(
-            'certutil -L -d %s -n "external" -a > %s' %
-            (nss_db, external_ca_file)
-        )
+        # Transport certificates (string > file) to master
+        self.master.put_file_contents(root_ca_fname, root_ca)
+        self.master.put_file_contents(ipa_ca_fname, ipa_ca)
 
         # Step 2 of ipa-server-install
         self.master.run_command([
             'ipa-server-install',
             '-a', self.master.config.admin_password,
             '-p', self.master.config.dirman_password,
-            '--external-cert-file', external_cert_file,
-            '--external-cert-file', external_ca_file
+            '--external-cert-file', ipa_ca_fname,
+            '--external-cert-file', root_ca_fname
         ])
 
         # Make sure IPA server is working properly
