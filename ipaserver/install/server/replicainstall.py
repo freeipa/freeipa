@@ -434,30 +434,27 @@ def promote_sssd(host_name):
     sssdconfig.import_config()
     domains = sssdconfig.list_active_domains()
 
-    ipa_domain = None
-
     for name in domains:
         domain = sssdconfig.get_domain(name)
         try:
             hostname = domain.get_option('ipa_hostname')
             if hostname == host_name:
-                ipa_domain = domain
+                break
         except SSSDConfig.NoOptionError:
             continue
-
-    if ipa_domain is None:
-        raise RuntimeError("Couldn't find IPA domain in sssd.conf")
     else:
-        domain.set_option('ipa_server', host_name)
-        domain.set_option('ipa_server_mode', True)
-        sssdconfig.save_domain(domain)
-        sssdconfig.write()
+        raise RuntimeError("Couldn't find IPA domain in sssd.conf")
 
-        sssd = services.service('sssd', api)
-        try:
-            sssd.restart()
-        except CalledProcessError:
-            logger.warning("SSSD service restart was unsuccessful.")
+    domain.set_option('ipa_server', host_name)
+    domain.set_option('ipa_server_mode', True)
+    sssdconfig.save_domain(domain)
+    sssdconfig.write()
+
+    sssd = services.service('sssd', api)
+    try:
+        sssd.restart()
+    except CalledProcessError:
+        logger.warning("SSSD service restart was unsuccessful.")
 
 
 def promote_openldap_conf(hostname, master):
