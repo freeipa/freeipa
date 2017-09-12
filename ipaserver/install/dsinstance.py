@@ -596,6 +596,7 @@ class DsInstance(service.Service):
                 parser.parse()
             new_dse_ldif.flush()
         shutil.copy2(temp_filename, dse_filename)
+        tasks.restore_context(dse_filename)
         try:
             os.remove(temp_filename)
         except OSError as e:
