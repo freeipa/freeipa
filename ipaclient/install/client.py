@@ -1615,7 +1615,7 @@ def get_ca_certs_from_http(url, warn=True):
         result = run([paths.BIN_CURL, "-o", "-", url], capture_output=True)
     except CalledProcessError:
         raise errors.NoCertificateError(entry=url)
-    stdout = result.output
+    stdout = result.raw_output
 
     try:
         certs = x509.load_certificate_list(stdout)
