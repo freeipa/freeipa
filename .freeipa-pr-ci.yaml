@@ -9,7 +9,7 @@ jobs:
         git_refspec: '{git_refspec}'
         template: &ci-ipa-4-5-f26
           name: felipevolpone/ci-ipa-4-5-f26
-          version: 0.1.2
+          version: 0.1.0
         timeout: 1800
 
   fedora-26/simple_replication:
