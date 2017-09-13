@@ -1817,10 +1817,14 @@ def upgrade_configuration():
         cainstance.ensure_ipa_authority_entry()
 
     set_sssd_domain_option('ipa_server_mode', 'True')
+    set_sssd_domain_option('ipa_server', api.env.host)
 
     sssdconfig = SSSDConfig.SSSDConfig()
     sssdconfig.import_config()
     sssd_enable_service(sssdconfig, 'ifp')
+
+    sssd = services.service('sssd', api)
+    sssd.restart()
 
     krb = krbinstance.KrbInstance(fstore)
     krb.fqdn = fqdn
