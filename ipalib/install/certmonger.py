@@ -32,6 +32,7 @@ import shlex
 import subprocess
 import tempfile
 from ipalib import api
+from ipalib.constants import CA_DBUS_TIMEOUT
 from ipapython.dn import DN
 from ipaplatform.paths import paths
 from ipaplatform import services
@@ -620,7 +621,9 @@ def modify_ca_helper(ca_name, helper):
         old_helper = ca_iface.Get('org.fedorahosted.certmonger.ca',
                                   'external-helper')
         ca_iface.Set('org.fedorahosted.certmonger.ca',
-                     'external-helper', helper)
+                     'external-helper', helper,
+                     # Give dogtag extra time to generate cert
+                     timeout=CA_DBUS_TIMEOUT)
         return old_helper
 
 
