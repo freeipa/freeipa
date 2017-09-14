@@ -21,6 +21,7 @@ import os
 import pytest
 
 from ipaserver.install.ipa_otptoken_import import PSKCDocument, ValidationError
+from ipaserver.install.ipa_otptoken_import import convertHashName
 
 basename = os.path.join(os.path.dirname(__file__), "data")
 
@@ -128,3 +129,21 @@ class test_otptoken_import(object):
                 'ipatokenotpdigits': 8,
                 'type': u'hotp',
             })]
+
+    def test_valid_tokens(self):
+        assert convertHashName('sha1') == u'sha1'
+        assert convertHashName('hmac-sha1') == u'sha1'
+        assert convertHashName('sha224') == u'sha224'
+        assert convertHashName('hmac-sha224') == u'sha224'
+        assert convertHashName('sha256') == u'sha256'
+        assert convertHashName('hmac-sha256') == u'sha256'
+        assert convertHashName('sha384') == u'sha384'
+        assert convertHashName('hmac-sha384') == u'sha384'
+        assert convertHashName('sha512') == u'sha512'
+        assert convertHashName('hmac-sha512') == u'sha512'
+
+    def test_invalid_tokens(self):
+        """The conversion defaults to sha1 on unknown hashing"""
+        assert convertHashName('something-sha256') == u'sha1'
+        assert convertHashName('') == u'sha1'
+        assert convertHashName(None) == u'sha1'
