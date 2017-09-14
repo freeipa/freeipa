@@ -925,7 +925,7 @@ def certificate_renewal_update(ca, ds, http):
         {
             'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
             'cert-nickname': 'auditSigningCert cert-pki-ca',
-            'ca': 'dogtag-ipa-ca-renew-agent',
+            'ca-name': 'dogtag-ipa-ca-renew-agent',
             'cert-presave-command': template % 'stop_pkicad',
             'cert-postsave-command':
                 (template % 'renew_ca_cert "auditSigningCert cert-pki-ca"'),
@@ -933,7 +933,7 @@ def certificate_renewal_update(ca, ds, http):
         {
             'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
             'cert-nickname': 'ocspSigningCert cert-pki-ca',
-            'ca': 'dogtag-ipa-ca-renew-agent',
+            'ca-name': 'dogtag-ipa-ca-renew-agent',
             'cert-presave-command': template % 'stop_pkicad',
             'cert-postsave-command':
                 (template % 'renew_ca_cert "ocspSigningCert cert-pki-ca"'),
@@ -941,7 +941,7 @@ def certificate_renewal_update(ca, ds, http):
         {
             'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
             'cert-nickname': 'subsystemCert cert-pki-ca',
-            'ca': 'dogtag-ipa-ca-renew-agent',
+            'ca-name': 'dogtag-ipa-ca-renew-agent',
             'cert-presave-command': template % 'stop_pkicad',
             'cert-postsave-command':
                 (template % 'renew_ca_cert "subsystemCert cert-pki-ca"'),
@@ -949,16 +949,16 @@ def certificate_renewal_update(ca, ds, http):
         {
             'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
             'cert-nickname': 'caSigningCert cert-pki-ca',
-            'ca': 'dogtag-ipa-ca-renew-agent',
+            'ca-name': 'dogtag-ipa-ca-renew-agent',
             'cert-presave-command': template % 'stop_pkicad',
             'cert-postsave-command':
                 (template % 'renew_ca_cert "caSigningCert cert-pki-ca"'),
-            'template-profile': '',
+            'template-profile': None,
         },
         {
             'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
             'cert-nickname': 'Server-Cert cert-pki-ca',
-            'ca': 'dogtag-ipa-ca-renew-agent',
+            'ca-name': 'dogtag-ipa-ca-renew-agent',
             'cert-presave-command': template % 'stop_pkicad',
             'cert-postsave-command':
                 (template % 'renew_ca_cert "Server-Cert cert-pki-ca"'),
@@ -966,20 +966,20 @@ def certificate_renewal_update(ca, ds, http):
         {
             'cert-file': paths.RA_AGENT_PEM,
             'key-file': paths.RA_AGENT_KEY,
-            'ca': 'dogtag-ipa-ca-renew-agent',
+            'ca-name': 'dogtag-ipa-ca-renew-agent',
             'cert-presave-command': template % 'renew_ra_cert_pre',
             'cert-postsave-command': template % 'renew_ra_cert',
         },
         {
             'cert-database': paths.HTTPD_ALIAS_DIR,
             'cert-nickname': http.get_mod_nss_nickname(),
-            'ca': 'IPA',
+            'ca-name': 'IPA',
             'cert-postsave-command': template % 'restart_httpd',
         },
         {
-            'cert-database': dsinstance.config_dirname(serverid),
+            'cert-database': dsinstance.config_dirname(serverid)[:-1],
             'cert-nickname': ds.get_server_cert_nickname(serverid),
-            'ca': 'IPA',
+            'ca-name': 'IPA',
             'cert-postsave-command':
                 '%s %s' % (template % 'restart_dirsrv', serverid),
         }
@@ -997,7 +997,7 @@ def certificate_renewal_update(ca, ds, http):
                 {
                     'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
                     'cert-nickname': nickname,
-                    'ca': 'dogtag-ipa-ca-renew-agent',
+                    'ca-name': 'dogtag-ipa-ca-renew-agent',
                     'cert-presave-command': template % 'stop_pkicad',
                     'cert-postsave-command':
                         (template % ('renew_ca_cert "%s"' % nickname)),
