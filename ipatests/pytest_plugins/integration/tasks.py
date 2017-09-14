@@ -1168,7 +1168,8 @@ def install_kra(host, domain_level=None, first_instance=False, raiseonerr=True):
     return result
 
 
-def install_ca(host, domain_level=None, first_instance=False, raiseonerr=True):
+def install_ca(host, domain_level=None, first_instance=False,
+               external_ca=False, cert_files=None, raiseonerr=True):
     if domain_level is None:
         domain_level = domainlevel(host)
     command = ["ipa-ca-install", "-U", "-p", host.config.dirman_password,
@@ -1176,6 +1177,13 @@ def install_ca(host, domain_level=None, first_instance=False, raiseonerr=True):
     if domain_level == DOMAIN_LEVEL_0 and not first_instance:
         replica_file = get_replica_filename(host)
         command.append(replica_file)
+    # First step of ipa-ca-install --external-ca
+    if external_ca:
+        command.append('--external-ca')
+    # Continue with ipa-ca-install --external-ca
+    if cert_files:
+        for fname in cert_files:
+            command.extend(['--external-cert-file', fname])
     result = host.run_command(command, raiseonerr=raiseonerr)
     setup_server_logs_collecting(host)
     return result
