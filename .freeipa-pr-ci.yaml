@@ -1,5 +1,5 @@
 jobs:
-  fedora-25/build:
+  fedora-26/build:
     requires: []
     priority: 100
     job:
@@ -7,28 +7,28 @@ jobs:
       args:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
-        template: &ci-ipa-4-5-f25
-          name: freeipa/ci-ipa-4-5-f25
-          version: 0.1.2
+        template: &ci-ipa-4-5-f26
+          name: felipevolpone/ci-ipa-4-5-f26
+          version: 0.1.0
         timeout: 1800
 
-  fedora-25/simple_replication:
-    requires: [fedora-25/build]
+  fedora-26/simple_replication:
+    requires: [fedora-26/build]
     priority: 50
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-25/build_url}'
+        build_url: '{fedora-26/build_url}'
         test_suite: test_integration/test_simple_replication.py
-        template: *ci-ipa-4-5-f25
+        template: *ci-ipa-4-5-f26
         timeout: 3600
 
-  fedora-25/caless:
-    requires: [fedora-25/build]
+  fedora-26/caless:
+    requires: [fedora-26/build]
     priority: 50
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-25/build_url}'
+        build_url: '{fedora-26/build_url}'
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
-        template: *ci-ipa-4-5-f25
+        template: *ci-ipa-4-5-f26
