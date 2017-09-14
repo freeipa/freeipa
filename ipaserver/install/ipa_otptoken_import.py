@@ -95,7 +95,9 @@ def convertTokenType(value):
 def convertHashName(value):
     "Converts hash names to their canonical names."
 
-    return {
+    default_hash = u"sha1"
+    known_prefixes = ("", "hmac-",)
+    known_hashes = {
         "sha1":    u"sha1",
         "sha224":  u"sha224",
         "sha256":  u"sha256",
@@ -106,7 +108,24 @@ def convertHashName(value):
         "sha-256": u"sha256",
         "sha-384": u"sha384",
         "sha-512": u"sha512",
-    }.get(value.lower(), u"sha1")
+    }
+
+    if value is None:
+        return default_hash
+
+    v = value.lower()
+    for prefix in known_prefixes:
+        if prefix:
+            w = v[len(prefix):]
+        else:
+            w = v
+        result = known_hashes.get(w)
+        if result is not None:
+            break
+    else:
+        result = default_hash
+
+    return result
 
 
 def convertHMACType(value):
