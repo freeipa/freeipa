@@ -257,7 +257,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 "\n")
 
         has_eku = set()
-        for cert, nickname, trusted, ext_key_usage in ca_certs:
+        for cert, nickname, trusted, _ext_key_usage in ca_certs:
             try:
                 subject = cert.subject_bytes
                 issuer = cert.issuer_bytes
@@ -296,7 +296,8 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 pem=cert.public_bytes(x509.Encoding.PEM).decode('ascii'))
             f.write(obj)
 
-            if ext_key_usage is not None and public_key_info not in has_eku:
+            if (cert.extended_key_usage is not None and
+                    public_key_info not in has_eku):
                 try:
                     ext_key_usage = cert.extended_key_usage_bytes
                 except PyAsn1Error as e:

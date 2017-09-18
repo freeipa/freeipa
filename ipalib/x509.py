@@ -295,8 +295,11 @@ class IPACertificate(object):
 
     @property
     def extended_key_usage_bytes(self):
+        eku = self.extended_key_usage
+        if eku is None:
+            return
+
         ekurfc = rfc2459.ExtKeyUsageSyntax()
-        eku = self.extended_key_usage or {EKU_PLACEHOLDER}
         for i, oid in enumerate(eku):
             ekurfc[i] = univ.ObjectIdentifier(oid)
         ekurfc = encoder.encode(ekurfc)
