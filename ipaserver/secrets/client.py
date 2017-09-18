@@ -13,6 +13,7 @@ from base64 import b64encode
 import ldapurl
 import gssapi
 import os
+import urllib3
 import requests
 
 
@@ -65,8 +66,9 @@ class CustodiaClient(object):
 
         self.keystore = self._keystore(realm, ldap_uri, auth_type)
 
-        # FIXME: Remove warnings about missig subjAltName
-        requests.packages.urllib3.disable_warnings()
+        # FIXME: Remove warnings about missing subjAltName for the
+        #        requests module
+        urllib3.disable_warnings()
 
     def init_creds(self):
         name = gssapi.Name(self.client_service,
