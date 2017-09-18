@@ -1467,7 +1467,7 @@ fi
 %dir %{_localstatedir}/lib/ipa
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/backup
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/gssproxy
-%attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
+%attr(711,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysupgrade
 %attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca
 %ghost %{_localstatedir}/lib/ipa/pki-ca/publish
