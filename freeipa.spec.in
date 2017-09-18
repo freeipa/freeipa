@@ -375,7 +375,7 @@ Requires: python-ldap >= 2.4.15
 Requires: python2-lxml
 Requires: python-gssapi >= 1.2.0-5
 Requires: python2-sssdconfig
-Requires: python2-pyasn1
+Requires: python2-pyasn1 >= 0.3.2-2
 Requires: dbus-python
 Requires: python2-dns >= 1.15
 Requires: python-kdcproxy >= 0.3
@@ -408,7 +408,7 @@ Requires(pre): python3-pyldap >= 2.4.35.1-2
 Requires: python3-lxml
 Requires: python3-gssapi >= 1.2.0
 Requires: python3-sssdconfig
-Requires: python3-pyasn1
+Requires: python3-pyasn1 >= 0.3.2-2
 Requires: python3-dbus
 Requires: python3-dns >= 1.15
 Requires: python3-kdcproxy >= 0.3
@@ -695,8 +695,8 @@ Requires: python2-cryptography >= 1.6
 Requires: python-netaddr >= %{python_netaddr_version}
 Requires: python2-libipa_hbac
 Requires: python-qrcode-core >= 5.0.0
-Requires: python2-pyasn1
-Requires: python2-pyasn1-modules
+Requires: python2-pyasn1 >= 0.3.2-2
+Requires: python2-pyasn1-modules >= 0.3.2-2
 Requires: python2-dateutil
 Requires: python2-yubico >= 1.2.3
 Requires: python2-sss-murmur
@@ -744,8 +744,8 @@ Requires: python3-cryptography >= 1.6
 Requires: python3-netaddr >= %{python_netaddr_version}
 Requires: python3-libipa_hbac
 Requires: python3-qrcode-core >= 5.0.0
-Requires: python3-pyasn1
-Requires: python3-pyasn1-modules
+Requires: python3-pyasn1 >= 0.3.2-2
+Requires: python3-pyasn1-modules >= 0.3.2-2
 Requires: python3-dateutil
 # fixes searching for yubikeys in python3
 Requires: python3-yubico >= 1.3.2-7
