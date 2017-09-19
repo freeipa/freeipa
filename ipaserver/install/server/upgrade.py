@@ -1908,6 +1908,7 @@ def upgrade_configuration():
 def upgrade_check(options):
     try:
         installutils.check_server_configuration()
+        tasks.check_ipv6_stack_enabled()
     except RuntimeError as e:
         logger.error("%s", e)
         sys.exit(1)
