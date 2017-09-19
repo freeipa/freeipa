@@ -146,9 +146,22 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         """
         if not os.path.exists(paths.IF_INET6):
             raise RuntimeError(
-                "IPv6 kernel module has to be enabled. If you do not wish to "
-                "use IPv6, please disable it on the interfaces in "
-                "sysctl.conf and enable the IPv6 kernel module.")
+                "IPv6 stack has to be enabled in the kernel and some "
+                "interface has to have ::1 address assigned. Typically "
+                "this is 'lo' interface. If you do not wish to use IPv6 "
+                "globally, disable it on the specific interfaces in "
+                "sysctl.conf except 'lo' interface.")
+
+        try:
+            localhost6 = ipautil.CheckedIPAddress('::1', allow_loopback=True)
+            if localhost6.get_matching_interface() is None:
+                raise ValueError("no interface for ::1 address found")
+        except ValueError:
+            raise RuntimeError(
+                 "IPv6 stack is enabled in the kernel but there is no "
+                 "interface that has ::1 address assigned. Add ::1 address "
+                 "resolution to 'lo' interface. You might need to enable IPv6 "
+                 "on the interface 'lo' in sysctl.conf.")
 
     def restore_pre_ipa_client_configuration(self, fstore, statestore,
                                              was_sssd_installed,
