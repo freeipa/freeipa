@@ -16,6 +16,7 @@ from ipaplatform.paths import paths
 from ipapython import certdb
 from ipapython import ipautil
 from ipapython.install.core import group
+from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import custodiainstance
 from ipaserver.install import cainstance
 from ipaserver.install import krainstance
@@ -26,7 +27,8 @@ from . import dogtag
 
 
 def install_check(api, replica_config, options):
-    if replica_config is not None and not replica_config.setup_kra:
+
+    if not options.setup_kra:
         return
 
     kra = krainstance.KRAInstance(api.env.realm)
@@ -47,9 +49,9 @@ def install_check(api, replica_config, options):
 
     if replica_config is not None:
         if not api.Command.kra_is_enabled()['result']:
-            raise RuntimeError(
-                "KRA is not installed on the master system. Please use "
-                "'ipa-kra-install' command to install the first instance.")
+            root_logger.info("KRA is not installed on the master system. "
+                             "KRA will be installed on the replica.")
+            return
 
         if options.promote:
             return
@@ -69,9 +71,13 @@ def install_check(api, replica_config, options):
 
 
 def install(api, replica_config, options):
-    if replica_config is None:
-        if not options.setup_kra:
-            return
+
+    if not options.setup_kra:
+        return
+
+    if not api.Command.kra_is_enabled()['result']:
+        # if kra is not installed on master, will install it for
+        # the first time in the replica
         realm_name = api.env.realm
         dm_password = options.dm_password
         host_name = api.env.host
@@ -81,8 +87,6 @@ def install(api, replica_config, options):
         master_host = None
         promote = False
     else:
-        if not replica_config.setup_kra:
-            return
         krafile = os.path.join(replica_config.dir, 'kracert.p12')
         if options.promote:
             with ipautil.private_ccache():
