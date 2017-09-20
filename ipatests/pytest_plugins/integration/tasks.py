@@ -236,14 +236,14 @@ def restore_hostname(host):
         host.run_command(['rm', backupname])
 
 
-def enable_replication_debugging(host):
-    logger.info('Enable LDAP replication logging')
+def enable_replication_debugging(host, log_level=0):
+    logger.info('Set LDAP debug level')
     logging_ldif = textwrap.dedent("""
         dn: cn=config
         changetype: modify
         replace: nsslapd-errorlog-level
-        nsslapd-errorlog-level: 8192
-        """)
+        nsslapd-errorlog-level: {log_level}
+        """.format(log_level=log_level))
     host.run_command(['ldapmodify', '-x',
                       '-D', str(host.config.dirman_dn),
                       '-w', host.config.dirman_password,
