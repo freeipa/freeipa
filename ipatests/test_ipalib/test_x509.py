@@ -60,6 +60,31 @@ badcert = (
     b'-----END CERTIFICATE-----'
 )
 
+good_pkcs7 = (
+    b'-----BEGIN PKCS7-----\n'
+    b'MIIDvAYJKoZIhvcNAQcCoIIDrTCCA6kCAQExADALBgkqhkiG9w0BBwGgggOPMIID\n'
+    b'izCCAnOgAwIBAgIBATANBgkqhkiG9w0BAQsFADA2MRQwEgYDVQQKDAtFWEFNUExF\n'
+    b'LkNPTTEeMBwGA1UEAwwVQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTE3MDkyMDIw\n'
+    b'NDI1N1oXDTM3MDkyMDIwNDI1N1owNjEUMBIGA1UECgwLRVhBTVBMRS5DT00xHjAc\n'
+    b'BgNVBAMMFUNlcnRpZmljYXRlIEF1dGhvcml0eTCCASIwDQYJKoZIhvcNAQEBBQAD\n'
+    b'ggEPADCCAQoCggEBAMNojX57UCCPTtEn9tQJBS4By5NixwodKm1UqOGsiecDrB0i\n'
+    b'Pw7D6uGP6g4b6srYtbh+YsRJnfekB2L08q1dX3LVEItq2TS0WKqgZuRZkw7DvnGl\n'
+    b'eANMwjHmE8k6/E0yI3GGxJLAfDZYw6CDspLkyN9anjQwVCz5N5z5bpeqi5BeVwin\n'
+    b'O8WVF6FNn3iyL66uwOsTGEzCo3Y5HiwqYgaND73TtdsBHcIqOdRql3CC3IdoXXcW\n'
+    b'044w4Lm2E95MuY729pPBHREtyzVkYtyuoKJ8KApghIY5oCklBkRDjyFK4tE7iF/h\n'
+    b's+valeT9vcz2bHMIpvbjqAu/kqE8MjcNEFPjLhcCAwEAAaOBozCBoDAfBgNVHSME\n'
+    b'GDAWgBTUB04/d1eLhbMtBi4AB65tsAt+2TAPBgNVHRMBAf8EBTADAQH/MA4GA1Ud\n'
+    b'DwEB/wQEAwIBxjAdBgNVHQ4EFgQU1AdOP3dXi4WzLQYuAAeubbALftkwPQYIKwYB\n'
+    b'BQUHAQEEMTAvMC0GCCsGAQUFBzABhiFodHRwOi8vaXBhLWNhLmdyZXlvYWsuY29t\n'
+    b'L2NhL29jc3AwDQYJKoZIhvcNAQELBQADggEBADQFwX1uh8tqLq8SqWZWtH95j33o\n'
+    b'5Ze2dW7sVppb/wVnNauG0wDQW7uIx+Ynr7GgufXLNBMn1aP/mA2CdHk7NZz2IB1s\n'
+    b'ZvbIfE8dVxzkA+Hh9d6cdgk4eU5rGf6Fw8ScEJ/48Mmncea3uGkHcOmt+BGLA8a1\n'
+    b'wtruy+iQylOkbv36CbxKV7IsZDP106Zc+cVeOUQZnCLKmvQkotn6UJd8N1X0R2J3\n'
+    b'4/qv0rUtcCnyEBNSgpTGCRlYM4kd98Dqc5W7wUpMcsQMFxQMSYY7pFQkdLPfJEx2\n'
+    b'Mg63SPawxfAgUeukrdsF3wTIKkIBu1TVse+kvRvgmRRrfF2a4ZOv5qORe2uhADEA\n'
+    b'-----END PKCS7-----'
+)
+
 
 class test_x509(object):
     """
@@ -119,3 +144,10 @@ class test_x509(object):
         assert cert.serial_number == 1093
         assert cert.not_valid_before == not_before
         assert cert.not_valid_after == not_after
+
+    def test_load_pkcs7_pem(self):
+        certlist = x509.pkcs7_to_certs(good_pkcs7, datatype=x509.PEM)
+        assert len(certlist) == 1
+        cert = certlist[0]
+        assert DN(cert.subject) == DN('CN=Certificate Authority,O=EXAMPLE.COM')
+        assert cert.serial_number == 1
