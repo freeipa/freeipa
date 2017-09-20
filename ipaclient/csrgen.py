@@ -396,7 +396,7 @@ class CSRLibraryAdaptor(object):
     def sign_csr(self, certification_request_info):
         """Sign a CertificationRequestInfo.
 
-        Returns: str, a DER-encoded signed CSR.
+        :returns: bytes, a DER-encoded signed CSR.
         """
         raise NotImplementedError('Use a subclass of CSRLibraryAdaptor')
 
