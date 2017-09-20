@@ -475,7 +475,7 @@ def pkcs7_to_certs(data, datatype=PEM):
     """
     if datatype == PEM:
         match = re.match(
-            r'-----BEGIN PKCS7-----(.*?)-----END PKCS7-----',
+            br'-----BEGIN PKCS7-----(.*?)-----END PKCS7-----',
             data,
             re.DOTALL)
         if not match:
