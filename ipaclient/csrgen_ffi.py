@@ -196,11 +196,11 @@ def _parse_dn_section(subj, dn_sk):
 
         # Skip past any leading X. X: X, etc to allow for multiple instances
         for idx, c in enumerate(rdn_type):
-            if c in ':,.':
+            if c in b':,.':
                 if idx+1 < len(rdn_type):
                     rdn_type = rdn_type[idx+1:]
                 break
-        if rdn_type.startswith('+'):
+        if rdn_type.startswith(b'+'):
             rdn_type = rdn_type[1:]
             mval = -1
         else:
@@ -236,7 +236,7 @@ def build_requestinfo(config, public_key_info):
                 raise errors.CSRTemplateError(
                     reason='Error on line %d of config file' % errorline[0])
 
-        dn_sect = NCONF_get_string(reqdata, 'req', 'distinguished_name')
+        dn_sect = NCONF_get_string(reqdata, b'req', b'distinguished_name')
         if dn_sect == NULL:
             raise errors.CSRTemplateError(
                 reason='Unable to find "distinguished_name" key in config')
@@ -267,7 +267,7 @@ def build_requestinfo(config, public_key_info):
         X509V3_set_ctx(ext_ctx, NULL, NULL, req, NULL, 0)
         X509V3_set_nconf(ext_ctx, reqdata)
 
-        extn_section = NCONF_get_string(reqdata, "req", "req_extensions")
+        extn_section = NCONF_get_string(reqdata, b"req", b"req_extensions")
         if extn_section != NULL:
             if not X509V3_EXT_REQ_add_nconf(
                     reqdata, ext_ctx, extn_section, req):
