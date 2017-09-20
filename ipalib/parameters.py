@@ -848,8 +848,10 @@ class Param(ReadOnly):
         """
         Convert a single scalar value.
         """
-        if type(value) in self.allowed_types:
-            return value
+        for t in self.allowed_types:
+            if isinstance(value, t):
+                return value
+
         raise ConversionError(name=self.name, error=ugettext(self.type_error))
 
     def validate(self, value, supplied=None):
@@ -879,7 +881,10 @@ class Param(ReadOnly):
             self._validate_scalar(value)
 
     def _validate_scalar(self, value, index=None):
-        if type(value) not in self.allowed_types:
+        for t in self.allowed_types:
+            if isinstance(value, t):
+                break
+        else:
             raise TypeError(
                 TYPE_ERROR % (self.name, self.type, value, type(value))
             )
