@@ -132,7 +132,7 @@ class cert_request(CertRetrieveOverride):
             response = self.api.Command.cert_get_requestdata(
                 profile_id=profile_id,
                 principal=options.get('principal'),
-                public_key_info=unicode(pubkey_info_b64))
+                public_key_info=pubkey_info_b64)
 
             req_info_b64 = response['result']['request_info']
             req_info = base64.b64decode(req_info_b64)
