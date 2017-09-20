@@ -121,6 +121,10 @@ class RedHatDirectoryService(RedHatService):
 
         return True
 
+    def is_installed(self, instance_name):
+        file_path = "{}/{}-{}".format(paths.ETC_DIRSRV, "slapd", instance_name)
+        return os.path.exists(file_path)
+
     def restart(self, instance_name="", capture_output=True, wait=True,
                 ldapi=False):
     # We need to explicitly enable instances to install proper symlinks as
