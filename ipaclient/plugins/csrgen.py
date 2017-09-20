@@ -11,7 +11,7 @@ from ipalib import errors
 from ipalib import output
 from ipalib import util
 from ipalib.frontend import Local, Str
-from ipalib.parameters import File, Principal
+from ipalib.parameters import Bytes, Principal
 from ipalib.plugable import Registry
 from ipalib.text import _
 from ipapython import dogtag
@@ -52,7 +52,7 @@ class cert_get_requestdata(Local):
             label=_('Profile ID'),
             doc=_('CSR Generation Profile to use'),
         ),
-        File(
+        Bytes(
             'public_key_info',
             label=_('Subject Public Key Info'),
             doc=_('DER-encoded SubjectPublicKeyInfo structure'),
