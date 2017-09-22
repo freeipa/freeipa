@@ -29,13 +29,13 @@ def strip_header(csr):
     Remove the header and footer (and surrounding material) from a CSR.
     """
     headerlen = 40
-    s = csr.find("-----BEGIN NEW CERTIFICATE REQUEST-----")
+    s = csr.find(b"-----BEGIN NEW CERTIFICATE REQUEST-----")
     if s == -1:
         headerlen = 36
-        s = csr.find("-----BEGIN CERTIFICATE REQUEST-----")
+        s = csr.find(b"-----BEGIN CERTIFICATE REQUEST-----")
     if s >= 0:
-        e = csr.find("-----END")
-        csr = csr[s+headerlen:e]
+        e = csr.find(b"-----END")
+        csr = csr[s + headerlen:e]
 
     return csr
 

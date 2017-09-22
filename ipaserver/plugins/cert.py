@@ -24,7 +24,6 @@ import collections
 import datetime
 import logging
 from operator import attrgetter
-import os
 
 import cryptography.x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -33,14 +32,14 @@ import six
 from ipalib import Command, Str, Int, Flag
 from ipalib import api
 from ipalib import errors, messages
-from ipalib import pkcs10
 from ipalib import x509
 from ipalib import ngettext
 from ipalib.constants import IPA_CA_CN
 from ipalib.crud import Create, PKQuery, Retrieve, Search
 from ipalib.frontend import Method, Object
 from ipalib.parameters import (
-    Bytes, Certificate, DateTime, DNParam, DNSNameParam, Principal
+    Bytes, Certificate, CertificateSigningRequest, DateTime, DNParam,
+    DNSNameParam, Principal
 )
 from ipalib.plugable import Registry
 from .virtual import VirtualCommand
@@ -252,22 +251,6 @@ def normalize_pkidate(value):
 def convert_pkidatetime(value):
     value = datetime.datetime.fromtimestamp(int(value) // 1000)
     return x509.format_datetime(value)
-
-
-def validate_csr(ugettext, csr):
-    """
-    Ensure the CSR is base64-encoded and can be decoded by our PKCS#10
-    parser.
-    """
-    if api.env.context == 'cli':
-        # If we are passed in a pointer to a valid file on the client side
-        # escape and let the load_files() handle things
-        if csr and os.path.exists(csr):
-            return
-    try:
-        pkcs10.load_certificate_request(csr)
-    except (TypeError, ValueError) as e:
-        raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request: %s') % e)
 
 
 def normalize_serial_number(num):
@@ -616,11 +599,10 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
     attr_name = 'request'
 
     takes_args = (
-        Str(
-            'csr', validate_csr,
+        CertificateSigningRequest(
+            'csr',
             label=_('CSR'),
             cli_name='csr_file',
-            noextrawhitespace=False,
         ),
     )
     operation="request certificate"
@@ -725,13 +707,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 caacl_check(principal, ca, profile_id)
 
         try:
-            csr_obj = pkcs10.load_certificate_request(csr)
-        except ValueError as e:
-            raise errors.CertificateOperationError(
-                error=_("Failure decoding Certificate Signing Request: %s") % e)
-
-        try:
-            ext_san = csr_obj.extensions.get_extension_for_oid(
+            ext_san = csr.extensions.get_extension_for_oid(
                 cryptography.x509.oid.ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
         except cryptography.x509.extensions.ExtensionNotFound:
             ext_san = None
@@ -739,7 +715,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         # Ensure that the DN in the CSR matches the principal
         #
         # We only look at the "most specific" CN value
-        cns = csr_obj.subject.get_attributes_for_oid(
+        cns = csr.subject.get_attributes_for_oid(
                 cryptography.x509.oid.NameOID.COMMON_NAME)
         if len(cns) == 0:
             raise errors.ValidationError(name='csr',
@@ -772,7 +748,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             # check email address
             #
             # fail if any email addr from DN does not appear in ldap entry
-            email_addrs = csr_obj.subject.get_attributes_for_oid(
+            email_addrs = csr.subject.get_attributes_for_oid(
                     cryptography.x509.oid.NameOID.EMAIL_ADDRESS)
             csr_emails = [attr.value for attr in email_addrs]
             if not _emails_are_valid(csr_emails,
@@ -888,7 +864,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             # re-serialise to PEM, in case the user-supplied data has
             # extraneous material that will cause Dogtag to freak out
             # keep it as string not bytes, it is required later
-            csr_pem = csr_obj.public_bytes(
+            csr_pem = csr.public_bytes(
                 serialization.Encoding.PEM).decode('utf-8')
             result = self.Backend.ra.request_certificate(
                 csr_pem, profile_id, ca_id, request_type=request_type)
