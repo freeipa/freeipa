@@ -388,6 +388,9 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         fix_apache_semaphores(replica)
         args.extend(['-r', replica.domain.realm])
 
+    if not stdin_text:
+        stdin_text = replica.config.dirman_password
+
     result = replica.run_command(args, raiseonerr=raiseonerr,
                                  stdin_text=stdin_text)
     if result.returncode == 0:
