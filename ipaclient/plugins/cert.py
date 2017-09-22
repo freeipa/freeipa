@@ -120,7 +120,7 @@ class cert_request(CertRetrieveOverride):
                     message=u"One of 'database' or 'private_key' is required")
 
             pubkey_info = adaptor.get_subject_public_key_info()
-            pubkey_info_b64 = base64.b64encode(pubkey_info)
+            pubkey_info_b64 = base64.b64encode(pubkey_info).decode('ascii')
 
             # If csr_profile_id is passed, that takes precedence.
             # Otherwise, use profile_id. If neither are passed, the default
