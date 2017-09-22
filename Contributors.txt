@@ -38,6 +38,7 @@ Developers:
 	Lewis Eason
 	Drew Erny
 	Oleg Fayans
+	felipe
 	Jérôme Fenal
 	Fabiano Fidêncio
 	Stephen Gallagher
