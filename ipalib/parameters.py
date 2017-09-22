@@ -115,12 +115,15 @@ from ipalib.base import check_name
 from ipalib.plugable import ReadOnly, lock
 from ipalib.errors import ConversionError, RequirementError, ValidationError
 from ipalib.errors import (
-    PasswordMismatch, Base64DecodeError, CertificateFormatError
+    PasswordMismatch, Base64DecodeError, CertificateFormatError,
+    CertificateOperationError
 )
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.text import Gettext, FixMe
 from ipalib.util import json_serialize, validate_idna_domain
-from ipalib.x509 import load_der_x509_certificate, IPACertificate
+from ipalib.x509 import (
+    load_der_x509_certificate, IPACertificate, default_backend)
+from ipalib.pkcs10 import strip_header as strip_csr_header
 from ipapython import kerberos
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
@@ -1450,6 +1453,60 @@ class Certificate(Param):
                 raise CertificateFormatError(error=str(e))
 
         return super(Certificate, self)._convert_scalar(value)
+
+
+class CertificateSigningRequest(Param):
+    type = crypto_x509.CertificateSigningRequest
+    type_error = _('must be a certificate signing request')
+    allowed_types = (crypto_x509.CertificateSigningRequest, bytes, unicode)
+
+    def __extract_der_from_input(self, value):
+        """
+        Tries to get the DER representation of whatever we receive as an input
+
+        :param value:
+            bytes instance containing something we hope is a certificate
+            signing request
+        :returns:
+            base64-decoded representation of whatever we found in case input
+            had been something else than DER or something which resembles
+            DER, in which case we would just return input
+        """
+        try:
+            value.decode('utf-8')
+        except UnicodeDecodeError:
+            # possibly DER-encoded CSR or something similar
+            return value
+
+        value = strip_csr_header(value)
+        return base64.b64decode(value)
+
+    def _convert_scalar(self, value, index=None):
+        """
+        :param value:
+            either DER csr, base64-encoded csr or an object implementing the
+            cryptography.CertificateSigningRequest interface
+        :returns:
+            an object with the cryptography.CertificateSigningRequest interface
+        """
+        if isinstance(value, unicode):
+            try:
+                value = value.encode('ascii')
+            except UnicodeDecodeError:
+                raise CertificateOperationError('not a valid CSR')
+
+        if isinstance(value, bytes):
+            # try to extract DER from whatever we got
+            value = self.__extract_der_from_input(value)
+            try:
+                value = crypto_x509.load_der_x509_csr(
+                    value, backend=default_backend())
+            except ValueError as e:
+                raise CertificateOperationError(
+                    error=_("Failure decoding Certificate Signing Request:"
+                            " %s") % e)
+
+        return super(CertificateSigningRequest, self)._convert_scalar(value)
 
 
 class Str(Data):
