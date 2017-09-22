@@ -783,7 +783,7 @@ option: Str('version?')
 output: Output('result')
 command: cert_request/1
 args: 1,9,3
-arg: Str('csr', cli_name='csr_file')
+arg: CertificateSigningRequest('csr', cli_name='csr_file')
 option: Flag('add', autofill=True, default=False)
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('cacn?', autofill=True, cli_name='ca', default=u'ipa')

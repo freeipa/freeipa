@@ -409,11 +409,11 @@ class CertDB(object):
         if self.host_name is None:
             raise RuntimeError("CA Host is not set.")
 
-        with open(certreq_fname, "r") as f:
+        with open(certreq_fname, "rb") as f:
             csr = f.read()
 
-        # We just want the CSR bits, make sure there is nothing else
-        csr = pkcs10.strip_header(csr)
+        # We just want the CSR bits, make sure there is no thing else
+        csr = pkcs10.strip_header(csr).decode('utf8')
 
         params = {'profileId': dogtag.DEFAULT_PROFILE,
                 'cert_request_type': 'pkcs10',
@@ -461,11 +461,12 @@ class CertDB(object):
         if self.host_name is None:
             raise RuntimeError("CA Host is not set.")
 
-        with open(certreq_fname, "r") as f:
+        with open(certreq_fname, "rb") as f:
             csr = f.read()
 
         # We just want the CSR bits, make sure there is no thing else
-        csr = pkcs10.strip_header(csr)
+        csr = pkcs10.strip_header(csr).decode('utf8')
+
 
         params = {'profileId': 'caJarSigningCert',
                 'cert_request_type': 'pkcs10',
