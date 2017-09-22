@@ -715,7 +715,9 @@ class LDAPObject(Object):
             result = self.backend.get_entries(
                 self.api.env.basedn,
                 filter=filter,
-                attrs_list=[''])
+                attrs_list=[''],
+                size_limit=-1,  # paged search will get everything anyway
+                paged_search=True)
         except errors.NotFound:
             result = []
 
