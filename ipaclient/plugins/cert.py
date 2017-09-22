@@ -143,9 +143,6 @@ class cert_request(CertRetrieveOverride):
                 raise errors.CertificateOperationError(
                     error=(_('Generated CSR was empty')))
 
-            # cert_request requires the CSR to be base64-encoded (but PEM
-            # header and footer are not required)
-            csr = unicode(base64.b64encode(csr))
         else:
             if database is not None or private_key is not None:
                 raise errors.MutuallyExclusiveError(reason=_(
