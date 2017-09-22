@@ -4,9 +4,9 @@
 # Pavel Vomacka <pvomacka@redhat.com>, 2017. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.90.dev201709011157+git5dcb0e6fc\n"
+"Project-Id-Version: freeipa 4.6.90.dev201709221006+git0e8e94aa6\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-09-01 13:58+0200\n"
+"POT-Creation-Date: 2017-09-22 12:07+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -9008,9 +9008,6 @@ msgstr "不能与CMS通信"
 
 msgid "Response from CA was not valid JSON"
 msgstr "CA响应是无效的JSON"
-
-msgid "find not supported on CAs upgraded from 9 to 10"
-msgstr "发现不支持CAs从9更新到10"
 
 msgid "One time password commands"
 msgstr "一次性密码命令"
