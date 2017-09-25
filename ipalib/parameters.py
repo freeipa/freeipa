@@ -123,7 +123,7 @@ from ipalib.text import Gettext, FixMe
 from ipalib.util import json_serialize, validate_idna_domain
 from ipalib.x509 import (
     load_der_x509_certificate, IPACertificate, default_backend)
-from ipalib.pkcs10 import strip_header as strip_csr_header
+from ipalib.util import strip_csr_header
 from ipapython import kerberos
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
