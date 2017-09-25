@@ -24,6 +24,7 @@ import os
 from optparse import OptionGroup  # pylint: disable=deprecated-module
 import gssapi
 
+from ipalib.constants import RENEWAL_CA_NAME, RENEWAL_REUSE_CA_NAME
 from ipalib.install import certmonger, certstore
 from ipapython import admintool, ipautil
 from ipapython.certdb import (EMPTY_TRUST_FLAGS,
@@ -162,13 +163,12 @@ class CACertManage(admintool.AdminTool):
         if not ca.is_configured():
             raise admintool.ScriptError("CA is not configured on this system")
 
-        self.request_id = self._get_ca_request_id('dogtag-ipa-ca-renew-agent')
+        self.request_id = self._get_ca_request_id(RENEWAL_CA_NAME)
         if self.request_id is None:
             # if external CA renewal was interrupted, the request may have
             # been left with the "dogtag-ipa-ca-renew-agent-reuse" CA;
             # look for it too
-            self.request_id = \
-                self._get_ca_request_id('dogtag-ipa-ca-renew-agent-reuse')
+            self.request_id = self._get_ca_request_id(RENEWAL_REUSE_CA_NAME)
             if self.request_id is None:
                 raise admintool.ScriptError(
                     "CA certificate is not tracked by certmonger")
@@ -235,7 +235,7 @@ class CACertManage(admintool.AdminTool):
                     )
 
         self.resubmit_request(
-            'dogtag-ipa-ca-renew-agent-reuse',
+            RENEWAL_REUSE_CA_NAME,
             profile=options.external_ca_profile)
 
         print(("The next step is to get %s signed by your CA and re-run "
@@ -334,11 +334,11 @@ class CACertManage(admintool.AdminTool):
         except errors.NotFound:
             raise admintool.ScriptError("CA renewal master not found")
 
-        self.resubmit_request('dogtag-ipa-ca-renew-agent-reuse')
+        self.resubmit_request(RENEWAL_REUSE_CA_NAME)
 
         print("CA certificate successfully renewed")
 
-    def resubmit_request(self, ca='dogtag-ipa-ca-renew-agent', profile=None):
+    def resubmit_request(self, ca=RENEWAL_CA_NAME, profile=None):
         timeout = api.env.startup_timeout + 60
 
         cm_profile = None
@@ -366,7 +366,7 @@ class CACertManage(admintool.AdminTool):
 
         logger.debug("modifying certmonger request '%s'", self.request_id)
         certmonger.modify(self.request_id,
-                          ca='dogtag-ipa-ca-renew-agent',
+                          ca=RENEWAL_CA_NAME,
                           profile='', template_v2='')
 
     def install(self):
