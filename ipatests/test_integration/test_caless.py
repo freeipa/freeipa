@@ -21,7 +21,6 @@ import logging
 import os
 import tempfile
 import shutil
-import base64
 import glob
 import contextlib
 import nose
@@ -359,10 +358,9 @@ class CALessBase(IntegrationTest):
             expected_cacrt = f.read()
         logger.debug('Expected /etc/ipa/ca.crt contents:\n%s',
                      expected_cacrt)
-        expected_binary_cacrt = base64.b64decode(x509.strip_header(
-            expected_cacrt))
+        expected_cacrt = x509.load_unknown_x509_certificate(expected_cacrt)
         logger.debug('Expected binary CA cert:\n%r',
-                     expected_binary_cacrt)
+                     expected_cacrt)
         for host in [self.master] + self.replicas:
             # Check the LDAP entry
             ldap = host.ldap_connect()
@@ -372,7 +370,7 @@ class CALessBase(IntegrationTest):
             cert_from_ldap = entry.single_value['cACertificate']
             logger.debug('CA cert from LDAP on %s:\n%r',
                          host, cert_from_ldap)
-            assert cert_from_ldap == expected_binary_cacrt
+            assert cert_from_ldap == expected_cacrt
 
             # Verify certmonger was not started
             result = host.run_command(['getcert', 'list'], raiseonerr=False)
@@ -383,10 +381,10 @@ class CALessBase(IntegrationTest):
             remote_cacrt = host.get_file_contents(paths.IPA_CA_CRT)
             logger.debug('%s:/etc/ipa/ca.crt contents:\n%s',
                          host, remote_cacrt)
-            binary_cacrt = base64.b64decode(x509.strip_header(remote_cacrt))
+            cacrt = x509.load_unknown_x509_certificate(remote_cacrt)
             logger.debug('%s: Decoded /etc/ipa/ca.crt:\n%r',
-                         host, binary_cacrt)
-            assert expected_binary_cacrt == binary_cacrt
+                         host, cacrt)
+            assert expected_cacrt == cacrt
 
 
 class TestServerInstall(CALessBase):

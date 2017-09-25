@@ -40,7 +40,7 @@ class certmap_match(MethodOverride):
                 raise errors.MutuallyExclusiveError(
                     reason=_("cannot specify both raw certificate and file"))
             if args:
-                args = [x509.strip_header(args[0])]
+                args = [x509.load_unknown_x509_certificate(args[0])]
             elif 'certificate' in options:
                 args = [options.pop('certificate')]
             else:

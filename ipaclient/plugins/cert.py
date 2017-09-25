@@ -209,6 +209,7 @@ class cert_find(MethodOverride):
                 raise errors.MutuallyExclusiveError(
                     reason=_("cannot specify both raw certificate and file"))
             if 'certificate' not in options and 'file' in options:
-                options['certificate'] = x509.strip_header(options.pop('file'))
+                options['certificate'] = x509.load_unknown_x509_certificate(
+                                            options.pop('file'))
 
         return super(cert_find, self).forward(*args, **options)
