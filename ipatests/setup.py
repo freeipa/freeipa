@@ -44,7 +44,6 @@ if __name__ == '__main__':
             "ipatests.test_ipapython",
             "ipatests.test_ipaserver",
             "ipatests.test_ipaserver.test_install",
-            "ipatests.test_pkcs10",
             "ipatests.test_webui",
             "ipatests.test_xmlrpc",
             "ipatests.test_xmlrpc.tracker"
@@ -55,7 +54,6 @@ if __name__ == '__main__':
             'ipatests.test_integration': ['scripts/*'],
             'ipatests.test_ipaclient': ['data/*/*/*'],
             'ipatests.test_ipalib': ['data/*'],
-            'ipatests.test_pkcs10': ['*.csr'],
             "ipatests.test_ipaserver": ['data/*'],
             'ipatests.test_xmlrpc': ['data/*'],
         },

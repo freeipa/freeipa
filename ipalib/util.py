@@ -153,6 +153,23 @@ def isvalid_base64(data):
     else:
         return True
 
+
+def strip_csr_header(csr):
+    """
+    Remove the header and footer (and surrounding material) from a CSR.
+    """
+    headerlen = 40
+    s = csr.find(b"-----BEGIN NEW CERTIFICATE REQUEST-----")
+    if s == -1:
+        headerlen = 36
+        s = csr.find(b"-----BEGIN CERTIFICATE REQUEST-----")
+    if s >= 0:
+        e = csr.find(b"-----END")
+        csr = csr[s + headerlen:e]
+
+    return csr
+
+
 def validate_ipaddr(ipaddr):
     """
     Check to see if the given IP address is a valid IPv4 or IPv6 address.
