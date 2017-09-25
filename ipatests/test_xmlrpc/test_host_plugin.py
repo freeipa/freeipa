@@ -31,7 +31,7 @@ import base64
 import pytest
 
 from ipapython import ipautil
-from ipalib import api, errors, x509
+from ipalib import api, errors
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipatests.test_util import yield_fixture
@@ -41,7 +41,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import (XMLRPC_test,
 from ipatests.test_xmlrpc.test_user_plugin import get_group_dn
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
-from ipatests.test_xmlrpc.testcert import get_testcert
+from ipatests.test_xmlrpc.testcert import get_testcert, subject_base
 from ipatests.util import assert_deepequal
 from ipaplatform.paths import paths
 
@@ -97,7 +97,7 @@ hostgroup1 = u'testhostgroup1'
 hostgroup1_dn = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
                     api.env.basedn)
 
-host_cert = get_testcert(DN(('CN', api.env.host), x509.subject_base()),
+host_cert = get_testcert(DN(('CN', api.env.host), subject_base()),
                          'host/%s@%s' % (api.env.host, api.env.realm))
 
 
@@ -237,7 +237,7 @@ class TestCRUD(XMLRPC_test):
                         serial_number_hex=fuzzy_hex,
                         sha1_fingerprint=fuzzy_hash,
                         sha256_fingerprint=fuzzy_hash,
-                        subject=DN(('CN', api.env.host), x509.subject_base()),
+                        subject=DN(('CN', api.env.host), subject_base()),
                         valid_not_before=fuzzy_date,
                         valid_not_after=fuzzy_date,
                     ))
