@@ -30,6 +30,7 @@ import tempfile
 import shutil
 import six
 import base64
+import re
 
 from ipalib import api, x509
 from ipaserver.plugins import rabase
@@ -40,6 +41,20 @@ if six.PY3:
     unicode = str
 
 
+def strip_cert_header(pem):
+    """
+    Remove the header and footer from a certificate.
+    """
+    regexp = (
+        r"^-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----"
+    )
+    s = re.search(regexp, pem, re.MULTILINE | re.DOTALL)
+    if s is not None:
+        return s.group(1)
+    else:
+        return pem
+
+
 def get_testcert(subject, principal):
     """Get the certificate, creating it if it doesn't exist"""
     reqdir = tempfile.mkdtemp(prefix="tmp-")
@@ -48,7 +63,7 @@ def get_testcert(subject, principal):
                              principal)
     finally:
         shutil.rmtree(reqdir)
-    return x509.strip_header(_testcert)
+    return strip_cert_header(_testcert.decode('utf-8'))
 
 
 def run_certutil(reqdir, args, stdin=None):
@@ -99,4 +114,4 @@ def makecert(reqdir, subject, principal):
     res = api.Command['cert_request'](csr, principal=principal, add=True)
     cert = x509.load_der_x509_certificate(
         base64.b64decode(res['result']['certificate']))
-    return cert.public_bytes(x509.Encoding.PEM).decode('utf-8')
+    return cert.public_bytes(x509.Encoding.PEM)
