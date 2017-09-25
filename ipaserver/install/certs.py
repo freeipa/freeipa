@@ -40,9 +40,10 @@ from ipapython import ipautil
 from ipapython.certdb import EMPTY_TRUST_FLAGS, IPA_CA_TRUST_FLAGS
 from ipapython.certdb import get_ca_nickname, find_cert_from_txt, NSSDatabase
 from ipapython.dn import DN
-from ipalib import pkcs10, x509, api
+from ipalib import x509, api
 from ipalib.errors import CertificateOperationError
 from ipalib.install import certstore
+from ipalib.util import strip_csr_header
 from ipalib.text import _
 from ipaplatform.paths import paths
 
@@ -413,7 +414,7 @@ class CertDB(object):
             csr = f.read()
 
         # We just want the CSR bits, make sure there is no thing else
-        csr = pkcs10.strip_header(csr).decode('utf8')
+        csr = strip_csr_header(csr).decode('utf8')
 
         params = {'profileId': dogtag.DEFAULT_PROFILE,
                 'cert_request_type': 'pkcs10',
@@ -465,7 +466,7 @@ class CertDB(object):
             csr = f.read()
 
         # We just want the CSR bits, make sure there is no thing else
-        csr = pkcs10.strip_header(csr).decode('utf8')
+        csr = strip_csr_header(csr).decode('utf8')
 
 
         params = {'profileId': 'caJarSigningCert',
