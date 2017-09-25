@@ -148,20 +148,30 @@ class CACertManage(admintool.AdminTool):
 
         api.Backend.ldap2.connect(bind_pw=password)
 
+    def _get_ca_request_id(self, ca_name):
+        """Lookup tracking request for IPA CA, using given ca-name."""
+        criteria = {
+            'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
+            'cert-nickname': self.cert_nickname,
+            'ca-name': ca_name,
+        }
+        return certmonger.get_request_id(criteria)
+
     def renew(self):
         ca = cainstance.CAInstance(api.env.realm)
         if not ca.is_configured():
             raise admintool.ScriptError("CA is not configured on this system")
 
-        criteria = {
-            'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
-            'cert-nickname': self.cert_nickname,
-            'ca-name': 'dogtag-ipa-ca-renew-agent',
-        }
-        self.request_id = certmonger.get_request_id(criteria)
+        self.request_id = self._get_ca_request_id('dogtag-ipa-ca-renew-agent')
         if self.request_id is None:
-            raise admintool.ScriptError(
-                "CA certificate is not tracked by certmonger")
+            # if external CA renewal was interrupted, the request may have
+            # been left with the "dogtag-ipa-ca-renew-agent-reuse" CA;
+            # look for it too
+            self.request_id = \
+                self._get_ca_request_id('dogtag-ipa-ca-renew-agent-reuse')
+            if self.request_id is None:
+                raise admintool.ScriptError(
+                    "CA certificate is not tracked by certmonger")
         logger.debug(
             "Found certmonger request id %r", self.request_id)
 
