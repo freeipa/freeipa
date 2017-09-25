@@ -51,7 +51,6 @@ from pyasn1_modules import rfc2315, rfc2459
 import six
 
 from ipalib import errors
-from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
 if six.PY3:
@@ -75,18 +74,6 @@ EKU_PLACEHOLDER = '1.3.6.1.4.1.3319.6.10.16'
 
 SAN_UPN = '1.3.6.1.4.1.311.20.2.3'
 SAN_KRB5PRINCIPALNAME = '1.3.6.1.5.2.2'
-
-_subject_base = None
-
-def subject_base():
-    from ipalib import api
-    global _subject_base
-
-    if _subject_base is None:
-        config = api.Command['config_show']()['result']
-        _subject_base = DN(config['ipacertificatesubjectbase'][0])
-
-    return _subject_base
 
 
 @crypto_utils.register_interface(crypto_x509.Certificate)
