@@ -911,6 +911,7 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
         list != ipauuid_global_config;
         list = PR_NEXT_LINK(list)) {
         cfgentry = (struct configEntry *) list;
+        char *current_dn = NULL;
 
         generate = false;
         set_attr = false;
@@ -920,16 +921,21 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
                                        cfgentry->attr)) {
             continue;
         }
+        /* Current DN may have been reset by
+         * slapi_pblock_set(pb, SLAPI_ADD_TARGET,..) see below
+         * need to reread it
+         */
+        current_dn = ipauuid_get_dn(pb);
 
         /* is the entry in scope? */
         if (cfgentry->scope) {
-            if (!slapi_dn_issuffix(dn, cfgentry->scope)) {
+            if (!slapi_dn_issuffix(current_dn, cfgentry->scope)) {
                 continue;
             }
         }
 
         if (cfgentry->exclude_subtree) {
-                if (slapi_dn_issuffix(dn, cfgentry->exclude_subtree)) {
+                if (slapi_dn_issuffix(current_dn, cfgentry->exclude_subtree)) {
                         continue;
                 }
         }
@@ -1108,7 +1114,7 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
                     ret = LDAP_OPERATIONS_ERROR;
                     goto done;
                 }
-                sdn = slapi_sdn_new_dn_byval(dn);
+                sdn = slapi_sdn_new_dn_byval(current_dn);
                 if (!sdn) {
                     LOG_OOM();
                     ret = LDAP_OPERATIONS_ERROR;
