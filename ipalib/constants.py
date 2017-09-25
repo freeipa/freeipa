@@ -286,6 +286,7 @@ IPA_CA_CN = u'ipa'
 IPA_CA_RECORD = "ipa-ca"
 IPA_CA_NICKNAME = 'caSigningCert cert-pki-ca'
 RENEWAL_CA_NAME = 'dogtag-ipa-ca-renew-agent'
+RENEWAL_REUSE_CA_NAME = 'dogtag-ipa-ca-renew-agent-reuse'
 
 # regexp definitions
 PATTERN_GROUPUSER_NAME = '^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*[a-zA-Z0-9_.$-]?$'
