@@ -27,7 +27,6 @@ import os
 import time
 import contextlib
 
-from ipaplatform.tasks import tasks
 from ipaplatform.base import services as base_services
 
 from ipapython import ipautil, dogtag
@@ -92,34 +91,6 @@ class RedHatService(base_services.SystemdService):
 
 
 class RedHatDirectoryService(RedHatService):
-
-    def tune_nofile_platform(self, num=8192, fstore=None):
-        """
-        Increase the number of files descriptors available to directory server
-        from the default 1024 to 8192. This will allow to support a greater
-        number of clients out of the box.
-
-        This is a part of the implementation that is systemd-specific.
-
-        Returns False if the setting of the nofile limit needs to be skipped.
-        """
-
-        if os.path.exists(paths.SYSCONFIG_DIRSRV_SYSTEMD):
-            # We need to enable LimitNOFILE=8192 in the dirsrv@.service
-            # Since 389-ds-base-1.2.10-0.8.a7 the configuration of the
-            # service parameters is performed via
-            # /etc/sysconfig/dirsrv.systemd file which is imported by systemd
-            # into dirsrv@.service unit
-
-            replacevars = {'LimitNOFILE': str(num)}
-            ipautil.inifile_replace_variables(paths.SYSCONFIG_DIRSRV_SYSTEMD,
-                                              'service',
-                                              replacevars=replacevars)
-            tasks.restore_context(paths.SYSCONFIG_DIRSRV_SYSTEMD)
-            ipautil.run(["/bin/systemctl", "--system", "daemon-reload"],
-                        raiseonerr=False)
-
-        return True
 
     def is_installed(self, instance_name):
         file_path = "{}/{}-{}".format(paths.ETC_DIRSRV, "slapd", instance_name)

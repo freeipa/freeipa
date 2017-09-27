@@ -121,10 +121,6 @@ class DebianSysvService(base_services.PlatformService):
     def remove():
         return True
 
-    @staticmethod
-    def tune_nofile_platform():
-        return True
-
 
 # For services which have no Debian counterpart
 class DebianNoService(base_services.PlatformService):
