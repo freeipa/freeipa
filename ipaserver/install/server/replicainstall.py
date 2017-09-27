@@ -824,14 +824,14 @@ def install_check(installer):
             logger.debug('No IPA DNS servers, '
                          'skipping forward/reverse resolution check')
 
-        kra_enabled = remote_api.Command.kra_is_enabled()['result']
+        setup_kra = remote_api.Command.kra_is_enabled()['result']
 
         if ca_enabled:
             options.realm_name = config.realm_name
             options.host_name = config.host_name
             ca.install_check(False, config, options)
 
-        if kra_enabled:
+        if setup_kra:
             try:
                 kra.install_check(remote_api, config, options)
             except RuntimeError as e:
@@ -887,7 +887,7 @@ def install_check(installer):
             os.environ['KRB5CCNAME'] = ccache
 
     installer._ca_enabled = ca_enabled
-    installer._kra_enabled = kra_enabled
+    installer._setup_kra = setup_kra
     installer._ca_file = cafile
     installer._fstore = fstore
     installer._sstore = sstore
@@ -1249,20 +1249,13 @@ def promote_check(installer):
                 'KRA', conn, config.kra_host_name)
         if kra_host is not None:
             config.kra_host_name = kra_host
-            kra_enabled = True
-        else:
-            if options.setup_kra:
-                logger.error("There is no KRA server in the domain, "
-                             "can't setup a KRA clone")
-                raise ScriptError(rval=3)
-            kra_enabled = False
 
         if ca_enabled:
             options.realm_name = config.realm_name
             options.host_name = config.host_name
             ca.install_check(False, config, options)
 
-        if kra_enabled:
+        if options.setup_kra:
             try:
                 kra.install_check(remote_api, config, options)
             except RuntimeError as e:
@@ -1320,7 +1313,7 @@ def promote_check(installer):
                 os.environ['KRB5CCNAME'] = ccache
 
     installer._ca_enabled = ca_enabled
-    installer._kra_enabled = kra_enabled
+    installer._setup_kra = options.setup_kra
     installer._ca_file = cafile
     installer._fstore = fstore
     installer._sstore = sstore
@@ -1338,7 +1331,7 @@ def promote_check(installer):
 def install(installer):
     options = installer
     ca_enabled = installer._ca_enabled
-    kra_enabled = installer._kra_enabled
+    setup_kra = installer._setup_kra
     fstore = installer._fstore
     sstore = installer._sstore
     config = installer._config
@@ -1364,7 +1357,7 @@ def install(installer):
                 if conn.isconnected():
                     conn.disconnect()
                 os.environ['KRB5CCNAME'] = ccache
-        config.dirman_password = ipautil.ipa_generate_password()
+        config.dirman_password = get_dirman_password()
 
         # FIXME: allow to use passed in certs instead
         if ca_enabled:
@@ -1463,7 +1456,7 @@ def install(installer):
     service.print_msg("Applying LDAP updates")
     ds.apply_updates()
 
-    if kra_enabled:
+    if setup_kra:
         kra.install(api, config, options)
 
     service.print_msg("Restarting the KDC")
