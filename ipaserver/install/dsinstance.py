@@ -288,7 +288,6 @@ class DsInstance(service.Service):
         self.step("adding replication acis", self.__add_replication_acis)
         self.step("activating sidgen plugin", self._add_sidgen_plugin)
         self.step("activating extdom plugin", self._add_extdom_plugin)
-        self.step("tuning directory server", self.__tuning)
 
         self.step("configuring directory to start on boot", self.__enable)
 
@@ -1134,30 +1133,6 @@ class DsInstance(service.Service):
         self.start()
 
         return status
-
-    def tune_nofile(self, num=8192):
-        """
-        Increase the number of files descriptors available to directory server
-        from the default 1024 to 8192. This will allow to support a greater
-        number of clients out of the box.
-        """
-
-        # Do the platform-specific changes
-        proceed = services.knownservices.dirsrv.tune_nofile_platform(
-                    num=num, fstore=self.fstore)
-
-        if proceed:
-            # finally change also DS configuration
-            # NOTE: dirsrv will not allow you to set max file descriptors unless
-            # the user limits allow it, so we have to restart dirsrv before
-            # attempting to change them in cn=config
-            self.__restart_instance()
-
-            nf_sub_dict = dict(NOFILES=str(num))
-            self._ldap_mod("ds-nfiles.ldif", nf_sub_dict)
-
-    def __tuning(self):
-        self.tune_nofile(8192)
 
     def __root_autobind(self):
         self._ldap_mod("root-autobind.ldif",
