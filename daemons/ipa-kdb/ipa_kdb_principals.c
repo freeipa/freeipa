@@ -1259,6 +1259,17 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
                                                          realm,
                                                          upn->length - (realm - upn->data),
                                                          &trusted_realm);
+                if (kerr == KRB5_KDB_NOENTRY) {
+                    /* try to refresh trusted domain data and try again */
+                    kerr = ipadb_reinit_mspac(ipactx, false);
+                    if (kerr != 0) {
+                        kerr = KRB5_KDB_NOENTRY;
+                        goto done;
+                    }
+                    kerr = ipadb_is_princ_from_trusted_realm(kcontext, realm,
+                                              upn->length - (realm - upn->data),
+                                              &trusted_realm);
+                }
                 if (kerr == 0) {
                     kentry = calloc(1, sizeof(krb5_db_entry));
                     if (!kentry) {
