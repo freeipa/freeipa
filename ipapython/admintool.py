@@ -136,6 +136,8 @@ class AdminTool(object):
         :param argv: Command-line arguments.
         :return: Command exit code
         """
+        standard_logging_setup(None, verbose=True)
+
         if cls not in cls._option_parsers:
             # We use cls._option_parsers, a dictionary keyed on class, to check
             # if we need to create a parser. This is because cls.option_parser

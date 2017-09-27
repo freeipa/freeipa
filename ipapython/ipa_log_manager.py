@@ -157,6 +157,7 @@ def standard_logging_setup(filename=None, verbose=False, debug=False,
 
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
+    root_logger.handlers = []
 
     # File output is always logged at debug level
     if filename is not None:
