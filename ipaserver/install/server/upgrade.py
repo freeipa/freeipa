@@ -970,25 +970,40 @@ def certificate_renewal_update(ca, ds, http):
             'cert-presave-command': template % 'renew_ra_cert_pre',
             'cert-postsave-command': template % 'renew_ra_cert',
         },
-        {
-            'cert-database': paths.HTTPD_ALIAS_DIR,
-            'cert-nickname': http.get_mod_nss_nickname(),
-            'ca-name': 'IPA',
-            'cert-postsave-command': template % 'restart_httpd',
-        },
-        {
-            'cert-database': dsinstance.config_dirname(serverid)[:-1],
-            'cert-nickname': ds.get_server_cert_nickname(serverid),
-            'ca-name': 'IPA',
-            'cert-postsave-command':
-                '%s %s' % (template % 'restart_dirsrv', serverid),
-        }
     ]
 
     logger.info("[Update certmonger certificate renewal configuration]")
     if not ca.is_configured():
         logger.info('CA is not configured')
         return False
+
+    # Check the http server cert if issued by IPA
+    http_nickname = http.get_mod_nss_nickname()
+    http_db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
+    if http_db.is_ipa_issued_cert(api, http_nickname):
+        requests.append(
+            {
+                'cert-database': paths.HTTPD_ALIAS_DIR,
+                'cert-nickname': http_nickname,
+                'ca-name': 'IPA',
+                'cert-postsave-command': template % 'restart_httpd',
+            }
+        )
+
+    # Check the ldap server cert if issued by IPA
+    ds_nickname = ds.get_server_cert_nickname(serverid)
+    ds_db_dirname = dsinstance.config_dirname(serverid)
+    ds_db = certs.CertDB(api.env.realm, nssdir=ds_db_dirname)
+    if ds_db.is_ipa_issued_cert(api, ds_nickname):
+        requests.append(
+            {
+                'cert-database': ds_db_dirname[:-1],
+                'cert-nickname': ds_nickname,
+                'ca-name': 'IPA',
+                'cert-postsave-command':
+                    '%s %s' % (template % 'restart_dirsrv', serverid),
+            }
+        )
 
     db = certs.CertDB(api.env.realm, paths.PKI_TOMCAT_ALIAS_DIR)
     for nickname, _trust_flags in db.list_certs():
@@ -1011,6 +1026,8 @@ def certificate_renewal_update(ca, ds, http):
         if request_id is None:
             break
     else:
+        logger.info("Certmonger certificate renewal configuration already "
+                    "up-to-date")
         return False
 
     # Ok, now we need to stop tracking, then we can start tracking them
