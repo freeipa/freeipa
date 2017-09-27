@@ -396,14 +396,18 @@ class CAInstance(DogtagInstance):
                       self.__spawn_instance)
             self.step("exporting Dogtag certificate store pin",
                       self.create_certstore_passwdfile)
-            self.step("stopping certificate server instance to update CS.cfg", self.stop_instance)
-            self.step("backing up CS.cfg", self.backup_config)
+            self.step("stopping certificate server instance to update CS.cfg",
+                      self.stop_instance)
+            self.step("backing up CS.cfg", self.safe_backup_config)
             self.step("disabling nonces", self.__disable_nonce)
             self.step("set up CRL publishing", self.__enable_crl_publish)
-            self.step("enable PKIX certificate path discovery and validation", self.enable_pkix)
+            self.step("enable PKIX certificate path discovery and validation",
+                      self.enable_pkix)
             if promote:
-                self.step("destroying installation admin user", self.teardown_admin)
-            self.step("starting certificate server instance", self.start_instance)
+                self.step("destroying installation admin user",
+                          self.teardown_admin)
+            self.step("starting certificate server instance",
+                      self.start_instance)
         # Step 1 of external is getting a CSR so we don't need to do these
         # steps until we get a cert back from the external CA.
         if self.external != 1:
@@ -641,9 +645,16 @@ class CAInstance(DogtagInstance):
 
         logger.debug("completed creating ca instance")
 
-    def backup_config(self):
+    def safe_backup_config(self):
+        """
+        Safely handle exceptions if backup_config fails
+
+        The parent class raises an exception if the configuration
+        cannot be backed up. Catch that and log the message but
+        don't stop the current installer.
+        """
         try:
-            backup_config()
+            super(CAInstance, self).backup_config()
         except Exception as e:
             logger.warning("Failed to backup CS.cfg: %s", e)
 
@@ -1250,7 +1261,7 @@ class CAInstance(DogtagInstance):
                       'Server-Cert cert-pki-ca': 'ca.sslserver.cert'}
 
         try:
-            backup_config()
+            self.backup_config()
         except Exception as e:
             syslog.syslog(syslog.LOG_ERR, "Failed to backup CS.cfg: %s" % e)
 
@@ -1425,16 +1436,6 @@ def replica_ca_install_check(config, promote):
             '--skip-schema-check.')
         exit('IPA schema missing on master CA directory server')
 
-
-def backup_config():
-    """
-    Create a backup copy of CS.cfg
-    """
-    path = paths.CA_CS_CFG_PATH
-    if services.knownservices['pki_tomcatd'].is_running('pki-tomcat'):
-        raise RuntimeError(
-            "Dogtag must be stopped when creating backup of %s" % path)
-    shutil.copy(path, path + '.ipabkp')
 
 def __update_entry_from_cert(make_filter, make_entry, cert):
     """

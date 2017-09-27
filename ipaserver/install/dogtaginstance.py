@@ -463,3 +463,13 @@ class DogtagInstance(service.Service):
         config.set(self.subsystem, "pki_ds_secure_connection", "True")
         config.set(self.subsystem, "pki_ds_secure_connection_ca_pem_file",
                    ds_cacert)
+
+    def backup_config(self):
+        """
+        Create a backup copy of CS.cfg
+        """
+        path = self.config
+        if services.knownservices['pki_tomcatd'].is_running('pki-tomcat'):
+            raise RuntimeError(
+                "Dogtag must be stopped when creating backup of %s" % path)
+        shutil.copy(path, path + '.ipabkp')

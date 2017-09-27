@@ -11,19 +11,8 @@ import shutil
 import pwd
 import fileinput
 import sys
-
 from augeas import Augeas
 import dns.exception
-
-import six
-# pylint: disable=import-error
-if six.PY3:
-    # The SafeConfigParser class has been renamed to ConfigParser in Py3
-    from configparser import ConfigParser as SafeConfigParser
-else:
-    from ConfigParser import SafeConfigParser
-# pylint: enable=import-error
-
 from ipalib import api
 from ipalib.install import certmonger, sysrestore
 import SSSDConfig
@@ -44,6 +33,7 @@ from ipaserver.install import ntpinstance
 from ipaserver.install import bindinstance
 from ipaserver.install import service
 from ipaserver.install import cainstance
+from ipaserver.install import krainstance
 from ipaserver.install import certs
 from ipaserver.install import otpdinstance
 from ipaserver.install import schemaupdate
@@ -55,6 +45,15 @@ from ipaserver.install import krbinstance
 from ipaserver.install import adtrustinstance
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
+
+import six
+# pylint: disable=import-error
+if six.PY3:
+    # The SafeConfigParser class has been renamed to ConfigParser in Py3
+    from configparser import ConfigParser as SafeConfigParser
+else:
+    from ConfigParser import SafeConfigParser
+# pylint: enable=import-error
 
 if six.PY3:
     unicode = str
@@ -1668,6 +1667,8 @@ def upgrade_configuration():
             api.env.realm, host_name=api.env.host)
     ca_running = ca.is_running()
 
+    kra = krainstance.KRAInstance(api.env.realm)
+
     # create passswd.txt file in PKI_TOMCAT_ALIAS_DIR if it does not exist
     # this file will be required on most actions over this NSS DB in FIPS
     if ca.is_configured() and not os.path.exists(os.path.join(
@@ -1709,11 +1710,27 @@ def upgrade_configuration():
             )
         upgrade_pki(ca, fstore)
 
+        if kra.is_configured():
+            logger.info('[Ensuring ephemeralRequest is enabled in KRA]')
+            kra.backup_config()
+            value = installutils.get_directive(
+                paths.KRA_CS_CFG_PATH,
+                'kra.ephemeralRequests',
+                separator='=')
+            if value is None or value.lower() != 'true':
+                logger.info('Enabling ephemeralRequest')
+                kra.enable_ephemeral()
+            else:
+                logger.info('ephemeralRequest is already enabled')
+
     # several upgrade steps require running CA.  If CA is configured,
     # always run ca.start() because we need to wait until CA is really ready
     # by checking status using http
     if ca.is_configured():
         ca.start('pki-tomcat')
+    if kra.is_configured() and not kra.is_running():
+        # This is for future-proofing in case the KRA is ever standalone.
+        kra.start('pki-tomcat')
 
     certmonger_service = services.knownservices.certmonger
     if ca.is_configured() and not certmonger_service.is_running():

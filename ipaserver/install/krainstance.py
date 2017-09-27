@@ -121,6 +121,7 @@ class KRAInstance(DogtagInstance):
         if promote:
             self.step("destroying installation admin user",
                       self.teardown_admin)
+        self.step("enabling ephemeral requests", self.enable_ephemeral)
         self.step("restarting KRA", self.restart_instance)
         self.step("configure certmonger for renewals",
                   self.configure_certmonger_renewal)
