@@ -1030,7 +1030,6 @@ ln -s %{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-tes
 %endif # with_ipatests
 
 # Decide which Python (2 or 3) should be used as default for tests
-%if 0%{?with_ipatests}
 %if 0%{?with_python3}
 # Building with python3 => make it default for tests
 ln -s %{_bindir}/ipa-run-tests-%{python3_version} %{buildroot}%{_bindir}/ipa-run-tests
