@@ -9,7 +9,7 @@ jobs:
         git_refspec: '{git_refspec}'
         template: &ci-master-f26
           name: freeipa/ci-master-f26
-          version: 0.1.3
+          version: 0.1.4
         timeout: 1800
 
   fedora-26/simple_replication:
