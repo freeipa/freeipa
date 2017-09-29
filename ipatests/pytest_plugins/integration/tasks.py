@@ -228,7 +228,7 @@ def restore_files(host):
 def restore_hostname(host):
     backupname = os.path.join(host.config.test_dir, 'backup_hostname')
     try:
-        hostname = host.get_file_contents(backupname)
+        hostname = host.get_file_contents(backupname, encoding='utf-8')
     except IOError:
         logger.debug('No hostname backed up on %s', host.hostname)
     else:
