@@ -92,6 +92,9 @@ class BaseMetaObject(Object):
         args, criteria = self._split_search_args(*args)
 
         result = self._search(*args, **kwargs)
+        if not result:
+            return tuple()
+
         result = (self._get_obj(r, **kwargs) for r in result)
 
         if criteria:
@@ -125,8 +128,8 @@ class BaseMetaSearch(Search):
                   "(\"%s\")") % 'name',
         )
 
-    def execute(self, criteria=None, **options):
-        result = list(self.obj.search(criteria, **options))
+    def execute(self, command, criteria=None, **options):
+        result = list(self.obj.search(command, criteria, **options))
         return dict(result=result, count=len(result), truncated=False)
 
 
@@ -627,18 +630,21 @@ class param(BaseParam):
 
     def _retrieve(self, metaobjectfull_name, name, **kwargs):
         found = False
+
         try:
             metaobj = self.api.Command[metaobjectfull_name]
-            plugin = self.api.Object['command']
         except KeyError:
-            try:
-                metaobj = self.api.Object[metaobjectfull_name]
-                plugin = self.api.Object['class']
-            except KeyError:
-                pass
-            else:
-                found = True
-        else:
+            raise errors.NotFound(
+                reason=_("%(metaobject)s: %(oname)s not found") % {
+                    'metaobject': metaobjectfull_name, 'oname': self.name,
+                }
+            )
+
+        if 'command' in self.api.Object:
+            plugin = self.api.Object['command']
+            found = True
+        elif 'class' in self.api.Object:
+            plugin = self.api.Object['class']
             found = True
 
         if found:
@@ -728,6 +734,13 @@ class output(BaseParam):
         return obj
 
     def _retrieve(self, commandfull_name, name, **kwargs):
+        if not commandfull_name in self.api.Command:
+            raise errors.NotFound(
+                reason=_("%(command_name)s: %(oname)s not found") % {
+                    'command_name': commandfull_name, 'oname': self.name,
+                }
+            )
+
         cmd = self.api.Command[commandfull_name]
         try:
             return (cmd, cmd.output[name])
@@ -739,6 +752,9 @@ class output(BaseParam):
             )
 
     def _search(self, commandfull_name, **kwargs):
+        if not commandfull_name in self.api.Command:
+            return None
+
         cmd = self.api.Command[commandfull_name]
         return ((cmd, output) for output in cmd.output())
 
