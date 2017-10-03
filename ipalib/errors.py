@@ -369,7 +369,7 @@ class ServerCommandError(PublicError):
     For example:
 
     >>> e = CommandError(name='foobar')
-    >>> raise ServerCommandError(error=e.message, server='https://localhost')
+    >>> raise ServerCommandError(error=str(e), server='https://localhost')
     Traceback (most recent call last):
       ...
     ServerCommandError: error on server 'https://localhost': unknown command 'foobar'

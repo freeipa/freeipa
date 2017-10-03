@@ -1156,8 +1156,8 @@ class test_dns(Declarative):
                                                                      % zone1_ns]}),
             expected=lambda x, output: (
                 type(x) == errors.ValidationError and
-                x.message.endswith(u'Raw value of a DNS record was already '
-                                   u'set by "srv_rec" option'),
+                str(x).endswith('Raw value of a DNS record was already '
+                                'set by "srv_rec" option'),
             ),
         ),
 

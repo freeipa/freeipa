@@ -65,7 +65,6 @@ class PrivateExceptionTester(object):
         for (key, value) in kw.items():
             assert getattr(inst, key) is value
         assert str(inst) == self.klass.format % kw
-        assert inst.message == str(inst)
         return inst
 
 
@@ -119,7 +118,6 @@ class test_SubprocessError(PrivateExceptionTester):
         assert inst.returncode == 1
         assert inst.argv == (bin_false,)
         assert str(inst) == "return code 1 from ('{}',)".format(bin_false)
-        assert inst.message == str(inst)
 
 
 class test_PluginSubclassError(PrivateExceptionTester):
@@ -138,7 +136,6 @@ class test_PluginSubclassError(PrivateExceptionTester):
         assert inst.bases == ('base1', 'base2')
         assert str(inst) == \
             "'bad' not subclass of any base in ('base1', 'base2')"
-        assert inst.message == str(inst)
 
 
 class test_PluginDuplicateError(PrivateExceptionTester):
@@ -155,7 +152,6 @@ class test_PluginDuplicateError(PrivateExceptionTester):
         inst = self.new(plugin='my_plugin')
         assert inst.plugin == 'my_plugin'
         assert str(inst) == "'my_plugin' was already registered"
-        assert inst.message == str(inst)
 
 
 class test_PluginOverrideError(PrivateExceptionTester):
@@ -174,7 +170,6 @@ class test_PluginOverrideError(PrivateExceptionTester):
         assert inst.name == 'cmd'
         assert inst.plugin == 'my_cmd'
         assert str(inst) == "unexpected override of Base.cmd with 'my_cmd'"
-        assert inst.message == str(inst)
 
 
 class test_PluginMissingOverrideError(PrivateExceptionTester):
@@ -193,8 +188,6 @@ class test_PluginMissingOverrideError(PrivateExceptionTester):
         assert inst.name == 'cmd'
         assert inst.plugin == 'my_cmd'
         assert str(inst) == "Base.cmd not registered, cannot override with 'my_cmd'"
-        assert inst.message == str(inst)
-
 
 
 ##############################################################################
@@ -250,7 +243,7 @@ class test_PublicError(PublicExceptionTester):
         # Test with format=str, message=None
         inst = self.klass(format, **kw)
         assert inst.format is format
-        assert_equal(inst.message, format % kw)
+        assert_equal(str(inst), format % kw)
         assert inst.forwarded is False
         assert inst.key1 is val1
         assert inst.key2 is val2
@@ -258,7 +251,7 @@ class test_PublicError(PublicExceptionTester):
         # Test with format=None, message=unicode
         inst = self.klass(message=message, **kw)
         assert inst.format is None
-        assert inst.message is message
+        assert str(inst) == message
         assert inst.strerror is message
         assert inst.forwarded is True
         assert inst.key1 is val1
@@ -281,7 +274,7 @@ class test_PublicError(PublicExceptionTester):
         inst = self.new(format, **kw)
         assert isinstance(inst, self.klass)
         assert inst.format is format
-        assert_equal(inst.message, format % kw)
+        assert_equal(str(inst), format % kw)
         assert inst.forwarded is False
         assert inst.key1 is val1
         assert inst.key2 is val2
@@ -290,7 +283,7 @@ class test_PublicError(PublicExceptionTester):
         inst = self.new(message=message, **kw)
         assert isinstance(inst, self.klass)
         assert inst.format is None
-        assert inst.message is message
+        assert str(inst) == message
         assert inst.strerror is message
         assert inst.forwarded is True
         assert inst.key1 is val1
@@ -312,7 +305,7 @@ class test_PublicError(PublicExceptionTester):
         # Test with format=None, message=None:
         inst = subclass(**kw)
         assert inst.format is subclass.format
-        assert_equal(inst.message, subclass.format % kw)
+        assert_equal(str(inst), subclass.format % kw)
         assert inst.forwarded is False
         assert inst.true is True
         assert inst.text is kw['text']
@@ -321,7 +314,7 @@ class test_PublicError(PublicExceptionTester):
         # Test with format=None, message=unicode:
         inst = subclass(message=message, **kw)
         assert inst.format is subclass.format
-        assert inst.message is message
+        assert str(inst) == message
         assert inst.strerror is message
         assert inst.forwarded is True
         assert inst.true is True

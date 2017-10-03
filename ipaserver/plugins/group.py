@@ -439,7 +439,7 @@ class group_mod(LDAPUpdate):
         # using --setattr.
         if call_func.__name__ == 'update_entry':
             if isinstance(exc, errors.ObjectclassViolation):
-                if 'gidNumber' in exc.message and 'posixGroup' in exc.message:
+                if 'gidNumber' in str(exc) and 'posixGroup' in str(exc):
                     raise errors.RequirementError(name='gidnumber')
         raise exc
 
