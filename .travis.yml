@@ -39,6 +39,7 @@ install:
 script:
     - mkdir -p $CI_RUNNER_LOGS_DIR
     - travis_wait 50 ./.travis_run_task.sh
+    - test -z "`cat $PEP8_ERROR_LOG`"
 after_failure:
     - echo "Test runner output:"; tail -n $CI_BACKLOG_SIZE $CI_RESULTS_LOG
     - echo "PEP-8 errors:"; cat $PEP8_ERROR_LOG
