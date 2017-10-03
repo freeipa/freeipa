@@ -383,7 +383,8 @@ class test_user_no_private_group(UI_driver):
 
         with pytest.raises(AssertionError) as e:
             self.add_record(user.ENTITY, user.DATA3)
-        assert e.value.message == u'Unexpected error: Default group for new users is not POSIX'
+        assert (str(e.value) == 'Unexpected error: Default group for new '
+                'users is not POSIX')
 
     @screenshot
     def test_noprivate_posix(self):

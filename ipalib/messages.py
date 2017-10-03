@@ -129,11 +129,6 @@ class PublicMessage(UserWarning):
             data=self.kw,
         )
 
-    if six.PY3:
-        @property
-        def message(self):
-            return str(self)
-
 
 class VersionMissing(PublicMessage):
     """

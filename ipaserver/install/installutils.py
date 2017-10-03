@@ -969,7 +969,7 @@ def handle_error(error, log_file_name=None):
         return error, 1
 
     if isinstance(error, errors.ACIError):
-        return error.message, 1
+        return str(error), 1
     if isinstance(error, ldap.INVALID_CREDENTIALS):
         return "Invalid password", 1
     if isinstance(error, ldap.INSUFFICIENT_ACCESS):
