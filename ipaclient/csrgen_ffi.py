@@ -206,7 +206,8 @@ def _parse_dn_section(subj, dn_sk):
         else:
             mval = 0
         if not X509_NAME_add_entry_by_txt(
-                subj, rdn_type, MBSTRING_UTF8, v.value, -1, -1, mval):
+                subj, rdn_type, MBSTRING_UTF8,
+                _ffi.cast("unsigned char *", v.value), -1, -1, mval):
             _raise_openssl_errors()
 
     if not X509_NAME_entry_count(subj):
