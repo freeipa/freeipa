@@ -502,8 +502,17 @@ class KrbInstance(service.Service):
             self._install_pkinit_ca_bundle()
             self.pkinit_enable()
         except RuntimeError as e:
-            logger.error("PKINIT certificate request failed: %s", e)
-            logger.error("Failed to configure PKINIT")
+            logger.warning("PKINIT certificate request failed: %s", e)
+            logger.warning("Failed to configure PKINIT")
+
+            self.print_msg("Full PKINIT configuration did not succeed")
+            self.print_msg(
+                "The setup will only install bits "
+                "essential to the server functionality")
+            self.print_msg(
+                "You can enable PKINIT after the "
+                "setup completed using 'ipa-pkinit-manage'")
+
             self.stop_tracking_certs()
             self.issue_selfsigned_pkinit_certs()
 
