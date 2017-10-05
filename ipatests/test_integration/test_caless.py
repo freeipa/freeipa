@@ -66,6 +66,9 @@ def get_install_stdin(cert_passwords=()):
 
 def get_replica_prepare_stdin(cert_passwords=()):
     lines = list(cert_passwords)  # Enter foo.p12 unlock password
+    lines += [
+        'yes',  # Continue [no]?
+    ]
     return '\n'.join(lines + [''])
 
 
@@ -266,9 +269,15 @@ class CALessBase(IntegrationTest):
         tasks.prepare_host(master)
         tasks.prepare_host(replica)
         for filename in set(files_to_copy):
+            filepath = os.path.join(self.cert_dir, filename)
+            if not os.path.exists(filepath):
+                # Negative tests passes non-existent file names,
+                # there is no point in copying them.
+                logger.info("File '%s' not found, copying to destination skipped", filepath)
+                continue
             try:
                 destination_host.transport.put_file(
-                    os.path.join(self.cert_dir, filename),
+                    filepath,
                     os.path.join(destination_host.config.test_dir, filename))
             except OSError:
                 pass
