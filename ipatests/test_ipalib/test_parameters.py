@@ -25,6 +25,7 @@ Test the `ipalib.parameters` module.
 # FIXME: Pylint errors
 # pylint: disable=no-member
 
+import base64
 import datetime
 import re
 import sys
@@ -36,11 +37,13 @@ import six
 # pylint: disable=import-error
 from six.moves.xmlrpc_client import MAXINT, MININT
 # pylint: enable=import-error
+from cryptography import x509 as crypto_x509
+from cryptography.hazmat.backends import default_backend
 
 from ipatests.util import raises, ClassChecker, read_only
 from ipatests.util import dummy_ugettext, assert_equal
 from ipatests.data import binary_bytes, utf8_bytes, unicode_str
-from ipalib import parameters, text, errors, config
+from ipalib import parameters, text, errors, config, x509
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR
 from ipalib.errors import ValidationError, ConversionError
 from ipalib import _
@@ -1630,3 +1633,121 @@ class test_DateTime(ClassChecker):
                       u'1991-12-07T25:30:05Z',
             ):
             raises(ConversionError, o.convert, value)
+
+
+class test_CertificateSigningRequest(ClassChecker):
+    """
+    Test the `ipalib.parameters.CertificateSigningRequest` class
+    """
+    _cls = parameters.CertificateSigningRequest
+
+    sample_csr = (
+        b'-----BEGIN CERTIFICATE REQUEST-----\n'
+        b'MIIBjjCB+AIBADBPMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEQ\n'
+        b'MA4GA1UEChMHRXhhbXBsZTEZMBcGA1UEAxMQdGVzdC5leGFtcGxlLmNvbTCBnzAN\n'
+        b'BgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAyxsN5dmvyKiw+5nyrcO3a61sivZRg+ja\n'
+        b'kyNIyUo+tIUiYwTdpPESAHTWRlk0XhydauAkWfOIN7pR3a5Z+kQw8W7F+DuZze2M\n'
+        b'6wRNmN+NTrTlqnKOiMHBXhIM0Qxrx68GDctYqtnKTVT94FvvLl9XYVdUEi2ePTc2\n'
+        b'Nyfr1z66+W0CAwEAAaAAMA0GCSqGSIb3DQEBBQUAA4GBAIf3r+Y6WHrFnttUqDow\n'
+        b'9/UCHtCeQlQoJqjjxi5wcjbkGwTgHbx/BPOd/8OVaHElboMXLGaZx+L/eFO6E9Yg\n'
+        b'mDOYv3OsibDFGaEhJrU8EnfuFZKnbrGeSC9Hkqrq+3OjqacaPla5N7MHKbfLY377\n'
+        b'ddbOHKzR0sURZ+ro4z3fATW2\n'
+        b'-----END CERTIFICATE REQUEST-----\n'
+    )
+    # certmonger <= 0.79.5 (most probably in higher versions, too) will be
+    # sending us just base64-encoded DER certs without the information it's
+    # base64-encoded bytes (__base64__: in the JSON request), we need to
+    # support that too, unfortunately
+    sample_base64 = (
+        "MIICETCCAXoCAQAwTzELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWEx"
+        "EDAOBgNVBAoTB0V4YW1wbGUxGTAXBgNVBAMTEHRlc3QuZXhhbXBsZS5jb20wgZ8w"
+        "DQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAOXfP8LeiU7g6wLCclgkT1lVskK+Lxm1"
+        "6ijE4LmEQBk5nn2P46im+E/UOgTddbDo5cdJlkoCnqXkO4RkqJckXYDxfI34KL3C"
+        "CRFPvOa5Sg02m1x5Rg3boZfS6NciP62lRp0SI+0TCt3F16wYZxMahVIOXjbJ6Lu5"
+        "mGjNn7XaWJhFAgMBAAGggYEwfwYJKoZIhvcNAQkOMXIwcDAeBgNVHREEFzAVghN0"
+        "ZXN0bG93LmV4YW1wbGUuY29tME4GA1UdHwRHMEUwQ6BBoD+GHGh0dHA6Ly9jYS5l"
+        "eGFtcGxlLmNvbS9teS5jcmyGH2h0dHA6Ly9vdGhlci5leGFtcGxlLmNvbS9teS5j"
+        "cmwwDQYJKoZIhvcNAQEFBQADgYEAkv8pppcgGhX7erJmvg9r2UHrRriuKaOYgKZQ"
+        "lf/eBt2N0L2mV4QvCY82H7HWuE+7T3mra9ikfvz0nYkPJQe2gntjZzECE0Jt5LWR"
+        "UZOFwX8N6wrX11U2xu0NlvsbjU6siWd6OZjZ1p5/V330lzut/q3CNzaAcW1Fx3wL"
+        "sV5SXSw="
+    )
+    sample_der_csr = (
+        b'0\x82\x02\x110\x82\x01z\x02\x01\x000O1\x0b0\t\x06\x03U\x04\x06\x13'
+        b'\x02US1\x130\x11\x06\x03U\x04\x08\x13\nCalifornia1\x100\x0e\x06\x03U'
+        b'\x04\n\x13\x07Example1\x190\x17\x06\x03U\x04\x03\x13\x10test.example'
+        b'.com0\x81\x9f0\r\x06\t*\x86H\x86\xf7\r\x01\x01\x01\x05\x00\x03\x81'
+        b'\x8d\x000\x81\x89\x02\x81\x81\x00\xe5\xdf?\xc2\xde\x89N\xe0\xeb\x02'
+        b'\xc2rX$OYU\xb2B\xbe/\x19\xb5\xea(\xc4\xe0\xb9\x84@\x199\x9e}\x8f\xe3'
+        b'\xa8\xa6\xf8O\xd4:\x04\xddu\xb0\xe8\xe5\xc7I\x96J\x02\x9e\xa5\xe4;'
+        b'\x84d\xa8\x97$]\x80\xf1|\x8d\xf8(\xbd\xc2\t\x11O\xbc\xe6\xb9J\r6\x9b'
+        b'\\yF\r\xdb\xa1\x97\xd2\xe8\xd7"?\xad\xa5F\x9d\x12#\xed\x13\n\xdd\xc5'
+        b'\xd7\xac\x18g\x13\x1a\x85R\x0e^6\xc9\xe8\xbb\xb9\x98h\xcd\x9f\xb5'
+        b'\xdaX\x98E\x02\x03\x01\x00\x01\xa0\x81\x810\x7f\x06\t*\x86H\x86\xf7'
+        b'\r\x01\t\x0e1r0p0\x1e\x06\x03U\x1d\x11\x04\x170\x15\x82\x13'
+        b'testlow.example.com0N\x06\x03U\x1d\x1f\x04G0E0C\xa0A\xa0?\x86'
+        b'\x1chttp://ca.example.com/my.crl\x86\x1fhttp://other.example.com/'
+        b'my.crl0\r\x06\t*\x86H\x86\xf7\r\x01\x01\x05\x05\x00\x03\x81\x81\x00'
+        b'\x92\xff)\xa6\x97 \x1a\x15\xfbz\xb2f\xbe\x0fk\xd9A\xebF\xb8\xae)\xa3'
+        b'\x98\x80\xa6P\x95\xff\xde\x06\xdd\x8d\xd0\xbd\xa6W\x84/\t\x8f6\x1f'
+        b'\xb1\xd6\xb8O\xbbOy\xabk\xd8\xa4~\xfc\xf4\x9d\x89\x0f%\x07\xb6\x82'
+        b'{cg1\x02\x13Bm\xe4\xb5\x91Q\x93\x85\xc1\x7f\r\xeb\n\xd7\xd7U6\xc6'
+        b'\xed\r\x96\xfb\x1b\x8dN\xac\x89gz9\x98\xd9\xd6\x9e\x7fW}\xf4\x97;'
+        b'\xad\xfe\xad\xc276\x80qmE\xc7|\x0b\xb1^R],'
+    )
+    malformed_csr = (
+        b'-----BEGIN CERTIFICATE REQUEST-----\n'
+        b'VGhpcyBpcyBhbiBpbnZhbGlkIENTUg==\n'
+        b'-----END CERTIFICATE REQUEST-----\n'
+    )
+
+    def test_init(self):
+        # create the parameter
+        o = self.cls('csr')
+        assert o.type is crypto_x509.CertificateSigningRequest
+        assert isinstance(o, parameters.CertificateSigningRequest)
+        assert o.multivalue is False
+
+    def test_convert(self):
+        o = self.cls('csr')
+
+        # test that we're able to handle PEM CSR input equally as bytes, string
+        # and cryptography x509._CertificateSigningRequest object
+        for prep_input in (
+            lambda x: x,
+            lambda x: x.decode('utf-8'),
+            lambda x: crypto_x509.load_pem_x509_csr(x, default_backend())
+        ):
+            # test that input is correctly converted to python-crytography
+            # object representation
+            csr_object = o.convert(prep_input(self.sample_csr))
+            assert isinstance(csr_object,
+                              crypto_x509.CertificateSigningRequest)
+            assert (csr_object.public_bytes(x509.Encoding.PEM) ==
+                    self.sample_csr)
+
+        # test that we fail the same with malformed CSR as bytes or str
+        for prep_input in (
+            lambda x: x,
+            lambda x: x.decode('utf-8'),
+        ):
+            # test that malformed CSRs won't be accepted
+            raises(errors.CertificateOperationError,
+                   o.convert,
+                   prep_input(self.malformed_csr))
+
+        # test DER as an input to the convert method
+        csr_object = o.convert(self.sample_der_csr)
+        assert isinstance(csr_object, crypto_x509.CertificateSigningRequest)
+        assert (csr_object.public_bytes(x509.Encoding.DER) ==
+                self.sample_der_csr)
+
+        # test base64-encoded DER as an input to the convert method
+        csr_object = o.convert(self.sample_base64)
+        assert isinstance(csr_object, crypto_x509.CertificateSigningRequest)
+        assert (csr_object.public_bytes(x509.Encoding.DER) ==
+                base64.b64decode(self.sample_base64))
+
+        # test that wrong type will not be accepted
+        bad_value = datetime.date.today()
+        raises(ConversionError, o.convert, bad_value)
