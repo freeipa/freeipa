@@ -86,8 +86,12 @@ BuildRequires:  openldap-devel
 # For KDB DAL version, make explicit dependency so that increase of version
 # will cause the build to fail due to unsatisfied dependencies.
 # DAL version change may cause code crash or memory leaks, it is better to fail early.
+%if 0%{?fedora} > 27
+BuildRequires: krb5-kdb-version = 7.0
+%else
 %if 0%{?fedora} > 25
 BuildRequires: krb5-kdb-version = 6.1
+%endif
 %endif
 BuildRequires:  krb5-devel >= %{krb5_version}
 # 1.27.4: xmlrpc_curl_xportparms.gssapi_delegation
