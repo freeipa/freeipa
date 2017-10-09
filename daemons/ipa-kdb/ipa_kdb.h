@@ -326,6 +326,10 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
 
 void ipadb_audit_as_req(krb5_context kcontext,
                         krb5_kdc_req *request,
+#if (KRB5_KDB_DAL_MAJOR_VERSION == 7)
+                        const krb5_address *local_addr,
+                        const krb5_address *remote_addr,
+#endif
                         krb5_db_entry *client,
                         krb5_db_entry *server,
                         krb5_timestamp authtime,
