@@ -86,6 +86,8 @@ def parse_options():
     parser.add_option("-p", "--password", dest="dirman_passwd", help="Directory Manager password")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
                       help="provide additional information")
+    parser.add_option("-d", "--debug", dest="debug", action="store_true", default=False,
+                      help="provide debug information")
     parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
                       help="ignore some types of errors")
     parser.add_option("-c", "--cleanup", dest="cleanup", action="store_true", default=False,
@@ -1507,6 +1509,7 @@ def main(options, args):
     # access to the plugin environment
     api_env = {'in_server' : True,
                'verbose'   : options.verbose,
+               'debug'     : options.debug,
               }
 
     if os.getegid() != 0:
