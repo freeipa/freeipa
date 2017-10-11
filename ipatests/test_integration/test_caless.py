@@ -52,6 +52,9 @@ def get_install_stdin(cert_passwords=()):
 
 def get_replica_prepare_stdin(cert_passwords=()):
     lines = list(cert_passwords)  # Enter foo.p12 unlock password
+    lines += [
+        'yes',  # Continue [no]?
+    ]
     return '\n'.join(lines + [''])
 
 
