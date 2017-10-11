@@ -9,13 +9,14 @@ import pytest
 
 @pytest.mark.parametrize("modname", [
     # placeholder packages raise ImportError
-    'ipaplatform',
     'ipaserver',
     'ipatests',
     # PyPI packages do not have install subpackage
     'ipaclient.install',
     'ipalib.install',
     'ipapython.install',
+    # override module should not be shipped in wheels
+    'ipaplatform.override',
 ])
 def test_fail_import(modname):
     try:
@@ -29,6 +30,7 @@ def test_fail_import(modname):
 @pytest.mark.parametrize("modname", [
     'ipaclient',
     'ipalib',
+    'ipaplatform',
     'ipapython',
 ])
 def test_import(modname):

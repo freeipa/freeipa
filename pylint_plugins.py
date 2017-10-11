@@ -269,6 +269,49 @@ def pytest_config_transform():
 register_module_extender(MANAGER, 'pytest', pytest_config_transform)
 
 
+def ipaplatform_constants_transform():
+    return AstroidBuilder(MANAGER).string_build(textwrap.dedent('''
+    from ipaplatform.base.constants import constants
+    __all__ = ('constants',)
+    '''))
+
+
+def ipaplatform_paths_transform():
+    return AstroidBuilder(MANAGER).string_build(textwrap.dedent('''
+    from ipaplatform.base.paths import paths
+    __all__ = ('paths',)
+    '''))
+
+
+def ipaplatform_services_transform():
+    return AstroidBuilder(MANAGER).string_build(textwrap.dedent('''
+    from ipaplatform.base.services import knownservices
+    from ipaplatform.base.services import timedate_services
+    from ipaplatform.base.services import service
+    from ipaplatform.base.services import wellknownservices
+    from ipaplatform.base.services import wellknownports
+    __all__ = ('knownservices', 'timedate_services', 'service',
+               'wellknownservices', 'wellknownports')
+    '''))
+
+
+def ipaplatform_tasks_transform():
+    return AstroidBuilder(MANAGER).string_build(textwrap.dedent('''
+    from ipaplatform.base.tasks import tasks
+    __all__ = ('tasks',)
+    '''))
+
+
+register_module_extender(MANAGER, 'ipaplatform.constants',
+                         ipaplatform_constants_transform)
+register_module_extender(MANAGER, 'ipaplatform.paths',
+                         ipaplatform_paths_transform)
+register_module_extender(MANAGER, 'ipaplatform.services',
+                         ipaplatform_services_transform)
+register_module_extender(MANAGER, 'ipaplatform.tasks',
+                         ipaplatform_tasks_transform)
+
+
 class IPAChecker(BaseChecker):
     __implements__ = IAstroidChecker
 

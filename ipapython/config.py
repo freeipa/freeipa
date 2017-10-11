@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from __future__ import absolute_import
 
 # pylint: disable=deprecated-module
 from optparse import (
@@ -33,17 +34,9 @@ from six.moves.configparser import SafeConfigParser
 from six.moves.urllib.parse import urlsplit
 # pylint: enable=import-error
 
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipautil import CheckedIPAddress, CheckedIPAddressLoopback
-
-try:
-    # pylint: disable=ipa-forbidden-import
-    from ipaplatform.paths import paths
-    # pylint: enable=ipa-forbidden-import
-except ImportError:
-    IPA_DEFAULT_CONF = '/etc/ipa/default.conf'
-else:
-    IPA_DEFAULT_CONF = paths.IPA_DEFAULT_CONF
 
 
 class IPAConfigError(Exception):
@@ -188,7 +181,7 @@ config = IPAConfig()
 
 def __parse_config(discover_server = True):
     p = SafeConfigParser()
-    p.read(IPA_DEFAULT_CONF)
+    p.read(paths.IPA_DEFAULT_CONF)
 
     try:
         if not config.default_realm:
