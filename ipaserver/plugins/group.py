@@ -367,7 +367,10 @@ class group_del(LDAPDelete):
         assert isinstance(dn, DN)
         try:
             api.Command['pwpolicy_del'](keys[-1])
-        except errors.NotFound:
+        # we catch ACI error because of CVE fixed in DS
+        # when an entry does not exist and we have no privilege reading it,
+        # there's err=50 instead of err=32
+        except (errors.NotFound, errors.ACIError):
             pass
 
         return True
