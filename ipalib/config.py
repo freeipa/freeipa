@@ -28,6 +28,7 @@ of the process.
 
 For the per-request thread-local information, see `ipalib.request`.
 """
+from __future__ import absolute_import
 
 import os
 from os import path
@@ -39,6 +40,7 @@ from six.moves.urllib.parse import urlparse, urlunparse
 from six.moves.configparser import RawConfigParser, ParsingError
 # pylint: enable=import-error
 
+from ipaplatform.tasks import tasks
 from ipapython.dn import DN
 from ipalib.base import check_name
 from ipalib.constants import (
@@ -47,12 +49,6 @@ from ipalib.constants import (
     TLS_VERSIONS
 )
 from ipalib import errors
-try:
-    # pylint: disable=ipa-forbidden-import
-    from ipaplatform.tasks import tasks
-    # pylint: enable=ipa-forbidden-import
-except ImportError:
-    tasks = None
 
 if six.PY3:
     unicode = str
@@ -451,10 +447,7 @@ class Env(object):
         self.script = path.abspath(sys.argv[0])
         self.bin = path.dirname(self.script)
         self.home = os.environ.get('HOME', None)
-
-        # Set fips_mode only if ipaplatform module was loaded
-        if tasks is not None:
-            self.fips_mode = tasks.is_fips_enabled()
+        self.fips_mode = tasks.is_fips_enabled()
 
         # Merge in overrides:
         self._merge(**overrides)

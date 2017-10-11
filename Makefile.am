@@ -8,10 +8,14 @@ if WITH_IPATESTS
     IPATESTS_SUBDIRS = ipatests
 endif
 
-IPACLIENT_SUBDIRS = ipaclient ipalib ipapython
-IPA_PLACEHOLDERS = freeipa ipa ipaplatform ipaserver ipatests
+IPACLIENT_SUBDIRS = ipaclient ipalib ipaplatform ipapython
+IPA_PLACEHOLDERS = freeipa ipa ipaserver ipatests
 SUBDIRS = asn1 util client contrib po pypi \
-	$(IPACLIENT_SUBDIRS) ipaplatform $(IPATESTS_SUBDIRS) $(SERVER_SUBDIRS)
+	$(IPACLIENT_SUBDIRS) $(IPATESTS_SUBDIRS) $(SERVER_SUBDIRS)
+
+GENERATED_PYTHON_FILES = \
+	$(top_builddir)/ipaplatform/override.py \
+	$(top_builddir)/ipapython/version.py
 
 MOSTLYCLEANFILES = ipasetup.pyc ipasetup.pyo \
 		   pylint_plugins.pyc pylint_plugins.pyo
@@ -133,7 +137,7 @@ _srpms-body: _rpms-prep
 	rm -f rm -f $(top_builddir)/.version
 
 .PHONY: lite-server
-lite-server: $(top_builddir)/ipapython/version.py
+lite-server: $(GENERATED_PYTHON_FILES)
 	+$(MAKE) -C $(top_builddir)/install/ui
 	PYTHONPATH=$(top_srcdir) $(PYTHON) -bb \
 	    contrib/lite-server.py $(LITESERVER_ARGS)
@@ -179,16 +183,20 @@ else
 endif
 	@echo "All tests passed."
 
+.PHONY: $(top_builddir)/ipaplatform/override.py
+$(top_builddir)/ipaplatform/override.py:
+	(cd $(top_builddir)/ipaplatform && make override.py)
+
 .PHONY: $(top_builddir)/ipapython/version.py
 $(top_builddir)/ipapython/version.py:
 	(cd $(top_builddir)/ipapython && make version.py)
 
 .PHONY: acilint
-acilint: $(top_builddir)/ipapython/version.py
+acilint: $(GENERATED_PYTHON_FILES)
 	cd $(srcdir); ./makeaci --validate
 
 .PHONY: apilint
-apilint: $(top_builddir)/ipapython/version.py
+apilint: $(GENERATED_PYTHON_FILES)
 	cd $(srcdir); ./makeapi --validate
 
 .PHONY: polint
@@ -203,7 +211,7 @@ polint:
 .PHONY: pylint
 
 if WITH_PYLINT
-pylint: $(top_builddir)/ipapython/version.py ipasetup.py
+pylint: $(GENERATED_PYTHON_FILES) ipasetup.py
 	FILES=`find $(top_srcdir) \
 		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
 		-path './rpmbuild' -prune -o \

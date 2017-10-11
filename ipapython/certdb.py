@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from __future__ import absolute_import
 
 import collections
 import logging
@@ -30,23 +31,11 @@ import shutil
 
 import cryptography.x509
 
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.kerberos import Principal
 from ipapython import ipautil
 from ipalib import x509     # pylint: disable=ipa-forbidden-import
-
-try:
-    # pylint: disable=import-error,ipa-forbidden-import
-    from ipaplatform.paths import paths
-    # pylint: enable=import-error,ipa-forbidden-import
-except ImportError:
-    CERTUTIL = '/usr/bin/certutil'
-    PK12UTIL = '/usr/bin/pk12util'
-    OPENSSL = '/usr/bin/openssl'
-else:
-    CERTUTIL = paths.CERTUTIL
-    PK12UTIL = paths.PK12UTIL
-    OPENSSL = paths.OPENSSL
 
 
 logger = logging.getLogger(__name__)
@@ -188,7 +177,8 @@ def verify_kdc_cert_validity(kdc_cert, ca_certs, realm):
 
         try:
             ipautil.run(
-                [OPENSSL, 'verify', '-CAfile', ca_file.name, kdc_file.name],
+                [paths.OPENSSL, 'verify', '-CAfile', ca_file.name,
+                 kdc_file.name],
                 capture_output=True)
         except ipautil.CalledProcessError as e:
             raise ValueError(e.output)
@@ -244,7 +234,7 @@ class NSSDatabase(object):
         self.close()
 
     def run_certutil(self, args, stdin=None, **kwargs):
-        new_args = [CERTUTIL, "-d", self.secdir]
+        new_args = [paths.CERTUTIL, "-d", self.secdir]
         new_args = new_args + args
         new_args.extend(['-f', self.pwd_file])
         return ipautil.run(new_args, stdin, **kwargs)
@@ -367,7 +357,7 @@ class NSSDatabase(object):
         return root_nicknames
 
     def export_pkcs12(self, nickname, pkcs12_filename, pkcs12_passwd=None):
-        args = [PK12UTIL, "-d", self.secdir,
+        args = [paths.PK12UTIL, "-d", self.secdir,
                 "-o", pkcs12_filename,
                 "-n", nickname,
                 "-k", self.pwd_file]
@@ -391,7 +381,7 @@ class NSSDatabase(object):
                 pkcs12_password_file.close()
 
     def import_pkcs12(self, pkcs12_filename, pkcs12_passwd=None):
-        args = [PK12UTIL, "-d", self.secdir,
+        args = [paths.PK12UTIL, "-d", self.secdir,
                 "-i", pkcs12_filename,
                 "-k", self.pwd_file, '-v']
         pkcs12_password_file = None
@@ -501,7 +491,7 @@ class NSSDatabase(object):
                                 (key_file, filename))
 
                         args = [
-                            OPENSSL, 'pkcs8',
+                            paths.OPENSSL, 'pkcs8',
                             '-topk8',
                             '-passout', 'file:' + self.pwd_file,
                         ]
@@ -588,7 +578,7 @@ class NSSDatabase(object):
                 out_password = ipautil.ipa_generate_password()
                 out_pwdfile = ipautil.write_tmp_file(out_password)
                 args = [
-                    OPENSSL, 'pkcs12',
+                    paths.OPENSSL, 'pkcs12',
                     '-export',
                     '-in', in_file.name,
                     '-out', out_file.name,
