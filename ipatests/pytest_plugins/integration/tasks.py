@@ -1096,11 +1096,11 @@ def add_a_records_for_hosts_in_master_domain(master):
         # domain
         try:
             verify_host_resolvable(host.hostname)
-            logger.debug("The host (%s) is resolvable.", host.domain.name)
+            logger.debug("The host (%s) is resolvable.", host.hostname)
         except errors.DNSNotARecordError:
             logger.debug("Hostname (%s) does not have A/AAAA record. Adding "
                          "new one.",
-                         master.hostname)
+                         host.hostname)
             add_a_record(master, host)
 
 
