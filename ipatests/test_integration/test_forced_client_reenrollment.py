@@ -43,6 +43,19 @@ class TestForcedClientReenrollment(IntegrationTest):
     def install(cls, mh):
         super(TestForcedClientReenrollment, cls).install(mh)
         tasks.install_master(cls.master)
+
+        cls.client_dom = cls.clients[0].hostname.split('.', 1)[1]
+        if cls.client_dom != cls.master.domain.name:
+            # In cases where client is managed by upstream DNS server we
+            # overlap its zone so we can save DNS records (e.g. SSHFP) for
+            # comparison.
+            servers = [cls.master] + cls.replicas
+            tasks.add_dns_zone(cls.master, cls.client_dom,
+                               skip_overlap_check=True,
+                               dynamic_update=True,
+                               add_a_record_hosts=servers
+                               )
+
         tasks.install_replica(cls.master, cls.replicas[0], setup_ca=False)
         cls.BACKUP_KEYTAB = os.path.join(
             cls.master.config.test_dir,
@@ -162,13 +175,14 @@ class TestForcedClientReenrollment(IntegrationTest):
             '-p', 'tcp',
             '--dport', '22'
         ])
-        client.run_command([
-            'iptables',
-            '-A', 'INPUT',
-            '-j', 'REJECT',
-            '-p', 'all',
-            '--source', self.master.ip
-        ])
+        for host in [self.master] + self.replicas:
+            client.run_command([
+                'iptables',
+                '-A', 'INPUT',
+                '-j', 'REJECT',
+                '-p', 'all',
+                '--source', host.ip
+            ])
         self.uninstall_client()
         client.run_command(['iptables', '-F'])
 
@@ -246,7 +260,7 @@ class TestForcedClientReenrollment(IntegrationTest):
         client_host = self.clients[0].hostname.split('.')[0]
 
         result = self.master.run_command(
-            ['ipa', 'dnsrecord-show', self.master.domain.name, client_host]
+            ['ipa', 'dnsrecord-show', self.client_dom, client_host]
         )
 
         lines = result.stdout_text.splitlines()
@@ -270,7 +284,8 @@ class TestForcedClientReenrollment(IntegrationTest):
         contents = self.master.get_file_contents(self.BACKUP_KEYTAB)
         self.clients[0].put_file_contents(self.BACKUP_KEYTAB, contents)
 
-    def fix_resolv_conf(self, client, server):
+    @classmethod
+    def fix_resolv_conf(cls, client, server):
         """
         Put server's ip address at the top of resolv.conf
         """
@@ -284,6 +299,9 @@ class TestForcedClientReenrollment(IntegrationTest):
 
 @pytest.fixture()
 def client(request):
+    # Here we call "fix_resolv_conf" method before every ipa-client-install so
+    # we get the client pointing to ipa master as DNS server.
+    request.cls.fix_resolv_conf(request.cls.clients[0], request.cls.master)
     tasks.install_client(request.cls.master, request.cls.clients[0])
 
     def teardown_client():

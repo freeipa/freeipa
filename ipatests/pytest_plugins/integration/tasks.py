@@ -1326,7 +1326,34 @@ def ldappasswd_user_change(user, oldpw, newpw, master):
     basedn = master.domain.basedn
 
     userdn = "uid={},{},{}".format(user, container_user, basedn)
+    master_ldap_uri = "ldap://{}".format(master.external_hostname)
 
     args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
-            '-s', newpw, '-x']
+            '-s', newpw, '-x', '-H', master_ldap_uri]
     master.run_command(args)
+
+
+def add_dns_zone(master, zone, skip_overlap_check=False,
+                 dynamic_update=False, add_a_record_hosts=None):
+    """
+    Add DNS zone if it is not already added.
+    """
+
+    result = master.run_command(
+        ['ipa', 'dnszone-show', zone], raiseonerr=False)
+
+    if result.returncode != 0:
+        command = ['ipa', 'dnszone-add', zone]
+        if skip_overlap_check:
+            command.append('--skip-overlap-check')
+        if dynamic_update:
+            command.append('--dynamic-update=True')
+
+        master.run_command(command)
+
+        if add_a_record_hosts:
+            for host in add_a_record_hosts:
+                master.run_command(['ipa', 'dnsrecord-add', zone,
+                                    host.hostname + ".", '--a-rec', host.ip])
+    else:
+        logger.debug('Zone %s already added.', zone)
