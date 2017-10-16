@@ -123,18 +123,21 @@ class IPACertificate(object):
         # some field types encode-decoding is not strongly defined
         self._subject = self.__get_der_field('subject')
         self._issuer = self.__get_der_field('issuer')
+        self._serial_number = self.__get_der_field('serialNumber')
 
     def __getstate__(self):
         state = {
             '_cert': self.public_bytes(Encoding.DER),
             '_subject': self.subject_bytes,
             '_issuer': self.issuer_bytes,
+            '_serial_number': self._serial_number,
         }
         return state
 
     def __setstate__(self, state):
         self._subject = state['_subject']
         self._issuer = state['_issuer']
+        self._issuer = state['_serial_number']
         self._cert = crypto_x509.load_der_x509_certificate(
             state['_cert'], backend=default_backend())
 
@@ -214,6 +217,10 @@ class IPACertificate(object):
     @property
     def serial_number(self):
         return self._cert.serial_number
+
+    @property
+    def serial_number_bytes(self):
+        return self._serial_number
 
     @property
     def version(self):
