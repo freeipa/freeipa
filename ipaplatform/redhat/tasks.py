@@ -274,7 +274,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             try:
                 subject = cert.subject_bytes
                 issuer = cert.issuer_bytes
-                serial_number = cert.serial_number
+                serial_number = cert.serial_number_bytes
                 public_key_info = cert.public_key_info_bytes
             except (PyAsn1Error, ValueError, CertificateError) as e:
                 logger.warning(
@@ -284,7 +284,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             label = urllib.parse.quote(nickname)
             subject = urllib.parse.quote(subject)
             issuer = urllib.parse.quote(issuer)
-            serial_number = urllib.parse.quote(str(serial_number))
+            serial_number = urllib.parse.quote(serial_number)
             public_key_info = urllib.parse.quote(public_key_info)
 
             obj = ("[p11-kit-object-v1]\n"
