@@ -29,6 +29,7 @@ import pki.system
 
 from ipalib import api, errors
 from ipalib.install import certmonger
+from ipalib.constants import CA_DBUS_TIMEOUT
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
@@ -261,7 +262,9 @@ class DogtagInstance(service.Service):
                 iface.add_known_ca(
                     name,
                     command,
-                    dbus.Array([], dbus.Signature('s')))
+                    dbus.Array([], dbus.Signature('s')),
+                     # Give dogtag extra time to generate cert
+                    timeout=CA_DBUS_TIMEOUT)
 
     def __get_pin(self):
         try:
