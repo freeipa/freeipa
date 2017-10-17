@@ -147,7 +147,8 @@ class KRAInstaller(KRAInstall):
 
         if not cainstance.is_ca_installed_locally():
             raise RuntimeError("Dogtag CA is not installed. "
-                               "Please install the CA first")
+                               "Please install a CA first with the "
+                               "`ipa-ca-install` command.")
 
         # check if KRA is not already installed
         _kra = krainstance.KRAInstance(api)
