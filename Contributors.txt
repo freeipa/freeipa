@@ -50,8 +50,10 @@ Developers:
 	Abhijeet Kasurde
 	Nathan Kinder
 	Krzysztof Klimonda
+	Alexander Koksharov
 	Nikolai Kondrashov
 	Martin Košek
+	David Kreitschmann
 	Ludwig Krispenz
 	Ana Krivokapić
 	Tomáš Křížek
@@ -93,6 +95,7 @@ Developers:
 	Michael Simacek
 	Lars Sjostrom
 	Filip Skola
+	Aleksei Slaikovskii
 	Lukáš Slebodník
 	Simo Sorce
 	Petr Špaček
