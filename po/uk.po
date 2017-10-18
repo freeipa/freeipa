@@ -4,9 +4,9 @@
 # Yuri Chornoivan <yurchor@ukr.net>, 2017. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.2.dev201707211258+git0571e38\n"
+"Project-Id-Version: freeipa 4.5.3.dev201710181329+git653ed4a00\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-07-21 14:58+0200\n"
+"POT-Creation-Date: 2017-10-18 15:29+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19483,9 +19483,6 @@ msgstr "Автоматичне монтування"
 msgid "DNS"
 msgstr "DNS"
 
-msgid "Host Based Access Control"
-msgstr "Керування доступом на основі вузлів"
-
 msgid "Identity"
 msgstr "Профіль"
 
@@ -19497,9 +19494,6 @@ msgstr "Мережеві служби"
 
 msgid "Policy"
 msgstr "Правила"
-
-msgid "Role Based Access Control"
-msgstr "Керування доступом на основі ролей"
 
 msgid "Sudo"
 msgstr "Sudo"

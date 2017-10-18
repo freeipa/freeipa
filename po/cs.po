@@ -1,14 +1,15 @@
 # Josef Hruška <hrusjos@gmail.com>, 2015. #zanata
+# Zdenek <chmelarz@gmail.com>, 2017. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.2.dev201707211258+git0571e38\n"
+"Project-Id-Version: freeipa 4.5.3.dev201710181329+git653ed4a00\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-07-21 14:58+0200\n"
+"POT-Creation-Date: 2017-10-18 15:29+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2015-06-29 01:17-0400\n"
-"Last-Translator: Josef Hruška <hrusjos@gmail.com>\n"
+"PO-Revision-Date: 2017-09-04 03:13-0400\n"
+"Last-Translator: Zdenek <chmelarz@gmail.com>\n"
 "Language-Team: Czech\n"
 "Language: cs\n"
 "X-Generator: Zanata 3.9.6\n"
@@ -69,6 +70,10 @@ msgstr "Služba '%(service)s' nenalezena v databázi Kerberosu"
 msgid "No credentials cache found"
 msgstr "Nenalezena mezipamět ověřovacích údajů"
 
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Passwords do not match"
+msgstr "Hesla nejsou stejná."
+
 #, python-format
 msgid "%(reason)s"
 msgstr "%(reason)s"
@@ -118,8 +123,546 @@ msgstr "Žádný soubor k přečtení"
 msgid "A string searched in all relevant object attributes"
 msgstr "Řetězec vyhledávaný ve všech odpovídajících atributech objektu"
 
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+#, c-format
+msgid "Out of memory!\n"
+msgstr "Nedostatek paměti\n"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "password"
+msgstr "heslo"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "LDAP password"
+msgstr "LDAP heslo"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "url"
+msgstr "url"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "User name"
+msgstr "Uživatelské jméno"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Rights"
+msgstr "Práva"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "UUID"
+msgstr "UUID:"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Username"
+msgstr "Jméno uživatele"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Password"
+msgstr "Heslo"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Description"
+msgstr "Popis"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Enabled"
+msgstr "Povoleno"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Users"
+msgstr "Uživatelé"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Type"
+msgstr "Typ"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Filter"
+msgstr "Filtr"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "SELinux User"
+msgstr "Uživatel SELinuxu"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Host name"
+msgstr "Název počítače"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Location"
+msgstr "Umístění"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Platform"
+msgstr "Platforma"
+
 msgid "Operating system"
 msgstr "Operační systém"
 
 msgid "User password"
 msgstr "Uživatelské heslo"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "MAC address"
+msgstr "MAC adresa"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "IP Address"
+msgstr "IP adresa"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "user"
+msgstr "uživatel"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Continue"
+msgstr "Pokračovat"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Key"
+msgstr "Klíč"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "description"
+msgstr "popis"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Mount point"
+msgstr "Místo připojení"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Group"
+msgstr "Skupina"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Priority"
+msgstr "Priorita"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "User"
+msgstr "Uživatel"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "City"
+msgstr "Město"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "group"
+msgstr "skupinu"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Class"
+msgstr "Třída"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Target"
+msgstr "Cíl"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Flags"
+msgstr "Vlajky"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Protocol"
+msgstr "Protokol"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Size"
+msgstr "Velikost"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Order"
+msgstr "Další"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Service"
+msgstr "Služba"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Port"
+msgstr "Port"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Fingerprint"
+msgstr "Otisk"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Services"
+msgstr "Služby"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Warning"
+msgstr "Varování"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Profiles"
+msgstr "Profily"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Server"
+msgstr "Server"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Secret"
+msgstr "Tajné"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Timeout"
+msgstr "Časový limit"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Disabled"
+msgstr "Zakázáno"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Vendor"
+msgstr "Výrobce"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Model"
+msgstr "Model"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Serial"
+msgstr "Sériový"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Subject"
+msgstr "Předmět"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "User ID"
+msgstr "ID uživatele"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Error"
+msgstr "Chyba"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Apply"
+msgstr "Použít"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "RADIUS"
+msgstr "RADIUS"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Add"
+msgstr "Přidat"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Back"
+msgstr "Zpět"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Cancel"
+msgstr "Zrušit"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Clear"
+msgstr "Vymazat"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Close"
+msgstr "Zavřít"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Disable"
+msgstr "Zakázat"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Download"
+msgstr "Stáhnout"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Edit"
+msgstr "Upravit"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Enable"
+msgstr "Povolit"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Find"
+msgstr "Hledat"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Hide"
+msgstr "Skrýt"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "OK"
+msgstr "Budiž"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Refresh"
+msgstr "Obnovit"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Delete"
+msgstr "Smazat"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Reset"
+msgstr "Reset"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Restore"
+msgstr "Obnovit"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Retry"
+msgstr "Opakovat"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Revert"
+msgstr "Vrátit"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Save"
+msgstr "Uložit"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Set"
+msgstr "Sada"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Show"
+msgstr "Ukázat"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Stage"
+msgstr "Stage"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Update"
+msgstr "Aktualizovat"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "General"
+msgstr "Obecné"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Available"
+msgstr "Dostupný"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Success"
+msgstr "Úspěch"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Unknown Error"
+msgstr "Neznámá chyba"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "URL"
+msgstr "URL"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Settings"
+msgstr "Nastavení"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Search"
+msgstr "Hledat"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Login"
+msgstr "Přihlásit"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Logout"
+msgstr "Odhlásit"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "seconds"
+msgstr "sekund"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Add Rule"
+msgstr "Přidat pravidlo"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Expression"
+msgstr "Výraz"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Note"
+msgstr "Poznámka"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Serial Number"
+msgstr "Sériové číslo"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Status"
+msgstr "Stav"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Unspecified"
+msgstr "Nespecifikováno"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Version"
+msgstr "Verze"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Options"
+msgstr "Přepínače"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Record Type"
+msgstr "Typ záznamu"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Level"
+msgstr "Úroveň"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Groups"
+msgstr "Skupiny"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Rules"
+msgstr "Pravidla"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Host Name"
+msgstr "Název počítače"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Profile"
+msgstr "Profil"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Host"
+msgstr "Počítač"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Server Roles"
+msgstr "Serverové role"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Service Settings"
+msgstr "Nastavení služeb"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Provisioning"
+msgstr "Zajištění"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Any Group"
+msgstr "Jakákoli skupina"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Account"
+msgstr "Účet"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Mailing Address"
+msgstr "Poštovní adresa"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Members"
+msgstr "Členové"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Shared"
+msgstr "Sdílená"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Standard"
+msgstr "Standard"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Working"
+msgstr "Pracuje"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Audit"
+msgstr "Auditovat"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Authentication"
+msgstr "Autentizace"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "DNS"
+msgstr "DNS"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "First"
+msgstr "Prvenství "
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Last"
+msgstr "Poslední"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Next"
+msgstr "Další"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Page"
+msgstr "Strana"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Prev"
+msgstr "Předchozí"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Entry"
+msgstr "Položka"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+#, python-format
+msgid "%s"
+msgstr "%s"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "service"
+msgstr "službu"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "command"
+msgstr "příkaz"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "commands"
+msgstr "příkazy"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Name"
+msgstr "Název"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Invalid LDAP URI."
+msgstr "Neplatné URI pro LDAP."
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Servers"
+msgstr "Servery"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Role"
+msgstr "Role"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Documentation"
+msgstr "Dokumentace"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Default"
+msgstr "Výchozí"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Label"
+msgstr "Název"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Unknown"
+msgstr "Neznámý"
+
+# auto translated by TM merge from project: FreeIPA, version: master, DocId: po/ipa
+msgid "Configuration"
+msgstr "Nastavení"
