@@ -62,7 +62,7 @@ def __get_part_param(rrtype, cmd, part, output_kw, default=None):
 def prompt_parts(rrtype, cmd, mod_dnsvalue=None):
     mod_parts = None
     if mod_dnsvalue is not None:
-        name = record_name_format % rrtype.lower()
+        name = record_name_format % unicode(rrtype.lower())
         mod_parts = cmd.api.Command.dnsrecord_split_parts(
             name, mod_dnsvalue)['result']
 
