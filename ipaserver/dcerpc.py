@@ -47,6 +47,7 @@ import samba
 
 import ldap as _ldap
 from ipapython import ipaldap
+from ipapython.dnsutil import DNSName
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 import pysss_nss_idmap
@@ -1601,7 +1602,22 @@ class TrustDomainJoins(object):
                      entry.single_value.get('modifytimestamp').timetuple()
                 )*1e7+116444736000000000)
 
+        forest = DNSName(self.local_domain.info['dns_forest'])
+        # tforest is IPA forest. keep the line below for future checks
+        # tforest = DNSName(self.remote_domain.info['dns_forest'])
         for dom in realm_domains['associateddomain']:
+            d = DNSName(dom)
+
+            # We should skip all DNS subdomains of our forest
+            # because we are going to add *.<forest> TLN anyway
+            if forest.is_superdomain(d) and forest != d:
+                continue
+
+            # We also should skip single label TLDs as they
+            # cannot be added as TLNs
+            if len(d.labels) == 1:
+                continue
+
             ftinfo = dict()
             ftinfo['rec_name'] = dom
             ftinfo['rec_time'] = trust_timestamp
