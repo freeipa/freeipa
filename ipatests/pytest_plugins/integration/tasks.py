@@ -1045,7 +1045,7 @@ def _entries_to_ldif(entries):
     io = StringIO()
     writer = LDIFWriter(io)
     for entry in entries:
-        writer.unparse(str(entry.dn), dict(entry))
+        writer.unparse(str(entry.dn), dict(entry.raw))
     return io.getvalue()
 
 
