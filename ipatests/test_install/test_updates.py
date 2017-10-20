@@ -30,7 +30,7 @@ from ipalib import api
 from ipalib import errors
 from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax
 from ipaserver.install import installutils
-from ipapython import ipautil, ipaldap
+from ipapython import ipaldap
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 
@@ -56,7 +56,7 @@ class test_update(unittest.TestCase):
     def setUp(self):
         fqdn = installutils.get_fqdn()
         pwfile = api.env.dot_ipa + os.sep + ".dmpw"
-        if ipautil.file_exists(pwfile):
+        if os.path.isfile(pwfile):
             fp = open(pwfile, "r")
             self.dm_password = fp.read().rstrip()
             fp.close()
@@ -68,7 +68,7 @@ class test_update(unittest.TestCase):
         self.ld.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                             bind_password=self.dm_password)
         self.testdir = os.path.abspath(os.path.dirname(__file__))
-        if not ipautil.file_exists(os.path.join(self.testdir,
+        if not os.path.isfile(os.path.join(self.testdir,
                                                 "0_reset.update")):
             raise nose.SkipTest("Unable to find test update files")
 

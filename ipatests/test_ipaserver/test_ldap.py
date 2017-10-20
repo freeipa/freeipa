@@ -36,7 +36,6 @@ import six
 from ipaplatform.paths import paths
 from ipaserver.plugins.ldap2 import ldap2, AUTOBIND_DISABLED
 from ipalib import api, create_api, errors
-from ipapython import ipautil
 from ipapython.dn import DN
 
 if six.PY3:
@@ -85,7 +84,7 @@ class test_ldap(object):
         Test a simple LDAP bind using ldap2
         """
         pwfile = api.env.dot_ipa + os.sep + ".dmpw"
-        if ipautil.file_exists(pwfile):
+        if os.path.isfile(pwfile):
             with open(pwfile, "r") as fp:
                 dm_password = fp.read().rstrip()
         else:
@@ -109,7 +108,7 @@ class test_ldap(object):
         myapi.finalize()
 
         pwfile = api.env.dot_ipa + os.sep + ".dmpw"
-        if ipautil.file_exists(pwfile):
+        if os.path.isfile(pwfile):
             with open(pwfile, "r") as fp:
                 dm_password = fp.read().rstrip()
         else:

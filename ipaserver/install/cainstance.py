@@ -804,7 +804,7 @@ class CAInstance(DogtagInstance):
 
         # We need to append the certs to the existing file, so start by
         # reading the file
-        if ipautil.file_exists(paths.IPA_CA_CRT):
+        if os.path.isfile(paths.IPA_CA_CRT):
             ca_certs = x509.load_certificate_list_from_file(paths.IPA_CA_CRT)
             certlist.extend(ca_certs)
 

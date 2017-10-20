@@ -100,7 +100,7 @@ def read_cache(dm_password):
     """
     Returns a dict of cached answers or empty dict if no cache file exists.
     """
-    if not ipautil.file_exists(paths.ROOT_IPA_CACHE):
+    if not os.path.isfile(paths.ROOT_IPA_CACHE):
         return {}
 
     top_dir = tempfile.mkdtemp("ipa")
@@ -340,7 +340,7 @@ def install_check(installer):
     sstore = sysrestore.StateFile(SYSRESTORE_DIR_PATH)
 
     # This will override any settings passed in on the cmdline
-    if ipautil.file_exists(paths.ROOT_IPA_CACHE):
+    if os.path.isfile(paths.ROOT_IPA_CACHE):
         if options.dm_password is not None:
             dm_password = options.dm_password
         else:
@@ -947,7 +947,7 @@ def install(installer):
         print("use a SSL signing certificate. See the IPA documentation for "
               "more details.")
 
-    if ipautil.file_exists(paths.ROOT_IPA_CACHE):
+    if os.path.isfile(paths.ROOT_IPA_CACHE):
         os.remove(paths.ROOT_IPA_CACHE)
 
 

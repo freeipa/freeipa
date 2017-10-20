@@ -29,7 +29,6 @@ import math
 import os
 import sys
 import copy
-import stat
 import shutil
 import socket
 import re
@@ -543,31 +542,16 @@ def nolog_replace(string, nolog):
     return string
 
 
-def file_exists(filename):
-    try:
-        mode = os.stat(filename)[stat.ST_MODE]
-        return bool(stat.S_ISREG(mode))
-    except Exception:
-        return False
-
-def dir_exists(filename):
-    try:
-        mode = os.stat(filename)[stat.ST_MODE]
-        return bool(stat.S_ISDIR(mode))
-    except Exception:
-        return False
-
-
 def install_file(fname, dest):
     # SELinux: use copy to keep the right context
-    if file_exists(dest):
+    if os.path.isfile(dest):
         os.rename(dest, dest + ".orig")
     shutil.copy(fname, dest)
     os.remove(fname)
 
 
 def backup_file(fname):
-    if file_exists(fname):
+    if os.path.isfile(fname):
         os.rename(fname, fname + ".orig")
 
 

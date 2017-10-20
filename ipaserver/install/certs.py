@@ -227,7 +227,7 @@ class CertDB(object):
         return self.nssdb.run_certutil(args, stdin, **kwargs)
 
     def create_noise_file(self):
-        if ipautil.file_exists(self.noise_fname):
+        if os.path.isfile(self.noise_fname):
             os.remove(self.noise_fname)
         with open(self.noise_fname, "w") as f:
             self.set_perms(f)
@@ -565,7 +565,7 @@ class CertDB(object):
 
     def create_from_cacert(self):
         cacert_fname = paths.IPA_CA_CRT
-        if ipautil.file_exists(self.certdb_fname):
+        if os.path.isfile(self.certdb_fname):
             # We already have a cert db, see if it is for the same CA.
             # If it is we leave things as they are.
             with open(cacert_fname, "r") as f:

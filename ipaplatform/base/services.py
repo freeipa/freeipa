@@ -424,7 +424,7 @@ class SystemdService(PlatformService):
                                    self.service_instance(instance_name))
 
             try:
-                if not ipautil.dir_exists(srv_tgt):
+                if not os.path.isdir(srv_tgt):
                     os.mkdir(srv_tgt)
                     os.chmod(srv_tgt, 0o755)
                 if os.path.exists(srv_lnk):
@@ -459,7 +459,7 @@ class SystemdService(PlatformService):
                                    self.service_instance(instance_name))
 
             try:
-                if ipautil.dir_exists(srv_tgt):
+                if os.path.isdir(srv_tgt):
                     if os.path.islink(srv_lnk):
                         os.unlink(srv_lnk)
                 ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"])

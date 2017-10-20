@@ -21,6 +21,7 @@
 from __future__ import print_function
 
 import logging
+import os
 import sys
 import tempfile
 from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
@@ -30,7 +31,6 @@ from ipalib import api
 from ipalib.constants import DOMAIN_LEVEL_0
 from ipaplatform.paths import paths
 from ipapython import admintool
-from ipapython import ipautil
 from ipaserver.install import service
 from ipaserver.install import cainstance
 from ipaserver.install import krainstance
@@ -122,7 +122,7 @@ class KRAInstaller(KRAInstall):
             self.option_parser.error("Too many arguments provided")
         elif len(self.args) == 1:
             self.replica_file = self.args[0]
-            if not ipautil.file_exists(self.replica_file):
+            if not os.path.isfile(self.replica_file):
                 self.option_parser.error(
                     "Replica file %s does not exist" % self.replica_file)
 

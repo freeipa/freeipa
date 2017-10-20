@@ -58,7 +58,7 @@ def is_db_configured():
     aliasdir = api.env.dot_ipa + os.sep + 'alias' + os.sep + '.pwd'
 
     if (api.env.xmlrpc_uri == u'http://localhost:8888/ipa/xml' and
-       not ipautil.file_exists(aliasdir)):
+       not os.path.isfile(aliasdir)):
         raise nose.SkipTest('developer CA not configured in %s' % aliasdir)
 
 # Test setup

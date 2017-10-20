@@ -126,7 +126,7 @@ def install_check(standalone, replica_config, options):
             raise ScriptError('A selfsign CA can not be added')
 
         cafile = os.path.join(replica_config.dir, 'cacert.p12')
-        if not options.promote and not ipautil.file_exists(cafile):
+        if not options.promote and not os.path.isfile(cafile):
             raise ScriptError('CA cannot be installed in CA-less setup.')
 
         if standalone and not options.skip_conncheck:
@@ -168,7 +168,7 @@ def install_check(standalone, replica_config, options):
             raise ScriptError(
                 "CA is already installed.\nRun the installer with "
                 "--external-cert-file.")
-        if ipautil.file_exists(paths.ROOT_IPA_CSR):
+        if os.path.isfile(paths.ROOT_IPA_CSR):
             raise ScriptError(
                 "CA CSR file %s already exists.\nIn order to continue "
                 "remove the file and run the installer again." %
