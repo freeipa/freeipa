@@ -54,8 +54,6 @@ from ipapython.install.core import group, knob, extend_knob
 from ipapython.install.common import step
 from ipapython.ipautil import (
     CalledProcessError,
-    dir_exists,
-    file_exists,
     realm_to_suffix,
     run,
     user_input,
@@ -192,7 +190,7 @@ def nssldap_exists():
         for file_type in ['mandatory', 'optional']:
             try:
                 for filename in function[file_type]:
-                    if file_exists(filename):
+                    if os.path.isfile(filename):
                         files_found[function['function']].append(filename)
                         if file_type == 'mandatory':
                             retval = True
@@ -605,7 +603,7 @@ def hardcode_ldap_server(cli_server):
     DNS Discovery didn't return a valid IPA server, hardcode a value into
     the file instead.
     """
-    if not file_exists(paths.LDAP_CONF):
+    if not os.path.isfile(paths.LDAP_CONF):
         return
 
     ldapconf = IPAChangeConf("IPA Installer")
@@ -859,8 +857,8 @@ def configure_sssd_conf(
         sssd_enable_service(sssdconfig, 'ifp')
 
     if (
-        (options.conf_ssh and file_exists(paths.SSH_CONFIG)) or
-        (options.conf_sshd and file_exists(paths.SSHD_CONFIG))
+        (options.conf_ssh and os.path.isfile(paths.SSH_CONFIG)) or
+        (options.conf_sshd and os.path.isfile(paths.SSHD_CONFIG))
     ):
         try:
             sssdconfig.new_service('ssh')
@@ -1032,7 +1030,7 @@ def change_ssh_config(filename, changes, sections):
 
 
 def configure_ssh_config(fstore, options):
-    if not file_exists(paths.SSH_CONFIG):
+    if not os.path.isfile(paths.SSH_CONFIG):
         logger.info("%s not found, skipping configuration", paths.SSH_CONFIG)
         return
 
@@ -1040,7 +1038,7 @@ def configure_ssh_config(fstore, options):
 
     changes = {'PubkeyAuthentication': 'yes'}
 
-    if options.sssd and file_exists(paths.SSS_SSH_KNOWNHOSTSPROXY):
+    if options.sssd and os.path.isfile(paths.SSS_SSH_KNOWNHOSTSPROXY):
         changes[
             'ProxyCommand'] = '%s -p %%p %%h' % paths.SSS_SSH_KNOWNHOSTSPROXY
         changes['GlobalKnownHostsFile'] = paths.SSSD_PUBCONF_KNOWN_HOSTS
@@ -1055,7 +1053,7 @@ def configure_ssh_config(fstore, options):
 def configure_sshd_config(fstore, options):
     sshd = services.knownservices.sshd
 
-    if not file_exists(paths.SSHD_CONFIG):
+    if not os.path.isfile(paths.SSHD_CONFIG):
         logger.info("%s not found, skipping configuration", paths.SSHD_CONFIG)
         return
 
@@ -1069,7 +1067,7 @@ def configure_sshd_config(fstore, options):
         'ChallengeResponseAuthentication': 'yes',
     }
 
-    if options.sssd and file_exists(paths.SSS_SSH_AUTHORIZEDKEYS):
+    if options.sssd and os.path.isfile(paths.SSS_SSH_AUTHORIZEDKEYS):
         authorized_keys_changes = None
 
         candidates = (
@@ -1875,19 +1873,19 @@ def configure_firefox(options, statestore, domain):
         if options.firefox_dir is not None:
             pref_path = os.path.join(options.firefox_dir,
                                      FIREFOX_PREFERENCES_REL_PATH)
-            if dir_exists(pref_path):
+            if os.path.isdir(pref_path):
                 preferences_dir = pref_path
             else:
                 logger.error("Directory '%s' does not exists.", pref_path)
         else:
             # test if firefox is installed
-            if file_exists(paths.FIREFOX):
+            if os.path.isfile(paths.FIREFOX):
 
                 # find valid preferences path
                 for path in [paths.LIB_FIREFOX, paths.LIB64_FIREFOX]:
                     pref_path = os.path.join(path,
                                              FIREFOX_PREFERENCES_REL_PATH)
-                    if dir_exists(pref_path):
+                    if os.path.isdir(pref_path):
                         preferences_dir = pref_path
                         break
             else:
@@ -3285,7 +3283,7 @@ def uninstall(options):
         preferences_fname = statestore.restore_state(
             'firefox', 'preferences_fname')
         if preferences_fname is not None:
-            if file_exists(preferences_fname):
+            if os.path.isfile(preferences_fname):
                 try:
                     os.remove(preferences_fname)
                 except Exception as e:

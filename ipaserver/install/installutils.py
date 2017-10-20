@@ -523,7 +523,7 @@ def kadmin_modprinc(principal, options):
 
 def create_keytab(path, principal):
     try:
-        if ipautil.file_exists(path):
+        if os.path.isfile(path):
             os.remove(path)
     except os.error:
         logger.critical("Failed to remove %s.", path)
@@ -769,7 +769,7 @@ def read_replica_info(dir_path, rconfig):
 def read_replica_info_dogtag_port(config_dir):
     portfile = config_dir + "/dogtag_directory_port.txt"
     default_port = 7389
-    if not ipautil.file_exists(portfile):
+    if not os.path.isfile(portfile):
         dogtag_master_ds_port = default_port
     else:
         with open(portfile) as fd:

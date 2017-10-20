@@ -6,7 +6,6 @@ import io
 import os
 from ipaserver.plugins.ldap2 import ldap2
 from ipalib import api
-from ipapython import ipautil
 from ipapython.dn import DN
 import pytest
 
@@ -31,7 +30,7 @@ class TestTopologyPlugin(object):
         if self.conn and self.conn.isconnected():
             self.conn.disconnect()
 
-    @pytest.mark.skipif(ipautil.file_exists(pwfile) is False,
+    @pytest.mark.skipif(os.path.isfile(pwfile) is False,
                         reason="You did not provide a .dmpw file with the DM password")
     def test_topologyplugin(self):
         pluginattrs = {
