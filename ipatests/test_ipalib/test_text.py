@@ -33,7 +33,6 @@ import pytest
 from ipatests.i18n import create_po, po_file_iterate
 from ipalib.request import context
 from ipalib import text
-from ipapython.ipautil import file_exists
 
 if six.PY3:
     unicode = str
@@ -106,11 +105,11 @@ class test_TestLang(object):
             raise nose.SkipTest('Unable to create po file "%s" & mo file "%s" from pot file "%s"' %
                                 (self.po_file, self.mo_file, self.pot_file))
 
-        if not file_exists(self.po_file):
+        if not os.path.isfile(self.po_file):
             raise nose.SkipTest(
                 'Test po file unavailable: {}'.format(self.po_file))
 
-        if not file_exists(self.mo_file):
+        if not os.path.isfile(self.mo_file):
             raise nose.SkipTest(
                 'Test mo file unavailable: {}'.format(self.mo_file))
 

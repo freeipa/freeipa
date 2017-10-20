@@ -1699,7 +1699,7 @@ def upgrade_configuration():
                 os.path.join(paths.USR_SHARE_IPA_DIR, "ipa-pki-proxy.conf"),
                 add=True)
         else:
-            if ipautil.file_exists(paths.HTTPD_IPA_PKI_PROXY_CONF):
+            if os.path.isfile(paths.HTTPD_IPA_PKI_PROXY_CONF):
                 os.remove(paths.HTTPD_IPA_PKI_PROXY_CONF)
         if subject_base:
             upgrade_file(

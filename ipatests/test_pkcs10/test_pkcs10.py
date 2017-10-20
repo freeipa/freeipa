@@ -22,7 +22,6 @@ Test the `pkcs10.py` module.
 
 import nose
 from ipalib import pkcs10
-from ipapython import ipautil
 import pytest
 import os
 import cryptography.x509
@@ -36,7 +35,7 @@ class test_update(object):
 
     def setup(self):
         self.testdir = os.path.abspath(os.path.dirname(__file__))
-        if not ipautil.file_exists(os.path.join(self.testdir,
+        if not os.path.isfile(os.path.join(self.testdir,
                                                 "test0.csr")):
             raise nose.SkipTest("Unable to find test update files")
 

@@ -100,7 +100,7 @@ def install(api, replica_config, options):
                     replica_config.dirman_password)
         else:
             cafile = os.path.join(replica_config.dir, 'cacert.p12')
-            if not ipautil.file_exists(cafile):
+            if not os.path.isfile(cafile):
                 raise RuntimeError(
                     "Unable to clone KRA."
                     "  cacert.p12 file not found in replica file")

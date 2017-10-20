@@ -482,7 +482,7 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
                         "domain via the --domain option")
 
             else:
-                if not ipautil.file_exists(self.replica_file):
+                if not os.path.isfile(self.replica_file):
                     raise RuntimeError(
                         "Replica file %s does not exist" % self.replica_file)
 

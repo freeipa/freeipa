@@ -11,6 +11,7 @@ from __future__ import print_function
 
 import enum
 import logging
+import os
 
 # absolute import is necessary because IPA module dns clashes with python-dns
 from dns import resolver
@@ -114,7 +115,7 @@ def install_check(standalone, api, replica, options, hostname):
     global reverse_zones
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
-    if not ipautil.file_exists(paths.IPA_DNS_INSTALL):
+    if not os.path.isfile(paths.IPA_DNS_INSTALL):
         raise RuntimeError("Integrated DNS requires '%s' package" %
                            constants.IPA_DNS_PACKAGE_NAME)
 

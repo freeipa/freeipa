@@ -338,7 +338,7 @@ class OpenDNSSECInstance(service.Service):
         restore_list = [paths.OPENDNSSEC_CONF_FILE, paths.OPENDNSSEC_KASP_FILE,
                         paths.SYSCONFIG_ODS, paths.OPENDNSSEC_ZONELIST_FILE]
 
-        if ipautil.file_exists(paths.OPENDNSSEC_KASP_DB):
+        if os.path.isfile(paths.OPENDNSSEC_KASP_DB):
 
             # force to export data
             cmd = [paths.IPA_ODS_EXPORTER, 'ipa-full-update']
