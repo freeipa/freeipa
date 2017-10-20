@@ -515,7 +515,7 @@ class API(ReadOnly):
         Add global options to an optparse.OptionParser instance.
         """
         def config_file_callback(option, opt, value, parser):
-            if not ipautil.file_exists(value):
+            if not os.path.isfile(value):
                 parser.error(
                     _("%(filename)s: file not found") % dict(filename=value))
 

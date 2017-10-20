@@ -180,7 +180,7 @@ class ReplicaPrepare(admintool.AdminTool):
 
         config_dir = dsinstance.config_dirname(
             installutils.realm_to_serverid(api.env.realm))
-        if not ipautil.dir_exists(config_dir):
+        if not os.path.isdir(config_dir):
             raise admintool.ScriptError(
                 "could not find directory instance: %s" % config_dir)
 
@@ -225,7 +225,7 @@ class ReplicaPrepare(admintool.AdminTool):
         except errors.DatabaseError as e:
             raise admintool.ScriptError(e.desc)
 
-        if ca_enabled and not ipautil.file_exists(paths.CA_CS_CFG_PATH):
+        if ca_enabled and not os.path.isfile(paths.CA_CS_CFG_PATH):
             raise admintool.ScriptError(
                 "CA is not installed on this server. "
                 "ipa-replica-prepare must be run on an IPA server with CA.")
@@ -358,7 +358,7 @@ class ReplicaPrepare(admintool.AdminTool):
             logger.info("Copying SSL certificate for the Directory Server")
             self.copy_info_file(self.dirsrv_pkcs12_file.name, "dscert.p12")
         else:
-            if ipautil.file_exists(options.ca_file):
+            if os.path.isfile(options.ca_file):
                 # Since it is possible that the Directory Manager password
                 # has changed since ipa-server-install, we need to regenerate
                 # the CA PKCS#12 file and update the pki admin user password
@@ -404,7 +404,7 @@ class ReplicaPrepare(admintool.AdminTool):
         logger.info("Copying additional files")
 
         cacert_filename = paths.CACERT_PEM
-        if ipautil.file_exists(cacert_filename):
+        if os.path.isfile(cacert_filename):
             self.copy_info_file(cacert_filename, "cacert.pem")
         self.copy_info_file(paths.IPA_DEFAULT_CONF, "default.conf")
 
@@ -571,7 +571,7 @@ class ReplicaPrepare(admintool.AdminTool):
             self.remove_info_file("noise.txt")
 
             orig_filename = passwd_fname + ".orig"
-            if ipautil.file_exists(orig_filename):
+            if os.path.isfile(orig_filename):
                 installutils.remove_file(orig_filename)
         except errors.CertificateOperationError as e:
             raise admintool.ScriptError(str(e))

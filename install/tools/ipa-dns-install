@@ -113,7 +113,7 @@ def parse_options():
             parser.error("You must specify at least one option: "
                 "--forwarder or --no-forwarders or --auto-forwarders")
 
-    if options.kasp_db_file and not ipautil.file_exists(options.kasp_db_file):
+    if options.kasp_db_file and not os.path.isfile(options.kasp_db_file):
         parser.error("File %s does not exist" % options.kasp_db_file)
 
     if options.dm_password:

@@ -84,7 +84,7 @@ DS_INSTANCE_PREFIX = 'slapd-'
 
 
 def find_server_root():
-    if ipautil.dir_exists(paths.USR_LIB_DIRSRV_64):
+    if os.path.isdir(paths.USR_LIB_DIRSRV_64):
         return paths.USR_LIB_DIRSRV_64
     else:
         return paths.USR_LIB_DIRSRV

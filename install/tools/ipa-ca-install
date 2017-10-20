@@ -159,7 +159,7 @@ def install_replica(safe_options, options, filename):
     else:
         if filename is None:
             sys.exit("A replica file is required")
-        if not ipautil.file_exists(filename):
+        if not os.path.isfile(filename):
             sys.exit("Replica file %s does not exist" % filename)
 
     if not options.promote:
