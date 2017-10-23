@@ -4,7 +4,7 @@ only:nsslapd-pluginEnabled: on
 # Remember original nsuniqueid for objects referenced from cn=changelog
 add:nsslapd-attribute: nsuniqueid:targetUniqueId
 add:nsslapd-changelogmaxage: 2d
-add:nsslapd-exclude-suffix: o=ipaca
+add:nsslapd-include-suffix: cn=dns,$SUFFIX
 
 # Keep memberOf and referential integrity plugins away from cn=changelog.
 # It is necessary for performance reasons because we don't have appropriate
