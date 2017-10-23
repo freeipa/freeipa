@@ -28,7 +28,8 @@ PKCS#12 is a file format used to safely transport SSL certificates and public/pr
 
 They may be generated and managed using the NSS pk12util command or the OpenSSL pkcs12 command.
 
-The service(s) are not automatically restarted. In order to use the newly installed certificate(s) you will need to manually restart the Directory and/or Apache servers.
+The service(s) are not automatically restarted. In order to use the newly installed certificate(s) you will need to manually restart the Directory, Apache and/or Krb5kdc servers.
+
 .SH "OPTIONS"
 .TP 
 \fB\-d\fR, \fB\-\-dirsrv\fR
