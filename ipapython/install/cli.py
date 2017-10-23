@@ -16,7 +16,8 @@ import six
 
 from ipapython import admintool
 from ipapython.ipa_log_manager import standard_logging_setup
-from ipapython.ipautil import CheckedIPAddress, private_ccache
+from ipapython.ipautil import (CheckedIPAddress, CheckedIPAddressLoopback,
+                               private_ccache)
 
 from . import core, common
 
@@ -166,6 +167,8 @@ class ConfigureTool(admintool.AdminTool):
                 kwargs['type'] = 'int'
             elif knob_scalar_type is long:
                 kwargs['type'] = 'long'
+            elif knob_scalar_type is CheckedIPAddressLoopback:
+                kwargs['type'] = 'ip_with_loopback'
             elif knob_scalar_type is CheckedIPAddress:
                 kwargs['type'] = 'ip'
             elif issubclass(knob_scalar_type, enum.Enum):

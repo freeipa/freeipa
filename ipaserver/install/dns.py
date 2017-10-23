@@ -490,7 +490,7 @@ class DNSInstallInterface(hostname.HostNameInstallInterface):
 
     forwarders = knob(
         # pylint: disable=invalid-sequence-index
-        typing.List[ipautil.CheckedIPAddress], None,
+        typing.List[ipautil.CheckedIPAddressLoopback], None,
         description=("Add a DNS forwarder. This option can be used multiple "
                      "times"),
         cli_names='--forwarder',
