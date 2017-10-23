@@ -23,6 +23,7 @@ from optparse import (
 # pylint: enable=deprecated-module
 from copy import copy
 import socket
+import functools
 
 from dns import resolver, rdatatype
 from dns.exception import DNSException
@@ -33,6 +34,7 @@ from six.moves.urllib.parse import urlsplit
 # pylint: enable=import-error
 
 from ipapython.dn import DN
+from ipapython.ipautil import CheckedIPAddress, CheckedIPAddressLoopback
 
 try:
     # pylint: disable=ipa-forbidden-import
@@ -65,13 +67,16 @@ class IPAFormatter(IndentedHelpFormatter):
             ret += "%s %s\n" % (spacing, line)
         return ret
 
-def check_ip_option(option, opt, value):
-    from ipapython.ipautil import CheckedIPAddress
 
+def check_ip_option(option, opt, value, allow_loopback=False):
     try:
-        return CheckedIPAddress(value)
+        if allow_loopback:
+            return CheckedIPAddressLoopback(value)
+        else:
+            return CheckedIPAddress(value)
     except Exception as e:
-        raise OptionValueError("option %s: invalid IP address %s: %s" % (opt, value, e))
+        raise OptionValueError("option {}: invalid IP address {}: {}"
+                               .format(opt, value, e))
 
 def check_dn_option(option, opt, value):
     try:
@@ -95,9 +100,11 @@ class IPAOption(Option):
     security-sensitive such as passwords.
     """
     ATTRS = Option.ATTRS + ["sensitive", "constructor"]
-    TYPES = Option.TYPES + ("ip", "dn", "constructor")
+    TYPES = Option.TYPES + ("ip", "dn", "constructor", "ip_with_loopback")
     TYPE_CHECKER = copy(Option.TYPE_CHECKER)
     TYPE_CHECKER["ip"] = check_ip_option
+    TYPE_CHECKER["ip_with_loopback"] = functools.partial(check_ip_option,
+                                                         allow_loopback=True)
     TYPE_CHECKER["dn"] = check_dn_option
     TYPE_CHECKER["constructor"] = check_constructor
 

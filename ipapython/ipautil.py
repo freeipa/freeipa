@@ -244,6 +244,25 @@ class CheckedIPAddress(UnsafeIPAddress):
         self._net = ifnet
 
 
+class CheckedIPAddressLoopback(CheckedIPAddress):
+    """IPv4 or IPv6 address with additional constraints with
+    possibility to use a loopback IP.
+    Reserved or link-local addresses are never accepted.
+    """
+    def __init__(self, addr, parse_netmask=True, allow_multicast=False):
+
+        super(CheckedIPAddressLoopback, self).__init__(
+                addr, parse_netmask=parse_netmask,
+                allow_multicast=allow_multicast,
+                allow_loopback=True)
+
+        if self.is_loopback():
+            # print is being used instead of a logger, because at this
+            # moment, in execution process, there is no logger configured
+            print("WARNING: You are using a loopback IP: {}".format(addr),
+                  file=sys.stderr)
+
+
 def valid_ip(addr):
     return netaddr.valid_ipv4(addr) or netaddr.valid_ipv6(addr)
 
