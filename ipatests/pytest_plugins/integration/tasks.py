@@ -30,7 +30,7 @@ import time
 
 import dns
 from ldif import LDIFWriter
-from SSSDConfig import SSSDConfig
+from SSSDConfig import SSSDConfig, NoDomainError
 from six import StringIO
 
 from ipapython import ipautil
@@ -568,6 +568,74 @@ def setup_sssd_debugging(host):
 
     # Clear the cache and restart SSSD
     clear_sssd_cache(host)
+
+
+def delete_domain_sssd_conf(host, domain):
+    """
+    Deletes Domain in SSSD Conf file
+    :param host: multihost.Host object
+    :param domain: domain section name to delete
+    """
+    temp_config_file = tempfile.mkstemp()[1]
+    try:
+        current_config = host.transport.get_file_contents(paths.SSSD_CONF)
+
+        with open(temp_config_file, 'wb') as f:
+            f.write(current_config)
+
+        sssd_config = SSSDConfig()
+        sssd_config.import_config(temp_config_file)
+        sssd_domain = None
+        try:
+            sssd_domain = sssd_config.get_domain(domain)
+            sssd_config.delete_domain(domain)
+        except NoDomainError as err:
+            pass
+
+        sssd_config.save_domain(sssd_domain)
+
+        new_config = sssd_config.dump(sssd_config.opts).encode('utf-8')
+        host.transport.put_file_contents(paths.SSSD_CONF, new_config)
+    finally:
+        try:
+            os.remove(temp_config_file)
+        except OSError:
+            pass
+
+def add_domain_sssd_conf(host, domain, mod_dict):
+    """
+    Add Domain in SSSD Conf file
+    :param host: multihost.Host object
+    :param domain: domain section name to add
+    :param mod_dict: dictionary of options which will be passed to
+        SSSDDomain.option.update().
+    """
+    temp_config_file = tempfile.mkstemp()[1]
+    try:
+        current_config = host.transport.get_file_contents(paths.SSSD_CONF)
+
+        with open(temp_config_file, 'wb') as f:
+            f.write(current_config)
+
+        sssd_config = SSSDConfig()
+        sssd_config.import_config(temp_config_file)
+        try:
+            sssd_domain = sssd_config.get_domain(domain)
+        except NoDomainError as err:
+            sssd_domain = sssd_config.add_domain(domain)
+
+        if mod_dict:
+            sssd_domain.options.update(mod_dict)
+
+        sssd_config.save_domain(sssd_domain)
+
+        new_config = sssd_config.dump(sssd_config.opts).encode('utf-8')
+        host.transport.put_file_contents(paths.SSSD_CONF, new_config)
+    finally:
+        try:
+            os.remove(temp_config_file)
+        except OSError:
+            pass
 
 
 def modify_sssd_conf(host, domain, mod_dict, provider='ipa',
@@ -1361,3 +1429,21 @@ def add_dns_zone(master, zone, skip_overlap_check=False,
                                     host.hostname + ".", '--a-rec', host.ip])
     else:
         logger.debug('Zone %s already added.', zone)
+
+
+def add_ad_domain_forward_policy(master, ad_domain, ad_domain_ip):
+    result = master.run_command(
+        ['ipa', 'dnsforwardzone-find',
+         '--name=%s' % ad_domain,
+         '--forward-policy=only'], raiseonerr=False)
+
+    if result.returncode != 0:
+        logger.debug("Adding new DNS forward zone with forward-policy=only")
+        args = ['ipa', 'dnsforwardzone-add', ad_domain,
+                '--forwarder=%s' % ad_domain_ip,
+                '--forward-policy=only']
+        master.run_command(args)
+        # Restart named after adding DNS forward zone
+        restart_named(master)
+    else:
+        logging.debug("DNS forward zone with forward-policy=only already exists")
