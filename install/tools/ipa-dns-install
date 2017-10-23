@@ -54,7 +54,7 @@ def parse_options():
                       help="Master Server IP Address. This option can be used "
                            "multiple times")
     parser.add_option("--forwarder", dest="forwarders", action="append",
-                      type="ip", help="Add a DNS forwarder. This option can be used multiple times")
+                      type="ip_with_loopback", help="Add a DNS forwarder. This option can be used multiple times")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
     parser.add_option("--auto-forwarders", dest="auto_forwarders",
