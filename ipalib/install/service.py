@@ -129,6 +129,10 @@ class ServiceInstallInterface(common.Installable,
         cli_names='--realm',
     )
 
+    @realm_name.validator
+    def realm_name(self, value):
+        validate_domain_name(value, entity="realm")
+
     host_name = knob(
         str, None,
         description="The hostname of this machine (FQDN). If specified, the "
