@@ -1555,6 +1555,7 @@ class cert_find(Search, CertMethod):
 
             truncated = bool(truncated)
 
+        ca_enabled = getattr(context, 'ca_enabled')
         for entry in entries:
             for attr in ('usercertificate', 'usercertificate;binary'):
                 for cert in entry.get(attr, []):
@@ -1563,7 +1564,12 @@ class cert_find(Search, CertMethod):
                         obj = result[cert_key]
                     except KeyError:
                         obj = {'serial_number': cert.serial_number}
-                        if not pkey_only and all:
+                        if not pkey_only and (all or not ca_enabled):
+                            # Retrieving certificate details is now deferred
+                            # until after all certificates are collected.
+                            # For the case of CA-less we need to keep
+                            # the certificate because getting it again later
+                            # would require unnecessary LDAP searches.
                             obj['certificate'] = (
                                 base64.b64encode(
                                     cert.public_bytes(x509.Encoding.DER))
@@ -1580,6 +1586,11 @@ class cert_find(Search, CertMethod):
 
     def execute(self, criteria=None, all=False, raw=False, pkey_only=False,
                 no_members=True, timelimit=None, sizelimit=None, **options):
+        # Store ca_enabled status in the context to save making the API
+        # call multiple times.
+        ca_enabled = self.api.Command.ca_is_enabled()['result']
+        setattr(context, 'ca_enabled', ca_enabled)
+
         if 'cacn' in options:
             ca_obj = api.Command.ca_show(options['cacn'])['result']
             ca_sdn = unicode(ca_obj['ipacasubjectdn'][0])
@@ -1634,7 +1645,8 @@ class cert_find(Search, CertMethod):
 
         if not pkey_only:
             ca_objs = {}
-            ra = self.api.Backend.ra
+            if ca_enabled:
+                ra = self.api.Backend.ra
 
             for key, obj in six.iteritems(result):
                 if all and 'cacn' in obj:
@@ -1659,6 +1671,12 @@ class cert_find(Search, CertMethod):
 
                 if not raw:
                     self.obj._parse(obj, all)
+                    if not ca_enabled and not all:
+                        # For the case of CA-less don't display the full
+                        # certificate unless requested. It is kept in the
+                        # entry from _ldap_search() so its attributes can
+                        # be retrieved.
+                        obj.pop('certificate', None)
                     self.obj._fill_owners(obj)
 
         result = list(six.itervalues(result))
