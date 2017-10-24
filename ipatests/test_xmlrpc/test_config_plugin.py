@@ -22,10 +22,12 @@
 Test the `ipaserver/plugins/config.py` module.
 """
 
-from ipalib import errors
+from ipalib import api, errors
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 import pytest
 
+domain = api.env.domain
+sl_domain = 'singlelabeldomain'
 
 @pytest.mark.tier1
 class test_config(Declarative):
@@ -210,5 +212,19 @@ class test_config(Declarative):
                 value=None,
                 summary=None,
                 ),
+        ),
+        dict(
+            desc='Check if domain resolution order does not accept SLD',
+            command=(
+                'config_mod', [], {
+                    'ipadomainresolutionorder': u'{domain}:{sl_domain}'.format(
+                        domain=domain, sl_domain=sl_domain)}),
+            expected=errors.ValidationError(
+                name=u'ipadomainresolutionorder',
+                error=(
+                    u"Invalid domain name '{}': "
+                    "single label domains are not supported").format(
+                        sl_domain),
+            ),
         ),
     ]
