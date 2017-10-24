@@ -388,11 +388,18 @@ def validate_dns_label(dns_label, allow_underscore=False, allow_slash=False):
                            % dict(chars=chars, chars2=chars2))
 
 
-def validate_domain_name(domain_name, allow_underscore=False, allow_slash=False):
+def validate_domain_name(
+    domain_name, allow_underscore=False,
+    allow_slash=False, entity='domain'
+):
     if domain_name.endswith('.'):
         domain_name = domain_name[:-1]
 
     domain_name = domain_name.split(".")
+
+    if len(domain_name) < 2:
+        raise ValueError(_(
+            'single label {}s are not supported'.format(entity)))
 
     # apply DNS name validator to every name part
     for label in domain_name:
