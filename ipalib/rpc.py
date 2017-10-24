@@ -82,12 +82,12 @@ except ImportError:
     from xmlrpc.client import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
             Transport, ProtocolError, MININT, MAXINT)
 
-# pylint: disable=import-error
+# pylint: disable=import-error, no-name-in-module
 if six.PY3:
     from http.client import RemoteDisconnected
 else:
     from httplib import BadStatusLine as RemoteDisconnected
-# pylint: enable=import-error
+# pylint: enable=import-error, no-name-in-module
 
 
 if six.PY3:
