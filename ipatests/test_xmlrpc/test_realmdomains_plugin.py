@@ -33,6 +33,7 @@ our_domain = api.env.domain
 new_domain_1 = u'example1.com'
 new_domain_2 = u'example2.com'
 bad_domain = u'doesnotexist.test'
+sl_domain = u'singlelabeldomain'
 
 
 @pytest.mark.tier1
@@ -280,4 +281,12 @@ class test_realmdomains(Declarative):
                 ),
             ),
         ),
+        dict(
+            desc='Add a single label domain {}'.format(sl_domain),
+            command=('realmdomains_mod', [], {'add_domain': sl_domain}),
+            expected=errors.ValidationError(
+                name='add_domain',
+                error='single label domains are not supported'
+            ),
+        )
     ]
