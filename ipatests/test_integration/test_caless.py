@@ -118,6 +118,8 @@ class CALessBase(IntegrationTest):
     def install(cls, mh):
         cls.cert_dir = tempfile.mkdtemp(prefix="ipatest-")
         cls.pem_filename = os.path.join(cls.cert_dir, 'root.pem')
+        cls.ca2_crt = 'ca2_crt.pem'
+        cls.ca2_kdc_crt = 'ca2_kdc_crt.pem'
         cls.cert_password = cls.master.config.admin_password
         cls.crl_path = os.path.join(cls.master.config.test_dir, 'crl')
 
@@ -319,7 +321,7 @@ class CALessBase(IntegrationTest):
 
         # to construct whole chain e.g "ca1 - ca1/sub - ca1/sub/server"
         for index, _value in enumerate(nick_chain):
-            cert_nick = '/'.join(nick_chain[:index+1])
+            cert_nick = '/'.join(nick_chain[:index + 1])
             cert_path = '{}.crt'.format(os.path.join(cls.cert_dir, cert_nick))
             if os.path.isfile(cert_path):
                 fname_chain.append(cert_path)
@@ -332,15 +334,17 @@ class CALessBase(IntegrationTest):
 
         ipautil.run(["openssl", "pkcs12", "-export", "-out", filename,
                      "-inkey", key_fname, "-in", certchain_fname, "-passin",
-                     "pass:"+cls.cert_password, "-passout", "pass:"+password,
-                     "-name", nickname], cwd=cls.cert_dir)
+                     "pass:" + cls.cert_password, "-passout", "pass:" +
+                     password, "-name", nickname], cwd=cls.cert_dir)
 
     @classmethod
-    def prepare_cacert(cls, nickname):
+    def prepare_cacert(cls, nickname, filename=None):
         """ Prepare pem file for root_ca_file/ca-cert-file option """
+        if filename is None:
+            filename = cls.pem_filename.split(os.sep)[-1]
         # create_caless_pki saves certificates with ".crt" extension by default
         fname_from_nick = '{}.crt'.format(os.path.join(cls.cert_dir, nickname))
-        shutil.copy(fname_from_nick, cls.pem_filename)
+        shutil.copy(fname_from_nick, os.path.join(cls.cert_dir, filename))
 
     @classmethod
     def get_pem(cls, nickname):
@@ -432,7 +436,10 @@ class TestServerInstall(CALessBase):
 
         self.create_pkcs12('ca1/server')
         self.prepare_cacert('ca1')
-        self.prepare_cacert('ca2')
+        self.prepare_cacert('ca2', filename=self.ca2_crt)
+        with open(self.pem_filename, 'a') as ca1:
+            with open(os.path.join(self.cert_dir, self.ca2_crt), 'r') as ca2:
+                ca1.write(ca2.read())
 
         result = self.install_server()
         assert_error(result, 'root.pem contains more than one certificate')
@@ -1272,7 +1279,7 @@ class TestCertInstall(CALessBase):
                     filename='server.p12', pin=_DEFAULT, stdin_text=None,
                     p12_pin=None, args=None):
         if cert_nick:
-            self.create_pkcs12(cert_nick, password=p12_pin)
+            self.create_pkcs12(cert_nick, password=p12_pin, filename=filename)
         if pin is _DEFAULT:
             pin = self.cert_password
         if cert_exists:
@@ -1501,6 +1508,26 @@ class TestCertInstall(CALessBase):
         result = self.certinstall('d', 'ca1/server',
                                   args=args, stdin_text=stdin_text)
         assert_error(result, "no such option: --dirsrv-pin")
+
+    def test_anon_pkinit_with_external_CA(self):
+
+        test_dir = self.master.config.test_dir
+        self.prepare_cacert('ca2', filename=self.ca2_crt)
+        self.copy_cert(self.master, self.ca2_crt)
+
+        result = self.master.run_command(['ipa-cacert-manage', 'install',
+                                          os.path.join(test_dir, self.ca2_crt)]
+                                         )
+        assert result.returncode == 0
+        result = self.master.run_command(['ipa-certupdate'])
+        assert result.returncode == 0
+        result = self.certinstall('k', 'ca2/server-kdc',
+                                  filename=self.ca2_kdc_crt)
+        assert result.returncode == 0
+        result = self.master.run_command(['systemctl', 'restart', 'krb5kdc'])
+        assert result.returncode == 0
+        result = self.master.run_command(['kinit', '-n'])
+        assert result.returncode == 0
 
 
 class TestPKINIT(CALessBase):
