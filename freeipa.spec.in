@@ -98,8 +98,8 @@ BuildRequires:  automake
 BuildRequires:  libtool
 BuildRequires:  gettext
 BuildRequires:  gettext-devel
-BuildRequires:  python-devel
-BuildRequires:  python-setuptools
+BuildRequires:  python2-devel
+BuildRequires:  python2-setuptools
 %if 0%{?with_python3}
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
@@ -139,12 +139,12 @@ BuildRequires:  python-lesscpy
 # Build dependencies for makeapi/makeaci
 # makeapi/makeaci is using Python 2 only for now
 #
-BuildRequires:  python-ldap
-BuildRequires:  python-netaddr
+BuildRequires:  python2-ldap
+BuildRequires:  python2-netaddr
 BuildRequires:  python2-pyasn1
 BuildRequires:  python2-pyasn1-modules
 BuildRequires:  python2-dns
-BuildRequires:  python-six
+BuildRequires:  python2-six
 BuildRequires:  python2-libsss_nss_idmap
 BuildRequires:  python2-cffi
 
@@ -168,7 +168,7 @@ BuildRequires:  python3-wheel
 # Build dependencies for lint
 #
 %if 0%{?with_lint}
-BuildRequires:  samba-python
+BuildRequires:  python2-samba
 # 1.6: x509.Name.rdns (https://github.com/pyca/cryptography/issues/3199)
 BuildRequires:  python2-cryptography >= 1.6
 BuildRequires:  python-gssapi >= 1.2.0-5
@@ -189,16 +189,16 @@ BuildRequires:  jsl
 BuildRequires:  python2-yubico
 # pki Python package
 BuildRequires:  pki-base-python2
-BuildRequires:  python-pytest-multihost
-BuildRequires:  python-pytest-sourceorder
+BuildRequires:  python2-pytest-multihost
+BuildRequires:  python2-pytest-sourceorder
 # 0.4.2: Py3 fix https://bugzilla.redhat.com/show_bug.cgi?id=1476150
-BuildRequires:  python-jwcrypto >= 0.4.2
+BuildRequires:  python2-jwcrypto >= 0.4.2
 # 0.3: sd_notify (https://pagure.io/freeipa/issue/5825)
 BuildRequires:  python2-custodia >= 0.3.1
-BuildRequires:  dbus-python
+BuildRequires:  python2-dbus
 BuildRequires:  python2-dateutil
-BuildRequires:  python-enum34
-BuildRequires:  python-netifaces
+BuildRequires:  python2-enum34
+BuildRequires:  python2-netifaces
 BuildRequires:  python2-sss
 BuildRequires:  python2-sss-murmur
 BuildRequires:  python2-sssdconfig
@@ -377,9 +377,9 @@ Requires: python2-lxml
 Requires: python-gssapi >= 1.2.0-5
 Requires: python2-sssdconfig
 Requires: python2-pyasn1 >= 0.3.2-2
-Requires: dbus-python
+Requires: python2-dbus
 Requires: python2-dns >= 1.15
-Requires: python-kdcproxy >= 0.3
+Requires: python2-kdcproxy >= 0.3
 Requires: rpm-libs
 Requires: pki-base-python2
 Requires: python2-augeas
@@ -540,7 +540,7 @@ Requires: initscripts
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
 Requires: sssd >= 1.14.0
-Requires: python-sssdconfig
+Requires: python2-sssdconfig
 Requires: certmonger >= 0.79.5-1
 Requires: nss-tools
 Requires: bind-utils
@@ -690,9 +690,9 @@ Requires: python-gssapi >= 1.2.0-5
 Requires: gnupg
 Requires: keyutils
 Requires: pyOpenSSL
-Requires: python >= 2.7.9
+Requires: python2 >= 2.7.9
 Requires: python2-cryptography >= 1.6
-Requires: python-netaddr >= %{python_netaddr_version}
+Requires: python2-netaddr >= %{python_netaddr_version}
 Requires: python2-libipa_hbac
 Requires: python-qrcode-core >= 5.0.0
 Requires: python2-pyasn1 >= 0.3.2-2
@@ -700,17 +700,17 @@ Requires: python2-pyasn1-modules >= 0.3.2-2
 Requires: python2-dateutil
 Requires: python2-yubico >= 1.2.3
 Requires: python2-sss-murmur
-Requires: dbus-python
+Requires: python2-dbus
 Requires: python2-setuptools
-Requires: python-six
+Requires: python2-six
 # 0.4.2: Py3 fix https://bugzilla.redhat.com/show_bug.cgi?id=1476150
-Requires: python-jwcrypto >= 0.4.2
+Requires: python2-jwcrypto >= 0.4.2
 Requires: python2-cffi
 Requires: python-ldap >= 2.4.15
 Requires: python2-requests
 Requires: python2-dns >= 1.15
-Requires: python-enum34
-Requires: python-netifaces >= 0.10.4
+Requires: python2-enum34
+Requires: python2-netifaces >= 0.10.4
 Requires: pyusb
 
 Conflicts: %{alt_name}-python < %{version}
@@ -814,8 +814,8 @@ Requires: python2-paste
 Requires: python2-coverage
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 Requires: python2-polib
-Requires: python-pytest-multihost >= 0.5
-Requires: python-pytest-sourceorder
+Requires: python2-pytest-multihost >= 0.5
+Requires: python2-pytest-sourceorder
 Requires: ldns-utils
 Requires: python2-sssdconfig
 Requires: python2-cryptography >= 1.6
