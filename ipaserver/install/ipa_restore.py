@@ -121,9 +121,11 @@ class RemoveRUVParser(ldif.LDIFParser):
             elif name == 'nsuniqueid':
                 nsuniqueid = [x.lower() for x in value]
 
-        if (objectclass and nsuniqueid and
-            'nstombstone' in objectclass and
-            'ffffffff-ffffffff-ffffffff-ffffffff' in nsuniqueid):
+        if (
+            objectclass and nsuniqueid and
+            b'nstombstone' in objectclass and
+            b'ffffffff-ffffffff-ffffffff-ffffffff' in nsuniqueid
+        ):
             logger.debug("Removing RUV entry %s", dn)
             return
 
@@ -547,7 +549,7 @@ class Restore(admintool.AdminTool):
             os.chown(ldifdir, pent.pw_uid, pent.pw_gid)
 
         ipautil.backup_file(ldiffile)
-        with open(ldiffile, 'wb') as out_file:
+        with open(ldiffile, 'w') as out_file:
             ldif_writer = ldif.LDIFWriter(out_file)
             with open(srcldiffile, 'rb') as in_file:
                 ldif_parser = RemoveRUVParser(in_file, ldif_writer)
