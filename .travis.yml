@@ -9,7 +9,7 @@ cache: pip
 env:
     global:
         - TEST_RUNNER_IMAGE="freeipa/freeipa-test-runner:master-latest"
-          PEP8_ERROR_LOG="pep8_errors.log"
+          PEP8_ERROR_LOG="pycodestyle_errors.log"
           CI_RESULTS_LOG="ci_results_${TRAVIS_BRANCH}.log"
           CI_BACKLOG_SIZE=5000
           CI_RUNNER_LOGS_DIR="/tmp/test-runner-logs"
@@ -51,7 +51,7 @@ env:
 install:
     - pip install --upgrade pip
     - pip3 install --upgrade pip
-    - pip install pep8
+    - pip install pycodestyle
     - >
       pip3 install
       git+https://github.com/freeipa/ipa-docker-test-runner@release-0-2-1
