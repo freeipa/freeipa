@@ -23,7 +23,7 @@ if [[ "$TASK_TO_RUN" == "lint" ]]
 then
     if [[ "$TRAVIS_EVENT_TYPE" == "pull_request" ]]
     then
-        git diff origin/$TRAVIS_BRANCH -U0 | pep8 --diff &> $PEP8_ERROR_LOG ||:
+        git diff origin/$TRAVIS_BRANCH -U0 | pycodestyle --diff &> $PEP8_ERROR_LOG ||:
     fi 
 
     # disable developer mode for lint task, otherwise we get an error
