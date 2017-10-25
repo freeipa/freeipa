@@ -496,10 +496,12 @@ Requires: samba-winbind
 Requires: libsss_idmap
 
 %if 0%{?with_python3}
+Requires(post): python3
 Requires: python3-samba
 Requires: python3-libsss_nss_idmap
 Requires: python3-sss
 %else
+Requires(post): python2
 Requires: python2-samba
 Requires: python2-libsss_nss_idmap
 Requires: python2-sss
@@ -510,7 +512,6 @@ Requires: python2-sss
 # IPA AD trusts cannot be used at the same time with the locator plugin
 # since Winbindd will be configured in a different mode
 Requires(post): %{_sbindir}/update-alternatives
-Requires(post): python
 Requires(postun): %{_sbindir}/update-alternatives
 Requires(preun): %{_sbindir}/update-alternatives
 
