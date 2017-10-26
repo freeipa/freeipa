@@ -290,7 +290,7 @@ class PortResponder(threading.Thread):
         self._sockets = []
         self._close = False
         self._close_lock = threading.Lock()
-        self.responder_data = 'FreeIPA'
+        self.responder_data = b'FreeIPA'
         self.ports_opened = False
         self.ports_open_cond = threading.Condition()
 
