@@ -709,7 +709,9 @@ kdb_vftabl kdb_function_table = {
 };
 #endif
 
-#if (KRB5_KDB_DAL_MAJOR_VERSION == 6) && defined(HAVE_KDB_FREEPRINCIPAL_EDATA)
+#if ((KRB5_KDB_DAL_MAJOR_VERSION == 6) || \
+     (KRB5_KDB_DAL_MAJOR_VERSION == 7)) && \
+    defined(HAVE_KDB_FREEPRINCIPAL_EDATA)
 kdb_vftabl kdb_function_table = {
     .maj_ver = KRB5_KDB_DAL_MAJOR_VERSION,
     .min_ver = 1,
@@ -742,7 +744,8 @@ kdb_vftabl kdb_function_table = {
 };
 #endif
 
-#if (KRB5_KDB_DAL_MAJOR_VERSION != 5) && (KRB5_KDB_DAL_MAJOR_VERSION != 6)
+#if (KRB5_KDB_DAL_MAJOR_VERSION != 5) && \
+    (KRB5_KDB_DAL_MAJOR_VERSION != 6) && \
+    (KRB5_KDB_DAL_MAJOR_VERSION != 7)
 #error unsupported DAL major version
 #endif
-
