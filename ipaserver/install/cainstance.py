@@ -418,7 +418,6 @@ class CAInstance(DogtagInstance):
                               self.__import_ra_cert)
 
             if not ra_only:
-                self.step("setting up signing cert profile", self.__setup_sign_profile)
                 self.step("setting audit signing renewal to 2 years", self.set_audit_renewal)
                 self.step("restarting certificate server", self.restart_instance)
                 if not self.clone:
@@ -902,12 +901,6 @@ class CAInstance(DogtagInstance):
                     os.remove(f.name)
                 except OSError:
                     pass
-
-    def __setup_sign_profile(self):
-        # Tell the profile to automatically issue certs for RAs
-        installutils.set_directive(
-            paths.CAJARSIGNINGCERT_CFG, 'auth.instance_id', 'raCertAuth',
-            quotes=False, separator='=')
 
     def prepare_crl_publish_dir(self):
         """

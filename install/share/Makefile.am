@@ -30,7 +30,6 @@ dist_app_DATA =				\
 	anon-princ-aci.ldif		\
 	bootstrap-template.ldif		\
 	ca-topology.uldif		\
-	caJarSigningCert.cfg.template	\
 	custodia.conf.template		\
 	default-aci.ldif		\
 	default-hbac.ldif		\
