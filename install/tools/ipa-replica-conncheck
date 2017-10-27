@@ -449,7 +449,7 @@ def main():
         port_check(options.master, tcp_ports)
 
         if udp_ports:
-            logger.info("\nThe following list of ports use UDP protocol"
+            logger.info("\nThe following list of ports use UDP protocol "
                         "and would need to be\n"
                         "checked manually:")
             for port in udp_ports:
