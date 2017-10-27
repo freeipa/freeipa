@@ -281,8 +281,6 @@ class BasePathNamespace(object):
     CA_BACKUP_KEYS_P12 = "/var/lib/pki/pki-tomcat/alias/ca_backup_keys.p12"
     KRA_BACKUP_KEYS_P12 = "/var/lib/pki/pki-tomcat/alias/kra_backup_keys.p12"
     CA_CS_CFG_PATH = "/var/lib/pki/pki-tomcat/conf/ca/CS.cfg"
-    CAJARSIGNINGCERT_CFG = (
-        "/var/lib/pki/pki-tomcat/ca/profiles/ca/caJarSigningCert.cfg")
     CASIGNEDLOGCERT_CFG = (
         "/var/lib/pki/pki-tomcat/ca/profiles/ca/caSignedLogCert.cfg")
     KRA_CS_CFG_PATH = "/var/lib/pki/pki-tomcat/conf/kra/CS.cfg"
