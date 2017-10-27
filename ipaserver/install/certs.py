@@ -456,51 +456,6 @@ class CertDB(object):
         with open(cert_fname, "wb") as f:
             f.write(cert)
 
-    def issue_signing_cert(self, certreq_fname, cert_fname):
-        self.setup_cert_request()
-
-        if self.host_name is None:
-            raise RuntimeError("CA Host is not set.")
-
-        with open(certreq_fname, "rb") as f:
-            csr = f.read()
-
-        # We just want the CSR bits, make sure there is no thing else
-        csr = strip_csr_header(csr).decode('utf8')
-
-
-        params = {'profileId': 'caJarSigningCert',
-                'cert_request_type': 'pkcs10',
-                'requestor_name': 'IPA Installer',
-                'cert_request': csr,
-                'xmlOutput': 'true'}
-
-        # Send the request to the CA
-        result = dogtag.https_request(
-            self.host_name, 8443,
-            url="/ca/ee/ca/profileSubmitSSLClient",
-            cafile=api.env.tls_ca_cert,
-            client_certfile=paths.RA_AGENT_PEM,
-            client_keyfile=paths.RA_AGENT_KEY,
-            **params)
-        http_status, _http_headers, http_body = result
-        if http_status != 200:
-            raise RuntimeError("Unable to submit cert request")
-
-        # The result is an XML blob. Pull the certificate out of that
-        doc = xml.dom.minidom.parseString(http_body)
-        item_node = doc.getElementsByTagName("b64")
-        cert = item_node[0].childNodes[0].data
-        doc.unlink()
-
-        # base64-decode the cert for uniformity
-        cert = base64.b64decode(cert)
-
-        # Write the certificate to a file. It will be imported in a later
-        # step. This file will be read later to be imported.
-        with open(cert_fname, "wb") as f:
-            f.write(cert)
-
     def add_cert(self, cert, nick, flags):
         self.nssdb.add_cert(cert, nick, flags)
 
