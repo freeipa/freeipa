@@ -958,7 +958,24 @@ class DsInstance(service.Service):
         self._ldap_mod("replica-prevent-time-skew.ldif", self.sub_dict)
 
     def __setup_s4u2proxy(self):
-        self._ldap_mod("replica-s4u2proxy.ldif", self.sub_dict)
+
+        def __add_principal(last_cn, principal, self):
+            dn = DN(('cn', last_cn), ('cn', 's4u2proxy'),
+                    ('cn', 'etc'), self.suffix)
+
+            value = '{principal}/{fqdn}@{realm}'.format(fqdn=self.fqdn,
+                                                        realm=self.realm,
+                                                        principal=principal)
+
+            entry = api.Backend.ldap2.get_entry(dn, ['memberPrincipal'])
+            try:
+                entry['memberPrincipal'].append(value)
+                api.Backend.ldap2.update_entry(entry)
+            except errors.EmptyModlist:
+                pass
+
+        __add_principal('ipa-http-delegation', 'HTTP', self)
+        __add_principal('ipa-ldap-delegation-targets', 'ldap', self)
 
     def __create_indices(self):
         self._ldap_mod("indices.ldif")
