@@ -942,10 +942,6 @@ def install(installer):
         print("These files are required to create replicas. The password for "
               "these")
         print("files is the Directory Manager password")
-    else:
-        print("In order for Firefox autoconfiguration to work you will need to")
-        print("use a SSL signing certificate. See the IPA documentation for "
-              "more details.")
 
     if os.path.isfile(paths.ROOT_IPA_CACHE):
         os.remove(paths.ROOT_IPA_CACHE)
