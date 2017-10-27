@@ -527,6 +527,9 @@ def main():
                 if result.returncode != 0:
                     raise RuntimeError("Could not get ticket for master server: %s" %
                                         result.error_output)
+                # Now that the cred cache file is initialized,
+                # use it for the IPA API calls
+                os.environ['KRB5CCNAME'] = CCACHE_FILE
 
             try:
                 root_logger.info("Check RPC connection to remote master")
