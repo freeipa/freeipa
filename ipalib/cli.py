@@ -38,6 +38,10 @@ import traceback
 import six
 from six.moves import input
 
+from ipalib.util import (
+    check_client_configuration, get_terminal_height, open_in_pager
+)
+
 if six.PY3:
     unicode = str
 
@@ -55,7 +59,6 @@ from ipalib.constants import CLI_TAB, LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.parameters import File, Str, Enum, Any, Flag
 from ipalib.text import _
 from ipalib import api  # pylint: disable=unused-import
-from ipalib.util import check_client_configuration
 from ipapython.dnsutil import DNSName
 from ipapython.admintool import ScriptError
 
@@ -680,10 +683,39 @@ class textui(backend.Backend):
         self.print_line('')
         return selection
 
+
 class help(frontend.Local):
     """
     Display help for a command or topic.
     """
+    class Writer(object):
+        """
+        Writer abstraction
+        """
+        def __init__(self, outfile):
+            self.outfile = outfile
+            self.buffer = []
+
+        @property
+        def buffer_length(self):
+            length = 0
+            for line in self.buffer:
+                length += len(line.split("\n"))
+            return length
+
+        def append(self, string=u""):
+            self.buffer.append(unicode(string))
+
+        def write(self):
+            if self.buffer_length > get_terminal_height():
+                data = "\n".join(self.buffer).encode("utf-8")
+                open_in_pager(data)
+            else:
+                try:
+                    for line in self.buffer:
+                        print(line, file=self.outfile)
+                except IOError:
+                    pass
 
     takes_args = (
         Str('command?', cli_name='topic', label=_('Topic or Command'),
@@ -702,7 +734,7 @@ class help(frontend.Local):
         parent_topic = None
 
         for package in self.api.packages:
-            module_name = '%s.%s' % (package.__name__, topic)
+            module_name = '{0}.{1}'.format(package.__name__, topic)
             try:
                 module = sys.modules[module_name]
             except KeyError:
@@ -725,7 +757,8 @@ class help(frontend.Local):
         self._topics[topic_name][1] = mcl
 
     def _on_finalize(self):
-        # {topic: ["description", mcl, {"subtopic": ["description", mcl, [commands]]}]}
+        # {topic: ["description", mcl, {
+        #     "subtopic": ["description", mcl, [commands]]}]}
         # {topic: ["description", mcl, [commands]]}
         self._topics = {}
         # [builtin_commands]
@@ -749,22 +782,26 @@ class help(frontend.Local):
                         self._topics[topic_name] = [doc, 0, [c]]
                     mcl = max((self._topics[topic_name][1], len(c.name)))
                     self._topics[topic_name][1] = mcl
-                else: # a module grouped in a topic
+                else:  # a module grouped in a topic
                     topic = self._get_topic(topic_name)
                     mod_name = c.topic
                     if topic_name in self._topics:
                         if mod_name in self._topics[topic_name][2]:
                             self._topics[topic_name][2][mod_name][2].append(c)
                         else:
-                            self._topics[topic_name][2][mod_name] = [doc, 0, [c]]
+                            self._topics[topic_name][2][mod_name] = [
+                                doc, 0, [c]]
                             self._count_topic_mcl(topic_name, mod_name)
                         # count mcl for for the subtopic
-                        mcl = max((self._topics[topic_name][2][mod_name][1], len(c.name)))
+                        mcl = max((
+                            self._topics[topic_name][2][mod_name][1],
+                            len(c.name)))
                         self._topics[topic_name][2][mod_name][1] = mcl
                     else:
-                        self._topics[topic_name] = [topic[0].split('\n', 1)[0],
-                                                    0,
-                                                    {mod_name: [doc, 0, [c]]}]
+                        self._topics[topic_name] = [
+                            topic[0].split('\n', 1)[0],
+                            0,
+                            {mod_name: [doc, 0, [c]]}]
                         self._count_topic_mcl(topic_name, mod_name)
             else:
                 self._builtins.append(c)
@@ -778,8 +815,10 @@ class help(frontend.Local):
     def run(self, key=None, outfile=None, **options):
         if outfile is None:
             outfile = sys.stdout
-        writer = self._writer(outfile)
+
+        writer = self.Writer(outfile)
         name = from_cli(key)
+
         if key is None:
             self.api.parser.print_help(outfile)
             return
@@ -804,33 +843,30 @@ class help(frontend.Local):
                 if cmd_plugin.NO_CLI:
                     continue
                 mcl = max(mcl, len(cmd_plugin.name))
-                writer('%s  %s' % (to_cli(cmd_plugin.name).ljust(mcl),
-                                   cmd_plugin.summary))
+                writer.append('{0}  {1}'.format(
+                    to_cli(cmd_plugin.name).ljust(mcl), cmd_plugin.summary))
         else:
             raise HelpError(topic=name)
-
-    def _writer(self, outfile):
-        def writer(string=''):
-            try:
-                print(unicode(string), file=outfile)
-            except IOError:
-                pass
-        return writer
+        writer.write()
 
     def print_topics(self, outfile):
-        writer = self._writer(outfile)
+        writer = self.Writer(outfile)
 
         for t, topic in sorted(self._topics.items()):
-            writer('%s  %s' % (to_cli(t).ljust(self._mtl), topic[0]))
+            writer.append('{0}  {1}'.format(
+                to_cli(t).ljust(self._mtl), topic[0]))
+        writer.write()
 
     def print_commands(self, topic, outfile):
-        writer = self._writer(outfile)
+        writer = self.Writer(outfile)
+
         if topic in self._topics and type(self._topics[topic][2]) is dict:
             # we want to display topic which has subtopics
             for subtopic in self._topics[topic][2]:
                 doc = self._topics[topic][2][subtopic][0]
                 mcl = self._topics[topic][1]
-                writer('  %s  %s' % (to_cli(subtopic).ljust(mcl), doc))
+                writer.append('  {0}  {1}'.format(
+                    to_cli(subtopic).ljust(mcl), doc))
         else:
             # we want to display subtopic or a topic which has no subtopics
             if topic in self._topics:
@@ -852,17 +888,20 @@ class help(frontend.Local):
             if topic not in self.Command and len(commands) == 0:
                 raise HelpError(topic=topic)
 
-            writer(doc)
+            writer.append(doc)
             if commands:
-                writer()
-                writer(_('Topic commands:'))
+                writer.append()
+                writer.append(_('Topic commands:'))
                 for c in commands:
-                    writer(
-                        '  %s  %s' % (to_cli(c.name).ljust(mcl), c.summary))
-                writer()
-                writer(_('To get command help, use:'))
-                writer(_('  ipa <command> --help'))
-            writer()
+                    writer.append(
+                        '  {0}  {1}'.format(
+                            to_cli(c.name).ljust(mcl), c.summary))
+                writer.append()
+                writer.append(_('To get command help, use:'))
+                writer.append(_('  ipa <command> --help'))
+            writer.append()
+        writer.write()
+
 
 class show_mappings(frontend.Command):
     """
