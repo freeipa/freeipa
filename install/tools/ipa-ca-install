@@ -27,6 +27,7 @@ import tempfile
 from ipalib.install.kinit import kinit_keytab
 from ipapython import ipautil
 
+from ipaclient.install.ipa_certupdate import CertUpdate
 from ipaserver.install import installutils
 from ipaserver.install.installutils import create_replica_config
 from ipaserver.install.installutils import check_creds, ReplicaConfig
@@ -173,6 +174,16 @@ def install_replica(safe_options, options, filename):
     if (not options.promote and not options.admin_password and
             not options.skip_conncheck and options.unattended):
         sys.exit('admin password required')
+
+    # Run ipa-certupdate to ensure we have the CA cert.  This is
+    # necessary if the admin has just promoted the topology from
+    # CA-less to CA-ful, and ipa-certupdate has not been run yet.
+    CertUpdate.run_with_api(api)
+
+    # CertUpdate restarts DS causing broken pipe on the original
+    # connection, so reconnect the backend.
+    api.Backend.ldap2.disconnect()
+    api.Backend.ldap2.connect()
 
     if options.promote:
         config = ReplicaConfig()
