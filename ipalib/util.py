@@ -35,6 +35,10 @@ import dns
 import encodings
 import sys
 import ssl
+import termios
+import fcntl
+import struct
+import subprocess
 
 import netaddr
 from dns import resolver, rdatatype
@@ -1150,3 +1154,40 @@ def no_matching_interface_for_ip_address_warning(addr_list):
                 "{}".format(ip),
                 file=sys.stderr
             )
+
+
+def get_terminal_height(fd=1):
+    """
+    Get current terminal height
+
+    Args:
+        fd (int): file descriptor. Default: 1 (stdout)
+
+    Returns:
+        int: Terminal height
+    """
+    try:
+        return struct.unpack(
+            'hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, b'1234'))[0]
+    except (IOError, OSError, struct.error):
+        return os.environ.get("LINES", 25)
+
+
+def open_in_pager(data):
+    """
+    Open text data in pager
+
+    Args:
+        data (bytes): data to view in pager
+
+    Returns:
+        None
+    """
+    pager = os.environ.get("PAGER", "less")
+    pager_process = subprocess.Popen([pager], stdin=subprocess.PIPE)
+
+    try:
+        pager_process.stdin.write(data)
+        pager_process.communicate()
+    except IOError:
+        pass
