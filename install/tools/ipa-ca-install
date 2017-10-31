@@ -254,6 +254,10 @@ def install_master(safe_options, options):
     ca.install_check(True, None, options)
     ca.install(True, None, options)
 
+    # Run ipa-certupdate to add the new CA certificate to
+    # certificate databases on this server.
+    logger.info("Updating certificate databases.")
+    CertUpdate.run_with_api(api)
 
 def install(safe_options, options, filename):
     options.promote = False
