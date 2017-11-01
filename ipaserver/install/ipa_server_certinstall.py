@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from __future__ import print_function
 
 import os
 import os.path
@@ -120,6 +121,10 @@ class ServerCertInstall(admintool.AdminTool):
 
         if self.options.kdc:
             self.install_kdc_cert()
+
+        print(
+            "Please restart ipa services after installing certificate "
+            "(ipactl restart)")
 
         api.Backend.ldap2.disconnect()
 
