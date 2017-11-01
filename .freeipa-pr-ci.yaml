@@ -1,5 +1,5 @@
 jobs:
-  fedora-26/build:
+  fedora-25/build:
     requires: []
     priority: 100
     job:
@@ -12,24 +12,123 @@ jobs:
           version: 0.1.7
         timeout: 1800
 
-  fedora-26/simple_replication:
-    requires: [fedora-26/build]
+  fedora-25/simple_replication:
+    requires: [fedora-25/build]
     priority: 50
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-26/build_url}'
+        build_url: '{fedora-25/build_url}'
         test_suite: test_integration/test_simple_replication.py
         template: *ci-master-f26
-        timeout: 3600
+        timeout: 10000
 
-  fedora-26/caless:
-    requires: [fedora-26/build]
+  fedora-25/caless:
+    requires: [fedora-25/build]
     priority: 50
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-26/build_url}'
+        build_url: '{fedora-25/build_url}'
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
         template: *ci-master-f26
-        timeout: 3600
+        timeout: 1000
+
+  fedora-25/ca-kra1:
+    requires: [fedora-25/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-25/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA1
+        template: *ci-master-f26
+        timeout: 10000
+
+  fedora-25/ca-kra2:
+    requires: [fedora-25/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-25/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA2
+        template: *ci-master-f26
+        timeout: 10000
+
+  fedora-25/ca-dns1:
+    requires: [fedora-25/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-25/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS1
+        template: *ci-master-f26
+        timeout: 10000
+
+  fedora-25/ca-dns2:
+    requires: [fedora-25/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-25/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS2
+        template: *ci-master-f26
+        timeout: 10000
+
+  fedora-25/ca-kra-dns1:
+    requires: [fedora-25/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-25/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS1
+        template: *ci-master-f26
+        timeout: 10000
+
+  fedora-25/ca-kra-dns2:
+    requires: [fedora-25/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-25/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS2
+        template: *ci-master-f26
+        timeout: 10000
+
+  fedora-25/master:
+    requires: [fedora-25/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-25/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallMaster
+        template: *ci-master-f26
+        timeout: 10000
+
+  fedora-25/master-kra:
+    requires: [fedora-25/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-25/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallMasterKRA
+        template: *ci-master-f26
+        timeout: 10000
+
+  fedora-25/master-dns:
+    requires: [fedora-25/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-25/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallMasterDNS
+        template: *ci-master-f26
+        timeout: 10000
