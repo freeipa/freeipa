@@ -157,7 +157,6 @@ class TestInstallWithCA2(InstallTestBase2):
         super(TestInstallWithCA2, self).test_replica2_ipa_kra_install()
 
 
-@pytest.mark.xfail(reason="FreeIPA ticket 7008")
 class TestInstallWithCA_KRA1(InstallTestBase1):
 
     @classmethod
