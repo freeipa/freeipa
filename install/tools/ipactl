@@ -32,6 +32,7 @@ from ipaserver.install.installutils import is_ipa_configured, ScriptError
 from ipalib import api, errors
 from ipapython.ipaldap import LDAPClient
 from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
+from ipapython.ipautil import run
 from ipapython import config
 from ipaplatform.tasks import tasks
 from ipapython.dn import DN
@@ -140,10 +141,22 @@ def version_check():
     except (installutils.UpgradeMissingVersionError,
             installutils.UpgradeDataOlderVersionError) as exc:
         emit_err("IPA version error: %s" % exc)
-        emit_err("Upgrade required: please run ipa-server-upgrade command")
-        raise IpactlError("Aborting ipactl")
     except installutils.UpgradeVersionError as e:
         emit_err("IPA version error: %s" % e)
+    else:
+        return
+
+    emit_err("Automatically running upgrade, for details see {}".format(
+             paths.IPAUPGRADE_LOG))
+    emit_err("Be patient, this may take a few minutes.")
+
+    # Fork out to call ipa-server-upgrade so that logging is sane.
+    result = run([paths.IPA_SERVER_UPGRADE], raiseonerr=False,
+                  capture_error=True)
+    if result.returncode != 0:
+        emit_err("Automatic upgrade failed: %s" % result.error_output)
+        emit_err("See the upgrade log for more details and/or run {} again".
+                 format(paths.IPA_SERVER_UPGRADE))
         raise IpactlError("Aborting ipactl")
 
 
@@ -366,7 +379,16 @@ def ipa_stop(options):
 
 def ipa_restart(options):
     if not options.skip_version_check:
-        version_check()
+        try:
+            version_check()
+        except Exception as e:
+            try:
+                ipa_stop(options)
+            except Exception:
+                # We don't care about errors that happened while stopping.
+                # We need to raise the upgrade error.
+                pass
+            raise e
     else:
         print("Skipping version check")
 

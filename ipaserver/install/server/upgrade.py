@@ -1970,10 +1970,10 @@ def upgrade():
         else:
             logger.info('Update complete, no data were modified')
 
-    # store new data version after upgrade
-    installutils.store_version()
-
     print('Upgrading IPA services')
     logger.info('Upgrading the configuration of the IPA services')
     upgrade_configuration()
     logger.info('The IPA services were upgraded')
+
+    # store new data version after upgrade
+    installutils.store_version()
