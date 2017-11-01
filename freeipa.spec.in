@@ -1151,17 +1151,14 @@ if [  $? -eq 0 ]; then
     # work with the network being offline
     /bin/systemctl start network-online.target
 
-    # This must be run in posttrans so that updates from previous
-    # execution that may no longer be shipped are not applied.
-    /usr/sbin/ipa-server-upgrade --quiet >/dev/null || :
-
     # Restart IPA processes. This must be also run in postrans so that plugins
-    # and software is in consistent state
+    # and software is in consistent state. This will also perform the
+    # system upgrade.
     # NOTE: systemd specific section
 
     /bin/systemctl is-enabled ipa.service >/dev/null 2>&1
     if [  $? -eq 0 ]; then
-        /bin/systemctl restart ipa.service >/dev/null 2>&1 || :
+        /bin/systemctl restart ipa.service >/dev/null
     fi
 fi
 # END
