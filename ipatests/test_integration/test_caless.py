@@ -355,10 +355,10 @@ class CALessBase(IntegrationTest):
 
         Called from every positive server install test
         """
-        with open(self.pem_filename) as f:
+        with open(self.pem_filename, 'rb') as f:
             expected_cacrt = f.read()
         logger.debug('Expected /etc/ipa/ca.crt contents:\n%s',
-                     expected_cacrt)
+                     expected_cacrt.decode('utf-8'))
         expected_cacrt = x509.load_unknown_x509_certificate(expected_cacrt)
         logger.debug('Expected binary CA cert:\n%r',
                      expected_cacrt)
