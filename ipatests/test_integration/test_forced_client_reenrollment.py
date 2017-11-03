@@ -289,7 +289,8 @@ class TestForcedClientReenrollment(IntegrationTest):
         """
         Put server's ip address at the top of resolv.conf
         """
-        contents = client.get_file_contents(paths.RESOLV_CONF)
+        contents = client.get_file_contents(paths.RESOLV_CONF,
+                                            encoding='utf-8')
         nameserver = 'nameserver %s\n' % server.ip
 
         if not contents.startswith(nameserver):
