@@ -108,6 +108,7 @@ cn: fqdn
 nsSystemIndex: false
 nsIndexType: eq
 nsIndexType: pres
+nsIndexType: sub
 
 dn: cn=macAddress,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: add
