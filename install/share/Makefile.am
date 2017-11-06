@@ -79,7 +79,6 @@ dist_app_DATA =				\
 	sudobind.ldif			\
 	automember.ldif			\
 	replica-automember.ldif		\
-	replica-s4u2proxy.ldif		\
 	sasl-mapping-fallback.ldif	\
 	schema-update.ldif		\
 	vault.ldif			\
