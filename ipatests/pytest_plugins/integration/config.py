@@ -71,7 +71,9 @@ class Config(pytest_multihost.config.Config):
         return Domain
 
     def get_logger(self, name):
-        return logging.getLogger(name)
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.DEBUG)
+        return logger
 
     @property
     def ad_domains(self):
