@@ -381,7 +381,7 @@ class CALessBase(IntegrationTest):
             # Check the cert PEM file
             remote_cacrt = host.get_file_contents(paths.IPA_CA_CRT)
             logger.debug('%s:/etc/ipa/ca.crt contents:\n%s',
-                         host, remote_cacrt)
+                         host, remote_cacrt.decode('utf-8'))
             cacrt = x509.load_unknown_x509_certificate(remote_cacrt)
             logger.debug('%s: Decoded /etc/ipa/ca.crt:\n%r',
                          host, cacrt.public_bytes(x509.Encoding.PEM))
