@@ -32,6 +32,7 @@ from .baseldap import (
     add_missing_object_class)
 from ipaserver.plugins.service import (
    validate_certificate, validate_realm, normalize_principal)
+from ipaserver.plugins.config import check_fips_auth_opts
 from ipalib.request import context
 from ipalib import _
 from ipalib.constants import PATTERN_GROUPUSER_NAME
@@ -477,6 +478,7 @@ class baseuser_add(LDAPCreate):
                             **options):
         assert isinstance(dn, DN)
         set_krbcanonicalname(entry_attrs)
+        check_fips_auth_opts(fips_mode=self.api.env.fips_mode, **options)
         self.obj.convert_usercertificate_pre(entry_attrs)
 
     def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -600,6 +602,7 @@ class baseuser_mod(LDAPUpdate):
         assert isinstance(dn, DN)
         add_sshpubkey_to_attrs_pre(self.context, attrs_list)
 
+        check_fips_auth_opts(fips_mode=self.api.env.fips_mode, **options)
         self.check_namelength(ldap, **options)
 
         self.check_mail(entry_attrs)
