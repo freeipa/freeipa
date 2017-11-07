@@ -44,10 +44,15 @@ provided, so the principal name is just the service
 name and hostname (ldap/foo.example.com from the
 example above).
 
+ipa-getkeytab is used during IPA client enrollment to retrieve a host service principal and store it in /etc/krb5.keytab. It is possible to retrieve the keytab without Kerberos credentials if the host was pre\-created with a one\-time password. The keytab can be retrieved by binding as the host and authenticating with this one\-time password. The \fB\-D|\-\-binddn\fR and \fB\-w|\-\-bindpw\fR options are used for this authentication.
+
 \fBWARNING:\fR retrieving the keytab resets the secret for the Kerberos principal.
 This renders all other keytabs for that principal invalid.
+When multiple hosts or services need to share the same key (for instance in high availability or load balancing clusters), the \fB\-r\fR option must be used to retrieve the existing key instead of generating a new one (please refer to the EXAMPLES section).
 
-This is used during IPA client enrollment to retrieve a host service principal and store it in /etc/krb5.keytab. It is possible to retrieve the keytab without Kerberos credentials if the host was pre\-created with a one\-time password. The keytab can be retrieved by binding as the host and authenticating with this one\-time password. The \fB\-D|\-\-binddn\fR and \fB\-w|\-\-bindpw\fR options are used for this authentication.
+Note that the user or host calling \fBipa-getkeytab\fR needs to be allowed to generate the key with \fBipa host\-allow\-create\-keytab\fR or \fBipa service\-allow\-create\-keytab\fR,
+and the user or host calling \fBipa-getkeytab \-r\fR needs to be allowed to retrieve the keytab for the host or service with \fBipa host\-allow\-retrieve\-keytab\fR or \fBipa service\-allow\-retrieve\-keytab\fR.
+
 .SH "OPTIONS"
 .TP
 \fB\-p principal\-name\fR
@@ -118,16 +123,44 @@ keytab must have access to the keys for this operation to succeed.
 Add and retrieve a keytab for the NFS service principal on
 the host foo.example.com and save it in the file /tmp/nfs.keytab and retrieve just the des\-cbc\-crc key.
 
+.nf
    # ipa\-getkeytab \-p nfs/foo.example.com \-k /tmp/nfs.keytab \-e des\-cbc\-crc
+.fi
 
 Add and retrieve a keytab for the ldap service principal on
 the host foo.example.com and save it in the file /tmp/ldap.keytab.
 
+.nf
    # ipa\-getkeytab \-s ipaserver.example.com \-p ldap/foo.example.com \-k /tmp/ldap.keytab
+.fi
 
 Retrieve a keytab using LDAP credentials (this will typically be done by \fBipa\-join(1)\fR when enrolling a client using the \fBipa\-client\-install(1)\fR command:
 
+.nf
    # ipa\-getkeytab \-s ipaserver.example.com \-p host/foo.example.com \-k /etc/krb5.keytab \-D fqdn=foo.example.com,cn=computers,cn=accounts,dc=example,dc=com \-w password
+.fi
+
+Add and retrieve a keytab for a clustered HTTP service deployed on client1.example.com and client2.example.com (already enrolled), using the client-frontend.example.com host name:
+
+.nf
+   # ipa host-add client-frontend.example.com --ip-address 10.1.2.3
+   # ipa service-add HTTP/client-frontend.example.com
+   # ipa service-allow-retrieve-keytab HTTP/client-frontend.example.com --hosts={client1.example.com,client2.example.com}
+   # ipa server-allow-create-keytab HTTP/client-frontend.example.com --hosts=client1.example.com
+.fi
+
+   On client1, generate and retrieve a new keytab for client-frontend.example.com:
+.nf
+   # kinit -k
+   # ipa-getkeytab -p HTTP/client-frontend.example.com -k /tmp/http.keytab
+
+.fi
+   On client2, retrieve the existing keytab for client-frontend.example.com:
+.nf
+   # kinit -k
+   # ipa-getkeytab -r -p HTTP/client-frontend.example.com -k /tmp/http.keytab
+.fi
+
 .SH "EXIT STATUS"
 The exit status is 0 on success, nonzero on error.
 
