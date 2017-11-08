@@ -70,8 +70,9 @@ default:cn: fqdn
 default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
-default:nsIndexType: eq
-default:nsIndexType: pres
+only:nsIndexType: eq
+only:nsIndexType: pres
+only:nsIndexType: sub
 
 dn: cn=macAddress,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: macAddress
@@ -267,3 +268,43 @@ default: objectClass: nsIndex
 only: nsSystemIndex: false
 only: nsIndexType: eq
 only: nsIndexType: sub
+
+dn: cn=description,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
+default: cn: description
+default: objectclass: top
+default: objectclass: nsindex
+default: nssystemindex: false
+default: nsindextype: eq
+default: nsindextype: sub
+
+dn: cn=l,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
+default: cn: l
+default: objectclass: top
+default: objectclass: nsindex
+default: nssystemindex: false
+default: nsindextype: eq
+default: nsindextype: sub
+
+dn: cn=nsOsVersion,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
+default: cn: nsOsVersion
+default: objectclass: top
+default: objectclass: nsindex
+default: nssystemindex: false
+default: nsindextype: eq
+default: nsindextype: sub
+
+dn: cn=nsHardwarePlatform,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
+default: cn: nsHardwarePlatform
+default: objectclass: top
+default: objectclass: nsindex
+default: nssystemindex: false
+default: nsindextype: eq
+default: nsindextype: sub
+
+dn: cn=nsHostLocation,cn=index,cn=userroot,cn=ldbm database,cn=plugins,cn=config
+default: cn: nsHostLocation
+default: objectclass: top
+default: objectclass: nsindex
+default: nssystemindex: false
+default: nsindextype: eq
+default: nsindextype: sub
