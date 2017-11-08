@@ -28,19 +28,14 @@ once per test run.
 import os
 import tempfile
 import shutil
-import six
 import base64
 import re
 
 from ipalib import api, x509
 from ipaserver.plugins import rabase
-from ipapython import ipautil
+from ipapython import certdb
 from ipapython.dn import DN
 from ipaplatform.paths import paths
-
-if six.PY3:
-    unicode = str
-
 
 _subject_base = None
 
@@ -80,29 +75,6 @@ def get_testcert(subject, principal):
     return strip_cert_header(_testcert.decode('utf-8'))
 
 
-def run_certutil(reqdir, args, stdin=None):
-    """
-    Run an NSS certutil command
-    """
-    new_args = [paths.CERTUTIL, "-d", reqdir]
-    new_args = new_args + args
-    return ipautil.run(new_args, stdin)
-
-
-def generate_csr(reqdir, pwname, subject):
-    """
-    Create a CSR for the given subject.
-    """
-    req_path = os.path.join(reqdir, 'req')
-    run_certutil(reqdir, ["-R", "-s", subject,
-                          "-o", req_path,
-                          "-z", paths.GROUP,
-                          "-f", pwname,
-                          "-a"])
-    with open(req_path, "r") as fp:
-        return fp.read()
-
-
 def makecert(reqdir, subject, principal):
     """
     Generate a certificate that can be used during unit testing.
@@ -114,16 +86,22 @@ def makecert(reqdir, subject, principal):
         raise AssertionError('The self-signed CA is not configured, '
                              'see ipatests/test_xmlrpc/test_cert.py')
 
-    pwname = os.path.join(reqdir, "pwd")
-
-    # Create an empty password file
-    with open(pwname, "w") as fp:
-        fp.write("\n")
-
-    # Generate NSS cert database to store the private key for our CSR
-    run_certutil(reqdir, ["-N", "-f", pwname])
-
-    csr = unicode(generate_csr(reqdir, pwname, str(subject)))
+    nssdb = certdb.NSSDatabase(nssdir=reqdir)
+    with open(nssdb.pwd_file, "w") as f:
+        # Create an empty password file
+        f.write("\n")
+    # create db
+    nssdb.create_db()
+    # create CSR
+    csr_file = os.path.join(reqdir, 'req')
+    nssdb.run_certutil([
+        "-R", "-s", str(subject),
+        "-o", csr_file,
+        "-z", paths.GROUP,
+        "-a"
+    ])
+    with open(csr_file, "rb") as f:
+        csr = f.read().decode('ascii')
 
     res = api.Command['cert_request'](csr, principal=principal, add=True)
     cert = x509.load_der_x509_certificate(

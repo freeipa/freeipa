@@ -25,20 +25,13 @@ import time
 import pwd
 
 import six
-# pylint: disable=import-error
-if six.PY3:
-    # The SafeConfigParser class has been renamed to ConfigParser in Py3
-    from configparser import ConfigParser as SafeConfigParser
-else:
-    from ConfigParser import SafeConfigParser
-# pylint: enable=import-error
 
 from ipaplatform.paths import paths
 from ipaplatform import services
 from ipalib import api, errors
 from ipapython import version
 from ipapython.ipautil import run, write_tmp_file
-from ipapython import admintool
+from ipapython import admintool, certdb
 from ipapython.dn import DN
 from ipaserver.install.replication import wait_for_task
 from ipaserver.install import installutils
@@ -46,7 +39,13 @@ from ipapython import ipaldap
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 
-
+# pylint: disable=import-error
+if six.PY3:
+    # The SafeConfigParser class has been renamed to ConfigParser in Py3
+    from configparser import ConfigParser as SafeConfigParser
+else:
+    from ConfigParser import SafeConfigParser
+# pylint: enable=import-error
 ISO8601_DATETIME_FMT = '%Y-%m-%dT%H:%M:%S'
 
 logger = logging.getLogger(__name__)
@@ -194,7 +193,7 @@ class Backup(admintool.AdminTool):
         paths.HOSTS,
     ) + tuple(
         os.path.join(paths.IPA_NSSDB_DIR, file)
-        for file in ('cert8.db', 'key3.db', 'secmod.db')
+        for file in (certdb.NSS_DBM_FILES + certdb.NSS_SQL_FILES)
     )
 
     logs=(

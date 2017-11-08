@@ -1606,9 +1606,14 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/nssdb
+# old dbm format
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/cert8.db
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/key3.db
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/secmod.db
+# new sql format
+%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/cert9.db
+%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/key4.db
+%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/pkcs11.txt
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/pwdfile.txt
 %ghost %config(noreplace) %{_sysconfdir}/pki/ca-trust/source/ipa.p11-kit
 %dir %{_localstatedir}/lib/ipa-client

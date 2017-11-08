@@ -6,6 +6,7 @@ from custodia.store.interface import CSStore  # pylint: disable=relative-import
 from jwcrypto.common import json_decode, json_encode
 from ipaplatform.paths import paths
 from ipapython import ipautil
+from ipapython.certdb import NSSDatabase
 from ipaserver.secrets.common import iSecLdap
 import ldap
 import os
@@ -65,10 +66,11 @@ class NSSWrappedCertDB(DBMAPHandler):
                 '--wrap-nickname', self.wrap_nick,
                 '--target-nickname', self.target_nick,
                 '-o', wrapped_key_file])
-            ipautil.run([
-                paths.CERTUTIL, '-d', self.nssdb_path,
+            nssdb = NSSDatabase(self.nssdb_path)
+            nssdb.run_certutil([
                 '-L', '-n', self.target_nick,
-                '-a', '-o', certificate_file])
+                '-a', '-o', certificate_file,
+            ])
             with open(wrapped_key_file, 'rb') as f:
                 wrapped_key = f.read()
             with open(certificate_file, 'r') as f:
@@ -102,12 +104,13 @@ class NSSCertDB(DBMAPHandler):
             with open(pk12pwfile, 'w') as f:
                 f.write(password)
             pk12file = os.path.join(tdir, 'pk12file')
-            ipautil.run([paths.PK12UTIL,
-                         "-d", self.nssdb_path,
-                         "-o", pk12file,
-                         "-n", self.nickname,
-                         "-k", self.nssdb_pwdfile,
-                         "-w", pk12pwfile])
+            nssdb = NSSDatabase(self.nssdb_path)
+            nssdb.run_pk12util([
+                "-o", pk12file,
+                "-n", self.nickname,
+                "-k", self.nssdb_pwdfile,
+                "-w", pk12pwfile,
+            ])
             with open(pk12file, 'rb') as f:
                 data = f.read()
         finally:
@@ -125,12 +128,13 @@ class NSSCertDB(DBMAPHandler):
             pk12file = os.path.join(tdir, 'pk12file')
             with open(pk12file, 'wb') as f:
                 f.write(b64decode(v['pkcs12 data']))
-            ipautil.run([paths.PK12UTIL,
-                         "-d", self.nssdb_path,
-                         "-i", pk12file,
-                         "-n", self.nickname,
-                         "-k", self.nssdb_pwdfile,
-                         "-w", pk12pwfile])
+            nssdb = NSSDatabase(self.nssdb_path)
+            nssdb.run_pk12util([
+                "-i", pk12file,
+                "-n", self.nickname,
+                "-k", self.nssdb_pwdfile,
+                "-w", pk12pwfile,
+            ])
         finally:
             shutil.rmtree(tdir)
 
