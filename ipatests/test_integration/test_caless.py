@@ -360,8 +360,8 @@ class CALessBase(IntegrationTest):
         logger.debug('Expected /etc/ipa/ca.crt contents:\n%s',
                      expected_cacrt.decode('utf-8'))
         expected_cacrt = x509.load_unknown_x509_certificate(expected_cacrt)
-        logger.debug('Expected binary CA cert:\n%r',
-                     expected_cacrt)
+        logger.debug('Expected CA cert:\n%r',
+                     expected_cacrt.public_bytes(x509.Encoding.PEM))
         for host in [self.master] + self.replicas:
             # Check the LDAP entry
             ldap = host.ldap_connect()
@@ -370,7 +370,7 @@ class CALessBase(IntegrationTest):
                                       ('cn', 'etc'), host.domain.basedn))
             cert_from_ldap = entry.single_value['cACertificate']
             logger.debug('CA cert from LDAP on %s:\n%r',
-                         host, cert_from_ldap)
+                         host, cert_from_ldap.public_bytes(x509.Encoding.PEM))
             assert cert_from_ldap == expected_cacrt
 
             # Verify certmonger was not started
@@ -381,10 +381,10 @@ class CALessBase(IntegrationTest):
             # Check the cert PEM file
             remote_cacrt = host.get_file_contents(paths.IPA_CA_CRT)
             logger.debug('%s:/etc/ipa/ca.crt contents:\n%s',
-                         host, remote_cacrt)
+                         host, remote_cacrt.decode('utf-8'))
             cacrt = x509.load_unknown_x509_certificate(remote_cacrt)
             logger.debug('%s: Decoded /etc/ipa/ca.crt:\n%r',
-                         host, cacrt)
+                         host, cacrt.public_bytes(x509.Encoding.PEM))
             assert expected_cacrt == cacrt
 
 
