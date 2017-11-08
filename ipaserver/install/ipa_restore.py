@@ -836,7 +836,7 @@ class Restore(admintool.AdminTool):
         try:
             dsinstance.DsInstance().stop_tracking_certificates(
                 installutils.realm_to_serverid(api.env.realm))
-        except OSError:
+        except (OSError, IOError):
             # When IPA is not installed, DS NSS DB does not exist
             pass
 
