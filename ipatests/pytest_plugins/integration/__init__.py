@@ -131,23 +131,25 @@ def collect_logs(name, logs_dict, logfile_dir=None, beakerlib_plugin=None):
 
         for host, logs in logs_dict.items():
             logger.info('Collecting logs from: %s', host.hostname)
-
+            dirname = os.path.join(topdirname, host.hostname)
+            if not os.path.isdir(dirname):
+                os.makedirs(dirname)
+            tarname = os.path.join(dirname, 'logs.tar.xz')
+            # get temporary file name
+            cmd = host.run_command(['mktemp'])
+            tmpname = cmd.stdout_text.strip()
             # Tar up the logs on the remote server
             cmd = host.run_command(
-                ['tar', '-c',  '--ignore-failed-read', '-J', '-v'] + logs,
+                ['tar', 'cJvf', tmpname, '--ignore-failed-read'] + logs,
                 log_stdout=False, raiseonerr=False)
             if cmd.returncode:
                 logger.warning('Could not collect all requested logs')
-
+            # fetch tar file
+            with open(tarname, 'wb') as f:
+                f.write(host.get_file_contents(tmpname))
+            # delete from remote
+            host.run_command(['rm', '-f', tmpname])
             # Unpack on the local side
-            dirname = os.path.join(topdirname, host.hostname)
-            try:
-                os.makedirs(dirname)
-            except OSError:
-                pass
-            tarname = os.path.join(dirname, 'logs.tar.xz')
-            with open(tarname, 'w') as f:
-                f.write(cmd.stdout_text)
             ipautil.run(['tar', 'xJvf', 'logs.tar.xz'], cwd=dirname,
                         raiseonerr=False)
             os.unlink(tarname)
