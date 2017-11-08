@@ -30,8 +30,6 @@ import sys
 import difflib
 from argparse import ArgumentParser
 
-import ignore_import_errors     # pylint: disable=unused-import
-
 from ipalib import api
 from ipapython.dn import DN
 from ipapython.ipaldap import LDAPClient
