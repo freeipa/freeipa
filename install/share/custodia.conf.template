@@ -16,7 +16,7 @@ header = GSS_NAME
 handler = ipaserver.secrets.kem.IPAKEMKeys
 paths = /keys
 store = ipa
-server_keys = $IPA_CUSTODIA_CONF_DIR/server.keys
+server_keys = $IPA_CUSTODIA_KEYS
 
 [store:ipa]
 handler = ipaserver.secrets.store.IPASecStore
