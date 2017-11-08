@@ -71,6 +71,7 @@ class KRAInstance(DogtagInstance):
             realm=realm,
             subsystem="KRA",
             service_desc="KRA server",
+            config=paths.KRA_CS_CFG_PATH,
         )
 
         self.basedn = DN(('o', 'kra'), ('o', 'ipaca'))
@@ -348,8 +349,20 @@ class KRAInstance(DogtagInstance):
                                    sub_dict=sub_dict)
         ld.update([os.path.join(paths.UPDATES_DIR, '40-vault.update')])
 
-    @staticmethod
-    def update_cert_config(nickname, cert):
+    def enable_ephemeral(self):
+        """
+        Enable ephemeral KRA requests to reduce the number of LDAP
+        write operations.
+        """
+        with installutils.stopped_service('pki-tomcatd', 'pki-tomcat'):
+            installutils.set_directive(
+                self.config,
+                'kra.ephemeralRequests',
+                'true', quotes=False, separator='=')
+
+        # A restart is required
+
+    def update_cert_config(self, nickname, cert):
         """
         When renewing a KRA subsystem certificate the configuration file
         needs to get the new certificate as well.
@@ -367,8 +380,8 @@ class KRAInstance(DogtagInstance):
             'Server-Cert cert-pki-ca': 'kra.sslserver.cert'}
 
         if nickname in directives:
-            DogtagInstance.update_cert_cs_cfg(
-                directives[nickname], cert, paths.KRA_CS_CFG_PATH)
+            super(KRAInstance, self).update_cert_cs_cfg(
+                directives[nickname], cert)
 
     def __enable_instance(self):
         self.ldap_enable('KRA', self.fqdn, None, self.suffix)
