@@ -2304,9 +2304,6 @@ def create_ipa_nssdb():
     db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
     db.create_db(mode=0o755, backup=True)
     os.chmod(db.pwd_file, 0o600)
-    os.chmod(os.path.join(db.secdir, 'cert8.db'), 0o644)
-    os.chmod(os.path.join(db.secdir, 'key3.db'), 0o644)
-    os.chmod(os.path.join(db.secdir, 'secmod.db'), 0o644)
 
 
 def update_ipa_nssdb():
@@ -3067,11 +3064,8 @@ def uninstall(options):
             logger.error("%s failed to stop tracking certificate: %s",
                          cmonger.service_name, e)
 
-    for filename in (os.path.join(ipa_db.secdir, 'cert8.db'),
-                     os.path.join(ipa_db.secdir, 'key3.db'),
-                     os.path.join(ipa_db.secdir, 'secmod.db'),
-                     os.path.join(ipa_db.secdir, 'pwdfile.txt')):
-        remove_file(filename)
+    for filename in certdb.NSS_FILES:
+        remove_file(os.path.join(ipa_db.secdir, filename))
 
     # Remove any special principal names we added to the IPA CA helper
     certmonger.remove_principal_from_cas()
