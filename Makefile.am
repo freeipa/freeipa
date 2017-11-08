@@ -14,16 +14,13 @@ SUBDIRS = asn1 util client contrib po pypi \
 	$(IPACLIENT_SUBDIRS) ipaplatform $(IPATESTS_SUBDIRS) $(SERVER_SUBDIRS)
 
 MOSTLYCLEANFILES = ipasetup.pyc ipasetup.pyo \
-		   ignore_import_errors.pyc ignore_import_errors.pyo \
-		   ipasetup.pyc ipasetup.pyo \
 		   pylint_plugins.pyc pylint_plugins.pyo
 
 # user-facing scripts
 dist_bin_SCRIPTS = ipa
 
 # files required for build but not installed
-dist_noinst_SCRIPTS = ignore_import_errors.py \
-		      makeapi \
+dist_noinst_SCRIPTS = makeapi \
 		      makeaci \
 		      make-doc \
 		      make-test \
