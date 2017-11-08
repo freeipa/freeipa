@@ -347,6 +347,7 @@ class BasePathNamespace(object):
     NETWORK_MANAGER_CONFIG_DIR = '/etc/NetworkManager/conf.d'
     IPA_CUSTODIA_CONF_DIR = '/etc/ipa/custodia'
     IPA_CUSTODIA_CONF = '/etc/ipa/custodia/custodia.conf'
+    IPA_CUSTODIA_KEYS = '/etc/ipa/custodia/server.keys'
     IPA_CUSTODIA_SOCKET = '/run/httpd/ipa-custodia.sock'
     IPA_CUSTODIA_AUDIT_LOG = '/var/log/ipa-custodia.audit.log'
     IPA_GETKEYTAB = '/usr/sbin/ipa-getkeytab'
