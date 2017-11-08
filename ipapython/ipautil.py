@@ -307,6 +307,25 @@ def write_tmp_file(txt):
 
     return fd
 
+
+def flush_sync(f):
+    """Flush and fsync file to disk
+
+    :param f: a file object with fileno and name
+    """
+    # flush file buffer to file descriptor
+    f.flush()
+    # flush Kernel buffer to disk
+    os.fsync(f.fileno())
+    # sync metadata in directory
+    dirname = os.path.dirname(os.path.abspath(f.name))
+    dirfd = os.open(dirname, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(dirfd)
+    finally:
+        os.close(dirfd)
+
+
 def shell_quote(string):
     if isinstance(string, str):
         return "'" + string.replace("'", "'\\''") + "'"
