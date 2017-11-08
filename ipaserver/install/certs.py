@@ -103,18 +103,20 @@ class CertDB(object):
     # TODO: Remove all selfsign code
     def __init__(self, realm, nssdir, fstore=None,
                  host_name=None, subject_base=None, ca_subject=None,
-                 user=None, group=None, mode=None, create=False):
-        self.nssdb = NSSDatabase(nssdir)
+                 user=None, group=None, mode=None, create=False,
+                 dbtype='auto'):
+        self.nssdb = NSSDatabase(nssdir, dbtype=dbtype)
 
         self.secdir = nssdir
         self.realm = realm
 
-        self.noise_fname = self.secdir + "/noise.txt"
-        self.certdb_fname = self.secdir + "/cert8.db"
-        self.keydb_fname = self.secdir + "/key3.db"
-        self.secmod_fname = self.secdir + "/secmod.db"
-        self.pk12_fname = self.secdir + "/cacert.p12"
-        self.pin_fname = self.secdir + "/pin.txt"
+        self.noise_fname = os.path.join(self.secdir, "noise.txt")
+
+        self.certdb_fname = self.nssdb.certdb
+        self.keydb_fname = self.nssdb.keydb
+        self.secmod_fname = self.nssdb.secmod
+        self.pk12_fname = os.path.join(self.secdir, "cacert.p12")
+        self.pin_fname = os.path.join(self.secdir + "pin.txt")
         self.reqdir = None
         self.certreq_fname = None
         self.certder_fname = None
@@ -171,15 +173,7 @@ class CertDB(object):
         """
         Checks whether all NSS database files + our pwd_file exist
         """
-        db_files = (
-            self.secdir,
-            self.certdb_fname,
-            self.keydb_fname,
-            self.secmod_fname,
-            self.nssdb.pwd_file,
-        )
-
-        for f in db_files:
+        for f in self.nssdb.filenames:
             if not os.path.exists(f):
                 return False
         return True
@@ -291,11 +285,12 @@ class CertDB(object):
 
         if create_pkcs12:
             ipautil.backup_file(self.pk12_fname)
-            ipautil.run([paths.PK12UTIL, "-d", self.secdir,
-                         "-o", self.pk12_fname,
-                         "-n", self.cacert_name,
-                         "-w", self.passwd_fname,
-                         "-k", self.passwd_fname])
+            self.nssdb.run_pk12util([
+                "-o", self.pk12_fname,
+                "-n", self.cacert_name,
+                "-k", self.passwd_fname,
+                "-w", self.passwd_fname,
+            ])
             self.set_perms(self.pk12_fname)
 
     def load_cacert(self, cacert_fname, trust_flags):
@@ -514,11 +509,12 @@ class CertDB(object):
         if nickname is None:
             nickname = get_ca_nickname(api.env.realm)
 
-        ipautil.run([paths.PK12UTIL, "-d", self.secdir,
-                     "-o", pkcs12_fname,
-                     "-n", nickname,
-                     "-k", self.passwd_fname,
-                     "-w", pkcs12_pwd_fname])
+        self.nssdb.run_pk12util([
+            "-o", pkcs12_fname,
+            "-n", nickname,
+            "-k", self.passwd_fname,
+            "-w", pkcs12_pwd_fname
+        ])
 
     def create_from_cacert(self):
         cacert_fname = paths.IPA_CA_CRT

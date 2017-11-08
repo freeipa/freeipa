@@ -32,6 +32,20 @@ from optparse import OptionGroup, SUPPRESS_HELP
 
 import dns.resolver
 import six
+
+from ipaserver.install import certs, installutils, bindinstance, dsinstance, ca
+from ipaserver.install.replication import enable_replication_version_checking
+from ipaserver.install.server.replicainstall import install_ca_cert
+from ipaserver.install.bindinstance import (
+    add_zone, add_fwd_rr, add_ptr_rr, dns_container_exists)
+from ipapython import ipautil, admintool, certdb
+from ipapython.dn import DN
+from ipapython import version
+from ipalib import api
+from ipalib import errors
+from ipaplatform.paths import paths
+from ipalib.constants import DOMAIN_LEVEL_0
+
 # pylint: disable=import-error
 if six.PY3:
     # The SafeConfigParser class has been renamed to ConfigParser in Py3
@@ -40,18 +54,6 @@ else:
     from ConfigParser import SafeConfigParser
 # pylint: enable=import-error
 
-from ipaserver.install import certs, installutils, bindinstance, dsinstance, ca
-from ipaserver.install.replication import enable_replication_version_checking
-from ipaserver.install.server.replicainstall import install_ca_cert
-from ipaserver.install.bindinstance import (
-    add_zone, add_fwd_rr, add_ptr_rr, dns_container_exists)
-from ipapython import ipautil, admintool
-from ipapython.dn import DN
-from ipapython import version
-from ipalib import api
-from ipalib import errors
-from ipaplatform.paths import paths
-from ipalib.constants import DOMAIN_LEVEL_0
 
 logger = logging.getLogger(__name__)
 
@@ -565,9 +567,8 @@ class ReplicaPrepare(admintool.AdminTool):
                 installutils.remove_file(pkcs12_fname)
                 installutils.remove_file(passwd_fname)
 
-            self.remove_info_file("cert8.db")
-            self.remove_info_file("key3.db")
-            self.remove_info_file("secmod.db")
+            for fname in (certdb.NSS_SQL_FILES + certdb.NSS_SQL_FILES):
+                self.remove_info_file(fname)
             self.remove_info_file("noise.txt")
 
             orig_filename = passwd_fname + ".orig"

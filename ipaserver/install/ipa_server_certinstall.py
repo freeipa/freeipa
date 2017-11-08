@@ -30,9 +30,10 @@ from ipalib.install import certmonger
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import admintool
-from ipapython.certdb import (get_ca_nickname,
-                              NSSDatabase,
-                              verify_kdc_cert_validity)
+from ipapython.certdb import (
+    NSS_DBM_FILES, NSS_SQL_FILES, NSSDatabase, get_ca_nickname,
+    verify_kdc_cert_validity
+)
 from ipapython.dn import DN
 from ipalib import api, errors
 from ipaserver.install import certs, dsinstance, installutils, krbinstance
@@ -170,14 +171,12 @@ class ServerCertInstall(admintool.AdminTool):
             quotes=False)
 
         # Fix the database permissions
-        os.chmod(os.path.join(dirname, 'cert8.db'), 0o640)
-        os.chmod(os.path.join(dirname, 'key3.db'), 0o640)
-        os.chmod(os.path.join(dirname, 'secmod.db'), 0o640)
-
         pent = pwd.getpwnam(constants.HTTPD_USER)
-        os.chown(os.path.join(dirname, 'cert8.db'), 0, pent.pw_gid)
-        os.chown(os.path.join(dirname, 'key3.db'), 0, pent.pw_gid)
-        os.chown(os.path.join(dirname, 'secmod.db'), 0, pent.pw_gid)
+        for filename in (NSS_DBM_FILES + NSS_SQL_FILES):
+            absname = os.path.join(dirname, filename)
+            if os.path.isfile(absname):
+                os.chmod(absname, 0o640)
+                os.chown(absname, 0, pent.pw_gid)
 
     def install_kdc_cert(self):
         ca_cert_file = paths.CA_BUNDLE_PEM

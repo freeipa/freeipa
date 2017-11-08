@@ -37,6 +37,7 @@ class BaseConstantsNamespace(object):
         'httpd_dbus_sssd': 'on',
     }
     SSSD_USER = "sssd"
-
+    # sql (new format), dbm (old format)
+    NSS_DEFAULT_DBTYPE = 'dbm'
 
 constants = BaseConstantsNamespace()
