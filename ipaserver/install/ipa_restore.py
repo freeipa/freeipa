@@ -27,20 +27,13 @@ import ldif
 import itertools
 
 import six
-# pylint: disable=import-error
-if six.PY3:
-    # The SafeConfigParser class has been renamed to ConfigParser in Py3
-    from configparser import ConfigParser as SafeConfigParser
-else:
-    from ConfigParser import SafeConfigParser
-# pylint: enable=import-error
 
 from ipaclient.install.client import update_ipa_nssdb
 from ipalib import api, errors
 from ipalib.constants import FQDN
 from ipapython import version, ipautil
 from ipapython.ipautil import run, user_input
-from ipapython import admintool
+from ipapython import admintool, certdb
 from ipapython.dn import DN
 from ipaserver.install.replication import (wait_for_task, ReplicationManager,
                                            get_cs_replication_manager)
@@ -57,6 +50,14 @@ try:
     from ipaserver.install import adtrustinstance
 except ImportError:
     adtrustinstance = None
+
+# pylint: disable=import-error
+if six.PY3:
+    # The SafeConfigParser class has been renamed to ConfigParser in Py3
+    from configparser import ConfigParser as SafeConfigParser
+else:
+    from ConfigParser import SafeConfigParser
+# pylint: enable=import-error
 
 logger = logging.getLogger(__name__)
 
@@ -847,7 +848,7 @@ class Restore(admintool.AdminTool):
 
         krbinstance.KrbInstance().stop_tracking_certs()
 
-        for basename in ('cert8.db', 'key3.db', 'secmod.db', 'pwdfile.txt'):
+        for basename in certdb.NSS_FILES:
             filename = os.path.join(paths.IPA_NSSDB_DIR, basename)
             try:
                 ipautil.backup_file(filename)

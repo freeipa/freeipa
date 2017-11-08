@@ -25,13 +25,11 @@ import base64
 import nose
 import os
 import pytest
-import shutil
 import six
-import tempfile
 from ipalib import api
 from ipalib import errors
 from ipaplatform.paths import paths
-from ipapython import ipautil
+from ipapython.certdb import NSSDatabase
 from ipapython.dn import DN
 from ipapython.ipautil import run
 from ipatests.test_xmlrpc.testcert import subject_base
@@ -77,8 +75,9 @@ def is_db_configured():
 # The API tested depends on the value of ~/.ipa/default/ra_plugin when
 # running as the lite-server.
 
-
 class BaseCert(XMLRPC_test):
+    host_fqdn = u'ipatestcert.%s' % api.env.domain
+    service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
 
     @classmethod
     def setup_class(cls):
@@ -91,42 +90,27 @@ class BaseCert(XMLRPC_test):
 
         is_db_configured()
 
-    def run_certutil(self, args, stdin=None):
-        new_args = [paths.CERTUTIL, "-d", self.reqdir]
-        new_args = new_args + args
-        return ipautil.run(new_args, stdin)
-
     def setup(self):
-        self.reqdir = tempfile.mkdtemp(prefix = "tmp-")
-        self.reqfile = self.reqdir + "/test.csr"
-        self.pwname = self.reqdir + "/pwd"
-        self.certfile = self.reqdir + "/cert.crt"
-
-        # Create an empty password file
-        with open(self.pwname, "w") as fp:
-            fp.write("\n")
-
+        self.nssdb = NSSDatabase()
+        secdir = self.nssdb.secdir
+        self.reqfile = os.path.join(secdir, "test.csr")
+        self.certfile = os.path.join(secdir, "cert.crt")
         # Create our temporary NSS database
-        self.run_certutil(["-N", "-f", self.pwname])
-
+        self.nssdb.create_db()
         self.subject = DN(('CN', self.host_fqdn), subject_base())
 
     def teardown(self):
-        shutil.rmtree(self.reqdir, ignore_errors=True)
+        self.nssdb.close()  # remove tempdir
 
     def generateCSR(self, subject):
-        self.run_certutil(["-R", "-s", subject,
-                           "-o", self.reqfile,
-                           "-z", paths.GROUP,
-                           "-f", self.pwname,
-                           "-a",
-                           ])
-        with open(self.reqfile, "r") as fp:
-            data = fp.read()
-        return data
-
-    host_fqdn = u'ipatestcert.%s' % api.env.domain
-    service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
+        self.nssdb.run_certutil([
+            "-R", "-s", subject,
+            "-o", self.reqfile,
+            "-z", paths.GROUP,
+            "-a",
+        ])
+        with open(self.reqfile, "rb") as f:
+            return f.read().decode('ascii')
 
 
 @pytest.mark.tier1
@@ -149,7 +133,7 @@ class test_cert(BaseCert):
         # First create the host that will use this policy
         assert 'result' in api.Command['host_add'](self.host_fqdn, force=True)
 
-        csr = unicode(self.generateCSR(str(self.subject)))
+        csr = self.generateCSR(str(self.subject))
         with assert_raises(errors.NotFound):
             api.Command['cert_request'](csr, principal=self.service_princ)
 
@@ -160,7 +144,7 @@ class test_cert(BaseCert):
         # Our host should exist from previous test
         global cert, sn
 
-        csr = unicode(self.generateCSR(str(self.subject)))
+        csr = self.generateCSR(str(self.subject))
         res = api.Command['cert_request'](csr, principal=self.service_princ, add=True)['result']
         assert DN(res['subject']) == self.subject
         assert 'cacn' in res
@@ -190,8 +174,8 @@ class test_cert(BaseCert):
         See https://fedorahosted.org/freeipa/ticket/5881
         """
         result = api.Command.cert_show(sn, out=unicode(self.certfile))
-        with open(self.certfile, "r") as f:
-            pem_cert = unicode(f.read())
+        with open(self.certfile, "rb") as f:
+            pem_cert = f.read().decode('ascii')
         result = run(['openssl', 'x509', '-text'],
                      stdin=pem_cert, capture_output=True)
         assert _EXP_CRL_URI in result.output
@@ -203,7 +187,7 @@ class test_cert(BaseCert):
         """
         global newcert
 
-        csr = unicode(self.generateCSR(str(self.subject)))
+        csr = self.generateCSR(str(self.subject))
         res = api.Command['cert_request'](csr, principal=self.service_princ)['result']
         assert DN(res['subject']) == self.subject
         # save the cert for the service_show/find tests
@@ -473,7 +457,7 @@ class test_cert_revocation(BaseCert):
         assert 'result' in api.Command['host_add'](self.host_fqdn, force=True)
 
         # generate CSR, request certificate, obtain serial number
-        self.csr = unicode(self.generateCSR(str(self.subject)))
+        self.csr = self.generateCSR(str(self.subject))
         res = api.Command['cert_request'](self.csr,
                                           principal=self.service_princ,
                                           add=True, all=True)['result']
