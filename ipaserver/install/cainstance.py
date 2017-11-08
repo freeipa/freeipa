@@ -304,6 +304,7 @@ class CAInstance(DogtagInstance):
             service_desc="certificate server",
             host_name=host_name,
             service_prefix=ipalib.constants.PKI_GSSAPI_SERVICE_NAME,
+            config=paths.CA_CS_CFG_PATH,
         )
 
         # for external CAs
@@ -677,12 +678,12 @@ class CAInstance(DogtagInstance):
     def __disable_nonce(self):
         # Turn off Nonces
         update_result = installutils.update_file(
-            paths.CA_CS_CFG_PATH, 'ca.enableNonces=true',
+            self.config, 'ca.enableNonces=true',
             'ca.enableNonces=false')
         if update_result != 0:
             raise RuntimeError("Disabling nonces failed")
         pent = pwd.getpwnam(self.service_user)
-        os.chown(paths.CA_CS_CFG_PATH, pent.pw_uid, pent.pw_gid)
+        os.chown(self.config, pent.pw_uid, pent.pw_gid)
 
     def enable_pkix(self):
         installutils.set_directive(paths.SYSCONFIG_PKI_TOMCAT,
@@ -928,8 +929,7 @@ class CAInstance(DogtagInstance):
 
         https://access.redhat.com/knowledge/docs/en-US/Red_Hat_Certificate_System/8.0/html/Admin_Guide/Setting_up_Publishing.html
         """
-
-        with installutils.DirectiveSetter(paths.CA_CS_CFG_PATH,
+        with installutils.DirectiveSetter(self.config,
                                           quotes=False, separator='=') as ds:
 
             # Enable file publishing, disable LDAP
@@ -1160,8 +1160,7 @@ class CAInstance(DogtagInstance):
             master_entry['ipaConfigString'].append('caRenewalMaster')
             api.Backend.ldap2.update_entry(master_entry)
 
-    @staticmethod
-    def update_cert_config(nickname, cert):
+    def update_cert_config(self, nickname, cert):
         """
         When renewing a CA subsystem certificate the configuration file
         needs to get the new certificate as well.
@@ -1183,8 +1182,8 @@ class CAInstance(DogtagInstance):
             syslog.syslog(syslog.LOG_ERR, "Failed to backup CS.cfg: %s" % e)
 
         if nickname in directives:
-            DogtagInstance.update_cert_cs_cfg(
-                directives[nickname], cert, paths.CA_CS_CFG_PATH)
+            super(CAInstance, self).update_cert_cs_cfg(
+                directives[nickname], cert)
 
     def __create_ds_db(self):
         '''
@@ -1251,7 +1250,7 @@ class CAInstance(DogtagInstance):
         ]
         for k, v in directives:
             installutils.set_directive(
-                paths.CA_CS_CFG_PATH, k, v, quotes=False, separator='=')
+                self.config, k, v, quotes=False, separator='=')
 
         sysupgrade.set_upgrade_state('dogtag', 'setup_lwca_key_retieval', True)
 
