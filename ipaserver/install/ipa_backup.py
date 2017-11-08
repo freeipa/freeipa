@@ -189,6 +189,8 @@ class Backup(admintool.AdminTool):
         paths.DNSSEC_SOFTHSM_PIN_SO,
         paths.IPA_ODS_EXPORTER_KEYTAB,
         paths.IPA_DNSKEYSYNCD_KEYTAB,
+        paths.IPA_CUSTODIA_KEYS,
+        paths.IPA_CUSTODIA_CONF,
         paths.HOSTS,
     ) + tuple(
         os.path.join(paths.IPA_NSSDB_DIR, file)

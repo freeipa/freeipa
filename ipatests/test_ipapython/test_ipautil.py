@@ -25,6 +25,7 @@ Test the `ipapython/ipautil.py` module.
 import nose
 import pytest
 import six
+import tempfile
 
 from ipapython import ipautil
 
@@ -470,3 +471,9 @@ def test_backcompat():
     assert rc is result.returncode
     assert out is result.output
     assert err is result.error_output
+
+
+def test_flush_sync():
+    with tempfile.NamedTemporaryFile('wb+') as f:
+        f.write(b'data')
+        ipautil.flush_sync(f)
