@@ -15,10 +15,11 @@ import textwrap
 
 import six
 
+from ipaclient.install.ipachangeconf import IPAChangeConf
 from ipalib.install import certmonger, sysrestore
 from ipapython import ipautil
 from ipapython.ipautil import (
-    format_netloc, ipa_generate_password, run, user_input)
+    ipa_generate_password, run, user_input)
 from ipapython.admintool import ScriptError
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -582,24 +583,44 @@ def install_check(installer):
 
     # Create the management framework config file and finalize api
     target_fname = paths.IPA_DEFAULT_CONF
-    fd = open(target_fname, "w")
-    fd.write("[global]\n")
-    fd.write("host=%s\n" % host_name)
-    fd.write("basedn=%s\n" % ipautil.realm_to_suffix(realm_name))
-    fd.write("realm=%s\n" % realm_name)
-    fd.write("domain=%s\n" % domain_name)
-    fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % format_netloc(host_name))
-    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" %
-             installutils.realm_to_serverid(realm_name))
+    ipaconf = IPAChangeConf("IPA Server Install")
+    ipaconf.setOptionAssignment(" = ")
+    ipaconf.setSectionNameDelimiters(("[", "]"))
+
+    xmlrpc_uri = 'https://{0}/ipa/xml'.format(
+                    ipautil.format_netloc(host_name))
+    ldapi_uri = 'ldapi://%2fvar%2frun%2fslapd-{0}.socket\n'.format(
+                    installutils.realm_to_serverid(realm_name))
+
+    # [global] section
+    gopts = [
+        ipaconf.setOption('host', host_name),
+        ipaconf.setOption('basedn', ipautil.realm_to_suffix(realm_name)),
+        ipaconf.setOption('realm', realm_name),
+        ipaconf.setOption('domain', domain_name),
+        ipaconf.setOption('xmlrpc_uri', xmlrpc_uri),
+        ipaconf.setOption('ldap_uri', ldapi_uri),
+        ipaconf.setOption('mode', 'production')
+    ]
+
     if setup_ca:
-        fd.write("enable_ra=True\n")
-        fd.write("ra_plugin=dogtag\n")
-        fd.write("dogtag_version=10\n")
+        gopts.extend([
+            ipaconf.setOption('enable_ra', 'True'),
+            ipaconf.setOption('ra_plugin', 'dogtag'),
+            ipaconf.setOption('dogtag_version', '10')
+        ])
     else:
-        fd.write("enable_ra=False\n")
-        fd.write("ra_plugin=none\n")
-    fd.write("mode=production\n")
-    fd.close()
+        gopts.extend([
+            ipaconf.setOption('enable_ra', 'False'),
+            ipaconf.setOption('ra_plugin', 'None')
+        ])
+
+    opts = [
+        ipaconf.setSection('global', gopts),
+        {'name': 'empty', 'type': 'empty'}
+    ]
+
+    ipaconf.newConf(target_fname, opts)
 
     # Must be readable for everyone
     os.chmod(target_fname, 0o644)
