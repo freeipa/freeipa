@@ -46,8 +46,7 @@ env:
                 test_ipapython
                 test_ipaserver
                 test_integration/test_ipalib_util.py
-                test_xmlrpc/test_[l-uw-z]*.py"
-                # FIXME: add vault tests once PKI finally fixes vault
+                test_xmlrpc/test_[l-z]*.py"
 install:
     - pip install --upgrade pip
     - pip3 install --upgrade pip
