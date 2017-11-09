@@ -799,6 +799,7 @@ class TestReplicaInstall(CALessBase):
         cls.prepare_cacert('ca1')
         result = cls.install_server()
         assert result.returncode == 0
+        cls.domain_level = tasks.domainlevel(cls.master)
 
     @replica_install_teardown
     def test_no_certs(self):
