@@ -315,14 +315,16 @@ def generate_creds(trustinstance, style, **options):
         elif style == CRED_STYLE_KERBEROS:
             sp = admin_name.split('\\')
             if len(sp) > 1:
-               sp = [sp[1]]
+                sp = [sp[1]]
             else:
-               sp = admin_name.split(sep)
+                sp = admin_name.split(sep)
             if len(sp) == 1:
-                sp.append(trustinstance.remote_domain.info['dns_domain'].upper())
+                sp.append(trustinstance.remote_domain
+                          .info['dns_domain'].upper())
         creds = u"{name}%{password}".format(name=sep.join(sp),
                                             password=password)
     return creds
+
 
 def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
     """
@@ -354,7 +356,7 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
         # CN=ypservers,CN=ypServ30,CN=RpcServices,CN=System
         info_filter = '(objectClass=msSFU30DomainInfo)'
         info_dn = DN('CN=ypservers,CN=ypServ30,CN=RpcServices,CN=System')\
-                  + basedn
+            + basedn
 
         # Get the domain validator
         domain_validator = ipaserver.dcerpc.DomainValidator(myapi)
@@ -402,7 +404,7 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
 
                 base_id = int(info.get('msSFU30OrderNumber')[0])
                 range_size = (1 + (max_id - base_id) // DEFAULT_RANGE_SIZE)\
-                             * DEFAULT_RANGE_SIZE
+                    * DEFAULT_RANGE_SIZE
 
     # Second, options given via the CLI options take precedence to discovery
     if options.get('range_type', None):
@@ -630,11 +632,10 @@ class trust(LDAPObject):
             pass
         else:
             for entry in entries:
-                 add_message(
+                add_message(
                     options['version'],
                     result,
-                    BrokenTrust(domain=entry.single_value['cn'])
-                 )
+                    BrokenTrust(domain=entry.single_value['cn']))
 
 
 @register()
