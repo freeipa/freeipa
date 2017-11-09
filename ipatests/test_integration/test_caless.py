@@ -523,7 +523,8 @@ class TestServerInstall(CALessBase):
     def test_invalid_ds_cn(self):
         "IPA server install with DS certificate with invalid CN"
 
-        self.create_pkcs12('ca1/replica', filename='dirsrv.p12')
+        self.create_pkcs12('ca1/server', filename='http.p12')
+        self.create_pkcs12('ca1/server-badname', filename='dirsrv.p12')
         self.prepare_cacert('ca1')
 
         result = self.install_server(http_pkcs12='http.p12',
