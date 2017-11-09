@@ -316,6 +316,9 @@ class Restore(admintool.AdminTool):
         os.chown(self.dir, pent.pw_uid, pent.pw_gid)
 
         cwd = os.getcwd()
+
+        logger.info("Temporary setting umask to 022")
+        old_umask = os.umask(0o022)
         try:
             dirsrv = services.knownservices.dirsrv
 
@@ -428,6 +431,8 @@ class Restore(admintool.AdminTool):
             except Exception as e:
                 logger.error('Cannot change directory to %s: %s', cwd, e)
             shutil.rmtree(self.top_dir)
+            logger.info("Restoring umask to %s", old_umask)
+            os.umask(old_umask)
 
 
     def get_connection(self):
