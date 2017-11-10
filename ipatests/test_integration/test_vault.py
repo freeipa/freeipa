@@ -7,7 +7,7 @@ import time
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
 
-WAIT_AFTER_ARCHIVE = 30  # give some time to replication
+WAIT_AFTER_ARCHIVE = 45  # give some time to replication
 
 
 class TestInstallKRA(IntegrationTest):
