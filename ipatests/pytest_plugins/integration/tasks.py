@@ -91,6 +91,22 @@ def setup_server_logs_collecting(host):
     # setup_sssd_debugging)
 
 
+def collect_logs(func):
+    def wrapper(*args):
+        try:
+            func(*args)
+        finally:
+            if hasattr(args[0], 'master'):
+                setup_server_logs_collecting(args[0].master)
+            if hasattr(args[0], 'replicas') and args[0].replicas:
+                for replica in args[0].replicas:
+                    setup_server_logs_collecting(replica)
+            if hasattr(args[0], 'clients') and args[0].clients:
+                for client in args[0].clients:
+                    setup_server_logs_collecting(client)
+    return wrapper
+
+
 def check_arguments_are(slice, instanceof):
     """
     :param: slice - tuple of integers denoting the beginning and the end
