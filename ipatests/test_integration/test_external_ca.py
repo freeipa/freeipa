@@ -21,7 +21,6 @@ import base64
 
 from ipatests.pytest_plugins.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.util import collect_logs
 
 
 EXTERNAL_CA_KEY_ID = base64.b64encode(os.urandom(64))
@@ -32,7 +31,7 @@ class TestExternalCA(IntegrationTest):
     """
     Test of FreeIPA server installation with exernal CA
     """
-    @collect_logs
+    @tasks.collect_logs
     def test_external_ca(self):
         # Step 1 of ipa-server-install
         self.master.run_command([
