@@ -22,9 +22,12 @@ Test the `ipaserver/plugins/vault.py` module.
 """
 
 import nose
-from ipalib import api
-from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_string
 import pytest
+import six
+
+from ipalib import api
+from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_bytes
+
 
 vault_name = u'test_vault'
 service_name = u'HTTP/server.example.com'
@@ -35,12 +38,15 @@ symmetric_vault_name = u'symmetric_test_vault'
 asymmetric_vault_name = u'asymmetric_test_vault'
 
 # binary data from \x00 to \xff
-secret = ''.join(chr(c) for c in range(0, 256))
+if six.PY2:
+    secret = b''.join(chr(c) for c in range(0, 256))
+else:
+    secret = bytes(range(0, 256))
 
 password = u'password'
 other_password = u'other_password'
 
-public_key = """
+public_key = b"""
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnT61EFxUOQgCJdM0tmw/
 pRRPDPGchTClnU1eBtiQD3ItKYf1+weMGwGOSJXPtkto7NlE7Qs8WHAr0UjyeBDe
@@ -52,7 +58,7 @@ pVThop+Xivcre3SpI0kt6oZPhBw9i8gbMnqifVmGFpVdhq+QVBqp+MVJvTbhRPG6
 -----END PUBLIC KEY-----
 """
 
-private_key = """
+private_key = b"""
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAnT61EFxUOQgCJdM0tmw/pRRPDPGchTClnU1eBtiQD3ItKYf1
 +weMGwGOSJXPtkto7NlE7Qs8WHAr0UjyeBDek/zeB6nSVdk47OdaW1AHrJL+44r2
@@ -82,7 +88,7 @@ kUlCMj24a8XsShzYTWBIyW2ngvGe3pQ9PfjkUdm0LGZjYITCBvgOKw==
 -----END RSA PRIVATE KEY-----
 """
 
-other_public_key = """
+other_public_key = b"""
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv7E/QLVyKjrgDctZ50U7
 rmtL7Ks1QLoccp9WvZJ6WI1rYd0fX5FySS4dI6QTNZc6qww8NeNuZtkoxT9m1wkk
@@ -94,7 +100,7 @@ TwIDAQAB
 -----END PUBLIC KEY-----
 """
 
-other_private_key = """
+other_private_key = b"""
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpgIBAAKCAQEAv7E/QLVyKjrgDctZ50U7rmtL7Ks1QLoccp9WvZJ6WI1rYd0f
 X5FySS4dI6QTNZc6qww8NeNuZtkoxT9m1wkkRl/3wK7fWNLenH/+VHOaTQc20exg
@@ -678,7 +684,7 @@ class test_vault_plugin(Declarative):
                 'result': {
                     'cn': [standard_vault_name],
                     'ipavaulttype': [u'symmetric'],
-                    'ipavaultsalt': [fuzzy_string],
+                    'ipavaultsalt': [fuzzy_bytes],
                     'owner_user': [u'admin'],
                     'username': u'admin',
                 },
@@ -724,7 +730,7 @@ class test_vault_plugin(Declarative):
                     'objectclass': [u'top', u'ipaVault'],
                     'cn': [symmetric_vault_name],
                     'ipavaulttype': [u'symmetric'],
-                    'ipavaultsalt': [fuzzy_string],
+                    'ipavaultsalt': [fuzzy_bytes],
                     'owner_user': [u'admin'],
                     'username': u'admin',
                 },
@@ -784,7 +790,7 @@ class test_vault_plugin(Declarative):
                 'result': {
                     'cn': [symmetric_vault_name],
                     'ipavaulttype': [u'symmetric'],
-                    'ipavaultsalt': [fuzzy_string],
+                    'ipavaultsalt': [fuzzy_bytes],
                     'owner_user': [u'admin'],
                     'username': u'admin',
                 },
