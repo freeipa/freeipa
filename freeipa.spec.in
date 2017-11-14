@@ -246,7 +246,6 @@ BuildRequires:  python3-augeas
 #
 %if ! %{ONLY_CLIENT}
 BuildRequires:  libcmocka-devel
-BuildRequires:  nss_wrapper
 # Required by ipa_kdb_tests
 BuildRequires:  %{_libdir}/krb5/plugins/kdb/db2.so
 %endif # ONLY_CLIENT
