@@ -38,9 +38,11 @@
  * END COPYRIGHT BLOCK **/
 
 #include "ipa_extdom.h"
+#include "back_extdom.h"
 #include "util.h"
 
 #define DEFAULT_MAX_NSS_BUFFER (128*1024*1024)
+#define DEFAULT_MAX_NSS_TIMEOUT (10*1000)
 
 Slapi_PluginDesc ipa_extdom_plugin_desc = {
     IPA_EXTDOM_FEATURE_DESC,
@@ -166,6 +168,7 @@ static int ipa_extdom_init_ctx(Slapi_PBlock *pb, struct ipa_extdom_ctx **_ctx)
     struct ipa_extdom_ctx *ctx;
     Slapi_Entry *e;
     int ret;
+    unsigned int timeout;
 
     ctx = calloc(1, sizeof(struct ipa_extdom_ctx));
     if (!ctx) {
@@ -201,6 +204,20 @@ static int ipa_extdom_init_ctx(Slapi_PBlock *pb, struct ipa_extdom_ctx **_ctx)
         ctx->max_nss_buf_size = DEFAULT_MAX_NSS_BUFFER;
     }
     LOG("Maximal nss buffer size set to [%zu]!\n", ctx->max_nss_buf_size);
+
+
+    ret = back_extdom_init_context(&ctx->nss_ctx);
+    if (ret != 0) {
+        LOG("Unable to initialize nss interface: returned [%d]!\n", ret);
+        goto done;
+    }
+
+    timeout = slapi_entry_attr_get_uint(e, "ipaExtdomMaxNssTimeout");
+    if (timeout == 0) {
+        timeout = DEFAULT_MAX_NSS_TIMEOUT;
+    }
+    back_extdom_set_timeout(ctx->nss_ctx, timeout);
+    LOG("Maximal nss timeout (in ms) set to [%u]!\n", timeout);
 
     ret = 0;
 
