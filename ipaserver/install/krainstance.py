@@ -152,6 +152,10 @@ class KRAInstance(DogtagInstance):
                 prefix="tmp-", dir=paths.VAR_LIB_IPA)
         tmp_agent_pwd = ipautil.ipa_generate_password()
 
+        # Create a temporary file for the admin PKCS #12 file
+        (admin_p12_fd, admin_p12_file) = tempfile.mkstemp()
+        os.close(admin_p12_fd)
+
         # Create KRA configuration
         config = ConfigParser()
         config.optionxform = str
@@ -186,9 +190,8 @@ class KRAInstance(DogtagInstance):
         config.set("KRA", "pki_admin_nickname", "ipa-ca-agent")
         config.set("KRA", "pki_admin_subject_dn",
                    str(DN(('cn', 'ipa-ca-agent'), self.subject_base)))
-        config.set("KRA", "pki_import_admin_cert", "True")
-        config.set("KRA", "pki_admin_cert_file", paths.ADMIN_CERT_PATH)
-        config.set("KRA", "pki_client_admin_cert_p12", paths.DOGTAG_ADMIN_P12)
+        config.set("KRA", "pki_import_admin_cert", "False")
+        config.set("KRA", "pki_client_admin_cert_p12", admin_p12_file)
 
         # Directory server
         config.set("KRA", "pki_ds_ldap_port", "389")
@@ -291,6 +294,7 @@ class KRAInstance(DogtagInstance):
         finally:
             os.remove(p12_tmpfile_name)
             os.remove(cfg_file)
+            os.remove(admin_p12_file)
 
         shutil.move(paths.KRA_BACKUP_KEYS_P12, paths.KRACERT_P12)
         self.log.debug("completed creating KRA instance")
