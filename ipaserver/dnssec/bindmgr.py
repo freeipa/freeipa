@@ -106,18 +106,27 @@ class BINDMgr(object):
 
     def install_key(self, zone, uuid, attrs, workdir):
         """Run dnssec-keyfromlabel on given LDAP object.
-        :returns: base file name of output files, e.g. Kaaa.test.+008+19719"""
+        :returns: base file name of output files, e.g. Kaaa.test.+008+19719
+        """
         logger.info('attrs: %s', attrs)
         assert attrs.get('idnsseckeyzone', [b'FALSE'])[0] == b'TRUE', \
             b'object %s is not a DNS zone key' % attrs['dn']
 
-        uri = b"%s;pin-source=%s" % (attrs['idnsSecKeyRef'][0], paths.DNSSEC_SOFTHSM_PIN.encode('utf-8'))
-        cmd = [paths.DNSSEC_KEYFROMLABEL, '-K', workdir, '-a', attrs['idnsSecAlgorithm'][0], '-l', uri]
-        cmd += self.dates2params(attrs)
+        uri = b"%s;pin-source=%s" % (
+            attrs['idnsSecKeyRef'][0],
+            paths.DNSSEC_SOFTHSM_PIN.encode('utf-8')
+        )
+        cmd = [
+            paths.DNSSEC_KEYFROMLABEL,
+            '-K', workdir,
+            '-a', attrs['idnsSecAlgorithm'][0],
+            '-l', uri
+        ]
+        cmd.extend(self.dates2params(attrs))
         if attrs.get('idnsSecKeySep', [b'FALSE'])[0].upper() == b'TRUE':
-            cmd += ['-f', 'KSK']
+            cmd.extend(['-f', 'KSK'])
         if attrs.get('idnsSecKeyRevoke', [b'FALSE'])[0].upper() == b'TRUE':
-            cmd += ['-R', datetime.now().strftime(time_bindfmt)]
+            cmd.extend(['-R', datetime.now().strftime(time_bindfmt)])
         cmd.append(zone.to_text())
 
         # keys has to be readable by ODS & named
@@ -142,28 +151,19 @@ class BINDMgr(object):
 
         # strip final (empty) label
         zone = zone.relativize(dns.name.root)
-        escaped = ""
+        escaped = []
         for label in zone:
             for char in label:
-                if six.PY2:
-                    # PY3 char is already int
-                    char = ord(char)
-                if (
-                    (char >= 0x30 and char <= 0x39) or  # digit
-                    (char >= 0x41 and char <= 0x5A) or  # uppercase
-                    (char >= 0x61 and char <= 0x7A) or  # lowercase
-                    char == 0x2D or                     # hyphen
-                    char == 0x5F                        # underscore
-                ):
-                    if char >= 0x41 and char <= 0x5A:  # downcase
-                        char += 0x20
-                    escaped += chr(char)
+                if six.PY3:
+                    char = chr(char)
+                if char.isalnum() or char in "-_":
+                    escaped.append(char.lower())
                 else:
-                    escaped += "%%%02X" % char
-            escaped += '.'
+                    escaped.append("%%%02X" % ord(char))
+            escaped.append('.')
 
         # strip trailing period
-        return escaped[:-1]
+        return ''.join(escaped[:-1])
 
     def sync_zone(self, zone):
         logger.info('Synchronizing zone %s', zone)
