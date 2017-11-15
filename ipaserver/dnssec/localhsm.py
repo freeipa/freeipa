@@ -45,8 +45,8 @@ class Key(collections.MutableMapping):
             assert len(cka_label) != 0, 'ipk11label length should not be 0'
 
         except _ipap11helper.NotFound:
-            raise _ipap11helper.NotFound('key without ipk11label: id 0x%s'
-                    % str_hexlify(cka_id))
+            raise _ipap11helper.NotFound(
+                'key without ipk11label: id 0x%s' % str_hexlify(cka_id))
 
     def __getitem__(self, key):
         key = key.lower()
@@ -186,7 +186,6 @@ class LocalHSM(AbstractHSM):
         return Key(self.p11, h)
 
 
-
 if __name__ == '__main__':
     if 'SOFTHSM2_CONF' not in os.environ:
         os.environ['SOFTHSM2_CONF'] = paths.DNSSEC_SOFTHSM2_CONF
@@ -216,13 +215,13 @@ if __name__ == '__main__':
     print('')
     print('zone public keys')
     print('================')
-    for key_id, key in localhsm.zone_pubkeys.items():
+    for key_id, zkey in localhsm.zone_pubkeys.items():
         print(str_hexlify(key_id))
-        pprint(key)
+        pprint(zkey)
 
     print('')
     print('zone private keys')
     print('=================')
-    for key_id, key in localhsm.zone_privkeys.items():
+    for key_id, zkey in localhsm.zone_privkeys.items():
         print(str_hexlify(key_id))
-        pprint(key)
+        pprint(zkey)
