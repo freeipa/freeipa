@@ -488,7 +488,7 @@ def establish_trust_with_ad(master, ad_domain, extra_args=()):
     on the presence of SfU (Services for Unix) support on the AD.
 
     Use extra arguments to pass extra arguments to the trust-add command, such
-    as --range-type="ipa-ad-trust" to enfroce a particular range type.
+    as --range-type="ipa-ad-trust" to enforce a particular range type.
     """
 
     # Force KDC to reload MS-PAC info by trying to get TGT for HTTP
