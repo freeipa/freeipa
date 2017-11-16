@@ -64,10 +64,22 @@ class CustodiaInstance(SimpleServiceInstance):
                                                       realm=self.realm)
         sysupgrade.set_upgrade_state('custodia', 'installed', True)
 
+    def uninstall(self):
+        super(CustodiaInstance, self).uninstall()
+        keystore = IPAKEMKeys({
+            'server_keys': self.server_keys,
+            'ldap_uri': self.ldap_uri
+        })
+        keystore.remove_server_keys()
+        installutils.remove_file(self.config_file)
+        sysupgrade.set_upgrade_state('custodia', 'installed', False)
+
     def __gen_keys(self):
-        KeyStore = IPAKEMKeys({'server_keys': self.server_keys,
-                               'ldap_uri': self.ldap_uri})
-        KeyStore.generate_server_keys()
+        keystore = IPAKEMKeys({
+            'server_keys': self.server_keys,
+            'ldap_uri': self.ldap_uri
+        })
+        keystore.generate_server_keys()
 
     def upgrade_instance(self):
         if not sysupgrade.get_upgrade_state("custodia", "installed"):
