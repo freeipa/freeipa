@@ -47,13 +47,15 @@ env:
                 test_ipapython
                 test_ipaserver
                 test_xmlrpc/test_[l-z]*.py"
+        - TASK_TO_RUN="tox"
+          TEST_RUNNER_CONFIG=".test_runner_config.yaml"
 install:
     - pip install --upgrade pip
     - pip3 install --upgrade pip
     - pip install pycodestyle
     - >
       pip3 install
-      git+https://github.com/freeipa/ipa-docker-test-runner@release-0-2-1
+      git+https://github.com/freeipa/ipa-docker-test-runner@release-0-2-2
 
 script:
     - mkdir -p $CI_RUNNER_LOGS_DIR
