@@ -34,6 +34,7 @@ dist_sbin_SCRIPTS =		\
 appdir = $(libexecdir)/ipa/
 dist_app_SCRIPTS =		\
 	ipa-custodia		\
+	ipa-custodia-check	\
 	ipa-httpd-kdcproxy	\
 	ipa-pki-retrieve-key	\
 	$(NULL)
