@@ -101,6 +101,7 @@ return {
                         'cn',
                         {
                             name: 'ipadomainresolutionorder',
+                            flags: ['w_if_no_aci'],
                             tooltip: '@mc-opt:idview_mod:ipadomainresolutionorder:doc'
                         },
                         {
