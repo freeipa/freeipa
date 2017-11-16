@@ -116,9 +116,9 @@ dummy-variables-rgx=_.+
 [IPA]
 forbidden-imports=
     client/:ipaserver,
-    ipaclient/:ipaclient.install:ipalib.install:ipaplatform:ipaserver,
+    ipaclient/:ipaclient.install:ipalib.install:ipaserver,
     ipaclient/install/:ipaserver,
-    ipalib/:ipaclient.install:ipalib.install:ipaplatform:ipaserver,
+    ipalib/:ipaclient.install:ipalib.install:ipaserver,
     ipalib/install/:ipaserver,
     ipaplatform/:ipaclient:ipalib:ipaserver,
-    ipapython/:ipaclient:ipalib:ipaplatform:ipaserver
+    ipapython/:ipaclient:ipalib:ipaserver

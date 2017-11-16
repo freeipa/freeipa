@@ -37,3 +37,6 @@ class BaseConstantsNamespace(object):
         'httpd_dbus_sssd': 'on',
     }
     SSSD_USER = "sssd"
+
+
+constants = BaseConstantsNamespace()

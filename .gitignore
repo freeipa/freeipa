@@ -108,11 +108,7 @@ freeipa2-dev-doc
 /client/ipa-join
 /client/ipa-rmkeytab
 
+/ipaplatform/override.py
 /ipapython/version.py
 /ipapython/.DEFAULT_PLUGINS
 
-/ipaplatform/__init__.py
-/ipaplatform/constants.py
-/ipaplatform/paths.py
-/ipaplatform/services.py
-/ipaplatform/tasks.py

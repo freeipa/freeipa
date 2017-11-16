@@ -355,5 +355,7 @@ class BasePathNamespace(object):
     GSSPROXY_CONF = '/etc/gssproxy/10-ipa.conf'
     KRB5CC_HTTPD = '/tmp/krb5cc-httpd'
     IF_INET6 = '/proc/net/if_inet6'
+    AUTHCONFIG = None
 
-path_namespace = BasePathNamespace
+
+paths = BasePathNamespace()

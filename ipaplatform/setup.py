@@ -32,6 +32,7 @@ if __name__ == '__main__':
         name="ipaplatform",
         doc=__doc__,
         package_dir={'ipaplatform': ''},
+        namespace_packages=['ipaplatform'],
         packages=[
             "ipaplatform",
             "ipaplatform.base",

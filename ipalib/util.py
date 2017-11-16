@@ -55,6 +55,7 @@ from ipalib.constants import (
     TLS_VERSIONS, TLS_VERSION_MINIMAL, TLS_HIGH_CIPHERS
 )
 from ipalib.text import _
+from ipaplatform.paths import paths
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
 from ipapython.dnsutil import DNSName
@@ -1094,9 +1095,9 @@ def check_client_configuration():
     """
     Check if IPA client is configured on the system.
     """
-    if (not os.path.isfile(_IPA_DEFAULT_CONF) or
-       not os.path.isdir(_IPA_CLIENT_SYSRESTORE) or
-       not os.listdir(_IPA_CLIENT_SYSRESTORE)):
+    if (not os.path.isfile(paths.IPA_DEFAULT_CONF) or
+            not os.path.isdir(paths.IPA_CLIENT_SYSRESTORE) or
+            not os.listdir(paths.IPA_CLIENT_SYSRESTORE)):
         raise ScriptError('IPA client is not configured on this system')
 
 
