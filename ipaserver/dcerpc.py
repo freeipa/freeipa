@@ -31,6 +31,10 @@ from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipaserver.install import installutils
+from ipaserver.dcerpc_common import (TRUST_BIDIRECTIONAL,
+                                     TRUST_JOIN_EXTERNAL,
+                                     trust_type_string)
+
 from ipalib.util import normalize_name
 
 import os
@@ -76,15 +80,6 @@ Classes to manage trust joins using DCE-RPC calls
 The code in this module relies heavily on samba4-python package
 and Samba4 python bindings.
 """)
-
-# Both constants can be used as masks against trust direction
-# because bi-directional has two lower bits set.
-TRUST_ONEWAY = 1
-TRUST_BIDIRECTIONAL = 3
-
-# Trust join behavior
-# External trust -- allow creating trust to a non-root domain in the forest
-TRUST_JOIN_EXTERNAL = 1
 
 
 def is_sid_valid(sid):
@@ -150,6 +145,7 @@ pysss_type_key_translation_dict = {
     # Used for users with magic private groups
     pysss_nss_idmap.ID_BOTH: 'both',
 }
+
 
 class TrustTopologyConflictSolved(Exception):
     """
@@ -1254,9 +1250,26 @@ class TrustDomainInstance(object):
             dname = lsa.String()
             dname.string = another_domain.info['dns_domain']
             res = self._pipe.QueryTrustedDomainInfoByName(
-                                self._policy_handle,
-                                dname,
-                                lsa.LSA_TRUSTED_DOMAIN_INFO_FULL_INFO)
+                self._policy_handle,
+                dname,
+                lsa.LSA_TRUSTED_DOMAIN_INFO_FULL_INFO
+            )
+            if res.info_ex.trust_type != lsa.LSA_TRUST_TYPE_UPLEVEL:
+                msg = _('There is already a trust to {ipa_domain} with '
+                        'unsupported type {trust_type}. Please remove '
+                        'it manually on AD DC side.')
+                ttype = trust_type_string(
+                    res.info_ex.trust_type, res.info_ex.trust_attributes
+                )
+                err = unicode(msg).format(
+                    ipa_domain=another_domain.info['dns_domain'],
+                    trust_type=ttype)
+
+                raise errors.ValidationError(
+                    name=_('AD domain controller'),
+                    error=err
+                )
+
             self._pipe.DeleteTrustedDomain(self._policy_handle,
                                            res.info_ex.sid)
         except RuntimeError as e:
