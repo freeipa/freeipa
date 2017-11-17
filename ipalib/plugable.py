@@ -485,6 +485,11 @@ class API(ReadOnly):
         handler.setFormatter(ipa_log_manager.Formatter(LOGGING_FORMAT_STDERR))
         root_logger.addHandler(handler)
 
+        # check after logging is set up but before we create files.
+        fse = sys.getfilesystemencoding()
+        if fse.lower() not in {'utf-8', 'utf8'}:
+            raise errors.SystemEncodingError(encoding=fse)
+
         # Add file handler:
         if self.env.mode in ('dummy', 'unit_test'):
             return  # But not if in unit-test mode
