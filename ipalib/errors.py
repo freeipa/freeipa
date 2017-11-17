@@ -452,6 +452,18 @@ class EnvironmentError(PublicError):
 
     errno = 912
 
+
+class SystemEncodingError(PublicError):
+    """
+    **913** Raised when system encoding is not UTF-8
+    """
+
+    errno = 913
+    format = _(
+        "System encoding must be UTF-8, '%(encoding)s' is not supported. "
+        "Set LC_ALL=\"C.UTF-8\", or LC_ALL=\"\" and LC_CTYPE=\"C.UTF-8\"."
+    )
+
 ##############################################################################
 # 1000 - 1999: Authentication errors
 class AuthenticationError(PublicError):
