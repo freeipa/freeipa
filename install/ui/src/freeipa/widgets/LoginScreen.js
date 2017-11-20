@@ -97,8 +97,8 @@ define(['dojo/_base/declare',
 
             this.cert_btn_node = IPA.button({
                 name: 'cert_auth',
-                title:"Login using personal certificate",
-                label: "Login Using Certificate",
+                title:"Log in using personal certificate",
+                label: "Log In Using Certificate",
                 button_class: 'btn btn-link',
                 click: this.login_with_cert.bind(this)
             })[0];
