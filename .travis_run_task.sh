@@ -5,7 +5,6 @@
 # NOTE: this script is intended to run in Travis CI only
 
 test_set=""
-developer_mode_opt="--developer-mode"
 
 if [[ $PYTHON == "/usr/bin/python2" ]]
 then
@@ -14,6 +13,15 @@ else
 env_opt=""
 fi
 
+case "$TASK_TO_RUN" in
+    lint|tox)
+        # disable developer mode for lint and tox tasks.
+        developer_mode_opt=""
+        ;;
+    *)
+        developer_mode_opt="--developer-mode"
+        ;;
+esac
 
 function truncate_log_to_test_failures() {
     # chop off everything in the CI_RESULTS_LOG preceding pytest error output
@@ -32,9 +40,6 @@ then
     then
         git diff origin/$TRAVIS_BRANCH -U0 | pycodestyle --diff &> $PEP8_ERROR_LOG ||:
     fi 
-
-    # disable developer mode for lint task, otherwise we get an error
-    developer_mode_opt=""
 fi
 
 if [[ -n "$TESTS_TO_RUN" ]]
