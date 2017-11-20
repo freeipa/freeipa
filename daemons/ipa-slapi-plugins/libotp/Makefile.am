@@ -15,4 +15,4 @@ libotp_la_LIBADD = libhotp.la
 
 check_PROGRAMS = t_hotp
 TESTS = $(check_PROGRAMS)
-t_hotp_LDADD = $(NSPR_LIBS) $(NSS_LIBS) libhotp.la
+t_hotp_LDADD = libhotp.la $(NSPR_LIBS) $(NSS_LIBS)
