@@ -285,7 +285,7 @@ define(['dojo/_base/declare',
                     },
                     {
                         name: 'logout',
-                        label: 'Logout',
+                        label: 'Log out',
                         icon: 'fa-sign-out'
                     }
                 ]
