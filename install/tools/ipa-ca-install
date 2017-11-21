@@ -178,7 +178,7 @@ def install_replica(safe_options, options, filename):
     # Run ipa-certupdate to ensure we have the CA cert.  This is
     # necessary if the admin has just promoted the topology from
     # CA-less to CA-ful, and ipa-certupdate has not been run yet.
-    CertUpdate.run_with_api(api)
+    CertUpdate(None, None).run()
 
     # CertUpdate restarts DS causing broken pipe on the original
     # connection, so reconnect the backend.
@@ -257,7 +257,8 @@ def install_master(safe_options, options):
     # Run ipa-certupdate to add the new CA certificate to
     # certificate databases on this server.
     logger.info("Updating certificate databases.")
-    CertUpdate.run_with_api(api)
+    CertUpdate(None, None).run()
+
 
 def install(safe_options, options, filename):
     options.promote = False

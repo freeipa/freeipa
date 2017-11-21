@@ -51,24 +51,16 @@ class CertUpdate(admintool.AdminTool):
         super(CertUpdate, self).validate_options(needs_root=True)
 
     def run(self):
-        check_client_configuration()
-
-        api.bootstrap(context='cli_installer', confdir=paths.ETC_IPA)
-        api.finalize()
-
-        api.Backend.rpcclient.connect()
-        self.run_with_api(api)
-        api.Backend.rpcclient.disconnect()
-
-    @classmethod
-    def run_with_api(cls, api):
         """
         Run the certupdate procedure with the given API object.
-
-        :param api: API object with ldap2/rpcclient backend connected
-                    (such that Commands can be invoked)
-
         """
+        check_client_configuration()
+
+        if not api.isdone('finalize'):
+            api.bootstrap(context='cli_installer', confdir=paths.ETC_IPA)
+            api.finalize()
+        connected = api.env.in_server or api.Backend.rpcclient.isconnected()
+
         server = urlsplit(api.env.jsonrpc_uri).hostname
         ldap_uri = ipaldap.get_ldap_uri(server)
         ldap = ipaldap.LDAPClient(ldap_uri)
@@ -80,6 +72,9 @@ class CertUpdate(admintool.AdminTool):
             principal = str('host/%s@%s' % (api.env.host, api.env.realm))
             kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_name)
             os.environ['KRB5CCNAME'] = ccache_name
+
+            if not connected:
+                api.Backend.rpcclient.connect()
 
             try:
                 result = api.Command.ca_is_enabled(version=u'2.107')
@@ -104,10 +99,12 @@ class CertUpdate(admintool.AdminTool):
             else:
                 os.environ['KRB5CCNAME'] = old_krb5ccname
             shutil.rmtree(tmpdir)
+            if not connected:
+                api.Backend.rpcclient.disconnect()
 
         server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
         if server_fstore.has_files():
-            cls.update_server(certs)
+            self.update_server(certs)
             try:
                 # pylint: disable=import-error,ipa-forbidden-import
                 from ipaserver.install import cainstance
@@ -117,13 +114,12 @@ class CertUpdate(admintool.AdminTool):
                 logger.exception(
                     "Failed to add lightweight CA tracking requests")
 
-        cls.update_client(certs)
+        self.update_client(certs)
 
-    @classmethod
-    def update_client(cls, certs):
-        cls.update_file(paths.IPA_CA_CRT, certs)
-        cls.update_file(paths.KDC_CA_BUNDLE_PEM, certs)
-        cls.update_file(paths.CA_BUNDLE_PEM, certs)
+    def update_client(self, certs):
+        self.update_file(paths.IPA_CA_CRT, certs)
+        self.update_file(paths.KDC_CA_BUNDLE_PEM, certs)
+        self.update_file(paths.CA_BUNDLE_PEM, certs)
 
         ipa_db = certdb.NSSDatabase(api.env.nss_dir)
 
@@ -137,20 +133,19 @@ class CertUpdate(admintool.AdminTool):
                                  nickname, ipa_db.secdir, e)
                     break
 
-        cls.update_db(ipa_db.secdir, certs)
+        self.update_db(ipa_db.secdir, certs)
 
         tasks.remove_ca_certs_from_systemwide_ca_store()
         tasks.insert_ca_certs_into_systemwide_ca_store(certs)
 
-    @classmethod
-    def update_server(cls, certs):
+    def update_server(self, certs):
         instance = '-'.join(api.env.realm.split('.'))
-        cls.update_db(
+        self.update_db(
             paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance, certs)
         if services.knownservices.dirsrv.is_running():
             services.knownservices.dirsrv.restart(instance)
 
-        cls.update_db(paths.HTTPD_ALIAS_DIR, certs)
+        self.update_db(paths.HTTPD_ALIAS_DIR, certs)
         if services.knownservices.httpd.is_running():
             services.knownservices.httpd.restart()
 
@@ -181,19 +176,17 @@ class CertUpdate(admintool.AdminTool):
             logger.debug("modifying certmonger request '%s'", request_id)
             certmonger.modify(request_id, ca='dogtag-ipa-ca-renew-agent')
 
-        cls.update_file(paths.CA_CRT, certs)
-        cls.update_file(paths.CACERT_PEM, certs)
+        self.update_file(paths.CA_CRT, certs)
+        self.update_file(paths.CACERT_PEM, certs)
 
-    @staticmethod
-    def update_file(filename, certs, mode=0o444):
+    def update_file(self, filename, certs, mode=0o444):
         certs = (c[0] for c in certs if c[2] is not False)
         try:
             x509.write_certificate_list(certs, filename)
         except Exception as e:
             logger.error("failed to update %s: %s", filename, e)
 
-    @staticmethod
-    def update_db(path, certs):
+    def update_db(self, path, certs):
         db = certdb.NSSDatabase(path)
         for cert, nickname, trusted, eku in certs:
             trust_flags = certstore.key_policy_to_trust_flags(
