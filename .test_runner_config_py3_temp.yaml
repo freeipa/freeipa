@@ -26,11 +26,12 @@ server:
   realm: IPA.TEST
 steps:
   build:
-  - make V=0 ${make_target}
+  - make V=0 ${make_target} LOG_COMPILE="gdb -batch -ex 'run; bt full'"
   builddep:
   - rm -rf /var/cache/dnf/*
   - "dnf makecache || :"
   - dnf builddep -y ${builddep_opts} --spec freeipa.spec.in --best --allowerasing
+  - dnf install -y gdb
   cleanup:
   - chown -R ${uid}:${gid} ${container_working_dir}
   - >
@@ -41,6 +42,7 @@ steps:
       /var/log/krb5kdc.log
       /var/log/pki
       systemd_journal.log
+      `find daemons -name '*.log' -print`
   - chown ${uid}:${gid} ${container_working_dir}/var_log.tar
   configure:
   - ./autogen.sh
