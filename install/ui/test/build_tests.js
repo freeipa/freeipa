@@ -29,15 +29,9 @@ define([
        function(declare, Builder, C_reg, Spec_mod, IPA, su) {  return function() {
 
 
-module('build',{
+QUnit.module('build');
 
-    setup: function() {
-    },
-    teardown: function() {
-    }
-});
-
-test('Testing builder', function() {
+QUnit.test('Testing builder', function(assert) {
 
     var simple_factory = function(spec) {
 
@@ -69,18 +63,18 @@ test('Testing builder', function() {
     var r2 = new Simple_class({});
     var r21 = new Simple_class({ foo:'baz'});
 
-    deepEqual(o1, r1, 'Factory, default');
-    deepEqual(o11, r11, 'Factory, spec use');
+    assert.deepEqual(o1, r1, 'Factory, default');
+    assert.deepEqual(o11, r11, 'Factory, spec use');
 
-    deepEqual(o2, r2, 'Constructor, default');
-    deepEqual(o21, r21, 'Constructor, spec use');
+    assert.deepEqual(o2, r2, 'Constructor, default');
+    assert.deepEqual(o21, r21, 'Constructor, spec use');
 
-    strictEqual(o11, o12, 'Don\'t build built object - factory');
-    strictEqual(o21, o22, 'Don\'t build built object - constructor');
+    assert.strictEqual(o11, o12, 'Don\'t build built object - factory');
+    assert.strictEqual(o21, o22, 'Don\'t build built object - constructor');
 
 });
 
-test('Testing Spec_mod', function() {
+QUnit.test('Testing Spec_mod', function(assert) {
 
     var sm = new Spec_mod();
 
@@ -149,7 +143,7 @@ test('Testing Spec_mod', function() {
 
     sm.mod(spec, diff);
 
-    deepEqual(spec, ref, 'Complex Modification');
+    assert.deepEqual(spec, ref, 'Complex Modification');
 
     spec = {
         a: [ 'a1', 'a2', 'a3' ]
@@ -157,10 +151,10 @@ test('Testing Spec_mod', function() {
     var rules = [[ 'a', 'new', 1]];
     sm.add(spec, rules);
 
-    deepEqual(spec, { a: ['a1', 'new', 'a2', 'a3'] }, 'Add on position');
+    assert.deepEqual(spec, { a: ['a1', 'new', 'a2', 'a3'] }, 'Add on position');
 });
 
-test('Testing Construct registry', function() {
+QUnit.test('Testing Construct registry', function(assert) {
 
     var undefined;
 
@@ -171,22 +165,22 @@ test('Testing Construct registry', function() {
     cr.register('ctor', ctor);
 
     var ctor_cs = cr.get('ctor');
-    equals(ctor_cs.type, 'ctor', 'Ctor: Match type');
-    equals(ctor_cs.ctor, ctor, 'Ctor: Match ctor');
-    equals(ctor_cs.factory, undefined, 'Ctor: Match factory');
-    equals(ctor_cs.pre_ops.length, 0, 'Ctor: No pre_ops');
-    equals(ctor_cs.post_ops.length, 0, 'Ctor: No post_ops');
+    assert.equal(ctor_cs.type, 'ctor', 'Ctor: Match type');
+    assert.equal(ctor_cs.ctor, ctor, 'Ctor: Match ctor');
+    assert.equal(ctor_cs.factory, undefined, 'Ctor: Match factory');
+    assert.equal(ctor_cs.pre_ops.length, 0, 'Ctor: No pre_ops');
+    assert.equal(ctor_cs.post_ops.length, 0, 'Ctor: No post_ops');
 
     // test simple factory registration
     var fac = function(){};
     cr.register('fac', fac);
 
     var fac_cs = cr.get('fac');
-    equals(fac_cs.type, 'fac', 'Factory: Match type');
-    equals(fac_cs.ctor, undefined, 'Factory: Match ctor');
-    equals(fac_cs.factory, fac, 'Factory: Match factory');
-    equals(fac_cs.pre_ops.length, 0, 'Factory: No pre_ops');
-    equals(fac_cs.post_ops.length, 0, 'Factory: No post_ops');
+    assert.equal(fac_cs.type, 'fac', 'Factory: Match type');
+    assert.equal(fac_cs.ctor, undefined, 'Factory: Match ctor');
+    assert.equal(fac_cs.factory, fac, 'Factory: Match factory');
+    assert.equal(fac_cs.pre_ops.length, 0, 'Factory: No pre_ops');
+    assert.equal(fac_cs.post_ops.length, 0, 'Factory: No post_ops');
 
 
     // test complex registration
@@ -201,22 +195,22 @@ test('Testing Construct registry', function() {
     };
     cr.register(cs);
     var complex_cs = cr.get('complex');
-    equals(complex_cs.type, 'complex', 'Complex: Match type');
-    equals(complex_cs.ctor, ctor, 'Complex: Match ctor');
-    equals(complex_cs.factory, fac, 'Complex: Match factory');
-    equals(complex_cs.pre_ops.length, 0, 'Complex: No pre_ops');
-    equals(complex_cs.post_ops.length, 0, 'Complex: No post_ops');
-    deepEqual(complex_cs.spec, spec, 'Complex: Match spec');
+    assert.equal(complex_cs.type, 'complex', 'Complex: Match type');
+    assert.equal(complex_cs.ctor, ctor, 'Complex: Match ctor');
+    assert.equal(complex_cs.factory, fac, 'Complex: Match factory');
+    assert.equal(complex_cs.pre_ops.length, 0, 'Complex: No pre_ops');
+    assert.equal(complex_cs.post_ops.length, 0, 'Complex: No post_ops');
+    assert.deepEqual(complex_cs.spec, spec, 'Complex: Match spec');
 
     // copy: new cs based on existing
     cr.copy('complex', 'copy', {}); // pure copy
     var copy_cs = cr.get('copy');
-    equals(copy_cs.type, 'copy', 'Copy: Match type');
-    equals(copy_cs.ctor, ctor, 'Copy: Match ctor');
-    equals(copy_cs.factory, fac, 'Copy: Match factory');
-    equals(copy_cs.pre_ops.length, 0, 'Copy: No pre_ops');
-    equals(copy_cs.post_ops.length, 0, 'Copy: No post_ops');
-    deepEqual(copy_cs.spec, spec, 'Copy: Match spec');
+    assert.equal(copy_cs.type, 'copy', 'Copy: Match type');
+    assert.equal(copy_cs.ctor, ctor, 'Copy: Match ctor');
+    assert.equal(copy_cs.factory, fac, 'Copy: Match factory');
+    assert.equal(copy_cs.pre_ops.length, 0, 'Copy: No pre_ops');
+    assert.equal(copy_cs.post_ops.length, 0, 'Copy: No post_ops');
+    assert.deepEqual(copy_cs.spec, spec, 'Copy: Match spec');
 
     // add post op and pre op to complex
     var op1 = function() {};
@@ -226,11 +220,11 @@ test('Testing Construct registry', function() {
 
     cr.register_pre_op('complex', op1);
     cr.register_pre_op('complex', op2, true /* first*/);
-    deepEqual(complex_cs.pre_ops, [op2, op1], 'Adding pre_ops');
+    assert.deepEqual(complex_cs.pre_ops, [op2, op1], 'Adding pre_ops');
 
     cr.register_post_op('complex', op3);
     cr.register_post_op('complex', op4, true);
-    deepEqual(complex_cs.post_ops, [op4, op3], 'Adding post_ops');
+    assert.deepEqual(complex_cs.post_ops, [op4, op3], 'Adding post_ops');
 
 
     // copy: altered
@@ -249,15 +243,15 @@ test('Testing Construct registry', function() {
     });
     var a_copy_cs = cr.get('copy2');
 
-    equals(a_copy_cs.type, 'copy2', 'Altered copy: Match type');
-    equals(a_copy_cs.ctor, ctor2, 'Altered copy: Match ctor');
-    equals(a_copy_cs.factory, fac2, 'Altered copy: Match factory');
-    deepEqual(a_copy_cs.spec, {
+    assert.equal(a_copy_cs.type, 'copy2', 'Altered copy: Match type');
+    assert.equal(a_copy_cs.ctor, ctor2, 'Altered copy: Match ctor');
+    assert.equal(a_copy_cs.factory, fac2, 'Altered copy: Match factory');
+    assert.deepEqual(a_copy_cs.spec, {
         name: 'spec',
         foo: 'bar'
     }, 'Altered copy: Match spec');
-    deepEqual(a_copy_cs.pre_ops, [op2, op1, op5], 'Altered copy: Match pre_ops');
-    deepEqual(a_copy_cs.post_ops, [op4, op3, op6], 'Altered copy: Match post_ops');
+    assert.deepEqual(a_copy_cs.pre_ops, [op2, op1, op5], 'Altered copy: Match pre_ops');
+    assert.deepEqual(a_copy_cs.post_ops, [op4, op3, op6], 'Altered copy: Match post_ops');
 });
 
 

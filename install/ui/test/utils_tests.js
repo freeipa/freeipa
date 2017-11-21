@@ -29,9 +29,9 @@ define([
 
 var old;
 
-module('utils',{
+QUnit.module('utils',{
 
-    setup: function() {
+    beforeEach: function() {
         old = IPA.messages;
         IPA.messages = {
             widget: {
@@ -45,12 +45,12 @@ module('utils',{
             }
         };
     },
-    teardown: function() {
+    afterEach: function() {
         IPA.messages = old;
     }
 });
 
-test('Testing metadata validator', function() {
+QUnit.test('Testing metadata validator', function(assert) {
 
     // using strings as values because it is an output of inputs
 
@@ -69,24 +69,24 @@ test('Testing metadata validator', function() {
     var value;
 
     value = "50";
-    ok(validator.validate(value, context).valid, 'Checking lower maximun, alphabetically higher');
+    assert.ok(validator.validate(value, context).valid, 'Checking lower maximun, alphabetically higher');
 
     value = "200";
-    ok(validator.validate(value, context).valid, 'Checking higher minimum, alphabetically lower');
+    assert.ok(validator.validate(value, context).valid, 'Checking higher minimum, alphabetically lower');
 
     value = "29";
-    ok(!validator.validate(value, context).valid, 'Checking below minimum');
+    assert.ok(!validator.validate(value, context).valid, 'Checking below minimum');
 
     value = "301";
-    ok(!validator.validate(value, context).valid, 'Checking above maximum');
+    assert.ok(!validator.validate(value, context).valid, 'Checking above maximum');
 
     context.metadata.minvalue = 0;
     value = "-1";
-    ok(!validator.validate(value, context).valid, 'Checking zero minimum - below');
+    assert.ok(!validator.validate(value, context).valid, 'Checking zero minimum - below');
     value = "0";
-    ok(validator.validate(value, context).valid, 'Checking zero minimum - above');
+    assert.ok(validator.validate(value, context).valid, 'Checking zero minimum - above');
     value = "1";
-    ok(validator.validate(value, context).valid, 'Checking zero minimum - same');
+    assert.ok(validator.validate(value, context).valid, 'Checking zero minimum - same');
 
     context.metadata = {
         type: 'int',
@@ -94,21 +94,21 @@ test('Testing metadata validator', function() {
         minvalue: ""
     };
 
-    ok(validator.validate(value, context).valid, 'Checking empty strings as boundaries');
+    assert.ok(validator.validate(value, context).valid, 'Checking empty strings as boundaries');
 
     context.metadata = {
         type: 'int',
         maxvalue: null,
         minvalue: null
     };
-    ok(validator.validate(value, context).valid, 'Checking null as boundaries');
+    assert.ok(validator.validate(value, context).valid, 'Checking null as boundaries');
 
     context.metadata = {
         type: 'int',
         maxvalue: undefined,
         minvalue: undefined
     };
-    ok(validator.validate(value, context).valid, 'Checking undefined as boundaries');
+    assert.ok(validator.validate(value, context).valid, 'Checking undefined as boundaries');
 
     context.metadata = {
         type: 'Decimal',
@@ -117,51 +117,51 @@ test('Testing metadata validator', function() {
     };
 
     value = "10.333";
-    ok(validator.validate(value, context).valid, 'Decimal: checking maximum');
+    assert.ok(validator.validate(value, context).valid, 'Decimal: checking maximum');
     value = "10.3331";
-    ok(!validator.validate(value, context).valid, 'Decimal: checking maximum - invalid');
+    assert.ok(!validator.validate(value, context).valid, 'Decimal: checking maximum - invalid');
 
     value = "-10.333";
-    ok(validator.validate(value, context).valid, 'Decimal: checking minimum');
+    assert.ok(validator.validate(value, context).valid, 'Decimal: checking minimum');
     value = "-10.3331";
-    ok(!validator.validate(value, context).valid, 'Decimal: checking minimum - invalid');
+    assert.ok(!validator.validate(value, context).valid, 'Decimal: checking minimum - invalid');
 });
 
-test('Testing IPA.defined', function() {
+QUnit.test('Testing IPA.defined', function(assert) {
 
     // positive
-    same(IPA.defined({}), true, 'Object');
-    same(IPA.defined(0), true, 'Zero number');
-    same(IPA.defined(1), true, 'Some number');
-    same(IPA.defined(false), true, 'false');
-    same(IPA.defined(true), true, 'true');
-    same(IPA.defined(function(){}), true, 'function');
-    same(IPA.defined(''), true, 'Empty string - not checking');
+    assert.deepEqual(IPA.defined({}), true, 'Object');
+    assert.deepEqual(IPA.defined(0), true, 'Zero number');
+    assert.deepEqual(IPA.defined(1), true, 'Some number');
+    assert.deepEqual(IPA.defined(false), true, 'false');
+    assert.deepEqual(IPA.defined(true), true, 'true');
+    assert.deepEqual(IPA.defined(function(){}), true, 'function');
+    assert.deepEqual(IPA.defined(''), true, 'Empty string - not checking');
 
     // negative
-    same(IPA.defined('', true), false, 'Empty string - checking');
-    same(IPA.defined(undefined), false, 'undefined');
-    same(IPA.defined(null), false, 'null');
+    assert.deepEqual(IPA.defined('', true), false, 'Empty string - checking');
+    assert.deepEqual(IPA.defined(undefined), false, 'undefined');
+    assert.deepEqual(IPA.defined(null), false, 'null');
 });
 
-test('Testing util.equals', function() {
+QUnit.test('Testing util.equals', function(assert) {
 
-    ok(util.equals([], []), 'Empty Arrays');
-    ok(util.equals([1, "a", false, true], [1, "a", false, true]), 'Arrays');
-    ok(util.equals(true, true), 'Boolean: true');
-    ok(util.equals(false, false), 'Boolean: false');
-    ok(!util.equals(true, false), 'Negative: boolean');
-    ok(!util.equals(false, true), 'Negative: boolean');
-    ok(util.equals("abc", "abc"), 'Positive: strings');
-    ok(!util.equals("abc", "aBC"), 'Negative: string casing');
-    ok(util.equals(1, 1), 'Positive: number');
-    ok(util.equals(1.0, 1), 'Positive: number');
-    ok(util.equals(2.2, 2.2), 'Positive: number');
+    assert.ok(util.equals([], []), 'Empty Arrays');
+    assert.ok(util.equals([1, "a", false, true], [1, "a", false, true]), 'Arrays');
+    assert.ok(util.equals(true, true), 'Boolean: true');
+    assert.ok(util.equals(false, false), 'Boolean: false');
+    assert.ok(!util.equals(true, false), 'Negative: boolean');
+    assert.ok(!util.equals(false, true), 'Negative: boolean');
+    assert.ok(util.equals("abc", "abc"), 'Positive: strings');
+    assert.ok(!util.equals("abc", "aBC"), 'Negative: string casing');
+    assert.ok(util.equals(1, 1), 'Positive: number');
+    assert.ok(util.equals(1.0, 1), 'Positive: number');
+    assert.ok(util.equals(2.2, 2.2), 'Positive: number');
 
-    ok(!util.equals([], [""]), 'Negative: empty array');
+    assert.ok(!util.equals([], [""]), 'Negative: empty array');
 });
 
-test('Testing datetime', function() {
+QUnit.test('Testing datetime', function(assert) {
 
     var valid = [
         // [format, str, data, utc, output]
@@ -219,19 +219,19 @@ test('Testing datetime', function() {
 
         var parsed = datetime.parse(str);
 
-        ok(parsed, "Parse successful: "+str);
+        assert.ok(parsed, "Parse successful: "+str);
         if (!parsed) return; // don't die for other tests
-        strictEqual(parsed.getTime(), expected.getTime(), "Valid date: "+str);
+        assert.strictEqual(parsed.getTime(), expected.getTime(), "Valid date: "+str);
 
         var formatted = datetime.format(parsed, format, !utc);
         expected = output || str;
-        strictEqual(formatted, expected, "Format: "+format);
+        assert.strictEqual(formatted, expected, "Format: "+format);
     }
 
     function test_invalid(str, utc) {
         datetime.allow_local = !utc;
         var parsed = datetime.parse(str);
-        strictEqual(parsed, null, "Parse invalid date: "+str);
+        assert.strictEqual(parsed, null, "Parse invalid date: "+str);
     }
 
     for (i=0, l=valid.length; i < l; i++) {
