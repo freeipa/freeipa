@@ -18,42 +18,45 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/certificate'], function(IPA, $) {
-    return function() {
+define(['freeipa/ipa',
+        'freeipa/jquery',
+        'freeipa/certificate'],
+    function(IPA, $) {
+        return function() {
 
-module('certificate');
+QUnit.module('certificate');
 
-test("Testing certificate_parse_dn().", function() {
+QUnit.test("Testing certificate_parse_dn().", function(assert) {
 
-    same(
+    assert.deepEqual(
         IPA.cert.parse_dn(), {},
         "Checking IPA.cert.parse_dn()");
 
-    same(
+    assert.deepEqual(
         IPA.cert.parse_dn(''), {},
         "Checking IPA.cert.parse_dn('')");
 
-    same(
+    assert.deepEqual(
         IPA.cert.parse_dn('c=US'), {'c': 'US'},
         "Checking IPA.cert.parse_dn('c=US')");
 
-    same(
+    assert.deepEqual(
         IPA.cert.parse_dn('st=TX,c=US'), {'st': 'TX','c': 'US'},
         "Checking IPA.cert.parse_dn('st=TX,c=US')");
 
-    same(
+    assert.deepEqual(
         IPA.cert.parse_dn('c=US,st=TX'), {'st': 'TX','c': 'US'},
         "Checking IPA.cert.parse_dn('c=US,st=TX')");
 
-    same(
+    assert.deepEqual(
         IPA.cert.parse_dn(' st = New Mexico , c = US '), {'st': 'New Mexico','c': 'US'},
         "Checking IPA.cert.parse_dn(' st = New Mexico , c = US ')");
 
-    same(
+    assert.deepEqual(
         IPA.cert.parse_dn('ST=TX,C=US'), {'st': 'TX','c': 'US'},
         "Checking IPA.cert.parse_dn('ST=TX,C=US')");
 
-    same(
+    assert.deepEqual(
         IPA.cert.parse_dn('cn=dev.example.com,ou=Engineering,o=Example,l=Austin,ST=TX,C=US'),
         {   'cn': 'dev.example.com',
             'ou': 'Engineering',
@@ -64,7 +67,7 @@ test("Testing certificate_parse_dn().", function() {
         },
         "Checking IPA.cert.parse_dn('cn=dev.example.com,ou=Engineering,o=Example,l=Austin,ST=TX,C=US')");
 
-    same(
+    assert.deepEqual(
         IPA.cert.parse_dn('cn=John Smith,ou=Developers,ou=Users,dc=example,dc=com'),
         {
             'cn': 'John Smith',

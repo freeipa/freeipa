@@ -28,12 +28,12 @@ define([
 ], function(IPA, $, rpc)
     { return function() {
 
-module('association');
+QUnit.module('association');
 
 
-test("Testing serial_associator().", function() {
+QUnit.test("Testing serial_associator().", function(assert) {
 
-    expect(11);
+    assert.expect(11);
 
     var orig_ipa_batch_command = rpc.batch_command;
 
@@ -54,7 +54,7 @@ test("Testing serial_associator().", function() {
         var that = orig_ipa_batch_command(spec);
 
         that.execute = function() {
-            equals(that.commands.length, params.values.length,
+            assert.equal(that.commands.length, params.values.length,
                    'Checking rpc.batch_command command count');
 
             var i, command;
@@ -62,15 +62,15 @@ test("Testing serial_associator().", function() {
             for(i=0; i < params.values.length; i++) {
                 command = that.commands[i];
 
-                equals(
+                assert.equal(
                     command.entity, params.other_entity.name,
                     'Checking rpc.command() parameter: entity');
 
-                equals(
+                assert.equal(
                     command.method, params.method,
                     'Checking rpc.command() parameter: method');
 
-                equals(
+                assert.equal(
                     command.args[0], 'user'+(i+1),
                     'Checking rpc.command() parameter: primary key');
             }
@@ -82,7 +82,7 @@ test("Testing serial_associator().", function() {
     };
 
     params.on_success = function() {
-        ok(true, "on_success() is invoked.");
+        assert.ok(true, "on_success() is invoked.");
     };
 
     var associator = IPA.serial_associator(params);
@@ -91,9 +91,9 @@ test("Testing serial_associator().", function() {
     rpc.batch_command = orig_ipa_batch_command;
 });
 
-test("Testing bulk_associator().", function() {
+QUnit.test("Testing bulk_associator().", function(assert) {
 
-    expect(4);
+    assert.expect(4);
 
     var orig_ipa_command = rpc.command;
 
@@ -118,15 +118,15 @@ test("Testing bulk_associator().", function() {
         that.execute = function() {
             counter++;
 
-            equals(
+            assert.equal(
                 that.method, params.method,
                 'Checking rpc.command() parameter: method');
 
-            equals(
+            assert.equal(
                 that.args[0], params.pkey,
                 'Checking rpc.command() parameter: primary key');
 
-            equals(
+            assert.equal(
                 that.options[params.other_entity.name], 'user1,user2,user3',
                 'Checking rpc.command() parameter: options[\""+params.other_entity+"\"]');
 
@@ -137,7 +137,7 @@ test("Testing bulk_associator().", function() {
     };
 
     params.on_success = function() {
-        ok(true, "on_success() is invoked.");
+        assert.ok(true, "on_success() is invoked.");
     };
 
     var associator = IPA.bulk_associator(params);

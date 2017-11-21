@@ -28,13 +28,7 @@ define([
        function(builder, FieldBinder, mod_widget, mod_field) {  return function() {
 
 
-module('build',{
-
-    setup: function() {
-    },
-    teardown: function() {
-    }
-});
+QUnit.module('binding');
 
 
 /**
@@ -42,17 +36,17 @@ module('build',{
  *
  * All three have to have the same value.
  */
-test('Testing two way bindings', function() {
+QUnit.test('Testing two way bindings', function(assert) {
 
     function test_same_value(value, dirty) {
         if (dirty) {
-            ok(field.dirty, "Field is dirty")
+            assert.ok(field.dirty, "Field is dirty")
         } else {
-            ok(!field.dirty, "Field is not dirty")
+            assert.ok(!field.dirty, "Field is not dirty")
         }
-        same(widget1.get_value(), value, 'Testing Widget 1 value');
-        same(widget2.get_value(), value, 'Testing Widget 2 value');
-        same(field.get_value(), value, 'Testing Field value');
+        assert.deepEqual(widget1.get_value(), value, 'Testing Widget 1 value');
+        assert.deepEqual(widget2.get_value(), value, 'Testing Widget 2 value');
+        assert.deepEqual(field.get_value(), value, 'Testing Field value');
     }
 
     mod_widget.register();
@@ -110,9 +104,9 @@ test('Testing two way bindings', function() {
     b2.unbind();
     field.reset();
     widget2.set_value(value3);
-    same(widget1.get_value(), value2, 'Testing Widget 1 value');
-    same(widget2.get_value(), value3, 'Testing Widget 2 value');
-    same(field.get_value(), value, 'Testing Field value');
+    assert.deepEqual(widget1.get_value(), value2, 'Testing Widget 1 value');
+    assert.deepEqual(widget2.get_value(), value3, 'Testing Widget 2 value');
+    assert.deepEqual(field.get_value(), value, 'Testing Field value');
 
     // bind again
     b1.bind();

@@ -18,21 +18,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['freeipa/jquery'], function($) {
+ define(['freeipa/jquery'], function($) {
     return function() {
+QUnit.module('ordered_map');
 
-module('ordered_map');
-
-test("Testing $.ordered_map constructor.", function() {
+QUnit.test("Testing $.ordered_map constructor.", function(assert) {
 
     var test = $.ordered_map();
 
-    strictEqual(test.length, 0, "Checking length.");
-    deepEqual(test.keys, [], "Checking keys.");
-    deepEqual(test.values, [], "Checking values.");
+    assert.strictEqual(test.length, 0, "Checking length.");
+    assert.deepEqual(test.keys, [], "Checking keys.");
+    assert.deepEqual(test.values, [], "Checking values.");
 });
 
-test("Testing $.ordered_map.put().", function() {
+QUnit.test("Testing $.ordered_map.put().", function(assert) {
 
     var test = $.ordered_map();
 
@@ -80,12 +79,12 @@ test("Testing $.ordered_map.put().", function() {
     test.put(key7, value7, 100); //put at end
     test.put(key8, value8, 'foobar'); //put at end
 
-    strictEqual(test.length, 8, 'Checking length.');
-    deepEqual(test.keys, [key5, key4, key1, key3, key2, key6, key7, key8], 'Checking keys.');
-    deepEqual(test.values, [value5, value4, value1, value3, value2, value6, value7, value8], 'Checking values.');
+    assert.strictEqual(test.length, 8, 'Checking length.');
+    assert.deepEqual(test.keys, [key5, key4, key1, key3, key2, key6, key7, key8], 'Checking keys.');
+    assert.deepEqual(test.values, [value5, value4, value1, value3, value2, value6, value7, value8], 'Checking values.');
 });
 
-test("Testing $.ordered_map.get().", function() {
+QUnit.test("Testing $.ordered_map.get().", function(assert) {
 
     var test = $.ordered_map();
 
@@ -105,14 +104,14 @@ test("Testing $.ordered_map.get().", function() {
     var result1 = test.get(key1);
     var result2 = test.get(key2);
 
-    strictEqual(test.length, 2, 'Checking length.');
-    deepEqual(test.keys, [key1, key2], 'Checking keys.');
-    deepEqual(test.values, [value1, value2], 'Checking values.');
-    strictEqual(result1, value1, 'Checking result 1.');
-    strictEqual(result2, value2, 'Checking result 2.');
+    assert.strictEqual(test.length, 2, 'Checking length.');
+    assert.deepEqual(test.keys, [key1, key2], 'Checking keys.');
+    assert.deepEqual(test.values, [value1, value2], 'Checking values.');
+    assert.strictEqual(result1, value1, 'Checking result 1.');
+    assert.strictEqual(result2, value2, 'Checking result 2.');
 });
 
-test("Testing $.ordered_map.remove().", function() {
+QUnit.test("Testing $.ordered_map.remove().", function(assert) {
 
     var test = $.ordered_map();
 
@@ -130,13 +129,13 @@ test("Testing $.ordered_map.remove().", function() {
 
     var result1 = test.remove(key1);
 
-    strictEqual(test.length, 1, 'Checking length.');
-    deepEqual(test.keys, [key2], 'Checking keys.');
-    deepEqual(test.values, [value2], 'Checking values.');
-    strictEqual(result1, value1, 'Checking result.');
+    assert.strictEqual(test.length, 1, 'Checking length.');
+    assert.deepEqual(test.keys, [key2], 'Checking keys.');
+    assert.deepEqual(test.values, [value2], 'Checking values.');
+    assert.strictEqual(result1, value1, 'Checking result.');
 });
 
-test("Testing $.ordered_map.empty().", function() {
+QUnit.test("Testing $.ordered_map.empty().", function(assert) {
 
     var test = $.ordered_map();
 
@@ -151,9 +150,9 @@ test("Testing $.ordered_map.empty().", function() {
 
     test.empty();
 
-    strictEqual(test.length, 0, 'Checking length.');
-    deepEqual(test.keys, [], 'Checking keys.');
-    deepEqual(test.values, [], 'Checking values.');
+    assert.strictEqual(test.length, 0, 'Checking length.');
+    assert.deepEqual(test.keys, [], 'Checking keys.');
+    assert.deepEqual(test.values, [], 'Checking values.');
 });
 
 };});
