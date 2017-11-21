@@ -6,6 +6,7 @@ services:
 python:
     - "2.7"
 cache: pip
+
 env:
     global:
         - TEST_RUNNER_IMAGE="freeipa/freeipa-test-runner:master-latest"
@@ -14,53 +15,123 @@ env:
           CI_BACKLOG_SIZE=5000
           CI_RUNNER_LOGS_DIR="/tmp/test-runner-logs"
           CI_RUNNER_LOG_ARCHIVE="freeipa-ci-pr-${TRAVIS_PULL_REQUEST}-job-${TRAVIS_JOB_NUMBER}.tar.gz"
-    matrix:
-        - TASK_TO_RUN="lint"
-          TEST_RUNNER_CONFIG=".test_runner_config.yaml"
-        - TASK_TO_RUN="run-tests"
-          PYTHON=/usr/bin/python2
-          TEST_RUNNER_CONFIG=".test_runner_config.yaml"
-          TESTS_TO_RUN="test_xmlrpc/test_[a-k]*.py"
-        - TASK_TO_RUN="run-tests"
-          PYTHON=/usr/bin/python2
-          TEST_RUNNER_CONFIG=".test_runner_config.yaml"
-          TESTS_TO_RUN="test_cmdline
-            test_install
-            test_ipaclient
-            test_ipalib
-            test_ipaplatform
-            test_ipapython
-            test_ipaserver
-            test_xmlrpc/test_[l-z]*.py"
-        - TASK_TO_RUN="run-tests"
-          PYTHON=/usr/bin/python3
-          TEST_RUNNER_CONFIG=".test_runner_config_py3_temp.yaml"
-          TESTS_TO_RUN="test_xmlrpc/test_[a-k]*.py"
-        - TASK_TO_RUN="run-tests"
-          PYTHON=/usr/bin/python3
-          TEST_RUNNER_CONFIG=".test_runner_config_py3_temp.yaml"
-          TESTS_TO_RUN="test_cmdline
-                test_install
-                test_ipaclient
-                test_ipalib
-                test_ipaplatform
-                test_ipapython
-                test_ipaserver
-                test_xmlrpc/test_[l-z]*.py"
-        - TASK_TO_RUN="tox"
-          TEST_RUNNER_CONFIG=".test_runner_config.yaml"
+          CACHE_NAME="freeipa-cache-ci-pr-${TRAVIS_PULL_REQUEST}"
+          CI_CACHE_PATH=/home/travis/freeipa-cache
+          CI_RUNNER_COMMAND="travis_wait 50 ./.travis_run_task.sh"
+
+jobs:
+    include:
+            - stage: build and tox
+              env:
+               - TASK_TO_RUN="build"
+                 TEST_RUNNER_CONFIG=".test_runner_config.yaml"
+              script:
+               - mkdir -p $CI_RUNNER_LOGS_DIR
+               - mkdir -p $CI_CACHE_PATH
+               - ${CI_RUNNER_COMMAND}
+               - ls -la $CI_CACHE_PATH >&2
+               - date >&2
+               - >
+                 if [[ -f $CI_CACHE_PATH/already_built ]] ; then
+                    rsync -avP --delete-after $CI_CACHE_PATH/* ipa-maint@fedorapeople.org:/srv/groups/freeipa/travis-ci/jobs/${TRAVIS_PULL_REQUEST}/ >&2 ;
+                 fi
+            - stage: build and tox
+              env:
+               - TASK_TO_RUN="tox"
+               - TEST_RUNNER_CONFIG=".test_runner_config.yaml"
+              script:
+               - ls -la $CI_CACHE_PATH >&2
+               - date >&2
+               - ${CI_RUNNER_COMMAND}
+            - stage: tests
+              env:
+               - TASK_TO_RUN="lint"
+                 TEST_RUNNER_CONFIG=".test_runner_config.yaml"
+              script:
+               - ls -la $CI_CACHE_PATH >&2
+               - date >&2
+               - ${CI_RUNNER_COMMAND}
+            - stage: tests
+              env:
+               - TASK_TO_RUN="run-tests"
+                 PYTHON=/usr/bin/python2
+                 TEST_RUNNER_CONFIG=".test_runner_config.yaml"
+                 TESTS_TO_RUN="test_xmlrpc/test_[a-k]*.py"
+              script:
+               - ls -la $CI_CACHE_PATH >&2
+               - date >&2
+               - ${CI_RUNNER_COMMAND}
+            - stage: tests
+              env:
+               - TASK_TO_RUN="run-tests"
+                 PYTHON=/usr/bin/python2
+                 TEST_RUNNER_CONFIG=".test_runner_config.yaml"
+                 TESTS_TO_RUN="test_cmdline
+                               test_install
+                               test_ipaclient
+                               test_ipalib
+                               test_ipaplatform
+                               test_ipapython
+                               test_ipaserver
+                               test_xmlrpc/test_[l-z]*.py"
+              script:
+               - ls -la $CI_CACHE_PATH >&2
+               - date >&2
+               - ${CI_RUNNER_COMMAND}
+            - stage: tests
+              env:
+               - TASK_TO_RUN="run-tests"
+                 PYTHON=/usr/bin/python3
+                 TEST_RUNNER_CONFIG=".test_runner_config_py3_temp.yaml"
+                 TESTS_TO_RUN="test_xmlrpc/test_[a-k]*.py"
+              script:
+               - ls -la $CI_CACHE_PATH >&2
+               - date >&2
+               - ${CI_RUNNER_COMMAND}
+            - stage: tests
+              env:
+               - TASK_TO_RUN="run-tests"
+               - PYTHON=/usr/bin/python3
+               - TEST_RUNNER_CONFIG=".test_runner_config_py3_temp.yaml"
+               - TESTS_TO_RUN="test_cmdline
+                               test_install
+                               test_ipaclient
+                               test_ipalib
+                               test_ipaplatform
+                               test_ipapython
+                               test_ipaserver
+                               test_xmlrpc/test_[l-z]*.py"
+              script:
+               - ls -la $CI_CACHE_PATH >&2
+               - date >&2
+               - ${CI_RUNNER_COMMAND}
+            - stage: verify
+              script: test -z "`cat $PEP8_ERROR_LOG`"
+
+# For more information about the nasty /dev/random hack, please see:
+# https://github.com/travis-ci/travis-ci/issues/1913#issuecomment-33891474
+before_install:
+    - sudo apt-get install --yes rng-tools rsync ssh
+    - sudo rm -f /dev/random
+    - sudo mknod -m 0666 /dev/random c 1 9
+    - echo HRNGDEVICE=/dev/urandom | sudo tee /etc/default/rng-tools
+    - sudo /etc/init.d/rng-tools restart
+    - eval `ssh-agent -s`
+    - echo $upload_key_wrap_enc | gpg --passphrase-fd 0 --output .travis.upload.key .travis.upload.key.enc
+    - ssh-add .travis.upload.key
+    - rm -f .travis.upload.key
+
 install:
     - pip install --upgrade pip
     - pip3 install --upgrade pip
     - pip install pycodestyle
     - >
       pip3 install
-      git+https://github.com/freeipa/ipa-docker-test-runner@release-0-2-2
+      git+https://github.com/freeipa/ipa-docker-test-runner@release-0-2-2 ;
+      if [[ "$TASK_TO_RUN" != "build" && "$TASK_TO_RUN" != "lint" && "$TASK_TO_RUN" != "tox" ]] ; then
+         rsync -avP ipa-maint@fedorapeople.org:/srv/groups/freeipa/travis-ci/jobs/${TRAVIS_PULL_REQUEST}/ $CI_CACHE_PATH/ >&2 ;
+      fi
 
-script:
-    - mkdir -p $CI_RUNNER_LOGS_DIR
-    - travis_wait 50 ./.travis_run_task.sh
-    - test -z "`cat $PEP8_ERROR_LOG`"
 after_failure:
     - echo "Test runner output:"; tail -n $CI_BACKLOG_SIZE $CI_RESULTS_LOG
     - echo "PEP-8 errors:"; cat $PEP8_ERROR_LOG

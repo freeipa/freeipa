@@ -12,6 +12,7 @@ host:
   binds:
   - /sys/fs/cgroup:/sys/fs/cgroup:ro
   - /dev/urandom:/dev/random:ro
+  - /home/travis/freeipa-cache:/freeipa-cache
   privileged: true
   security_opt:
   - label:disable
@@ -24,7 +25,12 @@ server:
   realm: IPA.TEST
 steps:
   build:
-  - make V=0 ${make_target} LOG_COMPILE="gdb -batch -ex 'run; bt full'"
+  - >
+    if [[ ! -f /freeipa-cache/already_built ]] ; then
+       make V=0 ${make_target} LOG_COMPILE="gdb -batch -ex 'run; bt full'" ;
+       cp -R ${container_working_dir}/dist/rpms/*.rpm /freeipa-cache/ ;
+       basename `ls -1 /freeipa-cache/freeipa-common-*.rpm` > /freeipa-cache/already_built ;
+    fi
   builddep:
   - rm -rf /var/cache/dnf/*
   - "dnf makecache || :"
@@ -46,7 +52,7 @@ steps:
   configure:
   - ./autogen.sh
   install_packages:
-  - dnf install -y ${container_working_dir}/dist/rpms/*.rpm --best --allowerasing
+  - dnf install -y /freeipa-cache/*.rpm --best --allowerasing
   install_server:
   - ipa-server-install -U --domain ${server_domain} --realm ${server_realm} -p ${server_password}
     -a ${server_password} --setup-dns --setup-kra --auto-forwarders
