@@ -10,11 +10,11 @@
                   "username" : "Username",
                   "logout_error" : "Logout error",
                   "logout" : "Logout",
-                  "krb_auth_msg" : "<i class=\"fa fa-info-circle\"></i> To login with <strong>Kerberos</strong>, please make sure you have valid tickets (obtainable via kinit) and <a href='http://${host}/ipa/config/unauthorized.html'>configured</a> the browser correctly, then click Login.",
+                  "krb_auth_msg" : "<i class=\"fa fa-info-circle\"></i> To log in with <strong>Kerberos</strong>, please make sure you have valid tickets (obtainable via kinit) and <a href='http://${host}/ipa/config/unauthorized.html'>configured</a> the browser correctly, then click Login.",
                   "sync_otp_token" : "Sync OTP Token",
                   "login" : "Login",
                   "password" : "Password",
-                  "form_auth" : "<i class=\"fa fa-info-circle\"></i> To login with <strong>username and password</strong>, enter them in the corresponding fields, then click Login.",
+                  "form_auth" : "<i class=\"fa fa-info-circle\"></i> To log in with <strong>username and password</strong>, enter them in the corresponding fields, then click Login.",
                   "loading_md" : "Loading data"
                },
                "status" : {
