@@ -1,36 +1,53 @@
 {
-    "name": "freeipa",
-    "description": "Web UI for FreeIPA, an integrated security information management solution.",
-    "version": "1.0",
-    "keywords": ["FreeIPA","Identity management", "Red Hat", "Web UI"],
-    "maintainers": [{
-        "name": "Petr Vobornik"
-    }],
-    "contributors": [{
-        "name": "Petr Vobornik"
-    },{
-        "name": "Endi Sukma Dewata"
-    },{
-        "name": "Adam Young"
-    },{
-        "name": "Pavel Zuna"
-    },{
-        "name": "Ana Krivokapic"
-    }],
-    "licenses": [{
-        "type": "GPLv3",
-        "url": "http://www.gnu.org/licenses/gpl-3.0.html"
-    }],
-    "bugs": "https://fedorahosted.org/freeipa/",
-    "repositories": [{
-        "type": "git",
-        "url": "git://git.fedorahosted.org/git/freeipa.git ",
-        "path": "install/ui/js/freeipa"
-    }],
-    "dependencies": {
-        "dojo": "~1.8.1"
+  "name": "freeipa",
+  "description": "Web UI for FreeIPA, an integrated security information management solution.",
+  "version": "4.6.90",
+  "keywords": [
+    "FreeIPA",
+    "Identity management",
+    "Red Hat",
+    "Web UI"
+  ],
+  "maintainers": [
+    {
+      "name": "Petr Vobornik"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Pavel Vomacka"
     },
-    "main": "src",
-    "homepage": "http://freeipa.org/",
-    "dojoBuild": "freeipa.profile.js"
+    {
+      "name": "Petr Vobornik"
+    },
+    {
+      "name": "Endi Sukma Dewata"
+    },
+    {
+      "name": "Adam Young"
+    },
+    {
+      "name": "Pavel Zuna"
+    },
+    {
+      "name": "Ana Krivokapic"
+    }
+  ],
+  "license": "GPL-3.0",
+  "bugs": "https://pagure.io/freeipa/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://pagure.io/freeipa.git",
+    "path": "install/ui/js/freeipa"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-qunit": "^2.0.0"
+  },
+  "dependencies": {
+    "dojo": "~1.8.1"
+  },
+  "main": "src",
+  "homepage": "http://freeipa.org/",
+  "dojoBuild": "freeipa.profile.js"
 }
