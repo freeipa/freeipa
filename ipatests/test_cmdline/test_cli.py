@@ -1,6 +1,8 @@
-import shlex
-import sys
 import contextlib
+import os
+import shlex
+import subprocess
+import sys
 
 import nose
 import six
@@ -15,6 +17,8 @@ if six.PY3:
 
 TEST_ZONE = u'zoneadd.%(domain)s' % api.env
 
+HERE = os.path.abspath(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(os.path.join(HERE, os.pardir, os.pardir))
 
 @pytest.mark.tier0
 class TestCLIParsing(object):
@@ -305,3 +309,22 @@ class TestCLIParsing(object):
 
         if not adtrust_is_enabled:
             mockldap.del_entry(adtrust_dn)
+
+
+def test_cli_fsencoding():
+    # https://pagure.io/freeipa/issue/5887
+    env = {
+        key: value for key, value in os.environ.items()
+        if not key.startswith(('LC_', 'LANG'))
+    }
+    env['LC_ALL'] = 'C'
+    env['PYTHONPATH'] = BASE_DIR
+    p = subprocess.Popen(
+        [sys.executable, '-m', 'ipaclient', 'help'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+    )
+    out, err = p.communicate()
+    assert p.returncode > 0, (out, err)
+    assert b'System encoding must be UTF-8' in err, (out, err)
