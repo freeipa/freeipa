@@ -1,5 +1,5 @@
 jobs:
-  fedora-26/build:
+  fedora-27/build:
     requires: []
     priority: 100
     job:
@@ -7,40 +7,40 @@ jobs:
       args:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
-        template: &ci-master-f26
-          name: freeipa/ci-master-f26
-          version: 0.1.7
+        template: &ci-master-f27
+          name: freeipa/ci-master-f27
+          version: 1.0.1
         timeout: 1800
 
-  fedora-26/simple_replication:
-    requires: [fedora-26/build]
+  fedora-27/simple_replication:
+    requires: [fedora-27/build]
     priority: 50
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-26/build_url}'
+        build_url: '{fedora-27/build_url}'
         test_suite: test_integration/test_simple_replication.py
-        template: *ci-master-f26
+        template: *ci-master-f27
         timeout: 3600
 
-  fedora-26/caless:
-    requires: [fedora-26/build]
+  fedora-27/caless:
+    requires: [fedora-27/build]
     priority: 50
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-26/build_url}'
+        build_url: '{fedora-27/build_url}'
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
-        template: *ci-master-f26
+        template: *ci-master-f27
         timeout: 3600
 
-  fedora-26/external_ca:
-    requires: [fedora-26/build]
+  fedora-27/external_ca:
+    requires: [fedora-27/build]
     priority: 50
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-26/build_url}'
+        build_url: '{fedora-27/build_url}'
         test_suite: test_integration/test_external_ca.py::TestExternalCA
-        template: *ci-master-f26
+        template: *ci-master-f27
         timeout: 3600
