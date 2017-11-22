@@ -279,6 +279,7 @@ Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
 Requires: httpd >= 2.4.6-31
 Requires: mod_wsgi
+Conflicts: python3-mod_wsgi
 Requires: mod_auth_gssapi >= 1.5.0
 # 1.0.14-3: https://bugzilla.redhat.com/show_bug.cgi?id=1431206
 Requires: mod_nss >= 1.0.14-3
