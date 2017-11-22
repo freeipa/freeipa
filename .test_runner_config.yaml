@@ -55,6 +55,11 @@ steps:
   lint:
   - make PYTHON=/usr/bin/python2 V=0 lint
   - make PYTHON=/usr/bin/python3 V=0 pylint
+  webui_unit:
+  - dnf install -y npm
+  - cd ${container_working_dir}/install/ui/js/libs && make
+  - cd ${container_working_dir}/install/ui && npm install
+  - cd ${container_working_dir}/install/ui && node_modules/grunt/bin/grunt --verbose qunit
   tox:
   # just run one pylint and one Python 3 target (time/coverage trade-off)
   - tox -e py27,py36,pypi,pylint3

@@ -16,6 +16,8 @@ env:
     matrix:
         - TASK_TO_RUN="lint"
           TEST_RUNNER_CONFIG=".test_runner_config.yaml"
+        - TASK_TO_RUN="webui-unit"
+          TEST_RUNNER_CONFIG=".test_runner_config.yaml"
         - TASK_TO_RUN="run-tests"
           PYTHON=/usr/bin/python2
           TEST_RUNNER_CONFIG=".test_runner_config.yaml"
@@ -53,7 +55,7 @@ install:
     - pip3 install pycodestyle
     - >
       pip3 install
-      git+https://github.com/freeipa/ipa-docker-test-runner@release-0-2-2
+      git+https://github.com/freeipa/ipa-docker-test-runner@release-0-3-1
 
 script:
     - mkdir -p $CI_RUNNER_LOGS_DIR
