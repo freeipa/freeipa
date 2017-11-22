@@ -3,6 +3,8 @@
 #
 
 import time
+from tempfile import NamedTemporaryFile
+import textwrap
 import pytest
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
@@ -483,3 +485,45 @@ class TestRenewalMaster(IntegrationTest):
         assert("IPA CA renewal master: %s" % self.master.hostname in result), (
             "Master hostname not found among CA renewal masters"
         )
+
+
+class TestReplicaInstallWithExistingEntry(IntegrationTest):
+    """replica install might fail because of existing entry for replica like
+    `cn=ipa-http-delegation,cn=s4u2proxy,cn=etc,$SUFFIX` etc. The situation
+    may arise due to incorrect uninstall of replica.
+
+    https://pagure.io/freeipa/issue/7174"""
+
+    num_replicas = 1
+
+    def test_replica_install_with_existing_entry(self):
+        master = self.master
+        tasks.install_master(master)
+        replica = self.replicas[0]
+        tf = NamedTemporaryFile()
+        ldif_file = tf.name
+        base_dn = "dc=%s" % (",dc=".join(replica.domain.name.split(".")))
+        # adding entry for replica on master so that master will have it before
+        # replica installtion begins and creates a situation for pagure-7174
+        entry_ldif = textwrap.dedent("""
+            dn: cn=ipa-http-delegation,cn=s4u2proxy,cn=etc,{base_dn}
+            changetype: modify
+            add: memberPrincipal
+            memberPrincipal: HTTP/{hostname}@{realm}
+
+            dn: cn=ipa-ldap-delegation-targets,cn=s4u2proxy,cn=etc,{base_dn}
+            changetype: modify
+            add: memberPrincipal
+            memberPrincipal: ldap/{hostname}@{realm}""").format(
+            base_dn=base_dn, hostname=replica.hostname,
+            realm=replica.domain.name.upper())
+        master.put_file_contents(ldif_file, entry_ldif)
+        arg = ['ldapmodify',
+               '-h', master.hostname,
+               '-p', '389', '-D',
+               str(master.config.dirman_dn),   # pylint: disable=no-member
+               '-w', master.config.dirman_password,
+               '-f', ldif_file]
+        master.run_command(arg)
+
+        tasks.install_replica(master, replica)
