@@ -499,9 +499,13 @@ class NSSDatabase(object):
                                 "Can't load private key from both %s and %s" %
                                 (key_file, filename))
 
+                        # the args -v2 aes256 -v2prf hmacWithSHA256 are needed
+                        # on OpenSSL 1.0.2 (fips mode). As soon as FreeIPA
+                        # requires OpenSSL 1.1.0 we'll be able to drop them
                         args = [
                             OPENSSL, 'pkcs8',
                             '-topk8',
+                            '-v2', 'aes256', '-v2prf', 'hmacWithSHA256',
                             '-passout', 'file:' + self.pwd_file,
                         ]
                         if ((label != 'PRIVATE KEY' and key_password) or
