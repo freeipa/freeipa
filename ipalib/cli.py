@@ -387,7 +387,7 @@ class textui(backend.Backend):
             for key in order:
                 if key not in entry:
                     continue
-                label = labels.get(key, key)
+                label = unicode(_(labels.get(key, key)))
                 flag = flags.get(key, [])
                 value = entry[key]
                 if ('suppress_empty' in flag and
@@ -438,6 +438,9 @@ class textui(backend.Backend):
         ------------------
         Only dashed above.
         """
+        if not isinstance(string, six.string_types):
+            string = unicode(string)
+
         assert isinstance(dash, six.string_types)
         assert len(dash) == 1
         dashes = dash * len(string)
@@ -900,7 +903,7 @@ class help(frontend.Local):
                 for c in commands:
                     writer.append(
                         '  {0}  {1}'.format(
-                            to_cli(c.name).ljust(mcl), c.summary))
+                            to_cli(c.name).ljust(mcl), _(c.summary)))
                 writer.append()
                 writer.append(_('To get command help, use:'))
                 writer.append(_('  ipa <command> --help'))
