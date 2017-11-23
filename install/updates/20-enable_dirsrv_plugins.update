@@ -1,0 +1,76 @@
+# 7-bit check, plugins, config
+dn: cn=7-bit check,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# Account Usability Plugin, plugins, config
+dn: cn=Account Usability Plugin,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# ACL Plugin, plugins, config
+dn: cn=ACL Plugin,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# ACL preoperation, plugins, config
+dn: cn=ACL preoperation,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# Auto Membership Plugin, plugins, config
+dn: cn=Auto Membership Plugin,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# Bitwise Plugin, plugins, config
+dn: cn=Bitwise Plugin,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# chaining database, plugins, config
+dn: cn=chaining database,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# Class of Service, plugins, config
+dn: cn=Class of Service,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# deref, plugins, config
+dn: cn=deref,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# HTTP Client, plugins, config
+dn: cn=HTTP Client,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# Internationalization Plugin, plugins, config
+dn: cn=Internationalization Plugin,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# Linked Attributes, plugins, config
+dn: cn=Linked Attributes,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# Managed Entries, plugins, config
+dn: cn=Managed Entries,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# Multimaster Replication Plugin, plugins, config
+dn: cn=Multimaster Replication Plugin,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# Roles Plugin, plugins, config
+dn: cn=Roles Plugin,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# Schema Reload, plugins, config
+dn: cn=Schema Reload,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# State Change Plugin, plugins, config
+dn: cn=State Change Plugin,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# Views, plugins, config
+dn: cn=Views,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
+# whoami, plugins, config
+dn: cn=whoami,cn=plugins,cn=config
+replace: nsslapd-pluginEnabled:off::on
+
