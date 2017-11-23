@@ -1,3 +1,17 @@
+topologies:
+  build: &build
+    name: build
+    cpu: 2
+    memory: 3800
+  master_1repl: &master_1repl
+    name: master_1repl
+    cpu: 4
+    memory: 5750
+  master_1repl_1client: &master_1repl_1client
+    name: master_1repl_1client
+    cpu: 4
+    memory: 6700
+
 jobs:
   fedora-27/build:
     requires: []
@@ -11,6 +25,7 @@ jobs:
           name: freeipa/ci-master-f27
           version: 1.0.1
         timeout: 1800
+        topology: *build
 
   fedora-27/simple_replication:
     requires: [fedora-27/build]
@@ -22,6 +37,7 @@ jobs:
         test_suite: test_integration/test_simple_replication.py
         template: *ci-master-f27
         timeout: 3600
+        topology: *master_1repl
 
   fedora-27/caless:
     requires: [fedora-27/build]
@@ -33,6 +49,7 @@ jobs:
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
         template: *ci-master-f27
         timeout: 3600
+        topology: *master_1repl
 
   fedora-27/external_ca:
     requires: [fedora-27/build]
@@ -44,3 +61,4 @@ jobs:
         test_suite: test_integration/test_external_ca.py::TestExternalCA
         template: *ci-master-f27
         timeout: 3600
+        topology: *master_1repl
