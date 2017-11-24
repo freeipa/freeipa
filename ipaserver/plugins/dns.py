@@ -3206,7 +3206,7 @@ class dnsrecord(LDAPObject):
 
     def postprocess_record(self, record, **options):
         if options.get('structured', False):
-            for attr in record.keys():
+            for attr in tuple(record.keys()):
                 # attributes in LDAPEntry may not be normalized
                 attr = attr.lower()
                 try:
