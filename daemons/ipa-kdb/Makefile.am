@@ -62,6 +62,8 @@ ipadb_la_LIBADD = 		\
 	$(NULL)
 
 if HAVE_CMOCKA
+TESTS_ENVIRONMENT = . $(srcdir)/tests/test_setup.sh;
+dist_ipa_kdb_tests_SOURCES = tests/test_setup.sh
 TESTS = ipa_kdb_tests
 check_PROGRAMS = ipa_kdb_tests
 endif
