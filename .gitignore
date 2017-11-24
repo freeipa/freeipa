@@ -96,6 +96,12 @@ freeipa2-dev-doc
 /init/tmpfilesd/ipa.conf
 
 !/install/ui/doc/Makefile.in
+/install/ui/node_modules/
+/install/ui/package-lock.json 
+# package-lock file can be commited, but it makes sense for npm packages.
+# It stores informations about changes in node_modules. For now it is not
+# very useful
+# More info: https://docs.npmjs.com/files/package-lock.json
 /install/ui/release
 /install/ui/css/ipa.css
 /install/ui/src/dojo
