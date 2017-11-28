@@ -18,6 +18,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import logging
 import sys
 import os
@@ -252,6 +254,15 @@ def install_master(safe_options, options):
         sys.exit("CA subject: {}".format(e))
 
     ca.install_check(True, None, options)
+
+    ca.print_ca_configuration(options)
+    print()
+
+    if not options.unattended:
+        if not ipautil.user_input(
+                "Continue to configure the CA with these values?", False):
+            sys.exit("Installation aborted")
+
     ca.install(True, None, options)
 
     # Run ipa-certupdate to add the new CA certificate to
