@@ -14,6 +14,7 @@ host:
   binds:
   - /sys/fs/cgroup:/sys/fs/cgroup:ro
   - /dev/urandom:/dev/random:ro
+  - /home/travis/freeipa-cache:/freeipa-cache
   privileged: true
   security_opt:
   - label:disable
@@ -26,11 +27,17 @@ server:
   realm: IPA.TEST
 steps:
   build:
-  - make V=0 ${make_target}
+  - >
+    if [ ! -f /freeipa-cache/already_built ] ; then
+       make V=0 ${make_target} LOG_COMPILE="gdb -batch -ex 'run; bt full'" ;
+       cp -R ${container_working_dir}/dist/rpms/*.rpm /freeipa-cache/ ;
+       basename `ls -1 /freeipa-cache/freeipa-common-*.rpm` > /freeipa-cache/already_built ;
+    fi
   builddep:
   - rm -rf /var/cache/dnf/*
   - "dnf makecache || :"
   - dnf builddep -y ${builddep_opts} --spec freeipa.spec.in --best --allowerasing
+  - dnf install -y gdb
   cleanup:
   - chown -R ${uid}:${gid} ${container_working_dir}
   - >
@@ -41,11 +48,12 @@ steps:
       /var/log/krb5kdc.log
       /var/log/pki
       systemd_journal.log
+      `find daemons -name '*.log' -print`
   - chown ${uid}:${gid} ${container_working_dir}/var_log.tar
   configure:
   - ./autogen.sh
   install_packages:
-  - dnf install -y ${container_working_dir}/dist/rpms/*.rpm --best --allowerasing
+  - dnf install -y /freeipa-cache/*.rpm --best --allowerasing
   - dnf install -y python3-mod_wsgi --best --allowerasing  # Py3 temporary
   install_server:
   - ipa-server-install -U --domain ${server_domain} --realm ${server_realm} -p ${server_password}
