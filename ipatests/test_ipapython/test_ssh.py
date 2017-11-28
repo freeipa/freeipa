@@ -74,8 +74,11 @@ openssh = 'ssh-rsa %s' % b64
     (u'vanitas %s' % b64, ValueError),
     (u'@opt %s' % openssh, ValueError),
     (u'opt=val %s' % openssh, ValueError),
-    (u'opt, %s' % openssh, ValueError),
-])
+    (u'opt, %s' % openssh, ValueError)],
+    # ids=repr is workaround for pytest issue with NULL bytes,
+    # see https://github.com/pytest-dev/pytest/issues/2644
+    ids=repr
+)
 def test_public_key_parsing(pk, out):
     if isinstance(out, type) and issubclass(out, Exception):
         pytest.raises(out, ssh.SSHPublicKey, pk)
