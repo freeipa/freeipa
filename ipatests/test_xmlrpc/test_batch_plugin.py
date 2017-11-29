@@ -60,7 +60,7 @@ class test_batch(Declarative):
 
         dict(
             desc='Batch ping',
-            command=('batch', [dict(method='ping', params=([], {}))], {}),
+            command=('batch', [dict(method=u'ping', params=([], {}))], {}),
             expected=dict(
                 count=1,
                 results=[
@@ -71,7 +71,7 @@ class test_batch(Declarative):
 
         dict(
             desc='Batch two pings',
-            command=('batch', [dict(method='ping', params=([], {}))] * 2, {}),
+            command=('batch', [dict(method=u'ping', params=([], {}))] * 2, {}),
             expected=dict(
                 count=2,
                 results=[
@@ -84,9 +84,9 @@ class test_batch(Declarative):
         dict(
             desc='Create and deleting a group',
             command=('batch', [
-                dict(method='group_add',
+                dict(method=u'group_add',
                     params=([group1], dict(description=u'Test desc 1'))),
-                dict(method='group_del', params=([group1], dict())),
+                dict(method=u'group_del', params=([group1], dict())),
             ], {}),
             expected=dict(
                 count=2,
@@ -118,8 +118,8 @@ class test_batch(Declarative):
         dict(
             desc='Try to delete nonexistent group twice',
             command=('batch', [
-                dict(method='group_del', params=([group1], dict())),
-                dict(method='group_del', params=([group1], dict())),
+                dict(method=u'group_del', params=([group1], dict())),
+                dict(method=u'group_del', params=([group1], dict())),
             ], {}),
             expected=dict(
                 count=2,
@@ -147,8 +147,8 @@ class test_batch(Declarative):
         dict(
             desc='Try to delete non-existent group first, then create it',
             command=('batch', [
-                dict(method='group_del', params=([group1], dict())),
-                dict(method='group_add',
+                dict(method=u'group_del', params=([group1], dict())),
+                dict(method=u'group_add',
                     params=([group1], dict(description=u'Test desc 1'))),
             ], {}),
             expected=dict(
@@ -185,19 +185,19 @@ class test_batch(Declarative):
             desc='Try bad command invocations',
             command=('batch', [
                 # bad command name
-                dict(method='nonexistent_ipa_command', params=([], dict())),
+                dict(method=u'nonexistent_ipa_command', params=([], dict())),
                 # dash, not underscore, in command name
-                dict(method='user-del', params=([], dict())),
+                dict(method=u'user-del', params=([], dict())),
                 # missing command name
                 dict(params=([group1], dict())),
                 # missing params
-                dict(method='user_del'),
+                dict(method=u'user_del'),
                 # missing required argument
-                dict(method='user_add', params=([], dict())),
+                dict(method=u'user_add', params=([], dict())),
                 # missing required option
-                dict(method='user_add', params=([], dict(givenname=first1))),
+                dict(method=u'user_add', params=([], dict(givenname=first1))),
                 # bad type
-                dict(method='group_add', params=([group1], dict(
+                dict(method=u'group_add', params=([group1], dict(
                         description=u't', gidnumber=u'bad'))),
             ], {}),
             expected=dict(
