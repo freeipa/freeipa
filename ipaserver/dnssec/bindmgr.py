@@ -11,6 +11,8 @@ import os
 import shutil
 import stat
 
+import six
+
 import ipalib.constants
 from ipapython.dn import DN
 from ipapython import ipautil
@@ -54,8 +56,10 @@ class BINDMgr(object):
         return dns.name.from_text(dn[idx - 1]['idnsname'])
 
     def time_ldap2bindfmt(self, str_val):
+        if isinstance(str_val, bytes):
+            str_val = str_val.decode('utf-8')
         dt = datetime.strptime(str_val, ipalib.constants.LDAP_GENERALIZED_TIME_FORMAT)
-        return dt.strftime(time_bindfmt)
+        return dt.strftime(time_bindfmt).encode('utf-8')
 
     def dates2params(self, ldap_attrs):
         """Convert LDAP timestamps to list of parameters suitable
@@ -104,15 +108,15 @@ class BINDMgr(object):
         """Run dnssec-keyfromlabel on given LDAP object.
         :returns: base file name of output files, e.g. Kaaa.test.+008+19719"""
         logger.info('attrs: %s', attrs)
-        assert attrs.get('idnsseckeyzone', ['FALSE'])[0] == 'TRUE', \
-            'object %s is not a DNS zone key' % attrs['dn']
+        assert attrs.get('idnsseckeyzone', [b'FALSE'])[0] == b'TRUE', \
+            b'object %s is not a DNS zone key' % attrs['dn']
 
-        uri = "%s;pin-source=%s" % (attrs['idnsSecKeyRef'][0], paths.DNSSEC_SOFTHSM_PIN)
+        uri = b"%s;pin-source=%s" % (attrs['idnsSecKeyRef'][0], paths.DNSSEC_SOFTHSM_PIN.encode('utf-8'))
         cmd = [paths.DNSSEC_KEYFROMLABEL, '-K', workdir, '-a', attrs['idnsSecAlgorithm'][0], '-l', uri]
         cmd += self.dates2params(attrs)
-        if attrs.get('idnsSecKeySep', ['FALSE'])[0].upper() == 'TRUE':
+        if attrs.get('idnsSecKeySep', [b'FALSE'])[0].upper() == b'TRUE':
             cmd += ['-f', 'KSK']
-        if attrs.get('idnsSecKeyRevoke', ['FALSE'])[0].upper() == 'TRUE':
+        if attrs.get('idnsSecKeyRevoke', [b'FALSE'])[0].upper() == b'TRUE':
             cmd += ['-R', datetime.now().strftime(time_bindfmt)]
         cmd.append(zone.to_text())
 
@@ -141,17 +145,21 @@ class BINDMgr(object):
         escaped = ""
         for label in zone:
             for char in label:
-                c = ord(char)
-                if ((c >= 0x30 and c <= 0x39) or   # digit
-                   (c >= 0x41 and c <= 0x5A) or    # uppercase
-                   (c >= 0x61 and c <= 0x7A) or    # lowercase
-                   c == 0x2D or                    # hyphen
-                   c == 0x5F):                     # underscore
-                    if (c >= 0x41 and c <= 0x5A):  # downcase
-                        c += 0x20
-                    escaped += chr(c)
+                if six.PY2:
+                    # PY3 char is already int
+                    char = ord(char)
+                if (
+                    (char >= 0x30 and char <= 0x39) or  # digit
+                    (char >= 0x41 and char <= 0x5A) or  # uppercase
+                    (char >= 0x61 and char <= 0x7A) or  # lowercase
+                    char == 0x2D or                     # hyphen
+                    char == 0x5F                        # underscore
+                ):
+                    if char >= 0x41 and char <= 0x5A:  # downcase
+                        char += 0x20
+                    escaped += chr(char)
                 else:
-                    escaped += "%%%02X" % c
+                    escaped += "%%%02X" % char
             escaped += '.'
 
         # strip trailing period

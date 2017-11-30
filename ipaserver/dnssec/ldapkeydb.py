@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 def uri_escape(val):
     """convert val to %-notation suitable for ID component in URI"""
     assert len(val) > 0, "zero-length URI component detected"
-    hexval = hexlify(val)
+    hexval = str_hexlify(val)
     out = '%'
     # pylint: disable=E1127
     out += '%'.join(hexval[i:i+2] for i in range(0, len(hexval), 2))
@@ -110,6 +110,13 @@ def get_default_attrs(object_classes):
     for cls in present_clss:
         result.update(defaults[cls])
     return result
+
+
+def str_hexlify(data):
+    out = hexlify(data)
+    if isinstance(out, bytes):
+        out = out.decode('utf-8')
+    return out
 
 
 class Key(collections.MutableMapping):
@@ -197,7 +204,7 @@ class Key(collections.MutableMapping):
             "Key._delete_key() called before Key.schedule_deletion()")
         assert self._delentry, "Key._delete_key() called more than once"
         logger.debug('deleting key id 0x%s DN %s from LDAP',
-                     hexlify(self._delentry.single_value['ipk11id']),
+                     str_hexlify(self._delentry.single_value['ipk11id']),
                      self._delentry.dn)
         self.ldap.delete_entry(self._delentry)
         self._delentry = None
@@ -260,8 +267,8 @@ class MasterKey(Key):
 
         logger.info('adding master key 0x%s wrapped with replica key 0x%s to '
                     '%s',
-                    hexlify(self['ipk11id']),
-                    hexlify(replica_key_id),
+                    str_hexlify(self['ipk11id']),
+                    str_hexlify(replica_key_id),
                     entry_dn)
         self.ldap.add_entry(entry)
         if 'ipaSecretKeyRef' not in self.entry:
@@ -294,7 +301,9 @@ class LdapKeyDB(AbstractHSM):
 
             assert 'ipk11id' in key, 'key is missing ipk11Id in %s' % key.entry.dn
             key_id = key['ipk11id']
-            assert key_id not in keys, 'duplicate ipk11Id=0x%s in "%s" and "%s"' % (hexlify(key_id), key.entry.dn, keys[key_id].entry.dn)
+            assert key_id not in keys, \
+                'duplicate ipk11Id=0x%s in "%s" and "%s"' % \
+                (str_hexlify(key_id), key.entry.dn, keys[key_id].entry.dn)
             assert 'ipk11label' in key, 'key "%s" is missing ipk11Label' % key.entry.dn
             assert 'objectclass' in key.entry, 'key "%s" is missing objectClass attribute' % key.entry.dn
 
@@ -365,7 +374,8 @@ class LdapKeyDB(AbstractHSM):
         new_key.entry['ipaPublicKey'] = pubkey_data
 
         self.ldap.add_entry(new_key.entry)
-        logger.debug('imported zone key id: 0x%s', hexlify(new_key['ipk11id']))
+        logger.debug('imported zone key id: 0x%s',
+                     str_hexlify(new_key['ipk11id']))
 
     @property
     def replica_pubkeys_wrap(self):
@@ -392,7 +402,7 @@ class LdapKeyDB(AbstractHSM):
                 'secret key dn="%s" ipk11id=0x%s ipk11label="%s" with ipk11UnWrap = TRUE does not have '\
                 '"%s" key label' % (
                     key.entry.dn,
-                    hexlify(key['ipk11id']),
+                    str_hexlify(key['ipk11id']),
                     str(key['ipk11label']),
                     prefix)
 
@@ -437,19 +447,19 @@ if __name__ == '__main__':
     print('replica public keys: CKA_WRAP = TRUE')
     print('====================================')
     for pubkey_id, pubkey in ldapkeydb.replica_pubkeys_wrap.items():
-        print(hexlify(pubkey_id))
+        print(str_hexlify(pubkey_id))
         pprint(pubkey)
 
     print('')
     print('master keys')
     print('===========')
     for mkey_id, mkey in ldapkeydb.master_keys.items():
-        print(hexlify(mkey_id))
+        print(str_hexlify(mkey_id))
         pprint(mkey)
 
     print('')
     print('zone key pairs')
     print('==============')
     for key_id, key in ldapkeydb.zone_keypairs.items():
-        print(hexlify(key_id))
+        print(str_hexlify(key_id))
         pprint(key)
