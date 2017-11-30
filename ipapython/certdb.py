@@ -347,6 +347,15 @@ class NSSDatabase(object):
 
     def convert_db(self, rename_old=True):
         """Convert DBM database format to SQL database format
+
+        **WARNING** **WARNING** **WARNING** **WARNING** **WARNING**
+
+        The caller must ensure that no other process or service is
+        accessing the NSSDB during migration. The DBM format does not support
+        multiple processes. If more than one process opens a DBM NSSDB for
+        writing, the database will become **irreparably corrupted**.
+
+        **WARNING** **WARNING** **WARNING** **WARNING** **WARNING**
         """
         if (self.dbtype == 'sql' or
                 os.path.isfile(os.path.join(self.secdir, "cert9.db"))):
@@ -356,17 +365,12 @@ class NSSDatabase(object):
 
         # use certutil to migrate db to new format
         # see https://bugzilla.mozilla.org/show_bug.cgi?id=1415912
+        # https://fedoraproject.org/wiki/Changes/NSSDefaultFileFormatSql
         args = [
             paths.CERTUTIL,
-            '-d', 'sql:{}'.format(self.secdir),
-            '-f', self.pwd_file,
+            '-d', 'sql:{}'.format(self.secdir), '-N',
+            '-f', self.pwd_file, '-@', self.pwd_file
         ]
-        if self.list_keys():
-            # has keys, use 'list keys' in read-write mode
-            args.extend(['-K', '-X'])
-        else:
-            # no keys, create new DB with auto-migrate
-            args.extend(['-N', '-@', self.pwd_file])
         ipautil.run(args)
 
         # retain file ownership and permission, backup old files
