@@ -19,6 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#define _GNU_SOURCE
 
 #include <errno.h>
 #include <stdarg.h>
@@ -31,24 +32,166 @@
 
 
 #include "ipa_extdom.h"
+#include "back_extdom.h"
+#include <stdio.h>
+#include <dlfcn.h>
 
 #define MAX_BUF (1024*1024*1024)
+struct test_data {
+    struct extdom_req *req;
+    struct ipa_extdom_ctx *ctx;
+};
+
+/*
+ * redefine logging for mocks
+ */
+#ifdef __GNUC__
+    __attribute__((format(printf, 3, 4)))
+#endif
+int slapi_log_error(int loglevel, char *subsystem, char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vprint_error(fmt, ap);
+    va_end(ap);
+    return 0;
+}
+
+
+/*
+ * We cannot run cmocka tests against SSSD as that would require to set up SSSD
+ * and the rest of environment. Instead, we compile cmocka tests against
+ * back_extdom_nss_sss.c and re-define context initialization to use
+ * nsswrapper with our test data.
+ *
+ * This means we have to keep struct nss_ops_ctx definition in sync with tests!
+ */
+
+struct nss_ops_ctx {
+    void *dl_handle;
+    long int initgroups_start;
+
+    enum nss_status (*getpwnam_r)(const char *name, struct passwd *result,
+                                  char *buffer, size_t buflen, int *errnop);
+    enum nss_status (*getpwuid_r)(uid_t uid, struct passwd *result,
+                                  char *buffer, size_t buflen, int *errnop);
+    enum nss_status (*getgrnam_r)(const char *name, struct group *result,
+                                  char *buffer, size_t buflen, int *errnop);
+    enum nss_status (*getgrgid_r)(gid_t gid, struct group *result,
+                                  char *buffer, size_t buflen, int *errnop);
+    enum nss_status (*initgroups_dyn)(const char *user, gid_t group,
+                                      long int *start, long int *size,
+                                      gid_t **groups, long int limit,
+                                      int *errnop);
+};
+
+int cmocka_extdom_init_context(struct nss_ops_ctx **nss_context)
+{
+    struct nss_ops_ctx *ctx = NULL;
+
+    if (nss_context == NULL) {
+        return -1;
+    }
+
+    ctx = calloc(1, sizeof(struct nss_ops_ctx));
+
+    if (ctx == NULL) {
+        return ENOMEM;
+    }
+    *nss_context = ctx;
+
+    ctx->dl_handle = dlopen("libnss_files.so.2", RTLD_NOW);
+    if (ctx->dl_handle == NULL) {
+        goto fail;
+    }
+
+    ctx->getpwnam_r = dlsym(ctx->dl_handle, "_nss_files_getpwnam_r");
+    if (ctx->getpwnam_r == NULL) {
+        goto fail;
+    }
+
+    ctx->getpwuid_r = dlsym(ctx->dl_handle, "_nss_files_getpwuid_r");
+    if (ctx->getpwuid_r == NULL) {
+        goto fail;
+    }
+
+    ctx->getgrnam_r = dlsym(ctx->dl_handle, "_nss_files_getgrnam_r");
+    if (ctx->getgrnam_r == NULL) {
+        goto fail;
+    }
+
+    ctx->getgrgid_r = dlsym(ctx->dl_handle, "_nss_files_getgrgid_r");
+    if (ctx->getgrgid_r == NULL) {
+        goto fail;
+    }
+
+    ctx->initgroups_dyn = dlsym(ctx->dl_handle, "_nss_files_initgroups_dyn");
+    if (ctx->initgroups_dyn == NULL) {
+        goto fail;
+    }
+
+    return 0;
+
+fail:
+    back_extdom_free_context(nss_context);
+
+    return -1;
+}
+
+struct {
+    const char *o, *n;
+} path_table[] = {
+    { .o = "/etc/passwd", .n = "./test_data/passwd"},
+    { .o = "/etc/group",  .n = "./test_data/group"},
+    { .o = NULL, .n = NULL}};
+
+FILE *(*original_fopen)(const char*, const char*) = NULL;
+
+FILE *fopen(const char *path, const char *mode) {
+    const char *_path = NULL;
+
+    /* Do not handle before-main() cases */
+    if (original_fopen == NULL) {
+        return NULL;
+    }
+    for(int i=0; path_table[i].o != NULL; i++) {
+        if (strcmp(path, path_table[i].o) == 0) {
+                _path = path_table[i].n;
+                break;
+        }
+    }
+    return (*original_fopen)(_path ? _path : path, mode);
+}
+
+/* Attempt to initialize original_fopen before main()
+ * There is no explicit order when all initializers are called,
+ * so we might still be late here compared to a code in a shared
+ * library initializer, like libselinux */
+void redefined_fopen_ctor (void) __attribute__ ((constructor));
+void redefined_fopen_ctor(void) {
+    original_fopen = dlsym(RTLD_NEXT, "fopen");
+}
 
 void test_getpwnam_r_wrapper(void **state)
 {
     int ret;
     struct passwd pwd;
     char *buf;
-    size_t buf_len;
+    size_t buf_len, max_big_buf_len;
+    struct test_data *test_data;
+
+    test_data = (struct test_data *) *state;
 
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
 
-    ret = getpwnam_r_wrapper(MAX_BUF, "non_exisiting_user", &pwd, &buf,
-                             &buf_len);
+    ret = getpwnam_r_wrapper(test_data->ctx,
+                             "non_exisiting_user", &pwd,
+                             &buf, &buf_len);
     assert_int_equal(ret, ENOENT);
 
-    ret = getpwnam_r_wrapper(MAX_BUF, "user", &pwd, &buf, &buf_len);
+    ret = getpwnam_r_wrapper(test_data->ctx,
+                             "user", &pwd, &buf, &buf_len);
     assert_int_equal(ret, 0);
     assert_string_equal(pwd.pw_name, "user");
     assert_string_equal(pwd.pw_passwd, "x");
@@ -62,7 +205,8 @@ void test_getpwnam_r_wrapper(void **state)
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
 
-    ret = getpwnam_r_wrapper(MAX_BUF, "user_big", &pwd, &buf, &buf_len);
+    ret = getpwnam_r_wrapper(test_data->ctx,
+                             "user_big", &pwd, &buf, &buf_len);
     assert_int_equal(ret, 0);
     assert_string_equal(pwd.pw_name, "user_big");
     assert_string_equal(pwd.pw_passwd, "x");
@@ -76,7 +220,11 @@ void test_getpwnam_r_wrapper(void **state)
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
 
-    ret = getpwnam_r_wrapper(1024, "user_big", &pwd, &buf, &buf_len);
+    max_big_buf_len = test_data->ctx->max_nss_buf_size;
+    test_data->ctx->max_nss_buf_size = 1024;
+    ret = getpwnam_r_wrapper(test_data->ctx,
+                             "user_big", &pwd, &buf, &buf_len);
+    test_data->ctx->max_nss_buf_size = max_big_buf_len;
     assert_int_equal(ret, ERANGE);
     free(buf);
 }
@@ -86,15 +234,18 @@ void test_getpwuid_r_wrapper(void **state)
     int ret;
     struct passwd pwd;
     char *buf;
-    size_t buf_len;
+    size_t buf_len, max_big_buf_len;
+    struct test_data *test_data;
+
+    test_data = (struct test_data *) *state;
 
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
 
-    ret = getpwuid_r_wrapper(MAX_BUF, 99999, &pwd, &buf, &buf_len);
+    ret = getpwuid_r_wrapper(test_data->ctx, 99999, &pwd, &buf, &buf_len);
     assert_int_equal(ret, ENOENT);
 
-    ret = getpwuid_r_wrapper(MAX_BUF, 12345, &pwd, &buf, &buf_len);
+    ret = getpwuid_r_wrapper(test_data->ctx, 12345, &pwd, &buf, &buf_len);
     assert_int_equal(ret, 0);
     assert_string_equal(pwd.pw_name, "user");
     assert_string_equal(pwd.pw_passwd, "x");
@@ -108,7 +259,7 @@ void test_getpwuid_r_wrapper(void **state)
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
 
-    ret = getpwuid_r_wrapper(MAX_BUF, 12346, &pwd, &buf, &buf_len);
+    ret = getpwuid_r_wrapper(test_data->ctx, 12346, &pwd, &buf, &buf_len);
     assert_int_equal(ret, 0);
     assert_string_equal(pwd.pw_name, "user_big");
     assert_string_equal(pwd.pw_passwd, "x");
@@ -122,7 +273,10 @@ void test_getpwuid_r_wrapper(void **state)
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
 
-    ret = getpwuid_r_wrapper(1024, 12346, &pwd, &buf, &buf_len);
+    max_big_buf_len = test_data->ctx->max_nss_buf_size;
+    test_data->ctx->max_nss_buf_size = 1024;
+    ret = getpwuid_r_wrapper(test_data->ctx, 12346, &pwd, &buf, &buf_len);
+    test_data->ctx->max_nss_buf_size = max_big_buf_len;
     assert_int_equal(ret, ERANGE);
     free(buf);
 }
@@ -132,15 +286,19 @@ void test_getgrnam_r_wrapper(void **state)
     int ret;
     struct group grp;
     char *buf;
-    size_t buf_len;
+    size_t buf_len, max_big_buf_len;
+    struct test_data *test_data;
+
+    test_data = (struct test_data *) *state;
 
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
 
-    ret = getgrnam_r_wrapper(MAX_BUF, "non_exisiting_group", &grp, &buf, &buf_len);
+    ret = getgrnam_r_wrapper(test_data->ctx,
+                             "non_exisiting_group", &grp, &buf, &buf_len);
     assert_int_equal(ret, ENOENT);
 
-    ret = getgrnam_r_wrapper(MAX_BUF, "group", &grp, &buf, &buf_len);
+    ret = getgrnam_r_wrapper(test_data->ctx, "group", &grp, &buf, &buf_len);
     assert_int_equal(ret, 0);
     assert_string_equal(grp.gr_name, "group");
     assert_string_equal(grp.gr_passwd, "x");
@@ -153,7 +311,7 @@ void test_getgrnam_r_wrapper(void **state)
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
 
-    ret = getgrnam_r_wrapper(MAX_BUF, "group_big", &grp, &buf, &buf_len);
+    ret = getgrnam_r_wrapper(test_data->ctx, "group_big", &grp, &buf, &buf_len);
     assert_int_equal(ret, 0);
     assert_string_equal(grp.gr_name, "group_big");
     assert_string_equal(grp.gr_passwd, "x");
@@ -165,7 +323,10 @@ void test_getgrnam_r_wrapper(void **state)
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
 
-    ret = getgrnam_r_wrapper(1024, "group_big", &grp, &buf, &buf_len);
+    max_big_buf_len = test_data->ctx->max_nss_buf_size;
+    test_data->ctx->max_nss_buf_size = 1024;
+    ret = getgrnam_r_wrapper(test_data->ctx, "group_big", &grp, &buf, &buf_len);
+    test_data->ctx->max_nss_buf_size = max_big_buf_len;
     assert_int_equal(ret, ERANGE);
     free(buf);
 }
@@ -175,15 +336,18 @@ void test_getgrgid_r_wrapper(void **state)
     int ret;
     struct group grp;
     char *buf;
-    size_t buf_len;
+    size_t buf_len, max_big_buf_len;
+    struct test_data *test_data;
+
+    test_data = (struct test_data *) *state;
 
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
 
-    ret = getgrgid_r_wrapper(MAX_BUF, 99999, &grp, &buf, &buf_len);
+    ret = getgrgid_r_wrapper(test_data->ctx, 99999, &grp, &buf, &buf_len);
     assert_int_equal(ret, ENOENT);
 
-    ret = getgrgid_r_wrapper(MAX_BUF, 11111, &grp, &buf, &buf_len);
+    ret = getgrgid_r_wrapper(test_data->ctx, 11111, &grp, &buf, &buf_len);
     assert_int_equal(ret, 0);
     assert_string_equal(grp.gr_name, "group");
     assert_string_equal(grp.gr_passwd, "x");
@@ -196,7 +360,7 @@ void test_getgrgid_r_wrapper(void **state)
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
 
-    ret = getgrgid_r_wrapper(MAX_BUF, 22222, &grp, &buf, &buf_len);
+    ret = getgrgid_r_wrapper(test_data->ctx, 22222, &grp, &buf, &buf_len);
     assert_int_equal(ret, 0);
     assert_string_equal(grp.gr_name, "group_big");
     assert_string_equal(grp.gr_passwd, "x");
@@ -208,7 +372,10 @@ void test_getgrgid_r_wrapper(void **state)
     ret = get_buffer(&buf_len, &buf);
     assert_int_equal(ret, 0);
 
-    ret = getgrgid_r_wrapper(1024, 22222, &grp, &buf, &buf_len);
+    max_big_buf_len = test_data->ctx->max_nss_buf_size;
+    test_data->ctx->max_nss_buf_size = 1024;
+    ret = getgrgid_r_wrapper(test_data->ctx, 22222, &grp, &buf, &buf_len);
+    test_data->ctx->max_nss_buf_size = max_big_buf_len;
     assert_int_equal(ret, ERANGE);
     free(buf);
 }
@@ -219,16 +386,21 @@ void test_get_user_grouplist(void **state)
     size_t ngroups;
     gid_t *groups;
     size_t c;
+    struct test_data *test_data;
+
+    test_data = (struct test_data *) *state;
 
     /* This is a bit odd behaviour of getgrouplist() it does not check if the
      * user exists, only if memberships of the user can be found. */
-    ret = get_user_grouplist("non_exisiting_user", 23456, &ngroups, &groups);
+    ret = get_user_grouplist(test_data->ctx,
+                             "non_exisiting_user", 23456, &ngroups, &groups);
     assert_int_equal(ret, LDAP_SUCCESS);
     assert_int_equal(ngroups, 1);
     assert_int_equal(groups[0], 23456);
     free(groups);
 
-    ret = get_user_grouplist("member0001", 23456, &ngroups, &groups);
+    ret = get_user_grouplist(test_data->ctx,
+                             "member0001", 23456, &ngroups, &groups);
     assert_int_equal(ret, LDAP_SUCCESS);
     assert_int_equal(ngroups, 3);
     assert_int_equal(groups[0], 23456);
@@ -236,14 +408,16 @@ void test_get_user_grouplist(void **state)
     assert_int_equal(groups[2], 22222);
     free(groups);
 
-    ret = get_user_grouplist("member0003", 23456, &ngroups, &groups);
+    ret = get_user_grouplist(test_data->ctx,
+                             "member0003", 23456, &ngroups, &groups);
     assert_int_equal(ret, LDAP_SUCCESS);
     assert_int_equal(ngroups, 2);
     assert_int_equal(groups[0], 23456);
     assert_int_equal(groups[1], 22222);
     free(groups);
 
-    ret = get_user_grouplist("user_big", 23456, &ngroups, &groups);
+    ret = get_user_grouplist(test_data->ctx,
+                             "user_big", 23456, &ngroups, &groups);
     assert_int_equal(ret, LDAP_SUCCESS);
     assert_int_equal(ngroups, 1001);
     assert_int_equal(groups[0], 23456);
@@ -252,11 +426,6 @@ void test_get_user_grouplist(void **state)
     }
     free(groups);
 }
-
-struct test_data {
-    struct extdom_req *req;
-    struct ipa_extdom_ctx *ctx;
-};
 
 static int  extdom_req_setup(void **state)
 {
@@ -269,8 +438,14 @@ static int  extdom_req_setup(void **state)
     assert_non_null(test_data->req);
 
     test_data->ctx = calloc(sizeof(struct ipa_extdom_ctx), 1);
-    assert_non_null(test_data->req);
+    assert_non_null(test_data->ctx);
 
+    test_data->ctx->max_nss_buf_size = MAX_BUF;
+
+    assert_int_equal(cmocka_extdom_init_context(&test_data->ctx->nss_ctx), 0);
+    assert_non_null(test_data->ctx->nss_ctx);
+
+    back_extdom_set_timeout(test_data->ctx->nss_ctx, 10000);
     *state = test_data;
 
     return 0;
@@ -283,6 +458,7 @@ static int  extdom_req_teardown(void **state)
     test_data = (struct test_data *) *state;
 
     free_req_data(test_data->req);
+    back_extdom_free_context(&test_data->ctx->nss_ctx);
     free(test_data->ctx);
     free(test_data);
 
@@ -450,5 +626,6 @@ int main(int argc, const char *argv[])
         cmocka_unit_test(test_decode),
     };
 
-    return cmocka_run_group_tests(tests, NULL, NULL);
+    assert_non_null(original_fopen);
+    return cmocka_run_group_tests(tests, extdom_req_setup, extdom_req_teardown);
 }

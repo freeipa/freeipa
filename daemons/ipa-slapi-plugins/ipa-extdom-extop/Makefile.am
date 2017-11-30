@@ -25,6 +25,7 @@ libipa_extdom_extop_la_SOURCES = 	\
 	ipa_extdom.h			\
 	ipa_extdom_extop.c		\
 	ipa_extdom_common.c		\
+	back_extdom.h			\
 	$(NULL)
 
 libipa_extdom_extop_la_LDFLAGS = -avoid-version
@@ -34,20 +35,29 @@ libipa_extdom_extop_la_LIBADD = 	\
 	$(SSSNSSIDMAP_LIBS)		\
 	$(NULL)
 
+# We have two backends for nss operations:
+# (1) directly loading nss_sss.so.2
+# (2) using timeout-enabled API from libsss_nss_idmap
+# We prefer (2) if available
+if USE_SSS_NSS_TIMEOUT
+libipa_extdom_extop_la_SOURCES += back_extdom_sss_idmap.c
+else
+libipa_extdom_extop_la_SOURCES += back_extdom_nss_sss.c
+endif
+
+
 TESTS =
 check_PROGRAMS =
 
 if HAVE_CMOCKA
-if HAVE_NSS_WRAPPER
-TESTS_ENVIRONMENT = . ./test_data/test_setup.sh;
 TESTS += extdom_cmocka_tests
 check_PROGRAMS += extdom_cmocka_tests
-endif
 endif
 
 extdom_cmocka_tests_SOURCES = 		\
 	ipa_extdom_cmocka_tests.c	\
 	ipa_extdom_common.c		\
+	back_extdom_nss_sss.c		\
 	$(NULL)
 extdom_cmocka_tests_CFLAGS = $(CMOCKA_CFLAGS)
 extdom_cmocka_tests_LDFLAGS = 	\
@@ -58,6 +68,7 @@ extdom_cmocka_tests_LDADD = 	\
 	$(LDAP_LIBS)		\
 	$(DIRSRV_LIBS)		\
 	$(SSSNSSIDMAP_LIBS)	\
+	-ldl			\
 	$(NULL)
 
 
