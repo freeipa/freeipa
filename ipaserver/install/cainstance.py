@@ -907,52 +907,63 @@ class CAInstance(DogtagInstance):
 
         https://access.redhat.com/knowledge/docs/en-US/Red_Hat_Certificate_System/8.0/html/Admin_Guide/Setting_up_Publishing.html
         """
-        caconfig = paths.CA_CS_CFG_PATH
 
-        publishdir = self.prepare_crl_publish_dir()
+        def put(k, v):
+            installutils.set_directive(
+                paths.CA_CS_CFG_PATH, k, v, quotes=False, separator='=')
 
         # Enable file publishing, disable LDAP
-        installutils.set_directive(caconfig, 'ca.publish.enable', 'true', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.ldappublish.enable', 'false', quotes=False, separator='=')
+        put('ca.publish.enable', 'true')
+        put('ca.publish.ldappublish.enable', 'false')
 
         # Create the file publisher, der only, not b64
-        installutils.set_directive(caconfig, 'ca.publish.publisher.impl.FileBasedPublisher.class','com.netscape.cms.publish.publishers.FileBasedPublisher', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.crlLinkExt', 'bin', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.directory', publishdir, quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.latestCrlLink', 'true', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.pluginName', 'FileBasedPublisher', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.timeStamp', 'LocalTime', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.zipCRLs', 'false', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.zipLevel', '9', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.Filename.b64', 'false', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.Filename.der', 'true', quotes=False, separator='=')
+        put('ca.publish.publisher.impl.FileBasedPublisher.class',
+            'com.netscape.cms.publish.publishers.FileBasedPublisher')
+        put('ca.publish.publisher.instance.FileBaseCRLPublisher.crlLinkExt',
+            'bin')
+        put('ca.publish.publisher.instance.FileBaseCRLPublisher.directory',
+            self.prepare_crl_publish_dir())
+        put('ca.publish.publisher.instance.FileBaseCRLPublisher.latestCrlLink',
+            'true')
+        put('ca.publish.publisher.instance.FileBaseCRLPublisher.pluginName',
+            'FileBasedPublisher')
+        put('ca.publish.publisher.instance.FileBaseCRLPublisher.timeStamp',
+            'LocalTime')
+        put('ca.publish.publisher.instance.FileBaseCRLPublisher.zipCRLs',
+            'false')
+        put('ca.publish.publisher.instance.FileBaseCRLPublisher.zipLevel', '9')
+        put('ca.publish.publisher.instance.FileBaseCRLPublisher.Filename.b64',
+            'false')
+        put('ca.publish.publisher.instance.FileBaseCRLPublisher.Filename.der',
+            'true')
 
         # The publishing rule
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.enable', 'true', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.mapper', 'NoMap', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.pluginName', 'Rule', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.predicate', '', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.publisher', 'FileBaseCRLPublisher', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.type', 'crl', quotes=False, separator='=')
+        put('ca.publish.rule.instance.FileCrlRule.enable', 'true')
+        put('ca.publish.rule.instance.FileCrlRule.mapper', 'NoMap')
+        put('ca.publish.rule.instance.FileCrlRule.pluginName', 'Rule')
+        put('ca.publish.rule.instance.FileCrlRule.predicate', '')
+        put('ca.publish.rule.instance.FileCrlRule.publisher',
+            'FileBaseCRLPublisher')
+        put('ca.publish.rule.instance.FileCrlRule.type', 'crl')
 
         # Now disable LDAP publishing
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapCaCertRule.enable', 'false', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapCrlRule.enable', 'false', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapUserCertRule.enable', 'false', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapXCertRule.enable', 'false', quotes=False, separator='=')
+        put('ca.publish.rule.instance.LdapCaCertRule.enable', 'false')
+        put('ca.publish.rule.instance.LdapCrlRule.enable', 'false')
+        put('ca.publish.rule.instance.LdapUserCertRule.enable', 'false')
+        put('ca.publish.rule.instance.LdapXCertRule.enable', 'false')
 
         # If we are the initial master then we are the CRL generator, otherwise
         # we point to that master for CRLs.
         if not self.clone:
             # These next two are defaults, but I want to be explicit that the
             # initial master is the CRL generator.
-            installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLCache', 'true', quotes=False, separator='=')
-            installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLUpdates', 'true', quotes=False, separator='=')
-            installutils.set_directive(caconfig, 'ca.listenToCloneModifications', 'true', quotes=False, separator='=')
+            put('ca.crl.MasterCRL.enableCRLCache', 'true')
+            put('ca.crl.MasterCRL.enableCRLUpdates', 'true')
+            put('ca.listenToCloneModifications', 'true')
         else:
-            installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLCache', 'false', quotes=False, separator='=')
-            installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLUpdates', 'false', quotes=False, separator='=')
-            installutils.set_directive(caconfig, 'ca.listenToCloneModifications', 'false', quotes=False, separator='=')
+            put('ca.crl.MasterCRL.enableCRLCache', 'false')
+            put('ca.crl.MasterCRL.enableCRLUpdates', 'false')
+            put('ca.listenToCloneModifications', 'false')
 
     def uninstall(self):
         # just eat state
