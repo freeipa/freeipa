@@ -150,10 +150,13 @@ struct extdom_res {
     } data;
 };
 
+struct nss_ops_ctx;
+
 struct ipa_extdom_ctx {
     Slapi_ComponentId *plugin_id;
     char *base_dn;
     size_t max_nss_buf_size;
+    struct nss_ops_ctx *nss_ctx;
 };
 
 struct domain_info {
@@ -179,15 +182,15 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
                    struct berval **berval);
 int pack_response(struct extdom_res *res, struct berval **ret_val);
 int get_buffer(size_t *_buf_len, char **_buf);
-int getpwnam_r_wrapper(size_t buf_max, const char *name,
+int getpwnam_r_wrapper(struct ipa_extdom_ctx *ctx, const char *name,
                        struct passwd *pwd, char **_buf, size_t *_buf_len);
-int getpwuid_r_wrapper(size_t buf_max, uid_t uid,
+int getpwuid_r_wrapper(struct ipa_extdom_ctx *ctx, uid_t uid,
                        struct passwd *pwd, char **_buf, size_t *_buf_len);
-int getgrnam_r_wrapper(size_t buf_max, const char *name,
+int getgrnam_r_wrapper(struct ipa_extdom_ctx *ctx, const char *name,
                        struct group *grp, char **_buf, size_t *_buf_len);
-int getgrgid_r_wrapper(size_t buf_max, gid_t gid,
+int getgrgid_r_wrapper(struct ipa_extdom_ctx *ctx, gid_t gid,
                        struct group *grp, char **_buf, size_t *_buf_len);
-int get_user_grouplist(const char *name, gid_t gid,
+int get_user_grouplist(struct ipa_extdom_ctx *ctx, const char *name, gid_t gid,
                        size_t *_ngroups, gid_t **_groups);
 int pack_ber_sid(const char *sid, struct berval **berval);
 int pack_ber_name(const char *domain_name, const char *name,
