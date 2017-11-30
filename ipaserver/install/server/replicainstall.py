@@ -563,10 +563,6 @@ def common_check(no_ntp):
             "If you want to reinstall the IPA server, please uninstall "
             "it first using 'ipa-server-install --uninstall'.")
 
-    # Check to see if httpd is already configured to listen on 443
-    if httpinstance.httpd_443_configured():
-        raise ScriptError("Aborting installation")
-
     check_dirsrv()
 
     if not no_ntp:

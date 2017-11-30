@@ -18,24 +18,20 @@
 #
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import logging
 import os
 import os.path
-import pwd
-import re
 import dbus
 import shlex
 import pipes
-import locale
+import tempfile
 
-import six
 from augeas import Augeas
 
 from ipalib.install import certmonger
 from ipapython import ipaldap
-from ipapython.certdb import (IPA_CA_TRUST_FLAGS,
-                              EXTERNAL_CA_TRUST_FLAGS)
 from ipaserver.install import replication
 from ipaserver.install import service
 from ipaserver.install import certs
@@ -45,7 +41,7 @@ from ipapython import ipautil
 from ipapython.dn import DN
 import ipapython.errors
 from ipaserver.install import sysupgrade
-from ipalib import api
+from ipalib import api, x509
 from ipalib.constants import IPAAPI_USER
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
@@ -57,51 +53,9 @@ logger = logging.getLogger(__name__)
 HTTPD_USER = constants.HTTPD_USER
 KDCPROXY_USER = constants.KDCPROXY_USER
 
-# See contrib/nsscipersuite/nssciphersuite.py
-NSS_CIPHER_SUITE = [
-    '+aes_128_sha_256', '+aes_256_sha_256',
-    '+ecdhe_ecdsa_aes_128_gcm_sha_256', '+ecdhe_ecdsa_aes_128_sha',
-    '+ecdhe_ecdsa_aes_256_gcm_sha_384', '+ecdhe_ecdsa_aes_256_sha',
-    '+ecdhe_rsa_aes_128_gcm_sha_256', '+ecdhe_rsa_aes_128_sha',
-    '+ecdhe_rsa_aes_256_gcm_sha_384', '+ecdhe_rsa_aes_256_sha',
-    '+rsa_aes_128_gcm_sha_256', '+rsa_aes_128_sha',
-    '+rsa_aes_256_gcm_sha_384', '+rsa_aes_256_sha'
-]
-NSS_CIPHER_REVISION = '20160129'
+OCSP_DIRECTIVE = 'SSLOCSPEnable'
 
-OCSP_DIRECTIVE = 'NSSOCSP'
-
-NSS_OCSP_ENABLED = 'nss_ocsp_enabled'
-
-
-def httpd_443_configured():
-    """
-    We now allow mod_ssl to be installed so don't automatically disable it.
-    However it can't share the same listen port as mod_nss, so check for that.
-
-    Returns True if something other than mod_nss is listening on 443.
-    False otherwise.
-    """
-    try:
-        result = ipautil.run([paths.HTTPD, '-t', '-D', 'DUMP_VHOSTS'],
-                             capture_output=True)
-    except ipautil.CalledProcessError as e:
-        service.print_msg("WARNING: cannot check if port 443 is already configured")
-        service.print_msg("httpd returned error when checking: %s" % e)
-        return False
-
-    port_line_re = re.compile(r'(?P<address>\S+):(?P<port>\d+)')
-    stdout = result.raw_output
-    if six.PY3:
-        stdout = stdout.decode(locale.getpreferredencoding(), errors='replace')
-    for line in stdout.splitlines():
-        m = port_line_re.match(line)
-        if m and int(m.group('port')) == 443:
-            service.print_msg("Apache is already configured with a listener on port 443:")
-            service.print_msg(line)
-            return True
-
-    return False
+OCSP_ENABLED = 'ocsp_enabled'
 
 
 class WebGuiInstance(service.SimpleServiceInstance):
@@ -160,14 +114,13 @@ class HTTPInstance(service.Service):
         self.master_fqdn = master_fqdn
 
         self.step("stopping httpd", self.__stop)
-        self.step("setting mod_nss port to 443", self.__set_mod_nss_port)
-        self.step("setting mod_nss cipher suite",
-                  self.set_mod_nss_cipher_suite)
-        self.step("setting mod_nss protocol list to TLSv1.0 - TLSv1.2",
-                  self.set_mod_nss_protocol)
-        self.step("setting mod_nss password file", self.__set_mod_nss_passwordfile)
-        self.step("enabling mod_nss renegotiate", self.enable_mod_nss_renegotiate)
-        self.step("disabling mod_nss OCSP", self.disable_mod_nss_ocsp)
+        self.step("backing up ssl.conf", self.backup_ssl_conf)
+        self.step("disabling nss.conf", self.disable_nss_conf)
+        self.step("setting mod_ssl protocol list to TLSv1.0 - TLSv1.2",
+                  self.set_mod_ssl_protocol)
+        self.step("configuring mod_ssl log directory",
+                  self.set_mod_ssl_logdir)
+        self.step("disabling mod_ssl OCSP", self.disable_mod_ssl_ocsp)
         self.step("adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
         self.step("setting up httpd keytab", self.request_service_keytab)
@@ -176,7 +129,6 @@ class HTTPInstance(service.Service):
         if self.ca_is_configured:
             self.step("configure certmonger for renewals",
                       self.configure_certmonger_renewal_guard)
-        self.step("importing CA certificates from LDAP", self.__import_ca_certs)
         self.step("publish CA cert", self.__publish_ca_cert)
         self.step("clean up any existing httpd ccaches",
                   self.remove_httpd_ccaches)
@@ -246,63 +198,50 @@ class HTTPInstance(service.Service):
         tasks.configure_http_gssproxy_conf(IPAAPI_USER)
         services.knownservices.gssproxy.restart()
 
-    def change_mod_nss_port_from_http(self):
-        # mod_ssl enforces SSLEngine on for vhost on 443 even though
-        # the listener is mod_nss. This then crashes the httpd as mod_nss
-        # listened port obviously does not match mod_ssl requirements.
-        #
-        # The workaround for this was to change port to http. It is no longer
-        # necessary, as mod_nss now ships with default configuration which
-        # sets SSLEngine off when mod_ssl is installed.
-        #
-        # Remove the workaround.
-        if sysupgrade.get_upgrade_state('nss.conf', 'listen_port_updated'):
-            installutils.set_directive(paths.HTTPD_NSS_CONF, 'Listen', '443', quotes=False)
-            sysupgrade.set_upgrade_state('nss.conf', 'listen_port_updated', False)
+    def backup_ssl_conf(self):
+        self.fstore.backup_file(paths.HTTPD_SSL_CONF)
 
-    def __set_mod_nss_port(self):
-        self.fstore.backup_file(paths.HTTPD_NSS_CONF)
-        if installutils.update_file(paths.HTTPD_NSS_CONF, '8443', '443') != 0:
-            print("Updating port in %s failed." % paths.HTTPD_NSS_CONF)
+    def disable_nss_conf(self):
+        # There is no safe way to co-exist since there is no safe port
+        # to make mod_nss use, disable it completely.
+        if os.path.exists(paths.HTTPD_NSS_CONF):
+            self.fstore.backup_file(paths.HTTPD_NSS_CONF)
+            installutils.remove_file(paths.HTTPD_NSS_CONF)
 
-    def __set_mod_nss_nickname(self, nickname):
-        quoted_nickname = installutils.quote_directive_value(
-            nickname, quote_char="'")
-        installutils.set_directive(
-            paths.HTTPD_NSS_CONF, 'NSSNickname', quoted_nickname, quotes=False)
+    def set_mod_ssl_protocol(self):
+        installutils.set_directive(paths.HTTPD_SSL_CONF,
+                                   'SSLProtocol',
+                                   '+TLSv1 +TLSv1.1 +TLSv1.2', False)
 
-    def get_mod_nss_nickname(self):
-        cert = installutils.get_directive(paths.HTTPD_NSS_CONF, 'NSSNickname')
-        nickname = installutils.unquote_directive_value(cert, quote_char="'")
-        return nickname
+    def set_mod_ssl_logdir(self):
+        installutils.set_directive(paths.HTTPD_SSL_CONF,
+                                   'ErrorLog',
+                                   'logs/error_log', False)
+        installutils.set_directive(paths.HTTPD_SSL_CONF,
+                                   'TransferLog',
+                                   'logs/access_log', False)
 
-    def set_mod_nss_protocol(self):
-        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSProtocol', 'TLSv1.0,TLSv1.1,TLSv1.2', False)
+    def disable_mod_ssl_ocsp(self):
+        if sysupgrade.get_upgrade_state('http', OCSP_ENABLED) is None:
+            self.__disable_mod_ssl_ocsp()
+            sysupgrade.set_upgrade_state('http', OCSP_ENABLED, False)
+>>>>>>> 754c26ef6... Revisions for ocsp
 
-    def enable_mod_nss_renegotiate(self):
-        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSRenegotiation', 'on', False)
-        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSRequireSafeNegotiation', 'on', False)
-
-    def disable_mod_nss_ocsp(self):
-        if sysupgrade.get_upgrade_state('http', NSS_OCSP_ENABLED) is None:
-            self.__disable_mod_nss_ocsp()
-            sysupgrade.set_upgrade_state('http', NSS_OCSP_ENABLED, False)
-
-    def __disable_mod_nss_ocsp(self):
+    def __disable_mod_ssl_ocsp(self):
         aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD)
 
         aug.set('/augeas/load/Httpd/lens', 'Httpd.lns')
-        aug.set('/augeas/load/Httpd/incl', paths.HTTPD_NSS_CONF)
+        aug.set('/augeas/load/Httpd/incl', paths.HTTPD_SSL_CONF)
         aug.load()
 
-        path = '/files{}/VirtualHost'.format(paths.HTTPD_NSS_CONF)
+        path = '/files{}/VirtualHost'.format(paths.HTTPD_SSL_CONF)
         ocsp_path = '{}/directive[.="{}"]'.format(path, OCSP_DIRECTIVE)
         ocsp_arg = '{}/arg'.format(ocsp_path)
         ocsp_comment = '{}/#comment[.="{}"]'.format(path, OCSP_DIRECTIVE)
 
         ocsp_dir = aug.get(ocsp_path)
 
-        # there is NSSOCSP directive in nss.conf file, comment it
+        # there is SSLOCSPEnable directive in nss.conf file, comment it
         # otherwise just do nothing
         if ocsp_dir is not None:
             ocsp_state = aug.get(ocsp_arg)
@@ -311,18 +250,16 @@ class HTTPInstance(service.Service):
             aug.set(ocsp_comment, '{} {}'.format(OCSP_DIRECTIVE, ocsp_state))
             aug.save()
 
-
-    def set_mod_nss_cipher_suite(self):
-        ciphers = ','.join(NSS_CIPHER_SUITE)
-        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSCipherSuite', ciphers, False)
-
-    def __set_mod_nss_passwordfile(self):
-        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSPassPhraseDialog', 'file:' + paths.HTTPD_PASSWORD_CONF)
-
     def __add_include(self):
         """This should run after __set_mod_nss_port so is already backed up"""
-        if installutils.update_file(paths.HTTPD_NSS_CONF, '</VirtualHost>', 'Include {path}\n</VirtualHost>'.format(path=paths.HTTPD_IPA_REWRITE_CONF)) != 0:
-            print("Adding Include conf.d/ipa-rewrite to %s failed." % paths.HTTPD_NSS_CONF)
+        if installutils.update_file(paths.HTTPD_SSL_CONF,
+                                    '</VirtualHost>',
+                                    'Include {path}\n'
+                                    '</VirtualHost>'.format(
+                                        path=paths.HTTPD_IPA_REWRITE_CONF)
+                                    ) != 0:
+            self.print_msg("Adding Include conf.d/ipa-rewrite to "
+                           "%s failed." % paths.HTTPD_SSL_CONF)
 
     def configure_certmonger_renewal_guard(self):
         certmonger = services.knownservices.certmonger
@@ -354,79 +291,32 @@ class HTTPInstance(service.Service):
             if certmonger_stopped:
                 certmonger.stop()
 
-    def create_password_conf(self):
-        """
-        This is the format of mod_nss pin files.
-        """
-        pwd_conf = paths.HTTPD_PASSWORD_CONF
-        ipautil.backup_file(pwd_conf)
-
-        passwd_fname = os.path.join(paths.HTTPD_ALIAS_DIR, 'pwdfile.txt')
-        with open(passwd_fname, 'r') as pwdfile:
-            password = pwdfile.read()
-
-        with open(pwd_conf, "w") as f:
-            f.write("internal:")
-            f.write(password)
-            f.write("\nNSS FIPS 140-2 Certificate DB:")
-            f.write(password)
-            # make sure other processes can access the file contents ASAP
-            f.flush()
-        pent = pwd.getpwnam(constants.HTTPD_USER)
-        os.chown(pwd_conf, pent.pw_uid, pent.pw_gid)
-        os.chmod(pwd_conf, 0o400)
-
-    def disable_system_trust(self):
-        name = 'Root Certs'
-        args = [paths.MODUTIL, '-dbdir', paths.HTTPD_ALIAS_DIR, '-force']
-
-        try:
-            result = ipautil.run(args + ['-list', name],
-                                 env={},
-                                 capture_output=True)
-        except ipautil.CalledProcessError as e:
-            if e.returncode == 29:  # ERROR: Module not found in database.
-                logger.debug(
-                    'Module %s not available, treating as disabled', name)
-                return False
-            raise
-
-        if 'Status: Enabled' in result.output:
-            ipautil.run(args + ['-disable', name], env={})
-            return True
-
-        return False
-
     def __setup_ssl(self):
         db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
                           subject_base=self.subject_base, user="root",
                           group=constants.HTTPD_GROUP,
                           create=True)
-        self.disable_system_trust()
-        self.create_password_conf()
 
         if self.pkcs12_info:
-            if self.ca_is_configured:
-                trust_flags = IPA_CA_TRUST_FLAGS
-            else:
-                trust_flags = EXTERNAL_CA_TRUST_FLAGS
-            db.init_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
-                                ca_file=self.ca_file,
-                                trust_flags=trust_flags)
+            # db.init_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
+            #                    ca_file=self.ca_file,
+            #                    trust_flags=trust_flags)
             server_certs = db.find_server_certs()
             if len(server_certs) == 0:
-                raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])
+                raise RuntimeError(
+                    "Could not find a suitable server cert in import in %s"
+                    % self.pkcs12_info[0]
+                )
 
             # We only handle one server cert
             nickname = server_certs[0][0]
             if nickname == 'ipaCert':
                 nickname = server_certs[1][0]
-            self.cert = db.get_cert_from_db(nickname)
+            self.cert = x509.load_der_x509_certificate(paths.HTTPD_CERT_FILE)
 
             if self.ca_is_configured:
-                db.track_server_cert(nickname, self.principal, db.passwd_fname, 'restart_httpd')
+                self.start_tracking_certificates()
 
-            self.__set_mod_nss_nickname(nickname)
             self.add_cert_to_service()
 
         else:
@@ -445,41 +335,47 @@ class HTTPInstance(service.Service):
                 prev_helper = None
             try:
                 certmonger.request_and_wait_for_cert(
-                    certpath=db.secdir,
-                    nickname=self.cert_nickname,
+                    certpath=(paths.HTTPD_CERT_FILE, paths.HTTPD_KEY_FILE),
                     principal=self.principal,
-                    passwd_fname=db.passwd_fname,
                     subject=str(DN(('CN', self.fqdn), self.subject_base)),
                     ca='IPA',
                     profile=dogtag.DEFAULT_PROFILE,
                     dns=[self.fqdn],
-                    post_command='restart_httpd')
+                    post_command='restart_httpd',
+                    storage='FILE',
+                )
             finally:
                 if prev_helper is not None:
                     certmonger.modify_ca_helper('IPA', prev_helper)
-
-            self.cert = db.get_cert_from_db(self.cert_nickname)
+                self.cert = x509.load_der_x509_certificate(
+                    paths.HTTPD_CERT_FILE
+                )
 
             if prev_helper is not None:
                 self.add_cert_to_service()
 
             # Verify we have a valid server cert
-            server_certs = db.find_server_certs()
-            if not server_certs:
-                raise RuntimeError("Could not find a suitable server cert.")
+            # FIXME: come up with openssl equivalent
+            #  server_certs = db.find_server_certs()
+            #  if not server_certs:
+            #      raise RuntimeError("Could not find a suitable server cert.")
 
         # store the CA cert nickname so that we can publish it later on
-        self.cacert_nickname = db.cacert_name
+        # self.cacert_nickname = db.cacert_name
+        # FIXME: figure this out too
 
-    def __import_ca_certs(self):
-        db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
-                          subject_base=self.subject_base)
-        self.import_ca_certs(db, self.ca_is_configured)
+        installutils.set_directive(paths.HTTPD_SSL_CONF,
+                                   'SSLCertificateFile',
+                                   paths.HTTPD_CERT_FILE, False)
+        installutils.set_directive(paths.HTTPD_SSL_CONF,
+                                   'SSLCertificateKeyFile',
+                                   paths.HTTPD_KEY_FILE, False)
+        installutils.set_directive(paths.HTTPD_SSL_CONF,
+                                   'SSLCACertificateFile',
+                                   paths.IPA_CA_CRT, False)
 
     def __publish_ca_cert(self):
-        ca_db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
-                             subject_base=self.subject_base)
-        ca_db.export_pem_cert(self.cacert_nickname, paths.CA_CRT)
+        self.import_ca_certs_file(paths.CA_CRT, self.ca_is_configured)
 
     def is_kdcproxy_configured(self):
         """Check if KDC proxy has already been configured in the past"""
@@ -558,10 +454,9 @@ class HTTPInstance(service.Service):
                 ca_iface.Set('org.fedorahosted.certmonger.ca',
                              'external-helper', helper)
 
-        db = certs.CertDB(self.realm, paths.HTTPD_ALIAS_DIR)
-        db.restore()
-
-        for f in [paths.HTTPD_IPA_CONF, paths.HTTPD_SSL_CONF, paths.HTTPD_NSS_CONF]:
+        # FIXME: at some point don't backup/restore nss.conf
+        for f in [paths.HTTPD_IPA_CONF, paths.HTTPD_SSL_CONF,
+                  paths.HTTPD_NSS_CONF]:
             try:
                 self.fstore.restore_file(f)
             except ValueError as error:
@@ -571,6 +466,8 @@ class HTTPInstance(service.Service):
         installutils.remove_file(paths.HTTP_CCACHE)
 
         # Remove the configuration files we create
+        installutils.remove_file(paths.HTTPD_CERT_FILE)
+        installutils.remove_file(paths.HTTPD_KEY_FILE)
         installutils.remove_file(paths.HTTPD_IPA_REWRITE_CONF)
         installutils.remove_file(paths.HTTPD_IPA_CONF)
         installutils.remove_file(paths.HTTPD_IPA_PKI_PROXY_CONF)
@@ -595,18 +492,25 @@ class HTTPInstance(service.Service):
             self.enable()
 
     def stop_tracking_certificates(self):
-        db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
-        db.untrack_server_cert(self.get_mod_nss_nickname())
+        try:
+            certmonger.stop_tracking(certfile=paths.HTTPD_CERT_FILE)
+        except RuntimeError as e:
+            logger.error("certmonger failed to stop tracking certificate: %s",
+                         str(e))
 
     def start_tracking_certificates(self):
-        db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR)
-        nickname = self.get_mod_nss_nickname()
-        if db.is_ipa_issued_cert(api, nickname):
-            db.track_server_cert(nickname, self.principal,
-                                 db.passwd_fname, 'restart_httpd')
+        cert = x509.load_pem_x509_certificate(paths.HTTPD_CERT_FILE)
+        if certs.is_ipa_issued_cert(api, cert):
+            request_id = certmonger.start_tracking(
+                certpath=(paths.HTTPD_CERT_FILE, paths.HTTPD_CERT_KEY),
+                post_command='restart_httpd'
+            )
+            subject = str(DN(cert.subject))
+            certmonger.add_principal(request_id, principal)
+            certmonger.add_subject(request_id, subject)
         else:
             logger.debug("Will not track HTTP server cert %s as it is not "
-                         "issued by IPA", nickname)
+                         "issued by IPA", cert.subject)
 
     def request_service_keytab(self):
         super(HTTPInstance, self).request_service_keytab()

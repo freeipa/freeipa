@@ -208,23 +208,6 @@ def check_certs():
     else:
         logger.debug('Certificate file exists')
 
-def upgrade_pki(ca, fstore):
-    """
-    Update/add the dogtag proxy configuration. The IPA side of this is
-    handled in ipa-pki-proxy.conf.
-
-    This requires enabling SSL renegotiation.
-    """
-    logger.info('[Verifying that CA proxy configuration is correct]')
-    if not ca.is_configured():
-        logger.info('CA is not configured')
-        return
-
-    http = httpinstance.HTTPInstance(fstore)
-    http.enable_mod_nss_renegotiate()
-
-    logger.debug('Proxy configuration up-to-date')
-
 def update_dbmodules(realm, filename=paths.KRB5_CONF):
     newfile = []
     found_dbrealm = False
@@ -1744,7 +1727,6 @@ def upgrade_configuration():
                 os.path.join(ds_dirname, "certmap.conf"),
                 os.path.join(paths.USR_SHARE_IPA_DIR, "certmap.conf.template")
             )
-        upgrade_pki(ca, fstore)
 
         if kra.is_installed():
             logger.info('[Ensuring ephemeralRequest is enabled in KRA]')
@@ -1789,7 +1771,6 @@ def upgrade_configuration():
     http.realm = api.env.realm
     http.suffix = ipautil.realm_to_suffix(api.env.realm)
     http.configure_selinux_for_httpd()
-    http.change_mod_nss_port_from_http()
 
     http.configure_certmonger_renewal_guard()
 
