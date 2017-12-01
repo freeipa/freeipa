@@ -3,4 +3,8 @@ dn: cn=config
 changetype: modify
 replace: nsslapd-ldapilisten
 nsslapd-ldapilisten: on
+-
+replace: nsslapd-ldapifilepath
+nsslapd-ldapifilepath: /var/run/slapd-$SERVERID.socket
+-
 
