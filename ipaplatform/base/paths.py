@@ -32,9 +32,6 @@ class BasePathNamespace:
     SYSTEMCTL = "/bin/systemctl"
     TAR = "/bin/tar"
     AUTOFS_LDAP_AUTH_CONF = "/etc/autofs_ldap_auth.conf"
-    ETC_DIRSRV = "/etc/dirsrv"
-    DS_KEYTAB = "/etc/dirsrv/ds.keytab"
-    ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE = "/etc/dirsrv/slapd-%s"
     ETC_FEDORA_RELEASE = "/etc/fedora-release"
     GROUP = "/etc/group"
     ETC_HOSTNAME = "/etc/hostname"
@@ -197,13 +194,11 @@ class BasePathNamespace:
     BIND_LDAP_SO = "/usr/lib/bind/ldap.so"
     BIND_LDAP_DNS_IPA_WORKDIR = "/var/named/dyndb-ldap/ipa/"
     BIND_LDAP_DNS_ZONE_WORKDIR = "/var/named/dyndb-ldap/ipa/master/"
-    USR_LIB_DIRSRV = "/usr/lib/dirsrv"
     LIB_FIREFOX = "/usr/lib/firefox"
     LIBSOFTHSM2_SO = "/usr/lib/pkcs11/libsofthsm2.so"
     PAM_KRB5_SO = "/usr/lib/security/pam_krb5.so"
     LIB_SYSTEMD_SYSTEMD_DIR = "/usr/lib/systemd/system/"
     BIND_LDAP_SO_64 = "/usr/lib64/bind/ldap.so"
-    USR_LIB_DIRSRV_64 = "/usr/lib64/dirsrv"
     LIB64_FIREFOX = "/usr/lib64/firefox"
     LIBSOFTHSM2_SO_64 = "/usr/lib64/pkcs11/libsofthsm2.so"
     PAM_KRB5_SO_64 = "/usr/lib64/security/pam_krb5.so"
@@ -236,11 +231,9 @@ class BasePathNamespace:
     PKIDESTROY = "/usr/sbin/pkidestroy"
     PKISPAWN = "/usr/sbin/pkispawn"
     PKI = "/usr/bin/pki"
-    REMOVE_DS_PL = "/usr/sbin/remove-ds.pl"
     RESTORECON = "/usr/sbin/restorecon"
     SELINUXENABLED = "/usr/sbin/selinuxenabled"
     SETSEBOOL = "/usr/sbin/setsebool"
-    SETUP_DS_PL = "/usr/sbin/setup-ds.pl"
     SMBD = "/usr/sbin/smbd"
     USERADD = "/usr/sbin/useradd"
     FONTS_DIR = "/usr/share/fonts"
@@ -276,11 +269,6 @@ class BasePathNamespace:
     CERTMONGER_REQUESTS_DIR = "/var/lib/certmonger/requests/"
     VAR_LIB_DIRSRV = "/var/lib/dirsrv"
     DIRSRV_BOOT_LDIF = "/var/lib/dirsrv/boot.ldif"
-    VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE = "/var/lib/dirsrv/scripts-%s"
-    VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-%s"
-    SLAPD_INSTANCE_BACKUP_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-%s/bak/%s"
-    SLAPD_INSTANCE_DB_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-%s/db/%s"
-    SLAPD_INSTANCE_LDIF_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-%s/ldif"
     VAR_LIB_IPA = "/var/lib/ipa"
     IPA_CLIENT_SYSRESTORE = "/var/lib/ipa-client/sysrestore"
     SYSRESTORE_INDEX = "/var/lib/ipa-client/sysrestore/sysrestore.index"
@@ -315,10 +303,6 @@ class BasePathNamespace:
     SSSD_PUBCONF_KNOWN_HOSTS = "/var/lib/sss/pubconf/known_hosts"
     SSSD_PUBCONF_KRB5_INCLUDE_D_DIR = "/var/lib/sss/pubconf/krb5.include.d/"
     VAR_LOG_AUDIT = "/var/log/audit/audit.log"
-    DIRSRV_LOCK_DIR = "/var/lock/dirsrv"
-    VAR_LOG_DIRSRV_INSTANCE_TEMPLATE = "/var/log/dirsrv/slapd-%s"
-    SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE = "/var/log/dirsrv/slapd-%s/access"
-    SLAPD_INSTANCE_ERROR_LOG_TEMPLATE = "/var/log/dirsrv/slapd-%s/errors"
     VAR_LOG_HTTPD_DIR = "/var/log/httpd"
     VAR_LOG_HTTPD_ERROR = "/var/log/httpd/error_log"
     IPABACKUP_LOG = "/var/log/ipabackup.log"
@@ -358,13 +342,8 @@ class BasePathNamespace:
     SVC_LIST_FILE = "/var/run/ipa/services.list"
     KRB5CC_SAMBA = "/var/run/samba/krb5cc_samba"
     SLAPD_INSTANCE_SOCKET_TEMPLATE = "/var/run/slapd-%s.socket"
-    ALL_SLAPD_INSTANCE_SOCKETS = "/var/run/slapd-*.socket"
     ADMIN_CERT_PATH = '/root/.dogtag/pki-tomcat/ca_admin.cert'
     ENTROPY_AVAIL = '/proc/sys/kernel/random/entropy_avail'
-    LDIF2DB = '/usr/sbin/ldif2db'
-    DB2LDIF = '/usr/sbin/db2ldif'
-    BAK2DB = '/usr/sbin/bak2db'
-    DB2BAK = '/usr/sbin/db2bak'
     KDCPROXY_CONFIG = '/etc/ipa/kdcproxy/kdcproxy.conf'
     CERTMONGER = '/usr/sbin/certmonger'
     NETWORK_MANAGER_CONFIG_DIR = '/etc/NetworkManager/conf.d'
@@ -382,6 +361,33 @@ class BasePathNamespace:
     AUTHCONFIG = None
     AUTHSELECT = None
     SYSCONF_NETWORK = None
+    # 389 DS related commands.
+    DSCREATE = '/usr/sbin/dscreate'
+    DSCTL = '/usr/sbin/dsctl'
+    DSCONF = '/usr/sbin/dsconf'
+    # DS related constants
+    ETC_DIRSRV = "/etc/dirsrv"
+    DS_KEYTAB = "/etc/dirsrv/ds.keytab"
+    ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE = "/etc/dirsrv/slapd-%s"
+    USR_LIB_DIRSRV = "/usr/lib/dirsrv"
+    USR_LIB_DIRSRV_64 = "/usr/lib64/dirsrv"
+    VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE = "/var/lib/dirsrv/scripts-%s"
+    VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-%s"
+    SLAPD_INSTANCE_BACKUP_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-%s/bak/%s"
+    SLAPD_INSTANCE_DB_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-%s/db/%s"
+    SLAPD_INSTANCE_LDIF_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-%s/ldif"
+    DIRSRV_LOCK_DIR = "/var/lock/dirsrv"
+    ALL_SLAPD_INSTANCE_SOCKETS = "/var/run/slapd-*.socket"
+    VAR_LOG_DIRSRV_INSTANCE_TEMPLATE = "/var/log/dirsrv/slapd-%s"
+    SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE = "/var/log/dirsrv/slapd-%s/access"
+    SLAPD_INSTANCE_ERROR_LOG_TEMPLATE = "/var/log/dirsrv/slapd-%s/errors"
+    # Legacy 389 commands
+    LDIF2DB = '/usr/sbin/ldif2db'
+    DB2LDIF = '/usr/sbin/db2ldif'
+    BAK2DB = '/usr/sbin/bak2db'
+    DB2BAK = '/usr/sbin/db2bak'
+    SETUP_DS_PL = "/usr/sbin/setup-ds.pl"
+    REMOVE_DS_PL = "/usr/sbin/remove-ds.pl"
     IPA_SERVER_UPGRADE = '/usr/sbin/ipa-server-upgrade'
     KEYCTL = '/usr/bin/keyctl'
     GETENT = '/usr/bin/getent'
