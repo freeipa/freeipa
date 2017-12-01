@@ -96,7 +96,7 @@ def schema_dirname(serverid):
     return config_dirname(serverid) + "/schema/"
 
 
-def remove_ds_instance(serverid, force=False):
+def __remove_instance_legacy(serverid, force=False):
     """A wrapper around the 'remove-ds.pl' script used by
     389ds to remove a single directory server instance. In case of error
     additional call with the '-f' flag is performed (forced removal). If this
@@ -117,6 +117,36 @@ def remove_ds_instance(serverid, force=False):
         logger.debug("'%s' failed. "
                      "Attempting to force removal", paths.REMOVE_DS_PL)
         remove_ds_instance(serverid, force=True)
+
+def __remove_instance_python(serverid):
+    """Call the lib389 api to remove the instance. Because of the
+    design of the api, there is no "force" command. Provided a marker
+    file exists, it will attempt the removal, and the marker is the *last*
+    file to be removed. IE just run this multiple times til it works (if
+    you even need multiple times ....)
+    """
+
+    from lib389.instance.remove import remove_ds_instance
+    from lib389 import DirSrv
+
+    logger.debug("Attempting to remove instance %s" % serverid)
+    # Alloc the local instance by name (no creds needed!)
+    inst = DirSrv(verbose=True, external_log=logger)
+    inst.local_simple_allocate(serverid)
+
+    # Remove it
+    remove_ds_instance(instance)
+    logger.debug("Instance removed correctly.")
+
+def remove_ds_instance(serverid, force=False):
+    if os.path.exists(paths.REMOVE_DS_PL):
+        # We still have legacy tools. Lets use them.
+        self.__remove_instance_legacy(serverid, force)
+    else:
+        # Okay, 389 have removed their perl tools. Great! Use the api driven installer
+        self.__remove_instance_python(serverid)
+
+
 
 
 def get_ds_instances():
@@ -549,7 +579,7 @@ class DsInstance(service.Service):
                              ' '.join(replication.TOTAL_EXCLUDES),
                          )
 
-    def __create_instance(self):
+    def __create_instance_legacy(self):
         pent = pwd.getpwnam(DS_USER)
 
         self.backup_state("serverid", self.serverid)
@@ -590,6 +620,68 @@ class DsInstance(service.Service):
 
         inf_fd.close()
         os.remove(paths.DIRSRV_BOOT_LDIF)
+
+    def __create_instance_python(self):
+        # We only import lib389 now, because we can't always guarantee it's presence
+        # yet. After f28, this can be made a dependency proper.
+        from lib389.instance.setup import SetupDs
+        from lib389.instance.options import General2Base, Slapd2Base
+        from lib389.idm.ipadomain import IpaDomain
+        from lib389 import DirSrv
+
+        # The new installer is api driven. We can pass it a log function
+        # and it will use it. Because of this, we can pass verbose true,
+        # and allow our logger to control the display based on level.
+        sds = SetupDs(verbose=True, dryrun=False, log=logger)
+
+        # General environmental options.
+        general_options = General2Base(logger)
+        general_options.set('strict_host_checking', False)
+        # Check that our requested configuration is actually valid ...
+        general_options.verify()
+        general = general_options.collect()
+
+        # Slapd options, ie instance name.
+        slapd_options = Slapd2Base(logger)
+        slapd_options.set('instance_name', self.serverid)
+        slapd_options.set('root_password', self.dm_password)
+        slapd_options.verify()
+        slapd = slapd_options.collect()
+
+        # Create userroot. Note that the new install does NOT
+        # create sample entries, so this is *empty*.
+        userroot = {
+            'cn': 'userRoot',
+            'nsslapd-suffix': self.suffix.ldap_text()
+        }
+
+        backends = [userroot,]
+
+        sds.create_from_args(general, slapd, backends, None)
+
+        # Now create the new domain root object in the format that IPA expects.
+        # Get the instance ....
+
+        inst = DirSrv(verbose=True, external_log=logger)
+        inst.remote_simple_allocate(ldapuri=ipaldap.get_ldap_uri(self.fqdn), password=self.dm_password)
+        # This actually opens the conn and binds.
+        inst.open()
+
+        ipadomain = IpaDomain(inst, dn=self.suffix.ldap_text())
+        ipadomain.create(properties={
+            'dc' : self.realm.split('.')[0].lower(),
+            'info': 'IPA V2.0',
+        })
+        # Done!
+        logger.debug("completed creating DS instance")
+
+    def __create_instance(self):
+        if os.path.exists(paths.SETUP_DS_PL):
+            # We still have legacy tools. Lets use them.
+            self.__create_instance_legacy()
+        else:
+            # Okay, 389 have removed their perl tools. Great! Use the api driven installer
+            self.__create_instance_python()
 
     def __update_dse_ldif(self):
         """
@@ -1054,16 +1146,22 @@ class DsInstance(service.Service):
 
         try:
             self.fstore.restore_file(paths.LIMITS_CONF)
+        except ValueError as error:
+            logger.debug("%s: %s" % (paths.LIMITS_CONF , error))
+
+        try:
             self.fstore.restore_file(paths.SYSCONFIG_DIRSRV)
         except ValueError as error:
-            logger.debug("%s", error)
+            logger.debug("%s: %s" % (paths.SYSCONFIG_DIRSRV , error))
 
         # disabled during IPA installation
         if enabled:
+            logger.debug("Re-enabling instance of Directory Server")
             self.enable()
 
         serverid = self.restore_state("serverid")
         if serverid is not None:
+            # What if this fails? Then what?
             self.stop_tracking_certificates(serverid)
             logger.debug("Removing DS instance %s", serverid)
             try:
@@ -1072,9 +1170,14 @@ class DsInstance(service.Service):
                 logger.error("Failed to remove DS instance. You may "
                              "need to remove instance data manually")
 
-            installutils.remove_keytab(paths.DS_KEYTAB)
-            installutils.remove_ccache(run_as=DS_USER)
+        else:
+            logger.error("Failed to remove DS instance. No serverid present"
+                         "in sysrestore file.")
 
+        installutils.remove_keytab(paths.DS_KEYTAB)
+        installutils.remove_ccache(run_as=DS_USER)
+
+        if serverid is None:
             # Remove scripts dir
             scripts = paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % (
                 serverid)
