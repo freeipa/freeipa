@@ -81,7 +81,7 @@ PACKAGE_VERSION = {
     'jwcrypto': 'jwcrpyto >= 0.4.2',
     'kdcproxy': 'kdcproxy >= 0.3',
     'netifaces': 'netifaces >= 0.10.4',
-    'pyldap': 'pyldap >= 2.4.15',
+    'python-ldap': 'python-ldap >= 3.0.0b1',  # install --pre
     'python-yubico': 'python-yubico >= 1.2.3',
     'qrcode': 'qrcode >= 5.0',
 }
