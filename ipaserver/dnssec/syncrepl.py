@@ -9,9 +9,7 @@ to a local dict.
 
 import logging
 
-# Import the python-ldap modules
 import ldap
-# Import specific classes from python-ldap
 from ldap.cidict import cidict
 from ldap.ldapobject import ReconnectLDAPObject
 from ldap.syncrepl import SyncreplConsumer

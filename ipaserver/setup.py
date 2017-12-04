@@ -62,6 +62,7 @@ if __name__ == '__main__':
             "requests",
             "six",
             "python-augeas",
+            "python-ldap",
         ],
         entry_points={
             'custodia.authorizers': [
@@ -72,8 +73,6 @@ if __name__ == '__main__':
             ],
         },
         extras_require={
-            ":python_version<'3'": ["python-ldap"],
-            ":python_version>='3'": ["pyldap"],
             # These packages are currently not available on PyPI.
             "dcerpc": ["samba", "pysss", "pysss_nss_idmap"],
             "hbactest": ["pyhbac"],
