@@ -71,11 +71,10 @@ if __name__ == '__main__':
             "polib",
             "pytest",
             "pytest_multihost",
+            "python-ldap",
             "six",
         ],
         extras_require={
-            ":python_version<'3'": ["python-ldap"],
-            ":python_version>='3'": ["pyldap"],
             "integration": ["dbus-python", "pyyaml", "ipaserver"],
             "ipaserver": ["ipaserver"],
             "webui": ["selenium", "pyyaml", "ipaserver"],
