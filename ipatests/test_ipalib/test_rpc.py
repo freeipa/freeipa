@@ -28,8 +28,10 @@ import six
 # pylint: disable=import-error
 from six.moves.xmlrpc_client import Binary, Fault, dumps, loads
 # pylint: enable=import-error
+from six.moves import urllib
 
 from ipatests.util import raises, assert_equal, PluginTester, DummyClass
+from ipatests.util import Fuzzy
 from ipatests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib.frontend import Command
 from ipalib.request import context, Connection
@@ -341,3 +343,52 @@ class test_xml_introspection(object):
                 "command 'system.methodHelp' takes at most 1 argument")
         else:
             raise AssertionError('did not raise')
+
+
+class test_rpcclient_context(PluginTester):
+    """
+    Test the context in `ipalib.rpc.rpcclient` plugin.
+    """
+    def setup(self):
+        try:
+            api.Backend.rpcclient.connect(ca_certfile='foo')
+        except (errors.NetworkError, IOError):
+            raise nose.SkipTest('%r: Server not available: %r' %
+                                (__name__, api.env.xmlrpc_uri))
+
+    def teardown(self):
+        if api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.disconnect()
+
+    def test_context_cafile(self):
+        """
+        Test that ca_certfile is set in `ipalib.rpc.rpcclient.connect`
+        """
+        ca_certfile = getattr(context, 'ca_certfile', None)
+        assert_equal(ca_certfile, 'foo')
+
+    def test_context_principal(self):
+        """
+        Test that principal is set in `ipalib.rpc.rpcclient.connect`
+        """
+        principal = getattr(context, 'principal', None)
+        assert_equal(principal, 'admin@%s' % api.env.realm)
+
+    def test_context_request_url(self):
+        """
+        Test that request_url is set in `ipalib.rpc.rpcclient.connect`
+        """
+        request_url = getattr(context, 'request_url', None)
+        assert_equal(request_url, 'https://%s/ipa/session/json' % api.env.host)
+
+    def test_context_session_cookie(self):
+        """
+        Test that session_cookie is set in `ipalib.rpc.rpcclient.connect`
+        """
+        fuzzy_cookie = Fuzzy('^ipa_session=MagBearerToken=[A-Za-z0-9+\/]+=*;$')
+
+        session_cookie = getattr(context, 'session_cookie', None)
+        # pylint-2 is incorrectly spewing Too many positional arguments
+        # pylint: disable=E1121
+        unquoted = urllib.parse.unquote(session_cookie)
+        assert(unquoted == fuzzy_cookie)

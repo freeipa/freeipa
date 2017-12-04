@@ -313,6 +313,10 @@ def create_https_connection(
         raise RuntimeError("cafile argument is required to perform server "
                            "certificate verification")
 
+    if not os.path.isfile(cafile) or not os.access(cafile, os.R_OK):
+        raise RuntimeError("cafile \'{file}\' doesn't exist or is unreadable".
+                           format(file=cafile))
+
     # remove the slice of negating protocol options according to options
     tls_span = get_proper_tls_version_span(tls_version_min, tls_version_max)
 
