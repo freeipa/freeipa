@@ -26,6 +26,7 @@ import datetime
 
 import pytest
 
+from cryptography import x509 as crypto_x509
 from ipalib import x509
 from ipapython.dn import DN
 
@@ -84,6 +85,41 @@ good_pkcs7 = (
     b'Mg63SPawxfAgUeukrdsF3wTIKkIBu1TVse+kvRvgmRRrfF2a4ZOv5qORe2uhADEA\n'
     b'-----END PKCS7-----'
 )
+
+long_oid_cert = b'''
+-----BEGIN CERTIFICATE-----
+MIIFiTCCBHGgAwIBAgITSAAAAAd1bEC5lsOdnQAAAAAABzANBgkqhkiG9w0BAQsF
+ADBLMRUwEwYKCZImiZPyLGQBGRYFbG9jYWwxEjAQBgoJkiaJk/IsZAEZFgJhZDEe
+MBwGA1UEAxMVYWQtV0lOLVBQSzAxNUY5TURRLUNBMB4XDTE3MDUyNTIzNDg0NVoX
+DTE5MDUyNTIzNTg0NVowNDESMBAGA1UEChMJSVBBLkxPQ0FMMR4wHAYDVQQDExVD
+ZXJ0aWZpY2F0ZSBBdXRob3JpdHkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+AoIBAQDyyuty6irlL89hdaSW0UyAGLsOOMgAuJwBAeuRUorR159rsSnUXLcTHIsm
+EszKhwxp3NkkawRWx/s0UN1m2+RUwMl6gvlw+G80Mz0S77C77M+2lO8HRmZGm+Wu
+zBNcc9SANHuDQ1NISfZgLiscMS0+l0T3g6/Iqtg1kPWrq/tMevfh6tJEIedSBGo4
+3xKEMSDkrvaeTuSVrgn/QT0m+WNccZa0c7X35L/hgR22/l5sr057Ef8F9vL8zUH5
+TttFBIuiWJo8A8XX9I1zYIFhWjW3OVDZPBUnhGHH6yNyXGxXMRfcrrc74eTw8ivC
+080AQuRtgwvDErB/JPDJ5w5t/ielAgMBAAGjggJ7MIICdzA9BgkrBgEEAYI3FQcE
+MDAuBiYrBgEEAYI3FQiEoqJGhYq1PoGllQqGi+F4nacAgRODs5gfgozzAAIBZAIB
+BTAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQEAwIBhjAdBgNVHQ4EFgQUnSrC
+yW3CR0e3ilJdN6kL06P3KHMwHwYDVR0jBBgwFoAUj69xtyUNwp8on+NWO+HlxKyg
+X7AwgdgGA1UdHwSB0DCBzTCByqCBx6CBxIaBwWxkYXA6Ly8vQ049YWQtV0lOLVBQ
+SzAxNUY5TURRLUNBLENOPVdJTi1QUEswMTVGOU1EUSxDTj1DRFAsQ049UHVibGlj
+JTIwS2V5JTIwU2VydmljZXMsQ049U2VydmljZXMsQ049Q29uZmlndXJhdGlvbixE
+Qz1hZCxEQz1sb2NhbD9jZXJ0aWZpY2F0ZVJldm9jYXRpb25MaXN0P2Jhc2U/b2Jq
+ZWN0Q2xhc3M9Y1JMRGlzdHJpYnV0aW9uUG9pbnQwgcQGCCsGAQUFBwEBBIG3MIG0
+MIGxBggrBgEFBQcwAoaBpGxkYXA6Ly8vQ049YWQtV0lOLVBQSzAxNUY5TURRLUNB
+LENOPUFJQSxDTj1QdWJsaWMlMjBLZXklMjBTZXJ2aWNlcyxDTj1TZXJ2aWNlcyxD
+Tj1Db25maWd1cmF0aW9uLERDPWFkLERDPWxvY2FsP2NBQ2VydGlmaWNhdGU/YmFz
+ZT9vYmplY3RDbGFzcz1jZXJ0aWZpY2F0aW9uQXV0aG9yaXR5MDMGA1UdIAQsMCow
+KAYmKwYBBAGCNxUIhKKiRoWKtT6BpZUKhovheJ2nAIEThrXzUYabpA4wDQYJKoZI
+hvcNAQELBQADggEBAIsFS+Qc/ufTrkuHbMmzksOpxq+OIi9rot8zy9/1Vmj6d+iP
+kB+vQ1u4/IhdQArJFNhsBzWSY9Pi8ZclovpepFeEZfXPUenyeRCU43HdMXcHXnlP
+YZfyLQWOugdo1WxK6S9qQSOSlC7BSGZWvKkiAPAwr4zNbbS+ROA2w0xaYMv0rr5W
+A4UAyzZAdqaGRJBRvCZ/uFHM5wMw0LzNCL4CqKW9jfZX0Fc2tdGx8zbTYxIdgr2D
+PL25as32r3S/m4uWqoQaK0lxK5Y97eusK2rrmidy32Jctzwl29UWq8kpjRAuD8iR
+CSc7sKqOf+fn3+fKITR2/DcSVvb0SGCr5fVVnjQ=
+-----END CERTIFICATE-----
+'''
 
 
 class test_x509(object):
@@ -151,3 +187,18 @@ class test_x509(object):
         cert = certlist[0]
         assert DN(cert.subject) == DN('CN=Certificate Authority,O=EXAMPLE.COM')
         assert cert.serial_number == 1
+
+    def test_long_oid(self):
+        """
+        Test cerificate with very long OID. In this case we are using a
+        certificate from an opened case where one of X509v3 Certificate`s
+        Policies OID is longer then 80 chars.
+        """
+        cert = x509.load_pem_x509_certificate(long_oid_cert)
+        ext = cert.extensions.get_extension_for_class(crypto_x509.
+                                                      CertificatePolicies)
+
+        assert len(ext.value) == 1
+        assert ext.value[0].policy_identifier.dotted_string == (
+            u'1.3.6.1.4.1.311.21.8.8950086.10656446.2706058.12775672.480128.'
+            '147.13466065.13029902')
