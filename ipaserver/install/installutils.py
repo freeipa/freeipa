@@ -447,10 +447,11 @@ class DirectiveSetter(object):
     with DirectiveSetter('/path/to/conf') as ds:
         ds.set(key, value)
     """
-    def __init__(self, filename, quotes=True, separator=' '):
+    def __init__(self, filename, quotes=True, separator=' ', comment='#'):
         self.filename = os.path.abspath(filename)
         self.quotes = quotes
         self.separator = separator
+        self.comment = comment
         self.lines = None
         self.stat = None
 
@@ -491,17 +492,20 @@ class DirectiveSetter(object):
         finally:
             os.close(dirfd)
 
-    def set(self, directive, value, quotes=_SENTINEL, separator=_SENTINEL):
+    def set(self, directive, value, quotes=_SENTINEL, separator=_SENTINEL,
+            comment=_SENTINEL):
         """Set a single directive
         """
         if quotes is _SENTINEL:
             quotes = self.quotes
         if separator is _SENTINEL:
             separator = self.separator
+        if comment is _SENTINEL:
+            comment = self.comment
         # materialize lines
         # set_directive_lines() modify item, shrink or enlage line count
         self.lines = list(set_directive_lines(
-            quotes, separator, directive, value, self.lines
+            quotes, separator, directive, value, self.lines, comment
         ))
 
     def setitems(self, items):
@@ -514,7 +518,8 @@ class DirectiveSetter(object):
             self.set(k, v)
 
 
-def set_directive(filename, directive, value, quotes=True, separator=' '):
+def set_directive(filename, directive, value, quotes=True, separator=' ',
+                  comment='#'):
     """Set a name/value pair directive in a configuration file.
 
     A value of None means to drop the directive.
@@ -529,13 +534,15 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
         unparseable directives.
     :param separator: character serving as separator between directive and
         value.  Correct value required even when dropping a directive.
+    :param comment: comment character for the file to keep new values near
+                    their commented-out counterpart
     """
     st = os.stat(filename)
     with open(filename, 'r') as f:
         lines = list(f)  # read the whole file
         # materialize new list
         new_lines = list(set_directive_lines(
-            quotes, separator, directive, value, lines
+            quotes, separator, directive, value, lines, comment
         ))
     with open(filename, 'w') as f:
         # don't construct the whole string; write line-wise
@@ -544,7 +551,7 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
     os.chown(filename, st.st_uid, st.st_gid)  # reset perms
 
 
-def set_directive_lines(quotes, separator, k, v, lines):
+def set_directive_lines(quotes, separator, k, v, lines, comment):
     """Set a name/value pair in a configuration (iterable of lines).
 
     Replaces the value of the key if found, otherwise adds it at
@@ -560,12 +567,24 @@ def set_directive_lines(quotes, separator, k, v, lines):
         new_line = ''.join([k, separator, v_quoted, '\n'])
 
     found = False
+    addnext = False  # add on next line, found a comment
     matcher = re.compile(r'\s*{}'.format(re.escape(k + separator)))
+    cmatcher = re.compile(r'\s*{}\s*{}'.format(comment,
+                                               re.escape(k + separator)))
     for line in lines:
         if matcher.match(line):
             found = True
+            addnext = False
             if v is not None:
                 yield new_line
+        elif addnext:
+            found = True
+            addnext = False
+            yield new_line
+            yield line
+        elif cmatcher.match(line):
+            addnext = True
+            yield line
         else:
             yield line
 
