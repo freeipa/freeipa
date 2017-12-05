@@ -25,6 +25,12 @@
 %endif
 %endif
 
+%if 0%{?with_python3}
+%global python %{__python3}
+%else
+%global python %{__python2}
+%endif
+
 # lint is not executed during rpmbuild
 # %%global with_lint 1
 %if 0%{?with_lint}
@@ -1135,7 +1141,7 @@ fi
 
 %posttrans server
 # don't execute upgrade and restart of IPA when server is not installed
-python2 -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
+%{python} -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
 
 if [  $? -eq 0 ]; then
     # This is necessary for Fedora system upgrades which by default
@@ -1204,7 +1210,7 @@ fi
 
 
 %posttrans server-trust-ad
-python2 -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
+%{python} -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
 if [  $? -eq 0 ]; then
 # NOTE: systemd specific section
     /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :
@@ -1255,7 +1261,7 @@ if [ $1 -gt 1 ] ; then
     fi
 
     if [ $restore -ge 2 ]; then
-        python2 -c 'from ipaclient.install.client import update_ipa_nssdb; update_ipa_nssdb()' >/var/log/ipaupgrade.log 2>&1
+        %{python} -c 'from ipaclient.install.client import update_ipa_nssdb; update_ipa_nssdb()' >/var/log/ipaupgrade.log 2>&1
     fi
 fi
 
