@@ -212,7 +212,6 @@ class HTTPInstance(service.Service):
         # There is no safe way to co-exist since there is no safe port
         # to make mod_nss use, disable it completely.
         if os.path.exists(paths.HTTPD_NSS_CONF):
-            self.fstore.backup_file(paths.HTTPD_NSS_CONF)
             installutils.remove_file(paths.HTTPD_NSS_CONF)
 
     def set_mod_ssl_protocol(self):
