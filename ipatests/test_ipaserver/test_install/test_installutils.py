@@ -30,17 +30,17 @@ def tempdir(request):
 class test_set_directive_lines(object):
     def test_remove_directive(self):
         lines = installutils.set_directive_lines(
-            False, '=', 'foo', None, EXAMPLE_CONFIG)
+            False, '=', 'foo', None, EXAMPLE_CONFIG, comment="#")
         assert list(lines) == ['foobar=2\n']
 
     def test_add_directive(self):
         lines = installutils.set_directive_lines(
-            False, '=', 'baz', '4', EXAMPLE_CONFIG)
+            False, '=', 'baz', '4', EXAMPLE_CONFIG, comment="#")
         assert list(lines) == ['foo=1\n', 'foobar=2\n', 'baz=4\n']
 
     def test_set_directive_does_not_clobber_suffix_key(self):
         lines = installutils.set_directive_lines(
-            False, '=', 'foo', '3', EXAMPLE_CONFIG)
+            False, '=', 'foo', '3', EXAMPLE_CONFIG, comment="#")
         assert list(lines) == ['foo=3\n', 'foobar=2\n']
 
 
@@ -56,7 +56,7 @@ class test_set_directive(object):
                 for line in EXAMPLE_CONFIG:
                     f.write(line)
 
-            installutils.set_directive(filename, 'foo', '3', False, '=')
+            installutils.set_directive(filename, 'foo', '3', False, '=', "#")
 
             stat_post = os.stat(filename)
             with open(filename, 'r') as f:
