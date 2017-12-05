@@ -116,6 +116,8 @@ class HTTPInstance(service.Service):
         self.step("stopping httpd", self.__stop)
         self.step("backing up ssl.conf", self.backup_ssl_conf)
         self.step("disabling nss.conf", self.disable_nss_conf)
+        self.step("configuring mod_ssl certificate paths",
+                  self.configure_mod_ssl_certs)
         self.step("setting mod_ssl protocol list to TLSv1.0 - TLSv1.2",
                   self.set_mod_ssl_protocol)
         self.step("configuring mod_ssl log directory",
@@ -198,6 +200,11 @@ class HTTPInstance(service.Service):
         tasks.configure_http_gssproxy_conf(IPAAPI_USER)
         services.knownservices.gssproxy.restart()
 
+    def get_mod_nss_nickname(self):
+        cert = installutils.get_directive(paths.HTTPD_NSS_CONF, 'NSSNickname')
+        nickname = installutils.unquote_directive_value(cert, quote_char="'")
+        return nickname
+
     def backup_ssl_conf(self):
         self.fstore.backup_file(paths.HTTPD_SSL_CONF)
 
@@ -225,7 +232,6 @@ class HTTPInstance(service.Service):
         if sysupgrade.get_upgrade_state('http', OCSP_ENABLED) is None:
             self.__disable_mod_ssl_ocsp()
             sysupgrade.set_upgrade_state('http', OCSP_ENABLED, False)
->>>>>>> 754c26ef6... Revisions for ocsp
 
     def __disable_mod_ssl_ocsp(self):
         aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD)
@@ -249,6 +255,35 @@ class HTTPInstance(service.Service):
             aug.rename(ocsp_path, '#comment')
             aug.set(ocsp_comment, '{} {}'.format(OCSP_DIRECTIVE, ocsp_state))
             aug.save()
+
+#    def disable_mod_nss_ocsp(self):
+#        if sysupgrade.get_upgrade_state('http', NSS_OCSP_ENABLED) is None:
+#            self.__disable_mod_nss_ocsp()
+#            sysupgrade.set_upgrade_state('http', NSS_OCSP_ENABLED, False)
+
+#    def __disable_mod_nss_ocsp(self):
+#        aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD)
+#
+#        aug.set('/augeas/load/Httpd/lens', 'Httpd.lns')
+#        aug.set('/augeas/load/Httpd/incl', paths.HTTPD_NSS_CONF)
+#        aug.load()
+#
+#        path = '/files{}/VirtualHost'.format(paths.HTTPD_NSS_CONF)
+#        ocsp_path = '{}/directive[.="{}"]'.format(path, OCSP_DIRECTIVE)
+#        ocsp_arg = '{}/arg'.format(ocsp_path)
+#        ocsp_comment = '{}/#comment[.="{}"]'.format(path, OCSP_DIRECTIVE)
+#
+#        ocsp_dir = aug.get(ocsp_path)
+#
+#        # there is NSSOCSP directive in nss.conf file, comment it
+#        # otherwise just do nothing
+#        if ocsp_dir is not None:
+#            ocsp_state = aug.get(ocsp_arg)
+#            aug.remove(ocsp_arg)
+#            aug.rename(ocsp_path, '#comment')
+#            aug.set(ocsp_comment, '{} {}'.format(OCSP_DIRECTIVE, ocsp_state))
+#            aug.save()
+
 
     def __add_include(self):
         """This should run after __set_mod_nss_port so is already backed up"""
@@ -347,9 +382,9 @@ class HTTPInstance(service.Service):
             finally:
                 if prev_helper is not None:
                     certmonger.modify_ca_helper('IPA', prev_helper)
-                self.cert = x509.load_der_x509_certificate(
-                    paths.HTTPD_CERT_FILE
-                )
+            self.cert = x509.load_certificate_from_file(
+                paths.HTTPD_CERT_FILE
+            )
 
             if prev_helper is not None:
                 self.add_cert_to_service()
@@ -363,7 +398,10 @@ class HTTPInstance(service.Service):
         # store the CA cert nickname so that we can publish it later on
         # self.cacert_nickname = db.cacert_name
         # FIXME: figure this out too
+        sysupgrade.set_upgrade_state('ssl.conf', 'migrated_to_mod_ssl', True)
 
+    def configure_mod_ssl_certs(self):
+        """Configure the mod_ssl certificate directives"""
         installutils.set_directive(paths.HTTPD_SSL_CONF,
                                    'SSLCertificateFile',
                                    paths.HTTPD_CERT_FILE, False)
@@ -499,14 +537,14 @@ class HTTPInstance(service.Service):
                          str(e))
 
     def start_tracking_certificates(self):
-        cert = x509.load_pem_x509_certificate(paths.HTTPD_CERT_FILE)
+        cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
         if certs.is_ipa_issued_cert(api, cert):
             request_id = certmonger.start_tracking(
-                certpath=(paths.HTTPD_CERT_FILE, paths.HTTPD_CERT_KEY),
-                post_command='restart_httpd'
+                certpath=(paths.HTTPD_CERT_FILE, paths.HTTPD_KEY_FILE),
+                post_command='restart_httpd', storage='FILE'
             )
             subject = str(DN(cert.subject))
-            certmonger.add_principal(request_id, principal)
+            certmonger.add_principal(request_id, self.principal)
             certmonger.add_subject(request_id, subject)
         else:
             logger.debug("Will not track HTTP server cert %s as it is not "
@@ -530,3 +568,32 @@ class HTTPInstance(service.Service):
                     remote_ldap.simple_bind(ipaldap.DIRMAN_DN,
                                             self.dm_password)
                 replication.wait_for_entry(remote_ldap, service_dn, timeout=60)
+
+    def migrate_to_mod_ssl(self):
+        """For upgrades only, migrate from mod_nss to mod_ssl"""
+        db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
+        nickname = self.get_mod_nss_nickname()
+        with tempfile.NamedTemporaryFile() as temp:
+            pk12_password = ipautil.ipa_generate_password()
+            pk12_pwdfile = ipautil.write_tmp_file(pk12_password)
+            db.export_pkcs12(temp.name, pk12_pwdfile.name, nickname)
+            certs.install_pem_from_p12(temp.name,
+                                       pk12_password,
+                                       paths.HTTPD_CERT_FILE)
+            certs.install_key_from_p12(temp.name,
+                                       pk12_password,
+                                       paths.HTTPD_KEY_FILE)
+
+        self.configure_mod_ssl_certs()
+        self.set_mod_ssl_protocol()
+        self.set_mod_ssl_logdir()
+
+        self.cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
+
+        if self.ca_is_configured:
+            db.untrack_server_cert(nickname)
+            self.start_tracking_certificates()
+
+        # remove nickname and CA certs from NSS db
+
+        self.disable_nss_conf()

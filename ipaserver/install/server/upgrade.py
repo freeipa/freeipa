@@ -13,7 +13,7 @@ import fileinput
 import sys
 from augeas import Augeas
 import dns.exception
-from ipalib import api
+from ipalib import api, x509
 from ipalib.install import certmonger, sysrestore
 import SSSDConfig
 import ipalib.util
@@ -57,6 +57,7 @@ else:
 
 if six.PY3:
     unicode = str
+
 
 logger = logging.getLogger(__name__)
 
@@ -960,13 +961,12 @@ def certificate_renewal_update(ca, ds, http):
         return False
 
     # Check the http server cert if issued by IPA
-    http_nickname = http.get_mod_nss_nickname()
-    http_db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
-    if http_db.is_ipa_issued_cert(api, http_nickname):
+    cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
+    if certs.is_ipa_issued_cert(api, cert):
         requests.append(
             {
-                'cert-database': paths.HTTPD_ALIAS_DIR,
-                'cert-nickname': http_nickname,
+                'cert-file': paths.HTTPD_CERT_FILE,
+                'key-storage': paths.HTTPD_KEY_FILE,
                 'ca-name': 'IPA',
                 'cert-postsave-command': template % 'restart_httpd',
             }
@@ -1409,37 +1409,17 @@ def fix_trust_flags():
     sysupgrade.set_upgrade_state('http', 'fix_trust_flags', True)
 
 
-def update_mod_nss_protocol(http):
-    logger.info('[Updating mod_nss protocol versions]')
+def migrate_to_mod_ssl(http):
+    logger.info('[Migrating from mod_nss to mod_ssl]')
 
-    if sysupgrade.get_upgrade_state('nss.conf', 'protocol_updated_tls12'):
-        logger.info("Protocol versions already updated")
+    if sysupgrade.get_upgrade_state('ssl.conf', 'migrated_to_mod_ssl'):
+        logger.info("Already migrated to mod_ssl")
         return
 
-    http.set_mod_nss_protocol()
+    http.migrate_to_mod_ssl()
 
-    sysupgrade.set_upgrade_state('nss.conf', 'protocol_updated_tls12', True)
+    sysupgrade.set_upgrade_state('ssl.conf', 'migrated_to_mod_ssl', True)
 
-
-def disable_mod_nss_ocsp(http):
-    logger.info('[Updating mod_nss enabling OCSP]')
-    http.disable_mod_nss_ocsp()
-
-
-def update_mod_nss_cipher_suite(http):
-    logger.info('[Updating mod_nss cipher suite]')
-
-    revision = sysupgrade.get_upgrade_state('nss.conf', 'cipher_suite_updated')
-    if revision and revision >= httpinstance.NSS_CIPHER_REVISION:
-        logger.debug("Cipher suite already updated")
-        return
-
-    http.set_mod_nss_cipher_suite()
-
-    sysupgrade.set_upgrade_state(
-        'nss.conf',
-        'cipher_suite_updated',
-        httpinstance.NSS_CIPHER_REVISION)
 
 
 def update_ipa_httpd_service_conf(http):
@@ -1601,21 +1581,6 @@ def enable_certauth(krb):
         aug.close()
 
 
-def disable_httpd_system_trust(http):
-    ca_certs = []
-
-    db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
-    for nickname, trust_flags in db.list_certs():
-        if not trust_flags.has_key:
-            cert = db.get_cert_from_db(nickname)
-            if cert:
-                ca_certs.append((cert, nickname, trust_flags))
-
-    if http.disable_system_trust():
-        for cert, nickname, trust_flags in ca_certs:
-            db.add_cert(cert, nickname, trust_flags)
-
-
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1770,12 +1735,9 @@ def upgrade_configuration():
         http.enable_kdcproxy()
 
     http.stop()
-    disable_httpd_system_trust(http)
     update_ipa_httpd_service_conf(http)
     update_ipa_http_wsgi_conf(http)
-    update_mod_nss_protocol(http)
-    update_mod_nss_cipher_suite(http)
-    disable_mod_nss_ocsp(http)
+    migrate_to_mod_ssl(http)
     fix_trust_flags()
     update_http_keytab(http)
     http.configure_gssproxy()
