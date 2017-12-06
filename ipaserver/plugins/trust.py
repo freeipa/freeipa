@@ -656,6 +656,11 @@ Only trusts to Active Directory domains are supported right now.
 The command can be safely run multiple times against the same domain,
 this will cause change to trust relationship credentials on both
 sides.
+
+Note that if the command was previously run with a specific range type,
+or with automatic detection of the range type, and you want to configure a
+different range type, you may need to delete first the ID range using
+ipa idrange-del before retrying the command with the desired range type.
     ''')
 
     range_types = {
