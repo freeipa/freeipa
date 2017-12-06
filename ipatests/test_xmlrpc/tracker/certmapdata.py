@@ -5,7 +5,7 @@ import base64
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from nose.tools import assert_raises
+import pytest
 
 from ipalib.errors import MutuallyExclusiveError, RequirementError
 from ipapython.dn import DN
@@ -84,7 +84,7 @@ class CertmapdataMixin(object):
         try:
             expected_certmapdata = self._data_from_options(**kwargs)
         except Exception as e:
-            with assert_raises(type(e)):
+            with pytest.raises(type(e)):
                 cmd(**kwargs)
         else:
             result = cmd(**kwargs)
@@ -112,7 +112,7 @@ class CertmapdataMixin(object):
         try:
             expected_certmapdata = self._data_from_options(**kwargs)
         except Exception as e:
-            with assert_raises(type(e)):
+            with pytest.raises(type(e)):
                 cmd(**kwargs)
         else:
             result = cmd(**kwargs)

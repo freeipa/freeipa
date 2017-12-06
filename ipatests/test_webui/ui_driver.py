@@ -24,13 +24,12 @@ Contains browser driver and common tasks.
 """
 from __future__ import print_function
 
-import nose
 from datetime import datetime
 import time
 import re
 import os
 from functools import wraps
-from nose.plugins.skip import SkipTest
+import unittest
 
 # pylint: disable=import-error
 from six.moves.urllib.error import URLError
@@ -99,7 +98,7 @@ def screenshot(fn):
     def screenshot_wrapper(*args):
         try:
             return fn(*args)
-        except SkipTest:
+        except unittest.SkipTest:
             raise
         except Exception:
             self = args[0]
@@ -121,7 +120,7 @@ class UI_driver(object):
     @classmethod
     def setup_class(cls):
         if NO_SELENIUM:
-            raise nose.SkipTest('Selenium not installed')
+            raise unittest.SkipTest('Selenium not installed')
 
     def setup(self, driver=None, config=None):
         self.request_timeout = 30
@@ -151,9 +150,11 @@ class UI_driver(object):
                 with open(path, 'r') as conf:
                     self.config = yaml.load(conf)
             except yaml.YAMLError as e:
-                raise nose.SkipTest("Invalid Web UI config.\n%s" % e)
+                raise unittest.SkipTest("Invalid Web UI config.\n%s" % e)
             except IOError as e:
-                raise nose.SkipTest("Can't load Web UI test config: %s" % e)
+                raise unittest.SkipTest(
+                    "Can't load Web UI test config: %s" % e
+                )
         else:
             self.config = {}
 
@@ -189,7 +190,7 @@ class UI_driver(object):
 
         if driver_type == 'remote':
             if 'host' not in self.config:
-                raise nose.SkipTest('Selenium server host not configured')
+                raise unittest.SkipTest('Selenium server host not configured')
             host = self.config["host"]
 
             if browser == 'chrome':
@@ -205,9 +206,13 @@ class UI_driver(object):
                     command_executor='http://%s:%d/wd/hub' % (host, port),
                     desired_capabilities=capabilities)
             except URLError as e:
-                raise nose.SkipTest('Error connecting to selenium server: %s' % e)
+                raise unittest.SkipTest(
+                    'Error connecting to selenium server: %s' % e
+                )
             except RuntimeError as e:
-                raise nose.SkipTest('Error while establishing webdriver: %s' % e)
+                raise unittest.SkipTest(
+                    'Error while establishing webdriver: %s' % e
+                )
         else:
             try:
                 if browser == 'chrome' or browser == 'chromium':
@@ -221,9 +226,13 @@ class UI_driver(object):
                     ff_log_path = self.config.get("geckodriver_log_path")
                     driver = webdriver.Firefox(fp, log_path=ff_log_path)
             except URLError as e:
-                raise nose.SkipTest('Error connecting to selenium server: %s' % e)
+                raise unittest.SkipTest(
+                    'Error connecting to selenium server: %s' % e
+                )
             except RuntimeError as e:
-                raise nose.SkipTest('Error while establishing webdriver: %s' % e)
+                raise unittest.SkipTest(
+                    'Error while establishing webdriver: %s' % e
+                )
 
         return driver
 
@@ -1570,7 +1579,7 @@ class UI_driver(object):
         """
         Skip tests
         """
-        raise nose.SkipTest(reason)
+        raise unittest.SkipTest(reason)
 
     def assert_text(self, selector, value, parent=None):
         """

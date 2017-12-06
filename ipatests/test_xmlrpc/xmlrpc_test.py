@@ -25,8 +25,8 @@ from __future__ import print_function
 import collections
 import datetime
 import inspect
+import unittest
 
-import nose
 import contextlib
 import six
 
@@ -204,7 +204,7 @@ class XMLRPC_test(object):
     @classmethod
     def setup_class(cls):
         if not server_available:
-            raise nose.SkipTest('%r: Server not available: %r' %
+            raise unittest.SkipTest('%r: Server not available: %r' %
                                 (cls.__module__, api.env.xmlrpc_uri))
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect()
@@ -316,7 +316,7 @@ class Declarative(XMLRPC_test):
         (cmd, args, options) = command
         print('Cleanup:', cmd, args, options)
         if cmd not in api.Command:
-            raise nose.SkipTest(
+            raise unittest.SkipTest(
                 'cleanup command %r not in api.Command' % cmd
             )
         try:
@@ -338,7 +338,7 @@ class Declarative(XMLRPC_test):
         (cmd, args, options) = command
         options.setdefault('version', self.default_version)
         if cmd not in api.Command:
-            raise nose.SkipTest('%r not in api.Command' % cmd)
+            raise unittest.SkipTest('%r not in api.Command' % cmd)
         if isinstance(expected, errors.PublicError):
             self.check_exception(nice, cmd, args, options, expected)
         elif hasattr(expected, '__call__'):

@@ -20,10 +20,9 @@
 Test the `ipaserver/install/ldapupdate.py` module.
 """
 
-import unittest
 import os
+import unittest
 
-import nose
 import pytest
 
 from ipalib import api
@@ -62,7 +61,7 @@ class test_update(unittest.TestCase):
             self.dm_password = fp.read().rstrip()
             fp.close()
         else:
-            raise nose.SkipTest("No directory manager password")
+            raise unittest.SkipTest("No directory manager password")
         self.updater = LDAPUpdate(dm_password=self.dm_password, sub_dict={})
         ldap_uri = ipaldap.get_ldap_uri(fqdn)
         self.ld = ipaldap.LDAPClient(ldap_uri)
@@ -71,7 +70,7 @@ class test_update(unittest.TestCase):
         self.testdir = os.path.abspath(os.path.dirname(__file__))
         if not os.path.isfile(os.path.join(self.testdir,
                                                 "0_reset.update")):
-            raise nose.SkipTest("Unable to find test update files")
+            raise unittest.SkipTest("Unable to find test update files")
 
         self.container_dn = DN(self.updater._template_str('cn=test, cn=accounts, $SUFFIX'))
         self.user_dn = DN(self.updater._template_str('uid=tuser, cn=test, cn=accounts, $SUFFIX'))

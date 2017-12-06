@@ -24,14 +24,14 @@ Test the `ipaserver/plugins/automount.py' module.
 import textwrap
 import tempfile
 import shutil
-import pytest
 
 from ipalib import api
 from ipalib import errors
 from ipapython.dn import DN
+
+import pytest
 import six
 
-from nose.tools import raises, assert_raises  # pylint: disable=E0611
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipatests.util import assert_deepequal
 
@@ -179,13 +179,13 @@ class test_automount(AutomountTest):
         assert res
         assert_attr_equal(res, 'automountkey', self.keyname)
 
-    @raises(errors.DuplicateEntry)
     def test_4_automountkey_add(self):
         """
         Test adding a duplicate key using `xmlrpc.automountkey_add` method.
         """
-        api.Command['automountkey_add'](
-            self.locname, self.mapname, **self.key_kw)
+        with pytest.raises(errors.DuplicateEntry):
+            api.Command['automountkey_add'](
+                self.locname, self.mapname, **self.key_kw)
 
     def test_5_automountmap_show(self):
         """
@@ -302,7 +302,7 @@ class test_automount(AutomountTest):
         assert not res['failed']
 
         # Verify that it is gone
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['automountkey_show'](self.locname, self.mapname, **delkey_kw)
 
     def test_c_automountlocation_del(self):
@@ -314,7 +314,7 @@ class test_automount(AutomountTest):
         assert not res['failed']
 
         # Verify that it is gone
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['automountlocation_show'](self.locname)
 
     def test_d_automountmap_del(self):
@@ -323,7 +323,7 @@ class test_automount(AutomountTest):
         """
         # Verify that the second key we added is gone
         key_kw = {'automountkey': self.keyname2, 'automountinformation': self.info, 'raw': True}
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['automountkey_show'](self.locname, self.mapname, **key_kw)
 
 
@@ -364,13 +364,13 @@ class test_automount_direct(AutomountTest):
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname)
 
-    @raises(errors.DuplicateEntry)
     def test_2_automountmap_add_duplicate(self):
         """
         Test adding a duplicate direct map.
         """
-        api.Command['automountmap_add_indirect'](
-            self.locname, self.mapname, **self.direct_kw)
+        with pytest.raises(errors.DuplicateEntry):
+            api.Command['automountmap_add_indirect'](
+                self.locname, self.mapname, **self.direct_kw)
 
     def test_2a_automountmap_tofiles(self):
         """Test the `automountmap_tofiles` command"""
@@ -385,7 +385,7 @@ class test_automount_direct(AutomountTest):
         assert not res['failed']
 
         # Verity that it is gone
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['automountlocation_show'](self.locname)
 
     def test_z_import_roundtrip(self):
@@ -433,12 +433,14 @@ class test_automount_indirect(AutomountTest):
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname)
 
-    @raises(errors.DuplicateEntry)
     def test_1a_automountmap_add_indirect(self):
         """
         Test adding a duplicate indirect map.
         """
-        api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.map_kw)
+        with pytest.raises(errors.DuplicateEntry):
+            api.Command['automountmap_add_indirect'](
+                self.locname, self.mapname, **self.map_kw
+            )
 
     def test_2_automountmap_show(self):
         """
@@ -461,7 +463,7 @@ class test_automount_indirect(AutomountTest):
         assert not res['failed']
 
         # Verify that it is gone
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['automountkey_show'](self.locname, self.parentmap, **self.key_kw)
 
     def test_4_automountmap_del(self):
@@ -473,7 +475,7 @@ class test_automount_indirect(AutomountTest):
         assert not res['failed']
 
         # Verify that it is gone
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['automountmap_show'](self.locname, self.mapname)
 
     def test_5_automountlocation_del(self):
@@ -485,7 +487,7 @@ class test_automount_indirect(AutomountTest):
         assert not res['failed']
 
         # Verity that it is gone
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['automountlocation_show'](self.locname)
 
     def test_z_import_roundtrip(self):
@@ -570,7 +572,7 @@ class test_automount_indirect_no_parent(AutomountTest):
         assert not res['failed']
 
         # Verify that it is gone
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['automountkey_show'](self.locname, self.parentmap, **delkey_kw)
 
     def test_4_automountmap_del(self):
@@ -582,7 +584,7 @@ class test_automount_indirect_no_parent(AutomountTest):
         assert not res['failed']
 
         # Verify that it is gone
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['automountmap_show'](self.locname, self.mapname)
 
     def test_5_automountlocation_del(self):
@@ -594,5 +596,5 @@ class test_automount_indirect_no_parent(AutomountTest):
         assert not res['failed']
 
         # Verity that it is gone
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['automountlocation_show'](self.locname)

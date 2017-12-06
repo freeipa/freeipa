@@ -1399,7 +1399,9 @@ class test_netgroup(Declarative):
 #            entries = conn.find_entries('cn=%s' % self.ng_cn,
 #                      base_dn='cn=ng,cn=compat,%s' % api.env.basedn)
 #        except errors.NotFound:
-#            raise nose.SkipTest('compat and nis are not enabled, skipping test')
+#            raise unittest.SkipTest(
+#                'compat and nis are not enabled, skipping test'
+#            )
 #        finally:
 #            conn.disconnect()
 #        triples = entries[0][0]['nisnetgrouptriple']

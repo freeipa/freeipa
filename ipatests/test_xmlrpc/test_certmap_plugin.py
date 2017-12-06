@@ -3,7 +3,6 @@
 #
 
 import itertools
-from nose.tools import assert_raises
 import pytest
 
 from ipalib import api, errors
@@ -259,7 +258,7 @@ class EWE(object):
         self.change_principal_cm.__enter__()  # pylint: disable=no-member
 
         if self.exception:
-            self.assert_raises_cm = assert_raises(self.exception)
+            self.assert_raises_cm = pytest.raises(self.exception)
             self.assert_raises_cm.__enter__()
 
         return self

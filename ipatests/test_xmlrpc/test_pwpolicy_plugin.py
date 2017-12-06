@@ -21,7 +21,7 @@
 Test the `ipaserver/plugins/pwpolicy.py` module.
 """
 
-from nose.tools import assert_raises  # pylint: disable=E0611
+import pytest
 
 from ipalib import api
 from ipalib import errors
@@ -29,7 +29,6 @@ from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (XMLRPC_test, assert_attr_equal,
                                               Declarative)
-import pytest
 
 
 @pytest.mark.tier1
@@ -213,7 +212,7 @@ class test_pwpolicy(XMLRPC_test):
     def test_d_pwpolicy_show(self):
         """Test that deleting a group removes its pwpolicy"""
         api.Command['group_del'](self.group3)
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['pwpolicy_show'](self.group3)
 
     def test_e_pwpolicy_del(self):

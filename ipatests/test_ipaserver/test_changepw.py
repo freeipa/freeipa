@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import nose
+import unittest
+
 import ldap
 import pytest
 
@@ -41,7 +42,7 @@ class test_changepw(XMLRPC_test, Unauthorized_HTTP_test):
             api.Command['user_add'](uid=testuser, givenname=u'Test', sn=u'User')
             api.Command['passwd'](testuser, password=u'old_password')
         except errors.ExecutionError as e:
-            raise nose.SkipTest(
+            raise unittest.SkipTest(
                 'Cannot set up test user: %s' % e
             )
 

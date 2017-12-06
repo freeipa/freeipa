@@ -20,7 +20,6 @@
 Test the `kernel_keyring.py` module.
 """
 
-from nose.tools import raises  # pylint: disable=E0611
 from ipapython import kernel_keyring
 
 import pytest
@@ -81,13 +80,13 @@ class test_keyring(object):
         except ValueError:
             pass
 
-    @raises(ValueError)
     def test_03(self):
         """
         Add a duplicate key
         """
         kernel_keyring.add_key(TEST_KEY, TEST_VALUE)
-        kernel_keyring.add_key(TEST_KEY, TEST_VALUE)
+        with pytest.raises(ValueError):
+            kernel_keyring.add_key(TEST_KEY, TEST_VALUE)
 
     def test_04(self):
         """
@@ -106,12 +105,12 @@ class test_keyring(object):
 
         kernel_keyring.del_key(TEST_KEY)
 
-    @raises(ValueError)
     def test_05(self):
         """
         Read a non-existent key
         """
-        kernel_keyring.read_key(TEST_KEY)
+        with pytest.raises(ValueError):
+            kernel_keyring.read_key(TEST_KEY)
 
     def test_06(self):
         """
