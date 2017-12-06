@@ -270,6 +270,8 @@ class BasePathNamespace(object):
     DNSSEC_TOKENS_DIR = "/var/lib/ipa/dnssec/tokens"
     DNSSEC_SOFTHSM_PIN = "/var/lib/ipa/dnssec/softhsm_pin"
     IPA_CA_CSR = "/var/lib/ipa/ca.csr"
+    IPA_CACERT_MANAGE = "/usr/sbin/ipa-cacert-manage"
+    IPA_CERTUPDATE = "/usr/sbin/ipa-certupdate"
     PKI_CA_PUBLISH_DIR = "/var/lib/ipa/pki-ca/publish"
     REPLICA_INFO_TEMPLATE = "/var/lib/ipa/replica-info-%s"
     REPLICA_INFO_GPG_TEMPLATE = "/var/lib/ipa/replica-info-%s.gpg"
