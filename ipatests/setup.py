@@ -67,7 +67,6 @@ if __name__ == '__main__':
             "ipalib",
             "ipaplatform",
             "ipapython",
-            "nose",
             "polib",
             "pytest",
             "pytest_multihost",

@@ -24,7 +24,6 @@ Test the `ipaserver/plugins/hbactest.py` module.
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipalib import api
 from ipalib import errors
-from nose.tools import raises
 import pytest
 
 # Test strategy:
@@ -187,19 +186,19 @@ class test_hbactest(XMLRPC_test):
         for rule in self.rule_names:
             assert u'%s_1x1' % (rule) in ret['error']
 
-    @raises(errors.ValidationError)
     def test_f_hbactest_check_sourcehost_option_is_deprecated(self):
         """
         Test running 'ipa hbactest' with --srchost option raises ValidationError
         """
-        api.Command['hbactest'](
-            user=self.test_user,
-            targethost=self.test_host,
-            sourcehost=self.test_sourcehost,
-            service=self.test_service,
-            rules=[u'%s_1x1' % rule for rule in self.rule_names],
-            nodetail=True
-        )
+        with pytest.raises(errors.ValidationError):
+            api.Command['hbactest'](
+                user=self.test_user,
+                targethost=self.test_host,
+                sourcehost=self.test_sourcehost,
+                service=self.test_service,
+                rules=[u'%s_1x1' % rule for rule in self.rule_names],
+                nodetail=True
+            )
 
     def test_g_hbactest_clear_testing_data(self):
         """

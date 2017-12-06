@@ -19,13 +19,11 @@
 """
 Test the `ipaserver/plugins/hbacrule.py` module.
 """
-
-from nose.tools import raises, assert_raises  # pylint: disable=E0611
+import pytest
 
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
-import pytest
 
 
 @pytest.mark.tier1
@@ -69,14 +67,14 @@ class test_hbac(XMLRPC_test):
         assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
         assert_attr_equal(entry, 'description', self.rule_desc)
 
-    @raises(errors.DuplicateEntry)
     def test_1_hbacrule_add(self):
         """
         Test adding an existing HBAC rule using `xmlrpc.hbacrule_add'.
         """
-        api.Command['hbacrule_add'](
-                self.rule_name, accessruletype=self.rule_type
-            )
+        with pytest.raises(errors.DuplicateEntry):
+            api.Command['hbacrule_add'](
+                    self.rule_name, accessruletype=self.rule_type
+                )
 
     def test_2_hbacrule_show(self):
         """
@@ -264,14 +262,15 @@ class test_hbac(XMLRPC_test):
         assert 'memberhost_host' not in entry
         assert 'memberhost_hostgroup' not in entry
 
-    @raises(errors.DeprecationError)
     def test_a_hbacrule_add_sourcehost_deprecated(self):
         """
         Test deprecated command hbacrule_add_sourcehost.
         """
-        api.Command['hbacrule_add_sourcehost'](
-            self.rule_name, host=self.test_host, hostgroup=self.test_hostgroup
-        )
+        with pytest.raises(errors.DeprecationError):
+            api.Command['hbacrule_add_sourcehost'](
+                self.rule_name, host=self.test_host,
+                hostgroup=self.test_hostgroup
+            )
 
     def test_a_hbacrule_add_service(self):
         """
@@ -303,23 +302,24 @@ class test_hbac(XMLRPC_test):
         entry = ret['result']
         assert 'memberservice service' not in entry
 
-    @raises(errors.DeprecationError)
     def test_b_hbacrule_remove_sourcehost_deprecated(self):
         """
         Test deprecated command hbacrule_remove_sourcehost.
         """
-        api.Command['hbacrule_remove_sourcehost'](
-            self.rule_name, host=self.test_host, hostgroup=self.test_hostgroup
-        )
+        with pytest.raises(errors.DeprecationError):
+            api.Command['hbacrule_remove_sourcehost'](
+                self.rule_name, host=self.test_host,
+                hostgroup=self.test_hostgroup
+            )
 
-    @raises(errors.ValidationError)
     def test_c_hbacrule_mod_invalid_external_setattr(self):
         """
         Test adding the same external host using `xmlrpc.hbacrule_add_host`.
         """
-        api.Command['hbacrule_mod'](
-            self.rule_name, setattr=self.test_invalid_sourcehost
-        )
+        with pytest.raises(errors.ValidationError):
+            api.Command['hbacrule_mod'](
+                self.rule_name, setattr=self.test_invalid_sourcehost
+            )
 
     def test_d_hbacrule_disable(self):
         """
@@ -361,92 +361,110 @@ class test_hbac(XMLRPC_test):
         entry = api.Command['hbacrule_show'](self.rule_name)['result']
         assert_attr_equal(entry, 'ipaenabledflag', 'TRUE')
 
-    @raises(errors.MutuallyExclusiveError)
     def test_f_hbacrule_exclusiveuser(self):
         """
         Test adding a user to an HBAC rule when usercat='all'
         """
         api.Command['hbacrule_mod'](self.rule_name, usercategory=u'all')
         try:
-            api.Command['hbacrule_add_user'](self.rule_name, user=u'admin')
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['hbacrule_add_user'](
+                    self.rule_name, user=u'admin'
+                )
         finally:
             api.Command['hbacrule_mod'](self.rule_name, usercategory=u'')
 
-    @raises(errors.MutuallyExclusiveError)
     def test_g_hbacrule_exclusiveuser(self):
         """
         Test setting usercat='all' in an HBAC rule when there are users
         """
         api.Command['hbacrule_add_user'](self.rule_name, user=u'admin')
         try:
-            api.Command['hbacrule_mod'](self.rule_name, usercategory=u'all')
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['hbacrule_mod'](
+                    self.rule_name, usercategory=u'all'
+                )
         finally:
             api.Command['hbacrule_remove_user'](self.rule_name, user=u'admin')
 
-    @raises(errors.MutuallyExclusiveError)
     def test_h_hbacrule_exclusivehost(self):
         """
         Test adding a host to an HBAC rule when hostcat='all'
         """
         api.Command['hbacrule_mod'](self.rule_name, hostcategory=u'all')
         try:
-            api.Command['hbacrule_add_host'](self.rule_name, host=self.test_host)
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['hbacrule_add_host'](
+                    self.rule_name, host=self.test_host
+                )
         finally:
             api.Command['hbacrule_mod'](self.rule_name, hostcategory=u'')
 
-    @raises(errors.MutuallyExclusiveError)
     def test_i_hbacrule_exclusivehost(self):
         """
         Test setting hostcat='all' in an HBAC rule when there are hosts
         """
         api.Command['hbacrule_add_host'](self.rule_name, host=self.test_host)
         try:
-            api.Command['hbacrule_mod'](self.rule_name, hostcategory=u'all')
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['hbacrule_mod'](
+                    self.rule_name, hostcategory=u'all'
+                )
         finally:
-            api.Command['hbacrule_remove_host'](self.rule_name, host=self.test_host)
+            api.Command['hbacrule_remove_host'](
+                self.rule_name, host=self.test_host
+            )
 
-    @raises(errors.MutuallyExclusiveError)
     def test_j_hbacrule_exclusiveservice(self):
         """
         Test adding a service to an HBAC rule when servicecat='all'
         """
         api.Command['hbacrule_mod'](self.rule_name, servicecategory=u'all')
         try:
-            api.Command['hbacrule_add_service'](self.rule_name, hbacsvc=self.test_service)
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['hbacrule_add_service'](
+                    self.rule_name, hbacsvc=self.test_service
+                )
         finally:
             api.Command['hbacrule_mod'](self.rule_name, servicecategory=u'')
 
-    @raises(errors.MutuallyExclusiveError)
     def test_k_hbacrule_exclusiveservice(self):
         """
         Test setting servicecat='all' in an HBAC rule when there are services
         """
-        api.Command['hbacrule_add_service'](self.rule_name, hbacsvc=self.test_service)
+        api.Command['hbacrule_add_service'](
+            self.rule_name, hbacsvc=self.test_service
+        )
         try:
-            api.Command['hbacrule_mod'](self.rule_name, servicecategory=u'all')
+            with pytest.raises(errors.MutuallyExclusiveError):
+                api.Command['hbacrule_mod'](
+                    self.rule_name, servicecategory=u'all'
+                )
         finally:
-            api.Command['hbacrule_remove_service'](self.rule_name, hbacsvc=self.test_service)
+            api.Command['hbacrule_remove_service'](
+                self.rule_name, hbacsvc=self.test_service
+            )
 
-    @raises(errors.ValidationError)
     def test_l_hbacrule_add(self):
         """
         Test adding a new HBAC rule with a deny type.
         """
-        api.Command['hbacrule_add'](
-            u'denyrule',
-            accessruletype=u'deny',
-            description=self.rule_desc,
-        )
+        with pytest.raises(errors.ValidationError):
+            api.Command['hbacrule_add'](
+                u'denyrule',
+                accessruletype=u'deny',
+                description=self.rule_desc,
+            )
 
-    @raises(errors.ValidationError)
     def test_m_hbacrule_add(self):
         """
         Test changing an HBAC rule to the deny type
         """
-        api.Command['hbacrule_mod'](
-            self.rule_name,
-            accessruletype=u'deny',
-        )
+        with pytest.raises(errors.ValidationError):
+            api.Command['hbacrule_mod'](
+                self.rule_name,
+                accessruletype=u'deny',
+            )
 
     def test_n_hbacrule_links(self):
         """
@@ -502,14 +520,14 @@ class test_hbac(XMLRPC_test):
         """
         api.Command['hbacrule_del'](self.rule_name)
         # verify that it's gone
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['hbacrule_show'](self.rule_name)
 
-    @raises(errors.ValidationError)
     def test_zz_hbacrule_add_with_deprecated_option(self):
         """
         Test using a deprecated command option 'sourcehostcategory' with 'hbacrule_add'.
         """
-        api.Command['hbacrule_add'](
-            self.rule_name, sourcehostcategory=u'all'
-        )
+        with pytest.raises(errors.ValidationError):
+            api.Command['hbacrule_add'](
+                self.rule_name, sourcehostcategory=u'all'
+            )

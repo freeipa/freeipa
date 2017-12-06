@@ -22,7 +22,8 @@ Test the `ipalib.rpc` module.
 """
 from __future__ import print_function
 
-import nose
+import unittest
+
 import pytest
 import six
 # pylint: disable=import-error
@@ -267,7 +268,7 @@ class test_xml_introspection(object):
         try:
             api.Backend.xmlclient.connect()
         except (errors.NetworkError, IOError):
-            raise nose.SkipTest('%r: Server not available: %r' %
+            raise unittest.SkipTest('%r: Server not available: %r' %
                                 (__name__, api.env.xmlrpc_uri))
 
     @classmethod
@@ -356,7 +357,7 @@ class test_rpcclient_context(PluginTester):
         try:
             api.Backend.rpcclient.connect(ca_certfile='foo')
         except (errors.NetworkError, IOError):
-            raise nose.SkipTest('%r: Server not available: %r' %
+            raise unittest.SkipTest('%r: Server not available: %r' %
                                 (__name__, api.env.xmlrpc_uri))
 
     def teardown(self):
