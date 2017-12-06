@@ -29,6 +29,7 @@ import contextlib
 import collections
 import os
 import pwd
+import warnings
 
 # pylint: disable=import-error
 from six.moves.urllib.parse import urlparse
@@ -74,6 +75,20 @@ TRUNCATED_TIME_LIMIT = object()
 TRUNCATED_ADMIN_LIMIT = object()
 
 DIRMAN_DN = DN(('cn', 'directory manager'))
+
+
+if six.PY2:
+    # XXX silence python-ldap's BytesWarnings
+    warnings.filterwarnings(
+        action="ignore",
+        message="Under Python 2, python-ldap uses bytes",
+        category=BytesWarning
+    )
+    warnings.filterwarnings(
+        action="ignore",
+        message="Received non-bytes value",
+        category=BytesWarning
+    )
 
 
 class _ServerSchema(object):

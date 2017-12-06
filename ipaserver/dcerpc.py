@@ -185,17 +185,13 @@ def assess_dcerpc_error(error):
 
 
 class ExtendedDNControl(LDAPControl):
-    # This class attempts to implement LDAP control that would work
-    # with both python-ldap 2.4.x and 2.3.x, thus there is mix of properties
-    # from both worlds and encodeControlValue has default parameter
     def __init__(self):
-        self.controlValue = 1
-        self.controlType = "1.2.840.113556.1.4.529"
-        self.criticality = False
-        self.integerValue = 1
-
-    def encodeControlValue(self, value=None):
-        return b'0\x03\x02\x01\x01'
+        LDAPControl.__init__(
+            self,
+            controlType="1.2.840.113556.1.4.529",
+            criticality=False,
+            encodedControlValue=b'0\x03\x02\x01\x01'
+        )
 
 
 class DomainValidator(object):
