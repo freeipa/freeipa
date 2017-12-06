@@ -42,6 +42,7 @@ from ipalib.util import get_reverse_zone_default, verify_host_resolvable
 from ipalib.constants import (
     DEFAULT_CONFIG, DOMAIN_SUFFIX_NAME, DOMAIN_LEVEL_0)
 
+from .create_external_ca import ExternalCA
 from .env_config import env_to_script
 from .host import Host
 
@@ -1381,3 +1382,30 @@ def add_dns_zone(master, zone, skip_overlap_check=False,
                                     host.hostname + ".", '--a-rec', host.ip])
     else:
         logger.debug('Zone %s already added.', zone)
+
+
+def sign_ca_and_transport(host, csr_name, root_ca_name, ipa_ca_name):
+    """
+    Sign ipa csr and save signed CA together with root CA back to the host.
+    Returns root CA and IPA CA paths on the host.
+    """
+
+    test_dir = host.config.test_dir
+
+    # Get IPA CSR as bytes
+    ipa_csr = host.get_file_contents(csr_name)
+
+    external_ca = ExternalCA()
+    # Create root CA
+    root_ca = external_ca.create_ca()
+    # Sign CSR
+    ipa_ca = external_ca.sign_csr(ipa_csr)
+
+    root_ca_fname = os.path.join(test_dir, root_ca_name)
+    ipa_ca_fname = os.path.join(test_dir, ipa_ca_name)
+
+    # Transport certificates (string > file) to master
+    host.put_file_contents(root_ca_fname, root_ca)
+    host.put_file_contents(ipa_ca_fname, ipa_ca)
+
+    return (root_ca_fname, ipa_ca_fname)
