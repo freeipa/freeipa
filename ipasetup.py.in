@@ -91,6 +91,7 @@ common_args = dict(
     url="http://www.freeipa.org/",
     download_url="http://www.freeipa.org/page/Downloads",
     platforms=["Linux", "Solaris", "Unix"],
+    python_requires="~=2.7.5",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: System Administrators",
@@ -99,9 +100,6 @@ common_args = dict(
         "Programming Language :: C",
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: Implementation :: CPython",
         "Operating System :: POSIX",
         "Operating System :: POSIX :: Linux",
