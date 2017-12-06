@@ -345,6 +345,7 @@ class test_xml_introspection(object):
             raise AssertionError('did not raise')
 
 
+@pytest.mark.skip_ipaclient_unittest
 class test_rpcclient_context(PluginTester):
     """
     Test the context in `ipalib.rpc.rpcclient` plugin.
