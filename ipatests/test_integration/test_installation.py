@@ -167,7 +167,6 @@ class TestInstallWithCA_KRA1(InstallTestBase1):
         tasks.install_kra(self.replicas[0], first_instance=False)
 
 
-@pytest.mark.xfail(reason="FreeIPA ticket 7220")
 class TestInstallWithCA_KRA2(InstallTestBase2):
 
     @classmethod
@@ -234,7 +233,6 @@ class TestInstallWithCA_KRA_DNS1(InstallTestBase1):
         tasks.install_kra(self.replicas[0], first_instance=False)
 
 
-@pytest.mark.xfail(reason="FreeIPA ticket 7220")
 class TestInstallWithCA_KRA_DNS2(InstallTestBase2):
 
     @classmethod
