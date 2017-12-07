@@ -1,0 +1,25 @@
+include asn1/*.c
+include asn1/*.h
+include asn1/asn1c/*.c
+include asn1/asn1c/*.h
+include asn1/asn1c/ipa.asn1
+
+include client/config.c
+include client/config.h
+include client/ipa-client-common.c
+include client/ipa-client-common.h
+include client/ipa-getkeytab.c
+include client/ipa-join.c
+include client/ipa-rmkeytab.c
+
+include util/ipa_krb5.c
+include util/ipa_krb5.h
+
+prune client/asn1
+prune client/client
+prune client/util
+
+include Contributors.txt COPYING
+include config.h
+include ipasetup.py
+include setup.cfg
