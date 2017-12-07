@@ -217,7 +217,8 @@ class UI_driver(object):
                     fp = None
                     if "ff_profile" in self.config:
                         fp = webdriver.FirefoxProfile(self.config["ff_profile"])
-                    driver = webdriver.Firefox(fp)
+                    ff_log_path = self.config.get("geckodriver_log_path")
+                    driver = webdriver.Firefox(fp, log_path=ff_log_path)
             except URLError as e:
                 raise nose.SkipTest('Error connecting to selenium server: %s' % e)
             except RuntimeError as e:
