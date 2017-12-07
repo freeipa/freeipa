@@ -157,7 +157,10 @@ class AdminTool(object):
     def __init__(self, options, args):
         self.options = options
         self.args = args
-        self.safe_options = self.option_parser.get_safe_opts(options)
+        if args is not None:
+            self.safe_options = self.option_parser.get_safe_opts(options)
+        else:
+            self.safe_options = None
 
     def execute(self):
         """Do everything needed after options are parsed

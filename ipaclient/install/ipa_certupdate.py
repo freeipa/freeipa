@@ -51,10 +51,15 @@ class CertUpdate(admintool.AdminTool):
         super(CertUpdate, self).validate_options(needs_root=True)
 
     def run(self):
+        """
+        Run the certupdate procedure with the given API object.
+        """
         check_client_configuration()
 
-        api.bootstrap(context='cli_installer', confdir=paths.ETC_IPA)
-        api.finalize()
+        if not api.isdone('finalize'):
+            api.bootstrap(context='cli_installer', confdir=paths.ETC_IPA)
+            api.finalize()
+        connected = api.env.in_server or api.Backend.rpcclient.isconnected()
 
         server = urlsplit(api.env.jsonrpc_uri).hostname
         ldap_uri = ipaldap.get_ldap_uri(server)
@@ -62,24 +67,20 @@ class CertUpdate(admintool.AdminTool):
 
         tmpdir = tempfile.mkdtemp(prefix="tmp-")
         ccache_name = os.path.join(tmpdir, 'ccache')
+        old_krb5ccname = os.environ.get('KRB5CCNAME')
         try:
             principal = str('host/%s@%s' % (api.env.host, api.env.realm))
             kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_name)
             os.environ['KRB5CCNAME'] = ccache_name
 
-            api.Backend.rpcclient.connect()
+            if not connected:
+                api.Backend.rpcclient.connect()
+
             try:
-                result = api.Backend.rpcclient.forward(
-                    'ca_is_enabled',
-                    version=u'2.107',
-                )
+                result = api.Command.ca_is_enabled(version=u'2.107')
                 ca_enabled = result['result']
             except (errors.CommandError, errors.NetworkError):
-                result = api.Backend.rpcclient.forward(
-                    'env',
-                    server=True,
-                    version=u'2.0',
-                )
+                result = api.Command.env(server=True, version=u'2.0')
                 ca_enabled = result['result']['enable_ra']
 
             ldap.gssapi_bind()
@@ -92,9 +93,14 @@ class CertUpdate(admintool.AdminTool):
             else:
                 lwcas = []
 
-            api.Backend.rpcclient.disconnect()
         finally:
+            if old_krb5ccname is None:
+                del os.environ['KRB5CCNAME']
+            else:
+                os.environ['KRB5CCNAME'] = old_krb5ccname
             shutil.rmtree(tmpdir)
+            if not connected:
+                api.Backend.rpcclient.disconnect()
 
         server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
         if server_fstore.has_files():
