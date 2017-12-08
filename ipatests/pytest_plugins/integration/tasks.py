@@ -1381,3 +1381,29 @@ def add_dns_zone(master, zone, skip_overlap_check=False,
                                     host.hostname + ".", '--a-rec', host.ip])
     else:
         logger.debug('Zone %s already added.', zone)
+
+
+def run_dnsserver_find(host, server_to_find, returncode=None):
+    """
+    Find DNS-server details
+    """
+    kinit_admin(host)
+    cmd = host.run_command(["ipa", "dnsserver-find", server_to_find],
+                           raiseonerr=False)
+    if cmd.returncode == returncode:
+        print cmd.stdout_text
+    else:
+        print cmd.stderr_text
+
+
+def run_server_find(host, server_to_find, returncode=None):
+    """
+    Find server details
+    """
+    kinit_admin(host)
+    cmd = host.run_command(["ipa", "server-find", server_to_find],
+                           raiseonerr=False)
+    if cmd.returncode == returncode:
+        print cmd.stdout_text
+    else:
+        print cmd.stderr_text
