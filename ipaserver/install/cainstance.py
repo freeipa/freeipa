@@ -1280,6 +1280,12 @@ class CAInstance(DogtagInstance):
         os.chmod(keyfile, 0o600)
         os.chown(keyfile, pent.pw_uid, pent.pw_gid)
 
+    def __remove_lightweight_ca_key_retrieval_custodia(self):
+        keyfile = os.path.join(paths.PKI_TOMCAT,
+                               self.service_prefix + '.keys')
+        keystore = IPAKEMKeys({'server_keys': keyfile})
+        keystore.remove_keys(self.service_prefix)
+
     def add_lightweight_ca_tracking_requests(self):
         try:
             lwcas = api.Backend.ldap2.get_entries(

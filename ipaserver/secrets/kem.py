@@ -1,6 +1,8 @@
 # Copyright (C) 2015  IPA Project Contributors, see COPYING for license
 
 from __future__ import print_function
+
+import errno
 import os
 
 # pylint: disable=import-error
@@ -124,6 +126,12 @@ class KEMLdap(iSecLdap):
             encoding=serialization.Encoding.DER,
             format=serialization.PublicFormat.SubjectPublicKeyInfo)
 
+    def _get_dn(self, usage, principal):
+        servicename, host = principal.split('@')[0].split('/')
+        name = '%s/%s' % (KEY_USAGE_MAP[usage], host)
+        service_rdn = ('cn', servicename) if servicename != 'host' else DN()
+        return DN(('cn', name), service_rdn, self.keysbase)
+
     def set_key(self, usage, principal, key):
         """
         Write key for the host or service.
@@ -137,24 +145,35 @@ class KEMLdap(iSecLdap):
 
         """
         public_key = self._format_public_key(key)
+        dn = self._get_dn(usage, principal)
         conn = self.connect()
-        servicename, host = principal.split('@')[0].split('/')
-        name = '%s/%s' % (KEY_USAGE_MAP[usage], host)
-        service_rdn = ('cn', servicename) if servicename != 'host' else DN()
-        dn = str(DN(('cn', name), service_rdn, self.keysbase))
         try:
             mods = [('objectClass', [b'nsContainer',
                                      b'ipaKeyPolicy',
                                      b'ipaPublicKeyObject',
                                      b'groupOfPrincipals']),
-                    ('cn', name.encode('utf-8')),
+                    ('cn', dn[0].value.encode('utf-8')),
                     ('ipaKeyUsage', RFC5280_USAGE_MAP[usage].encode('utf-8')),
                     ('memberPrincipal', principal.encode('utf-8')),
                     ('ipaPublicKey', public_key)]
-            conn.add_s(dn, mods)
+            conn.add_s(str(dn), mods)
         except ldap.ALREADY_EXISTS:
             mods = [(ldap.MOD_REPLACE, 'ipaPublicKey', public_key)]
-            conn.modify_s(dn, mods)
+            conn.modify_s(str(dn), mods)
+
+    def del_key(self, usage, principal):
+        """Delete key for host or service
+
+        :returns: DN of removed key or None when key was not found
+        """
+        dn = self._get_dn(usage, principal)
+        conn = self.connect()
+        try:
+            conn.delete_s(str(dn))
+        except ldap.NO_SUCH_OBJECT:
+            return None
+        else:
+            return dn
 
 
 def newServerKeys(path, keyid):
@@ -215,6 +234,24 @@ class IPAKEMKeys(KEMKeysStore):
         ldapconn = KEMLdap(self.ldap_uri)
         ldapconn.set_key(KEY_USAGE_SIG, principal, pubkeys[0])
         ldapconn.set_key(KEY_USAGE_ENC, principal, pubkeys[1])
+
+    def remove_server_keys(self):
+        """Remove keys from LDAP and disk
+        """
+        self.remove_keys('host')
+
+    def remove_keys(self, servicename):
+        """Remove keys from LDAP and disk
+        """
+        principal = '%s/%s@%s' % (servicename, self.host, self.realm)
+        ldapconn = KEMLdap(self.ldap_uri)
+        ldapconn.del_key(KEY_USAGE_SIG, principal)
+        ldapconn.del_key(KEY_USAGE_ENC, principal)
+        try:
+            os.unlink(self.config['server_keys'])
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
 
     @property
     def server_keys(self):
