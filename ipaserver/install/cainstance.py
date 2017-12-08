@@ -908,62 +908,61 @@ class CAInstance(DogtagInstance):
         https://access.redhat.com/knowledge/docs/en-US/Red_Hat_Certificate_System/8.0/html/Admin_Guide/Setting_up_Publishing.html
         """
 
-        def put(k, v):
-            installutils.set_directive(
-                paths.CA_CS_CFG_PATH, k, v, quotes=False, separator='=')
+        with installutils.DirectiveSetter(paths.CA_CS_CFG_PATH,
+                                          quotes=False, separator='=') as ds:
 
-        # Enable file publishing, disable LDAP
-        put('ca.publish.enable', 'true')
-        put('ca.publish.ldappublish.enable', 'false')
+            # Enable file publishing, disable LDAP
+            ds.set('ca.publish.enable', 'true')
+            ds.set('ca.publish.ldappublish.enable', 'false')
 
-        # Create the file publisher, der only, not b64
-        put('ca.publish.publisher.impl.FileBasedPublisher.class',
-            'com.netscape.cms.publish.publishers.FileBasedPublisher')
-        put('ca.publish.publisher.instance.FileBaseCRLPublisher.crlLinkExt',
-            'bin')
-        put('ca.publish.publisher.instance.FileBaseCRLPublisher.directory',
-            self.prepare_crl_publish_dir())
-        put('ca.publish.publisher.instance.FileBaseCRLPublisher.latestCrlLink',
-            'true')
-        put('ca.publish.publisher.instance.FileBaseCRLPublisher.pluginName',
-            'FileBasedPublisher')
-        put('ca.publish.publisher.instance.FileBaseCRLPublisher.timeStamp',
-            'LocalTime')
-        put('ca.publish.publisher.instance.FileBaseCRLPublisher.zipCRLs',
-            'false')
-        put('ca.publish.publisher.instance.FileBaseCRLPublisher.zipLevel', '9')
-        put('ca.publish.publisher.instance.FileBaseCRLPublisher.Filename.b64',
-            'false')
-        put('ca.publish.publisher.instance.FileBaseCRLPublisher.Filename.der',
-            'true')
+            # Create the file publisher, der only, not b64
+            ds.set(
+                'ca.publish.publisher.impl.FileBasedPublisher.class',
+                'com.netscape.cms.publish.publishers.FileBasedPublisher'
+            )
+            prefix = 'ca.publish.publisher.instance.FileBaseCRLPublisher.'
+            ds.set(prefix + 'crlLinkExt', 'bin')
+            ds.set(prefix + 'directory', self.prepare_crl_publish_dir())
+            ds.set(prefix + 'latestCrlLink', 'true')
+            ds.set(prefix + 'pluginName', 'FileBasedPublisher')
+            ds.set(prefix + 'timeStamp', 'LocalTime')
+            ds.set(prefix + 'zipCRLs', 'false')
+            ds.set(prefix + 'zipLevel', '9')
+            ds.set(prefix + 'Filename.b64', 'false')
+            ds.set(prefix + 'Filename.der', 'true')
 
-        # The publishing rule
-        put('ca.publish.rule.instance.FileCrlRule.enable', 'true')
-        put('ca.publish.rule.instance.FileCrlRule.mapper', 'NoMap')
-        put('ca.publish.rule.instance.FileCrlRule.pluginName', 'Rule')
-        put('ca.publish.rule.instance.FileCrlRule.predicate', '')
-        put('ca.publish.rule.instance.FileCrlRule.publisher',
-            'FileBaseCRLPublisher')
-        put('ca.publish.rule.instance.FileCrlRule.type', 'crl')
+            # The publishing rule
+            ds.set('ca.publish.rule.instance.FileCrlRule.enable', 'true')
+            ds.set('ca.publish.rule.instance.FileCrlRule.mapper', 'NoMap')
+            ds.set('ca.publish.rule.instance.FileCrlRule.pluginName', 'Rule')
+            ds.set('ca.publish.rule.instance.FileCrlRule.predicate', '')
+            ds.set(
+                'ca.publish.rule.instance.FileCrlRule.publisher',
+                'FileBaseCRLPublisher'
+            )
+            ds.set('ca.publish.rule.instance.FileCrlRule.type', 'crl')
 
-        # Now disable LDAP publishing
-        put('ca.publish.rule.instance.LdapCaCertRule.enable', 'false')
-        put('ca.publish.rule.instance.LdapCrlRule.enable', 'false')
-        put('ca.publish.rule.instance.LdapUserCertRule.enable', 'false')
-        put('ca.publish.rule.instance.LdapXCertRule.enable', 'false')
+            # Now disable LDAP publishing
+            ds.set('ca.publish.rule.instance.LdapCaCertRule.enable', 'false')
+            ds.set('ca.publish.rule.instance.LdapCrlRule.enable', 'false')
+            ds.set(
+                'ca.publish.rule.instance.LdapUserCertRule.enable',
+                'false'
+            )
+            ds.set('ca.publish.rule.instance.LdapXCertRule.enable', 'false')
 
-        # If we are the initial master then we are the CRL generator, otherwise
-        # we point to that master for CRLs.
-        if not self.clone:
-            # These next two are defaults, but I want to be explicit that the
-            # initial master is the CRL generator.
-            put('ca.crl.MasterCRL.enableCRLCache', 'true')
-            put('ca.crl.MasterCRL.enableCRLUpdates', 'true')
-            put('ca.listenToCloneModifications', 'true')
-        else:
-            put('ca.crl.MasterCRL.enableCRLCache', 'false')
-            put('ca.crl.MasterCRL.enableCRLUpdates', 'false')
-            put('ca.listenToCloneModifications', 'false')
+            # If we are the initial master then we are the CRL generator,
+            # otherwise we point to that master for CRLs.
+            if not self.clone:
+                # These next two are defaults, but I want to be explicit
+                # that the initial master is the CRL generator.
+                ds.set('ca.crl.MasterCRL.enableCRLCache', 'true')
+                ds.set('ca.crl.MasterCRL.enableCRLUpdates', 'true')
+                ds.set('ca.listenToCloneModifications', 'true')
+            else:
+                ds.set('ca.crl.MasterCRL.enableCRLCache', 'false')
+                ds.set('ca.crl.MasterCRL.enableCRLUpdates', 'false')
+                ds.set('ca.listenToCloneModifications', 'false')
 
     def uninstall(self):
         # just eat state
