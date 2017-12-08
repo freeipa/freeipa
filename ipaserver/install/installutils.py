@@ -25,6 +25,7 @@ import logging
 import socket
 import getpass
 import gssapi
+import io
 import ldif
 import os
 import re
@@ -32,6 +33,7 @@ import fileinput
 import sys
 import tempfile
 import shutil
+import stat  # pylint: disable=bad-python3-import
 import traceback
 import textwrap
 from contextlib import contextmanager
@@ -436,6 +438,82 @@ def unquote_directive_value(value, quote_char):
     return unescaped_value
 
 
+_SENTINEL = object()
+
+
+class DirectiveSetter(object):
+    """Safe directive setter
+
+    with DirectiveSetter('/path/to/conf') as ds:
+        ds.set(key, value)
+    """
+    def __init__(self, filename, quotes=True, separator=' '):
+        self.filename = os.path.abspath(filename)
+        self.quotes = quotes
+        self.separator = separator
+        self.lines = None
+        self.stat = None
+
+    def __enter__(self):
+        with io.open(self.filename) as f:
+            self.stat = os.fstat(f.fileno())
+            self.lines = list(f)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is not None:
+            # something went wrong, reset
+            self.lines = None
+            self.stat = None
+            return
+
+        directory, prefix = os.path.split(self.filename)
+        # use tempfile in same directory to have atomic rename
+        fd, name = tempfile.mkstemp(prefix=prefix, dir=directory, text=True)
+        with io.open(fd, mode='w', closefd=True) as f:
+            for line in self.lines:
+                if not isinstance(line, six.text_type):
+                    line = line.decode('utf-8')
+                f.write(line)
+            self.lines = None
+            os.fchmod(f.fileno(), stat.S_IMODE(self.stat.st_mode))
+            os.fchown(f.fileno(), self.stat.st_uid, self.stat.st_gid)
+            self.stat = None
+            # flush and sync tempfile inode
+            f.flush()
+            os.fsync(f.fileno())
+
+        # rename file and sync directory inode
+        os.rename(name, self.filename)
+        dirfd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(dirfd)
+        finally:
+            os.close(dirfd)
+
+    def set(self, directive, value, quotes=_SENTINEL, separator=_SENTINEL):
+        """Set a single directive
+        """
+        if quotes is _SENTINEL:
+            quotes = self.quotes
+        if separator is _SENTINEL:
+            separator = self.separator
+        # materialize lines
+        # set_directive_lines() modify item, shrink or enlage line count
+        self.lines = list(set_directive_lines(
+            quotes, separator, directive, value, self.lines
+        ))
+
+    def setitems(self, items):
+        """Set multiple directives from a dict or list with key/value pairs
+        """
+        if isinstance(items, dict):
+            # dict-like, use sorted for stable order
+            items = sorted(items.items())
+        for k, v in items:
+            self.set(k, v)
+
+
 def set_directive(filename, directive, value, quotes=True, separator=' '):
     """Set a name/value pair directive in a configuration file.
 
@@ -455,8 +533,10 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
     st = os.stat(filename)
     with open(filename, 'r') as f:
         lines = list(f)  # read the whole file
-        new_lines = set_directive_lines(
-            quotes, separator, directive, value, lines)
+        # materialize new list
+        new_lines = list(set_directive_lines(
+            quotes, separator, directive, value, lines
+        ))
     with open(filename, 'w') as f:
         # don't construct the whole string; write line-wise
         for line in new_lines:
@@ -480,8 +560,9 @@ def set_directive_lines(quotes, separator, k, v, lines):
         new_line = ''.join([k, separator, v_quoted, '\n'])
 
     found = False
+    matcher = re.compile(r'\s*{}'.format(re.escape(k + separator)))
     for line in lines:
-        if re.match(r'\s*{}'.format(re.escape(k + separator)), line):
+        if matcher.match(line):
             found = True
             if v is not None:
                 yield new_line
