@@ -154,7 +154,7 @@ class i18n_messages(Command):
     messages = {
         "ajax": {
             "401": {
-                "message": _("Your session has expired. Please re-login."),
+                "message": _("Your session has expired. Please log in again."),
             },
         },
         "actions": {
@@ -340,13 +340,21 @@ class i18n_messages(Command):
             "pad": _("PAD"),
         },
         "login": {
-            "form_auth": _("<i class=\"fa fa-info-circle\"></i> To login with <strong>username and password</strong>, enter them in the corresponding fields, then click Login."),
+            "form_auth": _(
+                "<i class=\"fa fa-info-circle\"></i> To log in with "
+                "<strong>username and password</strong>, enter them in the "
+                "corresponding fields, then click 'Log in'."),
             "header": _("Logged In As"),
-            "krb_auth_msg": _("<i class=\"fa fa-info-circle\"></i> To login with <strong>Kerberos</strong>, please make sure you have valid tickets (obtainable via kinit) and <a href='http://${host}/ipa/config/unauthorized.html'>configured</a> the browser correctly, then click Login."),
+            "krb_auth_msg": _(
+                "<i class=\"fa fa-info-circle\"></i> To log in with "
+                "<strong>Kerberos</strong>, please make sure you have valid "
+                "tickets (obtainable via kinit) and <a href='http://${host}/"
+                "ipa/config/unauthorized.html'>configured</a> the browser "
+                "correctly, then click 'Log in'."),
             "loading_md": _("Loading data"),
-            "login": _("Login"),
-            "logout": _("Logout"),
-            "logout_error": _("Logout error"),
+            "login": _("Log in"),
+            "logout": _("Log out"),
+            "logout_error": _("Log out error"),
             "password": _("Password"),
             "sync_otp_token": _("Sync OTP Token"),
             "username": _("Username"),

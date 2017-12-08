@@ -116,7 +116,7 @@ define(['dojo/_base/declare',
 
             this.login_btn_node = IPA.button({
                 name: 'login',
-                label: text.get('@i18n:login.login', "Login"),
+                label: text.get('@i18n:login.login', "Log in"),
                 'class': 'btn-primary btn-lg',
                 click: this.on_confirm.bind(this)
             })[0];
