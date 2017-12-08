@@ -441,7 +441,7 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
 
     A value of None means to drop the directive.
 
-    This has only been tested with nss.conf
+    Does not tolerate (or put) spaces around the separator.
 
     :param filename: input filename
     :param directive: directive name
@@ -450,36 +450,46 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
         any existing double quotes are first escaped to avoid
         unparseable directives.
     :param separator: character serving as separator between directive and
-        value
+        value.  Correct value required even when dropping a directive.
     """
-
-    new_directive_value = ""
-    if value is not None:
-        value_to_set = quote_directive_value(value, '"') if quotes else value
-
-        new_directive_value = "".join(
-            [directive, separator, value_to_set, '\n'])
-
-    valueset = False
     st = os.stat(filename)
-    fd = open(filename)
-    newfile = []
-    for line in fd:
-        if line.lstrip().startswith(directive):
-            valueset = True
-            if value is not None:
-                newfile.append(new_directive_value)
-        else:
-            newfile.append(line)
-    fd.close()
-    if not valueset:
-        if value is not None:
-            newfile.append(new_directive_value)
+    with open(filename, 'r') as f:
+        lines = list(f)  # read the whole file
+        new_lines = set_directive_lines(
+            quotes, separator, directive, value, lines)
+    with open(filename, 'w') as f:
+        # don't construct the whole string; write line-wise
+        for line in new_lines:
+            f.write(line)
+    os.chown(filename, st.st_uid, st.st_gid)  # reset perms
 
-    fd = open(filename, "w")
-    fd.write("".join(newfile))
-    fd.close()
-    os.chown(filename, st.st_uid, st.st_gid) # reset perms
+
+def set_directive_lines(quotes, separator, k, v, lines):
+    """Set a name/value pair in a configuration (iterable of lines).
+
+    Replaces the value of the key if found, otherwise adds it at
+    end.  If value is ``None``, remove the key if found.
+
+    Takes an iterable of lines (with trailing newline).
+    Yields lines (with trailing newline).
+
+    """
+    new_line = ""
+    if v is not None:
+        v_quoted = quote_directive_value(v, '"') if quotes else v
+        new_line = ''.join([k, separator, v_quoted, '\n'])
+
+    found = False
+    for line in lines:
+        if re.match(r'\s*{}'.format(re.escape(k + separator)), line):
+            found = True
+            if v is not None:
+                yield new_line
+        else:
+            yield line
+
+    if not found and v is not None:
+        yield new_line
 
 
 def get_directive(filename, directive, separator=' '):
