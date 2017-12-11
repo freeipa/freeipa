@@ -41,6 +41,7 @@ MARKERS = [
     'cs_acceptance: Acceptance test suite for Dogtag Certificate Server',
     'ds_acceptance: Acceptance test suite for 389 Directory Server',
     'skip_ipaclient_unittest: Skip in ipaclient unittest mode',
+    'needs_ipaapi: Test needs IPA API',
 ]
 
 
@@ -95,6 +96,11 @@ def pytest_addoption(parser):
         help='Run ipaclient unit tests only (no RPC and ipaserver)',
         action='store_true'
     )
+    group.addoption(
+        '--skip-ipaapi',
+        help='Do not run tests that depends on IPA API',
+        action='store_true',
+    )
 
 
 def pytest_cmdline_main(config):
@@ -124,3 +130,7 @@ def pytest_runtest_setup(item):
             # pylint: disable=no-member
             if pytest.config.option.ipaclient_unittests:
                 pytest.skip("Skip in ipaclient unittest mode")
+        if item.get_marker('needs_ipaapi'):
+            # pylint: disable=no-member
+            if pytest.config.option.skip_ipaapi:
+                pytest.skip("Skip tests that needs an IPA API")

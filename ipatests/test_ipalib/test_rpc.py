@@ -260,6 +260,7 @@ class test_xmlclient(PluginTester):
 
 
 @pytest.mark.skip_ipaclient_unittest
+@pytest.mark.needs_ipaapi
 class test_xml_introspection(object):
     @classmethod
     def setup_class(cls):
@@ -346,6 +347,7 @@ class test_xml_introspection(object):
 
 
 @pytest.mark.skip_ipaclient_unittest
+@pytest.mark.needs_ipaapi
 class test_rpcclient_context(PluginTester):
     """
     Test the context in `ipalib.rpc.rpcclient` plugin.

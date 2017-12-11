@@ -11,6 +11,7 @@ from ipapython import session_storage
 
 
 @pytest.mark.skip_ipaclient_unittest
+@pytest.mark.needs_ipaapi
 class test_session_storage(object):
     """
     Test the session storage interface

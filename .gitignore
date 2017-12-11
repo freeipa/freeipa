@@ -112,3 +112,4 @@ freeipa2-dev-doc
 /ipapython/version.py
 /ipapython/.DEFAULT_PLUGINS
 
+/ipatests/.cache/
