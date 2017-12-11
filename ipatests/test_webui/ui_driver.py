@@ -59,6 +59,7 @@ except ImportError:
     NO_YAML = True
 from ipaplatform.paths import paths
 
+
 ENV_MAP = {
     'MASTER': 'ipa_server',
     'ADMINID': 'ipa_admin',

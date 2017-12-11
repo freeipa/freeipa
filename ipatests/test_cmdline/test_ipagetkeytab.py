@@ -67,6 +67,7 @@ def test_service(request, test_host):
     return service_tracker.make_fixture(request)
 
 
+@pytest.mark.needs_ipaapi
 class KeytabRetrievalTest(cmdline_test):
     """
     Base class for keytab retrieval tests
