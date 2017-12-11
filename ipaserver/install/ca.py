@@ -99,6 +99,20 @@ def set_subject_base_in_config(subject_base):
         pass
 
 
+def print_ca_configuration(options):
+    """Print info about how the CA will be configured.
+
+    Does not print trailing empty line.
+
+    """
+    print("The CA will be configured with:")
+    print("Subject DN:   {}".format(options.ca_subject))
+    print("Subject base: {}".format(options.subject_base))
+    print("Chaining:     {}".format(
+        "externally signed (two-step installation)" if options.external_ca
+        else "self-signed"))
+
+
 def install_check(standalone, replica_config, options):
     global external_cert_file
     global external_ca_file

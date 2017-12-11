@@ -647,6 +647,10 @@ def install_check(installer):
     print("Realm name:     %s" % realm_name)
     print()
 
+    if setup_ca:
+        ca.print_ca_configuration(options)
+        print()
+
     if options.setup_dns:
         print("BIND DNS server will be configured to serve IPA domain with:")
         print("Forwarders:       %s" % (
