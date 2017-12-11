@@ -43,6 +43,7 @@ if six.PY3:
 
 
 @pytest.mark.tier0
+@pytest.mark.needs_ipaapi
 class test_ldap(object):
     """
     Test various LDAP client bind methods.
@@ -135,6 +136,7 @@ class test_ldap(object):
 
 
 @pytest.mark.tier0
+@pytest.mark.needs_ipaapi
 class test_LDAPEntry(object):
     """
     Test the LDAPEntry class

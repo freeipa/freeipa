@@ -30,6 +30,9 @@ if six.PY3:
     unicode = str
 
 
+pytestmark = pytest.mark.needs_ipaapi
+
+
 @pytest.mark.tier0
 class CLITestContext(object):
     """Context manager that replaces stdout & stderr, and catches SystemExit

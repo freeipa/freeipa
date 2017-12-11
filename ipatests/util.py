@@ -78,6 +78,18 @@ def check_ipaclient_unittests(reason="Skip in ipaclient unittest mode"):
             raise pytest.skip(reason)
 
 
+def check_no_ipaapi(reason="Skip tests that needs an IPA API"):
+    """Call this in a package to skip the package in no-ipaapi mode
+    """
+    if pytest.config.getoption('skip_ipaapi', False):
+        if PYTEST_VERSION[0] >= 3:
+            # pylint: disable=unexpected-keyword-arg
+            raise pytest.skip.Exception(reason, allow_module_level=True)
+            # pylint: enable=unexpected-keyword-arg
+        else:
+            raise pytest.skip(reason)
+
+
 class TempDir(object):
     def __init__(self):
         self.__path = tempfile.mkdtemp(prefix='ipa.tests.')

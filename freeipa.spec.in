@@ -174,18 +174,20 @@ BuildRequires:  python3-wheel
 %endif # with_wheels
 
 #
-# Build dependencies for lint
+# Build dependencies for lint and fastcheck
 #
 %if 0%{?with_lint}
 BuildRequires:  python2-samba
 # 1.6: x509.Name.rdns (https://github.com/pyca/cryptography/issues/3199)
 BuildRequires:  python2-cryptography >= 1.6
 BuildRequires:  python2-gssapi >= 1.2.0-5
+BuildRequires:  softhsm
 %if 0%{?fedora} >= 26
 BuildRequires:  python2-pylint
 %else
 BuildRequires:  pylint >= 1.7
 %endif
+BuildRequires:  python2-pycodestyle
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 BuildRequires:  python2-polib
 BuildRequires:  python2-libipa_hbac
@@ -223,6 +225,7 @@ BuildRequires:  python3-samba
 BuildRequires:  python3-cryptography >= 1.6
 BuildRequires:  python3-gssapi >= 1.2.0
 BuildRequires:  python3-pylint >= 1.7
+BuildRequires:  python3-pycodestyle
 # workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
 BuildRequires:  python3-polib
 BuildRequires:  python3-libipa_hbac
