@@ -20,7 +20,9 @@ TEST_ZONE = u'zoneadd.%(domain)s' % api.env
 HERE = os.path.abspath(os.path.dirname(__file__))
 BASE_DIR = os.path.abspath(os.path.join(HERE, os.pardir, os.pardir))
 
+
 @pytest.mark.tier0
+@pytest.mark.needs_ipaapi
 class TestCLIParsing(object):
     """Tests that commandlines are correctly parsed to Command keyword args
     """
