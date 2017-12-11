@@ -89,7 +89,8 @@ class DogtagInstance(service.Service):
     server_cert_name = None
 
     def __init__(self, realm, subsystem, service_desc, host_name=None,
-                 nss_db=paths.PKI_TOMCAT_ALIAS_DIR, service_prefix=None):
+                 nss_db=paths.PKI_TOMCAT_ALIAS_DIR, service_prefix=None,
+                 config=None):
         """Initializer"""
 
         super(DogtagInstance, self).__init__(
@@ -118,6 +119,7 @@ class DogtagInstance(service.Service):
         self.master_replication_port = None
         self.subject_base = None
         self.nss_db = nss_db
+        self.config = config  # Path to CS.cfg
 
     def is_installed(self):
         """
@@ -172,44 +174,43 @@ class DogtagInstance(service.Service):
                 "Failed to stop the Dogtag instance."
                 "See the installation log for details.")
 
-    def enable_client_auth_to_db(self, config):
+    def enable_client_auth_to_db(self):
         """
         Enable client auth connection to the internal db.
-        Path to CS.cfg config file passed in.
         """
 
         with stopped_service('pki-tomcatd', 'pki-tomcat'):
             installutils.set_directive(
-                config,
+                self.config,
                 'authz.instance.DirAclAuthz.ldap.ldapauth.authtype',
                 'SslClientAuth', quotes=False, separator='=')
             installutils.set_directive(
-                config,
+                self.config,
                 'authz.instance.DirAclAuthz.ldap.ldapauth.clientCertNickname',
                 'subsystemCert cert-pki-ca', quotes=False, separator='=')
             installutils.set_directive(
-                config,
+                self.config,
                 'authz.instance.DirAclAuthz.ldap.ldapconn.port', '636',
                 quotes=False, separator='=')
             installutils.set_directive(
-                config,
+                self.config,
                 'authz.instance.DirAclAuthz.ldap.ldapconn.secureConn',
                 'true', quotes=False, separator='=')
 
             installutils.set_directive(
-                config,
+                self.config,
                 'internaldb.ldapauth.authtype',
                 'SslClientAuth', quotes=False, separator='=')
 
             installutils.set_directive(
-                config,
+                self.config,
                 'internaldb.ldapauth.clientCertNickname',
                 'subsystemCert cert-pki-ca', quotes=False, separator='=')
             installutils.set_directive(
-                config,
+                self.config,
                 'internaldb.ldapconn.port', '636', quotes=False, separator='=')
             installutils.set_directive(
-                config,
+                self.config,
                 'internaldb.ldapconn.secureConn', 'true', quotes=False,
                 separator='=')
             # Remove internaldb password as is not needed anymore
@@ -338,8 +339,7 @@ class DogtagInstance(service.Service):
         if stop_certmonger:
             cmonger.stop()
 
-    @staticmethod
-    def update_cert_cs_cfg(directive, cert, cs_cfg):
+    def update_cert_cs_cfg(self, directive, cert):
         """
         When renewing a Dogtag subsystem certificate the configuration file
         needs to get the new certificate as well.
@@ -351,7 +351,7 @@ class DogtagInstance(service.Service):
 
         with stopped_service('pki-tomcatd', 'pki-tomcat'):
             installutils.set_directive(
-                cs_cfg,
+                self.config,
                 directive,
                 # the cert must be only the base64 string without headers
                 (base64.b64encode(cert.public_bytes(x509.Encoding.DER))
@@ -455,7 +455,21 @@ class DogtagInstance(service.Service):
         api.Backend.ldap2.delete_entry(self.admin_dn)
 
     def _use_ldaps_during_spawn(self, config, ds_cacert=paths.IPA_CA_CRT):
+        """
+        config is a RawConfigParser object
+        cs_cacert is path to a PEM CA certificate
+        """
         config.set(self.subsystem, "pki_ds_ldaps_port", "636")
         config.set(self.subsystem, "pki_ds_secure_connection", "True")
         config.set(self.subsystem, "pki_ds_secure_connection_ca_pem_file",
                    ds_cacert)
+
+    def backup_config(self):
+        """
+        Create a backup copy of CS.cfg
+        """
+        path = self.config
+        if services.knownservices['pki_tomcatd'].is_running('pki-tomcat'):
+            raise RuntimeError(
+                "Dogtag must be stopped when creating backup of %s" % path)
+        shutil.copy(path, path + '.ipabkp')

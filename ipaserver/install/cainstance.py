@@ -304,6 +304,7 @@ class CAInstance(DogtagInstance):
             service_desc="certificate server",
             host_name=host_name,
             service_prefix=ipalib.constants.PKI_GSSAPI_SERVICE_NAME,
+            config=paths.CA_CS_CFG_PATH,
         )
 
         # for external CAs
@@ -395,14 +396,18 @@ class CAInstance(DogtagInstance):
                       self.__spawn_instance)
             self.step("exporting Dogtag certificate store pin",
                       self.create_certstore_passwdfile)
-            self.step("stopping certificate server instance to update CS.cfg", self.stop_instance)
-            self.step("backing up CS.cfg", self.backup_config)
+            self.step("stopping certificate server instance to update CS.cfg",
+                      self.stop_instance)
+            self.step("backing up CS.cfg", self.safe_backup_config)
             self.step("disabling nonces", self.__disable_nonce)
             self.step("set up CRL publishing", self.__enable_crl_publish)
-            self.step("enable PKIX certificate path discovery and validation", self.enable_pkix)
+            self.step("enable PKIX certificate path discovery and validation",
+                      self.enable_pkix)
             if promote:
-                self.step("destroying installation admin user", self.teardown_admin)
-            self.step("starting certificate server instance", self.start_instance)
+                self.step("destroying installation admin user",
+                          self.teardown_admin)
+            self.step("starting certificate server instance",
+                      self.start_instance)
         # Step 1 of external is getting a CSR so we don't need to do these
         # steps until we get a cert back from the external CA.
         if self.external != 1:
@@ -640,9 +645,16 @@ class CAInstance(DogtagInstance):
 
         logger.debug("completed creating ca instance")
 
-    def backup_config(self):
+    def safe_backup_config(self):
+        """
+        Safely handle exceptions if backup_config fails
+
+        The parent class raises an exception if the configuration
+        cannot be backed up. Catch that and log the message but
+        don't stop the current installer.
+        """
         try:
-            backup_config()
+            super(CAInstance, self).backup_config()
         except Exception as e:
             logger.warning("Failed to backup CS.cfg: %s", e)
 
@@ -677,12 +689,12 @@ class CAInstance(DogtagInstance):
     def __disable_nonce(self):
         # Turn off Nonces
         update_result = installutils.update_file(
-            paths.CA_CS_CFG_PATH, 'ca.enableNonces=true',
+            self.config, 'ca.enableNonces=true',
             'ca.enableNonces=false')
         if update_result != 0:
             raise RuntimeError("Disabling nonces failed")
         pent = pwd.getpwnam(self.service_user)
-        os.chown(paths.CA_CS_CFG_PATH, pent.pw_uid, pent.pw_gid)
+        os.chown(self.config, pent.pw_uid, pent.pw_gid)
 
     def enable_pkix(self):
         installutils.set_directive(paths.SYSCONFIG_PKI_TOMCAT,
@@ -928,52 +940,134 @@ class CAInstance(DogtagInstance):
 
         https://access.redhat.com/knowledge/docs/en-US/Red_Hat_Certificate_System/8.0/html/Admin_Guide/Setting_up_Publishing.html
         """
-        caconfig = paths.CA_CS_CFG_PATH
-
         publishdir = self.prepare_crl_publish_dir()
 
         # Enable file publishing, disable LDAP
-        installutils.set_directive(caconfig, 'ca.publish.enable', 'true', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.ldappublish.enable', 'false', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config, 'ca.publish.enable',
+            'true', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.ldappublish.enable',
+            'false', quotes=False, separator='=')
 
         # Create the file publisher, der only, not b64
-        installutils.set_directive(caconfig, 'ca.publish.publisher.impl.FileBasedPublisher.class','com.netscape.cms.publish.publishers.FileBasedPublisher', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.crlLinkExt', 'bin', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.directory', publishdir, quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.latestCrlLink', 'true', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.pluginName', 'FileBasedPublisher', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.timeStamp', 'LocalTime', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.zipCRLs', 'false', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.zipLevel', '9', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.Filename.b64', 'false', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.publisher.instance.FileBaseCRLPublisher.Filename.der', 'true', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.publisher.impl.FileBasedPublisher.class',
+            'com.netscape.cms.publish.publishers.FileBasedPublisher',
+            quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.publisher.instance.FileBaseCRLPublisher.crlLinkExt',
+            'bin', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.publisher.instance.FileBaseCRLPublisher.directory',
+            publishdir, quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.publisher.instance.FileBaseCRLPublisher.latestCrlLink',
+            'true', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.publisher.instance.FileBaseCRLPublisher.pluginName',
+            'FileBasedPublisher', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.publisher.instance.FileBaseCRLPublisher.timeStamp',
+            'LocalTime', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.publisher.instance.FileBaseCRLPublisher.zipCRLs',
+            'false', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.publisher.instance.FileBaseCRLPublisher.zipLevel',
+            '9', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.publisher.instance.FileBaseCRLPublisher.Filename.b64',
+            'false', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.publisher.instance.FileBaseCRLPublisher.Filename.der',
+            'true', quotes=False, separator='=')
 
         # The publishing rule
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.enable', 'true', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.mapper', 'NoMap', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.pluginName', 'Rule', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.predicate=', '', quotes=False, separator='')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.publisher', 'FileBaseCRLPublisher', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.FileCrlRule.type', 'crl', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.rule.instance.FileCrlRule.enable',
+            'true', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.rule.instance.FileCrlRule.mapper',
+            'NoMap', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.rule.instance.FileCrlRule.pluginName',
+            'Rule', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.rule.instance.FileCrlRule.predicate=',
+            '', quotes=False, separator='')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.rule.instance.FileCrlRule.publisher',
+            'FileBaseCRLPublisher', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.rule.instance.FileCrlRule.type',
+            'crl', quotes=False, separator='=')
 
         # Now disable LDAP publishing
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapCaCertRule.enable', 'false', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapCrlRule.enable', 'false', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapUserCertRule.enable', 'false', quotes=False, separator='=')
-        installutils.set_directive(caconfig, 'ca.publish.rule.instance.LdapXCertRule.enable', 'false', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.rule.instance.LdapCaCertRule.enable',
+            'false', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.rule.instance.LdapCrlRule.enable',
+            'false', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.rule.instance.LdapUserCertRule.enable',
+            'false', quotes=False, separator='=')
+        installutils.set_directive(
+            self.config,
+            'ca.publish.rule.instance.LdapXCertRule.enable',
+            'false', quotes=False, separator='=')
 
         # If we are the initial master then we are the CRL generator, otherwise
         # we point to that master for CRLs.
         if not self.clone:
             # These next two are defaults, but I want to be explicit that the
             # initial master is the CRL generator.
-            installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLCache', 'true', quotes=False, separator='=')
-            installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLUpdates', 'true', quotes=False, separator='=')
-            installutils.set_directive(caconfig, 'ca.listenToCloneModifications', 'true', quotes=False, separator='=')
+            installutils.set_directive(
+                self.config,
+                'ca.crl.MasterCRL.enableCRLCache',
+                'true', quotes=False, separator='=')
+            installutils.set_directive(
+                self.config,
+                'ca.crl.MasterCRL.enableCRLUpdates',
+                'true', quotes=False, separator='=')
+            installutils.set_directive(
+                self.config,
+                'ca.listenToCloneModifications',
+                'true', quotes=False, separator='=')
         else:
-            installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLCache', 'false', quotes=False, separator='=')
-            installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLUpdates', 'false', quotes=False, separator='=')
-            installutils.set_directive(caconfig, 'ca.listenToCloneModifications', 'false', quotes=False, separator='=')
+            installutils.set_directive(
+                self.config,
+                'ca.crl.MasterCRL.enableCRLCache',
+                'false', quotes=False, separator='=')
+            installutils.set_directive(
+                self.config,
+                'ca.crl.MasterCRL.enableCRLUpdates',
+                'false', quotes=False, separator='=')
+            installutils.set_directive(
+                self.config,
+                'ca.listenToCloneModifications',
+                'false', quotes=False, separator='=')
 
     def uninstall(self):
         # just eat state
@@ -1150,8 +1244,7 @@ class CAInstance(DogtagInstance):
             master_entry['ipaConfigString'].append('caRenewalMaster')
             api.Backend.ldap2.update_entry(master_entry)
 
-    @staticmethod
-    def update_cert_config(nickname, cert):
+    def update_cert_config(self, nickname, cert):
         """
         When renewing a CA subsystem certificate the configuration file
         needs to get the new certificate as well.
@@ -1168,13 +1261,13 @@ class CAInstance(DogtagInstance):
                       'Server-Cert cert-pki-ca': 'ca.sslserver.cert'}
 
         try:
-            backup_config()
+            self.backup_config()
         except Exception as e:
             syslog.syslog(syslog.LOG_ERR, "Failed to backup CS.cfg: %s" % e)
 
         if nickname in directives:
-            DogtagInstance.update_cert_cs_cfg(
-                directives[nickname], cert, paths.CA_CS_CFG_PATH)
+            super(CAInstance, self).update_cert_cs_cfg(
+                directives[nickname], cert)
 
     def __create_ds_db(self):
         '''
@@ -1241,7 +1334,7 @@ class CAInstance(DogtagInstance):
         ]
         for k, v in directives:
             installutils.set_directive(
-                paths.CA_CS_CFG_PATH, k, v, quotes=False, separator='=')
+                self.config, k, v, quotes=False, separator='=')
 
         sysupgrade.set_upgrade_state('dogtag', 'setup_lwca_key_retieval', True)
 
@@ -1343,16 +1436,6 @@ def replica_ca_install_check(config, promote):
             '--skip-schema-check.')
         exit('IPA schema missing on master CA directory server')
 
-
-def backup_config():
-    """
-    Create a backup copy of CS.cfg
-    """
-    path = paths.CA_CS_CFG_PATH
-    if services.knownservices['pki_tomcatd'].is_running('pki-tomcat'):
-        raise RuntimeError(
-            "Dogtag must be stopped when creating backup of %s" % path)
-    shutil.copy(path, path + '.ipabkp')
 
 def __update_entry_from_cert(make_filter, make_entry, cert):
     """
