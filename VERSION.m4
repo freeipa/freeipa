@@ -55,8 +55,7 @@ define(IPA_VERSION_IS_GIT_SNAPSHOT, yes)
 # - ipa-X-X: define(IPA_GIT_BRANCH,                    #
 #       ipa-IPA_VERSION_MAJOR-IPA_VERSION_MINOR)       #
 ########################################################
-define(IPA_GIT_BRANCH, master)
-dnl define(IPA_GIT_BRANCH, ipa-IPA_VERSION_MAJOR-IPA_VERSION_MINOR)
+define(IPA_GIT_BRANCH, ipa-IPA_VERSION_MAJOR-IPA_VERSION_MINOR)
 
 ########################################################
 # The version of IPA data. This is used to identify    #
