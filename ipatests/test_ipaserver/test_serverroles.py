@@ -15,6 +15,8 @@ from ipaplatform.paths import paths
 from ipalib import api, create_api, errors
 from ipapython.dn import DN
 
+pytestmark = pytest.mark.needs_ipaapi
+
 
 def _make_service_entry(ldap_backend, dn, enabled=True, other_config=None):
     mods = {
