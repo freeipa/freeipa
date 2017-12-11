@@ -48,6 +48,7 @@ The DM password needs to be set in ~/.ipa/.dmpw
 
 
 @pytest.mark.tier0
+@pytest.mark.needs_ipaapi
 class test_update(unittest.TestCase):
     """
     Test the LDAP updater.

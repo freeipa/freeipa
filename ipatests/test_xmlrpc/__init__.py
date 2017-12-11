@@ -24,3 +24,4 @@ import ipatests.util
 
 
 ipatests.util.check_ipaclient_unittests()
+ipatests.util.check_no_ipaapi()  # also ignore in make fasttest
