@@ -49,6 +49,16 @@ define(IPA_VERSION_PRE_RELEASE, )
 define(IPA_VERSION_IS_GIT_SNAPSHOT, yes)
 
 ########################################################
+# git development branch:                              #
+#                                                      #
+# - master: define(IPA_GIT_BRANCH, master)             #
+# - ipa-X-X: define(IPA_GIT_BRANCH,                    #
+#       ipa-IPA_VERSION_MAJOR-IPA_VERSION_MINOR)       #
+########################################################
+define(IPA_GIT_BRANCH, master)
+dnl define(IPA_GIT_BRANCH, ipa-IPA_VERSION_MAJOR-IPA_VERSION_MINOR)
+
+########################################################
 # The version of IPA data. This is used to identify    #
 # incompatibilities in data that could cause issues    #
 # with replication. If the built-in versions don't     #
@@ -128,6 +138,7 @@ NEWLINE)) dnl IPA_VERSION end
 dnl DEBUG: uncomment following lines and run command m4 VERSION.m4
 dnl `IPA_VERSION: ''IPA_VERSION'
 dnl `IPA_GIT_VERSION: ''IPA_GIT_VERSION'
+dnf `IPA_GIT_BRANCH: ''IPA_GIT_BRANCH'
 dnl `IPA_API_VERSION: ''IPA_API_VERSION'
 dnl `IPA_DATA_VERSION: ''IPA_DATA_VERSION'
 dnl `IPA_NUM_VERSION: ''IPA_NUM_VERSION'

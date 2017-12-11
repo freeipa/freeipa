@@ -66,9 +66,9 @@ changes are required.
 Testing
 -------
 
-For more information, see http://www.freeipa.org/page/Testing
+For more information, see https://www.freeipa.org/page/Testing
 
-We use python nosetests to test for regressions in the management framework
+We use python pytest to test for regressions in the management framework
 and plugins. All test dependencies are required by the freeipa-tests package.
 
 To run all of the tests you will need 2 sessions, one to run the lite-server
@@ -81,6 +81,14 @@ the lite-server:
 Some tests may be skipped. For example, all the XML-RPC tests will be skipped
 if you haven't started the lite-server. The DNS tests will be skipped if
 the underlying IPA installation doesn't configure DNS, etc.
+
+To just execute fast unittest and code linters, use the fastcheck target.
+Fast tests only execute a subset of the test suite that does not depend on
+an initialized API and server instance. Fast linting just verifies modified
+files / lines.
+
+% make fastcheck
+
 
 API.txt
 -------

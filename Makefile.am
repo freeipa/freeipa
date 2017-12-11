@@ -169,19 +169,62 @@ if ! WITH_PYTHON2
 	@echo "ERROR: python2 not available"; exit 1
 endif
 	@ # run all linters, tests, and check with Python 2
-	PYTHONPATH=$(top_srcdir) $(PYTHON2) ipatests/ipa-run-tests \
+	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON2) ipatests/ipa-run-tests \
 	    --ipaclient-unittests
 	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint jslint check
 	$(MAKE) $(AM_MAKEFLAGS) PYTHON=$(PYTHON2) pylint
 if WITH_PYTHON3
 	@ # just tests and pylint on Python 3
-	PYTHONPATH=$(top_srcdir) $(PYTHON3) ipatests/ipa-run-tests \
+	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON3) ipatests/ipa-run-tests \
 	    --ipaclient-unittests
 	$(MAKE) $(AM_MAKEFLAGS) PYTHON=$(PYTHON3) pylint
 else
 	@echo "WARNING: python3 not available"
 endif
 	@echo "All tests passed."
+
+.PHONY: fastcheck fasttest fastlint
+fastcheck:
+if WITH_PYTHON2
+	@$(MAKE) -j1 $(AM_MAKEFLAGS) PYTHON=$(PYTHON2) fastlint fasttest
+endif
+if WITH_PYTHON3
+	@$(MAKE) -j1 $(AM_MAKEFLAGS) PYTHON=$(PYTHON3) fastlint fasttest
+endif
+
+fasttest: $(GENERATED_PYTHON_FILES) ipasetup.py
+	@ # --ignore doubles speed of total test run compared to pytest.skip()
+	@ # on module.
+	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON3) ipatests/ipa-run-tests \
+	    --skip-ipaapi \
+	    --ignore $(abspath $(top_srcdir))/ipatests/test_integration \
+	    --ignore $(abspath $(top_srcdir))/ipatests/test_xmlrpc
+
+fastlint: $(GENERATED_PYTHON_FILES) ipasetup.py
+if ! WITH_PYLINT
+	@echo "ERROR: pylint not available"; exit 1
+endif
+	@echo "Fast linting with $(PYTHON) from branch '$(GIT_BRANCH)'"
+
+	@MERGEBASE=$$(git merge-base --fork-point $(GIT_BRANCH)); \
+	FILES=$$(git diff --name-only $${MERGEBASE} \
+	    | grep -E '\.py$$'); \
+	if [ -n "$${FILES}" ]; then \
+		echo "Fast linting files: $${FILES}"; \
+		echo "pylint"; \
+		echo "------"; \
+	    PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) -m pylint \
+	        --rcfile=$(top_srcdir)/pylintrc \
+	        --load-plugins pylint_plugins \
+	        $${FILES} || exit $?; \
+	    echo "pycodestyle"; \
+	    echo "-----------"; \
+	    git diff $${MERGEBASE} | \
+	        $(PYTHON) -m pycodestyle --diff || exit $?; \
+	else \
+	    echo "No modified Python files found"; \
+	fi
+
 
 .PHONY: $(top_builddir)/ipaplatform/override.py
 $(top_builddir)/ipaplatform/override.py:
