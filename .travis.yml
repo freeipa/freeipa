@@ -2,6 +2,10 @@ language: python
 services:
     - docker
 
+group: travis_latest
+
+sudo: required
+
 python:
     - "3.6"
 cache: pip
@@ -49,6 +53,8 @@ env:
         - TASK_TO_RUN="tox"
           TEST_RUNNER_CONFIG=".test_runner_config.yaml"
 install:
+    - ip addr
+    - ip addr show lo | grep -q inet6 || sudo ip addr add ::1/128 dev lo
     - pip3 install --upgrade pip
     - pip3 install pycodestyle
     - >
