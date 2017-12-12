@@ -49,6 +49,11 @@ then
     popd
 fi
 
+if ! /sbin/ip -6 addr show to ::1/128 > /dev/null
+then
+   /sbin/ip -6 addr add ::1/128 dev lo up ||:
+fi
+
 docker pull $TEST_RUNNER_IMAGE
 
 ipa-docker-test-runner -l $CI_RESULTS_LOG \
