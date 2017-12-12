@@ -32,7 +32,7 @@ import fileinput
 import sys
 import tempfile
 import shutil
-import stat  # pylint: disable=bad-python3-import
+import stat
 import traceback
 import textwrap
 from contextlib import contextmanager
