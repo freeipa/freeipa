@@ -21,9 +21,9 @@
 Base class for all cmdline tests
 """
 
-import nose
 import distutils.spawn
 import os
+import unittest
 
 from ipalib import api
 from ipalib import errors
@@ -65,6 +65,6 @@ class cmdline_test(XMLRPC_test):
             )
         super(cmdline_test, cls).setup_class()
         if not server_available:
-            raise nose.SkipTest(
+            raise unittest.SkipTest(
                 'Server not available: %r' % api.env.xmlrpc_uri
             )

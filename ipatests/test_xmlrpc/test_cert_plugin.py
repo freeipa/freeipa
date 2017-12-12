@@ -22,8 +22,9 @@ Test the `ipaserver/plugins/cert.py` module against a RA.
 from __future__ import print_function
 
 import base64
-import nose
 import os
+import unittest
+
 import pytest
 import six
 from ipalib import api
@@ -34,7 +35,6 @@ from ipapython.dn import DN
 from ipapython.ipautil import run
 from ipatests.test_xmlrpc.testcert import subject_base
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
-from nose.tools import raises, assert_raises
 
 if six.PY3:
     unicode = str
@@ -57,7 +57,7 @@ def is_db_configured():
 
     if (api.env.xmlrpc_uri == u'http://localhost:8888/ipa/xml' and
        not os.path.isfile(aliasdir)):
-        raise nose.SkipTest('developer CA not configured in %s' % aliasdir)
+        raise unittest.SkipTest('developer CA not configured in %s' % aliasdir)
 
 # Test setup
 #
@@ -84,9 +84,9 @@ class BaseCert(XMLRPC_test):
         super(BaseCert, cls).setup_class()
 
         if 'cert_request' not in api.Command:
-            raise nose.SkipTest('cert_request not registered')
+            raise unittest.SkipTest('cert_request not registered')
         if 'cert_show' not in api.Command:
-            raise nose.SkipTest('cert_show not registered')
+            raise unittest.SkipTest('cert_show not registered')
 
         is_db_configured()
 
@@ -134,7 +134,7 @@ class test_cert(BaseCert):
         assert 'result' in api.Command['host_add'](self.host_fqdn, force=True)
 
         csr = self.generateCSR(str(self.subject))
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['cert_request'](csr, principal=self.service_princ)
 
     def test_0002_cert_add(self):
@@ -267,10 +267,10 @@ class test_cert_find(XMLRPC_test):
         super(test_cert_find, cls).setup_class()
 
         if 'cert_find' not in api.Command:
-            raise nose.SkipTest('cert_find not registered')
+            raise unittest.SkipTest('cert_find not registered')
 
         if api.env.ra_plugin != 'dogtag':
-            raise nose.SkipTest('cert_find for dogtag CA only')
+            raise unittest.SkipTest('cert_find for dogtag CA only')
 
         is_db_configured()
 
@@ -415,12 +415,12 @@ class test_cert_find(XMLRPC_test):
         res = api.Command['cert_find'](sizelimit=0)
         assert 'count' in res and res['count'] == count_all
 
-    @raises(errors.ValidationError)
     def test_0028_find_negative_size(self):
         """
         Search with a negative sizelimit
         """
-        api.Command['cert_find'](sizelimit=-100)
+        with pytest.raises(errors.ValidationError):
+            api.Command['cert_find'](sizelimit=-100)
 
     def test_0029_search_for_notfound(self):
         """
@@ -436,12 +436,12 @@ class test_cert_find(XMLRPC_test):
         res = api.Command['cert_find'](subject=u'ipatestcert.%s' % api.env.domain)
         assert 'count' in res and res['count'] >= 1
 
-    @raises(errors.ConversionError)
     def test_0031_search_on_invalid_date(self):
         """
         Search using invalid date format
         """
-        api.Command['cert_find'](issuedon_from=u'xyz')
+        with pytest.raises(errors.ConversionError):
+            api.Command['cert_find'](issuedon_from=u'xyz')
 
 
 @pytest.mark.tier1

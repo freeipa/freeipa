@@ -217,7 +217,6 @@ BuildRequires:  python2-netifaces
 BuildRequires:  python2-sss
 BuildRequires:  python2-sss-murmur
 BuildRequires:  python2-sssdconfig
-BuildRequires:  python2-nose
 BuildRequires:  python2-paste
 BuildRequires:  python2-systemd
 BuildRequires:  python2-jinja2
@@ -256,7 +255,6 @@ BuildRequires:  python3-sss
 BuildRequires:  python3-sss-murmur
 BuildRequires:  python3-sssdconfig
 BuildRequires:  python3-libsss_nss_idmap
-BuildRequires:  python3-nose
 BuildRequires:  python3-paste
 BuildRequires:  python3-systemd
 BuildRequires:  python3-jinja2
@@ -836,7 +834,6 @@ Requires: python2-ipaclient = %{version}-%{release}
 Requires: python2-ipaserver = %{version}-%{release}
 Requires: tar
 Requires: xz
-Requires: python2-nose
 Requires: pytest >= 2.6
 Requires: python2-paste
 Requires: python2-coverage
@@ -872,7 +869,6 @@ Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-ipaserver = %{version}-%{release}
 Requires: tar
 Requires: xz
-Requires: python3-nose
 Requires: python3-pytest >= 2.6
 Requires: python3-coverage
 Requires: python3-polib

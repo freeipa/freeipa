@@ -20,7 +20,8 @@
 Test the `ipaserver/plugins/trust.py` module.
 """
 
-import nose
+import unittest
+
 import six
 
 from ipalib import api, errors
@@ -55,7 +56,7 @@ class test_trustconfig(Declarative):
         try:
            api.Command['trustconfig_show'](trust_type=u'ad')
         except errors.NotFound:
-            raise nose.SkipTest('Trusts are not configured')
+            raise unittest.SkipTest('Trusts are not configured')
 
     cleanup_commands = [
         ('group_del', [testgroup], {}),

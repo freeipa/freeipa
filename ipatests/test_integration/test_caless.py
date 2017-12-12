@@ -23,7 +23,8 @@ import tempfile
 import shutil
 import glob
 import contextlib
-import nose
+import unittest
+
 import pytest
 import six
 
@@ -604,7 +605,7 @@ class TestServerInstall(CALessBase):
                                      dirsrv_pkcs12='dirsrv.p12')
 
         if result.returncode == 0:
-            raise nose.SkipTest(
+            raise unittest.SkipTest(
                 "Known CA-less installation defect, see "
                 "https://fedorahosted.org/freeipa/ticket/4270")
 
@@ -622,7 +623,7 @@ class TestServerInstall(CALessBase):
                                      dirsrv_pkcs12='dirsrv.p12')
 
         if result.returncode == 0:
-            raise nose.SkipTest(
+            raise unittest.SkipTest(
                 "Known CA-less installation defect, see "
                 "https://fedorahosted.org/freeipa/ticket/4270")
 
@@ -968,7 +969,7 @@ class TestReplicaInstall(CALessBase):
                                       dirsrv_pkcs12='dirsrv.p12')
 
         if result.returncode == 0:
-            raise nose.SkipTest(
+            raise unittest.SkipTest(
                 "Known CA-less installation defect, see "
                 "https://fedorahosted.org/freeipa/ticket/4270")
 
@@ -985,7 +986,7 @@ class TestReplicaInstall(CALessBase):
                                       dirsrv_pkcs12='dirsrv.p12')
 
         if result.returncode == 0:
-            raise nose.SkipTest(
+            raise unittest.SkipTest(
                 "Known CA-less installation defect, see "
                 "https://fedorahosted.org/freeipa/ticket/4270")
 
@@ -1368,7 +1369,7 @@ class TestCertInstall(CALessBase):
         result = self.certinstall('w', 'ca1/server-revoked')
 
         if result.returncode == 0:
-            raise nose.SkipTest(
+            raise unittest.SkipTest(
                 "Known CA-less installation defect, see "
                 "https://fedorahosted.org/freeipa/ticket/4270")
 
@@ -1380,7 +1381,7 @@ class TestCertInstall(CALessBase):
         result = self.certinstall('d', 'ca1/server-revoked')
 
         if result.returncode == 0:
-            raise nose.SkipTest(
+            raise unittest.SkipTest(
                 "Known CA-less installation defect, see "
                 "https://fedorahosted.org/freeipa/ticket/4270")
 

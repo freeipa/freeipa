@@ -20,7 +20,8 @@
 Test the `ipaserver/plugins/dns.py` module.
 """
 
-import nose
+import unittest
+
 from ipalib import api, errors
 from ipalib.util import normalize_zone
 from ipapython.dnsutil import DNSName
@@ -433,10 +434,13 @@ class test_dns(Declarative):
             api.Backend.rpcclient.connect()
 
         if not have_ldap2:
-            raise nose.SkipTest('server plugin not available')
+            raise unittest.SkipTest('server plugin not available')
 
         if get_nameservers_error is not None:
-            raise nose.SkipTest('unable to get list of nameservers (%s)' % get_nameservers_error)
+            raise unittest.SkipTest(
+                'unable to get list of nameservers (%s)' %
+                get_nameservers_error
+            )
 
         try:
            api.Command['dnszone_add'](zone1,
@@ -444,7 +448,7 @@ class test_dns(Declarative):
            )
            api.Command['dnszone_del'](zone1)
         except errors.NotFound:
-            raise nose.SkipTest('DNS is not configured')
+            raise unittest.SkipTest('DNS is not configured')
         except errors.DuplicateEntry:
             pass
 
@@ -3209,16 +3213,19 @@ class test_root_zone(Declarative):
             api.Backend.rpcclient.connect()
 
         if not have_ldap2:
-            raise nose.SkipTest('server plugin not available')
+            raise unittest.SkipTest('server plugin not available')
 
         if get_nameservers_error is not None:
-            raise nose.SkipTest('unable to get list of nameservers (%s)' % get_nameservers_error)
+            raise unittest.SkipTest(
+                'unable to get list of nameservers (%s)' %
+                get_nameservers_error
+            )
 
         try:
             api.Command['dnszone_add'](zone1, idnssoarname=zone1_rname,)
             api.Command['dnszone_del'](zone1)
         except errors.NotFound:
-            raise nose.SkipTest('DNS is not configured')
+            raise unittest.SkipTest('DNS is not configured')
         except errors.DuplicateEntry:
             pass
 
@@ -3292,13 +3299,13 @@ class test_forward_zones(Declarative):
             api.Backend.rpcclient.connect()
 
         if not have_ldap2:
-            raise nose.SkipTest('server plugin not available')
+            raise unittest.SkipTest('server plugin not available')
 
         try:
             api.Command['dnszone_add'](zone1, idnssoarname=zone1_rname,)
             api.Command['dnszone_del'](zone1)
         except errors.NotFound:
-            raise nose.SkipTest('DNS is not configured')
+            raise unittest.SkipTest('DNS is not configured')
         except errors.DuplicateEntry:
             pass
 
@@ -4501,13 +4508,13 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
             api.Backend.rpcclient.connect()
 
         if not have_ldap2:
-            raise nose.SkipTest('server plugin not available')
+            raise unittest.SkipTest('server plugin not available')
 
         try:
             api.Command['dnszone_add'](zone1, idnssoarname=zone1_rname,)
             api.Command['dnszone_del'](zone1)
         except errors.NotFound:
-            raise nose.SkipTest('DNS is not configured')
+            raise unittest.SkipTest('DNS is not configured')
         except errors.DuplicateEntry:
             pass
 
@@ -4876,13 +4883,13 @@ class test_forwardzone_delegation_warnings(Declarative):
             api.Backend.rpcclient.connect()
 
         if not have_ldap2:
-            raise nose.SkipTest('server plugin not available')
+            raise unittest.SkipTest('server plugin not available')
 
         try:
             api.Command['dnszone_add'](zone1, idnssoarname=zone1_rname,)
             api.Command['dnszone_del'](zone1)
         except errors.NotFound:
-            raise nose.SkipTest('DNS is not configured')
+            raise unittest.SkipTest('DNS is not configured')
         except errors.DuplicateEntry:
             pass
 
@@ -5387,17 +5394,17 @@ class test_dns_soa(Declarative):
             api.Backend.rpcclient.connect()
 
         if not have_ldap2:
-            raise nose.SkipTest('server plugin not available')
+            raise unittest.SkipTest('server plugin not available')
 
         if get_nameservers_error is not None:
-            raise nose.SkipTest('unable to get list of nameservers (%s)' %
+            raise unittest.SkipTest('unable to get list of nameservers (%s)' %
                                 get_nameservers_error)
         try:
             api.Command['dnszone_add'](zone1,
                                        idnssoarname=zone1_rname,)
             api.Command['dnszone_del'](zone1)
         except errors.NotFound:
-            raise nose.SkipTest('DNS is not configured')
+            raise unittest.SkipTest('DNS is not configured')
         except errors.DuplicateEntry:
             pass
 

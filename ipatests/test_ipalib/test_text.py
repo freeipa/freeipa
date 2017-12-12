@@ -25,8 +25,8 @@ from __future__ import print_function
 import os
 import shutil
 import tempfile
+import unittest
 
-import nose
 import six
 import pytest
 
@@ -102,15 +102,17 @@ class test_TestLang(object):
 
         result = create_po(self.pot_file, self.po_file, self.mo_file)
         if result:
-            raise nose.SkipTest('Unable to create po file "%s" & mo file "%s" from pot file "%s"' %
-                                (self.po_file, self.mo_file, self.pot_file))
+            raise unittest.SkipTest(
+                'Unable to create po file "%s" & mo file "%s" from pot '
+                'file "%s"' % (self.po_file, self.mo_file, self.pot_file)
+            )
 
         if not os.path.isfile(self.po_file):
-            raise nose.SkipTest(
+            raise unittest.SkipTest(
                 'Test po file unavailable: {}'.format(self.po_file))
 
         if not os.path.isfile(self.mo_file):
-            raise nose.SkipTest(
+            raise unittest.SkipTest(
                 'Test mo file unavailable: {}'.format(self.mo_file))
 
         self.po_file_iterate = po_file_iterate

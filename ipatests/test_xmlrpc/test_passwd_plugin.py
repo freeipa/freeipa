@@ -19,13 +19,11 @@
 """
 Test the `ipaserver/plugins/passwd.py` module.
 """
-
-from nose.tools import assert_raises  # pylint: disable=E0611
+import pytest
 
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
-import pytest
 
 
 @pytest.mark.tier1
@@ -65,5 +63,5 @@ class test_passwd(XMLRPC_test):
         api.Command['user_del'](self.uid)
 
         # Verify that it is gone
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['user_show'](self.uid)
