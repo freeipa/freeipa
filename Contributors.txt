@@ -10,6 +10,7 @@ Developers:
 	Tomáš Babej
 	Martin Babinsky
 	Kyle Baker
+	Felipe Barreto
 	Jan Barta
 	Martin Bašti
 	Sylvain Baubeau
@@ -26,6 +27,7 @@ Developers:
 	Rob Crittenden
 	Frank Cusack
 	Nalin Dahyabhai
+	Rishabh Dave
 	Don Davis
 	John Dennis
 	Jason Gerard DeRose
@@ -53,6 +55,7 @@ Developers:
 	Abhijeet Kasurde
 	Nathan Kinder
 	Krzysztof Klimonda
+	Alexander Koksharov
 	Nikolai Kondrashov
 	Martin Košek
 	David Kreitschmann
@@ -78,6 +81,7 @@ Developers:
 	Rich Megginson
 	Jim Meyering
 	Adam Misnyovszki
+	John Morris
 	Niranjan MR
 	Marko Myllynen
 	Martin Nagy
@@ -112,6 +116,7 @@ Developers:
 	Andrew Wnuk
 	Jason Woods
 	Adam Young
+	Mohammad Rizwan Yusuf
 	Jan Zelený
 	Alex Zeleznikov
 	Michal Židek
