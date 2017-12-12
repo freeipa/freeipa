@@ -77,17 +77,11 @@ TRUNCATED_ADMIN_LIMIT = object()
 DIRMAN_DN = DN(('cn', 'directory manager'))
 
 
-if six.PY2:
+if six.PY2 and hasattr(ldap, 'LDAPBytesWarning'):
     # XXX silence python-ldap's BytesWarnings
     warnings.filterwarnings(
         action="ignore",
-        message="Under Python 2, python-ldap uses bytes",
-        category=BytesWarning
-    )
-    warnings.filterwarnings(
-        action="ignore",
-        message="Received non-bytes value",
-        category=BytesWarning
+        category=ldap.LDAPBytesWarning,  # pylint: disable=no-member
     )
 
 
