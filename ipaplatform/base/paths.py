@@ -356,6 +356,7 @@ class BasePathNamespace(object):
     KRB5CC_HTTPD = '/tmp/krb5cc-httpd'
     IF_INET6 = '/proc/net/if_inet6'
     AUTHCONFIG = None
+    IPA_SERVER_UPGRADE = '/usr/sbin/ipa-server-upgrade'
 
 
 paths = BasePathNamespace()
