@@ -59,7 +59,7 @@
 %global samba_version 2:4.7.0
 %global selinux_policy_version 3.13.1-158.4
 %global slapi_nis_version 0.56.1
-%global python_ldap_version 3.0.0
+%global python_ldap_version 3.0.0-0.2.b2
 %endif
 
 
