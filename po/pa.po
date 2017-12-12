@@ -1,9 +1,9 @@
 # A S Alam <aalam@fedoraproject.org>, 2017. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.6.90.dev201709221006+git0e8e94aa6\n"
+"Project-Id-Version: freeipa 4.6.1.dev201712121258+gitb2d3b568c\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-09-22 12:07+0200\n"
+"POT-Creation-Date: 2017-12-12 14:00+0100\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -13,10 +13,6 @@ msgstr ""
 "Language: pa\n"
 "X-Generator: Zanata 3.9.6\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-
-#, python-format
-msgid "Unknown option: %(option)s"
-msgstr "ਅਣਪਛਾਤੀ ਚੋਣ: %(option)s"
 
 #, c-format
 msgid "Out of memory!\n"
@@ -34,17 +30,9 @@ msgstr "ਪੁਰਾਣੀ ਵਾਲਟ ਪ੍ਰਾਈਵੇਟ ਕੁੰਜੀ
 msgid "Invalid vault type"
 msgstr "ਗ਼ਲਤ ਵਾਲਟ ਕਿਸਮ"
 
-msgid "Out of memory\n"
-msgstr "ਮੈਮੋਰੀ ਖ਼ਤਮ ਹੋਈ\n"
-
-msgid "Warning unrecognized encryption type.\n"
-msgstr "ਚੇਤਾਵਨੀ ਅਣਪਛਾਤੀ ਇੰਕ੍ਰਿਪਸ਼ਨ ਕਿਸਮ।\n"
-
-msgid "Warning unrecognized salt type.\n"
-msgstr "ਚੇਤਾਵਨੀ ਅਣਪਛਾਤੀ salt ਕਿਸਮ ਹੈ।\n"
-
-msgid "Failed to create key!\n"
-msgstr "ਕੁੰਜੀ ਬਣਾਉਣ ਲਈ ਅਸਫ਼ਲ ਹੈ!\n"
+#, python-format
+msgid "Unknown option: %(option)s"
+msgstr "ਅਣਪਛਾਤੀ ਚੋਣ: %(option)s"
 
 msgid "Hello world"
 msgstr "ਹੈਲੋ ਵਰਲਡ"
@@ -66,3 +54,15 @@ msgstr "ਟਰੱਸਟ ਸੈਟਅੱਪ"
 
 msgid "Our domain is not configured"
 msgstr "ਸਾਡੀ ਡੋਮੇਨ ਸੰਰਚਿਤ ਨਹੀਂ ਹੈ"
+
+msgid "Out of memory\n"
+msgstr "ਮੈਮੋਰੀ ਖ਼ਤਮ ਹੋਈ\n"
+
+msgid "Warning unrecognized encryption type.\n"
+msgstr "ਚੇਤਾਵਨੀ ਅਣਪਛਾਤੀ ਇੰਕ੍ਰਿਪਸ਼ਨ ਕਿਸਮ।\n"
+
+msgid "Warning unrecognized salt type.\n"
+msgstr "ਚੇਤਾਵਨੀ ਅਣਪਛਾਤੀ salt ਕਿਸਮ ਹੈ।\n"
+
+msgid "Failed to create key!\n"
+msgstr "ਕੁੰਜੀ ਬਣਾਉਣ ਲਈ ਅਸਫ਼ਲ ਹੈ!\n"
