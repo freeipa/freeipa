@@ -1,7 +1,9 @@
 language: python
 services:
     - docker
-
+# workaround for missing IPv6 address support
+# https://github.com/travis-ci/travis-ci/issues/8891
+group: deprecated-2017Q4
 python:
     - "3.6"
 cache: pip
