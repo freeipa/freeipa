@@ -1,8 +1,9 @@
-language: python
 group: deprecated-2017Q3
+
+language: python
+
 services:
     - docker
-
 python:
     - "2.7"
 cache: pip
@@ -28,10 +29,17 @@ env:
             test_ipaserver
             test_pkcs10
             test_xmlrpc/test_[l-z]*.py"
+
+before_install:
+    - ip addr show
+    - ls /proc/net
+    - cat /proc/net/if_inet6
+#    - ip addr show dev lo | grep -q inet6 || (echo "No IPv6 address found"; exit 1)
+
 install:
     - pip install --upgrade pip
     - pip3 install --upgrade pip
-    - pip install pycodestyle
+    - pip3 install pycodestyle
     - >
       pip3 install
       git+https://github.com/freeipa/ipa-docker-test-runner@release-0-2-1
