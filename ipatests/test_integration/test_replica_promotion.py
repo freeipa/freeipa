@@ -3,6 +3,7 @@
 #
 
 import time
+import re
 from tempfile import NamedTemporaryFile
 import textwrap
 import pytest
@@ -454,6 +455,13 @@ class TestRenewalMaster(IntegrationTest):
     def uninstall(cls, mh):
         super(TestRenewalMaster, cls).uninstall(mh)
 
+    def assertCARenewalMaster(self, host, expected):
+        """ Ensure there is only one CA renewal master set """
+        result = host.run_command(["ipa", "config-show"]).stdout_text
+        matches = list(re.finditer('IPA CA renewal master: (.*)', result))
+        assert len(matches), 1
+        assert matches[0].group(1) == expected
+
     def test_replica_not_marked_as_renewal_master(self):
         """
         https://fedorahosted.org/freeipa/ticket/5902
@@ -476,10 +484,45 @@ class TestRenewalMaster(IntegrationTest):
         assert("IPA CA renewal master: %s" % replica.hostname in result), (
             "Replica hostname not found among CA renewal masters"
         )
+        # additional check e.g. to see if there is only one renewal master
+        self.assertCARenewalMaster(replica, replica.hostname)
+
+    def test_renewal_master_with_csreplica_manage(self):
+
+        master = self.master
+        replica = self.replicas[0]
+
+        self.assertCARenewalMaster(master, replica.hostname)
+        self.assertCARenewalMaster(replica, replica.hostname)
+
+        master.run_command(['ipa-csreplica-manage', 'set-renewal-master',
+                            '-p', master.config.dirman_password])
+        result = master.run_command(["ipa", "config-show"]).stdout_text
+
+        assert("IPA CA renewal master: %s" % master.hostname in result), (
+            "Master hostname not found among CA renewal masters"
+        )
+
+        # lets give replication some time
+        time.sleep(60)
+
+        self.assertCARenewalMaster(master, master.hostname)
+        self.assertCARenewalMaster(replica, master.hostname)
+
+        replica.run_command(['ipa-csreplica-manage', 'set-renewal-master',
+                             '-p', replica.config.dirman_password])
+        result = replica.run_command(["ipa", "config-show"]).stdout_text
+
+        assert("IPA CA renewal master: %s" % replica.hostname in result), (
+            "Replica hostname not found among CA renewal masters"
+        )
+
+        self.assertCARenewalMaster(master, replica.hostname)
+        self.assertCARenewalMaster(replica, replica.hostname)
 
     def test_automatic_renewal_master_transfer_ondelete(self):
-        # Test that after master uninstallation, replica overtakes the cert
-        # renewal master role
+        # Test that after replica uninstallation, master overtakes the cert
+        # renewal master role from replica (which was previously set there)
         tasks.uninstall_master(self.replicas[0])
         result = self.master.run_command(['ipa', 'config-show']).stdout_text
         assert("IPA CA renewal master: %s" % self.master.hostname in result), (
