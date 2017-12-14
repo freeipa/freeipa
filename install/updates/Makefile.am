@@ -12,6 +12,7 @@ app_DATA =				\
 	19-managed-entries.update	\
 	20-aci.update			\
 	20-dna.update			\
+	20-enable_dirsrv_plugins.update	\
 	20-host_nis_groups.update	\
 	20-indices.update		\
 	20-ipaservers_hostgroup.update	\
