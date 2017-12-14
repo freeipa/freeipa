@@ -29,73 +29,72 @@ define([
     function(IPA, $, rpc) {
     return function() {
 
-module('ipa');
+QUnit.module('ipa', {
+    beforeEach: function(assert) {
+        var done = assert.async();
 
-test("Testing ipa_init().", function() {
-
-    expect(1);
-
-    IPA.ajax_options.async = false;
-
-    IPA.init({
-        url: 'data',
-        on_success: function(data, text_status, xhr) {
-            ok(true, "ipa_init() succeeded.");
-        },
-        on_error: function(xhr, text_status, error_thrown) {
-            ok(false, "ipa_init() failed: "+error_thrown);
-        }
-    });
+        IPA.init({
+            url: 'data',
+            on_success: function(data, text_status, xhr) {
+                assert.ok(true, "ipa_init() succeeded.");
+                done();
+            },
+            on_error: function(xhr, text_status, error_thrown) {
+                assert.ok(false, "ipa_init() failed: "+error_thrown);
+                done();
+            }
+        });
+    }
 });
 
-test("Testing IPA.get_entity_param().", function() {
+QUnit.test("Testing IPA.get_entity_param().", function(assert) {
 
     var metadata = IPA.get_entity_param("user", "uid");
-    ok(
+    assert.ok(
         metadata,
         "IPA.get_entity_param(\"user\", \"uid\") not null");
 
-    equals(
+    assert.equal(
         metadata["label"], "User login",
         "IPA.get_entity_param(\"user\", \"uid\")[\"label\"]");
 
-    equals(
+    assert.equal(
         IPA.get_entity_param("user", "wrong_attribute"), null,
         "IPA.get_entity_param(\"user\", \"wrong_attribute\")");
 
-    equals(
+    assert.equal(
         IPA.get_entity_param("user", null), null,
         "IPA.get_entity_param(\"user\", null)");
 
-    equals(
+    assert.equal(
         IPA.get_entity_param("wrong_entity", "uid"), null,
         "IPA.get_entity_param(\"wrong_entity\", \"uid\")");
 
-    equals(
+    assert.equal(
         IPA.get_entity_param(null, "uid"), null,
         "IPA.get_entity_param(null, \"uid\")");
 });
 
-test("Testing IPA.get_member_attribute().", function() {
+QUnit.test("Testing IPA.get_member_attribute().", function(assert) {
 
-    equals(
+    assert.equal(
         IPA.get_member_attribute("user", "group"), "memberofindirect",
         "IPA.get_member_attribute(\"user\", \"group\")");
 
-    equals(
+    assert.equal(
         IPA.get_member_attribute("user", "host"), null,
         "IPA.get_member_attribute(\"user\", \"host\")");
 
-    equals(
+    assert.equal(
         IPA.get_member_attribute("user", null), null,
         "IPA.get_member_attribute(\"user\", null)");
 
-    equals(
+    assert.equal(
         IPA.get_member_attribute(null, "group"), null,
         "IPA.get_member_attribute(null, \"group\")");
 });
 
-test("Testing successful rpc.command().", function() {
+QUnit.test("Testing successful rpc.command().", function(assert) {
 
     var method = 'method';
     var args = ['arg1', 'arg2', 'arg3'];
@@ -130,20 +129,20 @@ test("Testing successful rpc.command().", function() {
     $.ajax = function(request) {
         ajax_counter++;
 
-        equals(
+        assert.equal(
             request.url, "data/"+object+"_"+method+".json",
             "Checking request.url");
 
         var data = JSON.parse(request.data);
 
-        equals(
+        assert.equal(
             data.method, object+'_'+method,
             "Checking method");
 
         // By default all rpc calls contain version of API
         $.extend(options, {'version': window.ipa_loader.api_version});
 
-        same(
+        assert.deepEqual(
             data.params, [args, options],
             "Checking parameters");
 
@@ -159,24 +158,24 @@ test("Testing successful rpc.command().", function() {
         on_error: error_handler
     }).execute();
 
-    equals(
+    assert.equal(
         ajax_counter, 1,
         "Checking ajax invocation counter");
 
     var dialog = $('[data-name=error_dialog]');
 
-    ok(
+    assert.ok(
         dialog.length === 0,
         "The dialog box is not created.");
 
-    ok(
+    assert.ok(
         success_handler_counter === 1 && error_handler_counter === 0,
         "Only the success handler is called.");
 
     $.ajax = orig;
 });
 
-test("Testing unsuccessful rpc.command().", function() {
+QUnit.test("Testing unsuccessful rpc.command().", function(assert) {
 
     var method = 'method';
     var args = ['arg1', 'arg2', 'arg3'];
@@ -210,17 +209,17 @@ test("Testing unsuccessful rpc.command().", function() {
     $.ajax = function(request) {
         ajax_counter++;
 
-        equals(request.url, "data/"+object+"_"+method+".json",
+        assert.equal(request.url, "data/"+object+"_"+method+".json",
                "Checking request.url");
 
         var data = JSON.parse(request.data);
 
-        equals(data.method, object+'_'+method, "Checking method");
+        assert.equal(data.method, object+'_'+method, "Checking method");
 
         // By default all rpc calls contain version of API
         $.extend(options, { 'version': window.ipa_loader.api_version});
 
-        same(data.params, [args, options], "Checking parameters");
+        assert.deepEqual(data.params, [args, options], "Checking parameters");
 
         // remove api version from options object
         delete options.version;
@@ -245,42 +244,42 @@ test("Testing unsuccessful rpc.command().", function() {
 
     var dialog = $(dialog_selector);
 
-    equals(
+    assert.equal(
         ajax_counter, 1,
         "Checking ajax invocation counter");
 
-    ok(
+    assert.ok(
         dialog.length === 1,
         "The dialog box is created and open.");
 
-    ok(
+    assert.ok(
         success_handler_counter === 0 && error_handler_counter === 0,
         "Initially none of the handlers are called.");
 
     click_button('retry');
 
-    equals(
+    assert.equal(
         ajax_counter, 2,
         "Checking ajax invocation counter");
 
-    ok(
+    assert.ok(
         success_handler_counter === 0 && error_handler_counter === 0,
         "After 1st retry, none of the handlers are called.");
 
     click_button('retry');
 
-    equals(ajax_counter, 3,
+    assert.equal(ajax_counter, 3,
         "Checking ajax invocation counter");
 
-    ok(success_handler_counter === 0 && error_handler_counter === 0,
+    assert.ok(success_handler_counter === 0 && error_handler_counter === 0,
         "After 2nd retry, none of the handlers are called.");
 
     click_button('cancel');
 
-    equals(ajax_counter, 3,
+    assert.equal(ajax_counter, 3,
         "Checking ajax invocation counter");
 
-    ok(success_handler_counter === 0 && error_handler_counter === 1,
+    assert.ok(success_handler_counter === 0 && error_handler_counter === 1,
         "Only the error handler is called.");
 
     // cleanup - qunit doesn't really play well with asynchronous opening and
@@ -292,8 +291,8 @@ test("Testing unsuccessful rpc.command().", function() {
     $.ajax = orig;
 });
 
-test("Testing observer.", function() {
-    expect(6);
+QUnit.test("Testing observer.", function(assert) {
+    assert.expect(7);
     var obj = {};
     var param1_value = 'p1';
     var param2_value = 'p2';
@@ -301,20 +300,20 @@ test("Testing observer.", function() {
     obj.event = IPA.observer();
 
     obj.event.attach(function(param1, param2) {
-        ok(true, "Proper function 1 callback");
+        assert.ok(true, "Proper function 1 callback");
     });
 
     var first = true;
 
     var func = function(param1, param2) {
         if(first) {
-            ok(true, "Proper function 2 callback");
-            equals(param1, param1_value, "Testing Parameter 1");
-            equals(param2, param2_value, "Testing Parameter 2");
-            equals(this, obj, "Testing Context");
+            assert.ok(true, "Proper function 2 callback");
+            assert.equal(param1, param1_value, "Testing Parameter 1");
+            assert.equal(param2, param2_value, "Testing Parameter 2");
+            assert.equal(this, obj, "Testing Context");
             first = false;
         } else {
-            ok(false, "Fail function 2 callback");
+            assert.ok(false, "Fail function 2 callback");
         }
     };
 

@@ -35,8 +35,8 @@ define([
 var details_container;
 
 
-module('details', {
-    setup: function() {
+QUnit.module('details', {
+    beforeEach: function(assert) {
         IPA.ajax_options.async = false;
 
         mod_facet.register();
@@ -46,7 +46,7 @@ module('details', {
         IPA.init({
             url: 'data',
             on_error: function(xhr, text_status, error_thrown) {
-                ok(false, "ipa_init() failed: "+error_thrown);
+                assert.ok(false, "ipa_init() failed: "+error_thrown);
             }
         });
 
@@ -60,14 +60,14 @@ module('details', {
             });
         });
     },
-    teardown: function() {
+    afterEach: function() {
         details_container.remove();
         reg.facet.remove('details');
     }
 });
 
 
-test("Testing IPA.details_section.create().", function() {
+QUnit.test("Testing IPA.details_section.create().", function(assert) {
 
     var facet = IPA.details_facet({
         entity: IPA.get_entity('user'),
@@ -84,7 +84,7 @@ test("Testing IPA.details_section.create().", function() {
 
     var section = facet.widgets.get_widget('IDIDID');
 
-    ok(section !== null, 'Verifying section existence.');
+    assert.ok(section !== null, 'Verifying section existence.');
 
     var fields = section.widgets.get_widgets();
     var container = $("<div/>");
@@ -92,12 +92,12 @@ test("Testing IPA.details_section.create().", function() {
 
     var section_el = $('.details-section-content', container);
 
-    same(
+    assert.deepEqual(
         section_el.length, 1,
         'Verifying section element');
 
     var controls = $('.form-group', section_el);
-    same(
+    assert.deepEqual(
         controls.length, fields.length,
         'Verifying number of controls');
 
@@ -105,17 +105,17 @@ test("Testing IPA.details_section.create().", function() {
         var field = fields[i];
 
         var field_label = $('.control-label label[name='+field.name+']', container);
-        same(
+        assert.deepEqual(
             field_label.text(), field.label,
             'Verifying label for field '+field.name);
 
         var field_container = $('.controls div[name='+field.name+']', container);
 
-        ok(
+        assert.ok(
             field_container.length,
             'Verifying container for field '+field.name);
 
-        ok(
+        assert.ok(
             field_container.hasClass('widget'),
             'Verifying field '+field.name+' was created');
     }
@@ -123,7 +123,7 @@ test("Testing IPA.details_section.create().", function() {
 
 
 
-test("Testing details lifecycle: create, load.", function(){
+QUnit.test("Testing details lifecycle: create, load.", function(assert){
 
     var data = {};
     data.result = {};
@@ -134,10 +134,10 @@ test("Testing details lifecycle: create, load.", function(){
         method: 'show',
         args: ['kfrog'],
         on_success: function(data, text_status, xhr) {
-            ok(true, "rpc.command() succeeded.");
+            assert.ok(true, "rpc.command() succeeded.");
         },
         on_error: function(xhr, text_status, error_thrown) {
-            ok(false, "rpc.command() failed: "+error_thrown);
+            assert.ok(false, "rpc.command() failed: "+error_thrown);
         }
     }).execute();
 
@@ -237,23 +237,23 @@ test("Testing details lifecycle: create, load.", function(){
 
     var contact = $('.details-section[name=contact]', facet.dom_node);
 
-    ok(
+    assert.ok(
         contact.length,
         'Verifying section for contact is created');
 
     var identity = $('.details-section[name=identity]', facet.dom_node);
 
-    ok(
+    assert.ok(
         identity.length,
         'Verifying section for identity is created');
 
     var rows = $('.form-group', identity);
 
-    same(
+    assert.deepEqual(
         rows.length, 6,
         'Verifying rows for identity');
 
-    ok (load_called, 'load manager called');
+    assert.ok(load_called, 'load manager called');
 
     var field = facet.fields.get_field('test');
     field.set_value("foo");
@@ -265,14 +265,14 @@ test("Testing details lifecycle: create, load.", function(){
         function(){update_success_called = true;},
         function(){update_failure_called = true;});
 
-    ok (update_success_called,'update success called');
-    ok (!update_failure_called,'update failure not called');
-    ok (save_called, 'save called');
+    assert.ok(update_success_called,'update success called');
+    assert.ok(!update_failure_called,'update failure not called');
+    assert.ok(save_called, 'save called');
 
 });
 
 
-test("Testing IPA.details_section_create again()",function() {
+QUnit.test("Testing IPA.details_section_create again()",function(assert) {
 
     var facet = IPA.details_facet({
         entity: IPA.get_entity('user'),
@@ -301,7 +301,7 @@ test("Testing IPA.details_section_create again()",function() {
     });
 
     var section = facet.widgets.get_widget('IDIDID');
-    ok(section !== null, 'Verifying section existence.');
+    assert.ok(section !== null, 'Verifying section existence.');
     var fields = section.widgets.get_widgets();
 
     var container = $("<div title='entity'/>");
@@ -317,12 +317,12 @@ test("Testing IPA.details_section_create again()",function() {
 
    var section_el = $('.details-section-content', container);
 
-    same(
+    assert.deepEqual(
         section_el.length, 1,
         'Verifying section element');
 
     var controls = $('.form-group', section_el);
-    same(
+    assert.deepEqual(
         controls.length, fields.length,
         'Verifying number of controls');
 
@@ -330,17 +330,17 @@ test("Testing IPA.details_section_create again()",function() {
         var field = fields[i];
 
         var field_label = $('.control-label label[name='+field.name+']', container);
-        same(
+        assert.deepEqual(
             field_label.text(), field.label,
             'Verifying label for field '+field.name);
 
         var field_container = $('.controls div[name='+field.name+']', container);
 
-        ok(
+        assert.ok(
             field_container.length,
             'Verifying container for field '+field.name);
 
-        ok(
+        assert.ok(
             field_container.hasClass('widget'),
             'Verifying field '+field.name+' was created');
     }

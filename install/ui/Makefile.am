@@ -32,3 +32,6 @@ EXTRA_DIST =                            \
 
 install-data-hook:
 	$(INSTALL) -d -m 755 $(DESTDIR)$(appdir)/js/plugins
+
+clean-local:
+	rm -rf package-lock.json node_modules
