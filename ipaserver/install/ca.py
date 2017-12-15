@@ -322,7 +322,7 @@ def install_step_1(standalone, replica_config, options):
     ca.stop('pki-tomcat')
 
     # This is done within stopped_service context, which restarts CA
-    ca.enable_client_auth_to_db(paths.CA_CS_CFG_PATH)
+    ca.enable_client_auth_to_db()
 
     # Lightweight CA key retrieval is configured in step 1 instead
     # of CAInstance.configure_instance (which is invoked from step
