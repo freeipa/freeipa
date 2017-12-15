@@ -299,13 +299,16 @@ class LdapKeyDB(AbstractHSM):
             for attr in default_attrs:
                 key.setdefault(attr, default_attrs[attr])
 
-            assert 'ipk11id' in key, 'key is missing ipk11Id in %s' % key.entry.dn
+            assert 'ipk11id' in key, \
+                'key is missing ipk11Id in %s' % key.entry.dn
             key_id = key['ipk11id']
             assert key_id not in keys, \
                 'duplicate ipk11Id=0x%s in "%s" and "%s"' % \
                 (str_hexlify(key_id), key.entry.dn, keys[key_id].entry.dn)
-            assert 'ipk11label' in key, 'key "%s" is missing ipk11Label' % key.entry.dn
-            assert 'objectclass' in key.entry, 'key "%s" is missing objectClass attribute' % key.entry.dn
+            assert 'ipk11label' in key, \
+                'key "%s" is missing ipk11Label' % key.entry.dn
+            assert 'objectclass' in key.entry, \
+                'key "%s" is missing objectClass attribute' % key.entry.dn
 
             keys[key_id] = key
 
@@ -399,12 +402,13 @@ class LdapKeyDB(AbstractHSM):
         for key in keys.values():
             prefix = 'dnssec-master'
             assert key['ipk11label'] == prefix, \
-                'secret key dn="%s" ipk11id=0x%s ipk11label="%s" with ipk11UnWrap = TRUE does not have '\
-                '"%s" key label' % (
+                'secret key dn="%s" ipk11id=0x%s ipk11label="%s" with ' \
+                'ipk11UnWrap = TRUE does not have "%s" key label' % (
                     key.entry.dn,
                     str_hexlify(key['ipk11id']),
                     str(key['ipk11label']),
-                    prefix)
+                    prefix
+                )
 
         self.cache_masterkeys = keys
         return keys
