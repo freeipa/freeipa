@@ -907,7 +907,7 @@ class RPCClient(Connectible):
         try:
             cookie_string = read_persistent_client_session_data(principal)
             if cookie_string is None:
-                return
+                return None
             cookie_string = cookie_string.decode('utf-8')
         except Exception as e:
             logger.debug('Error reading client session data: %s', e)

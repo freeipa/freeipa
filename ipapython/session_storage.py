@@ -353,6 +353,7 @@ def get_data(princ_name, key):
             krb5_cc_close(context, ccache)
         if context:
             krb5_free_context(context)
+    return None
 
 
 def remove_data(princ_name, key):

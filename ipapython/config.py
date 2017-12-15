@@ -246,6 +246,8 @@ def __discover_config(discover_server = True):
 
     except Exception:
         pass
+    return None
+
 
 def add_standard_options(parser):
     parser.add_option("--realm", dest="realm", help="Override default IPA realm")

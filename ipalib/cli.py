@@ -103,7 +103,8 @@ class textui(backend.Backend):
                                       struct.pack('HHHH', 0, 0, 0, 0))
                 return struct.unpack('HHHH', winsize)[1]
             except IOError:
-                return None
+                pass
+        return None
 
     def max_col_width(self, rows, col=None):
         """
@@ -607,6 +608,8 @@ class textui(backend.Backend):
             elif default is not None and data == u'':
                 return default
 
+        return default  # pylint consinstent return statements
+
     def prompt_password(self, label, confirm=True):
         """
         Prompt user for a password or read it in via stdin depending
@@ -622,7 +625,9 @@ class textui(backend.Backend):
                 pw2 = self.prompt_helper(repeat_prompt, label, prompt_func=getpass.getpass)
                 if pw1 == pw2:
                     return pw1
-                self.print_error( _('Passwords do not match!'))
+                else:
+                    self.print_error(_('Passwords do not match!'))
+                    return None
         else:
             return self.decode(sys.stdin.readline().strip())
 
@@ -1146,7 +1151,7 @@ class cli(backend.Executioner):
     def run(self, argv):
         cmd = self.get_command(argv)
         if cmd is None:
-            return
+            return None
         name = cmd.full_name
         kw = self.parse(cmd, argv[1:])
         if not isinstance(cmd, frontend.Local):
@@ -1166,6 +1171,7 @@ class cli(backend.Executioner):
                     return 0
         finally:
             self.destroy_context()
+        return None
 
     def parse(self, cmd, argv):
         parser = self.build_parser(cmd)
@@ -1249,7 +1255,7 @@ class cli(backend.Executioner):
 
     def __get_arg_name(self, arg, format_name=True):
         if arg.password:
-            return
+            return None
 
         name = to_cli(arg.cli_name).upper()
         if not format_name:
