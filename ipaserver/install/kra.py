@@ -125,7 +125,7 @@ def install(api, replica_config, options):
     _service.print_msg("Restarting the directory server")
     ds = dsinstance.DsInstance()
     ds.restart()
-    kra.enable_client_auth_to_db(paths.KRA_CS_CFG_PATH)
+    kra.enable_client_auth_to_db()
 
     # Restart apache for new proxy config file
     services.knownservices.httpd.restart(capture_output=True)
