@@ -18,6 +18,9 @@
 #
 
 import sys
+import os
+import shutil
+import errno
 
 import six
 from six import StringIO
@@ -71,6 +74,27 @@ def test_ipa_help():
         return_value = api.Backend.cli.run(['help'])
     assert return_value == 0
     assert ctx.stderr == ''
+
+
+def test_ipa_help_without_cache():
+    """Test `ipa help` without schema cache"""
+    cache_dir = os.path.expanduser('~/.cache/ipa/schema/')
+    backup_dir = os.path.expanduser('~/.cache/ipa/schema.bak/')
+    shutil.rmtree(backup_dir, ignore_errors=True)
+    if os.path.isdir(cache_dir):
+        os.rename(cache_dir, backup_dir)
+    try:
+        with CLITestContext() as ctx:
+            return_value = api.Backend.cli.run(['help'])
+        assert return_value == 0
+        assert ctx.stderr == ''
+    finally:
+        shutil.rmtree(cache_dir, ignore_errors=True)
+        try:
+            os.rename(backup_dir, cache_dir)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
 
 
 def test_ipa_without_arguments():
@@ -136,6 +160,7 @@ def test_ambiguous_command_or_topic():
     assert h_ctx.stderr == ''
 
     assert h_ctx.stdout != help_ctx.stdout
+
 
 def test_multiline_description():
     """Test that all of a multi-line command description appears in output
