@@ -445,11 +445,15 @@ def validate_hostname(hostname, check_fqdn=True, allow_underscore=False, allow_s
 def normalize_sshpubkey(value):
     return SSHPublicKey(value).openssh()
 
+
 def validate_sshpubkey(ugettext, value):
     try:
         SSHPublicKey(value)
     except (ValueError, UnicodeDecodeError):
         return _('invalid SSH public key')
+    else:
+        return None
+
 
 def validate_sshpubkey_no_options(ugettext, value):
     try:
@@ -459,6 +463,8 @@ def validate_sshpubkey_no_options(ugettext, value):
 
     if pubkey.has_options():
         return _('options are not allowed')
+    else:
+        return None
 
 
 def convert_sshpubkey_post(entry_attrs):
@@ -678,18 +684,23 @@ def get_reverse_zone_default(ip_address):
 
     return normalize_zone('.'.join(items))
 
+
 def validate_rdn_param(ugettext, value):
     try:
         RDN(value)
     except Exception as e:
         return str(e)
-    return None
+    else:
+        return None
+
 
 def validate_hostmask(ugettext, hostmask):
     try:
         netaddr.IPNetwork(hostmask)
     except (ValueError, AddrFormatError):
         return _('invalid hostmask')
+    else:
+        return None
 
 
 class ForwarderValidationError(Exception):

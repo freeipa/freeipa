@@ -205,7 +205,7 @@ class SSHPublicKey(object):
         elif self._keytype == 'ssh-ed25519':
             keytype = 4
         else:
-            return
+            return None
         fp = fpfunc(self._key).hexdigest().upper()
         return u'%d %d %s' % (keytype, fptype, fp)
 
