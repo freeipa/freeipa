@@ -47,7 +47,11 @@ class KeySyncer(SyncReplConsumer):
         Given set of attributes has to have exactly one supported object class.
         """
         supported_objclasses = {b'idnszone', b'idnsseckey', b'ipk11publickey'}
-        present_objclasses = set([o.lower() for o in attrs[OBJCLASS_ATTR]]).intersection(supported_objclasses)
+        present_objclasses = set(
+            o.lower() for o in attrs[OBJCLASS_ATTR]
+        ).intersection(
+            supported_objclasses
+        )
         assert len(present_objclasses) == 1, attrs[OBJCLASS_ATTR]
         return present_objclasses.pop()
 

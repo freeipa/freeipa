@@ -58,7 +58,10 @@ class BINDMgr(object):
     def time_ldap2bindfmt(self, str_val):
         if isinstance(str_val, bytes):
             str_val = str_val.decode('utf-8')
-        dt = datetime.strptime(str_val, ipalib.constants.LDAP_GENERALIZED_TIME_FORMAT)
+        dt = datetime.strptime(
+            str_val,
+            ipalib.constants.LDAP_GENERALIZED_TIME_FORMAT
+        )
         return dt.strftime(time_bindfmt).encode('utf-8')
 
     def dates2params(self, ldap_attrs):
