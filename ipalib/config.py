@@ -368,17 +368,17 @@ class Env(object):
         :param config_file: Path of the configuration file to load.
         """
         if not path.isfile(config_file):
-            return
+            return None
         parser = RawConfigParser()
         try:
             parser.read(config_file)
         except ParsingError:
-            return
+            return None
         if not parser.has_section(CONFIG_SECTION):
             parser.add_section(CONFIG_SECTION)
         items = parser.items(CONFIG_SECTION)
         if len(items) == 0:
-            return (0, 0)
+            return 0, 0
         i = 0
         for (key, value) in items:
             if key not in self:
@@ -386,7 +386,7 @@ class Env(object):
                 i += 1
         if 'config_loaded' not in self: # we loaded at least 1 file
             self['config_loaded'] = True
-        return (i, len(items))
+        return i, len(items)
 
     def _join(self, key, *parts):
         """
@@ -401,6 +401,8 @@ class Env(object):
         """
         if key in self and self[key] is not None:
             return path.join(self[key], *parts)
+        else:
+            return None
 
     def __doing(self, name):
         if name in self.__done:

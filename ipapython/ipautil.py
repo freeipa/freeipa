@@ -232,6 +232,7 @@ class CheckedIPAddress(UnsafeIPAddress):
 
                 if ifnet.ip == self:
                     return InterfaceDetails(interface, ifnet)
+        return None
 
     def set_ip_net(self, ifnet):
         """Set IP Network details for this address. IPNetwork is valid only
@@ -928,7 +929,7 @@ def ipa_generate_password(entropy_bits=256, uppercase=1, lowercase=1, digits=1,
 
 
 def user_input(prompt, default = None, allow_empty = True):
-    if default == None:
+    if default is None:
         while True:
             try:
                 ret = input("%s: " % prompt)
@@ -979,6 +980,8 @@ def user_input(prompt, default = None, allow_empty = True):
                 return default
             else:
                 return ret
+
+    return None
 
 
 def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
