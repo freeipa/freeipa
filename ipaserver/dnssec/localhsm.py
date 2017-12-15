@@ -18,7 +18,6 @@ from ipaserver.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
 from ipaserver.dnssec.ldapkeydb import str_hexlify
 
 
-
 private_key_api_params = set(["label", "id", "data", "unwrapping_key",
     "wrapping_mech", "key_type", "cka_always_authenticate", "cka_copyable",
     "cka_decrypt", "cka_derive", "cka_extractable", "cka_modifiable",
@@ -139,9 +138,11 @@ class LocalHSM(AbstractHSM):
         for key in keys.values():
             prefix = 'dnssec-master'
             assert key['ipk11label'] == prefix, \
-                'secret key ipk11id=0x%s ipk11label="%s" with ipk11UnWrap = TRUE does not have '\
-                '"%s" key label' % (str_hexlify(key['ipk11id']),
-                        str(key['ipk11label']), prefix)
+                'secret key ipk11id=0x%s ipk11label="%s" with ipk11UnWrap ' \
+                '= TRUE does not have "%s" key label' % (
+                    str_hexlify(key['ipk11id']),
+                    str(key['ipk11label']), prefix
+                )
 
         return keys
 
