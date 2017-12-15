@@ -276,7 +276,7 @@ class IPACertificate(object):
     def extended_key_usage_bytes(self):
         eku = self.extended_key_usage
         if eku is None:
-            return
+            return None
 
         ekurfc = rfc2459.ExtKeyUsageSyntax()
         for i, oid in enumerate(eku):

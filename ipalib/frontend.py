@@ -1005,6 +1005,8 @@ class Command(HasParam):
     def get_summary_default(self, output):
         if self.msg_summary:
             return self.msg_summary % output
+        else:
+            return None
 
     def log_messages(self, output):
         logger_functions = dict(
@@ -1035,7 +1037,7 @@ class Command(HasParam):
         Subclasses can override this method, if custom output is needed.
         """
         if not isinstance(output, dict):
-            return
+            return None
 
         rv = 0
 

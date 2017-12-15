@@ -77,3 +77,4 @@ can use their Kerberos accounts.''')
                                ldapuri)
             return 1
         textui.print_plain(unicode(self.pwd_migration_msg))
+        return None
