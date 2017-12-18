@@ -101,11 +101,15 @@ def encrypt(data, symmetric_key=None, public_key=None):
     """
     Encrypts data with symmetric key or public key.
     """
-    if symmetric_key:
+    if symmetric_key is not None:
+        if public_key is not None:
+            raise ValueError(
+                "Either a symmetric or a public key is required, not both."
+            )
         fernet = Fernet(symmetric_key)
         return fernet.encrypt(data)
 
-    elif public_key:
+    elif public_key is not None:
         public_key_obj = load_pem_public_key(
             data=public_key,
             backend=default_backend()
@@ -119,14 +123,18 @@ def encrypt(data, symmetric_key=None, public_key=None):
             )
         )
     else:
-        return None
+        raise ValueError("Either a symmetric or a public key is required.")
 
 
 def decrypt(data, symmetric_key=None, private_key=None):
     """
     Decrypts data with symmetric key or public key.
     """
-    if symmetric_key:
+    if symmetric_key is not None:
+        if private_key is not None:
+            raise ValueError(
+                "Either a symmetric or a private key is required, not both."
+            )
         try:
             fernet = Fernet(symmetric_key)
             return fernet.decrypt(data)
@@ -134,7 +142,7 @@ def decrypt(data, symmetric_key=None, private_key=None):
             raise errors.AuthenticationError(
                 message=_('Invalid credentials'))
 
-    elif private_key:
+    elif private_key is not None:
         try:
             private_key_obj = load_pem_private_key(
                 data=private_key,
@@ -153,7 +161,7 @@ def decrypt(data, symmetric_key=None, private_key=None):
             raise errors.AuthenticationError(
                 message=_('Invalid credentials'))
     else:
-        return None
+        raise ValueError("Either a symmetric or a private key is required.")
 
 
 @register(no_fail=True)
