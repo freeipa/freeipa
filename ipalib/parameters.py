@@ -255,11 +255,12 @@ class DefaultFrom(ReadOnly):
         """
         vals = tuple(kw.get(k, None) for k in self.keys)
         if None in vals:
-            return
+            return None
         try:
             return self.callback(*vals)
         except Exception:
             pass
+        return None
 
     def __json__(self):
         return self.keys
@@ -1139,6 +1140,8 @@ class Int(Number):
             return _('must be at least %(minvalue)d') % dict(
                 minvalue=self.minvalue,
             )
+        else:
+            return None
 
     def _rule_maxvalue(self, _, value):
         """
@@ -1149,6 +1152,8 @@ class Int(Number):
             return _('can be at most %(maxvalue)d') % dict(
                 maxvalue=self.maxvalue,
             )
+        else:
+            return None
 
 
 class Decimal(Number):
@@ -1211,6 +1216,8 @@ class Decimal(Number):
             return _('must be at least %(minvalue)s') % dict(
                 minvalue=self.minvalue,
             )
+        else:
+            return None
 
     def _rule_maxvalue(self, _, value):
         """
@@ -1221,6 +1228,8 @@ class Decimal(Number):
             return _('can be at most %(maxvalue)s') % dict(
                 maxvalue=self.maxvalue,
             )
+        else:
+            return None
 
     def _enforce_numberclass(self, value):
         numberclass = value.number_class()
@@ -1352,6 +1361,8 @@ class Data(Param):
                 return _('must match pattern "%(pattern)s"') % dict(
                     pattern=self.pattern,
                 )
+        else:
+            return None
 
 
 class Bytes(Data):
@@ -1389,6 +1400,8 @@ class Bytes(Data):
             return _('must be at least %(minlength)d bytes') % dict(
                 minlength=self.minlength,
             )
+        else:
+            return None
 
     def _rule_maxlength(self, _, value):
         """
@@ -1399,6 +1412,8 @@ class Bytes(Data):
             return _('can be at most %(maxlength)d bytes') % dict(
                 maxlength=self.maxlength,
             )
+        else:
+            return None
 
     def _rule_length(self, _, value):
         """
@@ -1409,6 +1424,8 @@ class Bytes(Data):
             return _('must be exactly %(length)d bytes') % dict(
                 length=self.length,
             )
+        else:
+            return None
 
     def _convert_scalar(self, value, index=None):
         if isinstance(value, unicode):
@@ -1556,9 +1573,11 @@ class Str(Data):
         """
         assert type(value) is unicode
         if self.noextrawhitespace is False:
-            return
+            return None
         if len(value) != len(value.strip()):
             return _('Leading and trailing spaces are not allowed')
+        else:
+            return None
 
     def _rule_minlength(self, _, value):
         """
@@ -1569,6 +1588,8 @@ class Str(Data):
             return _('must be at least %(minlength)d characters') % dict(
                 minlength=self.minlength,
             )
+        else:
+            return None
 
     def _rule_maxlength(self, _, value):
         """
@@ -1579,6 +1600,8 @@ class Str(Data):
             return _('can be at most %(maxlength)d characters') % dict(
                 maxlength=self.maxlength,
             )
+        else:
+            return None
 
     def _rule_length(self, _, value):
         """
@@ -1589,6 +1612,8 @@ class Str(Data):
             return _('must be exactly %(length)d characters') % dict(
                 length=self.length,
             )
+        else:
+            return None
 
     def sort_key(self, value):
         return value.lower()
@@ -1658,6 +1683,8 @@ class Enum(Param):
             else:
                 values = u', '.join("'%s'" % value for value in self.values)
                 return _('must be one of %(values)s') % dict(values=values)
+        else:
+            return None
 
 class BytesEnum(Enum):
     """
@@ -2064,10 +2091,14 @@ class DNSNameParam(Param):
     def _rule_only_absolute(self, _, value):
         if self.only_absolute and not value.is_absolute():
             return _('must be absolute')
+        else:
+            return None
 
     def _rule_only_relative(self, _, value):
         if self.only_relative and value.is_absolute():
             return _('must be relative')
+        else:
+            return None
 
 
 class Dict(Param):

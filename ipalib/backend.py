@@ -135,20 +135,16 @@ class Executioner(Backend):
         destroy_context()
 
     def execute(self, _name, *args, **options):
-        error = None
         try:
             if _name not in self.Command:
                 raise CommandError(name=_name)
-            result = self.Command[_name](*args, **options)
-        except PublicError as e:
-            error = e
+            return self.Command[_name](*args, **options)
+        except PublicError:
+            raise
         except Exception as e:
             logger.exception(
                 'non-public: %s: %s', e.__class__.__name__, str(e)
             )
-            error = InternalError()
-        destroy_context()
-        if error is None:
-            return result
-        assert isinstance(error, PublicError)
-        raise error #pylint: disable=E0702
+            raise InternalError()
+        finally:
+            destroy_context()

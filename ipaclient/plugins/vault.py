@@ -118,6 +118,8 @@ def encrypt(data, symmetric_key=None, public_key=None):
                 label=None
             )
         )
+    else:
+        return None
 
 
 def decrypt(data, symmetric_key=None, private_key=None):
@@ -150,6 +152,8 @@ def decrypt(data, symmetric_key=None, private_key=None):
         except ValueError:
             raise errors.AuthenticationError(
                 message=_('Invalid credentials'))
+    else:
+        return None
 
 
 @register(no_fail=True)
