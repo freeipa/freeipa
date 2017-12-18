@@ -16,6 +16,7 @@ from ipaserver.install import ldapupdate
 from ipaserver.install import sysupgrade
 from base64 import b64decode
 from jwcrypto.common import json_decode
+import ldap
 import shutil
 import os
 import stat
@@ -70,7 +71,16 @@ class CustodiaInstance(SimpleServiceInstance):
             'server_keys': self.server_keys,
             'ldap_uri': self.ldap_uri
         })
-        keystore.remove_server_keys()
+        # Call remove_server_keys_file explicitly to ensure that the key
+        # file is always removed.
+        keystore.remove_server_keys_file()
+        try:
+            keystore.remove_server_keys()
+        except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN):
+            logger.debug(
+                "Cannot remove custodia keys now, server_del takes care of "
+                "them later."
+            )
         installutils.remove_file(self.config_file)
         sysupgrade.set_upgrade_state('custodia', 'installed', False)
 
