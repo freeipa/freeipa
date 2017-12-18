@@ -1304,7 +1304,16 @@ class CAInstance(DogtagInstance):
         keyfile = os.path.join(paths.PKI_TOMCAT,
                                self.service_prefix + '.keys')
         keystore = IPAKEMKeys({'server_keys': keyfile})
-        keystore.remove_keys(self.service_prefix)
+        # Call remove_server_keys_file explicitly to ensure that the key
+        # file is always removed.
+        keystore.remove_server_keys_file()
+        try:
+            keystore.remove_keys(self.service_prefix)
+        except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN):
+            logger.debug(
+                "Cannot remove custodia keys now, server_del takes care of "
+                "them later."
+            )
 
     def add_lightweight_ca_tracking_requests(self):
         try:
