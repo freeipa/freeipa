@@ -25,7 +25,7 @@ import io
 import pwd
 import grp
 import re
-import stat  # pylint: disable=bad-python3-import
+import stat
 import tempfile
 from tempfile import NamedTemporaryFile
 import shutil

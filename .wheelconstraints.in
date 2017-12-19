@@ -9,5 +9,5 @@ ipapython == @VERSION@
 ipaserver == @VERSION@
 ipatests == @VERSION@
 
-# we include some checks available only in pylint-1.7 and on
-pylint >= 1.7
+# upstream pylint 1.7.5 fixed bad python3 import of stat module
+pylint >= 1.7.5
