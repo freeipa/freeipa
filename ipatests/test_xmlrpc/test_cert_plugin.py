@@ -224,16 +224,14 @@ class test_cert(BaseCert):
         assert 'valid_not_before' in res
         assert 'valid_not_after' in res
 
-    def test_00010_cleanup(self):
+    def test_00010_san_in_cert(self):
         """
-        Clean up cert test data
+        Test if SAN extension is automatically added with default profile.
         """
-        # Now clean things up
-        api.Command['host_del'](self.host_fqdn)
-
-        # Verify that the service is gone
-        res = api.Command['service_find'](self.service_princ)
-        assert res['count'] == 0
+        csr = self.generateCSR(str(self.subject))
+        res = api.Command[
+            'cert_request'](csr, principal=self.service_princ)['result']
+        assert 'san_dnsname' in res
 
     def test_00011_emails_are_valid(self):
         """
@@ -257,6 +255,17 @@ class test_cert(BaseCert):
         email_addrs = [u'invalidEmailAddress']
         result = _emails_are_valid(email_addrs, [])
         assert False == result, result
+
+    def test_99999_cleanup(self):
+        """
+        Clean up cert test data
+        """
+        # Now clean things up
+        api.Command['host_del'](self.host_fqdn)
+
+        # Verify that the service is gone
+        res = api.Command['service_find'](self.service_princ)
+        assert res['count'] == 0
 
 
 @pytest.mark.tier1
