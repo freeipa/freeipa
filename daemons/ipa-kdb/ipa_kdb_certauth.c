@@ -42,7 +42,7 @@
 #include <syslog.h>
 #include <sss_certmap.h>
 
-#include "util/ipa_krb5.h"
+#include "ipa_krb5.h"
 #include "ipa_kdb.h"
 
 #define IPA_OC_CERTMAP_RULE "ipaCertMapRule"
