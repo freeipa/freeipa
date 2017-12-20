@@ -235,6 +235,20 @@ class IPAKEMKeys(KEMKeysStore):
         ldapconn.set_key(KEY_USAGE_SIG, principal, pubkeys[0])
         ldapconn.set_key(KEY_USAGE_ENC, principal, pubkeys[1])
 
+    def remove_server_keys_file(self):
+        """Remove keys from disk
+
+        The method does not fail when the file is missing.
+        """
+        try:
+            os.unlink(self.config['server_keys'])
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            return False
+        else:
+            return True
+
     def remove_server_keys(self):
         """Remove keys from LDAP and disk
         """
@@ -243,15 +257,11 @@ class IPAKEMKeys(KEMKeysStore):
     def remove_keys(self, servicename):
         """Remove keys from LDAP and disk
         """
+        self.remove_server_keys_file()
         principal = '%s/%s@%s' % (servicename, self.host, self.realm)
         ldapconn = KEMLdap(self.ldap_uri)
         ldapconn.del_key(KEY_USAGE_SIG, principal)
         ldapconn.del_key(KEY_USAGE_ENC, principal)
-        try:
-            os.unlink(self.config['server_keys'])
-        except OSError as e:
-            if e.errno != errno.ENOENT:
-                raise
 
     @property
     def server_keys(self):
