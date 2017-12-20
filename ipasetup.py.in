@@ -92,6 +92,7 @@ class copy_base(Command):
         build_py = self.get_finalized_command('build_py')
         build_scripts = self.get_finalized_command('build_scripts')
 
+        # pylint: disable=unused-variable
         for package, src_dir, build_dir, filenames in build_py.data_files:
             log.info("Processing package %s", package)
             abs_src_dir = os.path.abspath(src_dir)
@@ -160,6 +161,7 @@ class clean_copy_dist(copy_base):
     def _post_process(self):
         # Walk bottom up to remove all files
         target_dir = os.path.abspath(self.target_dir)
+        # pylint: disable=unused-variable
         for dirpath, _, _ in os.walk(target_dir, topdown=False):
             if dirpath == target_dir:
                 continue

@@ -2,7 +2,7 @@ include $(top_srcdir)/Makefile.python.am
 
 MOSTLYCLEANFILES = .DEFAULT_PLUGINS
 
-EXTRA_DIST = version.py.in
+EXTRA_DIST = version.py.in setup.cfg.in
 
 all-local: version.py
 dist-hook: version.py
