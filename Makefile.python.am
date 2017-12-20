@@ -15,15 +15,22 @@ PYTHONSETUP=PYTHONPATH=$(abs_top_builddir) $(PYTHON) setup.py
 $(top_builddir)/ipasetup.py:
 	(cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) ipasetup.py)
 
-all-local: $(top_builddir)/ipasetup.py
+$(builddir)/setup.py: $(srcdir)/setup.py
+	cp $< $@
+
+all-local: $(top_builddir)/ipasetup.py $(builddir)/setup.py
+	@ # SPECIAL: execute copy_dist in srcdir, then copy setup.py
 	cd $(srcdir); $(PYTHONSETUP) \
+	    copy_dist \
+	        --target=$(abs_builddir)
+
+	$(PYTHONSETUP) \
 		$(VERBOSITY) \
 		build \
 		    --build-base "$(abs_builddir)/build"
 
-install-exec-local: $(top_builddir)/ipasetup.py
+install-exec-local: $(top_builddir)/ipasetup.py $(builddir)/setup.py
 	if [ "x$(pkginstall)" != "xfalse" ]; then \
-	    cd $(srcdir); \
 	    $(PYTHONSETUP) \
 		    $(VERBOSITY) \
 		    build \
@@ -43,12 +50,14 @@ uninstall-local:
 	rm -rf "$(DESTDIR)$(pkgpythondir)"
 
 clean-local: $(top_builddir)/ipasetup.py
-	cd $(srcdir); \
-	$(PYTHONSETUP) \
+	@ # SPECIAL: execute clean and clean_copy_dist in srcdir
+	cd $(srcdir); $(PYTHONSETUP) \
 	    clean \
-	        --all
-	        --build-base "$(abs_builddir)/build"
-	rm -rf "$(srcdir)/build" "$(srcdir)/dist" "$(srcdir)/MANIFEST"
+	        --all \
+	        --build-base "$(abs_builddir)/build" \
+	    clean_copy_dist \
+	        --target=$(abs_builddir)
+	rm -rf "$(abs_builddir)/build" "$(abs_builddir)/dist" "$(abs_builddir)/MANIFEST"
 	find "$(srcdir)" \
 		-name "*.py[co]" -delete -o	\
 		-name "__pycache__" -delete -o	\
@@ -57,7 +66,6 @@ clean-local: $(top_builddir)/ipasetup.py
 # take list of all Python source files and copy them into distdir
 # SOURCES.txt does not contain directories so we need to create those
 dist-hook: $(top_builddir)/ipasetup.py
-	cd $(srcdir); \
 	$(PYTHONSETUP) egg_info
 	PYTHON_SOURCES=$$(cat "$(srcdir)/$(pkgname).egg-info/SOURCES.txt") || exit $$?;	\
 	for FILEN in $${PYTHON_SOURCES}; 						\
@@ -68,9 +76,8 @@ dist-hook: $(top_builddir)/ipasetup.py
 
 WHEELDISTDIR = $(abs_top_builddir)/dist/wheels
 .PHONY: bdist_wheel
-bdist_wheel: $(top_builddir)/ipasetup.py
+bdist_wheel: $(top_builddir)/ipasetup.py $(builddir)/setup.py
 	rm -rf $(WHEELDISTDIR)/$(pkgname)-*.whl
-	cd $(srcdir); \
 	$(PYTHONSETUP) \
 	    build \
 	        --build-base "$(abs_builddir)/build" \

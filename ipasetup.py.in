@@ -14,9 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from distutils import log
+import errno
+import glob
 import os
 import sys
+from distutils import log
+from distutils.core import Command
+from distutils.errors import DistutilsOptionError
 from setuptools.command.build_py import build_py as setuptools_build_py
 
 
@@ -55,6 +59,117 @@ class build_py(setuptools_build_py):
         else:
             return setuptools_build_py.build_module(self, module,
                                                     module_file, package)
+
+
+class copy_base(Command):
+    user_options = [
+        ('target-dir=', None, "target directory to copy to"),
+    ]
+
+    def initialize_options(self):
+        # Command.initialize_options(self)
+        self.target_dir = None
+
+    def finalize_options(self):
+        # Command.finalize_options(self)
+        if self.target_dir is None:
+            raise DistutilsOptionError('copy_dist requires --target-dir')
+        if not os.path.isdir(self.target_dir):
+            raise DistutilsOptionError(
+                'target-dir={} does not exist'.format(self.target_dir)
+            )
+
+    def _process_directory(self, src_dir, dest_dir):
+        pass
+
+    def _process_file(self, src_file, dest_file):
+        pass
+
+    def _post_process(self):
+        pass
+
+    def run(self):
+        build_py = self.get_finalized_command('build_py')
+        build_scripts = self.get_finalized_command('build_scripts')
+
+        for package, src_dir, build_dir, filenames in build_py.data_files:
+            log.info("Processing package %s", package)
+            abs_src_dir = os.path.abspath(src_dir)
+            abs_dest_dir = os.path.abspath(
+                os.path.join(self.target_dir, src_dir)
+            )
+            if abs_src_dir == abs_dest_dir:
+                # same dir, nothing to do
+                log.info("Nothing to do %s == %s", abs_src_dir, abs_dest_dir)
+                continue
+
+            self._process_directory(abs_src_dir, abs_dest_dir)
+
+            pys = glob.glob(os.path.join(abs_src_dir, '*.py'))
+            for py in pys:
+                dest_py = os.path.join(abs_dest_dir, os.path.basename(py))
+                self._process_file(py, dest_py)
+
+            for datafile in filenames:
+                abs_src_datafile = os.path.join(abs_src_dir, datafile)
+                abs_dest_datafile = os.path.join(abs_dest_dir, datafile)
+                self._process_directory(
+                    os.path.dirname(abs_src_datafile),
+                    os.path.dirname(abs_dest_datafile)
+                )
+                self._process_file(abs_src_datafile, abs_dest_datafile)
+
+            log.info("Done %s", package)
+
+        scripts = build_scripts.get_source_files()
+        if scripts:
+            for script in scripts:
+                src_script = os.path.abspath(script)
+                dest_script = os.path.abspath(
+                    os.path.join(self.target_dir, script)
+                )
+                if src_script != dest_script:
+                    self._process_file(src_script, dest_script)
+
+        self._post_process()
+
+
+class copy_dist(copy_base):
+    def _process_directory(self, src_dir, dest_dir):
+        if not os.path.isdir(dest_dir):
+            log.debug("makedirs %s", dest_dir)
+            self.mkpath(dest_dir)
+
+    def _process_file(self, src_file, dest_file):
+        log.debug("copy %s to %s", src_file, dest_file)
+        self.copy_file(src_file, dest_file)
+
+
+class clean_copy_dist(copy_base):
+    def _process_directory(self, src_dir, dest_dir):
+        pass
+
+    def _process_file(self, src_file, dest_file):
+        log.debug("Deleting %s", dest_file)
+        try:
+            os.unlink(dest_file)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
+
+    def _post_process(self):
+        # Walk bottom up to remove all files
+        target_dir = os.path.abspath(self.target_dir)
+        for dirpath, _, _ in os.walk(target_dir, topdown=False):
+            if dirpath == target_dir:
+                continue
+            log.debug("rmdir %s", dirpath)
+            try:
+                os.rmdir(dirpath)
+            except OSError as e:
+                if e.errno not in (errno.ENOTEMPTY, errno.ENOENT):
+                    raise
+
 
 import setuptools
 
@@ -145,6 +260,8 @@ def ipasetup(name, doc, **kwargs):
     # exclude NAME.install from wheels
     cmdclass = setup_kwargs.setdefault('cmdclass', {})
     cmdclass['build_py'] = build_py
+    cmdclass['copy_dist'] = copy_dist
+    cmdclass['clean_copy_dist'] = clean_copy_dist
 
     # Env markers like ":python_version<'3'" are not supported by
     # setuptools < 18.0.

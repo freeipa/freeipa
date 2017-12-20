@@ -195,10 +195,10 @@ endif
 fasttest: $(GENERATED_PYTHON_FILES) ipasetup.py
 	@ # --ignore doubles speed of total test run compared to pytest.skip()
 	@ # on module.
-	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON3) ipatests/ipa-run-tests \
+	PYTHONPATH=$(abs_builddir) $(PYTHON3) ipatests/ipa-run-tests \
 	    --skip-ipaapi \
-	    --ignore $(abspath $(top_srcdir))/ipatests/test_integration \
-	    --ignore $(abspath $(top_srcdir))/ipatests/test_xmlrpc
+	    --ignore $(abs_builddir)/ipatests/test_integration \
+	    --ignore $(abs_builddir)/ipatests/test_xmlrpc
 
 fastlint: $(GENERATED_PYTHON_FILES) ipasetup.py
 if ! WITH_PYLINT
@@ -217,7 +217,7 @@ endif
 	        $(PYTHON) -m pycodestyle --diff || exit $$?; \
 	    echo -e "\npylint"; \
 	    echo "------"; \
-	    PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) -m pylint \
+	    PYTHONPATH=$(abs_builddir) $(PYTHON) -m pylint \
 	        --rcfile=$(top_srcdir)/pylintrc \
 	        --load-plugins pylint_plugins \
 	        $${FILES} || exit $$?; \
