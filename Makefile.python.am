@@ -15,15 +15,18 @@ PYTHONSETUP=PYTHONPATH=$(abs_top_builddir) $(PYTHON) setup.py
 $(top_builddir)/ipasetup.py:
 	(cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) ipasetup.py)
 
-# hack to work around some VPATH magic
-.PHONY: setup.py setup.cfg
+# PHONY is a hack to work around some VPATH magic
+.PHONY: setup.py setup.cfg $(top_builddir)/COPYING
 setup.py: $(srcdir)/setup.py setup.cfg
 	cp $< $@
 
 setup.cfg: $(srcdir)/setup.cfg
 	cp $< $@
 
-all-local: $(top_builddir)/ipasetup.py setup.py
+$(top_builddir)/COPYING: $(top_srcdir)/COPYING
+	cp $< $@
+
+all-local: $(top_builddir)/ipasetup.py setup.py $(top_builddir)/COPYING
 	@ # SPECIAL: execute copy_dist in srcdir, then copy setup.py
 	cd $(srcdir); $(PYTHONSETUP) \
 	    copy_dist \
@@ -81,7 +84,7 @@ dist-hook: $(top_builddir)/ipasetup.py
 
 WHEELDISTDIR = $(abs_top_builddir)/dist/wheels
 .PHONY: bdist_wheel
-bdist_wheel: $(top_builddir)/ipasetup.py setup.py
+bdist_wheel: all
 	rm -rf $(WHEELDISTDIR)/$(pkgname)-*.whl
 	$(PYTHONSETUP) \
 	    build \
