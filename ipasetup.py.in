@@ -163,13 +163,9 @@ def ipasetup(name, doc, **kwargs):
             else:
                 raise ValueError(k, values)
 
-    os.chdir(local_path)
-    try:
-        # BEFORE importing distutils, remove MANIFEST. distutils doesn't
-        # properly update it when the contents of directories change.
-        if os.path.isfile('MANIFEST'):
-            os.unlink('MANIFEST')
-        from setuptools import setup
-        return setup(**setup_kwargs)
-    finally:
-        os.chdir(old_path)
+    # BEFORE importing distutils, remove MANIFEST. distutils doesn't
+    # properly update it when the contents of directories change.
+    if os.path.isfile('MANIFEST'):
+        os.unlink('MANIFEST')
+    from setuptools import setup
+    return setup(**setup_kwargs)

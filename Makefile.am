@@ -298,9 +298,9 @@ jslint-html:
 endif  # WITH_JSLINT
 
 .PHONY: bdist_wheel wheel_bundle wheel_placeholder pypi_packages
-WHEELDISTDIR = $(top_builddir)/dist/wheels
-WHEELPYPIDIR = $(top_builddir)/dist/pypi
-WHEELBUNDLEDIR = $(top_builddir)/dist/bundle
+WHEELDISTDIR = $(abs_top_builddir)/dist/wheels
+WHEELPYPIDIR = $(abs_top_builddir)/dist/pypi
+WHEELBUNDLEDIR = $(abs_top_builddir)/dist/bundle
 
 @MK_IFEQ@ ($(IPA_SERVER_WHEELS),1)
     IPA_WHEEL_PACKAGES @MK_ASSIGN@ $(IPACLIENT_SUBDIRS) ipaplatform ipaserver
@@ -350,7 +350,7 @@ pypi_packages: $(WHEELPYPIDIR) .wheelconstraints
 	for dir in $(IPA_PLACEHOLDERS); do \
 	    $(MAKE) $(AM_MAKEFLAGS) \
 	        IPA_OMIT_INSTALL=1 WHEELDISTDIR="$(abspath $(WHEELPYPIDIR))" \
-	        -C $(top_srcdir)/pypi/$${dir} bdist_wheel || exit 1; \
+	        -C pypi/$${dir} bdist_wheel || exit 1; \
 	done
 	@echo -e "\n\nTo upload packages to PyPI, run:\n"
 	@echo -e "    twine upload $(WHEELPYPIDIR)/*-$(VERSION)-py2.py3-none-any.whl\n"

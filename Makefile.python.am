@@ -7,20 +7,24 @@ else
 VERBOSITY="--quiet"
 endif !VERBOSE_MAKE
 
+# PYTHONPATH is required to import ipasetup in out-of-tree builds
+PYTHONSETUP=PYTHONPATH=$(abs_top_builddir) $(PYTHON) setup.py
+
 # hack to handle back-in-the-hierarchy depedency on ipasetup.py
 .PHONY: $(top_builddir)/ipasetup.py
 $(top_builddir)/ipasetup.py:
 	(cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) ipasetup.py)
 
 all-local: $(top_builddir)/ipasetup.py
-	cd $(srcdir); $(PYTHON) setup.py \
+	cd $(srcdir); $(PYTHONSETUP) \
 		$(VERBOSITY) \
 		build \
 		    --build-base "$(abs_builddir)/build"
 
 install-exec-local: $(top_builddir)/ipasetup.py
 	if [ "x$(pkginstall)" != "xfalse" ]; then \
-	    $(PYTHON) $(srcdir)/setup.py \
+	    cd $(srcdir); \
+	    $(PYTHONSETUP) \
 		    $(VERBOSITY) \
 		    build \
 		        --build-base "$(abs_builddir)/build" \
@@ -39,7 +43,8 @@ uninstall-local:
 	rm -rf "$(DESTDIR)$(pkgpythondir)"
 
 clean-local: $(top_builddir)/ipasetup.py
-	$(PYTHON) "$(srcdir)/setup.py" \
+	cd $(srcdir); \
+	$(PYTHONSETUP) \
 	    clean \
 	        --all
 	        --build-base "$(abs_builddir)/build"
@@ -52,7 +57,8 @@ clean-local: $(top_builddir)/ipasetup.py
 # take list of all Python source files and copy them into distdir
 # SOURCES.txt does not contain directories so we need to create those
 dist-hook: $(top_builddir)/ipasetup.py
-	$(PYTHON) "$(srcdir)/setup.py" egg_info
+	cd $(srcdir); \
+	$(PYTHONSETUP) egg_info
 	PYTHON_SOURCES=$$(cat "$(srcdir)/$(pkgname).egg-info/SOURCES.txt") || exit $$?;	\
 	for FILEN in $${PYTHON_SOURCES}; 						\
 	do										\
@@ -60,11 +66,12 @@ dist-hook: $(top_builddir)/ipasetup.py
 		$(INSTALL) -D -m $${MODE} "$(srcdir)/$${FILEN}" "$(distdir)/$${FILEN}" || exit $$?;	\
 	done
 
-WHEELDISTDIR = $(top_builddir)/dist/wheels
+WHEELDISTDIR = $(abs_top_builddir)/dist/wheels
 .PHONY: bdist_wheel
 bdist_wheel: $(top_builddir)/ipasetup.py
 	rm -rf $(WHEELDISTDIR)/$(pkgname)-*.whl
-	$(PYTHON) "$(srcdir)/setup.py" \
+	cd $(srcdir); \
+	$(PYTHONSETUP) \
 	    build \
 	        --build-base "$(abs_builddir)/build" \
 	    bdist_wheel \
