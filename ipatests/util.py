@@ -43,6 +43,7 @@ from ipalib.plugable import Plugin
 from ipalib.request import context
 from ipapython.dn import DN
 from ipapython.ipautil import run
+from ipapython.ipaldap import ldap_initialize
 
 
 try:
@@ -713,7 +714,7 @@ class DummyClass(object):
 
 class MockLDAP(object):
     def __init__(self):
-        self.connection = ldap.initialize(
+        self.connection = ldap_initialize(
             'ldap://{host}'.format(host=ipalib.api.env.host)
         )
 

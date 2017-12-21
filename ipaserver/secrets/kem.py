@@ -5,6 +5,7 @@ from __future__ import print_function
 import errno
 import os
 
+import six
 # pylint: disable=import-error
 from six.moves.configparser import ConfigParser
 # pylint: enable=import-error
@@ -37,7 +38,7 @@ class KEMLdap(iSecLdap):
 
     @property
     def keysbase(self):
-        return '%s,%s' % (IPA_REL_BASE_DN, self.basedn)
+        return u'%s,%s' % (IPA_REL_BASE_DN, self.basedn)
 
     def _encode_int(self, i):
         I = hex(i).rstrip("L").lstrip("0x")
@@ -71,9 +72,11 @@ class KEMLdap(iSecLdap):
         conn = self.connect()
         scope = ldap.SCOPE_SUBTREE
 
-        ldap_filter = self.build_filter(IPA_KEYS_QUERY,
-                                        {'usage': RFC5280_USAGE_MAP[usage],
-                                         'princ': principal})
+        ldap_filter = self.build_filter(
+            IPA_KEYS_QUERY,
+            {u'usage': RFC5280_USAGE_MAP[usage],
+             u'princ': principal}
+        )
         r = conn.search_s(self.keysbase, scope, ldap_filter)
         if len(r) != 1:
             raise ValueError("Incorrect number of results (%d) searching for "
@@ -87,7 +90,7 @@ class KEMLdap(iSecLdap):
         conn = self.connect()
         scope = ldap.SCOPE_SUBTREE
 
-        ldap_filter = self.build_filter(IPA_CHECK_QUERY, {'host': host})
+        ldap_filter = self.build_filter(IPA_CHECK_QUERY, {u'host': host})
         r = conn.search_s(self.keysbase, scope, ldap_filter)
         if not r:
             raise ValueError("No public keys were found for %s" % host)
@@ -147,19 +150,21 @@ class KEMLdap(iSecLdap):
         public_key = self._format_public_key(key)
         dn = self._get_dn(usage, principal)
         conn = self.connect()
+        mods = [
+            (u'objectClass', [b'nsContainer',
+                              b'ipaKeyPolicy',
+                              b'ipaPublicKeyObject',
+                              b'groupOfPrincipals']),
+            (u'cn', dn[0].value.encode('utf-8')),
+            (u'ipaKeyUsage', RFC5280_USAGE_MAP[usage].encode('utf-8')),
+            (u'memberPrincipal', principal.encode('utf-8')),
+            (u'ipaPublicKey', public_key)
+        ]
         try:
-            mods = [('objectClass', [b'nsContainer',
-                                     b'ipaKeyPolicy',
-                                     b'ipaPublicKeyObject',
-                                     b'groupOfPrincipals']),
-                    ('cn', dn[0].value.encode('utf-8')),
-                    ('ipaKeyUsage', RFC5280_USAGE_MAP[usage].encode('utf-8')),
-                    ('memberPrincipal', principal.encode('utf-8')),
-                    ('ipaPublicKey', public_key)]
-            conn.add_s(str(dn), mods)
+            conn.add_s(six.text_type(dn), mods)
         except ldap.ALREADY_EXISTS:
             mods = [(ldap.MOD_REPLACE, 'ipaPublicKey', public_key)]
-            conn.modify_s(str(dn), mods)
+            conn.modify_s(six.text_type(dn), mods)
 
     def del_key(self, usage, principal):
         """Delete key for host or service

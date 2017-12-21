@@ -256,8 +256,10 @@ class ldap2(CrudBackend, LDAPClient):
 
         try:
             with self.error_handler():
-                upg_entries = self.conn.search_s(str(upg_dn), _ldap.SCOPE_BASE,
-                                                 attrlist=['*'])
+                upg_entries = self.conn.search_s(
+                    self.encode_text(upg_dn), _ldap.SCOPE_BASE,
+                    attrlist=[u'*']
+                )
                 upg_entries = self._convert_result(upg_entries)
         except errors.NotFound:
             upg_entries = None
@@ -410,9 +412,11 @@ class ldap2(CrudBackend, LDAPClient):
         # update group entry
         try:
             with self.error_handler():
-                modlist = [(a, b, self.encode(c))
-                           for a, b, c in modlist]
-                self.conn.modify_s(str(group_dn), modlist)
+                modlist = [
+                    (a, self.encode_text(b), self.encode(c))
+                    for a, b, c in modlist
+                ]
+                self.conn.modify_s(self.encode_text(group_dn), modlist)
         except errors.DatabaseError:
             raise errors.AlreadyGroupMember()
 

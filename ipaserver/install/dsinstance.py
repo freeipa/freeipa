@@ -462,7 +462,7 @@ class DsInstance(service.Service):
             res = api.Backend.ldap2.get_entries(
                 DN(('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')),
                 api.Backend.ldap2.SCOPE_ONELEVEL,
-                "(objectclass=nsSaslMapping)")
+                u"(objectclass=nsSaslMapping)")
             for r in res:
                 try:
                     api.Backend.ldap2.delete_entry(r)
@@ -862,12 +862,12 @@ class DsInstance(service.Service):
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=self.dm_password)
 
-        mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
-               (ldap.MOD_REPLACE, "nsSSL3Ciphers", "default"),
-               (ldap.MOD_REPLACE, "allowWeakCipher", "off")]
+        mod = [(ldap.MOD_REPLACE, u"nsSSLClientAuth", b"allowed"),
+               (ldap.MOD_REPLACE, u"nsSSL3Ciphers", b"default"),
+               (ldap.MOD_REPLACE, u"allowWeakCipher", b"off")]
         conn.modify_s(DN(('cn', 'encryption'), ('cn', 'config')), mod)
 
-        mod = [(ldap.MOD_ADD, "nsslapd-security", "on")]
+        mod = [(ldap.MOD_ADD, u"nsslapd-security", b"on")]
         conn.modify_s(DN(('cn', 'config')), mod)
 
         entry = conn.make_entry(

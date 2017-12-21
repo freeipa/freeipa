@@ -37,6 +37,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
     XMLRPC_test, fuzzy_digits, fuzzy_uuid, fuzzy_password,
     Fuzzy, fuzzy_dergeneralizedtime, add_sid, add_oc, raises_exact)
 from ipapython.dn import DN
+from ipapython.ipaldap import ldap_initialize
 
 from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc.tracker.group_plugin import GroupTracker
@@ -913,8 +914,9 @@ class TestDeniedBindWithExpiredPrincipal(XMLRPC_test):
     def setup_class(cls):
         super(TestDeniedBindWithExpiredPrincipal, cls).setup_class()
 
-        cls.connection = ldap.initialize('ldap://{host}'
-                                         .format(host=api.env.host))
+        cls.connection = ldap_initialize(
+            'ldap://{host}'.format(host=api.env.host)
+        )
 
     @classmethod
     def teardown_class(cls):
