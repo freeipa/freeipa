@@ -1307,7 +1307,7 @@ class cert_find(Search, CertMethod):
     takes_options = (
         Str('subject?',
             label=_('Subject'),
-            doc=_('Subject'),
+            doc=_('Match cn attribute in subject'),
             autofill=False,
         ),
         Int('min_serial_number?',
