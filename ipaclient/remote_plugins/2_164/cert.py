@@ -132,7 +132,7 @@ class cert_find(Command):
         parameters.Str(
             'subject',
             required=False,
-            label=_(u'Subject'),
+            label=_(u'Match cn attribute in subject'),
         ),
         parameters.Int(
             'revocation_reason',
