@@ -58,12 +58,6 @@ addifnew:nsSaslMapPriority: 10
 dn: cn=Name Only,cn=mapping,cn=sasl,cn=config
 addifnew:nsSaslMapPriority: 10
 
-# Default SASL buffer size was too small and could lead for example to
-# migration errors
-# Can be removed when https://fedorahosted.org/389/ticket/47457 is fixed
-dn: cn=config
-only:nsslapd-sasl-max-buffer-size:2097152
-
 # Allow hashed passwords to be added by non-DM users. Without this
 # setting, password migration fails
 dn: cn=config
