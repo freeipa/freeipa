@@ -753,6 +753,10 @@ class LDAPObject(Object):
                 entry_attrs[attr] = False
 
     def handle_not_found(self, *keys):
+        """Handle NotFound exception
+
+        Must raise errors.NotFound again.
+        """
         pkey = ''
         if self.primary_key:
             pkey = keys[-1]
@@ -1015,7 +1019,7 @@ last, after all sets and adds."""),
                     dn, needldapattrs
                 )
             except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+                raise self.obj.handle_not_found(*keys)
 
             # Provide a nice error message when user tries to delete an
             # attribute that does not exist on the entry (and user is not
@@ -1220,7 +1224,7 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
                 entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(
                     entry_attrs.dn, attrs_list)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         self.obj.get_indirect_members(entry_attrs, attrs_list)
 
@@ -1320,7 +1324,7 @@ class LDAPRetrieve(LDAPQuery):
                 dn, attrs_list
             )
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         self.obj.get_indirect_members(entry_attrs, attrs_list)
 
@@ -1450,7 +1454,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                     # Attempt to rename to the current name, ignore
                     pass
                 except errors.NotFound:
-                    self.obj.handle_not_found(*keys)
+                    raise self.obj.handle_not_found(*keys)
                 finally:
                     # Delete the primary_key from entry_attrs either way
                     del entry_attrs[self.obj.primary_key.name]
@@ -1469,7 +1473,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             if not rdnupdate:
                 raise e
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         try:
             entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(
@@ -1548,14 +1552,16 @@ class LDAPDelete(LDAPMultiQuery):
                         for entry_attrs in subentries:
                             delete_subtree(entry_attrs.dn)
                 try:
-                    self._exc_wrapper(nkeys, options, ldap.delete_entry)(base_dn)
+                    self._exc_wrapper(nkeys, options, ldap.delete_entry)(
+                        base_dn
+                    )
                 except errors.NotFound:
-                    self.obj.handle_not_found(*nkeys)
+                    raise self.obj.handle_not_found(*nkeys)
 
             try:
                 self._exc_wrapper(nkeys, options, ldap.delete_entry)(dn)
             except errors.NotFound:
-                self.obj.handle_not_found(*nkeys)
+                raise self.obj.handle_not_found(*nkeys)
             except errors.NotAllowedOnNonLeaf:
                 if not self.subtree_delete:
                     raise
@@ -1712,7 +1718,7 @@ class LDAPAddMember(LDAPModMember):
                 dn, attrs_list
             )
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         self.obj.get_indirect_members(entry_attrs, attrs_list)
 
@@ -1813,7 +1819,7 @@ class LDAPRemoveMember(LDAPModMember):
                 dn, attrs_list
             )
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         self.obj.get_indirect_members(entry_attrs, attrs_list)
 
@@ -2055,10 +2061,13 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         except errors.EmptyResult:
             (entries, truncated) = ([], False)
         except errors.NotFound:
-            self.api.Object[self.obj.parent_object].handle_not_found(*keys)
+            return self.api.Object[self.obj.parent_object].handle_not_found(
+                *keys)
 
         for callback in self.get_callbacks('post'):
-            truncated = callback(self, ldap, entries, truncated, *args, **options)
+            truncated = callback(
+                self, ldap, entries, truncated, *args, **options
+            )
 
         if self.sort_result_entries:
             if self.obj.primary_key:
@@ -2370,7 +2379,7 @@ class BaseLDAPModAttribute(LDAPQuery):
 
             self._exc_wrapper(keys, options, ldap.update_entry)(update)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         try:
             entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(

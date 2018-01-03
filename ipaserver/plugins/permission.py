@@ -1061,7 +1061,7 @@ class permission_del(baseldap.LDAPDelete):
         try:
             entry = ldap.get_entry(dn, attrs_list=self.obj.default_attributes)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if not options.get('force'):
             self.obj.reject_system(entry)
@@ -1105,7 +1105,7 @@ class permission_mod(baseldap.LDAPUpdate):
             attrs_list = self.obj.default_attributes
             old_entry = ldap.get_entry(dn, attrs_list=attrs_list)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         self.obj.reject_system(old_entry)
         self.obj.upgrade_permission(old_entry)

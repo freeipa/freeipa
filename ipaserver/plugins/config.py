@@ -532,7 +532,7 @@ class config_mod(LDAPUpdate):
             try:
                 self.api.Object.server.get_dn_if_exists(new_master)
             except errors.NotFound:
-                self.api.Object.server.handle_not_found(new_master)
+                raise self.api.Object.server.handle_not_found(new_master)
 
             backend = self.api.Backend.serverroles
             backend.config_update(ca_renewal_master_server=new_master)
