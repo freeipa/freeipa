@@ -453,4 +453,4 @@ class TaskRunner(object):
         tasks.add_a_record(master, host)
 
 if __name__ == '__main__':
-    exit(TaskRunner().main(sys.argv[1:]))
+    sys.exit(TaskRunner().main(sys.argv[1:]))
