@@ -110,7 +110,7 @@ msg-template='{path}:{line}: [{msg_id}({symbol}), {obj}] {msg})'
 
 
 [VARIABLES]
-dummy-variables-rgx=_.+
+dummy-variables-rgx=(_.+|unused)
 
 
 [IPA]
