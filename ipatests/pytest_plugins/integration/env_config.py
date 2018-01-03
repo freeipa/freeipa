@@ -334,7 +334,8 @@ def host_from_env(env, domain, hostname, role, index, domain_index):
 
     cls = domain.get_host_class({})
 
-    return cls(domain, hostname, role, ip, external_hostname)
+    return cls(domain, hostname, role, ip=ip,
+               external_hostname=external_hostname)
 
 
 def host_to_env(host, **kwargs):
