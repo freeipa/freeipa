@@ -225,8 +225,6 @@ class NSSDatabase(object):
             self._is_temporary = True
             if dbtype == 'auto':
                 dbtype = constants.NSS_DEFAULT_DBTYPE
-            else:
-                dbtype = dbtype
         else:
             self.secdir = nssdir
             self._is_temporary = False
