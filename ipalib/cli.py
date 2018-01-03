@@ -956,13 +956,13 @@ class console(frontend.Command):
             try:
                 script = open(filename)
             except IOError as e:
-                exit("%s: %s" % (e.filename, e.strerror))
+                sys.exit("%s: %s" % (e.filename, e.strerror))
             try:
                 with script:
                     exec(script, globals(), local)
             except Exception:
                 traceback.print_exc()
-                exit(1)
+                sys.exit(1)
         else:
             code.interact(
                 '(Custom IPA interactive Python console)',
@@ -1121,7 +1121,7 @@ class cli(backend.Executioner):
             self.Command.help(outfile=sys.stderr)
             print(file=sys.stderr)
             print('Error: Command not specified', file=sys.stderr)
-            exit(2)
+            sys.exit(2)
         (key, argv) = (argv[0], argv[1:])
         name = from_cli(key)
         if name not in self.Command and len(argv) == 0:

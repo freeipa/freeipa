@@ -105,7 +105,7 @@ def get_object(conf, args):
         try:
             return conf.host_by_name(args.host)
         except LookupError:
-            exit('Host %s not found in config. Try --global' % args.host)
+            sys.exit('Host %s not found in config. Try --global' % args.host)
     else:
         if args.domain:
             try:
@@ -113,18 +113,18 @@ def get_object(conf, args):
             except ValueError:
                 domains = [d for d in conf.domains if d.name == args.domain]
                 if not domains:
-                    exit('Domain %s not found' % args.domain)
+                    sys.exit('Domain %s not found' % args.domain)
                 domain = domains[0]
             else:
                 try:
                     domain = conf.domains[num]
                 except LookupError:
-                    exit('Domain %s not found.' % args.domain)
+                    sys.exit('Domain %s not found.' % args.domain)
         else:
             try:
                 domain = conf.domains[0]
             except IndexError:
-                exit('No domains are configured.')
+                sys.exit('No domains are configured.')
         if args.master:
             return domain.master
 
@@ -133,23 +133,29 @@ def get_object(conf, args):
             try:
                 return domain.replicas[args.replica]
             except LookupError:
-                exit('Domain %s not found in domain %s' % (args.replica,
-                                                           domain.name))
+                sys.exit(
+                    'Domain %s not found in domain %s'
+                    % (args.replica, domain.name)
+                )
 
         elif args.client:
             num = int(args.client) - 1
             try:
                 return domain.replicas[args.client]
             except LookupError:
-                exit('Client %s not found in domain %s' % (args.client,
-                                                           domain.name))
+                sys.exit(
+                    'Client %s not found in domain %s'
+                    % (args.client, domain.name)
+                )
 
         elif args.role:
             try:
                 return domain.get_host_by_role(args.role)
             except LookupError:
-                exit('No host with role %s not found in domain %s'
-                     % (args.role, domain.name))
+                sys.exit(
+                    'No host with role %s not found in domain %s'
+                    % (args.role, domain.name)
+                )
 
         else:
             return domain

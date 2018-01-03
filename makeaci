@@ -121,7 +121,7 @@ def main(options):
             print(file=sys.stderr)
             print('Managed permission ACI validation failed.', file=sys.stderr)
             print('Re-check permission changes and run `makeaci`.', file=sys.stderr)
-            exit('%s validation failed' % options.filename)
+            sys.exit('%s validation failed' % options.filename)
     else:
         with open(options.filename, 'w') as file:
             file.writelines(output_lines)
