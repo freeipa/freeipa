@@ -1808,7 +1808,8 @@ class trustdomain_enable(LDAPQuery):
             trust_dn = self.obj.get_dn(keys[0], trust_type=u'ad')
             trust_entry = ldap.get_entry(trust_dn)
         except errors.NotFound:
-            self.api.Object[self.obj.parent_object].handle_not_found(keys[0])
+            self.api.Object[self.obj.parent_object].handle_not_found(
+                keys[0])
 
         dn = self.obj.get_dn(keys[0], keys[1], trust_type=u'ad')
         try:
@@ -1849,13 +1850,14 @@ class trustdomain_disable(LDAPQuery):
             trust_dn = self.obj.get_dn(keys[0], trust_type=u'ad')
             trust_entry = ldap.get_entry(trust_dn)
         except errors.NotFound:
-            self.api.Object[self.obj.parent_object].handle_not_found(keys[0])
+            self.api.Object[self.obj.parent_object].handle_not_found(
+                keys[0])
 
         dn = self.obj.get_dn(keys[0], keys[1], trust_type=u'ad')
         try:
             entry = ldap.get_entry(dn)
             sid = entry.single_value.get('ipanttrusteddomainsid', None)
-            if not (sid in trust_entry['ipantsidblacklistincoming']):
+            if sid not in trust_entry['ipantsidblacklistincoming']:
                 trust_entry['ipantsidblacklistincoming'].append(sid)
                 ldap.update_entry(trust_entry)
             else:
