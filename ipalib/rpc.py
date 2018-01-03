@@ -872,8 +872,11 @@ class RPCClient(Connectible):
         Create a list of urls consisting of the available IPA servers.
         """
         # the configured URL defines what we use for the discovered servers
-        (_scheme, _netloc, path, _params, _query, _fragment
-            ) = urllib.parse.urlparse(rpc_uri)
+        if rpc_uri:
+            path = urllib.parse.urlparse(rpc_uri)[2]
+        else:
+            path = '/ipa/json'
+
         servers = []
         name = '_ldap._tcp.%s.' % self.env.domain
 
@@ -895,7 +898,7 @@ class RPCClient(Connectible):
             # it is the first one
             servers.remove(cfg_server)
             servers.insert(0, cfg_server)
-        else:
+        elif cfg_server:
             servers.insert(0, cfg_server)
 
         return servers
@@ -1014,7 +1017,10 @@ class RPCClient(Connectible):
             ca_certfile = self.api.env.tls_ca_cert
         context.ca_certfile = ca_certfile
 
-        rpc_uri = self.env[self.env_rpc_uri_key]
+        if self.env_rpc_uri_key in self.env:
+            rpc_uri = self.env[self.env_rpc_uri_key]
+        else:
+            rpc_uri = None
         try:
             principal = get_principal(ccache_name=ccache)
             stored_principal = getattr(context, 'principal', None)
@@ -1026,7 +1032,7 @@ class RPCClient(Connectible):
             setattr(context, 'principal', principal)
             # We have a session cookie, try using the session URI to see if it
             # is still valid
-            if not delegate:
+            if not delegate and rpc_uri:
                 rpc_uri = self.apply_session_cookie(rpc_uri)
         except (errors.CCacheError, ValueError):
             # No session key, do full Kerberos auth
