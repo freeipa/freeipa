@@ -223,25 +223,29 @@ def xml_unwrap(value, encoding='UTF-8'):
     :param value: The value to unwrap.
     :param encoding: The Unicode encoding to use (defaults to ``'UTF-8'``).
     """
-    if type(value) in (list, tuple):
+    if isinstance(value, (unicode, int, float, bool)):
+        # most common first
+        return value
+    elif value is None:
+        return value
+    elif isinstance(value, bytes):
+        return value.decode(encoding)
+    elif isinstance(value, (list, tuple)):
         return tuple(xml_unwrap(v, encoding) for v in value)
-    if type(value) is dict:
+    elif isinstance(value, dict):
         if '__dns_name__' in value:
             return DNSName(value['__dns_name__'])
         else:
             return dict(
                 (k, xml_unwrap(v, encoding)) for (k, v) in value.items()
             )
-    if isinstance(value, bytes):
-        return value.decode(encoding)
-    if isinstance(value, Binary):
+    elif isinstance(value, Binary):
         assert type(value.data) is bytes
         return value.data
-    if isinstance(value, DateTime):
+    elif isinstance(value, DateTime):
         # xmlprc DateTime is converted to string of %Y%m%dT%H:%M:%S format
         return datetime.datetime.strptime(str(value), "%Y%m%dT%H:%M:%S")
-    assert type(value) in (unicode, int, float, bool, type(None))
-    return value
+    raise TypeError(value)
 
 
 def xml_dumps(params, version, methodname=None, methodresponse=False,
