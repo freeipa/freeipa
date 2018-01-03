@@ -535,7 +535,7 @@ class idrange_del(LDAPDelete):
                                             'ipaidrangesize',
                                             'ipanttrusteddomainsid'])
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         # Check whether we leave any object with id in deleted range
         old_base_id = int(old_attrs.get('ipabaseid', [0])[0])
@@ -645,7 +645,7 @@ class idrange_mod(LDAPUpdate):
         try:
             old_attrs = ldap.get_entry(dn, ['*'])
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if old_attrs['iparangetype'][0] == 'ipa-local':
             raise errors.ExecutionError(

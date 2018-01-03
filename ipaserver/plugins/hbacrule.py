@@ -339,14 +339,24 @@ class hbacrule_mod(LDAPUpdate):
             entry_attrs = ldap.get_entry(dn, attrs_list)
             dn = entry_attrs.dn
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if is_all(options, 'usercategory') and 'memberuser' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("user category cannot be set to 'all' while there are allowed users"))
+            raise errors.MutuallyExclusiveError(
+                reason=_("user category cannot be set to 'all' while there "
+                         "are allowed users")
+            )
         if is_all(options, 'hostcategory') and 'memberhost' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("host category cannot be set to 'all' while there are allowed hosts"))
-        if is_all(options, 'servicecategory') and 'memberservice' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("service category cannot be set to 'all' while there are allowed services"))
+            raise errors.MutuallyExclusiveError(
+                reason=_("host category cannot be set to 'all' while there "
+                         "are allowed hosts")
+            )
+        if (is_all(options, 'servicecategory')
+                and 'memberservice' in entry_attrs):
+            raise errors.MutuallyExclusiveError(
+                reason=_("service category cannot be set to 'all' while "
+                         "there are allowed services")
+            )
         return dn
 
 
@@ -381,7 +391,7 @@ class hbacrule_enable(LDAPQuery):
         try:
             entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            raise self.obj.handle_not_found(cn)
 
         entry_attrs['ipaenabledflag'] = ['TRUE']
 
@@ -411,7 +421,7 @@ class hbacrule_disable(LDAPQuery):
         try:
             entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            raise self.obj.handle_not_found(cn)
 
         entry_attrs['ipaenabledflag'] = ['FALSE']
 
@@ -453,7 +463,7 @@ class hbacrule_add_accesstime(LDAPQuery):
         except errors.EmptyModlist:
             pass
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            raise self.obj.handle_not_found(cn)
 
         return dict(result=True)
 
@@ -484,7 +494,7 @@ class hbacrule_remove_accesstime(LDAPQuery):
         except (ValueError, errors.EmptyModlist):
             pass
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            raise self.obj.handle_not_found(cn)
 
         return dict(result=True)
 
@@ -502,9 +512,9 @@ class hbacrule_add_user(LDAPAddMember):
             entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
             dn = entry_attrs.dn
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
-        if 'usercategory' in entry_attrs and \
-            entry_attrs['usercategory'][0].lower() == 'all':
+            raise self.obj.handle_not_found(*keys)
+        if ('usercategory' in entry_attrs and
+                entry_attrs['usercategory'][0].lower() == 'all'):
             raise errors.MutuallyExclusiveError(
                 reason=_("users cannot be added when user category='all'"))
         return dn
@@ -533,9 +543,9 @@ class hbacrule_add_host(LDAPAddMember):
             entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
             dn = entry_attrs.dn
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
-        if 'hostcategory' in entry_attrs and \
-            entry_attrs['hostcategory'][0].lower() == 'all':
+            raise self.obj.handle_not_found(*keys)
+        if ('hostcategory' in entry_attrs and
+                entry_attrs['hostcategory'][0].lower() == 'all'):
             raise errors.MutuallyExclusiveError(
                 reason=_("hosts cannot be added when host category='all'"))
         return dn
@@ -588,9 +598,9 @@ class hbacrule_add_service(LDAPAddMember):
             entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
             dn = entry_attrs.dn
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
-        if 'servicecategory' in entry_attrs and \
-            entry_attrs['servicecategory'][0].lower() == 'all':
+            raise self.obj.handle_not_found(*keys)
+        if ('servicecategory' in entry_attrs and
+                entry_attrs['servicecategory'][0].lower() == 'all'):
             raise errors.MutuallyExclusiveError(reason=_(
                 "services cannot be added when service category='all'"))
         return dn

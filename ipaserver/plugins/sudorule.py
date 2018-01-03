@@ -417,7 +417,7 @@ class sudorule_mod(LDAPUpdate):
         try:
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         error = _("%(type)s category cannot be set to 'all' "
                   "while there are allowed %(objects)s")
@@ -487,7 +487,7 @@ class sudorule_enable(LDAPQuery):
         try:
             entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            raise self.obj.handle_not_found(cn)
 
         entry_attrs['ipaenabledflag'] = ['TRUE']
 
@@ -510,7 +510,7 @@ class sudorule_disable(LDAPQuery):
         try:
             entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            raise self.obj.handle_not_found(cn)
 
         entry_attrs['ipaenabledflag'] = ['FALSE']
 
@@ -535,7 +535,7 @@ class sudorule_add_allow_command(LDAPAddMember):
         try:
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if is_all(_entry_attrs, 'cmdcategory'):
             raise errors.MutuallyExclusiveError(
@@ -586,7 +586,7 @@ class sudorule_add_user(LDAPAddMember):
         try:
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if is_all(_entry_attrs, 'usercategory'):
             raise errors.MutuallyExclusiveError(
@@ -640,7 +640,7 @@ class sudorule_add_host(LDAPAddMember):
         try:
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if is_all(_entry_attrs, 'hostcategory'):
             raise errors.MutuallyExclusiveError(
@@ -654,10 +654,11 @@ class sudorule_add_host(LDAPAddMember):
         try:
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if 'hostmask' in options:
-            norm = lambda x: unicode(netaddr.IPNetwork(x).cidr)
+            def norm(x):
+                return unicode(netaddr.IPNetwork(x).cidr)
 
             old_masks = set(norm(m) for m in _entry_attrs.get('hostmask', []))
             new_masks = set(norm(m) for m in options['hostmask'])
@@ -699,7 +700,7 @@ class sudorule_remove_host(LDAPRemoveMember):
         try:
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if 'hostmask' in options:
             def norm(x):
@@ -745,7 +746,7 @@ class sudorule_add_runasuser(LDAPAddMember):
         try:
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if any((is_all(_entry_attrs, 'ipasudorunasusercategory'),
                 is_all(_entry_attrs, 'ipasudorunasgroupcategory'))):
@@ -860,9 +861,9 @@ class sudorule_add_runasgroup(LDAPAddMember):
         try:
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
-        if is_all(_entry_attrs, 'ipasudorunasusercategory') or \
-          is_all(_entry_attrs, 'ipasudorunasgroupcategory'):
+            raise self.obj.handle_not_found(*keys)
+        if (is_all(_entry_attrs, 'ipasudorunasusercategory') or
+                is_all(_entry_attrs, 'ipasudorunasgroupcategory')):
             raise errors.MutuallyExclusiveError(
                 reason=_("users cannot be added when runAs user or runAs "
                          "group category='all'"))
@@ -943,7 +944,7 @@ class sudorule_add_option(LDAPQuery):
         except errors.EmptyModlist:
             pass
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            raise self.obj.handle_not_found(cn)
 
         attrs_list = self.obj.default_attributes
         entry_attrs = ldap.get_entry(dn, attrs_list)
@@ -993,7 +994,7 @@ class sudorule_remove_option(LDAPQuery):
                     value=options['ipasudoopt']
                     )
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            raise self.obj.handle_not_found(cn)
 
         attrs_list = self.obj.default_attributes
         entry_attrs = ldap.get_entry(dn, attrs_list)

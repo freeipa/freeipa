@@ -355,16 +355,24 @@ class selinuxusermap_mod(LDAPUpdate):
         try:
             _entry_attrs = ldap.get_entry(dn, attrs_list)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
-        is_to_be_deleted = lambda x: (x in _entry_attrs and x in entry_attrs) and \
-                                     entry_attrs[x] == None
+        def is_to_be_deleted(x):
+            return (
+                (x in _entry_attrs and x in entry_attrs)
+                and entry_attrs[x] is None
+            )
 
         # makes sure the local members and hbacrule is not set at the same time
         # memberuser or memberhost could have been set using --setattr
-        is_to_be_set = lambda x: ((x in _entry_attrs and _entry_attrs[x] != None) or \
-                                 (x in entry_attrs and entry_attrs[x] != None)) and \
-                                 not is_to_be_deleted(x)
+        def is_to_be_set(x):
+            return (
+                (
+                    (x in _entry_attrs and _entry_attrs[x] is not None) or
+                    (x in entry_attrs and entry_attrs[x] is not None)
+                )
+                and not is_to_be_deleted(x)
+            )
 
         are_local_members_to_be_set = any(is_to_be_set(attr)
                                           for attr in ('usercategory',
@@ -379,18 +387,26 @@ class selinuxusermap_mod(LDAPUpdate):
         if are_local_members_to_be_set and is_hbacrule_to_be_set:
             raise errors.MutuallyExclusiveError(reason=notboth_err)
 
-        if is_all(entry_attrs, 'usercategory') and 'memberuser' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason="user category "
-                 "cannot be set to 'all' while there are allowed users")
-        if is_all(entry_attrs, 'hostcategory') and 'memberhost' in entry_attrs:
-            raise errors.MutuallyExclusiveError(reason="host category "
-                 "cannot be set to 'all' while there are allowed hosts")
+        if (is_all(entry_attrs, 'usercategory')
+                and 'memberuser' in entry_attrs):
+            raise errors.MutuallyExclusiveError(
+                reason="user category cannot be set to 'all' while there "
+                       "are allowed users"
+            )
+        if (is_all(entry_attrs, 'hostcategory')
+                and 'memberhost' in entry_attrs):
+            raise errors.MutuallyExclusiveError(
+                reason="host category cannot be set to 'all' while there "
+                       "are allowed hosts"
+            )
 
         if 'ipaselinuxuser' in entry_attrs:
             validate_selinuxuser_inlist(ldap, entry_attrs['ipaselinuxuser'])
 
         if 'seealso' in entry_attrs:
-            entry_attrs['seealso'] = self.obj._normalize_seealso(entry_attrs['seealso'])
+            entry_attrs['seealso'] = self.obj._normalize_seealso(
+                entry_attrs['seealso']
+            )
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -457,7 +473,7 @@ class selinuxusermap_enable(LDAPQuery):
         try:
             entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            raise self.obj.handle_not_found(cn)
 
         entry_attrs['ipaenabledflag'] = ['TRUE']
 
@@ -487,7 +503,7 @@ class selinuxusermap_disable(LDAPQuery):
         try:
             entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            raise self.obj.handle_not_found(cn)
 
         entry_attrs['ipaenabledflag'] = ['FALSE']
 
@@ -516,9 +532,9 @@ class selinuxusermap_add_user(LDAPAddMember):
             entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
             dn = entry_attrs.dn
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
-        if 'usercategory' in entry_attrs and \
-            entry_attrs['usercategory'][0].lower() == 'all':
+            raise self.obj.handle_not_found(*keys)
+        if ('usercategory' in entry_attrs and
+                entry_attrs['usercategory'][0].lower() == 'all'):
             raise errors.MutuallyExclusiveError(
                 reason=_("users cannot be added when user category='all'"))
         if 'seealso' in entry_attrs:
@@ -549,9 +565,9 @@ class selinuxusermap_add_host(LDAPAddMember):
             entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
             dn = entry_attrs.dn
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
-        if 'hostcategory' in entry_attrs and \
-            entry_attrs['hostcategory'][0].lower() == 'all':
+            raise self.obj.handle_not_found(*keys)
+        if ('hostcategory' in entry_attrs and
+                entry_attrs['hostcategory'][0].lower() == 'all'):
             raise errors.MutuallyExclusiveError(
                 reason=_("hosts cannot be added when host category='all'"))
         if 'seealso' in entry_attrs:

@@ -654,7 +654,7 @@ class user_del(baseuser_del):
             original_entry_attrs = self._exc_wrapper(
                 pkey, options, ldap.get_entry)(dn, ['dn'])
         except errors.NotFound:
-            self.obj.handle_not_found(pkey)
+            raise self.obj.handle_not_found(pkey)
 
         for callback in self.get_callbacks('pre'):
             dn = callback(self, ldap, dn, pkey, **options)
@@ -710,7 +710,7 @@ class user_del(baseuser_del):
             try:
                 remove_ipaobject_overrides(self.obj.backend, self.obj.api, dn)
             except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+                raise self.obj.handle_not_found(*keys)
 
         if dn.endswith(DN(self.obj.delete_container_dn, api.env.basedn)):
             return dn
@@ -878,7 +878,7 @@ class user_undel(LDAPQuery):
         try:
             self._exc_wrapper(keys, options, ldap.get_entry)(delete_dn)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
         if delete_dn.endswith(DN(self.obj.active_container_dn,
                                  api.env.basedn)):
             raise errors.InvocationError(
@@ -1160,7 +1160,7 @@ class user_status(LDAPQuery):
                 entries.append(newresult)
                 count += 1
             except errors.NotFound:
-                self.api.Object.user.handle_not_found(*keys)
+                raise self.api.Object.user.handle_not_found(*keys)
             except Exception as e:
                 logger.error("user_status: Retrieving status for %s failed "
                              "with %s", dn, str(e))

@@ -698,7 +698,7 @@ class service_mod(LDAPUpdate):
             try:
                 entry_attrs_old = ldap.get_entry(dn, ['usercertificate'])
             except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+                raise self.obj.handle_not_found(*keys)
             old_certs = entry_attrs_old.get('usercertificate', [])
             removed_certs = set(old_certs) - set(certs)
             for cert in removed_certs:

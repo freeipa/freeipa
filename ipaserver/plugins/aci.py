@@ -282,7 +282,7 @@ def _make_aci(ldap, current, aciname, kw):
             try:
                 api.Object['group'].get_dn_if_exists(kw['memberof'])
             except errors.NotFound:
-                api.Object['group'].handle_not_found(kw['memberof'])
+                raise api.Object['group'].handle_not_found(kw['memberof'])
             groupdn = _group_from_memberof(kw['memberof'])
             a.set_target_filter('memberOf=%s' % groupdn)
         if valid['filter']:
