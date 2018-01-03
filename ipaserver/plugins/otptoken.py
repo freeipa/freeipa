@@ -99,18 +99,23 @@ def _convert_owner(userobj, entry_attrs, options):
         entry_attrs['ipatokenowner'] = [userobj.get_primary_key_from_dn(o)
                                         for o in entry_attrs['ipatokenowner']]
 
+
 def _normalize_owner(userobj, entry_attrs):
     owner = entry_attrs.get('ipatokenowner', None)
     if owner:
         try:
-            entry_attrs['ipatokenowner'] = userobj._normalize_manager(owner)[0]
+            entry_attrs['ipatokenowner'] = userobj._normalize_manager(
+                owner
+            )[0]
         except NotFound:
-            userobj.handle_not_found(owner)
+            raise userobj.handle_not_found(owner)
+
 
 def _check_interval(not_before, not_after):
     if not_before and not_after:
         return not_before <= not_after
     return True
+
 
 def _set_token_type(entry_attrs, **options):
     klasses = [x.lower() for x in entry_attrs.get('objectclass', [])]
@@ -121,6 +126,7 @@ def _set_token_type(entry_attrs, **options):
 
     if not options.get('all', False) or options.get('pkey_only', False):
         entry_attrs.pop('objectclass', None)
+
 
 @register()
 class otptoken(LDAPObject):

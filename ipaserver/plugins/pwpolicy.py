@@ -179,7 +179,7 @@ class cosentry_add(LDAPCreate):
         try:
             result = ldap.get_entry(group_dn, ['objectclass'])
         except errors.NotFound:
-            self.api.Object.group.handle_not_found(keys[-1])
+            raise self.api.Object.group.handle_not_found(keys[-1])
 
         oc = [x.lower() for x in result['objectclass']]
         if 'mepmanagedentry' in oc:

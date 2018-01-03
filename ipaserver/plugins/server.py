@@ -227,7 +227,7 @@ class server_mod(LDAPUpdate):
 
         if entry_attrs.get('ipalocation'):
             if not ldap.entry_exists(entry_attrs['ipalocation'][0]):
-                self.api.Object.location.handle_not_found(
+                raise self.api.Object.location.handle_not_found(
                     options['ipalocation_location'])
 
         if 'ipalocation' in entry_attrs or 'ipaserviceweight' in entry_attrs:
@@ -893,7 +893,7 @@ class server_conncheck(crud.PKQuery):
         try:
             self.obj.get_dn_if_exists(*keys[:-1])
         except errors.NotFound:
-            self.obj.handle_not_found(keys[-2])
+            raise self.obj.handle_not_found(keys[-2])
 
         # the user must have the Replication Administrators privilege
         privilege = u'Replication Administrators'
