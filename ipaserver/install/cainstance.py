@@ -1370,7 +1370,7 @@ def replica_ca_install_check(config, promote):
             'Please run copy-schema-to-ca.py on all CA masters.\n'
             'If you are certain that this is a false positive, use '
             '--skip-schema-check.')
-        exit('IPA schema missing on master CA directory server')
+        sys.exit('IPA schema missing on master CA directory server')
 
 
 def __update_entry_from_cert(make_filter, make_entry, cert):
