@@ -191,14 +191,16 @@ class IPACustodiaTester(object):
             pkey = JWK(**dictkeys[usage_id])
             local_pubkey = json_decode(pkey.export_public())
         except Exception:
-            self.error("Failed to load and parse local JWK.", fatal=True)
+            raise self.error(
+                "Failed to load and parse local JWK.", fatal=True
+            )
         else:
             self.info("Loaded key for usage '{}' from '{}'.".format(
                 usage, IPA_CUSTODIA_KEYFILE
             ))
 
         if pkey.key_id != self.host_spn:
-            self.error(
+            raise self.error(
                 "KID '{}' != host service principal name '{}' "
                 "(usage: {})".format(pkey.key_id, self.host_spn, usage),
                 fatal=True
@@ -215,8 +217,11 @@ class IPACustodiaTester(object):
         try:
             host_pubkey = json_decode(find_key(self.host_spn, usage_id))
         except Exception:
-            self.error("Fetching host keys {} (usage: {}) failed.".format(
-                self.host_spn, usage), fatal=True)
+            raise self.error(
+                "Fetching host keys {} (usage: {}) failed.".format(
+                    self.host_spn, usage),
+                fatal=True
+            )
         else:
             self.info("Checked host LDAP keys '{}' for usage {}.".format(
                 self.host_spn, usage
@@ -225,8 +230,10 @@ class IPACustodiaTester(object):
         if host_pubkey != local_pubkey:
             self.debug("LDAP: '{}'".format(host_pubkey))
             self.debug("Local: '{}'".format(local_pubkey))
-            self.error(
-                "Host key in LDAP does not match local key.", fatal=True)
+            raise self.error(
+                "Host key in LDAP does not match local key.",
+                fatal=True
+            )
         else:
             self.info(
                 "Local key for usage '{}' matches key in LDAP.".format(usage)
@@ -235,8 +242,11 @@ class IPACustodiaTester(object):
         try:
             server_pubkey = json_decode(find_key(self.server_spn, usage_id))
         except Exception:
-            self.error("Fetching server keys {} (usage: {}) failed.".format(
-                self.server_spn, usage), fatal=True)
+            raise self.error(
+                "Fetching server keys {} (usage: {}) failed.".format(
+                    self.server_spn, usage),
+                fatal=True
+            )
         else:
             self.info("Checked server LDAP keys '{}' for usage {}.".format(
                 self.server_spn, usage

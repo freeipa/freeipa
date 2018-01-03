@@ -305,6 +305,8 @@ def install_check(installer):
     external_cert_file = installer._external_cert_file
     external_ca_file = installer._external_ca_file
     http_ca_cert = installer._ca_cert
+    dirsrv_ca_cert = None
+    pkinit_ca_cert = None
 
     tasks.check_ipv6_stack_enabled()
     tasks.check_selinux_status()

@@ -123,13 +123,11 @@ class CACertManage(admintool.AdminTool):
 
         try:
             if command == 'renew':
-                rc = self.renew()
+                return self.renew()
             elif command == 'install':
-                rc = self.install()
+                return self.install()
         finally:
             api.Backend.ldap2.disconnect()
-
-        return rc
 
     def ldap_connect(self):
         password = self.options.password
