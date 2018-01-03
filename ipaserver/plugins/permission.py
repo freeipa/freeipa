@@ -1072,7 +1072,7 @@ class permission_del(baseldap.LDAPDelete):
         try:
             self.obj.remove_aci(entry)
         except errors.NotFound:
-            errors.NotFound(
+            raise errors.NotFound(
                 reason=_('ACI of permission %s was not found') % keys[0])
 
         return dn
