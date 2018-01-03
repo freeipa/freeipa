@@ -278,7 +278,7 @@ class caacl_mod(LDAPUpdate):
             entry_attrs = ldap.get_entry(dn, attrs_list)
             dn = entry_attrs.dn
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if is_all(options, 'ipacacategory') and 'ipamemberca' in entry_attrs:
             raise errors.MutuallyExclusiveError(reason=_(
@@ -332,7 +332,7 @@ class caacl_enable(LDAPQuery):
         try:
             entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            raise self.obj.handle_not_found(cn)
 
         entry_attrs['ipaenabledflag'] = ['TRUE']
 
@@ -361,7 +361,7 @@ class caacl_disable(LDAPQuery):
         try:
             entry_attrs = ldap.get_entry(dn, ['ipaenabledflag'])
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            raise self.obj.handle_not_found(cn)
 
         entry_attrs['ipaenabledflag'] = ['FALSE']
 
@@ -391,7 +391,7 @@ class caacl_add_user(LDAPAddMember):
             entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
             dn = entry_attrs.dn
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
         if is_all(entry_attrs, 'usercategory'):
             raise errors.MutuallyExclusiveError(
                 reason=_("users cannot be added when user category='all'"))
@@ -423,7 +423,7 @@ class caacl_add_host(LDAPAddMember):
             entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
             dn = entry_attrs.dn
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
         if is_all(entry_attrs, 'hostcategory'):
             raise errors.MutuallyExclusiveError(
                 reason=_("hosts cannot be added when host category='all'"))
@@ -453,7 +453,7 @@ class caacl_add_service(LDAPAddMember):
             entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
             dn = entry_attrs.dn
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
         if is_all(entry_attrs, 'servicecategory'):
             raise errors.MutuallyExclusiveError(reason=_(
                 "services cannot be added when service category='all'"))
@@ -493,7 +493,7 @@ class caacl_add_profile(LDAPAddMember):
             entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
             dn = entry_attrs.dn
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
         if is_all(entry_attrs, 'ipacertprofilecategory'):
             raise errors.MutuallyExclusiveError(reason=_(
                 "profiles cannot be added when profile category='all'"))
@@ -525,7 +525,7 @@ class caacl_add_ca(LDAPAddMember):
             entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
             dn = entry_attrs.dn
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
         if is_all(entry_attrs, 'ipacacategory'):
             raise errors.MutuallyExclusiveError(reason=_(
                 "CAs cannot be added when CA category='all'"))

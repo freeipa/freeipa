@@ -153,7 +153,7 @@ class idview(LDAPObject):
         try:
             orig_entry_attrs = ldap.get_entry(dn, ['objectclass'])
         except errors.NotFound:
-            self.handle_not_found(*keys)
+            raise self.handle_not_found(*keys)
 
         orig_objectclasses = {
             o.lower() for o in orig_entry_attrs.get('objectclass', [])}
@@ -587,7 +587,7 @@ def resolve_object_to_anchor(ldap, obj_type, obj, fallback_to_ldap):
         pass
 
     # No acceptable object was found
-    api.Object[obj_type].handle_not_found(obj)
+    raise api.Object[obj_type].handle_not_found(obj)
 
 
 def resolve_anchor_to_object_name(ldap, obj_type, anchor):
@@ -789,12 +789,12 @@ class baseidoverride_del(LDAPDelete):
         try:
             entry = ldap.get_entry(dn, ['objectclass'])
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         # If not, treat it as a failed search
         for required_oc in self.obj.object_class:
             if not self.obj.has_objectclass(entry['objectclass'], required_oc):
-                self.obj.handle_not_found(*keys)
+                raise self.obj.handle_not_found(*keys)
 
         return dn
 
