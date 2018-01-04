@@ -1194,8 +1194,7 @@ def get_iface_from_ip(ip_addr):
             for ip in if_addrs.get(family, []):
                 if ip['addr'] == ip_addr:
                     return interface
-    else:
-        raise RuntimeError("IP %s not assigned to any interface." % ip_addr)
+    raise RuntimeError("IP %s not assigned to any interface." % ip_addr)
 
 
 def get_local_ipaddresses(iface=None):
@@ -1390,6 +1389,7 @@ def verify_dns_update(fqdn, ips):
 def get_server_connection_interface(server):
     """Connect to IPA server, get all ip addresses of interface used to connect
     """
+    last_error = None
     for res in socket.getaddrinfo(
             server, 389, socket.AF_UNSPEC, socket.SOCK_STREAM):
         af, socktype, proto, _canonname, sa = res
@@ -1397,7 +1397,6 @@ def get_server_connection_interface(server):
             s = socket.socket(af, socktype, proto)
         except socket.error as e:
             last_error = e
-            s = None
             continue
         try:
             s.connect(sa)
@@ -1413,11 +1412,11 @@ def get_server_connection_interface(server):
             return get_iface_from_ip(ip)
         except (CalledProcessError, RuntimeError) as e:
             last_error = e
-    else:
-        msg = "Cannot get server connection interface"
-        if last_error:
-            msg += ": %s" % (last_error)
-        raise RuntimeError(msg)
+
+    msg = "Cannot get server connection interface"
+    if last_error:
+        msg += ": %s" % last_error
+    raise RuntimeError(msg)
 
 
 def client_dns(server, hostname, options):

@@ -251,8 +251,8 @@ def env_normalize(env):
                     pass
                 else:
                     return
-            else:
-                env[name] = ''
+            env[name] = ''
+
     coalesce('MASTER_env1', 'MASTER')
     coalesce('REPLICA_env1', 'REPLICA', 'SLAVE')
     coalesce('CLIENT_env1', 'CLIENT')
