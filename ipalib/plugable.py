@@ -532,15 +532,15 @@ class API(ReadOnly):
                 formatter=IPAHelpFormatter(),
                 usage='%prog [global-options] COMMAND [command-options]',
                 description='Manage an IPA domain',
-                version=('VERSION: %s, API_VERSION: %s'
-                                % (VERSION, API_VERSION)),
+                version=('VERSION: %s, API_VERSION: %s' %
+                            (VERSION, API_VERSION)),
                 epilog='\n'.join([
                     'See "ipa help topics" for available help topics.',
-                    'See "ipa help <TOPIC>" for more information on a '
-                        'specific topic.',
+                    'See "ipa help <TOPIC>" for more information on '
+                    + 'a specific topic.',
                     'See "ipa help commands" for the full list of commands.',
-                    'See "ipa <COMMAND> --help" for more information on a '
-                        'specific command.',
+                    'See "ipa <COMMAND> --help" for more information on '
+                    + 'a specific command.',
                 ]))
             parser.disable_interspersed_args()
             parser.add_option("-h", "--help", action="help",
