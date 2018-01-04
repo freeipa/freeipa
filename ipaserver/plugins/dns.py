@@ -3426,8 +3426,7 @@ class dnsrecord(LDAPObject):
             time.sleep(period)
 
         # Maximum number of attempts was reached
-        else:
-            raise errors.DNSDataMismatch(expected=ldap_rrset, got=dns_rrset)
+        raise errors.DNSDataMismatch(expected=ldap_rrset, got=dns_rrset)
 
     def wait_for_modified_attrs(self, entry_attrs, dns_name, dns_domain):
         '''Wait until DNS resolver returns up-to-date answer for given entry
