@@ -40,10 +40,41 @@ os.environ['IPATEST_XUNIT_PATH'] = os.path.join(os.getcwd(), 'nosetests.xml')
 
 HERE = os.path.dirname(os.path.abspath(ipatests.__file__))
 
-args = sys.argv[1:]
-if not any('--confcutdir' in arg for arg in args):
-    args.insert(0, '--confcutdir={}'.format(HERE))
 
-os.chdir(HERE)
+class ArgsManglePlugin(object):
+    """Modify pytest arguments
 
-sys.exit(pytest.main(args))
+    * Add confcutdir if hasn't been set already
+    * Mangle paths to support tests both relative to basedir and ipatests/
+    * Default to ipatests/ if no tests are specified
+    """
+    def pytest_load_initial_conftests(self, early_config, parser, args):
+        # During initial loading, parser supports only basic options
+        ns = early_config.known_args_namespace
+        if not ns.confcutdir:
+            # add config cut directory to only load fixtures from ipatests/
+            args.insert(0, '--confcutdir={}'.format(HERE))
+
+        if not ns.file_or_dir:
+            # No file or directory found, run all tests
+            args.append(HERE)
+        else:
+            for name in ns.file_or_dir:
+                idx = args.index(name)
+                # split on pytest separator
+                # ipatests/test_ipaplatform/test_importhook.py::test_override
+                filename, sep, suffix = name.partition('::')
+                # a file or directory relative to cwd or already absolute
+                if os.path.exists(filename):
+                    continue
+                # a file or directory relative to ipatests package
+                args[idx] = sep.join((os.path.join(HERE, filename), suffix))
+
+        # rebuild early_config's known args with new args. The known args
+        # are used for initial conftest.py from ipatests, which adds
+        # additional arguments.
+        early_config.known_args_namespace = parser.parse_known_args(
+            args, namespace=early_config.option.copy())
+
+
+sys.exit(pytest.main(plugins=[ArgsManglePlugin()]))
