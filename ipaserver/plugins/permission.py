@@ -694,6 +694,7 @@ class permission(baseldap.LDAPObject):
                 acientry = ldap.get_entry(location, ['aci'])
             except errors.NotFound:
                 acientry = ldap.make_entry(location)
+
         acis = acientry.get('aci', ())
         for acistring in acis:
             try:
@@ -704,12 +705,12 @@ class permission(baseldap.LDAPObject):
                 continue
             if aci.name == wanted_aciname:
                 return acientry, acistring
-        else:
-            if notfound_ok:
-                return acientry, None
-            raise errors.NotFound(
-                reason=_('The ACI for permission %(name)s was not found '
-                         'in %(dn)s ') % {'name': name, 'dn': location})
+
+        if notfound_ok:
+            return acientry, None
+        raise errors.NotFound(
+            reason=_('The ACI for permission %(name)s was not found '
+                     'in %(dn)s ') % {'name': name, 'dn': location})
 
     def upgrade_permission(self, entry, target_entry=None,
                            output_only=False, cached_acientry=None):
