@@ -6,6 +6,7 @@ import time
 from tempfile import NamedTemporaryFile
 import textwrap
 import pytest
+import re
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
 from ipatests.pytest_plugins.integration.tasks import (
@@ -20,6 +21,15 @@ class ReplicaPromotionBase(IntegrationTest):
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, domain_level=cls.domain_level)
+
+    @classmethod
+    def promote_to_replica(cls, host):
+        args = ['ipa-replica-install', '-U',
+                '-p', host.config.dirman_password,
+                '-w', host.config.admin_password,
+                '--ip-address', host.ip]
+        result = host.run_command(args)
+        return result
 
     def test_kra_install_master(self):
         result1 = tasks.install_kra(self.master,
@@ -527,3 +537,50 @@ class TestReplicaInstallWithExistingEntry(IntegrationTest):
         master.run_command(arg)
 
         tasks.install_replica(master, replica)
+
+
+def check_dirsrv_for_nsslapd_ignore_time_skew(host):
+        arg = ['ldapsearch', '-D',
+               str(host.config.dirman_dn),   # pylint: disable=no-member
+               '-w', host.config.dirman_password,
+               '-h', host.hostname,
+               '-b', 'cn=config']
+        result = host.run_command(arg)
+        assert "nsslapd-ignore-time-skew: off" in result.stdout_text
+
+
+class TestNsslapdIgnoreTimeSkew(IntegrationTest):
+    """value for nsslapd-ignore-time-skew should remain off by default for
+    dirsrv. However while installing replica, it shuold be on. This test
+    checks that while installing replica, value for nsslapd-ignore-time-skew
+    set to on and after set to off.
+
+    https://pagure.io/freeipa/issue/7211"""
+
+    num_replicas = 2
+
+    def test_nsslapd_ignore_time_skew(self):
+        master = self.master
+        tasks.install_master(master)
+        replica = self.replicas[0]
+        client = self.replicas[1]
+
+        tasks.install_replica(master, replica)
+        log_file = '/var/log/ipareplica-install.log'
+        replica_install_log = replica.get_file_contents(log_file)
+        regex = r'^.*nsslapd-ignore-time-skew:\n(.*)$'
+        occ_list = re.findall(regex, replica_install_log, re.M)
+        assert 'on' in occ_list[0] and 'off' in occ_list[1]
+
+        # check on replica promotion
+        tasks.install_client(master, client)
+        result = ReplicaPromotionBase.promote_to_replica(client)
+        assert result.returncode == 0
+
+        replica_install_log = client.get_file_contents(log_file)
+        occ_list = re.findall(regex, replica_install_log, re.M)
+        assert 'on' in occ_list[0] and 'off' in occ_list[1]
+
+        # check if nsslapd-ignore-time-skew is set to off for disrv
+        check_dirsrv_for_nsslapd_ignore_time_skew(replica)
+        check_dirsrv_for_nsslapd_ignore_time_skew(client)
