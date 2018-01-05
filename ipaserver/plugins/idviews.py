@@ -22,10 +22,11 @@ import re
 import six
 
 from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
-                                     LDAPDelete, LDAPUpdate, LDAPSearch,
-                                     LDAPAddAttributeViaOption,
-                                     LDAPRemoveAttributeViaOption,
-                                     LDAPRetrieve, global_output_params)
+                       LDAPDelete, LDAPUpdate, LDAPSearch,
+                       LDAPAddAttributeViaOption,
+                       LDAPRemoveAttributeViaOption,
+                       LDAPRetrieve, global_output_params,
+                       add_missing_object_class)
 from .hostgroup import get_complete_hostgroup_member_list
 from ipalib import (
     api, Str, Int, Flag, _, ngettext, errors, output
@@ -173,6 +174,12 @@ class idview_add(LDAPCreate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         self.api.Object.config.validate_domain_resolution_order(entry_attrs)
 
+        # The objectclass ipaNameResolutionData may not be present on
+        # the id view. We need to add it if we define a new
+        # value for ipaDomainResolutionOrder
+        if 'ipadomainresolutionorder' in entry_attrs:
+            add_missing_object_class(ldap, u'ipanameresolutiondata', dn,
+                                     entry_attrs, update=False)
         return dn
 
 
