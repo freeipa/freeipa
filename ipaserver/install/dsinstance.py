@@ -185,7 +185,7 @@ def get_all_external_schema_files(root):
         for name in files:
             if fnmatch.fnmatch(name, "*.ldif"):
                 f.append(os.path.join(path, name))
-    return f
+    return sorted(f)
 
 
 INF_TEMPLATE = """
