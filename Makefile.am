@@ -210,17 +210,17 @@ endif
 	FILES=$$(git diff --name-only $${MERGEBASE} \
 	    | grep -E '\.py$$'); \
 	if [ -n "$${FILES}" ]; then \
-		echo "Fast linting files: $${FILES}"; \
-		echo "pylint"; \
-		echo "------"; \
-	    PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) -m pylint \
-	        --rcfile=$(top_srcdir)/pylintrc \
-	        --load-plugins pylint_plugins \
-	        $${FILES} || exit $?; \
+	    echo -e "Fast linting files:\n$${FILES}\n"; \
 	    echo "pycodestyle"; \
 	    echo "-----------"; \
 	    git diff $${MERGEBASE} | \
-	        $(PYTHON) -m pycodestyle --diff || exit $?; \
+	        $(PYTHON) -m pycodestyle --diff || exit $$?; \
+	    echo -e "\npylint"; \
+	    echo "------"; \
+	    PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON) -m pylint \
+	        --rcfile=$(top_srcdir)/pylintrc \
+	        --load-plugins pylint_plugins \
+	        $${FILES} || exit $$?; \
 	else \
 	    echo "No modified Python files found"; \
 	fi
