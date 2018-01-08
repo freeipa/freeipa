@@ -55,7 +55,7 @@ def _get_logname_from_node(node):
     return name
 
 
-def collect_test_logs(node, logs_dict, test_config):
+def collect_test_logs(node, logs_dict, test_config, fallback_config):
     """Collect logs from a test
 
     Calls collect_logs
@@ -63,11 +63,16 @@ def collect_test_logs(node, logs_dict, test_config):
     :param node: The pytest collection node (request.node)
     :param logs_dict: Mapping of host to list of log filnames to collect
     :param test_config: Pytest configuration
+    :param fallback_config: integration.config.py::Config instance
     """
+    logfile_dir = test_config.getoption('logfile_dir')
+    if not logfile_dir:
+        logfile_dir = fallback_config.logfile_dir
+
     collect_logs(
         name=_get_logname_from_node(node),
         logs_dict=logs_dict,
-        logfile_dir=test_config.getoption('logfile_dir'),
+        logfile_dir=logfile_dir,
         beakerlib_plugin=test_config.pluginmanager.getplugin('BeakerLibPlugin'),
     )
 
@@ -179,8 +184,6 @@ def collect_logs(name, logs_dict, logfile_dir=None, beakerlib_plugin=None):
             else:
                 shutil.rmtree(topdirname)
 
-        logs_dict.clear()
-
 
 @pytest.fixture(scope='class')
 def class_integration_logs():
@@ -194,7 +197,8 @@ def integration_logs(class_integration_logs, request):
     """
     yield class_integration_logs
     hosts = class_integration_logs.keys()
-    collect_test_logs(request.node, class_integration_logs, request.config)
+    collect_test_logs(request.node, class_integration_logs,
+                      request.config, request.cls.fallback_config)
     collect_systemd_journal(request.node, hosts, request.config)
 
 
@@ -229,6 +233,8 @@ def mh(request, class_integration_logs):
         _config=get_global_config(),
     )
 
+    request.cls.fallback_config = mh.config
+
     mh.domain = mh.config.domains[0]
     [mh.master] = mh.domain.hosts_by_role('master')
     mh.replicas = mh.domain.hosts_by_role('replica')
@@ -255,7 +261,8 @@ def mh(request, class_integration_logs):
     for host in cls.get_all_hosts():
         host.remove_log_collector(collect_log)
 
-    collect_test_logs(request.node, class_integration_logs, request.config)
+    collect_test_logs(request.node, class_integration_logs,
+                      request.config, mh.config)
 
 
 def setup_class(cls, mh):
