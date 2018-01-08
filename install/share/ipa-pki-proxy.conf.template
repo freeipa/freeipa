@@ -1,43 +1,43 @@
-# VERSION 11 - DO NOT REMOVE THIS LINE
+# VERSION 12 - DO NOT REMOVE THIS LINE
 
 ProxyRequests Off
 
 # matches for ee port
 <LocationMatch "^/ca/ee/ca/checkRequest|^/ca/ee/ca/getCertChain|^/ca/ee/ca/getTokenInfo|^/ca/ee/ca/tokenAuthenticate|^/ca/ocsp|^/ca/ee/ca/updateNumberRange|^/ca/ee/ca/getCRL|^/ca/ee/ca/profileSubmit">
-    NSSOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
-    NSSVerifyClient none
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    SSLVerifyClient none
     ProxyPassMatch ajp://localhost:$DOGTAG_PORT
     ProxyPassReverse ajp://localhost:$DOGTAG_PORT
 </LocationMatch>
 
 # matches for admin port and installer
 <LocationMatch "^/ca/admin/ca/getCertChain|^/ca/admin/ca/getConfigEntries|^/ca/admin/ca/getCookie|^/ca/admin/ca/getStatus|^/ca/admin/ca/securityDomainLogin|^/ca/admin/ca/getDomainXML|^/ca/admin/ca/updateNumberRange|^/ca/admin/ca/tokenAuthenticate|^/ca/admin/ca/updateNumberRange|^/ca/admin/ca/updateDomainXML|^/ca/admin/ca/updateConnector|^/ca/admin/ca/getSubsystemCert|^/kra/admin/kra/updateNumberRange|^/kra/admin/kra/getConfigEntries">
-    NSSOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
-    NSSVerifyClient none
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    SSLVerifyClient none
     ProxyPassMatch ajp://localhost:$DOGTAG_PORT
     ProxyPassReverse ajp://localhost:$DOGTAG_PORT
 </LocationMatch>
 
 # matches for agent port and eeca port
 <LocationMatch "^/ca/agent/ca/displayBySerial|^/ca/agent/ca/doRevoke|^/ca/agent/ca/doUnrevoke|^/ca/agent/ca/updateDomainXML|^/ca/eeca/ca/profileSubmitSSLClient|^/kra/agent/kra/connector">
-    NSSOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
-    NSSVerifyClient require
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    SSLVerifyClient require
     ProxyPassMatch ajp://localhost:$DOGTAG_PORT
     ProxyPassReverse ajp://localhost:$DOGTAG_PORT
 </LocationMatch>
 
 # matches for CA REST API
 <LocationMatch "^/ca/rest/account/login|^/ca/rest/account/logout|^/ca/rest/installer/installToken|^/ca/rest/securityDomain/domainInfo|^/ca/rest/securityDomain/installToken|^/ca/rest/profiles|^/ca/rest/authorities|^/ca/rest/certrequests|^/ca/rest/admin/kraconnector/remove|^/ca/rest/certs/search">
-    NSSOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
-    NSSVerifyClient optional
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    SSLVerifyClient optional
     ProxyPassMatch ajp://localhost:$DOGTAG_PORT
     ProxyPassReverse ajp://localhost:$DOGTAG_PORT
 </LocationMatch>
 
 # matches for KRA REST API
 <LocationMatch "^/kra/rest/config/cert/transport|^/kra/rest/account|^/kra/rest/agent/keyrequests|^/kra/rest/agent/keys">
-    NSSOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
-    NSSVerifyClient optional
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    SSLVerifyClient optional
     ProxyPassMatch ajp://localhost:$DOGTAG_PORT
     ProxyPassReverse ajp://localhost:$DOGTAG_PORT
 </LocationMatch>
