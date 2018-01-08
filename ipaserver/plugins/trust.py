@@ -590,7 +590,7 @@ class trust(LDAPObject):
                     ldap.SCOPE_SUBTREE, trustfilter, ['']
                 )
             except errors.NotFound:
-                self.handle_not_found(keys[-1])
+                raise self.handle_not_found(keys[-1])
 
             if len(result) > 1:
                 raise errors.OnlyOneValueAllowed(attr='trust domain')
@@ -1273,7 +1273,7 @@ class trustconfig(LDAPObject):
             try:
                 self.backend.get_entry(dn)
             except errors.NotFound:
-                self.api.Object['group'].handle_not_found(group)
+                raise self.api.Object['group'].handle_not_found(group)
             # DN is valid, we can just return
             return
         except ValueError:
@@ -1288,7 +1288,7 @@ class trustconfig(LDAPObject):
                     [''],
                     DN(self.api.env.container_group, self.api.env.basedn))
             except errors.NotFound:
-                self.api.Object['group'].handle_not_found(group)
+                raise self.api.Object['group'].handle_not_found(group)
             else:
                 entry_attrs['ipantfallbackprimarygroup'] = [group_entry.dn]
 
@@ -1645,7 +1645,7 @@ class trustdomain_del(LDAPDelete):
                         name='domain',
                         error=_("cannot delete root domain of the trust, "
                                 "use trust-del to delete the trust itself"))
-                self.obj.handle_not_found(keys[0], domain)
+                raise self.obj.handle_not_found(keys[0], domain)
 
             try:
                 self.api.Command.trustdomain_enable(keys[0], domain)
@@ -1808,7 +1808,8 @@ class trustdomain_enable(LDAPQuery):
             trust_dn = self.obj.get_dn(keys[0], trust_type=u'ad')
             trust_entry = ldap.get_entry(trust_dn)
         except errors.NotFound:
-            self.api.Object[self.obj.parent_object].handle_not_found(keys[0])
+            raise self.api.Object[self.obj.parent_object].handle_not_found(
+                keys[0])
 
         dn = self.obj.get_dn(keys[0], keys[1], trust_type=u'ad')
         try:
@@ -1820,7 +1821,7 @@ class trustdomain_enable(LDAPQuery):
             else:
                 raise errors.AlreadyActive()
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         return dict(
             result=True,
@@ -1849,19 +1850,20 @@ class trustdomain_disable(LDAPQuery):
             trust_dn = self.obj.get_dn(keys[0], trust_type=u'ad')
             trust_entry = ldap.get_entry(trust_dn)
         except errors.NotFound:
-            self.api.Object[self.obj.parent_object].handle_not_found(keys[0])
+            raise self.api.Object[self.obj.parent_object].handle_not_found(
+                keys[0])
 
         dn = self.obj.get_dn(keys[0], keys[1], trust_type=u'ad')
         try:
             entry = ldap.get_entry(dn)
             sid = entry.single_value.get('ipanttrusteddomainsid', None)
-            if not (sid in trust_entry['ipantsidblacklistincoming']):
+            if sid not in trust_entry['ipantsidblacklistincoming']:
                 trust_entry['ipantsidblacklistincoming'].append(sid)
                 ldap.update_entry(trust_entry)
             else:
                 raise errors.AlreadyInactive()
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         return dict(
             result=True,

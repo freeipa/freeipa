@@ -76,7 +76,7 @@ class server_role(Object):
         try:
             server_obj.get_dn_if_exists(fqdn)
         except NotFound:
-            server_obj.handle_not_found(fqdn)
+            raise server_obj.handle_not_found(fqdn)
 
 
 @register()

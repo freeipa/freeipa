@@ -769,7 +769,7 @@ class automember_rebuild(Method):
                 try:
                     obj.get_dn_if_exists(name)
                 except errors.NotFound:
-                    obj.handle_not_found(name)
+                    raise obj.handle_not_found(name)
             search_filter = ldap.make_filter_from_attr(
                 obj.primary_key.name,
                 names,

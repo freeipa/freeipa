@@ -899,7 +899,7 @@ class host_mod(LDAPUpdate):
             try:
                 entry_attrs_old = ldap.get_entry(dn, ['usercertificate'])
             except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+                raise self.obj.handle_not_found(*keys)
             old_certs = entry_attrs_old.get('usercertificate', [])
             removed_certs = set(old_certs) - set(certs)
             for cert in removed_certs:
@@ -931,7 +931,7 @@ class host_mod(LDAPUpdate):
                 result = api.Command['dnszone_show'](domain)['result']
                 domain = result['idnsname'][0]
             except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+                raise self.obj.handle_not_found(*keys)
             update_sshfp_record(domain, unicode(parts[0]), entry_attrs)
 
         if 'ipasshpubkey' in entry_attrs:
@@ -1020,7 +1020,7 @@ class host_find(LDAPSearch):
                     try:
                         entry_attrs = ldap.get_entry(dn, ['managedby'])
                     except errors.NotFound:
-                        self.obj.handle_not_found(pkey)
+                        raise self.obj.handle_not_found(pkey)
                     hosts.append(set(entry_attrs.get('managedby', '')))
                 hosts = list(reduce(lambda s1, s2: s1 & s2, hosts))
 
@@ -1037,7 +1037,7 @@ class host_find(LDAPSearch):
                     try:
                         entry_attrs = ldap.get_entry(dn, ['managedby'])
                     except errors.NotFound:
-                        self.obj.handle_not_found(pkey)
+                        raise self.obj.handle_not_found(pkey)
                     not_hosts += entry_attrs.get('managedby', [])
                 not_hosts = list(set(not_hosts))
 
@@ -1191,7 +1191,7 @@ class host_disable(LDAPQuery):
         try:
             entry_attrs = ldap.get_entry(dn, ['usercertificate'])
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
         if self.api.Command.ca_is_enabled()['result']:
             certs = self.api.Command.cert_find(host=keys)['result']
 

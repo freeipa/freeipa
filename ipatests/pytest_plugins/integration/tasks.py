@@ -600,8 +600,9 @@ def modify_sssd_conf(host, domain, mod_dict, provider='ipa',
     :param provider_subtype: backend subtype (e.g. id or sudo), will be added
         to the domain config if not present
     """
+    fd, temp_config_file = tempfile.mkstemp()
+    os.close(fd)
     try:
-        temp_config_file = tempfile.mkstemp()[1]
         current_config = host.transport.get_file_contents(paths.SSSD_CONF)
 
         with open(temp_config_file, 'wb') as f:

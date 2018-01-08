@@ -197,6 +197,8 @@ class ReplicaPrepare(admintool.AdminTool):
     def ask_for_options(self):
         options = self.options
         super(ReplicaPrepare, self).ask_for_options()
+        http_ca_cert = None
+        dirsrv_ca_cert = None
 
         # get the directory manager password
         self.dirman_password = options.password

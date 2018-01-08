@@ -1021,10 +1021,13 @@ def promote_check(installer):
 
     http_pkcs12_file = None
     http_pkcs12_info = None
+    http_ca_cert = None
     dirsrv_pkcs12_file = None
     dirsrv_pkcs12_info = None
+    dirsrv_ca_cert = None
     pkinit_pkcs12_file = None
     pkinit_pkcs12_info = None
+    pkinit_ca_cert = None
 
     if options.http_cert_files:
         if options.http_pin is None:

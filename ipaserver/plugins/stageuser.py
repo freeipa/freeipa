@@ -671,7 +671,7 @@ class stageuser_activate(LDAPQuery):
                 staging_dn, ['*']
             )
         except errors.NotFound:
-            self.obj.handle_not_found(*args)
+            raise self.obj.handle_not_found(*args)
         entry_attrs = dict((k.lower(), v) for (k, v) in entry_attrs.items())
 
         # Check it does not exist an active entry with the same RDN
