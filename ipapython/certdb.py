@@ -791,7 +791,7 @@ class NSSDatabase(object):
         self.run_certutil(args, stdin=cert.public_bytes(x509.Encoding.PEM))
 
     def delete_cert(self, nick):
-        self.run_certutil(["-D", "-n", nick])
+        self.run_certutil(["-F", "-n", nick])
 
     def verify_server_cert_validity(self, nickname, hostname):
         """Verify a certificate is valid for a SSL server with given hostname
