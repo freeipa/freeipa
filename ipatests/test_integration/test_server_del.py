@@ -300,3 +300,29 @@ class TestLastServices(ServerDelBase):
             self.replicas[0], self.master.hostname,
             ignore_last_of_role=True
         )
+
+
+class TestServerDelReplicaRemoval(IntegrationTest):
+    """
+    Test the checks for Removal of Replica during server-del
+    as part for verification of bz1506188
+    """
+    num_replicas = 1
+    domain_level = DOMAIN_LEVEL_1
+    topology = 'line'
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_topo(
+            cls.topology, cls.master, cls.replicas, [],
+            domain_level=cls.domain_level, setup_replica_cas=False)
+
+    def test_removal_of_replica(self):
+        """
+        test that removal of replica bz1506188.
+        """
+        tasks.run_server_find(self.master, self.replicas[0].hostname, 0)
+        tasks.run_dnsserver_find(self.master, self.replicas[0].hostname, 0)
+        tasks.run_server_del(self.master, self.replicas[0].hostname, 0)
+        tasks.run_server_find(self.master, self.replicas[0].hostname, 1)
+        tasks.run_dnsserver_find(self.master, self.replicas[0].hostname, 1)
