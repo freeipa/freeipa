@@ -384,14 +384,14 @@ def gen_server_certs(nick_base, hostname, org, ca=None):
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
                 x509.NameAttribute(NameOID.COMMON_NAME, hostname)
              ]),
-             ca
+             ca, dns_name=hostname
              )
     gen_cert(profile_server, nick_base + u'-badname',
              x509.Name([
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
                 x509.NameAttribute(NameOID.COMMON_NAME, u'not-' + hostname)
              ]),
-             ca
+             ca, dns_name=u'not-' + hostname
              )
     gen_cert(profile_server, nick_base + u'-altname',
              x509.Name([
@@ -407,7 +407,7 @@ def gen_server_certs(nick_base, hostname, org, ca=None):
                                    u'Expired'),
                 x509.NameAttribute(NameOID.COMMON_NAME, hostname)
              ]),
-             ca, warp=-2 * YEAR
+             ca, dns_name=hostname, warp=-2 * YEAR
              )
     gen_cert(profile_server, nick_base + u'-badusage',
              x509.Name([
@@ -416,7 +416,7 @@ def gen_server_certs(nick_base, hostname, org, ca=None):
                                    u'Bad Usage'),
                 x509.NameAttribute(NameOID.COMMON_NAME, hostname)
              ]),
-             ca, badusage=True
+             ca, dns_name=hostname, badusage=True
              )
     revoked = gen_cert(profile_server, nick_base + u'-revoked',
                        x509.Name([
@@ -425,7 +425,7 @@ def gen_server_certs(nick_base, hostname, org, ca=None):
                                               u'Revoked'),
                            x509.NameAttribute(NameOID.COMMON_NAME, hostname)
                        ]),
-                       ca
+                       ca, dns_name=hostname
                        )
     revoke_cert(ca, revoked.cert.serial_number)
 
