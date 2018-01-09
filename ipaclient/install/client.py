@@ -1194,8 +1194,7 @@ def get_iface_from_ip(ip_addr):
             for ip in if_addrs.get(family, []):
                 if ip['addr'] == ip_addr:
                     return interface
-    else:
-        raise RuntimeError("IP %s not assigned to any interface." % ip_addr)
+    raise RuntimeError("IP %s not assigned to any interface." % ip_addr)
 
 
 def get_local_ipaddresses(iface=None):
@@ -1275,9 +1274,11 @@ def update_dns(server, hostname, options):
         ips = get_local_ipaddresses()
     except CalledProcessError as e:
         logger.error("Cannot update DNS records. %s", e)
-        logger.debug("Unable to get local IP addresses.")
+        ips = None
 
     if options.all_ip_addresses:
+        if ips is None:
+            raise RuntimeError("Unable to get local IP addresses.")
         update_ips = ips
     elif options.ip_addresses:
         update_ips = []
@@ -1388,6 +1389,7 @@ def verify_dns_update(fqdn, ips):
 def get_server_connection_interface(server):
     """Connect to IPA server, get all ip addresses of interface used to connect
     """
+    last_error = None
     for res in socket.getaddrinfo(
             server, 389, socket.AF_UNSPEC, socket.SOCK_STREAM):
         af, socktype, proto, _canonname, sa = res
@@ -1395,7 +1397,6 @@ def get_server_connection_interface(server):
             s = socket.socket(af, socktype, proto)
         except socket.error as e:
             last_error = e
-            s = None
             continue
         try:
             s.connect(sa)
@@ -1411,11 +1412,11 @@ def get_server_connection_interface(server):
             return get_iface_from_ip(ip)
         except (CalledProcessError, RuntimeError) as e:
             last_error = e
-    else:
-        msg = "Cannot get server connection interface"
-        if last_error:
-            msg += ": %s" % (last_error)
-        raise RuntimeError(msg)
+
+    msg = "Cannot get server connection interface"
+    if last_error:
+        msg += ": %s" % last_error
+    raise RuntimeError(msg)
 
 
 def client_dns(server, hostname, options):
@@ -1777,8 +1778,8 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                                       override)
         else:
             # Auth with user credentials
+            url = ldap_url()
             try:
-                url = ldap_url()
                 ca_certs = get_ca_certs_from_ldap(server, basedn, realm)
                 validate_new_ca_certs(existing_ca_certs, ca_certs, interactive)
             except errors.FileError as e:
@@ -1821,7 +1822,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
 
         if ca_certs is None and existing_ca_certs is None:
             raise errors.InternalError(u"expected CA cert file '%s' to "
-                                       u"exist, but it's absent" % (ca_file))
+                                       u"exist, but it's absent" % ca_file)
 
     if ca_certs is not None:
         try:
@@ -2427,9 +2428,10 @@ def _install(options):
     if not options.on_master:
         nolog = tuple()
         # First test out the kerberos configuration
+        fd, krb_name = tempfile.mkstemp()
+        os.close(fd)
+        ccache_dir = tempfile.mkdtemp(prefix='krbcc')
         try:
-            (krb_fd, krb_name) = tempfile.mkstemp()
-            os.close(krb_fd)
             configure_krb5_conf(
                 cli_realm=cli_realm,
                 cli_domain=cli_domain,
@@ -2442,7 +2444,6 @@ def _install(options):
                 configure_sssd=options.sssd,
                 force=options.force)
             env['KRB5_CONFIG'] = krb_name
-            ccache_dir = tempfile.mkdtemp(prefix='krbcc')
             ccache_name = os.path.join(ccache_dir, 'ccache')
             join_args = [paths.SBIN_IPA_JOIN,
                          "-s", cli_server[0],
@@ -2799,7 +2800,7 @@ def _install(options):
     nscd = services.knownservices.nscd
     if nscd.is_installed():
         save_state(nscd, statestore)
-
+        nscd_service_action = None
         try:
             if options.sssd:
                 nscd_service_action = 'stop'

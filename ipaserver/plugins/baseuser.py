@@ -529,7 +529,7 @@ class baseuser_mod(LDAPUpdate):
             if 'krbcanonicalname' not in old_entry:
                 return
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         self.context.krbprincipalname = old_entry.get(
             'krbprincipalname', [])

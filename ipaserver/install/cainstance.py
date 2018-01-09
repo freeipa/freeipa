@@ -1370,7 +1370,7 @@ def replica_ca_install_check(config, promote):
             'Please run copy-schema-to-ca.py on all CA masters.\n'
             'If you are certain that this is a false positive, use '
             '--skip-schema-check.')
-        exit('IPA schema missing on master CA directory server')
+        sys.exit('IPA schema missing on master CA directory server')
 
 
 def __update_entry_from_cert(make_filter, make_entry, cert):
@@ -1541,12 +1541,14 @@ def ensure_entry(dn, **attrs):
 def configure_profiles_acl():
     """Allow the Certificate Manager Agents group to modify profiles."""
     new_rules = [
-        'certServer.profile.configuration:read,modify:allow (read,modify) '
-        'group="Certificate Manager Agents":'
-        'Certificate Manager agents may modify (create/update/delete) and read profiles',
+        'certServer.profile.configuration:read,modify' +
+        ':allow (read,modify) group="Certificate Manager Agents"' +
+        ':Certificate Manager agents may modify (create/update/delete) ' +
+        'and read profiles',
 
-        'certServer.ca.account:login,logout:allow (login,logout) '
-        'user="anybody":Anybody can login and logout',
+        'certServer.ca.account:login,logout' +
+        ':allow (login,logout) user="anybody"' +
+        ':Anybody can login and logout',
     ]
     return __add_acls(new_rules)
 
@@ -1554,20 +1556,20 @@ def configure_profiles_acl():
 def configure_lightweight_ca_acls():
     """Allow Certificate Manager Agents to manage lightweight CAs."""
     new_rules = [
-        'certServer.ca.authorities:list,read'
-        ':allow (list,read) user="anybody"'
+        'certServer.ca.authorities:list,read' +
+        ':allow (list,read) user="anybody"' +
         ':Anybody may list and read lightweight authorities',
 
-        'certServer.ca.authorities:create,modify'
-        ':allow (create,modify) group="Administrators"'
+        'certServer.ca.authorities:create,modify' +
+        ':allow (create,modify) group="Administrators"' +
         ':Administrators may create and modify lightweight authorities',
 
-        'certServer.ca.authorities:delete'
-        ':allow (delete) group="Administrators"'
+        'certServer.ca.authorities:delete' +
+        ':allow (delete) group="Administrators"' +
         ':Administrators may delete lightweight authorities',
 
-        'certServer.ca.authorities:create,modify,delete'
-        ':allow (create,modify,delete) group="Certificate Manager Agents"'
+        'certServer.ca.authorities:create,modify,delete' +
+        ':allow (create,modify,delete) group="Certificate Manager Agents"' +
         ':Certificate Manager Agents may manage lightweight authorities',
     ]
     return __add_acls(new_rules)

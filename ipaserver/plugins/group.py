@@ -659,17 +659,27 @@ class group_detach(LDAPQuery):
         try:
             user_attrs = ldap.get_entry(user_dn)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
-        is_managed = self.obj.has_objectclass(user_attrs['objectclass'], 'mepmanagedentry')
+            raise self.obj.handle_not_found(*keys)
+        is_managed = self.obj.has_objectclass(
+            user_attrs['objectclass'], 'mepmanagedentry'
+        )
         if (not ldap.can_write(user_dn, "objectclass") or
-            not (ldap.can_write(user_dn, "mepManagedEntry")) and is_managed):
-            raise errors.ACIError(info=_('not allowed to modify user entries'))
+                not ldap.can_write(user_dn, "mepManagedEntry")
+                and is_managed):
+            raise errors.ACIError(
+                info=_('not allowed to modify user entries')
+            )
 
         group_attrs = ldap.get_entry(group_dn)
-        is_managed = self.obj.has_objectclass(group_attrs['objectclass'], 'mepmanagedby')
+        is_managed = self.obj.has_objectclass(
+            group_attrs['objectclass'], 'mepmanagedby'
+        )
         if (not ldap.can_write(group_dn, "objectclass") or
-            not (ldap.can_write(group_dn, "mepManagedBy")) and is_managed):
-            raise errors.ACIError(info=_('not allowed to modify group entries'))
+                not ldap.can_write(group_dn, "mepManagedBy")
+                and is_managed):
+            raise errors.ACIError(
+                info=_('not allowed to modify group entries')
+            )
 
         objectclasses = user_attrs['objectclass']
         try:

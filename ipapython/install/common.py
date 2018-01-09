@@ -63,7 +63,7 @@ class Step(Installable):
         raise AttributeError('parent')
 
     def _install(self):
-        for _nothing in self._installer(self.parent):
+        for unused in self._installer(self.parent):
             yield from_(super(Step, self)._install())
 
     @staticmethod
@@ -71,7 +71,7 @@ class Step(Installable):
         yield
 
     def _uninstall(self):
-        for _nothing in self._uninstaller(self.parent):
+        for unused in self._uninstaller(self.parent):
             yield from_(super(Step, self)._uninstall())
 
     @staticmethod

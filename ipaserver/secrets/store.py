@@ -225,9 +225,9 @@ class PEMFileHandler(DBMAPHandler):
         v = json_decode(value)
         data = b64decode(v['pkcs12 data'])
         password = v['export password']
+        fd, tmpdata = tempfile.mkstemp(dir=paths.TMP)
+        os.close(fd)
         try:
-            _fd, tmpdata = tempfile.mkstemp(dir=paths.TMP)
-            os.close(_fd)
             with open(tmpdata, 'wb') as f:
                 f.write(data)
 

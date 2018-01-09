@@ -694,6 +694,7 @@ class permission(baseldap.LDAPObject):
                 acientry = ldap.get_entry(location, ['aci'])
             except errors.NotFound:
                 acientry = ldap.make_entry(location)
+
         acis = acientry.get('aci', ())
         for acistring in acis:
             try:
@@ -704,12 +705,12 @@ class permission(baseldap.LDAPObject):
                 continue
             if aci.name == wanted_aciname:
                 return acientry, acistring
-        else:
-            if notfound_ok:
-                return acientry, None
-            raise errors.NotFound(
-                reason=_('The ACI for permission %(name)s was not found '
-                         'in %(dn)s ') % {'name': name, 'dn': location})
+
+        if notfound_ok:
+            return acientry, None
+        raise errors.NotFound(
+            reason=_('The ACI for permission %(name)s was not found '
+                     'in %(dn)s ') % {'name': name, 'dn': location})
 
     def upgrade_permission(self, entry, target_entry=None,
                            output_only=False, cached_acientry=None):
@@ -1061,7 +1062,7 @@ class permission_del(baseldap.LDAPDelete):
         try:
             entry = ldap.get_entry(dn, attrs_list=self.obj.default_attributes)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if not options.get('force'):
             self.obj.reject_system(entry)
@@ -1072,7 +1073,7 @@ class permission_del(baseldap.LDAPDelete):
         try:
             self.obj.remove_aci(entry)
         except errors.NotFound:
-            errors.NotFound(
+            raise errors.NotFound(
                 reason=_('ACI of permission %s was not found') % keys[0])
 
         return dn
@@ -1105,7 +1106,7 @@ class permission_mod(baseldap.LDAPUpdate):
             attrs_list = self.obj.default_attributes
             old_entry = ldap.get_entry(dn, attrs_list=attrs_list)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         self.obj.reject_system(old_entry)
         self.obj.upgrade_permission(old_entry)

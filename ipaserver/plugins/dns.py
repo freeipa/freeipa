@@ -2164,7 +2164,7 @@ class DNSZoneBase_del(LDAPDelete):
     def pre_callback(self, ldap, dn, *nkeys, **options):
         assert isinstance(dn, DN)
         if not _check_DN_objectclass(ldap, dn, self.obj.object_class):
-            self.obj.handle_not_found(*nkeys)
+            raise self.obj.handle_not_found(*nkeys)
         return dn
 
     def post_callback(self, ldap, dn, *keys, **options):
@@ -2227,7 +2227,7 @@ class DNSZoneBase_show(LDAPRetrieve):
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         if not _check_DN_objectclass(ldap, dn, self.obj.object_class):
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -2246,10 +2246,10 @@ class DNSZoneBase_disable(LDAPQuery):
         try:
             entry = ldap.get_entry(dn, ['idnszoneactive', 'objectclass'])
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if not _check_entry_objectclass(entry, self.obj.object_class):
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         entry['idnszoneactive'] = ['FALSE']
 
@@ -2271,10 +2271,10 @@ class DNSZoneBase_enable(LDAPQuery):
         try:
             entry = ldap.get_entry(dn, ['idnszoneactive', 'objectclass'])
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if not _check_entry_objectclass(entry, self.obj.object_class):
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         entry['idnszoneactive'] = ['TRUE']
 
@@ -2297,10 +2297,11 @@ class DNSZoneBase_add_permission(LDAPQuery):
         try:
             entry_attrs = ldap.get_entry(dn, ['objectclass'])
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
         else:
-            if not _check_entry_objectclass(entry_attrs, self.obj.object_class):
-                self.obj.handle_not_found(*keys)
+            if not _check_entry_objectclass(
+                    entry_attrs, self.obj.object_class):
+                raise self.obj.handle_not_found(*keys)
 
         permission_name = self.obj.permission_name(keys[-1])
 
@@ -2353,10 +2354,10 @@ class DNSZoneBase_remove_permission(LDAPQuery):
         try:
             entry = ldap.get_entry(dn, ['managedby', 'objectclass'])
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
         else:
             if not _check_entry_objectclass(entry, self.obj.object_class):
-                self.obj.handle_not_found(*keys)
+                raise self.obj.handle_not_found(*keys)
 
         entry['managedby'] = None
 
@@ -2863,13 +2864,13 @@ class dnszone_mod(DNSZoneBase_mod):
     takes_options = DNSZoneBase_mod.takes_options + (
         Flag('force',
              label=_('Force'),
-             doc=_('Force nameserver change even if nameserver not in DNS'),
-        ),
+             doc=_('Force nameserver change even if nameserver not in DNS')),
     )
 
-    def pre_callback(self, ldap, dn, entry_attrs, attrs_list,  *keys, **options):
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list,
+                     *keys, **options):
         if not _check_DN_objectclass(ldap, dn, self.obj.object_class):
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
         if 'idnssoamname' in entry_attrs:
             nameserver = entry_attrs['idnssoamname']
             if nameserver:
@@ -3146,10 +3147,11 @@ class dnsrecord(LDAPObject):
         try:
             entry = ldap.get_entry(dn, ['objectclass'])
         except errors.NotFound:
-            parent_object.handle_not_found(zone)
+            raise parent_object.handle_not_found(zone)
         else:
             # only master zones can contain records
-            if 'idnszone' not in [x.lower() for x in entry.get('objectclass', [])]:
+            if 'idnszone' not in [x.lower()
+                                  for x in entry.get('objectclass', [])]:
                 raise errors.ValidationError(
                     name='dnszoneidnsname',
                     error=_(u'only master zones can contain records')
@@ -3424,8 +3426,7 @@ class dnsrecord(LDAPObject):
             time.sleep(period)
 
         # Maximum number of attempts was reached
-        else:
-            raise errors.DNSDataMismatch(expected=ldap_rrset, got=dns_rrset)
+        raise errors.DNSDataMismatch(expected=ldap_rrset, got=dns_rrset)
 
     def wait_for_modified_attrs(self, entry_attrs, dns_name, dns_domain):
         '''Wait until DNS resolver returns up-to-date answer for given entry
@@ -3751,7 +3752,7 @@ class dnsrecord_mod(LDAPUpdate):
         try:
             old_entry = ldap.get_entry(dn, _record_attributes)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if updated_attrs:
             for attr in updated_attrs:
@@ -3876,7 +3877,7 @@ class dnsrecord_del(LDAPUpdate):
         try:
             old_entry = ldap.get_entry(dn, _record_attributes)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         for attr in entry_attrs.keys():
             if attr not in _record_attributes:
@@ -4407,10 +4408,10 @@ class dnsforwardzone_mod(DNSZoneBase_mod):
         try:
             entry = ldap.get_entry(dn)
         except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         if not _check_entry_objectclass(entry, self.obj.object_class):
-            self.obj.handle_not_found(*keys)
+            raise self.obj.handle_not_found(*keys)
 
         policy = self.obj.default_forward_policy
         forwarders = []
