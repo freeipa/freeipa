@@ -70,6 +70,15 @@ class ArgsManglePlugin(object):
                 # a file or directory relative to ipatests package
                 args[idx] = sep.join((os.path.join(HERE, filename), suffix))
 
+        # replace ignores, e.g. "--ignore test_integration" is changed to
+        # "--ignore path/to/ipatests/test_integration"
+        if ns.ignore:
+            for ignore in ns.ignore:
+                idx = args.index(ignore)
+                if os.path.exists(ignore):
+                    continue
+                args[idx] = os.path.join(HERE, ignore)
+
         # rebuild early_config's known args with new args. The known args
         # are used for initial conftest.py from ipatests, which adds
         # additional arguments.
