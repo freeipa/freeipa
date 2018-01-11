@@ -469,6 +469,7 @@ class HTTPInstance(service.Service):
             try:
                 certmonger.request_and_wait_for_cert(
                     certpath=db.secdir,
+                    storage='NSSDB',
                     nickname=self.cert_nickname,
                     principal=self.principal,
                     passwd_fname=db.passwd_fname,
@@ -476,7 +477,8 @@ class HTTPInstance(service.Service):
                     ca='IPA',
                     profile=dogtag.DEFAULT_PROFILE,
                     dns=[self.fqdn],
-                    post_command='restart_httpd')
+                    post_command='restart_httpd'
+                )
             finally:
                 if prev_helper is not None:
                     certmonger.modify_ca_helper('IPA', prev_helper)
