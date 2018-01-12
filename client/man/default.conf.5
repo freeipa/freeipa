@@ -107,6 +107,9 @@ This is used in development and is generally a detected value. It means that the
 .B interactive <boolean>
 Specifies whether values should be prompted for or not. The default is True.
 .TP
+.B kinit_lifetime <time duration spec>
+Controls the lifetime of ticket obtained by users authenticating to the WebGUI using login/password. The expected format is a time duration string. Examples are "2 hours", "1h:30m", "10 minutes", "5min, 30sec". When the parameter is not set in default.conf, the ticket will have a duration inherited from the default value for kerberos clients, that can be set as ticket_lifetime in krb5.conf. When the ticket lifetime has expired, the ticket is not valid anymore and the GUI will prompt to re-login with a message "Your session has expired. Please re-login."
+.TP
 .B ldap_uri <URI>
 Specifies the URI of the IPA LDAP server to connect to. The URI scheme may be one of \fBldap\fR or \fBldapi\fR. The default is to use ldapi, e.g. ldapi://%2fvar%2frun%2fslapd\-EXAMPLE\-COM.socket
 .TP
@@ -156,12 +159,6 @@ Specifies the name of the CA back end to use. The current options are \fBdogtag\
 .TP
 .B realm <realm>
 Specifies the Kerberos realm.
-.TP
-.B session_auth_duration <time duration spec>
-Specifies the length of time authentication credentials cached in the session are valid. After the duration expires credentials will be automatically reacquired. Examples are "2 hours", "1h:30m", "10 minutes", "5min, 30sec".
-.TP
-.B session_duration_type <inactivity_timeout|from_start>
-Specifies how the expiration of a session is computed. With \fBinactivity_timeout\fR the expiration time is advanced by the value of session_auth_duration everytime the user accesses the service. With \fBfrom_start\fR the session expiration is the start of the user's session plus the value of session_auth_duration.
 .TP
 .B server <hostname>
 Specifies the IPA Server hostname.

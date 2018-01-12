@@ -157,11 +157,6 @@ DEFAULT_CONFIG = (
     ('webui_prod', True),
 
     # Session stuff:
-
-    # Maximum time before a session expires forcing credentials to be reacquired.
-    ('session_auth_duration', '20 minutes'),
-    # How a session expiration is computed, see SessionManager.set_session_expiration_time()
-    ('session_duration_type', 'inactivity_timeout'),
     ('kinit_lifetime', None),
 
     # Debugging:

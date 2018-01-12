@@ -67,8 +67,6 @@ NAMESPACE_ATTRS = ['Command', 'Object', 'Method', fake_backend, 'Updater',
 fake_api_env = {'env': [
     'host',
     'realm',
-    'session_auth_duration',
-    'session_duration_type',
     'kinit_lifetime',
 ]}
 
