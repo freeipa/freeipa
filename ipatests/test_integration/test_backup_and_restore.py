@@ -65,6 +65,15 @@ def check_admin_in_ldap(host):
 def check_admin_in_cli(host):
     result = host.run_command(['ipa', 'user-show', 'admin'])
     assert 'User login: admin' in result.stdout_text, result.stdout_text
+
+    # LDAP do not guarantee any order, so the test cannot assume it. Based on
+    # that, the code bellow order the 'Member of groups' field to able to
+    # assert it latter.
+    data = dict(re.findall("\W*(.+):\W*(.+)\W*", result.stdout_text))
+    data["Member of groups"] = ', '.join(sorted(data["Member of groups"]
+                                                .split(", ")))
+    result.stdout_text = ''.join([' {}: {}\n'.format(k, v)
+                                  for k, v in data.items()])
     return result
 
 
