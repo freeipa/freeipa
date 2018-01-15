@@ -203,6 +203,30 @@ class TestBackupAndRestore(IntegrationTest):
         assert 'httpd_can_network_connect --> on' in result.stdout_text
         assert 'httpd_manage_ipa --> on' in result.stdout_text
 
+    def test_restore_with_python2(self):
+        """ipa-restore was failing when ran with python2 with the error
+        [Errno 2] No such file or directory:
+        u'/etc/dirsrv/slapd-IPADOMAIN-COM/dse.ldif'
+        The ipa-restore command failed.
+        See /var/log/iparestore.log for more information
+
+        This test checks if ipa-restore success with python2
+
+        related ticket: https://pagure.io/freeipa/issue/7231"""
+
+        with restore_checker(self.master):
+            backup_path = backup(self.master)
+
+            self.master.run_command(['ipa-server-install',
+                                     '--uninstall',
+                                     '-U'])
+
+            dirman_password = self.master.config.dirman_password
+            arg = ['python2', 'ipa-restore', backup_path]
+            cmd = self.master.run_command(arg,
+                                          stdin_text=dirman_password + '\nyes')
+            assert cmd.returncode == 0
+
 
 class BaseBackupAndRestoreWithDNS(IntegrationTest):
     """
