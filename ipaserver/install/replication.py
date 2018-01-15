@@ -33,6 +33,7 @@ import ldap
 from ipalib import api, errors
 from ipalib.cli import textui
 from ipapython.ipa_log_manager import root_logger
+from ipalib.text import _
 from ipapython import ipautil, ipaldap
 from ipapython.admintool import ScriptError
 from ipapython.dn import DN
@@ -1625,6 +1626,11 @@ class ReplicationManager(object):
         Disable the replication agreement to hostname.
         """
         entry = self.get_replication_agreement(hostname)
+        if not entry:
+            raise errors.NotFound(reason=_(
+                "Replication agreement for %(hostname)s not found") % {
+                    'hostname': hostname
+                })
         entry['nsds5ReplicaEnabled'] = 'off'
 
         try:
@@ -1639,6 +1645,11 @@ class ReplicationManager(object):
         Note: for replication to work it needs to be enabled both ways.
         """
         entry = self.get_replication_agreement(hostname)
+        if not entry:
+            raise errors.NotFound(reason=_(
+                "Replication agreement for %(hostname)s not found") % {
+                    'hostname': hostname
+                })
         entry['nsds5ReplicaEnabled'] = 'on'
 
         try:
