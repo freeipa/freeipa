@@ -1200,8 +1200,11 @@ def re_initialize(realm, thishost, fromhost, dirman_passwd, nolookup=False):
         repl = replication.ReplicationManager(realm, fromhost, dirman_passwd)
         agreement = repl.get_replication_agreement(thishost)
 
-        thisrepl.enable_agreement(fromhost)
-        repl.enable_agreement(thishost)
+        try:
+            thisrepl.enable_agreement(fromhost)
+            repl.enable_agreement(thishost)
+        except errors.NotFound as e:
+            sys.exit(e)
 
         repl.force_sync(repl.conn, thishost)
 
