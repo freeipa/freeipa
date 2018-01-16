@@ -369,6 +369,8 @@ class Service(object):
 
         This server cert should be in DER format.
         """
+        if self.cert is None:
+            raise ValueError("{} has no cert".format(self.service_name))
         dn = DN(('krbprincipalname', self.principal), ('cn', 'services'),
                 ('cn', 'accounts'), self.suffix)
         entry = api.Backend.ldap2.get_entry(dn)

@@ -43,6 +43,7 @@ steps:
       systemd_journal.log
       `find daemons -name '*.log' -print`
   - chown ${uid}:${gid} ${container_working_dir}/var_log.tar
+  - ls -laZ /etc/dirsrv/slapd-*/ /etc/httpd/alias/ /etc/pki/pki-tomcat/alias/ || true
   configure:
   - ./autogen.sh
   install_packages:

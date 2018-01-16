@@ -45,7 +45,9 @@ from ipalib.errors import CertificateOperationError
 from ipalib.install import certstore
 from ipalib.util import strip_csr_header
 from ipalib.text import _
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
+
 
 logger = logging.getLogger(__name__)
 
@@ -147,14 +149,10 @@ class CertDB(object):
                  dbtype='auto'):
         self.nssdb = NSSDatabase(nssdir, dbtype=dbtype)
 
-        self.secdir = nssdir
         self.realm = realm
 
         self.noise_fname = os.path.join(self.secdir, "noise.txt")
 
-        self.certdb_fname = self.nssdb.certdb
-        self.keydb_fname = self.nssdb.keydb
-        self.secmod_fname = self.nssdb.secmod
         self.pk12_fname = os.path.join(self.secdir, "cacert.p12")
         self.pin_fname = os.path.join(self.secdir + "pin.txt")
         self.reqdir = None
@@ -205,6 +203,27 @@ class CertDB(object):
     ca_subject = ipautil.dn_attribute_property('_ca_subject')
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
+    # migration changes paths, just forward attribute lookup to nssdb
+    @property
+    def secdir(self):
+        return self.nssdb.secdir
+
+    @property
+    def dbtype(self):
+        return self.nssdb.dbtype
+
+    @property
+    def certdb_fname(self):
+        return self.nssdb.certdb
+
+    @property
+    def keydb_fname(self):
+        return self.nssdb.keydb
+
+    @property
+    def secmod_fname(self):
+        return self.nssdb.secmod
+
     @property
     def passwd_fname(self):
         return self.nssdb.pwd_file
@@ -213,10 +232,7 @@ class CertDB(object):
         """
         Checks whether all NSS database files + our pwd_file exist
         """
-        for f in self.nssdb.filenames:
-            if not os.path.exists(f):
-                return False
-        return True
+        return self.nssdb.exists()
 
     def __del__(self):
         if self.reqdir is not None:
@@ -261,6 +277,9 @@ class CertDB(object):
     def run_certutil(self, args, stdin=None, **kwargs):
         return self.nssdb.run_certutil(args, stdin, **kwargs)
 
+    def run_modutil(self, args, stdin=None, **kwargs):
+        return self.nssdb.run_modutil(args, stdin, **kwargs)
+
     def create_noise_file(self):
         if os.path.isfile(self.noise_fname):
             os.remove(self.noise_fname)
@@ -278,8 +297,10 @@ class CertDB(object):
                 f.write(ipautil.ipa_generate_password())
 
     def create_certdbs(self):
-        self.nssdb.create_db(user=self.user, group=self.group, mode=self.mode,
-                             backup=True)
+        self.nssdb.create_db(
+            user=self.user, group=self.group, mode=self.mode,
+            backup=True
+        )
         self.set_perms(self.passwd_fname, write=True)
 
     def restore(self):
@@ -669,6 +690,49 @@ class CertDB(object):
                                % (nickname, self.secdir))
 
         return is_ipa_issued_cert(api, cert)
+
+    def disable_system_trust(self):
+        """Disable system trust module of NSSDB
+        """
+        name = 'Root Certs'
+        try:
+            result = self.run_modutil(
+                ['-force', '-list', name],
+                env={},
+                capture_output=True
+            )
+        except ipautil.CalledProcessError as e:
+            if e.returncode == 29:  # ERROR: Module not found in database.
+                logger.debug(
+                    'Module %s not available, treating as disabled', name)
+                return False
+            raise
+
+        if 'Status: Enabled' in result.output:
+            self.run_modutil(
+                ['-force', '-disable', name],
+                env={}
+            )
+            return True
+
+        return False
+
+    def needs_upgrade_format(self):
+        """Check if NSSDB file format needs upgrade
+
+        Only upgrade if it's an existing dbm database and default
+        database type is no 'dbm'.
+        """
+        return (
+            self.nssdb.dbtype == 'dbm' and
+            self.nssdb.dbtype != constants.NSS_DEFAULT_DBTYPE and
+            self.exists()
+        )
+
+    def upgrade_format(self):
+        """Upgrade NSSDB to new file format
+        """
+        self.nssdb.convert_db()
 
 
 class _CrossProcessLock(object):

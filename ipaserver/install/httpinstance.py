@@ -361,7 +361,8 @@ class HTTPInstance(service.Service):
                     ca='IPA',
                     profile=dogtag.DEFAULT_PROFILE,
                     dns=[self.fqdn],
-                    post_command='restart_httpd'
+                    post_command='restart_httpd',
+                    storage='FILE',
                 )
             finally:
                 if prev_helper is not None:

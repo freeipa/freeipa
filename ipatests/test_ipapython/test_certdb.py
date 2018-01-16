@@ -30,11 +30,13 @@ def test_dbm_tmp():
 
         for filename in nssdb.filenames:
             assert not os.path.isfile(filename)
+        assert not nssdb.exists()
 
         nssdb.create_db()
         for filename in nssdb.filenames:
             assert os.path.isfile(filename)
             assert os.path.dirname(filename) == nssdb.secdir
+        assert nssdb.exists()
 
         assert os.path.basename(nssdb.certdb) == 'cert8.db'
         assert nssdb.certdb in nssdb.filenames
@@ -48,11 +50,13 @@ def test_sql_tmp():
 
         for filename in nssdb.filenames:
             assert not os.path.isfile(filename)
+        assert not nssdb.exists()
 
         nssdb.create_db()
         for filename in nssdb.filenames:
             assert os.path.isfile(filename)
             assert os.path.dirname(filename) == nssdb.secdir
+        assert nssdb.exists()
 
         assert os.path.basename(nssdb.certdb) == 'cert9.db'
         assert nssdb.certdb in nssdb.filenames
@@ -65,6 +69,7 @@ def test_convert_db():
         assert nssdb.dbtype == 'dbm'
 
         nssdb.create_db()
+        assert nssdb.exists()
 
         create_selfsigned(nssdb)
 
@@ -74,6 +79,7 @@ def test_convert_db():
         assert len(oldkeys) == 1
 
         nssdb.convert_db()
+        assert nssdb.exists()
 
         assert nssdb.dbtype == 'sql'
         newcerts = nssdb.list_certs()
