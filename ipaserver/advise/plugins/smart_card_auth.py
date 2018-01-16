@@ -315,7 +315,8 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
 
     def run_authconfig_to_configure_smart_card_auth(self):
         self.log.exit_on_failed_command(
-            'authconfig --enablesmartcard --smartcardmodule=sssd --updateall',
+             'authconfig --enablesssd --enablesssdauth --enablesmartcard '
+             '--smartcardmodule=sssd --smartcardaction=1 --updateall',
             [
                 'Failed to configure Smart Card authentication in SSSD'
             ]
