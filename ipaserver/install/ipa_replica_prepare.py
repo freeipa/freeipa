@@ -569,7 +569,7 @@ class ReplicaPrepare(admintool.AdminTool):
                 installutils.remove_file(pkcs12_fname)
                 installutils.remove_file(passwd_fname)
 
-            for fname in (certdb.NSS_SQL_FILES + certdb.NSS_SQL_FILES):
+            for fname in (certdb.NSS_DBM_FILES + certdb.NSS_SQL_FILES):
                 self.remove_info_file(fname)
             self.remove_info_file("noise.txt")
 
