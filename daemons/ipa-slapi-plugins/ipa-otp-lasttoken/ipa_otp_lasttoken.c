@@ -105,6 +105,48 @@ static bool sdn_is_only_enabled_token(Slapi_DN *target_sdn, const char *user_dn)
     return result;
 }
 
+static bool is_otp_enabled(const char *user_dn)
+{
+    char *attrs[] = { "ipaUserAuthType", NULL };
+    Slapi_Entry *entry = NULL;
+    Slapi_DN *sdn;
+    const Slapi_DN *base;
+    uint32_t authtypes;
+    int search_result = 0;
+    char *authConfigDN;
+
+    sdn = slapi_sdn_new_dn_byval(user_dn);
+    if (sdn == NULL) {
+        LOG_TRACE("File '%s' line %d: Unable to convert '%s' to Slapi_DN. ",
+                  __FILE__, __LINE__, user_dn);
+        return false;
+    }
+
+    base = slapi_get_suffix_by_dn(sdn);
+
+    authConfigDN = slapi_ch_smprintf("cn=ipaConfig,cn=etc,%s",
+                                     slapi_sdn_get_dn(base));
+    slapi_sdn_free(&sdn);
+    sdn = slapi_sdn_new_dn_byval(authConfigDN);
+
+    search_result = slapi_search_internal_get_entry(sdn, attrs, &entry,
+            otp_config_plugin_id(otp_config));
+    if (search_result != LDAP_SUCCESS) {
+        LOG_TRACE("File '%s' line %d: Unable to access LDAP entry '%s'. "
+                "Perhaps it doesn't exist? Error code: %d\n", __FILE__,
+                __LINE__, slapi_sdn_get_dn(sdn), search_result);
+    }
+
+    slapi_sdn_free(&sdn);
+    if (entry == NULL)
+        return false;
+
+    authtypes = otp_config_auth_types(otp_config, entry);
+    slapi_entry_free(entry);
+
+    return authtypes & OTP_CONFIG_AUTH_TYPE_OTP;
+}
+
 static bool is_pwd_enabled(const char *user_dn)
 {
     char *attrs[] = { "ipaUserAuthType", NULL };
@@ -158,6 +200,9 @@ static bool is_allowed(Slapi_PBlock *pb, Slapi_Entry *entry)
 
     if (!sdn_is_only_enabled_token(target_sdn, bind_dn))
         return true;
+
+    if (is_otp_enabled(bind_dn))
+        return false;
 
     if (is_pwd_enabled(bind_dn))
         return true;
