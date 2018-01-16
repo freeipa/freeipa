@@ -523,8 +523,12 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
         {
             'name': 'comment',
             'type': 'comment',
-            'value': '   URI, BASE and TLS_CACERT have been added if they '
-                     'were not set.'
+            'value': '   URI, BASE, TLS_CACERT and SASL_MECH'
+        },
+        {
+            'name': 'comment',
+            'type': 'comment',
+            'value': '   have been added if they were not set.'
         },
         {
             'name': 'comment',
@@ -574,6 +578,12 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
             'name': 'TLS_CACERT',
             'type': 'option',
             'value': paths.IPA_CA_CRT
+        },
+        {
+            'action': 'addifnotset',
+            'name': 'SASL_MECH',
+            'type': 'option',
+            'value': 'GSSAPI'
         },
     ]
 
