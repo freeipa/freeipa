@@ -217,6 +217,7 @@ def install_check(standalone, replica_config, options):
         dsdb = certs.CertDB(
             realm_name, nssdir=dirname, subject_base=options._subject_base)
 
+        # Check that we can add our CA cert to DS and PKI NSS databases
         for db in (cadb, dsdb):
             if not db.exists():
                 continue
