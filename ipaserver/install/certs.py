@@ -639,11 +639,14 @@ class CertDB(object):
         return self.nssdb.export_pem_cert(nickname, location)
 
     def request_service_cert(self, nickname, principal, host):
-        certmonger.request_and_wait_for_cert(certpath=self.secdir,
-                                             nickname=nickname,
-                                             principal=principal,
-                                             subject=host,
-                                             passwd_fname=self.passwd_fname)
+        certmonger.request_and_wait_for_cert(
+            certpath=self.secdir,
+            storage='NSSDB',
+            nickname=nickname,
+            principal=principal,
+            subject=host,
+            passwd_fname=self.passwd_fname
+        )
 
     def is_ipa_issued_cert(self, api, nickname):
         """
