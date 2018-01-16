@@ -29,6 +29,7 @@ from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
 from ipatests.test_integration.test_dnssec import wait_until_record_is_signed
+from ipatests.test_integration.test_simple_replication import check_replication
 from ipatests.util import assert_deepequal
 
 log = log_mgr.get_logger(__name__)
@@ -412,3 +413,58 @@ class TestBackupReinstallRestoreWithKRA(BaseBackupAndRestoreWithKRA):
     def test_full_backup_reinstall_restore_with_vault(self):
         """backup, uninstall, reinstall, restore"""
         self._full_backup_restore_with_vault(reinstall=True)
+
+
+class TestBackupAndRestoreWithReplica(IntegrationTest):
+    """Regression test for https://pagure.io/freeipa/issue/7234"""
+    num_replicas = 1
+    topology = "star"
+
+    @classmethod
+    def install(cls, mh):
+        if cls.domain_level is None:
+            domain_level = cls.master.config.domain_level
+        else:
+            domain_level = cls.domain_level
+
+        if cls.topology is None:
+            return
+        else:
+            tasks.install_topo(
+                cls.topology, cls.master, [],
+                cls.clients, domain_level
+            )
+
+    def test_full_backup_and_restore_with_replica(self):
+        replica = self.replicas[0]
+
+        with restore_checker(self.master):
+            backup_path = backup(self.master)
+
+            log.info("Backup path for %s is %s", self.master, backup_path)
+
+            self.master.run_command([
+                "ipa-server-install", "--uninstall", "-U"
+            ])
+
+            log.info("Stopping and disabling oddjobd service")
+            self.master.run_command([
+                "systemctl", "stop", "oddjobd"
+            ])
+            self.master.run_command([
+                "systemctl", "disable", "oddjobd"
+            ])
+
+            dirman_password = self.master.config.dirman_password
+            self.master.run_command(
+                ["ipa-restore", backup_path],
+                stdin_text=dirman_password + '\nyes'
+            )
+
+            status = self.master.run_command([
+                "systemctl", "status", "oddjobd"
+            ])
+            assert "active (running)" in status.stdout_text
+
+        tasks.install_replica(self.master, replica)
+        check_replication(self.master, replica, "testuser1")
