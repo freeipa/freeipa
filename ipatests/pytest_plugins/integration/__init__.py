@@ -179,8 +179,6 @@ def collect_logs(name, logs_dict, logfile_dir=None, beakerlib_plugin=None):
             else:
                 shutil.rmtree(topdirname)
 
-        logs_dict.clear()
-
 
 @pytest.fixture(scope='class')
 def class_integration_logs():
