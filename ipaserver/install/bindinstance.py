@@ -896,7 +896,7 @@ class BindInstance(service.Service):
         # dnsserver role group, this way the DNS is allowed to perform
         # DNS Updates
         dns_group = DN(('cn', 'DNS Servers'), ('cn', 'privileges'), ('cn', 'pbac'), self.suffix)
-        mod = [(ldap.MOD_ADD, 'member', dns_principal)]
+        mod = [(ldap.MOD_ADD, u'member', dns_principal)]
 
         try:
             api.Backend.ldap2.modify_s(dns_group, mod)
@@ -909,10 +909,10 @@ class BindInstance(service.Service):
 
         # bind-dyndb-ldap persistent search feature requires both size and time
         # limit-free connection
-        mod = [(ldap.MOD_REPLACE, 'nsTimeLimit', '-1'),
-               (ldap.MOD_REPLACE, 'nsSizeLimit', '-1'),
-               (ldap.MOD_REPLACE, 'nsIdleTimeout', '-1'),
-               (ldap.MOD_REPLACE, 'nsLookThroughLimit', '-1')]
+        mod = [(ldap.MOD_REPLACE, u'nsTimeLimit', b'-1'),
+               (ldap.MOD_REPLACE, u'nsSizeLimit', b'-1'),
+               (ldap.MOD_REPLACE, u'nsIdleTimeout', b'-1'),
+               (ldap.MOD_REPLACE, u'nsLookThroughLimit', b'-1')]
         try:
             api.Backend.ldap2.modify_s(dns_principal, mod)
         except Exception as e:

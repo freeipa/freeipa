@@ -4,6 +4,8 @@ import ldap
 import ldap.sasl
 import ldap.filter
 
+from ipapython.ipaldap import ldap_initialize
+
 
 class iSecLdap(object):
 
@@ -22,12 +24,12 @@ class iSecLdap(object):
     def basedn(self):
         if self._basedn is None:
             conn = self.connect()
-            r = conn.search_s('', ldap.SCOPE_BASE)
+            r = conn.search_s(u'', ldap.SCOPE_BASE)
             self._basedn = r[0][1]['defaultnamingcontext'][0].decode('utf-8')
         return self._basedn
 
     def connect(self):
-        conn = ldap.initialize(self.uri)
+        conn = ldap_initialize(self.uri)
         if self.auth_type == 'EXTERNAL':
             auth_tokens = ldap.sasl.external(None)
         elif self.auth_type == 'GSSAPI':

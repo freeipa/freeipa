@@ -147,8 +147,9 @@ def wait_for_task(conn, dn):
     """
     assert isinstance(dn, DN)
     attrlist = [
-        'nsTaskLog', 'nsTaskStatus', 'nsTaskExitCode', 'nsTaskCurrentItem',
-        'nsTaskTotalItems']
+        u'nsTaskLog', u'nsTaskStatus', u'nsTaskExitCode',
+        u'nsTaskCurrentItem', u'nsTaskTotalItems'
+    ]
     while True:
         entry = conn.get_entry(dn, attrlist)
         if entry.single_value.get('nsTaskExitCode'):
@@ -161,10 +162,10 @@ def wait_for_task(conn, dn):
 def wait_for_entry(connection, dn, timeout=7200, attr='', quiet=True):
     """Wait for entry and/or attr to show up"""
 
-    filter = "(objectclass=*)"
+    filter = u"(objectclass=*)"
     attrlist = []
     if attr:
-        filter = "(%s=*)" % attr
+        filter = u"(%s=*)" % attr
         attrlist.append(attr)
     timeout += int(time.time())
 
@@ -1076,7 +1077,9 @@ class ReplicationManager(object):
         self.ad_suffix = ""
         try:
             # Validate AD connection
-            ad_conn = ldap.initialize('ldap://%s' % ipautil.format_netloc(ad_dc_name))
+            ad_conn = ipaldap.ldap_initialize(
+                'ldap://%s' % ipautil.format_netloc(ad_dc_name)
+            )
             # the next one is to workaround bugs arounf opendalp libs+NSS db
             # we need to first specify the OPT_X_TLS_CACERTFILE and _after_
             # that initialize the context to prevent TLS connection errors:
@@ -1085,8 +1088,10 @@ class ReplicationManager(object):
             ad_conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
             ad_conn.start_tls_s()
             ad_conn.simple_bind_s(str(ad_binddn), ad_pwd)
-            res = ad_conn.search_s("", ldap.SCOPE_BASE, '(objectClass=*)',
-                                   ['defaultNamingContext'])
+            res = ad_conn.search_s(
+                u"", ldap.SCOPE_BASE, u'(objectClass=*)',
+                [u'defaultNamingContext']
+            )
             for dn,entry in res:
                 if dn == "":
                     ad_suffix = entry['defaultNamingContext'][0]

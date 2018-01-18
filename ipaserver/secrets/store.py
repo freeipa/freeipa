@@ -155,8 +155,10 @@ class DMLDAP(DBMAPHandler):
 
     def export_key(self):
         conn = self.ldap.connect()
-        r = conn.search_s('cn=config', ldap.SCOPE_BASE,
-                          attrlist=['nsslapd-rootpw'])
+        r = conn.search_s(
+            u'cn=config', ldap.SCOPE_BASE,
+            attrlist=[u'nsslapd-rootpw']
+        )
         if len(r) != 1:
             raise RuntimeError('DM Hash not found!')
         rootpw = r[0][1]['nsslapd-rootpw'][0]

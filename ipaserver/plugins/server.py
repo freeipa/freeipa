@@ -564,19 +564,19 @@ class server_del(LDAPDelete):
         s4u2proxy_subtree = DN(env.container_s4u2proxy,
                                env.basedn)
         dn1 = DN(('cn', 'ipa-http-delegation'), s4u2proxy_subtree)
-        member_principal1 = b"HTTP/%s" % master_principal
+        member_principal1 = u"HTTP/%s" % master_principal
 
         dn2 = DN(('cn', 'ipa-ldap-delegation-targets'), s4u2proxy_subtree)
-        member_principal2 = b"ldap/%s" % master_principal
+        member_principal2 = u"ldap/%s" % master_principal
 
         dn3 = DN(('cn', 'ipa-cifs-delegation-targets'), s4u2proxy_subtree)
-        member_principal3 = b"cifs/%s" % master_principal
+        member_principal3 = u"cifs/%s" % master_principal
 
         for (dn, member_principal) in ((dn1, member_principal1),
                                        (dn2, member_principal2),
                                        (dn3, member_principal3)):
             try:
-                mod = [(ldap.MOD_DELETE, 'memberPrincipal', member_principal)]
+                mod = [(ldap.MOD_DELETE, u'memberPrincipal', member_principal)]
                 conn.conn.modify_s(str(dn), mod)
             except (ldap.NO_SUCH_OBJECT, ldap.NO_SUCH_ATTRIBUTE):
                 logger.debug(

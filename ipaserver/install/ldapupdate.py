@@ -565,7 +565,7 @@ class LDAPUpdate(object):
         # Pause for a moment to give the task time to be created
         time.sleep(1)
 
-        attrlist = ['nstaskstatus', 'nstaskexitcode']
+        attrlist = [u'nstaskstatus', u'nstaskexitcode']
         entry = None
 
         while True:

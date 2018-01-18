@@ -408,7 +408,7 @@ class DNSKeySyncInstance(service.Service):
 
         dns_group = DN(('cn', 'DNS Servers'), ('cn', 'privileges'),
                        ('cn', 'pbac'), self.suffix)
-        mod = [(ldap.MOD_ADD, 'member', dnssynckey_principal_dn)]
+        mod = [(ldap.MOD_ADD, u'member', dnssynckey_principal_dn)]
 
         try:
             api.Backend.ldap2.modify_s(dns_group, mod)
@@ -422,10 +422,10 @@ class DNSKeySyncInstance(service.Service):
         # bind-dyndb-ldap persistent search feature requires both size and time
         # limit-free connection
 
-        mod = [(ldap.MOD_REPLACE, 'nsTimeLimit', '-1'),
-               (ldap.MOD_REPLACE, 'nsSizeLimit', '-1'),
-               (ldap.MOD_REPLACE, 'nsIdleTimeout', '-1'),
-               (ldap.MOD_REPLACE, 'nsLookThroughLimit', '-1')]
+        mod = [(ldap.MOD_REPLACE, u'nsTimeLimit', b'-1'),
+               (ldap.MOD_REPLACE, u'nsSizeLimit', b'-1'),
+               (ldap.MOD_REPLACE, u'nsIdleTimeout', b'-1'),
+               (ldap.MOD_REPLACE, u'nsLookThroughLimit', b'-1')]
         try:
             api.Backend.ldap2.modify_s(dnssynckey_principal_dn, mod)
         except Exception as e:

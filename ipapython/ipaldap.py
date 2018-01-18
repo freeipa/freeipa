@@ -48,7 +48,7 @@ from ipalib import errors, x509, _
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 # pylint: enable=ipa-forbidden-import
 from ipapython.ipautil import format_netloc, CIDict
-from ipapython.dn import DN
+from ipapython.dn import DN, RDN
 from ipapython.dnsutil import DNSName
 from ipapython.kerberos import Principal
 
@@ -80,9 +80,23 @@ DIRMAN_DN = DN(('cn', 'directory manager'))
 if six.PY2 and hasattr(ldap, 'LDAPBytesWarning'):
     # XXX silence python-ldap's BytesWarnings
     warnings.filterwarnings(
-        action="ignore",
+        action="always",
         category=ldap.LDAPBytesWarning,  # pylint: disable=no-member
     )
+    # See ldap.ldapobject.SimpleLDAPObject._bytesify_input
+    _LDAP_WARN_SKIP_FRAME = True
+
+
+def ldap_initialize(uri):
+    """Wrapper around ldap.initialize()
+    """
+    if hasattr(ldap, 'LDAPBytesWarning'):
+        # bytes_mode=False: strictly future-compatible
+        conn = ldap.initialize(uri, bytes_mode=False)
+    else:
+        # python-ldap < 3.0
+        conn = ldap.initialize(uri)
+    return conn
 
 
 class _ServerSchema(object):
@@ -151,14 +165,18 @@ class SchemaCache(object):
 
         try:
             try:
-                schema_entry = conn.search_s('cn=schema', ldap.SCOPE_BASE,
-                    attrlist=['attributetypes', 'objectclasses'])[0]
+                schema_entry = conn.search_s(
+                    u'cn=schema', ldap.SCOPE_BASE,
+                    attrlist=[u'attributetypes', u'objectclasses']
+                )[0]
             except ldap.NO_SUCH_OBJECT:
                 # try different location for schema
                 # openldap has schema located in cn=subschema
                 logger.debug('cn=schema not found, fallback to cn=subschema')
-                schema_entry = conn.search_s('cn=subschema', ldap.SCOPE_BASE,
-                    attrlist=['attributetypes', 'objectclasses'])[0]
+                schema_entry = conn.search_s(
+                    u'cn=subschema', ldap.SCOPE_BASE,
+                    attrlist=[u'attributetypes', u'objectclasses']
+                )[0]
         except ldap.SERVER_DOWN:
             raise errors.NetworkError(uri=url,
                                error=u'LDAP Server Down, unable to retrieve LDAP schema')
@@ -750,7 +768,7 @@ class LDAPClient(object):
     def modify_s(self, dn, modlist):
         # FIXME: for backwards compatibility only
         assert isinstance(dn, DN)
-        dn = str(dn)
+        dn = self.encode_text(dn)
         modlist = [(a, b, self.encode(c)) for a, b, c in modlist]
         return self.conn.modify_s(dn, modlist)
 
@@ -857,6 +875,26 @@ class LDAPClient(object):
 
         return None
 
+    def encode_text(self, dn_or_text):
+        """Encode DN, filter str or other text arguments
+        """
+        if isinstance(dn_or_text, unicode):
+            return dn_or_text
+        if isinstance(dn_or_text, (bytes, bytearray)):
+            return dn_or_text.decode('utf-8')
+        elif isinstance(dn_or_text, (DN, RDN)):
+            return unicode(dn_or_text)
+        else:
+            raise TypeError(dn_or_text)
+
+    def encode_attrlist(self, attrlist):
+        if not attrlist:
+            return []
+        return [
+            (a.decode('utf-8') if isinstance(a, bytes) else a).lower()
+            for a in set(attrlist)
+        ]
+
     def encode(self, val):
         """
         Encode attribute value to LDAP representation (str/bytes).
@@ -869,7 +907,7 @@ class LDAPClient(object):
                 return b'TRUE'
             else:
                 return b'FALSE'
-        elif isinstance(val, (unicode, six.integer_types, Decimal, DN,
+        elif isinstance(val, (unicode, six.integer_types, Decimal, RDN, DN,
                               Principal)):
             return six.text_type(val).encode('utf-8')
         elif isinstance(val, DNSName):
@@ -882,7 +920,10 @@ class LDAPClient(object):
             return tuple(self.encode(m) for m in val)
         elif isinstance(val, dict):
             # key in dict must be str not bytes
-            dct = dict((k, self.encode(v)) for k, v in val.items())
+            dct = {}
+            for k, v in six.iteritems(val):
+                k = k if isinstance(k, six.text_type) else k.decode('utf-8')
+                dct[k] = self.encode(v)
             return dct
         elif isinstance(val, datetime.datetime):
             return val.strftime(LDAP_GENERALIZED_TIME_FORMAT).encode('utf-8')
@@ -891,7 +932,10 @@ class LDAPClient(object):
         elif val is None:
             return None
         else:
-            raise TypeError("attempt to pass unsupported type to ldap, value=%s type=%s" %(val, type(val)))
+            raise TypeError(
+                "attempt to pass unsupported type to ldap, value=%r type=%s"
+                % (val, type(val))
+            )
 
     def decode(self, val, attr):
         """
@@ -1091,7 +1135,7 @@ class LDAPClient(object):
 
     def _connect(self):
         with self.error_handler():
-            conn = ldap.initialize(self.ldap_uri)
+            conn = ldap_initialize(self.ldap_uri)
 
             if self._start_tls or self._protocol == 'ldaps':
                 ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, self._cacert)
@@ -1114,8 +1158,8 @@ class LDAPClient(object):
         with self.error_handler():
             self._flush_schema()
             assert isinstance(bind_dn, DN)
-            bind_dn = str(bind_dn)
-            bind_password = self.encode(bind_password)
+            bind_dn = self.encode_text(bind_dn)
+            bind_password = self.encode_text(bind_password)
             self.conn.simple_bind_s(
                 bind_dn, bind_password, server_controls, client_controls)
 
@@ -1128,7 +1172,7 @@ class LDAPClient(object):
             auth_tokens = ldap.sasl.external(user_name)
             self._flush_schema()
             self.conn.sasl_interactive_bind_s(
-                '', auth_tokens, server_controls, client_controls)
+                u'', auth_tokens, server_controls, client_controls)
 
     def gssapi_bind(self, server_controls=None, client_controls=None):
         """
@@ -1141,7 +1185,7 @@ class LDAPClient(object):
                 auth_tokens = SASL_GSSAPI
             self._flush_schema()
             self.conn.sasl_interactive_bind_s(
-                '', auth_tokens, server_controls, client_controls)
+                u'', auth_tokens, server_controls, client_controls)
 
     def unbind(self):
         """
@@ -1388,9 +1432,6 @@ class LDAPClient(object):
         if not isinstance(time_limit, float):
             time_limit = float(time_limit)
 
-        if attrs_list:
-            attrs_list = [a.lower() for a in set(attrs_list)]
-
         sctrls = None
         cookie = ''
         page_size = (size_limit if size_limit > 0 else 2000) - 1
@@ -1400,8 +1441,8 @@ class LDAPClient(object):
         # pass arguments to python-ldap
         with self.error_handler():
             if six.PY2:
-                filter = self.encode(filter)
-                attrs_list = self.encode(attrs_list)
+                filter = self.encode_text(filter)
+                attrs_list = self.encode_attrlist(attrs_list)
 
             while True:
                 if paged_search:
@@ -1409,7 +1450,8 @@ class LDAPClient(object):
 
                 try:
                     id = self.conn.search_ext(
-                        str(base_dn), scope, filter, attrs_list,
+                        self.encode_text(base_dn), scope, filter,
+                        attrlist=attrs_list,
                         serverctrls=sctrls, timeout=time_limit,
                         sizelimit=size_limit
                     )
@@ -1445,9 +1487,10 @@ class LDAPClient(object):
                         sctrls = [SimplePagedResultsControl(0, 0, cookie)]
                         try:
                             self.conn.search_ext_s(
-                                str(base_dn), scope, filter, attrs_list,
-                                serverctrls=sctrls, timeout=time_limit,
-                                sizelimit=size_limit)
+                                self.encode_text(base_dn), scope, filter,
+                                attrs_list, serverctrls=sctrls,
+                                timeout=time_limit, sizelimit=size_limit
+                            )
                         except ldap.LDAPError as e:
                             logger.warning(
                                 "Error cancelling paged search: %s", e)
@@ -1520,7 +1563,7 @@ class LDAPClient(object):
 
         with self.error_handler():
             attrs = self.encode(attrs)
-            self.conn.add_s(str(entry.dn), list(attrs.items()))
+            self.conn.add_s(self.encode_text(entry.dn), list(attrs.items()))
 
         entry.reset_modlist()
 
@@ -1548,11 +1591,13 @@ class LDAPClient(object):
         if new_dn[1:] == dn[1:]:
             new_superior = None
         else:
-            new_superior = str(DN(*new_dn[1:]))
+            new_superior = self.encode_text(DN(*new_dn[1:]))
 
         with self.error_handler():
-            self.conn.rename_s(str(dn), str(new_rdn), newsuperior=new_superior,
-                               delold=int(del_old))
+            self.conn.rename_s(
+                self.encode_text(dn), self.encode_text(new_rdn),
+                newsuperior=new_superior, delold=int(del_old)
+            )
             time.sleep(.3)  # Give memberOf plugin a chance to work
 
     def update_entry(self, entry):
@@ -1567,9 +1612,9 @@ class LDAPClient(object):
 
         # pass arguments to python-ldap
         with self.error_handler():
-            modlist = [(a, str(b), self.encode(c))
+            modlist = [(a, self.encode_text(b), self.encode(c))
                        for a, b, c in modlist]
-            self.conn.modify_s(str(entry.dn), modlist)
+            self.conn.modify_s(self.encode_text(entry.dn), modlist)
 
         entry.reset_modlist()
 
@@ -1581,7 +1626,7 @@ class LDAPClient(object):
             dn = entry_or_dn.dn
 
         with self.error_handler():
-            self.conn.delete_s(str(dn))
+            self.conn.delete_s(self.encode_text(dn))
 
     def entry_exists(self, dn):
         """
