@@ -24,6 +24,7 @@ import os
 import re
 import contextlib
 
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
@@ -101,6 +102,13 @@ def check_kinit(host):
     return result
 
 
+def check_custodia_files(host):
+    """regression test for https://pagure.io/freeipa/issue/7247"""
+    assert host.transport.file_exists(paths.IPA_CUSTODIA_KEYS)
+    assert host.transport.file_exists(paths.IPA_CUSTODIA_CONF)
+    return True
+
+
 CHECKS = [
     (check_admin_in_ldap, assert_entries_equal),
     (check_admin_in_cli, assert_results_equal),
@@ -108,6 +116,7 @@ CHECKS = [
     (check_certs, assert_results_equal),
     (check_dns, assert_results_equal),
     (check_kinit, assert_results_equal),
+    (check_custodia_files, assert_deepequal)
 ]
 
 
@@ -155,6 +164,10 @@ class TestBackupAndRestore(IntegrationTest):
             self.master.run_command(['ipa-server-install',
                                      '--uninstall',
                                      '-U'])
+            assert not self.master.transport.file_exists(
+                paths.IPA_CUSTODIA_KEYS)
+            assert not self.master.transport.file_exists(
+                paths.IPA_CUSTODIA_CONF)
 
             dirman_password = self.master.config.dirman_password
             self.master.run_command(['ipa-restore', backup_path],
