@@ -1,5 +1,5 @@
 #
-# VERSION 27 - DO NOT REMOVE THIS LINE
+# VERSION 28 - DO NOT REMOVE THIS LINE
 #
 # This file may be overwritten on upgrades.
 #
@@ -34,12 +34,6 @@ AddType application/x-font-ttf          ttf
 AddOutputFilterByType DEFLATE text/html text/plain text/xml \
  application/javascript application/json text/css \
  application/x-font-ttf
-
-# Disable etag http header. Doesn't work well with mod_deflate
-# https://issues.apache.org/bugzilla/show_bug.cgi?id=45023
-# Usage of last-modified header and modified-since validator is sufficient.
-Header unset ETag
-FileETag None
 
 # FIXME: WSGISocketPrefix is a server-scope directive.  The mod_wsgi package
 # should really be fixed by adding this its /etc/httpd/conf.d/wsgi.conf:
@@ -95,6 +89,12 @@ WSGIScriptReloading Off
   # legacy clients, the unset here works because it ends up unsetting only one
   # of the 2 header tables set by mod_session, leaving the other intact
   Header unset Set-Cookie
+
+  # Disable etag http header. Doesn't work well with mod_deflate
+  # https://issues.apache.org/bugzilla/show_bug.cgi?id=45023
+  # Usage of last-modified header and modified-since validator is sufficient.
+  Header unset ETag
+  FileETag None
 </Location>
 
 # Target for login with internal connections
