@@ -334,7 +334,6 @@ class WSGIExecutioner(Executioner):
         result = None
         error = None
         _id = None
-        lang = os.environ['LANG']
         name = None
         args = ()
         options = {}
@@ -349,12 +348,9 @@ class WSGIExecutioner(Executioner):
             if ('HTTP_ACCEPT_LANGUAGE' in environ):
                 lang_reg_w_q = environ['HTTP_ACCEPT_LANGUAGE'].split(',')[0]
                 lang_reg = lang_reg_w_q.split(';')[0]
-                lang_ = lang_reg.split('-')[0]
-                if '-' in lang_reg:
-                    reg = lang_reg.split('-')[1].upper()
-                else:
-                    reg = lang_.upper()
-                os.environ['LANG'] = '%s_%s' % (lang_, reg)
+                lang = lang_reg.split('-')[0]
+                setattr(context, "languages", [lang])
+
             if (
                 environ.get('CONTENT_TYPE', '').startswith(self.content_type)
                 and environ['REQUEST_METHOD'] == 'POST'
@@ -363,6 +359,7 @@ class WSGIExecutioner(Executioner):
                 (name, args, options, _id) = self.unmarshal(data)
             else:
                 (name, args, options, _id) = self.simple_unmarshal(environ)
+
             if name in self._system_commands:
                 result = self._system_commands[name](self, *args, **options)
             else:
@@ -379,7 +376,8 @@ class WSGIExecutioner(Executioner):
             )
             error = InternalError()
         finally:
-            os.environ['LANG'] = lang
+            if hasattr(context, "languages"):
+                delattr(context, "languages")
 
         principal = getattr(context, 'principal', 'UNKNOWN')
         if command is not None:
