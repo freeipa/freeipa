@@ -30,9 +30,9 @@ class ServerInfo(collections.MutableMapping):
 
         # copy-paste from ipalib/rpc.py
         try:
-            self._language = (
-                 locale.setlocale(locale.LC_ALL, '').split('.')[0].lower()
-            )
+            self._language = locale.setlocale(
+                locale.LC_MESSAGES, ''
+            ).split('.')[0].lower()
         except locale.Error:
             self._language = 'en_us'
 
