@@ -449,17 +449,21 @@ def hex_set(s):
         out.add("0x%s" % hexlify(i))
     return out
 
+
 def receive_systemd_command():
     fds = systemd.daemon.listen_fds()
     if len(fds) != 1:
         raise KeyError('Exactly one socket is expected.')
 
     sck = socket.fromfd(fds[0], socket.AF_UNIX, socket.SOCK_STREAM)
-    rlist, _wlist, _xlist = select.select([sck], [], [], 0)
+    timeout = 1  # give the socket a bit of time
+    rlist, _wlist, _xlist = select.select([sck], [], [], timeout)
     if not rlist:
-        logger.critical('socket activation did not return socket with a '
-                        'command')
-        sys.exit(0)
+        logger.critical(
+            'socket activation did not return a readable socket with a '
+            'command.'
+        )
+        sys.exit(1)
 
     logger.debug('accepting new connection')
     conn, _addr = sck.accept()
