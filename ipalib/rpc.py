@@ -536,7 +536,9 @@ class LanguageAwareTransport(MultiProtocolTransport):
             self, host)
 
         try:
-            lang = locale.setlocale(locale.LC_ALL, '').split('.')[0].lower()
+            lang = locale.setlocale(
+                locale.LC_MESSAGES, ''
+            ).split('.')[0].lower()
         except locale.Error:
             # fallback to default locale
             lang = 'en_us'
