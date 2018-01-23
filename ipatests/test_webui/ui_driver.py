@@ -41,7 +41,6 @@ try:
     from selenium.common.exceptions import InvalidElementStateException
     from selenium.common.exceptions import StaleElementReferenceException
     from selenium.common.exceptions import WebDriverException
-    from selenium.webdriver.common.action_chains import ActionChains
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.common.by import By
@@ -362,8 +361,8 @@ class UI_driver(object):
         # initial page
         ipa_logo = self.find('.navbar-brand', By.CSS_SELECTOR)
         if ipa_logo and ipa_logo.is_displayed():
-            # the link is not clickable
-            ActionChains(self.driver).move_to_element(ipa_logo).click().perform()
+            self.move_to_element_in_page(ipa_logo)
+            ipa_logo.click()
             return
 
         # already on the first page
@@ -686,12 +685,18 @@ class UI_driver(object):
 
     def _button_click(self, selector, parent, name=''):
         btn = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
-        ActionChains(self.driver).move_to_element(btn).perform()
+        self.move_to_element_in_page(btn)
         disabled = btn.get_attribute("disabled")
         assert btn.is_displayed(), 'Button is not displayed: %s' % name
         assert not disabled, 'Invalid button state: disabled. Button: %s' % name
         btn.click()
         self.wait_for_request()
+
+    def move_to_element_in_page(self, element):
+        # workaround to move the page until the element is visible
+        # more in https://github.com/mozilla/geckodriver/issues/776
+        self.driver.execute_script('arguments[0].scrollIntoView(true);',
+                                   element)
 
     def profile_menu_action(self, name):
         """
@@ -999,7 +1004,8 @@ class UI_driver(object):
         input_s = s + " tbody td input[value='%s']" % pkey
         checkbox = self.find(input_s, By.CSS_SELECTOR, parent, strict=True)
         try:
-            ActionChains(self.driver).move_to_element(checkbox).click().perform()
+            self.move_to_element_in_page(checkbox)
+            checkbox.click()
         except WebDriverException as e:
             assert False, 'Can\'t click on checkbox label: %s \n%s' % (s, e)
         self.wait()
