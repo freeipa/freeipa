@@ -221,7 +221,11 @@ BuildRequires:  python2-pytest-sourceorder
 BuildRequires:  python2-jwcrypto >= 0.4.2
 # 0.3: sd_notify (https://pagure.io/freeipa/issue/5825)
 BuildRequires:  python2-custodia >= 0.3.1
+%if 0%{?fedora} >= 28
 BuildRequires:  python2-dbus
+%else
+BuildRequires:  dbus-python
+%endif
 BuildRequires:  python2-dateutil
 BuildRequires:  python2-enum34
 BuildRequires:  python2-netifaces
@@ -413,7 +417,11 @@ Requires: python2-lxml
 Requires: python2-gssapi >= 1.2.0-5
 Requires: python2-sssdconfig
 Requires: python2-pyasn1 >= 0.3.2-2
-Requires: python2-dbus
+%if 0%{?fedora} >= 28
+BuildRequires:  python2-dbus
+%else
+BuildRequires:  dbus-python
+%endif
 Requires: python2-dns >= 1.15
 Requires: python2-kdcproxy >= 0.3
 Requires: rpm-libs
@@ -739,7 +747,11 @@ Requires: python2-pyasn1-modules >= 0.3.2-2
 Requires: python2-dateutil
 Requires: python2-yubico >= 1.2.3
 Requires: python2-sss-murmur
-Requires: python2-dbus
+%if 0%{?fedora} >= 28
+BuildRequires:  python2-dbus
+%else
+BuildRequires:  dbus-python
+%endif
 Requires: python2-setuptools
 Requires: python2-six
 # 0.4.2: Py3 fix https://bugzilla.redhat.com/show_bug.cgi?id=1476150
