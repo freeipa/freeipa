@@ -16,6 +16,7 @@ from ipalib.frontend import Command, Local, Method, Object
 from ipalib.output import Entry, ListOfEntries, ListOfPrimaryKeys, PrimaryKey
 from ipalib.parameters import Bool, Dict, Flag, Str
 from ipalib.plugable import Registry
+from ipalib.request import context
 from ipalib.text import _
 from ipapython.version import API_VERSION
 
@@ -833,11 +834,15 @@ class schema(Command):
         return schema
 
     def execute(self, *args, **kwargs):
-        try:
-            schema = self.api._schema
-        except AttributeError:
+        langs = "".join(getattr(context, "languages", []))
+
+        if getattr(self.api, "_schema", None) is None:
+            setattr(self.api, "_schema", {})
+
+        schema = self.api._schema.get(langs)
+        if schema is None:
             schema = self._generate_schema(**kwargs)
-            setattr(self.api, '_schema', schema)
+            self.api._schema[langs] = schema
 
         schema['ttl'] = SCHEMA_TTL
 
