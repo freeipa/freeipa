@@ -1320,9 +1320,11 @@ class DN(object):
             return not self._cmp_sequence(pattern, start, pat_len)
         return 0
 
-
     def __contains__(self, other):
-        'Return the outcome of the test other in self. Note the reversed operands.'
+        """Return the outcome of the test other in self.
+
+        Note the reversed operands.
+        """
 
         if isinstance(other, RDN):
             other = DN(other)
@@ -1336,9 +1338,9 @@ class DN(object):
                     return True
                 i += 1
             return False
-        else:
-            raise TypeError("expected DN or RDN but got %s" % (other.__class__.__name__))
-
+        raise TypeError(
+            "expected DN or RDN but got %s" % other.__class__.__name__
+        )
 
     def find(self, pattern, start=None, end=None):
         '''
