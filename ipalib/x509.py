@@ -543,8 +543,7 @@ def write_certificate(cert, filename):
     """
     Write the certificate to a file in PEM format.
 
-    The cert value can be either DER or PEM-encoded, it will be normalized
-    to DER regardless, then back out to PEM.
+    :param cert: cryptograpy ``Certificate`` object
     """
 
     try:
