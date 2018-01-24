@@ -326,27 +326,34 @@ class HTTPInstance(service.Service):
                 certmonger.stop()
 
     def __setup_ssl(self):
-        db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
-                          subject_base=self.subject_base, user="root",
-                          group=constants.HTTPD_GROUP,
-                          create=True)
-
         if self.pkcs12_info:
-            # db.init_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
-            #                    ca_file=self.ca_file,
-            #                    trust_flags=trust_flags)
-            server_certs = db.find_server_certs()
-            if len(server_certs) == 0:
+            p12_certs, p12_priv_keys = certs.pkcs12_to_certkeys(
+                *self.pkcs12_info)
+            keys_dict = {
+                k.public_key().public_numbers(): k
+                for k in p12_priv_keys
+            }
+            certs_keys = [
+                (c, keys_dict.get(c.public_key().public_numbers()))
+                for c in p12_certs
+            ]
+            server_certs_keys = [
+                (c, k) for c, k in certs_keys if k is not None
+            ]
+
+            if not server_certs_keys:
                 raise RuntimeError(
                     "Could not find a suitable server cert in import in %s"
                     % self.pkcs12_info[0]
                 )
 
             # We only handle one server cert
-            nickname = server_certs[0][0]
-            if nickname == 'ipaCert':
-                nickname = server_certs[1][0]
-            self.cert = x509.load_der_x509_certificate(paths.HTTPD_CERT_FILE)
+            self.cert = server_certs_keys[0][0]
+            x509.write_certificate(self.cert, paths.HTTPD_CERT_FILE)
+            x509.write_pem_private_key(
+                server_certs_keys[0][1],
+                paths.HTTPD_KEY_FILE
+            )
 
             if self.ca_is_configured:
                 self.start_tracking_certificates()
