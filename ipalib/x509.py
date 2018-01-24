@@ -421,7 +421,7 @@ def load_unknown_x509_certificate(data):
         return load_der_x509_certificate(data)
 
 
-def load_certificate_from_file(filename, dbdir=None):
+def load_certificate_from_file(filename):
     """
     Load a certificate from a PEM file.
 
