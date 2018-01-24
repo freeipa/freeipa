@@ -334,7 +334,6 @@ class WSGIExecutioner(Executioner):
         result = None
         error = None
         _id = None
-        lang = os.environ['LANG']
         name = None
         args = ()
         options = {}
@@ -346,15 +345,6 @@ class WSGIExecutioner(Executioner):
         if not environ['HTTP_REFERER'].startswith('https://%s/ipa' % self.api.env.host) and not self.env.in_tree:
             return self.marshal(result, RefererError(referer=environ['HTTP_REFERER']), _id)
         try:
-            if ('HTTP_ACCEPT_LANGUAGE' in environ):
-                lang_reg_w_q = environ['HTTP_ACCEPT_LANGUAGE'].split(',')[0]
-                lang_reg = lang_reg_w_q.split(';')[0]
-                lang_ = lang_reg.split('-')[0]
-                if '-' in lang_reg:
-                    reg = lang_reg.split('-')[1].upper()
-                else:
-                    reg = lang_.upper()
-                os.environ['LANG'] = '%s_%s' % (lang_, reg)
             if (
                 environ.get('CONTENT_TYPE', '').startswith(self.content_type)
                 and environ['REQUEST_METHOD'] == 'POST'
@@ -378,8 +368,6 @@ class WSGIExecutioner(Executioner):
                 'non-public: %s: %s', e.__class__.__name__, str(e)
             )
             error = InternalError()
-        finally:
-            os.environ['LANG'] = lang
 
         principal = getattr(context, 'principal', 'UNKNOWN')
         if command is not None:

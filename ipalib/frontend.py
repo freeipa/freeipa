@@ -1096,7 +1096,8 @@ class Command(HasParam):
                 # success or failure. Ignore these.
                 pass
             elif isinstance(result, int):
-                textui.print_count(result, '%s %%d' % unicode(self.output[o].doc))
+                textui.print_count(
+                    result, '%s %%d' % unicode(_(self.output[o].doc)))
 
         return rv
 
