@@ -238,7 +238,7 @@ class VaultModMember(LDAPModMember):
         return super(VaultModMember, self).get_member_dns(**options)
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
-        for fail in failed.itervalues():
+        for fail in failed.values():
             fail['services'] = fail.pop('service', [])
         self.obj.get_container_attribute(entry_attrs, options)
         return completed, dn
