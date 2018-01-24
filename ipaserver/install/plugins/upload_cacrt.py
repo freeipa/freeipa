@@ -20,8 +20,8 @@
 import logging
 
 from ipalib.install import certstore
-from ipaplatform.paths import paths
-from ipaserver.install import certs
+from ipaserver.install import certs, dsinstance
+from ipaserver.install.installutils import realm_to_serverid
 from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython import certdb
@@ -39,7 +39,9 @@ class update_upload_cacrt(Updater):
     """
 
     def execute(self, **options):
-        db = certs.CertDB(self.api.env.realm, paths.HTTPD_ALIAS_DIR)
+        serverid = realm_to_serverid(self.api.env.realm)
+        db = certs.CertDB(self.api.env.realm,
+                          nssdir=dsinstance.config_dirname(serverid))
         ca_cert = None
 
         ca_enabled = self.api.Command.ca_is_enabled()['result']
