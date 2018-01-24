@@ -86,6 +86,28 @@ def export_pem_p12(pkcs12_fname, pkcs12_pwd_fname, nickname, pem_fname):
                  "-passout", "file:" + pkcs12_pwd_fname])
 
 
+def pkcs12_to_certkeys(p12_fname, p12_passwd=None):
+    """
+    Deserializes pkcs12 file to python objects
+
+    :param p12_fname: A PKCS#12 filename
+    :param p12_passwd: Optional password for the pkcs12_fname file
+    """
+    args = [paths.OPENSSL, "pkcs12", "-in", p12_fname, "-nodes"]
+    if p12_passwd:
+        pwd = ipautil.write_tmp_file(p12_passwd)
+        args.extend(["-passin", "file:{fname}".format(fname=pwd.name)])
+    else:
+        args.extend(["-passin", "pass:"])
+
+    pems = ipautil.run(args, capture_output=True).raw_output
+
+    certs = x509.load_certificate_list(pems)
+    priv_keys = x509.load_private_key_list(pems)
+
+    return (certs, priv_keys)
+
+
 def is_ipa_issued_cert(api, cert):
     """
     Return True if the certificate has been issued by IPA
