@@ -468,3 +468,55 @@ class TestBackupAndRestoreWithReplica(IntegrationTest):
 
         tasks.install_replica(self.master, replica)
         check_replication(self.master, replica, "testuser1")
+
+
+class TestUserrootFilesOwnership(IntegrationTest):
+    """Test to check if userroot.ldif have proper ownership.
+
+    Before the fix, when ipa-backup was called for the first time,
+    the LDAP database exported to
+    /var/lib/dirsrv/slapd-<instance>/ldif/<instance>-userRoot.ldif.
+    db2ldif is called for this and it runs under root, hence files
+    were owned by root.
+
+    When ipa-backup called the next time, the db2ldif fails,
+    because the tool does not have permissions to write to the ldif
+    file which was owned by root (instead of dirsrv).
+
+    This test check if files are owned by dirsrv and db2ldif doesn't
+    fail
+
+    related ticket: https://pagure.io/freeipa/issue/7010
+    """
+
+    def test_userroot_ldif_files_ownership(self):
+        """backup, uninstall, restore, backup"""
+        tasks.install_master(self.master)
+        backup_path = backup(self.master)
+
+        self.master.run_command(['ipa-server-install',
+                                 '--uninstall',
+                                 '-U'])
+
+        dirman_password = self.master.config.dirman_password
+        self.master.run_command(['ipa-restore', backup_path],
+                                stdin_text=dirman_password + '\nyes')
+
+        # check if files have proper owner and group.
+        dashed_domain = self.master.domain.realm.replace(".", '-')
+        arg = ['stat',
+               '-c', '%U%G',
+               '/var/lib/dirsrv/slapd-' + dashed_domain + '/ldif']
+        cmd = self.master.run_command(arg)
+        assert 'dirsrvdirsrv' in cmd.stdout_text
+
+        arg = ['stat',
+               '-c', '%U%G',
+               '/var/lib/dirsrv/slapd-' + dashed_domain + '/ldif/']
+        cmd = self.master.run_command(arg)
+        assert 'dirsrvdirsrv' in cmd.stdout_text
+
+        cmd = self.master.run_command(['ipa-backup', '-d'])
+        unexp_str = "CRITICAL: db2ldif failed:"
+        assert cmd.returncode == 0
+        assert unexp_str not in cmd.stdout_text
