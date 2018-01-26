@@ -162,8 +162,6 @@ class CALessBase(IntegrationTest):
     def uninstall(cls, mh):
         # Remove the NSS database
         shutil.rmtree(cls.cert_dir)
-        for host in cls.get_all_hosts():
-            tasks.uninstall_master(host)
         super(CALessBase, cls).uninstall(mh)
 
     @classmethod

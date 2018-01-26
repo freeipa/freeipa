@@ -711,7 +711,7 @@ def uninstall_master(host, ignore_topology_disconnect=True,
     if ignore_last_of_role and host_domain_level != DOMAIN_LEVEL_0:
         uninstall_cmd.append('--ignore-last-of-role')
 
-    host.run_command(uninstall_cmd, raiseonerr=False)
+    host.run_command(uninstall_cmd)
     host.run_command(['pkidestroy', '-s', 'CA', '-i', 'pki-tomcat'],
                      raiseonerr=False)
     host.run_command(['rm', '-rf',
