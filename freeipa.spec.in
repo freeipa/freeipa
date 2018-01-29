@@ -736,7 +736,6 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: python2-gssapi >= 1.2.0-5
 Requires: gnupg
 Requires: keyutils
-Requires: pyOpenSSL
 Requires: python2 >= 2.7.9
 Requires: python2-cryptography >= 1.6
 Requires: python2-netaddr >= %{python_netaddr_version}
@@ -790,7 +789,6 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: python3-gssapi >= 1.2.0
 Requires: gnupg
 Requires: keyutils
-Requires: python3-pyOpenSSL
 Requires: python3-cryptography >= 1.6
 Requires: python3-netaddr >= %{python_netaddr_version}
 Requires: python3-libipa_hbac
