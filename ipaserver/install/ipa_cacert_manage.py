@@ -24,6 +24,7 @@ from optparse import OptionGroup  # pylint: disable=deprecated-module
 from cryptography.hazmat.primitives import serialization
 import gssapi
 
+from ipalib.constants import IPA_CA_CN
 from ipalib.install import certmonger, certstore
 from ipapython import admintool, ipautil
 from ipapython.certdb import (EMPTY_TRUST_FLAGS,
@@ -184,6 +185,10 @@ class CACertManage(admintool.AdminTool):
 
         self.resubmit_request()
 
+        db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
+        cert = db.get_cert_from_db(self.cert_nickname)
+        update_ipa_ca_entry(api, cert)
+
         print("CA certificate successfully renewed")
 
     def renew_external_step_1(self, ca):
@@ -297,6 +302,8 @@ class CACertManage(admintool.AdminTool):
         except errors.EmptyModlist:
             pass
 
+        update_ipa_ca_entry(api, new_cert_obj)
+
         try:
             ca.set_renewal_master()
         except errors.NotFound:
@@ -392,3 +399,21 @@ class CACertManage(admintool.AdminTool):
                 "Failed to install the certificate: %s" % e)
 
         print("CA certificate successfully installed")
+
+
+def update_ipa_ca_entry(api, cert):
+    """
+    The Issuer DN of the IPA CA may have changed.  Update the IPA CA entry.
+
+    :param api: finalised API object, with *connected* LDAP backend
+    :param cert: a python-cryptography Certificate object
+
+    """
+    try:
+        entry = api.Backend.ldap2.get_entry(
+            DN(('cn', IPA_CA_CN), api.env.container_ca, api.env.basedn),
+            ['ipacaissuerdn'])
+        entry['ipacaissuerdn'] = [DN(cert.issuer)]
+        api.Backend.ldap2.update_entry(entry)
+    except errors.EmptyModlist:
+        pass
