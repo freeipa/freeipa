@@ -700,7 +700,6 @@ class host_add(LDAPCreate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        exc = None
         if dns_container_exists(ldap):
             try:
                 parts = keys[-1].split('.')
@@ -719,18 +718,15 @@ class host_add(LDAPCreate):
 
                 update_sshfp_record(domain, unicode(parts[0]), entry_attrs)
             except Exception as e:
-                exc = e
+                self.add_message(messages.FailedToAddHostDNSRecords(reason=e))
         if options.get('random', False):
             try:
-                entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
+                entry_attrs['randompassword'] = unicode(
+                    getattr(context, 'randompassword'))
             except AttributeError:
                 # On the off-chance some other extension deletes this from the
                 # context, don't crash.
                 pass
-        if exc:
-            raise errors.NonFatalError(
-                reason=_('The host was added but the DNS update failed with: %(exc)s') % dict(exc=exc)
-            )
         set_certificate_attrs(entry_attrs)
         set_kerberos_attrs(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
