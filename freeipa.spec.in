@@ -149,6 +149,7 @@ BuildRequires:  nss-devel
 BuildRequires:  openssl-devel
 BuildRequires:  libini_config-devel
 BuildRequires:  cyrus-sasl-devel
+BuildRequires:  sssd-tools
 %if ! %{ONLY_CLIENT}
 # 1.3.3.9: DS_Sleep (https://fedorahosted.org/389/ticket/48005)
 BuildRequires:  389-ds-base-devel >= 1.3.3.9

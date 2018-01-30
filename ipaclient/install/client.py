@@ -3140,6 +3140,14 @@ def uninstall(options):
     remove_file(paths.SSSD_MC_GROUP)
     remove_file(paths.SSSD_MC_PASSWD)
 
+    try:
+        run([paths.SSSCTL, "cache-remove", "-o", "--stop", "--start"])
+    except Exception:
+        logger.info(
+            "An error occurred while removing SSSD's cache."
+            "Please remove the cache manually by executing "
+            "sssctl cache-remove -o.")
+
     if ipa_domain:
         sssd_domain_ldb = "cache_" + ipa_domain + ".ldb"
         sssd_ldb_file = os.path.join(paths.SSSD_DB, sssd_domain_ldb)
