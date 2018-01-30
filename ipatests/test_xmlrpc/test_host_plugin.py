@@ -31,7 +31,7 @@ import base64
 import pytest
 
 from ipapython import ipautil
-from ipalib import api, errors
+from ipalib import api, errors, messages
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipatests.test_util import yield_fixture
@@ -646,11 +646,13 @@ class TestHostNoNameserversForRevZone(XMLRPC_test):
         """
         try:
             command = host4.make_create_command()
-            with raises_exact(errors.NonFatalError(
-                reason=u'The host was added but the DNS update failed with'
-                    ': All nameservers failed to answer the query for DNS '
-                    'reverse zone %s' % missingrevzone)):
-                command(ip_address=ipv4_in_missingrevzone_ip)
+            result = command(ip_address=ipv4_in_missingrevzone_ip)
+            msg = result['messages'][0]
+            assert msg['code'] == messages.FailedToAddHostDNSRecords.errno
+            expected_msg = ("The host was added but the DNS update failed "
+                            "with: All nameservers failed to answer the query "
+                            "for DNS reverse zone {}").format(missingrevzone)
+            assert msg['message'] == expected_msg
             # Make sure the host is added
             host4.run_command('host_show', host4.fqdn)
         finally:
@@ -658,7 +660,33 @@ class TestHostNoNameserversForRevZone(XMLRPC_test):
             command = host4.make_delete_command()
             try:
                 command(updatedns=True)
-            except Exception:
+            except errors.NotFound:
+                pass
+
+    def test_create_host_with_otp(self, dns_setup_nonameserver, host4):
+        """
+        Create a test host specifying an IP address for which
+        IPA does not handle the reverse zone, and requesting
+        the creation of a random password.
+        Non-reg test for ticket 7374.
+        """
+
+        command = host4.make_create_command()
+        try:
+            result = command(random=True, ip_address=ipv4_in_missingrevzone_ip)
+            # Make sure a random password is returned
+            assert result['result']['randompassword']
+            # Make sure the warning about missing DNS record is added
+            msg = result['messages'][0]
+            assert msg['code'] == messages.FailedToAddHostDNSRecords.errno
+            assert msg['message'].startswith(
+                u'The host was added but the DNS update failed with:')
+        finally:
+            # Cleanup
+            try:
+                command = host4.make_delete_command()
+                command(updatedns=True)
+            except errors.NotFound:
                 pass
 
 
