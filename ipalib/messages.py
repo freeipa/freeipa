@@ -476,6 +476,17 @@ class CertificateInvalid(PublicMessage):
                "%(reason)s")
 
 
+class FailedToAddHostDNSRecords(PublicMessage):
+    """
+    **13030** Failed to add host DNS records
+    """
+
+    errno = 13030
+    type = "warning"
+    format = _("The host was added but the DNS update failed with: "
+               "%(reason)s")
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
