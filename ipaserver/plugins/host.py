@@ -686,7 +686,7 @@ class host_add(LDAPCreate):
                 entry_attrs['objectclass'].remove('krbprincipal')
         if options.get('random'):
             entry_attrs['userpassword'] = ipa_generate_password(
-                entropy_bits=TMP_PWD_ENTROPY_BITS)
+                entropy_bits=TMP_PWD_ENTROPY_BITS, special=None)
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
 
