@@ -71,9 +71,12 @@ def ldap2replica_master_keys_sync(ldapkeydb, localhsm):
                  hex_set(new_keys))
     for mkey_id in new_keys:
         mkey_ldap = ldapkeydb.master_keys[mkey_id]
-        assert mkey_ldap.wrapped_entries, ("Master key 0x%s in LDAP is " \
-            "missing key material referenced by ipaSecretKeyRefObject " \
-            "attribute") % str_hexlify(mkey_id)
+        if not mkey_ldap.wrapped_entries:
+            raise ValueError(
+                "Master key 0x%s in LDAP is missing key material "
+                "referenced by ipaSecretKeyRefObject attribute" %
+                str_hexlify(mkey_id)
+            )
         for wrapped_ldap in mkey_ldap.wrapped_entries:
             unwrapping_key = find_unwrapping_key(
                 localhsm, wrapped_ldap.single_value['ipaWrappingKey'])
@@ -81,9 +84,11 @@ def ldap2replica_master_keys_sync(ldapkeydb, localhsm):
                 break
 
         # TODO: Could it happen in normal cases?
-        assert unwrapping_key is not None, ("Local HSM does not contain " \
-            "suitable unwrapping key for master key 0x%s") % \
-            str_hexlify(mkey_id)
+        if unwrapping_key is None:
+            raise ValueError(
+                "Local HSM does not contain suitable unwrapping key "
+                "for master key 0x%s" % str_hexlify(mkey_id)
+            )
 
         params = ldap2p11helper_api_params(mkey_ldap)
         params['data'] = wrapped_ldap.single_value['ipaSecretKey']
@@ -114,9 +119,11 @@ def ldap2replica_zone_keys_sync(ldapkeydb, localhsm):
                      zkey_ldap['ipaWrappingKey'], str_hexlify(zkey_id))
         unwrapping_key = find_unwrapping_key(
             localhsm, zkey_ldap['ipaWrappingKey'])
-        assert unwrapping_key is not None, \
-                "Local HSM does not contain suitable unwrapping key for ' \
-                'zone key 0x%s" % str_hexlify(zkey_id)
+        if unwrapping_key is None:
+            raise ValueError(
+                "Local HSM does not contain suitable unwrapping key for "
+                "zone key 0x%s" % str_hexlify(zkey_id)
+            )
 
         logger.debug('Importing zone key pair 0x%s', str_hexlify(zkey_id))
         localhsm.import_private_key(zkey_ldap, zkey_ldap['ipaPrivateKey'],
