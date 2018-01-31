@@ -28,7 +28,8 @@ logger = logging.getLogger(__name__)
 
 def uri_escape(val):
     """convert val to %-notation suitable for ID component in URI"""
-    assert len(val) > 0, "zero-length URI component detected"
+    if len(val) == 0:
+        raise ValueError("zero-length URI component detected")
     hexval = str_hexlify(val)
     out = '%'
     # pylint: disable=E1127
@@ -41,7 +42,8 @@ def ldap_bool(val):
     elif val == 'FALSE' or val is False:
         return False
     else:
-        raise AssertionError('invalid LDAP boolean "%s"' % val)
+        raise ValueError('invalid LDAP boolean "%s"' % val)
+
 
 def get_default_attrs(object_classes):
     # object class -> default attribute values mapping
@@ -103,8 +105,9 @@ def get_default_attrs(object_classes):
         present_clss.add(cls.lower())
     present_clss.intersection_update(set(defaults.keys()))
     if len(present_clss) <= 0:
-        raise AssertionError('none of "%s" object classes are supported' %
-                object_classes)
+        raise ValueError(
+            "none of '%s' object classes are supported" % object_classes
+        )
 
     result = {}
     for cls in present_clss:
@@ -299,16 +302,26 @@ class LdapKeyDB(AbstractHSM):
             for attr in default_attrs:
                 key.setdefault(attr, default_attrs[attr])
 
-            assert 'ipk11id' in key, \
-                'key is missing ipk11Id in %s' % key.entry.dn
+            if 'ipk11id' not in key:
+                raise ValueError(
+                    'key is missing ipk11Id in %s' % key.entry.dn
+                )
             key_id = key['ipk11id']
-            assert key_id not in keys, \
-                'duplicate ipk11Id=0x%s in "%s" and "%s"' % \
-                (str_hexlify(key_id), key.entry.dn, keys[key_id].entry.dn)
-            assert 'ipk11label' in key, \
-                'key "%s" is missing ipk11Label' % key.entry.dn
-            assert 'objectclass' in key.entry, \
-                'key "%s" is missing objectClass attribute' % key.entry.dn
+            if key_id in keys:
+                raise ValueError(
+                    "duplicate ipk11Id=0x%s in '%s' and '%s'"
+                    % (str_hexlify(key_id), key.entry.dn,
+                       keys[key_id].entry.dn)
+                )
+            if 'ipk11label' not in key:
+                raise ValueError(
+                    "key '%s' is missing ipk11Label" % key.entry.dn
+                )
+            if 'objectclass' not in key.entry:
+                raise ValueError(
+                    "key '%s' is missing objectClass attribute"
+                    % key.entry.dn
+                )
 
             keys[key_id] = key
 
@@ -349,7 +362,9 @@ class LdapKeyDB(AbstractHSM):
             elif pkcs11_class == _ipap11helper.KEY_CLASS_PRIVATE_KEY:
                 entry['objectClass'].append('ipk11PrivateKey')
             else:
-                raise AssertionError('unsupported object class %s' % pkcs11_class)
+                raise ValueError(
+                    "unsupported object class '%s'" % pkcs11_class
+                )
 
             populate_pkcs11_metadata(source_key, new_key)
         new_key._cleanup_key()
@@ -386,8 +401,12 @@ class LdapKeyDB(AbstractHSM):
             return self.cache_replica_pubkeys_wrap
 
         keys = self._filter_replica_keys(
-                self._get_key_dict(ReplicaKey,
-                '(&(objectClass=ipk11PublicKey)(ipk11Wrap=TRUE)(objectClass=ipaPublicKeyObject))'))
+            self._get_key_dict(
+                ReplicaKey,
+                '(&(objectClass=ipk11PublicKey)(ipk11Wrap=TRUE)'
+                '(objectClass=ipaPublicKeyObject))'
+            )
+        )
 
         self.cache_replica_pubkeys_wrap = keys
         return keys
@@ -397,17 +416,20 @@ class LdapKeyDB(AbstractHSM):
         if self.cache_masterkeys:
             return self.cache_masterkeys
 
-        keys = self._get_key_dict(MasterKey,
-                '(&(objectClass=ipk11SecretKey)(|(ipk11UnWrap=TRUE)(!(ipk11UnWrap=*)))(ipk11Label=dnssec-master))')
+        keys = self._get_key_dict(
+            MasterKey,
+            '(&(objectClass=ipk11SecretKey)'
+            '(|(ipk11UnWrap=TRUE)(!(ipk11UnWrap=*)))'
+            '(ipk11Label=dnssec-master))'
+        )
         for key in keys.values():
             prefix = 'dnssec-master'
-            assert key['ipk11label'] == prefix, \
-                'secret key dn="%s" ipk11id=0x%s ipk11label="%s" with ' \
-                'ipk11UnWrap = TRUE does not have "%s" key label' % (
-                    key.entry.dn,
-                    str_hexlify(key['ipk11id']),
-                    str(key['ipk11label']),
-                    prefix
+            if key['ipk11label'] != prefix:
+                raise ValueError(
+                    "secret key dn='%s' ipk11id=0x%s ipk11label='%s' with "
+                    "ipk11UnWrap = TRUE does not have '%s' key label'"
+                    % (key.entry.dn, str_hexlify(key['ipk11id']),
+                       str(key['ipk11label']), prefix)
                 )
 
         self.cache_masterkeys = keys

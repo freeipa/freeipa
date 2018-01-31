@@ -191,7 +191,7 @@ def ods2bind_timestamps(key_state, key_type, ods_times):
         # idnsSecKeyInactive is ignored for KSK on purpose
 
     else:
-        assert False, "unsupported key type %s" % key_type
+        raise ValueError("unsupported key type %s" % key_type)
 
     # idnsSecKeyDelete is relevant only in DEAD state
     if 'idnsSecKeyDelete' in ods_times and key_state == KSM_STATE_DEAD:
@@ -236,7 +236,8 @@ def get_ods_keys(zone_name):
     cur = db.execute("SELECT id FROM zones WHERE LOWER(name)=LOWER(?)",
                      (zone_name,))
     rows = cur.fetchall()
-    assert len(rows) == 1, "exactly one DNS zone should exist in ODS DB"
+    if len(rows) != 1:
+        raise ValueError("exactly one DNS zone should exist in ODS DB")
     zone_id = rows[0][0]
 
     # get relevant keys for given zone ID:
@@ -253,8 +254,8 @@ def get_ods_keys(zone_name):
     keys = {}
     for row in cur:
         key_data = sql2ldap_flags(row['keytype'])
-        assert key_data.get('idnsSecKeyZONE', None) == 'TRUE', \
-                'unexpected key type 0x%x' % row['keytype']
+        if key_data.get('idnsSecKeyZONE') != 'TRUE':
+            raise ValueError("unexpected key type 0x%x" % row['keytype'])
         if key_data.get('idnsSecKeySEP', 'FALSE') == 'TRUE':
             key_type = 'KSK'
         else:
@@ -262,12 +263,16 @@ def get_ods_keys(zone_name):
 
         # transform key state to timestamps for BIND with equivalent semantics
         ods_times = sql2datetimes(row)
-        key_data.update(ods2bind_timestamps(row['state'], key_type, ods_times))
+        key_data.update(
+            ods2bind_timestamps(row['state'], key_type, ods_times)
+        )
 
         key_data.update(sql2ldap_algorithm(row['algorithm']))
-        key_id = "%s-%s-%s" % (key_type,
-                               datetime2ldap(key_data['idnsSecKeyCreated']),
-                               row['HSMkey_id'])
+        key_id = "%s-%s-%s" % (
+            key_type,
+            datetime2ldap(key_data['idnsSecKeyCreated']),
+            row['HSMkey_id']
+        )
 
         key_data.update(sql2ldap_keyid(row['HSMkey_id']))
         keys[key_id] = key_data
@@ -358,12 +363,17 @@ def master2ldap_master_keys_sync(ldapkeydb, localhsm):
             matching_keys = localhsm.find_keys(
                     uri=wrapped_entry.single_value['ipaWrappingKey'])
             for matching_key in matching_keys.values():
-                assert matching_key['ipk11label'].startswith(u'dnssec-replica:'), \
-                        'Wrapped key "%s" refers to PKCS#11 URI "%s" which is ' \
-                        'not a know DNSSEC replica key: label "%s" does not start ' \
-                        'with "dnssec-replica:" prefix' % (wrapped_entry.dn,
-                                wrapped_entry['ipaWrappingKey'],
-                                matching_key['ipk11label'])
+                label = matching_key['ipk11label']
+                if not label.startswith(u'dnssec-replica:'):
+                    raise ValueError(
+                        "Wrapped key '%s' refers to PKCS#11 URI '%s' which "
+                        "is not a known DNSSEC replica key: label '%s' "
+                        "does not start with 'dnssec-replica:' prefix" % (
+                            wrapped_entry.dn,
+                            wrapped_entry['ipaWrappingKey'],
+                            label
+                        )
+                    )
                 used_replica_keys.add(matching_key['ipk11id'])
 
         new_replica_keys = enabled_replica_key_ids - used_replica_keys
@@ -396,10 +406,13 @@ def master2ldap_zone_keys_sync(ldapkeydb, localhsm):
     privkeys_local = localhsm.zone_privkeys
     logger.debug("zone keys in local HSM: %s", hex_set(privkeys_local))
 
-    assert set(pubkeys_local) == set(privkeys_local), (
+    if set(pubkeys_local) != set(privkeys_local):
+        raise ValueError(
             "IDs of private and public keys for DNS zones in local HSM does "
-            "not match to key pairs: %s vs. %s" %
-            (hex_set(pubkeys_local), hex_set(privkeys_local)))
+            "not match to key pairs: %s vs. %s" % (
+                hex_set(pubkeys_local), hex_set(privkeys_local)
+            )
+        )
 
     new_keys = set(pubkeys_local) - set(keypairs_ldap)
     logger.debug("new zone keys in local HSM: %s", hex_set(new_keys))
@@ -432,10 +445,13 @@ def master2ldap_zone_keys_purge(ldapkeydb, localhsm):
     pubkeys_local = localhsm.zone_pubkeys
     privkeys_local = localhsm.zone_privkeys
     logger.debug("zone keys in local HSM: %s", hex_set(privkeys_local))
-    assert set(pubkeys_local) == set(privkeys_local), \
-            "IDs of private and public keys for DNS zones in local HSM does " \
-            "not match to key pairs: %s vs. %s" % \
-            (hex_set(pubkeys_local), hex_set(privkeys_local))
+    if set(pubkeys_local) != set(privkeys_local):
+        raise ValueError(
+            "IDs of private and public keys for DNS zones in local HSM does "
+            "not match to key pairs: %s vs. %s" % (
+                hex_set(pubkeys_local), hex_set(privkeys_local)
+            )
+        )
 
     deleted_key_ids = set(keypairs_ldap) - set(pubkeys_local)
     logger.debug("zone keys deleted from local HSM but present in LDAP: %s",
@@ -472,8 +488,8 @@ def receive_systemd_command():
 
     # this implements cmdhandler_handle_cmd() logic
     cmd = conn.recv(ODS_SE_MAXLINE).strip()
-    # ODS uses an ASCII protocol
-    if not isinstance(cmd, six.text_type):
+    # ODS uses an ASCII protocol, the rest of the code expects str
+    if six.PY3:
         cmd = cmd.decode('ascii')
     logger.debug('received command "%s" from systemd socket', cmd)
     return cmd, conn
@@ -484,44 +500,53 @@ def parse_command(cmd):
     Exit code None means that execution should continue.
     """
     if cmd == 'ipa-hsm-update':
-        return (0,
-                'HSM synchronization finished, skipping zone synchronization.',
-                None,
-                cmd)
+        return (
+            0,
+            'HSM synchronization finished, skipping zone synchronization.',
+            None,
+            cmd
+        )
 
     elif cmd == 'ipa-full-update':
-        return (None,
-                'Synchronization of all zones was finished.',
-                None,
-                cmd)
+        return (
+            None,
+            'Synchronization of all zones was finished.',
+            None,
+            cmd
+        )
 
     elif cmd.startswith('ldap-cleanup '):
         zone_name = cmd2ods_zone_name(cmd)
-        return (None,
-                'Zone "%s" metadata will be removed from LDAP.\n' % zone_name,
-                zone_name,
-                'ldap-cleanup')
+        return (
+            None,
+            'Zone "%s" metadata will be removed from LDAP.\n' % zone_name,
+            zone_name,
+            'ldap-cleanup'
+        )
 
     elif cmd.startswith('update '):
         zone_name = cmd2ods_zone_name(cmd)
-        return (None,
-                'Zone "%s" metadata will be updated in LDAP.\n' % zone_name,
-                zone_name,
-                'update')
+        return (
+            None,
+            'Zone "%s" metadata will be updated in LDAP.\n' % zone_name,
+            zone_name,
+            'update'
+        )
 
     else:
-        return (0,
-                'Command "%s" is not supported by IPA; '
-                'HSM synchronization was finished and the command '
-                'will be ignored.' % cmd,
-                None,
-                None)
+        return (
+            0,
+            "Command '%s' is not supported by IPA; HSM synchronization was "
+            "finished and the command will be ignored." % cmd,
+            None,
+            None
+        )
 
 
 def send_systemd_reply(conn, reply):
         # Reply & close connection early.
         # This is necessary to let Enforcer to unlock the ODS DB.
-        if isinstance(reply, six.text_type):
+        if six.PY3:
             reply = reply.encode('ascii')
         conn.send(reply + b'\n')
         conn.shutdown(socket.SHUT_RDWR)
