@@ -92,7 +92,17 @@ class CustodiaInstance(SimpleServiceInstance):
         keystore.generate_server_keys()
 
     def upgrade_instance(self):
-        if not sysupgrade.get_upgrade_state("custodia", "installed"):
+        installed = sysupgrade.get_upgrade_state("custodia", "installed")
+        if installed:
+            if (not os.path.isfile(self.server_keys)
+                    or not os.path.isfile(self.config_file)):
+                logger.warning(
+                    "Custodia server keys or config are missing, forcing "
+                    "reinstallation of ipa-custodia."
+                )
+                installed = False
+
+        if not installed:
             logger.info("Custodia service is being configured")
             self.create_instance()
         else:
