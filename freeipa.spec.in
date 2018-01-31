@@ -573,10 +573,12 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: python3-gssapi >= 1.2.0-5
 Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-pyldap >= %{python3_ldap_version}
+Requires: python3-sssdconfig
 %else
 Requires: python2-gssapi >= 1.2.0-5
 Requires: python2-ipaclient = %{version}-%{release}
 Requires: python2-ldap >= %{python2_ldap_version}
+Requires: python2-sssdconfig
 %endif
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
@@ -588,7 +590,6 @@ Requires: initscripts
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
 Requires: sssd >= 1.14.0
-Requires: python2-sssdconfig
 Requires: certmonger >= 0.79.5-1
 Requires: nss-tools
 Requires: bind-utils
