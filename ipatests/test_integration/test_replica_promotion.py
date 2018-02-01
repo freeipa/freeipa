@@ -11,9 +11,9 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
 from ipatests.pytest_plugins.integration.tasks import (
     assert_error, replicas_cleanup)
-from ipalib.constants import DOMAIN_LEVEL_0
-from ipalib.constants import DOMAIN_LEVEL_1
-from ipalib.constants import DOMAIN_SUFFIX_NAME
+from ipalib.constants import (
+    DOMAIN_LEVEL_0, DOMAIN_LEVEL_1, DOMAIN_SUFFIX_NAME, IPA_CA_NICKNAME)
+from ipaplatform.paths import paths
 
 
 class ReplicaPromotionBase(IntegrationTest):
@@ -570,3 +570,46 @@ class TestReplicaInstallWithExistingEntry(IntegrationTest):
         master.run_command(arg)
 
         tasks.install_replica(master, replica)
+
+
+class TestSubCAkeyReplication(IntegrationTest):
+    """
+    Test if subca key replication is not failing.
+    """
+    topology = 'line'
+    num_replicas = 1
+
+    SUBCA = 'test_subca'
+    SUBCA_CN = 'cn=' + SUBCA
+
+    PKI_DEBUG_PATH = '/var/log/pki/pki-tomcat/ca/debug'
+
+    ERR_MESS = 'Caught exception during cert/key import'
+
+    def test_sub_ca_key_replication(self):
+        master = self.master
+        replica = self.replicas[0]
+
+        result = master.run_command(['ipa', 'ca-add', self.SUBCA, '--subject',
+                                     self.SUBCA_CN])
+
+        uuid = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+        auth_id_re = re.compile('Authority ID: ({})'.format(uuid),
+                                re.IGNORECASE)
+        auth_id = "".join(re.findall(auth_id_re, result.stdout_text))
+
+        cert_nick = '{} {}'.format(IPA_CA_NICKNAME, auth_id)
+
+        # give replication some time
+        time.sleep(30)
+
+        replica.run_command(['ipa-certupdate'])
+        replica.run_command(['ipa', 'ca-show', self.SUBCA])
+
+        tasks.run_certutil(replica, ['-L', '-n', cert_nick],
+                           paths.PKI_TOMCAT_ALIAS_DIR)
+
+        pki_debug_log = replica.get_file_contents(self.PKI_DEBUG_PATH,
+                                                  encoding='utf-8')
+        # check for cert/key import error message
+        assert self.ERR_MESS not in pki_debug_log
