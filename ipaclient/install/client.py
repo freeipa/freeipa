@@ -3462,7 +3462,7 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
     ntp_servers = enroll_only(ntp_servers)
 
     no_ntp = knob(
-        None,
+        None, True,
         description="do not configure ntp",
         cli_names=[None, '-N'],
     )

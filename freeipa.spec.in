@@ -337,7 +337,6 @@ Requires(post): krb5-server >= %{krb5_version}
 Requires(post): krb5-server >= %{krb5_base_version}, krb5-server < %{krb5_base_version}.100
 Requires: krb5-pkinit-openssl >= %{krb5_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
-Requires: ntp
 Requires: httpd >= 2.4.6-31
 %if 0%{with_python3}
 Requires(preun): python3
@@ -590,7 +589,6 @@ Requires: python2-ldap >= %{python2_ldap_version}
 Requires: python2-sssdconfig
 %endif
 Requires: cyrus-sasl-gssapi%{?_isa}
-Requires: ntp
 Requires: krb5-workstation >= %{krb5_version}
 Requires: authconfig
 Requires: curl
@@ -1230,15 +1228,6 @@ if [ $1 -gt 1 ] ; then
             mv -Z /etc/krb5.conf.ipanew /etc/krb5.conf
             cp /etc/ipa/ca.crt /var/lib/ipa-client/pki/kdc-ca-bundle.pem
             cp /etc/ipa/ca.crt /var/lib/ipa-client/pki/ca-bundle.pem
-        fi
-    fi
-
-    if [ -f '/etc/sysconfig/ntpd' -a $restore -ge 2 ]; then
-        if grep -E -q 'OPTIONS=.*-u ntp:ntp' /etc/sysconfig/ntpd 2>/dev/null; then
-            sed -r '/OPTIONS=/ { s/\s+-u ntp:ntp\s+/ /; s/\s*-u ntp:ntp\s*// }' /etc/sysconfig/ntpd >/etc/sysconfig/ntpd.ipanew
-            mv -Z /etc/sysconfig/ntpd.ipanew /etc/sysconfig/ntpd
-
-            /bin/systemctl condrestart ntpd.service 2>&1 || :
         fi
     fi
 
