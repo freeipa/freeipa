@@ -15,6 +15,7 @@ from ipaserver.plugins.baseldap import (
     LDAPUpdate, LDAPRetrieve, LDAPQuery, pkey_to_value)
 from ipaserver.plugins.cert import ca_enabled_check
 from ipalib import _, ngettext, x509
+from ipapython.dn import DN
 
 
 __doc__ = _("""
@@ -135,7 +136,7 @@ class ca(LDAPObject):
             },
         },
         'System: Add CA': {
-            'ipapermright': {'add'},
+            'ipapermright': {'add', 'delete', 'write'},
             'replaces': [
                 '(target = "ldap:///cn=*,cn=cas,cn=ca,$SUFFIX")(version 3.0;acl "permission:Add CA";allow (add) groupdn = "ldap:///cn=Add CA,cn=permissions,cn=pbac,$SUFFIX";)',
             ],
@@ -234,11 +235,6 @@ class ca_add(LDAPCreate):
     )
 
     def pre_callback(self, ldap, dn, entry, entry_attrs, *keys, **options):
-        ca_enabled_check(self.api)
-        if not ldap.can_add(dn[1:]):
-            raise errors.ACIError(
-                info=_("Insufficient 'add' privilege for entry '%s'.") % dn)
-
         # check that DN only includes standard naming attributes
         dn_attrs = {
             ava.attr.lower()
@@ -271,19 +267,41 @@ class ca_add(LDAPCreate):
                 "Subject DN is already used by CA '%s'"
                 ) % result['result'][0]['cn'][0])
 
-        # Create the CA in Dogtag.
-        with self.api.Backend.ra_lightweight_ca as ca_api:
-            resp = ca_api.create_ca(options['ipacasubjectdn'])
-        entry['ipacaid'] = [resp['id']]
-        entry['ipacaissuerdn'] = [resp['issuerDN']]
-
-        # In the event that the issued certificate's subject DN
-        # differs from what was requested, record the actual DN.
-        #
-        entry['ipacasubjectdn'] = [resp['dn']]
+        # Use dummy values for the unknown MUST attributes;
+        # we will update them later.
+        entry['ipacaid'] = 'DUMMY'
+        entry['ipacaissuerdn'] = 'cn=DUMMY'
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        # We got this far, so the CA object in IPA has been created,
+        # which implies that user has 'Add CA' permission.  We can't
+        # use 'can_add' because GetEffectiveRights doesn't
+        # understand ACIs with 'targetfilter' and gives a false
+        # negative.
+        #
+        # When https://pagure.io/389-ds-base/issue/49278 has been
+        # fixed we can go back to using 'can_add' in the
+        # pre_callback.
+
+        # Create the CA in Dogtag.
+        try:
+            with self.api.Backend.ra_lightweight_ca as ca_api:
+                resp = ca_api.create_ca(options['ipacasubjectdn'])
+        except Exception as e:
+            # something went wrong; clean up and re-throw
+            ldap.delete_entry(dn)
+            raise e
+
+        # update the entry with the new info
+        if entry_attrs['ipacaid'][0].lower() != resp['id'].lower():
+            entry_attrs['ipacaid'] = [resp['id']]
+        if DN(entry_attrs['ipacaissuerdn'][0]) != DN(resp['issuerDN']):
+            entry_attrs['ipacaissuerdn'] = [resp['issuerDN']]
+        if DN(entry_attrs['ipacasubjectdn'][0]) != DN(resp['dn']):
+            entry_attrs['ipacasubjectdn'] = [resp['dn']]
+        ldap.update_entry(entry_attrs)
+
         set_certificate_attrs(entry_attrs, options)
         return dn
 

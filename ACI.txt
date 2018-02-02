@@ -23,7 +23,7 @@ aci: (targetattr = "automountmapname || description")(targetfilter = "(objectcla
 dn: cn=automount,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=automountmap)")(version 3.0;acl "permission:System: Remove Automount Maps";allow (delete) groupdn = "ldap:///cn=System: Remove Automount Maps,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=cas,cn=ca,dc=ipa,dc=example
-aci: (targetfilter = "(objectclass=ipaca)")(version 3.0;acl "permission:System: Add CA";allow (add) groupdn = "ldap:///cn=System: Add CA,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetfilter = "(objectclass=ipaca)")(version 3.0;acl "permission:System: Add CA";allow (add,delete,write) groupdn = "ldap:///cn=System: Add CA,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=cas,cn=ca,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipaca)")(version 3.0;acl "permission:System: Delete CA";allow (delete) groupdn = "ldap:///cn=System: Delete CA,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=cas,cn=ca,dc=ipa,dc=example
