@@ -150,7 +150,6 @@ def update_server(certs):
     if services.knownservices.dirsrv.is_running():
         services.knownservices.dirsrv.restart(instance)
 
-    update_db(paths.HTTPD_ALIAS_DIR, certs)
     if services.knownservices.httpd.is_running():
         services.knownservices.httpd.restart()
 
