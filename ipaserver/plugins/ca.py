@@ -235,7 +235,7 @@ class ca_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry, entry_attrs, *keys, **options):
         ca_enabled_check(self.api)
-        if not ldap.can_add(dn[1:]):
+        if not ldap.can_add(dn[1:], 'ipaca'):
             raise errors.ACIError(
                 info=_("Insufficient 'add' privilege for entry '%s'.") % dn)
 

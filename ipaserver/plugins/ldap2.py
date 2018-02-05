@@ -330,18 +330,38 @@ class ldap2(CrudBackend, LDAPClient):
 
         return False
 
-    def can_add(self, dn):
-        """Returns True/False if the currently bound user has add permissions
-           on the entry.
+    def can_add(self, parent_dn, objectclass):
         """
-        assert isinstance(dn, DN)
-        attrs = self.get_effective_rights(dn, ["*"])
-        if 'entrylevelrights' in attrs:
-            entry_rights = attrs['entrylevelrights'][0]
-            if 'a' in entry_rights:
-                return True
+        Returns True/False if the currently bound user has
+        permission to add an entry with the given objectclass
+        immediately below the entry with the given DN.
 
-        return False
+        For example, to check if an entry with objectclass=ipaca
+        can be added under cn=cas,cn=ca,{basedn}, you should call
+        ``can_add(DN('cn=cas,...'), 'ipaca')``.
+
+        """
+        assert isinstance(parent_dn, DN)
+
+        # the rules for how to request the template entry, and
+        # the expectations about how 389 constructs the template
+        # entry, are described here:
+        #
+        #   https://pagure.io/389-ds-base/issue/49278#comment-480856
+        #
+        try:
+            entry = self.get_entries(
+                parent_dn,
+                _ldap.SCOPE_ONELEVEL,
+                # rdn value of template entry is: template_<objcls>_objectclass
+                '(cn=template_{}_objectclass)'.format(objectclass),
+                # request tempalate entry with given objectclass
+                ['cn@{}'.format(objectclass)],
+                get_effective_rights=True,
+            )[0]
+            return 'a' in entry['entrylevelrights'][0]
+        except errors.NotFound:
+            return False
 
     def modify_password(self, dn, new_pass, old_pass='', otp='', skip_bind=False):
         """Set user password."""
