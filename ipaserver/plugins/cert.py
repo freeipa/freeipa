@@ -468,6 +468,10 @@ class BaseCertObject(Object):
             attribute when ``True`` in addition to the specialised
             attribute.
 
+        Raise ``ValueError`` if the certificate is malformed.
+        (Note: only the main certificate structure and Subject Alt
+        Name extension are examined.)
+
         """
         if 'certificate' in obj:
             cert = x509.load_der_x509_certificate(
@@ -876,7 +880,15 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 raise e
 
         if not raw:
-            self.obj._parse(result, all)
+            try:
+                self.obj._parse(result, all)
+            except ValueError as e:
+                self.add_message(
+                    messages.CertificateInvalid(
+                        subject=principal,
+                        reason=e,
+                    )
+                )
             result['request_id'] = int(result['request_id'])
             result['cacn'] = ca_obj['cn'][0]
 
