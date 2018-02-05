@@ -129,6 +129,11 @@ def install(api, replica_config, options):
 
     # Restart apache for new proxy config file
     services.knownservices.httpd.restart(capture_output=True)
+    # Restarted named-pkcs11 to restore bind-dyndb-ldap operation, see
+    # https://pagure.io/freeipa/issue/5813
+    named = services.knownservices.named  # alias for named-pkcs11
+    if named.is_running():
+        named.restart(capture_output=True)
 
 
 def uninstall():
