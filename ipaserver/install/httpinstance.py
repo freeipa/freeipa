@@ -593,6 +593,7 @@ class HTTPInstance(service.Service):
         self.configure_mod_ssl_certs()
         self.set_mod_ssl_protocol()
         self.set_mod_ssl_logdir()
+        self.__add_include()
 
         self.cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
 
