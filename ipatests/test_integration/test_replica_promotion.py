@@ -570,3 +570,24 @@ class TestReplicaInstallWithExistingEntry(IntegrationTest):
         master.run_command(arg)
 
         tasks.install_replica(master, replica)
+
+
+class TestRecomendedReplicationAgreement(IntegrationTest):
+    """Maximum recomended number of agreements per replica is 4.
+    This test checks if number of agreement exceeds the recomendation,
+    warnning should be given to the user
+
+    related ticket : https://pagure.io/freeipa/issue/6533"""
+
+    num_replicas = 5
+
+    def test_recomended_replication_agreement(self):
+        tasks.install_topo('star', self.master, self.replicas,
+                           [], setup_replica_cas=False)
+        arg = ['ipa', 'topologysuffix-verify', 'domain']
+        cmd = self.master.run_command(arg)
+        expected_str1 = ("Recommended maximum number of "
+                         "agreements per replica exceeded")
+        expected_str2 = "Maximum number of agreements per replica: 4"
+        assert (expected_str1 in cmd.stdout_text) and (
+               expected_str2 in cmd.stdout_text)
