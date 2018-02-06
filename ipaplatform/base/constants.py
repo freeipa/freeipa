@@ -39,5 +39,9 @@ class BaseConstantsNamespace(object):
     SSSD_USER = "sssd"
     # sql (new format), dbm (old format)
     NSS_DEFAULT_DBTYPE = 'dbm'
+    # WSGI module override, only used on Fedora
+    MOD_WSGI_PYTHON2 = None
+    MOD_WSGI_PYTHON3 = None
+
 
 constants = BaseConstantsNamespace()
