@@ -1570,18 +1570,24 @@ class TestServerReplicaCALessToCAFull(CALessBase):
     def test_server_ipa_ca_install(self):
         """Install CA on master"""
 
-        ca_master = tasks.install_ca(self.master)
-        assert ca_master.returncode == 0
-        cert_update_master = self.master.run_command(['ipa-certupdate'])
-        assert cert_update_master.returncode == 0
-        cert_update_replica = self.replicas[0].run_command(['ipa-certupdate'])
-        assert cert_update_replica.returncode == 0
+        tasks.install_ca(self.master)
+        # We are not calling ipa-certupdate on replica here since the next step
+        # installs CA clone there.
+
+        ca_show = self.master.run_command(['ipa', 'ca-show', 'ipa'])
+        assert 'Subject DN: CN=Certificate Authority,O={}'.format(
+            self.master.domain.realm) in ca_show.stdout_text
 
     def test_replica_ipa_ca_install(self):
         """Install CA on replica"""
 
-        ca_replica = tasks.install_ca(self.replicas[0])
-        assert ca_replica.returncode == 0
+        replica = self.replicas[0]
+
+        tasks.install_ca(replica)
+
+        ca_show = replica.run_command(['ipa', 'ca-show', 'ipa'])
+        assert 'Subject DN: CN=Certificate Authority,O={}'.format(
+            self.master.domain.realm) in ca_show.stdout_text
 
 
 class TestReplicaCALessToCAFull(CALessBase):
