@@ -472,7 +472,7 @@ class CertificateInvalid(PublicMessage):
     """
     errno = 13029
     type = "error"
-    format = _("%(subject)s: Invalid certificate. "
+    format = _("%(subject)s: Malformed certificate. "
                "%(reason)s")
 
 
