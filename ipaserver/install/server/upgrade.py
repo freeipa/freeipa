@@ -1458,9 +1458,15 @@ def update_mod_nss_cipher_suite(http):
         'cipher_suite_updated',
         httpinstance.NSS_CIPHER_REVISION)
 
+
 def update_ipa_httpd_service_conf(http):
     logger.info('[Updating HTTPD service IPA configuration]')
     http.update_httpd_service_ipa_conf()
+
+
+def update_ipa_http_wsgi_conf(http):
+    logger.info('[Updating HTTPD service IPA WSGI configuration]')
+    http.update_httpd_wsgi_conf()
 
 
 def update_http_keytab(http):
@@ -1782,6 +1788,7 @@ def upgrade_configuration():
     http.stop()
     disable_httpd_system_trust(http)
     update_ipa_httpd_service_conf(http)
+    update_ipa_http_wsgi_conf(http)
     update_mod_nss_protocol(http)
     update_mod_nss_cipher_suite(http)
     disable_mod_nss_ocsp(http)

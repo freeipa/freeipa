@@ -85,6 +85,7 @@ dist_app_DATA =				\
 	kdcproxy-enable.uldif		\
 	kdcproxy-disable.uldif		\
 	ipa-httpd.conf.template		\
+	ipa-httpd-wsgi.conf.template	\
 	gssapi.login			\
 	gssproxy.conf.template		\
 	kdcproxy.wsgi			\

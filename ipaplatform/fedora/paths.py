@@ -27,7 +27,9 @@ from ipaplatform.redhat.paths import RedHatPathNamespace
 
 
 class FedoraPathNamespace(RedHatPathNamespace):
-    pass
+    HTTPD_IPA_WSGI_MODULES_CONF = (
+        "/etc/httpd/conf.modules.d/02-ipa-wsgi.conf"
+    )
 
 
 paths = FedoraPathNamespace()
