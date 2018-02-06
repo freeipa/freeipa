@@ -47,4 +47,9 @@ class DebianTaskNamespace(RedHatTaskNamespace):
     def parse_ipa_version(version):
         return BaseTaskNamespace.parse_ipa_version(version)
 
+    def configure_httpd_wsgi_conf(self):
+        # Debian doesn't require special mod_wsgi configuration
+        pass
+
+
 tasks = DebianTaskNamespace()

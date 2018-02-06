@@ -30,6 +30,7 @@ import os
 import socket
 import traceback
 import errno
+import sys
 
 from ctypes.util import find_library
 from functools import total_ordering
@@ -483,6 +484,36 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         os.chmod(paths.GSSPROXY_CONF, 0o600)
         self.restore_context(paths.GSSPROXY_CONF)
+
+    def configure_httpd_wsgi_conf(self):
+        """Configure WSGI for correct Python version (Fedora)
+
+        See https://pagure.io/freeipa/issue/7394
+        """
+        conf = paths.HTTPD_IPA_WSGI_MODULES_CONF
+        if sys.version_info.major == 2:
+            wsgi_module = constants.MOD_WSGI_PYTHON2
+        else:
+            wsgi_module = constants.MOD_WSGI_PYTHON3
+
+        if conf is None or wsgi_module is None:
+            logger.info("Nothing to do for configure_httpd_wsgi_conf")
+            return
+
+        confdir = os.path.dirname(conf)
+        if not os.path.isdir(confdir):
+            os.makedirs(confdir)
+
+        ipautil.copy_template_file(
+            os.path.join(
+                paths.USR_SHARE_IPA_DIR, 'ipa-httpd-wsgi.conf.template'
+            ),
+            conf,
+            dict(WSGI_MODULE=wsgi_module)
+        )
+
+        os.chmod(conf, 0o644)
+        self.restore_context(conf)
 
     def remove_httpd_service_ipa_conf(self):
         """Remove systemd config for httpd service of IPA"""
