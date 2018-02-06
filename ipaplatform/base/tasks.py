@@ -211,6 +211,10 @@ class BaseTaskNamespace(object):
         """Remove configuration of httpd service of IPA"""
         raise NotImplementedError()
 
+    def configure_httpd_wsgi_conf(self):
+        """Configure WSGI for correct Python version"""
+        raise NotImplementedError()
+
     def is_fips_enabled(self):
         return False
 

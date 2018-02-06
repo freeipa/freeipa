@@ -50,6 +50,8 @@ class BasePathNamespace(object):
     HTTPD_IPA_CONF = "/etc/httpd/conf.d/ipa.conf"
     HTTPD_NSS_CONF = "/etc/httpd/conf.d/nss.conf"
     HTTPD_SSL_CONF = "/etc/httpd/conf.d/ssl.conf"
+    # only used on Fedora
+    HTTPD_IPA_WSGI_MODULES_CONF = None
     OLD_IPA_KEYTAB = "/etc/httpd/conf/ipa.keytab"
     HTTP_KEYTAB = "/var/lib/ipa/gssproxy/http.keytab"
     HTTPD_PASSWORD_CONF = "/etc/httpd/conf/password.conf"
