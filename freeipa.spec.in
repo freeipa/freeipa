@@ -57,7 +57,8 @@
 %global python_netaddr_version 0.7.16
 # Require 4.7.0 which brings Python 3 bindings
 %global samba_version 2:4.7.0
-%global selinux_policy_version 3.13.1-158.4
+# DNSSEC AVC violation, RHBZ#1537971
+%global selinux_policy_version 3.13.1-283.24
 %global slapi_nis_version 0.56.1
 
 # Use python3-pyldap to be compatible with old python3-pyldap 2.x and new
