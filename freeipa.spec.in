@@ -68,7 +68,8 @@
 %global python2_ldap_version 3.0.0-0.4.b4
 %global python3_ldap_version 3.0.0-0.4.b4
 %else
-%global python2_ldap_version 2.4.15
+# syncrepl fix, https://pagure.io/freeipa/issue/7240
+%global python2_ldap_version 2.4.25-9
 %global python3_ldap_version 2.4.35.1-2
 %endif
 
