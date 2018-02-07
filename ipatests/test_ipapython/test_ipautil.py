@@ -30,6 +30,7 @@ import pytest
 import six
 import tempfile
 
+from ipaplatform.paths import paths
 from ipalib.constants import IPAAPI_USER
 from ipapython import ipautil
 
@@ -419,7 +420,7 @@ class TestTimeParser(object):
 
 
 def test_run():
-    result = ipautil.run(['echo', 'foo\x02bar'],
+    result = ipautil.run([paths.ECHO, 'foo\x02bar'],
                          capture_output=True,
                          capture_error=True)
     assert result.returncode == 0
@@ -430,7 +431,7 @@ def test_run():
 
 
 def test_run_no_capture_output():
-    result = ipautil.run(['echo', 'foo\x02bar'])
+    result = ipautil.run([paths.ECHO, 'foo\x02bar'])
     assert result.returncode == 0
     assert result.output is None
     assert result.raw_output == b'foo\x02bar\n'
@@ -439,13 +440,13 @@ def test_run_no_capture_output():
 
 
 def test_run_bytes():
-    result = ipautil.run(['echo', b'\x01\x02'], capture_output=True)
+    result = ipautil.run([paths.ECHO, b'\x01\x02'], capture_output=True)
     assert result.returncode == 0
     assert result.raw_output == b'\x01\x02\n'
 
 
 def test_run_decode():
-    result = ipautil.run(['echo', u'á'.encode('utf-8')],
+    result = ipautil.run([paths.ECHO, u'á'.encode('utf-8')],
                          encoding='utf-8', capture_output=True)
     assert result.returncode == 0
     if six.PY3:
@@ -457,11 +458,11 @@ def test_run_decode():
 def test_run_decode_bad():
     if six.PY3:
         with pytest.raises(UnicodeDecodeError):
-            ipautil.run(['echo', b'\xa0\xa1'],
+            ipautil.run([paths.ECHO, b'\xa0\xa1'],
                         capture_output=True,
                         encoding='utf-8')
     else:
-        result = ipautil.run(['echo', '\xa0\xa1'],
+        result = ipautil.run([paths.ECHO, '\xa0\xa1'],
                              capture_output=True,
                              encoding='utf-8')
         assert result.returncode == 0
@@ -469,7 +470,7 @@ def test_run_decode_bad():
 
 
 def test_backcompat():
-    result = out, err, rc = ipautil.run(['echo', 'foo\x02bar'],
+    result = out, err, rc = ipautil.run([paths.ECHO, 'foo\x02bar'],
                                         capture_output=True,
                                         capture_error=True)
     assert rc is result.returncode

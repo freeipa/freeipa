@@ -386,7 +386,7 @@ class Restore(admintool.AdminTool):
                     dirsrv.start(capture_output=False)
             else:
                 logger.info('Stopping IPA services')
-                result = run(['ipactl', 'stop'], raiseonerr=False)
+                result = run([paths.IPACTL, 'stop'], raiseonerr=False)
                 if result.returncode not in [0, 6]:
                     logger.warning('Stopping IPA failed: %s', result.error_log)
 
@@ -426,7 +426,7 @@ class Restore(admintool.AdminTool):
                 gssproxy = services.service('gssproxy', api)
                 gssproxy.reload_or_restart()
                 logger.info('Starting IPA services')
-                run(['ipactl', 'start'])
+                run([paths.IPACTL, 'start'])
                 logger.info('Restarting SSSD')
                 sssd = services.service('sssd', api)
                 sssd.restart()

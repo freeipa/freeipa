@@ -555,8 +555,10 @@ class ADTRUSTInstance(service.Service):
     def clean_samba_keytab(self):
         if os.path.exists(self.keytab):
             try:
-                ipautil.run(["ipa-rmkeytab", "--principal", self.principal,
-                             "-k", self.keytab])
+                ipautil.run([
+                    paths.IPA_RMKEYTAB, "--principal", self.principal,
+                    "-k", self.keytab
+                ])
             except ipautil.CalledProcessError as e:
                 if e.returncode != 5:
                     logger.critical("Failed to remove old key for %s",

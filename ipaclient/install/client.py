@@ -1125,7 +1125,7 @@ def configure_sshd_config(fstore, options):
         )
 
         for candidate in candidates:
-            args = ['sshd', '-t', '-f', os.devnull]
+            args = [paths.SSHD, '-t', '-f', os.devnull]
             for item in candidate.items():
                 args.append('-o')
                 args.append('%s=%s' % item)
@@ -1157,7 +1157,7 @@ def configure_automount(options):
     logger.info('\nConfiguring automount:')
 
     args = [
-        'ipa-client-automount', '--debug', '-U', '--location',
+        paths.IPA_CLIENT_AUTOMOUNT, '--debug', '-U', '--location',
         options.location
     ]
 
@@ -2615,7 +2615,7 @@ def _install(options):
                 subject_base = DN(subject_base)
 
             if options.principal is not None:
-                run(["kdestroy"], raiseonerr=False, env=env)
+                run([paths.KDESTROY], raiseonerr=False, env=env)
 
             # Obtain the TGT. We do it with the temporary krb5.conf, so that
             # only the KDC we're installing under is contacted.
@@ -2954,7 +2954,7 @@ def _install(options):
             # Particulary, SSSD might take longer than 6-8 seconds.
             while n < 10 and not found:
                 try:
-                    ipautil.run(["getent", "passwd", user])
+                    ipautil.run([paths.GETENT, "passwd", user])
                     found = True
                 except Exception as e:
                     time.sleep(1)
@@ -3036,7 +3036,7 @@ def uninstall(options):
     statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
 
     try:
-        run(["ipa-client-automount", "--uninstall", "--debug"])
+        run([paths.IPA_CLIENT_AUTOMOUNT, "--uninstall", "--debug"])
     except Exception as e:
         logger.error(
             "Unconfigured automount client failed: %s", str(e))

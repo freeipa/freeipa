@@ -92,7 +92,7 @@ def wait_for_sssd():
     time.sleep(1)
     while n < 10 and not found:
         try:
-            ipautil.run(["getent", "passwd", "admin@%s" % api.env.realm])
+            ipautil.run([paths.GETENT, "passwd", "admin@%s" % api.env.realm])
             found = True
         except Exception:
             time.sleep(1)

@@ -176,7 +176,7 @@ class test_cert(BaseCert):
         result = api.Command.cert_show(sn, out=unicode(self.certfile))
         with open(self.certfile, "rb") as f:
             pem_cert = f.read().decode('ascii')
-        result = run(['openssl', 'x509', '-text'],
+        result = run([paths.OPENSSL, 'x509', '-text'],
                      stdin=pem_cert, capture_output=True)
         assert _EXP_CRL_URI in result.output
         assert _EXP_OCSP_URI in result.output
