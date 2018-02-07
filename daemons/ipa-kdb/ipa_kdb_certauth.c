@@ -131,7 +131,7 @@ static krb5_error_code ipa_get_init_data(krb5_context kcontext,
     krb5_klog_syslog(LOG_INFO, "Initializing IPA certauth plugin.");
 
     ipactx = ipadb_get_context(kcontext);
-    if (ipactx == NULL) {
+    if (ipactx == NULL || ipactx->magic != IPA_CONTEXT_MAGIC) {
         return KRB5_KDB_DBNOTINITED;
     }
 

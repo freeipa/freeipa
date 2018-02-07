@@ -101,7 +101,9 @@ struct ipadb_global_config {
     bool disable_preauth_for_spns;
 };
 
+#define IPA_CONTEXT_MAGIC 0x0c027ea7
 struct ipadb_context {
+    int magic;
     char *uri;
     char *base;
     char *realm;
