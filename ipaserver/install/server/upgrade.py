@@ -1788,6 +1788,8 @@ def upgrade_configuration():
     fix_trust_flags()
     update_http_keytab(http)
     http.configure_gssproxy()
+    http.migrate_nssdb_sql()
+    http.set_mod_nss_certdb()
     http.start()
 
     uninstall_selfsign(ds, http)

@@ -128,6 +128,18 @@ class HTTPInstance(service.Service):
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
+    def _get_certdb(self, create=False):
+        return certs.CertDB(
+            self.realm,
+            fstore=self.fstore,
+            nssdir=paths.HTTPD_ALIAS_DIR,
+            subject_base=self.subject_base,
+            user="root",
+            group=constants.HTTPD_GROUP,
+            create=create,
+            dbtype='auto'
+        )
+
     def create_instance(self, realm, fqdn, domain_name, dm_password=None,
                         pkcs12_info=None,
                         subject_base=None, auto_redirect=True, ca_file=None,
@@ -160,9 +172,12 @@ class HTTPInstance(service.Service):
                   self.set_mod_nss_cipher_suite)
         self.step("setting mod_nss protocol list to TLSv1.0 - TLSv1.2",
                   self.set_mod_nss_protocol)
-        self.step("setting mod_nss password file", self.__set_mod_nss_passwordfile)
-        self.step("enabling mod_nss renegotiate", self.enable_mod_nss_renegotiate)
+        self.step("setting mod_nss password file",
+                  self.__set_mod_nss_passwordfile)
+        self.step("enabling mod_nss renegotiate",
+                  self.enable_mod_nss_renegotiate)
         self.step("disabling mod_nss OCSP", self.disable_mod_nss_ocsp)
+        self.step("adjusting certdb setting", self.set_mod_nss_certdb)
         self.step("adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
         self.step("setting up httpd keytab", self.request_service_keytab)
@@ -302,13 +317,41 @@ class HTTPInstance(service.Service):
             aug.set(ocsp_comment, '{} {}'.format(OCSP_DIRECTIVE, ocsp_state))
             aug.save()
 
-
     def set_mod_nss_cipher_suite(self):
         ciphers = ','.join(NSS_CIPHER_SUITE)
-        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSCipherSuite', ciphers, False)
+        installutils.set_directive(
+            paths.HTTPD_NSS_CONF,
+            'NSSCipherSuite',
+            ciphers,
+            False
+        )
 
     def __set_mod_nss_passwordfile(self):
-        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSPassPhraseDialog', 'file:' + paths.HTTPD_PASSWORD_CONF)
+        installutils.set_directive(
+            paths.HTTPD_NSS_CONF,
+            'NSSPassPhraseDialog', 'file:' + paths.HTTPD_PASSWORD_CONF
+        )
+
+    def set_mod_nss_certdb(self):
+        db = self._get_certdb()
+        if db.dbtype == 'sql':
+            certdb = '{}:{}'.format(db.dbtype, db.secdir)
+        else:
+            certdb = db.secdir
+        installutils.set_directive(
+            paths.HTTPD_NSS_CONF,
+            'NSSCertificateDatabase',
+            certdb
+        )
+
+    def migrate_nssdb_sql(self):
+        # need to shut down all access to NSSDB first
+        if self.is_running():
+            raise RuntimeError("Cannot upgrade while HTTPD is running")
+        db = self._get_certdb()
+        if db.needs_upgrade_format():
+            logger.debug("Upgrading NSSDB")
+            db.upgrade_format()
 
     def __add_include(self):
         """This should run after __set_mod_nss_port so is already backed up"""
@@ -368,33 +411,22 @@ class HTTPInstance(service.Service):
         os.chmod(pwd_conf, 0o400)
 
     def disable_system_trust(self):
-        name = 'Root Certs'
-        args = [paths.MODUTIL, '-dbdir', paths.HTTPD_ALIAS_DIR, '-force']
-
-        try:
-            result = ipautil.run(args + ['-list', name],
-                                 env={},
-                                 capture_output=True)
-        except ipautil.CalledProcessError as e:
-            if e.returncode == 29:  # ERROR: Module not found in database.
-                logger.debug(
-                    'Module %s not available, treating as disabled', name)
-                return False
-            raise
-
-        if 'Status: Enabled' in result.output:
-            ipautil.run(args + ['-disable', name], env={})
-            return True
-
-        return False
+        db = self._get_certdb()
+        return db.disable_system_trust()
 
     def __setup_ssl(self):
-        db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
-                          subject_base=self.subject_base, user="root",
-                          group=constants.HTTPD_GROUP,
-                          create=True)
+        db = self._get_certdb(create=True)
+        if not db.exists() or db.dbtype != constants.NSS_DEFAULT_DBTYPE:
+            raise RuntimeError(
+                "DB creation failed: {}:{}".format(db.dbtype, db.secdir)
+            )
         self.disable_system_trust()
         self.create_password_conf()
+        logger.info(
+            "HTTPD NSSDB '%s': %s",
+            paths.HTTPD_ALIAS_DIR,
+            ", ".join(sorted(os.listdir(paths.HTTPD_ALIAS_DIR)))
+        )
 
         if self.pkcs12_info:
             if self.ca_is_configured:
@@ -437,6 +469,7 @@ class HTTPInstance(service.Service):
             try:
                 certmonger.request_and_wait_for_cert(
                     certpath=db.secdir,
+                    storage='NSSDB',
                     nickname=self.cert_nickname,
                     principal=self.principal,
                     passwd_fname=db.passwd_fname,
@@ -444,12 +477,19 @@ class HTTPInstance(service.Service):
                     ca='IPA',
                     profile=dogtag.DEFAULT_PROFILE,
                     dns=[self.fqdn],
-                    post_command='restart_httpd')
+                    post_command='restart_httpd'
+                )
             finally:
                 if prev_helper is not None:
                     certmonger.modify_ca_helper('IPA', prev_helper)
 
             self.cert = db.get_cert_from_db(self.cert_nickname)
+            if self.cert is None:
+                raise RuntimeError(
+                    "{} has no valid cert {}".format(
+                        db.secdir, self.cert_nickname
+                    )
+                )
 
             if prev_helper is not None:
                 self.add_cert_to_service()
@@ -463,14 +503,12 @@ class HTTPInstance(service.Service):
         self.cacert_nickname = db.cacert_name
 
     def __import_ca_certs(self):
-        db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
-                          subject_base=self.subject_base)
+        db = self._get_certdb()
         self.import_ca_certs(db, self.ca_is_configured)
 
     def __publish_ca_cert(self):
-        ca_db = certs.CertDB(self.realm, nssdir=paths.HTTPD_ALIAS_DIR,
-                             subject_base=self.subject_base)
-        ca_db.export_pem_cert(self.cacert_nickname, paths.CA_CRT)
+        db = self._get_certdb()
+        db.export_pem_cert(self.cacert_nickname, paths.CA_CRT)
 
     def is_kdcproxy_configured(self):
         """Check if KDC proxy has already been configured in the past"""
@@ -546,12 +584,17 @@ class HTTPInstance(service.Service):
                 ca_iface.Set('org.fedorahosted.certmonger.ca',
                              'external-helper', helper)
 
-        db = certs.CertDB(self.realm, paths.HTTPD_ALIAS_DIR)
+        db = self._get_certdb()
         db.restore()
 
-        for f in [paths.HTTPD_IPA_CONF, paths.HTTPD_SSL_CONF, paths.HTTPD_NSS_CONF]:
+        configs = [
+            paths.HTTPD_IPA_CONF,
+            paths.HTTPD_SSL_CONF,
+            paths.HTTPD_NSS_CONF
+        ]
+        for config in configs:
             try:
-                self.fstore.restore_file(f)
+                self.fstore.restore_file(config)
             except ValueError as error:
                 logger.debug("%s", error)
 

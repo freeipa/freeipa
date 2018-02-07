@@ -34,6 +34,7 @@ import tempfile
 from ipalib import api
 from ipalib.constants import CA_DBUS_TIMEOUT
 from ipapython.dn import DN
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform import services
 
@@ -156,6 +157,35 @@ class _certmonger(_cm_dbus_object):
                                           DBUS_CM_IF)
 
 
+def _mangle_certpath(certpath, storage, addprefix=False):
+    """Mangle certpath for storage
+
+    For NSSDB adds sql: or dbm: prefix.
+
+    :param certpath: path to NSSDB / tuple of cert/key file
+    :param storage: NSSDB or FILE
+    :param addprefix: Add dbm:/sql: prefix to NSSDB certpath?
+    :return: certfile, keyfile
+    """
+    if storage == 'FILE':
+        certfile, keyfile = certpath
+    elif storage == 'NSSDB':
+        if addprefix and not certpath.startswith(('sql:', 'dbm:')):
+            # prefer SQL over DBM format
+            if os.path.isfile(os.path.join(certpath, 'cert9.db')):
+                prefix = 'sql'
+            elif os.path.isfile(os.path.join(certpath, 'cert8.db')):
+                prefix = 'dbm'
+            else:
+                prefix = constants.NSS_DEFAULT_DBTYPE
+            certpath = ':'.join((prefix, certpath))
+        certfile = certpath
+        keyfile = certpath
+    else:
+        raise ValueError(storage)
+    return certfile, keyfile
+
+
 def _get_requests(criteria=dict()):
     """
     Get all requests that matches the provided criteria.
@@ -259,8 +289,11 @@ def get_requests_for_dir(dir):
     directory.
     """
     reqid = []
-    criteria = {'cert-storage': 'NSSDB', 'key-storage': 'NSSDB',
-                'cert-database': dir, 'key-database': dir, }
+    certfile, keyfile = _mangle_certpath(dir, 'NSSDB', addprefix=False)
+    criteria = {
+        'cert-storage': 'NSSDB', 'key-storage': 'NSSDB',
+        'cert-database': certfile, 'key-database': keyfile
+    }
     requests = _get_requests(criteria)
     for request in requests:
         reqid.append(request.prop_if.Get(DBUS_CM_REQUEST_IF, 'nickname'))
@@ -333,15 +366,12 @@ def request_cert(
     ``perms``
         A tuple of (cert, key) permissions in e.g., (0644,0660)
     """
+    certfile, keyfile = _mangle_certpath(certpath, storage, addprefix=False)
     if storage == 'FILE':
-        certfile, keyfile = certpath
         # This is a workaround for certmonger having different Subject
         # representation with NSS and OpenSSL
         # https://pagure.io/certmonger/issue/62
         subject = str(DN(*reversed(DN(subject))))
-    else:
-        certfile = certpath
-        keyfile = certpath
 
     cm = _certmonger()
     ca_path = cm.obj_if.find_ca_by_nickname(ca)
@@ -426,11 +456,7 @@ def start_tracking(
         Which certificate profile should be used.
     :returns: certificate tracking nickname.
     """
-    if storage == 'FILE':
-        certfile, keyfile = certpath
-    else:
-        certfile = certpath
-        keyfile = certpath
+    certfile, keyfile = _mangle_certpath(certpath, storage, addprefix=False)
 
     cm = _certmonger()
     certmonger_cmd_template = paths.CERTMONGER_COMMAND_TEMPLATE
@@ -492,7 +518,8 @@ def stop_tracking(secdir=None, request_id=None, nickname=None, certfile=None):
 
     criteria = dict()
     if secdir:
-        criteria['cert-database'] = secdir
+        criteria['cert-database'] = _mangle_certpath(
+            secdir, 'NSSDB', addprefix=False)[0]
     if request_id:
         criteria['nickname'] = request_id
     if nickname:

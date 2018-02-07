@@ -34,6 +34,7 @@ import cryptography.x509
 
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 from ipapython.dn import DN
 from ipapython.kerberos import Principal
 from ipapython import ipautil
@@ -239,19 +240,28 @@ class NSSDatabase(object):
         self.pwd_file = os.path.join(self.secdir, 'pwdfile.txt')
         self.dbtype = None
         self.certdb = self.keydb = self.secmod = None
+        # files in actual db
         self.filenames = ()
+        # all files that are handled by create_db(backup=True)
+        self.backup_filenames = ()
         self._set_filenames(dbtype)
 
     def _set_filenames(self, dbtype):
         self.dbtype = dbtype
+        dbmfiles = (
+            os.path.join(self.secdir, "cert8.db"),
+            os.path.join(self.secdir, "key3.db"),
+            os.path.join(self.secdir, "secmod.db")
+        )
+        sqlfiles = (
+            os.path.join(self.secdir, "cert9.db"),
+            os.path.join(self.secdir, "key4.db"),
+            os.path.join(self.secdir, "pkcs11.txt")
+        )
         if dbtype == 'dbm':
-            self.certdb = os.path.join(self.secdir, "cert8.db")
-            self.keydb = os.path.join(self.secdir, "key3.db")
-            self.secmod = os.path.join(self.secdir, "secmod.db")
+            self.certdb, self.keydb, self.secmod = dbmfiles
         elif dbtype == 'sql':
-            self.certdb = os.path.join(self.secdir, "cert9.db")
-            self.keydb = os.path.join(self.secdir, "key4.db")
-            self.secmod = os.path.join(self.secdir, "pkcs11.txt")
+            self.certdb, self.keydb, self.secmod = sqlfiles
         else:
             raise ValueError(dbtype)
         self.filenames = (
@@ -260,6 +270,9 @@ class NSSDatabase(object):
             self.secmod,
             self.pwd_file,
         )
+        self.backup_filenames = (
+            self.pwd_file,
+        ) + sqlfiles + dbmfiles
 
     def close(self):
         if self._is_temporary:
@@ -288,6 +301,20 @@ class NSSDatabase(object):
         new_args.extend(args)
         return ipautil.run(new_args, stdin, **kwargs)
 
+    def run_modutil(self, args, stdin=None, **kwargs):
+        new_args = [paths.MODUTIL, '-dbdir']
+        if self.dbtype == 'sql':
+            new_args.append('sql:{}'.format(self.secdir))
+        else:
+            new_args.append(self.secdir)
+        new_args.extend(args)
+        return ipautil.run(new_args, stdin, **kwargs)
+
+    def exists(self):
+        """Check DB exists (all files are present)
+        """
+        return all(os.path.isfile(filename) for filename in self.filenames)
+
     def create_db(self, user=None, group=None, mode=None, backup=False):
         """Create cert DB
 
@@ -313,9 +340,8 @@ class NSSDatabase(object):
             gid = grp.getgrnam(group).gr_gid
 
         if backup:
-            for filename in self.filenames:
-                path = os.path.join(self.secdir, filename)
-                ipautil.backup_file(path)
+            for filename in self.backup_filenames:
+                ipautil.backup_file(filename)
 
         if not os.path.exists(self.secdir):
             os.makedirs(self.secdir, dirmode)
@@ -328,7 +354,8 @@ class NSSDatabase(object):
                 f.write(ipautil.ipa_generate_password())
                 f.flush()
 
-        self.run_certutil(["-N", "-f", self.pwd_file])
+        # -@ in case it's an old db and it must be migrated
+        self.run_certutil(['-N', '-@', self.pwd_file])
 
         # Finally fix up perms
         os.chown(self.secdir, uid, gid)
@@ -383,7 +410,7 @@ class NSSDatabase(object):
             oldstat = os.stat(oldname)
             os.chmod(newname, stat.S_IMODE(oldstat.st_mode))
             os.chown(newname, oldstat.st_uid, oldstat.st_gid)
-            # XXX also retain SELinux context?
+            tasks.restore_context(newname)
 
         self._set_filenames('sql')
         self.list_certs()  # self-test

@@ -788,8 +788,13 @@ def configure_certmonger(
     try:
         certmonger.request_cert(
             certpath=paths.IPA_NSSDB_DIR,
-            nickname='Local IPA host', subject=subject, dns=[hostname],
-            principal=principal, passwd_fname=passwd_fname)
+            storage='NSSDB',
+            nickname='Local IPA host',
+            subject=subject,
+            dns=[hostname],
+            principal=principal,
+            passwd_fname=passwd_fname
+        )
     except Exception as ex:
         logger.error(
             "%s request for host certificate failed: %s",

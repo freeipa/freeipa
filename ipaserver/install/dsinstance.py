@@ -832,6 +832,7 @@ class DsInstance(service.Service):
                 cmd = 'restart_dirsrv %s' % self.serverid
                 certmonger.request_and_wait_for_cert(
                     certpath=dirname,
+                    storage='NSSDB',
                     nickname=self.nickname,
                     principal=self.principal,
                     passwd_fname=dsdb.passwd_fname,
@@ -839,7 +840,8 @@ class DsInstance(service.Service):
                     ca='IPA',
                     profile=dogtag.DEFAULT_PROFILE,
                     dns=[self.fqdn],
-                    post_command=cmd)
+                    post_command=cmd
+                )
             finally:
                 if prev_helper is not None:
                     certmonger.modify_ca_helper('IPA', prev_helper)

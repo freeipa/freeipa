@@ -40,4 +40,5 @@ class BaseConstantsNamespace(object):
     # sql (new format), dbm (old format)
     NSS_DEFAULT_DBTYPE = 'dbm'
 
+
 constants = BaseConstantsNamespace()

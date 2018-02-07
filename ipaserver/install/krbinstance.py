@@ -430,18 +430,21 @@ class KrbInstance(service.Service):
                     '--agent-submit'
                 ]
                 helper = " ".join(ca_args)
-                prev_helper = certmonger.modify_ca_helper(certmonger_ca, helper)
+                prev_helper = certmonger.modify_ca_helper(
+                    certmonger_ca, helper
+                )
 
             certmonger.request_and_wait_for_cert(
-                certpath,
-                subject,
-                krbtgt,
+                certpath=certpath,
+                subject=subject,
+                principal=krbtgt,
                 ca=certmonger_ca,
                 dns=self.fqdn,
                 storage='FILE',
                 profile=KDC_PROFILE,
                 post_command='renew_kdc_cert',
-                perms=(0o644, 0o600))
+                perms=(0o644, 0o600)
+            )
         except dbus.DBusException as e:
             # if the certificate is already tracked, ignore the error
             name = e.get_dbus_name()
