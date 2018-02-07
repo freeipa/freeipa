@@ -522,6 +522,7 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
     if (!ipactx) {
         return ENOMEM;
     }
+    ipactx->magic = IPA_CONTEXT_MAGIC;
 
     /* only check for unsupported 'temporary' value for now */
     for (i = 0; db_args != NULL && db_args[i] != NULL; i++) {
