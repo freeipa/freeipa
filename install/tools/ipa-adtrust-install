@@ -110,7 +110,7 @@ def read_admin_password(admin_name):
 
 def ensure_admin_kinit(admin_name, admin_password):
     try:
-        ipautil.run(['kinit', admin_name], stdin=admin_password+'\n')
+        ipautil.run([paths.KINIT, admin_name], stdin=admin_password+'\n')
     except ipautil.CalledProcessError:
         print("There was error to automatically re-kinit your admin user "
               "ticket.")

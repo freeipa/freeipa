@@ -23,6 +23,7 @@ import os
 import six
 
 from ipapython.ipautil import run
+from ipaplatform.paths import paths
 
 # NOTE: Absolute path not required for keyctl since we reset the environment
 #       in ipautil.run.
@@ -35,13 +36,15 @@ from ipapython.ipautil import run
 KEYRING = '@s'
 KEYTYPE = 'user'
 
+
 def dump_keys():
     """
     Dump all keys
     """
-    result = run(['keyctl', 'list', KEYRING], raiseonerr=False,
+    result = run([paths.KEYCTL, 'list', KEYRING], raiseonerr=False,
                  capture_output=True)
     return result.output
+
 
 def get_real_key(key):
     """
@@ -49,19 +52,21 @@ def get_real_key(key):
     so find the one we're looking for.
     """
     assert isinstance(key, six.string_types)
-    result = run(['keyctl', 'search', KEYRING, KEYTYPE, key],
+    result = run([paths.KEYCTL, 'search', KEYRING, KEYTYPE, key],
                  raiseonerr=False, capture_output=True)
     if result.returncode:
         raise ValueError('key %s not found' % key)
     return result.raw_output.rstrip()
 
+
 def get_persistent_key(key):
     assert isinstance(key, six.string_types)
-    result = run(['keyctl', 'get_persistent', KEYRING, key],
+    result = run([paths.KEYCTL, 'get_persistent', KEYRING, key],
                  raiseonerr=False, capture_output=True)
     if result.returncode:
         raise ValueError('persistent key %s not found' % key)
     return result.raw_output.rstrip()
+
 
 def is_persistent_keyring_supported():
     uid = os.geteuid()
@@ -71,6 +76,7 @@ def is_persistent_keyring_supported():
         return False
 
     return True
+
 
 def has_key(key):
     """
@@ -83,6 +89,7 @@ def has_key(key):
     except ValueError:
         return False
 
+
 def read_key(key):
     """
     Read the keyring and return the value for key.
@@ -91,12 +98,13 @@ def read_key(key):
     """
     assert isinstance(key, six.string_types)
     real_key = get_real_key(key)
-    result = run(['keyctl', 'pipe', real_key], raiseonerr=False,
+    result = run([paths.KEYCTL, 'pipe', real_key], raiseonerr=False,
                  capture_output=True)
     if result.returncode:
         raise ValueError('keyctl pipe failed: %s' % result.error_log)
 
     return result.raw_output
+
 
 def update_key(key, value):
     """
@@ -106,12 +114,13 @@ def update_key(key, value):
     assert isinstance(value, bytes)
     if has_key(key):
         real_key = get_real_key(key)
-        result = run(['keyctl', 'pupdate', real_key], stdin=value,
+        result = run([paths.KEYCTL, 'pupdate', real_key], stdin=value,
                      raiseonerr=False)
         if result.returncode:
             raise ValueError('keyctl pupdate failed: %s' % result.error_log)
     else:
         add_key(key, value)
+
 
 def add_key(key, value):
     """
@@ -121,10 +130,11 @@ def add_key(key, value):
     assert isinstance(value, bytes)
     if has_key(key):
         raise ValueError('key %s already exists' % key)
-    result = run(['keyctl', 'padd', KEYTYPE, key, KEYRING],
+    result = run([paths.KEYCTL, 'padd', KEYTYPE, key, KEYRING],
                  stdin=value, raiseonerr=False)
     if result.returncode:
         raise ValueError('keyctl padd failed: %s' % result.error_log)
+
 
 def del_key(key):
     """
@@ -132,7 +142,7 @@ def del_key(key):
     """
     assert isinstance(key, six.string_types)
     real_key = get_real_key(key)
-    result = run(['keyctl', 'unlink', real_key, KEYRING],
+    result = run([paths.KEYCTL, 'unlink', real_key, KEYRING],
                  raiseonerr=False)
     if result.returncode:
         raise ValueError('keyctl unlink failed: %s' % result.error_log)

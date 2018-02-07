@@ -349,7 +349,7 @@ def main():
     api.Backend.ldap2.disconnect()
 
     # execute ipactl to refresh services status
-    ipautil.run(['ipactl', 'start', '--ignore-service-failures'],
+    ipautil.run([paths.IPACTL, 'start', '--ignore-service-failures'],
                 raiseonerr=False)
 
 

@@ -336,7 +336,7 @@ class CALessBase(IntegrationTest):
                 with open(cert_fname) as cert:
                     chain.write(cert.read())
 
-        ipautil.run(["openssl", "pkcs12", "-export", "-out", filename,
+        ipautil.run([paths.OPENSSL, "pkcs12", "-export", "-out", filename,
                      "-inkey", key_fname, "-in", certchain_fname, "-passin",
                      "pass:" + cls.cert_password, "-passout", "pass:" +
                      password, "-name", nickname], cwd=cls.cert_dir)

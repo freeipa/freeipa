@@ -25,6 +25,8 @@ This base platform module exports default filesystem paths.
 class BasePathNamespace(object):
     BASH = "/bin/bash"
     BIN_HOSTNAMECTL = "/bin/hostnamectl"
+    ECHO = "/bin/echo"
+    GZIP = "/usr/bin/gzip"
     LS = "/bin/ls"
     SH = "/bin/sh"
     SYSTEMCTL = "/bin/systemctl"
@@ -160,8 +162,10 @@ class BasePathNamespace(object):
     GPG = "/usr/bin/gpg"
     GPG_AGENT = "/usr/bin/gpg-agent"
     IPA_GETCERT = "/usr/bin/ipa-getcert"
+    KADMIN_LOCAL = '/usr/sbin/kadmin.local'
     KDESTROY = "/usr/bin/kdestroy"
     KINIT = "/usr/bin/kinit"
+    KLIST = "/usr/bin/klist"
     BIN_KVNO = "/usr/bin/kvno"
     LDAPMODIFY = "/usr/bin/ldapmodify"
     LDAPPASSWD = "/usr/bin/ldappasswd"
@@ -207,6 +211,7 @@ class BasePathNamespace(object):
     GROUPADD = "/usr/sbin/groupadd"
     USERMOD = "/usr/sbin/usermod"
     HTTPD = "/usr/sbin/httpd"
+    IPA_CLIENT_AUTOMOUNT = "/usr/sbin/ipa-client-automount"
     IPA_CLIENT_INSTALL = "/usr/sbin/ipa-client-install"
     IPA_DNS_INSTALL = "/usr/sbin/ipa-dns-install"
     SBIN_IPA_JOIN = "/usr/sbin/ipa-join"
@@ -362,6 +367,9 @@ class BasePathNamespace(object):
     IF_INET6 = '/proc/net/if_inet6'
     AUTHCONFIG = None
     IPA_SERVER_UPGRADE = '/usr/sbin/ipa-server-upgrade'
+    KEYCTL = '/usr/bin/keyctl'
+    GETENT = '/usr/bin/getent'
+    SSHD = '/usr/sbin/sshd'
 
 
 paths = BasePathNamespace()

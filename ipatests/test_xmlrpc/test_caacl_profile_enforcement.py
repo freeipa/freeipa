@@ -18,6 +18,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from ipalib import api, errors
+from ipaplatform.paths import paths
 from ipatests.util import (
     prepare_config, unlock_principal_password, change_principal,
     host_keytab)
@@ -50,7 +51,7 @@ def generate_user_csr(username, domain=None):
         username=username)
 
     with tempfile.NamedTemporaryFile(mode='w') as csr_file:
-        run(['openssl', 'req', '-new', '-key', CERT_RSA_PRIVATE_KEY_PATH,
+        run([paths.OPENSSL, 'req', '-new', '-key', CERT_RSA_PRIVATE_KEY_PATH,
              '-out', csr_file.name,
              '-config', prepare_config(
                  CERT_OPENSSL_CONFIG_TEMPLATE, csr_values)])

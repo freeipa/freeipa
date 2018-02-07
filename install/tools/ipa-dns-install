@@ -151,7 +151,7 @@ def main():
     # Services are enabled in dns_installer.install()
 
     # execute ipactl to refresh services status
-    ipautil.run(['ipactl', 'start', '--ignore-service-failures'],
+    ipautil.run([paths.IPACTL, 'start', '--ignore-service-failures'],
                 raiseonerr=False)
 
     api.Backend.ldap2.disconnect()

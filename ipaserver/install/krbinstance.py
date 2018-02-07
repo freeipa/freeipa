@@ -346,7 +346,7 @@ class KrbInstance(service.Service):
         MIN_KRB5KDC_WITH_WORKERS = "1.9"
         cpus = os.sysconf('SC_NPROCESSORS_ONLN')
         workers = False
-        result = ipautil.run(['klist', '-V'],
+        result = ipautil.run([paths.KLIST, '-V'],
                              raiseonerr=False, capture_output=True)
         if result.returncode == 0:
             verstr = result.output.split()[-1]
