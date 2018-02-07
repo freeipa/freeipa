@@ -207,12 +207,15 @@ class IPAKEMKeys(KEMKeysStore):
     def __init__(self, config=None, ipaconf=paths.IPA_DEFAULT_CONF):
         super(IPAKEMKeys, self).__init__(config)
         conf = ConfigParser()
-        conf.read(ipaconf)
-        self.host = conf.get('global', 'host')
-        self.realm = conf.get('global', 'realm')
+        self.host = None
+        self.realm = None
         self.ldap_uri = config.get('ldap_uri', None)
-        if self.ldap_uri is None:
-            self.ldap_uri = conf.get('global', 'ldap_uri', raw=True)
+        if conf.read(ipaconf):
+            self.host = conf.get('global', 'host')
+            self.realm = conf.get('global', 'realm')
+            if self.ldap_uri is None:
+                self.ldap_uri = conf.get('global', 'ldap_uri', raw=True)
+
         self._server_keys = None
 
     def find_key(self, kid, usage):
@@ -259,9 +262,10 @@ class IPAKEMKeys(KEMKeysStore):
         """
         self.remove_server_keys_file()
         principal = '%s/%s@%s' % (servicename, self.host, self.realm)
-        ldapconn = KEMLdap(self.ldap_uri)
-        ldapconn.del_key(KEY_USAGE_SIG, principal)
-        ldapconn.del_key(KEY_USAGE_ENC, principal)
+        if self.ldap_uri is not None:
+            ldapconn = KEMLdap(self.ldap_uri)
+            ldapconn.del_key(KEY_USAGE_SIG, principal)
+            ldapconn.del_key(KEY_USAGE_ENC, principal)
 
     @property
     def server_keys(self):
