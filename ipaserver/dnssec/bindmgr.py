@@ -11,6 +11,8 @@ import os
 import shutil
 import stat
 
+import six
+
 import ipalib.constants
 from ipapython.dn import DN
 from ipapython import ipautil
@@ -54,8 +56,13 @@ class BINDMgr(object):
         return dns.name.from_text(dn[idx - 1]['idnsname'])
 
     def time_ldap2bindfmt(self, str_val):
-        dt = datetime.strptime(str_val, ipalib.constants.LDAP_GENERALIZED_TIME_FORMAT)
-        return dt.strftime(time_bindfmt)
+        if isinstance(str_val, bytes):
+            str_val = str_val.decode('utf-8')
+        dt = datetime.strptime(
+            str_val,
+            ipalib.constants.LDAP_GENERALIZED_TIME_FORMAT
+        )
+        return dt.strftime(time_bindfmt).encode('utf-8')
 
     def dates2params(self, ldap_attrs):
         """Convert LDAP timestamps to list of parameters suitable
@@ -102,18 +109,27 @@ class BINDMgr(object):
 
     def install_key(self, zone, uuid, attrs, workdir):
         """Run dnssec-keyfromlabel on given LDAP object.
-        :returns: base file name of output files, e.g. Kaaa.test.+008+19719"""
+        :returns: base file name of output files, e.g. Kaaa.test.+008+19719
+        """
         logger.info('attrs: %s', attrs)
-        assert attrs.get('idnsseckeyzone', ['FALSE'])[0] == 'TRUE', \
-            'object %s is not a DNS zone key' % attrs['dn']
+        assert attrs.get('idnsseckeyzone', [b'FALSE'])[0] == b'TRUE', \
+            b'object %s is not a DNS zone key' % attrs['dn']
 
-        uri = "%s;pin-source=%s" % (attrs['idnsSecKeyRef'][0], paths.DNSSEC_SOFTHSM_PIN)
-        cmd = [paths.DNSSEC_KEYFROMLABEL, '-K', workdir, '-a', attrs['idnsSecAlgorithm'][0], '-l', uri]
-        cmd += self.dates2params(attrs)
-        if attrs.get('idnsSecKeySep', ['FALSE'])[0].upper() == 'TRUE':
-            cmd += ['-f', 'KSK']
-        if attrs.get('idnsSecKeyRevoke', ['FALSE'])[0].upper() == 'TRUE':
-            cmd += ['-R', datetime.now().strftime(time_bindfmt)]
+        uri = b"%s;pin-source=%s" % (
+            attrs['idnsSecKeyRef'][0],
+            paths.DNSSEC_SOFTHSM_PIN.encode('utf-8')
+        )
+        cmd = [
+            paths.DNSSEC_KEYFROMLABEL,
+            '-K', workdir,
+            '-a', attrs['idnsSecAlgorithm'][0],
+            '-l', uri
+        ]
+        cmd.extend(self.dates2params(attrs))
+        if attrs.get('idnsSecKeySep', [b'FALSE'])[0].upper() == b'TRUE':
+            cmd.extend(['-f', 'KSK'])
+        if attrs.get('idnsSecKeyRevoke', [b'FALSE'])[0].upper() == b'TRUE':
+            cmd.extend(['-R', datetime.now().strftime(time_bindfmt)])
         cmd.append(zone.to_text())
 
         # keys has to be readable by ODS & named
@@ -138,24 +154,19 @@ class BINDMgr(object):
 
         # strip final (empty) label
         zone = zone.relativize(dns.name.root)
-        escaped = ""
+        escaped = []
         for label in zone:
             for char in label:
-                c = ord(char)
-                if ((c >= 0x30 and c <= 0x39) or   # digit
-                   (c >= 0x41 and c <= 0x5A) or    # uppercase
-                   (c >= 0x61 and c <= 0x7A) or    # lowercase
-                   c == 0x2D or                    # hyphen
-                   c == 0x5F):                     # underscore
-                    if (c >= 0x41 and c <= 0x5A):  # downcase
-                        c += 0x20
-                    escaped += chr(c)
+                if six.PY3:
+                    char = chr(char)
+                if char.isalnum() or char in "-_":
+                    escaped.append(char.lower())
                 else:
-                    escaped += "%%%02X" % c
-            escaped += '.'
+                    escaped.append("%%%02X" % ord(char))
+            escaped.append('.')
 
         # strip trailing period
-        return escaped[:-1]
+        return ''.join(escaped[:-1])
 
     def sync_zone(self, zone):
         logger.info('Synchronizing zone %s', zone)
