@@ -69,6 +69,8 @@ steps:
   - ipa-run-tests ${tests_ignore} -k-test_dns_soa ${tests_verbose} ${path}
   - '! grep -n -C5 BytesWarning /var/log/httpd/error_log'
   - ipa-server-install --uninstall -U
+  # second uninstall to verify that --uninstall without installation works
+  - ipa-server-install --uninstall -U
 tests:
   ignore:
   - test_integration
