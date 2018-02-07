@@ -5,7 +5,6 @@
 
 from __future__ import print_function
 
-from binascii import hexlify
 import collections
 import os
 from pprint import pprint
@@ -16,6 +15,7 @@ from ipaserver import p11helper as _ipap11helper
 from ipaserver.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
                                      keytype_id2name, keytype_name2id,
                                      ldap2p11helper_api_params)
+from ipaserver.dnssec.ldapkeydb import str_hexlify
 
 
 private_key_api_params = set(["label", "id", "data", "unwrapping_key",
@@ -44,8 +44,8 @@ class Key(collections.MutableMapping):
             assert len(cka_label) != 0, 'ipk11label length should not be 0'
 
         except _ipap11helper.NotFound:
-            raise _ipap11helper.NotFound('key without ipk11label: id 0x%s'
-                    % hexlify(cka_id))
+            raise _ipap11helper.NotFound(
+                'key without ipk11label: id 0x%s' % str_hexlify(cka_id))
 
     def __getitem__(self, key):
         key = key.lower()
@@ -114,7 +114,7 @@ class LocalHSM(AbstractHSM):
             key = Key(self.p11, h)
             o_id = key['ipk11id']
             assert o_id not in keys, 'duplicate ipk11Id = 0x%s; keys = %s' % (
-                    hexlify(o_id), keys)
+                    str_hexlify(o_id), keys)
             keys[o_id] = key
 
         return keys
@@ -138,9 +138,11 @@ class LocalHSM(AbstractHSM):
         for key in keys.values():
             prefix = 'dnssec-master'
             assert key['ipk11label'] == prefix, \
-                'secret key ipk11id=0x%s ipk11label="%s" with ipk11UnWrap = TRUE does not have '\
-                '"%s" key label' % (hexlify(key['ipk11id']),
-                        str(key['ipk11label']), prefix)
+                'secret key ipk11id=0x%s ipk11label="%s" with ipk11UnWrap ' \
+                '= TRUE does not have "%s" key label' % (
+                    str_hexlify(key['ipk11id']),
+                    str(key['ipk11label']), prefix
+                )
 
         return keys
 
@@ -185,7 +187,6 @@ class LocalHSM(AbstractHSM):
         return Key(self.p11, h)
 
 
-
 if __name__ == '__main__':
     if 'SOFTHSM2_CONF' not in os.environ:
         os.environ['SOFTHSM2_CONF'] = paths.DNSSEC_SOFTHSM2_CONF
@@ -195,33 +196,33 @@ if __name__ == '__main__':
     print('replica public keys: CKA_WRAP = TRUE')
     print('====================================')
     for pubkey_id, pubkey in localhsm.replica_pubkeys_wrap.items():
-        print(hexlify(pubkey_id))
+        print(str_hexlify(pubkey_id))
         pprint(pubkey)
 
     print('')
     print('replica public keys: all')
     print('========================')
     for pubkey_id, pubkey in localhsm.replica_pubkeys.items():
-        print(hexlify(pubkey_id))
+        print(str_hexlify(pubkey_id))
         pprint(pubkey)
 
     print('')
     print('master keys')
     print('===========')
     for mkey_id, mkey in localhsm.master_keys.items():
-        print(hexlify(mkey_id))
+        print(str_hexlify(mkey_id))
         pprint(mkey)
 
     print('')
     print('zone public keys')
     print('================')
-    for key_id, key in localhsm.zone_pubkeys.items():
-        print(hexlify(key_id))
-        pprint(key)
+    for key_id, zkey in localhsm.zone_pubkeys.items():
+        print(str_hexlify(key_id))
+        pprint(zkey)
 
     print('')
     print('zone private keys')
     print('=================')
-    for key_id, key in localhsm.zone_privkeys.items():
-        print(hexlify(key_id))
-        pprint(key)
+    for key_id, zkey in localhsm.zone_privkeys.items():
+        print(str_hexlify(key_id))
+        pprint(zkey)
