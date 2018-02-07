@@ -576,6 +576,16 @@ class Env(object):
         if 'log' not in self:
             self.log = self._join('logdir', '%s.log' % self.context)
 
+        # Workaround for ipa-server-install --uninstall. When no config file
+        # is available, we set realm, domain, and basedn to RFC 2606 reserved
+        # suffix to suppress attribute errors during uninstallation.
+        if (self.in_server and self.context == 'installer' and
+                not getattr(self, 'config_loaded', False)):
+            if 'realm' not in self:
+                self.realm = 'UNCONFIGURED.INVALID'
+            if 'domain' not in self:
+                self.domain = self.realm.lower()
+
         if 'basedn' not in self and 'domain' in self:
             self.basedn = DN(*(('dc', dc) for dc in self.domain.split('.')))
 
