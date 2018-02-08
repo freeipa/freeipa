@@ -310,7 +310,7 @@ class Backup(admintool.AdminTool):
                     dirsrv.stop(capture_output=False)
             else:
                 logger.info('Stopping IPA services')
-                run(['ipactl', 'stop'])
+                run([paths.IPACTL, 'stop'])
 
             instance = installutils.realm_to_serverid(api.env.realm)
             if os.path.exists(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE %
@@ -333,7 +333,7 @@ class Backup(admintool.AdminTool):
                     dirsrv.start(capture_output=False)
             else:
                 logger.info('Starting IPA service')
-                run(['ipactl', 'start'])
+                run([paths.IPACTL, 'start'])
 
         finally:
             try:
@@ -535,7 +535,7 @@ class Backup(admintool.AdminTool):
 
         # Compress the archive. This is done separately, since 'tar' cannot
         # append to a compressed archive.
-        result = run(['gzip', tarfile], raiseonerr=False)
+        result = run([paths.GZIP, tarfile], raiseonerr=False)
         if result.returncode != 0:
             raise admintool.ScriptError(
                 'gzip returned non-zero code %d '

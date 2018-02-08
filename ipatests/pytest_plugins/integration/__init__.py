@@ -31,6 +31,7 @@ import pytest
 from pytest_multihost import make_multihost_fixture
 
 from ipapython import ipautil
+from ipaplatform.paths import paths
 from ipatests.test_util import yield_fixture
 from .config import Config
 from .env_config import get_global_config
@@ -150,7 +151,7 @@ def collect_logs(name, logs_dict, logfile_dir=None, beakerlib_plugin=None):
             # delete from remote
             host.run_command(['rm', '-f', tmpname])
             # Unpack on the local side
-            ipautil.run(['tar', 'xJvf', 'logs.tar.xz'], cwd=dirname,
+            ipautil.run([paths.TAR, 'xJvf', 'logs.tar.xz'], cwd=dirname,
                         raiseonerr=False)
             os.unlink(tarname)
 
