@@ -344,15 +344,33 @@ class UI_driver(object):
         """
         Navigate to Web UI first page and wait for loading of all dependencies.
         """
+        # If the application is already loaded, there is no need to re-enter
+        # the URL on the address bar and reloading everything.
+        # This help us to create scenarios like login -> logout -> login
+
+        # if a page is already loaded we click in the IPA logo to go to the
+        # initial page
+        ipa_logo = self.find('.navbar-brand', By.CSS_SELECTOR)
+        if ipa_logo and ipa_logo.is_displayed():
+            # the link is not clickable
+            ActionChains(self.driver).move_to_element(ipa_logo).click().perform()
+            return
+
+        # already on the first page
+        if self.login_screen_visible():
+            return
+
+        # if is not any of above cases, we need to load the application for
+        # its first time entering the URL in the address bar
         self.driver.get(self.get_base_url())
         runner = self
         WebDriverWait(self.driver, 10).until(lambda d: runner.files_loaded())
+        self.wait_for_request()
 
     def login(self, login=None, password=None, new_password=None):
         """
         Log in if user is not logged in.
         """
-        self.wait_for_request(n=2)
         if self.logged_in():
             return
 
