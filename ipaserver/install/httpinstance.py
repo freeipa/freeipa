@@ -263,35 +263,6 @@ class HTTPInstance(service.Service):
             aug.set(ocsp_comment, '{} {}'.format(OCSP_DIRECTIVE, ocsp_state))
             aug.save()
 
-#    def disable_mod_nss_ocsp(self):
-#        if sysupgrade.get_upgrade_state('http', NSS_OCSP_ENABLED) is None:
-#            self.__disable_mod_nss_ocsp()
-#            sysupgrade.set_upgrade_state('http', NSS_OCSP_ENABLED, False)
-
-#    def __disable_mod_nss_ocsp(self):
-#        aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD)
-#
-#        aug.set('/augeas/load/Httpd/lens', 'Httpd.lns')
-#        aug.set('/augeas/load/Httpd/incl', paths.HTTPD_NSS_CONF)
-#        aug.load()
-#
-#        path = '/files{}/VirtualHost'.format(paths.HTTPD_NSS_CONF)
-#        ocsp_path = '{}/directive[.="{}"]'.format(path, OCSP_DIRECTIVE)
-#        ocsp_arg = '{}/arg'.format(ocsp_path)
-#        ocsp_comment = '{}/#comment[.="{}"]'.format(path, OCSP_DIRECTIVE)
-#
-#        ocsp_dir = aug.get(ocsp_path)
-#
-#        # there is NSSOCSP directive in nss.conf file, comment it
-#        # otherwise just do nothing
-#        if ocsp_dir is not None:
-#            ocsp_state = aug.get(ocsp_arg)
-#            aug.remove(ocsp_arg)
-#            aug.rename(ocsp_path, '#comment')
-#            aug.set(ocsp_comment, '{} {}'.format(OCSP_DIRECTIVE, ocsp_state))
-#            aug.save()
-
-
     def __add_include(self):
         """This should run after __set_mod_nss_port so is already backed up"""
         if installutils.update_file(paths.HTTPD_SSL_CONF,
