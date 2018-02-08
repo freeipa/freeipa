@@ -848,6 +848,7 @@ class UI_driver(object):
         if combobox_input:
             if not option:
                 self.fill_textbox(combobox_input, value, cb)
+                open_btn.click()
         else:
             if not option:
                 # try to search
