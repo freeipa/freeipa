@@ -224,18 +224,11 @@ class NSSDatabase(object):
         if nssdir is None:
             self.secdir = tempfile.mkdtemp()
             self._is_temporary = True
-            if dbtype == 'auto':
-                dbtype = constants.NSS_DEFAULT_DBTYPE
         else:
             self.secdir = nssdir
             self._is_temporary = False
             if dbtype == 'auto':
-                if os.path.isfile(os.path.join(self.secdir, "cert9.db")):
-                    dbtype = 'sql'
-                elif os.path.isfile(os.path.join(self.secdir, "cert8.db")):
-                    dbtype = 'dbm'
-                else:
-                    dbtype = constants.NSS_DEFAULT_DBTYPE
+                dbtype = self._detect_dbtype()
 
         self.pwd_file = os.path.join(self.secdir, 'pwdfile.txt')
         self.dbtype = None
@@ -245,6 +238,14 @@ class NSSDatabase(object):
         # all files that are handled by create_db(backup=True)
         self.backup_filenames = ()
         self._set_filenames(dbtype)
+
+    def _detect_dbtype(self):
+        if os.path.isfile(os.path.join(self.secdir, "cert9.db")):
+            return 'sql'
+        elif os.path.isfile(os.path.join(self.secdir, "cert8.db")):
+            return 'dbm'
+        else:
+            return 'auto'
 
     def _set_filenames(self, dbtype):
         self.dbtype = dbtype
@@ -260,16 +261,15 @@ class NSSDatabase(object):
         )
         if dbtype == 'dbm':
             self.certdb, self.keydb, self.secmod = dbmfiles
+            self.filenames = dbmfiles + (self.pwd_file,)
         elif dbtype == 'sql':
             self.certdb, self.keydb, self.secmod = sqlfiles
+            self.filenames = sqlfiles + (self.pwd_file,)
+        elif dbtype == 'auto':
+            self.certdb = self.keydb = self.secmod = None
+            self.filenames = None
         else:
             raise ValueError(dbtype)
-        self.filenames = (
-            self.certdb,
-            self.keydb,
-            self.secmod,
-            self.pwd_file,
-        )
         self.backup_filenames = (
             self.pwd_file,
         ) + sqlfiles + dbmfiles
@@ -284,7 +284,14 @@ class NSSDatabase(object):
     def __exit__(self, type, value, tb):
         self.close()
 
+    def _check_db(self):
+        if self.filenames is None:
+            raise RuntimeError(
+                "NSSDB '{}' not initialized.".format(self.secdir)
+            )
+
     def run_certutil(self, args, stdin=None, **kwargs):
+        self._check_db()
         new_args = [
             paths.CERTUTIL,
             "-d", '{}:{}'.format(self.dbtype, self.secdir)
@@ -294,6 +301,7 @@ class NSSDatabase(object):
         return ipautil.run(new_args, stdin, **kwargs)
 
     def run_pk12util(self, args, stdin=None, **kwargs):
+        self._check_db()
         new_args = [
             paths.PK12UTIL,
             "-d", '{}:{}'.format(self.dbtype, self.secdir)
@@ -302,6 +310,7 @@ class NSSDatabase(object):
         return ipautil.run(new_args, stdin, **kwargs)
 
     def run_modutil(self, args, stdin=None, **kwargs):
+        self._check_db()
         new_args = [
             paths.MODUTIL,
             '-dbdir', '{}:{}'.format(self.dbtype, self.secdir)
@@ -312,6 +321,8 @@ class NSSDatabase(object):
     def exists(self):
         """Check DB exists (all files are present)
         """
+        if self.filenames is None:
+            return False
         return all(os.path.isfile(filename) for filename in self.filenames)
 
     def create_db(self, user=None, group=None, mode=None, backup=False):
@@ -353,8 +364,26 @@ class NSSDatabase(object):
                 f.write(ipautil.ipa_generate_password())
                 f.flush()
 
-        # -@ in case it's an old db and it must be migrated
-        self.run_certutil(['-N', '-@', self.pwd_file])
+        # In case dbtype is auto, let certutil decide which type of DB
+        # to create.
+        if self.dbtype == 'auto':
+            dbdir = self.secdir
+        else:
+            dbdir = '{}:{}'.format(self.dbtype, self.secdir)
+        ipautil.run([
+            paths.CERTUTIL,
+            '-d', dbdir,
+            '-N',
+            '-f', self.pwd_file,
+            # -@ in case it's an old db and it must be migrated
+            '-@', self.pwd_file,
+        ])
+        self._set_filenames(self._detect_dbtype())
+        if self.filenames is None:
+            # something went wrong...
+            raise ValueError(
+                "Failed to create NSSDB at '{}'".format(self.secdir)
+            )
 
         # Finally fix up perms
         os.chown(self.secdir, uid, gid)
@@ -420,15 +449,14 @@ class NSSDatabase(object):
                 os.rename(oldname, oldname + '.migrated')
 
     def restore(self):
-        for filename in self.filenames:
-            path = os.path.join(self.secdir, filename)
-            backup_path = path + '.orig'
-            save_path = path + '.ipasave'
+        for filename in self.backup_filenames:
+            backup_path = filename + '.orig'
+            save_path = filename + '.ipasave'
             try:
-                if os.path.exists(path):
-                    os.rename(path, save_path)
+                if os.path.exists(filename):
+                    os.rename(filename, save_path)
                 if os.path.exists(backup_path):
-                    os.rename(backup_path, path)
+                    os.rename(backup_path, filename)
             except OSError as e:
                 logger.debug('%s', e)
 

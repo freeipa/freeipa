@@ -45,7 +45,6 @@ from ipalib.errors import CertificateOperationError
 from ipalib.install import certstore
 from ipalib.util import strip_csr_header
 from ipalib.text import _
-from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 
 
@@ -725,7 +724,6 @@ class CertDB(object):
         """
         return (
             self.nssdb.dbtype == 'dbm' and
-            self.nssdb.dbtype != constants.NSS_DEFAULT_DBTYPE and
             self.exists()
         )
 
