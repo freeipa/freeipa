@@ -379,9 +379,9 @@ class Service(object):
             logger.critical("Could not add certificate to service %s entry: "
                             "%s", self.principal, str(e))
 
-    def import_ca_certs_file(self, cafile, ca_is_configured, conn=None):
+    def export_ca_certs_file(self, cafile, ca_is_configured, conn=None):
         """
-        Import the CA certificates stored in LDAP into a file
+        Export the CA certificates stored in LDAP into a file
 
         :param cafile: the file to write the CA certificates to
         :param ca_is_configured: whether IPA is CA-less or not
@@ -401,9 +401,9 @@ class Service(object):
                 for cert, _unused, _unused, _unused in ca_certs:
                     fd.write(cert.public_bytes(x509.Encoding.PEM))
 
-    def import_ca_certs_nssdb(self, db, ca_is_configured, conn=None):
+    def export_ca_certs_nssdb(self, db, ca_is_configured, conn=None):
         """
-        Import the CA certificates stored in LDAP into an NSS database
+        Export the CA certificates stored in LDAP into an NSS database
 
         :param db: the target NSS database
         :param ca_is_configured: whether IPA is CA-less or not
