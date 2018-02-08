@@ -70,7 +70,7 @@ class IpaMetaImporter(object):
         if sys.platform.startswith('linux'):
             # Linux, get distribution from /etc/os-release
             try:
-                platforms.extend(self._parse_osrelease())
+                platforms.extend(self._parse_platform())
             except Exception as e:
                 warnings.warn("Failed to read /etc/os-release: {}".format(e))
         elif sys.platform == 'win32':
@@ -91,14 +91,17 @@ class IpaMetaImporter(object):
 
         return platforms
 
-    def _parse_osrelease(self, filename='/etc/os-release'):
+    def parse_osrelease(self, filename='/etc/os-release'):
         release = {}
         with io.open(filename, encoding='utf-8') as f:
             for line in f:
                 mo = _osrelease_line.match(line)
                 if mo is not None:
                     release[mo.group('name')] = mo.group('value')
+        return release
 
+    def _parse_platform(self, filename='/etc/os-release'):
+        release = self.parse_osrelease(filename)
         platforms = [
             release['ID'],
         ]
