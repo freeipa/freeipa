@@ -100,6 +100,9 @@ hostgroup1_dn = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
 host_cert = get_testcert(DN(('CN', api.env.host), subject_base()),
                          'host/%s@%s' % (api.env.host, api.env.realm))
 
+missingrevzone = u'22.30.16.172.in-addr.arpa.'
+ipv4_in_missingrevzone_ip = u'172.16.30.22'
+
 
 @pytest.fixture(scope='class')
 def host(request):
@@ -116,6 +119,12 @@ def host2(request):
 @pytest.fixture(scope='class')
 def host3(request):
     tracker = HostTracker(name=u'testhost3')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def host4(request):
+    tracker = HostTracker(name=u'testhost4')
     return tracker.make_fixture(request)
 
 
@@ -588,6 +597,69 @@ class TestHostFalsePwdChange(XMLRPC_test):
         command = host.make_update_command(updates=dict(random=True))
         with pytest.raises(errors.ValidationError):
             command()
+
+
+@yield_fixture(scope='class')
+def dns_setup_nonameserver(host4):
+    # Make sure that the server does not handle the reverse zone used
+    # for the test
+    try:
+        host4.run_command('dnszone_del', missingrevzone, **{'continue': True})
+    except (errors.NotFound, errors.EmptyModlist):
+        pass
+
+    # Save the current forward policy
+    result = host4.run_command('dnsserver_show', api.env.host)
+    current_fwd_pol = result['result']['idnsforwardpolicy'][0]
+
+    # Configure the forward policy to none to make sure that no DNS
+    # server will answer for the reverse zone either
+    try:
+        host4.run_command('dnsserver_mod', api.env.host,
+                          idnsforwardpolicy=u'none')
+    except errors.EmptyModlist:
+        pass
+
+    try:
+        yield
+    finally:
+        # Restore the previous forward-policy
+        try:
+            host4.run_command('dnsserver_mod', api.env.host,
+                              idnsforwardpolicy=current_fwd_pol)
+        except errors.EmptyModlist:
+            pass
+
+
+@pytest.mark.tier1
+class TestHostNoNameserversForRevZone(XMLRPC_test):
+    def test_create_host_with_ip(self, dns_setup_nonameserver, host4):
+        """
+        Regression test for ticket 7397
+
+        Configure the master with forward-policy = none to make sure
+        that no DNS server will answer for the reverse zone
+        Try to add a new host with an IP address in the missing reverse
+        zone.
+        With issue 7397, a NoNameserver exception generates a Traceback in
+        httpd error_log, and the command returns an InternalError.
+        """
+        try:
+            command = host4.make_create_command()
+            with raises_exact(errors.NonFatalError(
+                reason=u'The host was added but the DNS update failed with'
+                    ': All nameservers failed to answer the query for DNS '
+                    'reverse zone %s' % missingrevzone)):
+                command(ip_address=ipv4_in_missingrevzone_ip)
+            # Make sure the host is added
+            host4.run_command('host_show', host4.fqdn)
+        finally:
+            # Delete the host entry
+            command = host4.make_delete_command()
+            try:
+                command(updatedns=True)
+            except Exception:
+                pass
 
 
 @yield_fixture(scope='class')
