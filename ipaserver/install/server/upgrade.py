@@ -1710,7 +1710,7 @@ def upgrade_configuration():
             )
         upgrade_pki(ca, fstore)
 
-        if kra.is_configured():
+        if kra.is_installed():
             logger.info('[Ensuring ephemeralRequest is enabled in KRA]')
             kra.backup_config()
             value = installutils.get_directive(
@@ -1728,7 +1728,7 @@ def upgrade_configuration():
     # by checking status using http
     if ca.is_configured():
         ca.start('pki-tomcat')
-    if kra.is_configured() and not kra.is_running():
+    if kra.is_installed() and not kra.is_running():
         # This is for future-proofing in case the KRA is ever standalone.
         kra.start('pki-tomcat')
 
