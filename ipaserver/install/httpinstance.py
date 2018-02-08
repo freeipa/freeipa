@@ -403,11 +403,16 @@ class HTTPInstance(service.Service):
             if prev_helper is not None:
                 self.add_cert_to_service()
 
+            with open(paths.HTTPD_KEY_FILE, 'rb') as f:
+                priv_key = x509.load_pem_private_key(
+                    f.read(), None, backend=x509.default_backend())
+
             # Verify we have a valid server cert
-            # FIXME: come up with openssl equivalent
-            #  server_certs = db.find_server_certs()
-            #  if not server_certs:
-            #      raise RuntimeError("Could not find a suitable server cert.")
+            if (priv_key.public_key().public_numbers()
+                    != self.cert.public_key().public_numbers()):
+                raise RuntimeError(
+                    "The public key of the issued HTTPD service certificate "
+                    "does not match its private key.")
 
         # store the CA cert nickname so that we can publish it later on
         # self.cacert_nickname = db.cacert_name
