@@ -938,7 +938,7 @@ class DsInstance(service.Service):
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=self.dm_password)
 
-        self.import_ca_certs_nssdb(dsdb, self.ca_is_configured, conn)
+        self.export_ca_certs_nssdb(dsdb, self.ca_is_configured, conn)
 
         conn.unbind()
 

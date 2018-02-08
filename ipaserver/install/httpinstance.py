@@ -419,7 +419,7 @@ class HTTPInstance(service.Service):
                                    paths.IPA_CA_CRT, False)
 
     def __publish_ca_cert(self):
-        self.import_ca_certs_file(paths.CA_CRT, self.ca_is_configured)
+        self.export_ca_certs_file(paths.CA_CRT, self.ca_is_configured)
 
     def is_kdcproxy_configured(self):
         """Check if KDC proxy has already been configured in the past"""
