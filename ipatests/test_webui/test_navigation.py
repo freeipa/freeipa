@@ -106,12 +106,14 @@ class test_navigation(UI_driver):
 
         # Identity
         # don't start by users (default)
-        self.navigate_by_menu('identity/group', False)
+        self.navigate_by_menu('identity/group_search', False)
+        # navigate on the side bar
+        self.click_on_link('User Groups')
+        self.click_on_link('Host Groups')
         self.navigate_by_menu('identity/user_search', False)
         self.navigate_by_menu('identity/host', False)
-        self.navigate_by_menu('identity/hostgroup', False)
-        self.navigate_by_menu('identity/netgroup', False)
         self.navigate_by_menu('identity/service', False)
+        self.navigate_by_menu('identity/idview', False)
         self.navigate_by_menu('identity/automember', False)
         self.navigate_by_menu('identity/automember/amhostgroup')
         self.navigate_by_menu('identity/automember/amgroup')
