@@ -878,7 +878,11 @@ class DsInstance(service.Service):
             nsSSLToken=["internal (software)"],
             nsSSLActivation=["on"],
         )
-        conn.add_entry(entry)
+        try:
+            conn.add_entry(entry)
+        except errors.DuplicateEntry:
+            # 389-DS >= 1.4.0 has a default entry, update it.
+            conn.update_entry(entry)
 
         conn.unbind()
 
