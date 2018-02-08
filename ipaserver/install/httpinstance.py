@@ -209,9 +209,17 @@ class HTTPInstance(service.Service):
         self.fstore.backup_file(paths.HTTPD_SSL_CONF)
 
     def disable_nss_conf(self):
-        # There is no safe way to co-exist since there is no safe port
-        # to make mod_nss use, disable it completely.
+        """
+        Backs up and removes the original nss.conf file.
+
+        There is no safe way to co-exist since there is no safe port
+        to make mod_nss use, disable it completely.
+        """
         if os.path.exists(paths.HTTPD_NSS_CONF):
+            # check that we don't have a backup already
+            # (mod_nss -> mod_ssl upgrade scenario)
+            if not self.fstore.has_file(paths.HTTPD_NSS_CONF):
+                self.fstore.backup_file(paths.HTTPD_NSS_CONF)
             installutils.remove_file(paths.HTTPD_NSS_CONF)
 
     def set_mod_ssl_protocol(self):
@@ -498,7 +506,6 @@ class HTTPInstance(service.Service):
                 ca_iface.Set('org.fedorahosted.certmonger.ca',
                              'external-helper', helper)
 
-        # FIXME: at some point don't backup/restore nss.conf
         for f in [paths.HTTPD_IPA_CONF, paths.HTTPD_SSL_CONF,
                   paths.HTTPD_NSS_CONF]:
             try:
