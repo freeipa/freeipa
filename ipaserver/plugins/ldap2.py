@@ -38,8 +38,6 @@ from ipapython.dn import DN
 from ipapython.ipaldap import (LDAPClient, AUTOBIND_AUTO, AUTOBIND_ENABLED,
                                AUTOBIND_DISABLED)
 
-from ldap.controls.simple import GetEffectiveRightsControl
-
 from ipalib import Registry, errors, _
 from ipalib.crud import CrudBackend
 from ipalib.request import context
@@ -274,22 +272,8 @@ class ldap2(CrudBackend, LDAPClient):
            Returns 2 attributes, the attributeLevelRights for the given list of
            attributes and the entryLevelRights for the entry itself.
         """
-
         assert isinstance(dn, DN)
-
-        bind_dn = self.conn.whoami_s()[4:]
-
-        sctrl = [
-            GetEffectiveRightsControl(
-                True, "dn: {0}".format(bind_dn).encode('utf-8'))
-        ]
-        self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, sctrl)
-        try:
-            entry = self.get_entry(dn, attrs_list)
-        finally:
-            # remove the control so subsequent operations don't include GER
-            self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, [])
-        return entry
+        return self.get_entry(dn, attrs_list, get_effective_rights=True)
 
     def can_write(self, dn, attr):
         """Returns True/False if the currently bound user has write permissions
