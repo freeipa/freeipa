@@ -34,13 +34,11 @@ logger = logging.getLogger(__name__)
 
 class BaseTaskNamespace(object):
 
-    def restore_context(self, filepath):
-        """
-        Restore SELinux security context on the given filepath.
+    def restore_context(self, filepath, force=False):
+        """Restore SELinux security context on the given filepath.
 
         No return value expected.
         """
-
         raise NotImplementedError()
 
     def backup_hostname(self, fstore, statestore):
