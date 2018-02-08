@@ -414,9 +414,6 @@ class HTTPInstance(service.Service):
                     "The public key of the issued HTTPD service certificate "
                     "does not match its private key.")
 
-        # store the CA cert nickname so that we can publish it later on
-        # self.cacert_nickname = db.cacert_name
-        # FIXME: figure this out too
         sysupgrade.set_upgrade_state('ssl.conf', 'migrated_to_mod_ssl', True)
 
     def configure_mod_ssl_certs(self):
@@ -432,7 +429,14 @@ class HTTPInstance(service.Service):
                                    paths.IPA_CA_CRT, False)
 
     def __publish_ca_cert(self):
-        self.export_ca_certs_file(paths.CA_CRT, self.ca_is_configured)
+        ca_subject = self.cert.issuer
+        certlist = x509.load_certificate_list_from_file(paths.IPA_CA_CRT)
+        ca_certs = [c for c in certlist if c.subject == ca_subject]
+        if not ca_certs:
+            raise RuntimeError("HTTPD cert was issued by an unknown CA.")
+        # at this time we can assume any CA cert will be valid since this is
+        # only run during installation
+        x509.write_certificate(ca_certs[0], paths.CA_CRT)
 
     def is_kdcproxy_configured(self):
         """Check if KDC proxy has already been configured in the past"""
