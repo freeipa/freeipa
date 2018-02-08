@@ -58,7 +58,7 @@ class test_group(UI_driver):
                 ('callback', self.check_posix_enabled, True),
                 ('textbox', 'cn', pkey),
                 ('textarea', 'description', 'test-group desc'),
-                ('radio', 'type', 'normal'),
+                ('radio', 'type', 'nonposix'),
                 ('callback', self.check_posix_enabled, False),
                 ('radio', 'type', 'posix'),
                 ('callback', self.check_posix_enabled, True),
