@@ -539,7 +539,14 @@ def get_reverse_zone(ipaddr):
     """
     ip = netaddr.IPAddress(str(ipaddr))
     revdns = DNSName(unicode(ip.reverse_dns))
-    revzone = DNSName(dns.resolver.zone_for_name(revdns))
+    try:
+        revzone = DNSName(dns.resolver.zone_for_name(revdns))
+    except dns.resolver.NoNameservers:
+        raise errors.NotFound(
+            reason=_(
+                'All nameservers failed to answer the query '
+                'for DNS reverse zone %(revdns)s') % dict(revdns=revdns)
+        )
 
     try:
         api.Command['dnszone_show'](revzone)
