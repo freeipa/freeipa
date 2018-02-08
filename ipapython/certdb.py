@@ -32,7 +32,6 @@ import shutil
 
 import cryptography.x509
 
-from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipapython.dn import DN
@@ -388,15 +387,16 @@ class NSSDatabase(object):
         # Finally fix up perms
         os.chown(self.secdir, uid, gid)
         os.chmod(self.secdir, dirmode)
+        tasks.restore_context(self.secdir, force=True)
         for filename in self.filenames:
-            path = os.path.join(self.secdir, filename)
-            if os.path.exists(path):
-                os.chown(path, uid, gid)
-                if path == self.pwd_file:
+            if os.path.exists(filename):
+                os.chown(filename, uid, gid)
+                if filename == self.pwd_file:
                     new_mode = pwdfilemode
                 else:
                     new_mode = filemode
-                os.chmod(path, new_mode)
+                os.chmod(filename, new_mode)
+                tasks.restore_context(filename, force=True)
 
     def convert_db(self, rename_old=True):
         """Convert DBM database format to SQL database format
@@ -438,7 +438,7 @@ class NSSDatabase(object):
             oldstat = os.stat(oldname)
             os.chmod(newname, stat.S_IMODE(oldstat.st_mode))
             os.chown(newname, oldstat.st_uid, oldstat.st_gid)
-            tasks.restore_context(newname)
+            tasks.restore_context(newname, force=True)
 
         self._set_filenames('sql')
         self.list_certs()  # self-test
