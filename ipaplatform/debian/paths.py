@@ -56,6 +56,7 @@ class DebianPathNamespace(BasePathNamespace):
     SYSTEMD_SYSTEM_HTTPD_D_DIR = "/etc/systemd/system/apache2.service.d/"
     SYSTEMD_SYSTEM_HTTPD_IPA_CONF = "/etc/systemd/system/apache2.service.d/ipa.conf"
     DNSSEC_TRUSTED_KEY = "/etc/bind/trusted-key.key"
+    GSSAPI_SESSION_KEY = "/etc/apache2/ipasession.key"
     OLD_KRA_AGENT_PEM = "/etc/apache2/nssdb/kra-agent.pem"
     SBIN_SERVICE = "/usr/sbin/service"
     CERTMONGER_COMMAND_TEMPLATE = "/usr/lib/ipa/certmonger/%s"
@@ -77,6 +78,7 @@ class DebianPathNamespace(BasePathNamespace):
     HTTPD = "/usr/sbin/apache2ctl"
     REMOVE_DS_PL = "/usr/sbin/remove-ds"
     SETUP_DS_PL = "/usr/sbin/setup-ds"
+    FONTS_DIR = "/usr/share/fonts/truetype"
     VAR_KERBEROS_KRB5KDC_DIR = "/var/lib/krb5kdc/"
     VAR_KRB5KDC_K5_REALM = "/var/lib/krb5kdc/.k5."
     CACERT_PEM = "/var/lib/krb5kdc/cacert.pem"
@@ -93,5 +95,6 @@ class DebianPathNamespace(BasePathNamespace):
     IPA_ODS_EXPORTER_CCACHE = "/var/lib/opendnssec/tmp/ipa-ods-exporter.ccache"
     IPA_CUSTODIA_SOCKET = "/run/apache2/ipa-custodia.sock"
     IPA_CUSTODIA_AUDIT_LOG = '/var/log/ipa-custodia.audit.log'
+    WSGI_PREFIX_DIR = "/run/apache2/wsgi"
 
 paths = DebianPathNamespace()

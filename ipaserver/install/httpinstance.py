@@ -147,6 +147,11 @@ class HTTPInstance(service.Service):
             DOMAIN=self.domain,
             AUTOREDIR='' if auto_redirect else '#',
             CRL_PUBLISH_PATH=paths.PKI_CA_PUBLISH_DIR,
+            FONTS_DIR=paths.FONTS_DIR,
+            GSSAPI_SESSION_KEY=paths.GSSAPI_SESSION_KEY,
+            IPA_CUSTODIA_SOCKET=paths.IPA_CUSTODIA_SOCKET,
+            IPA_CCACHES=paths.IPA_CCACHES,
+            WSGI_PREFIX_DIR=paths.WSGI_PREFIX_DIR,
         )
         self.ca_file = ca_file
         if ca_is_configured is not None:
@@ -217,7 +222,9 @@ class HTTPInstance(service.Service):
 
         target_fname = paths.HTTPD_IPA_CONF
         http_txt = ipautil.template_file(
-            os.path.join(paths.USR_SHARE_IPA_DIR, "ipa.conf"), self.sub_dict)
+            os.path.join(paths.USR_SHARE_IPA_DIR,
+                         "ipa.conf.template"),
+            self.sub_dict)
         self.fstore.backup_file(paths.HTTPD_IPA_CONF)
         http_fd = open(target_fname, "w")
         http_fd.write(http_txt)
@@ -226,7 +233,8 @@ class HTTPInstance(service.Service):
 
         target_fname = paths.HTTPD_IPA_REWRITE_CONF
         http_txt = ipautil.template_file(
-            os.path.join(paths.USR_SHARE_IPA_DIR, "ipa-rewrite.conf"),
+            os.path.join(paths.USR_SHARE_IPA_DIR,
+                         "ipa-rewrite.conf.template"),
             self.sub_dict)
         self.fstore.backup_file(paths.HTTPD_IPA_REWRITE_CONF)
         http_fd = open(target_fname, "w")

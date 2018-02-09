@@ -90,6 +90,10 @@ dist_app_DATA =				\
 	gssproxy.conf.template		\
 	kdcproxy.wsgi			\
 	ipakrb5.aug			\
+	ipa.conf.template		\
+	ipa-kdc-proxy.conf.template	\
+	ipa-pki-proxy.conf.template	\
+	ipa-rewrite.conf.template	\
 	$(NULL)
 
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy
