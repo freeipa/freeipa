@@ -22,8 +22,36 @@ from __future__ import print_function
 import pytest
 
 from ipapython.dn import DN
-from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
+from ipatests.test_integration.base import IntegrationTest
+
+
+def check_replication(source_host, dest_host, login):
+    source_host.run_command([
+        "ipa", "user-add", login,
+        "--first", "test",
+        "--last", "user"
+    ])
+
+    source_ldap = source_host.ldap_connect()
+    tasks.wait_for_replication(source_ldap)
+
+    ldap = dest_host.ldap_connect()
+    tasks.wait_for_replication(ldap)
+
+    # Check using LDAP
+    basedn = dest_host.domain.basedn
+    user_dn = DN(
+        ("uid", login), ("cn", "users"),
+        ("cn", "accounts"), basedn
+    )
+    entry = ldap.get_entry(user_dn)
+    assert entry.dn == user_dn
+    assert entry["uid"] == [login]
+
+    # Check using CLI
+    result = dest_host.run_command(['ipa', 'user-show', login])
+    assert "User login: {}".format(login) in result.stdout_text
 
 
 @pytest.mark.ds_acceptance
@@ -36,37 +64,13 @@ class TestSimpleReplication(IntegrationTest):
     num_replicas = 1
     topology = 'star'
 
-    def check_replication(self, source_host, dest_host, login):
-        source_host.run_command(['ipa', 'user-add', login,
-                                 '--first', 'test',
-                                 '--last', 'user'])
-
-        source_ldap = source_host.ldap_connect()
-        tasks.wait_for_replication(source_ldap)
-
-        ldap = dest_host.ldap_connect()
-        tasks.wait_for_replication(ldap)
-
-        # Check using LDAP
-        basedn = dest_host.domain.basedn
-        user_dn = DN(('uid', login), ('cn', 'users'), ('cn', 'accounts'),
-                     basedn)
-        entry = ldap.get_entry(user_dn)
-        print(entry)
-        assert entry.dn == user_dn
-        assert entry['uid'] == [login]
-
-        # Check using CLI
-        result = dest_host.run_command(['ipa', 'user-show', login])
-        assert 'User login: %s' % login in result.stdout_text
-
     def test_user_replication_to_replica(self):
         """Test user replication master -> replica"""
-        self.check_replication(self.master, self.replicas[0], 'testuser1')
+        check_replication(self.master, self.replicas[0], 'testuser1')
 
     def test_user_replication_to_master(self):
         """Test user replication replica -> master"""
-        self.check_replication(self.replicas[0], self.master, 'testuser2')
+        check_replication(self.replicas[0], self.master, 'testuser2')
 
     def test_replica_removal(self):
         """Test replica removal"""
