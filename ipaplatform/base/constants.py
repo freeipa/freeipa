@@ -42,6 +42,9 @@ class BaseConstantsNamespace(object):
     # WSGI module override, only used on Fedora
     MOD_WSGI_PYTHON2 = None
     MOD_WSGI_PYTHON3 = None
+    # high ciphers without RC4, MD5, TripleDES, pre-shared key, secure
+    # remote password, and DSA cert authentication.
+    TLS_HIGH_CIPHERS = "HIGH:!aNULL:!eNULL:!MD5:!RC4:!3DES:!PSK:!SRP:!aDSS"
 
 
 constants = BaseConstantsNamespace()

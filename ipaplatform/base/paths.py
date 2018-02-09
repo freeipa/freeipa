@@ -81,6 +81,7 @@ class BasePathNamespace(object):
     NAMED_ROOT_KEY = "/etc/named.root.key"
     NAMED_BINDKEYS_FILE = "/etc/named.iscdlv.key"
     NAMED_MANAGED_KEYS_DIR = "/var/named/dynamic"
+    NAMED_CRYPTO_POLICY_FILE = None
     NSLCD_CONF = "/etc/nslcd.conf"
     NSS_LDAP_CONF = "/etc/nss_ldap.conf"
     NSSWITCH_CONF = "/etc/nsswitch.conf"

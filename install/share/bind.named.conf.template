@@ -21,6 +21,9 @@ options {
 	bindkeys-file "$BINDKEYS_FILE";
 
 	managed-keys-directory "$MANAGED_KEYS_DIR";
+
+	/* crypto policy snippet on platforms with system-wide policy. */
+	$INCLUDE_CRYPTO_POLICY
 };
 
 /* If you want to enable debugging, eg. using the 'rndc trace' command,
