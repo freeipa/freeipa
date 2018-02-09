@@ -38,8 +38,6 @@ from ipapython.dn import DN
 from ipapython.ipaldap import (LDAPClient, AUTOBIND_AUTO, AUTOBIND_ENABLED,
                                AUTOBIND_DISABLED)
 
-from ldap.controls.simple import GetEffectiveRightsControl
-
 from ipalib import Registry, errors, _
 from ipalib.crud import CrudBackend
 from ipalib.request import context
@@ -274,22 +272,8 @@ class ldap2(CrudBackend, LDAPClient):
            Returns 2 attributes, the attributeLevelRights for the given list of
            attributes and the entryLevelRights for the entry itself.
         """
-
         assert isinstance(dn, DN)
-
-        bind_dn = self.conn.whoami_s()[4:]
-
-        sctrl = [
-            GetEffectiveRightsControl(
-                True, "dn: {0}".format(bind_dn).encode('utf-8'))
-        ]
-        self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, sctrl)
-        try:
-            entry = self.get_entry(dn, attrs_list)
-        finally:
-            # remove the control so subsequent operations don't include GER
-            self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, [])
-        return entry
+        return self.get_entry(dn, attrs_list, get_effective_rights=True)
 
     def can_write(self, dn, attr):
         """Returns True/False if the currently bound user has write permissions
@@ -346,18 +330,38 @@ class ldap2(CrudBackend, LDAPClient):
 
         return False
 
-    def can_add(self, dn):
-        """Returns True/False if the currently bound user has add permissions
-           on the entry.
+    def can_add(self, parent_dn, objectclass):
         """
-        assert isinstance(dn, DN)
-        attrs = self.get_effective_rights(dn, ["*"])
-        if 'entrylevelrights' in attrs:
-            entry_rights = attrs['entrylevelrights'][0]
-            if 'a' in entry_rights:
-                return True
+        Returns True/False if the currently bound user has
+        permission to add an entry with the given objectclass
+        immediately below the entry with the given DN.
 
-        return False
+        For example, to check if an entry with objectclass=ipaca
+        can be added under cn=cas,cn=ca,{basedn}, you should call
+        ``can_add(DN('cn=cas,...'), 'ipaca')``.
+
+        """
+        assert isinstance(parent_dn, DN)
+
+        # the rules for how to request the template entry, and
+        # the expectations about how 389 constructs the template
+        # entry, are described here:
+        #
+        #   https://pagure.io/389-ds-base/issue/49278#comment-480856
+        #
+        try:
+            entry = self.get_entries(
+                parent_dn,
+                _ldap.SCOPE_ONELEVEL,
+                # rdn value of template entry is: template_<objcls>_objectclass
+                '(cn=template_{}_objectclass)'.format(objectclass),
+                # request tempalate entry with given objectclass
+                ['cn@{}'.format(objectclass)],
+                get_effective_rights=True,
+            )[0]
+            return 'a' in entry['entrylevelrights'][0]
+        except errors.NotFound:
+            return False
 
     def modify_password(self, dn, new_pass, old_pass='', otp='', skip_bind=False):
         """Set user password."""
