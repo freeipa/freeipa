@@ -56,9 +56,10 @@ except ImportError:
 from ipalib import errors, messages
 from ipalib.constants import (
     DOMAIN_LEVEL_0,
-    TLS_VERSIONS, TLS_VERSION_MINIMAL, TLS_HIGH_CIPHERS
+    TLS_VERSIONS, TLS_VERSION_MINIMAL
 )
 from ipalib.text import _
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
@@ -335,9 +336,9 @@ def create_https_connection(
         ssl.OP_SINGLE_ECDH_USE
     )
 
-    # high ciphers without RC4, MD5, TripleDES, pre-shared key
-    # and secure remote password
-    ctx.set_ciphers(TLS_HIGH_CIPHERS)
+    # high ciphers without RC4, MD5, TripleDES, pre-shared key and secure
+    # remote password. Uses system crypto policies on some platforms.
+    ctx.set_ciphers(constants.TLS_HIGH_CIPHERS)
 
     # pylint: enable=no-member
     # set up the correct TLS version flags for the SSL context

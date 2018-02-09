@@ -768,6 +768,13 @@ class BindInstance(service.Service):
             logger.debug("Unable to mask named (%s)", e)
 
     def __setup_sub_dict(self):
+        if paths.NAMED_CRYPTO_POLICY_FILE is not None:
+            crypto_policy = 'include "{}";'.format(
+                paths.NAMED_CRYPTO_POLICY_FILE
+            )
+        else:
+            crypto_policy = "// not available"
+
         self.sub_dict = dict(
             FQDN=self.fqdn,
             SERVER_ID=installutils.realm_to_serverid(self.realm),
@@ -780,7 +787,8 @@ class BindInstance(service.Service):
             NAMED_PID=paths.NAMED_PID,
             NAMED_VAR_DIR=paths.NAMED_VAR_DIR,
             BIND_LDAP_SO=paths.BIND_LDAP_SO,
-            )
+            INCLUDE_CRYPTO_POLICY=crypto_policy,
+        )
 
     def __setup_dns_container(self):
         self._ldap_mod("dns.ldif", self.sub_dict)

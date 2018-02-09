@@ -304,9 +304,7 @@ TLS_VERSIONS = [
     "tls1.2"
 ]
 TLS_VERSION_MINIMAL = "tls1.0"
-# high ciphers without RC4, MD5, TripleDES, pre-shared key
-# and secure remote password
-TLS_HIGH_CIPHERS = "HIGH:!aNULL:!eNULL:!MD5:!RC4:!3DES:!PSK:!SRP"
+
 
 # Use cache path
 USER_CACHE_PATH = (
