@@ -1515,6 +1515,7 @@ fi
 %attr(711,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysupgrade
 %attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca
+%attr(755,root,root) %dir %{_localstatedir}/lib/ipa/certs
 %ghost %{_localstatedir}/lib/ipa/pki-ca/publish
 %ghost %{_localstatedir}/named/dyndb-ldap/ipa
 %dir %attr(0700,root,root) %{_sysconfdir}/ipa/custodia
