@@ -213,6 +213,7 @@ class HTTPInstance(service.Service):
 
     def __configure_http(self):
         self.update_httpd_service_ipa_conf()
+        self.update_httpd_wsgi_conf()
 
         target_fname = paths.HTTPD_IPA_CONF
         http_txt = ipautil.template_file(
@@ -508,6 +509,9 @@ class HTTPInstance(service.Service):
     def update_httpd_service_ipa_conf(self):
         tasks.configure_httpd_service_ipa_conf()
 
+    def update_httpd_wsgi_conf(self):
+        tasks.configure_httpd_wsgi_conf()
+
     def uninstall(self):
         if self.is_configured():
             self.print_msg("Unconfiguring web server")
@@ -564,7 +568,8 @@ class HTTPInstance(service.Service):
         installutils.remove_file(paths.HTTPD_IPA_PKI_PROXY_CONF)
         installutils.remove_file(paths.HTTPD_IPA_KDCPROXY_CONF_SYMLINK)
         installutils.remove_file(paths.HTTPD_IPA_KDCPROXY_CONF)
-        tasks.remove_httpd_service_ipa_conf()
+        if paths.HTTPD_IPA_WSGI_MODULES_CONF is not None:
+            installutils.remove_file(paths.HTTPD_IPA_WSGI_MODULES_CONF)
 
         # Restore SELinux boolean states
         boolean_states = {name: self.restore_state(name)
