@@ -409,6 +409,12 @@ class Restore(admintool.AdminTool):
                 self.log.info('Restarting SSSD')
                 sssd = services.service('sssd', api)
                 sssd.restart()
+                self.log.info('Restarting oddjobd')
+                oddjobd = services.service('oddjobd', api)
+                if not oddjobd.is_enabled():
+                    self.log.info("Enabling oddjobd")
+                    oddjobd.enable()
+                oddjobd.start()
                 http.remove_httpd_ccaches()
                 # have the daemons pick up their restored configs
                 run([paths.SYSTEMCTL, "--system", "daemon-reload"])
