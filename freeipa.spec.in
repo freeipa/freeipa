@@ -1,3 +1,11 @@
+# 389-ds-base 1.4 no longer supports i686 platform, build only client
+# packages, https://bugzilla.redhat.com/show_bug.cgi?id=1544386
+%if 0%{?fedora} >= 28 || 0%{?rhel} > 7
+%ifarch %{ix86}
+%{!?ONLY_CLIENT:%global ONLY_CLIENT 1}
+%endif
+%endif
+
 # Define ONLY_CLIENT to only make the ipa-client and ipa-python
 # subpackages
 %{!?ONLY_CLIENT:%global ONLY_CLIENT 0}
