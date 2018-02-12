@@ -118,6 +118,7 @@ def __remove_instance_legacy(serverid, force=False):
                      "Attempting to force removal", paths.REMOVE_DS_PL)
         remove_ds_instance(serverid, force=True)
 
+
 def __remove_instance_python(serverid):
     """Call the lib389 api to remove the instance. Because of the
     design of the api, there is no "force" command. Provided a marker
@@ -129,24 +130,23 @@ def __remove_instance_python(serverid):
     from lib389.instance.remove import remove_ds_instance
     from lib389 import DirSrv
 
-    logger.debug("Attempting to remove instance %s" % serverid)
+    logger.debug("Attempting to remove instance %s", serverid)
     # Alloc the local instance by name (no creds needed!)
-    inst = DirSrv(verbose=True, external_log=logger)
-    inst.local_simple_allocate(serverid)
+    ds = DirSrv(verbose=True, external_log=logger)
+    ds.local_simple_allocate(serverid)
 
     # Remove it
-    remove_ds_instance(instance)
+    remove_ds_instance(ds)
     logger.debug("Instance removed correctly.")
+
 
 def remove_ds_instance(serverid, force=False):
     if os.path.exists(paths.REMOVE_DS_PL):
         # We still have legacy tools. Lets use them.
-        self.__remove_instance_legacy(serverid, force)
+        __remove_instance_legacy(serverid, force)
     else:
-        # Okay, 389 have removed their perl tools. Great! Use the api driven installer
-        self.__remove_instance_python(serverid)
-
-
+        # 389 have removed their perl tools \o/. Use the api driven installer
+        __remove_instance_python(serverid)
 
 
 def get_ds_instances():
@@ -558,26 +558,27 @@ class DsInstance(service.Service):
             idrange_size = self.idmax - self.idstart + 1
         except TypeError:
             idrange_size = None
-        self.sub_dict = dict(FQDN=self.fqdn, SERVERID=self.serverid,
-                             PASSWORD=self.dm_password,
-                             RANDOM_PASSWORD=ipautil.ipa_generate_password(),
-                             SUFFIX=self.suffix,
-                             REALM=self.realm, USER=DS_USER,
-                             SERVER_ROOT=server_root, DOMAIN=self.domain,
-                             TIME=int(time.time()), IDSTART=self.idstart,
-                             IDMAX=self.idmax, HOST=self.fqdn,
-                             ESCAPED_SUFFIX=str(self.suffix),
-                             GROUP=DS_GROUP,
-                             IDRANGE_SIZE=idrange_size,
-                             DOMAIN_LEVEL=self.domainlevel,
-                             MAX_DOMAIN_LEVEL=constants.MAX_DOMAIN_LEVEL,
-                             MIN_DOMAIN_LEVEL=constants.MIN_DOMAIN_LEVEL,
-                             STRIP_ATTRS=" ".join(replication.STRIP_ATTRS),
-                             EXCLUDES='(objectclass=*) $ EXCLUDE ' +
-                             ' '.join(replication.EXCLUDES),
-                             TOTAL_EXCLUDES='(objectclass=*) $ EXCLUDE ' +
-                             ' '.join(replication.TOTAL_EXCLUDES),
-                         )
+        self.sub_dict = dict(
+            FQDN=self.fqdn, SERVERID=self.serverid,
+            PASSWORD=self.dm_password,
+            RANDOM_PASSWORD=ipautil.ipa_generate_password(),
+            SUFFIX=self.suffix,
+            REALM=self.realm, USER=DS_USER,
+            SERVER_ROOT=server_root, DOMAIN=self.domain,
+            TIME=int(time.time()), IDSTART=self.idstart,
+            IDMAX=self.idmax, HOST=self.fqdn,
+            ESCAPED_SUFFIX=str(self.suffix),
+            GROUP=DS_GROUP,
+            IDRANGE_SIZE=idrange_size,
+            DOMAIN_LEVEL=self.domainlevel,
+            MAX_DOMAIN_LEVEL=constants.MAX_DOMAIN_LEVEL,
+            MIN_DOMAIN_LEVEL=constants.MIN_DOMAIN_LEVEL,
+            STRIP_ATTRS=" ".join(replication.STRIP_ATTRS),
+            EXCLUDES='(objectclass=*) $ EXCLUDE ' +
+            ' '.join(replication.EXCLUDES),
+            TOTAL_EXCLUDES='(objectclass=*) $ EXCLUDE ' +
+            ' '.join(replication.TOTAL_EXCLUDES),
+        )
 
     def __create_instance_legacy(self):
         pent = pwd.getpwnam(DS_USER)
@@ -622,7 +623,7 @@ class DsInstance(service.Service):
         os.remove(paths.DIRSRV_BOOT_LDIF)
 
     def __create_instance_python(self):
-        # We only import lib389 now, because we can't always guarantee it's presence
+        # We only import lib389 now, we can't always guarantee its presence
         # yet. After f28, this can be made a dependency proper.
         from lib389.instance.setup import SetupDs
         from lib389.instance.options import General2Base, Slapd2Base
@@ -655,7 +656,7 @@ class DsInstance(service.Service):
             'nsslapd-suffix': self.suffix.ldap_text()
         }
 
-        backends = [userroot,]
+        backends = [userroot, ]
 
         sds.create_from_args(general, slapd, backends, None)
 
@@ -663,13 +664,15 @@ class DsInstance(service.Service):
         # Get the instance ....
 
         inst = DirSrv(verbose=True, external_log=logger)
-        inst.remote_simple_allocate(ldapuri=ipaldap.get_ldap_uri(self.fqdn), password=self.dm_password)
+        inst.remote_simple_allocate(
+            ldapuri=ipaldap.get_ldap_uri(self.fqdn),
+            password=self.dm_password)
         # This actually opens the conn and binds.
         inst.open()
 
         ipadomain = IpaDomain(inst, dn=self.suffix.ldap_text())
         ipadomain.create(properties={
-            'dc' : self.realm.split('.')[0].lower(),
+            'dc': self.realm.split('.')[0].lower(),
             'info': 'IPA V2.0',
         })
         # Done!
@@ -680,7 +683,7 @@ class DsInstance(service.Service):
             # We still have legacy tools. Lets use them.
             self.__create_instance_legacy()
         else:
-            # Okay, 389 have removed their perl tools. Great! Use the api driven installer
+            # 389 have removed its perl tools \o/. Use the api driven installer
             self.__create_instance_python()
 
     def __update_dse_ldif(self):
@@ -1147,12 +1150,12 @@ class DsInstance(service.Service):
         try:
             self.fstore.restore_file(paths.LIMITS_CONF)
         except ValueError as error:
-            logger.debug("%s: %s" % (paths.LIMITS_CONF , error))
+            logger.debug("%s: %s", paths.LIMITS_CONF, error)
 
         try:
             self.fstore.restore_file(paths.SYSCONFIG_DIRSRV)
         except ValueError as error:
-            logger.debug("%s: %s" % (paths.SYSCONFIG_DIRSRV , error))
+            logger.debug("%s: %s", paths.SYSCONFIG_DIRSRV, error)
 
         # disabled during IPA installation
         if enabled:
