@@ -335,6 +335,7 @@ wheel_bundle: $(WHEELBUNDLEDIR) bdist_wheel .wheelconstraints
 	MAKEFLAGS= $(PYTHON) -m pip wheel \
 	    --disable-pip-version-check \
 	    --constraint .wheelconstraints \
+	    --no-binary netiface \
 	    --find-links $(WHEELDISTDIR) \
 	    --find-links $(WHEELBUNDLEDIR) \
 	    --wheel-dir $(WHEELBUNDLEDIR) \
