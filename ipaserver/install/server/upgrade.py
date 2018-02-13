@@ -912,6 +912,29 @@ def named_add_server_id():
     return True
 
 
+def named_add_crypto_policy():
+    """Add crypto policy include
+    """
+    if sysupgrade.get_upgrade_state('named.conf', 'add_crypto_policy'):
+        # upgrade was done already
+        return False
+    policy_file = paths.NAMED_CRYPTO_POLICY_FILE
+    if policy_file is None:
+        # no crypto policy
+        return False
+
+    if bindinstance.named_conf_include_exists(policy_file):
+        sysupgrade.set_upgrade_state('named.conf', 'add_crypto_policy', True)
+        return False
+
+    logger.info('[Adding crypto policy include to named.conf]')
+    bindinstance.named_conf_set_directive(
+        'include', policy_file, section=bindinstance.NAMED_SECTION_OPTIONS
+    )
+    sysupgrade.set_upgrade_state('named.conf', 'add_crypto_policy', True)
+    return True
+
+
 def certificate_renewal_update(ca, ds, http):
     """
     Update certmonger certificate renewal configuration.
@@ -1854,6 +1877,7 @@ def upgrade_configuration():
                           mask_named_regular(),
                           fix_dyndb_ldap_workdir_permissions(),
                           named_add_server_id(),
+                          named_add_crypto_policy(),
                          )
 
     if any(named_conf_changes):
