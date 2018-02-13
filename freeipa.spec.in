@@ -875,6 +875,7 @@ Requires: ldns-utils
 Requires: python2-sssdconfig
 Requires: python2-cryptography >= 1.6
 Requires: iptables
+Requires: python2-mock
 
 Provides: %{alt_name}-tests = %{version}
 Conflicts: %{alt_name}-tests

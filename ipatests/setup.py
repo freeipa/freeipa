@@ -78,5 +78,6 @@ if __name__ == '__main__':
             "ipaserver": ["ipaserver"],
             "webui": ["selenium", "pyyaml", "ipaserver"],
             "xmlrpc": ["ipaserver"],
+            ":python_version<'3'": ["mock"],
         }
     )

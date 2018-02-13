@@ -483,7 +483,7 @@ def named_remove_deprecated_options():
 
     except IOError as e:
         logger.error('Cannot modify DNS configuration in %s: %s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
 
     # Log only the changed options
     if not removed_options:
@@ -518,7 +518,7 @@ def named_set_minimum_connections():
         connections = bindinstance.named_conf_get_directive('connections')
     except IOError as e:
         logger.debug('Cannot retrieve connections option from %s: %s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
         return changed
 
     try:
@@ -536,7 +536,7 @@ def named_set_minimum_connections():
                 logger.debug('Connections set to %d', minimum_connections)
             except IOError as e:
                 logger.error('Cannot update connections in %s: %s',
-                             bindinstance.NAMED_CONF, e)
+                             paths.NAMED_CONF, e)
             else:
                 changed = True
 
@@ -567,11 +567,11 @@ def named_update_gssapi_configuration():
         return False
 
     try:
-        gssapi_keytab = bindinstance.named_conf_get_directive('tkey-gssapi-keytab',
-                bindinstance.NAMED_SECTION_OPTIONS)
+        gssapi_keytab = bindinstance.named_conf_get_directive(
+            'tkey-gssapi-keytab', bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
         logger.error('Cannot retrieve tkey-gssapi-keytab option from %s: %s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
         return False
     else:
         if gssapi_keytab:
@@ -587,12 +587,12 @@ def named_update_gssapi_configuration():
     except IOError as e:
         logger.error('Cannot retrieve tkey-gssapi-credential option from %s: '
                      '%s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
         return False
 
     if not tkey_credential or not tkey_domain:
         logger.error('Either tkey-gssapi-credential or tkey-domain is missing '
-                     'in %s. Skip update.', bindinstance.NAMED_CONF)
+                     'in %s. Skip update.', paths.NAMED_CONF)
         return False
 
     try:
@@ -607,7 +607,7 @@ def named_update_gssapi_configuration():
             bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
         logger.error('Cannot update GSSAPI configuration in %s: %s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
         return False
     else:
         logger.debug('GSSAPI configuration updated')
@@ -632,11 +632,11 @@ def named_update_pid_file():
         return False
 
     try:
-        pid_file = bindinstance.named_conf_get_directive('pid-file',
-                bindinstance.NAMED_SECTION_OPTIONS)
+        pid_file = bindinstance.named_conf_get_directive(
+            'pid-file', bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
         logger.error('Cannot retrieve pid-file option from %s: %s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
         return False
     else:
         if pid_file:
@@ -645,11 +645,11 @@ def named_update_pid_file():
             return False
 
     try:
-        bindinstance.named_conf_set_directive('pid-file', paths.NAMED_PID,
-                                              bindinstance.NAMED_SECTION_OPTIONS)
+        bindinstance.named_conf_set_directive(
+            'pid-file', paths.NAMED_PID, bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
         logger.error('Cannot update pid-file configuration in %s: %s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
         return False
     else:
         logger.debug('pid-file configuration updated')
@@ -674,10 +674,10 @@ def named_enable_dnssec():
                                                   str_val=False)
         except IOError as e:
             logger.error('Cannot update dnssec-enable configuration in %s: %s',
-                         bindinstance.NAMED_CONF, e)
+                         paths.NAMED_CONF, e)
             return False
     else:
-        logger.debug('dnssec-enabled in %s', bindinstance.NAMED_CONF)
+        logger.debug('dnssec-enabled in %s', paths.NAMED_CONF)
 
     sysupgrade.set_upgrade_state('named.conf', 'dnssec_enabled', True)
     return True
@@ -707,14 +707,17 @@ def named_validate_dnssec():
         except IOError as e:
             logger.error('Cannot update dnssec-validate configuration in %s: '
                          '%s',
-                         bindinstance.NAMED_CONF, e)
+                         paths.NAMED_CONF, e)
             return False
     else:
         logger.debug('dnssec-validate already configured in %s',
-                     bindinstance.NAMED_CONF)
+                     paths.NAMED_CONF)
 
-    sysupgrade.set_upgrade_state('named.conf', 'dnssec_validation_upgraded', True)
+    sysupgrade.set_upgrade_state(
+        'named.conf', 'dnssec_validation_upgraded', True
+    )
     return True
+
 
 def named_bindkey_file_option():
     """
@@ -730,11 +733,11 @@ def named_bindkey_file_option():
         return False
 
     try:
-        bindkey_file = bindinstance.named_conf_get_directive('bindkey-file',
-                bindinstance.NAMED_SECTION_OPTIONS)
+        bindkey_file = bindinstance.named_conf_get_directive(
+            'bindkey-file', bindinstance.NAMED_SECTION_OPTIONS)
     except IOError as e:
         logger.error('Cannot retrieve bindkey-file option from %s: %s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
         return False
     else:
         if bindkey_file:
@@ -744,12 +747,13 @@ def named_bindkey_file_option():
 
     logger.info('[Setting "bindkeys-file" option in named.conf]')
     try:
-        bindinstance.named_conf_set_directive('bindkeys-file',
-                                              paths.NAMED_BINDKEYS_FILE,
-                                              bindinstance.NAMED_SECTION_OPTIONS)
+        bindinstance.named_conf_set_directive(
+            'bindkeys-file', paths.NAMED_BINDKEYS_FILE,
+            section=bindinstance.NAMED_SECTION_OPTIONS
+        )
     except IOError as e:
         logger.error('Cannot update bindkeys-file configuration in %s: %s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
         return False
 
 
@@ -775,7 +779,7 @@ def named_managed_keys_dir_option():
     except IOError as e:
         logger.error('Cannot retrieve managed-keys-directory option from %s: '
                      '%s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
         return False
     else:
         if managed_keys:
@@ -792,7 +796,7 @@ def named_managed_keys_dir_option():
     except IOError as e:
         logger.error('Cannot update managed-keys-directory configuration in '
                      '%s: %s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
         return False
 
 
@@ -816,7 +820,7 @@ def named_root_key_include():
         root_key = bindinstance.named_conf_include_exists(paths.NAMED_ROOT_KEY)
     except IOError as e:
         logger.error('Cannot check root key include in %s: %s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
         return False
     else:
         if root_key:
@@ -829,7 +833,7 @@ def named_root_key_include():
         bindinstance.named_conf_add_include(paths.NAMED_ROOT_KEY)
     except IOError as e:
         logger.error('Cannot update named root key include in %s: %s',
-                     bindinstance.NAMED_CONF, e)
+                     paths.NAMED_CONF, e)
         return False
 
 
