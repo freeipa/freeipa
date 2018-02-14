@@ -6,6 +6,7 @@ DISTFILES.common.extra3 = Makefile.hack.in
 
 IPA_TEST_I18N = @top_srcdir@/ipatests/i18n.py
 MSGATTRIB = @MSGATTRIB@
+PYTHON = @PYTHON@
 
 .PHONY: strip-po
 strip-po:
@@ -24,13 +25,13 @@ clean: mostlyclean
 
 # linters
 test-gettext: $(DOMAIN).pot
-	$(IPA_TEST_I18N) --test-gettext
+	$(PYTHON) $(IPA_TEST_I18N) --test-gettext
 
 validate-pot: $(DOMAIN).pot
-	$(IPA_TEST_I18N) --show-strings --validate-pot $(DOMAIN).pot
+	$(PYTHON) $(IPA_TEST_I18N) --show-strings --validate-pot $(DOMAIN).pot
 
 validate-po: $(DOMAIN).pot
-	$(IPA_TEST_I18N) --show-strings --validate-po $(POFILES)
+	$(PYTHON) $(IPA_TEST_I18N) --show-strings --validate-po $(POFILES)
 
 # forcefully re-generate .pot file and test it
 validate-src-strings: $(DOMAIN).pot-update
