@@ -50,6 +50,7 @@
 #define OTP_CONTAINER "cn=otp,%s"
 
 static struct otp_config *otp_config;
+void *ipa_otp_lasttoken_plugin_id;
 
 static bool entry_is_token(Slapi_Entry *entry)
 {
@@ -255,6 +256,17 @@ static int postop_init(Slapi_PBlock *pb)
     return ret;
 }
 
+/* Init data structs */
+static int ipa_otp_lasttoken_start(Slapi_PBlock *pb)
+{
+    /* NOTE: We never call otp_config_fini() from a destructor. This is because
+     *       it may race with threaded requests at shutdown. This leak should
+     *       only occur when the DS is exiting, so it isn't a big deal.
+     */
+    otp_config = otp_config_init(ipa_otp_lasttoken_plugin_id);
+    return LDAP_SUCCESS;
+}
+
 int ipa_otp_lasttoken_init(Slapi_PBlock *pb)
 {
     static const Slapi_PluginDesc preop_desc = {
@@ -264,20 +276,24 @@ int ipa_otp_lasttoken_init(Slapi_PBlock *pb)
         "Protect the user's last active token"
     };
 
-    Slapi_ComponentId *plugin_id = NULL;
     int ret = 0;
 
-    ret |= slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &plugin_id);
+    ret |= slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY,
+                            &ipa_otp_lasttoken_plugin_id);
     ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
     ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *) &preop_desc);
     ret |= slapi_register_plugin("betxnpreoperation", 1, __func__, preop_init,
-                                 PLUGIN_NAME " betxnpreoperation", NULL, plugin_id);
+                                 PLUGIN_NAME " betxnpreoperation", NULL,
+                                 ipa_otp_lasttoken_plugin_id);
     ret |= slapi_register_plugin("postoperation", 1, __func__, postop_init,
-                                 PLUGIN_NAME " postoperation", NULL, plugin_id);
-    ret |= slapi_register_plugin("internalpostoperation", 1, __func__, intpostop_init,
-                                 PLUGIN_NAME " internalpostoperation", NULL, plugin_id);
+                                 PLUGIN_NAME " postoperation", NULL,
+                                 ipa_otp_lasttoken_plugin_id);
+    ret |= slapi_register_plugin("internalpostoperation", 1, __func__,
+                                 intpostop_init,
+                                 PLUGIN_NAME " internalpostoperation", NULL,
+                                 ipa_otp_lasttoken_plugin_id);
+    ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_START_FN,
+                            (void *)ipa_otp_lasttoken_start);
 
-    /* NOTE: leak otp_config on process exit. */
-    otp_config = otp_config_init(plugin_id);
     return ret;
 }
