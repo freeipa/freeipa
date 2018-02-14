@@ -174,10 +174,10 @@ endif
 	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint jslint check
 	$(MAKE) $(AM_MAKEFLAGS) PYTHON=$(PYTHON2) pylint
 if WITH_PYTHON3
-	@ # just tests and pylint on Python 3
+	@ # just tests, aci, api and pylint on Python 3
 	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON3) ipatests/ipa-run-tests \
 	    --ipaclient-unittests
-	$(MAKE) $(AM_MAKEFLAGS) PYTHON=$(PYTHON3) pylint
+	$(MAKE) $(AM_MAKEFLAGS) PYTHON=$(PYTHON3) acilint apilint pylint
 else
 	@echo "WARNING: python3 not available"
 endif
@@ -186,10 +186,12 @@ endif
 .PHONY: fastcheck fasttest fastlint
 fastcheck:
 if WITH_PYTHON2
-	@$(MAKE) -j1 $(AM_MAKEFLAGS) PYTHON=$(PYTHON2) fastlint fasttest
+	@$(MAKE) -j1 $(AM_MAKEFLAGS) PYTHON=$(PYTHON2) \
+	    fastlint fasttest apilint acilint
 endif
 if WITH_PYTHON3
-	@$(MAKE) -j1 $(AM_MAKEFLAGS) PYTHON=$(PYTHON3) fastlint fasttest
+	@$(MAKE) -j1 $(AM_MAKEFLAGS) PYTHON=$(PYTHON3) \
+	     fastlint fasttest apilint acilint
 endif
 
 fasttest: $(GENERATED_PYTHON_FILES) ipasetup.py
@@ -236,15 +238,16 @@ $(top_builddir)/ipapython/version.py:
 
 .PHONY: acilint
 acilint: $(GENERATED_PYTHON_FILES)
-	cd $(srcdir); ./makeaci --validate
+	cd $(srcdir); $(PYTHON) ./makeaci --validate
 
 .PHONY: apilint
 apilint: $(GENERATED_PYTHON_FILES)
-	cd $(srcdir); ./makeapi --validate
+	cd $(srcdir); $(PYTHON) ./makeapi --validate
 
 .PHONY: polint
 polint:
-	$(MAKE) -C $(srcdir)/po validate-src-strings validate-po test-gettext
+	$(MAKE) -C $(srcdir)/po PYTHON=$(PYTHON) \
+	    validate-src-strings validate-po test-gettext
 
 # Run pylint for all python files. Finds all python files/packages, skips
 # folders rpmbuild, freeipa-* and dist. Skip (match, but don't print) .*,
