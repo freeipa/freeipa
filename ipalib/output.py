@@ -25,6 +25,7 @@ import six
 from ipalib.plugable import ReadOnly, lock
 from ipalib.capabilities import client_has_capability
 from ipalib.text import _
+from ipalib.util import apirepr
 
 if six.PY3:
     unicode = str
@@ -98,7 +99,7 @@ class Output(ReadOnly):
             if not value:
                 continue
             if isinstance(value, tuple):
-                value = repr(list(value))
+                value = apirepr(list(value))
             else:
                 value = repr(value)
             yield '%s=%s' % (key, value)
