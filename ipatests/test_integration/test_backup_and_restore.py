@@ -129,13 +129,13 @@ def restore_checker(host):
 
     results = []
     for check, assert_func in CHECKS:
-        logger.info('Storing result for %s', check)
+        logger.info('Storing result for %s', check.__name__)
         results.append(check(host))
 
     yield
 
     for (check, assert_func), expected in zip(CHECKS, results):
-        logger.info('Checking result for %s', check)
+        logger.info('Checking result for %s', check.__name__)
         got = check(host)
         assert_func(expected, got)
 
@@ -149,7 +149,7 @@ def backup(host):
         prefix = 'ipaserver.install.ipa_backup: INFO: Backed up to '
         if line.startswith(prefix):
             backup_path = line[len(prefix):].strip()
-            logger.info('Backup path for %s is %s', host, backup_path)
+            logger.info('Backup path for %s is %s', host.hostname, backup_path)
             return backup_path
     else:
         raise AssertionError('Backup directory not found in output')
