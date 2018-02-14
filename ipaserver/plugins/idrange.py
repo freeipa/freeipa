@@ -239,18 +239,19 @@ class idrange(LDAPObject):
             cli_name='dom_name',
             flags=('no_search', 'virtual_attribute', 'no_update'),
             label=_('Name of the trusted domain'),
-        ),
+            ),
         StrEnum('iparangetype?',
-            label=_('Range type'),
-            cli_name='type',
-            doc=(_('ID range type, one of {vals}'
-                 .format(vals=', '.join(range_types.keys())))),
-            values=tuple(range_types.keys()),
-            flags=['no_update'],
-        )
+                label=_('Range type'),
+                cli_name='type',
+                doc=(_('ID range type, one of {vals}'
+                     .format(vals=', '.join(sorted(range_types))))),
+                values=sorted(range_types),
+                flags=['no_update'],
+                )
     )
 
-    def handle_iparangetype(self, entry_attrs, options, keep_objectclass=False):
+    def handle_iparangetype(self, entry_attrs, options,
+                            keep_objectclass=False):
         if not any((options.get('pkey_only', False),
                     options.get('raw', False))):
             range_type = entry_attrs['iparangetype'][0]
