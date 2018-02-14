@@ -123,7 +123,7 @@ from ipalib.text import Gettext, FixMe
 from ipalib.util import json_serialize, validate_idna_domain
 from ipalib.x509 import (
     load_der_x509_certificate, IPACertificate, default_backend)
-from ipalib.util import strip_csr_header
+from ipalib.util import strip_csr_header, apirepr
 from ipapython import kerberos
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
@@ -600,9 +600,12 @@ class Param(ReadOnly):
             elif isinstance(value, six.integer_types):
                 value = str(value)
             elif isinstance(value, (tuple, set, frozenset)):
-                value = repr(list(value))
-            else:
+                value = apirepr(list(value))
+            elif key == 'cli_name':
+                # always represented as native string
                 value = repr(value)
+            else:
+                value = apirepr(value)
             yield '%s=%s' % (key, value)
 
     def __call__(self, value, **kw):

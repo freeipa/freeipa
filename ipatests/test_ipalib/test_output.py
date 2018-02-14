@@ -53,14 +53,18 @@ class test_Output(ClassChecker):
         o = self.cls('aye')
         assert repr(o) == "Output('aye')"
         o = self.cls('aye', type=int, doc='An A, aye?')
-        assert repr(o) == "Output('aye', type=[%r], doc='An A, aye?')" % int
+        assert repr(o) == (
+            "Output('aye', type=[<type 'int'>], doc='An A, aye?')"
+        )
 
         class Entry(self.cls):
             pass
         o = Entry('aye')
         assert repr(o) == "Entry('aye')"
         o = Entry('aye', type=int, doc='An A, aye?')
-        assert repr(o) == "Entry('aye', type=[%r], doc='An A, aye?')" % int
+        assert repr(o) == (
+            "Entry('aye', type=[<type 'int'>], doc='An A, aye?')"
+        )
 
 
 class test_ListOfEntries(ClassChecker):
