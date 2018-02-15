@@ -30,6 +30,7 @@ from ipalib import api, _
 from ipalib import errors
 from ipapython import ipautil
 from ipapython.dn import DN
+from ipapython.ipaldap import ldap_initialize
 from ipaserver.install import installutils
 from ipaserver.dcerpc_common import (TRUST_BIDIRECTIONAL,
                                      TRUST_JOIN_EXTERNAL,
@@ -933,7 +934,7 @@ class TrustDomainInstance(object):
         # We need to do rootDSE search with LDAP_SERVER_EXTENDED_DN_OID
         # control to reveal the SID
         ldap_uri = 'ldap://%s' % (result.pdc_dns_name)
-        conn = _ldap.initialize(ldap_uri)
+        conn = ldap_initialize(ldap_uri)
         conn.set_option(_ldap.OPT_SERVER_CONTROLS, [ExtendedDNControl()])
         search_result = None
         try:

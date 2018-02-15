@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import nose
-import ldap
+
 import pytest
 
 from ipatests.test_ipaserver.httptest import Unauthorized_HTTP_test
@@ -26,6 +26,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipatests.util import assert_equal
 from ipalib import api, errors
 from ipapython.dn import DN
+from ipapython.ipaldap import ldap_initialize
 
 testuser = u'tuser'
 old_password = u'old_password'
@@ -59,7 +60,7 @@ class test_changepw(XMLRPC_test, Unauthorized_HTTP_test):
 
     def _checkpw(self, user, password):
         dn = str(DN(('uid', user), api.env.container_user, api.env.basedn))
-        conn = ldap.initialize(api.env.ldap_uri)
+        conn = ldap_initialize(api.env.ldap_uri)
         try:
             conn.simple_bind_s(dn, password)
         finally:
