@@ -441,7 +441,8 @@ IPA.hbac.test_rules_facet = function(spec) {
 
         $('<label/>', {
             'for': 'hbactest-rules-include-enabled',
-            text: text.get('@i18n:objects.hbactest.include_enabled')
+            text: text.get('@i18n:objects.hbactest.include_enabled'),
+            title: text.get('@mc-opt:hbactest:enabled:doc')
         }).appendTo(header);
 
         that.disabled = $('<input/>', {
@@ -452,7 +453,8 @@ IPA.hbac.test_rules_facet = function(spec) {
 
         $('<label/>', {
             'for': 'hbactest-rules-include-disabled',
-            text: text.get('@i18n:objects.hbactest.include_disabled')
+            text: text.get('@i18n:objects.hbactest.include_disabled'),
+            title: text.get('@mc-opt:hbactest:disabled:doc')
         }).appendTo(header);
 
         var content = $('<div/>', {
