@@ -66,6 +66,11 @@ from ipapython.dnsutil import DNSName
 from ipapython.dnsutil import resolve_ip_addresses
 from ipapython.admintool import ScriptError
 
+if sys.version_info >= (3, 2):
+    import reprlib  # pylint: disable=import-error
+else:
+    reprlib = None
+
 if six.PY3:
     unicode = str
 
@@ -1206,3 +1211,36 @@ def open_in_pager(data):
         pager_process.communicate()
     except IOError:
         pass
+
+
+if reprlib is not None:
+    class APIRepr(reprlib.Repr):
+        builtin_types = {
+            bool, int, float,
+            str, bytes,
+            dict, tuple, list, set, frozenset,
+            type(None),
+        }
+
+        def __init__(self):
+            super(APIRepr, self).__init__()
+            # no limitation
+            for k, v in self.__dict__.items():
+                if isinstance(v, int):
+                    setattr(self, k, sys.maxsize)
+
+        def repr_str(self, x, level):
+            """Output with u'' prefix"""
+            return 'u' + repr(x)
+
+        def repr_type(self, x, level):
+            if x is str:
+                return "<type 'unicode'>"
+            if x in self.builtin_types:
+                return "<type '{}'>".format(x.__name__)
+            else:
+                return repr(x)
+
+    apirepr = APIRepr().repr
+else:
+    apirepr = repr
