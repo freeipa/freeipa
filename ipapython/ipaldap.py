@@ -85,6 +85,34 @@ if six.PY2 and hasattr(ldap, 'LDAPBytesWarning'):
     )
 
 
+def ldap_initialize(uri, cacertfile=None):
+    """Wrapper around ldap.initialize()
+    """
+    conn = ldap.initialize(uri)
+
+    if not uri.startswith('ldapi://'):
+        if cacertfile:
+            conn.set_option(ldap.OPT_X_TLS_CACERTFILE, cacertfile)
+            newctx = True
+        else:
+            newctx = False
+
+        req_cert = conn.get_option(ldap.OPT_X_TLS_REQUIRE_CERT)
+        if req_cert != ldap.OPT_X_TLS_DEMAND:
+            # libldap defaults to cert validation, but the default can be
+            # overridden in global or user local ldap.conf.
+            conn.set_option(
+                ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND
+            )
+            newctx = True
+
+        # reinitialize TLS context
+        if newctx:
+            conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
+
+    return conn
+
+
 class _ServerSchema(object):
     '''
     Properties of a schema retrieved from an LDAP server.
@@ -1091,13 +1119,7 @@ class LDAPClient(object):
 
     def _connect(self):
         with self.error_handler():
-            conn = ldap.initialize(self.ldap_uri)
-
-            if self._start_tls or self._protocol == 'ldaps':
-                ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, self._cacert)
-                ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, True)
-                conn.set_option(ldap.OPT_X_TLS_DEMAND, True)
-
+            conn = ldap_initialize(self.ldap_uri, cacertfile=self._cacert)
             if self._sasl_nocanon:
                 conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_ON)
 
