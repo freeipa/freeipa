@@ -66,14 +66,19 @@ page_width = 80
 section_seperator = '=' * page_width
 entry_seperator = '-' * page_width
 
-#-------------------------------------------------------------------------------
+# Python 3: Enforce ASCII mode so \w matches only ASCII chars. This avoids
+# false positives in Chinese translation.
+ASCII = getattr(re, "ASCII", 0)
+
+# --------------------------------------------------------------------------
 # For efficiency compile these regexps just once
-_substitution_regexps = [re.compile(r'%[srduoxf]\b'),        # e.g. %s
-                         re.compile(r'%\(\w+\)[srduoxf]\b'), # e.g. %(foo)s
-                         re.compile(r'\$\w+'),               # e.g. $foo
-                         re.compile(r'\${\w+}'),             # e.g. ${foo}
-                         re.compile(r'\$\(\w+\)')            # e.g. $(foo)
-                         ]
+_substitution_regexps = [
+    re.compile(r'%[srduoxf]'),                 # e.g. %s
+    re.compile(r'%\(\w+\)[srduoxf]', ASCII),   # e.g. %(foo)s
+    re.compile(r'\$\w+', ASCII),               # e.g. $foo
+    re.compile(r'\${\w+}', ASCII),             # e.g. ${foo}
+    re.compile(r'\$\(\w+\)', ASCII)            # e.g. $(foo)
+]
 # Python style substitution, e.g. %(foo)s
 # where foo is the key and s is the format char
 # group 1: whitespace between % and (
@@ -81,11 +86,15 @@ _substitution_regexps = [re.compile(r'%[srduoxf]\b'),        # e.g. %s
 # group 3: whitespace between key and )
 # group 4: whitespace between ) and format char
 # group 5: format char
-_python_substitution_regexp = re.compile(r'%(\s*)\((\s*)\w+(\s*)\)(\s*)([srduoxf]\b)?')
+_python_substitution_regexp = re.compile(
+    r'%(\s*)\((\s*)\w+(\s*)\)(\s*)([srduoxf])?', ASCII
+)
 
 # Shell style substitution, e.g. $foo $(foo) ${foo}
 # where foo is the variable
-_shell_substitution_regexp = re.compile(r'\$(\s*)([({]?)(\s*)\w+(\s*)([)}]?)')
+_shell_substitution_regexp = re.compile(
+    r'\$(\s*)([({]?)(\s*)\w+(\s*)([)}]?)', ASCII
+)
 # group 1: whitespace between $ and delimiter
 # group 2: begining delimiter
 # group 3: whitespace between beginning delmiter and variable
