@@ -41,7 +41,6 @@ import grp
 from contextlib import contextmanager
 import locale
 import collections
-from subprocess import CalledProcessError
 
 from dns import resolver, reversename
 from dns.exception import DNSException
@@ -353,21 +352,32 @@ def shell_quote(string):
         return b"'" + string.replace(b"'", b"'\\''") + b"'"
 
 
-if six.PY3:
-    def _log_arg(s):
-        """Convert string or bytes to a string suitable for logging"""
-        if isinstance(s, bytes):
-            return s.decode(locale.getpreferredencoding(),
-                            errors='replace')
-        else:
-            return s
-else:
-    _log_arg = str
-
-
 class _RunResult(collections.namedtuple('_RunResult',
                                         'output error_output returncode')):
     """Result of ipautil.run"""
+
+
+class CalledProcessError(subprocess.CalledProcessError):
+    """CalledProcessError with stderr
+
+    Hold stderr of failed call and print it in repr() to simplify debugging.
+    """
+    def __init__(self, returncode, cmd, output=None, stderr=None):
+        super(CalledProcessError, self).__init__(returncode, cmd, output)
+        self.stderr = stderr
+
+    def __str__(self):
+        args = [
+            self.__class__.__name__, '('
+            'Command {!s} '.format(self.cmd),
+            'returned non-zero exit status {!r}'.format(self.returncode)
+        ]
+        if self.stderr is not None:
+            args.append(': {!r}'.format(self.stderr))
+        args.append(')')
+        return ''.join(args)
+
+    __repr__ = __str__
 
 
 def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
@@ -477,7 +487,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
     if six.PY3 and isinstance(stdin, str):
         stdin = stdin.encode(encoding)
 
-    arg_string = nolog_replace(' '.join(_log_arg(a) for a in args), nolog)
+    arg_string = nolog_replace(repr(args), nolog)
     logger.debug('Starting external process')
     logger.debug('args=%s', arg_string)
 
@@ -558,7 +568,9 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         error_output = None
 
     if p.returncode != 0 and raiseonerr:
-        raise CalledProcessError(p.returncode, arg_string, str(output))
+        raise CalledProcessError(
+            p.returncode, arg_string, output_log, error_log
+        )
 
     result = _RunResult(output, error_output, p.returncode)
     result.raw_output = stdout
