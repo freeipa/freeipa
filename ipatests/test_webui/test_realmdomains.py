@@ -39,6 +39,7 @@ class test_realmdomains(UI_driver):
         self.facet_button_click('save')
         self.dialog_button_click(button)
         self.wait_for_request()
+        self.close_notifications()
 
     @screenshot
     def test_read(self):
@@ -53,6 +54,7 @@ class test_realmdomains(UI_driver):
         self.facet_button_click('save')
         self.dialog_button_click('force')
         self.wait_for_request()
+        self.close_notifications()
 
         # delete
         self.del_realm_domain('itest.bar', 'force')
@@ -78,6 +80,7 @@ class test_realmdomains(UI_driver):
         # remove the added domain from Realm Domain
         self.navigate_to_entity(ENTITY)
         self.del_realm_domain(realmdomain, 'ok')
+        self.close_notifications()
 
         # re-add _TXT kerberos.$domain "$REALM"
         self.navigate_to_entity(ZONE_ENTITY)
