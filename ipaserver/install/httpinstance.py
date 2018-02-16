@@ -577,6 +577,7 @@ class HTTPInstance(service.Service):
                                        pk12_password,
                                        paths.HTTPD_KEY_FILE)
 
+        self.backup_ssl_conf()
         self.configure_mod_ssl_certs()
         self.set_mod_ssl_protocol()
         self.set_mod_ssl_logdir()
