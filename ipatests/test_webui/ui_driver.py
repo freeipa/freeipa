@@ -711,6 +711,21 @@ class UI_driver(object):
         # possible dialog transition effect
         self.wait(0.5)
 
+    def close_notifications(self):
+        """
+        Close all notifications like success messages, warnings, infos
+        """
+        self.wait()
+        while True:
+            # get close button of notification
+            s = ".notification-area .alert button"
+            button = self.find(s, By.CSS_SELECTOR, strict=False)
+            if button:
+                button.click()
+                self.wait()
+            else:
+                break
+
     def get_form(self):
         """
         Get last dialog or visible facet
