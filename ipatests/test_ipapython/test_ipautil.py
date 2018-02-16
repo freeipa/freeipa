@@ -21,10 +21,11 @@
 """
 Test the `ipapython/ipautil.py` module.
 """
+import sys
+import tempfile
 
 import pytest
 import six
-import tempfile
 
 from ipaplatform.paths import paths
 from ipapython import ipautil
@@ -482,3 +483,28 @@ def test_flush_sync():
     with tempfile.NamedTemporaryFile('wb+') as f:
         f.write(b'data')
         ipautil.flush_sync(f)
+
+
+def test_run_stderr():
+    args = [
+        sys.executable, '-c',
+        'import sys; sys.exit(" ".join(("error", "message")))'
+    ]
+
+    with pytest.raises(ipautil.CalledProcessError) as cm:
+        ipautil.run(args)
+
+    assert cm.value.cmd == repr(args)
+    assert cm.value.stderr == "error message\n"
+    assert "CalledProcessError(" in str(cm.value)
+    assert repr(args) in str(cm.value)
+    assert str(cm.value).endswith("'error message\\n')")
+
+    with pytest.raises(ipautil.CalledProcessError) as cm:
+        ipautil.run(args, nolog=["message"])
+
+    assert cm.value.cmd == repr(args).replace("message", "XXXXXXXX")
+    assert str(cm.value).endswith("'error XXXXXXXX\\n')")
+    assert "message" not in str(cm.value)
+    assert "message" not in str(cm.value.output)
+    assert "message" not in str(cm.value.stderr)
