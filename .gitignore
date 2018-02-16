@@ -49,6 +49,7 @@ test-driver
 freeipa-*.tar.gz
 .tarball_name
 .version
+setup.cfg
 
 # Python compilation
 *.pyc

@@ -7,20 +7,38 @@ else
 VERBOSITY="--quiet"
 endif !VERBOSE_MAKE
 
+# PYTHONPATH is required to import ipasetup in out-of-tree builds
+PYTHONSETUP=PYTHONPATH=$(abs_top_builddir) $(PYTHON) setup.py
+
 # hack to handle back-in-the-hierarchy depedency on ipasetup.py
 .PHONY: $(top_builddir)/ipasetup.py
 $(top_builddir)/ipasetup.py:
 	(cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) ipasetup.py)
 
-all-local: $(top_builddir)/ipasetup.py
-	cd $(srcdir); $(PYTHON) setup.py \
+# PHONY is a hack to work around some VPATH magic
+.PHONY: setup.py
+$(builddir)/setup.py: $(srcdir)/setup.py setup.cfg
+	if [ ! "$(srcdir)/setup.py" -ef "$@" ]; then cp $(srcdir)/setup.py $@; fi
+
+setup.cfg: $(srcdir)/setup.cfg.in $(top_builddir)/$(CONFIG_STATUS)
+	$(AM_V_GEN)sed						\
+		-e 's|@SRCDIR[@]|$(top_srcdir)|g'		\
+		$< > $@
+
+all-local: $(top_builddir)/ipasetup.py setup.py
+	@ # SPECIAL: execute copy_dist in srcdir, then copy setup.py
+	cd $(srcdir); $(PYTHONSETUP) \
+	    copy_dist \
+	        --target=$(abs_builddir)
+
+	$(PYTHONSETUP) \
 		$(VERBOSITY) \
 		build \
 		    --build-base "$(abs_builddir)/build"
 
-install-exec-local: $(top_builddir)/ipasetup.py
+install-exec-local: $(top_builddir)/ipasetup.py setup.py
 	if [ "x$(pkginstall)" != "xfalse" ]; then \
-	    $(PYTHON) $(srcdir)/setup.py \
+	    $(PYTHONSETUP) \
 		    $(VERBOSITY) \
 		    build \
 		        --build-base "$(abs_builddir)/build" \
@@ -39,11 +57,14 @@ uninstall-local:
 	rm -rf "$(DESTDIR)$(pkgpythondir)"
 
 clean-local: $(top_builddir)/ipasetup.py
-	$(PYTHON) "$(srcdir)/setup.py" \
+	@ # SPECIAL: execute clean and clean_copy_dist in srcdir
+	cd $(srcdir); $(PYTHONSETUP) \
 	    clean \
-	        --all
-	        --build-base "$(abs_builddir)/build"
-	rm -rf "$(srcdir)/build" "$(srcdir)/dist" "$(srcdir)/MANIFEST"
+	        --all \
+	        --build-base "$(abs_builddir)/build" \
+	    clean_copy_dist \
+	        --target=$(abs_builddir)
+	rm -rf "$(abs_builddir)/build" "$(abs_builddir)/dist" "$(abs_builddir)/MANIFEST"
 	find "$(srcdir)" \
 		-name "*.py[co]" -delete -o	\
 		-name "__pycache__" -delete -o	\
@@ -52,7 +73,7 @@ clean-local: $(top_builddir)/ipasetup.py
 # take list of all Python source files and copy them into distdir
 # SOURCES.txt does not contain directories so we need to create those
 dist-hook: $(top_builddir)/ipasetup.py
-	$(PYTHON) "$(srcdir)/setup.py" egg_info
+	$(PYTHONSETUP) egg_info
 	PYTHON_SOURCES=$$(cat "$(srcdir)/$(pkgname).egg-info/SOURCES.txt") || exit $$?;	\
 	for FILEN in $${PYTHON_SOURCES}; 						\
 	do										\
@@ -60,11 +81,11 @@ dist-hook: $(top_builddir)/ipasetup.py
 		$(INSTALL) -D -m $${MODE} "$(srcdir)/$${FILEN}" "$(distdir)/$${FILEN}" || exit $$?;	\
 	done
 
-WHEELDISTDIR = $(top_builddir)/dist/wheels
+WHEELDISTDIR = $(abs_top_builddir)/dist/wheels
 .PHONY: bdist_wheel
-bdist_wheel: $(top_builddir)/ipasetup.py
+bdist_wheel: all
 	rm -rf $(WHEELDISTDIR)/$(pkgname)-*.whl
-	$(PYTHON) "$(srcdir)/setup.py" \
+	$(PYTHONSETUP) \
 	    build \
 	        --build-base "$(abs_builddir)/build" \
 	    bdist_wheel \

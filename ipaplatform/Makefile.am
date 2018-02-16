@@ -1,6 +1,6 @@
 include $(top_srcdir)/Makefile.python.am
 
-EXTRA_DIST = override.py.in
+EXTRA_DIST = override.py.in setup.cfg.in
 
 all-local: override.py
 dist-hook: override.py

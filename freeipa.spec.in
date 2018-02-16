@@ -130,7 +130,6 @@ BuildRequires:  python2-setuptools
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
 %endif # with_python3
-# %{_unitdir}, %{_tmpfilesdir}
 BuildRequires:  systemd
 # systemd-tmpfiles which is executed from make install requires apache user
 BuildRequires:  httpd
