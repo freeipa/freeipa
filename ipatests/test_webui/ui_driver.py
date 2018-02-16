@@ -42,7 +42,6 @@ try:
     from selenium.common.exceptions import InvalidElementStateException
     from selenium.common.exceptions import StaleElementReferenceException
     from selenium.common.exceptions import WebDriverException
-    from selenium.webdriver.common.action_chains import ActionChains
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.common.by import By
@@ -344,34 +343,56 @@ class UI_driver(object):
         """
         Navigate to Web UI first page and wait for loading of all dependencies.
         """
+        # If the application is already loaded, there is no need to re-enter
+        # the URL on the address bar and reloading everything.
+        # This help us to create scenarios like login -> logout -> login
+
+        # if a page is already loaded we click in the IPA logo to go to the
+        # initial page
+        ipa_logo = self.find('.navbar-brand', By.CSS_SELECTOR)
+        if ipa_logo and ipa_logo.is_displayed():
+            self.move_to_element_in_page(ipa_logo)
+            ipa_logo.click()
+            return
+
+        # already on the first page
+        if self.login_screen_visible():
+            return
+
+        # if is not any of above cases, we need to load the application for
+        # its first time entering the URL in the address bar
         self.driver.get(self.get_base_url())
         runner = self
         WebDriverWait(self.driver, 10).until(lambda d: runner.files_loaded())
+        self.wait_for_request()
 
     def login(self, login=None, password=None, new_password=None):
         """
         Log in if user is not logged in.
         """
+        if self.logged_in():
+            return
+
+        if not login:
+            login = self.config['ipa_admin']
+        if not password:
+            password = self.config['ipa_password']
+        if not new_password:
+            new_password = password
+
+        auth = self.get_login_screen()
+        login_tb = self.find("//input[@type='text'][@name='username']",
+                             'xpath', auth, strict=True)
+        psw_tb = self.find("//input[@type='password'][@name='password']",
+                           'xpath', auth, strict=True)
+        login_tb.send_keys(login)
+        psw_tb.send_keys(password)
+        psw_tb.send_keys(Keys.RETURN)
+        self.wait(0.5)
         self.wait_for_request(n=2)
-        if not self.logged_in():
 
-            if not login:
-                login = self.config['ipa_admin']
-            if not password:
-                password = self.config['ipa_password']
-            if not new_password:
-                new_password = password
-
-            auth = self.get_login_screen()
-            login_tb = self.find("//input[@type='text'][@name='username']", 'xpath', auth, strict=True)
-            psw_tb = self.find("//input[@type='password'][@name='password']", 'xpath', auth, strict=True)
-            login_tb.send_keys(login)
-            psw_tb.send_keys(password)
-            psw_tb.send_keys(Keys.RETURN)
-            self.wait(0.5)
-            self.wait_for_request(n=2)
-
-            # reset password if needed
+        # reset password if needed
+        if self.login_screen_visible():
             newpw_tb = self.find("//input[@type='password'][@name='new_password']", 'xpath', auth)
             verify_tb = self.find("//input[@type='password'][@name='verify_password']", 'xpath', auth)
             if newpw_tb and newpw_tb.is_displayed():
@@ -392,12 +413,13 @@ class UI_driver(object):
 
     def logout(self):
         self.profile_menu_action('logout')
+        assert self.login_screen_visible()
 
     def get_login_screen(self):
         """
         Get reference of login screen
         """
-        return self.find('rcue-login-screen', 'id')
+        return self.find('.login-pf', By.CSS_SELECTOR)
 
     def login_screen_visible(self):
         """
@@ -653,12 +675,18 @@ class UI_driver(object):
 
     def _button_click(self, selector, parent, name=''):
         btn = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
-        ActionChains(self.driver).move_to_element(btn).perform()
+        self.move_to_element_in_page(btn)
         disabled = btn.get_attribute("disabled")
         assert btn.is_displayed(), 'Button is not displayed: %s' % name
         assert not disabled, 'Invalid button state: disabled. Button: %s' % name
         btn.click()
         self.wait_for_request()
+
+    def move_to_element_in_page(self, element):
+        # workaround to move the page until the element is visible
+        # more in https://github.com/mozilla/geckodriver/issues/776
+        self.driver.execute_script('arguments[0].scrollIntoView(true);',
+                                   element)
 
     def profile_menu_action(self, name):
         """
@@ -825,6 +853,7 @@ class UI_driver(object):
         if combobox_input:
             if not option:
                 self.fill_textbox(combobox_input, value, cb)
+                open_btn.click()
         else:
             if not option:
                 # try to search
@@ -965,7 +994,8 @@ class UI_driver(object):
         input_s = s + " tbody td input[value='%s']" % pkey
         checkbox = self.find(input_s, By.CSS_SELECTOR, parent, strict=True)
         try:
-            ActionChains(self.driver).move_to_element(checkbox).click().perform()
+            self.move_to_element_in_page(checkbox)
+            checkbox.click()
         except WebDriverException as e:
             assert False, 'Can\'t click on checkbox label: %s \n%s' % (s, e)
         self.wait()
@@ -1278,6 +1308,7 @@ class UI_driver(object):
                    update_btn='save',
                    breadcrumb=None,
                    navigate=True,
+                   mod=True,
                    delete=True):
         """
         Basic CRUD operation sequence.
@@ -1328,7 +1359,7 @@ class UI_driver(object):
         self.validate_fields(data.get('add_v'))
 
         # 4. Mod values
-        if data.get('mod'):
+        if mod and data.get('mod'):
             self.mod_record(entity, data, details_facet, update_btn)
             self.validate_fields(data.get('mod_v'))
 
