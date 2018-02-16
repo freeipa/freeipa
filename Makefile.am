@@ -215,7 +215,7 @@ endif
 	    echo -e "Fast linting files:\n$${FILES}\n"; \
 	    echo "pycodestyle"; \
 	    echo "-----------"; \
-	    git diff $${MERGEBASE} | \
+	    git diff -U0 $${MERGEBASE} | \
 	        $(PYTHON) -m pycodestyle --diff || exit $$?; \
 	    echo -e "\npylint"; \
 	    echo "------"; \
