@@ -24,7 +24,6 @@ import logging
 import shutil
 import pwd
 import os
-import re
 import time
 import tempfile
 import stat
@@ -96,30 +95,7 @@ def schema_dirname(serverid):
     return config_dirname(serverid) + "/schema/"
 
 
-def __remove_instance_legacy(serverid, force=False):
-    """A wrapper around the 'remove-ds.pl' script used by
-    389ds to remove a single directory server instance. In case of error
-    additional call with the '-f' flag is performed (forced removal). If this
-    also fails, then an exception is raised.
-    """
-    instance_name = ''.join([DS_INSTANCE_PREFIX, serverid])
-    args = [paths.REMOVE_DS_PL, '-i', instance_name]
-    if force:
-        args.append('-f')
-        logger.debug("Forcing instance removal")
-
-    try:
-        ipautil.run(args)
-    except ipautil.CalledProcessError:
-        if force:
-            logger.error("Instance removal failed.")
-            raise
-        logger.debug("'%s' failed. "
-                     "Attempting to force removal", paths.REMOVE_DS_PL)
-        remove_ds_instance(serverid, force=True)
-
-
-def __remove_instance_python(serverid):
+def remove_ds_instance(serverid):
     """Call the lib389 api to remove the instance. Because of the
     design of the api, there is no "force" command. Provided a marker
     file exists, it will attempt the removal, and the marker is the *last*
@@ -138,15 +114,6 @@ def __remove_instance_python(serverid):
     # Remove it
     remove_ds_instance(ds)
     logger.debug("Instance removed correctly.")
-
-
-def remove_ds_instance(serverid, force=False):
-    if os.path.exists(paths.REMOVE_DS_PL):
-        # We still have legacy tools. Lets use them.
-        __remove_instance_legacy(serverid, force)
-    else:
-        # 389 have removed their perl tools \o/. Use the api driven installer
-        __remove_instance_python(serverid)
 
 
 def get_ds_instances():
@@ -580,49 +547,7 @@ class DsInstance(service.Service):
             ' '.join(replication.TOTAL_EXCLUDES),
         )
 
-    def __create_instance_legacy(self):
-        pent = pwd.getpwnam(DS_USER)
-
-        self.backup_state("serverid", self.serverid)
-        self.fstore.backup_file(paths.SYSCONFIG_DIRSRV)
-
-        self.sub_dict['BASEDC'] = self.realm.split('.')[0].lower()
-        base_txt = ipautil.template_str(BASE_TEMPLATE, self.sub_dict)
-        logger.debug("%s", base_txt)
-
-        target_fname = paths.DIRSRV_BOOT_LDIF
-        base_fd = open(target_fname, "w")
-        base_fd.write(base_txt)
-        base_fd.close()
-
-        # Must be readable for dirsrv
-        os.chmod(target_fname, 0o440)
-        os.chown(target_fname, pent.pw_uid, pent.pw_gid)
-
-        inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
-        logger.debug("writing inf template")
-        inf_fd = ipautil.write_tmp_file(inf_txt)
-        inf_txt = re.sub(r"RootDNPwd=.*\n", "", inf_txt)
-        logger.debug("%s", inf_txt)
-        args = [
-            paths.SETUP_DS_PL, "--silent",
-            "--logfile", "-",
-            "-f", inf_fd.name,
-        ]
-        logger.debug("calling setup-ds.pl")
-        try:
-            ipautil.run(args)
-            logger.debug("completed creating DS instance")
-        except ipautil.CalledProcessError as e:
-            raise RuntimeError("failed to create DS instance %s" % e)
-
-        # check for open port 389 from now on
-        self.open_ports.append(389)
-
-        inf_fd.close()
-        os.remove(paths.DIRSRV_BOOT_LDIF)
-
-    def __create_instance_python(self):
+    def __create_instance(self):
         # We only import lib389 now, we can't always guarantee its presence
         # yet. After f28, this can be made a dependency proper.
         from lib389.instance.setup import SetupDs
@@ -677,14 +602,6 @@ class DsInstance(service.Service):
         })
         # Done!
         logger.debug("completed creating DS instance")
-
-    def __create_instance(self):
-        if os.path.exists(paths.SETUP_DS_PL):
-            # We still have legacy tools. Lets use them.
-            self.__create_instance_legacy()
-        else:
-            # 389 have removed its perl tools \o/. Use the api driven installer
-            self.__create_instance_python()
 
     def __update_dse_ldif(self):
         """
