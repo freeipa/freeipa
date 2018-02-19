@@ -386,8 +386,6 @@ class BasePathNamespace:
     DB2LDIF = '/usr/sbin/db2ldif'
     BAK2DB = '/usr/sbin/bak2db'
     DB2BAK = '/usr/sbin/db2bak'
-    SETUP_DS_PL = "/usr/sbin/setup-ds.pl"
-    REMOVE_DS_PL = "/usr/sbin/remove-ds.pl"
     IPA_SERVER_UPGRADE = '/usr/sbin/ipa-server-upgrade'
     KEYCTL = '/usr/bin/keyctl'
     GETENT = '/usr/bin/getent'

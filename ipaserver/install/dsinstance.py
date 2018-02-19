@@ -31,6 +31,12 @@ import fnmatch
 
 import ldap
 
+from lib389 import DirSrv
+from lib389.idm.ipadomain import IpaDomain
+from lib389.instance.options import General2Base, Slapd2Base
+from lib389.instance.remove import remove_ds_instance as lib389_remove_ds
+from lib389.instance.setup import SetupDs
+
 from ipalib import x509
 from ipalib.install import certmonger, certstore
 from ipapython.certdb import (IPA_CA_TRUST_FLAGS,
@@ -103,16 +109,13 @@ def remove_ds_instance(serverid):
     you even need multiple times ....)
     """
 
-    from lib389.instance.remove import remove_ds_instance
-    from lib389 import DirSrv
-
     logger.debug("Attempting to remove instance %s", serverid)
     # Alloc the local instance by name (no creds needed!)
     ds = DirSrv(verbose=True, external_log=logger)
     ds.local_simple_allocate(serverid)
 
     # Remove it
-    remove_ds_instance(ds)
+    lib389_remove_ds(ds)
     logger.debug("Instance removed correctly.")
 
 
@@ -548,13 +551,6 @@ class DsInstance(service.Service):
         )
 
     def __create_instance(self):
-        # We only import lib389 now, we can't always guarantee its presence
-        # yet. After f28, this can be made a dependency proper.
-        from lib389.instance.setup import SetupDs
-        from lib389.instance.options import General2Base, Slapd2Base
-        from lib389.idm.ipadomain import IpaDomain
-        from lib389 import DirSrv
-
         # The new installer is api driven. We can pass it a log function
         # and it will use it. Because of this, we can pass verbose true,
         # and allow our logger to control the display based on level.
@@ -581,7 +577,7 @@ class DsInstance(service.Service):
             'nsslapd-suffix': self.suffix.ldap_text()
         }
 
-        backends = [userroot, ]
+        backends = [userroot]
 
         sds.create_from_args(general, slapd, backends, None)
 
@@ -595,11 +591,15 @@ class DsInstance(service.Service):
         # This actually opens the conn and binds.
         inst.open()
 
-        ipadomain = IpaDomain(inst, dn=self.suffix.ldap_text())
-        ipadomain.create(properties={
-            'dc': self.realm.split('.')[0].lower(),
-            'info': 'IPA V2.0',
-        })
+        try:
+            ipadomain = IpaDomain(inst, dn=self.suffix.ldap_text())
+            ipadomain.create(properties={
+                'dc': self.realm.split('.')[0].lower(),
+                'info': 'IPA V2.0',
+            })
+        finally:
+            inst.close()
+
         # Done!
         logger.debug("completed creating DS instance")
 
