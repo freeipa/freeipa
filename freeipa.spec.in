@@ -48,9 +48,11 @@
 %global selinux_policy_version 3.14.1-14
 %global slapi_nis_version 0.56.1-4
 %global python_ldap_version 3.1.0-1
+# python3-lib389
 # Fix for "Installation fails: Replica Busy"
-# https://bugzilla.redhat.com/show_bug.cgi?id=1598478
-%global ds_version 1.3.8.4-15
+# https://pagure.io/389-ds-base/issue/49818
+%global ds_version 1.4.0.16-1
+
 %else
 # Fedora
 %global package_name freeipa
@@ -67,9 +69,7 @@
 
 # fix for segfault in python3-ldap, https://pagure.io/freeipa/issue/7324
 %global python_ldap_version 3.1.0-1
-
-# Fix for "Crash when failing to read from SASL connection"
-# https://pagure.io/389-ds-base/issue/49639
+# python3-lib389
 # Fix for "Installation fails: Replica Busy"
 # https://pagure.io/389-ds-base/issue/49818
 %global ds_version 1.4.0.16-1
