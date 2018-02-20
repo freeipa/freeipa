@@ -86,6 +86,46 @@ def export_pem_p12(pkcs12_fname, pkcs12_pwd_fname, nickname, pem_fname):
                  "-passout", "file:" + pkcs12_pwd_fname])
 
 
+def pkcs12_to_certkeys(p12_fname, p12_passwd=None):
+    """
+    Deserializes pkcs12 file to python objects
+
+    :param p12_fname: A PKCS#12 filename
+    :param p12_passwd: Optional password for the pkcs12_fname file
+    """
+    args = [paths.OPENSSL, "pkcs12", "-in", p12_fname, "-nodes"]
+    if p12_passwd:
+        pwd = ipautil.write_tmp_file(p12_passwd)
+        args.extend(["-passin", "file:{fname}".format(fname=pwd.name)])
+    else:
+        args.extend(["-passin", "pass:"])
+
+    pems = ipautil.run(args, capture_output=True).raw_output
+
+    certs = x509.load_certificate_list(pems)
+    priv_keys = x509.load_private_key_list(pems)
+
+    return (certs, priv_keys)
+
+
+def is_ipa_issued_cert(api, cert):
+    """
+    Return True if the certificate has been issued by IPA
+
+    Note that this method can only be executed if the api has been
+    initialized.
+
+    :param api: The pre-initialized IPA API
+    :param cert: The IPACertificate certificiate to test
+    """
+    cacert_subject = certstore.get_ca_subject(
+        api.Backend.ldap2,
+        api.env.container_ca,
+        api.env.basedn)
+
+    return DN(cert.issuer) == cacert_subject
+
+
 class CertDB(object):
     """An IPA-server-specific wrapper around NSS
 
@@ -610,25 +650,22 @@ class CertDB(object):
         Return True if the certificate contained in the CertDB with the
         provided nickname has been issued by IPA.
 
-        Note that this method can only be executed if api has been initialized
+        Note that this method can only be executed if the api has been
+        initialized.
+
+        This method needs to compare the cert issuer (from the NSS DB
+        and the subject from the CA (from LDAP), because nicknames are not
+        always aligned.
+
+        The cert can be issued directly by IPA. In this case, the cert
+        issuer is IPA CA subject.
         """
-        # This method needs to compare the cert issuer (from the NSS DB
-        # and the subject from the CA (from LDAP), because nicknames are not
-        # always aligned.
-
-        cacert_subject = certstore.get_ca_subject(
-            api.Backend.ldap2,
-            api.env.container_ca,
-            api.env.basedn)
-
-        # The cert can be issued directly by IPA. In this case, the cert
-        # issuer is IPA CA subject.
         cert = self.get_cert_from_db(nickname)
         if cert is None:
             raise RuntimeError("Could not find the cert %s in %s"
                                % (nickname, self.secdir))
 
-        return DN(cert.issuer) == cacert_subject
+        return is_ipa_issued_cert(api, cert)
 
 
 class _CrossProcessLock(object):

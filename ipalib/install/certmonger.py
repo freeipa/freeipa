@@ -670,11 +670,3 @@ def wait_for_request(request_id, timeout=120):
         raise RuntimeError("request timed out")
 
     return state
-
-if __name__ == '__main__':
-    request_id = request_cert(paths.HTTPD_ALIAS_DIR,
-                              "cn=tiger.example.com,O=IPA",
-                              "HTTP/tiger.example.com@EXAMPLE.COM", "Test")
-    csr = get_request_value(request_id, 'csr')
-    print(csr)
-    stop_tracking(request_id)

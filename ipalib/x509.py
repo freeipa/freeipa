@@ -31,6 +31,7 @@
 
 from __future__ import print_function
 
+import os
 import binascii
 import datetime
 import ipaddress
@@ -41,8 +42,9 @@ import re
 from cryptography import x509 as crypto_x509
 from cryptography import utils as crypto_utils
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import (
-    Encoding, PublicFormat
+    Encoding, PublicFormat, PrivateFormat, load_pem_private_key
 )
 from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import decoder, encoder
@@ -59,8 +61,12 @@ if six.PY3:
 PEM = 0
 DER = 1
 
-PEM_REGEX = re.compile(
+PEM_CERT_REGEX = re.compile(
     b'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----',
+    re.DOTALL)
+PEM_PRIV_REGEX = re.compile(
+    b'-----BEGIN(?: ENCRYPTED)?(?: (?:RSA|DSA|DH|EC))? PRIVATE KEY-----.*?'
+    b'-----END(?: ENCRYPTED)?(?: (?:RSA|DSA|DH|EC))? PRIVATE KEY-----',
     re.DOTALL)
 
 EKU_SERVER_AUTH = '1.3.6.1.5.5.7.3.1'
@@ -415,7 +421,7 @@ def load_unknown_x509_certificate(data):
         return load_der_x509_certificate(data)
 
 
-def load_certificate_from_file(filename, dbdir=None):
+def load_certificate_from_file(filename):
     """
     Load a certificate from a PEM file.
 
@@ -431,7 +437,7 @@ def load_certificate_list(data):
 
     Return a list of python-cryptography ``Certificate`` objects.
     """
-    certs = PEM_REGEX.findall(data)
+    certs = PEM_CERT_REGEX.findall(data)
     return [load_pem_x509_certificate(cert) for cert in certs]
 
 
@@ -444,6 +450,35 @@ def load_certificate_list_from_file(filename):
     """
     with open(filename, 'rb') as f:
         return load_certificate_list(f.read())
+
+
+def load_private_key_list(data, password=None):
+    """
+    Load a private key list from a sequence of concatenated PEMs.
+
+    :param data: bytes containing the private keys
+    :param password: bytes, the password to encrypted keys in the bundle
+
+    :returns: List of python-cryptography ``PrivateKey`` objects
+    """
+    crypto_backend = default_backend()
+    priv_keys = []
+
+    for match in re.finditer(PEM_PRIV_REGEX, data):
+        if re.search(b"ENCRYPTED", match.group()) is not None:
+            if password is None:
+                raise RuntimeError("Password is required for the encrypted "
+                                   "keys in the bundle.")
+            # Load private key as encrypted
+            priv_keys.append(
+                load_pem_private_key(match.group(), password,
+                                     backend=crypto_backend))
+        else:
+            priv_keys.append(
+                load_pem_private_key(match.group(), None,
+                                     backend=crypto_backend))
+
+    return priv_keys
 
 
 def pkcs7_to_certs(data, datatype=PEM):
@@ -508,8 +543,7 @@ def write_certificate(cert, filename):
     """
     Write the certificate to a file in PEM format.
 
-    The cert value can be either DER or PEM-encoded, it will be normalized
-    to DER regardless, then back out to PEM.
+    :param cert: cryptograpy ``Certificate`` object
     """
 
     try:
@@ -531,6 +565,24 @@ def write_certificate_list(certs, filename):
         with open(filename, 'wb') as f:
             for cert in certs:
                 f.write(cert.public_bytes(Encoding.PEM))
+    except (IOError, OSError) as e:
+        raise errors.FileError(reason=str(e))
+
+
+def write_pem_private_key(priv_key, filename):
+    """
+    Write a private key to a file in PEM format. Will force 0x600 permissions
+    on file.
+
+    :param priv_key: cryptography ``PrivateKey`` object
+    """
+    try:
+        with open(filename, 'wb') as fp:
+            os.fchmod(fp.fileno(), 0o600)
+            fp.write(priv_key.private_bytes(
+                Encoding.PEM,
+                PrivateFormat.TraditionalOpenSSL,
+                serialization.NoEncryption()))
     except (IOError, OSError) as e:
         raise errors.FileError(reason=str(e))
 

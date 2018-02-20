@@ -2,13 +2,11 @@
 # Copyright (C) 2017 FreeIPA Contributors see COPYING for license
 #
 
-import os
-
 from ipalib.plugable import Registry
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.advise.base import Advice
-from ipaserver.install.httpinstance import NSS_OCSP_ENABLED
+from ipaserver.install.httpinstance import OCSP_ENABLED, OCSP_DIRECTIVE
 
 register = Registry()
 
@@ -93,8 +91,7 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
                    "whole topology you have to run the script on each master")
 
     nss_conf = paths.HTTPD_NSS_CONF
-    nss_ocsp_directive = 'NSSOCSP'
-    nss_nickname_directive = 'NSSNickname'
+    nss_ocsp_directive = OCSP_DIRECTIVE
     kdc_service_name = services.knownservices.krb5kdc.systemd_name
 
     def get_info(self):
@@ -104,7 +101,6 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
         self.check_hostname_is_in_masters()
         self.resolve_ipaca_records()
         self.enable_nss_ocsp()
-        self.mark_httpd_cert_as_trusted()
         self.restart_httpd()
         self.record_httpd_ocsp_status()
         self.check_and_enable_pkinit()
@@ -173,27 +169,6 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
     def _format_command(self, fmt_line, directive, filename):
         return fmt_line.format(directive=directive, filename=filename)
 
-    def mark_httpd_cert_as_trusted(self):
-        httpd_nss_database_pwd_file = os.path.join(
-            paths.HTTPD_ALIAS_DIR, 'pwdfile.txt')
-        self.log.comment(
-            'mark the HTTP certificate as trusted peer to avoid '
-            'chicken-egg startup issue')
-        self.log.command(
-            self._interpolate_nssnickname_directive_file_into_command(
-                "http_cert_nick=$(grep '{directive}' {filename} |"
-                " cut -f 2 -d ' ')"))
-
-        self.log.exit_on_failed_command(
-            'certutil -M -n $http_cert_nick -d "{}" -f {} -t "Pu,u,u"'.format(
-                paths.HTTPD_ALIAS_DIR,
-                httpd_nss_database_pwd_file),
-            ['Can not set trust flags on HTTP certificate'])
-
-    def _interpolate_nssnickname_directive_file_into_command(self, fmt_line):
-        return self._format_command(
-            fmt_line, self.nss_nickname_directive, self.nss_conf)
-
     def restart_httpd(self):
         self.log.comment('finally restart apache')
         self.log.command('systemctl restart httpd')
@@ -203,7 +178,7 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
         self.log.command(
             "python -c 'from ipaserver.install import sysupgrade; "
             "sysupgrade.set_upgrade_state(\"httpd\", "
-            "\"{}\", True)'".format(NSS_OCSP_ENABLED))
+            "\"{}\", True)'".format(OCSP_ENABLED))
 
     def check_and_enable_pkinit(self):
         self.log.comment('check whether PKINIT is configured on the master')

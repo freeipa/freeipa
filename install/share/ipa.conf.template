@@ -113,8 +113,8 @@ Alias /ipa/session/cookie "/usr/share/ipa/gssapi.login"
   AuthType none
   GssapiDelegCcacheDir $IPA_CCACHES
   GssapiDelegCcachePerms mode:0660 gid:ipaapi
-  NSSVerifyClient require
-  NSSUserName SSL_CLIENT_CERT
+  SSLVerifyClient require
+  SSLUserName SSL_CLIENT_CERT
   LookupUserByCertificate On
   LookupUserByCertificateParamName "username"
   WSGIProcessGroup ipa

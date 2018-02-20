@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import absolute_import
+
 import logging
 import sys
 import os
@@ -32,7 +34,7 @@ from ipalib.install import certstore, sysrestore
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython import kerberos
-from ipalib import api, errors
+from ipalib import api, errors, x509
 from ipaplatform import services
 from ipaplatform.paths import paths
 
@@ -377,7 +379,36 @@ class Service(object):
             logger.critical("Could not add certificate to service %s entry: "
                             "%s", self.principal, str(e))
 
-    def import_ca_certs(self, db, ca_is_configured, conn=None):
+    def export_ca_certs_file(self, cafile, ca_is_configured, conn=None):
+        """
+        Export the CA certificates stored in LDAP into a file
+
+        :param cafile: the file to write the CA certificates to
+        :param ca_is_configured: whether IPA is CA-less or not
+        :param conn: an optional LDAP connection to use
+        """
+        if conn is None:
+            conn = api.Backend.ldap2
+
+        ca_certs = None
+        try:
+            ca_certs = certstore.get_ca_certs(
+                conn, self.suffix, self.realm, ca_is_configured)
+        except errors.NotFound:
+            pass
+        else:
+            with open(cafile, 'wb') as fd:
+                for cert, _unused, _unused, _unused in ca_certs:
+                    fd.write(cert.public_bytes(x509.Encoding.PEM))
+
+    def export_ca_certs_nssdb(self, db, ca_is_configured, conn=None):
+        """
+        Export the CA certificates stored in LDAP into an NSS database
+
+        :param db: the target NSS database
+        :param ca_is_configured: whether IPA is CA-less or not
+        :param conn: an optional LDAP connection to use
+        """
         if conn is None:
             conn = api.Backend.ldap2
 
