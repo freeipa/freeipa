@@ -258,8 +258,11 @@ class TestEnforcedPosixADTrust(TestPosixADTrust):
     This test is intented to copycat PosixADTrust, since enforcing the POSIX
     trust type should not make a difference.
     """
+    """Re-difene method from test_establish_trust_with_posix_attributes
+    to test_establish_trust. win server 2016 no more have support for MFU/NIS,
+    so autodetection doesn't work"""
 
-    def test_establish_trust_with_posix_attributes(self):
+    def test_establish_trust(self):
         tasks.establish_trust_with_ad(self.master, self.ad_domain,
             extra_args=['--range-type', 'ipa-ad-trust-posix'])
 
