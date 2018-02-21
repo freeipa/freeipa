@@ -20,6 +20,7 @@
 #
 
 import binascii
+import errno
 import logging
 import time
 import datetime
@@ -87,28 +88,34 @@ if six.PY2 and hasattr(ldap, 'LDAPBytesWarning'):
 
 def ldap_initialize(uri, cacertfile=None):
     """Wrapper around ldap.initialize()
+
+    The function undoes global and local ldap.conf settings that may cause
+    issues or reduce security:
+
+    * Canonization of SASL host names is disabled.
+    * With cacertfile=None, the connection uses OpenSSL's default verify
+      locations, also known as system-wide trust store.
+    * Cert validation is enforced.
+    * SSLv2 and SSLv3 are disabled.
     """
     conn = ldap.initialize(uri)
 
+    # Do not perform reverse DNS lookups to canonicalize SASL host names
+    conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_ON)
+
     if not uri.startswith('ldapi://'):
         if cacertfile:
+            if not os.path.isfile(cacertfile):
+                raise IOError(errno.ENOENT, cacertfile)
             conn.set_option(ldap.OPT_X_TLS_CACERTFILE, cacertfile)
-            newctx = True
-        else:
-            newctx = False
 
-        req_cert = conn.get_option(ldap.OPT_X_TLS_REQUIRE_CERT)
-        if req_cert != ldap.OPT_X_TLS_DEMAND:
-            # libldap defaults to cert validation, but the default can be
-            # overridden in global or user local ldap.conf.
-            conn.set_option(
-                ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND
-            )
-            newctx = True
-
-        # reinitialize TLS context
-        if newctx:
-            conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
+        # SSLv3 and SSLv2 are insecure
+        conn.set_option(ldap.OPT_X_TLS_PROTOCOL_MIN, 0x301)  # TLS 1.0
+        # libldap defaults to cert validation, but the default can be
+        # overridden in global or user local ldap.conf.
+        conn.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
+        # reinitialize TLS context to materialize settings
+        conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
 
     return conn
 
@@ -733,7 +740,7 @@ class LDAPClient(object):
 
     def __init__(self, ldap_uri, start_tls=False, force_schema_updates=False,
                  no_schema=False, decode_attrs=True, cacert=None,
-                 sasl_nocanon=False):
+                 sasl_nocanon=True):
         """Create LDAPClient object.
 
         :param ldap_uri: The LDAP URI to connect to
@@ -1120,8 +1127,10 @@ class LDAPClient(object):
     def _connect(self):
         with self.error_handler():
             conn = ldap_initialize(self.ldap_uri, cacertfile=self._cacert)
-            if self._sasl_nocanon:
-                conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_ON)
+            # SASL_NOCANON is set to ON in Fedora's default ldap.conf and
+            # in the ldap_initialize() function.
+            if not self._sasl_nocanon:
+                conn.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_OFF)
 
             if self._start_tls:
                 conn.start_tls_s()
