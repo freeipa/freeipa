@@ -43,14 +43,8 @@
 #include "ipa_krb5.h"
 #include "ipa_asn1.h"
 #include "ipa-client-common.h"
+#include "ipa_ldap.h"
 
-#define DEFAULT_CA_CERT_FILE "/etc/ipa/ca.crt"
-
-#define LDAP_SASL_EXTERNAL "EXTERNAL"
-#define LDAP_SASL_GSSAPI "GSSAPI"
-
-#define SCHEMA_LDAP "ldap://"
-#define SCHEMA_LDAPS "ldaps://"
 
 static int check_sasl_mech(const char *mech)
 {
@@ -178,42 +172,6 @@ static int ipa_server_to_uri(const char *servername, const char *mech,
     return 0;
 }
 
-static int ipa_ldap_init(LDAP **ld, const char *ldap_uri)
-{
-    int rc = 0;
-    rc = ldap_initialize(ld, ldap_uri);
-
-    return rc;
-}
-
-static int ipa_tls_ssl_init(LDAP *ld, const char *ldap_uri)
-{
-    int ret = LDAP_SUCCESS;
-    int tls_hard = LDAP_OPT_X_TLS_HARD;
-    int tls_demand = LDAP_OPT_X_TLS_DEMAND;
-
-    if (strncmp(ldap_uri, SCHEMA_LDAP, sizeof(SCHEMA_LDAP) - 1) == 0) {
-        ret = ldap_set_option(ld, LDAP_OPT_X_TLS_REQUIRE_CERT, &tls_demand);
-        if (ret != LDAP_OPT_SUCCESS) {
-            fprintf(stderr, _("Unable to set LDAP_OPT_X_TLS_REQUIRE_CERT\n"));
-            return ret;
-        }
-        ret = ldap_start_tls_s(ld, NULL, NULL);
-        if (ret != LDAP_SUCCESS) {
-            fprintf(stderr, _("Unable to initialize STARTTLS session\n"));
-            return ret;
-        }
-    } else if (strncmp(ldap_uri, SCHEMA_LDAPS, sizeof(SCHEMA_LDAPS) - 1) == 0) {
-        ret = ldap_set_option(ld, LDAP_OPT_X_TLS, &tls_hard);
-        if (ret != LDAP_OPT_SUCCESS) {
-            fprintf(stderr, _("Unable to set LDAP_OPT_X_TLS\n"));
-            return ret;
-        }
-    }
-    return ret;
-
-}
-
 static int ipa_ldap_bind(const char *ldap_uri, krb5_principal bind_princ,
                          const char *bind_dn, const char *bind_pw,
                          const char *mech, const char *ca_cert_file,
@@ -221,20 +179,12 @@ static int ipa_ldap_bind(const char *ldap_uri, krb5_principal bind_princ,
 {
     char *msg = NULL;
     struct berval bv;
-    int version;
     LDAP *ld;
     int ret;
 
     /* TODO: support referrals ? */
-    ret = ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE, ca_cert_file);
-    if (ret != LDAP_OPT_SUCCESS) {
-        fprintf(stderr, _("Unable to set LDAP_OPT_X_TLS_CERTIFICATE\n"));
-        return ret;
-    }
-
     ret = ipa_ldap_init(&ld, ldap_uri);
     if (ret != LDAP_SUCCESS) {
-        fprintf(stderr, _("Unable to init connection to %s\n"), ldap_uri);
         return ret;
     }
 
@@ -243,23 +193,7 @@ static int ipa_ldap_bind(const char *ldap_uri, krb5_principal bind_princ,
         return LDAP_OPERATIONS_ERROR;
     }
 
-#ifdef LDAP_OPT_X_SASL_NOCANON
-    /* Don't do DNS canonicalization */
-    ret = ldap_set_option(ld, LDAP_OPT_X_SASL_NOCANON, LDAP_OPT_ON);
-    if (ret != LDAP_SUCCESS) {
-	fprintf(stderr, _("Unable to set LDAP_OPT_X_SASL_NOCANON\n"));
-        goto done;
-    }
-#endif
-
-    version = LDAP_VERSION3;
-    ret = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
-    if (ret != LDAP_SUCCESS) {
-	fprintf(stderr, _("Unable to set LDAP_OPT_PROTOCOL_VERSION\n"));
-	goto done;
-    }
-
-    ret = ipa_tls_ssl_init(ld, ldap_uri);
+    ret = ipa_tls_ssl_init(ld, ldap_uri, ca_cert_file);
     if (ret != LDAP_OPT_SUCCESS) {
         goto done;
     }
