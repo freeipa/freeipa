@@ -39,12 +39,11 @@
 #include "xmlrpc-c/client.h"
 
 #include "ipa-client-common.h"
+#include "ipa_ldap.h"
 
 #define NAME "ipa-join"
 
 #define JOIN_OID "2.16.840.1.113730.3.8.10.3"
-
-#define CAFILE "/etc/ipa/ca.crt"
 
 #define IPA_CONFIG "/etc/ipa/default.conf"
 
@@ -200,8 +199,6 @@ callRPC(char * user_agent,
 static LDAP *
 connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
     LDAP *ld = NULL;
-    int ssl = LDAP_OPT_X_TLS_HARD;
-    int version = LDAP_VERSION3;
     int ret;
     int ldapdebug = 0;
     char *uri;
@@ -215,40 +212,23 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
         }
     }
 
-    if (ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE, CAFILE) != LDAP_OPT_SUCCESS)
-        goto fail;
-
     ret = asprintf(&uri, "ldaps://%s:636", hostname);
     if (ret == -1) {
         fprintf(stderr, _("Out of memory!"));
         goto fail;
     }
 
-    ret = ldap_initialize(&ld, uri);
-    free(uri);
-    if(ret != LDAP_SUCCESS) {
-        fprintf(stderr, _("Unable to initialize connection to ldap server: %s"),
-                        ldap_err2string(ret));
+    ret = ipa_ldap_init(&ld, uri);
+    if (ret != LDAP_SUCCESS) {
         goto fail;
     }
-
-    if (ldap_set_option(ld, LDAP_OPT_X_TLS, &ssl) != LDAP_OPT_SUCCESS) {
+    ret = ipa_tls_ssl_init(ld, uri, DEFAULT_CA_CERT_FILE);
+    if (ret != LDAP_SUCCESS) {
         fprintf(stderr, _("Unable to enable SSL in LDAP\n"));
         goto fail;
     }
-
-    /* Don't do DNS canonicalization */
-    ret = ldap_set_option(ld, LDAP_OPT_X_SASL_NOCANON, LDAP_OPT_ON);
-    if (ret != LDAP_SUCCESS) {
-        fprintf(stderr, _("Unable to set LDAP_OPT_X_SASL_NOCANON\n"));
-        goto fail;
-    }
-
-    ret = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version);
-    if (ret != LDAP_SUCCESS) {
-        fprintf(stderr, _("Unable to set LDAP version\n"));
-        goto fail;
-    }
+    free(uri);
+    uri = NULL;
 
     if (bindpw) {
         bindpw_bv.bv_val = discard_const(bindpw);
@@ -275,6 +255,9 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
 fail:
     if (ld != NULL) {
         ldap_unbind_ext(ld, NULL, NULL);
+    }
+    if (uri != NULL) {
+        free(uri);
     }
     return NULL;
 }

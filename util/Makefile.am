@@ -7,6 +7,8 @@ noinst_LTLIBRARIES = libutil.la
 libutil_la_SOURCES =	ipa_krb5.c \
 			ipa_krb5.h \
 			ipa_mspac.h \
+			ipa_ldap.c \
+			ipa_ldap.h \
 			ipa_pwd.c \
 			ipa_pwd.h \
 			ipa_pwd_ntlm.c

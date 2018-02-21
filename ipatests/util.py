@@ -859,7 +859,8 @@ def get_entity_keytab(principal, options=None):
 
         yield keytab_filename
     finally:
-        os.remove(keytab_filename)
+        if os.path.isfile(keytab_filename):
+            os.remove(keytab_filename)
 
 
 @contextmanager
