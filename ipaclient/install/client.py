@@ -2306,8 +2306,9 @@ def install_check(options):
         raise ScriptError(rval=CLIENT_INSTALL_ERROR)
 
 
-def create_ipa_nssdb():
-    db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
+def create_ipa_nssdb(db=None):
+    if db is None:
+        db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
     db.create_db(mode=0o755, backup=True)
     os.chmod(db.pwd_file, 0o600)
 
@@ -2316,8 +2317,10 @@ def update_ipa_nssdb():
     ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
     sys_db = certdb.NSSDatabase(paths.NSS_DB_DIR)
 
-    if not os.path.exists(os.path.join(ipa_db.secdir, 'cert8.db')):
-        create_ipa_nssdb()
+    if not ipa_db.exists():
+        create_ipa_nssdb(ipa_db)
+    if ipa_db.dbtype == 'dbm':
+        ipa_db.convert_db(rename_old=False)
 
     for nickname, trust_flags in (
             ('IPA CA', certdb.IPA_CA_TRUST_FLAGS),
