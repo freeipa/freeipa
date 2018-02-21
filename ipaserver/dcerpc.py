@@ -728,11 +728,8 @@ class DomainValidator(object):
                     conn = ipaldap.LDAPClient(
                         ldap_uri,
                         no_schema=True,
-                        decode_attrs=False,
-                        sasl_nocanon=True)
-                    # sasl_nocanon used to avoid hard requirement for PTR
-                    # records pointing back to the same host name
-
+                        decode_attrs=False
+                    )
                     conn.gssapi_bind()
 
                     if basedn is None:
