@@ -41,7 +41,6 @@
 %{!?with_python2:%global with_python2 1}
 
 %if %{with_default_python} == 3
-    %global with_python3 1
     %global python %{__python3}
 %else
     %global with_python2 1
@@ -93,7 +92,7 @@
 %global pki_version 10.6.1
 
 # Adds a proper dependency on python3-lib389
-%global ds_version 1.4.0.12-1
+%global ds_version 1.4.0.13-1
 
 # NSS release with fix for CKA_LABEL import bug in shared SQL database.
 # https://bugzilla.redhat.com/show_bug.cgi?id=1568271
@@ -206,6 +205,11 @@ BuildRequires:  python2-six
 %if 0%{?with_wheels}
 BuildRequires:  dbus-glib-devel
 BuildRequires:  libffi-devel
+%if 0%{?with_python2}
+BuildRequires:  python2-tox
+BuildRequires:  python2-twine
+BuildRequires:  python2-wheel
+%endif
 BuildRequires:  python3-tox
 BuildRequires:  python3-twine
 BuildRequires:  python3-wheel
@@ -410,7 +414,6 @@ hosts, services), Authentication (SSO, 2FA), and Authorization
 features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 If you are installing an IPA server, you need to install this package.
-
 
 %if 0%{?with_python2} && 0%{?fedora} < 29
 # Fedora 29 workaround: don't build python2-ipaserver, python2-pki is n/a
@@ -859,7 +862,6 @@ Provides: %{name}-tests = %{version}-%{release}
 %{?python_provide:%python_provide python2-ipatests}
 %{!?python_provide:Provides: python-ipatests = %{version}-%{release}}
 Requires: python2-ipaclient = %{version}-%{release}
-Requires: python2-ipaserver = %{version}-%{release}
 Requires: iptables
 Requires: ldns-utils
 Requires: python2-coverage
@@ -873,10 +875,6 @@ Requires: python2-pytest-sourceorder
 Requires: python2-sssdconfig
 Requires: tar
 Requires: xz
-
-Provides: %{alt_name}-tests = %{version}
-Conflicts: %{alt_name}-tests
-Obsoletes: %{alt_name}-tests < %{version}
 
 %description -n python2-ipatests
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -918,6 +916,10 @@ features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 This package contains tests that verify IPA functionality under Python 3.
 
+Provides: %{alt_name}-tests = %{version}
+Conflicts: %{alt_name}-tests
+Obsoletes: %{alt_name}-tests < %{version}
+
 %endif # with_ipatests
 
 
@@ -943,6 +945,8 @@ ln -sr %{_builddir}/freeipa-%{version}-python2 %{_builddir}/freeipa-%{version}
 %endif
 
 %build
+# UI compilation segfaulted on some arches when the stack was lower (#1040576)
+export JAVA_STACK_SIZE="8m"
 # PATH is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1005235
 export PATH=/usr/bin:/usr/sbin:$PATH
 
@@ -1287,6 +1291,7 @@ fi
 %if ! %{ONLY_CLIENT}
 
 %files server
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-backup
@@ -1380,13 +1385,14 @@ fi
 %endif # with_python2 and Fedora < 29
 
 %files -n python3-ipaserver
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{python3_sitelib}/ipaserver
 %{python3_sitelib}/ipaserver-*.egg-info
 
-
 %files server-common
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %ghost %verify(not owner group) %dir %{_sharedstatedir}/kdcproxy
@@ -1470,6 +1476,7 @@ fi
 %{_usr}/share/ipa/ipakrb5.aug
 
 %files server-dns
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-dnskeysyncd
@@ -1485,6 +1492,7 @@ fi
 %attr(644,root,root) %{_unitdir}/ipa-ods-exporter.service
 
 %files server-trust-ad
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-adtrust-install
@@ -1500,6 +1508,7 @@ fi
 
 
 %files client
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-client-install
@@ -1521,6 +1530,7 @@ fi
 %if 0%{?with_python2}
 
 %files -n python2-ipaclient
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{python2_sitelib}/ipaclient
@@ -1545,6 +1555,7 @@ fi
 %endif # with_python2
 
 %files -n python3-ipaclient
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{python3_sitelib}/ipaclient
@@ -1573,6 +1584,7 @@ fi
 
 
 %files client-common
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/
@@ -1598,12 +1610,14 @@ fi
 
 
 %files python-compat
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 
 %if 0%{?with_python2}
 
 %files -n python2-ipalib
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{python2_sitelib}/ipapython
@@ -1624,12 +1638,14 @@ fi
 %endif # with_python2
 
 %files common -f %{gettext_domain}.lang
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{_usr}/share/ipa
 
 
 %files -n python3-ipalib
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 
@@ -1646,7 +1662,9 @@ fi
 
 %if 0%{?with_python2} && 0%{?fedora} < 29
 # Fedora 29 workaround: don't build python2-ipatests, depends on ipaserver
+
 %files -n python2-ipatests
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{python2_sitelib}/ipatests
@@ -1669,6 +1687,7 @@ fi
 %endif # with_python2 and Fedora < 29
 
 %files -n python3-ipatests
+%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{python3_sitelib}/ipatests
