@@ -126,9 +126,9 @@ class CertDB(object):
 
         try:
             self.cwd = os.path.abspath(os.getcwd())
-        except OSError as e:
-            raise RuntimeError(
-                "Unable to determine the current directory: %s" % str(e))
+        except OSError:
+            os.chdir("/root")
+            self.cwd = os.path.abspath(os.getcwd())
 
         self.cacert_name = get_ca_nickname(self.realm)
 
