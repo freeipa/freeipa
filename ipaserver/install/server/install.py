@@ -35,7 +35,7 @@ import ipaclient.install.ntpconf
 from ipaserver.install import (
     adtrust, bindinstance, ca, dns, dsinstance,
     httpinstance, installutils, kra, krbinstance,
-    ntpinstance, otpdinstance, custodiainstance, replication, service,
+    otpdinstance, custodiainstance, replication, service,
     sysupgrade)
 from ipaserver.install.installutils import (
     IPA_MODULES, BadHostError, get_fqdn, get_server_ip_address,
@@ -386,7 +386,7 @@ def install_check(installer):
         print("  * Configure a stand-alone CA (dogtag) for certificate "
               "management")
     if not options.no_ntp:
-        print("  * Configure the Network Time Daemon (ntpd)")
+        print("  * Configure the NTP client (chronyd)")
     print("  * Create and configure an instance of Directory Server")
     print("  * Create and configure a Kerberos Key Distribution Center (KDC)")
     print("  * Configure Apache (httpd)")
@@ -401,7 +401,7 @@ def install_check(installer):
     if options.no_ntp:
         print("")
         print("Excluded by options:")
-        print("  * Configure the Network Time Daemon (ntpd)")
+        print("  * Configure the NTP client (chronyd)")
     if installer.interactive:
         print("")
         print("To accept the default shown in brackets, press the Enter key.")
@@ -415,9 +415,9 @@ def install_check(installer):
         try:
             ipaclient.install.ntpconf.check_timedate_services()
         except ipaclient.install.ntpconf.NTPConflictingService as e:
-            print(("WARNING: conflicting time&date synchronization service '%s'"
-                  " will be disabled" % e.conflicting_service))
-            print("in favor of ntpd")
+            print("WARNING: conflicting time&date synchronization service '%s'"
+                  " will be disabled" % e.conflicting_service)
+            print("in favor of chronyd")
             print("")
         except ipaclient.install.ntpconf.NTPConfigurationError:
             pass
@@ -761,13 +761,6 @@ def install(installer):
 
     # Create a directory server instance
     if not options.external_cert_files:
-        # Configure ntpd
-        if not options.no_ntp:
-            ipaclient.install.ntpconf.force_ntpd(sstore)
-            ntp = ntpinstance.NTPInstance(fstore)
-            if not ntp.is_configured():
-                ntp.create_instance()
-
         if options.dirsrv_cert_files:
             ds = dsinstance.DsInstance(fstore=fstore,
                                        domainlevel=options.domainlevel,
@@ -792,8 +785,6 @@ def install(installer):
                                ca_subject=options.ca_subject,
                                hbac_allow=not options.no_hbac_allow,
                                setup_pkinit=not options.no_pkinit)
-
-        ntpinstance.ntp_ldap_enable(host_name, ds.suffix, realm_name)
 
     else:
         api.Backend.ldap2.connect()
@@ -963,10 +954,10 @@ def install(installer):
           "user-add)")
     print("\t   and the web user interface.")
 
-    if not services.knownservices.ntpd.is_running():
+    if not services.knownservices.chronyd.is_running():
         print("\t3. Kerberos requires time synchronization between clients")
         print("\t   and servers for correct operation. You should consider "
-              "enabling ntpd.")
+              "enabling chronyd.")
 
     print("")
     if setup_ca:
@@ -1091,8 +1082,6 @@ def uninstall(installer):
         except Exception:
             pass
 
-    ntpinstance.NTPInstance(fstore).uninstall()
-
     kra.uninstall()
 
     ca.uninstall()
@@ -1121,7 +1110,7 @@ def uninstall(installer):
 
     sstore._load()
 
-    ipaclient.install.ntpconf.restore_forced_ntpd(sstore)
+    ipaclient.install.ntpconf.restore_forced_chronyd(sstore)
 
     # Clean up group_exists (unused since IPA 2.2, not being set since 4.1)
     sstore.restore_state("install", "group_exists")

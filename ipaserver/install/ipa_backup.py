@@ -131,7 +131,6 @@ class Backup(admintool.AdminTool):
         paths.RESOLV_CONF,
         paths.SYSCONFIG_PKI_TOMCAT,
         paths.SYSCONFIG_DIRSRV,
-        paths.SYSCONFIG_NTPD,
         paths.SYSCONFIG_KRB5KDC_DIR,
         paths.SYSCONFIG_IPA_DNSKEYSYNCD,
         paths.SYSCONFIG_IPA_ODS_EXPORTER,
