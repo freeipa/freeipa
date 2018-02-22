@@ -153,3 +153,21 @@ class test_realmdomains(UI_driver):
         # check
         domains = self.get_multivalued_value('associateddomain')
         assert test_domain not in domains
+
+    @screenshot
+    def test_add_domain_and_undo_all(self):
+        """
+        Add domain and undo all
+        """
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+
+        test_domain = u'﻿itest.bar'
+
+        # add and undo all
+        self.add_multivalued('associateddomain', test_domain)
+        self.undo_all_multivalued('associateddomain')
+
+        # check
+        domains = self.get_multivalued_value('associateddomain')
+        assert test_domain not in domains

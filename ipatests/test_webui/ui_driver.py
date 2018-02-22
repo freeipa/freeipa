@@ -847,6 +847,18 @@ class UI_driver(object):
 
         assert clicked, 'Value was not removed: {}'.format(value)
 
+    def undo_all_multivalued(self, name, parent=None):
+        """
+        Undo all new values to multivalued textbox
+        """
+        if parent is None:
+            parent = self.get_form()
+        label = "div[name='{}'].multivalued-widget".format(name)
+        widget = self.find(label, By.CSS_SELECTOR, parent, strict=True)
+        add_btn = self.find("button[name=undo_all]", By.CSS_SELECTOR, widget,
+                            strict=True)
+        add_btn.click()
+
     def fill_multivalued(self, name, instructions, parent=None):
         """
         Add or delete a value from multivalued field
