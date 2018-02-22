@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Authors:
 #   Petr Vobornik <pvoborni@redhat.com>
 #
@@ -117,3 +118,20 @@ class test_realmdomains(UI_driver):
         self.del_realm_domain(realmdomain, 'ok')
         self.navigate_to_entity(ZONE_ENTITY)
         self.delete_record(ZONE_PKEY)
+
+    @screenshot
+    def test_add_domain_with_special_char(self):
+        """
+        Add domain with special_character
+        """
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+
+        domain_with_special_char = u'﻿ipa@123#'
+
+        # add with force - skipping DNS check
+        self._add_associateddomain([domain_with_special_char], force=True)
+        dialog = self.get_last_error_dialog()
+        assert ("invalid 'domain': only letters, numbers, '-' are allowed. "
+                "DNS label may not start or end with '-'"
+                in dialog.text)
