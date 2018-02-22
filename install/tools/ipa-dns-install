@@ -25,8 +25,6 @@ import logging
 import os
 import sys
 
-from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
-
 from ipaserver.install import bindinstance
 from ipaserver.install import installutils
 from ipapython import version
@@ -44,8 +42,6 @@ log_file_name = paths.IPASERVER_INSTALL_LOG
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
-    parser.add_option("-p", "--ds-password", dest="dm_password",
-                      sensitive=True, help=SUPPRESS_HELP)
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
     parser.add_option("--ip-address", dest="ip_addresses", metavar="IP_ADDRESS",
@@ -116,9 +112,6 @@ def parse_options():
     if options.kasp_db_file and not os.path.isfile(options.kasp_db_file):
         parser.error("File %s does not exist" % options.kasp_db_file)
 
-    if options.dm_password:
-        print ("WARNING: Option -p/--ds-password is deprecated "
-               "and should not be used anymore.")
     return safe_options, options
 
 def main():
