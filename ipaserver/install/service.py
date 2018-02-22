@@ -51,7 +51,6 @@ SERVICE_LIST = {
     'DNS': ('named', 30),
     'HTTP': ('httpd', 40),
     'KEYS': ('ipa-custodia', 41),
-    'NTP': ('ntpd', 45),
     'CA': ('pki-tomcatd', 50),
     'KRA': ('pki-tomcatd', 51),
     'ADTRUST': ('smb', 60),
