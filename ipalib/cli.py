@@ -627,7 +627,6 @@ class textui(backend.Backend):
                     return pw1
                 else:
                     self.print_error(_('Passwords do not match!'))
-                    return None
         else:
             return self.decode(sys.stdin.readline().strip())
 
