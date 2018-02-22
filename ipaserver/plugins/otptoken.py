@@ -72,7 +72,7 @@ TOKEN_TYPES = {
 }
 
 # NOTE: For maximum compatibility, KEY_LENGTH % 5 == 0
-KEY_LENGTH = 20
+KEY_LENGTH = 35
 
 class OTPTokenKey(Bytes):
     """A binary password type specified in base32."""
