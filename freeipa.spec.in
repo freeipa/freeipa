@@ -990,16 +990,7 @@ make %{?_smp_mflags} check VERBOSE=yes LIBDIR=%{_libdir}
 # will overwrite /usr/bin/ipa and other scripts with variants using
 # python2 shebang.
 pushd %{_builddir}/freeipa-%{version}-python3
-(cd ipaclient && %make_install)
-(cd ipalib && %make_install)
-(cd ipaplatform && %make_install)
-(cd ipapython && %make_install)
-%if ! %{ONLY_CLIENT}
-(cd ipaserver && %make_install)
-%endif # ONLY_CLIENT
-%if 0%{?with_ipatests}
-(cd ipatests && %make_install)
-%endif # with_ipatests
+%{__make} python_install DESTDIR=%{?buildroot} INSTALL="%{__install} -p"
 popd
 
 %if 0%{?with_ipatests}
