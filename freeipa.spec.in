@@ -514,6 +514,7 @@ Requires: bind-utils >= 9.11.0-6.P2
 Requires: bind-pkcs11 >= 9.11.0-6.P2
 Requires: bind-pkcs11-utils >= 9.11.0-6.P2
 Requires: opendnssec >= 1.4.6-4
+%{?systemd_requires}
 
 Provides: %{alt_name}-server-dns = %{version}
 Conflicts: %{alt_name}-server-dns
@@ -1160,6 +1161,17 @@ getent passwd ipaapi >/dev/null || useradd -r -g ipaapi -s /sbin/nologin -d / -c
 # add apache to ipaaapi group
 id -Gn apache | grep '\bipaapi\b' >/dev/null || usermod apache -a -G ipaapi
 
+
+%post server-dns
+%systemd_post ipa-dnskeysyncd.service ipa-ods-exporter.socket ipa-ods-exporter.service
+
+%preun server-dns
+%systemd_preun ipa-dnskeysyncd.service ipa-ods-exporter.socket ipa-ods-exporter.service
+
+%postun server-dns
+%systemd_postun ipa-dnskeysyncd.service ipa-ods-exporter.socket ipa-ods-exporter.service
+
+
 %postun server-trust-ad
 if [ "$1" -ge "1" ]; then
     if [ "`readlink %{_sysconfdir}/alternatives/winbind_krb5_locator.so`" == "/dev/null" ]; then
@@ -1301,9 +1313,6 @@ fi
 %dir %{_libexecdir}/ipa
 %{_libexecdir}/ipa/ipa-custodia
 %{_libexecdir}/ipa/ipa-custodia-check
-%{_libexecdir}/ipa/ipa-dnskeysyncd
-%{_libexecdir}/ipa/ipa-dnskeysync-replica
-%{_libexecdir}/ipa/ipa-ods-exporter
 %{_libexecdir}/ipa/ipa-httpd-kdcproxy
 %{_libexecdir}/ipa/ipa-pki-retrieve-key
 %{_libexecdir}/ipa/ipa-otpd
@@ -1317,9 +1326,6 @@ fi
 %attr(644,root,root) %{_unitdir}/ipa.service
 %attr(644,root,root) %{_unitdir}/ipa-otpd.socket
 %attr(644,root,root) %{_unitdir}/ipa-otpd@.service
-%attr(644,root,root) %{_unitdir}/ipa-dnskeysyncd.service
-%attr(644,root,root) %{_unitdir}/ipa-ods-exporter.socket
-%attr(644,root,root) %{_unitdir}/ipa-ods-exporter.service
 # END
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
 %attr(755,root,root) %{plugin_dir}/libipa_enrollment_extop.so
@@ -1388,8 +1394,6 @@ fi
 %license COPYING
 %ghost %verify(not owner group) %dir %{_sharedstatedir}/kdcproxy
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/kdcproxy
-%config(noreplace) %{_sysconfdir}/sysconfig/ipa-dnskeysyncd
-%config(noreplace) %{_sysconfdir}/sysconfig/ipa-ods-exporter
 %config(noreplace) %{_sysconfdir}/ipa/kdcproxy/kdcproxy.conf
 # NOTE: systemd specific section
 %{_tmpfilesdir}/ipa.conf
@@ -1448,7 +1452,6 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-kdc-proxy.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/kdcproxy/ipa-kdc-proxy.conf
-%dir %attr(0755,root,root) %{_sysconfdir}/ipa/dnssec
 %ghost %attr(0644,root,apache) %config(noreplace) %{_usr}/share/ipa/html/ca.crt
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb.con
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb5.ini
@@ -1474,9 +1477,17 @@ fi
 %defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
+%config(noreplace) %{_sysconfdir}/sysconfig/ipa-dnskeysyncd
+%config(noreplace) %{_sysconfdir}/sysconfig/ipa-ods-exporter
+%dir %attr(0755,root,root) %{_sysconfdir}/ipa/dnssec
+%{_libexecdir}/ipa/ipa-dnskeysyncd
+%{_libexecdir}/ipa/ipa-dnskeysync-replica
+%{_libexecdir}/ipa/ipa-ods-exporter
 %{_sbindir}/ipa-dns-install
 %{_mandir}/man1/ipa-dns-install.1*
-
+%attr(644,root,root) %{_unitdir}/ipa-dnskeysyncd.service
+%attr(644,root,root) %{_unitdir}/ipa-ods-exporter.socket
+%attr(644,root,root) %{_unitdir}/ipa-ods-exporter.service
 
 %files server-trust-ad
 %defattr(-,root,root,-)
