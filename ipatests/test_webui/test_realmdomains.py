@@ -135,3 +135,21 @@ class test_realmdomains(UI_driver):
         assert ("invalid 'domain': only letters, numbers, '-' are allowed. "
                 "DNS label may not start or end with '-'"
                 in dialog.text)
+
+    @screenshot
+    def test_add_domain_and_undo(self):
+        """
+        Add domain and undo
+        """
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+
+        test_domain = u'﻿itest.bar'
+
+        # add and undo
+        self.add_multivalued('associateddomain', test_domain)
+        self.undo_multivalued('associateddomain', test_domain)
+
+        # check
+        domains = self.get_multivalued_value('associateddomain')
+        assert test_domain not in domains
