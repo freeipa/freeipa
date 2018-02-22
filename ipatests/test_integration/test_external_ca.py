@@ -64,36 +64,62 @@ def match_in_journal(host, string, since='today', services=('certmonger',)):
     return match
 
 
+def install_server_external_ca_step1(host):
+    """funtion for step 1 to install the ipa server with external ca"""
+
+    args = ['ipa-server-install', '-U',
+            '-a', host.config.admin_password,
+            '-p', host.config.dirman_password,
+            '--setup-dns', '--no-forwarders',
+            '-n', host.domain.name,
+            '-r', host.domain.realm,
+            '--domain-level=%i' % host.config.domain_level,
+            '--external-ca']
+
+    cmd = host.run_command(args)
+    return cmd
+
+
+def install_server_external_ca_step2(host, ipa_ca_cert, root_ca_cert):
+    """funtion for step 2 to install the ipa server with external ca"""
+
+    args = ['ipa-server-install',
+            '-a', host.config.admin_password,
+            '-p', host.config.dirman_password,
+            '--external-cert-file', ipa_ca_cert,
+            '--external-cert-file', root_ca_cert]
+
+    cmd = host.run_command(args)
+    return cmd
+
+
+def service_control_dirsrv(host, function):
+    """Function to control the dirsrv service i.e start, stop, restart etc"""
+
+    dashed_domain = host.domain.realm.replace(".", '-')
+    dirsrv_service = "dirsrv@%s.service" % dashed_domain
+    cmd = host.run_command(['systemctl', function, dirsrv_service])
+    assert cmd.returncode == 0
+
+
 class TestExternalCA(IntegrationTest):
     """
     Test of FreeIPA server installation with exernal CA
     """
     @tasks.collect_logs
     def test_external_ca(self):
-        # Step 1 of ipa-server-install
-        self.master.run_command([
-            'ipa-server-install', '-U',
-            '-a', self.master.config.admin_password,
-            '-p', self.master.config.dirman_password,
-            '--setup-dns', '--no-forwarders',
-            '-n', self.master.domain.name,
-            '-r', self.master.domain.realm,
-            '--domain-level=%i' % self.master.config.domain_level,
-            '--external-ca'
-        ])
+        # Step 1 of ipa-server-install.
+        result = install_server_external_ca_step1(self.master)
+        assert result.returncode == 0
 
         # Sign CA, transport it to the host and get ipa a root ca paths.
         root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
             self.master, paths.ROOT_IPA_CSR, ROOT_CA, IPA_CA)
 
-        # Step 2 of ipa-server-install
-        self.master.run_command([
-            'ipa-server-install',
-            '-a', self.master.config.admin_password,
-            '-p', self.master.config.dirman_password,
-            '--external-cert-file', ipa_ca_fname,
-            '--external-cert-file', root_ca_fname
-        ])
+        # Step 2 of ipa-server-install.
+        result = install_server_external_ca_step2(
+            self.master, ipa_ca_fname, root_ca_fname)
+        assert result.returncode == 0
 
         # Make sure IPA server is working properly
         tasks.kinit_admin(self.master)
@@ -158,3 +184,37 @@ class TestSelfExternalSelf(IntegrationTest):
 
         result = self.master.run_command([paths.IPA_CERTUPDATE])
         assert result.returncode == 0
+
+
+class TestExternalCAdirsrvStop(IntegrationTest):
+    """When the dirsrv service, which gets started during the first
+    ipa-server-install --external-ca phase, is not running when the
+    second phase is run with --external-cert-file options, the
+    ipa-server-install command fail.
+
+    This test checks if second phase installs successfully when dirsrv
+    is stoped.
+
+    related ticket: https://pagure.io/freeipa/issue/6611"""
+    def test_external_ca_dirsrv_stop(self):
+
+        # Step 1 of ipa-server-install
+        result = install_server_external_ca_step1(self.master)
+        assert result.returncode == 0
+
+        # stop dirsrv server.
+        service_control_dirsrv(self.master, 'stop')
+
+        # Sign CA, transport it to the host and get ipa and root ca paths.
+        root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
+            self.master, paths.ROOT_IPA_CSR, ROOT_CA, IPA_CA)
+
+        # Step 2 of ipa-server-install.
+        result = install_server_external_ca_step2(
+            self.master, ipa_ca_fname, root_ca_fname)
+        assert result.returncode == 0
+
+        # Make sure IPA server is working properly
+        tasks.kinit_admin(self.master)
+        result = self.master.run_command(['ipa', 'user-show', 'admin'])
+        assert 'User login: admin' in result.stdout_text
