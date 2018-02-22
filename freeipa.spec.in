@@ -336,6 +336,7 @@ Requires(post): krb5-server >= %{krb5_version}
 Requires(post): krb5-server >= %{krb5_base_version}, krb5-server < %{krb5_base_version}.100
 Requires: krb5-pkinit-openssl >= %{krb5_version}
 Requires: cyrus-sasl-gssapi%{?_isa}
+Requires: chrony
 Requires: httpd >= 2.4.6-31
 %if 0%{with_python3}
 Requires(preun): python3
@@ -588,6 +589,7 @@ Requires: python2-ldap >= %{python2_ldap_version}
 Requires: python2-sssdconfig
 %endif
 Requires: cyrus-sasl-gssapi%{?_isa}
+Requires: chrony
 Requires: krb5-workstation >= %{krb5_version}
 Requires: authconfig
 Requires: curl
