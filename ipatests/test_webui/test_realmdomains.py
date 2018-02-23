@@ -231,3 +231,18 @@ class test_realmdomains(UI_driver):
         self.del_realm_domain(realmdomain, 'force')
         self.navigate_to_entity(ZONE_ENTITY)
         self.delete_record(ZONE_PKEY)
+
+    @screenshot
+    def test_add_empty_domain(self):
+        """
+        Add empty domain
+        """
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+
+        # add with force - skipping DNS check
+        self._add_associateddomain([''], force=True)
+
+        # check
+        dialog = self.get_last_error_dialog()
+        assert ("no modifications to be performed" in dialog.text)
