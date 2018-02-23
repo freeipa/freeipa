@@ -276,9 +276,6 @@ class CertDB(object):
     def run_certutil(self, args, stdin=None, **kwargs):
         return self.nssdb.run_certutil(args, stdin, **kwargs)
 
-    def run_modutil(self, args, stdin=None, **kwargs):
-        return self.nssdb.run_modutil(args, stdin, **kwargs)
-
     def create_noise_file(self):
         if os.path.isfile(self.noise_fname):
             os.remove(self.noise_fname)
@@ -689,32 +686,6 @@ class CertDB(object):
                                % (nickname, self.secdir))
 
         return is_ipa_issued_cert(api, cert)
-
-    def disable_system_trust(self):
-        """Disable system trust module of NSSDB
-        """
-        name = 'Root Certs'
-        try:
-            result = self.run_modutil(
-                ['-force', '-list', name],
-                env={},
-                capture_output=True
-            )
-        except ipautil.CalledProcessError as e:
-            if e.returncode == 29:  # ERROR: Module not found in database.
-                logger.debug(
-                    'Module %s not available, treating as disabled', name)
-                return False
-            raise
-
-        if 'Status: Enabled' in result.output:
-            self.run_modutil(
-                ['-force', '-disable', name],
-                env={}
-            )
-            return True
-
-        return False
 
     def needs_upgrade_format(self):
         """Check if NSSDB file format needs upgrade
