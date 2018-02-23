@@ -109,9 +109,9 @@ int __nss_to_err(enum nss_status errcode)
         return ERANGE;
     case NSS_STATUS_UNAVAIL:
         return ETIMEDOUT;
+    default:
+        return -1;
     }
-
-    return -1;
 }
 
 int getpwnam_r_wrapper(struct ipa_extdom_ctx *ctx, const char *name,
