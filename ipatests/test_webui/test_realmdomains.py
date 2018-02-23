@@ -246,3 +246,19 @@ class test_realmdomains(UI_driver):
         # check
         dialog = self.get_last_error_dialog()
         assert ("no modifications to be performed" in dialog.text)
+
+    @screenshot
+    def test_add_domain_with_leading_space(self):
+        """
+        Add domain with leading space
+        """
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+
+        # add with force - skipping DNS check
+        self._add_associateddomain([' ipa.test'], force=True)
+
+        # check
+        dialog = self.get_last_error_dialog()
+        assert ("invalid 'domain': Leading and trailing spaces are not allowed"
+                in dialog.text)
