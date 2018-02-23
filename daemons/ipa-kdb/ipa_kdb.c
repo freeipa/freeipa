@@ -631,6 +631,7 @@ static krb5_error_code ipadb_get_age(krb5_context kcontext,
     return 0;
 }
 
+#if KRB5_KDB_DAL_MAJOR_VERSION == 5
 static void *ipadb_alloc(krb5_context context, void *ptr, size_t size)
 {
     return realloc(ptr, size);
@@ -640,6 +641,7 @@ static void ipadb_free(krb5_context context, void *ptr)
 {
     free(ptr);
 }
+#endif
 
 /* KDB Virtual Table */
 
