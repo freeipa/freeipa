@@ -308,15 +308,6 @@ class NSSDatabase(object):
         new_args.extend(args)
         return ipautil.run(new_args, stdin, **kwargs)
 
-    def run_modutil(self, args, stdin=None, **kwargs):
-        self._check_db()
-        new_args = [
-            paths.MODUTIL,
-            '-dbdir', '{}:{}'.format(self.dbtype, self.secdir)
-        ]
-        new_args.extend(args)
-        return ipautil.run(new_args, stdin, **kwargs)
-
     def exists(self):
         """Check DB exists (all files are present)
         """
