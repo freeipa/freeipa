@@ -207,3 +207,27 @@ class test_realmdomains(UI_driver):
         # check
         domains = self.get_multivalued_value('associateddomain')
         assert test_domain not in domains
+
+    @screenshot
+    def test_add_duplicate_domain(self):
+        """
+        Add duplicate domain
+        """
+        self.init_app()
+
+        realmdomain = ZONE_PKEY.strip('.')
+        self.prepare_dns_zone(realmdomain)
+
+        self.navigate_to_entity(ENTITY)
+
+        # add two (same) domains with force - skipping DNS check
+        self._add_associateddomain([realmdomain, realmdomain], force=True)
+
+        # check
+        domains = self.get_multivalued_value('associateddomain')
+        assert realmdomain in domains
+
+        # cleanup
+        self.del_realm_domain(realmdomain, 'force')
+        self.navigate_to_entity(ZONE_ENTITY)
+        self.delete_record(ZONE_PKEY)
