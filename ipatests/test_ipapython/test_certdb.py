@@ -1,8 +1,20 @@
 import os
 
-from ipapython.certdb import NSSDatabase, TRUSTED_PEER_TRUST_FLAGS
+import pytest
 
+from ipapython.certdb import NSSDatabase, TRUSTED_PEER_TRUST_FLAGS
+from ipaplatform._importhook import metaimporter
+
+OSRELEASE = metaimporter.parse_osrelease()
 CERTNICK = 'testcert'
+
+if OSRELEASE['ID'] == 'fedora':
+    if int(OSRELEASE['VERSION_ID']) >= 28:
+        NSS_DEFAULT = 'sql'
+    else:
+        NSS_DEFAULT = 'dbm'
+else:
+    NSS_DEFAULT = None
 
 
 def create_selfsigned(nssdb):
@@ -30,11 +42,13 @@ def test_dbm_tmp():
 
         for filename in nssdb.filenames:
             assert not os.path.isfile(filename)
+        assert not nssdb.exists()
 
         nssdb.create_db()
         for filename in nssdb.filenames:
             assert os.path.isfile(filename)
             assert os.path.dirname(filename) == nssdb.secdir
+        assert nssdb.exists()
 
         assert os.path.basename(nssdb.certdb) == 'cert8.db'
         assert nssdb.certdb in nssdb.filenames
@@ -48,11 +62,13 @@ def test_sql_tmp():
 
         for filename in nssdb.filenames:
             assert not os.path.isfile(filename)
+        assert not nssdb.exists()
 
         nssdb.create_db()
         for filename in nssdb.filenames:
             assert os.path.isfile(filename)
             assert os.path.dirname(filename) == nssdb.secdir
+        assert nssdb.exists()
 
         assert os.path.basename(nssdb.certdb) == 'cert9.db'
         assert nssdb.certdb in nssdb.filenames
@@ -65,6 +81,7 @@ def test_convert_db():
         assert nssdb.dbtype == 'dbm'
 
         nssdb.create_db()
+        assert nssdb.exists()
 
         create_selfsigned(nssdb)
 
@@ -74,6 +91,7 @@ def test_convert_db():
         assert len(oldkeys) == 1
 
         nssdb.convert_db()
+        assert nssdb.exists()
 
         assert nssdb.dbtype == 'sql'
         newcerts = nssdb.list_certs()
@@ -131,3 +149,20 @@ def test_convert_db_nokey():
         assert nssdb.certdb in nssdb.filenames
         assert os.path.basename(nssdb.keydb) == 'key4.db'
         assert os.path.basename(nssdb.secmod) == 'pkcs11.txt'
+
+
+def test_auto_db():
+    with NSSDatabase() as nssdb:
+        assert nssdb.dbtype == 'auto'
+        assert nssdb.filenames is None
+        assert not nssdb.exists()
+        with pytest.raises(RuntimeError):
+            nssdb.list_certs()
+
+        nssdb.create_db()
+        assert nssdb.dbtype in ('dbm', 'sql')
+        if NSS_DEFAULT is not None:
+            assert nssdb.dbtype == NSS_DEFAULT
+        assert nssdb.filenames is not None
+        assert nssdb.exists()
+        nssdb.list_certs()

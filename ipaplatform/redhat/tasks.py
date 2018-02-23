@@ -103,21 +103,27 @@ class IPAVersion(object):
 
 class RedHatTaskNamespace(BaseTaskNamespace):
 
-    def restore_context(self, filepath, restorecon=paths.SBIN_RESTORECON):
-        """
-        restore security context on the file path
+    def restore_context(self, filepath, force=False):
+        """Restore SELinux security context on the given filepath.
+
         SELinux equivalent is /path/to/restorecon <filepath>
         restorecon's return values are not reliable so we have to
         ignore them (BZ #739604).
 
         ipautil.run() will do the logging.
         """
-
-        if not selinux_enabled():
+        restorecon = paths.SBIN_RESTORECON
+        if not selinux_enabled() or not os.path.exists(restorecon):
             return
 
-        if (os.path.exists(restorecon)):
-            ipautil.run([restorecon, filepath], raiseonerr=False)
+        # Force reset of context to match file_context for customizable
+        # files, and the default file context, changing the user, role,
+        # range portion as well as the type.
+        args = [restorecon]
+        if force:
+            args.append('-F')
+        args.append(filepath)
+        ipautil.run(args, raiseonerr=False)
 
     def check_selinux_status(self, restorecon=paths.RESTORECON):
         """

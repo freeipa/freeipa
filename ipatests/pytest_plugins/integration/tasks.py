@@ -35,7 +35,6 @@ from six import StringIO
 
 from ipapython import ipautil
 from ipaplatform.paths import paths
-from ipaplatform.constants import constants
 from ipapython.dn import DN
 from ipalib import errors
 from ipalib.util import get_reverse_zone_default, verify_host_resolvable
@@ -1267,9 +1266,8 @@ def run_server_del(host, server_to_delete, force=False,
 
 def run_certutil(host, args, reqdir, dbtype=None,
                  stdin=None, raiseonerr=True):
-    if dbtype is None:
-        dbtype = constants.NSS_DEFAULT_DBTYPE
-    new_args = [paths.CERTUTIL, '-d', '{}:{}'.format(dbtype, reqdir)]
+    dbdir = reqdir if dbtype is None else '{}:{}'.format(dbtype, reqdir)
+    new_args = [paths.CERTUTIL, '-d', dbdir]
     new_args.extend(args)
     return host.run_command(new_args, raiseonerr=raiseonerr,
                             stdin_text=stdin)
