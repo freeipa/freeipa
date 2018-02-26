@@ -569,20 +569,26 @@ def write_certificate_list(certs, filename):
         raise errors.FileError(reason=str(e))
 
 
-def write_pem_private_key(priv_key, filename):
+def write_pem_private_key(priv_key, filename, passwd=None):
     """
     Write a private key to a file in PEM format. Will force 0x600 permissions
     on file.
 
     :param priv_key: cryptography ``PrivateKey`` object
+    :param passwd: ``bytes`` representing the password to store the
+                    private key with
     """
+    if passwd is not None:
+        enc_alg = serialization.BestAvailableEncryption(passwd)
+    else:
+        enc_alg = serialization.NoEncryption()
     try:
         with open(filename, 'wb') as fp:
             os.fchmod(fp.fileno(), 0o600)
             fp.write(priv_key.private_bytes(
                 Encoding.PEM,
                 PrivateFormat.TraditionalOpenSSL,
-                serialization.NoEncryption()))
+                encryption_algorithm=enc_alg))
     except (IOError, OSError) as e:
         raise errors.FileError(reason=str(e))
 

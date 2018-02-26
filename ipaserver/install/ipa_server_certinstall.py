@@ -25,6 +25,7 @@ import tempfile
 import optparse  # pylint: disable=deprecated-module
 
 from ipalib import x509
+from ipalib.constants import HTTPD_PASSWD_FILE_FMT
 from ipalib.install import certmonger
 from ipaplatform.paths import paths
 from ipapython import admintool
@@ -155,8 +156,18 @@ class ServerCertInstall(admintool.AdminTool):
             ca_chain_fname=paths.IPA_CA_CRT,
             host_name=api.env.host
         )
+
+        key_passwd_path = os.path.join(
+            paths.IPA_PASSWD_DIR,
+            HTTPD_PASSWD_FILE_FMT.format(host=api.env.host)
+        )
+
         req_id = self.replace_key_cert_files(
-            cert, key, paths.HTTPD_CERT_FILE, paths.HTTPD_KEY_FILE, ca_cert,
+            cert, key,
+            cert_fname=paths.HTTPD_CERT_FILE,
+            key_fname=paths.HTTPD_KEY_FILE,
+            ca_cert=ca_cert,
+            passwd_fname=key_passwd_path,
             cmgr_post_command='restart_httpd')
 
         if req_id is not None:
@@ -206,7 +217,7 @@ class ServerCertInstall(admintool.AdminTool):
         return cert, key, ca_cert
 
     def replace_key_cert_files(
-        self, cert, key, cert_fname, key_fname, ca_cert,
+        self, cert, key, cert_fname, key_fname, ca_cert, passwd_fname=None,
         profile=None, cmgr_post_command=None
     ):
         try:
@@ -214,8 +225,13 @@ class ServerCertInstall(admintool.AdminTool):
             if ca_enabled:
                 certmonger.stop_tracking(certfile=cert_fname)
 
+            pkey_passwd = None
+            if passwd_fname is not None:
+                with open(passwd_fname, 'rb') as f:
+                    pkey_passwd = f.read()
+
             x509.write_certificate(cert, cert_fname)
-            x509.write_pem_private_key(key, key_fname)
+            x509.write_pem_private_key(key, key_fname, pkey_passwd)
 
             if ca_enabled:
                 # Start tracking only if the cert was issued by IPA CA
@@ -227,6 +243,7 @@ class ServerCertInstall(admintool.AdminTool):
                 if ca_cert == ipa_ca_cert:
                     req_id = certmonger.start_tracking(
                         (cert_fname, key_fname),
+                        pinfile=passwd_fname,
                         storage='FILE',
                         post_command=cmgr_post_command
                     )

@@ -43,7 +43,7 @@ from ipapython.dn import DN
 import ipapython.errors
 from ipaserver.install import sysupgrade
 from ipalib import api, x509
-from ipalib.constants import IPAAPI_USER
+from ipalib.constants import IPAAPI_USER, HTTPD_PASSWD_FILE_FMT
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
@@ -306,6 +306,15 @@ class HTTPInstance(service.Service):
                 certmonger.stop()
 
     def __setup_ssl(self):
+        key_passwd_file = os.path.join(
+            paths.IPA_PASSWD_DIR,
+            HTTPD_PASSWD_FILE_FMT.format(host=api.env.host)
+        )
+        with open(key_passwd_file, 'wb') as f:
+            os.fchmod(f.fileno(), 0o600)
+            pkey_passwd = ipautil.ipa_generate_password().encode('utf-8')
+            f.write(pkey_passwd)
+
         if self.pkcs12_info:
             p12_certs, p12_priv_keys = certs.pkcs12_to_certkeys(
                 *self.pkcs12_info)
@@ -332,7 +341,8 @@ class HTTPInstance(service.Service):
             x509.write_certificate(self.cert, paths.HTTPD_CERT_FILE)
             x509.write_pem_private_key(
                 server_certs_keys[0][1],
-                paths.HTTPD_KEY_FILE
+                paths.HTTPD_KEY_FILE,
+                passwd=pkey_passwd
             )
 
             if self.ca_is_configured:
@@ -364,6 +374,7 @@ class HTTPInstance(service.Service):
                     dns=[self.fqdn],
                     post_command='restart_httpd',
                     storage='FILE',
+                    passwd_fname=key_passwd_file
                 )
             finally:
                 if prev_helper is not None:
@@ -377,7 +388,7 @@ class HTTPInstance(service.Service):
 
             with open(paths.HTTPD_KEY_FILE, 'rb') as f:
                 priv_key = x509.load_pem_private_key(
-                    f.read(), None, backend=x509.default_backend())
+                    f.read(), pkey_passwd, backend=x509.default_backend())
 
             # Verify we have a valid server cert
             if (priv_key.public_key().public_numbers()
@@ -396,6 +407,11 @@ class HTTPInstance(service.Service):
         installutils.set_directive(paths.HTTPD_SSL_CONF,
                                    'SSLCertificateKeyFile',
                                    paths.HTTPD_KEY_FILE, False)
+        installutils.set_directive(
+            paths.HTTPD_SSL_CONF,
+            'SSLPassPhraseDialog',
+            'exec:{passread}'.format(passread=paths.IPA_HTTPD_PASSWD_READER),
+            False)
         installutils.set_directive(paths.HTTPD_SSL_CONF,
                                    'SSLCACertificateFile',
                                    paths.IPA_CA_CRT, False)
@@ -500,6 +516,8 @@ class HTTPInstance(service.Service):
             paths.HTTP_CCACHE,
             paths.HTTPD_CERT_FILE,
             paths.HTTPD_KEY_FILE,
+            os.path.join(paths.IPA_PASSWD_DIR,
+                         HTTPD_PASSWD_FILE_FMT.format(host=api.env.host)),
             paths.HTTPD_IPA_REWRITE_CONF,
             paths.HTTPD_IPA_CONF,
             paths.HTTPD_IPA_PKI_PROXY_CONF,
