@@ -613,3 +613,26 @@ class TestSubCAkeyReplication(IntegrationTest):
                                                   encoding='utf-8')
         # check for cert/key import error message
         assert self.ERR_MESS not in pki_debug_log
+
+    def test_sign_with_subca_on_replica(self):
+        master = self.master
+        replica = self.replicas[0]
+
+        TEST_KEY_FILE = '/etc/pki/tls/private/test_subca.key'
+        TEST_CRT_FILE = '/etc/pki/tls/private/test_subca.crt'
+
+        caacl_cmd = ['ipa', 'caacl-add-ca', 'hosts_services_caIPAserviceCert',
+                     '--cas', self.SUBCA]
+        master.run_command(caacl_cmd)
+
+        request_cmd = [paths.IPA_GETCERT, 'request', '-w', '-k',
+                       TEST_KEY_FILE, '-f', TEST_CRT_FILE, '-X', self.SUBCA]
+        replica.run_command(request_cmd)
+
+        status_cmd = [paths.IPA_GETCERT, 'status', '-v', '-f', TEST_CRT_FILE]
+        status = replica.run_command(status_cmd)
+        assert 'State MONITORING, stuck: no' in status.stdout_text
+
+        ssl_cmd = ['openssl', 'x509', '-text', '-in', TEST_CRT_FILE]
+        ssl = replica.run_command(ssl_cmd)
+        assert 'Issuer: CN = {}'.format(self.SUBCA) in ssl.stdout_text
