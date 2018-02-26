@@ -36,5 +36,6 @@ dist_app_SCRIPTS =		\
 	ipa-custodia		\
 	ipa-custodia-check	\
 	ipa-httpd-kdcproxy	\
+	ipa-httpd-pwdreader	\
 	ipa-pki-retrieve-key	\
 	$(NULL)
