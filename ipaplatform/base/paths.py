@@ -52,7 +52,8 @@ class BasePathNamespace(object):
     HTTPD_NSS_CONF = "/etc/httpd/conf.d/nss.conf"
     HTTPD_SSL_CONF = "/etc/httpd/conf.d/ssl.conf"
     HTTPD_CERT_FILE = "/var/lib/ipa/certs/httpd.crt"
-    HTTPD_KEY_FILE = "/var/lib/ipa/certs/httpd.key"
+    HTTPD_KEY_FILE = "/var/lib/ipa/private/httpd.key"
+    IPA_PASSWD_DIR = "/var/lib/ipa/passwds"
     # only used on Fedora
     HTTPD_IPA_WSGI_MODULES_CONF = None
     OLD_IPA_KEYTAB = "/etc/httpd/conf/ipa.keytab"
@@ -211,6 +212,7 @@ class BasePathNamespace(object):
     IPA_DNSKEYSYNCD = "/usr/libexec/ipa/ipa-dnskeysyncd"
     IPA_HTTPD_KDCPROXY = "/usr/libexec/ipa/ipa-httpd-kdcproxy"
     IPA_ODS_EXPORTER = "/usr/libexec/ipa/ipa-ods-exporter"
+    IPA_HTTPD_PASSWD_READER = "/usr/libexec/ipa/ipa-httpd-pwdreader"
     DNSSEC_KEYFROMLABEL = "/usr/sbin/dnssec-keyfromlabel-pkcs11"
     GETSEBOOL = "/usr/sbin/getsebool"
     GROUPADD = "/usr/sbin/groupadd"
