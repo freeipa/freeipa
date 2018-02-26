@@ -1658,7 +1658,8 @@ def upgrade_configuration():
 
     with installutils.stopped_service('pki-tomcatd', 'pki-tomcat'):
         # Dogtag must be stopped to be able to backup CS.cfg config
-        ca.backup_config()
+        if ca.is_configured():
+            ca.backup_config()
 
         # migrate CRL publish dir before the location in ipa.conf is updated
         ca_restart = migrate_crl_publish_dir(ca)
