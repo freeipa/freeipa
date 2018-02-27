@@ -496,6 +496,23 @@ class CAInstance(DogtagInstance):
                 ipalib.constants.IPA_CA_RECORD,
                 ipautil.format_netloc(api.env.domain)))
 
+        # Configures the status request timeout, i.e. the connect/data
+        # timeout on the HTTP request to get the status of Dogtag.
+        #
+        # This configuration is needed in "multiple IP address" scenarios
+        # where this server's hostname has multiple IP addresses but the
+        # HTTP server is only listening on one of them.  Without a timeout,
+        # if a "wrong" IP address is tried first, it will take a long time
+        # to timeout, exceeding the overall timeout hence the request will
+        # not be re-tried.  Setting a shorter timeout allows the request
+        # to be re-tried.
+        #
+        # Note that HSMs cause different behaviour so this value might
+        # not be suitable for when we implement HSM support.  It is
+        # known that a value of 5s is too short in HSM environment.
+        #
+        config.set("CA", "pki_status_request_timeout", "15")  # 15 seconds
+
         # Client security database
         config.set("CA", "pki_client_pkcs12_password", self.admin_password)
 
