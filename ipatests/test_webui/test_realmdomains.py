@@ -589,3 +589,36 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.navigate_to_entity(FORWARD_ZONE_ENTITY)
         self.delete_record(FORWARD_ZONE_PKEY)
+
+    @screenshot
+    def test_dnszone_del_hooked_to_realmdomains_mod(self):
+        """
+        ipa dnszone-del also removes the entry from realmdomains list
+        1) Navigate Identity >> DNS
+        2) Add Dnszone (newdom.com)
+        3)﻿ navigate Identity >> RealmDomain
+        4) verify newly added domain (newdom.com) exists in realmdomain list
+        7)﻿ Navigate Identity >> DNS
+        8) Delete Dnszone(newdom.com)
+        9)﻿ navigate Identity >> RealmDomain
+        10) verify domain (newdom.com) is not exists in realmdomain list
+        """
+        self.init_app()
+
+        realmdomain = ZONE_PKEY.strip('.')
+
+        # add DNS domain
+        self.navigate_to_entity(ZONE_ENTITY)
+        self.add_record(ZONE_ENTITY, ZONE_DATA)
+        self.assert_record(ZONE_PKEY)
+
+        self.navigate_to_entity(ENTITY)
+        domains = self.get_multivalued_value('associateddomain')
+        assert realmdomain in domains
+
+        self.navigate_to_entity(ZONE_ENTITY)
+        self.delete_record(ZONE_PKEY)
+
+        self.navigate_to_entity(ENTITY)
+        domains = self.get_multivalued_value('associateddomain')
+        assert realmdomain not in domains
