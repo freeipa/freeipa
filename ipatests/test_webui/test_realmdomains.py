@@ -511,3 +511,52 @@ class test_realmdomains(UI_driver):
         self.del_realm_domain(realmdomain, 'ok')
         self.navigate_to_entity(ZONE_ENTITY)
         self.delete_record(ZONE_PKEY)
+
+    @screenshot
+    def test_dnszone_add_hooked_to_realmdomains_mod(self):
+        """
+        DNSZone is hooked to realmdomains:
+        1) Navigate Identity >> DNS
+        2) Add Dnszone (newdom.com)
+        3) go to DNS Resource Records(DNS Zone >> newdom.com)
+        4) verify TXT record is exists
+        5)﻿ navigate Identity >> RealmDomain
+        6) verify newly added domain (newdom.com) exists in realmdomain list
+        7) Delete domain (newdom.com) from realmdomain list
+        8) go to DNS Resource Records(DNS Zone >> newdom.com)
+        9) verify TXT record is not exists
+        """
+        self.init_app()
+
+        realmdomain = ZONE_PKEY.strip('.')
+        realm = self.config.get('ipa_realm')
+
+        # add DNS domain
+        self.navigate_to_entity(ZONE_ENTITY)
+        self.add_record(ZONE_ENTITY, ZONE_DATA)
+        self.assert_record(ZONE_PKEY)
+
+        self.navigate_to_record(ZONE_PKEY)
+        self.assert_record('_kerberos')
+        self.assert_record_value('TXT', '_kerberos', 'type')
+        self.assert_record_value(realm, '_kerberos', 'data')
+
+        self.navigate_to_entity(ENTITY)
+        domains = self.get_multivalued_value('associateddomain')
+        assert realmdomain in domains
+
+        self.del_multivalued('associateddomain', realmdomain)
+        self.facet_button_click('save')
+        self.dialog_button_click('ok')
+        self.wait_for_request()
+
+        self.navigate_to_entity(ZONE_ENTITY)
+        self.assert_record(ZONE_PKEY)
+
+        self.navigate_to_record(ZONE_PKEY)
+        self.facet_button_click('refresh')
+        self.assert_record('_kerberos', negative=True)
+
+        # cleanup
+        self.navigate_to_entity(ZONE_ENTITY)
+        self.delete_record(ZONE_PKEY)
