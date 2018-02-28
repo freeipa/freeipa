@@ -310,3 +310,35 @@ class test_realmdomains(UI_driver):
         self.del_realm_domain(realmdomain, 'ok')
         self.navigate_to_entity(ZONE_ENTITY)
         self.delete_record(ZONE_PKEY)
+
+    @screenshot
+    def test_del_domain_undo_all(self):
+        """
+        Undo all after deleting existing domain
+        """
+        self.init_app()
+
+        realmdomain = ZONE_PKEY.strip('.')
+        self.prepare_dns_zone(realmdomain)
+
+        # add
+        self.navigate_to_entity(ENTITY)
+        self._add_associateddomain([realmdomain])
+
+        # check that domain is present
+        domains = self.get_multivalued_value('associateddomain')
+        assert realmdomain in domains
+
+        # delete and undo
+        self.navigate_to_entity(ENTITY)
+        self.del_multivalued('associateddomain', realmdomain)
+        self.undo_all_multivalued('associateddomain')
+
+        # check that domain is present
+        domains = self.get_multivalued_value('associateddomain')
+        assert realmdomain in domains
+
+        # cleanup
+        self.del_realm_domain(realmdomain, 'ok')
+        self.navigate_to_entity(ZONE_ENTITY)
+        self.delete_record(ZONE_PKEY)
