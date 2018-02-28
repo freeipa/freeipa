@@ -430,3 +430,24 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.navigate_to_entity(ZONE_ENTITY)
         self.delete_record(ZONE_PKEY)
+
+    @screenshot
+    def test_add_non_dns_configured_domain_negative(self):
+        """
+        Domain shouldn't be added after:
+        1) add DNS non configured domain
+        2) click update
+        3) check DNS
+        """
+        self.init_app()
+
+        realmdomain = ZONE_PKEY.strip('.')
+
+        self.navigate_to_entity(ENTITY)
+        self._add_associateddomain([realmdomain])
+
+        dialog = self.get_last_error_dialog()
+        assert ("invalid 'domain': DNS zone for each realmdomain must contain "
+                "SOA or NS records. "
+                "No records found for: " + realmdomain
+                in dialog.text)
