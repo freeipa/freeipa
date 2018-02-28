@@ -474,3 +474,40 @@ class test_realmdomains(UI_driver):
         self.del_realm_domain(realmdomain, 'ok')
         self.navigate_to_entity(ZONE_ENTITY)
         self.delete_record(ZONE_PKEY)
+
+    @screenshot
+    def test_del_domain_of_ipa_server_bug1035286(self):
+        """
+        Error should occur when:
+        1) delete Domain of Ipa server
+        2) select update
+        3) select force update
+        4) click "Cancel"
+        """
+        self.init_app()
+
+        ipadomain = self.config.get('ipa_domain')
+
+        realmdomain = ZONE_PKEY.strip('.')
+        self.prepare_dns_zone(realmdomain)
+
+        self.navigate_to_entity(ENTITY)
+        self._add_associateddomain([realmdomain])
+
+        self.navigate_to_entity(ENTITY)
+
+        self.del_multivalued('associateddomain', ipadomain)
+        self.facet_button_click('save')
+        self.dialog_button_click('force')
+        self.wait_for_request()
+
+        dialog = self.get_last_error_dialog()
+        assert ("invalid 'realmdomain list': "
+                "IPA server domain cannot be omitted" in dialog.text)
+        self.dialog_button_click('cancel')
+        self.facet_button_click('refresh')
+
+        # cleanup
+        self.del_realm_domain(realmdomain, 'ok')
+        self.navigate_to_entity(ZONE_ENTITY)
+        self.delete_record(ZONE_PKEY)
