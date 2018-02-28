@@ -400,3 +400,33 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.navigate_to_entity(ZONE_ENTITY)
         self.delete_record(ZONE_PKEY)
+
+    @screenshot
+    def test_del_domain_with_force_update(self):
+        """
+        Delete and force update
+        """
+        self.init_app()
+
+        realmdomain = ZONE_PKEY.strip('.')
+        self.prepare_dns_zone(realmdomain)
+
+        # add
+        self.navigate_to_entity(ENTITY)
+        self._add_associateddomain([realmdomain])
+
+        self.navigate_to_entity(ENTITY)
+
+        # force delete
+        self.del_multivalued('associateddomain', realmdomain)
+        self.facet_button_click('save')
+        self.dialog_button_click('force')
+        self.wait_for_request()
+
+        # check
+        domains = self.get_multivalued_value('associateddomain')
+        assert realmdomain not in domains
+
+        # cleanup
+        self.navigate_to_entity(ZONE_ENTITY)
+        self.delete_record(ZONE_PKEY)
