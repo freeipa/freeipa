@@ -25,7 +25,8 @@ Realm domains tests
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 from ipatests.test_webui.data_dns import (
-    ZONE_ENTITY, ZONE_DATA, ZONE_PKEY, ZONE_DEFAULT_FACET
+    ZONE_ENTITY, FORWARD_ZONE_ENTITY, ZONE_DATA, FORWARD_ZONE_DATA,
+    ZONE_PKEY, FORWARD_ZONE_PKEY, ZONE_DEFAULT_FACET
 )
 import pytest
 
@@ -560,3 +561,31 @@ class test_realmdomains(UI_driver):
         # cleanup
         self.navigate_to_entity(ZONE_ENTITY)
         self.delete_record(ZONE_PKEY)
+
+    @screenshot
+    def test_dns_reversezone_add_hooked_to_realmdomains_mod(self):
+        """
+        Reverse DNS domain is not automatically add domain to the list of
+        domain associated with IPA realm
+        1) Navigate Identity >> DNS
+        2) Add Dns Reverse Zone (222.65.10.in-addr.arpa.)
+        3) navigate Identity >> RealmDomain
+        4) verify newly added domain (222.65.10.in-addr.arpa.) is not exists
+           in realmdomain list
+        """
+        self.init_app()
+
+        realmdomain = FORWARD_ZONE_PKEY.strip('.')
+
+        # add DNS Reverse zone
+        self.navigate_to_entity(FORWARD_ZONE_ENTITY)
+        self.add_record(FORWARD_ZONE_ENTITY, FORWARD_ZONE_DATA)
+        self.assert_record(FORWARD_ZONE_PKEY)
+
+        self.navigate_to_entity(ENTITY)
+        domains = self.get_multivalued_value('associateddomain')
+        assert realmdomain not in domains
+
+        # cleanup
+        self.navigate_to_entity(FORWARD_ZONE_ENTITY)
+        self.delete_record(FORWARD_ZONE_PKEY)
