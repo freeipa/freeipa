@@ -27,7 +27,6 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import encoder as der_encoder
-from pyasn1.codec.native import decoder as native_decoder
 
 if six.PY3:
     unicode = str
@@ -239,7 +238,18 @@ def profile_kdc(builder, ca_nick, ca,
             'name-string': ['krbtgt', realm],
         },
     }
-    name = native_decoder.decode(name, asn1Spec=KRB5PrincipalName())
+
+    # Initialize ASN.1 object by hand
+    # This workaround is needed for testing on RHEL 7.5 as native decoder is
+    # currently not present in "python2-pyasn1-0.1.9-7.el7.noarch" package.
+    name = KRB5PrincipalName()
+    name['realm'] = realm
+    name['principalName'] = None
+    name['principalName']['name-type'] = 2
+    name['principalName']['name-string'] = None
+    name['principalName']['name-string'][0] = 'krbtgt'
+    name['principalName']['name-string'][1] = realm
+
     name = der_encoder.encode(name)
 
     names = [x509.OtherName(x509.ObjectIdentifier('1.3.6.1.5.2.2'), name)]
