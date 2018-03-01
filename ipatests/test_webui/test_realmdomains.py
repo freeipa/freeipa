@@ -41,26 +41,10 @@ class test_realmdomains(UI_driver):
         self.wait_for_request()
         self.close_notifications()
 
-    @screenshot
-    def test_read(self):
+    def prepare_dns_zone(self, realmdomain):
         """
-        Realm domains mod tests
+        Prepare dns zone record for realmdomain
         """
-        self.init_app()
-        self.navigate_to_entity(ENTITY)
-
-        # add with force - skipping DNS check
-        self.add_multivalued('associateddomain', 'itest.bar')
-        self.facet_button_click('save')
-        self.dialog_button_click('force')
-        self.wait_for_request()
-        self.close_notifications()
-
-        # delete
-        self.del_realm_domain('itest.bar', 'force')
-        self.wait_for_request()
-
-        # Try adding and deleting with "Check DNS" (in html 'ok' button)
 
         # DNS check expects that the added domain will have DNS record:
         #    TXT _kerberos.$domain "$REALM"
@@ -74,7 +58,6 @@ class test_realmdomains(UI_driver):
         self.navigate_to_entity(ZONE_ENTITY)
         self.add_record(ZONE_ENTITY, ZONE_DATA)
 
-        realmdomain = ZONE_PKEY.strip('.')
         realm = self.config.get('ipa_realm')
 
         # remove the added domain from Realm Domain
@@ -96,6 +79,28 @@ class test_realmdomains(UI_driver):
         }
         self.add_record(ZONE_ENTITY, DNS_RECORD_ADD_DATA,
                         facet=ZONE_DEFAULT_FACET, navigate=False)
+
+    @screenshot
+    def test_read(self):
+        """
+        Realm domains mod tests
+        """
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+
+        # add with force - skipping DNS check
+        self.add_multivalued('associateddomain', 'itest.bar')
+        self.facet_button_click('save')
+        self.dialog_button_click('force')
+        self.wait_for_request()
+        self.close_notifications()
+
+        # delete
+        self.del_realm_domain('itest.bar', 'force')
+        self.wait_for_request()
+
+        realmdomain = ZONE_PKEY.strip('.')
+        self.prepare_dns_zone(realmdomain)
 
         # add Realm Domain and Check DNS
         self.navigate_to_entity(ENTITY)
