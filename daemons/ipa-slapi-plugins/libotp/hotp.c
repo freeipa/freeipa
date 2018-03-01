@@ -49,7 +49,9 @@
 #include <blapit.h>
 #include <pk11pub.h>
 #include <hasht.h>
+#include <prerror.h>
 #include <prnetdb.h>
+#include <syslog.h>
 
 struct digest_buffer {
     uint8_t buf[SHA512_LENGTH];
@@ -93,17 +95,27 @@ import_key(PK11SlotInfo *slot, CK_MECHANISM_TYPE mech, SECItem *key)
                                      PK11_ATTR_SESSION |
                                      PK11_ATTR_PRIVATE |
                                      PK11_ATTR_SENSITIVE, NULL);
-    if (!ekey)
+    if (!ekey) {
+        syslog(LOG_ERR, "libotp: in FIPS, PK11_TokenKeyGenWithFlags failed: %d",
+               PR_GetError());
         goto egress;
+    }
 
     /* Encrypt the input key. */
     if (PK11_Encrypt(ekey, CKM_AES_CBC_PAD, &ivitem, ctitem.data, &ctitem.len,
-                     ctitem.len, key->data, key->len) != SECSuccess)
+                     ctitem.len, key->data, key->len) != SECSuccess) {
+        syslog(LOG_ERR, "libotp: in FIPS, PK11_Encrypt failed: %d",
+               PR_GetError());
         goto egress;
+    }
 
     /* Unwrap the input key. */
     skey = PK11_UnwrapSymKey(ekey, CKM_AES_CBC_PAD, &ivitem,
                              &ctitem, mech, CKA_SIGN, key->len);
+    if (!skey) {
+        syslog(LOG_ERR, "libotp: in FIPS, PK11_UnwrapSymKey failed: %d",
+               PR_GetError());
+    }
 
 egress:
     PK11_FreeSymKey(ekey);
