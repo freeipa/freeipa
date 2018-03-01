@@ -104,15 +104,14 @@ def replica_install_teardown(func):
             replica = args[0].replicas[0]
             master = args[0].master
             tasks.kinit_admin(master)
+            tasks.clean_replication_agreement(master, replica, cleanup=True,
+                                              raiseonerr=False)
+            master.run_command(['ipa', 'host-del', replica.hostname],
+                               raiseonerr=False)
             tasks.uninstall_master(replica, clean=False)
             # Now let's uninstall client for the cases when client promotion
             # was not successful
             tasks.uninstall_client(replica)
-            tasks.clean_replication_agreement(master, replica, cleanup=True,
-                                              raiseonerr=False)
-            master.run_command(['ipa', 'host-del',
-                                replica.hostname],
-                               raiseonerr=False)
             ipa_certs_cleanup(replica)
     return wrapped
 
