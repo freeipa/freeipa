@@ -3,6 +3,10 @@ topologies:
     name: build
     cpu: 2
     memory: 3800
+  ipaserver: &ipaserver
+    name: ipaserver
+    cpu: 1
+    memory: 2400
   master_1repl: &master_1repl
     name: master_1repl
     cpu: 4
@@ -182,3 +186,16 @@ jobs:
         template: *ci-master-f27
         timeout: 3600
         topology: *master_1repl
+
+  fedora-27/test_webui:
+    requires: [fedora-28/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-27/build_url}'
+        test_suite: test_webui/
+        template: *ci-master-f27
+        timeout: 7200
+        topology: *ipaserver
+
