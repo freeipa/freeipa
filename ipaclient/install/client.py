@@ -1987,7 +1987,7 @@ def install_check(options):
             "using 'ipa-client-install --uninstall'.")
         raise ScriptError(rval=CLIENT_ALREADY_CONFIGURED)
 
-    if options.conf_ntp and not options.on_master and not options.force_chrony:
+    if options.conf_ntp and not options.force_chrony:
         try:
             ntpconf.check_timedate_services()
         except ntpconf.NTPConflictingService as e:
@@ -2345,6 +2345,71 @@ def update_ipa_nssdb():
                                    (nickname, sys_db.secdir, e))
 
 
+def sync_time(options, fstore, statestore):
+    # We assume that NTP servers are discoverable through SRV records
+    # in the DNS.
+    # If that fails, we try to sync directly with IPA server,
+    # assuming it runs NTP
+
+    # disable other time&date services first
+    if options.force_chrony:
+        ntpconf.force_chrony(statestore)
+
+    print("Synchronizing time")
+    print("  [1/1]: Configuring chrony client")
+    logger.info('Synchronizing time with KDC...')
+
+    if not options.ntp_servers:
+        ds = ipadiscovery.IPADiscovery()
+        ntp_servers = ds.ipadns_search_srv(cli_domain, '_ntp._udp',
+                                           None, break_on_first=False)
+    else:
+        ntp_servers = options.ntp_servers
+
+    if ntp_servers:
+        synced_time = ntpconf.configure_chrony(ntp_servers, fstore, statestore)
+    else:
+        synced_time = False
+        logger.warning("No SRV records of NTP servers found nor NTP server  "
+                       "address was privided. Skipping chrony configuration")
+
+    if not synced_time:
+        print("Warning: IPA Server was unable to sync time with chrony!")
+        print("         Time synchronization is required "
+              "for IPA Server to work correctly")
+        logger.warning(
+            "Unable to sync time with chrony server, assuming the time "
+            "is in sync. Please check that 123 UDP port is opened, "
+            "and any time server is on network.")
+
+
+def restore_time_sync(statestore, fstore):
+    chrony_configured = statestore.has_state('ntp')
+    if chrony_configured:
+        chrony_enabled = statestore.restore_state('ntp', 'enabled')
+        restored = False
+
+        try:
+            # Restore might fail due to file missing in backup
+            # the reason for it might be that freeipa-client was updated
+            # to this version but not unenrolled/enrolled again
+            # In such case it is OK to fail
+            restored = fstore.restore_file(paths.CHRONY_CONF)
+        except Exception:
+            pass
+
+        if not chrony_enabled:
+            services.knownservices.chronyd.stop()
+            services.knownservices.chronyd.disable()
+        elif restored:
+            services.knownservices.chronyd.restart()
+
+    try:
+        ntpconf.restore_forced_chronyd(statestore)
+    except CalledProcessError as e:
+        logger.error('Failed to restore time synchronization service: %s', e)
+
+
 def install(options):
     try:
         _install(options)
@@ -2390,42 +2455,14 @@ def _install(options):
         tasks.backup_hostname(fstore, statestore)
         tasks.set_hostname(options.hostname)
 
-    if not options.on_master and options.conf_ntp:
-        # Attempt to sync time with IPA server.
-        # If we're skipping NTP configuration, we also skip the time sync here.
-        # We assume that NTP servers are discoverable through SRV records
-        # in the DNS.
-        # If that fails, we try to sync directly with IPA server,
-        # assuming it runs NTP
-
-        # disable other time&date services first
-        if options.force_chrony:
-            ntpconf.force_chrony(statestore)
-
-        logger.info('Synchronizing time with KDC...')
-
-        if not options.ntp_servers:
-            ds = ipadiscovery.IPADiscovery()
-            ntp_servers = ds.ipadns_search_srv(cli_domain, '_ntp._udp',
-                                               None, break_on_first=False)
-
-            if not ntp_servers:
-                logger.warning("No SRV records of NTP servers found. IPA "
-                               "server address will be used")
-                ntp_servers = cli_server
-        else:
-            ntp_servers = options.ntp_servers
-
-        synced_time = ntpconf.configure_chrony(ntp_servers, fstore,
-                                               statestore, options.debug)
-
-        if not synced_time:
-            logger.warning(
-                "Unable to sync time with chrony server, assuming the time "
-                "is in sync. Please check that 123 UDP port is opened, "
-                "and any time server is on network.")
-    else:
-        logger.info('Skipping synchronizing time with chrony server.')
+    if options.conf_ntp:
+        # Attempt to sync time with NTP server (chrony).
+        sync_time(options, fstore, statestore)
+    elif options.on_master:
+        # If we're on master skipping the time sync here because it was done
+        # in ipa-server-install
+        logger.info("Skipping attempt to configure and synchronize time with"
+                    " chrony server as it has been already done on master.")
 
     if not options.unattended:
         if (options.principal is None and options.password is None and
@@ -3233,31 +3270,7 @@ def uninstall(options):
                 service.service_name
             )
 
-    chrony_configured = statestore.has_state('ntp')
-    if chrony_configured:
-        chrony_enabled = statestore.restore_state('ntp', 'enabled')
-        restored = False
-
-        try:
-            # Restore might fail due to file missing in backup
-            # the reason for it might be that freeipa-client was updated
-            # to this version but not unenrolled/enrolled again
-            # In such case it is OK to fail
-            restored = fstore.restore_file(paths.CHRONY_CONF)
-        except Exception:
-            pass
-
-        if not chrony_enabled:
-            services.knownservices.chronyd.stop()
-            services.knownservices.chronyd.disable()
-        else:
-            if restored:
-                services.knownservices.chronyd.restart()
-
-    try:
-        ntpconf.restore_forced_chronyd(statestore)
-    except CalledProcessError as e:
-        logger.error('Failed to restore time synchronization service: %s', e)
+    restore_time_sync(statestore, fstore)
 
     if was_sshd_configured and services.knownservices.sshd.is_running():
         services.knownservices.sshd.restart()
@@ -3432,7 +3445,7 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
     ntp_servers = enroll_only(ntp_servers)
 
     no_ntp = knob(
-        None, True,
+        None,
         description="do not configure ntp",
         cli_names=[None, '-N'],
     )
@@ -3526,6 +3539,10 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
         if self.force_chrony and self.no_ntp:
             raise RuntimeError(
                 "--force-chrony cannot be used together with --no-ntp")
+
+        if self.ntp_servers and self.no_ntp:
+            raise RuntimeError(
+                "--ntp-server cannot be used together with --no-ntp")
 
         if self.no_nisdomain and self.nisdomain:
             raise RuntimeError(
