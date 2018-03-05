@@ -103,10 +103,12 @@ def configure_chrony(ntp_servers, fstore=None, sysstore=None, debug=False):
     try:
         logger.info('Attempting to sync time using chronyd.')
         ipautil.run(cmd)
+        logger.info('Time is in sync.')
         return True
     except ipautil.CalledProcessError as e:
         if e.returncode is 1:
-            logger.debug('Process chronyc waitsync failed to sync time')
+            logger.warning('Process chronyc waitsync failed to sync time!')
+            logger.warning('Configuration of chrony was changed by installer.')
         return False
 
 
