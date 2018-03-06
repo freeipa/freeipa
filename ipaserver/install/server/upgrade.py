@@ -21,7 +21,7 @@ import ipalib.errors
 from ipaclient.install.client import sssd_enable_service
 from ipaplatform import services
 from ipaplatform.tasks import tasks
-from ipapython import ipautil, version, certdb
+from ipapython import ipautil, version
 from ipapython import dnsutil
 from ipapython.dn import DN
 from ipaplatform.constants import constants
@@ -1416,26 +1416,6 @@ def remove_ds_ra_cert(subject_base):
     sysupgrade.set_upgrade_state('ds', 'remove_ra_cert', True)
 
 
-def fix_trust_flags():
-    logger.info('[Fixing trust flags in %s]', paths.HTTPD_ALIAS_DIR)
-
-    if sysupgrade.get_upgrade_state('http', 'fix_trust_flags'):
-        logger.info("Trust flags already processed")
-        return
-
-    if not api.Command.ca_is_enabled()['result']:
-        logger.info("CA is not enabled")
-        return
-
-    db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
-    nickname = certdb.get_ca_nickname(api.env.realm)
-    cert = db.get_cert_from_db(nickname)
-    if cert:
-        db.trust_root_cert(nickname, certdb.IPA_CA_TRUST_FLAGS)
-
-    sysupgrade.set_upgrade_state('http', 'fix_trust_flags', True)
-
-
 def migrate_to_mod_ssl(http):
     logger.info('[Migrating from mod_nss to mod_ssl]')
 
@@ -1766,7 +1746,6 @@ def upgrade_configuration():
     update_ipa_httpd_service_conf(http)
     update_ipa_http_wsgi_conf(http)
     migrate_to_mod_ssl(http)
-    fix_trust_flags()
     update_http_keytab(http)
     http.configure_gssproxy()
     http.start()
