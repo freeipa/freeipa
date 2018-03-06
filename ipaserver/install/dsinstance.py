@@ -32,11 +32,10 @@ import fnmatch
 import ldap
 
 from lib389 import DirSrv
-from lib389.instance.setup import SetupDs
-from lib389.instance.remove import remove_ds_instance as lib389_remove_ds
-from lib389.instance.options import General2Base, Slapd2Base
 from lib389.idm.ipadomain import IpaDomain
-
+from lib389.instance.options import General2Base, Slapd2Base
+from lib389.instance.remove import remove_ds_instance as lib389_remove_ds
+from lib389.instance.setup import SetupDs
 
 from ipalib import x509
 from ipalib.install import certmonger, certstore
@@ -578,7 +577,7 @@ class DsInstance(service.Service):
             'nsslapd-suffix': self.suffix.ldap_text()
         }
 
-        backends = [userroot, ]
+        backends = [userroot]
 
         sds.create_from_args(general, slapd, backends, None)
 
@@ -592,11 +591,15 @@ class DsInstance(service.Service):
         # This actually opens the conn and binds.
         inst.open()
 
-        ipadomain = IpaDomain(inst, dn=self.suffix.ldap_text())
-        ipadomain.create(properties={
-            'dc': self.realm.split('.')[0].lower(),
-            'info': 'IPA V2.0',
-        })
+        try:
+            ipadomain = IpaDomain(inst, dn=self.suffix.ldap_text())
+            ipadomain.create(properties={
+                'dc': self.realm.split('.')[0].lower(),
+                'info': 'IPA V2.0',
+            })
+        finally:
+            inst.close()
+
         # Done!
         logger.debug("completed creating DS instance")
 
