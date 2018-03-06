@@ -2205,17 +2205,20 @@ def add_lightweight_ca_tracking_requests(lwcas):
                 'already tracking certificate "%s"', nickname)
 
 
-def update_ipa_conf():
+def update_ipa_conf(ca_host=None):
     """
     Update IPA configuration file to ensure that RA plugins are enabled and
-    that CA host points to localhost
+    that CA host points to specified server (or localhost if ca_host=None).
     """
     parser = RawConfigParser()
     parser.read(paths.IPA_DEFAULT_CONF)
     parser.set('global', 'enable_ra', 'True')
     parser.set('global', 'ra_plugin', 'dogtag')
     parser.set('global', 'dogtag_version', '10')
-    parser.remove_option('global', 'ca_host')
+    if ca_host is None:
+        parser.remove_option('global', 'ca_host')
+    else:
+        parser.set('global', 'ca_host', ca_host)
     with open(paths.IPA_DEFAULT_CONF, 'w') as f:
         parser.write(f)
 
