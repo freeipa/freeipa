@@ -1135,7 +1135,7 @@ class vault_retrieve(ModVaultData):
                 error=_('Invalid vault type'))
 
         if output_file:
-            with open(output_file, 'w') as f:
+            with open(output_file, 'wb') as f:
                 f.write(data)
 
         else:
