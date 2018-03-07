@@ -209,7 +209,7 @@ endif
 	@echo "Fast linting with $(PYTHON) from branch '$(GIT_BRANCH)'"
 
 	@MERGEBASE=$$(git merge-base --fork-point $(GIT_BRANCH)); \
-	FILES=$$(git diff --name-only $${MERGEBASE} \
+	FILES=$$(git diff --name-only --diff-filter=d $${MERGEBASE} \
 	    | grep -E '\.py$$'); \
 	if [ -n "$${FILES}" ]; then \
 	    echo -e "Fast linting files:\n$${FILES}\n"; \
