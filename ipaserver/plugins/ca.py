@@ -292,7 +292,7 @@ class ca_add(LDAPCreate):
 class ca_del(LDAPDelete):
     __doc__ = _('Delete a CA.')
 
-    msg_summary = _('Deleted CA "%(value)s"')
+    msg_summary = _('Trying to Delete CA "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
         ca_enabled_check(self.api)
