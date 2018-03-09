@@ -332,8 +332,9 @@ class KrbInstance(service.Service):
         )
         try:
             ipautil.run(args, nolog=(self.master_password,), stdin=''.join(dialogue))
-        except ipautil.CalledProcessError:
-            print("Failed to initialize the realm container")
+        except ipautil.CalledProcessError as error:
+            logger.debug("kdb5_util failed with %s", error)
+            raise RuntimeError("Failed to initialize kerberos container")
 
     def __configure_instance(self):
         self.__template_file(paths.KRB5KDC_KDC_CONF, chmod=None)
