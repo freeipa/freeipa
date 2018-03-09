@@ -80,6 +80,16 @@ class test_realmdomains(UI_driver):
         self.add_record(ZONE_ENTITY, DNS_RECORD_ADD_DATA,
                         facet=ZONE_DEFAULT_FACET, navigate=False)
 
+    def _add_associateddomain(self, values, force=False):
+        """
+        Add values to associated domains and click OK or Force
+        """
+        for val in values:
+            self.add_multivalued('associateddomain', val)
+        self.facet_button_click('save')
+        self.dialog_button_click('force' if force else 'ok')
+        self.wait_for_request()
+
     @screenshot
     def test_read(self):
         """
@@ -89,10 +99,7 @@ class test_realmdomains(UI_driver):
         self.navigate_to_entity(ENTITY)
 
         # add with force - skipping DNS check
-        self.add_multivalued('associateddomain', 'itest.bar')
-        self.facet_button_click('save')
-        self.dialog_button_click('force')
-        self.wait_for_request()
+        self._add_associateddomain(['itest.bar'], force=True)
         self.close_notifications()
 
         # delete
@@ -104,10 +111,7 @@ class test_realmdomains(UI_driver):
 
         # add Realm Domain and Check DNS
         self.navigate_to_entity(ENTITY)
-        self.add_multivalued('associateddomain', realmdomain)
-        self.facet_button_click('save')
-        self.dialog_button_click('ok')
-        self.wait_for_request()
+        self._add_associateddomain([realmdomain])
 
         # cleanup
         self.del_realm_domain(realmdomain, 'ok')
