@@ -273,8 +273,9 @@ class CALessBase(IntegrationTest):
                 destination_host.transport.put_file(
                     os.path.join(self.cert_dir, filename),
                     os.path.join(destination_host.config.test_dir, filename))
-            except OSError:
+            except (IOError, OSError):
                 pass
+
         extra_args = []
         if http_pkcs12_exists:
             extra_args.extend(['--http-cert-file', http_pkcs12])
