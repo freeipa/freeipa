@@ -29,8 +29,6 @@ import tempfile
 import stat
 import fnmatch
 
-import ldap
-
 from lib389 import DirSrv
 from lib389.idm.ipadomain import IpaDomain
 from lib389.instance.options import General2Base, Slapd2Base
@@ -894,13 +892,27 @@ class DsInstance(service.Service):
         conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                          bind_password=self.dm_password)
 
-        mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
-               (ldap.MOD_REPLACE, "nsSSL3Ciphers", "default"),
-               (ldap.MOD_REPLACE, "allowWeakCipher", "off")]
-        conn.modify_s(DN(('cn', 'encryption'), ('cn', 'config')), mod)
+        encrypt_entry = conn.make_entry(
+            DN(('cn', 'encryption'), ('cn', 'config')),
+            nsSSLClientAuth=b'allowed',
+            nsSSL3Ciphers=b'default',
+            allowWeakCipher=b'off'
+        )
+        try:
+            conn.update_entry(encrypt_entry)
+        except errors.EmptyModlist:
+            logger.debug(
+                "cn=encryption,cn=config is already properly configured")
 
-        mod = [(ldap.MOD_ADD, "nsslapd-security", "on")]
-        conn.modify_s(DN(('cn', 'config')), mod)
+        conf_entry = conn.make_entry(
+            DN(('cn', 'config')),
+            # one does not simply uses '-' in variable name
+            **{'nsslapd-security': b'on'}
+        )
+        try:
+            conn.update_entry(conf_entry)
+        except errors.EmptyModlist:
+            logger.debug("nsslapd-security is already on")
 
         entry = conn.make_entry(
             DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')),
