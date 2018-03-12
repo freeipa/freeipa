@@ -424,10 +424,10 @@ class idrange_add(LDAPCreate):
             if sid is not None:
                 entry_attrs['ipanttrusteddomainsid'] = sid
             else:
-                raise errors.ValidationError(name='ID Range setup',
-                    error=_('SID for the specified trusted domain name could '
-                            'not be found. Please specify the SID directly '
-                            'using dom-sid option.'))
+                raise errors.ValidationError(
+                    name='ID Range setup',
+                    error=_('Specified trusted domain name could not be '
+                            'found.'))
 
         # ipaNTTrustedDomainSID attribute set, this is AD Trusted domain range
         if is_set('ipanttrusteddomainsid'):
