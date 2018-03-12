@@ -551,6 +551,9 @@ class DsInstance(service.Service):
         )
 
     def __create_instance(self):
+        self.backup_state("serverid", self.serverid)
+        self.fstore.backup_file(paths.SYSCONFIG_DIRSRV)
+
         # The new installer is api driven. We can pass it a log function
         # and it will use it. Because of this, we can pass verbose true,
         # and allow our logger to control the display based on level.
@@ -1091,7 +1094,7 @@ class DsInstance(service.Service):
                              "need to remove instance data manually")
 
         else:
-            logger.error("Failed to remove DS instance. No serverid present"
+            logger.error("Failed to remove DS instance. No serverid present "
                          "in sysrestore file.")
 
         installutils.remove_keytab(paths.DS_KEYTAB)
