@@ -826,6 +826,8 @@ class DsInstance(service.Service):
             dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
                                     ca_file=self.ca_file,
                                     trust_flags=trust_flags)
+            # rewrite the pin file with current password
+            dsdb.create_pin_file()
             server_certs = dsdb.find_server_certs()
             if len(server_certs) == 0:
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])
@@ -842,6 +844,8 @@ class DsInstance(service.Service):
             self.add_cert_to_service()
         else:
             dsdb.create_from_cacert()
+            # rewrite the pin file with current password
+            dsdb.create_pin_file()
             if self.master_fqdn is None:
                 ca_args = [
                     paths.CERTMONGER_DOGTAG_SUBMIT,
@@ -882,8 +886,6 @@ class DsInstance(service.Service):
 
             if prev_helper is not None:
                 self.add_cert_to_service()
-
-        dsdb.create_pin_file()
 
         self.cacert_name = dsdb.cacert_name
 
