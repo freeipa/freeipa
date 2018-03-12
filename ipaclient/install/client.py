@@ -2367,7 +2367,8 @@ def sync_time(options, fstore, statestore):
         ntp_servers = options.ntp_servers
 
     if ntp_servers:
-        synced_time = ntpconf.configure_chrony(ntp_servers, fstore, statestore)
+        synced_time = ntpconf.configure_chrony(ntp_servers, options.ntp_pool,
+                                               fstore, statestore)
     else:
         synced_time = False
         logger.warning("No SRV records of NTP servers found nor NTP server  "
@@ -3444,6 +3445,12 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
     )
     ntp_servers = enroll_only(ntp_servers)
 
+    ntp_pool = knob(
+        str, None,
+        description="ntp server pool to use",
+    )
+    ntp_pool = enroll_only(ntp_pool)
+
     no_ntp = knob(
         None,
         description="do not configure ntp",
@@ -3543,6 +3550,10 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
         if self.ntp_servers and self.no_ntp:
             raise RuntimeError(
                 "--ntp-server cannot be used together with --no-ntp")
+
+        if self.ntp_pool and self.no_ntp:
+            raise RuntimeError(
+                "--ntp-pool cannot be used together with --no-ntp")
 
         if self.no_nisdomain and self.nisdomain:
             raise RuntimeError(

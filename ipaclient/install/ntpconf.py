@@ -37,7 +37,8 @@ def __backup_config(path, fstore=None):
         shutil.copy(path, "%s.ipasave" % (path))
 
 
-def configure_chrony(ntp_servers, fstore=None, sysstore=None, debug=False):
+def configure_chrony(ntp_servers, ntp_pool=None,
+                     fstore=None, sysstore=None, debug=False):
     if sysstore:
         module = 'chrony'
         sysstore.backup_state(module, "enabled",
@@ -58,6 +59,11 @@ def configure_chrony(ntp_servers, fstore=None, sysstore=None, debug=False):
         aug.remove('{}/server'.format(path))
         aug.remove('{}/pool'.format(path))
         aug.remove('{}/peer'.format(path))
+        if ntp_pool:
+            logger.debug("Setting server pool:")
+            logger.debug("'%s'", ntp_pool)
+            aug.set('{}/pool[last()+1]'.format(path), ntp_pool)
+            aug.set('{}/server[last()]/iburst'.format(path), None)
 
         logger.debug("Setting time servers:")
         for server in ntp_servers:
