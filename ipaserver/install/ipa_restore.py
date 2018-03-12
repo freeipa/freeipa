@@ -147,7 +147,9 @@ class Restore(admintool.AdminTool):
         paths.DNSSEC_TOKENS_DIR,
     ]
 
-    FILES_TO_BE_REMOVED = []
+    FILES_TO_BE_REMOVED = [
+        paths.HTTPD_NSS_CONF,
+    ]
 
     def __init__(self, options, args):
         super(Restore, self).__init__(options, args)
