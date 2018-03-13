@@ -1875,3 +1875,21 @@ class UI_driver(object):
             is_enabled = not self.has_class(li, 'disabled')
             assert is_enabled == enabled, ('Invalid enabled state of action item %s. '
                                            'Expected: %s') % (action, str(visible))
+
+    def assert_notification(self, type='success', assert_text=None):
+        """
+        Assert whether we have a notification of particular type
+
+        type: type for assertion
+        assert_text: assert particular text when True
+
+        Returns True if selector/text found
+        """
+
+        notification_type = 'div.notification-area .alert-{}'.format(type)
+        # wait for a half sec for notification to appear
+        self.wait(0.5)
+        is_present = self.find(notification_type, By.CSS_SELECTOR)
+        assert is_present, "Notification not present"
+        if assert_text:
+            assert assert_text in is_present.text
