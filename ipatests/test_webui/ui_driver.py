@@ -847,19 +847,19 @@ class UI_driver(object):
         self.wait_for_request()
 
         list_cnt = self.find('.combobox-widget-list', By.CSS_SELECTOR, cb, strict=True)
-        search_btn = self.find('a[name=search] i', By.CSS_SELECTOR, cb, strict=True)
         opt_s = "select[name=list] option[value='%s']" % value
         option = self.find(opt_s, By.CSS_SELECTOR, cb)
 
         if combobox_input:
             if not option:
-                self.fill_textbox(combobox_input, value, cb)
                 open_btn.click()
+                self.fill_textbox(combobox_input, value, cb)
         else:
             if not option:
                 # try to search
                 self.fill_textbox('filter', value, cb)
-
+                search_btn = self.find('a[name=search] i', By.CSS_SELECTOR, cb,
+                                       strict=True)
                 search_btn.click()
                 self.wait_for_request()
                 option = self.find(opt_s, By.CSS_SELECTOR, cb, strict=True)
