@@ -1072,7 +1072,7 @@ class UI_driver(object):
 
     def delete_record(
             self, pkeys, fields=None, parent=None, table_name=None,
-            facet_btn='remove'):
+            facet_btn='remove', confirm_btn='ok'):
         """
         Delete records with given pkeys in currently opened search table.
         """
@@ -1097,7 +1097,9 @@ class UI_driver(object):
                 self.facet_button_click(facet_btn)
             if fields:
                 self.fill_fields(fields)
-            self.dialog_button_click('ok')
+            if not confirm_btn:
+                return
+            self.dialog_button_click(confirm_btn)
             self.wait_for_request(n=2)
             self.wait()
 
