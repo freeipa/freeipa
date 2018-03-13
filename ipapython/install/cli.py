@@ -316,10 +316,10 @@ class ConfigureTool(admintool.AdminTool):
         if self.use_private_ccache:
             with private_ccache():
                 super(ConfigureTool, self).run()
-                cfgr.run()
+                return cfgr.run()
         else:
             super(ConfigureTool, self).run()
-            cfgr.run()
+            return cfgr.run()
 
     @staticmethod
     def __signal_handler(signum, frame):
