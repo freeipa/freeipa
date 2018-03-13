@@ -21,7 +21,7 @@ from pkg_resources import parse_version
 import six
 
 from ipaclient.install.ipachangeconf import IPAChangeConf
-import ipaclient.install.ntpconf
+import ipaclient.install.timeconf
 from ipalib.install import certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab
 from ipapython import ipaldap, ipautil
@@ -579,12 +579,12 @@ def common_check(no_ntp):
 
     if not no_ntp:
         try:
-            ipaclient.install.ntpconf.check_timedate_services()
-        except ipaclient.install.ntpconf.NTPConflictingService as e:
+            ipaclient.install.timeconf.check_timedate_services()
+        except ipaclient.install.timeconf.NTPConflictingService as e:
             print("WARNING: conflicting time&date synchronization service "
                   "'{svc}' will\nbe disabled in favor of chronyd\n"
                   .format(svc=e.conflicting_service))
-        except ipaclient.install.ntpconf.NTPConfigurationError:
+        except ipaclient.install.timeconf.NTPConfigurationError:
             pass
 
 
@@ -1389,7 +1389,7 @@ def install(installer):
 
     if not promote and not options.no_ntp:
         # in DL1, chrony is already installed
-        ipaclient.install.ntpconf.force_chrony(sstore)
+        ipaclient.install.timeconf.force_chrony(sstore)
 
     try:
         if promote:

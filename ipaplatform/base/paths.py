@@ -228,7 +228,6 @@ class BasePathNamespace(object):
     NAMED_PKCS11 = "/usr/sbin/named-pkcs11"
     CHRONYC = "/usr/bin/chronyc"
     CHRONYD = "/usr/sbin/chronyd"
-    CHRONY_HELPER = "/usr/libexec/chrony-helper"
     PKIDESTROY = "/usr/sbin/pkidestroy"
     PKISPAWN = "/usr/sbin/pkispawn"
     PKI = "/usr/bin/pki"

@@ -18,6 +18,7 @@ from ipalib.install import certmonger, sysrestore
 import SSSDConfig
 import ipalib.util
 import ipalib.errors
+from ipaclient.install import timeconf
 from ipaclient.install.client import sssd_enable_service
 from ipaplatform import services
 from ipaplatform.tasks import tasks
@@ -1587,6 +1588,41 @@ def enable_certauth(krb):
         aug.close()
 
 
+def ntpd_cleanup(fqdn, fstore):
+    sstore = sysrestore.StateFile(paths.SYSRESTORE)
+    timeconf.restore_forced_timeservices(sstore, 'ntpd')
+    if sstore.has_state('ntp'):
+        instance = services.service('ntpd', api)
+        sstore.restore_state(instance.service_name, 'enabled')
+        sstore.restore_state(instance.service_name, 'running')
+        sstore.restore_state(instance.service_name, 'step-tickers')
+        try:
+            instance.disable()
+            instance.stop()
+        except Exception as e:
+            logger.info("Service ntpd was not disabled or stopped")
+
+    ntpd_files = [paths.NTP_CONF, paths.NTP_STEP_TICKERS, paths.SYSCONFIG_NTPD]
+    for ntpd_file in ntpd_files:
+        try:
+            fstore.untrack_file(ntpd_file)
+            os.remove(ntpd_file)
+        except IOError:
+            logger.warning(
+                "No access to the %s, file could not be deleted.", ntpd_file)
+        except ValueError as e:
+            logger.warning("Error: %s", e)
+
+    connection = api.Backend.ldap2
+    try:
+        connection.delete_entry(DN(('cn', 'NTP'), ('cn', fqdn),
+                                   api.env.container_masters))
+    except ipalib.errors.NotFound:
+        logger.warning("Warning: NTP service entry was not found in LDAP.")
+
+    sysupgrade.set_upgrade_state('ntpd', 'ntpd_cleaned', True)
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1606,6 +1642,9 @@ def upgrade_configuration():
     ds_running = ds.is_running()
     if not ds_running:
         ds.start(ds_serverid)
+
+    if not sysupgrade.get_upgrade_state('ntpd', 'ntpd_cleaned'):
+        ntpd_cleanup(fqdn, fstore)
 
     check_certs()
 
