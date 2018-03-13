@@ -54,10 +54,11 @@ class sevice_tasks(UI_driver):
             content = file_d.read()
         return content
 
-    def get_http_pkey(self):
-        host = self.config.get('ipa_server')
+    def get_service_pkey(self, service, host=None):
+        if not host:
+            host = self.config.get('ipa_server')
         realm = self.config.get('ipa_realm')
-        pkey = 'HTTP/%s@%s' % (host, realm)
+        pkey = '{}/{}@{}'.format(service, host, realm)
         return pkey
 
 
@@ -265,7 +266,7 @@ class test_service(sevice_tasks):
         Test Kerberos flags
         http://www.freeipa.org/page/V3/Kerberos_Flags
         """
-        pkey = self.get_http_pkey()
+        pkey = self.get_service_pkey('HTTP')
         name = 'ipakrbokasdelegate'
         mod = {'mod': [('checkbox', name, None)]}
         checked = ['checked']
