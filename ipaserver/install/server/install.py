@@ -31,7 +31,7 @@ from ipalib.util import (
     validate_domain_name,
     no_matching_interface_for_ip_address_warning,
 )
-import ipaclient.install.ntpconf
+import ipaclient.install.timeconf
 from ipaserver.install import (
     adtrust, bindinstance, ca, dns, dsinstance,
     httpinstance, installutils, kra, krbinstance,
@@ -413,13 +413,13 @@ def install_check(installer):
 
     if not options.no_ntp:
         try:
-            ipaclient.install.ntpconf.check_timedate_services()
-        except ipaclient.install.ntpconf.NTPConflictingService as e:
-            print("WARNING: conflicting time&date synchronization service '%s'"
-                  " will be disabled" % e.conflicting_service)
+            ipaclient.install.timeconf.check_timedate_services()
+        except ipaclient.install.timeconf.NTPConflictingService as e:
+            print("WARNING: conflicting time&date synchronization service '{}'"
+                  " will be disabled".format(e.conflicting_service))
             print("in favor of chronyd")
             print("")
-        except ipaclient.install.ntpconf.NTPConfigurationError:
+        except ipaclient.install.timeconf.NTPConfigurationError:
             pass
 
     if not options.setup_dns and installer.interactive:
@@ -766,7 +766,8 @@ def install(installer):
         # chrony will be handled here in uninstall() method as well by invoking
         # the ipa-server-install --uninstall
         if not options.no_ntp:
-            ipaclient.install.client.sync_time(options, fstore, sstore)
+            ipaclient.install.client.sync_time(
+                options, fstore, sstore, force=True)
 
         if options.dirsrv_cert_files:
             ds = dsinstance.DsInstance(fstore=fstore,
@@ -1119,7 +1120,7 @@ def uninstall(installer):
 
     sstore._load()
 
-    ipaclient.install.ntpconf.restore_forced_chronyd(sstore)
+    ipaclient.install.timeconf.restore_forced_timeservices(sstore)
 
     # Clean up group_exists (unused since IPA 2.2, not being set since 4.1)
     sstore.restore_state("install", "group_exists")

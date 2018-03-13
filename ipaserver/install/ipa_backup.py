@@ -162,7 +162,7 @@ class Backup(admintool.AdminTool):
         paths.IPA_CA_CRT,
         paths.IPA_DEFAULT_CONF,
         paths.DS_KEYTAB,
-        paths.NTP_CONF,
+        paths.CHRONY_CONF,
         paths.SMB_CONF,
         paths.SAMBA_KEYTAB,
         paths.DOGTAG_ADMIN_P12,

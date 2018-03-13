@@ -79,10 +79,10 @@ def configure_chrony(ntp_servers, ntp_pool=None,
 
         try:
             aug.save()
-        except Exception as e:
+        except IOError as e:
             logger.error("Augeas failed to configure file %s", chrony_conf)
 
-    except Exception as e:
+    except RuntimeError as e:
         logger.error("Configuration failed with: %s", e)
     finally:
         aug.close()
@@ -101,20 +101,19 @@ def configure_chrony(ntp_servers, ntp_pool=None,
     # 3 attempts means if first immidiate attempt fails
     # there is 10s delay between next
 
-    cmd = [paths.CHRONYC, 'waitsync', str(sync_attempt_count)]
+    args = [paths.CHRONYC, 'waitsync', str(sync_attempt_count)]
 
     if debug:
-        cmd.append('-d')
+        args.append('-d')
 
     try:
         logger.info('Attempting to sync time using chronyd.')
-        ipautil.run(cmd)
-        logger.info('Time is in sync.')
+        ipautil.run(args)
+        logger.info('Time synchronization was successful.')
         return True
-    except ipautil.CalledProcessError as e:
-        if e.returncode is 1:
-            logger.warning('Process chronyc waitsync failed to sync time!')
-            logger.warning('Configuration of chrony was changed by installer.')
+    except ipautil.CalledProcessError:
+        logger.warning('Process chronyc waitsync failed to sync time!')
+        logger.warning('Configuration of chrony was changed by installer.')
         return False
 
 
@@ -167,13 +166,13 @@ def force_chrony(statestore):
                 instance.disable()
 
 
-def restore_forced_chronyd(statestore):
+def restore_forced_timeservices(statestore, skip_service='chronyd'):
     """
     Restore from --force-chronyd installation and enable/start service that
     were disabled/stopped during installation
     """
     for service in services.timedate_services:
-        if service == 'chronyd':
+        if service == skip_service:
             continue
         if statestore.has_state(service):
             instance = services.service(service, api)
