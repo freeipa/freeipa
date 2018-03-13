@@ -1358,7 +1358,8 @@ class UI_driver(object):
         self.wait_for_request()
 
     def prepare_associations(
-            self, pkeys, facet=None, facet_btn='add', member_pkeys=None):
+            self, pkeys, facet=None, facet_btn='add', member_pkeys=None,
+            confirm_btn='add'):
         """
         Helper function for add_associations and delete_associations
         """
@@ -1373,7 +1374,7 @@ class UI_driver(object):
             self.select_record(key, table_name='available')
             self.button_click('add')
 
-        self.dialog_button_click('add')
+        self.dialog_button_click(confirm_btn)
         self.wait_for_request()
 
         if member_pkeys:
@@ -1385,12 +1386,16 @@ class UI_driver(object):
 
     def add_associations(
             self, pkeys, facet=None, delete=False, facet_btn='add',
-            member_pkeys=None):
+            member_pkeys=None, confirm_btn='add'):
         """
         Add associations
         """
         check_pkeys = self.prepare_associations(
-            pkeys, facet, facet_btn, member_pkeys)
+            pkeys, facet, facet_btn, member_pkeys, confirm_btn=confirm_btn)
+
+        # we need to return if we want to "cancel" to avoid assert record fail
+        if confirm_btn == 'cancel':
+            return
 
         for key in check_pkeys:
             self.assert_record(key)
