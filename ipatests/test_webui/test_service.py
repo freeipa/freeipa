@@ -61,6 +61,14 @@ class sevice_tasks(UI_driver):
         pkey = '{}/{}@{}'.format(service, host, realm)
         return pkey
 
+    def add_host(self, hostname, dns_zone, force=False):
+        self.navigate_to_entity('host')
+        self.facet_button_click('add')
+        self.fill_textbox('hostname', hostname)
+        self.fill_textbox('dnszone', dns_zone)
+        if force:
+            self.check_option('force', 'checked')
+        self.dialog_button_click('add')
 
 @pytest.mark.tier1
 class test_service(sevice_tasks):
