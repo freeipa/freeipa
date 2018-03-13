@@ -7,12 +7,11 @@ Common stuff.
 """
 
 import logging
-import traceback
 
 from . import core
 from .util import from_
 
-__all__ = ['step', 'Installable', 'Interactive', 'Continuous', 'installer',
+__all__ = ['step', 'Installable', 'Interactive', 'installer',
            'uninstaller']
 
 logger = logging.getLogger(__name__)
@@ -86,16 +85,6 @@ class Step(Installable):
 
 class Interactive(core.Configurable):
     interactive = core.Property(False)
-
-
-class Continuous(core.Configurable):
-    def _handle_execute_exception(self, exc_info):
-        try:
-            super(Continuous, self)._handle_execute_exception(exc_info)
-        except BaseException as e:
-            logger.debug("%s", traceback.format_exc())
-            if isinstance(e, Exception):
-                logger.error("%s", e)
 
 
 def installer(cls):
