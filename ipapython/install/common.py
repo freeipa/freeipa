@@ -109,7 +109,7 @@ def installer(cls):
 
 
 def uninstaller(cls):
-    class Uninstaller(Continuous, cls, Installable):
+    class Uninstaller(cls, Installable):
         def __init__(self, **kwargs):
             super(Uninstaller, self).__init__(uninstalling=True,
                                               **kwargs)
