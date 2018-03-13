@@ -112,8 +112,8 @@ class test_service(sevice_tasks):
         """
         Test service certificate actions
 
-        Requires to have CA installed and 'service_csr_path' configuration option
-        set.
+        Requires to have CA installed and 'service_csr_path' configuration
+        option set.
         """
 
         if not self.has_ca():
@@ -133,6 +133,9 @@ class test_service(sevice_tasks):
         self.navigate_to_record(pkey)
 
         # cert request
+        self.action_list_action('request_cert', confirm=False)
+        # testing if cancel button works
+        self.dialog_button_click('cancel')
         self.action_list_action('request_cert', confirm=False)
         self.assert_dialog()
         self.fill_text("textarea[name='csr'", csr)
@@ -167,7 +170,14 @@ class test_service(sevice_tasks):
                                        parents_css_sel=cert_widget_sel,
                                        facet_actions=False)
 
-        # cert revoke
+        # cert revoke/hold cancel
+        self.action_list_action('revoke', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        self.wait()
+        self.select('select', '6')
+        self.dialog_button_click('cancel')
+
+        # cert revoke/hold
         self.action_list_action('revoke', confirm=False,
                                 parents_css_sel=cert_widget_sel)
         self.wait()
@@ -186,6 +196,11 @@ class test_service(sevice_tasks):
                                        parents_css_sel=cert_widget_sel,
                                        facet_actions=False)
 
+        # cert remove hold cancel
+        self.action_list_action('remove_hold', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        self.dialog_button_click('cancel')
+
         # cert remove hold
         self.action_list_action('remove_hold', confirm=False,
                                 parents_css_sel=cert_widget_sel)
@@ -199,6 +214,30 @@ class test_service(sevice_tasks):
                                        facet_actions=False)
 
         # check that remove_hold action is not enabled
+        self.assert_action_list_action('remove_hold', enabled=False,
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # cert revoke cancel
+        self.action_list_action('revoke', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        self.wait()
+        self.select('select', '1')
+        self.dialog_button_click('cancel')
+
+        # cert revoke
+        self.action_list_action('revoke', confirm=False,
+                                parents_css_sel=cert_widget_sel)
+        self.wait()
+        self.select('select', '1')
+        self.dialog_button_click('ok')
+
+        # check that revoke action is not enabled
+        self.assert_action_list_action('revoke', enabled=False,
+                                       parents_css_sel=cert_widget_sel,
+                                       facet_actions=False)
+
+        # check that remove_hold action not is enabled
         self.assert_action_list_action('remove_hold', enabled=False,
                                        parents_css_sel=cert_widget_sel,
                                        facet_actions=False)
