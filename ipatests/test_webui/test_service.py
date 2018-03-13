@@ -25,6 +25,13 @@ from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 import pytest
 
+try:
+    from selenium.webdriver.common.keys import Keys
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.common.action_chains import ActionChains
+except ImportError:
+    pass
+
 ENTITY = 'service'
 
 
@@ -95,6 +102,8 @@ class sevice_tasks(UI_driver):
         self.dialog_button_click('add')
         self.wait(0.3)
         self.assert_no_error_dialog()
+
+
 @pytest.mark.tier1
 class test_service(sevice_tasks):
 
@@ -353,3 +362,280 @@ class test_service(sevice_tasks):
         self.validate_fields([('checkbox', name, checked)])
         self.mod_record(ENTITY, mod)
         self.validate_fields([('checkbox', name, [])])
+
+    @screenshot
+    def test_add_remove_services(self):
+        """
+        Test add/remove common services on default host
+        """
+        self.init_app()
+
+        services = ['cifs', 'ftp', 'imap', 'libvirt', 'nfs', 'qpidd', 'smtp']
+        added_services = []
+
+        # add services
+        for service in services:
+            pkey = self.get_service_pkey(service)
+            self.add_service(service)
+            self.wait(0.5)
+            assert self.has_record(pkey)
+            added_services.append(pkey)
+
+        # delete single service
+        svc_tbd = added_services.pop()
+        self.delete_record(svc_tbd)
+        self.assert_notification()
+        assert not self.has_record(svc_tbd)
+
+        # delete multiple services (rest of them)
+        self.delete_record(added_services)
+        self.assert_notification()
+        for service in added_services:
+            assert not self.has_record(service)
+
+    @screenshot
+    def test_add_remove_services_force(self):
+        """
+        Test add/remove services using force (on different host)
+        """
+        self.init_app()
+
+        services = ['DNS', 'HTTP', 'ldap']
+        added_services = []
+
+        # add temp host without DNS
+        temp_host = 'host-no-dns.ipa.test'
+        self.add_host('host-no-dns', 'ipa.test', force=True)
+
+        for service in services:
+            pkey = self.get_service_pkey(service, host=temp_host)
+            self.add_service(service, host=temp_host, force=True)
+            assert self.has_record(pkey)
+            added_services.append(pkey)
+
+        # delete single service
+        svc_tbd = added_services.pop()
+        self.delete_record(svc_tbd)
+        self.assert_notification()
+        assert not self.has_record(svc_tbd)
+
+        # delete multiple services (rest of them)
+        self.delete_record(added_services)
+        self.assert_notification()
+        for service in added_services:
+            assert not self.has_record(service)
+
+        # host cleanup
+        self.navigate_to_entity('host')
+        self.delete_record(temp_host)
+
+    @screenshot
+    def test_add_custom_service(self):
+        """
+        Test add custom service using textbox
+        """
+        self.init_app()
+        pkey = self.get_service_pkey('test_service')
+        self.add_service('test_service', textbox='service')
+        assert self.has_record(pkey)
+
+        # service cleanup
+        self.delete_record(pkey)
+        self.assert_notification()
+        assert not self.has_record(pkey)
+
+    @screenshot
+    def test_cancel_adding_service(self):
+        """
+        Test cancel when adding a service
+        """
+        self.init_app()
+        pkey = self.get_service_pkey('cifs')
+        self.add_service('cifs', cancel=True)
+        assert not self.has_record(pkey)
+
+    @screenshot
+    def test_cancel_delete_service(self):
+        """
+        Test cancel deleting a service
+        """
+        self.init_app()
+        pkey = self.get_service_pkey('HTTP')
+        self.navigate_to_entity(ENTITY)
+        self.delete_record(pkey, confirm_btn='cancel')
+        assert self.has_record(pkey)
+
+    @screenshot
+    def test_cancel_add_delete_managedby_host(self):
+        """
+        Test cancel/add/delete managed by host
+        """
+        pkey = self.get_service_pkey('HTTP')
+        temp_host = 'host-no-dns.ipa.test'
+        self.init_app()
+
+        # add another host for "managedby" testing
+        self.add_host('host-no-dns', 'ipa.test', force=True)
+
+        self.navigate_to_record(pkey, entity=ENTITY)
+        self.add_associations([temp_host], facet='managedby_host',
+                              confirm_btn='cancel')
+        self.add_associations([temp_host], facet='managedby_host',
+                              delete=True)
+
+        # host cleanup
+        self.navigate_to_entity('host')
+        self.delete_record(temp_host)
+
+    @screenshot
+    def test_add_service_missing_hostname_field(self):
+        """
+        Test add service "hostname" field required
+        """
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+        self.facet_button_click('add')
+        self.select_combobox('service', 'cifs', combobox_input='service')
+        self.dialog_button_click('add')
+        host_elem = self.find(".widget[name='host']", By.CSS_SELECTOR)
+        self.assert_field_validation_required(parent=host_elem)
+
+    @screenshot
+    def test_add_service_missing_service_field(self):
+        """
+        Test add service "service field required
+        """
+        self.init_app()
+        host = self.config.get('ipa_server')
+        self.navigate_to_entity(ENTITY)
+        self.facet_button_click('add')
+        self.select_combobox('host', host)
+        self.dialog_button_click('add')
+        self.wait()
+        service_elem = self.find(".widget[name='service']", By.CSS_SELECTOR)
+        self.assert_field_validation_required(parent=service_elem)
+
+    @screenshot
+    def test_search_services(self):
+        """
+        Search different services
+        """
+        # keywords to search (find_record accepts data dict)
+        http_search = {'pkey': self.get_service_pkey('HTTP')}
+        ldap_search = {'pkey': self.get_service_pkey('ldap')}
+        dns_search = {'pkey': self.get_service_pkey('DNS')}
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+        self.find_record('service', http_search)
+        self.find_record('service', ldap_search)
+        self.find_record('service', dns_search)
+
+    @screenshot
+    def test_dropdown(self):
+        """
+        Test service combobox dropdowns with UP/DOWN arrows
+        """
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+        self.facet_button_click('add')
+
+        actions = ActionChains(self.driver)
+        actions.send_keys(Keys.ARROW_DOWN)
+        # all actions are performed at once with perform()
+        actions.send_keys(Keys.ARROW_DOWN).perform()
+        actions.send_keys(Keys.ENTER)
+        actions.send_keys(Keys.TAB)
+        actions.send_keys(Keys.ARROW_DOWN)
+        actions.send_keys(Keys.ARROW_DOWN)
+        actions.send_keys(Keys.ENTER).perform()
+
+        # evaluate value fields are not empty
+        service_cb = "input[name='service']"
+        service = self.find(service_cb, By.CSS_SELECTOR)
+        assert service.get_attribute('value') != ""
+        host_cb = "[name='host'].combobox-widget"
+        host = self.find(host_cb, By.CSS_SELECTOR)
+        assert host.get_attribute('value') != ""
+
+    @screenshot
+    def test_add_service_using_enter(self):
+        """
+        Add a service using enter key
+        """
+        self.init_app()
+        pkey = self.get_service_pkey('smtp')
+        self.add_service('smtp', confirm=False)
+        actions = ActionChains(self.driver)
+        actions.send_keys(Keys.ENTER).perform()
+        self.wait(1)
+        assert self.has_record(pkey)
+
+        # service cleanup
+        self.delete_record(pkey)
+        assert not self.has_record(pkey)
+
+    @screenshot
+    def test_delete_service_using_enter(self):
+        """
+        Delete a service using enter key
+        """
+        self.init_app()
+        pkey = self.get_service_pkey('smtp')
+        self.add_service('smtp')
+        assert self.has_record(pkey)
+        self.delete_record(pkey, confirm_btn=None)
+        actions = ActionChains(self.driver)
+        actions.send_keys(Keys.ENTER).perform()
+        self.wait(1)
+        assert not self.has_record(pkey)
+
+    @screenshot
+    def test_provision_unprovision_keytab(self):
+        """
+        Test provision / unprovision keytab
+
+        Requires to run a ipa-get/rmkeytab on UI host.
+        """
+        if not self.has_ca():
+            self.skip('CA is not configured')
+
+        csr_path = self.config.get('service_csr_path')
+        if not csr_path:
+            self.skip('CSR file is not configured')
+
+        csr = self.load_file(csr_path)
+
+        self.init_app()
+        pkey = self.get_service_pkey('cifs')
+
+        self.navigate_to_entity(ENTITY)
+
+        # provision service
+        self.add_service('cifs')
+        self.navigate_to_record(pkey, entity=ENTITY)
+        self.action_list_action('request_cert', confirm=False)
+        self.assert_dialog()
+        self.fill_text("textarea[name='csr'", csr)
+        self.dialog_button_click('issue')
+        self.run_keytab_on_host(pkey, 'get')
+        self.wait(1)
+        self.facet_button_click('refresh')
+
+        # assert key present
+        no_key_selector = 'div[name="kerberos-key-valid"] label'
+        provisioned_assert = 'Kerberos Key Present, Service Provisioned'
+        self.assert_text(no_key_selector, provisioned_assert)
+
+        # unprovision service
+        self.action_list_action('unprovision', confirm_btn='unprovision')
+        self.facet_button_click('refresh')
+        self.run_keytab_on_host(pkey, 'rm')
+
+        # assert key not present
+        no_key_selector = 'div[name="kerberos-key-missing"] label'
+        provisioned_assert = 'Kerberos Key Not Present'
+        self.assert_text(no_key_selector, provisioned_assert)
+
+        # service cleanup
+        self.navigate_to_entity(ENTITY)
+        self.delete_record(pkey)
