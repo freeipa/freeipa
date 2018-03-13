@@ -70,6 +70,31 @@ class sevice_tasks(UI_driver):
             self.check_option('force', 'checked')
         self.dialog_button_click('add')
 
+    def add_service(self, service,
+                    host=None,
+                    textbox=None,
+                    force=False,
+                    cancel=False,
+                    confirm=True):
+
+        if not host:
+            host = self.config.get('ipa_server')
+        self.navigate_to_entity(ENTITY)
+        self.facet_button_click('add')
+
+        self.select_combobox('service', service, combobox_input=textbox)
+        self.select_combobox('host', host)
+        if force:
+            self.wait(0.5)
+            self.check_option('force', 'checked')
+        if cancel:
+            self.dialog_button_click('cancel')
+            return
+        if not confirm:
+            return
+        self.dialog_button_click('add')
+        self.wait(0.3)
+        self.assert_no_error_dialog()
 @pytest.mark.tier1
 class test_service(sevice_tasks):
 
