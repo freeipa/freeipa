@@ -1876,6 +1876,19 @@ class UI_driver(object):
             assert is_enabled == enabled, ('Invalid enabled state of action item %s. '
                                            'Expected: %s') % (action, str(visible))
 
+    def assert_field_validation_required(self, parent=None):
+        """
+        Assert we got 'Required field' error message in field validation
+        """
+
+        if not parent:
+            parent = self.get_form()
+
+        req_field_css = '.help-block[name="error_link"]'
+
+        res = self.find(req_field_css, By.CSS_SELECTOR, context=parent)
+        assert 'Required field' in res.text, 'No "Required field" error found'
+
     def assert_notification(self, type='success', assert_text=None):
         """
         Assert whether we have a notification of particular type
