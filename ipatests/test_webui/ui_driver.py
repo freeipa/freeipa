@@ -31,6 +31,7 @@ import re
 import os
 from functools import wraps
 from nose.plugins.skip import SkipTest
+import paramiko
 
 # pylint: disable=import-error
 from six.moves.urllib.error import URLError
@@ -1617,6 +1618,33 @@ class UI_driver(object):
         ssh_pub = 'div[name="ipasshpubkey"] button[name="remove"]'
         self.find(ssh_pub, By.CSS_SELECTOR).click()
         self.facet_button_click('save')
+
+    def run_cmd_on_ui_host(self, cmd):
+        """
+        Run "shell" command on the UI system using "admin" user's passwd from
+        conf.
+        Use only where API does not fit.
+
+        cmd (str): command to run
+        """
+
+        login = self.config.get('ipa_admin')
+        hostname = self.config.get('ipa_server')
+        password = self.config.get('ipa_password')
+
+        try:
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(hostname=hostname, username=login, password=password)
+            ssh.exec_command(cmd)
+        except paramiko.AuthenticationException:
+            self.skip('Authentication to server {} failed'.format(hostname))
+        except paramiko.SSHException as e:
+            self.skip('Unable to establish SSH connection: {}'.format(e))
+        except Exception as e:
+            self.skip('Unable to proceed: {}'.format(e))
+        finally:
+            ssh.close()
 
     def has_class(self, el, cls):
         """
