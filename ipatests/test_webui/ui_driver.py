@@ -1615,6 +1615,34 @@ class UI_driver(object):
             # add multiple at once and test table delete button
             self.add_table_associations(table, keys, delete=True)
 
+    def add_sshkey_to_user(self, user, ssh_key):
+        """
+        Add ssh public key to particular user
+
+        user (str): user to add the key to
+        ssh_key (str): public ssh key
+        """
+        self.navigate_to_entity('user')
+        self.navigate_to_record(user)
+
+        ssh_pub = 'div[name="ipasshpubkey"] button[name="add"]'
+        self.find(ssh_pub, By.CSS_SELECTOR).click()
+        self.wait()
+        self.driver.switch_to.active_element.send_keys(ssh_key)
+        self.dialog_button_click('update')
+        self.facet_button_click('save')
+
+    def delete_user_sshkey(self, user):
+        """
+        Delete ssh public key of particular user
+        """
+        self.navigate_to_entity('user')
+        self.navigate_to_record(user)
+
+        ssh_pub = 'div[name="ipasshpubkey"] button[name="remove"]'
+        self.find(ssh_pub, By.CSS_SELECTOR).click()
+        self.facet_button_click('save')
+
     def has_class(self, el, cls):
         """
         Check if el has CSS class
