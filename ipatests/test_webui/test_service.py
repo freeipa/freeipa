@@ -103,6 +103,32 @@ class sevice_tasks(UI_driver):
         self.wait(0.3)
         self.assert_no_error_dialog()
 
+    def run_keytab_on_host(self, principal, action):
+        """
+        Run ipa-get/rmkeytab command on UI host in order to test whether
+        we have the key un/provisioned.
+
+        Actions:
+
+        'get' for /usr/sbin/ipa-getkeytab
+        'rm' for /usr/sbin/ipa-rmkeytab
+        """
+
+        kt_path = '/tmp/test.keytab'
+
+        if action == 'get':
+            cmd = '/usr/sbin/ipa-getkeytab -p {} -k {}'.format(principal,
+                                                               kt_path)
+            self.run_cmd_on_ui_host(cmd)
+        elif action == 'rm':
+            cmd = '/usr/sbin/ipa-rmkeytab -p {} -k {}'.format(principal,
+                                                              kt_path)
+            kt_rm_cmd = 'rm -f {}'.format(kt_path)
+            self.run_cmd_on_ui_host(cmd)
+            self.run_cmd_on_ui_host(kt_rm_cmd)
+        else:
+            raise ValueError("Bad action specified")
+
 
 @pytest.mark.tier1
 class test_service(sevice_tasks):
