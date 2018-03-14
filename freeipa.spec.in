@@ -83,6 +83,8 @@
 
 %endif
 
+# Require Dogtag PKI 10.6.0 with Python 3 and SQL NSSDB fixes
+%global pki_version 10.6.0-0.2
 
 %define krb5_base_version %(LC_ALL=C rpm -q --qf '%%{VERSION}' krb5-devel | grep -Eo '^[^.]+\.[^.]+')
 
@@ -224,7 +226,7 @@ BuildRequires:  python2-dns >= 1.15
 BuildRequires:  jsl
 BuildRequires:  python2-yubico
 # pki Python package
-BuildRequires:  pki-base-python2 >= 10.5.1-2
+BuildRequires:  python2-pki >= %{pki_version}
 BuildRequires:  python2-pytest-multihost
 BuildRequires:  python2-pytest-sourceorder
 # 0.4.2: Py3 fix https://bugzilla.redhat.com/show_bug.cgi?id=1476150
@@ -265,7 +267,7 @@ BuildRequires:  python3-qrcode-core >= 5.0.0
 BuildRequires:  python3-dns >= 1.15
 BuildRequires:  python3-yubico
 # pki Python package
-BuildRequires:  pki-base-python3 >= 10.5.1-2
+BuildRequires:  python3-pki >= %{pki_version}
 BuildRequires:  python3-pytest-multihost
 BuildRequires:  python3-pytest-sourceorder
 # 0.4.2: Py3 fix https://bugzilla.redhat.com/show_bug.cgi?id=1476150
@@ -363,8 +365,8 @@ Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base >= %{selinux_policy_version}
 Requires: slapi-nis >= %{slapi_nis_version}
 # 10.5.1-2 contains Python 3 vault fix
-Requires: pki-ca >= 10.5.1-2
-Requires: pki-kra >= 10.5.1-2
+Requires: pki-ca >= %{pki_version}
+Requires: pki-kra >= %{pki_version}
 Requires(preun): systemd-units
 Requires(postun): systemd-units
 Requires: policycoreutils >= 2.1.12-5
@@ -434,7 +436,7 @@ BuildRequires:  dbus-python
 Requires: python2-dns >= 1.15
 Requires: python2-kdcproxy >= 0.3
 Requires: rpm-libs
-Requires: pki-base-python2 >= 10.5.1-2
+Requires: python2-pki >= %{pki_version}
 Requires: python2-augeas
 
 %description -n python2-ipaserver
@@ -468,7 +470,7 @@ Requires: python3-dns >= 1.15
 Requires: python3-kdcproxy >= 0.3
 Requires: python3-augeas
 Requires: rpm-libs
-Requires: pki-base-python3 >= 10.5.1-2
+Requires: python3-pki >= %{pki_version}
 
 %description -n python3-ipaserver
 IPA is an integrated solution to provide centrally managed Identity (users,
