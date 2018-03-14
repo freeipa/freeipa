@@ -197,7 +197,16 @@ def install_dns_records(config, options, remote_api):
                     'on master: %s', str(e))
 
 
-def create_ipa_conf(fstore, config, ca_enabled):
+def create_ipa_conf(fstore, config, ca_enabled, master=None):
+    """
+    Create /etc/ipa/default.conf master configuration
+    :param fstore: sysrestore file store used for backup and restore of
+                   the server configuration
+    :param config: replica config
+    :param ca_enabled: True if the topology includes a CA
+    :param master: if set, the xmlrpc_uri parameter will use the provided
+                   master instead of this host
+    """
     # Save client file on Domain Level 1
     target_fname = paths.IPA_DEFAULT_CONF
     fstore.backup_file(target_fname)
@@ -206,8 +215,12 @@ def create_ipa_conf(fstore, config, ca_enabled):
     ipaconf.setOptionAssignment(" = ")
     ipaconf.setSectionNameDelimiters(("[", "]"))
 
-    xmlrpc_uri = 'https://{0}/ipa/xml'.format(
-                    ipautil.format_netloc(config.host_name))
+    if master:
+        xmlrpc_uri = 'https://{0}/ipa/xml'.format(
+            ipautil.format_netloc(master))
+    else:
+        xmlrpc_uri = 'https://{0}/ipa/xml'.format(
+                        ipautil.format_netloc(config.host_name))
     ldapi_uri = 'ldapi://%2fvar%2frun%2fslapd-{0}.socket\n'.format(
                     installutils.realm_to_serverid(config.realm_name))
 
@@ -1429,6 +1442,25 @@ def install(installer):
     # we now need to enable ssl on the ds
     ds.enable_ssl()
 
+    if promote:
+        # We need to point to the master when certmonger asks for
+        # HTTP certificate.
+        # During http installation, the HTTP/hostname principal is created
+        # locally then the installer waits for the entry to appear on the
+        # master selected for the installation.
+        # In a later step, the installer requests a SSL certificate through
+        # Certmonger (and the op adds the principal if it does not exist yet).
+        # If xmlrpc_uri points to the soon-to-be replica,
+        # the httpd service is not ready yet to handle certmonger requests
+        # and certmonger tries to find another master. The master can be
+        # different from the one selected for the installation, and it is
+        # possible that the principal has not been replicated yet. This
+        # may lead to a replication conflict.
+        # This is why we need to force the use of the same master by
+        # setting xmlrpc_uri
+        create_ipa_conf(fstore, config, ca_enabled,
+                        master=config.master_host_name)
+
     install_http(
         config,
         auto_redirect=not options.no_ui_redirect,
@@ -1436,6 +1468,10 @@ def install(installer):
         pkcs12_info=http_pkcs12_info,
         ca_is_configured=ca_enabled,
         ca_file=cafile)
+
+    if promote:
+        # Need to point back to ourself after the cert for HTTP is obtained
+        create_ipa_conf(fstore, config, ca_enabled)
 
     otpd = otpdinstance.OtpdInstance()
     otpd.create_instance('OTPD', config.host_name,
