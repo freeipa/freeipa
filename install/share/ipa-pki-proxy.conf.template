@@ -1,4 +1,4 @@
-# VERSION 12 - DO NOT REMOVE THIS LINE
+# VERSION 13 - DO NOT REMOVE THIS LINE
 
 ProxyRequests Off
 
@@ -43,4 +43,4 @@ ProxyRequests Off
 </LocationMatch>
 
 # Only enable this on servers that are not generating a CRL
-${CLONE}RewriteRule ^/ipa/crl/MasterCRL.bin https://$FQDN/ca/ee/ca/getCRL?op=getCRL&crlIssuingPoint=MasterCRL [L,R=301,NC]
+${CLONE}RewriteRule ^/ipa/crl/MasterCRL.bin http://$FQDN/ca/ee/ca/getCRL?op=getCRL&crlIssuingPoint=MasterCRL [L,R=301,NC]
