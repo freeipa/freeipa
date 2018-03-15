@@ -928,7 +928,6 @@ class LDAPUpdate(object):
         returns True if anything was changed, otherwise False
         """
         self.modified = False
-        all_updates = []
         try:
             self.create_connection()
 
@@ -937,6 +936,7 @@ class LDAPUpdate(object):
                 upgrade_files = sorted(files)
 
             for f in upgrade_files:
+                start = time.time()
                 try:
                     logger.debug("Parsing update file '%s'", f)
                     data = self.read_file(f)
@@ -944,9 +944,14 @@ class LDAPUpdate(object):
                     logger.error("error reading update file '%s'", f)
                     raise RuntimeError(e)
 
+                all_updates = []
                 self.parse_update_file(f, data, all_updates)
                 self._run_updates(all_updates)
-                all_updates = []
+                dur = time.time() - start
+                logger.debug(
+                    "LDAP update duration: %s %.03f sec", f, dur,
+                    extra={'timing': ('ldapupdate', f, None, dur)}
+                )
         finally:
             self.close_connection()
 
