@@ -24,7 +24,7 @@ import sys
 import os
 import pwd
 import socket
-import datetime
+import time
 import traceback
 import tempfile
 
@@ -492,6 +492,7 @@ class Service(object):
 
         Use show_service_name to include service name in generated descriptions.
         """
+        creation_start = time.time()
 
         if start_message is None:
             # no other info than mandatory service_name provided, use that
@@ -525,11 +526,15 @@ class Service(object):
 
         def run_step(message, method):
             self.print_msg(message)
-            s = datetime.datetime.now()
+            start = time.time()
             method()
-            e = datetime.datetime.now()
-            d = e - s
-            logger.debug("  duration: %d seconds", d.seconds)
+            dur = time.time() - start
+            name = method.__name__
+            logger.debug(
+                "step duration: %s %s %.02f sec",
+                self.service_name, name, dur,
+                extra={'timing': ('step', self.service_name, name, dur)},
+            )
 
         step = 0
         steps_iter = iter(self.steps)
@@ -553,7 +558,12 @@ class Service(object):
             raise
 
         self.print_msg(end_message)
-
+        dur = time.time() - creation_start
+        logger.debug(
+            "service duration: %s %.02f sec",
+            self.service_name, dur,
+            extra={'timing': ('service', self.service_name, None, dur)},
+        )
         self.steps = []
 
     def ldap_enable(self, name, fqdn, dm_password=None, ldap_suffix='',
