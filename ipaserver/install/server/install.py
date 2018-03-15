@@ -10,6 +10,7 @@ import os
 import pickle
 import shutil
 import sys
+import time
 import tempfile
 import textwrap
 
@@ -925,7 +926,11 @@ def install(installer):
             args.append("--no-sshd")
         if options.mkhomedir:
             args.append("--mkhomedir")
+        start = time.time()
         run(args, redirect_output=True)
+        dur = time.time() - start
+        logger.debug("Client install duration: %0.3f", dur,
+                     extra={'timing': ('clientinstall', None, None, dur)})
         print()
     except Exception:
         raise ScriptError("Configuration of client side components failed!")
