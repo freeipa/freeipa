@@ -104,9 +104,14 @@ def pytest_addoption(parser):
 
 
 def pytest_cmdline_main(config):
-    api.bootstrap(
+    kwargs = dict(
         context=u'cli', in_server=False, in_tree=True, fallback=False
     )
+    if not os.path.isfile(os.path.expanduser('~/.ipa/default.conf')):
+        # dummy domain/host for machines without ~/.ipa/default.conf
+        kwargs.update(domain=u'ipa.test', server=u'master.ipa.test')
+
+    api.bootstrap(**kwargs)
     for klass in cli_plugins:
         api.add_plugin(klass)
 
