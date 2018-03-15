@@ -469,8 +469,12 @@ class DogtagInstance(service.Service):
         """
         Create a backup copy of CS.cfg
         """
-        path = self.config
+        config = self.config
+        bak = config + '.ipabkp'
         if services.knownservices['pki_tomcatd'].is_running('pki-tomcat'):
             raise RuntimeError(
-                "Dogtag must be stopped when creating backup of %s" % path)
-        shutil.copy(path, path + '.ipabkp')
+                "Dogtag must be stopped when creating backup of %s" % config)
+        shutil.copy(config, bak)
+        # shutil.copy() doesn't copy owner
+        s = os.stat(config)
+        os.chown(bak, s.st_uid, s.st_gid)
