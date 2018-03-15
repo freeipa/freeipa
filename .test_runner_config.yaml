@@ -60,7 +60,7 @@ steps:
   - dnf install -y npm
   - cd ${container_working_dir}/install/ui/js/libs && make
   - cd ${container_working_dir}/install/ui && npm install
-  - cd ${container_working_dir}/install/ui && node_modules/grunt/bin/grunt --verbose qunit
+  - cd ${container_working_dir}/install/ui && node_modules/grunt/bin/grunt --verbose test
   tox:
   # just run one pylint and one Python 3 target (time/coverage trade-off)
   - tox -e py27,py36,pypi,pylint3
