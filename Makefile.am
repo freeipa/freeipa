@@ -1,7 +1,8 @@
 ACLOCAL_AMFLAGS = -I m4
 
 if ENABLE_SERVER
-    SERVER_SUBDIRS = daemons init install ipaserver
+    IPASERVER_SUBDIRS = ipaserver
+    SERVER_SUBDIRS = daemons init install
 endif
 
 if WITH_IPATESTS
@@ -9,9 +10,9 @@ if WITH_IPATESTS
 endif
 
 IPACLIENT_SUBDIRS = ipaclient ipalib ipaplatform ipapython
+PYTHON_SUBDIRS = $(IPACLIENT_SUBDIRS) $(IPATESTS_SUBDIRS) $(IPASERVER_SUBDIRS)
 IPA_PLACEHOLDERS = freeipa ipa ipaserver ipatests
-SUBDIRS = asn1 util client contrib po pypi \
-	$(IPACLIENT_SUBDIRS) $(IPATESTS_SUBDIRS) $(SERVER_SUBDIRS)
+SUBDIRS = asn1 util client contrib po pypi $(PYTHON_SUBDIRS) $(SERVER_SUBDIRS)
 
 GENERATED_PYTHON_FILES = \
 	$(top_builddir)/ipaplatform/override.py \
@@ -357,6 +358,12 @@ pypi_packages: $(WHEELPYPIDIR) .wheelconstraints
 	done
 	@echo -e "\n\nTo upload packages to PyPI, run:\n"
 	@echo -e "    twine upload $(WHEELPYPIDIR)/*-$(VERSION)-py2.py3-none-any.whl\n"
+
+.PHONY: python_install
+python_install:
+	for dir in $(PYTHON_SUBDIRS); do \
+	    $(MAKE) $(AM_MAKEFLAGS) -C $${dir} install || exit 1; \
+	done
 
 .PHONY:
 strip-po:
