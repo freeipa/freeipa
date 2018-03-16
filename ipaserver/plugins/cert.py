@@ -22,11 +22,13 @@
 import base64
 import collections
 import datetime
+import itertools
 import logging
 from operator import attrgetter
 
 import cryptography.x509
 from cryptography.hazmat.primitives import hashes, serialization
+from dns import resolver, reversename
 import six
 
 from ipalib import Command, Str, Int, Flag
@@ -48,7 +50,7 @@ from .certprofile import validate_profile_id
 from ipalib.text import _
 from ipalib.request import context
 from ipalib import output
-from ipapython import kerberos
+from ipapython import dnsutil, kerberos
 from ipapython.dn import DN
 from ipaserver.plugins.service import normalize_principal, validate_realm
 from ipaserver.masters import ENABLED_SERVICE, CONFIGURED_SERVICE
@@ -772,9 +774,12 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                            "'userCertificate' attribute of entry '%s'.") % dn)
 
         # Validate the subject alt name, if any
-        generalnames = []
+        san_ipaddrs = set()
+        san_dnsnames = set()
         if ext_san is not None:
             generalnames = x509.process_othernames(ext_san.value)
+        else:
+            generalnames = []
         for gn in generalnames:
             if isinstance(gn, cryptography.x509.general_name.DNSName):
                 if principal.is_user:
@@ -786,6 +791,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                     )
 
                 name = gn.value
+                san_dnsnames.add(name)
 
                 if _dns_name_matches_principal(name, principal, principal_obj):
                     continue  # nothing more to check for this alt name
@@ -857,10 +863,15 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                             "subject alt name type %s is forbidden "
                             "for non-user principals") % "RFC822Name"
                     )
+            elif isinstance(gn, cryptography.x509.general_name.IPAddress):
+                san_ipaddrs.add(gn.value)
             else:
                 raise errors.ACIError(
                     info=_("Subject alt name type %s is forbidden")
                     % type(gn).__name__)
+
+        if san_ipaddrs:
+            _validate_san_ips(san_ipaddrs, san_dnsnames)
 
         # Request the certificate
         try:
@@ -1043,6 +1054,121 @@ def _principal_name_matches_principal(name, principal_obj):
         return False
 
     return principal in principal_obj.get('krbprincipalname', [])
+
+
+def _validate_san_ips(san_ipaddrs, san_dnsnames):
+    """
+    Check the IP addresses in a CSR subjectAltName.
+
+    Raise a ValidationError if the subjectAltName in a CSR includes
+    any IP addresses that do not match a DNS name in the SAN.  Matching means
+    the following:
+
+    * One of the DNS names in the SAN resolves (possibly via a single CNAME -
+      no CNAME chains allowed) to an A or AAAA record containing that
+      IP address.
+    * The IP address has a reverse DNS record pointing to that A or AAAA
+      record.
+    * All of the DNS records (A, AAAA, CNAME, and PTR) are managed by this IPA
+      instance.
+
+    :param san_ipaddrs: The IP addresses in the subjectAltName
+    :param san_dnsnames: The DNS names in the subjectAltName
+
+    :raises: errors.ValidationError if the SAN containes a non-matching IP
+        address.
+
+    """
+    san_dns_ips = set()
+    for name in san_dnsnames:
+        san_dns_ips.update(_san_dnsname_ips(name))
+    for ip in san_ipaddrs:
+        if unicode(ip) not in san_dns_ips:
+            raise errors.ValidationError(
+                name='csr',
+                error=_(
+                    "IP address in subjectAltName (%s) does not "
+                    "match any DNS name"
+                ) % name.value
+            )
+
+
+def _san_dnsname_ips(dnsname, dnsname_is_cname=False):
+    """
+    Resolve a DNS name to its IP address(es).
+
+    Returns a set of IP addresses, managed by this IPA instance,
+    that correspond to the DNS name (from the subjectAltName).
+
+    :param dnsname: The DNS name (text) for which to resolve the IP addresses
+    :param dnsname_is_cname: True when (recursively) resolving a CNAME (CNAME
+        chains are not followed)
+
+    :return: The set of IP addresses resolved from the DNS name
+
+    """
+    ips = set()
+    fqdn = dnsutil.DNSName(dnsname).make_absolute()
+    # This is a hack to avoid trying to find a DNS zone for unqualified DNS
+    # names.  Since no such zone exists, zone_for_name() will search all the
+    # way up to the root zone, which may take a while.
+    if len(fqdn) < 3:
+        logger.debug("Skipping IPs for %s: hostname too short", dnsname)
+        return ips
+    zone = dnsutil.DNSName(resolver.zone_for_name(fqdn))
+    name = fqdn.relativize(zone)
+    try:
+        result = api.Command['dnsrecord_show'](zone, name)['result']
+    except errors.NotFound as nf:
+        logger.debug("Skipping IPs for %s: %s", dnsname, nf)
+        return ips
+    for ip in itertools.chain(result.get('arecord', ()),
+                              result.get('aaaarecord', ())):
+        if _ip_rdns_ok(ip, fqdn):
+            ips.add(ip)
+    cnames = result.get('cnamerecord', ())
+    if cnames:
+        if dnsname_is_cname:
+            logger.debug("Skipping IPs for %s: chained CNAME", dnsname)
+        else:
+            for cname in cnames:
+                if not cname.endswith('.'):
+                    cname = u'%s.%s' % (cname, zone)
+                ips.update(_san_dnsname_ips(cname, True))
+    return ips
+
+
+def _ip_rdns_ok(ip, fqdn):
+    """
+    Check an IP address's reverse DNS record.
+
+    Determines whether the IP address has a reverse DNS entry (managed
+    by this IPA instance) that points to the FQDN.
+
+    :param ip: The IP address to check
+    :param fqdn: The FQDN (A/AAAA record) to which the reverse record should
+        point
+
+    :return: True if the IP address's reverse DNS record checks out, False if
+        it does not
+
+    """
+    rname = dnsutil.DNSName(reversename.from_address(ip))
+    zone = dnsutil.DNSName(resolver.zone_for_name(rname))
+    name = rname.relativize(zone)
+    try:
+        result = api.Command['dnsrecord_show'](zone, name)['result']
+    except errors.NotFound:
+        logger.debug("Skipping IP %s: reverse DNS record not found", ip)
+        return False
+
+    # Require the PTR record to match the expected hostname
+    if any(ptr == fqdn.to_unicode() for ptr in result.get('ptrrecord', [])):
+        return True
+    else:
+        logger.debug("Skipping IP: %s: reverse DNS doesn't match FQDN %s",
+                     ip, fqdn)
+        return False
 
 
 @register()
