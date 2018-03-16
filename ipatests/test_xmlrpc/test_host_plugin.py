@@ -645,6 +645,25 @@ class TestHostNoNameserversForRevZone(XMLRPC_test):
         httpd error_log, and the command returns an InternalError.
         """
         try:
+            result = ipautil.run(['dig', '-t', 'SOA', missingrevzone],
+                                  capture_output=True)
+            print('dig -t SOA {}:\n-----------------\n {}'
+                  .format(missingrevzone, result.output))
+
+            ipautil.run(['rndc', 'flushtree', '16.172.in-addr.arpa.'])
+            ipautil.run(['rndc', 'dumpdb', '-all'])
+            result = ipautil.run(['cat', '/var/named/data/cache_dump.db'],
+                                 capture_output=True)
+            print('rndc dumpdb -all:\n---------------\n{}'
+                  .format(result.output))
+
+            ipautil.run(['touch', '/var/named/named.recursing'])
+            ipautil.run(['chown', 'named', '/var/named/named.recursing'])
+            ipautil.run(['rndc', 'recursing'])
+            result = ipautil.run(['cat', '/var/named/named.recursing'],
+                                 capture_output=True)
+            print('rndc recursing:\n--------------\n{}'.format(result.output))
+
             command = host4.make_create_command()
             result = command(ip_address=ipv4_in_missingrevzone_ip)
             msg = result['messages'][0]
