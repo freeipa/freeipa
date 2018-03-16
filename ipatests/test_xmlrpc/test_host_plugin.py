@@ -649,10 +649,11 @@ class TestHostNoNameserversForRevZone(XMLRPC_test):
             result = command(ip_address=ipv4_in_missingrevzone_ip)
             msg = result['messages'][0]
             assert msg['code'] == messages.FailedToAddHostDNSRecords.errno
-            expected_msg = ("The host was added but the DNS update failed "
-                            "with: All nameservers failed to answer the query "
-                            "for DNS reverse zone {}").format(missingrevzone)
-            assert msg['message'] == expected_msg
+            expected = "The host was added but the DNS update failed"
+            # Either one of:
+            # All nameservers failed to answer the query for DNS reverse zone
+            # DNS reverse zone ... is not managed by this server
+            assert expected in msg['message']
             # Make sure the host is added
             host4.run_command('host_show', host4.fqdn)
         finally:
