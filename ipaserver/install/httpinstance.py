@@ -21,16 +21,17 @@ from __future__ import print_function
 
 import logging
 import os
-import os.path
 import pwd
 import re
-import dbus
+import glob
+import errno
 import shlex
 import pipes
 import locale
 
 import six
 from augeas import Augeas
+import dbus
 
 from ipalib.install import certmonger
 from ipapython import ipaldap
@@ -559,17 +560,37 @@ class HTTPInstance(service.Service):
             except ValueError as error:
                 logger.debug("%s", error)
 
-        installutils.remove_keytab(self.keytab)
-        installutils.remove_file(paths.HTTP_CCACHE)
-
         # Remove the configuration files we create
-        installutils.remove_file(paths.HTTPD_IPA_REWRITE_CONF)
-        installutils.remove_file(paths.HTTPD_IPA_CONF)
-        installutils.remove_file(paths.HTTPD_IPA_PKI_PROXY_CONF)
-        installutils.remove_file(paths.HTTPD_IPA_KDCPROXY_CONF_SYMLINK)
-        installutils.remove_file(paths.HTTPD_IPA_KDCPROXY_CONF)
+        installutils.remove_keytab(self.keytab)
+        remove_files = [
+            paths.HTTP_CCACHE,
+            paths.HTTPD_IPA_REWRITE_CONF,
+            paths.HTTPD_IPA_CONF,
+            paths.HTTPD_IPA_PKI_PROXY_CONF,
+            paths.HTTPD_IPA_KDCPROXY_CONF_SYMLINK,
+            paths.HTTPD_IPA_KDCPROXY_CONF,
+            paths.GSSPROXY_CONF,
+            paths.HTTPD_PASSWORD_CONF,
+            paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF,
+        ]
+        # NSS DB backups
+        remove_files.extend(
+            glob.glob(os.path.join(paths.HTTPD_ALIAS_DIR, '*.ipasave'))
+        )
         if paths.HTTPD_IPA_WSGI_MODULES_CONF is not None:
-            installutils.remove_file(paths.HTTPD_IPA_WSGI_MODULES_CONF)
+            remove_files.append(paths.HTTPD_IPA_WSGI_MODULES_CONF)
+
+        for filename in remove_files:
+            installutils.remove_file(filename)
+
+        try:
+            os.rmdir(paths.SYSTEMD_SYSTEM_HTTPD_D_DIR)
+        except OSError as e:
+            if e.errno not in {errno.ENOENT, errno.ENOTEMPTY}:
+                logger.error(
+                    "Failed to remove directory %s",
+                    paths.SYSTEMD_SYSTEM_HTTPD_D_DIR
+                )
 
         # Restore SELinux boolean states
         boolean_states = {name: self.restore_state(name)
