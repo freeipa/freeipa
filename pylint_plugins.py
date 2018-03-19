@@ -62,13 +62,22 @@ fake_backend = {'Backend': [
     {'wsgi_dispatch': ['mount']},
 ]}
 
-NAMESPACE_ATTRS = ['Command', 'Object', 'Method', fake_backend, 'Updater',
+NAMESPACE_ATTRS = ['Object', 'Method', fake_backend, 'Updater',
                    'Advice']
-fake_api_env = {'env': [
-    'host',
-    'realm',
-    'kinit_lifetime',
-]}
+fake_api_env = {
+    'env': [
+        'host',
+        'realm',
+        'kinit_lifetime',
+    ],
+    'Command': [
+        'get_plugin',
+        'config_show',
+        'host_show',
+        'service_show',
+        'user_show',
+    ],
+}
 
 # this is due ipaserver.rpcserver.KerberosSession where api is undefined
 fake_api = {'api': [fake_api_env] + NAMESPACE_ATTRS}
@@ -90,13 +99,17 @@ ipa_class_members = {
     'ipalib.config.Env': [
         {'__d': ['get']},
         {'__done': ['add']},
-        'xmlrpc_uri',
-        'validate_api',
-        'startup_traceback',
-        'verbose',
+        'ca_host',
+        'ca_install_port',
         'debug',
-        'server',
         {'domain': dir(str)},
+        'http_timeout',
+        'rpc_protocol',
+        'startup_traceback',
+        'server',
+        'validate_api',
+        'verbose',
+        'xmlrpc_uri',
     ],
     'ipalib.errors.ACIError': [
         'info',
