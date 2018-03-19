@@ -964,14 +964,14 @@ def check_server_configuration():
 
 
 def remove_file(filename):
-    """
-    Remove a file and log any exceptions raised.
+    """Remove a file and log any exceptions raised.
     """
     try:
-        if os.path.lexists(filename):
-            os.unlink(filename)
+        os.unlink(filename)
     except Exception as e:
-        logger.error('Error removing %s: %s', filename, str(e))
+        # ignore missing file
+        if getattr(e, 'errno', None) != errno.ENOENT:
+            logger.error('Error removing %s: %s', filename, str(e))
 
 
 def rmtree(path):

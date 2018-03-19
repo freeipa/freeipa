@@ -5,6 +5,7 @@
 from __future__ import print_function
 
 import logging
+import errno
 import os
 import pwd
 import grp
@@ -463,9 +464,15 @@ class DNSKeySyncInstance(service.Service):
         # remove softhsm pin, to make sure new installation will generate
         # new token database
         # do not delete *so pin*, user can need it to get token data
+        installutils.remove_file(paths.DNSSEC_SOFTHSM_PIN)
+        installutils.remove_file(paths.DNSSEC_SOFTHSM2_CONF)
+
         try:
-            os.remove(paths.DNSSEC_SOFTHSM_PIN)
-        except Exception:
-            pass
+            shutil.rmtree(paths.DNSSEC_TOKENS_DIR)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                logger.exception(
+                    "Failed to remove %s", paths.DNSSEC_TOKENS_DIR
+                )
 
         installutils.remove_keytab(self.keytab)
