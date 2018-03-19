@@ -361,7 +361,7 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
 
         self.validate()
         if self.__state == _EXECUTE_PENDING:
-            self.execute()
+            return self.execute()
 
     def validate(self):
         """
@@ -384,9 +384,13 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
         """
         Run the execution part of the configurable.
         """
+        return_value = 0
 
-        for _nothing in self._executor():
-            pass
+        for rval in self._executor():
+            if rval is not None and rval > return_value:
+                return_value = rval
+
+        return return_value
 
     def _executor(self):
         """
