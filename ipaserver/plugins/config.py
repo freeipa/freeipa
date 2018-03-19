@@ -288,9 +288,20 @@ class config(LDAPObject):
     def update_entry_with_role_config(self, role_name, entry_attrs):
         backend = self.api.Backend.serverroles
 
-        role_config = backend.config_retrieve(role_name)
+        try:
+            role_config = backend.config_retrieve(role_name)
+        except errors.EmptyResult:
+            # No role config means current user identity
+            # has no rights to see it, return with no action
+            return
+
         for key, value in role_config.items():
-            entry_attrs.update({key: value})
+            try:
+                entry_attrs.update({key: value})
+            except errors.EmptyResult:
+                # An update that doesn't change an entry is fine here
+                # Just ignore and move to the next key pair
+                pass
 
 
     def show_servroles_attributes(self, entry_attrs, *roles, **options):
