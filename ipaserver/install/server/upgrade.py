@@ -1617,7 +1617,12 @@ def upgrade_configuration():
         AUTOREDIR='' if auto_redirect else '#',
         CRL_PUBLISH_PATH=paths.PKI_CA_PUBLISH_DIR,
         DOGTAG_PORT=8009,
-        CLONE='#'
+        CLONE='#',
+        WSGI_PREFIX_DIR=paths.WSGI_PREFIX_DIR,
+        GSSAPI_SESSION_KEY=paths.GSSAPI_SESSION_KEY,
+        FONTS_DIR=paths.FONTS_DIR,
+        IPA_CCACHES=paths.IPA_CCACHES,
+        IPA_CUSTODIA_SOCKET=paths.IPA_CUSTODIA_SOCKET
     )
 
     subject_base = find_subject_base()
