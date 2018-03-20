@@ -1782,6 +1782,8 @@ def upgrade_configuration():
         DOGTAG_PORT=8009,
         CLONE='#',
         WSGI_PROCESSES=constants.WSGI_PROCESSES,
+        IPA_CCACHES=paths.IPA_CCACHES,
+        IPA_CUSTODIA_SOCKET=paths.IPA_CUSTODIA_SOCKET
     )
 
     subject_base = find_subject_base()
