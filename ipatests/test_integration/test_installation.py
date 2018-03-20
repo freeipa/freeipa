@@ -345,12 +345,14 @@ class TestInstallMasterReservedIPasForwarder(IntegrationTest):
         assert exp_str in cmd.stderr_text
 
         server_install_options = (
-                "yes\n\n\n\n"
+                "yes\n"
+                "{dmname}\n\n"
                 "{dm_pass}\n{dm_pass}"
                 "\n{admin_pass}\n{admin_pass}\n"
                 "yes\nyes\n0.0.0.0\n".format(
                     dm_pass=self.master.config.dirman_password,
-                    admin_pass=self.master.config.admin_password))
+                    admin_pass=self.master.config.admin_password,
+                    dmname=self.master.domain.name))
 
         cmd = self.master.run_command(['ipa-server-install'],
                                       stdin_text=server_install_options,
