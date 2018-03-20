@@ -506,6 +506,8 @@ class HTTPInstance(service.Service):
         installutils.remove_file(paths.HTTPD_IPA_KDCPROXY_CONF)
         if paths.HTTPD_IPA_WSGI_MODULES_CONF is not None:
             installutils.remove_file(paths.HTTPD_IPA_WSGI_MODULES_CONF)
+        if paths.GSSPROXY_CONF is not None:
+            installutils.remove_file(paths.GSSPROXY_CONF)
 
         # Restore SELinux boolean states
         boolean_states = {name: self.restore_state(name)
