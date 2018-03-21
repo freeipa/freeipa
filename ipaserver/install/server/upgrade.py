@@ -11,6 +11,8 @@ import shutil
 import pwd
 import fileinput
 import sys
+import tempfile
+from contextlib import contextmanager
 from augeas import Augeas
 import dns.exception
 from ipalib import api
@@ -1973,6 +1975,31 @@ def upgrade_check(options):
         logger.warning("Upgrade without version check may break your system")
 
 
+@contextmanager
+def empty_ccache():
+    # Create temporary directory and use it as a DIR: ccache collection
+    # instead of whatever is a default in /etc/krb5.conf
+    #
+    # In Fedora 28 KCM: became a default credentials cache collection
+    # but if KCM daemon (part of SSSD) is not running, libkrb5 will fail
+    # to initialize. This causes kadmin.local to fail.
+    # Since we are in upgrade, we cannot kinit anyway (KDC is offline).
+    # Bug https://bugzilla.redhat.com/show_bug.cgi?id=1558818
+    kpath_dir = tempfile.mkdtemp(prefix="upgrade_ccaches",
+                                 dir=paths.IPA_CCACHES)
+    kpath = "DIR:{}".format(kpath_dir)
+    old_path = os.environ.get('KRB5CCNAME')
+    try:
+        os.environ['KRB5CCNAME'] = kpath
+        yield
+    finally:
+        if old_path:
+            os.environ['KRB5CCNAME'] = old_path
+        else:
+            del os.environ['KRB5CCNAME']
+        shutil.rmtree(kpath_dir)
+
+
 def upgrade():
     realm = api.env.realm
     schema_files = [os.path.join(paths.USR_SHARE_IPA_DIR, f) for f
@@ -1997,7 +2024,8 @@ def upgrade():
 
     print('Upgrading IPA services')
     logger.info('Upgrading the configuration of the IPA services')
-    upgrade_configuration()
+    with empty_ccache():
+        upgrade_configuration()
     logger.info('The IPA services were upgraded')
 
     # store new data version after upgrade
