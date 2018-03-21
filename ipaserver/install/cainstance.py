@@ -540,7 +540,7 @@ class CAInstance(DogtagInstance):
             str(DN(('cn', 'CA Subsystem'), self.subject_base)))
         config.set("CA", "pki_ocsp_signing_subject_dn",
             str(DN(('cn', 'OCSP Subsystem'), self.subject_base)))
-        config.set("CA", "pki_ssl_server_subject_dn",
+        config.set("CA", "pki_sslserver_subject_dn",
             str(DN(('cn', self.fqdn), self.subject_base)))
         config.set("CA", "pki_audit_signing_subject_dn",
             str(DN(('cn', 'CA Audit'), self.subject_base)))
@@ -551,7 +551,7 @@ class CAInstance(DogtagInstance):
         # Certificate nicknames
         config.set("CA", "pki_subsystem_nickname", "subsystemCert cert-pki-ca")
         config.set("CA", "pki_ocsp_signing_nickname", "ocspSigningCert cert-pki-ca")
-        config.set("CA", "pki_ssl_server_nickname", "Server-Cert cert-pki-ca")
+        config.set("CA", "pki_sslserver_nickname", "Server-Cert cert-pki-ca")
         config.set("CA", "pki_audit_signing_nickname", "auditSigningCert cert-pki-ca")
         config.set("CA", "pki_ca_signing_nickname", "caSigningCert cert-pki-ca")
 
