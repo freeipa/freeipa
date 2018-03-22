@@ -687,22 +687,6 @@ class CertDB(object):
 
         return is_ipa_issued_cert(api, cert)
 
-    def needs_upgrade_format(self):
-        """Check if NSSDB file format needs upgrade
-
-        Only upgrade if it's an existing dbm database and default
-        database type is no 'dbm'.
-        """
-        return (
-            self.nssdb.dbtype == 'dbm' and
-            self.exists()
-        )
-
-    def upgrade_format(self):
-        """Upgrade NSSDB to new file format
-        """
-        self.nssdb.convert_db()
-
 
 class _CrossProcessLock(object):
     _DATETIME_FORMAT = '%Y%m%d%H%M%S%f'

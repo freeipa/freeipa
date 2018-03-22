@@ -209,6 +209,21 @@ def check_certs():
     else:
         logger.debug('Certificate file exists')
 
+
+def convert_httpd_nssdb():
+    """Convert HTTPD's NSSDB as early as possible
+    """
+    db = certs.CertDB(api.env.realm, nssdir=paths.HTTPD_ALIAS_DIR)
+    if db.nssdb.dbtype == 'sql':
+        logger.debug('%s is already a SQL database', paths.HTTPD_ALIAS_DIR)
+        return
+    with installutils.stopped_service('httpd'):
+        logger.info(
+            'Converting NSSDB %s to SQL format', paths.HTTPD_ALIAS_DIR
+        )
+        db.nssdb.convert_db(rename_old=True)
+
+
 def update_dbmodules(realm, filename=paths.KRB5_CONF):
     newfile = []
     found_dbrealm = False
@@ -1598,6 +1613,9 @@ def upgrade_configuration():
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     fqdn = api.env.host
+
+    # convert NSSDB right away
+    convert_httpd_nssdb()
 
     # Ok, we are an IPA server, do the additional tests
     ds_serverid = installutils.realm_to_serverid(api.env.realm)
