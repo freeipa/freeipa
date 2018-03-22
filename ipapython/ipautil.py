@@ -1036,6 +1036,7 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
 
     return port_open
 
+
 def host_port_free(host, port, socket_type=socket.SOCK_STREAM,
                    socket_timeout=None, log_conns=False,
                    log_level=logging.DEBUG):
