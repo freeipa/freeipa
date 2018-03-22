@@ -311,13 +311,12 @@ class otptoken_add(LDAPCreate):
         # If owner was not specified, default to the person adding this token.
         # If managedby was not specified, attempt a sensible default.
         if 'ipatokenowner' not in entry_attrs or 'managedby' not in entry_attrs:
-            result = self.api.Command.user_find(
-                whoami=True, no_members=False)['result']
-            if result:
-                cur_uid = result[0]['uid'][0]
+            cur_dn = DN(self.api.Backend.ldap2.conn.whoami_s()[4:])
+            if cur_dn:
+                cur_uid = cur_dn[0].value
                 prev_uid = entry_attrs.setdefault('ipatokenowner', cur_uid)
                 if cur_uid == prev_uid:
-                    entry_attrs.setdefault('managedby', result[0]['dn'])
+                    entry_attrs.setdefault('managedby', cur_dn.ldap_text())
 
         # Resolve the owner's dn
         _normalize_owner(self.api.Object.user, entry_attrs)
