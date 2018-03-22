@@ -111,8 +111,8 @@ def check_ports():
 
     Returns True when all ports are free, False if any are taken.
     """
-    return all([ipautil.host_port_free(None, 8443),
-                ipautil.host_port_free(None, 8080)])
+    return all([ipautil.host_port_free(8443),
+                ipautil.host_port_free(8080)])
 
 def get_preop_pin(instance_root, instance_name):
     # Only used for Dogtag 9

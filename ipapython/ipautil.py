@@ -31,6 +31,7 @@ import sys
 import copy
 import shutil
 import socket
+import errno
 import re
 import datetime
 import netaddr
@@ -1037,49 +1038,42 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
     return port_open
 
 
-def host_port_free(host, port, socket_type=socket.SOCK_STREAM,
-                   socket_timeout=None, log_conns=False,
-                   log_level=logging.DEBUG):
+def host_port_free(port, log_conns=False, log_level=logging.DEBUG):
     """
-    host: either hostname or IP address;
-          if hostname is provided, port MUST be free on ALL resolved IPs
+    Accepts a tcp port argument
 
-    returns True if the port is free, False otherwise
+    Returns True if the port is free, False otherwise
     """
-    port_free = True
+    port_free = False
 
-    # port has to be free on ALL resolved IPs
-    for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket_type):
-        af, socktype, proto, _canonname, sa = res
-        s = None
-        try:
-            s = socket.socket(af, socktype, proto)
-
-            if socket_timeout is not None:
-                s.settimeout(socket_timeout)
-
-            s.connect(sa)
-
-            if socket_type == socket.SOCK_DGRAM:
-                s.send(b'')
-                s.recv(512)
-            port_free = False
-            if log_conns:
-                msg = ('Connected to port %(port)s %(proto)s on '
-                       '%(addr)s' % dict(port=port,
-                                         proto=PROTOCOL_NAMES[socket_type],
-                                         addr=sa[0]))
-                logger.log(log_level, msg)
-        except socket.error:
-            if log_conns:
-                msg = ('Failed to connect to port %(port)s %(proto)s on '
-                       '%(addr)s' % dict(port=port,
-                                         proto=PROTOCOL_NAMES[socket_type],
-                                         addr=sa[0]))
-                logger.log(log_level, msg)
-        finally:
-            if s is not None:
+    try:
+        s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+        s.bind(('::', port))
+        port_free = True
+        s.close()
+        if log_conns:
+            msg = ("host_port_free: IPv6 bind succeeded: %s" % port)
+            logger.log(log_level, msg)
+    except socket.error as se:
+        if se.errno == errno.EAFNOSUPPORT:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+                s.bind(('', port))
+                port_free = True
                 s.close()
+                if log_conns:
+                    msg = ("host_port_free: IPv4 bind succeeded: %s" % port)
+                    logger.log(log_level, msg)
+            except socket.error:
+                if log_conns:
+                    msg = ("host_port_free: IPv4 bind failed: %s" % port)
+                    logger.log(log_level, msg)
+        else:
+            if log_conns:
+                msg = ("host_port_free: IPv6 bind failed: %s" % port)
+                logger.log(log_level, msg)
 
     return port_free
 
