@@ -208,7 +208,7 @@ class KRAInstance(DogtagInstance):
         # Certificate subject DNs
         config.set("KRA", "pki_subsystem_subject_dn",
                    str(DN(('cn', 'CA Subsystem'), self.subject_base)))
-        config.set("KRA", "pki_ssl_server_subject_dn",
+        config.set("KRA", "pki_sslserver_subject_dn",
                    str(DN(('cn', self.fqdn), self.subject_base)))
         config.set("KRA", "pki_audit_signing_subject_dn",
                    str(DN(('cn', 'KRA Audit'), self.subject_base)))
@@ -224,7 +224,7 @@ class KRAInstance(DogtagInstance):
         # the ca certs.
         config.set("KRA", "pki_subsystem_nickname",
                    "subsystemCert cert-pki-ca")
-        config.set("KRA", "pki_ssl_server_nickname",
+        config.set("KRA", "pki_sslserver_nickname",
                    "Server-Cert cert-pki-ca")
         config.set("KRA", "pki_audit_signing_nickname",
                    "auditSigningCert cert-pki-kra")
