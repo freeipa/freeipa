@@ -73,11 +73,9 @@ def check_admin_in_cli(host):
     # that, the code bellow order the 'Member of groups' field to able to
     # assert it latter.
     data = dict(re.findall("\W*(.+):\W*(.+)\W*", result.stdout_text))
-    data["Member of groups"] = ', '.join(sorted(data["Member of groups"]
-                                                .split(", ")))
-    result.stdout_text = ''.join([' {}: {}\n'.format(k, v)
-                                  for k, v in data.items()])
-    return result
+    data["Member of groups"] = sorted(data["Member of groups"].split(', '))
+
+    return data
 
 
 def check_admin_in_id(host):
@@ -113,7 +111,7 @@ def check_custodia_files(host):
 
 CHECKS = [
     (check_admin_in_ldap, assert_entries_equal),
-    (check_admin_in_cli, assert_results_equal),
+    (check_admin_in_cli, assert_deepequal),
     (check_admin_in_id, assert_results_equal),
     (check_certs, assert_results_equal),
     (check_dns, assert_results_equal),
