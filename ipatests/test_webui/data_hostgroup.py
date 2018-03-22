@@ -20,6 +20,15 @@
 ENTITY = 'hostgroup'
 DEFAULT_FACET = 'member_host'
 
+LEADING_SPACE = ' leading-space'
+TRAILING_SPACE = 'trailign-space '
+NAME_SPACE = 'name space'
+
+CHAR_WARNING_MSG = "may only include letters, numbers, _, -, and ."
+EMPTY_WARNING_MSG = "Required field"
+DUPLICATE_WARNING_MSG = 'already exists'
+DESCRIPTION_ERROR_DIALOG = 'Leading and trailing spaces are not allowed'
+
 PKEY = 'itest-hostgroup'
 DATA = {
     'pkey': PKEY,
@@ -77,5 +86,33 @@ DATA5 = {
     ],
     'mod': [
         ('textarea', 'description', 'test-hostgroup5 desc modified'),
+    ],
+}
+
+PKEY6 = 'ITEST-HOSTGROUP6'
+DATA6 = {
+    'pkey': PKEY6,
+    'add': [
+        ('textbox', 'cn', PKEY6),
+        ('textarea', 'description', 'TEST-HOSTGROUP6 DESC'),
+    ],
+}
+
+PKEY7 = 'Itest-hostGROUP7'
+DATA7 = {
+    'pkey': PKEY7,
+    'add': [
+        ('textbox', 'cn', PKEY7),
+        ('textarea', 'description', 'TesT-HosTGroUP7 DESC'),
+    ],
+}
+
+PKEY8 = 16 * 'long-name-hostgroup8'
+DKEY8 = 16 * 'long hostgroup description'
+DATA8 = {
+    'pkey': PKEY8,
+    'add': [
+        ('textbox', 'cn', PKEY8),
+        ('textarea', 'description', DKEY8),
     ],
 }

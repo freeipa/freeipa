@@ -984,7 +984,8 @@ class UI_driver(object):
         s += '.table'
         return s
 
-    def select_record(self, pkey, parent=None, table_name=None):
+    def select_record(self, pkey, parent=None,
+                      table_name=None, unselect=False):
         """
         Select record with given pkey in search table.
         """
@@ -1000,8 +1001,13 @@ class UI_driver(object):
         except WebDriverException as e:
             assert False, 'Can\'t click on checkbox label: %s \n%s' % (s, e)
         self.wait()
-        assert checkbox.is_selected(), 'Record was not checked: %s' % input_s
-        self.wait()
+        if unselect:
+            assert checkbox.is_selected() is not True
+            self.wait()
+        else:
+            assert checkbox.is_selected(), \
+                   'Record was not checked: %s' % input_s
+            self.wait()
 
     def get_record_value(self, pkey, column, parent=None, table_name=None):
         """
