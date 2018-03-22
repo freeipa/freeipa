@@ -31,6 +31,15 @@ import ipatests.test_webui.data_sudo as sudo
 import pytest
 
 
+def check_invalid_names(self, names, error_link):
+    self.navigate_to_entity(hostgroup.ENTITY)
+    for name in names:
+        self.button_click(name='add')
+        self.fill_input('cn', name)
+        text_warning = self.get_text('.help-block', parent=self.get_dialog())
+        assert text_warning in error_link
+        self.dialog_button_click(name='cancel')
+
 @pytest.mark.tier1
 class test_hostgroup(UI_driver):
 
@@ -142,7 +151,108 @@ class test_hostgroup(UI_driver):
         ## cleanup
         ## -------
         self.delete(hostgroup.ENTITY, [hostgroup.DATA, hostgroup.DATA2,
-                                       hostgroup.DATA3, hostgroup.DATA4, hostgroup.DATA5])
+                                       hostgroup.DATA3, hostgroup.DATA4,
+                                       hostgroup.DATA5])
         self.delete(HOST_ENTITY, [host.data2])
         self.delete(hbac.RULE_ENTITY, [hbac.RULE_DATA])
         self.delete(sudo.RULE_ENTITY, [sudo.RULE_DATA])
+
+    def test_names_and_button(self):
+        """
+        Hostgroup names and buttons
+        """
+        self.init_app()
+        host = host_tasks()
+        host.setup(self.driver, self.config)
+
+        self.add_record(hostgroup.ENTITY, hostgroup.DATA6)
+        self.add_record(hostgroup.ENTITY, hostgroup.DATA7, navigate=False)
+        self.add_record(hostgroup.ENTITY, hostgroup.DATA8, navigate=False)
+
+        # test invalid names
+        invalid_names = [hostgroup.LEADING_SPACE,
+                         hostgroup.TRAILING_SPACE,
+                         hostgroup.NAME_SPACE]
+        check_invalid_names(self, invalid_names, hostgroup.CHAR_WARNING_MSG)
+
+        invalid_names = [hostgroup.PKEY6]
+        check_invalid_names(self, invalid_names,
+                            hostgroup.DUPLICATE_WARNING_MSG)
+
+        # test invalid description
+        self.button_click(name='add')
+        self.fill_input('cn', hostgroup.PKEY)
+        self.fill_textarea('description', hostgroup.LEADING_SPACE)
+        self.dialog_button_click('add')
+        assert hostgroup.DESCRIPTION_ERROR_DIALOG in \
+            self.get_last_error_dialog().text
+        self.dialog_button_click('cancel')
+        self.wait()
+
+        self.fill_textarea('description', hostgroup.TRAILING_SPACE)
+        self.dialog_button_click('add')
+        assert hostgroup.DESCRIPTION_ERROR_DIALOG in \
+            self.get_last_error_dialog().text
+        self.dialog_button_click('cancel')
+        self.dialog_button_click('cancel')
+
+        # duplicate
+        self.button_click(name='add')
+        self.fill_input('cn', hostgroup.PKEY6)
+        self.dialog_button_click('add')
+        assert hostgroup.DUPLICATE_WARNING_MSG in \
+            self.get_last_error_dialog().text
+        self.dialog_button_click('cancel')
+        self.dialog_button_click('cancel')
+
+        self.button_click(name='add')
+        self.fill_input('cn', "")
+        self.dialog_button_click('add')
+        text_warning = self.get_text('.help-block', parent=self.get_dialog())
+        assert text_warning in hostgroup.EMPTY_WARNING_MSG
+        self.dialog_button_click(name='cancel')
+
+        # test buttons
+        self.button_click('add')
+        self.fill_input('cn', hostgroup.DATA['pkey'])
+        self.dialog_button_click(name='add_and_add_another')
+        self.wait_for_request(n=3)
+
+        self.fill_input('cn', hostgroup.DATA2['pkey'])
+        self.dialog_button_click(name='add_and_edit')
+        self.wait_for_request(n=4)
+
+        self.navigate_to_entity(hostgroup.ENTITY)
+        self.button_click('add')
+        self.fill_input('cn', hostgroup.DATA['pkey'])
+        self.dialog_button_click('cancel')
+
+        self.select_record(hostgroup.PKEY)
+        self.button_click('remove')
+        self.dialog_button_click('cancel')
+        self.wait()
+        self.select_record(hostgroup.PKEY, unselect=True)
+
+        # test to rewrite invalid input_type
+        self.button_click('add')
+        self.fill_input('cn', hostgroup.LEADING_SPACE)
+        self.fill_input('cn', hostgroup.PKEY3)
+        self.dialog_button_click('add')
+        self.wait_for_request(n=3)
+
+        self.button_click('add')
+        self.fill_input('cn', hostgroup.TRAILING_SPACE)
+        self.fill_input('cn', hostgroup.PKEY4)
+        self.dialog_button_click('add')
+        self.wait_for_request(n=3)
+
+        # multiple delete clean up
+        self.select_record(hostgroup.PKEY6.lower())
+        self.select_record(hostgroup.PKEY7.lower())
+        self.button_click('remove')
+        self.dialog_button_click('ok')
+
+        # clean up
+        self.delete(hostgroup.ENTITY, [hostgroup.DATA, hostgroup.DATA2,
+                                       hostgroup.DATA3, hostgroup.DATA4,
+                                       hostgroup.DATA8])
