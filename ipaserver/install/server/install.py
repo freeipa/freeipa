@@ -944,7 +944,26 @@ def install(installer):
 
     print("======================================="
           "=======================================")
-    print("Setup complete")
+    print("IPA server installation successful")
+    print("")
+    print("You can access Web UI using https://%s/ipa/ui" % (host_name))
+    print("")
+    print("Obtain a Kerberos Ticket for issuing IPA Command 'kinit admin'.")
+    print("")
+    print("Server is installed with following roles:")
+    print(" * 389 Directory Server")
+    print(" * Kerberos Server")
+    print(" * HTTP Server")
+    if setup_ca:
+        print(" * CA Server")
+    if options.setup_dns:
+        print(" * DNS Server")
+    print("")
+    print("For troubleshooting and errors:")
+    print("Please visit: https://www.freeipa.org/page/Troubleshooting")
+    print("")
+    print("For documentation:")
+    print("Please visit: https://www.freeipa.org/page/Documentation")
     print("")
     print("Next steps:")
     print("\t1. You must make sure these network ports are open:")
@@ -961,14 +980,9 @@ def install(installer):
     if not options.no_ntp:
         print("\t\t  * 123: ntp")
     print("")
-    print("\t2. You can now obtain a kerberos ticket using the command: "
-          "'kinit admin'")
-    print("\t   This ticket will allow you to use the IPA tools (e.g., ipa "
-          "user-add)")
-    print("\t   and the web user interface.")
 
-    if not services.knownservices.chronyd.is_running():
-        print("\t3. Kerberos requires time synchronization between clients")
+    if not services.knownservices.ntpd.is_running():
+        print("\t2. Kerberos requires time synchronization between clients")
         print("\t   and servers for correct operation. You should consider "
               "enabling chronyd.")
 
