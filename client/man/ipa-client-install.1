@@ -110,13 +110,16 @@ The hostname of this machine (FQDN). If specified, the hostname will be set and 
 Join the host even if it is already enrolled.
 .TP
 \fB\-\-ntp\-server\fR=\fINTP_SERVER\fR
-Configure ntpd to use this NTP server. This option can be used multiple times.
+Configure chronyd to use this NTP server. This option can be used multiple times and it is used to specify exactly one time server.
+.TP
+\fB\-\-ntp\-pool\fR=\fINTP_SERVER_POOL\fR
+Configure chronyd to use this NTP server pool.
 .TP
 \fB\-N\fR, \fB\-\-no\-ntp\fR
-Do not configure or enable NTP.
+Do not configure NTP client (chornyd).
 .TP
-\fB\-\-force\-ntpd\fR
-Stop and disable any time&date synchronization services besides ntpd.
+\fB\-\-force\-chrony\fR
+Stop and disable any time&date synchronization services besides chronyd.
 .TP
 \fB\-\-nisdomain\fR=\fINIS_DOMAIN\fR
 Set the NIS domain name as specified. By default, this is set to the IPA domain name.
@@ -246,13 +249,9 @@ Files that will be replaced if they exist and SSSD is not configured (\-\-no\-ss
 .br
 /etc/nslcd.conf
 .TP
-Files replaced if NTP is enabled:
+Files replaced if NTP client (chronyd) configuration is enabled:
 
-/etc/ntp.conf
-.br
-/etc/sysconfig/ntpd
-.br
-/etc/ntp/step\-tickers
+/etc/chrony.conf
 .TP
 Files always created (replacing existing content):
 

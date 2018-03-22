@@ -42,8 +42,16 @@ The fully\-qualified DNS name of this server.
 The IP address of this server. If this address does not match the address the host resolves to and \-\-setup\-dns is not selected, the installation will fail. If the server hostname is not resolvable, a record for the hostname and IP_ADDRESS is added to /etc/hosts.
 This option can be used multiple times to specify more IP addresses of the server (e.g. multihomed and/or dualstacked server).
 .TP
+Configure chronyd to use this NTP server. This option can be used multiple times and it is used to specify exactly one time server.
+.TP
+\fB\-\-ntp\-pool\fR=\fINTP_SERVER_POOL\fR
+Configure chronyd to use this NTP server pool.
+.TP
 \fB\-N\fR, \fB\-\-no\-ntp\fR
-Do not configure NTP.
+Do not configure NTP client (chornyd).
+.TP
+\fB\-\-force\-chrony\fR
+Stop and disable any time&date synchronization services besides chronyd.
 .TP
 \fB\-\-idstart\fR=\fIIDSTART\fR
 The starting user and group id number (default random).
