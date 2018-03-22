@@ -60,6 +60,7 @@ freeipa2-dev-doc
 
 # Root directory
 /freeipa.spec
+/freeipa-builddep.spec
 /dist/
 /.tox/
 /.cache/
