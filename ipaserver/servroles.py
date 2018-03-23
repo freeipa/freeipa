@@ -607,11 +607,6 @@ role_instances = (
         u"kra_server_server",
         u"KRA server",
         component_services=['KRA']
-    ),
-    ServiceBasedRole(
-        u"ntp_server_server",
-        u"NTP server",
-        component_services=['NTP']
     )
 )
 
