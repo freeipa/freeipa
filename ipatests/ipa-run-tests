@@ -28,11 +28,11 @@ so any relative paths given will be based on the ipatests module's path
 """
 
 import os
+import copy
 import sys
 
 import pytest
 
-import ipalib
 import ipatests
 
 # This is set to store --with-xunit report in an accessible place:
@@ -83,7 +83,7 @@ class ArgsManglePlugin(object):
         # are used for initial conftest.py from ipatests, which adds
         # additional arguments.
         early_config.known_args_namespace = parser.parse_known_args(
-            args, namespace=early_config.option.copy())
+            args, namespace=copy.copy(early_config.option))
 
 
 sys.exit(pytest.main(plugins=[ArgsManglePlugin()]))
