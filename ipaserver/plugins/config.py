@@ -244,12 +244,6 @@ class config(LDAPObject):
             flags={'virtual_attribute', 'no_create', 'no_update'}
         ),
         Str(
-            'ntp_server_server*',
-            label=_('IPA NTP servers'),
-            doc=_('IPA servers with enabled NTP'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
-        ),
-        Str(
             'ca_renewal_master_server?',
             label=_('IPA CA renewal master'),
             doc=_('Renewal master for IPA certificate authority'),
@@ -548,7 +542,7 @@ class config_mod(LDAPUpdate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.obj.show_servroles_attributes(
-            entry_attrs, "CA server", "IPA master", "NTP server", **options)
+            entry_attrs, "CA server", "IPA master", **options)
         return dn
 
 
@@ -558,5 +552,5 @@ class config_show(LDAPRetrieve):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.obj.show_servroles_attributes(
-            entry_attrs, "CA server", "IPA master", "NTP server", **options)
+            entry_attrs, "CA server", "IPA master", **options)
         return dn
