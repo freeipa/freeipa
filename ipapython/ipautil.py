@@ -1052,9 +1052,7 @@ def host_port_free(port, log_conns=False, log_level=logging.DEBUG):
         s.bind(('::', port))
         port_free = True
         s.close()
-        if log_conns:
-            msg = ("host_port_free: IPv6 bind succeeded: %s" % port)
-            logger.log(log_level, msg)
+        logger.debug("host_port_free: IPv6 bind success: %i", port)
     except socket.error as se:
         if se.errno == errno.EAFNOSUPPORT:
             try:
@@ -1063,17 +1061,11 @@ def host_port_free(port, log_conns=False, log_level=logging.DEBUG):
                 s.bind(('', port))
                 port_free = True
                 s.close()
-                if log_conns:
-                    msg = ("host_port_free: IPv4 bind succeeded: %s" % port)
-                    logger.log(log_level, msg)
+                logger.debug("host_port_free: IPv4 bind success: %i", port)
             except socket.error:
-                if log_conns:
-                    msg = ("host_port_free: IPv4 bind failed: %s" % port)
-                    logger.log(log_level, msg)
+                logger.debug("host_port_free: IPv4 bind failure: %i", port)
         else:
-            if log_conns:
-                msg = ("host_port_free: IPv6 bind failed: %s" % port)
-                logger.log(log_level, msg)
+            logger.debug("host_port_free: IPv6 bind failure: %i", port)
 
     return port_free
 
