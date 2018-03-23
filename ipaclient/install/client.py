@@ -2347,9 +2347,9 @@ def update_ipa_nssdb():
 
 def sync_time(options, fstore, statestore, force):
     """
-    Will disable any other time synchronization service if there is
-    --force-chrony option set, and configure chrony with given ntp(chrony)
-    server and/or pool using Augeas in configure_chrony method.
+    Will disable any other time synchronization service if the --force-chrony
+    option set, and configure chrony with given ntp(chrony) server and/or pool
+    using Augeas in configure_chrony method.
     If there is no option --ntp-server set IPADiscovery will try to find ntp
     server in DNS records.
     """
@@ -2372,18 +2372,19 @@ def sync_time(options, fstore, statestore, force):
     if ntp_servers:
         if timeconf.configure_chrony(ntp_servers, options.ntp_pool,
                                      fstore, statestore):
-            print("Done Configuring chrony.")
+            print("Done configuring chrony.")
         else:
-            print("Warning: IPA Server was unable to sync time with chrony!")
-            print("         Time synchronization is required for IPA Server "
+            print("Warning: IPA was unable to sync time with chrony!")
+            print("         Time synchronization is required for IPA "
                   "to work correctly")
             logger.warning(
                 "Unable to sync time with chrony server, assuming the time "
                 "is in sync. Please check that 123 UDP port is opened, "
                 "and any time server is on network.")
     else:
-        print("Warning: chrony not configured, using default configuration.")
-        logger.warning("No SRV records of NTP servers found nor NTP server  "
+        print("Warning: Skipping chrony configuration. "
+              "The default configuration will be used.")
+        logger.warning("No SRV records of NTP servers found and no NTP server "
                        "address was provided. Skipping chrony configuration, "
                        "default configuration will be used")
 
@@ -3477,7 +3478,7 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
         None, False,
         deprecated=True,
         description="Stop and disable any time&date synchronization services "
-                    "besides ntpd.\n"
+                    "besides ntpd. "
                     "This option has been obsoleted by --force-chrony",
     )
     force_ntpd = enroll_only(force_ntpd)

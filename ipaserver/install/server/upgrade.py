@@ -29,6 +29,7 @@ from ipapython import dnsutil
 from ipapython.dn import DN
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
+from ipaserver import servroles
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
 from ipaserver.install import httpinstance
@@ -1608,24 +1609,31 @@ def ntpd_cleanup(fqdn, fstore):
         except Exception as e:
             logger.info("Service ntpd was not disabled or stopped")
 
-    ntpd_files = [paths.NTP_CONF, paths.NTP_STEP_TICKERS, paths.SYSCONFIG_NTPD]
-    for ntpd_file in ntpd_files:
+    for ntpd_file in [paths.NTP_CONF, paths.NTP_STEP_TICKERS,
+                      paths.SYSCONFIG_NTPD]:
         try:
-            fstore.untrack_file(ntpd_file)
-            os.remove(ntpd_file)
-        except IOError:
-            logger.warning(
-                "No access to the %s, file could not be deleted.", ntpd_file)
+            fstore.restore_file(ntpd_file)
         except ValueError as e:
-            logger.warning("Error: %s", e)
+            logger.warning(e)
 
-    connection = api.Backend.ldap2
     try:
-        connection.delete_entry(DN(('cn', 'NTP'), ('cn', fqdn),
-                                   api.env.container_masters))
+        api.Backend.ldap2.delete_entry(DN(('cn', 'NTP'), ('cn', fqdn),
+                                       api.env.container_masters))
     except ipalib.errors.NotFound:
         logger.warning("Warning: NTP service entry was not found in LDAP.")
 
+    ntp_role_instance = servroles.ServiceBasedRole(
+         u"ntp_server_server",
+         u"NTP server",
+         component_services=['NTP']
+    )
+
+    updated_role_instances = tuple()
+    for role_instance in servroles.role_instances:
+        if role_instance is not ntp_role_instance:
+            updated_role_instances += tuple([role_instance])
+
+    servroles.role_instances = updated_role_instances
     sysupgrade.set_upgrade_state('ntpd', 'ntpd_cleaned', True)
 
 
