@@ -43,7 +43,7 @@ from ipapython.dn import DN
 import ipapython.errors
 from ipaserver.install import sysupgrade
 from ipalib import api, x509
-from ipalib.constants import IPAAPI_USER, HTTPD_PASSWD_FILE_FMT
+from ipalib.constants import IPAAPI_USER
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
@@ -306,10 +306,7 @@ class HTTPInstance(service.Service):
                 certmonger.stop()
 
     def __setup_ssl(self):
-        key_passwd_file = os.path.join(
-            paths.IPA_PASSWD_DIR,
-            HTTPD_PASSWD_FILE_FMT.format(host=api.env.host)
-        )
+        key_passwd_file = paths.HTTPD_PASSWD_FILE_FMT.format(host=api.env.host)
         with open(key_passwd_file, 'wb') as f:
             os.fchmod(f.fileno(), 0o600)
             pkey_passwd = ipautil.ipa_generate_password().encode('utf-8')
@@ -516,8 +513,7 @@ class HTTPInstance(service.Service):
             paths.HTTP_CCACHE,
             paths.HTTPD_CERT_FILE,
             paths.HTTPD_KEY_FILE,
-            os.path.join(paths.IPA_PASSWD_DIR,
-                         HTTPD_PASSWD_FILE_FMT.format(host=api.env.host)),
+            paths.HTTPD_PASSWD_FILE_FMT.format(host=api.env.host),
             paths.HTTPD_IPA_REWRITE_CONF,
             paths.HTTPD_IPA_CONF,
             paths.HTTPD_IPA_PKI_PROXY_CONF,
@@ -613,9 +609,18 @@ class HTTPInstance(service.Service):
             certs.install_pem_from_p12(temp.name,
                                        pk12_password,
                                        paths.HTTPD_CERT_FILE)
+
+            passwd_fname = paths.HTTPD_PASSWD_FILE_FMT.format(
+                            host=api.env.host)
+            with open(passwd_fname, 'wb') as passwd_file:
+                os.fchmod(passwd_file.fileno(), 0o600)
+                passwd_file.write(
+                    ipautil.ipa_generate_password().encode('utf-8'))
+
             certs.install_key_from_p12(temp.name,
                                        pk12_password,
-                                       paths.HTTPD_KEY_FILE)
+                                       paths.HTTPD_KEY_FILE,
+                                       out_passwd_fname=passwd_fname)
 
         self.backup_ssl_conf()
         self.configure_mod_ssl_certs()
