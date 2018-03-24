@@ -30,6 +30,7 @@ import re
 import os
 from functools import wraps
 import unittest
+import paramiko
 
 # pylint: disable=import-error
 from six.moves.urllib.error import URLError
@@ -871,19 +872,19 @@ class UI_driver(object):
         self.wait_for_request()
 
         list_cnt = self.find('.combobox-widget-list', By.CSS_SELECTOR, cb, strict=True)
-        search_btn = self.find('a[name=search] i', By.CSS_SELECTOR, cb, strict=True)
         opt_s = "select[name=list] option[value='%s']" % value
         option = self.find(opt_s, By.CSS_SELECTOR, cb)
 
         if combobox_input:
             if not option:
-                self.fill_textbox(combobox_input, value, cb)
                 open_btn.click()
+                self.fill_textbox(combobox_input, value, cb)
         else:
             if not option:
                 # try to search
                 self.fill_textbox('filter', value, cb)
-
+                search_btn = self.find('a[name=search] i', By.CSS_SELECTOR, cb,
+                                       strict=True)
                 search_btn.click()
                 self.wait_for_request()
                 option = self.find(opt_s, By.CSS_SELECTOR, cb, strict=True)
@@ -1071,7 +1072,7 @@ class UI_driver(object):
 
     def delete_record(
             self, pkeys, fields=None, parent=None, table_name=None,
-            facet_btn='remove'):
+            facet_btn='remove', confirm_btn='ok'):
         """
         Delete records with given pkeys in currently opened search table.
         """
@@ -1096,7 +1097,9 @@ class UI_driver(object):
                 self.facet_button_click(facet_btn)
             if fields:
                 self.fill_fields(fields)
-            self.dialog_button_click('ok')
+            if not confirm_btn:
+                return
+            self.dialog_button_click(confirm_btn)
             self.wait_for_request(n=2)
             self.wait()
 
@@ -1414,7 +1417,8 @@ class UI_driver(object):
         self.wait_for_request()
 
     def prepare_associations(
-            self, pkeys, facet=None, facet_btn='add', member_pkeys=None):
+            self, pkeys, facet=None, facet_btn='add', member_pkeys=None,
+            confirm_btn='add'):
         """
         Helper function for add_associations and delete_associations
         """
@@ -1429,7 +1433,7 @@ class UI_driver(object):
             self.select_record(key, table_name='available')
             self.button_click('add')
 
-        self.dialog_button_click('add')
+        self.dialog_button_click(confirm_btn)
         self.wait_for_request()
 
         if member_pkeys:
@@ -1441,12 +1445,16 @@ class UI_driver(object):
 
     def add_associations(
             self, pkeys, facet=None, delete=False, facet_btn='add',
-            member_pkeys=None):
+            member_pkeys=None, confirm_btn='add'):
         """
         Add associations
         """
         check_pkeys = self.prepare_associations(
-            pkeys, facet, facet_btn, member_pkeys)
+            pkeys, facet, facet_btn, member_pkeys, confirm_btn=confirm_btn)
+
+        # we need to return if we want to "cancel" to avoid assert record fail
+        if confirm_btn == 'cancel':
+            return
 
         for key in check_pkeys:
             self.assert_record(key)
@@ -1614,6 +1622,61 @@ class UI_driver(object):
             table, keys, _exts = get_t_vals(t)
             # add multiple at once and test table delete button
             self.add_table_associations(table, keys, delete=True)
+
+    def add_sshkey_to_user(self, user, ssh_key):
+        """
+        Add ssh public key to particular user
+
+        user (str): user to add the key to
+        ssh_key (str): public ssh key
+        """
+        self.navigate_to_entity('user')
+        self.navigate_to_record(user)
+
+        ssh_pub = 'div[name="ipasshpubkey"] button[name="add"]'
+        self.find(ssh_pub, By.CSS_SELECTOR).click()
+        self.wait()
+        self.driver.switch_to.active_element.send_keys(ssh_key)
+        self.dialog_button_click('update')
+        self.facet_button_click('save')
+
+    def delete_user_sshkey(self, user):
+        """
+        Delete ssh public key of particular user
+        """
+        self.navigate_to_entity('user')
+        self.navigate_to_record(user)
+
+        ssh_pub = 'div[name="ipasshpubkey"] button[name="remove"]'
+        self.find(ssh_pub, By.CSS_SELECTOR).click()
+        self.facet_button_click('save')
+
+    def run_cmd_on_ui_host(self, cmd):
+        """
+        Run "shell" command on the UI system using "admin" user's passwd from
+        conf.
+        Use only where API does not fit.
+
+        cmd (str): command to run
+        """
+
+        login = self.config.get('ipa_admin')
+        hostname = self.config.get('ipa_server')
+        password = self.config.get('ipa_password')
+
+        try:
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(hostname=hostname, username=login, password=password)
+            ssh.exec_command(cmd)
+        except paramiko.AuthenticationException:
+            self.skip('Authentication to server {} failed'.format(hostname))
+        except paramiko.SSHException as e:
+            self.skip('Unable to establish SSH connection: {}'.format(e))
+        except Exception as e:
+            self.skip('Unable to proceed: {}'.format(e))
+        finally:
+            ssh.close()
 
     def has_class(self, el, cls):
         """
@@ -1875,3 +1938,34 @@ class UI_driver(object):
             is_enabled = not self.has_class(li, 'disabled')
             assert is_enabled == enabled, ('Invalid enabled state of action item %s. '
                                            'Expected: %s') % (action, str(visible))
+
+    def assert_field_validation_required(self, parent=None):
+        """
+        Assert we got 'Required field' error message in field validation
+        """
+
+        if not parent:
+            parent = self.get_form()
+
+        req_field_css = '.help-block[name="error_link"]'
+
+        res = self.find(req_field_css, By.CSS_SELECTOR, context=parent)
+        assert 'Required field' in res.text, 'No "Required field" error found'
+
+    def assert_notification(self, type='success', assert_text=None):
+        """
+        Assert whether we have a notification of particular type
+
+        type: type for assertion
+        assert_text: assert particular text when True
+
+        Returns True if selector/text found
+        """
+
+        notification_type = 'div.notification-area .alert-{}'.format(type)
+        # wait for a half sec for notification to appear
+        self.wait(0.5)
+        is_present = self.find(notification_type, By.CSS_SELECTOR)
+        assert is_present, "Notification not present"
+        if assert_text:
+            assert assert_text in is_present.text
