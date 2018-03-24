@@ -1037,6 +1037,35 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
     return port_open
 
 
+def host_port_free(port):
+    """
+    Accepts a tcp port argument
+
+    Returns True if the port is free, False otherwise
+    """
+
+    try:
+        s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+        anyaddr = '::'
+        logger.debug("host_port_free: Checking IPv4 and IPv6")
+    except socket.error:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        anyaddr = ''
+        logger.debug("host_port_free: Checking IPv4 only")
+
+    try:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+        s.bind((anyaddr, port))
+    except socket.error:
+        logger.debug("host_port_free: bind failure: %i", port)
+        s.close()
+        return False
+    else:
+        logger.debug("host_port_free: bind success: %i", port)
+        s.close()
+        return True
+
+
 def reverse_record_exists(ip_address):
     """
     Checks if IP address have some reverse record somewhere.

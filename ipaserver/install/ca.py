@@ -205,8 +205,9 @@ def install_check(standalone, replica_config, options):
                     )
 
     if not options.external_cert_files:
-        if not cainstance.check_port():
-            print("IPA requires port 8443 for PKI but it is currently in use.")
+        if not cainstance.check_ports():
+            print("IPA requires ports 8443 and 8080 for PKI but one or more")
+            print(" are currently in use.")
             raise ScriptError("Aborting installation")
 
     if standalone:
