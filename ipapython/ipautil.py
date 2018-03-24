@@ -31,7 +31,6 @@ import sys
 import copy
 import shutil
 import socket
-import errno
 import re
 import datetime
 import netaddr
@@ -1038,36 +1037,33 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
     return port_open
 
 
-def host_port_free(port, log_conns=False, log_level=logging.DEBUG):
+def host_port_free(port):
     """
     Accepts a tcp port argument
 
     Returns True if the port is free, False otherwise
     """
-    port_free = False
 
     try:
         s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
-        s.bind(('::', port))
-        port_free = True
-        s.close()
-        logger.debug("host_port_free: IPv6 bind success: %i", port)
-    except socket.error as se:
-        if se.errno == errno.EAFNOSUPPORT:
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
-                s.bind(('', port))
-                port_free = True
-                s.close()
-                logger.debug("host_port_free: IPv4 bind success: %i", port)
-            except socket.error:
-                logger.debug("host_port_free: IPv4 bind failure: %i", port)
-        else:
-            logger.debug("host_port_free: IPv6 bind failure: %i", port)
+        anyaddr = '::'
+        logger.debug("host_port_free: Checking IPv4 and IPv6")
+    except socket.error:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        anyaddr = ''
+        logger.debug("host_port_free: Checking IPv4 only")
 
-    return port_free
+    try:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+        s.bind((anyaddr, port))
+    except socket.error:
+        logger.debug("host_port_free: bind failure: %i", port)
+        s.close()
+        return False
+    else:
+        logger.debug("host_port_free: bind success: %i", port)
+        s.close()
+        return True
 
 
 def reverse_record_exists(ip_address):
