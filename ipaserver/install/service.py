@@ -112,14 +112,14 @@ def add_principals_to_group(admin_conn, group, member_attr, principals):
         pass
 
 
-def find_providing_server(svcname, conn, host_name=None, api=api):
+def find_providing_servers(svcname, conn, api):
     """
+    Find servers that provide the given service.
+
     :param svcname: The service to find
     :param conn: a connection to the LDAP server
-    :param host_name: the preferred server
-    :return: the selected host name
+    :return: list of host names (possibly empty)
 
-    Find a server that is a CA.
     """
     dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
     query_filter = conn.make_filter({'objectClass': 'ipaConfigObject',
@@ -128,15 +128,27 @@ def find_providing_server(svcname, conn, host_name=None, api=api):
     try:
         entries, _trunc = conn.find_entries(filter=query_filter, base_dn=dn)
     except errors.NotFound:
+        return []
+    else:
+        return [entry.dn[1].value for entry in entries]
+
+
+def find_providing_server(svcname, conn, host_name=None, api=api):
+    """
+    Find a server that provides the given service.
+
+    :param svcname: The service to find
+    :param conn: a connection to the LDAP server
+    :param host_name: the preferred server
+    :return: the selected host name
+
+    """
+    servers = find_providing_servers(svcname, conn, api)
+    if len(servers) == 0:
         return None
-    if len(entries):
-        if host_name is not None:
-            for entry in entries:
-                if entry.dn[1].value == host_name:
-                    return host_name
-        # if the preferred is not found, return the first in the list
-        return entries[0].dn[1].value
-    return None
+    if host_name in servers:
+        return host_name
+    return servers[0]
 
 
 def case_insensitive_attr_has_value(attr, value):

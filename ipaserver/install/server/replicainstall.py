@@ -14,7 +14,9 @@ import dns.reversename as dnsreversename
 import os
 import shutil
 import socket
+import sys
 import tempfile
+import textwrap
 import traceback
 
 from pkg_resources import parse_version
@@ -1517,6 +1519,7 @@ def install(installer):
     if options.setup_adtrust:
         adtrust.install(False, options, fstore, api)
 
+    ca_servers = service.find_providing_servers('CA', api.Backend.ldap2, api)
     api.Backend.ldap2.disconnect()
 
     if not promote:
@@ -1548,6 +1551,15 @@ def install(installer):
 
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()
+
+    # Print a warning if CA role is only installed on one server
+    if len(ca_servers) == 1:
+        msg = textwrap.dedent(u'''
+            WARNING: The CA service is only installed on one server ({}).
+            It is strongly recommended to install it on another server.
+            Run ipa-ca-install(1) on another master to accomplish this.
+        '''.format(ca_servers[0]))
+        print(msg, file=sys.stderr)
 
 
 def init(installer):
