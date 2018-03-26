@@ -37,6 +37,12 @@ except ImportError:
     pass
 
 
+USR_EXIST = 'user with name "{}" already exists'
+ENTRY_EXIST = 'This entry already exists'
+ACTIVE_ERR = 'active user with name "{}" already exists'
+DISABLED = 'This entry is already disabled'
+
+
 @pytest.mark.tier1
 class user_tasks(UI_driver):
     def load_file(self, path):
@@ -408,3 +414,180 @@ class test_user_no_private_group(UI_driver):
 
         self.add_record(user.ENTITY, user.DATA4, combobox_input='gidnumber')
         self.delete(user.ENTITY, [user.DATA4])
+
+
+@pytest.mark.tier1
+class TestLifeCycles(UI_driver):
+
+    @screenshot
+    def test_life_cycles(self):
+        """
+        Test user life-cycles
+        """
+
+        self.init_app()
+
+        # create "itest-user" and send him to preserved
+        self.add_record(user.ENTITY, user.DATA)
+        self.delete_record(user.PKEY, confirm_btn=None)
+        self.check_option('preserve', value='true')
+        self.dialog_button_click('ok')
+        self.assert_notification(assert_text='1 item(s) deleted')
+
+        # try to add the same user again (should fail)
+        self.add_record(user.ENTITY, user.DATA, negative=True)
+        self.assert_last_error_dialog(USR_EXIST.format(user.PKEY))
+        self.close_all_dialogs()
+        self.wait()
+
+        # restore "itest-user" user
+        self.switch_to_facet('search_preserved')
+        self.select_record(user.PKEY)
+        self.button_click('undel')
+        self.dialog_button_click('ok')
+        self.assert_no_error_dialog()
+        self.assert_notification(assert_text='1 user(s) restored')
+        self.wait()
+
+        # add already existing user "itest-user" to stage and try to activate
+        # the latter (should fail)
+        self.add_record('stageuser', user.DATA)
+        self.select_record(user.PKEY)
+        self.button_click('activate')
+        self.dialog_button_click('ok')
+
+        err_msg = ACTIVE_ERR.format(user.PKEY)
+        self.assert_last_error_dialog(err_msg, details=True)
+        self.dialog_button_click('ok')
+
+        # delete "itest-user" staged user
+        self.delete_record(user.PKEY)
+        self.assert_record(user.PKEY, negative=True)
+
+        # add "itest-user2" and send him to staged (through preserved)
+        self.close_all_dialogs()
+        self.add_record(user.ENTITY, user.DATA2)
+        self.delete_record(user.PKEY2, confirm_btn=None)
+        self.check_option('preserve', value='true')
+        self.dialog_button_click('ok')
+        self.switch_to_facet('search_preserved')
+        self.select_record(user.PKEY2)
+        self.button_click('batch_stage')
+        self.dialog_button_click('ok')
+        self.assert_no_error_dialog()
+        self.wait(0.7)
+        # fix assert after https://pagure.io/freeipa/issue/7477 is closed
+        self.assert_notification(assert_text='1 users(s) staged')
+
+        # add new "itest-user2" - one is already staged (should pass)
+        self.add_record(user.ENTITY, user.DATA2)
+        self.assert_record(user.PKEY2)
+
+        # send active "itest-user2" to preserved
+        self.delete_record(user.PKEY2, confirm_btn=None)
+        self.check_option('preserve', value='true')
+        self.dialog_button_click('ok')
+
+        # try to activate staged "itest-user2" while one is already preserved
+        # (should fail)
+        self.navigate_to_entity('stageuser')
+        self.select_record(user.PKEY2)
+        self.button_click('activate')
+        self.dialog_button_click('ok')
+        self.assert_last_error_dialog(ENTRY_EXIST, details=True)
+        self.dialog_button_click('ok')
+
+        # delete preserved "itest-user2" and activate the staged one
+        # (should pass)
+        self.switch_to_facet('search_preserved')
+        self.delete_record(user.PKEY2)
+        self.navigate_to_entity('stageuser')
+        self.select_record(user.PKEY2)
+        self.button_click('activate')
+        self.wait()
+        self.dialog_button_click('ok')
+        self.assert_notification(assert_text='1 user(s) activated')
+
+        # send multiple records to preserved
+        self.navigate_to_entity('stageuser')
+        self.navigate_to_entity('user')
+        self.delete_record([user.PKEY, user.PKEY2],
+                           confirm_btn=None)
+        self.check_option('preserve', value='true')
+        self.dialog_button_click('ok')
+        self.assert_notification(assert_text='2 item(s) deleted')
+
+        # restore multiple records
+        self.switch_to_facet('search_preserved')
+        self.select_multiple_records([user.DATA, user.DATA2])
+        self.button_click('undel')
+        self.dialog_button_click('ok')
+        self.assert_no_error_dialog()
+        self.assert_notification(assert_text='2 user(s) restored')
+        self.wait()
+
+        # send multiple users to staged (through preserved)
+        self.navigate_to_entity('user')
+        self.delete_record([user.PKEY, user.PKEY2],
+                           confirm_btn=None)
+        self.check_option('preserve', value='true')
+        self.dialog_button_click('ok')
+        self.switch_to_facet('search_preserved')
+        self.select_multiple_records([user.DATA, user.DATA2])
+        self.button_click('batch_stage')
+        self.dialog_button_click('ok')
+        self.assert_no_error_dialog()
+        self.wait(0.7)
+        self.assert_notification(assert_text='2 users(s) staged')
+
+        # activate multiple users from stage
+        self.navigate_to_entity('stageuser')
+        self.select_multiple_records([user.DATA, user.DATA2])
+        self.button_click('activate')
+        self.dialog_button_click('ok')
+        self.assert_notification(assert_text='2 user(s) activated')
+
+        # try to disable record from user page
+        self.navigate_to_entity(user.ENTITY)
+        self.select_record(user.PKEY)
+        self.facet_button_click('disable')
+        self.dialog_button_click('ok')
+        self.assert_record_value('Disabled', user.PKEY,
+                                 'nsaccountlock')
+
+        # try to disable same record again (should fail)
+        self.select_record(user.PKEY)
+        self.facet_button_click('disable')
+        self.dialog_button_click('ok')
+        self.assert_last_error_dialog(DISABLED, details=True)
+        self.dialog_button_click('ok')
+
+        # enable the user again
+        self.select_record(user.PKEY)
+        self.facet_button_click('enable')
+        self.dialog_button_click('ok')
+        self.assert_record_value('Enabled', user.PKEY,
+                                 'nsaccountlock')
+
+        # same for multiple users (disable, disable again, enable)
+        self.select_multiple_records([user.DATA, user.DATA2])
+        self.facet_button_click('disable')
+        self.dialog_button_click('ok')
+        self.assert_record_value('Disabled', [user.PKEY, user.PKEY2],
+                                 'nsaccountlock')
+
+        self.select_multiple_records([user.DATA, user.DATA2])
+        self.facet_button_click('disable')
+        self.dialog_button_click('ok')
+        self.assert_last_error_dialog(DISABLED, details=True)
+        self.dialog_button_click('ok')
+
+        self.select_multiple_records([user.DATA, user.DATA2])
+        self.facet_button_click('enable')
+        self.dialog_button_click('ok')
+        self.assert_record_value('Enabled', [user.PKEY, user.PKEY2],
+                                 'nsaccountlock')
+
+        # cleanup
+        self.navigate_to_entity('user')
+        self.delete_record([user.PKEY, user.PKEY2])
