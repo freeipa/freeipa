@@ -945,8 +945,6 @@ def ensure_enrolled(installer):
         args.append("--force-join")
     if installer.no_ntp:
         args.append("--no-ntp")
-    else:
-        args.append("--force-chrony")
 
     try:
         # Call client install script
