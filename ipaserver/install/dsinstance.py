@@ -1055,11 +1055,17 @@ class DsInstance(service.Service):
             logger.debug("Removing DS instance %s", serverid)
             try:
                 remove_ds_instance(serverid)
-                installutils.remove_keytab(paths.DS_KEYTAB)
-                installutils.remove_ccache(run_as=DS_USER)
             except ipautil.CalledProcessError:
                 logger.error("Failed to remove DS instance. You may "
                              "need to remove instance data manually")
+
+            installutils.remove_keytab(paths.DS_KEYTAB)
+            installutils.remove_ccache(run_as=DS_USER)
+
+            # Remove scripts dir
+            scripts = paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % (
+                serverid)
+            installutils.rmtree(scripts)
 
         # Just eat this state
         self.restore_state("user_exists")

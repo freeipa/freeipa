@@ -1200,6 +1200,8 @@ class BindInstance(service.Service):
             except ValueError as error:
                 logger.debug('%s', error)
 
+        installutils.rmtree(paths.BIND_LDAP_DNS_IPA_WORKDIR)
+
         # disabled by default, by ldap_enable()
         if enabled:
             self.enable()
