@@ -727,6 +727,20 @@ class UI_driver(object):
             else:
                 break
 
+    def close_all_dialogs(self):
+        """
+        Close all currently opened dialogs
+        """
+        self.wait()
+        while True:
+            s = ".modal.fade.in .modal-header button.close"
+            btn = self.find(s, By.CSS_SELECTOR)
+            if btn:
+                btn.click()
+                self.wait(0.5)
+            else:
+                break
+
     def get_form(self):
         """
         Get last dialog or visible facet
@@ -1034,6 +1048,15 @@ class UI_driver(object):
                    'Record was not checked: %s' % input_s
             self.wait()
 
+    def select_multiple_records(self, records):
+        """
+        Select multiple records
+        """
+
+        for data in records:
+            pkey = data['pkey']
+            self.select_record(pkey)
+
     def get_record_value(self, pkey, column, parent=None, table_name=None):
         """
         Get table column's text value
@@ -1246,9 +1269,12 @@ class UI_driver(object):
 
     def add_record(self, entity, data, facet='search', facet_btn='add',
                    dialog_btn='add', delete=False, pre_delete=True,
-                   dialog_name='add', navigate=True, combobox_input=None):
+                   dialog_name='add', navigate=True, combobox_input=None,
+                   negative=False):
         """
         Add records.
+
+        When negative=True we are skipping final assertions.
 
         Expected data format:
         {
@@ -1294,6 +1320,9 @@ class UI_driver(object):
         if dialog_info and dialog_info['name'] in expected:
             self.dialog_button_click('ok')
             self.wait_for_request()
+
+        if negative:
+            return
 
         # check for error
         self.assert_no_error_dialog()
@@ -1861,12 +1890,20 @@ class UI_driver(object):
         key = pkey
         self.assert_record(key, negative=negative)
 
-    def assert_record_value(self, expected, pkey, column, parent=None, table_name=None):
+    def assert_record_value(self, expected, pkeys, column, parent=None,
+                            table_name=None):
         """
-        Assert that column's value of record defined by pkey equals expected value.
+        Assert that column's value of record defined by pkey equals expected
+        value.
         """
-        val = self.get_record_value(pkey, column, parent, table_name)
-        assert expected == val, "Invalid value: '%s'. Expected: '%s'." % (val, expected)
+
+        if type(pkeys) is not list:
+            pkeys = [pkeys]
+
+        for pkey in pkeys:
+            val = self.get_record_value(pkey, column, parent, table_name)
+            assert expected == val, ("Invalid value: '%s'. Expected: '%s'."
+                                     % (val, expected))
 
     def assert_class(self, element, cls, negative=False):
         """
@@ -1980,3 +2017,25 @@ class UI_driver(object):
         assert is_present, "Notification not present"
         if assert_text:
             assert assert_text in is_present.text
+
+    def assert_last_error_dialog(self, expected_err, details=False,
+                                 dialog_name='error_dialog'):
+        """
+        Assert error dialog body text or when details=True click on
+        'Show details' and assert text there
+        """
+
+        err_dialog = self.get_last_error_dialog(dialog_name=dialog_name)
+
+        if details:
+            # open "Show details" paragraph
+            s = 'a[title="Show details"]'
+            details = self.find(s, By.CSS_SELECTOR)
+            details.click()
+
+            s = 'ul.error-container li p'
+            self.assert_text(s, expected_err, parent=err_dialog)
+
+        else:
+            s = '.modal-body div p'
+            self.assert_text(s, expected_err, parent=err_dialog)
