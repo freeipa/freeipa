@@ -380,4 +380,5 @@ class BasePathNamespace(object):
     SSHD = '/usr/sbin/sshd'
     SSSCTL = '/usr/sbin/sssctl'
 
+
 paths = BasePathNamespace()
