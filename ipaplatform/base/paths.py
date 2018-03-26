@@ -378,6 +378,7 @@ class BasePathNamespace(object):
     KEYCTL = '/usr/bin/keyctl'
     GETENT = '/usr/bin/getent'
     SSHD = '/usr/sbin/sshd'
+    SSSCTL = '/usr/sbin/sssctl'
 
 
 paths = BasePathNamespace()
