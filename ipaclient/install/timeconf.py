@@ -168,7 +168,7 @@ def force_chrony(statestore):
 
 def restore_forced_timeservices(statestore, skip_service='chronyd'):
     """
-    Restore from --force-chronyd installation and enable/start service that
+    Restore from installation and enable/start service that
     were disabled/stopped during installation
     """
     for service in services.timedate_services:

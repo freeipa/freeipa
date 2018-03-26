@@ -1987,20 +1987,14 @@ def install_check(options):
             "using 'ipa-client-install --uninstall'.")
         raise ScriptError(rval=CLIENT_ALREADY_CONFIGURED)
 
-    if options.conf_ntp and not options.force_chrony:
+    if options.conf_ntp:
         try:
             timeconf.check_timedate_services()
         except timeconf.NTPConflictingService as e:
-            print("WARNING: chronyd time&date synchronization service will not"
-                  " be configured as")
-            print("conflicting service ({}) is enabled".format(
-                e.conflicting_service))
-            print("Use --force-chrony option to disable it and force "
-                  "use of chronyd")
+            print("WARNING: conflicting time&date synchronization service '{}'"
+                  " will be disabled".format(e.conflicting_service))
+            print("in favor of chronyd")
             print("")
-            # TODO decide what to do if there is conflicting service
-            # configuration of chrony is disabled in this case
-            options.conf_ntp = False
         except timeconf.NTPConfigurationError:
             pass
 
@@ -2345,19 +2339,17 @@ def update_ipa_nssdb():
                                    (nickname, sys_db.secdir, e))
 
 
-def sync_time(options, fstore, statestore, force):
+def sync_time(options, fstore, statestore):
     """
-    Will disable any other time synchronization service if the --force-chrony
-    option set, and configure chrony with given ntp(chrony) server and/or pool
-    using Augeas in configure_chrony method.
+    Will disable any other time synchronization service and configure chrony
+    with given ntp(chrony) server and/or pool using Augeas.
     If there is no option --ntp-server set IPADiscovery will try to find ntp
     server in DNS records.
     """
     # We assume that NTP servers are discoverable through SRV records in DNS.
 
     # disable other time&date services first
-    if force:
-        timeconf.force_chrony(statestore)
+    timeconf.force_chrony(statestore)
 
     print("Synchronizing time")
     logger.info('Synchronizing time with KDC...')
@@ -2462,7 +2454,7 @@ def _install(options):
 
     if options.conf_ntp:
         # Attempt to sync time with NTP server (chrony).
-        sync_time(options, fstore, statestore, options.force_chrony)
+        sync_time(options, fstore, statestore)
     elif options.on_master:
         # If we're on master skipping the time sync here because it was done
         # in ipa-server-install
@@ -3478,17 +3470,9 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
         None, False,
         deprecated=True,
         description="Stop and disable any time&date synchronization services "
-                    "besides ntpd. "
-                    "This option has been obsoleted by --force-chrony",
+                    "besides ntpd. This option has been deprecated",
     )
     force_ntpd = enroll_only(force_ntpd)
-
-    force_chrony = knob(
-        None,
-        description="Stop and disable any time&date synchronization services "
-                    "besides chrony",
-    )
-    force_chrony = enroll_only(force_chrony)
 
     nisdomain = knob(
         str, None,
@@ -3557,12 +3541,7 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
                 "--server cannot be used without providing --domain")
 
         if self.force_ntpd:
-            raise RuntimeError(
-                "--force-ntpd has been obsoleted by --force-chrony")
-
-        if self.force_chrony and self.no_ntp:
-            raise RuntimeError(
-                "--force-chrony cannot be used together with --no-ntp")
+            logger.warning("Option --force-ntpd has been deprecated")
 
         if self.ntp_servers and self.no_ntp:
             raise RuntimeError(

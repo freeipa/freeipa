@@ -168,7 +168,6 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
 
     kinit_attempts = 1
     fixed_primary = True
-    force_chrony = False
     permit = False
     enable_dns_updates = False
     no_krb5_offline_passwords = False
