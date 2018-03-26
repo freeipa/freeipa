@@ -72,12 +72,19 @@ def install_pem_from_p12(p12_fname, p12_passwd, pem_fname):
                  "-passin", "file:" + pwd.name])
 
 
-def install_key_from_p12(p12_fname, p12_passwd, pem_fname):
+def install_key_from_p12(
+        p12_fname, p12_passwd, pem_fname, out_passwd_fname=None):
     pwd = ipautil.write_tmp_file(p12_passwd)
-    ipautil.run([paths.OPENSSL, "pkcs12", "-nodes", "-nocerts",
-                 "-in", p12_fname, "-out", pem_fname,
-                 "-passin", "file:" + pwd.name],
-                umask=0o077)
+    args = [
+        paths.OPENSSL, "pkcs12", "-nocerts",
+        "-in", p12_fname, "-out", pem_fname,
+        "-passin", "file:" + pwd.name]
+    if out_passwd_fname is not None:
+        args.extend(['-passout', 'file:{}'.format(out_passwd_fname)])
+    else:
+        args.append('-nodes')
+
+    ipautil.run(args, umask=0o077)
 
 
 def export_pem_p12(pkcs12_fname, pkcs12_pwd_fname, nickname, pem_fname):

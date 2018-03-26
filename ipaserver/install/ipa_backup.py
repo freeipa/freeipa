@@ -365,6 +365,10 @@ class Backup(admintool.AdminTool):
             if os.path.exists(file):
                 self.files.append(file)
 
+        self.files.append(
+            paths.HTTPD_PASSWD_FILE_FMT.format(host=api.env.host)
+        )
+
         self.logs.append(paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % serverid)
 
 

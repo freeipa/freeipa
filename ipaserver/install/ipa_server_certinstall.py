@@ -25,7 +25,6 @@ import tempfile
 import optparse  # pylint: disable=deprecated-module
 
 from ipalib import x509
-from ipalib.constants import HTTPD_PASSWD_FILE_FMT
 from ipalib.install import certmonger
 from ipaplatform.paths import paths
 from ipapython import admintool
@@ -157,10 +156,7 @@ class ServerCertInstall(admintool.AdminTool):
             host_name=api.env.host
         )
 
-        key_passwd_path = os.path.join(
-            paths.IPA_PASSWD_DIR,
-            HTTPD_PASSWD_FILE_FMT.format(host=api.env.host)
-        )
+        key_passwd_path = paths.HTTPD_PASSWD_FILE_FMT.format(host=api.env.host)
 
         req_id = self.replace_key_cert_files(
             cert, key,
