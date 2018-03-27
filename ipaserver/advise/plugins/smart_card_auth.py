@@ -238,7 +238,7 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
         self.add_pkcs11_module_to_systemwide_db()
         self.upload_smartcard_ca_certificates_to_systemwide_db()
         self.update_ipa_ca_certificate_store()
-        self.run_authconfig_to_configure_smart_card_auth()
+        self.run_authselect_to_configure_smart_card_auth()
         self.restart_sssd()
 
     def check_and_remove_pam_pkcs11(self):
@@ -290,10 +290,9 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
             ]
         )
 
-    def run_authconfig_to_configure_smart_card_auth(self):
+    def run_authselect_to_configure_smart_card_auth(self):
         self.log.exit_on_failed_command(
-             'authconfig --enablesssd --enablesssdauth --enablesmartcard '
-             '--smartcardmodule=sssd --smartcardaction=1 --updateall',
+            'authselect enable-feature with-smartcard',
             [
                 'Failed to configure Smart Card authentication in SSSD'
             ]

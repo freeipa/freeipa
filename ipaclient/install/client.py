@@ -2026,6 +2026,14 @@ def install_check(options):
             "Invalid hostname, '{}' must not be used.".format(hostname),
             rval=CLIENT_INSTALL_ERROR)
 
+    # --no-sssd is not supported any more for rhel-based distros
+    if not tasks.is_nosssd_supported() and not options.sssd:
+        raise ScriptError(
+            "Option '--no-sssd' is incompatible with the 'authselect' tool "
+            "provided by this distribution for configuring system "
+            "authentication resources",
+            rval=CLIENT_INSTALL_ERROR)
+
     # when installing with '--no-sssd' option, check whether nss-ldap is
     # installed
     if not options.sssd:
@@ -2889,9 +2897,11 @@ def _install(options):
 
     if not options.no_ac:
         # Modify nsswitch/pam stack
-        tasks.modify_nsswitch_pam_stack(sssd=options.sssd,
-                                        mkhomedir=options.mkhomedir,
-                                        statestore=statestore)
+        tasks.modify_nsswitch_pam_stack(
+            sssd=options.sssd,
+            mkhomedir=options.mkhomedir,
+            statestore=statestore
+        )
 
         logger.info("%s enabled", "SSSD" if options.sssd else "LDAP")
 
