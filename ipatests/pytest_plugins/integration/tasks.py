@@ -1353,7 +1353,7 @@ def ldappasswd_user_change(user, oldpw, newpw, master):
     master_ldap_uri = "ldap://{}".format(master.external_hostname)
 
     args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
-            '-s', newpw, '-x', '-H', master_ldap_uri]
+            '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri]
     master.run_command(args)
 
 
