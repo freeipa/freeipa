@@ -345,7 +345,14 @@ class CAInstance(DogtagInstance):
         self.dm_password = dm_password
         self.admin_user = "admin"
         self.admin_groups = ADMIN_GROUPS
+
+        # NOTE: "admin_password" refers to the password for PKI
+        # "admin" account.  This is not necessarily the same as
+        # the IPA admin password.  Indeed, ca.configure_instance
+        # gets called with admin_password=dm_password.
+        #
         self.admin_password = admin_password
+
         self.pkcs12_info = pkcs12_info
         if self.pkcs12_info is not None:
             self.clone = True
