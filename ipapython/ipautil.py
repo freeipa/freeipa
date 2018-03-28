@@ -1037,6 +1037,55 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM,
     return port_open
 
 
+def check_port_bindable(port, socket_type=socket.SOCK_STREAM):
+    """Check if a port is free and not bound by any other application
+
+    :param port: port number
+    :param socket_type: type (SOCK_STREAM for TCP, SOCK_DGRAM for UDP)
+
+    Returns True if the port is free, False otherwise
+    """
+    if socket_type == socket.SOCK_STREAM:
+        proto = 'TCP'
+    elif socket_type == socket.SOCK_DGRAM:
+        proto = 'UDP'
+    else:
+        raise ValueError(socket_type)
+
+    # Detect dual stack or IPv4 single stack
+    try:
+        s = socket.socket(socket.AF_INET6, socket_type)
+        anyaddr = '::'
+        logger.debug(
+            "check_port_bindable: Checking IPv4/IPv6 dual stack and %s",
+            proto
+        )
+    except socket.error:
+        s = socket.socket(socket.AF_INET, socket_type)
+        anyaddr = ''
+        logger.debug("check_port_bindable: Checking IPv4 only and %s", proto)
+
+    # Attempt to bind
+    try:
+        if socket_type == socket.SOCK_STREAM:
+            # reuse TCP sockets in TIME_WAIT state
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+        s.bind((anyaddr, port))
+    except socket.error as e:
+        logger.debug(
+            "check_port_bindable: failed to bind to port %i/%s: %s",
+            port, proto, e
+        )
+        return False
+    else:
+        logger.debug(
+            "check_port_bindable: bind success: %i/%s", port, proto
+        )
+        return True
+    finally:
+        s.close()
+
+
 def reverse_record_exists(ip_address):
     """
     Checks if IP address have some reverse record somewhere.

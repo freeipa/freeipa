@@ -21,6 +21,7 @@
 """
 Test the `ipapython/ipautil.py` module.
 """
+import socket
 import sys
 import tempfile
 
@@ -508,3 +509,42 @@ def test_run_stderr():
     assert "message" not in str(cm.value)
     assert "message" not in str(cm.value.output)
     assert "message" not in str(cm.value.stderr)
+
+
+@pytest.fixture(scope='function')
+def tcp_listen():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+        # port 0 means the OS selects a random, unused port for the test.
+        s.bind(('', 0))
+        s.listen(1)
+        yield s.getsockname()[-1], s
+    finally:
+        s.close()
+
+
+@pytest.fixture(scope='function')
+def udp_listen():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # port 0 means the OS selects a random, unused port for the test.
+        s.bind(('', 0))
+        yield s.getsockname()[-1], s
+    finally:
+        s.close()
+
+
+def test_check_port_bindable_tcp(tcp_listen):
+    port, sock = tcp_listen
+    assert not ipautil.check_port_bindable(port)
+    assert not ipautil.check_port_bindable(port, socket.SOCK_STREAM)
+    sock.close()
+    assert ipautil.check_port_bindable(port)
+
+
+def test_check_port_bindable_udp(udp_listen):
+    port, sock = udp_listen
+    assert not ipautil.check_port_bindable(port, socket.SOCK_DGRAM)
+    sock.close()
+    assert ipautil.check_port_bindable(port, socket.SOCK_DGRAM)
