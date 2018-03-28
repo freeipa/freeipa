@@ -105,13 +105,14 @@ class ExternalCAType(enum.Enum):
     MS_CS = 'ms-cs'
 
 
-def check_port():
-    """
-    Check that dogtag port (8443) is available.
+def check_ports():
+    """Check that dogtag ports (8080, 8443) are available.
 
-    Returns True when the port is free, False if it's taken.
+    Returns True when ports are free, False if they are taken.
     """
-    return not ipautil.host_port_open(None, 8443)
+    return all([ipautil.check_port_bindable(8443),
+                ipautil.check_port_bindable(8080)])
+
 
 def get_preop_pin(instance_root, instance_name):
     # Only used for Dogtag 9
