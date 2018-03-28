@@ -1150,6 +1150,10 @@ def uninstall(installer):
                      'but it may\n'
                      'mean your system hasn\'t be restored to its '
                      'pre-installation state.', SYSRESTORE_DIR_PATH)
+    else:
+        # sysrestore.state has no state left, remove it
+        sysrestore = os.path.join(SYSRESTORE_DIR_PATH, 'sysrestore.state')
+        installutils.remove_file(sysrestore)
 
     # Note that this name will be wrong after the first uninstall.
     dirname = dsinstance.config_dirname(

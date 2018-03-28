@@ -3329,6 +3329,10 @@ def uninstall(options):
     # Remove the IPA configuration file
     remove_file(paths.IPA_DEFAULT_CONF)
 
+    # Remove misc backups
+    remove_file(paths.OPENLDAP_LDAP_CONF + '.ipabkp')
+    remove_file(paths.NSSWITCH_CONF + '.ipabkp')
+
     # Remove the CA cert from the systemwide certificate store
     tasks.remove_ca_certs_from_systemwide_ca_store()
 
