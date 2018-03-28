@@ -24,7 +24,6 @@ options {
 include "random/file";
 """
 
-
 EXPECTED_CONFIG = """
 options {
 \tdnssec-enable yes;
@@ -33,6 +32,12 @@ options {
 };
 
 include "random/file";
+"""
+
+# bindinstance.named_conf_exists() looks for a section like this
+IPA_DYNDB_CONFIG = """
+dyndb "ipa" "/usr/lib/bind/ldap.so" {
+};
 """
 
 POLICY_FILE = "/etc/crypto-policies/back-ends/bind.config"
@@ -53,14 +58,16 @@ def test_add_crypto_policy(m_set, m_get, namedconf):
     m_get.return_value = False
     with open(namedconf, 'w') as f:
         f.write(TEST_CONFIG)
+        f.write(IPA_DYNDB_CONFIG)
 
-    named_add_crypto_policy()
+    result = named_add_crypto_policy()
+    assert result
     m_get.assert_called_with('named.conf', 'add_crypto_policy')
     m_set.assert_called_with('named.conf', 'add_crypto_policy', True)
 
     with open(namedconf) as f:
         content = f.read()
-    assert content == EXPECTED_CONFIG
+    assert content == ''.join([EXPECTED_CONFIG, IPA_DYNDB_CONFIG])
 
     m_get.reset_mock()
     m_set.reset_mock()
@@ -68,4 +75,20 @@ def test_add_crypto_policy(m_set, m_get, namedconf):
     m_get.return_value = True
     named_add_crypto_policy()
     m_get.assert_called_with('named.conf', 'add_crypto_policy')
+    m_set.assert_not_called()
+
+
+@patch('ipaserver.install.sysupgrade.get_upgrade_state')
+@patch('ipaserver.install.sysupgrade.set_upgrade_state')
+def test_add_crypto_policy_no_ipa(m_set, m_get, namedconf):
+    # Test if the update step is skipped when named.conf doesn't contain
+    # IPA related settings.
+    m_get.return_value = False
+    with open(namedconf, 'w') as f:
+        f.write(TEST_CONFIG)
+
+    result = named_add_crypto_policy()
+    assert not result
+
+    m_get.assert_not_called()
     m_set.assert_not_called()

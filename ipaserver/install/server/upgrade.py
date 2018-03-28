@@ -905,6 +905,10 @@ def named_add_server_id():
 def named_add_crypto_policy():
     """Add crypto policy include
     """
+    if not bindinstance.named_conf_exists():
+        logger.info('DNS is not configured')
+        return False
+
     if sysupgrade.get_upgrade_state('named.conf', 'add_crypto_policy'):
         # upgrade was done already
         return False
