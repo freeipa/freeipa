@@ -93,6 +93,10 @@ def create_reverse():
 
 
 def named_conf_exists():
+    """
+    Checks that named.conf exists AND that it contains IPA-related config.
+
+    """
     try:
         with open(paths.NAMED_CONF, 'r') as named_fd:
             lines = named_fd.readlines()
