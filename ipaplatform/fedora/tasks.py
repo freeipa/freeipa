@@ -27,7 +27,22 @@ from ipaplatform.redhat.tasks import RedHatTaskNamespace
 
 
 class FedoraTaskNamespace(RedHatTaskNamespace):
-    pass
+
+    def backup_auth_configuration(self, path):
+        """Dummy method
+
+        On Fedora 28, authconfig from authselect-compat does not implement
+        backup and restore.
+        """
+        pass
+
+    def restore_auth_configuration(self, path):
+        """Dummy method
+
+        On Fedora 28, authconfig from authselect-compat does not implement
+        backup and restore.
+        """
+        pass
 
 
 tasks = FedoraTaskNamespace()
