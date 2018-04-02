@@ -609,7 +609,10 @@ class TestSubCAkeyReplication(IntegrationTest):
         tasks.run_certutil(replica, ['-L', '-n', cert_nick],
                            paths.PKI_TOMCAT_ALIAS_DIR)
 
-        pki_debug_log = replica.get_file_contents(self.PKI_DEBUG_PATH,
+        pki_log_filename = ("{path}.{date}.log"
+                            .format(path=self.PKI_DEBUG_PATH,
+                                    date=time.strftime("%Y-%m-%d")))
+        pki_debug_log = replica.get_file_contents(pki_log_filename,
                                                   encoding='utf-8')
         # check for cert/key import error message
         assert self.ERR_MESS not in pki_debug_log
