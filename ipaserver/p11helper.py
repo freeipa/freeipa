@@ -3,7 +3,6 @@
 #
 
 import random
-import ctypes.util
 import binascii
 import struct
 
@@ -12,6 +11,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
 from cffi import FFI
+
+from ipaplatform.base.fl import find_library
 
 if six.PY3:
     unicode = str
@@ -339,7 +340,7 @@ struct ck_rsa_pkcs_oaep_params {
 typedef struct ck_rsa_pkcs_oaep_params CK_RSA_PKCS_OAEP_PARAMS;
 ''')
 
-_libp11_kit = _ffi.dlopen(ctypes.util.find_library('p11-kit'))
+_libp11_kit = _ffi.dlopen(find_library('p11-kit'))
 
 
 # utility

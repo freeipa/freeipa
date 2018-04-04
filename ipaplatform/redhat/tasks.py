@@ -32,7 +32,6 @@ import traceback
 import errno
 import sys
 
-from ctypes.util import find_library
 from functools import total_ordering
 from subprocess import CalledProcessError
 
@@ -44,6 +43,7 @@ from ipapython import ipautil
 import ipapython.errors
 
 from ipaplatform.constants import constants
+from ipaplatform.base.fl import find_library
 from ipaplatform.paths import paths
 from ipaplatform.redhat.authconfig import RedHatAuthConfig
 from ipaplatform.base.tasks import BaseTaskNamespace
@@ -55,8 +55,6 @@ _ffi.cdef("""
 int rpmvercmp (const char *a, const char *b);
 """)
 
-# use ctypes loader to get correct librpm.so library version according to
-# https://cffi.readthedocs.org/en/latest/overview.html#id8
 _librpm = _ffi.dlopen(find_library("rpm"))
 
 
