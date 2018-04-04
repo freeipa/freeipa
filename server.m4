@@ -4,7 +4,7 @@ dnl ---------------------------------------------------------------------------
 dnl - Check for DS slapi plugin
 dnl ---------------------------------------------------------------------------
 
-# Need to hack CPPFLAGS to be able to correctly detetct slapi-plugin.h
+# Need to hack CPPFLAGS to be able to correctly detect slapi-plugin.h
 SAVE_CPPFLAGS=$CPPFLAGS
 CPPFLAGS=$NSPR_CFLAGS
 AC_CHECK_HEADER(dirsrv/slapi-plugin.h)
