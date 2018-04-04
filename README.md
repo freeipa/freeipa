@@ -3,7 +3,7 @@
 FreeIPA allows Linux administrators to centrally manage identity,
 authentication and access control aspects of Linux and UNIX systems
 by providing simple to install and use command line and web based
-managment tools.
+management tools.
 
 FreeIPA is built on top of well known Open Source components and standard
 protocols with a very strong focus on ease of management and automation
