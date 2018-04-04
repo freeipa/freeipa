@@ -23,6 +23,7 @@ This base module contains a find_library() replacement for
 '''
 
 from __future__ import print_function
+from __future__ import unicode_literals
 
 import os
 import subprocess
@@ -32,14 +33,16 @@ logger = logging.getLogger(__name__)
 
 def find_library(name):
     logger.debug("Checking ldconfig output for: %s", name)
-    process = subprocess.Popen("ldconfig -N -p | grep '%s '" % name,
-              shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(
+              "ldconfig -N -p | awk '{print $1, $NF}' | grep '^%s'"
+              % name, shell=True, stdout=subprocess.PIPE, 
+              stderr=subprocess.STDOUT)
     output,stderr = process.communicate()
     status = process.poll()
 
     # do we need to check we only have one matching line?
     if output:
-        return output.rsplit(None, 1)[-1]
+        return output.rsplit(None, 1)[-1].decode('utf8')
     else:
         return None
         
