@@ -25,6 +25,7 @@ system tasks.
 '''
 from __future__ import print_function
 
+import ctypes
 import logging
 import os
 import socket
@@ -36,7 +37,6 @@ from ctypes.util import find_library
 from functools import total_ordering
 from subprocess import CalledProcessError
 
-from cffi import FFI
 from pyasn1.error import PyAsn1Error
 from six.moves import urllib
 
@@ -49,15 +49,6 @@ from ipaplatform.redhat.authconfig import RedHatAuthConfig
 from ipaplatform.base.tasks import BaseTaskNamespace
 
 logger = logging.getLogger(__name__)
-
-_ffi = FFI()
-_ffi.cdef("""
-int rpmvercmp (const char *a, const char *b);
-""")
-
-# use ctypes loader to get correct librpm.so library version according to
-# https://cffi.readthedocs.org/en/latest/overview.html#id8
-_librpm = _ffi.dlopen(find_library("rpm"))
 
 
 def selinux_enabled():
@@ -78,6 +69,21 @@ def selinux_enabled():
 
 @total_ordering
 class IPAVersion(object):
+    _rpmvercmp_func = None
+
+    @classmethod
+    def _rpmvercmp(cls, a, b):
+        """Lazy load and call librpm's rpmvercmp
+        """
+        rpmvercmp_func = cls._rpmvercmp_func
+        if rpmvercmp_func is None:
+            librpm = ctypes.CDLL(find_library('rpm'))
+            rpmvercmp_func = librpm.rpmvercmp
+            # int rpmvercmp(const char *a, const char *b)
+            rpmvercmp_func.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
+            rpmvercmp_func.restype = ctypes.c_int
+            cls._rpmvercmp_func = rpmvercmp_func
+        return rpmvercmp_func(a, b)
 
     def __init__(self, version):
         self._version = version
@@ -90,12 +96,12 @@ class IPAVersion(object):
     def __eq__(self, other):
         if not isinstance(other, IPAVersion):
             return NotImplemented
-        return _librpm.rpmvercmp(self._bytes, other._bytes) == 0
+        return self._rpmvercmp(self._bytes, other._bytes) == 0
 
     def __lt__(self, other):
         if not isinstance(other, IPAVersion):
             return NotImplemented
-        return _librpm.rpmvercmp(self._bytes, other._bytes) < 0
+        return self._rpmvercmp(self._bytes, other._bytes) < 0
 
     def __hash__(self):
         return hash(self._version)
