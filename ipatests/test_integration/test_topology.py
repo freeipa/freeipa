@@ -27,7 +27,7 @@ def find_segment(master, replica):
             return '-to-'.join(segment)
 
 
-def remove_segment(master, host1, host2):
+def remove_segment(config):
     """
     This removes a segment between host1 and host2 on master. The function is
     needed because test_add_remove_segment expects only one segment, but due to
@@ -39,6 +39,10 @@ def remove_segment(master, host1, host2):
             try:
                 func(*args, **kwargs)
             finally:
+                master = config.domains[0].master
+                host1 = config.domains[0].master
+                host2 = config.domains[0].replicas[1]
+
                 segment = find_segment(host1, host2)
                 master.run_command(['ipa', 'topologysegment-del',
                                     DOMAIN_SUFFIX_NAME, segment],
@@ -84,10 +88,9 @@ class TestTopologyOptions(IntegrationTest):
                               )
         return result
 
+    @pytest.mark.skipif(len(config.domains) == 0, reason='single master')
     @pytest.mark.xfail(reason="Trac 6250", strict=True)
-    @remove_segment(config.domains[0].master,
-                    config.domains[0].master,
-                    config.domains[0].replicas[1])
+    @remove_segment(config)
     def test_topology_updated_on_replica_install_remove(self):
         """
         Install and remove a replica and make sure topology information is
