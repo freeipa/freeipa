@@ -2362,23 +2362,20 @@ def sync_time(options, fstore, statestore):
         ntp_servers = options.ntp_servers
 
     if ntp_servers:
-        if timeconf.configure_chrony(ntp_servers, options.ntp_pool,
-                                     fstore, statestore):
-            print("Done configuring chrony.")
-        else:
-            print("Warning: IPA was unable to sync time with chrony!")
-            print("         Time synchronization is required for IPA "
-                  "to work correctly")
-            logger.warning(
-                "Unable to sync time with chrony server, assuming the time "
-                "is in sync. Please check that 123 UDP port is opened, "
-                "and any time server is on network.")
+        timeconf.configure_chrony(ntp_servers, options.ntp_pool,
+                                  fstore, statestore)
     else:
-        print("Warning: Skipping chrony configuration. "
-              "The default configuration will be used.")
+        print("Using default chrony configuration.")
         logger.warning("No SRV records of NTP servers found and no NTP server "
-                       "address was provided. Skipping chrony configuration, "
-                       "default configuration will be used")
+                       "address was provided. "
+                       "Default chrony configuration will be used")
+
+    if not timeconf.sync_chrony():
+        print("Warning: IPA was unable to sync time with chrony!")
+        print("         Time synchronization is required for IPA "
+              "to work correctly")
+    else:
+        print("Time synchronization was successful.")
 
 
 def restore_time_sync(statestore, fstore):
@@ -2453,13 +2450,15 @@ def _install(options):
         tasks.set_hostname(options.hostname)
 
     if options.conf_ntp:
-        # Attempt to sync time with NTP server (chrony).
+        # Attempt to configure and sync time with NTP server (chrony).
         sync_time(options, fstore, statestore)
     elif options.on_master:
         # If we're on master skipping the time sync here because it was done
         # in ipa-server-install
         logger.info("Skipping attempt to configure and synchronize time with"
                     " chrony server as it has been already done on master.")
+    else:
+        logger.info("Skipping chrony configuration")
 
     if not options.unattended:
         if (options.principal is None and options.password is None and

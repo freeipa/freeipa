@@ -37,8 +37,45 @@ def __backup_config(path, fstore=None):
         shutil.copy(path, "%s.ipasave" % (path))
 
 
+def sync_chrony():
+    """
+    This method enables chronyd service on boot and restarts it to reload
+    chrony configuration file /etc/chrony.conf
+    Then it tries to synchronize time with chrony's new or defaut configuration
+    """
+    # Set the chronyd to start on boot
+    services.knownservices.chronyd.enable()
+
+    # Restart chronyd
+    services.knownservices.chronyd.restart()
+
+    sync_attempt_count = 3
+    # chrony attempt count to sync with configiured servers
+    # each next attempt is tried after 10seconds of timeot
+    # 3 attempts means: if first immidiate attempt fails
+    # there is 10s delay between next attempts
+
+    args = [paths.CHRONYC, 'waitsync', str(sync_attempt_count), '-d']
+
+    try:
+        logger.info('Attempting to sync time with chronyc.')
+        ipautil.run(args)
+        logger.info('Time synchronization was successful.')
+        return True
+    except ipautil.CalledProcessError:
+        logger.warning('Process chronyc waitsync failed to sync time!')
+        logger.warning(
+            "Unable to sync time with chrony server, assuming the time "
+            "is in sync. Please check that 123 UDP port is opened, "
+            "and any time server is on network.")
+        return False
+
+
 def configure_chrony(ntp_servers, ntp_pool=None,
                      fstore=None, sysstore=None, debug=False):
+    """
+    This method only configures chrony client with ntp_servers or ntp_pool
+    """
     if sysstore:
         module = 'chrony'
         sysstore.backup_state(module, "enabled",
@@ -79,6 +116,7 @@ def configure_chrony(ntp_servers, ntp_pool=None,
 
         try:
             aug.save()
+            logger.info('Configuration of chrony was changed by installer.')
         except IOError as e:
             logger.error("Augeas failed to configure file %s", chrony_conf)
 
@@ -88,33 +126,6 @@ def configure_chrony(ntp_servers, ntp_pool=None,
         aug.close()
 
     tasks.restore_context(chrony_conf)
-
-    # Set the chronyd to start on boot
-    services.knownservices.chronyd.enable()
-
-    # Restart chronyd
-    services.knownservices.chronyd.restart()
-
-    sync_attempt_count = 3
-    # chrony attempt count to sync with configiured servers
-    # each next attempt is tried after 10seconds of timeot
-    # 3 attempts means if first immidiate attempt fails
-    # there is 10s delay between next
-
-    args = [paths.CHRONYC, 'waitsync', str(sync_attempt_count)]
-
-    if debug:
-        args.append('-d')
-
-    try:
-        logger.info('Attempting to sync time using chronyd.')
-        ipautil.run(args)
-        logger.info('Time synchronization was successful.')
-        return True
-    except ipautil.CalledProcessError:
-        logger.warning('Process chronyc waitsync failed to sync time!')
-        logger.warning('Configuration of chrony was changed by installer.')
-        return False
 
 
 class NTPConfigurationError(Exception):
