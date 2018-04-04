@@ -213,7 +213,7 @@ class IPAKEMKeys(KEMKeysStore):
         if conf.read(ipaconf):
             self.host = conf.get('global', 'host')
             self.realm = conf.get('global', 'realm')
-            if self.ldap_uri is None:
+            if self.ldap_uri is None and conf.has_option('global', 'ldap_uri'):
                 self.ldap_uri = conf.get('global', 'ldap_uri', raw=True)
 
         self._server_keys = None
