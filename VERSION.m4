@@ -94,7 +94,7 @@ define(IPA_API_VERSION_MINOR, 229)
 
 ########################################################
 # IPA_NUM_VERSION is auto-generated
-# format suitable for aritmetical comparison.
+# format suitable for arithmetical comparison.
 ########################################################
 dnl for some reason AC_SUBST([NUM_VERSION], [IPA_NUM_VERSION])
 dnl does not work when we use macro "format" instead of "esyscmd"
