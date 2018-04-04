@@ -18,26 +18,26 @@
 #
 
 '''
-This base module contains a find_library() replacement for 
+This base module contains a find_library() replacement for
  ctypes.util.find_library.
 '''
 
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import os
 import subprocess
 import logging
 
 logger = logging.getLogger(__name__)
 
+
 def find_library(name):
     logger.debug("Checking ldconfig output for: %s", name)
     process = subprocess.Popen(
-              "ldconfig -N -p | awk '{print $1, $NF}' | grep '^%s'"
-              % name, shell=True, stdout=subprocess.PIPE, 
-              stderr=subprocess.STDOUT)
-    output,stderr = process.communicate()
+          "ldconfig -N -p | awk '{print $1, $NF}' | grep '^lib%s\.so.*'"
+          % name, shell=True, stdout=subprocess.PIPE,
+          stderr=subprocess.STDOUT)
+    output, stderr = process.communicate()
     status = process.poll()
 
     # do we need to check we only have one matching line?
@@ -45,7 +45,8 @@ def find_library(name):
         return output.rsplit(None, 1)[-1].decode('utf8')
     else:
         return None
-        
-assert(find_library("libcrypto.so") == "/lib64/libcrypto.so")
-assert(find_library("librpm.so.8") == "/lib64/librpm.so.8")
-assert(find_library("libp11-kit.so.0") == "/lib64/libp11-kit.so.0")
+
+
+# assert(find_library("crypto") == "/lib64/libcrypto.so")
+# assert(find_library("rpm") == "/lib64/librpm.so.8")
+# assert(find_library("p11-kit") == "/lib64/libp11-kit.so.0")

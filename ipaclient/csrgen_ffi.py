@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from cffi import FFI
-import ctypes.util
+from ipaplatform.base.fl import find_library
 
 from ipalib import errors
 
@@ -116,7 +116,7 @@ unsigned long ERR_get_error(void);
 char *ERR_error_string(unsigned long e, char *buf);
 ''')
 
-_libcrypto = _ffi.dlopen(ctypes.util.find_library('crypto'))
+_libcrypto = _ffi.dlopen(find_library('crypto'))
 
 NULL = _ffi.NULL
 
