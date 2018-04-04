@@ -4,126 +4,127 @@ The following people have contributed to the FreeIPA project.
 (Listed in alphabetical order within category)
 
 Developers:
-	Timo Aaltonen
-	Gabe Alford
-	Jr Aquino
-	Tomáš Babej
-	Martin Babinsky
-	Kyle Baker
-	Felipe Barreto
-	Jan Barta
-	Martin Bašti
-	Sylvain Baubeau
-	Florence Blanc-Renaud
-	Alexander Bokovoy
-	Thierry Bordaz
-	Sumit Bose
-	François Cami
-	Petr Čech
-	Xiao-Long Chen
-	Jan Cholasta
-	Yuri Chornoivan
-	Brian Cook
-	Rob Crittenden
-	Frank Cusack
-	Nalin Dahyabhai
-	Rishabh Dave
-	Don Davis
-	John Dennis
-	Jason Gerard DeRose
-	Günther Deschner
-	Endi Sukma Dewata
-	Lenka Doudova
-	Benjamin Drung
-	Patrice Duc-Jacquet
-	Tibor Dudlák
-	Lewis Eason
-	Drew Erny
-	Oleg Fayans
-	Jérôme Fenal
-	Fabiano Fidêncio
-	Stephen Gallagher
-	René Genz
-	James Groffen
-	Oliver Gutierrez
-	Ondřej Hamada
-	Robbie Harwood
-	Nick Hatch
-	Christian Heimes
-	Jakub Hrozek
-	Ganna Kaihorodova
 	Abhijeet Kasurde
-	Nathan Kinder
-	Krzysztof Klimonda
-	Alexander Koksharov
-	Nikolai Kondrashov
-	Martin Košek
-	David Kreitschmann
-	Ludwig Krispenz
-	Ana Krivokapić
-	Tomáš Křížek
-	Milan Kubík
-	Amit Kumar
-	Ian Kumlien
-	David Kupka
-	Robert Kuska
-	John L
-	Peter Lacko
-	Stanislav Laznicka
-	Ade Lee
-	Ben Lipton
-	Karl MacMillan
-	Niranjan Mallapadi
-	Ales 'alich' Marecek
-	Francesco Marella
-	Nathaniel McCallum
-	William Jon McCann
-	Kevin McCarthy
-	Mark McLoughlin
-	Rich Megginson
-	Jim Meyering
 	Adam Misnyovszki
-	John Morris
-	Niranjan MR
-	Brian J. Murrell
-	Marko Myllynen
-	Martin Nagy
-	David O'Brien
-	Dmitri Pal
-	Jan Pazdziora
-	W. Michael Petullo
-	Gowrishankar Rajaiyan
-	realsobek
-	Michal Reznik
-	Lubomír Rintel
-	Matt Rogers
-	Lynn Root
-	Pete Rowley
-	Lenka Ryznarova
-	Thorsten Scherf
-	shanyin
-	Michael Simacek
-	Lars Sjostrom
-	Filip Skola
+	Adam Young
+	Ade Lee
 	Aleksei Slaikovskii
-	Lukáš Slebodník
-	Simo Sorce
-	Petr Špaček
+	Ales 'alich' Marecek
+	Alex Zeleznikov
+	Amit Kumar
+	Amit Kumar
+	Ana Krivokapić
+	Andrew Wnuk
+	Alexander Bokovoy
+	Alexander Koksharov
+	Ben Lipton
+	Benjamin Drung
+	Brian Cook
+	Brian J. Murrell
+	Christian Heimes
+	David Kreitschmann
+	David Kupka
+	David O'Brien
 	David Spångberg
 	Diane Trout
+	Dmitri Pal
+	Don Davis
+	Drew Erny
+	Endi Sukma Dewata
+	Fabiano Fidêncio
+	Felipe Barreto
+	Felipe Volpone
+	Filip Skola
+	Florence Blanc-Renaud
+	François Cami
+	Francesco Marella
+	Frank Cusack
 	Fraser Tweedale
+	Gabe Alford
+	Ganna Kaihorodova
+	Gowrishankar Rajaiyan
+	Günther Deschner
+	Ian Kumlien
+	Jakub Hrozek
+	Jan Pazdziora
+	James Groffen
+	Jan Barta
+	Jan Cholasta
+	Jan Zelený
+	Jason Gerard DeRose
+	Jason Woods
+	Jérôme Fenal
+	Jim Meyering
+	John Dennis
+	John L
+	John Morris
+	Jr Aquino
+	Karl MacMillan
+	Kevin McCarthy
+	Krzysztof Klimonda
+	Kyle Baker
+	Lars Sjostrom
+	Lenka Doudova
+	Lenka Ryznarova
+	Lewis Eason
+	Lubomír Rintel
+	Ludwig Krispenz
+	Lukáš Slebodník
+	Lynn Root
+	Mark McLoughlin
+	Marko Myllynen
+	Martin Babinsky
+	Martin Bašti
+	Martin Košek
+	Martin Nagy
+	Matt Rogers
+	Michael Simacek
+	Michal Reznik
+	Michal Židek
+	Milan Kubík
+	Mohammad Rizwan Yusuf
+	Nalin Dahyabhai
+	Nathan Kinder
+	Nathaniel McCallum
+	Nick Hatch
+	Nikolai Kondrashov
+	Niranjan Mallapadi
+	Niranjan MR
+	Oleg Fayans
+	Oliver Gutierrez
+	Ondřej Hamada
+	Patrice Duc-Jacquet
+	Pavel Vomáčka
+	Pavel Zůna
+	Pete Rowley
+	Peter Lacko
+	Petr Čech
+	Petr Špaček
 	Petr Viktorin
 	Petr Voborník
-	Felipe Volpone
-	Pavel Vomáčka
-	Andrew Wnuk
-	Jason Woods
-	Adam Young
-	Mohammad Rizwan Yusuf
-	Jan Zelený
-	Alex Zeleznikov
-	Michal Židek
-	Pavel Zůna
+	Realsobek
+	René Genz
+	Rich Megginson
+	Rob Crittenden
+	Robbie Harwood
+	Robert Kuska
+	Rishabh Dave
+	Shanyin
+	Simo Sorce
+	Stanislav Laznicka
+	Stephen Gallagher
+	Sumit Bose
+	Sylvain Baubeau
+	Thierry Bordaz
+	Thorsten Scherf
+	Tibor Dudlák
+	Timo Aaltonen
+	Tomáš Babej
+	Tomáš Křížek
+	W. Michael Petullo
+	William Jon McCann
+	Xiao-Long Chen
+	Yuri Chornoivan
 
 Documentation:
 	Gabe Alford
