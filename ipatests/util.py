@@ -21,6 +21,8 @@
 Common utility functions and classes for unit tests.
 """
 
+from __future__ import absolute_import
+
 import inspect
 import os
 from os import path

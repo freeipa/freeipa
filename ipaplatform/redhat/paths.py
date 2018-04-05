@@ -22,6 +22,8 @@ This Red Hat OS family base platform module exports default filesystem paths as
 common in Red Hat OS family-based systems.
 '''
 
+from __future__ import absolute_import
+
 import sys
 
 # Fallback to default path definitions

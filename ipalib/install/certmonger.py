@@ -22,7 +22,7 @@
 # This is used so we can add tracking to the Apache and 389-ds
 # server certificates created during the IPA server installation.
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import logging
 import os

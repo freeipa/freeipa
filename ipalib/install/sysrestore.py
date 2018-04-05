@@ -23,6 +23,8 @@
 # parts of the system configuration to the way it was
 # before ipa-server-install was first run
 
+from __future__ import absolute_import
+
 import logging
 import os
 import os.path

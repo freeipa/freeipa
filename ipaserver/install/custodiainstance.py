@@ -1,6 +1,6 @@
 # Copyright (C) 2015 FreeIPa Project Contributors, see 'COPYING' for license.
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import enum
 import logging

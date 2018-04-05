@@ -3,7 +3,7 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import collections
 import os

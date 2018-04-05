@@ -8,6 +8,8 @@ in Debian-based systems.
 """
 
 # Fallback to default path definitions
+from __future__ import absolute_import
+
 from ipaplatform.base.paths import BasePathNamespace
 import sysconfig
 

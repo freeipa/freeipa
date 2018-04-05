@@ -23,6 +23,8 @@ RPC server.
 Also see the `ipalib.rpc` module.
 """
 
+from __future__ import absolute_import
+
 import logging
 from xml.sax.saxutils import escape
 import os

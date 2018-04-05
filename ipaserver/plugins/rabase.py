@@ -30,6 +30,8 @@ certificates via the following methods:
     * `ra.take_certificate_off_hold()` - take a certificate off hold.
 """
 
+from __future__ import absolute_import
+
 from ipalib import Backend
 from ipalib import errors
 import os
