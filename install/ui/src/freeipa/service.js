@@ -500,6 +500,12 @@ IPA.service.details_facet = function(spec, no_init) {
         return batch;
     };
 
+    that.update_on_success = function(data, text_status, xhr) {
+        that.on_update.notify();
+        that.nofify_update_success();
+        that.refresh();
+    };
+
     if (!no_init) that.init_details_facet();
 
     return that;
