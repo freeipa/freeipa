@@ -6,6 +6,8 @@
 Contains Debian-specific service class implementations.
 """
 
+from __future__ import absolute_import
+
 from ipaplatform.base import services as base_services
 from ipaplatform.redhat import services as redhat_services
 from ipapython import ipautil

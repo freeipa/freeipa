@@ -19,7 +19,7 @@
 
 """Pytest plugin for IPA Integration tests"""
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import logging
 import os

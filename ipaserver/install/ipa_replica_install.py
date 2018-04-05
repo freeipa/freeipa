@@ -2,6 +2,8 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import absolute_import
+
 from ipapython.install import cli
 from ipapython.install.core import knob, extend_knob
 from ipaplatform.paths import paths

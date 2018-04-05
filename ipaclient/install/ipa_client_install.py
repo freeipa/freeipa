@@ -2,6 +2,8 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import absolute_import
+
 from ipaclient.install import client
 from ipaplatform.paths import paths
 from ipapython.install import cli

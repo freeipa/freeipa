@@ -7,6 +7,8 @@ This Fedora base platform module exports platform related constants.
 '''
 
 # Fallback to default constant definitions
+from __future__ import absolute_import
+
 from ipaplatform.redhat.constants import RedHatConstantsNamespace
 
 

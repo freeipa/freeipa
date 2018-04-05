@@ -21,6 +21,8 @@
 Base class for all cmdline tests
 """
 
+from __future__ import absolute_import
+
 import distutils.spawn
 import os
 import unittest

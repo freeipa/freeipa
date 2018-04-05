@@ -23,7 +23,7 @@
 This module contains default Red Hat OS family-specific implementations of
 system tasks.
 '''
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import ctypes
 import logging

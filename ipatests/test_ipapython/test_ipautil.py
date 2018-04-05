@@ -21,6 +21,8 @@
 """
 Test the `ipapython/ipautil.py` module.
 """
+from __future__ import absolute_import
+
 import socket
 import sys
 import tempfile

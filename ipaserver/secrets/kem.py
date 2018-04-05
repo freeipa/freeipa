@@ -1,6 +1,6 @@
 # Copyright (C) 2015  IPA Project Contributors, see COPYING for license
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import errno
 import os
