@@ -518,6 +518,12 @@ IPA.host.details_facet = function(spec, no_init) {
         return that.entity.name+'_show_'+that.get_pkey();
     };
 
+    that.update_on_success = function(data, text_status, xhr) {
+        that.on_update.notify();
+        that.nofify_update_success();
+        that.refresh();
+    };
+
     if (!no_init) that.init_details_facet();
 
     return that;
