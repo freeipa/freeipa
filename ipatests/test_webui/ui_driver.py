@@ -1329,6 +1329,11 @@ class UI_driver(object):
         self.facet_button_click(facet_btn)
         self.wait_for_request()
         self.wait_for_request()
+
+        # Workaround until https://pagure.io/freeipa/issue/5776 is fixed
+        self.facet_button_click('refresh')
+        self.wait()
+
         self.assert_facet_button_enabled(facet_btn, enabled=False)
 
     def basic_crud(self, entity, data,
