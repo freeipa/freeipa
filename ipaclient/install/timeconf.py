@@ -76,8 +76,9 @@ def configure_chrony(ntp_servers, ntp_pool=None,
     """
     This method only configures chrony client with ntp_servers or ntp_pool
     """
+
+    module = "chrony"
     if sysstore:
-        module = 'chrony'
         sysstore.backup_state(module, "enabled",
                               services.knownservices.chronyd.is_enabled())
 
@@ -87,7 +88,7 @@ def configure_chrony(ntp_servers, ntp_pool=None,
     try:
         logger.debug("Configuring chrony")
         chrony_conf = os.path.abspath(paths.CHRONY_CONF)
-        aug.transform('chrony', chrony_conf)  # loads lens file
+        aug.transform(module, chrony_conf)  # loads chrony lens file
         aug.load()  # loads augeas tree
         # augeas needs to prepend path with '/files'
         path = '/files{path}'.format(path=chrony_conf)
@@ -100,32 +101,36 @@ def configure_chrony(ntp_servers, ntp_pool=None,
             logger.debug("Setting server pool:")
             logger.debug("'%s'", ntp_pool)
             aug.set('{}/pool[last()+1]'.format(path), ntp_pool)
-            aug.set('{}/server[last()]/iburst'.format(path), None)
+            aug.set('{}/pool[last()]/iburst'.format(path), None)
 
-        logger.debug("Setting time servers:")
-        for server in ntp_servers:
-            aug.set('{}/server[last()+1]'.format(path), server)
-            aug.set('{}/server[last()]/iburst'.format(path), None)
-            logger.debug("'%s'", server)
+        if ntp_servers:
+            logger.debug("Setting time servers:")
+            for server in ntp_servers:
+                aug.set('{}/server[last()+1]'.format(path), server)
+                aug.set('{}/server[last()]/iburst'.format(path), None)
+                logger.debug("'%s'", server)
 
         # backup oginal conf file
         logger.debug("Backing up '%s'", chrony_conf)
         __backup_config(chrony_conf, fstore)
 
         logger.debug("Writing configuration to '%s'", chrony_conf)
+        aug.save()
 
-        try:
-            aug.save()
-            logger.info('Configuration of chrony was changed by installer.')
-        except IOError as e:
-            logger.error("Augeas failed to configure file %s", chrony_conf)
+        logger.info('Configuration of chrony was changed by installer.')
+        configured = True
 
+    except IOError:
+        logger.error("Augeas failed to configure file %s", chrony_conf)
+        configured = False
     except RuntimeError as e:
         logger.error("Configuration failed with: %s", e)
+        configured = False
     finally:
         aug.close()
 
     tasks.restore_context(chrony_conf)
+    return configured
 
 
 class NTPConfigurationError(Exception):

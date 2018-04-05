@@ -766,7 +766,13 @@ def install(installer):
         # chrony will be handled here in uninstall() method as well by invoking
         # the ipa-server-install --uninstall
         if not options.no_ntp:
-            ipaclient.install.client.sync_time(options, fstore, sstore)
+            print("Synchronizing time")
+            if ipaclient.install.client.sync_time(options, fstore, sstore):
+                print("Time synchronization was successful.")
+            else:
+                print("Warning: IPA was unable to sync time with chrony!")
+                print("         Time synchronization is required for IPA "
+                      "to work correctly")
 
         if options.dirsrv_cert_files:
             ds = dsinstance.DsInstance(fstore=fstore,
