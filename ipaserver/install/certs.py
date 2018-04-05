@@ -168,12 +168,6 @@ class CertDB(object):
         self.ca_subject = ca_subject
         self.subject_base = subject_base
 
-        try:
-            self.cwd = os.path.abspath(os.getcwd())
-        except OSError as e:
-            raise RuntimeError(
-                "Unable to determine the current directory: %s" % str(e))
-
         self.cacert_name = get_ca_nickname(self.realm)
 
         self.user = user
@@ -245,10 +239,6 @@ class CertDB(object):
             shutil.rmtree(self.reqdir, ignore_errors=True)
             self.reqdir = None
         self.nssdb.close()
-        try:
-            os.chdir(self.cwd)
-        except OSError:
-            pass
 
     def setup_cert_request(self):
         """
@@ -264,10 +254,6 @@ class CertDB(object):
         self.reqdir = tempfile.mkdtemp('', 'ipa-', paths.VAR_LIB_IPA)
         self.certreq_fname = self.reqdir + "/tmpcertreq"
         self.certder_fname = self.reqdir + "/tmpcert.der"
-
-        # When certutil makes a request it creates a file in the cwd, make
-        # sure we are in a unique place when this happens
-        os.chdir(self.reqdir)
 
     def set_perms(self, fname, write=False):
         perms = stat.S_IRUSR

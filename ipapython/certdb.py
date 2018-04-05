@@ -297,7 +297,9 @@ class NSSDatabase(object):
         ]
         new_args.extend(args)
         new_args.extend(['-f', self.pwd_file])
-        return ipautil.run(new_args, stdin, **kwargs)
+        # When certutil makes a request it creates a file in the cwd, make
+        # sure we are in a unique place when this happens.
+        return ipautil.run(new_args, stdin, cwd=self.secdir, **kwargs)
 
     def run_pk12util(self, args, stdin=None, **kwargs):
         self._check_db()
@@ -306,7 +308,7 @@ class NSSDatabase(object):
             "-d", '{}:{}'.format(self.dbtype, self.secdir)
         ]
         new_args.extend(args)
-        return ipautil.run(new_args, stdin, **kwargs)
+        return ipautil.run(new_args, stdin, cwd=self.secdir, **kwargs)
 
     def exists(self):
         """Check DB exists (all files are present)
@@ -360,14 +362,15 @@ class NSSDatabase(object):
             dbdir = self.secdir
         else:
             dbdir = '{}:{}'.format(self.dbtype, self.secdir)
-        ipautil.run([
+        args = [
             paths.CERTUTIL,
             '-d', dbdir,
             '-N',
             '-f', self.pwd_file,
             # -@ in case it's an old db and it must be migrated
             '-@', self.pwd_file,
-        ])
+        ]
+        ipautil.run(args, stdin=None, cwd=self.secdir)
         self._set_filenames(self._detect_dbtype())
         if self.filenames is None:
             # something went wrong...
@@ -415,7 +418,7 @@ class NSSDatabase(object):
             '-d', 'sql:{}'.format(self.secdir), '-N',
             '-f', self.pwd_file, '-@', self.pwd_file
         ]
-        ipautil.run(args)
+        ipautil.run(args, stdin=None, cwd=self.secdir)
 
         # retain file ownership and permission, backup old files
         migration = (
