@@ -5,6 +5,7 @@ from ipaserver.secrets.store import iSecStore, NAME_DB_MAP, NSSCertDB
 import os
 import shutil
 import subprocess
+import tempfile
 import unittest
 
 
@@ -17,28 +18,36 @@ def _test_password_callback():
 class TestiSecStore(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        try:
-            shutil.rmtree('test-ipa-sec-store')
-        except Exception:  # pylint: disable=broad-except
-            pass
-        testdir = 'test-ipa-sec-store'
-        pwfile = os.path.join(testdir, 'pwfile')
-        os.mkdir(testdir)
+        cls.testdir = tempfile.mkdtemp(suffix='ipa-sec-store')
+        pwfile = os.path.join(cls.testdir, 'pwfile')
         with open(pwfile, 'w') as f:
             f.write('testpw')
-        cls.certdb = os.path.join(testdir, 'certdb')
+        cls.certdb = os.path.join(cls.testdir, 'certdb')
         os.mkdir(cls.certdb)
-        cls.cert2db = os.path.join(testdir, 'cert2db')
+        cls.cert2db = os.path.join(cls.testdir, 'cert2db')
         os.mkdir(cls.cert2db)
-        seedfile = os.path.join(testdir, 'seedfile')
+        seedfile = os.path.join(cls.testdir, 'seedfile')
         with open(seedfile, 'wb') as f:
             seed = os.urandom(1024)
             f.write(seed)
-        subprocess.call(['certutil', '-d', cls.certdb, '-N', '-f', pwfile])
-        subprocess.call(['certutil', '-d', cls.cert2db, '-N', '-f', pwfile])
-        subprocess.call(['certutil', '-d', cls.certdb, '-S', '-f', pwfile,
-                         '-s', 'CN=testCA', '-n', 'testCACert', '-x',
-                         '-t', 'CT,C,C', '-m', '1', '-z', seedfile])
+        subprocess.call(
+            ['certutil', '-d', cls.certdb, '-N', '-f', pwfile],
+            cwd=cls.testdir
+        )
+        subprocess.call(
+            ['certutil', '-d', cls.cert2db, '-N', '-f', pwfile],
+            cwd=cls.testdir
+        )
+        subprocess.call(
+            ['certutil', '-d', cls.certdb, '-S', '-f', pwfile,
+             '-s', 'CN=testCA', '-n', 'testCACert', '-x',
+             '-t', 'CT,C,C', '-m', '1', '-z', seedfile],
+            cwd=cls.testdir
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.testdir)
 
     def test_iSecStore(self):
         iss = iSecStore({})

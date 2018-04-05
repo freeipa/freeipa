@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import functools
 import logging
 import os
 import tempfile
@@ -178,10 +179,14 @@ class CALessBase(IntegrationTest):
         if host is None:
             host = cls.master
 
-        extra_args = ['--http-cert-file', http_pkcs12,
-                      '--dirsrv-cert-file', dirsrv_pkcs12,
-                      '--ca-cert-file', root_ca_file,
-                      '--ip-address', host.ip]
+        destname = functools.partial(os.path.join, host.config.test_dir)
+
+        extra_args = [
+            '--http-cert-file', destname(http_pkcs12),
+            '--dirsrv-cert-file', destname(dirsrv_pkcs12),
+            '--ca-cert-file', destname(root_ca_file),
+            '--ip-address', host.ip
+        ]
 
         if http_pin is _DEFAULT:
             http_pin = cls.cert_password
@@ -197,7 +202,9 @@ class CALessBase(IntegrationTest):
             files_to_copy.append(dirsrv_pkcs12)
         if pkinit_pkcs12_exists:
             files_to_copy.append(pkinit_pkcs12)
-            extra_args.extend(['--pkinit-cert-file', pkinit_pkcs12])
+            extra_args.extend(
+                ['--pkinit-cert-file', destname(pkinit_pkcs12)]
+            )
         else:
             extra_args.append('--no-pkinit')
         for filename in set(files_to_copy):
@@ -277,11 +284,20 @@ class CALessBase(IntegrationTest):
 
         extra_args = []
         if http_pkcs12_exists:
-            extra_args.extend(['--http-cert-file', http_pkcs12])
+            extra_args.extend([
+                '--http-cert-file',
+                os.path.join(destination_host.config.test_dir, http_pkcs12)
+            ])
         if dirsrv_pkcs12_exists:
-            extra_args.extend(['--dirsrv-cert-file', dirsrv_pkcs12])
+            extra_args.extend([
+                '--dirsrv-cert-file',
+                os.path.join(destination_host.config.test_dir, dirsrv_pkcs12)
+            ])
         if pkinit_pkcs12_exists and domain_level != DOMAIN_LEVEL_0:
-            extra_args.extend(['--pkinit-cert-file', pkinit_pkcs12])
+            extra_args.extend([
+                '--pkinit-cert-file',
+                os.path.join(destination_host.config.test_dir, pkinit_pkcs12)
+            ])
         else:
             extra_args.append('--no-pkinit')
 
