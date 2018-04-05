@@ -78,3 +78,41 @@ DATA6 = {
         ('textbox', 'gidnumber', '77777'),
     ]
 }
+
+PKEY7 = ''
+DATA7 = {
+    'pkey': PKEY7,
+    'add': [
+        ('textbox', 'cn', PKEY7),
+        ('textarea', 'description', 'Empty Group name'),
+    ]
+}
+
+PKEY8 = ';test-gr@up'
+DATA8 = {
+    'pkey': PKEY8,
+    'add': [
+        ('textbox', 'cn', PKEY8),
+        ('textarea', 'description', 'Invalid Group name'),
+    ]
+}
+
+PKEY9 = 'itest-group9'
+DATA9 = {
+    'pkey': PKEY9,
+    'add': [
+        ('textbox', 'cn', PKEY9),
+        ('textarea', 'description', 'test-group9 desc'),
+        ('radio', 'type', 'nonposix'),
+    ]
+}
+
+PKEY10 = 'itest-group10'
+DATA10 = {
+    'pkey': PKEY10,
+    'add': [
+        ('textbox', 'cn', PKEY10),
+        ('textarea', 'description', 'test-group10 desc'),
+        ('radio', 'type', 'nonposix'),
+    ]
+}
