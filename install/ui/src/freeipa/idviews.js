@@ -450,6 +450,12 @@ idviews.id_override_user_details_facet = function(spec) {
         return batch;
     };
 
+    that.update_on_success = function(data, text_status, xhr) {
+        that.on_update.notify();
+        that.nofify_update_success();
+        that.refresh();
+    };
+
     return that;
 };
 
