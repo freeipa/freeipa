@@ -2,7 +2,7 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from binascii import hexlify
 import collections

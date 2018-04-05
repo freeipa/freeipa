@@ -19,7 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import base64
 import binascii

@@ -1,6 +1,7 @@
 #
 # Copyright (C) 2017  FreeIPA Contributors see COPYING for license
 #
+from __future__ import absolute_import
 
 from ipaplatform.tasks import tasks
 

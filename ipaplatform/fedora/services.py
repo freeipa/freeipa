@@ -22,6 +22,8 @@
 Contains Fedora-specific service class implementations.
 """
 
+from __future__ import absolute_import
+
 from ipaplatform.redhat import services as redhat_services
 
 # Mappings from service names as FreeIPA code references to these services

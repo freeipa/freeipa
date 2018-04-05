@@ -27,6 +27,8 @@ Backend plugin for LDAP.
 # binding encodes them into the appropriate representation. This applies to
 # everything except the CrudBackend methods, where dn is part of the entry dict.
 
+from __future__ import absolute_import
+
 import logging
 import os
 
