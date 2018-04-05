@@ -23,6 +23,8 @@ in RHEL-based systems.
 '''
 
 # Fallback to default path definitions
+from __future__ import absolute_import
+
 from ipaplatform.redhat.paths import RedHatPathNamespace
 
 

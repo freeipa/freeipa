@@ -6,6 +6,8 @@
 This module contains default Debian-specific implementations of system tasks.
 """
 
+from __future__ import absolute_import
+
 from ipaplatform.base.tasks import BaseTaskNamespace
 from ipaplatform.redhat.tasks import RedHatTaskNamespace
 

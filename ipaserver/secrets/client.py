@@ -1,6 +1,6 @@
 # Copyright (C) 2015  IPA Project Contributors, see COPYING for license
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 # pylint: disable=relative-import
 from custodia.message.kem import KEMClient, KEY_USAGE_SIG, KEY_USAGE_ENC
 # pylint: enable=relative-import

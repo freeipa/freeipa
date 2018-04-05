@@ -19,6 +19,7 @@
 """
 Password migration script
 """
+from __future__ import absolute_import
 
 import cgi
 import errno

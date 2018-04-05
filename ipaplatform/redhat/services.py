@@ -22,6 +22,8 @@
 Contains Red Hat OS family-specific service class implementations.
 """
 
+from __future__ import absolute_import
+
 import logging
 import os
 import time

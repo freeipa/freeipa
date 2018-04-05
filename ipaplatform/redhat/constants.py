@@ -8,6 +8,8 @@ related constants for the Red Hat OS family-based systems.
 '''
 
 # Fallback to default path definitions
+from __future__ import absolute_import
+
 from ipaplatform.base.constants import BaseConstantsNamespace
 
 

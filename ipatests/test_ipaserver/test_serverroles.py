@@ -6,6 +6,8 @@
 Tests for the serverroles backend
 """
 
+from __future__ import absolute_import
+
 from collections import namedtuple
 
 import ldap
