@@ -2351,8 +2351,7 @@ def sync_time(options, fstore, statestore):
     # disable other time&date services first
     timeconf.force_chrony(statestore)
 
-    print("Synchronizing time")
-    logger.info('Synchronizing time with KDC...')
+    logger.info('Synchronizing time')
 
     if not options.ntp_servers:
         ds = ipadiscovery.IPADiscovery()
@@ -2361,21 +2360,18 @@ def sync_time(options, fstore, statestore):
     else:
         ntp_servers = options.ntp_servers
 
-    if ntp_servers:
-        timeconf.configure_chrony(ntp_servers, options.ntp_pool,
-                                  fstore, statestore)
+    configured = False
+    if ntp_servers or options.ntp_pool:
+        configured = timeconf.configure_chrony(ntp_servers, options.ntp_pool,
+                                               fstore, statestore)
     else:
-        print("Using default chrony configuration.")
         logger.warning("No SRV records of NTP servers found and no NTP server "
-                       "address was provided. "
-                       "Default chrony configuration will be used")
+                       "or pool address was provided.")
 
-    if not timeconf.sync_chrony():
-        print("Warning: IPA was unable to sync time with chrony!")
-        print("         Time synchronization is required for IPA "
-              "to work correctly")
-    else:
-        print("Time synchronization was successful.")
+    if not configured:
+        print("Using default chrony configuration.")
+
+    return timeconf.sync_chrony()
 
 
 def restore_time_sync(statestore, fstore):
