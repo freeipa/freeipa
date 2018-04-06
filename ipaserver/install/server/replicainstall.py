@@ -950,6 +950,10 @@ def ensure_enrolled(installer):
         args.append("--mkhomedir")
     if installer.force_join:
         args.append("--force-join")
+    if installer.ip_addresses:
+        for ip in installer.ip_addresses:
+            # installer.ip_addresses is of type [CheckedIPAddress]
+            args.extend(("--ip-address", str(ip)))
 
     try:
         # Call client install script
