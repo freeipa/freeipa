@@ -947,6 +947,10 @@ def ensure_enrolled(installer):
         args.append("--force-join")
     if installer.no_ntp:
         args.append("--no-ntp")
+    if installer.ip_addresses:
+        for ip in installer.ip_addresses:
+            # installer.ip_addresses is of type [CheckedIPAddress]
+            args.extend(("--ip-address", str(ip)))
 
     try:
         # Call client install script
