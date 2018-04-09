@@ -627,6 +627,16 @@ def configure_krb5_conf(
         filename, client_domain, client_hostname, force=False,
         configure_sssd=True):
 
+    # First, write a snippet to krb5.conf.d.  Currently this doesn't support
+    # templating, but that could be changed in the future.
+    template = os.path.join(
+        paths.USR_SHARE_IPA_DIR,
+        os.path.basename(paths.KRB5_FREEIPA) + ".template")
+    contents = open(template).read()
+    open(paths.KRB5_FREEIPA, "w+").write(contents)
+    os.chmod(paths.KRB5_FREEIPA, 0x644)
+
+    # Then, perform the rest of our configuration into krb5.conf itself.
     krbconf = IPAChangeConf("IPA Installer")
     krbconf.setOptionAssignment((" = ", " "))
     krbconf.setSectionNameDelimiters(("[", "]"))

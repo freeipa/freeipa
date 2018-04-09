@@ -339,6 +339,7 @@ class KrbInstance(service.Service):
     def __configure_instance(self):
         self.__template_file(paths.KRB5KDC_KDC_CONF, chmod=None)
         self.__template_file(paths.KRB5_CONF)
+        self.__template_file(paths.KRB5_FREEIPA)
         self.__template_file(paths.HTML_KRB5_INI)
         self.__template_file(paths.KRB_CON)
         self.__template_file(paths.HTML_KRBREALM_CON)
