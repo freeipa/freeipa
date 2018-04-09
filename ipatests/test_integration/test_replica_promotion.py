@@ -11,9 +11,12 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
 from ipatests.pytest_plugins.integration.tasks import (
     assert_error, replicas_cleanup)
+from ipatests.pytest_plugins.integration.env_config import get_global_config
 from ipalib.constants import (
     DOMAIN_LEVEL_0, DOMAIN_LEVEL_1, DOMAIN_SUFFIX_NAME, IPA_CA_NICKNAME)
 from ipaplatform.paths import paths
+
+config = get_global_config()
 
 
 class ReplicaPromotionBase(IntegrationTest):
@@ -404,6 +407,9 @@ class TestWrongClientDomain(IntegrationTest):
         tasks.install_master(cls.master, domain_level=cls.domain_level)
 
     def teardown_method(self, method):
+        if len(config.domains) == 0:
+            # No YAML config was set
+            return
         self.replicas[0].run_command(['ipa-client-install',
                                      '--uninstall', '-U'],
                                     raiseonerr=False)
