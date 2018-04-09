@@ -107,6 +107,8 @@ class TestInstallDNSSECLast(IntegrationTest):
             "dnszone-add", test_zone,
             "--skip-overlap-check",
             "--dnssec", "true",
+            "--ttl", "1",
+            "--default-ttl", "1",
         ]
         self.master.run_command(args)
 
@@ -127,6 +129,8 @@ class TestInstallDNSSECLast(IntegrationTest):
             "dnszone-add", test_zone_repl,
             "--skip-overlap-check",
             "--dnssec", "true",
+            "--ttl", "1",
+            "--default-ttl", "1",
         ]
         self.replicas[0].run_command(args)
 
@@ -315,6 +319,8 @@ class TestInstallDNSSECFirst(IntegrationTest):
         args = [
             "ipa", "dnszone-add", example_test_zone, "--dnssec", "true",
             "--skip-overlap-check",
+            "--ttl", "1",
+            "--default-ttl", "1",
         ]
 
         self.master.run_command(args)
@@ -458,6 +464,8 @@ class TestMigrateDNSSECMaster(IntegrationTest):
         args = [
             "ipa", "dnszone-add", example_test_zone, "--dnssec", "true",
             "--skip-overlap-check",
+            "--ttl", "1",
+            "--default-ttl", "1",
         ]
 
         self.master.run_command(args)
@@ -516,6 +524,8 @@ class TestMigrateDNSSECMaster(IntegrationTest):
         args = [
             "ipa", "dnszone-add", example2_test_zone, "--dnssec", "true",
             "--skip-overlap-check",
+            "--ttl", "1",
+            "--default-ttl", "1",
         ]
         self.replicas[0].run_command(args)
         # wait until zone is signed
@@ -548,6 +558,8 @@ class TestMigrateDNSSECMaster(IntegrationTest):
         args = [
             "ipa", "dnszone-add", example3_test_zone, "--dnssec", "true",
             "--skip-overlap-check",
+            "--ttl", "1",
+            "--default-ttl", "1",
         ]
         self.replicas[1].run_command(args)
         # wait until zone is signed
