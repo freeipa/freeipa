@@ -23,7 +23,6 @@ import base64
 
 import six
 
-from ipaclient import csrgen
 from ipaclient.frontend import MethodOverride
 from ipalib import errors
 from ipalib import x509
@@ -111,6 +110,10 @@ class cert_request(CertRetrieveOverride):
         password_file = options.pop('password_file', None)
 
         if csr is None:
+            # Deferred import, ipaclient.csrgen is expensive to load.
+            # see https://pagure.io/freeipa/issue/7484
+            from ipaclient import csrgen
+
             if database:
                 adaptor = csrgen.NSSAdaptor(database, password_file)
             elif private_key:
