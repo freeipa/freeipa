@@ -878,6 +878,11 @@ Requires: ldns-utils
 Requires: python2-sssdconfig
 Requires: python2-cryptography >= 1.6
 Requires: iptables
+%if 0%{?fedora} == 27
+# workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1564527
+# Tests are failing because ntpd restarts segfaults on some CPU archs.
+Requires: glibc >= 2.26-24
+%endif
 
 Provides: %{alt_name}-tests = %{version}
 Conflicts: %{alt_name}-tests
@@ -912,6 +917,11 @@ Requires: ldns-utils
 Requires: python3-sssdconfig
 Requires: python3-cryptography >= 1.6
 Requires: iptables
+%if 0%{?fedora} == 27
+# workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1564527
+# Tests are failing because ntpd restarts segfaults on some CPU archs.
+Requires: glibc >= 2.26-24
+%endif
 
 %description -n python3-ipatests
 IPA is an integrated solution to provide centrally managed Identity (users,
