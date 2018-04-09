@@ -2,6 +2,7 @@
  kdc_ports = 88
  kdc_tcp_ports = 88
  restrict_anonymous_to_tgt = true
+ spake_preauth_kdc_challenge = edwards25519
 
 [realms]
  $REALM = {

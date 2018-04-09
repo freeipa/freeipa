@@ -1563,6 +1563,37 @@ def setup_pkinit(krb):
         aug.close()
 
 
+def setup_spake(krb):
+    logger.info("[Setup SPAKE]")
+
+    aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD,
+                 loadpath=paths.USR_SHARE_IPA_DIR)
+    try:
+        aug.transform("IPAKrb5", paths.KRB5KDC_KDC_CONF)
+        aug.load()
+
+        path = "/files{}/libdefaults/spake_preauth_kdc_challenge"
+        path = path.format(paths.KRB5KDC_KDC_CONF)
+        value = "edwards25519"
+        if aug.match(path):
+            return
+
+        aug.remove(path)
+        aug.set(path, value)
+        try:
+            aug.save()
+        except IOError:
+            for error_path in aug.match('/augeas//error'):
+                logger.error('augeas: %s', aug.get(error_path))
+                raise
+
+        if krb.is_running():
+            krb.stop()
+            krb.start()
+    finally:
+        aug.close()
+
+
 def enable_certauth(krb):
     logger.info("[Enable certauth]")
 
@@ -1979,6 +2010,7 @@ def upgrade_configuration():
                         KDC_CA_BUNDLE_PEM=paths.KDC_CA_BUNDLE_PEM,
                         CA_BUNDLE_PEM=paths.CA_BUNDLE_PEM)
     krb.add_anonymous_principal()
+    setup_spake(krb)
     setup_pkinit(krb)
     enable_certauth(krb)
 
