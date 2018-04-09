@@ -22,6 +22,9 @@ example_test_zone = "example.test."
 example2_test_zone = "example2.test."
 example3_test_zone = "example3.test."
 
+# Sleep 5 seconds at most when waiting for LDAP updates
+# for DNSSEC changes. Test zones should be updated with 1 second TTL
+DNSSEC_SLEEP = 5
 
 def resolve_with_dnssec(nameserver, query, rtype="SOA"):
     res = dns.resolver.Resolver()
@@ -159,7 +162,7 @@ class TestInstallDNSSECLast(IntegrationTest):
         ]
         self.master.run_command(args)
 
-        time.sleep(20)  # sleep a bit until LDAP changes are applied to DNS
+        time.sleep(DNSSEC_SLEEP)
 
         # test master
         assert not is_record_signed(
@@ -206,7 +209,7 @@ class TestInstallDNSSECLast(IntegrationTest):
         ]
         self.master.run_command(args)
 
-        time.sleep(20)  # sleep a bit until LDAP changes are applied to DNS
+        time.sleep(DNSSEC_SLEEP)
 
         # test master
         assert not is_record_signed(
@@ -292,7 +295,7 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "--a-rec=" + self.replicas[0].ip
         ]
         self.master.run_command(args)
-        time.sleep(10)  # sleep a bit until data are provided by bind-dyndb-ldap
+        time.sleep(DNSSEC_SLEEP)
 
         args = [
             "ipa", "dnsrecord-add", root_zone, self.master.domain.name,
