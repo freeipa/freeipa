@@ -16,13 +16,6 @@ from ipalib.plugable import Registry
 from ipalib.text import _
 from ipapython import dogtag
 
-try:
-    import jinja2  # pylint: disable=unused-import
-except ImportError:
-    raise errors.SkipPluginModule(reason=_("jinja2 is not installed."))
-else:
-    from ipaclient import csrgen
-    from ipaclient import csrgen_ffi
 
 if six.PY3:
     unicode = str
@@ -79,6 +72,11 @@ class cert_get_requestdata(Local):
     )
 
     def execute(self, *args, **options):
+        # Deferred import, ipaclient.csrgen is expensive to load.
+        # see https://pagure.io/freeipa/issue/7484
+        from ipaclient import csrgen
+        from ipaclient import csrgen_ffi
+
         if 'out' in options:
             util.check_writable_file(options['out'])
 
