@@ -1635,6 +1635,19 @@ def disable_httpd_system_trust(http):
             db.add_cert(cert, nickname, trust_flags)
 
 
+def update_replica_config(db_suffix):
+    dn = DN(
+        ('cn', 'replica'), ('cn', db_suffix), ('cn', 'mapping tree'),
+        ('cn', 'config')
+    )
+    entry = api.Backend.ldap2.get_entry(dn)
+    if 'nsds5replicareleasetimeout' not in entry:
+        # See https://pagure.io/freeipa/issue/7488
+        logger.info("Adding nsds5replicaReleaseTimeout=60 to %s", dn)
+        entry['nsds5replicareleasetimeout'] = '60'
+        api.Backend.ldap2.update_entry(entry)
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1769,6 +1782,10 @@ def upgrade_configuration():
     http.enable_and_start_oddjobd()
 
     ds.configure_dirsrv_ccache()
+
+    update_replica_config(ipautil.realm_to_suffix(api.env.realm))
+    if ca.is_configured():
+        update_replica_config(DN(('o', 'ipaca')))
 
     ntpinstance.ntp_ldap_enable(api.env.host, api.env.basedn, api.env.realm)
 
