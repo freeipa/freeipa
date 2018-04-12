@@ -565,11 +565,15 @@ def set_directive_lines(quotes, separator, k, v, lines, comment):
         v_quoted = quote_directive_value(v, '"') if quotes else v
         new_line = ''.join([k, separator, v_quoted, '\n'])
 
+    # Special case: consider space as "white space" so tabs are allowed
+    if separator == ' ':
+        separator = '[ \t]+'
+
     found = False
     addnext = False  # add on next line, found a comment
-    matcher = re.compile(r'\s*{}'.format(re.escape(k + separator)))
-    cmatcher = re.compile(r'\s*{}\s*{}'.format(comment,
-                                               re.escape(k + separator)))
+    matcher = re.compile(r'\s*{}\s*{}'.format(re.escape(k), separator))
+    cmatcher = re.compile(r'\s*{}\s*{}\s*{}'.format(comment,
+                                                    re.escape(k), separator))
     for line in lines:
         if matcher.match(line):
             found = True
