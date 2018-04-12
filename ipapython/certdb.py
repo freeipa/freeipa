@@ -308,7 +308,7 @@ class NSSDatabase(object):
             "-d", '{}:{}'.format(self.dbtype, self.secdir)
         ]
         new_args.extend(args)
-        return ipautil.run(new_args, stdin, cwd=self.secdir, **kwargs)
+        return ipautil.run(new_args, stdin, **kwargs)
 
     def exists(self):
         """Check DB exists (all files are present)
