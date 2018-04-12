@@ -15,6 +15,11 @@ EXAMPLE_CONFIG = [
     'foobar=2\n',
 ]
 
+WHITESPACE_CONFIG = [
+    'foo 1\n',
+    'foobar\t2\n',
+]
+
 
 @pytest.fixture
 def tempdir(request):
@@ -42,6 +47,28 @@ class test_set_directive_lines(object):
         lines = installutils.set_directive_lines(
             False, '=', 'foo', '3', EXAMPLE_CONFIG, comment="#")
         assert list(lines) == ['foo=3\n', 'foobar=2\n']
+
+
+class test_set_directive_lines_whitespace(object):
+    def test_remove_directive(self):
+        lines = installutils.set_directive_lines(
+            False, ' ', 'foo', None, WHITESPACE_CONFIG, comment="#")
+        assert list(lines) == ['foobar\t2\n']
+
+    def test_add_directive(self):
+        lines = installutils.set_directive_lines(
+            False, ' ', 'baz', '4', WHITESPACE_CONFIG, comment="#")
+        assert list(lines) == ['foo 1\n', 'foobar\t2\n', 'baz 4\n']
+
+    def test_set_directive_does_not_clobber_suffix_key(self):
+        lines = installutils.set_directive_lines(
+            False, ' ', 'foo', '3', WHITESPACE_CONFIG, comment="#")
+        assert list(lines) == ['foo 3\n', 'foobar\t2\n']
+
+    def test_set_directive_with_tab(self):
+        lines = installutils.set_directive_lines(
+            False, ' ', 'foobar', '6', WHITESPACE_CONFIG, comment="#")
+        assert list(lines) == ['foo 1\n', 'foobar 6\n']
 
 
 class test_set_directive(object):
