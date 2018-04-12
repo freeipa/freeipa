@@ -32,6 +32,8 @@ def check_master_removal(host, hostname_to_remove,
         assert "Ignoring topology connectivity errors." in result.stderr_text
 
     if ignore_last_of_role:
+        assert ("Deleting this server will leave your installation "
+                "without a DNS." in result.stderr_text)
         assert ("Ignoring these warnings and proceeding with removal" in
                 result.stderr_text)
 
@@ -247,8 +249,8 @@ class TestLastServices(ServerDelBase):
         """
         tasks.assert_error(
             tasks.run_server_del(self.replicas[0], self.master.hostname),
-            "Deleting this server is not allowed as it would leave your "
-            "installation without a CA.",
+            "Deleting this server will leave your installation "
+            "without a DNS.",
             1
         )
 
@@ -285,9 +287,8 @@ class TestLastServices(ServerDelBase):
     def test_removal_of_master_raises_error_about_dnssec(self):
         tasks.assert_error(
             tasks.run_server_del(self.replicas[0], self.master.hostname),
-            "Replica is active DNSSEC key master. Uninstall "
-            "could break your DNS system. Please disable or replace "
-            "DNSSEC key master first.",
+            "Deleting this server will leave your installation "
+            "without a DNS.",
             1
         )
 
