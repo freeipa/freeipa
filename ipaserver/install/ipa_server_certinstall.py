@@ -174,7 +174,7 @@ class ServerCertInstall(admintool.AdminTool):
     def replace_kdc_cert(self):
         # pass in `realm` to perform `NSSDatabase.verify_kdc_cert_validity()`
         cert, key, ca_cert = self.load_pkcs12(
-            ca_chain_fname=paths.CA_BUNDLE_PEM, realm=api.env.realm)
+            ca_chain_fname=paths.CA_BUNDLE_PEM, realm_name=api.env.realm)
 
         self.replace_key_cert_files(
             cert, key, paths.KDC_CERT, paths.KDC_KEY, ca_cert,
