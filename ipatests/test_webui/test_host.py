@@ -317,7 +317,8 @@ class test_host(host_tasks):
         self.validate_fields([('checkbox', name, checked)])
         self.mod_record(ENTITY, mod)
         self.validate_fields([('checkbox', name, [])])
-        self.delete_record(self.pkey, self.data.get('del'))
+        self.close_notifications()
+        self.delete(ENTITY, [self.data])
 
     @screenshot
     def test_associations(self):
