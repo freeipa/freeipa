@@ -1642,7 +1642,11 @@ def update_replica_config(db_suffix):
         ('cn', 'replica'), ('cn', db_suffix), ('cn', 'mapping tree'),
         ('cn', 'config')
     )
-    entry = api.Backend.ldap2.get_entry(dn)
+    try:
+        entry = api.Backend.ldap2.get_entry(dn)
+    except ipalib.errors.NotFound:
+        return  # entry does not exist until a replica is installed
+
     if 'nsds5replicareleasetimeout' not in entry:
         # See https://pagure.io/freeipa/issue/7488
         logger.info("Adding nsds5replicaReleaseTimeout=60 to %s", dn)
