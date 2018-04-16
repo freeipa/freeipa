@@ -662,7 +662,7 @@ def sync_time(host, server):
     """
 
     host.run_command(['systemctl', 'stop', 'chronyd'])
-    host.run_command(['chronyd', '-q',
+    host.run_command(['chronyd', '-Q',
                       '"server {srv} iburst"'.format(srv=server.hostname)])
 
 
