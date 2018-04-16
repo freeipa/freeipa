@@ -18,6 +18,7 @@
 #
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import logging
 
@@ -981,7 +982,13 @@ class ReplicationManager(object):
             if status: # always check for errors
                 # status will usually be a number followed by a string
                 # number != 0 means error
-                rc, msg = status.split(' ', 1)
+                # Since 389-ds-base 1.3.5 it is 'Error (%d) %s'
+                # so we need to remove a prefix string and parentheses
+                if status.startswith('Error '):
+                    rc, msg = status[6:].split(' ', 1)
+                    rc = rc.strip('()')
+                else:
+                    rc, msg = status.split(' ', 1)
                 if rc != '0':
                     hasError = 1
                     error_message = msg
