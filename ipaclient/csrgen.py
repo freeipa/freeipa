@@ -402,20 +402,31 @@ class CSRLibraryAdaptor(object):
 
 
 class OpenSSLAdaptor(object):
-    def __init__(self, key_filename, password_filename):
-        self.key_filename = key_filename
-        self.password_filename = password_filename
+    def __init__(self, key=None, key_filename=None, password_filename=None):
+        """
+        Must provide either ``key_filename`` or ``key``.
+
+        """
+        if key_filename is not None:
+            with open(key_filename, 'rb') as key_file:
+                key_bytes = key_file.read()
+
+            password = None
+            if password_filename is not None:
+                with open(password_filename, 'rb') as password_file:
+                    password = password_file.read().strip()
+
+            self._key = load_pem_private_key(
+                key_bytes, password, default_backend())
+
+        elif key is not None:
+            self._key = key
+
+        else:
+            raise ValueError("Must provide 'key' or 'key_filename'")
 
     def key(self):
-        with open(self.key_filename, 'rb') as key_file:
-            key_bytes = key_file.read()
-        password = None
-        if self.password_filename is not None:
-            with open(self.password_filename, 'rb') as password_file:
-                password = password_file.read().strip()
-
-        key = load_pem_private_key(key_bytes, password, default_backend())
-        return key
+        return self._key
 
     def get_subject_public_key_info(self):
         pubkey_info = self.key().public_key().public_bytes(
