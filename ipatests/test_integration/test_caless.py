@@ -422,8 +422,8 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server(root_ca_file='does_not_exist')
         assert_error(result,
-                     'Failed to open does_not_exist: No such file '
-                     'or directory')
+                     'Failed to open %s/does_not_exist: No such file '
+                     'or directory' % self.master.config.test_dir)
 
     @server_install_teardown
     def test_unknown_ca(self):
@@ -434,7 +434,8 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server()
         assert_error(result,
-                     'The full certificate chain is not present in server.p12')
+                     'The full certificate chain is not present in '
+                     '%s/server.p12' % self.master.config.test_dir)
 
     @server_install_teardown
     def test_ca_server_cert(self):
@@ -445,7 +446,8 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server()
         assert_error(result,
-                     'The full certificate chain is not present in server.p12')
+                     'The full certificate chain is not present in '
+                     '%s/server.p12' % self.master.config.test_dir)
 
     @pytest.mark.xfail(reason='Ticket N 6289')
     @server_install_teardown
@@ -471,7 +473,8 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server(http_pkcs12='does_not_exist',
                                      http_pkcs12_exists=False)
-        assert_error(result, 'Failed to open does_not_exist')
+        assert_error(result, 'Failed to open %s/does_not_exist' %
+                     self.master.config.test_dir)
 
     @server_install_teardown
     def test_nonexistent_ds_pkcs12_file(self):
@@ -482,7 +485,8 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server(dirsrv_pkcs12='does_not_exist',
                                      dirsrv_pkcs12_exists=False)
-        assert_error(result, 'Failed to open does_not_exist')
+        assert_error(result, 'Failed to open %s/does_not_exist' %
+                     self.master.config.test_dir)
 
     @server_install_teardown
     def test_missing_http_password(self):
@@ -541,8 +545,9 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in http.p12 is not valid: '
-                     'invalid for server %s' % self.master.hostname)
+                     'The server certificate in %s/http.p12 is not valid: '
+                     'invalid for server %s' %
+                     (self.master.config.test_dir, self.master.hostname))
 
     @server_install_teardown
     def test_invalid_ds_cn(self):
@@ -555,8 +560,9 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in dirsrv.p12 is not valid: '
-                     'invalid for server %s' % self.master.hostname)
+                     'The server certificate in %s/dirsrv.p12 is not valid: '
+                     'invalid for server %s' %
+                     (self.master.config.test_dir, self.master.hostname))
 
     @server_install_teardown
     def test_expired_http(self):
@@ -569,8 +575,9 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in http.p12 is not valid: {err}'
-                     .format(err=CERT_EXPIRED_MSG))
+                     'The server certificate in {dir}/http.p12 is not valid: '
+                     '{err}'.format(dir=self.master.config.test_dir,
+                                    err=CERT_EXPIRED_MSG))
 
     @server_install_teardown
     def test_expired_ds(self):
@@ -583,8 +590,9 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in dirsrv.p12 is not valid: {err}'
-                     .format(err=CERT_EXPIRED_MSG))
+                     'The server certificate in {dir}/dirsrv.p12 is not '
+                     'valid: {err}'.format(dir=self.master.config.test_dir,
+                                           err=CERT_EXPIRED_MSG))
 
     @server_install_teardown
     def test_http_bad_usage(self):
@@ -597,8 +605,9 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in http.p12 is not valid: {err}'
-                     .format(err=BAD_USAGE_MSG))
+                     'The server certificate in {dir}/http.p12 is not '
+                     'valid: {err}'.format(dir=self.master.config.test_dir,
+                                           err=BAD_USAGE_MSG))
 
     @server_install_teardown
     def test_ds_bad_usage(self):
@@ -611,8 +620,9 @@ class TestServerInstall(CALessBase):
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in dirsrv.p12 is not valid: {err}'
-                     .format(err=BAD_USAGE_MSG))
+                     'The server certificate in {dir}/dirsrv.p12 is not '
+                     'valid: {err}'.format(dir=self.master.config.test_dir,
+                                           err=BAD_USAGE_MSG))
 
     @server_install_teardown
     def test_revoked_http(self):
@@ -842,7 +852,8 @@ class TestReplicaInstall(CALessBase):
 
         result = self.prepare_replica(dirsrv_pkcs12='does_not_exist',
                                       http_pkcs12='http.p12')
-        assert_error(result, 'Failed to open does_not_exist')
+        assert_error(result, 'Failed to open %s/does_not_exist' %
+                     self.master.config.test_dir)
 
     @replica_install_teardown
     def test_nonexistent_ds_pkcs12_file(self):
@@ -852,7 +863,8 @@ class TestReplicaInstall(CALessBase):
 
         result = self.prepare_replica(http_pkcs12='does_not_exist',
                                       dirsrv_pkcs12='dirsrv.p12')
-        assert_error(result, 'Failed to open does_not_exist')
+        assert_error(result, 'Failed to open %s/does_not_exist' %
+                     self.master.config.test_dir)
 
     @pytest.mark.xfail(reason='freeipa ticket 5378')
     @replica_install_teardown
@@ -911,8 +923,9 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in http.p12 is not valid: '
-                     'invalid for server %s' % self.replicas[0].hostname)
+                     'The server certificate in %s/http.p12 is not valid: '
+                     'invalid for server %s' %
+                     (self.master.config.test_dir, self.replicas[0].hostname))
 
     @replica_install_teardown
     def test_invalid_ds_cn(self):
@@ -924,8 +937,9 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in dirsrv.p12 is not valid: '
-                     'invalid for server %s' % self.replicas[0].hostname)
+                     'The server certificate in %s/dirsrv.p12 is not valid: '
+                     'invalid for server %s' %
+                     (self.master.config.test_dir, self.replicas[0].hostname))
 
     @replica_install_teardown
     def test_expired_http(self):
@@ -937,8 +951,9 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in http.p12 is not valid: {err}'
-                     .format(err=CERT_EXPIRED_MSG))
+                     'The server certificate in {dir}/http.p12 is not '
+                     'valid: {err}'.format(dir=self.master.config.test_dir,
+                                           err=CERT_EXPIRED_MSG))
 
     @replica_install_teardown
     def test_expired_ds(self):
@@ -950,8 +965,9 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in http.p12 is not valid: {err}'
-                     .format(err=CERT_EXPIRED_MSG))
+                     'The server certificate in {dir}/http.p12 is not '
+                     'valid: {err}'.format(dir=self.master.config.test_dir,
+                                           err=CERT_EXPIRED_MSG))
 
     @replica_install_teardown
     def test_http_bad_usage(self):
@@ -963,8 +979,9 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in http.p12 is not valid: {err}'
-                     .format(err=BAD_USAGE_MSG))
+                     'The server certificate in {dir}/http.p12 is not '
+                     'valid: {err}'.format(dir=self.master.config.test_dir,
+                                           err=BAD_USAGE_MSG))
 
     @replica_install_teardown
     def test_ds_bad_usage(self):
@@ -976,8 +993,9 @@ class TestReplicaInstall(CALessBase):
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
         assert_error(result,
-                     'The server certificate in dirsrv.p12 is not valid: {err}'
-                     .format(err=BAD_USAGE_MSG))
+                     'The server certificate in {dir}/dirsrv.p12 is not '
+                     'valid: {err}'.format(dir=self.master.config.test_dir,
+                                           err=BAD_USAGE_MSG))
 
     @replica_install_teardown
     def test_revoked_http(self):
