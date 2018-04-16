@@ -220,6 +220,12 @@ def _parse_dn_section(subj, dn_sk):
 
 
 def build_requestinfo(config, public_key_info):
+    '''
+    Return a cffi buffer containing a DER-encoded CertificationRequestInfo.
+
+    The returned object implements the buffer protocol.
+
+    '''
     reqdata = NULL
     req = NULL
     nconf_bio = NULL
