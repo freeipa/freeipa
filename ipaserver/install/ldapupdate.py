@@ -21,6 +21,7 @@
 
 # TODO
 # save undo files?
+from __future__ import absolute_import
 
 import base64
 import sys
@@ -811,6 +812,9 @@ class LDAPUpdate(object):
                 updated = False
             except errors.DatabaseError as e:
                 self.error("Update failed: %s", e)
+                updated = False
+            except errors.DuplicateEntry as e:
+                self.debug("Update already exists, skip it: %s", e)
                 updated = False
             except errors.ACIError as e:
                 self.error("Update failed: %s", e)
