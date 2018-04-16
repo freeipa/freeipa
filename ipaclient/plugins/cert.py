@@ -117,7 +117,8 @@ class cert_request(CertRetrieveOverride):
             if database:
                 adaptor = csrgen.NSSAdaptor(database, password_file)
             elif private_key:
-                adaptor = csrgen.OpenSSLAdaptor(private_key, password_file)
+                adaptor = csrgen.OpenSSLAdaptor(
+                    key_filename=private_key, password_filename=password_file)
             else:
                 raise errors.InvocationError(
                     message=u"One of 'database' or 'private_key' is required")
