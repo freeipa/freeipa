@@ -1426,7 +1426,6 @@ class TestCertInstall(CALessBase):
 
         assert result.returncode > 0
 
-    @pytest.mark.xfail(reason='freeipa ticket 6959')
     def test_http_intermediate_ca(self):
         "Install new HTTP certificate issued by intermediate CA"
 
