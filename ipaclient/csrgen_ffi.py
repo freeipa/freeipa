@@ -182,8 +182,12 @@ def _raise_openssl_errors():
 
     code = ERR_get_error()
     while code != 0:
-        msg = ERR_error_string(code, NULL)
-        msgs.append(_ffi.string(msg))
+        msg = _ffi.string(ERR_error_string(code, NULL))
+        try:
+            strmsg = msg.decode('utf-8')
+        except UnicodeDecodeError:
+            strmsg = repr(msg)
+        msgs.append(strmsg)
         code = ERR_get_error()
 
     raise errors.CSRTemplateError(reason='\n'.join(msgs))
