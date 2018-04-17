@@ -84,7 +84,7 @@
 %endif
 
 # Require Dogtag PKI 10.6.0 with Python 3 and SQL NSSDB fixes
-%global pki_version 10.6.0-0.2
+%global pki_version 10.6.0-1
 
 %define krb5_base_version %(LC_ALL=C rpm -q --qf '%%{VERSION}' krb5-devel | grep -Eo '^[^.]+\.[^.]+')
 
