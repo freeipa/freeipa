@@ -605,13 +605,20 @@ def get_directive(filename, directive, separator=' '):
 
     :returns: The (unquoted) value if the directive was found, None otherwise
     """
+    # Special case: consider space as "white space" so tabs are allowed
+    if separator == ' ':
+        separator = '[ \t]+'
+
     fd = open(filename, "r")
     for line in fd:
         if line.lstrip().startswith(directive):
             line = line.strip()
 
-            (directive, sep, value) = line.partition(separator)
-            if not sep or not value:
+            match = re.match(r'{}\s*{}\s*(.*)'.format(directive, separator),
+                             line)
+            if match:
+                value = match.group(1)
+            else:
                 raise ValueError("Malformed directive: {}".format(line))
 
             result = unquote_directive_value(value.strip(), '"')

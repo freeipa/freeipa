@@ -98,6 +98,30 @@ class test_set_directive(object):
             os.remove(filename)
 
 
+class test_get_directive(object):
+    def test_get_directive(self, tmpdir):
+        configfile = tmpdir.join('config')
+        configfile.write(''.join(EXAMPLE_CONFIG))
+
+        assert '1' == installutils.get_directive(str(configfile),
+                                                 'foo',
+                                                 separator='=')
+        assert '2' == installutils.get_directive(str(configfile),
+                                                 'foobar',
+                                                 separator='=')
+
+
+class test_get_directive_whitespace(object):
+    def test_get_directive(self, tmpdir):
+        configfile = tmpdir.join('config')
+        configfile.write(''.join(WHITESPACE_CONFIG))
+
+        assert '1' == installutils.get_directive(str(configfile),
+                                                 'foo')
+        assert '2' == installutils.get_directive(str(configfile),
+                                                 'foobar')
+
+
 def test_directivesetter(tempdir):
     filename = os.path.join(tempdir, 'example.conf')
     with open(filename, 'w') as f:
