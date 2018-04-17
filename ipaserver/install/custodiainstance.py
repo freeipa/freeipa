@@ -4,22 +4,22 @@ from __future__ import print_function, absolute_import
 
 import logging
 
+from ipalib import api
+from ipalib.install.certstore import get_ca_certs_nss
 from ipaserver.secrets.kem import IPAKEMKeys, KEMLdap
 from ipaserver.secrets.client import CustodiaClient
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants
 from ipaserver.install.service import SimpleServiceInstance
 from ipapython import ipautil
-from ipapython.certdb import NSSDatabase
+from ipapython.certdb import NSSDatabase, get_ca_nickname
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import sysupgrade
 from base64 import b64decode
 from jwcrypto.common import json_decode
-import shutil
 import os
 import stat
-import tempfile
 import time
 import pwd
 
@@ -178,54 +178,55 @@ class CustodiaInstance(SimpleServiceInstance):
                               paths.KRB5_KEYTAB, server, realm=self.realm)
 
     def __get_keys(self, ca_host, cacerts_file, cacerts_pwd, data):
-        # Fecth all needed certs one by one, then combine them in a single
-        # p12 file
-
+        # Fetch all needed certs one by one, then combine them in a single
+        # PKCS12 file
         prefix = data['prefix']
         certlist = data['list']
-
         cli = self.__CustodiaClient(server=ca_host)
 
-        # Temporary nssdb
-        tmpnssdir = tempfile.mkdtemp(dir=paths.TMP)
-        tmpdb = NSSDatabase(tmpnssdir)
-        tmpdb.create_db()
-        try:
+        with NSSDatabase(None) as tmpdb:
+            tmpdb.create_db()
             # Cert file password
-            crtpwfile = os.path.join(tmpnssdir, 'crtpwfile')
+            crtpwfile = os.path.join(tmpdb.secdir, 'crtpwfile')
             with open(crtpwfile, 'w+') as f:
                 f.write(cacerts_pwd)
-                f.flush()
 
             for nickname in certlist:
                 value = cli.fetch_key(os.path.join(prefix, nickname), False)
                 v = json_decode(value)
-                pk12pwfile = os.path.join(tmpnssdir, 'pk12pwfile')
+                pk12pwfile = os.path.join(tmpdb.secdir, 'pk12pwfile')
                 with open(pk12pwfile, 'w+') as f:
                     f.write(v['export password'])
-                pk12file = os.path.join(tmpnssdir, 'pk12file')
+                pk12file = os.path.join(tmpdb.secdir, 'pk12file')
                 with open(pk12file, 'wb') as f:
                     f.write(b64decode(v['pkcs12 data']))
-                ipautil.run([paths.PK12UTIL,
-                             '-d', tmpdb.secdir,
-                             '-k', tmpdb.pwd_file,
-                             '-n', nickname,
-                             '-i', pk12file,
-                             '-w', pk12pwfile])
+                tmpdb.run_pk12util([
+                    '-k', tmpdb.pwd_file,
+                    '-n', nickname,
+                    '-i', pk12file,
+                    '-w', pk12pwfile
+                ])
 
-            # Add CA certificates
-            self.suffix = ipautil.realm_to_suffix(self.realm)
-            self.export_ca_certs_nssdb(tmpdb, True)
+            # Add CA certificates, but don't import the main CA cert. It's
+            # already present as 'caSigningCert cert-pki-ca'. With SQL db
+            # format, a second import would rename the certificate. See
+            # https://pagure.io/freeipa/issue/7498 for more details.
+            conn = api.Backend.ldap2
+            suffix = ipautil.realm_to_suffix(self.realm)
+            ca_certs = get_ca_certs_nss(conn, suffix, self.realm, True)
+            for cert, nickname, trust_flags in ca_certs:
+                if nickname == get_ca_nickname(self.realm):
+                    continue
+                tmpdb.add_cert(cert, nickname, trust_flags)
 
             # Now that we gathered all certs, re-export
-            ipautil.run([paths.PKCS12EXPORT,
-                         '-d', tmpdb.secdir,
-                         '-p', tmpdb.pwd_file,
-                         '-w', crtpwfile,
-                         '-o', cacerts_file])
-
-        finally:
-            shutil.rmtree(tmpnssdir)
+            ipautil.run([
+                paths.PKCS12EXPORT,
+                '-d', tmpdb.secdir,
+                '-p', tmpdb.pwd_file,
+                '-w', crtpwfile,
+                '-o', cacerts_file
+            ])
 
     def get_ca_keys(self, ca_host, cacerts_file, cacerts_pwd):
         certlist = ['caSigningCert cert-pki-ca',
