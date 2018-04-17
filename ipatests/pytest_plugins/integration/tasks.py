@@ -663,7 +663,7 @@ def sync_time(host, server):
 
     host.run_command(['systemctl', 'stop', 'chronyd'])
     host.run_command(['chronyd', '-q',
-                      '"server {srv} iburst"'.format(srv=server.hostname)])
+                      "server {srv} iburst".format(srv=server.hostname)])
 
 
 def connect_replica(master, replica, domain_level=None):
