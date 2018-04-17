@@ -424,6 +424,27 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
                 "You cannot specify a --auto-reverse option together with "
                 "--no-reverse")
 
+        if not self.setup_adtrust:
+            if self.add_agents:
+                raise RuntimeError(
+                    "You cannot specify an --add-agents option without the "
+                    "--setup-adtrust option")
+
+            if self.enable_compat:
+                raise RuntimeError(
+                    "You cannot specify an --enable-compat option without the "
+                    "--setup-adtrust option")
+
+            if self.netbios_name:
+                raise RuntimeError(
+                    "You cannot specify a --netbios-name option without the "
+                    "--setup-adtrust option")
+
+            if self.no_msdcs:
+                raise RuntimeError(
+                    "You cannot specify a --no-msdcs option without the "
+                    "--setup-adtrust option")
+
         if not hasattr(self, 'replica_file'):
             if self.external_cert_files and self.dirsrv_cert_files:
                 raise RuntimeError(
