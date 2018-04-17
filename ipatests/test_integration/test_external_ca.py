@@ -17,6 +17,7 @@
 
 from __future__ import absolute_import
 
+import os
 import re
 import time
 
@@ -25,6 +26,7 @@ from ipatests.test_integration.base import IntegrationTest
 from ipaplatform.paths import paths
 
 from itertools import chain, repeat
+from ipatests.pytest_plugins.integration.create_external_ca import ExternalCA
 
 IPA_CA = 'ipa_ca.crt'
 ROOT_CA = 'root_ca.crt'
@@ -220,3 +222,60 @@ class TestExternalCAdirsrvStop(IntegrationTest):
         tasks.kinit_admin(self.master)
         result = self.master.run_command(['ipa', 'user-show', 'admin'])
         assert 'User login: admin' in result.stdout_text
+
+
+class TestExternalCAInvalidCert(IntegrationTest):
+    """Manual renew external CA cert with invalid file"""
+
+    def test_external_ca(self):
+        # Step 1 of ipa-server-install.
+        install_server_external_ca_step1(self.master)
+
+        # Sign CA, transport it to the host and get ipa a root ca paths.
+        root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
+            self.master, paths.ROOT_IPA_CSR, ROOT_CA, IPA_CA)
+
+        # Step 2 of ipa-server-install.
+        install_server_external_ca_step2(self.master, ipa_ca_fname,
+                                         root_ca_fname)
+
+        self.master.run_command([paths.IPA_CACERT_MANAGE, 'renew',
+                                 '--external-ca'])
+        result = self.master.run_command(['grep', '-v', 'CERTIFICATE',
+                                          ipa_ca_fname])
+        contents = result.stdout_text
+
+        BAD_CERT = 'bad_ca.crt'
+        invalid_cert = os.path.join(self.master.config.test_dir, BAD_CERT)
+        self.master.put_file_contents(invalid_cert, contents)
+        # Sign CA, transport it to the host and get ipa a root ca paths.
+        root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
+            self.master, paths.IPA_CA_CSR, ROOT_CA, IPA_CA)
+        # renew CA with invalid cert
+        cmd = [paths.IPA_CACERT_MANAGE, 'renew', '--external-cert-file',
+               invalid_cert, '--external-cert-file', root_ca_fname]
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 1
+
+
+class TestExternalCAInstall(IntegrationTest):
+    """install CA cert manually """
+
+    def test_install_master(self):
+        # step 1 install ipa-server
+
+        tasks.install_master(self.master)
+
+    def test_install_external_ca(self):
+        # Create root CA
+        external_ca = ExternalCA()
+        # Create root CA
+        root_ca = external_ca.create_ca()
+        root_ca_fname = os.path.join(self.master.config.test_dir, ROOT_CA)
+
+        # Transport certificates (string > file) to master
+        self.master.put_file_contents(root_ca_fname, root_ca)
+
+        # Install new cert
+        self.master.run_command([paths.IPA_CACERT_MANAGE, 'install',
+                                 root_ca_fname])
