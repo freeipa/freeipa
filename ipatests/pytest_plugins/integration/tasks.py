@@ -270,6 +270,18 @@ def enable_replication_debugging(host, log_level=0):
                      stdin_text=logging_ldif)
 
 
+def set_default_ttl_for_ipa_dns_zone(host, raiseonerr=True):
+    args = [
+        'ipa', 'dnszone-mod', host.domain.name,
+        '--default-ttl', '1',
+        '--ttl', '1'
+    ]
+    result = host.run_command(args, raiseonerr=raiseonerr, stdin_text=None)
+    if result.returncode != 0:
+        logger.info('Failed to set TTL and default TTL for DNS zone %s to 1',
+                    host.domain.name)
+
+
 def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
                    extra_args=(), domain_level=None, unattended=True,
                    stdin_text=None, raiseonerr=True):
@@ -308,6 +320,10 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         enable_replication_debugging(host)
         setup_sssd_debugging(host)
         kinit_admin(host)
+        if setup_dns:
+            # fixup DNS zone default TTL for IPA DNS zone
+            # For tests we should not wait too long
+            set_default_ttl_for_ipa_dns_zone(host, raiseonerr=raiseonerr)
     return result
 
 
