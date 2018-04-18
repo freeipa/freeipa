@@ -345,10 +345,25 @@ def master_authoritative_for_client_domain(master, client):
                                 raiseonerr=False)
     return result.returncode == 0
 
+
+def _config_replica_resolvconf_with_master_data(master, replica):
+    """
+    Configure replica /etc/resolv.conf to use master as DNS server
+    """
+    content = ('search {domain}\nnameserver {master_ip}'
+               .format(domain=master.domain.name, master_ip=master.ip))
+    replica.put_file_contents(paths.RESOLV_CONF, content)
+
+
 def replica_prepare(master, replica, extra_args=(),
                     raiseonerr=True, stdin_text=None):
     fix_apache_semaphores(replica)
     prepare_reverse_zone(master, replica.ip)
+
+    # in domain level 0 there is no autodiscovery, so it's necessary to
+    # change /etc/resolv.conf to find master DNS server
+    _config_replica_resolvconf_with_master_data(master, replica)
+
     args = ['ipa-replica-prepare',
             '-p', replica.config.dirman_password,
             replica.hostname]
