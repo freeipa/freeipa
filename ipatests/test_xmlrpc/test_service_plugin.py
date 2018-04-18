@@ -31,6 +31,7 @@ from ipatests.test_xmlrpc.test_user_plugin import get_user_result, get_group_dn
 
 from ipatests.test_xmlrpc.tracker.service_plugin import ServiceTracker
 from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
+from ipatests.util import change_principal, host_keytab
 
 import base64
 from ipapython.dn import DN
@@ -1343,3 +1344,30 @@ class TestAuthenticationIndicators(XMLRPC_test):
             updates={u'krbprincipalauthind': u'radius'},
             expected_updates={u'krbprincipalauthind': [u'radius']}
         )
+
+
+@pytest.fixture(scope='function')
+def managing_host(request):
+    tracker = HostTracker(name=u'managinghost2', fqdn=fqdn2)
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='function')
+def managed_service(request):
+    tracker = ServiceTracker(
+        name=u'managed-service', host_fqdn=fqdn2)
+    return tracker.make_fixture(request)
+
+
+@pytest.mark.tier1
+class TestManagedServices(XMLRPC_test):
+    def test_managed_service(
+            self, managing_host, managed_service):
+        """ Add a host and then add a service as a host
+            Finally, remove the service as a host """
+        managing_host.ensure_exists()
+        with host_keytab(managing_host.name) as keytab_filename:
+            with change_principal(managing_host.attrs['krbcanonicalname'][0],
+                                  keytab=keytab_filename):
+                managed_service.create()
+                managed_service.delete()
