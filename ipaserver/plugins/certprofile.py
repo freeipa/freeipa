@@ -236,14 +236,25 @@ class certprofile_import(LDAPCreate):
         ca_enabled_check(self.api)
         context.profile = options['file']
 
-        match = self.PROFILE_ID_PATTERN.search(options['file'])
-        if match is None:
+        matches = self.PROFILE_ID_PATTERN.findall(options['file'])
+        if len(matches) == 0:
             # no profileId found, use CLI value as profileId.
             context.profile = u'profileId=%s\n%s' % (keys[0], context.profile)
-        elif keys[0] != match.group(1):
-            raise errors.ValidationError(name='file',
-                error=_("Profile ID '%(cli_value)s' does not match profile data '%(file_value)s'")
-                    % {'cli_value': keys[0], 'file_value': match.group(1)}
+        elif len(matches) > 1:
+            raise errors.ValidationError(
+                name='file',
+                error=_(
+                    "Profile data specifies profileId multiple times: "
+                    "%(values)s"
+                ) % dict(values=matches)
+            )
+        elif keys[0] != matches[0]:
+            raise errors.ValidationError(
+                name='file',
+                error=_(
+                    "Profile ID '%(cli_value)s' "
+                    "does not match profile data '%(file_value)s'"
+                ) % dict(cli_value=keys[0], file_value=matches[0])
             )
         return dn
 
