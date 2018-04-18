@@ -41,3 +41,62 @@ DATA2 = {
         ('textarea', 'description', 'test-netgroup2 desc modified'),
     ],
 }
+
+PKEY3 = 'itest-netgroup3'
+DATA3 = {
+    'pkey': PKEY3,
+    'add': [
+        ('textbox', 'cn', PKEY3),
+        ('textarea', 'description', 'test-netgroup3 desc'),
+    ]
+}
+
+PKEY4 = 'itest-netgroup4'
+DATA4 = {
+    'pkey': PKEY4,
+    'add': [
+        ('textbox', 'cn', PKEY4),
+        ('textarea', 'description', 'test-netgroup4 desc'),
+    ]
+}
+
+PKEY5 = 'NewNetGroup'
+DATA_MIXED_CASE = {
+    'pkey': PKEY5,
+    'add': [
+        ('textbox', 'cn', PKEY5),
+        ('textarea', 'description', 'Trying to add mixed case netgroup name'),
+    ]
+}
+
+PKEY6 = 'long-netgroup-name_{}'.format('long' * 15)
+DATA_LONG_NAME = {
+    'pkey': PKEY6,
+    'add': [
+        ('textbox', 'cn', PKEY6),
+        ('textarea', 'description', 'Trying to add long netgroup name'),
+    ]
+}
+
+PKEY7 = 'a'
+DATA_SINGLE_CHAR = {
+    'pkey': PKEY7,
+    'add': [
+        ('textbox', 'cn', PKEY7),
+        ('textarea', 'description', 'Trying to add single character netgroup'
+                                    ' name'),
+    ]
+}
+
+PKEY8 = 'itest-netgroup8'
+DATA8 = {
+    'pkey': PKEY8,
+    'add': [
+        ('textbox', 'cn', PKEY8),
+        ('textarea', 'description', 'test-netgroup8 desc'),
+    ],
+    'mod': [
+        ('textarea', 'description', 'description modified for testing buttons'
+         ),
+    ],
+}
