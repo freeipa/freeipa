@@ -222,3 +222,36 @@ class TestImportFromXML(XMLRPC_test):
     def test_import_xml(self, xmlprofile):
         with pytest.raises(errors.ExecutionError):
             xmlprofile.ensure_exists()
+
+
+# The initial user_profile configuration does not specify profileId.
+# This is fine (it gets derived from the profile-id CLI argument),
+# but this case was already tested in TestProfileCRUD.
+#
+# This test case tests various scenarios where the profileId *is*
+# specified in the profile configuration.  These are:
+#
+# - mismatched profileId property (should fail)
+# - multiple profileId properties (should fail)
+# - one profileId property, matching given ID (should succeed)
+#
+@pytest.mark.tier1
+class TestImportProfileIdHandling(XMLRPC_test):
+    def test_import_with_mismatched_profile_id(self, user_profile):
+        command = user_profile.make_create_command(
+            extra_lines=['profileId=bogus']
+        )
+        with pytest.raises(errors.ValidationError):
+            command()
+
+    def test_import_with_multiple_profile_id(self, user_profile):
+        # correct profile id, but two occurrences
+        prop = u'profileId={}'.format(user_profile.name)
+        command = user_profile.make_create_command(extra_lines=[prop, prop])
+        with pytest.raises(errors.ValidationError):
+            command()
+
+    def test_import_with_correct_profile_id(self, user_profile):
+        prop = u'profileId={}'.format(user_profile.name)
+        command = user_profile.make_create_command(extra_lines=[prop])
+        command()
