@@ -1550,7 +1550,7 @@ class UI_driver(object):
             self.assert_record(key, negative=True)
 
     def add_table_associations(self, table_name, pkeys, parent=False,
-                               delete=False):
+                               delete=False, negative=False):
         """
         Add value to table (association|rule|...)
         """
@@ -1570,7 +1570,12 @@ class UI_driver(object):
             self.button_click('add')
             self.wait()
 
-        self.dialog_button_click('add')
+        if negative:
+            self.dialog_button_click('cancel')
+            self.assert_record(key, parent, table_name, negative=True)
+            return
+        else:
+            self.dialog_button_click('add')
         self.wait_for_request(n=2)
 
         for key in pkeys:
