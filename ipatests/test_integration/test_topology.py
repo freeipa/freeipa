@@ -239,6 +239,9 @@ class TestCASpecificRUVs(IntegrationTest):
         assert(res1.count(replica.hostname) == 2), (
             "Did not find proper number of replica hostname (%s) occurrencies"
             " in the command output: %s" % (replica.hostname, res1))
+
+        master.run_command(['ipa-replica-manage', 'del', replica.hostname,
+                            '-p', master.config.dirman_password])
         tasks.uninstall_master(replica)
         res2 = master.run_command(['ipa-replica-manage', 'list-ruv', '-p',
                                   master.config.dirman_password]).stdout_text
