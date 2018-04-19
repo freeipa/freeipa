@@ -124,10 +124,11 @@ add:aci: (targetfilter="(|(objectclass=ipaHost)(objectclass=ipaService))")(targe
 dn: $SUFFIX
 add:aci:(targetattr = "usercertificate")(version 3.0;acl "selfservice:Users can manage their own X.509 certificates";allow (write) userdn = "ldap:///self";)
 
-# Hosts can add their own services
+# Hosts can add and delete their own services
 dn: cn=services,cn=accounts,$SUFFIX
 remove:aci: (target = "ldap:///krbprincipalname=*/($$dn)@$REALM,cn=services,cn=accounts,$SUFFIX")(targetfilter = "(objectClass=ipaKrbPrincipal)")(version 3.0;acl "Hosts can add own services"; allow(add) userdn="ldap:///fqdn=($$dn),cn=computers,cn=accounts,$SUFFIX";)
 add:aci: (target = "ldap:///krbprincipalname=*/($$dn)@$REALM,cn=services,cn=accounts,$SUFFIX")(targetfilter = "(objectClass=ipaService)")(version 3.0;acl "Hosts can add own services"; allow(add) userdn="ldap:///fqdn=($$dn),cn=computers,cn=accounts,$SUFFIX";)
+add:aci: (target = "ldap:///krbprincipalname=*/($$dn)@$REALM,cn=services,cn=accounts,$SUFFIX")(targetfilter = "(objectClass=ipaService)")(version 3.0;acl "Hosts can delete own services"; allow(delete) userdn="ldap:///fqdn=($$dn),cn=computers,cn=accounts,$SUFFIX";)
 
 # CIFS service on the master can manage ID ranges
 dn: cn=ranges,cn=etc,$SUFFIX
