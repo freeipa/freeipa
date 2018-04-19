@@ -58,7 +58,6 @@ except ImportError:
     NO_YAML = True
 from ipaplatform.paths import paths
 
-
 ENV_MAP = {
     'MASTER': 'ipa_server',
     'ADMINID': 'ipa_admin',
@@ -384,9 +383,9 @@ class UI_driver(object):
         if self.logged_in():
             return
 
-        if not login:
+        if login is None:
             login = self.config['ipa_admin']
-        if not password:
+        if password is None:
             password = self.config['ipa_password']
         if not new_password:
             new_password = password
@@ -423,7 +422,14 @@ class UI_driver(object):
         return logged_in
 
     def logout(self):
+
+        runner = self
+
         self.profile_menu_action('logout')
+        # it may take some time to get login screen visible
+        WebDriverWait(self.driver, self.request_timeout).until(
+            lambda d: runner.login_screen_visible())
+
         assert self.login_screen_visible()
 
     def get_login_screen(self):
@@ -814,6 +820,50 @@ class UI_driver(object):
         inputs = self.find(s, By.CSS_SELECTOR, w, many=True)
         last = inputs[-1]
         last.send_keys(value)
+
+    def edit_multivalued(self, name, value, new_value, parent=None):
+        """
+        Edit multivalued textbox
+        """
+        if not parent:
+            parent = self.get_form()
+        s = "div[name='%s'].multivalued-widget" % name
+        w = self.find(s, By.CSS_SELECTOR, parent, strict=True)
+        s = "div[name=value] input"
+        inputs = self.find(s, By.CSS_SELECTOR, w, many=True)
+
+        for i in inputs:
+            val = i.get_attribute('value')
+            if val == value:
+                i.clear()
+                i.send_keys(new_value)
+
+    def undo_multivalued(self, name, value, parent=None):
+        """
+        Undo multivalued change
+        """
+        if not parent:
+            parent = self.get_form()
+        s = "div[name='%s'].multivalued-widget" % name
+        w = self.find(s, By.CSS_SELECTOR, parent, strict=True)
+        s = "div[name=value] input"
+        inputs = self.find(s, By.CSS_SELECTOR, w, many=True)
+        clicked = False
+        for i in inputs:
+            val = i.get_attribute('value')
+            n = i.get_attribute('name')
+            if val == value:
+                s = "input[name='%s'] ~ .input-group-btn button[name=undo]" % n
+                link = self.find(s, By.CSS_SELECTOR, w, strict=True)
+                link.click()
+                self.wait()
+                clicked = True
+                # lets try to find the undo button element again to check if
+                # it is not present or displayed
+                link = self.find(s, By.CSS_SELECTOR, w)
+                assert not link or not link.is_displayed(), 'Undo btn present'
+
+        assert clicked, 'Value was not undone: %s' % value
 
     def del_multivalued(self, name, value, parent=None):
         """
@@ -1369,7 +1419,8 @@ class UI_driver(object):
             new_count = len(self.get_rows())
             self.assert_row_count(count, new_count)
 
-    def mod_record(self, entity, data, facet='details', facet_btn='save'):
+    def mod_record(self, entity, data, facet='details', facet_btn='save',
+                   negative=False):
         """
         Mod record
 
@@ -1384,6 +1435,9 @@ class UI_driver(object):
         self.facet_button_click(facet_btn)
         self.wait_for_request()
         self.wait_for_request()
+
+        if negative:
+            return
         self.assert_facet_button_enabled(facet_btn, enabled=False)
 
     def basic_crud(self, entity, data,
@@ -1700,33 +1754,89 @@ class UI_driver(object):
             # add multiple at once and test table delete button
             self.add_table_associations(table, keys, delete=True)
 
-    def add_sshkey_to_user(self, user, ssh_key):
+    def add_sshkey_to_record(self, ssh_keys, pkey, entity='user',
+                             navigate=False, save=True):
         """
-        Add ssh public key to particular user
+        Add ssh public key to particular record
 
-        user (str): user to add the key to
-        ssh_key (str): public ssh key
+        ssh_keys (list): public ssh key(s)
+        pkey (str): user/host/idview to add the key to
+        entity (str): name of entity where to navigate if navigate=True
+        navigate (bool): whether we should navigate to record
+        save (bool): whether we should click save after adding a key
         """
-        self.navigate_to_entity('user')
-        self.navigate_to_record(user)
 
-        ssh_pub = 'div[name="ipasshpubkey"] button[name="add"]'
-        self.find(ssh_pub, By.CSS_SELECTOR).click()
-        self.wait()
-        self.driver.switch_to.active_element.send_keys(ssh_key)
-        self.dialog_button_click('update')
-        self.facet_button_click('save')
+        if type(ssh_keys) is not list:
+            ssh_keys = [ssh_keys]
 
-    def delete_user_sshkey(self, user):
+        if navigate:
+            self.navigate_to_entity(entity)
+            self.navigate_to_record(pkey)
+
+        for key in ssh_keys:
+            s_add = 'div[name="ipasshpubkey"] button[name="add"]'
+            ssh_add_btn = self.find(s_add, By.CSS_SELECTOR, strict=True)
+            ssh_add_btn.click()
+            self.wait()
+            s_text_area = 'textarea.certificate'
+            text_area = self.find(s_text_area, By.CSS_SELECTOR, strict=True)
+            text_area.send_keys(key)
+            self.wait()
+            self.dialog_button_click('update')
+
+        # sometimes we do not want to save e.g. in order to test undo buttons
+        if save:
+            self.facet_button_click('save')
+
+    def delete_record_sshkeys(self, pkey, entity='user', navigate=False):
         """
-        Delete ssh public key of particular user
+        Delete all ssh public keys of particular record
+
+        pkey (str): user/host/idview to add the key to
+        entity (str): name of entity where to navigate if navigate=True
+        navigate (bool): whether we should navigate to record
         """
-        self.navigate_to_entity('user')
-        self.navigate_to_record(user)
+
+        if navigate:
+            self.navigate_to_entity(entity)
+            self.navigate_to_record(pkey)
 
         ssh_pub = 'div[name="ipasshpubkey"] button[name="remove"]'
-        self.find(ssh_pub, By.CSS_SELECTOR).click()
+        rm_btns = self.find(ssh_pub, By.CSS_SELECTOR, many=True)
+        assert rm_btns, 'No SSH keys to be deleted found on current page'
+
+        for btn in rm_btns:
+            btn.click()
+
         self.facet_button_click('save')
+
+    def assert_num_ssh_keys(self, num):
+        """
+        Assert number of SSH keys we have associated with the user
+        """
+
+        s_keys = 'div[name="ipasshpubkey"] .widget[name="value"]'
+        ssh_keys = self.find(s_keys, By.CSS_SELECTOR, many=True)
+
+        num_ssh_keys = len(ssh_keys) if not None else 0
+
+        assert num_ssh_keys == num, \
+            ('Number of SSH keys does not match. '
+             'Expected: {}, Got: {}'.format(num, num_ssh_keys))
+
+    def undo_ssh_keys(self, btn_name='undo'):
+        """
+        Undo either one SSH key or all of them
+
+        Possible options:
+        btn_name='undo'
+        btn_name='undo_all'
+        """
+
+        s_undo = 'div[name="ipasshpubkey"] button[name="{}"]'.format(btn_name)
+        undo = self.find(s_undo, By.CSS_SELECTOR, strict=True)
+        undo.click()
+        self.wait(0.6)
 
     def run_cmd_on_ui_host(self, cmd):
         """
@@ -2080,3 +2190,22 @@ class UI_driver(object):
         else:
             s = '.modal-body div p'
             self.assert_text(s, expected_err, parent=err_dialog)
+
+    def assert_value_checked(self, values, name, negative=False):
+        """
+        Assert particular value is checked
+        """
+
+        if type(values) is not list:
+            values = [values]
+
+        checked_values = self.get_field_checked(name)
+
+        for value in values:
+            if negative:
+                assert value not in checked_values, (
+                    '{} checked while it should not be'.format(value)
+                )
+            else:
+                assert value in checked_values, ('{} NOT checked while it '
+                                                 'should be'.format(value))
