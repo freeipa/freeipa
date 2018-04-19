@@ -22,6 +22,8 @@
 This module contains default platform-specific implementations of system tasks.
 '''
 
+from __future__ import absolute_import
+
 import logging
 
 from pkg_resources import parse_version

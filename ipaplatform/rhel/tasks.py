@@ -21,6 +21,8 @@
 This module contains default RHEL-specific implementations of system tasks.
 '''
 
+from __future__ import absolute_import
+
 from ipaplatform.redhat.tasks import RedHatTaskNamespace
 
 

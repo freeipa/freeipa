@@ -25,6 +25,8 @@
 
 # The DM password needs to be set in ~/.ipa/.dmpw
 
+from __future__ import absolute_import
+
 import os
 import sys
 import unittest

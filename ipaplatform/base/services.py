@@ -23,6 +23,8 @@ This base module contains default implementations of IPA interface for
 interacting with system services.
 '''
 
+from __future__ import absolute_import
+
 import os
 import json
 import time

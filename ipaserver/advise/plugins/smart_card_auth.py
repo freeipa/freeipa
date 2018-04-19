@@ -2,6 +2,8 @@
 # Copyright (C) 2017 FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import absolute_import
+
 from ipalib.plugable import Registry
 from ipaplatform import services
 from ipaplatform.paths import paths

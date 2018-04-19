@@ -7,6 +7,8 @@ Test the `ipapython/ipap11helper/p11helper.c` module.
 """
 
 
+from __future__ import absolute_import
+
 from binascii import hexlify
 import os
 import os.path

@@ -239,6 +239,8 @@ digits and nothing else follows.
 
 '''
 
+from __future__ import absolute_import
+
 import datetime
 import json
 import logging

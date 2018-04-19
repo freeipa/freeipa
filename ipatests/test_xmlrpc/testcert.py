@@ -25,6 +25,8 @@ The certificate in cached in a global variable so it only has to be created
 once per test run.
 """
 
+from __future__ import absolute_import
+
 import os
 import tempfile
 import shutil

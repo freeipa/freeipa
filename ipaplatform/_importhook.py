@@ -1,6 +1,8 @@
 #
 # Copyright (C) 2017  FreeIPA Contributors see COPYING for license
 #
+from __future__ import absolute_import
+
 """Meta import hook for ipaplatform.
 
 Known Linux distros with /etc/os-release
