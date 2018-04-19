@@ -57,7 +57,14 @@ class CertprofileTracker(Tracker):
             content = f.read()
         return unicode(content)
 
-    def make_create_command(self):
+    def make_create_command(self, extra_lines=None):
+        """
+        :param extra_lines: list of extra lines to append to profile config.
+
+        """
+        if extra_lines is None:
+            extra_lines = []
+
         if not self.profile:
             raise RuntimeError('Tracker object without path to profile '
                                'cannot be used to create profile entry.')
@@ -65,7 +72,7 @@ class CertprofileTracker(Tracker):
         return self.make_command('certprofile_import', self.name,
                                  description=self.description,
                                  ipacertprofilestoreissued=self.store,
-                                 file=self.profile)
+                                 file=u'\n'.join([self.profile] + extra_lines))
 
     def check_create(self, result):
         assert_deepequal(dict(
