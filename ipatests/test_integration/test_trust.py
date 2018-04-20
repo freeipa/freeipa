@@ -206,8 +206,10 @@ class TestPosixADTrust(ADTrustBase):
     """Integration test for Active Directory with POSIX support"""
 
     def test_establish_trust(self):
-        # Not specifying the --range-type directly, it should be detected
-        tasks.establish_trust_with_ad(self.master, self.ad_domain)
+        tasks.establish_trust_with_ad(
+            self.master, self.ad_domain,
+            extra_args=['--range-type', 'ipa-ad-trust-posix']
+        )
 
     def test_range_properties_in_posix_trust(self):
         # Check the properties of the created range
