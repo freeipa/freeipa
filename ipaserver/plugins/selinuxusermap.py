@@ -92,7 +92,7 @@ def validate_selinuxuser(ugettext, user):
     """
     An SELinux user has 3 components: user:MLS:MCS. user and MLS are required.
     user traditionally ends with _u but this is not mandatory.
-      The regex is ^[a-zA-Z][a-zA-Z_]*
+      The regex is ^[a-zA-Z][a-zA-Z_\.]*
 
     The MLS part can only be:
       Level: s[0-15](-s[0-15])
@@ -103,7 +103,7 @@ def validate_selinuxuser(ugettext, user):
 
     Returns a message on invalid, returns nothing on valid.
     """
-    regex_name = re.compile(r'^[a-zA-Z][a-zA-Z_]*$')
+    regex_name = re.compile(r'^[a-zA-Z][a-zA-Z_\.]*$')
     regex_mls = re.compile(r'^s[0-9][1-5]{0,1}(-s[0-9][1-5]{0,1}){0,1}$')
     regex_mcs = re.compile(r'^c(\d+)([.,-]c(\d+))*?$')
 
@@ -112,7 +112,7 @@ def validate_selinuxuser(ugettext, user):
     (name, mls, mcs, _ignore) = (user + ':::').split(':', 3)
 
     if not regex_name.match(name):
-        return _('Invalid SELinux user name, only a-Z and _ are allowed')
+        return _('Invalid SELinux user name, only a-Z, _ and . are allowed')
     if not mls or not regex_mls.match(mls):
         return _('Invalid MLS value, must match s[0-15](-s[0-15])')
     m = regex_mcs.match(mcs)
