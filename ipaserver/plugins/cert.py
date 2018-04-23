@@ -779,9 +779,14 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                     info=_("Insufficient 'write' privilege to the "
                            "'userCertificate' attribute of entry '%s'.") % dn)
 
-        # Validate the subject alt name, if any
+        # During SAN validation, we collect IPAddressName values,
+        # and *qualified* DNS names, and then ensure that all
+        # IPAddressName values correspond to one of the DNS names.
+        #
         san_ipaddrs = set()
         san_dnsnames = set()
+
+        # Validate the subject alt name, if any
         if ext_san is not None:
             generalnames = x509.process_othernames(ext_san.value)
         else:
@@ -797,9 +802,9 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                     )
 
                 name = gn.value
-                san_dnsnames.add(name)
 
                 if _dns_name_matches_principal(name, principal, principal_obj):
+                    san_dnsnames.add(name)
                     continue  # nothing more to check for this alt name
 
                 # no match yet; check for an alternative principal with
@@ -827,8 +832,29 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                         'exist') % name)
 
                 if alt_principal_obj is not None:
-                    # we found an alternative principal;
-                    # now check write access and caacl
+                    # We found an alternative principal.
+
+                    # First check that the DNS name does in fact match this
+                    # principal.  Because we used the DNSName value as the
+                    # basis for the search, this may seem redundant.  Actually,
+                    # we only perform this check to distinguish between
+                    # qualified and unqualified DNS names.
+                    #
+                    # We collect only fully qualified names for the purposes of
+                    # IPAddressName validation, because it is undecidable
+                    # whether 'ninja' refers to 'ninja.my.domain.' or 'ninja.'.
+                    # Remember that even a TLD can have an A record!
+                    #
+                    if _dns_name_matches_principal(
+                            name, alt_principal, alt_principal_obj):
+                        san_dnsnames.add(name)
+                    else:
+                        # Unqualified SAN DNS names are a valid use case.
+                        # We don't add them to san_dnsnames for IPAddress
+                        # validation, but we don't reject the request either.
+                        pass
+
+                    # Now check write access and caacl
                     altdn = alt_principal_obj['result']['dn']
                     if not ldap.can_write(altdn, "usercertificate"):
                         raise errors.ACIError(info=_(
@@ -877,6 +903,9 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                             "subject alt name type %s is forbidden "
                             "for user principals") % "IPAddress"
                     )
+
+                # collect the value; we will validate it after we
+                # finish iterating all the SAN values
                 san_ipaddrs.add(gn.value)
             else:
                 raise errors.ACIError(
@@ -1110,6 +1139,8 @@ def _san_dnsname_ips(dnsname, dnsname_is_cname=False):
     """
     Resolve a DNS name to its IP address(es).
 
+    The name is assumed to be fully qualified.
+
     Returns a set of IP addresses, managed by this IPA instance,
     that correspond to the DNS name (from the subjectAltName).
 
@@ -1122,12 +1153,6 @@ def _san_dnsname_ips(dnsname, dnsname_is_cname=False):
     """
     ips = set()
     fqdn = dnsutil.DNSName(dnsname).make_absolute()
-    # This is a hack to avoid trying to find a DNS zone for unqualified DNS
-    # names.  Since no such zone exists, zone_for_name() will search all the
-    # way up to the root zone, which may take a while.
-    if len(fqdn) < 3:
-        logger.debug("Skipping IPs for %s: hostname too short", dnsname)
-        return ips
     zone = dnsutil.DNSName(resolver.zone_for_name(fqdn))
     name = fqdn.relativize(zone)
     try:
