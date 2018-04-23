@@ -870,6 +870,13 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                             "for non-user principals") % "RFC822Name"
                     )
             elif isinstance(gn, cryptography.x509.general_name.IPAddress):
+                if principal.is_user:
+                    raise errors.ValidationError(
+                        name='csr',
+                        error=_(
+                            "subject alt name type %s is forbidden "
+                            "for user principals") % "IPAddress"
+                    )
                 san_ipaddrs.add(gn.value)
             else:
                 raise errors.ACIError(
