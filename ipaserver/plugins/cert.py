@@ -1117,7 +1117,7 @@ def _validate_san_ips(san_ipaddrs, san_dnsnames):
     """
     san_dns_ips = set()
     for name in san_dnsnames:
-        san_dns_ips.update(_san_dnsname_ips(name))
+        san_dns_ips.update(_san_dnsname_ips(name, cname_depth=1))
     for ip in san_ipaddrs:
         if unicode(ip) not in san_dns_ips:
             raise errors.ValidationError(
@@ -1129,7 +1129,7 @@ def _validate_san_ips(san_ipaddrs, san_dnsnames):
             )
 
 
-def _san_dnsname_ips(dnsname, dnsname_is_cname=False):
+def _san_dnsname_ips(dnsname, cname_depth):
     """
     Resolve a DNS name to its IP address(es).
 
@@ -1139,8 +1139,7 @@ def _san_dnsname_ips(dnsname, dnsname_is_cname=False):
     that correspond to the DNS name (from the subjectAltName).
 
     :param dnsname: The DNS name (text) for which to resolve the IP addresses
-    :param dnsname_is_cname: True when (recursively) resolving a CNAME (CNAME
-        chains are not followed)
+    :param cname_depth: How many cnames are we allowed to follow?
 
     :return: The set of IP addresses resolved from the DNS name
 
@@ -1158,15 +1157,13 @@ def _san_dnsname_ips(dnsname, dnsname_is_cname=False):
                               result.get('aaaarecord', ())):
         if _ip_rdns_ok(ip, fqdn):
             ips.add(ip)
-    cnames = result.get('cnamerecord', ())
-    if cnames:
-        if dnsname_is_cname:
-            logger.debug("Skipping IPs for %s: chained CNAME", dnsname)
-        else:
-            for cname in cnames:
-                if not cname.endswith('.'):
-                    cname = u'%s.%s' % (cname, zone)
-                ips.update(_san_dnsname_ips(cname, True))
+
+    if cname_depth > 0:
+        for cname in result.get('cnamerecord', []):
+            if not cname.endswith('.'):
+                cname = u'%s.%s' % (cname, zone)
+            ips.update(_san_dnsname_ips(cname, cname_depth=cname_depth - 1))
+
     return ips
 
 
