@@ -763,7 +763,8 @@ int main(int argc, const char *argv[])
               _("The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"),
               _("Kerberos Service Principal Name") },
             { "keytab", 'k', POPT_ARG_STRING, &keytab, 0,
-              _("File were to store the keytab information"),
+              _("The keytab file to append the new key to (will be "
+                "created if it does not exist)."),
               _("Keytab File Name") },
 	    { "enctypes", 'e', POPT_ARG_STRING, &enctypes_string, 0,
               _("Encryption types to request"),
