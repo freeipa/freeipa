@@ -92,8 +92,8 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
                    "Smart Card auth requests. To enable the feature in the "
                    "whole topology you have to run the script on each master")
 
-    nss_conf = paths.HTTPD_NSS_CONF
-    nss_ocsp_directive = OCSP_DIRECTIVE
+    ssl_conf = paths.HTTPD_SSL_CONF
+    ssl_ocsp_directive = OCSP_DIRECTIVE
     kdc_service_name = services.knownservices.krb5kdc.systemd_name
 
     def get_info(self):
@@ -102,7 +102,7 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
         self.check_ccache_not_empty()
         self.check_hostname_is_in_masters()
         self.resolve_ipaca_records()
-        self.enable_nss_ocsp()
+        self.enable_ssl_ocsp()
         self.restart_httpd()
         self.record_httpd_ocsp_status()
         self.check_and_enable_pkinit()
@@ -141,8 +141,8 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
                 'ipa-ca record pointing to IP addresses of IPA CA masters'
             ])
 
-    def enable_nss_ocsp(self):
-        self.log.comment('look for the OCSP directive in nss.conf')
+    def enable_ssl_ocsp(self):
+        self.log.comment('look for the OCSP directive in ssl.conf')
         self.log.comment(' if it is present, switch it on')
         self.log.comment(
             'if it is absent, append it to the end of VirtualHost section')
@@ -166,7 +166,7 @@ class config_server_for_smart_card_auth(common_smart_card_auth_config):
 
     def _interpolate_ocsp_directive_file_into_command(self, fmt_line):
         return self._format_command(
-            fmt_line, self.nss_ocsp_directive, self.nss_conf)
+            fmt_line, self.ssl_ocsp_directive, self.ssl_conf)
 
     def _format_command(self, fmt_line, directive, filename):
         return fmt_line.format(directive=directive, filename=filename)
