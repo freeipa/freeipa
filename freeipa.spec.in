@@ -1160,6 +1160,8 @@ if [ -e /usr/sbin/ipa_kpasswd ]; then
 # END
 fi
 
+
+%pre server-common
 # create users and groups
 # create kdcproxy group and user
 getent group kdcproxy >/dev/null || groupadd -f -r kdcproxy
