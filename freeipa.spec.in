@@ -647,6 +647,7 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipalib = %{version}-%{release}
 Requires: python2-dns >= 1.15
 Requires: python2-jinja2
+Requires: python2-augeas
 
 %description -n python2-ipaclient
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -670,6 +671,7 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: python3-ipalib = %{version}-%{release}
 Requires: python3-dns >= 1.15
 Requires: python3-jinja2
+Requires: python3-augeas
 
 %description -n python3-ipaclient
 IPA is an integrated solution to provide centrally managed Identity (users,
