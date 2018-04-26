@@ -890,6 +890,7 @@ class test_service_allowed_to(Declarative):
     cleanup_commands = [
         ('user_del', [user1], {}),
         ('user_del', [user2], {}),
+        ('service_del', [d_service], {}),
         ('group_del', [group1], {}),
         ('group_del', [group2], {}),
         ('host_del', [fqdn1], {}),
@@ -935,6 +936,40 @@ class test_service_allowed_to(Declarative):
                     ipauniqueid=[fuzzy_uuid],
                     gidnumber=[fuzzy_digits],
                     dn=group1_dn
+                ),
+            ),
+        ),
+        # Create a service disconnected from any host
+        dict(
+            desc='Try to create service %r without any host' % d_service,
+            command=('service_add', [d_service],
+                     dict(force=True, skip_host_check=True)),
+            expected=dict(
+                value=d_service,
+                summary=u'Added service "%s"' % d_service,
+                result=dict(
+                    dn=d_servicedn,
+                    krbprincipalname=[d_service],
+                    krbcanonicalname=[d_service],
+                    objectclass=objectclasses.service,
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+        dict(
+            desc='Add service %r to a group: %r' % (d_service, group1),
+            command=('group_add_member', [group1],
+                     dict(service=[d_service_no_realm])),
+            expected=dict(
+                completed=1,
+                failed=dict(member=dict(group=[],
+                                        service=[],
+                                        user=[])),
+                result=dict(
+                    cn=[group1],
+                    gidnumber=[fuzzy_digits],
+                    dn=group1_dn,
+                    member_service=[d_service],
                 ),
             ),
         ),

@@ -240,6 +240,7 @@ class test_selinuxusermap(Declarative):
                     member=dict(
                         group=tuple(),
                         user=tuple(),
+                        service=tuple(),
                     ),
                 ),
                 result={
