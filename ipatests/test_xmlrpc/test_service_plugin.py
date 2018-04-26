@@ -47,6 +47,11 @@ service1dn = DN(('krbprincipalname',service1),('cn','services'),('cn','accounts'
 host1dn = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),api.env.basedn)
 host2dn = DN(('fqdn',fqdn2),('cn','computers'),('cn','accounts'),api.env.basedn)
 host3dn = DN(('fqdn',fqdn3),('cn','computers'),('cn','accounts'),api.env.basedn)
+d_service_no_realm = u'some/at.some.arbitrary.name'
+d_service = u'%s@%s' % (d_service_no_realm, api.env.realm)
+d_servicedn = DN(('krbprincipalname', d_service),
+                 ('cn', 'services'), ('cn', 'accounts'),
+                 api.env.basedn)
 
 role1 = u'Test Role'
 role1_dn = DN(('cn', role1), api.env.container_rolegroup, api.env.basedn)
@@ -87,6 +92,7 @@ class test_service(Declarative):
         ('host_del', [fqdn2], {}),
         ('host_del', [fqdn3], {}),
         ('service_del', [service1], {}),
+        ('service_del', [d_service], {}),
     ]
 
     tests = [
@@ -732,6 +738,23 @@ class test_service(Declarative):
         ),
 
 
+        # Create a service disconnected from any host
+        dict(
+            desc='Try to create service %r without any host' % d_service,
+            command=('service_add', [d_service_no_realm],
+                     dict(force=True, skip_host_check=True),),
+            expected=dict(
+                value=d_service,
+                summary=u'Added service "%s"' % d_service,
+                result=dict(
+                    dn=d_servicedn,
+                    krbprincipalname=[d_service],
+                    krbcanonicalname=[d_service],
+                    objectclass=objectclasses.service,
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
     ]
 
 
