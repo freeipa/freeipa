@@ -1239,7 +1239,10 @@ class CAInstance(DogtagInstance):
         )
         entry['nsslapd-state'] = ['Backend']
         entry['nsslapd-backend'] = [backend]
-        api.Backend.ldap2.add_entry(entry)
+        try:
+            api.Backend.ldap2.add_entry(entry)
+        except errors.DuplicateEntry:
+            pass
 
         # database
         dn = DN(('cn', 'ipaca'), ('cn', 'ldbm database'), ('cn', 'plugins'),
@@ -1250,7 +1253,10 @@ class CAInstance(DogtagInstance):
             cn=[backend],
         )
         entry['nsslapd-suffix'] = [suffix]
-        api.Backend.ldap2.add_entry(entry)
+        try:
+            api.Backend.ldap2.add_entry(entry)
+        except errors.DuplicateEntry:
+            pass
 
     def __setup_replication(self):
 
