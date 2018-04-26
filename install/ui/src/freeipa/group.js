@@ -129,6 +129,10 @@ return {
             name: 'member_group'
         },
         {
+            $type: 'association',
+            name: 'member_service'
+        },
+        {
             $type: 'attribute',
             name: 'member_external',
             attribute: 'ipaexternalmember',

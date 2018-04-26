@@ -625,7 +625,7 @@ class service_add(LDAPCreate):
             except errors.NotFound:
                 raise errors.NotFound(reason=_(
                     "The host '%s' does not exist to add a service to.") %
-                        hostname)
+                    hostname)
 
         self.obj.validate_ipakrbauthzdata(entry_attrs)
 
