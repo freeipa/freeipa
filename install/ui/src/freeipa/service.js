@@ -407,6 +407,7 @@ return {
                         other_entity: 'host',
                         other_field: 'fqdn',
                         label: '@i18n:objects.service.host',
+                        editable: true,
                         required: true,
                         z_index: 1
                     },
@@ -414,6 +415,11 @@ return {
                         $type: 'checkbox',
                         name: 'force',
                         metadata: '@mc-opt:service_add:force'
+                    },
+                    {
+                        $type: 'checkbox',
+                        name: 'skip_host_check',
+                        metadata: '@mc-opt:service_add:skip_host_check'
                     }
                 ]
             }
@@ -543,6 +549,9 @@ IPA.service_adder_dialog = function(spec) {
 
         field = that.fields.get_field('force');
         record['force'] = field.save();
+
+        field = that.fields.get_field('skip_host_check');
+        record['skip_host_check'] = field.save();
     };
 
     init();
