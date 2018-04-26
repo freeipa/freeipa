@@ -64,7 +64,6 @@ from ipapython.ipa_log_manager import standard_logging_setup
 from ipaserver.secrets.kem import IPAKEMKeys
 
 from ipaserver.install import certs
-from ipaserver.install import custodiainstance
 from ipaserver.install import dsinstance
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
@@ -297,7 +296,7 @@ class CAInstance(DogtagInstance):
                      'caSigningCert cert-pki-ca')
     server_cert_name = 'Server-Cert cert-pki-ca'
 
-    def __init__(self, realm=None, host_name=None):
+    def __init__(self, realm=None, host_name=None, custodia=None):
         super(CAInstance, self).__init__(
             realm=realm,
             subsystem="CA",
@@ -322,6 +321,8 @@ class CAInstance(DogtagInstance):
         self.no_db_setup = False
         self.keytab = os.path.join(
             paths.PKI_TOMCAT, self.service_prefix + '.keytab')
+        # Custodia instance for RA key retrieval
+        self._custodia = custodia
 
     def configure_instance(self, host_name, dm_password, admin_password,
                            pkcs12_info=None, master_host=None, csr_file=None,
@@ -753,9 +754,7 @@ class CAInstance(DogtagInstance):
         self.configure_agent_renewal()
 
     def __import_ra_key(self):
-        custodia = custodiainstance.CustodiaInstance(host_name=self.fqdn,
-                                                     realm=self.realm)
-        custodia.import_ra_key(self.master_host)
+        self._custodia.import_ra_key(self.master_host)
         self.__set_ra_cert_perms()
 
         self.configure_agent_renewal()
