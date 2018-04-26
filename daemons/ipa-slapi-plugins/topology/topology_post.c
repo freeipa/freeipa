@@ -240,22 +240,26 @@ ipa_topo_post_del(Slapi_PBlock *pb)
         /* check if corresponding agreement exists and delete */
         TopoReplica *tconf = ipa_topo_util_get_conf_for_segment(del_entry);
         TopoReplicaSegment *tsegm = NULL;
-        char *status;
+        int obsolete_segment;
+        Slapi_Value *obsolete_sv;
+
         if (tconf) tsegm = ipa_topo_util_find_segment(tconf, del_entry);
         if (tsegm == NULL) {
             slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
                             "segment to be deleted does not exist\n");
             break;
         }
-        status = slapi_entry_attr_get_charptr(del_entry, "ipaReplTopoSegmentStatus");
-        if (status == NULL || strcasecmp(status, SEGMENT_OBSOLETE_STR)) {
+
+        obsolete_sv = slapi_value_new_string(SEGMENT_OBSOLETE_STR);
+        obsolete_segment = slapi_entry_attr_has_syntax_value(del_entry, "ipaReplTopoSegmentStatus", obsolete_sv);
+        slapi_value_free(&obsolete_sv);
+        if (!obsolete_segment) {
             /* obsoleted segments are a result of merge, do not remove repl agmt */
             ipa_topo_util_existing_agmts_del(tconf, tsegm,
                                          ipa_topo_get_plugin_hostname());
         }
         /* also remove segment from local topo conf */
         ipa_topo_cfg_segment_del(tconf, tsegm);
-        slapi_ch_free_string(&status);
         break;
         }
     case TOPO_DOMLEVEL_ENTRY: {
