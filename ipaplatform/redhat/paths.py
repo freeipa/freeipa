@@ -37,6 +37,8 @@ class RedHatPathNamespace(BasePathNamespace):
         PAM_KRB5_SO = BasePathNamespace.PAM_KRB5_SO_64
         BIND_LDAP_SO = BasePathNamespace.BIND_LDAP_SO_64
     AUTHCONFIG = '/usr/sbin/authconfig'
+    AUTHSELECT = '/usr/bin/authselect'
+    SYSCONF_NETWORK = '/etc/sysconfig/network'
 
 
 paths = RedHatPathNamespace()
