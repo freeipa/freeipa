@@ -18,7 +18,6 @@ from ipaplatform.paths import paths
 from ipapython import certdb
 from ipapython import ipautil
 from ipapython.install.core import group
-from ipaserver.install import custodiainstance
 from ipaserver.install import cainstance
 from ipaserver.install import krainstance
 from ipaserver.install import dsinstance
@@ -70,7 +69,7 @@ def install_check(api, replica_config, options):
                                    "new replica file.")
 
 
-def install(api, replica_config, options):
+def install(api, replica_config, options, custodia):
     if replica_config is None:
         if not options.setup_kra:
             return
@@ -93,9 +92,6 @@ def install(api, replica_config, options):
                     'host/{env.host}@{env.realm}'.format(env=api.env),
                     paths.KRB5_KEYTAB,
                     ccache)
-                custodia = custodiainstance.CustodiaInstance(
-                    replica_config.host_name,
-                    replica_config.realm_name)
                 custodia.get_kra_keys(
                     replica_config.kra_host_name,
                     krafile,
