@@ -135,7 +135,7 @@ class BaseTaskNamespace(object):
 
     def modify_nsswitch_pam_stack(self, sssd, mkhomedir, statestore):
         """
-        If sssd flag is true, configure pam and nsswtich so that SSSD is used
+        If sssd flag is true, configure pam and nsswitch so that SSSD is used
         for retrieving user information and authentication.
 
         Otherwise, configure pam and nsswitch to leverage pure LDAP.
@@ -149,6 +149,13 @@ class BaseTaskNamespace(object):
         """
 
         raise NotImplementedError()
+
+    def is_nosssd_supported(self):
+        """
+        Check if the flag --no-sssd is supported for client install.
+        """
+
+        return True
 
     def backup_auth_configuration(self, path):
         """
@@ -164,6 +171,12 @@ class BaseTaskNamespace(object):
         :param path: restore the backup from here.
         """
         raise NotImplementedError()
+
+    def migrate_auth_configuration(self, statestore):
+        """
+        Migrate pam stack configuration to authselect.
+        """
+        return
 
     def set_selinux_booleans(self, required_settings, backup_func=None):
         """Set the specified SELinux booleans

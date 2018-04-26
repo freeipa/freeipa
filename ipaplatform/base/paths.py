@@ -376,6 +376,8 @@ class BasePathNamespace(object):
     IF_INET6 = '/proc/net/if_inet6'
     WSGI_PREFIX_DIR = "/run/httpd/wsgi"
     AUTHCONFIG = None
+    AUTHSELECT = None
+    SYSCONF_NETWORK = None
     IPA_SERVER_UPGRADE = '/usr/sbin/ipa-server-upgrade'
     KEYCTL = '/usr/bin/keyctl'
     GETENT = '/usr/bin/getent'

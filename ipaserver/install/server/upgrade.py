@@ -1654,6 +1654,21 @@ def update_replica_config(db_suffix):
         api.Backend.ldap2.update_entry(entry)
 
 
+def migrate_to_authselect():
+    logger.info('[Migrating to authselect profile]')
+    if sysupgrade.get_upgrade_state('authcfg', 'migrated_to_authselect'):
+        logger.info("Already migrated to authselect profile")
+        return
+
+    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
+    try:
+        tasks.migrate_auth_configuration(statestore)
+    except ipautil.CalledProcessError as e:
+        raise RuntimeError(
+            "Failed to migrate to authselect profile: %s" % e, 1)
+    sysupgrade.set_upgrade_state('authcfg', 'migrated_to_authselect', True)
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1933,6 +1948,7 @@ def upgrade_configuration():
         ca.setup_lightweight_ca_key_retrieval()
         cainstance.ensure_ipa_authority_entry()
 
+    migrate_to_authselect()
     set_sssd_domain_option('ipa_server_mode', 'True')
     set_sssd_domain_option('ipa_server', api.env.host)
 
