@@ -1,5 +1,9 @@
 # Copyright (C) 2015 FreeIPa Project Contributors, see 'COPYING' for license.
 
+from __future__ import print_function, absolute_import
+
+import enum
+
 from ipaserver.secrets.kem import IPAKEMKeys, KEMLdap
 from ipaserver.secrets.client import CustodiaClient
 from ipaplatform.paths import paths
@@ -21,12 +25,84 @@ import time
 import pwd
 
 
+class CustodiaModes(enum.Enum):
+    # peer must have a CA
+    CA_PEER = 'Custodia CA peer'
+    # peer must have a CA, KRA preferred
+    KRA_PEER = 'Custodia KRA peer'
+    # any master will do
+    MASTER_PEER = 'Custodia master peer'
+    # standalone / local instance
+    STANDALONE = 'Custodia standalone'
+
+
+def get_custodia_instance(config, mode):
+    """Create Custodia instance
+
+    :param config: configuration/installer object
+    :param mode: CustodiaModes member
+    :return: CustodiaInstance object
+
+    The config object must have the following attribute
+
+    *host_name*
+      FQDN of the new replica/master
+    *realm_name*
+      Kerberos realm
+    *promote*
+      True, when instance will be promoted from client to replica
+    *master_host_name* (for *CustodiaModes.MASTER_PEER*)
+      hostname of a master (may not have a CA)
+    *ca_host_name* (for *CustodiaModes.CA_PEER*)
+      hostname of a master with CA
+    *kra_host_name* (for *CustodiaModes.KRA_PEER*)
+      hostname of a master with KRA or CA
+
+    For promotion, the instance will upload new keys and retrieve secrets
+    from the same host. Therefore it uses *ca_host_name* instead of
+    *master_host_name* to create a replica with CA.
+    """
+    assert isinstance(mode, CustodiaModes)
+    root_logger.info(
+        "Custodia client for '%r' with promotion %s.",
+        mode, 'yes' if config.promote else 'no'
+    )
+    if config.promote:
+        if mode == CustodiaModes.CA_PEER:
+            # In case we install replica with CA, prefer CA host as source for
+            # all Custodia secret material.
+            custodia_master = config.ca_host_name
+        elif mode == CustodiaModes.KRA_PEER:
+            custodia_master = config.kra_host_name
+        elif mode == CustodiaModes.MASTER_PEER:
+            custodia_master = config.master_host_name
+        elif mode == CustodiaModes.STANDALONE:
+            custodia_master = None
+    else:
+        custodia_master = None
+
+    if custodia_master is None:
+        # use ldapi with local dirsrv instance
+        root_logger.info("Custodia uses LDAPI.")
+        ldap_uri = None
+    else:
+        root_logger.info("Custodia uses '%s' as master peer.",
+                         custodia_master)
+        ldap_uri = 'ldap://{}'.format(custodia_master)
+
+    return CustodiaInstance(
+        host_name=config.host_name,
+        realm=config.realm_name,
+        ldap_uri=ldap_uri
+    )
+
+
 class CustodiaInstance(SimpleServiceInstance):
-    def __init__(self, host_name=None, realm=None):
+    def __init__(self, host_name=None, realm=None, ldap_uri=None):
         super(CustodiaInstance, self).__init__("ipa-custodia")
         self.config_file = paths.IPA_CUSTODIA_CONF
         self.server_keys = paths.IPA_CUSTODIA_KEYS
-        self.ldap_uri = None
+        self.ldap_uri = ldap_uri
         self.fqdn = host_name
         self.realm = realm
 
@@ -49,14 +125,19 @@ class CustodiaInstance(SimpleServiceInstance):
             ipautil.flush_sync(f)
 
     def create_instance(self):
-        suffix = ipautil.realm_to_suffix(self.realm)
+        if self.ldap_uri is None or self.ldap_uri.startswith('ldapi://'):
+            # local case, ensure container exists
+            self.step("Making sure custodia container exists",
+                      self.__create_container)
+
         self.step("Generating ipa-custodia config file", self.__config_file)
-        self.step("Making sure custodia container exists", self.__create_container)
         self.step("Generating ipa-custodia keys", self.__gen_keys)
-        super(CustodiaInstance, self).create_instance(gensvc_name='KEYS',
-                                                      fqdn=self.fqdn,
-                                                      ldap_suffix=suffix,
-                                                      realm=self.realm)
+        super(CustodiaInstance, self).create_instance(
+            gensvc_name='KEYS',
+            fqdn=self.fqdn,
+            ldap_suffix=ipautil.realm_to_suffix(self.realm),
+            realm=self.realm
+        )
         sysupgrade.set_upgrade_state('custodia', 'installed', True)
 
     def __gen_keys(self):
@@ -81,18 +162,6 @@ class CustodiaInstance(SimpleServiceInstance):
             root_logger.info("Secure server.keys mode")
             os.chmod(self.server_keys, 0o600)
 
-    def create_replica(self, master_host_name):
-        suffix = ipautil.realm_to_suffix(self.realm)
-        self.ldap_uri = 'ldap://%s' % master_host_name
-        self.master_host_name = master_host_name
-
-        self.step("Generating ipa-custodia config file", self.__config_file)
-        self.step("Generating ipa-custodia keys", self.__gen_keys)
-        super(CustodiaInstance, self).create_instance(gensvc_name='KEYS',
-                                                      fqdn=self.fqdn,
-                                                      ldap_suffix=suffix,
-                                                      realm=self.realm)
-
     def __create_container(self):
         """
         Runs the custodia update file to ensure custodia container is present.
@@ -106,7 +175,7 @@ class CustodiaInstance(SimpleServiceInstance):
         updater.update([os.path.join(paths.UPDATES_DIR, '73-custodia.update')])
 
     def import_ra_key(self, master_host_name):
-        cli = self.__CustodiaClient(server=master_host_name)
+        cli = self._get_custodia_client(server=master_host_name)
         # please note that ipaCert part has to stay here for historical
         # reasons (old servers expect you to ask for ra/ipaCert during
         # replication as they store the RA agent cert in an NSS database
@@ -114,14 +183,14 @@ class CustodiaInstance(SimpleServiceInstance):
         cli.fetch_key('ra/ipaCert')
 
     def import_dm_password(self, master_host_name):
-        cli = self.__CustodiaClient(server=master_host_name)
+        cli = self._get_custodia_client(server=master_host_name)
         cli.fetch_key('dm/DMHash')
 
-    def __wait_keys(self, host, timeout=300):
+    def _wait_keys(self, host, timeout=300):
         ldap_uri = 'ldap://%s' % host
         deadline = int(time.time()) + timeout
-        root_logger.info("Waiting up to {} seconds to see our keys "
-                         "appear on host: {}".format(timeout, host))
+        root_logger.info("Waiting up to %s seconds to see our keys "
+                         "appear on host: %s", timeout, host)
 
         konn = KEMLdap(ldap_uri)
         saved_e = None
@@ -129,6 +198,12 @@ class CustodiaInstance(SimpleServiceInstance):
             try:
                 return konn.check_host_keys(self.fqdn)
             except Exception as e:
+                # Print message to console only once for first error.
+                if saved_e is None:
+                    # FIXME: Change once there's better way to show this
+                    # message in installer output,
+                    print("  Waiting for keys to appear on host: {}, please "
+                          "wait until this has completed.".format(host))
                 # log only once for the same error
                 if not isinstance(e, type(saved_e)):
                     root_logger.debug(
@@ -138,22 +213,23 @@ class CustodiaInstance(SimpleServiceInstance):
                     raise RuntimeError("Timed out trying to obtain keys.")
                 time.sleep(1)
 
-    def __CustodiaClient(self, server):
+    def _get_custodia_client(self, server):
         # Before we attempt to fetch keys from this host, make sure our public
         # keys have been replicated there.
-        self.__wait_keys(server)
+        self._wait_keys(server)
 
-        return CustodiaClient('host@%s' % self.fqdn, self.server_keys,
-                              paths.KRB5_KEYTAB, server, realm=self.realm)
+        return CustodiaClient(
+            client_service='host@{}'.format(self.fqdn),
+            keyfile=self.server_keys, keytab=paths.KRB5_KEYTAB,
+            server=server, realm=self.realm
+        )
 
-    def __get_keys(self, ca_host, cacerts_file, cacerts_pwd, data):
-        # Fecth all needed certs one by one, then combine them in a single
-        # p12 file
-
+    def _get_keys(self, ca_host, cacerts_file, cacerts_pwd, data):
+        # Fetch all needed certs one by one, then combine them in a single
+        # PKCS12 file
         prefix = data['prefix']
         certlist = data['list']
-
-        cli = self.__CustodiaClient(server=ca_host)
+        cli = self._get_custodia_client(server=ca_host)
 
         # Temporary nssdb
         tmpnssdir = tempfile.mkdtemp(dir=paths.TMP)
@@ -203,7 +279,7 @@ class CustodiaInstance(SimpleServiceInstance):
                     'subsystemCert cert-pki-ca']
         data = {'prefix': 'ca',
                 'list': certlist}
-        self.__get_keys(ca_host, cacerts_file, cacerts_pwd, data)
+        self._get_keys(ca_host, cacerts_file, cacerts_pwd, data)
 
     def get_kra_keys(self, ca_host, cacerts_file, cacerts_pwd):
         certlist = ['auditSigningCert cert-pki-kra',
@@ -212,7 +288,7 @@ class CustodiaInstance(SimpleServiceInstance):
                     'transportCert cert-pki-kra']
         data = {'prefix': 'ca',
                 'list': certlist}
-        self.__get_keys(ca_host, cacerts_file, cacerts_pwd, data)
+        self._get_keys(ca_host, cacerts_file, cacerts_pwd, data)
 
     def __start(self):
         super(CustodiaInstance, self).__start()

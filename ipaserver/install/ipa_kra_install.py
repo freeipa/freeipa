@@ -32,6 +32,7 @@ from ipapython import admintool
 from ipapython import ipautil
 from ipaserver.install import service
 from ipaserver.install import cainstance
+from ipaserver.install import custodiainstance
 from ipaserver.install import krainstance
 from ipaserver.install import dsinstance
 from ipaserver.install import installutils
@@ -176,7 +177,6 @@ class KRAInstaller(KRAInstall):
 
         api.Backend.ldap2.connect()
 
-        config = None
         if self.installing_replica:
             if self.options.promote:
                 config = ReplicaConfig()
@@ -196,6 +196,7 @@ class KRAInstaller(KRAInstall):
                 config.kra_host_name = config.master_host_name
 
             config.setup_kra = True
+            config.promote = self.options.promote
 
             if config.subject_base is None:
                 attrs = api.Backend.ldap2.get_ipa_config()
@@ -204,6 +205,11 @@ class KRAInstaller(KRAInstall):
             if config.kra_host_name is None:
                 config.kra_host_name = service.find_providing_server(
                     'KRA', api.Backend.ldap2, api.env.ca_host)
+            custodia = custodiainstance.get_custodia_instance(
+                config, custodiainstance.CustodiaModes.KRA_PEER)
+        else:
+            config = None
+            custodia = None
 
         try:
             kra.install_check(api, config, self.options)
@@ -213,7 +219,7 @@ class KRAInstaller(KRAInstall):
         print(dedent(self.INSTALLER_START_MESSAGE))
 
         try:
-            kra.install(api, config, self.options)
+            kra.install(api, config, self.options, custodia=custodia)
         except:
             self.log.error(dedent(self.FAIL_MESSAGE))
             raise
