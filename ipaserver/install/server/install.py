@@ -740,6 +740,7 @@ def install(installer):
     host_name = options.host_name
     ip_addresses = options.ip_addresses
     setup_ca = options.setup_ca
+    options.promote = False  # first master, no promotion
 
     # Installation has started. No IPA sysrestore items are restored in case of
     # failure to enable root cause investigation
@@ -821,6 +822,10 @@ def install(installer):
                       setup_pkinit=not options.no_pkinit,
                       subject_base=options.subject_base)
 
+    custodia = custodiainstance.get_custodia_instance(
+        options, custodiainstance.CustodiaModes.MASTER_PEER)
+    custodia.create_instance()
+
     if setup_ca:
         if not options.external_cert_files and options.external_ca:
             # stage 1 of external CA installation
@@ -835,7 +840,7 @@ def install(installer):
                           if n in options.__dict__}
             write_cache(cache_vars)
 
-        ca.install_step_0(False, None, options)
+        ca.install_step_0(False, None, options, custodia=custodia)
     else:
         # Put the CA cert where other instances expect it
         x509.write_certificate(http_ca_cert, paths.IPA_CA_CRT)
@@ -855,14 +860,11 @@ def install(installer):
     ds.enable_ssl()
 
     if setup_ca:
-        ca.install_step_1(False, None, options)
+        ca.install_step_1(False, None, options, custodia=custodia)
 
     otpd = otpdinstance.OtpdInstance()
     otpd.create_instance('OTPD', host_name,
                          ipautil.realm_to_suffix(realm_name))
-
-    custodia = custodiainstance.CustodiaInstance(host_name, realm_name)
-    custodia.create_instance()
 
     # Create a HTTP instance
     http = httpinstance.HTTPInstance(fstore)
@@ -895,7 +897,7 @@ def install(installer):
     krb.restart()
 
     if options.setup_kra:
-        kra.install(api, None, options)
+        kra.install(api, None, options, custodia=custodia)
 
     if options.setup_dns:
         dns.install(False, False, options)

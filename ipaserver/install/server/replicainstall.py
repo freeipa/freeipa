@@ -1361,6 +1361,7 @@ def install(installer):
     fstore = installer._fstore
     sstore = installer._sstore
     config = installer._config
+    config.promote = installer.promote
     promote = installer.promote
     cafile = installer._ca_file
     dirsrv_pkcs12_info = installer._dirsrv_pkcs12_info
@@ -1480,19 +1481,19 @@ def install(installer):
     otpd.create_instance('OTPD', config.host_name,
                          ipautil.realm_to_suffix(config.realm_name))
 
-    custodia = custodiainstance.CustodiaInstance(config.host_name,
-                                                 config.realm_name)
-    if promote:
-        custodia.create_replica(config.master_host_name)
+    if ca_enabled:
+        mode = custodiainstance.CustodiaModes.CA_PEER
     else:
-        custodia.create_instance()
+        mode = custodiainstance.CustodiaModes.MASTER_PEER
+    custodia = custodiainstance.get_custodia_instance(config, mode)
+    custodia.create_instance()
 
     if ca_enabled:
         options.realm_name = config.realm_name
         options.domain_name = config.domain_name
         options.host_name = config.host_name
         options.dm_password = config.dirman_password
-        ca.install(False, config, options)
+        ca.install(False, config, options, custodia=custodia)
 
     # configure PKINIT now that all required services are in place
     krb.enable_ssl()
@@ -1502,7 +1503,7 @@ def install(installer):
     ds.apply_updates()
 
     if kra_enabled:
-        kra.install(api, config, options)
+        kra.install(api, config, options, custodia=custodia)
 
     service.print_msg("Restarting the KDC")
     krb.restart()
