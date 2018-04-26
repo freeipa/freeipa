@@ -19,10 +19,7 @@ from ipalib.install.service import enroll_only, master_install_only, replica_ins
 from ipaserver.install import sysupgrade
 from ipapython.install import typing
 from ipapython.install.core import group, knob, extend_knob
-from ipaserver.install import (cainstance,
-                               custodiainstance,
-                               dsinstance,
-                               bindinstance)
+from ipaserver.install import cainstance, bindinstance, dsinstance
 from ipapython import ipautil, certdb
 from ipapython.admintool import ScriptError
 from ipaplatform import services
@@ -201,12 +198,12 @@ def install_check(standalone, replica_config, options):
                         "cannot continue." % (subject, db.secdir))
 
 
-def install(standalone, replica_config, options):
-    install_step_0(standalone, replica_config, options)
-    install_step_1(standalone, replica_config, options)
+def install(standalone, replica_config, options, custodia):
+    install_step_0(standalone, replica_config, options, custodia=custodia)
+    install_step_1(standalone, replica_config, options, custodia=custodia)
 
 
-def install_step_0(standalone, replica_config, options):
+def install_step_0(standalone, replica_config, options, custodia):
     realm_name = options.realm_name
     dm_password = options.dm_password
     host_name = options.host_name
@@ -237,9 +234,6 @@ def install_step_0(standalone, replica_config, options):
     else:
         cafile = os.path.join(replica_config.dir, 'cacert.p12')
         if options.promote:
-            custodia = custodiainstance.CustodiaInstance(
-                replica_config.host_name,
-                replica_config.realm_name)
             custodia.get_ca_keys(
                 replica_config.ca_host_name,
                 cafile,
@@ -266,7 +260,9 @@ def install_step_0(standalone, replica_config, options):
         'certmap.conf', 'subject_base', str(subject_base))
     dsinstance.write_certmap_conf(realm_name, ca_subject)
 
-    ca = cainstance.CAInstance(realm_name, host_name=host_name)
+    ca = cainstance.CAInstance(
+        realm=realm_name, host_name=host_name, custodia=custodia
+    )
     ca.configure_instance(host_name, dm_password, dm_password,
                           subject_base=subject_base,
                           ca_subject=ca_subject,
@@ -284,7 +280,7 @@ def install_step_0(standalone, replica_config, options):
                           use_ldaps=standalone)
 
 
-def install_step_1(standalone, replica_config, options):
+def install_step_1(standalone, replica_config, options, custodia):
     if replica_config is not None and not replica_config.setup_ca:
         return
 
@@ -293,7 +289,9 @@ def install_step_1(standalone, replica_config, options):
     subject_base = options._subject_base
     basedn = ipautil.realm_to_suffix(realm_name)
 
-    ca = cainstance.CAInstance(realm_name, host_name=host_name)
+    ca = cainstance.CAInstance(
+        realm=realm_name, host_name=host_name, custodia=custodia
+    )
 
     ca.stop('pki-tomcat')
 
