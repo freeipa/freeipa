@@ -1753,16 +1753,28 @@ class Any(Param):
 
 
 class File(Str):
-    """
-    File parameter type.
+    """Text file parameter type.
 
     Accepts file names and loads their content into the parameter value.
     """
+    open_mode = 'r'
     kwargs = Data.kwargs + (
         # valid for CLI, other backends (e.g. webUI) can ignore this
         ('stdin_if_missing', bool, False),
         ('noextrawhitespace', bool, False),
     )
+
+
+class BinaryFile(Bytes):
+    """Binary file parameter type
+    """
+    open_mode = 'rb'
+    kwargs = Data.kwargs + (
+        # valid for CLI, other backends (e.g. webUI) can ignore this
+        ('stdin_if_missing', bool, False),
+        ('noextrawhitespace', bool, False),
+    )
+
 
 class DateTime(Param):
     """
