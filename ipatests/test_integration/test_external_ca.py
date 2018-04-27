@@ -20,6 +20,7 @@ from __future__ import absolute_import
 import os
 import re
 import time
+import tempfile
 
 from ipatests.pytest_plugins.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
@@ -279,3 +280,60 @@ class TestExternalCAInstall(IntegrationTest):
         # Install new cert
         self.master.run_command([paths.IPA_CACERT_MANAGE, 'install',
                                  root_ca_fname])
+
+
+class TestMultipleExternalCA(IntegrationTest):
+    """Setup externally signed ca1
+
+    install ipa-server with externally signed ca1
+    Setup externally signed ca2 and renew ipa-server with
+    externally signed ca2 and check the difference in certificate
+    """
+
+    def test_master_install_ca1(self):
+        install_server_external_ca_step1(self.master)
+        # Sign CA, transport it to the host and get ipa a root ca paths.
+        root_ca_fname1 = tempfile.mkdtemp(suffix='root_ca.crt', dir=paths.TMP)
+        ipa_ca_fname1 = tempfile.mkdtemp(suffix='ipa_ca.crt', dir=paths.TMP)
+
+        ipa_csr = self.master.get_file_contents(paths.ROOT_IPA_CSR)
+
+        external_ca = ExternalCA()
+        root_ca = external_ca.create_ca(cn='RootCA1')
+        ipa_ca = external_ca.sign_csr(ipa_csr)
+        self.master.put_file_contents(root_ca_fname1, root_ca)
+        self.master.put_file_contents(ipa_ca_fname1, ipa_ca)
+        # Step 2 of ipa-server-install.
+        install_server_external_ca_step2(self.master, ipa_ca_fname1,
+                                         root_ca_fname1)
+
+        cert_nick = "caSigningCert cert-pki-ca"
+        result = self.master.run_command([
+            'certutil', '-L', '-d', paths.PKI_TOMCAT_ALIAS_DIR,
+            '-n', cert_nick])
+        assert "CN=RootCA1" in result.stdout_text
+
+    def test_master_install_ca2(self):
+        root_ca_fname2 = tempfile.mkdtemp(suffix='root_ca.crt', dir=paths.TMP)
+        ipa_ca_fname2 = tempfile.mkdtemp(suffix='ipa_ca.crt', dir=paths.TMP)
+
+        self.master.run_command([
+            paths.IPA_CACERT_MANAGE, 'renew', '--external-ca'])
+
+        ipa_csr = self.master.get_file_contents(paths.IPA_CA_CSR)
+
+        external_ca = ExternalCA()
+        root_ca = external_ca.create_ca(cn='RootCA2')
+        ipa_ca = external_ca.sign_csr(ipa_csr)
+        self.master.put_file_contents(root_ca_fname2, root_ca)
+        self.master.put_file_contents(ipa_ca_fname2, ipa_ca)
+        # Step 2 of ipa-server-install.
+        self.master.run_command([paths.IPA_CACERT_MANAGE, 'renew',
+                                 '--external-cert-file', ipa_ca_fname2,
+                                 '--external-cert-file', root_ca_fname2])
+
+        cert_nick = "caSigningCert cert-pki-ca"
+        result = self.master.run_command([
+            'certutil', '-L', '-d', paths.PKI_TOMCAT_ALIAS_DIR,
+            '-n', cert_nick])
+        assert "CN=RootCA2" in result.stdout_text
