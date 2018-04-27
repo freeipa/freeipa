@@ -28,7 +28,15 @@ import ipatests.test_webui.data_netgroup as netgroup
 import ipatests.test_webui.data_hbac as hbac
 import ipatests.test_webui.test_rbac as rbac
 import ipatests.test_webui.data_sudo as sudo
+import ipatests.test_webui.data_host as host
 import pytest
+
+try:
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.common.keys import Keys
+    from selenium.webdriver.common.action_chains import ActionChains
+except ImportError:
+    NO_SELENIUM = True
 
 ENTITY = 'host'
 
@@ -40,6 +48,8 @@ class host_tasks(UI_driver):
         super(host_tasks, self).setup(*args, **kwargs)
         self.prep_data()
         self.prep_data2()
+        self.prep_data3()
+        self.prep_data4()
 
     def prep_data(self):
         host = 'itest'
@@ -55,6 +65,20 @@ class host_tasks(UI_driver):
         self.data2 = self.get_data(host, domain)
         self.pkey2 = self.data2['pkey']
         return self.data2
+
+    def prep_data3(self):
+        host = 'itest3'
+        domain = self.config.get('ipa_domain')
+        self.data3 = self.get_data(host, domain)
+        self.pkey3 = self.data3['pkey']
+        return self.data3
+
+    def prep_data4(self):
+        host = 'itest4'
+        domain = self.config.get('ipa_domain')
+        self.data4 = self.get_data(host, domain)
+        self.pkey4 = self.data4['pkey']
+        return self.data4
 
     def get_data(self, host, domain, ip=None):
         if self.has_dns():
@@ -99,6 +123,10 @@ class host_tasks(UI_driver):
         return '.'.join(ip)
 
     def load_file(self, path):
+        """
+        Load file helper mainly for CSR load_file
+        """
+
         with open(path, 'r') as file_d:
             content = file_d.read()
         return content
@@ -407,11 +435,343 @@ class test_host(host_tasks):
         self.assert_indirect_record(hbac.RULE_PKEY, ENTITY, 'memberof_hbacrule')
         self.assert_indirect_record(sudo.RULE_PKEY, ENTITY, 'memberof_sudorule')
 
-        ## cleanup
-        ## -------
+        # cleanup
+        # -------
         self.delete(ENTITY, [self.data])
         self.delete(hostgroup.ENTITY, [hostgroup.DATA, hostgroup.DATA2])
         self.delete(netgroup.ENTITY, [netgroup.DATA])
         self.delete(rbac.ROLE_ENTITY, [rbac.ROLE_DATA])
         self.delete(hbac.RULE_ENTITY, [hbac.RULE_DATA])
         self.delete(sudo.RULE_ENTITY, [sudo.RULE_DATA])
+
+    @screenshot
+    def test_buttons(self):
+        """Test buttons"""
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+        # add with enter key
+        self.navigate_to_entity(ENTITY)
+        self.button_click('add')
+        self.fill_textbox("hostname", self.pkey)
+        self.check_option('force')
+        actions = ActionChains(self.driver)
+        actions.send_keys(Keys.ENTER).perform()
+        self.wait_for_request(n=3)
+        self.assert_record(self.pkey)
+
+        # add and another
+        self.add_record(ENTITY, [self.data2, self.data3])
+
+        # add and edit record
+        self.add_record(ENTITY, self.data4, dialog_btn='add_and_edit')
+        self.assert_facet(ENTITY, facet="details")
+
+        # cancel managedby
+        self.add_associations([self.pkey3], facet='managedby_host',
+                              confirm_btn="cancel")
+        self.wait()
+        self.select_record(self.pkey4, table_name='fqdn')
+        self.button_click('remove')
+        self.dialog_button_click('cancel')
+        self.assert_record(self.pkey4)
+
+        # add duplicate
+        self.add_record(ENTITY, self.data2, negative=True, pre_delete=False)
+        dialog_info = self.get_dialog_info()
+        expected_msg = 'host with name "' + self.data2['pkey'] + \
+                       '" already exist'
+        if expected_msg in dialog_info['text']:
+            self.dialog_button_click('cancel')
+            self.dialog_button_click('cancel')
+        else:
+            assert False, "Duplicate dialog missing or have wrong text."
+
+        # duplicate with pressed keys
+        self.add_record(ENTITY, self.data2, negative=True, pre_delete=False)
+        self.wait()
+        actions = ActionChains(self.driver)
+        actions.send_keys(Keys.TAB).perform()
+        self.wait()
+        actions = ActionChains(self.driver)
+        actions.send_keys(Keys.ENTER).perform()
+        self.wait(0.7)
+        self.dialog_button_click('cancel')
+        self.assert_no_dialog()
+
+        # remove multiple
+        self.navigate_to_entity(ENTITY)
+        self.select_multiple_records([self.data2, self.data3, self.data4])
+        self.facet_button_click('remove')
+        self.wait()
+        self.check_option('updatedns')
+        self.dialog_button_click('ok')
+        self.assert_notification()
+        self.close_notifications()
+
+        # remove without updatedns
+        self.select_record(self.pkey)
+        self.facet_button_click('remove')
+        self.dialog_button_click('ok')
+        self.assert_notification()
+        self.close_notifications()
+
+    @screenshot
+    def test_negative_add_input(self):
+        """ Test field validations for adding """
+        self.init_app()
+
+        # wrong hostname input
+        hosts_tests = [host.hostname_tilde,
+                       host.hostname_trailing_space,
+                       host.hostname_dash]
+        for hostname_test in hosts_tests:
+            self.add_record(ENTITY, hostname_test, negative=True)
+            dialog_info = self.get_dialog_info()
+            if host.BAD_HOSTNAME_MSG in dialog_info['text']:
+                self.dialog_button_click('cancel')
+                self.dialog_button_click('cancel')
+
+        # leading space in hostname
+        self.add_record(ENTITY, host.hostname_leading_space, negative=True)
+        dialog_info = self.get_dialog_info()
+        if host.BAS_HOSTNAME_SPACE_MSG in dialog_info['text']:
+            self.dialog_button_click('cancel')
+            self.dialog_button_click('cancel')
+
+        # empty hostname
+        self.add_record(ENTITY, host.empty_hostname, negative=True)
+        self.assert_field_validation_required(field='hostname')
+        self.dialog_button_click('cancel')
+
+        # empty domain
+        self.add_record(ENTITY, host.empty_domain, negative=True)
+        self.assert_field_validation_required(field='dnszone')
+        self.dialog_button_click('cancel')
+
+        # Wrong IP input
+        ip_tests = [host.ip_alpha, host.ip_many_oct,
+                    host.ip_bad_oct, host.ip_special_char]
+        for ip_test in ip_tests:
+            self.add_record(ENTITY, ip_test, negative=True)
+            self.assert_field_validation(host.BAD_IP_MSG, field='ip_address')
+            self.dialog_button_click('cancel')
+
+    @screenshot
+    def test_details_input(self):
+        """ Test text fields in details page """
+        self.init_app()
+
+        self.add_record(ENTITY, self.data2)
+        self.navigate_to_record(self.data2['pkey'], entity=ENTITY)
+
+        # modify
+        modify_tests = [host.mod_desc, host.mod_locality,
+                        host.mod_location, host.mod_platform,
+                        host.mod_os]
+        for mod_test in modify_tests:
+            self.fill_fields(mod_test)
+            self.button_click('save')
+            self.assert_notification()
+            self.close_notifications()
+
+        self.fill_fields(host.mod_desc_m)
+        self.click_undo_button('description')
+
+        self.delete(ENTITY, [self.data2])
+
+        # otp set_otp
+        otp_tests = [host.otp_alpha, host.otp_num, host.otp_alphanum,
+                     host.otp_special, host.otp_mixed]
+        for otp_test in otp_tests:
+            self.add_record(ENTITY, self.data2)
+            self.close_notifications()
+            self.navigate_to_record(self.data2['pkey'], entity=ENTITY)
+            self.action_list_action('set_otp', confirm=False)
+            self.fill_fields(otp_test)
+            self.dialog_button_click('confirm')
+            self.assert_notification()
+            self.close_notifications()
+            self.delete(ENTITY, [self.data2])
+            self.close_notifications()
+
+        # otp cancel and reset
+        self.add_record(ENTITY, self.data2)
+        self.navigate_to_record(self.data2['pkey'], entity=ENTITY)
+        self.action_list_action('set_otp', confirm=False)
+        self.assert_dialog()
+        self.dialog_button_click('cancel')
+        self.assert_no_dialog()
+        self.navigate_to_record(self.data2['pkey'], entity=ENTITY)
+        self.action_list_action('set_otp', confirm=False)
+        self.fill_fields(host.otp_alpha)
+        self.dialog_button_click('confirm')
+        self.assert_notification()
+        self.close_notifications()
+        self.action_list_action('reset_otp', confirm=False)
+        self.assert_dialog()
+        self.dialog_button_click('cancel')
+        self.assert_no_dialog()
+
+        # cleanup
+        self.delete(ENTITY, [self.data2])
+
+    @screenshot
+    def test_sshkey(self):
+        """ Test ssh keys """
+        self.init_app()
+        self.add_record(ENTITY, self.data2)
+        self.close_notifications()
+        # add dsa key
+        self.add_sshkey_to_record(host.ssh_dsa, self.data2['pkey'],
+                                  entity=ENTITY, navigate=True)
+        self.assert_notification()
+        self.close_notifications()
+
+        # delete ssh key
+        self.delete_record_sshkeys(self.data2['pkey'],
+                                   entity=ENTITY, navigate=True)
+
+        # add rsa key
+        self.add_sshkey_to_record(host.ssh_rsa, self.data2['pkey'],
+                                  entity=ENTITY, navigate=True)
+        self.assert_notification()
+        self.close_notifications()
+
+        # negative ssh key input
+        neg_key_tests = [host.ssh_empty, host.ssh_rsa]
+        for key in neg_key_tests:
+            self.add_sshkey_to_record(key, self.data2['pkey'],
+                                      entity=ENTITY, navigate=True)
+            self.assert_dialog()
+            dialog_info = self.get_dialog_info()
+            if host.ssh_nomod_error in dialog_info['text']:
+                self.dialog_button_click('cancel')
+
+        # invalid ssh key
+        self.add_sshkey_to_record(host.ssh_invalid, self.data2['pkey'],
+                                  entity=ENTITY, navigate=True)
+        self.assert_dialog()
+        dialog_info = self.get_dialog_info()
+        if host.ssh_invalid_error in dialog_info['text']:
+            self.dialog_button_click('cancel')
+
+        # undo all and delete ssh keys
+        self.undo_ssh_keys(btn_name='undo_all')
+        self.delete_record_sshkeys(self.data2['pkey'],
+                                   entity=ENTITY)
+
+        # undo
+        self.add_sshkey_to_record(host.ssh_rsa, self.data2['pkey'],
+                                  entity=ENTITY, navigate=True, save=False)
+        self.undo_ssh_keys()
+
+        # refresh
+        self.add_sshkey_to_record(host.ssh_rsa, self.data2['pkey'],
+                                  entity=ENTITY, navigate=True, save=False)
+        self.facet_button_click('refresh')
+        self.assert_num_ssh_keys(0)
+
+        # revert
+        self.add_sshkey_to_record(host.ssh_rsa, self.data2['pkey'],
+                                  entity=ENTITY, navigate=True, save=False)
+        self.facet_button_click('revert')
+        self.assert_num_ssh_keys(0)
+
+        # cleanup
+        self.delete(ENTITY, [self.data2])
+
+    @screenshot
+    def test_negative_cert(self):
+        """ Test negative CSR """
+        self.init_app()
+        self.add_record(ENTITY, self.data2)
+        self.close_notifications()
+        self.navigate_to_record(self.data2['pkey'], entity=ENTITY)
+
+        # emtpy CSR
+        csr_add = 'div[name="certificate"] button[name="add"]'
+        csr_add_btn = self.find(csr_add, By.CSS_SELECTOR, strict=True)
+        csr_add_btn.click()
+        self.wait()
+        self.dialog_button_click('ok')
+        self.assert_field_validation_required()
+        self.dialog_button_click('cancel')
+
+        # invalid CSR
+        csr_add = 'div[name="certificate"] button[name="add"]'
+        csr_add_btn = self.find(csr_add, By.CSS_SELECTOR, strict=True)
+        csr_add_btn.click()
+        self.wait()
+        self.fill_textarea('new_cert', host.csr_invalid)
+        self.dialog_button_click('ok')
+        dialog_info = self.get_dialog_info()
+        self.wait()
+        if host.csr_invalid_error in dialog_info['text']:
+            self.dialog_button_click('cancel')
+            self.dialog_button_click('cancel')
+
+        # other hostname CSR
+        self.action_list_action('request_cert', confirm=False)
+        self.assert_dialog()
+        self.fill_text("textarea[name='csr']", host.csr_other_host)
+        self.dialog_button_click('issue')
+        dialog_info = self.get_dialog_info()
+        if host.csr_other_host_error in dialog_info['text']:
+            self.dialog_button_click('cancel')
+            self.dialog_button_click('cancel')
+
+        # cleanup
+        self.delete(ENTITY, [self.data2])
+
+    @screenshot
+    def test_keytab(self):
+        """ Test keytab """
+        self.init_app()
+        self.add_record(ENTITY, self.data2)
+        # provision keytab
+        kt_tmp = '/tmp/test.keytab'
+        hostname = self.data2['pkey']
+        realm = self.config.get('ipa_realm')
+        principal = 'host/{}@{}'.format(hostname, realm)
+        self.run_cmd_on_ui_host('/usr/sbin/ipa-getkeytab '
+                                '-p {} '
+                                '-k {} '.format(principal, kt_tmp))
+        self.navigate_to_record(hostname, entity=ENTITY)
+        self.wait(3)
+        enroll = 'div[name="has_keytab"] label[name="present"]'
+        self.assert_text(enroll, host.krb_enrolled)
+        # test cancel button exist
+        self.action_list_action('unprovision', confirm=False)
+        self.dialog_button_click('cancel')
+        # unprovision keytab
+        self.action_list_action('unprovision', confirm=False)
+        self.dialog_button_click('unprovision')
+        self.wait_for_request(n=4)
+        self.facet_button_click('refresh')
+        enroll = 'div[name="has_keytab"] label[name="missing"]'
+        self.assert_text(enroll, host.krb_not_enrolled)
+        # cleanup
+        self.delete(ENTITY, [self.data2])
+
+    def test_search(self):
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+        self.add_record(ENTITY, [self.data2, self.data3])
+        # positive search filter
+        self.fill_search_filter(self.pkey2)
+        actions = ActionChains(self.driver)
+        actions.send_keys(Keys.ENTER).perform()
+        self.wait(0.5)
+        self.assert_record(self.pkey2)
+        # negative search filter
+        self.fill_search_filter(self.pkey3)
+        actions = ActionChains(self.driver)
+        actions.send_keys(Keys.ENTER).perform()
+        self.wait(0.5)
+        self.assert_record(self.pkey4, negative=True)
+        # cleanup
+        self.fill_search_filter('')
+        actions = ActionChains(self.driver)
+        actions.send_keys(Keys.ENTER).perform()
+        self.wait(0.5)
+        self.delete_record([self.pkey2, self.pkey3])

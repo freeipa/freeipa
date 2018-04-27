@@ -817,6 +817,12 @@ class UI_driver(object):
         """
         self.fill_input(name, value, "password", parent)
 
+    def fill_search_filter(self, value, parent=None):
+        search_field_s = '.search-filter input[name=filter]'
+        if not parent:
+                parent = self.get_form()
+        self.fill_text(search_field_s, value, parent)
+
     def add_multivalued(self, name, value, parent=None):
         """
         Add new value to multivalued textbox
