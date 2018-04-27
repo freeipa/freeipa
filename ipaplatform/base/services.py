@@ -29,12 +29,16 @@ import os
 import json
 import time
 import collections
+import logging
 import warnings
 
 import six
 
 from ipapython import ipautil
 from ipaplatform.paths import paths
+
+
+logger = logging.getLogger(__name__)
 
 # Canonical names of services as IPA wants to see them. As we need to have
 # *some* naming, set them as in Red Hat distributions. Actual implementation
@@ -289,6 +293,7 @@ class SystemdService(PlatformService):
         super(SystemdService, self).stop(
             instance_name,
             update_service_list=update_service_list)
+        logger.debug('Stop of %s complete', instance)
 
     def start(self, instance_name="", capture_output=True, wait=True):
         ipautil.run([paths.SYSTEMCTL, "start",
@@ -303,6 +308,8 @@ class SystemdService(PlatformService):
         super(SystemdService, self).start(
             instance_name,
             update_service_list=update_service_list)
+        logger.debug('Start of %s complete',
+                     self.service_instance(instance_name))
 
     def _restart_base(self, instance_name, operation, capture_output=True,
                       wait=False):
@@ -313,6 +320,8 @@ class SystemdService(PlatformService):
 
         if wait and self.is_running(instance_name):
             self.wait_for_open_ports(self.service_instance(instance_name))
+        logger.debug('Restart of %s complete',
+                     self.service_instance(instance_name))
 
     def reload_or_restart(self, instance_name="", capture_output=True,
                           wait=True):
