@@ -22,6 +22,8 @@ import logging
 import dbus
 import six
 
+from cryptography import x509 as crypto_x509
+
 from ipalib import api, errors, x509
 from ipalib.crud import Search
 from ipalib.frontend import Object
@@ -432,18 +434,23 @@ class _sssd(object):
         Call Users.ListByCertificate interface and return a dict
         with key = domain, value = list of uids
         corresponding to the users matching the provided cert
-        :param cert: DER cert
+
+        :param cert: DER cert, Certificate instances (IPACertificate)
         :raise RemoteRetrieveError: if DBus error occurs
         """
-        try:
+        if isinstance(cert, crypto_x509.Certificate):
+            cert_pem = cert.public_bytes(x509.Encoding.PEM)
+        else:
             cert_obj = x509.load_der_x509_certificate(cert)
+            cert_pem = cert_obj.public_bytes(x509.Encoding.PEM)
+
+        try:
             # bug 3306 in sssd returns 0 entry when max_entries = 0
             # Temp workaround is to use a non-null value, not too high
             # to avoid reserving unneeded memory
             max_entries = dbus.UInt32(100)
             user_paths = self._users_iface.ListByCertificate(
-                cert_obj.public_bytes(x509.Encoding.PEM),
-                max_entries)
+                cert_pem, max_entries)
             users = dict()
             for user_path in user_paths:
                 user_obj = self._bus.get_object(DBUS_SSSD_NAME, user_path)

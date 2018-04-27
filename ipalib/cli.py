@@ -56,7 +56,7 @@ from ipalib.errors import (PublicError, CommandError, HelpError, InternalError,
                            NoSuchNamespaceError, ValidationError, NotFound,
                            NotConfiguredError, PromptFailed)
 from ipalib.constants import CLI_TAB, LDAP_GENERALIZED_TIME_FORMAT
-from ipalib.parameters import File, Str, Enum, Any, Flag
+from ipalib.parameters import File, BinaryFile, Str, Enum, Any, Flag
 from ipalib.text import _
 from ipalib import api  # pylint: disable=unused-import
 from ipapython.dnsutil import DNSName
@@ -1333,7 +1333,7 @@ class cli(backend.Executioner):
         3) the webUI will use a different way of loading files
         """
         for p in cmd.params():
-            if isinstance(p, File):
+            if isinstance(p, (File, BinaryFile)):
                 # FIXME: this only reads the first file
                 raw = None
                 if p.name in kw:
@@ -1342,9 +1342,8 @@ class cli(backend.Executioner):
                     else:
                         fname = kw[p.name]
                     try:
-                        f = open(fname, 'r')
-                        raw = f.read()
-                        f.close()
+                        with open(fname, p.open_mode) as f:
+                            raw = f.read()
                     except IOError as e:
                         raise ValidationError(
                             name=to_cli(p.cli_name),
@@ -1352,14 +1351,22 @@ class cli(backend.Executioner):
                         )
                 elif p.stdin_if_missing:
                     try:
-                        raw = sys.stdin.read()
+                        if six.PY3 and p.type is bytes:
+                            # pylint: disable=no-member
+                            raw = sys.stdin.buffer.read()
+                            # pylint: enable=no-member
+                        else:
+                            raw = sys.stdin.read()
                     except IOError as e:
                         raise ValidationError(
                             name=to_cli(p.cli_name), error=e.args[1]
                         )
 
                 if raw:
-                    kw[p.name] = self.Backend.textui.decode(raw)
+                    if p.type is bytes:
+                        kw[p.name] = raw
+                    else:
+                        kw[p.name] = self.Backend.textui.decode(raw)
                 elif p.required:
                     raise ValidationError(
                         name=to_cli(p.cli_name), error=_('No file to read')
