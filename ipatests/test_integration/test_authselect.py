@@ -172,7 +172,7 @@ class TestClientInstallation(IntegrationTest):
 
 
 @pytest.mark.skipif(
-    ipaplatform.NAME not in ['fedora', 'rhel', 'centos'],
+    ipaplatform.paths.paths.AUTHSELECT is None,
     reason="Authselect is only available in fedora-like distributions")
 class TestServerInstallation(IntegrationTest):
     """
