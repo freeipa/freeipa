@@ -317,6 +317,10 @@ return {
                 $type: 'cert_textarea',
                 name: 'usercertificate'
             },
+            {
+                $type: 'sshkey',
+                name: 'ipasshpubkey'
+            },
             'loginshell',
             'homedirectory',
             {
