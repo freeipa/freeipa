@@ -352,8 +352,8 @@ Requires: python2-systemd
 Requires: mod_wsgi
 %endif
 Requires: mod_auth_gssapi >= 1.5.0
-# 1.0.14-3: https://bugzilla.redhat.com/show_bug.cgi?id=1431206
-Requires: mod_nss >= 1.0.14-3
+# 1.0.14-7: https://pagure.io/mod_nss/issue/45
+Requires: mod_nss >= 1.0.14-7
 Requires: mod_session
 # 0.9.9: https://github.com/adelton/mod_lookup_identity/pull/3
 Requires: mod_lookup_identity >= 0.9.9
