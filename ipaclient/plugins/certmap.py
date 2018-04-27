@@ -4,7 +4,7 @@
 
 from ipaclient.frontend import MethodOverride
 from ipalib import errors, x509
-from ipalib.parameters import File
+from ipalib.parameters import BinaryFile
 from ipalib.plugable import Registry
 from ipalib.text import _
 
@@ -14,7 +14,7 @@ register = Registry()
 @register(override=True, no_fail=True)
 class certmap_match(MethodOverride):
     takes_args = (
-        File(
+        BinaryFile(
             'file?',
             label=_("Input file"),
             doc=_("File to load the certificate from"),

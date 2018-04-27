@@ -3,12 +3,14 @@ import os
 import shlex
 import subprocess
 import sys
+import tempfile
 import unittest
 
 import six
 from six import StringIO
 
 from ipatests import util
+from ipatests.test_ipalib.test_x509 import goodcert_headers
 from ipalib import api, errors
 import pytest
 
@@ -311,6 +313,16 @@ class TestCLIParsing(object):
 
         if not adtrust_is_enabled:
             mockldap.del_entry(adtrust_dn)
+
+    def test_certfind(self):
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(goodcert_headers)
+            f.flush()
+            self.check_command(
+                'cert_find --file={}'.format(f.name),
+                'cert_find',
+                file=goodcert_headers
+            )
 
 
 def test_cli_fsencoding():
