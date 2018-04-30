@@ -6,6 +6,8 @@
 Module provides tests to verify that the authselect code works.
 """
 
+from __future__ import absolute_import
+
 import pytest
 
 import ipaplatform.paths
