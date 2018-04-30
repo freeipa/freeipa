@@ -48,7 +48,7 @@ if six.PY3:
 SERVICE_LIST = {
     'KDC': ('krb5kdc', 10),
     'KPASSWD': ('kadmin', 20),
-    'DNS': ('named', 30),
+    'DNS': ('named-pkcs11', 30),
     'HTTP': ('httpd', 40),
     'KEYS': ('ipa-custodia', 41),
     'CA': ('pki-tomcatd', 50),
