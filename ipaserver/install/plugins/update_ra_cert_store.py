@@ -2,6 +2,8 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import absolute_import
+
 import logging
 import os
 import tempfile

@@ -22,7 +22,7 @@ Base class for UI integration tests.
 
 Contains browser driver and common tasks.
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import nose
 from datetime import datetime

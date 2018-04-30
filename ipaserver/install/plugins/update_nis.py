@@ -2,6 +2,8 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import absolute_import
+
 import logging
 
 from ipalib.plugable import Registry
