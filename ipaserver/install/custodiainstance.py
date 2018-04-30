@@ -5,15 +5,13 @@ from __future__ import print_function, absolute_import
 import enum
 import logging
 
-from ipalib import api
-from ipalib.install.certstore import get_ca_certs_nss
 from ipaserver.secrets.kem import IPAKEMKeys, KEMLdap
 from ipaserver.secrets.client import CustodiaClient
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants
 from ipaserver.install.service import SimpleServiceInstance
 from ipapython import ipautil
-from ipapython.certdb import NSSDatabase, get_ca_nickname
+from ipapython.certdb import NSSDatabase
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import sysupgrade
@@ -277,17 +275,8 @@ class CustodiaInstance(SimpleServiceInstance):
                     '-w', pk12pwfile
                 ])
 
-            # Add CA certificates, but don't import the main CA cert. It's
-            # already present as 'caSigningCert cert-pki-ca'. With SQL db
-            # format, a second import would rename the certificate. See
-            # https://pagure.io/freeipa/issue/7498 for more details.
-            conn = api.Backend.ldap2
-            suffix = ipautil.realm_to_suffix(self.realm)
-            ca_certs = get_ca_certs_nss(conn, suffix, self.realm, True)
-            for cert, nickname, trust_flags in ca_certs:
-                if nickname == get_ca_nickname(self.realm):
-                    continue
-                tmpdb.add_cert(cert, nickname, trust_flags)
+            # Add CA certificates
+            self.export_ca_certs_nssdb(tmpdb, True)
 
             # Now that we gathered all certs, re-export
             ipautil.run([

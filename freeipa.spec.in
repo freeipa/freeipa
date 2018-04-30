@@ -96,7 +96,11 @@
 %endif
 
 # Require Dogtag PKI 10.6.0 with Python 3 and SQL NSSDB fixes
-%global pki_version 10.6.0-1
+%global pki_version 10.6.0-1.2
+
+# NSS release with fix for CKA_LABEL import bug in shared SQL database.
+# https://bugzilla.redhat.com/show_bug.cgi?id=1568271
+%global nss_version 3.36.1-1.1
 
 %define krb5_base_version %(LC_ALL=C rpm -q --qf '%%{VERSION}' krb5-devel | grep -Eo '^[^.]+\.[^.]+')
 
@@ -157,7 +161,7 @@ BuildRequires:  systemd
 # systemd-tmpfiles which is executed from make install requires apache user
 BuildRequires:  httpd
 BuildRequires:  nspr-devel
-BuildRequires:  nss-devel
+BuildRequires:  nss-devel >= %{nss_version}
 BuildRequires:  openssl-devel
 BuildRequires:  libini_config-devel
 BuildRequires:  cyrus-sasl-devel
@@ -339,8 +343,8 @@ Requires: python2-ldap >= %{python2_ldap_version}
 %endif
 Requires: 389-ds-base >= %{ds_version}
 Requires: openldap-clients > 2.4.35-4
-Requires: nss >= 3.14.3-12.0
-Requires: nss-tools >= 3.14.3-12.0
+Requires: nss >= %{nss_version}
+Requires: nss-tools >= %{nss_version}
 Requires(post): krb5-server >= %{krb5_version}
 Requires(post): krb5-server >= %{krb5_base_version}, krb5-server < %{krb5_base_version}.100
 Requires: krb5-pkinit-openssl >= %{krb5_version}
@@ -605,7 +609,7 @@ Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
 Requires: sssd >= 1.14.0
 Requires: certmonger >= 0.79.5-1
-Requires: nss-tools
+Requires: nss-tools >= %{nss_version}
 Requires: bind-utils
 Requires: oddjob-mkhomedir
 Requires: libsss_autofs
