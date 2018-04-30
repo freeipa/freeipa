@@ -20,6 +20,8 @@
 
 import six
 
+import logging
+
 from ipalib import api
 from ipalib import Int, Str, Flag
 from ipalib.constants import PATTERN_GROUPUSER_NAME
@@ -47,6 +49,8 @@ from ipapython.dn import DN
 
 if six.PY3:
     unicode = str
+
+logger = logging.getLogger(__name__)
 
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
@@ -366,7 +370,16 @@ class group_del(LDAPDelete):
     def post_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)
         try:
+            # A user removing a group may have no rights to remove
+            # an associated policy. Make sure we log an explanation
+            # in the Apache logs for this.
             api.Command['pwpolicy_del'](keys[-1])
+        except errors.ACIError:
+            logger.warning(
+                "While removing group %s, user lacked permissions "
+                "to remove corresponding password policy. This is "
+                "not an issue and can be ignored.", keys[-1]
+            )
         except errors.NotFound:
             pass
 
