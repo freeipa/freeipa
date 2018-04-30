@@ -43,6 +43,8 @@ from six.moves.urllib.parse import urlsplit
 from optparse import OptionParser  # pylint: disable=deprecated-module
 
 from ipaclient.install import ipachangeconf, ipadiscovery
+from ipaclient.install.client import (CLIENT_NOT_CONFIGURED,
+    CLIENT_ALREADY_CONFIGURED)
 from ipalib import api, errors
 from ipalib.install import sysrestore
 from ipalib.install.kinit import kinit_keytab
@@ -189,7 +191,8 @@ def configure_autofs_sssd(fstore, statestore, autodiscover, options):
             domain.add_provider('ipa', 'autofs')
             try:
                 domain.get_option('ipa_automount_location')
-                sys.exit('An automount location is already configured')
+                print('An automount location is already configured')
+                sys.exit(CLIENT_ALREADY_CONFIGURED)
             except SSSDConfig.NoOptionError:
                 domain.set_option('ipa_automount_location', options.location)
                 break
@@ -252,17 +255,31 @@ def configure_autofs_common(fstore, statestore, options):
                      autofs.service_name, str(e))
 
 def uninstall(fstore, statestore):
+    RESTORE_FILES=[
+       paths.SYSCONFIG_AUTOFS,
+       paths.NSSWITCH_CONF,
+       paths.AUTOFS_LDAP_AUTH_CONF,
+       paths.SYSCONFIG_NFS,
+       paths.IDMAPD_CONF,
+    ]
+    STATES=['autofs', 'rpcidmapd', 'rpcgssd']
+
+    # automount only touches /etc/nsswitch.conf if LDAP is
+    # used. Don't restore it otherwise.
+    if (statestore.get_state('authconfig', 'sssd') or
+            (statestore.get_state('authselect', 'profile') == 'sssd')):
+        RESTORE_FILES.remove(paths.NSSWITCH_CONF)
+
+    if (not any(fstore.has_file(f) for f in RESTORE_FILES) or
+             not any(statestore.has_state(s) for s in STATES)):
+        print("IPA automount is not configured on this system")
+        return CLIENT_NOT_CONFIGURED
+
     print("Restoring configuration")
-    if fstore.has_file(paths.SYSCONFIG_AUTOFS):
-        fstore.restore_file(paths.SYSCONFIG_AUTOFS)
-    if fstore.has_file(paths.NSSWITCH_CONF):
-        fstore.restore_file(paths.NSSWITCH_CONF)
-    if fstore.has_file(paths.AUTOFS_LDAP_AUTH_CONF):
-        fstore.restore_file(paths.AUTOFS_LDAP_AUTH_CONF)
-    if fstore.has_file(paths.SYSCONFIG_NFS):
-        fstore.restore_file(paths.SYSCONFIG_NFS)
-    if fstore.has_file(paths.IDMAPD_CONF):
-        fstore.restore_file(paths.IDMAPD_CONF)
+
+    for filepath in RESTORE_FILES:
+        if fstore.has_file(filepath):
+            fstore.restore_file(filepath)
     if statestore.has_state('autofs'):
         enabled = statestore.restore_state('autofs', 'enabled')
         running = statestore.restore_state('autofs', 'running')
@@ -382,7 +399,8 @@ def main():
     try:
         check_client_configuration()
     except ScriptError as e:
-        sys.exit(e)
+        print(e.msg)
+        sys.exit(e.rval)
 
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
@@ -412,7 +430,8 @@ def main():
         ca_cert_path = paths.IPA_CA_CRT
 
     if statestore.has_state('autofs'):
-        sys.exit('automount is already configured on this system.\n')
+        print('An automount location is already configured')
+        sys.exit(CLIENT_ALREADY_CONFIGURED)
 
     autodiscover = False
     ds = ipadiscovery.IPADiscovery()
