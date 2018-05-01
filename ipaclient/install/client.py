@@ -3056,9 +3056,10 @@ def uninstall(options):
 
     try:
         run([paths.IPA_CLIENT_AUTOMOUNT, "--uninstall", "--debug"])
-    except Exception as e:
-        logger.error(
-            "Unconfigured automount client failed: %s", str(e))
+    except CalledProcessError as e:
+        if e.returncode != CLIENT_NOT_CONFIGURED:
+            logger.error(
+                "Unconfigured automount client failed: %s", str(e))
 
     # Reload the state as automount unconfigure may have modified it
     fstore._load()
