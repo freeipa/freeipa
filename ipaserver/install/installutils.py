@@ -56,7 +56,7 @@ from ipalib.install import sysrestore
 from ipalib.install.kinit import kinit_password
 import ipaplatform
 from ipapython import ipautil, admintool, version
-from ipapython.admintool import ScriptError
+from ipapython.admintool import ScriptError, SERVER_NOT_CONFIGURED  # noqa: E402
 from ipapython.certdb import EXTERNAL_CA_TRUST_FLAGS
 from ipapython.ipaldap import DIRMAN_DN, LDAPClient
 from ipalib.util import validate_hostname
@@ -934,7 +934,8 @@ def check_server_configuration():
     """
     server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
     if not server_fstore.has_files():
-        raise RuntimeError("IPA is not configured on this system.")
+        raise ScriptError("IPA is not configured on this system.",
+                          rval=SERVER_NOT_CONFIGURED)
 
 
 def remove_file(filename):

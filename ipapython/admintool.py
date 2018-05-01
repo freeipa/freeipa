@@ -32,6 +32,10 @@ from ipapython import version
 from ipapython import config
 from ipapython.ipa_log_manager import standard_logging_setup
 
+SUCCESS = 0
+SERVER_INSTALL_ERROR = 1
+SERVER_NOT_CONFIGURED = 2
+
 logger = logging.getLogger(__name__)
 
 
@@ -301,7 +305,9 @@ class AdminTool(object):
         if error_message:
             logger.error('%s', error_message)
         message = "The %s command failed." % self.command_name
-        if self.log_file_name:
+        if self.log_file_name and return_value != 2:
+            # magic value because this is common between server and client
+            # but imports are not straigthforward
             message += " See %s for more information" % self.log_file_name
         logger.error('%s', message)
 
