@@ -208,6 +208,10 @@ class Restore(admintool.AdminTool):
         options = self.options
         super(Restore, self).ask_for_options()
 
+        # no IPA config means we are reinstalling from nothing so
+        # there is no need for the DM password
+        if not os.path.exists(paths.IPA_DEFAULT_CONF):
+            return
         # get the directory manager password
         self.dirman_password = options.password
         if not options.password:
@@ -668,7 +672,7 @@ class Restore(admintool.AdminTool):
         '''
         Restore paths.IPA_DEFAULT_CONF to temporary directory.
 
-        Primary purpose of this method is to get cofiguration for api
+        Primary purpose of this method is to get configuration for api
         finalization when restoring ipa after uninstall.
         '''
         cwd = os.getcwd()
@@ -882,3 +886,18 @@ class Restore(admintool.AdminTool):
 
         self.instances = [installutils.realm_to_serverid(api.env.realm)]
         self.backends = ['userRoot', 'ipaca']
+
+        # no IPA config means we are reinstalling from nothing so
+        # there is nothing to test the DM password against.
+        if os.path.exists(paths.IPA_DEFAULT_CONF):
+            instance_name = installutils.realm_to_serverid(api.env.realm)
+            if not services.knownservices.dirsrv.is_running(instance_name):
+                raise admintool.ScriptError(
+                    "directory server instance is not running"
+                )
+            try:
+                ReplicationManager(api.env.realm, api.env.host,
+                                   self.dirman_password)
+            except errors.ACIError:
+                logger.error("Incorrect Directory Manager password provided")
+                raise
