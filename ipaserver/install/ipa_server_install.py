@@ -40,7 +40,9 @@ ServerInstall = cli.install_tool(
     CompatServerMasterInstall,
     command_name='ipa-server-install',
     log_file_name=paths.IPASERVER_INSTALL_LOG,
+    console_format='%(message)s',
     debug_option=True,
+    verbose=True,
     uninstall_log_file_name=paths.IPASERVER_UNINSTALL_LOG,
 )
 

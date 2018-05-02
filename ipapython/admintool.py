@@ -93,6 +93,7 @@ class AdminTool(object):
     log_file_name = None
     usage = None
     description = None
+    ignore_return_codes = ()
 
     _option_parsers = dict()
 
@@ -177,9 +178,13 @@ class AdminTool(object):
             self.setup_logging()
             return_value = self.run()
         except BaseException as exception:
+            if isinstance(exception, ScriptError):
+                # pylint: disable=no-member
+                if exception.rval and exception.rval > return_value:
+                    return_value = exception.rval  # pylint: disable=no-member
             traceback = sys.exc_info()[2]
             error_message, return_value = self.handle_error(exception)
-            if return_value:
+            if return_value and return_value not in self.ignore_return_codes:
                 self.log_failure(error_message, return_value, exception,
                     traceback)
                 return return_value
