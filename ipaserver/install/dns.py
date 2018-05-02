@@ -127,7 +127,6 @@ def install_check(standalone, api, replica, options, hostname):
 
     if not already_enabled:
         domain = dnsutil.DNSName(util.normalize_zone(api.env.domain))
-        print("Checking DNS domain %s, please wait ..." % domain)
         try:
             dnsutil.check_zone_overlap(domain, raise_on_error=False)
         except ValueError as e:
