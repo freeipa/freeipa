@@ -162,3 +162,15 @@ def test_aci_parsing_8():
 def test_aci_parsing_9():
     check_aci_parsing('(targetfilter = "(|(objectClass=person)(objectClass=krbPrincipalAux)(objectClass=posixAccount)(objectClass=groupOfNames)(objectClass=posixGroup))")(targetattr != "aci || userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Account Admins can manage Users and Groups"; allow (add, delete, read, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,dc=greyoak,dc=com";)',
         '(targetattr != "aci || userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(targetfilter = "(|(objectClass=person)(objectClass=krbPrincipalAux)(objectClass=posixAccount)(objectClass=groupOfNames)(objectClass=posixGroup))")(version 3.0;acl "Account Admins can manage Users and Groups";allow (add,delete,read,write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,dc=greyoak,dc=com";)')
+
+
+def test_aci_parsing_10():
+    """test subtypes"""
+    check_aci_parsing('(targetattr="ipaProtectedOperation;read_keys")'
+                      '(version 3.0; acl "Allow trust agents to retrieve '
+                      'keytab keys for cross realm principals"; allow(read) '
+                      'userattr="ipaAllowedToPerform;read_keys#GROUPDN";)',
+                      '(targetattr = "ipaProtectedOperation;read || keys")'
+                      '(version 3.0;acl "Allow trust agents to retrieve '
+                      'keytab keys for cross realm principals";allow (read) '
+                      'userattr = "ipaAllowedToPerform;read_keys#GROUPDN";)')
