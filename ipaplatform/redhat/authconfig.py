@@ -22,7 +22,6 @@ from __future__ import absolute_import
 import logging
 import six
 import abc
-import re
 
 from ipaplatform.paths import paths
 from ipapython import ipautil
@@ -77,7 +76,7 @@ class RedHatAuthSelect(RedHatAuthToolBase):
     def _get_authselect_current_output(self):
         try:
             current = ipautil.run(
-                [paths.AUTHSELECT, "current"], env={"LC_ALL": "C.UTF8"})
+                [paths.AUTHSELECT, "current", "--raw"])
         except ipautil.CalledProcessError:
             logger.debug("Current configuration not managed by authselect")
             return None
@@ -95,19 +94,12 @@ class RedHatAuthSelect(RedHatAuthToolBase):
             if output_text is None:
                 return None
 
-        cfg_params = re.findall(
-            r"\s*Profile ID:\s*(\S+)\s*\n\s*Enabled features:\s*(.*)",
-            output_text,
-            re.DOTALL
-        )
-
-        profile = cfg_params[0][0]
-
-        if not profile:
+        output_text = output_text.strip()
+        if not output_text:
             return None
-
-        features = re.findall(r"-\s*(\S+)", cfg_params[0][1], re.DOTALL)
-
+        output_items = output_text.split(' ')
+        profile = output_items[0]
+        features = output_items[1:]
         return profile, features
 
     def configure(self, sssd, mkhomedir, statestore):
