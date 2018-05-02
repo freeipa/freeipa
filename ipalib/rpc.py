@@ -1046,7 +1046,7 @@ class RPCClient(Connectible):
                     transport_class = LanguageAwareTransport
                 proxy_kw['transport'] = transport_class(
                     protocol=self.protocol, service='HTTP', ccache=ccache)
-                logger.info('trying %s', url)
+                logger.debug('trying %s', url)
                 setattr(context, 'request_url', url)
                 serverproxy = self.server_proxy_class(url, **proxy_kw)
                 if len(urls) == 1:
@@ -1136,8 +1136,8 @@ class RPCClient(Connectible):
         # each time should we be getting UNAUTHORIZED error from the server
         max_tries = 5
         for try_num in range(0, max_tries):
-            logger.info("[try %d]: Forwarding '%s' to %s server '%s'",
-                        try_num+1, name, self.protocol, server)
+            logger.debug("[try %d]: Forwarding '%s' to %s server '%s'",
+                         try_num + 1, name, self.protocol, server)
             try:
                 return self._call_command(command, params)
             except Fault as e:

@@ -888,7 +888,7 @@ def configure_sssd_conf(
             logger.info(
                 "The old /etc/sssd/sssd.conf is backed up and "
                 "will be restored during uninstall.")
-        logger.info("New SSSD config will be created")
+        logger.debug("New SSSD config will be created")
         sssdconfig = SSSDConfig.SSSDConfig()
         sssdconfig.new_config()
 
@@ -2521,8 +2521,8 @@ def _install(options):
     elif options.on_master:
         # If we're on master skipping the time sync here because it was done
         # in ipa-server-install
-        logger.info("Skipping attempt to configure and synchronize time with"
-                    " chrony server as it has been already done on master.")
+        logger.debug("Skipping attempt to configure and synchronize time with"
+                     " chrony server as it has been already done on master.")
     else:
         logger.info("Skipping chrony configuration")
 

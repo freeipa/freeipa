@@ -63,7 +63,7 @@ def get_custodia_instance(config, mode):
     *master_host_name* to create a replica with CA.
     """
     assert isinstance(mode, CustodiaModes)
-    logger.info(
+    logger.debug(
         "Custodia client for '%r' with promotion %s.",
         mode, 'yes' if config.promote else 'no'
     )
@@ -83,7 +83,7 @@ def get_custodia_instance(config, mode):
 
     if custodia_peer is None:
         # use ldapi with local dirsrv instance
-        logger.info("Custodia uses LDAPI.")
+        logger.debug("Custodia uses LDAPI.")
     else:
         logger.info("Custodia uses '%s' as master peer.", custodia_peer)
 

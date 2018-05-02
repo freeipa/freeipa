@@ -1050,7 +1050,7 @@ class CAInstance(DogtagInstance):
         cmonger.stop()
 
         # remove CRL files
-        logger.info("Remove old CRL files")
+        logger.debug("Remove old CRL files")
         try:
             for f in get_crl_files():
                 logger.debug("Remove %s", f)
@@ -1059,7 +1059,7 @@ class CAInstance(DogtagInstance):
             logger.warning("Error while removing old CRL files: %s", e)
 
         # remove CRL directory
-        logger.info("Remove CRL directory")
+        logger.debug("Remove CRL directory")
         if os.path.exists(paths.PKI_CA_PUBLISH_DIR):
             try:
                 shutil.rmtree(paths.PKI_CA_PUBLISH_DIR)
@@ -1271,12 +1271,12 @@ class CAInstance(DogtagInstance):
         if sysupgrade.get_upgrade_state('dogtag', 'setup_lwca_key_retrieval'):
             return
 
-        logger.info('[Set up lightweight CA key retrieval]')
+        logger.debug('Set up lightweight CA key retrieval')
 
         self.__setup_lightweight_ca_key_retrieval_kerberos()
         self.__setup_lightweight_ca_key_retrieval_custodia()
 
-        logger.info('Configuring key retriever')
+        logger.debug('Configuring key retriever')
         directives = [
             ('features.authority.keyRetrieverClass',
                 'com.netscape.ca.ExternalProcessKeyRetriever'),
@@ -1292,12 +1292,12 @@ class CAInstance(DogtagInstance):
     def __setup_lightweight_ca_key_retrieval_kerberos(self):
         pent = pwd.getpwnam(self.service_user)
 
-        logger.info('Creating principal')
+        logger.debug('Creating principal')
         installutils.kadmin_addprinc(self.principal)
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.move_service(self.principal)
 
-        logger.info('Retrieving keytab')
+        logger.debug('Retrieving keytab')
         installutils.create_keytab(self.keytab, self.principal)
         os.chmod(self.keytab, 0o600)
         os.chown(self.keytab, pent.pw_uid, pent.pw_gid)
@@ -1305,7 +1305,7 @@ class CAInstance(DogtagInstance):
     def __setup_lightweight_ca_key_retrieval_custodia(self):
         pent = pwd.getpwnam(self.service_user)
 
-        logger.info('Creating Custodia keys')
+        logger.debug('Creating Custodia keys')
         custodia_basedn = DN(
             ('cn', 'custodia'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
         ensure_entry(
@@ -1686,7 +1686,7 @@ def import_included_profiles():
             # Create the profile, replacing any existing profile of same name
             profile_data = __get_profile_config(profile_id)
             _create_dogtag_profile(profile_id, profile_data, overwrite=True)
-            logger.info("Imported profile '%s'", profile_id)
+            logger.debug("Imported profile '%s'", profile_id)
 
     api.Backend.ra_certprofile.override_port = None
     conn.disconnect()
@@ -1794,8 +1794,8 @@ def _create_dogtag_profile(profile_id, profile_data, overwrite):
         # import the profile
         try:
             profile_api.create_profile(profile_data)
-            logger.info("Profile '%s' successfully migrated to LDAP",
-                        profile_id)
+            logger.debug("Profile '%s' successfully migrated to LDAP",
+                         profile_id)
         except errors.RemoteRetrieveError as e:
             logger.debug("Error migrating '%s': %s", profile_id, e)
 
