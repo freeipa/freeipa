@@ -1405,7 +1405,6 @@ fi
 %attr(644,root,root) %{_unitdir}/ipa-custodia.service
 %ghost %attr(644,root,root) %{etc_systemd_dir}/httpd.d/ipa.conf
 # END
-%dir %{_usr}/share/ipa
 %{_usr}/share/ipa/wsgi.py*
 %{_usr}/share/ipa/kdcproxy.wsgi
 %{_usr}/share/ipa/*.ldif
@@ -1612,6 +1611,7 @@ fi
 %dir %{_localstatedir}/lib/ipa-client/pki
 %dir %{_localstatedir}/lib/ipa-client/sysrestore
 %{_mandir}/man5/default.conf.5*
+%{_usr}/share/ipa/freeipa.template
 
 
 %files python-compat
@@ -1644,6 +1644,7 @@ fi
 %defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
+%dir %{_usr}/share/ipa
 
 
 %if 0%{?with_python3}
