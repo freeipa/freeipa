@@ -105,9 +105,13 @@ def print_ca_configuration(options):
     print("The CA will be configured with:")
     print("Subject DN:   {}".format(options.ca_subject))
     print("Subject base: {}".format(options.subject_base))
-    print("Chaining:     {}".format(
-        "externally signed (two-step installation)" if options.external_ca
-        else "self-signed"))
+    if options.external_ca:
+        chaining = "externally signed (two-step installation)"
+    elif options.external_cert_files:
+        chaining = "externally signed"
+    else:
+        chaining = "self-signed"
+    print("Chaining:     {}".format(chaining))
 
 
 def install_check(standalone, replica_config, options):
