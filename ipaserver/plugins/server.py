@@ -615,8 +615,10 @@ class server_del(LDAPDelete):
             srvlist = srvlist.split()
             if master in srvlist:
                 srvlist.remove(master)
-                attr = ' '.join(srvlist)
-                ret['defaultServerList'] = attr
+                if not srvlist:
+                    del ret['defaultServerList']
+                else:
+                    ret['defaultServerList'] = ' '.join(srvlist)
                 conn.update_entry(ret)
         except (errors.NotFound, errors.MidairCollision,
                 errors.EmptyModlist):
