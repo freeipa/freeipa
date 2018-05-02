@@ -27,7 +27,7 @@ from ipatests.test_integration.base import IntegrationTest
 from ipaplatform.paths import paths
 
 from itertools import chain, repeat
-from ipatests.pytest_plugins.integration.create_external_ca import ExternalCA
+from ipatests.create_external_ca import ExternalCA
 
 IPA_CA = 'ipa_ca.crt'
 ROOT_CA = 'root_ca.crt'

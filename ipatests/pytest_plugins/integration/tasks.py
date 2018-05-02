@@ -43,7 +43,7 @@ from ipalib.util import get_reverse_zone_default, verify_host_resolvable
 from ipalib.constants import (
     DEFAULT_CONFIG, DOMAIN_SUFFIX_NAME, DOMAIN_LEVEL_0)
 
-from .create_external_ca import ExternalCA
+from ipatests.create_external_ca import ExternalCA
 from .env_config import env_to_script
 from .host import Host
 

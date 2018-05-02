@@ -14,6 +14,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import, print_function
+
+import argparse
 
 from cryptography import x509
 from cryptography.x509.oid import NameOID
@@ -30,6 +33,10 @@ class ExternalCA(object):
     """
     Provide external CA for testing
     """
+    def __init__(self, days=365):
+        self.now = datetime.datetime.utcnow()
+        self.delta = datetime.timedelta(days=days)
+
     def create_ca(self, cn='example.test'):
         """Create root CA.
 
@@ -52,10 +59,8 @@ class ExternalCA(object):
         builder = builder.issuer_name(self.issuer)
         builder = builder.public_key(self.ca_public_key)
         builder = builder.serial_number(x509.random_serial_number())
-        builder = builder.not_valid_before(datetime.datetime.utcnow())
-        builder = builder.not_valid_after(
-                  datetime.datetime.utcnow() + datetime.timedelta(days=365)
-                  )
+        builder = builder.not_valid_before(self.now)
+        builder = builder.not_valid_after(self.now + self.delta)
 
         builder = builder.add_extension(
             x509.KeyUsage(
@@ -93,7 +98,7 @@ class ExternalCA(object):
 
         return cert.public_bytes(serialization.Encoding.PEM)
 
-    def sign_csr(self, ipa_csr):
+    def sign_csr(self, ipa_csr, path_length=1):
         """Sign certificate CSR.
 
         :param ipa_csr: CSR in PEM format.
@@ -110,9 +115,8 @@ class ExternalCA(object):
         builder = builder.subject_name(csr_subject)
         builder = builder.serial_number(x509.random_serial_number())
         builder = builder.issuer_name(self.issuer)
-        builder = builder.not_valid_before(datetime.datetime.utcnow())
-        builder = builder.not_valid_after(
-                  datetime.datetime.utcnow() + datetime.timedelta(days=365))
+        builder = builder.not_valid_before(self.now)
+        builder = builder.not_valid_after(self.now + self.delta)
 
         builder = builder.add_extension(
             x509.KeyUsage(
@@ -142,7 +146,7 @@ class ExternalCA(object):
         )
 
         builder = builder.add_extension(
-            x509.BasicConstraints(ca=True, path_length=1),
+            x509.BasicConstraints(ca=True, path_length=path_length),
             critical=True,
         )
 
@@ -153,3 +157,44 @@ class ExternalCA(object):
         )
 
         return cert.public_bytes(serialization.Encoding.PEM)
+
+
+def main():
+    IPA_CSR = '/root/ipa.csr'
+    ROOT_CA = '/tmp/rootca.pem'
+    IPA_CA = '/tmp/ipaca.pem'
+    parser = argparse.ArgumentParser("Create external CA")
+    parser.add_argument(
+        '--csr', type=argparse.FileType('rb'), default=IPA_CSR,
+        help="Path to ipa.csr (default: {})".format(IPA_CSR)
+    )
+    parser.add_argument(
+        '--rootca', type=argparse.FileType('wb'), default=ROOT_CA,
+        help="New root CA file (default: {})".format(ROOT_CA)
+    )
+    parser.add_argument(
+        '--ipaca', type=argparse.FileType('wb'), default=IPA_CA,
+        help="New IPA CA file (default: {})".format(ROOT_CA)
+    )
+
+    args = parser.parse_args()
+
+    with args.csr as f:
+        ipa_csr = f.read()
+
+    external_ca = ExternalCA()
+    root_ca = external_ca.create_ca()
+    ipa_ca = external_ca.sign_csr(ipa_csr)
+
+    with args.rootca as f:
+        f.write(root_ca)
+
+    with args.ipaca as f:
+        f.write(ipa_ca)
+
+    o = "ipa-server-install --external-cert-file={} --external-cert-file={}"
+    print(o.format(args.rootca.name, args.ipaca.name))
+
+
+if __name__ == '__main__':
+    main()
