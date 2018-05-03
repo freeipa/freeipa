@@ -161,7 +161,6 @@ BuildRequires:  nss-devel
 BuildRequires:  openssl-devel
 BuildRequires:  libini_config-devel
 BuildRequires:  cyrus-sasl-devel
-BuildRequires:  sssd-tools
 %if ! %{ONLY_CLIENT}
 BuildRequires:  389-ds-base-devel >= %{ds_version}
 BuildRequires:  svrcore-devel
@@ -612,6 +611,7 @@ Requires: libsss_autofs
 Requires: autofs
 Requires: libnfsidmap
 Requires: nfs-utils
+Requires: sssd-tools
 Requires(post): policycoreutils
 
 Provides: %{alt_name}-client = %{version}
