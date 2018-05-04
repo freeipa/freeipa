@@ -569,8 +569,16 @@ class CertDB(object):
         ])
 
     def create_from_cacert(self):
+        """
+        Ensure that a CA chain is in the NSS database.
+
+        If an NSS database already exists ensure that the CA chain
+        we want to load is in there and if not add it. If there is no
+        database then create an NSS database and load the CA chain.
+        """
         cacert_fname = paths.IPA_CA_CRT
-        if os.path.isfile(self.certdb_fname):
+
+        if self.nssdb.exists():
             # We already have a cert db, see if it is for the same CA.
             # If it is we leave things as they are.
             with open(cacert_fname, "r") as f:
