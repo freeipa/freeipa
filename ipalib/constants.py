@@ -319,3 +319,6 @@ USER_CACHE_PATH = (
 )
 
 SOFTHSM_DNSSEC_TOKEN_LABEL = u'ipaDNSSEC'
+# Apache's mod_ssl SSLVerifyDepth value (Maximum depth of CA
+# Certificates in Client Certificate verification)
+MOD_SSL_VERIFY_DEPTH = '5'

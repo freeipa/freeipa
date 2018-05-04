@@ -111,6 +111,8 @@ class TestExternalCA(IntegrationTest):
     """
     Test of FreeIPA server installation with exernal CA
     """
+    num_replicas = 1
+
     @tasks.collect_logs
     def test_external_ca(self):
         # Step 1 of ipa-server-install.
@@ -130,6 +132,9 @@ class TestExternalCA(IntegrationTest):
         tasks.kinit_admin(self.master)
         result = self.master.run_command(['ipa', 'user-show', 'admin'])
         assert 'User login: admin' in result.stdout_text
+
+        # check that we can also install replica
+        tasks.install_replica(self.master, self.replicas[0])
 
 
 class TestSelfExternalSelf(IntegrationTest):
