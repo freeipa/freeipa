@@ -175,6 +175,12 @@ class HTTPInstance(service.Service):
         self.update_httpd_service_ipa_conf()
         self.update_httpd_wsgi_conf()
 
+        # create /etc/httpd/alias, see https://pagure.io/freeipa/issue/7529
+        session_dir = os.path.dirname(self.sub_dict['GSSAPI_SESSION_KEY'])
+        if not os.path.isdir(session_dir):
+            os.makedirs(session_dir)
+            os.chmod(session_dir, 0o755)
+
         target_fname = paths.HTTPD_IPA_CONF
         http_txt = ipautil.template_file(
             os.path.join(paths.USR_SHARE_IPA_DIR,
