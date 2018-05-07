@@ -670,7 +670,7 @@ class Restore(admintool.AdminTool):
         '''
         Restore paths.IPA_DEFAULT_CONF to temporary directory.
 
-        Primary purpose of this method is to get configuration for api
+        Primary purpose of this method is to get cofiguration for api
         finalization when restoring ipa after uninstall.
         '''
         cwd = os.getcwd()
@@ -884,10 +884,3 @@ class Restore(admintool.AdminTool):
 
         self.instances = [installutils.realm_to_serverid(api.env.realm)]
         self.backends = ['userRoot', 'ipaca']
-
-        try:
-            ReplicationManager(api.env.realm, api.env.host,
-                               self.dirman_password)
-        except errors.ACIError:
-            logger.error("Incorrect Directory Manager password provided")
-            raise
