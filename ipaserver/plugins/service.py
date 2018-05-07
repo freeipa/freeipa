@@ -601,9 +601,14 @@ class service_add(LDAPCreate):
     has_output_params = LDAPCreate.has_output_params + output_params
     takes_options = LDAPCreate.takes_options + (
         Flag('force',
-            label=_('Force'),
-            doc=_('force principal name even if not in DNS'),
+             label=_('Force'),
+             doc=_('force principal name even if host not in DNS'),
         ),
+        Flag('skip_host_check',
+             label=_('Skip host check'),
+             doc=_('force service to be created even when host '
+                   'object does not exist to manage it'),
+             ),
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -614,11 +619,12 @@ class service_add(LDAPCreate):
         if principal.is_host and not options['force']:
             raise errors.HostService()
 
-        try:
-            hostresult = self.api.Command['host_show'](hostname)['result']
-        except errors.NotFound:
-            raise errors.NotFound(
-                reason=_("The host '%s' does not exist to add a service to.") %
+        if not options['skip_host_check']:
+            try:
+                hostresult = self.api.Command['host_show'](hostname)['result']
+            except errors.NotFound:
+                raise errors.NotFound(reason=_(
+                    "The host '%s' does not exist to add a service to.") %
                     hostname)
 
         self.obj.validate_ipakrbauthzdata(entry_attrs)
@@ -628,7 +634,7 @@ class service_add(LDAPCreate):
             # really want to discourage creating services for hosts that
             # don't exist in DNS.
             util.verify_host_resolvable(hostname)
-        if not 'managedby' in entry_attrs:
+        if not (options['skip_host_check'] or 'managedby' in entry_attrs):
             entry_attrs['managedby'] = hostresult['dn']
 
         # Enforce ipaKrbPrincipalAlias to aid case-insensitive searches

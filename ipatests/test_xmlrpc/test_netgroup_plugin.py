@@ -320,6 +320,7 @@ class test_netgroup(Declarative):
                     member=dict(
                         group=tuple(),
                         user=tuple(),
+                        service=tuple(),
                     ),
                 ),
                 result={

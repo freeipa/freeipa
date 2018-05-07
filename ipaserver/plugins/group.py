@@ -62,10 +62,10 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
 __doc__ = _("""
 Groups of users
 
-Manage groups of users. By default, new groups are POSIX groups. You
-can add the --nonposix option to the group-add command to mark a new group
-as non-POSIX. You can use the --posix argument with the group-mod command
-to convert a non-POSIX group into a POSIX group. POSIX groups cannot be
+Manage groups of users, groups, or services. By default, new groups are POSIX
+groups. You can add the --nonposix option to the group-add command to mark a
+new group as non-POSIX. You can use the --posix argument with the group-mod
+command to convert a non-POSIX group into a POSIX group. POSIX groups cannot be
 converted to non-POSIX groups.
 
 Every group must have a description.
@@ -74,6 +74,10 @@ POSIX groups must have a Group ID (GID) number. Changing a GID is
 supported but can have an impact on your file permissions. It is not necessary
 to supply a GID when creating a group. IPA will generate one automatically
 if it is not provided.
+
+Groups members can be users, other groups, and Kerberos services. In POSIX
+environments only users will be visible as group members, but nested groups and
+groups of services can be used for IPA management purposes.
 
 EXAMPLES:
 
@@ -100,6 +104,9 @@ EXAMPLES:
 
  Add multiple users to the "localadmins" group:
    ipa group-add-member --users=test1 --users=test2 localadmins
+
+ To add Kerberos services to the "printer admins" group:
+   ipa group-add-member --services=CUPS/some.host printeradmins
 
  Remove a user from the "localadmins" group:
    ipa group-remove-member --users=test2 localadmins
@@ -171,9 +178,9 @@ class group(LDAPObject):
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
-        'member': ['user', 'group'],
+        'member': ['user', 'group', 'service'],
         'memberof': ['group', 'netgroup', 'role', 'hbacrule', 'sudorule'],
-        'memberindirect': ['user', 'group'],
+        'memberindirect': ['user', 'group', 'service'],
         'memberofindirect': ['group', 'netgroup', 'role', 'hbacrule',
         'sudorule'],
     }

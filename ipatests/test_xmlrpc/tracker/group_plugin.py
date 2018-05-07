@@ -12,9 +12,10 @@ from ipatests.util import assert_deepequal, get_group_dn
 class GroupTracker(Tracker):
     """ Class for host plugin like tests """
     retrieve_keys = {u'dn', u'cn', u'gidnumber', u'member_user',
-                     u'member_group', u'description',
+                     u'member_group', u'member_service', u'description',
                      u'memberof_group', u'memberofindirect_group',
-                     u'memberindirect_group', u'memberindirect_user'}
+                     u'memberindirect_group', u'memberindirect_user',
+                     u'memberindirect_service'}
 
     retrieve_all_keys = retrieve_keys | {u'ipauniqueid', u'objectclass'}
 
@@ -112,7 +113,7 @@ class GroupTracker(Tracker):
         )
 
     def add_member(self, options):
-        """ Add a member (group OR user) and performs check """
+        """ Add a member (group OR user OR service) and performs check """
         if u'user' in options:
             try:
                 self.attrs[u'member_user'] =\
@@ -125,6 +126,12 @@ class GroupTracker(Tracker):
                     self.attrs[u'member_group'] + [options[u'group']]
             except KeyError:
                 self.attrs[u'member_group'] = [options[u'group']]
+        elif u'service' in options:
+            try:
+                self.attrs[u'member_service'] =\
+                    self.attrs[u'member_service'] + [options[u'service']]
+            except KeyError:
+                self.attrs[u'member_service'] = [options[u'service']]
 
         command = self.make_add_member_command(options)
         result = command()
@@ -136,6 +143,8 @@ class GroupTracker(Tracker):
             self.attrs[u'member_user'].remove(options[u'user'])
         elif u'group' in options:
             self.attrs[u'member_group'].remove(options[u'group'])
+        elif u'service' in options:
+            self.attrs[u'member_service'].remove(options[u'service'])
 
         try:
             if not self.attrs[u'member_user']:
@@ -145,6 +154,11 @@ class GroupTracker(Tracker):
         try:
             if not self.attrs[u'member_group']:
                 del self.attrs[u'member_group']
+        except KeyError:
+            pass
+        try:
+            if not self.attrs[u'member_service']:
+                del self.attrs[u'member_service']
         except KeyError:
             pass
 
@@ -207,7 +221,7 @@ class GroupTracker(Tracker):
         """ Checks 'group_add_member' command result """
         assert_deepequal(dict(
             completed=1,
-            failed={u'member': {u'group': (), u'user': ()}},
+            failed={u'member': {u'group': (), u'user': (), u'service': ()}},
             result=self.filter_attrs(self.add_member_keys)
         ), result)
 
@@ -216,7 +230,7 @@ class GroupTracker(Tracker):
         when expected result is failure of the operation"""
         expected = dict(
             completed=0,
-            failed={u'member': {u'group': (), u'user': ()}},
+            failed={u'member': {u'group': (), u'user': (), u'service': ()}},
             result=self.filter_attrs(self.add_member_keys)
         )
         if not options:
@@ -230,6 +244,9 @@ class GroupTracker(Tracker):
         elif u'group' in options:
             expected[u'failed'][u'member'][u'group'] = [(
                 options[u'group'], u'no such entry')]
+        elif u'service' in options:
+            expected[u'failed'][u'member'][u'service'] = [(
+                options[u'service'], u'no such entry')]
 
         assert_deepequal(expected, result)
 
@@ -238,7 +255,7 @@ class GroupTracker(Tracker):
         when expected result is failure of the operation"""
         expected = dict(
             completed=0,
-            failed={u'member': {u'group': (), u'user': ()}},
+            failed={u'member': {u'group': (), u'user': (), u'service': ()}},
             result=self.filter_attrs(self.add_member_keys)
         )
         if u'user' in options:
@@ -247,6 +264,9 @@ class GroupTracker(Tracker):
         elif u'group' in options:
             expected[u'failed'][u'member'][u'group'] = [(
                 options[u'group'], u'This entry is not a member')]
+        elif u'service' in options:
+            expected[u'failed'][u'member'][u'service'] = [(
+                options[u'service'], u'This entry is not a member')]
 
         assert_deepequal(expected, result)
 
