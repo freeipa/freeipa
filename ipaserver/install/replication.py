@@ -199,12 +199,14 @@ def wait_for_entry(connection, dn, timeout=7200, attr='', quiet=True):
 class ReplicationManager(object):
     """Manage replication agreements between DS servers, and sync
     agreements with Windows servers"""
-    def __init__(self, realm, hostname, dirman_passwd, port=PORT, starttls=False, conn=None):
+    def __init__(self, realm, hostname, dirman_passwd, port=PORT,
+                 starttls=False, conn=None, cacert=paths.IPA_CA_CRT):
         self.hostname = hostname
         self.port = port
         self.dirman_passwd = dirman_passwd
         self.realm = realm
         self.starttls = starttls
+        self.cacert = cacert
         self.suffix = ipautil.realm_to_suffix(realm)
         self.need_memberof_fixup = False
         self.db_suffix = self.suffix
@@ -217,9 +219,9 @@ class ReplicationManager(object):
             # otherwise we'll do a GSSAPI bind.
             protocol = 'ldap' if starttls else None
             ldap_uri = ipaldap.get_ldap_uri(
-                hostname, port, protocol=protocol, cacert=paths.IPA_CA_CRT)
-            self.conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT,
-                                           start_tls=starttls)
+                hostname, port, protocol=protocol, cacert=self.cacert)
+            self.conn = ipaldap.LDAPClient(
+                ldap_uri, cacert=self.cacert, start_tls=starttls)
             if dirman_passwd:
                 self.conn.simple_bind(bind_dn=ipaldap.DIRMAN_DN,
                                       bind_password=dirman_passwd)
@@ -1045,10 +1047,10 @@ class ReplicationManager(object):
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
         ldap_uri = ipaldap.get_ldap_uri(r_hostname, r_port,
-                                        cacert=paths.IPA_CA_CRT,
+                                        cacert=self.cacert,
                                         protocol='ldap')
         r_conn = ipaldap.LDAPClient(ldap_uri,
-                                    cacert=paths.IPA_CA_CRT,
+                                    cacert=self.cacert,
                                     start_tls=True)
 
         if r_bindpw:
@@ -1091,8 +1093,10 @@ class ReplicationManager(object):
     def setup_winsync_replication(self,
                                   ad_dc_name, ad_binddn, ad_pwd,
                                   passsync_pw, ad_subtree,
-                                  cacert=paths.IPA_CA_CRT):
+                                  cacert=None):
         self.ad_suffix = ""
+        if cacert is None:
+            cacert = self.cacert
         try:
             # Validate AD connection
             ad_conn = ldap_initialize(
@@ -1156,8 +1160,8 @@ class ReplicationManager(object):
 
     def convert_to_gssapi_replication(self, r_hostname, r_binddn, r_bindpw):
         ldap_uri = ipaldap.get_ldap_uri(r_hostname, PORT,
-                                        cacert=paths.IPA_CA_CRT)
-        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT)
+                                        cacert=self.cacert)
+        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=self.cacert)
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
@@ -1188,8 +1192,8 @@ class ReplicationManager(object):
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
         ldap_uri = ipaldap.get_ldap_uri(r_hostname, PORT,
-                                        cacert=paths.IPA_CA_CRT)
-        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=paths.IPA_CA_CRT)
+                                        cacert=self.cacert)
+        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=self.cacert)
         if r_bindpw:
             r_conn.simple_bind(r_binddn, r_bindpw)
         else:
@@ -1674,9 +1678,11 @@ class ReplicationManager(object):
         conn.update_entry(entry)
 
     def setup_promote_replication(self, r_hostname, r_binddn=None,
-                                  r_bindpw=None, cacert=paths.IPA_CA_CRT):
+                                  r_bindpw=None, cacert=None):
         # note - there appears to be a bug in python-ldap - it does not
         # allow connections using two different CA certs
+        if cacert is None:
+            cacert = self.cacert
         ldap_uri = ipaldap.get_ldap_uri(r_hostname)
         r_conn = ipaldap.LDAPClient(ldap_uri, cacert=cacert)
         if r_bindpw:

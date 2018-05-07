@@ -667,21 +667,22 @@ class Restore(admintool.AdminTool):
 
 
     def restore_default_conf(self):
-        '''
-        Restore paths.IPA_DEFAULT_CONF to temporary directory.
+        """Restore paths.IPA_DEFAULT_CONF and IPA_CA_CERT to temp directory.
 
         Primary purpose of this method is to get configuration for api
         finalization when restoring ipa after uninstall.
-        '''
+        """
         cwd = os.getcwd()
         os.chdir(self.dir)
-        args = ['tar',
-                '--xattrs',
-                '--selinux',
-                '-xzf',
-                os.path.join(self.dir, 'files.tar'),
-                paths.IPA_DEFAULT_CONF[1:],
-               ]
+        args = [
+            'tar',
+            '--xattrs',
+            '--selinux',
+            '-xzf',
+            os.path.join(self.dir, 'files.tar'),
+            paths.IPA_DEFAULT_CONF[1:],
+            paths.IPA_CA_CRT[1:],
+        ]
 
         result = run(args, raiseonerr=False)
         if result.returncode != 0:
@@ -886,8 +887,10 @@ class Restore(admintool.AdminTool):
         self.backends = ['userRoot', 'ipaca']
 
         try:
-            ReplicationManager(api.env.realm, api.env.host,
-                               self.dirman_password)
+            ReplicationManager(
+                api.env.realm, api.env.host, self.dirman_password,
+                cacert=api.env.tls_ca_cert
+            )
         except errors.ACIError:
             logger.error("Incorrect Directory Manager password provided")
             raise
