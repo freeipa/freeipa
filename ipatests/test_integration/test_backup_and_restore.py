@@ -482,10 +482,9 @@ class TestBackupAndRestoreWithReplica(IntegrationTest):
                 "systemctl", "disable", "oddjobd"
             ])
 
-            dirman_password = self.master.config.dirman_password
             self.master.run_command(
                 ["ipa-restore", backup_path],
-                stdin_text=dirman_password + '\nyes'
+                stdin_text='yes'
             )
 
             status = self.master.run_command([
@@ -547,3 +546,36 @@ class TestUserrootFilesOwnership(IntegrationTest):
         unexp_str = "CRITICAL: db2ldif failed:"
         assert cmd.returncode == 0
         assert unexp_str not in cmd.stdout_text
+
+
+class TestBackupAndRestoreDMPassword(IntegrationTest):
+    """Negative tests for incorrect DM password"""
+    topology = 'star'
+
+    def test_restore_bad_dm_password(self):
+        """backup, uninstall, restore, wrong DM password (expect failure)"""
+        with restore_checker(self.master):
+            backup_path = backup(self.master)
+
+            # No uninstall, just pure restore, the only case where
+            # prompting for the DM password matters.
+            result = self.master.run_command(['ipa-restore', backup_path],
+                                             stdin_text='badpass\nyes',
+                                             raiseonerr=False)
+            assert result.returncode == 1
+
+    def test_restore_dirsrv_not_running(self):
+        """backup, restore, dirsrv not running (expect failure)"""
+
+        # Flying blind without the restore_checker so we can have
+        # an error thrown when dirsrv is down.
+        backup_path = backup(self.master)
+
+        self.master.run_command(['ipactl', 'stop'])
+
+        dirman_password = self.master.config.dirman_password
+        result = self.master.run_command(
+            ['ipa-restore', backup_path],
+            stdin_text=dirman_password + '\nyes',
+            raiseonerr=False)
+        assert result.returncode == 1
