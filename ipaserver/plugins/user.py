@@ -307,12 +307,12 @@ class user(baseuser):
                 'businesscategory', 'carlicense', 'cn', 'departmentnumber',
                 'description', 'displayname', 'employeetype',
                 'employeenumber', 'facsimiletelephonenumber',
-                'gecos', 'givenname', 'homephone', 'inetuserhttpurl',
-                'initials', 'l', 'labeleduri', 'loginshell', 'manager', 'mail',
-                'mepmanagedentry', 'mobile', 'objectclass', 'ou', 'pager',
-                'postalcode', 'roomnumber', 'secretary', 'seealso', 'sn', 'st',
-                'street', 'telephonenumber', 'title', 'userclass',
-                'preferredlanguage',
+                'gecos', 'givenname', 'homedirectory', 'homephone',
+                'inetuserhttpurl', 'initials', 'l', 'labeleduri', 'loginshell',
+                'manager', 'mail', 'mepmanagedentry', 'mobile', 'objectclass',
+                'ou', 'pager', 'postalcode', 'roomnumber', 'secretary',
+                'seealso', 'sn', 'st', 'street', 'telephonenumber', 'title',
+                'userclass', 'preferredlanguage'
             },
             'replaces': [
                 '(targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype || businesscategory || ou || mepmanagedentry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Users";allow (write) groupdn = "ldap:///cn=Modify Users,cn=permissions,cn=pbac,$SUFFIX";)',
