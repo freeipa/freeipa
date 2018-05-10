@@ -241,23 +241,6 @@ class TestLastServices(ServerDelBase):
             cls.topology, cls.master, cls.replicas, [],
             domain_level=cls.domain_level, setup_replica_cas=False)
 
-    def test_removal_of_master_raises_error_about_last_ca(self):
-        """
-        test that removal of master fails on the last
-        """
-        tasks.assert_error(
-            tasks.run_server_del(self.replicas[0], self.master.hostname),
-            "Deleting this server is not allowed as it would leave your "
-            "installation without a CA.",
-            1
-        )
-
-    def test_install_ca_on_replica1(self):
-        """
-        Install CA on replica so that we can test DNS-related checks
-        """
-        tasks.install_ca(self.replicas[0], domain_level=self.domain_level)
-
     def test_removal_of_master_raises_error_about_last_dns(self):
         """
         Now server-del should complain about the removal of last DNS server
@@ -288,6 +271,32 @@ class TestLastServices(ServerDelBase):
             "Replica is active DNSSEC key master. Uninstall "
             "could break your DNS system. Please disable or replace "
             "DNSSEC key master first.",
+            1
+        )
+
+    def test_disable_dnssec_on_master(self):
+        """
+        Disable DNSSec master so that it is not tested anymore. Normal way
+        would be to move the DNSSec master to replica, but that is tested in
+        DNSSec tests.
+        """
+        args = [
+            "ipa-dns-install",
+            "--disable-dnssec-master",
+            "--forwarder", self.master.config.dns_forwarder,
+            "--force",
+            "-U",
+        ]
+        self.master.run_command(args)
+
+    def test_removal_of_master_raises_error_about_last_ca(self):
+        """
+        test that removal of master fails on the last
+        """
+        tasks.assert_error(
+            tasks.run_server_del(self.replicas[0], self.master.hostname),
+            "Deleting this server is not allowed as it would leave your "
+            "installation without a CA.",
             1
         )
 
