@@ -42,6 +42,7 @@ try:
     from selenium.common.exceptions import InvalidElementStateException
     from selenium.common.exceptions import StaleElementReferenceException
     from selenium.common.exceptions import WebDriverException
+    from selenium.common.exceptions import ElementClickInterceptedException
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.common.by import By
@@ -912,15 +913,21 @@ class UI_driver(object):
             s += "[@value='%s']" % value
         opts = self.find(s, "xpath", parent, many=True)
         label = None
+        checkbox = None
         # Select only the one which matches exactly the name
         for o in opts:
             n = o.get_attribute("name")
             if n == name or re.match("^%s\d+$" % name, n):
                 s = "label[for='%s']" % o.get_attribute("id")
                 label = self.find(s, By.CSS_SELECTOR, parent, strict=True)
+                checkbox = o
                 break
         assert label is not None, "Option not found: %s" % name
-        label.click()
+
+        try:
+            label.click()
+        except ElementClickInterceptedException:
+            checkbox.click()
 
     def select_combobox(self, name, value, parent=None, combobox_input=None):
         """
