@@ -523,16 +523,13 @@ class server_del(LDAPDelete):
                       "leave your installation without a CA."),
                     ignore_last_of_role)
 
+            # change the renewal master if there is other master with CA
             if ca_renewal_master == hostname:
                 other_cas = [ca for ca in ca_servers if ca != hostname]
 
-                # if this is the last CA there is no other server to become
-                # renewal master
-                if not other_cas:
-                    return
-
-                self.api.Command.config_mod(
-                    ca_renewal_master_server=other_cas[0])
+                if other_cas:
+                    self.api.Command.config_mod(
+                        ca_renewal_master_server=other_cas[0])
 
         if ignore_last_of_role:
             self.add_message(
