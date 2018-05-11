@@ -2139,7 +2139,7 @@ class UI_driver(object):
             assert is_enabled == enabled, ('Invalid enabled state of action item %s. '
                                            'Expected: %s') % (action, str(visible))
 
-    def assert_field_validation(self, expect_error, parent=None):
+    def assert_field_validation(self, expect_error, parent=None, field=None):
         """
         Assert for error in field validation
         """
@@ -2147,14 +2147,18 @@ class UI_driver(object):
         if not parent:
             parent = self.get_form()
 
+        if field:
+            field_s = '.widget[name="{}"]'.format(field)
+            parent = self.find(field_s, By.CSS_SELECTOR, context=parent)
+
         req_field_css = '.help-block[name="error_link"]'
 
         res = self.find(req_field_css, By.CSS_SELECTOR, context=parent)
         assert expect_error in res.text, \
             'Expected error: {} not found'.format(expect_error)
 
-    def assert_field_validation_required(self, parent=None):
-        self.assert_field_validation('Required field', parent)
+    def assert_field_validation_required(self, parent=None, field=None):
+        self.assert_field_validation('Required field', parent, field)
 
     def assert_notification(self, type='success', assert_text=None):
         """
