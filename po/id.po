@@ -1,9 +1,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.4.90.dev201703151542+gita1686a9\n"
+"Project-Id-Version: freeipa 4.5.90.dev201709011157+git5dcb0e6fc\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-03-15 16:43+0100\n"
+"POT-Creation-Date: 2017-09-01 13:58+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -15,170 +15,6 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0\n"
 
 #, python-format
-msgid "Failure decoding Certificate Signing Request: %s"
-msgstr "Gagal mengurai Permintaan Penandatanganan Sertifikat: %s"
-
-#, python-format
-msgid "Added user \"%(value)s\""
-msgstr "Pengguna \"%(value)s\" telah ditambahkan"
-
-#, python-format
-msgid "Deleted user \"%(value)s\""
-msgstr "Pengguna \"%(value)s\" telah dihapus"
-
-#, python-format
-msgid "Modified user \"%(value)s\""
-msgstr "Pengguna \"%(value)s\" telah dimodifikasi"
-
-#, python-format
-msgid "%(count)d user matched"
-msgid_plural "%(count)d users matched"
-msgstr[0] "%(count)d pengguna sesuai"
-
-msgid "priority cannot be set on global policy"
-msgstr "prioritas tidak dapat ditetapkan pada kebijakan global"
-
-#, python-format
-msgid "Added hostgroup \"%(value)s\""
-msgstr "hostgroup \"%(value)s\" telah ditambahkan"
-
-#, python-format
-msgid "Deleted hostgroup \"%(value)s\""
-msgstr "hostgroup \"%(value)s\" telah dihapus"
-
-#, python-format
-msgid "Modified hostgroup \"%(value)s\""
-msgstr "hostgroup \"%(value)s\" telah dimodifikasi"
-
-#, python-format
-msgid "%(count)d hostgroup matched"
-msgid_plural "%(count)d hostgroups matched"
-msgstr[0] "%(count)d hostgroup sesuai"
-
-#, python-format
-msgid "Added host \"%(value)s\""
-msgstr "Host \"%(value)s\" telah ditambahkan"
-
-#, python-format
-msgid "Deleted host \"%(value)s\""
-msgstr "Host \"%(value)s\" telah dihapus"
-
-#, python-format
-msgid "Modified host \"%(value)s\""
-msgstr "Host \"%(value)s\" telah dimodifikasi"
-
-#, python-format
-msgid "%(count)d host matched"
-msgid_plural "%(count)d hosts matched"
-msgstr[0] "%(count)d host sesuai"
-
-#, python-format
-msgid "Added group \"%(value)s\""
-msgstr "Grup \"%(value)s\" telah ditambahkan"
-
-#, python-format
-msgid "Deleted group \"%(value)s\""
-msgstr "Grup \"%(value)s\" telah dihapus"
-
-#, python-format
-msgid "Modified group \"%(value)s\""
-msgstr "Grup \"%(value)s\" telah dimodifikasi"
-
-#, python-format
-msgid "%(count)d group matched"
-msgid_plural "%(count)d groups matched"
-msgstr[0] "%(count)d grup sesuai"
-
-msgid ""
-"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
-"required"
-msgstr ""
-"setidaknya diperlukan salah satu dari: type, filter, subtree, targetgroup, "
-"attrs atau memberof"
-
-#, python-format
-msgid "Group '%s' does not exist"
-msgstr "Grup '%s' tidak ada"
-
-#, python-format
-msgid "ACI with name \"%s\" not found"
-msgstr "ACI dengan nama \"%s\" tidak ditemukan"
-
-#, python-format
-msgid "Created ACI \"%(value)s\""
-msgstr "ACI \"%(value)s\" telah dibuat"
-
-#, python-format
-msgid "Deleted ACI \"%(value)s\""
-msgstr "ACI \"%(value)s\" telah dihapus"
-
-#, python-format
-msgid "Modified ACI \"%(value)s\""
-msgstr "ACI \"%(value)s\" telah dimodifikasi"
-
-#, python-format
-msgid "%(count)d ACI matched"
-msgid_plural "%(count)d ACIs matched"
-msgstr[0] "%(count)d ACI sesuai"
-
-msgid "incorrect type"
-msgstr "type salah"
-
-msgid "Only one value is allowed"
-msgstr "Hanya satu nilai yang diperbolehkan"
-
-msgid "must be True or False"
-msgstr "harus True atau False"
-
-msgid "must be an integer"
-msgstr "harus merupakan bilangan bulat"
-
-#, python-format
-msgid "must be at least %(minvalue)d"
-msgstr "setidaknya harus %(minvalue)d"
-
-#, python-format
-msgid "can be at most %(maxvalue)d"
-msgstr "nilai maksimum yang diperbolehkan %(maxvalue)d"
-
-msgid "must be a decimal number"
-msgstr "harus merupakan angka desimal"
-
-#, python-format
-msgid "must match pattern \"%(pattern)s\""
-msgstr "harus cocok dengan pola \"%(pattern)s\""
-
-msgid "must be binary data"
-msgstr "harus merupakan data binari"
-
-#, python-format
-msgid "must be at least %(minlength)d bytes"
-msgstr "panjang minimum yang diperbolehkan %(minlength)d byte"
-
-#, python-format
-msgid "can be at most %(maxlength)d bytes"
-msgstr "panjang maksimum yang diperbolehkan %(maxlength)d byte"
-
-#, python-format
-msgid "must be exactly %(length)d bytes"
-msgstr "harus tepat %(length)d byte"
-
-msgid "must be Unicode text"
-msgstr "harus teks Unicode"
-
-#, python-format
-msgid "must be at least %(minlength)d characters"
-msgstr "setidaknya minimum harus %(minlength)d karakter"
-
-#, python-format
-msgid "can be at most %(maxlength)d characters"
-msgstr "panjang maksimum yang diperbolehkan %(maxlength)d karakter"
-
-#, python-format
-msgid "must be exactly %(length)d characters"
-msgstr "harus tepat %(length)d karakter"
-
-#, python-format
 msgid "%(count)d variables"
 msgstr "%(count)d variabel"
 
@@ -186,9 +22,6 @@ msgstr "%(count)d variabel"
 msgid "%(count)d plugin loaded"
 msgid_plural "%(count)d plugins loaded"
 msgstr[0] "%(count)d pengaya telah dimuat"
-
-msgid "Results are truncated, try a more specific search"
-msgstr "Hasil yang terpotong, coba cari dengan lebih spesifik"
 
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
@@ -265,3 +98,170 @@ msgstr "Masukkan %(label)s lagi untuk verifikasi:"
 #, c-format
 msgid "Passwords do not match!"
 msgstr "Kata sandi tidak cocok!"
+
+msgid "Results are truncated, try a more specific search"
+msgstr "Hasil yang terpotong, coba cari dengan lebih spesifik"
+
+msgid "incorrect type"
+msgstr "type salah"
+
+msgid "Only one value is allowed"
+msgstr "Hanya satu nilai yang diperbolehkan"
+
+msgid "must be True or False"
+msgstr "harus True atau False"
+
+msgid "must be an integer"
+msgstr "harus merupakan bilangan bulat"
+
+#, python-format
+msgid "must be at least %(minvalue)d"
+msgstr "setidaknya harus %(minvalue)d"
+
+#, python-format
+msgid "can be at most %(maxvalue)d"
+msgstr "nilai maksimum yang diperbolehkan %(maxvalue)d"
+
+msgid "must be a decimal number"
+msgstr "harus merupakan angka desimal"
+
+#, python-format
+msgid "must match pattern \"%(pattern)s\""
+msgstr "harus cocok dengan pola \"%(pattern)s\""
+
+msgid "must be binary data"
+msgstr "harus merupakan data binari"
+
+#, python-format
+msgid "must be at least %(minlength)d bytes"
+msgstr "panjang minimum yang diperbolehkan %(minlength)d byte"
+
+#, python-format
+msgid "can be at most %(maxlength)d bytes"
+msgstr "panjang maksimum yang diperbolehkan %(maxlength)d byte"
+
+#, python-format
+msgid "must be exactly %(length)d bytes"
+msgstr "harus tepat %(length)d byte"
+
+msgid "must be Unicode text"
+msgstr "harus teks Unicode"
+
+#, python-format
+msgid "must be at least %(minlength)d characters"
+msgstr "setidaknya minimum harus %(minlength)d karakter"
+
+#, python-format
+msgid "can be at most %(maxlength)d characters"
+msgstr "panjang maksimum yang diperbolehkan %(maxlength)d karakter"
+
+#, python-format
+msgid "must be exactly %(length)d characters"
+msgstr "harus tepat %(length)d karakter"
+
+#, python-format
+msgid "Added host \"%(value)s\""
+msgstr "Host \"%(value)s\" telah ditambahkan"
+
+#, python-format
+msgid "Deleted host \"%(value)s\""
+msgstr "Host \"%(value)s\" telah dihapus"
+
+#, python-format
+msgid "Modified host \"%(value)s\""
+msgstr "Host \"%(value)s\" telah dimodifikasi"
+
+#, python-format
+msgid "%(count)d host matched"
+msgid_plural "%(count)d hosts matched"
+msgstr[0] "%(count)d host sesuai"
+
+msgid ""
+"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
+"required"
+msgstr ""
+"setidaknya diperlukan salah satu dari: type, filter, subtree, targetgroup, "
+"attrs atau memberof"
+
+#, python-format
+msgid "Group '%s' does not exist"
+msgstr "Grup '%s' tidak ada"
+
+#, python-format
+msgid "ACI with name \"%s\" not found"
+msgstr "ACI dengan nama \"%s\" tidak ditemukan"
+
+#, python-format
+msgid "Created ACI \"%(value)s\""
+msgstr "ACI \"%(value)s\" telah dibuat"
+
+#, python-format
+msgid "Deleted ACI \"%(value)s\""
+msgstr "ACI \"%(value)s\" telah dihapus"
+
+#, python-format
+msgid "Modified ACI \"%(value)s\""
+msgstr "ACI \"%(value)s\" telah dimodifikasi"
+
+#, python-format
+msgid "%(count)d ACI matched"
+msgid_plural "%(count)d ACIs matched"
+msgstr[0] "%(count)d ACI sesuai"
+
+msgid "priority cannot be set on global policy"
+msgstr "prioritas tidak dapat ditetapkan pada kebijakan global"
+
+#, python-format
+msgid "Added user \"%(value)s\""
+msgstr "Pengguna \"%(value)s\" telah ditambahkan"
+
+#, python-format
+msgid "Deleted user \"%(value)s\""
+msgstr "Pengguna \"%(value)s\" telah dihapus"
+
+#, python-format
+msgid "Modified user \"%(value)s\""
+msgstr "Pengguna \"%(value)s\" telah dimodifikasi"
+
+#, python-format
+msgid "%(count)d user matched"
+msgid_plural "%(count)d users matched"
+msgstr[0] "%(count)d pengguna sesuai"
+
+#, python-format
+msgid "Added group \"%(value)s\""
+msgstr "Grup \"%(value)s\" telah ditambahkan"
+
+#, python-format
+msgid "Deleted group \"%(value)s\""
+msgstr "Grup \"%(value)s\" telah dihapus"
+
+#, python-format
+msgid "Modified group \"%(value)s\""
+msgstr "Grup \"%(value)s\" telah dimodifikasi"
+
+#, python-format
+msgid "%(count)d group matched"
+msgid_plural "%(count)d groups matched"
+msgstr[0] "%(count)d grup sesuai"
+
+#, python-format
+msgid "Added hostgroup \"%(value)s\""
+msgstr "hostgroup \"%(value)s\" telah ditambahkan"
+
+#, python-format
+msgid "Deleted hostgroup \"%(value)s\""
+msgstr "hostgroup \"%(value)s\" telah dihapus"
+
+#, python-format
+msgid "Modified hostgroup \"%(value)s\""
+msgstr "hostgroup \"%(value)s\" telah dimodifikasi"
+
+#, python-format
+msgid "%(count)d hostgroup matched"
+msgid_plural "%(count)d hostgroups matched"
+msgstr[0] "%(count)d hostgroup sesuai"
+
+#, python-format
+msgid "Failure decoding Certificate Signing Request: %s"
+msgstr "Gagal mengurai Permintaan Penandatanganan Sertifikat: %s"
