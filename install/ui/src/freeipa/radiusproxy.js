@@ -66,10 +66,7 @@ return {
                             $type: 'textarea',
                             name: 'description'
                         },
-                        {
-                            $type: 'multivalued',
-                            name: 'ipatokenradiusserver' // TODO: add validation
-                        },
+                        'ipatokenradiusserver', // TODO: add validation
                         'ipatokenusermapattribute', // TODO: add validation
                         'ipatokenradiustimeout',
                         'ipatokenradiusretries'
@@ -90,10 +87,7 @@ return {
     adder_dialog: {
         fields: [
             'cn',
-            {
-                $type: 'multivalued',
-                name: 'ipatokenradiusserver'
-            },
+            'ipatokenradiusserver',
             {
                 $type: 'password',
                 name: 'ipatokenradiussecret'
