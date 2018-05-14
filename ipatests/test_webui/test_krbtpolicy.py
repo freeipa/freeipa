@@ -55,3 +55,99 @@ class test_krbtpolicy(UI_driver):
 
         self.mod_record(ENTITY, DATA)
         self.mod_record(ENTITY, DATA2)
+
+    @screenshot
+    def test_verifying_button(self):
+        """
+        verifying Revert, Refresh and Undo button
+        """
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+
+        # verifying Revert, Refresh and Undo button for max renewable age
+        self.button_reset('krbmaxrenewableage', '444800')
+
+        # verifying Revert, Refresh and Undo button for max ticket age
+        self.button_reset('krbmaxticketlife', '46400')
+
+    def button_reset(self, field, value):
+        """
+        testing "Revert", "Refresh" and "Undo" button
+        """
+        # verifying undo button
+        self.fill_textbox(field, value)
+        facet = self.get_facet()
+        s = ".input-group button[name='undo']"
+        self._button_click(s, facet)
+        self.verify_btn_action(field, value)
+        self.wait_for_request(n=2)
+
+        # verifying revert button
+        self.fill_textbox(field, value)
+        self.facet_button_click('revert')
+        self.verify_btn_action(field, value)
+        self.wait_for_request(n=2)
+
+        # verifying refresh button
+        self.fill_textbox(field, value)
+        self.facet_button_click('refresh')
+        self.verify_btn_action(field, value)
+        self.wait_for_request(n=2)
+
+    def verify_btn_action(self, field, mod_value, negative=True):
+        """
+        comparing current value with modified value
+        """
+        current_value = self.get_field_value(field, element="input")
+        if negative:
+            assert current_value != mod_value
+        else:
+            assert current_value == mod_value
+
+    @screenshot
+    def test_negative_value(self):
+        """
+        Negative test for Max renew
+        """
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+
+        # string used instead of integer
+        expected_error = 'Must be an integer'
+        value = 'nonInteger'
+        self.modify_policy(expected_error, value)
+
+        # bigger than max value
+        expected_error = 'Maximum value is 2147483647'
+        value = '2147483649'
+        self.modify_policy(expected_error, value)
+
+        # smaller than max value
+        expected_error = 'Minimum value is 1'
+        value = '-1'
+        self.modify_policy(expected_error, value)
+
+    def modify_policy(self, expected_error, value):
+        """
+        modifying kerberos policy values and asserting expected error
+        """
+        self.fill_textbox('krbmaxrenewableage', value)
+        self.wait_for_request()
+        self.assert_field_validation(expected_error)
+        self.facet_button_click('revert')
+        self.fill_textbox('krbmaxticketlife', value)
+        self.wait_for_request()
+        self.assert_field_validation(expected_error, field='krbmaxticketlife')
+        self.facet_button_click('revert')
+
+    @screenshot
+    def test_verify_measurement_unit(self):
+        """
+        verifying measurement unit for Max renew and Max life
+        """
+        self.init_app()
+        self.navigate_to_entity(ENTITY)
+        krbmaxrenewableage = self.get_text('label[name="krbmaxrenewableage"]')
+        krbmaxticketlife = self.get_text('label[name="krbmaxticketlife"]')
+        assert "Max renew (seconds)" in krbmaxrenewableage
+        assert "Max life (seconds)" in krbmaxticketlife
