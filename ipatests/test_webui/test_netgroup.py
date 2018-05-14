@@ -68,10 +68,11 @@ class test_netgroup(UI_driver):
                         delete=True)
 
         # add netgroup using enter
-        self.add_record(netgroup.ENTITY, netgroup.DATA, negative=True)
+        self.add_record(netgroup.ENTITY, netgroup.DATA, dialog_btn=None)
         actions = ActionChains(self.driver)
+        actions.send_keys(Keys.TAB)
         actions.send_keys(Keys.ENTER).perform()
-        self.wait_for_request()
+        self.wait_for_request(d=0.5)
         self.assert_record(netgroup.PKEY)
         self.close_notifications()
 
@@ -79,8 +80,9 @@ class test_netgroup(UI_driver):
         self.select_record(netgroup.PKEY)
         self.facet_button_click('remove')
         self.wait_for_request()
+        actions = ActionChains(self.driver)
         actions.send_keys(Keys.ENTER).perform()
-        self.wait_for_request()
+        self.wait_for_request(d=0.5)
         self.assert_record(netgroup.PKEY, negative=True)
         self.close_all_dialogs()
 
@@ -331,7 +333,7 @@ class test_netgroup(UI_driver):
 
         for t in tables:
             table, keys, _exts = get_t_vals(t)
-            self.add_table_associations(table, [keys[0]], negative=True)
+            self.add_table_associations(table, [keys[0]], confirm_btn='cancel')
 
             # verifying members listed as links ticket#2670
             self.add_table_associations(table, [keys[0]])
