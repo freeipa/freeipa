@@ -552,7 +552,7 @@ jobs:
         build_url: '{fedora-27/build_url}'
         test_suite: test_integration/test_topology.py
         template: *ci-master-f27
-        timeout: 7200
+        timeout: 12000
         topology: *master_3repl_1client
 
   fedora-27/test_replication_layouts_TestLineTopologyWithoutCA:
@@ -672,5 +672,5 @@ jobs:
         build_url: '{fedora-27/build_url}'
         test_suite: test_webui/
         template: *ci-master-f27
-        timeout: 7200
+        timeout: 13000
         topology: *ipaserver
