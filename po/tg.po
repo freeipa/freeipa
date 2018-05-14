@@ -1,9 +1,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.4.90.dev201703151542+gita1686a9\n"
+"Project-Id-Version: freeipa 4.5.90.dev201709011157+git5dcb0e6fc\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-03-15 16:43+0100\n"
+"POT-Creation-Date: 2017-09-01 13:58+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -14,39 +14,83 @@ msgstr ""
 "X-Generator: Zanata 3.9.6\n"
 "Plural-Forms: nplurals=1; plural=0\n"
 
-msgid "Out of memory\n"
-msgstr "Берун аз хотира \n"
+msgid "Passwords do not match"
+msgstr "Паролҳо номувофиқанд"
 
-msgid "Out of memory!?\n"
-msgstr "Аз хотира берун шуд!?\n"
+#, python-format
+msgid "%(info)s"
+msgstr "%(info)s"
+
+msgid "Already registered"
+msgstr "Ааллакай қайд карда шуд"
+
+#, c-format
+msgid "Passwords do not match!"
+msgstr "Паролҳо номувофиқанд!"
+
+#, c-format
+msgid "out of memory\n"
+msgstr "берун аз хотира\n"
+
+#, c-format
+msgid "read error\n"
+msgstr "хатогии хониш\n"
+
+#, c-format
+msgid "Out of memory!"
+msgstr "Берун аз хотира!"
 
 #, c-format
 msgid "Out of memory!\n"
 msgstr "Берун аз хотира!\n"
 
-msgid "Subject"
-msgstr "Мавзӯъ"
+#, c-format
+msgid "Incorrect password.\n"
+msgstr "Пароли нодуруст.\n"
 
-msgid "Issuer"
-msgstr "Диҳанда"
+msgid "hostname"
+msgstr "номи мизбон"
 
-msgid "Serial number"
-msgstr "Рақами силсилавӣ"
+msgid "filename"
+msgstr "номи файл"
+
+msgid "password"
+msgstr "парол"
+
+#, c-format
+msgid "Out of memory \n"
+msgstr "Берун аз хотира \n"
+
+#, c-format
+msgid "Out of Memory!\n"
+msgstr "Берун аз хотира!\n"
+
+msgid "Server Name"
+msgstr "Номи сервер"
+
+msgid "LDAP DN"
+msgstr "LDAP DN"
+
+msgid "LDAP password"
+msgstr "Пароли LDAP"
+
+msgid "User name"
+msgstr "Номи корбар"
+
+msgid "Username"
+msgstr "Номи корбар"
+
+msgid "Password"
+msgstr "Парол"
 
 msgid "Principal"
 msgstr "Асосӣ"
 
-msgid "Status"
-msgstr "Ҳолат"
+msgid "Force"
+msgstr "Маҷбурӣ"
 
 msgid "Description"
 msgstr "Шарҳ"
-
-msgid "Type"
-msgstr "Намуд"
-
-msgid "User"
-msgstr "Корбар"
 
 msgid "Enabled"
 msgstr "Фаъолшуда"
@@ -54,47 +98,117 @@ msgstr "Фаъолшуда"
 msgid "Commands"
 msgstr "Фармонҳо"
 
-msgid "Service"
-msgstr "Хидмат"
-
-msgid "Serial Number"
-msgstr "Рақами силсилавӣ"
-
-msgid "Force"
-msgstr "Маҷбурӣ"
-
-msgid "IPA Server"
-msgstr "Сервери IPA"
-
-msgid "Location"
-msgstr "Макон"
-
 msgid "Permissions"
 msgstr "Иҷозатҳо"
 
 msgid "Attributes"
 msgstr "Аттрибутҳо"
 
-msgid "Group"
-msgstr "Гурӯҳ"
+msgid "Type"
+msgstr "Намуд"
+
+msgid "Filter"
+msgstr "Полоишгар"
+
+msgid "Rename"
+msgstr "Азнавномгузорӣ"
+
+msgid "Host name"
+msgstr "Номи мизбон"
+
+msgid "Location"
+msgstr "Макон"
+
+msgid "ACI name"
+msgstr "Номи ACI"
 
 msgid "Permission"
 msgstr "Иҷозат"
 
-msgid "User name"
-msgstr "Номи корбар"
+msgid "User group"
+msgstr "Гурӯҳи корбар"
 
-msgid "New Password"
-msgstr "Пароли нав"
-
-msgid "Manager"
-msgstr "Диспетчер"
+msgid "ACI prefix"
+msgstr "Префикси ACI"
 
 msgid "Key"
 msgstr "Тугма"
 
-msgid "Password"
-msgstr "Парол"
+msgid "description"
+msgstr "шарҳ"
+
+msgid "Group"
+msgstr "Гурӯҳ"
+
+msgid "User"
+msgstr "Корбар"
+
+msgid "First name"
+msgstr "Ном"
+
+msgid "Last name"
+msgstr "Насаб"
+
+msgid "Display name"
+msgstr "Номи намоишӣ"
+
+msgid "Initials"
+msgstr "Ному насаб"
+
+msgid "City"
+msgstr "Шаҳр"
+
+msgid "ZIP"
+msgstr "Рамзи ZIP"
+
+msgid "Fax Number"
+msgstr "Рақами факс"
+
+msgid "Job Title"
+msgstr "Вазифа"
+
+msgid "Manager"
+msgstr "Диспетчер"
+
+msgid "New Password"
+msgstr "Пароли нав"
+
+msgid "Class"
+msgstr "Синф"
+
+msgid "Hostname"
+msgstr "Номи мизбон"
+
+msgid "Target"
+msgstr "Мақсад"
+
+msgid "Service"
+msgstr "Хидмат"
+
+msgid "Serial number"
+msgstr "Рақами силсилавӣ"
+
+msgid "Subject"
+msgstr "Мавзӯъ"
+
+msgid "Data"
+msgstr "Маълумот"
+
+#, python-format
+msgid "File %(file)s not found"
+msgstr "Файли %(file)s пайдо нашуд."
+
+msgid "Delete all?"
+msgstr "Ҳамаро нест мекунед?"
+
+msgid "Error"
+msgstr "Хатогӣ"
+
+msgid "Out of memory\n"
+msgstr "Берун аз хотира \n"
+
+msgid "Out of memory!?\n"
+msgstr "Аз хотира берун шуд!?\n"
 
 msgid "Add"
 msgstr "Илова кардан"
@@ -104,9 +218,6 @@ msgstr "Бекор кардан"
 
 msgid "Close"
 msgstr "Пӯшидан"
-
-msgid "Filter"
-msgstr "Полоишгар"
 
 msgid "Find"
 msgstr "Ёфтан"
@@ -144,17 +255,11 @@ msgstr "Умумӣ"
 msgid "Available"
 msgstr "Дастрас"
 
-msgid "Error"
-msgstr "Хатогӣ"
-
 msgid "Settings"
 msgstr "Танзимотҳо"
 
 msgid "Search"
 msgstr "Ҷустуҷӯ"
-
-msgid "Username"
-msgstr "Номи корбар"
 
 msgid "Attribute"
 msgstr "Аттрибут"
@@ -171,20 +276,23 @@ msgstr "Эзоҳ"
 msgid "Organization"
 msgstr "Ташкилот"
 
+msgid "Serial Number"
+msgstr "Рақами силсилавӣ"
+
+msgid "Status"
+msgstr "Ҳолат"
+
 msgid "Validity"
 msgstr "Саҳеҳият"
 
-msgid "Data"
-msgstr "Маълумот"
+msgid "Issuer"
+msgstr "Диҳанда"
 
 msgid "Groups"
 msgstr "Гуруҳҳо"
 
 msgid "Host Name"
 msgstr "Номи мизбон"
-
-msgid "Target"
-msgstr "Мақсад"
 
 msgid "Allow"
 msgstr "Иҷозат додан"
@@ -195,132 +303,24 @@ msgstr "Интихоби ҳама"
 msgid "Audit"
 msgstr "Назорат"
 
+msgid "IPA Server"
+msgstr "Сервери IPA"
+
 msgid "Policy"
 msgstr "Сиёсат"
 
 msgid "Sudo"
 msgstr "Sudo"
 
-msgid "Host name"
-msgstr "Номи мизбон"
-
-msgid "Class"
-msgstr "Синф"
-
-msgid "Hostname"
-msgstr "Номи мизбон"
-
-msgid "User group"
-msgstr "Гурӯҳи корбар"
-
-msgid "Configuration"
-msgstr "Ҷӯрсозӣ"
-
-msgid "First name"
-msgstr "Ном"
-
-msgid "Last name"
-msgstr "Насаб"
-
-msgid "Display name"
-msgstr "Номи намоишӣ"
-
-msgid "Initials"
-msgstr "Ному насаб"
-
-msgid "City"
-msgstr "Шаҳр"
-
-msgid "ZIP"
-msgstr "Рамзи ZIP"
-
-msgid "Fax Number"
-msgstr "Рақами факс"
-
-msgid "Job Title"
-msgstr "Вазифа"
-
 msgid "Entry"
 msgstr "Вуруд"
-
-msgid "Rename"
-msgstr "Азнавномгузорӣ"
 
 #, python-format
 msgid "Syntax Error: %(error)s"
 msgstr "Хатогии синтаксисӣ: %(error)s"
 
-msgid "ACI prefix"
-msgstr "Префикси ACI"
-
 msgid "ACIs"
 msgstr "ACIs"
 
-msgid "ACI name"
-msgstr "Номи ACI"
-
-msgid "description"
-msgstr "шарҳ"
-
-msgid "Passwords do not match"
-msgstr "Паролҳо номувофиқанд"
-
-#, python-format
-msgid "%(info)s"
-msgstr "%(info)s"
-
-msgid "Already registered"
-msgstr "Ааллакай қайд карда шуд"
-
-#, c-format
-msgid "Passwords do not match!"
-msgstr "Паролҳо номувофиқанд!"
-
-msgid "Delete all?"
-msgstr "Ҳамаро нест мекунед?"
-
-#, python-format
-msgid "File %(file)s not found"
-msgstr "Файли %(file)s пайдо нашуд."
-
-#, c-format
-msgid "Out of memory \n"
-msgstr "Берун аз хотира \n"
-
-#, c-format
-msgid "Out of Memory!\n"
-msgstr "Берун аз хотира!\n"
-
-msgid "Server Name"
-msgstr "Номи сервер"
-
-msgid "LDAP DN"
-msgstr "LDAP DN"
-
-msgid "LDAP password"
-msgstr "Пароли LDAP"
-
-#, c-format
-msgid "Out of memory!"
-msgstr "Берун аз хотира!"
-
-#, c-format
-msgid "Incorrect password.\n"
-msgstr "Пароли нодуруст.\n"
-
-msgid "hostname"
-msgstr "номи мизбон"
-
-msgid "filename"
-msgstr "номи файл"
-
-msgid "password"
-msgstr "парол"
-
-#, c-format
-msgid "out of memory\n"
-msgstr "берун аз хотира\n"
-
-#, c-format
-msgid "read error\n"
-msgstr "хатогии хониш\n"
+msgid "Configuration"
+msgstr "Ҷӯрсозӣ"
