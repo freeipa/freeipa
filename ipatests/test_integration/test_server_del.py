@@ -167,8 +167,8 @@ class TestServerDel(ServerDelBase):
 
     def test_ignore_topology_disconnect_replica1(self):
         """
-        tests that removal of replica1 with '--ignore-topology-disconnect'
-        destroys master for good
+        tests that server-del of replica1 with '--ignore-topology-disconnect'
+        passes
         """
         check_master_removal(
             self.master,
@@ -177,13 +177,13 @@ class TestServerDel(ServerDelBase):
         )
 
         # reinstall the replica
-        tasks.uninstall_master(self.replica1)
+        tasks.uninstall_master(self.replica1, domain_level=DOMAIN_LEVEL_1)
         tasks.install_replica(self.master, self.replica1, setup_ca=True)
 
     def test_ignore_topology_disconnect_replica2(self):
         """
-        tests that removal of replica2 with '--ignore-topology-disconnect'
-        destroys master for good
+        tests that server-del of replica2 with '--ignore-topology-disconnect'
+        passes
         """
         check_master_removal(
             self.master,
@@ -192,7 +192,7 @@ class TestServerDel(ServerDelBase):
         )
 
         # reinstall the replica
-        tasks.uninstall_master(self.replica2)
+        tasks.uninstall_master(self.replica2, domain_level=DOMAIN_LEVEL_1)
         tasks.install_replica(self.master, self.replica2, setup_ca=True)
 
     def test_removal_of_master_disconnects_both_topologies(self):
@@ -207,7 +207,7 @@ class TestServerDel(ServerDelBase):
 
     def test_removal_of_replica1(self):
         """
-        tests the removal of replica1 which should now pass without errors
+        tests the server-del of replica1 which should now pass without errors
         """
         check_master_removal(
             self.master,
@@ -216,7 +216,7 @@ class TestServerDel(ServerDelBase):
 
     def test_removal_of_replica2(self):
         """
-        tests the removal of replica2 which should now pass without errors
+        tests the server-del of replica2 which should now pass without errors
         """
         check_master_removal(
             self.master,
