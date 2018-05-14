@@ -1371,6 +1371,9 @@ class UI_driver(object):
             if record != last_element:
                 btn = add_another_btn
 
+            if not dialog_btn:
+                return
+
             self.dialog_button_click(btn)
             self.wait_for_request()
             self.wait_for_request()
@@ -1601,7 +1604,8 @@ class UI_driver(object):
             self.assert_record(key, negative=True)
 
     def add_table_associations(self, table_name, pkeys, parent=False,
-                               delete=False, negative=False):
+                               delete=False, confirm_btn='add',
+                               negative=False):
         """
         Add value to table (association|rule|...)
         """
@@ -1621,13 +1625,15 @@ class UI_driver(object):
             self.button_click('add')
             self.wait()
 
-        if negative:
-            self.dialog_button_click('cancel')
+        self.dialog_button_click(confirm_btn)
+
+        if confirm_btn == 'cancel':
             self.assert_record(key, parent, table_name, negative=True)
             return
-        else:
-            self.dialog_button_click('add')
         self.wait_for_request(n=2)
+
+        if negative:
+            return
 
         for key in pkeys:
             self.assert_record(key, parent, table_name)
