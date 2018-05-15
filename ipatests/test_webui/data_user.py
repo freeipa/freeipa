@@ -111,6 +111,7 @@ DATA2 = {
     'mod': [
         ('textbox', 'givenname', 'OtherName2'),
         ('textbox', 'sn', 'OtherSurname2'),
+        ('textbox', 'postalcode', '007007'),
     ],
 }
 
