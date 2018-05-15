@@ -75,6 +75,8 @@ class OpenDNSSECInstance(service.Service):
             'KASP_DB': paths.OPENDNSSEC_KASP_DB,
             'ODS_USER': constants.ODS_USER,
             'ODS_GROUP': constants.ODS_GROUP,
+            'VAR_OPENDNSSEC': paths.VAR_OPENDNSSEC_DIR,
+            'ETC_OPENDNSSEC': paths.ETC_OPENDNSSEC_DIR
         }
         self.kasp_file_dict = {}
         self.extra_config = [KEYMASTER]
@@ -281,20 +283,15 @@ class OpenDNSSECInstance(service.Service):
             os.chmod(paths.OPENDNSSEC_KASP_DB, 0o660)
 
             # regenerate zonelist.xml
-            cmd = [paths.ODS_KSMUTIL, 'zonelist', 'export']
+            cmd = [paths.ODS_ENCFORCER, 'zonelist', 'export']
             result = ipautil.run(cmd,
                                  runas=constants.ODS_USER,
                                  capture_output=True)
-            with open(paths.OPENDNSSEC_ZONELIST_FILE, 'w') as zonelistf:
-                zonelistf.write(result.output)
-                os.chown(paths.OPENDNSSEC_ZONELIST_FILE,
-                         self.ods_uid, self.ods_gid)
-                os.chmod(paths.OPENDNSSEC_ZONELIST_FILE, 0o660)
 
         else:
             # initialize new kasp.db
             command = [
-                paths.ODS_KSMUTIL,
+                paths.ODS_ENCFORCER_SETUP,
                 'setup'
             ]
 

@@ -966,7 +966,7 @@ class P11_Helper(object):
                             cka_decrypt=False, cka_derive=False,
                             cka_encrypt=False, cka_extractable=True,
                             cka_modifiable=True, cka_private=True,
-                            cka_sensitive=True, cka_sign=False,
+                            cka_sensitive=False, cka_sign=False,
                             cka_unwrap=True, cka_verify=False, cka_wrap=True,
                             cka_wrap_with_trusted=False):
         """
