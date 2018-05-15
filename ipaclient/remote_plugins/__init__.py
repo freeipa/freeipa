@@ -23,8 +23,6 @@ class ServerInfo(collections.MutableMapping):
     _DIR = os.path.join(USER_CACHE_PATH, 'ipa', 'servers')
 
     def __init__(self, api):
-        hostname = DNSName(api.env.server).ToASCII()
-        self._path = os.path.join(self._DIR, hostname)
         self._force_check = api.env.force_schema_check
         self._dict = {}
 
@@ -36,11 +34,17 @@ class ServerInfo(collections.MutableMapping):
         except locale.Error:
             self._language = 'en_us'
 
-        self._read()
+        self._read(api)
 
-    def _read(self):
+    def _read(self, api):
+        if 'server' not in api.env:
+            return
+
+        hostname = DNSName(api.env.server).ToASCII()
+        _path = os.path.join(self._DIR, hostname)
+
         try:
-            with open(self._path, 'r') as sc:
+            with open(_path, 'r') as sc:
                 self._dict = json.load(sc)
         except Exception as e:
             if (isinstance(e, EnvironmentError) and
@@ -52,14 +56,20 @@ class ServerInfo(collections.MutableMapping):
                 # warn that the file is unreadable, probably corrupted
                 logger.warning('Failed to read server info: %s', e)
 
-    def _write(self):
+    def _write(self, api):
+        if 'server' not in api.env:
+            return
+
+        hostname = DNSName(api.env.server).ToASCII()
+        _path = os.path.join(self._DIR, hostname)
+
         try:
             try:
                 os.makedirs(self._DIR)
             except EnvironmentError as e:
                 if e.errno != errno.EEXIST:
                     raise
-            with open(self._path, 'w') as sc:
+            with open(_path, 'w') as sc:
                 json.dump(self._dict, sc)
         except EnvironmentError as e:
             logger.warning('Failed to write server info: %s', e)
@@ -79,12 +89,12 @@ class ServerInfo(collections.MutableMapping):
     def __len__(self):
         return len(self._dict)
 
-    def update_validity(self, ttl=None):
+    def update_validity(self, client, ttl=None):
         if ttl is None:
             ttl = 3600
         self['expiration'] = time.time() + ttl
         self['language'] = self._language
-        self._write()
+        self._write(client)
 
     def is_valid(self):
         if self._force_check:

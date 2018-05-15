@@ -560,7 +560,7 @@ def get_package(server_info, client):
             ttl = schema.ttl
 
         server_info['fingerprint'] = fingerprint
-        server_info.update_validity(ttl)
+        server_info.update_validity(client, ttl=ttl)
 
     if fingerprint is None:
         raise NotAvailable()
