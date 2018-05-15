@@ -2,6 +2,7 @@ bn_IN   # Bengali (India)
 ca      # Catalan
 cs      # Czech
 de      # German
+en_GB   # English (United Kingdom)
 es      # Spanish
 eu      # Basque
 fr      # French
@@ -12,6 +13,7 @@ ja      # Japanese
 kn      # Kannada
 mr      # Marathi
 nl      # Dutch
+pa      # Punjabi
 pl      # Polish
 pt_BR   # Portuguese (Brazil)
 ru      # Russian
