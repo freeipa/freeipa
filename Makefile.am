@@ -189,7 +189,6 @@ endif
 	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON2) ipatests/ipa-run-tests \
 	    --ipaclient-unittests
 	$(MAKE) $(AM_MAKEFLAGS) acilint apilint polint jslint check
-	$(MAKE) $(AM_MAKEFLAGS) PYTHON=$(PYTHON2) pylint
 if WITH_PYTHON3
 	@ # just tests, aci, api and pylint on Python 3
 	PYTHONPATH=$(abspath $(top_srcdir)) $(PYTHON3) ipatests/ipa-run-tests \
