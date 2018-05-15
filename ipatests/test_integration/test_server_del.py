@@ -178,7 +178,8 @@ class TestServerDel(ServerDelBase):
 
         # reinstall the replica
         tasks.uninstall_master(self.replica1, domain_level=DOMAIN_LEVEL_1)
-        tasks.install_replica(self.master, self.replica1, setup_ca=True)
+        tasks.install_replica(self.master, self.replica1, setup_ca=True,
+                              setup_dns=True)
 
     def test_ignore_topology_disconnect_replica2(self):
         """
