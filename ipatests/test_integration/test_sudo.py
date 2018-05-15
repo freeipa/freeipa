@@ -358,8 +358,7 @@ class TestSudo(IntegrationTest):
     def test_sudo_rule_restricted_to_one_hostmask_negative(self):
         result1 = self.list_sudo_commands("testuser1")
         assert result1.returncode != 0
-        assert "Sorry, user testuser1 may not run sudo on {}.".format(
-            self.clientname) in result1.stderr_text
+        assert "sudo: a password is required" in result1.stderr_text
 
     def test_sudo_rule_restricted_to_one_hostmask_negative_teardown(self):
         # Remove the master's hostmask from the rule
