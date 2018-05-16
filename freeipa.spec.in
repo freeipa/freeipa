@@ -1106,6 +1106,8 @@ touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 %endif # ONLY_CLIENT
 
+# Collect templates and filter out non-server ones
+find %{buildroot}%{_usr}/share/ipa -maxdepth 1 -name '*.template' -a ! -name 'freeipa.template' -fprintf server-templates '%{_usr}/share/ipa/%f\n'
 
 %clean
 rm -rf %{buildroot}
@@ -1398,7 +1400,7 @@ fi
 %endif # with_python3
 
 
-%files server-common
+%files server-common -f server-templates
 %defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
@@ -1414,7 +1416,6 @@ fi
 %{_usr}/share/ipa/kdcproxy.wsgi
 %{_usr}/share/ipa/*.ldif
 %{_usr}/share/ipa/*.uldif
-%{_usr}/share/ipa/*.template
 %dir %{_usr}/share/ipa/advise
 %dir %{_usr}/share/ipa/advise/legacy
 %{_usr}/share/ipa/advise/legacy/*.template
