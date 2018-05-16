@@ -636,6 +636,16 @@ class UI_driver(object):
         link = self.find(text, By.LINK_TEXT, parent, strict=True)
         link.click()
 
+    def click_undo_button(self, field, parent=None):
+        """
+        Click undo button/s of particular field
+        """
+        self.assert_undo_button(field)
+        undo_btns = self.get_undo_buttons(field, parent)
+        for btn in undo_btns:
+            btn.click()
+        self.assert_undo_button(field, visible=False)
+
     def facet_button_click(self, name):
         """
         Click on facet button with given name
