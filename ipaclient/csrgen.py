@@ -144,8 +144,8 @@ class Formatter(object):
                 for rule in field_mapping.data_rules]
 
             data_sources = []
-            for rule in field_mapping.data_rules:
-                data_source = rule.options.get('data_source')
+            for xrule in field_mapping.data_rules:
+                data_source = xrule.options.get('data_source')
                 if data_source:
                     data_sources.append(data_source)
 
