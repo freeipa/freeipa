@@ -496,7 +496,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
             pent = pwd.getpwnam(runas)
 
             suplementary_gids = [
-                grp.getgrnam(group).gr_gid for group in suplementary_groups
+                grp.getgrnam(sgroup).gr_gid for sgroup in suplementary_groups
             ]
 
             logger.debug('runas=%s (UID %d, GID %s)', runas,
