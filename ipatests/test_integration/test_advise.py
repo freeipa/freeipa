@@ -56,17 +56,6 @@ class TestAdvice(IntegrationTest):
         run_advice(self.master, advice_id, advice_regex, raiseerr)
 
 
-    def test_advice_FedoraAuthconfig(self):
-        advice_id = 'config-fedora-authconfig'
-        advice_regex = "\#\!\/bin\/sh.*" \
-                       "authconfig[\s]+\-\-enableldap[\s]+" \
-                       "\-\-ldapserver\=.*[\s]+\-\-enablerfc2307bis[\s]+" \
-                       "\-\-enablekrb5"
-        raiseerr = True
-
-        run_advice(self.master, advice_id, advice_regex, raiseerr)
-
-
     def test_advice_FreeBSDNSSPAM(self):
         advice_id = 'config-freebsd-nss-pam-ldapd'
         advice_regex = "\#\!\/bin\/sh.*" \
