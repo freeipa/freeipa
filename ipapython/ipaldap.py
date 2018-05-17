@@ -1226,7 +1226,7 @@ class LDAPClient(object):
 
         assert isinstance(filters, (list, tuple))
 
-        filters = [f for f in filters if f]
+        filters = [fx for fx in filters if fx]
         if filters and rules == cls.MATCH_NONE:  # unary operator
             return '(%s%s)' % (cls.MATCH_NONE,
                                cls.combine_filters(filters, cls.MATCH_ANY))
