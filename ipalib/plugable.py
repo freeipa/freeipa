@@ -638,7 +638,7 @@ class API(ReadOnly):
 
         logger.debug("importing all plugin modules in %s...", package_name)
         modules = getattr(package, 'modules', find_modules_in_dir(package_dir))
-        modules = ['.'.join((package_name, name)) for name in modules]
+        modules = ['.'.join((package_name, mname)) for mname in modules]
 
         for name in modules:
             logger.debug("importing plugin module %s", name)
