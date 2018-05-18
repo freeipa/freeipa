@@ -106,9 +106,11 @@ def service_control_dirsrv(host, function):
 
 class TestExternalCA(IntegrationTest):
     """
-    Test of FreeIPA server installation with exernal CA
+    Test of FreeIPA server installation with external CA
     """
-    @tasks.collect_logs
+    num_replicas = 1
+    num_clients = 1
+
     def test_external_ca(self):
         # Step 1 of ipa-server-install.
         result = install_server_external_ca_step1(self.master)
@@ -127,6 +129,30 @@ class TestExternalCA(IntegrationTest):
         tasks.kinit_admin(self.master)
         result = self.master.run_command(['ipa', 'user-show', 'admin'])
         assert 'User login: admin' in result.stdout_text
+
+    def test_client_installation_with_otp(self):
+        # Test for issue 7526: client installation fails with one-time
+        # password when the master is installed with an externally signed
+        # CA because the whole cert chain is not published in
+        # /usr/share/ipa/html/ca.crt
+
+        # Create a random password for the client
+        client = self.clients[0]
+        client_pwd = 'Secret123'
+        args = ['ipa',
+                'host-add', client.hostname,
+                '--ip-address', client.ip,
+                '--no-reverse',
+                '--password', client_pwd]
+        self.master.run_command(args)
+
+        # Enroll the client with the client_pwd
+        client.run_command(
+            ['ipa-client-install',
+             '--domain', self.master.domain.name,
+             '--server', self.master.hostname,
+             '-w', client_pwd,
+             '-U'])
 
 
 class TestSelfExternalSelf(IntegrationTest):
