@@ -55,7 +55,9 @@ Vaults
 """) + _("""
 Manage vaults.
 """) + _("""
-Vault is a secure place to store a secret.
+Vault is a secure place to store a secret. One vault can only
+store one secret. When archiving a secret in a vault, the
+existing secret (if any) is overwritten.
 """) + _("""
 Based on the ownership there are three vault categories:
 * user/private vault
