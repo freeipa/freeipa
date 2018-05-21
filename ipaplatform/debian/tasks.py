@@ -11,13 +11,19 @@ from __future__ import absolute_import
 from ipaplatform.base.tasks import BaseTaskNamespace
 from ipaplatform.redhat.tasks import RedHatTaskNamespace
 
+from ipapython import ipautil
 
 class DebianTaskNamespace(RedHatTaskNamespace):
     @staticmethod
     def restore_pre_ipa_client_configuration(fstore, statestore,
                                              was_sssd_installed,
                                              was_sssd_configured):
-        # Debian doesn't use authconfig, nothing to restore
+        ret = True
+        try:
+            ipautil.run(["pam-auth-update",
+                         "--package", "--remove", "mkhomedir"])
+        except ipautil.CalledProcessError:
+            return False
         return True
 
     @staticmethod
@@ -27,8 +33,15 @@ class DebianTaskNamespace(RedHatTaskNamespace):
 
     @staticmethod
     def modify_nsswitch_pam_stack(sssd, mkhomedir, statestore):
-        # Debian doesn't use authconfig, this is handled by pam-auth-update
-        return True
+        if mkhomedir:
+            try:
+                ipautil.run(["pam-auth-update",
+                             "--package", "--enable", "mkhomedir"])
+            except ipautil.CalledProcessError:
+                return False
+            return True
+        else:
+            return True
 
     @staticmethod
     def modify_pam_to_use_krb5(statestore):
