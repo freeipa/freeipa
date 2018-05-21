@@ -299,6 +299,11 @@ class KrbInstance(service.Service):
             logger.debug("Persistent keyring CCACHE is not enabled")
             self.sub_dict['OTHER_LIBDEFAULTS'] = ''
 
+        # Create kadm5.acl if it doesn't exist
+        if not os.path.exists(paths.KRB5KDC_KADM5_ACL):
+            open(paths.KRB5KDC_KADM5_ACL, 'a').close()
+            os.chmod(paths.KRB5KDC_KADM5_ACL, 0o600)
+
     def __add_krb_container(self):
         self._ldap_mod("kerberos.ldif", self.sub_dict)
 
