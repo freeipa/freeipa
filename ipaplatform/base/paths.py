@@ -385,6 +385,7 @@ class BasePathNamespace(object):
     GETENT = '/usr/bin/getent'
     SSHD = '/usr/sbin/sshd'
     SSSCTL = '/usr/sbin/sssctl'
+    LIBARCH = "64"
 
 
 paths = BasePathNamespace()
