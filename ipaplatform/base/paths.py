@@ -51,6 +51,7 @@ class BasePathNamespace(object):
     HTTPD_IPA_CONF = "/etc/httpd/conf.d/ipa.conf"
     HTTPD_NSS_CONF = "/etc/httpd/conf.d/nss.conf"
     HTTPD_SSL_CONF = "/etc/httpd/conf.d/ssl.conf"
+    HTTPD_SSL_SITE_CONF = "/etc/httpd/conf.d/ssl.conf"
     HTTPD_CERT_FILE = "/var/lib/ipa/certs/httpd.crt"
     HTTPD_KEY_FILE = "/var/lib/ipa/private/httpd.key"
     HTTPD_PASSWD_FILE_FMT = "/var/lib/ipa/passwds/{host}-443-RSA"

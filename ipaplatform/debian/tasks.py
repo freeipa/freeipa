@@ -18,7 +18,6 @@ class DebianTaskNamespace(RedHatTaskNamespace):
     def restore_pre_ipa_client_configuration(fstore, statestore,
                                              was_sssd_installed,
                                              was_sssd_configured):
-        ret = True
         try:
             ipautil.run(["pam-auth-update",
                          "--package", "--remove", "mkhomedir"])
@@ -64,6 +63,10 @@ class DebianTaskNamespace(RedHatTaskNamespace):
 
     def configure_httpd_wsgi_conf(self):
         # Debian doesn't require special mod_wsgi configuration
+        pass
+
+    def setup_httpd_logging(self):
+        # Debian handles httpd logging differently
         pass
 
 

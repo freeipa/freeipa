@@ -28,6 +28,8 @@ class DebianPathNamespace(BasePathNamespace):
     HTTPD_IPA_REWRITE_CONF = "/etc/apache2/conf-available/ipa-rewrite.conf"
     HTTPD_IPA_CONF = "/etc/apache2/conf-enabled/ipa.conf"
     HTTPD_NSS_CONF = "/etc/apache2/mods-available/nss.conf"
+    HTTPD_SSL_CONF = "/etc/apache2/mods-available/ssl.conf"
+    HTTPD_SSL_SITE_CONF = "/etc/apache2/sites-available/default-ssl.conf"
     OLD_IPA_KEYTAB = "/etc/apache2/ipa.keytab"
     HTTPD_PASSWORD_CONF = "/etc/apache2/password.conf"
     NAMED_CONF = "/etc/bind/named.conf"
