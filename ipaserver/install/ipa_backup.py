@@ -148,6 +148,7 @@ class Backup(admintool.AdminTool):
         paths.HTTPD_IPA_PKI_PROXY_CONF,
         paths.HTTPD_IPA_REWRITE_CONF,
         paths.HTTPD_SSL_CONF,
+        paths.HTTPD_SSL_SITE_CONF,
         paths.HTTPD_CERT_FILE,
         paths.HTTPD_KEY_FILE,
         paths.HTTPD_IPA_CONF,

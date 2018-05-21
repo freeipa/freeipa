@@ -214,6 +214,7 @@ class HTTPInstance(service.Service):
 
     def backup_ssl_conf(self):
         self.fstore.backup_file(paths.HTTPD_SSL_CONF)
+        self.fstore.backup_file(paths.HTTPD_SSL_SITE_CONF)
 
     def disable_nss_conf(self):
         """
@@ -235,12 +236,7 @@ class HTTPInstance(service.Service):
                                    '+TLSv1 +TLSv1.1 +TLSv1.2', False)
 
     def set_mod_ssl_logdir(self):
-        installutils.set_directive(paths.HTTPD_SSL_CONF,
-                                   'ErrorLog',
-                                   'logs/error_log', False)
-        installutils.set_directive(paths.HTTPD_SSL_CONF,
-                                   'TransferLog',
-                                   'logs/access_log', False)
+        tasks.setup_httpd_logging()
 
     def disable_mod_ssl_ocsp(self):
         if sysupgrade.get_upgrade_state('http', OCSP_ENABLED) is None:
@@ -272,14 +268,14 @@ class HTTPInstance(service.Service):
 
     def __add_include(self):
         """This should run after __set_mod_nss_port so is already backed up"""
-        if installutils.update_file(paths.HTTPD_SSL_CONF,
+        if installutils.update_file(paths.HTTPD_SSL_SITE_CONF,
                                     '</VirtualHost>',
                                     'Include {path}\n'
                                     '</VirtualHost>'.format(
                                         path=paths.HTTPD_IPA_REWRITE_CONF)
                                     ) != 0:
             self.print_msg("Adding Include conf.d/ipa-rewrite to "
-                           "%s failed." % paths.HTTPD_SSL_CONF)
+                           "%s failed." % paths.HTTPD_SSL_SITE_CONF)
 
     def configure_certmonger_renewal_guard(self):
         certmonger = services.knownservices.certmonger
@@ -404,10 +400,10 @@ class HTTPInstance(service.Service):
 
     def configure_mod_ssl_certs(self):
         """Configure the mod_ssl certificate directives"""
-        installutils.set_directive(paths.HTTPD_SSL_CONF,
+        installutils.set_directive(paths.HTTPD_SSL_SITE_CONF,
                                    'SSLCertificateFile',
                                    paths.HTTPD_CERT_FILE, False)
-        installutils.set_directive(paths.HTTPD_SSL_CONF,
+        installutils.set_directive(paths.HTTPD_SSL_SITE_CONF,
                                    'SSLCertificateKeyFile',
                                    paths.HTTPD_KEY_FILE, False)
         installutils.set_directive(
@@ -415,7 +411,7 @@ class HTTPInstance(service.Service):
             'SSLPassPhraseDialog',
             'exec:{passread}'.format(passread=paths.IPA_HTTPD_PASSWD_READER),
             False)
-        installutils.set_directive(paths.HTTPD_SSL_CONF,
+        installutils.set_directive(paths.HTTPD_SSL_SITE_CONF,
                                    'SSLCACertificateFile',
                                    paths.IPA_CA_CRT, False)
         # set SSLVerifyDepth for external CA installations
@@ -512,7 +508,7 @@ class HTTPInstance(service.Service):
                              'external-helper', helper)
 
         for f in [paths.HTTPD_IPA_CONF, paths.HTTPD_SSL_CONF,
-                  paths.HTTPD_NSS_CONF]:
+                  paths.HTTPD_SSL_SITE_CONF, paths.HTTPD_NSS_CONF]:
             try:
                 self.fstore.restore_file(f)
             except ValueError as error:

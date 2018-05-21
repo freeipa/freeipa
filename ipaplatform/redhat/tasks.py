@@ -47,6 +47,7 @@ from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.redhat.authconfig import get_auth_tool
 from ipaplatform.base.tasks import BaseTaskNamespace
+from ipaserver.install import installutils
 
 logger = logging.getLogger(__name__)
 
@@ -564,6 +565,14 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             # exist
             pass
         return False
+
+    def setup_httpd_logging(self):
+        installutils.set_directive(paths.HTTPD_SSL_CONF,
+                                   'ErrorLog',
+                                   'logs/error_log', False)
+        installutils.set_directive(paths.HTTPD_SSL_CONF,
+                                   'TransferLog',
+                                   'logs/access_log', False)
 
 
 tasks = RedHatTaskNamespace()

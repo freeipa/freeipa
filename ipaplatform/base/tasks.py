@@ -240,5 +240,8 @@ class BaseTaskNamespace(object):
         except ipautil.CalledProcessError as e:
             logger.debug('Failed to add user to group: %s', e)
 
+    def setup_httpd_logging(self):
+        raise NotImplementedError()
+
 
 tasks = BaseTaskNamespace()
