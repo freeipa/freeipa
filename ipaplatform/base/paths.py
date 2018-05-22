@@ -168,6 +168,7 @@ class BasePathNamespace(object):
     FIREFOX = "/usr/bin/firefox"
     GETCERT = "/usr/bin/getcert"
     GPG = "/usr/bin/gpg"
+    GPG2 = "/usr/bin/gpg2"
     GPG_AGENT = "/usr/bin/gpg-agent"
     IPA_GETCERT = "/usr/bin/ipa-getcert"
     KADMIN_LOCAL = '/usr/sbin/kadmin.local'
