@@ -641,7 +641,7 @@ def configure_krb5_conf(
     # First, write a snippet to krb5.conf.d.  Currently this doesn't support
     # templating, but that could be changed in the future.
     template = os.path.join(
-        paths.USR_SHARE_IPA_DIR,
+        paths.USR_SHARE_IPA_CLIENT_DIR,
         os.path.basename(paths.KRB5_FREEIPA) + ".template"
     )
     shutil.copy(template, paths.KRB5_FREEIPA)
