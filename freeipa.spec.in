@@ -1619,7 +1619,8 @@ fi
 %dir %{_localstatedir}/lib/ipa-client/pki
 %dir %{_localstatedir}/lib/ipa-client/sysrestore
 %{_mandir}/man5/default.conf.5*
-%{_usr}/share/ipa/freeipa.template
+%dir %{_usr}/share/ipa/client
+%{_usr}/share/ipa/client/*.template
 
 
 %files python-compat
