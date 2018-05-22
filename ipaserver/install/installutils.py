@@ -786,6 +786,26 @@ def _ensure_nonempty_string(string, message):
         raise ValueError(message)
 
 
+def gpg_command(extra_args, password=None, workdir=None):
+    tempdir = tempfile.mkdtemp('', 'ipa-', workdir)
+    args = [
+        paths.GPG_AGENT,
+        '--batch',
+        '--homedir', tempdir,
+        '--daemon', paths.GPG2,
+        '--batch',
+        '--homedir', tempdir,
+        '--passphrase-fd', '0',
+        '--yes',
+        '--no-tty',
+    ]
+    args.extend(extra_args)
+    try:
+        ipautil.run(args, stdin=password, skip_output=True)
+    finally:
+        shutil.rmtree(tempdir, ignore_errors=True)
+
+
 # uses gpg to compress and encrypt a file
 def encrypt_file(source, dest, password, workdir=None):
     _ensure_nonempty_string(source, 'Missing Source File')
@@ -795,32 +815,11 @@ def encrypt_file(source, dest, password, workdir=None):
     _ensure_nonempty_string(dest, 'Missing Destination File')
     _ensure_nonempty_string(password, 'Missing Password')
 
-    # create a tempdir so that we can clean up with easily
-    tempdir = tempfile.mkdtemp('', 'ipa-', workdir)
-    gpgdir = os.path.join(tempdir, ".gnupg")
-
-    try:
-        try:
-            # give gpg a fake dir so that we can leater remove all
-            # the cruft when we clean up the tempdir
-            os.mkdir(gpgdir)
-            args = [paths.GPG_AGENT,
-                    '--batch',
-                    '--homedir', gpgdir,
-                    '--daemon', paths.GPG,
-                    '--batch',
-                    '--homedir', gpgdir,
-                    '--passphrase-fd', '0',
-                    '--yes',
-                    '--no-tty',
-                    '-o', dest,
-                    '-c', source]
-            ipautil.run(args, password, skip_output=True)
-        except:
-            raise
-    finally:
-        # job done, clean up
-        shutil.rmtree(tempdir, ignore_errors=True)
+    extra_args = [
+        '-o', dest,
+        '-c', source,
+    ]
+    gpg_command(extra_args, password, workdir)
 
 
 def decrypt_file(source, dest, password, workdir=None):
@@ -831,32 +830,12 @@ def decrypt_file(source, dest, password, workdir=None):
     _ensure_nonempty_string(dest, 'Missing Destination File')
     _ensure_nonempty_string(password, 'Missing Password')
 
-    # create a tempdir so that we can clean up with easily
-    tempdir = tempfile.mkdtemp('', 'ipa-', workdir)
-    gpgdir = os.path.join(tempdir, ".gnupg")
+    extra_args = [
+        '-o', dest,
+        '-d', source,
+    ]
 
-    try:
-        try:
-            # give gpg a fake dir so that we can leater remove all
-            # the cruft when we clean up the tempdir
-            os.mkdir(gpgdir)
-            args = [paths.GPG_AGENT,
-                    '--batch',
-                    '--homedir', gpgdir,
-                    '--daemon', paths.GPG,
-                    '--batch',
-                    '--homedir', gpgdir,
-                    '--passphrase-fd', '0',
-                    '--yes',
-                    '--no-tty',
-                    '-o', dest,
-                    '-d', source]
-            ipautil.run(args, password, skip_output=True)
-        except:
-            raise
-    finally:
-        # job done, clean up
-        shutil.rmtree(tempdir, ignore_errors=True)
+    gpg_command(extra_args, password, workdir)
 
 
 def expand_replica_info(filename, password):

@@ -8,6 +8,7 @@ import tempfile
 
 import pytest
 
+from ipapython import ipautil
 from ipaserver.install import installutils
 
 EXAMPLE_CONFIG = [
@@ -19,6 +20,8 @@ WHITESPACE_CONFIG = [
     'foo 1\n',
     'foobar\t2\n',
 ]
+
+
 
 
 @pytest.fixture
@@ -173,3 +176,25 @@ def test_directivesetter(tempdir):
         'dict2 "value2"\n',
 
     ]
+
+
+def test_gpg_encrypt(tempdir):
+    src = os.path.join(tempdir, "data.txt")
+    encrypted = os.path.join(tempdir, "data.gpg")
+    decrypted = os.path.join(tempdir, "data.out")
+    passwd = 'Secret123'
+    payload = 'Dummy text\n'
+
+    with open(src, 'w') as f:
+        f.write(payload)
+
+    installutils.encrypt_file(src, encrypted, password=passwd)
+    assert os.path.isfile(encrypted)
+
+    installutils.decrypt_file(encrypted, decrypted, password=passwd)
+    assert os.path.isfile(decrypted)
+    with open(decrypted) as f:
+        assert f.read() == payload
+
+    with pytest.raises(ipautil.CalledProcessError):
+        installutils.decrypt_file(encrypted, decrypted, password='invalid')
