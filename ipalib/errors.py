@@ -1519,11 +1519,11 @@ class EmptyModlist(ExecutionError):
     >>> raise EmptyModlist()
     Traceback (most recent call last):
       ...
-    EmptyModlist: no modifications to be performed
+    EmptyModlist: Stored value is same as provided
     """
 
     errno = 4202
-    format = _('no modifications to be performed')
+    format = _('Stored value is same as provided')
 
 
 class DatabaseError(ExecutionError):
