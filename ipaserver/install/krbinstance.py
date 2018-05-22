@@ -310,16 +310,19 @@ class KrbInstance(service.Service):
     def __add_default_acis(self):
         self._ldap_mod("default-aci.ldif", self.sub_dict)
 
-    def __template_file(self, path, chmod=0o644):
-        template = os.path.join(paths.USR_SHARE_IPA_DIR,
-                                os.path.basename(path) + ".template")
+    def __template_file(self, path, chmod=0o644, client_template=False):
+        if client_template:
+            sharedir = paths.USR_SHARE_IPA_CLIENT_DIR
+        else:
+            sharedir = paths.USR_SHARE_IPA_DIR
+        template = os.path.join(
+            sharedir, os.path.basename(path) + ".template")
         conf = ipautil.template_file(template, self.sub_dict)
         self.fstore.backup_file(path)
-        fd = open(path, "w+")
-        fd.write(conf)
-        fd.close()
-        if chmod is not None:
-            os.chmod(path, chmod)
+        with open(path, 'w') as f:
+            if chmod is not None:
+                os.fchmod(f.fileno(), chmod)
+            f.write(conf)
 
     def __init_ipa_kdb(self):
         # kdb5_util may take a very long time when entropy is low
@@ -344,7 +347,7 @@ class KrbInstance(service.Service):
     def __configure_instance(self):
         self.__template_file(paths.KRB5KDC_KDC_CONF, chmod=None)
         self.__template_file(paths.KRB5_CONF)
-        self.__template_file(paths.KRB5_FREEIPA)
+        self.__template_file(paths.KRB5_FREEIPA, client_template=True)
         self.__template_file(paths.HTML_KRB5_INI)
         self.__template_file(paths.KRB_CON)
         self.__template_file(paths.HTML_KRBREALM_CON)
