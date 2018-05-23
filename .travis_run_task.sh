@@ -38,8 +38,9 @@ if [[ "$TASK_TO_RUN" == "lint" ]]
 then
     if [[ "$TRAVIS_EVENT_TYPE" == "pull_request" ]]
     then
-        git diff origin/$TRAVIS_BRANCH -U0 | pycodestyle --diff &> $PEP8_ERROR_LOG ||:
-    fi 
+        git diff origin/$TRAVIS_BRANCH -U0 | \
+            pycodestyle --ignore=W504 --diff &> $PEP8_ERROR_LOG ||:
+    fi
 fi
 
 if [[ -n "$TESTS_TO_RUN" ]]
