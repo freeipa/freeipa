@@ -17,11 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import logging
+import optparse  # pylint: disable=deprecated-module
 import os
 import shutil
+import sys
 import tempfile
 import time
 import pwd
@@ -77,7 +79,7 @@ def recursive_chown(path, uid, gid):
             os.chmod(os.path.join(root, file), 0o640)
 
 
-def decrypt_file(tmpdir, filename, keyring):
+def decrypt_file(tmpdir, filename):
     source = filename
     (dest, ext) = os.path.splitext(filename)
 
@@ -87,19 +89,12 @@ def decrypt_file(tmpdir, filename, keyring):
     dest = os.path.basename(dest)
     dest = os.path.join(tmpdir, dest)
 
-    args = [paths.GPG,
-            '--batch',
-            '-o', dest]
-
-    if keyring is not None:
-        args.append('--no-default-keyring')
-        args.append('--keyring')
-        args.append(keyring + '.pub')
-        args.append('--secret-keyring')
-        args.append(keyring + '.sec')
-
-    args.append('-d')
-    args.append(source)
+    args = [
+        paths.GPG2,
+        '--batch',
+        '--output', dest,
+        '--decrypt', source,
+    ]
 
     result = run(args, raiseonerr=False)
     if result.returncode != 0:
@@ -161,21 +156,30 @@ class Restore(admintool.AdminTool):
     def add_options(cls, parser):
         super(Restore, cls).add_options(parser, debug_option=True)
 
-        parser.add_option("-p", "--password", dest="password",
+        parser.add_option(
+            "-p", "--password", dest="password",
             help="Directory Manager password")
-        parser.add_option("--gpg-keyring", dest="gpg_keyring",
-            help="The gpg key name to be used")
-        parser.add_option("--data", dest="data_only", action="store_true",
+        parser.add_option(
+            "--gpg-keyring", dest="gpg_keyring",
+            help=optparse.SUPPRESS_HELP)
+        parser.add_option(
+            "--data", dest="data_only", action="store_true",
             default=False, help="Restore only the data")
-        parser.add_option("--online", dest="online", action="store_true",
-            default=False, help="Perform the LDAP restores online, for data only.")
-        parser.add_option("--instance", dest="instance",
+        parser.add_option(
+            "--online", dest="online", action="store_true",
+            default=False,
+            help="Perform the LDAP restores online, for data only.")
+        parser.add_option(
+            "--instance", dest="instance",
             help="The 389-ds instance to restore (defaults to all found)")
-        parser.add_option("--backend", dest="backend",
+        parser.add_option(
+            "--backend", dest="backend",
             help="The backend to restore within the instance or instances")
-        parser.add_option('--no-logs', dest="no_logs", action="store_true",
+        parser.add_option(
+            '--no-logs', dest="no_logs", action="store_true",
             default=False, help="Do not restore log files from the backup")
-        parser.add_option('-U', '--unattended', dest="unattended",
+        parser.add_option(
+            '-U', '--unattended', dest="unattended",
             action="store_true", default=False,
             help="Unattended restoration never prompts the user")
 
@@ -201,9 +205,11 @@ class Restore(admintool.AdminTool):
             parser.error("must provide path to backup directory")
 
         if options.gpg_keyring:
-            if (not os.path.exists(options.gpg_keyring + '.pub') or
-                    not os.path.exists(options.gpg_keyring + '.sec')):
-                parser.error("no such key %s" % options.gpg_keyring)
+            print(
+                "--gpg-keyring is no longer supported, use GNUPGHOME "
+                "environment variable to use a custom GnuPG2 directory.",
+                file=sys.stderr
+            )
 
 
     def ask_for_options(self):
@@ -327,7 +333,7 @@ class Restore(admintool.AdminTool):
         try:
             dirsrv = services.knownservices.dirsrv
 
-            self.extract_backup(options.gpg_keyring)
+            self.extract_backup()
 
             if restore_type == 'FULL':
                 self.restore_default_conf()
@@ -754,8 +760,7 @@ class Restore(admintool.AdminTool):
         self.backup_services = config.get('ipa', 'services').split(',')
         # pylint: enable=no-member
 
-
-    def extract_backup(self, keyring=None):
+    def extract_backup(self):
         '''
         Extract the contents of the tarball backup into a temporary location,
         decrypting if necessary.
@@ -776,7 +781,7 @@ class Restore(admintool.AdminTool):
 
         if encrypt:
             logger.info('Decrypting %s', filename)
-            filename = decrypt_file(self.dir, filename, keyring)
+            filename = decrypt_file(self.dir, filename)
 
         os.chdir(self.dir)
 

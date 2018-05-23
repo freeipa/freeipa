@@ -757,7 +757,6 @@ Provides: python2-ipaplatform = %{version}-%{release}
 %{!?python_provide:Provides: python-ipaplatform = %{version}-%{release}}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python2-gssapi >= 1.2.0-5
-Requires: gnupg
 Requires: gnupg2
 Requires: keyutils
 Requires: python2 >= 2.7.9
@@ -811,7 +810,6 @@ Provides: python3-ipaplatform = %{version}-%{release}
 %{?python_provide:%python_provide python3-ipaplatform}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python3-gssapi >= 1.2.0
-Requires: gnupg
 Requires: gnupg2
 Requires: keyutils
 Requires: python3-cryptography >= 1.6
