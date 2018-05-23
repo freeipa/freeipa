@@ -1,0 +1,676 @@
+topologies:
+  build: &build
+    name: build
+    cpu: 2
+    memory: 3800
+  master_1repl: &master_1repl
+    name: master_1repl
+    cpu: 4
+    memory: 5750
+  master_1repl_1client: &master_1repl_1client
+    name: master_1repl_1client
+    cpu: 4
+    memory: 6700
+  ipaserver: &ipaserver
+    name: ipaserver
+    cpu: 1
+    memory: 2400
+  master_2repl_1client: &master_2repl_1client
+    name: master_2repl_1client
+    cpu: 5
+    memory: 9100
+  master_3repl_1client: &master_3repl_1client
+    name: master_3repl_1client
+    cpu: 6
+    memory: 11500
+
+jobs:
+  fedora-rawhide/build:
+    requires: []
+    priority: 100
+    job:
+      class: Build
+      args:
+        git_repo: '{git_repo}'
+        git_refspec: '{git_refspec}'
+        template: &ci-master-frawhide
+          name: freeipa/ci-master-frawhide
+          version: 0.0.4
+        timeout: 1800
+        topology: *build
+
+  fedora-rawhide/test_server_del:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_server_del.py
+        template: *ci-master-frawhide
+        timeout: 8000
+        topology: *master_2repl_1client
+
+  fedora-rawhide/test_installation_TestInstallWithCA1:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA1
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_installation_TestInstallWithCA2:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA2
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_installation_TestInstallWithCA_KRA1:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA1
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_installation_TestInstallWithCA_KRA2:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA2
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_installation_TestInstallWithCA_DNS1:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS1
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_installation_TestInstallWithCA_DNS2:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS2
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_installation_TestInstallWithCA_KRA_DNS1:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS1
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_installation_TestInstallWithCA_KRA_DNS2:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS2
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_installation_TestInstallMaster:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallMaster
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_1repl
+
+  fedora-rawhide/test_installation_TestInstallMasterKRA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallMasterKRA
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_1repl
+
+  fedora-rawhide/test_installation_TestInstallMasterDNS:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallMasterDNS
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_1repl
+
+  fedora-rawhide/test_installation_TestInstallMasterReservedIPasForwarder:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_installation.py::TestInstallMasterReservedIPasForwarder
+        template: *ci-master-frawhide
+        timeout: 10800
+        topology: *master_1repl
+
+  fedora-rawhide/test_caless_TestServerInstall:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_caless.py::TestServerInstall
+        template: *ci-master-frawhide
+        timeout: 12000
+        topology: *master_1repl
+
+  fedora-rawhide/test_caless_TestReplicaInstall:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_caless.py::TestReplicaInstall
+        template: *ci-master-frawhide
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-rawhide/test_caless_TestClientInstall:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_caless.py::TestClientInstall
+        template: *ci-master-frawhide
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-rawhide/test_caless_TestIPACommands:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_caless.py::TestIPACommands
+        template: *ci-master-frawhide
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-rawhide/test_caless_TestCertInstall:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_caless.py::TestCertInstall
+        template: *ci-master-frawhide
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-rawhide/test_caless_TestPKINIT:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_caless.py::TestPKINIT
+        template: *ci-master-frawhide
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-rawhide/test_caless_TestServerReplicaCALessToCAFull:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
+        template: *ci-master-frawhide
+        timeout: 5400
+        topology: *master_1repl
+
+  fedora-rawhide/test_backup_and_restore_TestUserrootFilesOwnership:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestUserrootFilesOwnership
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_backup_and_restore_TestBackupAndRestore:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestore
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_backup_and_restore_TestBackupAndRestoreWithDNSSEC:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNSSEC
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_backup_and_restore_TestBackupReinstallRestoreWithDNSSEC:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNSSEC
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_backup_and_restore_TestBackupAndRestoreWithDNS:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithDNS
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_backup_and_restore_TestBackupReinstallRestoreWithDNS:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithDNS
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_backup_and_restore_TestBackupAndRestoreWithKRA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithKRA
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_backup_and_restore_TestBackupReinstallRestoreWithKRA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithKRA
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_dnssec:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_dnssec.py
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_2repl_1client
+
+  fedora-rawhide/test_replica_promotion_TestReplicaPromotionLevel0:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel0
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_replica_promotion_TestKRAInstall:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestKRAInstall
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_replica_promotion_TestCAInstall:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestCAInstall
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_replica_promotion_TestReplicaPromotionLevel1:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel1
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_replica_promotion_TestReplicaManageCommands:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaManageCommands
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_replica_promotion_TestUnprivilegedUserPermissions:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestUnprivilegedUserPermissions
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_replica_promotion_TestProhibitReplicaUninstallation:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestProhibitReplicaUninstallation
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_replica_promotion_TestOldReplicaWorksAfterDomainUpgrade:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestOldReplicaWorksAfterDomainUpgrade
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_replica_promotion_TestWrongClientDomain:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestWrongClientDomain
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_replica_promotion_TestRenewalMaster:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestRenewalMaster
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_replica_promotion_TestReplicaInstallWithExistingEntry:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallWithExistingEntry
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_replica_promotion_TestSubCAkeyReplication:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_upgrade:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_upgrade.py
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_1repl
+
+  fedora-rawhide/test_topology:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_topology.py
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_replication_layouts_TestLineTopologyWithoutCA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithoutCA
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_replication_layouts_TestLineTopologyWithCA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCA
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_replication_layouts_TestLineTopologyWithCAKRA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCAKRA
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_replication_layouts.py_TestStarTopologyWithoutCA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithoutCA
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_replication_layouts_TestStarTopologyWithCA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCA
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_replication_layouts_TestStarTopologyWithCAKRA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCAKRA
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_replication_layouts_TestCompleteTopologyWithoutCA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithoutCA
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_replication_layouts_TestCompleteTopologyWithCA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCA
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_replication_layouts_TestCompleteTopologyWithCAKRA:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCAKRA
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  fedora-rawhide/test_webui:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        test_suite: test_webui/
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *ipaserver
