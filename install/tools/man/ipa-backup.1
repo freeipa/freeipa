@@ -43,10 +43,7 @@ A backup can not be restored in a different version of IPA.
 Back up data only. The default is to back up all IPA files plus data.
 .TP
 \fB\-\-gpg\fR
-Encrypt the back up file.
-.TP
-\fB\-\-gpg\-keyring\fR=\fIGPG_KEYRING\fR
-The full path to a GPG keyring. The keyring consists of two files, a public and a private key (.sec and .pub respectively). Specify the path without an extension.
+Encrypt the back up file. Set \fBGNUPGHOME\fR environment variable to use a custom keyring and gpg2 configuration.
 .TP
 \fB\-\-logs\fR
 Include the IPA service log files in the backup.
@@ -71,6 +68,10 @@ Log to the given file
 1 if an error occurred
 
 2 if IPA is not configured
+.SH "ENVIRONMENT VARIABLES"
+.PP
+\fBGNUPGHOME\fR
+Use custom GnuPG keyring and settings (default: \fB~/.gnupg\fR).
 .SH "FILES"
 .PP
 \fI/var/lib/ipa/backup\fR
@@ -83,4 +84,5 @@ The default directory for storing backup files.
 The log file for backups
 .PP
 .SH "SEE ALSO"
-ipa\-restore(1).
+.BR ipa\-restore(1)
+.BR gpg2(1)

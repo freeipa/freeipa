@@ -32,7 +32,7 @@ The type of backup is automatically detected. A data restore can be done from ei
 .TP
 \fBWARNING\fR: A full restore will restore files like /etc/passwd, /etc/group, /etc/resolv.conf as well. Any file that IPA may have touched is backed up and restored.
 .TP
-An encrypted backup is also automatically detected and the root keyring is used by default. The \-\-keyring option can be used to define the full path to the private and public keys.
+An encrypted backup is also automatically detected and the root keyring and gpg-agent is used by default. Set \fBGNUPGHOME\fR environment variable to use a custom keyring and gpg2 configuration.
 .TP
 Within the subdirectory is file, header, that describes the back up including the type, system, date of backup, the version of IPA, the version of the backup and the services on the master.
 .TP
@@ -61,9 +61,6 @@ The Directory Manager password.
 \fB\-\-data\fR
 Restore the data only. The default is to restore everything in the backup.
 .TP
-\fB\-\-gpg\-keyring\fR=\fIGPG_KEYRING\fR
-The full path to a GPG keyring. The keyring consists of two files, a public and a private key (.sec and .pub respectively). Specify the path without an extension.
-.TP
 \fB\-\-no\-logs\fR
 Exclude the IPA service log files in the backup (if they were backed up).
 .TP
@@ -91,6 +88,10 @@ Log to the given file
 0 if the command was successful
 
 1 if an error occurred
+.SH "ENVIRONMENT VARIABLES"
+.PP
+\fBGNUPGHOME\fR
+Use custom GnuPG keyring and settings (default: \fB~/.gnupg\fR).
 .SH "FILES"
 .PP
 \fI/var/lib/ipa/backup\fR
@@ -103,4 +104,5 @@ The default directory for storing backup files.
 The log file for restoration
 .PP
 .SH "SEE ALSO"
-ipa\-backup(1).
+.BR ipa\-backup(1)
+.BR gpg2(1)
