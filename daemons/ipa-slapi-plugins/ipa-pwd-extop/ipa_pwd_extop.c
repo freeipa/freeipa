@@ -595,7 +595,8 @@ parse_req_done:
     } else {
         principal = slapi_ch_smprintf("root/admin@%s", krbcfg->realm);
     }
-    ipapwd_set_extradata(pwdata.dn, principal, pwdata.timeNow);
+    if (principal)
+        ipapwd_set_extradata(pwdata.dn, principal, pwdata.timeNow);
 
 	/* Free anything that we allocated above */
 free_and_return:
