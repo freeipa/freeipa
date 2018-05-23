@@ -229,8 +229,12 @@ jobs:
         test_suite: test_integration/test_caless.py::TestClientInstall
         template: *ci-master-frawhide
         timeout: 5400
+<<<<<<< HEAD
         # actually master_1client
         topology: *master_1repl_1client
+=======
+        topology: *master_1repl
+>>>>>>> Making nigthly test definition editable by FreeIPA's contributors
 
   fedora-rawhide/test_caless_TestIPACommands:
     requires: [fedora-rawhide/build]
@@ -410,7 +414,11 @@ jobs:
         test_suite: test_integration/test_replica_promotion.py::TestKRAInstall
         template: *ci-master-frawhide
         timeout: 7200
+<<<<<<< HEAD
         topology: *master_2repl_1client
+=======
+        topology: *master_1repl
+>>>>>>> Making nigthly test definition editable by FreeIPA's contributors
 
   fedora-rawhide/test_replica_promotion_TestCAInstall:
     requires: [fedora-rawhide/build]
