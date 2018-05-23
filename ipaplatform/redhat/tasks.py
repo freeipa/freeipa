@@ -40,6 +40,7 @@ from subprocess import CalledProcessError
 from pyasn1.error import PyAsn1Error
 from six.moves import urllib
 
+from ipapython import directivesetter
 from ipapython import ipautil
 import ipapython.errors
 
@@ -47,7 +48,6 @@ from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.redhat.authconfig import get_auth_tool
 from ipaplatform.base.tasks import BaseTaskNamespace
-from ipaserver.install import installutils
 
 logger = logging.getLogger(__name__)
 
@@ -567,12 +567,12 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         return False
 
     def setup_httpd_logging(self):
-        installutils.set_directive(paths.HTTPD_SSL_CONF,
-                                   'ErrorLog',
-                                   'logs/error_log', False)
-        installutils.set_directive(paths.HTTPD_SSL_CONF,
-                                   'TransferLog',
-                                   'logs/access_log', False)
+        directivesetter.set_directive(paths.HTTPD_SSL_CONF,
+                                      'ErrorLog',
+                                      'logs/error_log', False)
+        directivesetter.set_directive(paths.HTTPD_SSL_CONF,
+                                      'TransferLog',
+                                      'logs/access_log', False)
 
 
 tasks = RedHatTaskNamespace()

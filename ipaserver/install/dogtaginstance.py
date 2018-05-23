@@ -37,11 +37,11 @@ from ipalib.constants import CA_DBUS_TIMEOUT
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
+from ipapython import directivesetter
 from ipapython import ipaldap
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipaserver.install import service
-from ipaserver.install import installutils
 from ipaserver.install import replication
 from ipaserver.install.installutils import stopped_service
 
@@ -182,41 +182,41 @@ class DogtagInstance(service.Service):
         """
 
         with stopped_service('pki-tomcatd', 'pki-tomcat'):
-            installutils.set_directive(
+            directivesetter.set_directive(
                 self.config,
                 'authz.instance.DirAclAuthz.ldap.ldapauth.authtype',
                 'SslClientAuth', quotes=False, separator='=')
-            installutils.set_directive(
+            directivesetter.set_directive(
                 self.config,
                 'authz.instance.DirAclAuthz.ldap.ldapauth.clientCertNickname',
                 'subsystemCert cert-pki-ca', quotes=False, separator='=')
-            installutils.set_directive(
+            directivesetter.set_directive(
                 self.config,
                 'authz.instance.DirAclAuthz.ldap.ldapconn.port', '636',
                 quotes=False, separator='=')
-            installutils.set_directive(
+            directivesetter.set_directive(
                 self.config,
                 'authz.instance.DirAclAuthz.ldap.ldapconn.secureConn',
                 'true', quotes=False, separator='=')
 
-            installutils.set_directive(
+            directivesetter.set_directive(
                 self.config,
                 'internaldb.ldapauth.authtype',
                 'SslClientAuth', quotes=False, separator='=')
 
-            installutils.set_directive(
+            directivesetter.set_directive(
                 self.config,
                 'internaldb.ldapauth.clientCertNickname',
                 'subsystemCert cert-pki-ca', quotes=False, separator='=')
-            installutils.set_directive(
+            directivesetter.set_directive(
                 self.config,
                 'internaldb.ldapconn.port', '636', quotes=False, separator='=')
-            installutils.set_directive(
+            directivesetter.set_directive(
                 self.config,
                 'internaldb.ldapconn.secureConn', 'true', quotes=False,
                 separator='=')
             # Remove internaldb password as is not needed anymore
-            installutils.set_directive(paths.PKI_TOMCAT_PASSWORD_CONF,
+            directivesetter.set_directive(paths.PKI_TOMCAT_PASSWORD_CONF,
                                        'internaldb', None, separator='=')
 
     def uninstall(self):
@@ -353,7 +353,7 @@ class DogtagInstance(service.Service):
         """
 
         with stopped_service('pki-tomcatd', 'pki-tomcat'):
-            installutils.set_directive(
+            directivesetter.set_directive(
                 self.config,
                 directive,
                 # the cert must be only the base64 string without headers

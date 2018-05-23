@@ -25,7 +25,7 @@ from ipaclient.install.client import sssd_enable_service
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipapython import ipautil, version
-from ipapython import dnsutil
+from ipapython import dnsutil, directivesetter
 from ipapython.dn import DN
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
@@ -352,7 +352,7 @@ def ca_enable_ldap_profile_subsystem(ca):
     try:
         for i in range(15):
             directive = "subsystem.{}.class".format(i)
-            value = installutils.get_directive(
+            value = directivesetter.get_directive(
                 paths.CA_CS_CFG_PATH,
                 directive,
                 separator='=')
@@ -365,7 +365,7 @@ def ca_enable_ldap_profile_subsystem(ca):
         return False
 
     if needs_update:
-        installutils.set_directive(
+        directivesetter.set_directive(
             paths.CA_CS_CFG_PATH,
             directive,
             'com.netscape.cmscore.profile.LDAPProfileSubsystem',
@@ -407,14 +407,14 @@ def ca_add_default_ocsp_uri(ca):
         logger.info('CA is not configured')
         return False
 
-    value = installutils.get_directive(
+    value = directivesetter.get_directive(
         paths.CA_CS_CFG_PATH,
         'ca.defaultOcspUri',
         separator='=')
     if value:
         return False  # already set; restart not needed
 
-    installutils.set_directive(
+    directivesetter.set_directive(
         paths.CA_CS_CFG_PATH,
         'ca.defaultOcspUri',
         'http://ipa-ca.%s/ca/ocsp' % ipautil.format_netloc(api.env.domain),
@@ -1107,7 +1107,7 @@ def migrate_crl_publish_dir(ca):
         return False
 
     try:
-        old_publish_dir = installutils.get_directive(
+        old_publish_dir = directivesetter.get_directive(
             paths.CA_CS_CFG_PATH,
             'ca.publish.publisher.instance.FileBaseCRLPublisher.directory',
             separator='=')
@@ -1144,7 +1144,7 @@ def migrate_crl_publish_dir(ca):
                 logger.error('Cannot move CRL file to new directory: %s', e)
 
     try:
-        installutils.set_directive(
+        directivesetter.set_directive(
             paths.CA_CS_CFG_PATH,
             'ca.publish.publisher.instance.FileBaseCRLPublisher.directory',
             publishdir, quotes=False, separator='=')
@@ -1765,7 +1765,7 @@ def upgrade_configuration():
         ca_restart = migrate_crl_publish_dir(ca)
 
         if ca.is_configured():
-            crl = installutils.get_directive(
+            crl = directivesetter.get_directive(
                 paths.CA_CS_CFG_PATH, 'ca.crl.MasterCRL.enableCRLUpdates', '=')
             sub_dict['CLONE']='#' if crl.lower() == 'true' else ''
 
@@ -1797,7 +1797,7 @@ def upgrade_configuration():
         if kra.is_installed():
             logger.info('[Ensuring ephemeralRequest is enabled in KRA]')
             kra.backup_config()
-            value = installutils.get_directive(
+            value = directivesetter.get_directive(
                 paths.KRA_CS_CFG_PATH,
                 'kra.ephemeralRequests',
                 separator='=')

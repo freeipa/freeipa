@@ -21,13 +21,14 @@ from __future__ import absolute_import
 
 import logging
 
-from ipaserver.install import installutils, cainstance
+from ipaserver.install import cainstance
 from ipalib import errors
 from ipalib import Updater
 from ipalib.install import certmonger
 from ipalib.plugable import Registry
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+from ipapython import directivesetter
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +109,7 @@ class update_ca_renewal_master(Updater):
         else:
             logger.debug("certmonger request for RA cert not found")
 
-            config = installutils.get_directive(
+            config = directivesetter.get_directive(
                 paths.CA_CS_CFG_PATH, 'subsystem.select', '=')
 
             if config == 'New':
