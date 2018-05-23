@@ -55,6 +55,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
+from ipapython import directivesetter
 from ipapython import dogtag
 from ipapython import ipautil
 from ipapython import ipaldap
@@ -261,7 +262,7 @@ def is_step_one_done():
     path = paths.CA_CS_CFG_PATH
     if not os.path.exists(path):
         return False
-    test = installutils.get_directive(path, 'preop.ca.type', '=')
+    test = directivesetter.get_directive(path, 'preop.ca.type', '=')
     if test == "otherca":
         return True
     return False
@@ -723,7 +724,7 @@ class CAInstance(DogtagInstance):
         os.chown(self.config, pent.pw_uid, pent.pw_gid)
 
     def enable_pkix(self):
-        installutils.set_directive(paths.SYSCONFIG_PKI_TOMCAT,
+        directivesetter.set_directive(paths.SYSCONFIG_PKI_TOMCAT,
                                    'NSS_ENABLE_PKIX_VERIFY', '1',
                                    quotes=False, separator='=')
 
@@ -964,9 +965,8 @@ class CAInstance(DogtagInstance):
 
         https://access.redhat.com/knowledge/docs/en-US/Red_Hat_Certificate_System/8.0/html/Admin_Guide/Setting_up_Publishing.html
         """
-        with installutils.DirectiveSetter(self.config,
-                                          quotes=False, separator='=') as ds:
-
+        with directivesetter.DirectiveSetter(
+                self.config, quotes=False, separator='=') as ds:
             # Enable file publishing, disable LDAP
             ds.set('ca.publish.enable', 'true')
             ds.set('ca.publish.ldappublish.enable', 'false')
@@ -1124,7 +1124,7 @@ class CAInstance(DogtagInstance):
         """
         # Check the default validity period of the audit signing cert
         # and set it to 2 years if it is 6 months.
-        cert_range = installutils.get_directive(
+        cert_range = directivesetter.get_directive(
             paths.CASIGNEDLOGCERT_CFG,
             'policyset.caLogSigningSet.2.default.params.range',
             separator='='
@@ -1132,14 +1132,14 @@ class CAInstance(DogtagInstance):
         logger.debug(
             'caSignedLogCert.cfg profile validity range is %s', cert_range)
         if cert_range == "180":
-            installutils.set_directive(
+            directivesetter.set_directive(
                 paths.CASIGNEDLOGCERT_CFG,
                 'policyset.caLogSigningSet.2.default.params.range',
                 '720',
                 quotes=False,
                 separator='='
             )
-            installutils.set_directive(
+            directivesetter.set_directive(
                 paths.CASIGNEDLOGCERT_CFG,
                 'policyset.caLogSigningSet.2.constraint.params.range',
                 '720',
@@ -1284,7 +1284,7 @@ class CAInstance(DogtagInstance):
                 '/usr/libexec/ipa/ipa-pki-retrieve-key'),
         ]
         for k, v in directives:
-            installutils.set_directive(
+            directivesetter.set_directive(
                 self.config, k, v, quotes=False, separator='=')
 
         sysupgrade.set_upgrade_state('dogtag', 'setup_lwca_key_retieval', True)

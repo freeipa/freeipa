@@ -28,11 +28,12 @@ import shutil
 import traceback
 
 from ipalib.install import certstore
+from ipapython import directivesetter
 from ipapython import ipautil
 from ipalib import api, errors
 from ipalib import x509
 from ipalib.install.kinit import kinit_keytab
-from ipaserver.install import certs, cainstance, installutils
+from ipaserver.install import certs, cainstance
 from ipaserver.plugins.ldap2 import ldap2
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -104,22 +105,22 @@ def _main():
         elif nickname == 'caSigningCert cert-pki-ca':
             # Update CS.cfg
             cfg_path = paths.CA_CS_CFG_PATH
-            config = installutils.get_directive(
+            config = directivesetter.get_directive(
                 cfg_path, 'subsystem.select', '=')
             if config == 'New':
                 syslog.syslog(syslog.LOG_NOTICE, "Updating CS.cfg")
                 if cert.is_self_signed():
-                    installutils.set_directive(
+                    directivesetter.set_directive(
                         cfg_path, 'hierarchy.select', 'Root',
                         quotes=False, separator='=')
-                    installutils.set_directive(
+                    directivesetter.set_directive(
                         cfg_path, 'subsystem.count', '1',
                         quotes=False, separator='=')
                 else:
-                    installutils.set_directive(
+                    directivesetter.set_directive(
                         cfg_path, 'hierarchy.select', 'Subordinate',
                         quotes=False, separator='=')
-                    installutils.set_directive(
+                    directivesetter.set_directive(
                         cfg_path, 'subsystem.count', '0',
                         quotes=False, separator='=')
             else:
