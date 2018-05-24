@@ -16,6 +16,7 @@ import textwrap
 
 import six
 
+from ipaclient.install.client import check_ldap_conf
 from ipaclient.install.ipachangeconf import IPAChangeConf
 from ipalib.install import certmonger, sysrestore
 from ipapython import ipautil
@@ -312,6 +313,7 @@ def install_check(installer):
 
     tasks.check_ipv6_stack_enabled()
     tasks.check_selinux_status()
+    check_ldap_conf()
 
     if options.master_password:
         msg = ("WARNING:\noption '-P/--master-password' is deprecated. "
