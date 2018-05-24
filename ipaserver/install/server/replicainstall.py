@@ -22,6 +22,7 @@ import traceback
 from pkg_resources import parse_version
 import six
 
+from ipaclient.install.client import check_ldap_conf
 from ipaclient.install.ipachangeconf import IPAChangeConf
 import ipaclient.install.timeconf
 from ipalib.install import certstore, sysrestore
@@ -570,6 +571,7 @@ def check_remote_version(client, local_version):
 def common_check(no_ntp):
     tasks.check_ipv6_stack_enabled()
     tasks.check_selinux_status()
+    check_ldap_conf()
 
     if is_ipa_configured():
         raise ScriptError(

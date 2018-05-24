@@ -20,6 +20,7 @@ import getpass
 import gssapi
 import netifaces
 import os
+import re
 import SSSDConfig
 import shutil
 import socket
@@ -199,6 +200,31 @@ def nssldap_exists():
                 pass
 
     return (retval, files_found)
+
+
+def check_ldap_conf(conf=paths.OPENLDAP_LDAP_CONF,
+                    error_rval=CLIENT_INSTALL_ERROR):
+    if not os.path.isfile(conf):
+        return False
+
+    pat = re.compile(r"^\s*(PORT|HOST).*")
+    unsupported = set()
+
+    with open(conf) as f:
+        for line in f:
+            mo = pat.match(line)
+            if mo is not None:
+                unsupported.add(mo.group(1))
+
+    if unsupported:
+        raise ScriptError(
+            "'{}' contains deprecated and unsupported entries: {}".format(
+                conf, ", ".join(sorted(unsupported))
+            ),
+            rval=error_rval
+        )
+    else:
+        return True
 
 
 def delete_ipa_domain():
@@ -2007,6 +2033,8 @@ def install_check(options):
             "If you want to reinstall the IPA client, uninstall it first "
             "using 'ipa-client-install --uninstall'.")
         raise ScriptError(rval=CLIENT_ALREADY_CONFIGURED)
+
+    check_ldap_conf()
 
     if options.conf_ntp:
         try:
