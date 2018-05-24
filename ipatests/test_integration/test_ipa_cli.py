@@ -65,3 +65,31 @@ class TestIPACommand(IntegrationTest):
         )
         assert subject in result.stdout_text
         assert '1 certificate matched' in result.stdout_text
+
+    def test_add_permission_failure_issue5923(self):
+        # https://pagure.io/freeipa/issue/5923
+        # error response used to contain bytes instead of text
+
+        tasks.kinit_admin(self.master)
+        # neither privilege nor permission exists
+        result = self.master.run_command(
+            ["ipa", "privilege-add-permission", "loc",
+             "--permission='System: Show IPA Locations"],
+            raiseonerr=False
+        )
+        assert result.returncode == 2
+        err = result.stderr_text.strip()  # pylint: disable=no-member
+        assert err == "ipa: ERROR: loc: privilege not found"
+        # add privilege
+        result = self.master.run_command(
+            ["ipa", "privilege-add", "loc"],
+        )
+        assert 'Added privilege "loc"' in result.stdout_text
+        # permission is still missing
+        result = self.master.run_command(
+            ["ipa", "privilege-add-permission", "loc",
+             "--permission='System: Show IPA Locations"],
+            raiseonerr=False
+        )
+        assert result.returncode == 1
+        assert "Number of permissions added 0" in result.stdout_text
