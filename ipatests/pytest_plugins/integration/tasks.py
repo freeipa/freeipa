@@ -1361,6 +1361,18 @@ def ldappasswd_user_change(user, oldpw, newpw, master):
     master.run_command(args)
 
 
+def ldappasswd_sysaccount_change(user, oldpw, newpw, master):
+    container_sysaccounts = dict(DEFAULT_CONFIG)['container_sysaccounts']
+    basedn = master.domain.basedn
+
+    userdn = "uid={},{},{}".format(user, container_sysaccounts, basedn)
+    master_ldap_uri = "ldap://{}".format(master.external_hostname)
+
+    args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
+            '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri]
+    master.run_command(args)
+
+
 def add_dns_zone(master, zone, skip_overlap_check=False,
                  dynamic_update=False, add_a_record_hosts=None):
     """
