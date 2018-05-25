@@ -74,8 +74,9 @@
 # python3-ldap 3.0. The python3-ldap package also provides python3-pyldap.
 %if 0%{?fedora} >= 28
 # https://pagure.io/freeipa/issue/7257 DNSSEC daemons on Python 3
-%global python2_ldap_version 3.0.0-0.4.b4
-%global python3_ldap_version 3.0.0-0.4.b4
+# fix for segfault in python-ldap, https://pagure.io/freeipa/issue/7324
+%global python2_ldap_version 3.1.0-1
+%global python3_ldap_version 3.1.0-1
 %else
 # syncrepl fix, https://pagure.io/freeipa/issue/7240
 %global python2_ldap_version 2.4.25-9
