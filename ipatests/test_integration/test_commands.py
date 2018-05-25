@@ -7,7 +7,8 @@ from __future__ import absolute_import
 
 import base64
 import ssl
-
+from tempfile import NamedTemporaryFile
+import textwrap
 
 from ipaplatform.paths import paths
 
@@ -16,6 +17,11 @@ from ipatests.pytest_plugins.integration import tasks
 
 
 class TestIPACommand(IntegrationTest):
+    """
+    A lot of commands can be executed against a single IPA installation
+    so provide a generic class to execute one-off commands that need to be
+    tested without having to fire up a full server to run one command.
+    """
     topology = 'line'
 
     def get_cert_base64(self, host, path):
@@ -93,3 +99,37 @@ class TestIPACommand(IntegrationTest):
         )
         assert result.returncode == 1
         assert "Number of permissions added 0" in result.stdout_text
+
+    def test_change_sysaccount_password_issue7561(self):
+        sysuser = 'system'
+        original_passwd = 'Secret123'
+        new_passwd = 'userPasswd123'
+
+        master = self.master
+
+        base_dn = str(master.domain.basedn)  # pylint: disable=no-member
+        tf = NamedTemporaryFile()
+        ldif_file = tf.name
+        entry_ldif = textwrap.dedent("""
+            dn: uid=system,cn=sysaccounts,cn=etc,{base_dn}
+            changetype: add
+            objectclass: account
+            objectclass: simplesecurityobject
+            uid: system
+            userPassword: {original_passwd}
+            passwordExpirationTime: 20380119031407Z
+            nsIdleTimeout: 0
+        """).format(
+            base_dn=base_dn,
+            original_passwd=original_passwd)
+        master.put_file_contents(ldif_file, entry_ldif)
+        arg = ['ldapmodify',
+               '-h', master.hostname,
+               '-p', '389', '-D',
+               str(master.config.dirman_dn),   # pylint: disable=no-member
+               '-w', master.config.dirman_password,
+               '-f', ldif_file]
+        master.run_command(arg)
+
+        tasks.ldappasswd_sysaccount_change(sysuser, original_passwd,
+                                           new_passwd, master)
