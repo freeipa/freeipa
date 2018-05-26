@@ -286,6 +286,60 @@ class test_service(Declarative):
             ),
         ),
 
+        dict(
+            desc='Allow admin to create keytab for %r' % service1,
+            command=('service_allow_create_keytab', [service1],
+                     dict(user=u'admin'),
+                     ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    ipaallowedtoperform_write_keys=dict(
+                        group=[],
+                        host=[],
+                        hostgroup=[],
+                        user=[]
+                    )
+                ),
+                result=dict(
+                    dn=service1dn,
+                    ipaallowedtoperform_write_keys_user=[u'admin'],
+                    krbprincipalname=[service1],
+                    krbcanonicalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Retrieve %r with all=True and keytab allowed' % service1,
+            command=('service_show', [service1], dict(all=True)),
+            expected=dict(
+                value=service1,
+                summary=None,
+                result=dict(
+                    dn=service1dn,
+                    ipaallowedtoperform_write_keys_user=[u'admin'],
+                    krbprincipalname=[service1],
+                    ipakrbprincipalalias=[service1],
+                    krbcanonicalname=[service1],
+                    objectclass=objectclasses.service + [
+                        u'ipaallowedoperations'
+                    ],
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[fqdn1],
+                    has_keytab=False,
+                    ipakrbrequirespreauth=True,
+                    ipakrbokasdelegate=False,
+                    ipakrboktoauthasdelegate=False,
+                    krbpwdpolicyreference=[DN(
+                        u'cn=Default Service Password Policy',
+                        api.env.container_service,
+                        api.env.basedn,
+                    )],
+                ),
+            ),
+        ),
 
         dict(
             desc='Search for %r with members' % service1,
@@ -297,6 +351,7 @@ class test_service(Declarative):
                 result=[
                     dict(
                         dn=service1dn,
+                        ipaallowedtoperform_write_keys_user=[u'admin'],
                         krbprincipalname=[service1],
                         krbcanonicalname=[service1],
                         managedby_host=[fqdn1],
@@ -306,6 +361,30 @@ class test_service(Declarative):
             ),
         ),
 
+        dict(
+            desc='Disallow admin to create keytab for %r' % service1,
+            command=(
+                'service_disallow_create_keytab', [service1],
+                dict(user=u'admin'),
+            ),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    ipaallowedtoperform_write_keys=dict(
+                        group=[],
+                        host=[],
+                        hostgroup=[],
+                        user=[]
+                    )
+                ),
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    krbcanonicalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
 
         dict(
             desc='Search for %r' % service1,
@@ -339,7 +418,9 @@ class test_service(Declarative):
                         krbprincipalname=[service1],
                         ipakrbprincipalalias=[service1],
                         krbcanonicalname=[service1],
-                        objectclass=objectclasses.service,
+                        objectclass=objectclasses.service + [
+                            u'ipaallowedoperations'
+                        ],
                         ipauniqueid=[fuzzy_uuid],
                         has_keytab=False,
                         managedby_host=[fqdn1],
