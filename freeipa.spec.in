@@ -69,17 +69,10 @@
 %global selinux_policy_version 3.13.1-283.24
 %global slapi_nis_version 0.56.1
 
-# Use python3-pyldap to be compatible with old python3-pyldap 2.x and new
-# python3-ldap 3.0. The python3-ldap package also provides python3-pyldap.
-%if 0%{?fedora} >= 28
-# https://pagure.io/freeipa/issue/7257 DNSSEC daemons on Python 3
-%global python2_ldap_version 3.0.0-0.4.b4
-%global python3_ldap_version 3.0.0-0.4.b4
-%else
 # syncrepl fix, https://pagure.io/freeipa/issue/7240
 %global python2_ldap_version 2.4.25-9
-%global python3_ldap_version 2.4.35.1-2
-%endif
+# fix for segfault in python-ldap, https://pagure.io/freeipa/issue/7324
+%global python3_ldap_version 2.4.37-4
 
 %endif
 
@@ -290,6 +283,7 @@ BuildRequires:  python3-netaddr
 BuildRequires:  python3-pyasn1
 BuildRequires:  python3-pyasn1-modules
 BuildRequires:  python3-pyldap >= %{python3_ldap_version}
+BuildConflicts: python3-ldap < 3.1.0
 %endif # with_python3
 %endif # with_lint
 
@@ -321,6 +315,7 @@ Requires: %{name}-common = %{version}-%{release}
 %if 0%{?with_python3}
 Requires: python3-ipaserver = %{version}-%{release}
 Requires: python3-pyldap >= %{python3_ldap_version}
+Conflicts: python3-ldap < 3.1.0
 %else
 Requires: python2-ipaserver = %{version}-%{release}
 Requires: python2-ldap >= %{python2_ldap_version}
@@ -462,6 +457,7 @@ Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-custodia >= 0.3.1
 # we need pre-requires since earlier versions may break upgrade
 Requires(pre): python3-pyldap >= %{python3_ldap_version}
+Conflicts: python3-ldap < 3.1.0
 Requires: python3-lxml
 Requires: python3-gssapi >= 1.2.0
 Requires: python3-sssdconfig
@@ -581,6 +577,7 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: python3-gssapi >= 1.2.0-5
 Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-pyldap >= %{python3_ldap_version}
+Conflicts: python3-ldap < 3.1.0
 Requires: python3-sssdconfig
 %else
 Requires: python2-gssapi >= 1.2.0-5
@@ -816,6 +813,7 @@ Requires: python3-jwcrypto >= 0.4.2
 Requires: python3-cffi
 # we need pre-requires since earlier versions may break upgrade
 Requires(pre): python3-pyldap >= %{python3_ldap_version}
+Conflicts: python3-ldap < 3.1.0
 Requires: python3-requests
 Requires: python3-dns >= 1.15
 Requires: python3-netifaces >= 0.10.4
