@@ -19,7 +19,7 @@ import six
 from ipaclient.install.client import check_ldap_conf
 from ipaclient.install.ipachangeconf import IPAChangeConf
 from ipalib.install import certmonger, sysrestore
-from ipapython import ipautil
+from ipapython import ipautil, version
 from ipapython.ipautil import (
     ipa_generate_password, run, user_input)
 from ipapython.admintool import ScriptError
@@ -382,6 +382,7 @@ def install_check(installer):
     print("======================================="
           "=======================================")
     print("This program will set up the FreeIPA Server.")
+    print("Version {}".format(version.VERSION))
     print("")
     print("This includes:")
     if setup_ca:
