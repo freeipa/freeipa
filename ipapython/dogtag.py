@@ -18,8 +18,10 @@
 #
 
 import collections
+import gzip
 import logging
 import xml.dom.minidom
+import zlib
 
 import six
 # pylint: disable=import-error
@@ -228,8 +230,15 @@ def _httplib_request(
         logger.debug("httplib request failed:", exc_info=True)
         raise NetworkError(uri=uri, error=str(e))
 
+    encoding = res.getheader('Content-Encoding')
+    if encoding == 'gzip':
+        # note: gzip.decompress available in Python >= 3.2
+        http_body = gzip.decompress(http_body)  # pylint: disable=no-member
+    elif encoding == 'deflate':
+        http_body = zlib.decompress(http_body)
+
     logger.debug('response status %d',    http_status)
     logger.debug('response headers %s',   http_headers)
-    logger.debug('response body %r',      http_body)
+    logger.debug('response body (decoded): %r', http_body)
 
     return http_status, http_headers, http_body
