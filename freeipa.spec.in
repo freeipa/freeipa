@@ -378,7 +378,9 @@ Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base >= %{selinux_policy_version}
 Requires: slapi-nis >= %{slapi_nis_version}
-# 10.5.1-2 contains Python 3 vault fix
+# jss is an indirect dependency. 4.4.4 fixes sub CA replication bug,
+# see https://pagure.io/freeipa/issue/7536
+Requires: jss >= 4.4.4
 Requires: pki-ca >= %{pki_version}
 Requires: pki-kra >= %{pki_version}
 Requires(preun): systemd-units
