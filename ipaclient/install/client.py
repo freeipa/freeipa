@@ -61,6 +61,7 @@ from ipapython.ipautil import (
     user_input,
 )
 from ipapython.ssh import SSHPublicKey
+from ipapython import version
 
 from . import automount, ipadiscovery, timeconf, sssd
 from .ipachangeconf import IPAChangeConf
@@ -2014,6 +2015,10 @@ def install_check(options):
     global cli_kdc
     global client_domain
     global cli_basedn
+
+    print("This program will set up FreeIPA client.")
+    print("Version {}".format(version.VERSION))
+    print("")
 
     cli_domain_source = 'Unknown source'
     cli_server_source = 'Unknown source'

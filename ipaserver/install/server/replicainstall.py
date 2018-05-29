@@ -27,7 +27,7 @@ from ipaclient.install.ipachangeconf import IPAChangeConf
 import ipaclient.install.timeconf
 from ipalib.install import certstore, sysrestore
 from ipalib.install.kinit import kinit_keytab
-from ipapython import ipaldap, ipautil
+from ipapython import ipaldap, ipautil, version
 from ipapython.certdb import IPA_CA_TRUST_FLAGS, EXTERNAL_CA_TRUST_FLAGS
 from ipapython.dn import DN
 from ipapython.admintool import ScriptError
@@ -681,6 +681,10 @@ def install_check(installer):
     options = installer
     filename = installer.replica_file
     installer._enrollment_performed = False
+
+    print("This program will set up FreeIPA replica.")
+    print("Version {}".format(version.VERSION))
+    print("")
 
     if tasks.is_fips_enabled():
         raise RuntimeError(
