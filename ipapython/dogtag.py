@@ -19,6 +19,7 @@
 
 import collections
 import gzip
+import io
 import logging
 import xml.dom.minidom
 import zlib
@@ -61,6 +62,15 @@ INCLUDED_PROFILES = {
 
 DEFAULT_PROFILE = u'caIPAserviceCert'
 KDC_PROFILE = u'KDCs_PKINIT_Certs'
+
+
+if six.PY3:
+    gzip_decompress = gzip.decompress  # pylint: disable=no-member
+else:
+    # note: gzip.decompress available in Python >= 3.2
+    def gzip_decompress(data):
+        with gzip.GzipFile(fileobj=io.BytesIO(data)) as f:
+            return f.read()
 
 
 def error_from_xml(doc, message_template):
@@ -232,8 +242,7 @@ def _httplib_request(
 
     encoding = res.getheader('Content-Encoding')
     if encoding == 'gzip':
-        # note: gzip.decompress available in Python >= 3.2
-        http_body = gzip.decompress(http_body)  # pylint: disable=no-member
+        http_body = gzip_decompress(http_body)
     elif encoding == 'deflate':
         http_body = zlib.decompress(http_body)
 
