@@ -1181,6 +1181,36 @@ class TestReplicaInstall(CALessBase):
         if self.domain_level > DOMAIN_LEVEL_0:
             self.verify_installation()
 
+    @replica_install_teardown
+    def test_install_ca_replica(self):
+        # related to https://pagure.io/freeipa/issue/6985
+        replica = self.replicas[0]
+
+        self.create_pkcs12('ca1/replica', filename='server.p12')
+        result = self.prepare_replica(http_pkcs12='server.p12',
+                                      dirsrv_pkcs12='server.p12')
+        assert result.returncode == 0
+        if self.domain_level > DOMAIN_LEVEL_0:
+            self.verify_installation()
+
+        contents = (
+            '-----BEGIN CERTIFICATE-----\n'
+            'sdnmsdkfbsdifbsdbasdsdSDDDasdmnd\n'
+            '-----END CERTIFICATE-----')
+        cert1 = tempfile.mkdtemp(suffix='xyz.crt', dir=paths.TMP)
+        replica.put_file_contents(cert1, contents)
+        cert_files = [cert1]
+        # install ca directly with option --external-cert-file
+        result = tasks.install_ca(replica, cert_files=cert_files,
+                                  raiseonerr=False)
+        assert_error(result, 'First run the installer with --external-ca')
+
+        # install ca with invalid cert
+        tasks.install_ca(self.master, external_ca=True)
+        result = tasks.install_ca(replica, cert_files=cert_files,
+                                  raiseonerr=False)
+        assert_error(result, 'CA is not installed yet')
+
 
 class TestClientInstall(CALessBase):
     num_clients = 1

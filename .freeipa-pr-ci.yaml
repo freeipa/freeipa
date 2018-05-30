@@ -51,17 +51,29 @@ jobs:
         timeout: 3600
         topology: *master_1repl
 
-  fedora-28/external_ca:
+  fedora-28/external_ca_1:
     requires: [fedora-28/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-28/build_url}'
-        test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestSelfExternalSelf test_integration/test_external_ca.py::TestExternalCAInstall
+        test_suite: test_integration/test_external_ca.py::TestExternalCA
         template: *ci-master-f28
         timeout: 3600
         topology: *master_1repl_1client
+
+  fedora-28/external_ca_2:
+    requires: [fedora-28/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-28/build_url}'
+        test_suite: test_integration/test_external_ca.py::TestSelfExternalSelf test_integration/test_external_ca.py::TestExternalCAInstall
+        template: *ci-master-f28
+        timeout: 3600
+        topology: *master_1repl
 
   fedora-28/test_topologies:
     requires: [fedora-28/build]
