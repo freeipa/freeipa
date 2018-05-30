@@ -5,6 +5,7 @@
 from __future__ import absolute_import
 
 import logging
+import pytest
 
 import dns.dnssec
 import dns.resolver
@@ -144,6 +145,7 @@ class TestInstallDNSSECLast(IntegrationTest):
             self.master.ip, test_zone_repl, timeout=5
         ), "DNS zone %s is not signed (master)" % test_zone
 
+    @pytest.mark.xfail(reason='Ticket N 5670')
     def test_disable_reenable_signing_master(self):
 
         dnskey_old = resolve_with_dnssec(self.master.ip, test_zone,
@@ -191,6 +193,7 @@ class TestInstallDNSSECLast(IntegrationTest):
                                          rtype="DNSKEY").rrset
         assert dnskey_old != dnskey_new, "DNSKEY should be different"
 
+    @pytest.mark.xfail(reason='Ticket N 5670')
     def test_disable_reenable_signing_replica(self):
 
         dnskey_old = resolve_with_dnssec(self.replicas[0].ip, test_zone_repl,
@@ -307,6 +310,7 @@ class TestInstallDNSSECFirst(IntegrationTest):
             self.replicas[0].ip, root_zone, timeout=300
         ), "Zone %s is not signed (replica)" % root_zone
 
+    @pytest.mark.xfail(reason='Ticket N 5670')
     def test_chain_of_trust(self):
         """
         Validate signed DNS records, using our own signed root zone
