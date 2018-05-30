@@ -116,3 +116,12 @@ DATA10 = {
         ('radio', 'type', 'nonposix'),
     ]
 }
+
+PKEY_SPECIAL_CHAR_GROUP = 'itest...group_-$'
+DATA_SPECIAL_CHAR_GROUP = {
+    'pkey': PKEY_SPECIAL_CHAR_GROUP,
+    'add': [
+        ('textbox', 'cn', PKEY_SPECIAL_CHAR_GROUP),
+        ('textarea', 'description', 'special characters group desc'),
+    ]
+}
