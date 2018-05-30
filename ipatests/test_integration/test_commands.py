@@ -133,3 +133,45 @@ class TestIPACommand(IntegrationTest):
 
         tasks.ldappasswd_sysaccount_change(sysuser, original_passwd,
                                            new_passwd, master)
+
+
+class TestInstallCA(IntegrationTest):
+    """ Install CA on replica using option --external-cert-file
+
+    If command is executed with non-existing file, invalid file
+    it should through error.
+    related to https://pagure.io/freeipa/issue/6985
+    """
+    num_replicas = 1
+
+    def test_install_master_replica(self):
+        replica = self.replicas[0]
+        tasks.install_master(self.master)
+        tasks.install_replica(self.master, self.replica, setup_ca=False)
+        tasks.kinit_admin(self.replicas[0])
+
+        # install ca with blank file
+        tasks.install_replica(self.master, self.replica, setup_ca=False)
+        cert1 = tempfile.mkdtemp(suffix='abc.txt', dir=paths.TMP)
+        result = tasks.install_ca(replica, cert_files=cert1)
+        assert result.returncode != 0
+        tasks.uninstall_master(self.replicas[0])
+
+        # install ca with invalid file
+        tasks.install_replica(self.master, self.replica, setup_ca=False)
+        content = (
+            b'-----BEGIN CERTIFICATE-----\n'
+            b'sdnmsdkfbsdifbsdbasdsdSDDDasdmnd\n'
+            b'-----END CERTIFICATE-----'
+        )
+        cert2 = tempfile.mkdtemp(suffix='abc2.crt', dir=paths.TMP)
+        replica.put_file_contents(cert2, content)
+        result2 = tasks.install_ca(replica, cert_files=cert2)
+        assert result2.returncode != 0
+        tasks.uninstall_master(self.replicas[0])
+
+        # install ca with non-existing file
+        tasks.install_replica(self.master, self.replica, setup_ca=False)
+        result3 = tasks.install_ca(replica, cert_files='abc.crt')
+        assert result3.returncode != 0
+        tasks.uninstall_master(self.replicas[0])
