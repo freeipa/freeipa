@@ -155,7 +155,7 @@ struct otpd_queue_item *otpd_queue_pop_msgid(struct otpd_queue *q, int msgid)
 
     for (item = q->head, prev = &q->head;
          item != NULL;
-         item = item->next, prev = &item->next) {
+         prev = &item->next, item = item->next) {
         if (item->msgid == msgid) {
             *prev = item->next;
             if (q->head == NULL)
