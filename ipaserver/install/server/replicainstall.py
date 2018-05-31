@@ -564,7 +564,7 @@ def check_remote_version(client, local_version):
     remote_version = parse_version(env['version'])
     if remote_version > local_version:
         raise ScriptError(
-            "Cannot install replica of a server of higher version ({}) than"
+            "Cannot install replica of a server of higher version ({}) than "
             "the local version ({})".format(remote_version, local_version))
 
 
