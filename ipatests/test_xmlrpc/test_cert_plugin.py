@@ -33,6 +33,7 @@ from ipaplatform.paths import paths
 from ipapython.certdb import NSSDatabase
 from ipapython.dn import DN
 from ipapython.ipautil import run
+from ipaserver.install import cainstance
 from ipatests.test_xmlrpc.testcert import subject_base
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 
@@ -78,6 +79,7 @@ def is_db_configured():
 class BaseCert(XMLRPC_test):
     host_fqdn = u'ipatestcert.%s' % api.env.domain
     service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
+    host_princ = u'host/%s@%s' % (host_fqdn, api.env.realm)
 
     @classmethod
     def setup_class(cls):
@@ -87,6 +89,10 @@ class BaseCert(XMLRPC_test):
             raise unittest.SkipTest('cert_request not registered')
         if 'cert_show' not in api.Command:
             raise unittest.SkipTest('cert_show not registered')
+
+        ca = cainstance.CAInstance(api.env.realm, host_name=api.env.host)
+        if not ca.is_configured():
+            raise unittest.SkipTest('CA is not configured')
 
         is_db_configured()
 
@@ -199,11 +205,10 @@ class test_cert(BaseCert):
         """
         res = api.Command['service_show'](self.service_princ)['result']
 
-        # Both the old and the new certs should be listed as certificates now
-        certs_encoded = (
-            base64.b64encode(usercert) for usercert in res['usercertificate']
-        )
-        assert set(certs_encoded) == set([cert, newcert])
+        # It should no longer match our old cert
+        assert base64.b64encode(res['usercertificate'][0]) != cert
+        # And it should match the new one
+        assert base64.b64encode(res['usercertificate'][0]) == newcert
 
     def test_0008_cert_show(self):
         """
@@ -480,6 +485,62 @@ class test_cert_revocation(BaseCert):
         res2 = api.Command['cert_show'](serial_number, all=True)['result']
         assert res2['revoked']
         assert res2['revocation_reason'] == reason
+
+        # remove host
+        assert 'result' in api.Command['host_del'](self.host_fqdn)
+
+    # replace an existing cert and verify that the old one is revoked
+    def test_renew_host_cert(self):
+        assert 'result' in api.Command['host_add'](self.host_fqdn, force=True)
+
+        # generate CSR, request certificate, obtain serial number
+        self.csr = self.generateCSR(str(self.subject))
+        res = api.Command['cert_request'](self.csr,
+                                          principal=self.host_princ,
+                                          add=True, all=True)['result']
+        serial_number = res['serial_number']
+
+        res = api.Command['cert_request'](self.csr,
+                                          principal=self.host_princ,
+                                          add=True, all=True)['result']
+
+        new_serial_number = res['serial_number']
+
+        assert(serial_number != new_serial_number)
+
+        # verify that certificate is revoked with correct reason
+        res2 = api.Command['cert_show'](serial_number, all=True)['result']
+        assert res2['revoked']
+        assert res2['revocation_reason'] == 4  # SUPERSEDED
+
+        # remove host
+        assert 'result' in api.Command['host_del'](self.host_fqdn)
+
+    # replace an existing cert and verify that the old one is revoked
+    def test_renew_service_cert(self):
+        assert 'result' in api.Command['host_add'](self.host_fqdn, force=True)
+        assert 'result' in api.Command['service_add'](
+            self.service_princ, force=True)
+
+        # generate CSR, request certificate, obtain serial number
+        self.csr = self.generateCSR(str(self.subject))
+        res = api.Command['cert_request'](self.csr,
+                                          principal=self.service_princ,
+                                          add=True, all=True)['result']
+        serial_number = res['serial_number']
+
+        res = api.Command['cert_request'](self.csr,
+                                          principal=self.service_princ,
+                                          add=True, all=True)['result']
+
+        new_serial_number = res['serial_number']
+
+        assert(serial_number != new_serial_number)
+
+        # verify that certificate is revoked with correct reason
+        res2 = api.Command['cert_show'](serial_number, all=True)['result']
+        assert res2['revoked']
+        assert res2['revocation_reason'] == 4  # SUPERSEDED
 
         # remove host
         assert 'result' in api.Command['host_del'](self.host_fqdn)

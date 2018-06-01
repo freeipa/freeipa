@@ -898,7 +898,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         store = profile['result']['ipacertprofilestoreissued'][0] == 'TRUE'
         if store and 'certificate' in result:
             cert = result.get('certificate')
-            kwargs = dict(addattr=u'usercertificate={}'.format(cert))
+            kwargs = dict(usercertificate=cert)
             # note: we call different commands for the different
             # principal types because handling of 'userCertificate'
             # vs. 'userCertificate;binary' varies by plugin.
