@@ -1181,24 +1181,6 @@ class TestReplicaInstall(CALessBase):
         if self.domain_level > DOMAIN_LEVEL_0:
             self.verify_installation()
 
-    @replica_install_teardown
-    def test_install_ca_replica(self):
-        # related to https://pagure.io/freeipa/issue/6985
-        replica = self.replicas[0]
-
-        # install ca on replica with non-existing cert
-        tasks.install_ca(replica, external_ca=True, cert_files='abc.crt')
-
-        # install ca with invalid cert
-        contents = (
-            '-----BEGIN CERTIFICATE-----\n'
-            'sdnmsdkfbsdifbsdbasdsdSDDDasdmnd\n'
-            '-----END CERTIFICATE-----')
-
-        cert1 = tempfile.mkdtemp(suffix='abc.crt', dir=paths.TMP)
-        replica.put_file_contents(cert1, contents)
-        tasks.install_ca(replica, external_ca=True, cert_files=cert1)
-
 
 class TestClientInstall(CALessBase):
     num_clients = 1
