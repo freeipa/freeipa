@@ -283,6 +283,7 @@ class command_find(metaobject_find):
 
 @register()
 class command_defaults(PKQuery):
+    __doc__ = _('Return command defaults')
     NO_CLI = True
 
     takes_options = (
@@ -772,6 +773,7 @@ class output_find(BaseParamSearch):
 
 @register()
 class schema(Command):
+    __doc__ = _('Store and provide schema for commands and topics')
     NO_CLI = True
 
     takes_options = (

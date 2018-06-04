@@ -134,6 +134,7 @@ class dnszone_mod(DNSZoneMethodOverride):
 # Do not add anything new here!
 @register(no_fail=True)
 class dnsrecord_split_parts(Command):
+    __doc__ = _('Split DNS record to parts')
     NO_CLI = True
 
     takes_args = (
