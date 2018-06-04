@@ -51,7 +51,7 @@ def validate_host(ugettext, cn):
 
 @register()
 class join(Command):
-    """Join an IPA domain"""
+    __doc__ = _('Join an IPA domain')
 
     NO_CLI = True
 

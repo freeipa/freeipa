@@ -1709,9 +1709,7 @@ class cert_find(Search, CertMethod):
 
 @register()
 class ca_is_enabled(Command):
-    """
-    Checks if any of the servers has the CA service enabled.
-    """
+    __doc__ = _('Checks if any of the servers has the CA service enabled.')
     NO_CLI = True
     has_output = output.standard_value
 

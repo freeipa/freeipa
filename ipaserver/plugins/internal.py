@@ -34,9 +34,7 @@ register = Registry()
 
 @register()
 class json_metadata(Command):
-    """
-    Export plugin meta-data for the webUI.
-    """
+    __doc__ = _('Export plugin meta-data for the webUI.')
     NO_CLI = True
 
 
@@ -149,6 +147,7 @@ class json_metadata(Command):
 
 @register()
 class i18n_messages(Command):
+    __doc__ = _('Internationalization messages')
     NO_CLI = True
 
     messages = {

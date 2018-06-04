@@ -89,9 +89,8 @@ register = Registry()
 
 @register()
 class cosentry(LDAPObject):
-    """
-    Class of Service object used for linking policies with groups
-    """
+    __doc__ = _('Class of Service object used for linking policies with'
+                ' groups')
     NO_CLI = True
 
     container_dn = DN(('cn', 'costemplates'), api.env.container_accounts)
@@ -169,6 +168,7 @@ class cosentry(LDAPObject):
 
 @register()
 class cosentry_add(LDAPCreate):
+    __doc__ = _('Add Class of Service entry')
     NO_CLI = True
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -191,11 +191,13 @@ class cosentry_add(LDAPCreate):
 
 @register()
 class cosentry_del(LDAPDelete):
+    __doc__ = _('Delete Class of Service entry')
     NO_CLI = True
 
 
 @register()
 class cosentry_mod(LDAPUpdate):
+    __doc__ = _('Modify Class of Service entry')
     NO_CLI = True
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -213,11 +215,13 @@ class cosentry_mod(LDAPUpdate):
 
 @register()
 class cosentry_show(LDAPRetrieve):
+    __doc__ = _('Display Class of Service entry')
     NO_CLI = True
 
 
 @register()
 class cosentry_find(LDAPSearch):
+    __doc__ = _('Search for Class of Service entry')
     NO_CLI = True
 
 

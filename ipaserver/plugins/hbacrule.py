@@ -563,6 +563,7 @@ class hbacrule_remove_host(LDAPRemoveMember):
 
 @register()
 class hbacrule_add_sourcehost(LDAPAddMember):
+    __doc__ = _('Add source hosts and hostgroups to an HBAC rule.')
     NO_CLI = True
 
     member_attributes = ['sourcehost']
@@ -575,6 +576,7 @@ class hbacrule_add_sourcehost(LDAPAddMember):
 
 @register()
 class hbacrule_remove_sourcehost(LDAPRemoveMember):
+    __doc__ = _('Remove source hosts and hostgroups from an HBAC rule.')
     NO_CLI = True
 
     member_attributes = ['sourcehost']

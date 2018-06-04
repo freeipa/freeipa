@@ -3838,9 +3838,7 @@ class dnsrecord_mod(LDAPUpdate):
 
 @register()
 class dnsrecord_delentry(LDAPDelete):
-    """
-    Delete DNS record entry.
-    """
+    __doc__ = _('Delete DNS record entry.')
     msg_summary = _('Deleted record "%(value)s"')
     NO_CLI = True
 
@@ -4067,9 +4065,7 @@ class dns_resolve(Command):
 
 @register()
 class dns_is_enabled(Command):
-    """
-    Checks if any of the servers has the DNS service enabled.
-    """
+    __doc__ = _('Checks if any of the servers has the DNS service enabled.')
     NO_CLI = True
     has_output = output.standard_value
 

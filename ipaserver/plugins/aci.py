@@ -17,7 +17,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+
+from copy import deepcopy
+import logging
+
+import six
+
+from ipalib import api, crud, errors
+from ipalib import Object
+from ipalib import Flag, Str, StrEnum, DNParam
+from ipalib.aci import ACI
+from ipalib import output
+from ipalib import _, ngettext
+from ipalib.plugable import Registry
+from .baseldap import gen_pkey_only_option, pkey_to_value
+from ipapython.dn import DN
+
+__doc__ = _("""
 Directory Server Access Control Instructions (ACIs)
 
 ACIs are used to allow or deny access to information. This module is
@@ -115,22 +131,7 @@ The show command shows the raw 389-ds ACI.
 IMPORTANT: When modifying the target attributes of an existing ACI you
 must include all existing attributes as well. When doing an aci-mod the
 targetattr REPLACES the current attributes, it does not add to them.
-
-"""
-from copy import deepcopy
-import logging
-
-import six
-
-from ipalib import api, crud, errors
-from ipalib import Object
-from ipalib import Flag, Str, StrEnum, DNParam
-from ipalib.aci import ACI
-from ipalib import output
-from ipalib import _, ngettext
-from ipalib.plugable import Registry
-from .baseldap import gen_pkey_only_option, pkey_to_value
-from ipapython.dn import DN
+""")
 
 if six.PY3:
     unicode = str
@@ -432,9 +433,7 @@ _prefix_option = StrEnum('aciprefix',
 
 @register()
 class aci(Object):
-    """
-    ACI object.
-    """
+    __doc__ = _('ACI object.')
     NO_CLI = True
 
     label = _('ACIs')
@@ -519,9 +518,7 @@ class aci(Object):
 
 @register()
 class aci_add(crud.Create):
-    """
-    Create new ACI.
-    """
+    __doc__ = _('Create new ACI.')
     NO_CLI = True
     msg_summary = _('Created ACI "%(value)s"')
 
@@ -573,9 +570,7 @@ class aci_add(crud.Create):
 
 @register()
 class aci_del(crud.Delete):
-    """
-    Delete ACI.
-    """
+    __doc__ = _('Delete ACI.')
     NO_CLI = True
     has_output = output.standard_boolean
     msg_summary = _('Deleted ACI "%(value)s"')
@@ -614,9 +609,7 @@ class aci_del(crud.Delete):
 
 @register()
 class aci_mod(crud.Update):
-    """
-    Modify ACI.
-    """
+    __doc__ = _('Modify ACI.')
     NO_CLI = True
 
     takes_options = (_prefix_option,)
@@ -677,8 +670,8 @@ class aci_mod(crud.Update):
 
 @register()
 class aci_find(crud.Search):
-    """
-    Search for ACIs.
+    __doc__ = _("""
+Search for ACIs.
 
     Returns a list of ACIs
 
@@ -695,7 +688,7 @@ class aci_find(crud.Search):
     For example, searching on memberof=ipausers will find all ACIs that
     have ipausers as a memberof. There may be other ACIs that apply to
     members of that group indirectly.
-    """
+    """)
     NO_CLI = True
     msg_summary = ngettext('%(count)d ACI matched', '%(count)d ACIs matched', 0)
 
@@ -883,9 +876,7 @@ class aci_find(crud.Search):
 
 @register()
 class aci_show(crud.Retrieve):
-    """
-    Display a single ACI given an ACI name.
-    """
+    __doc__ = _('Display a single ACI given an ACI name.')
     NO_CLI = True
 
     takes_options = (
@@ -924,9 +915,7 @@ class aci_show(crud.Retrieve):
 
 @register()
 class aci_rename(crud.Update):
-    """
-    Rename an ACI.
-    """
+    __doc__ = _('Rename an ACI.')
     NO_CLI = True
 
     takes_options = (

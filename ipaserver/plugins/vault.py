@@ -768,6 +768,7 @@ class vault(LDAPObject):
 
 @register()
 class vault_add_internal(LDAPCreate):
+    __doc__ = _('Add a vault.')
 
     NO_CLI = True
 
@@ -916,6 +917,7 @@ class vault_find(LDAPSearch):
 
 @register()
 class vault_mod_internal(LDAPUpdate):
+    __doc__ = _('Modify a vault.')
 
     NO_CLI = True
 
@@ -1011,6 +1013,7 @@ class vaultconfig_show(Retrieve):
 
 @register()
 class vault_archive_internal(PKQuery):
+    __doc__ = _('Archive data into a vault.')
 
     NO_CLI = True
 
@@ -1087,6 +1090,7 @@ class vault_archive_internal(PKQuery):
 
 @register()
 class vault_retrieve_internal(PKQuery):
+    __doc__ = _('Retrieve data from a vault.')
 
     NO_CLI = True
 
@@ -1215,6 +1219,7 @@ class vault_remove_member(VaultModMember, LDAPRemoveMember):
 
 @register()
 class kra_is_enabled(Command):
+    __doc__ = _('Checks if any of the servers has the KRA service enabled')
     NO_CLI = True
 
     has_output = output.standard_value

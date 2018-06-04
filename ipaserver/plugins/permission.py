@@ -1390,7 +1390,7 @@ class permission_show(baseldap.LDAPRetrieve):
 
 @register()
 class permission_add_member(baseldap.LDAPAddMember):
-    """Add members to a permission."""
+    __doc__ = _('Add members to a permission.')
     NO_CLI = True
 
     def pre_callback(self, ldap, dn, member_dns, failed, *keys, **options):
@@ -1402,5 +1402,5 @@ class permission_add_member(baseldap.LDAPAddMember):
 
 @register()
 class permission_remove_member(baseldap.LDAPRemoveMember):
-    """Remove members from a permission."""
+    __doc__ = _('Remove members from a permission.')
     NO_CLI = True
