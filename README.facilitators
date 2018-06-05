@@ -32,5 +32,5 @@ Vagrant boxes
 -------------
 
 See ``building.rst`` for instructions on building Vagrant boxes.
-At time of writing, the ``ftweedal/freeipa-workshop`` box is
-FreeIPA 4.2 / Fedora 23, for the VirtualBox and libvirt providers.
+At time of writing, the ``netoarmando/freeipa-workshop`` box is
+FreeIPA 4.6.90 / Fedora 28, for the VirtualBox and libvirt providers.
