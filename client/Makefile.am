@@ -90,6 +90,7 @@ ipa_join_LDADD = 		\
 	$(NULL)
 
 SUBDIRS =			\
+	share		\
 	man			\
 	$(NULL)
 

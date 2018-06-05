@@ -245,6 +245,7 @@ class BasePathNamespace(object):
     USERADD = "/usr/sbin/useradd"
     FONTS_DIR = "/usr/share/fonts"
     USR_SHARE_IPA_DIR = "/usr/share/ipa/"
+    USR_SHARE_IPA_CLIENT_DIR = "/usr/share/ipa/client"
     CA_TOPOLOGY_ULDIF = "/usr/share/ipa/ca-topology.uldif"
     IPA_HTML_DIR = "/usr/share/ipa/html"
     CA_CRT = "/usr/share/ipa/html/ca.crt"

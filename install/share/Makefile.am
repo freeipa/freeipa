@@ -51,7 +51,6 @@ dist_app_DATA =				\
 	kdc_req.conf.template		\
 	krb5.conf.template		\
 	krb5.ini.template		\
-	freeipa.template		\
 	krb.con.template		\
 	krbrealm.con.template		\
 	smb.conf.template		\
