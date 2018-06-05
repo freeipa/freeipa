@@ -4,7 +4,8 @@ AUTOMAKE_OPTIONS = 1.7
 
 NULL =
 
-SUBDIRS =			\
+if ENABLE_SERVER
+SERVER_SUBDIRS =		\
         certmonger		\
         html			\
         migration		\
@@ -16,7 +17,13 @@ SUBDIRS =			\
         wsgi			\
         oddjob			\
 	$(NULL)
+endif
 
+SUBDIRS = share 		\
+	  $(SERVER_SUBDIRS)	\
+	  $(NULL)
+
+if ENABLE_SERVER
 install-exec-local:
 	$(INSTALL) -d -m 700 $(DESTDIR)$(IPA_SYSCONF_DIR)/custodia
 	$(INSTALL) -d -m 700 $(DESTDIR)$(localstatedir)/lib/ipa/backup
@@ -37,3 +44,4 @@ uninstall-local:
 	-rmdir $(DESTDIR)$(localstatedir)/lib/ipa
 
 EXTRA_DIST = README.schema
+endif

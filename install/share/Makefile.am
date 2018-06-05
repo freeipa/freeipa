@@ -1,12 +1,20 @@
 NULL =
+appdir = $(IPA_DATA_DIR)
 
+# FreeIPA has two major build modes:
+# server build: full install is needed
+# client build: only few templates needed
+#
+# If changes or additions required, make
+# sure to handle both branches of the
+# following conditional
+if ENABLE_SERVER
 SUBDIRS =  				\
 	advise				\
 	profiles			\
 	schema.d			\
 	$(NULL)
 
-appdir = $(IPA_DATA_DIR)
 dist_app_DATA =				\
 	05rfc2247.ldif			\
 	15rfc2307bis.ldif		\
@@ -99,3 +107,11 @@ dist_app_DATA =				\
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy
 dist_kdcproxyconf_DATA =			\
 	kdcproxy.conf
+else
+# For the client build we have a separate setup
+
+dist_app_DATA =				\
+	freeipa.template		\
+	$(NULL)
+
+endif

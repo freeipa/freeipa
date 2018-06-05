@@ -2,7 +2,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 if ENABLE_SERVER
     IPASERVER_SUBDIRS = ipaserver
-    SERVER_SUBDIRS = daemons init install
+    SERVER_SUBDIRS = daemons init
 endif
 
 if WITH_IPATESTS
@@ -12,7 +12,7 @@ endif
 IPACLIENT_SUBDIRS = ipaclient ipalib ipaplatform ipapython
 PYTHON_SUBDIRS = $(IPACLIENT_SUBDIRS) $(IPATESTS_SUBDIRS) $(IPASERVER_SUBDIRS)
 IPA_PLACEHOLDERS = freeipa ipa ipaserver ipatests
-SUBDIRS = asn1 util client contrib po pypi $(PYTHON_SUBDIRS) $(SERVER_SUBDIRS)
+SUBDIRS = asn1 util client contrib po pypi install $(PYTHON_SUBDIRS) $(SERVER_SUBDIRS)
 
 GENERATED_PYTHON_FILES = \
 	$(top_builddir)/ipaplatform/override.py \
