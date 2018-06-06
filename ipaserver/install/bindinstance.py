@@ -1211,9 +1211,13 @@ class BindInstance(service.Service):
         # disabled by default, by ldap_enable()
         if enabled:
             self.enable()
+        else:
+            self.disable()
 
         if running:
             self.restart()
+        else:
+            self.stop()
 
         self.named_regular.unmask()
         if named_regular_enabled:
