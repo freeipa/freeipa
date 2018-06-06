@@ -177,8 +177,6 @@ class TestBackupAndRestore(IntegrationTest):
 
     def test_full_backup_and_restore_with_removed_users(self):
         """regression test for https://fedorahosted.org/freeipa/ticket/3866"""
-        tasks.uninstall_master(self.master)
-        tasks.install_master(self.master)
         with restore_checker(self.master):
             backup_path = backup(self.master)
 
@@ -202,8 +200,6 @@ class TestBackupAndRestore(IntegrationTest):
 
     def test_full_backup_and_restore_with_selinux_booleans_off(self):
         """regression test for https://fedorahosted.org/freeipa/ticket/4157"""
-        tasks.uninstall_master(self.master)
-        tasks.install_master(self.master)
         with restore_checker(self.master):
             backup_path = backup(self.master)
 
