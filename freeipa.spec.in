@@ -1,5 +1,3 @@
-# This specfile requires Fedora >= 28 or RHEL > 7.
-
 # 389-ds-base 1.4 no longer supports i686 platform, build only client
 # packages, https://bugzilla.redhat.com/show_bug.cgi?id=1544386
 %ifarch %{ix86}
@@ -26,17 +24,15 @@
 %endif
 
 # Python 2/3 packages and default Python interpreter
-%{!?with_default_python:%global with_default_python 3}
-%{!?with_python3:%global with_python3 1}
-
 %if 0%{?rhel} > 7
+%global with_default_python 3
 %global with_python2 0
 %else
+%{!?with_default_python:%global with_default_python 3}
 %{!?with_python2:%global with_python2 1}
 %endif
 
 %if %{with_default_python} == 3
-%global with_python3 1
 %global python %{__python3}
 %else
 %global with_python2 1
@@ -140,10 +136,8 @@ BuildRequires:  gettext-devel
 BuildRequires:  python2-devel
 BuildRequires:  python2-setuptools
 %endif # with_python2
-%if 0%{?with_python3}
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
-%endif # with_python3
 BuildRequires:  systemd
 # systemd-tmpfiles which is executed from make install requires apache user
 BuildRequires:  httpd
@@ -203,11 +197,9 @@ BuildRequires:  python2-tox
 BuildRequires:  python2-twine
 BuildRequires:  python2-wheel
 %endif
-%if 0%{?with_python3}
 BuildRequires:  python3-tox
 BuildRequires:  python3-twine
 BuildRequires:  python3-wheel
-%endif
 %endif # with_wheels
 
 #
@@ -255,7 +247,6 @@ BuildRequires:  python2-systemd
 BuildRequires:  python2-yubico
 %endif # with_python2
 
-%if 0%{?with_python3}
 BuildRequires:  python3-augeas
 BuildRequires:  python3-cffi
 BuildRequires:  python3-cryptography >= 1.6
@@ -290,7 +281,6 @@ BuildRequires:  python3-sss-murmur
 BuildRequires:  python3-sssdconfig
 BuildRequires:  python3-systemd
 BuildRequires:  python3-yubico
-%endif # with_python3
 %endif # with_lint
 
 #
@@ -443,8 +433,6 @@ If you are installing an IPA server, you need to install this package.
 
 %endif  # with_python2
 
-%if 0%{?with_python3}
-
 %package -n python3-ipaserver
 Summary: Python libraries used by IPA server
 Group: System Environment/Libraries
@@ -474,8 +462,6 @@ hosts, services), Authentication (SSO, 2FA), and Authorization
 features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 If you are installing an IPA server, you need to install this package.
-
-%endif  # with_python3
 
 
 %package server-common
@@ -651,8 +637,6 @@ installed on every client machine.
 
 %endif  # with_python2
 
-%if 0%{?with_python3}
-
 %package -n python3-ipaclient
 Summary: Python libraries used by IPA client
 Group: System Environment/Libraries
@@ -673,8 +657,6 @@ features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 If your network uses IPA for authentication, this package should be
 installed on every client machine.
-
-%endif  # with_python3
 
 
 %package client-common
@@ -780,8 +762,6 @@ If you are using IPA, you need to install this package.
 
 %endif  # with_python2
 
-%if 0%{?with_python3}
-
 %package -n python3-ipalib
 Summary: Python3 libraries used by IPA
 Group: System Environment/Libraries
@@ -823,8 +803,6 @@ hosts, services), Authentication (SSO, 2FA), and Authorization
 features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 If you are using IPA with Python 3, you need to install this package.
-
-%endif # with_python3
 
 
 %package common
@@ -889,8 +867,6 @@ This package contains tests that verify IPA functionality.
 
 %endif  # with_python2
 
-%if 0%{?with_python3}
-
 %package -n python3-ipatests
 Summary: IPA tests and test tools
 BuildArch: noarch
@@ -917,8 +893,6 @@ features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 This package contains tests that verify IPA functionality under Python 3.
 
-%endif # with_python3
-
 %endif # with_ipatests
 
 
@@ -938,9 +912,7 @@ mv %{_builddir}/freeipa-%{version} %{_builddir}/freeipa-%{version}-python3
 ln -sr %{_builddir}/freeipa-%{version}-python3 %{_builddir}/freeipa-%{version}
 %else
 # Python 2 default
-%if 0%{?with_python3}
 cp -r %{_builddir}/freeipa-%{version} %{_builddir}/freeipa-%{version}-python3
-%endif
 mv %{_builddir}/freeipa-%{version} %{_builddir}/freeipa-%{version}-python2
 ln -sr %{_builddir}/freeipa-%{version}-python2 %{_builddir}/freeipa-%{version}
 %endif
@@ -971,7 +943,6 @@ find \
 popd
 %endif # ! with_python2
 
-%if 0%{?with_python3}
 export PYTHON=%{__python3}
 pushd %{_builddir}/freeipa-%{version}-python3
 %configure --with-vendor-suffix=-%{release} \
@@ -979,7 +950,6 @@ pushd %{_builddir}/freeipa-%{version}-python3
            %{with_ipatests_option} \
            %{linter_options}
 popd
-%endif # with_python3
 
 # run build in default dir
 # -Onone is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1398405
@@ -1004,7 +974,6 @@ make %{?_smp_mflags} check VERBOSE=yes LIBDIR=%{_libdir}
 # Python2/3 versions at the same time so we need to rename them. Yuck.
 
 # Python 3 packages and commands
-%if 0%{?with_python3}
 pushd %{_builddir}/freeipa-%{version}-python3
 %{__make} python_install DESTDIR=%{?buildroot} INSTALL="%{__install} -p"
 popd
@@ -1016,7 +985,6 @@ ln -rs %{buildroot}%{_bindir}/ipa-run-tests-%{python3_version} %{buildroot}%{_bi
 ln -rs %{buildroot}%{_bindir}/ipa-test-config-%{python3_version} %{buildroot}%{_bindir}/ipa-test-config-3
 ln -rs %{buildroot}%{_bindir}/ipa-test-task-%{python3_version} %{buildroot}%{_bindir}/ipa-test-task-3
 %endif # with_ipatests
-%endif # with_python3
 
 # Python 2 packages and commands
 %if 0%{?with_python2}
@@ -1031,7 +999,7 @@ ln -rs %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version} %{buildroot}%{_bi
 ln -rs %{buildroot}%{_bindir}/ipa-test-config-%{python2_version} %{buildroot}%{_bindir}/ipa-test-config-2
 ln -rs %{buildroot}%{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-test-task-2
 %endif # with_ipatests
-%endif # with_python3
+%endif # with_python2
 
 # default installation
 # This installs all Python packages twice and overrides the ipa-test
@@ -1382,7 +1350,6 @@ fi
 %{python2_sitelib}/ipaserver-*.egg-info
 
 %endif # with_python2
-%if 0%{?with_python3}
 
 %files -n python3-ipaserver
 %defattr(-,root,root,-)
@@ -1390,8 +1357,6 @@ fi
 %license COPYING
 %{python3_sitelib}/ipaserver
 %{python3_sitelib}/ipaserver-*.egg-info
-
-%endif # with_python3
 
 
 %files server-common
@@ -1559,8 +1524,6 @@ fi
 
 %endif # with_python2
 
-%if 0%{?with_python3}
-
 %files -n python3-ipaclient
 %defattr(-,root,root,-)
 %doc README.md Contributors.txt
@@ -1588,8 +1551,6 @@ fi
 %dir %{python3_sitelib}/ipaclient/csrgen/templates
 %{python3_sitelib}/ipaclient/csrgen/templates/*.tmpl
 %{python3_sitelib}/ipaclient-*.egg-info
-
-%endif # with_python3
 
 
 %files client-common
@@ -1653,8 +1614,6 @@ fi
 %dir %{_usr}/share/ipa
 
 
-%if 0%{?with_python3}
-
 %files -n python3-ipalib
 %defattr(-,root,root,-)
 %doc README.md Contributors.txt
@@ -1667,8 +1626,6 @@ fi
 %{python3_sitelib}/ipalib-*.egg-info
 %{python3_sitelib}/ipaplatform-*.egg-info
 %{python3_sitelib}/ipaplatform-*-nspkg.pth
-
-%endif # with_python3
 
 
 %if 0%{?with_ipatests}
@@ -1698,8 +1655,6 @@ fi
 
 %endif # with_python2
 
-%if 0%{?with_python3}
-
 %files -n python3-ipatests
 %defattr(-,root,root,-)
 %doc README.md Contributors.txt
@@ -1720,8 +1675,6 @@ fi
 %{_mandir}/man1/ipa-test-config.1*
 %{_mandir}/man1/ipa-test-task.1*
 %endif
-
-%endif # with_python3
 
 %endif # with_ipatests
 
