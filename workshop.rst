@@ -80,8 +80,7 @@ Requirements
 
 For the FreeIPA workshop you will need to:
 
-- Install **Vagrant** and **VirtualBox 4.3** (VirtualBox 5 is not
-  supported by Vagrant).  (On Fedora, you can use **libvirt**
+- Install **Vagrant** and **VirtualBox**. (On Fedora, you can use **libvirt**
   instead of VirtualBox).
 
 - Use Git to clone the repository containing the ``Vagrantfile``
@@ -109,17 +108,14 @@ If you intend to use the ``libvirt`` provider (recommended), install
 Also ensure you have the latest versions of ``selinux-policy`` and
 ``selinux-policy-targeted``.
 
-Allow your regular user ID to start and stop Vagrant boxes. A PolicyKit rule
-will be added that allows users in the ``vagrant`` group to control VMs through
-libvirt. The necessary rule is included in the ``vagrant-libvirt-doc`` 
-package. Run the following commands to add your local user to the vagrant 
-group and to copy the necessary rule to the right place::
+Allow your regular user ID to start and stop Vagrant boxes using ``libvirt``.
+Add your user to ``libvirt`` group so you don't need to enter your administrator
+password everytime::
 
-  $ usermod -a -G vagrant $USER
-  $ cp /usr/share/vagrant/gems/doc/vagrant-libvirt-*/polkit/10-vagrant-libvirt.rules \
-    /etc/polkit-1/rules.d
+  $ sudo gpasswd -a ${USER} libvirt
+  $ newgrp libvirt
 
-On **Fedoda 24** you need to enable ``virtlogd``::
+On **Fedoda 28** you need to enable ``virtlogd``::
 
   $ systemctl enable virtlogd.socket
   $ systemctl start virtlogd.socket
@@ -151,9 +147,9 @@ in the transcript below (to make sure it wasn't tampered with)::
   repo_gpgcheck=1
   gpgkey=https://www.virtualbox.org/download/oracle_vbox.asc
 
-  $ sudo dnf install -y VirtualBox-4.3
+  $ sudo dnf install -y VirtualBox-5.2
 
-Finally, load the kernel modules::
+Finally, load the kernel modules (you may need to restart your system for this to work)::
 
   $ sudo modprobe vboxdrv vboxnetadp
 
@@ -164,8 +160,8 @@ Mac OS X
 Install Vagrant for Mac OS X from
 https://www.vagrantup.com/downloads.html.
 
-Install VirtualBox 4.3 for **OS X hosts** from
-https://www.virtualbox.org/wiki/Download_Old_Builds_4_3.
+Install VirtualBox 5.2 for **OS X hosts** from
+https://www.virtualbox.org/wiki/Downloads.
 
 Install Git from https://git-scm.com/download/mac or via your
 preferred package manager.
@@ -178,19 +174,19 @@ Install Vagrant and Git::
 
   $ sudo apt-get install -y vagrant git
 
-**Virtualbox 4.3** may be available from the system package manager,
+**Virtualbox 5.2** may be available from the system package manager,
 depending your your release.  Find out which version of VirtualBox is
 available::
 
   $ apt list virtualbox
   Listing... done
-  virtualbox/trusty-updates,trusty-security 4.3.10-dfsg-1ubuntu5 amd64
+  virtualbox/bionic 5.2.10-dfsg-6 amd64
 
-If version 4.3 is available, install it via ``apt-get``::
+If version 5.2 is available, install it via ``apt-get``::
 
   $ sudo apt-get install -y virtualbox
 
-If VirtualBox 4.3 was not available in the official packages for
+If VirtualBox 5.2 was not available in the official packages for
 your release, follow the instructions at
 https://www.virtualbox.org/wiki/Linux_Downloads to install it.
 
@@ -201,8 +197,8 @@ Windows
 Install Vagrant via the ``.msi`` available from
 https://www.vagrantup.com/downloads.html.
 
-Install VirtualBox 4.3 for **Windows hosts** from
-https://www.virtualbox.org/wiki/Download_Old_Builds_4_3.
+Install VirtualBox 5.2 for **Windows hosts** from
+https://www.virtualbox.org/wiki/Downloads.
 
 You will also need to install an SSH client, and Git.  Git for
 Windows also comes with an SSH client so just install Git from
@@ -223,20 +219,12 @@ workshop, which you will need locally.
 Fetch Vagrant box
 -----------------
 
-Please fetch the Vagrant box prior to the workshop.  It is > 500MB
+Please fetch the Vagrant box prior to the workshop.  It is > 600MB
 so it may not be feasible to download it during the workshop.
 
 ::
 
-  $ vagrant box add ftweedal/freeipa-workshop
-
-
-If you are running an older version of Vagrant that does not know
-about the *Atlas* service where the box is hosted, you can add it
-by URL instead::
-
-  $ vagrant box add ftweedal/freeipa-workshop \
-      https://atlas.hashicorp.com/ftweedal/boxes/freeipa-workshop/versions/0.0.7/providers/virtualbox.box
+  $ vagrant box add netoarmando/freeipa-workshop
 
 
 Add hosts file entries
@@ -294,12 +282,12 @@ On ``server``, start the FreeIPA server installation program::
 
 The ``--no-host-dns`` argument is needed because there are no reverse
 DNS records for the Vagrant environment.  For production deployment,
-this important sanity check should not be skipped. The ``--mkhomedir`` 
-flag configure PAM to create missing home directories when users log 
-into the host for the first time. FreeIPA supports automount so 
+this important sanity check should not be skipped. The ``--mkhomedir``
+flag configure PAM to create missing home directories when users log
+into the host for the first time. FreeIPA supports automount so
 consider using that for production deployments.
 
-You will be asked a series of questions. Accept the defaults for most 
+You will be asked a series of questions. Accept the defaults for most
 of the questions, except as outlined below.
 
 Configure FreeIPA's DNS server::
@@ -315,17 +303,17 @@ Accept default values for the server hostname, domain name and realm::
   Example: master.example.com.
 
 
-  Server host name [server.ipademo.local]: 
+  Server host name [server.ipademo.local]:
 
   Warning: skipping DNS resolution of host server.ipademo.local
   The domain name has been determined based on the host name.
 
-  Please confirm the domain name [ipademo.local]: 
+  Please confirm the domain name [ipademo.local]:
 
   The kerberos protocol requires a Realm name to be defined.
   This is typically the domain name converted to uppercase.
 
-  Please provide a realm name [IPADEMO.LOCAL]: 
+  Please provide a realm name [IPADEMO.LOCAL]:
 
 
 Enter passwords for *Directory Manager* (used to manage the
@@ -341,14 +329,14 @@ forget during the workshop!
   instance of directory server created for IPA.
   The password must be at least 8 characters long.
 
-  Directory Manager password: 
-  Password (confirm): 
+  Directory Manager password:
+  Password (confirm):
 
   The IPA server requires an administrative user, named 'admin'.
   This user is a regular system account used for IPA server administration.
 
-  IPA admin password: 
-  Password (confirm): 
+  IPA admin password:
+  Password (confirm):
 
 
 Do not configure a DNS forwarder (you will want to configure a DNS
@@ -358,7 +346,7 @@ workshop) and accept the defaults for configuring the reverse zone::
   Checking DNS domain ipademo.local., please wait ...
   Do you want to configure DNS forwarders? [yes]: no
   No DNS forwarders configured
-  Do you want to search for missing reverse zones? [yes]: 
+  Do you want to search for missing reverse zones? [yes]:
 
 
 Next, you will be presented with a summary of the server
@@ -433,7 +421,7 @@ manually enter the domain and server hostname instead).
 The autodetected server settings will be displayed; confirm to
 proceed::
 
-  [client]$ sudo ipa-client-install
+  [client]$ sudo ipa-client-install --mkhomedir
   Discovery was successful!
   Client hostname: client.ipademo.local
   Realm: IPADEMO.LOCAL
@@ -448,7 +436,7 @@ workshop can be ignored.  Next you will be be prompted to enter
 credentials of a user authorised to enrol hosts (``admin``)::
 
   User authorized to enroll computers: admin
-  Password for admin@IPADEMO.LOCAL: 
+  Password for admin@IPADEMO.LOCAL:
 
 The enrolment now proceeds; no further input is required.  You will
 see output detailing the operations being completed.  Unlike
@@ -530,7 +518,7 @@ same for regular users - just ``kinit <username>``!
 Try to authenticate as ``bob``::
 
   [server]$ kinit bob
-  kinit: Generic preauthentication failure while getting initial credentials
+  kinit: Pre-authentication failed: Invalid argument while getting initial credentials
 
 If you did *not* encounter this error, congratulations - you must be
 a disciplined reader of documentation!  To set an initial password
@@ -552,10 +540,10 @@ it is set), the next ``kinit`` will prompt them to enter a new
 password::
 
   [server]$ kinit bob
-  Password for bob@IPADEMO.LOCAL: 
+  Password for bob@IPADEMO.LOCAL:
   Password expired.  You must change it now.
-  Enter new password: 
-  Enter it again: 
+  Enter new password:
+  Enter it again:
 
 
 Now ``bob`` has a TGT (run ``klist`` to confirm) which he can use to
@@ -564,7 +552,7 @@ authenticate himself to other hosts and services.  Try logging into
 
   [server]$ ssh bob@client.ipademo.local
   Creating home directory for bob.
-  [bob@client]$ 
+  [bob@client]$
 
 You are now logged into the client as ``bob``.  Type ``^D`` or
 ``exit`` to log out and return to the ``server`` shell.  If you run
@@ -576,13 +564,12 @@ is a true *single sign-on* protocol!
 ::
 
   [server]$ klist
-  Ticket cache: KEYRING:persistent:1000:krb_ccache_dYtyLyU
-  Default principal: bob@IPADEMO.LOCAL
+  Ticket cache: KEYRING:persistent:1000:1000
+  Default principal: admin@IPADEMO.LOCAL
 
-  Valid starting     Expires            Service principal
-  15/10/15 07:15:11  16/10/15 07:15:02  host/client.ipademo.local@IPADEMO.LOCAL
-  15/10/15 07:15:03  16/10/15 07:15:02  krbtgt/IPADEMO.LOCAL@IPADEMO.LOCAL
-
+  Valid starting       Expires              Service principal
+  06/04/2018 21:45:50  06/05/2018 21:38:24  host/client.ipademo.local@IPADEMO.LOCAL
+  06/04/2018 21:38:41  06/05/2018 21:38:24  krbtgt/IPADEMO.LOCAL@IPADEMO.LOCAL
 
 
 Unit 4: Host-based access control (HBAC)
@@ -706,17 +693,17 @@ the ``sysadmin`` group.  What about ``alice``?
 ``kinit`` as ``bob`` and try to log in to the client::
 
   [server]$ kinit bob
-  Password for bob@IPADEMO.LOCAL: 
+  Password for bob@IPADEMO.LOCAL:
   [server]$ ssh bob@client.ipademo.local
-  packet_write_wait: Connection to UNKNOWN port 0: Broken pipe
+  Connection closed by UNKNOWN port 65535
 
 Then try ``alice``::
 
   [server]$ kinit alice
-  Password for alice@IPADEMO.LOCAL: 
+  Password for alice@IPADEMO.LOCAL:
   [server]$ ssh alice@client.ipademo.local
   Creating home directory for alice.
-  [alice@client]$ 
+  [alice@client]$
 
 
 Unit 5: Web application authentication and authorisation
@@ -819,7 +806,7 @@ To test that Kerberos Negotiate authentication is working, ``kinit``
 and make a request using ``curl``::
 
   [client]$ kinit bob
-  Password for bob@IPADEMO.LOCAL: 
+  Password for bob@IPADEMO.LOCAL:
 
   [client]$ curl -u : --negotiate http://client.ipademo.local/
   LOGGED IN AS: bob@IPADEMO.LOCAL
@@ -881,7 +868,7 @@ utility::
   [client]$ sudo dbus-send --print-reply --system \
       --dest=org.freedesktop.sssd.infopipe /org/freedesktop/sssd/infopipe \
       org.freedesktop.sssd.infopipe.GetUserAttr string:alice array:string:mail
-  method return sender=:1.117 -> dest=:1.119 reply_serial=2
+  method return time=1528050430.867333 sender=:1.147 -> destination=:1.150 serial=5 reply_serial=2
      array [
         dict entry(
            string "mail"
@@ -940,7 +927,6 @@ information that was injected into the request environment by
 
   REMOTE_* REQUEST VARIABLES:
 
-    REMOTE_USER_GECOS: Alice Able
     REMOTE_USER_GROUP_N: 2
     REMOTE_ADDR: 192.168.33.20
     REMOTE_USER_FIRSTNAME: Alice
@@ -1036,8 +1022,7 @@ the *certmonger* program.
 Certmonger supports multiple CAs including FreeIPA's CA, and can
 generate keys, issue certifiate requests, track certificates, and
 renew tracked certificates when the expiration time approaches.
-Certmonger works with NSS, so we will also use ``mod_nss`` with
-Apache, rather than ``mod_ssl``.
+Will also use ``mod_ssl`` with Apache.
 
 Let's start by confirming that the HTTP service does not yet have a
 certificate::
@@ -1056,17 +1041,17 @@ Enable and start certmonger::
 Now let's request a certificate.  We will generate keys and store
 certificates in the NSS database at ``/etc/httpd/alias``::
 
-  [client]$ sudo ipa-getcert request -d /etc/httpd/alias -n app \
+  [client]$ sudo ipa-getcert request -f /etc/pki/tls/certs/app.crt -k /etc/pki/tls/private/app.key \
             -K HTTP/client.ipademo.local \
             -D client.ipademo.local
-  New signing request "20151026222558" added.
+  New signing request "20180603185400" added.
 
 Let's break down some of those command arguments.
 
-``-d <path>``
-  Path to NSS database
-``-n <nickname>``
-  *Nickname* to use for storing the key and certificate
+``-k <path>``
+  Path to private key
+``-f <path>``
+  Path to certificate
 ``-K <principal>``
   Kerberos service principal; because different kinds of services may
   be accessed at one hostname, this argument is needed to tell
@@ -1084,25 +1069,26 @@ defaults to the system hostname, which in our case
 Let's check the status of our certificate request using the tracking
 identifier given in the ``ipa-getcert request`` output::
 
-  [client]$ sudo getcert list -i 20151026222558
+  [client]$ sudo getcert list -i 20180603185400
   Number of certificates and requests being tracked: 1.
-  Request ID '20151026222558':
-          status: MONITORING
-          stuck: no
-          key pair storage: type=NSSDB,location='/etc/httpd/alias',nickname='app',token='NSS Certificate DB'
-          certificate: type=NSSDB,location='/etc/httpd/alias',nickname='app',token='NSS Certificate DB'
-          CA: IPA
-          issuer: CN=Certificate Authority,O=IPADEMO.LOCAL
-          subject: CN=client.ipademo.local,O=IPADEMO.LOCAL
-          expires: 2017-10-26 22:26:00 UTC
-          dns: client.ipademo.local
-          principal name: HTTP/client.ipademo.local@IPADEMO.LOCAL
-          key usage: digitalSignature,nonRepudiation,keyEncipherment,dataEncipherment
-          eku: id-kp-serverAuth,id-kp-clientAuth
-          pre-save command: 
-          post-save command: 
-          track: yes
-          auto-renew: yes
+  Request ID '20180603185400':
+    status: MONITORING
+    stuck: no
+    key pair storage: type=FILE,location='/etc/pki/tls/private/app.key'
+    certificate: type=FILE,location='/etc/pki/tls/certs/app.crt'
+    CA: IPA
+    issuer: CN=Certificate Authority,O=IPADEMO.LOCAL
+    subject: CN=client.ipademo.local,O=IPADEMO.LOCAL
+    expires: 2020-06-03 18:54:00 UTC
+    dns: client.ipademo.local
+    principal name: HTTP/client.ipademo.local@IPADEMO.LOCAL
+    key usage: digitalSignature,nonRepudiation,keyEncipherment,dataEncipherment
+    eku: id-kp-serverAuth,id-kp-clientAuth
+    pre-save command:
+    post-save command:
+    track: yes
+    auto-renew: yes
+
 
 Confirm that the certificate was issued and that certmonger is now
 ``MONITORING`` the certificate and will ``auto-renew`` it when it is
@@ -1111,40 +1097,16 @@ see a number of attributes related to the certificate, including the
 certificate itself.  Can you work out how to save the PEM-encoded
 certificate to a file?
 
-You can also see that the certificate is present in the NSS
-database, identified by the specified nickname::
-
-  [client]# sudo certutil -d /etc/httpd/alias -L -n app
-  Certificate:
-      Data:
-          Version: 3 (0x2)
-          Serial Number: 11 (0xb)
-          Signature Algorithm: PKCS #1 SHA-256 With RSA Encryption
-          Issuer: "CN=Certificate Authority,O=IPADEMO.LOCAL"
-          Validity:
-              Not Before: Mon Oct 26 22:26:00 2015
-              Not After : Thu Oct 26 22:26:00 2017
-          Subject: "CN=client.ipademo.local,O=IPADEMO.LOCAL"
-          ...
-          Signed Extensions:
-              ...
-              Name: Certificate Subject Alt Name
-              DNS name: "client.ipademo.local"
-    ...
-
-
 Now we can reconfigure Apache to serve our app over TLS.  Update
-``app.conf`` to listen on port 443 and add the NSS directives::
+``app.conf`` to listen on port 443 and add the SSL directives::
 
   ...
-
   Listen 443
 
   <VirtualHost *:443>
-      NSSEngine on
-      NSSCertificateDatabase /etc/httpd/alias
-      NSSNickname app
-      NSSCipherSuite +aes_128_sha_256,+aes_256_sha_256,+ecdhe_ecdsa_aes_128_gcm_sha_256,+ecdhe_ecdsa_aes_128_sha,+ecdhe_ecdsa_aes_256_gcm_sha_384,+ecdhe_ecdsa_aes_256_sha,+ecdhe_rsa_aes_128_gcm_sha_256,+ecdhe_rsa_aes_128_sha,+ecdhe_rsa_aes_256_gcm_sha_384,+ecdhe_rsa_aes_256_sha,+rsa_aes_128_gcm_sha_256,+rsa_aes_128_sha,+rsa_aes_256_gcm_sha_384,+rsa_aes_256_sha
+      SSLEngine on
+      SSLCertificateFile "/etc/pki/tls/certs/app.crt"
+      SSLCertificateKeyFile "/etc/pki/tls/private/app.key"
 
       ServerName client.ipademo.local
       ...
@@ -1158,15 +1120,15 @@ Restart Apache and make a request to the app over HTTPS::
 
   REMOTE_* REQUEST VARIABLES:
 
-    REMOTE_USER_MAIL: alice@ipademo.local
-    REMOTE_USER_GECOS: Alice Able
     REMOTE_USER: alice@IPADEMO.LOCAL
-    REMOTE_USER_GROUP_N: 1
-    REMOTE_ADDR: 192.168.33.20
-    REMOTE_USER_FIRSTNAME: Alice
-    REMOTE_USER_LASTNAME: Able
     REMOTE_USER_GROUP_1: ipausers
-    REMOTE_PORT: 47894
+    REMOTE_USER_GROUP_2: sysadmin
+    REMOTE_USER_GROUP_N: 2
+    REMOTE_USER_FIRSTNAME: Alice
+    REMOTE_USER_LASTNAME: Alice
+    REMOTE_USER_MAIL: alice@ipademo.local
+    REMOTE_ADDR: 192.168.33.20
+    REMOTE_PORT: 51876
 
 
 Unit 7: Replica installation
@@ -1181,7 +1143,7 @@ If you have disabled the ``allow_all`` HBAC rule, add a new rule
 that will **allow ``admin`` to access the ``sshd`` service on any
 host**.
 
-As of FreeIPA 4.3, replica installation is accomplished by
+[To be confirmed] As of FreeIPA 4.3, replica installation is accomplished by
 *promoting* an enrolled client machine to a server.
 
 SSH to the ``replica`` VM and enrol it per `Unit 2: Enrolling
@@ -1196,22 +1158,23 @@ components can be added later via ``ipa-ca-install(1)`` and
 ::
 
   [replica]$ sudo ipa-replica-install
-  Password for admin@IPADEMO.LOCAL: 
-
+  Password for admin@IPADEMO.LOCAL:
+  ipaserver.install.server.replicainstall: ERROR    Reverse DNS resolution of address 192.168.33.10 (server.ipademo.local) failed. Clients may not function properly. Please check your DNS setup. (Note that this check queries IPA DNS directly and ignores /etc/hosts.)
+  Continue? [no]: yes
   Run connection check to master
   Connection check OK
-  Configuring NTP daemon (ntpd)
-    [1/4]: stopping ntpd
-    [2/4]: writing configuration
+  Configuring directory server (dirsrv). Estimated time: 30 seconds
+    [1/41]: creating directory server instance
+    [2/41]: enabling ldapi
   ...
 
 The rest of the replica installation process is almost identical to
 server installation.  One important difference is the initial
 replication of data to the new Directory Server instance::
 
-  [28/43]: setting up initial replication
+  [28/41]: setting up initial replication
   Starting replication, please wait until this has completed.
-  Update in progress, 7 seconds elapsed
+  Update in progress, 4 seconds elapsed
   Update succeeded
 
 After ``ipa-replica-install`` finishes, the replica is operational.
@@ -1233,6 +1196,13 @@ to run any command on any FreeIPA-enrolled machine, and to allow
 ``bob`` (who is merely a web server administrator) to control
 ``httpd`` on hosts that are ``webservers``.
 
+As of FreeIPA 4.6.90.pre2, you should enable SSSD's sudo responder by running::
+
+  [client]$ sudo authselect enable-feature with-sudo
+
+Restart SSSD::
+
+  [client]$ sudo systemctl restart sssd
 
 Permitting ``alice`` to run all commmands
 -----------------------------------------
@@ -1554,10 +1524,10 @@ Generate a user keypair on the client system::
   [alice@client]$
   [alice@client]$ ssh-keygen -C alice@ipademo.local
   Generating public/private rsa key pair.
-  Enter file in which to save the key (/home/alice/.ssh/id_rsa): 
+  Enter file in which to save the key (/home/alice/.ssh/id_rsa):
   Created directory '/home/alice/.ssh'.
-  Enter passphrase (empty for no passphrase): 
-  Enter same passphrase again: 
+  Enter passphrase (empty for no passphrase):
+  Enter same passphrase again:
   Your identification has been saved in /home/alice/.ssh/id_rsa.
   Your public key has been saved in /home/alice/.ssh/id_rsa.pub.
   The key fingerprint is:
@@ -1619,7 +1589,7 @@ now work::
 
   [alice@client]$ ssh -o GSSAPIAuthentication=no server.ipademo.local
   Last login: Tue Feb  2 15:10:13 2016
-  [alice@server]$ 
+  [alice@server]$
 
 To verify the SSH public key was used for authentication, you can
 check the ``sshd`` service journal on the server, which should have
