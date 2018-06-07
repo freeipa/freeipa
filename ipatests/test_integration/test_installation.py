@@ -9,6 +9,7 @@ installed.
 
 import pytest
 from ipalib.constants import DOMAIN_LEVEL_0
+from ipaplatform.paths import paths
 from ipatests.pytest_plugins.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
@@ -362,3 +363,30 @@ class TestInstallMasterReservedIPasForwarder(IntegrationTest):
         exp_str = ("Invalid IP Address 0.0.0.0: cannot use IANA reserved "
                    "IP address 0.0.0.0")
         assert exp_str in cmd.stdout_text
+
+
+class TestInstallMasterNoForwarder(IntegrationTest):
+    """Test to check if no responding forwarder is configured.
+
+    In case that there is no responding forwarder configured in
+    /etc/resolv.conf instead of returning an error "Failed to verify ..",
+    returns "Reverse zone X for IP address Y already exists"
+
+    related ticket: https://pagure.io/freeipa/issue/6989
+    """
+
+    # @pytest.mark.xfail(reason="Ticket N 6989")
+    def test_no_responding_forwarder(self):
+        master = self.master
+        master.run_command(
+            ['mv', paths.RESOLV_CONF, '/tmp'])
+        content = ('search {domain}\nnameserver {master_ip}'
+                   .format(domain=master.domain.name, master_ip=master.ip))
+        master.put_file_contents(paths.RESOLV_CONF, content)
+        tasks.install_master(self.master, setup_dns=True)
+
+        rev_zone = master.ip.split('.')[2] + '.' + \
+                   master.ip.split('.')[1] + '.' + \
+                   master.ip.split('.')[0] + '.in-addr.arpa.'
+        msg = 'Reverse zone %s for IP address %s already exists', (rev_zone, master.ip)
+        assert msg not in paths.IPASERVER_INSTALL_LOG
