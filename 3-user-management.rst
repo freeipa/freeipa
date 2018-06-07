@@ -120,3 +120,12 @@ is a true *single sign-on* protocol!
   Valid starting       Expires              Service principal
   06/04/2018 21:45:50  06/05/2018 21:38:24  host/client.ipademo.local@IPADEMO.LOCAL
   06/04/2018 21:38:41  06/05/2018 21:38:24  krbtgt/IPADEMO.LOCAL@IPADEMO.LOCAL
+
+
+Now that you have created some users, it's time to define some
+access policies.  Proceed to
+`Unit 4: Host-based access control (HBAC) <4-hbac.rst>`_.
+
+Alternatively, if you are interested in SSH public key management
+for users and hosts, jump ahead to
+`Unit 10: SSH user and host key management <10-ssh-key-management.rst>`_.

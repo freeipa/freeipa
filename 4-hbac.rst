@@ -130,3 +130,12 @@ Then try ``alice``::
   [server]$ ssh alice@client.ipademo.local
   Creating home directory for alice.
   [alice@client]$
+
+
+This was the final mandatory unit in the workshop.  From here, there
+are several optional units you can choose from.  You can proceed
+directly to
+`Unit 5: Web application authentication and authorisation <5-web-app-authnz.rst>`_.
+Otherwise,
+`return to the curriculum overview <workshop.rst#Curriculum_overview>`_
+to see all the options.

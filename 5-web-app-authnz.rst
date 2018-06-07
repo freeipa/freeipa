@@ -301,3 +301,8 @@ Restart Apache and try and perform the same ``curl`` request again
 as ``alice``.  Everything should work as before because ``alice`` is
 a member of the ``sysadmin`` group.  What happens when you are
 authenticated as ``bob`` instead?
+
+This unit is now concluded.  Now that you have mastered web app
+authentication, you'll want to configure TLS for your site.  Proceed
+to
+`Unit 6: Certificate management <6-cert-management.rst>`_.

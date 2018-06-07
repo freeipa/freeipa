@@ -22,27 +22,21 @@ X.509 certificates for services.
 Curriculum overview
 -------------------
 
-- `Unit 1: Installing the FreeIPA server`_
-- `Unit 2: Enrolling client machines`_
-- `Unit 3: User management and Kerberos authentication`_
-- `Unit 4: Host-based access control (HBAC)`_
-- `Unit 5: Web application authentication and authorisation`_
-- `Unit 6: Certificate management`_
-- `Unit 7: Replica installation`_
-- `Unit 8: Sudo rule management`_
-- `Unit 9: SELinux User Maps`_
-- `Unit 10: SSH user and host key management`_
+Mandatory:
 
-.. _Unit 1\: Installing the FreeIPA server: 1-server-install.rst
-.. _Unit 2\: Enrolling client machines: 2-client-install.rst
-.. _Unit 3\: User management and Kerberos authentication: 3-user-management.rst
-.. _Unit 4\: Host-based access control (HBAC): 4-hbac.rst
-.. _Unit 5\: Web application authentication and authorisation: 5-web-app-authnz.rst
-.. _Unit 6\: Certificate management: 6-cert-management.rst
-.. _Unit 7\: Replica installation: 7-replica-install.rst
-.. _Unit 8\: Sudo rule management: 8-sudorule.rst
-.. _Unit 9\: SELinux User Maps: 9-selinux-user-map.rst
-.. _Unit 10\: SSH user and host key management: 10-ssh-key-management.rst
+- `Unit 1: Installing the FreeIPA server <1-server-install.rst>`_
+- `Unit 2: Enrolling client machines <2-client-install.rst>`_
+- `Unit 3: User management and Kerberos authentication <3-user-management.rst>`_
+- `Unit 4: Host-based access control (HBAC) <4-hbac.rst>`_
+
+Optional units—choose the topics that are relevant to you:
+
+- `Unit 5: Web application authentication and authorisation <5-web-app-authnz.rst>`_
+- `Unit 6: Certificate management <6-cert-management.rst>`_
+- `Unit 7: Replica installation <7-replica-install.rst>`_
+- `Unit 8: Sudo rule management <8-sudorule.rst>`_
+- `Unit 9: SELinux User Maps <9-selinux-user-map.rst>`_
+- `Unit 10: SSH user and host key management <10-ssh-key-management.rst>`_
 
 
 Editing files on VMs
@@ -256,3 +250,10 @@ On Unix systems (including Mac OS X), the hosts file is ``/etc/hosts``
 
 On Windows, edit ``C:\Windows\System32\system\drivers\etc\hosts`` as
 *Administrator*.
+
+
+Next step
+---------
+
+You are ready to begin the workshop.  Continue to
+`Unit 1: Installing the FreeIPA server <1-server-install.rst>`_.
