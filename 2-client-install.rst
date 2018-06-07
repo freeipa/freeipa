@@ -1,6 +1,10 @@
 Unit 2: Enrolling client machines
 ===================================
 
+**Prerequisites**:
+
+- `Unit 1: Installing the FreeIPA server <1-server-install.rst>`_
+
 In this unit, you will enrol a *host* as a client of your FreeIPA
 domain.  This means that *users* in your FreeIPA realm (or Active
 Directory realms for which there is a trust with FreeIPA) can log

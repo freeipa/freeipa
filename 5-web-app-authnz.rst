@@ -1,6 +1,11 @@
 Unit 5: Web application authentication and authorisation
 ==========================================================
 
+**Prerequisites**:
+
+- `Unit 3: User management and Kerberos authentication <3-user-management.rst>`_
+- `Unit 4: Host-based access control (HBAC) <4-hbac.rst>`_
+
 You can configure many kinds of applications to rely on FreeIPA's
 centralised authentication, including web applications.  In this
 unit you will configure the Apache web server to use Kerberos
