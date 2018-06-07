@@ -1,0 +1,132 @@
+Unit 4: Host-based access control (HBAC)
+==========================================
+
+FreeIPA's *host-based access control* (HBAC) feature allows you to
+define policies that restrict access to hosts or services based on
+the user attempting to log in and that user's groups, the host that
+they are trying to access (or its *Host Groups*), and (optionally)
+the service being accessed.
+
+In this unit, we will define an HBAC policy that restricts
+access to ``client.ipademo.local`` to members of the
+``sysadmin`` user group.
+
+
+Adding a host group
+-------------------
+
+Instead of defining the HBAC rule to directly talk about
+``client.ipademo.local``, create a *Host Group* named ``webservers``
+and add ``client.ipademo.local`` to it.  You can do this via the Web
+UI or the ``ipa`` CLI program (don't forget to ``kinit admin``; see
+if you can work out what plugin provides the host group
+functionality).
+
+**Hint:** if you use the CLI will need to run two commands - one to
+create the host group, and one to add ``client.ipademo.local`` as a
+member of the host group.
+
+
+Disabling the ``allow_all`` HBAC rule
+-------------------------------------
+
+HBAC rules are managed via the ``hbacrule`` plugin.  You can
+complete the following actions via the Web UI as well, but we will
+cover the CLI commands.
+
+List the existing HBAC rules::
+
+  [server]$ ipa hbacrule-find
+  -------------------
+  1 HBAC rule matched
+  -------------------
+    Rule name: allow_all
+    User category: all
+    Host category: all
+    Service category: all
+    Description: Allow all users to access any host from any host
+    Enabled: TRUE
+  ----------------------------
+  Number of entries returned 1
+  ----------------------------
+
+The FreeIPA server is installed with a single default ``allow_all``
+rule.  This rule must be disabled for other HBAC rules to take
+effect.  Look for a command that can do this, and run it.
+
+
+Creating HBAC rules
+-------------------
+
+HBAC rules are built up incrementally.  The rule is created, then
+users or groups, hosts or hostsgroups and HBAC services are added to
+the rule.  The following transcript details the process::
+
+  [server]$ ipa hbacrule-add sysadmin_webservers
+  -------------------------------------
+  Added HBAC rule "sysadmin_webservers"
+  -------------------------------------
+    Rule name: sysadmin_webservers
+    Enabled: TRUE
+
+  [server]$ ipa hbacrule-add-host sysadmin_webservers --hostgroup webservers
+    Rule name: sysadmin_webservers
+    Enabled: TRUE
+    Host Groups: webservers
+  -------------------------
+  Number of members added 1
+  -------------------------
+
+  [server]$ ipa hbacrule-add-user sysadmin_webservers --group sysadmin
+    Rule name: sysadmin_webservers
+    Enabled: TRUE
+    User Groups: sysadmin
+    Host Groups: webservers
+  -------------------------
+  Number of members added 1
+  -------------------------
+
+  [server]$ ipa hbacrule-mod sysadmin_webservers --servicecat=all
+  ----------------------------------------
+  Modified HBAC rule "sysadmin_webservers"
+  ----------------------------------------
+    Rule name: sysadmin_webservers
+    Service category: all
+    Enabled: TRUE
+    User Groups: sysadmin
+    Host Groups: webservers
+
+The ``--servicecat=all`` option applies this rule for all services on
+matching hosts.  It could have been set during the ``hbacrule-add``
+command instead.
+
+
+Testing HBAC rules
+------------------
+
+You can test HBAC rule evaluation using the ``ipa hbactest``
+command::
+
+  [server]$ ipa hbactest --host client.ipademo.local --service sshd --user bob
+  ---------------------
+  Access granted: False
+  ---------------------
+    Not matched rules: sysadmin_webservers
+
+Poor ``bob``.  He won't be allowed in because he is not a member of
+the ``sysadmin`` group.  What about ``alice``?
+
+``kinit`` as ``bob`` and try to log in to the client::
+
+  [server]$ kinit bob
+  Password for bob@IPADEMO.LOCAL:
+  [server]$ ssh bob@client.ipademo.local
+  Connection closed by UNKNOWN port 65535
+
+Then try ``alice``::
+
+  [server]$ kinit alice
+  Password for alice@IPADEMO.LOCAL:
+  [server]$ ssh alice@client.ipademo.local
+  Creating home directory for alice.
+  [alice@client]$
