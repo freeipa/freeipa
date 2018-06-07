@@ -754,7 +754,7 @@ class CAInstance(DogtagInstance):
         self.configure_agent_renewal()
 
     def __import_ra_key(self):
-        self._custodia.import_ra_key(self.master_host)
+        self._custodia.import_ra_key()
         self.__set_ra_cert_perms()
 
         self.configure_agent_renewal()
