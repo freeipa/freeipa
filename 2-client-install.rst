@@ -1,0 +1,53 @@
+Unit 2: Enrolling client machines
+===================================
+
+In this unit, you will enrol a *host* as a client of your FreeIPA
+domain.  This means that *users* in your FreeIPA realm (or Active
+Directory realms for which there is a trust with FreeIPA) can log
+into the client machine (subject to access policies) and that *services*
+on the client can leverage FreeIPA's authentication and
+authorisation services.
+
+From the directory that contains the ``Vagrantfile``, SSH into the
+``client`` machine::
+
+  $ vagrant ssh client
+
+
+On ``client``, start the FreeIPA client enrolment program::
+
+  [client]$ sudo ipa-client-install --mkhomedir
+
+The FreeIPA server should be detected through DNS autodiscovery.
+(If DNS discovery fails, e.g. due to client machine having incorrect
+``/etc/resolv.conf`` configuration, you would be prompted to
+manually enter the domain and server hostname instead).
+
+The autodetected server settings will be displayed; confirm to
+proceed::
+
+  [client]$ sudo ipa-client-install --mkhomedir
+  Discovery was successful!
+  Client hostname: client.ipademo.local
+  Realm: IPADEMO.LOCAL
+  DNS Domain: ipademo.local
+  IPA Server: server.ipademo.local
+  BaseDN: dc=ipademo,dc=local
+
+  Continue to configure the system with these values? [no]: yes
+
+You might see a warning about time synchronisation, which for this
+workshop can be ignored.  Next you will be be prompted to enter
+credentials of a user authorised to enrol hosts (``admin``)::
+
+  User authorized to enroll computers: admin
+  Password for admin@IPADEMO.LOCAL:
+
+The enrolment now proceeds; no further input is required.  You will
+see output detailing the operations being completed.  Unlike
+``ipa-server-install``, client enrolment only takes a few seconds.
+
+Users in your FreeIPA domain can now log into FreeIPA-enrolled
+hosts, subject to *Host-based access control* (HBAC) rules.  Users
+logged onto the host can also acquire Kerberos tickets for accessing
+*services* in your domain.
