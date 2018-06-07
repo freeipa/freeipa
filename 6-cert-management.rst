@@ -118,3 +118,10 @@ Restart Apache and make a request to the app over HTTPS::
     REMOTE_PORT: 51876
 
 
+You can now proceed to
+`Unit 7: Replica installation <7-replica-install.rst>`_
+or
+`Unit 8: Sudo rule management <8-sudorule.rst>`_.
+Otherwise,
+`return to the curriculum overview <workshop.rst#Curriculum_overview>`_
+to see all the options.

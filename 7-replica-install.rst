@@ -45,3 +45,10 @@ replication of data to the new Directory Server instance::
   Update succeeded
 
 After ``ipa-replica-install`` finishes, the replica is operational.
+LDAP changes on any server will be replicated to all other servers.
+
+You can proceed to
+`Unit 8: Sudo rule management <8-sudorule.rst>`_
+or
+`return to the curriculum overview <workshop.rst#Curriculum_overview>`_
+to see all the available topics.

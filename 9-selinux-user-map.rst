@@ -1,6 +1,12 @@
 Unit 9: SELinux User Maps
 =========================
 
+**Prerequisites**:
+
+- `Unit 3: User management and Kerberos authentication <3-user-management.rst>`_
+- `Unit 4: Host-based access control (HBAC) <4-hbac.rst>`_
+- `Unit 8: Sudo rule management <8-sudorule.rst>`_
+
 SELinux is a *mandatory access controls* mechanism for Linux,
 providing more powerful and flexible access control than traditional
 Unix permissions.  Users have an SELinux *context* consisting of a
@@ -118,3 +124,10 @@ the program being run::
   staff_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
   sh-4.3# systemctl restart httpd
   sh-4.3#
+
+
+This concludes the unit.  You can now proceed to
+`Unit 10: SSH user and host key management <10-ssh-key-management.rst>`_
+or
+`return to the curriculum overview <workshop.rst#Curriculum_overview>`_
+to see all the available topics.

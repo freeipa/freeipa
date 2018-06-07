@@ -51,3 +51,6 @@ Users in your FreeIPA domain can now log into FreeIPA-enrolled
 hosts, subject to *Host-based access control* (HBAC) rules.  Users
 logged onto the host can also acquire Kerberos tickets for accessing
 *services* in your domain.
+
+You can now move on to
+`Unit 3: User management and Kerberos authentication <3-user-management.rst>`_.

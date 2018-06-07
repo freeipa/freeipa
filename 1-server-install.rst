@@ -149,4 +149,9 @@ enrolling client machines, creating users, managing services, and
 more!
 
 To prepare for the next unit, exit the ``server`` SSH session (but
-do not shut the VM down).
+do not shut the VM down).  The next essential unit is
+`Unit 2: Enrolling client machines <2-client-install.rst>`_.
+
+Alternatively, if you would like to immediately install a replica
+server (essential for production deployments), you can take a detour
+to `Unit 7: Replica installation <7-replica-install.rst>`_.
