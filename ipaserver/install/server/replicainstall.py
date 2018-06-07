@@ -1512,7 +1512,7 @@ def install(installer):
     krb.restart()
 
     if promote:
-        custodia.import_dm_password(config.master_host_name)
+        custodia.import_dm_password()
         promote_sssd(config.host_name)
         promote_openldap_conf(config.host_name, config.master_host_name)
 
