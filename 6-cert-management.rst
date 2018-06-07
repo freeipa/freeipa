@@ -123,5 +123,5 @@ You can now proceed to
 or
 `Unit 8: Sudo rule management <8-sudorule.rst>`_.
 Otherwise,
-`return to the curriculum overview <workshop.rst#Curriculum_overview>`_
+`return to the curriculum overview <workshop.rst#curriculum-overview>`_
 to see all the options.

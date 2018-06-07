@@ -1,9 +1,9 @@
 Unit 10: SSH user and host key management
 =========================================
 
-**Prerequisites**
+**Prerequisites:**
 
-- `Unit 9: SELinux User Maps <9-selinux-user-map.rst>`_
+- `Unit 3: User management and Kerberos authentication <3-user-management.rst>`_
 
 In this module you will explore how to use FreeIPA as a backend
 provider for SSH keys.  Instead of distributing ``authorized_keys``
@@ -136,4 +136,4 @@ Conclusion
 
 Congratulations!  This was the final topic in the workshop.
 If you skipped any units, you can reach them from the
-`curriculum overview <workshop.rst#Curriculum_overview>`_.
+`curriculum overview <workshop.rst#curriculum-overview>`_.

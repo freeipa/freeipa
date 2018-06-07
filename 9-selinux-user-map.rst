@@ -129,5 +129,5 @@ the program being run::
 This concludes the unit.  You can now proceed to
 `Unit 10: SSH user and host key management <10-ssh-key-management.rst>`_
 or
-`return to the curriculum overview <workshop.rst#Curriculum_overview>`_
+`return to the curriculum overview <workshop.rst#curriculum-overview>`_
 to see all the available topics.
