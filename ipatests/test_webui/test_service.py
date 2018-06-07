@@ -592,6 +592,7 @@ class test_service(sevice_tasks):
         pkey = self.get_service_pkey('smtp')
         self.add_service('smtp', confirm=False)
         actions = ActionChains(self.driver)
+        actions.click()
         actions.send_keys(Keys.ENTER).perform()
         self.wait(1)
         assert self.has_record(pkey)
