@@ -3,126 +3,88 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.6.1.dev201712121258+gitb2d3b568c\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-12-12 14:00+0100\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2015-01-05 01:10-0500\n"
+"POT-Creation-Date: 2018-06-08 10:47-0400\n"
+"PO-Revision-Date: 2015-01-05 01:10+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Indonesian\n"
 "Language: id\n"
-"X-Generator: Zanata 3.9.6\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=1; plural=0\n"
 
 #, c-format
 msgid "Passwords do not match!"
 msgstr "Kata sandi tidak cocok!"
 
-msgid "priority cannot be set on global policy"
-msgstr "prioritas tidak dapat ditetapkan pada kebijakan global"
+#, python-format
+msgid "unknown error %(code)d from %(server)s: %(error)s"
+msgstr "kesalahan %(code)d tidak dikenal dari %(server)s: %(error)s"
+
+msgid "an internal error has occurred"
+msgstr "terjadi kesalahan internal"
 
 #, python-format
-msgid "%(count)d user matched"
-msgid_plural "%(count)d users matched"
-msgstr[0] "%(count)d pengguna sesuai"
-
-msgid ""
-"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
-"required"
-msgstr ""
-"setidaknya diperlukan salah satu dari: type, filter, subtree, targetgroup, "
-"attrs atau memberof"
+msgid "Invalid JSON-RPC request: %(error)s"
+msgstr "Permintaan JSON-RPC tidak valid: %(error)s"
 
 #, python-format
-msgid "Group '%s' does not exist"
-msgstr "Grup '%s' tidak ada"
+msgid "Kerberos error: %(major)s/%(minor)s"
+msgstr "Kesalahan kerberos: %(major)s/%(minor)s"
+
+msgid "Ticket expired"
+msgstr "Tiket sudah kadaluarsa"
 
 #, python-format
-msgid "ACI with name \"%s\" not found"
-msgstr "ACI dengan nama \"%s\" tidak ditemukan"
+msgid "Insufficient access: %(info)s"
+msgstr "Hak akses tidak mencukupi: %(info)s"
+
+msgid "Passwords do not match"
+msgstr "Kata sandi tidak cocok"
+
+msgid "Command not implemented"
+msgstr "Perintah tidak diimplementasikan"
 
 #, python-format
-msgid "Created ACI \"%(value)s\""
-msgstr "ACI \"%(value)s\" telah dibuat"
+msgid "%(reason)s"
+msgstr "%(reason)s"
+
+msgid "This entry already exists"
+msgstr "Entri ini sudah ada"
+
+msgid "You must enroll a host in order to create a host service"
+msgstr "Anda harus mendaftarkan sebuah host untuk membuat layanan host"
+
+msgid "This command requires root access"
+msgstr "Perintah ini memerlukan akses root"
+
+msgid "This is already a posix group"
+msgstr "Ini sudah merupakan grup posix"
+
+msgid "A group may not be a member of itself"
+msgstr "Sebuah grup tidak mungkin menjadi anggota grup itu sendiri"
 
 #, python-format
-msgid "Deleted ACI \"%(value)s\""
-msgstr "ACI \"%(value)s\" telah dihapus"
+msgid "Base64 decoding failed: %(reason)s"
+msgstr "Penguraian Base64 gagal: %(reason)s"
+
+msgid "change collided with another change"
+msgstr "perubahan bertabrakan dengan perubahan lain"
+
+msgid "no modifications to be performed"
+msgstr "tidak ada modifikasi yang harus dilakukan"
+
+msgid "limits exceeded for this query"
+msgstr "query ini telah melampaui batas"
 
 #, python-format
-msgid "Modified ACI \"%(value)s\""
-msgstr "ACI \"%(value)s\" telah dimodifikasi"
+msgid "%(info)s"
+msgstr "%(info)s"
 
 #, python-format
-msgid "%(count)d ACI matched"
-msgid_plural "%(count)d ACIs matched"
-msgstr[0] "%(count)d ACI sesuai"
-
-#, python-format
-msgid "Added host \"%(value)s\""
-msgstr "Host \"%(value)s\" telah ditambahkan"
-
-#, python-format
-msgid "Deleted host \"%(value)s\""
-msgstr "Host \"%(value)s\" telah dihapus"
-
-#, python-format
-msgid "Modified host \"%(value)s\""
-msgstr "Host \"%(value)s\" telah dimodifikasi"
-
-#, python-format
-msgid "%(count)d host matched"
-msgid_plural "%(count)d hosts matched"
-msgstr[0] "%(count)d host sesuai"
-
-#, python-format
-msgid "Added hostgroup \"%(value)s\""
-msgstr "hostgroup \"%(value)s\" telah ditambahkan"
-
-#, python-format
-msgid "Deleted hostgroup \"%(value)s\""
-msgstr "hostgroup \"%(value)s\" telah dihapus"
-
-#, python-format
-msgid "Modified hostgroup \"%(value)s\""
-msgstr "hostgroup \"%(value)s\" telah dimodifikasi"
-
-#, python-format
-msgid "%(count)d hostgroup matched"
-msgid_plural "%(count)d hostgroups matched"
-msgstr[0] "%(count)d hostgroup sesuai"
-
-#, python-format
-msgid "Added user \"%(value)s\""
-msgstr "Pengguna \"%(value)s\" telah ditambahkan"
-
-#, python-format
-msgid "Deleted user \"%(value)s\""
-msgstr "Pengguna \"%(value)s\" telah dihapus"
-
-#, python-format
-msgid "Modified user \"%(value)s\""
-msgstr "Pengguna \"%(value)s\" telah dimodifikasi"
-
-#, python-format
-msgid "Added group \"%(value)s\""
-msgstr "Grup \"%(value)s\" telah ditambahkan"
-
-#, python-format
-msgid "Deleted group \"%(value)s\""
-msgstr "Grup \"%(value)s\" telah dihapus"
-
-#, python-format
-msgid "Modified group \"%(value)s\""
-msgstr "Grup \"%(value)s\" telah dimodifikasi"
-
-#, python-format
-msgid "%(count)d group matched"
-msgid_plural "%(count)d groups matched"
-msgstr[0] "%(count)d grup sesuai"
-
-msgid "Results are truncated, try a more specific search"
-msgstr "Hasil yang terpotong, coba cari dengan lebih spesifik"
+msgid "Certificate operation cannot be completed: %(error)s"
+msgstr "Operasi sertifikat tidak dapat diselesaikan: %(error)s"
 
 #, python-format
 msgid "%(count)d variables"
@@ -198,70 +160,108 @@ msgstr "panjang maksimum yang diperbolehkan %(maxlength)d karakter"
 msgid "must be exactly %(length)d characters"
 msgstr "harus tepat %(length)d karakter"
 
-#, python-format
-msgid "unknown error %(code)d from %(server)s: %(error)s"
-msgstr "kesalahan %(code)d tidak dikenal dari %(server)s: %(error)s"
-
-msgid "an internal error has occurred"
-msgstr "terjadi kesalahan internal"
+msgid "Results are truncated, try a more specific search"
+msgstr "Hasil yang terpotong, coba cari dengan lebih spesifik"
 
 #, python-format
-msgid "Invalid JSON-RPC request: %(error)s"
-msgstr "Permintaan JSON-RPC tidak valid: %(error)s"
+msgid "%(count)d user matched"
+msgid_plural "%(count)d users matched"
+msgstr[0] "%(count)d pengguna sesuai"
 
 #, python-format
-msgid "Kerberos error: %(major)s/%(minor)s"
-msgstr "Kesalahan kerberos: %(major)s/%(minor)s"
-
-msgid "Ticket expired"
-msgstr "Tiket sudah kadaluarsa"
+msgid "Added group \"%(value)s\""
+msgstr "Grup \"%(value)s\" telah ditambahkan"
 
 #, python-format
-msgid "Insufficient access: %(info)s"
-msgstr "Hak akses tidak mencukupi: %(info)s"
-
-msgid "Passwords do not match"
-msgstr "Kata sandi tidak cocok"
-
-msgid "Command not implemented"
-msgstr "Perintah tidak diimplementasikan"
+msgid "Deleted group \"%(value)s\""
+msgstr "Grup \"%(value)s\" telah dihapus"
 
 #, python-format
-msgid "%(reason)s"
-msgstr "%(reason)s"
-
-msgid "This entry already exists"
-msgstr "Entri ini sudah ada"
-
-msgid "You must enroll a host in order to create a host service"
-msgstr "Anda harus mendaftarkan sebuah host untuk membuat layanan host"
-
-msgid "This command requires root access"
-msgstr "Perintah ini memerlukan akses root"
-
-msgid "This is already a posix group"
-msgstr "Ini sudah merupakan grup posix"
-
-msgid "A group may not be a member of itself"
-msgstr "Sebuah grup tidak mungkin menjadi anggota grup itu sendiri"
+msgid "Modified group \"%(value)s\""
+msgstr "Grup \"%(value)s\" telah dimodifikasi"
 
 #, python-format
-msgid "Base64 decoding failed: %(reason)s"
-msgstr "Penguraian Base64 gagal: %(reason)s"
-
-msgid "change collided with another change"
-msgstr "perubahan bertabrakan dengan perubahan lain"
-
-msgid "no modifications to be performed"
-msgstr "tidak ada modifikasi yang harus dilakukan"
-
-msgid "limits exceeded for this query"
-msgstr "query ini telah melampaui batas"
+msgid "%(count)d group matched"
+msgid_plural "%(count)d groups matched"
+msgstr[0] "%(count)d grup sesuai"
 
 #, python-format
-msgid "%(info)s"
-msgstr "%(info)s"
+msgid "Added user \"%(value)s\""
+msgstr "Pengguna \"%(value)s\" telah ditambahkan"
 
 #, python-format
-msgid "Certificate operation cannot be completed: %(error)s"
-msgstr "Operasi sertifikat tidak dapat diselesaikan: %(error)s"
+msgid "Deleted user \"%(value)s\""
+msgstr "Pengguna \"%(value)s\" telah dihapus"
+
+#, python-format
+msgid "Modified user \"%(value)s\""
+msgstr "Pengguna \"%(value)s\" telah dimodifikasi"
+
+msgid ""
+"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
+"required"
+msgstr ""
+"setidaknya diperlukan salah satu dari: type, filter, subtree, targetgroup, "
+"attrs atau memberof"
+
+#, python-format
+msgid "Group '%s' does not exist"
+msgstr "Grup '%s' tidak ada"
+
+#, python-format
+msgid "ACI with name \"%s\" not found"
+msgstr "ACI dengan nama \"%s\" tidak ditemukan"
+
+#, python-format
+msgid "Created ACI \"%(value)s\""
+msgstr "ACI \"%(value)s\" telah dibuat"
+
+#, python-format
+msgid "Deleted ACI \"%(value)s\""
+msgstr "ACI \"%(value)s\" telah dihapus"
+
+#, python-format
+msgid "Modified ACI \"%(value)s\""
+msgstr "ACI \"%(value)s\" telah dimodifikasi"
+
+#, python-format
+msgid "%(count)d ACI matched"
+msgid_plural "%(count)d ACIs matched"
+msgstr[0] "%(count)d ACI sesuai"
+
+#, python-format
+msgid "Added hostgroup \"%(value)s\""
+msgstr "hostgroup \"%(value)s\" telah ditambahkan"
+
+#, python-format
+msgid "Deleted hostgroup \"%(value)s\""
+msgstr "hostgroup \"%(value)s\" telah dihapus"
+
+#, python-format
+msgid "Modified hostgroup \"%(value)s\""
+msgstr "hostgroup \"%(value)s\" telah dimodifikasi"
+
+#, python-format
+msgid "%(count)d hostgroup matched"
+msgid_plural "%(count)d hostgroups matched"
+msgstr[0] "%(count)d hostgroup sesuai"
+
+msgid "priority cannot be set on global policy"
+msgstr "prioritas tidak dapat ditetapkan pada kebijakan global"
+
+#, python-format
+msgid "Added host \"%(value)s\""
+msgstr "Host \"%(value)s\" telah ditambahkan"
+
+#, python-format
+msgid "Deleted host \"%(value)s\""
+msgstr "Host \"%(value)s\" telah dihapus"
+
+#, python-format
+msgid "Modified host \"%(value)s\""
+msgstr "Host \"%(value)s\" telah dimodifikasi"
+
+#, python-format
+msgid "%(count)d host matched"
+msgid_plural "%(count)d hosts matched"
+msgstr[0] "%(count)d host sesuai"
