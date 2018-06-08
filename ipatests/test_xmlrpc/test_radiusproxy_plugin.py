@@ -73,6 +73,19 @@ class test_raduisproxy(Declarative):
 
 
         dict(
+            desc='Try to add multiple radius proxy server %r' % radius1,
+            command=('radiusproxy_add', [radius1],
+                     dict(
+                     ipatokenradiusserver=radius1_fqdn,
+                     addattr=u'ipatokenradiusserver=radius1_fqdn',
+                     ipatokenradiussecret=password1,
+                     ),
+                     ),
+            expected=errors.OnlyOneValueAllowed(attr='ipatokenradiusserver')
+        ),
+
+
+        dict(
             desc='Create %r' % radius1,
             command=('radiusproxy_add', [radius1],
                 dict(
