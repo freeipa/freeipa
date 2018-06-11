@@ -7,6 +7,7 @@ import logging
 from ipalib import Command
 from ipalib.request import context
 from ipalib.plugable import Registry
+from ipalib.text import _
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +16,8 @@ register = Registry()
 
 @register()
 class session_logout(Command):
-    '''
-    RPC command used to log the current user out of their session.
-    '''
+    __doc__ = _('RPC command used to log the current user out of their'
+                ' session.')
     NO_CLI = True
 
     def execute(self, *args, **options):

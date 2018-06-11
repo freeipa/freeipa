@@ -18,7 +18,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
+import logging
+
+import six
+
+from ipalib import api, errors
+from ipalib import Command
+from ipalib.frontend import Local
+from ipalib.parameters import Str, Dict
+from ipalib.output import Output
+from ipalib.text import _
+from ipalib.request import context
+from ipalib.plugable import Registry
+from ipapython.version import API_VERSION
+
+__doc__ = _("""
 Plugin to make multiple ipa calls via one remote procedure call
 
 To run this code in the lite-server
@@ -43,21 +57,7 @@ The format of the response is nested the same way.  At the top you will see
 
 And then a nested response for each IPA command method sent in the request
 
-"""
-
-import logging
-
-import six
-
-from ipalib import api, errors
-from ipalib import Command
-from ipalib.frontend import Local
-from ipalib.parameters import Str, Dict
-from ipalib.output import Output
-from ipalib.text import _
-from ipalib.request import context
-from ipalib.plugable import Registry
-from ipapython.version import API_VERSION
+""")
 
 if six.PY3:
     unicode = str
@@ -68,6 +68,7 @@ register = Registry()
 
 @register()
 class batch(Command):
+    __doc__ = _('Make multiple ipa calls via one remote procedure call')
     NO_CLI = True
 
     takes_args = (

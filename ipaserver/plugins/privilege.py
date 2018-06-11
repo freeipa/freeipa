@@ -192,9 +192,7 @@ class privilege_add_member(LDAPAddMember):
 
 @register()
 class privilege_remove_member(LDAPRemoveMember):
-    """
-    Remove members from a privilege
-    """
+    __doc__ = _('Remove members from a privilege')
     NO_CLI=True
 
 
