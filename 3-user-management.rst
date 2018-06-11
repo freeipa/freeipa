@@ -49,14 +49,13 @@ commands starting with ``cert-``::
   cert-remove-hold  cert-revoke       cert-status
 
 
-You'll notice that commands are grouped by *plugin*.  You can read a
-general overview of a plugin by running ``ipa help <plugin>``, and
-specific information on a particular command by running ``ipa help
-<command>``.
+You'll notice that commands are grouped by *topic*, or the kind of
+object they act upon.  You can read a general overview of a plugin
+by running ``ipa help <topic>``, and specific information on a
+particular command by running ``ipa help <command>``.
 
-Add a user named ``bob`` from the CLI.  See if you can work out how
-to do this using the CLI help commands.  (**hint**: the ``user``
-plugin provides the command).
+Add a user named ``bob`` from the CLI.  Use the CLI help to find the
+right command (**hint**: the ``user`` plugin provides the command).
 
 
 User authentication
@@ -115,7 +114,7 @@ is a true *single sign-on* protocol!
 
   [server]$ klist
   Ticket cache: KEYRING:persistent:1000:1000
-  Default principal: admin@IPADEMO.LOCAL
+  Default principal: bob@IPADEMO.LOCAL
 
   Valid starting       Expires              Service principal
   06/04/2018 21:45:50  06/05/2018 21:38:24  host/client.ipademo.local@IPADEMO.LOCAL

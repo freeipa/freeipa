@@ -6,25 +6,29 @@ Unit 7: Replica installation
 - `Unit 1: Installing the FreeIPA server <1-server-install.rst>`_
 
 FreeIPA is designed to be run in a replicated multi-master
-environment.  In this unit, we will deploy a single FreeIPA
-replica.  For recommended production topologies, see
-http://www.freeipa.org/page/Deployment_Recommendations#Replicas.
+environment.  In this unit, we will install a replica of the
+existing master.  For recommended production topologies, see
+https://www.freeipa.org/page/Deployment_Recommendations#Servers.2FReplicas.
 
 If you have disabled the ``allow_all`` HBAC rule, add a new rule
 that will **allow ``admin`` to access the ``sshd`` service on any
 host**.
 
-[To be confirmed] As of FreeIPA 4.3, replica installation is accomplished by
-*promoting* an enrolled client machine to a server.
+Client installation
+-------------------
 
-SSH to the ``replica`` VM and enrol it per `Unit 2: Enrolling
-client machines`_.
+The first step of replica creation is to enrol the machine that will
+become the replica.  SSH to the ``replica`` VM and enrol it per
+`Unit 2: Enrolling client machines <2-client-install.rst>`_
+
+Replica promotion
+-----------------
 
 Now promote the client to server.  We will set up the replica
-*without* CA or DNS, but in a production deployment there should be
-at least one instance of these services in each datacentre.  These
-components can be added later via ``ipa-ca-install(1)`` and
-``ipa-dns-install(1)``.
+*without* the CA or DNS role.  In a production deployment there
+should be at least one instance of these services in each data
+centre.  These roles can be configured later via
+``ipa-ca-install(1)`` and ``ipa-dns-install(1)``.
 
 ::
 

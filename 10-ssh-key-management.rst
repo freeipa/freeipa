@@ -42,7 +42,7 @@ Generate a user keypair on the client system::
   Your identification has been saved in /home/alice/.ssh/id_rsa.
   Your public key has been saved in /home/alice/.ssh/id_rsa.pub.
   The key fingerprint is:
-  SHA256:TbuWICAdqkdXwG3uQoXxh03DuJdRC6Vh3ntOcacdfHM alice@ipademo.local
+  SHA256:KZ1MQCvaGAGZxKaMxmWBexzH98NPBsTsuo1uf/42SB0 alice@ipademo.local
   The key's randomart image is:
   +---[RSA 2048]----+
   |   .+=.o*oo      |
@@ -62,6 +62,7 @@ entry in FreeIPA::
 
   [alice@client]$ kinit alice
   Password for alice@IPADEMO.LOCAL:
+
   [alice@client]$ ipa user-mod alice \
       --sshpubkey="$(cat /home/alice/.ssh/id_rsa.pub)"
   ---------------------
@@ -78,14 +79,14 @@ entry in FreeIPA::
     SSH public key: ssh-rsa
                     AAAAB3NzaC1yc2EAAAADAQABAAABAQDH8pLi61DjkEPqNZnfOgGLLZfLdu9EqVL9UrZeXD3M/j3ig+xeDCCO80YjzuND0UZE4CHgA+uGrtoinQMYkt/FRkm/ie8wcinP/8BxSoOeYSHDNG+cG3iSNJrDiHoqPeQ/+nzBS5n6HWy18N5IMNoqC+f9f2VDuHWZCKqPHMLD29MAX6vOgawdHWFcAk416O+EgS43w3ub89+VPz3Egz4z9K+gjpoboFHk94n7n09B+qyzzImVMsz9vMFSr0rcaVRd9Tb0Q6HlUXkU7aH1Vjkl/DJdQalCpPYJXujkRYAZIs1ouU5IBuuq6k54fk1vBmwjv2tK2NkpvfWfhaxQVwdn
                     alice@ipademo.local
+    SSH public key fingerprint: C4:62:89:7A:65:F9:82:12:EF:08:96:D1:C9:7D:51:A5 alice@ipademo.local
+                                (ssh-rsa)
     Account disabled: False
     Password: True
     Member of groups: ipausers, sysadmin
     Indirect Member of Sudo rule: sysadmin_sudo
     Indirect Member of HBAC rule: sysadmin_all
     Kerberos keys available: True
-    SSH public key fingerprint: C4:62:89:7A:65:F9:82:12:EF:08:96:D1:C9:7D:51:A5 alice@ipademo.local
-                                (ssh-rsa)
 
 During enrolment of the systems, SSSD has been configured to use
 FreeIPA as one of its identity domains and OpenSSH has been
@@ -99,16 +100,16 @@ Logging in to the server using SSH public key authentication should
 now work::
 
   [alice@client]$ ssh -o GSSAPIAuthentication=no server.ipademo.local
+  Enter passphrase for key '/home/alice/.ssh/id_rsa':
   Last login: Tue Feb  2 15:10:13 2016
   [alice@server]$
 
-To verify the SSH public key was used for authentication, you can
-check the ``sshd`` service journal on the server, which should have
-an entry like::
+To verify that the SSH public key was used for authentication, you
+can check the ``sshd`` log on the server::
 
-  server.ipademo.local sshd[19729]: \
-    Accepted publickey for alice from 192.168.33.20 port 37244 \
-    ssh2: RSA SHA256:rgVSyPM/yn/b5bsZQIsAXWF+16zkP59VS9GS+k+bbOg
+  [server]$ sudo journalctl -u sshd -S "5 minutes ago" --no-pager
+  -- Logs begin at Mon 2018-06-04 19:01:11 UTC, end at Mon 2018-06-11 04:55:19 UTC. --
+  Jun 11 04:51:52 server.ipademo.local sshd[8570]: Accepted publickey for alice from 192.168.33.20 port 57596 ssh2: RSA SHA256:KZ1MQCvaGAGZxKaMxmWBexzH98NPBsTsuo1uf/42SB0
 
 
 Using FreeIPA as a backend store for SSH host keys
@@ -120,8 +121,8 @@ key.  The first time the host authenticates, the user may have to
 examine the target host's public key and manually authenticate it.
 The client then stores the host's public key in a ``known_hosts``
 file.  On subsequent attempts to log in, the client checks its
-``known_hosts`` files and automatically grants access to recognised
-hosts.
+``known_hosts`` files.  If the presented host key does not match the
+stored host key, the OpenSSH client refuses to continue.
 
 Based on the last exercise, try to figure out how to upload SSH host
 keys to the FreeIPA server.

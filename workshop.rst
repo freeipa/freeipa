@@ -70,12 +70,10 @@ Preparation
 
 Some preparation is needed prior to the workshop.  The workshop is
 designed to be carried out in a Vagrant_ environment that configures
-three virtual machines with all software network configuration ready
-for the workshop.
-
-several VMs.  **The goal of the preparation** is to be able to
-successfully ``vagrant up`` the VMs as the first step of the
-workshop.
+three networked virtual machines (VMs) with all software needed for
+the workshop.  **The goal of this preparation** is to ``vagrant up``
+the VMs.  After this preparation is completed you are ready to begin
+the workshop.
 
 .. _Vagrant: https://www.vagrantup.com/
 
@@ -235,9 +233,9 @@ so it may not be feasible to download it during the workshop.
 Add hosts file entries
 ----------------------
 
-*This step is necessary if you want to access the FreeIPA Web UI in
-the VM from a browser on your host, but otherwise this step is optional. All
-workshop units can be completed using the CLI.*
+*This step is optional.  All units can be completed using the CLI
+only.  But if you want to access the FreeIPA Web UI or other web
+servers on the VMs from your browser, follow these instructions.*
 
 Add the following entries to your hosts file::
 
