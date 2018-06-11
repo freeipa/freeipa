@@ -34,6 +34,10 @@ Vagrant.configure(2) do |config|
     replica.vm.hostname = "replica.ipademo.local"
 
     replica.vm.provision "shell",
+      inline: 'echo "PEERDNS=no" >> /etc/sysconfig/network-scripts/ifcfg-eth0'
+    replica.vm.provision "shell",
+      inline: 'echo "DNS1=192.168.33.10" >> /etc/sysconfig/network-scripts/ifcfg-eth1'
+    replica.vm.provision "shell",
       inline: 'echo "nameserver 192.168.33.10" > /etc/resolv.conf'
   end
 
@@ -41,6 +45,10 @@ Vagrant.configure(2) do |config|
     client.vm.network "private_network", ip: "192.168.33.20"
     client.vm.hostname = "client.ipademo.local"
 
+    client.vm.provision "shell",
+      inline: 'echo "PEERDNS=no" >> /etc/sysconfig/network-scripts/ifcfg-eth0'
+    client.vm.provision "shell",
+      inline: 'echo "DNS1=192.168.33.10" >> /etc/sysconfig/network-scripts/ifcfg-eth1'
     client.vm.provision "shell",
       inline: 'echo "nameserver 192.168.33.10" > /etc/resolv.conf'
     client.vm.provision "shell",
