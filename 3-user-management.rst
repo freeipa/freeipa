@@ -50,9 +50,10 @@ commands starting with ``cert-``::
 
 
 You'll notice that commands are grouped by *topic*, or the kind of
-object they act upon.  You can read a general overview of a plugin
-by running ``ipa help <topic>``, and specific information on a
-particular command by running ``ipa help <command>``.
+object they act upon.  Run ``ipa help topics`` to list all topics.
+You can read a general overview of a topic by running ``ipa help
+<topic>``, and specific information on a particular command by
+running ``ipa help <command>``.
 
 Add a user named ``bob`` from the CLI.  Use the CLI help to find the
 right command (**hint**: the ``user`` plugin provides the command).
