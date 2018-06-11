@@ -310,4 +310,4 @@ authenticated as ``bob`` instead?
 This unit is now concluded.  Now that you have mastered web app
 authentication, you'll want to configure TLS for your site.  Proceed
 to
-`Unit 6: Certificate management <6-cert-management.rst>`_.
+`Unit 6: Service certificates <6-cert-management.rst>`_.

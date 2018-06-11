@@ -32,7 +32,7 @@ Mandatory:
 Optional units—choose the topics that are relevant to you:
 
 - `Unit 5: Web application authentication and authorisation <5-web-app-authnz.rst>`_
-- `Unit 6: Certificate management <6-cert-management.rst>`_
+- `Unit 6: Service certificates <6-cert-management.rst>`_
 - `Unit 7: Replica installation <7-replica-install.rst>`_
 - `Unit 8: Sudo rule management <8-sudorule.rst>`_
 - `Unit 9: SELinux User Maps <9-selinux-user-map.rst>`_

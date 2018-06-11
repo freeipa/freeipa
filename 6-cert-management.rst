@@ -1,4 +1,4 @@
-Unit 6: Certificate management
+Unit 6: Service certificates
 ================================
 
 You probably noticed that the web service was not hosted over HTTPS,
