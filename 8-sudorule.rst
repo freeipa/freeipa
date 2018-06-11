@@ -36,9 +36,11 @@ Observe that the action is denied::
 
   [client]$ su -l alice
   Password:
+
   [alice@client]$ sudo id
   [sudo] password for alice:
   alice is not allowed to run sudo on client.  This incident will be reported.
+
   [alice@client]$ exit
   logout
 
@@ -75,12 +77,16 @@ Now attempt to ``sudo id`` as ``alice`` again::
 
   [client]$ su -l alice
   Password:
+
   [alice@client]$ sudo id
   [sudo] password for alice:
   uid=0(root) gid=0(root) groups=0(root) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
 
 This time the action was allowed, and we can see from the output
 that ``alice`` indeed executed the ``id`` command as ``root``.
+
+**Note:** if the command is prevented there may be some stale cache
+entries.  Move on with the workshop and try again in 5 minutes.
 
 
 Permitting ``bob`` to run web administration commands
@@ -93,6 +99,7 @@ observe that ``bob`` currently cannot restart Apache::
 
   [client]$ su -l bob
   Password:
+
   [bob@client]$ sudo systemctl restart httpd
   [sudo] password for bob:
   Sorry, user bob is not allowed to execute '/bin/systemctl restart httpd' as root on client.ipademo.local.
@@ -115,7 +122,7 @@ Now define the ``webadmin_sudo`` rule.  Note that we *do not* use
     Enabled: TRUE
     RunAs User category: all
     RunAs Group category: all
-  [client]$
+
 
 Add the ``webadmin`` User Group and ``webservers`` Host Group to the rule::
 
@@ -128,6 +135,7 @@ Add the ``webadmin`` User Group and ``webservers`` Host Group to the rule::
   -------------------------
   Number of members added 1
   -------------------------
+
   [client]$ ipa sudorule-add-host webadmin_sudo --hostgroup webservers
     Rule name: webadmin_sudo
     Enabled: TRUE
@@ -147,16 +155,19 @@ web server administration::
   Added Sudo Command "/usr/bin/systemctl start httpd"
   ---------------------------------------------------
     Sudo Command: /usr/bin/systemctl start httpd
+
   [client]$ ipa sudocmd-add "/usr/bin/systemctl restart httpd"
   -----------------------------------------------------
   Added Sudo Command "/usr/bin/systemctl restart httpd"
   -----------------------------------------------------
     Sudo Command: /usr/bin/systemctl restart httpd
+
   [client]$ ipa sudocmdgroup-add webadmin_cmds
   ----------------------------------------
   Added Sudo Command Group "webadmin_cmds"
   ----------------------------------------
     Sudo Command Group: webadmin_cmds
+
   [client]$ ipa sudocmdgroup-add-member webadmin_cmds \
       --sudocmds "/usr/bin/systemctl start httpd" \
       --sudocmds "/usr/bin/systemctl restart httpd"
@@ -186,8 +197,10 @@ restart (or start) Apache, but not run other commands via ``sudo``::
 
   [client]$ su -l bob
   Password:
+
   [bob@client]$ sudo systemctl restart httpd
   [sudo] password for bob:
+
   [bob@client]$ sudo id
   Sorry, user bob is not allowed to execute '/bin/id' as root on client.ipademo.local.
 

@@ -14,7 +14,8 @@ authentication to authenticate users, PAM to enforce HBAC rules, and
 user attributes.
 
 All activities in this unit take place on ``client`` unless
-otherwise specified.
+otherwise specified.  **Access the host via ``vagrant ssh client``**
+to ensure you have ``sudo`` access.
 
 The demo web application is trivial.  It just reads its request
 environment and responds in plain text with a list of variables
@@ -36,8 +37,8 @@ Create a service
 Create a *service* representing the web application on
 ``client.ipademo.local``.  A service principal name has the service
 type as its first part, separated from the host name by a slash,
-e.g.  ``HTTP/www.example.com``.  The host part must correspond to an
-existing host in the directory.
+e.g.  ``HTTP/www.example.com``.  The host part must be a host
+enrolled in FreeIPA.
 
 You must be getting the hang of FreeIPA by now, so I'll leave the
 rest of this step up to you.  (It's OK to ask for help!)
@@ -50,8 +51,7 @@ The service needs access to its Kerberos key in order to
 authenticate users.  Retrieve the key from the FreeIPA server and
 store it in a *keytab* file (you will need a TGT for ``admin``)::
 
-  [client]$ ipa-getkeytab -s server.ipademo.local \
-            -p HTTP/client.ipademo.local -k app.keytab
+  [client]$ ipa-getkeytab -p HTTP/client.ipademo.local -k app.keytab
   Keytab successfully retrieved and stored in: app.keytab
 
 We also have to move the file, change its ownership and apply the
@@ -115,7 +115,7 @@ and make a request using ``curl``::
     REMOTE_PORT: 42499
 
 The ``REMOTE_USER`` variable in the request environment indicates
-that there is a logged-in user and identifies that user.
+that there is an authenticated user, and identifies that user.
 
 
 Populating request environment with user attributes
@@ -128,8 +128,7 @@ attributes.  In this section, we will use mod_lookup_identity_ to
 populate the HTTP request environment with variables providing
 information about the authenticated user.
 
-.. _mod_lookup_identity: http://www.adelton.com/apache/mod_lookup_identity/
-
+.. _mod_lookup_identity: https://www.adelton.com/apache/mod_lookup_identity/
 
 ``mod_lookup_identity`` retrieves user attributes from SSSD (via D-Bus).
 Edit ``/etc/sssd/sssd.conf``; enable the SSSD ``ifp`` *InfoPipe*
@@ -181,7 +180,7 @@ environment.  The ``LookupUserXXX`` directives define the mapping of
 user attributes to request environment variables.  Multi-valued
 attributes can be expanded into multiple variables, as in the
 ``LookupUserGroupsIter`` directive.  Do not forget the
-``LoadModule`` directive!
+``LoadModule`` directive at the top!
 
 ::
 
@@ -207,7 +206,7 @@ attributes can be expanded into multiple variables, as in the
   </VirtualHost>
 
 Default SELinux policy prevents Apache from communicating with SSSD
-over D-Bus.  Flip ``httpd_dbus_sssd`` to ``1``::
+over D-Bus.  Set ``httpd_dbus_sssd`` to ``1``::
 
   [client]$ sudo setsebool -P httpd_dbus_sssd 1
 

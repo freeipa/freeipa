@@ -10,18 +10,19 @@ Unit 9: SELinux User Maps
 SELinux is a *mandatory access controls* mechanism for Linux,
 providing more powerful and flexible access control than traditional
 Unix permissions.  Users have an SELinux *context* consisting of a
-*user*, *role* and *type*.  The goal of this unit is to cause users
+*user*, *role* and *type*.  In this unit, you will cause users
 to be *confined* by an SELinux *role-based access control (RBAC)*
 policy when the log into hosts that are members of the
-``webservers`` Host Group.
-
-..
-  - users can have different selinux policy on diff hosts
+``webservers`` Host Group.  You will also learn how to change a
+user's SELinux context when they execute commands via Sudo.
 
 **Note:** SELinux contexts are applied during PAM-based login, so
 when testing our changes in this unit ``su -l <user>`` will not
 suffice: it is necessary to log in via SSH.  You can do this from
 any of the VMs (even ``client`` itself).
+
+Confining users
+---------------
 
 Log in as ``alice`` and run ``id -Z`` to see her current SELinux
 context::
@@ -62,6 +63,7 @@ by the ``staff_u`` policy::
   [server]$ ssh alice@client.ipademo.local
   alice@client.ipademo.local's password:
   Last login: Fri Sep  2 05:47:03 2016
+
   [alice@client]$ id -Z
   staff_u:staff_r:staff_t:s0-s0:c0.c1023
 
@@ -83,15 +85,17 @@ inherit a user's context, as the following commands demonstrate::
 
   [alice@client]$ sudo -s
   [sudo] password for alice:
-  sh-4.3# id -Z
-  staff_u:staff_r:staff_t:s0-s0:c0.c1023
-  sh-4.3# systemctl restart httpd
-  Failed to restart httpd.service: Access denied
-  See system logs and 'systemctl status httpd.service' for details.
-  sh-4.3#
 
-Now let's make it so that ``alice`` can do her job.  We need to
-update the Sudo rule to change the SELinux context::
+  sh-4.4# id
+  uid=0(root) gid=0(root) groups=0(root) context=staff_u:staff_r:staff_t:s0-s0:c0.c1023
+
+  sh-4.4# echo "Hello, world!" > /etc/motd
+  sh: /etc/motd: Permission denied
+
+As you can see, ``alice`` became ``root``, but the SELinux
+confinement prevents her from writing ``/etc/motd`` (and many other
+things).  Let's make it so that ``alice`` can do her job.  We need
+to update the Sudo rule to change the SELinux context::
 
   [alice@client]$ ipa sudorule-add-option sysadmin_sudo --sudooption type=unconfined_t
   -------------------------------------------------------------
@@ -104,6 +108,7 @@ update the Sudo rule to change the SELinux context::
     RunAs User category: all
     RunAs Group category: all
     Sudo Option: type=unconfined_t
+
   [alice@client]$ ipa sudorule-add-option sysadmin_sudo --sudooption role=unconfined_r
   -------------------------------------------------------------
   Added option "role=unconfined_r" to Sudo Rule "sysadmin_sudo"
@@ -120,11 +125,14 @@ Now when ``alice`` runs ``sudo`` it changes the SELinux context of
 the program being run::
 
   [alice@client]$ sudo -s
-  sh-4.3# id -Z
-  staff_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
-  sh-4.3# systemctl restart httpd
-  sh-4.3#
 
+  sh-4.4# id -Z
+  staff_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+
+  sh-4.4# echo "Hello, world!" > /etc/motd
+
+  sh-4.4# cat /etc/motd
+  Hello, world!
 
 This concludes the unit.  You can now proceed to
 `Unit 10: SSH user and host key management <10-ssh-key-management.rst>`_

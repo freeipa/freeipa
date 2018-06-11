@@ -4,54 +4,59 @@ Unit 6: Service certificates
 You probably noticed that the web service was not hosted over HTTPS,
 so there is no TLS-based authentication or confidentiality.  In this
 unit, we will issue an X.509 certificate for the web service via
-the *certmonger* program.
+the *Certmonger* program.
 
 Certmonger supports multiple CAs including FreeIPA's CA, and can
 generate keys, issue certifiate requests, track certificates, and
 renew tracked certificates when the expiration time approaches.
 Will also use ``mod_ssl`` with Apache.
 
+Issue the service certificate
+-----------------------------
+
 Let's start by confirming that the HTTP service does not yet have a
 certificate::
 
   [client]$ ipa service-show HTTP/client.ipademo.local
-    Principal: HTTP/client.ipademo.local@IPADEMO.LOCAL
+    Principal name: HTTP/client.ipademo.local@IPADEMO.LOCAL
+    Principal alias: HTTP/client.ipademo.local@IPADEMO.LOCAL
     Keytab: True
     Managed by: client.ipademo.local
 
-Enable and start certmonger::
+Enable and start Certmonger::
 
   [client]$ sudo systemctl enable certmonger
-  Created symlink from /etc/systemd/system/multi-user.target.wants/certmonger.service to /usr/lib/systemd/system/certmonger.service.
+  Created symlink /etc/systemd/system/multi-user.target.wants/certmonger.service → /usr/lib/systemd/system/certmonger.service.
   [client]$ sudo systemctl start certmonger
 
 Now let's request a certificate.  We will generate keys and store
 certificates in the NSS database at ``/etc/httpd/alias``::
 
-  [client]$ sudo ipa-getcert request -f /etc/pki/tls/certs/app.crt -k /etc/pki/tls/private/app.key \
-            -K HTTP/client.ipademo.local \
-            -D client.ipademo.local
+  [client]$ sudo ipa-getcert request \
+              -f /etc/pki/tls/certs/app.crt \
+              -k /etc/pki/tls/private/app.key \
+              -K HTTP/client.ipademo.local \
+              -D client.ipademo.local
   New signing request "20180603185400" added.
 
 Let's break down some of those command arguments.
 
 ``-k <path>``
-  Path to private key
+  Path to private key (Certmonger will generate it)
 ``-f <path>``
-  Path to certificate
+  Path to certificate (where it will be saved after being issued)
 ``-K <principal>``
-  Kerberos service principal; because different kinds of services may
-  be accessed at one hostname, this argument is needed to tell
-  certmonger which service principal is the subject
+  Kerberos service principal; because different kinds of services
+  may be accessed at one hostname, this argument tells Certmonger
+  which service principal is the subject
 ``-D <dnsname>``
   Requests the given domain name to appear in the *Subject
-  Alternative Name (SAN)* extension.  The hostname will appear in
-  the *Common Name (CN)* field but this practice is deprecated, so
-  it is important to also include it in the SAN extension.
+  Alternative Name (SAN)* extension; today the *Common Name (CN)*
+  field is no longer used by browsers so the SAN value is essential
 
-Another important argument is ``-N <subject-name>`` but this
-defaults to the system hostname, which in our case
-(``client.ipademo.local``) is appropriate.
+Another important option is ``-N <subject-name>``.  It defaults to
+the system hostname, which in our case (``client.ipademo.local``) is
+appropriate.
 
 Let's check the status of our certificate request using the tracking
 identifier given in the ``ipa-getcert request`` output::
@@ -77,12 +82,15 @@ identifier given in the ``ipa-getcert request`` output::
     auto-renew: yes
 
 
-Confirm that the certificate was issued and that certmonger is now
+Confirm that the certificate was issued and that Certmonger is now
 ``MONITORING`` the certificate and will ``auto-renew`` it when it is
 close to expiration.  Now if you run ``ipa service-show``, you will
 see a number of attributes related to the certificate, including the
 certificate itself.  Can you work out how to save the PEM-encoded
 certificate to a file?
+
+Set up TLS for Apache
+---------------------
 
 Now we can reconfigure Apache to serve our app over TLS.  Update
 ``app.conf`` to listen on port 443 and add the SSL directives::

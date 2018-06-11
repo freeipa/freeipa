@@ -106,7 +106,9 @@ workshop) and accept the defaults for configuring the reverse zone::
   Do you want to configure DNS forwarders? [yes]: no
   No DNS forwarders configured
   Do you want to search for missing reverse zones? [yes]:
-
+  Do you want to create reverse zone for IP 192.168.33.10 [yes]:
+  Please specify the reverse zone name [33.168.192.in-addr.arpa.]:
+  Using reverse zone(s) 33.168.192.in-addr.arpa.
 
 Next, you will be presented with a summary of the server
 configuration and asked for final confirmation.  Give confirmation to begin the
@@ -118,10 +120,15 @@ server installation::
   Domain name:    ipademo.local
   Realm name:     IPADEMO.LOCAL
 
+  The CA will be configured with:
+  Subject DN:   CN=Certificate Authority,O=IPADEMO.LOCAL
+  Subject base: O=IPADEMO.LOCAL
+  Chaining:     self-signed
+
   BIND DNS server will be configured to serve IPA domain with:
   Forwarders:       No forwarders
   Forward policy:   only
-  Reverse zone(s):  No reverse zone
+  Reverse zone(s):  33.168.192.in-addr.arpa.
 
   Continue to configure the system with these values? [no]: yes
 
@@ -129,7 +136,7 @@ The installation takes a few minutes; you will see output indicating
 the progress.
 
 When it completes, run ``kinit admin`` and enter your *admin*
-password to obtain a Kerberos ticket granting ticket (TGT) for the
+password to obtain a Kerberos *ticket granting ticket* (TGT) for the
 ``admin`` user::
 
   [server]$ kinit admin

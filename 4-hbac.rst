@@ -12,7 +12,7 @@ they are trying to access (or its *Host Groups*), and (optionally)
 the service being accessed.
 
 In this unit, we will define an HBAC policy that restricts
-access to ``client.ipademo.local`` to members of the
+login access to ``client.ipademo.local`` to members of the
 ``sysadmin`` user group.
 
 
@@ -26,9 +26,9 @@ UI or the ``ipa`` CLI program (don't forget to ``kinit admin``; see
 if you can work out what plugin provides the host group
 functionality).
 
-**Hint:** if you use the CLI will need to run two commands - one to
-create the host group, and one to add ``client.ipademo.local`` as a
-member of the host group.
+**Hint:** if you use the CLI will need to run two separate
+commands—one to create the host group, then another to add
+``client.ipademo.local`` to the host group.
 
 
 Disabling the ``allow_all`` HBAC rule
@@ -118,7 +118,8 @@ command::
     Not matched rules: sysadmin_webservers
 
 Poor ``bob``.  He won't be allowed in because he is not a member of
-the ``sysadmin`` group.  What about ``alice``?
+the ``sysadmin`` group.  What is the result of ``ipa hbactest`` for
+``alice``?
 
 ``kinit`` as ``bob`` and try to log in to the client::
 
@@ -127,7 +128,9 @@ the ``sysadmin`` group.  What about ``alice``?
   [server]$ ssh bob@client.ipademo.local
   Connection closed by UNKNOWN port 65535
 
-Then try ``alice``::
+The server refused to let ``bob`` in and closed the connection.
+
+Now try ``alice``::
 
   [server]$ kinit alice
   Password for alice@IPADEMO.LOCAL:

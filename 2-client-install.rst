@@ -40,16 +40,16 @@ proceed::
 
   Continue to configure the system with these values? [no]: yes
 
-You might see a warning about time synchronisation, which for this
-workshop can be ignored.  Next you will be be prompted to enter
-credentials of a user authorised to enrol hosts (``admin``)::
+Next, the client's time will be synchronised with the server, then
+the installer will prompt you to enter the credentials of a user
+authorised to enrol hosts (``admin``)::
 
   User authorized to enroll computers: admin
   Password for admin@IPADEMO.LOCAL:
 
 The enrolment now proceeds; no further input is required.  You will
-see output detailing the operations being completed.  Unlike
-``ipa-server-install``, client enrolment only takes a few seconds.
+see output detailing the operations being completed.  Client
+enrolment only takes a few seconds.
 
 Users in your FreeIPA domain can now log into FreeIPA-enrolled
 hosts, subject to *Host-based access control* (HBAC) rules.  Users
