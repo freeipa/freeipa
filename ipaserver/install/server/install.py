@@ -446,6 +446,14 @@ def install_check(installer):
     else:
         host_default = get_fqdn()
 
+    if options.setup_dns:
+        dns.install_check(False, api, False, options, host_name)
+        ip_addresses = dns.ip_addresses
+    else:
+        ip_addresses = get_server_ip_address(host_name,
+                                             not installer.interactive, False,
+                                             options.ip_addresses)
+
     try:
         if not installer.interactive or options.host_name:
             verify_fqdn(host_default, options.no_host_dns)
@@ -634,14 +642,6 @@ def install_check(installer):
         ca.install_check(False, None, options)
     if options.setup_kra:
         kra.install_check(api, None, options)
-
-    if options.setup_dns:
-        dns.install_check(False, api, False, options, host_name)
-        ip_addresses = dns.ip_addresses
-    else:
-        ip_addresses = get_server_ip_address(host_name,
-                                             not installer.interactive, False,
-                                             options.ip_addresses)
 
         # check addresses here, dns module is doing own check
         no_matching_interface_for_ip_address_warning(ip_addresses)
