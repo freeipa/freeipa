@@ -42,7 +42,7 @@ On ``server``, start the FreeIPA server installation program::
 The ``--no-host-dns`` argument is needed because there are no reverse
 DNS records for the Vagrant environment.  For production deployment,
 this important sanity check should not be skipped. The ``--mkhomedir``
-flag configure PAM to create missing home directories when users log
+flag configures PAM to create missing home directories when users log
 into the host for the first time. FreeIPA supports automount so
 consider using that for production deployments.
 
