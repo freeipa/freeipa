@@ -1699,6 +1699,7 @@ class UI_driver(object):
         expand.click()
         action_link = self.find("li[data-name=%s] a" % name, By.CSS_SELECTOR,
                                 context, strict=True)
+        self.move_to_element_in_page(action_link)
         action_link.click()
         if confirm:
             self.wait(0.5)  # wait for dialog

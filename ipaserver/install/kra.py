@@ -93,7 +93,6 @@ def install(api, replica_config, options, custodia):
                     paths.KRB5_KEYTAB,
                     ccache)
                 custodia.get_kra_keys(
-                    replica_config.kra_host_name,
                     krafile,
                     replica_config.dirman_password)
         else:

@@ -37,6 +37,7 @@ from ipaserver.install import service
 logger = logging.getLogger(__name__)
 
 DSE = 'dse.ldif'
+COMPAT_DN = "cn=Schema Compatibility,cn=plugins,cn=config"
 
 
 class GetEntryFromLDIF(ldif.LDIFParser):
@@ -113,6 +114,7 @@ class IPAUpgrade(service.Service):
         self.step("saving configuration", self.__save_config)
         self.step("disabling listeners", self.__disable_listeners)
         self.step("enabling DS global lock", self.__enable_ds_global_write_lock)
+        self.step("disabling Schema Compat", self.__disable_schema_compat)
         self.step("starting directory server", self.__start)
         if self.schema_files:
             self.step("updating schema", self.__update_schema)
@@ -161,6 +163,22 @@ class IPAUpgrade(service.Service):
             else:
                 self.backup_state('nsslapd-global-backend-lock', global_lock)
 
+        with open(self.filename, "r") as in_file:
+            parser = GetEntryFromLDIF(in_file, entries_dn=[COMPAT_DN])
+            parser.parse()
+
+        try:
+            compat_entry = parser.get_results()[COMPAT_DN]
+        except KeyError:
+            return
+
+        schema_compat_enabled = compat_entry.get('nsslapd-pluginEnabled')
+        if schema_compat_enabled is None:
+            schema_compat_enabled = compat_entry.get('nsslapd-pluginenabled')
+        if schema_compat_enabled:
+            self.backup_state('schema_compat_enabled',
+                              schema_compat_enabled[0].decode('utf-8'))
+
     def __enable_ds_global_write_lock(self):
         ldif_outfile = "%s.modified.out" % self.filename
         with open(ldif_outfile, "w") as out_file:
@@ -177,6 +195,7 @@ class IPAUpgrade(service.Service):
         port = self.restore_state('nsslapd-port')
         security = self.restore_state('nsslapd-security')
         global_lock = self.restore_state('nsslapd-global-backend-lock')
+        schema_compat_enabled = self.restore_state('schema_compat_enabled')
 
         ldif_outfile = "%s.modified.out" % self.filename
         with open(ldif_outfile, "w") as out_file:
@@ -195,6 +214,10 @@ class IPAUpgrade(service.Service):
                 if global_lock is not None:
                     parser.add_value("cn=config", "nsslapd-global-backend-lock",
                                      [global_lock.encode('utf-8')])
+                if schema_compat_enabled is not None:
+                    parser.replace_value(
+                        COMPAT_DN, "nsslapd-pluginEnabled",
+                        [schema_compat_enabled.encode('utf-8')])
 
                 parser.parse()
 
@@ -208,6 +231,19 @@ class IPAUpgrade(service.Service):
                 parser.replace_value("cn=config", "nsslapd-port", [b"0"])
                 parser.replace_value("cn=config", "nsslapd-security", [b"off"])
                 parser.remove_value("cn=config", "nsslapd-ldapientrysearchbase")
+                parser.parse()
+
+        shutil.copy2(ldif_outfile, self.filename)
+
+    def __disable_schema_compat(self):
+        ldif_outfile = "%s.modified.out" % self.filename
+        with open(ldif_outfile, "w") as out_file:
+            with open(self.filename, "r") as in_file:
+                parser = installutils.ModifyLDIF(in_file, out_file)
+                parser.remove_value(COMPAT_DN, "nsslapd-pluginEnabled")
+                parser.remove_value(COMPAT_DN, "nsslapd-pluginenabled")
+                parser.add_value(COMPAT_DN, "nsslapd-pluginEnabled",
+                                 [b"off"])
                 parser.parse()
 
         shutil.copy2(ldif_outfile, self.filename)

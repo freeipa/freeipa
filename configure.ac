@@ -504,6 +504,7 @@ AC_CONFIG_FILES([
     asn1/Makefile
     asn1/asn1c/Makefile
     client/Makefile
+    client/share/Makefile
     client/man/Makefile
     contrib/completion/Makefile
     contrib/Makefile

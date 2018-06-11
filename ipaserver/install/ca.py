@@ -280,7 +280,6 @@ def install_step_0(standalone, replica_config, options, custodia):
         cafile = os.path.join(replica_config.dir, 'cacert.p12')
         if options.promote:
             custodia.get_ca_keys(
-                replica_config.ca_host_name,
                 cafile,
                 replica_config.dirman_password)
 
