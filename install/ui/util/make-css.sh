@@ -22,5 +22,5 @@ set -o errexit
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-lesscpy -x $DIR/../less/ipa.less > $DIR/../css/ipa.css
+py3-lesscpy -x $DIR/../less/ipa.less > $DIR/../css/ipa.css
 exit $?
