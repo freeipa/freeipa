@@ -255,3 +255,43 @@ Next step
 
 You are ready to begin the workshop.  Continue to
 `Unit 1: Installing the FreeIPA server <1-server-install.rst>`_.
+
+
+After the workshop
+------------------
+
+Here are some contact details and resources that may help you after
+the workshop is over:
+
+- IRC: ``#freeipa`` and ``#sssd`` (Freenode)
+
+- ``freeipa-users@lists.fedorahosted.org`` `mailing list
+  <https://lists.fedoraproject.org/archives/list/freeipa-users@lists.fedorahosted.org/>`_
+
+- `How To guides <https://www.freeipa.org/page/HowTos>`_: large
+  index of articles about specialised tasks and integrations
+
+- `Troubleshooting guide
+  <https://www.freeipa.org/page/Troubleshooting>`_: how to debug
+  common problems; how to report bugs
+
+- `Bug tracker <https://pagure.io/freeipa>`_
+
+- Information about the `FreeIPA public demo
+  <https://www.freeipa.org/page/Demo>`_ instance
+
+- `Deployment Recommendations
+  <https://www.freeipa.org/page/Deployment_Recommendations>`_:
+  things to consider when going into production
+
+- `Documentation index
+  <https://www.freeipa.org/page/Documentation>`_
+
+- `FreeIPA Planet <http://planet.freeipa.org/>`_: aggregate of
+  several FreeIPA and identity-management related blogs
+
+- `GitHub organisation <https://github.com/freeipa>`_.  In addition
+  to the `main repository <https://github.com/freeipa/freeipa>`_
+  there are various tools, CI-related projects and documentation.
+
+- `Development roadmap <https://www.freeipa.org/page/Roadmap>`_
