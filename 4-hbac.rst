@@ -63,7 +63,7 @@ Creating HBAC rules
 -------------------
 
 HBAC rules are built up incrementally.  The rule is created, then
-users or groups, hosts or hostsgroups and HBAC services are added to
+users or groups, hosts or hostgroups and HBAC services are added to
 the rule.  The following transcript details the process::
 
   [server]$ ipa hbacrule-add sysadmin_webservers

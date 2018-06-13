@@ -7,7 +7,7 @@ unit, we will issue an X.509 certificate for the web service via
 the *Certmonger* program.
 
 Certmonger supports multiple CAs including FreeIPA's CA, and can
-generate keys, issue certifiate requests, track certificates, and
+generate keys, issue certificate requests, track certificates, and
 renew tracked certificates when the expiration time approaches.
 Will also use ``mod_ssl`` with Apache.
 
@@ -25,9 +25,8 @@ certificate::
 
 Enable and start Certmonger::
 
-  [client]$ sudo systemctl enable certmonger
+  [client]$ sudo systemctl enable --now certmonger
   Created symlink /etc/systemd/system/multi-user.target.wants/certmonger.service → /usr/lib/systemd/system/certmonger.service.
-  [client]$ sudo systemctl start certmonger
 
 Now let's request a certificate.  We will generate keys and store
 certificates in the NSS database at ``/etc/httpd/alias``::

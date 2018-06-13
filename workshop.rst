@@ -120,8 +120,7 @@ password everytime::
 
 On **Fedoda 28** you need to enable ``virtlogd``::
 
-  $ systemctl enable virtlogd.socket
-  $ systemctl start virtlogd.socket
+  $ systemctl enable --now virtlogd.socket
 
 Finally restart the services::
 
