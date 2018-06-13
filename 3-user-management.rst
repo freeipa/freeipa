@@ -27,7 +27,7 @@ CLI
 Make sure you have a Kerberos ticket for ``admin`` (reminder:
 ``kinit admin``).
 
-Most FreeIPA adminstrative actions can be carried out using the
+Most FreeIPA administrative actions can be carried out using the
 ``ipa`` CLI program.  Let's see what commands are available::
 
   [server]% ipa help commands
