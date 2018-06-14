@@ -5,9 +5,11 @@
 '''
 This base platform module exports platform dependant constants.
 '''
+import sys
 
 
 class BaseConstantsNamespace(object):
+    IS_64BITS = sys.maxsize > 2 ** 32
     DS_USER = 'dirsrv'
     DS_GROUP = 'dirsrv'
     HTTPD_USER = "apache"
@@ -42,6 +44,9 @@ class BaseConstantsNamespace(object):
     # WSGI module override, only used on Fedora
     MOD_WSGI_PYTHON2 = None
     MOD_WSGI_PYTHON3 = None
+    # WSGIDaemonProcess process count. On 64bit platforms, each process
+    # consumes about 110 MB RSS, from which are about 35 MB shared.
+    WSGI_PROCESSES = 5 if IS_64BITS else 2
 
 
 constants = BaseConstantsNamespace()
