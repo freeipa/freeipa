@@ -108,6 +108,7 @@ class HTTPInstance(service.Service):
             IPA_CUSTODIA_SOCKET=paths.IPA_CUSTODIA_SOCKET,
             IPA_CCACHES=paths.IPA_CCACHES,
             WSGI_PREFIX_DIR=paths.WSGI_PREFIX_DIR,
+            WSGI_PROCESSES=constants.WSGI_PROCESSES,
         )
         self.ca_file = ca_file
         if ca_is_configured is not None:

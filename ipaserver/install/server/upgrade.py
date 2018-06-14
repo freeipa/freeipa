@@ -1734,6 +1734,7 @@ def upgrade_configuration():
         DOGTAG_PORT=8009,
         CLONE='#',
         WSGI_PREFIX_DIR=paths.WSGI_PREFIX_DIR,
+        WSGI_PROCESSES=constants.WSGI_PROCESSES,
         GSSAPI_SESSION_KEY=paths.GSSAPI_SESSION_KEY,
         FONTS_DIR=paths.FONTS_DIR,
         IPA_CCACHES=paths.IPA_CCACHES,
