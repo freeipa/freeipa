@@ -74,7 +74,8 @@ class TestReplicaPromotionLevel0(ReplicaPromotionBase):
         command = ["ipa", "topologysegment-find", DOMAIN_SUFFIX_NAME]
         tasks.install_replica(self.master, self.replicas[0])
         backup_file = tasks.ipa_backup(self.master)
-        self.master.run_command(["ipa", "domainlevel-set", str(DOMAIN_LEVEL_1)])
+        self.master.run_command(["ipa", "domainlevel-set",
+                                str(DOMAIN_LEVEL_1)])
         # We need to give the server time to merge 2 one-way segments into one
         time.sleep(10)
         result = self.master.run_command(command)
@@ -198,10 +199,10 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
         """
         self.replicas[0].run_command(['ipa-replica-install', '-w',
                                      self.master.config.admin_password,
-                                     '-n', self.master.domain.name,
-                                     '-r', self.master.domain.realm,
-                                     '--server', self.master.hostname,
-                                     '-U'])
+                                      '-n', self.master.domain.name,
+                                      '-r', self.master.domain.realm,
+                                      '--server', self.master.hostname,
+                                      '-U'])
 
 
 @pytest.mark.xfail(reason="Ticket N 6274")
@@ -253,8 +254,8 @@ class TestReplicaManageCommands(IntegrationTest):
                               ' commands to manage the topology', 1)
 
         # http://www.freeipa.org/page/V4/Replica_Promotion/Test_plan
-        #Test_case:_ipa-csreplica-manage_connect_is_deprecated
-        #_in_domain_level_1
+        # Test_case:_ipa-csreplica-manage_connect_is_deprecated
+        # _in_domain_level_1
 
         result5 = master.run_command(['ipa-csreplica-manage', 'del',
                                       replica1.hostname,
@@ -414,7 +415,7 @@ class TestWrongClientDomain(IntegrationTest):
             return
         self.replicas[0].run_command(['ipa-client-install',
                                      '--uninstall', '-U'],
-                                    raiseonerr=False)
+                                     raiseonerr=False)
         tasks.kinit_admin(self.master)
         self.master.run_command(['ipa', 'host-del',
                                  self.replicas[0].hostname],
@@ -660,3 +661,37 @@ class TestSubCAkeyReplication(IntegrationTest):
         ssl_cmd = ['openssl', 'x509', '-text', '-in', TEST_CRT_FILE]
         ssl = replica.run_command(ssl_cmd)
         assert 'Issuer: CN = {}'.format(self.SUBCA) in ssl.stdout_text
+
+
+class TestReplicaInstallCustodia(IntegrationTest):
+    """
+    Pagure Reference: https://pagure.io/freeipa/issue/7518
+    """
+
+    topology = 'line'
+    num_replicas = 2
+    domain_level = DOMAIN_LEVEL_1
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, domain_level=cls.domain_level)
+
+    def test_replica_install_for_custodia(self):
+        master = self.master
+        replica1 = self.replicas[0]
+        replica2 = self.replicas[1]
+
+        # Install Replica1 without CA and stop ipa-custodia
+        tasks.install_replica(master, replica1, setup_ca=False,
+                              setup_dns=True)
+        replica1.run_command(['ipactl', 'status'])
+        replica1.run_command(['systemctl', 'stop', 'ipa-custodia'])
+        replica1.run_command(['ipactl', 'status'])
+
+        # Install Replica2 with CA with source as Replica1.
+        result1 = tasks.install_replica(replica1, replica2, setup_ca=True,
+                                        setup_dns=True)
+        replica2.run_command(['ipactl', 'status'])
+        assert(result1.returncode == 0), (
+                            "Installation Failed: %s" % result2.stderr_text
+                                         )
