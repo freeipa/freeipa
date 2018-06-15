@@ -32,6 +32,7 @@ from ipalib import api, _
 from ipalib import errors
 from ipapython import ipautil
 from ipapython.dn import DN
+from ipapython.dnsutil import query_srv
 from ipapython.ipaldap import ldap_initialize
 from ipaserver.install import installutils
 from ipaserver.dcerpc_common import (TRUST_BIDIRECTIONAL,
@@ -55,7 +56,6 @@ import samba
 import ldap as _ldap
 from ipapython import ipaldap
 from ipapython.dnsutil import DNSName
-from dns import resolver, rdatatype
 from dns.exception import DNSException
 import pysss_nss_idmap
 import pysss
@@ -802,7 +802,7 @@ class DomainValidator(object):
             gc_name = '_gc._tcp.%s.' % info['dns_domain']
 
             try:
-                answers = resolver.query(gc_name, rdatatype.SRV)
+                answers = query_srv(gc_name)
             except DNSException as e:
                 answers = []
 

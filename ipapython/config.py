@@ -26,7 +26,6 @@ from copy import copy
 import socket
 import functools
 
-from dns import resolver, rdatatype
 from dns.exception import DNSException
 import dns.name
 # pylint: disable=import-error
@@ -36,6 +35,7 @@ from six.moves.urllib.parse import urlsplit
 
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+from ipapython.dnsutil import query_srv
 from ipapython.ipautil import CheckedIPAddress, CheckedIPAddressLoopback
 
 
@@ -210,7 +210,7 @@ def __discover_config(discover_server = True):
             name = "_ldap._tcp." + domain
 
             try:
-                servers = resolver.query(name, rdatatype.SRV)
+                servers = query_srv(name)
             except DNSException:
                 # try cycling on domain components of FQDN
                 try:
@@ -225,7 +225,7 @@ def __discover_config(discover_server = True):
                         return False
                     name = "_ldap._tcp.%s" % domain
                     try:
-                        servers = resolver.query(name, rdatatype.SRV)
+                        servers = query_srv(name)
                         break
                     except DNSException:
                         pass
@@ -236,7 +236,7 @@ def __discover_config(discover_server = True):
             if not servers:
                 name = "_ldap._tcp.%s." % config.default_domain
                 try:
-                    servers = resolver.query(name, rdatatype.SRV)
+                    servers = query_srv(name)
                 except DNSException:
                     pass
 
