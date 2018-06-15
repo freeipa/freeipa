@@ -20,7 +20,6 @@
 from __future__ import absolute_import
 
 import logging
-import operator
 import socket
 
 import six
@@ -28,6 +27,7 @@ import six
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 from ipalib import errors
+from ipapython.dnsutil import query_srv
 from ipapython import ipaldap
 from ipaplatform.paths import paths
 from ipapython.ipautil import valid_ip, realm_to_suffix
@@ -498,8 +498,7 @@ class IPADiscovery(object):
         logger.debug("Search DNS for SRV record of %s", qname)
 
         try:
-            answers = resolver.query(qname, rdatatype.SRV)
-            answers = sorted(answers, key=operator.attrgetter('priority'))
+            answers = query_srv(qname)
         except DNSException as e:
             logger.debug("DNS record not found: %s", e.__class__.__name__)
             answers = []
