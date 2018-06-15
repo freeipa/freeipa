@@ -6,7 +6,7 @@ from __future__ import absolute_import
 
 import time
 import re
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, mkdtemp
 import textwrap
 import pytest
 from ipatests.test_integration.base import IntegrationTest
@@ -660,3 +660,66 @@ class TestSubCAkeyReplication(IntegrationTest):
         ssl_cmd = ['openssl', 'x509', '-text', '-in', TEST_CRT_FILE]
         ssl = replica.run_command(ssl_cmd)
         assert 'Issuer: CN = {}'.format(self.SUBCA) in ssl.stdout_text
+
+
+class TestIPACAInstallCommand(IntegrationTest):
+    """
+    Test ipa-ca-install command and its options.
+    """
+    num_replicas = 1
+
+    @pytest.mark.xfail(reason='Ticket N 6985')
+    def test_install_ca_replica(self):
+        """
+        ipa-ca-install command installs CA on replica even if cert file
+        is not specified with --external-cert-file option. If executed
+        command with non-existing file, invalid file etc,
+        """
+        # related to https://pagure.io/freeipa/issue/6985
+        master = self.master
+
+        replica = self.replicas[0]
+        tasks.install_master(self.master)
+        tasks.install_replica(master, replica, setup_ca=False)
+
+        contents = (
+            '-----BEGIN CERTIFICATE-----\n'
+            'sdnmsdkfbsdifbsdbasdsdSDDDasdmnd\n'
+            '-----END CERTIFICATE-----')
+        cert1 = mkdtemp(suffix='xyz.crt', dir=paths.TMP)
+        replica.put_file_contents(cert1, contents)
+        cert_files = [cert1]
+
+        # install ca with invalid cert
+        result = tasks.install_ca(replica, cert_files=cert_files,
+                                  raiseonerr=False)
+        assert result.returncode != 0
+        tasks.uninstall_replica(master, replica)
+        tasks.install_replica(master, replica, setup_ca=False)
+
+        # install ca when cert file is not specified with
+        # --external-cert-file option
+        cmd1 = ["ipa-ca-install", "-U", "-p",
+                replica.config.dirman_password, "-P", 'admin',
+                "-w", replica.config.admin_password,
+                '--external-cert-file=']
+        result1 = replica.run_command(cmd1, raiseonerr=False)
+        assert result1.returncode != 0
+
+        tasks.uninstall_replica(master, replica)
+        tasks.install_replica(master, replica, setup_ca=False)
+
+        # install external-ca
+        result2 = tasks.install_ca(replica, external_ca=True, raiseonerr=False)
+        assert result2.returncode != 0
+
+        tasks.uninstall_replica(master, replica)
+        tasks.install_replica(master, replica, setup_ca=False)
+
+        # install ca with non-existent cert
+        cmd2 = ["ipa-ca-install", "-U", "-p",
+                replica.config.dirman_password, "-P", 'admin',
+                "-w", replica.config.admin_password,
+                '--external-cert-file=abc.crt']
+        result3 = replica.run_command(cmd2, raiseonerr=False)
+        assert result3.returncode != 0
