@@ -25,6 +25,7 @@ from ipapython.ipa_log_manager import root_logger
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 from ipalib import errors
+from ipapython.dnsutil import query_srv
 from ipapython import ipaldap
 from ipaplatform.paths import paths
 from ipapython.ipautil import valid_ip, realm_to_suffix
@@ -492,7 +493,7 @@ class IPADiscovery(object):
         root_logger.debug("Search DNS for SRV record of %s", qname)
 
         try:
-            answers = resolver.query(qname, rdatatype.SRV)
+            answers = query_srv(qname)
         except DNSException as e:
             root_logger.debug("DNS record not found: %s", e.__class__.__name__)
             answers = []

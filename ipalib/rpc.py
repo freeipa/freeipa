@@ -43,7 +43,6 @@ import socket
 import gzip
 
 import gssapi
-from dns import resolver, rdatatype
 from dns.exception import DNSException
 from ssl import SSLError
 import six
@@ -59,7 +58,7 @@ from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
 from ipapython import session_storage
 from ipapython.cookie import Cookie
-from ipapython.dnsutil import DNSName
+from ipapython.dnsutil import DNSName, query_srv
 from ipalib.text import _
 from ipalib.util import create_https_connection
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
@@ -855,7 +854,7 @@ class RPCClient(Connectible):
         name = '_ldap._tcp.%s.' % self.env.domain
 
         try:
-            answers = resolver.query(name, rdatatype.SRV)
+            answers = query_srv(name)
         except DNSException:
             answers = []
 
@@ -863,17 +862,11 @@ class RPCClient(Connectible):
             server = str(answer.target).rstrip(".")
             servers.append('https://%s%s' % (ipautil.format_netloc(server), path))
 
-        servers = list(set(servers))
-        # the list/set conversion won't preserve order so stick in the
-        # local config file version here.
-        cfg_server = rpc_uri
-        if cfg_server in servers:
-            # make sure the configured master server is there just once and
-            # it is the first one
-            servers.remove(cfg_server)
-            servers.insert(0, cfg_server)
-        else:
-            servers.insert(0, cfg_server)
+        # make sure the configured master server is there just once and
+        # it is the first one.
+        if rpc_uri in servers:
+            servers.remove(rpc_uri)
+        servers.insert(0, rpc_uri)
 
         return servers
 
