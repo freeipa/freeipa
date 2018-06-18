@@ -201,6 +201,12 @@ class test_Gettext(object):
         inst = self.klass('hello %(adj)s nurse', 'foo', 'bar')
         assert inst % dict(adj='tall', stuff='junk') == 'hello tall nurse'
 
+    def test_format(self):
+        inst = self.klass('{0} {adj} nurse', 'foo', 'bar')
+        posargs = ('hello', 'bye')
+        knownargs = {'adj': 'caring', 'stuff': 'junk'}
+        assert inst.format(*posargs, **knownargs) == 'hello caring nurse'
+
     def test_eq(self):
         inst1 = self.klass('what up?', 'foo', 'bar')
         inst2 = self.klass('what up?', 'foo', 'bar')
@@ -263,6 +269,21 @@ class test_NGettext(object):
         assert inst % dict(count=0, dish='frown') == '0 geese make a frown'
         assert inst % dict(count=1, dish='stew') == '1 goose makes a stew'
         assert inst % dict(count=2, dish='pie') == '2 geese make a pie'
+
+    def test_format(self):
+        singular = '{count} goose makes a {0} {dish}'
+        plural = '{count} geese make a {0} {dish}'
+        inst = self.klass(singular, plural, 'foo', 'bar')
+        posargs = ('tasty', 'disgusting')
+        knownargs0 = {'count': 0, 'dish': 'frown', 'stuff': 'junk'}
+        knownargs1 = {'count': 1, 'dish': 'stew', 'stuff': 'junk'}
+        knownargs2 = {'count': 2, 'dish': 'pie', 'stuff': 'junk'}
+        expected_str0 = '0 geese make a tasty frown'
+        expected_str1 = '1 goose makes a tasty stew'
+        expected_str2 = '2 geese make a tasty pie'
+        assert inst.format(*posargs, **knownargs0) == expected_str0
+        assert inst.format(*posargs, **knownargs1) == expected_str1
+        assert inst.format(*posargs, **knownargs2) == expected_str2
 
     def test_eq(self):
         inst1 = self.klass(singular, plural, 'foo', 'bar')
@@ -386,6 +407,12 @@ class test_ConcatenatedText(object):
     def test_mod(self):
         inst = self.klass('[', text.Gettext('%(color)s', 'foo', 'bar'), ']')
         assert inst % dict(color='red', stuff='junk') == '[red]'
+
+    def test_format(self):
+        inst = self.klass('{0}', text.Gettext('{color}', 'foo', 'bar'), ']')
+        posargs = ('[', '(')
+        knownargs = {'color': 'red', 'stuff': 'junk'}
+        assert inst.format(*posargs, **knownargs) == '[red]'
 
     def test_add(self):
         inst = (text.Gettext('pale ', 'foo', 'bar') +
