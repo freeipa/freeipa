@@ -41,10 +41,10 @@ class test_textui(ClassChecker):
         assert str(e) == 'rows: need %r or %r; got %r' % (list, tuple, 'hello')
         rows = [
             'hello',
-            'naughty',
+            'empathetic',
             'nurse',
         ]
-        assert o.max_col_width(rows) == len('naughty')
+        assert o.max_col_width(rows) == len('empathetic')
         rows = (
             ( 'a',  'bbb',  'ccccc'),
             ('aa', 'bbbb', 'cccccc'),

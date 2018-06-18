@@ -195,12 +195,12 @@ def test_assert_deepequal():
     # Test with good compound values:
     a = [
         u'hello',
-        dict(naughty=u'nurse'),
+        dict(profession=u'nurse'),
         18,
     ]
     b = [
         u'hello',
-        dict(naughty=u'nurse'),
+        dict(profession=u'nurse'),
         18,
     ]
     f(a, b)
@@ -208,7 +208,7 @@ def test_assert_deepequal():
     # Test with bad compound values:
     b = [
         b'hello',
-        dict(naughty=u'nurse'),
+        dict(profession=u'nurse'),
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
@@ -218,17 +218,17 @@ def test_assert_deepequal():
 
     b = [
         u'hello',
-        dict(naughty=b'nurse'),
+        dict(profession=b'nurse'),
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', unicode, bytes, u'nurse', b'nurse', (1, 'naughty')
+        'foo', unicode, bytes, u'nurse', b'nurse', (1, 'profession')
     )
 
     b = [
         u'hello',
-        dict(naughty=u'nurse'),
+        dict(profession=u'nurse'),
         18.0,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
@@ -239,7 +239,7 @@ def test_assert_deepequal():
     # List length mismatch
     b = [
         u'hello',
-        dict(naughty=u'nurse'),
+        dict(profession=u'nurse'),
         18,
         19
     ]
@@ -249,7 +249,7 @@ def test_assert_deepequal():
     )
 
     b = [
-        dict(naughty=u'nurse'),
+        dict(profession=u'nurse'),
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
@@ -266,36 +266,39 @@ def test_assert_deepequal():
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
-    assert str(e) == KEYS % ('foo',
-        ['naughty'], [],
-        exp_str(dict(naughty=u'nurse')), got_str(dict()),
+    assert str(e) == KEYS % (
+        'foo',
+        ['profession'], [],
+        exp_str(dict(profession=u'nurse')), got_str(dict()),
         (1,)
     )
 
     # Extra
     b = [
         u'hello',
-        dict(naughty=u'nurse', barely=u'legal'),
+        dict(profession=u'nurse', status=u'RN'),
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
-    assert str(e) == KEYS % ('foo',
-        [], ['barely'],
-        exp_str(dict(naughty=u'nurse')),
-        got_str(dict(naughty=u'nurse', barely=u'legal')),
+    assert str(e) == KEYS % (
+        'foo',
+        [], ['status'],
+        exp_str(dict(profession=u'nurse')),
+        got_str(dict(profession=u'nurse', status=u'RN')),
         (1,)
     )
 
     # Missing + Extra
     b = [
         u'hello',
-        dict(barely=u'legal'),
+        dict(status=u'RN'),
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
-    assert str(e) == KEYS % ('foo',
-        ['naughty'], ['barely'],
-        exp_str(dict(naughty=u'nurse')), got_str(dict(barely=u'legal')),
+    assert str(e) == KEYS % (
+        'foo',
+        ['profession'], ['status'],
+        exp_str(dict(profession=u'nurse')), got_str(dict(status=u'RN')),
         (1,)
     )
 
