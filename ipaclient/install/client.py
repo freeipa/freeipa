@@ -2962,7 +2962,8 @@ def _install(options):
         tasks.modify_nsswitch_pam_stack(
             sssd=options.sssd,
             mkhomedir=options.mkhomedir,
-            statestore=statestore
+            statestore=statestore,
+            sudo=options.conf_sudo
         )
 
         logger.info("%s enabled", "SSSD" if options.sssd else "LDAP")

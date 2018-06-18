@@ -31,7 +31,7 @@ class DebianTaskNamespace(RedHatTaskNamespace):
         return True
 
     @staticmethod
-    def modify_nsswitch_pam_stack(sssd, mkhomedir, statestore):
+    def modify_nsswitch_pam_stack(sssd, mkhomedir, statestore, sudo=True):
         if mkhomedir:
             try:
                 ipautil.run(["pam-auth-update",

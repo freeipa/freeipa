@@ -207,9 +207,10 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         with open(paths.SYSCONF_NETWORK, 'w') as f:
             f.writelines(content)
 
-    def modify_nsswitch_pam_stack(self, sssd, mkhomedir, statestore):
+    def modify_nsswitch_pam_stack(self, sssd, mkhomedir, statestore,
+                                  sudo=True):
         auth_config = get_auth_tool()
-        auth_config.configure(sssd, mkhomedir, statestore)
+        auth_config.configure(sssd, mkhomedir, statestore, sudo)
 
     def is_nosssd_supported(self):
         # The flag --no-sssd is not supported any more for rhel-based distros
@@ -232,7 +233,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         mkhomedir = statestore.get_state('authconfig', 'mkhomedir')
 
         # Force authselect 'sssd' profile
-        authselect_cmd = [paths.AUTHSELECT, "select", "sssd"]
+        authselect_cmd = [paths.AUTHSELECT, "select", "sssd", "with-sudo"]
         if mkhomedir:
             authselect_cmd.append("with-mkhomedir")
         authselect_cmd.append("--force")

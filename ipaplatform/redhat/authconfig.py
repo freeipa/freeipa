@@ -41,7 +41,7 @@ def get_auth_tool():
 class RedHatAuthToolBase(object):
 
     @abc.abstractmethod
-    def configure(self, sssd, mkhomedir, statestore):
+    def configure(self, sssd, mkhomedir, statestore, sudo=True):
         pass
 
     @abc.abstractmethod
@@ -102,11 +102,11 @@ class RedHatAuthSelect(RedHatAuthToolBase):
         features = output_items[1:]
         return profile, features
 
-    def configure(self, sssd, mkhomedir, statestore):
+    def configure(self, sssd, mkhomedir, statestore, sudo=True):
         # In the statestore, the following keys are used for the
         # 'authselect' module:
         # profile: name of the profile configured pre-installation
-        # features_list: lsit of features configured pre-installation
+        # features_list: list of features configured pre-installation
         # mkhomedir: True if installation was called with --mkhomedir
         # profile and features_list are used when reverting to the
         # pre-install state
@@ -132,6 +132,8 @@ class RedHatAuthSelect(RedHatAuthToolBase):
         if mkhomedir:
             cmd.append("with-mkhomedir")
             statestore.backup_state('authselect', 'mkhomedir', True)
+        if sudo:
+            cmd.append("with-sudo")
         cmd.append("--force")
 
         ipautil.run(cmd)
@@ -275,7 +277,7 @@ class RedHatAuthConfig(RedHatAuthToolBase):
         except ipautil.CalledProcessError:
             raise ScriptError("Failed to execute authconfig command")
 
-    def configure(self, sssd, mkhomedir, statestore):
+    def configure(self, sssd, mkhomedir, statestore, sudo=True):
         if sssd:
             statestore.backup_state('authconfig', 'sssd', True)
             statestore.backup_state('authconfig', 'sssdauth', True)
