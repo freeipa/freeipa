@@ -29,29 +29,29 @@ class TestServicePermissions(IntegrationTest):
     def test_service_as_user_admin(self):
         """Test that a service in User Administrator role can manage users"""
 
-        service_name = 'testservice/%s@%s' % (self.master.hostname,
-                                              self.master.domain.realm)
-        keytab_file = os.path.join(self.master.config.test_dir,
-                                   'testservice_keytab')
+        service_name1 = 'testservice1/%s@%s' % (self.master.hostname,
+                                                self.master.domain.realm)
+        keytab_file1 = os.path.join(self.master.config.test_dir,
+                                    'testservice_keytab1')
 
         # Prepare a service
 
-        self.master.run_command(['ipa', 'service-add', service_name])
+        self.master.run_command(['ipa', 'service-add', service_name1])
 
         self.master.run_command(['ipa-getkeytab',
-                                 '-p', service_name,
-                                 '-k', keytab_file,
+                                 '-p', service_name1,
+                                 '-k', keytab_file1,
                                  '-s', self.master.hostname])
 
         # Check that the service cannot add a user
 
         self.master.run_command(['kdestroy'])
-        self.master.run_command(['kinit', '-k', service_name,
-                                 '-t', keytab_file])
+        self.master.run_command(['kinit', '-k', service_name1,
+                                 '-t', keytab_file1])
 
         result = self.master.run_command(['ipa', 'role-add-member',
                                           'User Administrator',
-                                          '--service', service_name],
+                                          '--service', service_name1],
                                          raiseonerr=False)
         assert result.returncode > 0
 
@@ -62,13 +62,13 @@ class TestServicePermissions(IntegrationTest):
 
         self.master.run_command(['ipa', 'role-add-member',
                                  'User Administrator',
-                                 '--service', service_name])
+                                 '--service', service_name1])
 
         # Check that the service now can add a user
 
         self.master.run_command(['kdestroy'])
-        self.master.run_command(['kinit', '-k', service_name,
-                                 '-t', keytab_file])
+        self.master.run_command(['kinit', '-k', service_name1,
+                                 '-t', keytab_file1])
 
         self.master.run_command(['ipa', 'user-add', 'tuser',
                                  '--first', 'a', '--last', 'b', '--random'])
@@ -78,30 +78,26 @@ class TestServicePermissions(IntegrationTest):
         self.master.run_command(['kdestroy'])
         tasks.kinit_admin(self.master)
 
-        self.master.run_command(['ipa', 'service-del', service_name])
+        self.master.run_command(['ipa', 'service-del', service_name1])
         self.master.run_command(['ipa', 'user-del', 'tuser'])
-
-
-class TestServiceAuthenticationIndicators(IntegrationTest):
-    topology = 'star'
 
     def test_service_access(self):
         """ Test that user is granted access when authenticated using
         credentials that are sufficient for a service, and denied access
         when using insufficient credentials"""
 
-        service_name = 'testservice/%s@%s' % (self.master.hostname,
-                                              self.master.domain.realm)
+        service_name2 = 'testservice2/%s@%s' % (self.master.hostname,
+                                                self.master.domain.realm)
 
-        keytab_file = os.path.join(self.master.config.test_dir,
-                                   'testservice_keytab')
+        keytab_file2 = os.path.join(self.master.config.test_dir,
+                                    'testservice_keytab2')
 
         # Prepare a service without authentication indicator
-        self.master.run_command(['ipa', 'service-add', service_name])
+        self.master.run_command(['ipa', 'service-add', service_name2])
 
         self.master.run_command(['ipa-getkeytab',
-                                 '-p', service_name,
-                                 '-k', keytab_file])
+                                 '-p', service_name2,
+                                 '-k', keytab_file2])
 
         # Set authentication-type for admin user
         self.master.run_command(['ipa', 'user-mod', 'admin',
@@ -109,11 +105,11 @@ class TestServiceAuthenticationIndicators(IntegrationTest):
                                  '--user-auth-type=otp'])
 
         # Authenticate
-        self.master.run_command(['kinit', '-k', service_name,
-                                 '-t', keytab_file])
+        self.master.run_command(['kinit', '-k', service_name2,
+                                 '-t', keytab_file2])
 
         # Verify access to service is granted
-        result = self.master.run_command(['kvno', service_name],
+        result = self.master.run_command(['kvno', service_name2],
                                          raiseonerr=False)
         assert result.returncode == 0
 
@@ -121,18 +117,28 @@ class TestServiceAuthenticationIndicators(IntegrationTest):
         tasks.kinit_admin(self.master)
 
         # Modify service to have authentication indicator
-        self.master.run_command(['ipa', 'service-mod', service_name,
+        self.master.run_command(['ipa', 'service-mod', service_name2,
                                  '--auth-ind=otp'])
 
         self.master.run_command(['ipa-getkeytab',
-                                 '-p', service_name,
-                                 '-k', keytab_file])
+                                 '-p', service_name2,
+                                 '-k', keytab_file2])
 
         # Authenticate
-        self.master.run_command(['kinit', '-k', service_name,
-                                 '-t', keytab_file])
+        self.master.run_command(['kinit', '-k', service_name2,
+                                 '-t', keytab_file2])
 
         # Verify access to service is rejected
-        result = self.master.run_command(['kvno', service_name],
+        result = self.master.run_command(['kvno', service_name2],
                                          raiseonerr=False)
         assert result.returncode > 0
+
+    def test_service_del(self):
+        """ Test that host can add and remove its own services.
+        Related to : https://pagure.io/freeipa/issue/7486"""
+
+        self.master.run_command(['kinit', '-kt', '/etc/krb5.keytab'])
+        # Add service
+        service_name3 = "testservice3" + '/' + self.master.hostname
+        self.master.run_command(['ipa', 'service-add', service_name3])
+        self.master.run_command(['ipa', 'service-del', service_name3])
