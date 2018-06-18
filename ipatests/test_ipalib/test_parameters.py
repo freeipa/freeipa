@@ -1156,10 +1156,10 @@ class test_StrEnum(EnumChecker):
     _cls = parameters.StrEnum
     _name = 'my_strenum'
     _datatype = unicode
-    _test_values = u'Hello', u'naughty', u'nurse!'
+    _test_values = u'Hello', u'tall', u'nurse!'
     _bad_type_values = u'Hello', 1, u'nurse!'
     _bad_type = int
-    _translation = u"values='Hello', 'naughty', 'nurse!'"
+    _translation = u"values='Hello', 'tall', 'nurse!'"
     _bad_values = u'Howdy', u'quiet', u'library!'
     _single_value_translation = u"value='Hello'"
 
