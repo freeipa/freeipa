@@ -76,7 +76,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DOJO_DIR=$DIR/../../../../dojo
 
 # working version of Dojo toolkit
-BRANCH='1.8.3'
+BRANCH='1.13.0'
 YES='YES'
 
 args=`getopt -q -u -l help,checkout,clone,patches,links,dojo,util,all,branch:,dir: a $*`
