@@ -199,7 +199,7 @@ class test_Gettext(object):
 
     def test_mod(self):
         inst = self.klass('hello %(adj)s nurse', 'foo', 'bar')
-        assert inst % dict(adj='naughty', stuff='junk') == 'hello naughty nurse'
+        assert inst % dict(adj='tall', stuff='junk') == 'hello tall nurse'
 
     def test_eq(self):
         inst1 = self.klass('what up?', 'foo', 'bar')
