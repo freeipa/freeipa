@@ -149,3 +149,38 @@ class TestInstallClientNoAdmin(IntegrationTest):
         install_log = client.get_file_contents(paths.IPACLIENT_INSTALL_LOG,
                                                encoding='utf-8')
         assert msg in install_log
+
+    def test_delete_group_by_user_administrator(self):
+        """
+        Test that a user with sufficient privileges can delete group
+        This is a Automation for issue 6884
+        """
+        # Create a new testadmin user with a password
+        testadmin = 'tuser'
+        password = 'Secret123'
+        testgroup = 'gtest'
+        testadmin_password_confirmation = "%s\n%s\n" % (password,
+                                                        password)
+        self.master.run_command(['ipa', 'user-add', testadmin,
+                                 '--first', 't',
+                                 '--last', 'user',
+                                 '--password'],
+                                stdin_text=testadmin_password_confirmation)
+
+        # Add testadmin user to role "User Administrator"
+        self.master.run_command(['ipa', 'role-add-member',
+                                 '--users', testadmin,
+                                 '"User Administrator"'])
+
+        # kinit as testuser
+        self.master.run_command(['kinit', testadmin],
+                                stdin_text=testadmin_password_confirmation)
+
+        # Create a test group
+        self.master.run_command(['ipa', 'group-add', testgroup])
+
+        # Call ipa-group-del to check if user can delete group
+        result = self.master.run_command(['ipa', 'group-del', testgroup])
+        assert 'Deleted group' in result.stdout_text
+        if result.returncode == 0:
+            print("Group-del is successful with 'user administrator' profile")
