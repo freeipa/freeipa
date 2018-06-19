@@ -27,10 +27,6 @@ QUnit - dual licensed under MIT and GPLv2 licenses
 Font Awesome - code licensed under MIT license
  * less/font-awesome
 
-UglifyJS - licensed under BSD license
- * util/uglifyjs/uglify-js.js
- * utli/uglifyjs/lib/*
-
 Dojo, Dojo Builder - dual licensed under BSD license and AFL version 2.1
  * full license text in util/build/LICENSE
  * util/build/build.js
