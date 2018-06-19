@@ -28,6 +28,7 @@ from cryptography.hazmat.primitives import serialization
 import datetime
 import six
 
+ISSUER_CN = 'example.test'
 
 class ExternalCA(object):
     """
@@ -37,7 +38,7 @@ class ExternalCA(object):
         self.now = datetime.datetime.utcnow()
         self.delta = datetime.timedelta(days=days)
 
-    def create_ca(self, cn='example.test'):
+    def create_ca(self, cn=ISSUER_CN):
         """Create root CA.
 
         :returns: bytes -- Root CA in PEM format.
