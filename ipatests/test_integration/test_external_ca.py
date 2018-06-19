@@ -27,7 +27,7 @@ from ipatests.test_integration.base import IntegrationTest
 from ipaplatform.paths import paths
 
 from itertools import chain, repeat
-from ipatests.create_external_ca import ExternalCA
+from ipatests.create_external_ca import ExternalCA, ISSUER_CN
 
 IPA_CA = 'ipa_ca.crt'
 ROOT_CA = 'root_ca.crt'
@@ -37,7 +37,7 @@ PKI_START_STR = 'Started pki_tomcatd'
 
 
 def check_CA_flag(host, nssdb=paths.PKI_TOMCAT_ALIAS_DIR,
-                  cn='example.test'):
+                  cn=ISSUER_CN):
     """
     Check if external CA (by default 'example.test' in our test env) has
     CA flag in nssdb.
@@ -208,6 +208,15 @@ class TestSelfExternalSelf(IntegrationTest):
         # Check if external CA have "C" flag after the switch
         result = check_CA_flag(self.master)
         assert bool(result), ('External CA does not have "C" flag')
+
+    def test_issuerDN_after_renew_to_external(self):
+        """ Check if issuer DN is updated after self-signed > external-ca
+
+        This test checks if issuer DN is updated properly after CA is
+        renewed from self-signed to external-ca
+        """
+        result = self.master.run_command(['ipa', 'ca-show', 'ipa'])
+        assert "Issuer DN: CN={}".format(ISSUER_CN) in result.stdout_text
 
     def test_switch_back_to_self_signed(self):
 
