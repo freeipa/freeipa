@@ -136,6 +136,20 @@ class TestExternalCA(IntegrationTest):
         # check that we can also install replica
         tasks.install_replica(self.master, self.replicas[0])
 
+        # check that nsds5ReplicaReleaseTimeout option was set
+        result = self.master.run_command([
+            'ldapsearch',
+            '-x',
+            '-D',
+            'cn=directory manager',
+            '-w', self.master.config.dirman_password,
+            '-b', 'cn=mapping tree,cn=config',
+            '(cn=replica)',
+            '-LLL',
+            '-o',
+            'ldif-wrap=no'])
+        assert 'nsds5ReplicaReleaseTimeout: 60' in result.stdout_text
+
     def test_client_installation_with_otp(self):
         # Test for issue 7526: client installation fails with one-time
         # password when the master is installed with an externally signed
