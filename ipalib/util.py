@@ -981,14 +981,13 @@ def detect_dns_zone_realm_type(api, domain):
 
     try:
         # The presence of this record is enough, return foreign in such case
-        result = resolver.query(ad_specific_record_name, rdatatype.SRV)
+        resolver.query(ad_specific_record_name, rdatatype.SRV)
+    except DNSException:
+        # If we could not detect type with certainty, return unknown
+        return 'unknown'
+    else:
         return 'foreign'
 
-    except DNSException:
-        pass
-
-    # If we could not detect type with certainity, return unknown
-    return 'unknown'
 
 def has_managed_topology(api):
     domainlevel = api.Command['domainlevel_get']().get('result', DOMAIN_LEVEL_0)
