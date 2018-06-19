@@ -156,7 +156,7 @@ BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_certmap-devel
 # 1.15.3: sss_nss_getlistbycert (https://pagure.io/SSSD/sssd/issue/3050)
 BuildRequires:  libsss_nss_idmap-devel >= 1.15.3
-BuildRequires:  rhino
+BuildRequires:  nodejs
 BuildRequires:  uglify-js
 BuildRequires:  libverto-devel
 BuildRequires:  libunistring-devel
@@ -925,8 +925,6 @@ ln -sr %{_builddir}/freeipa-%{version}-python2 %{_builddir}/freeipa-%{version}
 %endif
 
 %build
-# UI compilation segfaulted on some arches when the stack was lower (#1040576)
-export JAVA_STACK_SIZE="8m"
 # PATH is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1005235
 export PATH=/usr/bin:/usr/sbin:$PATH
 
