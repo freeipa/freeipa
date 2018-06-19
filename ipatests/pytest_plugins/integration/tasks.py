@@ -447,7 +447,8 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     return result
 
 
-def install_client(master, client, extra_args=()):
+def install_client(master, client, extra_args=(),
+                   user=None, password=None):
     client.collect_log(paths.IPACLIENT_INSTALL_LOG)
 
     apply_common_fixes(client)
@@ -459,12 +460,16 @@ def install_client(master, client, extra_args=()):
     if not error:
         master.run_command(["ipa", "dnszone-mod", zone,
                             "--dynamic-update=TRUE"])
+    if user is None:
+        user = client.config.admin_name
+    if password is None:
+        password = client.config.admin_password
 
     client.run_command(['ipa-client-install', '-U',
                         '--domain', client.domain.name,
                         '--realm', client.domain.realm,
-                        '-p', client.config.admin_name,
-                        '-w', client.config.admin_password,
+                        '-p', user,
+                        '-w', password,
                         '--server', master.hostname]
                        + list(extra_args))
 
