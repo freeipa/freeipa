@@ -559,7 +559,7 @@ class trust(LDAPObject):
                 continue
             for value in values:
                 if not ipaserver.dcerpc.is_sid_valid(value):
-                    err = unicode(_("invalid SID: {SID}")).format(SID=value)
+                    err = _("invalid SID: {SID}").format(SID=value)
                     raise errors.ValidationError(name=attr, error=err)
 
     def get_dn(self, *keys, **kwargs):
@@ -685,8 +685,8 @@ ipa idrange-del before retrying the command with the desired range type.
         StrEnum('range_type?',
                 label=_('Range type'),
                 cli_name='range_type',
-                doc=(_('Type of trusted domain ID range, one of {vals}'
-                     .format(vals=', '.join(sorted(range_types))))),
+                doc=_('Type of trusted domain ID range, one of allowed ' +
+                      'values'),
                 values=sorted(range_types),
                 ),
         Bool('bidirectional?',
@@ -992,9 +992,9 @@ ipa idrange-del before retrying the command with the desired range type.
                     trust_type
                 )
             except errors.NotFound:
-                _message = _("Unable to resolve domain controller for "
-                             "{domain} domain. ")
-                error_message = unicode(_message).format(domain=keys[-1])
+                error_message = _("Unable to resolve domain controller for "
+                                  "{domain} domain. "
+                                  ).format(domain=keys[-1])
                 instructions = []
 
                 if dns_container_exists(self.obj.backend):
@@ -1020,7 +1020,7 @@ ipa idrange-del before retrying the command with the desired range type.
                             "found in the documentation. "
                         )
                         instructions.append(
-                            unicode(_instruction).format(domain=keys[-1])
+                            _instruction.format(domain=keys[-1])
                         )
                 else:
                     _instruction = _(
@@ -1029,7 +1029,7 @@ ipa idrange-del before retrying the command with the desired range type.
                         "domain from IPA hosts and back."
                     )
                     instructions.append(
-                        unicode(_instruction).format(domain=keys[-1])
+                        _instruction.format(domain=keys[-1])
                     )
                 raise errors.NotFound(
                     reason=error_message,
