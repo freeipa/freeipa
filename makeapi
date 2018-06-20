@@ -166,10 +166,6 @@ def validate_doc():
     for cmd in api.Command():
         cmd_class = cmd.__class__
 
-        # Skip commands marked as NO_CLI
-        if getattr(cmd, 'NO_CLI', False):
-            continue
-
         # Have we processed this module yet?
         topic = cmd.topic
         while topic is not None:
