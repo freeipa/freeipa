@@ -79,7 +79,7 @@ class serverroles(Backend):
             return self.role_names[key]
         except KeyError:
             raise errors.NotFound(
-                reason=_("{role}: role not found".format(role=role_name)))
+                reason=_("{role}: role not found").format(role=role_name))
 
     def _get_enabled_masters(self, role_name):
         result = {}
@@ -164,4 +164,4 @@ class serverroles(Backend):
                 self.attributes[attr].set(self.api, value)
             except KeyError:
                 raise errors.NotFound(
-                    reason=_('{attr}: no such attribute'.format(attr=attr)))
+                    reason=_('{attr}: no such attribute').format(attr=attr))
