@@ -10,7 +10,6 @@ import time
 import dns.dnssec
 import dns.resolver
 import dns.name
-import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
@@ -123,7 +122,6 @@ class TestInstallDNSSECLast(IntegrationTest):
     def test_if_zone_is_signed_master(self):
         # add zone with enabled DNSSEC signing on master
         dnszone_add_dnssec(self.master, test_zone)
-        tasks.restart_named(self.master, self.replicas[0])
         # test master
         assert wait_until_record_is_signed(
             self.master.ip, test_zone, timeout=100
@@ -137,7 +135,6 @@ class TestInstallDNSSECLast(IntegrationTest):
     def test_if_zone_is_signed_replica(self):
         # add zone with enabled DNSSEC signing on replica
         dnszone_add_dnssec(self.replicas[0], test_zone_repl)
-        tasks.restart_named(self.replicas[0])
         # test replica
         assert wait_until_record_is_signed(
             self.replicas[0].ip, test_zone_repl, timeout=300
@@ -150,9 +147,7 @@ class TestInstallDNSSECLast(IntegrationTest):
             self.master.ip, test_zone_repl, timeout=5
         ), "DNS zone %s is not signed (master)" % test_zone
 
-    @pytest.mark.xfail(reason='Ticket N 5670')
     def test_disable_reenable_signing_master(self):
-
         dnskey_old = resolve_with_dnssec(self.master.ip, test_zone,
                                          rtype="DNSKEY").rrset
 
@@ -184,7 +179,8 @@ class TestInstallDNSSECLast(IntegrationTest):
         ]
         self.master.run_command(args)
 
-        tasks.restart_named(self.master)
+        # TODO: test require restart
+        tasks.restart_named(self.master, self.replicas[0])
         # test master
         assert wait_until_record_is_signed(
             self.master.ip, test_zone, timeout=100
@@ -199,9 +195,7 @@ class TestInstallDNSSECLast(IntegrationTest):
                                          rtype="DNSKEY").rrset
         assert dnskey_old != dnskey_new, "DNSKEY should be different"
 
-    @pytest.mark.xfail(reason='Ticket N 5670')
     def test_disable_reenable_signing_replica(self):
-
         dnskey_old = resolve_with_dnssec(self.replicas[0].ip, test_zone_repl,
                                          rtype="DNSKEY").rrset
 
@@ -233,8 +227,8 @@ class TestInstallDNSSECLast(IntegrationTest):
         ]
         self.master.run_command(args)
 
+        # TODO: test require restart
         tasks.restart_named(self.master, self.replicas[0])
-
         # test master
         assert wait_until_record_is_signed(
             self.master.ip, test_zone_repl, timeout=100
@@ -248,71 +242,6 @@ class TestInstallDNSSECLast(IntegrationTest):
         dnskey_new = resolve_with_dnssec(self.replicas[0].ip, test_zone_repl,
                                          rtype="DNSKEY").rrset
         assert dnskey_old != dnskey_new, "DNSKEY should be different"
-
-
-class TestZoneSigningWithoutNamedRestart(IntegrationTest):
-    """Test if https://pagure.io/freeipa/issue/5348 is already fixed.
-    """
-    num_replicas = 1
-    topology = 'star'
-
-    @classmethod
-    def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=False)
-        args = [
-            "ipa-dns-install",
-            "--dnssec-master",
-            "--forwarder", cls.master.config.dns_forwarder,
-            "-U",
-        ]
-        cls.master.run_command(args)
-
-        tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
-
-        # backup trusted key
-        tasks.backup_file(cls.master, paths.DNSSEC_TRUSTED_KEY)
-        tasks.backup_file(cls.replicas[0], paths.DNSSEC_TRUSTED_KEY)
-
-    @classmethod
-    def uninstall(cls, mh):
-        # restore trusted key
-        tasks.restore_files(cls.master)
-        tasks.restore_files(cls.replicas[0])
-
-        super(TestZoneSigningWithoutNamedRestart, cls).uninstall(mh)
-
-    def test_sign_root_zone_no_named_restart(self):
-        dnszone_add_dnssec(self.master, root_zone)
-
-        # make BIND happy: add the glue record and delegate zone
-        args = [
-            "ipa", "dnsrecord-add", root_zone, self.master.hostname,
-            "--a-rec=" + self.master.ip
-        ]
-        self.master.run_command(args)
-        args = [
-            "ipa", "dnsrecord-add", root_zone, self.replicas[0].hostname,
-            "--a-rec=" + self.replicas[0].ip
-        ]
-        self.master.run_command(args)
-
-        # sleep a bit until data are provided by bind-dyndb-ldap
-        time.sleep(DNSSEC_SLEEP)
-
-        args = [
-            "ipa", "dnsrecord-add", root_zone, self.master.domain.name,
-            "--ns-rec=" + self.master.hostname
-        ]
-        self.master.run_command(args)
-        # test master
-        assert wait_until_record_is_signed(
-            self.master.ip, root_zone, timeout=100
-        ), "Zone %s is not signed (master)" % root_zone
-
-        # test replica
-        assert wait_until_record_is_signed(
-            self.replicas[0].ip, root_zone, timeout=300
-        ), "Zone %s is not signed (replica)" % root_zone
 
 
 class TestInstallDNSSECFirst(IntegrationTest):
@@ -369,7 +298,6 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "--ns-rec=" + self.master.hostname
         ]
         self.master.run_command(args)
-        tasks.restart_named(self.master, self.replicas[0])
         # test master
         assert wait_until_record_is_signed(
             self.master.ip, root_zone, timeout=100
@@ -380,7 +308,6 @@ class TestInstallDNSSECFirst(IntegrationTest):
             self.replicas[0].ip, root_zone, timeout=300
         ), "Zone %s is not signed (replica)" % root_zone
 
-    @pytest.mark.xfail(reason='Ticket N 5670')
     def test_chain_of_trust(self):
         """
         Validate signed DNS records, using our own signed root zone
@@ -394,7 +321,10 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "--ns-rec=" + self.master.hostname
         ]
         self.master.run_command(args)
+
+        # TODO: test require restart
         tasks.restart_named(self.master, self.replicas[0])
+
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.master.ip, example_test_zone, timeout=100
@@ -526,7 +456,6 @@ class TestMigrateDNSSECMaster(IntegrationTest):
 
         # add test zone
         dnszone_add_dnssec(self.master, example_test_zone)
-        tasks.restart_named(self.master, self.replicas[0])
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.master.ip, example_test_zone, timeout=100
@@ -579,7 +508,6 @@ class TestMigrateDNSSECMaster(IntegrationTest):
 
         # add test zone
         dnszone_add_dnssec(self.replicas[0], example2_test_zone)
-        tasks.restart_named(self.master, self.replicas[0])
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.replicas[0].ip, example2_test_zone, timeout=100
@@ -608,7 +536,6 @@ class TestMigrateDNSSECMaster(IntegrationTest):
 
         # add new zone to new replica
         dnszone_add_dnssec(self.replicas[0], example3_test_zone)
-        tasks.restart_named(self.replicas[0], self.replicas[1])
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.replicas[1].ip, example3_test_zone, timeout=200
