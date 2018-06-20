@@ -1270,7 +1270,7 @@ class TrustDomainInstance(object):
                 ttype = trust_type_string(
                     res.info_ex.trust_type, res.info_ex.trust_attributes
                 )
-                err = unicode(msg).format(
+                err = msg.format(
                     ipa_domain=another_domain.info['dns_domain'],
                     trust_type=ttype)
 
