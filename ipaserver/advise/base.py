@@ -408,6 +408,7 @@ class IpaAdvise(admintool.AdminTool):
     description = "Provides configuration advice for various use cases. To "\
                   "see the list of possible ADVICEs, run ipa-advise without "\
                   "any arguments."
+    shell = '/bin/sh'
 
     def __init__(self, options, args):
         super(IpaAdvise, self).__init__(options, args)
@@ -448,13 +449,13 @@ class IpaAdvise(admintool.AdminTool):
             for line in wrapped_description[1:]:
                 print("{off}{line}".format(off=' ' * len(prefix), line=line))
 
-    def print_header(self, header, print_shell=False):
+    def print_header(self, header, shell=None, print_shell=False):
         header_size = len(header)
 
         prefix = ''
         if print_shell:
             prefix = '# '
-            print('#!/bin/sh')
+            print('#!{}'.format(shell))
 
         # Do not print out empty header
         if header_size > 0:
@@ -482,7 +483,7 @@ class IpaAdvise(admintool.AdminTool):
                 .format(adv=keyword.replace('_', '-')), 1)
 
         # Print out nicely formatted header
-        self.print_header(advice.description, print_shell=True)
+        self.print_header(advice.description, advice.shell, print_shell=True)
 
         # Set options so that plugin can use verbose/quiet options
         advice.set_options(self.options)
