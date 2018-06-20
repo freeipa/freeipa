@@ -19,9 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Plugins not accessible directly through the CLI, commands used internally
-"""
 from ipalib import Command
 from ipalib import Str
 from ipalib.frontend import Local
@@ -29,6 +26,10 @@ from ipalib.output import Output
 from ipalib.text import _
 from ipalib.util import json_serialize
 from ipalib.plugable import Registry
+
+__doc__ = _("""
+Plugins not accessible directly through the CLI, commands used internally
+""")
 
 register = Registry()
 

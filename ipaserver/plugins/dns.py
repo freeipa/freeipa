@@ -3550,6 +3550,7 @@ for param in _dns_records:
 
 @register()
 class dnsrecord_split_parts(Command):
+    __doc__ = _('Split DNS record to parts')
     NO_CLI = True
 
     takes_args = (
