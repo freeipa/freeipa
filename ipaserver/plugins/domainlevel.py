@@ -67,7 +67,7 @@ def check_conflict_entries(ldap, api, desired_value):
             scope=ldap.SCOPE_SUBTREE)
         message = _("Domain Level cannot be raised to {0}, "
                     "existing replication conflicts have to be resolved."
-                    .format(desired_value))
+                    ).format(desired_value)
         raise errors.InvalidDomainLevelError(reason=message)
     except errors.NotFound:
         pass
@@ -152,7 +152,7 @@ class domainlevel_set(Command):
             if supported.min > desired_value or supported.max < desired_value:
                 message = _("Domain Level cannot be raised to {0}, server {1} "
                             "does not support it."
-                            .format(desired_value, master['cn'][0]))
+                            ).format(desired_value, master['cn'][0])
                 raise errors.InvalidDomainLevelError(reason=message)
 
         # Check if conflict entries exist in topology subtree
