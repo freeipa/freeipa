@@ -39,7 +39,7 @@ else:
     _dcerpc_bindings_installed = False
 
 
-ID_RANGE_VS_DNA_WARNING = """=======
+ID_RANGE_VS_DNA_WARNING = _("""=======
 WARNING:
 
 DNA plugin in 389-ds will allocate IDs based on the ranges configured for the
@@ -51,7 +51,7 @@ the new local range. Specifically, The dnaNextRange attribute of 'cn=Posix
 IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config' has to be
 modified to match the new range.
 =======
-"""
+""")
 
 __doc__ = _("""
 ID ranges
@@ -161,8 +161,7 @@ this domain has the SID S-1-5-21-123-456-789-1010 then 1010 id the RID of the
 user. RIDs are unique in a domain, 32bit values and are used for users and
 groups.
 
-{0}
-""".format(ID_RANGE_VS_DNA_WARNING))
+""") + ID_RANGE_VS_DNA_WARNING
 
 register = Registry()
 
@@ -243,8 +242,7 @@ class idrange(LDAPObject):
         StrEnum('iparangetype?',
                 label=_('Range type'),
                 cli_name='type',
-                doc=(_('ID range type, one of {vals}'
-                     .format(vals=', '.join(sorted(range_types))))),
+                doc=_('ID range type, one of allowed values'),
                 values=sorted(range_types),
                 flags=['no_update'],
                 )
@@ -400,8 +398,7 @@ class idrange_add(LDAPCreate):
 
     must be given to add a new range for a trusted AD domain.
 
-{0}
-""".format(ID_RANGE_VS_DNA_WARNING))
+""") + ID_RANGE_VS_DNA_WARNING
 
     msg_summary = _('Added ID range "%(value)s"')
 
@@ -615,8 +612,7 @@ class idrange_show(LDAPRetrieve):
 class idrange_mod(LDAPUpdate):
     __doc__ = _("""Modify ID range.
 
-{0}
-""".format(ID_RANGE_VS_DNA_WARNING))
+""") + ID_RANGE_VS_DNA_WARNING
 
     msg_summary = _('Modified ID range "%(value)s"')
 
