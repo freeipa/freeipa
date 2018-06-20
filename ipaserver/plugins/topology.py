@@ -86,7 +86,7 @@ def validate_domain_level(api):
     if current < DOMAIN_LEVEL_1:
         raise errors.InvalidDomainLevelError(
             reason=_('Topology management requires minimum domain level {0} '
-                   .format(DOMAIN_LEVEL_1))
+                     ).format(DOMAIN_LEVEL_1)
         )
 
 
@@ -256,7 +256,7 @@ class topologysegment(LDAPObject):
                 name='leftnode',
                 error=_("left node ({host}) does not support "
                         "suffix '{suff}'"
-                        .format(host=leftnode, suff=suffix))
+                        ).format(host=leftnode, suff=suffix)
             )
 
         if rightnode not in suffix_m_hostnames:
@@ -264,7 +264,7 @@ class topologysegment(LDAPObject):
                 name='rightnode',
                 error=_("right node ({host}) does not support "
                         "suffix '{suff}'"
-                        .format(host=rightnode, suff=suffix))
+                        ).format(host=rightnode, suff=suffix)
             )
 
 
