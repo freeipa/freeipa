@@ -9,6 +9,10 @@ from ipalib.request import context
 from ipalib.plugable import Registry
 from ipalib.text import _
 
+__doc__ = _("""
+Session Support for IPA
+""")
+
 logger = logging.getLogger(__name__)
 
 register = Registry()

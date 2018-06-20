@@ -17,10 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Joining an IPA domain
-"""
-
 import logging
 
 import six
@@ -30,6 +26,10 @@ from ipalib import Command, Str
 from ipalib import errors
 from ipalib import _
 from ipaserver.install import installutils
+
+__doc__ = _("""
+Joining an IPA domain
+""")
 
 if six.PY3:
     unicode = str
