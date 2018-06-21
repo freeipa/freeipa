@@ -367,6 +367,7 @@ class Advice(Plugin):
     options = None
     require_root = False
     description = ''
+    shell = '/bin/sh'
 
     def __init__(self, api):
         super(Advice, self).__init__(api)
@@ -408,7 +409,6 @@ class IpaAdvise(admintool.AdminTool):
     description = "Provides configuration advice for various use cases. To "\
                   "see the list of possible ADVICEs, run ipa-advise without "\
                   "any arguments."
-    shell = '/bin/sh'
 
     def __init__(self, options, args):
         super(IpaAdvise, self).__init__(options, args)

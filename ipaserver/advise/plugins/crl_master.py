@@ -111,8 +111,8 @@ class set_crl_master(Advice):
     def get_principal(self):
         self.log.comment('Get the current prinicipal')
         self.log.command(
-            'PRINCIPAL=$(klist | grep "Default principal:" | '
-            'awk "{ print \$3 }" | sed "s/@%s//")' % api.env.realm
+            r'PRINCIPAL=$(klist | grep "Default principal:" | '
+            r'awk "{ print \$3 }" | sed "s/@%s//")' % api.env.realm
         )
 
     def check_hostname_is_in_masters(self):
@@ -124,8 +124,8 @@ class set_crl_master(Advice):
     def find_ca_masters(self):
         self.log.comment('Find CA masters')
         self.log.command(
-            'output=$(ipa server-find --servroles="CA server" 2>&1 '
-            '| grep name: | awk "{ print \$3 }")'
+            r'output=$(ipa server-find --servroles="CA server" 2>&1 '
+            r'| grep name: | awk "{ print \$3 }")'
         )
         self.log.exit_on_predicate(
             '[ "$?" -ne "0" ]',
