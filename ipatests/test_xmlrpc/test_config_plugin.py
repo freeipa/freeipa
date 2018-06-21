@@ -227,4 +227,80 @@ class test_config(Declarative):
                         sl_domain),
             ),
         ),
+        dict(
+            desc='Set the number of search records to -1 (unlimited)',
+            command=(
+                'config_mod', [], {
+                    'ipasearchrecordslimit': u'-1',
+                },
+            ),
+            expected={
+                'result': lambda d: d['ipasearchrecordslimit'] == (u'-1',),
+                'summary': None,
+                'value': None,
+            },
+        ),
+        dict(
+            desc='Set the number of search records to greater than 10',
+            command=(
+                'config_mod', [], {
+                    'ipasearchrecordslimit': u'100',
+                },
+            ),
+            expected={
+                'result': lambda d: d['ipasearchrecordslimit'] == (u'100',),
+                'summary': None,
+                'value': None,
+            },
+        ),
+        dict(
+            desc='Set the number of search records to lower than -1',
+            command=(
+                'config_mod', [], {
+                    'ipasearchrecordslimit': u'-10',
+                },
+            ),
+            expected=errors.ValidationError(
+                name=u'searchrecordslimit',
+                error=u'must be at least 10',
+            ),
+        ),
+        dict(
+            desc='Set the number of search records to lower than 10',
+            command=(
+                'config_mod', [], {
+                    'ipasearchrecordslimit': u'1',
+                },
+            ),
+            expected=errors.ValidationError(
+                name=u'searchrecordslimit',
+                error=u'must be at least 10',
+            ),
+        ),
+        dict(
+            desc='Set the number of search records to zero (unlimited)',
+            command=(
+                'config_mod', [], {
+                    'ipasearchrecordslimit': u'0',
+                },
+            ),
+            expected={
+                'result': lambda d: d['ipasearchrecordslimit'] == (u'-1',),
+                'summary': None,
+                'value': None,
+            },
+        ),
+        dict(
+            desc='Set the number of search records back to 100',
+            command=(
+                'config_mod', [], {
+                    'ipasearchrecordslimit': u'100',
+                },
+            ),
+            expected={
+                'result': lambda d: d['ipasearchrecordslimit'] == (u'100',),
+                'summary': None,
+                'value': None,
+            },
+        ),
     ]

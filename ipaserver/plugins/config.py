@@ -85,6 +85,18 @@ EXAMPLES:
 
 register = Registry()
 
+
+def validate_search_records_limit(ugettext, value):
+    """Check if value is greater than a realistic minimum.
+
+    Values 0 and -1 are valid, as they represent unlimited.
+    """
+    if value in {-1, 0}:
+        return
+    if value < 10:
+        return _('must be at least 10')
+
+
 @register()
 class config(LDAPObject):
     """
@@ -161,10 +173,10 @@ class config(LDAPObject):
             minvalue=-1,
         ),
         Int('ipasearchrecordslimit',
+            validate_search_records_limit,
             cli_name='searchrecordslimit',
             label=_('Search size limit'),
             doc=_('Maximum number of records to search (-1 or 0 is unlimited)'),
-            minvalue=-1,
         ),
         IA5Str('ipausersearchfields',
             cli_name='usersearch',
