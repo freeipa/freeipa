@@ -36,6 +36,7 @@ import datetime
 import ipaddress
 import ssl
 import base64
+import os
 import re
 
 from cryptography import x509 as crypto_x509
@@ -519,7 +520,7 @@ def write_certificate(cert, filename):
         raise errors.FileError(reason=str(e))
 
 
-def write_certificate_list(certs, filename):
+def write_certificate_list(certs, filename, mode=None):
     """
     Write a list of certificates to a file in PEM format.
 
@@ -529,6 +530,8 @@ def write_certificate_list(certs, filename):
 
     try:
         with open(filename, 'wb') as f:
+            if mode is not None:
+                os.fchmod(f.fileno(), mode)
             for cert in certs:
                 f.write(cert.public_bytes(Encoding.PEM))
     except (IOError, OSError) as e:
