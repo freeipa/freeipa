@@ -185,7 +185,7 @@ class TestServerDel(ServerDelBase):
     def test_ignore_topology_disconnect_replica2(self):
         """
         tests that removal of replica2 with '--ignore-topology-disconnect'
-        destroys master for good
+        destroys master for good with verbose option for uninstallation
         """
         check_master_removal(
             self.client,
@@ -194,7 +194,7 @@ class TestServerDel(ServerDelBase):
         )
 
         # reinstall the replica
-        tasks.uninstall_master(self.replica2)
+        tasks.uninstall_master(self.replica2, verbose=True)
         tasks.install_replica(self.master, self.replica2, setup_ca=True)
 
     def test_removal_of_master_disconnects_both_topologies(self):

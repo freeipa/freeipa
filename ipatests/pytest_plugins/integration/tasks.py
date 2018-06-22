@@ -738,7 +738,7 @@ def kinit_admin(host, raiseonerr=True):
 
 
 def uninstall_master(host, ignore_topology_disconnect=True,
-                     ignore_last_of_role=True, clean=True):
+                     ignore_last_of_role=True, clean=True, verbose=False):
     host.collect_log(paths.IPASERVER_UNINSTALL_LOG)
     uninstall_cmd = ['ipa-server-install', '--uninstall', '-U']
 
@@ -750,7 +750,12 @@ def uninstall_master(host, ignore_topology_disconnect=True,
     if ignore_last_of_role and host_domain_level != DOMAIN_LEVEL_0:
         uninstall_cmd.append('--ignore-last-of-role')
 
-    host.run_command(uninstall_cmd)
+    if verbose and host_domain_level != DOMAIN_LEVEL_0:
+        uninstall_cmd.append('-v')
+
+    result = host.run_command(uninstall_cmd)
+    assert "Traceback" not in result.stdout_text
+
     host.run_command(['pkidestroy', '-s', 'CA', '-i', 'pki-tomcat'],
                      raiseonerr=False)
     host.run_command(['rm', '-rf',
