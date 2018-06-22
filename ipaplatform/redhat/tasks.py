@@ -280,6 +280,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         try:
             f = open(new_cacert_path, 'w')
+            os.fchmod(f.fileno(), 0o644)
         except IOError as e:
             logger.info("Failed to open %s: %s", new_cacert_path, e)
             return False
