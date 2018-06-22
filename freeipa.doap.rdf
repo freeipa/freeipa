@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl"?>
+<rdf:RDF xml:lang="en" xmlns="http://usefulinc.com/ns/doap#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:foaf="http://xmlns.com/foaf/0.1/">
+    <Project rdf:about="https://www.freeipa.org">
+        <created>2005-06-01</created>
+        <name>FreeIPA Project</name>
+        <shortname>FreeIPA</shortname>
+        <homepage rdf:resource="https://www.freeipa.org" />
+        <shortdesc>FreeIPA is the upstream open-source project for Red Hat Identity Manager</shortdesc>
+        <description>FreeIPA is an integrated security information management solution combining Linux (Fedora), 389 Directory Server, MIT Kerberos, Chronyd, DNS, Dogtag (Certificate System). It consists of a web interface and command-line administration tools.</description>
+        <bug-database rdf:resource="https://pagure.io/freeipa/" />
+        <mailing-list rdf:resource="https://www.freeipa.org/page/Contribute" />
+        <mailing-list>freeipa-interest@redhat.com</mailing-list>
+        <mailing-list>freeipa-devel@lists.fedorahosted.org</mailing-list>
+        <mailing-list>freeipa-users@lists.fedorahosted.org</mailing-list>
+        <download-page rdf:resource="https://www.freeipa.org/page/Downloads" />
+        <programming-language>C</programming-language>
+        <programming-language>Python</programming-language>
+        <repository>
+          <GitBranch>
+            <location rdf:resource="https://github.com/freeipa/freeipa.git" />
+            <browse rdf:resource="https://github.com/freeipa/freeipa" />
+          </GitBranch>
+        </repository>
+    </Project>
+</rdf:RDF>
