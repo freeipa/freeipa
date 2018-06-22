@@ -408,13 +408,16 @@ class KrbInstance(service.Service):
     def _wait_for_replica_kdc_entry(self):
         master_dn = self.api.Object.server.get_dn(self.fqdn)
         kdc_dn = DN(('cn', 'KDC'), master_dn)
-
-        ldap_uri = 'ldap://{}'.format(self.master_fqdn)
-
+        ldap_uri = ipaldap.get_ldap_uri(self.master_fqdn)
         with ipaldap.LDAPClient(
-                ldap_uri, cacert=paths.IPA_CA_CRT) as remote_ldap:
+                ldap_uri, cacert=paths.IPA_CA_CRT, start_tls=True
+        ) as remote_ldap:
             remote_ldap.gssapi_bind()
-            replication.wait_for_entry(remote_ldap, kdc_dn, timeout=60)
+            replication.wait_for_entry(
+                remote_ldap,
+                kdc_dn,
+                timeout=api.env.replication_wait_timeout
+            )
 
     def _call_certmonger(self, certmonger_ca='IPA'):
         subject = str(DN(('cn', self.fqdn), self.subject_base))

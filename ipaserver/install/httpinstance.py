@@ -607,7 +607,11 @@ class HTTPInstance(service.Service):
                 else:
                     remote_ldap.simple_bind(ipaldap.DIRMAN_DN,
                                             self.dm_password)
-                replication.wait_for_entry(remote_ldap, service_dn, timeout=60)
+                replication.wait_for_entry(
+                    remote_ldap,
+                    service_dn,
+                    timeout=api.env.replication_wait_timeout
+                )
 
     def migrate_to_mod_ssl(self):
         """For upgrades only, migrate from mod_nss to mod_ssl"""
