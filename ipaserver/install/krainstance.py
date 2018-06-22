@@ -111,6 +111,7 @@ class KRAInstance(DogtagInstance):
                 "A Dogtag CA must be installed first")
 
         if promote:
+            self.step("creating ACIs for admin", self.add_ipaca_aci)
             self.step("creating installation admin user", self.setup_admin)
         self.step("configuring KRA instance", self.__spawn_instance)
         if not self.clone:

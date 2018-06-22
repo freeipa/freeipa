@@ -377,6 +377,7 @@ class CAInstance(DogtagInstance):
                 # Setup Database
                 self.step("creating certificate server db", self.__create_ds_db)
                 self.step("setting up initial replication", self.__setup_replication)
+                self.step("creating ACIs for admin", self.add_ipaca_aci)
                 self.step("creating installation admin user", self.setup_admin)
             self.step("configuring certificate server instance",
                       self.__spawn_instance)
