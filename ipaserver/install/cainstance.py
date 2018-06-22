@@ -849,7 +849,7 @@ class CAInstance(DogtagInstance):
         for path in [paths.IPA_CA_CRT,
                      paths.KDC_CA_BUNDLE_PEM,
                      paths.CA_BUNDLE_PEM]:
-            x509.write_certificate_list(certlist, path)
+            x509.write_certificate_list(certlist, path, mode=0o644)
 
     def __request_ra_certificate(self):
         """

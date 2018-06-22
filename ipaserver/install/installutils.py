@@ -1104,7 +1104,11 @@ def load_external_cert(files, ca_subject):
     cert_file.flush()
 
     ca_file = tempfile.NamedTemporaryFile()
-    x509.write_certificate_list(ca_cert_chain[1:], ca_file.name)
+    x509.write_certificate_list(
+        ca_cert_chain[1:],
+        ca_file.name,
+        mode=0o644
+    )
     ca_file.flush()
 
     return cert_file, ca_file
