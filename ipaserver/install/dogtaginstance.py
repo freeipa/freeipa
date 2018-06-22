@@ -21,6 +21,7 @@ from __future__ import absolute_import
 
 import base64
 import logging
+import time
 
 import ldap
 import os
@@ -90,6 +91,16 @@ class DogtagInstance(service.Service):
     tracking_reqs = None
     server_cert_name = None
 
+    ipaca_groups = DN(('ou', 'groups'), ('o', 'ipaca'))
+    ipaca_people = DN(('ou', 'people'), ('o', 'ipaca'))
+    groups_aci = (
+        b'(targetfilter="(objectClass=groupOfUniqueNames)")'
+        b'(targetattr="cn || description || objectclass || uniquemember")'
+        b'(version 3.0; acl "Allow users from o=ipaca to read groups"; '
+        b'allow (read, search, compare) '
+        b'userdn="ldap:///uid=*,ou=people,o=ipaca";)'
+    )
+
     def __init__(self, realm, subsystem, service_desc, host_name=None,
                  nss_db=paths.PKI_TOMCAT_ALIAS_DIR, service_prefix=None,
                  config=None):
@@ -108,10 +119,11 @@ class DogtagInstance(service.Service):
         self.pkcs12_info = None
         self.clone = False
 
-        self.basedn = DN(('o', 'ipa%s' % subsystem.lower()))
+        self.basedn = DN(('o', 'ipaca'))
         self.admin_user = "admin"
-        self.admin_dn = DN(('uid', self.admin_user),
-                           ('ou', 'people'), ('o', 'ipaca'))
+        self.admin_dn = DN(
+            ('uid', self.admin_user), self.ipaca_people
+        )
         self.admin_groups = None
         self.tmp_agent_db = None
         self.subsystem = subsystem
@@ -394,27 +406,31 @@ class DogtagInstance(service.Service):
 
         raise RuntimeError("%s configuration failed." % self.subsystem)
 
-    def __add_admin_to_group(self, group):
-        dn = DN(('cn', group), ('ou', 'groups'), ('o', 'ipaca'))
-        entry = api.Backend.ldap2.get_entry(dn)
-        members = entry.get('uniqueMember', [])
-        members.append(self.admin_dn)
-        mod = [(ldap.MOD_REPLACE, 'uniqueMember', members)]
+    def add_ipaca_aci(self):
+        """Add ACI to allow ipaca users to read their own group information
+
+        Dogtag users aren't allowed to enumerate their own groups. The
+        setup_admin() method needs the permission to wait, until all group
+        information has been replicated.
+        """
+        dn = self.ipaca_groups
+        mod = [(ldap.MOD_ADD, 'aci', [self.groups_aci])]
         try:
             api.Backend.ldap2.modify_s(dn, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
-            # already there
-            pass
+            logger.debug("%s already has ACI to read group information", dn)
+        else:
+            logger.debug("Added ACI to read groups to %s", dn)
 
     def setup_admin(self):
         self.admin_user = "admin-%s" % self.fqdn
         self.admin_password = ipautil.ipa_generate_password()
-        self.admin_dn = DN(('uid', self.admin_user),
-                           ('ou', 'people'), ('o', 'ipaca'))
-
+        self.admin_dn = DN(
+            ('uid', self.admin_user), self.ipaca_people
+        )
         # remove user if left-over exists
         try:
-            entry = api.Backend.ldap2.delete_entry(self.admin_dn)
+            api.Backend.ldap2.delete_entry(self.admin_dn)
         except errors.NotFound:
             pass
 
@@ -433,18 +449,56 @@ class DogtagInstance(service.Service):
         )
         api.Backend.ldap2.add_entry(entry)
 
+        wait_groups = []
         for group in self.admin_groups:
-            self.__add_admin_to_group(group)
+            group_dn = DN(('cn', group), self.ipaca_groups)
+            mod = [(ldap.MOD_ADD, 'uniqueMember', [self.admin_dn])]
+            try:
+                api.Backend.ldap2.modify_s(group_dn, mod)
+            except ldap.TYPE_OR_VALUE_EXISTS:
+                # already there
+                return None
+            else:
+                wait_groups.append(group_dn)
 
         # Now wait until the other server gets replicated this data
         ldap_uri = ipaldap.get_ldap_uri(self.master_host)
-        master_conn = ipaldap.LDAPClient(ldap_uri)
-        master_conn.gssapi_bind()
-        replication.wait_for_entry(master_conn, entry.dn)
-        del master_conn
+        master_conn = ipaldap.LDAPClient(ldap_uri, start_tls=True)
+        logger.debug(
+            "Waiting for %s to appear on %s", self.admin_dn, master_conn
+        )
+        deadline = time.time() + api.env.replication_wait_timeout
+        while time.time() < deadline:
+            time.sleep(1)
+            try:
+                master_conn.simple_bind(self.admin_dn, self.admin_password)
+            except ldap.INVALID_CREDENTIALS:
+                pass
+            else:
+                logger.debug("Successfully logged in as %s", self.admin_dn)
+                break
+        else:
+            logger.error(
+                "Unable to log in as %s on %s", self.admin_dn, master_conn
+            )
+            raise errors.NotFound(
+                reason="{} did not replicate to {}".format(
+                    self.admin_dn, master_conn
+                )
+            )
+
+        # wait for group membership
+        for group_dn in wait_groups:
+            replication.wait_for_entry(
+                master_conn,
+                group_dn,
+                timeout=api.env.replication_wait_timeout,
+                attr='uniqueMember',
+                attrvalue=self.admin_dn
+            )
 
     def __remove_admin_from_group(self, group):
-        dn = DN(('cn', group), ('ou', 'groups'), ('o', 'ipaca'))
+        dn = DN(('cn', group), self.ipaca_groups)
         mod = [(ldap.MOD_DELETE, 'uniqueMember', self.admin_dn)]
         try:
             api.Backend.ldap2.modify_s(dn, mod)
