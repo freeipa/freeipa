@@ -20,6 +20,7 @@
 from __future__ import print_function, absolute_import
 
 import logging
+import itertools
 
 import six
 import time
@@ -160,40 +161,43 @@ def wait_for_task(conn, dn):
     return exit_code
 
 
-def wait_for_entry(connection, dn, timeout=7200, attr='', quiet=True):
-    """Wait for entry and/or attr to show up"""
-
-    filter = "(objectclass=*)"
+def wait_for_entry(connection, dn, timeout=7200, attr=None, attrvalue='*',
+                   quiet=True):
+    """Wait for entry and/or attr to show up
+    """
+    log = logger.debug if quiet else logger.info
     attrlist = []
-    if attr:
-        filter = "(%s=*)" % attr
+    if attr is not None:
+        filterstr = ipaldap.LDAPClient.make_filter_from_attr(attr, attrvalue)
         attrlist.append(attr)
-    timeout += int(time.time())
-
-    if not quiet:
-        sys.stdout.write("Waiting for %s %s:%s " % (connection, dn, attr))
-        sys.stdout.flush()
-    entry = None
-    while not entry and int(time.time()) < timeout:
+    else:
+        filterstr = "(objectclass=*)"
+    log("Waiting for replication (%s) %s %s", connection, dn, filterstr)
+    entry = []
+    deadline = time.time() + timeout
+    for i in itertools.count(start=1):
         try:
-            [entry] = connection.get_entries(
-                dn, ldap.SCOPE_BASE, filter, attrlist)
+            entry = connection.get_entries(
+                dn, ldap.SCOPE_BASE, filterstr, attrlist)
         except errors.NotFound:
             pass  # no entry yet
         except Exception as e:  # badness
             logger.error("Error reading entry %s: %s", dn, e)
             raise
-        if not entry:
-            if not quiet:
-                sys.stdout.write(".")
-                sys.stdout.flush()
-            time.sleep(1)
 
-    if not entry and int(time.time()) > timeout:
-        raise errors.NotFound(
-            reason="wait_for_entry timeout for %s for %s" % (connection, dn))
-    elif entry and not quiet:
-        logger.error("The waited for entry is: %s", entry)
+        if entry:
+            log("Entry found %r", entry)
+            return
+        elif time.time() > deadline:
+            raise errors.NotFound(
+                reason="wait_for_entry timeout on {} for {}".format(
+                    connection, dn
+                )
+            )
+        else:
+            if i % 10 == 0:
+                logger.debug("Still waiting for replication of %s", dn)
+            time.sleep(1)
 
 
 class ReplicationManager(object):
