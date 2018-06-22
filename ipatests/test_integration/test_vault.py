@@ -8,6 +8,10 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
 
 WAIT_AFTER_ARCHIVE = 45  # give some time to replication
+OVERWRITE_WARN_MESG = ("Vault is a secure place to store a secret."
+                       "One vault can only store one secret."
+                       "When archiving a secret in a vault, the"
+                       "existing secret (if any) is overwritten.")
 
 
 class TestInstallKRA(IntegrationTest):
@@ -20,13 +24,15 @@ class TestInstallKRA(IntegrationTest):
 
     vault_password = "password"
     vault_data = "SSBsb3ZlIENJIHRlc3RzCg=="
+    vault_data2 = 'dmVyeSBzZWNyZXQ='
     vault_name_master = "ci_test_vault_master"
     vault_name_master2 = "ci_test_vault_master2"
     vault_name_master3 = "ci_test_vault_master3"
+    vault_name_master4 = "ci_test_vault_master4"
     vault_name_replica_without_KRA = "ci_test_vault_replica_without_kra"
     vault_name_replica_with_KRA = "ci_test_vault_replica_with_kra"
-    vault_name_replica_KRA_uninstalled = "ci_test_vault_replica_KRA_uninstalled"
-
+    vault_name_replica_KRA_uninstall = "ci_test_vault_replica_KRA_uninstall"
+    vault_name_existing_warning = "ci_test_vault_existing_warning"
 
     @classmethod
     def install(cls, mh):
@@ -113,7 +119,7 @@ class TestInstallKRA(IntegrationTest):
 
         self._retrieve_secret([self.vault_name_replica_with_KRA])
 
-        ################# master #################
+        '''################# master #################'''
         # test master again after KRA was installed on replica
         # create vault
         self.master.run_command([
@@ -134,9 +140,36 @@ class TestInstallKRA(IntegrationTest):
 
         self._retrieve_secret([self.vault_name_master2])
 
-        ################ old vaults ###############
+        '''################ old vaults ###############'''
         # test if old vaults are still accessible
         self._retrieve_secret([
             self.vault_name_master,
             self.vault_name_replica_without_KRA,
         ])
+
+    def test_vault_archive_overwrites_existing_value_with_warning(self):
+        self.master.run_command([
+            "ipa", "vault-add",
+            self.vault_name_master4,
+            "--password", self.vault_password,
+        ])
+
+        # archive secret
+        self.master.run_command([
+            "ipa", "vault-archive",
+            self.vault_name_master4,
+            "--password", self.vault_password,
+            "--data", self.vault_data,
+        ])
+        time.sleep(WAIT_AFTER_ARCHIVE)
+
+        self._retrieve_secret([self.vault_name_master4])
+
+        result = self.master.run_command([
+            "ipa", "vault-archive",
+            self.vault_name_master4,
+            "--password", self.vault_password,
+            "--data", self.vault_data2,
+        ])
+        time.sleep(WAIT_AFTER_ARCHIVE)
+        assert 'OVERWRITE_WARN_MESG' in result.stdout_text
