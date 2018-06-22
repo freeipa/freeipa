@@ -217,6 +217,9 @@ class HTTPInstance(service.Service):
         self.update_httpd_service_ipa_conf()
         self.update_httpd_wsgi_conf()
 
+        # Must be world-readable / executable
+        os.chmod(paths.HTTPD_ALIAS_DIR, 0o755)
+
         target_fname = paths.HTTPD_IPA_CONF
         http_txt = ipautil.template_file(
             os.path.join(paths.USR_SHARE_IPA_DIR, "ipa.conf"), self.sub_dict)
