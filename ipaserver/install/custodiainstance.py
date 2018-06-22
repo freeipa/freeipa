@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import
 
 import enum
 
+from ipalib import api
 from ipaserver.secrets.kem import IPAKEMKeys, KEMLdap
 from ipaserver.secrets.client import CustodiaClient
 from ipaplatform.paths import paths
@@ -190,7 +191,8 @@ class CustodiaInstance(SimpleServiceInstance):
         cli = self._get_custodia_client()
         cli.fetch_key('dm/DMHash')
 
-    def _wait_keys(self, timeout=300):
+    def _wait_keys(self):
+        timeout = api.env.replication_wait_timeout
         deadline = int(time.time()) + timeout
         root_logger.info("Waiting up to %s seconds to see our keys "
                          "appear on host %s", timeout, self.ldap_uri)
