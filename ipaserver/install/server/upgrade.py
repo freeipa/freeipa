@@ -4,12 +4,14 @@
 
 from __future__ import print_function, absolute_import
 
+import errno
 import logging
 import re
 import os
 import shutil
 import pwd
 import fileinput
+import stat
 import sys
 import tempfile
 from contextlib import contextmanager
@@ -1700,6 +1702,34 @@ def migrate_to_authselect():
     sysupgrade.set_upgrade_state('authcfg', 'migrated_to_authselect', True)
 
 
+def fix_permissions():
+    """Fix permission of public accessible files and directories
+
+    In case IPA was installed with restricted umask, some public files and
+    directories may not be readable and accessible.
+
+    See https://pagure.io/freeipa/issue/7594
+    """
+    candidates = [
+        os.path.dirname(paths.GSSAPI_SESSION_KEY),
+        paths.CA_BUNDLE_PEM,
+        paths.KDC_CA_BUNDLE_PEM,
+        paths.IPA_CA_CRT,
+        paths.IPA_P11_KIT,
+    ]
+    for filename in candidates:
+        try:
+            s = os.stat(filename)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            continue
+        mode = 0o755 if stat.S_ISDIR(s.st_mode) else 0o644
+        if mode != stat.S_IMODE(s.st_mode):
+            logger.debug("Fix permission of %s to %o", filename, mode)
+            os.chmod(filename, mode)
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1724,6 +1754,7 @@ def upgrade_configuration():
         ntpd_cleanup(fqdn, fstore)
 
     check_certs()
+    fix_permissions()
 
     auto_redirect = find_autoredirect(fqdn)
     sub_dict = dict(
