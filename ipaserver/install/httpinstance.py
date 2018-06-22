@@ -181,7 +181,8 @@ class HTTPInstance(service.Service):
         session_dir = os.path.dirname(self.sub_dict['GSSAPI_SESSION_KEY'])
         if not os.path.isdir(session_dir):
             os.makedirs(session_dir)
-            os.chmod(session_dir, 0o755)
+        # Must be world-readable / executable
+        os.chmod(session_dir, 0o755)
 
         target_fname = paths.HTTPD_IPA_CONF
         http_txt = ipautil.template_file(
