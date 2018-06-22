@@ -186,10 +186,10 @@ def update_server(certs):
     update_file(paths.CACERT_PEM, certs)
 
 
-def update_file(filename, certs, mode=0o444):
+def update_file(filename, certs, mode=0o644):
     certs = (c[0] for c in certs if c[2] is not False)
     try:
-        x509.write_certificate_list(certs, filename)
+        x509.write_certificate_list(certs, filename, mode=mode)
     except Exception as e:
         logger.error("failed to update %s: %s", filename, e)
 
