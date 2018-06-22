@@ -27,6 +27,7 @@ class TestInstallKRA(IntegrationTest):
     vault_data2 = 'dmVyeSBzZWNyZXQ='
     vault_user = "vault_user"
     vault_user_password = "vault_user_password"
+    vault_data2 = 'dmVyeSBzZWNyZXQ='
     vault_name_master = "ci_test_vault_master"
     vault_name_master2 = "ci_test_vault_master2"
     vault_name_master3 = "ci_test_vault_master3"
@@ -38,6 +39,8 @@ class TestInstallKRA(IntegrationTest):
     vault_name_replica_KRA_uninstall = "ci_test_vault_replica_KRA_uninstall"
     vault_name_existing_warning = "ci_test_vault_existing_warning"
     vault_name_replica_KRA_uninstalled = "ci_test_vault_replica_KRA_uninstalled"
+    vault_name_replica_KRA_uninstall = "ci_test_vault_replica_KRA_uninstall"
+    vault_name_existing_warning = "ci_test_vault_existing_warning"
 
     @classmethod
     def install(cls, mh):
@@ -212,7 +215,10 @@ class TestInstallKRA(IntegrationTest):
             self.vault_name_replica_without_KRA,
         ])
 
-    def test_vault_archive_overwrites_existing_value_with_warning(self):
+    def test_vault_archive_overwrites_existing_value_with_warning_issue5922(self):
+        """
+        https://pagure.io/freeipa/issue/5922
+        """
         self.master.run_command([
             "ipa", "vault-add",
             self.vault_name_master4,
