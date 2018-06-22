@@ -16,17 +16,11 @@
         <download-page rdf:resource="https://www.freeipa.org/page/Downloads" />
         <programming-language>C</programming-language>
         <programming-language>Python</programming-language>
-        <release>
-            <Version>
-                <name>stable</name>
-                <branch>4.6.90.pre2</branch>
-                <created>2018-05-15</created>
-                <revision></revision>
-            </Version>
-        </release>
         <repository>
-            <location rdf:resource="https://github.com/freeipa/freeipa" />
+          <GitBranch>
+            <location rdf:resource="https://github.com/freeipa/freeipa.git" />
             <browse rdf:resource="https://github.com/freeipa/freeipa" />
+          </GitBranch>
         </repository>
     </Project>
 </rdf:RDF>
