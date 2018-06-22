@@ -1879,7 +1879,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
 
     if ca_certs is not None:
         try:
-            x509.write_certificate_list(ca_certs, ca_file)
+            x509.write_certificate_list(ca_certs, ca_file, mode=0o644)
         except Exception as e:
             if os.path.exists(ca_file):
                 try:
@@ -2874,10 +2874,14 @@ def _install(options):
 
     x509.write_certificate_list(
         [c for c, n, t, u in ca_certs if t is not False],
-        paths.KDC_CA_BUNDLE_PEM)
+        paths.KDC_CA_BUNDLE_PEM,
+        mode=0o644
+    )
     x509.write_certificate_list(
         [c for c, n, t, u in ca_certs if t is not False],
-        paths.CA_BUNDLE_PEM)
+        paths.CA_BUNDLE_PEM,
+        mode=0o644
+    )
 
     # Add the CA certificates to the IPA NSS database
     logger.debug("Adding CA certificates to the IPA NSS database.")

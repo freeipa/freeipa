@@ -145,7 +145,7 @@ def install_ca_cert(ldap, base_dn, realm, cafile, destfile=paths.IPA_CA_CRT):
                 pass
         else:
             certs = [c[0] for c in certs if c[2] is not False]
-            x509.write_certificate_list(certs, destfile)
+            x509.write_certificate_list(certs, destfile, mode=0o644)
     except Exception as e:
         raise ScriptError("error copying files: " + str(e))
     return destfile
