@@ -149,6 +149,8 @@ DEFAULT_CONFIG = (
     ('startup_timeout', 300),
     # How long http connection should wait for reply [seconds].
     ('http_timeout', 30),
+    # How long to wait for an entry to appear on a replica
+    ('replication_wait_timeout', 300),
 
     # Web Application mount points
     ('mount_ipa', '/ipa/'),
