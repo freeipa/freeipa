@@ -157,7 +157,7 @@ def wait_for_task(conn, dn):
     return exit_code
 
 
-def wait_for_entry(connection, dn, timeout=7200, attr=None, attrvalue='*',
+def wait_for_entry(connection, dn, timeout, attr=None, attrvalue='*',
                    quiet=True):
     """Wait for entry and/or attr to show up
     """
@@ -746,7 +746,9 @@ class ReplicationManager(object):
             # that we will have to set the memberof fixup task
             self.need_memberof_fixup = True
 
-        wait_for_entry(a_conn, entry.dn)
+        wait_for_entry(
+            a_conn, entry.dn, timeout=api.env.replication_wait_timeout
+        )
 
     def needs_memberof_fixup(self):
         return self.need_memberof_fixup
