@@ -644,6 +644,25 @@ class TestCreate(XMLRPC_test):
         with raises_exact(errors.ManagedGroupExistsError(group=group.cn)):
             command()
 
+    def test_create_with_username_starting_with_numeric(self):
+        """Successfully create a user with name starting with numeric chars"""
+        testuser = UserTracker(
+            name=u'1234user', givenname=u'First1234', sn=u'Surname1234',
+        )
+        testuser.create()
+        testuser.delete()
+
+    def test_create_with_numeric_only_username(self):
+        """Try to create a user with name only contains numeric chars"""
+        testuser = UserTracker(
+            name=u'1234', givenname=u'NumFirst1234', sn=u'NumSurname1234',
+        )
+        with raises_exact(errors.ValidationError(
+                name=u'login',
+                error=u'may only include letters, numbers, _, -, . and $',
+        )):
+            testuser.create()
+
 
 @pytest.mark.tier1
 class TestUserWithGroup(XMLRPC_test):
