@@ -169,6 +169,26 @@ class TestGroup(XMLRPC_test):
                 error=u'may only include letters, numbers, _, -, . and $')):
             command()
 
+    def test_create_with_name_starting_with_numeric(self):
+        """Successfully create a group with name starting with numeric chars"""
+        testgroup = GroupTracker(
+            name=u'1234group',
+            description=u'Group name starting with numeric chars',
+        )
+        testgroup.create()
+        testgroup.delete()
+
+    def test_create_with_numeric_only_group_name(self):
+        """Try to create a group with name only contains numeric chars"""
+        testgroup = GroupTracker(
+            name=u'1234', description=u'Numeric only group name',
+        )
+        with raises_exact(errors.ValidationError(
+            name='group_name',
+            error=u'may only include letters, numbers, _, -, . and $',
+        )):
+            testgroup.create()
+
 
 @pytest.mark.tier1
 class TestFindGroup(XMLRPC_test):
