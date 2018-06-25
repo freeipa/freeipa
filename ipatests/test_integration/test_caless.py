@@ -173,7 +173,7 @@ class CALessBase(IntegrationTest):
                        http_pin=_DEFAULT, dirsrv_pin=_DEFAULT, pkinit_pin=None,
                        root_ca_file='root.pem', pkinit_pkcs12_exists=False,
                        pkinit_pkcs12='server-kdc.p12', unattended=True,
-                       stdin_text=None):
+                       stdin_text=None, extra_args=None):
         """Install a CA-less server
 
         Return value is the remote ipa-server-install command
@@ -183,12 +183,16 @@ class CALessBase(IntegrationTest):
 
         destname = functools.partial(os.path.join, host.config.test_dir)
 
-        extra_args = [
+        std_args = [
             '--http-cert-file', destname(http_pkcs12),
             '--dirsrv-cert-file', destname(dirsrv_pkcs12),
             '--ca-cert-file', destname(root_ca_file),
             '--ip-address', host.ip
         ]
+        if extra_args:
+            extra_args.extend(std_args)
+        else:
+            extra_args = std_args
 
         if http_pin is _DEFAULT:
             http_pin = cls.cert_password
