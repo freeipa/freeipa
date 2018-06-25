@@ -46,7 +46,7 @@ class BaseConstantsNamespace(object):
     MOD_WSGI_PYTHON3 = None
     # WSGIDaemonProcess process count. On 64bit platforms, each process
     # consumes about 110 MB RSS, from which are about 35 MB shared.
-    WSGI_PROCESSES = 5 if IS_64BITS else 2
+    WSGI_PROCESSES = 4 if IS_64BITS else 2
     # high ciphers without RC4, MD5, TripleDES, pre-shared key, secure
     # remote password, and DSA cert authentication.
     TLS_HIGH_CIPHERS = "HIGH:!aNULL:!eNULL:!MD5:!RC4:!3DES:!PSK:!SRP:!aDSS"
