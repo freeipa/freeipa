@@ -77,13 +77,6 @@ var IPA = function () {
     };
 
     /**
-     * i18n messages
-     * @deprecated
-     * @property {Object}
-     */
-    that.messages = {};
-
-    /**
      * User information
      *
      * - output of ipa whoami in that.whoami.metadata and then object_show method
@@ -174,14 +167,6 @@ var IPA = function () {
                 }
             }
         });
-
-        batch.add_command(rpc.command({
-            method: 'i18n_messages',
-            on_success: function(data, text_status, xhr) {
-                that.messages = data.texts;
-                i18n.source = that.messages;
-            }
-        }));
 
         batch.add_command(rpc.command({
             entity: 'config',
