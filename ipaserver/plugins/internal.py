@@ -340,6 +340,7 @@ class i18n_messages(Command):
             "pad": _("PAD"),
         },
         "login": {
+            "authenticating": _("Authenticating"),
             "form_auth": _(
                 "<i class=\"fa fa-info-circle\"></i> To log in with "
                 "<strong>username and password</strong>, enter them in the "
