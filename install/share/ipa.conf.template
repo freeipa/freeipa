@@ -1,5 +1,5 @@
 #
-# VERSION 28 - DO NOT REMOVE THIS LINE
+# VERSION 29 - DO NOT REMOVE THIS LINE
 #
 # This file may be overwritten on upgrades.
 #
@@ -99,6 +99,11 @@ WSGIScriptReloading Off
 
 # Target for login with internal connections
 Alias /ipa/session/cookie "/usr/share/ipa/gssapi.login"
+
+# Turn off Apache authentication for i18n messages
+<Location "/ipa/i18n_messages">
+  Require all granted
+</Location>
 
 # Turn off Apache authentication for password/token based login pages
 <Location "/ipa/session/login_password">
