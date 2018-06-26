@@ -29,11 +29,12 @@ register = Registry()
 
 if api.env.context in ('server', 'lite'):
     from ipaserver.rpcserver import (
-        wsgi_dispatch, xmlserver, jsonserver_kerb, jsonserver_session,
-        login_kerberos, login_x509, login_password, change_password,
-        sync_token, xmlserver_session)
+        wsgi_dispatch, xmlserver, jsonserver_i18n_messages, jsonserver_kerb,
+        jsonserver_session, login_kerberos, login_x509, login_password,
+        change_password, sync_token, xmlserver_session)
     register()(wsgi_dispatch)
     register()(xmlserver)
+    register()(jsonserver_i18n_messages)
     register()(jsonserver_kerb)
     register()(jsonserver_session)
     register()(login_kerberos)

@@ -41,6 +41,7 @@ import six
 from six.moves.urllib.parse import parse_qs
 from six.moves.xmlrpc_client import Fault
 # pylint: enable=import-error
+from six import BytesIO
 
 from ipalib import plugable, errors
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
@@ -782,6 +783,49 @@ class xmlserver(KerberosWSGIExecutioner):
             response = (result,)
         dump = xml_dumps(response, version, methodresponse=True)
         return dump.encode('utf-8')
+
+
+class jsonserver_i18n_messages(jsonserver):
+    """
+    JSON RPC server for i18n messages only.
+    """
+
+    key = '/i18n_messages'
+
+    def not_allowed(self, start_response):
+        status = '405 Method Not Allowed'
+        headers = [('Allow', 'POST')]
+        response = b''
+
+        logger.debug('jsonserver_i18n_messages: %s', status)
+        start_response(status, headers)
+        return [response]
+
+    def forbidden(self, start_response):
+        status = '403 Forbidden'
+        headers = []
+        response = b'Invalid RPC command'
+
+        logger.debug('jsonserver_i18n_messages: %s', status)
+        start_response(status, headers)
+        return [response]
+
+    def __call__(self, environ, start_response):
+        logger.debug('WSGI jsonserver_i18n_messages.__call__:')
+        if environ['REQUEST_METHOD'] != 'POST':
+            return self.not_allowed(start_response)
+
+        data = read_input(environ)
+        unmarshal_data = super(jsonserver_i18n_messages, self
+                               ).unmarshal(data)
+        name = unmarshal_data[0] if unmarshal_data else ''
+        if name != 'i18n_messages':
+            return self.forbidden(start_response)
+
+        environ['wsgi.input'] = BytesIO(data.encode('utf-8'))
+        response = super(jsonserver_i18n_messages, self
+                         ).__call__(environ, start_response)
+        return response
 
 
 class jsonserver_session(jsonserver, KerberosSession):
