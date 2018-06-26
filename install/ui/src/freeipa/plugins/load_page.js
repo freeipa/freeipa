@@ -24,10 +24,10 @@ define([
     'dojo/on',
     '../facets/Facet',
     '../phases',
-    '../reg'
-
+    '../reg',
+    '../text'
    ],
-   function(declare, lang, on, Facet, phases, reg) {
+   function(declare, lang, on, Facet, phases, reg, text) {
 
     /**
      * Load Facet plugin
@@ -46,7 +46,7 @@ define([
             {
                 $type: 'activity',
                 name: 'activity',
-                text: 'Loading',
+                text: text.get('@i18n:login.loading', 'Loading'),
                 visible: true
             }
         ]
