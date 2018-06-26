@@ -259,12 +259,14 @@ define(['dojo/_base/declare',
                 items: [
                     {
                         name: 'profile',
-                        label: 'Profile',
+                        label: text.get('@i18n:profile-menu.profile',
+			    'Profile'),
                         icon: 'fa-user'
                     },
                     {
                         name: 'password_reset',
-                        label: 'Change password',
+                        label: text.get('@i18n:profile-menu.password_reset',
+			    'Change password'),
                         icon: 'fa-key'
                     },
                     {
@@ -272,12 +274,13 @@ define(['dojo/_base/declare',
                     },
                     {
                         name: 'configuration',
-                        label: 'Customization',
+                        label: text.get('@i18n:profile-menu.configuration',
+			    'Customization'),
                         icon: 'fa-gear'
                     },
                     {
                         name: 'about',
-                        label: 'About',
+                        label: text.get('@i18n:profile-menu.about', 'About'),
                         icon: 'fa-question'
                     },
                     {
@@ -285,7 +288,8 @@ define(['dojo/_base/declare',
                     },
                     {
                         name: 'logout',
-                        label: 'Log out',
+                        label: text.get('@i18n:profile-menu.logout',
+			    'Log out'),
                         icon: 'fa-sign-out'
                     }
                 ]
