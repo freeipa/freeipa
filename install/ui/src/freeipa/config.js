@@ -44,6 +44,11 @@ define([
         url: '/ipa/ui/',
 
         /**
+         * i18n messages url
+         */
+        i18n_messages_url: '/ipa/i18n_messages',
+
+        /**
          * RPC url
          */
         json_url: '/ipa/session/json',
