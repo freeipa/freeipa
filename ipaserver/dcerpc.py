@@ -1137,22 +1137,41 @@ class TrustDomainInstance(object):
 
                 # Copy over the entries, extend with TLN exclusion
                 entries = []
+                is_our_record = False
                 for e in dominfo.entries:
                     e1 = lsa.ForestTrustRecord()
                     e1.type = e.type
                     e1.flags = e.flags
                     e1.time = e.time
                     e1.forest_trust_data = e.forest_trust_data
+
+                    # Search for a match in the topology of another domain
+                    # if there is a match, we have to convert a record
+                    # into a TLN exclusion to allow its routing to the
+                    # another domain
+                    for r in another_domain.ftinfo_records:
+                        if r['rec_name'] == e.forest_trust_data.string:
+                            is_our_record = True
+
+                            # Convert e1 into an exclusion record
+                            e1.type = lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX
+                            e1.flags = 0
+                            e1.time = trust_timestamp
+                            break
                     entries.append(e1)
 
-                # Create TLN exclusion record
-                record = lsa.ForestTrustRecord()
-                record.type = lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX
-                record.flags = 0
-                record.time = trust_timestamp
-                record.forest_trust_data.string = \
-                    another_domain.info['dns_domain']
-                entries.append(record)
+                # If no candidate for the exclusion entry was found
+                # make sure it is the other domain itself, this covers
+                # a most common case
+                if not is_our_record:
+                    # Create TLN exclusion record for the top level domain
+                    record = lsa.ForestTrustRecord()
+                    record.type = lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX
+                    record.flags = 0
+                    record.time = trust_timestamp
+                    record.forest_trust_data.string = \
+                        another_domain.info['dns_domain']
+                    entries.append(record)
 
                 fti = lsa.ForestTrustInformation()
                 fti.count = len(entries)
