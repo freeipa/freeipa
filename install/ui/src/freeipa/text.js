@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-define(['./_base/Provider', './_base/i18n', './metadata'],
+define([ './_base/Provider', './_base/i18n', './metadata', './translations'],
        function(Provider, i18n, metadata) {
 
     /**
