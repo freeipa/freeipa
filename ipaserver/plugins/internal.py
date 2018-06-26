@@ -930,6 +930,13 @@ class i18n_messages(Command):
             "token_id": _("Token ID"),
             "verify_password": _("Verify Password"),
         },
+        "profile-menu": {
+            "about": _("About"),
+            "configuration": _("Customization"),
+            "logout": _("Log out"),
+            "password_reset": _("Change password"),
+            "profile": _("Profile"),
+        },
         "search": {
             "delete_confirm": _("Are you sure you want to delete selected entries?"),
             "deleted": _("${count} item(s) deleted"),
