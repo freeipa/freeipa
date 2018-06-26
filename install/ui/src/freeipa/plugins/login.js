@@ -26,9 +26,10 @@ define(['dojo/_base/declare',
         '../phases',
         '../reg',
         '../widget',
-        '../widgets/LoginScreen'
+        '../widgets/LoginScreen',
+        '../text'
        ],
-       function(declare, lang, on, Facet, auth, phases, reg, widget, LoginScreen) {
+       function(declare, lang, on, Facet, auth, phases, reg, widget, LoginScreen, text) {
 
     /**
      * Login Facet plugin
@@ -48,7 +49,7 @@ define(['dojo/_base/declare',
             {
                 $type: 'activity',
                 name: 'activity',
-                text: 'Authenticating',
+                text: text.get('@i18n:login.authenticating', 'Authenticating'),
                 visible: false
             },
             {
