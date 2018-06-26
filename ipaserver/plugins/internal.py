@@ -352,6 +352,7 @@ class i18n_messages(Command):
                 "tickets (obtainable via kinit) and <a href='http://${host}/"
                 "ipa/config/ssbrowser.html'>configured</a> the browser "
                 "correctly, then click 'Log in'."),
+            "loading": _("Loading"),
             "loading_md": _("Loading data"),
             "login": _("Log in"),
             "login_certificate": _("Log In Using Certificate"),
