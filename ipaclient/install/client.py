@@ -2969,6 +2969,20 @@ def _install(options):
             statestore=statestore,
             sudo=options.conf_sudo
         )
+        # if mkhomedir, make sure oddjobd is enabled and started
+        if options.mkhomedir:
+            oddjobd = services.service('oddjobd', api)
+            running = oddjobd.is_running()
+            enabled = oddjobd.is_enabled()
+            statestore.backup_state('oddjobd', 'running', running)
+            statestore.backup_state('oddjobd', 'enabled', enabled)
+            try:
+                if not enabled:
+                    oddjobd.enable()
+                if not running:
+                    oddjobd.start()
+            except Exception as e:
+                logger.critical("Unable to start oddjobd: %s", str(e))
 
         logger.info("%s enabled", "SSSD" if options.sssd else "LDAP")
 
@@ -3212,6 +3226,20 @@ def uninstall(options):
         except Exception as e:
             logger.error(
                 "Failed to remove Kerberos service principals: %s", str(e))
+
+    # Restore oddjobd to its original state
+    oddjobd = services.service('oddjobd', api)
+    if not statestore.restore_state('oddjobd', 'running'):
+        try:
+            oddjobd.stop()
+        except Exception:
+            pass
+
+    if not statestore.restore_state('oddjobd', 'enabled'):
+        try:
+            oddjobd.disable()
+        except Exception:
+            pass
 
     logger.info("Disabling client Kerberos and LDAP configurations")
     was_sssd_installed = False
