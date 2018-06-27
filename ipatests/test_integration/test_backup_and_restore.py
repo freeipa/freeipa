@@ -38,6 +38,7 @@ from ldap.dn import escape_dn_chars
 
 logger = logging.getLogger(__name__)
 
+bashrc_file = None
 
 def assert_entries_equal(a, b):
     assert_deepequal(a.dn, b.dn)
@@ -527,8 +528,8 @@ class TestUserrootFilesOwnershipPermission(IntegrationTest):
                                  '--uninstall',
                                  '-U'])
 
-        # get default umask
-        default_umask = self.master.run_command(['umask'])
+        # get default bashrc contents
+        bashrc_file = self.master.get_file_contents('~/.bashrc')
 
         # set umask to 077 just to check if restore success
         self.master.run_command('echo "umask 0077" >> ~/.bashrc')
@@ -543,10 +544,6 @@ class TestUserrootFilesOwnershipPermission(IntegrationTest):
         # check if umask reset to 077 after restore
         result = self.master.run_command(['umask'])
         assert '0077' in result.stdout_text
-
-        # restore default umask
-        cmd = 'echo "umask {}" >> ~/.bashrc'.format(default_umask)
-        self.master.run_command(cmd)
 
         # check if files have proper owner and group.
         dashed_domain = self.master.domain.realm.replace(".", '-')
@@ -580,6 +577,11 @@ class TestUserrootFilesOwnershipPermission(IntegrationTest):
         unexp_str = "CRITICAL: db2ldif failed:"
         assert cmd.returncode == 0
         assert unexp_str not in cmd.stdout_text
+
+    def test_files_ownership_and_permission_teardown(self):
+        """ Method to restore the default bashrc contents """
+        if bashrc_file is not None:
+            self.master.put_file_contents('~/.bashrc', bashrc_file)
 
 
 class TestBackupAndRestoreDMPassword(IntegrationTest):
