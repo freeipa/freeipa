@@ -1734,6 +1734,8 @@ class UI_driver(object):
         self.action_list_action('disable')
         self.wait_for_request(n=2)
         self.assert_no_error_dialog()
+        self.close_notifications()
+        self.move_to_element_in_page(title)
         self.assert_class(title, 'disabled')
 
     def delete_action(self, entity, pkey, action='delete', facet='search'):
