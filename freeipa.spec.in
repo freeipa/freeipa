@@ -214,7 +214,8 @@ BuildRequires:  softhsm
 BuildRequires:  python2-augeas
 BuildRequires:  python2-cffi
 BuildRequires:  python2-cryptography >= 1.6
-BuildRequires:  python2-custodia >= 0.3.1
+BuildRequires:  python2-custodia >= 0.6.0
+BuildRequires:  python2-jwcrypto >= 0.5.0
 BuildRequires:  python2-dateutil
 BuildRequires:  python2-dbus
 BuildRequires:  python2-dns
@@ -251,7 +252,8 @@ BuildRequires:  python2-yubico
 BuildRequires:  python3-augeas
 BuildRequires:  python3-cffi
 BuildRequires:  python3-cryptography >= 1.6
-BuildRequires:  python3-custodia >= 0.3.1
+BuildRequires:  python3-custodia >= 0.6.0
+BuildRequires:  python3-jwcrypto >= 0.5.0
 BuildRequires:  python3-dateutil
 BuildRequires:  python3-dbus
 BuildRequires:  python3-dns >= 1.15
@@ -411,7 +413,8 @@ BuildArch: noarch
 Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python2-augeas
-Requires: python2-custodia >= 0.3.1
+Requires: python2-custodia >= 0.6.0
+Requires: python2-jwcrypto >= 0.5.0
 Requires: python2-dbus
 Requires: python2-dns >= 1.15
 Requires: python2-gssapi >= 1.2.0-5
@@ -444,7 +447,8 @@ Requires: %{name}-common = %{version}-%{release}
 # we need pre-requires since earlier versions may break upgrade
 Requires(pre): python3-ldap >= %{python_ldap_version}
 Requires: python3-augeas
-Requires: python3-custodia >= 0.3.1
+Requires: python3-custodia >= 0.6.0
+Requires: python3-jwcrypto >= 0.5.0
 Requires: python3-dbus
 Requires: python3-dns >= 1.15
 Requires: python3-gssapi >= 1.2.0
@@ -472,7 +476,7 @@ BuildArch: noarch
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: httpd >= 2.4.6-31
 Requires: systemd-units >= 38
-Requires: custodia >= 0.3.1
+Requires: custodia >= 0.6.0
 
 Provides: %{alt_name}-server-common = %{version}
 Conflicts: %{alt_name}-server-common
