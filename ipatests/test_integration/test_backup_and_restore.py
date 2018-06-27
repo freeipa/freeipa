@@ -494,7 +494,7 @@ class TestBackupAndRestoreWithReplica(IntegrationTest):
         check_replication(self.master, replica, "testuser1")
 
 
-class TestUserrootFilesOwnership(IntegrationTest):
+class TestUserrootFilesOwnershipPermission(IntegrationTest):
     """Test to check if userroot.ldif have proper ownership.
 
     Before the fix, when ipa-backup was called for the first time,
@@ -511,9 +511,14 @@ class TestUserrootFilesOwnership(IntegrationTest):
     fail
 
     related ticket: https://pagure.io/freeipa/issue/7010
+
+    This test also checks if the access rights for user/group
+    is set and umask 0022 set while restoring.
+
+    related ticket: https://pagure.io/freeipa/issue/6844
     """
 
-    def test_userroot_ldif_files_ownership(self):
+    def test_userroot_ldif_files_ownership_and_permission(self):
         """backup, uninstall, restore, backup"""
         tasks.install_master(self.master)
         backup_path = backup(self.master)
@@ -523,8 +528,9 @@ class TestUserrootFilesOwnership(IntegrationTest):
                                  '-U'])
 
         dirman_password = self.master.config.dirman_password
-        self.master.run_command(['ipa-restore', backup_path],
-                                stdin_text=dirman_password + '\nyes')
+        result = self.master.run_command(['ipa-restore', backup_path],
+                                         stdin_text=dirman_password + '\nyes')
+        assert 'Temporary setting umask to 022' in result.stdout_text
 
         # check if files have proper owner and group.
         dashed_domain = self.master.domain.realm.replace(".", '-')
@@ -534,11 +540,12 @@ class TestUserrootFilesOwnership(IntegrationTest):
         cmd = self.master.run_command(arg)
         assert 'dirsrvdirsrv' in cmd.stdout_text
 
+        # also check of access rights are set to 644
         arg = ['stat',
-               '-c', '%U%G',
-               '/var/lib/dirsrv/slapd-' + dashed_domain + '/ldif/']
+               '-c', '%U%G%a',
+               '/var/lib/dirsrv/slapd-' + dashed_domain + '/ldif/*']
         cmd = self.master.run_command(arg)
-        assert 'dirsrvdirsrv' in cmd.stdout_text
+        assert 'dirsrvdirsrv644' in cmd.stdout_text
 
         cmd = self.master.run_command(['ipa-backup', '-d'])
         unexp_str = "CRITICAL: db2ldif failed:"
