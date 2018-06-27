@@ -144,6 +144,8 @@ class TestClientInstallation(IntegrationTest):
         # Configure a profile winbind with feature with-fingerprint
         apply_authselect_profile(
             self.client, preconfigured_profile, preconfigured_options)
+        # Make sure that oddjobd is disabled and stopped
+        self.client.run_command(["systemctl", "disable", "oddjobd", "--now"])
 
         # Call the installer, must succeed and store the winbind profile
         # in the statestore, but install sssd profile with-mkhomedir
@@ -154,6 +156,13 @@ class TestClientInstallation(IntegrationTest):
         # with mkhomedir (because of extraargs) and with sudo
         check_authselect_profile(
             self.client, default_profile, ('with-mkhomedir', 'with-sudo'))
+
+        # Test for ticket 7604:
+        # ipa-client-install --mkhomedir doesn't enable oddjobd
+        # Check that oddjobd has been enabled and started
+        # because --mkhomedir was used
+        status = self.client.run_command(["systemctl", "status", "oddjobd"])
+        assert "active (running)" in status.stdout_text
 
     def test_uninstall_client_preconfigured_profile(self):
         """
