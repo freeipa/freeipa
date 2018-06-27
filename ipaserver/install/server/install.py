@@ -471,6 +471,15 @@ def install_check(installer):
 
     domain_name = domain_name.lower()
 
+    if options.setup_dns:
+        api.env.domain = domain_name
+        dns.install_check(False, api, False, options, host_name)
+        ip_addresses = dns.ip_addresses
+    else:
+        ip_addresses = get_server_ip_address(host_name,
+                                             not installer.interactive, False,
+                                             options.ip_addresses)
+
     if not options.realm_name:
         realm_name = read_realm_name(domain_name, not installer.interactive)
         logger.debug("read realm_name: %s\n", realm_name)
