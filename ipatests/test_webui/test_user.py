@@ -237,6 +237,8 @@ class test_user(user_tasks):
         cert_widget_sel = "div.certificate-widget"
 
         self.add_record(user.ENTITY, user.DATA)
+        self.wait()
+        self.close_notifications()
         self.navigate_to_record(user.PKEY)
 
         # cert request
@@ -539,6 +541,8 @@ class test_user(user_tasks):
         first_mail = self.create_email_addr(user.DATA.get('pkey'))
 
         self.add_record(user.ENTITY, user.DATA)
+        self.wait()
+        self.close_notifications()
         self.navigate_to_record(user.DATA.get('pkey'))
 
         # add a new mail (without save) and reset
@@ -574,6 +578,7 @@ class test_user(user_tasks):
         # cleanup
         self.delete(user.ENTITY, [user.DATA])
 
+    @screenshot
     def test_user_misc(self):
         """
         Test various miscellaneous test cases under one roof to save init time
