@@ -25,6 +25,7 @@ import re
 import contextlib
 from tempfile import NamedTemporaryFile
 
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython import ipautil
@@ -50,6 +51,7 @@ def assert_results_equal(a, b):
             'stderr': r.stderr_text,
             'returncode': r.returncode,
         }
+
     assert_deepequal(to_dict(a), to_dict(b))
 
 
@@ -246,7 +248,6 @@ class BaseBackupAndRestoreWithDNS(IntegrationTest):
     def _full_backup_restore_with_DNS_zone(self, reinstall=False):
         """backup, uninstall, restore"""
         with restore_checker(self.master):
-
             self.master.run_command([
                 'ipa', 'dnszone-add',
                 self.example_test_zone,
@@ -312,7 +313,6 @@ class BaseBackupAndRestoreWithDNSSEC(IntegrationTest):
 
     def _full_backup_and_restore_with_DNSSEC_zone(self, reinstall=False):
         with restore_checker(self.master):
-
             self.master.run_command([
                 'ipa', 'dnszone-add',
                 self.example_test_zone,
@@ -494,7 +494,7 @@ class TestBackupAndRestoreWithReplica(IntegrationTest):
         check_replication(self.master, replica, "testuser1")
 
 
-class TestUserrootFilesOwnership(IntegrationTest):
+class TestUserrootFilesOwnershipPermission(IntegrationTest):
     """Test to check if userroot.ldif have proper ownership.
 
     Before the fix, when ipa-backup was called for the first time,
@@ -511,9 +511,14 @@ class TestUserrootFilesOwnership(IntegrationTest):
     fail
 
     related ticket: https://pagure.io/freeipa/issue/7010
+
+    This test also checks if the access rights for user/group
+    are set and umask 0022 set while restoring.
+
+    related ticket: https://pagure.io/freeipa/issue/6844
     """
 
-    def test_userroot_ldif_files_ownership(self):
+    def test_userroot_ldif_files_ownership_and_permission(self):
         """backup, uninstall, restore, backup"""
         tasks.install_master(self.master)
         backup_path = backup(self.master)
@@ -522,23 +527,54 @@ class TestUserrootFilesOwnership(IntegrationTest):
                                  '--uninstall',
                                  '-U'])
 
+        # get default umask
+        default_umask = self.master.run_command(['umask'])
+
+        # set umask to 077 just to check if restore success
+        self.master.run_command('echo "umask 0077" >> ~/.bashrc')
+        result = self.master.run_command(['umask'])
+        assert '0077' in result.stdout_text
+
         dirman_password = self.master.config.dirman_password
-        self.master.run_command(['ipa-restore', backup_path],
-                                stdin_text=dirman_password + '\nyes')
+        result = self.master.run_command(['ipa-restore', backup_path],
+                                         stdin_text=dirman_password + '\nyes')
+        assert 'Temporary setting umask to 022' in result.stderr_text
+
+        # check if umask reset to 077 after restore
+        result = self.master.run_command(['umask'])
+        assert '0077' in result.stdout_text
+
+        # restore default umask
+        cmd = 'echo "umask {}" >> ~/.bashrc'.format(default_umask)
+        self.master.run_command(cmd)
 
         # check if files have proper owner and group.
         dashed_domain = self.master.domain.realm.replace(".", '-')
         arg = ['stat',
-               '-c', '%U%G',
-               '/var/lib/dirsrv/slapd-' + dashed_domain + '/ldif']
+               '-c', '%U:%G',
+               '{}/ldif/'.format(
+                   paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE %
+                   dashed_domain)]
         cmd = self.master.run_command(arg)
-        assert 'dirsrvdirsrv' in cmd.stdout_text
+        expected = '{}:{}'.format(constants.DS_USER, constants.DS_GROUP)
+        assert expected in cmd.stdout_text
+
+        # also check of access rights are set to 644
+        arg = ['stat',
+               '-c', '%U:%G:%a',
+               '{}/ldif/{}-ipaca.ldif'.format(
+                   paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE %
+                   dashed_domain, dashed_domain)]
+        cmd = self.master.run_command(arg)
+        assert '{}:644'.format(expected) in cmd.stdout_text
 
         arg = ['stat',
-               '-c', '%U%G',
-               '/var/lib/dirsrv/slapd-' + dashed_domain + '/ldif/']
+               '-c', '%U:%G:%a',
+               '{}/ldif/{}-userRoot.ldif'.format(
+                   paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE %
+                   dashed_domain, dashed_domain)]
         cmd = self.master.run_command(arg)
-        assert 'dirsrvdirsrv' in cmd.stdout_text
+        assert '{}:644'.format(expected) in cmd.stdout_text
 
         cmd = self.master.run_command(['ipa-backup', '-d'])
         unexp_str = "CRITICAL: db2ldif failed:"
