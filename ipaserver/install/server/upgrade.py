@@ -4,12 +4,14 @@
 
 from __future__ import print_function, absolute_import
 
+import errno
 import logging
 import re
 import os
 import shutil
 import pwd
 import fileinput
+import stat
 import sys
 import tempfile
 from contextlib import contextmanager
@@ -1652,6 +1654,34 @@ def update_replica_config(db_suffix):
         api.Backend.ldap2.update_entry(entry)
 
 
+def fix_permissions():
+    """Fix permission of public accessible files and directories
+
+    In case IPA was installed with restricted umask, some public files and
+    directories may not be readable and accessible.
+
+    See https://pagure.io/freeipa/issue/7594
+    """
+    candidates = [
+        paths.HTTPD_ALIAS_DIR,
+        paths.CA_BUNDLE_PEM,
+        paths.KDC_CA_BUNDLE_PEM,
+        paths.IPA_CA_CRT,
+        paths.IPA_P11_KIT,
+    ]
+    for filename in candidates:
+        try:
+            s = os.stat(filename)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            continue
+        mode = 0o755 if stat.S_ISDIR(s.st_mode) else 0o644
+        if mode != stat.S_IMODE(s.st_mode):
+            logger.debug("Fix permission of %s to %o", filename, mode)
+            os.chmod(filename, mode)
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1673,6 +1703,7 @@ def upgrade_configuration():
         ds.start(ds_serverid)
 
     check_certs()
+    fix_permissions()
 
     auto_redirect = find_autoredirect(fqdn)
     sub_dict = dict(

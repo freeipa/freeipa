@@ -217,6 +217,9 @@ class HTTPInstance(service.Service):
         self.update_httpd_service_ipa_conf()
         self.update_httpd_wsgi_conf()
 
+        # Must be world-readable / executable
+        os.chmod(paths.HTTPD_ALIAS_DIR, 0o755)
+
         target_fname = paths.HTTPD_IPA_CONF
         http_txt = ipautil.template_file(
             os.path.join(paths.USR_SHARE_IPA_DIR, "ipa.conf"), self.sub_dict)
@@ -478,7 +481,7 @@ class HTTPInstance(service.Service):
             raise RuntimeError("HTTPD cert was issued by an unknown CA.")
         # at this time we can assume any CA cert will be valid since this is
         # only run during installation
-        x509.write_certificate_list(certlist, paths.CA_CRT)
+        x509.write_certificate_list(certlist, paths.CA_CRT, mode=0o644)
 
     def is_kdcproxy_configured(self):
         """Check if KDC proxy has already been configured in the past"""
