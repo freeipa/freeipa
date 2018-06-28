@@ -352,9 +352,10 @@ Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base >= %{selinux_policy_version}
 Requires: slapi-nis >= %{slapi_nis_version}
-# jss is an indirect dependency. 4.4.4 fixes sub CA replication bug,
+# jss is an indirect dependency. 4.4.5 fixes sub CA replication bug,
 # see https://pagure.io/freeipa/issue/7536
-Requires: jss >= 4.4.4
+# see https://pagure.io/freeipa/issue/7590
+Requires: jss >= 4.4.5-1
 Requires: pki-ca >= %{pki_version}
 Requires: pki-kra >= %{pki_version}
 Requires(preun): systemd-units
