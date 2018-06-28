@@ -20,10 +20,6 @@ json="{
     \"params\": [
         [
             {
-                \"method\": \"i18n_messages\",
-                \"params\": [[], {}]
-            },
-            {
                 \"method\": \"user_find\",
                 \"params\":[[], { \"whoami\": true, \"all\": true }]
             },
