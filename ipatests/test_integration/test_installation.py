@@ -7,13 +7,54 @@ Module provides tests which testing ability of various subsystems to be
 installed.
 """
 
+from __future__ import absolute_import
+
+import os
 import pytest
 from ipalib.constants import DOMAIN_LEVEL_0
+from ipaplatform.paths import paths
 from ipatests.pytest_plugins.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_plugins.integration import tasks
+from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 
 config = get_global_config()
+
+
+def create_broken_resolv_conf(master):
+    # Force a broken resolv.conf to simulate a bad response to
+    # reverse zone lookups
+    master.run_command([
+        '/usr/bin/mv',
+        paths.RESOLV_CONF,
+        '%s.sav' % paths.RESOLV_CONF
+    ])
+
+    contents = "# Set as broken by ipatests\nnameserver 127.0.0.2\n"
+    master.put_file_contents(paths.RESOLV_CONF, contents)
+
+
+def restore_resolv_conf(master):
+    if os.path.exists('%s.sav' % paths.RESOLV_CONF):
+        master.run_command([
+            '/usr/bin/mv',
+            '%s.sav' % paths.RESOLV_CONF,
+            paths.RESOLV_CONF
+        ])
+
+
+def server_install_setup(func):
+    def wrapped(*args):
+        master = args[0].master
+        create_broken_resolv_conf(master)
+        try:
+            func(*args)
+        finally:
+            tasks.uninstall_master(master, clean=False)
+            restore_resolv_conf(master)
+            ipa_certs_cleanup(master)
+    return wrapped
+
 
 class InstallTestBase1(IntegrationTest):
 
@@ -220,6 +261,63 @@ class TestInstallWithCA_DNS2(InstallTestBase2):
                         reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica2_ipa_kra_install(self):
         super(TestInstallWithCA_DNS2, self).test_replica2_ipa_kra_install()
+
+
+class TestInstallWithCA_DNS3(CALessBase):
+    """
+    Test an install with a bad DNS resolver configured to force a
+    timeout trying to verify the existing zones. In the case of a reverse
+    zone it is skipped unless --allow-zone-overlap is set regardless of
+    the value of --auto-reverse. Confirm that --allow-zone-overlap
+    lets the reverse zone be created.
+
+    ticket 7239
+    """
+
+    @server_install_setup
+    def test_number_of_zones(self):
+        """There should be two zones: one forward, one reverse"""
+
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
+
+        self.install_server(extra_args=['--allow-zone-overlap'])
+
+        result = self.master.run_command([
+            'ipa', 'dnszone-find'])
+
+        assert "in-addr.arpa." in result.stdout_text
+
+        assert "returned 2" in result.stdout_text
+
+
+class TestInstallWithCA_DNS4(CALessBase):
+    """
+    Test an install with a bad DNS resolver configured to force a
+    timeout trying to verify the existing zones. In the case of a reverse
+    zone it is skipped unless --allow-zone-overlap is set regardless of
+    the value of --auto-reverse. Confirm that without --allow-reverse-zone
+    only the forward zone is created.
+
+    ticket 7239
+    """
+
+    @server_install_setup
+    def test_number_of_zones(self):
+        """There should be one zone, a forward because rev timed-out"""
+
+        self.create_pkcs12('ca1/server')
+        self.prepare_cacert('ca1')
+
+        # no zone overlap by default
+        self.install_server()
+
+        result = self.master.run_command([
+            'ipa', 'dnszone-find'])
+
+        assert "in-addr.arpa." not in result.stdout_text
+
+        assert "returned 1" in result.stdout_text
 
 
 @pytest.mark.cs_acceptance
