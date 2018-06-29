@@ -30,17 +30,17 @@ def _warning_already_exists(cls, member):
 
 
 def fake_class(name_or_class_obj, members=()):
-    if isinstance(name_or_class_obj, scoped_nodes.Class):
+    if isinstance(name_or_class_obj, scoped_nodes.ClassDef):
         cl = name_or_class_obj
     else:
-        cl = scoped_nodes.Class(name_or_class_obj, None)
+        cl = scoped_nodes.ClassDef(name_or_class_obj, None)
 
     for m in members:
         if isinstance(m, str):
             if m in cl.locals:
                 _warning_already_exists(cl, m)
             else:
-                cl.locals[m] = [scoped_nodes.Class(m, None)]
+                cl.locals[m] = [scoped_nodes.ClassDef(m, None)]
         elif isinstance(m, dict):
             for key, val in m.items():
                 assert isinstance(key, str), "key must be string"
@@ -265,7 +265,8 @@ def fix_ipa_classes(cls):
     if class_name_with_module in ipa_class_members:
         fake_class(cls, ipa_class_members[class_name_with_module])
 
-MANAGER.register_transform(scoped_nodes.Class, fix_ipa_classes)
+
+MANAGER.register_transform(scoped_nodes.ClassDef, fix_ipa_classes)
 
 
 def pytest_config_transform():
