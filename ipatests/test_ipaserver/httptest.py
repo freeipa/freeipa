@@ -41,9 +41,10 @@ class Unauthorized_HTTP_test(object):
         :param key When not None, overrides default app_uri
         """
         if params is not None:
-            # urlencode *can* take two arguments
-            # pylint: disable=too-many-function-args
-            params = urllib.parse.urlencode(params, True)
+            if self.content_type == 'application/x-www-form-urlencoded':
+                # urlencode *can* take two arguments
+                # pylint: disable=too-many-function-args
+                params = urllib.parse.urlencode(params, True)
         url = 'https://' + self.host + self.app_uri
 
         headers = {'Content-Type' : self.content_type,
