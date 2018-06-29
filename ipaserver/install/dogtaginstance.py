@@ -468,7 +468,8 @@ class DogtagInstance(service.Service):
             time.sleep(1)
             try:
                 master_conn.simple_bind(self.admin_dn, self.admin_password)
-            except ldap.INVALID_CREDENTIALS:
+            except errors.ACIError:
+                # user not replicated yet
                 pass
             else:
                 self.log.debug("Successfully logged in as %s", self.admin_dn)
