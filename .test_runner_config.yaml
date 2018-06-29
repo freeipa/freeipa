@@ -47,6 +47,7 @@ steps:
   configure:
   - ./autogen.sh
   install_packages:
+  - sed -i 's/%_install_langs \(.*\)/\0:fr/g' /etc/rpm/macros.image-language-conf
   - dnf install -y ${container_working_dir}/dist/rpms/*.rpm --best --allowerasing
   install_server:
   - ipa-server-install -U --domain ${server_domain} --realm ${server_realm} -p ${server_password}
