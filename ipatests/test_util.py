@@ -46,6 +46,9 @@ else:
     yield_fixture = pytest.fixture
 
 
+pattern_type = type(re.compile(""))
+
+
 class Prop(object):
     def __init__(self, *ops):
         self.__ops = frozenset(ops)
@@ -83,13 +86,13 @@ class test_Fuzzy(object):
         assert inst.regex == '(foo|bar)'
         assert inst.type is unicode
         assert inst.test is None
-        assert isinstance(inst.re, re._pattern_type)
+        assert isinstance(inst.re, pattern_type)
 
         inst = self.klass('(foo|bar)', type=str)
         assert inst.regex == '(foo|bar)'
         assert inst.type is str
         assert inst.test is None
-        assert isinstance(inst.re, re._pattern_type)
+        assert isinstance(inst.re, pattern_type)
 
         t = lambda other: other > 500
 
