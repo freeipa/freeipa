@@ -145,8 +145,11 @@ class test_config(UI_driver):
                                    'Must be an integer')
 
         # test field with negative value
-        self.assert_field_negative(size_limit_s, '-10',
-                                   'Minimum value is -1')
+        self.assert_field_negative(
+            size_limit_s, '-10',
+            "invalid 'searchrecordslimit': must be at least 10",
+            dialog=True,
+        )
 
         # test field with space
         self.assert_field_negative(size_limit_s, ' 11',
