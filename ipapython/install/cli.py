@@ -303,7 +303,11 @@ class ConfigureTool(admintool.AdminTool):
         elif not no_file:
             logger.debug('Not logging to a file')
 
-    def run(self):
+    def init_configurator(self):
+        """Executes transformation, getting a flattened Installer object
+
+        :returns: common.installer.Installer object
+        """
         kwargs = {}
 
         transformed_cls = self._transform(self.configurable_class)
@@ -318,7 +322,7 @@ class ConfigureTool(admintool.AdminTool):
             kwargs['interactive'] = True
 
         try:
-            cfgr = transformed_cls(**kwargs)
+            return transformed_cls(**kwargs)
         except core.KnobValueError as e:
             knob_cls = knob_classes[e.name]
             try:
@@ -331,6 +335,9 @@ class ConfigureTool(admintool.AdminTool):
             self.option_parser.error("{0}: {1}".format(desc, e))
         except RuntimeError as e:
             self.option_parser.error(str(e))
+
+    def run(self):
+        cfgr = self.init_configurator()
 
         signal.signal(signal.SIGTERM, self.__signal_handler)
 
