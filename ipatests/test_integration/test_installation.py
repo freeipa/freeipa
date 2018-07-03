@@ -410,7 +410,11 @@ class TestInstallMasterDNS(IntegrationTest):
         pass
 
     def test_install_master(self):
-        tasks.install_master(self.master, setup_dns=True)
+        tasks.install_master(
+            self.master,
+            setup_dns=True,
+            extra_args=['--zonemgr', 'me@example.org'],
+        )
 
     def test_install_kra(self):
         tasks.install_kra(self.master, first_instance=True)
