@@ -48,6 +48,7 @@ from ipaserver.install import dnskeysyncinstance
 from ipaserver.install import dogtaginstance
 from ipaserver.install import krbinstance
 from ipaserver.install import adtrustinstance
+from ipaserver.install import replication
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
 
@@ -1680,11 +1681,14 @@ def update_replica_config(db_suffix):
     except ipalib.errors.NotFound:
         return  # entry does not exist until a replica is installed
 
-    if 'nsds5replicareleasetimeout' not in entry:
-        # See https://pagure.io/freeipa/issue/7488
-        logger.info("Adding nsds5replicaReleaseTimeout=60 to %s", dn)
-        entry['nsds5replicareleasetimeout'] = '60'
+    for key, value in replication.REPLICA_FINAL_SETTINGS.items():
+        entry[key] = value
+    try:
         api.Backend.ldap2.update_entry(entry)
+    except ipalib.errors.EmptyModlist:
+        pass
+    else:
+        logger.info("Updated entry %s", dn)
 
 
 def migrate_to_authselect():

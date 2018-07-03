@@ -1505,6 +1505,8 @@ def install(installer):
     # Apply any LDAP updates. Needs to be done after the replica is synced-up
     service.print_msg("Applying LDAP updates")
     ds.apply_updates()
+    service.print_msg("Finalize replication settings")
+    ds.finalize_replica_config()
 
     if kra_enabled:
         kra.install(api, config, options, custodia=custodia)

@@ -75,6 +75,20 @@ STRIP_ATTRS = ('modifiersName',
                'internalModifiersName',
                'internalModifyTimestamp')
 
+# settings for cn=replica,cn=$DB,cn=mapping tree,cn=config
+# during replica installation
+REPLICA_CREATION_SETTINGS = {
+    "nsds5ReplicaReleaseTimeout": ["20"],
+    "nsds5ReplicaBackoffMax": ["3"],
+    "nsDS5ReplicaBindDnGroupCheckInterval": ["2"]
+}
+# after replica installation
+REPLICA_FINAL_SETTINGS = {
+    "nsds5ReplicaReleaseTimeout": ["60"],
+    "nsds5ReplicaBackoffMax": ["300"],  # default
+    "nsDS5ReplicaBindDnGroupCheckInterval": ["60"]
+}
+
 
 def replica_conn_check(master_host, host_name, realm, check_ca,
                        dogtag_master_ds_port, admin_password=None,
@@ -201,9 +215,13 @@ def wait_for_entry(connection, dn, timeout, attr=None, attrvalue='*',
 
 
 class ReplicationManager(object):
-    """Manage replication agreements between DS servers, and sync
-    agreements with Windows servers"""
-    def __init__(self, realm, hostname, dirman_passwd, port=PORT, starttls=False, conn=None):
+    """Manage replication agreements
+
+    between DS servers, and sync  agreements with Windows servers
+    """
+
+    def __init__(self, realm, hostname, dirman_passwd=None, port=PORT,
+                 starttls=False, conn=None):
         self.hostname = hostname
         self.port = port
         self.dirman_passwd = dirman_passwd
@@ -481,22 +499,16 @@ class ReplicationManager(object):
         except errors.NotFound:
             pass
         else:
-            managers = {DN(m) for m in entry.get('nsDS5ReplicaBindDN', [])}
-
-            mods = []
-            if replica_binddn not in managers:
+            binddns = entry.setdefault('nsDS5ReplicaBindDN', [])
+            if replica_binddn not in {DN(m) for m in binddns}:
                 # Add the new replication manager
-                mods.append(
-                    (ldap.MOD_ADD, 'nsDS5ReplicaBindDN', replica_binddn)
-                )
-            if 'nsds5replicareleasetimeout' not in entry:
-                # See https://pagure.io/freeipa/issue/7488
-                mods.append(
-                    (ldap.MOD_ADD, 'nsds5replicareleasetimeout', ['60'])
-                )
-
-            if mods:
-                conn.modify_s(dn, mods)
+                binddns.append(replica_binddn)
+            for key, value in REPLICA_CREATION_SETTINGS.items():
+                entry[key] = value
+            try:
+                conn.update_entry(entry)
+            except errors.EmptyModlist:
+                pass
 
             self.set_replica_binddngroup(conn, entry)
 
@@ -515,9 +527,8 @@ class ReplicationManager(object):
             nsds5flags=["1"],
             nsds5replicabinddn=[replica_binddn],
             nsds5replicabinddngroup=[self.repl_man_group_dn],
-            nsds5replicabinddngroupcheckinterval=["60"],
-            nsds5replicareleasetimeout=["60"],
             nsds5replicalegacyconsumer=["off"],
+            **REPLICA_CREATION_SETTINGS
         )
         conn.add_entry(entry)
 
@@ -542,6 +553,47 @@ class ReplicationManager(object):
             conn.add_entry(entry)
         except errors.DuplicateEntry:
             return
+
+    def _finalize_replica_settings(self, conn):
+        """Change replica settings to final values
+
+        During replica installation, some settings are configured for faster
+        replication.
+        """
+        dn = self.replica_dn()
+        entry = conn.get_entry(dn)
+        for key, value in REPLICA_FINAL_SETTINGS.items():
+            entry[key] = value
+        try:
+            conn.update_entry(entry)
+        except errors.EmptyModlist:
+            pass
+
+    def finalize_replica_config(self, r_hostname, r_binddn=None,
+                                r_bindpw=None, cacert=paths.IPA_CA_CRT):
+        """Apply final cn=replica settings
+
+        replica_config() sets several attribute to fast cache invalidation
+        and fast reconnects to optimize replicat installation. For
+        production, longer timeouts and less aggressive cache invalidation
+        is sufficient. finalize_replica_config() sets the values on new
+        replica and the master.
+
+        When installing multiple replicas in parallel, one replica may
+        finalize the values while another is still installing.
+
+        See https://pagure.io/freeipa/issue/7617
+        """
+        self._finalize_replica_settings(self.conn)
+
+        ldap_uri = ipaldap.get_ldap_uri(r_hostname)
+        r_conn = ipaldap.LDAPClient(ldap_uri, cacert=cacert)
+        if r_bindpw:
+            r_conn.simple_bind(r_binddn, r_bindpw)
+        else:
+            r_conn.gssapi_bind()
+        self._finalize_replica_settings(r_conn)
+        r_conn.close()
 
     def setup_chaining_backend(self, conn):
         chaindn = DN(('cn', 'chaining database'), ('cn', 'plugins'), ('cn', 'config'))

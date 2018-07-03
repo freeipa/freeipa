@@ -148,7 +148,11 @@ class TestExternalCA(IntegrationTest):
             '-LLL',
             '-o',
             'ldif-wrap=no'])
-        assert 'nsds5ReplicaReleaseTimeout: 60' in result.stdout_text
+        # case insensitive match
+        text = result.stdout_text.lower()
+        # see ipaserver.install.replication.REPLICA_FINAL_SETTINGS
+        assert 'nsds5ReplicaReleaseTimeout: 60'.lower() in text
+        assert 'nsDS5ReplicaBindDnGroupCheckInterval: 60'.lower() in text
 
     def test_client_installation_with_otp(self):
         # Test for issue 7526: client installation fails with one-time
