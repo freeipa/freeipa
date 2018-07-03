@@ -107,6 +107,8 @@ class TestExternalCA(IntegrationTest):
     """
     Test of FreeIPA server installation with exernal CA
     """
+    num_replicas = 1
+
     @tasks.collect_logs
     def test_external_ca(self):
         # Step 1 of ipa-server-install.
@@ -126,6 +128,27 @@ class TestExternalCA(IntegrationTest):
         tasks.kinit_admin(self.master)
         result = self.master.run_command(['ipa', 'user-show', 'admin'])
         assert 'User login: admin' in result.stdout_text
+
+        # check that we can also install replica
+        tasks.install_replica(self.master, self.replicas[0])
+
+        # check that nsds5ReplicaReleaseTimeout option was set
+        result = self.master.run_command([
+            'ldapsearch',
+            '-x',
+            '-D',
+            'cn=directory manager',
+            '-w', self.master.config.dirman_password,
+            '-b', 'cn=mapping tree,cn=config',
+            '(cn=replica)',
+            '-LLL',
+            '-o',
+            'ldif-wrap=no'])
+        # case insensitive match
+        text = result.stdout_text.lower()
+        # see ipaserver.install.replication.REPLICA_FINAL_SETTINGS
+        assert 'nsds5ReplicaReleaseTimeout: 60'.lower() in text
+        assert 'nsDS5ReplicaBindDnGroupCheckInterval: 60'.lower() in text
 
 
 class TestSelfExternalSelf(IntegrationTest):
