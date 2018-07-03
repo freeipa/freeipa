@@ -349,11 +349,17 @@ class IPAChangeConf(object):
                     opts.append(no)
                     continue
                 if no['action'] == 'addifnotset':
+                    opts.append({
+                        'name': 'comment',
+                        'type': 'comment',
+                        'value': self._dump_line(
+                            ' ', no['name'], ' modified by IPA'
+                        ),
+                    })
                     opts.append({'name': 'comment', 'type': 'comment',
                                 'value': self._dump_line(no['name'],
                                                          self.dassign,
                                                          no['value'],
-                                                         u' # modified by IPA'
                                                          )})
                     opts.append(o)
                     continue
