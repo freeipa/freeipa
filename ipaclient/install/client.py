@@ -560,13 +560,14 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
         {
             'name': 'comment',
             'type': 'comment',
-            'value': '   In case any of them were set, a comment with '
-                     'trailing note'
+            'value': '   In case any of them were set, a comment has been '
+                     'inserted and'
         },
         {
             'name': 'comment',
             'type': 'comment',
-            'value': '   "# modified by IPA" note has been inserted.'
+            'value': '   "# CONF_NAME modified by IPA" added to the line '
+                     'above.'
         },
         {
             'name': 'comment',
