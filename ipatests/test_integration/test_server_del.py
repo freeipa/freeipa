@@ -82,6 +82,20 @@ class ServerDelBase(IntegrationTest):
         cls.replica2 = cls.replicas[1]
 
 
+def remove_segment(master, left, right, suffix=DOMAIN_SUFFIX_NAME):
+    """
+    Ensure that segment left-right or right-left don't exist
+    :param suffix: default is DOMAIN_SUFFIX_NAME,
+                   could be change to CA_SUFFIX_NAME
+    """
+
+    segment_name_fmt = '{p[0].hostname}-to-{p[1].hostname}'
+    for ca_pair in permutations((left, right)):
+        tasks.destroy_segment(
+            master, segment_name_fmt.format(p=ca_pair),
+            suffix=suffix)
+
+
 class TestServerDel(ServerDelBase):
 
     @classmethod
@@ -106,15 +120,9 @@ class TestServerDel(ServerDelBase):
                              suffix=CA_SUFFIX_NAME)
 
         # try to delete all relevant segment connecting master and replica1/2
-        segment_name_fmt = '{p[0].hostname}-to-{p[1].hostname}'
-        for domain_pair in permutations((cls.master, cls.replica2)):
-            tasks.destroy_segment(
-                cls.master, segment_name_fmt.format(p=domain_pair))
-
-        for ca_pair in permutations((cls.master, cls.replica1)):
-            tasks.destroy_segment(
-                cls.master, segment_name_fmt.format(p=ca_pair),
-                suffix=CA_SUFFIX_NAME)
+        remove_segment(cls.master, cls.master, cls.replica2)
+        remove_segment(cls.master, cls.master, cls.replica1,
+                       suffix=CA_SUFFIX_NAME)
 
     def test_removal_of_nonexistent_master_raises_error(self):
         """
@@ -177,9 +185,19 @@ class TestServerDel(ServerDelBase):
         )
 
         # reinstall the replica
-        tasks.uninstall_master(self.replica1, domain_level=DOMAIN_LEVEL_1)
-        tasks.install_replica(self.master, self.replica1, setup_ca=True,
-                              setup_dns=True)
+        self.replica1.run_command(['ipa-server-install', '--uninstall', '-U'])
+        self.replica2.run_command(['ipa-server-install', '--uninstall', '-U'])
+        tasks.install_replica(self.master, self.replica1, setup_dns=True,
+                              setup_ca=True)
+        tasks.install_replica(self.master, self.replica2, setup_dns=True,
+                              setup_ca=True)
+        # here bring it to default state
+        tasks.create_segment(self.master, self.replica1, self.replica2)
+        tasks.create_segment(self.master, self.replica1, self.replica2,
+                             suffix=CA_SUFFIX_NAME)
+        remove_segment(self.master, self.master, self.replica2)
+        remove_segment(self.master, self.master, self.replica1,
+                       suffix=CA_SUFFIX_NAME)
 
     def test_ignore_topology_disconnect_replica2(self):
         """
@@ -193,8 +211,24 @@ class TestServerDel(ServerDelBase):
         )
 
         # reinstall the replica
-        tasks.uninstall_master(self.replica2, domain_level=DOMAIN_LEVEL_1)
+        self.replica1.run_command(['ipa-server-install', '--uninstall', '-U'])
+        self.replica2.run_command(['ipa-server-install', '--uninstall', '-U'])
+        tasks.install_replica(self.master, self.replica1, setup_dns=True)
         tasks.install_replica(self.master, self.replica2, setup_ca=True)
+        # here bring it to default state
+        # tasks.create_segment(self.master, self.replica1, self.replica2)
+        # tasks.create_segment(self.master, self.replica1, self.replica2,
+        #                      suffix=CA_SUFFIX_NAME)
+        # TEST IGNORE THIS
+        import logging
+        import paramiko
+        logging.debug('XXXXXXXXXXXXXXXX')
+        logging.debug(paramiko.__version__)
+        logging.debug(paramiko.__path__)
+        logging.debug('XXXXXXXXXXXXXXXX')
+        remove_segment(self.master, self.master, self.replica2)
+        remove_segment(self.master, self.master, self.replica1,
+                       suffix=CA_SUFFIX_NAME)
 
     def test_removal_of_master_disconnects_both_topologies(self):
         """
