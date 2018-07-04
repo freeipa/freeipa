@@ -28,7 +28,6 @@ from __future__ import absolute_import
 import os
 import json
 import time
-import collections
 import logging
 import warnings
 
@@ -37,6 +36,12 @@ import six
 from ipapython import ipautil
 from ipaplatform.paths import paths
 
+# pylint: disable=no-name-in-module, import-error
+if six.PY3:
+    from collections.abc import Mapping
+else:
+    from collections import Mapping
+# pylint: enable=no-name-in-module, import-error
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +67,7 @@ wellknownports = {
 SERVICE_POLL_INTERVAL = 0.1 # seconds
 
 
-class KnownServices(collections.Mapping):
+class KnownServices(Mapping):
     """
     KnownServices is an abstract class factory that should give out instances
     of well-known platform services. Actual implementation must create these
