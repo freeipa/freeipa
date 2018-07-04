@@ -2,7 +2,6 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-import collections
 import errno
 import json
 import logging
@@ -27,6 +26,13 @@ from ipapython.ipautil import fsdecode
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
+# pylint: disable=no-name-in-module, import-error
+if six.PY3:
+    from collections.abc import Mapping, Sequence
+else:
+    from collections import Mapping, Sequence
+# pylint: enable=no-name-in-module, import-error
+
 logger = logging.getLogger(__name__)
 
 FORMAT = '1'
@@ -39,7 +45,7 @@ _TYPES = {
     'DNSName': DNSName,
     'Principal': unicode,
     'NoneType': type(None),
-    'Sequence': collections.Sequence,
+    'Sequence': Sequence,
     'bool': bool,
     'dict': dict,
     'int': int,
@@ -315,7 +321,7 @@ class _SchemaObjectPlugin(_SchemaPlugin):
     schema_key = 'classes'
 
 
-class _SchemaNameSpace(collections.Mapping):
+class _SchemaNameSpace(Mapping):
 
     def __init__(self, schema, name):
         self.name = name

@@ -5,9 +5,10 @@
 
 from __future__ import print_function, absolute_import
 
-import collections
 import os
 from pprint import pprint
+
+import six
 
 from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 from ipaplatform.paths import paths
@@ -16,6 +17,13 @@ from ipaserver.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
                                      keytype_id2name, keytype_name2id,
                                      ldap2p11helper_api_params)
 from ipaserver.dnssec.ldapkeydb import str_hexlify
+
+# pylint: disable=no-name-in-module, import-error
+if six.PY3:
+    from collections.abc import MutableMapping
+else:
+    from collections import MutableMapping
+# pylint: enable=no-name-in-module, import-error
 
 
 private_key_api_params = set(["label", "id", "data", "unwrapping_key",
@@ -28,7 +36,8 @@ public_key_api_params = set(["label", "id", "data", "cka_copyable",
     "cka_derive", "cka_encrypt", "cka_modifiable", "cka_private",
     "cka_trusted", "cka_verify", "cka_verify_recover", "cka_wrap"])
 
-class Key(collections.MutableMapping):
+
+class Key(MutableMapping):
     def __init__(self, p11, handle):
         self.p11 = p11
         self.handle = handle
