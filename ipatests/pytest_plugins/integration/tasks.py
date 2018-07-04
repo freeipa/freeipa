@@ -379,7 +379,7 @@ def replica_prepare(master, replica, extra_args=(),
             '-p', replica.config.dirman_password,
             replica.hostname]
     if master_authoritative_for_client_domain(master, replica):
-        args.extend(['--ip-address', replica.ip])
+        args.extend(['--ip-address', replica.ip, '--auto-reverse'])
     args.extend(extra_args)
     result = master.run_command(args, raiseonerr=raiseonerr,
                                 stdin_text=stdin_text)
