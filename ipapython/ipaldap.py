@@ -27,7 +27,6 @@ import datetime
 from decimal import Decimal
 from copy import deepcopy
 import contextlib
-import collections
 import os
 import pwd
 import warnings
@@ -52,6 +51,13 @@ from ipapython.ipautil import format_netloc, CIDict
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipapython.kerberos import Principal
+
+# pylint: disable=no-name-in-module, import-error
+if six.PY3:
+    from collections.abc import MutableMapping
+else:
+    from collections import MutableMapping
+# pylint: enable=no-name-in-module, import-error
 
 if six.PY3:
     unicode = str
@@ -213,7 +219,7 @@ class SchemaCache(object):
 schema_cache = SchemaCache()
 
 
-class LDAPEntry(collections.MutableMapping):
+class LDAPEntry(MutableMapping):
     __slots__ = ('_conn', '_dn', '_names', '_nice', '_raw', '_sync',
                  '_not_list', '_orig_raw', '_raw_view',
                  '_single_value_view')
@@ -577,7 +583,7 @@ class LDAPEntry(collections.MutableMapping):
         return iter(self._nice)
 
 
-class LDAPEntryView(collections.MutableMapping):
+class LDAPEntryView(MutableMapping):
     __slots__ = ('_entry',)
 
     def __init__(self, entry):

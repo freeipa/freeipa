@@ -5,9 +5,10 @@
 from __future__ import print_function, absolute_import
 
 from binascii import hexlify
-import collections
 import logging
 from pprint import pprint
+
+import six
 
 import ipalib
 from ipaplatform.paths import paths
@@ -22,6 +23,13 @@ from ipaserver.dnssec.abshsm import (
     populate_pkcs11_metadata)
 from ipaserver import p11helper as _ipap11helper
 import uuid
+
+# pylint: disable=no-name-in-module, import-error
+if six.PY3:
+    from collections.abc import MutableMapping
+else:
+    from collections import MutableMapping
+# pylint: enable=no-name-in-module, import-error
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +130,7 @@ def str_hexlify(data):
     return out
 
 
-class Key(collections.MutableMapping):
+class Key(MutableMapping):
     """abstraction to hide LDAP entry weirdnesses:
         - non-normalized attribute names
         - boolean attributes returned as strings
