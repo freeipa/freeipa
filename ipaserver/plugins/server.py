@@ -205,7 +205,10 @@ class server(LDAPObject):
             return
 
         enabled_roles = self.api.Command.server_role_find(
-            server_server=entry_attrs['cn'][0], status=ENABLED)['result']
+            server_server=entry_attrs['cn'][0],
+            status=ENABLED,
+            include_master=True,
+        )['result']
 
         enabled_role_names = [r[u'role_servrole'] for r in enabled_roles]
 
@@ -339,7 +342,9 @@ class server_find(LDAPSearch):
             role_status = self.api.Command.server_role_find(
                 server_server=None,
                 role_servrole=role,
-                status=ENABLED)['result']
+                status=ENABLED,
+                include_master=True,
+            )['result']
 
             return set(
                 r[u'server_server'] for r in role_status)
