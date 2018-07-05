@@ -688,7 +688,7 @@ class BindInstance(service.Service):
         return normalize_zone(self.host_domain) == normalize_zone(self.domain)
 
     def create_file_with_system_records(self):
-        system_records = IPASystemRecords(self.api)
+        system_records = IPASystemRecords(self.api, all_servers=True)
         text = u'\n'.join(
             IPASystemRecords.records_list_from_zone(
                 system_records.get_base_records()
@@ -765,7 +765,7 @@ class BindInstance(service.Service):
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
         try:
-            self.ldap_enable('DNS', self.fqdn, None, self.suffix)
+            self.ldap_configure('DNS', self.fqdn, None, self.suffix)
         except errors.DuplicateEntry:
             # service already exists (forced DNS reinstall)
             # don't crash, just report error
@@ -1210,7 +1210,7 @@ class BindInstance(service.Service):
 
         installutils.rmtree(paths.BIND_LDAP_DNS_IPA_WORKDIR)
 
-        # disabled by default, by ldap_enable()
+        # disabled by default, by ldap_configure()
         if enabled:
             self.enable()
         else:

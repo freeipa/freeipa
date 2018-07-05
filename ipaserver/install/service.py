@@ -27,6 +27,7 @@ import socket
 import time
 import traceback
 import tempfile
+import warnings
 
 import six
 
@@ -60,6 +61,10 @@ SERVICE_LIST = {
     'DNSSEC': ('ods-enforcerd', 100),
     'DNSKeySync': ('ipa-dnskeysyncd', 110),
 }
+
+CONFIGURED_SERVICE = u'configuredService'
+ENABLED_SERVICE = 'enabledService'
+
 
 def print_msg(message, output_fd=sys.stdout):
     logger.debug("%s", message)
@@ -122,7 +127,7 @@ def find_providing_servers(svcname, conn, api):
     """
     dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
     query_filter = conn.make_filter({'objectClass': 'ipaConfigObject',
-                                     'ipaConfigString': 'enabledService',
+                                     'ipaConfigString': ENABLED_SERVICE,
                                      'cn': svcname}, rules='&')
     try:
         entries, _trunc = conn.find_entries(filter=query_filter, base_dn=dn)
@@ -229,6 +234,51 @@ def set_service_entry_config(name, fqdn, config_values,
     except (errors.DuplicateEntry) as e:
         logger.debug("failed to add service entry %s", name)
         raise e
+
+
+def enable_services(fqdn):
+    """Change all configured services to enabled
+
+    Server.ldap_configure() only marks a service as configured. Services
+    are enabled at the very end of installation.
+
+    Note: DNS records must be updated with dns_update_system_records, too.
+
+    :param fqdn: hostname of server
+    """
+    ldap2 = api.Backend.ldap2
+    search_base = DN(('cn', fqdn), api.env.container_masters, api.env.basedn)
+    search_filter = ldap2.make_filter(
+        {
+            'objectClass': 'ipaConfigObject',
+            'ipaConfigString': CONFIGURED_SERVICE
+        },
+        rules='&'
+    )
+    entries = ldap2.get_entries(
+        search_base,
+        filter=search_filter,
+        scope=api.Backend.ldap2.SCOPE_ONELEVEL,
+        attrs_list=['cn', 'ipaConfigString']
+    )
+    for entry in entries:
+        name = entry['cn']
+        cfgstrings = entry.setdefault('ipaConfigString', [])
+        for value in list(cfgstrings):
+            if value.lower() == CONFIGURED_SERVICE.lower():
+                cfgstrings.remove(value)
+        if not case_insensitive_attr_has_value(cfgstrings, ENABLED_SERVICE):
+            cfgstrings.append(ENABLED_SERVICE)
+
+        try:
+            ldap2.update_entry(entry)
+        except errors.EmptyModlist:
+            logger.debug("Nothing to do for service %s", name)
+        except Exception:
+            logger.exception("failed to set service %s config values", name)
+            raise
+        else:
+            logger.debug("Enabled service %s for %s", name, fqdn)
 
 
 class Service(object):
@@ -578,7 +628,35 @@ class Service(object):
         self.steps = []
 
     def ldap_enable(self, name, fqdn, dm_password=None, ldap_suffix='',
-                    config=[]):
+                    config=()):
+        """Legacy function, all services should use ldap_configure()
+        """
+        warnings.warn(
+            "ldap_enable is deprecated, use ldap_configure instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        self._ldap_enable(ENABLED_SERVICE, name, fqdn, ldap_suffix, config)
+
+    def ldap_configure(self, name, fqdn, dm_password=None, ldap_suffix='',
+                       config=()):
+        """Create or modify service entry in cn=masters,cn=ipa,cn=etc
+
+        Contrary to ldap_enable(), the method only sets
+        ipaConfigString=configuredService. ipaConfigString=enabledService
+        is set at the very end of the installation process, to ensure that
+        other machines see this master/replica after it is fully installed.
+
+        To switch all configured services to enabled, use::
+
+            ipaserver.install.service.enable_services(api.env.host)
+            api.Command.dns_update_system_records()
+        """
+        self._ldap_enable(
+            CONFIGURED_SERVICE, name, fqdn, ldap_suffix, config
+        )
+
+    def _ldap_enable(self, value, name, fqdn, ldap_suffix, config):
         extra_config_opts = [
             ' '.join([u'startOrder', unicode(SERVICE_LIST[name][1])])
         ]
@@ -589,7 +667,7 @@ class Service(object):
         set_service_entry_config(
             name,
             fqdn,
-            [u'enabledService'],
+            [value],
             ldap_suffix=ldap_suffix,
             post_add_config=extra_config_opts)
 
@@ -615,7 +693,7 @@ class Service(object):
 
         # case insensitive
         for value in entry.get('ipaConfigString', []):
-            if value.lower() == u'enabledservice':
+            if value.lower() == ENABLED_SERVICE:
                 entry['ipaConfigString'].remove(value)
                 break
 
@@ -728,7 +806,7 @@ class SimpleServiceInstance(Service):
         if self.gensvc_name == None:
             self.enable()
         else:
-            self.ldap_enable(self.gensvc_name, self.fqdn, None, self.suffix)
+            self.ldap_configure(self.gensvc_name, self.fqdn, None, self.suffix)
 
     def is_installed(self):
         return self.service.is_installed()
