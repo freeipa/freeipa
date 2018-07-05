@@ -354,7 +354,9 @@ class NSSDatabase(object):
                                  os.O_CREAT | os.O_WRONLY,
                                  pwdfilemode), 'w', closefd=True) as f:
                 f.write(ipautil.ipa_generate_password())
+                # flush and sync tempfile inode
                 f.flush()
+                os.fsync(f.fileno())
 
         # In case dbtype is auto, let certutil decide which type of DB
         # to create.

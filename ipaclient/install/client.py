@@ -1274,10 +1274,9 @@ def do_nsupdate(update_txt):
     logger.debug("Writing nsupdate commands to %s:", UPDATE_FILE)
     logger.debug("%s", update_txt)
 
-    update_fd = open(UPDATE_FILE, "w")
-    update_fd.write(update_txt)
-    update_fd.flush()
-    update_fd.close()
+    with open(UPDATE_FILE, "w") as f:
+        f.write(update_txt)
+        ipautil.flush_sync(f)
 
     result = False
     try:

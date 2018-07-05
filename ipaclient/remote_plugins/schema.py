@@ -22,6 +22,7 @@ from ipalib.errors import SchemaUpToDate
 from ipalib.frontend import Object
 from ipalib.output import Output
 from ipalib.parameters import DefaultFrom, Flag, Password, Str
+from ipapython import ipautil
 from ipapython.ipautil import fsdecode
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
@@ -492,8 +493,7 @@ class Schema(object):
                                          dir=self._DIR, delete=False) as f:
             try:
                 self._write_schema_data(f)
-                f.flush()
-                os.fsync(f.fileno())
+                ipautil.flush_sync(f)
                 f.close()
             except Exception:
                 os.unlink(f.name)
