@@ -5,7 +5,7 @@
 from ipalib.crud import Retrieve, Search
 from ipalib.errors import NotFound
 from ipalib.frontend import Object
-from ipalib.parameters import Int, Str, StrEnum
+from ipalib.parameters import Flag, Int, Str, StrEnum
 from ipalib.plugable import Registry
 from ipalib import _, ngettext
 
@@ -129,6 +129,10 @@ class server_role_find(Search):
             minvalue=0,
             autofill=False,
         ),
+        Flag(
+            'include_master',
+            doc=_('Include IPA master entries'),
+        )
     )
 
     def execute(self, *keys, **options):
@@ -151,8 +155,16 @@ class server_role_find(Search):
             role_servrole=role_name,
             status=status)
 
-        result = [
-            r for r in role_status if r[u'role_servrole'] != "IPA master"]
+        # Don't display "IPA master" information unless the role is
+        # requested explicitly. All servers are considered IPA masters,
+        # except for replicas during installation.
+        if options.get('include_master') or role_name == "IPA master":
+            result = role_status
+        else:
+            result = [
+                r for r in role_status
+                if r[u'role_servrole'] != "IPA master"
+            ]
         return dict(
             result=result,
             count=len(result),
