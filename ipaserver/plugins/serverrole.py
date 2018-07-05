@@ -15,16 +15,21 @@ IPA server roles
 """) + _("""
 Get status of roles (DNS server, CA, etc.) provided by IPA masters.
 """) + _("""
+The status of a role is either enabled, configured, or absent.
+""") + _("""
 EXAMPLES:
 """) + _("""
   Show status of 'DNS server' role on a server:
     ipa server-role-show ipa.example.com "DNS server"
 """) + _("""
   Show status of all roles containing 'AD' on a server:
-    ipa server-role-find --server ipa.example.com --role='AD'
+    ipa server-role-find --server ipa.example.com --role="AD trust controller"
 """) + _("""
   Show status of all configured roles on a server:
     ipa server-role-find ipa.example.com
+""") + _("""
+  Show implicit IPA master role:
+    ipa server-role-find --include-master
 """)
 
 

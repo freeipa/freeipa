@@ -1516,13 +1516,9 @@ def install(installer):
 
     if options.setup_dns:
         dns.install(False, True, options, api)
-    else:
-        api.Command.dns_update_system_records()
 
     if options.setup_adtrust:
         adtrust.install(False, options, fstore, api)
-
-    api.Backend.ldap2.disconnect()
 
     if not promote:
         # Call client install script
@@ -1553,6 +1549,11 @@ def install(installer):
 
     # Make sure the files we crated in /var/run are recreated at startup
     tasks.configure_tmpfiles()
+
+    # Enable configured services and update DNS SRV records
+    service.enable_services(config.host_name)
+    api.Command.dns_update_system_records()
+    api.Backend.ldap2.disconnect()
 
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()
