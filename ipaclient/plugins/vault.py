@@ -46,6 +46,7 @@ from ipalib import api, errors
 from ipalib import Bytes, Flag, Str
 from ipalib.plugable import Registry
 from ipalib import _
+from ipapython import ipautil
 from ipapython.dnsutil import DNSName
 
 logger = logging.getLogger(__name__)
@@ -590,8 +591,7 @@ class _TransportCertCache(object):
                                              mode='wb') as f:
                 try:
                     f.write(pem)
-                    f.flush()
-                    os.fsync(f.fileno())
+                    ipautil.flush_sync(f)
                     f.close()
                     os.rename(f.name, filename)
                 except Exception:
