@@ -1519,14 +1519,11 @@ def install(installer):
 
     if options.setup_dns:
         dns.install(False, True, options, api)
-    else:
-        api.Command.dns_update_system_records()
 
     if options.setup_adtrust:
         adtrust.install(False, options, fstore, api)
 
     ca_servers = service.find_providing_servers('CA', api.Backend.ldap2, api)
-    api.Backend.ldap2.disconnect()
 
     if not promote:
         # Call client install script
@@ -1554,6 +1551,11 @@ def install(installer):
 
         # remove the extracted replica file
         remove_replica_info_dir(installer)
+
+    # Enable configured services and update DNS SRV records
+    service.enable_services(config.host_name)
+    api.Command.dns_update_system_records()
+    api.Backend.ldap2.disconnect()
 
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()

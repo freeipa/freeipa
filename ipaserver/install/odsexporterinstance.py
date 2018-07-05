@@ -74,8 +74,8 @@ class ODSExporterInstance(service.Service):
     def __enable(self):
 
         try:
-            self.ldap_enable('DNSKeyExporter', self.fqdn, None,
-                             self.suffix)
+            self.ldap_configure('DNSKeyExporter', self.fqdn, None,
+                                self.suffix)
         except errors.DuplicateEntry:
             logger.error("DNSKeyExporter service already exists")
 

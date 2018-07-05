@@ -342,18 +342,26 @@ def main():
     )
     api.finalize()
     api.Backend.ldap2.connect()
-
     domain_level = dsinstance.get_domain_level(api)
+
     if domain_level > DOMAIN_LEVEL_0:
         promote(safe_options, options, filename)
     else:
         install(safe_options, options, filename)
 
+    # pki-spawn restarts 389-DS, reconnect
+    api.Backend.ldap2.close()
+    api.Backend.ldap2.connect()
+
+    # Enable configured services and update DNS SRV records
+    service.enable_services(api.env.host)
+    api.Command.dns_update_system_records()
+    api.Backend.ldap2.disconnect()
+
     # execute ipactl to refresh services status
     ipautil.run([paths.IPACTL, 'start', '--ignore-service-failures'],
                 raiseonerr=False)
 
-    api.Backend.ldap2.disconnect()
 
 fail_message = '''
 Your system may be partly configured.

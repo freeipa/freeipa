@@ -242,7 +242,7 @@ class KrbInstance(service.Service):
         # We do not let the system start IPA components on its own,
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
-        self.ldap_enable('KDC', self.fqdn, None, self.suffix)
+        self.ldap_configure('KDC', self.fqdn, None, self.suffix)
 
     def __start_instance(self):
         try:
@@ -619,7 +619,7 @@ class KrbInstance(service.Service):
             except ValueError as error:
                 logger.debug("%s", error)
 
-        # disabled by default, by ldap_enable()
+        # disabled by default, by ldap_configure()
         if enabled:
             self.enable()
 

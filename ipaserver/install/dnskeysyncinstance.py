@@ -383,8 +383,8 @@ class DNSKeySyncInstance(service.Service):
 
     def __enable(self):
         try:
-            self.ldap_enable('DNSKeySync', self.fqdn, None,
-                             self.suffix, self.extra_config)
+            self.ldap_configure('DNSKeySync', self.fqdn, None,
+                                self.suffix, self.extra_config)
         except errors.DuplicateEntry:
             logger.error("DNSKeySync service already exists")
 
