@@ -376,4 +376,4 @@ class KRAInstance(DogtagInstance):
                 directives[nickname], cert, paths.KRA_CS_CFG_PATH)
 
     def __enable_instance(self):
-        self.ldap_enable('KRA', self.fqdn, None, self.suffix)
+        self.ldap_configure('KRA', self.fqdn, None, self.suffix)

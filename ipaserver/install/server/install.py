@@ -869,14 +869,6 @@ def install(installer):
 
     if options.setup_dns:
         dns.install(False, False, options)
-    else:
-        # Create a BIND instance
-        bind = bindinstance.BindInstance(fstore)
-        bind.setup(host_name, ip_addresses, realm_name,
-                   domain_name, (), 'first', (),
-                   zonemgr=options.zonemgr,
-                   no_dnssec_validation=options.no_dnssec_validation)
-        bind.create_file_with_system_records()
 
     if options.setup_adtrust:
         adtrust.install(False, options, fstore, api)
@@ -907,6 +899,16 @@ def install(installer):
 
     # Make sure the files we crated in /var/run are recreated at startup
     tasks.configure_tmpfiles()
+
+    # Enable configured services and update DNS SRV records
+    service.enable_services(host_name)
+    api.Command.dns_update_system_records()
+
+    if not options.setup_dns:
+        # After DNS and AD trust are configured and services are
+        # enabled, create a dummy instance to dump DNS configuration.
+        bind = bindinstance.BindInstance(fstore)
+        bind.create_file_with_system_records()
 
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()

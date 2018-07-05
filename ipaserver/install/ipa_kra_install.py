@@ -224,4 +224,11 @@ class KRAInstaller(KRAInstall):
             self.log.error(dedent(self.FAIL_MESSAGE))
             raise
 
+        # pki-spawn restarts 389-DS, reconnect
+        api.Backend.ldap2.close()
+        api.Backend.ldap2.connect()
+
+        # Enable configured services and update DNS SRV records
+        service.enable_services(api.env.host)
+        api.Command.dns_update_system_records()
         api.Backend.ldap2.disconnect()

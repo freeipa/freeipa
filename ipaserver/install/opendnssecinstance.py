@@ -136,8 +136,8 @@ class OpenDNSSECInstance(service.Service):
 
     def __enable(self):
         try:
-            self.ldap_enable('DNSSEC', self.fqdn, None,
-                             self.suffix, self.extra_config)
+            self.ldap_configure('DNSSEC', self.fqdn, None,
+                                self.suffix, self.extra_config)
         except errors.DuplicateEntry:
             root_logger.error("DNSSEC service already exists")
 
@@ -368,7 +368,7 @@ class OpenDNSSECInstance(service.Service):
 
         self.restore_state("kasp_db_configured")  # just eat state
 
-        # disabled by default, by ldap_enable()
+        # disabled by default, by ldap_configure()
         if enabled:
             self.enable()
 
