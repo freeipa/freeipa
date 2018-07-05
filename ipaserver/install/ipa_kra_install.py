@@ -1,4 +1,3 @@
-#!/usr/bin/python3 -E
 # Authors: Ade Lee <alee@redhat.com>
 #
 # Copyright (C) 2014  Red Hat

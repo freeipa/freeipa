@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright (C) 2017  FreeIPA Contributors see COPYING for license
 
 import importlib
