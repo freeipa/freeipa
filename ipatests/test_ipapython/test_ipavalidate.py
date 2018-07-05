@@ -1,4 +1,3 @@
-#!/usr/bin/python3 -E
 #
 # Copyright (C) 2007    Red Hat
 # see file 'COPYING' for use and warranty information
@@ -89,6 +88,3 @@ class TestValidate(unittest.TestCase):
         self.assertEqual(False, ipavalidate.GoodName("foo%bar"))
         self.assertEqual(False, ipavalidate.GoodName("*foo"))
         self.assertEqual(False, ipavalidate.GoodName("$foo.bar$"))
-
-if __name__ == '__main__':
-    unittest.main()
