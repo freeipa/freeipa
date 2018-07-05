@@ -32,7 +32,7 @@ import six
 from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
 
 from ipalib.install import sysrestore
-from ipaserver.install import adtrust
+from ipaserver.install import adtrust, service
 from ipaserver.install.installutils import (
     read_password,
     check_server_configuration,
@@ -211,6 +211,10 @@ def main():
 
     adtrust.install_check(True, options, api)
     adtrust.install(True, options, fstore, api)
+
+    # Enable configured services and update DNS SRV records
+    service.enable_services(api.env.host)
+    api.Command.dns_update_system_records()
 
     print("""
 =============================================================================

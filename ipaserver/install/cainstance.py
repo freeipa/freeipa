@@ -1258,7 +1258,7 @@ class CAInstance(DogtagInstance):
             config = ['caRenewalMaster']
         else:
             config = []
-        self.ldap_enable('CA', self.fqdn, None, basedn, config)
+        self.ldap_configure('CA', self.fqdn, None, basedn, config)
 
     def setup_lightweight_ca_key_retrieval(self):
         if sysupgrade.get_upgrade_state('dogtag', 'setup_lwca_key_retrieval'):
