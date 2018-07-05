@@ -96,7 +96,9 @@ class IPASystemRecords(object):
         self.servers_data = {}
 
         servers_result = self.api_instance.Command.server_find(
-            no_members=False)['result']
+            no_members=False,
+            servrole=u"IPA master",  # only active, fully installed masters
+        )['result']
         for s in servers_result:
             weight, location, roles = self.__get_server_attrs(s)
             self.servers_data[s['cn'][0]] = {
@@ -348,7 +350,9 @@ class IPASystemRecords(object):
         zone_obj = zone.Zone(self.domain_abs, relativize=False)
         if servers is None:
             servers_result = self.api_instance.Command.server_find(
-                pkey_only=True)['result']
+                pkey_only=True,
+                servrole=u"IPA master",  # only fully installed masters
+            )['result']
             servers = [s['cn'][0] for s in servers_result]
 
         locations_result = self.api_instance.Command.location_find()['result']
