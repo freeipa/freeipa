@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 #
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #

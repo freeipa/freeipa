@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # Copyright (C) 2014  Red Hat
 # see file 'COPYING' for use and warranty information
 #

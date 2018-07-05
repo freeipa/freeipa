@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 # Authors:
 #   Jason Gerard DeRose <jderose@redhat.com>
 #
