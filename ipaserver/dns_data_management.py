@@ -68,11 +68,11 @@ class IPASystemRecords(object):
     PRIORITY_HIGH = 0
     PRIORITY_LOW = 50
 
-    def __init__(self, api_instance):
+    def __init__(self, api_instance, all_servers=False):
         self.api_instance = api_instance
         self.domain_abs = DNSName(self.api_instance.env.domain).make_absolute()
         self.servers_data = {}
-        self.__init_data()
+        self.__init_data(all_servers=all_servers)
 
     def reload_data(self):
         """
@@ -92,14 +92,16 @@ class IPASystemRecords(object):
     def __get_location_suffix(self, location):
         return location + DNSName('_locations') + self.domain_abs
 
-    def __init_data(self):
+    def __init_data(self, all_servers=False):
         self.servers_data = {}
 
-        servers_result = self.api_instance.Command.server_find(
-            no_members=False,
-            servrole=u"IPA master",  # only active, fully installed masters
-        )['result']
-        for s in servers_result:
+        kwargs = dict(no_members=False)
+        if not all_servers:
+            # only active, fully installed masters]
+            kwargs["servrole"] = u"IPA master"
+        servers = self.api_instance.Command.server_find(**kwargs)
+
+        for s in servers['result']:
             weight, location, roles = self.__get_server_attrs(s)
             self.servers_data[s['cn'][0]] = {
                 'weight': weight,
