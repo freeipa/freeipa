@@ -1421,7 +1421,8 @@ def ldappasswd_user_change(user, oldpw, newpw, master):
     master.run_command(args)
 
 
-def ldappasswd_sysaccount_change(user, oldpw, newpw, master, use_dirman=False):
+def ldappasswd_sysaccount_change(user, oldpw, newpw, master,
+                                 use_dirman=False, raiseonerr=True):
     container_sysaccounts = dict(DEFAULT_CONFIG)['container_sysaccounts']
     basedn = master.domain.basedn
 
@@ -1429,16 +1430,25 @@ def ldappasswd_sysaccount_change(user, oldpw, newpw, master, use_dirman=False):
     master_ldap_uri = "ldap://{}".format(master.external_hostname)
 
     if use_dirman:
-        args = [paths.LDAPPASSWD, '-D',
-                str(master.config.dirman_dn),  # pylint: disable=no-member
-                '-w', master.config.dirman_password,
-                '-a', oldpw,
-                '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri,
-                userdn]
+        args = [
+            paths.LDAPPASSWD, '-D',
+            str(master.config.dirman_dn),  # pylint: disable=no-member
+            '-w', master.config.dirman_password,
+            '-a', oldpw,
+            '-s', newpw,
+            '-x', '-ZZ', '-H', master_ldap_uri,
+            userdn
+        ]
     else:
-        args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
-                '-s', newpw, '-x', '-ZZ', '-H', master_ldap_uri]
-    master.run_command(args)
+        args = [
+            paths.LDAPPASSWD,
+            '-D', userdn,
+            '-w', oldpw,
+            '-a', oldpw,
+            '-s', newpw,
+            '-x', '-ZZ', '-H', master_ldap_uri
+        ]
+    return master.run_command(args, raiseonerr=raiseonerr)
 
 
 def add_dns_zone(master, zone, skip_overlap_check=False,
