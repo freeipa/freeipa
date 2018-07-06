@@ -26,10 +26,12 @@ define(['dojo/_base/declare',
         '../navigation',
         '../phases',
         '../reg',
+        '../text',
         '../widget',
         '../widgets/SyncOTPScreen'
        ],
-       function(declare, lang, on, Facet, auth, navigation, phases, reg, widget, SyncOTPScreen) {
+       function(declare, lang, on, Facet, auth, navigation, phases, reg, text,
+           widget, SyncOTPScreen) {
 
     /**
      * Sync OTP Facet plugin
@@ -50,7 +52,7 @@ define(['dojo/_base/declare',
             {
                 $type: 'activity',
                 name: 'activity',
-                text: 'Synchronizing',
+                text: text.get('@i18n:login.synchronizing', 'Synchronizing'),
                 visible: false
             },
             {
