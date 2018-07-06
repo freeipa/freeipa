@@ -71,6 +71,11 @@ define([
         reset_psw_url: '/ipa/session/change_password',
 
         /**
+         * token synchronization url
+         */
+        token_sync_url: '/ipa/session/sync_token',
+
+        /**
          * Ajax options for RPC commands
          */
         ajax_options: {
