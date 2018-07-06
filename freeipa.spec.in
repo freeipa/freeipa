@@ -1071,7 +1071,6 @@ fi
 %{_usr}/share/ipa/ui/sync_otp.html
 %{_usr}/share/ipa/ui/*.ico
 %{_usr}/share/ipa/ui/*.css
-%{_usr}/share/ipa/ui/*.js
 %dir %{_usr}/share/ipa/ui/css
 %{_usr}/share/ipa/ui/css/*.css
 %dir %{_usr}/share/ipa/ui/js
