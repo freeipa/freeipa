@@ -27,6 +27,7 @@ define(['dojo/_base/declare',
         'dojo/on',
         '../ipa',
         '../auth',
+        '../config',
         '../reg',
         '../FieldBinder',
         '../text',
@@ -34,7 +35,8 @@ define(['dojo/_base/declare',
         './LoginScreenBase'
        ],
        function(declare, Deferred, construct, dom_style, query, topic, on,
-                IPA, auth, reg, FieldBinder, text, util, LoginScreenBase) {
+                IPA, auth, config, reg, FieldBinder, text, util,
+                LoginScreenBase) {
 
 
     /**
@@ -156,7 +158,7 @@ define(['dojo/_base/declare',
             };
 
             var request = {
-                url: '/ipa/session/sync_token',
+                url: config.token_sync_url,
                 data: data,
                 contentType: 'application/x-www-form-urlencoded',
                 processData: true,
