@@ -286,8 +286,8 @@ free_and_error:
  * slapi_pblock_destroy(pb)
  */
 static int pwd_get_values(const Slapi_Entry *ent, const char *attrname,
-			  Slapi_ValueSet** results, char** actual_type_name,
-			  int *buffer_flags)
+                          Slapi_ValueSet** results, char** actual_type_name,
+                          int *buffer_flags)
 {
     int flags=0;
     int type_name_disposition = 0;
@@ -443,6 +443,23 @@ int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
     *is_krb = slapi_entry_attr_has_syntax_value(e, SLAPI_ATTR_OBJECTCLASS, sval);
     slapi_value_free(&sval);
 
+    /* If entry has krbPrincipalAux object class but lacks krbPrincipalName and
+     * memberOf attributes consider this not a Kerberos principal object. In
+     * FreeIPA krbPrincipalAux allows to store krbPwdPolicyReference attribute
+     * which is added by a CoS plugin configuration based on a memberOf
+     * attribute value.
+     * Note that slapi_entry_attr_find() returns 0 if attr exists, -1 for absence
+     */
+    if (*is_krb) {
+        Slapi_Attr *attr_prname = NULL;
+        Slapi_Attr *attr_memberof = NULL;
+        int has_prname = slapi_entry_attr_find(e, "krbPrincipalName", &attr_prname);
+        int has_memberOf = slapi_entry_attr_find(e, "memberOf", &attr_memberof);
+        if ((has_prname == -1) && (has_memberOf == 0)) {
+            *is_krb = 0;
+        }
+    }
+
     sval = slapi_value_new_string("sambaSamAccount");
     if (!sval) {
         rc = LDAP_OPERATIONS_ERROR;
@@ -560,7 +577,7 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
                 LOG_TRACE("No password policy, use defaults");
             }
             break;
-	case IPA_CHANGETYPE_ADMIN:
+        case IPA_CHANGETYPE_ADMIN:
             /* The expiration date needs to be older than the current time
              * otherwise the KDC may not immediately register the password
              * as expired. The last password change needs to match the
@@ -636,7 +653,7 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
 }
 
 /* Searches the dn in directory,
- *  If found	 : fills in slapi_entry structure and returns 0
+ *  If found     : fills in slapi_entry structure and returns 0
  *  If NOT found : returns the search result as LDAP_NO_SUCH_OBJECT
  */
 int ipapwd_getEntry(const char *dn, Slapi_Entry **e2, char **attrlist)
@@ -795,22 +812,21 @@ int ipapwd_SetPassword(struct ipapwd_krbcfg *krbcfg,
         slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE,
                                   "krbPrincipalKey", svals);
 
-		/* krbLastPwdChange is used to tell whether a host entry has a
-		 * keytab so don't set it on hosts.
-		 */
+        /* krbLastPwdChange is used to tell whether a host entry has a
+         * keytab so don't set it on hosts. */
         if (!is_host) {
-	    /* change Last Password Change field with the current date */
+            /* change Last Password Change field with the current date */
             ret = ipapwd_setdate(data->target, smods, "krbLastPwdChange",
                                  data->timeNow, false);
             if (ret != LDAP_SUCCESS)
                 goto free_and_return;
 
-	    /* set Password Expiration date */
+            /* set Password Expiration date */
             ret = ipapwd_setdate(data->target, smods, "krbPasswordExpiration",
                                  data->expireTime, (data->expireTime == 0));
             if (ret != LDAP_SUCCESS)
                 goto free_and_return;
-	}
+        }
     }
 
     if (nt && is_smb) {

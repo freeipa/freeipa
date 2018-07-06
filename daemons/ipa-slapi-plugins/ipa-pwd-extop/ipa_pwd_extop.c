@@ -561,16 +561,21 @@ parse_req_done:
 	/* check the policy */
 	ret = ipapwd_CheckPolicy(&pwdata);
 	if (ret) {
-		errMesg = ipapwd_error2string(ret);
 		if (ret == IPAPWD_POLICY_ERROR) {
 			errMesg = "Internal error";
 			rc = ret;
-		} else {
+			goto free_and_return;
+		}
+		/* ipapwd_CheckPolicy happily will try to apply a policy
+		 * even if it doesn't need to be applied for Directory Manager
+		 * or passsync managers, filter that error out */
+		if (pwdata.changetype != IPA_CHANGETYPE_DSMGR) {
+			errMesg = ipapwd_error2string(ret);
 			ret = ipapwd_to_ldap_pwpolicy_error(ret);
 			slapi_pwpolicy_make_response_control(pb, -1, -1, ret);
 			rc = LDAP_CONSTRAINT_VIOLATION;
+			goto free_and_return;
 		}
-		goto free_and_return;
 	}
 
 	/* Now we're ready to set the kerberos key material */

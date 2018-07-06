@@ -366,7 +366,10 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     pwdop->pwdata.target = e;
 
     ret = ipapwd_CheckPolicy(&pwdop->pwdata);
-    if (ret) {
+    /* For accounts created by cn=Directory Manager or a passsync
+     * managers, ignore result of a policy check */
+    if ((pwdop->pwdata.changetype != IPA_CHANGETYPE_DSMGR) &&
+        (ret != 0) ) {
         errMesg = ipapwd_error2string(ret);
         rc = LDAP_CONSTRAINT_VIOLATION;
         goto done;
@@ -846,11 +849,13 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     pwdop->pwdata.target = e;
 
     /* if krb keys are being set by an external agent we assume password
-     * policies have been properly checked already, so we check them only
-     * if no krb keys are available */
+     * policies have been properly checked already. We check them only if no
+     * krb keys are available and raise error if the change is not done by a
+     * cn=Directory Manager or one of passsync managers */
     if (has_krb_keys == 0) {
         ret = ipapwd_CheckPolicy(&pwdop->pwdata);
-        if (ret) {
+        if ((pwdop->pwdata.changetype != IPA_CHANGETYPE_DSMGR) &&
+	    (ret != 0)) {
             errMesg = ipapwd_error2string(ret);
             rc = LDAP_CONSTRAINT_VIOLATION;
             goto done;
