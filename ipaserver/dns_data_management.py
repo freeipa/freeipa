@@ -8,7 +8,7 @@ import logging
 
 import six
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from dns import (
     rdata,
     rdataclass,
@@ -71,7 +71,7 @@ class IPASystemRecords(object):
     def __init__(self, api_instance, all_servers=False):
         self.api_instance = api_instance
         self.domain_abs = DNSName(self.api_instance.env.domain).make_absolute()
-        self.servers_data = {}
+        self.servers_data = OrderedDict()
         self.__init_data(all_servers=all_servers)
 
     def reload_data(self):
@@ -93,7 +93,7 @@ class IPASystemRecords(object):
         return location + DNSName('_locations') + self.domain_abs
 
     def __init_data(self, all_servers=False):
-        self.servers_data = {}
+        self.servers_data.clear()
 
         kwargs = dict(no_members=False)
         if not all_servers:
@@ -328,7 +328,7 @@ class IPASystemRecords(object):
 
         zone_obj = zone.Zone(self.domain_abs, relativize=False)
         if servers is None:
-            servers = self.servers_data.keys()
+            servers = list(self.servers_data)
 
         for server in servers:
             self._add_base_dns_records_for_server(zone_obj, server,
@@ -351,11 +351,7 @@ class IPASystemRecords(object):
         """
         zone_obj = zone.Zone(self.domain_abs, relativize=False)
         if servers is None:
-            servers_result = self.api_instance.Command.server_find(
-                pkey_only=True,
-                servrole=u"IPA master",  # only fully installed masters
-            )['result']
-            servers = [s['cn'][0] for s in servers_result]
+            servers = list(self.servers_data)
 
         locations_result = self.api_instance.Command.location_find()['result']
         locations = [l['idnsname'][0] for l in locations_result]
