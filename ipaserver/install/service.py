@@ -63,7 +63,7 @@ SERVICE_LIST = {
 }
 
 CONFIGURED_SERVICE = u'configuredService'
-ENABLED_SERVICE = 'enabledService'
+ENABLED_SERVICE = u'enabledService'
 
 
 def print_msg(message, output_fd=sys.stdout):
@@ -676,7 +676,7 @@ class Service(object):
 
         entry_dn = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'),
                         ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
-        search_kw = {'ipaConfigString': u'enabledService'}
+        search_kw = {'ipaConfigString': ENABLED_SERVICE}
         filter = api.Backend.ldap2.make_filter(search_kw)
         try:
             entries, _truncated = api.Backend.ldap2.find_entries(
