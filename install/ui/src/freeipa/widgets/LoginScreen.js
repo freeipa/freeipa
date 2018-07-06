@@ -88,7 +88,7 @@ define(['dojo/_base/declare',
         /**
          * View this form is in.
          *
-         * Possible views: ['login', 'reset']
+         * Possible views: ['login', 'reset', 'reset_and_login']
          * @property {string}
          */
         view: 'login',
@@ -164,14 +164,16 @@ define(['dojo/_base/declare',
         },
 
         post_create_fields: function() {
-            var u_f = this.get_field('username');
-            var p_f = this.get_field('password');
-            var otp_f = this.get_field('otp');
+            if (this.view === 'login') {
+                var u_f = this.get_field('username');
+                var p_f = this.get_field('password');
+                var otp_f = this.get_field('otp');
 
-            u_f.on('value-change', this.on_form_change.bind(this));
-            p_f.on('value-change', this.on_form_change.bind(this));
-            otp_f.on('value-change', this.on_otp_change.bind(this));
-            this.on_form_change();
+                u_f.on('value-change', this.on_form_change.bind(this));
+                p_f.on('value-change', this.on_form_change.bind(this));
+                otp_f.on('value-change', this.on_otp_change.bind(this));
+                this.on_form_change();
+            }
         },
 
         on_form_change: function(event) {
@@ -185,7 +187,7 @@ define(['dojo/_base/declare',
         },
 
         on_otp_change: function(event) {
-            if (this.view === 'login') return;
+            if (this.view === 'login' || this.view === 'reset') return;
             if (!event.value[0]) {
                 this.set_visible_buttons(['cancel', 'reset_and_login']);
             } else {
@@ -200,10 +202,12 @@ define(['dojo/_base/declare',
         },
 
         on_confirm: function() {
-            if (this.view == 'login') {
+            if (this.view === 'login') {
                 this.login();
-            } else {
-                this.login_and_reset();
+            } else if (this.view === 'reset_and_login') {
+                this.reset_and_login();
+            } else if (this.view === 'reset') {
+                this.reset();
             }
         },
 
@@ -254,7 +258,7 @@ define(['dojo/_base/declare',
                     this.emit('logged_in');
                     password_f.set_value('');
                 } else if (result === 'password-expired') {
-                    this.set('view', 'reset');
+                    this.set('view', 'reset_and_login');
                     val_summary.add_info('login', this.password_expired);
                 } else if (result === 'krbprincipal-expired') {
                     password_f.set_value('');
@@ -284,12 +288,7 @@ define(['dojo/_base/declare',
             }.bind(this));
         },
 
-        login_and_reset: function() {
-
-            var val_summary = this.get_widget('validation');
-            val_summary.remove('login');
-
-            if (!this.validate()) return;
+        reset_password: function() {
 
             var psw_f = this.get_field('password');
             var psw_f2 = this.get_field('current_password');
@@ -310,7 +309,29 @@ define(['dojo/_base/declare',
             if (result.status === 'ok') {
                 psw_f.set_value('');
                 psw_f2.set_value('');
-                // do not login if otp is used because it will fail (reuse of OTP)
+            } else {
+                otp_f.set_value('');
+                new_f.set_value('');
+                ver_f.set_value('');
+            }
+            return result;
+        },
+
+        reset_and_login: function() {
+
+            if (!this.validate()) return;
+            var val_summary = this.get_widget('validation');
+            val_summary.remove('login');
+            var psw_f = this.get_field('password');
+            var new_f = this.get_field('new_password');
+            var otp_f = this.get_field('otp');
+            var otp = otp_f.get_value()[0];
+
+            var result = this.reset_password();
+            if (result.status === 'ok') {
+                /* do not login if otp is used because it will fail
+                 * (reuse of OTP)
+                */
                 if (!otp) {
                     psw_f.set_value(new_f.get_value());
                     this.login();
@@ -318,12 +339,29 @@ define(['dojo/_base/declare',
                 val_summary.add_success('login', this.password_change_complete);
                 this.set('view', 'login');
             } else {
+                val_summary.add_error('login', result.message);
+            }
+        },
+
+        reset: function() {
+
+            if (!this.validate()) return;
+            var val_summary = this.get_widget('validation');
+            val_summary.remove('login');
+            var otp_f = this.get_field('otp');
+            var new_f = this.get_field('new_password');
+            var ver_f = this.get_field('verify_password');
+
+            var result = this.reset_password();
+            if (result.status === 'ok') {
                 otp_f.set_value('');
                 new_f.set_value('');
                 ver_f.set_value('');
+                val_summary.add_success('login', this.password_change_complete);
+                this.redirect();
+            } else {
                 val_summary.add_error('login', result.message);
             }
-
         },
 
         lookup_credentials: function() {
@@ -363,6 +401,8 @@ define(['dojo/_base/declare',
         refresh: function() {
             if (this.view === 'reset') {
                 this.show_reset_view();
+            } else if (this.view === 'reset_and_login') {
+                    this.show_reset_and_login_view();
             } else {
                 this.show_login_view();
             }
@@ -392,8 +432,23 @@ define(['dojo/_base/declare',
         show_reset_view: function() {
 
             this.set_reset_aside_text();
+            this.set_visible_buttons(['reset']);
+            this.use_fields(['username', 'current_password', 'otp',
+                             'new_password', 'verify_password']);
+
+            var val_summary = this.get_widget('validation');
+            this.fields.get('username').set_required(true);
+            this.fields.get('current_password').set_required(true);
+
+            this.get_widget('username').focus_input();
+        },
+
+        show_reset_and_login_view: function() {
+
+            this.set_reset_aside_text();
             this.set_visible_buttons(['cancel', 'reset_and_login']);
-            this.use_fields(['username_r', 'current_password', 'otp', 'new_password', 'verify_password']);
+            this.use_fields(['username_r', 'current_password', 'otp',
+                             'new_password', 'verify_password']);
 
             var val_summary = this.get_widget('validation');
 
