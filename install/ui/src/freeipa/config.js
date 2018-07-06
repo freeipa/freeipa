@@ -66,9 +66,14 @@ define([
         /**
          * Forms based login url
          */
-        frms_login_url: '/ipa/session/login_password',
+        forms_login_url: '/ipa/session/login_password',
 
         //logout_url: '/ipa/session/json',
+
+        /**
+         * certificate/smartcard authentication url
+         */
+        x509_login_url: '/ipa/session/login_x509',
 
         /**
          * Password reset url
