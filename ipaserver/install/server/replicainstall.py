@@ -1448,15 +1448,12 @@ def install(installer):
         pkcs12_info=pkinit_pkcs12_info,
         promote=promote)
 
-    # we now need to enable ssl on the ds
-    ds.enable_ssl()
-
     if promote:
         # We need to point to the master when certmonger asks for
-        # HTTP certificate.
-        # During http installation, the HTTP/hostname principal is created
-        # locally then the installer waits for the entry to appear on the
-        # master selected for the installation.
+        # a DS or HTTP certificate.
+        # During http installation, the <service>/hostname principal is
+        # created locally then the installer waits for the entry to appear
+        # on the master selected for the installation.
         # In a later step, the installer requests a SSL certificate through
         # Certmonger (and the op adds the principal if it does not exist yet).
         # If xmlrpc_uri points to the soon-to-be replica,
@@ -1469,6 +1466,9 @@ def install(installer):
         # setting xmlrpc_uri
         create_ipa_conf(fstore, config, ca_enabled,
                         master=config.master_host_name)
+
+    # we now need to enable ssl on the ds
+    ds.enable_ssl()
 
     install_http(
         config,
