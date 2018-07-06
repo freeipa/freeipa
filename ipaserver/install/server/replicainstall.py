@@ -1523,8 +1523,6 @@ def install(installer):
     if options.setup_adtrust:
         adtrust.install(False, options, fstore, api)
 
-    ca_servers = service.find_providing_servers('CA', api.Backend.ldap2, api)
-
     if not promote:
         # Call client install script
         service.print_msg("Configuring client side components")
@@ -1555,6 +1553,7 @@ def install(installer):
     # Enable configured services and update DNS SRV records
     service.enable_services(config.host_name)
     api.Command.dns_update_system_records()
+    ca_servers = service.find_providing_servers('CA', api.Backend.ldap2, api)
     api.Backend.ldap2.disconnect()
 
     # Everything installed properly, activate ipa service.
