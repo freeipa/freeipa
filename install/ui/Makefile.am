@@ -15,7 +15,6 @@ app_DATA =				\
 	index.html 			\
 	ie.css				\
 	ipa.css				\
-	reset_password.js		\
 	reset_password.html		\
 	sync_otp.html		\
 	$(NULL)
