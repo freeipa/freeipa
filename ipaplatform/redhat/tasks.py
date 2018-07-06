@@ -392,7 +392,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         statestore.backup_state('network', 'hostname', old_hostname)
 
     def restore_hostname(self, fstore, statestore):
-        old_hostname = statestore.get_state('network', 'hostname')
+        old_hostname = statestore.restore_state('network', 'hostname')
 
         if old_hostname is not None:
             try:
