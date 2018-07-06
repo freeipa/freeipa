@@ -362,6 +362,7 @@ class i18n_messages(Command):
             "password": _("Password"),
             "password_and_otp": _("Password or Password+One-Time-Password"),
             "sync_otp_token": _("Sync OTP Token"),
+            "synchronizing": _("Synchronizing"),
             "username": _("Username"),
         },
         "measurement_units": {
