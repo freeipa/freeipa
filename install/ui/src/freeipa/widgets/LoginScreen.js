@@ -27,6 +27,7 @@ define(['dojo/_base/declare',
         'dojo/topic',
         '../ipa',
         '../auth',
+        '../config',
         '../reg',
         '../FieldBinder',
         '../text',
@@ -34,7 +35,8 @@ define(['dojo/_base/declare',
         './LoginScreenBase'
        ],
        function(declare, Deferred, construct, dom_style, query, on, topic,
-                IPA, auth, reg, FieldBinder, text, util, LoginScreenBase) {
+                IPA, auth, config, reg, FieldBinder, text, util,
+                LoginScreenBase) {
 
 
     /**
@@ -77,8 +79,6 @@ define(['dojo/_base/declare',
         invalid_password: "The password you entered is incorrect. ",
 
         user_locked: "The user account you entered is locked. ",
-
-        x509_url: '/ipa/session/login_x509',
 
         //nodes:
         login_btn_node: null,
@@ -345,7 +345,7 @@ define(['dojo/_base/declare',
             var login = this.get_field('username').get_value()[0];
 
             var request = {
-                url: this.x509_url,
+                url: config.x509_login_url,
                 cache: false,
                 type: "GET",
                 data: $.param({
