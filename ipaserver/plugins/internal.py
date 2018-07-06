@@ -241,7 +241,8 @@ class i18n_messages(Command):
             "remove": _("Delete"),
             "remove_hold": _("Remove hold"),
             "reset": _("Reset"),
-            "reset_password_and_login": _("Reset Password and Login"),
+            "reset_password": _("Reset Password"),
+            "reset_password_and_login": _("Reset Password and Log in"),
             "restore": _("Restore"),
             "retry": _("Retry"),
             "revert": _("Revert"),
@@ -342,11 +343,21 @@ class i18n_messages(Command):
         },
         "login": {
             "authenticating": _("Authenticating"),
+            "cert_auth_failed": _(
+                "Authentication with personal certificate failed"),
+            "cert_msg": _(
+                "<i class=\"fa fa-info-circle\"></i> To log in with "
+                "<strong>certificate</strong>, please make sure you have "
+                "valid personal certificate. "
+            ),
+            "continue_msg": _("Continue to next page"),
             "form_auth": _(
                 "<i class=\"fa fa-info-circle\"></i> To log in with "
                 "<strong>username and password</strong>, enter them in the "
                 "corresponding fields, then click 'Log in'."),
+            "form_auth_failed": _("Login failed due to an unknown reason"),
             "header": _("Logged In As"),
+            "krb_auth_failed": _("Authentication with Kerberos failed"),
             "krb_auth_msg": _(
                 "<i class=\"fa fa-info-circle\"></i> To log in with "
                 "<strong>Kerberos</strong>, please make sure you have valid "
@@ -354,6 +365,8 @@ class i18n_messages(Command):
                 "ipa/config/ssbrowser.html'>configured</a> the browser "
                 "correctly, then click 'Log in'."),
             "loading": _("Loading"),
+            "krbprincipal_expired": _(
+                "Kerberos Principal you entered is expired"),
             "loading_md": _("Loading data"),
             "login": _("Log in"),
             "login_certificate": _("Log In Using Certificate"),
@@ -362,9 +375,11 @@ class i18n_messages(Command):
             "logout_error": _("Log out error"),
             "password": _("Password"),
             "password_and_otp": _("Password or Password+One-Time-Password"),
+            "redirect_msg": _("You will be redirected in ${count}s"),
             "sync_otp_token": _("Sync OTP Token"),
             "synchronizing": _("Synchronizing"),
             "username": _("Username"),
+            "user_locked": _("The user account you entered is locked"),
         },
         "measurement_units": {
             "number_of_passwords": _("number of passwords"),
@@ -930,7 +945,8 @@ class i18n_messages(Command):
             "current_password_required": _("Current password is required"),
             "expires_in": _("Your password expires in ${days} days."),
             "first_otp": _("First OTP"),
-            "invalid_password": _("The password or username you entered is incorrect."),
+            "invalid_password": _(
+                "The password or username you entered is incorrect"),
             "new_password": _("New Password"),
             "new_password_required": _("New password is required"),
             "otp": _("OTP"),
@@ -942,6 +958,8 @@ class i18n_messages(Command):
             "password": _("Password"),
             "password_and_otp": _("Password or Password+One-Time-Password"),
             "password_change_complete": _("Password change complete"),
+            "password_expired": _(
+                "Your password has expired. Please enter a new password."),
             "password_must_match": _("Passwords must match"),
             "reset_failure": _("Password reset was not successful."),
             "reset_password": _("Reset Password"),
