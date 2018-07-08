@@ -378,7 +378,8 @@ class HTTPInstance(service.Service):
                     dns=[self.fqdn],
                     post_command='restart_httpd',
                     storage='FILE',
-                    passwd_fname=key_passwd_file
+                    passwd_fname=key_passwd_file,
+                    resubmit_timeout=api.env.replication_wait_timeout
                 )
             finally:
                 if prev_helper is not None:
