@@ -852,7 +852,8 @@ class DsInstance(service.Service):
                     ca='IPA',
                     profile=dogtag.DEFAULT_PROFILE,
                     dns=[self.fqdn],
-                    post_command=cmd
+                    post_command=cmd,
+                    resubmit_timeout=api.env.replication_wait_timeout
                 )
             finally:
                 if prev_helper is not None:
