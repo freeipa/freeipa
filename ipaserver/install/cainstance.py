@@ -926,7 +926,9 @@ class CAInstance(DogtagInstance):
                 profile='caServerCert',
                 pre_command='renew_ra_cert_pre',
                 post_command='renew_ra_cert',
-                storage="FILE")
+                storage="FILE",
+                resubmit_timeout=api.env.replication_wait_timeout
+            )
             self.__set_ra_cert_perms()
 
             self.requestId = str(reqId)

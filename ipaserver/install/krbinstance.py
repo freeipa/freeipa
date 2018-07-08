@@ -456,7 +456,8 @@ class KrbInstance(service.Service):
                 storage='FILE',
                 profile=KDC_PROFILE,
                 post_command='renew_kdc_cert',
-                perms=(0o644, 0o600)
+                perms=(0o644, 0o600),
+                resubmit_timeout=api.env.replication_wait_timeout
             )
         except dbus.DBusException as e:
             # if the certificate is already tracked, ignore the error
