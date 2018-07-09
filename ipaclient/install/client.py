@@ -824,6 +824,7 @@ def configure_certmonger(
     cmonger = services.knownservices.certmonger
     try:
         cmonger.enable()
+        cmonger.start()
     except Exception as e:
         logger.error(
             "Failed to configure automatic startup of the %s daemon: %s",
@@ -835,19 +836,24 @@ def configure_certmonger(
     subject = str(DN(('CN', hostname), subject_base))
     passwd_fname = os.path.join(paths.IPA_NSSDB_DIR, 'pwdfile.txt')
     try:
-        certmonger.request_cert(
+        certmonger.request_and_wait_for_cert(
             certpath=paths.IPA_NSSDB_DIR,
             storage='NSSDB',
             nickname='Local IPA host',
             subject=subject,
             dns=[hostname],
             principal=principal,
-            passwd_fname=passwd_fname
+            passwd_fname=passwd_fname,
+            resubmit_timeout=120,
         )
-    except Exception as ex:
-        logger.error(
-            "%s request for host certificate failed: %s",
-            cmonger.service_name, ex)
+    except Exception as e:
+        logger.exception("certmonger request failed")
+        raise ScriptError(
+            "{} request for host certificate failed: {}".format(
+                cmonger.service_name, e
+            ),
+            rval=CLIENT_INSTALL_ERROR
+        )
 
 
 def configure_sssd_conf(
