@@ -450,7 +450,10 @@ class HTTPInstance(service.Service):
                     ca='IPA',
                     profile=dogtag.DEFAULT_PROFILE,
                     dns=[self.fqdn],
-                    post_command='restart_httpd')
+                    post_command='restart_httpd',
+                    storage='NSSDB',
+                    resubmit_timeout=api.env.replication_wait_timeout
+                )
             finally:
                 if prev_helper is not None:
                     certmonger.modify_ca_helper('IPA', prev_helper)
