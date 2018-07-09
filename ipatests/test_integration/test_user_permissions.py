@@ -142,10 +142,23 @@ class TestInstallClientNoAdmin(IntegrationTest):
         user_kinit = "%s\n%s\n%s\n" % (password, password, password)
         self.master.run_command(['kinit', username],
                                 stdin_text=user_kinit)
-        tasks.install_client(self.master, client, user=username,
-                             password=password)
+        tasks.install_client(
+            self.master, client,
+            extra_args=['--request-cert'],
+            user=username, password=password
+        )
         msg = "args=['/usr/bin/getent', 'passwd', '%s@%s']" % \
               (username, client.domain.name)
         install_log = client.get_file_contents(paths.IPACLIENT_INSTALL_LOG,
                                                encoding='utf-8')
         assert msg in install_log
+
+        # check that user is able to request a host cert, too
+        result = tasks.run_certutil(client, ['-L'], paths.IPA_NSSDB_DIR)
+        assert 'Local IPA host' in result.stdout_text
+        result = tasks.run_certutil(
+            client,
+            ['-K', '-f', paths.IPA_NSSDB_PWDFILE_TXT],
+            paths.IPA_NSSDB_DIR
+        )
+        assert 'Local IPA host' in result.stdout_text
