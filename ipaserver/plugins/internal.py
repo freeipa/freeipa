@@ -349,7 +349,7 @@ class i18n_messages(Command):
                 "<i class=\"fa fa-info-circle\"></i> To log in with "
                 "<strong>Kerberos</strong>, please make sure you have valid "
                 "tickets (obtainable via kinit) and <a href='http://${host}/"
-                "ipa/config/unauthorized.html'>configured</a> the browser "
+                "ipa/config/ssbrowser.html'>configured</a> the browser "
                 "correctly, then click 'Log in'."),
             "loading_md": _("Loading data"),
             "login": _("Log in"),
