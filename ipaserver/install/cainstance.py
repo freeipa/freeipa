@@ -389,8 +389,13 @@ class CAInstance(DogtagInstance):
             self.step("set up CRL publishing", self.__enable_crl_publish)
             self.step("enable PKIX certificate path discovery and validation", self.enable_pkix)
             if promote:
-                self.step("destroying installation admin user", self.teardown_admin)
-            self.step("starting certificate server instance", self.start_instance)
+                self.step("destroying installation admin user",
+                          self.teardown_admin)
+            self.step("starting certificate server instance",
+                      self.start_instance)
+            if promote:
+                self.step("Finalize replication settings",
+                          self.finalize_replica_config)
         # Step 1 of external is getting a CSR so we don't need to do these
         # steps until we get a cert back from the external CA.
         if self.external != 1:
@@ -858,7 +863,9 @@ class CAInstance(DogtagInstance):
                 profile='caServerCert',
                 pre_command='renew_ra_cert_pre',
                 post_command='renew_ra_cert',
-                storage="FILE")
+                storage="FILE",
+                resubmit_timeout=api.env.replication_wait_timeout
+            )
             self.__set_ra_cert_perms()
 
             self.requestId = str(reqId)
@@ -1197,12 +1204,15 @@ class CAInstance(DogtagInstance):
         api.Backend.ldap2.add_entry(entry)
 
     def __setup_replication(self):
-
         repl = replication.CAReplicationManager(self.realm, self.fqdn)
         repl.setup_cs_replication(self.master_host)
 
         # Activate Topology for o=ipaca segments
         self.__update_topology()
+
+    def finalize_replica_config(self):
+        repl = replication.CAReplicationManager(self.realm, self.fqdn)
+        repl.finalize_replica_config(self.master_host)
 
     def __enable_instance(self):
         basedn = ipautil.realm_to_suffix(self.realm)
