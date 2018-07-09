@@ -418,6 +418,20 @@ class DsInstance(service.Service):
 
         self.start_creation(runtime=30)
 
+    def _get_replication_manager(self):
+        # Always connect to self over ldapi
+        ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=self.realm)
+        conn = ipaldap.LDAPClient(ldap_uri)
+        conn.external_bind()
+        repl = replication.ReplicationManager(
+            self.realm, self.fqdn, self.dm_password, conn=conn
+        )
+        if self.dm_password is not None and not self.promote:
+            bind_dn = DN(('cn', 'Directory Manager'))
+            bind_pw = self.dm_password
+        else:
+            bind_dn = bind_pw = None
+        return repl, bind_dn, bind_pw
 
     def __setup_replica(self):
         """
@@ -434,25 +448,23 @@ class DsInstance(service.Service):
             self.realm,
             self.dm_password)
 
-        # Always connect to self over ldapi
-        ldap_uri = ipaldap.get_ldap_uri(protocol='ldapi', realm=self.realm)
-        conn = ipaldap.LDAPClient(ldap_uri)
-        conn.external_bind()
-        repl = replication.ReplicationManager(self.realm,
-                                              self.fqdn,
-                                              self.dm_password, conn=conn)
-
-        if self.dm_password is not None and not self.promote:
-            bind_dn = DN(('cn', 'Directory Manager'))
-            bind_pw = self.dm_password
-        else:
-            bind_dn = bind_pw = None
-
-        repl.setup_promote_replication(self.master_fqdn,
-                                       r_binddn=bind_dn,
-                                       r_bindpw=bind_pw,
-                                       cacert=self.ca_file)
+        repl, bind_dn, bind_pw = self._get_replication_manager()
+        repl.setup_promote_replication(
+            self.master_fqdn,
+            r_binddn=bind_dn,
+            r_bindpw=bind_pw,
+            cacert=self.ca_file
+        )
         self.run_init_memberof = repl.needs_memberof_fixup()
+
+    def finalize_replica_config(self):
+        repl, bind_dn, bind_pw = self._get_replication_manager()
+        repl.finalize_replica_config(
+            self.master_fqdn,
+            r_binddn=bind_dn,
+            r_bindpw=bind_pw,
+            cacert=self.ca_file
+        )
 
     def __configure_sasl_mappings(self):
         # we need to remove any existing SASL mappings in the directory as otherwise they
