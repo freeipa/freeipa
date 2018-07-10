@@ -23,6 +23,7 @@
 import logging
 import random
 
+import pytest
 import pytest_multihost.config
 
 from ipapython.dn import DN
@@ -98,6 +99,18 @@ class Config(pytest_multihost.config.Config):
     def to_env(self, **kwargs):
         from ipatests.pytest_plugins.integration.env_config import config_to_env
         return config_to_env(self, **kwargs)
+
+    def filter(self, descriptions):
+        """Destructively filters hosts and orders domains to fit description
+
+        By default make_multihost_fixture() skips a test case, when filter()
+        returns a FilterError. Let's turn FilterError into a fatal error
+        instead.
+        """
+        try:
+            super(Config, self).filter(descriptions)
+        except pytest_multihost.config.FilterError as e:
+            pytest.fail(str(e))
 
 
 class Domain(pytest_multihost.config.Domain):
