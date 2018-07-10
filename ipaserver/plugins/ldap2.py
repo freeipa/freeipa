@@ -419,7 +419,8 @@ class ldap2(CrudBackend, LDAPClient):
                 modlist = [(a, b, self.encode(c))
                            for a, b, c in modlist]
                 self.conn.modify_s(str(group_dn), modlist)
-        except errors.DatabaseError:
+        except errors.DuplicateEntry:
+            # TYPE_OR_VALUE_EXISTS
             raise errors.AlreadyGroupMember()
 
     def remove_entry_from_group(self, dn, group_dn, member_attr='member'):

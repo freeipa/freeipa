@@ -1029,7 +1029,12 @@ class LDAPClient(object):
         except ldap.NO_SUCH_OBJECT:
             raise errors.NotFound(reason=arg_desc or 'no such entry')
         except ldap.ALREADY_EXISTS:
+            # entry already exists
             raise errors.DuplicateEntry()
+        except ldap.TYPE_OR_VALUE_EXISTS:
+            # attribute type or attribute value already exists, usually only
+            # occurs, when two machines try to write at the same time.
+            raise errors.DuplicateEntry(message=desc)
         except ldap.CONSTRAINT_VIOLATION:
             # This error gets thrown by the uniqueness plugin
             _msg = 'Another entry with the same attribute value already exists'
