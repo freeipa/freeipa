@@ -72,6 +72,7 @@ def _domain_name_validator(ugettext, value):
         validate_domain_name(value, allow_slash=False)
     except ValueError as e:
         return unicode(e)
+    return None
 
 
 @register()

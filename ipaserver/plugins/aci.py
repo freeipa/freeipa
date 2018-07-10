@@ -412,6 +412,7 @@ def validate_permissions(ugettext, perm):
     perm = perm.strip().lower()
     if perm not in _valid_permissions_values:
         return '"%s" is not a valid permission' % perm
+    return None
 
 
 def _normalize_permissions(perm):

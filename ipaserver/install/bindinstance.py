@@ -141,6 +141,7 @@ def named_conf_get_directive(name, section=NAMED_SECTION_IPA, str_val=True):
 
                 if match and name == match.group('name'):
                     return match.group('value')
+    return None
 
 
 def named_conf_set_directive(name, value, section=NAMED_SECTION_IPA,

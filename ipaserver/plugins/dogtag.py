@@ -1284,7 +1284,7 @@ class RestClient(Backend):
     def __enter__(self):
         """Log into the REST API"""
         if self.cookie is not None:
-            return
+            return None
 
         # Refresh the ca_host property
         object.__setattr__(self, '_ca_host', None)
