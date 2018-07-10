@@ -152,7 +152,6 @@ class ADTrustInstallTestBase(IntegrationTest):
 # Master X Replicas installation tests
 ##
 
-@pytest.mark.xfail(reason="FreeIPA ticket 7008", strict=True)
 class TestInstallWithCA1(InstallTestBase1):
 
     @classmethod
@@ -164,24 +163,26 @@ class TestInstallWithCA1(InstallTestBase1):
     def test_replica1_ipa_kra_install(self):
         super(TestInstallWithCA1, self).test_replica1_ipa_kra_install()
 
+    @pytest.mark.xfail(reason="FreeIPA ticket 7008", strict=True)
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica2_with_ca_kra_install(self):
         super(TestInstallWithCA1, self).test_replica2_with_ca_kra_install()
 
+    @pytest.mark.xfail(reason="FreeIPA ticket 7008", strict=True)
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica2_ipa_dns_install(self):
         super(TestInstallWithCA1, self).test_replica2_ipa_dns_install()
 
 
-@pytest.mark.xfail(reason="FreeIPA ticket 7008", strict=True)
 class TestInstallWithCA2(InstallTestBase2):
 
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=False)
 
+    @pytest.mark.xfail(reason="FreeIPA ticket 7008", strict=True)
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica0_with_ca_kra_dns_install(self):
@@ -215,7 +216,7 @@ class TestInstallWithCA_KRA2(InstallTestBase2):
         tasks.install_master(cls.master, setup_dns=False, setup_kra=True)
 
 
-@pytest.mark.xfail(reason="FreeIPA ticket 7008", strict=True)
+
 class TestInstallWithCA_DNS1(InstallTestBase1):
 
     @classmethod
@@ -227,24 +228,26 @@ class TestInstallWithCA_DNS1(InstallTestBase1):
     def test_replica1_ipa_kra_install(self):
         super(TestInstallWithCA_DNS1, self).test_replica1_ipa_kra_install()
 
+    @pytest.mark.xfail(reason="FreeIPA ticket 7008", strict=True)
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica2_with_ca_kra_install(self):
         super(TestInstallWithCA_DNS1, self).test_replica2_with_ca_kra_install()
 
+    @pytest.mark.xfail(reason="FreeIPA ticket 7008", strict=True)
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica2_ipa_dns_install(self):
         super(TestInstallWithCA_DNS1, self).test_replica2_ipa_dns_install()
 
 
-@pytest.mark.xfail(reason="FreeIPA ticket 7008", strict=True)
 class TestInstallWithCA_DNS2(InstallTestBase2):
 
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True)
 
+    @pytest.mark.xfail(reason="FreeIPA ticket 7008", strict=True)
     @pytest.mark.skipif(config.domain_level == DOMAIN_LEVEL_0,
                         reason='does not work on DOMAIN_LEVEL_0 by design')
     def test_replica0_with_ca_kra_dns_install(self):
