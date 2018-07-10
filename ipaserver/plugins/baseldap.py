@@ -319,6 +319,7 @@ def validate_externalhost(ugettext, hostname):
         validate_hostname(hostname, check_fqdn=False, allow_underscore=True)
     except ValueError as e:
         return unicode(e)
+    return None
 
 
 external_host_param = Str('externalhost*', validate_externalhost,

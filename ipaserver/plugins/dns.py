@@ -401,7 +401,7 @@ def _validate_ipnet(ugettext, ipnet):
 
 def _validate_bind_aci(ugettext, bind_acis):
     if not bind_acis:
-        return
+        return None
 
     bind_acis = bind_acis.split(';')
     if bind_acis[-1]:
@@ -422,10 +422,11 @@ def _validate_bind_aci(ugettext, bind_acis):
             return unicode(e)
         except UnboundLocalError:
             return _(u"invalid address format")
+    return None
 
 def _normalize_bind_aci(bind_acis):
     if not bind_acis:
-        return
+        return None
     bind_acis = bind_acis.split(';')
     normalized = []
     for bind_aci in bind_acis:
@@ -729,7 +730,7 @@ class DNSRecord(Str):
         vals = tuple(kw.get(part_name) for part_name in part_names)
 
         if all(val is None for val in vals):
-             return
+            return None
 
         if raise_on_none:
             for val_id,val in enumerate(vals):
@@ -789,17 +790,17 @@ class DNSRecord(Str):
 
     def _rule_validatedns(self, _, value):
         if not self.validatedns:
-            return
+            return None
 
         if value is None:
-            return
+            return None
 
         if not self.supported:
             return _('DNS RR type "%s" is not supported by bind-dyndb-ldap plugin') \
                      % self.rrtype
 
         if self.parts is None:
-            return
+            return None
 
         # validate record format
         values = self._get_part_values(value)
@@ -1282,6 +1283,8 @@ def _validate_naptr_flags(ugettext, flags):
     for flag in flags:
         if flag not in allowed_flags:
             return _('flags must be one of "S", "A", "U", or "P"')
+    return None
+
 
 class NAPTRRecord(DNSRecord):
     rrtype = 'NAPTR'
@@ -1370,6 +1373,7 @@ def _sig_time_validator(ugettext, value):
         time.strptime(value, time_format)
     except ValueError:
         return _('the value does not follow "YYYYMMDDHHMMSS" time format')
+    return None
 
 
 class SIGRecord(UnsupportedDNSRecord):
@@ -1460,7 +1464,7 @@ def _normalize_uri_target(uri_target):
     # RFC 7553 section 4.4: The Target MUST NOT be an empty URI ("").
     # minlength in param will detect this
     if not uri_target:
-        return
+        return None
     return u'"{0}"'.format(uri_target)
 
 

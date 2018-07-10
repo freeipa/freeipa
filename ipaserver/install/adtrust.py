@@ -262,7 +262,7 @@ def retrieve_potential_adtrust_agents(api):
     except (errors.DatabaseError, errors.NetworkError) as e:
         logger.error(
             "Could not retrieve a list of existing IPA masters: %s", e)
-        return
+        return None
 
     try:
         # search for existing AD trust agents
@@ -270,7 +270,7 @@ def retrieve_potential_adtrust_agents(api):
             servrole=u'AD trust agent', all=True)['result']
     except (errors.DatabaseError, errors.NetworkError) as e:
         logger.error("Could not retrieve a list of adtrust agents: %s", e)
-        return
+        return None
 
     dl_enabled_master_cns = {m['cn'][0] for m in dl_enabled_masters}
     adtrust_agents_cns = {m['cn'][0] for m in adtrust_agents}

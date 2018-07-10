@@ -319,7 +319,7 @@ class Service(object):
     def principal(self):
         if any(attr is None for attr in (self.realm, self.fqdn,
                                          self.service_prefix)):
-            return
+            return None
 
         return unicode(
             kerberos.Principal(

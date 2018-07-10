@@ -63,7 +63,7 @@ def get_pkinit_request_ca():
         {'cert-file': paths.KDC_CERT})
 
     if pkinit_request_id is None:
-        return
+        return None
 
     return certmonger.get_request_value(pkinit_request_id, 'ca-name')
 
