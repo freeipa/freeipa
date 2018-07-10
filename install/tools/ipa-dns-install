@@ -35,7 +35,6 @@ from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import standard_logging_setup
 
 from ipaserver.install import dns as dns_installer
-from ipaserver.install import service
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -142,9 +141,7 @@ def main():
 
     dns_installer.install_check(True, api, False, options, hostname=api.env.host)
     dns_installer.install(True, False, options)
-    # Enable configured services and update DNS SRV records
-    service.enable_services(api.env.host)
-    api.Command.dns_update_system_records()
+    # Services are enabled in dns_installer.install()
 
     # execute ipactl to refresh services status
     ipautil.run([paths.IPACTL, 'start', '--ignore-service-failures'],
