@@ -110,7 +110,7 @@ def safe_output(attr, values):
             return 'XXXXXXXX'
 
     if values is None:
-        return
+        return None
 
     is_list = type(values) in (tuple, list)
 

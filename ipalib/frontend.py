@@ -1160,7 +1160,7 @@ class Command(HasParam):
         cls.register_callback('interactive_prompt', callback, first)
 
     def interactive_prompt_callback(self, kw):
-        return
+        pass
 
 
 class LocalOrRemote(Command):

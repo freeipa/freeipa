@@ -2005,7 +2005,6 @@ class AccessTime(Str):
             raise ValidationError(
                 name=self.get_param_name(), error=ugettext('incomplete time value')
             )
-        return None
 
 
 class DNParam(Param):

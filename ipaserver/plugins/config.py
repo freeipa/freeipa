@@ -92,10 +92,10 @@ def validate_search_records_limit(ugettext, value):
     Values 0 and -1 are valid, as they represent unlimited.
     """
     if value in {-1, 0}:
-        return
+        return None
     if value < 10:
         return _('must be at least 10')
-
+    return None
 
 @register()
 class config(LDAPObject):

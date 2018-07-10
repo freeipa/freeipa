@@ -126,6 +126,8 @@ class CACertManage(admintool.AdminTool):
                 return self.renew()
             elif command == 'install':
                 return self.install()
+            else:
+                raise NotImplementedError
         finally:
             api.Backend.ldap2.disconnect()
 

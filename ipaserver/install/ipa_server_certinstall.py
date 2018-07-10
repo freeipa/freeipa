@@ -246,6 +246,7 @@ class ServerCertInstall(admintool.AdminTool):
                     return req_id
         except RuntimeError as e:
             raise admintool.ScriptError(str(e))
+        return None
 
     def check_chain(self, pkcs12_filename, pkcs12_pin, nssdb):
         # create a temp nssdb

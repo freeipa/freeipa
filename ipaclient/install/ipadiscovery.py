@@ -549,6 +549,7 @@ class IPADiscovery(object):
                     continue
                 if realm:
                     return realm
+        return None
 
     def ipadnssearchkrbkdc(self, domain=None):
         kdc = None

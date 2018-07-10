@@ -140,8 +140,6 @@ class PlatformService(object):
         with open(paths.SVC_LIST_FILE, 'w') as f:
             json.dump(svc_list, f)
 
-        return
-
     def stop(self, instance_name="", capture_output=True,
              update_service_list=True):
         """
@@ -163,14 +161,12 @@ class PlatformService(object):
         with open(paths.SVC_LIST_FILE, 'w') as f:
             json.dump(svc_list, f)
 
-        return
-
     def reload_or_restart(self, instance_name="", capture_output=True,
                           wait=True):
-        return
+        pass
 
     def restart(self, instance_name="", capture_output=True, wait=True):
-        return
+        pass
 
     def is_running(self, instance_name="", wait=True):
         return False
@@ -185,22 +181,22 @@ class PlatformService(object):
         return False
 
     def enable(self, instance_name=""):
-        return
+        pass
 
     def disable(self, instance_name=""):
-        return
+        pass
 
     def mask(self, instance_name=""):
-        return
+        pass
 
     def unmask(self, instance_name=""):
-        return
+        pass
 
     def install(self, instance_name=""):
-        return
+        pass
 
     def remove(self, instance_name=""):
-        return
+        pass
 
 
 class SystemdService(PlatformService):

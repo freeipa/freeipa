@@ -196,7 +196,7 @@ def read_input(environ):
     try:
         length = int(environ.get('CONTENT_LENGTH'))
     except (ValueError, TypeError):
-        return
+        return None
     return environ['wsgi.input'].read(length).decode('utf-8')
 
 
@@ -613,13 +613,13 @@ class KerberosSession(HTTP_Status):
         ccache_name = environ.get('KRB5CCNAME')
         if ccache_name is None:
             logger.debug('no ccache, need login')
-            return
+            return None
 
         # ... make sure we have a name ...
         principal = environ.get('GSS_NAME')
         if principal is None:
             logger.debug('no Principal Name, need login')
-            return
+            return None
 
         # ... and use it to resolve the ccache name (Issue: 6972 )
         gss_name = gssapi.Name(principal, gssapi.NameType.kerberos_principal)
@@ -630,7 +630,7 @@ class KerberosSession(HTTP_Status):
         if not creds:
             logger.debug(
                 'ccache expired or invalid, deleting session, need login')
-            return
+            return None
 
         return ccache_name
 

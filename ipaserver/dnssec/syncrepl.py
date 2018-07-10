@@ -42,6 +42,7 @@ class SyncReplConsumer(ReconnectLDAPObject, SyncreplConsumer):
             return cookie
         else:
             logger.debug('Current cookie is: None (not received yet)')
+            return None
 
     def syncrepl_set_cookie(self, cookie):
         logger.debug('New cookie is: %s', cookie)

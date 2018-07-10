@@ -114,3 +114,5 @@ class CustodiaClient(object):
             self.keystore.set('keys/%s' % keyname, value)
         else:
             return value
+
+        return None

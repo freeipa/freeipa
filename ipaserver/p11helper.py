@@ -929,6 +929,7 @@ class P11_Helper(object):
             if self.token_label == char_array_to_unicode(
                     token_info_ptr[0].label, 32).rstrip():
                 return slot
+        return None
 
     def finalize(self):
         """
