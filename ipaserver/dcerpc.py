@@ -749,6 +749,7 @@ class DomainValidator(object):
                         logger.warning('%s', msg)
 
                 return entries
+        return None
 
     def __retrieve_trusted_domain_gc_list(self, domain):
         """
@@ -1051,7 +1052,7 @@ class TrustDomainInstance(object):
         Only top level name and top level name exclusions are handled here.
         """
         if not another_domain.ftinfo_records:
-            return
+            return None
 
         ftinfo_records = []
         info = lsa.ForestTrustInformation()

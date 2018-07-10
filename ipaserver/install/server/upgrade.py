@@ -1201,6 +1201,7 @@ def find_subject_base():
 
     logger.error('Unable to determine certificate subject base. '
                  'certmap.conf will not be updated.')
+    return None
 
 
 def uninstall_selfsign(ds, http):

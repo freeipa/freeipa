@@ -140,8 +140,6 @@ def validate_selinuxuser_inlist(ldap, user):
             reason=_('SELinux user %(user)s not found in '
                      'ordering list (in config)') % dict(user=user))
 
-    return
-
 
 @register()
 class selinuxusermap(LDAPObject):

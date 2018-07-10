@@ -118,8 +118,7 @@ def is_all(options, attribute):
             value = options[attribute].lower()
         if value == 'all':
             return True
-    else:
-        return False
+    return False
 
 
 @register()
