@@ -172,6 +172,7 @@ def find_substring(data, value):
     for d in data:
         if d.startswith(value):
             return get_value(d)
+    return None
 
 
 def get_defList(data):
