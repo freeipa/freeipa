@@ -44,6 +44,7 @@ from ipaserver.install import bindinstance
 from ipaserver.install import dnskeysyncinstance
 from ipaserver.install import odsexporterinstance
 from ipaserver.install import opendnssecinstance
+from ipaserver.install import service
 
 if six.PY3:
     unicode = str
@@ -355,6 +356,10 @@ def install(standalone, replica, options, api=api):
 
     dnskeysyncd.start_dnskeysyncd()
     bind.start_named()
+
+    # Enable configured services for standalone check_global_configuration()
+    if standalone:
+        service.enable_services(api.env.host)
 
     # this must be done when bind is started and operational
     bind.update_system_records()
