@@ -53,6 +53,11 @@ AC_CHECK_HEADER([krb5/certauth_plugin.h],
                 [have_certauth_plugin=yes],
                 [have_certauth_plugin=no])
 
+dnl -- Check if we can build the kdcpolicy plugin
+AC_CHECK_HEADER([krb5/kdcpolicy_plugin.h],
+                [have_kdcpolicy_plugin=yes],
+                [have_kdcpolicy_plugin=no])
+
 dnl ---------------------------------------------------------------------------
 dnl - Check for KRB5 krad
 dnl ---------------------------------------------------------------------------

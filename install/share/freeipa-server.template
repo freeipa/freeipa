@@ -3,3 +3,7 @@
         module = ipakdb:kdb/ipadb.so
         enable_only = ipakdb
     }
+    kdcpolicy = {
+        module = ipakdb:kdb/ipadb.so
+        enable_only = ipakdb
+    }
