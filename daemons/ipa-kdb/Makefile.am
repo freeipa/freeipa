@@ -46,6 +46,10 @@ if BUILD_IPA_CERTAUTH_PLUGIN
 ipadb_la_SOURCES += ipa_kdb_certauth.c
 endif
 
+if BUILD_IPA_KDCPOLICY_PLUGIN
+ipadb_la_SOURCES += ipa_kdb_kdcpolicy.c
+endif
+
 ipadb_la_LDFLAGS = 		\
 	-avoid-version 		\
 	-module			\
@@ -83,6 +87,10 @@ ipa_kdb_tests_SOURCES =        \
 
 if BUILD_IPA_CERTAUTH_PLUGIN
 ipa_kdb_tests_SOURCES += ipa_kdb_certauth.c
+endif
+
+if BUILD_IPA_KDCPOLICY_PLUGIN
+ipa_kdb_tests_SOURCES += ipa_kdb_kdcpolicy.c
 endif
 
 ipa_kdb_tests_CFLAGS = $(CMOCKA_CFLAGS)
