@@ -113,10 +113,10 @@ class ACI(object):
             if token == "(":
                 var = next(lexer).strip()
                 operator = next(lexer)
-                if operator != "=" and operator != "!=":
+                if operator not in ("=", "!="):
                     # Peek at the next char before giving up
                     operator = operator + next(lexer)
-                    if operator != "=" and operator != "!=":
+                    if operator not in ("=", "!="):
                         raise SyntaxError("No operator in target, got '%s'" % operator)
                 op = operator
                 val = next(lexer).strip()

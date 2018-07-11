@@ -90,7 +90,7 @@ class BINDMgr(object):
 
         Change is only recorded to memory.
         self.sync() has to be called to synchronize change to BIND."""
-        assert op == 'add' or op == 'del' or op == 'mod'
+        assert op in ('add', 'del', 'mod')
         zone = self.dn2zone_name(attrs['dn'])
         self.modified_zones.add(zone)
         zone_keys = self.ldap_keys.setdefault(zone, {})
