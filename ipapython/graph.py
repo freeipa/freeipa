@@ -55,7 +55,7 @@ class Graph(object):
 
         # delete edges
         self.edges = [
-            e for e in self.edges if e[0] != vertex and e[1] != vertex
+            e for e in self.edges if vertex not in (e[0], e[1])
         ]
 
     def get_tails(self, head):

@@ -1692,7 +1692,7 @@ class cert_find(Search, CertMethod):
                     self.obj._fill_owners(obj)
 
         result = list(six.itervalues(result))
-        if sizelimit > 0 and len(result) > sizelimit:
+        if (len(result) > sizelimit > 0):
             if not truncated:
                 self.add_message(messages.SearchResultTruncated(
                         reason=errors.SizeLimitExceeded()))

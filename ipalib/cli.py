@@ -676,7 +676,7 @@ class textui(backend.Backend):
                 return -1
             try:
                 selection = int(resp) - 1
-                if (selection >= 0 and selection < counter):
+                if (counter > selection >= 0):
                     break
             except Exception:
                 # fall through to the error msg

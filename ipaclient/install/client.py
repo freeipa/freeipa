@@ -2081,7 +2081,7 @@ def install_check(options):
             rval=CLIENT_INSTALL_ERROR
         )
 
-    if (hostname == 'localhost') or (hostname == 'localhost.localdomain'):
+    if hostname in ('localhost', 'localhost.localdomain'):
         raise ScriptError(
             "Invalid hostname, '{}' must not be used.".format(hostname),
             rval=CLIENT_INSTALL_ERROR)

@@ -209,7 +209,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
         address = a[4][0]
         if address in verified:
             continue
-        if address == '127.0.0.1' or address == '::1':
+        if address in ('127.0.0.1', '::1'):
             raise HostForwardLookupError("The IPA Server hostname must not resolve to localhost (%s). A routable IP address must be used. Check /etc/hosts to see if %s is an alias for %s" % (address, host_name, address))
         try:
             logger.debug('Check reverse address of %s', address)

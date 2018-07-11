@@ -339,9 +339,9 @@ def parse_and_set_boolean_xml(node, response, response_name):
     - off
     '''
     value = node.text.strip().lower()
-    if value == 'true' or value == 'yes':
+    if value in ('true', 'yes'):
         value = True
-    elif value == 'false' or value == 'no':
+    elif value in ('false', 'no'):
         value = False
     else:
         raise ValueError('expected true|false|yes|no|on|off for "%s", but got "%s"' % \
