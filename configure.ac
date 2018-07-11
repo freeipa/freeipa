@@ -231,6 +231,9 @@ AM_COND_IF([BUILD_IPA_CERTAUTH_PLUGIN], [
                [AC_MSG_WARN([Cannot build IPA KDB certauth plugin])])
 ])
 
+AM_CONDITIONAL([BUILD_IPA_KDCPOLICY_PLUGIN],
+               [test x$have_kdcpolicy_plugin = xyes])
+
 dnl ---------------------------------------------------------------------------
 dnl - Check for program paths
 dnl ---------------------------------------------------------------------------
