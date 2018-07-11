@@ -29,26 +29,7 @@ define([
 
 var old;
 
-QUnit.module('utils',{
-
-    beforeEach: function() {
-        old = IPA.messages;
-        IPA.messages = {
-            widget: {
-                validation: {
-                    integer: "",
-                    decimal: "",
-                    min_value: "",
-                    max_value: "",
-                    pattern_errmsg: ""
-                }
-            }
-        };
-    },
-    afterEach: function() {
-        IPA.messages = old;
-    }
-});
+QUnit.module('utils');
 
 QUnit.test('Testing metadata validator', function(assert) {
 
