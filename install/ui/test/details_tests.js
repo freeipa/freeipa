@@ -27,9 +27,10 @@ define([
     'freeipa/field',
     'freeipa/reg',
     'freeipa/rpc',
+    'freeipa/text',
     'freeipa/entity',
     'freeipa/widget'],
-        function(md, IPA, $, mod_details, mod_facet, mod_field, reg, rpc) {
+        function(md, IPA, $, mod_details, mod_facet, mod_field, reg, rpc, text) {
     return function() {
 
 var details_container;
@@ -187,7 +188,7 @@ QUnit.test("Testing details lifecycle: create, load.", function(assert){
                 sections: [
                     {
                         name: 'identity',
-                        label: IPA.messages.details.identity,
+                        label: text.get('@i18n:details.identity', 'Identity Settings'),
                         fields: [ 'title', 'givenname', 'sn', 'cn', 'displayname', 'initials' ]
                     },
                     {
