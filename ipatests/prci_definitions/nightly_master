@@ -229,7 +229,8 @@ jobs:
         test_suite: test_integration/test_caless.py::TestClientInstall
         template: *ci-master-f28
         timeout: 5400
-        topology: *master_1repl
+        # actually master_1client
+        topology: *master_1repl_1client
 
   fedora-28/test_caless_TestIPACommands:
     requires: [fedora-28/build]
@@ -409,7 +410,7 @@ jobs:
         test_suite: test_integration/test_replica_promotion.py::TestKRAInstall
         template: *ci-master-f28
         timeout: 7200
-        topology: *master_1repl
+        topology: *master_2repl_1client
 
   fedora-28/test_replica_promotion_TestCAInstall:
     requires: [fedora-28/build]
@@ -421,7 +422,7 @@ jobs:
         test_suite: test_integration/test_replica_promotion.py::TestCAInstall
         template: *ci-master-f28
         timeout: 7200
-        topology: *master_1repl
+        topology: *master_2repl_1client
 
   fedora-28/test_replica_promotion_TestReplicaPromotionLevel1:
     requires: [fedora-28/build]
@@ -445,7 +446,7 @@ jobs:
         test_suite: test_integration/test_replica_promotion.py::TestReplicaManageCommands
         template: *ci-master-f28
         timeout: 7200
-        topology: *master_1repl
+        topology: *master_2repl_1client
 
   fedora-28/test_replica_promotion_TestUnprivilegedUserPermissions:
     requires: [fedora-28/build]
@@ -469,7 +470,7 @@ jobs:
         test_suite: test_integration/test_replica_promotion.py::TestProhibitReplicaUninstallation
         template: *ci-master-f28
         timeout: 7200
-        topology: *master_1repl
+        topology: *master_2repl_1client
 
   fedora-28/test_replica_promotion_TestOldReplicaWorksAfterDomainUpgrade:
     requires: [fedora-28/build]
