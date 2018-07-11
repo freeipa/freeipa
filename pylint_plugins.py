@@ -364,6 +364,11 @@ class IPAChecker(BaseChecker):
 
     def _get_forbidden_import_rule(self, node):
         path = node.path
+        if path and isinstance(path, list):
+            # In pylint 2.0, path is a list with one element. Namespace
+            # packages may contain more than one element, but we can safely
+            # ignore them, as they don't contain code.
+            path = path[0]
         if path:
             path = os.path.abspath(path)
             while path.startswith(self._dir):
