@@ -22,6 +22,7 @@ Functionality for Command Line Interface.
 """
 from __future__ import print_function
 
+import atexit
 import importlib
 import logging
 import textwrap
@@ -29,11 +30,19 @@ import sys
 import getpass
 import code
 import optparse  # pylint: disable=deprecated-module
+import os
+import pprint
 import fcntl
 import termios
 import struct
 import base64
 import traceback
+try:
+    import readline
+    import rlcompleter
+except ImportError:
+    readline = rlcompleter = None
+
 
 import six
 from six.moves import input
@@ -44,6 +53,9 @@ from ipalib.util import (
 
 if six.PY3:
     unicode = str
+    import builtins  # pylint: disable=import-error
+else:
+    import __builtin__ as builtins  # pylint: disable=import-error
 
 if six.PY2:
     reload(sys)  # pylint: disable=reload-builtin, undefined-variable
@@ -949,8 +961,35 @@ class console(frontend.Command):
 
     topic = None
 
+    def _setup_tab_completion(self, local):
+        readline.parse_and_bind("tab: complete")
+        # completer with custom locals
+        readline.set_completer(rlcompleter.Completer(local).complete)
+        # load history
+        history = os.path.join(api.env.dot_ipa, "console.history")
+        try:
+            readline.read_history_file(history)
+        except OSError:
+            pass
+
+        def save_history():
+            directory = os.path.dirname(history)
+            if not os.path.isdir(directory):
+                os.makedirs(directory)
+            readline.set_history_length(50)
+            try:
+                readline.write_history_file(history)
+            except OSError:
+                logger.exception("Unable to store history %s", history)
+
+        atexit.register(save_history)
+
     def run(self, filename=None, **options):
-        local = dict(api=self.api)
+        local = dict(
+            api=self.api,
+            pp=pprint.pprint,  # just too convenient
+            __builtins__=builtins,
+        )
         if filename:
             try:
                 script = open(filename)
@@ -963,8 +1002,14 @@ class console(frontend.Command):
                 traceback.print_exc()
                 sys.exit(1)
         else:
+            if readline is not None:
+                self._setup_tab_completion(local)
             code.interact(
-                '(Custom IPA interactive Python console)',
+                "\n".join((
+                    "(Custom IPA interactive Python console)",
+                    "    api: IPA API object",
+                    "    pp: pretty printer",
+                )),
                 local=local
             )
 
