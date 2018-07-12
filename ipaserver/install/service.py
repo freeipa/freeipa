@@ -38,33 +38,14 @@ from ipapython import kerberos
 from ipalib import api, errors
 from ipaplatform import services
 from ipaplatform.paths import paths
+from ipaserver.masters import (
+    CONFIGURED_SERVICE, ENABLED_SERVICE, SERVICE_LIST
+)
 
 logger = logging.getLogger(__name__)
 
 if six.PY3:
     unicode = str
-
-# The service name as stored in cn=masters,cn=ipa,cn=etc. In the tuple
-# the first value is the *nix service name, the second the start order.
-SERVICE_LIST = {
-    'KDC': ('krb5kdc', 10),
-    'KPASSWD': ('kadmin', 20),
-    'DNS': ('named', 30),
-    'HTTP': ('httpd', 40),
-    'KEYS': ('ipa-custodia', 41),
-    'NTP': ('ntpd', 45),
-    'CA': ('pki-tomcatd', 50),
-    'KRA': ('pki-tomcatd', 51),
-    'ADTRUST': ('smb', 60),
-    'EXTID': ('winbind', 70),
-    'OTPD': ('ipa-otpd', 80),
-    'DNSKeyExporter': ('ipa-ods-exporter', 90),
-    'DNSSEC': ('ods-enforcerd', 100),
-    'DNSKeySync': ('ipa-dnskeysyncd', 110),
-}
-
-CONFIGURED_SERVICE = u'configuredService'
-ENABLED_SERVICE = u'enabledService'
 
 
 def print_msg(message, output_fd=sys.stdout):
@@ -116,44 +97,6 @@ def add_principals_to_group(admin_conn, group, member_attr, principals):
         # If there are no changes just pass
         pass
 
-
-def find_providing_servers(svcname, conn, api):
-    """
-    Find servers that provide the given service.
-
-    :param svcname: The service to find
-    :param conn: a connection to the LDAP server
-    :return: list of host names (possibly empty)
-
-    """
-    dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
-    query_filter = conn.make_filter({'objectClass': 'ipaConfigObject',
-                                     'ipaConfigString': ENABLED_SERVICE,
-                                     'cn': svcname}, rules='&')
-    try:
-        entries, _trunc = conn.find_entries(filter=query_filter, base_dn=dn)
-    except errors.NotFound:
-        return []
-    else:
-        return [entry.dn[1].value for entry in entries]
-
-
-def find_providing_server(svcname, conn, host_name=None, api=api):
-    """
-    Find a server that provides the given service.
-
-    :param svcname: The service to find
-    :param conn: a connection to the LDAP server
-    :param host_name: the preferred server
-    :return: the selected host name
-
-    """
-    servers = find_providing_servers(svcname, conn, api)
-    if len(servers) == 0:
-        return None
-    if host_name in servers:
-        return host_name
-    return servers[0]
 
 
 def case_insensitive_attr_has_value(attr, value):
@@ -618,7 +561,7 @@ class Service(object):
 
     def _ldap_enable(self, value, name, fqdn, ldap_suffix, config):
         extra_config_opts = [
-            ' '.join([u'startOrder', unicode(SERVICE_LIST[name][1])])
+            u'startOrder {}'.format(SERVICE_LIST[name].startorder),
         ]
         extra_config_opts.extend(config)
 

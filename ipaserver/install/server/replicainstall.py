@@ -46,6 +46,7 @@ from ipaserver.install.installutils import (
     validate_mask)
 from ipaserver.install.replication import (
     ReplicationManager, replica_conn_check)
+from ipaserver.masters import find_providing_servers, find_providing_server
 import SSSDConfig
 from subprocess import CalledProcessError
 
@@ -1262,9 +1263,10 @@ def promote_check(installer):
         if subject_base is not None:
             config.subject_base = DN(subject_base)
 
-        # Find if any server has a CA
-        ca_host = service.find_providing_server(
-                'CA', conn, config.ca_host_name)
+        # Find any server with a CA
+        ca_host = find_providing_server(
+            'CA', conn, [config.ca_host_name]
+        )
         if ca_host is not None:
             config.ca_host_name = ca_host
             ca_enabled = True
@@ -1285,14 +1287,16 @@ def promote_check(installer):
                              "custom certificates.")
                 raise ScriptError(rval=3)
 
-        kra_host = service.find_providing_server(
-                'KRA', conn, config.kra_host_name)
+        # Find any server with a KRA
+        kra_host = find_providing_server(
+            'KRA', conn, [config.kra_host_name]
+        )
         if kra_host is not None:
             config.kra_host_name = kra_host
             kra_enabled = True
         else:
             if options.setup_kra:
-                logger.error("There is no KRA server in the domain, "
+                logger.error("There is no active KRA server in the domain, "
                              "can't setup a KRA clone")
                 raise ScriptError(rval=3)
             kra_enabled = False
@@ -1582,7 +1586,7 @@ def install(installer):
     # Enable configured services and update DNS SRV records
     service.enable_services(config.host_name)
     api.Command.dns_update_system_records()
-    ca_servers = service.find_providing_servers('CA', api.Backend.ldap2, api)
+    ca_servers = find_providing_servers('CA', api.Backend.ldap2, api=api)
     api.Backend.ldap2.disconnect()
 
     # Everything installed properly, activate ipa service.
