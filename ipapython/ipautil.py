@@ -513,6 +513,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
             os.umask(umask)
 
     try:
+        # pylint: disable=subprocess-popen-preexec-fn
         p = subprocess.Popen(args, stdin=p_in, stdout=p_out, stderr=p_err,
                              close_fds=True, env=env, cwd=cwd,
                              preexec_fn=preexec_fn)

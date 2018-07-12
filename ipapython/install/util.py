@@ -83,11 +83,11 @@ def run_generator_with_yield_from(gen):
 
 class InnerClassMeta(type):
     # pylint: disable=no-value-for-parameter
-    def __new__(mcs, name, bases, class_dict):
+    def __new__(cls, name, bases, class_dict):
         class_dict.pop('__outer_class__', None)
         class_dict.pop('__outer_name__', None)
 
-        return super(InnerClassMeta, mcs).__new__(mcs, name, bases, class_dict)
+        return super(InnerClassMeta, cls).__new__(cls, name, bases, class_dict)
 
     def __get__(cls, obj, obj_type):
         outer_class, outer_name = cls.__bind(obj_type)

@@ -1990,10 +1990,12 @@ class ExternalCAProfile(object):
             _oid = univ.ObjectIdentifier(parts[0])
 
             # It is; construct a V2 template
+            # pylint: disable=too-many-function-args
             return MSCSTemplateV2.__new__(MSCSTemplateV2, s)
 
         except pyasn1.error.PyAsn1Error:
             # It is not an OID; treat as a template name
+            # pylint: disable=too-many-function-args
             return MSCSTemplateV1.__new__(MSCSTemplateV1, s)
 
     def __getstate__(self):
