@@ -998,6 +998,23 @@ class i18n_messages(Command):
             "trust": _("Trusts"),
         },
         "true": _("True"),
+        "unauthorized-page": _(
+            "<h1>Unable to verify your Kerberos credentials</h1>\n"
+            "<p>\n"
+            "            Please make sure that you have valid Kerberos "
+            "tickets (obtainable via <strong>kinit</strong>), and that you"
+            " have configured your browser correctly.\n"
+            "</p>\n"
+            "\n"
+            "<h2>Browser configuration</h2>\n"
+            "\n"
+            "<div id=\"first-time\">\n"
+            "<p>\n"
+            "                If this is your first time, please <a href="
+            "\"ssbrowser.html\">configure your browser</a>.\n"
+            "</p>\n"
+            "</div>\n"
+        ),
         "widget": {
             "api_browser": _("API Browser"),
             "first": _("First"),
