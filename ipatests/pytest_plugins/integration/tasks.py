@@ -1313,6 +1313,20 @@ def run_certutil(host, args, reqdir, dbtype=None,
                             stdin_text=stdin)
 
 
+def upload_temp_contents(host, contents, encoding='utf-8'):
+    """Upload contents to a temporary file
+
+    :param host: Remote host instance
+    :param contents: file content (str, bytes)
+    :param encoding: file encoding
+    :return: Temporary file name
+    """
+    result = host.run_command(['mktemp'])
+    tmpname = result.stdout_text.strip()
+    host.put_file_contents(tmpname, contents, encoding=encoding)
+    return tmpname
+
+
 def assert_error(result, stderr_text, returncode=None):
     "Assert that `result` command failed and its stderr contains `stderr_text`"
     assert stderr_text in result.stderr_text, result.stderr_text
