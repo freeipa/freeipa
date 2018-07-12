@@ -18,6 +18,11 @@ extension-pkg-whitelist=
     gssapi,
     netifaces
 
+[CLASSES]
+
+# List of valid names for the first argument in a metaclass class method.
+# This can be removed after upgrading to pylint 2.0
+valid-metaclass-classmethod-first-arg=cls
 
 [MESSAGES CONTROL]
 
@@ -93,7 +98,9 @@ disable=
     redefined-argument-from-local,  # new in pylint 1.7
     consider-merging-isinstance,  # new in pylint 1.7
     bad-option-value,  # required to support upgrade to pylint 2.0
-
+    assignment-from-no-return,  # new in pylint 2.0
+    keyword-arg-before-vararg,  # pylint 2.0, remove after dropping Python 2
+    useless-object-inheritance, # pylint 2.0, remove after dropping Python 2
 
 [REPORTS]
 
