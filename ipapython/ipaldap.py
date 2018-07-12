@@ -208,11 +208,10 @@ class SchemaCache(object):
             info = e.args[0].get('info', '').strip()
             raise errors.DatabaseError(desc = u'uri=%s' % url,
                                 info = u'Unable to retrieve LDAP schema: %s: %s' % (desc, info))
-        except IndexError:
-            # no 'cn=schema' entry in LDAP? some servers use 'cn=subschema'
-            # TODO: DS uses 'cn=schema', support for other server?
-            #       raise a more appropriate exception
-            raise
+
+        # no 'cn=schema' entry in LDAP? some servers use 'cn=subschema'
+        # TODO: DS uses 'cn=schema', support for other server?
+        #       raise a more appropriate exception
 
         return ldap.schema.SubSchema(schema_entry[1])
 
