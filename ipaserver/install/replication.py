@@ -34,7 +34,7 @@ import ldap
 from ipalib import api, errors
 from ipalib.cli import textui
 from ipalib.text import _
-from ipapython import ipautil, ipaldap, kerberos
+from ipapython import ipautil, ipaldap
 from ipapython.admintool import ScriptError
 from ipapython.dn import DN
 from ipapython.ipaldap import ldap_initialize
@@ -461,7 +461,7 @@ class ReplicationManager(object):
         return DN(('cn', 'replica'), ('cn', self.db_suffix),
                   ('cn', 'mapping tree'), ('cn', 'config'))
 
-    def set_replica_binddngroup(self, r_conn, entry):
+    def _set_replica_binddngroup(self, r_conn, entry):
         """
         Set nsds5replicabinddngroup attribute on remote master's replica entry.
         Older masters (ipa < 3.3) may not support setting this attribute. In
@@ -476,11 +476,6 @@ class ReplicationManager(object):
             mod.append((ldap.MOD_ADD, 'nsds5replicabinddngroup',
                         self.repl_man_group_dn))
 
-        if 'nsds5replicabinddngroupcheckinterval' not in entry:
-            mod.append(
-                (ldap.MOD_ADD,
-                 'nsds5replicabinddngroupcheckinterval',
-                 '60'))
         if mod:
             try:
                 r_conn.modify_s(entry.dn, mod)
@@ -488,49 +483,62 @@ class ReplicationManager(object):
                 logger.debug(
                     "nsds5replicabinddngroup attribute not supported on "
                     "remote master.")
+            except (ldap.ALREADY_EXISTS, ldap.CONSTRAINT_VIOLATION):
+                logger.debug("No update to %s necessary", entry.dn)
 
     def replica_config(self, conn, replica_id, replica_binddn):
         assert isinstance(replica_binddn, DN)
         dn = self.replica_dn()
         assert isinstance(dn, DN)
 
+        logger.debug("Add or update replica config %s", dn)
         try:
             entry = conn.get_entry(dn)
         except errors.NotFound:
-            pass
-        else:
-            binddns = entry.setdefault('nsDS5ReplicaBindDN', [])
-            if replica_binddn not in {DN(m) for m in binddns}:
-                # Add the new replication manager
-                binddns.append(replica_binddn)
-            for key, value in REPLICA_CREATION_SETTINGS.items():
-                entry[key] = value
+            # no entry, create new one
+            entry = conn.make_entry(
+                dn,
+                objectclass=["top", "nsds5replica", "extensibleobject"],
+                cn=["replica"],
+                nsds5replicaroot=[str(self.db_suffix)],
+                nsds5replicaid=[str(replica_id)],
+                nsds5replicatype=[self.get_replica_type()],
+                nsds5flags=["1"],
+                nsds5replicabinddn=[replica_binddn],
+                nsds5replicabinddngroup=[self.repl_man_group_dn],
+                nsds5replicalegacyconsumer=["off"],
+                **REPLICA_CREATION_SETTINGS
+            )
             try:
-                conn.update_entry(entry)
-            except errors.EmptyModlist:
-                pass
+                conn.add_entry(entry)
+            except errors.DuplicateEntry:
+                logger.debug("Lost race against another replica, updating")
+                # fetch entry that have been added by another replica
+                entry = conn.get_entry(dn)
+            else:
+                logger.debug("Added replica config %s", dn)
+                # added entry successfully
+                return entry
 
-            self.set_replica_binddngroup(conn, entry)
+        # either existing entry or lost race
+        binddns = entry.setdefault('nsDS5ReplicaBindDN', [])
+        if replica_binddn not in {DN(m) for m in binddns}:
+            # Add the new replication manager
+            binddns.append(replica_binddn)
 
-            # replication is already configured
-            return
+        for key, value in REPLICA_CREATION_SETTINGS.items():
+            entry[key] = value
 
-        replica_type = self.get_replica_type()
+        try:
+            conn.update_entry(entry)
+        except errors.EmptyModlist:
+            logger.debug("No update to %s necessary", entry.dn)
+        else:
+            logger.debug("Update replica config %s", entry.dn)
 
-        entry = conn.make_entry(
-            dn,
-            objectclass=["top", "nsds5replica", "extensibleobject"],
-            cn=["replica"],
-            nsds5replicaroot=[str(self.db_suffix)],
-            nsds5replicaid=[str(replica_id)],
-            nsds5replicatype=[replica_type],
-            nsds5flags=["1"],
-            nsds5replicabinddn=[replica_binddn],
-            nsds5replicabinddngroup=[self.repl_man_group_dn],
-            nsds5replicalegacyconsumer=["off"],
-            **REPLICA_CREATION_SETTINGS
-        )
-        conn.add_entry(entry)
+        self._set_replica_binddngroup(conn, entry)
+
+        return entry
 
     def setup_changelog(self, conn):
         ent = conn.get_entry(
@@ -690,7 +698,10 @@ class ReplicationManager(object):
                 uid=["passsync"],
                 userPassword=[password],
             )
-            conn.add_entry(entry)
+            try:
+                conn.add_entry(entry)
+            except errors.DuplicateEntry:
+                pass
 
         # Add the user to the list of users allowed to bypass password policy
         extop_dn = DN(('cn', 'ipa_pwd_extop'), ('cn', 'plugins'), ('cn', 'config'))
@@ -1658,7 +1669,10 @@ class ReplicationManager(object):
             objectclass=['top', 'groupofnames'],
             cn=['replication managers']
         )
-        conn.add_entry(entry)
+        try:
+            conn.add_entry(entry)
+        except errors.DuplicateEntry:
+            pass
 
     def ensure_replication_managers(self, conn, r_hostname):
         """
@@ -1668,23 +1682,24 @@ class ReplicationManager(object):
         On FreeIPA 3.x masters lacking support for nsds5ReplicaBinddnGroup
         attribute, add replica bind DN directly into the replica entry.
         """
-        my_princ = kerberos.Principal((u'ldap', unicode(self.hostname)),
-                                      realm=self.realm)
-        remote_princ = kerberos.Principal((u'ldap', unicode(r_hostname)),
-                                          realm=self.realm)
-        services_dn = DN(api.env.container_service, api.env.basedn)
-
-        mydn, remote_dn = tuple(
-            DN(('krbprincipalname', unicode(p)), services_dn) for p in (
-                my_princ, remote_princ))
+        my_dn = DN(
+            ('krbprincipalname', u'ldap/%s@%s' % (self.hostname, self.realm)),
+            api.env.container_service,
+            api.env.basedn
+        )
+        remote_dn = DN(
+            ('krbprincipalname', u'ldap/%s@%s' % (r_hostname, self.realm)),
+            api.env.container_service,
+            api.env.basedn
+        )
 
         try:
             conn.get_entry(self.repl_man_group_dn)
         except errors.NotFound:
-            self._add_replica_bind_dn(conn, mydn)
+            self._add_replica_bind_dn(conn, my_dn)
             self._add_replication_managers(conn)
 
-        self._add_dn_to_replication_managers(conn, mydn)
+        self._add_dn_to_replication_managers(conn, my_dn)
         self._add_dn_to_replication_managers(conn, remote_dn)
 
     def add_temp_sasl_mapping(self, conn, r_hostname):
@@ -1704,7 +1719,10 @@ class ReplicationManager(object):
 
         entry = conn.get_entry(self.replica_dn())
         entry['nsDS5ReplicaBindDN'].append(replica_binddn)
-        conn.update_entry(entry)
+        try:
+            conn.update_entry(entry)
+        except errors.EmptyModlist:
+            pass
 
         entry = conn.make_entry(
             DN(('cn', 'Peer Master'), ('cn', 'mapping'), ('cn', 'sasl'),
@@ -1716,7 +1734,10 @@ class ReplicationManager(object):
             nsSaslMapFilterTemplate=['(cn=&@%s)' % self.realm],
             nsSaslMapPriority=['1'],
         )
-        conn.add_entry(entry)
+        try:
+            conn.add_entry(entry)
+        except errors.DuplicateEntry:
+            pass
 
     def remove_temp_replication_user(self, conn, r_hostname):
         """
