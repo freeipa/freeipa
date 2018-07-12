@@ -992,12 +992,18 @@ class console(frontend.Command):
         )
         if filename:
             try:
-                script = open(filename)
+                with open(filename) as f:
+                    source = f.read()
             except IOError as e:
                 sys.exit("%s: %s" % (e.filename, e.strerror))
             try:
-                with script:
-                    exec(script, globals(), local)
+                compiled = compile(
+                    source,
+                    filename,
+                    'exec',
+                    flags=print_function.compiler_flag
+                )
+                exec(compiled, globals(), local)
             except Exception:
                 traceback.print_exc()
                 sys.exit(1)
