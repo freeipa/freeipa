@@ -1,7 +1,7 @@
-From c0962cfb520d25c367689243b71e43af1dcc0601 Mon Sep 17 00:00:00 2001
+From be32e8039fca859a8fc9202c50dcd8663023dd53 Mon Sep 17 00:00:00 2001
 From: Petr Vobornik <pvoborni@redhat.com>
 Date: Thu, 8 Nov 2012 13:22:30 +0100
-Subject: [PATCH] Make dojo builder buildable by itself
+Subject: [PATCH 1/2] Make dojo builder buildable by itself
 
 Dojo builder is now buildable by itself. It just needed a packackage information,
 profile and separating of internal definition of commanLineArgs module to separate
@@ -22,7 +22,7 @@ get rid of this dependency.
  create mode 100644 build/package.json
 
 diff --git a/build/argv.js b/build/argv.js
-index 18bda74b0eb80e37d9c83cb23a10f29f8ffe91d9..997576687eb74cbb6a6a293b3a855a6d15142368 100644
+index c6589afb..98d95bf8 100644
 --- a/build/argv.js
 +++ b/build/argv.js
 @@ -5,7 +5,7 @@ define([
@@ -36,7 +36,7 @@ index 18bda74b0eb80e37d9c83cb23a10f29f8ffe91d9..997576687eb74cbb6a6a293b3a855a6d
  	"./messages",
 diff --git a/build/build.profile.js b/build/build.profile.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..507728c283c5703106fe029c0fd282cb864c994d
+index 00000000..507728c2
 --- /dev/null
 +++ b/build/build.profile.js
 @@ -0,0 +1,32 @@
@@ -75,7 +75,7 @@ index 0000000000000000000000000000000000000000..507728c283c5703106fe029c0fd282cb
 \ No newline at end of file
 diff --git a/build/commandLineArgs.js b/build/commandLineArgs.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..41df62e31a05ef2c00e1eb609c0fabe8641e2d03
+index 00000000..41df62e3
 --- /dev/null
 +++ b/build/commandLineArgs.js
 @@ -0,0 +1,7 @@
@@ -88,7 +88,7 @@ index 0000000000000000000000000000000000000000..41df62e31a05ef2c00e1eb609c0fabe8
 +});
 \ No newline at end of file
 diff --git a/build/main.js b/build/main.js
-index eeb329c91c0eb4df94178cdfc445e5235409401a..89ad7a9d639257ec99ca86be59abdb74d54939a3 100644
+index 131ed644..c0eb36e9 100644
 --- a/build/main.js
 +++ b/build/main.js
 @@ -33,16 +33,14 @@
@@ -105,7 +105,7 @@ index eeb329c91c0eb4df94178cdfc445e5235409401a..89ad7a9d639257ec99ca86be59abdb74
 -			return process.argv.slice(2);
 -		});
 +        //arg[0] is node; argv[1] is dojo.js; therefore, start with argv[2]
-+        commandLineArgs.push(process.argv.slice(2));
++        commandLineArgs.push.apply(commandLineArgs, process.argv.slice(2));
  
 -		// helps during dev or heavily async node...
 +		// helps during dev or heavily async node
@@ -137,13 +137,13 @@ index eeb329c91c0eb4df94178cdfc445e5235409401a..89ad7a9d639257ec99ca86be59abdb74
  	}else{
 diff --git a/build/package.json b/build/package.json
 new file mode 100644
-index 0000000000000000000000000000000000000000..568101cb1a182d3415c73d02e151359e1ce3e27d
+index 00000000..576030f2
 --- /dev/null
 +++ b/build/package.json
 @@ -0,0 +1,23 @@
 +{
 +	"name": "build",
-+	"version":"1.8.1",
++	"version":"1.13.0",
 +	"directories": {
 +		"lib": "."
 +	},
@@ -165,5 +165,5 @@ index 0000000000000000000000000000000000000000..568101cb1a182d3415c73d02e151359e
 +	"dojoBuild": "build.profile.js"
 +}
 -- 
-1.7.11.7
+2.14.3
 

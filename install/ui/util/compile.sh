@@ -105,5 +105,7 @@ if [[ ! $OUTPUT_FILE ]] ; then
     OUTPUT_FILE=$RDIR/$RELEASE/$LAYER.js
 fi
 
-# compile using uglify.js
-$DIR/uglifyjs/uglify $RDIR/$RELEASE/$LAYER.js $OUTPUT_FILE
+# compile using uglifyjs
+echo "Minimizing: $RDIR/$RELEASE/$LAYER.js"
+echo "Target file: $OUTPUT_FILE"
+uglifyjs $RDIR/$RELEASE/$LAYER.js > $OUTPUT_FILE

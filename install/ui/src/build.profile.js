@@ -17,9 +17,9 @@ var profile = (function(){
         selectorEngine: "lite",
 
         staticHasFeatures: {
-            "host-rhino":1,
+            "host-rhino":0,
             "host-browser":0,
-            "host-node":0,
+            "host-node":1,
             "dom":0,
             "dojo-has-api":1,
             "dojo-xhr-factory":0,
