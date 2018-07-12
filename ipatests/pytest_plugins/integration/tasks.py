@@ -1282,7 +1282,7 @@ def run_certutil(host, args, reqdir, dbtype=None,
                             stdin_text=stdin)
 
 
-def upload_temp_contents(host, contents, encoding='utf-8'):
+def upload_temp_contents(host, contents):
     """Upload contents to a temporary file
 
     :param host: Remote host instance
@@ -1292,7 +1292,7 @@ def upload_temp_contents(host, contents, encoding='utf-8'):
     """
     result = host.run_command(['mktemp'])
     tmpname = result.stdout_text.strip()
-    host.put_file_contents(tmpname, contents, encoding=encoding)
+    host.put_file_contents(tmpname, contents)
     return tmpname
 
 
