@@ -164,3 +164,19 @@ class TestIPACommand(IntegrationTest):
         assert result.returncode == 0
         assert "SELinux user map order: {}".format(
             maporder) in result.stdout_text
+
+    def test_ipa_console(self):
+        result = self.master.run_command(
+            ["ipa", "console"],
+            stdin_text="api.env"
+        )
+        assert "ipalib.config.Env" in result.stdout_text
+
+        filename = tasks.upload_temp_contents(
+            self.master,
+            "print(api.env)\n"
+        )
+        result = self.master.run_command(
+            ["ipa", "console", filename],
+        )
+        assert "ipalib.config.Env" in result.stdout_text
