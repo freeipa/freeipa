@@ -1299,10 +1299,9 @@ class permission_find(baseldap.LDAPSearch):
                 self.obj.upgrade_permission(entry, output_only=True)
 
         if not truncated:
-            if 'sizelimit' in options:
-                max_entries = options['sizelimit']
-            else:
-                max_entries = self.api.Backend.ldap2.size_limit
+            max_entries = options.get(
+                'sizelimit', self.api.Backend.ldap2.size_limit
+            )
 
             if max_entries > 0:
                 # should we get more entries than current sizelimit, fail
