@@ -226,7 +226,7 @@ class krbtpolicy_reset(baseldap.LDAPQuery):
         else:
             def_values = _default_values
 
-        entry = ldap.get_entry(dn, def_values.keys())
+        entry = ldap.get_entry(dn, list(def_values))
         entry.update(def_values)
         try:
             ldap.update_entry(entry)

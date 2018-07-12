@@ -1073,7 +1073,9 @@ last, after all sets and adds."""),
                 entry_attrs[attr] = value
             else:
                 # unknown attribute: remove duplicite and invalid values
-                entry_attrs[attr] = list(set([val for val in entry_attrs[attr] if val]))
+                entry_attrs[attr] = list(
+                    {val for val in entry_attrs[attr] if val}
+                )
                 if not entry_attrs[attr]:
                     entry_attrs[attr] = None
                 elif isinstance(entry_attrs[attr], (tuple, list)) and len(entry_attrs[attr]) == 1:
@@ -2343,7 +2345,9 @@ class BaseLDAPModAttribute(LDAPQuery):
         return arg.clone(required=True, attribute=attribute, alwaysask=True)
 
     def _update_attrs(self, update, entry_attrs):
-        raise NotImplementedError("%s.update_attrs()", self.__class__.__name__)
+        raise NotImplementedError(
+            "%s.update_attrs()" % self.__class__.__name__
+        )
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend

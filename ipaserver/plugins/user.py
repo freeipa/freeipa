@@ -832,8 +832,9 @@ class user_find(baseuser_find):
                 DN(self.obj.active_container_dn, self.api.env.basedn),
                 DN(self.obj.delete_container_dn, self.api.env.basedn),
             )
-            entries[:] = [e for e in entries
-                          if any(e.dn.endswith(bd) for bd in base_dns)]
+            entries[:] = list(
+                e for e in entries if any(e.dn.endswith(bd) for bd in base_dns)
+            )
 
         self.post_common_callback(ldap, entries, lockout=False, **options)
         for entry in entries:

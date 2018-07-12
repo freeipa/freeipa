@@ -467,16 +467,11 @@ p11_kit_uri_free = _libp11_kit.p11_kit_uri_free
 def loadLibrary(module):
     """Load the PKCS#11 library"""
     # Load PKCS #11 library
-    try:
-        if module:
-            # pylint: disable=no-member
-            pDynLib = _ffi.dlopen(module, _ffi.RTLD_NOW | _ffi.RTLD_LOCAL)
-        else:
-            raise Exception()
-
-    except Exception:
-        # Failed to load the PKCS #11 library
-        raise
+    if module:
+        # pylint: disable=no-member
+        pDynLib = _ffi.dlopen(module, _ffi.RTLD_NOW | _ffi.RTLD_LOCAL)
+    else:
+        raise Exception()
 
     # Retrieve the entry point for C_GetFunctionList
     pGetFunctionList = pDynLib.C_GetFunctionList
