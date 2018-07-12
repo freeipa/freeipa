@@ -92,6 +92,7 @@ disable=
     useless-super-delegation,  # new in pylint 1.7
     redefined-argument-from-local,  # new in pylint 1.7
     consider-merging-isinstance,  # new in pylint 1.7
+    bad-option-value,  # required to support upgrade to pylint 2.0
 
 
 [REPORTS]
