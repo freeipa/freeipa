@@ -79,7 +79,7 @@ import six
 
 from ipalib import _, errors
 from ipapython.dn import DN
-
+from ipaserver.masters import ENABLED_SERVICE
 
 if six.PY3:
     unicode = str
@@ -485,11 +485,8 @@ class ServiceBasedRole(BaseServerRole):
         :param entry: LDAPEntry of the service
         :returns: True if the service entry is enabled, False otherwise
         """
-        enabled_value = 'enabledservice'
-        ipaconfigstring_values = set(
-            e.lower() for e in entry.get('ipaConfigString', []))
-
-        return enabled_value in ipaconfigstring_values
+        ipaconfigstring_values = set(entry.get('ipaConfigString', []))
+        return ENABLED_SERVICE in ipaconfigstring_values
 
     def _get_services_by_masters(self, entries):
         """

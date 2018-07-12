@@ -51,6 +51,7 @@ from ipalib import output
 from ipapython import kerberos
 from ipapython.dn import DN
 from ipaserver.plugins.service import normalize_principal, validate_realm
+from ipaserver.masters import ENABLED_SERVICE, CONFIGURED_SERVICE
 
 try:
     import pyhbac
@@ -293,19 +294,14 @@ def caacl_check(principal, ca, profile_id):
 def ca_kdc_check(api_instance, hostname):
     master_dn = api_instance.Object.server.get_dn(unicode(hostname))
     kdc_dn = DN(('cn', 'KDC'), master_dn)
-
+    wanted = {ENABLED_SERVICE, CONFIGURED_SERVICE}
     try:
         kdc_entry = api_instance.Backend.ldap2.get_entry(
             kdc_dn, ['ipaConfigString'])
-
-        ipaconfigstring = {val.lower() for val in kdc_entry['ipaConfigString']}
-
-        if 'enabledservice' not in ipaconfigstring \
-                and 'configuredservice' not in ipaconfigstring:
+        if not wanted.intersection(kdc_entry['ipaConfigString']):
             raise errors.NotFound(
                 reason=_("enabledService/configuredService not in "
                          "ipaConfigString kdc entry"))
-
     except errors.NotFound:
         raise errors.ACIError(
             info=_("Host '%(hostname)s' is not an active KDC")
