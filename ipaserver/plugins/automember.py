@@ -451,10 +451,7 @@ class automember_remove_condition(LDAPUpdate):
 
         # Define container key
         type_attr_default = {'group': 'manager', 'hostgroup': 'fqdn'}
-        if 'key' in options:
-            key = options['key']
-        else:
-            key = type_attr_default[options['type']]
+        key = options.get('key', type_attr_default[options['type']])
 
         key = '%s=' % key
         completed = 0
