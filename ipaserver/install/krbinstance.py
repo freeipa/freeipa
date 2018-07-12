@@ -43,6 +43,7 @@ from ipapython.dogtag import KDC_PROFILE
 
 from ipaserver.install import replication
 from ipaserver.install import ldapupdate
+from ipaserver.masters import find_providing_servers
 
 from ipaserver.install import certs
 from ipaplatform.constants import constants
@@ -428,7 +429,7 @@ class KrbInstance(service.Service):
             prev_helper = None
             # on the first CA-ful master without '--no-pkinit', we issue the
             # certificate by contacting Dogtag directly
-            ca_instances = service.find_providing_servers(
+            ca_instances = find_providing_servers(
                 'CA', conn=self.api.Backend.ldap2, api=self.api)
 
             use_dogtag_submit = all(
