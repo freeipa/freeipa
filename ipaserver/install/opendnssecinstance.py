@@ -15,6 +15,7 @@ from subprocess import CalledProcessError
 from ipalib.install import sysrestore
 from ipaserver.install import service
 from ipaserver.install import installutils
+from ipaserver.masters import ENABLED_SERVICE
 from ipapython.dn import DN
 from ipapython import ipautil
 from ipaplatform import services
@@ -45,7 +46,7 @@ def get_dnssec_key_masters(conn):
     filter_attrs = {
         u'cn': u'DNSSEC',
         u'objectclass': u'ipaConfigObject',
-        u'ipaConfigString': [KEYMASTER, u'enabledService'],
+        u'ipaConfigString': [KEYMASTER, ENABLED_SERVICE],
     }
     only_masters_f = conn.make_filter(filter_attrs, rules=conn.MATCH_ALL)
 

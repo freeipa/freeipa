@@ -34,6 +34,7 @@ from ipaserver.install.installutils import check_creds, ReplicaConfig
 from ipaserver.install import dsinstance, ca
 from ipaserver.install import cainstance, service
 from ipaserver.install import custodiainstance
+from ipaserver.masters import find_providing_server
 from ipapython import version
 from ipalib import api
 from ipalib.constants import DOMAIN_LEVEL_0
@@ -211,8 +212,9 @@ def install_replica(safe_options, options, filename):
         config.subject_base = attrs.get('ipacertificatesubjectbase')[0]
 
     if config.ca_host_name is None:
-        config.ca_host_name = \
-            service.find_providing_server('CA', api.Backend.ldap2, api.env.ca_host)
+        config.ca_host_name = find_providing_server(
+            'CA', api.Backend.ldap2, [api.env.ca_host]
+        )
 
     options.realm_name = config.realm_name
     options.domain_name = config.domain_name
@@ -299,7 +301,8 @@ def promote(safe_options, options, filename):
             paths.KRB5_KEYTAB,
             ccache)
 
-        ca_host = service.find_providing_server('CA', api.Backend.ldap2)
+        ca_host = find_providing_server('CA', api.Backend.ldap2)
+
         if ca_host is None:
             install_master(safe_options, options)
         else:

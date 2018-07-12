@@ -71,6 +71,7 @@ from ipaserver.install import replication
 from ipaserver.install import sysupgrade
 from ipaserver.install.dogtaginstance import DogtagInstance
 from ipaserver.plugins import ldap2
+from ipaserver.masters import ENABLED_SERVICE
 
 logger = logging.getLogger(__name__)
 
@@ -1304,7 +1305,7 @@ class CAInstance(DogtagInstance):
             config = ['caRenewalMaster']
         else:
             config = []
-        self._ldap_enable(u'enabledService', "CA", self.fqdn, basedn, config)
+        self._ldap_enable(ENABLED_SERVICE, "CA", self.fqdn, basedn, config)
 
     def setup_lightweight_ca_key_retrieval(self):
         if sysupgrade.get_upgrade_state('dogtag', 'setup_lwca_key_retrieval'):
