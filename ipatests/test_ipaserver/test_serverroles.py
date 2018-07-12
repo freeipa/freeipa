@@ -16,6 +16,7 @@ import pytest
 from ipaplatform.paths import paths
 from ipalib import api, create_api, errors
 from ipapython.dn import DN
+from ipaserver.masters import ENABLED_SERVICE
 
 pytestmark = pytest.mark.needs_ipaapi
 
@@ -25,7 +26,7 @@ def _make_service_entry(ldap_backend, dn, enabled=True, other_config=None):
         'objectClass': ['top', 'nsContainer', 'ipaConfigObject'],
     }
     if enabled:
-        mods.update({'ipaConfigString': ['enabledService']})
+        mods.update({'ipaConfigString': [ENABLED_SERVICE]})
 
     if other_config is not None:
         mods.setdefault('ipaConfigString', [])
