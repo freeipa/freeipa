@@ -5,15 +5,53 @@
     <title>IPA: Identity Policy Audit</title>
     <script type="text/javascript" src="../ui/js/libs/loader.js"></script>
     <script type="text/javascript">
+        var dojoConfig = {
+            baseUrl: "../ui/js",
+            has: {
+                'dojo-firebug': false,
+                'dojo-debug-messages': true
+            },
+            parseOnLoad: false,
+            async: true,
+            packages: [
+                {
+                    name:'dojo',
+                    location:'dojo'
+                },
+                {
+                    name: 'freeipa',
+                    location: 'freeipa'
+                }
+            ]
+        };
         (function() {
             var styles = [
                 '../ui/css/patternfly.css',
                 '../ui/css/ipa.css'
             ];
             var scripts = [
-                '../ui/js/libs/jquery.js'
+                '../ui/js/libs/jquery.js',
+                '../ui/js/dojo/dojo.js'
             ];
-            ipa_loader.scripts(scripts);
+            ipa_loader.scripts(scripts, function() {
+                require([
+                    'dojo/dom',
+                    'freeipa/text',
+                    'dojo/domReady!'],
+                    function(dom, text) {
+                        msg = "".concat(
+                            text.get('@i18n:ssbrowser-page.header'),
+                            text.get('@i18n:ssbrowser-page.firefox-header'),
+                            text.get('@i18n:ssbrowser-page.firefox-actions'),
+                            text.get('@i18n:ssbrowser-page.chrome-header'),
+                            text.get('@i18n:ssbrowser-page.chrome-certificate'),
+                            text.get('@i18n:ssbrowser-page.chrome-spnego'),
+                            text.get('@i18n:ssbrowser-page.ie-header'),
+                            text.get('@i18n:ssbrowser-page.ie-actions'),
+                        )
+                        dom.byId('ssbrowser-msg').innerHTML=msg;
+                    });
+            });
             ipa_loader.styles(styles);
         })();
     </script>
@@ -31,7 +69,8 @@
     <div class="container-fluid">
     <div class="row">
     <div class="col-sm-12">
-    <div class="ssbrowser">
+    <div class="ssbrowser" id="ssbrowser-msg">
+    <noscript>
         <h1>Browser Kerberos Setup</h1>
 
         <h2>Firefox</h2>
@@ -149,6 +188,7 @@
             </ol>
         </div>
 
+    </noscript>
     </div>
     </div>
     </div>
