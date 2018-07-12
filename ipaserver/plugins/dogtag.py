@@ -255,6 +255,7 @@ from ipalib import Backend, api
 from ipapython.dn import DN
 import ipapython.cookie
 from ipapython import dogtag, ipautil, certdb
+from ipaserver.masters import find_providing_server
 
 if api.env.in_server:
     import pki
@@ -1147,56 +1148,6 @@ def parse_unrevoke_cert_xml(doc):
     return response
 
 
-def host_has_service(host, ldap2, service='CA'):
-    """
-    :param host: A host which might be a master for a service.
-    :param ldap2: connection to the local database
-    :param service: The service for which the host might be a master.
-    :return:   (true, false)
-
-    Check if a specified host is a master for a specified service.
-    """
-    base_dn = DN(('cn', host), ('cn', 'masters'), ('cn', 'ipa'),
-                 ('cn', 'etc'), api.env.basedn)
-    filter_attrs = {
-        'objectClass': 'ipaConfigObject',
-        'cn': service,
-        'ipaConfigString': 'enabledService',
-        }
-    query_filter = ldap2.make_filter(filter_attrs, rules='&')
-    try:
-        ent, _trunc = ldap2.find_entries(filter=query_filter, base_dn=base_dn)
-        if len(ent):
-            return True
-    except Exception:
-        pass
-    return False
-
-
-def select_any_master(ldap2, service='CA'):
-    """
-    :param ldap2: connection to the local database
-    :param service: The service for which we're looking for a master.
-    :return:   host as str
-
-    Select any host which is a master for a specified service.
-    """
-    base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
-                  api.env.basedn)
-    filter_attrs = {
-         'objectClass': 'ipaConfigObject',
-         'cn': service,
-         'ipaConfigString': 'enabledService',}
-    query_filter = ldap2.make_filter(filter_attrs, rules='&')
-    try:
-        ent, _trunc = ldap2.find_entries(filter=query_filter, base_dn=base_dn)
-        if len(ent):
-            entry = random.choice(ent)
-            return entry.dn[1].value
-    except Exception:
-        pass
-    return None
-
 #-------------------------------------------------------------------------------
 
 from ipalib import Registry, errors, SkipPluginModule
@@ -1204,7 +1155,6 @@ if api.env.ra_plugin != 'dogtag':
     # In this case, abort loading this plugin module...
     raise SkipPluginModule(reason='dogtag not selected as RA plugin')
 import os
-import random
 from ipaserver.plugins import rabase
 from ipalib.constants import TYPE_ERROR
 from ipalib import _
@@ -1269,17 +1219,19 @@ class RestClient(Backend):
         if self._ca_host is not None:
             return self._ca_host
 
-        ldap2 = self.api.Backend.ldap2
-        if host_has_service(api.env.ca_host, ldap2, "CA"):
-            object.__setattr__(self, '_ca_host', api.env.ca_host)
-        elif api.env.host != api.env.ca_host:
-            if host_has_service(api.env.host, ldap2, "CA"):
-                object.__setattr__(self, '_ca_host', api.env.host)
-        else:
-            object.__setattr__(self, '_ca_host', select_any_master(ldap2))
-        if self._ca_host is None:
-            object.__setattr__(self, '_ca_host', api.env.ca_host)
-        return self._ca_host
+        preferred = [api.env.ca_host]
+        if api.env.host != api.env.ca_host:
+            preferred.append(api.env.host)
+        ca_host = find_providing_server(
+            'CA', conn=self.api.Backend.ldap2, preferred_hosts=preferred,
+            api=self.api
+        )
+        if ca_host is None:
+            # TODO: need during installation, CA is not yet set as enabled
+            ca_host = api.env.ca_host
+        # object is locked, need to use __setattr__()
+        object.__setattr__(self, '_ca_host', ca_host)
+        return ca_host
 
     def __enter__(self):
         """Log into the REST API"""
@@ -1980,9 +1932,7 @@ class kra(Backend):
     """
 
     def __init__(self, api, kra_port=443):
-
         self.kra_port = kra_port
-
         super(kra, self).__init__(api)
 
     @property
@@ -1993,17 +1943,18 @@ class kra(Backend):
 
         Select our KRA host.
         """
-        ldap2 = self.api.Backend.ldap2
-        if host_has_service(api.env.ca_host, ldap2, "KRA"):
-            return api.env.ca_host
+        preferred = [api.env.ca_host]
         if api.env.host != api.env.ca_host:
-            if host_has_service(api.env.host, ldap2, "KRA"):
-                return api.env.host
-        host = select_any_master(ldap2, "KRA")
-        if host:
-            return host
-        else:
-            return api.env.ca_host
+            preferred.append(api.env.host)
+
+        kra_host = find_providing_server(
+            'KRA', self.api.Backend.ldap2, preferred_hosts=preferred,
+            api=self.api
+        )
+        if kra_host is None:
+            # TODO: need during installation, KRA is not yet set as enabled
+            kra_host = api.env.ca_host
+        return kra_host
 
     @contextlib.contextmanager
     def get_client(self):
