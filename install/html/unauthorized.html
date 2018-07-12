@@ -5,11 +5,46 @@
     <title>IPA: Identity Policy Audit</title>
     <script type="text/javascript" src="../ui/js/libs/loader.js"></script>
     <script type="text/javascript">
+        var dojoConfig = {
+            baseUrl: "../ui/js",
+            has: {
+                'dojo-firebug': false,
+                'dojo-debug-messages': true
+            },
+            parseOnLoad: false,
+            async: true,
+            packages: [
+                {
+                    name:'dojo',
+                    location:'dojo'
+                },
+                {
+                    name: 'freeipa',
+                    location: 'freeipa'
+                }
+            ]
+        };
         (function() {
             var styles = [
                 '../ui/css/patternfly.css',
                 '../ui/css/ipa.css'
             ];
+            var scripts = [
+                '../ui/js/libs/jquery.js',
+                '../ui/js/dojo/dojo.js'
+            ];
+
+            ipa_loader.scripts(scripts, function() {
+                require([
+                    'dojo/dom',
+                    'freeipa/text',
+                    'dojo/domReady!'],
+                    function(dom, text) {
+                        if (msg = text.get('@i18n:unauthorized-page')) {
+                            dom.byId('unauthorized-msg').innerHTML=msg;
+                        }
+                    });
+            });
             ipa_loader.styles(styles);
         })();
     </script>
@@ -26,6 +61,8 @@
     <div class="container-fluid">
     <div class="row">
     <div class="col-sm-12">
+    <div id="unauthorized-msg">
+    <noscript>
 
         <h1>Unable to verify your Kerberos credentials</h1>
         <p>
@@ -39,6 +76,8 @@
                 If this is your first time, please <a href="ssbrowser.html">configure your browser</a>.
             </p>
         </div>
+    </noscript>
+    </div>
     </div>
     </div>
     </div>
