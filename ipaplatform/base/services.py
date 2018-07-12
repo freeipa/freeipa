@@ -367,7 +367,7 @@ class SystemdService(PlatformService):
                 return False
             else:
                 svar = self.parse_variables(result.output)
-                if not self.service_instance("") in svar:
+                if self.service_instance("") not in svar:
                     # systemd doesn't show the service
                     return False
         except ipautil.CalledProcessError:

@@ -68,7 +68,7 @@ from time import sleep
 try:
     from ldap.controls import RequestControl as LDAPControl
 except ImportError:
-    from ldap.controls import LDAPControl as LDAPControl
+    from ldap.controls import LDAPControl
 
 if six.PY3:
     unicode = str
@@ -1726,8 +1726,8 @@ class TrustDomainJoins(object):
         self.local_domain.establish_trust(self.remote_domain,
                                           trustdom_passwd,
                                           trust_type, trust_external)
-        return dict(
-                    local=self.local_domain,
-                    remote=self.remote_domain,
-                    verified=False
-                   )
+        return {
+            'local': self.local_domain,
+            'remote': self.remote_domain,
+            'verified': False,
+        }

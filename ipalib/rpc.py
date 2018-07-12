@@ -1071,9 +1071,11 @@ class RPCClient(Connectible):
                             )
                     # We don't care about the response, just that we got one
                     return serverproxy
+                # pylint: disable=try-except-raise
                 except errors.KerberosError:
                     # kerberos error on one server is likely on all
                     raise
+                # pylint: enable=try-except-raise
                 except ProtocolError as e:
                     if hasattr(context, 'session_cookie') and e.errcode == 401:
                         # Unauthorized. Remove the session and try again.

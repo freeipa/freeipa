@@ -310,8 +310,6 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
             prop = prop_cls(self)
             try:
                 prop.validate(value)
-            except KnobValueError:
-                raise
             except ValueError as e:
                 raise KnobValueError(name, str(e))
 
