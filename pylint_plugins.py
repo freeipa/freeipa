@@ -72,6 +72,13 @@ ipa_class_members = {
         'find'
     ],
     'ipalib.cli.Collector': ['__options'],
+    'ipalib.config.Env': [  # somehow needed for pylint on Python 2
+        'debug',
+        'startup_traceback',
+        'server',
+        'validate_api',
+        'verbose',
+    ],
     'ipalib.errors.ACIError': [
         'info',
     ],
