@@ -27,10 +27,15 @@
 %if 0%{?rhel} > 7
 %global with_default_python 3
 %global with_python2 0
-%else
+%endif
+
+%if 0%{?fedora} >= 29
+# F29 only supports Python 3 as default Python
+%global with_default_python 3
+%endif
+
 %{!?with_default_python:%global with_default_python 3}
 %{!?with_python2:%global with_python2 1}
-%endif
 
 %if %{with_default_python} == 3
 %global python %{__python3}
@@ -194,11 +199,6 @@ BuildRequires:  python2-six
 %if 0%{?with_wheels}
 BuildRequires:  dbus-glib-devel
 BuildRequires:  libffi-devel
-%if 0%{?with_python2}
-BuildRequires:  python2-tox
-BuildRequires:  python2-twine
-BuildRequires:  python2-wheel
-%endif
 BuildRequires:  python3-tox
 BuildRequires:  python3-twine
 BuildRequires:  python3-wheel
@@ -231,7 +231,10 @@ BuildRequires:  python2-lxml
 BuildRequires:  python2-netaddr >= %{python_netaddr_version}
 BuildRequires:  python2-netifaces
 BuildRequires:  python2-paste
+%if 0%{?fedora} < 29
+# Fedora 29 workaround: Dogtag no longer packages Python 2
 BuildRequires:  python2-pki >= %{pki_version}
+%endif
 BuildRequires:  python2-polib
 BuildRequires:  python2-pyasn1
 BuildRequires:  python2-pyasn1-modules
@@ -402,8 +405,8 @@ and integration with Active Directory based infrastructures (Trusts).
 If you are installing an IPA server, you need to install this package.
 
 
-%if 0%{?with_python2}
-
+%if 0%{?with_python2} && 0%{?fedora} < 29
+# Fedora 29 workaround: don't build python2-ipaserver, python2-pki is n/a
 %package -n python2-ipaserver
 Summary: Python libraries used by IPA server
 Group: System Environment/Libraries
@@ -434,7 +437,7 @@ features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 If you are installing an IPA server, you need to install this package.
 
-%endif  # with_python2
+%endif  # with_python2 and Fedora < 29
 
 %package -n python3-ipaserver
 Summary: Python libraries used by IPA server
@@ -443,6 +446,10 @@ BuildArch: noarch
 %{?python_provide:%python_provide python3-ipaserver}
 Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
+%if 0%{?fedora} >= 29
+Conflicts: python2-ipaserver
+Obsoletes: python2-ipaserver < %{version}
+%endif
 # we need pre-requires since earlier versions may break upgrade
 Requires(pre): python3-ldap >= %{python_ldap_version}
 Requires: python3-augeas
@@ -835,8 +842,8 @@ If you are using IPA, you need to install this package.
 
 %if 0%{?with_ipatests}
 
-%if 0%{?with_python2}
-
+%if 0%{?with_python2} && 0%{?fedora} < 29
+# Fedora 29 workaround: don't build python2-ipaserver, depends on ipaserver
 %package -n python2-ipatests
 Summary: IPA tests and test tools
 BuildArch: noarch
@@ -872,7 +879,7 @@ features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 This package contains tests that verify IPA functionality.
 
-%endif  # with_python2
+%endif  # with_python2 and Fedora < 29
 
 %package -n python3-ipatests
 Summary: IPA tests and test tools
@@ -880,6 +887,10 @@ BuildArch: noarch
 %{?python_provide:%python_provide python3-ipatests}
 Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-ipaserver = %{version}-%{release}
+%if 0%{?fedora} >= 29
+Conflicts: python2-ipatests
+Obsoletes: python2-ipatests < %{version}
+%endif
 Requires: iptables
 Requires: ldns-utils
 Requires: python3-coverage
@@ -996,14 +1007,15 @@ ln -rs %{buildroot}%{_bindir}/ipa-test-task-%{python3_version} %{buildroot}%{_bi
 pushd %{_builddir}/freeipa-%{version}-python2
 %{__make} python_install DESTDIR=%{?buildroot} INSTALL="%{__install} -p"
 popd
-%if 0%{?with_ipatests}
+%if 0%{?with_python2} && 0%{?fedora} < 29
+# Fedora 29 workaround: don't ship ipatests binaries
 mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version}
 mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python2_version}
 mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{python2_version}
 ln -rs %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version} %{buildroot}%{_bindir}/ipa-run-tests-2
 ln -rs %{buildroot}%{_bindir}/ipa-test-config-%{python2_version} %{buildroot}%{_bindir}/ipa-test-config-2
 ln -rs %{buildroot}%{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-test-task-2
-%endif # with_ipatests
+%endif # with_ipatests and Fedora < 29
 %endif # with_python2
 
 # default installation
@@ -1026,6 +1038,14 @@ ln -frs %{buildroot}%{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_b
 
 # remove files which are useful only for make uninstall
 find %{buildroot} -wholename '*/site-packages/*/install_files.txt' -exec rm {} \;
+
+%if 0%{?with_ipatests} && 0%{?with_python2} && 0%{?fedora} >= 29
+# Fedora 29 workaround: Remove Python 2 ipaserver and ipatests
+rm -rf %{buildroot}%{python2_sitelib}/ipaserver
+rm -rf %{buildroot}%{python2_sitelib}/ipaserver-*.egg-info
+rm -rf %{buildroot}%{python2_sitelib}/ipatests
+rm -rf %{buildroot}%{python2_sitelib}/ipatests-*.egg-info
+%endif  # with python2 ipatests and Fedora >= 29
 
 %find_lang %{gettext_domain}
 
@@ -1345,8 +1365,8 @@ fi
 %{_mandir}/man1/ipa-winsync-migrate.1*
 %{_mandir}/man1/ipa-pkinit-manage.1*
 
-%if 0%{?with_python2}
-
+%if 0%{?with_python2} && 0%{?fedora} < 29
+# Fedora 29 workaround: don't build python2-ipaserver, python2-pki is n/a
 %files -n python2-ipaserver
 %defattr(-,root,root,-)
 %doc README.md Contributors.txt
@@ -1354,7 +1374,7 @@ fi
 %{python2_sitelib}/ipaserver
 %{python2_sitelib}/ipaserver-*.egg-info
 
-%endif # with_python2
+%endif # with_python2 and Fedora < 29
 
 %files -n python3-ipaserver
 %defattr(-,root,root,-)
@@ -1635,8 +1655,8 @@ fi
 
 %if 0%{?with_ipatests}
 
-%if 0%{?with_python2}
-
+%if 0%{?with_python2} && 0%{?fedora} < 29
+# Fedora 29 workaround: don't build python2-ipatests, depends on ipaserver
 %files -n python2-ipatests
 %defattr(-,root,root,-)
 %doc README.md Contributors.txt
@@ -1658,7 +1678,7 @@ fi
 %{_mandir}/man1/ipa-test-task.1*
 %endif
 
-%endif # with_python2
+%endif # with_python2 and Fedora < 29
 
 %files -n python3-ipatests
 %defattr(-,root,root,-)
