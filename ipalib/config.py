@@ -245,10 +245,12 @@ class Env(object):
                 SET_ERROR % (self.__class__.__name__, key, value)
             )
         check_name(key)
+        # pylint: disable=no-member
         if key in self.__d:
             raise AttributeError(OVERRIDE_ERROR %
                 (self.__class__.__name__, key, self.__d[key], value)
             )
+        # pylint: enable=no-member
         assert not hasattr(self, key)
         if isinstance(value, six.string_types):
             value = value.strip()
@@ -269,15 +271,15 @@ class Env(object):
         if type(value) not in (unicode, int, float, bool, type(None), DN):
             raise TypeError(key, value)
         object.__setattr__(self, key, value)
-        # pylint: disable=unsupported-assignment-operation
+        # pylint: disable=unsupported-assignment-operation, no-member
         self.__d[key] = value
-        # pylint: enable=unsupported-assignment-operation
+        # pylint: enable=unsupported-assignment-operation, no-member
 
     def __getitem__(self, key):
         """
         Return the value corresponding to ``key``.
         """
-        return self.__d[key]
+        return self.__d[key]  # pylint: disable=no-member
 
     def __delattr__(self, name):
         """
@@ -300,19 +302,19 @@ class Env(object):
         """
         Return True if instance contains ``key``; otherwise return False.
         """
-        return key in self.__d
+        return key in self.__d  # pylint: disable=no-member
 
     def __len__(self):
         """
         Return number of variables currently set.
         """
-        return len(self.__d)
+        return len(self.__d)  # pylint: disable=no-member
 
     def __iter__(self):
         """
         Iterate through keys in ascending order.
         """
-        for key in sorted(self.__d):
+        for key in sorted(self.__d):  # pylint: disable=no-member
             yield key
 
     def _merge(self, **kw):
@@ -405,6 +407,7 @@ class Env(object):
             return None
 
     def __doing(self, name):
+        # pylint: disable=no-member
         if name in self.__done:
             raise Exception(
                 '%s.%s() already called' % (self.__class__.__name__, name)
@@ -412,11 +415,11 @@ class Env(object):
         self.__done.add(name)
 
     def __do_if_not_done(self, name):
-        if name not in self.__done:
+        if name not in self.__done:  # pylint: disable=no-member
             getattr(self, name)()
 
     def _isdone(self, name):
-        return name in self.__done
+        return name in self.__done  # pylint: disable=no-member
 
     def _bootstrap(self, **overrides):
         """
@@ -557,7 +560,8 @@ class Env(object):
         self.__do_if_not_done('_bootstrap')
 
         # Merge in context config file and then default config file:
-        if self.__d.get('mode', None) != 'dummy':
+        mode = self.__d.get('mode')  # pylint: disable=no-member
+        if mode != 'dummy':
             self._merge_from_file(self.conf)
             self._merge_from_file(self.conf_default)
 
@@ -594,10 +598,12 @@ class Env(object):
         # and server from jsonrpc_uri so that when only server or xmlrpc_uri
         # is specified, all 3 keys have a value.)
         if 'xmlrpc_uri' not in self and 'server' in self:
+            # pylint: disable=no-member, access-member-before-definition
             self.xmlrpc_uri = 'https://{}/ipa/xml'.format(self.server)
 
         # Derive ldap_uri from server
         if 'ldap_uri' not in self and 'server' in self:
+            # pylint: disable=no-member, access-member-before-definition
             self.ldap_uri = 'ldap://{}'.format(self.server)
 
         # Derive jsonrpc_uri from xmlrpc_uri
