@@ -58,30 +58,6 @@ def fake_class(name_or_class_obj, members=()):
     return cl
 
 
-fake_backend = {'Backend': [
-    {'wsgi_dispatch': ['mount']},
-]}
-
-NAMESPACE_ATTRS = ['Object', 'Method', fake_backend, 'Updater',
-                   'Advice']
-fake_api_env = {
-    'env': [
-        'host',
-        'realm',
-        'kinit_lifetime',
-    ],
-    'Command': [
-        'get_plugin',
-        'config_show',
-        'host_show',
-        'service_show',
-        'user_show',
-    ],
-}
-
-# this is due ipaserver.rpcserver.KerberosSession where api is undefined
-fake_api = {'api': [fake_api_env] + NAMESPACE_ATTRS}
-
 # 'class': ['generated', 'properties']
 ipa_class_members = {
     # Python standard library & 3rd party classes
@@ -96,21 +72,6 @@ ipa_class_members = {
         'find'
     ],
     'ipalib.cli.Collector': ['__options'],
-    'ipalib.config.Env': [
-        {'__d': ['get']},
-        {'__done': ['add']},
-        'ca_host',
-        'ca_install_port',
-        'debug',
-        {'domain': dir(str)},
-        'http_timeout',
-        'rpc_protocol',
-        'startup_traceback',
-        'server',
-        'validate_api',
-        'verbose',
-        'xmlrpc_uri',
-    ],
     'ipalib.errors.ACIError': [
         'info',
     ],
@@ -205,12 +166,6 @@ ipa_class_members = {
         'require_service',
     ],
     'ipalib.plugable.API': [
-        fake_api_env,
-    ] + NAMESPACE_ATTRS,
-    'ipalib.plugable.Plugin': [
-        'Object',
-        'Method',
-        'Updater',
         'Advice',
     ],
     'ipalib.util.ForwarderValidationError': [
@@ -219,9 +174,6 @@ ipa_class_members = {
     'ipaserver.plugins.dns.DNSRecord': [
         'validatedns',
         'normalizedns',
-    ],
-    'ipaserver.rpcserver.KerberosSession': [
-        fake_api,
     ],
     'ipatests.test_integration.base.IntegrationTest': [
         'domain',
@@ -404,3 +356,171 @@ class IPAChecker(BaseChecker):
     def visit_importfrom(self, node):
         names = ['{}.{}'.format(node.modname, n[0]) for n in node.names]
         self._check_forbidden_imports(node, names)
+
+
+#
+# Teach pylint how api object works
+#
+# ipalib uses some tricks to create api.env members and api objects. pylint
+# is not able to infer member names and types from code. The explict
+# assignments inside the string builder templates are good enough to show
+# pylint, how the api is created. Additional transformations are not
+# required.
+#
+
+AstroidBuilder(MANAGER).string_build(textwrap.dedent(
+    """
+    from ipalib import api
+    from ipalib import cli, plugable, rpc
+    from ipalib.base import NameSpace
+    from ipaclient.plugins import rpcclient
+    try:
+        from ipaserver.plugins import dogtag, ldap2, serverroles
+    except ImportError:
+        HAS_SERVER = False
+    else:
+        HAS_SERVER = True
+
+    def wildcard(*args, **kwargs):
+        return None
+
+    # ipalib.api members
+    api.Backend = plugable.APINameSpace(api, None)
+    api.Command = plugable.APINameSpace(api, None)
+    api.Method = plugable.APINameSpace(api, None)
+    api.Object = plugable.APINameSpace(api, None)
+    api.Updater = plugable.APINameSpace(api, None)
+    # ipalib.api.Backend members
+    api.Backend.cli = cli.cli(api)
+    api.Backend.textui = cli.textui(api)
+    api.Backend.jsonclient = rpc.jsonclient(api)
+    api.Backend.rpcclient = rpcclient.rpcclient(api)
+    api.Backend.xmlclient = rpc.xmlclient(api)
+
+    if HAS_SERVER:
+        api.Backend.kra = dogtag.kra(api)
+        api.Backend.ldap2 = ldap2.ldap2(api)
+        api.Backend.ra = dogtag.ra(api)
+        api.Backend.ra_certprofile = dogtag.ra_certprofile(api)
+        api.Backend.ra_lightweight_ca = dogtag.ra_lightweight_ca(api)
+        api.Backend.serverroles = serverroles.serverroles(api)
+
+    # ipalib.base.NameSpace
+    NameSpace.find = wildcard
+    """
+))
+
+
+AstroidBuilder(MANAGER).string_build(textwrap.dedent(
+    """
+    from ipalib import api
+    from ipapython.dn import DN
+
+    api.env.api_version = ''
+    api.env.bin = ''  # object
+    api.env.ca_agent_install_port = None
+    api.env.ca_agent_port = 0
+    api.env.ca_ee_install_port = None
+    api.env.ca_ee_port = 0
+    api.env.ca_host = ''
+    api.env.ca_install_port = None
+    api.env.ca_port = 0
+    api.env.conf = ''  # object
+    api.env.conf_default = ''  # object
+    api.env.confdir = ''  # object
+    api.env.container_accounts = DN()
+    api.env.container_adtrusts = DN()
+    api.env.container_applications = DN()
+    api.env.container_automember = DN()
+    api.env.container_automount = DN()
+    api.env.container_ca = DN()
+    api.env.container_caacl = DN()
+    api.env.container_certmap = DN()
+    api.env.container_certmaprules = DN()
+    api.env.container_certprofile = DN()
+    api.env.container_cifsdomains = DN()
+    api.env.container_configs = DN()
+    api.env.container_custodia = DN()
+    api.env.container_deleteuser = DN()
+    api.env.container_dna = DN()
+    api.env.container_dna_posix_ids = DN()
+    api.env.container_dns = DN()
+    api.env.container_dnsservers = DN()
+    api.env.container_group = DN()
+    api.env.container_hbac = DN()
+    api.env.container_hbacservice = DN()
+    api.env.container_hbacservicegroup = DN()
+    api.env.container_host = DN()
+    api.env.container_hostgroup = DN()
+    api.env.container_locations = DN()
+    api.env.container_masters = DN()
+    api.env.container_netgroup = DN()
+    api.env.container_otp = DN()
+    api.env.container_permission = DN()
+    api.env.container_policies = DN()
+    api.env.container_policygroups = DN()
+    api.env.container_policylinks = DN()
+    api.env.container_privilege = DN()
+    api.env.container_radiusproxy = DN()
+    api.env.container_ranges = DN()
+    api.env.container_realm_domains = DN()
+    api.env.container_rolegroup = DN()
+    api.env.container_roles = DN()
+    api.env.container_s4u2proxy = DN()
+    api.env.container_selinux = DN()
+    api.env.container_service = DN()
+    api.env.container_stageuser = DN()
+    api.env.container_sudocmd = DN()
+    api.env.container_sudocmdgroup = DN()
+    api.env.container_sudorule = DN()
+    api.env.container_sysaccounts = DN()
+    api.env.container_topology = DN()
+    api.env.container_trusts = DN()
+    api.env.container_user = DN()
+    api.env.container_vault = DN()
+    api.env.container_views = DN()
+    api.env.container_virtual = DN()
+    api.env.context = ''  # object
+    api.env.debug = False
+    api.env.delegate = False
+    api.env.dogtag_version = 0
+    api.env.dot_ipa = ''  # object
+    api.env.enable_ra = False
+    api.env.env_confdir = None
+    api.env.fallback = True
+    api.env.force_schema_check = False
+    api.env.home = ''  # object
+    api.env.host = ''
+    api.env.http_timeout = 0
+    api.env.in_server = False  # object
+    api.env.in_tree = False  # object
+    api.env.interactive = True
+    api.env.ipalib = ''  # object
+    api.env.kinit_lifetime = None
+    api.env.log = ''  # object
+    api.env.logdir = ''  # object
+    api.env.mode = ''
+    api.env.mount_ipa = ''
+    api.env.nss_dir = ''  # object
+    api.env.plugins_on_demand = False  # object
+    api.env.prompt_all = False
+    api.env.ra_plugin = ''
+    api.env.recommended_max_agmts = 0
+    api.env.replication_wait_timeout = 0
+    api.env.rpc_protocol = ''
+    api.env.server = ''
+    api.env.script = ''  # object
+    api.env.site_packages = ''  # object
+    api.env.skip_version_check = False
+    api.env.startup_timeout = 0
+    api.env.startup_traceback = False
+    api.env.tls_ca_cert = ''  # object
+    api.env.tls_version_max = ''
+    api.env.tls_version_min = ''
+    api.env.validate_api = False
+    api.env.verbose = 0
+    api.env.version = ''
+    api.env.wait_for_dns = 0
+    api.env.webui_prod = True
+    """
+))
