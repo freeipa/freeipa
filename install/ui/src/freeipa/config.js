@@ -49,6 +49,11 @@ define([
         i18n_messages_url: '/ipa/i18n_messages',
 
         /**
+         * password migration url
+         */
+        migration_url: '/ipa/migration/migration.py',
+
+        /**
          * RPC url
          */
         json_url: '/ipa/session/json',
