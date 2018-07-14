@@ -25,7 +25,6 @@ import cgi
 import errno
 import logging
 import os.path
-from wsgiref.util import request_uri
 
 from ipaplatform.paths import paths
 from ipapython.dn import DN
@@ -35,17 +34,20 @@ from ipalib import errors, create_api
 logger = logging.getLogger(os.path.basename(__file__))
 
 
+def bad_request(start_response):
+    """
+    Return a 400 Bad Request error.
+    """
+    status = '400 Bad Request'
+    response_headers = []
+    response = b''
+
+    start_response(status, response_headers)
+    return [response]
+
 def wsgi_redirect(start_response, loc):
     start_response('302 Found', [('Location', loc)])
     return []
-
-def get_ui_url(environ):
-    full_url = request_uri(environ)
-    index = full_url.rfind(environ.get('SCRIPT_NAME',''))
-    if index == -1:
-        raise ValueError('Cannot strip the script URL from full URL "%s"' % full_url)
-    return full_url[:index] + "/ipa/ui"
-
 
 def bind(ldap_uri, base_dn, username, password):
     if not base_dn:
@@ -71,9 +73,18 @@ def application(environ, start_response):
     if environ.get('REQUEST_METHOD', None) != 'POST':
         return wsgi_redirect(start_response, 'index.html')
 
+    content_type = environ.get('CONTENT_TYPE', '').lower()
+    if not content_type.startswith('application/x-www-form-urlencoded'):
+        return bad_request(start_response)
+
     form_data = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
     if 'username' not in form_data or 'password' not in form_data:
-        return wsgi_redirect(start_response, 'invalid.html')
+        return bad_request(start_response)
+
+    status = '200 Success'
+    response_headers = []
+    result = 'error'
+    response = b''
 
     # API object only for configuration, finalize() not needed
     api = create_api(mode=None)
@@ -83,9 +94,11 @@ def application(environ, start_response):
              form_data['username'].value, form_data['password'].value)
     except IOError as err:
         if err.errno == errno.EPERM:
-            return wsgi_redirect(start_response, 'invalid.html')
+            result = 'invalid-password'
         if err.errno == errno.EIO:
-            return wsgi_redirect(start_response, 'error.html')
-
-    ui_url = get_ui_url(environ)
-    return wsgi_redirect(start_response, ui_url)
+            result = 'migration-error'
+    else:
+        result = 'ok'
+    response_headers.append(('X-IPA-Migrate-Result', result))
+    start_response(status, response_headers)
+    return [response]
