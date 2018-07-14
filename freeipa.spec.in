@@ -1413,9 +1413,7 @@ fi
 %{_usr}/share/ipa/html/ssbrowser.html
 %{_usr}/share/ipa/html/unauthorized.html
 %dir %{_usr}/share/ipa/migration
-%{_usr}/share/ipa/migration/error.html
 %{_usr}/share/ipa/migration/index.html
-%{_usr}/share/ipa/migration/invalid.html
 %{_usr}/share/ipa/migration/migration.py*
 %dir %{_usr}/share/ipa/ui
 %{_usr}/share/ipa/ui/index.html
