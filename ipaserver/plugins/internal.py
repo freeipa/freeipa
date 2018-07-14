@@ -234,6 +234,7 @@ class i18n_messages(Command):
             "issue": _("Issue"),
             "match": _("Match"),
             "match_title": _("Match users according to certificate."),
+            "migrate": _("Migrate"),
             "ok": _("OK"),
             "refresh": _("Refresh"),
             "refresh_title": _("Reload current settings from the server."),
@@ -368,6 +369,24 @@ class i18n_messages(Command):
         "measurement_units": {
             "number_of_passwords": _("number of passwords"),
             "seconds": _("seconds"),
+        },
+        "migration": {
+            "migrating": _("Migrating"),
+            "migration_error_msg": _(
+                "There was a problem with your request. Please, try again "
+                "later."),
+            "migration_failure_msg": _(
+                "Password migration was not successful"),
+            "migration_info_msg": _(
+                "<h1>Password Migration</h1><p>If you have been sent here by "
+                "your administrator, your personal information is being "
+                "migrated to a new identity management solution (IPA).</p><p>"
+                "Please, enter your credentials in the form to complete the "
+                "process. Upon successful login your kerberos account will be "
+                "activated.</p>"),
+            "migration_invalid_password": _(
+                "The password or username you entered is incorrect"),
+            "migration_success": _("Password migration was successful"),
         },
         "objects": {
             "aci": {
