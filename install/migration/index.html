@@ -1,70 +1,69 @@
 <!DOCTYPE html>
-<html class="login-pf">
+<html>
 <head>
 <meta charset="utf-8">
     <title>IPA: Identity Policy Audit</title>
 
-    <link rel="stylesheet" type="text/css" href="../ui/css/patternfly.css" />
-    <link rel="stylesheet" type="text/css" href="../ui/css/ipa.css" />
-    <link rel="stylesheet" type="text/css" href="../ui/ipa.css" />
+    <!--[if IE]>
+    <meta id="ie-detector">
+    <![endif]-->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="../ui/" target="_blank">
+    <script type="text/javascript" src="js/libs/loader.js"></script>
+    <script type="text/javascript">
+        var dojoConfig = {
+            baseUrl: "js",
+            has: {
+                'dojo-firebug': false,
+                'dojo-debug-messages': true
+            },
+            parseOnLoad: false,
+            async: true,
+            packages: [
+                {
+                    name:'dojo',
+                    location:'dojo'
+                },
+                {
+                    name: 'freeipa',
+                    location: 'freeipa'
+                }
+            ],
+            cacheBust: ipa_loader.num_version || ""
+        };
+
+        (function() {
+            var ie = !!document.getElementById('ie-detector');
+            var styles = [
+		    'css/patternfly.css',
+		    'css/ipa.css',
+		    'ipa.css'
+	    ];
+            if (ie) styles.push('ie.css');
+            var icons = ['favicon.ico'];
+            var scripts = [
+                'js/libs/jquery.js',
+                'js/libs/jquery.ordered-map.js',
+                'js/dojo/dojo.js'
+            ];
+            ipa_loader.scripts(scripts, function() {
+                require([
+                    'freeipa/core',
+                    'dojo/domReady!'
+                    ], function(app) {
+                        app.run_simple('migrate');
+                    });
+            });
+            ipa_loader.styles(styles);
+            ipa_loader.icons(icons);
+
+	})();
+    </script>
 </head>
 
 <body>
-<div class="login-pf-body">
-<span id="badge">
-    <img src="../ui/images/login-screen-logo.png" alt="" />
-</span>
-<div class="container">
-
-<div class="row">
-
-    <div class="col-sm-12">
-      <div id="brand">
-        <img src="../ui/images/product-name.png" alt="">
-      </div>
-    </div>
-
-    <div class="col-sm-7 col-md-6 col-lg-5 login">
-        <form class="form-horizontal" id="login" action="migration.py" method="post" name="">
-            <div class="form-group">
-                <div class="control-label col-sm-4">
-                    <label for="username">Username</label>
-                </div>
-                <div class="col-sm-8">
-                    <input type="text" id="username" name="username" value="" accesskey="u" class="form-control" />
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="control-label col-sm-4">
-                    <label for="password">Password</label>
-                </div>
-                <div class="col-sm-8">
-                    <input type="password" id="password" name="password" value="" accesskey="p" class="form-control" />
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="col-xs-4 col-sm-offset-4 col-sm-8 submit">
-                    <input name="submit" class="btn btn-primary btn-lg" value="Migrate" type="submit" />
-                </div>
-            </div>
-        </form>
-    </div>
-    <div class="col-sm-5 col-md-6 col-lg-7 details">
-        <h1>Password Migration</h1>
-        <p>
-            If you have been sent here by your administrator, your personal
-            information is being migrated to a new identity management solution
-            (IPA).
-        </p>
-        <p>
-            Please, enter your credentials in the form to complete the
-            process. Upon successful login your kerberos account will be
-            activated.
-        </p>
-    </div>
-</div>
-</div>
-</div>
+	<noscript>This application requires JavaScript enabled.</noscript>
 </body>
 
 </html>

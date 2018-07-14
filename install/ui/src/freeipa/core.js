@@ -21,7 +21,8 @@
 define([
     './app_container',
     './plugins/sync_otp',
-    './plugins/login'
+    './plugins/login',
+    './plugins/migrate'
 ],function(app_container) {
     return app_container;
 });
