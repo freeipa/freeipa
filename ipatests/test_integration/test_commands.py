@@ -180,3 +180,10 @@ class TestIPACommand(IntegrationTest):
             ["ipa", "console", filename],
         )
         assert "ipalib.config.Env" in result.stdout_text
+
+    def test_list_help_topics(self):
+        result = self.master.run_command(
+            ["ipa", "help", "topics"],
+            raiseonerr=False
+        )
+        assert result.returncode == 0
