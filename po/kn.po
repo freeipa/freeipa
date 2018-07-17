@@ -1,22 +1,410 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.90.dev201709011157+git5dcb0e6fc\n"
+"Project-Id-Version: freeipa 4.6.90.pre2\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-09-01 13:58+0200\n"
+"POT-Creation-Date: 2018-05-15 14:59-0400\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2015-01-05 01:10-0500\n"
+"PO-Revision-Date: 2015-01-05 01:10+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Kannada\n"
 "Language: kn\n"
-"X-Generator: Zanata 3.9.6\n"
+"X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=2; plural=(n!=1)\n"
 
+#, c-format
+msgid "Passwords do not match!"
+msgstr "ಗುಪ್ತಪದಗಳು ಹೊಂದಾಣಿಕೆಯಾಗುತ್ತಿಲ್ಲ!"
+
+msgid "Unrevoked"
+msgstr "ರದ್ದು ಮಾಡಲಾಗಿಲ್ಲ"
+
+msgid "Error"
+msgstr "ದೋಷ"
+
+msgid "Principal"
+msgstr "Principal"
+
+msgid "Password"
+msgstr "ಗುಪ್ತಪದ"
+
+msgid "Data"
+msgstr "ದತ್ತಾಂಶ"
+
+msgid "ACI name"
+msgstr "ACI ಹೆಸರು"
+
+msgid "User group"
+msgstr "ಬಳಕೆದಾರ ಗುಂಪು"
+
+msgid "User group ACI grants access to"
+msgstr "User group ACI grants access to"
+
+msgid "Permissions"
+msgstr "ಅನುಮತಿಗಳು"
+
+msgid "Attributes"
+msgstr "ವೈಶಿಷ್ಟ್ಯಗಳು"
+
+msgid "Type"
+msgstr "ಬಗೆ"
+
+msgid "Member of"
+msgstr "ಸದಸ್ಯ"
+
+msgid "Member of a group"
+msgstr "ಒಂದು ಗುಂಪಿನ ಸದಸ್ಯ"
+
+msgid "Filter"
+msgstr "ಶೋಧಕ (ಫಿಲ್ಟರ್)"
+
+msgid "Legal LDAP filter (e.g. ou=Engineering)"
+msgstr "Legal LDAP filter (e.g. ou=Engineering)"
+
+msgid "Subtree"
+msgstr "ಉಪವೃಕ್ಷ"
+
+msgid "Subtree to apply ACI to"
+msgstr "Subtree to apply ACI to"
+
+msgid "Target group"
+msgstr "Target ಗುಂಪು"
+
+msgid "Group to apply ACI to"
+msgstr "Group to apply ACI to"
+
+msgid "Description"
+msgstr "ವಿವರಣೆ"
+
+msgid "Users"
+msgstr "ಬಳಕೆದಾರರು"
+
+msgid "Hosts"
+msgstr "ಹೋಸ್ಟ್‌ಗಳು"
+
+msgid "Key"
+msgstr "ಕೀ"
+
+msgid "Mount information"
+msgstr "ಮೌಂಟ್ ಮಾಹಿತಿ"
+
+msgid "description"
+msgstr "ವಿವರಣೆ"
+
+msgid "Location"
+msgstr "ಸ್ಥಳ"
+
+msgid "Map"
+msgstr "ನಕ್ಷೆ"
+
+msgid "Mount point"
+msgstr "ಮೌಂಟ್ ಪಾಯಂಟ್"
+
+msgid "Parent map"
+msgstr "Parent map"
+
+msgid "Subject"
+msgstr "ವಿಷಯ"
+
+msgid "Reason"
+msgstr "ಕಾರಣ"
+
+msgid "Reason for revoking the certificate (0-10)"
+msgstr "ಪ್ರಮಾಣಪತ್ರವನ್ನು (0-10) ರದ್ದು ಮಾಡಲು ಕಾರಣ"
+
+msgid "Serial number"
+msgstr "ಅನುಕ್ರಮ ಸಂಖ್ಯೆ"
+
+msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
+msgstr "ಕ್ರಮ ಸಂಖ್ಯೆ ಡೆಸಿಮಲ್‌ನಲ್ಲಿ ಅಥವಾ 0x ಮೊದಲು ಸೇರಿಸಿದ್ದಲ್ಲಿ ಹೆಕ್ಸಾಡೆಸಿಮಲ್‌ನಲ್ಲಿ"
+
+msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
+msgstr "ಈ ಪ್ರಮಾಣಪತ್ರಕ್ಕಾಗಿ Service principal (e.g. HTTP/test.example.com)"
+
+msgid "automatically add the principal if it doesn't exist"
+msgstr "ಸ್ವಯಂಚಾಲಿತವಾಗಿ principal ಸೇರಿಸಿ ಅದು ಅಸ್ತಿತ್ವದಲ್ಲಿ ಇಲ್ಲದಿದ್ದಲ್ಲಿ"
+
+msgid "Request id"
+msgstr "ಬೇಡಿಕೆ ID"
+
+msgid "Home directory base"
+msgstr "ಹೋಮ್ ಡೈರೆಕ್ಟರೀ ಮೂಲ"
+
+msgid "Default shell"
+msgstr "ಡೀಫಾಲ್ಟ್ ಶೆಲ್"
+
+msgid "Default users group"
+msgstr "ಡಿಫಾಲ್ಟ್ ಬಳಕೆದಾರರ ಗುಂಪು"
+
+msgid "Search time limit"
+msgstr "ಹುಡುಕು ಸಮಯ ಮಿತಿ"
+
+msgid "Search size limit"
+msgstr "ಹುಡುಕು ಗಾತ್ರ ಮಿತಿ"
+
+msgid "User search fields"
+msgstr "ಬಳಕೆದಾರನ ಶೋಧ ಫೀಲ್ಡ್‌ಗಳು"
+
+msgid "Certificate Subject base"
+msgstr "ಪ್ರಮಾಣಪತ್ರದ ವಿಷಯ ಮೂಲ"
+
+msgid "Zone name"
+msgstr "ವಲಯದ ಹೆಸರು"
+
+msgid "Zone name (FQDN)"
+msgstr "ವಲಯದ ಹೆಸರು (FQDN)"
+
+msgid "Time to live"
+msgstr "ಉಳಿದಿರಬೇಕಾದ ಸಮಯ"
+
+msgid "Priority"
+msgstr "ಆದ್ಯತೆ"
+
+msgid "SOA serial"
+msgstr "SOA serial"
+
+msgid "SOA refresh"
+msgstr "SOA refresh"
+
+msgid "SOA retry"
+msgstr "SOA retry"
+
+msgid "SOA expire"
+msgstr "SOA expire"
+
+msgid "SOA minimum"
+msgstr "SOA minimum"
+
+msgid "BIND update policy"
+msgstr "BIND update policy"
+
+msgid "Group name"
+msgstr "ಗುಂಪಿನ ಹೆಸರು"
+
+msgid "Group description"
+msgstr "ಗುಂಪಿನ ವಿವರಣೆ"
+
+msgid "GID"
+msgstr "GID"
+
+msgid "GID (use this option to set it manually)"
+msgstr "GID (ಇದನ್ನು ಮ್ಯಾನ್ಯೂವಲ್ ಆಗಿ ಸೆಟ್ ಮಾಡಲು ಈ ಆಯ್ಕೆಯನ್ನು ಬಳಸಿ)"
+
+msgid "Member users"
+msgstr "ಸದಸ್ಯ ಬಳಕೆದಾರರು"
+
+msgid "Member groups"
+msgstr "ಸದಸ್ಯ ಗುಂಪುಗಳು"
+
+msgid "Rule name"
+msgstr "ನಿಯಮದ ಹೆಸರು"
+
+msgid "User category"
+msgstr "ಬಳಕೆದಾರನ ವರ್ಗ"
+
+msgid "User category the rule applies to"
+msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಬಳಕೆದಾರನ ವರ್ಗ"
+
+msgid "Host category"
+msgstr "ಹೋಸ್ಟ್ ವರ್ಗ"
+
+msgid "Host category the rule applies to"
+msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಹೋಸ್ಟ್ ವರ್ಗ"
+
+msgid "User Groups"
+msgstr "ಬಳಕೆದಾರರ ಗುಂಪುಗಳು"
+
+msgid "Host Groups"
+msgstr "ಹೋಸ್ಟ್ ಗುಂಪುಗಳು"
+
+msgid "Services"
+msgstr "ಸೇವೆಗಳು(ಸರ್ವೀಸಸ್)"
+
+msgid "External host"
+msgstr "ಹೊರಗಿನ ಹೋಸ್ಟ್"
+
+msgid "Service name"
+msgstr "ಸೇವೆಯ ಹೆಸರು"
+
+msgid "User name"
+msgstr "ಬಳಕೆದಾರನ ಹೆಸರು"
+
+msgid "Host name"
+msgstr "ಹೋಸ್ಟ್  ಹೆಸರು"
+
+msgid "A description of this host"
+msgstr "ಈ ಹೋಸ್ಟ್‌ನ ವಿವರಣೆ"
+
+msgid "Locality"
+msgstr "ಪ್ರದೇಶ"
+
+msgid "Host locality (e.g. \"Baltimore, MD\")"
+msgstr "ಹೋಸ್ಟ್ ತಾಣ (e.g. \"Baltimore, MD\")"
+
+msgid "Host location (e.g. \"Lab 2\")"
+msgstr "ಹೋಸ್ಟ್ ತಾಣ (e.g. \"Lab 2\")"
+
+msgid "Platform"
+msgstr "ಪ್ಲಾಟ್‌ಫಾರ್ಮ್"
+
+msgid "Host hardware platform (e.g. \"Lenovo T61\")"
+msgstr "ಹೋಸ್ಟ್ ಹಾರ್ಡ್‌ವೇರ್ ಪ್ಲ್ಯಾಟ್‌ಫಾರ್ಮ್ (e.g. \"Lenovo T61\")"
+
+msgid "Operating system"
+msgstr "ಕಾರ್ಯಕಾರಿ ವ್ಯವಸ್ಥೆ"
+
+msgid "Host operating system and version (e.g. \"Fedora 9\")"
+msgstr "ಹೋಸ್ಟ್ ಕಾರ್ಯಕಾರಿ ವ್ಯವಸ್ಥೆ ಮತ್ತು ಆವೃತ್ತಿ (e.g. \"Fedora 9\")"
+
+msgid "User password"
+msgstr "ಬಳಕೆದಾರನ ಗುಪ್ತಪದ"
+
+msgid "Password used in bulk enrollment"
+msgstr "ದೊಡ್ಡ ಪ್ರಮಾಣದ ದಾಖಲಾತಿಯಲ್ಲಿ ಬಳಸಲಾದ ಗುಪ್ತಪದ"
+
+msgid "Certificate"
+msgstr "ಪ್ರಮಾಣಪತ್ರ"
+
+msgid "Base-64 encoded server certificate"
+msgstr "Base-64 ಎನ್‌ಕೋಡೆಡ್ ಸರ್ವರ್ ಪ್ರಮಾಣಪತ್ರ"
+
+msgid "Principal name"
+msgstr "Principal ಹೆಸರು"
+
+msgid "Class"
+msgstr "ವರ್ಗ"
+
+msgid "Member of host-groups"
+msgstr "ಹೋಸ್ಟ್-ಗುಂಪಿನ ಸದಸ್ಯ"
+
+msgid "Kerberos principal name for this host"
+msgstr "ಈ ಹೋಸ್ಟ್‌ಗೆ Kerberos principalನ ಹೆಸರು"
+
+msgid "Host-group"
+msgstr "ಹೋಸ್ಟ್-ಗುಂಪು"
+
+msgid "Name of host-group"
+msgstr "ಹೋಸ್ಟ್-ಗುಂಪಿನ ಹೆಸರು"
+
+msgid "A description of this host-group"
+msgstr "ಈ ಹೋಸ್ಟ್-ಗ್ರೂಪ್‌ನ ವಿವರಣೆ"
+
+msgid "Member hosts"
+msgstr "ಸದಸ್ಯ ಹೋಸ್ಟ್‌ಗಳು"
+
+msgid "Member host-groups"
+msgstr "ಸದಸ್ಯ ಹೋಸ್ಟ್-ಗ್ರೂಪ್‌ಗಳು"
+
+msgid "User login"
+msgstr "ಬಳಕೆದಾರನ ಪ್ರವೇಶ"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "Login shell"
+msgstr "ಪ್ರವೇಶ ಶೆಲ್"
+
+msgid "Manage ticket policy for specific user"
+msgstr "ನಿಗದಿತ ಬಳಕೆದಾರನಿಗೆ ಟಿಕೆಟ್ ಪಾಲಿಸಿಯನ್ನು ನಿರ್ವಹಿಸು"
+
+msgid "Max life"
+msgstr "ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ"
+
+msgid "Max renew"
+msgstr "ಗರಿಷ್ಟ ನವೀಕರಣ"
+
+msgid "LDAP URI"
+msgstr "LDAP URI"
+
+msgid "LDAP URI of DS server to migrate from"
+msgstr "LDAP URI of DS server to migrate from"
+
+msgid "Bind DN"
+msgstr "ಬೈಂಡ್ DN"
+
+msgid "User container"
+msgstr "ಬಳಕೆದಾರನ ಕಂಟೇನರ್"
+
+msgid "Group container"
+msgstr "ಗುಂಪಿನ ಕಂಟೇನರ್"
+
+msgid "Netgroup name"
+msgstr "ನೆಟ್‌ಗ್ರೂಪ್ ಹೆಸರು"
+
+msgid "Netgroup description"
+msgstr "ನೆಟ್‌ಗ್ರೂಪ್ ವಿವರಣೆ"
+
+msgid "NIS domain name"
+msgstr "NIS ಡೊಮೇನ್ ಹೆಸರು"
+
+msgid "Group"
+msgstr "ಗುಂಪು"
+
+msgid "Max lifetime (days)"
+msgstr "ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ (ದಿನಗಳು)"
+
+msgid "Maximum password lifetime (in days)"
+msgstr "ಗುಪ್ತಪದದ ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ (ದಿನಗಳಲ್ಲಿ)"
+
+msgid "Min lifetime (hours)"
+msgstr "ಕನಿಷ್ಟ ಜೀವಿತಾವಧಿ (ಘಂಟೆಗಳು)"
+
+msgid "Minimum password lifetime (in hours)"
+msgstr "ಗುಪ್ತಪದದ ಕನಿಷ್ಟ ಜೀವಿತಾವಧಿ (ಘಂಟೆಗಳಲ್ಲಿ)"
+
+msgid "History size"
+msgstr "ಇತಿಹಾಸದ ಗಾತ್ರ"
+
+msgid "Password history size"
+msgstr "ಗುಪ್ತಪದ ಇತಿಹಾಸದ ಗಾತ್ರ"
+
+msgid "Character classes"
+msgstr "ಕ್ಯಾರೆಕ್ಟರ್ ಕ್ಲಾಸ್‌ಗಳು"
+
+msgid "Minimum number of character classes"
+msgstr "ಕನಿಷ್ಟ ಸಂಖ್ಯೆಯ ಕ್ಯಾರಕ್ಟರ್ ಕ್ಲಾಸ್‌ಗಳು"
+
+msgid "Min length"
+msgstr "ಕನಿಷ್ಟ ಉದ್ದ"
+
+msgid "Minimum length of password"
+msgstr "ಗುಪ್ತಪದದ ಕನಿಷ್ಟ ಉದ್ದ"
+
+msgid "User"
+msgstr "ಬಳಕೆದಾರ"
+
+msgid "A description of this role-group"
+msgstr "ಈ ರೋಲ್-ಗ್ರೂಪ್‌ನ ವಿವರಣೆ"
+
+msgid "Service principal"
+msgstr "Service principal"
+
+msgid "First name"
+msgstr "ಮೊದಲ ಹೆಸರು"
+
+msgid "Last name"
+msgstr "ಕೊನೆಯ ಹೆಸರು"
+
+msgid "Kerberos principal"
+msgstr "Kerberos principal"
+
+msgid "Email address"
+msgstr "ಇಮೇಲ್ ವಿಳಾಸ"
+
+msgid "Street address"
+msgstr "ಕೇರಿ ವಿಳಾಸ"
+
+msgid "SOA class"
+msgstr "SOA class"
+
+msgid "Failed members"
+msgstr "ವಿಫಲಗೊಂಡ ಸದಸ್ಯರು"
+
 #, python-format
-msgid "%(count)d variables"
-msgstr "%(count)d ವೇರಿಯೇಬಲ್‌ಗಳು"
+msgid "Enter %(label)s again to verify: "
+msgstr "ಮತ್ತೊಮ್ಮೆ ಪರಿಶೀಲಿಸಲು %(label)s ಎಂಟರ್ ಮಾಡಿ:"
 
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
@@ -120,16 +508,12 @@ msgstr "%(info)s"
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "ಪ್ರಮಾಣಪತ್ರದ ಕಾರ್ಯಾಚರಣೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ಆಗುತ್ತಿಲ್ಲ: %(error)s"
 
-#, python-format
-msgid "Enter %(label)s again to verify: "
-msgstr "ಮತ್ತೊಮ್ಮೆ ಪರಿಶೀಲಿಸಲು %(label)s ಎಂಟರ್ ಮಾಡಿ:"
-
-#, c-format
-msgid "Passwords do not match!"
-msgstr "ಗುಪ್ತಪದಗಳು ಹೊಂದಾಣಿಕೆಯಾಗುತ್ತಿಲ್ಲ!"
-
 msgid "Results are truncated, try a more specific search"
 msgstr "ಫಲಿತಾಂಶಗಳು ಕತ್ತರಿಸಲ್ಪಟ್ಟಿವೆ, ಹೆಚ್ಚ್ಹು ನಿರ್ದಿಷ್ಟವಾದ ಶೋಧನೆ ಪ್ರಯತ್ನಿಸಿ"
+
+#, python-format
+msgid "%(count)d variables"
+msgstr "%(count)d ವೇರಿಯೇಬಲ್‌ಗಳು"
 
 msgid "incorrect type"
 msgstr "ಸರಿಯಲ್ಲದ ಬಗೆ"
@@ -173,6 +557,10 @@ msgstr "ಗರಿಷ್ಠವಾಗಿ %(maxlength)d ಬೈಟ್ಸ್ ಆಗ�
 msgid "must be exactly %(length)d bytes"
 msgstr "ನಿಖರವಾಗಿ %(length)d ಬೈಟ್ಸ್ ಆಗಿರಲೇಬೇಕು"
 
+#, python-format
+msgid "Failure decoding Certificate Signing Request: %s"
+msgstr "ಪ್ರಮಾಣಪತ್ರದ ಸಹಿಯ ಕೋರಿಕೆಯ ಡಿಕೋಡಿಂಗ್‌ನ ವಿಫಲತೆ: %s"
+
 msgid "must be Unicode text"
 msgstr "ಯುನಿಕೋಡ್ ಪಠ್ಯ ಆಗಿರಲೇಬೇಕು"
 
@@ -187,422 +575,6 @@ msgstr "ಗರಿಷ್ಠವಾಗಿ %(maxlength)d ಅಕ್ಷರಗಳು �
 #, python-format
 msgid "must be exactly %(length)d characters"
 msgstr "ನಿಖರವಾಗಿ %(length)d ಅಕ್ಷರಗಳು ಇರಲೇಬೇಕು"
-
-msgid "User name"
-msgstr "ಬಳಕೆದಾರನ ಹೆಸರು"
-
-msgid "Manage ticket policy for specific user"
-msgstr "ನಿಗದಿತ ಬಳಕೆದಾರನಿಗೆ ಟಿಕೆಟ್ ಪಾಲಿಸಿಯನ್ನು ನಿರ್ವಹಿಸು"
-
-msgid "Max life"
-msgstr "ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ"
-
-msgid "Max renew"
-msgstr "ಗರಿಷ್ಟ ನವೀಕರಣ"
-
-msgid "Password"
-msgstr "ಗುಪ್ತಪದ"
-
-msgid "Principal"
-msgstr "Principal"
-
-msgid "Service principal"
-msgstr "Service principal"
-
-msgid "Certificate"
-msgstr "ಪ್ರಮಾಣಪತ್ರ"
-
-msgid "Base-64 encoded server certificate"
-msgstr "Base-64 ಎನ್‌ಕೋಡೆಡ್ ಸರ್ವರ್ ಪ್ರಮಾಣಪತ್ರ"
-
-msgid "Rule name"
-msgstr "ನಿಯಮದ ಹೆಸರು"
-
-msgid "Description"
-msgstr "ವಿವರಣೆ"
-
-msgid "User category"
-msgstr "ಬಳಕೆದಾರನ ವರ್ಗ"
-
-msgid "User category the rule applies to"
-msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಬಳಕೆದಾರನ ವರ್ಗ"
-
-msgid "Host category"
-msgstr "ಹೋಸ್ಟ್ ವರ್ಗ"
-
-msgid "Host category the rule applies to"
-msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಹೋಸ್ಟ್ ವರ್ಗ"
-
-msgid "Users"
-msgstr "ಬಳಕೆದಾರರು"
-
-msgid "User Groups"
-msgstr "ಬಳಕೆದಾರರ ಗುಂಪುಗಳು"
-
-msgid "Hosts"
-msgstr "ಹೋಸ್ಟ್‌ಗಳು"
-
-msgid "Host Groups"
-msgstr "ಹೋಸ್ಟ್ ಗುಂಪುಗಳು"
-
-msgid "External host"
-msgstr "ಹೊರಗಿನ ಹೋಸ್ಟ್"
-
-msgid "Group description"
-msgstr "ಗುಂಪಿನ ವಿವರಣೆ"
-
-msgid "Permissions"
-msgstr "ಅನುಮತಿಗಳು"
-
-msgid "Attributes"
-msgstr "ವೈಶಿಷ್ಟ್ಯಗಳು"
-
-msgid "Type"
-msgstr "ಬಗೆ"
-
-msgid "Filter"
-msgstr "ಶೋಧಕ (ಫಿಲ್ಟರ್)"
-
-msgid "Legal LDAP filter (e.g. ou=Engineering)"
-msgstr "Legal LDAP filter (e.g. ou=Engineering)"
-
-msgid "Subtree"
-msgstr "ಉಪವೃಕ್ಷ"
-
-msgid "Target group"
-msgstr "Target ಗುಂಪು"
-
-msgid "Host name"
-msgstr "ಹೋಸ್ಟ್  ಹೆಸರು"
-
-msgid "A description of this host"
-msgstr "ಈ ಹೋಸ್ಟ್‌ನ ವಿವರಣೆ"
-
-msgid "Locality"
-msgstr "ಪ್ರದೇಶ"
-
-msgid "Host locality (e.g. \"Baltimore, MD\")"
-msgstr "ಹೋಸ್ಟ್ ತಾಣ (e.g. \"Baltimore, MD\")"
-
-msgid "Location"
-msgstr "ಸ್ಥಳ"
-
-msgid "Host location (e.g. \"Lab 2\")"
-msgstr "ಹೋಸ್ಟ್ ತಾಣ (e.g. \"Lab 2\")"
-
-msgid "Platform"
-msgstr "ಪ್ಲಾಟ್‌ಫಾರ್ಮ್"
-
-msgid "Host hardware platform (e.g. \"Lenovo T61\")"
-msgstr "ಹೋಸ್ಟ್ ಹಾರ್ಡ್‌ವೇರ್ ಪ್ಲ್ಯಾಟ್‌ಫಾರ್ಮ್ (e.g. \"Lenovo T61\")"
-
-msgid "Operating system"
-msgstr "ಕಾರ್ಯಕಾರಿ ವ್ಯವಸ್ಥೆ"
-
-msgid "Host operating system and version (e.g. \"Fedora 9\")"
-msgstr "ಹೋಸ್ಟ್ ಕಾರ್ಯಕಾರಿ ವ್ಯವಸ್ಥೆ ಮತ್ತು ಆವೃತ್ತಿ (e.g. \"Fedora 9\")"
-
-msgid "User password"
-msgstr "ಬಳಕೆದಾರನ ಗುಪ್ತಪದ"
-
-msgid "Password used in bulk enrollment"
-msgstr "ದೊಡ್ಡ ಪ್ರಮಾಣದ ದಾಖಲಾತಿಯಲ್ಲಿ ಬಳಸಲಾದ ಗುಪ್ತಪದ"
-
-msgid "Principal name"
-msgstr "Principal ಹೆಸರು"
-
-msgid "Member of host-groups"
-msgstr "ಹೋಸ್ಟ್-ಗುಂಪಿನ ಸದಸ್ಯ"
-
-msgid "Kerberos principal name for this host"
-msgstr "ಈ ಹೋಸ್ಟ್‌ಗೆ Kerberos principalನ ಹೆಸರು"
-
-msgid "ACI name"
-msgstr "ACI ಹೆಸರು"
-
-msgid "User group"
-msgstr "ಬಳಕೆದಾರ ಗುಂಪು"
-
-msgid "User group ACI grants access to"
-msgstr "User group ACI grants access to"
-
-msgid "Member of"
-msgstr "ಸದಸ್ಯ"
-
-msgid "Member of a group"
-msgstr "ಒಂದು ಗುಂಪಿನ ಸದಸ್ಯ"
-
-msgid "Subtree to apply ACI to"
-msgstr "Subtree to apply ACI to"
-
-msgid "Group to apply ACI to"
-msgstr "Group to apply ACI to"
-
-msgid "Service name"
-msgstr "ಸೇವೆಯ ಹೆಸರು"
-
-msgid "LDAP URI"
-msgstr "LDAP URI"
-
-msgid "LDAP URI of DS server to migrate from"
-msgstr "LDAP URI of DS server to migrate from"
-
-msgid "Bind DN"
-msgstr "ಬೈಂಡ್ DN"
-
-msgid "User container"
-msgstr "ಬಳಕೆದಾರನ ಕಂಟೇನರ್"
-
-msgid "Group container"
-msgstr "ಗುಂಪಿನ ಕಂಟೇನರ್"
-
-msgid "Key"
-msgstr "ಕೀ"
-
-msgid "Mount information"
-msgstr "ಮೌಂಟ್ ಮಾಹಿತಿ"
-
-msgid "description"
-msgstr "ವಿವರಣೆ"
-
-msgid "Map"
-msgstr "ನಕ್ಷೆ"
-
-msgid "Mount point"
-msgstr "ಮೌಂಟ್ ಪಾಯಂಟ್"
-
-msgid "Parent map"
-msgstr "Parent map"
-
-msgid "Group"
-msgstr "ಗುಂಪು"
-
-msgid "Max lifetime (days)"
-msgstr "ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ (ದಿನಗಳು)"
-
-msgid "Maximum password lifetime (in days)"
-msgstr "ಗುಪ್ತಪದದ ಗರಿಷ್ಟ ಜೀವಿತಾವಧಿ (ದಿನಗಳಲ್ಲಿ)"
-
-msgid "Min lifetime (hours)"
-msgstr "ಕನಿಷ್ಟ ಜೀವಿತಾವಧಿ (ಘಂಟೆಗಳು)"
-
-msgid "Minimum password lifetime (in hours)"
-msgstr "ಗುಪ್ತಪದದ ಕನಿಷ್ಟ ಜೀವಿತಾವಧಿ (ಘಂಟೆಗಳಲ್ಲಿ)"
-
-msgid "History size"
-msgstr "ಇತಿಹಾಸದ ಗಾತ್ರ"
-
-msgid "Password history size"
-msgstr "ಗುಪ್ತಪದ ಇತಿಹಾಸದ ಗಾತ್ರ"
-
-msgid "Character classes"
-msgstr "ಕ್ಯಾರೆಕ್ಟರ್ ಕ್ಲಾಸ್‌ಗಳು"
-
-msgid "Minimum number of character classes"
-msgstr "ಕನಿಷ್ಟ ಸಂಖ್ಯೆಯ ಕ್ಯಾರಕ್ಟರ್ ಕ್ಲಾಸ್‌ಗಳು"
-
-msgid "Min length"
-msgstr "ಕನಿಷ್ಟ ಉದ್ದ"
-
-msgid "Minimum length of password"
-msgstr "ಗುಪ್ತಪದದ ಕನಿಷ್ಟ ಉದ್ದ"
-
-msgid "Priority"
-msgstr "ಆದ್ಯತೆ"
-
-msgid "User"
-msgstr "ಬಳಕೆದಾರ"
-
-msgid "User login"
-msgstr "ಬಳಕೆದಾರನ ಪ್ರವೇಶ"
-
-msgid "First name"
-msgstr "ಮೊದಲ ಹೆಸರು"
-
-msgid "Last name"
-msgstr "ಕೊನೆಯ ಹೆಸರು"
-
-msgid "Login shell"
-msgstr "ಪ್ರವೇಶ ಶೆಲ್"
-
-msgid "Kerberos principal"
-msgstr "Kerberos principal"
-
-msgid "Email address"
-msgstr "ಇಮೇಲ್ ವಿಳಾಸ"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "GID"
-msgstr "GID"
-
-msgid "Street address"
-msgstr "ಕೇರಿ ವಿಳಾಸ"
-
-msgid "Group name"
-msgstr "ಗುಂಪಿನ ಹೆಸರು"
-
-msgid "GID (use this option to set it manually)"
-msgstr "GID (ಇದನ್ನು ಮ್ಯಾನ್ಯೂವಲ್ ಆಗಿ ಸೆಟ್ ಮಾಡಲು ಈ ಆಯ್ಕೆಯನ್ನು ಬಳಸಿ)"
-
-msgid "Member users"
-msgstr "ಸದಸ್ಯ ಬಳಕೆದಾರರು"
-
-msgid "Member groups"
-msgstr "ಸದಸ್ಯ ಗುಂಪುಗಳು"
-
-msgid "A description of this role-group"
-msgstr "ಈ ರೋಲ್-ಗ್ರೂಪ್‌ನ ವಿವರಣೆ"
-
-msgid "Member hosts"
-msgstr "ಸದಸ್ಯ ಹೋಸ್ಟ್‌ಗಳು"
-
-msgid "Member host-groups"
-msgstr "ಸದಸ್ಯ ಹೋಸ್ಟ್-ಗ್ರೂಪ್‌ಗಳು"
-
-msgid "Host-group"
-msgstr "ಹೋಸ್ಟ್-ಗುಂಪು"
-
-msgid "Name of host-group"
-msgstr "ಹೋಸ್ಟ್-ಗುಂಪಿನ ಹೆಸರು"
-
-msgid "A description of this host-group"
-msgstr "ಈ ಹೋಸ್ಟ್-ಗ್ರೂಪ್‌ನ ವಿವರಣೆ"
-
-msgid "Netgroup name"
-msgstr "ನೆಟ್‌ಗ್ರೂಪ್ ಹೆಸರು"
-
-msgid "Netgroup description"
-msgstr "ನೆಟ್‌ಗ್ರೂಪ್ ವಿವರಣೆ"
-
-msgid "NIS domain name"
-msgstr "NIS ಡೊಮೇನ್ ಹೆಸರು"
-
-msgid "Time to live"
-msgstr "ಉಳಿದಿರಬೇಕಾದ ಸಮಯ"
-
-msgid "Class"
-msgstr "ವರ್ಗ"
-
-msgid "Zone name"
-msgstr "ವಲಯದ ಹೆಸರು"
-
-msgid "Zone name (FQDN)"
-msgstr "ವಲಯದ ಹೆಸರು (FQDN)"
-
-msgid "SOA serial"
-msgstr "SOA serial"
-
-msgid "SOA refresh"
-msgstr "SOA refresh"
-
-msgid "SOA retry"
-msgstr "SOA retry"
-
-msgid "SOA expire"
-msgstr "SOA expire"
-
-msgid "SOA minimum"
-msgstr "SOA minimum"
-
-msgid "SOA class"
-msgstr "SOA class"
-
-msgid "BIND update policy"
-msgstr "BIND update policy"
-
-msgid "Services"
-msgstr "ಸೇವೆಗಳು(ಸರ್ವೀಸಸ್)"
-
-msgid "Serial number"
-msgstr "ಅನುಕ್ರಮ ಸಂಖ್ಯೆ"
-
-msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
-msgstr "ಕ್ರಮ ಸಂಖ್ಯೆ ಡೆಸಿಮಲ್‌ನಲ್ಲಿ ಅಥವಾ 0x ಮೊದಲು ಸೇರಿಸಿದ್ದಲ್ಲಿ ಹೆಕ್ಸಾಡೆಸಿಮಲ್‌ನಲ್ಲಿ"
-
-msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
-msgstr "ಈ ಪ್ರಮಾಣಪತ್ರಕ್ಕಾಗಿ Service principal (e.g. HTTP/test.example.com)"
-
-msgid "automatically add the principal if it doesn't exist"
-msgstr "ಸ್ವಯಂಚಾಲಿತವಾಗಿ principal ಸೇರಿಸಿ ಅದು ಅಸ್ತಿತ್ವದಲ್ಲಿ ಇಲ್ಲದಿದ್ದಲ್ಲಿ"
-
-msgid "Reason"
-msgstr "ಕಾರಣ"
-
-msgid "Reason for revoking the certificate (0-10)"
-msgstr "ಪ್ರಮಾಣಪತ್ರವನ್ನು (0-10) ರದ್ದು ಮಾಡಲು ಕಾರಣ"
-
-msgid "Request id"
-msgstr "ಬೇಡಿಕೆ ID"
-
-msgid "Home directory base"
-msgstr "ಹೋಮ್ ಡೈರೆಕ್ಟರೀ ಮೂಲ"
-
-msgid "Default shell"
-msgstr "ಡೀಫಾಲ್ಟ್ ಶೆಲ್"
-
-msgid "Default users group"
-msgstr "ಡಿಫಾಲ್ಟ್ ಬಳಕೆದಾರರ ಗುಂಪು"
-
-msgid "Search time limit"
-msgstr "ಹುಡುಕು ಸಮಯ ಮಿತಿ"
-
-msgid "Search size limit"
-msgstr "ಹುಡುಕು ಗಾತ್ರ ಮಿತಿ"
-
-msgid "User search fields"
-msgstr "ಬಳಕೆದಾರನ ಶೋಧ ಫೀಲ್ಡ್‌ಗಳು"
-
-msgid "Certificate Subject base"
-msgstr "ಪ್ರಮಾಣಪತ್ರದ ವಿಷಯ ಮೂಲ"
-
-msgid "Subject"
-msgstr "ವಿಷಯ"
-
-msgid "Data"
-msgstr "ದತ್ತಾಂಶ"
-
-msgid "Unrevoked"
-msgstr "ರದ್ದು ಮಾಡಲಾಗಿಲ್ಲ"
-
-msgid "Error"
-msgstr "ದೋಷ"
-
-msgid "Failed members"
-msgstr "ವಿಫಲಗೊಂಡ ಸದಸ್ಯರು"
-
-msgid "Revocation reason"
-msgstr "ರದ್ದು ಮಾಡುವುದಕ್ಕೆ ಕಾರಣ"
-
-msgid "Groups"
-msgstr "ಗುಂಪುಗಳು"
-
-msgid "Netgroups"
-msgstr "ನೆಟ್‌ಗ್ರೂಪ್‌ಗಳು"
-
-msgid "DNS"
-msgstr "DNS"
-
-#, python-format
-msgid "Added service \"%(value)s\""
-msgstr "\"%(value)s\" ಸೇವೆ(ಸರ್ವೀಸ್)ಯನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
-
-#, python-format
-msgid "Deleted service \"%(value)s\""
-msgstr "\"%(value)s\" ಸೇವೆ(ಸರ್ವೀಸ್)ಯನ್ನು ಅಳಿಸಲಾಗಿದೆ"
-
-#, python-format
-msgid "Added host \"%(value)s\""
-msgstr "\"%(value)s\" ಹೋಸ್ಟನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
-
-#, python-format
-msgid "Deleted host \"%(value)s\""
-msgstr "\"%(value)s\" ಹೋಸ್ಟನ್ನು ಅಳಿಸಲಾಗಿದೆ"
-
-#, python-format
-msgid "Modified host \"%(value)s\""
-msgstr "\"%(value)s\" ಹೋಸ್ಟನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
 msgid "type, filter, subtree and targetgroup are mutually exclusive"
 msgstr " ಬಗೆ, ಫಿಲ್ಟರ್, ಸಬ್‌ಟ್ರೀ ಮತ್ತು ಟಾರ್ಗೆಟ್‌ಗ್ರೂಪ್  ಗಳು ಪರಸ್ಪರ ಪ್ರತ್ಯೇಕ"
@@ -642,20 +614,14 @@ msgstr "ಮ್ಯಾಪ್‌ಗಳ ಆಟೋಮೌಂಟ್"
 msgid "Automount Keys"
 msgstr "ಕೀಗಳ ಆಟೋಮೌಂಟ್"
 
-msgid "priority cannot be set on global policy"
-msgstr "ಗ್ಲೋಬಲ್ ಪಾಲಿಸಿಯಲ್ಲಿ ಆದ್ಯತೆಯನ್ನು ಸೆಟ್ ಮಾಡಲಾಗುವುದಿಲ್ಲ"
+msgid "Request status"
+msgstr "ಬೇಡಿಕೆ ಸ್ಥಿತಿ"
 
-#, python-format
-msgid "Added user \"%(value)s\""
-msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
+msgid "Revoked"
+msgstr "ರದ್ದು ಮಾಡಲಾಗಿದೆ"
 
-#, python-format
-msgid "Deleted user \"%(value)s\""
-msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಅಳಿಸಲಾಗಿದೆ"
-
-#, python-format
-msgid "Modified user \"%(value)s\""
-msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
+msgid "Revocation reason"
+msgstr "ರದ್ದು ಮಾಡುವುದಕ್ಕೆ ಕಾರಣ"
 
 #, python-format
 msgid "Added group \"%(value)s\""
@@ -669,6 +635,21 @@ msgstr "\"%(value)s\" ಗುಂಪನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 msgid "Modified group \"%(value)s\""
 msgstr "\"%(value)s\" ಗುಂಪನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
+msgid "Access time"
+msgstr "ಪ್ರವೇಶದ ಸಮಯ"
+
+#, python-format
+msgid "Added host \"%(value)s\""
+msgstr "\"%(value)s\" ಹೋಸ್ಟನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
+
+#, python-format
+msgid "Deleted host \"%(value)s\""
+msgstr "\"%(value)s\" ಹೋಸ್ಟನ್ನು ಅಳಿಸಲಾಗಿದೆ"
+
+#, python-format
+msgid "Modified host \"%(value)s\""
+msgstr "\"%(value)s\" ಹೋಸ್ಟನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
+
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
 msgstr "\"%(value)s\" ಹೋಸ್ಟ್‌ಗ್ರೂಪನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
@@ -681,15 +662,34 @@ msgstr "\"%(value)s\" ಹೋಸ್ಟ್‌ಗ್ರೂಪನ್ನು ಅಳಿ
 msgid "Modified hostgroup \"%(value)s\""
 msgstr "\"%(value)s\" ಹೋಸ್ಟ್‌ಗ್ರೂಪನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
 
-msgid "Access time"
-msgstr "ಪ್ರವೇಶದ ಸಮಯ"
+msgid "Groups"
+msgstr "ಗುಂಪುಗಳು"
+
+msgid "Netgroups"
+msgstr "ನೆಟ್‌ಗ್ರೂಪ್‌ಗಳು"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "priority cannot be set on global policy"
+msgstr "ಗ್ಲೋಬಲ್ ಪಾಲಿಸಿಯಲ್ಲಿ ಆದ್ಯತೆಯನ್ನು ಸೆಟ್ ಮಾಡಲಾಗುವುದಿಲ್ಲ"
 
 #, python-format
-msgid "Failure decoding Certificate Signing Request: %s"
-msgstr "ಪ್ರಮಾಣಪತ್ರದ ಸಹಿಯ ಕೋರಿಕೆಯ ಡಿಕೋಡಿಂಗ್‌ನ ವಿಫಲತೆ: %s"
+msgid "Added service \"%(value)s\""
+msgstr "\"%(value)s\" ಸೇವೆ(ಸರ್ವೀಸ್)ಯನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
 
-msgid "Request status"
-msgstr "ಬೇಡಿಕೆ ಸ್ಥಿತಿ"
+#, python-format
+msgid "Deleted service \"%(value)s\""
+msgstr "\"%(value)s\" ಸೇವೆ(ಸರ್ವೀಸ್)ಯನ್ನು ಅಳಿಸಲಾಗಿದೆ"
 
-msgid "Revoked"
-msgstr "ರದ್ದು ಮಾಡಲಾಗಿದೆ"
+#, python-format
+msgid "Added user \"%(value)s\""
+msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಸೇರಿಸಲಾಗಿದೆ"
+
+#, python-format
+msgid "Deleted user \"%(value)s\""
+msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಅಳಿಸಲಾಗಿದೆ"
+
+#, python-format
+msgid "Modified user \"%(value)s\""
+msgstr "\"%(value)s\" ಬಳಕೆದಾರನನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ"
