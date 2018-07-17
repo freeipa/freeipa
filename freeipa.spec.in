@@ -13,9 +13,12 @@
     %global enable_server_option --enable-server
 %endif
 
-# Build with ipatests
+# Build ipatests
+%if 0%{?rhel}
+    %global with_ipatests 0
+%endif
 %if ! %{ONLY_CLIENT}
-    %global with_ipatests 1
+    %{!?with_ipatests:%global with_ipatests 1}
 %endif
 %if 0%{?with_ipatests}
     %global with_ipatests_option --with-ipatests
@@ -25,23 +28,24 @@
 
 # Python 2/3 packages and default Python interpreter
 %if 0%{?rhel} > 7
-%global with_default_python 3
-%global with_python2 0
+    %global with_default_python 3
+    %global with_python2 0
 %endif
 
 %if 0%{?fedora} >= 29
-# F29 only supports Python 3 as default Python
-%global with_default_python 3
+    # F29 only supports Python 3 as default Python
+    %global with_default_python 3
 %endif
 
 %{!?with_default_python:%global with_default_python 3}
 %{!?with_python2:%global with_python2 1}
 
 %if %{with_default_python} == 3
-%global python %{__python3}
+    %global with_python3 1
+    %global python %{__python3}
 %else
-%global with_python2 1
-%global python %{__python2}
+    %global with_python2 1
+    %global python %{__python2}
 %endif
 
 # lint is not executed during rpmbuild
@@ -52,10 +56,11 @@
     %global linter_options --disable-pylint --without-jslint
 %endif
 
-%global alt_name ipa
 %if 0%{?rhel}
-%global krb5_version 1.15.2
-%global krb5_kdb_version 6.1
+%global package_name ipa
+%global alt_name freeipa
+%global krb5_version 1.16.1
+%global krb5_kdb_version 7.0
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.16
 # Require 4.7.0 which brings Python 3 bindings
@@ -65,6 +70,9 @@
 %global python_ldap_version 3.1.0-1
 %global ds_version 1.4.0.8-1
 %else
+# Fedora
+%global package_name freeipa
+%global alt_name ipa
 %global krb5_version 1.16.1
 %global krb5_kdb_version 7.0
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
@@ -109,7 +117,7 @@
 	%define IPA_VERSION nonsense.to.please.RPM.SPEC.parser
 %endif
 
-Name:           freeipa
+Name:           %{package_name}
 Version:        %{IPA_VERSION}
 Release:        0%{?dist}
 Summary:        The Identity, Policy and Audit system
