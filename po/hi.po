@@ -1,18 +1,26 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.90.dev201709011157+git5dcb0e6fc\n"
+"Project-Id-Version: freeipa 4.6.90.pre2\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-09-01 13:58+0200\n"
+"POT-Creation-Date: 2018-05-15 14:59-0400\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2015-01-05 01:10-0500\n"
+"PO-Revision-Date: 2015-01-05 01:10+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Hindi\n"
 "Language: hi\n"
-"X-Generator: Zanata 3.9.6\n"
+"X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+#, c-format
+msgid "Passwords do not match!"
+msgstr "पासवर्ड मेल नहीं खाते"
+
+#, python-format
+msgid "Enter %(label)s again to verify: "
+msgstr "सत्यापित करने के लिए फिर से %(label)s दर्ज करें:"
 
 msgid "an internal error has occurred"
 msgstr "एक आंतरिक त्रुटि हुई है"
@@ -51,13 +59,11 @@ msgstr "एक समूह खुद के ही सदस्य नहीं
 msgid "Base64 decoding failed: %(reason)s"
 msgstr "बेस६४ डिकोडिंग विफल: %(reason)s"
 
-#, python-format
-msgid "Enter %(label)s again to verify: "
-msgstr "सत्यापित करने के लिए फिर से %(label)s दर्ज करें:"
+msgid "A list of LDAP entries"
+msgstr "LDAP प्रविष्टियों की सूची"
 
-#, c-format
-msgid "Passwords do not match!"
-msgstr "पासवर्ड मेल नहीं खाते"
+msgid "All commands should at least have a result"
+msgstr "सभी आदेशों का कम से कम परिणाम होना चाहिए"
 
 msgid "incorrect type"
 msgstr "गलत प्रकार"
@@ -67,9 +73,3 @@ msgstr "केवल एक मान की अनुमति है"
 
 msgid "must be True or False"
 msgstr "सही या गलत होना चाहिए"
-
-msgid "A list of LDAP entries"
-msgstr "LDAP प्रविष्टियों की सूची"
-
-msgid "All commands should at least have a result"
-msgstr "सभी आदेशों का कम से कम परिणाम होना चाहिए"

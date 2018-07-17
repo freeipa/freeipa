@@ -1,27 +1,21 @@
 # Robert Antoni Buj Gelonch <rbuj@fedoraproject.org>, 2018. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.90.dev201709011157+git5dcb0e6fc\n"
+"Project-Id-Version: freeipa 4.6.90.pre2\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-09-01 13:58+0200\n"
+"POT-Creation-Date: 2018-05-15 14:59-0400\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-02-24 10:56-0500\n"
+"PO-Revision-Date: 2018-02-24 10:56+0000\n"
 "Last-Translator: Robert Antoni Buj Gelonch <rbuj@fedoraproject.org>\n"
 "Language-Team: Catalan\n"
 "Language: ca\n"
-"X-Generator: Zanata 3.9.6\n"
+"X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-msgid "Passwords do not match"
-msgstr "Les contrasenyes no coincideixen"
-
-msgid "Command not implemented"
-msgstr "No s'ha implementat l'ordre"
-
-msgid "Debugging output"
-msgstr "Sortida de depuració"
+msgid "Server Name"
+msgstr "Nom del servidor"
 
 msgid "filename"
 msgstr "nomdelfitxer"
@@ -29,38 +23,23 @@ msgstr "nomdelfitxer"
 msgid "password"
 msgstr "contrasenya"
 
-msgid "Server Name"
-msgstr "Nom del servidor"
+msgid "Debugging output"
+msgstr "Sortida de depuració"
 
-msgid "User name"
-msgstr "Nom d'usuari"
-
-msgid "Rights"
-msgstr "Drets"
-
-msgid "Username"
-msgstr "Nom d'usuari"
+msgid "Error"
+msgstr "Error"
 
 msgid "Password"
 msgstr "Contrasenya"
 
-msgid "Certificate"
-msgstr "Certificat"
+msgid "Invalid credentials"
+msgstr "Credencials no vàlides"
 
-msgid "Force"
-msgstr "Força"
+msgid "Data"
+msgstr "Dades"
 
-msgid "Description"
-msgstr "Descripció"
-
-msgid "Enabled"
-msgstr "S'ha habilitat"
-
-msgid "Users"
-msgstr "Usuaris"
-
-msgid "Commands"
-msgstr "Ordres"
+msgid "Permission"
+msgstr "Permís"
 
 msgid "Permissions"
 msgstr "Permisos"
@@ -77,35 +56,14 @@ msgstr "Filtre"
 msgid "Subtree"
 msgstr "Subarbre"
 
-msgid "Rename"
-msgstr "Canvia el nom"
+msgid "Description"
+msgstr "Descripció"
 
-msgid "Host name"
-msgstr "Nom de l'amfitrió"
+msgid "Rights"
+msgstr "Drets"
 
-msgid "Locality"
-msgstr "Localitat"
-
-msgid "Location"
-msgstr "Ubicació"
-
-msgid "Platform"
-msgstr "Plataforma"
-
-msgid "Operating system"
-msgstr "Sistema operatiu"
-
-msgid "IP Address"
-msgstr "Adreça IP"
-
-msgid "user"
-msgstr "usuari"
-
-msgid "Permission"
-msgstr "Permís"
-
-msgid "Continue"
-msgstr "Continua"
+msgid "Users"
+msgstr "Usuaris"
 
 msgid "Key"
 msgstr "Tecla"
@@ -113,23 +71,149 @@ msgstr "Tecla"
 msgid "description"
 msgstr "descripció"
 
+msgid "Location"
+msgstr "Ubicació"
+
 msgid "Map"
 msgstr "Mapa"
+
+msgid "Rename"
+msgstr "Canvia el nom"
 
 msgid "Mount point"
 msgstr "Punt de muntatge"
 
-msgid "Group"
-msgstr "Grup"
+msgid "Subject"
+msgstr "Assumpte"
+
+msgid "Reason"
+msgstr "Raó"
+
+msgid "Serial number"
+msgstr "Número de sèrie"
+
+msgid "IP Address"
+msgstr "Adreça IP"
+
+msgid "Subtype"
+msgstr "Subtipus"
+
+msgid "Hostname"
+msgstr "Nom de l'ordinador"
+
+msgid "Algorithm"
+msgstr "Algorisme"
+
+msgid "Target"
+msgstr "Objectiu"
+
+msgid "Size"
+msgstr "Mida"
+
+msgid "Flags"
+msgstr "Indicadors"
+
+msgid "Regular Expression"
+msgstr "Expressió regular"
 
 msgid "Priority"
 msgstr "Prioritat"
 
-msgid "User"
-msgstr "Usuari"
+msgid "Weight"
+msgstr "Pes"
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Fingerprint"
+msgstr "Empremta"
+
+msgid "Force"
+msgstr "Força"
+
+msgid "Group name"
+msgstr "Nom del grup"
+
+msgid "user"
+msgstr "usuari"
+
+msgid "group"
+msgstr "grup"
+
+msgid "Enabled"
+msgstr "S'ha habilitat"
+
+msgid "Services"
+msgstr "Serveis"
+
+msgid "User name"
+msgstr "Nom d'usuari"
+
+msgid "Warning"
+msgstr "Avís"
+
+msgid "Host name"
+msgstr "Nom de l'amfitrió"
+
+msgid "Locality"
+msgstr "Localitat"
+
+msgid "Platform"
+msgstr "Plataforma"
+
+msgid "Operating system"
+msgstr "Sistema operatiu"
+
+msgid "Certificate"
+msgstr "Certificat"
+
+msgid "Class"
+msgstr "Classe"
 
 msgid "User login"
 msgstr "Entrada"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "Home directory"
+msgstr "Directori de l'usuari"
+
+msgid "Login shell"
+msgstr "Shell d'inici de sessió"
+
+msgid "Continue"
+msgstr "Continua"
+
+msgid "Netgroup name"
+msgstr "Nom de grup de xarxa"
+
+msgid "Manager"
+msgstr "Gestor"
+
+msgid "Disabled"
+msgstr "Inhabilitat"
+
+msgid "New Password"
+msgstr "Contrasenya nova"
+
+msgid "permissions"
+msgstr "permisos"
+
+msgid "Group"
+msgstr "Grup"
+
+msgid "User"
+msgstr "Usuari"
+
+msgid "Server"
+msgstr "Servidor"
+
+msgid "Domain"
+msgstr "Domini"
+
+msgid "Commands"
+msgstr "Ordres"
 
 msgid "First name"
 msgstr "Nom"
@@ -143,17 +227,8 @@ msgstr "Nom complet"
 msgid "Initials"
 msgstr "Inicials"
 
-msgid "Home directory"
-msgstr "Directori de l'usuari"
-
-msgid "Login shell"
-msgstr "Shell d'inici de sessió"
-
 msgid "Email address"
 msgstr "Adreça de correu electrònic"
-
-msgid "UID"
-msgstr "UID"
 
 msgid "City"
 msgstr "Ciutat"
@@ -173,95 +248,47 @@ msgstr "Número de fax"
 msgid "Job Title"
 msgstr "Càrrec"
 
-msgid "Manager"
-msgstr "Gestor"
-
 msgid "Self"
 msgstr "Ell mateix"
 
-msgid "group"
-msgstr "grup"
+msgid "Username"
+msgstr "Nom d'usuari"
 
-msgid "Group name"
-msgstr "Nom del grup"
+msgid "Passwords do not match"
+msgstr "Les contrasenyes no coincideixen"
 
-msgid "New Password"
-msgstr "Contrasenya nova"
+msgid "Command not implemented"
+msgstr "No s'ha implementat l'ordre"
 
-msgid "Netgroup name"
-msgstr "Nom de grup de xarxa"
+msgid "entry"
+msgstr "entrada"
 
-msgid "Class"
-msgstr "Classe"
+msgid "Issuer"
+msgstr "Emissor"
 
-msgid "Subtype"
-msgstr "Subtipus"
+msgid "Not Before"
+msgstr "No abans"
 
-msgid "Hostname"
-msgstr "Nom de l'ordinador"
+msgid "Not After"
+msgstr "No després"
 
-msgid "Algorithm"
-msgstr "Algorisme"
+msgid "Status"
+msgstr "Estat"
 
-msgid "Target"
-msgstr "Objectiu"
+msgid "Revoked"
+msgstr "Revocat"
 
-msgid "Flags"
-msgstr "Indicadors"
+msgid "Configuration"
+msgstr "Configuració"
 
-msgid "Size"
-msgstr "Mida"
+msgid "Access time"
+msgstr "Temps d'accés"
 
-msgid "Regular Expression"
-msgstr "Expressió regular"
+msgid "Host"
+msgstr "Ordinador central"
 
-msgid "Weight"
-msgstr "Pes"
-
-msgid "Port"
-msgstr "Port"
-
-msgid "Fingerprint"
-msgstr "Empremta"
-
-msgid "Services"
-msgstr "Serveis"
-
-msgid "Warning"
-msgstr "Avís"
-
-msgid "Serial number"
+msgid "Serial Number"
 msgstr "Número de sèrie"
-
-msgid "Reason"
-msgstr "Raó"
-
-msgid "Domain"
-msgstr "Domini"
-
-msgid "Server"
-msgstr "Servidor"
-
-msgid "Disabled"
-msgstr "Inhabilitat"
-
-msgid "permissions"
-msgstr "permisos"
-
-msgid "Subject"
-msgstr "Assumpte"
-
-msgid "Invalid credentials"
-msgstr "Credencials no vàlides"
-
-msgid "Data"
-msgstr "Dades"
-
-msgid "Error"
-msgstr "Error"
-
-msgid "Out of memory\n"
-msgstr "Sense memòria\n"
 
 msgid "Apply"
 msgstr "Aplica"
@@ -356,12 +383,6 @@ msgstr "Cerca"
 msgid "False"
 msgstr "Fals"
 
-msgid "Login"
-msgstr "Entra"
-
-msgid "Logout"
-msgstr "Surt"
-
 msgid "seconds"
 msgstr "segons"
 
@@ -425,14 +446,8 @@ msgstr "Organització"
 msgid "Organizational Unit"
 msgstr "Unitat organitzativa"
 
-msgid "Serial Number"
-msgstr "Número de sèrie"
-
 msgid "SHA1 Fingerprint"
 msgstr "Empremta digital SHA1"
-
-msgid "Status"
-msgstr "Estat"
 
 msgid "Superseded"
 msgstr "Substituït"
@@ -442,9 +457,6 @@ msgstr "Sense especificar"
 
 msgid "Validity"
 msgstr "Validesa"
-
-msgid "Issuer"
-msgstr "Emissor"
 
 msgid "Options"
 msgstr "Opcions"
@@ -478,9 +490,6 @@ msgstr "No coincideix"
 
 msgid "Host Name"
 msgstr "Nom de l'ordinador"
-
-msgid "Host"
-msgstr "Ordinador central"
 
 msgid "Modified"
 msgstr "Modificat"
@@ -530,38 +539,23 @@ msgstr "Pàgina"
 msgid "Prev"
 msgstr "Anterior"
 
-msgid "entry"
-msgstr "entrada"
+msgid "Role"
+msgstr "Rol"
 
 msgid "services"
 msgstr "serveis"
 
-msgid "Not Before"
-msgstr "No abans"
-
-msgid "Not After"
-msgstr "No després"
-
 msgid "users"
 msgstr "usuaris"
-
-msgid "Time now"
-msgstr "L'hora actual"
-
-msgid "Role"
-msgstr "Rol"
-
-msgid "Access time"
-msgstr "Temps d'accés"
-
-msgid "Revoked"
-msgstr "Revocat"
-
-msgid "Unknown"
-msgstr "Desconegut"
 
 msgid "Trust"
 msgstr "Confiança"
 
-msgid "Configuration"
-msgstr "Configuració"
+msgid "Time now"
+msgstr "L'hora actual"
+
+msgid "Unknown"
+msgstr "Desconegut"
+
+msgid "Out of memory\n"
+msgstr "Sense memòria\n"

@@ -1,18 +1,63 @@
 # Abhijeet Kasurde <akasurde@redhat.com>, 2015. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.90.dev201709011157+git5dcb0e6fc\n"
+"Project-Id-Version: freeipa 4.6.90.pre2\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-09-01 13:58+0200\n"
+"POT-Creation-Date: 2018-05-15 14:59-0400\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2015-12-04 03:55-0500\n"
+"PO-Revision-Date: 2015-12-04 03:55+0000\n"
 "Last-Translator: Abhijeet Kasurde <akasurde@redhat.com>\n"
 "Language-Team: Marathi\n"
 "Language: mr\n"
-"X-Generator: Zanata 3.9.6\n"
+"X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+#, c-format
+msgid "Passwords do not match!"
+msgstr "पासवर्ड जुळत नाही!"
+
+msgid "A string searched in all relevant object attributes"
+msgstr "एक शब्द सर्व संबंधित ऑब्जेक्ट गुणधर्मात शोधला"
+
+#, python-format
+msgid "Enter %(label)s again to verify: "
+msgstr "सत्यापित करण्यासाठी आपण पुन्हा %(label)s प्रविष्ट करा:"
+
+msgid "No matching entries found"
+msgstr "कोणतेही जुळणारे नोंदी आढळले"
+
+msgid "Topic or Command"
+msgstr "विषय किंवा आदेश"
+
+msgid "The topic or command name."
+msgstr "विषय किंवा आदेशाचे नाव"
+
+msgid "Topic commands:"
+msgstr "विषय आदेश:"
+
+msgid "To get command help, use:"
+msgstr "आदेशा संबधित मिळवण्यासाठी, वापरा:"
+
+msgid "  ipa <command> --help"
+msgstr " ipa <command> --help"
+
+msgid "Command name"
+msgstr "आदेशाचे नाव "
+
+msgid "Positional arguments"
+msgstr "positional वितर्क"
+
+#, python-format
+msgid "Same as --%s"
+msgstr "--%s सारखा"
+
+msgid "Deprecated options"
+msgstr "वापरात नसलेले पर्याय"
+
+msgid "No file to read"
+msgstr "कोणतीही फाइल वाचण्यासाठी नाही "
 
 msgid "an internal error has occurred"
 msgstr "एक अंतर्गत त्रुटी आली आहे"
@@ -51,48 +96,3 @@ msgstr "Kerberos credentials प्राप्त झाले नाहीत"
 #, python-format
 msgid "Service '%(service)s' not found in Kerberos database"
 msgstr "सेवा '%(service)s' Kerberos माहितीकोष आढली नाही"
-
-#, python-format
-msgid "Enter %(label)s again to verify: "
-msgstr "सत्यापित करण्यासाठी आपण पुन्हा %(label)s प्रविष्ट करा:"
-
-#, c-format
-msgid "Passwords do not match!"
-msgstr "पासवर्ड जुळत नाही!"
-
-msgid "No matching entries found"
-msgstr "कोणतेही जुळणारे नोंदी आढळले"
-
-msgid "Topic or Command"
-msgstr "विषय किंवा आदेश"
-
-msgid "The topic or command name."
-msgstr "विषय किंवा आदेशाचे नाव"
-
-msgid "Topic commands:"
-msgstr "विषय आदेश:"
-
-msgid "To get command help, use:"
-msgstr "आदेशा संबधित मिळवण्यासाठी, वापरा:"
-
-msgid "  ipa <command> --help"
-msgstr " ipa <command> --help"
-
-msgid "Command name"
-msgstr "आदेशाचे नाव "
-
-msgid "Positional arguments"
-msgstr "positional वितर्क"
-
-#, python-format
-msgid "Same as --%s"
-msgstr "--%s सारखा"
-
-msgid "Deprecated options"
-msgstr "वापरात नसलेले पर्याय"
-
-msgid "No file to read"
-msgstr "कोणतीही फाइल वाचण्यासाठी नाही "
-
-msgid "A string searched in all relevant object attributes"
-msgstr "एक शब्द सर्व संबंधित ऑब्जेक्ट गुणधर्मात शोधला"
