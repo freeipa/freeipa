@@ -7,7 +7,7 @@ For more information, see http://www.freeipa.org/page/Build
 
 The quickest way to get the dependencies needed for building is:
 
-# dnf builddep -b -D "with_python3 1" -D "with_wheels 1" -D "with_lint 1" --spec freeipa.spec.in --best --allowerasing
+# dnf builddep -b -D "with_wheels 1" -D "with_lint 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False
 
 TIP: For building with latest dependencies for freeipa master enable copr repo:
 
