@@ -608,7 +608,7 @@ def get_package(server_info, client):
             s = topic['topic_topic']
             if isinstance(s, bytes):
                 s = s.decode('utf-8')
-            module.topic = s.partition('/')[0]
+            module.topic = str(s).partition('/')[0]
         else:
             module.topic = None
 
