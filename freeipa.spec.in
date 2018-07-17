@@ -1288,7 +1288,6 @@ fi
 %if ! %{ONLY_CLIENT}
 
 %files server
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-backup
@@ -1376,7 +1375,6 @@ fi
 %if 0%{?with_python2} && 0%{?fedora} < 29
 # Fedora 29 workaround: don't build python2-ipaserver, python2-pki is n/a
 %files -n python2-ipaserver
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{python2_sitelib}/ipaserver
@@ -1385,7 +1383,6 @@ fi
 %endif # with_python2 and Fedora < 29
 
 %files -n python3-ipaserver
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{python3_sitelib}/ipaserver
@@ -1393,7 +1390,6 @@ fi
 
 
 %files server-common
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %ghost %verify(not owner group) %dir %{_sharedstatedir}/kdcproxy
@@ -1479,7 +1475,6 @@ fi
 %{_usr}/share/ipa/ipakrb5.aug
 
 %files server-dns
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-dnskeysyncd
@@ -1495,7 +1490,6 @@ fi
 %attr(644,root,root) %{_unitdir}/ipa-ods-exporter.service
 
 %files server-trust-ad
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-adtrust-install
@@ -1511,7 +1505,6 @@ fi
 
 
 %files client
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-client-install
@@ -1533,7 +1526,6 @@ fi
 %if 0%{?with_python2}
 
 %files -n python2-ipaclient
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{python2_sitelib}/ipaclient
@@ -1558,7 +1550,6 @@ fi
 %endif # with_python2
 
 %files -n python3-ipaclient
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{python3_sitelib}/ipaclient
@@ -1587,7 +1578,6 @@ fi
 
 
 %files client-common
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/
@@ -1613,14 +1603,12 @@ fi
 
 
 %files python-compat
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 
 %if 0%{?with_python2}
 
 %files -n python2-ipalib
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{python2_sitelib}/ipapython
@@ -1641,14 +1629,12 @@ fi
 %endif # with_python2
 
 %files common -f %{gettext_domain}.lang
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{_usr}/share/ipa
 
 
 %files -n python3-ipalib
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 
@@ -1666,7 +1652,6 @@ fi
 %if 0%{?with_python2} && 0%{?fedora} < 29
 # Fedora 29 workaround: don't build python2-ipatests, depends on ipaserver
 %files -n python2-ipatests
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{python2_sitelib}/ipatests
@@ -1689,7 +1674,6 @@ fi
 %endif # with_python2 and Fedora < 29
 
 %files -n python3-ipatests
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{python3_sitelib}/ipatests
