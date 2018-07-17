@@ -13,9 +13,12 @@
     %global enable_server_option --enable-server
 %endif
 
-# Build with ipatests
+# Build ipatests
+%if 0%{?rhel}
+    %global with_ipatests 0
+%endif
 %if ! %{ONLY_CLIENT}
-    %global with_ipatests 1
+    %{!?with_ipatests:%global with_ipatests 1}
 %endif
 %if 0%{?with_ipatests}
     %global with_ipatests_option --with-ipatests
@@ -25,23 +28,24 @@
 
 # Python 2/3 packages and default Python interpreter
 %if 0%{?rhel} > 7
-%global with_default_python 3
-%global with_python2 0
+    %global with_default_python 3
+    %global with_python2 0
 %endif
 
 %if 0%{?fedora} >= 29
-# F29 only supports Python 3 as default Python
-%global with_default_python 3
+    # F29 only supports Python 3 as default Python
+    %global with_default_python 3
 %endif
 
 %{!?with_default_python:%global with_default_python 3}
 %{!?with_python2:%global with_python2 1}
 
 %if %{with_default_python} == 3
-%global python %{__python3}
+    %global with_python3 1
+    %global python %{__python3}
 %else
-%global with_python2 1
-%global python %{__python2}
+    %global with_python2 1
+    %global python %{__python2}
 %endif
 
 # lint is not executed during rpmbuild
@@ -52,10 +56,11 @@
     %global linter_options --disable-pylint --without-jslint
 %endif
 
-%global alt_name ipa
 %if 0%{?rhel}
-%global krb5_version 1.15.2
-%global krb5_kdb_version 6.1
+%global package_name ipa
+%global alt_name freeipa
+%global krb5_version 1.16.1
+%global krb5_kdb_version 7.0
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
 %global python_netaddr_version 0.7.16
 # Require 4.7.0 which brings Python 3 bindings
@@ -65,6 +70,9 @@
 %global python_ldap_version 3.1.0-1
 %global ds_version 1.4.0.8-1
 %else
+# Fedora
+%global package_name freeipa
+%global alt_name ipa
 %global krb5_version 1.16.1
 %global krb5_kdb_version 7.0
 # 0.7.16: https://github.com/drkjam/netaddr/issues/71
@@ -109,7 +117,7 @@
 	%define IPA_VERSION nonsense.to.please.RPM.SPEC.parser
 %endif
 
-Name:           freeipa
+Name:           %{package_name}
 Version:        %{IPA_VERSION}
 Release:        0%{?dist}
 Summary:        The Identity, Policy and Audit system
@@ -1280,7 +1288,6 @@ fi
 %if ! %{ONLY_CLIENT}
 
 %files server
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-backup
@@ -1368,7 +1375,6 @@ fi
 %if 0%{?with_python2} && 0%{?fedora} < 29
 # Fedora 29 workaround: don't build python2-ipaserver, python2-pki is n/a
 %files -n python2-ipaserver
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{python2_sitelib}/ipaserver
@@ -1377,7 +1383,6 @@ fi
 %endif # with_python2 and Fedora < 29
 
 %files -n python3-ipaserver
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{python3_sitelib}/ipaserver
@@ -1385,7 +1390,6 @@ fi
 
 
 %files server-common
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %ghost %verify(not owner group) %dir %{_sharedstatedir}/kdcproxy
@@ -1471,7 +1475,6 @@ fi
 %{_usr}/share/ipa/ipakrb5.aug
 
 %files server-dns
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-dnskeysyncd
@@ -1487,7 +1490,6 @@ fi
 %attr(644,root,root) %{_unitdir}/ipa-ods-exporter.service
 
 %files server-trust-ad
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-adtrust-install
@@ -1503,7 +1505,6 @@ fi
 
 
 %files client
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{_sbindir}/ipa-client-install
@@ -1525,32 +1526,30 @@ fi
 %if 0%{?with_python2}
 
 %files -n python2-ipaclient
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
-%dir %{python_sitelib}/ipaclient
-%{python_sitelib}/ipaclient/*.py*
-%dir %{python_sitelib}/ipaclient/install
-%{python_sitelib}/ipaclient/install/*.py*
-%dir %{python_sitelib}/ipaclient/plugins
-%{python_sitelib}/ipaclient/plugins/*.py*
-%dir %{python_sitelib}/ipaclient/remote_plugins
-%{python_sitelib}/ipaclient/remote_plugins/*.py*
-%dir %{python_sitelib}/ipaclient/remote_plugins/2_*
-%{python_sitelib}/ipaclient/remote_plugins/2_*/*.py*
-%dir %{python_sitelib}/ipaclient/csrgen
-%dir %{python_sitelib}/ipaclient/csrgen/profiles
-%{python_sitelib}/ipaclient/csrgen/profiles/*.json
-%dir %{python_sitelib}/ipaclient/csrgen/rules
-%{python_sitelib}/ipaclient/csrgen/rules/*.json
-%dir %{python_sitelib}/ipaclient/csrgen/templates
-%{python_sitelib}/ipaclient/csrgen/templates/*.tmpl
-%{python_sitelib}/ipaclient-*.egg-info
+%dir %{python2_sitelib}/ipaclient
+%{python2_sitelib}/ipaclient/*.py*
+%dir %{python2_sitelib}/ipaclient/install
+%{python2_sitelib}/ipaclient/install/*.py*
+%dir %{python2_sitelib}/ipaclient/plugins
+%{python2_sitelib}/ipaclient/plugins/*.py*
+%dir %{python2_sitelib}/ipaclient/remote_plugins
+%{python2_sitelib}/ipaclient/remote_plugins/*.py*
+%dir %{python2_sitelib}/ipaclient/remote_plugins/2_*
+%{python2_sitelib}/ipaclient/remote_plugins/2_*/*.py*
+%dir %{python2_sitelib}/ipaclient/csrgen
+%dir %{python2_sitelib}/ipaclient/csrgen/profiles
+%{python2_sitelib}/ipaclient/csrgen/profiles/*.json
+%dir %{python2_sitelib}/ipaclient/csrgen/rules
+%{python2_sitelib}/ipaclient/csrgen/rules/*.json
+%dir %{python2_sitelib}/ipaclient/csrgen/templates
+%{python2_sitelib}/ipaclient/csrgen/templates/*.tmpl
+%{python2_sitelib}/ipaclient-*.egg-info
 
 %endif # with_python2
 
 %files -n python3-ipaclient
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{python3_sitelib}/ipaclient
@@ -1579,7 +1578,6 @@ fi
 
 
 %files client-common
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/
@@ -1605,42 +1603,38 @@ fi
 
 
 %files python-compat
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 
 %if 0%{?with_python2}
 
 %files -n python2-ipalib
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
-%dir %{python_sitelib}/ipapython
-%{python_sitelib}/ipapython/*.py*
-%dir %{python_sitelib}/ipapython/install
-%{python_sitelib}/ipapython/install/*.py*
-%dir %{python_sitelib}/ipalib
-%{python_sitelib}/ipalib/*.py*
-%dir %{python_sitelib}/ipalib/install
-%{python_sitelib}/ipalib/install/*.py*
-%dir %{python_sitelib}/ipaplatform
-%{python_sitelib}/ipaplatform/*
-%{python_sitelib}/ipapython-*.egg-info
-%{python_sitelib}/ipalib-*.egg-info
-%{python_sitelib}/ipaplatform-*.egg-info
-%{python_sitelib}/ipaplatform-*-nspkg.pth
+%dir %{python2_sitelib}/ipapython
+%{python2_sitelib}/ipapython/*.py*
+%dir %{python2_sitelib}/ipapython/install
+%{python2_sitelib}/ipapython/install/*.py*
+%dir %{python2_sitelib}/ipalib
+%{python2_sitelib}/ipalib/*.py*
+%dir %{python2_sitelib}/ipalib/install
+%{python2_sitelib}/ipalib/install/*.py*
+%dir %{python2_sitelib}/ipaplatform
+%{python2_sitelib}/ipaplatform/*
+%{python2_sitelib}/ipapython-*.egg-info
+%{python2_sitelib}/ipalib-*.egg-info
+%{python2_sitelib}/ipaplatform-*.egg-info
+%{python2_sitelib}/ipaplatform-*-nspkg.pth
 
 %endif # with_python2
 
 %files common -f %{gettext_domain}.lang
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %dir %{_usr}/share/ipa
 
 
 %files -n python3-ipalib
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 
@@ -1658,11 +1652,10 @@ fi
 %if 0%{?with_python2} && 0%{?fedora} < 29
 # Fedora 29 workaround: don't build python2-ipatests, depends on ipaserver
 %files -n python2-ipatests
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
-%{python_sitelib}/ipatests
-%{python_sitelib}/ipatests-*.egg-info
+%{python2_sitelib}/ipatests
+%{python2_sitelib}/ipatests-*.egg-info
 %{_bindir}/ipa-run-tests-2
 %{_bindir}/ipa-test-config-2
 %{_bindir}/ipa-test-task-2
@@ -1681,7 +1674,6 @@ fi
 %endif # with_python2 and Fedora < 29
 
 %files -n python3-ipatests
-%defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
 %{python3_sitelib}/ipatests
