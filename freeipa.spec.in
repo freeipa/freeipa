@@ -1528,24 +1528,24 @@ fi
 %defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
-%dir %{python_sitelib}/ipaclient
-%{python_sitelib}/ipaclient/*.py*
-%dir %{python_sitelib}/ipaclient/install
-%{python_sitelib}/ipaclient/install/*.py*
-%dir %{python_sitelib}/ipaclient/plugins
-%{python_sitelib}/ipaclient/plugins/*.py*
-%dir %{python_sitelib}/ipaclient/remote_plugins
-%{python_sitelib}/ipaclient/remote_plugins/*.py*
-%dir %{python_sitelib}/ipaclient/remote_plugins/2_*
-%{python_sitelib}/ipaclient/remote_plugins/2_*/*.py*
-%dir %{python_sitelib}/ipaclient/csrgen
-%dir %{python_sitelib}/ipaclient/csrgen/profiles
-%{python_sitelib}/ipaclient/csrgen/profiles/*.json
-%dir %{python_sitelib}/ipaclient/csrgen/rules
-%{python_sitelib}/ipaclient/csrgen/rules/*.json
-%dir %{python_sitelib}/ipaclient/csrgen/templates
-%{python_sitelib}/ipaclient/csrgen/templates/*.tmpl
-%{python_sitelib}/ipaclient-*.egg-info
+%dir %{python2_sitelib}/ipaclient
+%{python2_sitelib}/ipaclient/*.py*
+%dir %{python2_sitelib}/ipaclient/install
+%{python2_sitelib}/ipaclient/install/*.py*
+%dir %{python2_sitelib}/ipaclient/plugins
+%{python2_sitelib}/ipaclient/plugins/*.py*
+%dir %{python2_sitelib}/ipaclient/remote_plugins
+%{python2_sitelib}/ipaclient/remote_plugins/*.py*
+%dir %{python2_sitelib}/ipaclient/remote_plugins/2_*
+%{python2_sitelib}/ipaclient/remote_plugins/2_*/*.py*
+%dir %{python2_sitelib}/ipaclient/csrgen
+%dir %{python2_sitelib}/ipaclient/csrgen/profiles
+%{python2_sitelib}/ipaclient/csrgen/profiles/*.json
+%dir %{python2_sitelib}/ipaclient/csrgen/rules
+%{python2_sitelib}/ipaclient/csrgen/rules/*.json
+%dir %{python2_sitelib}/ipaclient/csrgen/templates
+%{python2_sitelib}/ipaclient/csrgen/templates/*.tmpl
+%{python2_sitelib}/ipaclient-*.egg-info
 
 %endif # with_python2
 
@@ -1615,20 +1615,20 @@ fi
 %defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
-%dir %{python_sitelib}/ipapython
-%{python_sitelib}/ipapython/*.py*
-%dir %{python_sitelib}/ipapython/install
-%{python_sitelib}/ipapython/install/*.py*
-%dir %{python_sitelib}/ipalib
-%{python_sitelib}/ipalib/*.py*
-%dir %{python_sitelib}/ipalib/install
-%{python_sitelib}/ipalib/install/*.py*
-%dir %{python_sitelib}/ipaplatform
-%{python_sitelib}/ipaplatform/*
-%{python_sitelib}/ipapython-*.egg-info
-%{python_sitelib}/ipalib-*.egg-info
-%{python_sitelib}/ipaplatform-*.egg-info
-%{python_sitelib}/ipaplatform-*-nspkg.pth
+%dir %{python2_sitelib}/ipapython
+%{python2_sitelib}/ipapython/*.py*
+%dir %{python2_sitelib}/ipapython/install
+%{python2_sitelib}/ipapython/install/*.py*
+%dir %{python2_sitelib}/ipalib
+%{python2_sitelib}/ipalib/*.py*
+%dir %{python2_sitelib}/ipalib/install
+%{python2_sitelib}/ipalib/install/*.py*
+%dir %{python2_sitelib}/ipaplatform
+%{python2_sitelib}/ipaplatform/*
+%{python2_sitelib}/ipapython-*.egg-info
+%{python2_sitelib}/ipalib-*.egg-info
+%{python2_sitelib}/ipaplatform-*.egg-info
+%{python2_sitelib}/ipaplatform-*-nspkg.pth
 
 %endif # with_python2
 
@@ -1661,8 +1661,8 @@ fi
 %defattr(-,root,root,-)
 %doc README.md Contributors.txt
 %license COPYING
-%{python_sitelib}/ipatests
-%{python_sitelib}/ipatests-*.egg-info
+%{python2_sitelib}/ipatests
+%{python2_sitelib}/ipatests-*.egg-info
 %{_bindir}/ipa-run-tests-2
 %{_bindir}/ipa-test-config-2
 %{_bindir}/ipa-test-task-2
