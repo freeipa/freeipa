@@ -1485,7 +1485,10 @@ def install(installer):
     otpd.create_instance('OTPD', config.host_name,
                          ipautil.realm_to_suffix(config.realm_name))
 
-    if ca_enabled:
+    if kra_enabled:
+        # A KRA peer always provides a CA, too.
+        mode = custodiainstance.CustodiaModes.KRA_PEER
+    elif ca_enabled:
         mode = custodiainstance.CustodiaModes.CA_PEER
     else:
         mode = custodiainstance.CustodiaModes.MASTER_PEER
