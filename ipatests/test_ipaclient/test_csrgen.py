@@ -9,8 +9,16 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography import x509
 
-from ipaclient import csrgen, csrgen_ffi
 from ipalib import errors
+
+try:
+    from ipaclient import csrgen, csrgen_ffi
+except ImportError:
+    pytest.skip(
+        "ipaclient.csrgen is not available",
+        allow_module_level=True
+    )
+
 
 BASE_DIR = os.path.dirname(__file__)
 CSR_DATA_DIR = os.path.join(BASE_DIR, 'data', 'test_csrgen')

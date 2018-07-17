@@ -26,6 +26,13 @@
     %global with_ipatests_option --without-ipatests
 %endif
 
+# Include ipaclient.csrgen feature
+%if 0%{?rhel}
+    %global with_csrgen 0
+%else
+    %{!?with_csrgen:%global with_csrgen 1}
+%endif
+
 # Python 2/3 packages and default Python interpreter
 %if 0%{?rhel} > 7
     %global with_default_python 3
@@ -230,7 +237,9 @@ BuildRequires:  python2-dns
 BuildRequires:  python2-dns >= 1.15
 BuildRequires:  python2-enum34
 BuildRequires:  python2-gssapi >= 1.2.0-5
+%if 0%{?with_csrgen}
 BuildRequires:  python2-jinja2
+%endif
 BuildRequires:  python2-jwcrypto >= 0.4.2
 BuildRequires:  python2-ldap >= %{python_ldap_version}
 BuildRequires:  python2-libipa_hbac
@@ -268,7 +277,9 @@ BuildRequires:  python3-dateutil
 BuildRequires:  python3-dbus
 BuildRequires:  python3-dns >= 1.15
 BuildRequires:  python3-gssapi >= 1.2.0
+%if 0%{?with_csrgen}
 BuildRequires:  python3-jinja2
+%endif
 BuildRequires:  python3-jwcrypto >= 0.4.2
 BuildRequires:  python3-ldap >= %{python_ldap_version}
 BuildRequires:  python3-ldap >= %{python_ldap_version}
@@ -646,7 +657,9 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: python2-ipalib = %{version}-%{release}
 Requires: python2-augeas
 Requires: python2-dns >= 1.15
+%if 0%{?with_csrgen}
 Requires: python2-jinja2
+%endif
 
 %description -n python2-ipaclient
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -669,7 +682,9 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: python3-ipalib = %{version}-%{release}
 Requires: python3-augeas
 Requires: python3-dns >= 1.15
+%if 0%{?with_csrgen}
 Requires: python3-jinja2
+%endif
 
 %description -n python3-ipaclient
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -1046,6 +1061,29 @@ ln -frs %{buildroot}%{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_b
 
 # remove files which are useful only for make uninstall
 find %{buildroot} -wholename '*/site-packages/*/install_files.txt' -exec rm {} \;
+
+# remove csrgen bits and pieces
+%if ! 0%{?with_csrgen}
+%if 0%{?with_python2}
+rm -rf %{buildroot}%{python2_sitelib}/ipaclient/csrgen/
+rm -f %{buildroot}%{python2_sitelib}/ipaclient/csrgen*.py*
+rm -f %{buildroot}%{python2_sitelib}/ipaclient/plugins/csrgen.py*
+%if 0%{?with_ipatests}
+rm -f %{buildroot}%{python2_sitelib}/test_ipaclient/test_csrgen.py*
+%endif
+%endif  # with_python2
+%if 0%{?with_python3}
+rm -rf %{buildroot}%{python3_sitelib}/ipaclient/csrgen/
+rm -f %{buildroot}%{python3_sitelib}/ipaclient/csrgen*.py*
+rm -f %{buildroot}%{python3_sitelib}/ipaclient/__pycache__/csrgen*.py*
+rm -f %{buildroot}%{python3_sitelib}/ipaclient/plugins/csrgen.py*
+rm -f %{buildroot}%{python3_sitelib}/ipaclient/plugins/__pycache__/csrgen*.py*
+%if 0%{?with_ipatests}
+rm -f %{buildroot}%{python3_sitelib}/test_ipaclient/test_csrgen.py
+rm -f %{buildroot}%{python3_sitelib}/test_ipaclient/__pycache__/test_csrgen*.py*
+%endif
+%endif  # with_python3
+%endif  # ! with_csrgen
 
 %if 0%{?with_ipatests} && 0%{?with_python2} && 0%{?fedora} >= 29
 # Fedora 29 workaround: Remove Python 2 ipaserver and ipatests
@@ -1538,6 +1576,7 @@ fi
 %{python2_sitelib}/ipaclient/remote_plugins/*.py*
 %dir %{python2_sitelib}/ipaclient/remote_plugins/2_*
 %{python2_sitelib}/ipaclient/remote_plugins/2_*/*.py*
+%if 0%{?with_csrgen}
 %dir %{python2_sitelib}/ipaclient/csrgen
 %dir %{python2_sitelib}/ipaclient/csrgen/profiles
 %{python2_sitelib}/ipaclient/csrgen/profiles/*.json
@@ -1545,6 +1584,7 @@ fi
 %{python2_sitelib}/ipaclient/csrgen/rules/*.json
 %dir %{python2_sitelib}/ipaclient/csrgen/templates
 %{python2_sitelib}/ipaclient/csrgen/templates/*.tmpl
+%endif
 %{python2_sitelib}/ipaclient-*.egg-info
 
 %endif # with_python2
@@ -1567,6 +1607,7 @@ fi
 %dir %{python3_sitelib}/ipaclient/remote_plugins/2_*
 %{python3_sitelib}/ipaclient/remote_plugins/2_*/*.py
 %{python3_sitelib}/ipaclient/remote_plugins/2_*/__pycache__/*.py*
+%if 0%{?with_csrgen}
 %dir %{python3_sitelib}/ipaclient/csrgen
 %dir %{python3_sitelib}/ipaclient/csrgen/profiles
 %{python3_sitelib}/ipaclient/csrgen/profiles/*.json
@@ -1574,6 +1615,7 @@ fi
 %{python3_sitelib}/ipaclient/csrgen/rules/*.json
 %dir %{python3_sitelib}/ipaclient/csrgen/templates
 %{python3_sitelib}/ipaclient/csrgen/templates/*.tmpl
+%endif
 %{python3_sitelib}/ipaclient-*.egg-info
 
 

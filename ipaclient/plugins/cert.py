@@ -112,7 +112,12 @@ class cert_request(CertRetrieveOverride):
         if csr is None:
             # Deferred import, ipaclient.csrgen is expensive to load.
             # see https://pagure.io/freeipa/issue/7484
-            from ipaclient import csrgen
+            try:
+                from ipaclient import csrgen
+            except ImportError:
+                raise errors.CertificateOperationError(
+                    error=(_('No CSR and csrgen is not available.'))
+                )
 
             if database:
                 adaptor = csrgen.NSSAdaptor(database, password_file)
