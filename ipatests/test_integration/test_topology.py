@@ -249,6 +249,7 @@ class TestCASpecificRUVs(IntegrationTest):
             "Replica RUVs were not clean during replica uninstallation")
 
 
+@pytest.mark.xfail(reason="Ticket N 7622", strict=True)
 class TestReplicaManageDel(IntegrationTest):
     domain_level = 0
     topology = 'star'
