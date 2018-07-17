@@ -28,7 +28,7 @@ steps:
   builddep:
   - rm -rf /var/cache/dnf/*
   - "dnf makecache || :"
-  - dnf builddep -y ${builddep_opts} -D "with_wheels 1" --spec freeipa.spec.in --best --allowerasing
+  - dnf builddep -y ${builddep_opts} -D "with_wheels 1" --spec freeipa.spec.in --best --allowerasing --setopt=install_weak_deps=False
   - dnf install -y gdb
   cleanup:
   - chown -R ${uid}:${gid} ${container_working_dir}
