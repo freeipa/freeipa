@@ -29,6 +29,7 @@ Developers:
 	Nalin Dahyabhai
 	Rishabh Dave
 	Don Davis
+	Nikhil Dehadrai
 	John Dennis
 	Jason Gerard DeRose
 	Günther Deschner
@@ -71,6 +72,7 @@ Developers:
 	Peter Lacko
 	Stanislav Laznicka
 	Ade Lee
+	Stanislav Levin
 	Ben Lipton
 	Karl MacMillan
 	Niranjan Mallapadi
@@ -81,17 +83,23 @@ Developers:
 	Kevin McCarthy
 	Mark McLoughlin
 	Rich Megginson
+	Sudhir Menon
 	Jim Meyering
 	Adam Misnyovszki
+	Takeshi MIZUTA
+	Anuja More
 	John Morris
 	Niranjan MR
 	Brian J. Murrell
+	Varun Mylaraiah
 	Marko Myllynen
 	Martin Nagy
+	Armando Neto
 	David O'Brien
 	Dmitri Pal
 	Jan Pazdziora
 	W. Michael Petullo
+	Pavel Picka
 	Gowrishankar Rajaiyan
 	realsobek
 	Michal Reznik
@@ -102,6 +110,7 @@ Developers:
 	Lenka Ryznarova
 	Thorsten Scherf
 	shanyin
+	Kaleemullah Siddiqui
 	Michael Simacek
 	Lars Sjostrom
 	Filip Skola
@@ -110,6 +119,7 @@ Developers:
 	Simo Sorce
 	Petr Špaček
 	David Spångberg
+	Justin Stephenson
 	Diane Trout
 	Fraser Tweedale
 	Petr Viktorin
