@@ -1,22 +1,18 @@
 # A S Alam <aalam@fedoraproject.org>, 2017. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.90.dev201709011157+git5dcb0e6fc\n"
+"Project-Id-Version: freeipa 4.6.90.pre2\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-09-01 13:58+0200\n"
+"POT-Creation-Date: 2018-05-15 14:59-0400\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2017-05-12 10:50-0400\n"
+"PO-Revision-Date: 2017-05-12 10:50+0000\n"
 "Last-Translator: A S Alam <aalam@fedoraproject.org>\n"
 "Language-Team: Punjabi\n"
 "Language: pa\n"
-"X-Generator: Zanata 3.9.6\n"
+"X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
-
-#, python-format
-msgid "Unknown option: %(option)s"
-msgstr "ਅਣਪਛਾਤੀ ਚੋਣ: %(option)s"
 
 #, c-format
 msgid "Out of memory!\n"
@@ -34,20 +30,9 @@ msgstr "ਪੁਰਾਣੀ ਵਾਲਟ ਪ੍ਰਾਈਵੇਟ ਕੁੰਜੀ
 msgid "Invalid vault type"
 msgstr "ਗ਼ਲਤ ਵਾਲਟ ਕਿਸਮ"
 
-msgid "Out of memory\n"
-msgstr "ਮੈਮੋਰੀ ਖ਼ਤਮ ਹੋਈ\n"
-
-msgid "Warning unrecognized encryption type.\n"
-msgstr "ਚੇਤਾਵਨੀ ਅਣਪਛਾਤੀ ਇੰਕ੍ਰਿਪਸ਼ਨ ਕਿਸਮ।\n"
-
-msgid "Warning unrecognized salt type.\n"
-msgstr "ਚੇਤਾਵਨੀ ਅਣਪਛਾਤੀ salt ਕਿਸਮ ਹੈ।\n"
-
-msgid "Failed to create key!\n"
-msgstr "ਕੁੰਜੀ ਬਣਾਉਣ ਲਈ ਅਸਫ਼ਲ ਹੈ!\n"
-
-msgid "Hello world"
-msgstr "ਹੈਲੋ ਵਰਲਡ"
+#, python-format
+msgid "Unknown option: %(option)s"
+msgstr "ਅਣਪਛਾਤੀ ਚੋਣ: %(option)s"
 
 msgid "CIFS server denied your credentials"
 msgstr "CIFS ਨੇ ਤੁਹਾਡੀ ਸਨਦ ਤੋਂ ਇਨਕਾਰ ਕੀਤਾ"
@@ -66,3 +51,18 @@ msgstr "ਟਰੱਸਟ ਸੈਟਅੱਪ"
 
 msgid "Our domain is not configured"
 msgstr "ਸਾਡੀ ਡੋਮੇਨ ਸੰਰਚਿਤ ਨਹੀਂ ਹੈ"
+
+msgid "Hello world"
+msgstr "ਹੈਲੋ ਵਰਲਡ"
+
+msgid "Out of memory\n"
+msgstr "ਮੈਮੋਰੀ ਖ਼ਤਮ ਹੋਈ\n"
+
+msgid "Warning unrecognized encryption type.\n"
+msgstr "ਚੇਤਾਵਨੀ ਅਣਪਛਾਤੀ ਇੰਕ੍ਰਿਪਸ਼ਨ ਕਿਸਮ।\n"
+
+msgid "Warning unrecognized salt type.\n"
+msgstr "ਚੇਤਾਵਨੀ ਅਣਪਛਾਤੀ salt ਕਿਸਮ ਹੈ।\n"
+
+msgid "Failed to create key!\n"
+msgstr "ਕੁੰਜੀ ਬਣਾਉਣ ਲਈ ਅਸਫ਼ਲ ਹੈ!\n"

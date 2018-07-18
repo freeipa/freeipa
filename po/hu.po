@@ -1,18 +1,102 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.90.dev201709011157+git5dcb0e6fc\n"
+"Project-Id-Version: freeipa 4.6.90.pre2\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-09-01 13:58+0200\n"
+"POT-Creation-Date: 2018-05-15 14:59-0400\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2015-01-05 01:10-0500\n"
+"PO-Revision-Date: 2015-01-05 01:10+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Hungarian\n"
 "Language: hu\n"
-"X-Generator: Zanata 3.9.6\n"
+"X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+msgid "User group"
+msgstr "Felhasználói csport"
+
+msgid "Permissions"
+msgstr "Jogosultságok"
+
+msgid "Description"
+msgstr "Leírás"
+
+msgid "Subject"
+msgstr "Tárgy"
+
+msgid "Reason"
+msgstr "Ok"
+
+msgid "Serial number"
+msgstr "Sorozatszám"
+
+msgid "Request id"
+msgstr "Igénylés azonosítója"
+
+msgid "Default shell"
+msgstr "Alapértelmezett shell"
+
+msgid "Default users group"
+msgstr "Alapértelmezett csoport"
+
+msgid "Zone name (FQDN)"
+msgstr "Zóna neve (FQDN)"
+
+msgid "SOA serial"
+msgstr "SOA sorozatszám"
+
+msgid "GID"
+msgstr "GID"
+
+msgid "GID (use this option to set it manually)"
+msgstr "GID (kézzel történő beállításhoz)"
+
+msgid "change to a POSIX group"
+msgstr "POSIX-csoportra módosít"
+
+msgid "Rule name"
+msgstr "Szabály neve"
+
+msgid "Services"
+msgstr "Szolgáltatások"
+
+msgid "Service Groups"
+msgstr "Szolgáltatás-csoportok"
+
+msgid "Service name"
+msgstr "Szolgáltatás neve"
+
+msgid "Service group name"
+msgstr "Szolgáltatás-csoport neve"
+
+msgid "HBAC service group description"
+msgstr "HBAC szolgáltatás-csoport leírása"
+
+msgid "Certificate"
+msgstr "Tanúsítvány"
+
+msgid "LDAP URI"
+msgstr "LDAP URI"
+
+msgid "Max lifetime (days)"
+msgstr "Élettartam legfeljebb (nap)"
+
+msgid "Maximum password lifetime (in days)"
+msgstr "Jelszó maximális élettartama (nap)"
+
+msgid "Min lifetime (hours)"
+msgstr "Minimális élettartam (óra)"
+
+msgid "Minimum password lifetime (in hours)"
+msgstr "Jelszó minimális élettartama (óra)"
+
+msgid "Password history size"
+msgstr "Megőrzött jelszavak (darab)"
+
+msgid "Character classes"
+msgstr "Karakterosztályok"
 
 msgid "Passwords do not match"
 msgstr "A jelszavak nem egyeznek meg"
@@ -40,92 +124,9 @@ msgstr "Tanúsítványhiba: %(error)s"
 msgid "A list of LDAP entries"
 msgstr "LDAP-bejegyzések listája"
 
-msgid "Certificate"
-msgstr "Tanúsítvány"
-
-msgid "Rule name"
-msgstr "Szabály neve"
-
-msgid "Description"
-msgstr "Leírás"
-
-msgid "Permissions"
-msgstr "Jogosultságok"
-
-msgid "Service group name"
-msgstr "Szolgáltatás-csoport neve"
-
-msgid "HBAC service group description"
-msgstr "HBAC szolgáltatás-csoport leírása"
-
-msgid "User group"
-msgstr "Felhasználói csport"
-
-msgid "Service name"
-msgstr "Szolgáltatás neve"
-
-msgid "LDAP URI"
-msgstr "LDAP URI"
-
-msgid "Max lifetime (days)"
-msgstr "Élettartam legfeljebb (nap)"
-
-msgid "Maximum password lifetime (in days)"
-msgstr "Jelszó maximális élettartama (nap)"
-
-msgid "Min lifetime (hours)"
-msgstr "Minimális élettartam (óra)"
-
-msgid "Minimum password lifetime (in hours)"
-msgstr "Jelszó minimális élettartama (óra)"
-
-msgid "Password history size"
-msgstr "Megőrzött jelszavak (darab)"
-
-msgid "Character classes"
-msgstr "Karakterosztályok"
-
-msgid "GID"
-msgstr "GID"
-
-msgid "GID (use this option to set it manually)"
-msgstr "GID (kézzel történő beállításhoz)"
-
-msgid "change to a POSIX group"
-msgstr "POSIX-csoportra módosít"
-
-msgid "Zone name (FQDN)"
-msgstr "Zóna neve (FQDN)"
-
-msgid "SOA serial"
-msgstr "SOA sorozatszám"
-
-msgid "Services"
-msgstr "Szolgáltatások"
-
-msgid "Service Groups"
-msgstr "Szolgáltatás-csoportok"
-
-msgid "Serial number"
-msgstr "Sorozatszám"
-
-msgid "Reason"
-msgstr "Ok"
-
-msgid "Request id"
-msgstr "Igénylés azonosítója"
-
-msgid "Default shell"
-msgstr "Alapértelmezett shell"
-
-msgid "Default users group"
-msgstr "Alapértelmezett csoport"
-
-msgid "Subject"
-msgstr "Tárgy"
-
-msgid "Revocation reason"
-msgstr "Visszavonás oka"
+#, python-format
+msgid "Group '%s' does not exist"
+msgstr "A '%s' csoport nem létezik"
 
 msgid "Issuer"
 msgstr "Kibocsátó"
@@ -139,6 +140,15 @@ msgstr "Érvényesség vége"
 msgid "Fingerprint (SHA1)"
 msgstr "Ujjlenyomat (SHA1)"
 
+msgid "Request status"
+msgstr "Igénylés állapota"
+
+msgid "Revoked"
+msgstr "Visszavont"
+
+msgid "Revocation reason"
+msgstr "Visszavonás oka"
+
 #, python-format
 msgid "Added service \"%(value)s\""
 msgstr "A %(value)s szolgáltatás hozzáadva"
@@ -146,13 +156,3 @@ msgstr "A %(value)s szolgáltatás hozzáadva"
 #, python-format
 msgid "Deleted service \"%(value)s\""
 msgstr "A %(value)s szolgáltatás eltávolítva"
-
-#, python-format
-msgid "Group '%s' does not exist"
-msgstr "A '%s' csoport nem létezik"
-
-msgid "Request status"
-msgstr "Igénylés állapota"
-
-msgid "Revoked"
-msgstr "Visszavont"

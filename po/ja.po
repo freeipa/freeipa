@@ -1,18 +1,185 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: freeipa 4.5.90.dev201709011157+git5dcb0e6fc\n"
+"Project-Id-Version: freeipa 4.6.90.pre2\n"
 "Report-Msgid-Bugs-To: https://fedorahosted.org/freeipa/newticket\n"
-"POT-Creation-Date: 2017-09-01 13:58+0200\n"
+"POT-Creation-Date: 2018-05-15 14:59-0400\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2015-01-05 01:10-0500\n"
+"PO-Revision-Date: 2015-01-05 01:10+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Japanese\n"
 "Language: ja\n"
-"X-Generator: Zanata 3.9.6\n"
+"X-Generator: Zanata 4.4.5\n"
 "Plural-Forms: nplurals=1; plural=0\n"
+
+#, c-format
+msgid "Passwords do not match!"
+msgstr "パスワードが違います。"
+
+msgid "ACI name"
+msgstr "ACI 名"
+
+msgid "User group"
+msgstr "ユーザーグループ"
+
+msgid "Permissions"
+msgstr "権限"
+
+msgid "Member of a group"
+msgstr "グループのメンバー"
+
+msgid "Filter"
+msgstr "フィルター"
+
+msgid "IP Address"
+msgstr "IP アドレス"
+
+msgid "Port"
+msgstr "ポート"
+
+msgid "Fingerprint"
+msgstr "フィンガープリント"
+
+msgid "Text Data"
+msgstr "テキストデータ"
+
+msgid "Create a new group."
+msgstr "新しいグループを作成します。"
+
+msgid "Delete group."
+msgstr "グループを削除します。"
+
+msgid "Search for groups."
+msgstr "グループを検索します。"
+
+msgid "user"
+msgstr "ユーザー"
+
+msgid "group"
+msgstr "グループ"
+
+msgid "role"
+msgstr "役割"
+
+msgid "sudo rule"
+msgstr "sudo ルール"
+
+msgid "Modify a group."
+msgstr "グループを変更します。"
+
+msgid "Create a new HBAC rule."
+msgstr "新しい HBAC ルールを作成します。"
+
+msgid "Delete an HBAC rule."
+msgstr "HBAC ルールを削除します。"
+
+msgid "Disable an HBAC rule."
+msgstr "HBAC ルールを無効化します。"
+
+msgid "Enable an HBAC rule."
+msgstr "HBAC ルールを有効化します。"
+
+msgid "Search for HBAC rules."
+msgstr "HBAC ルールを検索します。"
+
+msgid "Modify an HBAC rule."
+msgstr "HBAC ルールを変更します。"
+
+msgid "Display the properties of an HBAC rule."
+msgstr "HBAC ルールのプロパティーを表示します。"
+
+msgid "Add a new HBAC service."
+msgstr "新しい HBAC サービスを追加します。"
+
+msgid "Delete an existing HBAC service."
+msgstr "既存の HBAC サービスを削除します。"
+
+msgid "Search for HBAC services."
+msgstr "HBAC サービスを検索します。"
+
+msgid "Modify an HBAC service."
+msgstr "HBAC サービスを変更します。"
+
+msgid "Display information about an HBAC service."
+msgstr "HBAC サービスに関する情報を表示します。"
+
+msgid "Add a new HBAC service group."
+msgstr "新しい HBAC サービスグループを追加します。"
+
+msgid "Add members to an HBAC service group."
+msgstr "HBAC サービスグループにメンバーを追加します。"
+
+msgid "Delete an HBAC service group."
+msgstr "HBAC サービスグループを削除します。"
+
+msgid "Search for an HBAC service group."
+msgstr "HBAC サービスグループを検索します。"
+
+msgid "Modify an HBAC service group."
+msgstr "HBAC サービスグループを変更します。"
+
+msgid "Remove members from an HBAC service group."
+msgstr "HBAC サービスグループからメンバーを削除します。"
+
+msgid "Display information about an HBAC service group."
+msgstr "HBAC サービスグループに関する情報を表示します。"
+
+msgid "Add a new host."
+msgstr "新しいホストを追加します。"
+
+msgid "Delete a host."
+msgstr "ホストを削除します。"
+
+msgid "Search for hosts."
+msgstr "ホストを検索します。"
+
+msgid "host group"
+msgstr "ホストグループ"
+
+msgid "host"
+msgstr "ホスト"
+
+msgid "hosts"
+msgstr "ホスト"
+
+msgid "Add a new role."
+msgstr "新しい役割を追加します。"
+
+msgid "Delete a role."
+msgstr "役割を削除します。"
+
+msgid "Search for roles."
+msgstr "役割を検索します。"
+
+msgid "Modify a role."
+msgstr "役割を変更します。"
+
+msgid "Display information about a role."
+msgstr "役割に関する情報を表示します。"
+
+msgid "Sudo Command"
+msgstr "sudo コマンド"
+
+msgid "Add a new user."
+msgstr "新しいユーザーを追加します。"
+
+msgid "Delete a user."
+msgstr "ユーザーを削除します。"
+
+msgid "Disable a user account."
+msgstr "ユーザーアカウントを無効化します。"
+
+msgid "Enable a user account."
+msgstr "ユーザーアカウントを有効化します。"
+
+msgid "Modify a user."
+msgstr "ユーザーを変更します。"
+
+#, python-format
+msgid "Enter %(label)s again to verify: "
+msgstr "確認のため再び %(label)s を入力してください: "
 
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
@@ -53,14 +220,6 @@ msgstr "%(desc)s: %(info)s"
 #, python-format
 msgid "%(info)s"
 msgstr "%(info)s"
-
-#, python-format
-msgid "Enter %(label)s again to verify: "
-msgstr "確認のため再び %(label)s を入力してください: "
-
-#, c-format
-msgid "Passwords do not match!"
-msgstr "パスワードが違います。"
 
 msgid "must be an integer"
 msgstr "整数である必要があります"
@@ -106,170 +265,79 @@ msgstr "無効な SSH 公開鍵"
 msgid "invalid domain-name: %s"
 msgstr "無効なドメイン名: %s"
 
-msgid "host"
-msgstr "ホスト"
+msgid "A list of ACI values"
+msgstr "ACI 値の一覧"
 
-msgid "Permissions"
-msgstr "権限"
+msgid ""
+"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
+"required"
+msgstr ""
+"少なくとも type, filter, subtree, targetgroup, attrs または memberof のどれか"
+"が必要です"
 
-msgid "Filter"
-msgstr "フィルター"
+#, python-format
+msgid "Group '%s' does not exist"
+msgstr "グループ '%s' が存在しません"
 
-msgid "Add a new host."
-msgstr "新しいホストを追加します。"
+#, python-format
+msgid "ACI with name \"%s\" not found"
+msgstr "名前 \"%s\" の ACI が見つかりませんでした"
 
-msgid "IP Address"
-msgstr "IP アドレス"
+msgid "ACIs"
+msgstr "ACI"
 
-msgid "Delete a host."
-msgstr "ホストを削除します。"
+msgid "Fingerprint (SHA1)"
+msgstr "フィンガープリント (SHA1)"
 
-msgid "Search for hosts."
-msgstr "ホストを検索します。"
-
-msgid "host group"
-msgstr "ホストグループ"
-
-msgid "role"
-msgstr "役割"
-
-msgid "sudo rule"
-msgstr "sudo ルール"
-
-msgid "user"
-msgstr "ユーザー"
-
-msgid "Add a new HBAC service group."
-msgstr "新しい HBAC サービスグループを追加します。"
-
-msgid "Add members to an HBAC service group."
-msgstr "HBAC サービスグループにメンバーを追加します。"
-
-msgid "Delete an HBAC service group."
-msgstr "HBAC サービスグループを削除します。"
-
-msgid "Search for an HBAC service group."
-msgstr "HBAC サービスグループを検索します。"
-
-msgid "Modify an HBAC service group."
-msgstr "HBAC サービスグループを変更します。"
-
-msgid "Remove members from an HBAC service group."
-msgstr "HBAC サービスグループからメンバーを削除します。"
-
-msgid "Display information about an HBAC service group."
-msgstr "HBAC サービスグループに関する情報を表示します。"
-
-msgid "ACI name"
-msgstr "ACI 名"
-
-msgid "User group"
-msgstr "ユーザーグループ"
-
-msgid "Member of a group"
-msgstr "グループのメンバー"
-
-msgid "Add a new HBAC service."
-msgstr "新しい HBAC サービスを追加します。"
-
-msgid "Delete an existing HBAC service."
-msgstr "既存の HBAC サービスを削除します。"
-
-msgid "Search for HBAC services."
-msgstr "HBAC サービスを検索します。"
-
-msgid "Modify an HBAC service."
-msgstr "HBAC サービスを変更します。"
-
-msgid "Display information about an HBAC service."
-msgstr "HBAC サービスに関する情報を表示します。"
-
-msgid "Sudo Command"
+msgid "sudo command"
 msgstr "sudo コマンド"
 
-msgid "Add a new user."
-msgstr "新しいユーザーを追加します。"
+msgid "sudo commands"
+msgstr "sudo コマンド"
 
-msgid "Delete a user."
-msgstr "ユーザーを削除します。"
+msgid "Sudo Commands"
+msgstr "sudo コマンド"
 
-msgid "Disable a user account."
-msgstr "ユーザーアカウントを無効化します。"
+#, python-format
+msgid "%s record"
+msgstr "%s レコード"
 
-msgid "Enable a user account."
-msgstr "ユーザーアカウントを有効化します。"
+#, python-format
+msgid "%s Record"
+msgstr "%s レコード"
 
-msgid "group"
+msgid "groups"
 msgstr "グループ"
 
-msgid "Modify a user."
-msgstr "ユーザーを変更します。"
+msgid "User Group"
+msgstr "ユーザーグループ"
 
-msgid "Create a new group."
-msgstr "新しいグループを作成します。"
+msgid "HBAC services"
+msgstr "HBAC サービス"
 
-msgid "Delete group."
-msgstr "グループを削除します。"
+msgid "HBAC Service"
+msgstr "HBAC サービス"
 
-msgid "Search for groups."
-msgstr "グループを検索します。"
+msgid "HBAC service group"
+msgstr "HBAC サービスグループ"
 
-msgid "Modify a group."
-msgstr "グループを変更します。"
+msgid "HBAC service groups"
+msgstr "HBAC サービスグループ"
 
-msgid "Add a new role."
-msgstr "新しい役割を追加します。"
+msgid "HBAC Service Groups"
+msgstr "HBAC サービスグループ"
 
-msgid "Delete a role."
-msgstr "役割を削除します。"
+msgid "HBAC Service Group"
+msgstr "HBAC サービスグループ"
 
-msgid "Search for roles."
-msgstr "役割を検索します。"
-
-msgid "Modify a role."
-msgstr "役割を変更します。"
-
-msgid "Display information about a role."
-msgstr "役割に関する情報を表示します。"
-
-msgid "Port"
-msgstr "ポート"
-
-msgid "Fingerprint"
-msgstr "フィンガープリント"
-
-msgid "Text Data"
-msgstr "テキストデータ"
-
-msgid "Create a new HBAC rule."
-msgstr "新しい HBAC ルールを作成します。"
-
-msgid "Delete an HBAC rule."
-msgstr "HBAC ルールを削除します。"
-
-msgid "Disable an HBAC rule."
-msgstr "HBAC ルールを無効化します。"
-
-msgid "Enable an HBAC rule."
-msgstr "HBAC ルールを有効化します。"
-
-msgid "Search for HBAC rules."
-msgstr "HBAC ルールを検索します。"
-
-msgid "Modify an HBAC rule."
-msgstr "HBAC ルールを変更します。"
-
-msgid "Display the properties of an HBAC rule."
-msgstr "HBAC ルールのプロパティーを表示します。"
-
-msgid "hosts"
+msgid "Host"
 msgstr "ホスト"
 
-msgid "Out of memory\n"
-msgstr "メモリー不足\n"
+msgid "host groups"
+msgstr "ホストグループ"
 
-msgid "Out of memory!?\n"
-msgstr "メモリー不足!?\n"
+msgid "Host Group"
+msgstr "ホストグループ"
 
 msgid "Refresh"
 msgstr "更新"
@@ -347,20 +415,23 @@ msgstr "ワンタイムパスワードをリセットします"
 msgid "Set One-Time-Password"
 msgstr "ワンタイムパスワードを設定します"
 
-msgid "Host"
-msgstr "ホスト"
-
 msgid "Account"
 msgstr "アカウント"
 
 msgid "Account Status"
 msgstr "アカウント状態"
 
+msgid "password policy"
+msgstr "パスワードポリシー"
+
+msgid "password policies"
+msgstr "パスワードポリシー"
+
+msgid "Password Policies"
+msgstr "パスワードポリシー"
+
 msgid "roles"
 msgstr "役割"
-
-msgid "Fingerprint (SHA1)"
-msgstr "フィンガープリント (SHA1)"
 
 msgid "sudo rules"
 msgstr "sudo ルール"
@@ -374,79 +445,8 @@ msgstr "sudo ルール"
 msgid "users"
 msgstr "ユーザー"
 
-msgid "HBAC service group"
-msgstr "HBAC サービスグループ"
+msgid "Out of memory\n"
+msgstr "メモリー不足\n"
 
-msgid "HBAC service groups"
-msgstr "HBAC サービスグループ"
-
-msgid "HBAC Service Groups"
-msgstr "HBAC サービスグループ"
-
-msgid "HBAC Service Group"
-msgstr "HBAC サービスグループ"
-
-msgid "A list of ACI values"
-msgstr "ACI 値の一覧"
-
-msgid ""
-"at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
-"required"
-msgstr ""
-"少なくとも type, filter, subtree, targetgroup, attrs または memberof のどれか"
-"が必要です"
-
-#, python-format
-msgid "Group '%s' does not exist"
-msgstr "グループ '%s' が存在しません"
-
-#, python-format
-msgid "ACI with name \"%s\" not found"
-msgstr "名前 \"%s\" の ACI が見つかりませんでした"
-
-msgid "ACIs"
-msgstr "ACI"
-
-msgid "HBAC services"
-msgstr "HBAC サービス"
-
-msgid "HBAC Service"
-msgstr "HBAC サービス"
-
-msgid "sudo command"
-msgstr "sudo コマンド"
-
-msgid "sudo commands"
-msgstr "sudo コマンド"
-
-msgid "Sudo Commands"
-msgstr "sudo コマンド"
-
-msgid "password policy"
-msgstr "パスワードポリシー"
-
-msgid "password policies"
-msgstr "パスワードポリシー"
-
-msgid "Password Policies"
-msgstr "パスワードポリシー"
-
-msgid "groups"
-msgstr "グループ"
-
-msgid "User Group"
-msgstr "ユーザーグループ"
-
-msgid "host groups"
-msgstr "ホストグループ"
-
-msgid "Host Group"
-msgstr "ホストグループ"
-
-#, python-format
-msgid "%s record"
-msgstr "%s レコード"
-
-#, python-format
-msgid "%s Record"
-msgstr "%s レコード"
+msgid "Out of memory!?\n"
+msgstr "メモリー不足!?\n"
