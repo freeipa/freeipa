@@ -97,7 +97,7 @@ define(['dojo/_base/declare',
 
             this.cert_btn_node = IPA.button({
                 name: 'cert_auth',
-		title: text.get('@i18n:login.login_certificate_desc',
+                title: text.get('@i18n:login.login_certificate_desc',
                     'Log in using personal certificate'),
                 label: text.get('@i18n:login.login_certificate',
                     'Log In Using Certificate'),
