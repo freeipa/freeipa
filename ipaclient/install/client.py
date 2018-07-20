@@ -663,19 +663,25 @@ def hardcode_ldap_server(cli_server):
         "hardcoded server name: %s", cli_server[0])
 
 
-def configure_krb5_conf(
-        cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
-        filename, client_domain, client_hostname, force=False,
-        configure_sssd=True):
-
-    # First, write a snippet to krb5.conf.d.  Currently this doesn't support
-    # templating, but that could be changed in the future.
+# Currently this doesn't support templating, but that could be changed in the
+# future.  Note that this function is also called from %post.
+def configure_krb5_snippet():
     template = os.path.join(
         paths.USR_SHARE_IPA_CLIENT_DIR,
         os.path.basename(paths.KRB5_FREEIPA) + ".template"
     )
     shutil.copy(template, paths.KRB5_FREEIPA)
     os.chmod(paths.KRB5_FREEIPA, 0o644)
+
+    tasks.restore_context(paths.KRB5_FREEIPA)
+
+
+def configure_krb5_conf(
+        cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
+        filename, client_domain, client_hostname, force=False,
+        configure_sssd=True):
+    # First, write a snippet to krb5.conf.d.
+    configure_krb5_snippet()
 
     # Then, perform the rest of our configuration into krb5.conf itself.
     krbconf = IPAChangeConf("IPA Installer")
