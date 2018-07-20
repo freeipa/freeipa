@@ -39,7 +39,7 @@ int ipa_ldap_init(LDAP **ld, const char *ldap_uri)
     if (ret != LDAP_SUCCESS) {
         fprintf(
             stderr,
-            _("Unable to initialize connection to ldap server %1$s: %1$s\n"),
+            _("Unable to initialize connection to ldap server %1$s: %2$s\n"),
             ldap_uri,
             ldap_err2string(ret)
         );
