@@ -19,23 +19,23 @@
  */
 define([], function() {
 
-	/**
-	 * Debug module
-	 *
-	 * One can set flags to enable console output of various messages.
-	 *
-	 * """
-	 * var debug = require('freeipa._base.debug');
-	 * debug.provider_missing_value = true;
-	 * """
-	 *
-	 * Currently used flags
-	 *
-	 * - provider_missing_value
-	 *
-	 * @class _base.debug
-	 */
-	return {
-		provider_missing_value: false
-	};
+    /**
+     * Debug module
+     *
+     * One can set flags to enable console output of various messages.
+     *
+     * """
+     * var debug = require('freeipa._base.debug');
+     * debug.provider_missing_value = true;
+     * """
+     *
+     * Currently used flags
+     *
+     * - provider_missing_value
+     *
+     * @class _base.debug
+     */
+    return {
+        provider_missing_value: false
+    };
 });
