@@ -1488,8 +1488,6 @@ int ipapwd_pre_init(Slapi_PBlock *pb)
     ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&ipapwd_plugin_desc);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_PRE_BIND_FN, (void *)ipapwd_pre_bind);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_PRE_ADD_FN, (void *)ipapwd_pre_add);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_PRE_MODIFY_FN, (void *)ipapwd_pre_mod);
 
     return ret;
 }
@@ -1513,9 +1511,7 @@ int ipapwd_post_init(Slapi_PBlock *pb)
 
     ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&ipapwd_plugin_desc);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_ADD_FN, (void *)ipapwd_post_modadd);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_DELETE_FN, (void *)ipapwd_post_updatecfg);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODIFY_FN, (void *)ipapwd_post_modadd);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODRDN_FN, (void *)ipapwd_post_updatecfg);
 
     return ret;
