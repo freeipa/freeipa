@@ -673,7 +673,7 @@ def configure_krb5_conf(
         os.path.basename(paths.KRB5_FREEIPA) + ".template"
     )
     shutil.copy(template, paths.KRB5_FREEIPA)
-    os.chmod(paths.KRB5_FREEIPA, 0x644)
+    os.chmod(paths.KRB5_FREEIPA, 0o644)
 
     # Then, perform the rest of our configuration into krb5.conf itself.
     krbconf = IPAChangeConf("IPA Installer")
