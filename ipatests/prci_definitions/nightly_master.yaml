@@ -280,14 +280,14 @@ jobs:
         timeout: 5400
         topology: *master_1repl
 
-  fedora-28/test_backup_and_restore_TestUserrootFilesOwnership:
+  fedora-28/test_backup_and_restore_TestUserRootFilesOwnershipPermission:
     requires: [fedora-28/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-28/build_url}'
-        test_suite: test_integration/test_backup_and_restore.py::TestUserrootFilesOwnership
+        test_suite: test_integration/test_backup_and_restore.py::TestUserRootFilesOwnershipPermission
         template: *ci-master-f28
         timeout: 7200
         topology: *master_1repl
