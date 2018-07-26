@@ -461,6 +461,11 @@ class CAInstance(DogtagInstance):
                 self.step("updating IPA configuration", update_ipa_conf)
                 self.step("enabling CA instance", self.__enable_instance)
                 if not promote:
+                    if self.clone:
+                        # DL0 workaround; see docstring of __expose_ca_in_ldap
+                        self.step("exposing CA instance on LDAP",
+                                  self.__expose_ca_in_ldap)
+
                     self.step("migrating certificate profiles to LDAP",
                               migrate_profiles_to_ldap)
                     self.step("importing IPA certificate profiles",
@@ -1276,6 +1281,25 @@ class CAInstance(DogtagInstance):
         else:
             config = []
         self.ldap_configure('CA', self.fqdn, None, basedn, config)
+
+    def __expose_ca_in_ldap(self):
+        """
+        In a case when replica is created on DL0 we need to make
+        sure that query for CA service record of this replica in
+        ldap will succeed in time of installation.
+        This method is needed for sucessfull replica installation
+        on DL0 and should be removed alongside with code for DL0.
+
+        To suppress deprecation warning message this method is
+        not invoking ldap_enable() but _ldap_enable() method.
+        """
+
+        basedn = ipautil.realm_to_suffix(self.realm)
+        if not self.clone:
+            config = ['caRenewalMaster']
+        else:
+            config = []
+        self._ldap_enable(u'enabledService', "CA", self.fqdn, basedn, config)
 
     def setup_lightweight_ca_key_retrieval(self):
         if sysupgrade.get_upgrade_state('dogtag', 'setup_lwca_key_retrieval'):
