@@ -241,9 +241,12 @@ def create_ipa_conf(fstore, config, ca_enabled, master=None):
         gopts.extend([
             ipaconf.setOption('enable_ra', 'True'),
             ipaconf.setOption('ra_plugin', 'dogtag'),
-            ipaconf.setOption('dogtag_version', '10'),
-            ipaconf.setOption('ca_host', config.ca_host_name)
+            ipaconf.setOption('dogtag_version', '10')
         ])
+
+        if not config.setup_ca:
+            gopts.append(ipaconf.setOption('ca_host', config.ca_host_name))
+
     else:
         gopts.extend([
             ipaconf.setOption('enable_ra', 'False'),
