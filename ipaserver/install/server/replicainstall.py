@@ -638,7 +638,8 @@ def enroll_dl0_replica(installer, fstore, remote_api, debug=False):
     try:
         installer._enrollment_performed = True
         host_result = remote_api.Command.host_add(
-            unicode(config.host_name))['result']
+            unicode(config.host_name), force=installer.no_host_dns
+        )['result']
 
         host_princ = unicode(host_result['krbcanonicalname'][0])
         purge_host_keytab(config.realm_name)
