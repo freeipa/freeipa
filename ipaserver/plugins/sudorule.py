@@ -949,6 +949,9 @@ class sudorule_add_option(LDAPQuery):
         attrs_list = self.obj.default_attributes
         entry_attrs = ldap.get_entry(dn, attrs_list)
 
+        self.obj.get_indirect_members(entry_attrs, attrs_list)
+        self.obj.convert_attribute_members(entry_attrs, [cn], **options)
+
         entry_attrs = entry_to_dict(entry_attrs, **options)
 
         return dict(result=entry_attrs, value=pkey_to_value(cn, options))
@@ -998,6 +1001,9 @@ class sudorule_remove_option(LDAPQuery):
 
         attrs_list = self.obj.default_attributes
         entry_attrs = ldap.get_entry(dn, attrs_list)
+
+        self.obj.get_indirect_members(entry_attrs, attrs_list)
+        self.obj.convert_attribute_members(entry_attrs, [cn], **options)
 
         entry_attrs = entry_to_dict(entry_attrs, **options)
 
