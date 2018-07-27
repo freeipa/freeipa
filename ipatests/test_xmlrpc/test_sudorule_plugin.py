@@ -393,11 +393,19 @@ class test_sudorule(XMLRPC_test):
         Test adding an option to Sudo rule using
         `xmlrpc.sudorule_add_option`.
         """
+        # Add a user and group to the sudorule so we can test that
+        # membership is properly translated in add_option.
+        ret = api.Command['sudorule_add_user'](
+            self.rule_name, user=self.test_user, group=self.test_group
+        )
+        assert ret['completed'] == 2
         ret = api.Command['sudorule_add_option'](
             self.rule_name, ipasudoopt=self.test_option
         )
         entry = ret['result']
         assert_attr_equal(entry, 'ipasudoopt', self.test_option)
+        assert_attr_equal(entry, 'memberuser_user', self.test_user)
+        assert_attr_equal(entry, 'memberuser_group', self.test_group)
 
     def test_b_sudorule_remove_option(self):
         """
@@ -409,6 +417,14 @@ class test_sudorule(XMLRPC_test):
         )
         entry = ret['result']
         assert 'ipasudoopt' not in entry
+        # Verify that membership is properly converted in remove_option
+        assert_attr_equal(entry, 'memberuser_user', self.test_user)
+        assert_attr_equal(entry, 'memberuser_group', self.test_group)
+        # Clean up by removing the user and group added in add_option
+        ret = api.Command['sudorule_remove_user'](
+            self.rule_name, user=self.test_user, group=self.test_group
+        )
+        assert ret['completed'] == 2
 
     def test_a_sudorule_add_host(self):
         """
