@@ -48,7 +48,7 @@ jobs:
         build_url: '{fedora-28/build_url}'
         test_suite: test_integration/test_server_del.py
         template: *ci-master-f28
-        timeout: 8000
+        timeout: 10800
         topology: *master_2repl_1client
 
   fedora-28/test_installation_TestInstallWithCA1:
@@ -385,7 +385,7 @@ jobs:
         build_url: '{fedora-28/build_url}'
         test_suite: test_integration/test_dnssec.py
         template: *ci-master-f28
-        timeout: 7200
+        timeout: 10800
         topology: *master_2repl_1client
 
   fedora-28/test_replica_promotion_TestReplicaPromotionLevel0:
@@ -601,7 +601,7 @@ jobs:
         build_url: '{fedora-28/build_url}'
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCA
         template: *ci-master-f28
-        timeout: 7200
+        timeout: 10800
         topology: *master_3repl_1client
 
   fedora-28/test_replication_layouts_TestLineTopologyWithCAKRA:
@@ -613,7 +613,7 @@ jobs:
         build_url: '{fedora-28/build_url}'
         test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCAKRA
         template: *ci-master-f28
-        timeout: 7200
+        timeout: 10800
         topology: *master_3repl_1client
 
   fedora-28/test_replication_layouts.py_TestStarTopologyWithoutCA:
@@ -649,7 +649,7 @@ jobs:
         build_url: '{fedora-28/build_url}'
         test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCAKRA
         template: *ci-master-f28
-        timeout: 7200
+        timeout: 10800
         topology: *master_3repl_1client
 
   fedora-28/test_replication_layouts_TestCompleteTopologyWithoutCA:
@@ -697,5 +697,5 @@ jobs:
         build_url: '{fedora-28/build_url}'
         test_suite: test_webui/
         template: *ci-master-f28
-        timeout: 16000
+        timeout: 19600
         topology: *ipaserver
