@@ -7,16 +7,21 @@ from __future__ import absolute_import
 
 import base64
 import re
+import os
+import logging
 import ssl
 from tempfile import NamedTemporaryFile
 import textwrap
 import time
+import paramiko
+import pytest
 
 from ipaplatform.paths import paths
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
+logger = logging.getLogger(__name__)
 
 class TestIPACommand(IntegrationTest):
     """
@@ -294,3 +299,59 @@ class TestIPACommand(IntegrationTest):
             raiseonerr=False
         )
         assert result.returncode == 0
+
+    def test_ssh_key_connection(self, tmpdir):
+        """
+        Integration test for https://pagure.io/SSSD/sssd/issue/3747
+        """
+
+        test_user = 'test-ssh'
+        master = self.master.hostname
+
+        pub_keys = []
+
+        for i in range(40):
+            ssh_key_pair = tasks.generate_ssh_keypair()
+            pub_keys.append(ssh_key_pair[1])
+            with open(os.path.join(
+                    tmpdir, 'ssh_priv_{}'.format(i)), 'w') as fp:
+                fp.write(ssh_key_pair[0])
+
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'user-add', test_user,
+                                 '--first=tester', '--last=tester'])
+
+        keys_opts = ' '.join(['--ssh "{}"'.format(k) for k in pub_keys])
+        cmd = 'ipa user-mod {} {}'.format(test_user, keys_opts)
+        self.master.run_command(cmd)
+
+        # connect with first SSH key
+        first_priv_key_path = os.path.join(tmpdir, 'ssh_priv_1')
+        # change private key permission to comply with SS rules
+        os.chmod(first_priv_key_path, 0o600)
+
+        sshcon = paramiko.SSHClient()
+        sshcon.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        # first connection attempt is a workaround for
+        # https://pagure.io/SSSD/sssd/issue/3669
+        try:
+            sshcon.connect(master, username=test_user,
+                           key_filename=first_priv_key_path, timeout=1)
+        except (paramiko.AuthenticationException, paramiko.SSHException):
+            pass
+
+        try:
+            sshcon.connect(master, username=test_user,
+                           key_filename=first_priv_key_path, timeout=1)
+        except (paramiko.AuthenticationException,
+                paramiko.SSHException) as e:
+            pytest.fail('Authentication using SSH key not successful', e)
+
+        journal_cmd = ['journalctl', '--since=today', '-u', 'sshd']
+        result = self.master.run_command(journal_cmd)
+        output = result.stdout_text
+        assert not re.search('exited on signal 13', output)
+
+        # cleanup
+        self.master.run_command(['ipa', 'user-del', test_user])

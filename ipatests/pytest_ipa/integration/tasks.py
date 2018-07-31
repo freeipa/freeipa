@@ -34,6 +34,10 @@ import dns
 from ldif import LDIFWriter
 from SSSDConfig import SSSDConfig
 from six import StringIO
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.backends import default_backend
+
 
 from ipapython import ipautil
 from ipaplatform.paths import paths
@@ -1479,3 +1483,26 @@ def sign_ca_and_transport(host, csr_name, root_ca_name, ipa_ca_name):
     host.put_file_contents(ipa_ca_fname, ipa_ca)
 
     return (root_ca_fname, ipa_ca_fname)
+
+
+def generate_ssh_keypair():
+    """
+    Create SSH keypair for key authentication testing
+    """
+    key = rsa.generate_private_key(backend=default_backend(),
+                                   public_exponent=65537,
+                                   key_size=2048)
+
+    public_key = key.public_key().public_bytes(
+        serialization.Encoding.OpenSSH, serialization.PublicFormat.OpenSSH)
+
+    pem = key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
+    private_key_str = pem.decode('utf-8')
+    public_key_str = public_key.decode('utf-8')
+
+    return (private_key_str, public_key_str)
