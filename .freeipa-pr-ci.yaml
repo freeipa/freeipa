@@ -1,1 +1,47 @@
-ipatests/prci_definitions/gating.yaml
+topologies:
+  build: &build
+    name: build
+    cpu: 2
+    memory: 3800
+  master_2repl_1client: &master_2repl_1client
+    name: master_2repl_1client
+    cpu: 4
+    memory: 5750
+
+jobs:
+  fedora-28/build:
+    requires: []
+    priority: 100
+    job:
+      class: Build
+      args:
+        git_repo: '{git_repo}'
+        git_refspec: '{git_refspec}'
+        template: &ci-master-f28
+          name: freeipa/ci-master-f28
+          version: 0.1.7
+        timeout: 3600
+        topology: *build
+
+  fedora-28/server_del:
+    requires: [fedora-28/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-28/build_url}'
+        test_suite: test_integration/test_server_del.py::TestServerDel
+        template: *ci-master-f28
+        timeout: 10800
+        topology: *master_2repl_1client
+  fedora-28/server_del_last_services:
+    requires: [fedora-28/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-28/build_url}'
+        test_suite: test_integration/test_server_del.py::TestLastServices
+        template: *ci-master-f28
+        timeout: 7200
+        topology: *master_2repl_1client

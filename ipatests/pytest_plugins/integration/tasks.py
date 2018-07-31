@@ -738,11 +738,19 @@ def kinit_admin(host, raiseonerr=True):
 
 
 def uninstall_master(host, ignore_topology_disconnect=True,
-                     ignore_last_of_role=True, clean=True, verbose=False):
+                     ignore_last_of_role=True, clean=True,
+                     domain_level=None):
     host.collect_log(paths.IPASERVER_UNINSTALL_LOG)
     uninstall_cmd = ['ipa-server-install', '--uninstall', '-U']
 
-    host_domain_level = domainlevel(host)
+    # in some cases, like uninstalling of replica already removed by
+    # server-del where removal of principals was replicated, dynamic
+    # domain resolution doesn't work as connecting to the API on that
+    # server might no longer work
+    if domain_level is None:
+        host_domain_level = domainlevel(host)
+    else:
+        host_domain_level = domain_level
 
     if ignore_topology_disconnect and host_domain_level != DOMAIN_LEVEL_0:
         uninstall_cmd.append('--ignore-topology-disconnect')
@@ -750,12 +758,7 @@ def uninstall_master(host, ignore_topology_disconnect=True,
     if ignore_last_of_role and host_domain_level != DOMAIN_LEVEL_0:
         uninstall_cmd.append('--ignore-last-of-role')
 
-    if verbose and host_domain_level != DOMAIN_LEVEL_0:
-        uninstall_cmd.append('-v')
-
-    result = host.run_command(uninstall_cmd)
-    assert "Traceback" not in result.stdout_text
-
+    host.run_command(uninstall_cmd)
     host.run_command(['pkidestroy', '-s', 'CA', '-i', 'pki-tomcat'],
                      raiseonerr=False)
     host.run_command(['rm', '-rf',
