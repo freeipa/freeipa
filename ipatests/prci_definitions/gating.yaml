@@ -23,7 +23,11 @@ jobs:
         git_refspec: '{git_refspec}'
         template: &ci-master-f28
           name: freeipa/ci-master-f28
+<<<<<<< HEAD
           version: 0.1.7
+=======
+          version: 0.1.6
+>>>>>>> Making nigthly test definition editable by FreeIPA's contributors
         timeout: 1800
         topology: *build
 

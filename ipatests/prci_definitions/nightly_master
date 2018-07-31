@@ -35,7 +35,11 @@ jobs:
         git_refspec: '{git_refspec}'
         template: &ci-master-f28
           name: freeipa/ci-master-f28
+<<<<<<< HEAD
           version: 0.1.7
+=======
+          version: 0.1.6
+>>>>>>> Making nigthly test definition editable by FreeIPA's contributors
         timeout: 1800
         topology: *build
 
@@ -229,8 +233,12 @@ jobs:
         test_suite: test_integration/test_caless.py::TestClientInstall
         template: *ci-master-f28
         timeout: 5400
+<<<<<<< HEAD
         # actually master_1client
         topology: *master_1repl_1client
+=======
+        topology: *master_1repl
+>>>>>>> Making nigthly test definition editable by FreeIPA's contributors
 
   fedora-28/test_caless_TestIPACommands:
     requires: [fedora-28/build]
@@ -410,7 +418,11 @@ jobs:
         test_suite: test_integration/test_replica_promotion.py::TestKRAInstall
         template: *ci-master-f28
         timeout: 7200
+<<<<<<< HEAD
         topology: *master_2repl_1client
+=======
+        topology: *master_1repl
+>>>>>>> Making nigthly test definition editable by FreeIPA's contributors
 
   fedora-28/test_replica_promotion_TestCAInstall:
     requires: [fedora-28/build]
@@ -422,7 +434,11 @@ jobs:
         test_suite: test_integration/test_replica_promotion.py::TestCAInstall
         template: *ci-master-f28
         timeout: 7200
+<<<<<<< HEAD
         topology: *master_2repl_1client
+=======
+        topology: *master_1repl
+>>>>>>> Making nigthly test definition editable by FreeIPA's contributors
 
   fedora-28/test_replica_promotion_TestReplicaPromotionLevel1:
     requires: [fedora-28/build]
@@ -446,7 +462,11 @@ jobs:
         test_suite: test_integration/test_replica_promotion.py::TestReplicaManageCommands
         template: *ci-master-f28
         timeout: 7200
+<<<<<<< HEAD
         topology: *master_2repl_1client
+=======
+        topology: *master_1repl
+>>>>>>> Making nigthly test definition editable by FreeIPA's contributors
 
   fedora-28/test_replica_promotion_TestUnprivilegedUserPermissions:
     requires: [fedora-28/build]
@@ -470,7 +490,11 @@ jobs:
         test_suite: test_integration/test_replica_promotion.py::TestProhibitReplicaUninstallation
         template: *ci-master-f28
         timeout: 7200
+<<<<<<< HEAD
         topology: *master_2repl_1client
+=======
+        topology: *master_1repl
+>>>>>>> Making nigthly test definition editable by FreeIPA's contributors
 
   fedora-28/test_replica_promotion_TestOldReplicaWorksAfterDomainUpgrade:
     requires: [fedora-28/build]
