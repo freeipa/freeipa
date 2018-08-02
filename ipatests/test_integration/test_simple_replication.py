@@ -22,7 +22,7 @@ from __future__ import print_function
 import pytest
 
 from ipapython.dn import DN
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 
 

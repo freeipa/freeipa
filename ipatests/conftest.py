@@ -25,14 +25,14 @@ except ImportError:
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 pytest_plugins = [
-    'ipatests.pytest_plugins.additional_config',
-    'ipatests.pytest_plugins.beakerlib',
-    'ipatests.pytest_plugins.declarative',
-    'ipatests.pytest_plugins.nose_compat',
+    'ipatests.pytest_ipa.additional_config',
+    'ipatests.pytest_ipa.beakerlib',
+    'ipatests.pytest_ipa.declarative',
+    'ipatests.pytest_ipa.nose_compat',
 ]
 # The integration plugin is not available in client-only builds.
 if ipaserver is not None:
-    pytest_plugins.append('ipatests.pytest_plugins.integration')
+    pytest_plugins.append('ipatests.pytest_ipa.integration')
 
 
 MARKERS = [
@@ -56,7 +56,7 @@ NO_RECURSE_DIRS = [
     # install/share/wsgi.py
     'install/share',
     # integration plugin imports from ipaplatform
-    'ipatests/pytest_plugins',
+    'ipatests/pytest_ipa',
 ]
 
 
