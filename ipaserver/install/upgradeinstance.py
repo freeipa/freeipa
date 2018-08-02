@@ -237,17 +237,22 @@ class IPAUpgrade(service.Service):
 
     def __disable_schema_compat(self):
         ldif_outfile = "%s.modified.out" % self.filename
+
+        with open(self.filename, "r") as in_file:
+            parser = GetEntryFromLDIF(in_file, entries_dn=[COMPAT_DN])
+            parser.parse()
+
+        try:
+            compat_entry = parser.get_results()[COMPAT_DN]
+        except KeyError:
+            return
+
+        if not compat_entry.get('nsslapd-pluginEnabled'):
+            return
+
         with open(ldif_outfile, "w") as out_file:
             with open(self.filename, "r") as in_file:
-                parser = GetEntryFromLDIF(in_file, entries_dn=[COMPAT_DN])
-                parser.parse()
-                try:
-                    compat_entry = parser.get_results()[COMPAT_DN]
-                except KeyError:
-                    return
                 parser = installutils.ModifyLDIF(in_file, out_file)
-                if not compat_entry.get('nsslapd-pluginEnabled'):
-                    return
                 parser.remove_value(COMPAT_DN, "nsslapd-pluginEnabled")
                 parser.remove_value(COMPAT_DN, "nsslapd-pluginenabled")
                 parser.add_value(COMPAT_DN, "nsslapd-pluginEnabled",
