@@ -21,7 +21,7 @@
 # pylint: disable=no-member
 
 import re
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 
 

@@ -27,10 +27,10 @@ import os
 import argparse
 
 from ipapython.ipa_log_manager import standard_logging_setup
-from ipatests.pytest_plugins.integration import config
-from ipatests.pytest_plugins.integration import tasks
-from ipatests.pytest_plugins.integration.host import Host
-from ipatests.pytest_plugins.integration import collect_logs
+from ipatests.pytest_ipa.integration import config
+from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.host import Host
+from ipatests.pytest_ipa.integration import collect_logs
 
 try:
     from pytest_beakerlib import BeakerLibProcess

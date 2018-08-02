@@ -20,12 +20,12 @@ from __future__ import absolute_import
 import re
 import time
 
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 from ipaplatform.paths import paths
 
 from itertools import chain, repeat
-from ipatests.pytest_plugins.integration.create_external_ca import ISSUER_CN
+from ipatests.pytest_ipa.integration.create_external_ca import ISSUER_CN
 
 IPA_CA = 'ipa_ca.crt'
 ROOT_CA = 'root_ca.crt'
