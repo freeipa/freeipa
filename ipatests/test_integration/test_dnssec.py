@@ -12,7 +12,7 @@ import dns.resolver
 import dns.name
 
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
 
 logger = logging.getLogger(__name__)

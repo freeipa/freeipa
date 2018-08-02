@@ -5,7 +5,7 @@
 from itertools import permutations
 
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 from ipalib.constants import DOMAIN_LEVEL_1, DOMAIN_SUFFIX_NAME, CA_SUFFIX_NAME
 
 REMOVAL_ERR_TEMPLATE = ("Removal of '{hostname}' leads to disconnected "

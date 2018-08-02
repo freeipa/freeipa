@@ -7,9 +7,9 @@ from __future__ import absolute_import
 import os
 import re
 import string
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_plugins.integration.env_config import get_global_config
+from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipaplatform.paths import paths
 config = get_global_config()
 

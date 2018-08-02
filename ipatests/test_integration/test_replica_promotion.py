@@ -10,10 +10,10 @@ from tempfile import NamedTemporaryFile
 import textwrap
 import pytest
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_plugins.integration import tasks
-from ipatests.pytest_plugins.integration.tasks import (
+from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.tasks import (
     assert_error, replicas_cleanup)
-from ipatests.pytest_plugins.integration.env_config import get_global_config
+from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipalib.constants import (
     DOMAIN_LEVEL_0, DOMAIN_LEVEL_1, DOMAIN_SUFFIX_NAME, IPA_CA_NICKNAME)
 from ipaplatform.paths import paths

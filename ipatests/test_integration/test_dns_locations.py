@@ -11,7 +11,7 @@ import dns.rdatatype
 import dns.rdataclass
 
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 from ipapython.dnsutil import DNSName
 from ipalib.constants import IPA_CA_RECORD
 

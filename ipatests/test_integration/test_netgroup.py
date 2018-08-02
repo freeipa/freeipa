@@ -5,7 +5,7 @@
 import pytest
 
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_plugins.integration.tasks import clear_sssd_cache
+from ipatests.pytest_ipa.integration.tasks import clear_sssd_cache
 
 
 test_data = []

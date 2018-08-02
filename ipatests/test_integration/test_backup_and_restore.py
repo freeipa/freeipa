@@ -29,7 +29,7 @@ from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython import ipautil
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_dnssec import wait_until_record_is_signed
 from ipatests.test_integration.test_simple_replication import check_replication
 from ipatests.util import assert_deepequal

@@ -28,7 +28,7 @@ import unittest
 
 from ipaplatform.paths import paths
 
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 
 # importing test_trust under different name to avoid nose executing the test
 # base class imported from this module

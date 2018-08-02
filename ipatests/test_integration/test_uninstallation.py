@@ -13,7 +13,7 @@ pieces if possible.
 from __future__ import absolute_import
 
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
 from ipaserver.install.installutils import realm_to_serverid
 from ipaserver.install import dsinstance

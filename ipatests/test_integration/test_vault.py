@@ -5,7 +5,7 @@
 import time
 
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 
 WAIT_AFTER_ARCHIVE = 45  # give some time to replication
 OVERWRITE_WARN_MESG = ("Vault is a secure place to store a secret."

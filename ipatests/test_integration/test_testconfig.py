@@ -20,7 +20,7 @@
 import json
 import copy
 
-from ipatests.pytest_plugins.integration import config
+from ipatests.pytest_ipa.integration import config
 from ipapython.ipautil import write_tmp_file
 from ipatests.util import assert_deepequal
 from ipalib.constants import MAX_DOMAIN_LEVEL
