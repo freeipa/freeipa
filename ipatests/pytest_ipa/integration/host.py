@@ -53,11 +53,11 @@ class Host(pytest_multihost.host.Host):
 
     @classmethod
     def from_env(cls, env, domain, hostname, role, index, domain_index):
-        from ipatests.pytest_plugins.integration.env_config import host_from_env
+        from ipatests.pytest_ipa.integration.env_config import host_from_env
         return host_from_env(env, domain, hostname, role, index, domain_index)
 
     def to_env(self, **kwargs):
-        from ipatests.pytest_plugins.integration.env_config import host_to_env
+        from ipatests.pytest_ipa.integration.env_config import host_to_env
         return host_to_env(self, **kwargs)
 
 

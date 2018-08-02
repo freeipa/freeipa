@@ -21,7 +21,7 @@
 
 import pytest
 
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 from pytest_sourceorder import ordered
 
 
