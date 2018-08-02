@@ -36,9 +36,9 @@ from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.pytest_plugins.integration import tasks
+from ipatests.pytest_ipa.integration import tasks
 from ipatests.create_external_ca import ExternalCA
-from ipatests.pytest_plugins.integration import create_caless_pki
+from ipatests.pytest_ipa.integration import create_caless_pki
 from ipalib.constants import DOMAIN_LEVEL_0
 
 if six.PY3:
