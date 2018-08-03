@@ -581,16 +581,16 @@ jobs:
         topology: *master_3repl_1client
 
   fedora-28/test_replication_layouts_TestLineTopologyWithoutCA:
-  requires: [fedora-28/build]
-  priority: 50
-  job:
-    class: RunPytest
-    args:
-      build_url: '{fedora-28/build_url}'
-      test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithoutCA
-      template: *ci-master-f28
-      timeout: 7200
-      topology: *master_3repl_1client
+    requires: [fedora-28/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-28/build_url}'
+        test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithoutCA
+        template: *ci-master-f28
+        timeout: 7200
+        topology: *master_3repl_1client
 
   fedora-28/test_replication_layouts_TestLineTopologyWithCA:
     requires: [fedora-28/build]
