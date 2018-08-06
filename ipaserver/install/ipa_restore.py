@@ -32,6 +32,7 @@ from six.moves.configparser import SafeConfigParser
 from ipaclient.install.client import update_ipa_nssdb
 from ipalib import api, errors
 from ipalib.constants import FQDN
+from ipalib.constants import IPAAPI_USER
 from ipapython import version, ipautil
 from ipapython.ipautil import run, user_input
 from ipapython import admintool
@@ -377,6 +378,8 @@ class Restore(admintool.AdminTool):
             if restore_type == 'FULL':
                 self.remove_old_files()
                 self.cert_restore_prepare()
+                tasks.create_tmpfiles_dirs(IPAAPI_USER)
+                tasks.configure_tmpfiles()
                 self.file_restore(options.no_logs)
                 self.cert_restore()
                 if 'CA' in self.backup_services:
