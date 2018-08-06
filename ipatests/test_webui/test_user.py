@@ -243,6 +243,7 @@ class test_user(user_tasks):
 
         # cert request
         self.action_list_action('request_cert', confirm=False)
+        self.wait(seconds=2)
         self.assert_dialog()
         self.fill_text("textarea[name='csr']", csr)
         self.dialog_button_click('issue')

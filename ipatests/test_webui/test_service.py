@@ -266,6 +266,7 @@ class test_service(sevice_tasks):
         self.wait()
         self.select('select', '1')
         self.dialog_button_click('ok')
+        self.close_notifications()
 
         # check that revoke action is not enabled
         self.assert_action_list_action('revoke', enabled=False,
