@@ -232,7 +232,8 @@ class test_user(user_tasks):
             self.skip('CSR file is not configured')
 
         self.init_app()
-        # ENHANCEMENT: generate csr dynamically
+        hostname = self.config.get('ipa_server')
+        self.generate_csr(hostname, csr_path)
         csr = self.load_file(csr_path)
         cert_widget_sel = "div.certificate-widget"
 

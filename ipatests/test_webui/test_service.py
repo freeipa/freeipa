@@ -56,7 +56,8 @@ class sevice_tasks(UI_driver):
         }
 
     def load_file(self, path):
-        # ENHANCEMENT: generate csr dynamically
+        hostname = self.config.get('ipa_server')
+        self.generate_csr(hostname, path)
         with open(path, 'r') as file_d:
             content = file_d.read()
         return content
