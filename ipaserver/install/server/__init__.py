@@ -338,6 +338,11 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
     def __init__(self, **kwargs):
         super(ServerInstallInterface, self).__init__(**kwargs)
 
+        # Domain level 0 is not supported anymore
+        if not self._is_promote():
+            raise RuntimeError(
+                "Domain level 0 is not supported anymore.")
+
         # pkinit is not supported on DL0, don't allow related options
         if not self._is_promote():
             if (self.no_pkinit or self.pkinit_cert_files is not None or
@@ -501,6 +506,8 @@ class ServerInstallInterface(ServerCertificateInstallInterface,
                         "domain via the --domain option")
 
             else:
+                # Domain level 0 is not supported anymore
+
                 if not os.path.isfile(self.replica_file):
                     raise RuntimeError(
                         "Replica file %s does not exist" % self.replica_file)
@@ -636,6 +643,9 @@ class ServerReplicaInstall(ServerReplicaInstallInterface):
         if self.replica_file is None:
             replica_promote_check(self)
         else:
+            # Domain level 0 is not supported anymore
+            raise RuntimeError(
+                "Domain level 0 is not supported anymore.")
             replica_install_check(self)
         yield
         replica_install(self)
