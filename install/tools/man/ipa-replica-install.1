@@ -5,22 +5,18 @@
 .SH "NAME"
 ipa\-replica\-install \- Create an IPA replica
 .SH "SYNOPSIS"
-.SS "DOMAIN LEVEL 0"
-.TP
-ipa\-replica\-install [\fIOPTION\fR]... [replica_file]
-.SS "DOMAIN LEVEL 1"
 .TP
 ipa\-replica\-install [\fIOPTION\fR]...
 .SH "DESCRIPTION"
 Configures a new IPA server that is a replica of the server. Once it has been created it is an exact copy of the original IPA server and is an equal master. Changes made to any master are automatically replicated to other masters.
 
-To create a replica in a domain at domain level 0, you need to provide an replica file. The replica_file is created using the ipa\-replica\-prepare utility.
+Domain level 0 is not supported anymore.
 
-To create a replica in a domain at domain level 1, you don't have to provide a replica file, the machine only needs to be enrolled in the FreeIPA domain first. This process of turning the IPA client into a replica is also referred to as replica promotion.
+To create a replica, the machine only needs to be enrolled in the FreeIPA domain first. This process of turning the IPA client into a replica is also referred to as replica promotion.
 
 If you're starting with an existing IPA client, simply run ipa\-replica\-install to have it promoted into a replica.
 
-To promote a blank machine into a replica, you have two options, you can either run ipa\-client\-install in a separate step, or pass the enrollment related options to the ipa\-replica\-install (see DOMAIN LEVEL 1 CLIENT ENROLLMENT OPTIONS). In the latter case, ipa\-replica\-install will join the machine to the IPA realm automatically and will proceed with the promotion step.
+To promote a blank machine into a replica, you have two options, you can either run ipa\-client\-install in a separate step, or pass the enrollment related options to the ipa\-replica\-install (see CLIENT ENROLLMENT OPTIONS). In the latter case, ipa\-replica\-install will join the machine to the IPA realm automatically and will proceed with the promotion step.
 
 If the installation fails you may need to run ipa\-server\-install \-\-uninstall and ipa\-client\-install before running ipa\-replica\-install again.
 
@@ -28,7 +24,7 @@ The installation will fail if the host you are installing the replica on exists 
 
 A replica should only be installed on the same or higher version of IPA on the remote system.
 .SH "OPTIONS"
-.SS "DOMAIN LEVEL 1 OPTIONS"
+.SS "OPTIONS"
 .TP
 \fB\-P\fR, \fB\-\-principal\fR
 The user principal which will be used to promote the client to the replica and enroll the client itself, if necessary.
@@ -36,7 +32,7 @@ The user principal which will be used to promote the client to the replica and e
 \fB\-w\fR, \fB\-\-admin\-password\fR
 The Kerberos password for the given principal.
 
-.SS "DOMAIN LEVEL 1 CLIENT ENROLLMENT OPTIONS"
+.SS "CLIENT ENROLLMENT OPTIONS"
 To install client and promote it to replica using a host keytab or One Time Password, the host needs to be a member of ipaservers group. This requires to create a host entry and add it to the host group prior replica installation.
 
 \-\-server, \-\-domain, \-\-realm  options are autodiscovered via DNS records by default. See manual page
@@ -65,14 +61,6 @@ The hostname of this machine (FQDN). If specified, the hostname will be set and 
 .TP
 \fB\-\-force\-join\fR
 Join the host even if it is already enrolled.
-
-.SS "DOMAIN LEVEL 0 OPTIONS"
-.TP
-\fB\-p\fR \fIPASSWORD\fR, \fB\-\-password\fR=\fIPASSWORD\fR
-Directory Manager (existing master) password
-.TP
-\fB\-w\fR, \fB\-\-admin\-password\fR
-Admin user Kerberos password used for connection check
 
 .SS "BASIC OPTIONS"
 .TP
@@ -123,7 +111,7 @@ Install and configure a CA on this replica. If a CA is not configured then
 certificate operations will be forwarded to a master with a CA installed.
 .TP
 \fB\-\-no\-pkinit\fR
-Disables pkinit setup steps. This is the default and only allowed behavior on domain level 0.
+Disables pkinit setup steps.
 .TP
 \fB\-\-dirsrv\-cert\-file\fR=FILE
 File containing the Directory Server SSL certificate and private key
