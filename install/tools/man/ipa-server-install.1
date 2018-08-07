@@ -63,10 +63,10 @@ The maximum user and group id number (default: idstart+199999). If set to zero, 
 Don't install allow_all HBAC rule. This rule lets any user from any host access any service on any other host. It is expected that users will remove this rule before moving to production.
 .TP
 \fB\-\-ignore-topology-disconnect\fR
-Ignore errors reported when IPA server uninstall would lead to disconnected topology. This option can be used only when domain level is 1 or more.
+Ignore errors reported when IPA server uninstall would lead to disconnected topology.
 .TP
 \fB\-\-ignore-last-of-role\fR
-Ignore errors reported when IPA server uninstall would lead to removal of last CA/DNS server or DNSSec master. This option can be used only when domain level is 1 or more.
+Ignore errors reported when IPA server uninstall would lead to removal of last CA/DNS server or DNSSec master.
 .TP
 \fB\-\-no\-ui\-redirect\fR
 Do not automatically redirect to the Web UI.
@@ -120,7 +120,7 @@ If no template is specified, the template name "SubCA" is used.
 File containing the IPA CA certificate and the external CA certificate chain. The file is accepted in PEM and DER certificate and PKCS#7 certificate chain formats. This option may be used multiple times.
 .TP
 \fB\-\-no\-pkinit\fR
-Disables pkinit setup steps. This is the default and only allowed behavior on domain level 0.
+Disables pkinit setup steps.
 .TP
 \fB\-\-dirsrv\-cert\-file\fR=\fIFILE\fR
 File containing the Directory Server SSL certificate and private key. The files are accepted in PEM and DER certificate, PKCS#7 certificate chain, PKCS#8 and raw private key and PKCS#12 formats. This option may be used multiple times.
