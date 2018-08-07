@@ -43,7 +43,6 @@ nodist_sbin_SCRIPTS =		\
 	ipa-adtrust-install	\
 	ipa-replica-conncheck	\
 	ipa-replica-install	\
-	ipa-replica-prepare	\
 	ipa-replica-manage	\
 	ipa-csreplica-manage	\
 	ipa-server-certinstall  \
