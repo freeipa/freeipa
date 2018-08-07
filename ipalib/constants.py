@@ -255,7 +255,7 @@ SID_ANCHOR_PREFIX = ':SID:'
 DOMAIN_LEVEL_0 = 0  # compat
 DOMAIN_LEVEL_1 = 1  # replica promotion, topology plugin
 
-MIN_DOMAIN_LEVEL = DOMAIN_LEVEL_0
+MIN_DOMAIN_LEVEL = DOMAIN_LEVEL_1
 MAX_DOMAIN_LEVEL = DOMAIN_LEVEL_1
 
 # Constants used in generation of replication agreements and as topology
