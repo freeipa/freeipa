@@ -60,7 +60,7 @@ jobs:
         build_url: '{fedora-28/build_url}'
         test_suite: test_integration/test_external_ca.py::TestExternalCA
         template: *ci-master-f28
-        timeout: 3600
+        timeout: 4800
         topology: *master_1repl_1client
 
   fedora-28/external_ca_2:
@@ -96,7 +96,7 @@ jobs:
         build_url: '{fedora-28/build_url}'
         test_suite: test_integration/test_sudo.py
         template: *ci-master-f28
-        timeout: 3600
+        timeout: 4800
         topology: *master_1repl_1client
 
   fedora-28/test_commands:
@@ -144,7 +144,7 @@ jobs:
         build_url: '{fedora-28/build_url}'
         test_suite: test_integration/test_forced_client_reenrollment.py
         template: *ci-master-f28
-        timeout: 3600
+        timeout: 4800
         topology: *master_1repl_1client
 
   fedora-28/test_advise:
@@ -204,7 +204,7 @@ jobs:
         build_url: '{fedora-28/build_url}'
         test_suite: test_integration/test_vault.py
         template: *ci-master-f28
-        timeout: 4500
+        timeout: 6300
         topology: *master_1repl
 
   fedora-28/test_authconfig:
@@ -216,7 +216,7 @@ jobs:
         build_url: '{fedora-28/build_url}'
         test_suite: test_integration/test_authselect.py
         template: *ci-master-f28
-        timeout: 3600
+        timeout: 4800
         topology: *master_1repl_1client
 
   fedora-28/replica_promotion:
