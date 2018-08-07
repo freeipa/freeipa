@@ -183,6 +183,9 @@ class HTTPInstance(service.Service):
             os.makedirs(session_dir)
         # Must be world-readable / executable
         os.chmod(session_dir, 0o755)
+        # Restore SELinux context of session_dir /etc/httpd/alias, see
+        # https://pagure.io/freeipa/issue/7662
+        tasks.restore_context(session_dir)
 
         target_fname = paths.HTTPD_IPA_CONF
         http_txt = ipautil.template_file(
