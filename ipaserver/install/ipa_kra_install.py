@@ -182,6 +182,11 @@ class KRAInstaller(KRAInstall):
         api.Backend.ldap2.connect()
 
         if self.installing_replica:
+            if not self.options.promote:
+                # Domain level 0 is not supported anymore
+                raise admintool.ScriptError(
+                    "Domain level 0 is not supported anymore")
+
             if self.options.promote:
                 config = ReplicaConfig()
                 config.kra_host_name = None
@@ -193,9 +198,6 @@ class KRAInstaller(KRAInstall):
                 config.top_dir = tempfile.mkdtemp("ipa")
                 config.dir = config.top_dir
             else:
-                # Domain level 0 is not supported anymore
-                raise admintool.ScriptError(
-                    "Domain level 0 is not supported anymore")
                 config = create_replica_config(
                     self.options.password,
                     self.replica_file,
