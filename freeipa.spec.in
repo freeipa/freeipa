@@ -1297,7 +1297,6 @@ fi
 %{_sbindir}/ipa-server-install
 %{_sbindir}/ipa-replica-conncheck
 %{_sbindir}/ipa-replica-install
-%{_sbindir}/ipa-replica-prepare
 %{_sbindir}/ipa-replica-manage
 %{_sbindir}/ipa-csreplica-manage
 %{_sbindir}/ipa-server-certinstall
@@ -1353,7 +1352,6 @@ fi
 %{_mandir}/man1/ipa-replica-install.1*
 %{_mandir}/man1/ipa-replica-manage.1*
 %{_mandir}/man1/ipa-csreplica-manage.1*
-%{_mandir}/man1/ipa-replica-prepare.1*
 %{_mandir}/man1/ipa-server-certinstall.1*
 %{_mandir}/man1/ipa-server-install.1*
 %{_mandir}/man1/ipa-server-upgrade.1*
