@@ -49,7 +49,7 @@ log_file_name = paths.IPAREPLICA_CA_INSTALL_LOG
 REPLICA_INFO_TOP_DIR = None
 
 def parse_options():
-    usage = "%prog [options] [REPLICA_FILE]"
+    usage = "%prog [options]"
     parser = IPAOptionParser(usage=usage, version=version.VERSION)
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="gather extra debugging information")
@@ -105,6 +105,7 @@ def parse_options():
     safe_options = parser.get_safe_opts(options)
 
     if args:
+        parser.error("Domain level 0 is not supported anymore")
         filename = args[0]
 
         if len(args) != 1:

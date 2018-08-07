@@ -20,20 +20,15 @@
 .SH "NAME"
 ipa\-ca\-install \- Install a CA on a server
 .SH "SYNOPSIS"
-.SS "DOMAIN LEVEL 0"
-.TP
-ipa\-ca\-install [\fIOPTION\fR]... [replica_file]
-.SS "DOMAIN LEVEL 1"
 .TP
 ipa\-ca\-install [\fIOPTION\fR]...
 .SH "DESCRIPTION"
 Adds a CA as an IPA\-managed service. This requires that the IPA server is already installed and configured.
 
-In a domain at domain level 0, you can run ipa\-ca\-install without replica_file to upgrade from CA-less to CA-full, or with replica_file to install the CA service on the replica.
+ipa\-ca\-install can be used to upgrade from CA-less to CA-full or to install the CA service on a replica.
 
-The replica_file is created using the ipa\-replica\-prepare utility and should be the same one used when originally installing the replica.
+Domain level 0 is not supported anymore.
 
-In a domain at domain level 1, ipa\-ca\-install can be used to upgrade from CA-less to CA-full or to install the CA service on a replica, and does not require any replica file.
 .SH "OPTIONS"
 \fB\-d\fR, \fB\-\-debug\fR
 Enable debug logging when more verbose output is needed
