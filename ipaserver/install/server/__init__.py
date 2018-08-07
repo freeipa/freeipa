@@ -640,12 +640,13 @@ class ServerReplicaInstall(ServerReplicaInstallInterface):
 
     @step()
     def main(self):
-        if self.replica_file is None:
-            replica_promote_check(self)
-        else:
+        if self.replica_file is not None:
             # Domain level 0 is not supported anymore
             raise RuntimeError(
                 "Domain level 0 is not supported anymore.")
+        if self.replica_file is None:
+            replica_promote_check(self)
+        else:
             replica_install_check(self)
         yield
         replica_install(self)
