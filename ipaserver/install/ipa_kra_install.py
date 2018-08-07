@@ -48,7 +48,7 @@ class KRAInstall(admintool.AdminTool):
 
     command_name = 'ipa-kra-install'
 
-    usage = "%prog [options] [replica_file]"
+    usage = "%prog [options]"
 
     description = "Install a master or replica KRA."
 
@@ -121,6 +121,8 @@ class KRAInstaller(KRAInstall):
         if len(self.args) > 1:
             self.option_parser.error("Too many arguments provided")
         elif len(self.args) == 1:
+            # Domain level 0 is not supported anymore
+            self.option_parser.error("Domain level 0 is not supported anymore")
             self.replica_file = self.args[0]
             if not os.path.isfile(self.replica_file):
                 self.option_parser.error(
@@ -191,6 +193,9 @@ class KRAInstaller(KRAInstall):
                 config.top_dir = tempfile.mkdtemp("ipa")
                 config.dir = config.top_dir
             else:
+                # Domain level 0 is not supported anymore
+                raise admintool.ScriptError(
+                    "Domain level 0 is not supported anymore")
                 config = create_replica_config(
                     self.options.password,
                     self.replica_file,
