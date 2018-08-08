@@ -13,7 +13,7 @@ import os
 
 import six
 
-from ipalib.constants import DOMAIN_LEVEL_0
+from ipalib.constants import MIN_DOMAIN_LEVEL
 from ipalib import errors
 from ipalib.install.service import ServiceAdminInstallInterface
 from ipalib.install.service import replica_install_only
@@ -258,7 +258,7 @@ def retrieve_potential_adtrust_agents(api):
         # because only these masters will have SSSD recent enough
         # to support AD trust agents
         dl_enabled_masters = api.Command.server_find(
-            ipamindomainlevel=DOMAIN_LEVEL_0, all=True)['result']
+            ipamindomainlevel=MIN_DOMAIN_LEVEL, all=True)['result']
     except (errors.DatabaseError, errors.NetworkError) as e:
         logger.error(
             "Could not retrieve a list of existing IPA masters: %s", e)
