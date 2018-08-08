@@ -27,6 +27,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <ctype.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <nss.h>
 #include <nssb64.h>
 #include <hasht.h>
@@ -655,4 +657,27 @@ done:
     free(ordered);
     free(hash);
     return ret;
+}
+
+#define PROC_SYS_FIPS "/proc/sys/crypto/fips_enabled"
+
+bool ipapwd_fips_enabled(void)
+{
+    int fd;
+    ssize_t len;
+    char buf[8];
+
+    fd = open(PROC_SYS_FIPS, O_RDONLY);
+    if (fd != -1) {
+        len = read(fd, buf, sizeof(buf));
+        close(fd);
+        /* Assume FIPS in enabled if PROC_SYS_FIPS contains a non-0 value
+         * similar to the is_fips_enabled() check in
+         * ipaplatform/redhat/tasks.py */
+        if (!(len == 2 && buf[0] == '0' && buf[1] == '\n')) {
+            return true;
+        }
+    }
+
+    return false;
 }
