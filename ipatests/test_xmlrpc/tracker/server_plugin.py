@@ -50,7 +50,7 @@ class ServerTracker(Tracker):
                 u"ipaSupportedDomainLevelConfig"
             ],
             ipamaxdomainlevel=[u"1"],
-            ipamindomainlevel=[u"0"],
+            ipamindomainlevel=[u"1"],
         )
         self.exists = True
 
