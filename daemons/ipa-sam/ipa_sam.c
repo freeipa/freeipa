@@ -213,6 +213,7 @@ struct ipasam_private {
 	char *client_princ;
 	struct sss_idmap_ctx *idmap_ctx;
 	uint32_t supported_enctypes;
+	bool fips_enabled;
 };
 
 
@@ -1737,6 +1738,10 @@ static bool search_krb_princ(struct ipasam_private *ipasam_state,
 	return true;
 }
 
+/* Please keep ENCTYPE_ARCFOUR_HMAC the last in the list
+ * of the default encryption types so that we can exclude
+ * it when running in a FIPS mode where it is not allowed
+ */
 #define DEF_ENCTYPE_NUM 3
 long default_enctypes[DEF_ENCTYPE_NUM] = {
     ENCTYPE_AES256_CTS_HMAC_SHA1_96,
@@ -1754,9 +1759,14 @@ static int set_cross_realm_pw(struct ipasam_private *ipasam_state,
 	struct berval reqdata = { 0 };
 	struct berval *retdata = NULL;
         char *retoid;
+	int enctypes_num = DEF_ENCTYPE_NUM;
 
+        if (ipasam_state->fips_enabled) {
+		DEBUG(1, ("FIPS mode enabled: TDO account credentials will not have RC4-HMAC!\n"));
+                enctypes_num = DEF_ENCTYPE_NUM - 1;
+        }
         ret = ipaasn1_enc_getkt(true, princ, pwd,
-                                default_enctypes, DEF_ENCTYPE_NUM,
+                                default_enctypes, enctypes_num,
                                 &buffer, &buflen);
         if (!ret) goto done;
 
@@ -3935,7 +3945,9 @@ static NTSTATUS ipasam_get_enctypes(struct ipasam_private *ipasam_state,
 				*enctypes |= KERB_ENCTYPE_DES_CBC_MD5;
 				break;
 			case ENCTYPE_ARCFOUR_HMAC:
-				*enctypes |= KERB_ENCTYPE_RC4_HMAC_MD5;
+				if (!ipasam_state->fips_enabled) {
+					*enctypes |= KERB_ENCTYPE_RC4_HMAC_MD5;
+				}
 				break;
 			case ENCTYPE_AES128_CTS_HMAC_SHA1_96:
 				*enctypes |= KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96;
@@ -4563,6 +4575,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		return NT_STATUS_INVALID_PARAMETER;
 	}
 
+	ipasam_state->fips_enabled = ipapwd_fips_enabled();
 	ipasam_state->trust_dn = talloc_asprintf(ipasam_state,
 						 "cn=ad,cn=trusts,%s",
 						 ipasam_state->base_dn);
@@ -4684,9 +4697,11 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 				     &enctypes);
 
 	if (!NT_STATUS_IS_OK(status)) {
-		enctypes = KERB_ENCTYPE_RC4_HMAC_MD5 |
-			   KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96 |
+		enctypes = KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96 |
 			   KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96;
+		if (!ipasam_state->fips_enabled) {
+			enctypes |= KERB_ENCTYPE_RC4_HMAC_MD5;
+		}
 	}
 
 	ipasam_state->supported_enctypes = enctypes;
