@@ -77,3 +77,5 @@ int ipapwd_generate_new_history(char *password,
                                 int *new_pwd_hlen);
 
 int encode_nt_key(char *newPasswd, uint8_t *nt_key);
+
+bool ipapwd_fips_enabled(void);
