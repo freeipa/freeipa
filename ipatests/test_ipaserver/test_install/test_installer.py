@@ -8,7 +8,6 @@ import six
 from abc import ABCMeta, abstractproperty
 from collections import namedtuple
 import itertools
-import tempfile
 
 from ipatests.util import assert_equal
 from ipaserver.install.ipa_replica_install import ReplicaInstall
