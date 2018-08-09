@@ -3725,11 +3725,7 @@ class ClientInstall(ClientInstallInterface,
     def prompt_password(self):
         return self.interactive
 
-    no_ac = knob(
-        None,
-        description="do not modify the nsswitch.conf and PAM configuration",
-        cli_names='--noac',
-    )
+    no_ac = False
 
     force = knob(
         None,
