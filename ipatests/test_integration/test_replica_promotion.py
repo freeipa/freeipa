@@ -39,12 +39,14 @@ class ReplicaPromotionBase(IntegrationTest):
         assert(found > 0), result2.stdout_text
 
 
+@pytest.mark.skip(reason="Domain level 0 is not supported anymore")
 class TestReplicaPromotionLevel0(ReplicaPromotionBase):
 
     topology = 'star'
     num_replicas = 1
     domain_level = DOMAIN_LEVEL_0
 
+    @pytest.mark.skip(reason="Domain level 0 is not supported anymore")
     @replicas_cleanup
     def test_promotion_disabled(self):
         """
@@ -86,6 +88,7 @@ class TestReplicaPromotionLevel0(ReplicaPromotionBase):
         assert(found2 > 0), result2.stdout_text
 
 
+@pytest.mark.skip(reason="Domain level 0 is not supported anymore")
 @pytest.mark.xfail(reason="Ticket N 6274", strict=True)
 class TestKRAInstall(IntegrationTest):
     """
@@ -125,6 +128,7 @@ class TestKRAInstall(IntegrationTest):
         tasks.install_kra(replica2)
 
 
+@pytest.mark.skip(reason="Domain level 0 is not supported anymore")
 @pytest.mark.xfail(reason="Ticket N 6274", strict=True)
 class TestCAInstall(IntegrationTest):
     topology = 'star'
@@ -177,6 +181,7 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
     num_replicas = 1
     domain_level = DOMAIN_LEVEL_1
 
+    @pytest.mark.skip(reason="Domain level 0 is not supported anymore")
     @replicas_cleanup
     def test_replica_prepare_disabled(self):
         replica = self.replicas[0]
@@ -204,6 +209,7 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
                                      '-U'])
 
 
+@pytest.mark.skip(reason="Domain level 0 is not supported anymore")
 @pytest.mark.xfail(reason="Ticket N 6274", strict=True)
 class TestReplicaManageCommands(IntegrationTest):
     topology = "star"
@@ -371,6 +377,7 @@ class TestProhibitReplicaUninstallation(IntegrationTest):
                                       '-U', '--ignore-topology-disconnect'])
 
 
+@pytest.mark.skip(reason="Domain level 0 is not supported anymore")
 @pytest.mark.xfail(reason="Ticket N 6274", strict=True)
 class TestOldReplicaWorksAfterDomainUpgrade(IntegrationTest):
     topology = 'star'
