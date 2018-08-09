@@ -43,11 +43,4 @@ class SSSDInstallInterface(service.ServiceInstallInterface):
     )
     preserve_sssd = enroll_only(preserve_sssd)
 
-    no_sssd = knob(
-        None,
-        deprecated=True,
-        description="Do not configure the client to use SSSD for "
-                    "authentication",
-        cli_names=[None, '-S'],
-    )
-    no_sssd = enroll_only(no_sssd)
+    no_sssd = False
