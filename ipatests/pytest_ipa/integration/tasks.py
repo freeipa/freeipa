@@ -32,6 +32,7 @@ import time
 
 import dns
 from ldif import LDIFWriter
+import pytest
 from SSSDConfig import SSSDConfig
 from six import StringIO
 from cryptography.hazmat.primitives import serialization
@@ -45,7 +46,9 @@ from ipapython.dn import DN
 from ipalib import errors
 from ipalib.util import get_reverse_zone_default, verify_host_resolvable
 from ipalib.constants import (
-    DEFAULT_CONFIG, DOMAIN_SUFFIX_NAME, DOMAIN_LEVEL_0)
+    DEFAULT_CONFIG, DOMAIN_SUFFIX_NAME, DOMAIN_LEVEL_0,
+    MIN_DOMAIN_LEVEL, MAX_DOMAIN_LEVEL
+)
 
 from ipatests.create_external_ca import ExternalCA
 from .env_config import env_to_script
@@ -291,6 +294,7 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
                    stdin_text=None, raiseonerr=True):
     if domain_level is None:
         domain_level = host.config.domain_level
+    check_domain_level(domain_level)
     setup_server_logs_collecting(host)
     apply_common_fixes(host)
     fix_apache_semaphores(host)
@@ -335,6 +339,19 @@ def get_replica_filename(replica):
     return os.path.join(replica.config.test_dir, 'replica-info.gpg')
 
 
+def check_domain_level(domain_level):
+    if domain_level < MIN_DOMAIN_LEVEL:
+        pytest.fail(
+            "Domain level {} not supported, min level is {}.".format(
+                domain_level, MIN_DOMAIN_LEVEL)
+        )
+    if domain_level > MAX_DOMAIN_LEVEL:
+        pytest.fail(
+            "Domain level {} not supported, max level is {}.".format(
+                domain_level, MAX_DOMAIN_LEVEL)
+        )
+
+
 def domainlevel(host):
     """
     Dynamically determines the domainlevel on master. Needed for scenarios
@@ -347,12 +364,14 @@ def domainlevel(host):
     """
     kinit_admin(host, raiseonerr=False)
     result = host.run_command(['ipa', 'domainlevel-get'], raiseonerr=False)
-    level = 0
+    level = MIN_DOMAIN_LEVEL
     domlevel_re = re.compile('.*(\d)')
     if result.returncode == 0:
         # "domainlevel-get" command doesn't exist on ipa versions prior to 4.3
         level = int(domlevel_re.findall(result.stdout_text)[0])
+    check_domain_level(level)
     return level
+
 
 def master_authoritative_for_client_domain(master, client):
     zone = ".".join(client.hostname.split('.')[1:])
@@ -401,6 +420,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
                     raiseonerr=True):
     if domain_level is None:
         domain_level = domainlevel(master)
+    check_domain_level(domain_level)
     apply_common_fixes(replica)
     setup_server_logs_collecting(replica)
     allow_sync_ptr(master)
@@ -712,6 +732,7 @@ def sync_time(host, server):
 def connect_replica(master, replica, domain_level=None):
     if domain_level is None:
         domain_level = master.config.domain_level
+    check_domain_level(domain_level)
     if domain_level == DOMAIN_LEVEL_0:
         replica.run_command(['ipa-replica-manage', 'connect', master.hostname])
     else:
@@ -726,6 +747,7 @@ def connect_replica(master, replica, domain_level=None):
 def disconnect_replica(master, replica, domain_level=None):
     if domain_level is None:
         domain_level = master.config.domain_level
+    check_domain_level(domain_level)
     if domain_level == DOMAIN_LEVEL_0:
         replica.run_command(['ipa-replica-manage', 'disconnect', master.hostname])
     else:
@@ -1226,6 +1248,7 @@ def ipa_restore(master, backup_path):
 def install_kra(host, domain_level=None, first_instance=False, raiseonerr=True):
     if domain_level is None:
         domain_level = domainlevel(host)
+    check_domain_level(domain_level)
     command = ["ipa-kra-install", "-U", "-p", host.config.dirman_password]
     if domain_level == DOMAIN_LEVEL_0 and not first_instance:
         replica_file = get_replica_filename(host)
@@ -1241,6 +1264,7 @@ def install_ca(host, domain_level=None, first_instance=False,
                external_ca=False, cert_files=None, raiseonerr=True):
     if domain_level is None:
         domain_level = domainlevel(host)
+    check_domain_level(domain_level)
     command = ["ipa-ca-install", "-U", "-p", host.config.dirman_password,
                "-P", 'admin', "-w", host.config.admin_password]
     if domain_level == DOMAIN_LEVEL_0 and not first_instance:
