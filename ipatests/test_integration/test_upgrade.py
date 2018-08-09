@@ -18,4 +18,6 @@ class TestUpgrade(IntegrationTest):
     def test_invoke_upgrader(self):
         cmd = self.master.run_command(['ipa-server-upgrade'],
                                       raiseonerr=False)
+        assert ("DN: cn=Schema Compatibility,cn=plugins,cn=config does not \
+                exists or haven't been updated" not in cmd.stdout_text)
         assert cmd.returncode == 0
